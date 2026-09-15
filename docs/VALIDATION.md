@@ -2,16 +2,23 @@
 
 ## Early TOPP bundle wave 3 integration (2026-09-15)
 
-`integrate/wave2` (`4091665`) now carries, on top of the wave-2 tip `1c14d60`,
+`integrate/wave2` (`864b295`) now carries, on top of the wave-2 tip `1c14d60`,
 the two trace fitters, the wave-3a scaffold and its three tools, the
-FeatureFinderAlgorithmPicked feature stage, the Boost.Regex facade, six fix
+FeatureFinderAlgorithmPicked feature stage, the Boost.Regex facade, seven fix
 lanes and the Levenberg-Marquardt rewrite. This shared-file pass on
 `integrate/wave3-shared` records them in CI, the ledger, the provenance files,
 the C++ issue log, the crate register and the documentation, and adds
-[BENCHMARKS](BENCHMARKS.md). Not included: `fix/picked-chromatogram`, still
-running (the picked TIC chromatogram of the instrument-scale picker run; the
-lead merges it later). See
+[BENCHMARKS](BENCHMARKS.md). See
 [the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-3-status).
+
+The seventh fix lane, `fix/picked-chromatogram`, merged as `b1700de` (docs
+`864b295`) while this pass was under audit, and this pass was rebased onto it.
+Two consequences are recorded rather than smoothed over: the tree-wide gate
+numbers below are the lead's at `4091665`, which is one merge behind that tip,
+and the instrument-scale picked TIC chromatogram is now bit-identical, so every
+statement about it here, in [BENCHMARKS](BENCHMARKS.md), in the ledger and in
+[PORTING_STATUS](PORTING_STATUS.md) describes a closed finding. This pass's own
+kim gates below were rerun on the rebased tree.
 
 Tiers as in waves 1 and 2: tier 1 is an executed differential against a C++
 oracle, tier 3 upstream class-test literals, tier 4 native derivation. Wave 3
@@ -27,7 +34,7 @@ gate script (Linux x86_64: spock, kim or dax); "1.96" is current stable and
 |---|---|---|---|
 | B4-GAUSS (fix round 3) | `2fc61e5` | Tier 3: 16 TraceFitter_test and 17 GaussTraceFitter_test sections; tier 1 against `../oracle/gauss-trace-fitter` and C2: start values, residuals, Jacobians and queries bit-identical, fits and the 1..500 budget sweep within 1e-9, statuses/`nfev`/`njev` and the budget boundaries exact; the 79-input solver-gap probe recorded, not asserted | `trace_fitter` 22 and `gauss_trace_fitter` 34 (including the `#[ignore]`d report) on 1.96 and 1.85, with and without default features; `--lib feature_finder_picked` 3; doctest 1; clippy `--all-targets` and rustdoc exit 0; the solver-gap oracle re-executed in a copy, all four result files byte-identical and every manifest hash verified; 43 in-repo and external sha256 recomputed, 0 mismatches |
 | B5-EGH | `7d0c975` | Tier 3: the EGHTraceFitter_test sections; tier 1 against `../oracle/egh-trace-fitter` and C2: 80/80 start points, 515/515 parameter vectors and 11,023/11,023 functor values bit-identical when the oracle platform's own `exp`/`log` are used, fits and derived quantities within 1e-9 (measured maximum 1.98e-11) | on kim at `7d0c975`: `egh_trace_fitter` 32, `gauss_trace_fitter` 33 + 1 ignored, `trace_fitter` 22 on 1.96 and 1.85; `doc --all-features` exit 0 on both toolchains (the gate that failed 101 at `cf55e91`), with a negative control that re-injects one explicit link and fails 101; clippy exit 0; a 419-case before/after probe (44,246 lines) bit-identical except two error strings |
-| B7-FFAP-FEATURES | `ba913da` | Tier 1: the feature stage replayed against `../oracle/b7-ffap-features` and, through the wrapper, against the Release build — `TOPP_FeatureFinderCentroided_1` gives the same 24 seeds, 8 features, 30 hulls and 1,054 hull points, bit-identical m/z and hull points, rt/`score_fit`/`score_correlation` within 1e-9 (5.5e-13, 2.2e-10, 7.7e-12) | `test --locked --all-features --all-targets` 341 binaries, 4,960 passed, 0 failed; 14 feature-finding targets on 1.85, 271 passed; `--no-default-features --features mzml,paramxml,featurexml` 11 + 29; `build --no-default-features` ok; clippy and rustdoc exit 0; the verifier's own determinism harness fingerprinted every feature field, hull point, log line and abort entry at `Threads::serial()`, 2, 3 and 8 — byte-identical |
+| B7-FFAP-FEATURES | `ba913da` | Tier 1: the feature stage replayed against `../oracle/b7-ffap-features` and, through the wrapper, against the Release build — the `FeatureFinderCentroided_1` family gives the Release build's own counts: 8 features, 30 hulls and 120 hull points in the default run, 24 seeds in the `-seeds` run and 1,054 hull points under `-debug 5`, with bit-identical m/z and hull points and rt/`score_fit`/`score_correlation` within 1e-9 (5.5e-13, 2.2e-10, 7.7e-12) | `test --locked --all-features --all-targets` 341 binaries, 4,960 passed, 0 failed; 14 feature-finding targets on 1.85, 271 passed; `--no-default-features --features mzml,paramxml,featurexml` 11 + 29; `build --no-default-features` ok; clippy and rustdoc exit 0; the verifier's own determinism harness fingerprinted every feature field, hull point, log line and abort entry at `Threads::serial()`, 2, 3 and 8 — byte-identical |
 | wave-3a scaffold | `8f0bb3e` | Integrator-owned: the three tool registrations, their `[[bin]]` entries and `FileHandler::load_experiment_with_read_options` | covered by the wave-3a package gates below |
 | P3-PICKER-TOOL | final commit (merge `4c2806d`) | Tier 1: the four registered workflows `TOPP_PeakPickerHiRes_1/_2/_5/_6` against the retained outputs (decoded, D6), the six parameter-failure registrations and `TOPPWRITEINI_OVERWRITE`, and the C1 oracle regressions plus `../oracle/topp-peak-picker-tool` | `--no-default-features --features mzml,paramxml --test topp_peak_picker_hi_res --lib` 17 + 243 on 1.96 and 1.85; the seven-target TOPP line 109 passed; `--all-features --all-targets` 338 ok lines, 0 failures; `+1.85.0 check --all-targets`, clippy, rustdoc exit 0; three release builds of the binary; 17 of the verifier's own product-SDK C++ reference runs |
 | A5-FILEINFO-TOOL | `a4eb586` | Tier 1: `TOPP_FileInfo_1`, `_2`, `_3` and `_9` through FuzzyDiff against the retained outputs, and 17 executed product-SDK cases in `../oracle/topp-file-info-tool`, run twice | `--features mzml,paramxml,featurexml --test topp_file_info --test file_info` 33 and 58 (5 ignored) on 1.96 and 1.85; `--all-features` four targets 33/59/73/8; `--no-default-features --test file_info` 22; `+1.85.0 check --all-targets`, clippy, rustdoc exit 0; 66 + 2 doctests; a release build of the binary; the verifier reran all 40 C1 FileInfo cases, all 17 package cases and 47 further argv pairs against the C++ |
@@ -40,6 +47,7 @@ gate script (Linux x86_64: spock, kim or dax); "1.96" is current stable and
 | fix/picker-scale | `6b55773` | Tier 1: the shipped tool end to end on the 2.3 GB benchmark input against the C++ Release tool, 22,776,198 centroids bit-identical in m/z and intensity | on spock: `+1.85.0 --no-default-features --all-targets` 343 targets / 3,476 tests (the blocker's proof: the example builds under no default features); 17 targets / 496 tests under `--all-features`; clippy and rustdoc exit 0; `--all-features --all-targets --no-fail-fast` 5,123 passed / 6 failed, the six proven pre-existing on a pristine `aa0816e` worktree; the memory cost of the replaced test measured at 118 MiB against 835 MiB |
 | fix/tool-threads | `a442694` | Tier 1: `../oracle/tool-threads` — 14 executed C++ cases and 60 Rust-versus-C++ pairs, with `/proc/<pid>/task` sampled to count the threads each implementation starts; the executed C++ shows `-threads -1` and `-7` start `omp_get_num_procs()` threads, which `Threads::from_cli` had mapped to one | on spock: eight TOPP and parallel targets under `--all-features` on 1.96 and 1.85; `--no-default-features --features mzml,paramxml`; clippy, rustdoc, fmt and the doctests exit 0; the verifier's own thread probe over 49 further cases on ibminode06 |
 | fix/baseline-filter-last-point | `4a597cf` | Tier 1: the C++ Release BaselineFilter over the edge shapes, an exhaustive element-length sweep, the tool and the full UK222 run (`../oracle/baseline-filter-edges`) | on kim: fmt, clippy `--all-targets`, `test --locked --all-features --all-targets`, twelve targets on 1.85, `--no-default-features`, rustdoc — all exit 0; the verifier built its own independent sweep oracle (37,730 forked cases, 1,199,520 samples) and its own mzML decoder, reproducing 119 of 119 committed tool rows; a negative control that reverts the four method arms fails |
+| fix/picked-chromatogram | `e269586` (`b1700de`) | Tier 1 in both directions: `../oracle/picked-chromatogram` — the C++ Release build reads and picks seven cases built from the benchmark file's own TIC arrays (32/64-bit against minute/second, plus the empty, single-point and unsorted shapes) and every value is compared as an IEEE-754 bit pattern; the `min32` rows pin `ReadOptions::source_time_array_precision` and the `min64` rows pin the library default | on dax/spock: fmt, clippy `--all-targets`, rustdoc, `test --locked --all-features --all-targets --no-fail-fast` (5,141 passed; the only failures were the six `topp_feature_finder_centroided` tests that `fix/ffc-integration` then closed, proven pre-existing on the merge base), 21 mzML targets and 5 picking targets without default features on 1.96 and 1.85, 3 doctests; the verifier rebuilt the oracle from its own source and its own probe and got the committed TSV byte for byte (209 rows), re-ran the full 2.3 GB input through three binaries (C++, Rust before, Rust after) with its own comparators, and proved the tests non-vacuous by forcing the switch off (5 of the new tests fail) |
 
 Lead's results for the merged tree at `4091665` (dax, detached): `test --locked
 --all-features --all-targets --no-fail-fast` **5,141 passed, 0 failed, 21
@@ -60,14 +68,24 @@ The first Rust-against-C++ measurement on real data, and the reason
 | wall | 26.80 s and 28.85 s (two runs) | 38.69 s |
 | peak RSS | 3,977,240 KiB = 3,884 MiB | 4,412,352 KiB = 4,309 MiB |
 | centroids | 22,776,198 | 22,776,198, **every m/z and every intensity bit-identical** |
+| picked TIC chromatogram | 8,174 points | 8,174 points, **every retention time and every intensity equal** |
 
-Two differences remain, both recorded rather than explained away: the picked
-TIC chromatogram is *not* equal (8,173 of 8,174 retention times differ by up to
-3.19e-3 s, and 7,891 of 8,174 intensities by more than 1e-6 relative, worst
-1.75e-3) — a defect in `PeakPickerHiRes::pick_chromatogram` that lane
-`fix/picked-chromatogram` is root-causing; and spectrum retention times differ
-in 10,671 of 40,856 records by at most 9.09e-13 s, 1 to 2 ULP of `f64`, after a
-round trip through each writer. The run was made by
+The chromatogram row is the one this pass had to correct. The run above showed
+it differing (8,173 of 8,174 retention times by up to 3.19e-3 s, and 7,891 of
+8,174 intensities by more than 1e-6 relative, worst 1.75e-3);
+`fix/picked-chromatogram` then root-caused that in the **mzML reader**, not in
+`pick_chromatogram` — the source narrows a unit-converted 32-bit time array
+back to `f32` (`CPP-306`), which this input's TIC time array hits and the
+picker's spline apex amplifies — and `ReadOptions::source_time_array_precision`
+makes the two agree bit for bit over the whole file. Its verifier reproduced
+both states from its own comparators on its own runs, before and after.
+
+One difference remains, recorded rather than explained away: spectrum retention
+times differ in 10,671 of 40,856 records by at most 9.09e-13 s, 1 to 2 ULP of
+`f64`. That one is writer-side and the port's text is the correct side — the
+C++'s own output fails to reparse to its own stored `double` in exactly those
+10,671 records, because its writers print 15 significant digits (`CPP-307`);
+the two readers agree bit for bit on all 40,856. The run was made by
 `../oracle/topp-peak-picker-scale/bench_06.sh` on ibminode06 under foreign
 load, once per implementation, so the wall times are indicative and carry no
 median, IQR or confidence interval; the peak-RSS figures come from
@@ -98,10 +116,17 @@ macOS-only `macos_arm64_sdk_gap_report` is compiled out there). Three survive
 | `topp_threads.rs::hpc_benchmark_slices_are_thread_invariant`, `::hpc_full_size_inputs_are_thread_invariant` (Linux + `parallel` only) | read the staged benchmark inputs under `/ceph` | external dependency | fix/tool-threads |
 
 Every reason names a documented gap or an external dependency, and no ignore
-hides an unexplained failure. Four of them are reports that assert nothing and
-exist to be read with `--ignored --nocapture`; nine need the IBMI `/ceph`
-share; five name a reader gap or a decided divergence, each with a live
-tripwire or an owner. The wave-2 tripwire
+hides an unexplained failure. The buckets, counted on the 21 Linux rows: **four
+reports** meant to be read with `--ignored --nocapture` (three on Linux — the
+fourth, `macos_arm64_sdk_gap_report`, is compiled out there — and one of the
+four, `verbose_3_log_bytes_are_bounded`, does assert its bound and is listed
+here only because it is ignored for its 256 MiB cost); **twelve** need the IBMI
+`/ceph` share (`mzml_reader_scale` × 6, `mzml_writer_scale` × 2,
+`topp_baseline_filter_edges` × 2, `topp_threads` × 2); **five** name a reader
+gap (the `file_info` rows) and **one** a decided divergence (the
+FeatureFinderCentroided zero-width RT range), each with a live tripwire or an
+owner. Three plus twelve plus five plus one is the 21 that
+`--all-features --all-targets -- --ignored --list` prints. The wave-2 tripwire
 `reader_gaps_behind_the_ignored_cases_are_still_present` still fails when a
 reader gap closes.
 
@@ -172,16 +197,24 @@ here so the choice is visible rather than accidental.
     their tools recorded; `MzMLFile.h` gains the reader-scale and writer-parity
     scope; the four `MATH/STATISTICS` fitter rows gain B3b's result and
     `tests/lm_eigen_path_differential.rs`.
+  - After the rebase onto `864b295`, two of those scopes changed again without
+    a status change: `PeakPickerHiRes.h` loses the picked-chromatogram
+    divergence from its `PARTIAL` clause (it was never a picker defect) and
+    states the instrument-scale memory in MiB converted from KiB by 1024, which
+    the first draft of this pass had divided by 1000; `MzMLFile.h` gains
+    `ReadOptions::source_time_array_precision` as the third
+    source-compatibility switch, with `CPP-306` and the seven-case oracle.
   - **Validated TOPP workflows 5 → 8**: `PeakPickerHiRes`, `FileInfo` and
     `FeatureFinderCentroided` join, because their tier-1 manifests are now
     registered in `topp_package_reference_manifests`.
-- **Provenance.** `SOURCE_PROVENANCE.json` registers **60 new oracle
-  artifacts** across 15 oracle directories (`b7-ffap-features`, `gauss-trace-fitter`
+- **Provenance.** `SOURCE_PROVENANCE.json` registers **64 new oracle
+  artifacts** across 16 oracle directories (`b7-ffap-features`, `gauss-trace-fitter`
   with its `solver-gap`, `exp-simulation` and `param-range` sub-runs,
   `egh-trace-fitter`, `lm-eigen-path`, `boost-regex`, `mzml-reader-scale`,
   `mzml-writer-scale-parity`, `baseline-filter-edges`, `topp-peak-picker-scale`,
-  `topp-peak-picker-tool`, `topp-file-info-tool`, `ffc-wrapper-c5`,
-  `tool-threads`, `topp-early-bundle` and `release-build`), each sha256
+  `picked-chromatogram`, `topp-peak-picker-tool`, `topp-file-info-tool`,
+  `ffc-wrapper-c5`, `tool-threads`, `topp-early-bundle` and `release-build`;
+  `picked-chromatogram`'s four came with the rebase onto `864b295`), each sha256
   recomputed from the file and equal to the value its own lane's manifest
   records. Four manifests join `current_sdk_reference_manifests`
   (`boost_regex`, `gauss_trace_fitter`, `egh_trace_fitter` and the wave-1
@@ -189,7 +222,7 @@ here so the choice is visible rather than accidental.
   `topp_package_reference_manifests`. `tools/check_core_sdk.py` passes plain
   and with `--source .reference/openms4-core-bc9cc12` (2,092 files verified,
   1,720 added source references).
-- **C++ issues.** `CPP-289` to `CPP-305`, every one checked against the pinned
+- **C++ issues.** `CPP-289` to `CPP-307`, every one checked against the pinned
   source first (see below). `CPP-274` gains executed evidence at algorithm
   level and `CPP-265` loses a wrong citation.
 - **Crate register.** The Boost.Regex row is closed (done, `2a29bd0`); the
@@ -202,12 +235,20 @@ here so the choice is visible rather than accidental.
 
 ### C++ issue candidates: what was logged and what was not
 
-Logged `CPP-289` to `CPP-305`, each verified against
+Logged `CPP-289` to `CPP-307`, each verified against
 `.reference/openms4-core-bc9cc12` before being written: the four B4 candidates
 plus its `Param` finding (289-293), the shared `TraceFitter` documentation
 defect (294), the four B5 candidates (294-297, the wording one shared), the
 five B7 feature-stage candidates (298-302), the two morphology candidates
-(303-304) and the writer's `indexListOffset` (305).
+(303-304) and the writer's `indexListOffset` (305). `CPP-306` and `CPP-307` are
+the two candidates `fix/picked-chromatogram` handed over, added after the
+rebase onto its merge: the reader's `float&` narrowing of a converted 32-bit
+time array (`MzMLHandlerHelper.cpp:217-222`, against the `double` of the
+64-bit branch at `:210-216` and the forced `PRE_64` of the Numpress path at
+`:185`), and the XML writers' `writtenDigits<double>()` = 15, which is
+`digits10` and not `max_digits10`, so the C++'s own text fails to reparse to
+its own stored `double` in 10,671 of 40,856 retention times of the benchmark
+output.
 
 Omitted, with the reason:
 
@@ -243,24 +284,54 @@ scratchpad. Local checks ran on macOS arm64.
 | `+1.85.0 test --locked --no-default-features --test boost_regex --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test baseline_filter_edges` (the new line) | exit 0: 27, 22, 33 + 1 ignored, 32 and 5 passed |
 | `+1.85.0 test --locked --no-default-features` with the eight targets of the amended helper line | exit 0: 26, 16, 6, 30 + 1 ignored, 35, 7 + 1 ignored, 4 and 33 passed (`lm_eigen_path_differential` is the addition) |
 | `+1.85.0 test --locked --no-default-features --features mzml` with the 18 targets of the amended mzML line | exit 0: 240 passed, 0 failed, 8 ignored (`mzml_reader_scale` and `mzml_writer_scale` are the additions, 6 + 2 of the ignores) |
-| `+1.85.0 test --locked --no-default-features --features mzml,paramxml --test topp_cli_lifecycle --test peak_picking_experiment --test topp_peak_picker_hi_res --test topp_threads --test topp_baseline_filter_edges` | exit 0: 73, 14, 18, 7 and 4 + 2 ignored passed |
+| `+1.85.0 test --locked --no-default-features --features mzml,paramxml --test topp_cli_lifecycle --test peak_picking_experiment --test topp_peak_picker_hi_res --test topp_threads --test topp_baseline_filter_edges` | exit 0: 73, 19, 18, 7 and 4 + 2 ignored passed |
 | `+1.85.0 test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked_seeds --test feature_finder_picked --test topp_file_info --test topp_feature_finder_centroided` | exit 0: 29, 11, 33 and 26 + 1 ignored passed |
 | `clippy --locked --all-features --all-targets -- -D warnings` | exit 0, no warning or error line |
 | `RUSTDOCFLAGS='-D warnings' doc --locked --all-features --no-deps` | exit 0, no warning or error line |
+| `test --locked --all-features --all-targets -- --ignored --list` | exit 0: exactly 21 names, one per row of the table above |
+
+Every row was rerun on the rebased tree (this pass's commit on `864b295`), so
+the counts include `fix/picked-chromatogram`'s five new
+`peak_picking_experiment` tests — that target is 19 here where the first run of
+this pass recorded 14, and it is the only count the rebase moved. The 21
+ignored names are unchanged by it.
 
 The two changed `test`-job lines are the same commands with the stable
 toolchain and the same target lists, so they are covered by the two
 `mzml,paramxml` and `mzml,paramxml,featurexml` rows above.
 
-Local: `cargo fmt --all -- --check`; all ten `--check` generators, including the
-two that need a probe (`generate_metabo_isotope_models.py`,
-`tools/probes/ims_witness_source_oracle.py`); `check_doc_coverage.py`,
+Local: `cargo fmt --all -- --check`; the `--check` generators — the nine that
+need no argument, including the two that run a probe
+(`generate_metabo_isotope_models.py`, `tools/probes/ims_witness_source_oracle.py`),
+and four more given the pinned source root
+(`generate_mzml_typed_reference.py`, `generate_mzml_validator_reference.py`,
+`generate_proforma_spectra_reference.py`, `generate_xlms_reference.py`), all
+thirteen exit 0; the two that cannot run here are
+`generate_metabo_predictor_reference.py`, which takes a prebuilt probe binary,
+and `generate_proforma_conversion_mass_probe.py`, which compiles a C++ probe
+and so hits the same Xcode licence gate as the feature-graph checker below;
+`check_doc_coverage.py`,
 `check_module_cycles.py`, `check_core_sdk.py` (also with
 `--source .reference/openms4-core-bc9cc12`), `test_core_sdk.py`,
 `core_sdk_coverage.py` and `test_core_sdk_coverage.py` with no argument, which
 is their check mode; a YAML parse of `rust.yml`; and `json.load` of every
-changed JSON file. `check_schema_feature_graph.py` needs a `cargo check` and
-runs on the gate host with the other cargo gates.
+changed JSON file.
+
+`check_schema_feature_graph.py` **was not run whole in this pass**, and this is
+the one checker of the brief's "every `tools/*.py` checker" that is not covered
+above. Run locally it exits 1 on its first feature selection, in `cargo check`,
+with `linking with cc failed: exit status: 69 … You have not agreed to the
+Xcode license agreements`; `~/.local/bin/openms-kim-gate.sh` executes only
+`cargo $*` on the remote host, so it cannot drive a Python checker there
+either. Its other half was run: the `cargo tree` assertions pass on all four
+feature selections (default, `--no-default-features`, `+sqlite`, `+sqmass`) —
+no `libxml`/`bindgen`/`clang-sys` in any of them, no `rusqlite`/`libsqlite3-sys`
+outside the SQLite ones and both present inside them — and the same run
+confirms that the `[dev-dependencies]` move keeps `levenberg-marquardt` and
+`nalgebra` out of the normal build graph in all four. CI covers the whole
+script: the `portable-feature-graph` job runs it on ubuntu on every push.
+Giving the gate script a way to run a repository checker on the gate host would
+close the hole; **the lead**.
 
 ## Early TOPP bundle wave 2 integration (2026-09-14)
 

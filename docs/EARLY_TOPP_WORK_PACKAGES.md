@@ -966,10 +966,10 @@ doc-only and accepted.
 
 ## Wave 3 status
 
-Status on 2026-09-15. `integrate/wave2` is at `4091665`, 78 commits above
+Status on 2026-09-15. `integrate/wave2` is at `864b295`, 82 commits above
 `origin/main` `1d80eed` and unpushed. On top of the wave-2 tip `1c14d60` it now
 carries the two trace fitters, the wave-3a scaffold and its three tools, the
-FeatureFinderAlgorithmPicked feature stage, the Boost.Regex facade, six fix
+FeatureFinderAlgorithmPicked feature stage, the Boost.Regex facade, seven fix
 lanes and the Levenberg-Marquardt rewrite. The shared files (CI, ledger,
 provenance, C++ issue log, crate register, benchmarks and documentation) follow
 on `integrate/wave3-shared`. [VALIDATION](VALIDATION.md) records each package's
@@ -995,16 +995,23 @@ evidence, its verifier's reruns and this pass's gates;
 | fix/picker-scale | `6b55773` | — | done; input-derived acquisition ledger and `pick_experiment_in_place` |
 | bundle/B3b-LM-FIDELITY | `dc56a9f` | `f7c9157` | done; the solver matches the Linux x86_64 Release Eigen bit for bit on all 141 traced fits, and the user took the platform decision |
 | fix/ffc-integration | `4d53a7e` | `4091665` | done; the six FeatureFinderCentroided tool tests that B7 turned red are re-derived against the Release build |
+| fix/picked-chromatogram | `e269586` | `b1700de` | done; the picked TIC chromatogram divergence was in the **mzML reader**, not in the picker, and the instrument-scale run is now bit-identical on both data and picked chromatogram |
 
-**In flight, not in this integration:**
-
-- **`fix/picked-chromatogram`.** The picked TIC chromatogram of the
-  instrument-scale PeakPickerHiRes run differs beyond round-off (8,173 of 8,174
-  retention times, up to 3.19e-3 s; 7,891 of 8,174 intensities above 1e-6
-  relative, worst 1.75e-3), while all 22,776,198 spectrum centroids are
-  bit-identical. Owner `PeakPickerHiRes::pick_chromatogram` (package P1). The
-  lead merges the lane later; [BENCHMARKS](BENCHMARKS.md) §3.1 records the
-  difference in the meantime.
+**Nothing from wave 3 is in flight.** `fix/picked-chromatogram` was the last
+lane out; the lead merged it as `b1700de` (with the tool-document correction
+`864b295`) while this shared-file pass was under audit, and the pass was rebased
+onto that tip. Its result closes the only open instrument-scale finding: the
+picked TIC chromatogram of the 2.3 GB PeakPickerHiRes run had differed on 8,173
+of 8,174 retention times and 7,891 of 8,174 intensities while all 22,776,198
+spectrum centroids were bit-identical, and the cause was not
+`PeakPickerHiRes::pick_chromatogram` at all. `MzMLHandlerHelper` applies the
+minute multiplier of an `MS:1000595` time array in place, and for a 32-bit
+array the element is a `float&`, so the `double` product is narrowed back to
+`f32` (`CPP-306`); this input's TIC time array is exactly that case and the
+picker's spline apex amplifies it.
+`mzml::ReadOptions::source_time_array_precision`, set by `ReadOptions::source`,
+reproduces the narrowing, and the library default keeps the precision.
+[BENCHMARKS](BENCHMARKS.md) §3.1 now records the closed row.
 
 **What B10-FFC-ACCEPT still has to close** (from the `fix/ffc-integration`
 report):
@@ -1198,3 +1205,50 @@ report):
   and the previous content is unknown, and ibminode05 carries an idle GitHub
   Actions runner that would disturb timing if a job landed on it.
   **Infrastructure.**
+- **Only `PeakPickerHiRes` passes `mzml::ReadOptions::source()`.** `grep -rn
+  "ReadOptions::source()" src/` matches `src/cli/tools/peak_picker_hi_res.rs`
+  and nothing else, so `BaselineFilter`, `MzMLSplitter`, `MapNormalizer`,
+  `SpectraFilterWindowMower`, `FileInfo`, `DTAExtractor` and
+  `FeatureFinderCentroided` still read a 32-bit minute time array at full `f64`
+  precision and will differ from their C++ counterparts by up to 2.44e-4 s per
+  chromatogram point (`CPP-306`); for an I/O tool such as `MzMLSplitter` that
+  difference lands in the written output. Raised by `fix/picked-chromatogram`
+  and confirmed by its verifier; it is a cross-lane decision, not a defect of
+  that commit, and the same question covers the two older switches
+  (`source_dangling_references`, `source_invalid_timestamps`). The scaffold
+  entry point exists: `FileHandler::load_experiment_with_read_options`. **Each
+  tool's lane, with CLI-1/CLI-2 for a framework-level default.**
+- **`fix/picked-chromatogram`'s two open verifier minors:** the `sec64` case of
+  `tests/data/peak_picking/chromatogram_time/` carries the `f32`-narrowed
+  seconds rather than the full-precision seconds, so it duplicates `sec32`'s
+  physical values and is not the independent control the case-set sentence in
+  `docs/PEAK_PICKING_SUPPORT.md` describes (the other six cases and every
+  assertion are unaffected); and the commit message cites `MzMLFile.cpp:170`
+  for the writer precision on the `store` path, where `store` actually reaches
+  it through `XMLFile::save_` (`XMLFile.cpp:362` and `:369`) and `:170` is
+  `storeBuffer` — `CPP-307` in this pass cites all three. **P1/P4.**
+- **The three wave-3a tools never opted into the `-threads` pool.**
+  `fix/tool-threads` request 6 asked each of `PeakPickerHiRes`, `FileInfo` and
+  `FeatureFinderCentroided` to wire `Tool::run` as
+  `ctx.in_thread_pool(|| Self::run_in_pool(ctx))?` and to pass
+  `ctx.thread_policy()` to its parallel algorithms. Only the second half
+  happened: `grep -rn in_thread_pool src/cli/tools/` matches the five wave-2
+  tools and none of the three, `PeakPickerHiRes` and `FeatureFinderCentroided`
+  take the policy into their algorithms without wrapping their bodies, and
+  `FileInfo` uses neither. `tests/topp_threads.rs`'s `TOOLS` list is still the
+  five, so nothing tests the three. Nothing is computed wrongly — all three are
+  serial and byte-identical at every thread count — but `-threads` sizes no
+  pool for them, and the first tool that parallelises will need the wiring
+  anyway. Found while fixing the CLI document below, not by a lane.
+  **P3/P4, A6 and B10, one line each.**
+- **`docs/TOPP_CLI_SUPPORT.md`'s `-threads` paragraph was stale for a whole
+  pass** and is fixed here: `fix/tool-threads` asked for it by name in round 1
+  (request 3, `wf_126d6fd5-e02`), the lane landed the new contract and its own
+  `docs/TOPP_THREADS_SUPPORT.md`, and the first shared-file pass recorded
+  neither, leaving the shared CLI document describing the superseded mapping and
+  the 169-line support document reachable from no shared file. Two process
+  points follow, both **the lead's**: an integrator request naming an
+  integrator-owned file needs a checklist entry of its own, and a new
+  lane-owned `docs/*.md` needs a link from a shared document in the same pass —
+  `tools/check_doc_coverage.py` measures rustdoc coverage, not whether a
+  Markdown file is reachable.

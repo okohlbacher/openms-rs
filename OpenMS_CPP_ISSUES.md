@@ -5403,3 +5403,39 @@ implementation. They do not count as completed Rust functionality.
 **Evidence:** Executed on the Release build: its `MapNormalizer` output declares `<indexListOffset>5150584</indexListOffset>` while `<indexList` starts at 5150585; verified with an independent offset checker on the produced files (`../oracle/mzml-writer-scale-parity`, `tools/mzml_writing/check_output.py`).
 
 **Rust handling:** This port's offsets address the opening `<indexList` exactly, and the difference is recorded as a container fact in `docs/MZML_WRITER_CPP_PARITY.md`, next to the placeholder checksum of CPP-049, so nobody later "fixes" the Rust offsets to match.
+
+## CPP-306 — Converting a 32-bit time array from minutes narrows the result back to float
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` (gcc 14.4, `-O3 -DNDEBUG`).
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp:217-222`, `decodeBase64Arrays`; the unit is set at `:365-373`, `handleBinaryDataArrayCVParam`.
+
+**Trigger:** Reading any mzML binary data array that carries `MS:1000595` (time array) with `unitAccession="UO:0000031"` (minute) and 32-bit precision — what ProteoWizard writes for the TIC chromatogram of a Thermo run.
+
+**Issue:** The minute-to-second conversion is applied in place. The 64-bit branch (`:210-216`) multiplies a `std::vector<double>` and keeps the `double`; the 32-bit branch is `for (auto& it : bindata.floats_32) { it = it * unit_multiplier; }`, where `it` binds to `float&`, so the `double` product is narrowed back to `float` on assignment and the converted seconds keep only 32-bit precision. A Numpress array is forced to `PRE_64` before either branch (`:185`), so it is unaffected. Reading the same physical times as a 64-bit minute array therefore gives the C++ itself a different result from reading them as a 32-bit minute array: on the 40,856-point TIC time array of `profile_hr_qe_silac_uk222/UK222.mzML`, 38,107 of 40,856 times differ between the two, by up to 2.44e-4 s (half an `f32` ULP at 4,400 s), and 8,806 of 40,855 point spacings move by more than 1e-3 relative. Downstream that is not cosmetic: `PeakPickerHiRes` finds its apex by bisection on a cubic spline through those points, so the picked chromatogram of that file moves by up to 3.19e-3 s in retention time and 1.75e-3 relative in intensity.
+
+**Proposed C++ fix:** Promote the array to `floats_64` before applying a multiplier other than 1.0, as the Numpress path already does, or accumulate the product in `double` and store it in a 64-bit array.
+
+**Evidence:** Executed on the Release build, both sides, by the fixing lane and independently by its verifier. The first value of that file's time array, raw `0x1.0081c4p+0` minutes, is stored as `0x1.e0f35p+5` = 60.118804931640625 s from the 32-bit minute array and as `0x1.e0f34f8p+5` = 60.118803977966309 s from a 64-bit array holding the same times; a 32-bit **seconds** array reproduces the narrowed value exactly, which pins the loss to `f32` precision and nothing else. Seven cases over 32/64-bit against minute/second plus the empty, single-point and unsorted shapes were read and picked by the Release build; the driver, the case generator and the raw results are in `../oracle/picked-chromatogram/`, and the projected values are `tests/data/peak_picking/chromatogram_time_oracle.tsv`.
+
+**Rust handling:** Reproduced deliberately, because it decides ordinary output: `mzml::ReadOptions::source_time_array_precision`, which `ReadOptions::source()` sets and therefore every tool path that reproduces source loading, narrows the product exactly as the source does; the library default keeps the `f64`. The same TSV pins both modes — the `min32` rows the source mode, the `min64` rows the default. One deliberate divergence: a finite 32-bit time whose product with 60 is not finite is refused with the existing `nonfinite binary value` parse error instead of being stored as the source's infinity. See `docs/MZML_SUPPORT.md` and `docs/PEAK_PICKING_SUPPORT.md`.
+
+## CPP-307 — The XML writers print doubles at 15 significant digits, so their own output does not round-trip
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` (gcc 14.4, `-O3 -DNDEBUG`).
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/XMLFile.cpp:362` and `:369`, `save_` (both the compressed and the uncompressed stream), and `src/openms/source/FORMAT/MzMLFile.cpp:170`, `storeBuffer`; the precision comes from `writtenDigits<double>()` = `std::numeric_limits<double>::digits10` = 15 (`src/openms/include/OpenMS/CONCEPT/Types.h:188-192`).
+
+**Trigger:** Any `double` an XML writer prints through the stream's default formatting — for mzML, every `scan start time` and every other scalar written as text rather than as a binary array.
+
+**Issue:** 15 significant digits is `digits10`, the number of decimal digits a `double` is guaranteed to *carry*, not the `max_digits10` = 17 needed to *recover* it. The comment beside the call says "set high precision for floating point numbers", but the value chosen loses information: a store followed by a load does not return the value that was stored. This is not a comparison tolerance — it is the writer discarding bits that the reader then cannot restore.
+
+**Proposed C++ fix:** Use `std::numeric_limits<double>::max_digits10` (17), or write the shortest round-tripping representation (`std::to_chars` with no precision argument).
+
+**Evidence:** Executed on the Release build's own `PeakPickerHiRes` output for `profile_hr_qe_silac_uk222/UK222.mzML`. All 40,856 scan start times were extracted from the input and reduced with `60.0 * StringUtils::toDouble(s)`, then rendered with `os.precision(writtenDigits(double()))`: the probe's text equals the text the tool actually wrote, 40,856 of 40,856, and the C++'s own written text fails to reparse to its own stored `double` in 10,671 of 40,856, worst case stored `0x1.00054ab606b7ap+12`, written `4096.33074`, reparsed `0x1.00054ab606b7bp+12`, a difference of 9.09e-13 s. Verified independently by the `fix/picked-chromatogram` verifier, who also confirmed the two *readers* agree bit for bit on all 40,856 (so the residual is writer-side only).
+
+**Rust handling:** This port writes the shortest round-tripping text and round-trips its own output 40,856 of 40,856, so a decoded comparison against the C++ shows the 1-to-2-ULP spread above on retention times while the binary arrays are bit-identical. The difference is recorded as a native difference in `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md` and in `docs/BENCHMARKS.md` §3.1, so nobody later "fixes" the Rust text to match.

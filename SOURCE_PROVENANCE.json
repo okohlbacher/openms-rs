@@ -1377,6 +1377,38 @@
    "label": "oracle helper (tier 1 executed differential inputs)"
   },
   {
+   "path": "../oracle/picked-chromatogram/manifest.json",
+   "sha256": "566090a6c9abcb97b4e605207c0133c52b31b2c996fac0e558aacc5d43a5f8ac",
+   "origin_key": "tests/data/peak_picking_provenance.json",
+   "package": "fix/picked-chromatogram",
+   "role": "MANIFEST of the fx-chrom oracle: the 32-bit minute time-array root cause (CPP-306), the seven cases, the tool-level and full-input comparisons and their measurements; fix/picked-chromatogram e269586",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/picked-chromatogram/probe_chrom_read.cpp",
+   "sha256": "c570d613c94e55c7de899b937e87e03042f0ee278d7602ffd116914dcd6c9f7c",
+   "origin_key": "tests/data/peak_picking_provenance.json",
+   "package": "fix/picked-chromatogram",
+   "role": "the fx-chrom oracle driver: MzMLFile::load and PeakPickerHiRes::pickExperiment on the C++ Release build, values printed as IEEE-754 bit patterns; fix/picked-chromatogram e269586",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/picked-chromatogram/results/cpp_probe.tsv",
+   "sha256": "6af6a99c1f37965c83ef62c98a85118e5302175d23a07d6bae4b484c827cce8a",
+   "origin_key": "tests/data/peak_picking_provenance.json",
+   "package": "fix/picked-chromatogram",
+   "role": "the fx-chrom oracle raw output, the source of tests/data/peak_picking/chromatogram_time_oracle.tsv; fix/picked-chromatogram e269586",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/picked-chromatogram/make_cases.py",
+   "sha256": "f3fd04e189b29dceebb27f0cc4f50c4eb359ae71cab0e0b4e3647f9dfac3e51e",
+   "origin_key": "tests/data/peak_picking_provenance.json",
+   "package": "fix/picked-chromatogram",
+   "role": "the fx-chrom case generator, the source of tests/data/peak_picking/chromatogram_time/*.mzML; fix/picked-chromatogram e269586",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
    "path": "../oracle/topp-file-info-tool/manifest.json",
    "sha256": "fa7c0fd67fc963dd357f1ac3eeae279111ecce309c553e37983d0882b59d9cdb",
    "origin_key": "tests/data/topp_file_info_provenance.json",

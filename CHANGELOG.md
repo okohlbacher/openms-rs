@@ -4,7 +4,7 @@
 
 - Integrated early TOPP bundle wave 3 (2026-09-15): the trace fitters, the
   wave-3a tools, the FeatureFinderAlgorithmPicked feature stage, the Boost.Regex
-  facade and six fix lanes, recorded in `docs/VALIDATION.md`.
+  facade and seven fix lanes, recorded in `docs/VALIDATION.md`.
   - Three new TOPP tools: `PeakPickerHiRes` (in-memory centroiding, the
     `algorithm` subsection, the registered parameter failures and `-write_ini`;
     `-processOption lowmemory` refused until P4), `FileInfo` (the peak-file and
@@ -32,6 +32,14 @@
   - mzML reader: ceilings are derived from the document's own size instead of
     being fixed, and `run/@startTimeStamp="-infinity"` is read as the source
     reads it, so instrument-sized files load through the tools.
+  - mzML reader, `ReadOptions::source_time_array_precision`: a time array given
+    in minutes at 32-bit precision is converted and narrowed back to `f32`,
+    which is what the source does (`CPP-306`) and what the full-precision
+    library default does not. Set by `ReadOptions::source`, so every tool path
+    that reproduces source loading has it. This closed the last open
+    instrument-scale difference: the picked TIC chromatogram of the 2.3 GB
+    benchmark run is now bit-identical, and the defect was in the reader, not
+    in `PeakPickerHiRes::pick_chromatogram`.
   - mzML writer: per-record budgets, and `indexedmzML` with real record offsets
     and a real SHA-1 `fileChecksum` by default, as `MzMLFile::store` does. The
     invented zero precursor intensity is gone.
@@ -40,9 +48,12 @@
     now select the simple variants, which differ there (CPP-303, CPP-304). The
     f32 subtraction change is faithfulness and readability only: it is
     bit-identical to what it replaced, and no expected value moved.
-  - `-threads` reaches every tool body through a worker pool, a non-positive
-    count means every available processor as the executed C++ does, and
-    `OMP_NUM_THREADS`/`RAYON_NUM_THREADS` are ignored.
+  - `-threads` reaches the five wave-2 tool bodies through a worker pool, a
+    non-positive count means every available processor as the executed C++
+    does, and `OMP_NUM_THREADS`/`RAYON_NUM_THREADS` are ignored. The three new
+    wave-3a tools are serial and do not open a pool yet.
+    `docs/TOPP_CLI_SUPPORT.md` now states that contract instead of the
+    superseded one and links the new `docs/TOPP_THREADS_SUPPORT.md`.
   - The picker's acquisition-copy ledger is derived from the input, and
     `pick_experiment_in_place` avoids the whole-experiment clone.
   - [BUILD] `levenberg-marquardt` and `nalgebra` moved to `[dev-dependencies]`:
@@ -51,9 +62,9 @@
   - New `docs/BENCHMARKS.md`: the C++ Release reference build, the harness, and
     the first instrument-scale comparison — `PeakPickerHiRes` on a 2.3 GB Q
     Exactive run, 22,776,198 centroids bit-identical in m/z and intensity, the
-    port 38.7 s and 4,309 MiB against 26.8-28.9 s and 3,884 MiB, with the picked
-    TIC chromatogram still differing.
-  - Logged CPP-289 to CPP-305, registered 60 oracle artifacts and four more
+    port 38.7 s and 4,309 MiB against 26.8-28.9 s and 3,884 MiB, and the picked
+    TIC chromatogram bit-identical as well once the reader reproduces `CPP-306`.
+  - Logged CPP-289 to CPP-307, registered 64 oracle artifacts and four more
     reference manifests, gave the three new tools feature-sliced CI lines along
     with eleven other targets, recorded the acyclic `cli -> analysis` edge, and
     updated the ledger: `TraceFitter.h`, `GaussTraceFitter.h`,

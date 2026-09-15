@@ -123,15 +123,35 @@ verifier):
   is the result that matters, and it is exact, not within a tolerance.
 - Spectrum retention times differ in 10,671 of 40,856 records, by at most
   9.09e-13 s — 1 to 2 ULP of `f64` on retention times of 60 to 4,400 s, after a
-  round trip through each implementation's own writer.
-- **The picked TIC chromatogram does not agree.** 8,174 points on both sides;
-  8,173 of 8,174 retention times differ (at most 3.19e-3 s) and 7,891 of 8,174
-  intensities differ by more than 1e-6 relative, 71 by more than 1e-3, worst
-  1.75e-3 (252,284,752 against 252,727,072 at 4,393.5 s). This is a defect in
-  `PeakPickerHiRes::pick_chromatogram`, not a rounding artefact; the retained
-  workflow-2 fixture (five short chromatograms) is bit-exact, so only real data
-  shows it. Lane `fix/picked-chromatogram` is root-causing it and is not part
-  of this integration.
+  round trip through each implementation's own writer. This one is writer-side
+  and the port's text is the correct side: the two readers were shown to agree
+  bit for bit on all 40,856, while the C++'s own output fails to reparse to its
+  own stored `double` in exactly those 10,671 records, because its XML writers
+  print `writtenDigits<double>()` = 15 significant digits, which is `digits10`
+  and not the `max_digits10` = 17 a round trip needs (`CPP-307`).
+- **The picked TIC chromatogram is bit-identical.** 8,174 points on both
+  sides, every retention time and every intensity equal. This run first showed
+  it differing — 8,173 of 8,174 retention times by at most 3.19e-3 s, and 7,891
+  of 8,174 intensities by more than 1e-6 relative, 71 by more than 1e-3, worst
+  1.75e-3 (252,284,752 against 252,727,072 at 4,393.5 s) — while every spectrum
+  centroid agreed, and the retained workflow-2 fixture (five short
+  chromatograms) was bit-exact, so only real data showed it. Lane
+  `fix/picked-chromatogram` (merged as `b1700de`, after the run above)
+  root-caused it in the **mzML reader**, not in the picker:
+  `MzMLHandlerHelper::decodeBase64Arrays` applies the minute multiplier of an
+  `MS:1000595` time array in place, and for a 32-bit array the element is a
+  `float&`, so the `double` product is narrowed back to `float`
+  (`MzMLHandlerHelper.cpp:217-222`; the 64-bit and Numpress paths are not —
+  `CPP-306`). This input's TIC time array is exactly that case, 32-bit in
+  minutes, and the picker's spline apex amplifies the at-most-2.44e-4 s
+  per-point difference into the numbers above.
+  `ReadOptions::source_time_array_precision`, which `ReadOptions::source()`
+  sets and every tool load path therefore uses, reproduces the narrowing; the
+  library default keeps the full `f64` product. With it the two picked
+  chromatograms agree bit for bit over the whole file. The wall and peak-RSS
+  numbers in the table above predate that change and were not re-measured; it
+  touches one multiplication per time element of one 40,856-point array, so no
+  re-measurement is claimed either way.
 - The C++ `FuzzyDiff` never reaches the data on this pair: it fails at line 1,
   column 31 on the XML declaration encoding (`ISO-8859-1` against `UTF-8`),
   the documented container difference of decision D6.

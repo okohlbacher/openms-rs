@@ -285,9 +285,32 @@ over `Cmd`.
 
 **Threads.** The core is multithreaded: `rayon` is a default dependency behind
 the `parallel` feature, and `src/concept/parallel.rs` holds the contract that a
-parallel result is bit-identical to the serial one. `-threads` reaches a
-computation through `ToolContext::thread_policy` (`Threads::from_cli`, where 0
-means every core), instead of the source's process-wide `omp_set_num_threads`.
+parallel result is bit-identical to the serial one. `-threads` reaches a tool
+through `ToolContext::thread_policy`, and a tool opts into a scoped rayon pool
+of that size by wrapping its body in `ToolContext::in_thread_pool`, where the
+source calls the process-wide `omp_set_num_threads` before `main_`. A positive
+count `n` gives `n` workers; **zero and every negative count give every
+available processor**, which is the source's own `if (num_threads <= 0)
+num_threads = omp_get_num_procs()` and was established by executed C++
+(`../oracle/tool-threads`). `OMP_NUM_THREADS` and `RAYON_NUM_THREADS` do not
+size the body, exactly as the source's `omp_set_num_threads` overrides
+`OMP_NUM_THREADS`; the registered default stays 1, so a run without `-threads`
+is serial. Without the `parallel` feature the body runs on the calling thread.
+The full contract, the API mapping and the native differences of the scoped
+pool are in [TOPP_THREADS_SUPPORT](TOPP_THREADS_SUPPORT.md).
+
+Opting in is per tool, because the `out`/`err` streams of `Tool::run_io` are
+not `Send` and no central wiring in `run_with` was possible. The five wave-2
+tools (`BaselineFilter`, `DTAExtractor`, `MapNormalizer`, `MzMLSplitter`,
+`SpectraFilterWindowMower`) are wired and are the five
+`tests/topp_threads.rs::every_executable_runs_its_body_on_the_requested_pool`
+checks. The three wave-3a tools are **not** yet: `PeakPickerHiRes` and
+`FeatureFinderCentroided` take `ctx.thread_policy()` into their algorithms but
+do not wrap their bodies, and `FileInfo` uses neither, so `-threads` sizes no
+pool for them. Nothing is computed wrongly — all three are serial and their
+output is byte-identical at every thread count — but they do not yet have the
+contract this section describes. Carried forward in
+[the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-3-status).
 
 **Source behaviours reproduced but questionable** (C++ issue candidates, all
 confirmed on the oracle):
