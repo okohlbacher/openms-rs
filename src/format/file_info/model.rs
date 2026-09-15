@@ -554,11 +554,25 @@ pub struct Options {
     /// The native loaders on this path report no progress, so the value has no
     /// effect.
     pub log_type: ProgressLogType,
+    /// Read a dangling mzML header reference the way the source loader does.
+    ///
+    /// Native field; the source `Options` has none, because its mzML reader is
+    /// always lenient. `false`, the default, keeps the strict reader, which
+    /// refuses an mzML file whose `softwareRef`, `dataProcessingRef` or
+    /// `defaultDataProcessingRef` names no definition with [`crate::Error::Parse`].
+    /// `true` passes `crate::format::mzml::ReadOptions::source_dangling_references`
+    /// to the mzML reader of the peak-file branch, which drops the reference as
+    /// the source does and warns once per dangling ID on the crate's warning log
+    /// stream. The FileInfo tool sets it, so its mzML loading matches the
+    /// source's `FileHandler::loadExperiment` (decision D10 of the early TOPP
+    /// bundle). The other readers ignore it, and so does a build without the
+    /// `mzml` feature, which reads no mzML.
+    pub source_dangling_references: bool,
 }
 
 impl Default for Options {
     /// Every flag off, no forced type and no progress logging, as the source
-    /// member initialisers.
+    /// member initialisers, and the strict mzML reader.
     fn default() -> Self {
         Self {
             forced_type: FileType::Unknown,
@@ -570,6 +584,7 @@ impl Default for Options {
             validate: false,
             check_index: false,
             log_type: ProgressLogType::None,
+            source_dangling_references: false,
         }
     }
 }

@@ -247,10 +247,12 @@ impl FileHandler {
     /// `allowed` list; an empty list accepts every native adapter. The options
     /// reach the readers the source hands them to:
     ///
-    /// - mzML: every option, through `mzml::read_with_load_options` with
-    ///   default XML and binary limits. Unlike [`FileHandler::load_experiment`]
-    ///   this applies the source's scientific defaults, including sorting peaks
-    ///   by m/z.
+    /// - mzML: every option, through `mzml::read_with_load_options` with the
+    ///   default, strict `mzml::ReadOptions`: default XML and binary limits and
+    ///   no source-compatibility switch. `load_experiment_with_read_options`
+    ///   takes explicit ones. Unlike [`FileHandler::load_experiment`] this
+    ///   applies the source's scientific defaults, including sorting peaks by
+    ///   m/z.
     /// - DTA2D: the retention-time, m/z and intensity ranges, the only options
     ///   `DTA2DFile::load` consumes.
     /// - DTA, MGF and MS2: none, exactly as the source ignores them there.
@@ -280,29 +282,32 @@ impl FileHandler {
         allowed: &[FileType],
         options: &PeakFileOptions,
     ) -> Result<MSExperiment> {
-        let path = path.as_ref();
-        let mut document = crate::metadata::DocumentIdentifier::new();
-        document.set_loaded_file_path(filename(path)?)?;
-        document.set_loaded_file_type(path)?;
-        let (kind, reader) = detect(path)?;
-        check_allowed(kind, allowed)?;
-        let mut result = match kind {
-            #[cfg(feature = "mzml")]
-            FileType::MzMl => super::mzml::read_with_load_options(
-                reader,
-                &super::mzml::LoadOptions {
-                    scientific: options.clone(),
-                    ..Default::default()
-                },
-                &super::mzml::ReadOptions::default(),
-            )?,
-            FileType::Dta2d => super::dta2d::read_with_options(reader, &dta2d_options(options))?,
-            FileType::Dta | FileType::Mgf | FileType::Ms2 => Self::read_experiment(reader, kind)?,
-            _ => return Err(unsupported(kind, "reading")),
-        };
-        result.settings.document.loaded_file_path = document.loaded_file_path;
-        result.settings.document.loaded_file_type = document.loaded_file_type;
-        Ok(result)
+        load_experiment_from(path.as_ref(), allowed, options, &MzMlReadOptions::default())
+    }
+
+    /// Load an experiment with explicit source `PeakFileOptions` and explicit
+    /// mzML reader options.
+    ///
+    /// As [`FileHandler::load_experiment_with_options`], except that an mzML
+    /// input is read with `read` instead of the strict default
+    /// [`crate::format::mzml::ReadOptions`]; the other formats ignore it. A
+    /// TOPP tool that reproduces the source's `FileHandler::loadExperiment`
+    /// passes its source-compatibility switches here, such as
+    /// [`crate::format::mzml::ReadOptions::source_dangling_references`], while
+    /// every library default stays strict (decision D10 of the early TOPP
+    /// bundle).
+    ///
+    /// # Errors
+    ///
+    /// As [`FileHandler::load_experiment_with_options`].
+    #[cfg(feature = "mzml")]
+    pub fn load_experiment_with_read_options(
+        path: impl AsRef<Path>,
+        allowed: &[FileType],
+        options: &PeakFileOptions,
+        read: &super::mzml::ReadOptions,
+    ) -> Result<MSExperiment> {
+        load_experiment_from(path.as_ref(), allowed, options, read)
     }
 
     /// Store to a sibling temporary file, replacing the destination only after
@@ -709,6 +714,48 @@ pub fn type_by_content(bytes: &[u8]) -> FileType {
 fn filename(path: &Path) -> Result<&str> {
     path.to_str()
         .ok_or_else(|| Error::InvalidValue("filename must be UTF-8".into()))
+}
+
+/// The mzML reader options [`load_experiment_from`] hands the mzML adapter, and
+/// nothing when that adapter is not compiled in.
+#[cfg(feature = "mzml")]
+type MzMlReadOptions = super::mzml::ReadOptions;
+#[cfg(not(feature = "mzml"))]
+type MzMlReadOptions = ();
+
+/// The body of [`FileHandler::load_experiment_with_options`] and
+/// [`FileHandler::load_experiment_with_read_options`].
+#[cfg_attr(not(feature = "mzml"), allow(unused_variables))]
+fn load_experiment_from(
+    path: &Path,
+    allowed: &[FileType],
+    options: &PeakFileOptions,
+    read: &MzMlReadOptions,
+) -> Result<MSExperiment> {
+    let mut document = crate::metadata::DocumentIdentifier::new();
+    document.set_loaded_file_path(filename(path)?)?;
+    document.set_loaded_file_type(path)?;
+    let (kind, reader) = detect(path)?;
+    check_allowed(kind, allowed)?;
+    let mut result = match kind {
+        #[cfg(feature = "mzml")]
+        FileType::MzMl => super::mzml::read_with_load_options(
+            reader,
+            &super::mzml::LoadOptions {
+                scientific: options.clone(),
+                ..Default::default()
+            },
+            read,
+        )?,
+        FileType::Dta2d => super::dta2d::read_with_options(reader, &dta2d_options(options))?,
+        FileType::Dta | FileType::Mgf | FileType::Ms2 => {
+            FileHandler::read_experiment(reader, kind)?
+        }
+        _ => return Err(unsupported(kind, "reading")),
+    };
+    result.settings.document.loaded_file_path = document.loaded_file_path;
+    result.settings.document.loaded_file_type = document.loaded_file_type;
+    Ok(result)
 }
 
 /// Name-based type, else bounded content recognition over replayed bytes, so

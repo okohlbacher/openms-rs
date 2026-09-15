@@ -30,22 +30,44 @@
 //! - [`crate::analysis::feature_finder_picked::seeds`]: the precalculated isotope
 //!   patterns (step 2.5), seed selection (step 3.2) and
 //!   [`SeedStage`](crate::analysis::feature_finder_picked::seeds::SeedStage),
-//!   which runs everything up to and including seed selection.
+//!   which runs everything up to and including seed selection;
+//! - [`crate::analysis::feature_finder_picked::extension`]: the best isotope fit
+//!   of a seed and the mass traces grown from it (step 3.3.1);
+//! - [`crate::analysis::feature_finder_picked::fitting`]: the retention-time
+//!   model, the cropping, the quality checks and the feature itself (steps
+//!   3.3.2 to 3.3.5);
+//! - [`crate::analysis::feature_finder_picked::resolution`]: overlap resolution
+//!   and the apex annotation (step 4);
+//! - this module again:
+//!   [`feature_stage`](crate::analysis::feature_finder_picked::algorithm::feature_stage),
+//!   the seed loop that drives those three and the source's single
+//!   `#pragma omp parallel for`.
 //!
-//! Seed extension, trace fitting, feature quality checks and overlap resolution
-//! (step 3.3 onward) are not ported yet:
-//! [`run`](crate::analysis::feature_finder_picked::algorithm::run) performs the
-//! seed stage and then returns [`Error::Unsupported`](crate::Error::Unsupported).
-//! The API mapping, the preserved source
-//! conventions, the native differences and the evidence are in
-//! `docs/FEATURE_FINDER_PICKED_SUPPORT.md`.
+//! The API mapping, the preserved source conventions, the native differences
+//! and the evidence are in `docs/FEATURE_FINDER_PICKED_SUPPORT.md`.
 //!
 //! The source writes its seed counts to `std::cout` and its warnings to the
 //! OpenMS log. Library code here never prints: every such line is collected in
 //! the log of the returned value.
 
+use std::collections::{BTreeMap, BTreeSet};
+
+use crate::analysis::feature_finder_picked::extension::{
+    OverallScores, extend_mass_traces, find_best_isotope_fit,
+};
+use crate::analysis::feature_finder_picked::fitting::{
+    ABORT_COULD_NOT_EXTEND, ABORT_NO_ISOTOPE_PATTERN, FeatureInput, FittedModel, QualityOutcome,
+    build_feature, check_feature_quality, crop_feature,
+};
+use crate::analysis::feature_finder_picked::helper_structs::Seed;
+use crate::analysis::feature_finder_picked::resolution::{
+    annotate_apex, invalid_apex_warning, resolve_overlaps,
+};
 use crate::analysis::feature_finder_picked::seeds::SeedStage;
-use crate::kernel::{FeatureMap, MSExperiment};
+use crate::analysis::feature_finder_picked::trace_fitter::TraceFitterParams;
+use crate::concept::parallel::{Threads, map_collect};
+use crate::kernel::{Feature, FeatureMap, MSExperiment, Point2D};
+use crate::metadata::MetaValue;
 use crate::param::{DefaultParamHandler, Param, ParamValue};
 use crate::{Error, Result};
 
@@ -374,21 +396,27 @@ pub enum ReportedMz {
 /// `IsotopeDistribution`, which already holds the peak `(0, 1)`. The executed C++
 /// keeps that stray peak: the patterns grow (the first FFC_1 window has 27
 /// normalised bins instead of 6) and FeatureFinderCentroided_1 with
-/// `abundance_12C = 90` finds no seed at all. The native
+/// `abundance_12C = 90` finds no seed and no feature at all. The native
 /// [`CoarseIsotopePatternGenerator::set_isotope_override`](crate::chemistry::isotopes::CoarseIsotopePatternGenerator::set_isotope_override)
-/// rejects such a distribution, so the defect cannot be reproduced. Whether the
-/// port should refuse these parameters or compute the intended two-isotope
-/// override is a scientific decision that is still open, so the default refuses.
+/// rejects such a distribution, so the defect cannot be reproduced.
+///
+/// The port therefore computes the **intended** two-isotope override by
+/// default, rather than refusing a parameter the source accepts. That is a
+/// deliberate divergence from the executed C++ and the only one in this module
+/// that changes which features are found; it is recorded as `CPP-247` in
+/// `docs/FEATURE_FINDER_PICKED_SUPPORT.md` together with the measured
+/// difference.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum AbundanceOverride {
-    /// A non-default abundance is [`Error::Unsupported`]; the default.
-    #[default]
-    Refuse,
     /// Use the intended two-isotope distribution: weights `a / 100` and
     /// `1 - a / 100` for the light and heavy isotope, narrowed to `f32` under
     /// source precision. This is not the executed C++ result; see the type
-    /// documentation.
+    /// documentation. This is the default.
+    #[default]
     Intended,
+    /// A non-default abundance is [`Error::Unsupported`], so that a caller who
+    /// must not diverge from the executed C++ can refuse instead of differing.
+    Refuse,
 }
 
 /// Resource ceilings of the seed stage, checked before the corresponding work.
@@ -419,6 +447,13 @@ pub struct Limits {
     /// binning, per nearest-peak search, per step of the linear isotope walk
     /// and per value a correlation reads.
     pub max_work: u64,
+    /// Most seeds of one charge that the seed loop extends.
+    pub max_seeds: usize,
+    /// Most work units of the seed loop, bounded before it starts: per charge,
+    /// the seed count times `isotopes * (isotopes + spectra)`, an upper bound
+    /// on the isotope search around each seed plus the extension of each
+    /// isotope's trace through the scans.
+    pub max_seed_work: u64,
 }
 
 impl Limits {
@@ -438,6 +473,12 @@ impl Limits {
     pub const DEFAULT_MAX_SCORE_BYTES: usize = 16 << 30;
     /// Default [`Self::max_work`].
     pub const DEFAULT_MAX_WORK: u64 = 10_000_000_000_000;
+    /// Default [`Self::max_seeds`]: far above the 800,000 features the port's
+    /// resource contract admits.
+    pub const DEFAULT_MAX_SEEDS: usize = 50_000_000;
+    /// Default [`Self::max_seed_work`]: 44,000 scans with 800,000 seeds of 20
+    /// isotopes stay an order of magnitude below it.
+    pub const DEFAULT_MAX_SEED_WORK: u64 = 10_000_000_000_000;
 }
 
 impl Default for Limits {
@@ -451,6 +492,8 @@ impl Default for Limits {
             max_pattern_values: Self::DEFAULT_MAX_PATTERN_VALUES,
             max_score_bytes: Self::DEFAULT_MAX_SCORE_BYTES,
             max_work: Self::DEFAULT_MAX_WORK,
+            max_seeds: Self::DEFAULT_MAX_SEEDS,
+            max_seed_work: Self::DEFAULT_MAX_SEED_WORK,
         }
     }
 }
@@ -463,6 +506,14 @@ pub struct Options {
     pub limits: Limits,
     /// Handling of non-default isotope abundances.
     pub abundance_override: AbundanceOverride,
+    /// Worker threads of the seed loop, the port's counterpart of the source's
+    /// `#pragma omp parallel for` and of the TOPP `-threads` parameter.
+    ///
+    /// The result does not depend on it: the loop uses
+    /// [`crate::concept::parallel::map_collect`], whose results keep the input
+    /// order, and everything after the loop is serial. The default is every
+    /// available core.
+    pub threads: Threads,
 }
 
 /// The typed parameter values of one run.
@@ -656,6 +707,15 @@ pub struct RunOutput {
     /// Warnings and progress lines the source writes to the OpenMS log or to
     /// `std::cout`, in the order they arise.
     pub log: Vec<String>,
+    /// How often each abort reason kept a seed from becoming a feature: source
+    /// member `aborts_`, which it logs at the end of `run_`.
+    ///
+    /// The source increments this `std::map` from inside its parallel region
+    /// without synchronisation, which is a data race (B7 candidate 5 in
+    /// `docs/FEATURE_FINDER_PICKED_SUPPORT.md`); this port aggregates the
+    /// reasons serially, in seed order, so the counts are exact and
+    /// thread-count independent.
+    pub aborts: BTreeMap<String, usize>,
 }
 
 /// Source warning when the input is not sorted, verbatim.
@@ -741,15 +801,14 @@ pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> R
 ///
 /// An experiment without spectra yields an empty feature map and an empty log.
 /// Otherwise the input is checked ([`validate_input`]), the parameters are
-/// applied ([`Settings::from_parameters`]) and the seed stage runs
-/// ([`SeedStage::compute`]).
+/// applied ([`Settings::from_parameters`]), the seed stage runs
+/// ([`SeedStage::compute`]) and every seed is extended into a feature
+/// ([`feature_stage`]).
 ///
 /// # Errors
 ///
-/// Every error of [`validate_input`], [`Settings::from_parameters`] and
-/// [`SeedStage::compute`]. After a successful seed stage this returns
-/// [`Error::Unsupported`]: seed extension, fitting, quality checks and overlap
-/// resolution (source step 3.3 onward) are not ported yet.
+/// Every error of [`validate_input`], [`Settings::from_parameters`],
+/// [`SeedStage::compute`] and [`feature_stage`].
 pub fn run(experiment: MSExperiment, seeds: &FeatureMap, parameters: &Param) -> Result<RunOutput> {
     run_with_options(experiment, seeds, parameters, &Options::default())
 }
@@ -769,11 +828,296 @@ pub fn run_with_options(
         None => Ok(RunOutput {
             features: FeatureMap::new(),
             log: Vec::new(),
+            aborts: BTreeMap::new(),
         }),
-        Some(_) => Err(Error::Unsupported(
-            "FeatureFinderAlgorithmPicked seed extension, trace fitting and feature resolution \
-             (source step 3.3 onward) are not ported yet"
-                .into(),
-        )),
+        Some(stage) => feature_stage(&stage, options),
     }
+}
+
+/// What one seed produced in step 3.3.
+struct SeedOutcome {
+    /// Whether the seed reached the fit and therefore consumed a `plot_nr`.
+    plot_nr_used: bool,
+    /// The candidate, or the source abort reason that dropped the seed.
+    result: std::result::Result<SeedCandidate, String>,
+}
+
+/// One accepted candidate and the later seeds it swallows.
+struct SeedCandidate {
+    feature: Feature,
+    /// Indices of the seeds after this one that lie inside the feature: the
+    /// source's `seeds_in_features[i]`.
+    contained: Vec<usize>,
+}
+
+/// Steps 3.3 and 4 of source `run_` on a completed seed stage.
+///
+/// Per charge, every seed is extended in parallel
+/// ([`crate::concept::parallel::map_collect`] with
+/// [`Options::threads`], the port's form of the source's single
+/// `#pragma omp parallel for`), then a serial pass in seed order drops the
+/// candidates whose seed lies inside an earlier, more intense feature and
+/// numbers the survivors. After every charge the overlapping features are
+/// resolved ([`resolve_overlaps`]), the zero-intensity losers are removed, the
+/// map is sorted by descending intensity and each feature is annotated with its
+/// apex scan ([`annotate_apex`]).
+///
+/// The log receives, in the source's order, the seed counts the stage already
+/// collected, each charge's `Found N feature candidates for charge c.` directly
+/// after its seed line, the overlap count, the apex warning if any, the abort
+/// reasons and the feature count.
+///
+/// Because the parallel results keep the input order and every later step is
+/// serial, the output does not depend on [`Options::threads`]; the source's
+/// results are schedule-independent for the same reason, its `tmp_feature_map`
+/// being keyed by seed index.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] when a [`Limits`] ceiling of the seed loop
+/// is exceeded, checked before the loop starts, and every error of the
+/// extension, the fit, the checks and the annotation. A *fit* that fails is not
+/// an error: it becomes that seed's abort reason, which is what the source's
+/// serial behaviour amounts to (inside its parallel region an
+/// `Exception::UnableToFit` is not caught at all).
+pub fn feature_stage(stage: &SeedStage, options: &Options) -> Result<RunOutput> {
+    let settings = stage.settings();
+    let experiment = stage.experiment();
+    preflight_seed_loop(stage, &options.limits)?;
+
+    let fitter_parameters = TraceFitterParams {
+        max_iteration: i64::from(settings.max_iterations),
+        weighted: false,
+    };
+    let mut features: Vec<Feature> = Vec::new();
+    let mut aborts: BTreeMap<String, usize> = BTreeMap::new();
+    let mut candidate_lines: Vec<(usize, String)> = Vec::new();
+    let mut plot_nr_global: i64 = -1;
+    let mut feature_nr_global: i64 = 0;
+
+    for (charge_index, charge_seeds) in stage.charges().iter().enumerate() {
+        let charge = charge_seeds.charge;
+        let seeds = &charge_seeds.seeds;
+        let indices: Vec<usize> = (0..seeds.len()).collect();
+        let overall = OverallScores::new(stage.scores(), charge_index);
+        let outcomes = map_collect(&indices, options.threads, |&index| {
+            extend_seed(stage, overall, &fitter_parameters, charge, seeds, index)
+        });
+
+        let mut accepted: Vec<(usize, SeedCandidate)> = Vec::new();
+        for (index, outcome) in outcomes.into_iter().enumerate() {
+            let outcome = outcome?;
+            let plot_nr = if outcome.plot_nr_used {
+                plot_nr_global += 1;
+                plot_nr_global
+            } else {
+                -1
+            };
+            match outcome.result {
+                Err(reason) => *aborts.entry(reason).or_insert(0) += 1,
+                Ok(mut candidate) => {
+                    // The source assigns `plot_nr` inside a critical section,
+                    // so its value depends on the schedule; it is overwritten
+                    // below for every candidate that survives, and only the
+                    // refused debug output reads it otherwise. This port
+                    // numbers the seeds that reached the fit in seed order.
+                    candidate
+                        .feature
+                        .metadata
+                        .insert("label".into(), MetaValue::from(plot_nr));
+                    accepted.push((index, candidate));
+                }
+            }
+        }
+
+        let mut contained_seeds: BTreeSet<usize> = BTreeSet::new();
+        let mut feature_candidates = 0usize;
+        for (seed_nr, candidate) in accepted {
+            if contained_seeds.contains(&seed_nr) {
+                continue;
+            }
+            feature_candidates += 1;
+            let mut feature = candidate.feature;
+            feature
+                .metadata
+                .insert("label".into(), MetaValue::from(feature_nr_global));
+            feature_nr_global += 1;
+            features
+                .try_reserve(1)
+                .map_err(|_| Error::InvalidValue("cannot allocate a feature".into()))?;
+            features.push(feature);
+            contained_seeds.extend(candidate.contained);
+        }
+        candidate_lines.push((
+            charge_index,
+            format!("Found {feature_candidates} feature candidates for charge {charge}."),
+        ));
+    }
+
+    // Step 4, serial.
+    let mut map = FeatureMap::from_features(features);
+    map.sort_by_mz()?;
+    let removed = resolve_overlaps(&mut map.features, settings.max_feature_intersection)?;
+    map.features.retain(|feature| feature.intensity != 0.0);
+    map.sort_by_intensity(true)?;
+    let invalid_apex = annotate_apex(&mut map.features, experiment)?;
+
+    let mut log = interleave_log(stage, &candidate_lines);
+    log.push(format!("Removed {removed} overlapping features."));
+    if invalid_apex > 0 {
+        log.push(invalid_apex_warning(invalid_apex));
+    }
+    log.push("Info: reasons for not finalizing a feature during its construction:".into());
+    for (reason, count) in &aborts {
+        log.push(format!(" - {reason}: {count} times"));
+    }
+    log.push(format!("{} features found.", map.len()));
+    Ok(RunOutput {
+        features: map,
+        log,
+        aborts,
+    })
+}
+
+/// The stage's log with each charge's candidate line after its seed line.
+///
+/// The source interleaves the two `std::cout` lines because it runs steps 3.1
+/// to 3.3 charge by charge; this port computes every charge's seeds first (see
+/// [`crate::analysis::feature_finder_picked::seeds`]) and restores the order
+/// here. A charge whose seed line is missing, which cannot happen, appends its
+/// candidate line at the end.
+fn interleave_log(stage: &SeedStage, candidate_lines: &[(usize, String)]) -> Vec<String> {
+    let mut log: Vec<String> = Vec::new();
+    let mut seen = 0usize;
+    for line in stage.log() {
+        log.push(line.clone());
+        if line.starts_with("Found ") && line.contains(" seeds for charge ") {
+            if let Some((_, candidate)) = candidate_lines.iter().find(|(c, _)| *c == seen) {
+                log.push(candidate.clone());
+            }
+            seen += 1;
+        }
+    }
+    for (charge_index, line) in candidate_lines {
+        if *charge_index >= seen {
+            log.push(line.clone());
+        }
+    }
+    log
+}
+
+/// The ceilings of the seed loop, checked before it starts.
+fn preflight_seed_loop(stage: &SeedStage, limits: &Limits) -> Result<()> {
+    let spectra = stage.experiment().spectra.len() as u64;
+    let isotopes = stage.settings().max_isotopes() as u64;
+    let per_seed = isotopes.saturating_mul(isotopes.saturating_add(spectra));
+    let mut work = 0u64;
+    for charge in stage.charges() {
+        if charge.seeds.len() > limits.max_seeds {
+            return Err(Error::InvalidValue(format!(
+                "{} seeds for charge {} exceed the limit of {}",
+                charge.seeds.len(),
+                charge.charge,
+                limits.max_seeds
+            )));
+        }
+        work = work.saturating_add((charge.seeds.len() as u64).saturating_mul(per_seed));
+    }
+    if work > limits.max_seed_work {
+        return Err(Error::InvalidValue(format!(
+            "the seed loop may take {work} work units, exceeding the limit of {}",
+            limits.max_seed_work
+        )));
+    }
+    Ok(())
+}
+
+/// One seed of step 3.3: isotope fit, extension, fit, cropping, quality checks
+/// and feature creation.
+fn extend_seed(
+    stage: &SeedStage,
+    overall: OverallScores<'_>,
+    fitter_parameters: &TraceFitterParams,
+    charge: i32,
+    seeds: &[Seed],
+    index: usize,
+) -> Result<SeedOutcome> {
+    let settings = stage.settings();
+    let spectra = &stage.experiment().spectra;
+    let seed = seeds[index];
+    let aborted = |plot_nr_used: bool, reason: &str| SeedOutcome {
+        plot_nr_used,
+        result: Err(reason.to_owned()),
+    };
+
+    let (isotope_fit_quality, pattern) =
+        find_best_isotope_fit(spectra, stage.windows(), settings, seed, charge)?;
+    if isotope_fit_quality < settings.min_isotope_fit {
+        return Ok(aborted(false, ABORT_NO_ISOTOPE_PATTERN));
+    }
+    let mut traces = extend_mass_traces(spectra, overall, settings, &pattern)?;
+    let seed_mz = spectra[seed.spectrum].peaks[seed.peak].mz;
+    if !traces.is_valid(seed_mz, settings.trace_tolerance) {
+        return Ok(aborted(false, ABORT_COULD_NOT_EXTEND));
+    }
+
+    // Source: the baseline estimate is three quarters of the lowest peak.
+    traces.update_baseline();
+    traces.baseline *= 0.75;
+    traces
+        .get_mut(traces.max_trace)
+        .ok_or_else(|| {
+            Error::InvalidValue(
+                "FeatureFinderAlgorithmPicked seed extension: the maximum trace index is out of \
+                 range; the source dereferences it here"
+                    .into(),
+            )
+        })?
+        .update_maximum();
+
+    let mut model = FittedModel::new(settings.rt_shape, *fitter_parameters);
+    if let Err(error) = model.fit(&traces) {
+        // The source does not catch `Exception::UnableToFit` inside its
+        // parallel region, so the run ends there; this port records the failure
+        // as the seed's abort reason and continues, which is what the source's
+        // own abort handling amounts to.
+        return Ok(SeedOutcome {
+            plot_nr_used: true,
+            result: Err(error.to_string()),
+        });
+    }
+    let new_traces = crop_feature(model.as_fitter(), &traces, settings.min_trace_score)?;
+    let quality = match check_feature_quality(model.as_fitter(), &new_traces, seed_mz, settings)? {
+        QualityOutcome::Rejected(reason) => return Ok(aborted(true, reason)),
+        QualityOutcome::Accepted(quality) => quality,
+    };
+    let traces = new_traces;
+    let feature = build_feature(FeatureInput {
+        model: &model,
+        traces: &traces,
+        pattern: &pattern,
+        windows: stage.windows(),
+        settings,
+        charge,
+        // Overwritten serially; see `feature_stage`.
+        plot_nr: -1,
+        quality,
+    })?;
+
+    // Source: every later seed inside both the overall bounding box and one of
+    // the mass-trace hulls.
+    let mut contained = Vec::new();
+    if let Some(bounds) = feature.hull_bounding_box() {
+        for (offset, later) in seeds.iter().enumerate().skip(index + 1) {
+            let rt = spectra[later.spectrum].rt;
+            let mz = spectra[later.spectrum].peaks[later.peak].mz;
+            if bounds.encloses(Point2D::new(rt, mz))? && feature.encloses(rt, mz)? {
+                contained.push(offset);
+            }
+        }
+    }
+    Ok(SeedOutcome {
+        plot_nr_used: true,
+        result: Ok(SeedCandidate { feature, contained }),
+    })
 }

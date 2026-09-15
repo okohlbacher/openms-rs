@@ -1,0 +1,1 @@
+Warning: Input contains per-peak ion mobility data (IM_PEAK, im_profile). PeakPickerHiRes picks in m/z only and reports intensity-weighted mean ion mobility. This produces incorrect results on unbinned data. Consider IonMobilityBinning or PeakPickerIM first.

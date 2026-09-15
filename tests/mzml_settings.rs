@@ -437,7 +437,6 @@ fn settings_and_product_output_pass_independent_schema_in_both_writers() {
             ..Default::default()
         });
     }
-    let schema = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data/mzml_1_10.xsd");
     for compressed in [false, true] {
         let mut bytes = Vec::new();
         if compressed {
@@ -445,6 +444,14 @@ fn settings_and_product_output_pass_independent_schema_in_both_writers() {
         } else {
             mzml::write(&mut bytes, &e).unwrap();
         }
+        // The indexed default of `mzml::write` validates against the indexed
+        // schema; `write_with_numpress` stays plain mzML.
+        let indexed = std::str::from_utf8(&bytes).is_ok_and(|t| t.contains("<indexedmzML "));
+        let schema = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(if indexed {
+            "tests/data/mzml_writing/mzML_idx_1_10.xsd"
+        } else {
+            "tests/data/mzml_1_10.xsd"
+        });
         let mut process = Command::new("xmllint")
             .args(["--nonet", "--noout", "--schema"])
             .arg(&schema)

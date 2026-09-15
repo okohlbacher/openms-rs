@@ -1,0 +1,226 @@
+{
+  "package_revisions": {
+    "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+    "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+    "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+    "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  },
+  "scope": "The PeakPickerHiRes TOPP wrapper (package P3-PICKER-TOOL of the early TOPP bundle): registration, the in-memory run, the parameter-failure and -write_ini behaviour. Sources and fixtures come from the independently versioned OpenMS4-cli, OpenMS4-topp and OpenMS4-test-data packages and are deliberately not resolved against the Core SDK checkout; the core PeakPickerHiRes sources are listed as context, because the picker itself is tests/data/peak_picking_provenance.json.",
+  "method": "The wrapper is transcribed from the pinned C++ tool. The four in-memory registrations, the six parameter failures and TOPPWRITEINI_OVERWRITE are reproduced through cli::run_with in a per-case temporary directory. XML outputs are compared by decoded content (decision D6): counts, ids, levels, types and array names exactly, every m/z, retention time, intensity and float array value bit for bit, and the full decoded walk with exact numbers over container-neutral processing records. INI outputs are compared line by line with the ported FuzzyDiff and the registered whitelists.",
+  "evidence_tier": "executed differential (tier 1): retained upstream outputs, and C++ outputs produced by the prebuilt product SDK (Debug, core 4fdec46, decision D7) recorded in the two oracle manifests below",
+  "sources": [
+    {
+      "package": "topp",
+      "revision": "174b576",
+      "path": "src/PeakPickerHiRes.cpp",
+      "sha256": "e253bb0822fffbdd0839db649d2b548916bc227c2d306af5514dc445557f5184"
+    },
+    {
+      "package": "test-data",
+      "revision": "0cb15f2",
+      "path": "topp/CMakeLists.txt",
+      "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb"
+    }
+  ],
+  "context_sources": [
+    {
+      "package": "core",
+      "revision": "bc9cc12",
+      "path": "src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
+      "sha256": "a40d2e48a7d24df3ebfb6e9ff5a0df5df3886ca8ddc8d83ef6f6a3f7c5b50d77"
+    },
+    {
+      "package": "core",
+      "revision": "bc9cc12",
+      "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp",
+      "sha256": "160f5cae6edfa02acb664daec881f41c26ce349b5ac0bc76d125ebcc30dd3fca"
+    }
+  ],
+  "upstream_test_definition": [
+    "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 2523-2549 (TOPP_PeakPickerHiRes_1..6 and their _out1 comparisons)",
+    "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 104-106 (TOPPWRITEINI_OVERWRITE)",
+    "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 107-131 (the six parameter-failure tests, run on PeakPickerHiRes)"
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/PeakPickerHiRes_output.mzML",
+      "sha256": "092c128d0662e0f0d0b31dac64be3668a9a8390c2d891fe81c350ef14b88c2a3",
+      "origin": "test-data 0cb15f2 topp/PeakPickerHiRes_output.mzML (retained upstream expectation of TOPP_PeakPickerHiRes_1)"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/PeakPickerHiRes_2_output.mzML",
+      "sha256": "f91d7e97bf7bded85bae996e15a85a0b9b686ee4520feb03c9016974fbb9affc",
+      "origin": "test-data 0cb15f2 topp/PeakPickerHiRes_2_output.mzML"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/PeakPickerHiRes_5_output.mzML",
+      "sha256": "d4fab18ed64aa58fce6c48f0071c8eb4f15adb5ea8acec987746323a074a02d1",
+      "origin": "test-data 0cb15f2 topp/PeakPickerHiRes_5_output.mzML"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/PeakPickerHiRes_6_output.mzML",
+      "sha256": "398c4e1468c371f82d22f00a3f8f023840f776c99bc70c90d92d9108f4c22547",
+      "origin": "test-data 0cb15f2 topp/PeakPickerHiRes_6_output.mzML"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/PeakPickerHiRes_parameters.ini",
+      "sha256": "93ce9ec5129d089293f45b0ede8563300f3d9bab33f466d441f3e74a27ac580c",
+      "origin": "test-data 0cb15f2 topp/PeakPickerHiRes_parameters.ini"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/PeakPickerHiRes_6.ini",
+      "sha256": "e109f6e4e6aa6f6006b3244b5d2ecc77c8ad13625537e8edcaa3350feba4eef0",
+      "origin": "test-data 0cb15f2 topp/PeakPickerHiRes_6.ini"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/WRITE_INI_IN.ini",
+      "sha256": "b71c1575587be45ef5f6316814b3d9a5d400e5006a9cc8099ad09a0cd1bc5855",
+      "origin": "test-data 0cb15f2 topp/WRITE_INI_IN.ini"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/PPHiRes_invalidValue.ini",
+      "sha256": "6ea616e8b4f29a6bee0642f8178acc80ee6057b609291b48202c7c5efd4b27cd",
+      "origin": "test-data 0cb15f2 topp/degenerate_cases/PPHiRes_invalidValue.ini"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/PPHiRes_invalidValueSection.ini",
+      "sha256": "0194e24c60dc1d0e43269663c164d440053f0afb58eb6d5987b1bdc9eb705f72",
+      "origin": "test-data 0cb15f2 topp/degenerate_cases/PPHiRes_invalidValueSection.ini"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/PPHiRes_invalidParamName.ini",
+      "sha256": "a47ec39b821bb0cd7d35ff31c8aefcb813f214df564ea642516b997edef33ac4",
+      "origin": "test-data 0cb15f2 topp/degenerate_cases/PPHiRes_invalidParamName.ini"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/PeakPickerHiRes_6_noforce.ini",
+      "sha256": "d0ac2f67d7208800bc43b8eeee58dad16e67b9aaa2ecb45e1a3af34ab3c23440",
+      "origin": "C1 oracle cases/derived/PeakPickerHiRes_6_noforce.ini: PeakPickerHiRes_6.ini with force=false (case PPHR_6_noforce)"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/empty.mzML",
+      "sha256": "dedf5a3840ea1d7710ab34ddc43259d85eb6723d6c5377c896b87426dcfcde44",
+      "origin": "C1 oracle cases/derived/empty.mzML: FileInfo_9_input.mzML with an empty spectrumList (count 0) and no spectra"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/p3_unsorted_spectrum.mzML",
+      "sha256": "99e8d9cfa1707efd5fb504fe82cb270964c9c2cbea1c3214e8024239dacde3be",
+      "origin": "P3 oracle derived/p3_unsorted_spectrum.mzML: PeakPickerHiRes_6_input.mzML without the indexedmzML wrapper, m/z and intensity values 10 and 11 swapped"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/p3_unsorted_chromatogram.mzML",
+      "sha256": "ca5235865dc2785eea9c8203f4273365dd5fc7d3cb67cedbac7d8c41a27ea4a1",
+      "origin": "P3 oracle derived/p3_unsorted_chromatogram.mzML: PeakPickerHiRes_2_input.mzML with time and intensity values 20 and 21 of chromatogram tr1 swapped"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/p3_im_peak.mzML",
+      "sha256": "d90d67c80378bf1ff711daee96bd42d92865645f858d9a360d5d6afe4a404ad4",
+      "origin": "P3 oracle derived/p3_im_peak.mzML: PeakPickerHiRes_6_input.mzML without the indexedmzML wrapper and with a third uncompressed 32-bit 'MS:1002816 mean ion mobility array' (UO:0000028 millisecond) holding float32(0.5 + 0.01 * i)"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/oracle_write_ini.ini",
+      "sha256": "dc0f7b60f89f7ba2b151d8e14bf9ff4bc5d8027f3a060bff102a6c9d149983ff",
+      "origin": "P3 oracle case write_ini: the INI the C++ tool writes with -write_ini (the benchmark form)"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/oracle_cpp_ini.mzML",
+      "sha256": "0e63f534d958d7767453feaaef4d3eaf190cde22c48fd45730320d45d217668e",
+      "origin": "P3 oracle case cpp_ini_threads_1: that INI fed back on PeakPickerHiRes_input.mzML; identical at -threads 16 and 0, and identical to the optimised C++ build's output on the benchmark host"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/oracle_im_peak.mzML",
+      "sha256": "c6eb08f3c4e04331b0bda95a04482485ee2ff8117821543c6528e93bcc51191b",
+      "origin": "P3 oracle case im_peak"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/oracle_im_peak.stderr.txt",
+      "sha256": "f06e7268ffbc7066a40341df34abdbdfcb720ecd5ba5dbf3ff607ddcff823c16",
+      "origin": "P3 oracle case im_peak, standard error (the per-peak ion mobility warning)"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/oracle_empty.stderr.txt",
+      "sha256": "47777ae0d24cab2a53e95873a2c68d6b6145e80b51de3a1b9da7f01c237df1c7",
+      "origin": "P3 oracle case empty, standard error"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/oracle_notest.mzML",
+      "sha256": "e8b0d9a1ac9106b8b327a7941397e5619547368793bda2a6515b244546c2dac9",
+      "origin": "P3 oracle case notest: a run outside -test, for the processing record"
+    },
+    {
+      "path": "tests/data/topp_peak_picker_hi_res/oracle_cli_signal_to_noise_2.mzML",
+      "sha256": "16cbc944b476102c5ec101acbc45f00b52adbf988c23a963b0cc16d9fa110c3c",
+      "origin": "C1 oracle case PPHR_cli_signal_to_noise_2: -algorithm:signal_to_noise 2 -algorithm:ms_levels 1"
+    }
+  ],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_input.mzML",
+      "sha256": "0bc37582906068a77b1b13a2d1ba06810c21e13952d8635fc257de35edc50c1c",
+      "owner": "P1-PICKER-LIB"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_2_input.mzML",
+      "sha256": "006eefa522dd5218ef4efe21636ecd4dc58d901f596e1f3b281f228a0cff3983",
+      "owner": "P1-PICKER-LIB"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_6_input.mzML",
+      "sha256": "dbb02a72fbcc2b7509d8195ded758e2fc4b9f18146afcdb44be53c4ae1bbeaad",
+      "owner": "P1-PICKER-LIB"
+    },
+    {
+      "path": "tests/data/peak_picking/WRITE_INI_OUT.ini",
+      "sha256": "e4576e64440c6d39374a0921fd779c7e9df7cf8f7eee4e905fa3fd4846b88102",
+      "owner": "P1-PICKER-LIB (retained expectation of TOPPWRITEINI_OVERWRITE)"
+    },
+    {
+      "path": "tests/data/mzml_header_leniency/PeakPickerHiRes_5_input.mzML",
+      "sha256": "976a3bb76e1c5003172acbff4d049320b14a1a9d2fb970a186f6e8c03213feed",
+      "owner": "P2-MZML-LENIENCY"
+    },
+    {
+      "path": "tests/data/fuzzy_string_comparator/FuzzyDiff.ini",
+      "sha256": "238d0598a366b3e9e6f5686a4b666b483317617d33ce36ea5ab9a03842a83dc2",
+      "owner": "C3-FUZZY (the upstream ${DIFF} settings)"
+    }
+  ],
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/topp-early-bundle/manifest.json",
+      "sha256": "64e98543fbe26c406988cee6122208d3007e3d66e9547f5130917e4c6b2ffbb0",
+      "role": "C1 tool-level oracle: the six registered workflows, the six parameter failures, TOPPWRITEINI_OVERWRITE and the PeakPickerHiRes regressions"
+    },
+    {
+      "path": "../oracle/topp-peak-picker-tool/manifest.json",
+      "sha256": "e3b0a094bee2adeff8d9dcedc2fc0cee66d3225101e1cd6d3910c243fae5ee33",
+      "role": "P3 supplementary oracle: -write_ini, that INI fed back at -threads 1/16/0, an empty input, unsorted records, per-peak ion mobility, auto_mode 1 without estimation and a run outside -test; twelve cases, each executed twice and reproduced"
+    },
+    {
+      "path": "../oracle/topp-peak-picker-tool/oracle.py",
+      "sha256": "f9ad3e8f866f41e90158e3e139d74287b5e264f01d763a270280b04dc3a43b2b",
+      "role": "P3 oracle driver, including the three derivation rules"
+    },
+    {
+      "path": "../oracle/topp-peak-picker-tool/run.sh",
+      "sha256": "e279053b2133c81f13b62301d1c42974f642cefa7abcdadb936d6c253fa1bb57",
+      "role": "P3 oracle entry point"
+    },
+    {
+      "path": "../oracle/release-build/manifest.json",
+      "sha256": "2efe7501c5c7e3f6dd3feef78628ae6f1158e762b7fc04154de21cfd095b293a",
+      "role": "the optimised C++ build at these pins, used for the release wall-time comparison in docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md; the Debug product SDK is never timed (decision D7)"
+    }
+  ],
+  "native_implementation": [
+    "src/cli/tools/peak_picker_hi_res.rs",
+    "src/bin/PeakPickerHiRes.rs"
+  ],
+  "native_tests": [
+    "tests/topp_peak_picker_hi_res.rs",
+    "src/cli/tools/peak_picker_hi_res.rs (module tests: the unsorted and empty refusals)"
+  ],
+  "support_document": "docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md",
+  "determinism": "The picker is serial, as the source is. -threads 1, 2, 16 and 0 produce byte-identical output; the thread policy reaches the tool through ToolContext::thread_policy and is not consumed until the library offers a parallel pick_experiment.",
+  "target_verification": "cargo test --locked --no-default-features --features mzml,paramxml --test topp_peak_picker_hi_res --lib on stable and 1.85.0 (ibmi dax); clippy --locked --all-features --all-targets -D warnings; doc --locked --all-features --no-deps; release builds of the PeakPickerHiRes binary with default features and with mzml,paramxml on both toolchains."
+}

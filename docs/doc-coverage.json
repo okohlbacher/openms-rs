@@ -1,8 +1,8 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 5414,
-  "documented": 3980
+  "items": 5605,
+  "documented": 4197
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {
@@ -21,9 +21,21 @@
    "items": 23,
    "documented": 16
   },
+  "src/analysis/feature_finder_picked/algorithm.rs": {
+   "items": 26,
+   "documented": 26
+  },
   "src/analysis/feature_finder_picked/helper_structs.rs": {
    "items": 41,
    "documented": 41
+  },
+  "src/analysis/feature_finder_picked/scoring.rs": {
+   "items": 26,
+   "documented": 26
+  },
+  "src/analysis/feature_finder_picked/seeds.rs": {
+   "items": 21,
+   "documented": 21
   },
   "src/analysis/feature_finder_picked/trace_fitter.rs": {
    "items": 2,
@@ -306,8 +318,8 @@
    "documented": 27
   },
   "src/cli/parameter.rs": {
-   "items": 15,
-   "documented": 15
+   "items": 16,
+   "documented": 16
   },
   "src/cli/processing.rs": {
    "items": 5,
@@ -337,13 +349,9 @@
    "items": 1,
    "documented": 1
   },
-  "src/cli/usage.rs": {
-   "items": 1,
-   "documented": 1
-  },
   "src/cli.rs": {
-   "items": 8,
-   "documented": 8
+   "items": 9,
+   "documented": 9
   },
   "src/comparison.rs": {
    "items": 67,
@@ -457,6 +465,18 @@
    "items": 25,
    "documented": 25
   },
+  "src/format/file_info/model.rs": {
+   "items": 20,
+   "documented": 20
+  },
+  "src/format/file_info/peaks.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/format/file_info/report.rs": {
+   "items": 10,
+   "documented": 10
+  },
   "src/format/file_info/text_format.rs": {
    "items": 12,
    "documented": 12
@@ -562,8 +582,8 @@
    "documented": 8
   },
   "src/format/mzml_header/read.rs": {
-   "items": 4,
-   "documented": 0
+   "items": 5,
+   "documented": 5
   },
   "src/format/mzml_header/xml.rs": {
    "items": 14,
@@ -571,7 +591,7 @@
   },
   "src/format/mzml_header.rs": {
    "items": 8,
-   "documented": 0
+   "documented": 8
   },
   "src/format/mzml_load.rs": {
    "items": 3,
@@ -630,8 +650,8 @@
    "documented": 7
   },
   "src/format/paramxml.rs": {
-   "items": 12,
-   "documented": 6
+   "items": 17,
+   "documented": 17
   },
   "src/format/peak_options.rs": {
    "items": 36,
@@ -776,6 +796,10 @@
   "src/kernel/geometry.rs": {
    "items": 29,
    "documented": 29
+  },
+  "src/kernel/im_data_converter.rs": {
+   "items": 17,
+   "documented": 17
   },
   "src/kernel/map_operations.rs": {
    "items": 40,
@@ -969,9 +993,13 @@
    "items": 7,
    "documented": 6
   },
+  "src/processing/feature_overlap_filter/quadtree.rs": {
+   "items": 26,
+   "documented": 26
+  },
   "src/processing/feature_overlap_filter.rs": {
-   "items": 1,
-   "documented": 1
+   "items": 23,
+   "documented": 23
   },
   "src/processing/iterative.rs": {
    "items": 6,
@@ -982,12 +1010,12 @@
    "documented": 2
   },
   "src/processing/peak_picking/noise.rs": {
-   "items": 4,
-   "documented": 3
+   "items": 11,
+   "documented": 11
   },
   "src/processing/peak_picking.rs": {
-   "items": 13,
-   "documented": 6
+   "items": 21,
+   "documented": 21
   },
   "src/processing/smoothing.rs": {
    "items": 14,

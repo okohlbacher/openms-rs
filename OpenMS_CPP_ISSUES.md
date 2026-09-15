@@ -40,7 +40,7 @@ are not classified as confirmed defects here.
 | CPP-024 | CV XML output leaves several attribute values unescaped | Source-reviewed | Open |
 | CPP-025 | Processing-action fallback state leaks between mzML methods | Source-reviewed | Open |
 | CPP-026 | mzML writer gives every processing step the same order value | Source-reviewed; schema contract | Open |
-| CPP-027 | mzML writing discards processing completion seconds | Source-reviewed | Open |
+| CPP-027 | mzML writing discards processing completion seconds | Source-reviewed; executed (CLI-2 oracle) | Open |
 | CPP-028 | Recognized software metadata reaches a missing mzML mapping path | Source-reviewed | Open |
 | CPP-029 | Annotation-only brackets pass AASequence checks but fail conversion | Source-reviewed | Open |
 | CPP-030 | Strict AASequence conversion silently drops terminal crosslinks | Source-reviewed; public AST trigger | Open |
@@ -683,6 +683,13 @@ minutes-only restriction is documented on the completion-time field.
 the completion-time reader and the DateTime parser. This is not an executed
 C++ round trip. The existing source fixture uses minute precision and therefore
 does not expose the loss.
+Executed since (early-TOPP wave 2, CLI-2 `f886d90`): the product SDK at core
+`4fdec46` writes the `-test` completion time `1999-12-31 23:59:59` of
+SpectraFilterWindowMower's processing record as `1999-12-31+23:59`
+(`../oracle/topp-cli-lifecycle/cli2/manifest.json`, the retained
+`SpectraFilterWindowMower_1_output.mzML`), and `MzMLHandler.cpp:3947` is
+unchanged at `bc9cc12`. The CLI-2 processing-record comparisons truncate the
+port's seconds to match.
 
 **Proposed fix:** Emit an accepted timestamp format retaining seconds and any
 stored fractional precision. Add a seconds-bearing round trip, with separate
@@ -4355,7 +4362,7 @@ implementation. They do not count as completed Rust functionality.
 
 **Evidence:** `../oracle/b2-iso-source-precision/manifest.json` (`probe.tsv`); `tests/data/isotopes_source_precision_provenance.json`; the sizes are asserted in `tests/isotopes_source_precision.rs`.
 
-**Rust handling:** `CoarseIsotopePatternGenerator::set_isotope_override` rejects that construction. Whether FeatureFinderCentroided reproduces the defect is open for packages B6 and B10.
+**Rust handling:** `CoarseIsotopePatternGenerator::set_isotope_override` rejects that construction. FeatureFinderAlgorithmPicked's seed stage (B6-FFAP-SEEDS, `80bbdf1`) refuses a changed abundance with `Error::Unsupported` by default and builds the intended two-isotope distribution only under `AbundanceOverride::Intended`; C2 shows the source's effect on FeatureFinderCentroided_1 (27-bin windows and 0 seeds at 12C = 90%). Which behaviour the tool follows is open for the lead and package B10.
 
 ## CPP-248 — CoarseIsotopePatternGenerator::run gives different bits in different runs of one binary
 
@@ -4496,3 +4503,597 @@ implementation. They do not count as completed Rust functionality.
 **Evidence:** The `toStr(x)` column of the D rows for bits `40934a456d5cfaad` and `4023fd70a3d70a3d` in `../oracle/file-info-text-format/results/driver.tsv` and `results/pin_probe.tsv`; source review of the cited lines.
 
 **Rust handling:** `to_str` and `to_str_f32` reproduce the source behaviour, not the comments.
+
+## CPP-256 — SignalToNoiseEstimatorMedian's AUTOMAXBYPERCENT mode reads and writes out of bounds
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. The crash is executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85` (C1).
+
+**Status:** Executed (crash); the cause is source-reviewed.
+
+**Affected file/function:** `src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h:191–233`, `computeSTN_`, the `AUTOMAXBYPERCENT` branch.
+
+**Trigger:** `auto_mode = 1` with estimation running, for example PeakPickerHiRes with `signal_to_noise > 0`.
+
+**Issue:** `std::max_element` is called with the comparator `a.getIntensity() > b.getIntensity()` (line 208), so it returns the minimum intensity, not the maximum. `bin_size = maxInt / 100` (211) is then 0 for a spectrum with a zero intensity, and `++histogram_auto[(int)((peak.getIntensity() - 1) / bin_size)]` (216) indexes the 100-bin vector with no bounds check: a quotient far above 99, a negative index for intensities below 1, or a division by zero converted to `int`. An empty container dereferences `end()` (209).
+
+**Proposed C++ fix:** Use `std::max_element` with `<` (or `getIntensity()` less), return early for an empty container, guard `bin_size > 0`, and clamp the bin index to `[0, 99]`.
+
+**Evidence:** C1 (`../oracle/topp-early-bundle`) records PeakPickerHiRes with `auto_mode 1` ending in SIGBUS 138 or SIGSEGV 139, varying between attempts. The P1 oracle case `extra_auto_mode_percentile_sn0` (`../oracle/peak-picker-hires`) shows the mode is accepted when no estimation runs; `tests/data/peak_picking_provenance.json`.
+
+**Rust handling:** `NoiseHistogramRange::Percentile` is a valid parameter; estimation with it returns `Error::Unsupported` (`docs/PEAK_PICKING_SUPPORT.md`, native difference 5).
+
+## CPP-257 — SignalToNoiseEstimatorMedian converts an unbounded bin quotient to int
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed. The P1 verifier's `huge_int` case ran on the arm64 oracle, where the conversion saturates.
+
+**Affected file/function:** `src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h:297` and `:308`, `computeSTN_`.
+
+**Trigger:** A manual `max_intensity` small against the data, so that `intensity / bin_size` exceeds `INT_MAX`; for example `max_intensity 1` with intensities above 2^31.
+
+**Issue:** `(int)(intensity / bin_size)` is converted before `std::min<int>` clamps it to the last bin. A `double` outside the `int` range makes the conversion undefined. arm64 saturates to `INT_MAX` (the last bin); x86-64 `cvttsd2si` gives `INT_MIN`, which `std::max(..., 0)` clamps to bin 0, so the same input can land in the first or the last histogram bin depending on the platform. In the automatic modes the quotient stays near `10 * sqrt(n)`.
+
+**Proposed C++ fix:** Clamp in `double` before converting: `std::min(intensity / bin_size, double(bin_count_minus_1))`, then cast.
+
+**Evidence:** Source review of lines 258, 297 and 308; the P1 verifier's adversarial case against `../oracle/peak-picker-hires` (arm64).
+
+**Rust handling:** The port clamps in floating point and selects the last bin, which matches the arm64 oracle; a Linux x86-64 C++ benchmark could differ on such input.
+
+## CPP-258 — PeakPickerHiRes's FWHM bisection can loop forever
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed. A hang cannot be recorded by the oracle; the port detects the fixed point.
+
+**Affected file/function:** `src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp:396–408` (left) and `:421–434` (right), `pick_`, with `report_FWHM` set.
+
+**Trigger:** A picked peak whose spline maximum is not positive, or any search whose midpoint reaches a bracket end without meeting the tolerance.
+
+**Issue:** The `do`/`while (fabs(int_mid - fwhm_int) > threshold)` loops have no step limit. With `max_peak_int <= 0`, `threshold = 0.01 * fwhm_int` is not positive, so the condition never becomes false. Otherwise, once `mz_left` (or `mz_right`) and `mz_center` are adjacent doubles, the midpoint equals one of them and the bracket stops moving; if the spline there is not within the tolerance of half height, the loop never ends.
+
+**Proposed C++ fix:** Skip FWHM for a non-positive maximum and stop when the midpoint equals a bracket end or after a fixed number of halvings.
+
+**Evidence:** Source review; `docs/PEAK_PICKING_SUPPORT.md`, native difference 4.
+
+**Rust handling:** The port detects the fixed point exactly and returns `Error::InvalidValue`, with a 4,096-halving guard that no terminating search reaches.
+
+## CPP-259 — PeakPickerHiRes weights ion mobility with samples its spline discards
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp:250–260`, `:290–299`, `:333–342` and `:444–446`, `pick_`.
+
+**Trigger:** A profile spectrum with an ion-mobility array and two samples at the same m/z inside one peak.
+
+**Issue:** The support is a `std::map<double, double>`, so `peak_raw_data[pos] = intensity` overwrites an equal key, while `weighted_im += im * intensity` adds every sample. The weighted mean `weighted_im / total_intensity` then divides a sum over all samples by the intensity total of the samples the map kept, and the reported mobility is no longer a weighted mean of any subset.
+
+**Proposed C++ fix:** Accumulate the mobility weight in the map entry (or rebuild it from the final map), or reject duplicate positions before picking.
+
+**Evidence:** Oracle cases `source_duplicate_apex`, `source_duplicate_apex_flank`, `source_duplicate_apex_nocheck` and `source_duplicate_extension` on inputs with an `Ion Mobility` array (`../oracle/peak-picker-hires`; `tests/data/peak_picking/synthetic.tsv`).
+
+**Rust handling:** The default refuses duplicate positions; `PickingCompatibility::source()` reproduces the source result bit for bit.
+
+## CPP-260 — Orphaned PeakPickerHiRes class-test fixtures no longer match the code
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Test-data defect; executed.
+
+**Affected file/function:** `src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap_sn0_out.mzML`, `PeakPickerHiRes_ftms_sn0_out.mzML`, `PeakPickerHiRes_orbitrap_ppmax.mzML`, `PeakPickerHiRes_ftms_ppmax.mzML`, `PeakPickerHiRes_orbitrap_sn4_out_ppmax.mzML` and `PeakPickerHiRes_ftms_sn4_out_ppmax.mzML`.
+
+**Trigger:** Using these files as expected outputs.
+
+**Issue:** No class test references the six files. The current picker does not reproduce the `sn0` outputs: at `signal_to_noise 0` it gives 82, 112 and 89 (orbitrap) and 314 and 319 (FTMS) centroids per spectrum against the stored 679, 860 and 640 and 9,359 and 9,384. `PeakPickerHiRes_orbitrap_ppmax.mzML` holds 9,778 points against a 1,210-point input, so it is not an output of that input.
+
+**Proposed C++ fix:** Remove the files, or regenerate them and add the class-test sections that use them.
+
+**Evidence:** P1's runs of the product SDK on the class-test inputs (`../oracle/peak-picker-hires`); a search of `src/tests` and `src/openms` at the pin finds no reference.
+
+**Rust handling:** Not used; `docs/PEAK_PICKING_SUPPORT.md` records them as unused.
+
+## CPP-261 — PeakPickerHiRes FTMS class-test files repeat a spectrum id
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Test-data defect; source-reviewed.
+
+**Affected file/function:** `src/tests/class_tests/openms/data/PeakPickerHiRes_ftms.mzML`, `PeakPickerHiRes_ftms_sn1_out.mzML`, `PeakPickerHiRes_ftms_sn4_out.mzML`, `PeakPickerHiRes_ftms_sn0_out.mzML`, `PeakPickerHiRes_ftms_ppmax.mzML` and `PeakPickerHiRes_ftms_sn4_out_ppmax.mzML`.
+
+**Trigger:** Loading the files with a reader that requires unique spectrum ids.
+
+**Issue:** Each file has two `<spectrum>` elements with `id="spectrum=1"`. mzML requires a spectrum id to be unique within the run; `MzMLHandler` loads the files anyway, which hides the duplicate from the class test.
+
+**Proposed C++ fix:** Renumber the second spectrum in the input and in the outputs.
+
+**Evidence:** `grep` of the pinned files; `PeakPickerHiRes_test.cpp:281–350` loads them.
+
+**Rust handling:** The native mzML reader refuses duplicate record ids, so P1 commits copies with only the second id renamed (`*.unique_ids.mzML`, recorded as adapted in `tests/data/peak_picking_provenance.json`).
+
+## CPP-262 — Dangling mzML software and data-processing references are silently default-constructed
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp:920`, `:924`, `:948`, `:952`, `:1034`, `:1264` and `:1288`, `startElement`.
+
+**Trigger:** An mzML `softwareRef`, `processingMethod/@softwareRef`, `dataProcessingRef` or `defaultDataProcessingRef` naming no definition, for example the upstream TOPP fixture `PeakPickerHiRes_5_input.mzML` (softwareRef `so_in_0` with no `softwareList`, `defaultDataProcessingRef` `dp_sp_0` with no `dataProcessingList`).
+
+**Issue:** The references are resolved with `std::map::operator[]`, which inserts a default entry, so the instrument or method silently gets an empty `Software` and the record an empty processing history. No diagnostic is written, while an unregistered spectrum `sourceFileRef` is checked with `contains()` and warned about (`:899–906`). A software list placed after the instrument list also resolves to empty software.
+
+**Proposed C++ fix:** Look the IDs up with `find`; warn or throw `ParseError` for an unknown ID, as for `sourceFileRef`.
+
+**Evidence:** `../oracle/p2-mzml-leniency` (load, metadata-only load and transform on the upstream fixture and four synthetic cases; exit 0, stderr without a reference diagnostic); `tests/data/mzml_header_leniency_provenance.json`.
+
+**Rust handling:** The reader rejects these references by default; `mzml::ReadOptions::source_dangling_references` reproduces the source result and warns once per distinct ID.
+
+## CPP-263 — MzMLSplitter's parts carry no processing record
+
+**Source revision:** topp `174b576e244e100f2345ca57a8e79aaa607156df` (`src/MzMLSplitter.cpp`) with cli `c19e49414bcd9ebdea42f89b3f74d2823205892c` (`TOPPBase.cpp`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/MzMLSplitter.cpp:146–167`, `main_`; `source/APPLICATIONS/TOPPBase.cpp:594–605`, `addDataProcessing_(PeakMap&, ...)`.
+
+**Trigger:** Any MzMLSplitter run.
+
+**Issue:** `addDataProcessing_(part, getProcessingInfo_(DataProcessing::FILTERING))` runs on a copy of the experiment whose spectra and chromatograms were moved out, before the part's own spectra and chromatograms are added. `addDataProcessing_` attaches the record to each spectrum and chromatogram present, so no output part records the filtering step.
+
+**Proposed C++ fix:** Call `addDataProcessing_` after the spectra and chromatograms are added to the part.
+
+**Evidence:** Oracle case `mzml_splitter_1` in `../oracle/topp-cli-lifecycle/cli2/manifest.json`; the retained `MzMLSplitter_output_part1/2.mzML` (test-data `0cb15f2`).
+
+**Rust handling:** The port reproduces the call order, so its parts carry no record either (`tests/topp_mzml_splitter.rs`).
+
+## CPP-264 — ParamXMLFile declares ISO-8859-1 but writes UTF-8 bytes
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed.
+
+**Affected file/function:** `src/openms/source/FORMAT/ParamXMLFile.cpp:66`, `writeXMLToStream`.
+
+**Trigger:** A parameter name, value, description, tag or restriction containing a non-ASCII character, written with `-write_ini` or `ParamXMLFile::store`.
+
+**Issue:** The writer emits `<?xml version="1.0" encoding="ISO-8859-1"?>` and then copies the UTF-8 bytes of its `std::string` values, escaping only XML markup. A reader honouring the declaration decodes each multi-byte character as several Latin-1 characters, so the text does not read back as written, in Xerces as in any other parser.
+
+**Proposed C++ fix:** Declare `UTF-8`, or transcode to ISO-8859-1 and write characters above U+00FF as character references.
+
+**Evidence:** Source review of the declaration and the escaping path (`XMLHandler::writeXMLEscape`); the upstream writer golden `ParamXMLFile_test_writeXMLToStream.xml` is ASCII, so it does not expose the mismatch.
+
+**Rust handling:** `paramxml::WriteOptions::source()` writes the ISO-8859-1 declaration with bytes consistent with it: characters up to U+00FF as their Latin-1 byte, others as character references (`docs/PARAMXML_SUPPORT.md`).
+
+## CPP-265 — XML files are opened twice, so a FIFO given as input blocks
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/XMLFile.cpp:141–166` (and the same pattern from `:198`), `parse_`.
+
+**Trigger:** An XML input read from a FIFO fed by a single writer, for example `-ini` or `-write_ini -ini` with a named pipe.
+
+**Issue:** `parse_` opens the file with `std::ifstream` to peek at two bytes for the compression check, closes it, and opens it again through `LocalFileInputSource`. The first open consumes the writer's data; the second open waits for a writer that never comes, and the tool blocks without a message.
+
+**Proposed C++ fix:** Peek and parse through one stream, for example by wrapping the already opened stream in a Xerces `InputSource`.
+
+**Evidence:** Oracle observation `write_ini_ini_fifo_single_writer` in `../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json`: killed by the 10-second alarm, exit 142, nothing written.
+
+**Rust handling:** The port reads the file once and completes; `docs/TOPP_CLI_SUPPORT.md` records this as a deliberate difference.
+
+## CPP-266 — An INI that exists but cannot be opened is reported as an internal error
+
+**Source revision:** cli `c19e49414bcd9ebdea42f89b3f74d2823205892c` with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/TextFile.cpp:36–47`, `load`; cli `source/APPLICATIONS/TOPPBase.cpp:495–499`.
+
+**Trigger:** `-ini` naming a Unix socket, or `/dev/tty` in a process without a controlling terminal, on a run or with `-write_ini`.
+
+**Issue:** The file exists and `File::readable` holds, but the open fails, so `TextFile::load` throws `IOException`. TOPPBase has no handler for it and reaches the `BaseException` arm: "Error: Unexpected internal error (IO error for file ...)", exit 8 (`UNKNOWN_ERROR`), where an unreadable input is exit 2 and a corrupt one exit 3.
+
+**Proposed C++ fix:** Map `IOException` on an input file to `INPUT_FILE_NOT_READABLE` with a message naming the open failure.
+
+**Evidence:** Oracle cases `ini_socket`, `write_ini_ini_socket`, `ini_tty` and `write_ini_ini_tty` in `../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json`.
+
+**Rust handling:** The port reproduces exit 8 and the message for an open failure other than NotFound and PermissionDenied; a read failure after a successful open stays exit 3.
+
+## CPP-267 — FileInfo::Result declares fields that run never fills
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed.
+
+**Affected file/function:** `src/openms/include/OpenMS/FORMAT/FileInfo.h:194–198` (`ValidationInfo::schema_version`, `detail`) and `:220–236` (`Result::experiment_meta`, `statistics`, `corruption`, `detail`); `src/openms/source/FORMAT/FileInfo.cpp`, `run` and `report_`.
+
+**Trigger:** Any library or pyOpenMS caller reading the structured result after `-m`, `-s`, `-c`, `-d` or `-v`.
+
+**Issue:** `FileInfo.cpp` never assigns `experiment_meta`, `statistics` (the `NamedStats` blocks), `corruption`, `detail`, `ValidationInfo::schema_version` or `ValidationInfo::detail`. The metadata, statistics, corruption and detail output goes only into the text report, so structured callers see empty records that look like results.
+
+**Proposed C++ fix:** Fill the fields where the text is produced, or remove them from the public result.
+
+**Evidence:** Source review: no assignment to these members exists in `FileInfo.cpp` at the pin.
+
+**Rust handling:** `model::FileInfoResult` keeps the fields and leaves them empty, as the source does (`docs/FILE_INFO_SUPPORT.md`).
+
+## CPP-268 — FileInfo computes the FAIMS compensation voltages twice per peak file
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed.
+
+**Affected file/function:** `src/openms/source/FORMAT/FileInfo.cpp:1673` and `:1742`, `report_`.
+
+**Trigger:** Any peak file, and in particular one with a FAIMS spectrum whose voltage is missing.
+
+**Issue:** `FAIMSHelper::getCompensationVoltages(exp)` runs once to fill `PeakInfo::faims_cvs` and again to print the `IM (FAIMS_CV)` line. Each call scans every spectrum and, for a missing voltage, logs "FAIMS compensation voltage is missing for at least one spectrum!", so the scan runs twice and the warning appears twice.
+
+**Proposed C++ fix:** Reuse `pk.faims_cvs` for the text line.
+
+**Evidence:** Source review of both call sites.
+
+**Rust handling:** The port scans once and records the warning once in `FileInfoResult::warnings`.
+
+## CPP-269 — FileInfo_test copies to a fixed temporary file name
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Test defect; source-reviewed.
+
+**Affected file/function:** `src/tests/class_tests/openms/source/FileInfo_test.cpp:133–143`, the forced-type section.
+
+**Trigger:** Two concurrent runs of the class test sharing a temporary directory.
+
+**Issue:** The section copies its input to `File::getTempDirectory() + "/test_forced_type.tmp"` and removes it at the end, so concurrent runs overwrite and delete each other's file.
+
+**Proposed C++ fix:** Use `File::TempDir` or a unique name.
+
+**Evidence:** Source review.
+
+**Rust handling:** `class_test_forced_type_selects_the_parse_branch` uses its own `TempDir`.
+
+## CPP-270 — Retained FileInfo outputs keep a stale intensity padding
+
+**Source revision:** test-data `0cb15f23fccc6ea196bfafcfbbf020958f36c3a3` with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Test-data defect; source-reviewed.
+
+**Affected file/function:** test-data `topp/FileInfo_3_output.txt:11` and `topp/FileInfo_7_output.txt:14`; the writer at `src/openms/source/FORMAT/FileInfo.cpp:140` and `:189`.
+
+**Trigger:** Comparing FileInfo's `intensity:` range line with the retained outputs.
+
+**Issue:** The retained files have six spaces after `intensity:`; the source at the pin writes one. TOPP_FileInfo_3 and _7 pass only because FuzzyDiff ignores whitespace differences, so the expectations no longer describe the output.
+
+**Proposed C++ fix:** Regenerate the two retained outputs.
+
+**Evidence:** The two retained lines against the two source lines.
+
+**Rust handling:** The port writes one space and compares the retained FileInfo_3 output under FuzzyDiff, accepting both spellings.
+
+## CPP-271 — mass_trace:min_spectra = 1 silently finds nothing
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:48–49` (default and minimum 1), `:1112` (`updateMembers_`) and `:340` (`run`).
+
+**Trigger:** `mass_trace:min_spectra` set to 1, its declared minimum.
+
+**Issue:** `min_spectra_ = floor(1 * 0.5) = 0`, so every trace score is `0 / 0 = NaN` and every peak a local maximum. No overall score reaches a threshold: the run reports 0 seeds and 0 features, exits 0 and warns about nothing.
+
+**Proposed C++ fix:** Set the minimum to 2, or reject values that give `min_spectra_ == 0`.
+
+**Evidence:** B6 driver case `ffc1_min_spectra_1` in `../oracle/b6-ffap-seeds/manifest.json`; `tests/data/feature_finder_picked_provenance.json`.
+
+**Rust handling:** `Error::InvalidValue`; whether the port follows the source is open for the lead (`docs/FEATURE_FINDER_PICKED_SUPPORT.md`).
+
+## CPP-272 — The overall seed score depends on the platform's powf
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85` (macOS arm64).
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:506`, `run`.
+
+**Trigger:** Any run; the score feeds `seed:min_score`.
+
+**Issue:** `std::pow(float, float)` calls the C library `powf`, which is not correctly rounded on every platform. On macOS 99 of 30,840 executed overall scores are one binary32 step from the correctly rounded value (12 of 3,084 on FeatureFinderCentroided_1), checked against 60-digit decimal arithmetic. A score next to `seed:min_score` can therefore select or drop a seed depending on the platform.
+
+**Proposed C++ fix:** Evaluate the cube root in `double` and round once to `float`.
+
+**Evidence:** C2 `ffap_stages` and `../oracle/b6-ffap-seeds` score arrays; `tests/data/feature_finder_picked/overall_rounding.tsv` lists every difference.
+
+**Rust handling:** `overall_score` uses `libm::pow` in `f64` rounded once to `f32`, the same bits on every machine; no retained seed list changes.
+
+## CPP-273 — write_debug reads an undeclared parameter and throws
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:2137`, `writeFeatureDebugInfo_`; the declaration at `:124`.
+
+**Trigger:** `debug` output enabled (the TOPP parameter `write_debug`), once a feature is written.
+
+**Issue:** `writeFeatureDebugInfo_` reads `param_.getValue("debug:pseudo_rt_shift")`, but the declared parameter is `advanced:pseudo_rt_shift`. The lookup throws `ElementNotFound`, which escapes the OpenMP region that calls it.
+
+**Proposed C++ fix:** Read `advanced:pseudo_rt_shift`.
+
+**Evidence:** Source review of both lines.
+
+**Rust handling:** Debug output is refused with `Error::Unsupported`.
+
+## CPP-274 — A single retention time or m/z makes the intensity score undefined
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:244–245` (bin widths) and `:1837–1838`, `intensityScore_`.
+
+**Trigger:** An MS1 input whose spectra share one retention time, or whose peaks share one m/z.
+
+**Issue:** `intensity_rt_step_` or `intensity_mz_step_` is 0, so `(rt - rt_min) / intensity_rt_step_` is `0 / 0 = NaN`, and `(UInt) std::floor(NaN)` is undefined behaviour before `std::min` clamps it.
+
+**Proposed C++ fix:** Use one bin per dimension when the range is empty, or reject such input with a message.
+
+**Evidence:** Source review.
+
+**Rust handling:** `Error::InvalidValue`.
+
+## CPP-275 — charge_low above charge_high wraps the charge count
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:197`, `run`.
+
+**Trigger:** `isotopic_pattern:charge_low` more than one above `isotopic_pattern:charge_high`.
+
+**Issue:** `UInt charge_count = charge_high - charge_low + 1` wraps to a huge value, and the float data arrays reserved and indexed per charge are then accessed past their end.
+
+**Proposed C++ fix:** Validate `charge_low <= charge_high` in `updateMembers_` and throw `InvalidParameter`.
+
+**Evidence:** Source review.
+
+**Rust handling:** `Settings::charge_count` returns `Error::InvalidValue`; `charge_low == charge_high + 1` gives zero charges, as in the source.
+
+## CPP-276 — isotopeScore_ stops trying shorter isotope tails after a better fit
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; the constructed case runs in the port's test. Whether the narrowing is intended is unconfirmed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1757–1788`, `isotopeScore_`.
+
+**Trigger:** A pattern where a better fit with more trailing isotopes is found for an early `b`, and a later `b` fits best with fewer.
+
+**Issue:** The inner loop starts at `e = best_end`, and `best_end` is raised inside the loop whenever a better fit is found. For every later `b` the combinations with fewer trailing isotopes are never tried, even when they fit better: in the constructed case the skipped candidate has correlation 0.850 and the returned one 0.746.
+
+**Proposed C++ fix:** Start the inner loop at the `best_end` computed before the search, kept in a separate variable.
+
+**Evidence:** Source review; `isotope_score_narrows_later_candidates_after_a_new_best_fit` in `tests/feature_finder_picked_seeds.rs`.
+
+**Rust handling:** `isotope_score` reproduces the narrowing.
+
+## CPP-277 — FeatureFinderAlgorithmPicked's empty-input message names ranges
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Message defect; source-reviewed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1068–1071`, `run`.
+
+**Trigger:** An input map with no peaks.
+
+**Issue:** The check is `input_map.getSize() == 0`, which counts peaks, but the exception says "FeatureFinder needs updated ranges on input map. Aborting.", which describes neither the check nor the cause.
+
+**Proposed C++ fix:** Report that the input holds no peaks.
+
+**Evidence:** Source review.
+
+**Rust handling:** The port keeps the message verbatim on the same check.
+
+## CPP-278 — splitByFAIMSCV groups carry no ranges, so FeatureFinderCentroided fails on FAIMS input
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/IONMOBILITY/IMDataConverter.cpp:42–69`, `splitByFAIMSCV`; the consumer `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:242`.
+
+**Trigger:** Any input with FAIMS compensation voltages, split for FeatureFinderCentroided.
+
+**Issue:** Voltage groups are filled with `addSpectrum` and `updateRanges` is never called, so `spectrumRanges().byMSLevel(1)` throws `InvalidValue` "No ranges for this MS level" on every group, and FeatureFinderCentroided exits 8 on every FAIMS input.
+
+**Proposed C++ fix:** Call `updateRanges()` on each group before returning.
+
+**Evidence:** All 35 voltage groups in `../oracle/im-data-converter` throw at `byMSLevel(1)`, as do C2 `faims_facts` 1a and 1b (`../oracle/featurefinder-picked`); `tests/data/im_data_converter_provenance.json`.
+
+**Rust handling:** Ranges are computed on demand, so groups with finite drift times have correct ranges; the crash is not emulated.
+
+## CPP-279 — splitByFAIMSCV destroys the chromatograms of FAIMS input
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/IONMOBILITY/IMDataConverter.cpp:84`, `splitByFAIMSCV`.
+
+**Trigger:** FAIMS input that also holds chromatograms.
+
+**Issue:** The groups receive spectra only, and `exp.clear(true)` then destroys the input's chromatograms, and any skipped spectra, without a message.
+
+**Proposed C++ fix:** Move the chromatograms into a group (or return them) and report what was dropped.
+
+**Evidence:** Oracle cases `faims_test_data` and `settings_and_chromatograms_faims` in `../oracle/im-data-converter`.
+
+**Rust handling:** `FaimsSplit::dropped_chromatograms` and `skipped_spectra` return them.
+
+## CPP-280 — splitByFAIMSCV groups NaN voltages unpredictably
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/IONMOBILITY/IMDataConverter.cpp:31` and `:42–64`, `splitByFAIMSCV`.
+
+**Trigger:** A spectrum with unit FAIMS_CV and a NaN drift time.
+
+**Issue:** The NaN reaches `std::set<double>` through `FAIMSHelper::getCompensationVoltages` (CPP-244) and the keys of `std::map<double, MSExperiment>`, whose ordering NaN breaks. With the NaN first, the whole input is returned unsplit under the NaN key with a spurious missing-voltage warning; with the NaN in the middle or last, `find` places the NaN spectrum in the unrelated -50 V group and the MS2 spectrum after it is skipped.
+
+**Proposed C++ fix:** Reject or skip NaN voltages before inserting them, with a warning.
+
+**Evidence:** Oracle cases `nan_first`, `nan_middle` and `nan_last` in `../oracle/im-data-converter`.
+
+**Rust handling:** NaN voltages are refused with `Error::InvalidValue` and the input unchanged; the recorded C++ groups are asserted.
+
+## CPP-281 — splitByFAIMSCV's information message says "Not" for "No"
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Message defect; source-reviewed.
+
+**Affected file/function:** `src/openms/source/IONMOBILITY/IMDataConverter.cpp:35`.
+
+**Trigger:** Input without FAIMS compensation voltages.
+
+**Issue:** The message reads "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN."
+
+**Proposed C++ fix:** "No FAIMS compensation voltages found in the data. ..."
+
+**Evidence:** Source review; the executed oracle prints the same text.
+
+**Rust handling:** `ImDataConverter::NO_COMPENSATION_VOLTAGES_INFO` keeps the text verbatim.
+
+## CPP-282 — mergeFAIMSFeatures removes every FAIMS feature without a unique ID
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp:200–281`, `filter`, as called by `mergeFAIMSFeatures` (`:384–527`).
+
+**Trigger:** FAIMS features whose unique IDs are 0, as FeatureFinderAlgorithmPicked returns them before a tool assigns IDs.
+
+**Issue:** Removal is recorded in `removed_uids` by `getUniqueId()`. Once one feature with ID 0 is merged, every feature with ID 0 is skipped as a querier and erased, so the result holds no FAIMS feature at all.
+
+**Proposed C++ fix:** Record removal by index or pointer instead of unique ID.
+
+**Evidence:** Oracle case `c2_uid0_wipe` in `../oracle/feature-overlap-filter`, and C2 `faims_facts` (0 features); `tests/data/feature_overlap_filter_provenance.json`.
+
+**Rust handling:** Reproduced exactly; a corrected mode would be a new opt-in API after decision D5.
+
+## CPP-283 — FeatureOverlapFilter merges already removed features again
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp:205–271`, `filter`; the merge callback at `:430–499`.
+
+**Trigger:** Three or more mutually overlapping features.
+
+**Issue:** The inner loop does not skip candidates that are already in `removed_uids`, so a removed feature is passed to the callback again for a later survivor and its intensity is added twice. In `mergeFAIMSFeatures` a survivor absorbs at most one feature, because the callback removes its `FAIMS_CV` after the first merge and then refuses: 1000, 900 and 800 at three voltages become 1900 and 1700.
+
+**Proposed C++ fix:** Skip candidates already marked removed, and let a survivor keep absorbing features after its first merge.
+
+**Evidence:** Oracle case `c2_three_cvs` in `../oracle/feature-overlap-filter`.
+
+**Rust handling:** Reproduced exactly.
+
+## CPP-284 — FeatureOverlapFilter's float boxes miss pairs within tolerance
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp:144–191`, the `getBox` lambdas and the quadtree extent; `src/openms/extern/Quadtree/include/Box.h:60–64`, `intersects`.
+
+**Trigger:** A zero tolerance, a tolerance below the `float` spacing of the coordinates, or coordinates near 2^24.
+
+**Issue:** Candidates come from `Box<float>` intersection, which is strict, while the final test is an inclusive `double` distance. Two features at the same position with tolerance 0 have zero-width boxes that never intersect, and near 2^24 the `float` conversion collapses boxes, so pairs that satisfy the tolerance test never merge.
+
+**Proposed C++ fix:** Build the boxes in `double` with a small outward margin, or use inclusive intersection for the candidate query.
+
+**Evidence:** Oracle cases `bound_zero_tolerance`, `bound_tiny_tolerance` and `bound_float_collapse_rt` in `../oracle/feature-overlap-filter`.
+
+**Rust handling:** Reproduced exactly.
+
+## CPP-285 — Trace-level overlap compares only start times and drops some traces
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp:59–87`, `getFeatureBounds`.
+
+**Trigger:** `filter` in trace mode.
+
+**Issue:** The end of a mass trace is searched from the end of the hull outline, which returns to the first scan, so `rt_max` equals the start time and trace overlap compares start times only. A trace whose first scan's lower m/z is at or below 0 gets `rt_min` after `rt_max` and is silently skipped.
+
+**Proposed C++ fix:** Take `rt_max` from the largest retention time with positive m/z on the outline.
+
+**Evidence:** Oracle cases `edge_trace_bounds_collapse_trace` (two features whose traces overlap for 1.5 s are kept) and `edge_trace_inverted_bounds_skipped` with its control in `../oracle/feature-overlap-filter`.
+
+**Rust handling:** Reproduced exactly.
+
+## CPP-286 — FeatureOverlapFilter aborts a Debug build on valid feature maps
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK (Debug) at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed (Debug only).
+
+**Affected file/function:** `src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp:139` and `:171–191`; `src/openms/source/KERNEL/FeatureMap.cpp:260`, `updateRanges`; `src/openms/extern/Quadtree/include/Quadtree.h:141`.
+
+**Trigger:** A feature with a zero-width hull box outside the extent margin, or a feature without a hull in the hull modes.
+
+**Issue:** `FeatureMap::updateRanges` skips empty or zero-width hull boxes (`DBoundingBox::isEmpty`), so the quadtree extent can exclude a feature's box, and `assert(box.contains(mGetBox(value)))` aborts. A hull-less feature converts the `±DBL_MAX` sentinel box to `float` and aborts the same way; a Release build silently ignores it.
+
+**Proposed C++ fix:** Compute the extent from the same boxes `getBox` returns, and reject features without a hull in the hull modes.
+
+**Evidence:** Oracle cases `edge_zero_extent_hull_outside_margin` and `edge_hull_less_convex_hull` (exit 134) in `../oracle/feature-overlap-filter`, compared with a Release replica of the pinned source.
+
+**Rust handling:** Follows the Release replica; a hull-less feature in the hull modes is `Error::MissingInformation`.
+
+## CPP-287 — FeatureOverlapFilter leaves the map changed when it throws
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp:141` and `:197` (`filter`); `:405–527` (`mergeFAIMSFeatures`).
+
+**Trigger:** A subordinate without a convex hull in trace mode; a `FAIMS_CV` or merged list the callback cannot convert.
+
+**Issue:** `filter` sorts the caller's map before `getFeatureBounds` throws `MissingInformation`, so the map comes back reordered. `mergeFAIMSFeatures` moves every feature into two temporary maps first; when its callback throws `ConversionError`, the caller's map is left holding moved-from features stripped of their metadata.
+
+**Proposed C++ fix:** Validate before sorting and moving, or restore the map in a catch block.
+
+**Evidence:** Oracle cases `edge_trace_missing_sub_hull` and `edge_faims_cv_empty` in `../oracle/feature-overlap-filter`.
+
+**Rust handling:** Every error leaves the map exactly as it was (a journal of the overwritten values, or a copy where a later failure is possible).
+
+## CPP-288 — FeatureOverlapFilter has undefined behaviour on reachable inputs
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; not executed.
+
+**Affected file/function:** `src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp:40–43` (`getFeatureBounds`), `:115–120` (`tracesOverlap`), `:232–233` and `:442–443` (the `FAIMS_CV` conversions).
+
+**Trigger:** Trace mode with a feature that has more subordinates than hulls, or a candidate without trace bounds; a string or list `FAIMS_CV`.
+
+**Issue:** `feat.getConvexHulls()[i]` indexes past the hull vector when a feature has more subordinates than hulls, and `points.front()` reads an empty hull. `tracesOverlap` dereferences `find(...)->second` without checking for `end()`, which a feature whose traces were all skipped reaches. `(double)` on a string or list `DataValue` reads the wrong union member instead of throwing.
+
+**Proposed C++ fix:** Check the hull count and emptiness, check `find` against `end()`, and convert `FAIMS_CV` with a type check.
+
+**Evidence:** Source review.
+
+**Rust handling:** Each case is refused with `Error::InvalidValue` or `Error::MissingInformation` before the map changes.

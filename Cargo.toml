@@ -35,6 +35,21 @@ name = "MzMLSplitter"
 path = "src/bin/MzMLSplitter.rs"
 required-features = ["mzml", "paramxml"]
 
+[[bin]]
+name = "PeakPickerHiRes"
+path = "src/bin/PeakPickerHiRes.rs"
+required-features = ["mzml", "paramxml"]
+
+[[bin]]
+name = "FileInfo"
+path = "src/bin/FileInfo.rs"
+required-features = ["mzml", "paramxml", "featurexml"]
+
+[[bin]]
+name = "FeatureFinderCentroided"
+path = "src/bin/FeatureFinderCentroided.rs"
+required-features = ["mzml", "paramxml", "featurexml"]
+
 [features]
 default = ["mzml", "idxml", "rna-json", "paramxml", "featurexml", "consensusxml", "cv-mapping", "parallel"]
 mzml = ["dep:quick-xml", "dep:sha1", "file-compression", "numpress"]

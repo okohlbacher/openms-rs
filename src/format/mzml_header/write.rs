@@ -7,7 +7,17 @@ use std::hash::{Hash, Hasher};
 pub(super) const EMPTY_HISTORY: &str = "openms-rust:empty-processing-history";
 pub(super) const EMPTY_ACTIONS: &str = "openms-rust:empty-processing-actions";
 const MARKER_VALUE: &str = "1";
+/// Name of the software that the processing method of an empty history refers
+/// to. It is written, as [`PLACEHOLDER_SOFTWARE`], only when some record has
+/// no processing history; `so_default` itself is the source's empty
+/// `Software()`.
 pub(super) const FALLBACK_SOFTWARE: &str = "OpenMS Rust mandatory mzML processing placeholder";
+/// Identifier of the empty-history placeholder software.
+const PLACEHOLDER_SOFTWARE: &str = "so_default_empty_history";
+/// Source identifier of the default instrument's software (`so_in_0`).
+const INSTRUMENT_SOFTWARE: &str = "so_in_0";
+/// Source identifier of the run (`ru_0`).
+const RUN_ID: &str = "ru_0";
 
 pub(crate) struct ArrayHeader {
     pub attrs: String,
@@ -87,8 +97,23 @@ impl<'a> Build<'a> {
         Ok(())
     }
 }
+/// Plan the header and per-record reference text for `experiment`.
+///
+/// The allowance is the reader's fixed header allowance ([`Work::default`])
+/// multiplied by `writer_shares`: once for the experiment-level header and
+/// once for every spectrum and chromatogram, whose metadata, processing
+/// history, array descriptions and controlled-vocabulary lookups are charged
+/// against the same pool. A single fixed allowance refused realistic runs after
+/// about 650 records.
 pub(crate) fn prepare(experiment: &MSExperiment) -> Result<Plan> {
-    prepare_with_work(experiment, Work::default())
+    let shares = writer_shares(experiment);
+    prepare_with_work(
+        experiment,
+        Work {
+            remaining: MAX_WORK.saturating_mul(shares),
+            bytes: MAX_BYTES.saturating_mul(shares),
+        },
+    )
 }
 fn prepare_with_work(experiment: &MSExperiment, mut work: Work) -> Result<Plan> {
     guard(experiment)?;
@@ -156,44 +181,59 @@ fn prepare_with_work(experiment: &MSExperiment, mut work: Work) -> Result<Plan> 
         )?;
         default_instrument.push('_');
     }
-    x.raw("<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.1.0\"")?;
-    if !settings.document.identifier.is_empty() {
-        x.attribute("accession", &settings.document.identifier)?;
-    }
+    // Source root (`MzMLHandler.cpp:4851`): schema location, the document
+    // accession (written even when empty) and the version. A read `mzML@id`
+    // lives in the run metadata as `mzml_id` and is written back as the run
+    // userParam the source writes, not as a root attribute.
+    x.raw("<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\"")?;
+    x.attribute("accession", &settings.document.identifier)?;
     if let Some(value) = settings.metadata.get("mzml_id") {
         if value.unit().is_some() {
             return Err(invalid("mzml_id cannot have a unit"));
         }
-        x.attribute("id", value.as_str()?)?;
+        value.as_str()?;
     }
-    x.raw(">\n<cvList count=\"5\">\n")?;
-    for (id, name, uri) in [
-        ("MS", "PSI-MS", "https://purl.obolibrary.org/obo/ms.obo"),
+    x.raw(" version=\"1.1.0\">\n<cvList count=\"5\">\n")?;
+    // The source's fixed controlled-vocabulary list (`MzMLHandler.cpp:4855-4861`).
+    for (id, name, version, uri) in [
+        (
+            "MS",
+            "Proteomics Standards Initiative Mass Spectrometry Ontology",
+            None,
+            "http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo",
+        ),
         (
             "UO",
             "Unit Ontology",
-            "https://purl.obolibrary.org/obo/uo.obo",
+            None,
+            "http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo",
         ),
         (
             "BTO",
-            "BRENDA Tissue Ontology",
-            "https://purl.obolibrary.org/obo/bto.obo",
+            "BrendaTissue545",
+            Some("unknown"),
+            "http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO",
         ),
         (
             "GO",
-            "Gene Ontology",
-            "https://purl.obolibrary.org/obo/go.obo",
+            "Gene Ontology - Slim Versions",
+            Some("unknown"),
+            "http://www.geneontology.org/GO_slims/goslim_goa.obo",
         ),
         (
             "PATO",
-            "Phenotype And Trait Ontology",
-            "https://purl.obolibrary.org/obo/pato.obo",
+            "Quality ontology",
+            Some("unknown"),
+            "http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/quality.obo",
         ),
     ] {
         x.define_id(id)?;
         x.raw("<cv")?;
         x.attribute("id", id)?;
         x.attribute("fullName", name)?;
+        if let Some(version) = version {
+            x.attribute("version", version)?;
+        }
         x.attribute("URI", uri)?;
         x.raw("/>\n")?;
     }
@@ -228,23 +268,36 @@ fn prepare_with_work(experiment: &MSExperiment, mut work: Work) -> Result<Plan> 
         .histories
         .iter()
         .try_fold(0usize, |n, h| n.checked_add(h.len()).ok_or_else(resource))?;
+    // An empty history has no software of its own; its processing method
+    // refers to one extra placeholder entry, which the reader recognizes.
+    let placeholder = build.histories.iter().any(|history| history.is_empty());
     let software_count = method_count
         .checked_add(settings.instrument_configurations.len())
-        .and_then(|n| n.checked_add(2))
+        .and_then(|n| n.checked_add(2 + usize::from(placeholder)))
         .ok_or_else(resource)?;
     let count = x.integer(software_count)?;
     x.start("softwareList", &[("count", &count)])?;
     x.work.charge(128, 128)?;
-    let fallback = Software {
-        name: FALLBACK_SOFTWARE.into(),
-        version: MARKER_VALUE.into(),
-        ..Default::default()
-    };
-    write_software(&mut x, "so_default", &fallback)?;
-    write_software(&mut x, "so_in_default", &settings.instrument.software)?;
+    // Source order and identifiers (`MzMLHandler.cpp:5107-5125`): the default
+    // instrument's software, one per additional configuration, then the
+    // fallback software, which is `Software()` - empty name and version.
+    write_software(&mut x, INSTRUMENT_SOFTWARE, &settings.instrument.software)?;
     for (index, value) in settings.instrument_configurations.values().enumerate() {
-        let id = identifier("so_in", index, x.work)?;
+        let id = configuration_software(index, x.work)?;
         write_software(&mut x, &id, &value.software)?;
+    }
+    write_software(&mut x, "so_default", &Software::default())?;
+    if placeholder {
+        x.work.charge(128, 128)?;
+        write_software(
+            &mut x,
+            PLACEHOLDER_SOFTWARE,
+            &Software {
+                name: FALLBACK_SOFTWARE.into(),
+                version: MARKER_VALUE.into(),
+                ..Default::default()
+            },
+        )?;
     }
     for (index, history) in build.histories.iter().enumerate() {
         for (method, value) in history.iter().enumerate() {
@@ -264,12 +317,12 @@ fn prepare_with_work(experiment: &MSExperiment, mut work: Work) -> Result<Plan> 
     write_instrument(
         &mut x,
         &default_instrument,
-        "so_in_default",
+        INSTRUMENT_SOFTWARE,
         &settings.instrument,
     )?;
     for (index, (id, value)) in settings.instrument_configurations.iter().enumerate() {
         parameter_id(id)?;
-        let software = identifier("so_in", index, x.work)?;
+        let software = configuration_software(index, x.work)?;
         write_instrument(&mut x, id, &software, value)?;
     }
     x.end("instrumentConfigurationList")?;
@@ -279,9 +332,12 @@ fn prepare_with_work(experiment: &MSExperiment, mut work: Work) -> Result<Plan> 
         write_history(&mut x, index, history)?;
     }
     x.end("dataProcessingList")?;
-    x.define_id("run")?;
+    // The source writes the fixed run identifier `ru_0` (`MzMLHandler.cpp:5211`),
+    // whatever the input's run was called; the input slices of the benchmark
+    // carry `ru_0` too.
+    x.define_id(RUN_ID)?;
     x.raw("<run")?;
-    x.attribute("id", "run")?;
+    x.attribute("id", RUN_ID)?;
     x.attribute("defaultInstrumentConfigurationRef", &default_instrument)?;
     x.attribute("sampleRef", "sa_0")?;
     if settings.date_time != DateTime::default() {
@@ -309,23 +365,31 @@ fn prepare_with_work(experiment: &MSExperiment, mut work: Work) -> Result<Plan> 
             "raw timestamp metadata requires an initialized date-time",
         ));
     }
+    // Source `MzMLHandler.cpp:5219-5222`: the run's first source file is its
+    // default source file. `build.sources` starts with the run's own files.
+    if !settings.source_files.is_empty() {
+        let source = identifier("sf", 0, x.work)?;
+        x.attribute("defaultSourceFileRef", &source)?;
+    }
     x.raw(">\n")?;
     if !settings.fraction_identifier.is_empty() {
         x.cv_text("MS:1000858", &settings.fraction_identifier)?;
     }
-    x.metadata(
-        "run",
-        &settings.metadata,
-        &["mzml_id", "mzml_start_time_stamp"],
-    )?;
+    x.metadata("run", &settings.metadata, &["mzml_start_time_stamp"])?;
     let prefix = std::mem::take(&mut x.text);
     let mut refs = Vec::new();
     x.work.slots::<String>(build.records.len())?;
     refs.try_reserve_exact(build.records.len())
         .map_err(|_| resource())?;
     for record in &build.records {
-        let processing = identifier("dp", record.processing, x.work)?;
-        x.attribute("dataProcessingRef", &processing)?;
+        // A record whose history is the first one inherits it from the list's
+        // `defaultDataProcessingRef`, so the attribute carries nothing; the
+        // source omits it for the same reason on every spectrum after the
+        // first (`MzMLHandler.cpp:5257-5271`) and on every chromatogram.
+        if record.processing != 0 {
+            let processing = identifier("dp", record.processing, x.work)?;
+            x.attribute("dataProcessingRef", &processing)?;
+        }
         if let Some(index) = record.source {
             let source = identifier("sf", index, x.work)?;
             x.attribute("sourceFileRef", &source)?;
@@ -407,6 +471,12 @@ fn prepare_with_work(experiment: &MSExperiment, mut work: Work) -> Result<Plan> 
 fn identifier(prefix: &str, index: usize, work: &mut Work) -> Result<String> {
     work.charge(64, 64)?;
     Ok(format!("{prefix}_{index:020}"))
+}
+/// Source identifier of the software of the `index`-th additional instrument
+/// configuration, `so_configuration_<index>` (`MzMLHandler.cpp:5112`).
+fn configuration_software(index: usize, work: &mut Work) -> Result<String> {
+    work.charge(64, 64)?;
+    Ok(format!("so_configuration_{index}"))
 }
 fn method_id(history: usize, method: usize, work: &mut Work) -> Result<String> {
     work.charge(96, 96)?;
@@ -796,7 +866,7 @@ fn write_history(x: &mut Xml<'_>, index: usize, history: &[Arc<DataProcessing>])
     if history.is_empty() {
         x.start(
             "processingMethod",
-            &[("order", "0"), ("softwareRef", "so_default")],
+            &[("order", "0"), ("softwareRef", PLACEHOLDER_SOFTWARE)],
         )?;
         x.cv("MS:1000544", None)?;
         x.user(EMPTY_HISTORY, &MARKER_VALUE.into())?;
@@ -804,10 +874,11 @@ fn write_history(x: &mut Xml<'_>, index: usize, history: &[Arc<DataProcessing>])
     }
     for (method, value) in history.iter().enumerate() {
         let software = method_id(index, method, x.work)?;
-        let order = x.integer(method)?;
+        // The source writes `order="0"` for every method (`MzMLHandler.cpp:3852`)
+        // and both readers keep document order, so the value carries nothing.
         x.start(
             "processingMethod",
-            &[("order", &order), ("softwareRef", &software)],
+            &[("order", "0"), ("softwareRef", &software)],
         )?;
         if value.actions.is_empty() {
             x.cv("MS:1000543", None)?;

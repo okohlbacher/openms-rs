@@ -9,7 +9,11 @@
 //! [`crate::format::FileHandler::load_experiment_with_options`] with default
 //! [`crate::format::PeakFileOptions`] and the forced or detected type as the
 //! only allowed type, as the source calls `FileHandler::loadExperiment(in, exp,
-//! {in_type}, log_type, false, false)`. For mzML the branch then finishes that
+//! {in_type}, log_type, false, false)`; with the `mzml` feature the load goes
+//! through `FileHandler::load_experiment_with_read_options` instead, which adds
+//! the mzML reader's dangling-reference handling of
+//! [`crate::format::file_info::model::Options::source_dangling_references`].
+//! For mzML the branch then finishes that
 //! source load step, which the native loader leaves out: SRM spectra become
 //! chromatograms and are removed
 //! ([`crate::kernel::ChromatogramTools::convert_spectra_to_chromatograms`] with
@@ -85,8 +89,7 @@ pub(crate) fn report(
     os_tsv: &mut ReportStream,
     result: &mut FileInfoResult,
 ) -> Result<()> {
-    let mut experiment =
-        FileHandler::load_experiment_with_options(path, &[in_type], &PeakFileOptions::default())?;
+    let mut experiment = load_experiment(path, in_type, options)?;
     if in_type == FileType::MzMl {
         // FileHandler.cpp:906-911: the mzML case ends with
         // `ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true)`.
@@ -115,6 +118,32 @@ pub(crate) fn report(
         write_statistics(&experiment, &summary, os)?;
     }
     Ok(())
+}
+
+/// The source `FileHandler::loadExperiment(in, exp, {in_type}, log_type, false,
+/// false)`: default `PeakFileOptions`, `in_type` as the only allowed type, and
+/// the mzML reader's dangling-reference handling from
+/// [`Options::source_dangling_references`].
+#[cfg(feature = "mzml")]
+fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<MSExperiment> {
+    let read = crate::format::mzml::ReadOptions {
+        source_dangling_references: options.source_dangling_references,
+        ..crate::format::mzml::ReadOptions::default()
+    };
+    FileHandler::load_experiment_with_read_options(
+        path,
+        &[in_type],
+        &PeakFileOptions::default(),
+        &read,
+    )
+}
+
+/// As the `mzml` build, without an mzML reader to pass
+/// [`Options::source_dangling_references`] to.
+#[cfg(not(feature = "mzml"))]
+fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<MSExperiment> {
+    let _ = options.source_dangling_references;
+    FileHandler::load_experiment_with_options(path, &[in_type], &PeakFileOptions::default())
 }
 
 /// Everything the content block and the structured result derive from the

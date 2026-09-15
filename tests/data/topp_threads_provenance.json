@@ -1,0 +1,111 @@
+{
+ "package_revisions": {
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+ },
+ "scope": "The TOPP -threads parameter: how many workers a tool run may use, and that the setting reaches the run phase of the five ported tools. Sources come from the OpenMS4-cli package, which is versioned independently of the Core SDK and is therefore not listed in current_sdk_reference_manifests.",
+ "method": "TOPPBase::setMaxNumberOfThreads and its call site were read at the cli pin. The semantics were then executed against the optimised C++ Release build openms4-release-bc9cc12-c19e494-174b576 (oracle/release-build/manifest.json) on ibminode06: MapNormalizer and (for the pair comparison on dax) DTAExtractor were run on the benchmark's derived UK222 slices while /proc/<pid>/task was sampled every millisecond, recording the most tasks seen at once, how many of them accumulated CPU time, and when each count first appeared. Cases vary -threads (1, 4, 16, 0, -1, -7), OMP_NUM_THREADS (unset, 1, 16), the CPU affinity mask (taskset -c 0-3) and the phase (-write_ini, which never reaches main_). The start-up threads that appear without OMP_NUM_THREADS were attributed with gdb: a breakpoint on pthread_create shows blas_thread_init in the conda-forge liblapack.so.3 (OpenBLAS) during dynamic-loader initialisation, not OpenMS code. The same probe was then run against the Rust release binaries of this branch on dax, for the same inputs and settings.",
+ "evidence_tier": "executed differential (tier 1 probe) against the C++ Release build for the -threads semantics and the thread counts; tier 4 (native invariants) for the pool size observed inside the port and for output equality across worker counts",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/tool-threads/threads_probe.py",
+   "sha256": "48dfaaef32adabdc42f157897fdfc13b0b01a6893d62b616012464ea77c4fde8",
+   "role": "driver: runs one command per case and samples /proc/<pid>/task every millisecond"
+  },
+  {
+   "path": "../oracle/tool-threads/make_cpp_cases.py",
+   "sha256": "55285cd7443389f6227774530700cae26d6c314f73807d38fffe1653243f54d1",
+   "role": "generator of the 14 C++ cases"
+  },
+  {
+   "path": "../oracle/tool-threads/cpp_cases.json",
+   "sha256": "3e653c95ac2b6623555bad54ce4680686a76a4fea239d1d660b79649859ce770",
+   "role": "the executed C++ cases"
+  },
+  {
+   "path": "../oracle/tool-threads/cpp_results_ibminode06.jsonl",
+   "sha256": "46f7d3ae8dd3b555bb0a016bc0925d33f7dd3aa0aa8d67522b6af56bbdcb2698",
+   "role": "results: exit code, wall time, most tasks, busy tasks, per-task CPU ticks and when each count first appeared"
+  },
+  {
+   "path": "../oracle/tool-threads/make_pair_cases.py",
+   "sha256": "f3d620de3c8b19b11894e48d49341ff4fa417b51857726a165be3668517db5ab",
+   "role": "generator of the 60 Rust-versus-C++ cases"
+  },
+  {
+   "path": "../oracle/tool-threads/pair_cases.json",
+   "sha256": "4fe138416b14873ff3340e37dccc5c1a3c587d28c223e9cb91eb57c38c279a46",
+   "role": "the executed Rust-versus-C++ cases"
+  },
+  {
+   "path": "../oracle/tool-threads/pair_results_dax.jsonl",
+   "sha256": "5edd1b4131e8a7b9ac44965c816851810fd12f184a3048ee647b36aa261d6b48",
+   "role": "results on dax: thread counts and wall times of both implementations"
+  },
+  {
+   "path": "../oracle/release-build/manifest.json",
+   "sha256": "2efe7501c5c7e3f6dd3feef78628ae6f1158e762b7fc04154de21cfd095b293a",
+   "role": "identity of the C++ Release build the probe ran (install prefix, source pins, toolchain, binary hashes)"
+  }
+ ],
+ "sources": [
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/TOPPBase.cpp",
+   "sha256": "326b96f85b4041febec49e18252d7be2ad0a5450abe5249adecc28ca315fdc05",
+   "role": "setMaxNumberOfThreads (84-98), the threads registration (168) and the call before main_ (408-415)"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/TOPPBase.h",
+   "sha256": "576cea45f0a5eea7827c44f8080c98759aea16d34c854f8867132e6f54d102b3",
+   "role": "declaration and the @note that the setting needs OpenMP"
+  }
+ ],
+ "inputs": [
+  {
+   "path": "/ceph/ibmi/abi/oliver/bench/openms4/inputs/derived/sub_centroid_uk222_picked_first5000.mzML",
+   "sha256": "8dbc290b9854110d975e5fe4a135aed465341242f16142b150f70ed61bba7ce7",
+   "sha256_note": "recorded in the benchmark's inputs/derived/MANIFEST_sublimit.json; the file is not copied into this repository",
+   "role": "C++ probe input and the pair comparison's DTAExtractor input"
+  },
+  {
+   "path": "/ceph/ibmi/abi/oliver/bench/openms4/inputs/derived/sub_centroid_uk222_picked_first600.mzML",
+   "sha256": "a2bbcdcc63f73ddefbf17c8cb568e346f71b5680589e805b903e4ef32768cb53",
+   "sha256_note": "recorded in the benchmark's inputs/derived/MANIFEST_sublimit.json; the file is not copied into this repository",
+   "role": "pair comparison's MapNormalizer input and the ignored slice test"
+  },
+  {
+   "path": "/ceph/ibmi/abi/oliver/bench/openms4/inputs/derived/sub_profile_uk222_first600.mzML",
+   "sha256": "47736ae8382adb1e4f745aa199396c8bbfb8a345fbea7b4eb854bf6d793b166a",
+   "sha256_note": "recorded in the benchmark's inputs/derived/MANIFEST_sublimit.json; the file is not copied into this repository",
+   "role": "ignored slice test, BaselineFilter"
+  },
+  {
+   "path": "/ceph/ibmi/abi/oliver/bench/openms4/inputs/centroid_lcms_velos_pxd001819_50amol_r1/50amol_R1.mzML",
+   "sha256": "4089aafbfa016704826fdf063edcacf45b51c2ff1431451cf766266362fc36a3",
+   "sha256_note": "recorded in the benchmark's inputs/MANIFEST.json; 43745 spectra, 1197928823 bytes",
+   "role": "ignored full-size test, the four centroid tools"
+  },
+  {
+   "path": "/ceph/ibmi/abi/oliver/bench/openms4/inputs/profile_hr_qe_silac_uk222/UK222.mzML",
+   "sha256": "bd6f6e1906ea3e910537f6f5aa8a805383b0db559730e1a4b70e25a46d1dc167",
+   "sha256_note": "recorded in the benchmark's inputs/MANIFEST.json; 40856 spectra, 2317975830 bytes",
+   "role": "ignored full-size test, BaselineFilter"
+  }
+ ],
+ "fixtures": "None. The native tests generate their mzML inputs with the crate's own writer into a TempDir; the ignored hpc_* tests read the benchmark inputs above and are skipped everywhere else.",
+ "native_implementation": [
+  "src/cli/context.rs",
+  "src/cli/tools/baseline_filter.rs",
+  "src/cli/tools/dta_extractor.rs",
+  "src/cli/tools/map_normalizer.rs",
+  "src/cli/tools/mzml_splitter.rs",
+  "src/cli/tools/spectra_filter_window_mower.rs"
+ ],
+ "native_tests": [
+  "tests/topp_threads.rs"
+ ],
+ "support_document": "docs/TOPP_THREADS_SUPPORT.md",
+ "upstream_test_definition": "None. TOPPBase_test.cpp has no case for setMaxNumberOfThreads, and the upstream TOPP tool tests do not pass -threads.",
+ "target_verification": "cargo fmt --all -- --check; cargo test --locked for topp_threads, topp_cli_lifecycle, the five topp_<tool> tests and parallel_determinism, on the current toolchain and +1.85.0; cargo test --locked --no-default-features --features mzml,paramxml --test topp_threads (the serial branch); cargo clippy --locked --all-features --all-targets -- -D warnings; RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps. All on dax (slot fx-th). The two hpc_* tests were run there with --release -- --ignored."
+}

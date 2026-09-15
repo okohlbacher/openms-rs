@@ -78,7 +78,7 @@ Letters mark lanes:
 | 1 | CLI-1 TOPPBase lifecycle: spec suite (C4) and closure part 1 | none |
 | 1 | B1 FeatureFinderAlgorithmPicked helper structures | module stubs |
 | 1 | B2 source-precision isotope patterns, source trimLeft, bounding-box operations | none |
-| 1, carried into 2 | B3 Levenberg-Marquardt crate adapter with exact `maxfev` emulation | dependency commit (the digamma lane was dropped) |
+| 1, carried into 2 | B3 Levenberg-Marquardt crate adapter with exact `maxfev` emulation (gate failed; D2 fallback merged in wave 2) | dependency commit (the digamma lane was dropped) |
 | 1 | A1 PeakTypeEstimator API and FAIMSHelper | module stubs |
 | 1 | A2 C++ stream and StringUtils numeric formatting | module stubs |
 | 1 | A3 mzML spectrum and scan mobility, FAIMS CV, type reset, unit-bearing IM arrays; FileHandler type detection and load options | baseline |
@@ -111,7 +111,7 @@ Letters mark lanes:
 - The bundle: C6.
 
 The three tools stay `partial` in the ledger until waves 5 and 6 close them;
-FileInfo.h stays `unmapped` (nothing of it is ported) until A4-A8 land.
+FileInfo.h is `partial` since A4 and stays so until A6-A8 land.
 
 ## Wave 1 status
 
@@ -320,7 +320,8 @@ follow-up in flight covers, each with its file and owner.
   carries the process id or goes through `TempDir`, and
   `src/system/java_info.rs:214` only probes a path that must not exist.
 - **CLI-1, `-ini` open failures other than NotFound and PermissionDenied
-  (fix-round-2 verdict minor 1).** A `-ini` that is neither a regular file nor a
+  (fix-round-2 verdict minor 1). Closed by CLI-2 (`f886d90`): exit 8 with the
+  source message, socket and tty oracle cases added.** A `-ini` that is neither a regular file nor a
   directory and whose open fails otherwise exits 8 (`UNKNOWN_ERROR`) in the
   executed C++: a Unix socket (`EOPNOTSUPP`) and `/dev/tty` without a
   controlling terminal (`ENXIO`), both on the run path and with `-write_ini`,
@@ -332,7 +333,9 @@ follow-up in flight covers, each with its file and owner.
   keeping later read failures at 3, and add socket and tty cases to
   `ini_read_failures.sh`; or narrow both texts and record the executed exit 8
   as a documented divergence. Owner: CLI-1.
-- **CLI-1, single-writer FIFO (fix-round-2 verdict minor 2).**
+- **CLI-1, single-writer FIFO (fix-round-2 verdict minor 2). Closed by CLI-2
+  (`f886d90`): documented as a deliberate difference with the executed
+  observation (CPP-265).**
   `an_ini_fifo_is_read_once_a_writer_opens_it` (docstring
   `tests/topp_cli_lifecycle.rs:1206-1209`), `docs/TOPP_CLI_SUPPORT.md:105` and
   `:147-149`, and the rustdoc at `src/cli.rs:727-729` present an openable FIFO as
@@ -542,7 +545,7 @@ directory.
 
 | Package | Files it owns |
 |---|---|
-| B3-LM | `src/math/fitters/levenberg_marquardt.rs`, `tests/math_distribution_fitters.rs`, `tests/lm_budget_differential.rs`, `docs/DISTRIBUTION_FITTERS_SUPPORT.md` |
+| B3-LM | `src/math/fitters/levenberg_marquardt.rs`, `tests/math_distribution_fitters.rs`, `tests/lm_budget_differential.rs`, `tests/data/lm_budget_differential/` (added at integration), `tests/data/lm_budget_differential_provenance.json` (added at integration), `docs/DISTRIBUTION_FITTERS_SUPPORT.md` |
 | B4-GAUSS | `src/analysis/feature_finder_picked/trace_fitter.rs` (the declarations are the contract), `src/analysis/feature_finder_picked/gauss_trace_fitter.rs`, `tests/trace_fitter.rs`, `tests/gauss_trace_fitter.rs`, `tests/data/gauss_trace_fitter/`, `tests/data/gauss_trace_fitter_provenance.json`, `docs/TRACE_FITTER_SUPPORT.md` |
 | B5-EGH | `src/analysis/feature_finder_picked/egh_trace_fitter.rs`, `tests/egh_trace_fitter.rs`, `tests/data/egh_trace_fitter/`, `tests/data/egh_trace_fitter_provenance.json`, `docs/EGH_TRACE_FITTER_SUPPORT.md` |
 | B6-FFAP-SEEDS | `src/analysis/feature_finder_picked/algorithm.rs`, `src/analysis/feature_finder_picked/scoring.rs`, `src/analysis/feature_finder_picked/seeds.rs`, `tests/feature_finder_picked_seeds.rs`, `tests/data/feature_finder_picked/`, `tests/data/feature_finder_picked_provenance.json`, `docs/FEATURE_FINDER_PICKED_SUPPORT.md` |
@@ -550,8 +553,8 @@ directory.
 | CLI-2 | `src/cli.rs` (except its `mod` lines), `src/cli/context.rs`, `src/cli/spec.rs`, `src/cli/parameter.rs`, `src/cli/usage.rs`, `src/cli/processing.rs`, `src/cli/tools/baseline_filter.rs`, `src/cli/tools/dta_extractor.rs`, `src/cli/tools/map_normalizer.rs`, `src/cli/tools/mzml_splitter.rs`, `src/cli/tools/spectra_filter_window_mower.rs`, `src/format/paramxml.rs` (writer options only), `tests/paramxml.rs` (writer-option tests only), `docs/PARAMXML_SUPPORT.md` (writer-option section only), `tests/topp_cli_lifecycle.rs`, `tests/data/topp_cli_lifecycle/`, `tests/data/topp_cli_lifecycle_provenance.json`, `tests/topp_baseline_filter.rs`, `tests/topp_dta_extractor.rs`, `tests/topp_map_normalizer.rs`, `tests/topp_mzml_splitter.rs`, `tests/topp_spectra_filter_window_mower.rs`, `docs/TOPP_CLI_SUPPORT.md` |
 | P1-PICKER-LIB | `src/processing/peak_picking.rs`, `src/processing/peak_picking/noise.rs`, `src/processing/iterative.rs`, `src/processing/chromatogram.rs`, `tests/peak_picking.rs`, `tests/peak_picking_experiment.rs`, `tests/data/peak_picking/`, `tests/data/peak_picking_provenance.json`, `docs/PEAK_PICKING_SUPPORT.md`; only where a fidelity fix forces it: `tests/iterative_picking.rs`, `tests/iterative_picking_reference.rs`, `tests/iterative_workflow.rs`, `tests/chromatogram_picking.rs`, `tests/chromatogram_processing_reference.rs`, `tests/chromatogram_workflow.rs`, `tests/data/iterative_provenance.json`, `tests/data/chromatogram_processing_provenance.json`, `docs/ITERATIVE_PICKING_SUPPORT.md`, `docs/ITERATIVE_REFERENCE_REVIEW.md`, `docs/CHROMATOGRAM_PICKING_SUPPORT.md` |
 | P2-MZML-LENIENCY | `src/format/mzml_header/read.rs`, `src/format/mzml_header.rs` (forwarding the option only), `src/format/mzml.rs` (`ReadOptions` and the header-registry call only), `src/format/mzml_counts.rs` (the header-registry call only), `tests/mzml_header_leniency.rs`, `tests/data/mzml_header_leniency/`, `tests/data/mzml_header_leniency_provenance.json`, `docs/MZML_HEADER_SUPPORT.md` |
-| B8-IMSPLIT | `src/kernel/im_data_converter.rs`, `tests/im_data_converter.rs`, `docs/IM_DATA_CONVERTER_SUPPORT.md`, `tests/data/im_data_converter_provenance.json` |
-| B9-OVERLAP | `src/processing/feature_overlap_filter.rs` (except the `quadtree` registration), `src/processing/feature_overlap_filter/quadtree.rs`, `tests/feature_overlap_filter.rs`, `docs/FEATURE_OVERLAP_FILTER_SUPPORT.md`, `tests/data/feature_overlap_filter_provenance.json` |
+| B8-IMSPLIT | `src/kernel/im_data_converter.rs`, `tests/im_data_converter.rs`, `docs/IM_DATA_CONVERTER_SUPPORT.md`, `tests/data/im_data_converter/` (added at integration), `tests/data/im_data_converter_provenance.json` |
+| B9-OVERLAP | `src/processing/feature_overlap_filter.rs` (except the `quadtree` registration), `src/processing/feature_overlap_filter/quadtree.rs`, `tests/feature_overlap_filter.rs`, `docs/FEATURE_OVERLAP_FILTER_SUPPORT.md`, `tests/data/feature_overlap_filter/` (added at integration), `tests/data/feature_overlap_filter_provenance.json` |
 
 **Boundaries.**
 
@@ -685,3 +688,267 @@ Run cargo gates through `~/.local/bin/openms-kim-gate.sh <slot> <cargo args>`.
   stable and on `+1.85.0`, under the feature line CI will use.
   `doc --locked --all-features --no-deps` (the script sets `-D warnings`).
   The `tools/` checkers locally.
+
+## Wave 2 status
+
+Status on 2026-09-14. `integrate/wave2` (`1c14d60`) merges eight
+verifier-approved package branches with `--no-ff` onto the scaffold `42c21e7`.
+A4 and B9 merged after one fix round each. The shared files (module graph,
+ledger, provenance, CI, crate register, licences, C++ issue log and
+documentation) follow on `integrate/wave2-shared`.
+[VALIDATION](VALIDATION.md) records each package's evidence, the verifiers'
+reruns, the lead's kim results and this pass's gates.
+
+**Merged** (branch commit, then merge commit):
+
+| Package | Branch | Merge | Outcome |
+|---|---|---|---|
+| B3-LM | `f604b4a` | `14284fb` | partial: the crate gate failed and D2's fallback keeps the Eigen transcription; the budget differential against C2 is committed |
+| P1-PICKER-LIB | `1566a5f` | `6386e10` | done |
+| P2-MZML-LENIENCY | `15a5f09` | `fabaea4` | done; FileHandler does not pass the option yet |
+| CLI-2 | `f886d90` | `b4f4456` | done (W2.2); closes the CLI-1 carried-forward `-ini` open failure (exit 8) and single-writer FIFO notes |
+| A4-FILEINFO-CORE | `bb28715` (fix round on `61ad528`) | `93bd214` | done; acceptance 4 holds on derived inputs only, for mzML reader gaps outside A4 |
+| B6-FFAP-SEEDS | `80bbdf1` | `a532c31` | done; three decisions open (below) |
+| B8-IMSPLIT | `c527c5f` | `09ce3d4` | done |
+| B9-OVERLAP | `f1c7785` (fix round on `413ec7a`) | `1c14d60` | done |
+
+**Not merged:**
+
+- **B4-GAUSS** is in fix round 3. W2.4's `gauss_trace_fitter` and `trace_fitter`
+  CI lines wait for it, and the ledger rows of `TraceFitter.h` and
+  `GaussTraceFitter.h` stay unreviewed.
+- **B5-EGH** merges after B4, rebased on it (the TraceFitter contract); its CI
+  line and `EGHTraceFitter.h` review wait too.
+- **Lane B3b** is root-causing the transcription's own first-step divergence
+  from Eigen, under investigation. B3's verifier notes below go there.
+- **Wave 3a (P3, A5, C5)** is being implemented on a scaffold commit above
+  `integrate/wave2`; the lead merges their shared files later.
+- **The Boost.Regex facade** (`crate/regex-facade`) stays with the lead.
+
+B4's budget-boundary tests need no rerun for B3: the backend did not change.
+
+**Ownership amendments** recorded in the table above: B3-LM owns
+`tests/data/lm_budget_differential/` and
+`tests/data/lm_budget_differential_provenance.json`; B8-IMSPLIT owns
+`tests/data/im_data_converter/`; B9-OVERLAP owns
+`tests/data/feature_overlap_filter/`. No other package touched these paths.
+CLI-2's rustdoc on the paramxml reader items and one general encoding line in
+`docs/PARAMXML_SUPPORT.md` exceed its "writer options only" boundary; they are
+doc-only and accepted.
+
+**Decisions open for the lead:**
+
+- **B6 (a)** `mass_trace:min_spectra = 1`: the port refuses it; the executed
+  C++ is defined (NaN trace scores, 0 seeds, exit 0; CPP-271). Following the
+  source is a one-line change in `SeedStage::compute`.
+- **B6 (b)** a changed `abundance_12C` or `abundance_14N`: refused by default,
+  `AbundanceOverride::Intended` builds the intended distribution; the source's
+  stray `(0, 1)` peak cannot be reproduced (CPP-247). The same question sits in
+  front of B10.
+- **B6 (c)** the overall score: the port's correctly rounded, platform-independent
+  power against the platform `powf` (CPP-272). Either way, restate acceptance
+  criterion 4 ("one binary32 step from the Apple `powf` oracle" or a
+  macOS-only bitwise contract).
+- **P2 request 1 and D10.** P2 asks to pass
+  `ReadOptions { source_dangling_references: true }` unconditionally in
+  `FileHandler::load_experiment_with_options` (`src/format/file_handler.rs:297`).
+  Its verifier notes that FileHandler is a library API and D10 keeps library
+  defaults strict, so a tool-side load option is the alternative. Not applied
+  in this pass; P3's `TOPP_PeakPickerHiRes_5` and A4's `c1_empty_mzml_mps` depend
+  on it.
+- **B3 request 2.** `levenberg-marquardt` and `nalgebra` are used only by the
+  ignored candidate in `tests/lm_budget_differential.rs`: move both pins to
+  `[dev-dependencies]` and reword their `Cargo.toml` comment, or remove them with
+  the candidate. Not applied; lane B3b may still need them.
+- **Ledger calls made here, open to reversal.** `GaussTraceFitter.h` and
+  `EGHTraceFitter.h` are `evidence_requires_review` only through B3's manifest,
+  which cites their functors as `sources` (B3 verifier, major finding). The
+  pass keeps that, because the test transcribes those functors; the wave-1
+  alternative, respelling the citations as `context_sources` as done for
+  `FileInfo.cpp`, would edit a manifest lane B3b may still change.
+  `FeatureOverlapFilter.h` is `complete` (every member, tier 1), where B9's
+  first report proposed `partial` until B11. `SignalToNoiseEstimatorMedian.h`
+  stays `partial` for its `AUTOMAXBYPERCENT` refusal.
+
+**Carried forward** (owner in bold at the end of each item):
+
+- **The six new ignored tests.** Each names a documented gap; none hides an
+  unexplained failure. `levenberg_marquardt_crate_candidate_gate_report` (a
+  measurement, **B3b**). `c1_file_info_9_mzml_mps` and
+  `a4_file_info_9_default_flags` (repeated userParam, processing on primary
+  arrays, a 64-bit float charge array) and `a4_indexed_file_info_12_all_flags`
+  (the float charge array): **mzML reader owner, D10**. `c1_empty_mzml_mps`:
+  the FileHandler call site above and a load-options field on
+  `file_info::model::Options`, **integrator and A5**. `a4_mzml_file_1_all_flags`:
+  the selected-ion drift time (A3 request 5), **the lead**. The tripwire
+  `reader_gaps_behind_the_ignored_cases_are_still_present` fails when a gap
+  closes.
+- **B3, `src/math/fitters/levenberg_marquardt.rs` and
+  `docs/DISTRIBUTION_FITTERS_SUPPORT.md`:**
+  - the `minimize` rustdoc (lines 829-834) and the tier-1 paragraph say the four
+    degenerate fits match at every max_fev and that the termination order is
+    checked; they are checked at budget 500 only, and the fixture reaches
+    statuses 1 to 5 only;
+  - section 8 names `1.49012e-8` as the crate's default tolerance, which is the
+    `minpack-compat` default; without it the default is `30 * f64::EPSILON`;
+  - `tests/lm_budget_differential.rs`: `Run` and `run_distribution` count
+    njev on numerical Jacobians, which Eigen does not; and
+    `the_written_out_functors_reproduce_the_c2_start_evaluations` asserts the
+    tolerance, not the bit identity the docs claim (measured bit-identical on
+    Linux) and does not count Jacobian comparisons;
+  - performance: `minimize` allocates short-lived vectors in every outer and
+    `lmpar` iteration (Jacobian column copies for `blue_norm`, the QR copy,
+    Householder vectors, projected residuals, step and candidate vectors, the
+    `lmpar`/`qrsolv` workspaces). Hoisting them without changing the arithmetic
+    order is the likely way to close the 1.26x (dax) to 1.28x (spock) gap to the
+    rejected crate on FeatureFinderCentroided's hot path;
+    `tests/lm_budget_differential.rs` and the class tests guard the bits;
+  - `minimize` has no internal allocation ceiling, so B4's TraceFitter must run
+    `preflight_points` on peak counts; C2's `trace_fitters_degenerate_values_lt_inputs_*`
+    records are B4's boundary;
+  - the x tolerance margin (6.36e-10 against 1e-9) was measured on Linux only;
+    run the cross-platform `workflow_dispatch` job before relying on it on
+    macOS or Windows.
+  **B3b** (performance: **owner to assign**; cross-platform run: **the lead**).
+- **P1, `src/processing/peak_picking.rs`, `noise.rs` and their tests:**
+  - `PickingCompatibility::source()` still refuses non-finite narrowed outputs:
+    a zero intensity total gives the C++ mobility `-inf`, and the port returns
+    "intensity overflow"; document it at `source()` and give it its own message;
+  - no test pins the percentage formula (`count * 100 / n` against
+    `count * (100 / n)`); use 3 of 7 windows;
+  - `agrees()` in `tests/peak_picking_experiment.rs` compares only the error
+    class for `InvalidValue`; require the source fragment;
+  - benchmark: `pick_experiment` clones the whole input and
+    `pick_spectrum_with_acquisition` clones each picked spectrum again; one fixed
+    `AcquisitionCopies` ledger (256 MiB) charges every spectrum twice and refuses
+    about 400k spectra that C++ picks; records are validated twice and
+    `get_type(true)` copies each unknown-type spectrum;
+  - P3 hand-off: load with `FileHandler::load_experiment_with_options` and default
+    `PeakFileOptions`, build with `PeakPickerHiRes::from_param` and
+    `PickingCompatibility::source()`, map `CENTROIDED_INPUT_MESSAGE` to exit 8;
+  - a Release C++ benchmark must use libOpenMS's `-ffp-contract=off` for any
+    header-only template built outside it, and may bin differently from arm64
+    for quotients beyond `INT_MAX` (CPP-257).
+  **P1** (hand-off: **P3**; benchmark build: **benchmark lane**).
+- **Stale docs outside P1** (P1 request 4): `docs/CUBIC_SPLINE2D_SUPPORT.md:35`,
+  `docs/SPLINE_BISECTION_SUPPORT.md:30-35` and the `CubicSpline2d::peak_maximum`
+  rustdoc in `src/processing/spline/cubic.rs` still say peak picking uses
+  `peak_maximum` (it uses `spline_bisection`); `docs/MOBILOGRAM_SUPPORT.md:168-172`
+  says the weighted mobility arithmetic is unchanged (it now uses float32
+  products in source order). **Spline and mobilogram owners (held by no wave-2
+  package)**.
+- **mzML reader, duplicate record ids** (P1 request 6): the native reader refuses
+  the repeated `spectrum=1` of the FTMS class-test files (CPP-261) that
+  `MzMLHandler` loads; P1 uses id-renamed copies. A D10 candidate. **mzML
+  reader owner**.
+- **P2, `src/format/mzml_header/read.rs` and `docs/MZML_HEADER_SUPPORT.md`:**
+  - whitespace-padded IDs are normalised and resolve under the option, where the
+    source treats them as dangling; add a native difference (resolving against
+    the raw attribute would touch `parameter_id` in `mzml.rs`, integrator-held);
+  - one `transform` call warns twice (setup and data pass each build a registry);
+    share the de-duplication or document it, and correct the field rustdoc, the
+    support doc and the P3 note;
+  - a dangling lookup is charged twice against the header work allowance; drop
+    the second `id.len() * 64` charge;
+  - an empty optional `dataProcessingRef` is treated as absent by the source
+    (`XMLHandler.h:563-571`); the "malformed IDs" native difference and the
+    `ReadOptions` rustdoc should say so;
+  - untested: `IndexedMzMLHandler::open_with_limits` with the flag probably warns
+    on every fetched record (**P4**);
+  - the option leaves `sampleRef`, `defaultInstrumentConfigurationRef`, the
+    `sourceFileRef` variants and scan `instrumentConfigurationRef` strict, where
+    C++ is equally lenient; a follow-up if a tool input needs them; with the option
+    on, the Rust tool prints warnings where C++ is silent (**P3**).
+  **P2**.
+- **CLI-2, `docs/TOPP_CLI_SUPPORT.md`, `src/cli/usage.rs` and
+  `tests/topp_cli_lifecycle.rs`:**
+  - the D4 comparisons normalise the port's software name (`MS:1000799` with the
+    name against C++'s `MS:1002146` "TOPP SpectraFilterWindowMower"),
+    processingMethod order and completion-time seconds into the C++ writer's
+    form; move these from preserved conventions to native differences, and give
+    `src/format/mzml_header/write.rs` a writer-side follow-up (**mzML writer
+    owner**);
+  - a NaN BaselineFilter `struc_elem_length` exits 0 in C++ (recording NaN) and 6
+    in the port; the "non-finite values" note covers only inf;
+  - a directory `-in` exits 8 in the port and 3 in C++ (also named `d.mzML`);
+    record it next to the unknown-content case (exit 6 against 3), which is a
+    FileHandler follow-up (**A3 FileHandler owner**);
+  - `an_undetermined_input_format_only_warns` asserts only "not 0 and not 1";
+    pin `IllegalParameters` with a comment;
+  - usage text wraps valid strings in quotes without `StringUtils::quote`'s
+    escaping of `\` and `'` (latent);
+  - still open from CLI-1: DTAExtractor's reversed `-rt` range and BaselineFilter's
+    centroided-input warning.
+  **CLI-2**.
+- **A4, `src/format/file_info/`:**
+  - the SRM conversion uses `ChromatogramTools::default()` limits; the 5e7 work
+    ceiling refuses about 430k SRM points (4,300 spectra of 100 product m/z) that
+    C++ reports; size the limits from the reader's, or document the effective
+    bound in native difference 7 and `run()` `# Errors`, with a boundary test;
+  - re-exports in `src/format/file_info.rs` (`FileInfo`, `Options`,
+    `FileInfoResult` and the model types), which A5 imports, are not applied in
+    this pass (**the lead, with A5's scaffold**);
+  - a native load-options field on `Options`, strict by default, once the
+    FileHandler call site takes read options (**A5 or the integrator**);
+  - `ProcessingStep.h` now lists `src/format/file_info/model.rs` as a candidate
+    through the `pub struct ProcessingStep` name match, the same generator
+    limitation as `MassTrace.h` (**deferred with it**).
+  - `FileInfo::run` returns an unknown-type result for a directory whose name
+    gives no type, as C++ does, so the FileInfo tool need not handle
+    `FileHandler::get_type`'s I/O error at its call site; that A3 follow-up stays
+    open for other callers (**A5**);
+  - A2's wave-1 requests 6 and 7 are closed: the support document links
+    `text_format.rs` and its manifest, and the reports use `fixed_truncated`,
+    explicit stream precision and one space after `intensity:`.
+  **A4**.
+- **B6, `src/analysis/feature_finder_picked/` and
+  `docs/FEATURE_FINDER_PICKED_SUPPORT.md`:**
+  - one isotope window failing in the generator (first at about 273,750 Da of
+    `max_mz * charge_high`) fails the whole run, where the SDK continues with NaN
+    weights; add a native difference or keep NaN windows for the affected peaks;
+  - a zero-intensity peak takes the Release NaN intensity score where the Debug
+    SDK throws a postcondition (`.cpp:1892`); flag it `debug_only`, and correct
+    line 198: the tool filters negative intensities only (CPP-237);
+  - `overall_score_is_the_float_cube_root_of_the_product` repeats the
+    implementation's expression; assert an independent literal;
+  - B7 hand-off: reuse `tests/data/feature_finder_picked/FeatureFinderAlgorithmPicked.mzML`
+    and `.ini`; build step 3.3 on `SeedStage`; interleave the "Found N feature
+    candidates" lines per charge; seeds with an exact `f32` intensity tie are
+    ordered stably, where libc++ `std::sort` gives a different order that feature
+    suppression depends on; assign ownership for any B7 edit of `seeds.rs` or
+    `scoring.rs`;
+  - B6's notes for this document: the plan's "undefined behaviour" premise for
+    `min_spectra = 1` was refuted by execution; the 12C = 90% part of B2's pending
+    pattern comparison cannot be reproduced by design; the tolerance for the
+    overall score off macOS is one binary32 step, with the oracle's `powf`
+    misrounding listed in `overall_rounding.tsv`.
+  **B6 and B7**.
+- **B8, `src/kernel/im_data_converter.rs` and
+  `docs/IM_DATA_CONVERTER_SUPPORT.md`:**
+  - the settings ceiling covers one copy while the split makes one per group,
+    and `messages.push` is infallible; charge all copies against one budget or
+    narrow the "allocation failure is refused" wording;
+  - a group keyed by an infinite voltage gets `InvalidValue` from the range
+    manager; qualify "ranges are always correct" (**also a B11 note**);
+  - `FaimsSplit` derives `Default` with empty `groups` although the field doc
+    says "never empty";
+  - the derived C2 fixtures depend on A3's `FeatureFinderCentroided_1_input.mzML`
+    staying byte-identical (a length and FNV-1a check fails loudly);
+  - B11 hand-off: `FaimsSplit::has_faims()`, the groups with
+    `FaimsGroupKey::volts()` and `messages` to relay to the tool log; seed
+    filtering and `mergeFAIMSFeatures` stay with B11 and B9 (**B11**);
+  - optional: a `kernel.rs` re-export of the module, now used by path
+    (**integrator, if wanted**).
+  **B8**.
+- **B9, `src/processing/feature_overlap_filter.rs`:**
+  - `merge_faims_features` reproduces the uid-0 wipe, so FeatureFinderCentroided
+    output without unique IDs loses every FAIMS feature unless IDs are assigned
+    before the merge or D5 selects a corrected mode (a new opt-in API)
+    (**B11, D5**);
+  - a feature holding a non-empty and an empty hull is refused ("extent does not
+    fit f32"); a Release C++ build probably completes; not executed;
+  - hull-mode boxes are recomputed per `get_box` call where C++ caches the
+    multi-hull box (constant factor, off the benchmark path);
+  - `feature_overlap_filter_oracle.tsv` is 1.4 MB, already losslessly compacted,
+    the largest fixture after the two controlled-vocabulary tables.
+  **B9**.

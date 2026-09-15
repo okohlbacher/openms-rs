@@ -1,0 +1,303 @@
+{
+ "group": "topp_feature_finder_centroided",
+ "work_package": "C5-FFC-WRAPPER (early TOPP bundle, wave 3a); src/cli/tools/feature_finder_centroided.rs, this manifest, the tests and the support document pass to B10 in wave 4",
+ "package_revisions": {
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+  "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3"
+ },
+ "core_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "scope": "The FeatureFinderCentroided TOPP wrapper: registration and -write_ini, the source loading options, the empty-input, per-peak ion-mobility and profile branches in source order, the seed load, the FAIMS refusal of decision D5, the error mapping of the algorithm's failures, and the post-algorithm annotation and clean-up (primary MS run path, unique ids, the QUANTITATION processing record, hull and subordinate reduction). Not in scope: the picked algorithm past seed selection (B7), the FFC_1 output comparison and the seeded, asymmetric, debug-5 and thread-count runs (B10), and the FAIMS closure (B11).",
+ "method": "The tool is transcribed from the pinned topp source and exercised through the built executable in a temporary working directory, because the FeatureFinderCentroided_1 INI sets log=TOPP.log. Every wrapper branch is compared with a C++ run of the same command against the product SDK: the planned regressions in the C1 oracle (../oracle/topp-early-bundle) and the branch-order cases this package added (../oracle/ffc-wrapper-c5), each executed twice and reproduced. Synthetic inputs are not committed: the tests re-derive them from the retained FeatureFinderCentroided_1_input.mzML by the rule the oracle manifests record and check the derived bytes against the SHA-1 of the file the C++ tool read, whose SHA-256 is recorded below.",
+ "evidence_tier": "tier 1 (executed differential, product SDK Debug core 4fdec46) for every asserted exit code, diagnostic and absence of output, and for the -write_ini defaults; tier 3 (source review of FeatureFinderCentroided.cpp at topp 174b576) for the registration details and for the annotation and clean-up steps, whose end-to-end output comparison is B10's",
+ "cpp_sources": [
+  {
+   "package": "topp",
+   "revision": "174b576e244e100f2345ca57a8e79aaa607156df",
+   "path": "src/FeatureFinderCentroided.cpp",
+   "sha256": "3456f7a563352ae33a08b0872915970342c46229cce6a2bdbe2313b3ece89f68",
+   "role": "the ported tool: registration 140-163, getSubsectionDefaults_ 166-169, main_ 172-378"
+  },
+  {
+   "package": "cli",
+   "revision": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+   "path": "source/APPLICATIONS/TOPPBase.cpp",
+   "sha256": "326b96f85b4041febec49e18252d7be2ad0a5450abe5249adecc28ca315fdc05",
+   "role": "exception to exit-code mapping 430-499, getProcessingInfo_ 527-571, addDataProcessing_ 587-590, test-mode unique-id seed 369-376, writeDebug_ 2514-2538 (not ported)"
+  },
+  {
+   "package": "test-data",
+   "revision": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+   "path": "topp/CMakeLists.txt",
+   "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb",
+   "role": "TOPP_FeatureFinderCentroided_1 and its FuzzyDiff comparison (lines 425-428); TOPPWRITEINI_<tool> and its section-name check (lines 83-85)"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
+   "sha256": "33fa5e9375dc6f08315a12de6d38e74fc81e307f8bdb0ab7493f3bc983a79dec",
+   "role": "splitByFAIMSCV 27-93: the split this port refuses instead of performing, and its log line for data without voltages"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/IONMOBILITY/IMTypesExperiment.cpp",
+   "sha256": "2477cd337d99f670558b9a30e78c2fb3c0d0a9f351acfcbf2f4240d6e74a8249",
+   "role": "determineIMFormat(const MSSpectrum&) 53-83, the per-peak ion-mobility check"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/IONMOBILITY/FAIMSHelper.cpp",
+   "sha256": "c0d91c7ede220a173d67cccce966ab0e0a29a1f6e1a17db9a6cff202d14bacf4",
+   "role": "getCompensationVoltages, which decides whether an input is FAIMS input"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a",
+   "role": "spectrum type 1634-1645 (MS:1000525 resets it to UNKNOWN) and the IM peak type 248-256, 1646-1649 printed in the ion-mobility message"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/DATASTRUCTURES/ConvexHull2D.cpp",
+   "sha256": "75181e622beebcde6020cafa816363342cd3e9ed9e18d3e5f8924cac3b1572a1",
+   "role": "expandToBoundingBox 125-134, the clean-up below debug level 5"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "sha256": "12730d264da698c53ea7c40e711be76eb91ee4151ef0937b8f1f1e25ff0583a0",
+   "role": "run 1057-1100: the input checks whose IllegalArgument this wrapper maps to UNKNOWN_ERROR"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/FORMAT/FileHandler.cpp",
+   "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e",
+   "role": "loadExperiment with PeakFileOptions, loadFeatures and storeFeatures as main_ calls them"
+  }
+ ],
+ "cpp_sources_note": "Core paths are spelled relative to the core checkout and are read for context: this group ports no core header, so tools/core_sdk_coverage.py must not count them as evidence.",
+ "fixtures": [
+  {
+   "path": "tests/data/topp_feature_finder_centroided/SimpleSearchEngine_1.mzML",
+   "sha256": "e281957d38c443e9459ba86d717eb06b17fd90b3f27afe74d2fac2cc160c62ea",
+   "upstream": "test-data 0cb15f2 topp/SimpleSearchEngine_1.mzML",
+   "kind": "retained upstream",
+   "used_by": "FFC_ms2_only: MS2 spectra only, so the MS-level filter leaves no spectrum"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_centroided/FileConverter_31_output.mzML",
+   "sha256": "daa0dc7f5681a40d65ae0a2ee8747d362e144567f301bc54d991dcff3826fd61",
+   "upstream": "test-data 0cb15f2 topp/FileConverter_31_output.mzML",
+   "kind": "retained upstream",
+   "used_by": "FFC_im_arrays_ms2_only: ion-mobility arrays on MS2 spectra only, which the MS-level filter removes"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_centroided/FileFilter_44_input.mzML",
+   "sha256": "fbdc444d1d5b4e6d744b338ad7fbd131771ee10586848b6353942d4317833177",
+   "upstream": "test-data 0cb15f2 topp/FileFilter_44_input.mzML",
+   "kind": "retained upstream",
+   "used_by": "FFC_FileFilter_44_noforce and FFC_FileFilter_44_force: a registered numpress-compressed profile fixture"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/mzml_mobility/FeatureFinderCentroided_1_input.mzML",
+   "sha256": "a3dfae633502bc457fb3efeddb5d5006af935a51bd99d9a5974e24232885f9d3",
+   "owner": "A3-FORMAT-IO",
+   "used_by": "the registered workflow, the load-option check and every derived input"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FeatureFinderCentroided_1_1_output.featureXML",
+   "sha256": "4eaa53c822be1cf304728b51fc8d45ff1e725659aa0aad9a3f62560d718fc473",
+   "owner": "A3-FORMAT-IO",
+   "used_by": "the seed list of FFC_seeds, and truncated to 3000 bytes for c5_faims_corrupt_seeds"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FAIMS_test_data.mzML",
+   "sha256": "ad028d77045e07b773b9423f1c1f58baa1a0856b9d420155c8881d452c175301",
+   "owner": "A3-FORMAT-IO",
+   "used_by": "FFC_faims_test_data"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FAIMS_CV-60C_V-45_Interleaved.mzML",
+   "sha256": "718775f365167f5b61a00a7bf851a7397db258317ae6a09afa860e5ad5470ea7",
+   "owner": "A3-FORMAT-IO",
+   "used_by": "FFC_faims_interleaved_noforce and FFC_faims_interleaved_force"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/FeatureFinderCentroided_1_parameters.ini",
+   "sha256": "175269ed9147ba373a2f42b92cc9c2000c9129b798c88bcea8c2480462489f78",
+   "owner": "B6-FFAP-SEEDS",
+   "used_by": "the -ini of the registered workflow and of most oracle cases"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/FeatureFinderCentroided_defaults.ini",
+   "sha256": "2869134aeb3f98ed181fb4b8e089fd955a339d77958fb149f39a0f9d98a39b50",
+   "owner": "B6-FFAP-SEEDS",
+   "used_by": "the -write_ini comparison; byte-identical to the C1 oracle outputs of FFC_write_ini and FFC_write_ini_test"
+  }
+ ],
+ "derived_inputs_note": "Derived from tests/data/mzml_mobility/FeatureFinderCentroided_1_input.mzML inside each test's temporary directory, never committed. sha256 is the file the C++ tool read (recorded in the oracle manifest named below); sha1 is what the test asserts about the bytes it derived, which pins them to that file.",
+ "derived_inputs": [
+  {
+   "name": "profile/FeatureFinderCentroided_1_input.mzML",
+   "oracle": "../oracle/topp-early-bundle/cases/derived.json",
+   "rule": "every 'MS:1000525 spectrum representation' cvParam replaced by 'MS:1000128 profile spectrum' (112 spectra)",
+   "sha256": "87476068b5296007d1fb9e8db3f56d722cc1433fa944d32c8969c3df2a9132b3",
+   "sha1": "db09cf03b27a8381f3c88ca019bdf7e1db81ca27"
+  },
+  {
+   "name": "profile_before_1000525/FeatureFinderCentroided_1_input.mzML",
+   "oracle": "../oracle/topp-early-bundle/cases/derived.json",
+   "rule": "an unindented 'MS:1000128 profile spectrum' cvParam line inserted before every 'MS:1000525 spectrum representation' line (112 spectra)",
+   "sha256": "28959a41b4f03e74da3b970940e86d8ee8ed5b07e28d1b28f5f063e56f1e5c27",
+   "sha1": "54288a97441c37647209ef56395c231c8c04aea9"
+  },
+  {
+   "name": "im_peak_ms1.mzML",
+   "oracle": "../oracle/topp-early-bundle/cases/derived.json",
+   "rule": "binaryDataArrayList count 2 -> 3 and a third uncompressed 32-bit 'MS:1002816 mean ion mobility array' (UO:0000028 millisecond) of defaultArrayLength values 0.5 appended to every spectrum (112 MS1 spectra)",
+   "sha256": "926506fdb5475a2201e5ff6e171e76f12f2cb59269756499ee87bbc343f1627d",
+   "sha1": "c7dbb4e5a1948ddf1295c49025655cbb6651b5f0"
+  },
+  {
+   "name": "im_peak_ms1_nounit.mzML",
+   "oracle": "../oracle/topp-early-bundle/cases/derived.json",
+   "rule": "as im_peak_ms1.mzML but the ion mobility cvParam carries no unit attributes",
+   "sha256": "4ac274c8d2094e328ffea0563fc85c858cc8a26ff21111c95e2f1a969923101d",
+   "sha1": "7c3d5bea5e87986b3efacc046c536730929721b9"
+  },
+  {
+   "name": "faims_one_cv.mzML",
+   "oracle": "../oracle/topp-early-bundle/cases/derived.json",
+   "rule": "an unindented scan-level 'MS:1001581 FAIMS compensation voltage' cvParam (value -45, UO:0000218 volt) inserted after every <scan> line (112 spectra)",
+   "sha256": "11616c7b050ba5f0399920e7c2b9649e4a897d24590b98684a115a0d5de6560e",
+   "sha1": "44aba90786460e1e167db1b549e04a960db9edd9"
+  },
+  {
+   "name": "faims_two_cv.mzML",
+   "oracle": "../oracle/topp-early-bundle/cases/derived.json",
+   "rule": "as faims_one_cv.mzML, alternating -45 (even spectrum index) and -60 (odd index)",
+   "sha256": "ec1116e2e20f6e162d814753b8414d501feee7ea9b3dc68ddf99386efc727816",
+   "sha1": "9c0e2c828f30123468799c10169d61e6d728e6e4"
+  },
+  {
+   "name": "im_peak_profile.mzML",
+   "oracle": "../oracle/ffc-wrapper-c5/manifest.json",
+   "rule": "im_peak_ms1.mzML with every 'MS:1000525 spectrum representation' cvParam replaced by 'MS:1000128 profile spectrum'",
+   "sha256": "a479e19d6801a7bd6a00af71668a04ede5871cf3515c741c625621abb088a4d6",
+   "sha1": "117e6a477f1a18a103e466c4567379cabb6baa78"
+  },
+  {
+   "name": "first_profile_only/FeatureFinderCentroided_1_input.mzML",
+   "oracle": "../oracle/ffc-wrapper-c5/manifest.json",
+   "rule": "the first 'MS:1000525 spectrum representation' cvParam replaced by 'MS:1000128 profile spectrum'",
+   "sha256": "543f11594a1741bdb1a195c621c04c70a9581c692ad13c07f379feb96a0c58d8",
+   "sha1": "446344da1e94460d68e884186a626fdc2f14db4e"
+  },
+  {
+   "name": "later_profile_only/FeatureFinderCentroided_1_input.mzML",
+   "oracle": "../oracle/ffc-wrapper-c5/manifest.json",
+   "rule": "every 'MS:1000525 spectrum representation' cvParam but the first replaced by 'MS:1000128 profile spectrum'",
+   "sha256": "74719b6036c33e4059417e15697a2cc6d2f645f428e102b49e86cdcc0d6a7095",
+   "sha1": "1fa22f4184f1af9b378c30ca074cf89950a8aba3"
+  },
+  {
+   "name": "negative_intensities.mzML",
+   "oracle": "../oracle/ffc-wrapper-c5/manifest.json",
+   "rule": "the sign bit of every little-endian 32-bit float in each 'MS:1000515 intensity array' <binary> set (all 3084 values were positive); base64 re-encoded, encodedLength unchanged",
+   "sha256": "8ff6d45025d37f4a3fe6743ec7e47e93e77baa41dd9772c27848c3b316f6d901",
+   "sha1": "8adf8b8a0ec464d69e57ca84ff3316e941cba08e"
+  },
+  {
+   "name": "faims_partial_cv.mzML",
+   "oracle": "../oracle/ffc-wrapper-c5/manifest.json",
+   "rule": "an unindented scan-level 'MS:1001581 FAIMS compensation voltage' cvParam (value -45, UO:0000218 volt) inserted after the <scan> line of every even-indexed spectrum (56 of 112)",
+   "sha256": "eb42c56d1c8bde797577f2a51d4ac95892939c8cb0e0c3cda9a89a0da62dce79",
+   "sha1": "bf274d61a77be9b2af64e51ab4f5bf266452aab9"
+  },
+  {
+   "name": "corrupt_seeds.featureXML",
+   "oracle": "../oracle/ffc-wrapper-c5/manifest.json",
+   "rule": "first 3000 bytes of FeatureFinderCentroided_1_1_output.featureXML (truncated XML)",
+   "sha256": "fc1e49fd54f374b21655f1890c5de02fec228abb76ed67270c0bc9562bac099b",
+   "sha1": "2cbe3d4e85be40b1086f0e88525d66f28188eecc",
+   "hash_note": "the test truncates the retained output itself and asserts no digest, because the truncation is exact by construction; the sha256 above is the file the C++ tool read and equals the sha256 of the first 3000 bytes of tests/data/mzml_mobility/FeatureFinderCentroided_1_1_output.featureXML"
+  }
+ ],
+ "oracle_cases": {
+  "c1": [
+   "TOPP_FeatureFinderCentroided_1",
+   "FFC_write_ini",
+   "FFC_write_ini_test",
+   "FFC_ms2_only",
+   "FFC_profile_noforce",
+   "FFC_profile_force",
+   "FFC_profile_then_spectrum_representation",
+   "FFC_FileFilter_44_noforce",
+   "FFC_FileFilter_44_force (debug_only)",
+   "FFC_im_peak_with_units",
+   "FFC_im_peak_without_units",
+   "FFC_im_arrays_ms2_only (debug_only)",
+   "FFC_faims_interleaved_noforce",
+   "FFC_faims_interleaved_force",
+   "FFC_faims_interleaved_force_nomerge",
+   "FFC_faims_test_data",
+   "FFC_faims_one_cv",
+   "FFC_faims_two_cv",
+   "FFC_faims_two_cv_nomerge",
+   "FFC_out_no_extension",
+   "FFC_invalid_rt_shape",
+   "FFC_seeds"
+  ],
+  "c5": [
+   "c5_im_peak_profile_noforce",
+   "c5_first_profile_only",
+   "c5_later_profile_only",
+   "c5_negative_intensities",
+   "c5_faims_corrupt_seeds",
+   "c5_faims_partial_cv",
+   "c5_seeds_not_featurexml"
+  ]
+ },
+ "external_reference_note": "No C++ is committed to this repository. The tool-level oracle runs, their inputs, streams and outputs live under ../oracle with hashed manifests; the entries below pin the manifests this group's expectations come from.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/topp-early-bundle/manifest.json",
+   "sha256": "64e98543fbe26c406988cee6122208d3007e3d66e9547f5130917e4c6b2ffbb0",
+   "origin_key": "c1_oracle_topp"
+  },
+  {
+   "path": "../oracle/topp-early-bundle/cases/derived.json",
+   "sha256": "b9587fab7bd0f80fe54f98b9930bdd4b8b10ce1db34936b6db89198295504bb1",
+   "origin_key": "c1_oracle_topp"
+  },
+  {
+   "path": "../oracle/ffc-wrapper-c5/manifest.json",
+   "sha256": "3116a2fbcee540bce7b5c6ebc1695c74b062ff3c072b652ca09c7d122d8ef698",
+   "origin_key": "c5_oracle_ffc_wrapper"
+  },
+  {
+   "path": "../oracle/ffc-wrapper-c5/oracle.py",
+   "sha256": "6eac41546798902809e6882c5ff7f6661ecbea2bcd3296d0515ccfaa46742400",
+   "origin_key": "c5_oracle_ffc_wrapper"
+  }
+ ],
+ "native_implementation": [
+  "src/cli/tools/feature_finder_centroided.rs",
+  "src/bin/FeatureFinderCentroided.rs"
+ ],
+ "native_tests": [
+  "tests/topp_feature_finder_centroided.rs"
+ ],
+ "support_document": "docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md",
+ "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 425-428 (TOPP_FeatureFinderCentroided_1 and its FuzzyDiff comparison) and lines 83-85 (TOPPWRITEINI_<tool>)",
+ "determinism": "The wrapper is serial: the source parallelises only seed extension, which is not ported. Nothing in the tested paths depends on -threads, and every assertion here is exact."
+}

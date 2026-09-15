@@ -71,7 +71,17 @@ impl Tool for MzMLSplitter {
         Ok(())
     }
 
+    /// Source `main_`, run on the worker pool that `-threads` sizes, as
+    /// `TOPPBase::main` applies the setting before `main_`
+    /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`].
     fn run(ctx: &ToolContext) -> Result<ExitCode> {
+        ctx.in_thread_pool(|| Self::run_in_pool(ctx))?
+    }
+}
+
+impl MzMLSplitter {
+    /// The tool body, as the source `main_`.
+    fn run_in_pool(ctx: &ToolContext) -> Result<ExitCode> {
         let input = ctx.string("in")?.to_owned();
         let mut out = ctx.string("out")?.to_owned();
         if out.is_empty() {

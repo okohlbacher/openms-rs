@@ -1,0 +1,593 @@
+{
+ "group": "topp_file_info",
+ "package": "A5-FILEINFO-TOOL (early TOPP bundle, wave 3a)",
+ "package_revisions": {
+  "cli": "c19e494",
+  "topp": "174b576",
+  "test-data": "0cb15f2"
+ },
+ "core_sdk_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "oracle_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
+ "rust_base_revision": "8f0bb3edad25cf3519e54b531c6398ad0174b595",
+ "license": "BSD-3-Clause",
+ "scope": "The FileInfo TOPP wrapper, its executable and the stage-1 preview workflows. The report branches are A4's library (tests/data/file_info_provenance.json); the lifecycle is CLI-1 and CLI-2's (tests/data/topp_cli_lifecycle_provenance.json). Sources come from the OpenMS4-topp, OpenMS4-cli and OpenMS4-test-data packages, which are versioned independently of the Core SDK and are deliberately not resolved against it.",
+ "sources": [
+  {
+   "path": "OpenMS4-tests/packages/topp/src/FileInfo.cpp",
+   "revision": "topp 174b576",
+   "sha256": "3f02bbc6aaaa358596a56c54bcad6f597c982a1b5a5ada58e2df322f107f03e3",
+   "operation": "the whole tool: registerOptionsAndFlags_, main_ and outputTo_"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt",
+   "revision": "test-data 0cb15f2",
+   "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb",
+   "operation": "the nineteen FileInfo registrations, lines 880-933"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/TOPPBase.cpp",
+   "revision": "cli c19e494",
+   "sha256": "326b96f85b4041febec49e18252d7be2ad0a5450abe5249adecc28ca315fdc05",
+   "operation": "read for context: the exception-to-exit-code mapping (430-499), outputFileWritable_ and inputFileReadable_; ported by CLI-1 and CLI-2"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/TOPPBase.h",
+   "revision": "cli c19e494",
+   "sha256": "576cea45f0a5eea7827c44f8080c98759aea16d34c854f8867132e6f54d102b3",
+   "operation": "read for context: the ExitCodes enumeration and the register*_ contracts"
+  }
+ ],
+ "upstream_test_definition": {
+  "path": "topp/CMakeLists.txt",
+  "revision": "test-data 0cb15f2",
+  "registrations": [
+   {
+    "name": "TOPP_FileInfo_1",
+    "lines": "881-883",
+    "status": "passes"
+   },
+   {
+    "name": "TOPP_FileInfo_2",
+    "lines": "884-886",
+    "status": "passes"
+   },
+   {
+    "name": "TOPP_FileInfo_3",
+    "lines": "887-889",
+    "status": "passes"
+   },
+   {
+    "name": "TOPP_FileInfo_9",
+    "lines": "902-904",
+    "status": "passes on the derived FileInfo_9_strict_reader.mzML; the registered input is refused by three mzML reader gaps outside this package (exit 11 where C++ exits 0)"
+   },
+   {
+    "name": "TOPP_FileInfo_4",
+    "lines": "890-892",
+    "status": "explicit refusal, exit 11 (A8)"
+   },
+   {
+    "name": "TOPP_FileInfo_5",
+    "lines": "893-895",
+    "status": "explicit refusal, exit 11 (A8)"
+   },
+   {
+    "name": "TOPP_FileInfo_6",
+    "lines": "896-898",
+    "status": "explicit refusal, exit 11 (A8)"
+   },
+   {
+    "name": "TOPP_FileInfo_7",
+    "lines": "899-901",
+    "status": "explicit refusal, exit 11 (A7)"
+   },
+   {
+    "name": "TOPP_FileInfo_10",
+    "lines": "905-907",
+    "status": "explicit refusal, exit 11 (A7)"
+   },
+   {
+    "name": "TOPP_FileInfo_11",
+    "lines": "908-909",
+    "status": "explicit refusal, exit 11 (A6); WILL_FAIL 1 in C++ (exit 6)"
+   },
+   {
+    "name": "TOPP_FileInfo_12",
+    "lines": "910-911",
+    "status": "explicit refusal, exit 11 (A6)"
+   },
+   {
+    "name": "TOPP_FileInfo_13",
+    "lines": "912",
+    "status": "explicit refusal, exit 11 (A7)"
+   },
+   {
+    "name": "TOPP_FileInfo_14",
+    "lines": "913-915",
+    "status": "explicit refusal, exit 11 (A8)"
+   },
+   {
+    "name": "TOPP_FileInfo_15",
+    "lines": "916-918",
+    "status": "explicit refusal, exit 11 (A8); input not retained"
+   },
+   {
+    "name": "TOPP_FileInfo_16",
+    "lines": "919-921",
+    "status": "explicit refusal, exit 11 (A8)"
+   },
+   {
+    "name": "TOPP_FileInfo_17",
+    "lines": "922-924",
+    "status": "explicit refusal, exit 11 (A7)"
+   },
+   {
+    "name": "TOPP_FileInfo_18",
+    "lines": "925-927",
+    "status": "explicit refusal, exit 11 (A7)"
+   },
+   {
+    "name": "TOPP_FileInfo_19",
+    "lines": "928-930",
+    "status": "explicit refusal, exit 11 (A6)"
+   },
+   {
+    "name": "TOPP_FileInfo_20",
+    "lines": "931-933",
+    "status": "explicit refusal, exit 11 (A7)"
+   }
+  ],
+  "comparison": "FuzzyDiff with the pinned FuzzyDiff.ini (ratio 1.01, absdiff 0.01) and -whitelist \"File name\", through tests/support/fuzzy_string_comparator.rs"
+ },
+ "method": "Each case runs the tool through openms::cli::run_with in its own TempDir, with the registered or oracle arguments, and compares the exit code, the captured streams and the produced files. Reports are compared byte for byte after normalising the 'File name: ' text line and the 'general: file name' TSV line, which embed the input path; the four registered comparisons additionally run the retained expectation through FuzzyDiff as registered. Usage text is compared after removing the C++ console-width probe line ('stty: stdin isn't a terminal') and replacing the build revision. One case runs the built executable as a process.",
+ "evidence_tier": 1,
+ "evidence": "Tier 1: retained upstream outputs of TOPP_FileInfo_1, _2, _3 and _9 through FuzzyDiff, and the product-SDK FileInfo (Debug, core 4fdec46; decision D7) from the C1 oracle (../oracle/topp-early-bundle run1, 21 FileInfo cases) and this package's oracle (../oracle/topp-file-info-tool, 17 cases, run twice with identical exit codes, normalised streams and outputs). Tier 4: the explicit refusals of the unported branches and flags, the executable's process behaviour, and the strict library default behind the tool's source-compatible mzML reading. No case reaches a Debug-only precondition of the oracle build.",
+ "native_implementation": [
+  "src/cli/tools/file_info.rs",
+  "src/bin/FileInfo.rs"
+ ],
+ "shared_files_touched": [
+  "src/format/file_info/model.rs: the native Options::source_dangling_references field, default false",
+  "src/format/file_info/peaks.rs: passing that field to FileHandler::load_experiment_with_read_options"
+ ],
+ "native_tests": [
+  "tests/topp_file_info.rs"
+ ],
+ "support_document": "docs/TOPP_FILE_INFO_SUPPORT.md",
+ "related_manifests": [
+  "tests/data/file_info_provenance.json",
+  "tests/data/topp_cli_lifecycle_provenance.json",
+  "tests/data/topp_early_bundle_provenance.json"
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/topp_file_info/inputs/FeatureFinderCentroided_1_oracle_output.featureXML",
+   "sha256": "b36647f7d66d4032e8ac2465623bc941017339d0cc66700fd4fe8379cb54ff0f",
+   "bytes": 15234,
+   "kind": "C1 oracle output of TOPP_FeatureFinderCentroided_1 (run1), the input of C1 FileInfo_on_FFC_1_oracle_output"
+  },
+  {
+   "path": "tests/data/topp_file_info/inputs/FileInfo_flags.ini",
+   "sha256": "3b89b52666913828a979eeda4364fc5a461777982659e434db790c5543bb0f00",
+   "bytes": 3648,
+   "kind": "the C++ tool's -write_ini file with test, no_progress, m, p and s set to true (../oracle/topp-file-info-tool case ini_with_flags)"
+  },
+  {
+   "path": "tests/data/topp_file_info/inputs/FileInfo_4_input.mzXML",
+   "sha256": "44c32fe2d282769633ff34c884cbbe37f52b9c993f5c9f982275d2dd02954499",
+   "bytes": 78655,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_4_input.mzXML (TOPP_FileInfo_4)"
+  },
+  {
+   "path": "tests/data/topp_file_info/inputs/FileInfo_6_input.mzData",
+   "sha256": "6baaab620047c598ab35a3bb55a8dca7c38192325bd62450d7d6187ce2fcc80d",
+   "bytes": 4607,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_6_input.mzData (TOPP_FileInfo_6)"
+  },
+  {
+   "path": "tests/data/topp_file_info/inputs/FileInfo_7_input.consensusXML",
+   "sha256": "7331039d83f68135621d777f32434582cc39e52c2ed2d65c5953dbe39760d954",
+   "bytes": 2381,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_7_input.consensusXML (TOPP_FileInfo_7)"
+  },
+  {
+   "path": "tests/data/topp_file_info/inputs/FileInfo_10_input.idXML",
+   "sha256": "f8bb0895cd98e695fe2c52f4f0b7cd9b4c085cba59b87237aa79aa29c195ddbe",
+   "bytes": 583,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_10_input.idXML (TOPP_FileInfo_10)"
+  },
+  {
+   "path": "tests/data/topp_file_info/inputs/FileInfo_13_input.consensusXML",
+   "sha256": "1d9c186e1e733be8a7c721920c9378ccdcf0a067b42ff429291c9aaab745b3f5",
+   "bytes": 9616,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_13_input.consensusXML (TOPP_FileInfo_13)"
+  },
+  {
+   "path": "tests/data/topp_file_info/inputs/FileInfo_14_input.mzid",
+   "sha256": "58b447917f8f8e5be2eb393d361cbd74dfe22e5435b64e170e37dfceb18c8e5c",
+   "bytes": 154817,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_14_input.mzid (TOPP_FileInfo_14)"
+  },
+  {
+   "path": "tests/data/topp_file_info/inputs/FileInfo_16_input.trafoXML",
+   "sha256": "55fa9b87d6a9606018c746797a6cdd8de41b15f729bd32c87516d6d81009b768",
+   "bytes": 5496,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_16_input.trafoXML (TOPP_FileInfo_16)"
+  },
+  {
+   "path": "tests/data/topp_file_info/inputs/FileInfo_17_input.fasta",
+   "sha256": "3548e857d0eae613c98c109aab1a3d8e0261722a935d87994e746183d110e358",
+   "bytes": 2819,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_17_input.fasta (TOPP_FileInfo_17)"
+  },
+  {
+   "path": "tests/data/topp_file_info/inputs/FileInfo_18_input.fasta",
+   "sha256": "5e41e963a7ff3f2ba53312de0cf0361755bcbb09b8d195ef5765e08deef56e69",
+   "bytes": 4035,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_18_input.fasta (TOPP_FileInfo_18)"
+  },
+  {
+   "path": "tests/data/topp_file_info/inputs/FileInfo_20_input.fasta",
+   "sha256": "f578d385652314a0523011deda6d50b0c5b9ecd68034210d35d051d728b0bf90",
+   "bytes": 35,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_20_input.fasta (TOPP_FileInfo_20)"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/FileInfo_index_on_dta.stderr.txt",
+   "sha256": "e2043413eafdb79aed0c302028337a051451ddafcfb5e0f6a114c047885ea629",
+   "bytes": 2149,
+   "kind": "product-SDK FileInfo output, C1 FileInfo_index_on_dta, stderr"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/FileInfo_no_args.stderr.txt",
+   "sha256": "be092ba0e18b15c0439f0b61adf4027626aa3e366007c2b3fa9708125284d202",
+   "bytes": 2129,
+   "kind": "product-SDK FileInfo output, C1 FileInfo_no_args, stderr"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/FileInfo_on_FFC_1_oracle_output.tsv",
+   "sha256": "d277f8a1cac42be0e9f3fef03c448297bcb187071cfbd54b027d3cba4ae4093a",
+   "bytes": 3216,
+   "kind": "product-SDK FileInfo output, C1 FileInfo_on_FFC_1_oracle_output, cwd/FileInfo_FFC_1.tmp.tsv"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/FileInfo_on_FFC_1_oracle_output.txt",
+   "sha256": "89d169155b595cfb4bed53377c4374f88d8022840510ec35c5008aafaee2f784",
+   "bytes": 1949,
+   "kind": "product-SDK FileInfo output, C1 FileInfo_on_FFC_1_oracle_output, cwd/FileInfo_FFC_1.tmp.txt"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/d_c_on_featurexml.txt",
+   "sha256": "7d7970965b877ca08ab114af822900c395063e5c4cbb31433977079aa716a202",
+   "bytes": 593,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case d_c_on_featurexml, cwd/dc.tmp.txt"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/detected_featurexml_tmp.tsv",
+   "sha256": "376bff2cda41a5e5a3350f60ac4096dd7ad77b0d9e5a32de2dc361b65536ad7c",
+   "bytes": 3399,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case detected_featurexml_tmp, cwd/detected.tmp.tsv"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/detected_featurexml_tmp.txt",
+   "sha256": "1ca024acdfeb0b1398f85b6b5a9564efe13cde7edd7f9ada6b86163cb31af0e8",
+   "bytes": 1973,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case detected_featurexml_tmp, cwd/detected.tmp.txt"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/forced_featurexml_tmp.tsv",
+   "sha256": "2d8668fb12a586b78f06598b1ef4037b42b23361e7bdfe23344aac9ce3723666",
+   "bytes": 3395,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case forced_featurexml_tmp, cwd/forced.tmp.tsv"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/forced_featurexml_tmp.txt",
+   "sha256": "fc6bc3e9fe9d5b1ce2c30d0494206ea65fac9286a4d271e93c33f1cdb6aac5f5",
+   "bytes": 1969,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case forced_featurexml_tmp, cwd/forced.tmp.txt"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/help.stderr.txt",
+   "sha256": "3ac32813536d6455de005dbf21a954b7b5a1972078e65a70af23aad308c10dbc",
+   "bytes": 2101,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case help, stderr"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/helphelp.stderr.txt",
+   "sha256": "db6a57bcbe92d777cc86dc418d9581db15e97f9b8c3e1fb4940e181b683d81b4",
+   "bytes": 3383,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case helphelp, stderr"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/ini_with_flags.tsv",
+   "sha256": "811be851b2f4b4cda46ca5e3953a7c9126dd631b837b0c2e0d6c12c846c465ef",
+   "bytes": 3391,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case ini_with_flags, cwd/ini.tmp.tsv"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/ini_with_flags.txt",
+   "sha256": "f41cee509478fa6917c24a5b66854eb939a7410e6b3532cc7a965d5d7c82224b",
+   "bytes": 1965,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case ini_with_flags, cwd/ini.tmp.txt"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/stdout_dta.stdout.txt",
+   "sha256": "45f657f3a2ec3c32823a37e36bf28bf264e92637077819d8e0e12ed570052adf",
+   "bytes": 1210,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case stdout_dta, stdout (report plus the timing line the port does not write)"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/stdout_featurexml_mps_tsv_only.stdout.txt",
+   "sha256": "d47abc38916291a09cc6f8bbab9fba0bfbe2977bf2716a8185a0ef6b003d3c7b",
+   "bytes": 2066,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case stdout_featurexml_mps_tsv_only, stdout"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/stdout_featurexml_mps_tsv_only.tsv",
+   "sha256": "811be851b2f4b4cda46ca5e3953a7c9126dd631b837b0c2e0d6c12c846c465ef",
+   "bytes": 3391,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case stdout_featurexml_mps_tsv_only, cwd/only.tmp.tsv"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/threads_4.tsv",
+   "sha256": "811be851b2f4b4cda46ca5e3953a7c9126dd631b837b0c2e0d6c12c846c465ef",
+   "bytes": 3391,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case threads_4, cwd/threads.tmp.tsv"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/threads_4.txt",
+   "sha256": "f41cee509478fa6917c24a5b66854eb939a7410e6b3532cc7a965d5d7c82224b",
+   "bytes": 1965,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case threads_4, cwd/threads.tmp.txt"
+  },
+  {
+   "path": "tests/data/topp_file_info/expected/write_ini.ini",
+   "sha256": "223b407feb1280bcc9feb5873fb46af410db9a25b36ab1d6104f623179a661e1",
+   "bytes": 3653,
+   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case write_ini, cwd/FileInfo.tmp.ini"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/file_info/inputs/FileInfo_1_input.dta",
+   "sha256": "2df7f660cb7c7a0b5b2946c9b97aa621434c20152f4d1854a869df018bf8943f",
+   "bytes": 855,
+   "kind": "A4 fixture (test-data 0cb15f2), TOPP_FileInfo_1"
+  },
+  {
+   "path": "tests/data/file_info/inputs/FileInfo_2_input.dta2d",
+   "sha256": "61092f9feddee5d9ae497720a35b2cda37d8415a7882b418e74017f43ef75517",
+   "bytes": 108,
+   "kind": "A4 fixture, TOPP_FileInfo_2"
+  },
+  {
+   "path": "tests/data/file_info/inputs/FileInfo_3_input.featureXML",
+   "sha256": "28398a29ab159370a2356a32fcc115ea54a46f9331112a41c2e47c0dc18ce131",
+   "bytes": 25172,
+   "kind": "A4 fixture, TOPP_FileInfo_3"
+  },
+  {
+   "path": "tests/data/file_info/inputs/FileInfo_9_input.mzML",
+   "sha256": "e14e087cd100f551dbf505cbd442ab8074c0266ce2c97ebe606408940cd3afa4",
+   "bytes": 22523,
+   "kind": "A4 fixture, TOPP_FileInfo_9; byte-identical to topp/FileInfo_11_input.mzML, which TOPP_FileInfo_11 uses"
+  },
+  {
+   "path": "tests/data/file_info/inputs/FileInfo_9_strict_reader.mzML",
+   "sha256": "244af706a4f1ddd3e42ec617df3fed920ec8ad94af5b99ad0d689b16ff6e42bf",
+   "bytes": 22101,
+   "kind": "A4 derived input: TOPP_FileInfo_9 runs on it (native difference 2)"
+  },
+  {
+   "path": "tests/data/file_info/inputs/FileInfo_12_input.mzML",
+   "sha256": "de00ddf0e0b8aad2554876035e0f82255aea0b14a002418c6194ca7a25926863",
+   "bytes": 48051,
+   "kind": "A4 fixture, TOPP_FileInfo_12"
+  },
+  {
+   "path": "tests/data/file_info/inputs/empty.featureXML",
+   "sha256": "17c24db71fe0f27744055ffea3ff8f6d295b9d700a4dc4c916a0dbabc4682866",
+   "bytes": 282,
+   "kind": "A4 fixture, C1 derived empty map"
+  },
+  {
+   "path": "tests/data/file_info/inputs/empty.mzML",
+   "sha256": "dedf5a3840ea1d7710ab34ddc43259d85eb6723d6c5377c896b87426dcfcde44",
+   "bytes": 8699,
+   "kind": "A4 fixture, C1 derived empty run with a dangling defaultDataProcessingRef"
+  },
+  {
+   "path": "tests/data/file_info/retained/FileInfo_1_output.txt",
+   "sha256": "2f999b05e38ab970a555225127ce8d81aac68278bcfc9ab50f7ee748a2948f5e",
+   "bytes": 1063,
+   "kind": "retained upstream expectation of TOPP_FileInfo_1_out1"
+  },
+  {
+   "path": "tests/data/file_info/retained/FileInfo_2_output.txt",
+   "sha256": "5169c529db1c482154a505ab21e12ca1bbf51cc9cbc3383ca01eba6466068753",
+   "bytes": 1032,
+   "kind": "retained upstream expectation of TOPP_FileInfo_2_out1"
+  },
+  {
+   "path": "tests/data/file_info/retained/FileInfo_3_output.txt",
+   "sha256": "baff62b33a44a65867037213da3fe6437b5f9b579897c12224120b0c498fea80",
+   "bytes": 1909,
+   "kind": "retained upstream expectation of TOPP_FileInfo_3_out1"
+  },
+  {
+   "path": "tests/data/file_info/retained/FileInfo_9_output.txt",
+   "sha256": "cb802ef21b92abe2746c38e753540057628aa3e0a77b8870bbc6bb25dace8b5e",
+   "bytes": 2916,
+   "kind": "retained upstream expectation of TOPP_FileInfo_9_out1"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_1_tsv.txt",
+   "sha256": "fd0dedf62dd84d37872ee93261632f03a71f9ab1d696712f5ce087c05c3823ad",
+   "bytes": 1109,
+   "kind": "C1 FileInfo_1_tsv text"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_1_tsv.tsv",
+   "sha256": "35e824b8dccee19f3023ae64948656a20d558aa51c970d84ffe3c038abbd0ab5",
+   "bytes": 1560,
+   "kind": "C1 FileInfo_1_tsv TSV"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_2_tsv.txt",
+   "sha256": "5ea3a6608ce17d56823a652c051f3f24a822e285cfb786df90601e4f7cd02f1f",
+   "bytes": 1078,
+   "kind": "C1 FileInfo_2_tsv text"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_2_tsv.tsv",
+   "sha256": "1208251b3f0e49b0fe1790aa789f8e64c129a78f4dcba7f1aa56bf1149fce185",
+   "bytes": 1502,
+   "kind": "C1 FileInfo_2_tsv TSV"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_3_tsv.txt",
+   "sha256": "f41cee509478fa6917c24a5b66854eb939a7410e6b3532cc7a965d5d7c82224b",
+   "bytes": 1965,
+   "kind": "C1 FileInfo_3_tsv text"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_3_tsv.tsv",
+   "sha256": "811be851b2f4b4cda46ca5e3953a7c9126dd631b837b0c2e0d6c12c846c465ef",
+   "bytes": 3391,
+   "kind": "C1 FileInfo_3_tsv TSV"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_9_tsv.txt",
+   "sha256": "feb97e91fac6f639f8800f219796d8a15432a4cf9aea1056008293cca30e5ba5",
+   "bytes": 2962,
+   "kind": "C1 FileInfo_9_tsv text"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_9_tsv.tsv",
+   "sha256": "6418e18949a0d9c829a563a43e6d01df80461482d9b3cac008c3b7f1fe57c455",
+   "bytes": 2308,
+   "kind": "C1 FileInfo_9_tsv TSV"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_empty_featureXML.txt",
+   "sha256": "2d72d61c3b7877da52beb57d4f6e6f4926565f5ad9cc2bb6f0fa10defe777dcd",
+   "bytes": 1597,
+   "kind": "C1 FileInfo_empty_featureXML text"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_empty_featureXML.tsv",
+   "sha256": "d06348f2ba9a53bf6d8c5c83189924002cd12ebac04e3d04025da7bb5e12abb1",
+   "bytes": 2679,
+   "kind": "C1 FileInfo_empty_featureXML TSV"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_empty_mzML.txt",
+   "sha256": "30a1985e95ad8647d19993a18373d17f65c7c57c37802b5a706d8498aeba49ac",
+   "bytes": 1794,
+   "kind": "C1 FileInfo_empty_mzML text"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_empty_mzML.tsv",
+   "sha256": "c08a907c46f2071b74ab567e15ecebe560eabf4592873ac6a2456d1e2b6e5cef",
+   "bytes": 1306,
+   "kind": "C1 FileInfo_empty_mzML TSV"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_on_FFC_1_retained_output.txt",
+   "sha256": "08b33b43b86b84fc00cd329305f0d5c0707314d60b7131c1a9ddb7c2026dd9af",
+   "bytes": 1920,
+   "kind": "C1 FileInfo_on_FFC_1_retained_output text"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_on_FFC_1_retained_output.tsv",
+   "sha256": "4474474ceb6ab9ba3fcd1f42d33a3cd88b7a346826586f69a28b67327ec2436e",
+   "bytes": 3187,
+   "kind": "C1 FileInfo_on_FFC_1_retained_output TSV"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FeatureFinderCentroided_1_1_output.featureXML",
+   "sha256": "4eaa53c822be1cf304728b51fc8d45ff1e725659aa0aad9a3f62560d718fc473",
+   "bytes": 15232,
+   "kind": "A3 fixture: retained TOPP_FeatureFinderCentroided_1 expectation"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FAIMS_test_data.mzML",
+   "sha256": "ad028d77045e07b773b9423f1c1f58baa1a0856b9d420155c8881d452c175301",
+   "bytes": 65274,
+   "kind": "A3 fixture, TOPP_FileInfo_19"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FileInfo_5_input.mzDat",
+   "sha256": "2fc37f2443aa31ce887d82ed912d54ae45deb516d3ee06d39777b01cb68c495e",
+   "bytes": 45809,
+   "kind": "A3 fixture, TOPP_FileInfo_5"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FileInfo_8_input.notype",
+   "sha256": "0cb5622d29ae38dd9c53512a19276c6aceb7a389bbe05fb9e23298e1a007714a",
+   "bytes": 7036,
+   "kind": "A3 fixture, C1 FileInfo_notype"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/FuzzyDiff.ini",
+   "sha256": "238d0598a366b3e9e6f5686a4b666b483317617d33ce36ea5ab9a03842a83dc2",
+   "bytes": 3532,
+   "kind": "C3 fixture: the pinned FuzzyDiff settings"
+  }
+ ],
+ "runtime_derived_inputs": [
+  {
+   "name": "corrupt.featureXML",
+   "from": "tests/data/file_info/inputs/FileInfo_3_input.featureXML",
+   "derivation": "first 3000 bytes",
+   "sha256": "36ae281b4e9c55b965611ddea669532892feeffaaf01f386023c964edb15e45e",
+   "equals": "../oracle/topp-early-bundle/cases/derived/corrupt.featureXML",
+   "used_by": "c1_truncated_inputs_exit_3, written into the case's temporary directory"
+  },
+  {
+   "name": "corrupt.mzML",
+   "from": "tests/data/file_info/inputs/FileInfo_9_input.mzML",
+   "derivation": "first 3000 bytes",
+   "sha256": "44afaa4dba1a0f3b9639a224b5ad9ff8ab3480958614ab37254a0dc9ca4d5af7",
+   "equals": "../oracle/topp-early-bundle/cases/derived/corrupt.mzML",
+   "used_by": "c1_truncated_inputs_exit_3, written into the case's temporary directory"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/topp-early-bundle/manifest.json",
+   "sha256": "64e98543fbe26c406988cee6122208d3007e3d66e9547f5130917e4c6b2ffbb0",
+   "origin_key": "fixtures",
+   "role": "C1 tool-level oracle manifest (cases, environment, hashes)"
+  },
+  {
+   "path": "../oracle/topp-file-info-tool/oracle.py",
+   "sha256": "1fb9563d9e3355e73711fd5560a3e63098ab92beb1b554f8bcde20da4819f721",
+   "origin_key": "fixtures",
+   "role": "this package's driver: case table, two runs, reproduction check, manifest writer"
+  },
+  {
+   "path": "../oracle/topp-file-info-tool/run.sh",
+   "sha256": "38e93400e6fe8f95032fe37fbb62875b4d780cd9b4ebbbdbf4888234c4af486c",
+   "origin_key": "fixtures",
+   "role": "entry point with the exact environment"
+  },
+  {
+   "path": "../oracle/topp-file-info-tool/manifest.json",
+   "sha256": "fa7c0fd67fc963dd357f1ac3eeae279111ecce309c553e37983d0882b59d9cdb",
+   "origin_key": "fixtures",
+   "role": "tool hash, environment, per-case exit codes, stream and output hashes"
+  }
+ ],
+ "external_reference_note": "No C++ and no oracle driver is committed to this repository. The two oracle directories live next to it under ../oracle/; their driver files and manifests are recorded here by sha256, and every fixture they produced is hashed in fixtures.",
+ "native_differences": [
+  "Unported branches and flags exit 11 with an explicit message where C++ reports them and exits 0 (decisions D3 and D5(c)).",
+  "TOPP_FileInfo_9 runs on the derived input; three mzML reader gaps outside this package refuse the registered one.",
+  "A forced type the file contradicts exits 6 (peak branch) or 11 (featureXML branch) where C++ exits 3 and 8.",
+  "Options are validated before the tool body, so a missing or empty -in leaves no -out file, where C++ leaves an empty one; the exit codes agree.",
+  "The source-compatible mzML reading writes one warning per dangling ID to the crate's warning log stream, where the C++ reader is silent.",
+  "The usage text carries no console-width probe line and names this crate's core revision; the run timing line is not ported."
+ ],
+ "module_edges_added": [],
+ "determinism": "serial, as the source; -threads is accepted and changes no byte (threads_do_not_change_the_reports)."
+}

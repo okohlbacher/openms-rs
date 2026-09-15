@@ -1,0 +1,7 @@
+case	start_time_stamp	completion_time	written_start_time_stamp	fileinfo_exit	fileconverter_exit	non_fatal_error
+minus_infinity	-infinity	-	absent	0	0	DateTime conversion error of "-infinity"
+infinity	infinity	-	absent	0	0	DateTime conversion error of "infinity"
+not_a_date_time	not-a-date-time	-	absent	0	0	DateTime conversion error of "not-a-date-time"
+empty	(empty)	-	absent	0	0	(none)
+valid_control	2014-01-01T00:00:00	-	2014-01-01T00:00:00	0	0	(none)
+completion_not_a_date_time	-infinity	not-a-date-time	absent	0	0	DateTime conversion error of "-infinity"

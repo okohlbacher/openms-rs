@@ -4,6 +4,8 @@
 
 //! Shared constants, runtime logging, progress reporting, and owned unique IDs.
 
+/// Boost.Regex-compatible regular expressions over `fancy-regex`.
+pub mod boost_regex;
 pub mod constants;
 pub mod log_stream;
 /// General numeric helpers: ppm and Dalton tolerances, rounding, binning,

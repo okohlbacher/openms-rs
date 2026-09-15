@@ -14,9 +14,15 @@ pub struct LoadOptions {
     pub scientific: PeakFileOptions,
     /// Native extension for chromatogram-only reads. Skipped records remain validated.
     pub skip_spectra: bool,
-    /// Cumulative work for range/membership checks, sorting and aligned selection.
+    /// Absolute ceiling on cumulative work for range/membership checks, sorting
+    /// and aligned selection. Default unbounded: the size-derived
+    /// `ReadOptions::scaling.selection_work` allowance decides, which starts at
+    /// the former fixed 500,000,000 and grows with the input.
     pub max_selection_work: usize,
-    /// Cumulative selection index storage; never includes or resets binary limits.
+    /// Absolute ceiling on cumulative selection index storage; never includes
+    /// or resets binary limits. Default unbounded: the size-derived
+    /// `ReadOptions::scaling.selection_bytes` allowance decides, which starts at
+    /// the former fixed 256 MiB and grows with the input.
     pub max_selection_bytes: usize,
 }
 impl Default for LoadOptions {
@@ -24,8 +30,8 @@ impl Default for LoadOptions {
         Self {
             scientific: PeakFileOptions::default(),
             skip_spectra: false,
-            max_selection_work: 500_000_000,
-            max_selection_bytes: 256 * 1024 * 1024,
+            max_selection_work: usize::MAX,
+            max_selection_bytes: usize::MAX,
         }
     }
 }
@@ -48,6 +54,12 @@ pub(super) struct State<'a> {
     bytes: usize,
 }
 impl<'a> State<'a> {
+    /// Selection state for one read, holding the absolute selection ceilings of
+    /// `options` and charging one unit of work for itself.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when `max_selection_work` is zero.
     pub fn new(options: &'a LoadOptions) -> Result<Self> {
         let mut state = Self {
             options,
@@ -56,6 +68,11 @@ impl<'a> State<'a> {
         };
         state.spend(1)?;
         Ok(state)
+    }
+    /// The work and storage counters, in that order, for the reader's
+    /// size-derived reconciliation.
+    pub(super) fn allowances(&mut self) -> [&mut usize; 2] {
+        [&mut self.work, &mut self.bytes]
     }
     pub(super) fn spend(&mut self, amount: usize) -> Result<()> {
         self.work = self.work.checked_sub(amount).ok_or_else(limit)?;
