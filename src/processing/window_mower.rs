@@ -11,6 +11,7 @@ use crate::{Error, MSExperiment, MSSpectrum, Result};
 use std::cmp::Ordering;
 use std::str::FromStr;
 
+/// How a window's start advances, as source `movetype` names it.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum WindowMowerMethod {
     /// Slide by one raw peak; stop after the first window reaching the end.
@@ -32,19 +33,48 @@ impl FromStr for WindowMowerMethod {
 }
 
 /// Retain the strongest observed peaks in source-compatible m/z windows.
+///
+/// Both resource ceilings apply **per spectrum**, and the work ceiling is
+/// derived from that spectrum's point count; see [`WindowMower::max_points`]
+/// and [`WindowMower::work_per_point`].
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct WindowMower {
     /// Strictly positive finite width in Th. The right endpoint is excluded.
     pub window_size: f64,
     /// Number of highest-intensity peaks selected per full window; zero is valid.
     pub peak_count: usize,
+    /// How each window's start advances; see [`WindowMowerMethod`].
     pub method: WindowMowerMethod,
-    /// Maximum input peaks across all processed spectra in one call.
+    /// Maximum input peaks in **one** spectrum.
+    ///
+    /// Source `WindowMower` has no ceiling at all. This one is a per-record
+    /// bound, not a per-run one: a run-wide bound shrinks as the run grows and
+    /// so rejects real data, while every spectrum of a real run sits far inside
+    /// a per-record bound. The benchmark's 1.2 GB LTQ Orbitrap Velos run holds
+    /// 88,434,492 peaks in 43,745 spectra, 88 times a run-wide million, while
+    /// its largest single spectrum holds 16,766 — 60 times inside the default.
+    /// See `docs/WINDOW_MOWER_SUPPORT.md`.
     pub max_points: usize,
-    /// Work units across all processed spectra, checked before sorting/copying
-    /// windows. Includes scans, linear selection and logarithmic sorting/search
-    /// allowances; this is not a wall-clock or exact CPU-instruction limit.
+    /// Work units available for a spectrum before its point count is credited,
+    /// checked before sorting/copying windows. Includes scans, linear selection
+    /// and logarithmic sorting/search allowances; this is not a wall-clock or
+    /// exact CPU-instruction limit.
     pub max_work: usize,
+    /// Work units credited for each input peak of the spectrum being filtered,
+    /// so the ceiling for `n` points is `max_work + work_per_point * n`.
+    ///
+    /// This is the size-derived allowance pattern of the mzML reader
+    /// (`src/format/mzml_scaling.rs`), with the spectrum's point count in place
+    /// of consumed input bytes. Sliding cost is `Θ(n · w)` for mean window
+    /// occupancy `w`, and `w` is set by the data, not by `n`, so a ceiling
+    /// linear in `n` accepts every spectrum at a realistic occupancy however
+    /// many points it has, and stops one that is quadratic in its own size
+    /// after work linear in that size rather than letting it run to completion.
+    /// The default is eight times the largest ratio measured over the benchmark
+    /// inputs (3,493 work units per point, on the 600-spectrum Q Exactive
+    /// profile slice), rounded up to a power of two. See
+    /// `docs/WINDOW_MOWER_SUPPORT.md`.
+    pub work_per_point: usize,
 }
 
 impl Default for WindowMower {
@@ -55,16 +85,24 @@ impl Default for WindowMower {
             method: WindowMowerMethod::Sliding,
             max_points: 1_000_000,
             max_work: 50_000_000,
+            work_per_point: 32_768,
         }
     }
 }
 
 impl WindowMower {
+    /// The work ceiling for a spectrum of `count` points, saturating at
+    /// `usize::MAX`.
+    fn work_budget(&self, count: usize) -> usize {
+        self.max_work
+            .saturating_add(self.work_per_point.saturating_mul(count))
+    }
+
     fn validate(&self, count: usize) -> Result<()> {
         if !self.window_size.is_finite() || self.window_size <= 0.0 {
             return Err(bad("window width must be finite and positive"));
         }
-        if self.max_points == 0 || self.max_work == 0 || count > self.max_points {
+        if self.max_points == 0 || self.work_budget(count) == 0 || count > self.max_points {
             return Err(bad(
                 "invalid window mower limits or input point limit exceeded",
             ));
@@ -77,7 +115,7 @@ impl WindowMower {
     /// retain more peaks than the requested quota; see the method documentation.
     pub fn retained_indices(&self, input: &MSSpectrum) -> Result<Vec<usize>> {
         self.validate(input.len())?;
-        self.indices(input, &mut Work::new(self.max_work))
+        self.indices(input, &mut Work::new(self.work_budget(input.len())))
     }
 
     /// Produce an owned filtered spectrum without modifying the input.
@@ -248,21 +286,39 @@ impl SpectrumFilter for WindowMower {
         input.select(&indices)
     }
 
+    /// Filter every spectrum in order (source `filterPeakMap`).
+    ///
+    /// Every ceiling is metered **per spectrum**, not once for the whole
+    /// experiment: a run-wide ledger shrinks as the run grows, so it rejects
+    /// real data while each of its records stays far inside the same allowance.
+    /// The benchmark's 1.2 GB Velos run holds 88,434,492 peaks, 88 times a
+    /// run-wide million, while its largest single spectrum needs 16,766 points
+    /// and 45,766,084 work units. The metadata-copy ledger has the same shape
+    /// and had to move with it, as [`super::baseline::MorphologicalFilter`]
+    /// already did: a build that differs only in running that ledger once over
+    /// the whole experiment still fails on the Velos run and on the
+    /// 40,856-spectrum UK222 run, both with "data array description resource
+    /// limit exceeded", while every one of their spectra is far inside the same
+    /// allowance on its own. The source has no
+    /// ceiling here at all, and what the port bounds is work on data this
+    /// experiment already holds in memory, so the record is the level the
+    /// bound belongs at.
+    ///
+    /// # Errors
+    ///
+    /// Returns the first spectrum's error from [`Self::retained_indices`], or
+    /// [`Error::InvalidValue`] when one spectrum's metadata exceeds the
+    /// processing copy budget. The experiment is unchanged on error.
     fn filter_experiment(&self, input: &mut MSExperiment) -> Result<()> {
-        let total = input.spectra.iter().try_fold(0usize, |count, spectrum| {
-            count
-                .checked_add(spectrum.len())
-                .ok_or_else(|| bad("experiment point count overflows"))
-        })?;
-        self.validate(total)?;
-        let mut work = Work::new(self.max_work);
         // Plan all selections before cloning records or committing any spectrum.
         let plans = input
             .spectra
             .iter()
-            .map(|spectrum| self.indices(spectrum, &mut work))
+            .map(|spectrum| self.retained_indices(spectrum))
             .collect::<Result<Vec<_>>>()?;
-        super::AcquisitionCopies::default().spectra(&input.spectra)?;
+        for spectrum in &input.spectra {
+            super::AcquisitionCopies::default().spectrum(spectrum)?;
+        }
         let mut spectra = input.spectra.clone();
         for (spectrum, indices) in spectra.iter_mut().zip(plans) {
             spectrum.select(&indices)?;

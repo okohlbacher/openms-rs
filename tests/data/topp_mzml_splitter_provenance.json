@@ -7,6 +7,17 @@
  "scope": "Sources and fixtures come from the OpenMS4-cli, OpenMS4-topp and OpenMS4-test-data packages, which are versioned independently of the Core SDK. They are deliberately not resolved against the Core SDK checkout.",
  "method": "MzMLSplitter transcribed from the pinned C++ topp package. The retained C++ outputs are compared canonically -- record counts, native identifiers, MS levels, retention times and peak values -- not byte for byte, because the upstream test itself uses FuzzyDiff and the two mzML writers differ in serialisation detail.",
  "evidence_tier": "executed differential (tier 1), canonical comparison against retained C++ tool output",
+ "real_data_differential": {
+  "date": "2026-09-15",
+  "host": "dax (AMD EPYC, Linux)",
+  "cpp_build": "openms4-release-bc9cc12-c19e494-174b576 (core bc9cc12, cli c19e494, topp 174b576)",
+  "input": "/ceph/ibmi/abi/oliver/bench/openms4/inputs/centroid_lcms_velos_pxd001819_50amol_r1/50amol_R1.mzML (1,197,928,823 bytes, 43,745 spectra, 1 chromatogram)",
+  "invocation": "-ini <benchmark MzMLSplitter.ini, parts=4> -in <input> -out <prefix> -threads 1",
+  "purpose": "The port refused this input with exit 3, 'Unable to read file (parse error on line 0: precursor spectrum reference does not name an output spectrum)', after writing part 1 of 4. The mzML writer required every precursor spectrumRef to name a spectrum of the part being written; source MzMLHandler::writePrecursor_ resolves nothing.",
+  "result": "Both implementations write four parts with the same record split (10937/10936/10936/10936). Decoded comparison with the benchmark harness's equiv.py: 43,745 spectrum pairs and 1 chromatogram pair, 87,492 binary arrays compared, 87,492 bitwise equal, no peak-count mismatch. Part 2 carries 10,101 precursor references of which 4 are to scan=10929 (held by part 1) on both sides. Remaining metadata differences are the pre-existing identifier-spelling and processing-provenance class recorded by the 2026-09-15 benchmark, not this tool's data.",
+  "wall_and_peak_rss": "port 19.50 s / 4,370,788 KiB at 1 thread and 19.97 s / 4,370,648 KiB at 32 threads; C++ 12.95 s / 1,563,648 KiB at 1 thread. The node was shared, so treat the times as indicative.",
+  "thread_invariance": "All four parts are byte-identical between 1 and 32 threads."
+ },
  "sources": [
   {
    "path": "OpenMS4-tests/packages/topp/src/MzMLSplitter.cpp",
