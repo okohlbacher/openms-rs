@@ -712,13 +712,23 @@ impl MSSpectrum {
         // site, and are not factored into a shared helper.
         //
         // The instruction counts below are callgrind over a 681-spectrum slice:
-        // exact, deterministic, reproducible to the instruction. The wall-clock
-        // deltas are not of that quality, so each is quoted with the sample
-        // size and the spread that produced it. Both pairs were run on a node
-        // that was carrying three other lanes' full-input benchmarks, where one
-        // binary's own spread across a batch of 3-4 runs was 0.3-1.7 s; a delta
-        // of 1 s there is evidence only because it had the same sign in every
-        // interleaved pair, never because of its magnitude. On the same node
+        // exact, deterministic, reproducible to the instruction -- and specific
+        // to the tree they were taken on, which is why that tree is named with
+        // them. Both were measured on the tree this lane started from, before
+        // the mzML reader rewrite landed, where the same slice cost
+        // 5,772,192,487 instructions and where this loop ran over every point
+        // three times per run (the reader, the picker per spectrum, the picker
+        // per experiment) rather than the two that remain on main today. They
+        // have not been retaken: what they establish is the shape of the loop,
+        // which has not changed, and retaking them would move their absolute
+        // counts with the number of surviving passes without touching that
+        // conclusion. The wall-clock deltas are not of that quality, so each is
+        // quoted with the sample size and the spread that produced it. Both
+        // pairs were run on a node that was carrying three other lanes'
+        // full-input benchmarks, where one binary's own spread across a batch
+        // of 3-4 runs was 0.3-1.7 s; a delta of 1 s there is evidence only
+        // because it had the same sign in every interleaved pair, never
+        // because of its magnitude. On the same node
         // quiet, the same three-way rotation puts a layout control -- main with
         // two unrelated functions swapped in source order, semantics identical
         // -- 0.02 s from main over four rounds, with within-arm spreads of
@@ -727,17 +737,19 @@ impl MSSpectrum {
         //
         // * An accumulating pass with no early exit (`ok &= a & b` over the
         //   slice, rescanning only to report the first offending peak) executes
-        //   47,841,566 instructions fewer -- 0.82% of the whole program, 10
-        //   instructions per peak instead of 15 -- and yet ran the full input
-        //   slower in wall and user time in 3 of 3 interleaved pairs: means
+        //   47,841,566 instructions fewer -- 0.82% of that tree's program, 10
+        //   instructions per peak instead of 15, which is the 5 per peak it
+        //   saves taken over the three passes that tree ran -- and ran the
+        //   full input slower in wall and user time in 3 of 3 pairs: means
         //   37.83 s against 36.79 s, +1.04 s, with within-arm spreads of 0.44 s
         //   and 0.51 s over those 3 runs each. Its `and` chain is loop-carried
         //   where the branch form has no dependency between iterations.
         // * A shared generic helper testing both fields into one never-taken
-        //   branch counts 3,686,040 instructions fewer and was slower in 4 of 4
-        //   pairs: means 37.71 s against 37.08 s, +0.63 s, within-arm spreads
-        //   0.49 s and 0.29 s over those 4 runs each. That is what routing
-        //   three inlined call sites through one shared body costs here.
+        //   branch counts 3,686,040 instructions fewer on that same tree and
+        //   was slower in 4 of 4 pairs: means 37.71 s against 37.08 s, +0.63 s,
+        //   within-arm spreads 0.49 s and 0.29 s over those 4 runs each. That
+        //   is what routing three inlined call sites through one shared body
+        //   costs here.
         //
         // Vectorising is not on the table either: LLVM emits scalar code and
         // declines the deinterleaving shuffles a vector version would need for
@@ -747,6 +759,17 @@ impl MSSpectrum {
         // number of times the peaks are scanned, not the price of a scan, and
         // that is a question for the callers -- see
         // [`Self::validate_given_finite_peaks`].
+        //
+        // MEASURED, on the tree this branch merges into (main @ 8889ece, the
+        // same 681-spectrum slice, whole program 3,797,220,804 instructions):
+        // the mzML reader's call of this loop was worth 44,121,898 of them,
+        // 1.16% of the run at 15.0 per peak, and `Record::finish` no longer
+        // pays it. The picker's experiment-level `input.validate()` still
+        // scans the same points for 47,230,109 more; that one belongs to
+        // `src/processing/peak_picking.rs` and its owner, not here. An earlier
+        // revision of this lane quoted its figures against main @ e766311,
+        // which main had already left behind -- a count like these means
+        // nothing without the tree it was taken on, and main moves.
         for peak in &self.peaks {
             finite(peak.mz, "peak m/z")?;
             finite(f64::from(peak.intensity), "peak intensity")?;
