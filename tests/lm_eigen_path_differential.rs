@@ -36,9 +36,13 @@
 //!   is reported as such.
 //! * **What is not asserted.** Against `macos-arm64-sdk` the solver agrees in
 //!   21 of 141 paths: Eigen fuses its packet multiply-adds with FMA on arm64 and
-//!   this port does not (a pending decision, recorded in
-//!   `docs/DISTRIBUTION_FITTERS_SUPPORT.md` section 1). The ignored
-//!   `macos_arm64_sdk_gap_report` measures it.
+//!   this port does not. That is the user's decision of 2026-09-15 - match the
+//!   Linux x86_64 Release build on every target, add no `aarch64` fused path -
+//!   and `docs/DISTRIBUTION_FITTERS_SUPPORT.md` section 1 records it with the
+//!   measured cost. The ignored `macos_arm64_sdk_gap_report` measures it here:
+//!   21 of 141 paths, 45 of 141 final parameter sets, 1 status and 24 fits
+//!   beyond 1e-9, the two largest of those on parameters that are numerically
+//!   zero or non-converged.
 //!
 //! NaN compares equal to NaN in every comparison: neither Eigen nor rustc
 //! preserves NaN sign or payload through arithmetic, and one degenerate fit
@@ -541,22 +545,54 @@ fn minimize_reproduces_eigen_without_fma_on_macos_arm64() {
 /// Measurement only: agreement with the product SDK itself, whose Eigen fuses
 /// the packet multiply-adds. Run with
 /// `cargo test --test lm_eigen_path_differential -- --ignored --nocapture`.
+///
+/// This is the measured cost of the user's decision of 2026-09-15 to match the
+/// Linux x86_64 Release build on every target
+/// (`docs/DISTRIBUTION_FITTERS_SUPPORT.md` §1), so the report also prints the
+/// relative parameter deviations, not only the counts: the two largest are
+/// relative deviations on parameters that carry no information, and the doc
+/// quotes them.
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 #[test]
-#[ignore = "measurement of the pending FMA decision; asserts nothing"]
+#[ignore = "measures the cost of matching Linux x86_64 Release on macOS arm64; asserts nothing"]
 fn macos_arm64_sdk_gap_report() {
     let problems = load_problems();
     let fixture = load_fixture();
     let (mut paths, mut xs, mut statuses) = (0, 0, 0);
+    let mut beyond: Vec<(f64, String, usize, f64, f64)> = Vec::new();
     for problem in &problems {
         let got = run(problem);
         let want = expected(&fixture, "macos-arm64-sdk", &problem.name);
         paths += usize::from(got == want);
         xs += usize::from(got.x == want.x);
         statuses += usize::from(got.status == want.status);
+        let mut worst = (0.0_f64, 0usize, 0.0_f64, 0.0_f64);
+        for (index, (&a, &e)) in got.x.iter().zip(&want.x).enumerate() {
+            let (a, e) = (f64::from_bits(a), f64::from_bits(e));
+            if a.to_bits() == e.to_bits() || (a.is_nan() && e.is_nan()) {
+                continue;
+            }
+            let scale = a.abs().max(e.abs());
+            let relative = if scale.is_finite() && scale > 0.0 {
+                (a - e).abs() / scale
+            } else {
+                f64::INFINITY
+            };
+            if relative > worst.0 {
+                worst = (relative, index, a, e);
+            }
+        }
+        if worst.0 > 1e-9 {
+            beyond.push((worst.0, problem.name.clone(), worst.1, worst.2, worst.3));
+        }
     }
+    beyond.sort_by(|a, b| b.0.total_cmp(&a.0));
     eprintln!(
         "macos-arm64-sdk: identical paths {paths}/{PROBLEMS}, identical final x {xs}/{PROBLEMS}, \
-         identical status {statuses}/{PROBLEMS}"
+         identical status {statuses}/{PROBLEMS}, fits beyond 1e-9 {}/{PROBLEMS}",
+        beyond.len()
     );
+    for (relative, name, index, got, want) in &beyond {
+        eprintln!("  {name}: parameter {index} {got:e} vs SDK {want:e}, relative {relative:e}");
+    }
 }

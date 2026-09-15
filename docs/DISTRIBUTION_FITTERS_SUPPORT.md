@@ -160,13 +160,22 @@ diverging quantity, per fit, before any change:
 
 | First divergence | Fits | Eigen operation | This port, before |
 |---|---|---|---|
-| QR column norms and Householder projections | 64 | `col.norm()` = `sqrt(squaredNorm())`, a `redux` over two-lane packets; `essential.adjoint() * bottom`, the row-major matrix-vector kernel (two `pmadd` lanes), or `dot()` for a one-column block | sequential sums |
-| start residual norm | 60 | `stableNorm`'s `(bl * invScale).squaredNorm()` | sequential sum |
-| `Q^T f` | 7 | `dot()` in `applyHouseholderOnTheLeft` for a vector, Eigen 5's `inner_product_impl` (four two-lane accumulators) | sequential sum |
-| predicted reduction | 4 | `wa3.noalias() = R * p` resizes `wa3` to the Jacobian's `m` rows, so `wa3.stableNorm()` reduces `m` coefficients with `m - n` zeros | norm over `n` coefficients |
-| Gauss-Newton step | 2 | `triangularView<Upper>().solveInPlace` on column-major `R`: divide the pivot, subtract the column | row-wise back substitution |
-| scaled `x` norm | 1 | `stableNorm` of an all-NaN vector (`review/huge_rt`) | returned 0 |
+| QR column norms (`qrc.norms0`) | 64 | `m_qr.col(k).norm()` = `sqrt(squaredNorm())`, a `redux` over two-lane packets | sequential sums |
+| start residual norm (`init_fnorm`) | 60 | `stableNorm`'s `(bl * invScale).squaredNorm()` | sequential sum |
+| Householder application inside the QR (`qrc.k_qr`) | 7 | `applyHouseholderOnTheLeft` on the trailing block: `essential.adjoint() * bottom`, the row-major matrix-vector kernel (two `pmadd` lanes) for two or more columns, and the runtime `dot()` fallback for one | sequential sums |
+| predicted reduction (`wa3`) | 4 | `wa3.noalias() = R * p` resizes `wa3` to the Jacobian's `m` rows, so `wa3.stableNorm()` reduces `m` coefficients with `m - n` zeros | norm over `n` coefficients |
+| Gauss-Newton step (`lp.gn_wa1`) | 1 | `triangularView<Upper>().solveInPlace` on column-major `R`: divide the pivot, subtract the column | row-wise back substitution |
+| QR Householder `beta` (`qrc.k_beta`) | 1 | `makeHouseholder`'s `squaredNorm()` of the tail, the same two-lane `redux` | sequential sum |
+| scaled `x` norm (`xnorm1`) | 1 | `stableNorm` of an all-NaN vector (`review/huge_rt`) | returned 0 |
 | none | 3 | identical traces | |
+
+`Q^T f` (`qtf_full`) is never the first divergence: by the time it is formed,
+the QR has already diverged in 72 of the 141 fits. The seven `qrc.k_qr` fits
+reach the Householder application with an identical `qrc.norms0`, and at least
+one of them (`review/random_21`, `m = 37`, `n = 3`) first differs at index 37,
+inside the `k = 0` step whose trailing block still has two columns, so the
+row-major matrix-vector kernel - not the one-column `dot()` fallback - is what
+that row is about.
 
 Every reduction on this path is fixed by the packet width, not guessed:
 `find_best_packet` gives `Packet2d` on both reference builds - NEON on arm64,
@@ -203,7 +212,7 @@ Linux x86_64 Release build compiles it (gcc 14.4 `-O3 -mssse3
 Eigen both leave NaN sign bits unspecified, and `review/inf_rt_first` differs
 from the C++ only in those.
 
-### The platform split: FMA in Eigen's arm64 kernels (decision pending)
+### The platform split: FMA in Eigen's arm64 kernels (decided: Linux x86_64 Release)
 
 The C++ itself does not give one answer. `-ffp-contract=off`, which both
 library builds use, is not what decides it: Eigen 5 defines
@@ -225,14 +234,66 @@ evaluation argument, final `x`, status, `nfev` and `njev` are bit-identical):
 | after, unfused lanes (committed) | 21 paths, 45 final `x`, 24 beyond `1e-9`, 1 status differs | **141 paths** | 18 paths | **141 paths** |
 | after, fused lanes (measured, not committed) | **141 paths** | 21 paths | 18 paths | 21 paths |
 
-`-O2` against `-O0` changes nothing; `-ffp-contract=on` (Apple clang's
-default) and `=fast` fuse scalar expressions too and match no model, but no
-library build uses them. Which of the three the port should follow - the Linux
-Release build (the benchmark and production reference), the macOS SDK (the
-correctness oracle), or each platform's own Eigen, fusing on `aarch64` only -
-is recorded as an open decision; until it is taken the committed code keeps the
-unfused lanes it always had, so this package changes no platform behaviour on
-that axis.
+`-O2` against `-O0` changes nothing but one NaN sign: the two builds differ on
+exactly one `RESULT` line of the 141, `review/inf_rt_first`, in one evaluation
+argument, `fff8000000000000` against `7ff8000000000000`. Status, `nfev`, `njev`
+and the final parameters are identical, and the matrix's NaN canonicalisation
+folds it, which is why the rows above are equal. `-ffp-contract=on` (Apple
+clang's default) and `=fast` fuse scalar expressions too and match no model, but
+no library build uses them.
+
+**The decision (user, 2026-09-15): match Linux x86_64 Release everywhere.** The
+port keeps the unfused lane arithmetic it always had, on every target. There is
+no `aarch64` fused path and none should be added; `lane_madd` is a plain
+multiply and add on every target, and no `mul_add` appears in this module.
+
+What that buys, and what it costs:
+
+- **Linux x86_64 is bit-exact.** All 141 traced fits agree with Eigen as the
+  Release build compiles it in every evaluation argument, the final parameters,
+  the status, `nfev` and `njev` - 141 of 141 paths and 141 of 141 final
+  parameter sets - and the port's fits equal that build's
+  `GaussTraceFitter::fit`/`EGHTraceFitter::fit` exactly. This is the benchmark
+  and production reference, the platform the gates and CI run on, and the
+  platform every FeatureFinderCentroided equivalence check is measured on.
+- **On macOS arm64 the port differs from the SDK oracle**, and deliberately:
+  21 of 141 evaluation paths, 45 of 141 final parameter sets, 24 fits beyond
+  1e-9 relative and 1 status differ. That is better than the 8/21/25/3 this
+  package started from, and it is not 141/141.
+- **The magnitude of those 24, in context.** The worst is 4.55e-2, on
+  `c2/classtest/egh_theo_0.4_0.6_weighted`: an EGH `tau` of 3.88e-15 against
+  the SDK's 3.70e-15, a parameter that is numerically zero. The next is
+  2.04e-2, the height of `review/random_58` (9.67e4 against 9.87e4), a status-5
+  fit that exhausted its 500-evaluation budget and never converged. Both are
+  large *relative* deviations on quantities that carry no information; they are
+  not 4.55e-2 errors in a converged parameter. The third is another EGH `tau`
+  of the same size, at 1.04e-2; below that the list falls to 4.0e-3 and then
+  quickly into the 1e-9 range. `macos_arm64_sdk_gap_report` in
+  `tests/lm_eigen_path_differential.rs` prints all 24 with their values.
+- **It costs one test bound.** `tests/gauss_trace_fitter.rs`'s
+  `ill_conditioned_fit_tolerance("start.leading_max")` had to rise from 1e-3 to
+  1e-2: that ill-conditioned start-value probe is measured against a
+  macOS-generated fixture and moved from 2.93e-4 to 2.06e-3 (re-measured on
+  both platforms, `docs/TRACE_FITTER_SUPPORT.md`). Every other bound in B4
+  held, and its other measured deviations fell: class-test fits 2.51e-12 to
+  1.44e-12, its evaluation path 1.79e-11 to 9.08e-12,
+  FeatureFinderCentroided_1 seed fits 6.36e-10 to 1.83e-10,
+  `start.n4_boundary` and `start.merged_profile` from 1.40e-9 and 4.41e-9 to
+  bit-identical and 2.69e-11. The one other movement is `start.trailing_max` on
+  macOS arm64, from 1.49e-3 to 1.72e-3, which is what Linux already measured
+  and well inside its unchanged 1e-2 bound.
+
+Two options were measured and rejected. Fusing everywhere reverses the picture
+(macOS SDK 141/141, Linux 21/141), loses the benchmark equivalence, and makes
+`f64::mul_add` call the software `fma` on x86_64 without the `fma` target
+feature, on the hot path. Fusing on `aarch64` only would be bit-faithful on
+each platform, but it buys nothing where the work is checked: every gate and
+every CI runner executes the x86_64 branch, where it is byte-identical to what
+is committed, so no macOS-generated fixture asserted on Linux - B4's, B5's, or
+B7's planned ones - would change by a single bit, and it would put deliberately
+non-portable arithmetic in the crate. The port is already platform-dependent
+through `libm` `exp` (B4 measured 70 differing results in 37,105 between Apple
+libm and glibc); this decision does not add a second axis.
 
 ---
 
@@ -537,7 +598,9 @@ Each is documented at the Rust item as well.
 * **Eigen's arm64 FMA lanes are not fused.** On arm64 Eigen fuses the packet
   multiply-adds of its inner-product and matrix-vector kernels; the port's
   `lane_madd` computes `a * b + c` on every target, which is what Eigen does on
-  the x86_64 builds. The consequence and the pending decision are in §1.
+  the x86_64 builds. This is the user's decision of 2026-09-15 - match Linux
+  x86_64 Release everywhere - and §1 records it with the measured cost on macOS
+  arm64.
 * **Single-panel triangular solves.** Eigen's triangular vector solvers work in
   panels of `EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH = 16` and hand the rows outside
   the current panel to a matrix-vector kernel. The port implements the
@@ -1003,11 +1066,14 @@ step is accepted. Last-place differences then grow over the iteration; they
 reach `1e-9` on the flat `FeatureFinderCentroided_1` optima that stop on
 `xtol`.
 
-**`minpack-compat`.** Measured with
-`--features levenberg-marquardt/minpack-compat`: 3,811 trace budgets fail the
-`x` clause again, the accounting still matches at 29,003, and the same
-degenerate fit differs (status 4 after 24 evaluations, with one more Jacobian,
-since `ResidualsZero` does not exist in that mode). It is not closer, and its
+**`minpack-compat`.** Re-measured on dax for package B3b-LM-FIDELITY with
+`--features levenberg-marquardt/minpack-compat`, against the new transcription:
+8,627 trace budgets fail the `x` clause again - the same count as without the
+feature, and 20,372 within 1e-12 with 5 else-no-further, also the same - the
+accounting still matches at 29,003, and the same degenerate fit differs (status
+4 after 24 evaluations, with one more Jacobian, since `ResidualsZero` does not
+exist in that mode). B3-LM measured 3,811 before the transcription moved. It is
+not closer, and its
 MINPACK constants (`epsmch = 2.22044604926e-16`, `enorm` thresholds
 `3.834e-20` and `1.304e19`) are further from Eigen's `f64::EPSILON` and
 `f64::MIN_POSITIVE`. It stays off.
