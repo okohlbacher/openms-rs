@@ -316,6 +316,66 @@ fn rejects_nonfinite_and_overflowing_peak_values() {
     );
 }
 
+// `Record::finish` skips the per-peak value loop of `MSSpectrum::validate` and
+// `MSChromatogram::validate`, because every coordinate it hands them has been
+// refused by the binary decoder if nonfinite and every intensity has been
+// refused by the f32 narrowing. This pins that premise where it is made, in
+// every position of both primary arrays of both record kinds: the refusal must
+// carry the reader's own message, never the kernel validator's. If a decode
+// path ever stops rejecting nonfinite values, this fails here rather than the
+// skipped check silently failing to catch it downstream.
+#[test]
+fn nonfinite_peak_values_are_refused_by_the_decoder_not_the_validator() {
+    let mut experiment = MSExperiment::new();
+    let mut spectrum = MSSpectrum::from_peaks(
+        (0..5)
+            .map(|i| Peak1D::new(100.0 + f64::from(i), 1.0 + i as f32))
+            .collect(),
+    );
+    spectrum.rt = 1.0;
+    spectrum.ms_level = 1;
+    experiment.spectra.push(spectrum);
+    experiment.chromatograms.push(MSChromatogram::from_peaks(
+        (0..5)
+            .map(|i| ChromatogramPeak::new(f64::from(i), 1.0 + i as f32))
+            .collect(),
+    ));
+    let xml = encoded_xml(&experiment, false);
+    // The writer emits, in this order: spectrum m/z as Float64, spectrum
+    // intensity as Float32, chromatogram time as Float64, chromatogram
+    // intensity as Float32.
+    for (array, width) in [(0_usize, 8_usize), (1, 4), (2, 8), (3, 4)] {
+        for position in [0_usize, 2, 4] {
+            for pattern in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+                let broken = mutate_payload(&xml, array, |bytes| {
+                    let at = position * width;
+                    if width == 8 {
+                        bytes[at..at + 8].copy_from_slice(&pattern.to_le_bytes());
+                    } else {
+                        bytes[at..at + 4].copy_from_slice(&(pattern as f32).to_le_bytes());
+                    }
+                });
+                let reported = parse(&broken).unwrap_err().to_string();
+                assert!(
+                    reported.contains("nonfinite binary value"),
+                    "array {array} position {position} pattern {pattern}: {reported}"
+                );
+                // The kernel validator's wording. Seeing it here would mean the
+                // decoder had let the value through.
+                assert!(
+                    !reported.contains("must be finite"),
+                    "array {array} position {position} pattern {pattern}: {reported}"
+                );
+            }
+        }
+    }
+    // The one nonfinite peak intensity the decoder cannot see is a finite f64
+    // with no finite f32. That is the second half of the premise, and
+    // `rejects_nonfinite_and_overflowing_peak_values` above pins it: the
+    // narrowing refuses it with `intensity overflows f32`, again before the
+    // record reaches the validator.
+}
+
 #[test]
 fn rejects_unsupported_encodings_and_array_types() {
     let xml = encoded_xml(&sample(), false);

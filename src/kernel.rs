@@ -346,28 +346,6 @@ fn finite(value: f64, name: &str) -> Result<()> {
     }
 }
 
-// The per-peak finiteness loops of `MSSpectrum::validate` and
-// `MSChromatogram::validate` are deliberately left as `finite(..)?` per field,
-// written out at each call site, and are NOT factored into a shared helper or
-// rewritten. Two reformulations were built and measured against the 2.3 GB
-// profile Q Exactive benchmark, one thread, and both were rejected:
-//
-// * An accumulating pass with no early exit (`ok &= a & b` over the slice,
-//   rescanning only to report the first offending peak) executes 47,841,566
-//   instructions fewer on the 681-spectrum slice -- 0.82% of the whole program,
-//   10 instructions per peak instead of 15 -- and yet ran the full input 1.0 s
-//   slower in both wall and user time, in every interleaved pair. Its `and`
-//   chain is loop-carried where the branch form has no dependency between
-//   iterations.
-// * A shared generic helper testing both fields into one never-taken branch
-//   counts 3,686,040 instructions fewer and ran 0.6 s slower, again in every
-//   pair, which is what routing three inlined call sites through one shared
-//   body costs here.
-//
-// The loops as they stand are already the cheap shape; the remaining cost of
-// this validation is the number of times the peaks are scanned, not the price
-// of a scan, and that is a question for the callers.
-
 fn array_sizes<T>(arrays: &[DataArray<T>], size: usize) -> Result<()> {
     for array in arrays {
         if !array.data.is_empty() && array.data.len() != size {
@@ -726,6 +704,83 @@ impl MSSpectrum {
     /// offending peak is reported, and its m/z before its intensity, so the
     /// message names one field of one peak however the check is implemented.
     pub fn validate(&self) -> Result<()> {
+        self.validate_scalars()?;
+        // NOT TO BE RETRIED: two reformulations of this loop and of the
+        // identical one in `MSChromatogram::validate`. Both were built against
+        // the 2.3 GB profile Q Exactive benchmark, one thread, and reverted.
+        // The loops stay as `finite(..)?` per field, written out at each call
+        // site, and are not factored into a shared helper.
+        //
+        // The instruction counts below are callgrind over a 681-spectrum slice:
+        // exact, deterministic, reproducible to the instruction. The wall-clock
+        // deltas are not of that quality, so each is quoted with the sample
+        // size and the spread that produced it. Both pairs were run on a node
+        // that was carrying three other lanes' full-input benchmarks, where one
+        // binary's own spread across a batch of 3-4 runs was 0.3-1.7 s; a delta
+        // of 1 s there is evidence only because it had the same sign in every
+        // interleaved pair, never because of its magnitude. On the same node
+        // quiet, the same three-way rotation puts a layout control -- main with
+        // two unrelated functions swapped in source order, semantics identical
+        // -- 0.02 s from main over four rounds, with within-arm spreads of
+        // 0.16-0.28 s. Anyone re-measuring these two should do it there, and
+        // should carry a layout control either way.
+        //
+        // * An accumulating pass with no early exit (`ok &= a & b` over the
+        //   slice, rescanning only to report the first offending peak) executes
+        //   47,841,566 instructions fewer -- 0.82% of the whole program, 10
+        //   instructions per peak instead of 15 -- and yet ran the full input
+        //   slower in wall and user time in 3 of 3 interleaved pairs: means
+        //   37.83 s against 36.79 s, +1.04 s, with within-arm spreads of 0.44 s
+        //   and 0.51 s over those 3 runs each. Its `and` chain is loop-carried
+        //   where the branch form has no dependency between iterations.
+        // * A shared generic helper testing both fields into one never-taken
+        //   branch counts 3,686,040 instructions fewer and was slower in 4 of 4
+        //   pairs: means 37.71 s against 37.08 s, +0.63 s, within-arm spreads
+        //   0.49 s and 0.29 s over those 4 runs each. That is what routing
+        //   three inlined call sites through one shared body costs here.
+        //
+        // Vectorising is not on the table either: LLVM emits scalar code and
+        // declines the deinterleaving shuffles a vector version would need for
+        // `Peak1D`'s {f64, f32} in 16 bytes.
+        //
+        // The loop is already the cheap shape. What is left to win is the
+        // number of times the peaks are scanned, not the price of a scan, and
+        // that is a question for the callers -- see
+        // [`Self::validate_given_finite_peaks`].
+        for peak in &self.peaks {
+            finite(peak.mz, "peak m/z")?;
+            finite(f64::from(peak.intensity), "peak intensity")?;
+        }
+        self.validate_attachments()
+    }
+
+    /// Everything [`Self::validate`] checks except the per-peak value loop, for
+    /// a caller that has already established every `peak.mz` and every
+    /// `peak.intensity` finite.
+    ///
+    /// The retention time, the MS level, the precursors, the peptide
+    /// identifications, the record metadata budget, the annotation array
+    /// lengths, the array descriptions and the acquisition settings are all
+    /// still checked, in the order [`Self::validate`] checks them. Only the
+    /// scan over the peaks is dropped, and only a caller that can point at
+    /// where each peak value was already proved finite may drop it.
+    ///
+    /// This is `pub(crate)` on purpose. It is not a general-purpose shortcut:
+    /// it is sound exactly when the precondition is discharged at the call
+    /// site by an argument written there, and there is no way for this function
+    /// to check that. [`Self::validate`] is the entry point for everyone else.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for the first thing that is wrong, in
+    /// the same order as [`Self::validate`], minus the peak values.
+    pub(crate) fn validate_given_finite_peaks(&self) -> Result<()> {
+        self.validate_scalars()?;
+        self.validate_attachments()
+    }
+
+    // The part of `validate` that precedes the peak loop.
+    fn validate_scalars(&self) -> Result<()> {
         finite(self.rt, "spectrum retention time")?;
         if self.ms_level == 0
             && !matches!(
@@ -739,10 +794,11 @@ impl MSSpectrum {
                 "spectrum MS level must be positive".into(),
             ));
         }
-        for peak in &self.peaks {
-            finite(peak.mz, "peak m/z")?;
-            finite(f64::from(peak.intensity), "peak intensity")?;
-        }
+        Ok(())
+    }
+
+    // The part of `validate` that follows the peak loop.
+    fn validate_attachments(&self) -> Result<()> {
         for precursor in &self.precursors {
             precursor.validate()?;
         }
@@ -862,10 +918,37 @@ impl MSChromatogram {
     /// The first offending point is reported, and its retention time before its
     /// intensity.
     pub fn validate(&self) -> Result<()> {
+        // The same loop, the same shape and the same two rejected
+        // reformulations as `MSSpectrum::validate`; the measurements and the
+        // reasons not to retry them are recorded there.
         for peak in &self.peaks {
             finite(peak.rt, "chromatogram retention time")?;
             finite(f64::from(peak.intensity), "chromatogram intensity")?;
         }
+        self.validate_attachments()
+    }
+
+    /// Everything [`Self::validate`] checks except the per-peak value loop, for
+    /// a caller that has already established every `peak.rt` and every
+    /// `peak.intensity` finite.
+    ///
+    /// The precursor, the product, the record metadata budget, the annotation
+    /// array lengths, the array descriptions and the acquisition settings are
+    /// all still checked, in the order [`Self::validate`] checks them. As with
+    /// [`MSSpectrum::validate_given_finite_peaks`], this is `pub(crate)`
+    /// because its precondition can only be discharged by an argument written
+    /// at the call site.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for the first thing that is wrong, in
+    /// the same order as [`Self::validate`], minus the peak values.
+    pub(crate) fn validate_given_finite_peaks(&self) -> Result<()> {
+        self.validate_attachments()
+    }
+
+    // The part of `validate` that follows the peak loop.
+    fn validate_attachments(&self) -> Result<()> {
         self.precursor.validate()?;
         self.product.validate()?;
         self.validate_record_metadata()?;

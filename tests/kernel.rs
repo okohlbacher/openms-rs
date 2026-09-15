@@ -562,12 +562,17 @@ fn closest_peak_matches_linear_reference_across_many_queries() {
     }
 }
 
-// The peak checks of `validate` accumulate over the whole peak list without an
-// early exit and rescan only when that accumulation failed. The next three
-// tests pin what the rescan must reproduce: the source's message for each
-// field, its m/z-before-intensity order within a peak, and its first-peak-first
-// order across peaks. They also cover a list long enough to run the vectorised
-// body and its scalar tail rather than the tail alone.
+// The next three tests pin the reporting contract of the peak checks in
+// `validate`, independently of how the loop is written: the source's message
+// for each field, its m/z-before-intensity order within one peak, and its
+// first-peak-first order across peaks, for spectra and for chromatograms. The
+// committed loop is `finite(..)?` per field with an early exit, but nothing
+// here depends on that -- these tests are what any reformulation would have to
+// reproduce, and they are why two of them were reverted rather than shipped on
+// the strength of an instruction count (see the note above the loop in
+// `src/kernel.rs`). The peak-list lengths in the second test sit either side of
+// the usual unroll and vector widths so that a value in the tail of a list
+// cannot be skipped by a body that handles a whole block at a time.
 #[test]
 fn nonfinite_peak_values_name_the_first_offending_field() {
     let message = |spectrum: &MSSpectrum| spectrum.validate().unwrap_err().to_string();
