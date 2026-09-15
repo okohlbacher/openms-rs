@@ -26,8 +26,8 @@ The stream API accepts `BufRead`/`Write`; [path APIs](MZML_PATH_SUPPORT.md) addi
 
 | Area | Reader | Writer |
 | --- | --- | --- |
-| XML | XML 1.0 encoded as UTF-8, US-ASCII, or the ASCII subset of ISO-8859-1; mzML namespace, including namespace prefixes | UTF-8, plain mzML 1.1.0 |
-| Indexed mzML | Sequentially reads inner mzML; separate [offset decoder and has_index](INDEXED_MZML_SUPPORT.md) inspect the index | [Source-option writer](MZML_WRITE_OPTIONS_SUPPORT.md) emits real offsets and SHA-1 |
+| XML | XML 1.0 encoded as UTF-8, US-ASCII, or the ASCII subset of ISO-8859-1; mzML namespace, including namespace prefixes | UTF-8, mzML 1.1.0; `write` is indexed as the source default is, `write_with_options` is plain |
+| Indexed mzML | Sequentially reads inner mzML; separate [offset decoder and has_index](INDEXED_MZML_SUPPORT.md) inspect the index | Default for `write`/`store_experiment` and for the [source-option writer](MZML_WRITE_OPTIONS_SUPPORT.md): real offsets and SHA-1; see [C++ writer parity](MZML_WRITER_CPP_PARITY.md) |
 | Peak arrays | Little-endian IEEE f32 or f64 coordinate/intensity arrays, base64 with optional whitespace, uncompressed or zlib | Legacy f64/f32 defaults; source options select precision, zlib and Numpress |
 | Named auxiliary arrays | `MS:1000786` names with f32/f64, signed i32/i64, or NUL-terminated ASCII strings; uncompressed or zlib | Native f32, signed integer annotations encoded as i64, and NUL-terminated ASCII strings; explicit `arrayLength` |
 | Canonical auxiliary arrays | All 26 pinned non-primary roles with declared binary type checks; names are reserved for their canonical identities | Corresponding canonical accessions; charge arrays use signed i32, with documented type/unit limits |

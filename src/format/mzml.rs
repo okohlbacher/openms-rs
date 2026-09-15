@@ -2967,7 +2967,7 @@ fn write_scalar_metadata_skipping(
                 ("xsd:string", std::borrow::Cow::Borrowed(text.as_str()))
             }
             MetaValueData::Integer(n) => ("xsd:integer", std::borrow::Cow::Owned(n.to_string())),
-            MetaValueData::Float(n) => ("xsd:double", std::borrow::Cow::Owned(n.to_string())),
+            MetaValueData::Float(n) => ("xsd:double", std::borrow::Cow::Owned(float_text(*n))),
             _ => unreachable!("product preflight checked scalar metadata"),
         };
         write!(
@@ -2990,15 +2990,44 @@ fn write_scalar_metadata_skipping(
     Ok(())
 }
 
+/// Write one `cvParam`, omitting `value` when it is empty.
+///
+/// Source `MzMLHandler::writeCV_` (3600-3606) writes the attribute only for a
+/// non-empty `DataValue`, and its literal valueless terms carry no `value`
+/// either; a reader cannot distinguish an absent value from an empty one, so
+/// nothing is lost.
 fn cv(w: &mut impl Write, accession: &str, name: &str, value: &str, unit: &str) -> Result<()> {
-    writeln!(
+    write!(
         w,
-        "<cvParam cvRef=\"MS\" accession=\"{accession}\" name=\"{name}\" value=\"{}\"{unit}/>",
-        escape(value)
+        "<cvParam cvRef=\"MS\" accession=\"{accession}\" name=\"{name}\""
     )?;
+    if !value.is_empty() {
+        write!(w, " value=\"{}\"", escape(value))?;
+    }
+    writeln!(w, "{unit}/>")?;
     Ok(())
 }
+/// C++ `StringUtils::toStr(double)` text, when it reads back as the same value.
+///
+/// Every number the source writes into a `cvParam` or `userParam` goes through
+/// `DataValue::toString` and thus `NumericFormatting::appendNumeric`
+/// (`StringUtils.cpp:384`): 15 fraction digits for magnitudes in `[1e-2, 1e4)`
+/// and zero, the shortest round-tripping scientific text otherwise. An
+/// inherited `3.0`, `1.0e20` or `2.027586375e06` is therefore written back
+/// unchanged instead of being reformatted. The fixed branch keeps only 15
+/// fraction digits, which loses precision for some values; those keep Rust's
+/// shortest round-tripping text, because this port does not discard data it
+/// was given.
+fn float_text(value: f64) -> String {
+    let text = crate::format::file_info::text_format::to_str(value);
+    let exact = crate::data_structures::list::ListParse::from_list_item(&text)
+        .is_ok_and(|parsed: f64| parsed.to_bits() == value.to_bits());
+    if exact { text } else { value.to_string() }
+}
 const SECOND: &str = " unitCvRef=\"UO\" unitAccession=\"UO:0000010\" unitName=\"second\"";
+/// The intensity array's source unit (`MzMLHandler.cpp:5688`).
+const COUNTS: &str =
+    " unitCvRef=\"MS\" unitAccession=\"MS:1000131\" unitName=\"number of detector counts\"";
 fn write_precursor(w: &mut impl Write, precursor: &Precursor, tpp: bool) -> Result<()> {
     precursor_metadata::write_start(w, precursor, tpp)?;
     cv(
@@ -3111,7 +3140,8 @@ fn write_array(
             " unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"",
         )?,
         Kind::Time => cv(w, "MS:1000595", "time array", "", SECOND)?,
-        Kind::Intensity => cv(w, "MS:1000515", "intensity array", "", "")?,
+        // Source `MzMLHandler.cpp:5688` always writes the counts unit here.
+        Kind::Intensity => cv(w, "MS:1000515", "intensity array", "", COUNTS)?,
         Kind::Auxiliary(name) => {
             if let Some(accession) = canonical_array_accession(&name) {
                 cv(w, accession, &name, "", "")?;
@@ -3253,14 +3283,53 @@ fn check_auxiliary_arrays(
     Ok(())
 }
 
-/// Write plain mzML 1.1 XML with uncompressed binary arrays.
+/// Write indexed mzML 1.1 (`indexedmzML`) with uncompressed binary arrays, as
+/// source `MzMLFile::store` does with its default `PeakFileOptions`
+/// (`write_index_ = true`, `PeakFileOptions.h:244`).
+///
+/// This is the writer behind `FileHandler::store_experiment` and therefore
+/// behind every TOPP tool that stores mzML. It makes one pass: each record's
+/// byte offset is taken as its `<spectrum` or `<chromatogram` tag starts, the
+/// index follows `</mzML>`, and `fileChecksum` is the SHA-1 of every byte from
+/// the start of the document through the opening `<fileChecksum>` tag, as the
+/// indexed mzML schema specifies. The source writes the constant `0` there
+/// (CPP-049). Offsets count bytes of the XML text written to `writer`.
+///
+/// An experiment with neither spectra nor chromatograms has no record to
+/// index and is written as plain mzML; the source emits an index with a dummy
+/// `-1` offset instead (CPP-050).
+///
+/// Validation and the header plan complete before the first byte is written,
+/// so a rejected experiment leaves `writer` untouched. For binary encoding
+/// options and the prepared two-pass writer use
+/// [`write_with_peak_options`]; for plain mzML use [`write_with_options`].
+///
+/// # Errors
+///
+/// Returns the validation errors of [`write_with_options`] and any I/O error.
 pub fn write(writer: impl Write, experiment: &MSExperiment) -> Result<()> {
-    write_with_options(writer, experiment, &WriteOptions::default())
+    if experiment.spectra.is_empty() && experiment.chromatograms.is_empty() {
+        return write_with_options(writer, experiment, &WriteOptions::default());
+    }
+    let header = header::prepare(experiment)?;
+    validate_write(experiment)?;
+    let mut output = peak_writer::Output::streamed(writer, experiment)?;
+    write_document(
+        &mut output,
+        experiment,
+        &WriteOptions::default(),
+        &mut None,
+        &header,
+        false,
+    )
 }
 
-/// Write the supported data model after preflight validation.
+/// Write plain (unindexed) mzML 1.1 after preflight validation.
+///
 /// Named float, integer and ASCII string arrays are preserved. Unsupported
-/// metadata or unrepresentable array values are rejected before output.
+/// metadata or unrepresentable array values are rejected before output. The
+/// streaming `MSDataWritingConsumer` splits this layout per record, which is
+/// why it stays unindexed; [`write()`] is the indexed default.
 pub fn write_with_options(
     mut w: impl Write,
     experiment: &MSExperiment,
@@ -3272,6 +3341,26 @@ pub fn write_with_options(
 }
 fn experiment_header_guard(experiment: &MSExperiment) -> Result<()> {
     header::guard(experiment)
+}
+/// How many whole-document allowances an mzML write of `experiment` receives:
+/// one for the experiment-level header and one more for every spectrum and
+/// chromatogram.
+///
+/// The writer preflights (header plan, settings validation and the prepared
+/// writers' markup, index and binary budgets) used to share one fixed
+/// allowance across the whole document. That refused realistic runs after
+/// about 650 records: the 2026-09-14 smoke benchmark measured 647 passing and
+/// 648 failing spectra on `UK222_picked`, while the C++ Release writer stores
+/// the complete 44k-spectrum runs. Every such allowance is now multiplied by
+/// this share count, so a ceiling grows linearly with the records it has to
+/// cover and still bounds amplification within the document. The source
+/// enforces no ceilings at all.
+fn writer_shares(experiment: &MSExperiment) -> usize {
+    experiment
+        .spectra
+        .len()
+        .saturating_add(experiment.chromatograms.len())
+        .saturating_add(1)
 }
 fn validate_write(experiment: &MSExperiment) -> Result<()> {
     experiment_header_guard(experiment)?;
@@ -3306,10 +3395,12 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
             &chromatogram.string_data_arrays,
         )?;
     }
-    // Fixed cumulative settings preflight, independent of binary encoding.
-    // Cover owned scalar metadata before validation/rendering traverses it.
-    let mut settings_work = 50_000_000usize;
-    let mut settings_bytes = 256 * 1024 * 1024;
+    // Cumulative settings preflight, independent of binary encoding: one fixed
+    // allowance per record share (`writer_shares`). Cover owned scalar
+    // metadata before validation/rendering traverses it.
+    let shares = writer_shares(experiment);
+    let mut settings_work = 50_000_000usize.saturating_mul(shares);
+    let mut settings_bytes = (256usize * 1024 * 1024).saturating_mul(shares);
     let initial_work = settings_work;
     let initial_bytes = settings_bytes;
     experiment

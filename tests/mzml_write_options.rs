@@ -101,14 +101,22 @@ fn independent(raw: &[u8]) -> usize {
 #[test]
 fn legacy_defaults_and_explicit_plain_source_options_keep_exact_output() {
     let e = experiment();
+    // Plain output: `write_with_options` and `write_index = false`.
     let mut old = Vec::new();
-    mzml::write(&mut old, &e).unwrap();
+    mzml::write_with_options(&mut old, &e, &Default::default()).unwrap();
     let mut o = PeakFileOptions::default();
     o.write_index = false;
     assert_eq!(output(&e, &o), old);
     let indexed = output(&e, &PeakFileOptions::default());
     assert!(indexed.starts_with(b"<?xml"));
     independent(&indexed);
+    // `mzml::write` is indexed by default, as source `MzMLFile::store` with
+    // default `PeakFileOptions` (`write_index_ = true`; the C++ Release tools
+    // write `indexedmzML`, benchmark smoke run 2026-09-14). Its single pass
+    // produces exactly the prepared two-pass writer's bytes.
+    let mut streamed = Vec::new();
+    mzml::write(&mut streamed, &e).unwrap();
+    assert_eq!(streamed, indexed);
     assert_eq!(
         mzml::read(Cursor::new(old)).unwrap(),
         mzml::read(Cursor::new(indexed)).unwrap()

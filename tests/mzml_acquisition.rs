@@ -44,6 +44,16 @@ fn native(info: AcquisitionInfo) -> MSExperiment {
         ..Default::default()
     }
 }
+/// The pinned schema for this output: `mzml::write` is indexed by default,
+/// `write_with_numpress` and `write_with_options` are plain.
+fn schema_for(bytes: &[u8]) -> std::path::PathBuf {
+    let indexed = std::str::from_utf8(bytes).is_ok_and(|text| text.contains("<indexedmzML "));
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(if indexed {
+        "tests/data/mzml_writing/mzML_idx_1_10.xsd"
+    } else {
+        "tests/data/mzml_1_10.xsd"
+    })
+}
 fn encode(e: &MSExperiment, numpress: bool) -> Vec<u8> {
     let mut output = Vec::new();
     if numpress {
@@ -429,7 +439,7 @@ fn ordinary_and_numpress_acquisition_output_validate_against_the_source_xsd() {
         let bytes = encode(&e, compressed);
         let mut child = Command::new("xmllint")
             .args(["--nonet", "--noout", "--schema"])
-            .arg(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data/mzml_1_10.xsd"))
+            .arg(schema_for(&bytes))
             .arg("-")
             .stdin(Stdio::piped())
             .stderr(Stdio::piped())
