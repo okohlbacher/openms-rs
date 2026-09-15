@@ -20,6 +20,7 @@
    "param"
   ],
   "cli": [
+   "analysis",
    "concept",
    "data_structures",
    "format",

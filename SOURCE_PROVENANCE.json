@@ -617,7 +617,11 @@
   "tests/data/peak_picking_provenance.json",
   "tests/data/file_info_provenance.json",
   "tests/data/im_data_converter_provenance.json",
-  "tests/data/feature_overlap_filter_provenance.json"
+  "tests/data/feature_overlap_filter_provenance.json",
+  "tests/data/boost_regex_provenance.json",
+  "tests/data/gauss_trace_fitter_provenance.json",
+  "tests/data/egh_trace_fitter_provenance.json",
+  "tests/data/fuzzy_string_comparator_provenance.json"
  ],
  "external_reference_artifacts": [
   {
@@ -963,6 +967,518 @@
    "package": "B9-OVERLAP",
    "role": "oracle manifest hashing every source, pinned copy, result and fixture; bundle/B9-OVERLAP f1c7785",
    "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/manifest.json",
+   "sha256": "af081c5e264a30babf36270c81228c4b8630510dd061b05574fa60a36a3797bd",
+   "origin_key": "tests/data/gauss_trace_fitter_provenance.json",
+   "package": "B4-GAUSS",
+   "role": "oracle manifest hashing the driver, the pinned sources, the environment and every result and fixture; bundle/B4-GAUSS 2fc61e5",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/driver.cpp",
+   "sha256": "5ba3eafcde708cd356162c2bdf17287c6cfe905ff0fb8a9062f4ce685fb9f5eb",
+   "origin_key": "tests/data/gauss_trace_fitter_provenance.json",
+   "package": "B4-GAUSS",
+   "role": "driver linking the product-SDK libOpenMS GaussTraceFitter, built with -ffp-contract=off; bundle/B4-GAUSS 2fc61e5",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/run.sh",
+   "sha256": "ccb85d2fcca5bc81f8bf539985be7762ce77c94949650f67d67140884041552e",
+   "origin_key": "tests/data/gauss_trace_fitter_provenance.json",
+   "package": "B4-GAUSS",
+   "role": "entry point: compiles the driver, runs it twice in the fixed oracle environment and requires identical output; bundle/B4-GAUSS 2fc61e5",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/extract_c2.py",
+   "sha256": "e8acbcbe574dfd38a0d1f07ebd3867655c87ce1df7cabb90843b0efa71b5a8c7",
+   "origin_key": "tests/data/gauss_trace_fitter_provenance.json",
+   "package": "B4-GAUSS",
+   "role": "extracts the Gaussian records of the C2 class-level oracle into the committed fixtures; bundle/B4-GAUSS 2fc61e5",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/exp-simulation/manifest.json",
+   "sha256": "09fb44d732ca9f318d0df8c25f1be5f1e50f85d13429c81fe9646699259a9da7",
+   "origin_key": "tests/data/gauss_trace_fitter_provenance.json",
+   "package": "B4-GAUSS",
+   "role": "exp/log simulation that rejected the libm crate and measured the correctly rounded alternative; bundle/B4-GAUSS 2fc61e5",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/param-range/probe.cpp",
+   "sha256": "6963709bd3a7d6c4731eb27599fa62943edb70ac2b255b1afadf41e1132b5b0b",
+   "origin_key": "tests/data/gauss_trace_fitter_provenance.json",
+   "package": "B4-GAUSS",
+   "role": "probe showing the C++ Param int path accepts a max_iteration beyond int (ParamEntry::isValid, CPP-293); bundle/B4-GAUSS 2fc61e5",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/param-range/run.sh",
+   "sha256": "e099b40477f4eaa7001b6cc045c0ba84e027eecf749cac29ced00dd003ce1765",
+   "origin_key": "tests/data/gauss_trace_fitter_provenance.json",
+   "package": "B4-GAUSS",
+   "role": "entry point of the Param range probe; bundle/B4-GAUSS 2fc61e5",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/manifest.json",
+   "sha256": "9d58b293c7c2cde78c9461f2363c7001d53056bbedb2c788afadc7f169dfbdbe",
+   "origin_key": "tests/data/gauss_trace_fitter_provenance.json",
+   "package": "B4-GAUSS",
+   "role": "79-input solver-fidelity probe recorded as the regression target for lane B3b; bundle/B4-GAUSS 2fc61e5 (fix round 3)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/library_probe.cpp",
+   "sha256": "6efd6cd82c471905e66aced72fb9b94d26bf3221143458618a4e611e38c3d68b",
+   "origin_key": "tests/data/gauss_trace_fitter_provenance.json",
+   "package": "B4-GAUSS",
+   "role": "runs the product-SDK GaussTraceFitter::fit over the 79 probe inputs; bundle/B4-GAUSS 2fc61e5",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/replica.cpp",
+   "sha256": "e377f18477597e4a4e8f49fa6a730147ab36e0450000a57a5bcbbb8952e40850",
+   "origin_key": "tests/data/gauss_trace_fitter_provenance.json",
+   "package": "B4-GAUSS",
+   "role": "Eigen replica of optimize_ that reproduces the library bit for bit on all 79, used as the path oracle; bundle/B4-GAUSS 2fc61e5",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/run.sh",
+   "sha256": "a00133ba43c59c827d90de840906b08087f773eaea9935579ade28edcbdfed2f",
+   "origin_key": "tests/data/gauss_trace_fitter_provenance.json",
+   "package": "B4-GAUSS",
+   "role": "entry point of the solver-gap probe; bundle/B4-GAUSS 2fc61e5",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/egh-trace-fitter/manifest.json",
+   "sha256": "76e773beb811c87b3f90fc1a00a6a71be9ef1cc404b970c674a97ce8b56bd85e",
+   "origin_key": "tests/data/egh_trace_fitter_provenance.json",
+   "package": "B5-EGH",
+   "role": "oracle manifest for the EGH fitter: driver, pinned sources, environment, results and fixtures; bundle/B5-EGH 7d0c975",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/egh-trace-fitter/driver.cpp",
+   "sha256": "d1863a926052dee18e123a911e2981969b3d743b3d9b0c241e1f1aa64b6f2e28",
+   "origin_key": "tests/data/egh_trace_fitter_provenance.json",
+   "package": "B5-EGH",
+   "role": "driver linking the product-SDK libOpenMS EGHTraceFitter; bundle/B5-EGH 7d0c975",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/egh-trace-fitter/run.sh",
+   "sha256": "7cc6807a28829a4b0ccc0974badc895aaba13f8b20375e77233e052082e8296f",
+   "origin_key": "tests/data/egh_trace_fitter_provenance.json",
+   "package": "B5-EGH",
+   "role": "entry point, run twice with identical output; bundle/B5-EGH 7d0c975",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/egh-trace-fitter/extract_c2.py",
+   "sha256": "c740afb3005314c87924880d72b0235ef601d49f491cd00be3b3cdef8d22a923",
+   "origin_key": "tests/data/egh_trace_fitter_provenance.json",
+   "package": "B5-EGH",
+   "role": "extracts the EGH records of the C2 class-level oracle; bundle/B5-EGH 7d0c975",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/manifest.json",
+   "sha256": "85a47331209eb019e7b99f01724f18c3c6263a4b7792893612e0470c6f3d0403",
+   "origin_key": "tests/data/lm_eigen_path_differential_provenance.json",
+   "package": "B3b-LM-FIDELITY",
+   "role": "manifest of the Eigen evaluation-path trace over 141 trace fits; bundle/B3b-LM-FIDELITY dc56a9f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/driver.cpp",
+   "sha256": "0acb65329eb0bc9ab34e72238cc9616691ec9b09dfb80cf32af592e031d65b9e",
+   "origin_key": "tests/data/lm_eigen_path_differential_provenance.json",
+   "package": "B3b-LM-FIDELITY",
+   "role": "driver that traces Eigen 5.0.1's minimizeOneStep, lmpar2, qrsolv and ColPivHouseholderQR around the library's own trace functors; bundle/B3b-LM-FIDELITY dc56a9f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/lm_traced.h",
+   "sha256": "dad3a62004edf73edb859c597d36de5d34efbfa956ecb95bf5dbb245cc06fe70",
+   "origin_key": "tests/data/lm_eigen_path_differential_provenance.json",
+   "package": "B3b-LM-FIDELITY",
+   "role": "the traced copy of Eigen's solver, checked equal to the stock class on every case; bundle/B3b-LM-FIDELITY dc56a9f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/run.sh",
+   "sha256": "428f7045ef2ad9585bd71d8f3c9786ba7d310b3d39c12a5c405eeefa99cec476",
+   "origin_key": "tests/data/lm_eigen_path_differential_provenance.json",
+   "package": "B3b-LM-FIDELITY",
+   "role": "entry point; regenerates the fixture; bundle/B3b-LM-FIDELITY dc56a9f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/make_fixture.py",
+   "sha256": "12e934fb4f93c15b597a1b83e01202cb809316dedc509a2e1591e1c3a6d69b83",
+   "origin_key": "tests/data/lm_eigen_path_differential_provenance.json",
+   "package": "B3b-LM-FIDELITY",
+   "role": "compacts the trace into the committed fixture; bundle/B3b-LM-FIDELITY dc56a9f",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/b7-ffap-features/manifest.json",
+   "sha256": "c99220dfffc583b8a225153e4ad953b39921d6fdc75553ed65ae594221d98dfe",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "B7-FFAP-FEATURES",
+   "role": "oracle manifest of the feature stage (extension, fitting, resolution); bundle/B7-FFAP-FEATURES ba913da",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/b7-ffap-features/extract.py",
+   "sha256": "9d9c9b4a08a22cd7b1e844c3d0fe2eb02931f118ffff52c2a5af588e7fc31a20",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "B7-FFAP-FEATURES",
+   "role": "extracts the executed feature-stage records into the committed fixtures; bundle/B7-FFAP-FEATURES ba913da",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/b7-ffap-features/make_manifest.py",
+   "sha256": "c11d8736c2184148ee498f5f93be8b0a819fd9f5c7171f3f3245e808c4db923a",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "B7-FFAP-FEATURES",
+   "role": "builds the oracle manifest from the run; bundle/B7-FFAP-FEATURES ba913da",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/boost-regex/driver.cpp",
+   "sha256": "26ba7fbd9cea57bcd6a2aee905517ba30998ce139f12f55ea64517258f4b219e",
+   "origin_key": "tests/data/boost_regex_provenance.json",
+   "package": "crate/regex-facade",
+   "role": "driver linking Boost.Regex 1.92 that produces every compared answer; crate/regex-facade 2a29bd0",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/boost-regex/build.sh",
+   "sha256": "06c0e622eb32738cf35a0d5a7fc2cba85bbdc9699b5029954f6480709beedfec",
+   "origin_key": "tests/data/boost_regex_provenance.json",
+   "package": "crate/regex-facade",
+   "role": "builds the driver (compiler taken from CXX) and regenerates the corpora; crate/regex-facade 2a29bd0",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/boost-regex/gen.py",
+   "sha256": "071a60c088269171cc6a630a9cad9e37f8609fd7d6a9cdad811c0af4f4568fb9",
+   "origin_key": "tests/data/boost_regex_provenance.json",
+   "package": "crate/regex-facade",
+   "role": "generates the pattern corpus, including the sixteen OpenMS-derived families; crate/regex-facade 2a29bd0",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/boost-regex/refusals.py",
+   "sha256": "6e0bc8431d4b78f2a7d43b48f9747587b485a33d741a53ff9c55dcfa7fb411f4",
+   "origin_key": "tests/data/boost_regex_provenance.json",
+   "package": "crate/regex-facade",
+   "role": "independent model of the facade's refusal rules; reproduces EXPECTED_UNSUPPORTED, EXPECTED_REFUSALS and EXPECTED_CASES; crate/regex-facade 2a29bd0",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/boost-regex/fuzz.py",
+   "sha256": "dee5b73c42a6c30085af5d44ecb819937a050cda64e33bc0d09c0c371de3f7a6",
+   "origin_key": "tests/data/boost_regex_provenance.json",
+   "package": "crate/regex-facade",
+   "role": "four random grammars, 80,000 expressions per run; crate/regex-facade 2a29bd0",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/boost-regex/corpus_full.txt",
+   "sha256": "24f08bb706a1ee02b6fb847743c6b886e6ae4117c46b683c443f361c894ae153",
+   "origin_key": "tests/data/boost_regex_provenance.json",
+   "package": "crate/regex-facade",
+   "role": "the full 134,075-pattern corpus (not committed: 12 MB); crate/regex-facade 2a29bd0",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/boost-regex/boost_full.txt",
+   "sha256": "4cb87a45d8f2a0a1ba9c5055cbf361d183d8b6b297b8cd855b233453cfd32ecd",
+   "origin_key": "tests/data/boost_regex_provenance.json",
+   "package": "crate/regex-facade",
+   "role": "Boost's answers for the full corpus, 6,531,674 compared cases (not committed: 48 MB); crate/regex-facade 2a29bd0",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/datetime_sentinel_cpp.sh",
+   "sha256": "e6fdecab2431a1480156a1a12fee23d9d4dc09ebd1e4be74080d8b34858a9d10",
+   "origin_key": "tests/data/mzml_reader_scale_provenance.json",
+   "package": "fix/mzml-reader-scale",
+   "role": "runs the C++ Release FileInfo, FileConverter and MzMLSplitter over five startTimeStamp sentinels and a control; fix/mzml-reader-scale f03ef85",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/debug_sdk_completion_time.sh",
+   "sha256": "c14cc2fcd32ee452c020762ba3daa729a25902a9fe22b4bcf2a250482d0e5d04",
+   "origin_key": "tests/data/mzml_reader_scale_provenance.json",
+   "package": "fix/mzml-reader-scale",
+   "role": "the same completion-time case on the Debug product SDK, which prints the warning the Release build suppresses; fix/mzml-reader-scale f03ef85",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/array_scan.sh",
+   "sha256": "902d56a2193b88d6e35aa2774e6e2346aef1a0ab0c233f9e4137c14cb6689927",
+   "origin_key": "tests/data/mzml_reader_scale_provenance.json",
+   "package": "fix/mzml-reader-scale",
+   "role": "direct count of records, binary arrays and parameter groups per byte in every benchmark input; fix/mzml-reader-scale f03ef85",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/tool_probe2_06.sh",
+   "sha256": "8b7f13a425415abfe74dd1df09278babc9df9df14492eea7c59c56b9b6b52938",
+   "origin_key": "tests/data/mzml_reader_scale_provenance.json",
+   "package": "fix/mzml-reader-scale",
+   "role": "tool-level proof that MapNormalizer and DTAExtractor exit 0 on the -infinity slice; fix/mzml-reader-scale f03ef85",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/mzml-writer-scale-parity/run_pair.sh",
+   "sha256": "37ce64da602db0784b5e20b3f0fea4fbe25117d4c7aec9539c8c570cd44b40c5",
+   "origin_key": "docs/MZML_WRITER_CPP_PARITY.md",
+   "package": "fix/mzml-writer-scale-parity",
+   "role": "runs the C++ Release tool and the Rust tool on the same input and INI for the output comparison; fix/mzml-writer-scale-parity 522ce8f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/mzml-writer-scale-parity/compare2.py",
+   "sha256": "7169831832d8d3bdae3a2156cd4d3957c8b422df3172c3bc797d37f9927005bf",
+   "origin_key": "docs/MZML_WRITER_CPP_PARITY.md",
+   "package": "fix/mzml-writer-scale-parity",
+   "role": "decoded (D6) comparison of the two outputs, data and metadata separately; fix/mzml-writer-scale-parity 522ce8f",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/mzml-writer-scale-parity/timing.sh",
+   "sha256": "cca7c4b8671f241964c1f6f3e939438c993b324e9aeffe9dfcfdf2a35a888188",
+   "origin_key": "docs/MZML_WRITER_CPP_PARITY.md",
+   "package": "fix/mzml-writer-scale-parity",
+   "role": "store-time measurement of the two writers; fix/mzml-writer-scale-parity 522ce8f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/baseline-filter-edges/manifest.json",
+   "sha256": "bb5124b69b32b4031d2e38ef04b50a0e850a28fa16c31c5015e71881734dfec9",
+   "origin_key": "tests/data/baseline_filter_edges_provenance.json",
+   "package": "fix/baseline-filter-last-point",
+   "role": "oracle manifest of the morphology edge shapes, the element sweep and the tool runs; fix/baseline-filter-last-point 4a597cf",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/baseline-filter-edges/drivers/morph_edges.cpp",
+   "sha256": "fde180c1edbb8707f6a8bb4f54c12a217d9e03f06811c913f1bc904dbc2560a9",
+   "origin_key": "tests/data/baseline_filter_edges_provenance.json",
+   "package": "fix/baseline-filter-last-point",
+   "role": "driver linking the pinned MorphologicalFilter; fix/baseline-filter-last-point 4a597cf",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/baseline-filter-edges/run.sh",
+   "sha256": "61453b2c5fc1f35a8ff4f5479d0695562e3b6dc06ef031b670afbb3d29666010",
+   "origin_key": "tests/data/baseline_filter_edges_provenance.json",
+   "package": "fix/baseline-filter-last-point",
+   "role": "entry point for the edge and sweep cases; fix/baseline-filter-last-point 4a597cf",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/baseline-filter-edges/scale.sh",
+   "sha256": "2b29c120933b9f0dfdd97981dd9516d576a76703f0b888cbb3ab80f9eb47be23",
+   "origin_key": "tests/data/baseline_filter_edges_provenance.json",
+   "package": "fix/baseline-filter-last-point",
+   "role": "runs the C++ Release BaselineFilter on the benchmark inputs for the two #[ignore]d parity tests; fix/baseline-filter-last-point 4a597cf",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/baseline-filter-edges/make_fixtures.py",
+   "sha256": "d46c53d4359c6a15caf41c929b87b0c432cc27804a3c35aa574aef8b65b58174",
+   "origin_key": "tests/data/baseline_filter_edges_provenance.json",
+   "package": "fix/baseline-filter-last-point",
+   "role": "compacts the executed rows into the committed expectation tables; fix/baseline-filter-last-point 4a597cf",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/topp-early-bundle/manifest.json",
+   "sha256": "64e98543fbe26c406988cee6122208d3007e3d66e9547f5130917e4c6b2ffbb0",
+   "origin_key": "tests/data/topp_early_bundle_provenance.json",
+   "package": "C1-ORACLE-TOPP",
+   "role": "the C1 tool-level oracle: cases, environment and per-case hashes for the early TOPP bundle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/topp-early-bundle/run.sh",
+   "sha256": "5abc88deb7643ead4f20d83b3f6ba8109e6b5ff1da26c68eebf8d8ac57a8cbaf",
+   "origin_key": "tests/data/topp_early_bundle_provenance.json",
+   "package": "C1-ORACLE-TOPP",
+   "role": "entry point of the C1 tool oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/topp-early-bundle/cases/oracle.py",
+   "sha256": "9ea3925156ffae82aafd745adccef74971607c6a4c03bad029e617ca7f8755c9",
+   "origin_key": "tests/data/topp_early_bundle_provenance.json",
+   "package": "C1-ORACLE-TOPP",
+   "role": "the C1 case table and runner",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/topp-peak-picker-tool/manifest.json",
+   "sha256": "e3b0a094bee2adeff8d9dcedc2fc0cee66d3225101e1cd6d3910c243fae5ee33",
+   "origin_key": "tests/data/topp_peak_picker_hi_res_provenance.json",
+   "package": "P3-PICKER-TOOL",
+   "role": "P3 supplementary oracle: -write_ini, that INI fed back at -threads 1/16/0, and the workflow runs; bundle/P3-PICKER-TOOL (merge 4c2806d)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/topp-peak-picker-tool/oracle.py",
+   "sha256": "f9ad3e8f866f41e90158e3e139d74287b5e264f01d763a270280b04dc3a43b2b",
+   "origin_key": "tests/data/topp_peak_picker_hi_res_provenance.json",
+   "package": "P3-PICKER-TOOL",
+   "role": "P3 oracle driver including the three derivation rules; bundle/P3-PICKER-TOOL (merge 4c2806d)",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/topp-peak-picker-tool/run.sh",
+   "sha256": "e279053b2133c81f13b62301d1c42974f642cefa7abcdadb936d6c253fa1bb57",
+   "origin_key": "tests/data/topp_peak_picker_hi_res_provenance.json",
+   "package": "P3-PICKER-TOOL",
+   "role": "P3 oracle entry point; bundle/P3-PICKER-TOOL (merge 4c2806d)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/topp-peak-picker-scale/manifest.json",
+   "sha256": "d92c8993b35604fa15d06454c60fff46aefa6186dc2f549c259eca179ebd20e7",
+   "origin_key": "tests/data/topp_peak_picker_hi_res_provenance.json",
+   "package": "fix/picker-scale",
+   "role": "the instrument-scale PeakPickerHiRes run: 2.3 GB profile input through both tools, decoded comparison; fix/picker-scale 6b55773",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/topp-peak-picker-scale/bench_06.sh",
+   "sha256": "0a4e447adc8d00b1a587609a00610cb7f9dadee3f87145c1fcbd2cccd02cc290",
+   "origin_key": "tests/data/topp_peak_picker_hi_res_provenance.json",
+   "package": "fix/picker-scale",
+   "role": "the benchmark driver: -write_ini, both tools under /usr/bin/time; fix/picker-scale 6b55773",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/topp-peak-picker-scale/decoded_compare_probe.rs",
+   "sha256": "10e62978e78e0990c220d29711a2c3f450f733c4f2b0c33246a595dbb1f19b00",
+   "origin_key": "tests/data/topp_peak_picker_hi_res_provenance.json",
+   "package": "fix/picker-scale",
+   "role": "the decoded (D6) comparison of the two 0.5 GB outputs; fix/picker-scale 6b55773",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/picked-chromatogram/manifest.json",
+   "sha256": "566090a6c9abcb97b4e605207c0133c52b31b2c996fac0e558aacc5d43a5f8ac",
+   "origin_key": "tests/data/peak_picking_provenance.json",
+   "package": "fix/picked-chromatogram",
+   "role": "MANIFEST of the fx-chrom oracle: the 32-bit minute time-array root cause (CPP-306), the seven cases, the tool-level and full-input comparisons and their measurements; fix/picked-chromatogram e269586",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/picked-chromatogram/probe_chrom_read.cpp",
+   "sha256": "c570d613c94e55c7de899b937e87e03042f0ee278d7602ffd116914dcd6c9f7c",
+   "origin_key": "tests/data/peak_picking_provenance.json",
+   "package": "fix/picked-chromatogram",
+   "role": "the fx-chrom oracle driver: MzMLFile::load and PeakPickerHiRes::pickExperiment on the C++ Release build, values printed as IEEE-754 bit patterns; fix/picked-chromatogram e269586",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/picked-chromatogram/results/cpp_probe.tsv",
+   "sha256": "6af6a99c1f37965c83ef62c98a85118e5302175d23a07d6bae4b484c827cce8a",
+   "origin_key": "tests/data/peak_picking_provenance.json",
+   "package": "fix/picked-chromatogram",
+   "role": "the fx-chrom oracle raw output, the source of tests/data/peak_picking/chromatogram_time_oracle.tsv; fix/picked-chromatogram e269586",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/picked-chromatogram/make_cases.py",
+   "sha256": "f3fd04e189b29dceebb27f0cc4f50c4eb359ae71cab0e0b4e3647f9dfac3e51e",
+   "origin_key": "tests/data/peak_picking_provenance.json",
+   "package": "fix/picked-chromatogram",
+   "role": "the fx-chrom case generator, the source of tests/data/peak_picking/chromatogram_time/*.mzML; fix/picked-chromatogram e269586",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/topp-file-info-tool/manifest.json",
+   "sha256": "fa7c0fd67fc963dd357f1ac3eeae279111ecce309c553e37983d0882b59d9cdb",
+   "origin_key": "tests/data/topp_file_info_provenance.json",
+   "package": "A5-FILEINFO-TOOL",
+   "role": "tool hash, environment, per-case exit codes, streams and outputs for the 17 FileInfo cases; bundle/A5-FILEINFO-TOOL a4eb586",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/topp-file-info-tool/oracle.py",
+   "sha256": "1fb9563d9e3355e73711fd5560a3e63098ab92beb1b554f8bcde20da4819f721",
+   "origin_key": "tests/data/topp_file_info_provenance.json",
+   "package": "A5-FILEINFO-TOOL",
+   "role": "the package's driver: case table, two runs, reproduction check; bundle/A5-FILEINFO-TOOL a4eb586",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/topp-file-info-tool/run.sh",
+   "sha256": "38e93400e6fe8f95032fe37fbb62875b4d780cd9b4ebbbdbf4888234c4af486c",
+   "origin_key": "tests/data/topp_file_info_provenance.json",
+   "package": "A5-FILEINFO-TOOL",
+   "role": "entry point with the exact environment; bundle/A5-FILEINFO-TOOL a4eb586",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffc-wrapper-c5/manifest.json",
+   "sha256": "3116a2fbcee540bce7b5c6ebc1695c74b062ff3c072b652ca09c7d122d8ef698",
+   "origin_key": "tests/data/topp_feature_finder_centroided_provenance.json",
+   "package": "C5-FFC-WRAPPER",
+   "role": "the FeatureFinderCentroided wrapper supplement: 29 executed C++ runs; bundle/C5-FFC-WRAPPER ba67aa9, reconciled in fix/ffc-integration 4d53a7e",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffc-wrapper-c5/oracle.py",
+   "sha256": "6eac41546798902809e6882c5ff7f6661ecbea2bcd3296d0515ccfaa46742400",
+   "origin_key": "tests/data/topp_feature_finder_centroided_provenance.json",
+   "package": "C5-FFC-WRAPPER",
+   "role": "the wrapper oracle driver; bundle/C5-FFC-WRAPPER ba67aa9",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/tool-threads/threads_probe.py",
+   "sha256": "48dfaaef32adabdc42f157897fdfc13b0b01a6893d62b616012464ea77c4fde8",
+   "origin_key": "tests/data/topp_threads_provenance.json",
+   "package": "fix/tool-threads",
+   "role": "runs one command per case and samples /proc/<pid>/task to count the threads each implementation starts; fix/tool-threads a4426944",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/tool-threads/make_cpp_cases.py",
+   "sha256": "55285cd7443389f6227774530700cae26d6c314f73807d38fffe1653243f54d1",
+   "origin_key": "tests/data/topp_threads_provenance.json",
+   "package": "fix/tool-threads",
+   "role": "generator of the 14 executed C++ -threads cases; fix/tool-threads a4426944",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/tool-threads/make_pair_cases.py",
+   "sha256": "f3d620de3c8b19b11894e48d49341ff4fa417b51857726a165be3668517db5ab",
+   "origin_key": "tests/data/topp_threads_provenance.json",
+   "package": "fix/tool-threads",
+   "role": "generator of the 60 Rust-versus-C++ cases; fix/tool-threads a4426944",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/release-build/manifest.json",
+   "sha256": "2efe7501c5c7e3f6dd3feef78628ae6f1158e762b7fc04154de21cfd095b293a",
+   "origin_key": "tests/data/topp_peak_picker_hi_res_provenance.json",
+   "package": "benchmark lane",
+   "role": "BUILD_MANIFEST of the optimised C++ reference build openms4-release-bc9cc12-c19e494-174b576 (gcc 14.4, -O3 -DNDEBUG, no -march) at /ceph/ibmi/abi/oliver/opt; the same file is installed beside the build. Every Release comparison of wave 3 and docs/BENCHMARKS.md is against this build",
+   "label": "oracle-generated (tier 1 executed differential)"
   }
  ],
  "external_reference_note": "Executed C++ oracle artifacts of the early-TOPP bundle, registered at integration. They live outside this repository under ../oracle/, so no C++ enters it; each sha256 was recomputed from the file at registration and equals the hash in the group manifest named by origin_key, which records the oracle's full artifact list. Wave 1 (2026-09-14): A1-PTE-FAIMS (../oracle/pte-faims-helper), CLI-1 (../oracle/topp-cli-lifecycle) and A2-TEXTFMT (../oracle/file-info-text-format and ../oracle/text-format) were registered at the final wave-1 merge, after their fix rounds had changed those files. The A2 group manifest tests/data/file_info_text_format_provenance.json is indexed only through origin_key: its fixtures are constants embedded in tests/file_info_text_format.rs, not files, and its target_verification has no source_revisions or source_changes, so it lacks the current_sdk_reference_manifests shape that tools/check_core_sdk.py verifies. Wave 2 (2026-09-14): P1-PICKER-LIB, A4-FILEINFO-CORE, B8-IMSPLIT and B9-OVERLAP (fix round) have that shape and are also listed in current_sdk_reference_manifests. B3-LM, P2-MZML-LENIENCY and B6-FFAP-SEEDS are indexed only through origin_key, because their target_verification records verification commands or results rather than the revision, source_revisions and source_changes the checker reads; B6's group manifest also has no external_reference_note. CLI-2 updates two CLI-1 rows (ini_read_failures.sh and its manifest, now 15 cases) and adds its own 34-case manifest, driver and rerun manifest. C1 (../oracle/topp-early-bundle) and C2 (../oracle/featurefinder-picked), which A4, B3, B6, B8 and B9 cite, are registered at W4.4.",
@@ -1005,7 +1521,10 @@
   "tests/data/topp_mzml_splitter_provenance.json",
   "tests/data/topp_map_normalizer_provenance.json",
   "tests/data/topp_spectra_filter_window_mower_provenance.json",
-  "tests/data/topp_baseline_filter_provenance.json"
+  "tests/data/topp_baseline_filter_provenance.json",
+  "tests/data/topp_peak_picker_hi_res_provenance.json",
+  "tests/data/topp_file_info_provenance.json",
+  "tests/data/topp_feature_finder_centroided_provenance.json"
  ],
  "kernel_wave1_reference_manifests": [
   "tests/data/ranges_provenance.json",

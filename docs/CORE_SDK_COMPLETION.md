@@ -4,15 +4,15 @@ Target: `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. This ledger covers all **786
 
 This is a work inventory, not a completion percentage. Matching declarations and source references remain unverified until each API and its behavior are reviewed. A TOPP workflow counts as validated only when an executed differential comparison against retained C++ output is recorded in its provenance manifest. Physical unregistered headers and product backends are tracked separately by the SDK source inventory.
 
-Validated TOPP workflows: **5** of 124, each reproducing its upstream test against retained C++ output.
+Validated TOPP workflows: **8** of 124, each reproducing its upstream test against retained C++ output.
 
 | Review state | Headers |
 | --- | ---: |
-| complete | 56 |
-| evidence_requires_review | 156 |
+| complete | 60 |
+| evidence_requires_review | 165 |
 | native_equivalent | 90 |
 | partial | 61 |
-| unmapped | 423 |
+| unmapped | 410 |
 
 ## Highest fan-out open SDK dependencies
 

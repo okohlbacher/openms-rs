@@ -25,7 +25,8 @@ jobs:
       - run: cargo test --locked --no-default-features
       - run: cargo test --locked --no-default-features --features idxml
       - run: cargo test --locked --no-default-features --features paramxml --test paramxml --test system_file
-      - run: cargo test --locked --no-default-features --features "mzml paramxml" --test topp_dta_extractor --test topp_mzml_splitter --test topp_map_normalizer --test topp_spectra_filter_window_mower --test topp_baseline_filter --test topp_cli_lifecycle
+      - run: cargo test --locked --no-default-features --features "mzml paramxml" --test topp_dta_extractor --test topp_mzml_splitter --test topp_map_normalizer --test topp_spectra_filter_window_mower --test topp_baseline_filter --test topp_baseline_filter_edges --test topp_cli_lifecycle --test topp_peak_picker_hi_res --test topp_threads
+      - run: cargo test --locked --no-default-features --features "mzml paramxml featurexml" --test topp_file_info --test topp_feature_finder_centroided
       - run: cargo test --locked --no-default-features --features featurexml --test featurexml --test file_handler
       - run: cargo test --locked --no-default-features --features cv-mapping --test cv_mapping_file --test cv_mapping_values
       - run: cargo test --locked --no-default-features --features semantic-validation --test semantic_validator --test cv_mapping_file --test cv_mapping_values
@@ -93,7 +94,7 @@ jobs:
       - run: cargo test --locked --no-default-features --features paramxml --test paramxml --test system_file
       - run: cargo test --locked --no-default-features --test experimental_design --test fasta --test formats --test experiment_aggregation --test experiment_summary --test kernel_value_traits --test peak_file_options --test identification --test metadata_hash --test mass_decomposition --test mass_decomposition_algorithm --test ims_weights --test mobilogram --test data_array_descriptions
       - run: cargo test --locked --no-default-features --features mzml --test mzml_precursor_activation
-      - run: cargo test --locked --no-default-features --features mzml --test indexed_mzml_handler --test mzml_typed_transport --test record_metadata --test mzml_normalization --test mzml_write_options --test mzml_isolation --test mzml_centroid --test mzml_consumer --test mzml_header --test mzml_numpress --test numpress_coder --test mzml_acquisition_guards --test mzml_settings --test mzml_acquisition --test mzml_counts --test mzml_header_leniency
+      - run: cargo test --locked --no-default-features --features mzml --test indexed_mzml_handler --test mzml_typed_transport --test record_metadata --test mzml_normalization --test mzml_write_options --test mzml_isolation --test mzml_centroid --test mzml_consumer --test mzml_header --test mzml_numpress --test numpress_coder --test mzml_acquisition_guards --test mzml_settings --test mzml_acquisition --test mzml_counts --test mzml_header_leniency --test mzml_reader_scale --test mzml_writer_scale
       - run: cargo test --locked --no-default-features --features mzml --test indexed_mzml --test mzml_product --test mzml_load_options --test mzml_paths --test data_array_xml --test mzml_list_counts --test imzml_handler --test imzml_writer --test imzml_file --test imzml_all_modes --test on_disc_imzml_experiment
       - run: cargo test --locked --no-default-features --features proforma-json --test proforma_json
       - run: cargo test --locked --no-default-features --features idxml --test identification_paths --test data_array_xml
@@ -103,11 +104,12 @@ jobs:
       - run: cargo test --locked --no-default-features --features consensusxml --test msstats --test transformation_xml
       - run: cargo test --locked --no-default-features --features featurexml --test transformation_xml
       - run: cargo test --locked --no-default-features --features paramxml --test qcml
-      - run: cargo test --locked --no-default-features --test feature_finder_picked_helper_structs --test isotopes_source_precision --test geometry_bounding_box --test fuzzy_string_comparator --test file_info_text_format --test lm_budget_differential --test feature_overlap_filter
+      - run: cargo test --locked --no-default-features --test feature_finder_picked_helper_structs --test isotopes_source_precision --test geometry_bounding_box --test fuzzy_string_comparator --test file_info_text_format --test lm_budget_differential --test lm_eigen_path_differential --test feature_overlap_filter
+      - run: cargo test --locked --no-default-features --test boost_regex --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test baseline_filter_edges
       - run: cargo test --locked --no-default-features --features mzml --test peak_type_estimator --test faims_helper --test mzml_mobility --test im_data_converter
       - run: cargo test --locked --no-default-features --features "mzml featurexml" --test file_handler_type_detection --test file_info
-      - run: cargo test --locked --no-default-features --features "mzml paramxml" --test topp_cli_lifecycle --test peak_picking_experiment
-      - run: cargo test --locked --no-default-features --features "mzml paramxml featurexml" --test feature_finder_picked_seeds
+      - run: cargo test --locked --no-default-features --features "mzml paramxml" --test topp_cli_lifecycle --test peak_picking_experiment --test topp_peak_picker_hi_res --test topp_threads --test topp_baseline_filter_edges
+      - run: cargo test --locked --no-default-features --features "mzml paramxml featurexml" --test feature_finder_picked_seeds --test feature_finder_picked --test topp_file_info --test topp_feature_finder_centroided
   cross-platform:
     # Linux-first development: these run on a release tag or on demand, not on
     # every push. Keep them green before cutting a release.

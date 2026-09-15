@@ -4672,7 +4672,7 @@ implementation. They do not count as completed Rust functionality.
 
 **Status:** Executed.
 
-**Affected file/function:** `src/openms/source/FORMAT/XMLFile.cpp:141–166` (and the same pattern from `:198`), `parse_`.
+**Affected file/function:** `src/openms/source/FORMAT/XMLFile.cpp:141–166`, `parse_`.
 
 **Trigger:** An XML input read from a FIFO fed by a single writer, for example `-ini` or `-write_ini -ini` with a named pipe.
 
@@ -4830,9 +4830,9 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-274 — A single retention time or m/z makes the intensity score undefined
 
-**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK (Debug) at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85` and on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
-**Status:** Source-reviewed.
+**Status:** Executed (2026-09-15; source-reviewed before that).
 
 **Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:244–245` (bin widths) and `:1837–1838`, `intensityScore_`.
 
@@ -4842,9 +4842,9 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Use one bin per dimension when the range is empty, or reject such input with a message.
 
-**Evidence:** Source review.
+**Evidence:** Source review, and since 2026-09-15 executed at algorithm level through `FeatureFinderCentroided`. On `FileFilter_44_input.mzML`, whose four MS1 spectra all sit at RT 0.273, the zero-width retention-time range reaches `run_` before `intensityScore_`: the Debug build dies in an `OPENMS_PRECONDITION` inside `ProgressLogger::init` ("invalid range!", exit 8, C1 case `FFC_FileFilter_44_force`), and the Release build computes non-finite bin bounds and silently writes a featureXML with `<featureList count="0">` (exit 0). Both runs are recorded in `tests/data/topp_feature_finder_centroided_provenance.json` and reproduced by this pass.
 
-**Rust handling:** `Error::InvalidValue`.
+**Rust handling:** `Error::InvalidValue` before anything is computed, which the `FeatureFinderCentroided` wrapper maps to exit 8 with the zero-width-range message. This is a documented divergence from the Release build's empty map, pinned by the `#[ignore]`d `a_zero_width_retention_time_range_diverges_from_the_cpp_release_build`; whether to follow the Release behaviour instead is open for B10.
 
 ## CPP-275 — charge_low above charge_high wraps the charge count
 
@@ -5097,3 +5097,345 @@ implementation. They do not count as completed Rust functionality.
 **Evidence:** Source review.
 
 **Rust handling:** Each case is refused with `Error::InvalidValue` or `Error::MissingInformation` before the map changes.
+
+## CPP-289 — GaussTraceFitter's copy leaves region_rt_span_ uninitialised
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; not executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/GaussTraceFitter.cpp:25-46`, the copy constructor and `operator=`.
+
+**Trigger:** Any copy of a `GaussTraceFitter` that has fitted, followed by `checkMaximalRTSpan`.
+
+**Issue:** Both copy `height_`, `x0_` and `sigma_` and call `updateMembers_()`, but neither copies `region_rt_span_`, which `setInitialParameters_` sets (`.cpp:259-260`) and which `checkMaximalRTSpan` divides the fitted span against (`.cpp:98-101`). The copy therefore reads an indeterminate value, and `FeatureFinderAlgorithmPicked` treats a `true` answer as "Invalid fit: Fitted model is bigger than 'max_rt_span'".
+
+**Proposed C++ fix:** Copy `region_rt_span_` in both members, or declare them `= default` now that every member is copyable.
+
+**Evidence:** Source review of the pinned file. The port's own `Clone` copies the whole model, so no executed case distinguishes them.
+
+**Rust handling:** Every field of the model is cloned; `region_rt_span` is part of the fitted state.
+
+## CPP-290 — GaussTraceFitter's Jacobian carries 0.125 in the sigma column
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/GaussTraceFitter.cpp:199`, `GaussTraceFunctor::df`.
+
+**Trigger:** Every Gaussian trace fit.
+
+**Issue:** The analytic derivative of `theoretical_int * height * exp(-(rt-x0)^2 / (2 sigma^2))` with respect to `sigma` is `theoretical_int * height * e * (rt-x0)^2 / sigma^3`; the code writes `0.125 * trace.theoretical_int * height * e * pow2(rt - x0) * inv_sig3 * weight`. The extra factor of 1/8 does not stop the fit converging on the tested data, but the Levenberg-Marquardt trust region, and with it every evaluation-budget boundary, follows a wrong derivative.
+
+**Proposed C++ fix:** Drop the `0.125`, and re-derive the published class-test parameters, which were produced with it.
+
+**Evidence:** The executed Jacobian columns of `../oracle/gauss-trace-fitter` carry the factor; comparing the recorded column against the analytic derivative at the same vectors reproduces it exactly.
+
+**Rust handling:** Reproduced: `gauss_trace_fitter.rs` transcribes the `0.125`, with a comment naming this issue, because removing it would change every fitted parameter.
+
+## CPP-291 — An all-zero intensity profile "fits" with a NaN sigma
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/GaussTraceFitter.cpp:253-291` (`setInitialParameters_`) and `src/openms/source/FEATUREFINDER/TraceFitter.cpp:122-130` (`optimize_`).
+
+**Trigger:** A mass trace whose intensities are all zero, or whose smoothed maximum equals the baseline.
+
+**Issue:** `height_ = smoothed[max_index] - traces.baseline` is 0, so `alpha = (left_height + right_height) * 0.5 / height_` is `0/0 = NaN`. `if (alpha >= 1)` is false for NaN, so the guard the line above provides for the degenerate case is skipped and `sigma_ = delta_x * 0.5 / sqrt(-2.0 * log(alpha))` is NaN. Every residual is then NaN, Eigen stops with `CosinusTooSmall` (status 5), and `optimize_` accepts every status above `ImproperInputParameters`, so `fit` succeeds with a NaN model, NaN bounds, NaN FWHM and a NaN area.
+
+**Proposed C++ fix:** Test `alpha` for NaN as well as for `>= 1`, or throw `UnableToFit` when `height_` is not positive.
+
+**Evidence:** Executed case `start.all_zero` in `../oracle/gauss-trace-fitter` (driver linked against the product SDK, run twice with identical output).
+
+**Rust handling:** Reproduced under the default compatibility, and available as a refusal: the port records the same NaN model so the executed comparison holds, and documents it as a native boundary.
+
+## CPP-292 — The trace fitters read empty traces and index theoretical peaks unchecked
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; not executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/GaussTraceFitter.cpp:229-262`, `src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp:333-368` (both `setInitialParameters_`), and `src/openms/source/FEATUREFINDER/TraceFitter.cpp` `computeTheoretical`.
+
+**Trigger:** `MassTraces` whose intensity profile is empty (no trace has a peak), or a `k` beyond `trace.peaks.size()`.
+
+**Issue:** With an empty profile `N` is 0, so `smoothed` is empty and `smoothed[max_index]` with `max_index == 0` reads out of bounds; `std::advance(it, max_index)` then walks an empty list and `total_intensities.rbegin()->first` dereferences its end. `computeTheoretical` indexes `trace.peaks[k]` with no bound check. All of it is undefined behaviour reachable from the public API.
+
+**Proposed C++ fix:** Throw `UnableToFit` when the profile is empty, and bound-check `k`.
+
+**Evidence:** Source review of the pinned files.
+
+**Rust handling:** `Error::InvalidValue` (`UnableToFit-FinalSet`) before anything is read, in both fitters and in `compute_theoretical`.
+
+## CPP-293 — ParamEntry::isValid narrows a 64-bit integer before its range check
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Executed (the acceptance); the restriction bypass is source-reviewed.
+
+**Affected file/function:** `src/openms/source/DATASTRUCTURES/Param.cpp:120-127`, `ParamEntry::isValid`.
+
+**Trigger:** An `INT_VALUE` parameter outside the `int` range, with or without `setMinInt`/`setMaxInt`.
+
+**Issue:** `int tmp = value;` narrows the 64-bit `ParamValue` before the `min_int`/`max_int` comparison, so the check runs on the truncated value: `2^32 + 5` passes `setMinInt(1)` as `5`, and the error message prints the truncated number too.
+
+**Proposed C++ fix:** Compare the 64-bit value, and reject anything outside the `int` range explicitly.
+
+**Evidence:** The executed probe `../oracle/gauss-trace-fitter/param-range` shows `TraceFitter` accepting a `max_iteration` beyond `int`; that parameter carries no restriction, so it shows the acceptance and not the bypass. Source review for the bypass itself.
+
+**Rust handling:** `Param` refuses a value that cannot be converted to `i32` in the restriction check, so `TraceFitterParams::to_param`/`from_param` round-trip only within `i32`; `tests/trace_fitter.rs::to_param_and_from_param_disagree_beyond_i32` pins the difference and must flip when this is fixed.
+
+## CPP-294 — TraceFitter documents both RT-span checks backwards and calls maxfev an iteration count
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed (documentation).
+
+**Affected file/function:** `src/openms/include/OpenMS/FEATUREFINDER/TraceFitter.h:170-191` (the two span checks), `:31-33` and `:253` (`max_iteration`, `max_iterations_`), and `src/openms/source/FEATUREFINDER/TraceFitter.cpp:129`.
+
+**Trigger:** Reading the header to implement or call a `TraceFitter`.
+
+**Issue:** The header says `checkMinimalRTSpan` returns true "when the model spans at least `min_rt_span` of the search area" and `checkMaximalRTSpan` true "when the model does not exceed `max_rt_span`". Both implementations return the opposite (`GaussTraceFitter.cpp:98-106`), and `FeatureFinderAlgorithmPicked.cpp:2055` and `:2081` treat a `true` answer as the failure. `max_iteration` is documented as "maximum number of LM iterations" but `optimize_` assigns it to `lmSolver.parameters.maxfev` (`TraceFitter.cpp:121`), Eigen's maximum number of *function evaluations*, which is a different and much smaller budget. Finally the `UnableToFit` text is "Could not fit the gaussian to the data" for every model, including EGH.
+
+**Proposed C++ fix:** Reword both `@return` clauses to the implemented sense, rename the parameter or document it as `maxfev`, and take the model name from the subclass.
+
+**Evidence:** Source review of the pinned header and implementations, against the two executed call sites in `FeatureFinderAlgorithmPicked.cpp`.
+
+**Rust handling:** The port documents the implemented sense, names the field `max_iteration` with the `maxfev` meaning stated, and reproduces the "gaussian" wording verbatim in both fitters so the executed message comparison holds.
+
+## CPP-295 — EGHTraceFitter::setInitialParameters_ has no alpha >= 1 guard
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp:395-412`, `setInitialParameters_`.
+
+**Trigger:** A flat or single-scan profile, or a baseline above the smoothed half-height edges, so that `alpha = (left_height + right_height) * 0.5 / height_` is at least 1.
+
+**Issue:** `log_alpha = log(alpha)` is then zero or positive, `tau_ = -1 / log_alpha * (B - A)` is infinite or has the wrong sign, and `sigma_ = sqrt(-0.5 / log_alpha * B * A)` is the square root of a negative number, i.e. NaN. `optimize_` accepts `CosinusTooSmall` at the start point, so `fit` succeeds with a NaN sigma and a meaningless tau, and the bounds, FWHM and area computed from them are NaN. `GaussTraceFitter` guards exactly this case (`GaussTraceFitter.cpp:284-287`).
+
+**Proposed C++ fix:** Add the same `alpha >= 1` guard, or throw `UnableToFit`.
+
+**Evidence:** Executed C2 cases `flat3_egh` and `short3_egh`, and this package's `alpha_above_one_baseline`, in `../oracle/egh-trace-fitter` and `../oracle/featurefinder-picked`.
+
+**Rust handling:** Reproduced, so the executed comparison holds; documented as a native boundary.
+
+## CPP-296 — EGHTraceFitter::setInitialParameters_ reads an empty trace
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; not executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp:333-368`.
+
+**Trigger:** `MassTraces` whose computed intensity profile is empty.
+
+**Issue:** `smoothed` is empty, so `smoothed[max_index]` reads out of bounds; `std::advance(it, max_index)` walks an empty list and `total_intensities.rbegin()->first` dereferences its end. Undefined behaviour, unlike the `N <= LEN + 1` short path `GaussTraceFitter` has.
+
+**Proposed C++ fix:** Throw `UnableToFit` before smoothing when the profile is empty.
+
+**Evidence:** Source review of the pinned file.
+
+**Rust handling:** `Error::InvalidValue` (`UnableToFit-FinalSet`).
+
+## CPP-297 — EGHTraceFunctor drops the baseline in one branch and takes |sigma| in one of two places
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed, with executed rows.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp:62-71` (`operator()`), `:88` (`df`) and `:277-288` (`getGnuplotFormula`).
+
+**Trigger:** Any fit whose trial parameters make `2 sigma^2 + tau (t - t_R)` non-positive, or whose sigma is negative.
+
+**Issue:** Where the denominator is not positive the residual model is `fegh = 0.0`, while the positive branch is `baseline + theoretical_int * H * exp(...)` and `getGnuplotFormula` writes `baseline + (cond ? ... : 0)`. The plotted curve therefore falls to the baseline where the residual falls to zero. Separately, `df` uses `fabs(x_map(2))` for sigma while `operator()` uses the signed value, so for a negative sigma the sigma column of the Jacobian has the wrong sign and points away from the descent direction.
+
+**Proposed C++ fix:** Use the baseline in the else branch, and treat sigma consistently in both members (or project sigma to its absolute value once, before either is called).
+
+**Evidence:** Source review of the pinned file, with the executed functor rows of `../oracle/egh-trace-fitter` covering both branches.
+
+**Rust handling:** Reproduced exactly, including the sign asymmetry, so the executed residual and Jacobian comparison holds to the last place.
+
+## CPP-298 — extendMassTraces_ compares a pattern index with a trace index
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; the resulting output is executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1460-1476`, `extendMassTraces_`.
+
+**Trigger:** An isotope of the pattern whose extended trace has fewer than three peaks.
+
+**Issue:** `p` indexes the *isotope pattern*, while `traces.max_trace` indexes the *traces collected so far* and is still 0 until the maximum trace has been pushed. So an invalid trace at `p == 0` takes neither branch and is appended anyway; any later invalid trace before the maximum breaks out of the loop; and the `traces.clear()` branch the comment describes ("Missing traces in the middle of a pattern are not acceptable") is unreachable, because `p < traces.max_trace` cannot hold while `max_trace` is 0.
+
+**Proposed C++ fix:** Compare `p` against the pattern's own maximum position, or compare the trace index the loop is filling.
+
+**Evidence:** Source review of the pinned file; the resulting traces are part of the executed feature output compared in `../oracle/b7-ffap-features` and against the Release build's `TOPP_FeatureFinderCentroided_1`.
+
+**Rust handling:** Reproduced exactly, because it decides which traces a feature keeps.
+
+## CPP-299 — The better-seed search re-reads a moving m/z
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; the resulting output is executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1420-1445`, `extendMassTrace_`.
+
+**Trigger:** A seed with a better nearby maximum in an adjacent scan.
+
+**Issue:** `mz` is captured before the loop, but the nearest-peak lookup inside it is `map_[spectrum_index].findNearest(map_[starting_peak.spectrum][starting_peak.peak].getMZ())`, which re-reads the m/z of the *current* starting peak after `starting_peak` has moved. The search target therefore drifts with the accepted candidates while the acceptance window `std::fabs(mz - ...) >= pattern_tolerance_` stays anchored to the original m/z, so the two disagree about what is being searched for.
+
+**Proposed C++ fix:** Search from the captured `mz`, or move the window with the seed; either is consistent, the mixture is not.
+
+**Evidence:** Source review of the pinned file; the seeds this loop produces are part of the executed comparison.
+
+**Rust handling:** Reproduced exactly.
+
+## CPP-300 — The monoisotopic m/z correction uses the proton mass and a trace index
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; the reported value is executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:780-784`, `run_`, the `feature:reported_mz == "monoisotopic"` branch.
+
+**Trigger:** Any feature reported with `feature:reported_mz` set to `monoisotopic`.
+
+**Issue:** The correction is `(Constants::PROTON_MASS_U / c) * (traces.getTheoreticalmaxPosition() + trimmed_left)`. The spacing between isotope peaks is `C13C12_MASSDIFF_U` (about 1.00335 u), not `PROTON_MASS_U` (about 1.00728 u), and `getTheoreticalmaxPosition()` is a position in the pattern, not an isotope number. The reported monoisotopic m/z is biased by roughly 4 mDa per isotope step at charge 1.
+
+**Proposed C++ fix:** Subtract `C13C12_MASSDIFF_U / charge` per isotope step, counted from the monoisotopic peak.
+
+**Evidence:** Source review of the pinned file; the reported value is part of the executed feature comparison.
+
+**Rust handling:** Reproduced exactly, with the constant named in the module documentation.
+
+## CPP-301 — The final feature intensity picks the isotope window by m/z, not by mass
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; the reported value is executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:790` against `:356`.
+
+**Trigger:** Any feature of charge 2 or more.
+
+**Issue:** The intensity is `fitter->getArea() / getIsotopeDistribution_(f.getMZ()).max`, but the isotope windows were precalculated over *mass*: `max_mass = maxMZ * charge_high` at `:356`, and `getIsotopeDistribution_` bins its argument by `mass_window_width_`. For a doubly charged feature the window used is the one for half the feature's mass, whose maximum abundance differs, so the reported intensity is scaled by the wrong factor.
+
+**Proposed C++ fix:** Pass `f.getMZ() * charge` (the mass) to `getIsotopeDistribution_`.
+
+**Evidence:** Source review of the pinned file; the reported intensity is part of the executed feature comparison.
+
+**Rust handling:** Reproduced exactly.
+
+## CPP-302 — aborts_ is written from inside the OpenMP region without synchronisation
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; not executed as a race.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1129-1140` (`abort_`), called at `:627`, `:640` and `:725` inside the `#pragma omp parallel for` opened at `:595`.
+
+**Trigger:** Two threads aborting a seed at the same time.
+
+**Issue:** `abort_` does `aborts_[reason]++` on a `std::map<String, UInt>` and, with `debug_`, `abort_reasons_[seed] = reason` on a second map, both without a `critical` section, while the surrounding loop is parallel. Every other shared write in that loop is guarded (`:651`, `:716`, `:798`, `:812`). Concurrent insertion into a `std::map` is undefined behaviour, and the counts the tool prints come from it.
+
+**Proposed C++ fix:** Put both writes in a `critical` section, or accumulate per thread and merge after the loop.
+
+**Evidence:** Source review of the pinned file. The C2 driver records the library's abort map single-threaded only, for this reason.
+
+**Rust handling:** The port returns `RunOutput::aborts` from the serial merge of per-seed results, so the counts are deterministic at every thread count (asserted byte-identical at `-threads` 1/2/4/8/0).
+
+## CPP-303 — MorphologicalFilter leaves the last output sample unwritten for a one-sample element
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` (gcc 14.4, `-O3 -DNDEBUG`).
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/include/OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h:324-427` (`applyErosion_`) and the matching `applyDilation_`.
+
+**Trigger:** `struc_size == 1` (one data point, or a Thomson width narrower than the spacing) on a signal of more than five samples, so the simple fallback at `:341` is not taken.
+
+**Issue:** With `struc_size_half == 0` the lower-margin loop is empty, the middle loop writes output indices `0 .. size - 2`, and the higher-margin block's loops are empty as well, so `output[size - 1]` is never assigned. The caller sees whatever the output buffer held. Through `filterRange` that gives, for a one-sample element: `erosion`, `dilation`, `opening` and `closing` return the input with the last sample zeroed; `tophat` and `bothat` return zero everywhere with the last sample kept; `gradient` returns zero everywhere with the last sample the negated stale buffer value (see CPP-304). The identity of a one-sample erosion or dilation is the input itself, so every one of these is wrong in exactly one sample.
+
+**Proposed C++ fix:** Write the last output sample in the higher-margin block, or route `struc_size == 1` to `applyErosionSimple_`/`applyDilationSimple_`, which are correct there.
+
+**Evidence:** Executed differential against the Release build over the edge shapes and an exhaustive element-length sweep, and at tool level through `BaselineFilter`: `../oracle/baseline-filter-edges`, with the 1,698 committed expectation rows in `tests/data/baseline_filter_edges_expected.tsv` and the 528 sweep rows.
+
+**Rust handling:** Reproduced exactly, including through the `BaselineFilter` tool; `-method erosion_simple` and `dilation_simple` select the simple variants, which keep the last sample, as the source does.
+
+## CPP-304 — MorphologicalFilter::filterRange's static scratch buffer leaks between calls
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` (gcc 14.4, `-O3 -DNDEBUG`).
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/include/OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h:171` (the function-local `static std::vector` in `filterRange`), used by the `gradient`, `tophat`, `bothat`, `opening` and `closing` branches at `:208-225`.
+
+**Trigger:** A `gradient` filter with a one-sample structuring element, applied to more than one spectrum in the same process.
+
+**Issue:** The buffer is `static` "only to avoid reallocation", but `applyErosion_` does not write its last sample for a one-sample element (CPP-303), so `buffer[size - 1]` still holds the value a *previous* call left there. `output_begin[i] -= buffer[i]` then subtracts it, and the last sample of a gradient depends on which spectra were filtered before it, in which order, in the same process. Two runs that differ only in the order of unrelated spectra give different output.
+
+**Proposed C++ fix:** Clear the buffer before use, size it per call, or fix CPP-303 so nothing stale is ever read.
+
+**Evidence:** Executed: the `gradient` rows of `../oracle/baseline-filter-edges` with a one-sample element, and the history fixture `tests/data/baseline_filter_edges_history.mzML`, which reproduces the dependence on the preceding spectrum.
+
+**Rust handling:** Reproduced deliberately, so the executed comparison holds; the behaviour and its history dependence are documented in `docs/MORPHOLOGICAL_FILTER_SUPPORT.md`.
+
+## CPP-305 — The indexedmzML indexListOffset addresses the byte before <indexList
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` (gcc 14.4, `-O3 -DNDEBUG`).
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp:88-125`, `writeFooter_`.
+
+**Trigger:** Any `indexedmzML` file the C++ writer produces (`PeakFileOptions::getWriteIndex()`, the default).
+
+**Issue:** `Int64 indexlistoffset = os.tellp();` is taken *before* `os << "\n";`, so the recorded offset points at the newline that precedes `<indexList`, one byte early. The mzML indexedmzML schema defines the value as the offset of the `<indexList>` element. A reader that seeks to it and expects a `<` finds `\n`.
+
+**Proposed C++ fix:** Take `tellp()` after the newline is written.
+
+**Evidence:** Executed on the Release build: its `MapNormalizer` output declares `<indexListOffset>5150584</indexListOffset>` while `<indexList` starts at 5150585; verified with an independent offset checker on the produced files (`../oracle/mzml-writer-scale-parity`, `tools/mzml_writing/check_output.py`).
+
+**Rust handling:** This port's offsets address the opening `<indexList` exactly, and the difference is recorded as a container fact in `docs/MZML_WRITER_CPP_PARITY.md`, next to the placeholder checksum of CPP-049, so nobody later "fixes" the Rust offsets to match.
+
+## CPP-306 — Converting a 32-bit time array from minutes narrows the result back to float
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` (gcc 14.4, `-O3 -DNDEBUG`).
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp:217-222`, `decodeBase64Arrays`; the unit is set at `:365-373`, `handleBinaryDataArrayCVParam`.
+
+**Trigger:** Reading any mzML binary data array that carries `MS:1000595` (time array) with `unitAccession="UO:0000031"` (minute) and 32-bit precision — what ProteoWizard writes for the TIC chromatogram of a Thermo run.
+
+**Issue:** The minute-to-second conversion is applied in place. The 64-bit branch (`:210-216`) multiplies a `std::vector<double>` and keeps the `double`; the 32-bit branch is `for (auto& it : bindata.floats_32) { it = it * unit_multiplier; }`, where `it` binds to `float&`, so the `double` product is narrowed back to `float` on assignment and the converted seconds keep only 32-bit precision. A Numpress array is forced to `PRE_64` before either branch (`:185`), so it is unaffected. Reading the same physical times as a 64-bit minute array therefore gives the C++ itself a different result from reading them as a 32-bit minute array: on the 40,856-point TIC time array of `profile_hr_qe_silac_uk222/UK222.mzML`, 38,107 of 40,856 times differ between the two, by up to 2.44e-4 s (half an `f32` ULP at 4,400 s), and 8,806 of 40,855 point spacings move by more than 1e-3 relative. Downstream that is not cosmetic: `PeakPickerHiRes` finds its apex by bisection on a cubic spline through those points, so the picked chromatogram of that file moves by up to 3.19e-3 s in retention time and 1.75e-3 relative in intensity.
+
+**Proposed C++ fix:** Promote the array to `floats_64` before applying a multiplier other than 1.0, as the Numpress path already does, or accumulate the product in `double` and store it in a 64-bit array.
+
+**Evidence:** Executed on the Release build, both sides, by the fixing lane and independently by its verifier. The first value of that file's time array, raw `0x1.0081c4p+0` minutes, is stored as `0x1.e0f35p+5` = 60.118804931640625 s from the 32-bit minute array and as `0x1.e0f34f8p+5` = 60.118803977966309 s from a 64-bit array holding the same times; a 32-bit **seconds** array reproduces the narrowed value exactly, which pins the loss to `f32` precision and nothing else. Seven cases over 32/64-bit against minute/second plus the empty, single-point and unsorted shapes were read and picked by the Release build; the driver, the case generator and the raw results are in `../oracle/picked-chromatogram/`, and the projected values are `tests/data/peak_picking/chromatogram_time_oracle.tsv`.
+
+**Rust handling:** Reproduced deliberately, because it decides ordinary output: `mzml::ReadOptions::source_time_array_precision`, which `ReadOptions::source()` sets and therefore every tool path that reproduces source loading, narrows the product exactly as the source does; the library default keeps the `f64`. The same TSV pins both modes — the `min32` rows the source mode, the `min64` rows the default. One deliberate divergence: a finite 32-bit time whose product with 60 is not finite is refused with the existing `nonfinite binary value` parse error instead of being stored as the source's infinity. See `docs/MZML_SUPPORT.md` and `docs/PEAK_PICKING_SUPPORT.md`.
+
+## CPP-307 — The XML writers print doubles at 15 significant digits, so their own output does not round-trip
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` (gcc 14.4, `-O3 -DNDEBUG`).
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/XMLFile.cpp:362` and `:369`, `save_` (both the compressed and the uncompressed stream), and `src/openms/source/FORMAT/MzMLFile.cpp:170`, `storeBuffer`; the precision comes from `writtenDigits<double>()` = `std::numeric_limits<double>::digits10` = 15 (`src/openms/include/OpenMS/CONCEPT/Types.h:188-192`).
+
+**Trigger:** Any `double` an XML writer prints through the stream's default formatting — for mzML, every `scan start time` and every other scalar written as text rather than as a binary array.
+
+**Issue:** 15 significant digits is `digits10`, the number of decimal digits a `double` is guaranteed to *carry*, not the `max_digits10` = 17 needed to *recover* it. The comment beside the call says "set high precision for floating point numbers", but the value chosen loses information: a store followed by a load does not return the value that was stored. This is not a comparison tolerance — it is the writer discarding bits that the reader then cannot restore.
+
+**Proposed C++ fix:** Use `std::numeric_limits<double>::max_digits10` (17), or write the shortest round-tripping representation (`std::to_chars` with no precision argument).
+
+**Evidence:** Executed on the Release build's own `PeakPickerHiRes` output for `profile_hr_qe_silac_uk222/UK222.mzML`. All 40,856 scan start times were extracted from the input and reduced with `60.0 * StringUtils::toDouble(s)`, then rendered with `os.precision(writtenDigits(double()))`: the probe's text equals the text the tool actually wrote, 40,856 of 40,856, and the C++'s own written text fails to reparse to its own stored `double` in 10,671 of 40,856, worst case stored `0x1.00054ab606b7ap+12`, written `4096.33074`, reparsed `0x1.00054ab606b7bp+12`, a difference of 9.09e-13 s. Verified independently by the `fix/picked-chromatogram` verifier, who also confirmed the two *readers* agree bit for bit on all 40,856 (so the residual is writer-side only).
+
+**Rust handling:** This port writes the shortest round-tripping text and round-trips its own output 40,856 of 40,856, so a decoded comparison against the C++ shows the 1-to-2-ULP spread above on retention times while the binary arrays are bit-identical. The difference is recorded as a native difference in `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md` and in `docs/BENCHMARKS.md` §3.1, so nobody later "fixes" the Rust text to match.
