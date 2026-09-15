@@ -845,13 +845,21 @@ fn min_spectra_one_follows_the_source_and_finds_no_seed() {
     assert!(stage.scores().trace(0).unwrap().iter().all(|s| s.is_nan()));
     let output = run(ffc1_input(), &FeatureMap::new(), &parameters).unwrap();
     assert!(output.features.is_empty());
+    // The two empty entries are the blank lines the source prints before the
+    // abort block and before the feature count
+    // (`FeatureFinderAlgorithmPicked.cpp:1019` and `1026`), which it prints even
+    // when there is no abort reason: the C++ Release build
+    // `openms4-release-bc9cc12-c19e494-174b576` writes exactly this shape on a
+    // run that finds nothing (`FileConverter_31_output.mzML`).
     assert_eq!(
         output.log,
         [
             "Found 0 seeds for charge 2.",
             "Found 0 feature candidates for charge 2.",
             "Removed 0 overlapping features.",
+            "",
             "Info: reasons for not finalizing a feature during its construction:",
+            "",
             "0 features found.",
         ]
     );

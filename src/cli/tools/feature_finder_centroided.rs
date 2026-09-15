@@ -56,23 +56,34 @@
 //! No step writes `-out` before step 10, so every refusal and failure leaves no
 //! output file.
 //!
-//! # Not ported yet: the algorithm past seed selection
+//! # How far the run matches the executed C++
 //!
-//! The picked feature finder is ported up to seed selection. Its entry point
-//! returns [`Error::Unsupported`](crate::Error::Unsupported) once the seeds are
-//! selected, because seed extension, trace fitting and feature resolution
-//! (source step 3.3 onward, package B7) are not ported. Every input that passes
-//! the wrapper's checks therefore ends at step 8 with `Error: unsupported:
-//! FeatureFinderAlgorithmPicked seed extension, trace fitting and feature
-//! resolution (source step 3.3 onward) are not ported yet`, exit 11
-//! (`INCOMPATIBLE_INPUT_DATA`, the framework's code for
-//! [`Error::Unsupported`](crate::Error::Unsupported)), and no output. Steps 9
-//! and 10 are implemented, and step 9 is tested on its own. The algorithm's
-//! other failures, which the source raises as `IllegalArgument` (for example
-//! MS1 spectra that all lose their peaks to the intensity filter: `FeatureFinder
-//! needs updated ranges on input map. Aborting.`), are reported as `Error:
-//! Unexpected internal error (<message>)` with exit 8, as `TOPPBase` reports
-//! them.
+//! The whole chain runs: `TOPP_FeatureFinderCentroided_1` exits 0 and writes
+//! the eight features of the retained expectation, as do the `-seeds`,
+//! `-algorithm:feature:rt_shape asymmetric` and `-debug 5` modes. Measured
+//! against the C++ **Release** build `bc9cc12`/`174b576` on the same input and
+//! INI, the decoded output agrees on every structural field — feature count,
+//! charge, hull count, hull point count and order, metadata key sets,
+//! `spectra_data` and the single `Quantitation` processing record — with
+//! convex-hull coordinates and m/z positions bit-identical and `intensity` and
+//! `FWHM` identical as `f32`. What differs is the last bits of the
+//! Levenberg-Marquardt fit: at most `5.5e-13` relative on the retention time,
+//! `2.2e-10` on `score_fit` and `7.7e-12` on `score_correlation`, against a
+//! spread of `2.2e-13`, `9.1e-11` and `3.1e-12` between the C++ Debug and
+//! Release builds themselves. `overallquality` is printed by the C++ writer
+//! with six decimals, so it can only be compared to that precision, to which it
+//! agrees.
+//!
+//! The algorithm's failures, which the source raises as `IllegalArgument` (for
+//! example MS1 spectra that all lose their peaks to the intensity filter:
+//! `FeatureFinder needs updated ranges on input map. Aborting.`), are reported
+//! as `Error: Unexpected internal error (<message>)` with exit 8, as `TOPPBase`
+//! reports them. One such refusal is stricter than the C++ Release build: an
+//! input whose MS1 spectra share a single retention time makes the source
+//! divide by a zero bin width, which its Debug build catches in a precondition
+//! and its Release build carries through to an empty feature map; this port
+//! refuses it with exit 8 instead (`tests/topp_feature_finder_centroided.rs`
+//! measures both).
 //!
 //! # FAIMS input is refused
 //!
@@ -95,14 +106,15 @@
 //!
 //! # Threads
 //!
-//! `-threads` is accepted and validated by the TOPP framework. The source
-//! parallelises only seed extension (`FeatureFinderAlgorithmPicked.cpp:595`),
-//! which is not ported; the ported seed stage is serial in the source and here,
-//! and its entry point takes no thread policy. Nothing in this tool runs in
-//! parallel yet, so `-threads` cannot change a result. The back half of the
-//! algorithm is to take
-//! [`ToolContext::thread_policy`](crate::cli::ToolContext::thread_policy) when
-//! it is ported.
+//! `-threads` is accepted and validated by the TOPP framework and reaches the
+//! algorithm as
+//! [`Options::threads`](crate::analysis::feature_finder_picked::algorithm::Options::threads),
+//! which sizes the seed-extension loop — the port's form of the source's single
+//! `#pragma omp parallel for` (`FeatureFinderAlgorithmPicked.cpp:595`). By the
+//! determinism contract the result does not depend on the count: the loop
+//! returns its results in seed order and every later step is serial, so
+//! `-threads 1`, `2`, `4`, `8` and `0` write byte-identical output, unique ids
+//! included.
 //!
 //! See `docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md` for the API mapping, the
 //! preserved source conventions, the native differences and the evidence.
@@ -126,9 +138,9 @@ use std::io::Write;
 
 /// The `FeatureFinderCentroided` TOPP tool.
 ///
-/// Registration, `-write_ini` and every wrapper branch before the algorithm
-/// are complete; the algorithm stops after seed selection (see the module
-/// documentation), so no run produces a feature map yet.
+/// Registration, `-write_ini`, every wrapper branch and the algorithm itself
+/// run, so a non-FAIMS input produces a feature map; FAIMS input is refused
+/// (see the module documentation).
 pub struct FeatureFinderCentroided;
 
 impl FeatureFinderCentroided {
@@ -438,9 +450,13 @@ impl Tool for FeatureFinderCentroided {
         }
         writeln!(out, "{}", Self::NO_FAIMS_MESSAGE)?;
 
-        // The algorithm (283-291).
-        let outcome =
-            algorithm::run_with_options(experiment, &seeds, &parameters, &Options::default());
+        // The algorithm (283-291), on the worker count -threads asks for, as
+        // TOPPBase applies the setting before main_ (TOPPBase.cpp:408-415).
+        let options = Options {
+            threads: ctx.thread_policy(),
+            ..Options::default()
+        };
+        let outcome = algorithm::run_with_options(experiment, &seeds, &parameters, &options);
         let result = match outcome {
             Ok(result) => result,
             Err(Error::InvalidValue(message)) => {

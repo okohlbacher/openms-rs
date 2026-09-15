@@ -1,7 +1,8 @@
 # FeatureFinderCentroided: supported source subset
 
 The TOPP tool that detects two-dimensional features in centroided LC-MS data.
-Ported by package **C5-FFC-WRAPPER** of the early TOPP bundle from
+Ported by package **C5-FFC-WRAPPER** of the early TOPP bundle, and reconciled
+with the completed algorithm (package **B7-FFAP-FEATURES**) afterwards, from
 `OpenMS4-topp/src/FeatureFinderCentroided.cpp` at topp `174b576`, with the
 framework pieces it uses read at cli `c19e494` and the library pieces at core
 `bc9cc12`. The Rust tool is `openms::cli::tools::FeatureFinderCentroided`
@@ -22,12 +23,52 @@ The framework behaviour this tool inherits is documented in
 | Loading `-in` (mzML, MS1, executed intensity range), `-seeds` (featureXML) | complete |
 | Empty-input, per-peak ion-mobility and profile branches | complete, in source order |
 | FAIMS input | **refused** with exit 11 (decision D5); the closure is package B11's |
-| The picked algorithm | ported up to seed selection; every accepted input ends with `Error: unsupported: …` and exit 11 until package B7 lands |
-| Primary MS run path, unique ids, `QUANTITATION` processing record, hull and subordinate clean-up, featureXML store | implemented; tested directly, because no run reaches them yet |
-| `TOPP_FeatureFinderCentroided_1` output, `-seeds` results, `feature:rt_shape asymmetric`, `-debug 5`, thread counts | package B10 |
+| The picked algorithm | complete (package B7); `-threads` reaches its seed loop |
+| Primary MS run path, unique ids, `QUANTITATION` processing record, hull and subordinate clean-up, featureXML store | complete; reached by every accepted run and additionally tested on its own |
+| `TOPP_FeatureFinderCentroided_1`, `-seeds`, `feature:rt_shape asymmetric`, `-debug 5`, `-threads 0/1/2/4/8` | run end to end and measured against the C++ Release build (see below); the `1e-9` acceptance against the C1 oracle outputs and the `-algorithm:fit:max_iterations` sweep are package B10's |
 
-The tool therefore stays **partial** in the ledger: it decides every input the
-C++ tool decides before the algorithm, and produces no feature map.
+The tool therefore stays **partial** in the ledger, for one reason only: FAIMS
+input is refused. Everything else runs, and `TOPP_FeatureFinderCentroided_1`
+produces the retained expectation.
+
+## How close the output is to the executed C++
+
+`TOPP_FeatureFinderCentroided_1` was run through this port and through
+`/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/FeatureFinderCentroided`
+on the same input and INI, and the two featureXML files compared decoded
+(decision D6, generated identifiers excluded). Both give eight features of
+charge 2 with 30 four-point hulls, 120 hull points, no subordinates, the same
+`UserParam` key set, the same `spectra_data` and one `Quantitation` processing
+record, and the same stdout (`25 seeds`, `8 feature candidates`, `Removed 0
+overlapping features.`, `Invalid fit: Fitted model is bigger than 'max_rt_span':
+1 times`, `8 features found.`).
+
+| Field | Port vs C++ Release | C++ Debug vs C++ Release |
+|---|---|---|
+| convex-hull `rt` and `mz` (all 120 points) | bit-identical | bit-identical |
+| feature `mz` | bit-identical | bit-identical |
+| `intensity`, `FWHM` | identical as `f32` | identical as `f32` |
+| `label`, `num_of_datapoints`, `spectrum_index`, `spectrum_native_id` | identical | identical |
+| feature `rt` | `5.5e-13` relative | `2.2e-13` |
+| `score_fit` | `2.2e-10` relative | `9.1e-11` |
+| `score_correlation` | `7.7e-12` relative | `3.1e-12` |
+| `overallquality` | agrees to the six decimals the C++ writer prints | — |
+
+The residue is the last bits of the Levenberg-Marquardt fit, of the same order
+as the C++ build's own Debug-to-Release spread on the same fields. The other
+wrapper modes were measured the same way, on the same Linux node, against the
+same Release build:
+
+| Mode | Counts | Worst gap |
+|---|---|---|
+| `-seeds` with the retained output | `24 seeds`, `9 candidates`, `Removed 1 overlapping features.`, `Could not extend seed: 1 times`, 8 features, 30 hulls, 120 points | as FFC_1: `5.5e-13` rt, `2.2e-10` `score_fit`, `7.7e-12` `score_correlation` |
+| `-algorithm:feature:rt_shape asymmetric` | 8 features, 30 hulls, 120 points, `EGH_height`/`EGH_sigma`/`EGH_tau` present | `rt` and `mz` bit-identical; `EGH_tau` `9.9e-16`, `EGH_sigma` `1.3e-16`, `score_fit` `6.2e-16`, `score_correlation` `5.6e-16` |
+| `-debug 5` | 8 features, 30 hulls, **1054** points (no bounding-box reduction) | as FFC_1 |
+
+`-threads 0`, `1`, `2`, `4` and `8` write byte-identical output, unique ids
+included. The port's own two builds agree to one ulp: the macOS arm64 and Linux
+x86_64 `FeatureFinderCentroided` differ by at most `1.1e-16` relative on the
+FFC_1 output, so the numbers above are not a platform artefact.
 
 ## API mapping
 
@@ -80,23 +121,24 @@ case (C1 = `../oracle/topp-early-bundle`, C5 = `../oracle/ffc-wrapper-c5`).
 
 | Input | Exit | Diagnostic | Oracle case |
 |---|---|---|---|
-| Registered workflow `TOPP_FeatureFinderCentroided_1` | C++ 0; this port 11 until B7 | `Error: unsupported: FeatureFinderAlgorithmPicked seed extension, …` | C1 `TOPP_FeatureFinderCentroided_1` |
+| Registered workflow `TOPP_FeatureFinderCentroided_1` | 0 | — (eight features, see above) | C1 `TOPP_FeatureFinderCentroided_1` |
 | `-write_ini` (with and without `-test`) | 0 | — | C1 `FFC_write_ini`, `FFC_write_ini_test` |
 | MS2 spectra only | 4 | `Error: File empty (the file 'Error: No MS1 spectra in input file.' is empty)` | C1 `FFC_ms2_only` |
 | Per-peak ion mobility, with or without a unit | 11 | `Error: Input contains per-peak ion mobility data (IM_PEAK, im_profile) …` | C1 `FFC_im_peak_with_units`, `FFC_im_peak_without_units` |
 | Per-peak ion mobility **and** profile data | 11, the ion-mobility message | the check order of `main_` | C5 `c5_im_peak_profile_noforce` |
-| Ion-mobility arrays on MS2 spectra only | not refused | — | C1 `FFC_im_arrays_ms2_only` (the C++ exit is Debug-only) |
+| Ion-mobility arrays on MS2 spectra only | 0, empty feature map | — | C1 `FFC_im_arrays_ms2_only` (its Debug exit 8 is a precondition, `debug_only`); the C++ Release build exits 0 with `0 features found.`, as this port does |
 | First spectrum stored profile, no `-force` | 8 | `Error: Unexpected internal error (Error: Profile data provided but centroided spectra expected. …)` | C1 `FFC_profile_noforce`, `FFC_FileFilter_44_noforce`, C5 `c5_first_profile_only` |
-| First spectrum profile, `-force` | not refused | — | C1 `FFC_profile_force` |
-| Profile term before `MS:1000525`, no `-force` | not refused: the reader resets the type | — | C1 `FFC_profile_then_spectrum_representation` |
-| Every spectrum but the first stored profile | not refused: only `exp[0]` is checked | — | C5 `c5_later_profile_only` |
+| MS1 spectra that all share one retention time (`FileFilter_44_input.mzML` with `-force`) | this port 8; C++ Release 0 with an empty map | `Error: Unexpected internal error (FeatureFinderAlgorithmPicked needs a retention-time and an m/z range of positive width …)` | C1 `FFC_FileFilter_44_force` (Debug exit is a precondition, `debug_only`); see native difference 2 |
+| First spectrum profile, `-force` | 0, the FFC_1 features | — | C1 `FFC_profile_force` |
+| Profile term before `MS:1000525`, no `-force` | 0, the FFC_1 features: the reader resets the type | — | C1 `FFC_profile_then_spectrum_representation` |
+| Every spectrum but the first stored profile | 0, the FFC_1 features: only `exp[0]` is checked | — | C5 `c5_later_profile_only` |
 | Every MS1 peak below the intensity range | 8 | `Error: Unexpected internal error (FeatureFinder needs updated ranges on input map. Aborting.)` | C5 `c5_negative_intensities` |
 | `-seeds` that is not featureXML | 6 | `Input file '…' has invalid format 'mzML'. Valid formats are: 'featureXML'.` | C5 `c5_seeds_not_featurexml` |
 | FAIMS input with an unreadable `-seeds` file | 3 | `Error: Unable to read file (…)`, before any FAIMS message | C5 `c5_faims_corrupt_seeds` |
 | Any FAIMS input (one voltage, two voltages, a voltage on half the spectra, `-faims_merge_features false`) | C++ 8; this port 11 | `Error: FAIMS input is not supported by this port of FeatureFinderCentroided yet (compensation voltages … V): …` | C1 `FFC_faims_*`, C5 `c5_faims_partial_cv` |
 | FAIMS **profile** input without `-force` | 8, the profile message | the profile check precedes the split | C1 `FFC_faims_interleaved_noforce` |
 | `-algorithm:feature:rt_shape bogus` | 6 | `Invalid string parameter value 'bogus' … Valid values are: 'symmetric,asymmetric'.` | C1 `FFC_invalid_rt_shape` |
-| `-out` without an extension | accepted | — | C1 `FFC_out_no_extension` |
+| `-out` without an extension | 0, the FFC_1 features written into it | — | C1 `FFC_out_no_extension` |
 
 No branch writes `-out` before the store, and every refusal above was checked
 to leave no output file.
@@ -149,16 +191,24 @@ to leave no output file.
    keys removal by id. Reproducing either would be pointless, and pooling the
    voltages silently would be wrong, so the port refuses such input with exit 11
    and writes nothing. Package B11 ports the closure and removes the refusal.
-2. **The algorithm stops after seed selection** (package B7). Every input that
-   passes the wrapper ends with exit 11 and the message quoted above. Two
-   further observed endings belong to the algorithm, not the wrapper, and are
-   recorded here only so a reader is not surprised: the numpress profile fixture
-   with `-force` ends with `Error: Unexpected internal error
-   (FeatureFinderAlgorithmPicked needs a retention-time and an m/z range of
-   positive width …)` and exit 8, where the C++ Debug build fails an intensity
-   precondition; `FileConverter_31_output.mzML` ends with the not-ported message
-   and exit 11, where the C++ Debug build fails a `ProgressLogger` precondition.
-   Both C++ exits are Debug-only and are not expectations.
+2. **A zero-width retention-time range is refused, where C++ Release returns an
+   empty map.** `FileFilter_44_input.mzML` has four MS1 spectra at the single
+   retention time `0.273`. Source `FeatureFinderAlgorithmPicked::run_` divides
+   the retention-time range by `intensity:bins`, which is a division by zero
+   here. The three builds part company: the C++ Debug build exits 8 from an
+   `OPENMS_PRECONDITION` inside `ProgressLogger::init` (`debug_only`, D7); the
+   C++ Release build carries the non-finite bin bounds through, finds no seed
+   and no candidate for charges 1 to 4, prints `0 features found.`, exits 0 and
+   writes `<featureList count="0">`; this port refuses with `Error: Unexpected
+   internal error (FeatureFinderAlgorithmPicked needs a retention-time and an
+   m/z range of positive width …)` and exit 8, writing nothing. The difference
+   is recorded as the ignored test
+   `a_zero_width_retention_time_range_diverges_from_the_cpp_release_build`.
+   Closing it is the picked feature finder's decision — reproduce the
+   non-finite binning, or make the refusal opt-out for the tool path — not this
+   wrapper's. `FileConverter_31_output.mzML`, the other `debug_only` case, needs
+   no such note: this port matches the C++ Release build there (exit 0, empty
+   map).
 3. **Two `algorithm:` values the ported stage refuses** reach the user through
    this tool: `-algorithm:write_debug true`, whose source debug output reads an
    undeclared parameter and writes into the working directory, and a non-default
@@ -199,12 +249,17 @@ to leave no output file.
 10. **The debug listing above level 10** lists metadata in key order with Rust's
    shortest round-trip number formatting, where the source lists keys in
    meta-registry order and formats with `StringUtils::toStr`.
-11. **`-threads` changes nothing yet.** The source parallelises only seed
-   extension (`FeatureFinderAlgorithmPicked.cpp:595`), which is not ported; the
-   ported stage is serial in the source too. The entry point takes no thread
-   policy, so the wrapper passes none; B7 adds the parameter and B10 passes
-   `ToolContext::thread_policy`. The determinism contract is met trivially: no
-   result depends on a thread count.
+11. **`-threads` sizes the seed loop and cannot change a result.** The wrapper
+   passes `ToolContext::thread_policy` as
+   `feature_finder_picked::algorithm::Options::threads`, which sizes the
+   seed-extension loop — the port's form of the source's single `#pragma omp
+   parallel for` (`FeatureFinderAlgorithmPicked.cpp:595`). The loop returns its
+   results in seed order and every later step is serial, so the determinism
+   contract holds strictly: `-threads 0`, `1`, `2`, `4` and `8` write
+   byte-identical files, unique ids included. The source's results are
+   schedule-independent for the same reason (its `tmp_feature_map` is keyed by
+   seed index), but it reaches that by a shared map written from inside the
+   parallel region.
 12. **Loader strictness.** The tool asks the mzML reader for the source's
     tolerance of dangling `softwareRef` and `defaultDataProcessingRef`
     (decision D10); everything else stays at the reader's strict library
@@ -227,13 +282,18 @@ to leave no output file.
 - **No panics on untrusted input.** Every branch returns an exit code or an
   `Error`; the only indexing is `spectra[0]` after the emptiness check.
 - **Evidence.** Tier 1 for every asserted exit code, diagnostic and absent
-  output (29 executed C++ cases, each run twice and reproduced), and for the
+  output (29 executed C++ cases, each run twice and reproduced), for the
   `-write_ini` defaults, which are compared with the executed file line by line
-  with exact numbers and as a decoded parameter tree. Tier 3 for the
-  registration details and the annotation steps, whose end-to-end comparison is
-  package B10's. The synthetic inputs are derived in the tests from the retained
+  with exact numbers and as a decoded parameter tree, and for the feature
+  output, which is compared decoded against the retained expectation and
+  measured against the C++ Release build of `bc9cc12`/`174b576` as the table
+  above records. Tier 3 for the registration details. The synthetic inputs are
+  derived in the tests from the retained
   `FeatureFinderCentroided_1_input.mzML` by the recorded rules and pinned to the
   executed files by digest, so no derived megabyte enters the repository.
-- **Not asserted.** The exit codes of the two cases whose C++ runs end in a
-  Debug-only precondition, and anything about the feature map a complete run
-  would produce.
+- **Not asserted.** The Debug exit codes of the two `debug_only` cases (D7); the
+  C++ Release behaviour is asserted instead for `FFC_im_arrays_ms2_only` and
+  recorded as a divergence for `FFC_FileFilter_44_force`. The `1e-9` comparison
+  against the C1 oracle outputs of `FFC_seeds`, `FFC_asymmetric` and
+  `FFC_debug5`, and the `-algorithm:fit:max_iterations` boundary sweep, are
+  package B10's and are not asserted here.
