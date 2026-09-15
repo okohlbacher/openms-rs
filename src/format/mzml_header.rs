@@ -28,7 +28,11 @@ pub(super) use read::Registry;
 mod write;
 pub(super) use write::{ArrayHeader, Plan, guard, prepare};
 
+/// The fixed header work allowance of `Work::default`, used by the writer, and
+/// the default floor of the reader's size-derived `metadata_work` allowance.
 pub(super) const MAX_WORK: usize = 50_000_000;
+/// The fixed header byte allowance of `Work::default`, used by the writer, and
+/// the default floor of the reader's size-derived `metadata_bytes` allowance.
 pub(super) const MAX_BYTES: usize = 256 * 1024 * 1024;
 
 pub(super) struct Work {
@@ -222,14 +226,20 @@ impl Draft {
     /// `run` attributes in `attrs`, and return the registry for later record
     /// references.
     ///
-    /// `source_dangling_references` is `ReadOptions::source_dangling_references`:
-    /// `true` substitutes the source's empty values for a `softwareRef` or
-    /// data-processing reference that names no definition, `false` rejects it.
+    /// Two switches of `options` apply here.
+    /// `ReadOptions::source_dangling_references` substitutes the source's
+    /// empty values for a `softwareRef` or data-processing reference that
+    /// names no definition instead of rejecting it, and
+    /// `ReadOptions::source_invalid_timestamps` leaves an unparseable run
+    /// `startTimeStamp` or processing completion time unset instead of
+    /// rejecting it.
     ///
     /// # Errors
     ///
     /// Returns [`Error::Parse`] for an unclosed header element, malformed or
-    /// unresolved header content, and exhausted parameter or work allowances.
+    /// unresolved header content, and exhausted parameter or work allowances,
+    /// and [`Error::InvalidValue`] for an unparseable timestamp under the
+    /// default policy.
     pub fn finish(
         self,
         attrs: &BTreeMap<String, String>,
@@ -237,19 +247,13 @@ impl Draft {
         parameters: &mut ParameterBudget,
         work: &mut Work,
         settings: &mut ExperimentalSettings,
-        source_dangling_references: bool,
+        options: &ReadOptions,
     ) -> Result<Registry> {
         if !self.stack.is_empty() {
             return Err(invalid("unfinished mzML header"));
         }
         read::parse(
-            self.roots,
-            attrs,
-            groups,
-            parameters,
-            work,
-            settings,
-            source_dangling_references,
+            self.roots, attrs, groups, parameters, work, settings, options,
         )
     }
 }
@@ -258,6 +262,9 @@ struct Context<'a> {
     groups: &'a BTreeMap<String, Vec<Parameter>>,
     parameters: &'a mut ParameterBudget,
     work: &'a mut Work,
+    /// `ReadOptions::source_invalid_timestamps`: drop an unparseable
+    /// completion time instead of rejecting the document.
+    source_invalid_timestamps: bool,
 }
 impl Context<'_> {
     fn params(

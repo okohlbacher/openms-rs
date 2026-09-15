@@ -25,6 +25,9 @@ pub use counts::{
     MAX_COUNT_EVENT_BYTES, MAX_COUNT_WORK, MAX_COUNT_XML_DEPTH, MzMLCounts, load_size,
     load_size_with_options, read_size, read_size_with_options,
 };
+#[path = "mzml_scaling.rs"]
+mod scaling;
+pub use scaling::{Allowance, InputScaling};
 #[path = "mzml_centroid.rs"]
 mod centroid;
 pub use centroid::{CentroidInfoLimits, SpecInfo, centroid_info, centroid_info_with_options};
@@ -88,32 +91,96 @@ const NAME_KEY: &str = "openms-rust:name";
 /// mobility terms, so it reads both spellings.
 const LEGACY_FAIMS_VOLT: &str = "UO:000218";
 
-/// Resource limits and acquisition normalization for mzML loading.
+/// Resource limits, acquisition normalization and source-compatibility switches
+/// for mzML loading.
+///
 /// Limits apply before allocation from declared lengths and during decoding.
+/// Every cumulative quantity is bounded twice: by the absolute `max_*` ceiling
+/// here and by the size-derived allowance in [`ReadOptions::scaling`], which
+/// grows with the XML bytes consumed so far. A charge fails when it exceeds
+/// either. The absolute ceilings default to "unbounded" (`usize::MAX`, or 1 TiB
+/// of XML), so by default the size-derived allowances decide, and a document of
+/// any realistic size reads while a small one that declares huge arrays or
+/// amplifies parameter-group references is refused. An explicit absolute
+/// ceiling is always honoured as given. See
+/// `docs/MZML_READER_SCALE_SUPPORT.md`.
+///
+/// Counts that each need their own start tag (`max_records`,
+/// `max_total_arrays`, `max_param_groups`) are bounded by the XML size too, but
+/// a record is the most memory-amplifying thing a document can declare per XML
+/// byte, so their allowances grow once per group of consumed bytes
+/// ([`InputScaling::records`], [`InputScaling::arrays`],
+/// [`InputScaling::param_groups`]) rather than per byte.
 #[derive(Clone, Copy, Debug)]
 pub struct ReadOptions {
     /// Materialize source dummy scans, or preserve the canonical empty native form.
     pub acquisition_mode: AcquisitionMode,
-    /// Maximum XML input bytes, including metadata and encoded arrays.
+    /// Maximum XML input bytes, including metadata and encoded arrays. The
+    /// default, 1 TiB, only stops an unbounded stream; a file ends on its own.
     pub max_xml_bytes: u64,
-    /// Maximum compressed or decoded bytes for each binary array.
+    /// Maximum compressed or decoded bytes for each binary array. Default
+    /// 64 MiB, 8 million `f64` values. The largest single array in any
+    /// benchmark input declares 53,824 elements (the `UK222.mzML` TIC
+    /// chromatogram, 431 KB decoded), so the default is 155 times the largest
+    /// measured array and far beyond any instrument's single spectrum. This
+    /// ceiling is per array and does not scale with the input: it also bounds
+    /// the one transient value vector a decoded array allocates, which is what
+    /// stops a small document whose few arrays each inflate to hundreds of
+    /// megabytes.
     pub max_array_bytes: usize,
-    /// Maximum raw declared spectrum/chromatogram points, including filtered records.
+    /// Maximum raw declared spectrum/chromatogram points, including filtered
+    /// records. Default unbounded; see [`InputScaling::peaks`].
     pub max_total_peaks: usize,
-    /// Maximum decoded bytes across all primary and auxiliary arrays.
+    /// Maximum decoded bytes across all primary and auxiliary arrays. Default
+    /// unbounded; see [`InputScaling::array_bytes`].
     pub max_total_array_bytes: usize,
     /// Maximum elements across all arrays, including empty string elements.
+    /// Default unbounded; see [`InputScaling::array_elements`].
     pub max_total_array_elements: usize,
-    /// Maximum binary arrays, including empty placeholders.
+    /// Maximum binary arrays, including empty placeholders. Default unbounded;
+    /// see [`InputScaling::arrays`].
     pub max_total_arrays: usize,
-    /// Maximum total spectra plus chromatograms.
+    /// Maximum total spectra plus chromatograms. Default unbounded; see
+    /// [`InputScaling::records`].
     pub max_records: usize,
-    /// Maximum referenceable parameter groups (including unused and empty groups).
+    /// Maximum referenceable parameter groups (including unused and empty
+    /// groups). Default unbounded; see [`InputScaling::param_groups`].
     pub max_param_groups: usize,
-    /// Maximum groups, parameters/ref uses and supported acquisition descriptors combined.
+    /// Maximum groups, parameters/ref uses and supported acquisition
+    /// descriptors combined. Default unbounded; see [`InputScaling::params`].
     pub max_total_params: usize,
-    /// Cumulative parameter, acquisition descriptor and resolved-reference storage bytes.
+    /// Cumulative parameter, acquisition descriptor and resolved-reference
+    /// storage bytes. Default unbounded; see [`InputScaling::param_bytes`].
     pub max_param_bytes: usize,
+    /// Size-derived allowances applied together with the absolute ceilings
+    /// above. [`InputScaling::fixed`] restores the former fixed ceilings.
+    pub scaling: InputScaling,
+    /// Read an unparseable `run/@startTimeStamp` or processing completion time
+    /// the way source `MzMLHandler` does.
+    ///
+    /// ProteoWizard writes `startTimeStamp="-infinity"` when the vendor file
+    /// has no acquisition date (PXD001819 `UPS1_50amol_R1.mzML`), and Boost
+    /// spells the other special values `infinity` and `not-a-date-time`.
+    /// `DateTime::set` rejects all of them, as source `DateTime::set` throws
+    /// `Exception::ParseError`.
+    ///
+    /// `true`, the default, is what source `MzMLHandler` does, which has no
+    /// strict mode here. For `startTimeStamp`, `XMLHandler::asDateTime_`
+    /// (`XMLHandler.h:359-377`) catches the error, logs `DateTime conversion
+    /// error` as a non-fatal error and leaves the run date-time unset, so the
+    /// writer omits the attribute. For a `processingMethod` completion time
+    /// (`MS:1000747`), `XMLHandler::cvParamToValue` (`XMLHandler.cpp:232-243`)
+    /// warns and drops the term, leaving the completion time unset. Both were
+    /// executed on the C++ Release build, where `FileInfo` and `FileConverter`
+    /// read such a file and exit 0. Each dropped value writes one line to the
+    /// crate's warning log stream.
+    ///
+    /// `false` rejects such a document with [`Error::InvalidValue`]
+    /// (`invalid DateTime input or calendar fields`) instead, for a caller that
+    /// would rather not lose the value silently. The default is lenient because
+    /// the alternative is refusing files that every OpenMS tool reads: it made
+    /// all 60 Rust tool runs of the OpenMS4 smoke benchmark exit 6.
+    pub source_invalid_timestamps: bool,
     /// Read a dangling header reference the way source `MzMLHandler` does.
     ///
     /// Covers a `softwareRef` on an `instrumentConfiguration` or
@@ -138,17 +205,35 @@ impl Default for ReadOptions {
     fn default() -> Self {
         Self {
             acquisition_mode: AcquisitionMode::default(),
-            max_xml_bytes: 512 * 1024 * 1024,
-            max_array_bytes: 64 * 1024 * 1024,
-            max_total_peaks: 10_000_000,
-            max_records: 1_000_000,
-            max_total_array_bytes: 512 * 1024 * 1024,
-            max_total_array_elements: 20_000_000,
-            max_total_arrays: 1_000_000,
-            max_param_groups: 100_000,
-            max_total_params: 10_000_000,
-            max_param_bytes: 512 * 1024 * 1024,
+            max_xml_bytes: 1 << 40,
+            max_array_bytes: 1 << 26,
+            max_total_peaks: usize::MAX,
+            max_records: usize::MAX,
+            max_total_array_bytes: usize::MAX,
+            max_total_array_elements: usize::MAX,
+            max_total_arrays: usize::MAX,
+            max_param_groups: usize::MAX,
+            max_total_params: usize::MAX,
+            max_param_bytes: usize::MAX,
+            scaling: InputScaling::default(),
+            source_invalid_timestamps: true,
             source_dangling_references: false,
+        }
+    }
+}
+impl ReadOptions {
+    /// The default limits with every source-compatibility switch enabled.
+    ///
+    /// Sets [`ReadOptions::source_dangling_references`] on top of the default
+    /// [`ReadOptions::source_invalid_timestamps`], so a document reads as
+    /// source `MzMLHandler` reads it wherever this port otherwise refuses a
+    /// loss. Limits and acquisition normalization stay at their defaults.
+    /// This is what a TOPP tool that reproduces source loading passes.
+    pub fn source() -> Self {
+        Self {
+            source_dangling_references: true,
+            source_invalid_timestamps: true,
+            ..Self::default()
         }
     }
 }
@@ -1478,7 +1563,11 @@ fn read_engine(
     };
     let mut header_draft = header::Draft::default();
     let mut header_registry = header::Registry::default();
-    let mut header_work = header::Work::default();
+    // No absolute ceiling: `options.scaling.metadata_*` bound this allowance.
+    let mut header_work = header::Work {
+        remaining: usize::MAX,
+        bytes: usize::MAX,
+    };
     let mut default_processing = Vec::new();
     let limit = options
         .max_xml_bytes
@@ -1494,16 +1583,19 @@ fn read_engine(
     let mut seen_root = false;
     let mut seen_mzml = false;
     let mut seen_run = false;
-    let mut total_peaks = 0usize;
-    let mut records = 0usize;
+    // Declared points still available, under both `max_total_peaks` and
+    // `scaling.peaks`.
+    let mut remaining_peaks = options.max_total_peaks;
+    // Records, binary arrays and parameter groups still available, under both
+    // their absolute ceiling and `scaling.records`/`arrays`/`param_groups`.
+    let mut remaining_records = options.max_records;
     let mut spectrum_list_seen = false;
     let mut chromatogram_list_seen = false;
     let mut array_list_seen = false;
-    let mut total_arrays = 0usize;
+    let mut remaining_arrays = options.max_total_arrays;
     let mut numpress_limits = coder::NumpressCoderLimits::default();
     numpress_limits.raw.max_encoded_bytes = options.max_array_bytes;
     numpress_limits.max_text_bytes = usize::try_from(options.max_xml_bytes).unwrap_or(usize::MAX);
-    let mut numpress_work = coder::Work::new(numpress_limits);
     let mut remaining_array_bytes = options.max_total_array_bytes;
     let mut remaining_array_elements = options.max_total_array_elements;
     let mut ids = BTreeSet::new();
@@ -1542,10 +1634,33 @@ fn read_engine(
     let mut groups = BTreeMap::<String, Vec<Parameter>>::new();
     let mut group: Option<(String, Vec<Parameter>)> = None;
     let mut group_list_seen = false;
+    let mut remaining_groups = options.max_param_groups;
     let mut parameter_budget = ParameterBudget {
         remaining: options.max_total_params,
         bytes: options.max_param_bytes,
     };
+    // Every cumulative counter holds the room left under its absolute ceiling
+    // and, reconciled after each event, under its size-derived allowance.
+    let scaling = &options.scaling;
+    let mut ledger = scaling::Ledger::attach([
+        (&mut remaining_peaks, scaling.peaks),
+        (&mut remaining_array_bytes, scaling.array_bytes),
+        (&mut remaining_array_elements, scaling.array_elements),
+        (&mut remaining_records, scaling.records),
+        (&mut remaining_arrays, scaling.arrays),
+        (&mut remaining_groups, scaling.param_groups),
+        (&mut parameter_budget.remaining, scaling.params),
+        (&mut parameter_budget.bytes, scaling.param_bytes),
+        (&mut header_work.remaining, scaling.metadata_work),
+        (&mut header_work.bytes, scaling.metadata_bytes),
+    ]);
+    let mut selection_ledger = selection.as_mut().map(|state| {
+        let [work, bytes] = state.allowances();
+        scaling::Ledger::attach([
+            (work, scaling.selection_work),
+            (bytes, scaling.selection_bytes),
+        ])
+    });
     let mut seen_declaration = false;
     let mut ascii_only = false;
     let mut latin1_subset = false;
@@ -1555,6 +1670,26 @@ fn read_engine(
             .read_resolved_event_into(&mut buffer)
             .map_err(|e| invalid(e.to_string()))?;
         let namespace_ok = matches!(namespace, ResolveResult::Bound(ns) if ns.as_ref() == NS);
+        // Credit the bytes of this event before any of its charges.
+        let position = reader.buffer_position();
+        ledger.sync(
+            position,
+            [
+                &mut remaining_peaks,
+                &mut remaining_array_bytes,
+                &mut remaining_array_elements,
+                &mut remaining_records,
+                &mut remaining_arrays,
+                &mut remaining_groups,
+                &mut parameter_budget.remaining,
+                &mut parameter_budget.bytes,
+                &mut header_work.remaining,
+                &mut header_work.bytes,
+            ],
+        );
+        if let (Some(ledger), Some(state)) = (selection_ledger.as_mut(), selection.as_mut()) {
+            ledger.sync(position, state.allowances());
+        }
         if ascii_only && !event.is_ascii() {
             if latin1_subset {
                 return Err(Error::Unsupported(
@@ -1867,7 +2002,7 @@ fn read_engine(
                             &mut parameter_budget,
                             &mut header_work,
                             &mut experiment.settings,
-                            options.source_dangling_references,
+                            options,
                         )?;
                         seen_run = true;
                     }
@@ -1877,7 +2012,7 @@ fn read_engine(
                         }
                         let expected =
                             number::<usize>(required(&attrs, "count")?, "parameter group count")?;
-                        if expected == 0 || expected > options.max_param_groups {
+                        if expected == 0 || expected > remaining_groups {
                             return Err(invalid(
                                 "parameter group count is zero or exceeds configured limit",
                             ));
@@ -1893,9 +2028,9 @@ fn read_engine(
                         if groups.contains_key(id) {
                             return Err(invalid("duplicate parameter group ID"));
                         }
-                        if groups.len() >= options.max_param_groups {
-                            return Err(invalid("parameter group count exceeds configured limit"));
-                        }
+                        remaining_groups = remaining_groups.checked_sub(1).ok_or_else(|| {
+                            invalid("parameter group count exceeds configured limit")
+                        })?;
                         group = Some((id.to_owned(), Vec::new()));
                     }
                     "referenceableParamGroupRef" => {
@@ -1936,7 +2071,8 @@ fn read_engine(
                         }
                         *slot = true;
                         // Advisory declared count; records are bounded by
-                        // `options.max_records` as each one opens.
+                        // `options.max_records` and `scaling.records` as each
+                        // one opens.
                         let _declared: usize = number(required(&attrs, "count")?, "record count")?;
                         default_processing = attrs
                             .get("defaultDataProcessingRef")
@@ -1953,18 +2089,16 @@ fn read_engine(
                         if parent != expected_parent || record.is_some() {
                             return Err(invalid("misplaced spectrum/chromatogram"));
                         }
-                        records = records
-                            .checked_add(1)
-                            .filter(|&n| n <= options.max_records)
+                        remaining_records = remaining_records
+                            .checked_sub(1)
                             .ok_or_else(|| invalid("record count exceeds configured limit"))?;
                         let count: usize = number(
                             required(&attrs, "defaultArrayLength")?,
                             "defaultArrayLength",
                         )?;
                         if fill_data {
-                            total_peaks = total_peaks
-                                .checked_add(count)
-                                .filter(|&n| n <= options.max_total_peaks)
+                            remaining_peaks = remaining_peaks
+                                .checked_sub(count)
                                 .ok_or_else(|| invalid("peak count exceeds configured limit"))?;
                         }
                         let id = required(&attrs, "id")?.to_owned();
@@ -2069,7 +2203,8 @@ fn read_engine(
                         }
                         array_list_seen = true;
                         // Advisory declared count; arrays are bounded by
-                        // `options.max_total_arrays` as each one opens.
+                        // `options.max_total_arrays` and `scaling.arrays` as
+                        // each one opens.
                         let _declared: usize =
                             number(required(&attrs, "count")?, "binary array count")?;
                     }
@@ -2101,9 +2236,8 @@ fn read_engine(
                                 .transpose()?,
                             ..Default::default()
                         });
-                        total_arrays = total_arrays
-                            .checked_add(1)
-                            .filter(|&n| n <= options.max_total_arrays)
+                        remaining_arrays = remaining_arrays
+                            .checked_sub(1)
                             .ok_or_else(|| invalid("total binary array count limit exceeded"))?;
                     }
                     "binary" => {
@@ -2270,6 +2404,28 @@ fn read_engine(
                         }
                         let metadata = std::mem::take(&mut b.metadata);
                         let data_processing = std::mem::take(&mut b.data_processing);
+                        // The Numpress coder's work and allocation allowances
+                        // are per array: its defaults plus a multiple of this
+                        // array's encoded text and declared values. One
+                        // allowance for the whole document rejected any
+                        // Numpress file beyond a few megabytes; the cumulative
+                        // element and byte counters charged in `decode` bound
+                        // the total.
+                        let mut numpress_work = {
+                            let mut limits = numpress_limits;
+                            let text = b.encoded.len();
+                            let values = b.array_length.unwrap_or(r.count);
+                            limits.raw.max_work = limits
+                                .raw
+                                .max_work
+                                .saturating_add(text.saturating_mul(512))
+                                .saturating_add(values.saturating_mul(64));
+                            limits.max_total_bytes = limits
+                                .max_total_bytes
+                                .saturating_add(text.saturating_mul(64))
+                                .saturating_add(values.saturating_mul(32));
+                            coder::Work::new(limits)
+                        };
                         let (kind, values) = b.decode(
                             r.count,
                             options,
