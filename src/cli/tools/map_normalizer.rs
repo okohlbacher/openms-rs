@@ -27,7 +27,17 @@ impl Tool for MapNormalizer {
         Ok(())
     }
 
+    /// Source `main_`, run on the worker pool that `-threads` sizes, as
+    /// `TOPPBase::main` applies the setting before `main_`
+    /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`].
     fn run(ctx: &ToolContext) -> Result<ExitCode> {
+        ctx.in_thread_pool(|| Self::run_in_pool(ctx))?
+    }
+}
+
+impl MapNormalizer {
+    /// The tool body, as the source `main_`.
+    fn run_in_pool(ctx: &ToolContext) -> Result<ExitCode> {
         let mut experiment = FileHandler::load_experiment(ctx.string("in")?, &[FileType::MzMl])?;
 
         // Source takes the maximum over every MS level, then divides by a
