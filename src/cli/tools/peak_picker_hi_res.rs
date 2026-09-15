@@ -12,6 +12,12 @@
 //! processing record and store the mzML output. The tool's `algorithm`
 //! subsection is the picker's source parameter tree.
 //!
+//! The input is read with [`PeakPickerHiRes::read_options`], the size-derived
+//! library ceilings plus the source-compatibility switches a tool path takes
+//! (decision D10). Instrument-sized profile runs read: the support document
+//! records a 2.3 GB, 40,856-spectrum Q Exactive file picked end to end and
+//! compared against the C++ tool.
+//!
 //! Not ported yet: `-processOption lowmemory`, the source's
 //! `PPHiResMzMLConsumer` path through `MzMLFile::transform`, is refused with
 //! `INCOMPATIBLE_INPUT_DATA` until package P4-PICKER-LOWMEM ports it; the
@@ -52,6 +58,40 @@ use std::io::Write;
 /// `-algorithm:<name>` command-line override the strict parameter update
 /// accepts. See [`PeakPickerHiRes::run_io`] for the run.
 pub struct PeakPickerHiRes;
+
+impl PeakPickerHiRes {
+    /// The mzML load options of this tool path: [`mzml::ReadOptions::source`].
+    ///
+    /// Source `main_` loads through `FileHandler::loadExperiment`, whose
+    /// `MzMLFile` has neither a source-compatibility switch nor a resource
+    /// ceiling, so a tool path reproduces it in both respects:
+    ///
+    /// * **Source compatibility (decision D10).** `source_dangling_references`
+    ///   drops a `softwareRef` or `dataProcessingRef` that names no definition,
+    ///   which source `std::map::operator[]` does silently
+    ///   (`MzMLHandler.cpp:920-952`); the library default refuses it.
+    ///   `source_invalid_timestamps` keeps an unparseable `startTimeStamp`
+    ///   non-fatal, which is both the source behaviour and the library default.
+    ///   Using `ReadOptions::source()` rather than naming the switches here
+    ///   means a switch added to that constructor reaches this tool with it.
+    /// * **Resource ceilings.** The limits are the library defaults, which are
+    ///   size-derived ([`mzml::InputScaling`], `src/format/mzml_scaling.rs`):
+    ///   the ceiling for every cumulative quantity grows with the XML bytes already
+    ///   consumed, so work and storage stay linear in the input while a
+    ///   document of any realistic size fits. The ceilings this tool shipped
+    ///   with were fixed, and refused instrument-sized profile data outright: a
+    ///   2.3 GB, 40,856-spectrum Q Exactive run has 197,765,338 raw points
+    ///   against a fixed ceiling of 10,000,000, and 2.3 GB of XML against a
+    ///   fixed 512 MiB. `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md` measures that
+    ///   input through this tool and against the C++ tool.
+    ///
+    /// Scientific selection stays at [`PeakFileOptions::default`], as the source
+    /// tool sets no `PeakFileOptions`; that default still sorts every record by
+    /// position, as source `MzMLHandler` does.
+    pub fn read_options() -> mzml::ReadOptions {
+        mzml::ReadOptions::source()
+    }
+}
 
 /// Source warning for per-peak ion mobility (`PeakPickerHiRes.cpp:222-226`),
 /// around the name of the spectrum's ion mobility peak type.
@@ -257,10 +297,10 @@ impl Tool for PeakPickerHiRes {
     ///    intensities and non-positive spline maxima without refusing them.
     /// 2. `-processOption lowmemory` is refused with [`Error::Unsupported`]
     ///    (`INCOMPATIBLE_INPUT_DATA`) before anything is read.
-    /// 3. The input is loaded as mzML with the source's dangling header
-    ///    references accepted
-    ///    ([`crate::format::mzml::ReadOptions::source_dangling_references`],
-    ///    decision D10), then checked as described at `check_input`.
+    /// 3. The input is loaded as mzML with [`PeakPickerHiRes::read_options`] —
+    ///    the source's dangling header references accepted (decision D10) and
+    ///    the size-derived library ceilings, which admit an instrument-sized
+    ///    run — then checked as described at `check_input`.
     /// 4. Spectra are picked with the spectrum type checked unless `-force` is
     ///    given (`check_spectrum_type = !force`). A centroided spectrum in manual
     ///    mode without `-force` ends the run with
@@ -302,10 +342,7 @@ impl Tool for PeakPickerHiRes {
             input,
             &[FileType::MzMl],
             &PeakFileOptions::default(),
-            &mzml::ReadOptions {
-                source_dangling_references: true,
-                ..Default::default()
-            },
+            &Self::read_options(),
         )?;
         if let Some(code) = check_input(&raw, err)? {
             return Ok(code);

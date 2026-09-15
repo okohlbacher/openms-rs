@@ -210,6 +210,21 @@
       "path": "../oracle/release-build/manifest.json",
       "sha256": "2efe7501c5c7e3f6dd3feef78628ae6f1158e762b7fc04154de21cfd095b293a",
       "role": "the optimised C++ build at these pins, used for the release wall-time comparison in docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md; the Debug product SDK is never timed (decision D7)"
+    },
+    {
+      "path": "../oracle/topp-peak-picker-scale/manifest.json",
+      "sha256": "d92c8993b35604fa15d06454c60fff46aefa6186dc2f549c259eca179ebd20e7",
+      "role": "the instrument-scale run recorded in docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md: the 2.3 GB UK222.mzML benchmark input (sha256 bd6f6e19...) through the C++ Release PeakPickerHiRes and the Rust release binary on ibminode06, with the INI the C++ tool writes; exit codes, wall time, peak RSS, FuzzyDiff and the decoded (D6) comparison"
+    },
+    {
+      "path": "../oracle/topp-peak-picker-scale/bench_06.sh",
+      "sha256": "0a4e447adc8d00b1a587609a00610cb7f9dadee3f87145c1fcbd2cccd02cc290",
+      "role": "the benchmark driver: -write_ini, both tools under /usr/bin/time -v, the stdout diff and the C++ FuzzyDiff"
+    },
+    {
+      "path": "../oracle/topp-peak-picker-scale/decoded_compare_probe.rs",
+      "sha256": "10e62978e78e0990c220d29711a2c3f450f733c4f2b0c33246a595dbb1f19b00",
+      "role": "the decoded (D6) comparison of the two 0.5 GB outputs, run as an ignored test from the measurement checkout; not committed to the repository"
     }
   ],
   "native_implementation": [
@@ -222,5 +237,5 @@
   ],
   "support_document": "docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md",
   "determinism": "The picker is serial, as the source is. -threads 1, 2, 16 and 0 produce byte-identical output; the thread policy reaches the tool through ToolContext::thread_policy and is not consumed until the library offers a parallel pick_experiment.",
-  "target_verification": "cargo test --locked --no-default-features --features mzml,paramxml --test topp_peak_picker_hi_res --lib on stable and 1.85.0 (ibmi dax); clippy --locked --all-features --all-targets -D warnings; doc --locked --all-features --no-deps; release builds of the PeakPickerHiRes binary with default features and with mzml,paramxml on both toolchains."
+  "target_verification": "cargo test --locked --no-default-features --features mzml,paramxml --test topp_peak_picker_hi_res --lib on stable and 1.85.0 (ibmi dax); clippy --locked --all-features --all-targets -D warnings; doc --locked --all-features --no-deps; release builds of the PeakPickerHiRes binary with default features and with mzml,paramxml on both toolchains. Instrument scale (ibminode06, release, outside the gates): the 2.3 GB UK222.mzML benchmark input loads through the tool's options and, with the sibling lane that lifts the picker's pooled acquisition-copy ledger, is picked end to end; 22,776,198 centroids bit-identical to the C++ Release output. ../oracle/topp-peak-picker-scale/manifest.json has the numbers."
 }
