@@ -243,6 +243,24 @@ pub struct PickedChromatogram {
     pub omitted_arrays: Vec<String>,
 }
 
+/// The per-record reports of an experiment pick, without the picked experiment.
+///
+/// Returned by [`PeakPickerHiRes::pick_experiment_in_place`], which centroids the
+/// caller's experiment instead of building a second one, so it has no experiment
+/// of its own to hand back. The four vectors are those of
+/// [`PickedExperiment`] and carry the same per-record meaning.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct PickedExperimentReport {
+    /// One entry per spectrum; `None` means the spectrum was left as it was.
+    pub spectrum_boundaries: Vec<Option<Vec<PeakBoundary>>>,
+    /// One entry per chromatogram.
+    pub chromatogram_boundaries: Vec<Vec<PeakBoundary>>,
+    /// Dropped annotation array names per spectrum.
+    pub omitted_spectrum_arrays: Vec<Vec<String>>,
+    /// Dropped annotation array names per chromatogram.
+    pub omitted_chromatogram_arrays: Vec<Vec<String>>,
+}
+
 /// A picked experiment with per-record boundaries.
 #[derive(Clone, Debug, PartialEq)]
 pub struct PickedExperiment {
@@ -332,6 +350,34 @@ pub struct PeakPickerHiRes {
     pub max_points: usize,
     /// Native bound on apex candidates and extension samples for one record.
     pub max_work: usize,
+    /// Native per-record allowance of the acquisition-metadata copy ledger, in
+    /// both work units and bytes.
+    ///
+    /// [`PeakPickerHiRes::pick_experiment`] and
+    /// [`PeakPickerHiRes::pick_experiment_in_place`] charge every record's
+    /// acquisition metadata to one ledger before and while copying it. That
+    /// ledger's fixed part alone is a ceiling on the *number* of records rather
+    /// than on any one record: a Q Exactive run whose spectra carry the usual
+    /// scan window, acquisition and source-file metadata spends about 8 KiB of
+    /// it per spectrum, so the fixed part alone stops at roughly 34 000 spectra,
+    /// well inside the size of an ordinary LC-MS run and with no counterpart in
+    /// source `pickExperiment`. This allowance is added to the fixed part once
+    /// per input record, which makes the ledger track the input instead of
+    /// capping it, while a record whose metadata dwarfs the whole input is still
+    /// refused.
+    ///
+    /// The default, 64 KiB, is about eight times the per-spectrum cost of an
+    /// ordinary vendor-converted run. Zero pins the ledger at its fixed part,
+    /// which is the behaviour before this field existed.
+    ///
+    /// Like [`max_points`](Self::max_points) and [`max_work`](Self::max_work)
+    /// this is a Rust-API-only field: it is not in
+    /// [`PeakPickerHiRes::defaults`], so [`PeakPickerHiRes::to_param`] does not
+    /// emit it and [`PeakPickerHiRes::from_param`] cannot set it, and a caller
+    /// driving the picker from a TOPP `.ini` therefore always gets the default.
+    /// A converter whose per-spectrum metadata is richer than the run the
+    /// default is calibrated on has to raise it through the Rust API.
+    pub max_metadata_per_record: usize,
 }
 impl Default for PeakPickerHiRes {
     fn default() -> Self {
@@ -350,6 +396,7 @@ impl Default for PeakPickerHiRes {
             compatibility: PickingCompatibility::default(),
             max_points: 1_000_000,
             max_work: 10_000_000,
+            max_metadata_per_record: 64 * 1024,
         }
     }
 }
@@ -1051,6 +1098,13 @@ impl PeakPickerHiRes {
     /// the picked and total spectra per MS level; this port does not log, and
     /// the boundary entries carry the same information.
     ///
+    /// The output is built record by record, as the source's is, so the call
+    /// holds the input and the centroids it has produced and never a second copy
+    /// of the profile data. What it does still own is a copy of every record it
+    /// does not pick, which is what returning an owned experiment from a
+    /// borrowed one means; [`PeakPickerHiRes::pick_experiment_in_place`] is the
+    /// streaming entry point that avoids even that, at the cost of atomicity.
+    ///
     /// # Errors
     ///
     /// * [`Error::InvalidValue`] with [`CENTROIDED_INPUT_MESSAGE`] for a refused
@@ -1059,54 +1113,174 @@ impl PeakPickerHiRes {
     ///   query, including its resource limits. An error leaves no partial
     ///   result.
     pub fn pick_experiment(&self, input: &MSExperiment) -> Result<PickedExperiment> {
-        self.validate()?;
-        input.validate()?;
-        let mut copies = super::AcquisitionCopies::default();
-        copies.experiment(input)?;
-        let limits = SpectrumTypeQueryLimits {
-            max_points: self.max_points,
-            ..SpectrumTypeQueryLimits::default()
-        };
+        let limits = self.type_query_limits();
+        let mut copies = self.start_experiment(input)?;
         let mut result = PickedExperiment {
-            experiment: input.clone(),
-            spectrum_boundaries: Vec::new(),
-            chromatogram_boundaries: Vec::new(),
-            omitted_spectrum_arrays: Vec::new(),
-            omitted_chromatogram_arrays: Vec::new(),
+            // Source `pickExperiment` copies the experimental settings, resizes
+            // the output to the input and then fills record by record; it never
+            // holds a second copy of the profile data. Building the output the
+            // same way, instead of cloning the input and overwriting each picked
+            // record, is what keeps the peak memory of a multi-gigabyte run at
+            // the size of the input plus its centroids.
+            experiment: MSExperiment {
+                spectra: Vec::with_capacity(input.spectra.len()),
+                chromatograms: Vec::with_capacity(input.chromatograms.len()),
+                settings: input.settings.clone(),
+                sql_run_id: input.sql_run_id,
+            },
+            spectrum_boundaries: Vec::with_capacity(input.spectra.len()),
+            chromatogram_boundaries: Vec::with_capacity(input.chromatograms.len()),
+            omitted_spectrum_arrays: Vec::with_capacity(input.spectra.len()),
+            omitted_chromatogram_arrays: Vec::with_capacity(input.chromatograms.len()),
         };
-        for (i, spectrum) in input.spectra.iter().enumerate() {
-            let selected = if self.ms_levels.is_empty() {
-                spectrum.get_type_with_limits(true, limits)? != SpectrumType::Centroid
-            } else if !self.ms_levels.contains(&spectrum.ms_level) {
-                false
-            } else {
-                if spectrum.get_type_with_limits(true, limits)? == SpectrumType::Centroid
-                    && self.check_spectrum_type
-                {
-                    return Err(bad(CENTROIDED_INPUT_MESSAGE));
-                }
-                true
-            };
-            if !selected {
+        for spectrum in &input.spectra {
+            if !self.selects(spectrum, limits)? {
+                // Source `output[scan_idx] = input[scan_idx]` for a record that
+                // is not picked.
+                result.experiment.spectra.push(spectrum.clone());
                 result.spectrum_boundaries.push(None);
                 result.omitted_spectrum_arrays.push(Vec::new());
                 continue;
             }
             let picked = self.pick_spectrum_with_acquisition(spectrum, true, &mut copies)?;
-            result.experiment.spectra[i] = picked.spectrum;
+            result.experiment.spectra.push(picked.spectrum);
             result.spectrum_boundaries.push(Some(picked.boundaries));
             result.omitted_spectrum_arrays.push(picked.omitted_arrays);
         }
-        for (i, chromatogram) in input.chromatograms.iter().enumerate() {
+        for chromatogram in &input.chromatograms {
             let picked =
                 self.pick_chromatogram_with_acquisition(chromatogram, false, &mut copies)?;
-            result.experiment.chromatograms[i] = picked.chromatogram;
+            result.experiment.chromatograms.push(picked.chromatogram);
             result.chromatogram_boundaries.push(picked.boundaries);
             result
                 .omitted_chromatogram_arrays
                 .push(picked.omitted_arrays);
         }
         Ok(result)
+    }
+
+    /// Centroid an experiment in place, replacing every record as it is picked.
+    ///
+    /// The streaming form of [`PeakPickerHiRes::pick_experiment`]: it picks the
+    /// same records, in the same order, by the same rules, and produces
+    /// bit-identical centroids, but it writes each picked record back over its
+    /// own profile record instead of collecting a second experiment. The profile
+    /// samples of a spectrum are therefore released as soon as its centroids
+    /// exist, which is what an mzML-to-mzML tool wants: the peak memory is that
+    /// of the loaded run, falling towards the size of its centroids, where
+    /// [`PeakPickerHiRes::pick_experiment`] additionally holds the output.
+    ///
+    /// This entry point exists because the borrowed-input signature of
+    /// [`PeakPickerHiRes::pick_experiment`] cannot avoid owning a second copy of
+    /// every record it does not pick: it returns an owned experiment, so the
+    /// copied records have to be copies. Source `pickExperiment` has the same
+    /// two-map shape; a caller that does not need the input afterwards has no
+    /// reason to pay for it.
+    ///
+    /// Unlike [`PeakPickerHiRes::pick_experiment`] this is **not atomic**: an
+    /// error leaves the records before the failing one centroided and the rest
+    /// as they were, and the returned report is lost. A caller that needs the
+    /// input intact on failure uses [`PeakPickerHiRes::pick_experiment`].
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakPickerHiRes::pick_experiment`].
+    pub fn pick_experiment_in_place(
+        &self,
+        experiment: &mut MSExperiment,
+    ) -> Result<PickedExperimentReport> {
+        let limits = self.type_query_limits();
+        let mut copies = self.start_experiment(experiment)?;
+        let mut report = PickedExperimentReport {
+            spectrum_boundaries: Vec::with_capacity(experiment.spectra.len()),
+            chromatogram_boundaries: Vec::with_capacity(experiment.chromatograms.len()),
+            omitted_spectrum_arrays: Vec::with_capacity(experiment.spectra.len()),
+            omitted_chromatogram_arrays: Vec::with_capacity(experiment.chromatograms.len()),
+        };
+        for spectrum in &mut experiment.spectra {
+            if !self.selects(spectrum, limits)? {
+                report.spectrum_boundaries.push(None);
+                report.omitted_spectrum_arrays.push(Vec::new());
+                continue;
+            }
+            let picked = self.pick_spectrum_with_acquisition(spectrum, true, &mut copies)?;
+            *spectrum = picked.spectrum;
+            report.spectrum_boundaries.push(Some(picked.boundaries));
+            report.omitted_spectrum_arrays.push(picked.omitted_arrays);
+        }
+        for chromatogram in &mut experiment.chromatograms {
+            let picked =
+                self.pick_chromatogram_with_acquisition(chromatogram, false, &mut copies)?;
+            *chromatogram = picked.chromatogram;
+            report.chromatogram_boundaries.push(picked.boundaries);
+            report
+                .omitted_chromatogram_arrays
+                .push(picked.omitted_arrays);
+        }
+        Ok(report)
+    }
+
+    /// The spectrum-type query limits the experiment entry points use.
+    fn type_query_limits(&self) -> SpectrumTypeQueryLimits {
+        SpectrumTypeQueryLimits {
+            max_points: self.max_points,
+            ..SpectrumTypeQueryLimits::default()
+        }
+    }
+
+    /// Validate the picker and the experiment and open its acquisition ledger.
+    fn start_experiment(&self, input: &MSExperiment) -> Result<super::AcquisitionCopies> {
+        self.validate()?;
+        input.validate()?;
+        let records = input
+            .spectra
+            .len()
+            .checked_add(input.chromatograms.len())
+            .ok_or_else(|| bad("the experiment record count overflows"))?;
+        let mut copies = self.acquisition_ledger(records)?;
+        copies.experiment(input)?;
+        Ok(copies)
+    }
+
+    /// The acquisition-metadata copy ledger for an experiment of `records`
+    /// records.
+    ///
+    /// The fixed part is the shared `AcquisitionCopies` default every other
+    /// processing filter uses, read from that default rather than restated here
+    /// so the two cannot drift;
+    /// [`max_metadata_per_record`](Self::max_metadata_per_record) is added to
+    /// both once per record, so the budget follows the input instead of putting
+    /// a ceiling on how many records an experiment may have. The allowance is
+    /// pooled rather than charged per record, as the shared ledger is: one
+    /// record may spend another's share, and an input whose total acquisition
+    /// metadata outweighs its own size is still refused.
+    fn acquisition_ledger(&self, records: usize) -> Result<super::AcquisitionCopies> {
+        let overflow = || bad("the acquisition metadata budget overflows for this record count");
+        let allowance = records
+            .checked_mul(self.max_metadata_per_record)
+            .ok_or_else(overflow)?;
+        let base = super::AcquisitionCopies::default();
+        Ok(super::AcquisitionCopies {
+            work: base.work.checked_add(allowance).ok_or_else(overflow)?,
+            bytes: base.bytes.checked_add(allowance).ok_or_else(overflow)?,
+        })
+    }
+
+    /// Whether the experiment entry points pick this spectrum, source
+    /// `pickExperiment`'s automatic and manual mode selection.
+    fn selects(&self, spectrum: &MSSpectrum, limits: SpectrumTypeQueryLimits) -> Result<bool> {
+        if self.ms_levels.is_empty() {
+            return Ok(spectrum.get_type_with_limits(true, limits)? != SpectrumType::Centroid);
+        }
+        if !self.ms_levels.contains(&spectrum.ms_level) {
+            return Ok(false);
+        }
+        if spectrum.get_type_with_limits(true, limits)? == SpectrumType::Centroid
+            && self.check_spectrum_type
+        {
+            return Err(bad(CENTROIDED_INPUT_MESSAGE));
+        }
+        Ok(true)
     }
 
     /// Replace a chromatogram with its picked form, only after picking succeeds.
@@ -1361,4 +1535,99 @@ fn estimate_spectrum_type_with_limit(
         &PickingCompatibility::default(),
     )?;
     Ok(crate::kernel::spectrum_type::estimate(&x, &mut y))
+}
+
+#[cfg(test)]
+mod acquisition_ledger_tests {
+    use super::PeakPickerHiRes;
+    use crate::Error;
+    use crate::processing::AcquisitionCopies;
+
+    /// The ledger the picker opens for an experiment of `records` records, as
+    /// its remaining work units and bytes.
+    ///
+    /// `AcquisitionCopies` is a shared type in `src/processing.rs` and does not
+    /// implement `Debug`, so the ledger is unwrapped by hand rather than with
+    /// `Result::unwrap`.
+    fn ledger(picker: &PeakPickerHiRes, records: usize) -> (usize, usize) {
+        match picker.acquisition_ledger(records) {
+            Ok(opened) => (opened.work, opened.bytes),
+            Err(error) => panic!("{records} records were refused a ledger: {error:?}"),
+        }
+    }
+
+    #[test]
+    fn the_acquisition_ledger_follows_the_record_count() {
+        // The shared ledger's fixed part is a ceiling on how many records an
+        // experiment may have, which source `pickExperiment` has no counterpart
+        // for: an ordinary vendor-converted run spends about 8 KiB of it per
+        // spectrum, so it stops at roughly 34 000 spectra and refused the
+        // 40 856 of the 2.3 GB Q Exactive benchmark run outright.
+        // `max_metadata_per_record` is added to both dimensions once per input
+        // record, so the budget follows the input instead of capping it.
+        //
+        // This reads the ledger the picker opens rather than building an
+        // experiment whose metadata exhausts 256 MiB: the meter charges a
+        // record within about a factor of two of what that record actually
+        // costs in memory, so crossing the fixed part end to end costs hundreds
+        // of mebibytes of test process. The end-to-end behaviour of the
+        // allowance is pinned by `tests/peak_picking_experiment.rs`, and the
+        // real 40 856-spectrum run is evidence in
+        // `docs/PEAK_PICKING_SUPPORT.md`.
+        let base = AcquisitionCopies::default();
+        let picker = PeakPickerHiRes::default();
+        assert_eq!(picker.max_metadata_per_record, 64 * 1024);
+        assert_eq!(ledger(&picker, 0), (base.work, base.bytes));
+        for records in [1_usize, 2, 34_257, 40_856, 1 << 20] {
+            let allowance = records * picker.max_metadata_per_record;
+            assert_eq!(
+                ledger(&picker, records),
+                (base.work + allowance, base.bytes + allowance),
+                "{records} records"
+            );
+        }
+        // Strictly increasing in the record count, in both dimensions, so no
+        // record count is a ceiling.
+        assert!(ledger(&picker, 40_857) > ledger(&picker, 40_856));
+        // Zero pins the fixed part exactly, whatever the record count: the
+        // behaviour before the field existed.
+        let pinned = PeakPickerHiRes {
+            max_metadata_per_record: 0,
+            ..Default::default()
+        };
+        for records in [0_usize, 1, 40_856, usize::MAX] {
+            assert_eq!(ledger(&pinned, records), (base.work, base.bytes));
+        }
+    }
+
+    #[test]
+    fn an_overflowing_metadata_allowance_is_refused() {
+        // Both the multiplication by the record count and the addition to the
+        // fixed part are checked, so an absurd allowance is refused instead of
+        // wrapping into a budget below the fixed one.
+        for allowance in [usize::MAX, usize::MAX / 2, usize::MAX / 4] {
+            let picker = PeakPickerHiRes {
+                max_metadata_per_record: allowance,
+                ..Default::default()
+            };
+            match picker.acquisition_ledger(8) {
+                Ok(_) => panic!("an allowance of {allowance} per record was admitted"),
+                Err(Error::InvalidValue(text)) => assert!(text.contains("overflows"), "{text}"),
+                Err(other) => panic!("{other:?}"),
+            }
+        }
+        // One record of the largest possible allowance overflows only in the
+        // addition to the fixed part, which is checked as well.
+        let picker = PeakPickerHiRes {
+            max_metadata_per_record: usize::MAX,
+            ..Default::default()
+        };
+        assert!(picker.acquisition_ledger(1).is_err());
+        // A zero allowance cannot overflow, however many records.
+        let pinned = PeakPickerHiRes {
+            max_metadata_per_record: 0,
+            ..Default::default()
+        };
+        assert!(pinned.acquisition_ledger(usize::MAX).is_ok());
+    }
 }

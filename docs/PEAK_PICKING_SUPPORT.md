@@ -42,7 +42,9 @@ fn from_tool_parameters(algorithm: &openms::param::Param) -> openms::Result<Peak
 results with boundaries and the names of omitted profile arrays.
 `SpectrumFilter::filter_spectrum`, `filter_experiment` and `filter_chromatogram`
 replace the input only after the whole operation succeeds; they discard the
-omission report.
+omission report. `pick_experiment_in_place` centroids a whole run without
+building a second experiment, for a caller that does not need the profile data
+afterwards; it gives up that atomicity in exchange.
 
 ## API mapping
 
@@ -61,6 +63,7 @@ omission report.
 | `pickExperiment(const PeakMap&, PeakMap&, check_spectrum_type = true)` | `pick_experiment` | `check_spectrum_type` is a field. |
 | `pickExperiment(input, output, boundaries_spec, boundaries_chrom, check_spectrum_type)` | `pick_experiment` | `spectrum_boundaries` holds one `Option` per input spectrum; the source appends boundaries for picked spectra only. |
 | `pickExperiment(OnDiscMSExperiment&, PeakMap&, check_spectrum_type)` | not ported | Low-memory processing is package P4. That overload sorts each spectrum and consults the stored type only (`getType()` without data), unlike the in-memory overload. |
+| — | `pick_experiment_in_place` | Native streaming form of `pick_experiment`: same records, same rules, bit-identical centroids, written back over the input so the profile samples are released per record. Returns `PickedExperimentReport` and is not atomic. |
 | `pick_` (protected template) | private `pick_signal` over `Peak1D` and `ChromatogramPeak` | |
 | `updateMembers_` | `PeakPickerHiRes::from_param` | |
 | members `signal_to_noise_`, `spacing_difference_gap_`, `spacing_difference_`, `missing_`, `ms_levels_`, `report_FWHM_`, `report_FWHM_as_ppm_`, `allow_missing_flank_` | public fields `signal_to_noise`, `spacing_difference_gap`, `spacing_difference`, `missing`, `ms_levels`, `report_fwhm` (with `inactive_fwhm_unit`), `allow_missing_flank` | Zero spacings stay zero in the fields; the picker treats them as the source's infinity. |
@@ -68,7 +71,7 @@ omission report.
 | `DefaultParamHandler::setParameters` | `PeakPickerHiRes::from_param`, `from_param_with_warnings` | Type and restriction violations are `Error::InvalidValue`; unknown names are warnings. |
 | `DefaultParamHandler::getParameters` | `PeakPickerHiRes::to_param` | |
 | `ProgressLogger` base | not ported | No progress output. |
-| — | `PickingCompatibility`, `ion_mobility_array`, `max_points`, `max_work`, `omitted_arrays` | Native. |
+| — | `PickingCompatibility`, `ion_mobility_array`, `max_points`, `max_work`, `max_metadata_per_record`, `omitted_arrays` | Native. |
 | — | `PEAK_PICKER_HI_RES_NAME`, `CENTROIDED_INPUT_MESSAGE` | The handler name and the source exception text, for tools. |
 
 ### `SignalToNoiseEstimatorMedian` and its base
@@ -239,11 +242,32 @@ defaults, including values the selected modes ignore.
 9. **Resource limits.** One million points per record, ten million core and
    extension visits, one million histogram bins and fifty million histogram
    updates, all configurable and checked before use. The source has none.
+   The experiment entry points additionally charge every record's acquisition
+   metadata to the shared `AcquisitionCopies` ledger. That ledger's fixed part
+   is a ceiling on the
+   *number* of records rather than on any one record: an ordinary
+   vendor-converted run spends about 8 KiB of it per spectrum, so the fixed part
+   alone stops at roughly 34 000 spectra — reached by the 2.3 GB Q Exactive run
+   of the benchmark set, whose 40 856 spectra it refused outright.
+   `max_metadata_per_record` (default 64 KiB) is added to the fixed part once
+   per input record, so the budget follows the input. The allowance is pooled,
+   as the shared ledger is, so one record may spend another's share; a
+   single-record experiment whose metadata dwarfs it is still refused. Zero pins
+   the fixed part, which is the behaviour before the field existed. Like
+   `max_points` and `max_work` the field is Rust-API-only: it is not in
+   `defaults()`, so `to_param` does not emit it and `from_param` cannot set it,
+   and a caller driving the picker from a TOPP `.ini` always gets the default.
+   That matters more here than for the other two, because this is the documented
+   way out of a refusal that real data can provoke; whether the tool should
+   expose it is a question for the `PeakPickerHiRes` tool lane.
 10. **Boundaries per spectrum.** `spectrum_boundaries` has an entry for every
     input spectrum (`None` for a copied one).
-11. **Experiment copy.** `pick_experiment` validates and clones the whole input
-    before replacing picked records; the source resizes an empty output and
-    copies only unpicked spectra (see the benchmark notes).
+11. **Experiment copy.** `pick_experiment` builds its output record by record,
+    as the source does, so it never holds a second copy of the profile data. It
+    does own a copy of every record it does not pick, which is what returning an
+    owned experiment from a borrowed one means; `pick_experiment_in_place` is
+    the streaming entry point that avoids even that, at the cost of atomicity
+    (see the benchmark notes).
 12. **`estimate_spectrum_type`.** The public helper keeps the picker's strict
     input contract; `MSSpectrum::get_type(true)`, which `pick_experiment` uses,
     classifies any finite data as the source does.
@@ -322,7 +346,49 @@ gives 82/112/89 and 314/319 centroids at `signal_to_noise 0`, not the stored
   unit in the last place. A Release C++ build for benchmarking needs the same
   contraction policy to be comparable.
 - **Tier 4.** Native refusals, each compatibility flag in isolation, resource
-  limits and atomicity (`tests/peak_picking.rs`).
+  limits and atomicity (`tests/peak_picking.rs`). The acquisition-copy ledger
+  and the streaming entry point are covered by two files.
+  `src/processing/peak_picking.rs` holds the synthetic ledger probe:
+  `the_acquisition_ledger_follows_the_record_count` reads the ledger
+  `acquisition_ledger` opens and requires it to equal the shared fixed part plus
+  `max_metadata_per_record` per record in both work and bytes, to be strictly
+  increasing in the record count, and to collapse to exactly the fixed part when
+  the allowance is zero; `an_overflowing_metadata_allowance_is_refused` pins the
+  two checked multiplications. It probes the arithmetic rather than building an
+  experiment that exhausts the ledger because the meter charges a record within
+  about a factor of two of what that record costs in memory, so crossing the
+  256 MiB fixed part end to end costs the test process on the order of a hundred
+  mebibytes, and four times the crossing point costs of the order of a gibibyte.
+  That the ledger now admits a whole run is evidence, not a test: the real
+  40 856-spectrum file is measured in the benchmark notes below.
+  `tests/peak_picking_experiment.rs` covers the end-to-end behaviour that is
+  cheap: `an_overflowing_metadata_allowance_is_refused_rather_than_wrapping`
+  drives both entry points through the overflow refusal and requires the
+  streaming one to leave its input untouched,
+  `a_record_whose_metadata_outweighs_the_input_is_still_refused` keeps the
+  adversarial single record refused -- the one test here that does reach the
+  fixed part, and it builds its record by moving rather than cloning it, which
+  is what keeps it to 95 MiB and 0.31 s (`/usr/bin/time -v` on the debug binary
+  on `dax`, `--test-threads 1`) -- and
+  `in_place_picking_matches_the_borrowing_entry_point` requires
+  `pick_experiment_in_place` to produce the same experiment and the same four
+  report vectors as `pick_experiment` over six class-test inputs in three MS
+  level modes. `examples/peak_picking_scale.rs` is the harness behind the
+  benchmark notes; it reports stage wall times, peak RSS and a bitwise digest of
+  every centroid, and its `--ledger-probe` mode measures the ledger ceiling for
+  a given run's metadata. Its body is behind the `mzml` feature, because
+  `cargo test` builds every example and the crate must still compile with no
+  default features.
+
+  What the ledger tests cost, measured with `/usr/bin/time -v` on the debug
+  binaries on `dax`: the synthetic probe 3 MiB and under 10 ms, the overflow
+  test 3 MiB and under 10 ms, and the whole `peak_picking_experiment` target
+  113 MiB and 0.86 s, almost all of it the single-record refusal. An earlier
+  form of the probe drove the property end to end -- it searched for the record
+  count the fixed part refuses and then built an experiment four times that
+  size -- and cost 835 MiB and 2.68 s for the target, against 36 MiB and 0.95 s
+  for the target before this work. That is the cost the factor-of-two metering
+  implies, and the reason the property is probed rather than provoked.
 
 `tests/data/peak_picking_provenance.json` records the pinned sources, every
 fixture hash with its origin, the oracle artifacts outside the repository and
@@ -338,11 +404,53 @@ per-record costs, reported and not changed here:
 - `CubicSpline2d::with_max_points` (read-only module) allocates eight vectors per
   peak and checks every intermediate for finiteness; the source allocates its
   map nodes and five spline vectors.
-- `pick_experiment` clones the whole input experiment, peaks included, and then
-  replaces every picked spectrum; each picked spectrum is cloned again in
-  `pick_spectrum_with_acquisition` before its peaks and arrays are replaced.
-  Every record is validated twice (experiment and record level) and scanned
-  again by the input checks.
+- `pick_experiment` builds its output record by record, as source
+  `pickExperiment` does; it no longer clones the whole input experiment first.
+  Each picked spectrum is still cloned in `pick_spectrum_with_acquisition`
+  before its peaks and arrays are replaced, which copies that spectrum's profile
+  samples once and drops them; removing it is worth about 2% of the pick wall
+  time and belongs in `kernel::spectrum_helper::copy_spectrum_meta`, which every
+  caller shares. Every record is validated twice (experiment and record level)
+  and scanned again by the input checks.
 - `MSSpectrum::get_type(true)` copies positions and intensities of each
   unknown-type spectrum to estimate its type.
 - The noise estimator scans the input once more for its own checks.
+
+Measured on `ibminode06` against the 2.3 GB, 40 856-spectrum Q Exactive run
+`profile_hr_qe_silac_uk222/UK222.mzML`, with `PickingCompatibility::source()`
+and the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` as the
+reference. Load and pick only: when these runs were made the Rust mzML writer
+had its own fixed budget and refused an output this size, so no Rust end-to-end
+number exists here. The writer has since been given per-record budgets
+(`fix/mzml-writer-scale-parity`, merged into `integrate/wave2`), so the
+load + pick + write number that would face the C++ tool's 3883 MiB and 28.4 s
+is now measurable and has not been measured;
+`examples/peak_picking_scale.rs --in-place --out` is the harness for it.
+
+| | peak RSS | wall (one run) |
+| --- | --- | --- |
+| C++ `PeakPickerHiRes`, load + pick + write | 3883 MiB | 28.4 s |
+| C++ `FileInfo`, load only | 3201 MiB | 12.1 s |
+| Rust before, 40 856 spectra | — | refused by the ledger |
+| Rust before, first 30 000 spectra | 4268 MiB | 29.8 s |
+| Rust after, first 30 000 spectra | 3409 MiB | 28.2 s |
+| Rust after, 40 856 spectra, `pick_experiment` | 4309 MiB | 35.1 s |
+| Rust after, 40 856 spectra, `pick_experiment_in_place` | 3410 MiB | 34.4 s |
+
+On the 30 000-spectrum subset, which is the largest the old ledger admits, peak
+RSS falls by 20% and the picked output is bit for bit what it was. After the
+change the peak of the whole run is the peak of loading it: picking adds nothing
+to the high-water mark under `pick_experiment_in_place`.
+
+**How far these numbers carry.** Every peak RSS above was reproduced
+independently on the same node, to better than 0.2%; those figures are the
+result. The wall column is single-run and is not: a second, independent set of
+runs gave C++ `PeakPickerHiRes` 31.4 s against 28.4 s here, C++ `FileInfo`
+12.9 s against 12.1 s, and on the 30 000-spectrum subset a total that moved the
+other way, because the load stage alone differed by 2.9 s between the two
+builds' runs. No claim of a whole-run wall improvement is made, and none should
+be read out of the table. The wall effect that does reproduce is in the pick
+stage with the load stage subtracted: 11.8 s to 10.0 s, about -15%, which is the
+whole-experiment clone no longer being made. The ordering of `pick_experiment`
+and `pick_experiment_in_place` on the full run also flipped between the two sets
+of runs, so the two are wall-indistinguishable here and differ only in memory.

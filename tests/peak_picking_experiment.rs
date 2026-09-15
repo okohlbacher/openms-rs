@@ -1116,3 +1116,160 @@ fn mobility_output_description_depends_on_compatibility() {
     assert!(!only_name.has_description_metadata());
     assert_eq!(only_name.data, native.spectrum.float_data_arrays[0].data);
 }
+
+/// A spectrum whose acquisition metadata costs the copy ledger `windows`
+/// scan-window entries, each with one metadata entry.
+///
+/// The ledger charges a non-empty metadata tree for a sparsely occupied B-tree
+/// node rather than for its few stored bytes, so a record is roughly twice as
+/// expensive to the ledger as it is in memory -- a factor, not an escape:
+/// exhausting the ledger's 256 MiB fixed part this way still costs the test
+/// process on the order of a hundred mebibytes, which is why only the
+/// single-record refusal below goes that far.
+fn metadata_weight(windows: usize) -> MSSpectrum {
+    let mut spectrum = MSSpectrum::default();
+    spectrum.instrument_settings.scan_windows = (0..windows)
+        .map(|i| {
+            let mut window = openms::metadata::ScanWindow::new(100.0, 200.0).unwrap();
+            window.metadata.insert("w".into(), (i as i64).into());
+            window
+        })
+        .collect();
+    spectrum
+}
+
+fn experiment_of(spectrum: &MSSpectrum, records: usize) -> MSExperiment {
+    MSExperiment {
+        spectra: vec![spectrum.clone(); records],
+        ..MSExperiment::default()
+    }
+}
+
+#[test]
+fn an_overflowing_metadata_allowance_is_refused_rather_than_wrapping() {
+    // `max_metadata_per_record` is multiplied by the record count and added to
+    // the shared ledger's fixed part; both steps are checked, so an absurd
+    // allowance refuses the pick instead of wrapping into a budget below the
+    // fixed part. Neither entry point is exempt.
+    //
+    // That the budget itself grows by exactly the allowance per record -- the
+    // property that lets a 40 856-spectrum run through where the fixed part
+    // alone refused it -- is pinned by the synthetic ledger probe
+    // `the_acquisition_ledger_follows_the_record_count` in
+    // `src/processing/peak_picking.rs`, which reads the opened ledger instead
+    // of building an experiment whose metadata exhausts 256 MiB of it. The
+    // meter charges a record within about a factor of two of what that record
+    // costs in memory, so crossing the fixed part end to end costs hundreds of
+    // mebibytes; the real run is measured in `docs/PEAK_PICKING_SUPPORT.md`.
+    let input = experiment_of(&metadata_weight(1), 8);
+    for allowance in [usize::MAX, usize::MAX / 2, usize::MAX / 4] {
+        let picker = PeakPickerHiRes {
+            max_metadata_per_record: allowance,
+            ..Default::default()
+        };
+        match picker.pick_experiment(&input).unwrap_err() {
+            Error::InvalidValue(text) => assert!(text.contains("overflows"), "{text}"),
+            other => panic!("{other:?}"),
+        }
+        let mut streamed = input.clone();
+        assert!(picker.pick_experiment_in_place(&mut streamed).is_err());
+        assert_eq!(streamed, input, "a refused ledger picks nothing");
+    }
+    // The same experiment is picked both with the default allowance and with
+    // none, so the refusals above are the overflow and not the records.
+    for allowance in [0, PeakPickerHiRes::default().max_metadata_per_record] {
+        let picker = PeakPickerHiRes {
+            max_metadata_per_record: allowance,
+            ..Default::default()
+        };
+        picker.pick_experiment(&input).unwrap();
+    }
+}
+
+#[test]
+fn a_record_whose_metadata_outweighs_the_input_is_still_refused() {
+    // The allowance is per record, so a single record cannot grow the budget
+    // enough to pay for metadata that dwarfs the whole input. The experiment
+    // moves the record instead of cloning it, because the search runs until the
+    // metadata alone is heavy enough to exhaust the ledger.
+    let picker = PeakPickerHiRes::default();
+    let mut windows = 1 << 12;
+    while windows <= 1 << 22 {
+        let input = MSExperiment {
+            spectra: vec![metadata_weight(windows)],
+            ..MSExperiment::default()
+        };
+        if picker.pick_experiment(&input).is_err() {
+            return;
+        }
+        windows *= 2;
+    }
+    unreachable!("a single record of unbounded acquisition metadata was admitted");
+}
+
+#[test]
+fn in_place_picking_matches_the_borrowing_entry_point() {
+    // The streaming entry point picks the same records by the same rules, so its
+    // experiment and its four report vectors are those of `pick_experiment`.
+    for label in [
+        "orbitrap",
+        "ftms",
+        "selection",
+        "simulation",
+        "topp1",
+        "topp6",
+    ] {
+        for levels in [vec![], vec![1], vec![1, 2]] {
+            let picker = PeakPickerHiRes {
+                ms_levels: levels.clone(),
+                check_spectrum_type: false,
+                compatibility: PickingCompatibility::source(),
+                ..Default::default()
+            };
+            let input = experiment(label);
+            let borrowed = picker.pick_experiment(&input).unwrap();
+            let mut streamed = input.clone();
+            let report = picker.pick_experiment_in_place(&mut streamed).unwrap();
+            assert_eq!(streamed, borrowed.experiment, "{label} {levels:?}");
+            assert_eq!(
+                report.spectrum_boundaries, borrowed.spectrum_boundaries,
+                "{label} {levels:?}"
+            );
+            assert_eq!(
+                report.chromatogram_boundaries, borrowed.chromatogram_boundaries,
+                "{label} {levels:?}"
+            );
+            assert_eq!(
+                report.omitted_spectrum_arrays, borrowed.omitted_spectrum_arrays,
+                "{label} {levels:?}"
+            );
+            assert_eq!(
+                report.omitted_chromatogram_arrays, borrowed.omitted_chromatogram_arrays,
+                "{label} {levels:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn in_place_picking_leaves_the_records_before_a_failure_picked() {
+    // Unlike `pick_experiment`, the streaming entry point is not atomic; the
+    // documentation says so and a caller that needs the input intact on failure
+    // uses the borrowing one.
+    let mut input = experiment("selection");
+    let good = input.spectra[0].clone();
+    input.spectra.insert(0, good.clone());
+    let picker = PeakPickerHiRes {
+        max_points: good.len(),
+        compatibility: PickingCompatibility::source(),
+        ..Default::default()
+    };
+    // A later record above the point ceiling fails after the first is picked.
+    let mut big = good.clone();
+    big.peaks.extend_from_slice(&good.peaks);
+    input.spectra.push(big);
+    let before = input.clone();
+    assert!(picker.pick_experiment(&before.clone()).is_err());
+    assert!(picker.pick_experiment_in_place(&mut input).is_err());
+    assert_ne!(input.spectra[0], before.spectra[0]);
+}
