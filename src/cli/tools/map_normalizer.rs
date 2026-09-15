@@ -87,20 +87,36 @@ impl MapNormalizer {
     /// alone, understates the maximum whenever a chromatogram carries the most
     /// intense value and scales every MS1 peak by the wrong factor.
     ///
-    /// `None` means the combined intensity range is empty: no spectrum peak and
-    /// no chromatogram point exists, so there is nothing to divide either. That
-    /// is the one case where the source leaves `combined_ranges_` empty and
-    /// `getMaxIntensity()` is never used, because its loop body never runs.
-    ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] on a nonfinite retention time, m/z or
-    /// intensity, as the query does.
-    fn run_maximum_intensity(experiment: &MSExperiment) -> Result<Option<f64>> {
-        Ok(experiment
+    /// Returns [`Error::InvalidValue`] when the combined intensity range is
+    /// empty — no spectrum peak and no chromatogram point anywhere — because
+    /// the source refuses such a run rather than writing it through. `main_`
+    /// asks for `getMaxIntensity()` unconditionally, one line before its peak
+    /// loop, and `RangeBase::getMax()` (`RangeManager.h:139-146`) throws
+    /// `Exception::InvalidRange` on an empty range with no assertion guard, so
+    /// a Release build throws too. Executed at the pinned Release build on both
+    /// shapes that reach it — scans that carry a retention time but no point,
+    /// and an empty `spectrumList` — the C++ exits 8 with *Empty or
+    /// uninitialized range object. Did you forget to call updateRanges()?* and
+    /// writes no output file.
+    ///
+    /// The port refuses the same runs and likewise writes nothing, but exits 6
+    /// rather than 8: `Error::InvalidValue` and [`Error::InvalidRange`] map to
+    /// `ILLEGAL_PARAMETERS` crate-wide, where the source's exceptions of those
+    /// names derive from `BaseException` and reach its `UNKNOWN_ERROR` arm. See
+    /// the mapping documented at `run_failure` in `src/cli.rs`, and
+    /// `tests/data/topp_map_normalizer_provenance.json` for the executed
+    /// commands and digests.
+    ///
+    /// Also returns [`Error::InvalidValue`] on a nonfinite retention time, m/z
+    /// or intensity, as the query does.
+    fn run_maximum_intensity(experiment: &MSExperiment) -> Result<f64> {
+        experiment
             .combined_ranges_with_limits(Self::range_limits(experiment))?
             .intensity
-            .map(|range| range.max))
+            .map(|range| range.max)
+            .ok_or_else(|| Error::InvalidValue("run has no intensities to normalize".into()))
     }
 
     /// The tool body, as the source `main_`.
@@ -109,25 +125,26 @@ impl MapNormalizer {
 
         // Source takes the combined maximum over every MS level and every
         // chromatogram, then divides by a hundredth of it, so the most intense
-        // value in the run becomes 100.
-        if let Some(maximum) = Self::run_maximum_intensity(&experiment)? {
-            // The source has no guard here and would emit NaN (an all-zero run)
-            // or a sign flip (an all-negative run) instead; refusing is the
-            // deliberate deviation recorded in docs/TOPP_CLI_SUPPORT.md.
-            let scale = maximum / 100.0;
-            if !(scale.is_finite() && scale > 0.0) {
-                return Err(Error::InvalidValue(
-                    "run maximum intensity must be finite and positive".into(),
-                ));
-            }
+        // value in the run becomes 100. An empty combined intensity range is
+        // refused here, as the source refuses it.
+        let maximum = Self::run_maximum_intensity(&experiment)?;
 
-            // Only MS1 is scaled; the source leaves higher levels untouched and
-            // its commented-out chromatogram branch is not ported.
-            for spectrum in &mut experiment.spectra {
-                if spectrum.ms_level < 2 {
-                    for peak in &mut spectrum.peaks {
-                        peak.intensity = (f64::from(peak.intensity) / scale) as f32;
-                    }
+        // The source has no guard here and would emit NaN (an all-zero run) or
+        // a sign flip (an all-negative run) instead; refusing is the one
+        // deliberate deviation recorded in docs/TOPP_CLI_SUPPORT.md.
+        let scale = maximum / 100.0;
+        if !(scale.is_finite() && scale > 0.0) {
+            return Err(Error::InvalidValue(
+                "run maximum intensity must be finite and positive".into(),
+            ));
+        }
+
+        // Only MS1 is scaled; the source leaves higher levels untouched and
+        // its commented-out chromatogram branch is not ported.
+        for spectrum in &mut experiment.spectra {
+            if spectrum.ms_level < 2 {
+                for peak in &mut spectrum.peaks {
+                    peak.intensity = (f64::from(peak.intensity) / scale) as f32;
                 }
             }
         }
@@ -195,7 +212,7 @@ mod tests {
         let experiment = experiment();
         assert_eq!(
             MapNormalizer::run_maximum_intensity(&experiment).unwrap(),
-            Some(40.0),
+            40.0,
             "the chromatogram's 40 outranks the most intense peak, 5"
         );
         let spectra_only = MSExperiment {
@@ -204,22 +221,26 @@ mod tests {
         };
         assert_eq!(
             MapNormalizer::run_maximum_intensity(&spectra_only).unwrap(),
-            Some(5.0)
+            5.0
         );
     }
 
-    /// An empty combined range is `None`, not an error: the source reaches its
-    /// division there too and simply has no peak to apply it to.
+    /// An empty combined intensity range is refused, as the source refuses it:
+    /// `getMaxIntensity()` is asked for before the peak loop and throws on an
+    /// empty range. The pinned C++ Release build exits 8 and writes nothing on
+    /// both shapes; this port exits 6 and writes nothing. See
+    /// `an_empty_combined_intensity_range_is_refused` in
+    /// `tests/topp_map_normalizer.rs` for the end-to-end case.
     #[test]
-    fn an_empty_run_has_no_maximum() {
+    fn an_empty_run_is_refused() {
         let empty = MSExperiment::default();
-        assert_eq!(MapNormalizer::run_maximum_intensity(&empty).unwrap(), None);
+        assert!(MapNormalizer::run_maximum_intensity(&empty).is_err());
         let mut without_peaks = MSExperiment::default();
         without_peaks.spectra.push(MSSpectrum::new());
-        assert_eq!(
-            MapNormalizer::run_maximum_intensity(&without_peaks).unwrap(),
-            None,
-            "a spectrum with no peaks contributes an RT but no intensity"
+        assert!(
+            MapNormalizer::run_maximum_intensity(&without_peaks).is_err(),
+            "a spectrum with no peaks contributes an RT but no intensity, and \
+             the source throws on that intensity range just the same"
         );
     }
 }

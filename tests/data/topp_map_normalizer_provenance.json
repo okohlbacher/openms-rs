@@ -6,7 +6,7 @@
   "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3"
  },
  "scope": "Sources and fixtures come from the independently versioned OpenMS4-cli, OpenMS4-topp and OpenMS4-test-data packages; the algorithm the tool calls (MSExperiment::updateRanges and getMaxIntensity) is resolved against the pinned Core SDK checkout at core bc9cc12.",
- "method": "Tool transcribed from the pinned C++. The upstream invocation is reproduced against the retained C++ output and compared canonically: the upstream ${DIFF} runs with an index whitelist, so byte equality was never the contract. The two chromatogram-scale cases are executed against the pinned C++ Release build (see external_reference_artifacts), and the whole fix is verified on the 1.2 GB benchmark input.",
+ "method": "Tool transcribed from the pinned C++. The upstream invocation is reproduced against the retained C++ output and compared canonically: the upstream ${DIFF} runs with an index whitelist, so byte equality was never the contract. The two chromatogram-scale cases are executed against the pinned C++ Release build (see external_reference_artifacts), the degenerate intensity ranges -- empty, all-zero, all-negative -- are executed against it as well rather than reasoned from the source, and the whole fix is verified on the 1.2 GB benchmark input.",
  "evidence_tier": "executed differential (tier 1), canonical comparison against retained C++ tool output, plus a full-size executed comparison on real instrument data",
  "sources": [
   {
@@ -20,6 +20,10 @@
   {
    "path": ".reference/openms4-core-bc9cc12/src/openms/include/OpenMS/KERNEL/MSExperiment.h",
    "sha256": "b019e4796acef1f05400fb7e2a4368494ed4698818f415bca2461e95e43aaccd"
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/include/OpenMS/KERNEL/RangeManager.h",
+   "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d"
   },
   {
    "path": ".reference/openms4-core-bc9cc12/src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp",
@@ -51,6 +55,11 @@
    "path": ".reference/openms4-core-bc9cc12/src/openms/include/OpenMS/KERNEL/MSExperiment.h",
    "line": 1059,
    "operation": "double getMaxIntensity() const { return combined_ranges_.getMaxIntensity(); } -- the combined range, not the spectrum range."
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/include/OpenMS/KERNEL/RangeManager.h",
+   "line": 139,
+   "operation": "RangeBase::getMax(): `if (isEmpty()) { throw Exception::InvalidRange(..., \"Empty or uninitialized range object. Did you forget to call updateRanges()?\"); } return max_;` -- an unconditional throw, not behind OPENMS_ASSERTIONS, so a Release build throws too. RangeIntensity::getMaxIntensity() (line 455) forwards to it, and MSExperiment::getMaxIntensity() (MSExperiment.h:1059) forwards to that. MapNormalizer.cpp:94 asks for it one line before the peak loop, so an empty combined intensity range refuses the run whether or not the loop body would have run."
   },
   {
    "path": ".reference/openms4-core-bc9cc12/src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp",
@@ -86,6 +95,16 @@
    "path": "tests/data/map_normalizer_chromatogram_below_output.mzML",
    "sha256": "070c471152315a657ec55b014750af6c822c4473cfa60bc6289d8e7ff13516c5",
    "kind": "executed output of the pinned C++ Release MapNormalizer on that input: scale 500, so the MS1 peak of 3000 becomes 6"
+  },
+  {
+   "path": "tests/data/map_normalizer_empty_range_input.mzML",
+   "sha256": "f2154173bb9016671fb5d38fff8104575b1ea6ca20b1086c1a917a9030180d1e",
+   "kind": "written by oracle/map-normalizer-divergence/make_degenerate.py. Three well-formed scans (MS1, MS2, MS1), each with defaultArrayLength=0 and empty binary arrays, and no chromatogram: the combined RT range is 10.5..12.5 but the combined INTENSITY range is empty. No expected output exists because the C++ writes none: executed, it exits 8 with 'Empty or uninitialized range object. Did you forget to call updateRanges()?'."
+  },
+  {
+   "path": "tests/data/map_normalizer_empty_run_input.mzML",
+   "sha256": "cc3fa9ec94bcd066d8346200d257eed8e864e77085df0baa7e5b4071e951f68d",
+   "kind": "the other shape that empties the combined intensity range: an empty <spectrumList count=\"0\"/> and no chromatogram list. Same executed C++ result -- exit 8, no output file."
   }
  ],
  "external_reference_artifacts": [
@@ -108,6 +127,24 @@
    "label": "its output on dax, including sha256 of the C++ binaries (MapNormalizer bcd0250e9cc67aba1eba786041059c0e03f77ce7562181b558e52e62438b67f5) and of the four fixtures"
   },
   {
+   "path": "../oracle/map-normalizer-divergence/make_degenerate.py",
+   "sha256": "ecf3a2a3989c23c2bdcc979d88474834887a2be5353e616f5915d6e89d51468e",
+   "origin_key": "fixtures",
+   "label": "writes the four degenerate-intensity inputs (empty intensity range in two shapes, all-zero, all-negative); deterministic, no C++ involved. The first two are committed as fixtures; the last two only feed the driver below."
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/degenerate.sh",
+   "sha256": "2edb67500596aa9b51e539e42739d0f59d02c2001518cc197cf5b742df25a4f0",
+   "origin_key": "fixtures",
+   "label": "driver (tier 1 executed): runs the pinned C++ Release MapNormalizer on all four, prints its exit status, whether it wrote an output file, the decoded intensity arrays of any output, and the FileInfo combined ranges of each input"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/degenerate.log",
+   "sha256": "1aca3102077e73a7fee5e7d7e5adac44fb9041af090fe5af8540934d9bd6263c",
+   "origin_key": "fixtures",
+   "label": "its output on dax. Empty intensity range, both shapes: exit 8, 'Error: Unexpected internal error (Empty or uninitialized range object. Did you forget to call updateRanges()?)', no output file, FileInfo 'intensity: <none> .. <none>' under Combined Ranges. All-zero: exit 0, output written, every MS1 intensity NaN and the MS2 spectrum untouched. All-negative: exit 0, maximum -1.00 so the scale is negative, MS1 [-10,-200,-3000] written back as [1000,20000,300000]."
+  },
+  {
    "path": "../oracle/map-normalizer-divergence/compare_mzml.py",
    "sha256": "586312f03349e3534fa17c12f115498cdc67170f4ff65d50c0db11c0e45b14db",
    "origin_key": "measurements",
@@ -124,13 +161,19 @@
    "sha256": "ebadf0c0e5084d4459b13f41e541fdbcf36d019461fb04770c970a38dfe183b5",
    "origin_key": "measurements",
    "label": "its output on dax: 43,746 holders, 88,478,237 intensity points, 88,434,492 m/z points, zero differences; the port's output identical at 1 and 32 threads (sha256 f1c3cf33a1affcd496d8f1a9511b65ccaed06c4b868a726dff1648549fd5e54f); the control finds exactly the 7,302 MS1 spectra changed"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/full_run_dax_recheck.log",
+   "sha256": "7a5d43ad218ffa2e9f7c8aaf46563c9fc921f4c50c6695af799ad5644bdeb357",
+   "origin_key": "measurements",
+   "label": "the same driver re-run on dax after the empty-range refusal was restored, against a release binary rebuilt from that source (sha256 2a4176a1813103a9fa71d3f68b016437bef791c033d68737d1b70937515905d4): 43,746 holders and 0 with any difference; intensity 43,746 arrays / 88,478,237 points, m/z 43,745 arrays / 88,434,492 points, time 1 array / 43,745 points, all bitwise equal; port output sha256 f1c3cf33a1affcd496d8f1a9511b65ccaed06c4b868a726dff1648549fd5e54f at 1 and at 32 threads -- the same digest as before the change, so restoring the refusal moved no value on real data. Control against the unnormalised input still finds exactly 7,302 changed MS1 intensity arrays."
   }
  ],
- "external_reference_note": "No C++ is committed to this repository. The drivers under ../oracle/map-normalizer-divergence/ run the prebuilt Release TOPP tools at /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (core bc9cc12 / cli c19e494 / topp 174b576); only their outputs enter the repository, as the four fixtures above. The 1.2 GB input stays at /ceph/ibmi/abi/oliver/bench/openms4/inputs/centroid_lcms_velos_pxd001819_50amol_r1/50amol_R1.mzML (sha256 in that tree's MANIFEST.json) and is read by no committed test.",
+ "external_reference_note": "No C++ is committed to this repository. The drivers under ../oracle/map-normalizer-divergence/ run the prebuilt Release TOPP tools at /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (core bc9cc12 / cli c19e494 / topp 174b576); only their outputs enter the repository, as the two executed expected fixtures above. The four inputs beside them are written by the deterministic generators in that directory, not by any C++ tool. The 1.2 GB input stays at /ceph/ibmi/abi/oliver/bench/openms4/inputs/centroid_lcms_velos_pxd001819_50amol_r1/50amol_R1.mzML (sha256 in that tree's MANIFEST.json) and is read by no committed test.",
  "measurements": {
   "node": "dax (never ibminode05), shared and under other users' load; the wall times in full_run_dax.log are an order-of-magnitude sanity check, not a timing measurement",
-  "build": "cargo build --release --locked --bin MapNormalizer through openms-kim-gate.sh with slot fx-mapn",
-  "full_run": "C++ 14.43 s wall / 1,497 MiB peak RSS, port 20.87 s wall / 1,986 MiB at 1 thread and 19.13 s / 1,980 MiB at 32; shared INI sha256 7820b412ebf9b3958d0a35cc11ee03f7e3f4dff3dc9490b9b91a79f4c42daeec. The port's output sha256 is unchanged from the hand-folded first version of the fix, so switching to MSExperiment::combined_ranges_with_limits changed no value."
+  "build": "cargo build --release --locked --bin MapNormalizer through openms-kim-gate.sh with slot fx-mapn, and again with slot fx-mapn2 for the recheck after the empty-range refusal was restored",
+  "full_run": "C++ 14.43 s wall / 1,497 MiB peak RSS, port 20.87 s wall / 1,986 MiB at 1 thread and 19.13 s / 1,980 MiB at 32; on the recheck run C++ 13.15 s / 1,532,928 KiB and port 17.82 s / 2,030,592 KiB at 1 thread, 18.30 s / 2,033,664 KiB at 32. Shared INI sha256 7820b412ebf9b3958d0a35cc11ee03f7e3f4dff3dc9490b9b91a79f4c42daeec in both. The port's output sha256 is unchanged from the hand-folded first version of the fix and unchanged again after the refusal was restored, so neither switching to MSExperiment::combined_ranges_with_limits nor restoring the refusal changed a value on real data."
  },
  "native_implementation": [
   "src/cli/tools/map_normalizer.rs",
@@ -143,8 +186,9 @@
  "support": "docs/TOPP_CLI_SUPPORT.md",
  "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 343-345",
  "target_verification": {
-  "tests": "tests/topp_map_normalizer.rs, four cases: the upstream invocation, the two chromatogram-scale cases against executed C++ output, and the parameter/format refusals; plus three private tests in src/cli/tools/map_normalizer.rs for the derived work ceiling, the combined maximum and the empty run",
-  "cpp_issue_candidate": "Two, both in the C++ and both disclosed rather than worked around here. (1) MapNormalizer divides by getMaxIntensity()/100 with no guard, so a run whose combined maximum intensity is zero writes NaN into every MS1 peak and a run with only negative intensities flips every sign; this port refuses a non-positive scale with exit 6. (2) MzMLHandlerHelper::writeFooter writes <fileChecksum>0</fileChecksum> with a TODO instead of the SHA-1 the indexedmzML schema asks for; the port writes the real digest, which is the conforming behaviour and costs it a full pass over the output.",
+  "tests": "tests/topp_map_normalizer.rs, five cases: the upstream invocation, the two chromatogram-scale cases against executed C++ output, the empty-combined-intensity-range refusal on both of its shapes, and the parameter/format refusals; plus three private tests in src/cli/tools/map_normalizer.rs for the derived work ceiling, the combined maximum and the refused empty run",
+  "deliberate_deviation": "Exactly one, and it is not the empty range. Both sides REFUSE a run whose combined intensity range is empty and both write no output file; only the exit code differs, C++ 8 (its InvalidRange reaches TOPPBase's UNKNOWN_ERROR arm) against this port's 6, because Error::InvalidValue and Error::InvalidRange map to ILLEGAL_PARAMETERS crate-wide -- the mapping documented at run_failure in src/cli.rs, not a choice this tool makes. The deviation proper is the non-positive scale: executed, the C++ exits 0 and writes NaN (all-zero run) or sign-flipped intensities (all-negative run), where this port refuses with exit 6 and writes nothing. See ../oracle/map-normalizer-divergence/degenerate.log.",
+  "cpp_issue_candidate": "Two, both in the C++ and both disclosed rather than worked around here. (1) MapNormalizer divides by getMaxIntensity()/100 with no guard. Executed at the pinned Release build: an all-zero run exits 0 with NaN in every MS1 peak, and an all-negative run exits 0 with every MS1 peak sign-flipped and scaled by 100 (maximum -1.00, so the scale is -0.01); this port refuses a non-positive scale with exit 6. The neighbouring empty-range case is NOT part of this candidate: there the C++ refuses cleanly, exit 8, and so does the port. (2) MzMLHandlerHelper::writeFooter writes <fileChecksum>0</fileChecksum> with a TODO instead of the SHA-1 the indexedmzML schema asks for; the port writes the real digest, which is the conforming behaviour and costs it a full pass over the output.",
   "port_issue_reported": "SummaryLimits::default().max_work is a fixed 50,000,000 units, where MSExperiment::combined_ranges, chromatogram_ranges and calculate_tic_binned charge one unit per spectrum, per peak, per chromatogram and per chromatogram point. The benchmark's 1.2 GB Velos run charges 88,521,983, so combined_ranges() refuses it; the port's mzML reader admits that file, so the ceiling refuses data the reader already read. MapNormalizer derives its own ceiling from the materialised map (MapNormalizer::range_limits) and does not change the shared default, which belongs to src/kernel/experiment_summary.rs."
  }
 }

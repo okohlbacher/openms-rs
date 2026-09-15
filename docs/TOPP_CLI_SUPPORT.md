@@ -571,8 +571,10 @@ maxima are what the C++ `FileInfo` prints for that file under *Combined Ranges*
 and *Spectrum Ranges*. `MapNormalizer::run_maximum_intensity` now folds the
 chromatogram ranges in, and the full run agrees with the C++ Release build on
 every decoded array: 43,746 holders, 88,478,237 intensity points, 88,434,492 m/z
-points, zero differences, with the port's output byte-identical at 1 and 32
-threads.
+points and the chromatogram's 43,745 time points, all bitwise equal, zero
+differences, with the port's output byte-identical at 1 and 32 threads. That
+comparison was re-run after the empty-range refusal below was restored, and the
+port's output digest is unchanged.
 
 Two shapes distinguish the two formulas, and
 `tests/topp_map_normalizer.rs` covers both against executed C++ output
@@ -601,13 +603,32 @@ reported rather than changed here; `src/kernel/experiment_summary.rs` is outside
 this tool.
 
 **One deliberate deviation.** The source divides by `getMaxIntensity() / 100`
-with no guard, so an all-zero run yields NaN intensities and an all-negative run
-flips every sign. This port refuses a non-positive scale with exit 6. An empty
-combined range — no spectrum peak and no chromatogram point anywhere — is *not*
-refused: the source leaves `combined_ranges_` empty there and never reaches its
-division either, because there is no peak for the loop body to divide, so the
-port writes the file through with only the processing record added. An earlier
-version of this port refused that case.
+with no guard. Executed at the pinned Release build: on a run whose intensities
+are all zero it exits 0 and writes `NaN` into every MS1 peak (the MS2 spectrum,
+which it never rescales, keeps its zeros); on a run whose intensities are all
+negative the maximum is the least negative value, so the scale is negative and
+it exits 0 having flipped the sign of every MS1 peak — `[-10, -200, -3000]` came
+back as `[1000, 20000, 300000]`. This port refuses a non-positive scale with
+exit 6 instead, and writes nothing.
+
+**An empty combined intensity range is refused, as the source refuses it** —
+only the exit code differs. `main_` asks for `getMaxIntensity()` unconditionally,
+one line before its peak loop, and `RangeBase::getMax()`
+(`RangeManager.h:139-146` at core bc9cc12) throws `Exception::InvalidRange` on an
+empty range with no assertion guard, so a Release build throws as well; whether
+the loop body would have run is irrelevant, the throw happens first. Executed at
+the pinned Release build on both shapes that reach it — three scans carrying a
+retention time but no point, and an empty `spectrumList` — the C++ exits **8**
+with *Empty or uninitialized range object. Did you forget to call
+updateRanges()?* and writes **no output file**; its `FileInfo` prints
+`intensity: <none> .. <none>` under *Combined Ranges* for both. The port refuses
+both and likewise writes nothing, but exits **6**: `Error::InvalidValue` and
+`Error::InvalidRange` map to `ILLEGAL_PARAMETERS` crate-wide, where the source's
+same-named exceptions derive from `BaseException` and reach its `UNKNOWN_ERROR`
+arm — the mapping already documented at `run_failure` in `src/cli.rs`, not a
+choice this tool makes. `an_empty_combined_intensity_range_is_refused` covers
+both fixtures end to end; the executed commands, exit codes and digests are in
+`tests/data/topp_map_normalizer_provenance.json`.
 
 `SpectraFilterWindowMower` is the first tool with an **algorithm subsection**,
 the shape most remaining TOPP tools take. `Tool::subsection_defaults` ports
