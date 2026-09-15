@@ -22,11 +22,24 @@
 //!   topp `174b576` (tier 3), and checked against the executed `-write_ini`
 //!   output where one exists.
 //!
-//! The algorithm stops after seed selection until package B7 lands, so every
-//! input that passes the wrapper ends in the documented `Error: unsupported:`
-//! line with exit 11 and no output; `TOPP_FeatureFinderCentroided_1` itself is
-//! package B10's. What the wrapper does after the algorithm is tested directly
-//! through `FeatureFinderCentroided::finish_features`.
+//! * **The C++ Release build.** The cases that run the whole chain are also
+//!   measured against
+//!   `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/FeatureFinderCentroided`,
+//!   which is the build the Debug oracle's featureXML reproduces to within
+//!   `9e-11` relative. That run is what the numeric expectations below are
+//!   quoted from; the two oracle cases whose Debug exit comes from an
+//!   `OPENMS_PRECONDITION` (`FFC_FileFilter_44_force`, `FFC_im_arrays_ms2_only`)
+//!   have no Debug exit-code expectation (decision D7), and the Release
+//!   behaviour is recorded with them instead.
+//!
+//! The algorithm now runs end to end (package B7), so an input that passes the
+//! wrapper produces a feature map. The exact acceptance of
+//! `TOPP_FeatureFinderCentroided_1` — the `1e-9` tight comparison against the
+//! C1 oracle output and the `-algorithm:fit:max_iterations` sweep — stays
+//! package B10's; what this file asserts is the decoded comparison against the
+//! retained expectation plus the structure the C++ Release run showed. What the
+//! wrapper does after the algorithm is additionally tested on its own through
+//! `FeatureFinderCentroided::finish_features`.
 //!
 //! Synthetic inputs are not committed: each is derived here from the retained
 //! `FeatureFinderCentroided_1_input.mzML` by the rule the oracle manifests
@@ -40,6 +53,8 @@
 // The tool exists under the features its executable requires.
 #![cfg(all(feature = "mzml", feature = "paramxml", feature = "featurexml"))]
 
+#[path = "support/decoded_compare.rs"]
+mod decoded;
 #[path = "support/fuzzy_string_comparator.rs"]
 mod fuzzy;
 
@@ -182,12 +197,7 @@ fn run_in(dir: &Workdir, args: &[&str]) -> Outcome {
     }
 }
 
-/// The message the picked algorithm returns until package B7 lands, as the
-/// framework reports an [`Error::Unsupported`].
-const ALGORITHM_NOT_PORTED: &str = "Error: unsupported: FeatureFinderAlgorithmPicked seed extension, trace fitting and feature resolution (source step 3.3 onward) are not ported yet";
-
-/// Assert that the wrapper accepted the input and handed it to the algorithm,
-/// which is as far as this package's port runs.
+/// Assert that the wrapper accepted the input and handed it to the algorithm.
 fn assert_reached_the_algorithm(outcome: &Outcome) {
     outcome.assert_out_contains(FeatureFinderCentroided::NO_FAIMS_MESSAGE);
     assert!(
@@ -199,6 +209,138 @@ fn assert_reached_the_algorithm(outcome: &Outcome) {
         !outcome.err.contains("per-peak ion mobility"),
         "the ion-mobility check refused the input:\n{}",
         outcome.err
+    );
+}
+
+/// The algorithm's progress lines of the `TOPP_FeatureFinderCentroided_1` run,
+/// in the order the C++ Release build printed them (its `stdout` also carries
+/// the framework's loading progress and timing lines, which are not compared).
+const FFC1_ALGORITHM_LINES: &[&str] = &[
+    "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.",
+    "Found 25 seeds for charge 2.",
+    "Found 8 feature candidates for charge 2.",
+    "Removed 0 overlapping features.",
+    "",
+    "Info: reasons for not finalizing a feature during its construction:",
+    " - Invalid fit: Fitted model is bigger than 'max_rt_span': 1 times",
+    "",
+    "8 features found.",
+];
+
+/// The same lines for the `-seeds` run, whose 24 given seeds give one candidate
+/// more and one overlap removal (oracle `FFC_seeds`, C++ Release confirmed).
+const FFC_SEEDS_ALGORITHM_LINES: &[&str] = &[
+    "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.",
+    "Found 24 seeds for charge 2.",
+    "Found 9 feature candidates for charge 2.",
+    "Removed 1 overlapping features.",
+    "",
+    "Info: reasons for not finalizing a feature during its construction:",
+    " - Could not extend seed: 1 times",
+    "",
+    "8 features found.",
+];
+
+/// Assert that `lines` appear in `outcome.out` consecutively and in order.
+fn assert_out_block(outcome: &Outcome, lines: &[&str]) {
+    let actual: Vec<&str> = outcome.out.lines().collect();
+    let found = actual.windows(lines.len()).any(|window| window == lines);
+    assert!(
+        found,
+        "stdout does not contain\n{lines:#?}\ngot\n{}",
+        outcome.out
+    );
+}
+
+/// The retained upstream expectation of `TOPP_FeatureFinderCentroided_1`
+/// (`FeatureFinderCentroided_1_1_output.featureXML`), loaded as a feature map.
+fn ffc1_expected_map() -> FeatureMap {
+    FileHandler::load_feature_map(
+        mobility("FeatureFinderCentroided_1_1_output.featureXML"),
+        &[FileType::FeatureXml],
+    )
+    .unwrap()
+}
+
+/// Compare a written featureXML with the retained `TOPP_FeatureFinderCentroided_1`
+/// expectation under decision D6: decoded content, the upstream `FuzzyDiff` rule
+/// (ratio `1.01` or absolute difference `0.01`) and generated identifiers
+/// skipped, which is the decoded form of the upstream `-whitelist "id="`.
+///
+/// The loose rule is the upstream one and is never relied on alone: every
+/// caller also pins the structure, and
+/// [`the_upstream_workflow_matches_the_retained_expectation`] pins the numbers
+/// far more tightly than `FuzzyDiff` would.
+fn assert_matches_ffc1_expectation(path: &str) {
+    let actual = FileHandler::load_feature_map(path, &[FileType::FeatureXml]).unwrap();
+    let options =
+        decoded::DecodedOptions::new(decoded::Tolerance::new(1.01, 0.01)).ignoring_unique_ids();
+    if let Err(mismatch) = decoded::compare_feature_maps(&actual, &ffc1_expected_map(), &options) {
+        panic!("{path}: {mismatch}");
+    }
+}
+
+/// The structure every `TOPP_FeatureFinderCentroided_1`-shaped run wrote, read
+/// off the C++ Release output: eight features of charge 2, each with four-point
+/// mass-trace hulls and no subordinates, 30 hulls and 120 hull points in all,
+/// and one `UserParam` key set.
+fn assert_ffc1_structure(path: &str, input_basename: &str) {
+    let map = FileHandler::load_feature_map(path, &[FileType::FeatureXml]).unwrap();
+    assert_eq!(map.features.len(), 8, "{path}: feature count");
+    assert_eq!(
+        map.primary_ms_run_path().unwrap(),
+        [format!("file://{input_basename}")],
+        "{path}: spectra_data"
+    );
+    let mut hulls = 0;
+    let mut points = 0;
+    for (index, feature) in map.features.iter().enumerate() {
+        assert_eq!(feature.base.charge, 2, "{path}: features[{index}].charge");
+        assert!(
+            feature.subordinates.is_empty(),
+            "{path}: features[{index}] has subordinates"
+        );
+        hulls += feature.convex_hulls.len();
+        for hull in &feature.convex_hulls {
+            assert_eq!(
+                hull.hull_points().len(),
+                4,
+                "{path}: features[{index}] hull is not a bounding box"
+            );
+            points += hull.hull_points().len();
+        }
+        // `MetaInfo` is a `BTreeMap`, so its keys already come out in order.
+        let keys: Vec<&str> = feature.metadata.keys().map(String::as_str).collect();
+        assert_eq!(
+            keys,
+            [
+                "FWHM",
+                "label",
+                "num_of_datapoints",
+                "score_correlation",
+                "score_fit",
+                "spectrum_index",
+                "spectrum_native_id",
+            ],
+            "{path}: features[{index}] metadata keys"
+        );
+    }
+    assert_eq!(hulls, 30, "{path}: hull count");
+    assert_eq!(points, 120, "{path}: hull point count");
+
+    assert_eq!(map.data_processing.len(), 1, "{path}: processing entries");
+    let processing = &map.data_processing[0];
+    assert_eq!(processing.software.name, "FeatureFinderCentroided");
+    assert_eq!(processing.software.version, TEST_MODE_VERSION);
+    assert_eq!(
+        processing.completion_time.unwrap().to_string(),
+        TEST_MODE_COMPLETION_TIME
+    );
+    assert_eq!(processing.actions.len(), 1);
+    assert!(processing.actions.contains(&ProcessingAction::Quantitation));
+    assert_eq!(
+        processing.metadata.get(TEST_MODE_PARAMETER_KEY),
+        Some(&MetaValue::from(TEST_MODE_PARAMETER_VALUE))
     );
 }
 
@@ -693,8 +835,9 @@ fn an_input_without_ms1_spectra_is_input_file_empty() {
 /// Oracle `FFC_profile_noforce` and `FFC_profile_force`: the first spectrum's
 /// stored type decides. Without `-force` the source's `IllegalArgument` reaches
 /// `TOPPBase`'s catch-all, exit 8, and nothing is written; with `-force` the run
-/// continues (the C++ run then finds the FFC_1 features, this port stops in the
-/// algorithm).
+/// continues and finds the `TOPP_FeatureFinderCentroided_1` features — the
+/// oracle's `-force` output is byte-identical to its `FFC_1` output, and the
+/// C++ Release run reproduces that.
 #[test]
 fn profile_data_is_refused_without_force() {
     let dir = Workdir::new();
@@ -721,15 +864,17 @@ fn profile_data_is_refused_without_force() {
     forced.push("-force");
     let outcome = run_in(&dir, &forced);
     assert_reached_the_algorithm(&outcome);
-    outcome.assert_exit(ExitCode::IncompatibleInputData);
-    outcome.assert_err_contains(ALGORITHM_NOT_PORTED);
-    assert!(!Path::new(&out).exists());
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert_out_block(&outcome, FFC1_ALGORITHM_LINES);
+    assert_ffc1_structure(&out, "FeatureFinderCentroided_1_input.mzML");
+    assert_matches_ffc1_expectation(&out);
 }
 
 /// Oracle `FFC_profile_then_spectrum_representation`: a profile term followed
 /// by `MS:1000525` resets the stored type to unknown
-/// (`MzMLHandler.cpp:1642-1645`), so the check does not fire and the C++ run
-/// produces the FFC_1 output.
+/// (`MzMLHandler.cpp:1642-1645`), so the check does not fire and the run
+/// produces the FFC_1 output — the oracle wrote a file identical to its FFC_1
+/// output, and the C++ Release run reproduces that.
 #[test]
 fn a_spectrum_representation_term_after_a_profile_term_is_not_profile() {
     let dir = Workdir::new();
@@ -737,6 +882,7 @@ fn a_spectrum_representation_term_after_a_profile_term_is_not_profile() {
         "profile_before_1000525/FeatureFinderCentroided_1_input.mzML",
         &derive_profile_then_representation(&fs::read(ffc1_input()).unwrap()),
     );
+    let out = dir.file("FeatureFinderCentroided_1.tmp.featureXML");
     let outcome = run_in(
         &dir,
         &[
@@ -746,18 +892,21 @@ fn a_spectrum_representation_term_after_a_profile_term_is_not_profile() {
             "-in",
             &input,
             "-out",
-            &dir.file("FeatureFinderCentroided_1.tmp.featureXML"),
+            &out,
         ],
     );
     assert_reached_the_algorithm(&outcome);
-    outcome.assert_exit(ExitCode::IncompatibleInputData);
-    outcome.assert_err_contains(ALGORITHM_NOT_PORTED);
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert_out_block(&outcome, FFC1_ALGORITHM_LINES);
+    assert_ffc1_structure(&out, "FeatureFinderCentroided_1_input.mzML");
+    assert_matches_ffc1_expectation(&out);
 }
 
 /// Oracle `c5_first_profile_only` and `c5_later_profile_only`: only `exp[0]` is
 /// examined (`FeatureFinderCentroided.cpp:214`). One profile spectrum at the
 /// front is refused with exit 8; 111 profile spectra behind a centroided first
-/// one are not (the C++ run writes the FFC_1 output).
+/// one are not, and that run wrote the FFC_1 output (oracle
+/// `c5_later_profile_only`, exit 0, 15234 bytes).
 #[test]
 fn only_the_first_spectrum_decides_the_profile_check() {
     let source = fs::read(ffc1_input()).unwrap();
@@ -794,6 +943,7 @@ fn only_the_first_spectrum_decides_the_profile_check() {
         "later_profile_only",
     );
     let path = dir.put("later/FeatureFinderCentroided_1_input.mzML", &later);
+    let out = dir.file("later.featureXML");
     let outcome = run_in(
         &dir,
         &[
@@ -803,11 +953,14 @@ fn only_the_first_spectrum_decides_the_profile_check() {
             "-in",
             &path,
             "-out",
-            &dir.file("later.featureXML"),
+            &out,
         ],
     );
     assert_reached_the_algorithm(&outcome);
-    outcome.assert_exit(ExitCode::IncompatibleInputData);
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert_out_block(&outcome, FFC1_ALGORITHM_LINES);
+    assert_ffc1_structure(&out, "FeatureFinderCentroided_1_input.mzML");
+    assert_matches_ffc1_expectation(&out);
 }
 
 /// Oracle `FFC_im_peak_with_units` and `FFC_im_peak_without_units`: a per-peak
@@ -871,12 +1024,18 @@ fn the_ion_mobility_check_precedes_the_profile_check() {
 
 /// Oracle `FFC_im_arrays_ms2_only`: ion-mobility arrays that exist only on MS2
 /// spectra are removed by the MS-level filter, so the wrapper does not refuse
-/// the input. The C++ run then fails inside the algorithm through a Debug-only
-/// precondition (`ProgressLogger::init : invalid range!`), which is why no exit
-/// code is asserted here.
+/// the input. The Debug oracle then fails inside the algorithm through an
+/// `OPENMS_PRECONDITION` (`ProgressLogger::init : invalid range!`), so its exit
+/// 8 is `debug_only` (decision D7) and is not an expectation.
+///
+/// The C++ **Release** build, which has no preconditions, runs the input to the
+/// end: it reports no seed and no candidate for charges 1 to 4, `0 features
+/// found.`, exits 0 and writes an empty feature map. That is what this port
+/// does, and what is asserted here.
 #[test]
 fn ion_mobility_arrays_on_ms2_spectra_only_are_not_refused() {
     let dir = Workdir::new();
+    let out = dir.file("FFC_im_ms2.tmp.featureXML");
     let outcome = run_in(
         &dir,
         &[
@@ -884,16 +1043,36 @@ fn ion_mobility_arrays_on_ms2_spectra_only_are_not_refused() {
             "-in",
             &text(fixture("FileConverter_31_output.mzML")),
             "-out",
-            &dir.file("FFC_im_ms2.tmp.featureXML"),
+            &out,
         ],
     );
     assert_reached_the_algorithm(&outcome);
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    for charge in 1..=4 {
+        outcome.assert_out_contains(&format!("Found 0 seeds for charge {charge}."));
+        outcome.assert_out_contains(&format!("Found 0 feature candidates for charge {charge}."));
+    }
+    outcome.assert_out_contains("0 features found.");
+    let map = FileHandler::load_feature_map(&out, &[FileType::FeatureXml]).unwrap();
+    assert!(map.features.is_empty());
+    assert_eq!(
+        map.primary_ms_run_path().unwrap(),
+        ["file://FileConverter_31_output.mzML"]
+    );
 }
 
 /// Oracle `FFC_FileFilter_44_noforce`: a registered upstream profile fixture,
-/// numpress-compressed, is refused by the profile check with exit 8. The
-/// `-force` companion (`FFC_FileFilter_44_force`) exits 8 through a Debug-only
-/// precondition in the C++ build, so only the refusal is an expectation.
+/// numpress-compressed, is refused by the profile check with exit 8. The C++
+/// Release build agrees (exit 8, the same message).
+///
+/// The `-force` companion (`FFC_FileFilter_44_force`) exits 8 through a
+/// Debug-only `OPENMS_PRECONDITION`, so the Debug exit is not an expectation
+/// (decision D7). This port exits 8 as well, but for its own reason: the
+/// fixture's four MS1 spectra all carry retention time `0.273`, so the source's
+/// intensity binning divides by a zero bin width. See
+/// [`a_zero_width_retention_time_range_diverges_from_the_cpp_release_build`] for
+/// the measured difference to the C++ Release build, which carries the division
+/// through to an empty feature map.
 #[test]
 fn the_numpress_profile_fixture_is_refused_without_force() {
     let dir = Workdir::new();
@@ -906,6 +1085,47 @@ fn the_numpress_profile_fixture_is_refused_without_force() {
 
     let outcome = run_in(&dir, &["-test", "-in", &input, "-out", &out, "-force"]);
     assert_reached_the_algorithm(&outcome);
+    outcome.assert_exit(ExitCode::UnknownError);
+    outcome.assert_err_contains(ZERO_WIDTH_RANGE_REFUSAL);
+    assert!(!Path::new(&out).exists(), "no output is written");
+}
+
+/// The refusal this port raises where the source divides by a zero bin width.
+const ZERO_WIDTH_RANGE_REFUSAL: &str = "Error: Unexpected internal error (FeatureFinderAlgorithmPicked needs a retention-time and an m/z range of positive width";
+
+/// **Documented divergence, measured against the C++ Release build.**
+///
+/// `FileFilter_44_input.mzML` has four MS1 spectra at the single retention time
+/// `0.273`. Source `FeatureFinderAlgorithmPicked::run_` divides the retention
+/// time range by `intensity:bins` to size its intensity bins
+/// (`FeatureFinderAlgorithmPicked.cpp`, step 1), which is a division by zero
+/// here. The three builds part company:
+///
+/// * C++ Debug (oracle `FFC_FileFilter_44_force`): exit 8 from an
+///   `OPENMS_PRECONDITION` inside `ProgressLogger::init`, `debug_only`.
+/// * C++ Release (`openms4-release-bc9cc12-c19e494-174b576`, run under the
+///   oracle environment): exit 0. The division produces non-finite bin bounds,
+///   no peak falls in any bin, the run reports `Found 0 seeds` and `Found 0
+///   feature candidates` for charges 1 to 4 and `0 features found.`, and writes
+///   a featureXML with `<featureList count="0">`.
+/// * This port: exit 8 with [`ZERO_WIDTH_RANGE_REFUSAL`], and no output.
+///
+/// The port refuses rather than reproducing arithmetic on non-finite values, so
+/// this test is ignored and kept as the record of the difference. Closing it
+/// means either reproducing the source's non-finite binning or making the
+/// refusal opt-out for the tool path, which is the picked feature finder's
+/// decision, not this wrapper's.
+#[test]
+#[ignore = "documented divergence: the port refuses a zero-width RT range that C++ Release carries through to an empty feature map"]
+fn a_zero_width_retention_time_range_diverges_from_the_cpp_release_build() {
+    let dir = Workdir::new();
+    let out = dir.file("FFC_FileFilter_44_force.tmp.featureXML");
+    let input = text(fixture("FileFilter_44_input.mzML"));
+    let outcome = run_in(&dir, &["-test", "-in", &input, "-out", &out, "-force"]);
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    outcome.assert_out_contains("0 features found.");
+    let map = FileHandler::load_feature_map(&out, &[FileType::FeatureXml]).unwrap();
+    assert!(map.features.is_empty());
 }
 
 /// Oracle `c5_negative_intensities`: with every MS1 peak negative the load
@@ -941,10 +1161,12 @@ fn an_input_whose_peaks_are_all_filtered_is_an_unexpected_internal_error() {
 
 /// Oracle `FFC_out_no_extension`: an output name without an extension is
 /// accepted, because the format check only refuses an extension another type
-/// claims. The C++ run writes the FFC_1 featureXML into it.
+/// claims, and the FFC_1 featureXML is written into it (the oracle's `FFC_noext`
+/// is identical to its FFC_1 output).
 #[test]
 fn an_output_name_without_an_extension_is_accepted() {
     let dir = Workdir::new();
+    let out = dir.file("FFC_noext");
     let outcome = run_in(
         &dir,
         &[
@@ -954,7 +1176,7 @@ fn an_output_name_without_an_extension_is_accepted() {
             "-in",
             &text(ffc1_input()),
             "-out",
-            &dir.file("FFC_noext"),
+            &out,
         ],
     );
     assert!(
@@ -963,7 +1185,10 @@ fn an_output_name_without_an_extension_is_accepted() {
         outcome.err
     );
     assert_reached_the_algorithm(&outcome);
-    outcome.assert_exit(ExitCode::IncompatibleInputData);
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert_out_block(&outcome, FFC1_ALGORITHM_LINES);
+    assert_ffc1_structure(&out, "FeatureFinderCentroided_1_input.mzML");
+    assert_matches_ffc1_expectation(&out);
 }
 
 /// Oracle `FFC_invalid_rt_shape`: an invalid value of a subsection parameter is
@@ -1021,10 +1246,14 @@ fn seeds_must_be_featurexml() {
     outcome.assert_err_contains("has invalid format 'mzML'. Valid formats are: 'featureXML'.");
 }
 
-/// A `-seeds` map is loaded, and the run continues into the algorithm. The
-/// retained FFC_1 output is the seed list of the oracle case `FFC_seeds`, whose
-/// C++ run reported 24 seeds and 8 features; the port stops in the algorithm,
-/// so only the load is asserted here.
+/// Oracle `FFC_seeds`: the retained FFC_1 output is used as the seed list. Its
+/// eight features give the 24 seeds the source keeps after the charge filter,
+/// which produce one candidate more than the computed seeds and one overlap
+/// removal, and one seed that cannot be extended: `24 seeds`, `9 feature
+/// candidates`, `Removed 1 overlapping features.`, `Could not extend seed: 1
+/// times`, `8 features found.` The C++ Release run prints the same lines and
+/// writes a feature map the decoded comparison cannot tell from the FFC_1
+/// expectation.
 #[test]
 fn a_featurexml_seed_list_is_loaded() {
     let dir = Workdir::new();
@@ -1036,6 +1265,7 @@ fn a_featurexml_seed_list_is_loaded() {
             .len(),
         8
     );
+    let out = dir.file("g.featureXML");
     let outcome = run_in(
         &dir,
         &[
@@ -1048,11 +1278,14 @@ fn a_featurexml_seed_list_is_loaded() {
             "-in",
             &text(ffc1_input()),
             "-out",
-            &dir.file("g.featureXML"),
+            &out,
         ],
     );
     assert_reached_the_algorithm(&outcome);
-    outcome.assert_exit(ExitCode::IncompatibleInputData);
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert_out_block(&outcome, FFC_SEEDS_ALGORITHM_LINES);
+    assert_ffc1_structure(&out, "FeatureFinderCentroided_1_input.mzML");
+    assert_matches_ffc1_expectation(&out);
 }
 
 /// Oracle `c5_faims_corrupt_seeds`: the seed list is loaded before the FAIMS
@@ -1200,14 +1433,37 @@ fn a_faims_voltage_on_some_spectra_is_refused() {
 // ---------------------------------------------------------------------------
 
 /// The registered upstream workflow (test-data `topp/CMakeLists.txt:425-428`,
-/// oracle `TOPP_FeatureFinderCentroided_1`): the C++ tool exits 0 and writes
-/// the eight features of `FeatureFinderCentroided_1_1_output.featureXML`.
+/// oracle `TOPP_FeatureFinderCentroided_1`): exit 0 and the eight features of
+/// `FeatureFinderCentroided_1_1_output.featureXML`.
 ///
-/// Until package B7 ports seed extension and fitting, the run stops in the
-/// algorithm with the documented message and exit 11 and writes nothing; the
-/// output comparison is package B10's.
+/// The decoded comparison (decision D6) uses the upstream `FuzzyDiff` rule, but
+/// the loose rule is not what this case rests on: the numbers below are the
+/// measured gap to the C++ **Release** build
+/// `openms4-release-bc9cc12-c19e494-174b576` on the same input and INI, which
+/// is far tighter than `FuzzyDiff` and tighter than the `1e-9` relative bound
+/// package B10 asks for on the fitted fields:
+///
+/// | field | worst gap to C++ Release | C++ Debug vs C++ Release |
+/// |---|---|---|
+/// | convex-hull `rt` and `mz` | 0 (bit-identical) | 0 |
+/// | feature `mz` | 0 (bit-identical) | 0 |
+/// | feature `rt` | `5.5e-13` relative | `2.2e-13` |
+/// | `intensity`, `FWHM` | 0 (identical as `f32`) | 0 |
+/// | `score_fit` | `2.2e-10` relative | `9.1e-11` |
+/// | `score_correlation` | `7.7e-12` relative | `3.1e-12` |
+/// | `overallquality` | agrees to the six decimals C++ prints | — |
+///
+/// So the remaining difference is the last bits of the Levenberg-Marquardt fit,
+/// of the same order as the C++ build's own Debug-to-Release spread, and every
+/// integral and structural field agrees exactly. The retained expectation is
+/// itself not bit-reproducible by current C++ (its `intensity` is printed with
+/// one digit fewer), which is why the tight numbers are quoted against the
+/// executed build and the in-repo assertion is the decoded `FuzzyDiff` one.
+///
+/// The `1e-9` comparison against the C1 oracle output itself, the thread sweep
+/// and the `-algorithm:fit:max_iterations` boundary stay package B10's.
 #[test]
-fn the_upstream_workflow_stops_in_the_unported_algorithm() {
+fn the_upstream_workflow_matches_the_retained_expectation() {
     let dir = Workdir::new();
     let out = dir.file("FeatureFinderCentroided_1.tmp.featureXML");
     let outcome = run_in(
@@ -1223,9 +1479,111 @@ fn the_upstream_workflow_stops_in_the_unported_algorithm() {
         ],
     );
     assert_reached_the_algorithm(&outcome);
-    outcome.assert_exit(ExitCode::IncompatibleInputData);
-    outcome.assert_err_contains(ALGORITHM_NOT_PORTED);
-    assert!(!Path::new(&out).exists());
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert_out_block(&outcome, FFC1_ALGORITHM_LINES);
+    assert!(Path::new(&out).exists(), "the output file is written");
+    assert_ffc1_structure(&out, "FeatureFinderCentroided_1_input.mzML");
+    assert_matches_ffc1_expectation(&out);
+
+    // The fitted fields, against the retained expectation, at the tolerance the
+    // measurement above supports rather than the FuzzyDiff one. The expectation
+    // prints `intensity` with seven significant digits, so intensity is checked
+    // as the `f32` it is stored as.
+    let actual = FileHandler::load_feature_map(&out, &[FileType::FeatureXml]).unwrap();
+    let expected = ffc1_expected_map();
+    for (index, (a, e)) in actual.features.iter().zip(&expected.features).enumerate() {
+        assert!(
+            (a.base.rt - e.base.rt).abs() <= 1e-9 * e.base.rt.abs(),
+            "features[{index}].rt: {} vs {}",
+            a.base.rt,
+            e.base.rt
+        );
+        assert_eq!(a.base.mz, e.base.mz, "features[{index}].mz");
+        // The retained file prints seven significant digits of the `f32`
+        // intensity where current C++ prints its full decimal expansion (B10's
+        // note: the fixture is not bit-reproducible even by C++), so the two
+        // reconstructed `f32` values differ by up to 1.6e-7 relative. The
+        // assertion is therefore that both print the same seven digits — the
+        // whole information the fixture carries. Against the executed C++
+        // Release run the intensity is bit-identical as an `f32`.
+        assert_eq!(
+            format!("{:.6e}", a.base.intensity),
+            format!("{:.6e}", e.base.intensity),
+            "features[{index}].intensity"
+        );
+        let (a_fit, e_fit) = (meta_f64(a, "score_fit"), meta_f64(e, "score_fit"));
+        assert!(
+            (a_fit - e_fit).abs() <= 1e-9 * e_fit.abs(),
+            "features[{index}].score_fit: {a_fit} vs {e_fit}"
+        );
+        let (a_cor, e_cor) = (
+            meta_f64(a, "score_correlation"),
+            meta_f64(e, "score_correlation"),
+        );
+        assert!(
+            (a_cor - e_cor).abs() <= 1e-9 * e_cor.abs(),
+            "features[{index}].score_correlation: {a_cor} vs {e_cor}"
+        );
+        assert_eq!(
+            a.convex_hulls
+                .iter()
+                .map(ConvexHull2D::hull_points)
+                .collect::<Vec<_>>(),
+            e.convex_hulls
+                .iter()
+                .map(ConvexHull2D::hull_points)
+                .collect::<Vec<_>>(),
+            "features[{index}] hull points are not bit-identical"
+        );
+    }
+}
+
+/// A `float`-valued metadata entry of a feature.
+fn meta_f64(feature: &Feature, key: &str) -> f64 {
+    feature
+        .metadata
+        .get(key)
+        .unwrap_or_else(|| panic!("{key} is present"))
+        .as_f64()
+        .unwrap_or_else(|error| panic!("{key} is a number: {error}"))
+}
+
+/// `-threads` reaches the seed loop, and the determinism contract holds through
+/// the tool: 1, 2, 4, 8 and 0 (every core) write byte-identical output, unique
+/// ids included, because the loop returns its results in seed order and every
+/// later step is serial. The C++ oracle asserts the same across
+/// `FFC_1_threads_0/1/2/4/8`.
+#[test]
+fn the_output_is_byte_identical_at_every_thread_count() {
+    let dir = Workdir::new();
+    let mut reference: Option<Vec<u8>> = None;
+    for threads in ["1", "2", "4", "8", "0"] {
+        let out = dir.file(&format!("threads_{threads}.featureXML"));
+        let outcome = run_in(
+            &dir,
+            &[
+                "-test",
+                "-ini",
+                &text(ffc1_ini()),
+                "-in",
+                &text(ffc1_input()),
+                "-threads",
+                threads,
+                "-out",
+                &out,
+            ],
+        );
+        outcome.assert_exit(ExitCode::ExecutionOk);
+        assert_out_block(&outcome, FFC1_ALGORITHM_LINES);
+        let written = fs::read(&out).unwrap();
+        match &reference {
+            None => reference = Some(written),
+            Some(first) => assert!(
+                *first == written,
+                "-threads {threads} wrote a different file"
+            ),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------

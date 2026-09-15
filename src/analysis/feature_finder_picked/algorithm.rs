@@ -865,7 +865,9 @@ struct SeedCandidate {
 /// The log receives, in the source's order, the seed counts the stage already
 /// collected, each charge's `Found N feature candidates for charge c.` directly
 /// after its seed line, the overlap count, the apex warning if any, the abort
-/// reasons and the feature count.
+/// reasons and the feature count. Two entries are empty strings, the blank
+/// lines the source prints before the abort block and before the feature count
+/// (`FeatureFinderAlgorithmPicked.cpp:1019` and `1026`).
 ///
 /// Because the parallel results keep the input order and every later step is
 /// serial, the output does not depend on [`Options::threads`]; the source's
@@ -967,10 +969,16 @@ pub fn feature_stage(stage: &SeedStage, options: &Options) -> Result<RunOutput> 
     if invalid_apex > 0 {
         log.push(invalid_apex_warning(invalid_apex));
     }
+    // The source separates the abort block and the feature count from what
+    // precedes them with a blank line each (`OPENMS_LOG_INFO << '\n'` at
+    // FeatureFinderAlgorithmPicked.cpp:1019 and the leading "\n" at 1026), which
+    // the executed C++ prints whether or not there is an abort reason.
+    log.push(String::new());
     log.push("Info: reasons for not finalizing a feature during its construction:".into());
     for (reason, count) in &aborts {
         log.push(format!(" - {reason}: {count} times"));
     }
+    log.push(String::new());
     log.push(format!("{} features found.", map.len()));
     Ok(RunOutput {
         features: map,

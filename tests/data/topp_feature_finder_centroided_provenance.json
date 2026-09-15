@@ -1,15 +1,15 @@
 {
  "group": "topp_feature_finder_centroided",
- "work_package": "C5-FFC-WRAPPER (early TOPP bundle, wave 3a); src/cli/tools/feature_finder_centroided.rs, this manifest, the tests and the support document pass to B10 in wave 4",
+ "work_package": "C5-FFC-WRAPPER (early TOPP bundle, wave 3a), reconciled with the completed algorithm of B7-FFAP-FEATURES after both merged; src/cli/tools/feature_finder_centroided.rs, this manifest, the tests and the support document pass to B10 in wave 4",
  "package_revisions": {
   "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
   "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
   "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3"
  },
  "core_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
- "scope": "The FeatureFinderCentroided TOPP wrapper: registration and -write_ini, the source loading options, the empty-input, per-peak ion-mobility and profile branches in source order, the seed load, the FAIMS refusal of decision D5, the error mapping of the algorithm's failures, and the post-algorithm annotation and clean-up (primary MS run path, unique ids, the QUANTITATION processing record, hull and subordinate reduction). Not in scope: the picked algorithm past seed selection (B7), the FFC_1 output comparison and the seeded, asymmetric, debug-5 and thread-count runs (B10), and the FAIMS closure (B11).",
- "method": "The tool is transcribed from the pinned topp source and exercised through the built executable in a temporary working directory, because the FeatureFinderCentroided_1 INI sets log=TOPP.log. Every wrapper branch is compared with a C++ run of the same command against the product SDK: the planned regressions in the C1 oracle (../oracle/topp-early-bundle) and the branch-order cases this package added (../oracle/ffc-wrapper-c5), each executed twice and reproduced. Synthetic inputs are not committed: the tests re-derive them from the retained FeatureFinderCentroided_1_input.mzML by the rule the oracle manifests record and check the derived bytes against the SHA-1 of the file the C++ tool read, whose SHA-256 is recorded below.",
- "evidence_tier": "tier 1 (executed differential, product SDK Debug core 4fdec46) for every asserted exit code, diagnostic and absence of output, and for the -write_ini defaults; tier 3 (source review of FeatureFinderCentroided.cpp at topp 174b576) for the registration details and for the annotation and clean-up steps, whose end-to-end output comparison is B10's",
+ "scope": "The FeatureFinderCentroided TOPP wrapper end to end: registration and -write_ini, the source loading options, the empty-input, per-peak ion-mobility and profile branches in source order, the seed load, the FAIMS refusal of decision D5, the error mapping of the algorithm's failures, the algorithm run itself with -threads reaching its seed loop, and the post-algorithm annotation and clean-up (primary MS run path, unique ids, the QUANTITATION processing record, hull and subordinate reduction). TOPP_FeatureFinderCentroided_1 is compared decoded against the retained expectation and measured against the C++ Release build. Not in scope: the 1e-9 acceptance against the C1 oracle outputs of FFC_seeds, FFC_asymmetric and FFC_debug5 and the -algorithm:fit:max_iterations boundary sweep (B10), and the FAIMS closure (B11).",
+ "method": "The tool is transcribed from the pinned topp source and exercised through the built executable in a temporary working directory, because the FeatureFinderCentroided_1 INI sets log=TOPP.log. Every wrapper branch is compared with a C++ run of the same command against the product SDK: the planned regressions in the C1 oracle (../oracle/topp-early-bundle) and the branch-order cases this package added (../oracle/ffc-wrapper-c5), each executed twice and reproduced. Synthetic inputs are not committed: the tests re-derive them from the retained FeatureFinderCentroided_1_input.mzML by the rule the oracle manifests record and check the derived bytes against the SHA-1 of the file the C++ tool read, whose SHA-256 is recorded below. The runs that reach the algorithm are additionally measured against the optimised C++ build openms4-release-bc9cc12-c19e494-174b576 on an IBMI Linux node under the same environment shape (env -i, OPENMS_DATA_PATH, per-case scratch cwd); that build's featureXML reproduces the Debug oracle to within 9.1e-11 relative, and the measured port-to-Release gaps are recorded in docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md.",
+ "evidence_tier": "tier 1 (executed differential) for every asserted exit code, diagnostic and absence of output, for the -write_ini defaults, and for the feature output: the product SDK Debug core 4fdec46 for the oracle cases, and the Release build openms4-release-bc9cc12-c19e494-174b576 for the numeric comparison; tier 3 (source review of FeatureFinderCentroided.cpp at topp 174b576) for the registration details",
  "cpp_sources": [
   {
    "package": "topp",
@@ -288,6 +288,12 @@
    "path": "../oracle/ffc-wrapper-c5/oracle.py",
    "sha256": "6eac41546798902809e6882c5ff7f6661ecbea2bcd3296d0515ccfaa46742400",
    "origin_key": "c5_oracle_ffc_wrapper"
+  },
+  {
+   "path": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/FeatureFinderCentroided",
+   "sha256": "2781dd7cab48f482118375754038644251705c8bafab1958e310e4063dffb323",
+   "origin_key": "cpp_release_build",
+   "note": "Optimised C++ build at the same source pins (core bc9cc12, cli c19e494, topp 174b576); used for the numeric comparison of the feature output, not for exit codes."
   }
  ],
  "native_implementation": [
@@ -299,5 +305,5 @@
  ],
  "support_document": "docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md",
  "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 425-428 (TOPP_FeatureFinderCentroided_1 and its FuzzyDiff comparison) and lines 83-85 (TOPPWRITEINI_<tool>)",
- "determinism": "The wrapper is serial: the source parallelises only seed extension, which is not ported. Nothing in the tested paths depends on -threads, and every assertion here is exact."
+ "determinism": "The wrapper passes ToolContext::thread_policy to the algorithm's seed loop, whose results keep seed order, and every later step is serial. -threads 0, 1, 2, 4 and 8 write byte-identical featureXML, unique ids included, which tests/topp_feature_finder_centroided.rs::the_output_is_byte_identical_at_every_thread_count asserts; every other assertion here is exact."
 }
