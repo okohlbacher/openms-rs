@@ -37,7 +37,7 @@ Every member of `TOPPPeakPickerHiRes`, in source order.
 | `getParam_().copy("algorithm:", true)` + `pp.setParameters` | `ToolContext::subsection("algorithm")` + `PeakPickerHiRes::from_param` | |
 | `writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3)` | not ported | No debug writer exists on `ToolContext`; no registered test compares debug output. |
 | `pp.setLogType(log_type_)`, `mz_data_file.setLogType(log_type_)`, `FileHandler::loadExperiment(..., log_type_)` | not ported | The picker and the readers have no progress logging; `ToolContext::progress_log_type` exists for when they do. |
-| `FileHandler().loadExperiment(in, exp, {MZML}, log_type_)` | `FileHandler::load_experiment_with_read_options(in, &[FileType::MzMl], &PeakFileOptions::default(), &mzml::ReadOptions { source_dangling_references: true, .. })` | Decision D10: the tool path accepts the dangling header references `MzMLHandler` drops, which `TOPP_PeakPickerHiRes_5` needs; library defaults stay strict. |
+| `FileHandler().loadExperiment(in, exp, {MZML}, log_type_)` | `FileHandler::load_experiment_with_read_options(in, &[FileType::MzMl], &PeakFileOptions::default(), &PeakPickerHiRes::read_options())` | `read_options` is `mzml::ReadOptions::source()`: decision D10's source-compatibility switches, which `TOPP_PeakPickerHiRes_5` needs for its dangling header references, over the library's size-derived ceilings, which an instrument-sized run needs. Library defaults stay strict. |
 | the `IMTypes::determineIMFormat` warning loop | `check_input` | Warns once, as the source `break` does. |
 | `ms_exp_raw.empty() && getChromatograms().empty()` → `INCOMPATIBLE_INPUT_DATA` | `check_input` | Same message and code. |
 | the two `isSorted()` loops → `INCOMPATIBLE_INPUT_DATA` | `check_input` | Same messages and code; unreachable through the loader in both implementations (see *Preserved source conventions*). |
@@ -141,14 +141,31 @@ Every member of `TOPPPeakPickerHiRes`, in source order.
    oracle's text; an input carrying that term would read `im_centroided` in the
    source.
 6. **No debug dump and no progress logging**, as listed in the API mapping.
-7. **Bounded work on the input.** The mzML reader's ceilings apply
-   (`mzml::ReadOptions`: 512 MiB of XML, 10,000,000 raw points, 512 MiB of
-   decoded arrays), and the picker's own (`max_points` 1,000,000 per record,
-   `max_work` 10,000,000, the acquisition-copy ledger). The C++ tool has no
-   ceilings. An input beyond a ceiling is refused before anything is written;
-   the point ceiling is reached at about 213 MB of profile mzML, which a
-   benchmark on instrument-sized data will hit (see *Checked boundaries and
-   evidence*).
+7. **Bounded work on the input.** The C++ tool has no resource ceilings; this
+   port bounds every cumulative quantity, and an input beyond a ceiling is
+   refused before anything is written.
+
+   On the **load path** the ceilings are the library defaults, which are
+   size-derived (`mzml::InputScaling`, `src/format/mzml_scaling.rs`): each
+   grows with the XML bytes already consumed, so work and storage stay linear
+   in the input while a document of any realistic size fits. `PeakPickerHiRes::read_options` is
+   `mzml::ReadOptions::source()` — those ceilings plus the source-compatibility
+   switches a tool path takes (decision D10), named once so that the tests use
+   the same definition and a switch added to that constructor reaches the tool.
+   The ceilings the tool shipped with were fixed, 10,000,000 raw points and
+   512 MiB of XML, and no instrument-sized profile run fits under either: the
+   2.3 GB `UK222.mzML` has 197,765,338 raw points. They became size-derived in
+   the library (`fix/mzml-reader-scale`, `MZML_READER_SCALE_SUPPORT.md`), which
+   this branch merges, and the file now loads through the tool (measured
+   below).
+
+   The **picker's** ceilings are still fixed and are not this tool's to set:
+   `max_points` 1,000,000 and `max_work` 10,000,000 per record, and the pooled
+   acquisition-copy ledger of `pick_experiment` (`src/processing.rs`:
+   50,000,000 work and 256 MiB of metadata, charged over the whole experiment
+   before any record is picked). That ledger, not the loader, is what refuses an
+   instrument-sized run on `integrate/wave2`; the measurements below record both
+   the refusal and the complete run with the sibling lane that lifts it.
 8. **A picker failure that is not the centroided refusal** is reported as
    `Error: Unexpected internal error (<reason>)` with `UNKNOWN_ERROR`, the code
    `TOPPBase` gives an unmapped exception, rather than the framework's default
@@ -158,9 +175,11 @@ Every member of `TOPPPeakPickerHiRes`, in source order.
 
 ## Checked boundaries and evidence
 
-Evidence tier 1 (executed differential) throughout: every expectation is a
-retained upstream output or a C++ output produced by the product SDK
-(Debug, core `4fdec46`, decision D7). Hashes are in
+Evidence tier 1 (executed differential) throughout, except the load-option row
+of the table, which is tier 4 (Rust-only, on a synthetic document): every other
+expectation is a retained upstream output or a C++ output produced by the
+product SDK (Debug, core `4fdec46`, decision D7), and the instrument-scale
+measurement below is against the optimised C++ Release build. Hashes are in
 `tests/data/topp_peak_picker_hi_res_provenance.json`.
 
 | Case | Source of the expectation | What is compared |
@@ -178,6 +197,7 @@ retained upstream output or a C++ output produced by the product SDK
 | `im_peak` | P3 oracle | the warning byte for byte and the mean ion mobility array bit for bit |
 | `notest` | P3 oracle | the processing record: version, action, parameter keys in order and every value but the two paths |
 | unsorted refusals | module unit test | the source messages and `INCOMPATIBLE_INPUT_DATA` on constructed experiments |
+| the tool's load options | synthetic 42,776,703-byte profile document (tier 4, Rust-only) | the library default refuses its dangling `softwareRef`, the former fixed ceilings refuse its size (`parameter bytes exceed configured limit`), and `PeakPickerHiRes::read_options` reads all 20,000 spectra and picks them end to end |
 
 **Release measurements** (`ibmi` node `dax`, 384 cores, release profile,
 `-test -ini <C++ default INI>`; wall time including process start, best of
@@ -194,10 +214,71 @@ five). The C++ side is the optimised build at the same source pins
 The Rust output is byte-identical at every thread count, and identical to the
 `-threads 1` run; the C++ output is identical across thread counts too, and the
 optimised C++ output on the smallest input equals the Debug product SDK's
-(`0e63f534…`), so the two builds agree here. The refusal at 500 copies is the
-mzML reader's 10,000,000-point ceiling, reported as
-`Error: Unable to read file (parse error on line 0: peak count exceeds
-configured limit)` with `INPUT_FILE_CORRUPT`. A benchmark over
-instrument-sized profile data needs that ceiling raised for the tool path (and
-a code other than 3 for a resource refusal); the ceilings are shared policy
-across the bundle's tools, so this is an integrator decision, not a local one.
+(`0e63f534…`), so the two builds agree here. The refusal at 500 copies was the
+mzML reader's former fixed 10,000,000-point ceiling, which
+`PeakPickerHiRes::read_options` replaces with the size-derived ones: after
+212.6 MB of consumed XML the point allowance stands at 10,000,000 + 8 per byte,
+which is 130 times those 12.9 M points. That table was not re-measured; the
+executed evidence for the load path is the instrument-scale run below, on a file
+ten times larger again.
+
+### Instrument scale, against the C++ tool
+
+Executed on `ibminode06` (128 cores, 995 GB, a foreign load of 24 to 35 runnable
+processes throughout, so the wall times are indicative), against the optimised
+C++ Release build at these pins
+(`/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576`). Input:
+the benchmark's Q Exactive SILAC profile run `UK222.mzML`, 2,317,975,830 bytes
+(sha256 `bd6f6e19…`), 40,856 spectra, one chromatogram, 197,765,338 raw points,
+staged on node-local `/scratch`. Both tools were driven by the INI the C++ tool
+wrote with `-write_ini` (sha256 `dc0f7b60…`: `threads` 1, automatic mode,
+`signal_to_noise` 0, no FWHM), outside `-test`. Drivers, logs and hashes:
+`../oracle/topp-peak-picker-scale/`.
+
+| | exit | wall | peak RSS | output |
+| --- | --- | --- | --- | --- |
+| C++ `PeakPickerHiRes` | 0 | 26.8 s | 3,977,188 KiB | 549,528,678 B |
+| Rust, this branch | 8 | 18.1 s | 3,491,772 KiB | none |
+| Rust, with the picker ledger lifted | 0 | 38.7 s | 4,412,352 KiB | 535,615,957 B |
+
+The **load path is no longer the limit**: the middle row reads the whole 2.3 GB
+file — its peak RSS is within 0.01% of the reader's own measurement of the same
+input (3,491,464 KiB,
+`../oracle/mzml-reader-scale/hpc_scale_ibminode06_round2.log`), so the load is
+the high-water mark of that run —
+and then exits 8 with `Error: Unexpected internal error (invalid value: data
+array description resource limit exceeded)` from the picker's pooled
+acquisition-copy ledger (`src/processing.rs`), which charges all 40,856 spectra
+before picking any of them. That ledger is the picker library's, not this
+tool's; the third row is the same tool over the sibling lane that lifts it
+(`fix/picker-scale`), measured to show what the tool does once it can run, and
+is not the state of this branch.
+
+Both implementations print the same per-MS-level summary
+(`MS-level 1: 6911 / 6911`, `MS-level 2: 0 / 33945`); the C++ adds progress
+logging and a timing line, which this port does not write (native difference 6).
+
+**Comparison of the two outputs.** The C++ `FuzzyDiff` from the same prefix
+(`-ratio 1.001 -absdiff 1e-5`) fails at line 1, column 31 — the XML declaration,
+ISO-8859-1 against UTF-8 — so it never reaches the data: the container
+difference is documented, not compared (native difference 4), and D6 makes the
+decoded content the contract. Decoded (`../oracle/topp-peak-picker-scale/decoded_compare_probe.rs`):
+
+- 40,856 spectra on both sides, with equal native ids, MS levels and peak
+  counts, and **22,776,198 centroids whose every m/z and every intensity are
+  bit-identical**.
+- Spectrum retention times differ in 10,671 of 40,856 records, by at most
+  9.09e-13 s (one to two ULP of `f64`) on times of 60 to 4,400 s.
+- The picked TIC **chromatogram differs beyond round-off**: 8,174 points on both
+  sides, but 8,173 of 8,174 retention times differ (at most 3.19e-3 s), and
+  7,891 of 8,174 intensities differ by more than 1e-6 relative, 71 of them by
+  more than 1e-3, the worst 1.75e-3 (252,284,752 against 252,727,072 at
+  4,393.5 s). The retained workflow 2 fixture (five short chromatograms) is
+  bit-exact, so this shows up only here. What has **not** been established is
+  where the two part: a candidate is the input's TIC time array, which is
+  32-bit float in **minutes** where every spectrum's retention time is a decimal
+  `cvParam`, so the two conversions to seconds could differ before the picker
+  sees the data and the apex interpolation would amplify that; that is a
+  hypothesis, not a measurement. The chromatogram path is the picker library's
+  (`PeakPickerHiRes::pick_chromatogram`, package P1), not this tool's, so this
+  is reported and not chased further here.

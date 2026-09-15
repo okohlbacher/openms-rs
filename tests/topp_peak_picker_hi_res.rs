@@ -15,6 +15,10 @@
 //! * The P3 oracle (`../oracle/topp-peak-picker-tool`): the INI the C++ tool
 //!   writes, fed back unchanged at several thread counts, an empty input,
 //!   unsorted records, per-peak ion mobility and a run outside `-test`.
+//! * The tool's load options against a synthetic document beyond the fixed
+//!   ceilings the tool shipped with and beyond the library's strictness. The
+//!   executed run on the 2.3 GB benchmark input, which no test suite can carry,
+//!   is in `../oracle/topp-peak-picker-scale`.
 //!
 //! Every C++ output was produced by the product SDK (Debug, core `4fdec46`,
 //! decision D7). Hashes, command lines and derivation rules are in
@@ -28,6 +32,7 @@ mod fuzzy;
 #[path = "support/decoded_compare.rs"]
 mod decoded;
 
+use base64::{Engine, engine::general_purpose::STANDARD};
 use decoded::{DecodedOptions, Tolerance, compare_experiments};
 use openms::cli::tools::PeakPickerHiRes;
 use openms::cli::{ExitCode, TEST_MODE_COMPLETION_TIME, TOPP_PRODUCT_VERSION, run_with};
@@ -36,7 +41,7 @@ use openms::format::PeakFileOptions;
 use openms::format::controlled_vocabulary::ControlledVocabulary;
 use openms::format::file_handler::FileHandler;
 use openms::format::file_types::FileType;
-use openms::format::mzml;
+use openms::format::mzml::{InputScaling, ReadOptions};
 use openms::kernel::MSExperiment;
 use openms::metadata::{DataProcessing, MetaValue, ProcessingAction};
 use openms::system::file::TempDir;
@@ -71,17 +76,14 @@ fn text(path: &Path) -> String {
     path.to_string_lossy().into_owned()
 }
 
-/// Load an mzML file the way the tool does, with the source's dangling header
-/// references accepted.
+/// Load an mzML file the way the tool does, through the tool's own load
+/// options, so the two cannot drift apart.
 fn load(path: impl AsRef<Path>) -> MSExperiment {
     FileHandler::load_experiment_with_read_options(
         path,
         &[FileType::MzMl],
         &PeakFileOptions::default(),
-        &mzml::ReadOptions {
-            source_dangling_references: true,
-            ..Default::default()
-        },
+        &PeakPickerHiRes::read_options(),
     )
     .unwrap()
 }
@@ -931,5 +933,194 @@ fn the_processing_record_outside_test_mode_matches_the_cpp_output() {
             new_a.metadata.get("parameter: algorithm:ms_levels"),
             Some(&MetaValue::from("[]"))
         );
+    }
+}
+
+/// Base64 of `bytes`, uncompressed, as the synthetic input below encodes its
+/// binary arrays.
+fn base64(bytes: &[u8]) -> String {
+    STANDARD.encode(bytes)
+}
+
+/// One profile peak sampled five times at 0.01 Th spacing around its centre,
+/// repeated `peaks` times at 10 Th intervals from 400 Th.
+///
+/// The samples of one peak are a Gaussian of 0.008 Th standard deviation, so
+/// the picker finds one centroid per peak and no sample is zero.
+fn profile_samples(peaks: usize) -> (Vec<f64>, Vec<f32>) {
+    let (mut mz, mut intensity) = (Vec::new(), Vec::new());
+    for peak in 0..peaks {
+        let centre = 400.0 + peak as f64 * 10.0;
+        for step in 0..5_i32 {
+            let offset = f64::from(step - 2) * 0.01;
+            mz.push(centre + offset);
+            intensity.push((1_000.0 * (-(offset * offset) / (2.0 * 0.008 * 0.008)).exp()) as f32);
+        }
+    }
+    (mz, intensity)
+}
+
+/// A synthetic profile mzML of `spectra` MS1 spectra, each carrying three
+/// five-sample profile peaks and the parameter payload a converter writes, with
+/// a dangling instrument `softwareRef` in the header.
+///
+/// The shape is the one `tests/mzml_reader_scale.rs` measures the former
+/// fixed reader ceilings against: at 20,000 spectra the cumulative parameter
+/// storage charge passes the fixed 512 MiB floor, while the size-derived
+/// allowance of the same option set admits it. The dangling reference is what
+/// the library default refuses and a tool path accepts (decision D10), so one
+/// document exercises both differences between the tool's load options and the
+/// library's. Returns the path and the document size in bytes.
+fn instrument_scale_input(dir: &Path, spectra: usize) -> (PathBuf, u64) {
+    let (mz, intensity) = profile_samples(3);
+    let mz_text = base64(&mz.iter().flat_map(|v| v.to_le_bytes()).collect::<Vec<u8>>());
+    let intensity_text = base64(
+        &intensity
+            .iter()
+            .flat_map(|v| v.to_le_bytes())
+            .collect::<Vec<u8>>(),
+    );
+    let array = |accession: &str, bits: &str, text: &str| {
+        format!(
+            "<binaryDataArray encodedLength=\"{}\">\
+             <cvParam cvRef=\"MS\" accession=\"{bits}\" name=\"bits\"/>\
+             <cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\"/>\
+             <cvParam cvRef=\"MS\" accession=\"{accession}\" name=\"array\"/>\
+             <binary>{text}</binary></binaryDataArray>",
+            text.len()
+        )
+    };
+    let arrays = format!(
+        "<binaryDataArrayList count=\"2\">{}{}</binaryDataArrayList>",
+        array("MS:1000514", "MS:1000523", &mz_text),
+        array("MS:1000515", "MS:1000521", &intensity_text),
+    );
+    let mut xml = String::from(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\
+         <mzML xmlns=\"http://psi.hupo.org/ms/mzml\" version=\"1.1.0\">\
+         <cvList count=\"1\"><cv id=\"MS\" fullName=\"PSI-MS\" URI=\"https://purl.obolibrary.org/obo/ms.obo\"/></cvList>\
+         <fileDescription><fileContent/></fileDescription>\
+         <referenceableParamGroupList count=\"1\"><referenceableParamGroup id=\"common\">\
+         <cvParam cvRef=\"MS\" accession=\"MS:1000579\" name=\"MS1 spectrum\"/>\
+         <cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\"/>\
+         </referenceableParamGroup></referenceableParamGroupList>\
+         <softwareList count=\"1\"><software id=\"sw\" version=\"1.0\"/></softwareList>\
+         <instrumentConfigurationList count=\"1\"><instrumentConfiguration id=\"ic\">\
+         <softwareRef ref=\"missing\"/></instrumentConfiguration></instrumentConfigurationList>\
+         <dataProcessingList count=\"1\"><dataProcessing id=\"dp\">\
+         <processingMethod order=\"0\" softwareRef=\"sw\">\
+         <cvParam cvRef=\"MS\" accession=\"MS:1000544\" name=\"Conversion to mzML\"/>\
+         </processingMethod></dataProcessing></dataProcessingList>\
+         <run id=\"run\" defaultInstrumentConfigurationRef=\"ic\" startTimeStamp=\"2016-11-18T23:31:16\">",
+    );
+    xml += &format!("<spectrumList count=\"{spectra}\" defaultDataProcessingRef=\"dp\">");
+    for index in 0..spectra {
+        xml += &format!(
+            "<spectrum id=\"controllerType=0 controllerNumber=1 scan={}\" index=\"{index}\" defaultArrayLength=\"{}\">\
+             <referenceableParamGroupRef ref=\"common\"/>\
+             <cvParam cvRef=\"MS\" accession=\"MS:1000511\" name=\"ms level\" value=\"1\"/>\
+             <cvParam cvRef=\"MS\" accession=\"MS:1000128\" name=\"profile spectrum\"/>\
+             <cvParam cvRef=\"MS\" accession=\"MS:1000504\" name=\"base peak m/z\" value=\"400.0\"/>\
+             <cvParam cvRef=\"MS\" accession=\"MS:1000505\" name=\"base peak intensity\" value=\"1000.0\"/>\
+             <cvParam cvRef=\"MS\" accession=\"MS:1000285\" name=\"total ion current\" value=\"12345.0\"/>\
+             <cvParam cvRef=\"MS\" accession=\"MS:1000528\" name=\"lowest observed m/z\" value=\"399.98\"/>\
+             <cvParam cvRef=\"MS\" accession=\"MS:1000527\" name=\"highest observed m/z\" value=\"420.02\"/>\
+             <userParam name=\"filter string\" value=\"FTMS + p NSI Full ms [300.00-1500.00]\"/>\
+             <userParam name=\"preset scan configuration\" value=\"1\"/>\
+             <scanList count=\"1\"><cvParam cvRef=\"MS\" accession=\"MS:1000795\" name=\"no combination\"/>\
+             <scan><cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"{}\" unitCvRef=\"UO\" unitAccession=\"UO:0000010\" unitName=\"second\"/>\
+             <scanWindowList count=\"1\"><scanWindow>\
+             <cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan window lower limit\" value=\"300.0\"/>\
+             <cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan window upper limit\" value=\"1500.0\"/>\
+             </scanWindow></scanWindowList></scan></scanList>{arrays}</spectrum>",
+            index + 1,
+            mz.len(),
+            index as f64 * 0.5,
+        );
+    }
+    xml += "</spectrumList></run></mzML>";
+    let path = dir.join("instrument_scale.tmp.mzML");
+    std::fs::write(&path, &xml).unwrap();
+    (path, xml.len() as u64)
+}
+
+/// The tool's load options admit an input that the library's own default
+/// options refuse, in both ways they differ.
+///
+/// The scaffold this tool was written against passed the library defaults with
+/// one switch flipped, and those defaults were fixed ceilings: 10,000,000 raw
+/// points and 512 MiB of XML. No instrument-sized profile run fits under
+/// either — the benchmark input `UK222.mzML` is 2.3 GB with 197,765,338 raw
+/// points — so the Rust tool could not read the data the C++ tool reads.
+/// [`PeakPickerHiRes::read_options`] is now `ReadOptions::source()`, whose
+/// ceilings grow with the consumed input (`InputScaling`).
+///
+/// A 2.3 GB document cannot live in a test suite; the executed proof on that
+/// input is in `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`. What is checked here
+/// is that the tool's options are the ones that admit a document beyond the
+/// fixed floors and beyond the library's strictness, and that the run through
+/// the tool is complete: every spectrum read, picked and written back.
+#[test]
+fn the_tool_load_options_admit_an_input_the_library_defaults_refuse() {
+    let temp = workdir();
+    let (input, bytes) = instrument_scale_input(temp.path(), 20_000);
+    // 42,776,703 bytes: the size a converter writes for 20,000 sparse profile
+    // spectra, and four times the largest fixture in this suite.
+    assert!((40..44).contains(&(bytes / (1 << 20))), "{bytes} bytes");
+
+    let read = |options: &ReadOptions| {
+        FileHandler::load_experiment_with_read_options(
+            &input,
+            &[FileType::MzMl],
+            &PeakFileOptions::default(),
+            options,
+        )
+    };
+    // The library default refuses the dangling instrument `softwareRef`, which
+    // source `MzMLHandler` drops; a tool path accepts it (decision D10).
+    let refused = read(&ReadOptions::default()).unwrap_err();
+    assert!(
+        refused.to_string().contains("unresolved softwareRef"),
+        "{refused}"
+    );
+    // The fixed ceilings this tool shipped with refuse the size, with the
+    // source-compatibility switches unchanged: only the scaling differs. The
+    // floor reached first here is the cumulative parameter storage (512 MiB),
+    // not the 10,000,000-point one, because a document that declares ten
+    // million points must carry them: that is 120 MB of binary before base64,
+    // which is why the point ceiling is measured on the real input instead.
+    let fixed = ReadOptions {
+        scaling: InputScaling::default().fixed(),
+        ..PeakPickerHiRes::read_options()
+    };
+    let refused = read(&fixed).unwrap_err();
+    assert!(
+        refused
+            .to_string()
+            .contains("parameter bytes exceed configured limit"),
+        "{refused}"
+    );
+
+    // The tool's own options read every spectrum.
+    let raw = read(&PeakPickerHiRes::read_options()).unwrap();
+    assert_eq!(raw.spectra.len(), 20_000);
+    assert_eq!(raw.spectra[19_999].peaks.len(), 15);
+
+    // And the tool picks the whole document, one centroid per profile peak.
+    let out = temp.path().join("instrument_scale_picked.tmp.mzML");
+    let outcome = run(&["-test", "-in", &text(&input), "-out", &text(&out)]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(
+        outcome.out,
+        "#Spectra that needed to and could be picked by MS-level:\n  MS-level 1: 20000 / 20000\n"
+    );
+    let picked = load(&out);
+    assert_eq!(picked.spectra.len(), 20_000);
+    for spectrum in [&picked.spectra[0], &picked.spectra[19_999]] {
+        let centroids: Vec<f64> = spectrum.peaks.iter().map(|peak| peak.mz).collect();
+        assert_eq!(centroids.len(), 3);
+        for (centroid, expected) in centroids.iter().zip([400.0, 410.0, 420.0]) {
+            assert!((centroid - expected).abs() < 1e-3, "{centroid} {expected}");
+        }
     }
 }
