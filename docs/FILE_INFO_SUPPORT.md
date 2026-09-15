@@ -226,7 +226,7 @@ instead where the C++ report on it is identical apart from the file name.
 | `FileInfo_9_input.mzML` | `duplicate userParam name name` (repeated spectrum-level `name`) | `MetaInfo` overwrites | `c1_file_info_9_mzml_mps`, `a4_file_info_9_default_flags` | `FileInfo_9_strict_reader.mzML` |
 | same | `primary-array processing has no independent native owner` (`dataProcessingRef` on m/z and intensity arrays) | kept on the array | same | same |
 | same | `canonical auxiliary array binary type` (64-bit float `charge array`) | loaded | same | same (re-encoded as 32-bit integers) |
-| `empty.mzML` (C1 derived) | `unresolved dataProcessingRef` (dangling `defaultDataProcessingRef`) | ignored | `c1_empty_mzml_mps` | `empty_resolved_ref.mzML` (P2, D10) |
+| `empty.mzML` (C1 derived) | `unresolved dataProcessingRef` (dangling `defaultDataProcessingRef`), with the strict default | ignored | `c1_empty_mzml_mps` | `empty_resolved_ref.mzML`, or `Options::source_dangling_references` (A5, P2, D10), which the FileInfo tool sets |
 | `FileInfo_12_input.mzML` | `canonical auxiliary array binary type` | loaded | `a4_indexed_file_info_12_all_flags` | none |
 | `MzMLFile_1.mzML` | loads, but the selected-ion drift time is not copied onto the MS2 spectrum (A3 request 5) | copied (`MzMLHandler.cpp:1871-1875`), ranges end at 8.10 | `a4_mzml_file_1_all_flags` | `MzMLFile_1_no_selected_ion_drift.mzML` |
 
@@ -305,10 +305,14 @@ sections.
   mzXML, mzData, trafoXML (A8); pepXML, mzTab, PQP, sqMass, XMass, MSP, MGF and
   MS2 have no package yet.
 - The tool wrapper, exit codes and output routing are A5's.
-- Source-compatibility load options (D10). `FileInfo::run` loads peak files
-  through `FileHandler::load_experiment_with_options`, which passes the strict
-  default `mzml::ReadOptions`, and `Options` has no load-options field. When
-  P2 and A3 land the leniency options, A5 or the integrator adds a native field
-  to `Options` that defaults to the strict options and reaches the mzML reader
-  on the tool path; the ignored FileInfo_9, FileInfo_12 and empty-mzML cases are
-  the tests that field must turn on.
+- Source-compatibility load options (D10): closed for dangling header
+  references, open for the rest. A5 added the native
+  `Options::source_dangling_references`, which defaults to `false`, so every
+  library default stays strict, and with the `mzml` feature reaches the mzML
+  reader through `FileHandler::load_experiment_with_read_options` (P2's
+  `mzml::ReadOptions::source_dangling_references`). The FileInfo tool sets it,
+  which is what makes the C1 `empty.mzML` report reachable there
+  (`tests/topp_file_info.rs`, `c1_empty_mzml_with_a_dangling_reference`); the
+  library case `c1_empty_mzml_mps` stays `#[ignore]`d, because it runs with the
+  strict default. The other three ignored cases need reader work no option
+  covers yet (see *Known reader gaps*).
