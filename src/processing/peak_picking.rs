@@ -369,6 +369,14 @@ pub struct PeakPickerHiRes {
     /// The default, 64 KiB, is about eight times the per-spectrum cost of an
     /// ordinary vendor-converted run. Zero pins the ledger at its fixed part,
     /// which is the behaviour before this field existed.
+    ///
+    /// Like [`max_points`](Self::max_points) and [`max_work`](Self::max_work)
+    /// this is a Rust-API-only field: it is not in
+    /// [`PeakPickerHiRes::defaults`], so [`PeakPickerHiRes::to_param`] does not
+    /// emit it and [`PeakPickerHiRes::from_param`] cannot set it, and a caller
+    /// driving the picker from a TOPP `.ini` therefore always gets the default.
+    /// A converter whose per-spectrum metadata is richer than the run the
+    /// default is calibrated on has to raise it through the Rust API.
     pub max_metadata_per_record: usize,
 }
 impl Default for PeakPickerHiRes {
@@ -1527,4 +1535,93 @@ fn estimate_spectrum_type_with_limit(
         &PickingCompatibility::default(),
     )?;
     Ok(crate::kernel::spectrum_type::estimate(&x, &mut y))
+}
+
+#[cfg(test)]
+mod acquisition_ledger_tests {
+    use super::PeakPickerHiRes;
+    use crate::Error;
+    use crate::processing::AcquisitionCopies;
+
+    /// The ledger the picker opens for an experiment of `records` records, as
+    /// its remaining work units and bytes.
+    fn ledger(picker: &PeakPickerHiRes, records: usize) -> (usize, usize) {
+        let opened = picker.acquisition_ledger(records).unwrap();
+        (opened.work, opened.bytes)
+    }
+
+    #[test]
+    fn the_acquisition_ledger_follows_the_record_count() {
+        // The shared ledger's fixed part is a ceiling on how many records an
+        // experiment may have, which source `pickExperiment` has no counterpart
+        // for: an ordinary vendor-converted run spends about 8 KiB of it per
+        // spectrum, so it stops at roughly 34 000 spectra and refused the
+        // 40 856 of the 2.3 GB Q Exactive benchmark run outright.
+        // `max_metadata_per_record` is added to both dimensions once per input
+        // record, so the budget follows the input instead of capping it.
+        //
+        // This reads the ledger the picker opens rather than building an
+        // experiment whose metadata exhausts 256 MiB: the meter charges a
+        // record within about a factor of two of what that record actually
+        // costs in memory, so crossing the fixed part end to end costs hundreds
+        // of mebibytes of test process. The end-to-end behaviour of the
+        // allowance is pinned by `tests/peak_picking_experiment.rs`, and the
+        // real 40 856-spectrum run is evidence in
+        // `docs/PEAK_PICKING_SUPPORT.md`.
+        let base = AcquisitionCopies::default();
+        let picker = PeakPickerHiRes::default();
+        assert_eq!(picker.max_metadata_per_record, 64 * 1024);
+        assert_eq!(ledger(&picker, 0), (base.work, base.bytes));
+        for records in [1_usize, 2, 34_257, 40_856, 1 << 20] {
+            let allowance = records * picker.max_metadata_per_record;
+            assert_eq!(
+                ledger(&picker, records),
+                (base.work + allowance, base.bytes + allowance),
+                "{records} records"
+            );
+        }
+        // Strictly increasing in the record count, in both dimensions, so no
+        // record count is a ceiling.
+        assert!(ledger(&picker, 40_857) > ledger(&picker, 40_856));
+        // Zero pins the fixed part exactly, whatever the record count: the
+        // behaviour before the field existed.
+        let pinned = PeakPickerHiRes {
+            max_metadata_per_record: 0,
+            ..Default::default()
+        };
+        for records in [0_usize, 1, 40_856, usize::MAX] {
+            assert_eq!(ledger(&pinned, records), (base.work, base.bytes));
+        }
+    }
+
+    #[test]
+    fn an_overflowing_metadata_allowance_is_refused() {
+        // Both the multiplication by the record count and the addition to the
+        // fixed part are checked, so an absurd allowance is refused instead of
+        // wrapping into a budget below the fixed one.
+        for allowance in [usize::MAX, usize::MAX / 2, usize::MAX / 4] {
+            let picker = PeakPickerHiRes {
+                max_metadata_per_record: allowance,
+                ..Default::default()
+            };
+            let error = picker.acquisition_ledger(8).unwrap_err();
+            match &error {
+                Error::InvalidValue(text) => assert!(text.contains("overflows"), "{text}"),
+                other => panic!("{other:?}"),
+            }
+        }
+        // One record of the largest possible allowance overflows only in the
+        // addition to the fixed part, which is checked as well.
+        let picker = PeakPickerHiRes {
+            max_metadata_per_record: usize::MAX,
+            ..Default::default()
+        };
+        assert!(picker.acquisition_ledger(1).is_err());
+        // A zero allowance cannot overflow, however many records.
+        let pinned = PeakPickerHiRes {
+            max_metadata_per_record: 0,
+            ..Default::default()
+        };
+        assert!(pinned.acquisition_ledger(usize::MAX).is_ok());
+    }
 }

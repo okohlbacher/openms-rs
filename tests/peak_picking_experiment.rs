@@ -1118,9 +1118,14 @@ fn mobility_output_description_depends_on_compatibility() {
 }
 
 /// A spectrum whose acquisition metadata costs the copy ledger `windows`
-/// scan-window entries, each with one metadata entry. The ledger charges a
-/// non-empty metadata tree far more than its few stored bytes, so this makes a
-/// record expensive to the ledger while staying cheap in memory.
+/// scan-window entries, each with one metadata entry.
+///
+/// The ledger charges a non-empty metadata tree for a sparsely occupied B-tree
+/// node rather than for its few stored bytes, so a record is roughly twice as
+/// expensive to the ledger as it is in memory -- a factor, not an escape:
+/// exhausting the ledger's 256 MiB fixed part this way still costs the test
+/// process on the order of a hundred mebibytes, which is why only the
+/// single-record refusal below goes that far.
 fn metadata_weight(windows: usize) -> MSSpectrum {
     let mut spectrum = MSSpectrum::default();
     spectrum.instrument_settings.scan_windows = (0..windows)
@@ -1141,57 +1146,60 @@ fn experiment_of(spectrum: &MSSpectrum, records: usize) -> MSExperiment {
 }
 
 #[test]
-fn the_acquisition_ledger_follows_the_record_count() {
-    // The ledger's fixed part is a ceiling on how many records an experiment may
-    // have, which source `pickExperiment` has no counterpart for: on the 2.3 GB
-    // Q Exactive run of the benchmark set it admits 34 257 of the run's 40 856
-    // spectra and refuses the rest. `max_metadata_per_record` adds an allowance
-    // per input record, so wherever the fixed part gives out the ledger keeps
-    // going with the input. Setting it to zero pins the old behaviour, which is
-    // what this test uses to find that point without depending on the constants.
-    let record = metadata_weight(8);
-    let pinned = PeakPickerHiRes {
-        max_metadata_per_record: 0,
-        ..Default::default()
-    };
-    let mut records = 1024;
-    while records <= 1 << 20
-        && pinned
-            .pick_experiment(&experiment_of(&record, records))
-            .is_ok()
-    {
-        records *= 2;
+fn an_overflowing_metadata_allowance_is_refused_rather_than_wrapping() {
+    // `max_metadata_per_record` is multiplied by the record count and added to
+    // the shared ledger's fixed part; both steps are checked, so an absurd
+    // allowance refuses the pick instead of wrapping into a budget below the
+    // fixed part. Neither entry point is exempt.
+    //
+    // That the budget itself grows by exactly the allowance per record -- the
+    // property that lets a 40 856-spectrum run through where the fixed part
+    // alone refused it -- is pinned by the synthetic ledger probe
+    // `the_acquisition_ledger_follows_the_record_count` in
+    // `src/processing/peak_picking.rs`, which reads the opened ledger instead
+    // of building an experiment whose metadata exhausts 256 MiB of it. The
+    // meter charges a record within about a factor of two of what that record
+    // costs in memory, so crossing the fixed part end to end costs hundreds of
+    // mebibytes; the real run is measured in `docs/PEAK_PICKING_SUPPORT.md`.
+    let input = experiment_of(&metadata_weight(1), 8);
+    for allowance in [usize::MAX, usize::MAX / 2, usize::MAX / 4] {
+        let picker = PeakPickerHiRes {
+            max_metadata_per_record: allowance,
+            ..Default::default()
+        };
+        match picker.pick_experiment(&input).unwrap_err() {
+            Error::InvalidValue(text) => assert!(text.contains("overflows"), "{text}"),
+            other => panic!("{other:?}"),
+        }
+        let mut streamed = input.clone();
+        assert!(picker.pick_experiment_in_place(&mut streamed).is_err());
+        assert_eq!(streamed, input, "a refused ledger picks nothing");
     }
-    assert!(
-        records <= 1 << 20,
-        "the fixed ledger part no longer caps the record count"
-    );
-    // The same experiment, and four times as many records, are admitted once the
-    // budget follows the input.
-    let scaled = PeakPickerHiRes::default();
-    assert!(
-        scaled
-            .pick_experiment(&experiment_of(&record, records))
-            .is_ok()
-    );
-    assert!(
-        scaled
-            .pick_experiment(&experiment_of(&record, 4 * records))
-            .is_ok()
-    );
+    // The same experiment is picked both with the default allowance and with
+    // none, so the refusals above are the overflow and not the records.
+    for allowance in [0, PeakPickerHiRes::default().max_metadata_per_record] {
+        let picker = PeakPickerHiRes {
+            max_metadata_per_record: allowance,
+            ..Default::default()
+        };
+        picker.pick_experiment(&input).unwrap();
+    }
 }
 
 #[test]
 fn a_record_whose_metadata_outweighs_the_input_is_still_refused() {
     // The allowance is per record, so a single record cannot grow the budget
-    // enough to pay for metadata that dwarfs the whole input.
+    // enough to pay for metadata that dwarfs the whole input. The experiment
+    // moves the record instead of cloning it, because the search runs until the
+    // metadata alone is heavy enough to exhaust the ledger.
     let picker = PeakPickerHiRes::default();
     let mut windows = 1 << 12;
     while windows <= 1 << 22 {
-        if picker
-            .pick_experiment(&experiment_of(&metadata_weight(windows), 1))
-            .is_err()
-        {
+        let input = MSExperiment {
+            spectra: vec![metadata_weight(windows)],
+            ..MSExperiment::default()
+        };
+        if picker.pick_experiment(&input).is_err() {
             return;
         }
         windows *= 2;
