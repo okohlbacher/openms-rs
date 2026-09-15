@@ -303,6 +303,10 @@ fn finite(value: &str, label: &str) -> Result<f64> {
         Err(invalid(format!("nonfinite {label}")))
     }
 }
+// Narrowing to the stored `f32`, refusing a value that does not survive it.
+// Load-bearing beyond the narrowing itself: this is what makes every intensity
+// a record hands to the kernel validator finite, which is why `Record::finish`
+// can skip the per-peak value loop there.
 fn intensity(value: f64) -> Result<f32> {
     let result = value as f32;
     if result.is_finite() {
@@ -810,6 +814,11 @@ impl Binary {
                 if kind == Kind::Time {
                     *value *= self.time_scale;
                 }
+                // Load-bearing beyond this function: `Record::finish` skips the
+                // per-peak value loop of the record validation because this
+                // guard and its `Float32`/`Float64` twin below have already
+                // refused every nonfinite coordinate. Do not weaken either
+                // without restoring the full `validate` there.
                 if !value.is_finite() {
                     return Err(invalid("nonfinite Numpress value"));
                 }
@@ -949,6 +958,10 @@ impl Binary {
                     if narrow {
                         value = f64::from(value as f32);
                     }
+                    // Load-bearing beyond this function: see the Numpress guard
+                    // above. Every coordinate a record hands to the kernel
+                    // validator passes through here or through that one, which
+                    // is why `Record::finish` can skip the per-peak loop.
                     if !value.is_finite() {
                         return Err(invalid("nonfinite binary value"));
                     }
@@ -1314,7 +1327,33 @@ impl Record {
                 peaks.push(Peak1D::new(mz, intensity(i)?));
             }
             spectrum.peaks = peaks;
-            spectrum.validate()?;
+            // Every peak value of this record is already known finite, so the
+            // per-peak loop of `MSSpectrum::validate` cannot fail here and is
+            // skipped; everything else that `validate` checks still runs. The
+            // argument, for both fields:
+            //
+            // * `peak.intensity` is the value `intensity` returned three lines
+            //   above, and `intensity` (this module, `fn intensity`) refuses
+            //   every nonfinite `f32` as it narrows.
+            // * `peak.mz` comes from `positions`, which is `self.coordinates`.
+            //   That field is only ever assigned a decoded `Values::Floats` --
+            //   from the primary-array slot in `apply_binary_array`, or from
+            //   the wavelength array promoted to the coordinate slot -- and
+            //   `Binary::decode` rejects every nonfinite decoded float before
+            //   it is pushed, in both of its float paths: the `Float32`/
+            //   `Float64` branch after the time scale and the optional 32-bit
+            //   narrowing (`nonfinite binary value`), and the Numpress branch
+            //   after its own time scale (`nonfinite Numpress value`).
+            //   `load::State::apply` then only filters, permutes and truncates
+            //   `positions`; it never produces a value.
+            //
+            // So this skips a full scan of the record's peaks, on every record
+            // of every mzML read, for a verdict the decoder has already given
+            // per value. `tests/mzml.rs::nonfinite_peak_values_are_refused_by_
+            // the_decoder_not_the_validator` pins the premise: if a decode path
+            // ever stops rejecting nonfinite values, that test fails here
+            // rather than this skipped check failing to catch it downstream.
+            spectrum.validate_given_finite_peaks()?;
             Ok(keep.then_some(consumer::Completed::Spectrum(spectrum)))
         } else {
             let mut chromatogram = self.chromatogram.unwrap();
@@ -1323,7 +1362,11 @@ impl Record {
                 peaks.push(ChromatogramPeak::new(rt, intensity(i)?));
             }
             chromatogram.peaks = peaks;
-            chromatogram.validate()?;
+            // The same argument as for the spectrum above, with `peak.rt` in
+            // place of `peak.mz`: chromatogram coordinates reach `positions`
+            // through the same `Kind::Time` primary-array slot, so they are
+            // decoded floats that passed the same guard.
+            chromatogram.validate_given_finite_peaks()?;
             Ok(keep.then_some(consumer::Completed::Chromatogram(chromatogram)))
         }
     }

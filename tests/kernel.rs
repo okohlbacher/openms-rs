@@ -561,3 +561,170 @@ fn closest_peak_matches_linear_reference_across_many_queries() {
         );
     }
 }
+
+// The next three tests pin the reporting contract of the peak checks in
+// `validate`, independently of how the loop is written: the source's message
+// for each field, its m/z-before-intensity order within one peak, and its
+// first-peak-first order across peaks, for spectra and for chromatograms. The
+// committed loop is `finite(..)?` per field with an early exit, but nothing
+// here depends on that -- these tests are what any reformulation would have to
+// reproduce, and they are why two of them were reverted rather than shipped on
+// the strength of an instruction count (see the note above the loop in
+// `src/kernel.rs`). The peak-list lengths in the second test sit either side of
+// the usual unroll and vector widths so that a value in the tail of a list
+// cannot be skipped by a body that handles a whole block at a time.
+#[test]
+fn nonfinite_peak_values_name_the_first_offending_field() {
+    let message = |spectrum: &MSSpectrum| spectrum.validate().unwrap_err().to_string();
+    let bad_mz =
+        MSSpectrum::from_peaks(vec![Peak1D::new(1.0, 1.0), Peak1D::new(f64::NAN, f32::NAN)]);
+    let reported = message(&bad_mz);
+    assert!(reported.contains("peak m/z must be finite"), "{reported}");
+    // An earlier peak's intensity outranks a later peak's m/z.
+    let bad_intensity = MSSpectrum::from_peaks(vec![
+        Peak1D::new(1.0, f32::INFINITY),
+        Peak1D::new(f64::NEG_INFINITY, 1.0),
+    ]);
+    let reported = message(&bad_intensity);
+    assert!(
+        reported.contains("peak intensity must be finite"),
+        "{reported}"
+    );
+    for mz in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        assert!(
+            MSSpectrum::from_peaks(vec![Peak1D::new(mz, 1.0)])
+                .validate()
+                .is_err()
+        );
+    }
+    for intensity in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY] {
+        assert!(
+            MSSpectrum::from_peaks(vec![Peak1D::new(1.0, intensity)])
+                .validate()
+                .is_err()
+        );
+    }
+}
+
+#[test]
+fn a_long_peak_list_is_checked_to_its_last_peak() {
+    let peaks = |n: usize| {
+        (0..n)
+            .map(|i| Peak1D::new(i as f64, 1.0))
+            .collect::<Vec<_>>()
+    };
+    // Lengths either side of any unrolled or vectorised block width, so a
+    // nonfinite value in the tail cannot be skipped.
+    for length in [1_usize, 2, 3, 7, 8, 9, 15, 16, 17, 31, 33, 1_000] {
+        let good = MSSpectrum::from_peaks(peaks(length));
+        assert!(good.validate().is_ok(), "length {length}");
+        for position in [0, length / 2, length - 1] {
+            let mut bad = MSSpectrum::from_peaks(peaks(length));
+            bad.peaks[position].intensity = f32::NAN;
+            let reported = bad.validate().unwrap_err().to_string();
+            assert!(
+                reported.contains("peak intensity must be finite"),
+                "length {length} position {position}: {reported}"
+            );
+            let mut bad = MSSpectrum::from_peaks(peaks(length));
+            bad.peaks[position].mz = f64::INFINITY;
+            assert!(
+                bad.validate().is_err(),
+                "length {length} position {position}"
+            );
+        }
+    }
+}
+
+#[test]
+fn nonfinite_chromatogram_values_keep_their_own_messages() {
+    let bad_rt = MSChromatogram::from_peaks(vec![ChromatogramPeak::new(f64::NAN, 1.0)]);
+    let reported = bad_rt.validate().unwrap_err().to_string();
+    assert!(
+        reported.contains("chromatogram retention time must be finite"),
+        "{reported}"
+    );
+    let bad_intensity =
+        MSChromatogram::from_peaks(vec![ChromatogramPeak::new(1.0, f32::NEG_INFINITY)]);
+    let reported = bad_intensity.validate().unwrap_err().to_string();
+    assert!(
+        reported.contains("chromatogram intensity must be finite"),
+        "{reported}"
+    );
+}
+
+// Finiteness and order are accumulated in one pass over the coordinates, so
+// this pins that a nonfinite coordinate is still reported ahead of an unsorted
+// pair, and that a container which is merely unsorted still reports that.
+#[test]
+fn nonfinite_coordinates_outrank_unsorted_coordinates() {
+    let nonfinite_and_unsorted = MSSpectrum::from_peaks(vec![
+        Peak1D::new(3.0, 1.0),
+        Peak1D::new(f64::NAN, 1.0),
+        Peak1D::new(1.0, 1.0),
+    ]);
+    assert!(matches!(
+        nonfinite_and_unsorted.mz_begin(2.0),
+        Err(Error::InvalidValue(_))
+    ));
+    assert!(matches!(
+        nonfinite_and_unsorted.mz_end(2.0),
+        Err(Error::InvalidValue(_))
+    ));
+    assert!(!nonfinite_and_unsorted.is_sorted());
+    let unsorted = MSSpectrum::from_peaks(vec![Peak1D::new(3.0, 1.0), Peak1D::new(1.0, 1.0)]);
+    assert!(matches!(unsorted.mz_begin(2.0), Err(Error::UnsortedData)));
+    assert!(matches!(
+        unsorted.find_highest_in_window(2.0, 1.0, 1.0),
+        Err(Error::UnsortedData)
+    ));
+    // An infinite coordinate is nonfinite, not merely out of order, even when
+    // it is the first one and so is never the right-hand side of a comparison.
+    let infinite_first = MSSpectrum::from_peaks(vec![
+        Peak1D::new(f64::NEG_INFINITY, 1.0),
+        Peak1D::new(1.0, 1.0),
+    ]);
+    assert!(matches!(
+        infinite_first.mz_begin(2.0),
+        Err(Error::InvalidValue(_))
+    ));
+    // Sorted, finite and empty containers are unaffected.
+    assert!(MSSpectrum::new().mz_begin(2.0).is_ok());
+    assert!(reference_spectrum().mz_begin(420.0).is_ok());
+    let chromatogram = MSChromatogram::from_peaks(vec![
+        ChromatogramPeak::new(2.0, 1.0),
+        ChromatogramPeak::new(f64::INFINITY, 1.0),
+    ]);
+    assert!(matches!(
+        chromatogram.rt_begin(1.0),
+        Err(Error::InvalidValue(_))
+    ));
+}
+
+// `sort_spectra` validates every spectrum once and then sorts with the checked
+// permutation path; the annotation arrays must still travel with the peaks.
+#[test]
+fn experiment_sorting_keeps_annotation_arrays_aligned() {
+    let mut experiment = MSExperiment::new();
+    experiment.spectra.push(annotated_spectrum());
+    experiment.spectra[0].rt = 2.0;
+    let mut second = annotated_spectrum();
+    second.rt = 1.0;
+    experiment.spectra.push(second);
+    experiment.sort_spectra(true).unwrap();
+    assert_eq!(experiment.spectra[0].rt, 1.0);
+    for spectrum in &experiment.spectra {
+        assert_eq!(
+            spectrum
+                .peaks
+                .iter()
+                .map(|peak| peak.mz)
+                .collect::<Vec<_>>(),
+            vec![10.0, 20.0, 30.0]
+        );
+        assert_eq!(spectrum.float_data_arrays[0].data, vec![1.0, 2.0, 3.0]);
+        assert_eq!(spectrum.integer_data_arrays[0].data, vec![1, 2, 3]);
+        assert_eq!(spectrum.string_data_arrays[0].data, vec!["a", "b", "c"]);
+        assert!(spectrum.float_data_arrays[1].data.is_empty());
+    }
+}

@@ -398,14 +398,42 @@ fn range(values: impl Iterator<Item = f64>) -> Option<NumericRange> {
     })
 }
 
-fn check_sorted<T>(values: &[T], coordinate: impl Fn(&T) -> f64) -> Result<()> {
-    for value in values {
-        finite(coordinate(value), "coordinate")?;
-    }
+// Coordinates in nondecreasing order, given that they are already known to be
+// finite. Split out of [`check_sorted`] so a caller that has just validated a
+// record does not scan its coordinates for finiteness a second time.
+fn check_order<T>(values: &[T], coordinate: impl Fn(&T) -> f64) -> Result<()> {
     if values
         .windows(2)
         .any(|pair| coordinate(&pair[0]) > coordinate(&pair[1]))
     {
+        return Err(Error::UnsortedData);
+    }
+    Ok(())
+}
+
+// Finite coordinates in nondecreasing order, in a single pass.
+//
+// The finiteness of every coordinate and the order of every adjacent pair are
+// checked together instead of in two passes, which halves the memory traffic of
+// the check. Precedence is unchanged. A nonfinite coordinate still wins over an
+// unsorted pair wherever either lies: the loop returns at the first nonfinite
+// coordinate, exactly as the finiteness pass did when it ran first, and the
+// order verdict is only reported once the whole slice has been found finite.
+// The order flag is computed exactly as the pairwise scan computed it -- the
+// seed is negative infinity, which is not greater than any first value, so it
+// can never make a container look unsorted that was not.
+fn check_sorted<T>(values: &[T], coordinate: impl Fn(&T) -> f64) -> Result<()> {
+    let mut unordered = false;
+    let mut previous = f64::NEG_INFINITY;
+    for value in values {
+        let current = coordinate(value);
+        if !current.is_finite() {
+            finite(current, "coordinate")?;
+        }
+        unordered |= previous > current;
+        previous = current;
+    }
+    if unordered {
         return Err(Error::UnsortedData);
     }
     Ok(())
@@ -530,9 +558,24 @@ macro_rules! peak_container {
             }
 
             /// Stable sort by coordinate, moving all annotation arrays together.
-            /// Invalid input is rejected before any mutation.
+            ///
+            /// Invalid input is rejected before any mutation, by one
+            /// [`Self::validate`] call: the permutation the sort then applies
+            /// is built here, so it needs no further checking.
             pub fn sort_by_position(&mut self) -> Result<()> {
                 self.validate()?;
+                self.sort_by_position_checked();
+                Ok(())
+            }
+
+            // Sort a container whose records have already been validated.
+            //
+            // The caller must have validated this container, which is what
+            // makes `partial_cmp(..).unwrap()` total: every coordinate is
+            // finite, so no comparison is `None`. The index list is a sorted
+            // permutation of `0..len()`, so it is in range and duplicate-free
+            // by construction and `select_checked` may skip `validate_indices`.
+            fn sort_by_position_checked(&mut self) {
                 let mut indices: Vec<usize> = (0..self.len()).collect();
                 indices.sort_by(|&a, &b| {
                     self.peaks[a]
@@ -540,7 +583,7 @@ macro_rules! peak_container {
                         .partial_cmp(&self.peaks[b].$position)
                         .unwrap()
                 });
-                self.select(&indices)
+                self.select_checked(&indices);
             }
 
             /// Stable sort by intensity; `reverse` selects descending order.
@@ -554,7 +597,8 @@ macro_rules! peak_container {
                         .unwrap();
                     if reverse { order.reverse() } else { order }
                 });
-                self.select(&indices)
+                self.select_checked(&indices);
+                Ok(())
             }
 
             /// Keep/reorder unique indices and aligned arrays, preserving metadata.
@@ -562,14 +606,33 @@ macro_rules! peak_container {
             pub fn select(&mut self, indices: &[usize]) -> Result<()> {
                 validate_indices(indices, self.len())?;
                 self.validate_data_arrays()?;
+                self.select_checked(indices);
+                Ok(())
+            }
+
+            // Permute peaks and aligned arrays without rechecking either.
+            //
+            // The caller must have established what [`Self::select`] checks
+            // first: `indices` in range and free of duplicates, and every
+            // nonempty annotation array as long as the peak list. Splitting
+            // this out is what lets the callers that have just run
+            // [`Self::validate`], or that build the index list themselves,
+            // avoid a second `validate_indices` -- which allocates and scans a
+            // `bool` per peak -- and a second `validate_data_arrays`.
+            fn select_checked(&mut self, indices: &[usize]) {
                 self.peaks = indices.iter().map(|&i| self.peaks[i]).collect();
                 select_arrays(&mut self.float_data_arrays, indices);
                 select_arrays(&mut self.integer_data_arrays, indices);
                 select_arrays(&mut self.string_data_arrays, indices);
-                Ok(())
             }
 
             /// Retain peaks satisfying a predicate and their aligned annotations.
+            ///
+            /// # Errors
+            ///
+            /// Returns [`Error::InvalidValue`] when a nonempty annotation array
+            /// does not have one entry per peak, which is checked before the
+            /// predicate is applied so the container is left unchanged.
             pub fn retain_peaks(&mut self, mut keep: impl FnMut(&$peak) -> bool) -> Result<()> {
                 self.validate_data_arrays()?;
                 let indices: Vec<_> = self
@@ -578,7 +641,11 @@ macro_rules! peak_container {
                     .enumerate()
                     .filter_map(|(i, peak)| keep(peak).then_some(i))
                     .collect();
-                self.select(&indices)
+                // `enumerate` over the peaks yields each index at most once and
+                // in range, so the list needs no `validate_indices`, and the
+                // array lengths were checked one statement above.
+                self.select_checked(&indices);
+                Ok(())
             }
 
             /// First peak with maximum intensity; `None` for an empty container.
@@ -628,7 +695,115 @@ peak_container!(MSChromatogram, ChromatogramPeak, rt);
 impl MSSpectrum {
     /// Validate finite values, the MS-level/scan-mode combination and parallel array lengths.
     /// Signed finite intensities and coordinates are permitted, as in OpenMS.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for the first thing that is wrong, in
+    /// the order the fields are listed above: the retention time, the MS level,
+    /// then the peaks, then the attached records. Within the peaks the first
+    /// offending peak is reported, and its m/z before its intensity, so the
+    /// message names one field of one peak however the check is implemented.
     pub fn validate(&self) -> Result<()> {
+        self.validate_scalars()?;
+        // NOT TO BE RETRIED: two reformulations of this loop and of the
+        // identical one in `MSChromatogram::validate`. Both were built against
+        // the 2.3 GB profile Q Exactive benchmark, one thread, and reverted.
+        // The loops stay as `finite(..)?` per field, written out at each call
+        // site, and are not factored into a shared helper.
+        //
+        // The instruction counts below are callgrind over a 681-spectrum slice:
+        // exact, deterministic, reproducible to the instruction -- and specific
+        // to the tree they were taken on, which is why that tree is named with
+        // them. Both were measured on the tree this lane started from, before
+        // the mzML reader rewrite landed, where the same slice cost
+        // 5,772,192,487 instructions and where this loop ran over every point
+        // three times per run (the reader, the picker per spectrum, the picker
+        // per experiment) rather than the two that remain on main today. They
+        // have not been retaken: what they establish is the shape of the loop,
+        // which has not changed, and retaking them would move their absolute
+        // counts with the number of surviving passes without touching that
+        // conclusion. The wall-clock deltas are not of that quality, so each is
+        // quoted with the sample size and the spread that produced it. Both
+        // pairs were run on a node that was carrying three other lanes'
+        // full-input benchmarks, where one binary's own spread across a batch
+        // of 3-4 runs was 0.3-1.7 s; a delta of 1 s there is evidence only
+        // because it had the same sign in every interleaved pair, never
+        // because of its magnitude. On the same node
+        // quiet, the same three-way rotation puts a layout control -- main with
+        // two unrelated functions swapped in source order, semantics identical
+        // -- 0.02 s from main over four rounds, with within-arm spreads of
+        // 0.16-0.28 s. Anyone re-measuring these two should do it there, and
+        // should carry a layout control either way.
+        //
+        // * An accumulating pass with no early exit (`ok &= a & b` over the
+        //   slice, rescanning only to report the first offending peak) executes
+        //   47,841,566 instructions fewer -- 0.82% of that tree's program, 10
+        //   instructions per peak instead of 15, which is the 5 per peak it
+        //   saves taken over the three passes that tree ran -- and ran the
+        //   full input slower in wall and user time in 3 of 3 pairs: means
+        //   37.83 s against 36.79 s, +1.04 s, with within-arm spreads of 0.44 s
+        //   and 0.51 s over those 3 runs each. Its `and` chain is loop-carried
+        //   where the branch form has no dependency between iterations.
+        // * A shared generic helper testing both fields into one never-taken
+        //   branch counts 3,686,040 instructions fewer on that same tree and
+        //   was slower in 4 of 4 pairs: means 37.71 s against 37.08 s, +0.63 s,
+        //   within-arm spreads 0.49 s and 0.29 s over those 4 runs each. That
+        //   is what routing three inlined call sites through one shared body
+        //   costs here.
+        //
+        // Vectorising is not on the table either: LLVM emits scalar code and
+        // declines the deinterleaving shuffles a vector version would need for
+        // `Peak1D`'s {f64, f32} in 16 bytes.
+        //
+        // The loop is already the cheap shape. What is left to win is the
+        // number of times the peaks are scanned, not the price of a scan, and
+        // that is a question for the callers -- see
+        // [`Self::validate_given_finite_peaks`].
+        //
+        // MEASURED, on the tree this branch merges into (main @ 8889ece, the
+        // same 681-spectrum slice, whole program 3,797,220,804 instructions):
+        // the mzML reader's call of this loop was worth 44,121,898 of them,
+        // 1.16% of the run at 15.0 per peak, and `Record::finish` no longer
+        // pays it. The picker's experiment-level `input.validate()` still
+        // scans the same points for 47,230,109 more; that one belongs to
+        // `src/processing/peak_picking.rs` and its owner, not here. An earlier
+        // revision of this lane quoted its figures against main @ e766311,
+        // which main had already left behind -- a count like these means
+        // nothing without the tree it was taken on, and main moves.
+        for peak in &self.peaks {
+            finite(peak.mz, "peak m/z")?;
+            finite(f64::from(peak.intensity), "peak intensity")?;
+        }
+        self.validate_attachments()
+    }
+
+    /// Everything [`Self::validate`] checks except the per-peak value loop, for
+    /// a caller that has already established every `peak.mz` and every
+    /// `peak.intensity` finite.
+    ///
+    /// The retention time, the MS level, the precursors, the peptide
+    /// identifications, the record metadata budget, the annotation array
+    /// lengths, the array descriptions and the acquisition settings are all
+    /// still checked, in the order [`Self::validate`] checks them. Only the
+    /// scan over the peaks is dropped, and only a caller that can point at
+    /// where each peak value was already proved finite may drop it.
+    ///
+    /// This is `pub(crate)` on purpose. It is not a general-purpose shortcut:
+    /// it is sound exactly when the precondition is discharged at the call
+    /// site by an argument written there, and there is no way for this function
+    /// to check that. [`Self::validate`] is the entry point for everyone else.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for the first thing that is wrong, in
+    /// the same order as [`Self::validate`], minus the peak values.
+    pub(crate) fn validate_given_finite_peaks(&self) -> Result<()> {
+        self.validate_scalars()?;
+        self.validate_attachments()
+    }
+
+    // The part of `validate` that precedes the peak loop.
+    fn validate_scalars(&self) -> Result<()> {
         finite(self.rt, "spectrum retention time")?;
         if self.ms_level == 0
             && !matches!(
@@ -642,10 +817,11 @@ impl MSSpectrum {
                 "spectrum MS level must be positive".into(),
             ));
         }
-        for peak in &self.peaks {
-            finite(peak.mz, "peak m/z")?;
-            finite(f64::from(peak.intensity), "peak intensity")?;
-        }
+        Ok(())
+    }
+
+    // The part of `validate` that follows the peak loop.
+    fn validate_attachments(&self) -> Result<()> {
         for precursor in &self.precursors {
             precursor.validate()?;
         }
@@ -717,10 +893,22 @@ impl MSSpectrum {
     }
 
     /// Index of the first most-intense peak within an inclusive m/z window.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for a nonfinite or negative window, and
+    /// for anything [`Self::validate`] refuses -- which includes a nonfinite
+    /// m/z, and is therefore checked before the order is. Returns
+    /// [`Error::UnsortedData`] for a valid spectrum whose peaks are not in
+    /// nondecreasing m/z order.
     pub fn find_highest_in_window(&self, mz: f64, left: f64, right: f64) -> Result<Option<usize>> {
         validate_window(mz, left, right)?;
         self.validate()?;
-        check_sorted(&self.peaks, |peak| peak.mz)?;
+        // `validate` has just proved every `peak.mz` finite, and `self` is
+        // borrowed immutably for the whole call, so nothing can have changed
+        // since: only the order is still open. `check_sorted` would scan every
+        // coordinate again for a finiteness verdict that is already in hand.
+        check_order(&self.peaks, |peak| peak.mz)?;
         let begin = self.peaks.partition_point(|peak| peak.mz < mz - left);
         let end = self.peaks.partition_point(|peak| peak.mz <= mz + right);
         Ok((begin..end).reduce(|best, i| {
@@ -750,11 +938,40 @@ impl MSChromatogram {
     ///
     /// Returns [`Error::InvalidValue`] on a nonfinite value, an annotation array
     /// whose length differs from the peak count, or an invalid attached record.
+    /// The first offending point is reported, and its retention time before its
+    /// intensity.
     pub fn validate(&self) -> Result<()> {
+        // The same loop, the same shape and the same two rejected
+        // reformulations as `MSSpectrum::validate`; the measurements and the
+        // reasons not to retry them are recorded there.
         for peak in &self.peaks {
             finite(peak.rt, "chromatogram retention time")?;
             finite(f64::from(peak.intensity), "chromatogram intensity")?;
         }
+        self.validate_attachments()
+    }
+
+    /// Everything [`Self::validate`] checks except the per-peak value loop, for
+    /// a caller that has already established every `peak.rt` and every
+    /// `peak.intensity` finite.
+    ///
+    /// The precursor, the product, the record metadata budget, the annotation
+    /// array lengths, the array descriptions and the acquisition settings are
+    /// all still checked, in the order [`Self::validate`] checks them. As with
+    /// [`MSSpectrum::validate_given_finite_peaks`], this is `pub(crate)`
+    /// because its precondition can only be discharged by an argument written
+    /// at the call site.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for the first thing that is wrong, in
+    /// the same order as [`Self::validate`], minus the peak values.
+    pub(crate) fn validate_given_finite_peaks(&self) -> Result<()> {
+        self.validate_attachments()
+    }
+
+    // The part of `validate` that follows the peak loop.
+    fn validate_attachments(&self) -> Result<()> {
         self.precursor.validate()?;
         self.product.validate()?;
         self.validate_record_metadata()?;
@@ -875,14 +1092,25 @@ impl MSExperiment {
     }
 
     /// Stable RT sort, optionally sorting m/z inside each spectrum.
-    /// Validation completes before any changes are made.
+    ///
+    /// Every spectrum is validated once, before any change is made, so an
+    /// invalid experiment is refused whole and never half sorted.
+    ///
+    /// # Errors
+    ///
+    /// Returns whatever [`MSSpectrum::validate`] refuses, for the first
+    /// spectrum in storage order that it refuses.
     pub fn sort_spectra(&mut self, sort_mz: bool) -> Result<()> {
         for spectrum in &self.spectra {
             spectrum.validate()?;
         }
         if sort_mz {
             for spectrum in &mut self.spectra {
-                spectrum.sort_by_position()?;
+                // Every spectrum was validated in the loop above and sorting
+                // one spectrum cannot invalidate another, so the checked sort
+                // would repeat a pass over every peak of the experiment for no
+                // new guarantee.
+                spectrum.sort_by_position_checked();
             }
         }
         self.spectra
