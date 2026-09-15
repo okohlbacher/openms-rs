@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" version="1.1.0">
+	<cvList count="2">
+		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="2.0.2" URI="http://psidev.sourceforge.net/ms/xml/mzdata/psi-ms.2.0.2.obo"/>
+		<cv id="UO" fullName="Unit Ontology" URI="https://purl.obolibrary.org/obo/uo.obo"/>
+	</cvList>
+	<fileDescription>
+		<fileContent>
+			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum"/>
+		</fileContent>
+	</fileDescription>
+	<softwareList count="1">
+		<software id="so_0" version="0.0">
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value=""/>
+		</software>
+	</softwareList>
+	<instrumentConfigurationList count="1">
+		<instrumentConfiguration id="ic_0"/>
+	</instrumentConfigurationList>
+	<dataProcessingList count="1">
+		<dataProcessing id="dp_0">
+			<processingMethod order="0" softwareRef="so_0">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML"/>
+			</processingMethod>
+		</dataProcessing>
+	</dataProcessingList>
+	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0">
+		<spectrumList count="0" defaultDataProcessingRef="dp_0">
+		</spectrumList>
+	</run>
+</mzML>

@@ -595,9 +595,91 @@ with `no_spec`.
 ## MapNormalizer and SpectraFilterWindowMower
 
 `MapNormalizer` scales MS1 peak intensities to a percentage of the run maximum;
-its upstream test reproduces the retained C++ output, and the most intense MS1
-peak lands on 100. Higher MS levels are untouched and the source's commented-out
-chromatogram branch is not ported.
+its upstream test reproduces the retained C++ output. Higher MS levels are
+untouched and the source's commented-out chromatogram branch is not ported.
+
+**The run maximum is the combined one, chromatograms included.** `main_` calls
+`exp.updateRanges()` and then `exp.getMaxIntensity()`.
+`MSExperiment::updateRanges()` extends `combined_ranges_` first with the
+spectrum ranges over every MS level and then with the chromatogram ranges
+(`MSExperiment.cpp:665-719` at core bc9cc12), and `getMaxIntensity()` returns
+that combined maximum (`MSExperiment.h:1059`). `MSExperiment::ranges` in this
+crate covers spectra alone — the deliberate, documented scope of that query — so
+taking it as the run maximum was wrong whenever a chromatogram carried the most
+intense value. A TIC chromatogram sums a whole spectrum, so it routinely does.
+The tool now asks `MSExperiment::combined_ranges_with_limits`, which is that
+fold in that order and already existed; nothing about the C++ semantics is
+restated in the tool.
+
+That was a real divergence on real data, not a corner case. On the benchmark's
+1.2 GB LTQ Orbitrap Velos centroided run the TIC chromatogram peaks at
+1,788,496,256 against a spectrum maximum of 135,038,560, so every one of the
+7,302 MS1 spectra came out 1,788,496,256 / 135,038,560 = 13.2443x too high while
+the 36,443 MS2 spectra, which the tool never rescales, agreed bitwise. Both
+maxima are what the C++ `FileInfo` prints for that file under *Combined Ranges*
+and *Spectrum Ranges*. `MapNormalizer::run_maximum_intensity` now folds the
+chromatogram ranges in, and the full run agrees with the C++ Release build on
+every decoded array: 43,746 holders, 88,478,237 intensity points, 88,434,492 m/z
+points and the chromatogram's 43,745 time points, all bitwise equal, zero
+differences, with the port's output byte-identical at 1 and 32 threads. That
+comparison was re-run after the empty-range refusal below was restored, and the
+port's output digest is unchanged.
+
+Two shapes distinguish the two formulas, and
+`tests/topp_map_normalizer.rs` covers both against executed C++ output
+(`tests/data/map_normalizer_chromatogram_{above,below}_*.mzML`): a chromatogram
+above the spectrum maximum, which sets the scale on its own, and one below it,
+which leaves the scale at the spectrum maximum. In the second fixture that
+maximum sits in the MS2 spectrum, so MS1 normalizes to 6 rather than to 100 —
+"the most intense MS1 peak becomes 100" holds only for a run with no
+chromatogram whose most intense peak is an MS1 one, which is what the upstream
+fixture happens to be and why its test never saw this.
+
+**The ceiling on that query is derived from the map.**
+`SummaryLimits::max_work`, which `combined_ranges_with_limits` charges one unit
+per spectrum, per peak, per chromatogram and per chromatogram point against,
+defaults to 50,000,000 — a figure no real LC-MS run fits. The Velos run charges
+43,745 + 88,434,492 + 1 + 43,745 = 88,521,983 and `combined_ranges()` would
+refuse it. The map is fully materialized by the time the tool asks for its
+ranges, and what bounds the input is the reader's own size-derived ceilings in
+`src/format/mzml_scaling.rs`, so `MapNormalizer::range_limits` charges the map's
+own size: still bounded work, and it can never refuse a map the reader already
+admitted. `the_derived_ceiling_is_exactly_what_the_query_charges` pins it at
+exactly the charge — one unit less is refused — so it is neither slack nor
+capable of refusing. The fixed default remains a defect for every other caller
+of `combined_ranges`, `chromatogram_ranges` and `calculate_tic_binned`, and is
+reported rather than changed here; `src/kernel/experiment_summary.rs` is outside
+this tool.
+
+**One deliberate deviation.** The source divides by `getMaxIntensity() / 100`
+with no guard. Executed at the pinned Release build: on a run whose intensities
+are all zero it exits 0 and writes `NaN` into every MS1 peak (the MS2 spectrum,
+which it never rescales, keeps its zeros); on a run whose intensities are all
+negative the maximum is the least negative value, so the scale is negative and
+it exits 0 having flipped the sign of every MS1 peak — `[-10, -200, -3000]` came
+back as `[1000, 20000, 300000]`. This port refuses a non-positive scale with
+exit 6 instead, and writes nothing.
+
+**An empty combined intensity range is refused, as the source refuses it** —
+only the exit code differs. `main_` asks for `getMaxIntensity()` unconditionally,
+one line before its peak loop, and `RangeBase::getMax()`
+(`RangeManager.h:139-146` at core bc9cc12) throws `Exception::InvalidRange` on an
+empty range with no assertion guard, so a Release build throws as well; whether
+the loop body would have run is irrelevant, the throw happens first. Executed at
+the pinned Release build on the two shapes these fixtures cover — three scans
+carrying a retention time but no point, and an empty `spectrumList`; the
+condition is simply that the run holds no spectrum peak and no chromatogram
+point — the C++ exits **8**
+with *Empty or uninitialized range object. Did you forget to call
+updateRanges()?* and writes **no output file**; its `FileInfo` prints
+`intensity: <none> .. <none>` under *Combined Ranges* for both. The port refuses
+both and likewise writes nothing, but exits **6**: `Error::InvalidValue` and
+`Error::InvalidRange` map to `ILLEGAL_PARAMETERS` crate-wide, where the source's
+same-named exceptions derive from `BaseException` and reach its `UNKNOWN_ERROR`
+arm — the mapping already documented at `run_failure` in `src/cli.rs`, not a
+choice this tool makes. `an_empty_combined_intensity_range_is_refused` covers
+both fixtures end to end; the executed commands, exit codes and digests are in
+`tests/data/topp_map_normalizer_provenance.json`.
 
 `SpectraFilterWindowMower` is the first tool with an **algorithm subsection**,
 the shape most remaining TOPP tools take. `Tool::subsection_defaults` ports
