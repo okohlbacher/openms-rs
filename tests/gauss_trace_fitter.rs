@@ -45,8 +45,18 @@
 //! `../oracle/gauss-trace-fitter/solver-gap`) record that gap. Their start
 //! values, and the residuals and Jacobians at them, are asserted; the ignored
 //! `solver_gap_probe_reports_the_known_gap` prints the rest without asserting
-//! any Rust value. The root cause is in
-//! `src/math/fitters/levenberg_marquardt.rs`, under investigation in lane B3b.
+//! any Rust value.
+//!
+//! That root cause was found and fixed in `src/math/fitters/levenberg_marquardt.rs`
+//! by package B3b-LM-FIDELITY: the transcription summed left to right where
+//! Eigen accumulates in SIMD lanes. What is left against these fixtures is the
+//! platform split Eigen itself has - its arm64 kernels fuse their `pmadd` lanes
+//! and its x86_64 `-mssse3` kernels do not - and the user decided on 2026-09-15
+//! that the port matches the **Linux x86_64 Release** build on every target,
+//! while these fixtures come from the macOS arm64 product SDK. See
+//! `docs/DISTRIBUTION_FITTERS_SUPPORT.md` §1 and, for the asserted replay
+//! against a Linux x86_64 Release trace of Eigen,
+//! `tests/lm_eigen_path_differential.rs`.
 
 // The class-test literals are transcribed verbatim, including digits beyond
 // the precision of their type, so the f32 values match the C++ literals exactly.
@@ -1275,11 +1285,13 @@ fn fit_failures_match_the_oracle() {
 #[test]
 fn start_value_boundaries_match_the_oracle() {
     // Every start value, the query arithmetic and the gnuplot text agree bit for
-    // bit in every case; the fitted parameters of four fits do not reach 1e-9
-    // (see `ill_conditioned_fit_tolerance`), an instance of the general solver
-    // gap recorded by `solver_gap_probe_reports_the_known_gap`. The driver
-    // recorded no functor evaluations for these cases, so residuals and
-    // Jacobians are not compared here.
+    // bit in every case; the fitted parameters of two fits do not reach 1e-9
+    // (`leading_max` and `trailing_max`; see `ill_conditioned_fit_tolerance`,
+    // which keeps a measured bound for two more that now do). Those two are
+    // where this macOS-generated oracle disagrees with a solver that reproduces
+    // Eigen as the Linux x86_64 Release build compiles it. The driver recorded
+    // no functor evaluations for these cases, so residuals and Jacobians are
+    // not compared here.
     let fixture = Fixture::parse(EXTRA);
     let cases = fixture.cases("start.");
     assert_eq!(cases.len(), 9);
@@ -1362,33 +1374,47 @@ fn start_value_boundaries_match_the_oracle() {
 ///
 /// The expected values are the oracle's; the bounds are not. Each bound is the
 /// next power of ten above the port's own largest measured deviation of height,
-/// centre and sigma:
+/// centre and sigma. Re-measured on 2026-09-15 against the solver of package
+/// B3b-LM-FIDELITY, which reproduces Eigen's reduction kernels
+/// (`docs/DISTRIBUTION_FITTERS_SUPPORT.md` §1), on Linux x86-64 with glibc
+/// (dax) and on macOS arm64 with Apple libm:
 ///
-/// - `n4_boundary`: 1.40e-9.
-/// - `merged_profile`: 4.41e-9.
-/// - `leading_max` (maximum at the first retention time, sigma 0.25): 2.93e-4.
-/// - `trailing_max`: 1.72e-3 on Linux x86-64 with glibc (dax, 2026-09-14), and
-///   1.49e-3 with Apple libm or a correctly rounded `exp`.
+/// - `n4_boundary`: bit-identical on both, was 1.40e-9.
+/// - `merged_profile`: 2.69e-11 on Linux, bit-identical on macOS, was 4.41e-9.
+/// - `leading_max` (maximum at the first retention time, sigma 0.25): 2.06e-3
+///   on both (2.0614474501769614e-3 Linux, 2.0614474501789866e-3 macOS), was
+///   2.93e-4. **This one rose**, and it is the only quantity in this package
+///   that the new solver moves away from its oracle; see below and
+///   `docs/TRACE_FITTER_SUPPORT.md`.
+/// - `trailing_max`: 1.72e-3 on Linux, unchanged; on macOS it moved from
+///   1.49e-3 to the same 1.72e-3, well inside the bound.
 ///
-/// The other three are the same with all three `exp` implementations.
+/// The first two now sit under the package's own 1e-9 fit tolerance on both
+/// measured platforms. Their 1e-8 bounds are kept as headroom for the targets
+/// this package could not measure (the `cross-platform` CI job also builds
+/// Windows, whose `exp` was never measured here), not because the deviation
+/// needs them.
+///
+/// `leading_max` rose because the oracle is macOS-generated while the solver
+/// now reproduces Eigen as the **Linux x86_64 Release** build compiles it - the
+/// user's decision of 2026-09-15, recorded in
+/// `docs/DISTRIBUTION_FITTERS_SUPPORT.md` §1. Eigen's arm64 kernels fuse their
+/// lanes (`vfmaq_f64`) and the x86_64 ones do not, so one unfused Rust path
+/// cannot match both C++ builds; against the macOS SDK the port keeps 21 of 141
+/// traced evaluation paths. This ill-conditioned start-value probe is where
+/// that shows up. Everything else in this package improved: the two deviations
+/// above fell to bit-identical and 2.69e-11, the class-test fits from 2.51e-12
+/// to 1.44e-12 and their evaluation path from 1.79e-11 to 9.08e-12, and the
+/// FeatureFinderCentroided_1 seed fits from 6.36e-10 to 1.83e-10.
 ///
 /// Only the start values are known to equal the oracle's bit for bit; the
 /// driver recorded no residuals or Jacobians for these cases. The gap persists
 /// with the oracle platform's own `exp` and `log`, so it does not come from
 /// them.
-///
-/// These four are not special. They are instances of a general gap: the
-/// Levenberg-Marquardt transcription in `src/math/fitters/levenberg_marquardt.rs`
-/// departs from the executed Eigen 5.0.1 in the last bits, on most inputs
-/// already at the first trial step. The review's 79 further inputs
-/// (`solver_gap_probe_reports_the_known_gap`) put 21 fits beyond 1e-9. The
-/// root cause is in that file and is under investigation in lane B3b. A change
-/// of the solver must re-measure the bounds, and a solver that matches Eigen
-/// here should drop them for the 1e-9 fit tolerance.
 fn ill_conditioned_fit_tolerance(case: &str) -> Option<f64> {
     match case {
         "start.n4_boundary" | "start.merged_profile" => Some(1e-8),
-        "start.leading_max" => Some(1e-3),
+        "start.leading_max" => Some(1e-2),
         "start.trailing_max" => Some(1e-2),
         _ => None,
     }
@@ -1542,21 +1568,28 @@ fn solver_gap_inputs_first_step_inputs_match_the_oracle() {
 /// cases. All of it ran on macOS arm64.
 ///
 /// The port's residual path departs from the replica's in the last bits in
-/// 72 of the 79 cases, 58 of them already at the first trial step
-/// (evaluation 1), from start vectors, residuals and Jacobians that are
-/// identical (`solver_gap_inputs_first_step_inputs_match_the_oracle`). On
-/// these inputs 21 fits then miss the 1e-9 fit tolerance, and statuses and
-/// `nfev` can differ (`docs/TRACE_FITTER_SUPPORT.md`, "Known gap"). This
-/// holds on macOS arm64 and on Linux x86-64. The root cause is in
-/// `src/math/fitters/levenberg_marquardt.rs`, under investigation in lane
-/// B3b. Until it is fixed this test is ignored; run it with
-/// `--ignored --nocapture`. It prints one line per case and a summary. It
-/// asserts only the fixture's shape, never a Rust value, and the numbers it
-/// prints are measurements of the current port, not expectations. When the
-/// solver matches Eigen, the comparison should become an ordinary replay with
-/// the package's tolerances, and the ignore should go.
+/// 64 of the 79 cases on macOS arm64 and 65 on Linux x86-64, 30 of them
+/// already at the first trial step (evaluation 1), from start vectors,
+/// residuals and Jacobians that are identical
+/// (`solver_gap_inputs_first_step_inputs_match_the_oracle`). On these inputs
+/// 20 fits (21 on Linux) then miss the 1e-9 fit tolerance, and one status and
+/// some `nfev` counts differ (`docs/TRACE_FITTER_SUPPORT.md`, "Known gap").
+///
+/// The transcription defect this probe was written for is fixed (package
+/// B3b-LM-FIDELITY; every count above improved). What is left is the platform
+/// split Eigen itself has: its arm64 kernels fuse their `pmadd` lanes and its
+/// x86_64 `-mssse3` kernels do not, this fixture is from the fused macOS arm64
+/// SDK, and the user decided on 2026-09-15 that the port matches the unfused
+/// Linux x86_64 Release build on every target
+/// (`docs/DISTRIBUTION_FITTERS_SUPPORT.md` §1). So this stays a report rather
+/// than becoming an assertion: run it with `--ignored --nocapture`. It prints
+/// one line per case and a summary, asserts only the fixture's shape, never a
+/// Rust value, and the numbers it prints are measurements of the current port,
+/// not expectations. The asserted replay of the same 79 inputs against a Linux
+/// x86_64 Release trace of Eigen, where the port is bit-identical, is
+/// `tests/lm_eigen_path_differential.rs`.
 #[test]
-#[ignore = "known gap: the Levenberg-Marquardt transcription departs from Eigen (lane B3b); prints a report, asserts no Rust value"]
+#[ignore = "macOS-generated oracle against a solver that matches Linux x86_64 Release Eigen; prints a report, asserts no Rust value"]
 fn solver_gap_probe_reports_the_known_gap() {
     let fixture = Fixture::parse(SOLVER_GAP);
     let cases = fixture.cases("gap.");

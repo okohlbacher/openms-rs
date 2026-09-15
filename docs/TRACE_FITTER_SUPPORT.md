@@ -252,20 +252,29 @@ the oracle's fitted parameters) are compared within 1e-14 relative; fitted
 parameters, sweep parameters and the evaluation path within 1e-9 relative;
 statuses, `nfev`, `njev`, the evaluation order, booleans, strings and the budget
 boundaries exactly. Measured against the macOS arm64 oracle on Linux x86-64
-(IBMI dax, glibc 2.39, 2026-09-14) and with Apple libm. The Apple libm column
-comes from the independent review run of commit `46be7d2` on macOS arm64 (class
-tests and seeds). The Linux run with Apple libm's `exp` and `log` values
-substituted reproduces those numbers and supplies the other three rows. The
-two libraries differ only in the bit-identical counts, through `exp` (native
-difference 1):
+(IBMI dax, glibc 2.39) and natively on macOS arm64 with Apple libm. The two
+libraries differ mainly in the bit-identical counts, through `exp` (native
+difference 1).
 
-| Replay | Values | Bit-identical, glibc | Bit-identical, Apple libm | Largest relative deviation (both) |
+Re-measured on 2026-09-15 for package B3b-LM-FIDELITY, which replaced the
+solver's reduction arithmetic with Eigen's own kernels
+(`docs/DISTRIBUTION_FITTERS_SUPPORT.md` §1). Both columns are executed runs of
+`cargo test --test gauss_trace_fitter -- --nocapture` on the merged tree: glibc
+on dax, Apple libm on the development machine. Every deviation fell and every
+bit-identical count rose:
+
+| Replay | Values | Bit-identical, glibc | Bit-identical, Apple libm | Largest relative deviation (both unless noted) |
 | --- | ---: | ---: | ---: | --- |
-| class-test cases | 10,461 | 8,255 | 8,255 | start values, residuals, Jacobians, queries 0; fit 2.5e-12; sweep 3.7e-12; path 1.8e-11 |
-| FeatureFinderCentroided_1 seeds | 19,572 | 16,699 | 16,696 | start values, residuals, Jacobians, queries 0; fit and sweep 6.4e-10 |
-| degenerate inputs | 24 | 22 | 22 | fit 3.0e-15 |
+| class-test cases | 10,461 | 8,337 | 8,338 | start values, residuals, Jacobians, queries 0; fit 1.44e-12; sweep 1.81e-12; path 9.08e-12 |
+| FeatureFinderCentroided_1 seeds | 19,572 | 17,679 | 17,930 | start values, residuals, Jacobians, queries 0; fit and sweep 1.83e-10 glibc, 1.84e-10 Apple libm |
+| degenerate inputs | 24 | 24 | 24 | 0 |
 | fit failures | 32 | 32 | 32 | 0 |
 | gnuplot case | 3 | 3 | 3 | 0 |
+
+Before B3b the same replays gave: class tests 8,255 / 8,255 bit-identical with
+fit 2.5e-12, sweep 3.7e-12 and path 1.8e-11; seeds 16,699 / 16,696 with fit and
+sweep 6.4e-10; degenerate inputs 22 / 22 with fit 3.0e-15. The start-value
+boundary cases moved in both directions and are treated separately below.
 
 On these fixtures, every status agrees at every budget checked: 1 to 500 for
 the class-test cases, and for the seeds every budget up to two past natural
@@ -286,7 +295,8 @@ rejects ("Fitted model is bigger than 'max_rt_span'"). The work package's litera
 6.0828584222534152 weighted 0.4/0.6.
 
 **Ill-conditioned boundary cases.** Four of this package's own start-value
-cases, not work-package targets, fit less closely than 1e-9.
+cases, not work-package targets, carry a measured bound instead of the 1e-9 fit
+tolerance. Two of them still need it after B3b-LM-FIDELITY.
 
 What was executed:
 
@@ -294,32 +304,87 @@ What was executed:
   oracle's.
 - The driver did not record the C++ functor for these cases, so their
   residuals and Jacobians were not compared.
-- The gap is the same with glibc's `exp` and `log`, with Apple libm's (the
-  oracle platform's library: the macOS review run, and the substitution run
-  on Linux) and with correctly rounded ones, except for `trailing_max`.
+- Before B3b the gap was the same with glibc's `exp` and `log`, with Apple
+  libm's (the oracle platform's library: the macOS review run, and the
+  substitution run on Linux) and with correctly rounded ones, except for
+  `trailing_max`. After B3b the two remaining cases agree to twelve digits
+  between glibc and Apple libm and `trailing_max` agrees exactly; only
+  `merged_profile` splits, and only by being bit-identical on macOS where glibc
+  leaves 2.69e-11.
 
 So the gap does not come from `exp` or `log`. These four cases are not
 special: they are instances of the general solver gap described in the next
-section, which the review's 79 further inputs exposed. The root cause is in
-`src/math/fitters/levenberg_marquardt.rs` and is under investigation in lane
-B3b.
+section, which the review's 79 further inputs exposed.
 
-| Case | Largest relative deviation of height, centre, sigma: glibc / Apple libm / correctly rounded | Asserted bound |
-| --- | --- | --- |
-| `start.n4_boundary` (four points, maximum second) | 1.40e-9 / 1.40e-9 / 1.40e-9 | 1e-8 |
-| `start.merged_profile` (two traces with interleaved retention times) | 4.41e-9 / 4.41e-9 / 4.41e-9 | 1e-8 |
-| `start.leading_max` (maximum at the first retention time, sigma 0.25) | 2.93e-4 / 2.93e-4 / 2.93e-4 | 1e-3 |
-| `start.trailing_max` (maximum at the last retention time) | 1.72e-3 / 1.49e-3 / 1.49e-3 | 1e-2 |
+The bounds were **re-measured on 2026-09-15** for package B3b-LM-FIDELITY,
+which replaced the solver's reduction arithmetic with Eigen's own kernels
+(`docs/DISTRIBUTION_FITTERS_SUPPORT.md` §1). Both columns below are that
+package's own executed runs of
+`start_value_boundaries_match_the_oracle -- --nocapture`: Linux x86-64 with
+glibc 2.39 on dax, and macOS arm64 with Apple libm on the development machine.
+
+| Case | Deviation before B3b: glibc / Apple libm / correctly rounded | Deviation after B3b: glibc / Apple libm | Asserted bound |
+| --- | --- | --- | --- |
+| `start.n4_boundary` (four points, maximum second) | 1.40e-9 / 1.40e-9 / 1.40e-9 | bit-identical / bit-identical | 1e-8 |
+| `start.merged_profile` (two traces with interleaved retention times) | 4.41e-9 / 4.41e-9 / 4.41e-9 | 2.69e-11 / bit-identical | 1e-8 |
+| `start.leading_max` (maximum at the first retention time, sigma 0.25) | 2.93e-4 / 2.93e-4 / 2.93e-4 | **2.06e-3 / 2.06e-3** | **1e-2** (was 1e-3) |
+| `start.trailing_max` (maximum at the last retention time) | 1.72e-3 / 1.49e-3 / 1.49e-3 | 1.72e-3 / 1.72e-3 | 1e-2 |
 
 The expected values are the oracle's. The bounds are not: each is the next
-power of ten above the port's own largest measured deviation. A change of the
-solver must re-measure them, and a solver that matches Eigen here should
-replace them with the 1e-9 fit tolerance.
+power of ten above the port's own largest measured deviation. The first two
+now sit under the package's own 1e-9 fit tolerance on both measured platforms;
+their 1e-8 bounds are kept as headroom for the targets neither package could
+measure (the `cross-platform` CI job also builds Windows), not because the
+deviation needs them.
+
+**Why `leading_max` rose, and why the bound was raised.** This is the one
+number in this package that the new solver moves away from its oracle, and it
+is a consequence of a decision taken by the user on 2026-09-15 and recorded in
+`docs/DISTRIBUTION_FITTERS_SUPPORT.md` §1: the port matches Eigen as the
+**Linux x86_64 Release** build compiles it, on every target. Eigen's arm64
+kernels fuse their `pmadd` lanes (`vfmaq_f64` under `EIGEN_VECTORIZE_FMA`,
+which `__ARM_FEATURE_FMA` always sets) and the x86_64 `-mssse3` kernels do not,
+so one unfused Rust path cannot reproduce both C++ builds. This package's
+fixtures were generated by the **macOS arm64** product SDK, which is the fused
+build. On the traced-path oracle the committed solver keeps 141 of 141
+evaluation paths and final parameters against Linux x86_64 Release and 21 of
+141 against the macOS SDK.
+
+`start.leading_max`'s fit is ill-conditioned enough to make that visible:
+2.0614474501769614e-3 relative on Linux and 2.0614474501789866e-3 on macOS,
+against 2.93e-4 before, so the previous 1e-3 bound would fail. The bound moves
+to the next power of ten, 1e-2, and is the same bound `trailing_max` already
+carried. No oracle value and no other tolerance in this package changed.
+
+**Everything else in this package got closer or stayed inside its bound**,
+measured in the same runs. `start.trailing_max` is the only other movement: on
+macOS arm64 it went from 1.49e-3 to the 1.72e-3 Linux already measured, well
+inside its unchanged 1e-2 bound.
+
+| Quantity | Before B3b | After B3b (dax) |
+| --- | --- | --- |
+| Class-test fitted parameters | 2.51e-12 | 1.44e-12 |
+| Class-test evaluation path (`path.x`) | 1.79e-11 | 9.08e-12 |
+| FeatureFinderCentroided_1 seed fits | 6.36e-10 | 1.83e-10 |
+| FeatureFinderCentroided_1 seed values bit-identical | - | 17,679 of 19,572 |
+| `start.n4_boundary`, `start.merged_profile` | 1.40e-9, 4.41e-9 | bit-identical, 2.69e-11 |
 
 **Known gap: solver fidelity beyond the fixtures.** `GaussTraceFitter::fit`
-is not bit-faithful to the executed library in general. The class-test and
-FeatureFinderCentroided_1 results above (fits within 2.5e-12 and 6.4e-10,
+is not bit-faithful to the **macOS arm64** library in general. The class-test
+and FeatureFinderCentroided_1 results above (fits within 1.44e-12 and 1.83e-10,
 equal statuses, `nfev` and `njev`) are fixture-specific.
+
+The root cause this section left open was found and fixed in package
+B3b-LM-FIDELITY: the transcription summed left to right where Eigen accumulates
+in SIMD lanes. `docs/DISTRIBUTION_FITTERS_SUPPORT.md` §1 has the traced
+first-divergence evidence and `tests/lm_eigen_path_differential.rs` the tier-1
+assertion. What remains is not a defect but a platform split that the C++ has
+too: Eigen's arm64 kernels fuse their `pmadd` lanes and the x86_64 `-mssse3`
+kernels do not, and on 2026-09-15 the user decided the port matches the **Linux
+x86_64 Release** build on every target. This section's oracle was generated by
+the macOS arm64 SDK, the fused build, so a residual gap against it is expected
+and is the price of that decision. Against Linux x86_64 Release the solver is
+bit-exact on all 141 traced fits.
 
 What was executed:
 
@@ -353,70 +418,82 @@ What was executed:
   asserts nothing about them. The printed reports of the two runs summarised
   below are kept in `../oracle/gauss-trace-fitter/solver-gap/logs`.
 
-The review measured the port on macOS arm64. Running the report there on
-2026-09-14 reproduced the review's counts, fit deviations, statuses and
-`nfev`; the Linux column comes from dax (glibc 2.39). The first-difference
-deviation and the budget-limited bound below are this report's own measures.
-These are measurements of the current port, not expectations:
+Re-measured on 2026-09-15 with the B3b-LM-FIDELITY solver: the macOS arm64
+column is a native run on the development machine, the Linux column a run on
+dax (glibc 2.39), both of
+`cargo test --test gauss_trace_fitter solver_gap_probe_reports_the_known_gap
+-- --ignored --nocapture`. The "before" column is the pre-B3b measurement this
+section carried, which was the same on both platforms except where noted. These
+are measurements of the current port against a macOS-generated oracle, not
+expectations:
 
-| Measure | macOS arm64 | Linux x86-64 |
-| --- | --- | --- |
-| Start vector (evaluation 0) bit-identical | 79 of 79 | 79 of 79 |
-| Residual path departs from Eigen's | 72 of 79: 58 at evaluation 1 (the first trial step), the rest by evaluation 13 | the same |
-| Largest coordinate's relative deviation at the first differing evaluation | 1.1e-16 to 8.3e-14 | the same |
-| Final height, centre, sigma and span bit-identical | 124 of 316 | 123 of 316 |
-| Fits beyond 1e-9, natural termination | 12, by 1.04e-9 to 3.2e-4 | 12, by 1.04e-9 to 3.2e-4 |
-| Fits beyond 1e-9, budget of 500 exhausted | 9, by 9.0e-7 to 4.9e-3 | 9, by 1.1e-7 to 1.2e-2 |
-| Fits stopped by a budget below 500 (20) | within 4.9e-12 (the 7 budget cases within 4e-15) | the same |
-| Status differs | 3 | 2 |
-| `nfev` differs at natural termination | 9 | 9 |
-| `njev` differs | 17 | 17 |
+| Measure | Before B3b | macOS arm64 | Linux x86-64 |
+| --- | --- | --- | --- |
+| Start vector (evaluation 0) bit-identical | 79 of 79 | 79 of 79 | 79 of 79 |
+| Residual path departs from Eigen's | 72 of 79: 58 at evaluation 1 | 64 of 79: 30 at evaluation 1, the rest by evaluation 43 | 65 of 79: 30 at evaluation 1, the rest by evaluation 73 |
+| Largest coordinate's relative deviation at the first differing evaluation | 1.1e-16 to 8.3e-14 | 1.1e-16 to 2.6e-14 | the same |
+| Final height, centre, sigma and span bit-identical | 124 / 123 of 316 | 151 of 316 | 145 of 316 |
+| Fits beyond 1e-9, natural termination | 12 | 12, by 1.04e-9 to 1.16e-4 | 12, by 1.06e-9 to 9.52e-5 |
+| Fits beyond 1e-9, budget of 500 exhausted | 9 | 8, by 2.34e-7 to 2.04e-2 | 9, by 1.64e-7 to 3.72e-2 |
+| Fits stopped by a budget below 500 (20) | within 4.9e-12 | within 8.48e-13 | within 8.48e-13 |
+| Status differs | 3 / 2 | 1 (`random_52`) | 1 (`random_52`) |
+| `nfev` differs at natural termination | 9 | 7 | 6 |
+| `njev` differs | 17 | 14 | 13 |
 
 The fits beyond 1e-9 (relative deviation of height, centre or sigma from the
-library; status/`nfev` of the replica versus the port):
+library). `large_intensity`, which was the worst natural termination before at
+6.6e-5 with `nfev` 188 against Eigen's 249, is now within 1e-9 and gone from
+this table; `random_34` entered it at 1.14e-9:
 
 | Case | Eigen status/`nfev` | macOS arm64 | Linux x86-64 |
 | --- | --- | --- | --- |
-| `large_intensity` | 1/249 | 6.6e-5, 1/188 | 6.6e-5, 1/188 |
-| `negative_intensity` | 1/132 | 4.2e-6, 1/123 | 6.0e-6, 1/118 |
-| `unsorted_two_traces` | 1/118 | 1.9e-5, 1/123 | 1.9e-5, 1/123 |
-| `random_7` | 1/86 | 1.04e-9, 1/86 | 1.04e-9, 1/86 |
-| `random_17` | 2/378 | 3.9e-6, 2/371 | 5.8e-5, 2/394 |
-| `random_21` | 1/112 | 5.5e-5, 1/111 | 5.5e-5, 1/111 |
-| `random_28` | 2/126 | 5.6e-5, **1**/132 | 5.6e-5, **1**/132 |
-| `random_33` | 1/97 | 2.45e-9, 1/97 | 2.46e-9, 1/97 |
-| `random_39` | 1/314 | 1.9e-5, 1/312 | 1.9e-5, 1/312 |
-| `random_48` | 3/52 | 6.0e-9, 3/52 | 6.0e-9, 3/52 |
-| `random_52` | 2/157 | 1.4e-4, **1**/154 | 1.4e-4, **1**/154 |
-| `random_55` | 1/111 | 3.2e-4, **3**/118 | 3.2e-4, 1/117 |
-| `weighted_theo_negative` | 5/500 | 4.9e-3 | 5.8e-3 |
-| `random_4` | 5/500 | 3.8e-4 | 3.3e-4 |
-| `random_8` | 5/500 | 4.2e-3 | 3.7e-3 |
-| `random_10` | 5/500 | 3.5e-4 | 1.9e-4 |
-| `random_12` | 5/500 | 3.9e-3 | 1.2e-3 |
-| `random_23` | 5/500 | 4.3e-3 | 4.3e-3 |
-| `random_24` | 5/500 | 9.0e-7 | 1.1e-7 |
-| `random_32` | 5/500 | 7.3e-4 | 1.1e-3 |
-| `random_58` | 5/500 | 1.25e-3 | 1.2e-2 |
+| `negative_intensity` | 1/132 | 3.62e-7, 1/**131** | 9.45e-8, 1/132 |
+| `unsorted_two_traces` | 1/118 | 8.74e-7, 1/118 | 8.74e-7, 1/118 |
+| `random_7` | 1/86 | 1.04e-9, 1/86 | 1.06e-9, 1/86 |
+| `random_17` | 2/378 | 1.16e-4, 2/**388** | 3.73e-5, 2/**389** |
+| `random_21` | 1/112 | 8.24e-5, 1/**114** | 8.24e-5, 1/**114** |
+| `random_28` | 2/126 | 8.56e-5, 2/**129** | 6.72e-5, 2/**129** |
+| `random_33` | 1/97 | 6.41e-9, 1/97 | 6.41e-9, 1/97 |
+| `random_34` | 1/75 | 1.14e-9, 1/75 | 1.14e-9, 1/75 |
+| `random_39` | 1/314 | 7.70e-6, 1/**318** | 7.70e-6, 1/**318** |
+| `random_48` | 3/52 | 5.29e-9, 3/52 | 5.29e-9, 3/52 |
+| `random_52` | 2/157 | 9.52e-5, **1**/**146** | 9.52e-5, **1**/**146** |
+| `random_55` | 1/111 | 7.19e-5, 1/**131** | 7.19e-5, 1/**131** |
+| `weighted_theo_negative` | 5/500 | within 1e-9 | 1.01e-2 |
+| `random_4` | 5/500 | 4.23e-4 | 6.30e-5 |
+| `random_8` | 5/500 | 1.29e-3 | 3.62e-4 |
+| `random_10` | 5/500 | 2.26e-4 | 8.55e-4 |
+| `random_12` | 5/500 | 3.08e-3 | 3.33e-3 |
+| `random_23` | 5/500 | 3.98e-3 | 2.43e-3 |
+| `random_24` | 5/500 | 2.34e-7 | 1.64e-7 |
+| `random_32` | 5/500 | 2.20e-3 | 1.65e-3 |
+| `random_58` | 5/500 | 2.04e-2 | 3.72e-2 |
 
 What this establishes:
 
 - On all 79 inputs the start vector and the residuals and Jacobian there are
-  bit-identical to the library's, on both platforms. In 58 cases the very
-  next point Eigen evaluates already differs. The departure therefore arises
-  inside `minimize`, in the first step's computation on most inputs. It does
-  not come from this package's start values, functor or driver configuration.
-- **The root cause is in `src/math/fitters/levenberg_marquardt.rs`, and it
-  is under investigation in lane B3b.** Where in the step the bits first
-  differ is not established here. This package does not change that file.
-- The four ill-conditioned driver cases above are instances of this gap, not
-  its extent.
-- `exp` and `log` are second-order here. Linux and macOS depart from Eigen at
-  the same evaluations, and the Linux-versus-macOS differences in the table
-  come after that departure.
-- When the solver matches Eigen, the report should become an asserted replay
-  with the package's tolerances, and the measured bounds of the four driver
-  cases should go.
+  bit-identical to the library's, on both platforms, before and after B3b.
+- **The root cause was in `src/math/fitters/levenberg_marquardt.rs` and is
+  fixed:** the transcription summed left to right where Eigen accumulates in
+  SIMD lanes. `docs/DISTRIBUTION_FITTERS_SUPPORT.md` §1 records the traced
+  first divergence of 141 fits, the kernels that now reproduce it, and the
+  tier-1 assertion in `tests/lm_eigen_path_differential.rs`.
+- **What remains against this oracle is the platform split, not a defect.**
+  Eigen's arm64 kernels fuse their `pmadd` lanes; the x86_64 `-mssse3` kernels
+  do not; this fixture was generated by the fused macOS arm64 build, and the
+  user decided on 2026-09-15 that the port matches the unfused Linux x86_64
+  Release build everywhere. Against a Linux x86_64 Release oracle the solver
+  reproduces all 141 traced fits bit for bit, evaluation path included.
+- The two ill-conditioned driver cases above are instances of this split, not
+  its extent. The 21 fits in the table are the cases where an ill-conditioned
+  or non-converged problem amplifies a last-bit difference; the two largest
+  (`random_58`, `weighted_theo_negative`) are both status-5 fits that
+  exhausted their 500-evaluation budget and never converged.
+- `exp` and `log` are second-order here, as before.
+- Asserting this report is not the right follow-up while the fixture is
+  macOS-generated. The asserted replay lives in
+  `tests/lm_eigen_path_differential.rs`, where the same 79 inputs are compared
+  against a **Linux x86_64 Release** trace of Eigen and are bit-identical.
 
 **`exp` and `log` across platforms.** The evidence for native difference 1:
 
@@ -505,12 +582,15 @@ What this establishes:
   `complete` with `tests/trace_fitter.rs` and this document.
 - `GaussTraceFitter.h`: every member is mapped above; proposed `complete` with
   `tests/gauss_trace_fitter.rs` and this document.
-- Known gap for the ledger: `GaussTraceFitter::fit` is not bit-faithful to
-  the executed library beyond the fixtures (see "Known gap: solver fidelity
-  beyond the fixtures"). This is a solver-fidelity item owned by lane B3b
-  (`src/math/fitters/levenberg_marquardt.rs`), and it applies to every
-  consumer of that solver, including B5-EGH and the feature finder's fits.
-  It is not limited to four ill-conditioned cases.
+- Known gap for the ledger: `GaussTraceFitter::fit` is bit-faithful to Eigen
+  as the Linux x86_64 Release build compiles it, and not to the macOS arm64
+  product SDK that generated these fixtures (see "Known gap: solver fidelity
+  beyond the fixtures"). The transcription defect that lane B3b owned in
+  `src/math/fitters/levenberg_marquardt.rs` is fixed; what remains is the
+  platform split Eigen has, resolved by the user's decision of 2026-09-15 in
+  favour of the Linux build (`docs/DISTRIBUTION_FITTERS_SUPPORT.md` §1). It
+  applies to every consumer of that solver, including B5-EGH and the feature
+  finder's fits, and it is not limited to the ill-conditioned cases.
 - New module edges `analysis -> math` and `analysis -> param`, both acyclic;
   `tools/check_module_cycles.py` reports them as not yet recorded.
 - CI: `cargo test --locked --no-default-features --test trace_fitter --test gauss_trace_fitter`

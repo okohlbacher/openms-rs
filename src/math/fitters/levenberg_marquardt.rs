@@ -31,6 +31,19 @@
 //! 29,004 budgets. The measurements are in `docs/DISTRIBUTION_FITTERS_SUPPORT.md`
 //! and `tests/lm_budget_differential.rs`.
 //!
+//! **Arithmetic order.** Step for step is not enough for the same bits: Eigen
+//! accumulates every `squaredNorm()`, `dot()`, matrix-vector product and
+//! triangular solve in SIMD lanes. Package B3b-LM-FIDELITY traced both paths on
+//! 141 trace fits and found the first divergence in the residual norm and the
+//! QR column norms (lane order), then in the Householder projections (Eigen's
+//! row-major matrix-vector kernel), the Gauss-Newton back substitution (Eigen
+//! subtracts columns), and the predicted-reduction norm (Eigen's `wa3` has `m`
+//! rows, not `n`). The kernels here reproduce Eigen 5.0.1 with two-lane
+//! packets, which is what both OpenMS reference builds use. With them every
+//! evaluation path is bit-identical to the Linux x86_64 Release build; on arm64
+//! Eigen additionally fuses the lanes with FMA, which is not modelled (see
+//! [`minimize`](crate::math::fitters::levenberg_marquardt::minimize)).
+//!
 //! Defaults match `Eigen::LevenbergMarquardt::Parameters`:
 //! `factor = 100`, `maxfev = 400`, `ftol = xtol = sqrt(f64::EPSILON)`,
 //! `gtol = 0`, and no external scaling. See
@@ -224,57 +237,254 @@ impl DenseMatrix {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Eigen 5.0.1 reduction kernels
+//
+// Eigen does not accumulate its sums and inner products left to right. Every
+// `squaredNorm()`, `dot()`, row-major matrix-vector product and triangular
+// solve on this path runs through a SIMD kernel whose summation order is fixed
+// by the packet width. Both reference builds of OpenMS use two-lane `f64`
+// packets: NEON `Packet2d` on arm64, and SSE `Packet2d` on x86_64, where
+// `cmake/compiler_flags.cmake` passes `-mssse3` and deliberately no AVX
+// ("AVX's 256-bit reductions change Eigen's floating-point evaluation order").
+// The kernels below reproduce those two-lane orders. B3b-LM-FIDELITY measured
+// this against the executed Eigen on both platforms; see
+// `docs/DISTRIBUTION_FITTERS_SUPPORT.md` section 1 and
+// `tests/lm_eigen_path_differential.rs`.
+// ---------------------------------------------------------------------------
+
+/// One SIMD lane of Eigen's `pmadd(a, b, c) = a * b + c`, the accumulation
+/// step of the inner-product and row-major matrix-vector kernels.
+///
+/// Not fused. That is what Eigen does wherever `EIGEN_VECTORIZE_FMA` is
+/// undefined, which includes the x86_64 OpenMS builds (`-mssse3`). On arm64
+/// Eigen defines it from `__ARM_FEATURE_FMA` and `pmadd` becomes
+/// `vfmaq_f64`, a fused multiply-add, whatever `-ffp-contract` says; this
+/// helper does not model that (see the platform note in
+/// `docs/DISTRIBUTION_FITTERS_SUPPORT.md` section 1). The scalar tails of the
+/// same kernels are unfused on both platforms, because
+/// `EIGEN_SCALAR_MADD_USE_FMA` is fixed before the FMA detection runs.
+#[inline]
+fn lane_madd(a: f64, b: f64, accumulator: f64) -> f64 {
+    a * b + accumulator
+}
+
+/// `DenseBase::sum()` of `size >= 1` terms: `redux_impl` with
+/// `LinearVectorizedTraversal` (`Redux.h:275-322`), two-lane packets and an
+/// aligned start of 0, which it always is here because every summand is an
+/// expression without direct access.
+///
+/// Two packet accumulators take four terms per step; they are added lane-wise,
+/// a trailing packet joins lane-wise, the two lanes are added, and any odd term
+/// is added last.
+fn eigen_sum(size: usize, term: impl Fn(usize) -> f64) -> f64 {
+    let aligned = size / 2 * 2;
+    if aligned == 0 {
+        return term(0);
+    }
+    let aligned4 = size / 4 * 4;
+    let mut lane0 = term(0);
+    let mut lane1 = term(1);
+    if aligned > 2 {
+        let mut lane2 = term(2);
+        let mut lane3 = term(3);
+        let mut index = 4;
+        while index < aligned4 {
+            lane0 += term(index);
+            lane1 += term(index + 1);
+            lane2 += term(index + 2);
+            lane3 += term(index + 3);
+            index += 4;
+        }
+        lane0 += lane2;
+        lane1 += lane3;
+        if aligned > aligned4 {
+            lane0 += term(aligned4);
+            lane1 += term(aligned4 + 1);
+        }
+    }
+    let mut result = lane0 + lane1;
+    for index in aligned..size {
+        result += term(index);
+    }
+    result
+}
+
+/// `squaredNorm()` of `size` coefficients (`Dot.h:21-27`): the reduction of
+/// the squares. Zero for an empty vector, as Eigen's `sum()`.
+fn eigen_squared_norm(size: usize, coeff: impl Fn(usize) -> f64) -> f64 {
+    if size == 0 {
+        return 0.0;
+    }
+    eigen_sum(size, |i| {
+        let v = coeff(i);
+        v * v
+    })
+}
+
+/// `a.dot(b)` over `size` coefficients: `inner_product_impl`
+/// (`InnerProduct.h:117-172`), which Eigen 5 uses instead of `redux`.
+///
+/// Four packet accumulators of two lanes each; the first four packets seed
+/// them, later packets are multiply-added in, and the accumulators are folded
+/// as `a2 += a3; a1 += a2; a0 += a1` before the two lanes of `a0` are added.
+/// The odd tail is multiply-added one coefficient at a time.
+fn eigen_dot(size: usize, a: impl Fn(usize) -> f64, b: impl Fn(usize) -> f64) -> f64 {
+    if size == 0 {
+        return 0.0;
+    }
+    if size < 2 {
+        return a(0) * b(0);
+    }
+    let packet_end = size / 2 * 2;
+    let quad_end = size / 8 * 8;
+    let packets = size / 2;
+    let remaining = (packet_end - quad_end) / 2;
+    let seed = |i: usize| [a(i) * b(i), a(i + 1) * b(i + 1)];
+    let madd = |acc: [f64; 2], i: usize| {
+        [
+            lane_madd(a(i), b(i), acc[0]),
+            lane_madd(a(i + 1), b(i + 1), acc[1]),
+        ]
+    };
+    let add = |x: [f64; 2], y: [f64; 2]| [x[0] + y[0], x[1] + y[1]];
+    let mut acc0 = seed(0);
+    let mut acc1 = [0.0; 2];
+    let mut acc2 = [0.0; 2];
+    if packets >= 2 {
+        acc1 = seed(2);
+    }
+    if packets >= 3 {
+        acc2 = seed(4);
+    }
+    if packets >= 4 {
+        let mut acc3 = seed(6);
+        let mut k = 8;
+        while k < quad_end {
+            acc0 = madd(acc0, k);
+            acc1 = madd(acc1, k + 2);
+            acc2 = madd(acc2, k + 4);
+            acc3 = madd(acc3, k + 6);
+            k += 8;
+        }
+        if remaining >= 1 {
+            acc0 = madd(acc0, quad_end);
+        }
+        if remaining >= 2 {
+            acc1 = madd(acc1, quad_end + 2);
+        }
+        if remaining == 3 {
+            acc2 = madd(acc2, quad_end + 4);
+        }
+        acc2 = add(acc2, acc3);
+    }
+    if packets >= 3 {
+        acc1 = add(acc1, acc2);
+    }
+    if packets >= 2 {
+        acc0 = add(acc0, acc1);
+    }
+    let mut result = acc0[0] + acc0[1];
+    for k in packet_end..size {
+        result += a(k) * b(k);
+    }
+    result
+}
+
+/// One result coefficient of the row-major `general_matrix_vector_product`
+/// (`GeneralMatrixVector.h:298-462`): two lanes multiply-added over the
+/// packet-aligned prefix starting from zero, the lanes added, then a scalar
+/// tail. The `1 * cc` scaling and the addition to a zeroed result are exact.
+fn eigen_gemv_row(size: usize, a: impl Fn(usize) -> f64, b: impl Fn(usize) -> f64) -> f64 {
+    let full = size / 2 * 2;
+    let (mut lane0, mut lane1) = (0.0f64, 0.0f64);
+    let mut j = 0;
+    while j < full {
+        lane0 = lane_madd(a(j), b(j), lane0);
+        lane1 = lane_madd(a(j + 1), b(j + 1), lane1);
+        j += 2;
+    }
+    let mut result = lane0 + lane1;
+    for j in full..size {
+        result += a(j) * b(j);
+    }
+    0.0 + result
+}
+
 /// Euclidean norm as Eigen's `stableNorm()` computes it.
 ///
 /// A single scaling pass by the largest magnitude, then the sum of squares of
-/// the scaled entries: `scale * sqrt(sum((v / scale)^2))`. A one-element vector
+/// the scaled entries: `scale * sqrt(sum((v / scale)^2))`, in blocks of 4096
+/// coefficients as `stable_norm_impl_inner_step` walks them, with the sum
+/// accumulated in Eigen's two-lane reduction order. A one-element vector
 /// short-circuits to its magnitude and an all-zero vector to zero, both as in
-/// Eigen.
+/// Eigen, and a NaN in the first coefficient of a block becomes the scale and
+/// makes the norm NaN, as `maxCoeff` does.
 ///
 /// Eigen's path through this algorithm uses three different norm expressions,
 /// not two, and each is reproduced where Eigen uses it: `stableNorm` for the
 /// residual, step and scaled-`x` norms and for `lmpar`'s `gnorm`; [`blue_norm`]
 /// for the Jacobian column norms the driver turns into `diag` and for the two
-/// scaled-step norms inside `lmpar`; and the plain `sqrt(sum(v^2))` of
+/// scaled-step norms inside `lmpar`; and `sqrt(squaredNorm())` of
 /// `MatrixBase::norm()`, the private `plain_norm`, for the pivot column norms
 /// inside the column-pivoted QR.
 pub fn stable_norm(v: &[f64]) -> f64 {
-    match v.len() {
-        0 => 0.0,
-        1 => v[0].abs(),
-        _ => {
-            let mut max_coeff = 0.0f64;
-            for &x in v {
-                let ax = x.abs();
-                if ax > max_coeff {
-                    max_coeff = ax;
-                }
-            }
-            if max_coeff == 0.0 {
-                return 0.0;
-            }
-            // `stable_norm_kernel` does not take the plain reciprocal: it
-            // guards the two ends of the range first. A subnormal largest
-            // coefficient makes `1 / maxCoeff` overflow, and an infinite one
-            // makes it zero; in either case Eigen substitutes a usable pair.
-            // Unreachable from these four fitters, whose inputs are validated
-            // finite, but transcribed rather than assumed away.
-            let reciprocal = 1.0 / max_coeff;
-            let (scale, inv) = if reciprocal > f64::MAX {
-                (1.0 / f64::MAX, f64::MAX)
-            } else if max_coeff > f64::MAX {
-                (max_coeff, 1.0)
-            } else {
-                (max_coeff, reciprocal)
-            };
-            let mut ssq = 0.0f64;
-            for &x in v {
-                let t = x * inv;
-                ssq += t * t;
-            }
-            scale * ssq.sqrt()
-        }
+    stable_norm_by(v.len(), |i| v[i])
+}
+
+/// [`stable_norm`] over `len` coefficients read through `coeff`.
+fn stable_norm_by(len: usize, coeff: impl Fn(usize) -> f64) -> f64 {
+    const BLOCK: usize = 4096;
+    if len == 0 {
+        return 0.0;
     }
+    if len == 1 {
+        return coeff(0).abs();
+    }
+    let mut scale = 0.0f64;
+    let mut inv_scale = 1.0f64;
+    let mut ssq = 0.0f64;
+    let mut start = 0;
+    while start < len {
+        let size = (len - start).min(BLOCK);
+        // `bl.cwiseAbs().maxCoeff()`: the first coefficient seeds the maximum
+        // and only a strictly larger one replaces it, so NaN wins only there.
+        let mut max_coeff = coeff(start).abs();
+        for i in 1..size {
+            let candidate = coeff(start + i).abs();
+            if candidate > max_coeff {
+                max_coeff = candidate;
+            }
+        }
+        // `stable_norm_kernel` does not take the plain reciprocal: it guards
+        // the two ends of the range first. A subnormal largest coefficient
+        // makes `1 / maxCoeff` overflow, and an infinite one makes it zero; in
+        // either case Eigen substitutes a usable pair. Unreachable from the
+        // fitters, whose inputs are validated finite, but transcribed rather
+        // than assumed away.
+        if max_coeff > scale {
+            let ratio = scale / max_coeff;
+            ssq *= ratio * ratio;
+            let reciprocal = 1.0 / max_coeff;
+            if reciprocal > f64::MAX {
+                inv_scale = f64::MAX;
+                scale = 1.0 / inv_scale;
+            } else if max_coeff > f64::MAX {
+                inv_scale = 1.0;
+                scale = max_coeff;
+            } else {
+                scale = max_coeff;
+                inv_scale = reciprocal;
+            }
+        } else if max_coeff.is_nan() {
+            scale = max_coeff;
+        }
+        if scale > 0.0 {
+            ssq += eigen_squared_norm(size, |i| coeff(start + i) * inv_scale);
+        }
+        start += size;
+    }
+    scale * ssq.sqrt()
 }
 
 // Blue's algorithm constants for IEEE binary64, derived exactly as Eigen's
@@ -352,6 +562,19 @@ pub fn blue_norm(v: &[f64]) -> f64 {
     }
 }
 
+/// `(std::max)(a, b)` as Eigen's solver calls it: `a < b ? b : a`. Unlike
+/// `f64::max`, a NaN in `a` is returned and a NaN in `b` is ignored.
+#[inline]
+fn std_max(a: f64, b: f64) -> f64 {
+    if a < b { b } else { a }
+}
+
+/// `(std::min)(a, b)`: `b < a ? b : a`, with `std_max`'s NaN asymmetry.
+#[inline]
+fn std_min(a: f64, b: f64) -> f64 {
+    if b < a { b } else { a }
+}
+
 /// Column-pivoted Householder QR, reproducing `Eigen::ColPivHouseholderQR`.
 struct ColPivQr {
     m: usize,
@@ -371,10 +594,7 @@ struct ColPivQr {
 fn make_householder(column: &[f64]) -> (f64, f64, Vec<f64>) {
     let c0 = column[0];
     let tail = &column[1..];
-    let mut tail_sq = 0.0f64;
-    for &x in tail {
-        tail_sq += x * x;
-    }
+    let tail_sq = eigen_squared_norm(tail.len(), |i| tail[i]);
     if tail_sq <= f64::MIN_POSITIVE {
         return (0.0, c0, vec![0.0; tail.len()]);
     }
@@ -389,6 +609,10 @@ fn make_householder(column: &[f64]) -> (f64, f64, Vec<f64>) {
 
 /// Apply `H` to the sub-block of `mat` whose first row is `row0` and whose
 /// first column is `col0`, as `applyHouseholderOnTheLeft`.
+///
+/// `tmp = essential^T * bottom` is Eigen's `GemvProduct`: the row-major
+/// matrix-vector kernel for a block of two or more columns, and the runtime
+/// fallback to `dot()` for a single column (`ProductEvaluators.h:380-384`).
 fn apply_householder_left(
     mat: &mut DenseMatrix,
     row0: usize,
@@ -412,13 +636,16 @@ fn apply_householder_left(
         return;
     }
     let mut tmp = vec![0.0f64; cols];
+    let len = essential.len();
     for (offset, slot) in tmp.iter_mut().enumerate() {
         let col = col0 + offset;
-        let mut sum = 0.0f64;
-        for (below, &e) in essential.iter().enumerate() {
-            sum += e * mat.at(row0 + 1 + below, col);
-        }
-        *slot = sum + mat.at(row0, col);
+        let below = |b: usize| mat.at(row0 + 1 + b, col);
+        let product = if cols == 1 {
+            0.0 + eigen_dot(len, |b| essential[b], below)
+        } else {
+            eigen_gemv_row(len, below, |b| essential[b])
+        };
+        *slot = product + mat.at(row0, col);
     }
     for (offset, &t) in tmp.iter().enumerate() {
         let col = col0 + offset;
@@ -435,8 +662,12 @@ fn apply_householder_left(
     }
 }
 
-/// Apply `H` to the tail of a vector starting at `row0`.
-fn apply_householder_vector(w: &mut [f64], row0: usize, essential: &[f64], tau: f64) {
+/// Apply `H` to the tail of a vector starting at `row0`, the essential vector
+/// being column `k` of `qr` below its diagonal.
+///
+/// For a vector Eigen's `essential^T * bottom` is an `InnerProduct`, so the
+/// projection is [`eigen_dot`].
+fn apply_householder_vector(w: &mut [f64], row0: usize, qr: &DenseMatrix, k: usize, tau: f64) {
     let rows = w.len() - row0;
     if rows == 1 {
         w[row0] *= 1.0 - tau;
@@ -445,33 +676,26 @@ fn apply_householder_vector(w: &mut [f64], row0: usize, essential: &[f64], tau: 
     if tau == 0.0 {
         return;
     }
-    let mut sum = 0.0f64;
-    for (below, &e) in essential.iter().enumerate() {
-        sum += e * w[row0 + 1 + below];
-    }
+    let len = rows - 1;
+    let mut sum = eigen_dot(len, |b| qr.at(k + 1 + b, k), |b| w[row0 + 1 + b]);
     sum += w[row0];
     w[row0] -= tau * sum;
-    for (below, &e) in essential.iter().enumerate() {
+    for below in 0..len {
+        let e = qr.at(k + 1 + below, k);
         w[row0 + 1 + below] -= tau * e * sum;
     }
 }
 
-/// Euclidean norm as Eigen's `MatrixBase::norm()` computes it: the square root
-/// of a plain running sum of squares, with no scaling pass.
+/// Euclidean norm as Eigen's `MatrixBase::norm()` computes it:
+/// `sqrt(squaredNorm())`, with no scaling pass, over `len` coefficients read
+/// through `coeff`.
 ///
 /// The third of the three norms on this path. `ColPivHouseholderQR` uses it,
 /// and only it, for the initial column norms and for the direct recomputation
 /// the LAPACK downdating rule falls back to - never `stableNorm` or
-/// `blueNorm`. Eigen's `squaredNorm()` is a vectorized reduction and may
-/// therefore pair the products differently from this sequential sum; that is
-/// the one remaining accumulation-order difference on this path and it is
-/// recorded in `docs/DISTRIBUTION_FITTERS_SUPPORT.md`.
-fn plain_norm(v: &[f64]) -> f64 {
-    let mut sum = 0.0f64;
-    for &x in v {
-        sum += x * x;
-    }
-    sum.sqrt()
+/// `blueNorm`.
+fn plain_norm(len: usize, coeff: impl Fn(usize) -> f64) -> f64 {
+    eigen_squared_norm(len, coeff).sqrt()
 }
 
 impl ColPivQr {
@@ -486,11 +710,11 @@ impl ColPivQr {
         let mut tau = vec![0.0f64; size];
         let mut updated = Vec::with_capacity(n);
         for col in 0..n {
-            let column: Vec<f64> = (0..m).map(|row| qr.at(row, col)).collect();
-            updated.push(plain_norm(&column));
+            updated.push(plain_norm(m, |row| qr.at(row, col)));
         }
         let mut direct = updated.clone();
-        let mut biggest = 0.0f64;
+        // `m_colNormsUpdated.maxCoeff()`: seeded with the first norm.
+        let mut biggest = updated.first().copied().unwrap_or(0.0);
         for &value in &updated {
             if value > biggest {
                 biggest = value;
@@ -549,8 +773,7 @@ impl ColPivQr {
                 let scaled = updated[j] / direct[j];
                 let guard = ratio * scaled * scaled;
                 if guard <= downdate {
-                    let rest: Vec<f64> = ((k + 1)..m).map(|row| qr.at(row, j)).collect();
-                    direct[j] = plain_norm(&rest);
+                    direct[j] = plain_norm(m - k - 1, |row| qr.at(k + 1 + row, j));
                     updated[j] = direct[j];
                 } else {
                     updated[j] *= ratio.sqrt();
@@ -581,10 +804,58 @@ impl ColPivQr {
     fn transpose_apply(&self, w: &[f64]) -> Vec<f64> {
         let mut out = w.to_vec();
         for k in 0..self.tau.len() {
-            let essential: Vec<f64> = ((k + 1)..self.m).map(|row| self.qr.at(row, k)).collect();
-            apply_householder_vector(&mut out, k, &essential, self.tau[k]);
+            apply_householder_vector(&mut out, k, &self.qr, k, self.tau[k]);
         }
         out
+    }
+}
+
+/// `triangular_solve_vector<OnTheLeft, Upper, ColMajor>` for `size <= 16`
+/// (one `EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH` panel): back substitution that
+/// divides the pivot and then subtracts `w[i] * a(j, i)` from every `j < i`,
+/// leaving a zero right-hand side untouched. `a(i, j)` reads the triangle.
+fn solve_col_major_upper(size: usize, a: impl Fn(usize, usize) -> f64, w: &mut [f64]) {
+    for k in 0..size {
+        let i = size - k - 1;
+        if w[i] != 0.0 {
+            w[i] /= a(i, i);
+            let pivot = w[i];
+            for j in 0..i {
+                w[j] -= pivot * a(j, i);
+            }
+        }
+    }
+}
+
+/// `triangular_solve_vector<OnTheLeft, Lower, RowMajor>` for `size <= 16`:
+/// forward substitution whose inner sum `sum_j a(i, j) w[j]` is an
+/// [`eigen_sum`] reduction, then division unless the right-hand side is zero.
+fn solve_row_major_lower(size: usize, a: impl Fn(usize, usize) -> f64, w: &mut [f64]) {
+    for i in 0..size {
+        if i > 0 {
+            let sum = eigen_sum(i, |j| a(i, j) * w[j]);
+            w[i] -= sum;
+        }
+        if w[i] != 0.0 {
+            w[i] /= a(i, i);
+        }
+    }
+}
+
+/// `triangular_solve_vector<OnTheLeft, Upper, RowMajor>` for `size <= 16`:
+/// back substitution with an [`eigen_sum`] reduction over the `k` solved
+/// coefficients to the right of row `i`.
+fn solve_row_major_upper(size: usize, a: impl Fn(usize, usize) -> f64, w: &mut [f64]) {
+    for k in 0..size {
+        let i = size - k - 1;
+        if k > 0 {
+            let start = i + 1;
+            let sum = eigen_sum(k, |j| a(i, start + j) * w[start + j]);
+            w[i] -= sum;
+        }
+        if w[i] != 0.0 {
+            w[i] /= a(i, i);
+        }
     }
 }
 
@@ -673,13 +944,12 @@ fn qrsolv(
     for slot in wa.iter_mut().skip(nsing) {
         *slot = 0.0;
     }
-    for k in (0..nsing).rev() {
-        let mut sum = 0.0f64;
-        for i in (k + 1)..nsing {
-            sum += s.at(i, k) * wa[i];
-        }
-        wa[k] = (wa[k] - sum) / s.at(k, k);
-    }
+    // `s.topLeftCorner(nsing, nsing).transpose().triangularView<Upper>()
+    // .solveInPlace(wa.head(nsing))`: the transpose is row-major, so this is
+    // `triangular_solve_vector<OnTheLeft, Upper, RowMajor>`
+    // (`TriangularSolverVector.h:30-71`) - each row's inner sum is a reduction,
+    // and a zero right-hand side skips its division.
+    solve_row_major_upper(nsing, |i, j| s.at(j, i), &mut wa);
     let transformed: Vec<f64> = (0..n).map(|j| s.at(j, j)).collect();
     for (j, &value) in saved.iter().enumerate() {
         s.set(j, j, value);
@@ -701,13 +971,11 @@ fn lmpar(qr: &ColPivQr, diag: &[f64], qtb: &[f64], delta: f64, par_in: f64) -> (
     for slot in wa1.iter_mut().skip(rank) {
         *slot = 0.0;
     }
-    for k in (0..rank).rev() {
-        let mut sum = 0.0f64;
-        for i in (k + 1)..rank {
-            sum += qr.qr.at(k, i) * wa1[i];
-        }
-        wa1[k] = (wa1[k] - sum) / qr.qr.at(k, k);
-    }
+    // `triangularView<Upper>().solveInPlace` on the column-major R:
+    // `triangular_solve_vector<OnTheLeft, Upper, ColMajor>`
+    // (`TriangularSolverVector.h:74-118`) divides each pivot and then subtracts
+    // its column from the rows above, skipping a zero right-hand side.
+    solve_col_major_upper(rank, |i, j| qr.qr.at(i, j), &mut wa1);
     let mut x = vec![0.0f64; n];
     for j in 0..n {
         x[qr.ind[j]] = wa1[j];
@@ -731,30 +999,23 @@ fn lmpar(qr: &ColPivQr, diag: &[f64], qtb: &[f64], delta: f64, par_in: f64) -> (
         let mut work: Vec<f64> = (0..n)
             .map(|j| (diag[qr.ind[j]] * wa2[qr.ind[j]]) / dxnorm)
             .collect();
-        for j in 0..n {
-            let mut sum = 0.0f64;
-            for i in 0..j {
-                sum += qr.qr.at(i, j) * work[i];
-            }
-            work[j] = (work[j] - sum) / qr.qr.at(j, j);
-        }
+        // `topLeftCorner(n, n).transpose().triangularView<Lower>()`: row-major
+        // lower, `triangular_solve_vector<OnTheLeft, Lower, RowMajor>`.
+        solve_row_major_lower(n, |i, j| qr.qr.at(j, i), &mut work);
         let temp = blue_norm(&work);
         parl = fp / delta / temp / temp;
     }
     let mut upper = vec![0.0f64; n];
     for (j, slot) in upper.iter_mut().enumerate() {
-        let mut sum = 0.0f64;
-        for i in 0..=j {
-            sum += qr.qr.at(i, j) * qtb[i];
-        }
+        let sum = eigen_dot(j + 1, |i| qr.qr.at(i, j), |i| qtb[i]);
         *slot = sum / diag[qr.ind[j]];
     }
     let gnorm = stable_norm(&upper);
     let mut paru = gnorm / delta;
     if paru == 0.0 {
-        paru = f64::MIN_POSITIVE / delta.min(0.1);
+        paru = f64::MIN_POSITIVE / std_min(delta, 0.1);
     }
-    let mut par = par_in.max(parl).min(paru);
+    let mut par = std_min(std_max(par_in, parl), paru);
     if par == 0.0 {
         par = gnorm / dxnorm;
     }
@@ -767,7 +1028,7 @@ fn lmpar(qr: &ColPivQr, diag: &[f64], qtb: &[f64], delta: f64, par_in: f64) -> (
     loop {
         iter += 1;
         if par == 0.0 {
-            par = f64::MIN_POSITIVE.max(0.001 * paru);
+            par = std_max(f64::MIN_POSITIVE, 0.001 * paru);
         }
         let scaled: Vec<f64> = diag.iter().map(|d| par.sqrt() * d).collect();
         let (next, sdiag) = qrsolv(&mut s, &qr.ind, &scaled, qtb, n);
@@ -797,12 +1058,12 @@ fn lmpar(qr: &ColPivQr, diag: &[f64], qtb: &[f64], delta: f64, par_in: f64) -> (
         let temp = blue_norm(&work);
         let parc = fp / delta / temp / temp;
         if fp > 0.0 {
-            parl = parl.max(par);
+            parl = std_max(parl, par);
         }
         if fp < 0.0 {
-            paru = paru.min(par);
+            paru = std_min(paru, par);
         }
-        par = parl.max(par + parc);
+        par = std_max(parl, par + parc);
     }
     if iter == 0 {
         par = 0.0;
@@ -826,12 +1087,24 @@ fn lmpar(qr: &ColPivQr, diag: &[f64], qtb: &[f64], delta: f64, par_in: f64) -> (
 /// [`LmStatus::TooManyFunctionEvaluation`] stop that is the last accepted
 /// point, not the rejected trial.
 ///
-/// The evaluation accounting and the order of the termination tests are
-/// checked budget by budget against the executed C++: for the eight
-/// `GaussTraceFitter`/`EGHTraceFitter` class-test fits, the 50 trace fits of
-/// `FeatureFinderCentroided_1` and four degenerate fits, the status and the
+/// The evaluation accounting is checked budget by budget against the executed
+/// C++: for the eight `GaussTraceFitter`/`EGHTraceFitter` class-test fits and
+/// the 50 trace fits of `FeatureFinderCentroided_1`, the status and the
 /// residual and Jacobian evaluation counts equal Eigen's at every `max_fev`
-/// from 1 to 500 (`tests/lm_budget_differential.rs`).
+/// from 1 to 500, and for four degenerate fits at 500
+/// (`tests/lm_budget_differential.rs`); the statuses reached there are 1 to 5.
+///
+/// The arithmetic is checked point by point: for those 62 fits and 79 more,
+/// every residual-evaluation argument, the final parameters and the counts are
+/// bit-identical to Eigen 5.0.1 as the Linux x86_64 Release build of OpenMS
+/// compiles it, and to the same Eigen on macOS arm64 with its FMA lanes
+/// disabled (`tests/lm_eigen_path_differential.rs`). Against the product SDK on
+/// arm64, whose Eigen fuses the packet multiply-adds, 21 of the 141 paths are
+/// identical; see `docs/DISTRIBUTION_FITTERS_SUPPORT.md` section 1. Two limits
+/// bound the claim, and no OpenMS caller reaches the first: the triangular
+/// solves are Eigen's single-panel form, exact for at most 16 parameters; and
+/// where a NaN enters a norm, Eigen's vectorized `maxCoeff` is itself
+/// platform-dependent, so only the NaN is reproduced, not its sign or payload.
 ///
 /// The iteration is serial. The source is serial here too: no `#pragma omp`
 /// appears in Eigen's non-linear optimization module or in the four fitters.
@@ -906,10 +1179,7 @@ where
                 if column_norms[qr.ind[j]] == 0.0 {
                     continue;
                 }
-                let mut sum = 0.0f64;
-                for i in 0..=j {
-                    sum += qr.qr.at(i, j) * (qtf[i] / fnorm);
-                }
+                let sum = eigen_dot(j + 1, |i| qr.qr.at(i, j), |i| qtf[i] / fnorm);
                 let candidate = (sum / column_norms[qr.ind[j]]).abs();
                 if candidate > gnorm {
                     gnorm = candidate;
@@ -933,7 +1203,7 @@ where
             let scaled_step: Vec<f64> = (0..n).map(|j| diag[j] * step[j]).collect();
             let pnorm = stable_norm(&scaled_step);
             if iter == 1 {
-                delta = delta.min(pnorm);
+                delta = std_min(delta, pnorm);
             }
             residuals(&candidate, &mut trial);
             nfev = nfev.saturating_add(1);
@@ -952,8 +1222,12 @@ where
                 }
                 *slot = sum;
             }
+            // `wa3.noalias() = fjac.triangularView<Upper>() * (...)` resizes
+            // `wa3` to the Jacobian's `m` rows and zero-fills the `m - n` below
+            // the triangle, so `wa3.stableNorm()` reduces `m` coefficients.
             let temp1 = {
-                let t = stable_norm(&projected_step) / fnorm;
+                let padded = |i: usize| if i < n { projected_step[i] } else { 0.0 };
+                let t = stable_norm_by(m, padded) / fnorm;
                 t * t
             };
             let temp2 = {
@@ -974,7 +1248,7 @@ where
                 if 0.1 * fnorm1 >= fnorm || temp < 0.1 {
                     temp = 0.1;
                 }
-                delta = temp * delta.min(pnorm / 0.1);
+                delta = temp * std_min(delta, pnorm / 0.1);
                 par /= temp;
             } else if !(par != 0.0 && ratio < 0.75) {
                 delta = pnorm / 0.5;
@@ -1011,7 +1285,11 @@ where
             if gnorm <= f64::EPSILON {
                 return LmStatus::GtolTooSmall;
             }
-            if ratio >= 1e-4 {
+            // `do { ... } while (ratio < Scalar(1e-4))`: only a ratio that
+            // compares below the threshold retries inside this step, so a NaN
+            // ratio leaves the loop and the Jacobian is evaluated again, as in
+            // Eigen. Spelled without a negated comparison for `clippy`.
+            if ratio >= 1e-4 || ratio.is_nan() {
                 break;
             }
         }
@@ -1156,6 +1434,88 @@ mod tests {
     fn the_two_lmpar_scalings_are_not_the_same_association() {
         let (diag, wa2, dxnorm) = (0.1_f64, 1.1_f64, 7.0_f64);
         assert_ne!((diag * wa2) / dxnorm, diag * (wa2 / dxnorm));
+    }
+
+    /// Left to right, `1e16 + 1` loses the one. Eigen's two-lane reduction
+    /// (`Redux.h:275-322`) pairs term 0 with term 2 and term 1 with term 3
+    /// before the lanes meet, so the cancellation happens first and both ones
+    /// survive; the odd fifth term comes last.
+    #[test]
+    fn eigen_sum_pairs_the_terms_as_the_two_lane_reduction() {
+        let terms = [1e16, 1.0, -1e16, 1.0, 1.0];
+        let sequential = terms.iter().fold(0.0, |acc, t| acc + t);
+        assert_eq!(sequential, 2.0);
+        assert_eq!(eigen_sum(terms.len(), |i| terms[i]), 3.0);
+        assert_eq!(eigen_sum(1, |_| 7.0), 7.0);
+        assert_eq!(eigen_squared_norm(0, |_| unreachable!()), 0.0);
+    }
+
+    /// `inner_product_impl` (`InnerProduct.h:117-172`) seeds four two-lane
+    /// accumulators with the first eight products, multiply-adds the ninth and
+    /// tenth into the first, and folds the accumulators from the back. Here
+    /// the `-1e16` meets the `1e16` before any one is added to either, so all
+    /// eight ones survive; left to right only one does.
+    #[test]
+    fn eigen_dot_folds_four_accumulators_from_the_back() {
+        let a = [1e16, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1e16, 1.0];
+        let b = [1.0; 10];
+        let sequential = a.iter().zip(&b).fold(0.0, |acc, (x, y)| acc + x * y);
+        assert_eq!(sequential, 1.0);
+        assert_eq!(eigen_dot(a.len(), |i| a[i], |i| b[i]), 8.0);
+        assert_eq!(eigen_dot(1, |_| 3.0, |_| 2.0), 6.0);
+    }
+
+    /// The row-major matrix-vector kernel (`GeneralMatrixVector.h:298-462`)
+    /// runs one accumulator per lane over the paired prefix and adds the odd
+    /// tail after the lanes are combined.
+    #[test]
+    fn eigen_gemv_row_accumulates_one_lane_per_packet_slot() {
+        let a = [1e16, 1.0, -1e16, 1.0, 1.0];
+        let b = [1.0; 5];
+        let sequential = a.iter().zip(&b).fold(0.0, |acc, (x, y)| acc + x * y);
+        assert_eq!(sequential, 2.0);
+        assert_eq!(eigen_gemv_row(a.len(), |i| a[i], |i| b[i]), 3.0);
+    }
+
+    /// Eigen's triangular vector solvers leave a zero right-hand side alone
+    /// instead of dividing it, so a zero pivot above a zero entry does not
+    /// turn into `0 / 0`.
+    #[test]
+    fn triangular_solves_skip_a_zero_right_hand_side() {
+        // Upper triangle [[2, 1], [0, 0]], right-hand side [4, 0].
+        let upper = [[2.0, 1.0], [0.0, 0.0]];
+        let mut w = [4.0, 0.0];
+        solve_col_major_upper(2, |i, j| upper[i][j], &mut w);
+        assert_eq!(w, [2.0, 0.0]);
+        let mut w = [0.0, 4.0];
+        solve_row_major_lower(2, |i, j| upper[j][i], &mut w);
+        assert!(w[1].is_infinite(), "{w:?}");
+        assert_eq!(w[0], 0.0);
+        let mut w = [4.0, 0.0];
+        solve_row_major_upper(2, |i, j| upper[i][j], &mut w);
+        assert_eq!(w, [2.0, 0.0]);
+    }
+
+    /// `std::max(a, b)` is `a < b ? b : a`: a NaN on the left is kept and one
+    /// on the right is ignored, unlike `f64::max`, which drops either.
+    #[test]
+    fn std_min_and_max_keep_eigens_nan_asymmetry() {
+        assert!(std_max(f64::NAN, 1.0).is_nan());
+        assert_eq!(std_max(1.0, f64::NAN), 1.0);
+        assert!(std_min(f64::NAN, 1.0).is_nan());
+        assert_eq!(std_min(1.0, f64::NAN), 1.0);
+        assert!(!f64::NAN.max(1.0).is_nan());
+    }
+
+    /// `stable_norm_kernel` seeds `maxCoeff` with the first magnitude: a NaN
+    /// there becomes the scale and the norm; a NaN later is not a maximum but
+    /// poisons the sum of squares unless every other entry is zero.
+    #[test]
+    fn stable_norm_propagates_nan_as_eigen_does() {
+        assert!(stable_norm(&[f64::NAN, 1.0]).is_nan());
+        assert!(stable_norm(&[1.0, f64::NAN]).is_nan());
+        assert_eq!(stable_norm(&[0.0, f64::NAN]), 0.0);
+        assert!(stable_norm(&[f64::NAN, 0.0]).is_nan());
     }
 
     #[test]
