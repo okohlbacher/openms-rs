@@ -399,7 +399,7 @@ impl Tool for PeakPickerHiRes {
     /// inside the picking call now (`pick_experiment` in this module), so the
     /// [`Error::Io`] it raises reaches the same arm as a picker failure instead
     /// of propagating out of `run_io` as it did while the pool wrapped the whole
-    /// body. Nothing is written in either case. The exception is
+    /// body. No output file is written in either case. The exception is
     /// [`Error::Unsupported`], which propagates (`INCOMPATIBLE_INPUT_DATA`):
     /// the picker returns it for `SignalToNoise:auto_mode` 1 as soon as noise
     /// estimation runs, where the source reads out of bounds and crashes

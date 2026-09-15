@@ -179,6 +179,36 @@ fn profile(spectra: usize, peaks: usize) -> MSExperiment {
     experiment
 }
 
+/// Spectra of the [`profile`] input the pool sampler uses.
+const PICKING_SPECTRA: usize = 300;
+/// Profile peaks per spectrum of that input.
+const PICKING_PEAKS: usize = 500;
+
+/// The picked output really is picked: one centroid per profile peak, so the
+/// run did the spline work that keeps the picker's pool up.
+///
+/// Without this, a change to [`profile`] that made the picker *copy* its
+/// records instead — a stored `Centroid` type, or samples the estimator reads
+/// as centroids — would shorten the pool to microseconds and turn the
+/// worker-count assertion into a flake rather than a failure, and would leave
+/// the byte-identity test comparing copies. It therefore has to be asserted
+/// wherever the input is used, including on platforms where the `/proc`
+/// sampler does not compile.
+fn assert_the_input_was_picked(out_dir: &Path, spectra: usize, peaks: usize) {
+    let picked = FileHandler::load_experiment(out_dir.join("out.mzML"), &[FileType::MzMl])
+        .expect("the picked output loads");
+    assert_eq!(picked.spectra.len(), spectra, "picked spectra");
+    for (index, spectrum) in picked.spectra.iter().enumerate() {
+        assert_eq!(
+            spectrum.peaks.len(),
+            peaks,
+            "spectrum {index} holds {} peaks, not the {peaks} centroids of a picked profile \
+             record: the input was copied, not picked",
+            spectrum.peaks.len()
+        );
+    }
+}
+
 /// Store `experiment` as `input.mzML` in `dir` and return its path.
 fn store_input(dir: &Path, experiment: &MSExperiment) -> String {
     let path = dir.join("input.mzML");
@@ -497,7 +527,14 @@ fn outputs_are_byte_identical_across_thread_counts() {
             let produced = files(out_dir.path());
             assert!(!produced.is_empty(), "{tool} wrote nothing");
             match &baseline {
-                None => baseline = Some(produced),
+                None => {
+                    // The picker only shares work when it really picks, so the
+                    // bytes compared below must be centroids, not a copy.
+                    if tool == "PeakPickerHiRes" {
+                        assert_the_input_was_picked(out_dir.path(), 60, 200);
+                    }
+                    baseline = Some(produced);
+                }
                 Some(expected) => {
                     assert_eq!(
                         produced.keys().collect::<Vec<_>>(),
@@ -681,10 +718,6 @@ mod linux {
         store_input(dir, &synthetic(300, 1000))
     }
 
-    /// Spectra and profile peaks per spectrum of [`picking_input`].
-    const PICKING_SPECTRA: usize = 300;
-    const PICKING_PEAKS: usize = 500;
-
     /// The input `PeakPickerHiRes` is sampled on: 300 profile spectra of 500
     /// nine-sample peaks, 1,350,000 samples and about 22 MB.
     ///
@@ -702,26 +735,9 @@ mod linux {
         store_input(dir, &profile(PICKING_SPECTRA, PICKING_PEAKS))
     }
 
-    /// The picked output really is picked: one centroid per profile peak, so
-    /// the run this test sampled did the spline work that keeps the pool up.
-    ///
-    /// Without this, a change to [`profile`] that made the picker *copy* its
-    /// records instead — a stored `Centroid` type, or samples the estimator
-    /// reads as centroids — would shorten the pool to microseconds and turn the
-    /// worker-count assertion into a flake rather than a failure.
-    fn assert_the_input_was_picked(out_dir: &Path) {
-        let picked = FileHandler::load_experiment(out_dir.join("out.mzML"), &[FileType::MzMl])
-            .expect("the picked output loads");
-        assert_eq!(picked.spectra.len(), PICKING_SPECTRA, "picked spectra");
-        for (index, spectrum) in picked.spectra.iter().enumerate() {
-            assert_eq!(
-                spectrum.peaks.len(),
-                PICKING_PEAKS,
-                "spectrum {index} holds {} peaks, not the {PICKING_PEAKS} centroids of a picked \
-                 profile record: the input was copied, not picked",
-                spectrum.peaks.len()
-            );
-        }
+    /// See the module-level [`assert_the_input_was_picked`].
+    fn assert_the_sampled_input_was_picked(out_dir: &Path) {
+        super::assert_the_input_was_picked(out_dir, PICKING_SPECTRA, PICKING_PEAKS);
     }
 
     /// Each executable starts exactly [`expected_workers`] pool workers for
@@ -765,7 +781,7 @@ mod linux {
                     "{tool} -threads {n}: tasks seen, workers and the main thread"
                 );
                 if tool == "PeakPickerHiRes" && n == 1 {
-                    assert_the_input_was_picked(&out_dir);
+                    assert_the_sampled_input_was_picked(&out_dir);
                 }
                 let produced = files(&out_dir);
                 match &baseline {

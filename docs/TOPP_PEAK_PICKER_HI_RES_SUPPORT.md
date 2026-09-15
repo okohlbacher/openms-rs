@@ -548,8 +548,15 @@ a 6,135,416 B `parallel` binary — eight bytes smaller, same behaviour, same
 output hash — and reproduced the `parallel`-off binary of that round exactly.
 That is one observation, not the outcome to expect, and its cause was not
 identified; it is recorded so that the next rebuild can recognise it if it
-recurs. Either way the provenance is the commit plus the recipe, and the hash
-only names the file.
+recurs. The reviewer of the follow-up round supplied the mechanism class: on
+this toolchain a rustdoc-only change to a single file moved this tool's release
+binary by 16 bytes on the gate host — `.strtab` and the build-id note — while
+`.text`, `.rodata`, `.data`, `.data.rel.ro`, `.eh_frame` and
+`.gcc_except_table` stayed byte-identical. So check a small size or hash
+difference section by section (`readelf -S`, `objcopy --only-section`, `cmp -l`
+on the stripped images) before treating it as a behaviour difference. Either
+way the provenance is the commit plus the recipe, and the hash only names the
+file.
 
 **Comparison of the two outputs.** The C++ `FuzzyDiff` from the same prefix
 (`-ratio 1.001 -absdiff 1e-5`) fails at line 1, column 31 — the XML declaration,
