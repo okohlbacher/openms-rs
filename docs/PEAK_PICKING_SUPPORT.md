@@ -271,6 +271,19 @@ defaults, including values the selected modes ignore.
 12. **`estimate_spectrum_type`.** The public helper keeps the picker's strict
     input contract; `MSSpectrum::get_type(true)`, which `pick_experiment` uses,
     classifies any finite data as the source does.
+13. **Chromatogram times come from the reader, not from here.** Nothing in the
+    picker treats a chromatogram's retention times differently from a
+    spectrum's m/z. The one place a picked chromatogram can differ from the
+    source's while every centroid of every spectrum agrees is the reader's
+    conversion of a 32-bit `time array` in minutes, which the source narrows to
+    `f32` and this port keeps in `f64` unless
+    `mzml::ReadOptions::source_time_array_precision` is set; see
+    [the mzML reader's section](MZML_SUPPORT.md#the-minute-conversion-of-a-32-bit-time-array)
+    for the mechanism and the measurement. The amplification is the picker's:
+    the apex comes from a cubic spline through the support points and a
+    bisection of its first derivative, so a relative change of up to 6.2e-3 in
+    the point spacings moved the picked apexes of the benchmark TIC by up to
+    3.19e-3 s and their intensities by up to 1.75e-3 relative.
 
 ## Class-test accounting
 
@@ -334,6 +347,23 @@ gives 82/112/89 and 314/319 centroids at `signal_to_noise 0`, not the stored
   records for flanks, spacing, FWHM units, satellites, ion mobility names and
   float32 product rounding, histories, marked centroids, negative, duplicate and
   unsorted data.
+- **Tier 1, executed, chromatogram time units.**
+  `tests/data/peak_picking/chromatogram_time_oracle.tsv` is the output of the
+  prebuilt C++ **Release** build `openms4-release-bc9cc12-c19e494-174b576` over
+  the seven cases of `tests/data/peak_picking/chromatogram_time/` (driver,
+  cases and hashes in `../oracle/picked-chromatogram/`, run on `dax`). Each case
+  holds the same 40 real time and intensity values of the benchmark TIC
+  chromatogram and differs only in the time array's encoding (32-bit or 64-bit)
+  and unit (minute or second), plus the empty, single-point and unsorted edge
+  shapes. Both the values `MzMLFile::load` stores and the chromatogram
+  `pickExperiment` produces are compared as IEEE-754 bit patterns. The same TSV
+  pins **both** modes of `mzml::ReadOptions::source_time_array_precision`: the
+  `min32` rows are what the source stores for a converted 32-bit array, and the
+  `min64` rows are the C++'s own answer for the full-precision seconds, which is
+  what the library default must reproduce from `min32`. On the whole 2.3 GB
+  input the two tools' picked TIC chromatograms are bit-identical with the
+  switch set; the measurement is in
+  [the mzML reader's section](MZML_SUPPORT.md#the-minute-conversion-of-a-32-bit-time-array).
 - **Tier 1, parameters.** `defaults.ini` and `noise_defaults.ini` from the
   product SDK, and the retained `WRITE_INI_OUT.ini`.
 - **Tier 1, retained class-test outputs.** The orbitrap and FTMS S/N 1 and S/N 4
