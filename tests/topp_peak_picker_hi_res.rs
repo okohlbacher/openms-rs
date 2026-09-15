@@ -606,7 +606,7 @@ fn the_cpp_written_ini_is_accepted_unchanged_at_every_thread_count() {
     let input = text(&workflow_input(1));
     let expected = load(fixture("oracle_cpp_ini.mzML"));
     let mut bytes: Vec<Vec<u8>> = Vec::new();
-    for threads in ["1", "16", "0"] {
+    for threads in ["1", "2", "8", "16", "32", "0"] {
         let out = temp.path().join(format!("threads_{threads}.mzML"));
         let outcome = run(&[
             "-test",
@@ -654,13 +654,23 @@ fn the_cpp_written_ini_is_accepted_unchanged_at_every_thread_count() {
 }
 
 /// `-threads` on a registered workflow changes no output byte.
+///
+/// The tool body now runs on the worker pool `-threads` sizes
+/// (`ToolContext::in_thread_pool`) and the picker's spectrum loop is parallel
+/// inside it, so this is the tool-level half of the determinism contract: the
+/// written file is fixed by the input and the parameters. The counts span one
+/// worker, two, eight, thirty-two — more than an ordinary development machine
+/// has, so the schedule genuinely differs — and `0`, every available processor.
+/// The library half, over every fixture and both entry points, is
+/// `tests/peak_picking_experiment.rs`; the whole-file comparison on the 2.3 GB
+/// benchmark input is in `../oracle/topp-peak-picker-scale`.
 #[test]
 fn threads_do_not_change_the_workflow_1_output() {
     let temp = workdir();
     let ini = text(&fixture("PeakPickerHiRes_parameters.ini"));
     let input = text(&workflow_input(1));
     let mut bytes: Vec<Vec<u8>> = Vec::new();
-    for threads in ["1", "2", "16", "0"] {
+    for threads in ["1", "2", "8", "16", "32", "0"] {
         let out = temp.path().join(format!("threads_{threads}.mzML"));
         let outcome = run(&[
             "-test",
@@ -881,6 +891,84 @@ fn per_peak_ion_mobility_warns_and_reports_the_weighted_mobility() {
     );
     assert_eq!(produced.spectra[0].float_data_arrays[0].data.len(), 5);
     assert_decoded_equal(&produced, &expected);
+}
+
+/// A diagnostic the input checks write survives a refusal raised later in the
+/// run, because it reaches the real stream where the source writes it
+/// (`PeakPickerHiRes.cpp:222-226`, before picking) rather than being collected
+/// and written at the end.
+///
+/// The per-peak ion mobility input of `im_peak` with the `auto_mode 1` refusal
+/// of `PPHR_auto_mode_1` on top: the source writes its warning and then dies in
+/// `AUTOMAXBYPERCENT`, so the warning is what a user is left with. The port
+/// must not swallow it.
+#[test]
+fn a_refusal_after_the_input_checks_keeps_the_ion_mobility_warning() {
+    let temp = workdir();
+    let out = temp.path().join("im_auto_mode.tmp.mzML");
+    let outcome = run(&[
+        "-test",
+        "-ini",
+        &text(&fixture("PeakPickerHiRes_6.ini")),
+        "-in",
+        &text(&fixture("p3_im_peak.mzML")),
+        "-out",
+        &text(&out),
+        "-algorithm:signal_to_noise",
+        "2",
+        "-algorithm:SignalToNoise:auto_mode",
+        "1",
+    ]);
+    assert_eq!(
+        outcome.code,
+        ExitCode::IncompatibleInputData,
+        "{}",
+        outcome.err
+    );
+    let warning = std::fs::read_to_string(fixture("oracle_im_peak.stderr.txt")).unwrap();
+    let refusal = outcome
+        .err
+        .strip_prefix(&warning)
+        .unwrap_or_else(|| panic!("the warning is written first: {}", outcome.err));
+    assert!(
+        refusal.starts_with("Error: unsupported: ")
+            && refusal.contains("auto_mode 1")
+            && refusal.ends_with('\n'),
+        "{refusal}"
+    );
+    assert!(!out.exists());
+}
+
+/// The per-MS-level summary is written where the source writes it — after
+/// picking and **before** the output is stored (`PeakPickerHiRes.cpp:559-563`,
+/// then `:571`) — so a run whose store fails still reports what it picked.
+///
+/// The store is made to fail with an `-out` that is an existing directory: the
+/// framework's writability pre-check (`src/cli/context.rs`, `file::writable`)
+/// answers yes for a directory, so the run reaches the store, which cannot
+/// write a file there.
+#[test]
+fn the_summary_is_written_before_the_output_is_stored() {
+    let temp = workdir();
+    let out = temp.path().join("occupied.mzML");
+    std::fs::create_dir(&out).unwrap();
+    let outcome = run(&[
+        "-test",
+        "-ini",
+        &text(&fixture("PeakPickerHiRes_parameters.ini")),
+        "-in",
+        &text(&workflow_input(1)),
+        "-out",
+        &text(&out),
+    ]);
+    assert_ne!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(
+        outcome.out,
+        format!(
+            "{VERSION_WARNING_3_6_0}#Spectra that needed to and could be picked by MS-level:\n  MS-level 1: 2 / 2\n  MS-level 2: 0 / 3\n"
+        )
+    );
+    assert!(out.is_dir());
 }
 
 /// P3 oracle `notest`: outside `-test` the record carries the product version,

@@ -32,8 +32,52 @@
 //! non-positive spline maximum, a ppm width at a non-positive position and a
 //! second ion mobility array. [`PickingCompatibility::source`](crate::processing::peak_picking::PickingCompatibility::source)
 //! selects the source behaviour for each
-//! of these; a TOPP tool reproducing C++ output opts in. The picker is serial,
-//! as the source is (it has no OpenMP).
+//! of these; a TOPP tool reproducing C++ output opts in.
+//!
+//! # Parallelism
+//!
+//! Source `pickExperiment` is serial: `PeakPickerHiRes.cpp` carries no `#pragma
+//! omp` at all, its spectrum loop (`:504`), its chromatogram loop (`:548`) and
+//! its on-disc loop (`:584`) are plain `for` statements, and the header
+//! describes consecutive scans. The port does not have to be, because picking
+//! one record reads nothing but that record: the per-record `pick_`
+//! keeps every accumulator local, so the centroids of a spectrum are a pure
+//! function of its own samples and the picker's parameters.
+//!
+//! [`PeakPickerHiRes::pick_experiment_with_threads`] and
+//! [`PeakPickerHiRes::pick_experiment_in_place_with_threads`] therefore run the
+//! numerical half of the spectrum loop on a worker pool, behind the crate's
+//! `parallel` feature, and honour the determinism contract of
+//! [`crate::concept::parallel`] by construction:
+//!
+//! * The floating-point arithmetic is per record and never crosses records, so
+//!   no sum, spline or bisection is re-associated. Nothing in
+//!   `pick_signal` is a reduction over the experiment.
+//! * Results come back in **input order** from an indexed parallel iterator,
+//!   so `spectrum_boundaries` and `omitted_spectrum_arrays` are indexed by
+//!   input position whatever order the workers finished in.
+//! * The pooled acquisition-metadata ledger
+//!   ([`PeakPickerHiRes::max_metadata_per_record`]) is charged **serially, in
+//!   input order**, after the parallel pass. A ledger charged from several
+//!   workers would exhaust at a schedule-dependent record, which is the one
+//!   place where a thread count could change what a run does.
+//! * The first error is the first in input order, for the same reason: the
+//!   parallel pass collects a `Result` per record and the serial pass resolves
+//!   them by index. `Result`'s own `FromParallelIterator` explicitly does not
+//!   promise which of several errors it returns.
+//!
+//! The parallel pass runs in bounded batches (at most
+//! [`PARALLEL_BATCH_RECORDS`] records or [`PARALLEL_BATCH_POINTS`] input
+//! samples), so the centroids waiting for the serial pass are a fixed quantity
+//! rather than the whole run, and the peak memory of a parallel pick is that of
+//! a serial one plus one batch — it does not grow with the worker count.
+//!
+//! The workers are opened **once per call**, not once per batch: a caller that
+//! is not already inside a pool pays `threads` thread starts for the call, and
+//! one that is inside one pays none.
+//!
+//! Without the `parallel` feature, and at one worker, the same code runs the
+//! same loop on the calling thread.
 
 mod noise;
 pub use noise::{
@@ -48,6 +92,7 @@ pub use super::spline::CubicSpline2d;
 use super::spline::bisection::{DEFAULT_BISECTION_THRESHOLD, MAX_BISECTION_STEPS};
 use super::spline::spline_bisection;
 use super::{SpectrumFilter, checked_intensity};
+use crate::concept::parallel::Threads;
 use crate::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D, SpectrumType,
     SpectrumTypeQueryLimits,
@@ -407,6 +452,181 @@ struct PickedSignal {
     boundaries: Vec<PeakBoundary>,
     fwhm: Vec<f32>,
     mobility: Vec<f32>,
+}
+
+/// Records one parallel batch of an experiment pick may cover.
+///
+/// Native bound with no counterpart in the serial source loop. The parallel
+/// entry points prepare a batch of records on the worker pool and then consume
+/// it serially, so a batch is what the parallel pass holds in addition to what a
+/// serial pick would: its centroids, boundaries and per-record reports. Bounding
+/// the batch is what keeps the peak memory of a parallel pick independent of
+/// both the run length and the worker count.
+///
+/// 4096 records is large enough that a 128-worker pool never runs out of records
+/// inside a batch even when only every sixth record is a profile spectrum, as in
+/// the data-dependent runs this picker is used on, and small enough that the
+/// reports of a batch are a few tens of mebibytes rather than the run's.
+pub const PARALLEL_BATCH_RECORDS: usize = 4096;
+
+/// Input samples one parallel batch of an experiment pick may cover.
+///
+/// The second half of the batch bound, and the one that binds on real profile
+/// data: [`PARALLEL_BATCH_RECORDS`] alone would let a batch of unusually large
+/// spectra hold an unbounded quantity of centroids, because a record's centroids
+/// are bounded by its own sample count and by nothing else. A batch closes at
+/// whichever bound is reached first, and always holds at least one record, so an
+/// input whose single record exceeds this still progresses.
+///
+/// Sixteen million samples is about 560 spectra of an Orbitrap profile run
+/// (28,616 samples each in the 2.3 GB benchmark), whose centroids and boundaries
+/// come to roughly 50 MiB — a fraction of the profile data such a batch is
+/// picked from, and admitting far more parallel work than any worker count this
+/// port clamps to.
+pub const PARALLEL_BATCH_POINTS: usize = 16_000_000;
+
+/// The numerical half of picking one spectrum: everything
+/// [`PeakPickerHiRes::pick_signal`] and the input produce, before the
+/// acquisition ledger is charged and the output record is built.
+///
+/// Splitting the pick here is what lets the experiment entry points compute
+/// several records at once while the ledger, which is pooled across records,
+/// stays serial and in input order.
+struct PickedSpectrumParts {
+    /// The centroids, boundaries, FWHM and ion mobility of this record.
+    signal: PickedSignal,
+    /// Index of the input float array whose values were intensity-weighted.
+    mobility: Option<usize>,
+    /// Names of the annotation arrays with no centroid aggregation rule.
+    omitted_arrays: Vec<String>,
+}
+
+/// What the parallel pass produced for one input spectrum.
+enum PreparedSpectrum {
+    /// The selection rule left this spectrum alone; the serial pass copies it.
+    Copied,
+    /// The spectrum was picked; the serial pass charges it and builds it.
+    Picked(PickedSpectrumParts),
+}
+
+/// The end of the batch that starts at `start`, at least one record long.
+///
+/// Closes at [`PARALLEL_BATCH_RECORDS`] records or once adding the next record
+/// would take the batch past [`PARALLEL_BATCH_POINTS`] samples, whichever comes
+/// first. Saturating arithmetic: a sample count that overflows `usize` cannot
+/// exist in memory, and treating it as "over the bound" only closes the batch.
+fn spectrum_batch_end(spectra: &[MSSpectrum], start: usize) -> usize {
+    let mut points = 0usize;
+    for (offset, spectrum) in spectra[start..].iter().enumerate() {
+        if offset > 0
+            && (offset >= PARALLEL_BATCH_RECORDS
+                || points.saturating_add(spectrum.len()) > PARALLEL_BATCH_POINTS)
+        {
+            return start + offset;
+        }
+        points = points.saturating_add(spectrum.len());
+    }
+    spectra.len()
+}
+
+/// The workers one experiment call maps its batches on, opened once for the
+/// call.
+///
+/// The shape of [`crate::concept::parallel::map_collect`], which the picker
+/// cannot call directly: that helper builds a pool unconditionally, and a pool
+/// built inside another pool oversubscribes the machine by the square of the
+/// worker count. It is a *type* here rather than a function because a batch
+/// loop calls [`BatchWorkers::map_records`] once per batch — a run of
+/// instrument size closes about a dozen batches — and a pool built inside that
+/// call would spawn `threads` workers per batch where the call needs them once.
+/// The pool is built before the first batch and its threads end when the call
+/// returns.
+///
+/// Three cases, and only the last one owns a pool:
+///
+/// * **fewer than two workers, or fewer than two records**: the batches run on
+///   the calling thread and nothing is built. A pool of one worker is a cost
+///   with nothing to buy — the only rayon work under this call is the batch
+///   map, and its width is `threads` — and glibc charges a thread that
+///   allocates its own malloc arena.
+/// * **already running inside a pool**: that pool is used as it stands. A TOPP
+///   tool opens the pool that `-threads` sizes around its picking call, from
+///   the same policy it passes here — the CLI is downstream of `processing`, so
+///   that type is named rather than linked — so the ambient pool is the
+///   requested pool.
+/// * **otherwise**: one pool of exactly `threads` workers for this call, which
+///   is what a library caller outside any pool gets. If the operating system
+///   refuses the threads the batches run serially rather than failing — the
+///   results are the same either way.
+struct BatchWorkers {
+    /// The pool this call built, if it built one.
+    #[cfg(feature = "parallel")]
+    pool: Option<rayon::ThreadPool>,
+    /// Whether a batch of more than one record is mapped in parallel at all:
+    /// false for the serial case, true for the ambient and owned pools.
+    #[cfg(feature = "parallel")]
+    parallel: bool,
+}
+
+impl BatchWorkers {
+    /// Open the workers a call over `records` records at `threads` workers
+    /// needs.
+    fn new(threads: Threads, records: usize) -> Self {
+        #[cfg(feature = "parallel")]
+        {
+            if threads.get() <= 1 || records <= 1 {
+                return Self {
+                    pool: None,
+                    parallel: false,
+                };
+            }
+            if rayon::current_thread_index().is_some() {
+                return Self {
+                    pool: None,
+                    parallel: true,
+                };
+            }
+            let pool = rayon::ThreadPoolBuilder::new()
+                .num_threads(threads.get())
+                .build()
+                .ok();
+            Self {
+                parallel: pool.is_some(),
+                pool,
+            }
+        }
+        #[cfg(not(feature = "parallel"))]
+        {
+            let _ = (threads, records);
+            Self {}
+        }
+    }
+
+    /// Map `prepare` over `records`, results in **input order**.
+    ///
+    /// Order is a property of the call: rayon's `Vec` collection from an
+    /// indexed parallel iterator is indexed by input position, not by
+    /// completion. A batch of one record is mapped on the calling thread
+    /// whatever the workers are, because there is nothing to share.
+    fn map_records<T, U, F>(&self, records: &[T], prepare: F) -> Vec<U>
+    where
+        T: Sync,
+        U: Send,
+        F: Fn(&T) -> U + Sync + Send,
+    {
+        #[cfg(feature = "parallel")]
+        {
+            if self.parallel && records.len() > 1 {
+                use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+                let map = || records.par_iter().map(&prepare).collect();
+                return match self.pool.as_ref() {
+                    Some(pool) => pool.install(map),
+                    None => map(),
+                };
+            }
+        }
+        records.iter().map(prepare).collect()
+    }
 }
 
 /// The source's per-peak `std::map<double, double>` of support samples, kept in
@@ -952,13 +1172,40 @@ impl PeakPickerHiRes {
         check_spacings: bool,
         copies: &mut super::AcquisitionCopies,
     ) -> Result<PickedSpectrum> {
+        let parts = self.prepare_spectrum(input, check_spacings, true)?;
+        self.finish_spectrum(input, parts, copies)
+    }
+
+    /// The numerical half of picking a spectrum, with no ledger and no output
+    /// record: validation, the ion mobility array, `pick_` and the omitted
+    /// annotation arrays.
+    ///
+    /// `revalidate` runs [`MSSpectrum::validate`] on the input. The experiment
+    /// entry points pass `false` because `start_experiment` has already
+    /// validated every record of the experiment through
+    /// [`MSExperiment::validate`], which visits every spectrum and every one of
+    /// its peaks, and nothing mutates a record between that pass and this one —
+    /// `pick_experiment` never mutates the input at all, and
+    /// `pick_experiment_in_place` only replaces records it has already picked.
+    /// An invalid record is therefore refused with the same error either way,
+    /// one pass over the samples earlier. Every other caller passes `true`,
+    /// because the public single-record entry points validate what they are
+    /// given.
+    fn prepare_spectrum(
+        &self,
+        input: &MSSpectrum,
+        check_spacings: bool,
+        revalidate: bool,
+    ) -> Result<PickedSpectrumParts> {
         self.validate()?;
         if input.len() > self.max_points {
             return Err(bad("spectrum exceeds peak picker point limit"));
         }
-        input.validate()?;
+        if revalidate {
+            input.validate()?;
+        }
         let mobility = self.mobility_array(input)?;
-        let picked = self.pick_signal(
+        let signal = self.pick_signal(
             &input.peaks,
             check_spacings,
             mobility.map(|j| input.float_data_arrays[j].data.as_slice()),
@@ -972,21 +1219,70 @@ impl PeakPickerHiRes {
             .chain(input.integer_data_arrays.iter().map(|a| a.name.clone()))
             .chain(input.string_data_arrays.iter().map(|a| a.name.clone()))
             .collect();
+        Ok(PickedSpectrumParts {
+            signal,
+            mobility,
+            omitted_arrays,
+        })
+    }
+
+    /// Charge the acquisition ledger and build the picked record, in that
+    /// order.
+    ///
+    /// The ledger is charged before the copy, as everywhere else in
+    /// `processing`, and after the numerical work, as the serial loop did: a
+    /// record whose picking fails never spends metadata budget.
+    ///
+    /// The output is built field by field from the input's metadata, which is
+    /// source `copySpectrumMeta` (`SpectrumHelper.cpp:14-25`): it copies the
+    /// settings and the scalar members and leaves the raw samples behind.
+    /// Cloning the input and overwriting its samples one line later, as this
+    /// did, copied every profile sample and every annotation array of the
+    /// record only to drop them — 197,765,338 samples over the 2.3 GB benchmark
+    /// run. The fields are listed exhaustively, with no `..` rest, so a member
+    /// added to [`MSSpectrum`] is a compile error here rather than a silently
+    /// dropped one.
+    fn finish_spectrum(
+        &self,
+        input: &MSSpectrum,
+        parts: PickedSpectrumParts,
+        copies: &mut super::AcquisitionCopies,
+    ) -> Result<PickedSpectrum> {
+        let PickedSpectrumParts {
+            signal,
+            mobility,
+            omitted_arrays,
+        } = parts;
         copies.spectrum(input)?;
-        let mut output = input.clone();
-        output.peaks = picked
-            .positions
-            .iter()
-            .zip(&picked.intensities)
-            .map(|(&x, &y)| Peak1D::new(x, y))
-            .collect();
-        output.spectrum_type = SpectrumType::Centroid;
-        output.float_data_arrays.clear();
-        output.integer_data_arrays.clear();
-        output.string_data_arrays.clear();
+        let mut output = MSSpectrum {
+            peaks: signal
+                .positions
+                .iter()
+                .zip(&signal.intensities)
+                .map(|(&x, &y)| Peak1D::new(x, y))
+                .collect(),
+            rt: input.rt,
+            ms_level: input.ms_level,
+            native_id: input.native_id.clone(),
+            name: input.name.clone(),
+            spectrum_type: SpectrumType::Centroid,
+            instrument_settings: input.instrument_settings.clone(),
+            acquisition_info: input.acquisition_info.clone(),
+            source_file: input.source_file.clone(),
+            data_processing: input.data_processing.clone(),
+            products: input.products.clone(),
+            precursors: input.precursors.clone(),
+            peptide_identifications: input.peptide_identifications.clone(),
+            metadata: input.metadata.clone(),
+            float_data_arrays: Vec::new(),
+            integer_data_arrays: Vec::new(),
+            string_data_arrays: Vec::new(),
+            drift_time: input.drift_time,
+            drift_time_unit: input.drift_time_unit,
+        };
         if let Some(j) = mobility {
             let mut array =
-                DataArray::new(input.float_data_arrays[j].name.clone(), picked.mobility);
+                DataArray::new(input.float_data_arrays[j].name.clone(), signal.mobility);
             if !self.compatibility.source_mobility_arrays {
                 input.float_data_arrays[j].copy_description_to(&mut array);
             }
@@ -995,11 +1291,11 @@ impl PeakPickerHiRes {
         if let Some(unit) = self.report_fwhm {
             output
                 .float_data_arrays
-                .push(DataArray::new(fwhm_name(unit), picked.fwhm));
+                .push(DataArray::new(fwhm_name(unit), signal.fwhm));
         }
         Ok(PickedSpectrum {
             spectrum: output,
-            boundaries: picked.boundaries,
+            boundaries: signal.boundaries,
             omitted_arrays,
         })
     }
@@ -1056,16 +1352,30 @@ impl PeakPickerHiRes {
             .chain(input.string_data_arrays.iter().map(|a| a.name.clone()))
             .collect();
         copies.chromatogram(input)?;
-        let mut output = input.clone();
-        output.peaks = picked
-            .positions
-            .iter()
-            .zip(&picked.intensities)
-            .map(|(&x, &y)| ChromatogramPeak::new(x, y))
-            .collect();
-        output.float_data_arrays.clear();
-        output.integer_data_arrays.clear();
-        output.string_data_arrays.clear();
+        // Metadata-only construction, as source `copyChromatogramMeta`; see
+        // [`PeakPickerHiRes::finish_spectrum`] for why the fields are listed
+        // exhaustively rather than cloned and overwritten.
+        let mut output = MSChromatogram {
+            instrument_settings: input.instrument_settings.clone(),
+            acquisition_info: input.acquisition_info.clone(),
+            source_file: input.source_file.clone(),
+            data_processing: input.data_processing.clone(),
+            chromatogram_type: input.chromatogram_type,
+            peaks: picked
+                .positions
+                .iter()
+                .zip(&picked.intensities)
+                .map(|(&x, &y)| ChromatogramPeak::new(x, y))
+                .collect(),
+            native_id: input.native_id.clone(),
+            name: input.name.clone(),
+            precursor: input.precursor.clone(),
+            product: input.product.clone(),
+            metadata: input.metadata.clone(),
+            float_data_arrays: Vec::new(),
+            integer_data_arrays: Vec::new(),
+            string_data_arrays: Vec::new(),
+        };
         if let Some(unit) = self.report_fwhm {
             output
                 .float_data_arrays
@@ -1113,6 +1423,40 @@ impl PeakPickerHiRes {
     ///   query, including its resource limits. An error leaves no partial
     ///   result.
     pub fn pick_experiment(&self, input: &MSExperiment) -> Result<PickedExperiment> {
+        self.pick_experiment_with_threads(input, Threads::serial())
+    }
+
+    /// [`PeakPickerHiRes::pick_experiment`] with the spectrum loop on `threads`
+    /// workers.
+    ///
+    /// The same records are picked by the same rules in the same order, and the
+    /// centroids, boundaries and reports are **bit-identical** to the serial
+    /// ones at every worker count — see the module's *Parallelism* section for
+    /// why, and `tests/peak_picking_experiment.rs` for the enforcement.
+    /// [`PeakPickerHiRes::pick_experiment`] is this at
+    /// [`Threads::serial`], so an existing caller keeps the single-threaded
+    /// behaviour it had.
+    ///
+    /// Only the spectrum loop is parallel. Chromatograms are picked serially
+    /// after it, as source `pickExperiment` does, because the runs this tool
+    /// path is measured on carry a few thousand chromatogram points against
+    /// hundreds of millions of profile samples; a chromatogram-dominated input
+    /// gains nothing here yet.
+    ///
+    /// Without the `parallel` feature this is the serial loop whatever
+    /// `threads` says.
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakPickerHiRes::pick_experiment`], and the *first error in input
+    /// order*, which is the error the serial loop returns. Records after it may
+    /// have been picked on another worker; their results are discarded and no
+    /// partial experiment is returned.
+    pub fn pick_experiment_with_threads(
+        &self,
+        input: &MSExperiment,
+        threads: Threads,
+    ) -> Result<PickedExperiment> {
         let limits = self.type_query_limits();
         let mut copies = self.start_experiment(input)?;
         let mut result = PickedExperiment {
@@ -1133,19 +1477,32 @@ impl PeakPickerHiRes {
             omitted_spectrum_arrays: Vec::with_capacity(input.spectra.len()),
             omitted_chromatogram_arrays: Vec::with_capacity(input.chromatograms.len()),
         };
-        for spectrum in &input.spectra {
-            if !self.selects(spectrum, limits)? {
-                // Source `output[scan_idx] = input[scan_idx]` for a record that
-                // is not picked.
-                result.experiment.spectra.push(spectrum.clone());
-                result.spectrum_boundaries.push(None);
-                result.omitted_spectrum_arrays.push(Vec::new());
-                continue;
+        let workers = BatchWorkers::new(threads, input.spectra.len());
+        let mut start = 0;
+        while start < input.spectra.len() {
+            let end = spectrum_batch_end(&input.spectra, start);
+            let batch = &input.spectra[start..end];
+            let prepared = workers.map_records(batch, |spectrum| {
+                self.prepare_selected_spectrum(spectrum, limits)
+            });
+            for (spectrum, item) in batch.iter().zip(prepared) {
+                match item? {
+                    // Source `output[scan_idx] = input[scan_idx]` for a record
+                    // that is not picked.
+                    PreparedSpectrum::Copied => {
+                        result.experiment.spectra.push(spectrum.clone());
+                        result.spectrum_boundaries.push(None);
+                        result.omitted_spectrum_arrays.push(Vec::new());
+                    }
+                    PreparedSpectrum::Picked(parts) => {
+                        let picked = self.finish_spectrum(spectrum, parts, &mut copies)?;
+                        result.experiment.spectra.push(picked.spectrum);
+                        result.spectrum_boundaries.push(Some(picked.boundaries));
+                        result.omitted_spectrum_arrays.push(picked.omitted_arrays);
+                    }
+                }
             }
-            let picked = self.pick_spectrum_with_acquisition(spectrum, true, &mut copies)?;
-            result.experiment.spectra.push(picked.spectrum);
-            result.spectrum_boundaries.push(Some(picked.boundaries));
-            result.omitted_spectrum_arrays.push(picked.omitted_arrays);
+            start = end;
         }
         for chromatogram in &input.chromatograms {
             let picked =
@@ -1189,6 +1546,30 @@ impl PeakPickerHiRes {
         &self,
         experiment: &mut MSExperiment,
     ) -> Result<PickedExperimentReport> {
+        self.pick_experiment_in_place_with_threads(experiment, Threads::serial())
+    }
+
+    /// [`PeakPickerHiRes::pick_experiment_in_place`] with the spectrum loop on
+    /// `threads` workers.
+    ///
+    /// Bit-identical to the serial form at every worker count, for the reasons
+    /// given at [`PeakPickerHiRes::pick_experiment_with_threads`], and with the
+    /// same failure detail as the serial in-place form: **exactly the records
+    /// before the first failing one are replaced**. A batch is prepared in
+    /// parallel and then committed in input order, so a record is written back
+    /// only once every earlier record has been, whatever order the workers
+    /// finished in; a plain parallel write-back would leave a schedule-dependent
+    /// subset of the run centroided.
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakPickerHiRes::pick_experiment_in_place`], and the first error in
+    /// input order.
+    pub fn pick_experiment_in_place_with_threads(
+        &self,
+        experiment: &mut MSExperiment,
+        threads: Threads,
+    ) -> Result<PickedExperimentReport> {
         let limits = self.type_query_limits();
         let mut copies = self.start_experiment(experiment)?;
         let mut report = PickedExperimentReport {
@@ -1197,16 +1578,32 @@ impl PeakPickerHiRes {
             omitted_spectrum_arrays: Vec::with_capacity(experiment.spectra.len()),
             omitted_chromatogram_arrays: Vec::with_capacity(experiment.chromatograms.len()),
         };
-        for spectrum in &mut experiment.spectra {
-            if !self.selects(spectrum, limits)? {
-                report.spectrum_boundaries.push(None);
-                report.omitted_spectrum_arrays.push(Vec::new());
-                continue;
+        let workers = BatchWorkers::new(threads, experiment.spectra.len());
+        let mut start = 0;
+        while start < experiment.spectra.len() {
+            let end = spectrum_batch_end(&experiment.spectra, start);
+            // The parallel pass borrows the batch; its results own everything
+            // they carry, so the borrow ends before the commit writes back.
+            let prepared = workers.map_records(&experiment.spectra[start..end], |spectrum| {
+                self.prepare_selected_spectrum(spectrum, limits)
+            });
+            for (offset, item) in prepared.into_iter().enumerate() {
+                let index = start + offset;
+                match item? {
+                    PreparedSpectrum::Copied => {
+                        report.spectrum_boundaries.push(None);
+                        report.omitted_spectrum_arrays.push(Vec::new());
+                    }
+                    PreparedSpectrum::Picked(parts) => {
+                        let picked =
+                            self.finish_spectrum(&experiment.spectra[index], parts, &mut copies)?;
+                        experiment.spectra[index] = picked.spectrum;
+                        report.spectrum_boundaries.push(Some(picked.boundaries));
+                        report.omitted_spectrum_arrays.push(picked.omitted_arrays);
+                    }
+                }
             }
-            let picked = self.pick_spectrum_with_acquisition(spectrum, true, &mut copies)?;
-            *spectrum = picked.spectrum;
-            report.spectrum_boundaries.push(Some(picked.boundaries));
-            report.omitted_spectrum_arrays.push(picked.omitted_arrays);
+            start = end;
         }
         for chromatogram in &mut experiment.chromatograms {
             let picked =
@@ -1264,6 +1661,27 @@ impl PeakPickerHiRes {
             work: base.work.checked_add(allowance).ok_or_else(overflow)?,
             bytes: base.bytes.checked_add(allowance).ok_or_else(overflow)?,
         })
+    }
+
+    /// The per-record work of an experiment pick that touches no shared state:
+    /// the selection rule and, for a selected record, the numerical half of
+    /// picking it.
+    ///
+    /// This is the body the parallel pass runs. It takes `&self` and returns an
+    /// owned result, so several records can be in flight at once; what is left
+    /// for the serial pass is the pooled acquisition ledger and the output
+    /// record, in [`PeakPickerHiRes::finish_spectrum`].
+    fn prepare_selected_spectrum(
+        &self,
+        spectrum: &MSSpectrum,
+        limits: SpectrumTypeQueryLimits,
+    ) -> Result<PreparedSpectrum> {
+        if !self.selects(spectrum, limits)? {
+            return Ok(PreparedSpectrum::Copied);
+        }
+        Ok(PreparedSpectrum::Picked(
+            self.prepare_spectrum(spectrum, true, false)?,
+        ))
     }
 
     /// Whether the experiment entry points pick this spectrum, source
@@ -1535,6 +1953,64 @@ fn estimate_spectrum_type_with_limit(
         &PickingCompatibility::default(),
     )?;
     Ok(crate::kernel::spectrum_type::estimate(&x, &mut y))
+}
+
+#[cfg(test)]
+mod parallel_batch_tests {
+    use super::{PARALLEL_BATCH_POINTS, PARALLEL_BATCH_RECORDS, spectrum_batch_end};
+    use crate::kernel::{MSSpectrum, Peak1D};
+
+    fn spectrum(points: usize) -> MSSpectrum {
+        MSSpectrum {
+            peaks: (0..points)
+                .map(|i| Peak1D::new(i as f64, 1.0))
+                .collect::<Vec<_>>(),
+            ..MSSpectrum::default()
+        }
+    }
+
+    /// Every record lands in exactly one batch, batches are non-empty, and a
+    /// batch closes at whichever of the two bounds is reached first.
+    #[test]
+    fn batches_cover_the_run_once_and_respect_both_bounds() {
+        // Enough tiny records to cross the record bound twice over.
+        let tiny: Vec<MSSpectrum> = (0..PARALLEL_BATCH_RECORDS * 2 + 7)
+            .map(|_| spectrum(3))
+            .collect();
+        let mut start = 0;
+        let mut batches = 0;
+        while start < tiny.len() {
+            let end = spectrum_batch_end(&tiny, start);
+            assert!(end > start, "a batch at {start} was empty");
+            assert!(end - start <= PARALLEL_BATCH_RECORDS, "batch at {start}");
+            start = end;
+            batches += 1;
+        }
+        assert_eq!(start, tiny.len());
+        assert_eq!(batches, 3);
+
+        // The sample bound closes a batch before the record bound does.
+        let wide: Vec<MSSpectrum> = (0..8)
+            .map(|_| spectrum(PARALLEL_BATCH_POINTS / 3))
+            .collect();
+        assert_eq!(spectrum_batch_end(&wide, 0), 3);
+        assert_eq!(spectrum_batch_end(&wide, 3), 6);
+        assert_eq!(spectrum_batch_end(&wide, 6), 8);
+    }
+
+    /// A single record larger than the sample bound is a batch of its own, so
+    /// the loop always progresses rather than refusing the input.
+    #[test]
+    fn one_oversized_record_still_forms_a_batch() {
+        let huge = vec![
+            spectrum(PARALLEL_BATCH_POINTS + 1),
+            spectrum(1),
+            spectrum(1),
+        ];
+        assert_eq!(spectrum_batch_end(&huge, 0), 1);
+        assert_eq!(spectrum_batch_end(&huge, 1), 3);
+        assert_eq!(spectrum_batch_end(&[], 0), 0);
+    }
 }
 
 #[cfg(test)]
