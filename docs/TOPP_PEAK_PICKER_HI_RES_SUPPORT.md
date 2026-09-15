@@ -269,16 +269,16 @@ decoded content the contract. Decoded (`../oracle/topp-peak-picker-scale/decoded
   bit-identical**.
 - Spectrum retention times differ in 10,671 of 40,856 records, by at most
   9.09e-13 s (one to two ULP of `f64`) on times of 60 to 4,400 s.
-- The picked TIC **chromatogram differs beyond round-off**: 8,174 points on both
-  sides, but 8,173 of 8,174 retention times differ (at most 3.19e-3 s), and
-  7,891 of 8,174 intensities differ by more than 1e-6 relative, 71 of them by
-  more than 1e-3, the worst 1.75e-3 (252,284,752 against 252,727,072 at
-  4,393.5 s). The retained workflow 2 fixture (five short chromatograms) is
-  bit-exact, so this shows up only here. What has **not** been established is
-  where the two part: a candidate is the input's TIC time array, which is
-  32-bit float in **minutes** where every spectrum's retention time is a decimal
-  `cvParam`, so the two conversions to seconds could differ before the picker
-  sees the data and the apex interpolation would amplify that; that is a
-  hypothesis, not a measurement. The chromatogram path is the picker library's
-  (`PeakPickerHiRes::pick_chromatogram`, package P1), not this tool's, so this
-  is reported and not chased further here.
+- The picked TIC **chromatogram is bit-identical**: 8,174 points on both sides,
+  every retention time and every intensity equal. This run first showed it
+  differing (8,173 of 8,174 retention times, at most 3.19e-3 s; 7,891
+  intensities beyond 1e-6 relative, the worst 1.75e-3 at 4,393.5 s), which lane
+  `fix/picked-chromatogram` then root-caused in the mzML reader rather than in
+  the picker: the source narrows a unit-converted 32-bit time array back to
+  `f32` (`MzMLHandlerHelper.cpp:217-222`), which this input's TIC time array —
+  32-bit float in minutes — hits, and the spline apex amplifies the 9.5e-7 s
+  per-point difference. `ReadOptions::source_time_array_precision`, which
+  `ReadOptions::source()` sets and this tool therefore uses, reproduces the
+  narrowing; the library default keeps the precision. See
+  [MZML_SUPPORT](MZML_SUPPORT.md) and native difference 13 in
+  [PEAK_PICKING_SUPPORT](PEAK_PICKING_SUPPORT.md).
