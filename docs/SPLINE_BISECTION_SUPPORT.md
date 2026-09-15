@@ -26,6 +26,7 @@ Native additions:
 |---|---|
 | `MAX_BISECTION_STEPS` | The source's loop can run forever; see below. |
 | `DEFAULT_BISECTION_THRESHOLD` | The source's default argument, made nameable. |
+| `impl<T: SplineFunction + ?Sized> SplineFunction for &T` | Pure forwarding, no behaviour. A C++ template argument binds `const T&` whether the caller holds a value or a reference; a Rust generic parameter does not get the deref coercion that turns `&&T` into `&T`, so without this impl a caller holding a borrowed spline — as the peak picker does once it fits through `CubicSpline2dFitter` — would have to spell the call differently from a caller holding an owned one. |
 
 Related but distinct: `CubicSpline2d::peak_maximum(left, right, tolerance)` is a
 native function that predates this module and is used by

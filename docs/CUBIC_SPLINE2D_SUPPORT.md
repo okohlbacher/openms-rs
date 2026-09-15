@@ -9,6 +9,9 @@ Rust: `src/processing/spline/cubic.rs`, re-exported as
 this module, as `openms::processing::peak_picking::CubicSpline2d`.
 
 Tests: `tests/spline_math.rs` and the unit tests in `src/processing/spline/cubic.rs`.
+Fixtures: `tests/data/spline_math_cpp_probe.tsv` (the C++ oracle) and
+`tests/data/cubic_spline_picker_supports.tsv` (real picker inputs, port data
+rather than oracle data).
 Provenance: `tests/data/spline_math_provenance.json`.
 
 ## API mapping
@@ -34,6 +37,80 @@ Native additions, all documented at the item:
 | `CubicSpline2d::segment_count()` | Number of cubic segments; used by the map-constructor test to prove deduplication happened. |
 | `CubicSpline2d::peak_maximum(left, right, tolerance)` | Native predecessor of `spline_bisection`, retained because `processing::peak_picking` depends on its extra guarantees (both bracket ends validated, stops when the midpoint stops moving, fails after 128 halvings). `docs/SPLINE_BISECTION_SUPPORT.md` compares the two. |
 | `impl SplineFunction for CubicSpline2d` | Makes the type usable with `spline_bisection`, which is what the C++ template's duck typing achieves. |
+| `CubicSpline2dFitter` | Reusable construction storage for a caller that fits many splines in a loop. Same recurrence, same coefficients, one set of buffers instead of eight allocations per spline. See *Reusable construction storage* below. |
+
+## Reusable construction storage
+
+`with_max_points` allocates eight vectors per spline — `h`, `mu` and `z` for the
+tridiagonal sweep, `b`, `c` and `d` for the coefficients, a copy of the knots and
+a copy of the leading ordinates — and frees all eight when the spline is dropped.
+For a caller that wants one spline that is invisible. `processing::peak_picking`
+fits one spline per candidate centroid over a handful of knots and drops it
+before the next peak, so for it those eight allocations are the construction's
+largest single item: the profiling lane measured `alloc::alloc` at 271 144 136 of
+the 590 918 793 instructions `with_max_points` costs, 46 %.
+
+`CubicSpline2dFitter` owns the eight buffers instead. `fit` clears and refills
+them and hands the spline back by reference, so a loop pays for allocation only
+while the buffers grow to the largest support it has seen. The arithmetic is not
+touched: both entry points call one private `fit_into`, which is the transcribed
+recurrence, so there is no second copy of it that could drift.
+
+### Measured
+
+Benchmark input `UK222.mzML` (2.3 GB, 40 856 spectra, 197 765 338 raw points), the
+INI the C++ `PeakPickerHiRes` wrote, one thread, pinned, on `ibminode06`. The run
+constructs **13 856 120** splines, so eight allocations per spline is
+**110 848 960** malloc/free pairs.
+
+Bit-identity was checked at that scale, not sampled: every one of the 13 856 120
+splines was fitted by `with_max_points` before the change, by `with_max_points`
+after it and by `CubicSpline2dFitter`, and all knots and all four coefficient
+vectors of each were written out and hashed. The three streams are the same
+4 580 021 720 bytes, sha256
+`53d8531925a4f83e52c409307769830ab8f4edb5ecbebf834117833b664c91c8`. The end-to-end
+tool output is unchanged as well:
+`bb13eecfe092a272b08ddc71feec3780c7bc876e8847e8a45b173cda9d2dad52`, 535 613 726
+bytes, with and without the fitter. `tests/data/cubic_spline_picker_supports.tsv`
+keeps a stratified sample of those supports so the unit test
+`a_reused_fitter_replays_real_picker_supports_coefficient_for_coefficient`
+re-checks the property on real data in every run of the suite.
+
+Instruction counts are callgrind simulations, which do not depend on node load.
+The harness replays the recorded supports and does per record what the picker's
+inner loop does around the spline: construct, then bisect for the maximum. The
+numbers below are for the 214 780 supports of the profiling lane's 682-spectrum
+slice, whole program, so they include a fixed parse and bisection cost that is
+the same in all three columns.
+
+| | instructions | vs. before |
+|---|---:|---:|
+| `with_max_points`, before this change | 1 331 496 468 | — |
+| `with_max_points`, after | 1 217 243 728 | −8.6 % |
+| `CubicSpline2dFitter::fit` | 916 455 502 | −31.2 % |
+
+The one-shot path got faster too, which was not the point but is worth
+recording: sizing the eight vectors with `Vec::with_capacity` and filling them
+beats `vec![0.0; n]` plus `collect` plus `to_vec`, because `calloc` on a small
+block memsets anyway and costs more to reach.
+
+In wall time the fitter is worth about 1.3 s of the tool's 33 s, measured with
+`PeakPickerHiRes` on the input above, one thread, pinned to an idle core pair
+on `ibminode06`, eleven interleaved A/B repetitions: 33.19 s median before,
+32.01 s after, paired difference 1.27 s median (user time 1.31 s). A sampled
+phase trace puts all of it in the pick phase — 17.24 s to 15.11 s — with load
+and write unchanged. This branch on its own, with the picker still calling
+`with_max_points`, is 0.06 s slower and 0.09 s less CPU than before, i.e. the
+same within run-to-run spread; the saving needs the picker's call site to move.
+
+The picker's own call site is one line: `CubicSpline2d::with_max_points(&support.xs,
+&support.ys, self.max_points)?` becomes `fitter.fit_with_max_points(&support.xs,
+&support.ys, self.max_points)?` with `let mut fitter = CubicSpline2dFitter::new();`
+hoisted next to `let mut support = Support::default();`. Nothing downstream
+changes: `spline_bisection(&spline, ..)` still compiles because
+`SplineFunction` is implemented for `&T` (see `docs/SPLINE_BISECTION_SUPPORT.md`),
+and `spline.eval(..)` and `half_height(&spline, ..)` reach the value through the
+ordinary deref coercion.
 
 ## Preserved source conventions
 
@@ -140,11 +217,19 @@ These do not come from the probe and would survive it being wrong:
 
 ### Boundaries the port checks
 
-* Matching slice lengths, at least two knots, at most `MAX_POINTS`.
+* Matching slice lengths, at least two knots, at most `MAX_POINTS`. This is the
+  only check that runs before `with_max_points` sizes its eight buffers, and it
+  is the one that bounds them; the two below run after. An input that is
+  rejected for a non-finite or a non-increasing abscissa therefore allocates and
+  frees at most `max_points` knots' worth first, where the revision before the
+  fitter allocated nothing. The work stays bounded by the same ceiling.
 * All abscissae and ordinates finite, and the abscissae strictly increasing.
 * Every recurrence intermediate finite, so an error leaves no half-built spline:
-  the coefficients are built into local vectors and moved into the value only at
-  the end.
+  `with_max_points` builds the coefficients into a value that is returned only
+  after the last check passes and is dropped otherwise, and
+  `CubicSpline2dFitter::fit` returns `Err` without handing out a reference to
+  the spline it was filling in, so a half-written fitter is not observable — the
+  next fit rewrites every buffer.
 * Queries inside the closed knot range and finite; derivative order in 1..=3.
 * `peak_maximum` validates both bracket ends and its tolerance, and fails after
   128 halvings rather than looping.

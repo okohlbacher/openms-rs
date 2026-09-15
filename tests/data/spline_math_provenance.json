@@ -117,6 +117,14 @@
    "rows": 1828,
    "kind": "executed C++ probe output",
    "role": "stdout of the probe built from ../oracle/msc_splines/main.cpp with the recorded flags, one `case<TAB>key<TAB>value` row per observation at %.17g. Covers 12 CubicSpline2d positions with all three derivative orders, the class test's sine grid, seven error paths, 17 BSpline2d configurations with every node coefficient (including the degenerate two-node grid under all three boundary conditions and the three-node grid), the class test's mean-squared-error assertions, 31 BSplineSmoothingSpline fits (including the four that pin the candidate sort) and 10 spline_bisection brackets. The first 1693 rows are byte-identical to the output recorded at a965767; the 135 rows after them were appended by calling the two new case groups at the end of main()."
+  },
+  {
+   "path": "tests/data/cubic_spline_picker_supports.tsv",
+   "sha256": "0de0982d2f96a0f7edd07c9ad55a662c14000327f151b89bcbc7d3efe04523ec",
+   "bytes": 95399,
+   "rows": 266,
+   "kind": "recorded port input, not an oracle",
+   "role": "Real knot supports that processing::peak_picking fed to CubicSpline2d on the benchmark run (UK222.mzML, 2.3 GB, 40 856 spectra, the INI the C++ PeakPickerHiRes wrote, one thread), recorded from openms at fabd4b9 with an instrumented copy of pick_signal that was never committed. One row per spline: the knot count, then that many abscissae, then that many ordinates, at %.17g. The 13 856 120 recorded supports have knot counts 3..21; this file is a stratified sample, up to 14 per distinct count, so it covers the whole spread in 266 rows. Used by the unit test a_reused_fitter_replays_real_picker_supports_coefficient_for_coefficient to check that CubicSpline2dFitter and CubicSpline2d::new agree on every knot and every coefficient for real picker inputs. Not evidence about the C++: it is port input, and the values it carries are compared between two Rust paths, not against a probe."
   }
  ],
  "cpp_probe": {
