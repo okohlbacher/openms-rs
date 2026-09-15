@@ -3577,22 +3577,18 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
             &c.string_data_arrays,
         )?;
     }
-    for precursor in experiment
-        .spectra
-        .iter()
-        .flat_map(|s| &s.precursors)
-        .chain(experiment.chromatograms.iter().map(|c| &c.precursor))
-    {
-        if precursor
-            .spectrum_reference
-            .as_ref()
-            .is_some_and(|reference| !spectrum_ids.contains(reference))
-        {
-            return Err(invalid(
-                "precursor spectrum reference does not name an output spectrum",
-            ));
-        }
-    }
+    // A precursor `spectrumRef` that names no spectrum of this document is
+    // written as it stands, as source `MzMLHandler::writePrecursor_` does: it
+    // emits the `spectrum_ref` meta value verbatim and resolves nothing
+    // (`MzMLHandler.cpp:4535-4547` at core bc9cc12). Requiring resolution here
+    // made the port unable to split a real run: `MzMLSplitter` moves whole
+    // spectra into parts, so every MS2 whose precursor stayed in an earlier
+    // part carries a reference out of the part. The C++ tool writes those
+    // parts, and the benchmark's 1.2 GB Velos run splits into four parts of
+    // which part 2 alone carries four such references (to `scan=10929`, which
+    // part 1 holds). The reference is still checked to be a well-formed XML
+    // string by `precursor_metadata::validate_write` above, which is the
+    // property the writer can actually establish about it.
     Ok(())
 }
 fn write_impl(

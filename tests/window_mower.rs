@@ -360,16 +360,27 @@ fn invalid_data_parameters_and_work_fail_without_mutating_spectrum() {
             max_points: 2,
             ..Default::default()
         },
+        // The work ceiling is `max_work + work_per_point * points`, so a work
+        // refusal needs both terms small: the last case leaves the rate
+        // positive and still lands under what these three peaks cost.
         WindowMower {
             max_work: 0,
+            work_per_point: 0,
             ..Default::default()
         },
         WindowMower {
             max_work: 1,
+            work_per_point: 0,
             ..Default::default()
         },
         WindowMower {
             max_work: 20,
+            work_per_point: 0,
+            ..Default::default()
+        },
+        WindowMower {
+            max_work: 0,
+            work_per_point: 6,
             ..Default::default()
         },
     ] {
@@ -393,7 +404,7 @@ fn invalid_data_parameters_and_work_fail_without_mutating_spectrum() {
 }
 
 #[test]
-fn experiment_limits_are_global_and_errors_do_not_partially_commit() {
+fn experiment_limits_are_per_record_and_errors_do_not_partially_commit() {
     let valid = spectrum(&[(2.0, 2.0), (0.0, 100.0), (1.0, 1.0)]);
     let mut experiment = MSExperiment {
         spectra: vec![valid.clone(), valid.clone()],
@@ -407,22 +418,43 @@ fn experiment_limits_are_global_and_errors_do_not_partially_commit() {
         .metadata
         .insert("experiment".into(), "keep".into());
     let before = experiment.clone();
-    let shared_work = WindowMower {
+    // Both ceilings are per record, so a configuration that accepts one
+    // spectrum accepts an experiment of any number of copies of it. A run-wide
+    // ledger shrank as the run grew and refused real data: the benchmark's
+    // 1.2 GB Velos run holds 88,434,492 peaks in 43,745 spectra, 88 times the
+    // default million, while its largest spectrum holds 16,766.
+    let tight = WindowMower {
         max_work: 60,
+        work_per_point: 0,
+        max_points: 3,
         ..Default::default()
     };
-    assert!(shared_work.filtered_spectrum(&valid).is_ok());
-    assert!(shared_work.filter_experiment(&mut experiment).is_err());
-    assert_eq!(experiment, before);
-    assert!(
+    assert!(tight.filtered_spectrum(&valid).is_ok());
+    let mut many = before.clone();
+    many.spectra = vec![valid.clone(); 64];
+    tight.filter_experiment(&mut many).unwrap();
+    let expected = tight.filtered_spectrum(&valid).unwrap();
+    assert_eq!(many.spectra, vec![expected; 64]);
+    // A record that exceeds either ceiling on its own is still refused, and the
+    // experiment is left untouched.
+    for config in [
         WindowMower {
-            max_points: 5,
+            max_points: 2,
             ..Default::default()
-        }
-        .filter_experiment(&mut experiment)
-        .is_err()
-    );
-    assert_eq!(experiment, before);
+        },
+        WindowMower {
+            max_work: 20,
+            work_per_point: 0,
+            ..Default::default()
+        },
+        WindowMower {
+            max_points: 0,
+            ..Default::default()
+        },
+    ] {
+        assert!(config.filter_experiment(&mut experiment).is_err());
+        assert_eq!(experiment, before);
+    }
     let mut invalid = before.clone();
     invalid.spectra[1].string_data_arrays[0].data.pop();
     let saved = invalid.clone();
@@ -439,4 +471,60 @@ fn experiment_limits_are_global_and_errors_do_not_partially_commit() {
     assert_eq!(experiment.spectra, vec![expected.clone(), expected]);
     assert_eq!(experiment.chromatograms, before.chromatograms);
     assert_eq!(experiment.settings.metadata, before.settings.metadata);
+}
+
+/// The work a spectrum can cost is bounded by its own point count, and the
+/// defaults admit the largest spectrum of a real run.
+///
+/// Sliding cost is `Θ(n · w)` for mean window occupancy `w`, and `w` is set by
+/// the data, not by `n`: peaks spread over about twice the window width put
+/// `n/2` points in each of `n/2` windows, which is quadratic. The ceiling is
+/// `max_work + work_per_point * n`, so such a spectrum is refused after work
+/// linear in its own size instead of running to completion, while a spectrum of
+/// the same point count at a realistic occupancy is accepted. The accepted case
+/// under the defaults is the largest spectrum of the benchmark's 1.2 GB LTQ
+/// Orbitrap Velos run: 16,766 peaks over about 1,800 Th.
+#[test]
+fn work_is_bounded_by_the_point_count_and_the_defaults_admit_a_real_spectrum() {
+    let over = |count: u32, span: f64| -> Vec<(f64, f32)> {
+        (0..count)
+            .map(|i| {
+                (
+                    200.0 + f64::from(i) * span / f64::from(count),
+                    i as f32 + 1.0,
+                )
+            })
+            .collect()
+    };
+    assert!(
+        WindowMower::default()
+            .retained_indices(&spectrum(&over(16_766, 1_800.0)))
+            .is_ok()
+    );
+    // A record over the per-spectrum point ceiling is refused before any work.
+    let huge = MSSpectrum::from_peaks(
+        (0..1_000_001)
+            .map(|i| Peak1D::new(200.0 + f64::from(i) * 1e-3, 1.0))
+            .collect(),
+    );
+    assert!(WindowMower::default().retained_indices(&huge).is_err());
+
+    // Same point count, same ceiling: occupancy alone decides. At 1,024 units
+    // per point a 2,000-peak spectrum may spend 2,048,000; spread over 1,800 Th
+    // it needs about a quarter of that, packed into 100 Th about twice it.
+    let ceiling = WindowMower {
+        max_work: 0,
+        work_per_point: 1_024,
+        ..Default::default()
+    };
+    assert!(
+        ceiling
+            .retained_indices(&spectrum(&over(2_000, 1_800.0)))
+            .is_ok()
+    );
+    assert!(
+        ceiling
+            .retained_indices(&spectrum(&over(2_000, 100.0)))
+            .is_err()
+    );
 }
