@@ -12,6 +12,13 @@
 //! The type is re-exported as
 //! [`crate::processing::peak_picking::CubicSpline2d`] because the peak picker
 //! and the retention-time transformations were its first consumers.
+//!
+//! A caller that builds one spline reaches for [`CubicSpline2d::new`]. A caller
+//! that builds millions in a loop — the peak picker fits one natural cubic
+//! spline per candidate centroid — should reach for [`CubicSpline2dFitter`]
+//! instead, which hoists the eight heap allocations of a construction out of
+//! the loop and reuses one set of buffers. Both paths run the same recurrence,
+//! so they produce the same coefficients bit for bit.
 
 use crate::processing::spline::bisection::SplineFunction;
 use crate::{Error, Result};
@@ -24,6 +31,118 @@ fn checked(value: f64) -> Result<f64> {
             "cubic spline arithmetic is not finite".into(),
         ))
     }
+}
+
+/// Reset `buffer` to `len` zeroes, reusing its allocation when it has room.
+///
+/// Both callers of [`fit_into`] normally hand it a buffer that already has
+/// room, so the second arm is the one that runs and it is a truncation and a
+/// fill. The explicit capacity test is what makes that arm cheap: it tells the
+/// optimiser the `resize` cannot grow, which removes the reallocation path and
+/// its drop glue from the straight-line code. Dropping the test and calling
+/// `resize` unconditionally measured 296 more instructions per spline on *both*
+/// paths — 63.5 M over the 214 780 supports of the profiling slice — even
+/// though the growth it guards against never happened.
+fn zeroed(buffer: &mut Vec<f64>, len: usize) {
+    buffer.clear();
+    if buffer.capacity() < len {
+        *buffer = vec![0.0; len];
+    } else {
+        buffer.resize(len, 0.0);
+    }
+}
+
+/// The shape check — matching lengths, at least two knots, at most
+/// `max_points` — returning the segment count `x.len() - 1`.
+///
+/// Four comparisons and no pass over the values, so both entry points run it
+/// and [`CubicSpline2d::with_max_points`] runs it twice: it needs the knot
+/// count to size its buffers, and the ceiling is what bounds their size. It is
+/// also where [`fit_into`] learns `x.len() == y.len() == n + 1`, which is what
+/// lets the recurrence below index both without a bounds check, so moving it
+/// out of `fit_into` costs more than repeating it.
+fn checked_shape(x: &[f64], y: &[f64], max_points: usize) -> Result<usize> {
+    if x.len() != y.len() || x.len() < 2 || max_points < 2 || x.len() > max_points {
+        return Err(Error::InvalidValue(
+            "spline needs matching arrays of 2..=max_points knots".into(),
+        ));
+    }
+    Ok(x.len() - 1)
+}
+
+/// The recurrence, written once and shared by [`CubicSpline2d::with_max_points`]
+/// and [`CubicSpline2dFitter::fit_with_max_points`].
+///
+/// It validates its own input, so neither entry point may skip a check.
+///
+/// `h`, `mu` and `z` are the sweep's working vectors and `out` receives the
+/// knots and the four coefficient vectors; all eight are cleared and refilled,
+/// and none is reallocated when it already has room. The one-shot entry point
+/// sizes fresh vectors so that is true on its first and only fit; a fitter
+/// reaches it once the first few fits have grown its buffers to the largest
+/// support it has seen.
+///
+/// The arithmetic, its operand order and its per-intermediate finiteness checks
+/// are the C++ `CubicSpline2d::init_` term by term; nothing here may be
+/// reassociated.
+fn fit_into(
+    x: &[f64],
+    y: &[f64],
+    max_points: usize,
+    h: &mut Vec<f64>,
+    mu: &mut Vec<f64>,
+    z: &mut Vec<f64>,
+    out: &mut CubicSpline2d,
+) -> Result<()> {
+    let n = checked_shape(x, y, max_points)?;
+    if x.iter().chain(y).any(|v| !v.is_finite()) {
+        return Err(Error::InvalidValue("spline knots must be finite".into()));
+    }
+    if x.windows(2).any(|p| p[0] >= p[1]) {
+        return Err(Error::InvalidValue(
+            "spline coordinates must be strictly increasing".into(),
+        ));
+    }
+    h.clear();
+    h.extend(x.windows(2).map(|p| p[1] - p[0]));
+    if h.iter().any(|v| !v.is_finite()) {
+        return Err(Error::InvalidValue("spline knot spacing overflows".into()));
+    }
+    zeroed(mu, n);
+    zeroed(z, n);
+    for i in 1..n {
+        let span = checked(x[i + 1] - x[i - 1])?;
+        let l = checked(2.0 * span - h[i - 1] * mu[i - 1])?;
+        mu[i] = checked(h[i] / l)?;
+        z[i] = checked(
+            (3.0 * (y[i + 1] * h[i - 1] - y[i] * span + y[i - 1] * h[i]) / (h[i - 1] * h[i])
+                - h[i - 1] * z[i - 1])
+                / l,
+        )?;
+    }
+    // `mu[0]`, `z[0]` and `c[n]` are never written by either loop, so the zero
+    // fills above and below are what makes them the zeroes the recurrence and
+    // the natural boundary condition read back.
+    let CubicSpline2d {
+        x: knots,
+        a,
+        b,
+        c,
+        d,
+    } = out;
+    zeroed(b, n);
+    zeroed(c, n + 1);
+    zeroed(d, n);
+    for j in (0..n).rev() {
+        c[j] = checked(z[j] - mu[j] * c[j + 1])?;
+        b[j] = checked((y[j + 1] - y[j]) / h[j] - h[j] * (c[j + 1] + 2.0 * c[j]) / 3.0)?;
+        d[j] = checked((c[j + 1] - c[j]) / (3.0 * h[j]))?;
+    }
+    knots.clear();
+    knots.extend_from_slice(x);
+    a.clear();
+    a.extend_from_slice(&y[..n]);
+    Ok(())
 }
 
 /// Natural cubic-spline interpolation of a 2D data set.
@@ -106,56 +225,47 @@ impl CubicSpline2d {
     /// `max_points` must be at least two. Native addition; see
     /// [`CubicSpline2d::MAX_POINTS`].
     ///
+    /// Each call allocates the eight vectors the construction needs, sized
+    /// exactly, as soon as the knot ceiling that bounds them has been checked —
+    /// so an input that is rejected for a non-finite or a non-increasing
+    /// abscissa allocates and frees at most `max_points` knots' worth first,
+    /// where the previous revision of this function allocated nothing. A caller
+    /// in a loop should use [`CubicSpline2dFitter`] instead, which allocates
+    /// once and returns the same spline.
+    ///
     /// # Errors
     ///
     /// As [`CubicSpline2d::new`], and additionally when `x` holds more than
     /// `max_points` knots.
     pub fn with_max_points(x: &[f64], y: &[f64], max_points: usize) -> Result<Self> {
-        if x.len() != y.len() || x.len() < 2 || max_points < 2 || x.len() > max_points {
-            return Err(Error::InvalidValue(
-                "spline needs matching arrays of 2..=max_points knots".into(),
-            ));
+        let n = checked_shape(x, y, max_points)?;
+        let mut h = Vec::with_capacity(n);
+        let mut mu = Vec::with_capacity(n);
+        let mut z = Vec::with_capacity(n);
+        let mut out = Self {
+            x: Vec::with_capacity(n + 1),
+            a: Vec::with_capacity(n),
+            b: Vec::with_capacity(n),
+            c: Vec::with_capacity(n + 1),
+            d: Vec::with_capacity(n),
+        };
+        fit_into(x, y, max_points, &mut h, &mut mu, &mut z, &mut out)?;
+        Ok(out)
+    }
+
+    /// An empty placeholder for [`CubicSpline2dFitter`] to fill in.
+    ///
+    /// Private, and never observable: the fitter is the only thing that holds
+    /// one, and it hands out a reference only after a fit has succeeded, so no
+    /// caller can reach a `CubicSpline2d` whose knot vector is empty.
+    fn unfitted() -> Self {
+        Self {
+            x: Vec::new(),
+            a: Vec::new(),
+            b: Vec::new(),
+            c: Vec::new(),
+            d: Vec::new(),
         }
-        if x.iter().chain(y).any(|v| !v.is_finite()) {
-            return Err(Error::InvalidValue("spline knots must be finite".into()));
-        }
-        if x.windows(2).any(|p| p[0] >= p[1]) {
-            return Err(Error::InvalidValue(
-                "spline coordinates must be strictly increasing".into(),
-            ));
-        }
-        let n = x.len() - 1;
-        let h: Vec<_> = x.windows(2).map(|p| p[1] - p[0]).collect();
-        if h.iter().any(|v| !v.is_finite()) {
-            return Err(Error::InvalidValue("spline knot spacing overflows".into()));
-        }
-        let mut mu = vec![0.0; n];
-        let mut z = vec![0.0; n];
-        for i in 1..n {
-            let span = checked(x[i + 1] - x[i - 1])?;
-            let l = checked(2.0 * span - h[i - 1] * mu[i - 1])?;
-            mu[i] = checked(h[i] / l)?;
-            z[i] = checked(
-                (3.0 * (y[i + 1] * h[i - 1] - y[i] * span + y[i - 1] * h[i]) / (h[i - 1] * h[i])
-                    - h[i - 1] * z[i - 1])
-                    / l,
-            )?;
-        }
-        let mut b = vec![0.0; n];
-        let mut c = vec![0.0; n + 1];
-        let mut d = vec![0.0; n];
-        for j in (0..n).rev() {
-            c[j] = checked(z[j] - mu[j] * c[j + 1])?;
-            b[j] = checked((y[j + 1] - y[j]) / h[j] - h[j] * (c[j + 1] + 2.0 * c[j]) / 3.0)?;
-            d[j] = checked((c[j + 1] - c[j]) / (3.0 * h[j]))?;
-        }
-        Ok(Self {
-            x: x.to_vec(),
-            a: y[..n].to_vec(),
-            b,
-            c,
-            d,
-        })
     }
 
     /// Build the spline from unordered `(x, y)` knots, the port of the C++
@@ -338,6 +448,122 @@ impl CubicSpline2d {
     }
 }
 
+/// Reusable storage for fitting many [`CubicSpline2d`]s in a loop.
+///
+/// [`CubicSpline2d::with_max_points`] allocates eight vectors per call — the
+/// three working vectors of the recurrence (`h`, `mu`, `z`), the four
+/// coefficient vectors (`a`, `b`, `c`, `d`) and a copy of the knots — and frees
+/// them when the spline is dropped. That is the right trade for a caller that
+/// wants one spline. It is the wrong trade for the peak picker, which fits one
+/// spline per candidate centroid over a handful of knots and throws it away
+/// immediately: the profiling of an instrument-scale profile run put
+/// `alloc::alloc` at 46 % of the instructions the construction costs.
+///
+/// A fitter owns those eight buffers, so a loop that keeps one across
+/// iterations allocates only while the buffers grow to the largest support it
+/// has seen, and not at all afterwards. The spline is handed back by reference
+/// and stays valid until the next [`fit`](CubicSpline2dFitter::fit). Replaying
+/// the benchmark run's supports — 13 856 120 of them, three to twenty-one knots
+/// each — the fitter runs the whole construct-and-bisect loop on 31 % fewer
+/// instructions than constructing each spline does, and that is the whole of
+/// the difference: the recurrence is the same code. `docs/CUBIC_SPLINE2D_SUPPORT.md`
+/// has the numbers.
+///
+/// Native addition: the C++ has no equivalent, and allocates per construction.
+///
+/// # Bit-identity
+///
+/// A fitter runs the same recurrence in the same order on the same inputs as
+/// [`CubicSpline2d::new`], so every knot and every coefficient agrees bit for
+/// bit. Reuse only changes where the memory comes from, and the three vector
+/// entries the recurrence reads without writing — `mu[0]`, `z[0]` and the
+/// trailing `c[n]` that carries the natural boundary condition — are zeroed on
+/// every fit, not merely on the first.
+///
+/// # Examples
+///
+/// ```
+/// use openms::processing::spline::{CubicSpline2d, CubicSpline2dFitter};
+///
+/// let mut fitter = CubicSpline2dFitter::new();
+/// let x = [0.0, 1.0, 2.0, 3.0];
+/// for scale in [1.0_f64, 2.0, 3.0] {
+///     let y: Vec<f64> = x.iter().map(|v| scale * v * v).collect();
+///     // The second and later fits reuse the first fit's allocations.
+///     let spline = fitter.fit(&x, &y)?;
+///     assert_eq!(spline.eval(1.5)?, CubicSpline2d::new(&x, &y)?.eval(1.5)?);
+/// }
+/// # Ok::<(), openms::Error>(())
+/// ```
+#[derive(Clone, Debug)]
+pub struct CubicSpline2dFitter {
+    h: Vec<f64>,
+    mu: Vec<f64>,
+    z: Vec<f64>,
+    spline: CubicSpline2d,
+}
+
+impl CubicSpline2dFitter {
+    /// An empty fitter, holding no buffers yet.
+    ///
+    /// The buffers are grown by the first [`fit`](CubicSpline2dFitter::fit), so
+    /// constructing one costs nothing and a fitter that is never used never
+    /// allocates.
+    pub fn new() -> Self {
+        Self {
+            h: Vec::new(),
+            mu: Vec::new(),
+            z: Vec::new(),
+            spline: CubicSpline2d::unfitted(),
+        }
+    }
+
+    /// Fit the spline through `x` / `y`, with at most
+    /// [`CubicSpline2d::MAX_POINTS`] knots.
+    ///
+    /// The returned reference borrows the fitter until it is dropped; the next
+    /// fit overwrites the spline in place.
+    ///
+    /// # Errors
+    ///
+    /// Exactly those of [`CubicSpline2d::new`], with the same messages. A failed
+    /// fit leaves the fitter usable — the next fit refills every buffer — but
+    /// discards the previous spline.
+    pub fn fit(&mut self, x: &[f64], y: &[f64]) -> Result<&CubicSpline2d> {
+        self.fit_with_max_points(x, y, CubicSpline2d::MAX_POINTS)
+    }
+
+    /// Fit the spline through `x` / `y` with an explicit knot ceiling.
+    ///
+    /// # Errors
+    ///
+    /// Exactly those of [`CubicSpline2d::with_max_points`], with the same
+    /// messages.
+    pub fn fit_with_max_points(
+        &mut self,
+        x: &[f64],
+        y: &[f64],
+        max_points: usize,
+    ) -> Result<&CubicSpline2d> {
+        fit_into(
+            x,
+            y,
+            max_points,
+            &mut self.h,
+            &mut self.mu,
+            &mut self.z,
+            &mut self.spline,
+        )?;
+        Ok(&self.spline)
+    }
+}
+
+impl Default for CubicSpline2dFitter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SplineFunction for CubicSpline2d {
     fn eval(&self, x: f64) -> Result<f64> {
         CubicSpline2d::eval(self, x)
@@ -441,6 +667,102 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn a_reused_fitter_agrees_with_a_fresh_construction_bit_for_bit() {
+        let (ux, uy) = upstream();
+        // Deliberately mixed knot counts, shrinking as well as growing, so a
+        // stale tail from a longer previous fit would show up.
+        let cases: Vec<(Vec<f64>, Vec<f64>)> = (2..=ux.len())
+            .chain((2..=ux.len()).rev())
+            .chain([3, 11, 2, 7])
+            .map(|k| (ux[..k].to_vec(), uy[..k].to_vec()))
+            .collect();
+        let mut fitter = CubicSpline2dFitter::new();
+        for (x, y) in &cases {
+            let fresh = CubicSpline2d::new(x, y).unwrap();
+            let reused = fitter.fit(x, y).unwrap();
+            assert_eq!(reused.x, fresh.x);
+            assert_eq!(reused.a, fresh.a);
+            assert_eq!(reused.b, fresh.b);
+            assert_eq!(reused.c, fresh.c);
+            assert_eq!(reused.d, fresh.d);
+        }
+    }
+
+    /// Real supports the peak picker fed to this type on the benchmark run,
+    /// stratified by knot count; the file header records where they came from.
+    const PICKER_SUPPORTS: &str =
+        include_str!("../../../tests/data/cubic_spline_picker_supports.tsv");
+
+    fn picker_supports() -> Vec<(Vec<f64>, Vec<f64>)> {
+        PICKER_SUPPORTS
+            .lines()
+            .filter(|line| !line.starts_with('#') && !line.is_empty())
+            .map(|line| {
+                let mut fields = line.split('\t');
+                let k: usize = fields.next().unwrap().parse().unwrap();
+                let values: Vec<f64> = fields.map(|v| v.parse().unwrap()).collect();
+                assert_eq!(values.len(), 2 * k, "malformed row: {line}");
+                (values[..k].to_vec(), values[k..].to_vec())
+            })
+            .collect()
+    }
+
+    /// The replay this fixture is a sample of was run at full scale: all
+    /// 13 856 120 splines the benchmark run constructs were fitted both ways and
+    /// every knot and coefficient of every one agreed, 4 580 021 720 bytes
+    /// hashing to `53d8531925a4f83e52c409307769830ab8f4edb5ecbebf834117833b664c91c8`
+    /// for the one-shot and the reused path alike. This keeps a sample of that
+    /// in the suite.
+    #[test]
+    fn a_reused_fitter_replays_real_picker_supports_coefficient_for_coefficient() {
+        let cases = picker_supports();
+        assert!(cases.len() > 100, "fixture is too small to be meaningful");
+        let mut sizes = std::collections::BTreeSet::new();
+        let mut fitter = CubicSpline2dFitter::new();
+        for (x, y) in &cases {
+            sizes.insert(x.len());
+            let fresh = CubicSpline2d::new(x, y).unwrap();
+            let reused = fitter.fit(x, y).unwrap();
+            assert_eq!(reused.x, fresh.x);
+            assert_eq!(reused.a, fresh.a);
+            assert_eq!(reused.b, fresh.b);
+            assert_eq!(reused.c, fresh.c);
+            assert_eq!(reused.d, fresh.d);
+        }
+        // The supports the picker builds are small and their size varies from
+        // peak to peak; both facts are what make buffer reuse worth having, and
+        // a fixture that had lost either would stop testing the interesting case.
+        assert!(
+            sizes.len() >= 8 && *sizes.iter().next().unwrap() == 3,
+            "fixture lost its knot-count spread: {sizes:?}"
+        );
+    }
+
+    #[test]
+    fn a_failed_fit_leaves_the_fitter_usable_and_reports_the_same_errors() {
+        let (x, y) = upstream();
+        let mut fitter = CubicSpline2dFitter::new();
+        fitter.fit(&x, &y).unwrap();
+        for (bad_x, bad_y) in [
+            (vec![1.0, 0.0, 2.0], vec![1.0, 2.0, 3.0]),
+            (vec![1.0], vec![1.0]),
+            (vec![1.0, 2.0], vec![1.0]),
+            (vec![0.0, 1.0, 1.0, 2.0], vec![0.0, 1.0, 2.0, 3.0]),
+            (vec![0.0, 1.0], vec![0.0, f64::NAN]),
+        ] {
+            let fresh = CubicSpline2d::new(&bad_x, &bad_y).unwrap_err();
+            let reused = fitter.fit(&bad_x, &bad_y).unwrap_err();
+            assert_eq!(reused.to_string(), fresh.to_string());
+        }
+        assert!(fitter.fit_with_max_points(&x, &y, 3).is_err());
+        // After five rejections the next good fit is still the right spline.
+        assert_eq!(
+            fitter.fit(&x, &y).unwrap().eval(486.785).unwrap(),
+            35173.18417789844
+        );
     }
 
     #[test]

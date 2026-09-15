@@ -7,6 +7,17 @@
  "scope": "Sources and fixtures come from the independently versioned OpenMS4-cli, OpenMS4-topp and OpenMS4-test-data packages; they are deliberately not resolved against the Core SDK checkout.",
  "method": "Tool transcribed from the pinned C++. The upstream invocation is reproduced against the retained C++ output and compared canonically: the upstream ${DIFF} runs with an index whitelist, so byte equality was never the contract.",
  "evidence_tier": "executed differential (tier 1), canonical comparison against retained C++ tool output",
+ "real_data_differential": {
+  "date": "2026-09-15",
+  "host": "dax (AMD EPYC, Linux)",
+  "cpp_build": "openms4-release-bc9cc12-c19e494-174b576 (core bc9cc12, cli c19e494, topp 174b576)",
+  "input": "/ceph/ibmi/abi/oliver/bench/openms4/inputs/centroid_lcms_velos_pxd001819_50amol_r1/50amol_R1.mzML (1,197,928,823 bytes, 43,745 spectra, 88,434,492 peaks), and the 5,000-spectrum derived slice sub_centroid_uk222_picked_first5000.mzML (2,139,727 peaks), and the 547 MB Q Exactive run centroid_lcms_qe_silac_uk222_picked/UK222_picked.mzML (40,856 spectra)",
+  "invocation": "-ini <benchmark SpectraFilterWindowMower.ini: windowsize 50.0, peakcount 2, movetype slide> -in <input> -out <output> -threads 1",
+  "purpose": "The port refused both inputs with exit 6, 'Invalid parameter: invalid value: invalid window mower limits or input point limit exceeded'. WindowMower charged its point and work ceilings across the whole map, so the run-wide million-peak ceiling was exceeded 88-fold by a run whose largest spectrum holds 16,766 points. Two run-wide ledgers had to become per-record: the point/work ceiling and the processing metadata-copy ledger. Raising the point ceiling alone is not enough - a build differing only in running the copy ledger once over the run still fails with 'data array description resource limit exceeded' (exit 6) after 442.68 s on this input and after 67.04 s on the 40,856-spectrum UK222_picked.mzML.",
+  "result": "Full run: decoded comparison with the benchmark harness's equiv.py gives 43,745 spectrum pairs and 1 chromatogram pair, 87,492 binary arrays compared, 87,492 bitwise equal, no peak-count mismatch. 5,000-spectrum slice: 5,000 spectrum pairs, 10,000 arrays, 10,000 bitwise equal. Remaining metadata differences are the pre-existing identifier-spelling and processing-provenance class recorded by the 2026-09-15 benchmark. UK222_picked run: 40,856 spectrum pairs and 1 chromatogram pair, 81,714 arrays compared, 81,714 bitwise equal, no peak-count mismatch.",
+  "wall_and_peak_rss": "full run: port 452.86 s / 3,640,320 KiB at 1 thread and 450.14 s / 3,618,816 KiB at 32 threads; C++ 614.75 s / 1,545,216 KiB at 1 thread. 5,000-spectrum slice: port 7.20 s / 153,600 KiB, C++ 9.90 s / 104,448 KiB. The node was shared, so treat the times as indicative. UK222_picked run: port 71.68 s / 1,376,256 KiB, C++ 96.56 s / 494,592 KiB, both at 1 thread.",
+  "thread_invariance": "Full-run output at 1 and 32 threads: 87,492 of 87,492 arrays bitwise equal; the only differences are the tool's own recorded -out and -threads values."
+ },
  "sources": [
   {
    "path": "OpenMS4-tests/packages/topp/src/SpectraFilterWindowMower.cpp",

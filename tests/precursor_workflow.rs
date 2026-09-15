@@ -225,7 +225,7 @@ fn mzml_acquisition_parser_rejects_conflicting_fields_units_and_nesting() {
 
 #[cfg(feature = "mzml")]
 #[test]
-fn mzml_writer_rejects_unrepresented_precursor_fields_and_missing_reference_atomically() {
+fn mzml_writer_rejects_unrepresented_precursor_fields_atomically() {
     use openms::format::mzml;
     let e = experiment();
     let mut cases = Vec::new();
@@ -239,9 +239,19 @@ fn mzml_writer_rejects_unrepresented_precursor_fields_and_missing_reference_atom
         ..Default::default()
     });
     cases.push(chromatogram);
-    let mut v = e.clone();
-    v.spectra[1].precursors[0].spectrum_reference = Some("scan=999".into());
-    cases.push(v);
+    // A reference that names no spectrum of this document is not one of them:
+    // source `MzMLHandler::writePrecursor_` emits the `spectrum_ref` meta value
+    // verbatim and resolves nothing, and `MzMLSplitter` relies on that for
+    // every MS2 whose precursor moved to another part. See
+    // `tests/topp_mzml_splitter.rs`.
+    let mut dangling = e.clone();
+    dangling.spectra[1].precursors[0].spectrum_reference = Some("scan=999".into());
+    let mut output = Vec::new();
+    mzml::write(&mut output, &dangling).unwrap();
+    assert_eq!(
+        mzml::read(output.as_slice()).unwrap().spectra[1].precursors[0].spectrum_reference,
+        Some("scan=999".to_owned())
+    );
     let mut v = e.clone();
     v.spectra[1].precursors[0].drift_window_lower_offset = 0.1;
     cases.push(v);

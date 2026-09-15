@@ -89,13 +89,37 @@ written fixtures are separate validation evidence.
 
 ## Bounds and verification
 
-`ReadOptions` contains `feature_options` and `Limits`; `WriteOptions` contains
-`Limits`. Defaults are 64 MiB XML, one million elements and list items, 128
-subordinate levels, 50 million work units, and 256 MiB conservative cumulative
-payload allowance. Work and payload are charged before geometry/metadata copies,
-registry copies and identification conversion. Parsing, registry work, and
-conversion use shared counters; limits apply to the whole operation, including
-all subordinates. Native allocation and output checks precede materialization.
+`ReadOptions` contains `feature_options`, `Limits` and `InputScaling`;
+`WriteOptions` contains `Limits` and `OutputScaling`. `Limits` holds the
+absolute ceilings and the scalings hold their growth with the size of the work:
+the effective ceiling is the smaller of the two, and every absolute ceiling but
+`max_xml_bytes` (8 GiB) and `max_depth` (128 subordinate levels) defaults to
+unbounded so the size-derived allowance decides. The reader's allowances are
+`floor + rate * decoded bytes` with the former fixed ceilings as floors — one
+million elements and list items, 50 million work units, 256 MiB of payload — so
+a small document is bounded exactly as before while a real one is admitted. The
+writer's grow with the counted size of the map instead: features, hull points,
+identifications, identification hits and metadata entries. `Limits::former()`
+with `InputScaling::fixed()` or `OutputScaling::fixed()` restores the former
+fixed behaviour.
+
+Work and payload are charged before geometry/metadata copies, registry copies
+and identification conversion. Parsing, registry work, and conversion use shared
+counters; limits apply to the whole operation, including all subordinates.
+Native allocation and output checks precede materialization; an allocation the
+host cannot satisfy is a checked error rather than an abort.
+
+Features are converted as the parser finishes each one rather than after the
+whole document is in memory, so the parse tree is the size of one feature. The
+`featureMap` header is interpreted from the children that precede `featureList`,
+which FeatureXML_1_9.xsd places last; a root child after `featureList` is
+therefore refused (`featureMap content after featureList`) rather than read too
+late to inform any feature.
+
+`docs/FEATUREXML_SCALE_SUPPORT.md` records the ceiling that was there, the
+measured charges the rates are derived from, and wall time and peak memory
+against the C++ `FileInfo` on the 59.6 MiB and 2.06 GiB benchmark featureXML
+files.
 
 Reads produce an owned draft; `read_into` and `load_into` replace their target
 only after success. Writers prepare and validate the complete output before
@@ -105,7 +129,10 @@ that external stream; atomic file replacement is provided by `store`.
 [Focused tests](../tests/featurexml.rs) use three byte-identical upstream fixtures
 and independent boundary cases. [Provenance](../tests/data/featurexml_provenance.json)
 pins source files, schemas and fixture SHA-256 hashes. No C++ build or execution
-is used as an oracle.
+is used as an oracle for field semantics; the executed C++ `FileInfo` is used
+only as the scale reference in `docs/FEATUREXML_SCALE_SUPPORT.md`, which the
+`#[ignore]`d `hpc_scale_benchmark_featurexml_files_load_and_round_trip` checks
+against by reading the benchmark files by path.
 
 The source file loader also accepts ZIP archives. ZIP input is not yet supported
 by the native shared path transport and remains an explicit completion gap.

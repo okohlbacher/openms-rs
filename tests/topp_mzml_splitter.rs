@@ -19,7 +19,7 @@ use openms::cli::{ExitCode, run_with};
 use openms::data_structures::DateTime;
 use openms::format::file_handler::FileHandler;
 use openms::format::file_types::FileType;
-use openms::kernel::{MSExperiment, MSSpectrum};
+use openms::kernel::{MSExperiment, MSSpectrum, Precursor};
 use openms::system::file::TempDir;
 use std::path::{Path, PathBuf};
 
@@ -193,6 +193,74 @@ fn every_record_is_placed_exactly_once() {
         }
         let expected: Vec<String> = whole.spectra.iter().map(|s| s.native_id.clone()).collect();
         assert_eq!(seen, expected, "parts={parts} lost or reordered records");
+    }
+}
+
+/// Every part of a run whose MS2 precursors stay behind in an earlier part is
+/// written, with the reference kept as it stands.
+///
+/// The tool moves whole spectra into parts, so any MS2 whose precursor spectrum
+/// landed in an earlier part carries a `spectrumRef` out of its own part.
+/// Source `MzMLHandler::writePrecursor_` (`MzMLHandler.cpp:4535-4547` at core
+/// bc9cc12) emits the `spectrum_ref` meta value verbatim and resolves nothing,
+/// so the C++ tool writes those parts: on the benchmark's 1.2 GB LTQ Orbitrap
+/// Velos run (43,745 spectra, `-parts 4`) its part 2 of 4 carries four
+/// references to `scan=10929`, which part 1 holds. The port used to refuse the
+/// whole tool at part 2 with exit 3 and "precursor spectrum reference does not
+/// name an output spectrum", after writing part 1.
+#[test]
+fn a_precursor_reference_that_leaves_the_part_is_written_as_it_stands() {
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let dir = temp.path();
+    // Every spectrum after the first is an MS2 naming the one before it, so
+    // every part boundary cuts a precursor reference.
+    let mut whole = load(fixture("mzml_splitter_input.mzML"));
+    let references: Vec<String> = whole
+        .spectra
+        .iter()
+        .map(|s| s.native_id.clone())
+        .take(whole.spectra.len() - 1)
+        .collect();
+    for (spectrum, reference) in whole.spectra.iter_mut().skip(1).zip(&references) {
+        let mut precursor = Precursor::new(500.0, 2);
+        precursor.spectrum_reference = Some(reference.clone());
+        spectrum.ms_level = 2;
+        spectrum.precursors = vec![precursor];
+    }
+    let input = dir.join("chained.mzML");
+    FileHandler::store_experiment(&input, &whole, Some(FileType::MzMl)).unwrap();
+
+    for parts in [2usize, 5] {
+        let arguments = [
+            "MzMLSplitter",
+            "-test",
+            "-in",
+            &input.to_string_lossy(),
+            "-out",
+            &dir.join(format!("chained{parts}")).to_string_lossy(),
+            "-parts",
+            &parts.to_string(),
+        ]
+        .map(str::to_owned);
+        let (mut out, mut err) = (Vec::new(), Vec::new());
+        assert_eq!(
+            run_with::<MzMLSplitter>(&arguments, &mut out, &mut err),
+            ExitCode::ExecutionOk,
+            "parts={parts}: {}",
+            String::from_utf8_lossy(&err)
+        );
+        let width = parts.to_string().len();
+        let seen: Vec<Option<String>> = (1..=parts)
+            .flat_map(|part| {
+                load(dir.join(format!("chained{parts}_part{part:0width$}of{parts}.mzML")))
+                    .spectra
+                    .into_iter()
+                    .flat_map(|s| s.precursors)
+                    .map(|p| p.spectrum_reference)
+            })
+            .collect();
+        let expected: Vec<Option<String>> = references.iter().cloned().map(Some).collect();
+        assert_eq!(seen, expected, "parts={parts}: precursor references");
     }
 }
 

@@ -1,6 +1,9 @@
 #![cfg(feature = "featurexml")]
 use openms::format::FileType;
-use openms::format::featurexml::{self, FeatureFileOptions, Limits, ReadOptions, WriteOptions};
+use openms::format::featurexml::{
+    self, Allowance, FeatureFileOptions, InputScaling, Limits, OutputScaling, ReadOptions,
+    WriteOptions,
+};
 use openms::kernel::{ConvexHull2D, Feature, FeatureMap, Point2D};
 use openms::metadata::{MetaValue, ProcessingAction};
 
@@ -346,7 +349,15 @@ fn bounded_work_payload_depth_and_records_are_atomic() {
         let mut output = b"untouched".to_vec();
         let source = featurexml::read(SOURCE).unwrap();
         assert!(
-            featurexml::write_with_options(&mut output, &source, &WriteOptions { limits }).is_err()
+            featurexml::write_with_options(
+                &mut output,
+                &source,
+                &WriteOptions {
+                    limits,
+                    ..Default::default()
+                }
+            )
+            .is_err()
         );
         assert_eq!(output, b"untouched");
     }
@@ -385,6 +396,7 @@ fn unsupported_software_payload_is_rejected_before_copying_or_validation() {
                     max_payload_bytes: 0,
                     ..Default::default()
                 },
+                ..Default::default()
             },
             &ModificationsDB::default(),
         )
@@ -606,4 +618,315 @@ fn portable_definitions_cover_assigned_subordinate_and_unassigned_ids() {
     for name in ["FeatureLabA", "FeatureLabB", "FeatureLabC"] {
         assert!(definitions.contains(name));
     }
+}
+
+// --- Size-derived ceilings -------------------------------------------------
+//
+// The reader's ceilings used to be fixed, which made the effective input
+// ceiling 12,500,000 bytes: `max_xml_bytes` (64 MiB) reduced by
+// `max_payload_bytes / 8` and by `max_work / 4`. These pin the former
+// behaviour, the growth that replaced it, and that a document still cannot buy
+// more than its own size earns. See `docs/FEATUREXML_SCALE_SUPPORT.md`.
+
+/// The former fixed ceilings, exactly as this adapter applied them.
+fn former() -> ReadOptions {
+    ReadOptions {
+        limits: Limits::former(),
+        scaling: InputScaling::default().fixed(),
+        ..Default::default()
+    }
+}
+
+/// A valid one-feature document padded to `bytes` with an XML comment, which
+/// costs the reader one event however long it is.
+fn padded(bytes: usize) -> Vec<u8> {
+    let head = b"<featureMap version=\"1.9\"><!--".to_vec();
+    let tail = b"--><featureList count=\"1\"><feature id=\"f_7\"><position dim=\"0\">1</position><position dim=\"1\">2</position><intensity>3</intensity></feature></featureList></featureMap>".to_vec();
+    let mut document = head;
+    document.resize(bytes.saturating_sub(tail.len()), b'.');
+    document.extend_from_slice(&tail);
+    document
+}
+
+#[test]
+fn the_former_fixed_ceilings_still_refuse_exactly_what_they_refused() {
+    // The benchmark's FileInfo failed on the 59.6 MiB featureXML with
+    // "identification XML byte limit exceeded" because the former fixed
+    // ceilings made the decode limit min(64 MiB, 256 MiB / 8, 50,000,000 / 4)
+    // = 12,500,000 bytes, four work units per decoded byte out of 50,000,000
+    // being the binding term. Under `Limits::former()` with fixed scaling a
+    // document of that size is still refused; the decode limit is now
+    // `max_xml_bytes` alone, so the refusal now names the ceiling the coupling
+    // stood in for.
+    let over = padded(12_500_001);
+    assert!(
+        matches!(
+            featurexml::read_with_options(over.as_slice(), &former()),
+            Err(openms::Error::Parse { line: 0, ref message }) if message == "XML work limit exceeded"
+        ),
+        "{:?}",
+        featurexml::read_with_options(over.as_slice(), &former())
+    );
+    // A document the former ceilings did admit is admitted unchanged.
+    let under = padded(12_000_000);
+    assert_eq!(under.len(), 12_000_000);
+    assert_eq!(
+        featurexml::read_with_options(under.as_slice(), &former())
+            .unwrap()
+            .len(),
+        1
+    );
+    // `max_xml_bytes`, the one ceiling nothing can be derived from, still
+    // refuses a document larger than itself, with the benchmark's message.
+    let capped = ReadOptions {
+        limits: Limits {
+            max_xml_bytes: 1_000,
+            ..Limits::former()
+        },
+        scaling: InputScaling::default().fixed(),
+        ..Default::default()
+    };
+    assert!(
+        matches!(
+            featurexml::read_with_options(padded(2_000).as_slice(), &capped),
+            Err(openms::Error::Parse { line: 0, ref message })
+                if message == "identification XML byte limit exceeded"
+        ),
+        "{:?}",
+        featurexml::read_with_options(padded(2_000).as_slice(), &capped)
+    );
+    // The size-derived defaults read the document the former ceilings refused.
+    assert_eq!(featurexml::read(over.as_slice()).unwrap().len(), 1);
+}
+
+#[test]
+fn every_cumulative_ceiling_is_earned_by_the_documents_own_bytes() {
+    let options = |scaling| ReadOptions {
+        scaling,
+        ..Default::default()
+    };
+    // Elements: both documents hold the same six, only their size differs. One
+    // element per 8,192 bytes plus one for free: the short document cannot pay
+    // for its own elements, the padded one can.
+    let records = InputScaling {
+        records: Allowance::every(1, 8_192),
+        ..Default::default()
+    };
+    assert!(featurexml::read_with_options(padded(200).as_slice(), &options(records)).is_err());
+    assert_eq!(
+        featurexml::read_with_options(padded(65_536).as_slice(), &options(records))
+            .unwrap()
+            .len(),
+        1
+    );
+    // Work and payload: 40 MB of document charges more than either former
+    // fixed floor covers, so only the rate can pay for it.
+    let big = padded(40_000_000);
+    for scaling in [
+        InputScaling::default().fixed(),
+        InputScaling {
+            work: Allowance::new(50_000_000, 1),
+            ..Default::default()
+        },
+        InputScaling {
+            payload_bytes: Allowance::new(256 * 1024 * 1024, 0),
+            ..Default::default()
+        },
+    ] {
+        assert!(featurexml::read_with_options(big.as_slice(), &options(scaling)).is_err());
+    }
+    assert_eq!(featurexml::read(big.as_slice()).unwrap().len(), 1);
+}
+
+#[test]
+fn an_absolute_ceiling_still_wins_over_the_size_derived_one() {
+    for limits in [
+        Limits {
+            max_work: 1,
+            ..Default::default()
+        },
+        Limits {
+            max_payload_bytes: 0,
+            ..Default::default()
+        },
+        Limits {
+            max_records: 2,
+            ..Default::default()
+        },
+        Limits {
+            max_xml_bytes: 8,
+            ..Default::default()
+        },
+    ] {
+        assert!(
+            featurexml::read_with_options(
+                SOURCE,
+                &ReadOptions {
+                    limits,
+                    ..Default::default()
+                }
+            )
+            .is_err()
+        );
+    }
+}
+
+#[test]
+fn streamed_features_are_not_retained_and_the_feature_list_must_come_last() {
+    // FeatureXML_1_9.xsd puts featureList last in the featureMap sequence, and
+    // the streaming reader has converted every feature by the time the list
+    // closes, so anything after it could no longer inform them.
+    let trailing = b"<featureMap version=\"1.9\"><featureList count=\"0\"></featureList>\
+                     <UserParam type=\"string\" name=\"late\" value=\"x\"/></featureMap>";
+    let error = featurexml::read(trailing.as_slice()).unwrap_err();
+    assert!(
+        matches!(&error, openms::Error::Unsupported(message)
+            if message == "featureMap content after featureList"),
+        "{error:?}"
+    );
+    // A non-feature child of featureList is still refused.
+    let intruder = b"<featureMap version=\"1.9\"><featureList count=\"0\">\
+                     <UserParam type=\"string\" name=\"x\" value=\"y\"/></featureList></featureMap>";
+    assert!(featurexml::read(intruder.as_slice()).is_err());
+    // An empty list never calls the streaming path, and still reads its header.
+    let empty = b"<featureMap version=\"1.9\" document_id=\"lsid\">\
+                  <featureList count=\"0\"></featureList></featureMap>";
+    let map = featurexml::read(empty.as_slice()).unwrap();
+    assert!(map.is_empty());
+    assert_eq!(map.identifier, "lsid");
+    // Nothing in a document without a featureList can be streamed, so it is
+    // refused before a tree is built rather than held whole.
+    let listless = b"<featureMap version=\"1.9\" document_id=\"lsid\"/>";
+    assert!(
+        matches!(
+            featurexml::read(listless.as_slice()),
+            Err(openms::Error::Parse { line: 0, ref message })
+                if message == "featureMap requires featureList"
+        ),
+        "{:?}",
+        featurexml::read(listless.as_slice())
+    );
+}
+
+#[test]
+fn the_writer_ceiling_is_earned_by_the_map_it_is_given() {
+    let map = featurexml::read(SOURCE).unwrap();
+    let options = |scaling| WriteOptions {
+        scaling,
+        ..Default::default()
+    };
+    let starved = OutputScaling {
+        payload_bytes: Allowance::new(0, 1),
+        ..Default::default()
+    };
+    let fed = OutputScaling {
+        payload_bytes: Allowance::new(0, 1 << 20),
+        ..Default::default()
+    };
+    let mut output = b"untouched".to_vec();
+    assert!(featurexml::write_with_options(&mut output, &map, &options(starved)).is_err());
+    assert_eq!(output, b"untouched");
+    let mut output = Vec::new();
+    featurexml::write_with_options(&mut output, &map, &options(fed)).unwrap();
+    assert_eq!(featurexml::read(output.as_slice()).unwrap(), map);
+}
+
+// --- HPC scale -------------------------------------------------------------
+
+/// The 59.6 MiB `FeatureFinderCentroided` map of the TOPP benchmark inputs.
+const BENCH_SMALL: &str = "/ceph/ibmi/abi/oliver/bench/openms4/inputs/\
+                           featurexml_small_pxd001819_ffc_50amol_r1/UPS1_50amol_R1.featureXML";
+/// The 2.06 GiB `MassTraceExtractor` map of the TOPP benchmark inputs.
+const BENCH_LARGE: &str = "/ceph/ibmi/abi/oliver/bench/openms4/inputs/\
+                           featurexml_large_pxd001819_mte_500amol_r3/UPS1_500amol_R3.featureXML";
+
+/// Closed retention-time, m/z and intensity extremes of `map`, as `FileInfo`
+/// reports them.
+fn extremes(map: &FeatureMap) -> [(f64, f64); 3] {
+    let mut bounds = [(f64::INFINITY, f64::NEG_INFINITY); 3];
+    for feature in &map.features {
+        for (bound, value) in
+            bounds
+                .iter_mut()
+                .zip([feature.rt, feature.mz, f64::from(feature.intensity)])
+        {
+            bound.0 = bound.0.min(value);
+            bound.1 = bound.1.max(value);
+        }
+    }
+    bounds
+}
+
+fn close(value: f64, expected: f64) -> bool {
+    (value - expected).abs() <= 0.005 * expected.abs().max(1.0)
+}
+
+#[test]
+#[ignore = "HPC scale: reads the 59.6 MiB and 2.06 GiB benchmark featureXML files by path"]
+fn hpc_scale_benchmark_featurexml_files_load_and_round_trip() {
+    for path in [BENCH_SMALL, BENCH_LARGE] {
+        assert!(
+            std::path::Path::new(path).exists(),
+            "benchmark input missing: {path}"
+        );
+    }
+    // The 2.06 GiB map, read the way FileInfo reads it: geometry and
+    // subordinate payload skipped. Every number below is the C++ FileInfo
+    // summary of the same file at core bc9cc12.
+    let summary = FeatureFileOptions {
+        load_convex_hulls: false,
+        load_subordinates: false,
+        ..Default::default()
+    };
+    let large = featurexml::load_with_options(BENCH_LARGE, &opts(summary)).unwrap();
+    assert_eq!(large.len(), 826_019);
+    assert_eq!(
+        featurexml::load_size(BENCH_LARGE, &ReadOptions::default()).unwrap(),
+        826_019
+    );
+    let bounds = extremes(&large);
+    for (measured, expected) in bounds.iter().zip([
+        (0.31, 9299.33),
+        (350.08, 1799.98),
+        (827.55, 6_252_709_888.0),
+    ]) {
+        assert!(close(measured.0, expected.0), "{measured:?} {expected:?}");
+        assert!(close(measured.1, expected.1), "{measured:?} {expected:?}");
+    }
+    assert!(large.features.iter().all(|f| f.charge == 0));
+    drop(large);
+
+    // The 59.6 MiB map at full fidelity, geometry included, then a round trip
+    // through the writer, which the former fixed payload ceiling also refused.
+    let small = featurexml::load(BENCH_SMALL).unwrap();
+    assert_eq!(small.len(), 42_789);
+    assert!(
+        small
+            .features
+            .iter()
+            .filter(|f| !f.convex_hulls.is_empty())
+            .count()
+            > 40_000
+    );
+    let bounds = extremes(&small);
+    for (measured, expected) in bounds.iter().zip([
+        (37.42, 9288.61),
+        (350.18, 1792.82),
+        (2758.98, 8_515_100_160.0),
+    ]) {
+        assert!(close(measured.0, expected.0), "{measured:?} {expected:?}");
+        assert!(close(measured.1, expected.1), "{measured:?} {expected:?}");
+    }
+    for (charge, expected) in [(2, 22_869), (3, 16_288), (4, 3_632)] {
+        assert_eq!(
+            small.features.iter().filter(|f| f.charge == charge).count(),
+            expected
+        );
+    }
+    let dir = openms::system::file::TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let path = dir.path().join("hpc-round-trip.featureXML");
+    featurexml::store(&path, &small).unwrap();
+    let restored = featurexml::load(&path).unwrap();
+    assert_eq!(restored.features, small.features);
+    assert_eq!(restored.metadata, small.metadata);
 }

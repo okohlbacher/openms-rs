@@ -12,13 +12,17 @@
 //!
 //! ```text
 //! peak_picking_scale <input.mzML> [--out <output.mzML>] [--in-place]
-//!                                 [--ledger-probe] [--limit <n>]
+//!                                 [--ledger-probe] [--limit <n>] [--threads <n>]
 //! ```
 //!
 //! * `--out` writes the centroided run; without it the harness only digests the
 //!   picked peaks, so that the writer's own cost stays out of the measurement.
 //! * `--in-place` drives [`PeakPickerHiRes::pick_experiment_in_place`] instead of
 //!   [`PeakPickerHiRes::pick_experiment`].
+//! * `--threads` picks on that many workers, as the TOPP `-threads` parameter
+//!   does (`0` means every available core); the default is one. The digest it
+//!   reports is the same at every count, which is the determinism contract of
+//!   `openms::concept::parallel` measured rather than asserted.
 //! * `--ledger-probe` reports the largest spectrum count the acquisition-copy
 //!   ledger admits for this run's metadata, by replicating its metadata-only
 //!   records.
@@ -35,6 +39,7 @@
 /// The harness proper, compiled only where the mzML reader exists.
 #[cfg(feature = "mzml")]
 mod harness {
+    use openms::concept::parallel::Threads;
     use openms::format::mzml;
     use openms::kernel::{MSExperiment, MSSpectrum};
     use openms::processing::peak_picking::{PeakPickerHiRes, PickingCompatibility};
@@ -196,11 +201,19 @@ mod harness {
         let mut input_path = None;
         let mut output_path = None;
         let (mut in_place, mut probe, mut limit) = (false, false, usize::MAX);
+        let mut threads = Threads::serial();
         while let Some(argument) = arguments.next() {
             match argument.as_str() {
                 "--out" => output_path = arguments.next(),
                 "--in-place" => in_place = true,
                 "--ledger-probe" => probe = true,
+                "--threads" => {
+                    threads = arguments
+                        .next()
+                        .and_then(|value| value.parse().ok())
+                        .map(Threads::from_cli)
+                        .ok_or_else(|| Error::InvalidValue("--threads needs a count".into()))?;
+                }
                 "--limit" => {
                     limit = arguments
                         .next()
@@ -211,7 +224,7 @@ mod harness {
             }
         }
         let input_path =
-            input_path.ok_or_else(|| Error::InvalidValue("usage: peak_picking_scale <in.mzML> [--out <out.mzML>] [--in-place] [--ledger-probe] [--limit <n>]".into()))?;
+            input_path.ok_or_else(|| Error::InvalidValue("usage: peak_picking_scale <in.mzML> [--out <out.mzML>] [--in-place] [--ledger-probe] [--limit <n>] [--threads <n>]".into()))?;
 
         let file = std::fs::File::open(&input_path)
             .map_err(|e| Error::InvalidValue(format!("cannot open {input_path}: {e}")))?;
@@ -242,10 +255,10 @@ mod harness {
 
         let picker = picker();
         let picked = if in_place {
-            picker.pick_experiment_in_place(&mut experiment)?;
+            picker.pick_experiment_in_place_with_threads(&mut experiment, threads)?;
             experiment
         } else {
-            let result = picker.pick_experiment(&experiment)?;
+            let result = picker.pick_experiment_with_threads(&experiment, threads)?;
             drop(experiment);
             result.experiment
         };

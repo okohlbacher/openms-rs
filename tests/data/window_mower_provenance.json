@@ -1,10 +1,10 @@
 {
-  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
-  "methodology": "No C++ built or executed. Reuses unchanged existing Transformers_tests.dta fixture for literal source counts121/56/30; independent source triangle gives exact retained indices; bounded small-case interpreter follows source window construction, full intensity sort and linear equality membership. Native stable intensity ties explicitly defined.",
-  "source_files": {
-    "src/openms/include/OpenMS/PROCESSING/FILTERING/WindowMower.h": "662c4207dd2219882fe30b479828a219d68d2ab2a73b07cec57dc3ce12b2d329",
-    "src/openms/source/PROCESSING/FILTERING/WindowMower.cpp": "259677eecf80585ac695fc04fb14c507ab7768b1a35b2009d7c5a94d4140be36",
-    "src/tests/class_tests/openms/source/WindowMower_test.cpp": "3e19352664680abe65eade5b4fbd8362ac66055470891b8cf396ffb6e1f9c74a",
-    "src/tests/class_tests/openms/data/Transformers_tests.dta": "69d552ec11db33256f09c1e403aecc45018f3d4c2553ba27112d8ebecd6d5297"
-  }
+ "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+ "methodology": "Source semantics: no C++ built or executed. Reuses unchanged existing Transformers_tests.dta fixture for literal source counts121/56/30; independent source triangle gives exact retained indices; bounded small-case interpreter follows source window construction, full intensity sort and linear equality membership. Native stable intensity ties explicitly defined. Resource ceilings: executed differential on 2026-09-15 against the pinned C++ Release build openms4-release-bc9cc12-c19e494-174b576 on dax, through SpectraFilterWindowMower on the 1.2 GB LTQ Orbitrap Velos run centroid_lcms_velos_pxd001819_50amol_r1/50amol_R1.mzML; see tests/data/topp_spectra_filter_window_mower_provenance.json. The per-spectrum point and work figures behind the defaults come from simulating this module's own accounting over four benchmark inputs.",
+ "source_files": {
+  "src/openms/include/OpenMS/PROCESSING/FILTERING/WindowMower.h": "662c4207dd2219882fe30b479828a219d68d2ab2a73b07cec57dc3ce12b2d329",
+  "src/openms/source/PROCESSING/FILTERING/WindowMower.cpp": "259677eecf80585ac695fc04fb14c507ab7768b1a35b2009d7c5a94d4140be36",
+  "src/tests/class_tests/openms/source/WindowMower_test.cpp": "3e19352664680abe65eade5b4fbd8362ac66055470891b8cf396ffb6e1f9c74a",
+  "src/tests/class_tests/openms/data/Transformers_tests.dta": "69d552ec11db33256f09c1e403aecc45018f3d4c2553ba27112d8ebecd6d5297"
+ }
 }
