@@ -209,6 +209,46 @@
       "path": "tests/data/peak_picking/PeakPickerHiRes_ftms_sn4_out.unique_ids.mzML",
       "sha256": "845fbcb9e6645e231a3a833210f9beee8ce47de36f14e149bb9a39b8fd3461fb",
       "kind": "adapted retained class-test output (tier 1): core bc9cc12 PeakPickerHiRes_ftms_sn4_out.mzML (sha256 3e2eeb659f4a4a0de9aac1a06a7b3631fcd0883ef61e6bac4abd3ab2c5a3ad91), same id rename"
+    },
+    {
+      "path": "tests/data/peak_picking/chromatogram_time_oracle.tsv",
+      "sha256": "8055f27b5561c8bf8b189977e0d22cc7c31ab655242bbcb4986225afcd56d10e",
+      "kind": "oracle-generated (tier 1 executed differential): ../oracle/picked-chromatogram/results/cpp_probe.tsv with a '#' header added and libOpenMS's own log lines removed; the C++ Release build openms4-release-bc9cc12-c19e494-174b576 reading and picking the seven chromatogram_time cases"
+    },
+    {
+      "path": "tests/data/peak_picking/chromatogram_time/min32.mzML",
+      "sha256": "0a07fb605652d1847707e59655e9dc96e2a2e78f20e548c5d7edf4f08c6e3719",
+      "kind": "oracle input, byte-identical to ../oracle/picked-chromatogram/cases/min32.mzML: the header of profile_hr_qe_silac_uk222/UK222.mzML (sha256 bd6f6e1906ea3e910537f6f5aa8a805383b0db559730e1a4b70e25a46d1dc167) with an empty spectrumList and one chromatogram holding that file's real TIC arrays"
+    },
+    {
+      "path": "tests/data/peak_picking/chromatogram_time/min64.mzML",
+      "sha256": "f43bac1c0c43a36a2a059998c128f46afb49a71d46ecbbecb3b1f8f46691e2e5",
+      "kind": "oracle input, byte-identical to ../oracle/picked-chromatogram/cases/min64.mzML: the header of profile_hr_qe_silac_uk222/UK222.mzML (sha256 bd6f6e1906ea3e910537f6f5aa8a805383b0db559730e1a4b70e25a46d1dc167) with an empty spectrumList and one chromatogram holding that file's real TIC arrays"
+    },
+    {
+      "path": "tests/data/peak_picking/chromatogram_time/sec32.mzML",
+      "sha256": "cd406d8addc7092ec91b62aa70c2620cf1f757cc34f34c22a10d21509fa08192",
+      "kind": "oracle input, byte-identical to ../oracle/picked-chromatogram/cases/sec32.mzML: the header of profile_hr_qe_silac_uk222/UK222.mzML (sha256 bd6f6e1906ea3e910537f6f5aa8a805383b0db559730e1a4b70e25a46d1dc167) with an empty spectrumList and one chromatogram holding that file's real TIC arrays"
+    },
+    {
+      "path": "tests/data/peak_picking/chromatogram_time/sec64.mzML",
+      "sha256": "af32df416b777600967be45cc18781e181941683695d2ca68339e468e1cbf674",
+      "kind": "oracle input, byte-identical to ../oracle/picked-chromatogram/cases/sec64.mzML: the header of profile_hr_qe_silac_uk222/UK222.mzML (sha256 bd6f6e1906ea3e910537f6f5aa8a805383b0db559730e1a4b70e25a46d1dc167) with an empty spectrumList and one chromatogram holding that file's real TIC arrays"
+    },
+    {
+      "path": "tests/data/peak_picking/chromatogram_time/min32_empty.mzML",
+      "sha256": "110edc0739f22ebd9acbe972a119ebab7b957e8a662a2ee9aec3d057dde4f7e5",
+      "kind": "oracle input, byte-identical to ../oracle/picked-chromatogram/cases/min32_empty.mzML: the header of profile_hr_qe_silac_uk222/UK222.mzML (sha256 bd6f6e1906ea3e910537f6f5aa8a805383b0db559730e1a4b70e25a46d1dc167) with an empty spectrumList and one chromatogram holding that file's real TIC arrays"
+    },
+    {
+      "path": "tests/data/peak_picking/chromatogram_time/min32_one.mzML",
+      "sha256": "a6d64f2c5524171e59ee5acbb8cf2d9b045e071b5bf3c5be343a1618a857140d",
+      "kind": "oracle input, byte-identical to ../oracle/picked-chromatogram/cases/min32_one.mzML: the header of profile_hr_qe_silac_uk222/UK222.mzML (sha256 bd6f6e1906ea3e910537f6f5aa8a805383b0db559730e1a4b70e25a46d1dc167) with an empty spectrumList and one chromatogram holding that file's real TIC arrays"
+    },
+    {
+      "path": "tests/data/peak_picking/chromatogram_time/min32_unsorted.mzML",
+      "sha256": "51473ff8f3e1099a7cbcb078d58c6d715a85281d77f4d30230c96a104cfffec8",
+      "kind": "oracle input, byte-identical to ../oracle/picked-chromatogram/cases/min32_unsorted.mzML: the header of profile_hr_qe_silac_uk222/UK222.mzML (sha256 bd6f6e1906ea3e910537f6f5aa8a805383b0db559730e1a4b70e25a46d1dc167) with an empty spectrumList and one chromatogram holding that file's real TIC arrays"
     }
   ],
   "legacy_first_spectrum_fixtures": {
@@ -302,9 +342,33 @@
       "path": "../oracle/peak-picker-hires/results/noise_defaults.ini",
       "sha256": "07e0df1812b632fda2caf9eb0cf830cdef7483d7143b329b206912e9b9bad6f5",
       "origin_key": "tests/data/peak_picking/noise_defaults.ini"
+    },
+    {
+      "path": "../oracle/picked-chromatogram/manifest.json",
+      "sha256": "566090a6c9abcb97b4e605207c0133c52b31b2c996fac0e558aacc5d43a5f8ac",
+      "origin_key": "tests/data/peak_picking/chromatogram_time_oracle.tsv",
+      "role": "fx-chrom oracle: the chromatogram time-unit root cause, the seven cases, the tool-level and full-input comparisons and their measurements"
+    },
+    {
+      "path": "../oracle/picked-chromatogram/probe_chrom_read.cpp",
+      "sha256": "c570d613c94e55c7de899b937e87e03042f0ee278d7602ffd116914dcd6c9f7c",
+      "origin_key": "tests/data/peak_picking/chromatogram_time_oracle.tsv",
+      "role": "fx-chrom oracle driver: MzMLFile::load and PeakPickerHiRes::pickExperiment, values printed as IEEE-754 bit patterns"
+    },
+    {
+      "path": "../oracle/picked-chromatogram/results/cpp_probe.tsv",
+      "sha256": "6af6a99c1f37965c83ef62c98a85118e5302175d23a07d6bae4b484c827cce8a",
+      "origin_key": "tests/data/peak_picking/chromatogram_time_oracle.tsv",
+      "role": "fx-chrom oracle raw output, the source of tests/data/peak_picking/chromatogram_time_oracle.tsv"
+    },
+    {
+      "path": "../oracle/picked-chromatogram/make_cases.py",
+      "sha256": "f3fd04e189b29dceebb27f0cc4f50c4eb359ae71cab0e0b4e3647f9dfac3e51e",
+      "origin_key": "tests/data/peak_picking/chromatogram_time_oracle.tsv",
+      "role": "fx-chrom case generator, the source of tests/data/peak_picking/chromatogram_time/*.mzML"
     }
   ],
-  "external_reference_note": "The C++ driver, its build and its raw outputs live outside this repository under ../oracle/peak-picker-hires/ (product SDK, Debug, core 4fdec46; revision equivalence to bc9cc12 recorded in the manifest). Only the projected fixture and the parameter files enter the repository.",
+  "external_reference_note": "The C++ driver, its build and its raw outputs live outside this repository under ../oracle/peak-picker-hires/ (product SDK, Debug, core 4fdec46; revision equivalence to bc9cc12 recorded in the manifest). Only the projected fixture and the parameter files enter the repository. The fx-chrom artifacts under ../oracle/picked-chromatogram/ were produced by the prebuilt C++ Release build openms4-release-bc9cc12-c19e494-174b576 on dax; only the seven cases and the projected oracle TSV enter the repository.",
   "oracle": {
     "platform": "macOS arm64 (Darwin 25.6.0)",
     "compile_options": "-ffp-contract=off, the PRIVATE option libOpenMS itself is compiled with (cmake/compiler_flags.cmake). Without it the SignalToNoiseEstimatorMedian template instantiated in the driver fuses a*b+c into FMA on arm64 and six noise cases moved by one ulp against libOpenMS's own instantiation (which the picker cases use); measured before the flag was added.",

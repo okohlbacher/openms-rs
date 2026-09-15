@@ -200,6 +200,41 @@ pub struct ReadOptions {
     /// remain errors. Tool paths that reproduce source loading enable it; see
     /// `docs/MZML_HEADER_SUPPORT.md`.
     pub source_dangling_references: bool,
+    /// Round a unit-converted **32-bit** `time array` back to `f32`, as source
+    /// `MzMLHandlerHelper::decodeBase64Arrays` does.
+    ///
+    /// Applies only to an `MS:1000595` time array that is both 32-bit
+    /// (`MS:1000521`) and carries `unitAccession="UO:0000031"` (minute), which
+    /// is how ProteoWizard writes the TIC chromatogram of a Thermo run. The
+    /// source decodes such an array into a `std::vector<float>` and then
+    /// applies the minute multiplier in place with `it = it * unit_multiplier`
+    /// (`MzMLHandlerHelper.cpp:217-222`), where `it` binds to `float&`: the
+    /// product is computed in `double` and narrowed back to `float` on
+    /// assignment, so the seconds value is kept at 32-bit precision. The
+    /// 64-bit branch above it (`:210-216`) keeps full precision, and a
+    /// Numpress array is forced to 64-bit before the multiplier runs
+    /// (`:183-191`), so the loss is specific to this one combination.
+    ///
+    /// `false`, the default, computes `f64::from(value) * 60.0` and keeps the
+    /// `f64` result, because narrowing back discards about seven decimal
+    /// digits that the port has already recovered and nothing in the format
+    /// asks for. `true` selects the source behaviour, and is what a tool path
+    /// that reproduces source loading passes. Measured on the 40,856-point TIC
+    /// chromatogram of `profile_hr_qe_silac_uk222/UK222.mzML`, the two differ
+    /// on 38,107 of 40,856 times by at most 2.44e-4 s, which moves 21.6% of
+    /// the point spacings by more than 1e-3 relative and at most 6.2e-3
+    /// relative. That is enough to move the chromatogram `PeakPickerHiRes`
+    /// picks from that file by up to 3.19e-3 s in apex position and 1.75e-3
+    /// relative in intensity, which is what this switch exists for; see
+    /// `docs/MZML_SUPPORT.md`, section "The minute conversion of a 32-bit time
+    /// array", for the measurement and the executed evidence.
+    ///
+    /// The narrowing can overflow where the source silently stores an
+    /// infinity: a finite 32-bit time above 5.67e36 minutes has no finite
+    /// 32-bit product with 60. This port rejects that document with
+    /// [`Error::Parse`] (`nonfinite binary value`) instead, as it already does
+    /// for a decoded non-finite value.
+    pub source_time_array_precision: bool,
 }
 impl Default for ReadOptions {
     fn default() -> Self {
@@ -218,21 +253,25 @@ impl Default for ReadOptions {
             scaling: InputScaling::default(),
             source_invalid_timestamps: true,
             source_dangling_references: false,
+            source_time_array_precision: false,
         }
     }
 }
 impl ReadOptions {
     /// The default limits with every source-compatibility switch enabled.
     ///
-    /// Sets [`ReadOptions::source_dangling_references`] on top of the default
+    /// Sets [`ReadOptions::source_dangling_references`] and
+    /// [`ReadOptions::source_time_array_precision`] on top of the default
     /// [`ReadOptions::source_invalid_timestamps`], so a document reads as
     /// source `MzMLHandler` reads it wherever this port otherwise refuses a
-    /// loss. Limits and acquisition normalization stay at their defaults.
-    /// This is what a TOPP tool that reproduces source loading passes.
+    /// loss or keeps precision the source drops. Limits and acquisition
+    /// normalization stay at their defaults. This is what a TOPP tool that
+    /// reproduces source loading passes.
     pub fn source() -> Self {
         Self {
             source_dangling_references: true,
             source_invalid_timestamps: true,
+            source_time_array_precision: true,
             ..Self::default()
         }
     }
@@ -797,13 +836,24 @@ impl Binary {
                 } else {
                     1.0
                 };
+                // Source `MzMLHandlerHelper::decodeBase64Arrays` applies the
+                // minute multiplier in place on a `std::vector<float>`, so a
+                // converted 32-bit time array keeps only 32-bit precision;
+                // see `ReadOptions::source_time_array_precision`.
+                let narrow = options.source_time_array_precision
+                    && kind == Kind::Time
+                    && width == 4
+                    && scale != 1.0;
                 let mut values = Vec::with_capacity(count);
                 for chunk in decoded.chunks_exact(width) {
-                    let value = if width == 4 {
+                    let mut value = if width == 4 {
                         f64::from(f32::from_le_bytes(chunk.try_into().unwrap()))
                     } else {
                         f64::from_le_bytes(chunk.try_into().unwrap())
                     } * scale;
+                    if narrow {
+                        value = f64::from(value as f32);
+                    }
                     if !value.is_finite() {
                         return Err(invalid("nonfinite binary value"));
                     }

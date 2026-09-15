@@ -645,3 +645,113 @@ fn new_loader_rejects_unresolved_array_processing_references_even_if_excluded() 
         matches!(read(&xml,&o),Err(Error::Parse{message:s,..}) if s.contains("unresolved dataProcessingRef"))
     );
 }
+
+/// A chromatogram whose time array is 32-bit with an explicit unit.
+///
+/// The intensity array stays 32-bit, as ProteoWizard writes it.
+fn timed_chromatogram(minutes: bool, times: &[f32], intensities: &[f32]) -> String {
+    let unit = if minutes {
+        " unitAccession=\"UO:0000031\" unitName=\"minute\" unitCvRef=\"UO\""
+    } else {
+        " unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\""
+    };
+    let bytes = |v: &[f32]| v.iter().flat_map(|x| x.to_le_bytes()).collect::<Vec<_>>();
+    let array32 = |accession: &str, unit: &str, data: Vec<u8>| {
+        let text = STANDARD.encode(&data);
+        format!(
+            "<binaryDataArray encodedLength=\"{}\"><cvParam accession=\"{accession}\" name=\"fixture\" value=\"\"{unit}/>{}{}<binary>{text}</binary></binaryDataArray>",
+            text.len(),
+            cv("MS:1000521", ""),
+            cv("MS:1000576", "")
+        )
+    };
+    format!(
+        "<chromatogram id=\"TIC\" index=\"0\" defaultArrayLength=\"{}\"><binaryDataArrayList count=\"2\">{}{}</binaryDataArrayList></chromatogram>",
+        times.len(),
+        array32("MS:1000595", unit, bytes(times)),
+        array32("MS:1000515", "", bytes(intensities))
+    )
+}
+
+/// `source_time_array_precision` reproduces the source's in-place minute
+/// conversion of a 32-bit time array, and touches nothing else.
+///
+/// Source `MzMLHandlerHelper::decodeBase64Arrays` multiplies a 32-bit array in
+/// place through `float&` (`MzMLHandlerHelper.cpp:217-222`), so the seconds it
+/// stores are the `f32` rounding of the `double` product; the 64-bit branch
+/// above it keeps the `double`. The executed differential over the real
+/// `UK222.mzML` TIC arrays is `tests/peak_picking_experiment.rs`
+/// (`chromatogram_time_*`); this pins the switch itself and the shapes it must
+/// leave alone.
+#[test]
+fn source_time_array_precision_narrows_only_a_converted_32_bit_time_array() {
+    let times: Vec<f32> = vec![1.0019801_f32, 1.0071758, 68.336365, 73.2];
+    let intensities = vec![1.0_f32, 2.0, 3.0, 4.0];
+    let read_times = |xml: &str, source: bool| -> Vec<f64> {
+        let options = if source {
+            ReadOptions::source()
+        } else {
+            ReadOptions::default()
+        };
+        mzml::read_with_options(Cursor::new(xml.to_owned()), &options)
+            .unwrap()
+            .chromatograms[0]
+            .peaks
+            .iter()
+            .map(|peak| peak.rt)
+            .collect()
+    };
+
+    let minutes = document(&[], &[timed_chromatogram(true, &times, &intensities)]);
+    let native = read_times(&minutes, false);
+    let source = read_times(&minutes, true);
+    let exact: Vec<f64> = times.iter().map(|&t| f64::from(t) * 60.0).collect();
+    assert_eq!(native, exact, "the default keeps the f64 product");
+    let narrowed: Vec<f64> = exact.iter().map(|&t| f64::from(t as f32)).collect();
+    assert_eq!(source, narrowed, "source mode keeps only f32");
+    assert_ne!(native, source, "the fixture must exercise the difference");
+
+    // Seconds: the source sets no multiplier, so neither mode narrows.
+    let seconds = document(&[], &[timed_chromatogram(false, &times, &intensities)]);
+    let expected: Vec<f64> = times.iter().map(|&t| f64::from(t)).collect();
+    assert_eq!(read_times(&seconds, false), expected);
+    assert_eq!(read_times(&seconds, true), expected);
+
+    // An empty 32-bit minute array has nothing to narrow and still reads.
+    let empty = document(&[], &[timed_chromatogram(true, &[], &[])]);
+    assert!(read_times(&empty, true).is_empty());
+    assert!(read_times(&empty, false).is_empty());
+}
+
+/// A 64-bit time array in minutes keeps its `double` product in both modes.
+///
+/// The switch is keyed on the source's own condition, which is the 32-bit
+/// branch of `decodeBase64Arrays`; a 64-bit array never loses precision there.
+#[test]
+fn source_time_array_precision_leaves_a_64_bit_time_array_alone() {
+    let minutes = [1.0019801_f64, 68.336365, 73.2];
+    let chromatogram = record(
+        "chromatogram",
+        0,
+        &minutes,
+        &[1.0, 2.0, 3.0],
+        "",
+        &[],
+    )
+    .replace(
+        "accession=\"MS:1000595\" name=\"fixture\" value=\"\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"",
+        "accession=\"MS:1000595\" name=\"fixture\" value=\"\" unitAccession=\"UO:0000031\" unitName=\"minute\" unitCvRef=\"UO\"",
+    );
+    let xml = document(&[], &[chromatogram]);
+    let expected: Vec<f64> = minutes.iter().map(|&m| m * 60.0).collect();
+    for source in [false, true] {
+        let options = if source {
+            ReadOptions::source()
+        } else {
+            ReadOptions::default()
+        };
+        let exp = mzml::read_with_options(Cursor::new(xml.clone()), &options).unwrap();
+        let times: Vec<f64> = exp.chromatograms[0].peaks.iter().map(|p| p.rt).collect();
+        assert_eq!(times, expected, "source={source}");
+    }
+}

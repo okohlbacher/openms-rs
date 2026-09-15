@@ -33,7 +33,7 @@ The stream API accepts `BufRead`/`Write`; [path APIs](MZML_PATH_SUPPORT.md) addi
 | Canonical auxiliary arrays | All 26 pinned non-primary roles with declared binary type checks; names are reserved for their canonical identities | Corresponding canonical accessions; charge arrays use signed i32, with documented type/unit limits |
 | Spectra | Native ID, MS level, profile/centroid flag, scan retention time, m/z and intensity | Same fields; unset retention time `-1` omitted |
 | Chromatograms | Native ID, time and intensity arrays, one precursor and one Product | Same fields |
-| Time units | Explicit seconds or minutes; minutes converted to seconds for scan time and chromatogram coordinates | Seconds |
+| Time units | Explicit seconds or minutes; minutes converted to seconds for scan time and chromatogram coordinates, in `f64` unless [`ReadOptions::source_time_array_precision`](#the-minute-conversion-of-a-32-bit-time-array) selects the source's 32-bit result | Seconds |
 | Precursors | One selected ion per precursor; selected m/z, charge/intensity, isolation target/offsets, activation methods/energy, possible charges, mobility and spectrum reference | Same supported fields; native fields outside this subset are rejected |
 | User parameters | Direct `run`, `spectrum`, and `chromatogram` userParam names/values as strings; Product isolation-window scalar values and units | Stored maps written as string userParams; Product metadata retains String/i64/f64 types and MS/UO unit identities |
 | Container names | Reserved record userParam `openms-rust:name` | Same reserved userParam |
@@ -94,6 +94,67 @@ Real files carry wrong counts, and rejecting them cost the port twice. The TOPP 
 Relaxing the comparison changes nothing else. Every declared count that is a resource ceiling still rejects a hostile value before any allocation — `productList`, `scanWindowList` and `scanList` against the remaining parameter budget, `referenceableParamGroupList` against `max_param_groups` — and the record and binary-array counts drive no `reserve`, so an absurd declared value allocates nothing. Duplicate, misplaced and unterminated lists remain errors. **Writing always emits the true count**, so a round trip corrects a wrong input count rather than propagating it.
 
 [The list-count tests](../tests/mzml_list_counts.rs) load the unmodified `MzMLFile_1.mzML`, check that every count the writer emits equals the actual child count, and pin the required/numeric attribute, the resource ceilings and the `referenceableParamGroupList` divergence.
+
+### The minute conversion of a 32-bit time array
+
+An `MS:1000595` time array with `unitAccession="UO:0000031"` holds minutes and
+is converted to seconds. The source's conversion loses precision when — and
+only when — the array is also 32-bit:
+`MzMLHandlerHelper::decodeBase64Arrays` decodes such an array into a
+`std::vector<float>` and then applies the multiplier in place,
+
+```cpp
+else if (unit_multiplier != 1.0 && bindata.precision == BinaryData::PRE_32)
+{
+  for (auto& it : bindata.floats_32) { it = it * unit_multiplier; }   // MzMLHandlerHelper.cpp:217-222
+}
+```
+
+where `it` binds to `float&`: the product is computed in `double` and narrowed
+back to `float` on assignment. The 64-bit branch above it (`:210-216`) keeps the
+`double`, and a Numpress array is forced to 64-bit before the multiplier runs
+(`:183-191`), so the loss is specific to this one combination. That combination
+is what ProteoWizard writes for the TIC chromatogram of a Thermo run.
+
+This port computes `f64::from(value) * 60.0` and keeps the `f64`.
+`ReadOptions::source_time_array_precision` — set by `ReadOptions::source`, and
+therefore by every tool path that reproduces source loading — narrows the
+result back to `f32` exactly as the source does. The switch is the port's
+established shape for a source behaviour that discards information: the library
+default keeps the value, the tool reproduces the source.
+
+The difference is not negligible on real data. On the 40,856-point TIC
+chromatogram of the 2.3 GB `profile_hr_qe_silac_uk222/UK222.mzML`, whose times
+run from 1.0 to 90.0 minutes:
+
+| Measurement | Value |
+| --- | --- |
+| Times that differ between the two modes | 38,107 of 40,856 |
+| Largest difference | 2.44e-4 s (half an `f32` ULP at 4,400 s) |
+| Largest relative difference | 5.96e-8 |
+| Point spacings moved by more than 1e-3 relative | 8,806 of 40,855 (21.6%) |
+| Largest relative spacing change | 6.2e-3 |
+
+Because `PeakPickerHiRes` fits a cubic spline through the points and finds its
+apex by bisection, those spacing changes move the picked chromatogram further
+than the input: over the same file the picked apexes differ by up to 3.19e-3 s
+and their intensities by up to 1.75e-3 relative. The executed differential over
+the same instrument arrays, in both modes and for the reader and the picker, is
+in [the picker's experiment tests](../tests/peak_picking_experiment.rs)
+(`chromatogram_time_*`), with the driver and cases in
+`../oracle/picked-chromatogram/`. The switch itself, and the shapes it must
+leave alone, are pinned in [the load-option tests](../tests/mzml_load_options.rs).
+
+An overflow the source cannot see is the one case where the port refuses rather
+than matching: a finite 32-bit time above 5.67e36 minutes has no finite 32-bit
+product with 60, which the source would store as an infinity and this port
+rejects with the `nonfinite binary value` parse error it already uses for a
+decoded non-finite value.
+
+This is a candidate C++ defect, not an intentional format rule: reading the same
+instrument times as a 64-bit minute array gives the C++ itself a different
+chromatogram from reading them as a 32-bit minute array. It is recorded for the
+integrator as `CPP-CANDIDATE mzML 32-bit time array minute conversion`.
 
 Validation checks XML well-formedness and the scientific structures used by this subset. It does **not** run XSD or PSI controlled-vocabulary semantic validation while reading. Header inventories, arbitrary CV placement, all schema ordering constraints, and index/checksum validity are not verified. Parse errors use line zero when an exact XML line number is unavailable. [Explicit mzML semantic validation](MZML_VALIDATOR_SUPPORT.md) is available through the optional `mzml-validation` feature, separately from scientific loading. [Explicit XSD validation](MZML_SCHEMA_SUPPORT.md) is available through the separate optional `mzml-schema` feature. It uses the two original schemas with libxml2 and returns owned diagnostics; it does not establish CV, binary, checksum or index integrity.
 

@@ -17,6 +17,13 @@
 //! * The `*_sn1_out.mzML` and `*_sn4_out.mzML` files are the retained outputs the
 //!   pinned `PeakPickerHiRes_test.cpp` compares with `TEST_REAL_SIMILAR`, and its
 //!   literals are transcribed below.
+//! * `data/peak_picking/chromatogram_time_oracle.tsv` is the output of the
+//!   prebuilt C++ **Release** OpenMS (core `bc9cc12`, cli `c19e494`, topp
+//!   `174b576`) over `data/peak_picking/chromatogram_time/*.mzML`, read and
+//!   picked through `MzMLFile::load` and `PeakPickerHiRes::pickExperiment`
+//!   (driver, cases and hashes in `../oracle/picked-chromatogram/`). It pins
+//!   both sides of the source's minute conversion of a 32-bit chromatogram
+//!   time array; see `chromatogram_time_unit_matches_the_cpp_reader_and_picker`.
 //!
 //! `docs/PEAK_PICKING_SUPPORT.md` maps every class-test section to these tests.
 #![cfg(all(feature = "mzml", feature = "paramxml"))]
@@ -38,6 +45,8 @@ use std::sync::Arc;
 const CASES: &str = include_str!("data/peak_picking/cases.tsv");
 const SYNTHETIC: &str = include_str!("data/peak_picking/synthetic.tsv");
 const ORACLE: &str = include_str!("data/peak_picking/oracle.tsv");
+const CHROMATOGRAM_TIME_ORACLE: &str =
+    include_str!("data/peak_picking/chromatogram_time_oracle.tsv");
 
 fn experiment(label: &str) -> MSExperiment {
     let bytes: &[u8] = match label {
@@ -1272,4 +1281,216 @@ fn in_place_picking_leaves_the_records_before_a_failure_picked() {
     assert!(picker.pick_experiment(&before.clone()).is_err());
     assert!(picker.pick_experiment_in_place(&mut input).is_err());
     assert_ne!(input.spectra[0], before.spectra[0]);
+}
+
+// --------------------------------------------------------------------------
+// Chromatogram time-array unit handling (lane fx-chrom)
+// --------------------------------------------------------------------------
+
+/// One `case<TAB>stage<TAB>...` block of the chromatogram time-unit oracle.
+///
+/// Returns the `(retention time bits, intensity bits)` rows of `stage`, and the
+/// declared point count that precedes them.
+fn oracle_rows(case: &str, stage: &str) -> (usize, Vec<(u64, u32)>) {
+    let mut count = None;
+    let mut rows = Vec::new();
+    for line in CHROMATOGRAM_TIME_ORACLE.lines() {
+        if line.starts_with('#') {
+            continue;
+        }
+        let fields: Vec<&str> = line.split('\t').collect();
+        if fields.len() < 3 || fields[0] != case || fields[1] != stage {
+            continue;
+        }
+        if fields[2] == "count" {
+            count = Some(fields[3].parse().expect("count"));
+            continue;
+        }
+        let bits = |text: &str| u64::from_str_radix(text.trim_start_matches("0x"), 16).expect(text);
+        rows.push((bits(fields[3]), bits(fields[4]) as u32));
+    }
+    (count.expect("no count row"), rows)
+}
+
+/// The cases of `data/peak_picking/chromatogram_time/`, as the oracle names them.
+const CHROMATOGRAM_TIME_CASES: [(&str, &[u8]); 7] = [
+    (
+        "min32",
+        include_bytes!("data/peak_picking/chromatogram_time/min32.mzML"),
+    ),
+    (
+        "min64",
+        include_bytes!("data/peak_picking/chromatogram_time/min64.mzML"),
+    ),
+    (
+        "sec32",
+        include_bytes!("data/peak_picking/chromatogram_time/sec32.mzML"),
+    ),
+    (
+        "sec64",
+        include_bytes!("data/peak_picking/chromatogram_time/sec64.mzML"),
+    ),
+    (
+        "min32_empty",
+        include_bytes!("data/peak_picking/chromatogram_time/min32_empty.mzML"),
+    ),
+    (
+        "min32_one",
+        include_bytes!("data/peak_picking/chromatogram_time/min32_one.mzML"),
+    ),
+    (
+        "min32_unsorted",
+        include_bytes!("data/peak_picking/chromatogram_time/min32_unsorted.mzML"),
+    ),
+];
+
+/// Read one case the way source `MzMLFile::load` does, whose default
+/// `PeakFileOptions` sort every record by position.
+fn chromatogram_time_case(bytes: &[u8], source_precision: bool) -> MSExperiment {
+    let limits = if source_precision {
+        mzml::ReadOptions::source()
+    } else {
+        mzml::ReadOptions::default()
+    };
+    mzml::read_with_load_options(bytes, &mzml::LoadOptions::default(), &limits).expect("load")
+}
+
+fn chromatogram_bits(chromatogram: &MSChromatogram) -> Vec<(u64, u32)> {
+    chromatogram
+        .peaks
+        .iter()
+        .map(|peak| (peak.rt.to_bits(), peak.intensity.to_bits()))
+        .collect()
+}
+
+/// Every case read and picked exactly as the executed C++ reads and picks it.
+///
+/// The seven cases hold the same 40 real time and intensity values of the
+/// `UK222.mzML` TIC chromatogram, differing only in the time array's encoding
+/// and unit. `ReadOptions::source` reproduces the source's in-place minute
+/// conversion on a `std::vector<float>`
+/// (`MzMLHandlerHelper::decodeBase64Arrays`, `MzMLHandlerHelper.cpp:217-222`),
+/// which keeps the converted seconds at 32-bit precision, so every case must
+/// match the C++ bit for bit in that mode.
+#[test]
+fn chromatogram_time_unit_matches_the_cpp_reader_and_picker() {
+    let picker = PeakPickerHiRes::default();
+    for (case, bytes) in CHROMATOGRAM_TIME_CASES {
+        let experiment = chromatogram_time_case(bytes, true);
+        assert_eq!(experiment.chromatograms.len(), 1, "{case}");
+        let input = &experiment.chromatograms[0];
+        let (count, rows) = oracle_rows(case, "in");
+        assert_eq!(input.peaks.len(), count, "{case} read point count");
+        assert_eq!(chromatogram_bits(input), rows, "{case} read values");
+
+        let (count, rows) = oracle_rows(case, "picked");
+        let picked = picker.pick_chromatogram(input).expect("pick").chromatogram;
+        assert_eq!(picked.peaks.len(), count, "{case} picked point count");
+        assert_eq!(chromatogram_bits(&picked), rows, "{case} picked values");
+    }
+}
+
+/// The library default keeps the precision the source drops, and nothing else.
+///
+/// The check is against the executed C++ itself, not against this port: reading
+/// the same instrument times as a **64-bit** minute array (`min64`) is the one
+/// shape where the source applies the multiplier in `double` and keeps the
+/// result, so its `min64` rows are the C++'s own answer for the full-precision
+/// seconds. The default read of the 32-bit `min32` must reproduce exactly that,
+/// for the read values and for the picked chromatogram.
+#[test]
+fn chromatogram_time_default_keeps_the_precision_the_source_drops() {
+    let picker = PeakPickerHiRes::default();
+    let bytes = CHROMATOGRAM_TIME_CASES[0].1;
+    assert_eq!(CHROMATOGRAM_TIME_CASES[0].0, "min32");
+    let experiment = chromatogram_time_case(bytes, false);
+    let input = &experiment.chromatograms[0];
+    let (count, rows) = oracle_rows("min64", "in");
+    assert_eq!(input.peaks.len(), count);
+    assert_eq!(chromatogram_bits(input), rows, "default read values");
+
+    let (count, rows) = oracle_rows("min64", "picked");
+    let picked = picker.pick_chromatogram(input).expect("pick").chromatogram;
+    assert_eq!(picked.peaks.len(), count);
+    assert_eq!(chromatogram_bits(&picked), rows, "default picked values");
+
+    // The two modes differ only by the source's narrowing: every default value
+    // rounds to the value the source stores.
+    let source = chromatogram_time_case(bytes, true);
+    for (default, source) in input.peaks.iter().zip(&source.chromatograms[0].peaks) {
+        assert_eq!(f64::from(default.rt as f32), source.rt);
+        assert_eq!(default.intensity, source.intensity);
+    }
+}
+
+/// The narrowing is confined to a 32-bit time array that carries a unit multiplier.
+///
+/// `min64` (64-bit, minutes), `sec32` (32-bit, seconds) and `sec64` (64-bit,
+/// seconds) reach the same values in both modes, because the source narrows
+/// only where it multiplies a `std::vector<float>` in place. `min32` is the one
+/// case the switch moves.
+#[test]
+fn chromatogram_time_switch_only_moves_the_converted_32_bit_array() {
+    for (case, bytes) in CHROMATOGRAM_TIME_CASES {
+        let default = chromatogram_time_case(bytes, false);
+        let source = chromatogram_time_case(bytes, true);
+        let moved = default.chromatograms[0].peaks != source.chromatograms[0].peaks;
+        let expected = matches!(case, "min32" | "min32_one" | "min32_unsorted");
+        assert_eq!(moved, expected, "{case}");
+    }
+}
+
+/// The empty and single-point chromatograms the source leaves alone.
+///
+/// `pick_` returns before the loop for fewer than five points
+/// (`PeakPickerHiRes.cpp:147-150`), so both produce an empty picked
+/// chromatogram while keeping the chromatogram's own settings.
+#[test]
+fn chromatogram_time_short_inputs_pick_nothing_and_keep_their_settings() {
+    let picker = PeakPickerHiRes::default();
+    for case in ["min32_empty", "min32_one"] {
+        let bytes = CHROMATOGRAM_TIME_CASES
+            .iter()
+            .find(|(name, _)| *name == case)
+            .expect("case")
+            .1;
+        let experiment = chromatogram_time_case(bytes, true);
+        let input = &experiment.chromatograms[0];
+        let picked = picker.pick_chromatogram(input).expect("pick").chromatogram;
+        assert_eq!(oracle_rows(case, "picked").0, 0, "{case}");
+        assert!(picked.peaks.is_empty(), "{case}");
+        assert_eq!(picked.native_id, input.native_id, "{case}");
+        assert_eq!(picked.metadata, input.metadata, "{case}");
+    }
+}
+
+/// An unsorted time array is sorted on load, as source `MzMLHandler` sorts it.
+///
+/// The source reader's default `PeakFileOptions` sort every record by position,
+/// so the picker never sees the file order; the C++ oracle's `min32_unsorted`
+/// rows are the sorted ones, and picking them yields the same single centroid
+/// as the first five points of `min32`. Reading without that sort leaves the
+/// file order, which this port's picker refuses rather than treating as
+/// undefined.
+#[test]
+fn chromatogram_time_unsorted_is_sorted_on_load_and_refused_without_it() {
+    let bytes = CHROMATOGRAM_TIME_CASES[6].1;
+    assert_eq!(CHROMATOGRAM_TIME_CASES[6].0, "min32_unsorted");
+    let sorted = chromatogram_time_case(bytes, true);
+    let (_, rows) = oracle_rows("min32_unsorted", "in");
+    assert_eq!(chromatogram_bits(&sorted.chromatograms[0]), rows);
+    let (_, min32) = oracle_rows("min32", "in");
+    assert_eq!(rows, min32[..rows.len()].to_vec());
+
+    let unsorted = mzml::read_with_options(bytes, &mzml::ReadOptions::source()).expect("read");
+    let times: Vec<f64> = unsorted.chromatograms[0]
+        .peaks
+        .iter()
+        .map(|peak| peak.rt)
+        .collect();
+    assert!(times.windows(2).any(|pair| pair[0] > pair[1]));
+    assert!(matches!(
+        PeakPickerHiRes::default().pick_chromatogram(&unsorted.chromatograms[0]),
+        Err(Error::UnsortedData)
+    ));
 }
