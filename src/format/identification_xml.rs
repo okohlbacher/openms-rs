@@ -22,6 +22,11 @@ use std::io::{BufRead, Read};
 
 pub(crate) const IDENTIFIER: &str = "openms-rust:run_identifier";
 pub(crate) const RANK: &str = "openms-rust:rank";
+/// Ceilings the shared identification-XML parser applies to one document.
+///
+/// A dialect whose ceilings grow with the document it is reading computes these
+/// from the decoded size and passes the result; see
+/// `src/format/featurexml_scaling.rs`.
 #[derive(Clone, Copy, Debug)]
 pub struct ReadOptions {
     pub max_xml_bytes: u64,
@@ -39,6 +44,7 @@ impl Default for ReadOptions {
         }
     }
 }
+/// Ceilings the shared identification-XML renderer applies to one document.
 #[derive(Clone, Copy, Debug)]
 pub struct WriteOptions {
     pub max_xml_bytes: usize,
@@ -181,16 +187,50 @@ impl Node {
     }
 }
 
-fn document(input: impl Read, limit: usize) -> Result<String> {
-    let count = u64::try_from(limit)
-        .ok()
-        .and_then(|v| v.checked_add(1))
-        .ok_or_else(|| bad("identification XML byte limit overflows"))?;
-    let mut bytes = Vec::new();
-    input.take(count).read_to_end(&mut bytes)?;
+/// Read at most `limit` bytes, growing the buffer in bounded steps whose
+/// failure is a checked error rather than an allocation abort.
+///
+/// `Read::read_to_end` doubles its buffer with the infallible allocator, which
+/// aborts the process when a multi-gigabyte document does not fit. Reserving
+/// each step with `try_reserve` keeps a document larger than the host can hold
+/// a refusal, as every other ceiling in this reader is.
+fn read_all_bounded(mut input: impl Read, limit: usize) -> Result<Vec<u8>> {
+    /// Bytes read per step; also the initial reservation.
+    const STEP: usize = 1 << 20;
+    let mut bytes: Vec<u8> = Vec::new();
+    loop {
+        if bytes.len() == bytes.capacity() {
+            let step = STEP.min(limit.saturating_add(1).saturating_sub(bytes.len()));
+            if step == 0 {
+                break;
+            }
+            bytes
+                .try_reserve(step)
+                .map_err(|_| bad("identification XML allocation failed"))?;
+        }
+        let read = {
+            let spare = bytes.capacity() - bytes.len();
+            let start = bytes.len();
+            bytes.resize(start + spare, 0);
+            let read = input.read(&mut bytes[start..])?;
+            bytes.truncate(start + read);
+            read
+        };
+        if read == 0 {
+            break;
+        }
+        if bytes.len() > limit {
+            return Err(bad("identification XML byte limit exceeded"));
+        }
+    }
     if bytes.len() > limit {
         return Err(bad("identification XML byte limit exceeded"));
     }
+    Ok(bytes)
+}
+
+fn document(input: impl Read, limit: usize) -> Result<String> {
+    let mut bytes = read_all_bounded(input, limit)?;
     let utf16 = if bytes.starts_with(&[0xff, 0xfe]) {
         Some((true, 2))
     } else if bytes.starts_with(&[0xfe, 0xff]) {
@@ -224,8 +264,10 @@ fn document(input: impl Read, limit: usize) -> Result<String> {
         decoded
     } else {
         let bom = bytes.starts_with(&[0xef, 0xbb, 0xbf]);
-        let bytes = bytes.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(&bytes);
-        let encoding = encoding(bytes)?;
+        if bom {
+            bytes.drain(..3);
+        }
+        let encoding = encoding(&bytes)?;
         if bom
             && encoding
                 .as_deref()
@@ -233,14 +275,23 @@ fn document(input: impl Read, limit: usize) -> Result<String> {
         {
             return Err(bad("XML declaration conflicts with UTF-8 byte order mark"));
         }
+        // Every branch that can take the buffer as it stands does, because a
+        // copy of a multi-gigabyte document doubles the reader's peak memory.
         match encoding.as_deref().unwrap_or("utf-8") {
-            "utf-8" | "utf8" => std::str::from_utf8(bytes)
-                .map_err(|_| bad("invalid UTF-8 identification XML"))?
-                .to_owned(),
-            "us-ascii" | "ascii" if bytes.is_ascii() => String::from_utf8(bytes.to_vec()).unwrap(),
+            "utf-8" | "utf8" => {
+                String::from_utf8(bytes).map_err(|_| bad("invalid UTF-8 identification XML"))?
+            }
+            "us-ascii" | "ascii" | "iso-8859-1" | "iso8859-1" | "latin1" if bytes.is_ascii() => {
+                String::from_utf8(bytes).map_err(|_| bad("invalid ASCII identification XML"))?
+            }
             "iso-8859-1" | "iso8859-1" | "latin1" => {
+                // Two UTF-8 bytes per Latin-1 byte is the exact worst case, so
+                // one fallible reservation covers the whole decode.
                 let mut decoded = String::new();
-                for &byte in bytes {
+                decoded
+                    .try_reserve_exact(bytes.len().saturating_mul(2).min(limit))
+                    .map_err(|_| bad("identification XML allocation failed"))?;
+                for &byte in &bytes {
                     let c = char::from(byte);
                     if decoded.len().saturating_add(c.len_utf8()) > limit {
                         return Err(bad("decoded identification XML byte limit exceeded"));
@@ -264,7 +315,12 @@ fn document(input: impl Read, limit: usize) -> Result<String> {
     }
 
     // XML 1.0 line ending normalization happens before attribute normalization.
-    Ok(text.replace("\r\n", "\n").replace('\r', "\n"))
+    // `str::replace` always allocates, so a document that already has no
+    // carriage return keeps its single buffer instead of being copied twice.
+    if text.as_bytes().contains(&b'\r') {
+        return Ok(text.replace("\r\n", "\n").replace('\r', "\n"));
+    }
+    Ok(text)
 }
 
 fn encoding(bytes: &[u8]) -> Result<Option<String>> {
@@ -384,6 +440,45 @@ impl XmlMeter<'_> {
         Ok(())
     }
 }
+/// One root child whose own children are handed over as they close, instead of
+/// being retained in the returned tree.
+///
+/// A dialect whose payload is a long flat list — featureXML's `featureList`,
+/// whose `feature` children are 99% of every real document — converts each
+/// child and drops it, so the tree in memory stays the size of one child
+/// rather than of the whole document. The payload charged for the subtree is
+/// refunded once `take` returns, because that storage is no longer held; the
+/// work charged for it is not, because the effort was really spent.
+pub(crate) struct Detach<'a> {
+    /// Name of the root child whose children are detached, e.g. `featureList`.
+    pub(crate) container: &'a str,
+    /// Name of the child element handed to `take`, e.g. `feature`.
+    pub(crate) element: &'a str,
+    /// Receives the root as parsed so far, the completed element, and the
+    /// remaining work and payload budgets, so that the conversion is charged
+    /// against the same ceilings. The root carries every child that closed
+    /// before the container opened, which is all of a schema-valid featureMap's
+    /// metadata and identification data.
+    pub(crate) take: &'a mut dyn FnMut(&Node, Node, &mut usize, &mut usize) -> Result<()>,
+}
+
+/// Decode a whole document, or only its prefix through the opening `stop_tag`,
+/// to text bounded by `limit` bytes.
+///
+/// Splitting this from [`parse_text_with_budget`] lets a caller learn the
+/// decoded size before it decides the cumulative ceilings that size earns; see
+/// `src/format/featurexml_scaling.rs`.
+pub(crate) fn decode_document(
+    input: impl BufRead,
+    limit: usize,
+    stop_tag: Option<&str>,
+) -> Result<String> {
+    match stop_tag {
+        Some(stop) => document(read_xml_prefix(input, limit, stop)?.as_slice(), limit),
+        None => document(input, limit),
+    }
+}
+
 pub(crate) fn parse_xml_with_budget(
     input: impl BufRead,
     options: &ReadOptions,
@@ -392,6 +487,8 @@ pub(crate) fn parse_xml_with_budget(
     remaining_work: &mut usize,
     remaining_bytes: &mut usize,
 ) -> Result<Node> {
+    // Checked before the input is touched, as it was before decoding and
+    // parsing became separable: invalid ceilings refuse without reading.
     if options.max_records == 0 || options.max_list_items == 0 || max_depth == 0 || max_depth > 512
     {
         return Err(bad("invalid identification XML limits"));
@@ -399,12 +496,33 @@ pub(crate) fn parse_xml_with_budget(
     let max_bytes =
         usize::try_from(options.max_xml_bytes).map_err(|_| bad("XML byte limit overflows"))?;
     let decode_limit = max_bytes.min(*remaining_bytes / 8).min(*remaining_work / 4);
-    let text = if let Some(stop) = stop_tag {
-        let prefix = read_xml_prefix(input, decode_limit, stop)?;
-        document(prefix.as_slice(), decode_limit)?
-    } else {
-        document(input, decode_limit)?
-    };
+    let text = decode_document(input, decode_limit, stop_tag)?;
+    parse_text_with_budget(
+        &text,
+        options,
+        max_depth,
+        stop_tag,
+        remaining_work,
+        remaining_bytes,
+        None,
+    )
+}
+
+/// Parse already-decoded document text into a [`Node`] tree under the shared
+/// cumulative budgets, optionally detaching one container's children.
+pub(crate) fn parse_text_with_budget(
+    text: &str,
+    options: &ReadOptions,
+    max_depth: usize,
+    stop_tag: Option<&str>,
+    remaining_work: &mut usize,
+    remaining_bytes: &mut usize,
+    mut detach: Option<Detach<'_>>,
+) -> Result<Node> {
+    if options.max_records == 0 || options.max_list_items == 0 || max_depth == 0 || max_depth > 512
+    {
+        return Err(bad("invalid identification XML limits"));
+    }
     let mut meter = XmlMeter {
         bytes: remaining_bytes,
         work: remaining_work,
@@ -420,6 +538,9 @@ pub(crate) fn parse_xml_with_budget(
     let mut count = 0usize;
     let mut declared = false;
     let mut at_start = true;
+    // Payload budget as it stood when the open detached element began, so the
+    // subtree's storage charge can be returned once the element is handed over.
+    let mut detached_from: Option<usize> = None;
     loop {
         let (ns, event) = reader
             .read_resolved_event_into(&mut buffer)
@@ -428,6 +549,7 @@ pub(crate) fn parse_xml_with_budget(
         meter.add(0, 1)?;
         match event {
             Event::Start(start) => {
+                let payload_before_element = *meter.bytes;
                 if !unbound {
                     return Err(unsupported(
                         "identification XML elements must have no namespace",
@@ -480,18 +602,43 @@ pub(crate) fn parse_xml_with_budget(
                     }
                 }
                 if stack.len() == 1 && stop_tag == Some(node.name.as_str()) {
-                    let mut root = stack.pop().unwrap();
+                    let mut root = stack.pop().ok_or_else(|| bad("unexpected XML end"))?;
                     root.children.push(node);
                     return Ok(root);
+                }
+                if let Some(detach) = detach.as_ref() {
+                    if stack.len() == 2
+                        && stack[1].name == detach.container
+                        && node.name == detach.element
+                    {
+                        detached_from = Some(payload_before_element);
+                    }
                 }
                 stack.push(node);
             }
             Event::End(_) => {
                 let node = stack.pop().ok_or_else(|| bad("unexpected XML end"))?;
-                if let Some(parent) = stack.last_mut() {
-                    parent.children.push(node);
-                } else {
-                    root = Some(node);
+                let handed_over = match (detach.as_mut(), detached_from) {
+                    (Some(detach), Some(payload))
+                        if stack.len() == 2 && node.name == detach.element =>
+                    {
+                        detached_from = None;
+                        let before = *meter.bytes;
+                        (detach.take)(&stack[0], node, meter.work, meter.bytes)?;
+                        // Return the subtree's storage charge and keep only what
+                        // `take` charged for what it retained.
+                        let retained = before.saturating_sub(*meter.bytes);
+                        *meter.bytes = payload.saturating_sub(retained);
+                        None
+                    }
+                    _ => Some(node),
+                };
+                if let Some(node) = handed_over {
+                    if let Some(parent) = stack.last_mut() {
+                        parent.children.push(node);
+                    } else {
+                        root = Some(node);
+                    }
                 }
             }
             Event::Text(text) => {

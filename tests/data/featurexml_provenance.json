@@ -83,5 +83,42 @@
    "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
   ],
   "source_changes": []
+ },
+ "scale_inputs": {
+  "purpose": "Inputs of the HPC-scale test hpc_scale_benchmark_featurexml_files_load_and_round_trip and of docs/FEATUREXML_SCALE_SUPPORT.md. Read by path on the cluster; not copied into the repository.",
+  "manifest": "/ceph/ibmi/abi/oliver/bench/openms4/inputs/MANIFEST.json",
+  "files": [
+   {
+    "id": "featurexml_small_pxd001819_ffc_50amol_r1",
+    "path": "/ceph/ibmi/abi/oliver/bench/openms4/inputs/featurexml_small_pxd001819_ffc_50amol_r1/UPS1_50amol_R1.featureXML",
+    "size_bytes": 62504565,
+    "feature_count": 42789,
+    "sha256": "f0218f3324cd180aa30be994ecfffb5912ba78f439863cb7e9b394d4e25bb118",
+    "provenance": "OpenMS FeatureFinderCentroided 2.1.0 (TOPPAS, 2017) on PRIDE PXD001819 50amol R1"
+   },
+   {
+    "id": "featurexml_large_pxd001819_mte_500amol_r3",
+    "path": "/ceph/ibmi/abi/oliver/bench/openms4/inputs/featurexml_large_pxd001819_mte_500amol_r3/UPS1_500amol_R3.featureXML",
+    "size_bytes": 2207668458,
+    "feature_count": 826019,
+    "sha256": "c603b9432b02a8e75200eb88bec3c3d218b95b22bf28b463f1353c668ca29f5c",
+    "provenance": "OpenMS MassTraceExtractor 2.1.0 (TOPPAS) on PRIDE PXD001819 500amol R3"
+   },
+   {
+    "id": "sanity_featurexml_openms_lcms_centroided",
+    "path": "/ceph/ibmi/abi/oliver/bench/openms4/inputs/sanity_featurexml_openms_lcms_centroided/LCMS-centroided.featureXML",
+    "size_bytes": 193180,
+    "feature_count": 17,
+    "sha256": "3634dc2556b9ce1049bdab474966a4d9b30be4f1785c3f81f9e117f43df36a9c",
+    "provenance": "OpenMS share/OpenMS/examples FeatureFinder output"
+   }
+  ],
+  "reference_implementation": {
+   "prefix": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+   "core": "bc9cc12",
+   "cli": "c19e494",
+   "topp": "174b576",
+   "use": "Executed FileInfo, as the scale and output reference only; field semantics remain verified against the pinned source."
+  }
  }
 }
