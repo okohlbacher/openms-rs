@@ -336,6 +336,14 @@ impl SeedStage {
     /// `Found <n> seeds for charge <c>.` per charge, which the source prints to
     /// `std::cout`.
     ///
+    /// `mass_trace:min_spectra = 1` makes the number of scans inspected per side
+    /// zero, which the source does not check: it inspects no neighbouring scan,
+    /// divides every trace score by zero, scores every peak NaN and therefore
+    /// finds no seed, returning an empty map. That is defined behaviour and the
+    /// port reproduces it (`CPP-271`); nothing later in the algorithm is
+    /// reached, so the source's `size_t(-1)` delta buffer in
+    /// `extendMassTrace_` stays unreachable.
+    ///
     /// Seeds are the local trace maxima whose overall score, the `f32` cube root
     /// `powf(trace * intensity * pattern, 1/3)`, reaches `seed:min_score`. With
     /// user seeds, the threshold is `user-seed:min_score` instead, and a peak
@@ -352,11 +360,7 @@ impl SeedStage {
     ///   output reads the undeclared parameter `debug:pseudo_rt_shift` and
     ///   throws, and it writes into the working directory.
     /// - [`Error::Unsupported`] for a changed isotope abundance under
-    ///   [`AbundanceOverride::Refuse`].
-    /// - [`Error::InvalidValue`] for `mass_trace:min_spectra = 1`, which makes
-    ///   the number of scans inspected per side zero. The executed source then
-    ///   divides every trace score by zero, finds no seed and returns an empty
-    ///   map; the port refuses the configuration explicitly instead.
+    ///   [`AbundanceOverride::Refuse`], which is not the default; see that type.
     /// - [`Error::InvalidValue`] when `charge_low` exceeds `charge_high` by more
     ///   than one ([`Settings::charge_count`]), for a zero-width RT or m/z range
     ///   ([`IntensityThresholds::compute`]), for a non-finite user seed position
@@ -385,13 +389,6 @@ impl SeedStage {
             ));
         }
         let user_seeds = sorted_user_seeds(user_seeds)?;
-        if settings.min_spectra == 0 {
-            return Err(Error::InvalidValue(
-                "mass_trace:min_spectra must be at least 2: with 1 the source inspects no \
-                 neighbouring scan, divides every trace score by zero and finds no seed"
-                    .into(),
-            ));
-        }
         let mut scores = ScoreArrays::new(
             &experiment,
             settings.charge_low,

@@ -29,3 +29,12 @@ pub mod scoring;
 
 /// Isotope-pattern precalculation and seed selection (`FeatureFinderAlgorithmPicked.h`).
 pub mod seeds;
+
+/// Isotope fit and mass-trace extension of a seed (`FeatureFinderAlgorithmPicked.h`).
+pub mod extension;
+
+/// Trace fitting, cropping, quality checks and feature creation (`FeatureFinderAlgorithmPicked.h`).
+pub mod fitting;
+
+/// Overlap resolution and apex annotation (`FeatureFinderAlgorithmPicked.h`).
+pub mod resolution;

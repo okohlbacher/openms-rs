@@ -812,10 +812,10 @@ fn intensity_bins_equal_the_area_iterator() {
 }
 
 /// mass_trace:min_spectra 1 gives min_spectra_ 0. The executed C++ divides every
-/// trace score by zero (NaN), finds no seed and exits normally (B6 driver); the
-/// port refuses the configuration explicitly.
+/// trace score by zero (NaN), finds no seed and exits normally (B6 driver), and
+/// the port follows it (lead decision of 2026-09-15, `CPP-271`).
 #[test]
-fn min_spectra_one_is_refused() {
+fn min_spectra_one_follows_the_source_and_finds_no_seed() {
     assert_eq!(
         records("b6_stage_records.tsv", "stdout", "ffc1_min_spectra_1")[0][0],
         "Found 0 seeds for charge 2."
@@ -833,10 +833,28 @@ fn min_spectra_one_is_refused() {
         "mass_trace:min_spectra",
         ParamValue::Integer(1),
     );
-    assert!(matches!(
-        SeedStage::run(ffc1_input(), &FeatureMap::new(), &parameters),
-        Err(Error::InvalidValue(_))
-    ));
+    let stage = SeedStage::run(ffc1_input(), &FeatureMap::new(), &parameters)
+        .unwrap()
+        .unwrap();
+    assert_eq!(stage.settings().min_spectra, 0);
+    assert_eq!(stage.charges().len(), 1);
+    assert!(stage.charges()[0].seeds.is_empty());
+    assert_eq!(stage.log(), ["Found 0 seeds for charge 2."]);
+    // Every trace score is the NaN of 0.0 / 0, so no peak can reach the seed
+    // threshold; the whole run therefore ends with an empty map.
+    assert!(stage.scores().trace(0).unwrap().iter().all(|s| s.is_nan()));
+    let output = run(ffc1_input(), &FeatureMap::new(), &parameters).unwrap();
+    assert!(output.features.is_empty());
+    assert_eq!(
+        output.log,
+        [
+            "Found 0 seeds for charge 2.",
+            "Found 0 feature candidates for charge 2.",
+            "Removed 0 overlapping features.",
+            "Info: reasons for not finalizing a feature during its construction:",
+            "0 features found.",
+        ]
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -934,13 +952,15 @@ fn unsorted_input_is_sorted_with_a_warning() {
     assert_eq!(s.thresholds(), sorted.thresholds());
 }
 
-/// Past seed selection, run() is not ported yet.
+/// Past seed selection the run continues into the feature stage, which
+/// `tests/feature_finder_picked.rs` compares with the executed C++ in detail;
+/// here only that it runs and reports the FeatureFinderCentroided_1 counts.
 #[test]
-fn run_past_seed_selection_is_unsupported() {
-    assert!(matches!(
-        run(ffc1_input(), &FeatureMap::new(), &ffc1_parameters()),
-        Err(Error::Unsupported(_))
-    ));
+fn run_continues_past_seed_selection() {
+    let output = run(ffc1_input(), &FeatureMap::new(), &ffc1_parameters()).unwrap();
+    assert_eq!(output.features.len(), 8);
+    assert_eq!(output.log[0], "Found 25 seeds for charge 2.");
+    assert_eq!(output.log[1], "Found 8 feature candidates for charge 2.");
 }
 
 #[test]
@@ -1000,34 +1020,40 @@ fn undefined_source_configurations_are_refused() {
     ));
 }
 
-/// A changed abundance is refused by default. The intended two-isotope override
-/// runs on request and differs from the executed C++, whose override keeps a
-/// stray (0, 1) peak: its first window has 27 bins (C2 `ffap_ffc1_abundance_12C_90`).
+/// A changed abundance computes the intended two-isotope override by default
+/// (lead decision of 2026-09-15, `CPP-247`); it differs from the executed C++,
+/// whose override keeps a stray (0, 1) peak, so that its first window has 27
+/// bins and the run finds no seed (C2 `ffap_ffc1_abundance_12C_90`).
+/// [`AbundanceOverride::Refuse`] is the opt-in that refuses instead of
+/// differing.
 #[test]
-fn abundance_overrides_are_refused_unless_the_intended_override_is_selected() {
+fn abundance_overrides_use_the_intended_override_unless_refusal_is_selected() {
     let mut p = ffc1_parameters();
     set(
         &mut p,
         "isotopic_pattern:abundance_12C",
         ParamValue::Float(90.0),
     );
-    assert!(matches!(
-        SeedStage::run(ffc1_input(), &FeatureMap::new(), &p),
-        Err(Error::Unsupported(_))
-    ));
-    let options = Options {
-        abundance_override: AbundanceOverride::Intended,
-        ..Options::default()
-    };
-    let s = SeedStage::run_with_options(ffc1_input(), &FeatureMap::new(), &p, &options)
+    let s = SeedStage::run(ffc1_input(), &FeatureMap::new(), &p)
         .unwrap()
         .unwrap();
     assert_eq!(s.settings().max_isotopes(), 1020);
     let first = &s.windows().patterns()[0];
     assert!(first.len() <= 6, "{}", first.len());
     assert_eq!(first.intensity.iter().copied().fold(0.0, f64::max), 1.0);
+    // The executed C++ found no seed here; the intended override does.
+    assert!(!s.charges()[0].seeds.is_empty());
+
+    let refusing = Options {
+        abundance_override: AbundanceOverride::Refuse,
+        ..Options::default()
+    };
     assert!(matches!(
-        run_with_options(ffc1_input(), &FeatureMap::new(), &p, &options),
+        SeedStage::run_with_options(ffc1_input(), &FeatureMap::new(), &p, &refusing),
+        Err(Error::Unsupported(_))
+    ));
+    assert!(matches!(
+        run_with_options(ffc1_input(), &FeatureMap::new(), &p, &refusing),
         Err(Error::Unsupported(_))
     ));
 }
