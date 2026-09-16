@@ -1940,3 +1940,59 @@ fn intensity_scores_outside_the_bins_match_the_linux_release_build() {
     }
     assert_eq!(queries, 4 * 57);
 }
+
+/// `FeatureFinderDefs` as `FeatureFinderAlgorithmPicked.h` declares it,
+/// against the executed probe `defs_probe` (Linux x86_64 Release build, three
+/// repetitions, identical output, quoted below): the enumerator values and the
+/// enum's size, a default `ChargedIndexSet`, the order of an `IndexSet`, and the
+/// name and message of `NoSuccessor` for three index pairs, the last with
+/// `SIZE_MAX`.
+#[test]
+fn feature_finder_defs_match_the_executed_probe() {
+    use openms::analysis::feature_finder_picked::defs::{
+        ChargedIndexSet, Flag, IndexPair, NoSuccessor,
+    };
+    // flag UNUSED 0 / flag USED 1 / flag_size 4
+    assert_eq!(Flag::Unused as i32, 0);
+    assert_eq!(Flag::Used as i32, 1);
+    assert_eq!(std::mem::size_of::<Flag>(), 4);
+    // charged_default charge 0 size 0
+    let mut charged = ChargedIndexSet::default();
+    assert_eq!(charged.charge, 0);
+    assert_eq!(charged.len(), 0);
+    // index_set_order 1/2 1/5 2/1 after inserting (2,1), (1,5), (1,2), (1,2)
+    for pair in [(2, 1), (1, 5), (1, 2), (1, 2)] {
+        charged.insert(pair);
+    }
+    let order: Vec<IndexPair> = charged.iter().copied().collect();
+    assert_eq!(order, [(1, 2), (1, 5), (2, 1)]);
+    // no_successor <pair> name NoSuccessor what <message> line_positive 1 file_nonempty 1
+    for (pair, what) in [
+        (
+            (0, 0),
+            "there is no successor/predecessor for the given Index: 0/0",
+        ),
+        (
+            (3, 17),
+            "there is no successor/predecessor for the given Index: 3/17",
+        ),
+        (
+            (usize::MAX, 1),
+            "there is no successor/predecessor for the given Index: 18446744073709551615/1",
+        ),
+    ] {
+        let error = NoSuccessor::new(pair);
+        assert_eq!(error.name(), "NoSuccessor");
+        assert_eq!(error.message(), what);
+        assert_eq!(error.to_string(), what);
+        assert_eq!(error.index(), pair);
+        assert!(error.line() > 0);
+        assert!(error.file().ends_with("feature_finder_picked_seeds.rs"));
+        match Error::from(error) {
+            Error::InvalidValue(message) => {
+                assert_eq!(message, format!("NoSuccessor: {what}"));
+            }
+            other => panic!("{other:?}"),
+        }
+    }
+}
