@@ -291,9 +291,10 @@ impl IntensityThresholds {
     /// `cvttsd2si %xmm2,%rdi` (64-bit truncation, `0x8000000000000000` for NaN
     /// and for values outside the signed 64-bit range) followed by the low 32
     /// bits of the register, and the cap as an unsigned `cmovbe`. This
-    /// function reproduces exactly that ([`x86_64::truncate_to_u32`]): a
-    /// negative position wraps to a large unsigned value and is capped at the
-    /// last half-bin, and a NaN or infinite position selects half-bin 0. The
+    /// function reproduces exactly that (the crate-private
+    /// `x86_64::truncate_to_u32`): a negative position wraps to a large
+    /// unsigned value and is capped at the last half-bin, and a NaN or
+    /// infinite position selects half-bin 0. The
     /// cells read are then always inside the grid. With a zero or infinite step
     /// the distances are `0 / 0` or `inf / inf`, so the score is NaN whatever
     /// half-bin was selected.
