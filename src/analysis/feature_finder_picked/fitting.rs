@@ -126,12 +126,51 @@ impl FittedModel {
 
     /// Fit the model to `traces`: source `fitter->fit(traces)`.
     ///
+    /// # `Exception::UnableToFit` is unreachable from the seed loop
+    ///
+    /// `TraceFitter::optimize_` throws in two places, and the source's seed
+    /// loop (`FeatureFinderAlgorithmPicked.cpp:595-670`) catches neither; the
+    /// exception would leave the OpenMP region and terminate the process. No
+    /// input reaches either:
+    ///
+    /// - `TraceFitter.cpp:111`, fewer residuals than parameters. The residuals
+    ///   are the peaks of the traces the loop fits, and the loop only fits
+    ///   traces that pass `MassTraces::isValid` (`:638`), so there are at
+    ///   least two. `extendMassTraces_` (`:1381-1479`) appends a trace with
+    ///   fewer than three peaks (`MassTrace::isValid`) only at pattern index 0
+    ///   while the maximum trace, which has at least three, is not yet
+    ///   appended (`MassTraces::max_trace` is still 0 then and `p ==
+    ///   max_trace`); every later short trace clears the list or ends it. So at
+    ///   most one trace is short, and it holds at least its start peak: at
+    ///   least `1 + 3 = 4` residuals, and the Gaussian has 3 parameters, the
+    ///   EGH model 4.
+    /// - `TraceFitter.cpp:129`, a solver status up to
+    ///   `ImproperInputParameters`. Eigen's `LevenbergMarquardt::minimize`
+    ///   returns that status only from `minimizeInit`, for `n <= 0`, `m < n`,
+    ///   a negative tolerance, `maxfev <= 0` or `factor <= 0` (Eigen
+    ///   `NonLinearOptimization/LevenbergMarquardt.h`, the install's
+    ///   `deps/include/eigen3`); `minimizeOneStep` returns only `Running` or a
+    ///   positive status. Here `n` is 3 or 4, `m >= n` by the first check, the
+    ///   tolerances and `factor` are Eigen's defaults, and `maxfev` is
+    ///   `fit:max_iterations`, which `DefaultParamHandler::setParameters`
+    ///   restricts to at least 1 (`:89`): `ParamValue::operator int` and
+    ///   `operator unsigned int` keep the same low 32 bits, so a value that
+    ///   passes the restriction reaches the solver unchanged and positive.
+    ///
+    /// The residual count the source checks is `int`
+    /// (`static_cast<int>(getPeakCount())`, `GaussTraceFitter.cpp:140`, and
+    /// `EGHTraceFitter.cpp:29` through the `int` constructor): traces with more
+    /// than `INT_MAX` peaks would also throw at `:111`, but the solver's
+    /// `MAX_POINTS` ceiling refuses such traces first.
+    ///
     /// # Errors
     ///
-    /// As [`TraceFitter::fit`] of the selected model. The source does not catch
-    /// `Exception::UnableToFit` inside its parallel region, so a failing fit
-    /// ends the whole run there; this port reports it as the seed's abort
-    /// reason, which is what the source's later, serial behaviour amounts to.
+    /// As [`TraceFitter::fit`] of the selected model. From the seed loop, that
+    /// is one of the port's resource ceilings (the solver's point, byte and
+    /// work ceilings), which the source does not have, or the start point's
+    /// refusal of a NaN retention time in the intensity profile
+    /// ([`MassTraces::intensity_profile`]), where the source loops forever; the
+    /// algorithm returns such an error instead of recording an abort reason.
     pub fn fit(&mut self, traces: &MassTraces) -> Result<()> {
         match self {
             Self::Gauss(fitter) => fitter.fit(traces),
@@ -453,8 +492,11 @@ pub struct FeatureInput<'a> {
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] when the traces are empty
-/// ([`MassTraces::theoretical_max_position`]), when the isotope window of the
-/// feature's m/z was not precalculated, when the point count of a hull exceeds
+/// ([`MassTraces::theoretical_max_position`]); when the isotope window of the
+/// feature's m/z was not precalculated, which a NaN m/z causes (an infinite
+/// intensity in the reported traces makes the average m/z `inf / inf`) and
+/// where the source's exception escapes its parallel region and terminates the
+/// process; when the point count of a hull exceeds
 /// its ceiling, and when the model's FWHM is not finite or is negative, which
 /// [`crate::kernel::BaseFeature::set_width`] refuses and the source stores. A
 /// non-finite FWHM needs a non-finite fit, which the source's quality checks let
@@ -522,7 +564,18 @@ pub fn build_feature(input: FeatureInput<'_>) -> Result<Feature> {
                 * (position + pattern.theoretical_pattern.trimmed_left) as f64
         }
     };
-    feature.intensity = (fitter.area() / windows.get(feature.mz)?.max) as f32;
+    // Source `getIsotopeDistribution_(f.getMZ())` inside the seed loop's
+    // OpenMP region (`FeatureFinderAlgorithmPicked.cpp:790`): its
+    // `Exception::InvalidValue` is not caught there, so the source terminates.
+    let window = windows.get(feature.mz).map_err(|error| {
+        Error::InvalidValue(format!(
+            "FeatureFinderAlgorithmPicked step 3.3.5: the feature m/z {} has no isotope window \
+             ({error}); the source throws this inside its OpenMP region, where std::terminate \
+             ends the process",
+            feature.mz
+        ))
+    })?;
+    feature.intensity = (fitter.area() / window.max) as f32;
     let mut hulls = Vec::new();
     hulls
         .try_reserve_exact(traces.len())

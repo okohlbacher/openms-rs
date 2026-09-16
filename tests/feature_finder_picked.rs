@@ -9,11 +9,16 @@
 //! Evidence (see `docs/FEATURE_FINDER_PICKED_SUPPORT.md` and
 //! `tests/data/feature_finder_picked_provenance.json`):
 //!
-//! - tier 1, executed C++ (product SDK): the final `FeatureMap` of
-//!   `FeatureFinderAlgorithmPicked::run` for six configurations (FFC_1
-//!   symmetric, FFC_1 asymmetric, FFC_1 with user seeds, the class-test input
-//!   and the two `#9247` tolerance swaps), its printed seed and candidate
-//!   counts and its `aborts_` map, in `b7_feature_records.tsv`;
+//! - tier 1, executed C++ (the Linux x86_64 Release build
+//!   `openms4-release-bc9cc12-c19e494-174b576`, the reference platform): the
+//!   final `FeatureMap` of `FeatureFinderAlgorithmPicked::run` for six
+//!   configurations (FFC_1 symmetric, FFC_1 asymmetric, FFC_1 with user seeds,
+//!   the class-test input and the two `#9247` tolerance swaps), its printed
+//!   seed and candidate counts and its `aborts_` map, in
+//!   `b7_feature_records.tsv`. The fixtures were re-extracted from that build
+//!   by `../oracle/ffap-sem-completion/extract/extract_linux.py`, which runs the
+//!   B7 extraction unchanged; they replaced the macOS arm64 product-SDK (Debug)
+//!   capture of package B7;
 //! - adapted: the per-seed intermediate state of `b7_seed_records.tsv`, which
 //!   the C2 driver produced by replaying the protected library steps
 //!   (`findBestIsotopeFit_`, `extendMassTraces_`, the chosen fitter,
@@ -25,18 +30,19 @@
 //!   `extendMassTraces_` defect and the resource ceilings.
 //!
 //! Peak identities, counts, charges, labels and abort reasons are compared
-//! exactly; coordinates, intensities, qualities and fitted parameters within
-//! `1e-9` relative, the contract the work package sets, because the port's
-//! Levenberg-Marquardt transcription departs from the executed Eigen in the
-//! last bits (`docs/TRACE_FITTER_SUPPORT.md`, "Known gap").
+//! exactly. Coordinates, intensities, qualities and fitted parameters are
+//! compared bit for bit on Linux x86_64 with glibc, except for the asymmetric
+//! (EGH) configuration, and within measured platform bounds elsewhere; see
+//! [`tolerance`].
 
-#![cfg(all(feature = "mzml", feature = "paramxml"))]
+#![cfg(all(feature = "mzml", feature = "paramxml", feature = "featurexml"))]
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use openms::analysis::feature_finder_picked::algorithm::{
-    AbundanceOverride, Limits, Options, RtShape, default_parameters, run, run_with_options,
+    AbundanceOverride, DegenerateBinStep, Limits, Options, RtShape, default_parameters, run,
+    run_with_options,
 };
 use openms::analysis::feature_finder_picked::extension::{
     OverallScores, extend_mass_traces, find_best_isotope_fit,
@@ -149,44 +155,105 @@ fn records(file: &str, kind: &str, config: &str) -> Vec<Vec<String>> {
         .collect()
 }
 
-/// The work package's comparison contract for a fitted quantity.
-const RELATIVE: f64 = 1e-9;
-
 /// Bit equality, for the quantities measured to agree exactly with the executed
-/// C++: every isotope-fit score, every isotope-pattern intensity and m/z score,
-/// and every mass trace (peak identity, theoretical intensity and baseline).
+/// C++ on every platform: every isotope-fit score, every isotope-pattern
+/// intensity and m/z score, and every mass trace (peak identity, theoretical
+/// intensity and baseline).
 const BITWISE: f64 = 0.0;
 
-/// The seeds whose *fitted parameters* depart from the executed Eigen beyond
-/// [`RELATIVE`], with the measured bound.
+/// The comparison bound of the fitted parameters, the qualities and the
+/// feature coordinates of one seed or feature (`index`, `None` for a final
+/// feature) of one configuration.
 ///
-/// Root cause: the port's Levenberg-Marquardt transcription departs from Eigen
-/// in the last bits at the first trial step on many inputs, which can grow over
-/// the iterations; `docs/TRACE_FITTER_SUPPORT.md`, "Known gap: solver fidelity
-/// beyond the fixtures" (lane B3b). It is not a difference of this package's
-/// inputs: `check_traces` compares the fit input of these two seeds — the peak
-/// identities, the theoretical intensities and the baseline — bit for bit, and
-/// they agree.
+/// The fixtures are the **Linux x86_64 Release** build
+/// (`openms4-release-bc9cc12-c19e494-174b576`, the C2 driver `ffap_stages` run on
+/// ibminode06, AMD EPYC 7763, glibc 2.39; `../oracle/ffap-sem-completion`), the
+/// reference platform the user chose on 2026-09-15. Since lane B3b the port's
+/// Levenberg-Marquardt solver follows that build's Eigen kernels, and its
+/// Gaussian fit calls the platform `exp` and `log`, as the source does, so the
+/// bound depends on the platform the test runs on:
 ///
-/// Measured over the six configurations: the largest departure is `2.25e-3` on
-/// the fitted area of these two seeds on Linux x86-64 (`5.81e-4` on macOS
-/// arm64); every other fitted quantity of every other seed stays within
-/// `6.46e-10` on **both** platforms, so the two fits are the only
-/// platform-sensitive results as well. Both seeds are rejected by
-/// `checkFeatureQuality_` in the executed C++ *and* here, with the same reason,
-/// so no feature changes. The bound below is the larger measurement, not a
-/// tolerance chosen to pass: a regression past it fails.
-const KNOWN_FIT_GAP: [(&str, usize, f64); 2] = [
+/// - Linux x86_64 with glibc: every Gaussian configuration is **bit for bit**,
+///   measured on dax (AMD EPYC 9654). glibc selects FMA variants of `exp` and
+///   `log` on CPUs that have FMA, as both measured hosts do; the exact
+///   comparison assumes such a CPU. The asymmetric (EGH) configuration departs
+///   by at most `2.3038e-12` relative (seed 24's lower retention-time bound):
+///   `EGHTraceFitter` in this port calls the `libm` crate's `exp`, `log` and
+///   `atan` where the source calls glibc's (`docs/EGH_TRACE_FITTER_SUPPORT.md`),
+///   so [`EGH_LIBM_GAP`] bounds it.
+/// - macOS arm64 (Apple libm), measured against the same Linux capture: the
+///   Gaussian fits depart by at most `5.355e-13` relative, except seeds 11 and 12
+///   of `classtest_9247_tight_pattern` ([`KNOWN_FIT_GAP_MACOS`]); the EGH
+///   configuration departs by the same `2.3038e-12` as on Linux.
+/// - Any other platform is unmeasured: the bound is the work package's `1e-9`
+///   contract, and the two ill-conditioned seeds keep the largest departure
+///   recorded before the Linux capture existed ([`KNOWN_FIT_GAP_UNMEASURED`]).
+///
+/// The two ill-conditioned seeds are rejected by `checkFeatureQuality_` in the
+/// executed C++ and here, with the same reason, on every measured platform, so
+/// no feature changes (`every_seed_matches_the_executed_intermediate_state`
+/// asserts that a seed with a platform gap never becomes a feature).
+fn tolerance(config: &str, index: Option<usize>) -> f64 {
+    if config == "ffc1_asymmetric" {
+        return EGH_LIBM_GAP;
+    }
+    platform_tolerance(config, index)
+}
+
+/// The EGH configuration's measured departure, `2.3038102266706174e-12`
+/// relative on both Linux x86_64 and macOS arm64, rounded up at the second
+/// significant digit.
+const EGH_LIBM_GAP: f64 = 2.4e-12;
+
+#[cfg(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"))]
+fn platform_tolerance(_config: &str, _index: Option<usize>) -> f64 {
+    0.0
+}
+
+/// macOS arm64: the two seeds whose Gaussian fit is ill-conditioned enough for
+/// Apple's `exp` to move the fitted area by `1.0698e-3` relative (seed 11; seed
+/// 12 fits the same traces), and `5.355e-13` for every other fitted quantity.
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+const KNOWN_FIT_GAP_MACOS: [(&str, usize, f64); 2] = [
+    ("classtest_9247_tight_pattern", 11, 1.1e-3),
+    ("classtest_9247_tight_pattern", 12, 1.1e-3),
+];
+
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+fn platform_tolerance(config: &str, index: Option<usize>) -> f64 {
+    KNOWN_FIT_GAP_MACOS
+        .iter()
+        .find(|(c, i, _)| *c == config && Some(*i) == index)
+        .map_or(5.4e-13, |(_, _, bound)| *bound)
+}
+
+/// Unmeasured platforms: the work package's `1e-9` contract, and for the two
+/// ill-conditioned seeds the largest departure measured before the Linux
+/// capture, `2.25e-3` (Linux x86_64 against the macOS arm64 product SDK).
+#[cfg(not(any(
+    all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"),
+    all(target_os = "macos", target_arch = "aarch64")
+)))]
+const KNOWN_FIT_GAP_UNMEASURED: [(&str, usize, f64); 2] = [
     ("classtest_9247_tight_pattern", 11, 2.3e-3),
     ("classtest_9247_tight_pattern", 12, 2.3e-3),
 ];
 
-/// The tolerance for the fitted parameters of one seed.
-fn fit_tolerance(config: &str, index: usize) -> f64 {
-    KNOWN_FIT_GAP
+#[cfg(not(any(
+    all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"),
+    all(target_os = "macos", target_arch = "aarch64")
+)))]
+fn platform_tolerance(config: &str, index: Option<usize>) -> f64 {
+    KNOWN_FIT_GAP_UNMEASURED
         .iter()
-        .find(|(c, i, _)| *c == config && *i == index)
-        .map_or(RELATIVE, |(_, _, bound)| *bound)
+        .find(|(c, i, _)| *c == config && Some(*i) == index)
+        .map_or(1e-9, |(_, _, bound)| *bound)
+}
+
+/// Whether a seed's fit has a platform gap larger than the configuration's
+/// general bound on the platform running the test.
+fn has_platform_gap(config: &str, index: usize) -> bool {
+    tolerance(config, Some(index)) > tolerance(config, None)
 }
 
 #[track_caller]
@@ -425,7 +492,13 @@ fn check_run(config: &str, map: &FeatureMap, log: &[String], aborts: &BTreeMap<S
             .collect();
     assert_eq!(aborts, &expected_aborts, "{config}: abort reasons");
 
-    let expected: Vec<Vec<String>> = records("b7_feature_records.tsv", "feature", config);
+    check_features("b7_feature_records.tsv", config, map);
+}
+
+/// The recorded `feature`, `meta` and `hull` rows of `config` in `file`
+/// against `map`.
+fn check_features(file: &str, config: &str, map: &FeatureMap) {
+    let expected: Vec<Vec<String>> = records(file, "feature", config);
     assert_eq!(
         expected.len(),
         map.len(),
@@ -435,12 +508,13 @@ fn check_run(config: &str, map: &FeatureMap, log: &[String], aborts: &BTreeMap<S
         let feature = &map.features[index];
         let what = |field: &str| format!("{config}[{index}].{field}");
         assert_eq!(row[0].parse::<usize>().unwrap(), index);
-        close(feature.rt, f64_hex(&row[1]), RELATIVE, &what("rt"));
-        close(feature.mz, f64_hex(&row[2]), RELATIVE, &what("mz"));
+        let relative = tolerance(config, None);
+        close(feature.rt, f64_hex(&row[1]), relative, &what("rt"));
+        close(feature.mz, f64_hex(&row[2]), relative, &what("mz"));
         close(
             f64::from(feature.intensity),
             f64::from(f32_hex(&row[3])),
-            RELATIVE,
+            relative,
             &what("intensity"),
         );
         assert_eq!(
@@ -452,7 +526,7 @@ fn check_run(config: &str, map: &FeatureMap, log: &[String], aborts: &BTreeMap<S
         close(
             f64::from(feature.quality),
             f64::from(f32_hex(&row[5])),
-            RELATIVE,
+            relative,
             &what("quality"),
         );
         assert_eq!(
@@ -470,7 +544,7 @@ fn check_run(config: &str, map: &FeatureMap, log: &[String], aborts: &BTreeMap<S
         close(
             f64::from(feature.width),
             f64::from(f32_hex(&row[8])),
-            RELATIVE,
+            relative,
             &what("width"),
         );
         assert_eq!(
@@ -486,13 +560,13 @@ fn check_run(config: &str, map: &FeatureMap, log: &[String], aborts: &BTreeMap<S
             what("hull count")
         );
     }
-    check_meta(config, map);
-    check_hulls(config, map);
+    check_meta(file, config, map);
+    check_hulls(file, config, map);
 }
 
-fn check_meta(config: &str, map: &FeatureMap) {
+fn check_meta(file: &str, config: &str, map: &FeatureMap) {
     let mut expected: BTreeMap<usize, BTreeMap<String, (String, String)>> = BTreeMap::new();
-    for row in records("b7_feature_records.tsv", "meta", config) {
+    for row in records(file, "meta", config) {
         expected
             .entry(row[0].parse().unwrap())
             .or_default()
@@ -522,7 +596,7 @@ fn check_meta(config: &str, map: &FeatureMap) {
                 ("double", MetaValueData::Float(got)) => close(
                     *got,
                     f64_hex(&value),
-                    RELATIVE,
+                    tolerance(config, None),
                     &format!("{config}[{index}].{key}"),
                 ),
                 other => panic!("{config}[{index}].{key}: unexpected {other:?} for {kind}"),
@@ -531,8 +605,8 @@ fn check_meta(config: &str, map: &FeatureMap) {
     }
 }
 
-fn check_hulls(config: &str, map: &FeatureMap) {
-    for row in records("b7_feature_records.tsv", "hull", config) {
+fn check_hulls(file: &str, config: &str, map: &FeatureMap) {
+    for row in records(file, "hull", config) {
         let index: usize = row[0].parse().unwrap();
         let hull: usize = row[1].parse().unwrap();
         let count: usize = row[2].parse().unwrap();
@@ -647,22 +721,23 @@ fn every_seed_matches_the_executed_intermediate_state() {
                     QualityOutcome::Accepted(q) => {
                         assert_eq!(row[5], "true", "{}", what("feature_ok"));
                         assert!(
-                            fit_tolerance(case.config, index) == RELATIVE,
+                            !has_platform_gap(case.config, index),
                             "{}: a seed whose fit departs from the executed Eigen became a \
                              feature; the known gap must never change an output",
                             what("known gap")
                         );
-                        close(q.fit_score, f64_hex(&row[8]), RELATIVE, &what("fit_score"));
+                        let relative = tolerance(case.config, Some(index));
+                        close(q.fit_score, f64_hex(&row[8]), relative, &what("fit_score"));
                         close(
                             q.correlation,
                             f64_hex(&row[9]),
-                            RELATIVE,
+                            relative,
                             &what("correlation"),
                         );
                         close(
                             q.final_score,
                             f64_hex(&row[10]),
-                            RELATIVE,
+                            relative,
                             &what("final_score"),
                         );
                     }
@@ -792,7 +867,7 @@ fn check_traces(config: &str, index: usize, stage: &str, traces: &MassTraces) {
 fn check_fitter(config: &str, index: usize, model: &FittedModel) {
     let row = &seed_record("b7_seed_records.tsv", config, "fitter", index)[0];
     let fitter = model.as_fitter();
-    let relative = fit_tolerance(config, index);
+    let relative = tolerance(config, Some(index));
     let what = |field: &str| format!("{config} seed {index} fit: {field}");
     let expected_shape = match model {
         FittedModel::Gauss(_) => "GaussTraceFitter",
@@ -823,6 +898,117 @@ fn check_fitter(config: &str, index: usize, model: &FittedModel) {
         FittedModel::Gauss(gauss) => {
             close(gauss.sigma(), f64_hex(&row[7]), relative, &what("sigma"));
         }
+    }
+}
+
+/// The intended isotope-abundance override against the Linux x86_64 Release
+/// library, replayed with the override the source intends (adapted).
+///
+/// The library cannot compute the intended override, so the driver
+/// `../oracle/ffap-sem-completion/drivers/intended_abundance.cpp` runs
+/// `FeatureFinderAlgorithmPicked::run` with the changed abundance (the executed
+/// result: no seed, no feature), then recomputes step 2.5 with an override
+/// distribution that is cleared before its two isotopes are inserted, assigns
+/// those windows to the protected `isotope_distributions_`, and replays steps
+/// 3.1 to 4 with the library's own protected functions on the library's own
+/// arrays (two repetitions at one and four threads, identical). Three
+/// configurations: FFC_1 with `abundance_12C` 90 and 99 and with
+/// `abundance_14N` 95. This port's default, `AbundanceOverride::Intended`,
+/// reproduces the replay: every window (bit for bit, which fixes the
+/// override's `f32` weights), the seeds with their pattern and overall scores,
+/// the candidate counts, the abort reasons and every feature.
+#[test]
+fn the_intended_abundance_override_matches_the_adapted_release_replay() {
+    const FILE: &str = "intended_abundance.tsv";
+    for (config, key, value) in [
+        ("ffc1_12C_90", "isotopic_pattern:abundance_12C", 90.0),
+        ("ffc1_14N_95", "isotopic_pattern:abundance_14N", 95.0),
+        ("ffc1_12C_99", "isotopic_pattern:abundance_12C", 99.0),
+    ] {
+        let mut parameters = ffc1_parameters();
+        set(&mut parameters, key, ParamValue::Float(value));
+        // The executed library run with the stray-peak override finds nothing.
+        let executed = &records(FILE, "run", config)[0];
+        assert_eq!(
+            executed.as_slice(),
+            [
+                "Found 0 seeds for charge 2.",
+                "Found 0 feature candidates for charge 2."
+            ]
+        );
+        assert_eq!(records(FILE, "executed", config)[0][0], "0");
+
+        let stage = SeedStage::run(ffc1_input(), &FeatureMap::new(), &parameters)
+            .unwrap()
+            .unwrap();
+        let windows = records(FILE, "window", config);
+        let patterns = stage.windows().patterns();
+        assert_eq!(patterns.len(), windows.len(), "{config}: windows");
+        for (pattern, row) in patterns.iter().zip(&windows) {
+            let what = format!("{config}: window {}", row[0]);
+            assert_eq!(pattern.len().to_string(), row[1], "{what}");
+            assert_eq!(pattern.optional_begin.to_string(), row[2], "{what}");
+            assert_eq!(pattern.optional_end.to_string(), row[3], "{what}");
+            assert_eq!(pattern.max.to_bits(), f64_hex(&row[4]).to_bits(), "{what}");
+            assert_eq!(pattern.trimmed_left.to_string(), row[5], "{what}");
+            let bits: Vec<u64> = pattern.intensity.iter().map(|v| v.to_bits()).collect();
+            let expected: Vec<u64> = row[6..].iter().map(|v| f64_hex(v).to_bits()).collect();
+            assert_eq!(bits, expected, "{what}");
+        }
+        let seeds = records(FILE, "seed", config);
+        let charge = &stage.charges()[0];
+        assert_eq!(charge.seeds.len(), seeds.len(), "{config}: seed count");
+        for (seed, row) in charge.seeds.iter().zip(&seeds) {
+            let scores = stage.scores();
+            assert_eq!(
+                [
+                    seed.spectrum.to_string(),
+                    seed.peak.to_string(),
+                    format!("{:08x}", seed.intensity.to_bits()),
+                    format!(
+                        "{:08x}",
+                        scores.pattern(0, seed.spectrum).unwrap()[seed.peak].to_bits()
+                    ),
+                    format!(
+                        "{:08x}",
+                        scores.overall(0, seed.spectrum).unwrap()[seed.peak].to_bits()
+                    ),
+                ]
+                .as_slice(),
+                &row[2..],
+                "{config}: seed {}",
+                row[1]
+            );
+        }
+
+        let output = run_with_options(
+            ffc1_input(),
+            &FeatureMap::new(),
+            &parameters,
+            &Options {
+                threads: Threads::serial(),
+                ..Options::default()
+            },
+        )
+        .unwrap();
+        let candidates = &records(FILE, "candidates", config)[0];
+        assert!(output.log.contains(&format!(
+            "Found {} feature candidates for charge {}.",
+            candidates[1], candidates[0]
+        )));
+        let intended = &records(FILE, "intended", config)[0];
+        assert!(
+            output
+                .log
+                .contains(&format!("Removed {} overlapping features.", intended[0]))
+        );
+        assert_eq!(output.features.len().to_string(), intended[2], "{config}");
+        let aborts: BTreeMap<String, usize> = records(FILE, "abort", config)
+            .into_iter()
+            .map(|row| (row[1].clone(), row[0].parse().unwrap()))
+            .collect();
+        assert_eq!(output.aborts, aborts, "{config}: abort reasons");
+        check_features(FILE, config, &output.features);
     }
 }
 
@@ -1131,4 +1317,655 @@ fn labels_are_the_feature_numbers_in_order() {
                 && f.metadata.contains_key("spectrum_native_id"))
     );
     let _ = MetaValue::from(0i64);
+}
+
+// ---------------------------------------------------------------------------
+// Non-finite input: the Linux x86_64 Release build (tier 1)
+// ---------------------------------------------------------------------------
+
+/// The rows of `nonfinite_stage.tsv.gz`: the driver `nonfinite_stage` run
+/// against `openms4-release-bc9cc12-c19e494-174b576` on 189 modified
+/// FeatureFinderCentroided_1 inputs, twice each, identical, five of them also
+/// twice at four threads, identical apart from the one-thread abort rows
+/// (`../oracle/ffap-sem-completion/extract/extract_nonfinite.py`).
+fn nonfinite_rows() -> Vec<Vec<String>> {
+    use std::io::Read;
+    let bytes = std::fs::read(data("nonfinite_stage.tsv.gz")).unwrap();
+    let mut text = String::new();
+    flate2::read::GzDecoder::new(bytes.as_slice())
+        .read_to_string(&mut text)
+        .unwrap();
+    text.lines()
+        .map(|line| line.split('\t').map(str::to_string).collect())
+        .collect()
+}
+
+/// FNV-1a over little-endian bytes, as the driver and the extraction digest.
+struct Fnv(u64);
+
+impl Fnv {
+    fn new() -> Self {
+        Self(0xcbf2_9ce4_8422_2325)
+    }
+
+    fn bytes(&mut self, bytes: &[u8]) {
+        for &byte in bytes {
+            self.0 ^= u64::from(byte);
+            self.0 = self.0.wrapping_mul(0x0000_0100_0000_01b3);
+        }
+    }
+}
+
+/// A spectrum index of an option: a number or `last`.
+fn spectrum_index(experiment: &MSExperiment, text: &str) -> usize {
+    if text == "last" {
+        experiment.spectra.len() - 1
+    } else {
+        text.parse().unwrap()
+    }
+}
+
+/// The input, parameters and user seeds of one case, built as the driver
+/// built them: `keep=` first, then every modification in option order.
+fn nonfinite_input(options: &[String]) -> (MSExperiment, Param, FeatureMap) {
+    let mut experiment = ffc1_input();
+    let mut parameters = ffc1_parameters();
+    let mut seeds = FeatureMap::new();
+    for option in options {
+        if let Some(keep) = option.strip_prefix("keep=") {
+            experiment.spectra.truncate(keep.parse().unwrap());
+        }
+    }
+    for option in options {
+        let (lhs, value) = option.split_once('=').unwrap();
+        let parts: Vec<&str> = lhs.split(':').collect();
+        match parts[0] {
+            "keep" | "scores" => {}
+            "seeds" => {
+                assert_eq!(
+                    value.rsplit('/').next().unwrap(),
+                    "FeatureFinderCentroided_1_1_output.featureXML"
+                );
+                seeds = ffc1_user_seeds();
+            }
+            "seedkeep" => seeds.features.truncate(value.parse().unwrap()),
+            "seedrt" => seeds.features[parts[1].parse::<usize>().unwrap()].rt = f64_hex(value),
+            "seedmz" => seeds.features[parts[1].parse::<usize>().unwrap()].mz = f64_hex(value),
+            "rtall" => {
+                for spectrum in &mut experiment.spectra {
+                    spectrum.rt = f64_hex(value);
+                }
+            }
+            "empty" => {
+                let s = spectrum_index(&experiment, value);
+                experiment.spectra[s].peaks.clear();
+            }
+            "rt" => {
+                let s = spectrum_index(&experiment, parts[1]);
+                experiment.spectra[s].rt = f64_hex(value);
+            }
+            "trim" => {
+                let s = spectrum_index(&experiment, parts[1]);
+                experiment.spectra[s].peaks.truncate(value.parse().unwrap());
+            }
+            "mzall" => {
+                let s = spectrum_index(&experiment, parts[1]);
+                for peak in &mut experiment.spectra[s].peaks {
+                    peak.mz = f64_hex(value);
+                }
+            }
+            "mz" | "in" => {
+                let s = spectrum_index(&experiment, parts[1]);
+                let peaks = &mut experiment.spectra[s].peaks;
+                let p = if parts[2] == "last" {
+                    peaks.len() - 1
+                } else {
+                    parts[2].parse().unwrap()
+                };
+                if parts[0] == "mz" {
+                    peaks[p].mz = f64_hex(value);
+                } else {
+                    peaks[p].intensity = f32_hex(value);
+                }
+            }
+            "innear" => {
+                // `MSSpectrum::findNearest` on the unmodified, sorted target.
+                let s = spectrum_index(&experiment, parts[1]);
+                let p: usize = parts[2].parse().unwrap();
+                let d: isize = parts[3].parse().unwrap();
+                let mz = experiment.spectra[s].peaks[p].mz;
+                let target = &mut experiment.spectra[s.checked_add_signed(d).unwrap()].peaks;
+                let above = target.partition_point(|peak| peak.mz < mz);
+                let nearest = if above == 0 {
+                    0
+                } else if above == target.len() {
+                    above - 1
+                } else if (target[above].mz - mz).abs() < (target[above - 1].mz - mz).abs() {
+                    above
+                } else {
+                    above - 1
+                };
+                target[nearest].intensity = f32_hex(value);
+            }
+            "i" => set(
+                &mut parameters,
+                &lhs[2..],
+                ParamValue::Integer(value.parse().unwrap()),
+            ),
+            "d" => set(
+                &mut parameters,
+                &lhs[2..],
+                ParamValue::Float(value.parse().unwrap()),
+            ),
+            "s" => set(&mut parameters, &lhs[2..], ParamValue::String(value.into())),
+            other => panic!("unknown option {other}"),
+        }
+    }
+    (experiment, parameters, seeds)
+}
+
+/// Infinite and NaN retention times, m/z values, intensities and user-seed
+/// positions, against the executed Linux x86_64 Release build.
+///
+/// For every case the port gives the executed outcome:
+///
+/// - the executed exception, as [`openms::Error`] with the same `what()` text:
+///   `-inf` m/z fails the positive-m/z check after the sort; `+inf` or `1e300`
+///   m/z leaves no isotope window (the `Size` conversion of `ceil(inf) + 1` is
+///   0), and a NaN m/z asks for window `2^63`, both at the first pattern
+///   lookup of step 3.1; every retention time or every m/z NaN leaves an empty
+///   range. A window count in `[2^63, 2^64)` makes the source's `resize`
+///   throw `std::length_error`; the port's window ceiling refuses it first;
+/// - status 137, the executed run killed after 30 s: a NaN retention time in a
+///   mass trace makes `computeIntensityProfile` loop forever
+///   (`FeatureFinderAlgorithmPickedHelperStructs.cpp:210-236`), and the port
+///   refuses at exactly that merge;
+/// - otherwise the printed lines, the feature count, the abort reasons, the
+///   bin steps and the window count, the seeds, a digest of every quantile
+///   and every per-peak score (NaN bits included; the full rows where few
+///   differ from the unmodified input), and every feature with its meta values
+///   and a digest of its convex hulls. Infinite retention times make every
+///   step infinite and every intensity score NaN (no feature); infinite
+///   intensities shift the quantiles, score NaN at their own peak, join mass
+///   traces and are cut off again by the slope check, as in the source.
+///
+/// Overall scores the Release build's `powf` misrounds (`CPP-272`) are
+/// substituted as in the seed-stage tests. Fitted quantities use the
+/// platform bound of [`tolerance`].
+#[test]
+fn non_finite_inputs_match_the_linux_release_build() {
+    use openms::Error;
+    use openms::analysis::feature_finder_picked::algorithm::feature_stage;
+    let rows = nonfinite_rows();
+    let cases: Vec<&Vec<String>> = rows.iter().filter(|row| row[0] == "case").collect();
+    assert_eq!(cases.len(), 189);
+    let mut outcomes: BTreeMap<&str, usize> = BTreeMap::new();
+    for case in cases {
+        let name = case[1].as_str();
+        let of = |kind: &str| -> Vec<&[String]> {
+            rows.iter()
+                .filter(|row| row[0] == kind && row[1] == name)
+                .map(|row| &row[2..])
+                .collect()
+        };
+        let (experiment, parameters, seeds) = nonfinite_input(&case[2..]);
+        let input = of("input")[0];
+        assert_eq!(experiment.spectra.len().to_string(), input[0], "{name}");
+        let peaks: usize = experiment.spectra.iter().map(|s| s.peaks.len()).sum();
+        assert_eq!(peaks.to_string(), input[1], "{name}");
+        let options = Options {
+            threads: Threads::serial(),
+            ..Options::default()
+        };
+        let stage = SeedStage::run_with_options(experiment.clone(), &seeds, &parameters, &options);
+        let status = of("status")[0][0].as_str();
+        let rt_config = if case[2..]
+            .iter()
+            .any(|o| o == "s:feature:rt_shape=asymmetric")
+        {
+            "ffc1_asymmetric"
+        } else {
+            "ffc1_symmetric"
+        };
+        if let Some(expected) = nan_sort_refusal(name, &case[2..]) {
+            // The executed build returned, but only after a `std::sort` over a
+            // NaN key: its order is libstdc++'s introsort order, which this
+            // branch does not reproduce, and the standard leaves it undefined
+            // or unspecified. The port refuses at that sort.
+            let error = stage
+                .and_then(|stage| feature_stage(&stage.unwrap(), &options))
+                .unwrap_err();
+            assert!(
+                matches!(&error, Error::InvalidValue(m) if m.contains(expected)),
+                "{name}: {error}"
+            );
+            *outcomes.entry("nan sort refused").or_default() += 1;
+            continue;
+        }
+        if status == "137" {
+            let error = stage
+                .and_then(|stage| feature_stage(&stage.unwrap(), &options))
+                .unwrap_err();
+            assert!(
+                matches!(&error, Error::InvalidValue(m) if m.contains("NaN retention time cannot be merged")),
+                "{name}: {error}"
+            );
+            *outcomes.entry("hang").or_default() += 1;
+            continue;
+        }
+        assert_eq!(status, "0", "{name}");
+        if let Some(threw) = of("threw").first() {
+            let (kind, text) = threw[0].split_once(": ").unwrap();
+            let error = stage
+                .and_then(|stage| feature_stage(&stage.unwrap(), &options))
+                .unwrap_err();
+            match (kind, &error) {
+                ("IllegalArgument" | "InvalidValue", Error::InvalidValue(message))
+                | ("InvalidRange", Error::InvalidRange(message)) => {
+                    assert_eq!(message, text, "{name}");
+                }
+                ("std::exception", Error::InvalidValue(message)) => {
+                    assert_eq!(text, "vector::_M_default_append", "{name}");
+                    assert!(message.contains("isotope windows"), "{name}: {message}");
+                }
+                _ => panic!("{name}: executed {kind}: {text}, port {error}"),
+            }
+            *outcomes.entry("threw").or_default() += 1;
+            continue;
+        }
+        let stage = stage
+            .unwrap_or_else(|error| panic!("{name}: {error}"))
+            .unwrap();
+        let output =
+            feature_stage(&stage, &options).unwrap_or_else(|error| panic!("{name}: {error}"));
+
+        let printed: Vec<&String> = output
+            .log
+            .iter()
+            .filter(|line| line.starts_with("Found "))
+            .collect();
+        let stdout: Vec<&String> = of("stdout").into_iter().map(|row| &row[0]).collect();
+        assert_eq!(printed, stdout, "{name}: printed lines");
+        assert_eq!(
+            output.features.len().to_string(),
+            of("features")[0][0],
+            "{name}: features"
+        );
+        let aborts: BTreeMap<String, usize> = of("abort")
+            .into_iter()
+            .map(|row| (row[1].clone(), row[0].parse().unwrap()))
+            .collect();
+        assert_eq!(output.aborts, aborts, "{name}: abort reasons");
+
+        // Step 1 and step 2.5.
+        let thresholds = stage.thresholds();
+        let bins = of("bins")[0];
+        assert_eq!(thresholds.bins().to_string(), bins[0], "{name}");
+        for (value, expected) in [
+            thresholds.rt_start(),
+            thresholds.mz_start(),
+            thresholds.rt_step(),
+            thresholds.mz_step(),
+        ]
+        .iter()
+        .zip(&bins[1..])
+        {
+            assert_eq!(value.to_bits(), f64_hex(expected).to_bits(), "{name}: bins");
+        }
+        assert_eq!(
+            stage.windows().patterns().len().to_string(),
+            of("windows")[0][0],
+            "{name}: windows"
+        );
+
+        // Every score, through the digest and the listed rows.
+        let scores = stage.scores();
+        let charges = scores.charge_count();
+        let rounding: BTreeMap<(usize, usize, usize), u32> = of("rounding")
+            .into_iter()
+            .map(|row| {
+                let oracle = u32::from_str_radix(&row[3], 16).unwrap();
+                let correct = u32::from_str_radix(&row[4], 16).unwrap();
+                assert_eq!(oracle.abs_diff(correct), 1, "{name}: rounding row");
+                (
+                    (
+                        row[0].parse().unwrap(),
+                        row[1].parse().unwrap(),
+                        row[2].parse().unwrap(),
+                    ),
+                    oracle,
+                )
+            })
+            .collect();
+        let spectra = &stage.experiment().spectra;
+        let arrays_of = |s: usize, p: usize| -> Vec<u32> {
+            let mut values = vec![
+                scores.trace(s).unwrap()[p].to_bits(),
+                scores.intensity(s).unwrap()[p].to_bits(),
+                scores.local_max(s).unwrap()[p].to_bits(),
+            ];
+            for c in 0..charges {
+                values.push(scores.pattern(c, s).unwrap()[p].to_bits());
+            }
+            for c in 0..charges {
+                let port = scores.overall(c, s).unwrap()[p].to_bits();
+                values.push(rounding.get(&(s, p, c)).copied().unwrap_or(port));
+            }
+            values
+        };
+        for row in of("score") {
+            let s: usize = row[0].parse().unwrap();
+            let p: usize = row[1].parse().unwrap();
+            assert_eq!(
+                spectra[s].peaks[p].mz.to_bits(),
+                f64_hex(&row[2]).to_bits(),
+                "{name}"
+            );
+            let expected: Vec<u32> = row[4..row.len() - 1]
+                .iter()
+                .map(|v| u32::from_str_radix(v, 16).unwrap())
+                .collect();
+            assert_eq!(arrays_of(s, p), expected, "{name}: spectrum {s} peak {p}");
+            let score = thresholds
+                .score(
+                    spectra[s].rt,
+                    spectra[s].peaks[p].mz,
+                    f64::from(spectra[s].peaks[p].intensity),
+                )
+                .unwrap();
+            assert_eq!(
+                score.to_bits(),
+                f64_hex(&row[row.len() - 1]).to_bits(),
+                "{name}: intensityScore_({s}, {p})"
+            );
+        }
+        for row in of("quantiles") {
+            let actual = thresholds
+                .quantiles(row[0].parse().unwrap(), row[1].parse().unwrap())
+                .unwrap();
+            let expected: Vec<u64> = row[2..].iter().map(|q| f64_hex(q).to_bits()).collect();
+            let actual: Vec<u64> = actual.iter().map(|q| q.to_bits()).collect();
+            assert_eq!(actual, expected, "{name}: quantiles");
+        }
+
+        let mut digest = Fnv::new();
+        for rt in 0..thresholds.bins() {
+            for mz in 0..thresholds.bins() {
+                for q in thresholds.quantiles(rt, mz).unwrap() {
+                    digest.bytes(&q.to_bits().to_le_bytes());
+                }
+            }
+        }
+        for (s, spectrum) in spectra.iter().enumerate() {
+            for p in 0..spectrum.peaks.len() {
+                for value in arrays_of(s, p) {
+                    digest.bytes(&value.to_le_bytes());
+                }
+            }
+        }
+        assert_eq!(
+            format!("{:016x}", digest.0),
+            of("digest")[0][0],
+            "{name}: score digest"
+        );
+
+        // Seeds (automatic seeds only), with the executed overall score.
+        if seeds_are_automatic(&case[2..]) {
+            let mut actual = Vec::new();
+            for charge in stage.charges() {
+                let index = (charge.charge - stage.settings().charge_low) as usize;
+                for (rank, seed) in charge.seeds.iter().enumerate() {
+                    let overall = arrays_of(seed.spectrum, seed.peak)[3 + charges + index];
+                    actual.push(vec![
+                        charge.charge.to_string(),
+                        rank.to_string(),
+                        seed.spectrum.to_string(),
+                        seed.peak.to_string(),
+                        format!("{:08x}", seed.intensity.to_bits()),
+                        format!("{overall:08x}"),
+                    ]);
+                }
+            }
+            let expected = of("seed");
+            assert_eq!(actual.len(), expected.len(), "{name}: seed count");
+            for (a, e) in actual.iter().zip(&expected) {
+                assert_eq!(a.as_slice(), *e, "{name}: seed");
+            }
+        }
+
+        check_nonfinite_features(name, rt_config, &of, &output.features);
+        *outcomes.entry("features").or_default() += 1;
+
+        // `DegenerateBinStep::Refuse` refuses exactly the runs whose executed
+        // bin steps are zero or infinite (an infinite coordinate makes them
+        // so) and whose seed loop visits a scan; the others run unchanged.
+        let degenerate = [&bins[3], &bins[4]].iter().any(|step| {
+            let step = f64_hex(step);
+            step == 0.0 || step.is_infinite()
+        });
+        let scans = spectra.len();
+        let min_spectra = stage.settings().min_spectra;
+        let read = min_spectra < scans - min_spectra.min(scans);
+        let refusing = SeedStage::run_with_options(
+            experiment,
+            &seeds,
+            &parameters,
+            &Options {
+                degenerate_bin_step: DegenerateBinStep::Refuse,
+                ..options
+            },
+        );
+        if degenerate && read {
+            assert!(
+                matches!(&refusing, Err(Error::InvalidValue(m)) if m.contains("DegenerateBinStep::Refuse")),
+                "{name}"
+            );
+            *outcomes
+                .entry("refused under DegenerateBinStep::Refuse")
+                .or_default() += 1;
+        } else {
+            let refusing = refusing
+                .unwrap_or_else(|error| panic!("{name}: {error}"))
+                .unwrap();
+            assert_eq!(refusing.log(), stage.log(), "{name}");
+        }
+    }
+    // Of the 170 executed runs that returned features, 161 are reproduced and
+    // 9 refused at a NaN sort key; the 16 that threw are reproduced; of the 3
+    // that never returned, 2 are refused at the endless profile merge and
+    // `rt_nan_mid_unsorted` earlier, at its NaN retention-time sort. Of the
+    // returned runs, the opt-out refuses the seven with an infinite step and a
+    // non-empty seed loop: `rt_posinf_last`, `rt_posinf_last_min0`,
+    // `rt_neginf_first`, `rt_posinf_all`, `rt_neginf_all`,
+    // `rt_posinf_last_bins3` and `mz_posinf_last_nocharge`; `rt_neginf_short`
+    // (10 scans, `min_spectra_` 7) has an empty seed loop.
+    assert_eq!(
+        outcomes,
+        BTreeMap::from([
+            ("features", 161),
+            ("hang", 2),
+            ("nan sort refused", 10),
+            ("refused under DegenerateBinStep::Refuse", 7),
+            ("threw", 16)
+        ])
+    );
+}
+
+/// The refusal expected for a case whose source sorts a NaN key with
+/// `std::sort`, or `None`: a NaN intensity in FeatureFinderCentroided_1's one
+/// intensity cell (`intensity:bins` 1), a NaN user-seed m/z among different
+/// ones, and a NaN retention time in an input that `isSorted` finds unsorted.
+fn nan_sort_refusal(name: &str, options: &[String]) -> Option<&'static str> {
+    let nan_intensity = options.iter().any(|option| {
+        (option.starts_with("in:") || option.starts_with("innear:"))
+            && option.ends_with("=7fc00000")
+    });
+    if nan_intensity {
+        return Some("holds a NaN intensity among other values");
+    }
+    match name {
+        "seeds_mz_nan" => Some("not a strict weak ordering"),
+        "rt_nan_mid_unsorted" => Some("MSExperiment::sortSpectra"),
+        _ => None,
+    }
+}
+
+/// The bound of one feature of the non-finite fixture: [`tolerance`] of the
+/// configuration, except for the fits this fixture found ill-conditioned
+/// enough to split between platforms. On Linux x86_64 with glibc every
+/// feature is bit for bit (the Gaussian ones) or within [`EGH_LIBM_GAP`].
+fn nonfinite_tolerance(case: &str, config: &str, index: usize) -> f64 {
+    #[cfg(not(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu")))]
+    if let Some((_, _, bound)) = NONFINITE_FIT_GAP
+        .iter()
+        .find(|(c, i, _)| *c == case && *i == index)
+    {
+        return *bound;
+    }
+    let _ = (case, index);
+    tolerance(config, None)
+}
+
+/// Features of the non-finite fixture whose Gaussian fit departs from the
+/// Linux capture on macOS arm64 by more than the general `5.4e-13`, with the
+/// measured largest relative departure over the feature's coordinates,
+/// qualities and meta values, rounded up at the second significant digit:
+/// `1.1156e-12` (the thirteenth or eleventh feature of `seed:min_score` 0),
+/// `6.5974e-8` and `4.9245e-4` (an infinite intensity next to seed 1, whose
+/// second feature's fit is ill-conditioned; `sw_iso_pinf_1` and
+/// `sw_pinf_1` fit the same traces). Other platforms are unmeasured and use
+/// the same bounds.
+#[cfg(not(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu")))]
+const NONFINITE_FIT_GAP: [(&str, usize, f64); 11] = [
+    ("sw_min0_pinf_0", 11, 1.2e-12),
+    ("sw_min0_pinf_1", 11, 1.2e-12),
+    ("sw_min0_pinf_2", 10, 1.2e-12),
+    ("sw_min0_pinf_3", 11, 1.2e-12),
+    ("sw_min0_pinf_4", 11, 1.2e-12),
+    ("sw_min0_pinf_5", 10, 1.2e-12),
+    ("sw_avg_pinf_next2_1", 1, 6.6e-8),
+    ("sw_max_pinf_next2_1", 1, 6.6e-8),
+    ("sw_pinf_next2_1", 1, 6.6e-8),
+    ("sw_iso_pinf_1", 1, 5.0e-4),
+    ("sw_pinf_1", 1, 5.0e-4),
+];
+
+fn seeds_are_automatic(options: &[String]) -> bool {
+    !options.iter().any(|option| option.starts_with("seeds="))
+}
+
+/// The `feature`, `meta` and `hulls` rows of one case against `map`.
+fn check_nonfinite_features<'a>(
+    name: &str,
+    config: &str,
+    of: &dyn Fn(&str) -> Vec<&'a [String]>,
+    map: &FeatureMap,
+) {
+    let expected = of("feature");
+    assert_eq!(expected.len(), map.len(), "{name}: feature rows");
+    for (index, row) in expected.iter().enumerate() {
+        let relative = nonfinite_tolerance(name, config, index);
+        let feature = &map.features[index];
+        let what = |field: &str| format!("{name}[{index}].{field}");
+        assert_eq!(row[0].parse::<usize>().unwrap(), index);
+        close(feature.rt, f64_hex(&row[1]), relative, &what("rt"));
+        close(feature.mz, f64_hex(&row[2]), relative, &what("mz"));
+        close(
+            f64::from(feature.intensity),
+            f64::from(f32_hex(&row[3])),
+            relative,
+            &what("intensity"),
+        );
+        assert_eq!(feature.charge.to_string(), row[4], "{}", what("charge"));
+        close(
+            f64::from(feature.quality),
+            f64::from(f32_hex(&row[5])),
+            relative,
+            &what("quality"),
+        );
+        assert_eq!(feature.quality_rt.to_bits(), f32_hex(&row[6]).to_bits());
+        assert_eq!(feature.quality_mz.to_bits(), f32_hex(&row[7]).to_bits());
+        close(
+            f64::from(feature.width),
+            f64::from(f32_hex(&row[8])),
+            relative,
+            &what("width"),
+        );
+        assert_eq!(
+            feature.subordinates.len().to_string(),
+            row[9],
+            "{}",
+            what("subordinates")
+        );
+        assert_eq!(
+            feature.convex_hulls.len().to_string(),
+            row[10],
+            "{}",
+            what("hulls")
+        );
+    }
+    let mut metas: BTreeMap<usize, BTreeMap<String, (String, String)>> = BTreeMap::new();
+    for row in of("meta") {
+        metas
+            .entry(row[0].parse().unwrap())
+            .or_default()
+            .insert(row[1].clone(), (row[2].clone(), row[3].clone()));
+    }
+    assert_eq!(metas.len(), map.len(), "{name}: features with meta values");
+    for (index, keys) in metas {
+        let feature = &map.features[index];
+        assert_eq!(
+            feature.metadata.len(),
+            keys.len(),
+            "{name}[{index}]: meta keys"
+        );
+        for (key, (kind, value)) in keys {
+            let actual = feature
+                .metadata
+                .get(&key)
+                .unwrap_or_else(|| panic!("{name}[{index}]: missing meta {key}"));
+            match (kind.as_str(), actual.data()) {
+                ("int", MetaValueData::Integer(got)) => {
+                    assert_eq!(got.to_string(), value, "{name}[{index}].{key}");
+                }
+                ("string", MetaValueData::String(got)) => {
+                    assert_eq!(got.as_str(), value, "{name}[{index}].{key}");
+                }
+                ("double", MetaValueData::Float(got)) => close(
+                    *got,
+                    f64_hex(&value),
+                    nonfinite_tolerance(name, config, index),
+                    &format!("{name}[{index}].{key}"),
+                ),
+                other => panic!("{name}[{index}].{key}: unexpected {other:?} for {kind}"),
+            }
+        }
+    }
+    let hulls = of("hulls");
+    assert_eq!(hulls.len(), map.len(), "{name}: hull rows");
+    for row in hulls {
+        let index: usize = row[0].parse().unwrap();
+        let feature = &map.features[index];
+        let counts: Vec<String> = feature
+            .convex_hulls
+            .iter()
+            .map(|hull| hull.hull_points().len().to_string())
+            .collect();
+        assert_eq!(counts.join(","), row[1], "{name}[{index}]: hull sizes");
+        let mut digest = Fnv::new();
+        for hull in &feature.convex_hulls {
+            let points = hull.hull_points();
+            digest.bytes(&(points.len() as u64).to_le_bytes());
+            for point in points {
+                digest.bytes(&point.rt.to_bits().to_le_bytes());
+                digest.bytes(&point.mz.to_bits().to_le_bytes());
+            }
+        }
+        // Hull points are input coordinates, so they are bit-identical.
+        assert_eq!(
+            format!("{:016x}", digest.0),
+            row[2],
+            "{name}[{index}]: hulls"
+        );
+    }
 }

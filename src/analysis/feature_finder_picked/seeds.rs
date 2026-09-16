@@ -22,7 +22,11 @@
 //! the seeds, only reads the arrays of its own charge, so computing every
 //! charge's seeds first
 //! ([`SeedStage::compute`](crate::analysis::feature_finder_picked::seeds::SeedStage::compute))
-//! gives the same arrays and seeds. The algorithm instance
+//! gives the same arrays and seeds. The extension is
+//! [`extension`](crate::analysis::feature_finder_picked::extension), and
+//! [`feature_stage`](crate::analysis::feature_finder_picked::algorithm::feature_stage)
+//! puts the log lines back into the source's order, each charge's seed count
+//! followed by its candidate count. The algorithm instance
 //! ([`FeatureFinderAlgorithmPicked`](crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked))
 //! keeps the source's order instead, selecting one charge's seeds right before
 //! extending them, so its log lines, progress calls and debug files come in
@@ -44,14 +48,15 @@ use crate::analysis::feature_finder_picked::helper_structs::{
 use crate::analysis::feature_finder_picked::instance::Progress;
 use crate::analysis::feature_finder_picked::scoring::{
     IntensityThresholds, ScoreArrays, Work, fill_intensity_scores, fill_trace_scores,
-    find_isotope_logged, isotope_score_logged, ms1_ranges, reset_pattern,
+    find_isotope_logged, isotope_score_logged, libstdcxx, ms1_ranges, nearest, reset_pattern,
+    x86_64,
 };
 use crate::analysis::feature_finder_picked::source_sort::source_sort_reversed_by;
 use crate::chemistry::isotopes::{
     CoarseIsotopePatternGenerator, CoarseMassMode, IsotopeDistribution, IsotopePeak,
     ProbabilityPrecision,
 };
-use crate::kernel::{FeatureMap, MSExperiment, nearest};
+use crate::kernel::{FeatureMap, MSExperiment};
 use crate::param::Param;
 use crate::{Error, Result};
 
@@ -67,7 +72,15 @@ impl IsotopeWindows {
     /// Precalculate the patterns for masses up to `max_mz * charge_high`: step
     /// 2.5 of source `run_`.
     ///
-    /// There are `ceil(max_mz * charge_high / width) + 1` windows. Window `i`
+    /// There are `ceil(max_mz * charge_high / width) + 1` windows, converted to
+    /// `Size` as the Linux x86_64 Release build converts it (crate-private
+    /// `x86_64::truncate_to_u64`, the `cvttsd2si`/`btc` sequence at
+    /// `libOpenMS.so` `0x18e46f4`): an infinite maximum m/z, or one whose count
+    /// reaches `2^64`, gives **no** window, and the first pattern lookup of
+    /// step 3.1 then fails ([`Self::get`]); the executed build throws the same
+    /// `Exception::InvalidValue` there. A count in `[2^63, 2^64)` makes the
+    /// source's `resize` throw `std::length_error` and is refused here by
+    /// [`Limits::max_isotope_windows`] first. Window `i`
     /// holds the averagine estimate for the peptide mass `0.5 * width + i *
     /// width` from a coarse generator limited to `settings.max_isotopes()` peaks,
     /// in source binary32 precision and with the abundance overrides of
@@ -85,8 +98,8 @@ impl IsotopeWindows {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the window count is not finite or
-    /// exceeds [`Limits::max_isotope_windows`], when the windows could hold more
+    /// Returns [`Error::InvalidValue`] when the converted window count exceeds
+    /// [`Limits::max_isotope_windows`], when the windows could hold more
     /// than [`Limits::max_pattern_values`] values, or when the isotope generator
     /// fails (for example because every retained bin underflows in binary32,
     /// where the source produces NaN weights). Returns [`Error::Unsupported`] for
@@ -122,16 +135,19 @@ impl IsotopeWindows {
     ) -> Result<Self> {
         let width = settings.mass_window_width;
         let max_mass = max_mz * f64::from(settings.charge_high);
-        let count = (max_mass / width).ceil() + 1.0;
+        // Source `Size num_isotopes = std::ceil(max_mass / mass_window_width_) + 1`.
+        let count = x86_64::truncate_to_u64((max_mass / width).ceil() + 1.0);
         let limits = options.limits;
-        if count.is_nan() || count < 1.0 || count > limits.max_isotope_windows as f64 {
-            return Err(Error::InvalidValue(format!(
-                "{count} isotope windows for a maximum mass of {max_mass} Da and a window width \
-                 of {width} Da exceed the limit of {}",
-                limits.max_isotope_windows
-            )));
-        }
-        let count = count as usize;
+        let count = usize::try_from(count)
+            .ok()
+            .filter(|&count| count <= limits.max_isotope_windows)
+            .ok_or_else(|| {
+                Error::InvalidValue(format!(
+                    "{count} isotope windows for a maximum mass of {max_mass} Da and a window \
+                     width of {width} Da exceed the limit of {}",
+                    limits.max_isotope_windows
+                ))
+            })?;
         let max_isotopes = settings.max_isotopes();
         let kept: &[TheoreticalIsotopePattern] = previous.map_or(&[], |windows| {
             &windows.patterns[..count.min(windows.patterns.len())]
@@ -169,23 +185,36 @@ impl IsotopeWindows {
     }
 
     /// The pattern for `mass`: source `getIsotopeDistribution_`, window
-    /// `floor(mass / width)`.
+    /// `(Size) floor(mass / width)`.
+    ///
+    /// The conversion to `Size` is undefined in C++ for a NaN, infinite,
+    /// negative or too large quotient; this follows the instructions the
+    /// Linux x86_64 Release build emits for it (crate-private
+    /// `x86_64::truncate_to_u64`): a NaN mass gives index `2^63`, an infinite
+    /// one index 0, a negative one a wrapped index. The index is then compared
+    /// with the window count as in the source.
     ///
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] when the window was not precalculated,
-    /// where the source throws `Exception::InvalidValue` ("IsotopeDistribution
-    /// not precalculated"), and for a negative or NaN mass, which the source
-    /// converts to an unsigned index with undefined behaviour.
+    /// with the `what()` text of the source's `Exception::InvalidValue`:
+    /// `the value '<index>' was used but is not valid; IsotopeDistribution not
+    /// precalculated. Maximum allowed index is <count>`. The executed Release
+    /// build gives exactly this text for a NaN m/z (index
+    /// `9223372036854775808`), an infinite m/z (no window) and an m/z of
+    /// `1e300` (no window).
     pub fn get(&self, mass: f64) -> Result<&TheoreticalIsotopePattern> {
-        let index = (mass / self.mass_window_width).floor();
-        if index >= 0.0 && index < self.patterns.len() as f64 {
-            return Ok(&self.patterns[index as usize]);
-        }
-        Err(Error::InvalidValue(format!(
-            "IsotopeDistribution not precalculated. Maximum allowed index is {}, requested {index}",
-            self.patterns.len()
-        )))
+        let index = x86_64::truncate_to_u64((mass / self.mass_window_width).floor());
+        usize::try_from(index)
+            .ok()
+            .and_then(|index| self.patterns.get(index))
+            .ok_or_else(|| {
+                Error::InvalidValue(format!(
+                    "the value '{index}' was used but is not valid; IsotopeDistribution not \
+                     precalculated. Maximum allowed index is {}",
+                    self.patterns.len()
+                ))
+            })
     }
 
     /// The window width in Da.
@@ -390,8 +419,8 @@ impl SeedStage {
 
     /// Steps 0 to 3.2 of source `run_` on validated input.
     ///
-    /// `experiment` must hold sorted, finite MS1 spectra with at least one peak,
-    /// as [`validate_input`] leaves them; `log` is extended with one line
+    /// `experiment` must hold MS1 spectra sorted as [`validate_input`] leaves
+    /// them; `log` is extended with one line
     /// `Found <n> seeds for charge <c>.` per charge, which the source prints to
     /// `std::cout`.
     ///
@@ -424,11 +453,21 @@ impl SeedStage {
     /// - [`Error::Unsupported`] for a changed isotope abundance under
     ///   [`AbundanceOverride::Refuse`], which is not the default; see that type.
     /// - [`Error::InvalidValue`] when `charge_low` exceeds `charge_high` by more
-    ///   than one ([`Settings::charge_count`]), for a zero-width RT or m/z range
-    ///   ([`IntensityThresholds::compute`]), for a non-finite user seed position
-    ///   (the source sorts it with undefined results), and when a [`Limits`]
+    ///   than one ([`Settings::charge_count`]), for a zero or infinite
+    ///   intensity bin step read by the seed loop under
+    ///   [`DegenerateBinStep::Refuse`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep::Refuse),
+    ///   which is not the default, for a NaN user-seed m/z among different
+    ///   seed m/z values (the source's `std::sort` is then undefined), for the
+    ///   undefined cases of [`IntensityThresholds::compute`], and when a [`Limits`]
     ///   ceiling is exceeded, checked before the allocation or computation it
-    ///   bounds.
+    ///   bounds. A zero or infinite step under the default
+    ///   [`DegenerateBinStep::Source`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep::Source)
+    ///   is computed as the Linux x86_64 Release build computes it.
+    /// - [`Error::InvalidRange`] when every retention time or every m/z is
+    ///   NaN, and [`Error::InvalidValue`] with the source's text when a pattern
+    ///   lookup of step 3.1 finds no precalculated window
+    ///   ([`IsotopeWindows::get`]): for a NaN m/z, and for every input when an
+    ///   infinite or huge maximum m/z left no window.
     pub fn compute(
         experiment: MSExperiment,
         user_seeds: &FeatureMap,
@@ -476,13 +515,14 @@ impl SeedStage {
         progress: &mut Progress<'_>,
     ) -> Result<Self> {
         let limits = options.limits;
-        preflight(&experiment, &settings, &limits)?;
+        // The source sorts the user seeds first (`FeatureFinderAlgorithmPicked.cpp:190`).
+        let user_seeds = sorted_user_seeds(user_seeds)?;
+        preflight(&experiment, &settings, options)?;
         let charge_count = settings.charge_count()?;
         if settings.abundance_12c_changed || settings.abundance_14n_changed {
             // Fails early under the refusing policy, before any work.
             pattern_generator(&settings, options.abundance_override)?;
         }
-        let user_seeds = sorted_user_seeds(user_seeds)?;
         let mut scores = ScoreArrays::new(
             &experiment,
             settings.charge_low,
@@ -668,8 +708,12 @@ impl SeedStage {
     }
 }
 
-/// Size ceilings that bound every allocation of the stage.
-fn preflight(experiment: &MSExperiment, settings: &Settings, limits: &Limits) -> Result<()> {
+/// Size ceilings that bound every allocation of the stage, and the
+/// [`DegenerateBinStep::Refuse`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep::Refuse)
+/// check.
+fn preflight(experiment: &MSExperiment, settings: &Settings, options: &Options) -> Result<()> {
+    use crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep;
+    let limits: &Limits = &options.limits;
     if experiment.spectra.len() > limits.max_spectra {
         return Err(Error::InvalidValue(format!(
             "{} spectra exceed the limit of {}",
@@ -708,22 +752,76 @@ fn preflight(experiment: &MSExperiment, settings: &Settings, limits: &Limits) ->
             "isotope pattern size exceeds IsotopePattern::MAX_SIZE".into(),
         ));
     }
+    if options.degenerate_bin_step == DegenerateBinStep::Refuse {
+        refuse_degenerate_bin_step(experiment, settings)?;
+    }
     Ok(())
 }
 
-/// The user seed positions sorted by m/z, stably.
+/// [`DegenerateBinStep::Refuse`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep::Refuse):
+/// an [`Error::InvalidValue`] when a bin step is zero or infinite and the seed
+/// loop reads the resulting intensity scores.
+///
+/// The seed loop (`FeatureFinderAlgorithmPicked.cpp:493-498`) visits the scans
+/// `min_spectra .. n - min(min_spectra, n)`, which is empty for `n <= 2 *
+/// min_spectra`. There the source computes every intensity score but never
+/// reads one, and its result, an empty feature map, does not depend on them;
+/// such an input is not refused.
+fn refuse_degenerate_bin_step(experiment: &MSExperiment, settings: &Settings) -> Result<()> {
+    use crate::analysis::feature_finder_picked::scoring::{bin_steps, degenerate_step};
+    let spectra = experiment.spectra.len();
+    let loop_end = spectra - settings.min_spectra.min(spectra);
+    if settings.min_spectra >= loop_end {
+        return Ok(());
+    }
+    let (rt, mz) = ms1_ranges(experiment)?;
+    let (rt_step, mz_step) = bin_steps(&rt, &mz, settings.intensity_bins);
+    if degenerate_step(rt_step) || degenerate_step(mz_step) {
+        return Err(Error::InvalidValue(format!(
+            "FeatureFinderAlgorithmPicked: the intensity bin steps are {rt_step} (RT {} to {}) \
+             and {mz_step} (m/z {} to {}) for {} bins; the source converts floor(NaN) or \
+             floor(inf) to UInt for every peak here, which is undefined behaviour, and \
+             DegenerateBinStep::Refuse is selected",
+            rt.min, rt.max, mz.min, mz.max, settings.intensity_bins
+        )));
+    }
+    Ok(())
+}
+
+/// The user seed positions sorted by m/z: source `seeds_.sortByMZ()`
+/// (`FeatureFinderAlgorithmPicked.cpp:190`, `std::sort` with `Feature::MZLess`).
+///
+/// Infinite positions and a NaN retention time are ordinary values here: the
+/// retention time is no sort key, and `<` orders infinities. A NaN m/z is
+/// equivalent to every other m/z under `<`, so it is a strict weak ordering
+/// only while every other m/z is equivalent to every other; with two different
+/// non-NaN m/z values the source's `std::sort` is undefined, and that is
+/// [`Error::InvalidValue`] here. Otherwise the order of the equivalent seeds is
+/// unspecified in the source; this sorts stably by `f64::total_cmp`, and
+/// [`near_user_seed`] gives the same answer for every order of such seeds.
 fn sorted_user_seeds(seeds: &FeatureMap) -> Result<Vec<UserSeed>> {
     let mut sorted = Vec::with_capacity(seeds.features.len());
+    let mut has_nan = false;
+    let mut low = f64::INFINITY;
+    let mut high = f64::NEG_INFINITY;
     for feature in &seeds.features {
-        if !feature.mz.is_finite() || !feature.rt.is_finite() {
-            return Err(Error::InvalidValue(
-                "user seeds need a finite retention time and m/z".into(),
-            ));
+        if feature.mz.is_nan() {
+            has_nan = true;
+        } else {
+            low = low.min(feature.mz);
+            high = high.max(feature.mz);
         }
         sorted.push(UserSeed {
             mz: feature.mz,
             rt: feature.rt,
         });
+    }
+    if has_nan && low < high {
+        return Err(Error::InvalidValue(format!(
+            "FeatureFinderAlgorithmPicked: a user seed has a NaN m/z among seeds with the \
+             different m/z values {low} and {high}; the source sorts them with std::sort, whose \
+             comparator is then not a strict weak ordering (undefined behaviour)"
+        )));
     }
     sorted.sort_by(|a, b| a.mz.total_cmp(&b.mz));
     Ok(sorted)
@@ -821,10 +919,20 @@ fn fill_pattern_scores<L: LogSink>(
 /// against 60-digit decimal arithmetic) and the same on every machine, so it
 /// agrees with the oracle everywhere except on the scores the oracle misrounds.
 /// `libm::powf`, the direct binary32 port, disagreed with the oracle on 226 of
-/// the 3,084 FeatureFinderCentroided_1 scores.
+/// the 3,084 FeatureFinderCentroided_1 scores. Against the Linux x86_64 Release
+/// build, whose glibc 2.39 `powf` is not correctly rounded either, 8 of the
+/// 30,840 retained scores are one binary32 step apart (`CPP-272`).
+///
+/// A NaN product, which a zero or infinite intensity bin step produces
+/// ([`DegenerateBinStep`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep)),
+/// gives a NaN score whose bits are the product's, as
+/// the executed `powf` returns them.
 pub fn overall_score(trace: f32, intensity: f32, pattern: f32) -> f32 {
     let product = trace * intensity * pattern;
-    libm::pow(f64::from(product), f64::from(1.0f32 / 3.0f32)) as f32
+    crate::analysis::feature_finder_picked::scoring::x86_64::narrow(libm::pow(
+        f64::from(product),
+        f64::from(1.0f32 / 3.0f32),
+    ))
 }
 
 /// Overall scores and seeds of one charge: step 3.2 of source `run_`.
@@ -880,9 +988,16 @@ fn select_seeds(
 /// Source: `std::lower_bound` by m/z at `mz - mz_tolerance`, then a forward walk
 /// that stops above `mz + mz_tolerance` or at the first seed with `|Δm/z| <
 /// mz_tolerance` and `|ΔRT| < rt_tolerance`.
+///
+/// Infinite and NaN differences fail both tolerance tests. With NaN seed m/z
+/// values, which [`sorted_user_seeds`] admits only when every other seed m/z
+/// is one value `x`, no NaN seed ever matches, and `x` matches only when `x >=
+/// mz - mz_tolerance`, where the search starts at the first seed whatever the
+/// order; the answer is therefore the same for every order of the seeds. The
+/// search follows libstdc++'s probes ([`libstdcxx::lower_bound`]).
 fn near_user_seed(user_seeds: &[UserSeed], mz: f64, rt: f64, settings: &Settings) -> bool {
     let tolerance = settings.user_seed_mz_tolerance;
-    let start = user_seeds.partition_point(|seed| seed.mz < mz - tolerance);
+    let start = libstdcxx::lower_bound(user_seeds, |seed| seed.mz < mz - tolerance);
     for seed in &user_seeds[start..] {
         if seed.mz > mz + tolerance {
             break;

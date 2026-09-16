@@ -12,6 +12,9 @@
 /// Seeds, mass traces and isotope patterns (`FeatureFinderAlgorithmPickedHelperStructs.h`).
 pub mod helper_structs;
 
+/// Index pairs, index sets, the used flag and `NoSuccessor` (`FeatureFinderDefs` in `FeatureFinderAlgorithmPicked.h`).
+pub mod defs;
+
 /// The retention-time shape model shared by the trace fitters (`TraceFitter.h`).
 pub mod trace_fitter;
 

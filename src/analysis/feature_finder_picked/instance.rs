@@ -1010,13 +1010,14 @@ fn extend_seed<L: LogSink>(
         .update_maximum();
 
     let mut model = FittedModel::new(settings.rt_shape, *fitter_parameters);
-    if let Err(error) = model.fit(&traces) {
-        // The source does not catch `Exception::UnableToFit` inside its
-        // parallel region, so the run ends there; this port records the failure
-        // as the seed's abort reason and continues, which is what the source's
-        // own abort handling amounts to.
-        return Ok(aborted(true, &error.to_string()));
-    }
+    // The source's fit can throw `Exception::UnableToFit` (`TraceFitter.cpp:111`,
+    // `:129`), which would escape its parallel region and end the process, but
+    // no input reaches either throw from here (see `FittedModel::fit`). An error
+    // here is therefore one of the port's own ceilings or the refused merge of a
+    // NaN retention time into the intensity profile, where the source never
+    // returns; the run fails with it rather than turning it into an abort
+    // reason the source never records.
+    model.fit(&traces)?;
     let new_traces =
         crop_feature_logged(model.as_fitter(), &traces, settings.min_trace_score, log)?;
     let outcome =

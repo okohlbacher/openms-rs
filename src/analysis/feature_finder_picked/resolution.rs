@@ -25,6 +25,7 @@
 use std::cmp::Ordering;
 
 use crate::analysis::feature_finder_picked::debug::{LogSink, NoLog, g, put_all};
+use crate::analysis::feature_finder_picked::scoring::libstdcxx;
 use crate::kernel::{ConvexHull2D, Feature, MSExperiment};
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
@@ -369,26 +370,20 @@ pub(crate) fn resolve_overlaps_logged<L: LogSink>(
 /// gives index 0, `+inf` gives the scan count. A caller's feature can carry
 /// such a value, and it is annotated as the source annotates it.
 ///
+/// The search is libstdc++'s `std::lower_bound` as the Release build runs it
+/// (the crate-private `libstdcxx::lower_bound`), also where a NaN retention
+/// time in the experiment or of the feature leaves the keys unpartitioned; it
+/// never leaves the scans.
+///
 /// # Errors
 ///
-/// Returns [`Error::UnsortedData`] when the experiment is not sorted by
-/// retention time, where the source's `lower_bound` gives an unspecified
-/// index.
+/// Returns [`Error::InvalidValue`] only when an index exceeds `i64`.
 pub fn annotate_apex(features: &mut [Feature], experiment: &MSExperiment) -> Result<usize> {
-    if experiment.spectra.windows(2).any(|pair| {
-        !matches!(
-            pair[0].rt.partial_cmp(&pair[1].rt),
-            Some(Ordering::Less | Ordering::Equal)
-        )
-    }) {
-        return Err(Error::UnsortedData);
-    }
     let mut invalid = 0usize;
     for feature in features.iter_mut() {
-        let rt = feature.rt;
-        let index = experiment
-            .spectra
-            .partition_point(|spectrum| spectrum.rt < rt);
+        // Source `map_.RTBegin(rt)`.
+        let index =
+            libstdcxx::lower_bound(&experiment.spectra, |spectrum| spectrum.rt < feature.rt);
         feature.metadata.insert(
             SPECTRUM_INDEX.into(),
             MetaValue::from(

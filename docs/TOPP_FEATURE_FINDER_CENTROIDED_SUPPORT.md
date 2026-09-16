@@ -129,7 +129,7 @@ case (C1 = `../oracle/topp-early-bundle`, C5 = `../oracle/ffc-wrapper-c5`).
 | Per-peak ion mobility **and** profile data | 11, the ion-mobility message | the check order of `main_` | C5 `c5_im_peak_profile_noforce` |
 | Ion-mobility arrays on MS2 spectra only | 0, empty feature map | — | C1 `FFC_im_arrays_ms2_only` (its Debug exit 8 is a precondition, `debug_only`); the C++ Release build exits 0 with `0 features found.`, as this port does |
 | First spectrum stored profile, no `-force` | 8 | `Error: Unexpected internal error (Error: Profile data provided but centroided spectra expected. …)` | C1 `FFC_profile_noforce`, `FFC_FileFilter_44_noforce`, C5 `c5_first_profile_only` |
-| MS1 spectra that all share one retention time (`FileFilter_44_input.mzML` with `-force`) | this port 8; C++ Release 0 with an empty map | `Error: Unexpected internal error (FeatureFinderAlgorithmPicked needs a retention-time and an m/z range of positive width …)` | C1 `FFC_FileFilter_44_force` (Debug exit is a precondition, `debug_only`); see native difference 2 |
+| Two MS1 spectra (`FileFilter_44_input.mzML` with `-force`) | 0, empty feature map, no seed for charges 1 to 4 | — | C1 `FFC_FileFilter_44_force` (its Debug exit 8 is a precondition, `debug_only`); the C++ Release build exits 0 with the same lines and map, as this port does; see native difference 2 |
 | First spectrum profile, `-force` | 0, the FFC_1 features | — | C1 `FFC_profile_force` |
 | Profile term before `MS:1000525`, no `-force` | 0, the FFC_1 features: the reader resets the type | — | C1 `FFC_profile_then_spectrum_representation` |
 | Every spectrum but the first stored profile | 0, the FFC_1 features: only `exp[0]` is checked | — | C5 `c5_later_profile_only` |
@@ -240,30 +240,53 @@ instance*).
    keys removal by id. Reproducing either would be pointless, and pooling the
    voltages silently would be wrong, so the port refuses such input with exit 11
    and writes nothing. Package B11 ports the closure and removes the refusal.
-2. **A zero-width retention-time range is refused, where C++ Release returns an
-   empty map.** `FileFilter_44_input.mzML` has four MS1 spectra at the single
-   retention time `0.273`. Source `FeatureFinderAlgorithmPicked::run_` divides
-   the retention-time range by `intensity:bins`, which is a division by zero
-   here. The three builds part company: the C++ Debug build exits 8 from an
-   `OPENMS_PRECONDITION` inside `ProgressLogger::init` (`debug_only`, D7); the
-   C++ Release build carries the non-finite bin bounds through, finds no seed
-   and no candidate for charges 1 to 4, prints `0 features found.`, exits 0 and
-   writes `<featureList count="0">`; this port refuses with `Error: Unexpected
-   internal error (FeatureFinderAlgorithmPicked needs a retention-time and an
-   m/z range of positive width …)` and exit 8, writing nothing. The difference
-   is recorded as the ignored test
-   `a_zero_width_retention_time_range_diverges_from_the_cpp_release_build`.
-   Closing it is the picked feature finder's decision — reproduce the
-   non-finite binning, or make the refusal opt-out for the tool path — not this
-   wrapper's. `FileConverter_31_output.mzML`, the other `debug_only` case, needs
-   no such note: this port matches the C++ Release build there (exit 0, empty
-   map).
-3. **Two `algorithm:` values the ported stage refuses** reach the user through
-   this tool: `-algorithm:write_debug true`, whose source debug output reads an
-   undeclared parameter and writes into the working directory, and a non-default
-   `-algorithm:isotopic_pattern:abundance_12C` or `abundance_14N`, whose source
-   handling keeps a stray peak in the isotope distribution. Both end in exit 11
-   with the algorithm's message; `FEATURE_FINDER_PICKED_SUPPORT.md` records why.
+2. **Degenerate intensity bins and short inputs follow the C++ Release
+   build.** Where every MS1 spectrum has one retention time or every MS1 peak
+   one m/z, the algorithm's intensity bin step is zero and the source converts
+   `floor(NaN)` to `UInt` for every peak, which is undefined behaviour. The
+   tool uses the library default `DegenerateBinStep::Source`, which reproduces
+   what the C++ Release build computes there (every intensity score NaN, no
+   seed), so the tool exits 0 with an empty map and the source's lines, as the
+   executed Release tool does
+   ([FEATURE_FINDER_PICKED_SUPPORT](FEATURE_FINDER_PICKED_SUPPORT.md),
+   *Degenerate intensity bins*). Executed against
+   `openms4-release-bc9cc12-c19e494-174b576` (`../oracle/ffap-sem-completion`,
+   `tool_cases.py`, three repetitions each, identical), and asserted:
+
+   | Case | Input | C++ Release and this port |
+   |---|---|---|
+   | `zero_rt`, `zero_rt_threads4`, `zero_rt_min_score_0` | FFC_1 with every `scan start time` 4114.53, FFC_1 INI; `-threads 4`; `seed:min_score` 0 | exit 0, `Found 0 seeds for charge 2.`, `Found 0 feature candidates …`, `0 features found.`, empty map |
+   | `zero_mz`, `zero_mz_threads4`, `zero_mz_min_score_0` | FFC_1 with every m/z 500 | the same |
+   | `zero_mz_control_min_score_0` | as `zero_mz` with one m/z 499, `seed:min_score` 0 | exit 0, `Found 735 seeds`, 0 candidates, `Could not find good enough isotope pattern containing the seed: 735 times`, empty map |
+   | `filefilter_44_force` | `FileFilter_44_input.mzML`, `-force` | exit 0, no seed and no candidate for charges 1 to 4, empty map |
+   | `fileconverter_31` | `FileConverter_31_output.mzML` | the same |
+
+   `FileFilter_44_input.mzML` holds **two** MS1 spectra (at 0.273 s), and its
+   result is fixed by its length, not by its zero extent: with the default
+   `mass_trace:min_spectra` of 10 the seed loop is empty for any input of at
+   most 10 scans. The C++ Debug build stops both short inputs with an
+   `OPENMS_PRECONDITION` in `ProgressLogger::startProgress`
+   (`ProgressLogger.cpp:235`), reached from `startProgress(5, 0)`; that exit is
+   `debug_only` (D7). This port used to refuse the FileFilter input with exit 8,
+   blaming the zero extent; that refusal is gone, and the test that recorded
+   the difference passes as
+   `a_short_input_never_reaches_the_seed_loop_as_in_the_cpp_release_build`.
+   The derived inputs are built in the tests by the recorded rules and pinned
+   to the executed files by SHA-1.
+3. **A changed isotope abundance finds the intended features** (`CPP-247`, the
+   one designed difference of the algorithm). The tool passes
+   `Options::default()` to the algorithm (`src/cli/tools/feature_finder_centroided.rs`),
+   whose `AbundanceOverride::Intended` computes the two-isotope override the
+   source intends instead of the source's stray-peak override. With
+   `-algorithm:isotopic_pattern:abundance_12C 90` on FeatureFinderCentroided_1
+   the executed C++ Release tool finds 0 seeds, 0 candidates and 0 features
+   (case `ffc1_abundance_12C_90`, three repetitions), and this port finds 18
+   seeds, one candidate and one feature, exit 0 — the values of the adapted
+   Release replay of the intended override
+   (`a_changed_abundance_finds_the_intended_features_where_the_cpp_release_build_finds_none`).
+   `-algorithm:write_debug`, whose source debug output reads an undeclared
+   parameter and writes into the working directory, is refused by the algorithm
+   on this branch and ends in exit 11 with its message.
 4. **A NaN FAIMS voltage is refused** with exit 6 rather than entering an
    ordered set that cannot hold it: `FaimsHelper::get_compensation_voltages`
    returns an error, which the framework maps to `Invalid parameter: …`. No
@@ -315,6 +338,29 @@ instance*).
     defaults, so an input the C++ reader repairs silently in another way can
     still be refused here. `docs/MZML_HEADER_SUPPORT.md` lists what the option
     covers.
+13. **Non-finite values in the mzML are refused by the reader.** The native
+    mzML reader rejects a decoded NaN or infinite m/z or intensity
+    (`nonfinite binary value`) and a non-finite `scan start time`, so the tool
+    exits 3 before the algorithm runs. The C++ Release tool reads such values
+    and hands them to the algorithm, which the library port follows
+    ([FEATURE_FINDER_PICKED_SUPPORT](FEATURE_FINDER_PICKED_SUPPORT.md),
+    *Non-finite input*). Executed by the adversarial review of this lane
+    (`../oracle/ffap-sem-ver1`, driver `write_mod.cpp` writing FFC_1 with one
+    value replaced through the Release `MzMLFile`, two repetitions each,
+    identical), with the FFC_1 INI and `-test`:
+
+    | Input | C++ Release | This port |
+    |---|---|---|
+    | `ffc1_mz0_neginf.mzML`: the first m/z `-inf` | exit 8, `FeatureFinder can only operate on spectra that contain peaks with positive m/z values. …` | exit 3, `Unable to read file (parse error on line 0: nonfinite binary value)` |
+    | `ffc1_mz0_posinf.mzML`: the first m/z `+inf` (sorted to the end) | exit 8, `the value '12' was used but is not valid; IsotopeDistribution not precalculated. Maximum allowed index is 0` | exit 3, the same reader error |
+    | `ffc1_rtlast_posinf.mzML`: the last `scan start time` `inf` | exit 0, `Found 0 seeds for charge 2.`, an empty map | exit 3, `… nonfinite scan start time` |
+
+    The port's exits were run locally on those three files (release build of
+    this branch). Given the same values in memory, the library returns what the
+    C++ algorithm returns: `mz_neginf_first`, `mz_posinf_last` and
+    `rt_posinf_last` of `non_finite_inputs_match_the_linux_release_build`. The
+    reader's strictness is the mzML port's (`docs/MZML_HEADER_SUPPORT.md`), not
+    this tool's.
 
 ## Checked boundaries and evidence
 
@@ -341,8 +387,8 @@ instance*).
   `FeatureFinderCentroided_1_input.mzML` by the recorded rules and pinned to the
   executed files by digest, so no derived megabyte enters the repository.
 - **Not asserted.** The Debug exit codes of the two `debug_only` cases (D7); the
-  C++ Release behaviour is asserted instead for `FFC_im_arrays_ms2_only` and
-  recorded as a divergence for `FFC_FileFilter_44_force`. The `1e-9` comparison
+  C++ Release behaviour is asserted instead for both, `FFC_im_arrays_ms2_only`
+  and `FFC_FileFilter_44_force`. The `1e-9` comparison
   against the C1 oracle outputs of `FFC_seeds`, `FFC_asymmetric` and
   `FFC_debug5`, and the `-algorithm:fit:max_iterations` boundary sweep, are
   package B10's and are not asserted here.

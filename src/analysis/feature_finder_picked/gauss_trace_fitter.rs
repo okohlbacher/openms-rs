@@ -88,21 +88,13 @@
 //! # Known gap: solver fidelity
 //!
 //! The start values, the residuals and the Jacobian are the source's bit for
-//! bit wherever they were executed. The fit that follows is not, in general.
-//! The review of this package ran 79 further inputs through the product-SDK
-//! `fit` and an Eigen replica of `optimize_` on macOS arm64. Against them the
-//! port, on macOS arm64 (Linux x86-64 in parentheses where it differs), left
-//! Eigen's residual path in 72 cases, 58 of them at the first trial step,
-//! from identical start vectors, residuals and Jacobians. 21 fits missed
-//! 1e-9: by 1.0e-9 to 3.2e-4 after natural termination, and by up to 4.9e-3
-//! (1.2e-2) at an exhausted budget of 500. The status differed in 3 cases
-//! (2), and `nfev` in 9 of the natural terminations. The agreement within
-//! 1e-9 of the class-test and FeatureFinderCentroided_1 fits holds for those
-//! fixtures only. The root cause is in
-//! `src/math/fitters/levenberg_marquardt.rs`, under investigation in lane B3b.
-//! The inputs and the executed results are the fixture
-//! `tests/data/gauss_trace_fitter/solver_gap.tsv`; an ignored test prints the
-//! current deviations.
+//! bit wherever they were executed. Since package B3b-LM-FIDELITY the solver
+//! follows Eigen 5.0.1 as the Linux x86_64 Release build compiles it, the build
+//! the port matches (user decision of 2026-09-15), and it is bit-exact there on
+//! all 141 traced fits. `docs/TRACE_FITTER_SUPPORT.md`, "Known gap: solver
+//! fidelity beyond the fixtures", has the re-measured deviations against the
+//! macOS arm64 oracle that generated `tests/data/gauss_trace_fitter/solver_gap.tsv`,
+//! whose Eigen kernels fuse their arithmetic; an ignored test prints them.
 //!
 //! The support document `docs/TRACE_FITTER_SUPPORT.md` records the API
 //! mapping, the native differences and the executed evidence.
