@@ -8,11 +8,16 @@
 //! Evidence (see `docs/FEATURE_FINDER_PICKED_SUPPORT.md` and
 //! `tests/data/feature_finder_picked_provenance.json`):
 //!
-//! - tier 1, executed C++ (product SDK): the `-write_ini` algorithm section of
-//!   FeatureFinderCentroided (C1), the library state of the C2 driver
-//!   `ffap_stages` (effective members, intensity quantiles, isotope windows,
-//!   per-peak score arrays, printed seed counts) and of the B6 driver
-//!   `seed_stage` (default parameters, 7 bins and charges 1 to 3, min_spectra 1);
+//! - tier 1, executed C++: the `-write_ini` algorithm section of
+//!   FeatureFinderCentroided (C1, product SDK), and, from the Linux x86_64
+//!   Release build `openms4-release-bc9cc12-c19e494-174b576` (the reference
+//!   platform), the library state of the C2 driver `ffap_stages` (effective
+//!   members, intensity quantiles, isotope windows, per-peak score arrays,
+//!   printed seed counts) and of the B6 driver `seed_stage` (default
+//!   parameters, 7 bins and charges 1 to 3, min_spectra 1), re-extracted by
+//!   `../oracle/ffap-sem-completion/extract` with the B6 extraction unchanged;
+//!   the degenerate intensity bins of the same build (driver
+//!   `degenerate_stage`, the generalised `seed_stage`);
 //! - adapted: the ordered seed lists, which both drivers re-derive from the
 //!   library's score arrays with the source's selection code;
 //! - tier 3 and 4: source-review and hand-derived cases for validation, the
@@ -264,8 +269,10 @@ fn check_stage(stage: &SeedStage, case: &Case) {
     let charges = scores.charge_count();
     let table = rows(case.scores);
     assert_eq!(table.len(), peaks, "{}: score rows", case.config);
-    // Overall scores that the executed Apple powf misrounds, each with the
-    // correctly rounded value, one binary32 step away, that the port produces.
+    // Overall scores that the executed glibc powf rounds one binary32 step away
+    // from the correctly rounded power, each with the correctly rounded value
+    // that the port produces (8 of 30,840; the macOS arm64 product SDK's Apple
+    // powf misrounded 99).
     let rounding = rounding_rows(case.scores);
     let mut rounded = 0;
     let mut mismatches = Vec::new();

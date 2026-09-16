@@ -9,11 +9,16 @@
 //! Evidence (see `docs/FEATURE_FINDER_PICKED_SUPPORT.md` and
 //! `tests/data/feature_finder_picked_provenance.json`):
 //!
-//! - tier 1, executed C++ (product SDK): the final `FeatureMap` of
-//!   `FeatureFinderAlgorithmPicked::run` for six configurations (FFC_1
-//!   symmetric, FFC_1 asymmetric, FFC_1 with user seeds, the class-test input
-//!   and the two `#9247` tolerance swaps), its printed seed and candidate
-//!   counts and its `aborts_` map, in `b7_feature_records.tsv`;
+//! - tier 1, executed C++ (the Linux x86_64 Release build
+//!   `openms4-release-bc9cc12-c19e494-174b576`, the reference platform): the
+//!   final `FeatureMap` of `FeatureFinderAlgorithmPicked::run` for six
+//!   configurations (FFC_1 symmetric, FFC_1 asymmetric, FFC_1 with user seeds,
+//!   the class-test input and the two `#9247` tolerance swaps), its printed
+//!   seed and candidate counts and its `aborts_` map, in
+//!   `b7_feature_records.tsv`. The fixtures were re-extracted from that build
+//!   by `../oracle/ffap-sem-completion/extract/extract_linux.py`, which runs the
+//!   B7 extraction unchanged; they replaced the macOS arm64 product-SDK (Debug)
+//!   capture of package B7;
 //! - adapted: the per-seed intermediate state of `b7_seed_records.tsv`, which
 //!   the C2 driver produced by replaying the protected library steps
 //!   (`findBestIsotopeFit_`, `extendMassTraces_`, the chosen fitter,
@@ -25,10 +30,10 @@
 //!   `extendMassTraces_` defect and the resource ceilings.
 //!
 //! Peak identities, counts, charges, labels and abort reasons are compared
-//! exactly; coordinates, intensities, qualities and fitted parameters within
-//! `1e-9` relative, the contract the work package sets, because the port's
-//! Levenberg-Marquardt transcription departs from the executed Eigen in the
-//! last bits (`docs/TRACE_FITTER_SUPPORT.md`, "Known gap").
+//! exactly. Coordinates, intensities, qualities and fitted parameters are
+//! compared bit for bit on Linux x86_64 with glibc, except for the asymmetric
+//! (EGH) configuration, and within measured platform bounds elsewhere; see
+//! [`tolerance`].
 
 #![cfg(all(feature = "mzml", feature = "paramxml"))]
 
@@ -149,44 +154,105 @@ fn records(file: &str, kind: &str, config: &str) -> Vec<Vec<String>> {
         .collect()
 }
 
-/// The work package's comparison contract for a fitted quantity.
-const RELATIVE: f64 = 1e-9;
-
 /// Bit equality, for the quantities measured to agree exactly with the executed
-/// C++: every isotope-fit score, every isotope-pattern intensity and m/z score,
-/// and every mass trace (peak identity, theoretical intensity and baseline).
+/// C++ on every platform: every isotope-fit score, every isotope-pattern
+/// intensity and m/z score, and every mass trace (peak identity, theoretical
+/// intensity and baseline).
 const BITWISE: f64 = 0.0;
 
-/// The seeds whose *fitted parameters* depart from the executed Eigen beyond
-/// [`RELATIVE`], with the measured bound.
+/// The comparison bound of the fitted parameters, the qualities and the
+/// feature coordinates of one seed or feature (`index`, `None` for a final
+/// feature) of one configuration.
 ///
-/// Root cause: the port's Levenberg-Marquardt transcription departs from Eigen
-/// in the last bits at the first trial step on many inputs, which can grow over
-/// the iterations; `docs/TRACE_FITTER_SUPPORT.md`, "Known gap: solver fidelity
-/// beyond the fixtures" (lane B3b). It is not a difference of this package's
-/// inputs: `check_traces` compares the fit input of these two seeds — the peak
-/// identities, the theoretical intensities and the baseline — bit for bit, and
-/// they agree.
+/// The fixtures are the **Linux x86_64 Release** build
+/// (`openms4-release-bc9cc12-c19e494-174b576`, the C2 driver `ffap_stages` run on
+/// ibminode06, AMD EPYC 7763, glibc 2.39; `../oracle/ffap-sem-completion`), the
+/// reference platform the user chose on 2026-09-15. Since lane B3b the port's
+/// Levenberg-Marquardt solver follows that build's Eigen kernels, and its
+/// Gaussian fit calls the platform `exp` and `log`, as the source does, so the
+/// bound depends on the platform the test runs on:
 ///
-/// Measured over the six configurations: the largest departure is `2.25e-3` on
-/// the fitted area of these two seeds on Linux x86-64 (`5.81e-4` on macOS
-/// arm64); every other fitted quantity of every other seed stays within
-/// `6.46e-10` on **both** platforms, so the two fits are the only
-/// platform-sensitive results as well. Both seeds are rejected by
-/// `checkFeatureQuality_` in the executed C++ *and* here, with the same reason,
-/// so no feature changes. The bound below is the larger measurement, not a
-/// tolerance chosen to pass: a regression past it fails.
-const KNOWN_FIT_GAP: [(&str, usize, f64); 2] = [
+/// - Linux x86_64 with glibc: every Gaussian configuration is **bit for bit**,
+///   measured on dax (AMD EPYC 9654). glibc selects FMA variants of `exp` and
+///   `log` on CPUs that have FMA, as both measured hosts do; the exact
+///   comparison assumes such a CPU. The asymmetric (EGH) configuration departs
+///   by at most `2.3038e-12` relative (seed 24's lower retention-time bound):
+///   `EGHTraceFitter` in this port calls the `libm` crate's `exp`, `log` and
+///   `atan` where the source calls glibc's (`docs/EGH_TRACE_FITTER_SUPPORT.md`),
+///   so [`EGH_LIBM_GAP`] bounds it.
+/// - macOS arm64 (Apple libm), measured against the same Linux capture: the
+///   Gaussian fits depart by at most `5.355e-13` relative, except seeds 11 and 12
+///   of `classtest_9247_tight_pattern` ([`KNOWN_FIT_GAP_MACOS`]); the EGH
+///   configuration departs by the same `2.3038e-12` as on Linux.
+/// - Any other platform is unmeasured: the bound is the work package's `1e-9`
+///   contract, and the two ill-conditioned seeds keep the largest departure
+///   recorded before the Linux capture existed ([`KNOWN_FIT_GAP_UNMEASURED`]).
+///
+/// The two ill-conditioned seeds are rejected by `checkFeatureQuality_` in the
+/// executed C++ and here, with the same reason, on every measured platform, so
+/// no feature changes (`every_seed_matches_the_executed_intermediate_state`
+/// asserts that a seed with a platform gap never becomes a feature).
+fn tolerance(config: &str, index: Option<usize>) -> f64 {
+    if config == "ffc1_asymmetric" {
+        return EGH_LIBM_GAP;
+    }
+    platform_tolerance(config, index)
+}
+
+/// The EGH configuration's measured departure, `2.3038102266706174e-12`
+/// relative on both Linux x86_64 and macOS arm64, rounded up at the second
+/// significant digit.
+const EGH_LIBM_GAP: f64 = 2.4e-12;
+
+#[cfg(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"))]
+fn platform_tolerance(_config: &str, _index: Option<usize>) -> f64 {
+    0.0
+}
+
+/// macOS arm64: the two seeds whose Gaussian fit is ill-conditioned enough for
+/// Apple's `exp` to move the fitted area by `1.0698e-3` relative (seed 11; seed
+/// 12 fits the same traces), and `5.355e-13` for every other fitted quantity.
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+const KNOWN_FIT_GAP_MACOS: [(&str, usize, f64); 2] = [
+    ("classtest_9247_tight_pattern", 11, 1.1e-3),
+    ("classtest_9247_tight_pattern", 12, 1.1e-3),
+];
+
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+fn platform_tolerance(config: &str, index: Option<usize>) -> f64 {
+    KNOWN_FIT_GAP_MACOS
+        .iter()
+        .find(|(c, i, _)| *c == config && Some(*i) == index)
+        .map_or(5.4e-13, |(_, _, bound)| *bound)
+}
+
+/// Unmeasured platforms: the work package's `1e-9` contract, and for the two
+/// ill-conditioned seeds the largest departure measured before the Linux
+/// capture, `2.25e-3` (Linux x86_64 against the macOS arm64 product SDK).
+#[cfg(not(any(
+    all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"),
+    all(target_os = "macos", target_arch = "aarch64")
+)))]
+const KNOWN_FIT_GAP_UNMEASURED: [(&str, usize, f64); 2] = [
     ("classtest_9247_tight_pattern", 11, 2.3e-3),
     ("classtest_9247_tight_pattern", 12, 2.3e-3),
 ];
 
-/// The tolerance for the fitted parameters of one seed.
-fn fit_tolerance(config: &str, index: usize) -> f64 {
-    KNOWN_FIT_GAP
+#[cfg(not(any(
+    all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"),
+    all(target_os = "macos", target_arch = "aarch64")
+)))]
+fn platform_tolerance(config: &str, index: Option<usize>) -> f64 {
+    KNOWN_FIT_GAP_UNMEASURED
         .iter()
-        .find(|(c, i, _)| *c == config && *i == index)
-        .map_or(RELATIVE, |(_, _, bound)| *bound)
+        .find(|(c, i, _)| *c == config && Some(*i) == index)
+        .map_or(1e-9, |(_, _, bound)| *bound)
+}
+
+/// Whether a seed's fit has a platform gap larger than the configuration's
+/// general bound on the platform running the test.
+fn has_platform_gap(config: &str, index: usize) -> bool {
+    tolerance(config, Some(index)) > tolerance(config, None)
 }
 
 #[track_caller]
@@ -435,12 +501,13 @@ fn check_run(config: &str, map: &FeatureMap, log: &[String], aborts: &BTreeMap<S
         let feature = &map.features[index];
         let what = |field: &str| format!("{config}[{index}].{field}");
         assert_eq!(row[0].parse::<usize>().unwrap(), index);
-        close(feature.rt, f64_hex(&row[1]), RELATIVE, &what("rt"));
-        close(feature.mz, f64_hex(&row[2]), RELATIVE, &what("mz"));
+        let relative = tolerance(config, None);
+        close(feature.rt, f64_hex(&row[1]), relative, &what("rt"));
+        close(feature.mz, f64_hex(&row[2]), relative, &what("mz"));
         close(
             f64::from(feature.intensity),
             f64::from(f32_hex(&row[3])),
-            RELATIVE,
+            relative,
             &what("intensity"),
         );
         assert_eq!(
@@ -452,7 +519,7 @@ fn check_run(config: &str, map: &FeatureMap, log: &[String], aborts: &BTreeMap<S
         close(
             f64::from(feature.quality),
             f64::from(f32_hex(&row[5])),
-            RELATIVE,
+            relative,
             &what("quality"),
         );
         assert_eq!(
@@ -470,7 +537,7 @@ fn check_run(config: &str, map: &FeatureMap, log: &[String], aborts: &BTreeMap<S
         close(
             f64::from(feature.width),
             f64::from(f32_hex(&row[8])),
-            RELATIVE,
+            relative,
             &what("width"),
         );
         assert_eq!(
@@ -522,7 +589,7 @@ fn check_meta(config: &str, map: &FeatureMap) {
                 ("double", MetaValueData::Float(got)) => close(
                     *got,
                     f64_hex(&value),
-                    RELATIVE,
+                    tolerance(config, None),
                     &format!("{config}[{index}].{key}"),
                 ),
                 other => panic!("{config}[{index}].{key}: unexpected {other:?} for {kind}"),
@@ -647,22 +714,23 @@ fn every_seed_matches_the_executed_intermediate_state() {
                     QualityOutcome::Accepted(q) => {
                         assert_eq!(row[5], "true", "{}", what("feature_ok"));
                         assert!(
-                            fit_tolerance(case.config, index) == RELATIVE,
+                            !has_platform_gap(case.config, index),
                             "{}: a seed whose fit departs from the executed Eigen became a \
                              feature; the known gap must never change an output",
                             what("known gap")
                         );
-                        close(q.fit_score, f64_hex(&row[8]), RELATIVE, &what("fit_score"));
+                        let relative = tolerance(case.config, Some(index));
+                        close(q.fit_score, f64_hex(&row[8]), relative, &what("fit_score"));
                         close(
                             q.correlation,
                             f64_hex(&row[9]),
-                            RELATIVE,
+                            relative,
                             &what("correlation"),
                         );
                         close(
                             q.final_score,
                             f64_hex(&row[10]),
-                            RELATIVE,
+                            relative,
                             &what("final_score"),
                         );
                     }
@@ -792,7 +860,7 @@ fn check_traces(config: &str, index: usize, stage: &str, traces: &MassTraces) {
 fn check_fitter(config: &str, index: usize, model: &FittedModel) {
     let row = &seed_record("b7_seed_records.tsv", config, "fitter", index)[0];
     let fitter = model.as_fitter();
-    let relative = fit_tolerance(config, index);
+    let relative = tolerance(config, Some(index));
     let what = |field: &str| format!("{config} seed {index} fit: {field}");
     let expected_shape = match model {
         FittedModel::Gauss(_) => "GaussTraceFitter",

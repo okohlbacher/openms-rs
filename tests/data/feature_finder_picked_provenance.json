@@ -135,71 +135,80 @@
   },
   {
    "path": "tests/data/feature_finder_picked/b6_stage_records.tsv",
-   "sha256": "8835030151b076b897132c99fb33261c0a4c5a18f83a709622d28307f63fc534",
+   "sha256": "786b9eb2257425c84516125723409c445776fae3a5cac76d20080d872e81d890",
    "bytes": 92057,
    "kind": "oracle-generated (tier 1 executed differential); seed rows adapted",
    "role": "B6 seed_stage records for ffc1_defaults, ffc1_bins7_charge13 and ffc1_min_spectra_1 (run1 == run2)",
-   "rows": 496
+   "rows": 496,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/scores_ffc1.tsv",
-   "sha256": "b9f37626c629db714091c278d0e3a314c308600951f91de8776417b957a9f357",
+   "sha256": "74efb2e22a5a8788e8ed6c6dd599634d94c11b991db5ad54212a1e9298cebe5a",
    "bytes": 236457,
    "kind": "oracle-generated (tier 1 executed differential)",
    "role": "C2 per-peak m/z, intensity and score arrays of FFC_1; identical for the class test, the asymmetric and the user-seed configurations (checked by extract.py)",
-   "rows": 3084
+   "rows": 3084,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/scores_tight_pattern.tsv",
-   "sha256": "f4457186cb9251a721c6b3fcfa88e91d02ec90c96a45faee3542b4c634cf67fc",
+   "sha256": "348ec4097adb03376cf352a7168df86cd1723bb1baaa4a7cb89ca62f2d3e7e8f",
    "bytes": 236457,
    "kind": "oracle-generated (tier 1 executed differential)",
    "role": "C2 score arrays for #9247 isotopic_pattern:mz_tolerance 0.005, mass_trace:mz_tolerance 0.5",
-   "rows": 3084
+   "rows": 3084,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/scores_tight_trace.tsv",
-   "sha256": "8d03f2aa13c93e9d2da6d417ae62a8049667cbc6a0de72cd97d75d34f71b2eae",
+   "sha256": "90352ffed59c73fd8f3b8db0cad50f4610e0e642d7f473a785b4d0e99158b990",
    "bytes": 236457,
    "kind": "oracle-generated (tier 1 executed differential)",
    "role": "C2 score arrays for #9247 isotopic_pattern:mz_tolerance 0.5, mass_trace:mz_tolerance 0.005",
-   "rows": 3084
+   "rows": 3084,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/scores_defaults.tsv",
-   "sha256": "2cf68e1207ad19ce619a46aebda2ae94817bdcf908f4433075ae05fcab342bee",
+   "sha256": "383be6af15ce3a79998c4179678c801bcb87b6a5e5986f303f1ee2578e108600",
    "bytes": 322809,
    "kind": "oracle-generated (tier 1 executed differential)",
    "role": "B6 score arrays with default parameters (charges 1 to 4)",
-   "rows": 3084
+   "rows": 3084,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/scores_bins7_charge13.tsv",
-   "sha256": "cee092027414cfe19dae3dffebbc29f8e3badfff95fa90a3195826a5123bdf9b",
+   "sha256": "77b2bcaa7fe66bf70cf9e8e0ba4c6e9b7af146b578a4ff76bc316d8351709e04",
    "bytes": 267297,
    "kind": "oracle-generated (tier 1 executed differential)",
    "role": "B6 score arrays with 7 bins and charges 1 to 3",
-   "rows": 3084
+   "rows": 3084,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/overall_rounding.tsv",
-   "sha256": "11da0b63dc93e5ee3f981e1e1563a7053ff6f8dc1b905f3295017b3975e29b68",
-   "bytes": 4721,
+   "sha256": "226700d5c3c2e3727eb598ab8cf1c36cf767939c5f9a043db8ede354c51cbb20",
+   "bytes": 366,
    "kind": "derived (tier 4): 60-digit decimal ln and exp",
-   "role": "the 99 executed overall scores that Apple powf misrounds by one binary32 step, with the correctly rounded value",
-   "rows": 99
+   "role": "the 8 executed overall scores that glibc 2.39 powf (FMA variant, AMD EPYC 7763) rounds one binary32 step away from the correctly rounded power, with the correctly rounded value; the macOS arm64 product SDK's Apple powf misrounded 99",
+   "rows": 8,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/b7_feature_records.tsv",
-   "sha256": "436544fb40399bb936b44737a1e9d7faf032b6b511ec6a050903b6a2ef3fa38f",
+   "sha256": "85283ffc7e7b92d169b5a5953e44fd667d1e030489bff325d2eaf9c258ea9cfe",
    "bytes": 167567,
-   "kind": "oracle-generated (tier 1 executed differential): the library's final FeatureMap, aborts_ map and printed counts for six configurations, plus the counts of the abundance-override configuration"
+   "kind": "oracle-generated (tier 1 executed differential): the library's final FeatureMap, aborts_ map and printed counts for six configurations, plus the counts of the abundance-override configuration",
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/b7_seed_records.tsv",
-   "sha256": "ec9267a9ee7dd9005df053a794d213f315971b98df964dc9ee91028509752b07",
+   "sha256": "0d9ed55f266c99c90c90fa3bb280e1d3ee3906c84001c52ec6e6cde91217d450",
    "bytes": 366013,
-   "kind": "oracle-generated (adapted): the per-seed isotope fit, best pattern, extended, fit-input and cropped traces, fitted model and quality of the C2 driver's replay"
+   "kind": "oracle-generated (adapted): the per-seed isotope fit, best pattern, extended, fit-input and cropped traces, fitted model and quality of the C2 driver's replay",
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   }
  ],
  "reused_fixtures": [
