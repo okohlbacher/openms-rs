@@ -41,7 +41,7 @@ fn ratios(positions: &[f64], intensities: &[f64]) -> openms::Result<Vec<f64>> {
 inputs and parameter values on which the source computes non-finite or
 degenerate results and bins an out-of-range intensity by the documented intent.
 `PickingCompatibility::source()`, which every TOPP tool path uses
-(`src/cli/tools/peak_picker_hi_res.rs:415`), computes what the Release build
+(`src/cli/tools/peak_picker_hi_res.rs:417`), computes what the Release build
 computes wherever the source is defined and refuses exactly where it is
 undefined. The estimator's own switches are `NoiseCompatibility`
 (`source_value_domain`, `nan_for_empty_input`, `bin_index`), a field of
@@ -76,7 +76,7 @@ special members and two getters (the earlier table mapped 8 and missed rows 2 to
 
 | Source | Rust | Notes |
 |---|---|---|
-| `computeSTN_(const Container&)` (:168) | private `estimate_points`, `windows`, `percentile_upper_end`; public entry points above | |
+| `computeSTN_(const Container&)` (:168) | private `estimate_points`, `histogram_upper_end`, `percentile_upper_end`, `count_in_pre_histogram`, `percentile_walk`, `main_loop_counters_fit`, `windows`; public entry points above | |
 | `updateMembers_()` (:398) | `from_param`, `from_param_with_warnings`, `from_param_with_handler`, `set_parameters` (private `from_complete_param`) | `auto_mode` 0 and 1 select their modes; every other value is manual, and only `-1` passes the restriction. |
 | `max_intensity_`, `auto_max_stdev_Factor_`, `auto_max_percentile_`, `auto_mode_` | `histogram_range` plus `range_parameters: NoiseRangeParameters` | The record keeps the values the selected mode ignores. The value after estimation is `NoiseEstimates::max_intensity`. |
 | `win_len_`, `bin_count_`, `min_required_elements_`, `noise_for_empty_window_`, `write_log_messages_` | `window_length`, `bin_count`, `min_required_elements`, `noise_for_empty_window`, `write_log_messages` | `write_log_messages` gates two of the three warnings, as in the source. |
@@ -194,23 +194,42 @@ The source branch (:191-233), with `n = c.size()` `float` intensities `I_j`:
 2. `:211`. `bin_size = m / 100`, a `float` division (`divss`), widened:
    `b = (double)(m / 100.0f)`.
 3. `:216`. For every point, `q_j = (double)(I_j - 1.0f) / b` and
-   `++histogram_auto[(int) q_j]` on a 100-element vector, unchecked. The write
-   is in bounds exactly when the truncation of `q_j` lies in `[0, 99]`, i.e.
-   `-1 < q_j < 100`, which excludes NaN. Outside, the write is out of bounds;
-   where the truncation does not even fit `int`, the conversion (32-bit
-   `cvttsd2si`) yields `INT_MIN`, which is out of bounds too. Condition **D1**:
-   `-1 < q_j < 100` for every `j`.
-4. `:220`. `t = (int)(p * n / 100)` with the integer `p` in `0..=100`, so
-   `0 <= t <= n`: always defined.
+   `++histogram_auto[(int) q_j]` on a 100-element `int` vector, unchecked. The
+   write is in bounds exactly when the truncation of `q_j` lies in `[0, 99]`,
+   i.e. `-1 < q_j < 100`, which excludes NaN. Outside, the write is out of
+   bounds; where the truncation does not even fit `int`, the conversion
+   (32-bit `cvttsd2si`) yields `INT_MIN`, which is out of bounds too.
+   Condition **D1**: `-1 < q_j < 100` for every `j`. The increment itself
+   overflows `int` when a bin already holds `INT_MAX` points. Condition
+   **D2**: no bin receives more than `INT_MAX` points.
+4. `:220`. `t = (int)(p * n / 100)`, compiled as `cvtsi2sd n; mulsd p;
+   divsd 100.0` and a 32-bit `cvttsd2si` into `%r11d` (`%r10d`), then
+   `test; jle`, which skips the walk for `t <= 0` (`libOpenMS.so` at
+   `0x186cd0b` for `MSSpectrum`, `0x188c60b` for `MSChromatogram`). With `p`
+   in `0..=100`, `0 <= p n / 100 <= n` (rounding is monotone). Below `2^31`
+   the conversion is defined and `0 <= t <= n`. From `2^31` on, which takes
+   more than `INT_MAX` points, it is undefined; the instruction returns
+   `INT_MIN` and the walk is skipped. That outcome is measured (below), so the
+   port reproduces it with `x86::cvttsd2si32` instead of refusing.
 5. `:221-230`. `i = -1`; while `run != end` and `seen < t`: `++i`,
-   `seen += h[i]`, `++run`. Under D1 the 100 bins hold all `n >= t` points, so
-   once `i = 99` has been read, `seen = n >= t` and the loop stops: it never
-   reads `h[100]`. It also stops after `n` passes (one `run` step per pass),
-   so `i <= min(99, n - 1)`, whatever the input order.
-6. `:232`. `max_intensity = (i + 0.5) * bin_size`; `t = 0` leaves `i = -1` and
-   a negative range, which takes the ungated early return.
+   `seen += h[i]` (in `int`), `++run`. Under D1 the 100 bins hold all
+   `n >= t` points, so once `i = 99` has been read, `seen = n >= t` and the
+   loop stops: it never reads `h[100]`. It also stops after `n` passes (one
+   `run` step per pass), so `i <= min(99, n - 1)`, whatever the input order.
+   The addition overflows when `seen + h[i] > INT_MAX`; the Release build's
+   `add (%rdx,%rax,4),%ecx` then wraps, `seen` turns negative and the loop
+   reads past bin 99. Condition **D3**: every running count the walk forms
+   stays within `int`.
+6. `:232`. `max_intensity = (i + 0.5) * bin_size`; `t <= 0` (zero, or the
+   `INT_MIN` of step 4) leaves `i = -1` and, since D1 implies `bin_size > 0`,
+   a negative range, which takes the ungated early return (`:247-251`)
+   before the main loop, whatever `n` is.
+7. Any other range is positive, and the main loop runs. Its `int` counters
+   overflow beyond `INT_MAX` points (`++window_count` at `:365` at the latest).
+   Condition **D4**: `n <= INT_MAX` or `t <= 0`.
 
-So the branch is defined **exactly** on D0 and D1. What D1 means: if `m <= 0`,
+So the branch is defined **exactly** on D0 to D4. D2 to D4 only bind beyond
+`INT_MAX` points. What D1 means: if `m <= 0`,
 either `b = 0` (a zero minimum, or a subnormal one that `m / 100` rounds to
 zero), where `q` is infinite or NaN, or `b < 0`, where the minimum's own
 quotient is `100 - 100 / m > 100`; so D1 implies `m > 0` and `b > 0`. Then the
@@ -227,8 +246,10 @@ This refines CPP-256, which names the causes: the reversed comparator, a zero
 bin size for a spectrum with a zero intensity, a negative index for intensities
 below one, and the division by zero converted to `int`. Every one of those is
 outside D0 or D1. The port computes the branch exactly on the domain
-(`percentile_upper_end`) and returns `Error::Unsupported` elsewhere, naming
-`:209` or `:216` and the point, in both profiles. Real spectra fall outside
+(`percentile_upper_end`, `count_in_pre_histogram`, `percentile_walk`) and
+returns `Error::Unsupported` elsewhere, in both profiles, naming `:209`,
+`:216` (with the point), `:228` or, for D4, `:365`
+(`main_loop_counters_fit`). Real spectra fall outside
 almost always (the orbitrap spectrum does): the domain is a band of width one
 above a minimum near or above one.
 
@@ -392,13 +413,18 @@ Both profiles also differ from the source object in shape, not in results:
 
 ## Refusals in the source profile
 
-Each is exactly as wide as the undefined behaviour it avoids.
+Each is exactly as wide as the undefined behaviour it avoids. Signed `int`
+overflow is refused rather than emulated: this wave's rule limits emulation to
+float-to-integer conversions.
 
 | Source | Undefined behaviour | Refused domain |
 |---|---|---|
 | `SignalToNoiseEstimatorMedian.h:209` | `*end()` of an empty container | `auto_mode 1` with no points |
-| `:216` | write outside the 100-element pre-histogram | `auto_mode 1` with any point's `q` outside `(-1, 100)` (the conversion's `INT_MIN` included) |
-| `:365` (`++window_count`), `SignalToNoiseEstimator.h:123` (`++size`) | signed `int` overflow | more than `i32::MAX` points (the native `max_points` ceiling is lower by default) |
+| `:216` (the write) | write outside the 100-element pre-histogram | `auto_mode 1` with any point's `q` outside `(-1, 100)` (the conversion's `INT_MIN` included) |
+| `:216` (the increment) | signed `int` overflow | `auto_mode 1` with more than `i32::MAX` points in one pre-histogram bin |
+| `:228` (`elements_seen += histogram_auto[i]`) | signed `int` overflow | `auto_mode 1` whose walk would take its running count past `i32::MAX` |
+| `SignalToNoiseEstimator.h:123` (`++size`) | signed `int` overflow | `auto_mode 0` with more than `i32::MAX` points |
+| `:365` (`++window_count`; `++elements_in_window` at `:310` first if a window holds more) | signed `int` overflow | more than `i32::MAX` points in `auto_mode -1`, and in `auto_mode 1` unless the range comes out negative (a target of zero or `INT_MIN`, step 6 above), which returns before the main loop. The native `max_points` ceiling is lower by default. |
 | `:324` (`elements_in_window + 1`) | signed `int` overflow | a non-sparse window of exactly `i32::MAX` points |
 | `SignalToNoiseEstimator.cpp:49` | `tmp.begin() + idx` past `end()` | a drawn scan whose position exceeds its size: a percentile above `100`, a product of `-1` or below, a NaN product |
 | `SignalToNoiseEstimator.cpp:50` | `tmp[idx]` one past the end | position equal to the size: percentile `100`, an empty drawn scan |
@@ -422,6 +448,7 @@ position `2^62 j + k`, which only a product of at least `2^62` can produce).
 | Site | Measured outcome | Instruction | Emulation | Cases, repetitions |
 |---|---|---|---|---|
 | `SignalToNoiseEstimatorMedian.h:297`, `:308` | bin 0 for NaN and out-of-range quotients | 32-bit `cvttsd2si`, then `cmovg`/`cmovs` clamp | `x86::cvttsd2si32` via `BinIndexConversion::X86_64Release` | 8 `cpp257_*` cases, each run twice |
+| `SignalToNoiseEstimatorMedian.h:220` | `INT_MIN` for a target `p n / 100` of `2^31` or more, which skips the walk, so the range is `-0.5 * bin_size` and the early return is taken | 32-bit `cvttsd2si %xmm0,%r11d; test; jle` (`0x186cd0b`; `%r10d` at `0x188c60b`) | `x86::cvttsd2si32` in `percentile_walk` | `n = 2^31, p = 100` for both instantiations and `n = 3,000,000,001, p = 72`, each twice (`../oracle/sne-fix/`) |
 | `SignalToNoiseEstimator.cpp:48` | position `0` for products of `2^64` or more and `+inf` | `comisd 2^63; subsd 2^63; cvttsd2si; btc 63` | `x86::f64_to_u64` | `rnd_p_1e21`, `rnd_p_1e30`, `rnd_p_inf`, each twice |
 | `SignalToNoiseEstimator.cpp:42` | low 32 bits of the truncation (only past `2^32` candidates, unreachable in memory) | 64-bit `cvttsd2si; mov %esi,%esi` | `x86::cvttsd2si64(..) as u32` | the 52 random-scan cases stay in range |
 | `SignalToNoiseEstimator.cpp:49` (not a conversion) | the Release library's permutation for NaN input | `std::nth_element` of GCC 14.4.0 | `libstdcxx::nth_element` | `nth_vectors` (390 vectors, 30 through `__heap_select`), 19 `rnd_nan_*` cases, each twice |
@@ -482,6 +509,24 @@ No class test calls `estimateNoiseFromRandomScans`.
     (`permutations_match_the_release_toolchain`).
   - The tool path: `cpp257_pick_manual` runs `PeakPickerHiRes::pick`, i.e.
     libOpenMS's own instantiation.
+- **Tier 1, Linux x86-64 Release, beyond `INT_MAX` points.** The Release
+  build ran `auto_mode 1` on `n = 2^31` points with `p = 0` and `p = 100`, for
+  both instantiations, and on `n = 3,000,000,001` points with `p = 72`
+  (`MSChromatogram`), intensities alternating `2.0` and `2.5` (pre-histogram
+  bins 50 and 75), on `ibminode06`, twice each, byte-identically
+  (`../oracle/sne-fix/`, driver sha256 `4a09196b…`). Every run took the early
+  return: `max_intensity_` `0xbf847ae140000000` (`-0.5 * f64(0.02f)`), `n`
+  zero estimates, both percentages zero, and the warning ending in `-0.01`.
+  The `p = 100` and `p = 72` runs pin step 4's `INT_MIN`: a saturating
+  conversion would have walked into the `:228` overflow instead. The driver's
+  `:211-232` instructions equal libOpenMS's in all four copies
+  (`results/percentile_block.txt`). The Rust port's full estimation on the
+  same inputs, run on `dax` by the harness there (the inputs and results take
+  50 to 70 GB, so it stays out of CI), prints the same records and warning in
+  both profiles, and refuses `p = 49` (`:365`), `p = 99` (`:228`), a constant
+  input (`:216`) and the manual (`:365`) and standard-deviation (`:123`)
+  ranges; `n = 2^31 - 1` with `p = 0` is accepted. The unit tests in
+  `noise.rs` pin the helpers at `n = 2^31` with the same values.
 - **Which instantiation.** The estimator is a header-only template, so the
   driver instantiates it itself, with the same compiler and libOpenMS's own
   compile flags (`-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden
@@ -515,7 +560,9 @@ No class test calls `estimateNoiseFromRandomScans`.
 - **Tier 3.** The class-test sections above.
 - **Tier 4.** Native refusals and their exact case lists; the `x86`
   emulations' edge values; the `libstdcxx` port's order-statistic and
-  multiset invariants on 20,000 random vectors with and without NaN; progress
+  multiset invariants on 2,012 random vectors (29,420 selections), with and
+  without NaN; the `int` counter refusals at `n = 2^31` (`noise.rs` unit
+  tests); progress
   balance on a refusal; parameter round trips, the handler's `param_`, and the
   gated and ungated warnings; the base trait on both implementors.
 
@@ -524,5 +571,12 @@ No class test calls `estimateNoiseFromRandomScans`.
 - `PeakPickerChromatogram` (`src/processing/chromatogram.rs:181`, another
   header) calls the strict `estimate`; the source accepts the duplicate and
   negative samples a smoothed chromatogram can have.
+- `PeakPickerIterative` (`src/processing/iterative.rs:298`, header
+  `PROCESSING/CENTROIDING/PeakPickerIterative.h:314-321`) calls the strict
+  `estimate` with `f64::from` intensities too; the source's `snt.init(input)`
+  on the `MSSpectrum` accepts the duplicate, unsorted, negative and
+  non-finite samples and the parameter values the native profile refuses. The
+  Rust picker has no source mode yet; its source mode should call
+  `estimator.estimate_peaks(&input.peaks, &PickingCompatibility::source(), None)`.
 - The NaN-percentile wrap above is refused under this wave's rule; emulating it
   would need the rule to cover pointer arithmetic.
