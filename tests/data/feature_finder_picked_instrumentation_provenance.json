@@ -10,9 +10,9 @@
  "license": "BSD-3-Clause",
  "group": "feature_finder_picked",
  "work_package": "ffap-instrumentation (FeatureFinderAlgorithmPicked: the instance and its side channels); merged into port/ffap-complete with port/ffap-semantics and port/progress-logger-release-range (wave 5), and completed by its combined fix round",
- "scope": "FEATUREFINDER/FeatureFinderAlgorithmPicked.h/.cpp: the object state across runs (aborts_, abort_reasons_, log_, isotope_distributions_, param_), run into a caller's non-empty FeatureMap, the DefaultParamHandler surface, the ProgressLogger base (20 call sites), write_debug (log_ text, per-charge seed maps, abort map, debug input) and writeFeatureDebugInfo_ (.dta, _cropped.dta, .plot), and FeatureFinderCentroided -algorithm:write_debug. In the merged code the progress ranges are passed unchanged (inverted ranges as in the Release build), the .plot formulas spell a negative NaN -nan and the k * shift products follow x86_64's NaN rules, and every std::sort and std::stable_sort follows the Release build (source_sort.rs).",
- "method": "Executed differential against the Linux x86_64 Release build. drivers/ffap_instr_driver.cpp subclasses FeatureFinderAlgorithmPicked (reading its protected members) and prints maps with floats as IEEE-754 bit patterns; drivers/ffap_progress_driver.cpp defines time() as a counter (exported with -rdynamic, so libOpenMS.so's ProgressLogger forwards every setProgress call) and records every progress call with a ProgressLoggerImpl, measures the double a string or list ParamValue converts to, runs write_debug with such a shift, and exercises a refused parameter set; tool_cases.py runs the Release FeatureFinderCentroided. make_fixtures.py copies the outputs of the .1 repetitions into this directory; the other repetitions were compared and differ only in timing text and in the random map ids the driver draws outside test mode.",
- "evidence_tier": "tier 1 (executed, Linux x86_64 Release, OMP_NUM_THREADS=1) for every compared output; tier 4 for the refused undefined cases (zero-charge SIGFPE, stale abort seeds SIGSEGV, a heap-address shift where an address below 2^47 - 4096 changes the written text), whose executed signals or varying outputs are recorded but have no value to compare; tier 3 (source-reviewed) for setName, getSubsections and operator== of the DefaultParamHandler base. Combined fix round: the debug files of an infinite and a NaN double shift (shift_nonfinite_digests.tsv, tier 1), and debug/input.mzML compared bit for bit, NaN bits and overall scores included.",
+ "scope": "FEATUREFINDER/FeatureFinderAlgorithmPicked.h/.cpp: the object state across runs (aborts_, abort_reasons_, log_, isotope_distributions_, param_), run into a caller's non-empty FeatureMap, the DefaultParamHandler surface, the ProgressLogger base (20 call sites), write_debug (log_ text, per-charge seed maps, abort map, debug input) and writeFeatureDebugInfo_ (.dta, _cropped.dta, .plot), and FeatureFinderCentroided -algorithm:write_debug. In the merged code the progress ranges are passed unchanged (inverted ranges as in the Release build), the .plot formulas spell a negative NaN -nan and the k * shift products follow x86_64's NaN rules, and every std::sort and std::stable_sort follows the Release build (source_sort.rs). Combined fix round 2: a debug run that fails in steps 1 to 2.5 (the step-2.5 std::length_error, or the port's window ceiling where the source's allocation fails) keeps the opened log and debug/features and leaves the stream open; FeatureFinderCentroided reports the length_error through TOPPBase's std::exception arm (exit 12); the DefaultParamHandler checks and the typed members follow the source for 64-bit integer values (int narrowing, operator unsigned int, the min_spectra cvttsd2si); getGnuplotFormula's sums and products follow the executed SSE operand order; a step-3.3.5 termination keeps its seed's log lines and debug files.",
+ "method": "Executed differential against the Linux x86_64 Release build. drivers/ffap_instr_driver.cpp subclasses FeatureFinderAlgorithmPicked (reading its protected members) and prints maps with floats as IEEE-754 bit patterns; drivers/ffap_progress_driver.cpp defines time() as a counter (exported with -rdynamic, so libOpenMS.so's ProgressLogger forwards every setProgress call) and records every progress call with a ProgressLoggerImpl, measures the double a string or list ParamValue converts to, runs write_debug with such a shift, and exercises a refused parameter set; tool_cases.py runs the Release FeatureFinderCentroided. make_fixtures.py copies the outputs of the .1 repetitions into this directory; the other repetitions were compared and differ only in timing text and in the random map ids the driver draws outside test mode. Combined fix round 2 (../oracle/ffap-complete-fix2, origin_key ffap_complete_fix2): drivers/fix2_driver.cpp (modes lenerr_single and lenerr_reuse after the instrumentation verifier's vfi_driver.cpp, with a fresh object under UniqueIdGenerator::setSeed(4711) for a byte comparison; bigint, subclassing the algorithm to print its protected members; formula, subclassing both fitters to set their parameters through getOptimizedParameters_), the Release FeatureFinderCentroided on the derived huge-m/z inputs, and extract/make_fixtures.py, which checks the second repetition of every case and writes the four fixtures below.",
+ "evidence_tier": "tier 1 (executed, Linux x86_64 Release, OMP_NUM_THREADS=1) for every compared output; tier 4 for the refused undefined cases (zero-charge SIGFPE, stale abort seeds SIGSEGV, a heap-address shift where an address below 2^47 - 4096 changes the written text), whose executed signals or varying outputs are recorded but have no value to compare; tier 3 (source-reviewed) for setName, getSubsections and operator== of the DefaultParamHandler base. Combined fix round: the debug files of an infinite and a NaN double shift (shift_nonfinite_digests.tsv, tier 1), and debug/input.mzML compared bit for bit, NaN bits and overall scores included. Combined fix round 2: tier 1 for the 21 integer-parameter cases, the debug side effects and the tool exit of a failed step 2.5 (m/z 1e19 and 2e18, library and tool) and the 648 getGnuplotFormula texts on non-finite operands; tier 3 (source review, a crate-internal unit test) for the debug output of a step-3.3.5 termination, which no executed input reaches. Fitted values are compared bit for bit on Linux x86_64 glibc except the EGH configuration (2.4e-12), and within 5.4e-13 on macOS arm64 (a platform note).",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
@@ -196,7 +196,10 @@
   "src/cli/tools/feature_finder_centroided.rs",
   "src/analysis/feature_finder_picked/trace_fitter.rs",
   "src/analysis/feature_finder_picked/seeds.rs",
-  "src/analysis/feature_finder_picked/glibc_powf.rs"
+  "src/analysis/feature_finder_picked/glibc_powf.rs",
+  "src/analysis/feature_finder_picked/fitting.rs",
+  "src/analysis/feature_finder_picked/gauss_trace_fitter.rs",
+  "src/analysis/feature_finder_picked/egh_trace_fitter.rs"
  ],
  "native_tests": [
   "tests/feature_finder_picked_instrumentation.rs",
@@ -688,6 +691,34 @@
    "bytes": 22986,
    "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
    "role": "../oracle/ffap-complete-fix1 node/run_shift.sh (the ffap-instr round-2 verifier's ver2_band_driver, mode shift, rebuilt to its binary 24f94fae; two runs each, identical apart from the random featureXML id): bytes and SHA-1 of log.txt and the 75 debug/features files for debug:pseudo_rt_shift inf, -inf, -nan and nan (cases shift_inf, shift_neginf, shift_negnan, shift_nan); written by extract/make_shift_digests.py"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/param_narrowing.tsv",
+   "sha256": "e1972f788f51f7eda26b202f5d3ae113050e30f19e25e7ab2360e6871061f0d9",
+   "bytes": 40975,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix2 fix2_driver bigint (21 cases, two runs each, identical): per case the outcome and what() text, the features (RT, m/z, charge, intensity bits), the abort counts, the console lines, the protected members after the run (and after the first and second setParameters of partial_*), the stored parameter value; written by extract/make_fixtures.py"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/length_error.tsv",
+   "sha256": "5643c06e4573d01fd9949e78d93358dcda871f7922a0983454788021338193c1",
+   "bytes": 4055,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix2 fix2_driver lenerr_single and lenerr_reuse on huge_mz_1e19.mzML and huge_mz_2e18.mzML, and the Release FeatureFinderCentroided on both (two runs each, identical apart from timing text): the reports, the debug directory and log size while alive and after destruction, the reused object's files against a fresh object's, the tool's exit, stderr, file tree, log size and stdout block"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/length_error_log.txt",
+   "sha256": "6bcbb62d17e316f3dad9f3c22492d4a262463b1f5400a5e5c857116ff3801d9a",
+   "bytes": 40,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix2 lenerr_single: debug/log.txt after the object was destroyed (40 bytes; identical for 1e19 and 2e18, and equal to the reused object's final log)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/gnuplot_formula_nonfinite.tsv",
+   "sha256": "60751864adc60e64ae21c13105e2adbfd4c778ea247098c66e1213ce822f33cd",
+   "bytes": 136616,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix2 fix2_driver formula (two runs, identical): GaussTraceFitter and EGHTraceFitter::getGnuplotFormula for 12 special values in the sum (rt_shift, centre) and the product (theoretical_int, height), and in sigma, tau and the baseline; 648 rows"
   }
  ],
  "oracle": {
@@ -740,9 +771,21 @@
    "c1_reaches_fit_threads4": "3 repetitions, OMP_NUM_THREADS=4, SIGABRT (134); log.txt differs between repetitions (data race), recorded not compared",
    "c2_aborts_only_threads4": "3 repetitions, OMP_NUM_THREADS=4, exit 0; log.txt differs between repetitions, recorded not compared",
    "c3_min_spectra_1_threads4": "2 repetitions, OMP_NUM_THREADS=4, exit 0; no seed, so nothing is written inside the parallel region: every file equals a1_min_spectra_1's byte for byte and the console output differs only in its timing lines (make_fixtures.py); compared"
+  },
+  "fix2_driver": {
+   "directory": "../oracle/ffap-complete-fix2",
+   "driver_source_sha256": "4a8c13c801fd5c0e0328586cb7b8c708fd5088cf1660669c6965c9bb63db4220",
+   "build": "x86_64-conda-linux-gnu-g++ 14.4.0 -O2 -std=c++20, linked against the Release install as ../oracle/picked-chromatogram/run.sh does (node/build.sh)",
+   "cases": {
+    "bigint (21 cases)": "2 repetitions each, exit 0, outputs identical",
+    "lenerr_single, lenerr_reuse at m/z 1e19 and 2e18": "2 repetitions each, exit 0 (the exceptions are caught and reported); outputs identical",
+    "formula": "2 repetitions, 648 rows, identical",
+    "FeatureFinderCentroided on huge_mz_1e19.mzML and huge_mz_2e18.mzML": "2 repetitions each, exit 12; identical apart from the timing lines of stdout"
+   },
+   "disassembly": "updateMembers_ (min_spectra_: mulsd 0.5, SSE floor, cvttsd2si into rax, eax stored; 0x18da803-0x18da866), ParamValue::operator int (mov 0x8(%rdi),%eax), operator unsigned int (cvtsi2sd, comisd 0.0, throw when below), getGnuplotFormula of both fitters (the instrumentation verifier's objdump, copied)"
   }
  },
- "external_reference_note": "No C++ is committed to this repository. The driver, the scripts, the inputs and the raw outputs live under ../oracle/ffap-instr-completion (relative to the repository root); the entries below pin them. The combined fix round's non-finite shift runs live under ../oracle/ffap-complete-fix1 (origin_key ffap_complete_fix1).",
+ "external_reference_note": "No C++ is committed to this repository. The driver, the scripts, the inputs and the raw outputs live under ../oracle/ffap-instr-completion (relative to the repository root); the entries below pin them. The combined fix round's non-finite shift runs live under ../oracle/ffap-complete-fix1 (origin_key ffap_complete_fix1). The combined fix round 2's integer-parameter, failed-step-2.5 and formula runs live under ../oracle/ffap-complete-fix2 (origin_key ffap_complete_fix2); logs/results.sha256 there pins every raw result.",
  "external_reference_artifacts": [
   {
    "path": "../oracle/ffap-instr-completion/drivers/ffap_instr_driver.cpp",
@@ -958,6 +1001,111 @@
    "path": "../oracle/ffap-complete-fix1/logs/writeFeatureDebugInfo.s",
    "sha256": "9145b7477d9b85ed63ede1a9ddab01c0b9d186dd3ab8d3de6af16ae6d436bd5f",
    "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/README.txt",
+   "sha256": "70d5534af82cf85a57dca06d536f571509874680f29b5322c9b8b12565cbefdf",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/make_inputs.py",
+   "sha256": "a913142867a5b3cc1d64ea4f76ec52695b28df8b0750cd3f1c3512ffa451e8d9",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/drivers/fix2_driver.cpp",
+   "sha256": "4a8c13c801fd5c0e0328586cb7b8c708fd5088cf1660669c6965c9bb63db4220",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/node/build.sh",
+   "sha256": "bfd77db22eba624752990043e008adf7bb85c2fd2ec6838376f17fb075345c2a",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/node/run.sh",
+   "sha256": "06676895faba0fc5ce8149aaedc1d72702a6827fef1a84bdb687686e4dd692df",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/extract/make_fixtures.py",
+   "sha256": "7559ad1b113c189e0e5a36eda4df2c636609a720191532812bd890de46c0802b",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/inputs/huge_mz_1e19.mzML",
+   "sha256": "243664af6a722e77ab770eaa4e403c1e5a4a04ab02d7f5ca4469fea7fdc3c13b",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/inputs/huge_mz_2e18.mzML",
+   "sha256": "0b5417143036e09cf0f624b274d22cfb223311ac75932d13148f4ab130c48f45",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs/build_identity.txt",
+   "sha256": "148cf99a64e188c47d0f37ea1173a0d7b493db7be9d756803c9c77666f66b000",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs/sha256.txt",
+   "sha256": "0a57c305d3fdb1237e2a3243b9001592d8c8b7c7ff226eade7b32ccbbc5ae80f",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs/results.sha256",
+   "sha256": "f8d2e3b43717ae4e3636c72068d9bac65063749e5df6d1b62d6b304e6f88ec98",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs/updateMembers_.s",
+   "sha256": "601d994a4148ba3c08c193c66b6dc424ae4c371f3f2ea0f0b2428ee73e56b198",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs/ParamValue_operator_int.s",
+   "sha256": "d2cfc4886a4c96f853c8f7ec1b6994bc454eb4c5bb2029a532188341c88663c4",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs/ParamValue_operator_uint.s",
+   "sha256": "b3fef6e0994a43176b49cbb3feb89ffdf1dfdf088a1b05660f97e1fa591eb6a8",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs/ParamEntry_isValid.s",
+   "sha256": "3f7fffb358a7c1d2679b696b3bbc90ca4102b3ed7df3fcb0a52aad0b559e2b86",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs/gauss_getGnuplotFormula_verifier.s",
+   "sha256": "0fe865016ea8bbe4b25c43c57d839e2157e3c2f412615eef7f06f4b9e79ea47d",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs/egh_getGnuplotFormula_verifier.s",
+   "sha256": "4337c87ec764a6815f34700eb643b5de699d77563ae1dfd8b289935a1630b4da",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs_run.out",
+   "sha256": "c27a33bda04b40320bd8da4694a79f634f997c8eb6566436b25fc7fadd8da652",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs_build.out",
+   "sha256": "4a1b6563171d0e111983269b8a1126d5d67252f0e4ff287f32714f5c602040c9",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/results/formula.r1.tsv",
+   "sha256": "60751864adc60e64ae21c13105e2adbfd4c778ea247098c66e1213ce822f33cd",
+   "origin_key": "ffap_complete_fix2"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/results/formula.r2.tsv",
+   "sha256": "60751864adc60e64ae21c13105e2adbfd4c778ea247098c66e1213ce822f33cd",
+   "origin_key": "ffap_complete_fix2"
   }
  ],
  "cpp_issue_candidates": [
@@ -969,7 +1117,8 @@
   "step 4 computes f2.getCharge() % f1.getCharge() without a zero check; a caller's feature of charge 0 traps (SIGFPE, executed)",
   "aborts_ and abort_reasons_ are written inside the parallel region without synchronisation; at OMP_NUM_THREADS=4 the debug log differs between runs (executed)",
   "setParameters assigns param_ before the checks, so a rejected set is kept (executed)",
-  "ParamValue::operator double() returns the union member dou_ for string and list values, i.e. the bits of a heap pointer; writeFeatureDebugInfo_ with a string debug:pseudo_rt_shift writes address-dependent numbers near RT 0 (executed)"
+  "ParamValue::operator double() returns the union member dou_ for string and list values, i.e. the bits of a heap pointer; writeFeatureDebugInfo_ with a string debug:pseudo_rt_shift writes address-dependent numbers near RT 0 (executed)",
+  "Param::ParamEntry::isValid narrows a 64-bit integer value to int (int tmp = value) before its range check, and updateMembers_ reads it through operator int / operator unsigned int, so a library caller's intensity:bins = 2^32 + 10 runs with 10 bins and 2^32 is refused as '0' (executed: ../oracle/ffap-complete-fix2, bigint); a negative value whose low 32 bits pass the check throws ConversionError half way through updateMembers_, leaving the members partly updated (executed: partial_max_missing, partial_bins)"
  ],
  "target_verification": {
   "date": "2026-09-16",

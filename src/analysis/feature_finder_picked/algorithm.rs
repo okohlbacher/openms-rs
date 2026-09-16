@@ -1050,22 +1050,27 @@ fn source_validity(entry: &crate::param::ParamEntry, value: &ParamValue) -> Opti
             })
     };
     match value {
-        ParamValue::String(text) => (!entry.valid_strings.is_empty()
-            && !entry.valid_strings.contains(text)
-            && !(has("input file") || has("output file") || has("output prefix")))
-        .then(|| {
-            format!(
-                "Invalid string parameter value '{text}' for parameter '{}' given! Valid values \
-                 are: '{}'.",
-                entry.name,
-                valid_list()
-            )
-        }),
+        ParamValue::String(text) => {
+            let accepted = entry.valid_strings.is_empty()
+                || entry.valid_strings.contains(text)
+                || has("input file")
+                || has("output file")
+                || has("output prefix");
+            (!accepted).then(|| {
+                format!(
+                    "Invalid string parameter value '{text}' for parameter '{}' given! Valid \
+                     values are: '{}'.",
+                    entry.name,
+                    valid_list()
+                )
+            })
+        }
         ParamValue::StringList(texts) => texts.iter().find_map(|text| {
-            (!entry.valid_strings.is_empty()
-                && !entry.valid_strings.contains(text)
-                && !(has("input file") || has("output file")))
-            .then(|| {
+            let accepted = entry.valid_strings.is_empty()
+                || entry.valid_strings.contains(text)
+                || has("input file")
+                || has("output file");
+            (!accepted).then(|| {
                 format!(
                     "Invalid string parameter value '{text}' for parameter '{}' given! Valid \
                      values are: '{}'.",
@@ -1141,12 +1146,12 @@ pub const UNSORTED_WARNING: &str =
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] with the source messages of
-/// `Exception::IllegalArgument` for checks 2, 3 and 5. The sort of check 4
-/// returns [`Error::InvalidValue`] where the introsort of the spectra or
-/// chromatograms would read outside the vector (NaN keys only; undefined
-/// behaviour), and the kernel's error for a data array whose length differs
-/// from its peaks' (source `Exception::Precondition`), checked before anything
-/// moves.
+/// `Exception::IllegalArgument` for checks 2, 3 and 5, and the kernel's error
+/// for a data array whose length differs from its peaks' (source
+/// `Exception::Precondition`), checked before anything moves. The sorts of
+/// check 4 compare with `<` on `f64` keys, for which the introsort's
+/// out-of-bounds guard is unreachable, NaN keys included (module documentation
+/// of [`crate::analysis::feature_finder_picked::source_sort`]).
 pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> Result<bool> {
     if experiment.spectra.is_empty() {
         return Ok(false);

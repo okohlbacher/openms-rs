@@ -273,16 +273,14 @@ impl IntensityThresholds {
     /// reproduces as the Release build's libstdc++ introsort
     /// ([`source_sort_by`]): a NaN intensity and signed zeros land where the
     /// executed sort puts them, and the quantiles read from there. The
-    /// introsort reads outside the cell only for NaN keys in orders no executed
-    /// input produced; there it returns [`Error::InvalidValue`] (module
-    /// documentation of
+    /// introsort's out-of-bounds guard is unreachable for `<` on these keys,
+    /// NaN included (module documentation of
     /// [`source_sort`](crate::analysis::feature_finder_picked::source_sort)).
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when `bins` is zero, when a spectrum is
-    /// not MS1, and where the introsort of a cell would read outside it;
-    /// [`Error::InvalidRange`] for an empty range; and
+    /// Returns [`Error::InvalidValue`] when `bins` is zero or a spectrum is not
+    /// MS1; [`Error::InvalidRange`] for an empty range; and
     /// [`Error::UnsortedData`] when the spectra are not sorted as source
     /// `MSExperiment::isSorted(true)` requires.
     pub fn compute(experiment: &MSExperiment, bins: usize) -> Result<Self> {

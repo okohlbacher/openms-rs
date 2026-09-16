@@ -471,8 +471,12 @@ impl AbortReasons {
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] for a NaN intensity, which the ordering
-    /// of the source map cannot hold (it is not a strict weak ordering there);
-    /// validated input has no such peak.
+    /// of the source map cannot hold (it is not a strict weak ordering there).
+    /// No run reaches it: a peak with a NaN intensity has a NaN intensity score
+    /// (`lower_bound` gives the first quantile, and `0.05 * NaN / q0` is NaN,
+    /// `FeatureFinderAlgorithmPicked.cpp:1913-1937`), so its overall score is
+    /// NaN and never reaches a seed threshold (`:1886-1890`); such a peak is
+    /// never a seed, and only seeds are aborted.
     pub fn insert(&mut self, seed: Seed, reason: &str) -> Result<()> {
         if seed.intensity.is_nan() {
             return Err(Error::InvalidValue(

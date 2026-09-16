@@ -497,11 +497,10 @@ impl SeedStage {
     ///   than one ([`Settings::charge_count`]), for a zero or infinite
     ///   intensity bin step read by the seed loop under
     ///   [`DegenerateBinStep::Refuse`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep::Refuse),
-    ///   which is not the default, where the introsort of the user seeds
-    ///   (the crate-private `sort_user_seeds`) or of a step-1 cell
-    ///   ([`IntensityThresholds::compute`]) would read outside it, and when a [`Limits`]
+    ///   which is not the default, and when a [`Limits`]
     ///   ceiling is exceeded, checked before the allocation or computation it
-    ///   bounds. A zero or infinite step under the default
+    ///   bounds. (The introsort's out-of-bounds guard of the user-seed, cell and
+    ///   seed sorts is unreachable for their `<` comparisons.) A zero or infinite step under the default
     ///   [`DegenerateBinStep::Source`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep::Source)
     ///   is computed as the Linux x86_64 Release build computes it.
     /// - [`Error::InvalidRange`] when every retention time or every m/z is
@@ -858,8 +857,11 @@ fn refuse_degenerate_bin_step(experiment: &MSExperiment, settings: &Settings) ->
 ///
 /// # Errors
 ///
-/// [`Error::InvalidValue`] where the introsort would read outside the map
-/// (NaN keys only; undefined behaviour). The seeds are then unchanged.
+/// [`Error::InvalidValue`] where the introsort would read outside the map,
+/// which `<` on the m/z values never makes it do, NaN included (the guard is
+/// unreachable; module documentation of
+/// [`source_sort`](crate::analysis::feature_finder_picked::source_sort)). The
+/// seeds are then unchanged.
 pub(crate) fn sort_user_seeds(seeds: &mut FeatureMap) -> Result<()> {
     if seeds.features.is_empty() {
         return Ok(());
@@ -1024,7 +1026,7 @@ fn select_seeds(
     }
     // Source: `std::sort(seeds.rbegin(), seeds.rend())` with `Seed::operator<`,
     // in the Release build's introsort order; equal and NaN intensities
-    // included. It fails only where the introsort would read outside the seeds.
+    // included. Its out-of-bounds guard is unreachable for this comparison.
     source_sort_reversed_by(&mut seeds, Seed::is_less_intense_than)?;
     Ok(seeds)
 }

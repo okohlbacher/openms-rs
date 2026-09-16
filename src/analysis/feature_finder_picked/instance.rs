@@ -1299,3 +1299,115 @@ pub(crate) fn settle_charge(
     }
     Ok(feature_candidates)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::analysis::feature_finder_picked::algorithm::RtShape;
+    use crate::analysis::feature_finder_picked::debug::LogSink;
+    use crate::kernel::{MSSpectrum, Peak1D};
+
+    /// Source review of `.cpp:710-790`: a seed whose feature creation throws
+    /// (a feature m/z without an isotope window, `getIsotopeDistribution_` at
+    /// `:790`, inside the OpenMP region) has already written its log lines and
+    /// its `writeFeatureDebugInfo_` files (`:717`) when the process ends. The
+    /// serial settlement keeps both, records the termination and fails the
+    /// run at that seed; no abort is counted for it. No executed input reaches
+    /// this path (the executed and generated inputs of the oracles all
+    /// returned), so the outcome is built here.
+    #[test]
+    fn a_step_3_3_5_termination_keeps_the_seed_debug_output() {
+        let spectra = (0..3)
+            .map(|index| MSSpectrum {
+                rt: f64::from(index),
+                ms_level: 1,
+                peaks: vec![Peak1D::new(500.0, 10.0)],
+                ..MSSpectrum::default()
+            })
+            .collect();
+        let experiment = MSExperiment {
+            spectra,
+            ..MSExperiment::default()
+        };
+        let defaults = default_parameters().unwrap();
+        let (settings, _) = Settings::from_parameters(&Param::new()).unwrap();
+        let stage = SeedStage::compute(
+            experiment,
+            &FeatureMap::new(),
+            settings,
+            &Options::default(),
+            Vec::new(),
+        )
+        .unwrap();
+        assert_eq!(stage.charges()[0].charge, 1);
+
+        let mut fragment = LogFragment::new();
+        fragment.put("\nSeed 0:\n");
+        let write = DebugWrite {
+            model: FittedModel::new(
+                RtShape::Symmetric,
+                TraceFitterParams {
+                    max_iteration: 500,
+                    weighted: false,
+                },
+            ),
+            traces: MassTraces::default(),
+            new_traces: MassTraces::default(),
+            feature_ok: true,
+            error_msg: String::new(),
+            final_score: 0.5,
+            seed_mz: 500.0,
+        };
+        let what = "the value '9223372036854775808' was used but is not valid; \
+                    IsotopeDistribution not precalculated. Maximum allowed index is 43";
+        let outcome = SeedOutcome {
+            plot_nr_used: true,
+            result: Err(String::new()),
+            log: Some(fragment),
+            debug_write: Some(write),
+            terminated: Some(what.to_owned()),
+        };
+        let mut aborts = BTreeMap::new();
+        let mut abort_reasons = AbortReasons::new();
+        let mut out = Some(DebugOutput {
+            log_opened: true,
+            ..DebugOutput::default()
+        });
+        let mut features = Vec::new();
+        let (mut plot_nr_global, mut feature_nr_global) = (-1, 0);
+        let mut progress = Progress::silent();
+        let limits = Limits::default();
+        let mut book = Bookkeeping {
+            aborts: &mut aborts,
+            abort_reasons: &mut abort_reasons,
+            out: &mut out,
+            features: &mut features,
+            plot_nr_global: &mut plot_nr_global,
+            feature_nr_global: &mut feature_nr_global,
+            progress: &mut progress,
+            limits: &limits,
+        };
+        let key = DebugKey {
+            policy: PseudoRtShiftKey::Declared,
+            parameters: &defaults,
+        };
+        let error = settle_charge(&stage, 0, vec![Ok(outcome)], &mut book, &key).unwrap_err();
+        assert!(error.to_string().contains(what), "{error}");
+        assert!(aborts.is_empty() && abort_reasons.is_empty() && features.is_empty());
+        assert_eq!(plot_nr_global, 0);
+        let out = out.unwrap();
+        assert_eq!(out.log.text(), "\nSeed 0:\n");
+        assert_eq!(out.feature_files.len(), 1);
+        assert_eq!(out.feature_files[0].dta_name(), "debug/features/0.dta");
+        assert_eq!(
+            out.termination,
+            Some(DebugTermination {
+                charge: 1,
+                seed_index: 0,
+                plot_nr: 0,
+                exception: "InvalidValue",
+                message: what.to_owned(),
+            })
+        );
+    }
+}

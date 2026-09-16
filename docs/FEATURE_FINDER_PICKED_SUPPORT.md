@@ -18,7 +18,12 @@ completed the header, and their merge port/ffap-complete applied the lead's
 wave-5 decisions D1 to D9 in one combined fix round: every source sort in the
 Release build's order, the Release build's `powf`, the area iterator's
 drift-time filter, the step-2.5 `length_error`, `ChargedIndexSet` equality
-and glibc's `-nan`.
+and glibc's `-nan`. A second combined fix round closed the findings of its
+two verifiers: the debug side effects of a run that fails before the seed
+loop, the tool's exit for the `length_error`, 64-bit integer parameters as the
+source narrows them, the SSE operand order of the gnuplot formulas, the debug
+files of a step-3.3.5 termination, and the introsort on comparators that are
+not strict weak orderings.
 
 | Rust file | Content |
 | --- | --- |
@@ -45,7 +50,10 @@ over the shared
 [`trace_fitter.rs`](../src/analysis/feature_finder_picked/trace_fitter.rs)
 ([support](TRACE_FITTER_SUPPORT.md)). The binary32 isotope patterns come from
 `src/chemistry/isotopes.rs` ([support](ISOTOPE_SOURCE_PRECISION_SUPPORT.md)).
-None of those files is edited here.
+Of those files the combined fix rounds edited only the text of the debug
+formulas: `trace_fitter::stream_number` prints glibc's `-nan`, and both
+fitters' `gnuplot_formula` computes its sums and products in the Release
+build's SSE operand order.
 
 Tests: [`tests/feature_finder_picked_seeds.rs`](../tests/feature_finder_picked_seeds.rs)
 (steps 0 to 3.2, the degenerate intensity bins and `FeatureFinderDefs`),
@@ -55,7 +63,9 @@ drift-time captures and every source sort against the executed library), the
 unit tests of `glibc_powf.rs` and `source_sort.rs` (`--lib`) and, through the tool,
 [`tests/topp_feature_finder_centroided.rs`](../tests/topp_feature_finder_centroided.rs);
 [`tests/feature_finder_picked_instrumentation.rs`](../tests/feature_finder_picked_instrumentation.rs)
-(the instance, debug mode, progress and a caller's map; manifest
+(the instance, debug mode, progress, a caller's map, 64-bit integer
+parameters, a failed step 2.5 and the gnuplot formulas on non-finite
+operands; manifest
 [`tests/data/feature_finder_picked_instrumentation_provenance.json`](../tests/data/feature_finder_picked_instrumentation_provenance.json),
 which needs `featurexml` too).
 Manifest: [`tests/data/feature_finder_picked_provenance.json`](../tests/data/feature_finder_picked_provenance.json).
@@ -82,26 +92,26 @@ Every member of the header is listed.
 
 | Source member | Rust | Notes |
 | --- | --- | --- |
-| base `DefaultParamHandler` | `instance::FeatureFinderAlgorithmPicked`: `name`, `set_name`, `subsections`, `handler_equal` (`operator==`), `defaults`, `default_parameters`, `parameters`, `set_parameters`, `set_parameters_logged`, over the crate's `DefaultParamHandler`; `Settings::from_parameters` for the stateless `run`. The static `writeParametersToMetaValues` is `DefaultParamHandler::write_parameters_to_meta_values`; the protected `check_defaults_` and `warn_empty_defaults_` are not settable, as the source object never changes them | `setName` renames the handler in the unknown-parameter warnings, `getSubsections` is empty, and `operator==` compares only the handler part, with the refused set the source keeps in `param_` (source-reviewed, `the_handler_base_renames_compares_and_has_no_subsections`). Executed: `getParameters` after construction, after a run and after an empty-input run; the unknown-parameter warnings in `checkDefaults` order, and on a refused set only those before the refused entry; after a refused set `parameters()` shows that set merged with the defaults while the settings stay, as the source assigns before it checks (`algorithm::RejectedParameters::Shown`, the default; `Discarded` keeps the accepted set) |
+| base `DefaultParamHandler` | `instance::FeatureFinderAlgorithmPicked`: `name`, `set_name`, `subsections`, `handler_equal` (`operator==`), `defaults`, `default_parameters`, `parameters`, `set_parameters`, `set_parameters_logged`, over the crate's `DefaultParamHandler`; `Settings::from_parameters` for the stateless `run`. The static `writeParametersToMetaValues` is `DefaultParamHandler::write_parameters_to_meta_values`; the protected `check_defaults_` and `warn_empty_defaults_` are not settable, as the source object never changes them | `setName` renames the handler in the unknown-parameter warnings, `getSubsections` is empty, and `operator==` compares only the handler part, with the refused set the source keeps in `param_` (source-reviewed, `the_handler_base_renames_compares_and_has_no_subsections`). The checks are `Param::checkDefaults`'s, with its messages (`algorithm::check_parameters`): an integer is narrowed to its low 32 bits (`int tmp = value`) before its restriction is checked, so `intensity:bins = 2^32 + 10` is accepted and `2^32` refused as `'0'` (executed: `param_narrowing.tsv`, 21 cases, `integer_parameters_beyond_the_int_range_follow_the_release_build`). Executed: `getParameters` after construction, after a run and after an empty-input run; the unknown-parameter warnings in `checkDefaults` order, and on a refused set only those before the refused entry; after a refused set `parameters()` shows that set merged with the defaults while the settings stay, as the source assigns before it checks (`algorithm::RejectedParameters::Shown`, the default; `Discarded` keeps the accepted set) |
 | base `ProgressLogger` | `instance::FeatureFinderAlgorithmPicked::set_log_type`, `log_type`, `set_progress_logger`, `progress_logger_mut`; the base's public `startProgress`, `setProgress`, `nextProgress` and `endProgress` are the methods of the logger `progress_logger_mut` returns, and are absent under type `NONE` (where the source's calls do nothing), as `progress_logger_mut` then returns `None` | the 20 call sites of `.cpp:241-992`: every start, set and end call with its label, range and value, equal to the Release build's complete event sequence (executed with a counting clock, see *Debug mode*); no logger (type `NONE`, the default) costs nothing. An inverted range (steps 2 and 3.2 on fewer than `2 * min_spectra` scans) is passed unchanged, as in the Release build |
 | `MapType`, `SpectrumType`, `FloatDataArrays` | `MSExperiment`, `MSSpectrum`, `ScoreArrays` | see *Score arrays* below |
 | `PeakType`, `Seed`, `MassTrace`, `MassTraces`, `TheoreticalIsotopePattern`, `IsotopePattern` (protected) | `Peak1D` and the `helper_structs` types | |
 | `FeatureFinderAlgorithmPicked()` | `instance::FeatureFinderAlgorithmPicked::new`, `with_options`; `default_parameters`, `HANDLER_NAME` | |
-| `setSeeds(const FeatureMap&)` | `instance::FeatureFinderAlgorithmPicked::set_seeds`, `seeds`; `run` replaces them, as the source's `run` does, and sorts them in place (`seeds_.sortByMZ()`, the Release build's introsort); the `seeds` argument of `SeedStage::run` | a reused object sorts its sorted seeds again, as the source does |
+| `setSeeds(const FeatureMap&)` | `instance::FeatureFinderAlgorithmPicked::set_seeds`, `seeds`; `run` replaces them, as the source's `run` does, and sorts them in place (`seeds_.sortByMZ()`, the Release build's introsort); the `seeds` argument of `SeedStage::run` | every run replaces them with the caller's map and sorts that, so `seeds()` returns the last run's seeds in sorted order (unsorted when `run_` threw before `:190`, executed: `run_max_iterations_negative`) |
 | `setData_(MSExperiment&&, FeatureMap&)` (private) | `instance::FeatureFinderAlgorithmPicked::run` consumes the experiment and extends the caller's `&mut FeatureMap` | |
 | `run(PeakMap&&, FeatureMap&, const Param&, const FeatureMap&)` | `instance::FeatureFinderAlgorithmPicked::run`, which extends the caller's map as the source does (see *Reusing an instance*); `algorithm::run` and `run_with_options` for a fresh map | the stateless functions return `RunOutput` with the features, the log, the abort counts and the debug output |
 | `getDefaultParameters()` | `default_parameters()` | 29 entries, 7 section descriptions |
 | `run_()` (protected) | `instance` `run_core`: `SeedStage::prepare` (steps 0 to 2.5), then per charge `select_next_charge`, `extend_charge` and `settle_charge`, then step 4; `SeedStage::compute` and `feature_stage` at stage level | |
 | `map_` | `SeedStage::experiment`, `into_experiment` | |
 | `features_` | the caller's `&mut FeatureMap` of `instance::FeatureFinderAlgorithmPicked::run`; `RunOutput::features` of the stateless `run` | |
-| `log_`, `debug_` | `Settings::write_debug`; `debug::DebugOutput` (`log`, `log_opened`) returned by `run` | the log text in source order and formatting, with the stream's state across runs (see *Debug mode*); the tool writes the file |
+| `log_`, `debug_` | `Settings::write_debug`; `debug::DebugOutput` (`log`, `log_opened`) returned by `run` | the log text in source order and formatting, with the stream's state across runs, also after a run that fails in steps 1 to 2.5 (see *Debug mode*); the tool writes the file |
 | `aborts_`, `abort_()` | `instance::FeatureFinderAlgorithmPicked::aborts` (`u32`, accumulating over runs); `RunOutput::aborts` | counted serially in seed order: the source's single-thread counts at any thread count; the source races them (candidate 5) |
 | `abort_reasons_` | `instance::FeatureFinderAlgorithmPicked::abort_reasons`, `debug::AbortReasons` (keyed by intensity, as `Seed::operator<`), `debug::abort_map` | never cleared, as in the source; the abort map reads the stored indices in the current input (see *Reusing an instance*) |
 | `seeds_` | `instance::FeatureFinderAlgorithmPicked::seeds`; `SeedStage::user_seeds` (`UserSeed`: m/z and RT, the only fields the source reads) | sorted by `seeds::sort_user_seeds` (crate-private) |
 | `pattern_tolerance_` ... `max_feature_intersection_`, `reported_mz_` | `Settings` fields of the same names; `reported_mz` as `ReportedMz` | |
 | `intensity_rt_step_`, `intensity_mz_step_`, `intensity_thresholds_` | `IntensityThresholds::rt_step`, `mz_step`, `quantiles` | |
 | `isotope_distributions_` | `IsotopeWindows::patterns`; `IsotopeWindows::precalculate_onto` and `instance::FeatureFinderAlgorithmPicked::isotope_windows` keep them across runs; `IsotopeWindows::source_count`, `SOURCE_MAX_WINDOWS`, `LENGTH_ERROR_WHAT` | extended, never cleared, as in the source (see *Reusing an instance*); `resize` above `vector::max_size()` is its `std::length_error` text |
-| `updateMembers_()` | `Settings::from_parameters` | also reads the `run_` locals: charges, `fit:max_iterations`, abundances, seed thresholds, user-seed tolerances, `feature:min_score`, `feature:rt_shape` |
+| `updateMembers_()` | `Settings::from_parameters`; in the instance `Settings::update_members` (crate-private), in the source's order | the conversions are the Release build's: `operator unsigned int` for `max_missing` and `bins` (a negative value throws `ConversionError` half way, the earlier members keep their new values), and `min_spectra_` as the `cvttsd2si` of `floor(value * 0.5)`, low 32 bits (`libOpenMS.so` `0x18da803`-`0x18da866`). `Settings` also holds the `run_` locals (`read_run_values`, crate-private): charges (`(Int)`, low 32 bits), `fit:max_iterations` (`operator unsigned int`, whose `ConversionError` for a negative value the run reports where `run_` throws it, before the user seeds are sorted), abundances, seed thresholds, user-seed tolerances, `feature:min_score`, `feature:rt_shape` |
 | `intersection_()` | `resolution::intersection` | |
 | `getIsotopeDistribution_(double)` | `IsotopeWindows::get` | |
 | `findBestIsotopeFit_()` | `extension::find_best_isotope_fit` | returns the score and the pattern instead of an out-parameter |
@@ -173,12 +183,12 @@ files under the source's names:
 
 | Source output | `DebugOutput` | Evidence (Linux x86_64 Release, `OMP_NUM_THREADS=1`) |
 | --- | --- | --- |
-| `debug/log.txt` (`log_`, 58 write statements) | `log` (`DebugLog`), `log_opened` | byte-identical for the tool cases a1, a2, a3 and the driver's two-run object; `double` values printed as `operator<<` prints them, glibc's `nan`/`-nan` included |
+| `debug/log.txt` (`log_`, 58 write statements) | `log` (`DebugLog`), `log_opened` | byte-identical for the tool cases a1, a2, a3 and the driver's two-run object; `double` values printed as `operator<<` prints them, glibc's `nan`/`-nan` included; a run that fails in step 2.5 leaves the first line (`../oracle/ffap-complete-fix2`, `lenerr_*` and `tool_*`, see below) |
 | `debug/seeds_<charge>.featureXML`, per charge, also for a charge without seeds | `seed_maps` (`SeedMap`) | D6 (decoded, ids excluded): a1, a2, a3, a4, b1, stale scaled, debug_twice |
-| `debug/features/<plot_nr>.dta`, `_cropped.dta`, `.plot` (`writeFeatureDebugInfo_`) | `feature_files` (`FeatureDebugFiles`, `debug::write_feature_debug_info`) | byte-identical: the 75 files and the log of each of the driver cases declared-shift500, -shift123, -int250, -egh and -prefilled, of a string and a string-list shift, and of a string shift with a scan at RT `5e-275` and `1e-289` (`debug_digests.tsv`); `double` values in the `.plot` formulas as `operator<<` prints them, glibc's `-nan` included, and `k * shift + rt` with x86_64's NaN rules (`inf * 0` is the negative default NaN on every host): a `+inf`, `-inf`, negative-NaN and positive-NaN shift (`shift_nonfinite_digests.tsv`, `../oracle/ffap-complete-fix1/node/run_shift.sh`, two runs each) |
+| `debug/features/<plot_nr>.dta`, `_cropped.dta`, `.plot` (`writeFeatureDebugInfo_`) | `feature_files` (`FeatureDebugFiles`, `debug::write_feature_debug_info`) | byte-identical: the 75 files and the log of each of the driver cases declared-shift500, -shift123, -int250, -egh and -prefilled, of a string and a string-list shift, and of a string shift with a scan at RT `5e-275` and `1e-289` (`debug_digests.tsv`); `double` values in the `.plot` formulas as `operator<<` prints them, glibc's `-nan` included, and `k * shift + rt` with x86_64's NaN rules (`inf * 0` is the negative default NaN on every host): a `+inf`, `-inf`, negative-NaN and positive-NaN shift (`shift_nonfinite_digests.tsv`, `../oracle/ffap-complete-fix1/node/run_shift.sh`, two runs each); the formulas' own sums and products follow the SSE operand order of `getGnuplotFormula` (`rt_shift` and `theoretical_int` are the destinations; EGH's `2 * sigma * sigma` is `(sigma + sigma) * sigma`), so a NaN they create or pass on prints with the executed sign on every host (`gnuplot_formula_nonfinite.tsv`, 648 executed formulas, `gnuplot_formulas_print_the_executed_nan_signs`) |
 | `debug/abort_reasons.featureXML` | `abort_reasons` (`debug::abort_map`) | D6: a1, a2, declared-*, debug_twice, stale scaled; the feature ids `0, 1, ...` exactly |
 | `debug/input.mzML`: the input with the score arrays, without the overall score | `input` (`debug::debug_experiment`) | a1, a2, a3, debug_twice: every float array bit for bit, NaN bits and overall scores included. `mzml::write_source_float_arrays` writes the non-finite values the source writes |
-| the process terminates in `writeFeatureDebugInfo_` | `termination` (`DebugTermination`) and `Error::Unsupported` | a4 and b1: charge, exception and message; `log.flushed_bytes()` is the length of the executed file after the SIGABRT |
+| the process terminates in `writeFeatureDebugInfo_`, or after it at step 3.3.5 (`.cpp:790`) | `termination` (`DebugTermination`), with `Error::Unsupported` or `Error::InvalidValue` | a4 and b1: charge, exception and message; `log.flushed_bytes()` is the length of the executed file after the SIGABRT. At step 3.3.5 the seed's log lines and feature files are kept before the termination is recorded (source review; no executed input reaches it; `a_step_3_3_5_termination_keeps_the_seed_debug_output`) |
 
 **The undeclared key.** `writeFeatureDebugInfo_` reads
 `param_.getValue("debug:pseudo_rt_shift")` (`.cpp:2137`), a key the defaults
@@ -238,6 +248,23 @@ debug write at `:714`, but no input reaches either throw (see the
 port's own fit (one of its ceilings, or the refused NaN profile merge) ends
 the run with that error at the first such seed in seed order; no executed
 configuration reaches a failing fit.
+
+**A run that fails before the seed loop.** The source opens `log_` and
+creates `debug/features` after the score arrays and before step 1
+(`.cpp:226-232`) and writes `Precalculating intensity thresholds ...` at once.
+A failure in steps 1 to 2.5 leaves both: at a maximum m/z of `1e19` step 2.5
+throws `std::length_error`, the executed library's `debug/log.txt` is empty
+while the object lives and holds those 40 bytes after it is destroyed, and
+`debug/features` exists (`lenerr_single`); at `2e18` the allocation throws
+`std::bad_alloc` with the same side effects. The port keeps them in
+`DebugOutput` (the port's own window ceiling refuses the `2e18` count, after the
+same point), and the stream stays open, so the object's next debug run writes
+its seed map, abort map and input, byte-identical to a fresh object's in the
+executed build, but no log (`lenerr_reuse`;
+`a_debug_run_that_fails_in_step_two_point_five_keeps_the_executed_debug_output`).
+A refusal before that point (the preflight ceilings, the charge wrap, the
+score-array ceiling) leaves the stream closed, as the source has not reached
+its `open`.
 
 **The file at termination.** `log_` is an `std::ofstream` whose 8,191-byte
 buffer is lost when the process aborts. `DebugLog` models libstdc++'s
@@ -305,7 +332,12 @@ as the source's second run (driver case reuse, three runs, and debug_twice):
   them its seeds and features, can differ from a fresh object's (reuse run 2).
 - **`log_` is opened once.** A second debug run's `open` fails on the open
   stream, the stream's `failbit` drops every write, and the file keeps the first
-  run's text (`DebugOutput::log_opened` is `false`).
+  run's text (`DebugOutput::log_opened` is `false`). That holds after a first
+  debug run that failed in steps 1 to 2.5 too: its `open` succeeded
+  (`lenerr_reuse`, *Debug mode*).
+- **The user seeds are sorted in place.** `run_` sorts its member `seeds_`
+  (`.cpp:190`), so after a run `seeds()` returns them in the Release build's
+  introsort order; every run first replaces them with the caller's map.
 - **Parameters.** `getParameters()` is the last run's merged set, or the
   last refused set: `setParameters`, which `run` calls first, assigns the new
   set before it checks it, and a refused set stays visible while the members
@@ -318,13 +350,9 @@ behaviour ends: a stale abort seed whose indices lie outside the current input
 (`Error::InvalidValue` while building the abort map; the executed driver died
 of SIGSEGV in all seven repetitions) and a caller's feature of charge 0 in an
 overlapping pair with a different charge (`Error::InvalidValue`; the source's
-`%` traps, SIGFPE in both repetitions). A NaN key that made the source's
-`std::sort` read outside the map would be refused as well; no executed input
-did (`sort_keys.txt`, three NaN sequences; none of the 2,272 inputs of
-`sort_probe.cpp` either).
-- **The user seeds are sorted in place.** `run_` sorts its member `seeds_`
-  (`.cpp:190`), so after a run `seeds()` returns them in the Release build's
-  introsort order, and the next run sorts that order again.
+`%` traps, SIGFPE in both repetitions). The map sorts cannot read outside
+the map: their comparisons are asymmetric, NaN keys included (*Non-finite
+input*, refusal 1).
 
 ## Preserved source conventions
 
@@ -332,8 +360,11 @@ did (`sort_keys.txt`, three NaN sequences; none of the 2,272 inputs of
   numeric and string restrictions and `advanced` tags. Their insertion order is
   the source's, and they equal the executed `-write_ini` section. Unknown
   entries are warnings, and type or restriction violations are errors, as in
-  `DefaultParamHandler::setParameters`. `min_spectra` is
-  `floor(mass_trace:min_spectra * 0.5)`. The three percentages are divided by
+  `DefaultParamHandler::setParameters`, with the source's texts and its
+  32-bit narrowing of integers. `min_spectra` is
+  `floor(mass_trace:min_spectra * 0.5)`, converted as the Release build
+  converts it (the low 32 bits of `cvttsd2si`: `2^33 + 22` gives 11, `2^62 + 30`
+  gives 0). The three percentages are divided by
   100. An abundance is changed when its `ParamValue` differs exactly from the
   default. Each changed abundance adds 1000 isotopes to the 20 of the patterns.
 - **Check order of `run`.** The checks run in the source's order:
@@ -658,7 +689,12 @@ signed-zero keys, drift times and the step-2.5 bound, replayed by
   memory (executed: 164,703,072,086,692,416 windows give `std::bad_alloc`);
   `Limits::max_isotope_windows` refuses every count above its ceiling there.
   The port converts with the crate-private `x86_64::truncate_to_u64`, which
-  reproduces the sequence.
+  reproduces the sequence. A debug run has opened its log before either
+  failure (*Debug mode*), and FeatureFinderCentroided reports the
+  `length_error` from TOPPBase's `std::exception` handler, exit 12, as the
+  executed tool does (`tool_1e19`); for the port's own ceiling it exits 8
+  where the executed tool reports `std::bad_alloc` with exit 12 (`tool_2e18`,
+  a native difference).
 - *Step 3.1.* `getIsotopeDistribution_` (`0x18dddd0`) converts
   `floor(mass / width)` with the same sequence and throws `InvalidValue` when
   the index is not below the window count: with no window, at the first peak
@@ -711,14 +747,22 @@ or next to each of the 25 seeds):
 **What is refused, and where.** Each refusal is `Error::InvalidValue`, at the
 first point where the source's behaviour has no reproducible answer:
 
-1. *A step of `std::sort` that would read outside the vector.* libstdc++'s
-   introsort (`bits/stl_algo.h`) has no bound checks in its partition and final
-   insertion loops; on keys that are not strictly weakly ordered (a NaN among
-   different values) they could in principle leave the range, which is
-   undefined behaviour. The port runs the same comparisons and moves and
-   refuses exactly at such a read (`source_sort`). No executed or generated
-   input reaches it: not the 189 and 52 stage cases, not the 130 inputs of
-   `ffap_instr_driver` (mode `sort`), not the 2,272 of `sort_probe.cpp`.
+1. *A step of `std::sort` that would read outside the vector: an unreachable
+   guard here.* libstdc++'s introsort (`bits/stl_algo.h`) has no bound checks
+   in its partition and final insertion loops. The port runs the same
+   comparisons and moves and would refuse exactly at a read outside the
+   vector (`source_sort`), but every sort of this algorithm compares with an
+   asymmetric `<` (on `f32` or `f64` keys, NaN included), and for any
+   deterministic asymmetric comparison both loops provably stay inside the
+   vector (the argument is in the `source_sort` module documentation). No
+   executed or generated input reaches the guard: not the 189 and 52 stage
+   cases, not the 130 inputs of `ffap_instr_driver` (mode `sort`), not the
+   2,272 of `sort_probe.cpp`, not the 10,275 cases of the numerics verifier's
+   probe, and not the unit test's 4,000 NaN key sets and 1,000 asymmetric
+   tournaments. Only a comparator that is not asymmetric, such as `<=`, reaches
+   it through the public `source_sort_permutation`; the port then follows the
+   source's signed iterator arithmetic while it reads inside the vector and
+   never panics (`other_comparisons_are_refused_or_sorted_without_a_panic`).
    Everything else about a NaN or equal sort key is reproduced: the step-1
    cells (`.cpp:270`), the spectra and chromatograms (`sortSpectra`,
    `sortChromatograms`), the user seeds (`.cpp:190`), the seeds (`.cpp:548`)
@@ -741,7 +785,10 @@ first point where the source's behaviour has no reproducible answer:
    source's `InvalidValue` leaves its OpenMP region uncaught and
    `std::terminate` ends the process. A NaN feature m/z (an infinite intensity
    kept in the reported traces) would reach it; no executed input did
-   (source review).
+   (source review; the instrumentation verifier's 50 generated inputs with
+   infinite isotope intensities all returned). In a debug run the source has
+   written that seed's log lines and feature files first, and the port keeps
+   them before it records the termination.
 
 **The platform split.** On Linux x86_64 with glibc every returned feature is
 bit for bit. On macOS arm64 the Gaussian fits split as in
@@ -765,7 +812,7 @@ native difference 13.
 | --- | --- | --- |
 | scores are float data arrays appended to each spectrum, replacing its existing float arrays | `ScoreArrays`: one flat `f32` array per score, outside the spectra | Only the algorithm reads them, and only debug mode writes them. The input spectra keep their arrays, and no per-spectrum allocation is needed. |
 | `spectrumRanges().byMSLevel(1)` needs `updateRanges()` from the caller | ranges are computed on demand from the validated spectra, with `RangeBase`'s `std::min`/`std::max` semantics | No stale-range state exists, so the source's FAIMS "No ranges for this MS level" crash cannot occur. The source message "needs updated ranges" belongs to the peak-count check and is kept verbatim. |
-| infinite and NaN retention times, m/z values, intensities, drift times and user-seed positions are read without a check | read as the Linux x86_64 Release build reads them; refused only at an introsort read outside the vector (no executed input), at the endless profile merge of a NaN retention time and at the uncaught step-3.3.5 exception | See *Non-finite input*: of the 189 executed cases 170 returned runs and 16 exceptions are reproduced and the 3 endless runs refused at the merge; of the 52 fix-round cases 43 returned runs and 8 exceptions are reproduced and 1 endless run refused. |
+| infinite and NaN retention times, m/z values, intensities, drift times and user-seed positions are read without a check | read as the Linux x86_64 Release build reads them; refused only at the endless profile merge of a NaN retention time and at the uncaught step-3.3.5 exception (the introsort's out-of-bounds guard is unreachable for these keys) | See *Non-finite input*: of the 189 executed cases 170 returned runs and 16 exceptions are reproduced and the 3 endless runs refused at the merge; of the 52 fix-round cases 43 returned runs and 8 exceptions are reproduced and 1 endless run refused. |
 | `mass_trace:min_spectra = 1` gives `min_spectra_ = 0`. Every trace score becomes 0/0 = NaN and every peak a local maximum; no overall score reaches a threshold, no seed is found and the run returns an empty map | the same: NaN trace scores, no seed, an empty map | The execution (B6 driver, `ffc1_min_spectra_1`) shows the source is *defined* here, so the port follows it (lead decision of 2026-09-15, `CPP-271`). B6 refused the configuration; that refusal is gone. Nothing later in the algorithm is reached, so the source's `size_t(-1)` delta buffer in `extendMassTrace_` stays unreachable; the port returns `Error::InvalidValue` if it ever is. |
 | a zero or infinite intensity bin step makes `intensityScore_` convert `floor(NaN)` or `floor(inf)` to `UInt`, which is undefined | by default the Linux x86_64 Release build's outcome (every intensity score NaN, no seed, an empty map); `DegenerateBinStep::Refuse` refuses exactly the inputs whose seed loop reads those scores | Undefined behaviour of the `float`-to-`int` kind, whose Release outcome is measured, repeatable and explained by the emitted `cvttsd2si`; see *Degenerate intensity bins*. The port refused every zero-width range before, including short inputs, where the result does not depend on the scores. |
 | `charge_low > charge_high + 1` wraps the `UInt` charge count and indexes past the score arrays | `Error::InvalidValue` from `Settings::charge_count` | Undefined behaviour. `charge_low == charge_high + 1` gives zero charges, as in the source. |
@@ -785,15 +832,15 @@ native difference 13.
 | `f2.getCharge() % f1.getCharge()` divides by zero for a zero charge | `Error::InvalidValue` at that pair, only where the remainder the source evaluates would trap (also `INT_MIN % -1`) | The algorithm's own charges are at least 1. A caller's feature of charge 0 traps in the source (executed: SIGFPE, 2 of 2); same-charge pairs and non-overlapping charge-0 features are processed (executed). |
 | a hull with no point has the default `DBoundingBox` `[DBL_MAX, -DBL_MAX]`, whose `width()` is negative infinity | the same arithmetic (`resolution.rs` `SourceBox`) | Only a caller's map can hold such a hull (executed: overlap cases). |
 | `plot_nr` is assigned in an OpenMP critical section, so its value depends on the schedule | assigned in seed order | It is overwritten by the feature number for every feature that survives. The debug file names use it, and with one thread the source's value is this seed-order number. |
-| `aborts_[reason]++` runs inside the parallel region without synchronisation | aggregated serially in seed order | A data race (candidate 5): with two or more threads aborting seeds the source has no reproducible result, so the behaviour at more than one thread cannot be tested against the C++ and is not. The port's counts are exact and independent of the thread count; every executed comparison of `aborts_` (C2, `degenerate_stage`) records the library's map at one thread only, and the multi-thread runs compare everything else. |
+| `aborts_[reason]++`, `abort_reasons_[seed]` and the `log_` writes of `abort_` run inside the parallel region without synchronisation | aggregated serially in seed order | A data race (candidate 5; `.cpp:595`, calls at `:627`, `:640`, `:725`; the executed tool at four threads wrote a different log in each run, cases c1 and c2): with two or more threads aborting seeds the source has no reproducible result. Lead decision D1 lists a data race as a refusal class; the port instead gives the source's single-thread result at every thread count, which the determinism contract requires and which the source gives with one thread. This is the one D1 class the port answers with a result rather than a refusal, and the lead is asked to confirm it. Every executed comparison of `aborts_` (C2, `degenerate_stage`) records the library's map at one thread only, and the multi-thread runs compare everything else. |
 | the seed loop is an OpenMP `parallel for` with four named critical sections | `concept::parallel::map_collect` over the seed indices with `Options::threads` | `map_collect` returns results in input order, so no critical section is needed and the output is bit-identical at 1, 2 and 8 threads (`the_seed_loop_is_bit_identical_across_thread_counts`). The source's results are schedule-independent for the same reason, its `tmp_feature_map` being a `std::map` keyed by seed index; the C++ oracle gave identical output at 1, 2 and 8 threads. |
 | the containment pass scans a growing `std::vector<Size>` of swallowed seeds | a `BTreeSet` | A pure membership test; duplicates in the source's vector change nothing. |
-| `FeatureMap::sortByMZ` and `sortByIntensity` use `std::sort`, which is unstable | the Linux Release build's introsort order (`source_sort::source_sort_by`), NaN keys included; refused only at a step that would read outside the map | Equal to the reference platform (driver modes `sort`, `overlap`). |
+| `FeatureMap::sortByMZ` and `sortByIntensity` use `std::sort`, which is unstable | the Linux Release build's introsort order (`source_sort::source_sort_by`), NaN keys included | Equal to the reference platform (driver modes `sort`, `overlap`); the out-of-bounds guard is unreachable for these comparisons. |
 | `setMetaValue("spectrum_index", Size)` stores an unsigned value | `i64`, refused above `i64::MAX` | The source's `DataValue` narrows to a signed integer anyway; the featureXML writer writes the same digits. |
 | `CoarseIsotopePatternGenerator` iterates elements in heap-address order, which varies between runs | ascending atomic number | Inherited from B2. It is the majority order (198 of 200 runs), which every retained execution used; all windows match. |
 | `MSExperiment::sortSpectra` and `sortChromatograms` | module-local sorts that reproduce them: libstdc++'s introsort for the spectra and chromatograms, and per unsorted spectrum or chromatogram its `std::stable_sort` (`source_sort`), NaN and equal keys included | The kernel's sorts refuse every non-finite value. A spectrum or chromatogram whose data arrays do not match its peaks is an error before anything moves, where the source throws `Exception::Precondition` after sorting the earlier ones; `run` consumes the experiment, so no caller sees the difference. |
 | `std::stable_sort` asks `operator new(nothrow)` for its buffer and halves the request after each failure | the same halving on the port's own allocation (`TemporaryBuffer::Allocate`); the port's buffer holds 8-byte indices where the source's holds 16-byte peaks or 8-byte indices | Which requests fail depends on the process's memory and is not reproducible; the algorithm for every buffer size is the source's (executed with a replaced `operator new(nothrow)` that refuses above a byte limit: full, partial and no buffer, `sort_probe.cpp`). |
-| step 2.5 allocates `56 * count` bytes for a window count at or below `vector::max_size()` | `Limits::max_isotope_windows` (default 1,000,000) refuses larger counts first | Allocation failure depends on memory (executed: 164,703,072,086,692,416 windows throw `std::bad_alloc` on the reference node); above `max_size()` the port returns the source's `length_error` text (lead decision D6). |
+| step 2.5 allocates `56 * count` bytes for a window count at or below `vector::max_size()` | `Limits::max_isotope_windows` (default 1,000,000) refuses larger counts first, after the point where a debug run has opened its log; FeatureFinderCentroided exits 8 with that message where the executed tool reports `std::bad_alloc` with exit 12 | Allocation failure depends on memory (executed: 164,703,072,086,692,416 windows, and the `1.6e17 + 1` of m/z `2e18`, throw `std::bad_alloc` on the reference node); above `max_size()` the port returns the source's `length_error` text and the tool exits 12 as the executed one does (lead decision D6). |
 | `MSExperiment::RTBegin`, `MSSpectrum::MZBegin`/`MZEnd`/`findNearest` and the quantile search use `std::lower_bound`/`upper_bound` | the same probe sequence (`scoring::libstdcxx`) | On sorted keys any binary search gives the same index; on keys a NaN leaves unpartitioned only libstdc++'s sequence does. |
 
 ### Score arrays
@@ -838,6 +885,9 @@ the next section.
 | `sort_probe` (two runs, identical) | `MSSpectrum::sortByPosition` and `MSChromatogram::sortByPosition` with and without a data array under a full, a partial and no temporary buffer; `sortSpectra`, `sortChromatograms`, `FeatureMap::sortByMZ`; 2,272 inputs | `every_source_sort_matches_the_executed_library` |
 | `powf_probe` (two runs, identical) | the resolved `powf`, a 42 by 42 special grid, four generated sets, every binary32 base with the exponent `1/3` | unit tests of `glibc_powf`; the exhaustive and `2^26`-pair digests were compared outside CI with a release build of the same module (`../oracle/ffap-complete-fix1/port-harness`) |
 | `defs_eq_probe` (two runs, identical) | `ChargedIndexSet` comparisons | `charged_index_set_comparisons_match_the_executed_probe` |
+| `fix2_driver bigint` (`../oracle/ffap-complete-fix2`, two runs, identical) | 64-bit values of `intensity:bins`, `isotopic_pattern:charge_low`/`charge_high`, `mass_trace:max_missing`/`min_spectra` and `fit:max_iterations` beyond the `int` range: outcomes with their texts, features bit for bit, aborts, console lines, the protected members, the stored values; two refused sets after an accepted one; a negative `fit:max_iterations` at the start of `run_` | `integer_parameters_beyond_the_int_range_follow_the_release_build` |
+| `fix2_driver lenerr_single`, `lenerr_reuse` and the Release FeatureFinderCentroided (two runs each, identical apart from timing text) | m/z `1e19` (`length_error`) and `2e18` (`bad_alloc`) in a debug run: the exception, the debug directory and log while alive and after destruction, a reused object's second run against a fresh object's; the tool's exit, stderr, stdout block and files | `a_debug_run_that_fails_in_step_two_point_five_keeps_the_executed_debug_output`, `a_debug_run_beyond_the_isotope_window_limit_exits_as_the_release_build` |
+| `fix2_driver formula` (two runs, identical) | `GaussTraceFitter` and `EGHTraceFitter::getGnuplotFormula` over 12 special values (signed zeros, infinities, four NaN bit patterns) in the sum and the product, and in `sigma`, `tau` and the baseline: 648 formulas | `gnuplot_formulas_print_the_executed_nan_signs` |
 
 The FFC_1 score table also pins every loaded peak's m/z and intensity bits
 against the C++ loader.
@@ -940,7 +990,13 @@ overall score) for all 7 configurations: 25, 25, 15, 18 and 24 seeds for charge
   - a single scan with a NaN intensity: sorted alone, scored with the zero
     steps' default NaN, and never reaching the seed loop (derived);
   - the conversions in `settings_follow_update_members`;
-  - restriction and type violations.
+  - restriction and type violations;
+  - a step-3.3.5 termination in a debug run keeps the seed's log lines and
+    feature files (`a_step_3_3_5_termination_keeps_the_seed_debug_output`, a
+    crate-internal unit test, since no executed input reaches it);
+  - the introsort on asymmetric and on other comparators
+    (`asymmetric_comparisons_never_reach_the_guard`,
+    `other_comparisons_are_refused_or_sorted_without_a_panic`).
 - **Hand-derived (feature stage).**
   - `intersection_`: the two containment cases, both partial-overlap cases,
     disjoint and touching boxes, the division by the smaller total, and that a
@@ -1162,10 +1218,13 @@ Items 1 and 2 are executed; the others come from source review.
     arrays are indexed past their end: an out-of-bounds access, refused where
     the count is computed).
   - Non-finite input is read as the Release build reads it (189 and 52
-    executed cases). What remains refused is listed in *Non-finite input*: an
-    introsort step that would read outside the vector (no executed input),
-    the endless NaN profile merge, and the step-3.3.5 exception that
-    terminates the source.
+    executed cases). What remains refused is listed in *Non-finite input*: the
+    endless NaN profile merge and the step-3.3.5 exception that terminates the
+    source; the introsort's out-of-bounds guard is kept but unreachable for
+    the algorithm's comparisons.
+  - 64-bit integer parameters are narrowed and converted as the Release build
+    does (executed), not refused; only the source's own `InvalidParameter` and
+    `ConversionError` remain, with their texts.
   - The `Limits` ceilings (bounded work); step 2.5 above `vector::max_size()`
     returns the source's `length_error` text instead.
   - `AbundanceOverride::Refuse` is an opt-out; the default computes the
@@ -1174,7 +1233,10 @@ Items 1 and 2 are executed; the others come from source review.
 - **Unreachable source behaviour.** `Exception::UnableToFit` cannot be thrown
   from the seed loop (argument at `FittedModel::fit`, including the `int`
   residual count), and the `aborts_` data race at more than one thread has no
-  reproducible C++ result, so neither is tested against the C++.
+  reproducible C++ result, so neither is tested against the C++. The race is
+  answered with the single-thread result, not refused (the determinism
+  contract); that is an explicit exception to D1's refusal classes for the
+  lead to confirm.
 - **Reproduced undefined and unspecified behaviour** (lead decisions D1 to D3):
   the float-to-integer conversions, the binary searches and both sorts on NaN
   keys, the order of equal sort keys, and the address-independent text of a

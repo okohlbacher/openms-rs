@@ -123,7 +123,10 @@ Every member of the source class, and every framework call it makes.
 ## Exit codes and diagnostics
 
 Every row was executed against the product SDK; the case name is the oracle
-case (C1 = `../oracle/topp-early-bundle`, C5 = `../oracle/ffc-wrapper-c5`).
+case (C1 = `../oracle/topp-early-bundle`, C5 = `../oracle/ffc-wrapper-c5`). The
+two huge-m/z rows were executed against the Release build
+(F2 = `../oracle/ffap-complete-fix2`, two runs each, identical apart from the
+timing text).
 
 | Input | Exit | Diagnostic | Oracle case |
 |---|---|---|---|
@@ -145,6 +148,8 @@ case (C1 = `../oracle/topp-early-bundle`, C5 = `../oracle/ffc-wrapper-c5`).
 | FAIMS **profile** input without `-force` | 8, the profile message | the profile check precedes the split | C1 `FFC_faims_interleaved_noforce` |
 | `-algorithm:feature:rt_shape bogus` | 6 | `Invalid string parameter value 'bogus' … Valid values are: 'symmetric,asymmetric'.` | C1 `FFC_invalid_rt_shape` |
 | `-out` without an extension | 0, the FFC_1 features written into it | — | C1 `FFC_out_no_extension` |
+| FFC_1 with its last m/z `1e19`, `-algorithm:write_debug` (step 2.5 needs `8e17 + 1` isotope windows, more than `vector::max_size()`) | 12 | `Unable to initialize or run FeatureFinderCentroided: vector::_M_default_append`: the `std::length_error` reaches TOPPBase's outer `std::exception` handler (`TOPPBase.cpp:519-522`); `debug/features` and a 40-byte `debug/log.txt` are left | F2 `tool_1e19`; `a_debug_run_beyond_the_isotope_window_limit_exits_as_the_release_build` |
+| the same with its last m/z `2e18` (`1.6e17 + 1` windows) | C++ 12; this port 8 | C++ `Unable to initialize or run FeatureFinderCentroided: std::bad_alloc`; this port `Error: Unexpected internal error (… exceed the limit of 1000000)`, the same debug files | F2 `tool_2e18`; native difference 14 |
 
 No branch writes `-out` before the store, and every refusal above was checked
 to leave no output file.
@@ -179,6 +184,7 @@ three repetitions unless stated):
 | b1: FFC_1 INI (reaches the fit) | SIGABRT, shell status 134, OpenMS's fatal-exception block on stdout | exit 8, `Error: Unexpected internal error (the element 'debug:pseudo_rt_shift' could not be found)` | the console lines before the block, `log.txt` up to the last byte the file buffer had written, `seeds_2.featureXML`, `debug/features/` present, no abort map, no input, no `-out` |
 | c1, c2: as b1 and a2 with `-threads 4` | as b1, a2 | the single-thread files | recorded, not compared: the executed logs differ between repetitions (data race in the source) |
 | c3: as a1 with `-threads 4` (no seed, so nothing is written inside the parallel region; 2 repetitions) | exit 0, every file identical to a1's | exit 0, the single-thread files | as a1: `log.txt` byte for byte against c3's, the other files against a1's, which the executed c3 files equal byte for byte |
+| `tool_1e19`, `tool_2e18` (`../oracle/ffap-complete-fix2`, 2 repetitions): FFC_1 INI and `feature:min_isotope_fit 1.0` on FFC_1 with its last m/z `1e19` or `2e18`, which step 2.5 cannot allocate | exit 12 (`length_error`, `bad_alloc`) | exit 12 for `1e19`; exit 8 for `2e18` (native difference 14) | the stdout block, stderr, `debug/features` present and empty, `debug/log.txt` (40 bytes, the first log line), no other debug file, no `-out` |
 
 **Termination.** Every write_debug run in which a seed reaches the fit
 terminates the C++ process, because the algorithm reads an undeclared
@@ -363,6 +369,16 @@ instance*).
     `rt_posinf_last` of `non_finite_inputs_match_the_linux_release_build`. The
     reader's strictness is the mzML port's (`docs/MZML_HEADER_SUPPORT.md`), not
     this tool's.
+
+14. **The isotope-window ceiling exits 8 where the C++ tool exits 12.** Below
+    `vector::max_size()` the source's step 2.5 allocates `56 * count` bytes,
+    which fails or not depending on the memory of the process (FFC_1 with its
+    last m/z `2e18`: `std::bad_alloc`, reported by TOPPBase's outer handler
+    with exit 12). The algorithm refuses every count above
+    `Limits::max_isotope_windows` instead (lead decision D6), with its own
+    message, which the tool reports as the other algorithm errors, exit 8. The
+    debug files are the executed ones (`tool_2e18`). Above `max_size()` the
+    tool exits 12 with the source's text, as the executed tool does.
 
 ## Checked boundaries and evidence
 

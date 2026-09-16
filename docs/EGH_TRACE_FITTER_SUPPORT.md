@@ -157,7 +157,13 @@ fitters) where it writes those meta values.
 - **Gnuplot formula.** The source's exact text, with every number written as a
   default C++ stream writes a `double` (precision 6, `%g` style, `-0`, `nan`,
   glibc's `-nan` for a NaN with its sign bit set, `inf`), through the shared
-  `trace_fitter::stream_number`.
+  `trace_fitter::stream_number`. `2 * sigma * sigma` is computed as
+  `(sigma + sigma) * sigma`, and `rt_shift + t_R` and `theoretical_int * H`
+  with `rt_shift` and `theoretical_int` as the SSE destinations, as the Linux
+  x86_64 Release build does (`libOpenMS.so` `0x18b6334`, `0x18b637f`,
+  `0x18b63b0`), so a NaN they create or pass on prints with the executed sign
+  on every host (`gnuplot_formulas_print_the_executed_nan_signs` in
+  `tests/feature_finder_picked_instrumentation.rs`).
 - **Serial.** The source is serial, and so is the port.
 
 ## Native differences
@@ -349,8 +355,9 @@ On Linux x86-64 (IBMI node dax), stable and 1.85.0:
   parameter-vector hashes differ only in the sign bit of NaN results (x86-64
   produces negative default NaNs). After the rebase on B4 every value the test
   file computes was dumped on macOS arm64 and on dax: the two dumps agree
-  except for the sign bit of NaN results. The tests treat every NaN as equal,
-  and the gnuplot formula writes any NaN as `nan`. A change of the `libm` version or of
+  except for the sign bit of NaN results. The tests treat every NaN as equal;
+  the gnuplot formula's own arithmetic follows x86_64's NaN rules and writes a
+  NaN with its sign bit set as `-nan`, so its text is the same on both hosts. A change of the `libm` version or of
   the Levenberg-Marquardt backend (packages B3 and B3b) needs this test re-run
   and, if it moves, a new measurement, not a wider tolerance.
 

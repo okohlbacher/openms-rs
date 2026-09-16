@@ -131,7 +131,12 @@ C++ (the C2 oracle reaches them through a derived probe class).
   `checkMinimalRTSpan` `(upper - lower) < min_rt_span * 5.0 * sigma`.
 - `getGnuplotFormula` writes `<name>(x)= <baseline> + <theo * height> *
   exp(-0.5*(x-<rt_shift + x0>)**2/(<sigma>)**2)` with the default stream
-  precision 6.
+  precision 6. The product and the sum are computed in the Linux x86_64
+  Release build's SSE operand order (`theo` and `rt_shift` are the
+  destinations, `libOpenMS.so` `0x1979a38`, `0x1979a62`), so a NaN they
+  create or pass on prints with the executed sign on every host (648
+  executed formulas, `gnuplot_formulas_print_the_executed_nan_signs` in
+  `tests/feature_finder_picked_instrumentation.rs`).
 - With one or two peaks the start values are set and then the fit is refused,
   so the fitter keeps the start values, as after the source's exception.
 
