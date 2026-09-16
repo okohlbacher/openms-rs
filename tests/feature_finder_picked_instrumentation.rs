@@ -1089,6 +1089,10 @@ fn a_debug_run_that_reaches_the_fit_stops_where_the_release_build_terminates() {
     assert!(algorithm.debug_output().unwrap().termination.is_none());
 }
 
+/// A driver case `declared-*`: its name, its parameter overrides and the
+/// fixture of its executed feature map.
+type DeclaredCase = (&'static str, Vec<(&'static str, ParamValue)>, &'static str);
+
 /// The executed driver cases `declared-*`: with `debug:pseudo_rt_shift` in the
 /// parameters the source writes its feature files, and so does the port under
 /// either key policy. Every `.dta`, `_cropped.dta` and `.plot` file and the
@@ -1097,11 +1101,11 @@ fn a_debug_run_that_reaches_the_fit_stops_where_the_release_build_terminates() {
 #[test]
 fn feature_debug_files_match_the_release_build() {
     let digests = debug_digests();
-    let cases: [(&str, Vec<(&str, ParamValue)>, Option<&str>); 4] = [
+    let cases: [DeclaredCase; 4] = [
         (
             "shift500",
             vec![("debug:pseudo_rt_shift", ParamValue::Float(500.0))],
-            Some("reuse_run1.txt.gz"),
+            "reuse_run1.txt.gz",
         ),
         (
             "shift123",
@@ -1109,7 +1113,7 @@ fn feature_debug_files_match_the_release_build() {
                 ("debug:pseudo_rt_shift", ParamValue::Float(123.25)),
                 ("advanced:pseudo_rt_shift", ParamValue::Float(123.25)),
             ],
-            Some("reuse_run1.txt.gz"),
+            "reuse_run1.txt.gz",
         ),
         (
             "int250",
@@ -1117,7 +1121,7 @@ fn feature_debug_files_match_the_release_build() {
                 ("debug:pseudo_rt_shift", ParamValue::Integer(250)),
                 ("advanced:pseudo_rt_shift", ParamValue::Float(250.0)),
             ],
-            Some("reuse_run1.txt.gz"),
+            "reuse_run1.txt.gz",
         ),
         (
             "egh",
@@ -1125,7 +1129,7 @@ fn feature_debug_files_match_the_release_build() {
                 ("debug:pseudo_rt_shift", ParamValue::Float(500.0)),
                 ("feature:rt_shape", ParamValue::String("asymmetric".into())),
             ],
-            Some("declared_egh_map.txt.gz"),
+            "declared_egh_map.txt.gz",
         ),
     ];
     let mut inexact = 0;
@@ -1134,10 +1138,9 @@ fn feature_debug_files_match_the_release_build() {
             let mut overrides = overrides.clone();
             if policy == PseudoRtShiftKey::Declared {
                 // The declared key alone; the undeclared one must not matter.
+                // shift500 and egh leave advanced:pseudo_rt_shift at its
+                // default 500.
                 overrides.retain(|(key, _)| *key != "debug:pseudo_rt_shift");
-                if case == "shift500" || case == "egh" {
-                    // advanced:pseudo_rt_shift keeps its default 500.
-                }
             }
             let parameters = with_debug(ffc1_parameters(), &overrides);
             let options = Options {
@@ -1170,13 +1173,13 @@ fn feature_debug_files_match_the_release_build() {
                 }
             }
             assert_eq!(produced, expected_files.len(), "{case}: file count");
-            if let Some(expected_map) = expected_map {
-                inexact += assert_dumps_match(
-                    &fixture(expected_map),
-                    &dump_map(&features, algorithm.aborts()),
-                    case,
-                );
-            }
+            // The executed maps of shift500, shift123 and int250 are the plain
+            // first run's, byte for byte (make_fixtures.py checks it).
+            inexact += assert_dumps_match(
+                &fixture(expected_map),
+                &dump_map(&features, algorithm.aborts()),
+                case,
+            );
             let abort_fixture = match case {
                 "egh" => "declared_egh_abort_map.featureXML",
                 _ => "declared_shift500_abort_map.featureXML",
