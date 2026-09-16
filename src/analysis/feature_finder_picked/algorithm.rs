@@ -875,8 +875,6 @@ pub const UNSORTED_WARNING: &str =
 /// comparisons of check 4 are false for a NaN, as in the source, so a NaN
 /// never makes the input unsorted.
 ///
-/// # Errors
-///
 /// The sort of check 4 is the Release build's: `std::sort` of the spectra by
 /// retention time and of the chromatograms by product m/z as libstdc++'s
 /// introsort, then `std::stable_sort` of each unsorted spectrum's and
