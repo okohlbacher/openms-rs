@@ -215,7 +215,7 @@ impl IntensityThresholds {
     /// The source walks each cell with an area iterator, which finds the scans
     /// with `RTBegin`/`RTEnd` and the peaks of each scan with `MZBegin`/`MZEnd`,
     /// all four libstdc++ binary searches; this walks the same scans and peak
-    /// ranges with the same searches ([`libstdcxx`]), so the experiment is not
+    /// ranges with the same searches (the crate-private `libstdcxx`), so the experiment is not
     /// revalidated once per cell.
     ///
     /// The range manager extends its minimum with `std::min` and its maximum

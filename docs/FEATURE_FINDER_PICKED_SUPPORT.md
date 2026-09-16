@@ -454,8 +454,8 @@ rows). The fixture `nonfinite_stage.tsv.gz` holds every outcome, and
   (`FeatureFinderAlgorithmPickedHelperStructs.cpp:210-236`) loop forever:
   every comparison is false, so the loop neither advances nor consumes a peak.
   The executed runs `rt_nan_mid` and `rt_nan_mid_bins3` did not return within
-  30 s (killed, twice each; a stack sample shows the loop). The port refuses at
-  that merge (`MassTraces::intensity_profile`).
+  30 s (killed, twice each; a stack sample shows the loop), which executes
+  `CPP-242`. The port refuses at that merge (`MassTraces::intensity_profile`).
 
 **Measured outcomes** (FFC_1 with its INI; `in`/`innear` sweeps set one peak of
 or next to each of the 25 seeds):
@@ -506,7 +506,7 @@ first point where the source becomes undefined:
    sends the lower search left of it and the upper search right of it. The
    port keeps the check as the guard of its slices; no input reaches it.
 3. *A NaN retention time merged into an intensity profile*: the source never
-   terminates (above).
+   terminates (above; `CPP-242`).
 4. *A feature m/z without an isotope window at step 3.3.5* (`.cpp:790`): the
    source's `InvalidValue` leaves its OpenMP region uncaught and
    `std::terminate` ends the process. A NaN feature m/z (an infinite intensity
