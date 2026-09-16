@@ -972,6 +972,29 @@
   "ParamValue::operator double() returns the union member dou_ for string and list values, i.e. the bits of a heap pointer; writeFeatureDebugInfo_ with a string debug:pseudo_rt_shift writes address-dependent numbers near RT 0 (executed)"
  ],
  "target_verification": {
-  "platform": "Rust gates on dax through ~/.local/bin/openms-kim-gate.sh, slots ffap-instr-impl*, ffap-instr-fix and ffap-instr-fix2 (8a53517: clippy, MSRV 1.85.0, rustdoc, the lane targets with all and with the minimal features, and the full all-targets run, 5228 passed, 0 failed, 22 ignored); local tests on macOS arm64"
- }
+  "date": "2026-09-16",
+  "platform": "Rust gates through ~/.local/bin/openms-kim-gate.sh from a detached snapshot at ea6063d (e38534c differs only in one doc comment and this record): kim slot ffc-fix1-kim (fmt, clippy, the FFAP and progress targets, the library tests, the minimal-feature and no-default slices, +1.85.0 check, rustdoc, doctests) and dax slot ffc-fix1-dax (the full --all-features --all-targets run); the FFAP targets, fmt, rustdoc and the repository python checks additionally on macOS arm64",
+  "commands": [
+   "cargo fmt --all -- --check",
+   "cargo clippy --locked --all-features --all-targets -- -D warnings",
+   "cargo test --locked --all-features --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_instrumentation --test feature_finder_picked_helper_structs --test topp_feature_finder_centroided --test topp_threads --test progress_logger --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test parallel_determinism",
+   "cargo test --locked --all-features --lib feature_finder_picked",
+   "cargo test --locked --all-features --lib progress_logger",
+   "cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_instrumentation --test feature_finder_picked_helper_structs --test topp_feature_finder_centroided",
+   "cargo test --locked --no-default-features --features mzml,paramxml --test feature_finder_picked_seeds --test feature_finder_picked --test feature_finder_picked_instrumentation",
+   "cargo test --locked --no-default-features --test progress_logger",
+   "cargo test --locked --no-default-features",
+   "cargo +1.85.0 check --locked --all-features --all-targets",
+   "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps",
+   "cargo test --locked --all-features --doc",
+   "cargo test --locked --all-features --all-targets",
+   "python3 tools/check_core_sdk.py, test_core_sdk.py, test_core_sdk_coverage.py, check_schema_feature_graph.py, check_module_cycles.py, core_sdk_coverage.py, check_doc_coverage.py (report only)"
+  ],
+  "result": "all green: fmt; clippy clean; feature_finder_picked 15, feature_finder_picked_seeds 33, feature_finder_picked_instrumentation 28, feature_finder_picked_helper_structs 26, topp_feature_finder_centroided 36, topp_threads 11 with its 2 pre-existing ignores, progress_logger 15, trace_fitter 22, gauss_trace_fitter 33 with its pre-existing ignore, egh_trace_fitter 32, parallel_determinism 5; --lib feature_finder_picked 11 (the glibc_powf and source_sort unit tests included); --lib progress_logger rc 0 (no unit test matches); mzml,paramxml,featurexml: 15, 33, 28, 26, 36; mzml,paramxml: seeds 32 (one test needs featurexml; the other two targets compile out); --no-default-features progress_logger 15 and the whole no-default run 3,560 passed, 0 failed, 3 ignored over 328 result lines; +1.85.0 check rc 0 (cargo 1.85.0); rustdoc rc 0; doctests 67 + 3; the full --all-features --all-targets run 5,245 passed, 0 failed, 21 ignored, 0 measured, 0 filtered over 353 test-result lines (the merge's 5,239 plus the six new tests). check_core_sdk, test_core_sdk, test_core_sdk_coverage, check_schema_feature_graph and check_module_cycles (64 edges, 13 pairs) pass; core_sdk_coverage reports docs/core-sdk-coverage.json stale and check_doc_coverage a changed surface (4509/5864 = 76.9%, every feature_finder_picked module at 100%), both integrator-owned. Outside CI: the port's glibc_powf equals the executed library for all 2^32 binary32 bases with the exponent 1/3 and for 2^26 pairs in each of four sets (release build, ../oracle/ffap-complete-fix1/port-harness). On macOS arm64, clippy --all-targets fails only on the pre-existing Linux-only constants of tests/topp_threads.rs."
+ },
+ "target_verification_history": [
+  {
+   "platform": "Rust gates on dax through ~/.local/bin/openms-kim-gate.sh, slots ffap-instr-impl*, ffap-instr-fix and ffap-instr-fix2 (8a53517: clippy, MSRV 1.85.0, rustdoc, the lane targets with all and with the minimal features, and the full all-targets run, 5228 passed, 0 failed, 22 ignored); local tests on macOS arm64"
+  }
+ ]
 }
