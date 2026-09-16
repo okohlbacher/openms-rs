@@ -521,9 +521,9 @@ No class test calls `estimateNoiseFromRandomScans`.
   conversion would have walked into the `:228` overflow instead. The driver's
   `:211-232` instructions equal libOpenMS's in all four copies
   (`results/percentile_block.txt`). The Rust port's full estimation on the
-  same inputs, run on `dax` by the harness there (the inputs and results take
-  50 to 70 GB, so it stays out of CI), prints the same records and warning in
-  both profiles, and refuses `p = 49` (`:365`), `p = 99` (`:228`), a constant
+  same inputs, run on `dax` by the harness there (its peak memory is 64 to
+  90 GB, so it stays out of CI), prints the same records and warning, in both
+  profiles for the two `MSChromatogram` cases at `n = 2^31`, and refuses `p = 49` (`:365`), `p = 99` (`:228`), a constant
   input (`:216`) and the manual (`:365`) and standard-deviation (`:123`)
   ranges; `n = 2^31 - 1` with `p = 0` is accepted. The unit tests in
   `noise.rs` pin the helpers at `n = 2^31` with the same values.

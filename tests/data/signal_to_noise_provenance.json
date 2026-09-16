@@ -77,10 +77,11 @@
     "tests/signal_to_noise.rs",
     "tests/peak_picking.rs",
     "tests/peak_picking_experiment.rs",
-    "src/processing/noise_estimation.rs (unit tests)"
+    "src/processing/noise_estimation.rs (unit tests)",
+    "src/processing/peak_picking/noise.rs (unit tests)"
   ],
   "support_document": "docs/SIGNAL_TO_NOISE_SUPPORT.md",
-  "evidence_tier": "tier 1 executed differential against the Linux x86-64 Release build (143 cases, 390 nth_element permutations, warnings and progress output byte for byte) and the P1 product-SDK oracle re-run on that build; tier 3 class-test sections; tier 4 native refusals, emulation edge values and invariants",
+  "evidence_tier": "tier 1 executed differential against the Linux x86-64 Release build (143 cases, 390 nth_element permutations, warnings and progress output byte for byte; 5 AUTOMAXBYPERCENT cases beyond INT_MAX points, compared with the port's full estimation outside CI) and the P1 product-SDK oracle re-run on that build; tier 3 class-test sections; tier 4 native refusals, emulation edge values, invariants and the int-counter refusals at n = 2^31",
   "fixtures": [
     {
       "path": "tests/data/signal_to_noise/cases.tsv",
@@ -285,6 +286,111 @@
       "path": "../oracle/sne-completion/probes/exit0_values.txt",
       "sha256": "4c0f61a6edd4c1f52d7cb60f22949b08c333196194707a3122cdd39a2370b224",
       "origin_key": "docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/big_driver.cpp",
+      "sha256": "4a09196bcfbe5fb1636b8098542e17f27bb7d81c475c81d42d1e803ab910fded",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/remote_big.sh",
+      "sha256": "16e7c8977eb5eaaba68d08a77dd01ab44ba49564f2727b22f6585fdc19af16f7",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/results/hashes.txt",
+      "sha256": "5b9fe54f28ba2e7b71ceb02b923ca1dc281cef4c8477e2668b0c996c21661948",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/results/oracle.txt",
+      "sha256": "ad6f3f214ae5a858de41036dc1087ec0796e71081845688bd0162a1a1f5285cc",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/results/differ.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/results/timing.txt",
+      "sha256": "ae9c0d2537e0c6e2250ade34bf13633c5e7a605bfa8211f10adc0e3d53d55073",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/results/percentile_block.txt",
+      "sha256": "a8261893b82825b4253ec7b4d196ff798ae6c5888998a4cf318a829b29323196",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/results/disasm_fp_compare.txt",
+      "sha256": "ea338043aeea9353141c03c378a2107e12ed2a874d4b1cc572e1ba04c5ebb518",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/disasm_fp_compare.py",
+      "sha256": "29f357a5a921ef00552fa32c8bb30fec03e89fb1001b5f6756b4c34498ebd44c",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/harness/Cargo.toml",
+      "sha256": "bbedad2babc7f866b64c0b88d05f0b51d13139077fbcd8a69b64968177d197cb",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/harness/src/main.rs",
+      "sha256": "2b3bc8278e98b386e1173ba258b183bfb36270f664baacb17373da5f01c62f93",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/harness/run_remote.sh",
+      "sha256": "8837573adeb9754c7308c561a70380a0be6b19c9ef6f832f86e23a6139f7609e",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/harness/harness-chromatogram.log",
+      "sha256": "1aecd8131b757ae1fb0bf995b56ad5894ef92da8fc04eec4fc4a52acda97db02",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/harness/harness-spectrum.log",
+      "sha256": "9ad1a183b5f8b4d31a72594a38ee533ee06b06dfdc2fb14e8e4c40cd3da51191",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/harness/harness-chromatogram3e9.log",
+      "sha256": "75f44e8fb2435dc8bac791fabb846513fa11796524b1893c8944ee0405c27788",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/harness/crate_commit.txt",
+      "sha256": "66d66f94df195b8a27a4e0c7f48a6c4da547e4d6184faee806a094254b2ac542",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/harness/run-9643c1a/harness-chromatogram.log",
+      "sha256": "1aecd8131b757ae1fb0bf995b56ad5894ef92da8fc04eec4fc4a52acda97db02",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/compare.py",
+      "sha256": "ccd9569b8736b75ffb7782229631c0270d97a1b71839a89dcad72aa491a08725",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/results/compare-harness.txt",
+      "sha256": "27e9cb349a007e248ccbb05df0ca7bb3a77fe34874590b4d4f73e4b028ba61dc",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/results/compare-harness_run-9643c1a.txt",
+      "sha256": "27e9cb349a007e248ccbb05df0ca7bb3a77fe34874590b4d4f73e4b028ba61dc",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-fix/README.md",
+      "sha256": "a82375501c5530fbc7a0a5d30f52b4c2f6bdd2f72f14b2ccb67f7fbf777ad5b2",
+      "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
     }
   ],
   "external_reference_note": "The C++ driver, its build, the disassembly, the libstdc++ headers the port transcribes and the raw outputs live outside this repository under ../oracle/sne-completion/; only the case files, the vector file and the two result files enter the repository, byte for byte. The build ran on ibminode06 (never ibminode05) against the unmodified Release install below. previous-run-1/ there holds the first capture of 123 cases, which the second capture reproduces byte for byte for every one of those cases.",
@@ -309,7 +415,30 @@
     "nth_vectors": 390,
     "comparison": "every ratio, max_intensity_, percentage, random-scan result, engine output, uniform draw, picked peak and boundary as an IEEE-754 bit pattern; the whole nth_element permutation; standard error byte for byte against the port's warnings rendered through LogStream; standard output byte for byte against the port's ProgressLogger with the two timings masked",
     "p1_rerun": "the unchanged P1 driver (sha256 2d06db2f...) against the same Release install, twice: records byte-identical to the arm64 Debug capture (sha256 9eb8f249...), the same two parameter files, and a standard error that differs only by six lines the Debug build alone prints (five mzML loader diagnostics and one 'Update ranges was called but ranges were already up-to-date')",
-    "probes": "thirteen out-of-domain inputs, three runs each, exit codes and record digests only (probes/results.txt); not fixtures"
+    "probes": "thirteen out-of-domain inputs, three runs each, exit codes and record digests only (probes/results.txt); not fixtures",
+    "beyond_int_max": {
+      "directory": "../oracle/sne-fix/",
+      "host": "ibminode06 (995 GB RAM), Linux x86_64; never ibminode05",
+      "release_install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+      "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+      "compile_options": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp, the flags of SignalToNoiseEstimator.cpp in the Release build's build/core/compile_commands.json, so that the header-only estimator the driver instantiates is compiled as libOpenMS compiles its own copies",
+      "driver_sha256": "4a09196bcfbe5fb1636b8098542e17f27bb7d81c475c81d42d1e803ab910fded",
+      "driver_binary_sha256": "44cb1da828034d666f3649f5e07ac5817372b9c21f60196ca91c0daa75e78e24",
+      "cases": [
+        "MSChromatogram, n = 2147483648, auto_max_percentile 0",
+        "MSChromatogram, n = 2147483648, auto_max_percentile 100",
+        "MSSpectrum, n = 2147483648, auto_max_percentile 0",
+        "MSSpectrum, n = 2147483648, auto_max_percentile 100",
+        "MSChromatogram, n = 3000000001, auto_max_percentile 72"
+      ],
+      "input": "positions 0..n-1, float intensities alternating 2.0f and 2.5f (pre-histogram bins 50 and 75)",
+      "runs": 2,
+      "fresh_process_per_case": true,
+      "reproduced_byte_for_byte": true,
+      "result": "every case takes the ungated early return: max_intensity_ 0xbf847ae140000000, n zero estimates, both percentages 0, standard error 'SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! -0.01'. p = 100 and p = 72 pin the 32-bit cvttsd2si at :220 (INT_MIN, walk skipped).",
+      "disassembly": "the driver's :211-232 instructions equal libOpenMS.so's in all four copies (results/percentile_block.txt); 88 floating-point instructions each, identical for MSSpectrum and up to one memory displacement for MSChromatogram (results/disasm_fp_compare.txt)",
+      "rust_comparison": "harness/ (built in release against this branch at ae57d90, crate_commit.txt, and before at 9643c1a, run-9643c1a/, whose logs are byte-identical; run on dax): identical records and warning for all five cases, in both profiles for the two chromatogram n = 2^31 cases; refusals at :365 (p = 49, manual), :228 (p = 99), :216 (constant input), SignalToNoiseEstimator.h:123 (standard deviation); n = 2^31 - 1 with p = 0 accepted (results/compare-harness.txt)"
+    }
   },
   "determinism": "The estimator and the random-scan estimate are serial, as the source is (no OpenMP in either header or in SignalToNoiseEstimator.cpp); the random-scan estimate takes its seed as an argument."
 }
