@@ -1,8 +1,8 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 5751,
-  "documented": 4362
+  "items": 5770,
+  "documented": 4400
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {
@@ -494,8 +494,12 @@
    "documented": 13
   },
   "src/format/featurexml.rs": {
-   "items": 19,
-   "documented": 3
+   "items": 20,
+   "documented": 20
+  },
+  "src/format/featurexml_scaling.rs": {
+   "items": 10,
+   "documented": 10
   },
   "src/format/file_handler.rs": {
    "items": 26,
@@ -527,7 +531,7 @@
   },
   "src/format/identification_xml.rs": {
    "items": 2,
-   "documented": 0
+   "documented": 2
   },
   "src/format/idxml.rs": {
    "items": 14,
@@ -1054,8 +1058,8 @@
    "documented": 11
   },
   "src/processing/peak_picking.rs": {
-   "items": 23,
-   "documented": 23
+   "items": 27,
+   "documented": 27
   },
   "src/processing/smoothing.rs": {
    "items": 14,
@@ -1070,8 +1074,8 @@
    "documented": 4
   },
   "src/processing/spline/cubic.rs": {
-   "items": 10,
-   "documented": 10
+   "items": 14,
+   "documented": 14
   },
   "src/processing/spline/smoothing.rs": {
    "items": 10,
@@ -1083,7 +1087,7 @@
   },
   "src/processing/window_mower.rs": {
    "items": 6,
-   "documented": 5
+   "documented": 6
   },
   "src/processing.rs": {
    "items": 23,

@@ -1011,7 +1011,8 @@ array the element is a `float&`, so the `double` product is narrowed back to
 picker's spline apex amplifies it.
 `mzml::ReadOptions::source_time_array_precision`, set by `ReadOptions::source`,
 reproduces the narrowing, and the library default keeps the precision.
-[BENCHMARKS](BENCHMARKS.md) §3.1 now records the closed row.
+[BENCHMARKS](BENCHMARKS.md) §3.7 now records the closed row, and the wave-4
+run confirms it at full size on both thread counts.
 
 **What B10-FFC-ACCEPT still has to close** (from the `fix/ffc-integration`
 report):
@@ -1252,3 +1253,183 @@ report):
   lane-owned `docs/*.md` needs a link from a shared document in the same pass —
   `tools/check_doc_coverage.py` measures rustdoc coverage, not whether a
   Markdown file is reachable.
+
+## Wave 4 status
+
+Status on 2026-09-16. `main` is at `9a392fe`, **26 commits above
+`origin/main` `fabd4b9` and unpushed**. Unlike waves 1 to 3 this window adds
+almost no new surface: it is performance on real data, and correctness on the
+inputs the port previously refused. The shared files (CI, ledger, provenance,
+C++ issue log, benchmarks and documentation) follow on
+`integrate/wave4-shared`. [VALIDATION](VALIDATION.md) records each lane's
+evidence, its verifier's reruns and this pass's gates;
+[BENCHMARKS](BENCHMARKS.md) is rewritten around the wave-4 run.
+
+**Merged** (branch commit, then merge commit where it differs):
+
+| Lane | Branch | Merge | Outcome |
+|---|---|---|---|
+| `perf/peak-picker` (3 review rounds) | `6a278f6` | `2491afc` | done; the picking loop is parallel behind `parallel`, 1.66x at 32 workers and byte-identical at every worker count, peak RSS −886 MB, `-threads` wired through the pool, and the picker is the sixth tool in `tests/topp_threads.rs` |
+| `perf/mzml-reader` | `5f762aa` | `821e783` | done; −47.2 % of the load path's instructions, no decoded value changed. The port's load of a 1.2 GB mzML is now **faster than the C++ reader's** |
+| `perf/spline-scratch` | `6b43790` | `e766311` | done; `CubicSpline2dFitter` replaces eight heap vectors per constructed spline, bit-identical by construction |
+| `perf/validation` (3 rounds) | `58dbff1` | `4389b96` | done; the reader's per-peak validation loop removed as **dead**, with the argument in the rustdoc and a 36-probe mutation-checked test. It also produced this window's measurement hazard, below |
+| `fix/map-normalizer` (2 rounds) | `663d78b` | `c2ecade` | done; normalised against the spectrum maximum where the source uses the combined one (13.24x on 7,302 of 87,492 arrays), and the empty-range refusal restored and **executed** against the C++ |
+| `fix/tool-limits` | `2f173d9` | `5856c63` | done; `MzMLSplitter` and `SpectraFilterWindowMower` process full-size input |
+| `fix/featurexml-scale` | `82d13af` | `23b6519` | done; the 12.5 MB decode ceiling replaced by size-derived ceilings, both benchmark featureXML maps load |
+| `fix/dta-precision` | `943a5de` | `db00dbf` | done; `DTAExtractor` output is byte-identical to the C++ tool's over 36,443 files and 836,505,793 bytes |
+| `fix/ffc-integration`, `fix/picked-chromatogram` | — | wave 3 | recorded in wave 3; both are confirmed at full size by the wave-4 benchmark |
+
+**Nothing from wave 4 is in flight.** The last lane out was `perf/validation`;
+its third round restated every figure against the current merge base after the
+reviewer showed that one arm had not been rebuilt in the same batch.
+
+### What remains
+
+- **B10-FFC-ACCEPT.** Unchanged and still the largest open item; its five
+  clauses are listed under wave 3. The wave-4 benchmark adds one fact to
+  clause 5: `FeatureFinderCentroided` **cannot** be measured at full size —
+  neither implementation finishes the 43,745-spectrum run, the C++ was killed at
+  a 600 s cap and an independent Rust re-run at 700 s was killed with no output.
+  Any acceptance statement about that tool is a statement about a 4,000-spectrum
+  subset until someone budgets an hour per cell. **B10.**
+- **A6.** Unchanged: `-i`, `-d` and `-c` for `FileInfo`, and the
+  `file_info::Options` strict default that keeps `c1_empty_mzml_mps` ignored
+  although the source-compatible option now exists and A5's tool passes it.
+  **A6.**
+- **The FAIMS closure.** Unchanged: `FeatureFinderCentroided` is still
+  `partial` for exactly one reason, the D5 FAIMS refusal, and
+  `tests/topp_feature_finder_centroided.rs` still carries the zero-width RT
+  divergence as its one ignored test — now with the C++ side logged as executed
+  in `CPP-312`. **B10/C5.**
+- **The bundle.** Eight tools are built, run full-size instrument data and agree
+  with the C++ Release build on the data of every one. What the bundle still
+  lacks is not a tool: it is `-processOption lowmemory` (P4), the three A6
+  FileInfo flags, and the acceptance statement B10 owns.
+
+### Carried forward, with owners
+
+New in this window, or restated because this window changed them:
+
+- **THE COMPILER CODE-GENERATION QUANTUM — a measurement hazard for every
+  future comparison.** `Record::finish` in `src/format/mzml.rs` has exactly two
+  code-generation states on the PeakPickerHiRes workload, 88,619,093 and
+  68,006,957 instructions of self cost, a quantum of **20,612,136**, and it
+  flips between them on source perturbations that have nothing to do with it:
+  the two `main` commits `e766311` and `8889ece` sit in different states and the
+  only source file that differs between them is
+  `src/cli/tools/map_normalizer.rs`, which the picker never calls.
+  `MSSpectrum::validate`'s self cost is identical in both, so this is not an
+  inlining transfer between those two symbols. Three rules follow, and they cost
+  this lane a whole measurement cycle each: **(1)** a per-function instruction
+  diff is not attribution — the same lane's `check_sorted` fusion showed −20.6 M
+  in `Record::finish` and −5.3 M in `prepare_spectrum`, neither of which calls
+  it, so only an ablation built on each arm attributes a saving; **(2)** every
+  arm must be rebuilt in the same batch — reusing a binary from an earlier
+  session moved a headline by 1.08 %, which the reviewer demonstrated by
+  rebuilding one arm from `git archive`; **(3)** a layout control is mandatory
+  and wall clock resolves nothing small here — a control with two unrelated
+  functions swapped in source order executes the *identical* instruction count,
+  yet a plain rebuild of an identical tree is worth a couple of tenths of a
+  second either way and the two `main` commits sit 0.100 s apart in the
+  **opposite** direction to their instruction counts. Nothing under about 1 s is
+  resolvable on a loaded node, about 0.2 s on a quiet one. **Every future perf
+  lane, and the benchmark lane.**
+- **`ToolContext::in_thread_pool` at one worker.** Its doc still says a pool is
+  built even for one worker so the body runs on a pool thread, which is what
+  bounds a stray `par_iter` — and that costs **0.68 s** on a gigabyte-scale body
+  through glibc's per-thread arenas. `PeakPickerHiRes` deliberately does not use
+  it, scoping its pool to the picking call instead. Decide once for the
+  framework: a documented one-worker fast path (accepting that a stray
+  global-pool `par_iter` would then be unbounded), or a note that a tool scoping
+  its pool to its parallel region may skip it. Raised in all three picker
+  rounds. **CLI-1/CLI-2 owner.**
+- **`concept::parallel::map_collect` builds a `ThreadPoolBuilder`
+  unconditionally**, with no ambient-pool check and no reuse across calls, which
+  is why the picker could not call it and carries its own `BatchWorkers` in
+  `src/processing/peak_picking.rs`. Moving `BatchWorkers` into the shared helper
+  would give `src/comparison.rs` and
+  `src/analysis/feature_finder_picked/algorithm.rs` the same behaviour.
+  **Concept/parallel owner.**
+- **`SummaryLimits::default().max_work` is a fixed 50,000,000** while
+  `combined_ranges`, `chromatogram_ranges` and `calculate_tic_binned` charge one
+  unit per spectrum, per peak, per chromatogram and per chromatogram point, so
+  the 1.2 GB benchmark run charges **88,521,983** and `combined_ranges()`
+  refuses a file the port's own mzML reader reads without complaint. Same class
+  as the window-mower cap and the featureXML ceiling this window fixed.
+  `MapNormalizer::range_limits` is a local workaround and should be deleted once
+  the shared default is size-derived in the `src/format/mzml_scaling.rs` style.
+  **`src/kernel/experiment_summary.rs` owner.**
+- **Two remaining full scans on the picker's own path**, both measured and
+  neither this window's to take: the experiment-level `input.validate()` in
+  `start_experiment` (`peak_picking.rs:1631`) at 47,230,109 instructions, 1.24 %
+  of the program and 16.0 Ir per peak — the largest single scan left — and
+  `validate_points` (`:140`), still three passes of which
+  `PickingCompatibility::source()` leaves one. The first cannot simply be
+  deleted, because `MSExperiment` has public fields and a library caller can
+  hand the picker anything; the technique that worked for the reader applies —
+  a `validate_given_finite_peaks`-style entry point for the tool path, **with
+  the argument written down** the way the reader's was. The second, if fused,
+  must be **measured**: the same lane fused exactly this pattern in `kernel.rs`
+  and it cost 1.0 s of wall despite executing 0.82 % fewer instructions.
+  **Picker owner.**
+- **`MSExperiment::max_intensity()`, or a doc cross-reference on
+  `MSExperiment::ranges`.** `ranges(ms_level)` is spectra-only by design and the
+  source's `updateRanges()`/`getMaxIntensity()` is not; nothing at the
+  definition said so loudly enough to stop one tool making the substitution, and
+  that substitution was a 13x wrong answer on real data. `grep -rn "\.ranges("
+  src/cli/ src/bin/` matches one file today, so the window is small.
+  **`src/kernel.rs` owner.**
+- **A SIMD base64 decoder is the whole of what is left in the reader**, and it
+  is a dependency decision, not a code one: `base64` 0.22's `GeneralPurpose`
+  decoder is 330,022,649 Ir on a 49.7 MB slice against OpenMS's own
+  `Base64::stringSimdDecoder_` at 162,210,512 — **2.03x**, and 16.5 % of
+  everything the reader now executes, worth roughly −0.9 s on a 2.3 GB input.
+  `base64-simd` is the obvious candidate; it is `no_std`-capable but uses
+  internal `unsafe`, which `#![forbid(unsafe_code)]` permits in a dependency.
+  Note it must also be in the nodes' `~/.cargo` registry cache, because the
+  benchmark build is `--locked --offline`. **Crate-decision owner.**
+- **The allocator question is smaller than it was, and the recommendation is
+  "nothing in the crate".** On the current tree the untuned binary is 9.8 s
+  faster, takes 38 % fewer minor faults and holds 940 MB less peak RSS than when
+  it was first measured — purely from the merged reader and spline work — and
+  its fault count is now level with the C++ reference while its peak RSS is
+  487 MB below it. The glibc knobs are down from −1.78 s to −0.79 s. If they are
+  wanted, set `MALLOC_MMAP_THRESHOLD_=4194304`,
+  `MALLOC_TRIM_THRESHOLD_=67108864` and `MALLOC_TOP_PAD_=8388608` in whatever
+  launches the tools, **all three or none**, and note they are glibc-only. Do
+  **not** add `libc` and do **not** relax `#![forbid(unsafe_code)]` for
+  `mallopt`. Separately, the earlier profiling lane's "`mimalloc` `LD_PRELOAD`
+  gave −1.18 s" is **withdrawn**: that library defines none of
+  `malloc`/`free`/`calloc`/`realloc`/`posix_memalign`, so under `LD_PRELOAD` it
+  initialised and intercepted nothing, and three runs matched untuned glibc to
+  72 minor faults in 1.85 million. Any future `mimalloc` decision needs an
+  override build or a real `#[global_allocator]`. **Crate-decision owner.**
+- **`tests/feature_finder_picked.rs` does not compile under
+  `--no-default-features --features mzml,paramxml`**: it is gated
+  `#![cfg(all(feature = "mzml", feature = "paramxml"))]` yet imports
+  `openms::format::featurexml`, so that feature set fails the whole suite with
+  `rc=101`. Pre-existing, hit by two lanes and by a reviewer in this window; it
+  is why several lanes' no-default gates name targets explicitly instead of
+  building everything. **B7/B10.**
+- **The bit-identity gate needs no new definition, and the earlier request to
+  change it is withdrawn.** The recipe is `-test`, which the port already
+  implements for exactly this purpose (`src/cli/processing.rs:25-39`): it
+  suppresses the wall-clock completion time, and with it the SHA-1 over the
+  file. `bb13eecf…` reproduces from the merge base, the branch tip and a
+  rebuilt tree, five runs. The replacement invariant an earlier pass proposed
+  was itself path-dependent (its masked whole-file digest includes
+  `parameter: out`), i.e. strictly worse than the gate it would have replaced.
+  Recorded so it is not proposed again. **No owner needed.**
+- **A `debug = 1` release profile for the benchmark harness.** The release
+  builds carry no debug info, so callgrind gives function-level but not
+  line-level attribution; that cost `perf/validation` a build-and-ablate cycle.
+  **Benchmark lane.**
+- **Infrastructure, re-confirmed by four lanes this window and still open:**
+  `kernel.perf_event_paranoid = 4` cluster-wide, so no unprivileged `perf` and
+  no hardware counters anywhere; `/usr/local/bin/cc` on ibminode06 is the Ceph
+  quota script that shadows the compiler (see the wave-3 entry below — every
+  lane that touched that node needed the same PATH shim); and `ibminode06` has
+  no `~/.ssh/config` entry, unlike kim and dax. One correction to the wave-3
+  wording: `ibminode06` is **not** unreachable — it answers SSH from ibminode05
+  and rejects the key, and from the workstation the bare name does not resolve.
+  **Infrastructure.**

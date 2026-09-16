@@ -41,6 +41,42 @@ bit on all 141 traced trace fits. [BENCHMARKS](BENCHMARKS.md) records the first
 instrument-scale comparison against the optimised C++ build; see
 [wave 3 status](EARLY_TOPP_WORK_PACKAGES.md#wave-3-status).
 
+Wave 4 is integrated (2026-09-16), and it is the first window whose work is
+mostly performance and correctness on **real data** rather than new surface.
+Four tools that could not process full-size instrument input now can, and the
+two data disagreements wave 3 found are closed:
+
+- `MapNormalizer` normalised against the spectrum maximum where the source uses
+  the combined maximum including chromatograms; on a 1.2 GB run that made 7,302
+  of 87,492 intensity arrays differ by about 13.24x. Fixed, with the
+  empty-range refusal restored and executed against the C++ (`CPP-308`).
+- `DTAExtractor` writes the source's own two 15-digit numeric rules instead of
+  Rust's shortest round-trip, so its 36,443-file, 836,505,793-byte output is now
+  byte-identical to the C++ tool's (`CPP-310`, and the asymmetric proton mass of
+  `CPP-309` alongside it). It is the one tool that got slower — 24.5 % — and it
+  got correct.
+- `MzMLSplitter` and `SpectraFilterWindowMower` process full-size input: the
+  writer refused precursor references that do not resolve inside a split part,
+  which the source emits and the schema forbids (`CPP-311`), and the window
+  mower's peak cap was applied to the whole map instead of per spectrum.
+- The featureXML reader's fixed ~12.5 MB decode ceiling is replaced by
+  size-derived ceilings (`src/format/featurexml_scaling.rs`), so both benchmark
+  featureXML maps load — including the one the port's own
+  `FeatureFinderCentroided` writes.
+
+On performance: the mzML reader was rewritten for **-47.2 %** of the
+instructions its load path executed, and the port's load of a 1.2 GB mzML is now
+faster than the C++ reader's; `PeakPickerHiRes` is parallelised behind the
+`parallel` feature and is **1.88x faster than the C++ picker at 32 threads**,
+byte-identical at every worker count, with peak RSS down 939 MiB; the cubic
+spline takes reusable scratch buffers instead of eight heap vectors per
+constructed spline; and the mzML reader's per-peak validation loop is removed as
+dead, with the argument written into the rustdoc and a mutation-checked test
+pinning its premise. [BENCHMARKS](BENCHMARKS.md) now records all eight tools on
+full-size data at 1 and 32 threads, states plainly where the port is slower, and
+lists what one session does not establish. See
+[wave 4 status](EARLY_TOPP_WORK_PACKAGES.md#wave-4-status).
+
 The target is a feature-complete reduced Core SDK suitable for porting TOPP tools, with an idiomatic Rust API. Spectra, chemistry and common processing were the starting priorities. This document describes the implemented surface rather than claiming parity for every method of a similarly named C++ class. The [completion ledger](CORE_SDK_COMPLETION.md) tracks all registered public headers and direct TOPP dependencies.
 
 The current target is SDK 4.0.0 at `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; the [SDK update](CORE_SDK_UPDATE.md) records the exact source inventory and extracted product backends excluded from this port’s remainder. Historical scientific fixtures retain their original pins.

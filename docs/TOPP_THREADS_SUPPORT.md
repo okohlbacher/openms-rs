@@ -2,8 +2,11 @@
 
 Lane `tool-threads`. Rust: `src/cli/context.rs` (`ToolContext::thread_policy`,
 `ToolContext::in_thread_pool`, `ToolContext::THREAD_CEILING`,
-`ToolContext::WORKER_STACK_BYTES`) and the `Tool::run` of the five ported tools
-under `src/cli/tools/`. Test: `tests/topp_threads.rs`. Source: OpenMS4-cli
+`ToolContext::WORKER_STACK_BYTES`) and the `Tool::run` of the five wave-2 tools
+under `src/cli/tools/`, plus `PeakPickerHiRes`, which takes the policy through
+`ToolContext::thread_policy` and scopes its own pool to the picking call rather
+than wrapping its body (see "The picker is the sixth tool" below). Test:
+`tests/topp_threads.rs`. Source: OpenMS4-cli
 c19e494 `source/APPLICATIONS/TOPPBase.cpp` (sha256
 `326b96f85b4041febec49e18252d7be2ad0a5450abe5249adecc28ca315fdc05`) and
 `include/OpenMS/APPLICATIONS/TOPPBase.h`.
@@ -135,18 +138,26 @@ Native tests (`tests/topp_threads.rs`):
 - `serial_build_runs_the_body_on_the_calling_thread` (no `parallel`).
 - `body_errors_pass_through_the_pool`: exit codes and diagnostics of errors
   raised inside the body are unchanged.
-- `outputs_are_byte_identical_across_thread_counts`: the five tools under
-  `-test` at 1, 2, 8 and all workers.
+- `outputs_are_byte_identical_across_thread_counts`: the **six** tools of
+  `TOOLS` under `-test` at 1, 2, 8 and all workers. `PeakPickerHiRes` joined in
+  `3b943e4`, and it is the first tool for which this assertion is about a
+  parallel body rather than a serial one.
 - `outside_test_mode_only_the_provenance_records_the_thread_count`.
 - Linux, the real executables sampled through `/proc`:
   `every_executable_runs_its_body_on_the_requested_pool` (exactly `n`
   `openms-*` workers and `n + 1` tasks for `-threads 1`, `2` and `4`, with
-  byte-identical outputs), `zero_and_negative_counts_start_every_available_processor`,
+  byte-identical outputs) — with **one stated exception**: `PeakPickerHiRes`
+  starts `0` workers at `-threads 1`, by design, because its pool exists only
+  around the picking call and is not built for a single worker. That is why
+  `expected_workers` special-cases it and why the picker is sampled on a
+  profile input (`picking_input`), so the sampled region is one the tool
+  actually parallelises. Also
+  `zero_and_negative_counts_start_every_available_processor`,
   `thread_environment_variables_do_not_size_the_pool`,
   `ini_threads_value_sizes_the_pool`.
 - `#[ignore]`d, IBMI nodes only (`cargo test --release --test topp_threads --
   --ignored`): `hpc_benchmark_slices_are_thread_invariant` (the benchmark's
-  600- and 5000-spectrum UK222 slices, all five tools at 1, 2 and 16 workers)
+  600- and 5000-spectrum UK222 slices, all six tools at 1, 2 and 16 workers)
   and `hpc_full_size_inputs_are_thread_invariant` (PXD001819 50amol_R1, 1.2 GB,
   and UK222, 2.3 GB). Both check the pool size, and that exit status,
   diagnostics and outputs agree across counts. On the full-size inputs the
@@ -166,4 +177,41 @@ Rust release binaries against C++ on dax (384 logical processors, load about
 
 The `-threads 1` and `16` rows set `OMP_NUM_THREADS` to the same value; the
 `0` rows leave it unset. The pool costs about 3 ms at 16 workers and about
-50 ms at 384. The five tools are serial, so the extra workers stay idle.
+50 ms at 384. Those five tools are serial, so the extra workers stay idle — and
+they still are: the wave-4 benchmark sampled all eight executables on full-size
+data and found `BaselineFilter`, `DTAExtractor`, `MapNormalizer`, `MzMLSplitter`
+and `SpectraFilterWindowMower` at CPU utilisation 1.00 with a 33-thread pool
+alive at `-threads 32`, and `FileInfo` building no pool at all.
+
+## The picker is the sixth tool
+
+`PeakPickerHiRes` (`3b943e4`, wave 4) is the first tool whose pool does work.
+It uses the same `ToolContext::in_thread_pool`, but **around the picking call
+rather than around the whole body** (`src/cli/tools/peak_picker_hi_res.rs:249`),
+and it skips the pool entirely when the policy is one worker (`:246-248`). Two
+measured reasons:
+
+- wrapping the body runs the whole tool, including the gigabyte-scale read and
+  write, on a pool worker, which costs **0.68 s** on a 2.3 GB run through
+  glibc's per-thread arenas;
+- the picker has exactly one parallel region, and a grep of `src/format`,
+  `src/kernel`, `src/metadata` and the other CLI tools confirms none of them
+  contains `rayon`, so there is no stray global-pool `par_iter` for the body
+  wrapper to bound.
+
+A third reason is structural rather than measured: this tool overrides
+`run_io`, which is what `run_with` calls, so a wrapper placed in `Tool::run`
+would never execute for it. Inside the picking call the parallel work is
+distributed by `BatchWorkers` in `src/processing/peak_picking.rs`, which exists
+because `concept::parallel::map_collect` builds a `ThreadPoolBuilder`
+unconditionally with no ambient-pool check.
+
+The trade-off is a framework question, not a picker one, and it is carried
+forward in [the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-4-status):
+either `in_thread_pool` grows a documented one-worker fast path, or its doc
+records that a tool scoping its pool to its parallel region may skip it.
+
+The determinism contract is unchanged and is met: the picker's output is
+byte-identical at 1, 2, 4, 8 and 32 workers and equal to the serial result. On
+the 2.3 GB benchmark input it turns 25.367 s into 12.592 s (2.01x) where the
+C++ picker gains 1.06x; see [BENCHMARKS](BENCHMARKS.md) §3.5.

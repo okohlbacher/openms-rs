@@ -1479,9 +1479,153 @@
    "package": "benchmark lane",
    "role": "BUILD_MANIFEST of the optimised C++ reference build openms4-release-bc9cc12-c19e494-174b576 (gcc 14.4, -O3 -DNDEBUG, no -march) at /ceph/ibmi/abi/oliver/opt; the same file is installed beside the build. Every Release comparison of wave 3 and docs/BENCHMARKS.md is against this build",
    "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/make_fixtures.py",
+   "sha256": "bef54bb36c7fea405ad2567dea29842cfcf44115441d64392271873172b0c392",
+   "origin_key": "tests/data/topp_map_normalizer_provenance.json",
+   "package": "fix/map-normalizer",
+   "role": "generator for the two chromatogram-scale inputs; deterministic, no C++; fix/map-normalizer 2026-09-15/16",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/cpp_fixtures.sh",
+   "sha256": "6ac6f987f6f37d879fdbfa0c9c259d9413cfc30d2979efabfd7152d5fbb369d3",
+   "origin_key": "tests/data/topp_map_normalizer_provenance.json",
+   "package": "fix/map-normalizer",
+   "role": "driver: the pinned Release MapNormalizer on both inputs, with the FileInfo ranges that separate the spectrum maximum from the combined one; fix/map-normalizer 2026-09-15/16",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/cpp_fixtures.log",
+   "sha256": "94a76b98c39c775686ed8a8e373544080bfaefa1f250895eac2464de218052d6",
+   "origin_key": "tests/data/topp_map_normalizer_provenance.json",
+   "package": "fix/map-normalizer",
+   "role": "its output on dax, with the sha256 of the C++ binaries and of the four fixtures; fix/map-normalizer 2026-09-15/16",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/make_degenerate.py",
+   "sha256": "ecf3a2a3989c23c2bdcc979d88474834887a2be5353e616f5915d6e89d51468e",
+   "origin_key": "tests/data/topp_map_normalizer_provenance.json",
+   "package": "fix/map-normalizer",
+   "role": "generator for the four degenerate-intensity inputs; deterministic, no C++; fix/map-normalizer 2026-09-15/16",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/degenerate.sh",
+   "sha256": "2edb67500596aa9b51e539e42739d0f59d02c2001518cc197cf5b742df25a4f0",
+   "origin_key": "tests/data/topp_map_normalizer_provenance.json",
+   "package": "fix/map-normalizer",
+   "role": "driver: the pinned Release MapNormalizer on all four, with exit status, whether an output was written, the decoded intensity arrays and the FileInfo combined ranges; fix/map-normalizer 2026-09-15/16",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/degenerate.log",
+   "sha256": "1aca3102077e73a7fee5e7d7e5adac44fb9041af090fe5af8540934d9bd6263c",
+   "origin_key": "tests/data/topp_map_normalizer_provenance.json",
+   "package": "fix/map-normalizer",
+   "role": "its output on dax -- the executed evidence behind CPP-308: empty range exit 8 and no output, all-zero exit 0 with every MS1 intensity NaN, all-negative exit 0 with every sign flipped; fix/map-normalizer 2026-09-15/16",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/compare_mzml.py",
+   "sha256": "586312f03349e3534fa17c12f115498cdc67170f4ff65d50c0db11c0e45b14db",
+   "origin_key": "tests/data/topp_map_normalizer_provenance.json",
+   "package": "fix/map-normalizer",
+   "role": "element-by-element decoded comparison of two mzML files; counts every difference rather than stopping at the first; fix/map-normalizer 2026-09-15/16",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/full_run_dax.sh",
+   "sha256": "6b80282c9770839bfe42d44bff45cef71c75ef27ee25a66fc8b53c4d9acd0224",
+   "origin_key": "tests/data/topp_map_normalizer_provenance.json",
+   "package": "fix/map-normalizer",
+   "role": "driver: the C++ Release MapNormalizer and this port's release binary over the 1.2 GB benchmark input with one shared -write_ini INI, plus a control against the unnormalised input; fix/map-normalizer 2026-09-15/16",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/full_run_dax.log",
+   "sha256": "ebadf0c0e5084d4459b13f41e541fdbcf36d019461fb04770c970a38dfe183b5",
+   "origin_key": "tests/data/topp_map_normalizer_provenance.json",
+   "package": "fix/map-normalizer",
+   "role": "its output on dax: 88,478,237 intensity points and 88,434,492 m/z points, zero differences; the control finds exactly the 7,302 MS1 spectra the defect had changed; fix/map-normalizer 2026-09-15/16",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/full_run_dax_recheck.log",
+   "sha256": "7a5d43ad218ffa2e9f7c8aaf46563c9fc921f4c50c6695af799ad5644bdeb357",
+   "origin_key": "tests/data/topp_map_normalizer_provenance.json",
+   "package": "fix/map-normalizer",
+   "role": "the same driver re-run after the empty-range refusal was restored: identical port digest at 1 and 32 threads, so the restoration moved no value on real data; fix/map-normalizer 2026-09-15/16",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/manifest.json",
+   "sha256": "7f6adefb614200c1a4ff1d9d423a9956765104470c4b232f3a85aed7e0d3f281",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "C2-ORACLE-FFAP",
+   "role": "group manifest of the C2 FeatureFinderAlgorithmPicked stage oracle; records the full artifact list; cited by B6, B7 and the FFC wrapper",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/drivers/ffap_stages.cpp",
+   "sha256": "383be3268068fee5d939edd8f8086fc1aceb1be781fed2cc621c54528699f224",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "C2-ORACLE-FFAP",
+   "role": "the stage driver linked against the product SDK; cited by B6, B7 and the FFC wrapper",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/results/omp1/ffap_ffc1_symmetric.jsonl",
+   "sha256": "5f7a1dff32e97051497cf3e133244a8c198291db510b4b2bd8b2436a691a1167",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "C2-ORACLE-FFAP",
+   "role": "stage records for the symmetric FFC_1 run, OMP_NUM_THREADS=1; cited by B6, B7 and the FFC wrapper",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/results/omp1/ffap_classtest.jsonl",
+   "sha256": "9c2b9cb4f661bf61e60013229fe48a4d5be095d3b5ab524c432ad17965a7aa7a",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "C2-ORACLE-FFAP",
+   "role": "stage records for the class-test run, OMP_NUM_THREADS=1; cited by B6, B7 and the FFC wrapper",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/results/omp1/ffap_classtest_9247_tight_pattern.jsonl",
+   "sha256": "395c5f0bad0fea52bf8f34b867bcfd9bca3ba74f11d18cd977ae3a524ba95d34",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "C2-ORACLE-FFAP",
+   "role": "stage records for the tight-pattern class-test variant; cited by B6, B7 and the FFC wrapper",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/results/omp1/ffap_classtest_9247_tight_trace.jsonl",
+   "sha256": "34751b1ff49ac408c2770736f6ae5e22d7f4dbce70eb8d81a2ee55814b197cea",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "C2-ORACLE-FFAP",
+   "role": "stage records for the tight-trace class-test variant; cited by B6, B7 and the FFC wrapper",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/results/omp1/ffap_ffc1_user_seeds.jsonl",
+   "sha256": "76743517764dc1d1ba634cea3a8ef0a2b8180ce1ab480753b181ad1e27d01a41",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "C2-ORACLE-FFAP",
+   "role": "stage records for the FFC_1 user-seeds run; cited by B6, B7 and the FFC wrapper",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/results/omp1/ffap_ffc1_abundance_12C_90.jsonl",
+   "sha256": "0f3688588790690d482f0c9846d096970a519606e97d45a8550ee773cc77e80c",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "C2-ORACLE-FFAP",
+   "role": "stage records for the changed-abundance FFC_1 run; cited by B6, B7 and the FFC wrapper",
+   "label": "oracle-generated (tier 1 executed differential)"
   }
  ],
- "external_reference_note": "Executed C++ oracle artifacts of the early-TOPP bundle, registered at integration. They live outside this repository under ../oracle/, so no C++ enters it; each sha256 was recomputed from the file at registration and equals the hash in the group manifest named by origin_key, which records the oracle's full artifact list. Wave 1 (2026-09-14): A1-PTE-FAIMS (../oracle/pte-faims-helper), CLI-1 (../oracle/topp-cli-lifecycle) and A2-TEXTFMT (../oracle/file-info-text-format and ../oracle/text-format) were registered at the final wave-1 merge, after their fix rounds had changed those files. The A2 group manifest tests/data/file_info_text_format_provenance.json is indexed only through origin_key: its fixtures are constants embedded in tests/file_info_text_format.rs, not files, and its target_verification has no source_revisions or source_changes, so it lacks the current_sdk_reference_manifests shape that tools/check_core_sdk.py verifies. Wave 2 (2026-09-14): P1-PICKER-LIB, A4-FILEINFO-CORE, B8-IMSPLIT and B9-OVERLAP (fix round) have that shape and are also listed in current_sdk_reference_manifests. B3-LM, P2-MZML-LENIENCY and B6-FFAP-SEEDS are indexed only through origin_key, because their target_verification records verification commands or results rather than the revision, source_revisions and source_changes the checker reads; B6's group manifest also has no external_reference_note. CLI-2 updates two CLI-1 rows (ini_read_failures.sh and its manifest, now 15 cases) and adds its own 34-case manifest, driver and rerun manifest. C1 (../oracle/topp-early-bundle) and C2 (../oracle/featurefinder-picked), which A4, B3, B6, B8 and B9 cite, are registered at W4.4.",
+ "external_reference_note": "Executed C++ oracle artifacts of the early-TOPP bundle, registered at integration. They live outside this repository under ../oracle/, so no C++ enters it; each sha256 was recomputed from the file at registration and equals the hash in the group manifest named by origin_key, which records the oracle's full artifact list. Wave 1 (2026-09-14): A1-PTE-FAIMS (../oracle/pte-faims-helper), CLI-1 (../oracle/topp-cli-lifecycle) and A2-TEXTFMT (../oracle/file-info-text-format and ../oracle/text-format) were registered at the final wave-1 merge, after their fix rounds had changed those files. The A2 group manifest tests/data/file_info_text_format_provenance.json is indexed only through origin_key: its fixtures are constants embedded in tests/file_info_text_format.rs, not files, and its target_verification has no source_revisions or source_changes, so it lacks the current_sdk_reference_manifests shape that tools/check_core_sdk.py verifies. Wave 2 (2026-09-14): P1-PICKER-LIB, A4-FILEINFO-CORE, B8-IMSPLIT and B9-OVERLAP (fix round) have that shape and are also listed in current_sdk_reference_manifests. B3-LM, P2-MZML-LENIENCY and B6-FFAP-SEEDS are indexed only through origin_key, because their target_verification records verification commands or results rather than the revision, source_revisions and source_changes the checker reads; B6's group manifest also has no external_reference_note. CLI-2 updates two CLI-1 rows (ini_read_failures.sh and its manifest, now 15 cases) and adds its own 34-case manifest, driver and rerun manifest. C1 (../oracle/topp-early-bundle) and C2 (../oracle/featurefinder-picked), which A4, B3, B6, B8 and B9 cite, are registered at W4.4. Wave 4 (2026-09-16): fix/map-normalizer's ../oracle/map-normalizer-divergence is registered here for the first time -- ten artifacts, four of them executed drivers and their logs on dax, which are the evidence behind CPP-308 and behind the closed ~13x normalisation divergence. C2 (../oracle/featurefinder-picked) is registered in the same pass: the note above said it was registered at W4.4 and it was not, so the eight artifacts tests/data/feature_finder_picked_provenance.json cites are added now. Every sha256 in this key, the 107 carried forward and the 18 added, was recomputed from the file at this integration and equals the hash in the group manifest named by origin_key; 0 mismatched and 0 were missing. The other directories these wave-4 lanes cite (../oracle/picked-chromatogram, mzml-reader-scale, topp-peak-picker-scale, baseline-filter-edges, lm-eigen-path, gauss-trace-fitter including solver-gap, b7-ffap-features, tool-threads, mzml-writer-scale-parity and topp-early-bundle) were already registered in waves 1 to 3 and were re-verified unchanged rather than re-registered. The wave-4 performance lanes archived their own callgrind profiles, A/B logs and build recipes on Ceph under /ceph/ibmi/abi/oliver/bench/openms4/results/2026-09-15-* and node-local under /scratch; those are measurement evidence, not differential oracles, and are cited by path in the support documents rather than hashed here.",
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
  "cpp_reference_evidence": {

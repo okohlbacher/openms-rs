@@ -2,6 +2,71 @@
 
 ## Unreleased
 
+- Integrated the wave-4 performance and correctness work (2026-09-16): the
+  parallel peak picker, the rewritten mzML reader, the spline scratch buffers,
+  the removal of a dead validation loop, and five tool fixes, recorded in
+  `docs/VALIDATION.md` and measured in `docs/BENCHMARKS.md`.
+  - `PeakPickerHiRes` parallelises its spectrum loop behind the `parallel`
+    feature. `-threads` is wired through a pool scoped to the picking call
+    rather than to the tool body, each worker owns its spline fitter and
+    scratch, and the output is **byte-identical at every worker count** and to
+    the serial result. 1.66x at 32 workers in the lane's own measurement and
+    2.01x end to end on the benchmark input, where the C++ picker gains 1.06x;
+    peak RSS falls 886 MB. `tests/topp_threads.rs` now covers the picker as its
+    sixth tool, including that it starts no worker at `-threads 1`.
+  - mzML reader: rewritten for **-47.2 %** of the instructions its load path
+    executed — buffer reuse across records, `decode_slice` instead of
+    `decode_vec`'s zero fill, and a base64 accumulation that no longer pushes
+    one `char` at a time. No decoded value changes. The port's load of a 1.2 GB
+    mzML is now faster than the C++ reader's.
+  - `CubicSpline2dFitter`: the cubic spline takes caller-owned scratch instead
+    of allocating eight heap vectors per constructed spline. The recurrence is
+    unchanged term by term and in its original evaluation order, so the
+    coefficients are bit-identical by construction.
+  - mzML reader: the per-record `spectrum.validate()` is **removed as dead**,
+    not weakened. Every decoded float is already refused at decode time if it is
+    nonfinite, so both halves of that per-peak loop were unreachable over all
+    197,765,338 points of the benchmark input. The argument is written into the
+    rustdoc at the call site and pinned by a 36-probe, mutation-checked test.
+  - `MapNormalizer` normalised against the spectrum maximum where the source
+    uses the combined maximum including chromatograms — 13.24x on 7,302 of
+    87,492 intensity arrays of a 1.2 GB run. Fixed; all 87,492 now agree
+    bitwise. The empty-range refusal is restored and was executed against the
+    C++, which refuses the same input (`CPP-308`).
+  - `MzMLSplitter` and `SpectraFilterWindowMower` process full-size input. The
+    writer refused precursor references that do not resolve inside a split part
+    — which the source emits and mzML 1.1 forbids (`CPP-311`) — and the window
+    mower applied its 1,000,000-point cap to the whole map instead of per
+    spectrum (88.4 M peaks, 88x over).
+  - featureXML: read ceilings are size-derived
+    (`src/format/featurexml_scaling.rs`) instead of a fixed ~12.5 MB formed by
+    three limits combined with `min()`, and features are streamed rather than
+    retained. The 59.6 MiB and 2.06 GiB benchmark maps load and round-trip, at
+    150 MiB and 5.39 GiB peak RSS, where the port previously could not read the
+    featureXML its own `FeatureFinderCentroided` writes.
+  - `DTAExtractor`/`DTAFile`: the writer reproduces the source's two 15-digit
+    numeric rules — 15 fraction digits for the peak m/z through
+    `precisionWrapper`, 15 significant digits for the precursor mass and the
+    intensity through the stream (`CPP-310`) — so the 36,443-file,
+    836,505,793-byte extraction of a 1.2 GB run is byte-identical to the C++
+    tool's. It previously wrote 21.2 % less. `FORMAT/DTAFile.h` enters the
+    ledger as `partial`, with the load/store proton-mass asymmetry named
+    (`CPP-309`).
+  - `docs/BENCHMARKS.md` is replaced by the wave-4 run: all eight tools on
+    full-size instrument data at 1 and 32 threads, both tables, sampled thread
+    behaviour, per-tool equivalence judged separately for data and metadata, and
+    the comparison against wave 3. The reviewer's corrections are carried, not
+    the runner's prose: the output-byte deficit is 92-93 % XML indentation the
+    port does not write; the C++ 32-thread cells' surplus threads are an idle
+    library pool, not a doubled compute budget; the SHA-1 cost shares are an
+    arithmetic projection, not a measured ablation; and the SpectraFilterWindowMower
+    ratios are quoted as ranges.
+  - Six new upstream findings, each checked against the pinned source first:
+    `CPP-308` (MapNormalizer's unguarded division), `CPP-309` and `CPP-310`
+    (the two `DTAFile` defects), `CPP-311` (MzMLSplitter's unresolvable
+    `spectrumRef`), `CPP-312` (FeatureFinderAlgorithmPicked dividing a
+    zero-width RT range) and `CPP-313` (FeatureXMLHandler's 1e5 reservation cap).
+
 - Integrated early TOPP bundle wave 3 (2026-09-15): the trace fitters, the
   wave-3a tools, the FeatureFinderAlgorithmPicked feature stage, the Boost.Regex
   facade and seven fix lanes, recorded in `docs/VALIDATION.md`.

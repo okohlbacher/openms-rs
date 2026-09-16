@@ -1,5 +1,355 @@
 # Validation of the ongoing Rust port
 
+## Wave-4 performance and correctness integration (2026-09-16)
+
+`main` (`9a392fe`) carries, on top of wave 3's `fabd4b9`, 26 commits from eight
+lanes: three performance lanes (`perf/peak-picker`, `perf/mzml-reader`,
+`perf/spline-scratch`), one that removed dead work (`perf/validation`) and four
+correctness fixes (`fix/map-normalizer`, `fix/tool-limits`,
+`fix/featurexml-scale`, `fix/dta-precision`), plus the wave-3 leftovers
+`fix/ffc-integration` and `fix/picked-chromatogram`. This shared-file pass on
+`integrate/wave4-shared` records them in CI, the ledger, the provenance files,
+the C++ issue log and the documentation, and replaces
+[BENCHMARKS](BENCHMARKS.md) with the wave-4 run. See
+[the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-4-status).
+
+Tiers as before: tier 1 is an executed differential against a C++ oracle, tier 3
+upstream class-test literals, tier 4 native derivation. The Release build
+`openms4-release-bc9cc12-c19e494-174b576` (core `bc9cc12`, cli `c19e494`, topp
+`174b576`) is the executed reference for everything on real data, and its
+identity is in [BENCHMARKS](BENCHMARKS.md) §1. Every count below is from the
+package's approving verifier, rerun on its own detached checkout through the
+gate script on a Linux x86_64 IBMI node.
+
+| Package | Merge | Evidence tier | Gates rerun by the approving verifier |
+|---|---|---|---|
+| `perf/peak-picker` (3 review rounds) | `2491afc` | Tier 4 with a bit-identity gate: the picking loop is parallel behind the `parallel` feature, and the output is **byte-identical at 1, 2, 4, 8 and 32 workers** and to the serial result. 1.66x at 32 workers on the lane's own 2.3 GB measurement, peak RSS −886 MB. The `-threads` policy reaches the picker through `ToolContext`, and `tests/topp_threads.rs` covers it as its sixth tool, on a profile input, holding it to **no** worker at `-threads 1` | on dax: `--all-features --all-targets`, `--no-default-features --features mzml,paramxml` picker targets, clippy `--all-targets`, rustdoc, fmt, `+1.85.0 check --all-targets` — all exit 0; three release builds of the binary; the pinned digest `bb13eecf…` reproduced |
+| `perf/mzml-reader` | `821e783` | Tier 4, instruction-counted: buffer reuse across records, `decode_slice` in place of `decode_vec`'s zero fill, and a base64 accumulation that no longer pushes one `char` at a time, for **−47.2 %** of the instructions the load path executed. No decoded value changes; the pinned picker digest reproduces | callgrind on a fixed slice with a layout control; the full 2.3 GB input through three binaries; the lane's whole gate set on the branch tip |
+| `perf/spline-scratch` | `e766311` | Tier 4 with a bit-identity argument: `CubicSpline2dFitter` replaces the eight heap vectors `with_max_points` allocated per spline. The recurrence is unchanged term by term and in its original evaluation order, so the coefficients are bit-identical **by construction**; `alloc::alloc` was 271,144,136 of the 590,918,793 instructions the construction cost. Measured wired into the picker: 33.19 s → 32.01 s at one thread, pick phase 17.24 s → 15.11 s, output sha256 unchanged | 11 interleaved A/B pairs on a quiet node; the branch's own gate set; the picker rebuilt with the fitter wired in and byte-identical at 1, 8 and 32 threads |
+| `perf/validation` (3 rounds) | `4389b96` | Tier 4 with a mutation-checked premise: the reader's per-record `spectrum.validate()` is **removed as dead**, both the m/z and the intensity half, over all 197,765,338 points of the benchmark input, because the decoder already refuses a nonfinite value before a `Peak1D` or `ChromatogramPeak` is constructed. −44,121,898 instructions (15.0 Ir per peak); the branch as a whole −60,947,537 (−1.605 %) against its merge base, layout control 0 | on dax: fmt, `nextest --all-features --test kernel --test mzml --test peak_picking` 58/58 on 1.96 and 1.85, clippy `--all-targets`, rustdoc, `+1.85.0 check --all-targets` — all exit 0; 27 callgrind runs over 9 arms, reps agreeing to the instruction; the bit-identity gate reproduced five ways including from the merge base |
+| `fix/map-normalizer` (2 rounds) | `c2ecade` | Tier 1 on 1.2 GB of real data: the tool normalised against the spectrum maximum where the source uses the combined maximum including chromatograms — 13.24x on 7,302 of 87,492 intensity arrays. All 87,492 now agree **bitwise** with the C++ Release tool's. The empty-range refusal is restored and was **executed** against the C++ rather than reasoned (the earlier reasoning was refuted by the execution) | on dax: the full 1.2 GB run against the C++ with one shared INI, 88,478,237 intensity and 88,434,492 m/z points, zero differences, port output identical at 1 and 32 threads; four degenerate inputs executed on the C++; the lane's gate set on both toolchains |
+| `fix/tool-limits` | `5856c63` | Tier 1 on 1.2 GB of real data: `MzMLSplitter` and `SpectraFilterWindowMower` process full-size input for the first time. The writer refused precursor references that do not resolve inside a split part (`CPP-311`); the window mower applied its 1,000,000-point cap to the whole map instead of per spectrum. All four split parts and all 87,492 arrays bitwise equal to the C++'s | `real_data_differential` recorded in both tools' provenance manifests; the lane's gate set; `src/processing/window_mower.rs` documented at 100 % |
+| `fix/featurexml-scale` | `23b6519` | Tier 1 with executed C++ at scale: the fixed ~12.5 MB decode ceiling (three limits combined with `min()`) is replaced by size-derived ceilings in the new `src/format/featurexml_scaling.rs`, and features are streamed. Both benchmark maps load and round-trip (59.6 MiB / 42,789 features at 150 MiB peak, 2.06 GiB at 5.39 GiB peak); the C++ Release `FileInfo` was executed on both and its report is byte-identical to the port's apart from the C++ timing footer | the lane's gate set on both toolchains; the shared `src/format/identification_xml.rs` changes proved additive by running idXML, consensusXML, mzIdentML and map_xml targets unchanged |
+| `fix/dta-precision` | `db00dbf` | Tier 1, byte-equal on 836 MB: the writer reproduces the source's two 15-digit numeric rules, so `DTAExtractor` over the 1.2 GB Velos run writes 36,443 files and exactly 836,505,793 bytes, byte-equal to the C++ Release tool's. Before the fix it wrote 658,901,890 bytes (−21.2 %) | two full 836 MB output trees compared file by file on ibminode06; five interleaved repetitions per side; the lane's gate set on dax |
+| `fix/ffc-integration`, `fix/picked-chromatogram` | carried from wave 3 | recorded in the wave-3 checkpoint below; the wave-4 benchmark confirms both at full size | — |
+
+**Lead's results for the merged tree** (dax, detached): `test --locked
+--all-features --all-targets` **5,189 passed, 0 failed, 22 ignored** on stable
+and on `+1.85.0`; `+1.85.0 --no-default-features --all-targets` **3,500
+passed, 3 ignored**; **70 doctests**; `clippy --all-targets -D warnings` and
+rustdoc `-D warnings` clean; all six local Python checkers (`check_core_sdk`,
+`check_doc_coverage`, `check_module_cycles`, `core_sdk_coverage`,
+`test_core_sdk`, `test_core_sdk_coverage`) pass. **All four figures were
+reproduced on kim by this pass** on its own tree — 5,189/0/22, 3,500/0/3 and
+67 + 3 = 70 doctests, to the test — so the checkpoint quotes a measurement, not
+a hand-over.
+
+### Instrument-scale comparison
+
+[BENCHMARKS](BENCHMARKS.md) is rewritten around the wave-4 run of 2026-09-16:
+**all eight ported TOPP tools on full-size instrument data at 1 and 32
+threads**, on a quiet node, with 0 of 192 repetitions load-flagged. The wave-3
+single-pair picker measurement it used to carry is superseded. In one line: at
+one thread the port is faster on `SpectraFilterWindowMower` (0.73–0.77) and
+`FileInfo`-on-mzML (0.803), level on `PeakPickerHiRes` (1.010, inside the ~3 %
+band), and 1.10x–1.58x slower on the other six; at 32 threads it is 1.88x faster
+on `PeakPickerHiRes` (0.531) and near-level on `FeatureFinderCentroided` (1.060)
+while five tools ignore the flag; and it agrees with the C++ Release build on
+the **data** of every tool — three byte-equal outputs and five mzML writers with
+every decoded array bitwise identical.
+
+Three things about that document are worth repeating here, because the
+benchmark runner's own summary got them wrong and the adversarial review
+corrected them:
+
+- the 0.4–5.7 % output-byte deficit is **92–93 % XML indentation the port does
+  not write** (the port's files contain zero tab characters), not metadata;
+  `dataProcessingRef` appears **once per C++ file**, not once per spectrum;
+- the C++ "32 threads" cells run 64 live threads, but the surplus is an **idle
+  OpenBLAS pool sized by the harness's own `OMP_NUM_THREADS`** — with the
+  variable unset the same binary peaks at 129 threads at `-threads 1` — so it is
+  not a doubled compute budget and must not be framed as one;
+- the SHA-1 `fileChecksum` cost shares are an **arithmetic projection** from a
+  measured 793 MB/s throughput divided into the output size. No no-hash build
+  was ever timed, so they are not a measured ablation.
+
+The full-size `FeatureFinderCentroided` pilot is also stated asymmetrically on
+purpose: the run's own log records the **C++** side killed at a 600 s cap and
+holds no wall or exit record for the Rust side; the Rust result rests on the
+reviewer's independent re-run at a 700 s cap, which was killed at the cap with
+no output.
+
+### The 22 ignored tests
+
+All 22 on Linux with `--all-features` (23 `#[ignore]` attributes exist; the
+macOS-only `macos_arm64_sdk_gap_report` is compiled out there), which matches
+the lead's 22. **Exactly one is new in this window**, marked **NEW** below; the
+other 21 are carried unchanged from wave 3 and their owners are unchanged.
+
+| Test | Reason | Documented gap or external dependency | Owner |
+|---|---|---|---|
+| `featurexml.rs::hpc_scale_benchmark_featurexml_files_load_and_round_trip` **NEW** | reads the 59.6 MiB and 2.06 GiB benchmark featureXML files by absolute path | external dependency (`/ceph` staged inputs); the behaviour it exercises is documented in [FEATUREXML_SCALE_SUPPORT](FEATUREXML_SCALE_SUPPORT.md) | `fix/featurexml-scale` |
+| `fuzzy_string_comparator.rs::verbose_3_log_bytes_are_bounded` | fills the 256 MiB log buffer | resource cost, not a gap; the bound it checks is asserted | C3-FUZZY |
+| `lm_budget_differential.rs::levenberg_marquardt_crate_candidate_gate_report` | the gate report of the rejected crate candidate; asserts nothing | [THIRD_PARTY_CRATE_DECISIONS](THIRD_PARTY_CRATE_DECISIONS.md), Levenberg-Marquardt row | B3-LM |
+| `gauss_trace_fitter.rs::solver_gap_probe_reports_the_known_gap` | a macOS-generated oracle against a solver that now matches Linux x86_64 Release Eigen; prints a report, asserts no Rust value | [TRACE_FITTER_SUPPORT](TRACE_FITTER_SUPPORT.md) "Known gap"; [DISTRIBUTION_FITTERS_SUPPORT](DISTRIBUTION_FITTERS_SUPPORT.md) §1 | B4-GAUSS / B3b |
+| `lm_eigen_path_differential.rs::macos_arm64_sdk_gap_report` (macOS arm64 only, **not** in the 22) | measures the cost of matching Linux x86_64 Release on macOS arm64; asserts nothing | the same platform decision | B3b |
+| `topp_feature_finder_centroided.rs::a_zero_width_retention_time_range_diverges_from_the_cpp_release_build` | documented divergence: the port refuses a zero-width RT range that the Release build carries through to an empty feature map | `CPP-274` and now `CPP-312`, which records the C++ side as executed; [TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT](TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md) native difference 2 | B10 |
+| `file_info.rs::c1_file_info_9_mzml_mps`, `::a4_file_info_9_default_flags` | the strict mzML reader refuses `FileInfo_9_input.mzML` (a repeated spectrum userParam `name`, `dataProcessingRef` on the m/z and intensity arrays, a 64-bit float charge array) | [FILE_INFO_SUPPORT](FILE_INFO_SUPPORT.md) "Known reader gaps", decision D10 | mzML reader owner |
+| `file_info.rs::a4_indexed_file_info_12_all_flags` | a 64-bit float `charge array` in `FileInfo_12_input.mzML` | the same | mzML reader owner |
+| `file_info.rs::c1_empty_mzml_mps` | the dangling `defaultDataProcessingRef` of `empty.mzML` | D10; the option exists and A5's tool passes it, but `file_info::Options` still defaults strict | A6 |
+| `file_info.rs::a4_mzml_file_1_all_flags` | the selected-ion drift time is not copied onto the MS2 spectrum | A3 request 5; the lead decided on 2026-09-15 to follow the executed source, lane still not opened | the lead |
+| `mzml_reader_scale.rs` × 6 (`hpc_*`) | read `/ceph/ibmi/abi/oliver/bench/openms4/inputs` on the IBMI nodes | external dependency (multi-GB staged inputs) | `fix/mzml-reader-scale` |
+| `mzml_writer_scale.rs::hpc_benchmark_centroid_uk222_picked_stores_through_the_tool_path`, `::hpc_benchmark_profile_uk222_stores_through_the_tool_path` | read the 547 MB and 2.3 GB benchmark inputs from `/ceph` | external dependency | `fix/mzml-writer-scale-parity` |
+| `topp_baseline_filter_edges.rs::uk222_first600_matches_the_release_tool`, `::uk222_full_matches_the_release_tool` | read `/ceph/ibmi/abi/oliver` on the IBMI nodes; the second needs about 25 GB of memory | external dependency; the C++ side is a lane-private oracle directory | `fix/baseline-filter-last-point` |
+| `topp_threads.rs::hpc_benchmark_slices_are_thread_invariant`, `::hpc_full_size_inputs_are_thread_invariant` (Linux + `parallel` only) | read the staged benchmark inputs under `/ceph` | external dependency | `fix/tool-threads` |
+
+Every reason names a documented gap or an external dependency, and no ignore
+hides an unexplained failure. Counted on the 22 Linux rows: **three reports**
+meant to be read with `--ignored --nocapture` (one of them,
+`verbose_3_log_bytes_are_bounded`, does assert its bound and is listed only
+because it is ignored for its 256 MiB cost); **thirteen** need the IBMI `/ceph`
+share (`mzml_reader_scale` × 6, `mzml_writer_scale` × 2,
+`topp_baseline_filter_edges` × 2, `topp_threads` × 2 and the new `featurexml`
+row); **five** name a reader gap (the `file_info` rows) and **one** a decided
+divergence. Three plus thirteen plus five plus one is the 22 that
+`--all-features --all-targets -- --ignored --list` prints. The wave-2 tripwire
+`reader_gaps_behind_the_ignored_cases_are_still_present` still fails when a
+reader gap closes.
+
+The count moved 21 → 22 because of the one new row and nothing else: no ignore
+was added to hide a failure, and none was removed. `fix/featurexml-scale` was
+the only lane in this window that added a test needing an external input.
+
+### CI
+
+No lane in this window added a test **binary**, so no target was missing from
+the feature-sliced lines. The audit that matters — *is any test binary in
+`tests/` unrun?* — was redone from the tree rather than from the previous
+answer: 325 test binaries exist, all 325 are built and run by `cargo test
+--locked --all-features --all-targets`, which is the first step of both the
+`test` and the `minimum-rust` job, and 169 of them are additionally named on a
+reduced-feature line. Nothing is unrun.
+
+The audit did turn up three reduced-feature gaps that this window's work makes
+worth closing, and four lines were changed or added:
+
+| Line | Job | Why |
+|---|---|---|
+| `--no-default-features --features mzml … --test mzml …` (added `--test mzml`) | minimum-rust | `tests/mzml.rs` is gated `#![cfg(feature = "mzml")]` and was named on no reduced-feature line, so the rewritten reader and the removed validation loop were exercised only in the `--all-features` build |
+| `--no-default-features --test kernel --test spline_math --test peak_picking --test window_mower` (new) | minimum-rust | the four library targets this window rewrote. They are not feature-gated, so the `test` job's bare `--no-default-features` line covers them on stable; the `minimum-rust` job has no such bare line, and covered them only through `--all-features` |
+| `--no-default-features --features "mzml paramxml parallel" --test topp_threads --test topp_peak_picker_hi_res --test peak_picking_experiment` (new) | minimum-rust | the parallel picker is behind `#[cfg(feature = "parallel")]`, and `--all-features` was the **only** build that compiled it. The existing `mzml paramxml` line exercises the `not(parallel)` arm, so the two lines together now cover both |
+| the same parallel line | test | the same slice on stable |
+
+Each new or changed line was run on `+1.85.0` on kim; the results are in the
+gate table below.
+
+### The measurement hazard this window documented
+
+One finding from `perf/validation` outlives its lane and applies to **every
+future comparison of two commits of this port**, so it is recorded here and in
+[EARLY_TOPP_WORK_PACKAGES](EARLY_TOPP_WORK_PACKAGES.md) rather than left in a
+branch report.
+
+`Record::finish` in `src/format/mzml.rs` has exactly **two code-generation
+states** on the PeakPickerHiRes workload — 88,619,093 and 68,006,957
+instructions of self cost, a quantum of **20,612,136** — and it flips between
+them on source perturbations that have nothing to do with it. The two `main`
+commits `e766311` and `8889ece` sit in different states, and the *only* source
+file that differs between them is `src/cli/tools/map_normalizer.rs`, which the
+picker never calls. `MSSpectrum::validate`'s self cost is identical in both, so
+this is not an inlining transfer between those two symbols.
+
+Three consequences, all of which cost this lane a measurement cycle:
+
+1. **A per-function instruction diff is not attribution.** The same lane's
+   `check_sorted` fusion showed −20.6 M in `Record::finish` and −5.3 M in
+   `prepare_spectrum`, neither of which calls it. Only an ablation built on each
+   arm attributes a saving to the pass it came from.
+2. **Every arm must be rebuilt in the same batch.** Reusing a binary built in an
+   earlier session moved a headline by 1.08 % — the reviewer rebuilt one arm
+   from `git archive` and got a figure 261,553 instructions away from the lane's.
+3. **A layout control is mandatory, and wall clock resolves nothing small
+   here.** A control binary with two unrelated functions swapped in source
+   order executes the *identical* instruction count, yet on this workload a
+   plain rebuild of an identical tree is worth a couple of tenths of a second
+   either way, and two `main` commits sit 0.100 s apart in the **opposite**
+   direction to their instruction counts. Nothing under about 1 s is resolvable
+   by wall clock on a loaded node, and about 0.2 s on a quiet one.
+
+### Integration gates
+
+All on `integrate/wave4-shared`, logs under the pass's scratch directory. Local
+gates ran on the workstation (macOS arm64); every cargo gate ran on **kim**
+through the gate script, on a detached node-local checkout of this branch.
+
+| Gate | Result |
+|---|---|
+| `cargo fmt --all -- --check` (local) | exit 0 |
+| every `tools/*.py` checker (local): `check_core_sdk`, `check_doc_coverage`, `check_module_cycles`, `check_schema_feature_graph`, `core_sdk_coverage`, `test_core_sdk`, `test_core_sdk_coverage`, and the ten `--check` generators (`generate_modifications`, `generate_enzymes`, `generate_ribonucleotides`, `generate_rnases`, `generate_monosaccharides`, `generate_controlled_vocabulary_reference`, `generate_cv_mapping_reference`, `generate_metabo_isotope_models`, `semantic_validator/projection.py`, `probes/ims_witness_source_oracle.py`) | **17 of 17 exit 0** |
+| `check_core_sdk.py --source .reference/openms4-core-bc9cc12` (local) | exit 0; **2,092** distinct current source/registration/reference files verified at `bc9cc12` |
+| YAML parse of `.github/workflows/rust.yml` (local) | parses; six jobs |
+| `json.load` of every changed JSON (local) | 4 of 4 load: `SOURCE_PROVENANCE.json`, `docs/core-sdk-reviewed-apis.json`, `docs/core-sdk-coverage.json`, `docs/doc-coverage.json` |
+| kim: `+1.85.0 check --locked --all-features --all-targets` | exit 0 |
+| kim: `+1.85.0 test --locked --no-default-features --features mzml --test mzml …` (the changed mzML line, 12 targets) | exit 0: **324 passed, 0 failed, 0 ignored**; `tests/mzml.rs` runs for the first time on a reduced-feature line |
+| kim: `+1.85.0 test --locked --no-default-features --test kernel --test spline_math --test peak_picking --test window_mower` (new) | exit 0: 24, 16, 15 and 11 = **66 passed, 0 failed** |
+| kim: `+1.85.0 test --locked --no-default-features --features mzml,paramxml,parallel --test topp_threads --test topp_peak_picker_hi_res --test peak_picking_experiment` (new) | exit 0: 24, 20 and 11 = **55 passed, 0 failed, 2 ignored** (the two Linux-plus-`parallel` HPC thread tests, which this line is the first reduced-feature build to compile) |
+| kim: `clippy --locked --all-features --all-targets -- -D warnings` | exit 0 |
+| kim: `doc --locked --all-features --no-deps`, `RUSTDOCFLAGS=-D warnings` | exit 0 |
+| kim: `test --locked --all-features --all-targets` | exit 0: **5,189 passed, 0 failed, 22 ignored** over 352 targets |
+| kim: `+1.85.0 test --locked --no-default-features --all-targets` | exit 0: **3,500 passed, 0 failed, 3 ignored** |
+| kim: `test --locked --all-features --doc` | exit 0: **67 + 3 = 70 doctests** |
+| `check_doc_coverage.py --write` | floor **4,362/5,751 = 75.8 % to 4,400/5,770 = 76.3 %**; six modules move, three of them to 100 %: `src/format/featurexml.rs` 3/19 to 20/20, `src/format/featurexml_scaling.rs` new at 10/10, `src/format/identification_xml.rs` 0/2 to 2/2, plus `src/processing/peak_picking.rs` 23 to 27 items, `src/processing/spline/cubic.rs` 10 to 14 and `src/processing/window_mower.rs` 5/6 to 6/6 |
+| `check_module_cycles.py`, then `--write` | 64 cross-module edges, 13 mutually-dependent pairs, exit 0 — and `--write` produces **no diff**. The `cli -> analysis` edge that three lanes asked the integrator to record was already recorded in the wave-3 pass, so there is **no new acyclic edge in this window** and none was invented to look like progress |
+
+One gate failed on its first attempt and the failure was in the invocation, not
+the tree: the gate script interpolates its arguments unquoted, so
+`--features "mzml paramxml parallel"` reached cargo as three words. Re-run as
+`--features mzml,paramxml,parallel` it passes. The CI line keeps the quoted
+form, which is correct inside a YAML `run:` step.
+
+### Shared records changed by this pass
+
+- **Ledger** (`docs/core-sdk-reviewed-apis.json`, then
+  `core_sdk_coverage.py --write`): complete 60, evidence_requires_review 165,
+  native_equivalent 90, **partial 61 to 62**, **unmapped 410 to 409**, over 786
+  headers. The single status change is `FORMAT/DTAFile.h`, which enters at
+  `partial` because `fix/dta-precision` made the port's writer the source's and
+  produced byte-equal output over 836 MB, so there is now evidence to review; it
+  is **not** `complete` (no claim about the filename overloads, the protected
+  `default_ms_level_`, or whole-header completion). Eight further rows change
+  scope without changing status, each for a stated reason:
+  - `FORMAT/MzMLFile.h`: the reader rewrite (−47.2 % of the load path's
+    instructions, no decoded value changed), the removal of the dead per-record
+    validation with its written argument and mutation-checked test, the
+    code-generation caveat, and the measured indentation fact behind the
+    output-byte deficit.
+  - `PROCESSING/CENTROIDING/PeakPickerHiRes.h`: the parallel entry points, the
+    determinism evidence at five worker counts, and the wave-4 numbers. The
+    wave-3 figures this row carried (38.7 s, 4,309 MiB) were a single
+    unreplicated pair on a loaded build node and are now explicitly superseded.
+    The `PARTIAL` clause gains the two scans that remain.
+  - `MATH/MISC/CubicSpline2d.h`: `CubicSpline2dFitter`, marked as a **native
+    addition**, not a port of a C++ member.
+  - `KERNEL/MSSpectrum.h` and `KERNEL/MSChromatogram.h`: the wording is chosen
+    so nobody reads the wave-4 change as a weakened `validate()`. No check was
+    removed from `validate()`; the reader's dead **call** to it was.
+  - `KERNEL/MSExperiment.h`: the spectra-only `ranges` against the source's
+    combined `getMaxIntensity`, and the open `SummaryLimits::default().max_work`
+    ceiling that refuses a file the port's own reader reads.
+  - `FORMAT/FeatureXMLFile.h`: the size-derived ceilings, the executed C++
+    `FileInfo` at both benchmark sizes, and the additive
+    `identification_xml.rs` changes the other dialects share.
+  - `APPLICATIONS/TOPPBase.h` (outside the registered union): the four tools
+    that moved to executed full-size evidence, the picker as the sixth
+    `-threads` tool, and four carried-open framework questions.
+
+  **Validated TOPP workflows stay 8 of 124** — every ported tool already
+  qualified in wave 3; what changed is the evidence behind four of them, not
+  the count.
+- **Provenance.** `SOURCE_PROVENANCE.json` registers **18 new oracle
+  artifacts** across two directories: `map-normalizer-divergence` (ten, new in
+  this window, four of them executed drivers and their logs — the evidence
+  behind `CPP-308`) and `featurefinder-picked` (eight — C2, which the note in
+  that key claimed was registered at W4.4 and was not). Every sha256 in the key,
+  the **107 carried forward and the 18 added**, was recomputed from the file at
+  this integration: **0 mismatched, 0 missing**. The other directories these
+  lanes cite (`picked-chromatogram`, `mzml-reader-scale`,
+  `topp-peak-picker-scale`, `baseline-filter-edges`, `lm-eigen-path`,
+  `gauss-trace-fitter` including `solver-gap`, `b7-ffap-features`,
+  `tool-threads`, `mzml-writer-scale-parity`, `topp-early-bundle`) were already
+  registered and were re-verified unchanged rather than re-registered. No new
+  in-repo manifest was produced: the six `tests/data/*_provenance.json` files
+  this window changed were already listed. `tools/check_core_sdk.py` passes
+  plain and with `--source .reference/openms4-core-bc9cc12`.
+- **C++ issues.** `CPP-308` to `CPP-313`, each checked against the pinned source
+  first (see below).
+- **Crate register.** No change. No lane in this window proposed a dependency,
+  and two that could have are recorded as *not* taken: a SIMD base64 decoder
+  (measured at 2.03x the current decoder on the hot path, worth about −0.9 s on
+  a 2.3 GB input) and any allocator change. The `mimalloc` measurement an
+  earlier profiling lane reported (−1.18 s) is **withdrawn as not reproducible**
+  — the library it `LD_PRELOAD`ed defines none of `malloc`/`free`/`calloc`/
+  `realloc`/`posix_memalign`, so it initialised and intercepted nothing. Any
+  future `mimalloc` decision needs a fresh measurement with an override build or
+  a real `#[global_allocator]`.
+- **Two stale integrator-owned documents, fixed here because the picker lane
+  asked twice and neither pass acted.**
+  [TOPP_THREADS_SUPPORT](TOPP_THREADS_SUPPORT.md) still said
+  `outputs_are_byte_identical_across_thread_counts` covers "the five tools"
+  (six since `3b943e4`) and stated the
+  `every_executable_runs_its_body_on_the_requested_pool` contract without the
+  picker's one exception; it now names the sixth tool, the `0`-workers-at-one
+  exception and why the picker scopes its pool to the picking call.
+  [TOPP_CLI_SUPPORT](TOPP_CLI_SUPPORT.md) still said the three wave-3a tools
+  wire no pool, which has been false for `PeakPickerHiRes` since `3b943e4`.
+  Both were verified against the code rather than against the lane report: the
+  picker **does** call `ToolContext::in_thread_pool`, at
+  `src/cli/tools/peak_picker_hi_res.rs:249`, around the picking call and not
+  around the body, and skips it entirely at one worker — the lane's own
+  shorthand ("does not use `in_thread_pool`") would have been wrong to copy.
+- **Module graph and doc coverage.** Recorded in the gate table above: no new
+  acyclic edge, and the doc-coverage floor ratchets from 75.8 % to 76.3 %.
+- **Rewritten document.** [BENCHMARKS](BENCHMARKS.md).
+
+### C++ issue candidates: what was logged and what was not
+
+Logged `CPP-308` to `CPP-313`, each read in the pinned source before it was
+written:
+
+- `CPP-308` MapNormalizer's unguarded division (`src/MapNormalizer.cpp:93-103`
+  of the pinned TOPP tree; the text was read in the two local TOPP checkouts
+  `d0234cc` and `6f8eb94`, which agree line for line, and the three behaviours
+  were **executed** on the pinned Release binary). Written from the lane's
+  *amended* wording, not its first report: the entry deliberately does **not**
+  extend to the empty-range case, where the C++ is correct and the port now
+  matches it.
+- `CPP-309` the `DTAFile` proton-mass asymmetry (`DTAFile.h:120` against
+  `:204`). Marked **source-reviewed**, not executed: the arithmetic is verified
+  against the cited lines, but a C++-only store-then-load round trip at charge
+  > 1 was not run as a separate reproduction.
+- `CPP-310` `DTAFile::store`'s two 15-digit rules. Executed, and the whole
+  formatting chain was re-derived in the pinned source rather than taken from
+  the report: `DTAFile.h:184` sets `os.precision(writtenDigits<double>())` = 15,
+  `DPosition.h:412-420` routes the m/z through `precisionWrapper` to
+  `NumericFormatting::appendNumeric(..., chars_format::fixed, 15)` — 15 digits
+  *after the point* — while the `float` intensity takes the stream's default
+  field at 15 *significant* digits.
+- `CPP-311` MzMLSplitter's unresolvable `precursor/@spectrumRef`. Executed; the
+  disabled flag that would have prevented it is at `MzMLSplitter.cpp:67-68`.
+- `CPP-312` FeatureFinderAlgorithmPicked dividing a zero-width RT range
+  (`FeatureFinderAlgorithmPicked.cpp:244-245`, consequence at `:1837-1838`).
+  Executed on both builds; the Release behaviour — a silent empty feature map
+  with exit 0 — is the reference, never the Debug precondition.
+- `CPP-313` `FeatureXMLHandler.cpp:318`'s `min(Size(1e5), count)` reservation
+  and the comment whose premise current data exceeds by an order of magnitude.
+
+**Not logged, with the reason:**
+
+- *The indexed-mzML `fileChecksum` placeholder.* Three separate lanes proposed
+  it. It is already `CPP-049`, confirmed again here in
+  `MzMLHandlerHelper.cpp:127-132`; `CPP-305` covers the `indexListOffset`
+  beside it. No new entry.
+- *The 32-bit time-array narrowing and the 15-significant-digit XML writer.*
+  Already `CPP-306` and `CPP-307`, logged in the wave-3 pass.
+- *The stale `TOPP_DTAExtractor_{1,2,3}_output.dta` reference files*, which the
+  DTA lane reported as saying `120 100` where the pinned tool writes
+  `120.0 100`. **Could not be checked against the pinned source**: the upstream
+  TOPP test-data tree is not present in any local checkout, so only the tool's
+  own output was available (which does write `120.0 100`). The candidate stays
+  in the lane report until the test data can be read.
+- *MapNormalizer's combined-maximum semantics.* Explicitly not a defect. The
+  lane says so and this pass agrees: `updateRanges()` including chromatograms is
+  deliberate and self-consistent, and `FileInfo` prints the combined, spectrum,
+  per-level and chromatogram ranges separately. Whether normalising MS1 peaks
+  against a chromatogram point is scientifically right is the tool maintainer's
+  question; the port must match it either way.
+- *The `startTimeStamp="-infinity"` warnings from both implementations.* An
+  artefact of the benchmark input file, not of either program.
+- *`src/cli.rs::run_failure` mapping `InvalidValue`/`InvalidRange` to exit 6
+  where `TOPPBase` reaches 8.* A **port-side** decision, recorded at that
+  function and mentioned in `CPP-308`'s Rust handling; not an upstream defect
+  and not logged as one.
+
 ## Early TOPP bundle wave 3 integration (2026-09-15)
 
 `integrate/wave2` (`864b295`) now carries, on top of the wave-2 tip `1c14d60`,
@@ -89,7 +439,7 @@ the two readers agree bit for bit on all 40,856. The run was made by
 `../oracle/topp-peak-picker-scale/bench_06.sh` on ibminode06 under foreign
 load, once per implementation, so the wall times are indicative and carry no
 median, IQR or confidence interval; the peak-RSS figures come from
-`/usr/bin/time -v` and are not affected. BENCHMARKS §3.1 and §4 state the rest
+`/usr/bin/time -v` and are not affected. BENCHMARKS §4 states the rest
 of the caveats, including the harness's own peak-RSS measurement error, the
 start-up floor, and that the Rust tools are serial where C++ uses OpenMP.
 

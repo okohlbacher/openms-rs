@@ -5438,4 +5438,148 @@ implementation. They do not count as completed Rust functionality.
 
 **Evidence:** Executed on the Release build's own `PeakPickerHiRes` output for `profile_hr_qe_silac_uk222/UK222.mzML`. All 40,856 scan start times were extracted from the input and reduced with `60.0 * StringUtils::toDouble(s)`, then rendered with `os.precision(writtenDigits(double()))`: the probe's text equals the text the tool actually wrote, 40,856 of 40,856, and the C++'s own written text fails to reparse to its own stored `double` in 10,671 of 40,856, worst case stored `0x1.00054ab606b7ap+12`, written `4096.33074`, reparsed `0x1.00054ab606b7bp+12`, a difference of 9.09e-13 s. Verified independently by the `fix/picked-chromatogram` verifier, who also confirmed the two *readers* agree bit for bit on all 40,856 (so the residual is writer-side only).
 
-**Rust handling:** This port writes the shortest round-tripping text and round-trips its own output 40,856 of 40,856, so a decoded comparison against the C++ shows the 1-to-2-ULP spread above on retention times while the binary arrays are bit-identical. The difference is recorded as a native difference in `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md` and in `docs/BENCHMARKS.md` §3.1, so nobody later "fixes" the Rust text to match.
+**Rust handling:** This port writes the shortest round-tripping text and round-trips its own output 40,856 of 40,856, so a decoded comparison against the C++ shows the 1-to-2-ULP spread above on retention times while the binary arrays are bit-identical. The difference is recorded as a native difference in `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md` and in `docs/BENCHMARKS.md` §3.6, so nobody later "fixes" the Rust text to match.
+
+## CPP-308 — MapNormalizer divides every MS1 intensity by an unguarded maximum
+
+**Source revision:** TOPP `174b576e244e100f2345ca57a8e79aaa607156df`, the TOPP tree of the Release build `openms4-release-bc9cc12-c19e494-174b576` that the behaviour below was executed on. The source text was read from the two local TOPP checkouts `d0234cc` and `6f8eb94`, which agree line for line at the lines cited.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/MapNormalizer.cpp:93-103`, `TOPPMapNormalizer::main_`.
+
+**Trigger:** Any input whose combined maximum intensity — `MSExperiment::getMaxIntensity()` after `updateRanges()`, which includes chromatograms — is zero, negative, or an empty range.
+
+**Issue:** The tool computes `exp.updateRanges(); double max = exp.getMaxIntensity() / 100.0;` and then, for every MS1 peak, `pk.setIntensity(pk.getIntensity() / max);` with no check on `max`. Three degenerate paths follow, all executed on the Release build:
+
+- **all-zero intensities:** `max` is 0, the division is `0.0 / 0.0`, and the tool exits 0 having written **NaN into every MS1 peak**. The MS2 spectra are untouched, so the file is half NaN and half data and nothing in the output says so.
+- **all-negative intensities:** `max` is negative, so every MS1 intensity **changes sign** and is scaled by 100. `[-10, -200, -3000]` is written back as `[1000, 20000, 300000]`. Exit 0.
+- **an empty combined range:** `getMaxIntensity()` reads an empty `RangeBase`. Here the C++ behaves correctly and this entry does **not** extend to it: it throws `InvalidRange` and writes nothing (`exit 8`, "Empty or uninitialized range object. Did you forget to call updateRanges()?").
+
+Severity is low — these are degenerate inputs — but the first two are silent-wrong-answer paths, not crashes.
+
+**Proposed C++ fix:** Refuse a non-positive or non-finite scale with the tool's own error, as the empty-range path already refuses. Normalising by a non-positive maximum has no defined meaning.
+
+**Evidence:** Executed on the Release build on dax, all four degenerate inputs, with the exit status, whether an output file was written, the decoded intensity arrays of every output and the `FileInfo` combined ranges of every input recorded: `../oracle/map-normalizer-divergence/degenerate.sh` and `degenerate.log`, hashed in `tests/data/topp_map_normalizer_provenance.json` and registered in `SOURCE_PROVENANCE.json`. The inputs come from a deterministic generator (`make_degenerate.py`) with no C++ involved.
+
+**Rust handling:** The port refuses a non-positive or underflowed scale with exit 6 and reproduces the C++'s refusal on the empty range (that refusal was itself **executed** against the C++ after an earlier pass reasoned, wrongly, that the source treated it as a no-op). One residual difference is deliberate and recorded rather than hidden: the port reaches exit 6 through `Error::InvalidRange`, where `TOPPBase` reaches 8, so a pipeline that branches on TOPP exit codes sees a different code for the same refusal. Not an issue in this entry, and not a defect of the C++: **the combined-maximum semantics itself is correct and intended**. `updateRanges()` including chromatograms is self-consistent, and `FileInfo` prints the combined, spectrum, per-MS-level and chromatogram ranges separately, so the source knows exactly what it is doing. Whether normalising MS1 peaks against a chromatogram point is scientifically right is a question for the tool's maintainer; the port must match it either way, and now does — all 87,492 intensity arrays of the 1.2 GB benchmark run agree bitwise with the C++ tool's.
+
+## CPP-309 — DTAFile::load and DTAFile::store use different proton masses
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; arithmetic verified against the cited lines. Not separately executed as a C++ store-then-load round trip.
+
+**Affected file/function:** `src/openms/include/OpenMS/FORMAT/DTAFile.h:120` (`load`) and `:204` (`store`).
+
+**Trigger:** Any DTA store followed by a load, or the reverse, with a precursor charge greater than 1.
+
+**Issue:** The two directions do not use the same constant. `load` converts the singly protonated mass to m/z with
+
+```
+precursor.setMZ((mh_mass - Constants::PROTON_MASS_U) / charge + Constants::PROTON_MASS_U);
+```
+
+using `Constants::PROTON_MASS_U` = 1.00727646677, while `store` converts m/z back with the literal `1.0`:
+
+```
+os << ((precursor.getMZ() - 1.0) * precursor.getCharge() + 1.0);
+```
+
+A store-then-load round trip therefore shifts the precursor by `(charge - 1) x 7.276` mDa: 7.3 mDa at charge 2, 14.6 mDa at charge 3, and so on. At charge 1 and charge 0 the two agree, which is why the asymmetry is easy to miss. This is inside the mass-accuracy window of any modern instrument and is not a rounding artefact.
+
+**Proposed C++ fix:** Use `Constants::PROTON_MASS_U` in `store` as well. If the `1.0` is kept for backward compatibility with files other tools have written, say so at both call sites and document that the pair is not a round trip.
+
+**Evidence:** The two expressions above, at the cited lines of the pinned header. The port already names the asymmetry (`MassConvention::LegacyOpenMS` reproduces `store`'s `1.0`; `MassConvention::ExactProton` is the exact inverse of `load`), and its DTAExtractor output is byte-equal to the Release tool's over 36,443 files, so the port executes the source's arithmetic — but a C++-only round trip at charge > 1 was not run as a separate reproduction, and this entry does not claim it was.
+
+**Rust handling:** `src/format/dta.rs`. The default `MassConvention::ExactProton` is the exact inverse of the reader; `MassConvention::LegacyOpenMS` reproduces the source and is what the `DTAExtractor` tool passes, so the tool's output matches the C++'s. Documented in the module header rather than silently corrected.
+
+## CPP-310 — DTAFile::store writes two different 15-digit rules on one line, both past their type's precision
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/include/OpenMS/FORMAT/DTAFile.h:184` (`os.precision(writtenDigits<double>(0.0))`) and `:215` (`os << it->getPosition() << " " << it->getIntensity() << "\n"`), by way of `DPosition::operator<<` (`src/openms/include/OpenMS/DATASTRUCTURES/DPosition.h:412-420`), `precisionWrapper` (`src/openms/include/OpenMS/CONCEPT/PrecisionWrapper.h:75-80`), `StringUtils::toStr` and `Internal::NumericFormatting::appendNumeric` (`src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h`).
+
+**Trigger:** Every peak line of every `.dta` file the C++ writes.
+
+**Issue:** One line carries two numbers formatted by two different rules, and both exceed what their type can represent.
+
+- The **m/z** is a `DPosition<1>`, whose `operator<<` goes through `precisionWrapper` to `StringUtils::toStr(double, true)` and so to `std::to_chars(..., std::chars_format::fixed, 15)`. That is 15 digits *after the decimal point*. For a typical fragment m/z of a few hundred that is 18 to 19 **significant** digits — two or three past the 17 a `double` can carry, so the last digits are an artefact of the binary representation: `350.133800546540385`.
+- The **intensity** is a bare `float`, promoted to `double` and written through the stream's default float field at `os.precision(15)`, i.e. 15 **significant** digits. A `float` needs 9 to round-trip; the remaining six are noise: `583.898498535156`.
+
+The inconsistency is accidental rather than chosen — it follows from `DPosition::operator<<` taking the `precisionWrapper` route while a bare `float` takes the stream's. The consequence is a file roughly twice the size any value in it justifies. Not a correctness defect: nothing is lost, and both forms read back correctly.
+
+**Proposed C++ fix:** One rule for both, at each type's `max_digits10` (17 for `double`, 9 for `float`), or the shortest round-tripping form for both. Either choice shrinks the file substantially and neither loses a bit.
+
+**Evidence:** Executed. The C++ Release `DTAExtractor` over the 1.2 GB Velos benchmark run writes 36,443 files totalling exactly **836,505,793 bytes**, and this port — after it was changed to reproduce both rules exactly — writes the same 36,443 files and the same 836,505,793 bytes, byte for byte, at 1 and at 32 threads (`docs/BENCHMARKS.md` §3.6). Before the change the port used Rust's shortest round-trip text for both numbers, about 8 significant digits for an `f32` intensity, and wrote 658,901,890 bytes — **21.2 % less** for the same values, which is the size of what the source's two rules add.
+
+**Rust handling:** Reproduced exactly, in `src/format/dta.rs`, from the two formatters `src/format/file_info/text_format.rs` already ports (`to_str` for the fixed-15-fraction rule, `ostream_g` for the 15-significant rule). The module header states which number takes which rule and what each recovers on a round trip. The cost is recorded rather than hidden: matching the source's text made `DTAExtractor` 24.5 % slower on the benchmark run, and it is the one tool in wave 4 that got slower.
+
+## CPP-311 — MzMLSplitter writes parts whose precursor spectrumRef does not resolve
+
+**Source revision:** TOPP `174b576e244e100f2345ca57a8e79aaa607156df`, executed on the Release build `openms4-release-bc9cc12-c19e494-174b576`. Source text read from the local TOPP checkouts `d0234cc` and `6f8eb94`, which agree.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/MzMLSplitter.cpp`, `TOPPMzMLSplitter::main_`; the option that would have prevented it is commented out at `:67-68` (`// @TODO: // registerFlag_("precursor", "Make sure precursor spectra end up in the same part as their fragment spectra")`).
+
+**Trigger:** Splitting any file in which an MS2 spectrum's precursor names an MS1 spectrum that lands in a different part — i.e. essentially every real DDA run split into more than one part.
+
+**Issue:** mzML 1.1's `xs:keyref KEYREF_PRECURSOR_SPECTRUMREF` (`share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd`) requires `precursor/@spectrumRef` to resolve to a spectrum id **in the same document**, and the schema text says the attribute is "for precursor spectra that are local to this document". The splitter cuts the spectrum list at a byte or count boundary and copies each spectrum's precursor unchanged, so systematically produces parts that violate that keyref. The schema provides `sourceFileRef` + `externalSpectrumID` for exactly this case and the tool uses neither.
+
+**Proposed C++ fix:** Rewrite a crossing reference as an external one (`sourceFileRef` + `externalSpectrumID`), or drop it, or finish the `@TODO` flag above — and, whichever is chosen, document the behaviour.
+
+**Evidence:** Executed on the Release build over the 1.2 GB Velos benchmark run split into four parts: part 2 of 4 carries 4 references to `scan=10929`, which is in part 1. The part files are the run's own retained outputs.
+
+**Rust handling:** The port's mzML writer used to refuse a precursor reference that does not name a spectrum in the file being written, which is why `MzMLSplitter` could not process real input at all in wave 3 ("precursor spectrum reference does not name an output spectrum" on every repetition). Matching the executed C++ was the right call for a port, so the writer now emits the dangling reference as the source does, under a tool-side option — the library default stays strict and `FileHandler` does not enable it (lead decision of 2026-09-15, decision D10). The rule and the schema file are described in `docs/MZML_SUPPORT.md`. With that, all four parts are bitwise equal to the C++ tool's on every decoded array.
+
+## CPP-312 — FeatureFinderAlgorithmPicked divides a zero-width retention-time range by intensity:bins
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on both the Debug product SDK and the Release build.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:244-245` in `run_`, with the consequence at `:1837-1838` in `intensityScore_`.
+
+**Trigger:** Any input whose MS1 spectra all share one retention time (or one m/z), for instance the four MS1 spectra of `FileFilter_44_input.mzML`, all at RT 0.273.
+
+**Issue:** The intensity-score grid is built with
+
+```
+intensity_rt_step_ = (…getMaxRT() - rt_start) / (double)intensity_bins_;
+intensity_mz_step_ = (…getMaxMZ() - mz_start) / (double)intensity_bins_;
+```
+
+and neither numerator is checked for being zero. With `maxRT == minRT` the step is `0.0`, and `intensityScore_` then evaluates `std::floor((rt - rt_min) / intensity_rt_step_ * 2.0)` = `floor(0.0/0.0)` = `floor(NaN)`, whose conversion to `UInt` is undefined behaviour before `std::min` ever sees it. The two builds diverge on what happens next: the **Debug** build dies in an `OPENMS_PRECONDITION` inside `ProgressLogger::init`, and the **Release** build computes non-finite bin bounds and **silently returns an empty feature map with exit 0**. The silent empty map is the worse of the two, because a caller cannot distinguish it from "this run genuinely has no features".
+
+**Proposed C++ fix:** Refuse a zero-width range in either dimension with a stated error, or collapse to a single bin when the range is zero (`intensity_bins_ = 1`) and say so in the log.
+
+**Evidence:** Both runs are recorded in the branch's support document; the Release run is the reference behaviour, as always in this log — never the Debug exit code.
+
+**Rust handling:** The port refuses the zero-width range rather than returning an empty map with exit 0. That is a deliberate divergence from the Release build and it is pinned, not assumed: `tests/topp_feature_finder_centroided.rs::a_zero_width_retention_time_range_diverges_from_the_cpp_release_build` is `#[ignore]`d with exactly that reason on its attribute, so the divergence is visible in the ignored-test inventory rather than buried.
+
+## CPP-313 — FeatureXMLHandler caps its feature reservation at 1e5 on a premise current data exceeds
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Release build.
+
+**Status:** Executed (the premise), source-reviewed (the effect).
+
+**Affected file/function:** `src/openms/source/FORMAT/HANDLERS/FeatureXMLHandler.cpp:318`, `startElement`.
+
+**Trigger:** Reading any featureXML that declares more than 100,000 features.
+
+**Issue:**
+
+```
+map_->reserve(std::min(Size(1e5), count)); // reserve vector for faster push_back, but with upper boundary of 1e5 (as >1e5 is most likely an invalid feature count)
+```
+
+The comment's premise — that a declared count above 1e5 is "most likely an invalid feature count" — is wrong by an order of magnitude for current data. The benchmark's own `MassTraceExtractor` output declares **826,019** features and the executed Release build reads it correctly. The effect is only a lost reservation, so the vector grows repeatedly instead of once; it is a performance and comment defect, not a correctness one.
+
+**Proposed C++ fix:** Reserve `count` outright, or raise the cap to something a current instrument run can actually exceed, and remove the claim in the comment. If a cap is wanted as a guard against a hostile declared count, say that instead — the current comment says the opposite.
+
+**Evidence:** Executed: the C++ Release `FileInfo` at core `bc9cc12` reads the 826,019-feature map and the 2.06 GiB benchmark map without complaint, so the premise is false on real data. The cost of the missed reservation was not measured and is not claimed.
+
+**Rust handling:** The port's own ceiling on this path was a different and worse defect — a fixed ~12.5 MB decode limit formed by three limits combined with `min()`, which refused the featureXML the port's own `FeatureFinderCentroided` writes — and it is fixed in this window: `src/format/featurexml_scaling.rs` derives the ceilings from the document's size, and features are streamed rather than retained. Both benchmark maps (59.6 MiB / 42,789 features and 2.06 GiB) now load and round-trip. The source has no ceilings at all, so this port is deliberately stricter and says where. See `docs/FEATUREXML_SCALE_SUPPORT.md`.

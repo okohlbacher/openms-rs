@@ -302,15 +302,25 @@ pool are in [TOPP_THREADS_SUPPORT](TOPP_THREADS_SUPPORT.md).
 Opting in is per tool, because the `out`/`err` streams of `Tool::run_io` are
 not `Send` and no central wiring in `run_with` was possible. The five wave-2
 tools (`BaselineFilter`, `DTAExtractor`, `MapNormalizer`, `MzMLSplitter`,
-`SpectraFilterWindowMower`) are wired and are the five
-`tests/topp_threads.rs::every_executable_runs_its_body_on_the_requested_pool`
-checks. The three wave-3a tools are **not** yet: `PeakPickerHiRes` and
-`FeatureFinderCentroided` take `ctx.thread_policy()` into their algorithms but
-do not wrap their bodies, and `FileInfo` uses neither, so `-threads` sizes no
-pool for them. Nothing is computed wrongly — all three are serial and their
-output is byte-identical at every thread count — but they do not yet have the
-contract this section describes. Carried forward in
-[the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-3-status).
+`SpectraFilterWindowMower`) wrap their bodies. `PeakPickerHiRes` opens the same
+pool but **around its picking call rather than around its body**
+(`src/cli/tools/peak_picker_hi_res.rs:249`), and skips it altogether at one
+worker: that is measured at 0.68 s cheaper on a gigabyte-scale run than putting
+the whole body on a worker, and a body wrapper in `Tool::run` would in any case
+never execute for this tool, which overrides `run_io`. It is the **sixth**
+tool in `tests/topp_threads.rs::TOOLS` and in
+`every_executable_runs_its_body_on_the_requested_pool`, with one stated
+exception: it starts no worker at `-threads 1`, by design.
+
+`FeatureFinderCentroided` takes `ctx.thread_policy()` into its algorithm without
+wrapping its body, and `FileInfo` uses neither, so `-threads` sizes no pool for
+those two. Nothing is computed wrongly — both are byte-identical at every thread
+count — but they do not have the contract this section describes. The wave-4
+benchmark sampled all eight executables on full-size data: two use their pool
+(`PeakPickerHiRes` at CPU utilisation 2.26 and `FeatureFinderCentroided` at
+4.72, through its algorithm), five build it and leave it idle at utilisation
+1.00, and `FileInfo` builds none. Carried forward in
+[the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-4-status).
 
 **Source behaviours reproduced but questionable** (C++ issue candidates, all
 confirmed on the oracle):
