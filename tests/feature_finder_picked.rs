@@ -491,7 +491,13 @@ fn check_run(config: &str, map: &FeatureMap, log: &[String], aborts: &BTreeMap<S
             .collect();
     assert_eq!(aborts, &expected_aborts, "{config}: abort reasons");
 
-    let expected: Vec<Vec<String>> = records("b7_feature_records.tsv", "feature", config);
+    check_features("b7_feature_records.tsv", config, map);
+}
+
+/// The recorded `feature`, `meta` and `hull` rows of `config` in `file`
+/// against `map`.
+fn check_features(file: &str, config: &str, map: &FeatureMap) {
+    let expected: Vec<Vec<String>> = records(file, "feature", config);
     assert_eq!(
         expected.len(),
         map.len(),
@@ -553,13 +559,13 @@ fn check_run(config: &str, map: &FeatureMap, log: &[String], aborts: &BTreeMap<S
             what("hull count")
         );
     }
-    check_meta(config, map);
-    check_hulls(config, map);
+    check_meta(file, config, map);
+    check_hulls(file, config, map);
 }
 
-fn check_meta(config: &str, map: &FeatureMap) {
+fn check_meta(file: &str, config: &str, map: &FeatureMap) {
     let mut expected: BTreeMap<usize, BTreeMap<String, (String, String)>> = BTreeMap::new();
-    for row in records("b7_feature_records.tsv", "meta", config) {
+    for row in records(file, "meta", config) {
         expected
             .entry(row[0].parse().unwrap())
             .or_default()
@@ -598,8 +604,8 @@ fn check_meta(config: &str, map: &FeatureMap) {
     }
 }
 
-fn check_hulls(config: &str, map: &FeatureMap) {
-    for row in records("b7_feature_records.tsv", "hull", config) {
+fn check_hulls(file: &str, config: &str, map: &FeatureMap) {
+    for row in records(file, "hull", config) {
         let index: usize = row[0].parse().unwrap();
         let hull: usize = row[1].parse().unwrap();
         let count: usize = row[2].parse().unwrap();
@@ -891,6 +897,117 @@ fn check_fitter(config: &str, index: usize, model: &FittedModel) {
         FittedModel::Gauss(gauss) => {
             close(gauss.sigma(), f64_hex(&row[7]), relative, &what("sigma"));
         }
+    }
+}
+
+/// The intended isotope-abundance override against the Linux x86_64 Release
+/// library, replayed with the override the source intends (adapted).
+///
+/// The library cannot compute the intended override, so the driver
+/// `../oracle/ffap-sem-completion/drivers/intended_abundance.cpp` runs
+/// `FeatureFinderAlgorithmPicked::run` with the changed abundance (the executed
+/// result: no seed, no feature), then recomputes step 2.5 with an override
+/// distribution that is cleared before its two isotopes are inserted, assigns
+/// those windows to the protected `isotope_distributions_`, and replays steps
+/// 3.1 to 4 with the library's own protected functions on the library's own
+/// arrays (two repetitions at one and four threads, identical). Three
+/// configurations: FFC_1 with `abundance_12C` 90 and 99 and with
+/// `abundance_14N` 95. This port's default, `AbundanceOverride::Intended`,
+/// reproduces the replay: every window (bit for bit, which fixes the
+/// override's `f32` weights), the seeds with their pattern and overall scores,
+/// the candidate counts, the abort reasons and every feature.
+#[test]
+fn the_intended_abundance_override_matches_the_adapted_release_replay() {
+    const FILE: &str = "intended_abundance.tsv";
+    for (config, key, value) in [
+        ("ffc1_12C_90", "isotopic_pattern:abundance_12C", 90.0),
+        ("ffc1_14N_95", "isotopic_pattern:abundance_14N", 95.0),
+        ("ffc1_12C_99", "isotopic_pattern:abundance_12C", 99.0),
+    ] {
+        let mut parameters = ffc1_parameters();
+        set(&mut parameters, key, ParamValue::Float(value));
+        // The executed library run with the stray-peak override finds nothing.
+        let executed = &records(FILE, "run", config)[0];
+        assert_eq!(
+            executed.as_slice(),
+            [
+                "Found 0 seeds for charge 2.",
+                "Found 0 feature candidates for charge 2."
+            ]
+        );
+        assert_eq!(records(FILE, "executed", config)[0][0], "0");
+
+        let stage = SeedStage::run(ffc1_input(), &FeatureMap::new(), &parameters)
+            .unwrap()
+            .unwrap();
+        let windows = records(FILE, "window", config);
+        let patterns = stage.windows().patterns();
+        assert_eq!(patterns.len(), windows.len(), "{config}: windows");
+        for (pattern, row) in patterns.iter().zip(&windows) {
+            let what = format!("{config}: window {}", row[0]);
+            assert_eq!(pattern.len().to_string(), row[1], "{what}");
+            assert_eq!(pattern.optional_begin.to_string(), row[2], "{what}");
+            assert_eq!(pattern.optional_end.to_string(), row[3], "{what}");
+            assert_eq!(pattern.max.to_bits(), f64_hex(&row[4]).to_bits(), "{what}");
+            assert_eq!(pattern.trimmed_left.to_string(), row[5], "{what}");
+            let bits: Vec<u64> = pattern.intensity.iter().map(|v| v.to_bits()).collect();
+            let expected: Vec<u64> = row[6..].iter().map(|v| f64_hex(v).to_bits()).collect();
+            assert_eq!(bits, expected, "{what}");
+        }
+        let seeds = records(FILE, "seed", config);
+        let charge = &stage.charges()[0];
+        assert_eq!(charge.seeds.len(), seeds.len(), "{config}: seed count");
+        for (seed, row) in charge.seeds.iter().zip(&seeds) {
+            let scores = stage.scores();
+            assert_eq!(
+                [
+                    seed.spectrum.to_string(),
+                    seed.peak.to_string(),
+                    format!("{:08x}", seed.intensity.to_bits()),
+                    format!(
+                        "{:08x}",
+                        scores.pattern(0, seed.spectrum).unwrap()[seed.peak].to_bits()
+                    ),
+                    format!(
+                        "{:08x}",
+                        scores.overall(0, seed.spectrum).unwrap()[seed.peak].to_bits()
+                    ),
+                ]
+                .as_slice(),
+                &row[2..],
+                "{config}: seed {}",
+                row[1]
+            );
+        }
+
+        let output = run_with_options(
+            ffc1_input(),
+            &FeatureMap::new(),
+            &parameters,
+            &Options {
+                threads: Threads::serial(),
+                ..Options::default()
+            },
+        )
+        .unwrap();
+        let candidates = &records(FILE, "candidates", config)[0];
+        assert!(output.log.contains(&format!(
+            "Found {} feature candidates for charge {}.",
+            candidates[1], candidates[0]
+        )));
+        let intended = &records(FILE, "intended", config)[0];
+        assert!(
+            output
+                .log
+                .contains(&format!("Removed {} overlapping features.", intended[0]))
+        );
+        assert_eq!(output.features.len().to_string(), intended[2], "{config}");
+        let aborts: BTreeMap<String, usize> = records(FILE, "abort", config)
+            .into_iter()
+            .map(|row| (row[1].clone(), row[0].parse().unwrap()))
+            .collect();
+        assert_eq!(output.aborts, aborts, "{config}: abort reasons");
+        check_features(FILE, config, &output.features);
     }
 }
 

@@ -1347,6 +1347,113 @@ fn a_zero_width_mz_range_follows_the_cpp_release_build() {
     assert_empty_release_map(&outcome, &out, "zero_mz_control_ffc1.mzML");
 }
 
+/// **A changed isotope abundance: the one designed difference** (`CPP-247`).
+///
+/// The executed C++ Release tool (`../oracle/ffap-sem-completion` case
+/// `ffc1_abundance_12C_90`, three repetitions, identical) builds the override
+/// with a stray `(0, 1)` peak and finds nothing on FeatureFinderCentroided_1
+/// with `-algorithm:isotopic_pattern:abundance_12C 90`: no seed, no candidate,
+/// no feature, exit 0. The tool uses the library default
+/// `AbundanceOverride::Intended` (`Options::default()`), which computes the
+/// override the source intends and does find features. The expected values of
+/// that result are not this port's: they are the adapted Release replay of the
+/// intended override (driver `intended_abundance.cpp`, configuration
+/// `ffc1_12C_90`, recorded in
+/// `tests/data/feature_finder_picked/intended_abundance.tsv`): 18 seeds, one
+/// candidate, one feature of charge 2 at RT `0x40b12596f2a04222` and m/z
+/// `0x4084420ded67bc0c`, with intensity `81362.57` and quality `0.7551466` as
+/// `f32`, 65 data points, and three abort reasons.
+#[test]
+fn a_changed_abundance_finds_the_intended_features_where_the_cpp_release_build_finds_none() {
+    // The executed C++ tool's lines, for the record: this port differs here by
+    // design.
+    const CPP_RELEASE: &[&str] = &[
+        "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.",
+        "Found 0 seeds for charge 2.",
+        "Found 0 feature candidates for charge 2.",
+        "Removed 0 overlapping features.",
+        "",
+        "Info: reasons for not finalizing a feature during its construction:",
+        "",
+        "0 features found.",
+    ];
+    let dir = Workdir::new();
+    let out = dir.file("abundance_12C_90.tmp.featureXML");
+    let ini = text(ffc1_ini());
+    let input = text(ffc1_input());
+    let outcome = run_in(
+        &dir,
+        &[
+            "-test",
+            "-ini",
+            &ini,
+            "-in",
+            &input,
+            "-out",
+            &out,
+            "-algorithm:isotopic_pattern:abundance_12C",
+            "90",
+        ],
+    );
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert!(
+        !outcome.out.contains(CPP_RELEASE[1]),
+        "the tool follows the executed stray-peak override:\n{}",
+        outcome.out
+    );
+    assert_out_block(
+        &outcome,
+        &[
+            "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.",
+            "Found 18 seeds for charge 2.",
+            "Found 1 feature candidates for charge 2.",
+            "Removed 0 overlapping features.",
+            "",
+            "Info: reasons for not finalizing a feature during its construction:",
+            " - Could not extend seed: 2 times",
+            " - Could not find good enough isotope pattern containing the seed: 8 times",
+            " - Feature quality too low after fit: 6 times",
+            "",
+            "1 features found.",
+        ],
+    );
+    let map = FileHandler::load_feature_map(&out, &[FileType::FeatureXml]).unwrap();
+    assert_eq!(map.features.len(), 1);
+    let feature = &map.features[0];
+    assert_eq!(feature.charge, 2);
+    // The retention time is the fitted centre. It is bit-identical on the two
+    // measured platforms, Linux x86_64 with glibc and macOS arm64; elsewhere
+    // the platform `exp` of the Gaussian fit may move its last bits
+    // (`tests/feature_finder_picked.rs`, `tolerance`).
+    let rt = f64::from_bits(0x40b1_2596_f2a0_4222);
+    if cfg!(any(
+        all(
+            target_os = "linux",
+            target_arch = "x86_64",
+            target_env = "gnu"
+        ),
+        all(target_os = "macos", target_arch = "aarch64")
+    )) {
+        assert_eq!(feature.rt.to_bits(), rt.to_bits());
+    } else {
+        assert!(((feature.rt - rt) / rt).abs() <= 1e-9, "{}", feature.rt);
+    }
+    assert_eq!(feature.mz.to_bits(), 0x4084_420d_ed67_bc0c);
+    assert_eq!(feature.intensity.to_bits(), 0x479e_e949);
+    assert_eq!(feature.quality.to_bits(), 0x3f41_5149);
+    assert_eq!(
+        feature
+            .metadata
+            .get("num_of_datapoints")
+            .map(MetaValue::to_string),
+        Some("65".to_owned())
+    );
+    assert_eq!(
+        map.primary_ms_run_path().unwrap(),
+        ["file://FeatureFinderCentroided_1_input.mzML"]
+    );
+}
+
 /// Oracle `c5_negative_intensities`: with every MS1 peak negative the load
 /// filter empties the spectra, and the algorithm's `getSize() == 0` check
 /// throws `IllegalArgument`, which `TOPPBase` reports as an unexpected internal
