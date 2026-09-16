@@ -137,6 +137,16 @@ GUI/None end remains a no-op even without start. Checks avoid undefined source
 signed arithmetic and floating-to-integer conversions. An inverted range is not
 an error (see [Preserved behavior](#preserved-behavior)).
 
+Clock/backend/writer errors propagate. Output streams may already contain a
+partial write when an I/O failure occurs. A command start updates its range/counter before header output and samples
+timing after the header flush, excluding slow header I/O. A late start failure
+can therefore follow observable state/output changes. A rejected command end
+remains retryable. Wrapper throttle
+assignment happens before backend set/start, and wrapper end decrements nesting
+before dispatch, retaining the source operation order. Failed start dispatch
+does not increment nesting. These operations do not pretend to roll back user
+callback side effects or partially written bytes.
+
 ### Native differences: every refusal and its source status
 
 Each refusal in `src/concept/progress_logger.rs` was checked against the pinned
@@ -158,18 +168,8 @@ native bound or a check the Release build also executes:
 | nonfinite or negative clock sample | command start/end | native: injected clocks have no source counterpart |
 | elapsed time above `i32::MAX` seconds | command end | native: source day arithmetic multiplies `int`s |
 | nonfinite or out-of-`u64` throughput, including a byte count over zero elapsed time | command end | native: undefined floating-to-integer conversion in the source (`:78`) |
-| clock, writer and custom-backend errors | all | native: `Result` propagation where the source cannot fail |
+| clock, writer and custom-backend errors | all | native: `Result` propagation where the source reports no failure |
 | system clock before the epoch or beyond `i64` seconds | `system_progress_clock` | native |
-
-Clock/backend/writer errors propagate. Output streams may already contain a
-partial write when an I/O failure occurs. A command start updates its range/counter before header output and samples
-timing after the header flush, excluding slow header I/O. A late start failure
-can therefore follow observable state/output changes. A rejected command end
-remains retryable. Wrapper throttle
-assignment happens before backend set/start, and wrapper end decrements nesting
-before dispatch, retaining the source operation order. Failed start dispatch
-does not increment nesting. These operations do not pretend to roll back user
-callback side effects or partially written bytes.
 
 ## Evidence
 
