@@ -412,8 +412,9 @@ gives 82/112/89 and 314/319 centroids at `signal_to_noise 0`, not the stored
   (sha256 `2d06db2f…`) re-run against `openms4-release-bc9cc12-c19e494-174b576`
   on `ibminode06` (`../oracle/sne-completion/p1/`, twice, byte-identically)
   printed the same 93 cases byte for byte (sha256 `9eb8f249…`) and the same two
-  parameter files; its standard error differs only by six mzML loader lines
-  that the Debug build alone prints. The fixture is therefore also the Release
+  parameter files; its standard error differs only by six lines that the Debug
+  build alone prints (five mzML loader diagnostics and one `Update ranges was
+  called but ranges were already up-to-date`). The fixture is therefore also the Release
   build's output. Every case also runs with the clamp-first bin conversion and
   gives the same bits, and
   `no_executed_case_bins_a_quotient_outside_the_int_range` shows that no input

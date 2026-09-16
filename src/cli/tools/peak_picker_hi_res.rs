@@ -401,9 +401,11 @@ impl Tool for PeakPickerHiRes {
     /// of propagating out of `run_io` as it did while the pool wrapped the whole
     /// body. No output file is written in either case. The exception is
     /// [`Error::Unsupported`], which propagates (`INCOMPATIBLE_INPUT_DATA`):
-    /// the picker returns it for `SignalToNoise:auto_mode` 1 as soon as noise
-    /// estimation runs, where the source reads out of bounds and crashes
-    /// (oracle `PPHR_auto_mode_1`, SIGBUS or SIGSEGV). With
+    /// the picker returns it for `SignalToNoise:auto_mode` 1 when noise
+    /// estimation runs on a record outside the narrow input domain where that
+    /// mode is defined, which every real spectrum is; the source writes out of
+    /// bounds there and crashes (oracle `PPHR_auto_mode_1`, SIGBUS or SIGSEGV).
+    /// With
     /// `signal_to_noise` 0 the estimator never runs in either implementation
     /// and the run succeeds.
     fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> Result<ExitCode> {

@@ -1287,5 +1287,8 @@ fn class_test_base_sections_through_a_trivial_estimator() {
     assert_eq!(TestSignalToNoiseEstimator::signal_to_noise(&one), [0.0]);
     // The index access the source leaves unchecked in Release is a checked
     // slice access here.
-    assert_eq!(TestSignalToNoiseEstimator::signal_to_noise(&one).get(1), None);
+    assert_eq!(
+        TestSignalToNoiseEstimator::signal_to_noise(&one).get(1),
+        None
+    );
 }

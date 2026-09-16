@@ -308,7 +308,7 @@
     "cases": 143,
     "nth_vectors": 390,
     "comparison": "every ratio, max_intensity_, percentage, random-scan result, engine output, uniform draw, picked peak and boundary as an IEEE-754 bit pattern; the whole nth_element permutation; standard error byte for byte against the port's warnings rendered through LogStream; standard output byte for byte against the port's ProgressLogger with the two timings masked",
-    "p1_rerun": "the unchanged P1 driver (sha256 2d06db2f...) against the same Release install, twice: records byte-identical to the arm64 Debug capture (sha256 9eb8f249...), the same two parameter files, and a standard error that differs only by six mzML loader lines the Debug build alone prints",
+    "p1_rerun": "the unchanged P1 driver (sha256 2d06db2f...) against the same Release install, twice: records byte-identical to the arm64 Debug capture (sha256 9eb8f249...), the same two parameter files, and a standard error that differs only by six lines the Debug build alone prints (five mzML loader diagnostics and one 'Update ranges was called but ranges were already up-to-date')",
     "probes": "thirteen out-of-domain inputs, three runs each, exit codes and record digests only (probes/results.txt); not fixtures"
   },
   "determinism": "The estimator and the random-scan estimate are serial, as the source is (no OpenMP in either header or in SignalToNoiseEstimator.cpp); the random-scan estimate takes its seed as an argument."

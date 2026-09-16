@@ -499,8 +499,10 @@ No class test calls `estimateNoiseFromRandomScans`.
   because `signal_to_noise` defaults to `0` (`PeakPickerHiRes.cpp:31`).
   The unchanged P1 driver (sha256 `2d06db2f…`) re-run against the Linux
   x86-64 Release build printed byte-identical records (sha256 `9eb8f249…`)
-  and parameter files; its standard error is identical except for six mzML
-  loader lines that only the Debug build prints (`../oracle/sne-completion/p1/`).
+  and parameter files; its standard error is identical except for six lines
+  that only the Debug build prints, five mzML loader diagnostics and one
+  `Update ranges was called but ranges were already up-to-date`
+  (`../oracle/sne-completion/p1/`).
   So the P1 fixture is also the Release build's output.
 - **Tier 3.** The class-test sections above.
 - **Tier 4.** Native refusals and their exact case lists; the `x86`

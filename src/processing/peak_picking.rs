@@ -1157,8 +1157,10 @@ impl PeakPickerHiRes {
     ///   source loops forever there).
     /// * [`Error::UnsortedData`] for decreasing positions, unless
     ///   [`PickingCompatibility::allow_unsorted_positions`] is set.
-    /// * [`Error::Unsupported`] when noise estimation runs with
-    ///   [`NoiseHistogramRange::Percentile`].
+    /// * [`Error::Unsupported`] when noise estimation runs where the source
+    ///   estimator is undefined: [`NoiseHistogramRange::Percentile`] on a
+    ///   record outside that range's defined domain (every real spectrum), or
+    ///   the other cases [`SignalToNoiseEstimatorMedian::estimate`] lists.
     pub fn pick_spectrum_with_spacing(
         &self,
         input: &MSSpectrum,
