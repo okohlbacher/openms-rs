@@ -63,10 +63,11 @@ use crate::analysis::feature_finder_picked::helper_structs::Seed;
 use crate::analysis::feature_finder_picked::resolution::{
     annotate_apex, invalid_apex_warning, resolve_overlaps,
 };
+use crate::analysis::feature_finder_picked::scoring::{libstdcxx, source_is_sorted};
 use crate::analysis::feature_finder_picked::seeds::SeedStage;
 use crate::analysis::feature_finder_picked::trace_fitter::TraceFitterParams;
 use crate::concept::parallel::{Threads, map_collect};
-use crate::kernel::{Feature, FeatureMap, MSExperiment, Point2D};
+use crate::kernel::{Feature, FeatureMap, MSChromatogram, MSExperiment, MSSpectrum, Point2D};
 use crate::metadata::MetaValue;
 use crate::param::{DefaultParamHandler, Param, ParamValue};
 use crate::{Error, Result};
@@ -783,20 +784,42 @@ pub const UNSORTED_WARNING: &str =
 /// 2. No peak in any spectrum or chromatogram (source `getSize() == 0`) is an
 ///    error.
 /// 3. MS levels other than exactly `{1}` are an error.
-/// 4. Every retention time, m/z and intensity must be finite (native, see
-///    below).
-/// 5. When the spectra are not sorted by RT and m/z, they and the
-///    chromatograms are sorted and [`UNSORTED_WARNING`] is logged.
-/// 6. A non-empty spectrum whose first m/z is negative is an error.
+/// 4. When the spectra are not sorted as source `MSExperiment::isSorted(true)`
+///    finds them (no retention time greater than the next, every spectrum
+///    `std::is_sorted` by m/z), the spectra and chromatograms are sorted and
+///    [`UNSORTED_WARNING`] is logged.
+/// 5. A non-empty spectrum whose first m/z is negative is an error; `-inf`
+///    is negative, and the sort moves it to the front of its spectrum.
 ///
 /// Returns `Ok(true)` when the run continues.
+///
+/// Infinite and NaN retention times, m/z values and intensities are not
+/// refused here: the source reads them, and the port follows it (see
+/// `docs/FEATURE_FINDER_PICKED_SUPPORT.md`, "Non-finite input"). The
+/// comparisons of check 4 are false for a NaN, as in the source, so a NaN
+/// never makes the input unsorted.
 ///
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] with the source messages of
-/// `Exception::IllegalArgument` for checks 2, 3 and 6. Check 4 is native: the
-/// source sorts and bins non-finite values with undefined results, and the
-/// native readers never produce them. A failed sort returns its error.
+/// `Exception::IllegalArgument` for checks 2, 3 and 5. The sort of check 4
+/// returns [`Error::InvalidValue`] where the source's sort is undefined or
+/// leaves an observable order unspecified:
+///
+/// - a NaN retention time when the spectra are sorted
+///   (`MSExperiment::sortSpectra`, `std::sort` by retention time, `:793`), and
+///   a NaN chromatogram product m/z when the chromatograms are
+///   (`sortChromatograms`, `std::sort`, `:813`): either the comparator is not a
+///   strict weak ordering, or every key is equivalent and the order of the
+///   spectra or chromatograms, which the output shows, is libstdc++'s
+///   introsort order, which this module does not reproduce;
+/// - a NaN m/z in a spectrum, or a NaN retention time in a chromatogram, that
+///   `std::is_sorted` or the hand-written check finds unsorted, and which
+///   `std::stable_sort` then orders under a comparator that is not a strict
+///   weak ordering.
+///
+/// The kernel's own chromatogram checks apply to the chromatograms' other
+/// fields.
 pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> Result<bool> {
     if experiment.spectra.is_empty() {
         return Ok(false);
@@ -813,24 +836,10 @@ pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> R
                 .into(),
         ));
     }
-    for spectrum in &experiment.spectra {
-        if !spectrum.rt.is_finite()
-            || spectrum
-                .peaks
-                .iter()
-                .any(|peak| !peak.mz.is_finite() || !peak.intensity.is_finite())
-        {
-            return Err(Error::InvalidValue(
-                "FeatureFinderAlgorithmPicked needs finite retention times, m/z values and \
-                 intensities"
-                    .into(),
-            ));
-        }
-    }
-    if !experiment.is_sorted(true) {
+    if !source_is_sorted(experiment) {
         log.push(UNSORTED_WARNING.to_string());
-        experiment.sort_spectra(true)?;
-        experiment.sort_chromatograms(true)?;
+        source_sort_spectra(experiment)?;
+        source_sort_chromatograms(experiment)?;
     }
     if experiment
         .spectra
@@ -844,6 +853,131 @@ pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> R
         ));
     }
     Ok(true)
+}
+
+/// A stable permutation of `0..len` by `key`, which must hold no NaN.
+fn stable_order(len: usize, key: impl Fn(usize) -> f64) -> Vec<usize> {
+    let mut order: Vec<usize> = (0..len).collect();
+    order.sort_by(|&a, &b| {
+        key(a)
+            .partial_cmp(&key(b))
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    order
+}
+
+/// The refusal of a source sort whose keys hold a NaN.
+fn nan_sort_refusal(what: &str, call: &str) -> Error {
+    Error::InvalidValue(format!(
+        "FeatureFinderAlgorithmPicked input: {what} is NaN and the input is not sorted; the \
+         source sorts it with {call}, whose result the standard leaves undefined or unspecified \
+         here and which the port does not reproduce"
+    ))
+}
+
+/// Source `MSExperiment::sortSpectra(true)`: `std::sort` of the spectra by
+/// retention time, then `MSSpectrum::sortByPosition` on each, which returns
+/// when `std::is_sorted` holds and otherwise sorts stably, keeping the data
+/// arrays aligned. Every refusal is checked before anything moves.
+///
+/// Spectra with equal retention times keep their order here; the source's
+/// `std::sort` is not stable.
+fn source_sort_spectra(experiment: &mut MSExperiment) -> Result<()> {
+    let spectra = &experiment.spectra;
+    if spectra.len() > 1 && spectra.iter().any(|spectrum| spectrum.rt.is_nan()) {
+        return Err(nan_sort_refusal(
+            "a retention time",
+            "std::sort (MSExperiment::sortSpectra)",
+        ));
+    }
+    let mut unsorted = Vec::new();
+    for (index, spectrum) in spectra.iter().enumerate() {
+        if libstdcxx::is_sorted_by(&spectrum.peaks, |a, b| a.mz < b.mz) {
+            continue;
+        }
+        if spectrum.peaks.iter().any(|peak| peak.mz.is_nan()) {
+            return Err(nan_sort_refusal(
+                "an m/z",
+                "std::stable_sort (MSSpectrum::sortByPosition)",
+            ));
+        }
+        unsorted.push(index);
+    }
+    // Validate the data arrays of every spectrum that moves before moving any.
+    for &index in &unsorted {
+        let spectrum = &mut experiment.spectra[index];
+        let identity: Vec<usize> = (0..spectrum.peaks.len()).collect();
+        spectrum.select(&identity)?;
+    }
+    for &index in &unsorted {
+        let spectrum = &mut experiment.spectra[index];
+        let order = stable_order(spectrum.peaks.len(), |i| spectrum.peaks[i].mz);
+        spectrum.select(&order)?;
+    }
+    let order = stable_order(experiment.spectra.len(), |i| experiment.spectra[i].rt);
+    let mut slots: Vec<Option<MSSpectrum>> = std::mem::take(&mut experiment.spectra)
+        .into_iter()
+        .map(Some)
+        .collect();
+    experiment.spectra = order.iter().filter_map(|&i| slots[i].take()).collect();
+    Ok(())
+}
+
+/// Source `MSExperiment::sortChromatograms(true)`: `std::sort` of the
+/// chromatograms by product m/z, then `MSChromatogram::sortByPosition` on
+/// each, which returns when no retention time exceeds the next and otherwise
+/// sorts stably. Every refusal is checked before anything moves.
+///
+/// Chromatograms with equal product m/z keep their order here; the source's
+/// `std::sort` is not stable.
+fn source_sort_chromatograms(experiment: &mut MSExperiment) -> Result<()> {
+    let chromatograms = &experiment.chromatograms;
+    if chromatograms.len() > 1
+        && chromatograms
+            .iter()
+            .any(|chromatogram| chromatogram.product.mz.is_nan())
+    {
+        return Err(nan_sort_refusal(
+            "a chromatogram's product m/z",
+            "std::sort (MSExperiment::sortChromatograms)",
+        ));
+    }
+    let mut unsorted = Vec::new();
+    for (index, chromatogram) in chromatograms.iter().enumerate() {
+        if chromatogram
+            .peaks
+            .windows(2)
+            .all(|pair| !(pair[0].rt > pair[1].rt))
+        {
+            continue;
+        }
+        if chromatogram.peaks.iter().any(|peak| peak.rt.is_nan()) {
+            return Err(nan_sort_refusal(
+                "a chromatogram retention time",
+                "std::stable_sort (MSChromatogram::sortByPosition)",
+            ));
+        }
+        unsorted.push(index);
+    }
+    for &index in &unsorted {
+        let chromatogram = &mut experiment.chromatograms[index];
+        let identity: Vec<usize> = (0..chromatogram.peaks.len()).collect();
+        chromatogram.select(&identity)?;
+    }
+    for &index in &unsorted {
+        let chromatogram = &mut experiment.chromatograms[index];
+        let order = stable_order(chromatogram.peaks.len(), |i| chromatogram.peaks[i].rt);
+        chromatogram.select(&order)?;
+    }
+    let order = stable_order(experiment.chromatograms.len(), |i| {
+        experiment.chromatograms[i].product.mz
+    });
+    let mut slots: Vec<Option<MSChromatogram>> = std::mem::take(&mut experiment.chromatograms)
+        .into_iter()
+        .map(Some)
+        .collect();
+    experiment.chromatograms = order.iter().filter_map(|&i| slots[i].take()).collect();
+    Ok(())
 }
 
 /// Find features: source `run(PeakMap&&, FeatureMap&, const Param&, const FeatureMap& seeds)`.

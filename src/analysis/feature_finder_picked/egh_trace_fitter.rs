@@ -72,17 +72,13 @@
 //! of a refused fit and the gnuplot numbers come from the same module.
 //!
 //! **Solver fidelity.** `optimize` calls
-//! [`minimize`](crate::math::fitters::levenberg_marquardt::minimize), which is
-//! not yet bit-faithful to the executed Eigen solver. Beyond the recorded
-//! fixtures a fit's path can depart from Eigen's at its first trial step, so
-//! fitted parameters, the status and the number of evaluations can differ from
-//! the C++ well beyond the 1e-9 that the EGH fixtures meet. The gap was measured
-//! for `GaussTraceFitter` in `docs/TRACE_FITTER_SUPPORT.md` ("Known gap: solver
-//! fidelity beyond the fixtures"), where the departure arises inside `minimize`
-//! and not in the functor; the EGH functor goes through the same driver and
-//! solver, so the caveat applies to EGH fits as well, although they have not
-//! been measured beyond these fixtures. The root cause is in
-//! `src/math/fitters/levenberg_marquardt.rs`, under investigation in lane B3b.
+//! [`minimize`](crate::math::fitters::levenberg_marquardt::minimize), which
+//! since package B3b-LM-FIDELITY follows Eigen 5.0.1 as the Linux x86_64
+//! Release build compiles it, the build the port matches (user decision of
+//! 2026-09-15). The measurements, and the platform split that remains against
+//! the macOS arm64 build, whose Eigen kernels fuse their arithmetic, are in
+//! `docs/TRACE_FITTER_SUPPORT.md`, "Known gap: solver fidelity beyond the
+//! fixtures"; the EGH functor goes through the same driver and solver.
 //!
 //! The source is serial, and so is this module. Its work is bounded by the
 //! ceilings of `MassTraces::intensity_profile` and of `optimize`, both checked
@@ -546,8 +542,8 @@ impl TraceFitter for EGHTraceFitter {
     /// exhausted budget and a start point at which the gradient already
     /// vanishes, as it does for the NaN start of a flat profile.
     ///
-    /// The solver is not yet bit-faithful to the executed Eigen beyond the
-    /// recorded fixtures; see "Solver fidelity" in the module documentation.
+    /// The solver follows Eigen as the Linux x86_64 Release build compiles it;
+    /// see "Solver fidelity" in the module documentation.
     ///
     /// # Errors
     ///

@@ -156,6 +156,12 @@ impl FittedModel {
     ///   `operator unsigned int` keep the same low 32 bits, so a value that
     ///   passes the restriction reaches the solver unchanged and positive.
     ///
+    /// The residual count the source checks is `int`
+    /// (`static_cast<int>(getPeakCount())`, `GaussTraceFitter.cpp:140`, and
+    /// `EGHTraceFitter.cpp:29` through the `int` constructor): traces with more
+    /// than `INT_MAX` peaks would also throw at `:111`, but the solver's
+    /// `MAX_POINTS` ceiling refuses such traces first.
+    ///
     /// # Errors
     ///
     /// As [`TraceFitter::fit`] of the selected model. From the seed loop, that
@@ -398,8 +404,11 @@ pub struct FeatureInput<'a> {
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] when the traces are empty
-/// ([`MassTraces::theoretical_max_position`]), when the isotope window of the
-/// feature's m/z was not precalculated, when the point count of a hull exceeds
+/// ([`MassTraces::theoretical_max_position`]); when the isotope window of the
+/// feature's m/z was not precalculated, which a NaN m/z causes (an infinite
+/// intensity in the reported traces makes the average m/z `inf / inf`) and
+/// where the source's exception escapes its parallel region and terminates the
+/// process; when the point count of a hull exceeds
 /// its ceiling, and when the model's FWHM is not finite or is negative, which
 /// [`crate::kernel::BaseFeature::set_width`] refuses and the source stores. A
 /// non-finite FWHM needs a non-finite fit, which the source's quality checks let
@@ -467,7 +476,18 @@ pub fn build_feature(input: FeatureInput<'_>) -> Result<Feature> {
                 * (position + pattern.theoretical_pattern.trimmed_left) as f64
         }
     };
-    feature.intensity = (fitter.area() / windows.get(feature.mz)?.max) as f32;
+    // Source `getIsotopeDistribution_(f.getMZ())` inside the seed loop's
+    // OpenMP region (`FeatureFinderAlgorithmPicked.cpp:790`): its
+    // `Exception::InvalidValue` is not caught there, so the source terminates.
+    let window = windows.get(feature.mz).map_err(|error| {
+        Error::InvalidValue(format!(
+            "FeatureFinderAlgorithmPicked step 3.3.5: the feature m/z {} has no isotope window \
+             ({error}); the source throws this inside its OpenMP region, where std::terminate \
+             ends the process",
+            feature.mz
+        ))
+    })?;
+    feature.intensity = (fitter.area() / window.max) as f32;
     let mut hulls = Vec::new();
     hulls
         .try_reserve_exact(traces.len())

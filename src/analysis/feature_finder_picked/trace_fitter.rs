@@ -484,15 +484,12 @@ pub const FEWER_RESIDUALS_THAN_PARAMETERS: &str = "Skipping feature, we always e
 /// is what the source sets `lmSolver.parameters.maxfev` to. The weighting flag
 /// of `parameters` is not read here: it belongs to the residual functor.
 ///
-/// The configuration is the source's, but the solver is not yet bit-faithful
-/// to the executed Eigen 5.0.1. On most executed inputs the transcription's
-/// path departs from Eigen's in the last bits at the first trial step, so
-/// fitted parameters can differ well beyond 1e-9 and the status and the number
-/// of evaluations can differ too. The agreement recorded for the class-test
-/// and FeatureFinderCentroided_1 fits holds for those fixtures only. The root
-/// cause is in `src/math/fitters/levenberg_marquardt.rs`, under investigation
-/// in lane B3b; `docs/TRACE_FITTER_SUPPORT.md` ("Known gap") has the
-/// measurements.
+/// The configuration is the source's. Since package B3b-LM-FIDELITY the solver
+/// follows Eigen 5.0.1 as the Linux x86_64 Release build compiles it, the
+/// build the port matches, and is bit-exact there on all 141 traced fits;
+/// against the macOS arm64 build, whose Eigen kernels fuse their arithmetic,
+/// fitted parameters can differ in the last bits. `docs/TRACE_FITTER_SUPPORT.md`
+/// ("Known gap: solver fidelity beyond the fixtures") has the measurements.
 ///
 /// The source believes, after reading Eigen, that every status except
 /// `NotStarted`, `Running` and `ImproperInputParameters` is a good termination;

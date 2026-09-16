@@ -35,10 +35,10 @@ use crate::analysis::feature_finder_picked::helper_structs::{
     IsotopePattern, MassTrace, MassTraces, PatternPeak, Seed, TracePeak,
 };
 use crate::analysis::feature_finder_picked::scoring::{
-    ScoreArrays, find_isotope, isotope_score, position_score, reset_pattern,
+    ScoreArrays, find_isotope, isotope_score, nearest, position_score, reset_pattern,
 };
 use crate::analysis::feature_finder_picked::seeds::IsotopeWindows;
-use crate::kernel::{MSSpectrum, nearest};
+use crate::kernel::MSSpectrum;
 use crate::{Error, Result};
 
 /// The overall-score array of one charge, the only score array the extension

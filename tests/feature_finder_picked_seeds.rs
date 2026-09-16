@@ -928,9 +928,39 @@ fn input_checks_follow_the_source() {
     // A negative first m/z, checked after sorting.
     let e = experiment(vec![spectrum(1.0, 1, &[(500.0, 1.0), (-1.0, 1.0)])]);
     assert!(message(SeedStage::run(e, &none, &p)).contains("positive m/z"));
-    // Non-finite values (native).
+    // Non-finite values are read as the source reads them. A single scan
+    // with a NaN intensity: step 1 has zero steps, so every cell holds that one
+    // peak and sorts it alone (defined); its intensity score is the default
+    // NaN of the zero-step distances, whose `divsd` result comes first in
+    // every product (derived from `IntensityThresholds::score` and the
+    // executed `iscore_probe`, which pins NaN intensities on zero-step
+    // grids); and one scan never reaches the seed loop. The executed
+    // counterparts on FeatureFinderCentroided_1 are in
+    // `tests/feature_finder_picked.rs`
+    // (`non_finite_inputs_match_the_linux_release_build`).
     let e = experiment(vec![spectrum(1.0, 1, &[(500.0, f32::NAN)])]);
-    assert!(message(SeedStage::run(e, &none, &p)).contains("finite"));
+    let s = SeedStage::run(e, &none, &p).unwrap().unwrap();
+    assert_eq!(s.scores().intensity(0).unwrap()[0].to_bits(), 0xffc0_0000);
+    assert_eq!(
+        s.log(),
+        [
+            "Found 0 seeds for charge 1.",
+            "Found 0 seeds for charge 2.",
+            "Found 0 seeds for charge 3.",
+            "Found 0 seeds for charge 4.",
+        ]
+    );
+    // An unsorted spectrum holding a NaN m/z beside two different m/z values:
+    // `std::is_sorted` stops at 501 > 500, and the source then sorts the peaks
+    // with `std::stable_sort` under a comparator that is no strict weak
+    // ordering: refused. (Were the NaN between the two, `std::is_sorted`
+    // would compare nothing false and the source would not sort.)
+    let e = experiment(vec![spectrum(
+        1.0,
+        1,
+        &[(501.0, 1.0), (500.0, 1.0), (f64::NAN, 1.0)],
+    )]);
+    assert!(message(SeedStage::run(e, &none, &p)).contains("std::stable_sort"));
     // The parameters are checked after the input.
     let mut invalid = Param::new();
     set(&mut invalid, "intensity:bins", ParamValue::Integer(0));
@@ -1072,14 +1102,25 @@ fn undefined_source_configurations_are_refused() {
                 .all(|charge| charge.seeds.is_empty())
         );
     }
-    // A non-finite user seed.
+    // A NaN user-seed m/z among two different seed m/z values: the source's
+    // std::sort has no strict weak ordering. A single NaN seed sorts alone and
+    // matches no peak: no seed, as the executed Release build finds
+    // (`seeds_one_mz_nan` in `nonfinite_stage.tsv.gz`).
     let mut seeds = FeatureMap::new();
     seeds
         .features
         .push(openms::kernel::Feature::new(100.0, f64::NAN, 1.0));
+    let s = stage(ffc1_input(), &seeds, &ffc1_parameters());
+    assert_eq!(s.log(), ["Found 0 seeds for charge 2."]);
+    seeds
+        .features
+        .push(openms::kernel::Feature::new(100.0, 500.0, 1.0));
+    seeds
+        .features
+        .push(openms::kernel::Feature::new(100.0, 600.0, 1.0));
     assert!(matches!(
         SeedStage::run(ffc1_input(), &seeds, &ffc1_parameters()),
-        Err(Error::InvalidValue(_))
+        Err(Error::InvalidValue(message)) if message.contains("strict weak ordering")
     ));
 }
 
