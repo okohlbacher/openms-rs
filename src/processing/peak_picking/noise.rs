@@ -29,7 +29,6 @@
 
 use super::{PickingCompatibility, SignalPoint, bad};
 use crate::concept::progress_logger::ProgressLogger;
-use crate::format::file_info::text_format::ostream_g;
 use crate::kernel::{ChromatogramPeak, MSChromatogram, MSSpectrum, Peak1D};
 use crate::param::{DefaultParamHandler, Param, ParamEntry, ParamNode, ParamValue};
 use crate::processing::noise_estimation::{GaussianEstimate, SignalToNoiseEstimator, x86};
@@ -458,8 +457,56 @@ fn integral_i32(value: f64, key: &str) -> Result<i32> {
 fn source_invalid_value(value: f64, message: &str) -> Error {
     Error::InvalidValue(format!(
         "the value '{}' was used but is not valid; {message}",
-        crate::format::file_info::text_format::to_str(value)
+        crate::param::value::format_float(value, true)
     ))
+}
+
+/// `std::ostream << double` at the stream's default precision 6, which is C
+/// `printf("%g")`: six significant digits, fixed notation when the decimal
+/// exponent `X` after rounding satisfies `-4 <= X < 6` and scientific notation
+/// with a signed two-digit exponent otherwise, trailing fraction zeros and a
+/// bare point removed. Exact decimal ties round half to even, as glibc does.
+///
+/// This is the rule `format::file_info::text_format::ostream_g` implements at
+/// precision 6. The processing module may not depend on the format module
+/// (`docs/module-cycles.json`: that edge would close a cycle), so the warning
+/// lines restate it here. Only finite values reach it: the negative-range
+/// warning prints a range below zero, which is never NaN or `-inf` (a sum that
+/// reaches `-inf` makes the variance, and so the range, NaN), and the other two
+/// print a percentage above 1 or 20. Non-finite values still get glibc's
+/// spellings.
+fn stream_double(value: f64) -> String {
+    if value.is_nan() {
+        return if value.is_sign_negative() {
+            "-nan"
+        } else {
+            "nan"
+        }
+        .into();
+    }
+    if value.is_infinite() {
+        return if value < 0.0 { "-inf" } else { "inf" }.into();
+    }
+    fn strip(text: &str) -> &str {
+        if text.contains('.') {
+            text.trim_end_matches('0').trim_end_matches('.')
+        } else {
+            text
+        }
+    }
+    // Rust's exact formatting rounds half to even, so this exponent is the one
+    // after rounding to six significant digits.
+    let scientific = format!("{value:.5e}");
+    let (mantissa, exponent) = scientific.split_once('e').unwrap_or((&scientific, "0"));
+    let exponent: i32 = exponent.parse().unwrap_or(0);
+    if (-4..6).contains(&exponent) {
+        // 0 <= 5 - exponent <= 9.
+        let fraction = usize::try_from(5 - exponent).unwrap_or(0);
+        strip(&format!("{value:.fraction$}")).to_owned()
+    } else {
+        let sign = if exponent < 0 { '-' } else { '+' };
+        format!("{}e{sign}{:02}", strip(mantissa), exponent.unsigned_abs())
+    }
 }
 
 const MANUAL_MESSAGE: &str = "auto_mode is on MANUAL! max_intensity is <=0. Needs to be positive! Use setMaxIntensity(<value>) or enable auto_mode!";
@@ -1107,7 +1154,7 @@ impl SignalToNoiseEstimatorMedian {
             // zero-initialised estimates.
             result.log.push(format!(
                 "SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! {}",
-                ostream_g(max_intensity, 6)
+                stream_double(max_intensity)
             ));
             result.signal_to_noise.resize(n, 0.0);
             result.noise.resize(n, f64::INFINITY);
@@ -1151,13 +1198,13 @@ impl SignalToNoiseEstimatorMedian {
         if result.sparse_window_percent > 20.0 && self.write_log_messages {
             result.log.push(format!(
                 "WARNING in SignalToNoiseEstimatorMedian: {}% of all windows were sparse. You should consider increasing 'win_len' or decreasing 'min_required_elements'",
-                ostream_g(result.sparse_window_percent, 6)
+                stream_double(result.sparse_window_percent)
             ));
         }
         if result.histogram_rightmost_percent > 1.0 && self.write_log_messages {
             result.log.push(format!(
                 "WARNING in SignalToNoiseEstimatorMedian: {}% of all Signal-to-Noise estimates are too high, because the median was found in the rightmost histogram-bin. You should consider increasing 'max_intensity' (and maybe 'bin_count' with it, to keep bin width reasonable)",
-                ostream_g(result.histogram_rightmost_percent, 6)
+                stream_double(result.histogram_rightmost_percent)
             ));
         }
         Ok(result)

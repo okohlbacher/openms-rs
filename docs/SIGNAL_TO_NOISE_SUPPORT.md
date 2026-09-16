@@ -163,7 +163,11 @@ reason. An infinite `win_len` makes every window the whole container.
 - **Warnings.** More than 20 % sparse windows and more than 1 % rightmost
   medians each add a line (:377-393), only when `write_log_messages` is set; the
   percentage is formatted as `std::ostream` does by default (`%g`, precision
-  6). A NaN percentage compares false and writes nothing. The log stream's
+  6). A NaN percentage compares false and writes nothing. The formatter is a
+  private restatement of `format::file_info::text_format::ostream_g` at
+  precision 6, because `processing` may not depend on `format`
+  (`docs/module-cycles.json`); the `toStr` of the exception texts is
+  `param::value::format_float`, the crate's other `StringUtils::toStr(double)`. The log stream's
   repeat suppression (`<line> occurred N times`) belongs to
   `concept::log_stream` and applies when the lines are written there.
 - **Progress.** `startProgress(0, n, "noise estimation of data")` runs after the
@@ -504,6 +508,10 @@ No class test calls `estimateNoiseFromRandomScans`.
   `Update ranges was called but ranges were already up-to-date`
   (`../oracle/sne-completion/p1/`).
   So the P1 fixture is also the Release build's output.
+- **Tier 2.** The `%g` spelling of the warning values
+  (`warning_values_use_the_stream_default_format`): fifteen values across both
+  notations, the exact ties and a decade carry, derived with glibc's
+  `snprintf("%g")` on `ibminode06` and, identically, with Python's `'%g' %`.
 - **Tier 3.** The class-test sections above.
 - **Tier 4.** Native refusals and their exact case lists; the `x86`
   emulations' edge values; the `libstdcxx` port's order-statistic and

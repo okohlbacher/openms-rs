@@ -1292,3 +1292,49 @@ fn class_test_base_sections_through_a_trivial_estimator() {
         None
     );
 }
+
+/// The warning lines print their value as `std::ostream << double` does at the
+/// default precision, i.e. `printf("%g")`. The expected spellings were derived
+/// independently, identically with glibc's `snprintf("%g")` on `ibminode06`
+/// and with Python's `'%g' %`: scientific notation below `1e-4` and from
+/// `1e6` after rounding, six significant digits, exact ties to even
+/// (`93.65625`, `123456.5`, `1234565`), and a carry into the next decade
+/// (`999999.5`). A single negative point makes the standard-deviation range
+/// exactly that value, so each takes the ungated early return.
+#[test]
+fn warning_values_use_the_stream_default_format() {
+    let cases = [
+        (1.5e-05, "-1.5e-05"),
+        (123_456_789.0, "-1.23457e+08"),
+        (99.999_949, "-99.9999"),
+        (999_999.5, "-1e+06"),
+        (9.999_999_747_378_75e-05, "-0.0001"),
+        (93.656_25, "-93.6562"),
+        (5.0, "-5"),
+        (1e-300, "-1e-300"),
+        (0.5, "-0.5"),
+        (123_456.5, "-123456"),
+        (1_234_565.0, "-1.23456e+06"),
+        (0.000_123_456_789, "-0.000123457"),
+        (9.999_95e-05, "-9.99995e-05"),
+        (5e-324, "-4.94066e-324"),
+        (f64::MAX, "-1.79769e+308"),
+    ];
+    let estimator = SignalToNoiseEstimatorMedian {
+        min_required_elements: 1,
+        ..Default::default()
+    };
+    for (value, text) in cases {
+        let estimates = estimator
+            .estimate_with_compatibility(&[0.0], &[-value], &PickingCompatibility::source())
+            .unwrap();
+        assert_eq!(estimates.max_intensity, -value);
+        assert_eq!(
+            estimates.log,
+            [format!(
+                "SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! {text}"
+            )]
+        );
+        assert_eq!(estimates.signal_to_noise, [0.0]);
+    }
+}
