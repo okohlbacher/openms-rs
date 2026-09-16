@@ -282,8 +282,8 @@ impl IntensityThresholds {
     /// # Undefined behaviour of the source, reproduced as the Linux x86_64 Release build computes it
     ///
     /// The conversion `(UInt) std::floor(...)` (`FeatureFinderAlgorithmPicked.cpp:1837-1838`)
-    /// is undefined in C++ when the half-bin position is NaN, infinite,
-    /// negative (below `-1`) or `2^32` and above. That happens for a peak
+    /// is undefined in C++ when the floored half-bin position is NaN,
+    /// infinite, negative, or `2^32` and above. That happens for a peak
     /// outside the binned range, which the algorithm never scores, and for
     /// every peak when a bin step is zero or infinite
     /// ([`DegenerateBinStep`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep)).

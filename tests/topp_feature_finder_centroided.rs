@@ -1168,7 +1168,9 @@ fn a_short_input_never_reaches_the_seed_loop_as_in_the_cpp_release_build() {
 
 /// FeatureFinderCentroided_1's input with every `scan start time` replaced by
 /// the first one, `4114.53`: a zero retention-time extent (oracle input
-/// `zero_rt_ffc1.mzML` of `../oracle/ffap-sem-completion/make_inputs.py`).
+/// `zero_rt_ffc1.mzML` of `../oracle/ffap-sem-completion/make_inputs.py`; its
+/// sha256 and those of the two m/z inputs are in
+/// `tests/data/feature_finder_picked_provenance.json`, `oracle.release_build`).
 fn derive_zero_rt(source: &[u8]) -> Vec<u8> {
     const MARKER: &[u8] = br#"name="scan start time" value=""#;
     let mut out = Vec::with_capacity(source.len());

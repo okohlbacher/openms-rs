@@ -35,7 +35,7 @@
 //! (EGH) configuration, and within measured platform bounds elsewhere; see
 //! [`tolerance`].
 
-#![cfg(all(feature = "mzml", feature = "paramxml"))]
+#![cfg(all(feature = "mzml", feature = "paramxml", feature = "featurexml"))]
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
