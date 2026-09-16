@@ -429,12 +429,18 @@ pub enum AbundanceOverride {
 /// the undeclared key itself, `Param::getValue` throws `ElementNotFound` inside
 /// the OpenMP region of the seed loop, and the process terminates (executed:
 /// `FeatureFinderCentroided` with `-algorithm:write_debug` on
-/// FeatureFinderCentroided_1 is killed by `SIGABRT`).
+/// FeatureFinderCentroided_1 is killed by `SIGABRT`, shell status 134). A safe
+/// port cannot end the process abnormally; it returns an error at that seed,
+/// and the FeatureFinderCentroided tool exits with code 8 after writing what
+/// the executed process had written.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum PseudoRtShiftKey {
     /// Read `debug:pseudo_rt_shift`, as the source does: an integer or float
-    /// value is used, and at the first seed that reaches the fit without one,
-    /// where the source process terminates, the run returns
+    /// value is used; a string or list value is the bits of a heap pointer
+    /// ([`PseudoRtShift::HeapAddress`](crate::analysis::feature_finder_picked::debug::PseudoRtShift::HeapAddress)),
+    /// emulated wherever the written text does not depend on the address. At
+    /// the first seed that reaches the fit without the key or with an empty
+    /// value, where the source process terminates, the run returns
     /// [`Error::Unsupported`] and records the point in
     /// [`DebugOutput::termination`]. The default, and what the
     /// FeatureFinderCentroided tool uses.
@@ -444,6 +450,30 @@ pub enum PseudoRtShiftKey {
     /// the member's files for every seed that reaches the fit: what the source
     /// evidently intends.
     Declared,
+}
+
+/// What [`FeatureFinderAlgorithmPicked::parameters`] returns after
+/// [`FeatureFinderAlgorithmPicked::set_parameters`] (or a run) refused a
+/// parameter set.
+///
+/// Source `DefaultParamHandler::setParameters` (`DefaultParamHandler.cpp`)
+/// assigns the new set, merged with the defaults, to `param_` *before*
+/// `Param::checkDefaults` throws `InvalidParameter` for a value of the wrong
+/// type or outside its restriction, and calls `updateMembers_` only after the
+/// check. After the exception `getParameters()` therefore returns the rejected
+/// set while the typed members keep the values of the last accepted one
+/// (executed: `params_after_failed_set.txt` and `rejected_stdout.txt` of the
+/// oracle). The next `setParameters` or `run` replaces the set again.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum RejectedParameters {
+    /// Show the rejected set, merged with the defaults, as the source does;
+    /// the settings a run uses stay those of the last accepted set, and the
+    /// next accepted set replaces it. The default.
+    #[default]
+    Shown,
+    /// Keep showing the last accepted set: a refused set changes nothing, the
+    /// port's usual atomicity.
+    Discarded,
 }
 
 /// Resource ceilings of the seed stage, checked before the corresponding work.
@@ -551,6 +581,9 @@ pub struct Options {
     /// The parameter a `write_debug` run reads for the pseudo-RT shift of its
     /// feature plots.
     pub pseudo_rt_shift: PseudoRtShiftKey,
+    /// What the algorithm instance's parameters show after a rejected
+    /// parameter set.
+    pub rejected_parameters: RejectedParameters,
 }
 
 /// The typed parameter values of one run.

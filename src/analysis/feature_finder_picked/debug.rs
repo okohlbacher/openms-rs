@@ -39,6 +39,13 @@
 //!   in [`DebugOutput::termination`];
 //!   [`PseudoRtShiftKey::Declared`](crate::analysis::feature_finder_picked::algorithm::PseudoRtShiftKey::Declared)
 //!   reads the declared parameter and produces the member's files.
+//! - **A string or list under `debug:pseudo_rt_shift`.** The source's
+//!   `double` conversion then returns the bits of a heap pointer, a tiny
+//!   positive number that changes from process to process
+//!   ([`PseudoRtShift::HeapAddress`]). Only a shifted retention time close to
+//!   zero shows it; everywhere else the port writes the source's bytes, and
+//!   [`write_feature_debug_info`] refuses at the first value that would show
+//!   the address.
 //! - **`abort_` races.** `abort_` (`:1129-1140`) writes `log_` and
 //!   `abort_reasons_` from inside the parallel region without synchronisation;
 //!   the parameter text itself says "do not use in parallel mode". With more
@@ -66,6 +73,7 @@
 //! [`debug_experiment`]: crate::analysis::feature_finder_picked::debug::debug_experiment
 //! [`Error::Unsupported`]: crate::Error::Unsupported
 //! [`DebugOutput::termination`]: crate::analysis::feature_finder_picked::debug::DebugOutput::termination
+//! [`PseudoRtShift::HeapAddress`]: crate::analysis::feature_finder_picked::debug::PseudoRtShift::HeapAddress
 
 use std::collections::BTreeMap;
 
@@ -139,7 +147,10 @@ impl LogSink for LogFragment {
             // '\n', which libstdc++ inserts with `sputc`, not `sputn`.
             self.insertions.push(CHAR_INSERTION);
         } else if !text.is_empty() {
-            // An empty `sputn` changes nothing.
+            // An empty `sputn` writes only when the put area is full
+            // (`0 >= 0` in `xsputn`), and only a `sputc` leaves it full; every
+            // empty insertion of the source follows a non-empty string
+            // (`" peaks (abort: "`, `"Abort: "`), so it changes nothing.
             self.insertions
                 .push(u32::try_from(text.len()).unwrap_or(u32::MAX));
         }
@@ -428,8 +439,8 @@ impl PartialOrd for IntensityKey {
 
 impl Ord for IntensityKey {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        // Keys are finite (checked on insertion) and normalised, so the total
-        // order is the `<` order.
+        // Keys are not NaN (checked on insertion) and their zeros are
+        // normalised, so the total order is the `<` order.
         self.0.total_cmp(&other.0)
     }
 }
@@ -666,23 +677,52 @@ pub fn debug_experiment(
     Ok(experiment)
 }
 
+/// The pseudo-RT shift `writeFeatureDebugInfo_` works with.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum PseudoRtShift {
+    /// A numeric parameter value, converted to `double` as the source converts
+    /// it (an integer by `double(value)`).
+    Value(f64),
+    /// A string or list parameter value. `ParamValue::operator double()`
+    /// (`ParamValue.cpp:397-408`) returns the union member `dou_` for every
+    /// type but `EMPTY` and `INT`; the Release build's code is one `movsd
+    /// 0x8(%rdi),%xmm0` (`libOpenMS.so`, `_ZNK6OpenMS10ParamValuecvdEv`), so
+    /// the shift is the bit pattern of the heap pointer the union holds.
+    ///
+    /// Any x86_64 user-space address read as a `double` is a positive number
+    /// below `2^-990`, and it changes from process to process (executed: three
+    /// processes, three values). `k * shift`, with `k` the trace index, is below
+    /// `2^-979`, so adding it to a retention time of magnitude at least
+    /// [`ABSORBING_MAGNITUDE`] or to a non-finite one gives that value back
+    /// unchanged: there the text is the one a shift of `0` gives, and
+    /// reproducible (executed: FeatureFinderCentroided_1 with a string and a
+    /// string-list value, byte-identical files in three processes each). Where
+    /// a shifted value (`k >= 1`) is finite and smaller, the text depends on the
+    /// address (executed: the same input moved to RT 0 at a seed's scan wrote
+    /// different `.dta` files in each of three processes), and
+    /// [`write_feature_debug_info`] refuses.
+    HeapAddress,
+}
+
+/// The smallest magnitude of a finite retention time that a heap-address
+/// shift (see [`PseudoRtShift::HeapAddress`]) cannot change: `1e-270`, whose
+/// half unit in the last place, `2^-950`, exceeds `k * shift < 2^-979`.
+pub const ABSORBING_MAGNITUDE: f64 = 1e-270;
+
 /// The value `writeFeatureDebugInfo_` reads for `pseudo_rt_shift`: its
 /// `ParamValue` converted to `double` (`ParamValue::operator double`,
 /// `ParamValue.cpp:397-408`).
 ///
 /// # Errors
 ///
-/// - `Ok(Err(termination))` when the source throws inside the OpenMP region:
-///   the key is absent (`ElementNotFound`) or holds no value
-///   (`ConversionError`). The caller turns that into the terminated run.
-/// - [`Error::Unsupported`] when the value is a string or a list: the source
-///   then returns the `double` member of the value's union, which holds a
-///   pointer, so the number depends on the heap address and has no
-///   reproducible value.
+/// `Ok(Err(termination))` when the source throws inside the OpenMP region:
+/// the key is absent (`ElementNotFound`) or holds no value
+/// (`ConversionError`). The caller turns that into the terminated run. A
+/// string or list value is [`PseudoRtShift::HeapAddress`].
 pub(crate) fn read_pseudo_rt_shift(
     parameters: &crate::param::Param,
     key: &str,
-) -> Result<std::result::Result<f64, (&'static str, String)>> {
+) -> Result<std::result::Result<PseudoRtShift, (&'static str, String)>> {
     use crate::param::ParamValue;
     if !parameters.exists(key)? {
         return Ok(Err((
@@ -690,19 +730,19 @@ pub(crate) fn read_pseudo_rt_shift(
             format!("the element '{key}' could not be found"),
         )));
     }
-    match parameters.value(key)? {
-        ParamValue::Empty => Ok(Err((
+    Ok(match parameters.value(key)? {
+        ParamValue::Empty => Err((
             "ConversionError",
             "Could not convert ParamValue::EMPTY to double".to_owned(),
-        ))),
-        ParamValue::Integer(value) => Ok(Ok(*value as f64)),
-        ParamValue::Float(value) => Ok(Ok(*value)),
-        _ => Err(Error::Unsupported(format!(
-            "the parameter '{key}' holds a string or a list; the source reads the double member \
-             of its value's union, which holds a pointer, so the shift depends on the heap \
-             address and has no reproducible value"
-        ))),
-    }
+        )),
+        // `double(data_.ssize_)`: `cvtsi2sdq`, round to nearest.
+        ParamValue::Integer(value) => Ok(PseudoRtShift::Value(*value as f64)),
+        ParamValue::Float(value) => Ok(PseudoRtShift::Value(*value)),
+        ParamValue::String(_)
+        | ParamValue::StringList(_)
+        | ParamValue::IntegerList(_)
+        | ParamValue::FloatList(_) => Ok(PseudoRtShift::HeapAddress),
+    })
 }
 
 /// The inputs of `writeFeatureDebugInfo_` besides the algorithm's state.
@@ -728,7 +768,7 @@ pub struct FeatureDebugInput<'a> {
     /// caller's features plus those of earlier charges.
     pub features_len: usize,
     /// The shift that places trace `k` at `rt + k * pseudo_rt_shift`.
-    pub pseudo_rt_shift: f64,
+    pub pseudo_rt_shift: PseudoRtShift,
     /// The directory prefix, [`FEATURE_DEBUG_PATH`] in the algorithm.
     pub path: &'a str,
 }
@@ -788,7 +828,16 @@ fn dta(traces: &MassTraces, shift: f64) -> String {
 ///   (score: <3 decimals>)` for an accepted one, where `n` is the output map's
 ///   size plus one at that moment, and each trace `Trace <k> (m/z: <average,
 ///   4 decimals>)`.
-pub fn write_feature_debug_info(input: FeatureDebugInput<'_>) -> FeatureDebugFiles {
+///
+/// # Errors
+///
+/// Returns [`Error::Unsupported`] for a [`PseudoRtShift::HeapAddress`] shift
+/// when a shifted value, a peak of trace `k >= 1` (extended or cropped) or the
+/// fitted centre in the formula of such a trace, is finite and smaller than
+/// [`ABSORBING_MAGNITUDE`]: the source writes a text there that depends on the
+/// heap address and differs from process to process. Every other text of such
+/// a shift is the text of shift `0`, which is what the source writes.
+pub fn write_feature_debug_info(input: FeatureDebugInput<'_>) -> Result<FeatureDebugFiles> {
     let FeatureDebugInput {
         fitter,
         traces,
@@ -802,6 +851,13 @@ pub fn write_feature_debug_info(input: FeatureDebugInput<'_>) -> FeatureDebugFil
         pseudo_rt_shift,
         path,
     } = input;
+    let pseudo_rt_shift = match pseudo_rt_shift {
+        PseudoRtShift::Value(value) => value,
+        PseudoRtShift::HeapAddress => {
+            check_absorbed(traces, new_traces, fitter.center(), plot_nr)?;
+            0.0
+        }
+    };
     let mut script = format!(
         "plot \"{path}{plot_nr}.dta\" title 'before fit (RT: {} m/z: {})' with points 1",
         number(fitter.center(), 2),
@@ -852,11 +908,44 @@ pub fn write_feature_debug_info(input: FeatureDebugInput<'_>) -> FeatureDebugFil
     lines.push(b"set samples 1000".to_vec());
     lines.push(script);
     lines.push(b"pause -1".to_vec());
-    FeatureDebugFiles {
+    Ok(FeatureDebugFiles {
         plot_nr,
         path: path.to_owned(),
         dta: before,
         cropped_dta: cropped,
         plot: text_file(&lines),
+    })
+}
+
+/// Whether adding a heap-address shift leaves `value` unchanged.
+fn absorbs(value: f64) -> bool {
+    !value.is_finite() || value.abs() >= ABSORBING_MAGNITUDE
+}
+
+/// The check of [`write_feature_debug_info`] for a heap-address shift, in the
+/// order the source writes the values: the `.dta` peaks, the `_cropped.dta`
+/// peaks, then the centre in each trace formula of the `.plot` file. Trace 0
+/// is shifted by `0 * shift = 0` and never depends on the address.
+fn check_absorbed(
+    traces: &MassTraces,
+    new_traces: &MassTraces,
+    center: f64,
+    plot_nr: i64,
+) -> Result<()> {
+    let refuse = |file: &str, trace: usize, value: f64| {
+        Error::Unsupported(format!(
+            "write_debug: debug:pseudo_rt_shift holds a string or a list, so the source shifts              trace k by k times the bits of a heap address; in {plot_nr}{file} trace {trace} has              the retention time {value:e}, where that shift changes the written number, which              then differs from process to process"
+        ))
+    };
+    for (file, set) in [(".dta", traces), ("_cropped.dta", new_traces)] {
+        for (k, trace) in set.iter().enumerate().skip(1) {
+            if let Some(peak) = trace.peaks.iter().find(|peak| !absorbs(peak.rt)) {
+                return Err(refuse(file, k, peak.rt));
+            }
+        }
     }
+    if traces.len() > 1 && !absorbs(center) {
+        return Err(refuse(".plot", 1, center));
+    }
+    Ok(())
 }

@@ -40,13 +40,19 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use openms::analysis::feature_finder_picked::algorithm::{
-    Options, PseudoRtShiftKey, run_with_options,
+    Options, PseudoRtShiftKey, RejectedParameters, run_with_options,
 };
-use openms::analysis::feature_finder_picked::debug::{DebugOutput, ReportLine};
+use openms::analysis::feature_finder_picked::debug::{
+    ABSORBING_MAGNITUDE, DebugOutput, FeatureDebugInput, PseudoRtShift, ReportLine,
+    write_feature_debug_info,
+};
 use openms::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
 use openms::analysis::feature_finder_picked::source_sort::source_sort_permutation;
 use openms::concept::parallel::Threads;
-use openms::concept::progress_logger::{CommandProgressLogger, ProgressLogType, ProgressLogger};
+use openms::concept::progress_logger::{
+    CommandProgressLogger, ProgressBackend, ProgressLogType, ProgressLogger, ProgressNesting,
+    ProgressTime,
+};
 use openms::format::{FileHandler, FileType, PeakFileOptions, featurexml, paramxml};
 use openms::kernel::{ConvexHull2D, Feature, FeatureMap, MSExperiment, NumericRange, Point2D};
 use openms::metadata::{MetaValue, MetaValueData};
@@ -462,9 +468,9 @@ fn the_parameter_surface_matches_the_release_build() {
 
     // A restriction violation and a type violation are refused. The executed
     // messages are `InvalidParameter` texts; the port reports the same
-    // violation, and leaves the parameters as they were, where the source has
-    // already assigned the rejected set (native difference, recorded in the
-    // support document): the executed `getParameters()` then shows `bins 0`.
+    // violation. The source has already assigned the refused set, so the
+    // executed `getParameters()` then shows it (`bins 0`), and so does the
+    // port by default (`RejectedParameters::Shown`).
     let mut bad = Param::new();
     set(&mut bad, "intensity:bins", ParamValue::Integer(0));
     let error = algorithm.set_parameters(&bad).unwrap_err().to_string();
@@ -472,9 +478,11 @@ fn the_parameter_surface_matches_the_release_build() {
     assert!(info.contains(
         "bad_bins InvalidParameter FeatureFinderAlgorithmPicked: Invalid integer parameter value '0' for parameter 'bins' given!"
     ));
-    assert_eq!(dump_param(algorithm.parameters()), with_unknown);
     let failed = fixture("params_after_failed_set.txt");
     assert!(failed.contains("P intensity:bins i 0\n"));
+    assert_eq!(dump_param(algorithm.parameters()), failed);
+    // The settings a run would use are still the accepted set's.
+    assert_eq!(algorithm.settings().intensity_bins, 1);
     let mut bad_type = Param::new();
     set(
         &mut bad_type,
@@ -519,6 +527,102 @@ fn the_parameter_surface_matches_the_release_build() {
     );
     assert!(info.contains("empty_run_map_uid 0 meta_empty 1\n"));
     assert!(cleared.metadata.is_empty());
+}
+
+/// The sections of `rejected_stdout.txt` (`== <name>` headers) and of
+/// `rejected_stderr.txt`, by name.
+fn rejected_sections(text: &str) -> BTreeMap<String, String> {
+    let mut sections = BTreeMap::new();
+    let mut current: Option<(String, String)> = None;
+    for line in text.split_inclusive('\n') {
+        if let Some(name) = line.strip_prefix("== ") {
+            if let Some((name, body)) = current.take() {
+                sections.insert(name, body);
+            }
+            current = Some((name.trim_end().to_owned(), String::new()));
+        } else if let Some((_, body)) = current.as_mut() {
+            body.push_str(line);
+        }
+    }
+    if let Some((name, body)) = current {
+        sections.insert(name, body);
+    }
+    sections
+}
+
+/// The driver case `ffap_progress_driver rejected`: an accepted set with
+/// unknown keys (the warnings in `checkDefaults` order), a refused set with
+/// unknown keys before and after the refused entry (only the ones before are
+/// logged, then `InvalidParameter`, and `getParameters()` shows the refused
+/// set), and a run with the refused set (the same warnings, which the log
+/// stream folds into its `occurred 2 times` lines, the same exception, and
+/// the caller's map untouched).
+#[test]
+fn a_refused_parameter_set_matches_the_release_build() {
+    let out = rejected_sections(&fixture("rejected_stdout.txt.gz"));
+    let err = rejected_sections(&fixture("rejected_stderr.txt"));
+    let lines = |text: &str| -> Vec<String> { text.lines().map(str::to_owned).collect() };
+    let mut good = ffc1_parameters();
+    set(&mut good, "zz:late_unknown", ParamValue::Integer(1));
+    set(&mut good, "a_unknown", ParamValue::Float(1.5));
+    set(
+        &mut good,
+        "intensity:c_unknown",
+        ParamValue::String("x".into()),
+    );
+    let refused = || {
+        let mut p = Param::new();
+        set(&mut p, "a_unknown", ParamValue::Integer(1));
+        set(&mut p, "intensity:bins", ParamValue::Integer(0));
+        set(&mut p, "intensity:b_unknown", ParamValue::Integer(2));
+        set(&mut p, "z_unknown", ParamValue::Integer(3));
+        p
+    };
+
+    let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+    let warnings = algorithm.set_parameters(&good).unwrap();
+    assert_eq!(warnings, lines(&err["set good"]));
+    assert_eq!(dump_param(algorithm.parameters()), out["params after good"]);
+
+    let mut warnings = Vec::new();
+    let error = algorithm
+        .set_parameters_logged(&refused(), &mut warnings)
+        .unwrap_err();
+    assert!(matches!(&error, openms::Error::InvalidValue(m) if m.contains("bins")));
+    assert!(out["set rejected"].starts_with("exception InvalidParameter "));
+    assert_eq!(warnings, lines(&err["set rejected"]));
+    assert_eq!(
+        dump_param(algorithm.parameters()),
+        out["params after rejected"]
+    );
+
+    let mut features = FeatureMap::from_features(vec![Feature::new(0.0, 500.0, 0.0)]);
+    let before = features.clone();
+    let result = algorithm.run(ffc1_input(), &mut features, &refused(), &FeatureMap::new());
+    assert!(matches!(result, Err(openms::Error::InvalidValue(_))));
+    assert!(out["run rejected"].starts_with("exception InvalidParameter "));
+    assert!(out["run rejected"].ends_with("features 1\n"));
+    assert_eq!(features, before);
+    let warned: Vec<String> = algorithm
+        .report()
+        .iter()
+        .filter_map(|line| match line {
+            ReportLine::Warn(text) => Some(format!("<{text}> occurred 2 times")),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(warned, lines(&err["end"]));
+    assert_eq!(dump_param(algorithm.parameters()), out["params after run"]);
+
+    // The native option keeps the accepted set.
+    let mut atomic = FeatureFinderAlgorithmPicked::with_options(Options {
+        rejected_parameters: RejectedParameters::Discarded,
+        ..Options::default()
+    })
+    .unwrap();
+    atomic.set_parameters(&good).unwrap();
+    assert!(atomic.set_parameters(&refused()).is_err());
+    assert_eq!(dump_param(atomic.parameters()), out["params after good"]);
 }
 
 // ---------------------------------------------------------------------------
@@ -1074,16 +1178,8 @@ fn a_debug_run_that_reaches_the_fit_stops_where_the_release_build_terminates() {
     assert!(
         fixture("what.txt").contains(&format!("empty ConversionError {}\n", termination.message))
     );
-    // A string under the key has no reproducible value.
-    let mut parameters = with_debug(ffc1_parameters(), &[]);
-    set(
-        &mut parameters,
-        "debug:pseudo_rt_shift",
-        ParamValue::String("500".into()),
-    );
-    let (result, algorithm, _) = debug_run(ffc1_input(), &parameters, Options::default());
-    assert!(matches!(result, Err(openms::Error::Unsupported(_))));
-    assert!(algorithm.debug_output().unwrap().termination.is_none());
+    // A string under the key does not terminate the source; see
+    // `a_heap_address_shift_matches_the_release_build_where_it_is_reproducible`.
 }
 
 /// A driver case `declared-*`: its name, its parameter overrides and the
@@ -1802,4 +1898,382 @@ fn stale_abort_seeds_outside_the_input_are_refused() {
             .report()
             .contains(&ReportLine::Info("0 features found.".into()))
     );
+}
+
+// ---------------------------------------------------------------------------
+// The complete progress sequence (second driver, counting clock)
+// ---------------------------------------------------------------------------
+
+/// A progress backend that records every call with its raw arguments, in the
+/// driver's `Recorder` format.
+struct Recorder(Shared);
+
+impl ProgressBackend for Recorder {
+    fn start_progress(
+        &mut self,
+        begin: i64,
+        end: i64,
+        label: &str,
+        depth: usize,
+    ) -> openms::Result<()> {
+        use std::io::Write;
+        writeln!(self.0, "S {begin} {end} {depth} {label}")?;
+        Ok(())
+    }
+    fn set_progress(&mut self, value: i64, depth: usize) -> openms::Result<()> {
+        use std::io::Write;
+        writeln!(self.0, "V {value} {depth}")?;
+        Ok(())
+    }
+    fn next_progress(&mut self) -> openms::Result<i64> {
+        use std::io::Write;
+        writeln!(self.0, "N")?;
+        Ok(0)
+    }
+    fn end_progress(&mut self, depth: usize, bytes_processed: u64) -> openms::Result<()> {
+        use std::io::Write;
+        writeln!(self.0, "E {depth} {bytes_processed}")?;
+        Ok(())
+    }
+}
+
+/// The driver's caller map of the `caller` progress case.
+fn progress_caller_map() -> FeatureMap {
+    let feature = |rt: f64, mz: f64, intensity: f32, charge: i32, quality: f32| {
+        let mut f = Feature::new(rt, mz, intensity);
+        f.charge = charge;
+        f.quality = quality;
+        f
+    };
+    let mut a = feature(4407.0, 646.24, 1.0e7, 2, 0.9);
+    a.convex_hulls
+        .push(hull(&[(4374.19, 646.229), (4443.42, 646.2585)]));
+    let mut b = feature(4301.0, 651.75, 5.0e4, 3, 0.99);
+    b.convex_hulls
+        .push(hull(&[(4280.0, 651.75), (4320.0, 651.77)]));
+    let c = feature(1500.0, 500.0, 1000.0, 1, 0.5);
+    FeatureMap::from_features(vec![a, b, c])
+}
+
+/// The `FeatureXMLHandler::store()` line of a debug seed or abort map: the
+/// map's own id and every feature's that is 0 (`FeatureXMLFile.cpp:80-88`).
+/// The source draws the abort map's id before it stores it.
+fn store_line(map: &FeatureMap, map_id_drawn: bool) -> Option<String> {
+    let map_invalid = !map_id_drawn && map.unique_id == 0;
+    let invalid =
+        usize::from(map_invalid) + map.features.iter().filter(|f| f.unique_id == 0).count();
+    (invalid > 0)
+        .then(|| format!("FeatureXMLHandler::store():  found {invalid} invalid unique ids"))
+}
+
+/// The executed driver `ffap_progress_driver progress <case>`: its time() is a
+/// counter, so `ProgressLogger::setProgress` forwards every call, and a
+/// recording backend prints each call with its raw arguments. With a counting
+/// clock the port's `ProgressLogger` forwards every call too, and every event
+/// and every `std::cout` line matches in order, and the `OPENMS_LOG_INFO`
+/// lines in their own order. The one difference is the documented one: where
+/// the source starts an inverted range (steps 2 and 3.2 on fewer than
+/// `2 * min_spectra` scans, case `short`), the port passes `end = begin`.
+#[test]
+fn the_progress_event_sequence_matches_the_release_build() {
+    for case in ["ffc1", "defaults", "short", "caller", "debug"] {
+        let executed = fixture(&format!("progress_events_{case}.txt.gz"));
+        let mut events = Vec::new();
+        let mut info = Vec::new();
+        let mut in_case = false;
+        for line in executed.lines() {
+            if line.starts_with("== CASE ") {
+                in_case = true;
+            } else if line.starts_with("== END ") {
+                in_case = false;
+            } else if let Some(calls) = line.strip_prefix("TIMECALLS ") {
+                let calls: u64 = calls.parse().unwrap();
+                assert!(calls > 100, "{case}: time() was not interposed");
+            } else if in_case
+                && (line.starts_with("S ")
+                    || line.starts_with("V ")
+                    || line.starts_with("N")
+                    || line.starts_with("E ")
+                    || line.starts_with("Found "))
+            {
+                events.push(line.to_owned());
+            } else {
+                info.push(line.to_owned());
+            }
+        }
+
+        let (experiment, parameters, mut features) = match case {
+            "ffc1" => (ffc1_input(), ffc1_parameters(), FeatureMap::new()),
+            "defaults" => (ffc1_input(), Param::new(), FeatureMap::new()),
+            "short" => (short_input(), Param::new(), FeatureMap::new()),
+            "caller" => (ffc1_input(), ffc1_parameters(), progress_caller_map()),
+            _ => (
+                ffc1_input(),
+                with_debug(
+                    ffc1_parameters(),
+                    &[("feature:min_isotope_fit", ParamValue::Float(1.0))],
+                ),
+                FeatureMap::new(),
+            ),
+        };
+        let shared = Shared::default();
+        let ticks = Arc::new(std::sync::atomic::AtomicI64::new(0));
+        let clock_ticks = ticks.clone();
+        let mut logger = ProgressLogger::with_clock_and_nesting(
+            Arc::new(move || {
+                Ok(ProgressTime {
+                    wall_second: clock_ticks.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
+                    wall_seconds: 0.0,
+                    cpu_seconds: None,
+                })
+            }),
+            ProgressNesting::default(),
+        );
+        logger.set_logger(Box::new(Recorder(shared.clone())));
+        let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+        algorithm.set_progress_logger(Some(logger));
+        let sink = shared.clone();
+        algorithm.set_console(Some(Box::new(move |line: &ReportLine| {
+            if let ReportLine::Out(text) = line {
+                use std::io::Write;
+                writeln!(sink.clone(), "{text}").unwrap();
+            }
+        })));
+        algorithm
+            .run(experiment, &mut features, &parameters, &FeatureMap::new())
+            .unwrap();
+        let produced = String::from_utf8(shared.0.lock().unwrap().clone()).unwrap();
+        let produced: Vec<&str> = produced.lines().collect();
+        assert_eq!(produced.len(), events.len(), "{case}: event count");
+        let mut inverted = 0;
+        for (index, (ours, theirs)) in produced.iter().zip(&events).enumerate() {
+            if ours == theirs {
+                continue;
+            }
+            // `S <begin> <end> <depth> <label>` with begin > end in the source.
+            let fields: Vec<&str> = theirs.splitn(5, ' ').collect();
+            let (begin, end): (i64, i64) = (fields[1].parse().unwrap(), fields[2].parse().unwrap());
+            assert!(
+                fields[0] == "S" && begin > end,
+                "{case} event {index}: {ours} against {theirs}"
+            );
+            assert_eq!(
+                *ours,
+                format!("S {begin} {begin} {} {}", fields[3], fields[4]),
+                "{case} event {index}"
+            );
+            inverted += 1;
+        }
+        assert_eq!(inverted > 0, case == "short", "{case}: inverted ranges");
+
+        // The OPENMS_LOG_INFO lines, with the store lines of a debug run.
+        let debug = algorithm.debug_output();
+        let mut ours_info = Vec::new();
+        for line in algorithm.report() {
+            match line {
+                ReportLine::Info(text) => ours_info.push(text.clone()),
+                ReportLine::StoreSeedMap(index) => {
+                    let map = &debug.unwrap().seed_maps[*index].map;
+                    ours_info.extend(store_line(map, false));
+                }
+                ReportLine::StoreAbortReasons => {
+                    let map = debug.unwrap().abort_reasons.as_ref().unwrap();
+                    ours_info.extend(store_line(map, true));
+                }
+                ReportLine::Out(_) | ReportLine::Warn(_) | ReportLine::StoreInput => {}
+            }
+        }
+        while info.last().is_some_and(String::is_empty) {
+            info.pop();
+        }
+        assert_eq!(ours_info, info, "{case}: info lines");
+        assert!(
+            algorithm
+                .report()
+                .iter()
+                .all(|l| !matches!(l, ReportLine::Warn(_)))
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// A string or list under debug:pseudo_rt_shift (second driver)
+// ---------------------------------------------------------------------------
+
+/// `ffap_progress_driver pun_value`: the `double` of a string and a list
+/// `ParamValue` is the bit pattern of a heap pointer, a positive number below
+/// `2^-990`, different in each of three processes.
+#[test]
+fn a_string_shift_is_a_heap_address_in_the_release_build() {
+    let values = fixture("pun_values.txt");
+    let mut seen = std::collections::BTreeSet::new();
+    for line in values.lines() {
+        let bits = u64::from_str_radix(line.rsplit(' ').next().unwrap(), 16).unwrap();
+        let value = f64::from_bits(bits);
+        assert!(value > 0.0 && value < 2f64.powi(-990), "{line}");
+        // A canonical x86_64 user-space address.
+        assert!(bits < 1 << 47, "{line}");
+        seen.insert(bits);
+    }
+    assert_eq!(seen.len(), 9, "every value differs");
+}
+
+/// `ffap_progress_driver pun string` and `pun list`: FeatureFinderCentroided_1
+/// with `debug:pseudo_rt_shift` a string or a string list. Every retention
+/// time is far from zero, so the address vanishes in `rt + k * shift`: the 75
+/// feature files and the log were byte-identical in all six processes, and the
+/// port writes the same bytes. The feature map is the plain run's.
+#[test]
+fn a_heap_address_shift_matches_the_release_build_where_it_is_reproducible() {
+    let digests = debug_digests();
+    for value in [
+        ParamValue::String("500".into()),
+        ParamValue::StringList(vec!["500".into()]),
+    ] {
+        let parameters = with_debug(ffc1_parameters(), &[("debug:pseudo_rt_shift", value)]);
+        let (result, algorithm, features) =
+            debug_run(ffc1_input(), &parameters, Options::default());
+        result.unwrap();
+        let out = algorithm.debug_output().unwrap();
+        assert!(out.termination.is_none());
+        assert_executed_bytes("pun", "log.txt", out.log.text().as_bytes());
+        let mut produced = 0;
+        for files in &out.feature_files {
+            let name = |full: String| full.trim_start_matches("debug/").to_owned();
+            assert_executed_bytes("pun", &name(files.dta_name()), files.dta.as_bytes());
+            assert_executed_bytes("pun", &name(files.plot_name()), &files.plot);
+            produced += 2;
+            if let Some(cropped) = &files.cropped_dta {
+                assert_executed_bytes("pun", &name(files.cropped_dta_name()), cropped.as_bytes());
+                produced += 1;
+            }
+        }
+        let expected = digests
+            .keys()
+            .filter(|(case, file)| case == "pun" && file.starts_with("features/"))
+            .count();
+        assert_eq!(produced, expected);
+        assert_dumps_match(
+            &fixture("reuse_run1.txt.gz"),
+            &dump_map(&features, algorithm.aborts()),
+            "pun",
+        );
+    }
+}
+
+/// `ffap_progress_driver pun zero_rt`: the same input with every retention
+/// time reduced by 4404.89 s, so the scan of the first seed that reaches the
+/// fit sits at RT 0 and `0 + k * shift` prints the address: `0.dta` differed in
+/// each of three processes (while the log and the seed map did not). The port
+/// refuses at that seed's files, after the seed map and the log up to that
+/// point, which match the executed ones.
+#[test]
+fn a_heap_address_shift_is_refused_where_the_written_text_depends_on_the_address() {
+    let digests = debug_digests();
+    let executed: std::collections::BTreeSet<&String> = (1..=3)
+        .map(|rep| &digests[&(format!("zero_rt.{rep}"), "features/0.dta".to_owned())].1)
+        .collect();
+    assert_eq!(
+        executed.len(),
+        3,
+        "the executed 0.dta differs from process to process"
+    );
+
+    let mut experiment = ffc1_input();
+    for spectrum in &mut experiment.spectra {
+        spectrum.rt -= 4404.89;
+    }
+    let parameters = with_debug(
+        ffc1_parameters(),
+        &[("debug:pseudo_rt_shift", ParamValue::String("500".into()))],
+    );
+    let (result, algorithm, features) = debug_run(experiment, &parameters, Options::default());
+    let error = result.unwrap_err();
+    assert!(
+        matches!(&error, openms::Error::Unsupported(message)
+            if message.contains("in 0.dta trace 1") && message.contains("retention time 0e0")),
+        "{error}"
+    );
+    assert!(features.is_empty());
+    let out = algorithm.debug_output().unwrap();
+    assert!(out.termination.is_none());
+    assert!(out.feature_files.is_empty());
+    assert_eq!(out.seed_maps.len(), 1);
+    assert_maps_decoded_equal(
+        &out.seed_maps[0].map,
+        &feature_fixture("pun_zero_rt_seed_map_2.featureXML.gz"),
+        "zero_rt seeds",
+    );
+    assert_executed_bytes("zero_rt", "log_to_plot0.txt", out.log.text().as_bytes());
+}
+
+/// The check behind the refusal, on its own: trace 0 is never shifted, a
+/// non-finite or large retention time absorbs the shift, and a small finite
+/// one (a trace peak, or the fitted centre in a later trace's formula) does
+/// not.
+#[test]
+fn a_heap_address_shift_is_refused_only_for_small_shifted_values() {
+    use openms::analysis::feature_finder_picked::gauss_trace_fitter::GaussTraceFitter;
+    use openms::analysis::feature_finder_picked::helper_structs::{
+        MassTrace, MassTraces, TracePeak,
+    };
+    let trace = |rt: f64| {
+        let mut trace = MassTrace::default();
+        trace.peaks.push(TracePeak::new(0, 0, rt, 500.0, 10.0));
+        trace.theoretical_int = 1.0;
+        trace
+    };
+    let traces = |rts: &[f64]| {
+        let mut traces = MassTraces::new();
+        for &rt in rts {
+            traces.push(trace(rt));
+        }
+        traces
+    };
+    let fitter = GaussTraceFitter::default();
+    let write = |extended: &MassTraces, cropped: &MassTraces, shift: PseudoRtShift| {
+        write_feature_debug_info(FeatureDebugInput {
+            fitter: &fitter,
+            traces: extended,
+            new_traces: cropped,
+            feature_ok: true,
+            error_msg: "",
+            final_score: 0.5,
+            plot_nr: 3,
+            seed_mz: 500.0,
+            features_len: 0,
+            pseudo_rt_shift: shift,
+            path: "debug/features/",
+        })
+    };
+    let empty = MassTraces::new();
+    // The default fitter's centre is 0, which a second trace would shift.
+    let one = traces(&[0.0]);
+    let zero_shift = write(&one, &empty, PseudoRtShift::Value(0.0)).unwrap();
+    assert_eq!(
+        write(&one, &empty, PseudoRtShift::HeapAddress).unwrap(),
+        zero_shift
+    );
+    for rts in [
+        [10.0, f64::NAN],
+        [10.0, f64::INFINITY],
+        [10.0, -ABSORBING_MAGNITUDE],
+    ] {
+        let set = traces(&rts);
+        assert!(matches!(
+            write(&set, &empty, PseudoRtShift::HeapAddress),
+            Err(openms::Error::Unsupported(message)) if message.contains(".plot")
+        ));
+    }
+    for rts in [[10.0, 0.0], [10.0, -0.0], [10.0, 1e-300]] {
+        let set = traces(&rts);
+        assert!(matches!(
+            write(&set, &empty, PseudoRtShift::HeapAddress),
+            Err(openms::Error::Unsupported(message)) if message.contains("3.dta trace 1")
+        ));
+        assert!(matches!(
+            write(&traces(&[10.0, 20.0]), &set, PseudoRtShift::HeapAddress),
+            Err(openms::Error::Unsupported(message)) if message.contains("3_cropped.dta trace 1")
+        ));
+    }
 }

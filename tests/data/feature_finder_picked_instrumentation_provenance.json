@@ -11,8 +11,8 @@
  "group": "feature_finder_picked",
  "work_package": "ffap-instrumentation (FeatureFinderAlgorithmPicked: the instance and its side channels)",
  "scope": "FEATUREFINDER/FeatureFinderAlgorithmPicked.h/.cpp: the object state across runs (aborts_, abort_reasons_, log_, isotope_distributions_, param_), run into a caller's non-empty FeatureMap, the DefaultParamHandler surface, the ProgressLogger base (20 call sites), write_debug (log_ text, per-charge seed maps, abort map, debug input) and writeFeatureDebugInfo_ (.dta, _cropped.dta, .plot), and FeatureFinderCentroided -algorithm:write_debug.",
- "method": "Executed differential against the Linux x86_64 Release build. drivers/ffap_instr_driver.cpp subclasses FeatureFinderAlgorithmPicked (reading its protected members) and prints maps with floats as IEEE-754 bit patterns; tool_cases.py runs the Release FeatureFinderCentroided. make_fixtures.py copies the outputs of the .1 repetitions into this directory; the other repetitions were compared and differ only in timing text and in the random map ids the driver draws outside test mode.",
- "evidence_tier": "tier 1 (executed, Linux x86_64 Release, OMP_NUM_THREADS=1) for every compared output; tier 4 for the refused undefined cases (zero-charge SIGFPE, stale abort seeds SIGSEGV), whose executed signals are recorded but have no value to compare.",
+ "method": "Executed differential against the Linux x86_64 Release build. drivers/ffap_instr_driver.cpp subclasses FeatureFinderAlgorithmPicked (reading its protected members) and prints maps with floats as IEEE-754 bit patterns; drivers/ffap_progress_driver.cpp defines time() as a counter (exported with -rdynamic, so libOpenMS.so's ProgressLogger forwards every setProgress call) and records every progress call with a ProgressLoggerImpl, measures the double a string or list ParamValue converts to, runs write_debug with such a shift, and exercises a refused parameter set; tool_cases.py runs the Release FeatureFinderCentroided. make_fixtures.py copies the outputs of the .1 repetitions into this directory; the other repetitions were compared and differ only in timing text and in the random map ids the driver draws outside test mode.",
+ "evidence_tier": "tier 1 (executed, Linux x86_64 Release, OMP_NUM_THREADS=1) for every compared output; tier 4 for the refused undefined cases (zero-charge SIGFPE, stale abort seeds SIGSEGV, a heap-address shift at a retention time near 0), whose executed signals or varying outputs are recorded but have no value to compare.",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
@@ -27,77 +27,84 @@
   {
    "package": "core",
    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
-   "path": "src/openms/source/KERNEL/Feature.cpp",
+   "path": "source/KERNEL/Feature.cpp",
    "sha256": "5b6ea1b5ecb99d656213c02ebfe4e9a89f5216bd6c7b535ab8d24a0bd7579f72",
    "role": "getConvexHull (93-136): the overall hull and its bounding box"
   },
   {
    "package": "core",
    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
-   "path": "src/openms/source/KERNEL/FeatureMap.cpp",
+   "path": "source/KERNEL/FeatureMap.cpp",
    "sha256": "210ebf2fbe17259af5034b78855d0f57e16becf525aae370217a044f0c926a27",
    "role": "sortByMZ, sortByIntensity: std::sort"
   },
   {
    "package": "core",
    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
-   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DBoundingBox.h",
+   "path": "include/OpenMS/DATASTRUCTURES/DBoundingBox.h",
    "sha256": "5a71ca1b34de215282edb32ea31e209bb10f583c68c7ce81b534bc216089980d",
    "role": "empty box, enlarge, intersects"
   },
   {
    "package": "core",
    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
-   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h",
+   "path": "include/OpenMS/DATASTRUCTURES/DIntervalBase.h",
    "sha256": "787ed51ddf700a472a09dcaed4eb738c50ab8353e0b212f0a6a8a3171615b495",
    "role": "empty interval [DBL_MAX, -DBL_MAX], width"
   },
   {
    "package": "core",
    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
-   "path": "src/openms/source/DATASTRUCTURES/ConvexHull2D.cpp",
+   "path": "source/DATASTRUCTURES/ConvexHull2D.cpp",
    "sha256": "75181e622beebcde6020cafa816363342cd3e9ed9e18d3e5f8924cac3b1572a1",
    "role": "getBoundingBox"
   },
   {
    "package": "core",
    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
-   "path": "src/openms/source/DATASTRUCTURES/Param.cpp",
+   "path": "source/DATASTRUCTURES/ParamValue.cpp",
+   "sha256": "0c0daf17316a0df783774dbb48381c38d761e563a459650a98d510d551af7ec9",
+   "role": "operator double (397-408): the union member dou_ for every type but EMPTY and INT"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "source/DATASTRUCTURES/Param.cpp",
    "sha256": "5bfd393df12f6cc6d3238f3a31cdf33e72aeead1ec6831666ac8306889aec407",
    "role": "getValue/getEntry_: ElementNotFound for debug:pseudo_rt_shift"
   },
   {
    "package": "core",
    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
-   "path": "src/openms/source/DATASTRUCTURES/DefaultParamHandler.cpp",
+   "path": "source/DATASTRUCTURES/DefaultParamHandler.cpp",
    "sha256": "20a4f3386a4fd3b9a203ed36008d7dccb35d2b7c5f0e42b556b4bc8995eecb53",
    "role": "setParameters, the unknown-parameter warning"
   },
   {
    "package": "core",
    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
-   "path": "src/openms/source/CONCEPT/ProgressLogger.cpp",
+   "path": "source/CONCEPT/ProgressLogger.cpp",
    "sha256": "cab7e28a3b62516ccb0d498cacf969a2c18975ece6c97da2aff51c5f25733baf",
    "role": "startProgress, setProgress, endProgress, CMD output"
   },
   {
    "package": "core",
    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
-   "path": "src/openms/source/CONCEPT/LogStream.cpp",
+   "path": "source/CONCEPT/LogStream.cpp",
    "sha256": "a68abf7af7a12a0a6133e841f7b1069624b82af3c4a53488c5b38d9c017ae292",
    "role": "the two-line repetition cache and its flush"
   },
   {
    "package": "core",
    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
-   "path": "src/openms/source/CONCEPT/GlobalExceptionHandler.cpp",
+   "path": "source/CONCEPT/GlobalExceptionHandler.cpp",
    "sha256": "1e599253cb2ccf4722729ace42669d85714fb6e0aaa410242dc935be02ce4a3e",
    "role": "terminate handler: the fatal-exception block"
   },
   {
    "package": "core",
    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
-   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "path": "source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
    "sha256": "bf2e3249bc0b10068cea877cecc54abe508f401741c0979160db7a92e949bf44",
    "role": "Seed::operator<, MassTraces for writeFeatureDebugInfo_"
   },
@@ -144,7 +151,7 @@
    "role": "basic_streambuf::xsputn"
   }
  ],
- "context_sources_note": "Read for context and for the behaviour the port reproduces; this group ports no other header, so tools/core_sdk_coverage.py must not count them as evidence. libstdc++ paths are relative to the Release install below.",
+ "context_sources_note": "Read for context and for the behaviour the port reproduces; this group ports no other header, so tools/core_sdk_coverage.py must not count them as evidence: core paths are relative to src/openms/ of the pinned core, which keeps them out of its scan. libstdc++ paths are relative to the Release install below.",
  "native_implementation": [
   "src/analysis/feature_finder_picked/instance.rs",
   "src/analysis/feature_finder_picked/debug.rs",
@@ -197,10 +204,10 @@
   },
   {
    "path": "tests/data/feature_finder_picked_instrumentation/debug_digests.tsv",
-   "sha256": "b0d191615b688c9d6a4e9a69868253b1ec2d62431482235f6d9cf9241f1c436a",
-   "bytes": 27820,
+   "sha256": "3850cf07fd4bac6c4fefb1cbb6d3c59adf9f19726a8562a4e9de035cb3433b1d",
+   "bytes": 33287,
    "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
-   "role": "size and SHA-1 of every executed log.txt (a1, a2, a3, a4 and b1 up to termination, the driver's two-run object) and of every .dta, _cropped.dta and .plot file and log of the driver cases declared-shift500, -shift123, -int250, -egh and -prefilled (387 files)"
+   "role": "size and SHA-1 of every executed log.txt (a1, a2, a3, a4 and b1 up to termination, the driver's two-run object), of the 75 .dta, _cropped.dta and .plot files and the log of each of the driver cases declared-shift500, -shift123, -int250, -egh and -prefilled and of the second driver's pun case (a string and a string-list debug:pseudo_rt_shift, identical in six processes), of 0.dta of the pun zero_rt case in each of its three processes (all different), and of the zero_rt log up to plot 0's writeFeatureDebugInfo_ call (cut by make_fixtures.py at the log's own structure: the first seed section with a fit ends at its Abort line or the next seed header); 467 rows"
   },
   {
    "path": "tests/data/feature_finder_picked_instrumentation/declared_egh_abort_map.featureXML",
@@ -350,11 +357,74 @@
    "role": "driver case reuse: a run into a caller's non-empty map (FFC_1 parameters)"
   },
   {
+   "path": "tests/data/feature_finder_picked_instrumentation/progress_events_caller.txt.gz",
+   "sha256": "61630c3a74fc30042975dfef1de4886358be0c3e246f704688c777f77a2e6f27",
+   "bytes": 658,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "second driver, progress caller: the FFC_1 run into a caller's map of three features"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/progress_events_debug.txt.gz",
+   "sha256": "66951c5b3610877b280f39c403181efae8e9195a7adda68892d3fd4bebe31b4b",
+   "bytes": 657,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "second driver, progress debug: a write_debug run (FFC_1 INI, feature:min_isotope_fit 1.0), with the featureXML store lines"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/progress_events_defaults.txt.gz",
+   "sha256": "74b44d65e5e165c315afb33ddd27f74361ac72e69b96dcd96418ce7244c3ff87",
+   "bytes": 1648,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "second driver, progress defaults: the same with default parameters (charges 1 to 4, 17 features)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/progress_events_ffc1.txt.gz",
+   "sha256": "0acc165a339a4e8f909b41848fc87566a616539a593de33aea03aae15929d4bd",
+   "bytes": 646,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "second driver, progress ffc1: every ProgressLogger start/set/next/end call of a FeatureFinderCentroided_1 run (INI parameters) with its raw arguments, recorded by a ProgressLoggerImpl under a counting time(), interleaved with the std::cout lines; then the OPENMS_LOG_INFO lines"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/progress_events_short.txt.gz",
+   "sha256": "27b06921d496bc0c28f089e33e9840bccc581c8e5ceb68744e8927d77d68230f",
+   "bytes": 559,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "second driver, progress short: FileConverter_31_output.mzML with default parameters (the inverted ranges S 5 0 of steps 2 and 3.2)"
+  },
+  {
    "path": "tests/data/feature_finder_picked_instrumentation/progress_stdout.txt",
    "sha256": "64589b5672f91fd56ca1b2ec93fb7e73a9d5a24ef6529552d913c27ce7820927",
    "bytes": 3918,
    "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
    "role": "driver case progress: the ProgressLogger transcript with setLogType(CMD) (timing text masked by the test)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/pun_values.txt",
+   "sha256": "66efaab25316ace55bdffc56e9cb79e46be122b83dfb8c42a93716be407f1fdd",
+   "bytes": 309,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "second driver, pun_value in three processes: the bit patterns of (double) of a string ParamValue, a string-list ParamValue and a string Param entry (heap addresses)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/pun_zero_rt_seed_map_2.featureXML.gz",
+   "sha256": "9f7fb9d13fb836c182a40eed94ad83e571522c4070be46a669cd53c16f11329c",
+   "bytes": 1884,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "second driver, pun zero_rt (FFC_1 with every RT reduced by 4404.89 s, debug:pseudo_rt_shift a string): debug/seeds_2.featureXML, identical in three processes"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/rejected_stderr.txt",
+   "sha256": "56701a30f93dd002ece18537053dc2ee9dd7fdc61bf4c9796b2237f92fa05db2",
+   "bytes": 679,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "second driver, rejected: the OPENMS_LOG_WARN unknown-parameter lines of the three calls, with the log stream's occurred-2-times lines for the run's repeats"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/rejected_stdout.txt.gz",
+   "sha256": "cf3bae49648a1612c07a4a04b2bd11f59173288f21c8e0eb01fd3637862f9573",
+   "bytes": 2462,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "second driver, rejected: the exceptions and the getParameters() dumps after an accepted set with unknown keys, a refused set (intensity:bins 0 between unknown keys) and a run with the refused set"
   },
   {
    "path": "tests/data/feature_finder_picked_instrumentation/reuse_run1.txt.gz",
@@ -542,6 +612,16 @@
   "driver_source_sha256": "894fbfa9b2c17cbb4b8f76f0d3c7430303b1b84d4ee43c8b31f4492725df4d60",
   "driver_binary_sha256": "d20242a3df834fb1100d4d589cf421954f86dc3760e275115ec8176c03a2465c",
   "driver_note": "run_all.sh ran every driver round with this one binary (results/driver*/driver.sha256).",
+  "second_driver_source_sha256": "bf54f670e0f3fe7967897df0bc818f3ba9e0ebbd9e1a0bb608c9477c04d2a390",
+  "second_driver_binary_sha256": "a742aab89ba7bcaf9fc1276a04694a3f4cf3ee63fea2116cc708ec41356db12c",
+  "second_driver_note": "build_progress_driver.sh (the same compiler and flags plus -rdynamic; nm -D shows the exported time) and run_progress_driver.sh, one binary for every case (results/progress/driver.sha256). The disassembly of ParamValue::operator double() in libOpenMS.so (results/progress/paramvalue_operator_double.asm): movzbl (%rdi); EMPTY (6) to the throwing cold path; INT (1) to cvtsi2sdq 0x8(%rdi); every other type movsd 0x8(%rdi),%xmm0.",
+  "second_driver_cases": {
+   "progress ffc1, defaults, short, caller, debug": "2 repetitions each, exit 0, identical output; 248 to 2992 time() calls per case bound to the driver",
+   "rejected": "2 repetitions, exit 0, identical output",
+   "pun_value": "3 processes, exit 0; nine different values, all below 2^47 as integers",
+   "pun string, list": "3 repetitions each, exit 0; log.txt and the 75 feature files identical in all six processes",
+   "pun zero_rt": "3 repetitions, exit 0; log.txt and seeds_2.featureXML identical, 16 of the 75 feature files (the .dta and _cropped.dta of plots 0, 1, 2, 4, 8, 9, 18 and 21) differ between processes"
+  },
   "environment": "env -i, PATH=/usr/bin:/bin, HOME and OPENMS_HOME_PATH in the case directory, OPENMS_DISABLE_UPDATE_CHECK=ON, OMP_NUM_THREADS=1 (tool cases c1-c3: 4), ulimit -c 0",
   "driver_cases": {
    "params, reuse, progress, what, sort, debug_twice, declared-shift500/-shift123/-int250/-egh/-prefilled": "2 repetitions each, exit 0",
@@ -599,7 +679,7 @@
   },
   {
    "path": "../oracle/ffap-instr-completion/make_fixtures.py",
-   "sha256": "eef1012df1bfd4c4f1e4b424d93a723d05cb6706d7b6ef4a0b7fe8a1c2938aac",
+   "sha256": "0cda8528b93697b927c241f9a10a8be5e0e75d9cfec6fe92c93b227dc7119c90",
    "origin_key": "ffap_instr_completion"
   },
   {
@@ -661,6 +741,46 @@
    "path": "../oracle/ffap-instr-completion/results/driver3/driver.sha256",
    "sha256": "6616d13359238c52231d9a771a2749ae1d28822381bb6b1d88fd612429dfdcdb",
    "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/drivers/ffap_progress_driver.cpp",
+   "sha256": "bf54f670e0f3fe7967897df0bc818f3ba9e0ebbd9e1a0bb608c9477c04d2a390",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/build_progress_driver.sh",
+   "sha256": "208863fcb6a513a91f6a472f0ff9393ed43f137cb6f90069545feb93c865d2dd",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/run_progress_driver.sh",
+   "sha256": "6659f47f5652d52cf45d3246c2a89d78f98530b4633b06d1b3f1818a4fffecf2",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/progress/driver.sha256",
+   "sha256": "3fc6583363650cdd837f1a0a5cc8112e5554a1ab42ca2cb697fa8017024f0f80",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/progress/time_symbol.txt",
+   "sha256": "fc008112f5988b9d2493dfad4a2804c0ac015abffac6791d0e5d9ab06c498c62",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/progress/paramvalue_operator_double.asm",
+   "sha256": "015ac262af609de4579f312d48491599e7496091eda46bd5d7c3ca329b7cca48",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/progress/status_summary.txt",
+   "sha256": "080d1ffe8cb4da3634b99087b10ab5e4ec44012fec651a042d5b92ce4549624e",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/progress/debug_files.sha256",
+   "sha256": "1a103c997f8ccb61d8bbc281d9d54bcdf650f4d815f70588431a5a9daa8ac174",
+   "origin_key": "ffap_instr_completion"
   }
  ],
  "cpp_issue_candidates": [
@@ -671,7 +791,8 @@
   "log_ is reopened on every debug run while still open; the open fails and later runs of the object write no log (executed)",
   "step 4 computes f2.getCharge() % f1.getCharge() without a zero check; a caller's feature of charge 0 traps (SIGFPE, executed)",
   "aborts_ and abort_reasons_ are written inside the parallel region without synchronisation; at OMP_NUM_THREADS=4 the debug log differs between runs (executed)",
-  "setParameters assigns param_ before the checks, so a rejected set is kept (executed)"
+  "setParameters assigns param_ before the checks, so a rejected set is kept (executed)",
+  "ParamValue::operator double() returns the union member dou_ for string and list values, i.e. the bits of a heap pointer; writeFeatureDebugInfo_ with a string debug:pseudo_rt_shift writes address-dependent numbers near RT 0 (executed)"
  ],
  "target_verification": {
   "platform": "Rust gates on dax through ~/.local/bin/openms-kim-gate.sh, slots ffap-instr-impl*; local tests on macOS arm64"

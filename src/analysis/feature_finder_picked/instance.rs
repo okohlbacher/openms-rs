@@ -39,7 +39,8 @@ use std::collections::BTreeMap;
 use std::ops::Range;
 
 use crate::analysis::feature_finder_picked::algorithm::{
-    HANDLER_NAME, Limits, Options, PseudoRtShiftKey, Settings, default_parameters, validate_input,
+    HANDLER_NAME, Limits, Options, PseudoRtShiftKey, RejectedParameters, Settings,
+    default_parameters, validate_input,
 };
 use crate::analysis::feature_finder_picked::debug::{
     AbortReasons, DebugOutput, DebugTermination, FEATURE_DEBUG_PATH, FeatureDebugFiles,
@@ -172,6 +173,9 @@ enum LogState {
 /// lines and [`Self::debug_output`] its debug output.
 pub struct FeatureFinderAlgorithmPicked {
     handler: DefaultParamHandler,
+    /// The refused set `getParameters()` shows after a refused
+    /// `setParameters` ([`RejectedParameters::Shown`]).
+    rejected: Option<Param>,
     settings: Settings,
     seeds: FeatureMap,
     aborts: BTreeMap<String, u32>,
@@ -232,6 +236,7 @@ impl FeatureFinderAlgorithmPicked {
             handler.defaults_to_parameters_with(|merged| Settings::read(merged, &defaults))?;
         Ok(Self {
             handler,
+            rejected: None,
             settings,
             seeds: FeatureMap::new(),
             aborts: BTreeMap::new(),
@@ -263,8 +268,14 @@ impl FeatureFinderAlgorithmPicked {
 
     /// `getParameters()`: the current parameters, which every [`Self::run`]
     /// replaces by its argument merged with the defaults.
+    ///
+    /// After a refused parameter set this is, as in the source, the refused set
+    /// merged with the defaults, unless [`Options::rejected_parameters`] is
+    /// [`RejectedParameters::Discarded`] ([`Self::set_parameters`]).
     pub fn parameters(&self) -> &Param {
-        self.handler.parameters()
+        self.rejected
+            .as_ref()
+            .unwrap_or_else(|| self.handler.parameters())
     }
 
     /// The typed members `updateMembers_` set, and the values `run_` reads.
@@ -277,36 +288,63 @@ impl FeatureFinderAlgorithmPicked {
     /// typed members are updated.
     ///
     /// Returns the warnings the source logs, one per parameter the defaults do
-    /// not know (such an entry is kept), in the source's wording.
+    /// not know (such an entry is kept), in the source's wording and in the
+    /// order `Param::checkDefaults` visits the merged set.
     ///
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] for a value of the wrong type or outside
-    /// its restriction, the source's `Exception::InvalidParameter`, with the
-    /// parameters and members unchanged. The source assigns the new
-    /// parameters before it checks them, so after the exception its
-    /// `getParameters()` returns the rejected set while the members keep their
-    /// old values (executed: `params_after_failed_set.txt` of the oracle); the
-    /// port's [`DefaultParamHandler`] validates before it commits.
+    /// its restriction, the source's `Exception::InvalidParameter`; the typed
+    /// members keep their values. The source has assigned the merged set to
+    /// `param_` before it checks it, so [`Self::parameters`] then shows the
+    /// refused set ([`RejectedParameters::Shown`], the default; executed:
+    /// `params_after_failed_set.txt`), or the last accepted one under
+    /// [`RejectedParameters::Discarded`]. The warnings the source logged before
+    /// it threw are dropped here; [`Self::set_parameters_logged`] keeps them.
     pub fn set_parameters(&mut self, parameters: &Param) -> Result<Vec<String>> {
-        let defaults = self.handler.defaults().clone();
-        let (settings, _) = self
-            .handler
-            .set_parameters_with(parameters, |merged| Settings::read(merged, &defaults))?;
-        self.settings = settings;
-        // `Param::checkDefaults` (`Param.cpp:1080-1091`), in the order of the
-        // checked parameters; the merged defaults are all known.
         let mut warnings = Vec::new();
-        for item in parameters.iter()? {
-            if !defaults.exists(&item.key)? {
-                warnings.push(format!(
-                    "Warning: {} received the unknown parameter '{}'!",
-                    self.handler.name(),
-                    item.key
-                ));
+        self.set_parameters_logged(parameters, &mut warnings)?;
+        Ok(warnings)
+    }
+
+    /// [`Self::set_parameters`], appending the unknown-parameter warnings to
+    /// `warnings` whether or not the set is refused: on a refusal, those of the
+    /// entries `Param::checkDefaults` visits before the refused one, which the
+    /// source logs before it throws (executed: `rejected_stderr.txt`).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::set_parameters`].
+    pub fn set_parameters_logged(
+        &mut self,
+        parameters: &Param,
+        warnings: &mut Vec<String>,
+    ) -> Result<()> {
+        let defaults = self.handler.defaults().clone();
+        let result = self
+            .handler
+            .set_parameters_with(parameters, |merged| Settings::read(merged, &defaults));
+        match result {
+            Ok((settings, _)) => {
+                self.settings = settings;
+                self.rejected = None;
+                let merged = self.handler.parameters();
+                unknown_parameter_warnings(merged, &defaults, self.handler.name(), warnings)
+            }
+            Err(error) => {
+                // The merged set without the checks: what the source assigned.
+                let mut unchecked = self.handler.clone();
+                unchecked.set_check_defaults(false);
+                if unchecked.set_parameters(parameters).is_ok() {
+                    let merged = unchecked.parameters();
+                    unknown_parameter_warnings(merged, &defaults, self.handler.name(), warnings)?;
+                    if self.options.rejected_parameters == RejectedParameters::Shown {
+                        self.rejected = Some(merged.clone());
+                    }
+                }
+                Err(error)
             }
         }
-        Ok(warnings)
     }
 
     /// Source member `isotope_distributions_`: the isotope windows the last
@@ -485,9 +523,12 @@ impl FeatureFinderAlgorithmPicked {
         if !checked? {
             return Ok(());
         }
-        for warning in self.set_parameters(parameters)? {
+        let mut warnings = Vec::new();
+        let applied = self.set_parameters_logged(parameters, &mut warnings);
+        for warning in warnings {
             report.push(ReportLine::Warn(warning));
         }
+        applied?;
         self.seeds = seeds.clone();
         self.run_core(experiment, features, report)
     }
@@ -719,6 +760,34 @@ impl FeatureFinderAlgorithmPicked {
         }
         Ok(())
     }
+}
+
+/// The `OPENMS_LOG_WARN` lines of `Param::checkDefaults`
+/// (`Param.cpp:1080-1091`) for `merged`, in its iteration order: one per
+/// unknown entry, up to the first entry the defaults refuse, where the source
+/// throws.
+fn unknown_parameter_warnings(
+    merged: &Param,
+    defaults: &Param,
+    name: &str,
+    warnings: &mut Vec<String>,
+) -> Result<()> {
+    for item in merged.iter()? {
+        if !defaults.exists(&item.key)? {
+            warnings.push(format!(
+                "Warning: {name} received the unknown parameter '{}'!",
+                item.key
+            ));
+            continue;
+        }
+        // The entry alone, checked as `checkDefaults` checks it.
+        let mut single = Param::new();
+        single.set_value(&item.key, item.entry.value.clone(), "", &[] as &[String])?;
+        if single.check_defaults(name, defaults, "").is_err() {
+            break;
+        }
+    }
+    Ok(())
 }
 
 /// Append a fragment to the run's debug log, unless the stream is not open.
@@ -1021,6 +1090,8 @@ pub(crate) fn settle_charge(
             };
             match read_pseudo_rt_shift(key.parameters, key_name)? {
                 Ok(shift) => {
+                    // A heap-address shift may refuse here; the files of the
+                    // earlier seeds stay in the output.
                     let files: FeatureDebugFiles = write_feature_debug_info(FeatureDebugInput {
                         fitter: write.model.as_fitter(),
                         traces: &write.traces,
@@ -1033,7 +1104,7 @@ pub(crate) fn settle_charge(
                         features_len: features_before,
                         pseudo_rt_shift: shift,
                         path: FEATURE_DEBUG_PATH,
-                    });
+                    })?;
                     out.feature_files.push(files);
                 }
                 Err((exception, message)) => {
