@@ -39,6 +39,34 @@ impl Write for SharedOutput {
 
 /// The fixture's mask: only the two timing texts of each command summary
 /// line become `<TIME>`, exactly as the oracle's `extract.py` masks them.
+/// Whether `text` has one of the four shapes `StopWatch::toString(double)`
+/// prints (StopWatch.cpp:231-234): `Nd HH:MM:SS h`, `HH:MM:SS h`, `MM:SS m`, or
+/// `StringUtils::number(seconds, 2)` followed by ` s`. The mask accepts only
+/// these, so text the Release build never prints (the port's
+/// `unavailable (CPU)`) cannot pass as Release output.
+fn is_release_time(text: &str) -> bool {
+    let all_digits = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit());
+    let two_digit_fields = |s: &str, n: usize| {
+        s.split(':').count() == n && s.split(':').all(|f| f.len() == 2 && all_digits(f))
+    };
+    if let Some(seconds) = text.strip_suffix(" s") {
+        return match seconds.split_once('.') {
+            Some((whole, fraction)) => all_digits(whole) && all_digits(fraction),
+            None => all_digits(seconds),
+        };
+    }
+    if let Some(minutes) = text.strip_suffix(" m") {
+        return two_digit_fields(minutes, 2);
+    }
+    if let Some(hours) = text.strip_suffix(" h") {
+        return match hours.split_once("d ") {
+            Some((days, rest)) => all_digits(days) && two_digit_fields(rest, 3),
+            None => two_digit_fields(hours, 3),
+        };
+    }
+    false
+}
+
 fn mask_timing(text: &str) -> String {
     const HEAD: &str = "-- done [took ";
     let mut out = String::new();
@@ -50,6 +78,12 @@ fn mask_timing(text: &str) -> String {
         let wall = after[wall_start..]
             .find(" (Wall)")
             .expect("wall timing text");
+        for timing in [&after[..cpu], &after[wall_start..wall_start + wall]] {
+            assert!(
+                is_release_time(timing),
+                "{timing:?} is not a time the Release build prints"
+            );
+        }
         out.push_str(&rest[..start]);
         out.push_str("-- done [took <TIME> (CPU), <TIME> (Wall)");
         rest = &after[wall_start + wall + " (Wall)".len()..];
@@ -399,7 +433,9 @@ fn checked_bounds_and_failures_leave_dispatch_state_usable() {
     );
     // Through the command backend, every value is out of the inverted range.
     // Each expected string is Release output, rows 15-20 (case `bad`) of
-    // tests/data/progress_logger_release_range.tsv.
+    // tests/data/progress_logger_release_range.tsv. The Release build always
+    // has a CPU time, so this block's clock reports one too.
+    time.lock().unwrap().cpu_seconds = Some(0.0);
     let output = SharedOutput::default();
     let mut logger = ProgressLogger::with_clock_and_nesting(clock.clone(), nesting.clone());
     logger.set_log_type(ProgressLogType::Cmd);
@@ -438,7 +474,7 @@ fn checked_bounds_and_failures_leave_dispatch_state_usable() {
         mask_timing(&output.take()),
         "\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n"
     );
-    time.lock().unwrap().wall_second = 1;
+    *time.lock().unwrap() = sample(1, 0.0, None);
 
     // End without start: the Release build's StopWatch::stop throws
     // unconditionally (StopWatch.cpp:55; fixture row 50), not a Debug check.
