@@ -799,7 +799,7 @@ fn assert_maps_decoded_equal(actual: &FeatureMap, expected: &FeatureMap, case: &
 }
 
 fn assert_experiments_decoded_equal(actual: &MSExperiment, expected: &MSExperiment, case: &str) {
-    let powf_steps = POWF_STEPS.get_or_init(|| Mutex::new(0));
+    let mut powf_steps = 0usize;
     assert_eq!(actual.spectra.len(), expected.spectra.len(), "{case}");
     for (index, (a, e)) in actual.spectra.iter().zip(&expected.spectra).enumerate() {
         assert_eq!(a.native_id, e.native_id, "{case} spectrum {index}");
@@ -831,15 +831,12 @@ fn assert_experiments_decoded_equal(actual: &MSExperiment, expected: &MSExperime
                     "{case} spectrum {index} array {}: {u} against {v}",
                     x.name
                 );
-                *powf_steps.lock().unwrap() += 1;
+                powf_steps += 1;
             }
         }
     }
+    eprintln!("{case}: {powf_steps} overall scores one binary32 step from the Release build");
 }
-
-/// How many overall scores differed from the Release build by one binary32
-/// step in the input comparisons of this process.
-static POWF_STEPS: std::sync::OnceLock<Mutex<usize>> = std::sync::OnceLock::new();
 
 /// Run one debug case through a fresh instance.
 fn debug_run(
