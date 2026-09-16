@@ -49,7 +49,7 @@
 //!   down to a recursion budget of `2 * floor(log2(n))`, where a heapsort takes
 //!   over; and a final insertion sort over the whole range, whose first 16
 //!   elements are inserted with a lower-bound check and the rest without one
-//!   ([`source_sort_permutation`]);
+//!   ([`source_sort_permutation`](crate::analysis::feature_finder_picked::source_sort::source_sort_permutation));
 //! - `std::stable_sort` asks `std::get_temporary_buffer` for `(n + 1) / 2`
 //!   elements, which halves its request after every failed
 //!   `operator new(nothrow)` until one succeeds or nothing is left. With the
@@ -60,7 +60,7 @@
 //!   when a side does not fit); without one it merges in place
 //!   (`__inplace_stable_sort`, insertion sort below 15 elements,
 //!   `__merge_without_buffer` with `std::rotate`)
-//!   ([`source_stable_sort_permutation`]).
+//!   ([`source_stable_sort_permutation`](crate::analysis::feature_finder_picked::source_sort::source_stable_sort_permutation)).
 //!
 //! Both are reproduced comparison by comparison and move by move on a
 //! permutation, so equal elements land where the executed C++ puts them. The
@@ -71,9 +71,11 @@
 //! `sortByPosition`, with and without a data array, under a full, a partial and
 //! no temporary buffer; `sortSpectra`, `sortChromatograms` and `sortByMZ`;
 //! 2,272 inputs with ties, signed zeros, infinities and NaN keys of four bit
-//! patterns). Where the port allocates, [`TemporaryBuffer::Allocate`] halves its
-//! request on failure as `get_temporary_buffer` does; which requests fail
-//! depends on the memory of the running process and is not reproducible.
+//! patterns). Where the port allocates,
+//! [`TemporaryBuffer::Allocate`](crate::analysis::feature_finder_picked::source_sort::TemporaryBuffer::Allocate)
+//! halves its request on failure as `get_temporary_buffer` does; which
+//! requests fail depends on the memory of the running process and is not
+//! reproducible.
 //!
 //! # Undefined behaviour
 //!

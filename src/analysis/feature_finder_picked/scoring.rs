@@ -420,7 +420,8 @@ impl IntensityThresholds {
     /// it: the default NaN for `0 / 0`, the intensity's own NaN otherwise.
     ///
     /// The first quantile not below the intensity is found with libstdc++'s
-    /// `std::lower_bound`, probe by probe ([`libstdcxx::lower_bound`]), also
+    /// `std::lower_bound`, probe by probe (the crate-private
+    /// `libstdcxx::lower_bound`), also
     /// when a NaN among a cell's quantiles leaves them unpartitioned, where the
     /// standard does not define the search ([`Self::compute`]).
     ///

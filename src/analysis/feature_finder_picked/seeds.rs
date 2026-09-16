@@ -490,7 +490,7 @@ impl SeedStage {
     ///   intensity bin step read by the seed loop under
     ///   [`DegenerateBinStep::Refuse`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep::Refuse),
     ///   which is not the default, where the introsort of the user seeds
-    ///   ([`sort_user_seeds`]) or of a step-1 cell
+    ///   (the crate-private `sort_user_seeds`) or of a step-1 cell
     ///   ([`IntensityThresholds::compute`]) would read outside it, and when a [`Limits`]
     ///   ceiling is exceeded, checked before the allocation or computation it
     ///   bounds. A zero or infinite step under the default
@@ -1005,9 +1005,9 @@ fn select_seeds(
             }
         }
     }
-    // Source: `std::sort(seeds.rbegin(), seeds.rend())` with `Seed::operator<`.
-    // The intensities are finite (validated input), so the order is strict weak
-    // and the sort cannot fail.
+    // Source: `std::sort(seeds.rbegin(), seeds.rend())` with `Seed::operator<`,
+    // in the Release build's introsort order; equal and NaN intensities
+    // included. It fails only where the introsort would read outside the seeds.
     source_sort_reversed_by(&mut seeds, Seed::is_less_intense_than)?;
     Ok(seeds)
 }
