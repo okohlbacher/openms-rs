@@ -125,12 +125,43 @@ impl FittedModel {
 
     /// Fit the model to `traces`: source `fitter->fit(traces)`.
     ///
+    /// # `Exception::UnableToFit` is unreachable from the seed loop
+    ///
+    /// `TraceFitter::optimize_` throws in two places, and the source's seed
+    /// loop (`FeatureFinderAlgorithmPicked.cpp:595-670`) catches neither; the
+    /// exception would leave the OpenMP region and terminate the process. No
+    /// input reaches either:
+    ///
+    /// - `TraceFitter.cpp:111`, fewer residuals than parameters. The residuals
+    ///   are the peaks of the traces the loop fits, and the loop only fits
+    ///   traces that pass `MassTraces::isValid` (`:638`), so there are at
+    ///   least two. `extendMassTraces_` (`:1381-1479`) appends a trace with
+    ///   fewer than three peaks (`MassTrace::isValid`) only at pattern index 0
+    ///   while the maximum trace, which has at least three, is not yet
+    ///   appended (`MassTraces::max_trace` is still 0 then and `p ==
+    ///   max_trace`); every later short trace clears the list or ends it. So at
+    ///   most one trace is short, and it holds at least its start peak: at
+    ///   least `1 + 3 = 4` residuals, and the Gaussian has 3 parameters, the
+    ///   EGH model 4.
+    /// - `TraceFitter.cpp:129`, a solver status up to
+    ///   `ImproperInputParameters`. Eigen's `LevenbergMarquardt::minimize`
+    ///   returns that status only from `minimizeInit`, for `n <= 0`, `m < n`,
+    ///   a negative tolerance, `maxfev <= 0` or `factor <= 0` (Eigen
+    ///   `NonLinearOptimization/LevenbergMarquardt.h`, the install's
+    ///   `deps/include/eigen3`); `minimizeOneStep` returns only `Running` or a
+    ///   positive status. Here `n` is 3 or 4, `m >= n` by the first check, the
+    ///   tolerances and `factor` are Eigen's defaults, and `maxfev` is
+    ///   `fit:max_iterations`, which `DefaultParamHandler::setParameters`
+    ///   restricts to at least 1 (`:89`): `ParamValue::operator int` and
+    ///   `operator unsigned int` keep the same low 32 bits, so a value that
+    ///   passes the restriction reaches the solver unchanged and positive.
+    ///
     /// # Errors
     ///
-    /// As [`TraceFitter::fit`] of the selected model. The source does not catch
-    /// `Exception::UnableToFit` inside its parallel region, so a failing fit
-    /// ends the whole run there; this port reports it as the seed's abort
-    /// reason, which is what the source's later, serial behaviour amounts to.
+    /// As [`TraceFitter::fit`] of the selected model. From the seed loop, that
+    /// is only one of the port's resource ceilings (the solver's point, byte
+    /// and work ceilings), which the source does not have; the algorithm
+    /// returns such an error instead of recording an abort reason.
     pub fn fit(&mut self, traces: &MassTraces) -> Result<()> {
         match self {
             Self::Gauss(fitter) => fitter.fit(traces),

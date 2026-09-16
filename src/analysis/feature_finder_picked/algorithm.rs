@@ -365,8 +365,10 @@ pub fn default_parameters() -> Result<Param> {
 
 /// The retention-time model of the trace fit: parameter `feature:rt_shape`.
 ///
-/// Read here because `run_` reads it through `chooseTraceFitter_`; the fit itself
-/// is not ported yet.
+/// Source `chooseTraceFitter_` (`FeatureFinderAlgorithmPicked.cpp:1897-1912`)
+/// selects the fitter from it:
+/// [`FittedModel::new`](crate::analysis::feature_finder_picked::fitting::FittedModel::new)
+/// is its counterpart.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RtShape {
     /// `symmetric`: a Gaussian (`GaussTraceFitter`), the default.
@@ -386,6 +388,52 @@ pub enum ReportedMz {
     /// `monoisotopic`: the monoisotopic m/z derived from the fitted isotope
     /// model, the default.
     Monoisotopic,
+}
+
+/// What a run does when an intensity bin step is zero or infinite.
+///
+/// Step 1 of source `run_` (`FeatureFinderAlgorithmPicked.cpp:244-245`)
+/// divides the MS1 retention-time and m/z extents by `intensity:bins` without
+/// a check. The step is zero when every MS1 spectrum has the same retention
+/// time, when every MS1 peak has the same m/z, or when a subnormal extent
+/// underflows in the division (`4.9e-324 / 2` is zero); the retention-time step
+/// is infinite when the extent overflows (retention times from `-1e308` to
+/// `1e308`). The bins are still computed
+/// ([`IntensityThresholds::compute`](crate::analysis::feature_finder_picked::scoring::IntensityThresholds::compute)),
+/// but `intensityScore_` (`:1837-1838`) then converts `floor(NaN)` or
+/// `floor(inf)` to `UInt` for every peak, which is undefined behaviour.
+///
+/// The Linux x86_64 Release build compiles that conversion as `cvttsd2si`
+/// into a 64-bit register, keeps the low 32 bits and caps them, so the
+/// selected cells stay inside the grid; the distances to the bin centres are
+/// `0 / 0` or `inf / inf` whatever cell was selected. Every intensity score is
+/// therefore the default NaN, every overall score the seed loop computes is
+/// NaN, no peak becomes a seed, and the run returns an empty feature map with
+/// the source's log lines (`Found 0 seeds`, `Found 0 feature candidates` per
+/// charge). Executed against `openms4-release-bc9cc12-c19e494-174b576`, three
+/// repetitions at one and at four threads, identical: FeatureFinderCentroided_1
+/// with every retention time equal, with every m/z equal, with a subnormal and
+/// with an overflowing retention-time extent, each with the FFC_1 and the
+/// default parameters and with `seed:min_score` 0, and the class-level score
+/// arrays of each (`../oracle/ffap-sem-completion`). The outcome is explained
+/// by the emitted instructions and reproduced by
+/// [`IntensityThresholds::score`](crate::analysis::feature_finder_picked::scoring::IntensityThresholds::score).
+///
+/// An input with at most `2 * min_spectra` scans (source `min_spectra_`, half
+/// of `mass_trace:min_spectra`) never reaches the seed loop, so its intensity
+/// scores are never read: both variants return the source's empty result for
+/// it, whatever the bin steps.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum DegenerateBinStep {
+    /// Compute what the Linux x86_64 Release build computes: NaN intensity
+    /// scores, no seed, an empty map. The default, and what the
+    /// FeatureFinderCentroided tool uses.
+    #[default]
+    Source,
+    /// Return [`Error::InvalidValue`] before any work when a bin step is zero
+    /// or infinite and the seed loop visits at least one scan, the only case in
+    /// which the undefined scores are read.
+    Refuse,
 }
 
 /// How a non-default `isotopic_pattern:abundance_12C` or `abundance_14N` is
@@ -498,14 +546,20 @@ impl Default for Limits {
     }
 }
 
-/// Native options of a run; the defaults reproduce the source where it is
-/// defined and refuse where it is not.
+/// Native options of a run.
+///
+/// The defaults reproduce the source where it is defined. Where it is
+/// undefined they reproduce the Linux x86_64 Release build when its outcome is
+/// fixed and explained by the emitted instructions ([`DegenerateBinStep`]), and
+/// refuse otherwise. [`AbundanceOverride`] is the one designed difference.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Options {
     /// Resource ceilings.
     pub limits: Limits,
     /// Handling of non-default isotope abundances.
     pub abundance_override: AbundanceOverride,
+    /// Handling of a zero or infinite intensity bin step.
+    pub degenerate_bin_step: DegenerateBinStep,
     /// Worker threads of the seed loop, the port's counterpart of the source's
     /// `#pragma omp parallel for` and of the TOPP `-threads` parameter.
     ///
@@ -1084,16 +1138,12 @@ fn extend_seed(
         .update_maximum();
 
     let mut model = FittedModel::new(settings.rt_shape, *fitter_parameters);
-    if let Err(error) = model.fit(&traces) {
-        // The source does not catch `Exception::UnableToFit` inside its
-        // parallel region, so the run ends there; this port records the failure
-        // as the seed's abort reason and continues, which is what the source's
-        // own abort handling amounts to.
-        return Ok(SeedOutcome {
-            plot_nr_used: true,
-            result: Err(error.to_string()),
-        });
-    }
+    // The source's fit can throw `Exception::UnableToFit` (`TraceFitter.cpp:111`,
+    // `:129`), which would escape its parallel region and end the process, but
+    // no input reaches either throw from here (see `FittedModel::fit`). An error
+    // here is therefore one of the port's own ceilings, and the run fails with
+    // it rather than turning it into an abort reason the source never records.
+    model.fit(&traces)?;
     let new_traces = crop_feature(model.as_fitter(), &traces, settings.min_trace_score)?;
     let quality = match check_feature_quality(model.as_fitter(), &new_traces, seed_mz, settings)? {
         QualityOutcome::Rejected(reason) => return Ok(aborted(true, reason)),

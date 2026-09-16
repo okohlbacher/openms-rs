@@ -20,8 +20,11 @@
 //!
 //! The source runs steps 3.1 to 3.3 charge by charge. Step 3.3, the extension of
 //! the seeds, only reads the arrays of its own charge, so computing every
-//! charge's seeds first gives the same arrays and seeds; only the order of the
-//! log lines differs, and the extension is not ported yet.
+//! charge's seeds first gives the same arrays and seeds. The extension is
+//! [`extension`](crate::analysis::feature_finder_picked::extension), and
+//! [`feature_stage`](crate::analysis::feature_finder_picked::algorithm::feature_stage)
+//! puts the log lines back into the source's order, each charge's seed count
+//! followed by its candidate count.
 //!
 //! Isotope patterns are computed in the source's binary32 arithmetic
 //! ([`ProbabilityPrecision::SourceSingle`](crate::chemistry::isotopes::ProbabilityPrecision::SourceSingle))
@@ -362,11 +365,15 @@ impl SeedStage {
     /// - [`Error::Unsupported`] for a changed isotope abundance under
     ///   [`AbundanceOverride::Refuse`], which is not the default; see that type.
     /// - [`Error::InvalidValue`] when `charge_low` exceeds `charge_high` by more
-    ///   than one ([`Settings::charge_count`]), for a zero-width RT or m/z range
-    ///   ([`IntensityThresholds::compute`]), for a non-finite user seed position
-    ///   (the source sorts it with undefined results), and when a [`Limits`]
+    ///   than one ([`Settings::charge_count`]), for a zero or infinite
+    ///   intensity bin step read by the seed loop under
+    ///   [`DegenerateBinStep::Refuse`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep::Refuse),
+    ///   which is not the default, for a non-finite user seed position (the
+    ///   source sorts it with undefined results), and when a [`Limits`]
     ///   ceiling is exceeded, checked before the allocation or computation it
-    ///   bounds.
+    ///   bounds. A zero or infinite step under the default
+    ///   [`DegenerateBinStep::Source`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep::Source)
+    ///   is computed as the Linux x86_64 Release build computes it.
     pub fn compute(
         experiment: MSExperiment,
         user_seeds: &FeatureMap,
@@ -375,7 +382,7 @@ impl SeedStage {
         mut log: Vec<String>,
     ) -> Result<Self> {
         let limits = options.limits;
-        preflight(&experiment, &settings, &limits)?;
+        preflight(&experiment, &settings, options)?;
         let charge_count = settings.charge_count()?;
         if settings.abundance_12c_changed || settings.abundance_14n_changed {
             // Fails early under the refusing policy, before any work.
@@ -499,8 +506,12 @@ impl SeedStage {
     }
 }
 
-/// Size ceilings that bound every allocation of the stage.
-fn preflight(experiment: &MSExperiment, settings: &Settings, limits: &Limits) -> Result<()> {
+/// Size ceilings that bound every allocation of the stage, and the
+/// [`DegenerateBinStep::Refuse`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep::Refuse)
+/// check.
+fn preflight(experiment: &MSExperiment, settings: &Settings, options: &Options) -> Result<()> {
+    use crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep;
+    let limits: &Limits = &options.limits;
     if experiment.spectra.len() > limits.max_spectra {
         return Err(Error::InvalidValue(format!(
             "{} spectra exceed the limit of {}",
@@ -538,6 +549,39 @@ fn preflight(experiment: &MSExperiment, settings: &Settings, limits: &Limits) ->
         return Err(Error::InvalidValue(
             "isotope pattern size exceeds IsotopePattern::MAX_SIZE".into(),
         ));
+    }
+    if options.degenerate_bin_step == DegenerateBinStep::Refuse {
+        refuse_degenerate_bin_step(experiment, settings)?;
+    }
+    Ok(())
+}
+
+/// [`DegenerateBinStep::Refuse`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep::Refuse):
+/// an [`Error::InvalidValue`] when a bin step is zero or infinite and the seed
+/// loop reads the resulting intensity scores.
+///
+/// The seed loop (`FeatureFinderAlgorithmPicked.cpp:493-498`) visits the scans
+/// `min_spectra .. n - min(min_spectra, n)`, which is empty for `n <= 2 *
+/// min_spectra`. There the source computes every intensity score but never
+/// reads one, and its result, an empty feature map, does not depend on them;
+/// such an input is not refused.
+fn refuse_degenerate_bin_step(experiment: &MSExperiment, settings: &Settings) -> Result<()> {
+    use crate::analysis::feature_finder_picked::scoring::{bin_steps, degenerate_step};
+    let spectra = experiment.spectra.len();
+    let loop_end = spectra - settings.min_spectra.min(spectra);
+    if settings.min_spectra >= loop_end {
+        return Ok(());
+    }
+    let (rt, mz) = ms1_ranges(experiment)?;
+    let (rt_step, mz_step) = bin_steps(&rt, &mz, settings.intensity_bins);
+    if degenerate_step(rt_step) || degenerate_step(mz_step) {
+        return Err(Error::InvalidValue(format!(
+            "FeatureFinderAlgorithmPicked: the intensity bin steps are {rt_step} (RT {} to {}) \
+             and {mz_step} (m/z {} to {}) for {} bins; the source converts floor(NaN) or \
+             floor(inf) to UInt for every peak here, which is undefined behaviour, and \
+             DegenerateBinStep::Refuse is selected",
+            rt.min, rt.max, mz.min, mz.max, settings.intensity_bins
+        )));
     }
     Ok(())
 }
@@ -648,10 +692,20 @@ fn fill_pattern_scores(
 /// against 60-digit decimal arithmetic) and the same on every machine, so it
 /// agrees with the oracle everywhere except on the scores the oracle misrounds.
 /// `libm::powf`, the direct binary32 port, disagreed with the oracle on 226 of
-/// the 3,084 FeatureFinderCentroided_1 scores.
+/// the 3,084 FeatureFinderCentroided_1 scores. Against the Linux x86_64 Release
+/// build, whose glibc 2.39 `powf` is not correctly rounded either, 8 of the
+/// 30,840 retained scores are one binary32 step apart (`CPP-272`).
+///
+/// A NaN product, which a zero or infinite intensity bin step produces
+/// ([`DegenerateBinStep`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep)),
+/// gives a NaN score whose bits are the product's, as
+/// the executed `powf` returns them.
 pub fn overall_score(trace: f32, intensity: f32, pattern: f32) -> f32 {
     let product = trace * intensity * pattern;
-    libm::pow(f64::from(product), f64::from(1.0f32 / 3.0f32)) as f32
+    crate::analysis::feature_finder_picked::scoring::x86_64::narrow(libm::pow(
+        f64::from(product),
+        f64::from(1.0f32 / 3.0f32),
+    ))
 }
 
 /// Overall scores and seeds of one charge: step 3.2 of source `run_`.

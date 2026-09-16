@@ -114,14 +114,24 @@ impl IntensityThresholds {
     /// scans and peak ranges with two binary searches per cell and scan, so the
     /// whole experiment is not revalidated once per cell.
     ///
+    /// A step can be zero (every MS1 spectrum at one retention time, every MS1
+    /// peak at one m/z, or an extent so small that the division underflows)
+    /// or, for the retention time, infinite (an extent that overflows). The
+    /// source computes the bins anyway (`FeatureFinderAlgorithmPicked.cpp:244-277`),
+    /// and so does this: with a zero step every cell spans the whole extent,
+    /// and with an infinite step the first cell's bounds are `NaN` and `inf`,
+    /// which the inclusive walk, like the source's area iterator, reads as
+    /// every spectrum, while the other cells start at `inf` and are empty. The
+    /// executed Linux x86_64 Release build computes the same quantiles for
+    /// all these grids. Scoring a peak on such a grid is where the source
+    /// becomes undefined; see [`Self::score`] and
+    /// [`DegenerateBinStep`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep).
+    ///
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] when `bins` is zero, when a spectrum is
-    /// not MS1 or holds a non-finite value, when there is no MS1 peak, or when
-    /// the retention-time or m/z range has zero width, and
-    /// [`Error::UnsortedData`] when the spectra are not sorted by RT and m/z. A
-    /// zero-width range makes the source divide by a zero step and convert the
-    /// resulting NaN to an unsigned integer, which is undefined behaviour.
+    /// not MS1 or holds a non-finite value, or when there is no MS1 peak, and
+    /// [`Error::UnsortedData`] when the spectra are not sorted by RT and m/z.
     pub fn compute(experiment: &MSExperiment, bins: usize) -> Result<Self> {
         let mut work = Work::unlimited();
         Self::compute_with_work(experiment, bins, &mut work)
@@ -138,17 +148,7 @@ impl IntensityThresholds {
             ));
         }
         let (rt, mz) = ms1_ranges(experiment)?;
-        let bins_f = bins as f64;
-        let rt_step = (rt.max - rt.min) / bins_f;
-        let mz_step = (mz.max - mz.min) / bins_f;
-        if rt_step == 0.0 || mz_step == 0.0 {
-            return Err(Error::InvalidValue(format!(
-                "FeatureFinderAlgorithmPicked needs a retention-time and an m/z range of \
-                 positive width (RT {} to {}, m/z {} to {}); the source divides by a zero bin \
-                 width here",
-                rt.min, rt.max, mz.min, mz.max
-            )));
-        }
+        let (rt_step, mz_step) = bin_steps(&rt, &mz, bins);
         let cells = bins
             .checked_mul(bins)
             .ok_or_else(|| Error::InvalidValue("intensity bin count overflow".into()))?;
@@ -239,8 +239,10 @@ impl IntensityThresholds {
     /// quantile the score is 1. At `k = 0` the bin score is
     /// `0.05 * intensity / q[0]`, otherwise `0.05 * (intensity - q[k-1]) / (q[k] -
     /// q[k-1])`; the result is that bin score plus `0.05 * (k - 1)`, clamped to
-    /// `[0, 1]`. A NaN from `0 / 0` (a non-positive intensity against a zero first
-    /// quantile) passes the clamp unchanged, as in the source.
+    /// `[0, 1]`. A NaN from `0 / 0` (a zero intensity against a zero first
+    /// quantile) or from a NaN intensity passes the clamp unchanged, as in the
+    /// source, with the sign and payload the Linux x86_64 Release build gives
+    /// it: the default NaN for `0 / 0`, the intensity's own NaN otherwise.
     ///
     /// Returns `None` for a cell outside the grid.
     pub fn bin_score(&self, rt_bin: usize, mz_bin: usize, intensity: f64) -> Option<f64> {
@@ -249,37 +251,85 @@ impl IntensityThresholds {
         let Some(&upper) = quantiles.get(position) else {
             return Some(1.0);
         };
+        // The operations follow the source; a NaN result is the one the Linux
+        // x86_64 Release build returns (see `x86_64`): a NaN intensity
+        // propagates, and `0 / 0` is the default NaN.
         let bin_score = if position == 0 {
-            0.05 * intensity / upper
+            x86_64::div(x86_64::mul(0.05, intensity), upper)
         } else {
             let lower = quantiles[position - 1];
-            0.05 * (intensity - lower) / (upper - lower)
+            x86_64::div(
+                x86_64::mul(0.05, x86_64::sub(intensity, lower)),
+                upper - lower,
+            )
         };
         // `clamp` keeps NaN and -0.0, as the source's two comparisons do.
-        Some((bin_score + 0.05 * (position as f64 - 1.0)).clamp(0.0, 1.0))
+        Some(x86_64::add(bin_score, 0.05 * (position as f64 - 1.0)).clamp(0.0, 1.0))
     }
 
     /// The intensity score of a peak: source `intensityScore_(spectrum, peak)`.
     ///
     /// The peak's position on a half-bin grid, `floor((x - start) / step * 2)`
-    /// capped at `2 * bins - 1`, selects the two nearest bins per dimension (one
-    /// at the outer half-bins). The four cell scores of [`Self::bin_score`] are
-    /// weighted by `d = sqrt((1 - d_rt)^2 + (1 - d_mz)^2)`, where `d_rt` and
-    /// `d_mz` are the distances of the peak to each bin centre in bin widths,
-    /// and each weight is divided by the sum of the four. The squares are
-    /// products where the source calls `std::pow(x, 2)`; the executed intensity
-    /// scores with 7 and 10 bins agree with them bit for bit.
+    /// converted to `UInt` and capped at `2 * bins - 1`, selects the two nearest
+    /// bins per dimension (one at the outer half-bins). The four cell scores of
+    /// [`Self::bin_score`] are weighted by `d = sqrt((1 - d_rt)^2 + (1 -
+    /// d_mz)^2)`, where `d_rt` and `d_mz` are the distances of the peak to each
+    /// bin centre in bin widths, and each weight is divided by the sum of the
+    /// four. The squares are products where the source calls `std::pow(x, 2)`,
+    /// which GCC compiles as a product; the executed intensity scores with 1, 2,
+    /// 7 and 10 bins agree with them bit for bit.
+    ///
+    /// # Undefined behaviour of the source, reproduced as the Linux x86_64 Release build computes it
+    ///
+    /// The conversion `(UInt) std::floor(...)` (`FeatureFinderAlgorithmPicked.cpp:1837-1838`)
+    /// is undefined in C++ when the half-bin position is NaN, infinite,
+    /// negative (below `-1`) or `2^32` and above. That happens for a peak
+    /// outside the binned range, which the algorithm never scores, and for
+    /// every peak when a bin step is zero or infinite
+    /// ([`DegenerateBinStep`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep)).
+    /// GCC 14 at `-O3` compiles the conversion in `libOpenMS.so` as
+    /// `cvttsd2si %xmm2,%rdi` (64-bit truncation, `0x8000000000000000` for NaN
+    /// and for values outside the signed 64-bit range) followed by the low 32
+    /// bits of the register, and the cap as an unsigned `cmovbe`. This
+    /// function reproduces exactly that ([`x86_64::truncate_to_u32`]): a
+    /// negative position wraps to a large unsigned value and is capped at the
+    /// last half-bin, and a NaN or infinite position selects half-bin 0. The
+    /// cells read are then always inside the grid. With a zero or infinite step
+    /// the distances are `0 / 0` or `inf / inf`, so the score is NaN whatever
+    /// half-bin was selected.
+    ///
+    /// NaN results carry the sign and payload that build returns: each
+    /// arithmetic step follows SSE2's NaN rule (the first NaN operand of the
+    /// emitted instruction, quieted; the default NaN `0xfff8000000000000` for an
+    /// invalid operation) in the operand order of the emitted instructions,
+    /// which swaps some commutative operands of the source text. The executed
+    /// probe `iscore_probe` (57 positions, including NaN and infinite ones, on
+    /// four grids) and every peak of the degenerate captures agree with this
+    /// bit for bit, NaN bits included.
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when a half-bin position is negative or
-    /// not finite, which happens only for a position outside the binned range;
-    /// the source converts it to an unsigned integer, which is undefined.
+    /// Returns [`Error::InvalidValue`] only when `2 * bins - 1` does not fit the
+    /// source's `UInt`, which [`Self::compute`] cannot produce in practice
+    /// because the quantile table of such a grid cannot be allocated.
     pub fn score(&self, rt: f64, mz: f64, intensity: f64) -> Result<f64> {
-        let rt_bin = self.half_bin(rt, self.rt_start, self.rt_step)?;
-        let mz_bin = self.half_bin(mz, self.mz_start, self.mz_step)?;
-        let last = 2 * self.bins - 1;
-        let neighbours = |bin: usize| -> (usize, usize) {
+        use x86_64::{abs, add, div, mul, sqrt, sub};
+        let last = u32::try_from(self.bins)
+            .ok()
+            .and_then(|bins| bins.checked_mul(2))
+            .map(|twice| twice - 1)
+            .ok_or_else(|| {
+                Error::InvalidValue("intensity:bins exceeds the source's UInt".into())
+            })?;
+        // `floor((x - start) / step * 2.0)`; GCC emits the doubling as `q + q`.
+        let half_bin = |x: f64, start: f64, step: f64| -> u32 {
+            let quotient = div(sub(x, start), step);
+            let position = add(quotient, quotient);
+            last.min(x86_64::truncate_to_u32(position.floor()))
+        };
+        let rt_bin = half_bin(rt, self.rt_start, self.rt_step);
+        let mz_bin = half_bin(mz, self.mz_start, self.mz_step);
+        let neighbours = |bin: u32| -> (u32, u32) {
             if bin == 0 || bin == last {
                 (bin / 2, bin / 2)
             } else if bin % 2 == 1 {
@@ -290,40 +340,150 @@ impl IntensityThresholds {
         };
         let (ml, mh) = neighbours(mz_bin);
         let (rl, rh) = neighbours(rt_bin);
-        let drl = (self.rt_start + (0.5 + rl as f64) * self.rt_step - rt).abs() / self.rt_step;
-        let drh = (self.rt_start + (0.5 + rh as f64) * self.rt_step - rt).abs() / self.rt_step;
-        let dml = (self.mz_start + (0.5 + ml as f64) * self.mz_step - mz).abs() / self.mz_step;
-        let dmh = (self.mz_start + (0.5 + mh as f64) * self.mz_step - mz).abs() / self.mz_step;
-        let square = |x: f64| x * x;
-        let d1 = (square(1.0 - drl) + square(1.0 - dml)).sqrt();
-        let d2 = (square(1.0 - drh) + square(1.0 - dml)).sqrt();
-        let d3 = (square(1.0 - drl) + square(1.0 - dmh)).sqrt();
-        let d4 = (square(1.0 - drh) + square(1.0 - dmh)).sqrt();
-        let d_sum = d1 + d2 + d3 + d4;
-        let cell = |r: usize, m: usize| {
-            self.bin_score(r, m, intensity)
+        // `|start + (0.5 + b) * step - x| / step`, in the emitted order.
+        let distance = |b: u32, start: f64, step: f64, x: f64| -> f64 {
+            div(
+                abs(sub(add(mul(add(f64::from(b), 0.5), step), start), x)),
+                step,
+            )
+        };
+        let drl = distance(rl, self.rt_start, self.rt_step, rt);
+        let drh = distance(rh, self.rt_start, self.rt_step, rt);
+        let dml = distance(ml, self.mz_start, self.mz_step, mz);
+        let dmh = distance(mh, self.mz_start, self.mz_step, mz);
+        let square = |x: f64| mul(x, x);
+        let a = square(sub(1.0, drl));
+        let b = square(sub(1.0, drh));
+        let c = square(sub(1.0, dml));
+        let d = square(sub(1.0, dmh));
+        // Source `d1 = sqrt(a + c)`, `d2 = sqrt(b + c)`, `d3 = sqrt(a + d)`,
+        // `d4 = sqrt(b + d)`; GCC emits `c + a`, `c + b`, `a + d` and `d + b`.
+        let d1 = sqrt(add(c, a));
+        let d2 = sqrt(add(c, b));
+        let d3 = sqrt(add(a, d));
+        let d4 = sqrt(add(d, b));
+        let d_sum = add(add(add(d1, d2), d3), d4);
+        let cell = |r: u32, m: u32| {
+            self.bin_score(r as usize, m as usize, intensity)
                 .ok_or_else(|| Error::InvalidValue("intensity bin outside the grid".into()))
         };
-        Ok(cell(rl, ml)? * (d1 / d_sum)
-            + cell(rh, ml)? * (d2 / d_sum)
-            + cell(rl, mh)? * (d3 / d_sum)
-            + cell(rh, mh)? * (d4 / d_sum))
+        // Source `c1 * (d1 / d_sum) + c2 * (d2 / d_sum) + ...`, left to right;
+        // GCC emits each product with the weight first and the first two sums
+        // with the new term first.
+        let t1 = mul(div(d1, d_sum), cell(rl, ml)?);
+        let t2 = mul(div(d2, d_sum), cell(rh, ml)?);
+        let t3 = mul(div(d3, d_sum), cell(rl, mh)?);
+        let t4 = mul(div(d4, d_sum), cell(rh, mh)?);
+        Ok(add(add(t3, add(t2, t1)), t4))
+    }
+}
+
+/// Emulation of the instructions the Linux x86_64 Release build of
+/// `libOpenMS.so` (`openms4-release-bc9cc12-c19e494-174b576`, GCC 14.4, `-O3
+/// -mssse3 -ffp-contract=off`) emits for `intensityScore_`, where IEEE 754
+/// alone does not fix the result.
+///
+/// The arithmetic helpers return the IEEE result whenever it is not NaN, so
+/// they never change a number. For NaN they follow the SSE2 rule (Intel SDM
+/// vol. 1, "Rules for handling NaNs"): the first NaN operand of the
+/// instruction, quieted, or the default NaN `0xfff8000000000000` when the
+/// operation itself is invalid. Rust's own arithmetic leaves those bits to the
+/// host, and an arm64 host produces the positive default NaN.
+pub(crate) mod x86_64 {
+    /// SSE2's default ("real indefinite") NaN.
+    pub(crate) const DEFAULT_NAN: f64 = f64::from_bits(0xfff8_0000_0000_0000);
+
+    fn quiet(x: f64) -> f64 {
+        f64::from_bits(x.to_bits() | 0x0008_0000_0000_0000)
     }
 
-    fn half_bin(&self, x: f64, start: f64, step: f64) -> Result<usize> {
-        let position = ((x - start) / step * 2.0).floor();
-        if position.is_nan() || position.is_infinite() || position < 0.0 {
-            return Err(Error::InvalidValue(format!(
-                "position {x} lies outside the intensity bins starting at {start}"
-            )));
-        }
-        let last = 2 * self.bins - 1;
-        Ok(if position >= last as f64 {
-            last
+    /// The NaN rule of a two-operand SSE2 instruction whose destination
+    /// register holds `first`.
+    fn nan_rule(first: f64, second: f64, result: f64) -> f64 {
+        if !result.is_nan() {
+            result
+        } else if first.is_nan() {
+            quiet(first)
+        } else if second.is_nan() {
+            quiet(second)
         } else {
-            position as usize
-        })
+            DEFAULT_NAN
+        }
     }
+
+    /// `addsd`: `first + second`.
+    pub(crate) fn add(first: f64, second: f64) -> f64 {
+        nan_rule(first, second, first + second)
+    }
+
+    /// `subsd`: `first - second`.
+    pub(crate) fn sub(first: f64, second: f64) -> f64 {
+        nan_rule(first, second, first - second)
+    }
+
+    /// `mulsd`: `first * second`.
+    pub(crate) fn mul(first: f64, second: f64) -> f64 {
+        nan_rule(first, second, first * second)
+    }
+
+    /// `divsd`: `first / second`.
+    pub(crate) fn div(first: f64, second: f64) -> f64 {
+        nan_rule(first, second, first / second)
+    }
+
+    /// `sqrtsd`.
+    pub(crate) fn sqrt(x: f64) -> f64 {
+        nan_rule(x, x, x.sqrt())
+    }
+
+    /// `andpd` with the absolute-value mask: clears the sign bit, of a NaN too.
+    pub(crate) fn abs(x: f64) -> f64 {
+        f64::from_bits(x.to_bits() & !(1 << 63))
+    }
+
+    /// `cvttsd2si %xmm, %r64` followed by the low 32 bits of the register: how
+    /// the Release build converts a `double` to `UInt`.
+    ///
+    /// The instruction truncates towards zero and returns
+    /// `0x8000000000000000` for NaN and for every value outside the signed
+    /// 64-bit range; the low 32 bits of that are 0. An in-range value keeps its
+    /// low 32 bits, so `-1.0` becomes `0xffffffff` and `2^32 + 2` becomes 2.
+    pub(crate) fn truncate_to_u32(x: f64) -> u32 {
+        const TWO_TO_63: f64 = 9_223_372_036_854_775_808.0;
+        let wide = if x.is_nan() || !(-TWO_TO_63..TWO_TO_63).contains(&x) {
+            i64::MIN
+        } else {
+            x as i64
+        };
+        wide as u32
+    }
+
+    /// `cvtsd2ss`: `x` narrowed to `f32`. A NaN keeps its sign and the top 22
+    /// bits of its payload and is quieted, as the instruction does; Rust's `as`
+    /// leaves NaN bits to the host.
+    pub(crate) fn narrow(x: f64) -> f32 {
+        if x.is_nan() {
+            let bits = x.to_bits();
+            let sign = ((bits >> 32) as u32) & 0x8000_0000;
+            let payload = ((bits >> 29) as u32) & 0x003f_ffff;
+            f32::from_bits(sign | 0x7fc0_0000 | payload)
+        } else {
+            x as f32
+        }
+    }
+}
+
+/// The RT and m/z bin steps of step 1: the extents divided by `bins`
+/// (`FeatureFinderAlgorithmPicked.cpp:244-245`).
+pub(crate) fn bin_steps(rt: &NumericRange, mz: &NumericRange, bins: usize) -> (f64, f64) {
+    let bins_f = bins as f64;
+    ((rt.max - rt.min) / bins_f, (mz.max - mz.min) / bins_f)
+}
+
+/// Whether a bin step makes every intensity score undefined in the source:
+/// zero, or not finite.
+pub(crate) fn degenerate_step(step: f64) -> bool {
+    !(step > 0.0 && step.is_finite())
 }
 
 /// The per-peak scores of one run: the source's float data arrays.
@@ -529,7 +689,7 @@ impl Work {
 ///
 /// # Errors
 ///
-/// As [`IntensityThresholds::compute`], without the zero-width checks.
+/// As [`IntensityThresholds::compute`].
 pub(crate) fn ms1_ranges(experiment: &MSExperiment) -> Result<(NumericRange, NumericRange)> {
     check_ms1_sorted(experiment)?;
     let (Some(first), Some(last)) = (experiment.spectra.first(), experiment.spectra.last()) else {
@@ -617,8 +777,11 @@ pub(crate) fn fill_intensity_scores(
     for spectrum in &experiment.spectra {
         work.consume(spectrum.peaks.len() as u64)?;
         for peak in &spectrum.peaks {
-            target[index] =
-                thresholds.score(spectrum.rt, peak.mz, f64::from(peak.intensity))? as f32;
+            target[index] = x86_64::narrow(thresholds.score(
+                spectrum.rt,
+                peak.mz,
+                f64::from(peak.intensity),
+            )?);
             index += 1;
         }
     }
