@@ -41,7 +41,12 @@
 //! - this module again:
 //!   [`feature_stage`](crate::analysis::feature_finder_picked::algorithm::feature_stage),
 //!   the seed loop that drives those three and the source's single
-//!   `#pragma omp parallel for`.
+//!   `#pragma omp parallel for`;
+//! - [`crate::analysis::feature_finder_picked::instance`]: the stateful
+//!   algorithm object, which [`run`](crate::analysis::feature_finder_picked::algorithm::run)
+//!   uses with a fresh instance and a fresh feature map;
+//! - [`crate::analysis::feature_finder_picked::debug`]: the `write_debug`
+//!   output as data.
 //!
 //! The API mapping, the preserved source conventions, the native differences
 //! and the evidence are in `docs/FEATURE_FINDER_PICKED_SUPPORT.md`.
@@ -50,24 +55,21 @@
 //! OpenMS log. Library code here never prints: every such line is collected in
 //! the log of the returned value.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
-use crate::analysis::feature_finder_picked::extension::{
-    OverallScores, extend_mass_traces, find_best_isotope_fit,
+use crate::analysis::feature_finder_picked::debug::{AbortReasons, DebugOutput};
+use crate::analysis::feature_finder_picked::instance::{
+    ABORT_BLOCK_HEADING, Bookkeeping, DebugKey, FeatureFinderAlgorithmPicked, Progress,
+    extend_charge, preflight_charge, settle_charge,
 };
-use crate::analysis::feature_finder_picked::fitting::{
-    ABORT_COULD_NOT_EXTEND, ABORT_NO_ISOTOPE_PATTERN, FeatureInput, FittedModel, QualityOutcome,
-    build_feature, check_feature_quality, crop_feature,
-};
-use crate::analysis::feature_finder_picked::helper_structs::Seed;
 use crate::analysis::feature_finder_picked::resolution::{
     annotate_apex, invalid_apex_warning, resolve_overlaps,
 };
 use crate::analysis::feature_finder_picked::seeds::SeedStage;
+use crate::analysis::feature_finder_picked::source_sort::source_sort_by;
 use crate::analysis::feature_finder_picked::trace_fitter::TraceFitterParams;
-use crate::concept::parallel::{Threads, map_collect};
-use crate::kernel::{Feature, FeatureMap, MSExperiment, Point2D};
-use crate::metadata::MetaValue;
+use crate::concept::parallel::Threads;
+use crate::kernel::{Feature, FeatureMap, MSExperiment};
 use crate::param::{DefaultParamHandler, Param, ParamValue};
 use crate::{Error, Result};
 
@@ -419,6 +421,61 @@ pub enum AbundanceOverride {
     Refuse,
 }
 
+/// Which parameter `writeFeatureDebugInfo_` reads for its pseudo-RT shift in a
+/// `write_debug` run.
+///
+/// The source reads `debug:pseudo_rt_shift` (`FeatureFinderAlgorithmPicked.cpp:2137`),
+/// but declares `advanced:pseudo_rt_shift` (`:124`). Unless the caller passes
+/// the undeclared key itself, `Param::getValue` throws `ElementNotFound` inside
+/// the OpenMP region of the seed loop, and the process terminates (executed:
+/// `FeatureFinderCentroided` with `-algorithm:write_debug` on
+/// FeatureFinderCentroided_1 is killed by `SIGABRT`, shell status 134). A safe
+/// port cannot end the process abnormally; it returns an error at that seed,
+/// and the FeatureFinderCentroided tool exits with code 8 after writing what
+/// the executed process had written.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum PseudoRtShiftKey {
+    /// Read `debug:pseudo_rt_shift`, as the source does: an integer or float
+    /// value is used; a string or list value is the bits of a heap pointer
+    /// ([`PseudoRtShift::HeapAddress`](crate::analysis::feature_finder_picked::debug::PseudoRtShift::HeapAddress)),
+    /// emulated wherever the written text does not depend on the address. At
+    /// the first seed that reaches the fit without the key or with an empty
+    /// value, where the source process terminates, the run returns
+    /// [`Error::Unsupported`] and records the point in
+    /// [`DebugOutput::termination`]. The default, and what the
+    /// FeatureFinderCentroided tool uses.
+    #[default]
+    Source,
+    /// Read the declared `advanced:pseudo_rt_shift` (default 500) and write
+    /// the member's files for every seed that reaches the fit: what the source
+    /// evidently intends.
+    Declared,
+}
+
+/// What [`FeatureFinderAlgorithmPicked::parameters`] returns after
+/// [`FeatureFinderAlgorithmPicked::set_parameters`] (or a run) refused a
+/// parameter set.
+///
+/// Source `DefaultParamHandler::setParameters` (`DefaultParamHandler.cpp`)
+/// assigns the new set, merged with the defaults, to `param_` *before*
+/// `Param::checkDefaults` throws `InvalidParameter` for a value of the wrong
+/// type or outside its restriction, and calls `updateMembers_` only after the
+/// check. After the exception `getParameters()` therefore returns the rejected
+/// set while the typed members keep the values of the last accepted one
+/// (executed: `params_after_failed_set.txt` and `rejected_stdout.txt` of the
+/// oracle). The next `setParameters` or `run` replaces the set again.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum RejectedParameters {
+    /// Show the rejected set, merged with the defaults, as the source does;
+    /// the settings a run uses stay those of the last accepted set, and the
+    /// next accepted set replaces it. The default.
+    #[default]
+    Shown,
+    /// Keep showing the last accepted set: a refused set changes nothing, the
+    /// port's usual atomicity.
+    Discarded,
+}
+
 /// Resource ceilings of the seed stage, checked before the corresponding work.
 ///
 /// The source has no ceilings. Each limit below is far above the workloads the
@@ -454,6 +511,9 @@ pub struct Limits {
     /// on the isotope search around each seed plus the extension of each
     /// isotope's trace through the scans.
     pub max_seed_work: u64,
+    /// Most bytes of the `write_debug` log kept in memory. The source writes
+    /// the log to a file and has no bound.
+    pub max_debug_bytes: usize,
 }
 
 impl Limits {
@@ -479,6 +539,9 @@ impl Limits {
     /// Default [`Self::max_seed_work`]: 44,000 scans with 800,000 seeds of 20
     /// isotopes stay an order of magnitude below it.
     pub const DEFAULT_MAX_SEED_WORK: u64 = 10_000_000_000_000;
+    /// Default [`Self::max_debug_bytes`], 16 GiB; the FeatureFinderCentroided_1
+    /// debug log has about 1.1 MiB.
+    pub const DEFAULT_MAX_DEBUG_BYTES: usize = 16 << 30;
 }
 
 impl Default for Limits {
@@ -494,6 +557,7 @@ impl Default for Limits {
             max_work: Self::DEFAULT_MAX_WORK,
             max_seeds: Self::DEFAULT_MAX_SEEDS,
             max_seed_work: Self::DEFAULT_MAX_SEED_WORK,
+            max_debug_bytes: Self::DEFAULT_MAX_DEBUG_BYTES,
         }
     }
 }
@@ -514,6 +578,12 @@ pub struct Options {
     /// order, and everything after the loop is serial. The default is every
     /// available core.
     pub threads: Threads,
+    /// The parameter a `write_debug` run reads for the pseudo-RT shift of its
+    /// feature plots.
+    pub pseudo_rt_shift: PseudoRtShiftKey,
+    /// What the algorithm instance's parameters show after a rejected
+    /// parameter set.
+    pub rejected_parameters: RejectedParameters,
 }
 
 /// The typed parameter values of one run.
@@ -615,7 +685,7 @@ impl Settings {
         handler.set_parameters_with(parameters, |merged| Self::read(merged, &defaults))
     }
 
-    fn read(p: &Param, defaults: &Param) -> Result<Self> {
+    pub(crate) fn read(p: &Param, defaults: &Param) -> Result<Self> {
         let float = |key: &str| p.value(key)?.to_f64();
         let int = |key: &str| p.value(key)?.to_i32();
         let unsigned = |key: &str| p.value(key)?.to_u32();
@@ -716,6 +786,9 @@ pub struct RunOutput {
     /// reasons serially, in seed order, so the counts are exact and
     /// thread-count independent.
     pub aborts: BTreeMap<String, usize>,
+    /// The `write_debug` output, when the parameter is set
+    /// ([`FeatureFinderAlgorithmPicked::debug_output`]).
+    pub debug: Option<DebugOutput>,
 }
 
 /// Source warning when the input is not sorted, verbatim.
@@ -792,7 +865,8 @@ pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> R
     Ok(true)
 }
 
-/// Find features: source `run(PeakMap&&, FeatureMap&, const Param&, const FeatureMap& seeds)`.
+/// Find features: source `run(PeakMap&&, FeatureMap&, const Param&, const FeatureMap& seeds)`
+/// on a fresh algorithm object and a fresh feature map.
 ///
 /// `experiment` holds centroided MS1 spectra and is consumed, as the source
 /// moves it. `parameters` are applied over [`default_parameters`]. `seeds`
@@ -801,14 +875,18 @@ pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> R
 ///
 /// An experiment without spectra yields an empty feature map and an empty log.
 /// Otherwise the input is checked ([`validate_input`]), the parameters are
-/// applied ([`Settings::from_parameters`]), the seed stage runs
-/// ([`SeedStage::compute`]) and every seed is extended into a feature
-/// ([`feature_stage`]).
+/// applied ([`Settings::from_parameters`]), the seeds are selected and extended
+/// charge by charge, and the overlaps are resolved
+/// ([`FeatureFinderAlgorithmPicked::run`]). The log holds the text of every
+/// console line in source order; `write_debug` output is in
+/// [`RunOutput::debug`].
+///
+/// A reused object or a non-empty output map, whose state the source carries
+/// from run to run, is [`FeatureFinderAlgorithmPicked`] itself.
 ///
 /// # Errors
 ///
-/// Every error of [`validate_input`], [`Settings::from_parameters`],
-/// [`SeedStage::compute`] and [`feature_stage`].
+/// Every error of [`FeatureFinderAlgorithmPicked::run`].
 pub fn run(experiment: MSExperiment, seeds: &FeatureMap, parameters: &Param) -> Result<RunOutput> {
     run_with_options(experiment, seeds, parameters, &Options::default())
 }
@@ -824,30 +902,23 @@ pub fn run_with_options(
     parameters: &Param,
     options: &Options,
 ) -> Result<RunOutput> {
-    match SeedStage::run_with_options(experiment, seeds, parameters, options)? {
-        None => Ok(RunOutput {
-            features: FeatureMap::new(),
-            log: Vec::new(),
-            aborts: BTreeMap::new(),
-        }),
-        Some(stage) => feature_stage(&stage, options),
-    }
-}
-
-/// What one seed produced in step 3.3.
-struct SeedOutcome {
-    /// Whether the seed reached the fit and therefore consumed a `plot_nr`.
-    plot_nr_used: bool,
-    /// The candidate, or the source abort reason that dropped the seed.
-    result: std::result::Result<SeedCandidate, String>,
-}
-
-/// One accepted candidate and the later seeds it swallows.
-struct SeedCandidate {
-    feature: Feature,
-    /// Indices of the seeds after this one that lie inside the feature: the
-    /// source's `seeds_in_features[i]`.
-    contained: Vec<usize>,
+    let mut algorithm = FeatureFinderAlgorithmPicked::with_options(*options)?;
+    let mut features = FeatureMap::new();
+    algorithm.run(experiment, &mut features, parameters, seeds)?;
+    Ok(RunOutput {
+        features,
+        log: algorithm
+            .report()
+            .iter()
+            .filter_map(|line| line.text().map(str::to_owned))
+            .collect(),
+        aborts: algorithm
+            .aborts()
+            .iter()
+            .map(|(reason, &count)| (reason.clone(), count as usize))
+            .collect(),
+        debug: algorithm.take_debug_output(),
+    })
 }
 
 /// Steps 3.3 and 4 of source `run_` on a completed seed stage.
@@ -860,7 +931,9 @@ struct SeedCandidate {
 /// numbers the survivors. After every charge the overlapping features are
 /// resolved ([`resolve_overlaps`]), the zero-intensity losers are removed, the
 /// map is sorted by descending intensity and each feature is annotated with its
-/// apex scan ([`annotate_apex`]).
+/// apex scan ([`annotate_apex`]). Both sorts put equal elements where the C++
+/// Release build's `std::sort` does
+/// ([`crate::analysis::feature_finder_picked::source_sort`]).
 ///
 /// The log receives, in the source's order, the seed counts the stage already
 /// collected, each charge's `Found N feature candidates for charge c.` directly
@@ -874,6 +947,9 @@ struct SeedCandidate {
 /// results are schedule-independent for the same reason, its `tmp_feature_map`
 /// being keyed by seed index.
 ///
+/// This stage-level entry point writes no debug output and reports no
+/// progress; [`FeatureFinderAlgorithmPicked::run`] does both.
+///
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] when a [`Limits`] ceiling of the seed loop
@@ -885,83 +961,62 @@ struct SeedCandidate {
 pub fn feature_stage(stage: &SeedStage, options: &Options) -> Result<RunOutput> {
     let settings = stage.settings();
     let experiment = stage.experiment();
-    preflight_seed_loop(stage, &options.limits)?;
+    let mut seed_work = 0u64;
+    for charge_index in 0..stage.charges().len() {
+        preflight_charge(stage, charge_index, &options.limits, &mut seed_work)?;
+    }
 
     let fitter_parameters = TraceFitterParams {
         max_iteration: i64::from(settings.max_iterations),
         weighted: false,
     };
     let mut features: Vec<Feature> = Vec::new();
-    let mut aborts: BTreeMap<String, usize> = BTreeMap::new();
+    let mut aborts: BTreeMap<String, u32> = BTreeMap::new();
+    let mut abort_reasons = AbortReasons::new();
     let mut candidate_lines: Vec<(usize, String)> = Vec::new();
     let mut plot_nr_global: i64 = -1;
     let mut feature_nr_global: i64 = 0;
+    let mut progress = Progress::silent();
+    let no_parameters = Param::new();
 
     for (charge_index, charge_seeds) in stage.charges().iter().enumerate() {
-        let charge = charge_seeds.charge;
-        let seeds = &charge_seeds.seeds;
-        let indices: Vec<usize> = (0..seeds.len()).collect();
-        let overall = OverallScores::new(stage.scores(), charge_index);
-        let outcomes = map_collect(&indices, options.threads, |&index| {
-            extend_seed(stage, overall, &fitter_parameters, charge, seeds, index)
-        });
-
-        let mut accepted: Vec<(usize, SeedCandidate)> = Vec::new();
-        for (index, outcome) in outcomes.into_iter().enumerate() {
-            let outcome = outcome?;
-            let plot_nr = if outcome.plot_nr_used {
-                plot_nr_global += 1;
-                plot_nr_global
-            } else {
-                -1
-            };
-            match outcome.result {
-                Err(reason) => *aborts.entry(reason).or_insert(0) += 1,
-                Ok(mut candidate) => {
-                    // The source assigns `plot_nr` inside a critical section,
-                    // so its value depends on the schedule; it is overwritten
-                    // below for every candidate that survives, and only the
-                    // refused debug output reads it otherwise. This port
-                    // numbers the seeds that reached the fit in seed order.
-                    candidate
-                        .feature
-                        .metadata
-                        .insert("label".into(), MetaValue::from(plot_nr));
-                    accepted.push((index, candidate));
-                }
-            }
-        }
-
-        let mut contained_seeds: BTreeSet<usize> = BTreeSet::new();
-        let mut feature_candidates = 0usize;
-        for (seed_nr, candidate) in accepted {
-            if contained_seeds.contains(&seed_nr) {
-                continue;
-            }
-            feature_candidates += 1;
-            let mut feature = candidate.feature;
-            feature
-                .metadata
-                .insert("label".into(), MetaValue::from(feature_nr_global));
-            feature_nr_global += 1;
-            features
-                .try_reserve(1)
-                .map_err(|_| Error::InvalidValue("cannot allocate a feature".into()))?;
-            features.push(feature);
-            contained_seeds.extend(candidate.contained);
-        }
+        let outcomes = extend_charge(
+            stage,
+            charge_index,
+            &fitter_parameters,
+            options.threads,
+            false,
+        );
+        let mut book = Bookkeeping {
+            aborts: &mut aborts,
+            abort_reasons: &mut abort_reasons,
+            out: &mut None,
+            features: &mut features,
+            plot_nr_global: &mut plot_nr_global,
+            feature_nr_global: &mut feature_nr_global,
+            progress: &mut progress,
+            limits: &options.limits,
+        };
+        let key = DebugKey {
+            policy: options.pseudo_rt_shift,
+            parameters: &no_parameters,
+        };
+        let feature_candidates = settle_charge(stage, charge_index, outcomes, &mut book, &key)?;
         candidate_lines.push((
             charge_index,
-            format!("Found {feature_candidates} feature candidates for charge {charge}."),
+            format!(
+                "Found {feature_candidates} feature candidates for charge {}.",
+                charge_seeds.charge
+            ),
         ));
     }
 
     // Step 4, serial.
     let mut map = FeatureMap::from_features(features);
-    map.sort_by_mz()?;
+    source_sort_by(&mut map.features, |a, b| a.mz < b.mz)?;
     let removed = resolve_overlaps(&mut map.features, settings.max_feature_intersection)?;
     map.features.retain(|feature| feature.intensity != 0.0);
-    map.sort_by_intensity(true)?;
+    source_sort_by(&mut map.features, |a, b| b.intensity < a.intensity)?;
     let invalid_apex = annotate_apex(&mut map.features, experiment)?;
 
     let mut log = interleave_log(stage, &candidate_lines);
@@ -974,7 +1029,7 @@ pub fn feature_stage(stage: &SeedStage, options: &Options) -> Result<RunOutput> 
     // FeatureFinderAlgorithmPicked.cpp:1019 and the leading "\n" at 1026), which
     // the executed C++ prints whether or not there is an abort reason.
     log.push(String::new());
-    log.push("Info: reasons for not finalizing a feature during its construction:".into());
+    log.push(ABORT_BLOCK_HEADING.into());
     for (reason, count) in &aborts {
         log.push(format!(" - {reason}: {count} times"));
     }
@@ -983,7 +1038,11 @@ pub fn feature_stage(stage: &SeedStage, options: &Options) -> Result<RunOutput> 
     Ok(RunOutput {
         features: map,
         log,
-        aborts,
+        aborts: aborts
+            .into_iter()
+            .map(|(reason, count)| (reason, count as usize))
+            .collect(),
+        debug: None,
     })
 }
 
@@ -1012,120 +1071,4 @@ fn interleave_log(stage: &SeedStage, candidate_lines: &[(usize, String)]) -> Vec
         }
     }
     log
-}
-
-/// The ceilings of the seed loop, checked before it starts.
-fn preflight_seed_loop(stage: &SeedStage, limits: &Limits) -> Result<()> {
-    let spectra = stage.experiment().spectra.len() as u64;
-    let isotopes = stage.settings().max_isotopes() as u64;
-    let per_seed = isotopes.saturating_mul(isotopes.saturating_add(spectra));
-    let mut work = 0u64;
-    for charge in stage.charges() {
-        if charge.seeds.len() > limits.max_seeds {
-            return Err(Error::InvalidValue(format!(
-                "{} seeds for charge {} exceed the limit of {}",
-                charge.seeds.len(),
-                charge.charge,
-                limits.max_seeds
-            )));
-        }
-        work = work.saturating_add((charge.seeds.len() as u64).saturating_mul(per_seed));
-    }
-    if work > limits.max_seed_work {
-        return Err(Error::InvalidValue(format!(
-            "the seed loop may take {work} work units, exceeding the limit of {}",
-            limits.max_seed_work
-        )));
-    }
-    Ok(())
-}
-
-/// One seed of step 3.3: isotope fit, extension, fit, cropping, quality checks
-/// and feature creation.
-fn extend_seed(
-    stage: &SeedStage,
-    overall: OverallScores<'_>,
-    fitter_parameters: &TraceFitterParams,
-    charge: i32,
-    seeds: &[Seed],
-    index: usize,
-) -> Result<SeedOutcome> {
-    let settings = stage.settings();
-    let spectra = &stage.experiment().spectra;
-    let seed = seeds[index];
-    let aborted = |plot_nr_used: bool, reason: &str| SeedOutcome {
-        plot_nr_used,
-        result: Err(reason.to_owned()),
-    };
-
-    let (isotope_fit_quality, pattern) =
-        find_best_isotope_fit(spectra, stage.windows(), settings, seed, charge)?;
-    if isotope_fit_quality < settings.min_isotope_fit {
-        return Ok(aborted(false, ABORT_NO_ISOTOPE_PATTERN));
-    }
-    let mut traces = extend_mass_traces(spectra, overall, settings, &pattern)?;
-    let seed_mz = spectra[seed.spectrum].peaks[seed.peak].mz;
-    if !traces.is_valid(seed_mz, settings.trace_tolerance) {
-        return Ok(aborted(false, ABORT_COULD_NOT_EXTEND));
-    }
-
-    // Source: the baseline estimate is three quarters of the lowest peak.
-    traces.update_baseline();
-    traces.baseline *= 0.75;
-    traces
-        .get_mut(traces.max_trace)
-        .ok_or_else(|| {
-            Error::InvalidValue(
-                "FeatureFinderAlgorithmPicked seed extension: the maximum trace index is out of \
-                 range; the source dereferences it here"
-                    .into(),
-            )
-        })?
-        .update_maximum();
-
-    let mut model = FittedModel::new(settings.rt_shape, *fitter_parameters);
-    if let Err(error) = model.fit(&traces) {
-        // The source does not catch `Exception::UnableToFit` inside its
-        // parallel region, so the run ends there; this port records the failure
-        // as the seed's abort reason and continues, which is what the source's
-        // own abort handling amounts to.
-        return Ok(SeedOutcome {
-            plot_nr_used: true,
-            result: Err(error.to_string()),
-        });
-    }
-    let new_traces = crop_feature(model.as_fitter(), &traces, settings.min_trace_score)?;
-    let quality = match check_feature_quality(model.as_fitter(), &new_traces, seed_mz, settings)? {
-        QualityOutcome::Rejected(reason) => return Ok(aborted(true, reason)),
-        QualityOutcome::Accepted(quality) => quality,
-    };
-    let traces = new_traces;
-    let feature = build_feature(FeatureInput {
-        model: &model,
-        traces: &traces,
-        pattern: &pattern,
-        windows: stage.windows(),
-        settings,
-        charge,
-        // Overwritten serially; see `feature_stage`.
-        plot_nr: -1,
-        quality,
-    })?;
-
-    // Source: every later seed inside both the overall bounding box and one of
-    // the mass-trace hulls.
-    let mut contained = Vec::new();
-    if let Some(bounds) = feature.hull_bounding_box() {
-        for (offset, later) in seeds.iter().enumerate().skip(index + 1) {
-            let rt = spectra[later.spectrum].rt;
-            let mz = spectra[later.spectrum].peaks[later.peak].mz;
-            if bounds.encloses(Point2D::new(rt, mz))? && feature.encloses(rt, mz)? {
-                contained.push(offset);
-            }
-        }
-    }
-    Ok(SeedOutcome {
-        plot_nr_used: true,
-        result: Ok(SeedCandidate { feature, contained }),
-    })
 }

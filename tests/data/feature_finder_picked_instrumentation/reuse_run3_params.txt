@@ -1,0 +1,153 @@
+P write_debug s false
+  tags
+  int -2147483647 2147483647 float ffefffffffffffff 7fefffffffffffff
+  valid true false
+  desc When debug mode is activated, several files with intermediate results are written to the folder 'debug' (do not use in parallel mode).
+P intensity:bins i 1
+  tags
+  int 1 2147483647 float ffefffffffffffff 7fefffffffffffff
+  valid
+  desc Number of bins per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.\nThis parameter should be decreased, if the algorithm is used on small regions of a map.
+P mass_trace:mz_tolerance d 3f947ae147ae147b
+  tags
+  int -2147483647 2147483647 float 0000000000000000 7fefffffffffffff
+  valid
+  desc Tolerated m/z deviation of peaks belonging to the same mass trace.\nIt should be larger than the m/z resolution of the instument.\nThis value must be smaller than that 1/charge_high!
+P mass_trace:min_spectra i 14
+  tags
+  int 1 2147483647 float ffefffffffffffff 7fefffffffffffff
+  valid
+  desc Number of spectra that have to show a similar peak mass in a mass trace.
+P mass_trace:max_missing i 1
+  tags
+  int 0 2147483647 float ffefffffffffffff 7fefffffffffffff
+  valid
+  desc Number of spectra where a high mass deviation or missing peak is acceptable.\nThis parameter should be well below 'min_spectra'!
+P mass_trace:slope_bound d 3fb999999999999a
+  tags
+  int -2147483647 2147483647 float 0000000000000000 7fefffffffffffff
+  valid
+  desc The maximum slope of mass trace intensities when extending from the highest peak.\nThis parameter is important to seperate overlapping elution peaks.\nIt should be increased if feature elution profiles fluctuate a lot.
+P isotopic_pattern:charge_low i 1
+  tags
+  int 1 2147483647 float ffefffffffffffff 7fefffffffffffff
+  valid
+  desc Lowest charge to search for.
+P isotopic_pattern:charge_high i 3
+  tags
+  int 1 2147483647 float ffefffffffffffff 7fefffffffffffff
+  valid
+  desc Highest charge to search for.
+P isotopic_pattern:mz_tolerance d 3f947ae147ae147b
+  tags
+  int -2147483647 2147483647 float 0000000000000000 7fefffffffffffff
+  valid
+  desc Tolerated m/z deviation from the theoretical isotopic pattern.\nIt should be larger than the m/z resolution of the instument.\nThis value must be smaller than that 1/charge_high!
+P isotopic_pattern:intensity_percentage d 4024000000000000
+  tags advanced
+  int -2147483647 2147483647 float 0000000000000000 4059000000000000
+  valid
+  desc Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.
+P isotopic_pattern:intensity_percentage_optional d 3fb999999999999a
+  tags advanced
+  int -2147483647 2147483647 float 0000000000000000 4059000000000000
+  valid
+  desc Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.
+P isotopic_pattern:optional_fit_improvement d 4000000000000000
+  tags advanced
+  int -2147483647 2147483647 float 0000000000000000 4059000000000000
+  valid
+  desc Minimal percental improvement of isotope fit to allow leaving out an optional peak.
+P isotopic_pattern:mass_window_width d 4059000000000000
+  tags advanced
+  int -2147483647 2147483647 float 3ff0000000000000 4069000000000000
+  valid
+  desc Window width in Dalton for precalcuation of estimated isotope distribtions.
+P isotopic_pattern:abundance_12C d 4058bb851eb851ec
+  tags advanced
+  int -2147483647 2147483647 float 0000000000000000 4059000000000000
+  valid
+  desc Rel. abundance of the light carbon. Modify if labeled.
+P isotopic_pattern:abundance_14N d 4058e872b020c49c
+  tags advanced
+  int -2147483647 2147483647 float 0000000000000000 4059000000000000
+  valid
+  desc Rel. abundance of the light nitrogen. Modify if labeled.
+P seed:min_score d 3fe999999999999a
+  tags
+  int -2147483647 2147483647 float 0000000000000000 3ff0000000000000
+  valid
+  desc Minimum seed score a peak has to reach to be used as seed.\nThe seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.\nIf your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score.
+P fit:max_iterations i 500
+  tags advanced
+  int 1 2147483647 float ffefffffffffffff 7fefffffffffffff
+  valid
+  desc Maximum number of iterations of the fit.
+P feature:min_score d 3fe6666666666666
+  tags
+  int -2147483647 2147483647 float 0000000000000000 3ff0000000000000
+  valid
+  desc Feature score threshold for a feature to be reported.\nThe feature score is the geometric mean of the average relative deviation and the correlation between the model and the observed peaks.
+P feature:min_isotope_fit d 3fe999999999999a
+  tags advanced
+  int -2147483647 2147483647 float 0000000000000000 3ff0000000000000
+  valid
+  desc Minimum isotope fit of the feature before model fitting.
+P feature:min_trace_score d 3fe0000000000000
+  tags advanced
+  int -2147483647 2147483647 float 0000000000000000 3ff0000000000000
+  valid
+  desc Trace score threshold.\nTraces below this threshold are removed after the model fitting.\nThis parameter is important for features that overlap in m/z dimension.
+P feature:min_rt_span d 3fd54fdf3b645a1d
+  tags advanced
+  int -2147483647 2147483647 float 0000000000000000 3ff0000000000000
+  valid
+  desc Minimum RT span in relation to extended area that has to remain after model fitting.
+P feature:max_rt_span d 4004000000000000
+  tags advanced
+  int -2147483647 2147483647 float 3fe0000000000000 7fefffffffffffff
+  valid
+  desc Maximum RT span in relation to extended area that the model is allowed to have.
+P feature:rt_shape s symmetric
+  tags advanced
+  int -2147483647 2147483647 float ffefffffffffffff 7fefffffffffffff
+  valid symmetric asymmetric
+  desc Choose model used for RT profile fitting. If set to symmetric a gauss shape is used, in case of asymmetric an EGH shape is used.
+P feature:max_intersection d 3fd6666666666666
+  tags advanced
+  int -2147483647 2147483647 float 0000000000000000 3ff0000000000000
+  valid
+  desc Maximum allowed intersection of features.
+P feature:reported_mz s monoisotopic
+  tags
+  int -2147483647 2147483647 float ffefffffffffffff 7fefffffffffffff
+  valid maximum average monoisotopic
+  desc The mass type that is reported for features.\n'maximum' returns the m/z value of the highest mass trace.\n'average' returns the intensity-weighted average m/z value of all contained peaks.\n'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.
+P user-seed:rt_tolerance d 4014000000000000
+  tags
+  int -2147483647 2147483647 float 0000000000000000 7fefffffffffffff
+  valid
+  desc Allowed RT deviation of seeds from the user-specified seed position.
+P user-seed:mz_tolerance d 3ff199999999999a
+  tags
+  int -2147483647 2147483647 float 0000000000000000 7fefffffffffffff
+  valid
+  desc Allowed m/z deviation of seeds from the user-specified seed position.
+P user-seed:min_score d 3fe0000000000000
+  tags
+  int -2147483647 2147483647 float 0000000000000000 3ff0000000000000
+  valid
+  desc Overwrites 'seed:min_score' for user-specified seeds. The cutoff is typically a bit lower in this case.
+P advanced:pseudo_rt_shift d 407f400000000000
+  tags advanced
+  int -2147483647 2147483647 float 3ff0000000000000 7fefffffffffffff
+  valid
+  desc Pseudo RT shift used when .
+S advanced 
+S feature Settings for the features (intensity, quality assessment, ...)
+S fit Settings for the model fitting
+S intensity Settings for the calculation of a score indicating if a peak's intensity is significant in the local environment (between 0 and 1)
+S isotopic_pattern Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).
+S mass_trace Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).
+S seed Settings that determine which peaks are considered a seed
+S user-seed Settings for user-specified seeds.

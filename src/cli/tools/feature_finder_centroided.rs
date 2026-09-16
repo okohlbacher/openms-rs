@@ -120,8 +120,10 @@
 //! preserved source conventions, the native differences and the evidence.
 
 use crate::analysis::feature_finder_picked::algorithm::{self, Options};
+use crate::analysis::feature_finder_picked::debug::{DebugOutput, ReportLine};
+use crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
 use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
-use crate::concept::HasUniqueId;
+use crate::concept::{HasUniqueId, UniqueIdGenerator};
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
 use crate::format::mzml::ReadOptions;
@@ -135,6 +137,7 @@ use crate::param::Param;
 use crate::system::file;
 use crate::{Error, Result};
 use std::io::Write;
+use std::path::Path;
 
 /// The `FeatureFinderCentroided` TOPP tool.
 ///
@@ -277,8 +280,28 @@ impl FeatureFinderCentroided {
     pub fn finish_features(
         ctx: &ToolContext,
         input: &str,
+        features: FeatureMap,
+        out: &mut dyn Write,
+    ) -> Result<FeatureMap> {
+        let mut generator = ctx.unique_id_generator();
+        Self::finish_features_with(ctx, input, features, out, &mut generator)
+    }
+
+    /// [`Self::finish_features`] drawing the unique ids from `generator`.
+    ///
+    /// The source draws every unique id from one process-wide generator, so an
+    /// id drawn earlier in the run (the debug abort map's) shifts the ids of
+    /// the output; the tool passes the generator it drew that id from.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::finish_features`].
+    pub fn finish_features_with(
+        ctx: &ToolContext,
+        input: &str,
         mut features: FeatureMap,
         out: &mut dyn Write,
+        generator: &mut UniqueIdGenerator,
     ) -> Result<FeatureMap> {
         let run_path = if ctx.test_mode() {
             format!("file://{}", file::basename(input))
@@ -287,8 +310,7 @@ impl FeatureFinderCentroided {
         };
         features.set_primary_ms_run_path(&[run_path])?;
 
-        let mut generator = ctx.unique_id_generator();
-        features.unique_id.ensure_unique_id(&mut generator);
+        features.unique_id.ensure_unique_id(generator);
         features.for_each_unique_id(|id| {
             *id = generator.get_unique_id();
             1
@@ -448,32 +470,206 @@ impl Tool for FeatureFinderCentroided {
             writeln!(err, "{}", Self::faims_refusal_message(&values))?;
             return Ok(ExitCode::IncompatibleInputData);
         }
-        writeln!(out, "{}", Self::NO_FAIMS_MESSAGE)?;
+        let mut info = LogStreamLines::default();
+        let mut warn = LogStreamLines::default();
+        info.line(out, Self::NO_FAIMS_MESSAGE)?;
 
         // The algorithm (283-291), on the worker count -threads asks for, as
         // TOPPBase applies the setting before main_ (TOPPBase.cpp:408-415).
+        // A fresh object per run, as the source's loop body creates one.
         let options = Options {
             threads: ctx.thread_policy(),
             ..Options::default()
         };
-        let outcome = algorithm::run_with_options(experiment, &seeds, &parameters, &options);
-        let result = match outcome {
-            Ok(result) => result,
-            Err(Error::InvalidValue(message)) => {
-                // The algorithm's IllegalArgument and InvalidValue exceptions
-                // reach TOPPBase's catch-all (TOPPBase.cpp:495-499).
-                writeln!(err, "Error: Unexpected internal error ({message})")?;
-                return Ok(ExitCode::UnknownError);
+        let mut finder = FeatureFinderAlgorithmPicked::with_options(options)?;
+        let mut features = FeatureMap::new();
+        let outcome = finder.run(experiment, &mut features, &parameters, &seeds);
+        let debug = finder.take_debug_output();
+        let mut generator = ctx.unique_id_generator();
+        if let Some(debug) = &debug {
+            write_debug_log(debug)?;
+        }
+        // The console lines and debug stores, in the order the source makes
+        // them.
+        for line in finder.report() {
+            match line {
+                ReportLine::Out(text) => writeln!(out, "{text}")?,
+                ReportLine::Info(text) => info.line(out, text)?,
+                ReportLine::Warn(text) => warn.line(out, text)?,
+                ReportLine::StoreSeedMap(index) => {
+                    if let Some(seeds) = debug.as_ref().and_then(|d| d.seed_maps.get(*index)) {
+                        let name = format!("debug/seeds_{}.featureXML", seeds.charge);
+                        store_debug_features(&name, &seeds.map, &mut info, out)?;
+                    }
+                }
+                ReportLine::StoreAbortReasons => {
+                    if let Some(map) = debug.as_ref().and_then(|d| d.abort_reasons.as_ref()) {
+                        // `abort_map.setUniqueId()` draws from the generator
+                        // the output ids come from later.
+                        let mut map = map.clone();
+                        map.unique_id = generator.get_unique_id();
+                        store_debug_features(
+                            "debug/abort_reasons.featureXML",
+                            &map,
+                            &mut info,
+                            out,
+                        )?;
+                    }
+                }
+                ReportLine::StoreInput => {
+                    if let Some(input) = debug.as_ref().and_then(|d| d.input.as_ref()) {
+                        crate::format::path_io::write(Path::new("debug/input.mzML"), |writer| {
+                            crate::format::mzml::write_source_float_arrays(writer, input)
+                        })?;
+                    }
+                }
             }
-            Err(error) => return Err(error),
-        };
-        for line in &result.log {
-            writeln!(out, "{line}")?;
+        }
+        if let Some(debug) = &debug {
+            for files in &debug.feature_files {
+                crate::format::path_io::store(Path::new(&files.dta_name()), files.dta.as_bytes())?;
+                if let Some(cropped) = &files.cropped_dta {
+                    crate::format::path_io::store(
+                        Path::new(&files.cropped_dta_name()),
+                        cropped.as_bytes(),
+                    )?;
+                }
+                crate::format::path_io::store(Path::new(&files.plot_name()), &files.plot)?;
+            }
+        }
+        match outcome {
+            Ok(()) => {}
+            Err(error) => {
+                if let Some(termination) = debug.as_ref().and_then(|d| d.termination.as_ref()) {
+                    // The source process terminates here (std::terminate from
+                    // an exception that leaves the OpenMP region, then
+                    // SIGABRT). The port reports the exception as TOPPBase
+                    // reports it where it can catch it.
+                    let _ = error;
+                    writeln!(
+                        err,
+                        "Error: Unexpected internal error ({})",
+                        termination.message
+                    )?;
+                    return Ok(ExitCode::UnknownError);
+                }
+                if let Error::InvalidValue(message) = &error {
+                    // The algorithm's IllegalArgument and InvalidValue
+                    // exceptions reach TOPPBase's catch-all
+                    // (TOPPBase.cpp:495-499).
+                    writeln!(err, "Error: Unexpected internal error ({message})")?;
+                    return Ok(ExitCode::UnknownError);
+                }
+                return Err(error);
+            }
         }
 
         // Annotation and clean-up (318-373), then the store (375).
-        let features = Self::finish_features(ctx, &input, result.features, out)?;
+        let features = Self::finish_features_with(ctx, &input, features, out, &mut generator)?;
         FileHandler::store_feature_map(&output, &features, Some(FileType::FeatureXml))?;
+        // TOPPBase's closing info line and the log streams' caches at exit.
+        info.close(out)?;
+        warn.close(out)?;
         Ok(ExitCode::ExecutionOk)
+    }
+}
+
+/// Create `debug/features` and write `debug/log.txt`, as `run_` does when it
+/// opens the stream (`FeatureFinderAlgorithmPicked.cpp:230-231`).
+///
+/// After a terminated run the file holds only what the source's file buffer
+/// had written when the process died
+/// ([`DebugLog::flushed_bytes`](crate::analysis::feature_finder_picked::debug::DebugLog::flushed_bytes)).
+fn write_debug_log(debug: &DebugOutput) -> Result<()> {
+    file::make_dir("debug/features")?;
+    if debug.log_opened {
+        let text = debug.log.text().as_bytes();
+        let written = if debug.termination.is_some() {
+            &text[..debug.log.flushed_bytes()]
+        } else {
+            text
+        };
+        crate::format::path_io::store(Path::new("debug/log.txt"), written)?;
+    }
+    Ok(())
+}
+
+/// `FileHandler().storeFeatures(name, map)` with the line
+/// `FeatureXMLFile::store` logs when ids are unassigned
+/// (`FeatureXMLFile.cpp:80-88`): the map's own id and every feature's count.
+fn store_debug_features(
+    name: &str,
+    map: &FeatureMap,
+    info: &mut LogStreamLines,
+    out: &mut dyn Write,
+) -> Result<()> {
+    let invalid = map.count_unique_ids(|id| usize::from(id == 0))?;
+    if invalid > 0 {
+        info.line(
+            out,
+            &format!("FeatureXMLHandler::store():  found {invalid} invalid unique ids"),
+        )?;
+    }
+    FileHandler::store_feature_map(name, map, Some(FileType::FeatureXml))
+}
+
+/// The line cache of an OpenMS log stream (`LogStreamBuf`,
+/// `LogStream.cpp:180-300`).
+///
+/// A line equal to one of the two the stream printed last is not printed
+/// again but counted. When a new line pushes the older of the two out, and
+/// that one was repeated, `<line> occurred N times` is printed first. Empty
+/// lines bypass the cache. At the end of the process (`clearCache`) every
+/// remaining repeated line is reported, in lexicographic order.
+#[derive(Default)]
+struct LogStreamLines {
+    /// Line, repeat count and recency stamp.
+    entries: Vec<(String, usize, u64)>,
+    stamp: u64,
+}
+
+impl LogStreamLines {
+    fn line(&mut self, out: &mut dyn Write, text: &str) -> Result<()> {
+        if text.is_empty() {
+            writeln!(out)?;
+            return Ok(());
+        }
+        self.stamp += 1;
+        if let Some(entry) = self.entries.iter_mut().find(|entry| entry.0 == text) {
+            entry.1 += 1;
+            entry.2 = self.stamp;
+            return Ok(());
+        }
+        self.evict_oldest(out)?;
+        self.entries.push((text.to_owned(), 0, self.stamp));
+        writeln!(out, "{text}")?;
+        Ok(())
+    }
+
+    /// `addToCache_`: with two lines cached, the older one leaves.
+    fn evict_oldest(&mut self, out: &mut dyn Write) -> Result<()> {
+        if self.entries.len() > 1 {
+            let oldest = (0..self.entries.len())
+                .min_by_key(|&index| self.entries[index].2)
+                .unwrap_or(0);
+            let (line, repeats, _) = self.entries.remove(oldest);
+            if repeats != 0 {
+                writeln!(out, "<{line}> occurred {} times", repeats + 1)?;
+            }
+        }
+        Ok(())
+    }
+
+    /// The end of a successful run: TOPPBase's closing `<tool> took ...` info
+    /// line (not ported) enters the cache, then the stream's `clearCache`.
+    fn close(&mut self, out: &mut dyn Write) -> Result<()> {
+        self.evict_oldest(out)?;
+        self.entries.sort_by(|a, b| a.0.cmp(&b.0));
+        for (line, repeats, _) in self.entries.drain(..) {
+            if repeats != 0 {
+                writeln!(out, "<{line}> occurred {} times", repeats + 1)?;
+            }
+        }
+        Ok(())
     }
 }

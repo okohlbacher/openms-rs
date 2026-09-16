@@ -20,8 +20,13 @@
 //!
 //! The source runs steps 3.1 to 3.3 charge by charge. Step 3.3, the extension of
 //! the seeds, only reads the arrays of its own charge, so computing every
-//! charge's seeds first gives the same arrays and seeds; only the order of the
-//! log lines differs, and the extension is not ported yet.
+//! charge's seeds first
+//! ([`SeedStage::compute`](crate::analysis::feature_finder_picked::seeds::SeedStage::compute))
+//! gives the same arrays and seeds. The algorithm instance
+//! ([`FeatureFinderAlgorithmPicked`](crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked))
+//! keeps the source's order instead, selecting one charge's seeds right before
+//! extending them, so its log lines, progress calls and debug files come in
+//! the source's order.
 //!
 //! Isotope patterns are computed in the source's binary32 arithmetic
 //! ([`ProbabilityPrecision::SourceSingle`](crate::chemistry::isotopes::ProbabilityPrecision::SourceSingle))
@@ -32,13 +37,16 @@
 use crate::analysis::feature_finder_picked::algorithm::{
     AbundanceOverride, Limits, Options, Settings, validate_input,
 };
+use crate::analysis::feature_finder_picked::debug::{LOG_PRECALCULATING, LogSink, NoLog};
 use crate::analysis::feature_finder_picked::helper_structs::{
     IsotopePattern, PatternPeak, Seed, TheoreticalIsotopePattern,
 };
+use crate::analysis::feature_finder_picked::instance::Progress;
 use crate::analysis::feature_finder_picked::scoring::{
-    IntensityThresholds, ScoreArrays, Work, fill_intensity_scores, fill_trace_scores, find_isotope,
-    isotope_score_with_work, ms1_ranges, reset_pattern,
+    IntensityThresholds, ScoreArrays, Work, fill_intensity_scores, fill_trace_scores,
+    find_isotope_logged, isotope_score_logged, ms1_ranges, reset_pattern,
 };
+use crate::analysis::feature_finder_picked::source_sort::source_sort_reversed_by;
 use crate::chemistry::isotopes::{
     CoarseIsotopePatternGenerator, CoarseMassMode, IsotopeDistribution, IsotopePeak,
     ProbabilityPrecision,
@@ -84,6 +92,34 @@ impl IsotopeWindows {
     /// where the source produces NaN weights). Returns [`Error::Unsupported`] for
     /// a changed abundance under [`AbundanceOverride::Refuse`].
     pub fn precalculate(max_mz: f64, settings: &Settings, options: &Options) -> Result<Self> {
+        Self::precalculate_onto(None, max_mz, settings, options)
+    }
+
+    /// [`Self::precalculate`] on the windows an earlier run of the same
+    /// algorithm object left behind: source step 2.5 on a member that `run_`
+    /// never clears.
+    ///
+    /// The source resizes `isotope_distributions_` to the new window count,
+    /// which keeps the earlier windows below that count, and then *appends*
+    /// each window's new intensities to the kept ones
+    /// (`FeatureFinderAlgorithmPicked.cpp:361`, `:378`). The optional isotopes,
+    /// the maximum and the normalisation are then computed over the whole,
+    /// longer vector, and `trimmed_left` is overwritten. A reused object
+    /// therefore works with longer patterns whose earlier part is already
+    /// normalised, and usually a maximum of 1, from its second run on; the
+    /// executed Release build finds different features in the second run on
+    /// the same input for that reason. `None` gives the first run.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::precalculate`]; the pattern-value ceiling counts the kept
+    /// values too.
+    pub fn precalculate_onto(
+        previous: Option<&IsotopeWindows>,
+        max_mz: f64,
+        settings: &Settings,
+        options: &Options,
+    ) -> Result<Self> {
         let width = settings.mass_window_width;
         let max_mass = max_mz * f64::from(settings.charge_high);
         let count = (max_mass / width).ceil() + 1.0;
@@ -97,19 +133,34 @@ impl IsotopeWindows {
         }
         let count = count as usize;
         let max_isotopes = settings.max_isotopes();
-        if count.saturating_mul(max_isotopes) > limits.max_pattern_values {
+        let kept: &[TheoreticalIsotopePattern] = previous.map_or(&[], |windows| {
+            &windows.patterns[..count.min(windows.patterns.len())]
+        });
+        let kept_values = kept
+            .iter()
+            .fold(0usize, |total, pattern| total.saturating_add(pattern.len()));
+        if count
+            .saturating_mul(max_isotopes)
+            .saturating_add(kept_values)
+            > limits.max_pattern_values
+        {
             return Err(Error::InvalidValue(format!(
-                "{count} isotope windows of up to {max_isotopes} isotopes exceed the limit of {} \
-                 pattern values",
+                "{count} isotope windows of up to {max_isotopes} isotopes, and {kept_values} \
+                 values an earlier run left, exceed the limit of {} pattern values",
                 limits.max_pattern_values
             )));
         }
         let generator = pattern_generator(settings, options.abundance_override)?;
-        let mut patterns = Vec::with_capacity(count);
-        for index in 0..count {
+        let mut patterns = Vec::new();
+        patterns
+            .try_reserve_exact(count)
+            .map_err(|_| Error::InvalidValue("cannot allocate the isotope windows".into()))?;
+        patterns.extend_from_slice(kept);
+        patterns.resize_with(count, TheoreticalIsotopePattern::default);
+        for (index, pattern) in patterns.iter_mut().enumerate() {
             let mut distribution =
                 generator.estimate_from_peptide_weight(0.5 * width + index as f64 * width)?;
-            patterns.push(theoretical_pattern(&mut distribution, settings)?);
+            theoretical_pattern_onto(pattern, &mut distribution, settings)?;
         }
         Ok(Self {
             mass_window_width: width,
@@ -200,20 +251,23 @@ fn pattern_generator(
     Ok(generator)
 }
 
-/// Trim, classify and normalise one estimate: the body of the step 2.5 loop.
-fn theoretical_pattern(
+/// Trim, classify and normalise one estimate into `target`: the body of the
+/// step 2.5 loop, appending to what `target` already holds as the source
+/// appends to its member.
+fn theoretical_pattern_onto(
+    target: &mut TheoreticalIsotopePattern,
     distribution: &mut IsotopeDistribution,
     settings: &Settings,
-) -> Result<TheoreticalIsotopePattern> {
+) -> Result<()> {
     let size_before = distribution.len();
     distribution.trim_left_source(settings.intensity_percentage_optional)?;
     let trimmed_left = size_before - distribution.len();
     distribution.trim_right(settings.intensity_percentage_optional)?;
-    let mut intensity: Vec<f64> = distribution
-        .peaks()
-        .iter()
-        .map(|peak| peak.probability)
-        .collect();
+    let mut intensity = std::mem::take(&mut target.intensity);
+    intensity
+        .try_reserve(distribution.len())
+        .map_err(|_| Error::InvalidValue("cannot allocate an isotope window".into()))?;
+    intensity.extend(distribution.peaks().iter().map(|peak| peak.probability));
     let mut begin = 0;
     let mut end = 0;
     let mut is_begin = true;
@@ -241,13 +295,14 @@ fn theoretical_pattern(
     for value in &mut intensity {
         *value /= max;
     }
-    Ok(TheoreticalIsotopePattern {
+    *target = TheoreticalIsotopePattern {
         intensity,
         optional_begin: begin,
         optional_end: end,
         max,
         trimmed_left,
-    })
+    };
+    Ok(())
 }
 
 /// A user-specified seed position, the part of a seed feature the source reads.
@@ -284,6 +339,10 @@ pub struct SeedStage {
     scores: ScoreArrays,
     charges: Vec<ChargeSeeds>,
     log: Vec<String>,
+    /// Number of charges the stage selects seeds for.
+    charge_count: usize,
+    /// The scoring work budget left for the charges not yet selected.
+    work: Work,
 }
 
 impl SeedStage {
@@ -350,15 +409,18 @@ impl SeedStage {
     /// must also lie strictly within `user-seed:mz_tolerance` and
     /// `user-seed:rt_tolerance` of some user seed. The cube root is
     /// [`overall_score`]. Seeds are sorted by descending `f32` intensity,
-    /// the order [`Seed::is_less_intense_than`] defines. The source's
-    /// `std::sort` leaves seeds of equal intensity in an unspecified order; the
-    /// sort here is stable, so they keep their scan and peak order.
+    /// the order [`Seed::is_less_intense_than`] defines. The source sorts with
+    /// `std::sort(seeds.rbegin(), seeds.rend())`, which leaves seeds of equal
+    /// intensity in an order the standard does not specify; the port puts them
+    /// where the Linux x86_64 Release build's libstdc++ introsort does
+    /// ([`crate::analysis::feature_finder_picked::source_sort`]).
+    ///
+    /// `write_debug` does not change what this stage computes. Its log lines
+    /// and seed maps are produced by the algorithm instance, which runs the same
+    /// steps with the debug output attached.
     ///
     /// # Errors
     ///
-    /// - [`Error::Unsupported`] for `write_debug = true`: the source's debug
-    ///   output reads the undeclared parameter `debug:pseudo_rt_shift` and
-    ///   throws, and it writes into the working directory.
     /// - [`Error::Unsupported`] for a changed isotope abundance under
     ///   [`AbundanceOverride::Refuse`], which is not the default; see that type.
     /// - [`Error::InvalidValue`] when `charge_low` exceeds `charge_high` by more
@@ -372,7 +434,46 @@ impl SeedStage {
         user_seeds: &FeatureMap,
         settings: Settings,
         options: &Options,
-        mut log: Vec<String>,
+        log: Vec<String>,
+    ) -> Result<Self> {
+        let mut progress = Progress::silent();
+        let mut stage = Self::prepare(
+            experiment,
+            user_seeds,
+            settings,
+            options,
+            log,
+            None,
+            &mut NoLog,
+            &mut progress,
+        )?;
+        while stage.select_next_charge(&mut NoLog, &mut progress)? {
+            progress.end()?;
+            stage.log_seed_count();
+        }
+        Ok(stage)
+    }
+
+    /// Steps 0 to 2.5 of source `run_`, leaving the charges for
+    /// [`Self::select_next_charge`].
+    ///
+    /// `log` receives the source's first `log_` line and `progress` the
+    /// source's `startProgress`/`setProgress`/`endProgress` calls of steps 1, 2
+    /// and 2.5, with their labels and values, in the source's order. The
+    /// `setProgress` calls of steps 1 and 2 are made after each step's loop
+    /// rather than inside it; the progress logger shows them only when a
+    /// wall-clock second has passed, so which of them it prints depends on
+    /// timing in the source as here.
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn prepare<L: LogSink>(
+        experiment: MSExperiment,
+        user_seeds: &FeatureMap,
+        settings: Settings,
+        options: &Options,
+        log: Vec<String>,
+        previous_windows: Option<&IsotopeWindows>,
+        debug_log: &mut L,
+        progress: &mut Progress<'_>,
     ) -> Result<Self> {
         let limits = options.limits;
         preflight(&experiment, &settings, &limits)?;
@@ -380,13 +481,6 @@ impl SeedStage {
         if settings.abundance_12c_changed || settings.abundance_14n_changed {
             // Fails early under the refusing policy, before any work.
             pattern_generator(&settings, options.abundance_override)?;
-        }
-        if settings.write_debug {
-            return Err(Error::Unsupported(
-                "write_debug: the source's debug output reads the undeclared parameter \
-                 'debug:pseudo_rt_shift' and throws, and it writes into the working directory"
-                    .into(),
-            ));
         }
         let user_seeds = sorted_user_seeds(user_seeds)?;
         let mut scores = ScoreArrays::new(
@@ -398,14 +492,30 @@ impl SeedStage {
         let mut work = Work::new(limits.max_work);
 
         // Step 1: intensity quantiles and scores.
+        if debug_log.enabled() {
+            debug_log.put(LOG_PRECALCULATING);
+        }
+        let bins = settings.intensity_bins;
+        let cells = i64::try_from(bins.saturating_mul(bins))
+            .map_err(|_| Error::InvalidValue("intensity bin count overflow".into()))?;
+        progress.start(0, cells, "Precalculating intensity scores")?;
         let thresholds = IntensityThresholds::compute_with_work(
             &experiment,
             settings.intensity_bins,
             &mut work,
         )?;
+        progress.set_each(0..cells)?;
         fill_intensity_scores(&experiment, &thresholds, &mut scores, &mut work)?;
+        progress.end()?;
 
         // Step 2: trace scores and local maxima.
+        let spectra = experiment.spectra.len();
+        let end_iteration = spectra - settings.min_spectra.min(spectra);
+        progress.start(
+            progress_value(settings.min_spectra)?,
+            progress_value(end_iteration)?,
+            "Precalculating mass trace scores",
+        )?;
         fill_trace_scores(
             &experiment,
             settings.min_spectra,
@@ -413,34 +523,20 @@ impl SeedStage {
             &mut scores,
             &mut work,
         )?;
+        progress.set_each(progress_value(settings.min_spectra)?..progress_value(end_iteration)?)?;
+        progress.end()?;
 
         // Step 2.5: isotope patterns per mass window.
         let (_, mz_range) = ms1_ranges(&experiment)?;
-        let windows = IsotopeWindows::precalculate(mz_range.max, &settings, options)?;
+        let windows =
+            IsotopeWindows::precalculate_onto(previous_windows, mz_range.max, &settings, options)?;
+        progress.start(
+            0,
+            progress_value(windows.patterns().len())?,
+            "Precalculating isotope distributions",
+        )?;
+        progress.end()?;
 
-        // Step 3.1 and 3.2, charge by charge.
-        let mut charges = Vec::with_capacity(charge_count);
-        for charge_index in 0..charge_count {
-            let charge = settings.charge_low + charge_index as i32;
-            fill_pattern_scores(
-                &experiment,
-                &windows,
-                &settings,
-                charge,
-                charge_index,
-                &mut scores,
-                &mut work,
-            )?;
-            let seeds = select_seeds(
-                &experiment,
-                &settings,
-                &user_seeds,
-                charge_index,
-                &mut scores,
-            )?;
-            log.push(format!("Found {} seeds for charge {charge}.", seeds.len()));
-            charges.push(ChargeSeeds { charge, seeds });
-        }
         Ok(Self {
             experiment,
             settings,
@@ -448,9 +544,82 @@ impl SeedStage {
             thresholds,
             windows,
             scores,
-            charges,
+            charges: Vec::with_capacity(charge_count),
             log,
+            charge_count,
+            work,
         })
+    }
+
+    /// Steps 3.1 and 3.2 of source `run_` for the next charge: its pattern
+    /// scores and its seeds, with the `Found <n> seeds for charge <c>.` line.
+    ///
+    /// Returns `false` when every charge is selected. `log` receives the
+    /// source's per-peak `log_` lines of step 3.1, and `progress` the progress
+    /// calls of both steps (the `setProgress` calls of step 3.1 after its
+    /// loop). Step 3.2's progress is left open: the source stores the debug
+    /// seed map before it calls `endProgress`, and prints the seed count after
+    /// that ([`Self::log_seed_count`]), so the caller does both.
+    pub(crate) fn select_next_charge<L: LogSink>(
+        &mut self,
+        debug_log: &mut L,
+        progress: &mut Progress<'_>,
+    ) -> Result<bool> {
+        let charge_index = self.charges.len();
+        if charge_index >= self.charge_count {
+            return Ok(false);
+        }
+        let charge = self.settings.charge_low + charge_index as i32;
+        let spectra = progress_value(self.experiment.spectra.len())?;
+        progress.start(
+            0,
+            spectra,
+            &format!("Calculating isotope pattern scores for charge {charge}"),
+        )?;
+        fill_pattern_scores(
+            &self.experiment,
+            &self.windows,
+            &self.settings,
+            charge,
+            charge_index,
+            &mut self.scores,
+            &mut self.work,
+            debug_log,
+        )?;
+        progress.set_each(0..spectra)?;
+        progress.end()?;
+        let end_iteration = self.experiment.spectra.len()
+            - self.settings.min_spectra.min(self.experiment.spectra.len());
+        let begin = progress_value(self.settings.min_spectra)?;
+        let end = progress_value(end_iteration)?;
+        progress.start(begin, end, &format!("Finding seeds for charge {charge}"))?;
+        let seeds = select_seeds(
+            &self.experiment,
+            &self.settings,
+            &self.user_seeds,
+            charge_index,
+            &mut self.scores,
+            &mut |s| progress.set(progress_value(s)?),
+        )?;
+        self.charges.push(ChargeSeeds { charge, seeds });
+        Ok(true)
+    }
+
+    /// Record the source's `std::cout` line of step 3.2 for the charge selected
+    /// last, which the source prints after the debug seed file.
+    pub(crate) fn log_seed_count(&mut self) {
+        if let Some(last) = self.charges.last() {
+            self.log.push(format!(
+                "Found {} seeds for charge {}.",
+                last.seeds.len(),
+                last.charge
+            ));
+        }
+    }
+
+    /// Number of charges the stage selects seeds for.
+    pub fn charge_count(&self) -> usize {
+        self.charge_count
     }
 
     /// The experiment, sorted when the input was not.
@@ -570,7 +739,8 @@ fn sorted_user_seeds(seeds: &FeatureMap) -> Result<Vec<UserSeed>> {
 /// with m/z distances raises the stored pattern score of every matched,
 /// non-removed peak to that score when it is higher, compared in `f64` and
 /// stored as `f32`.
-fn fill_pattern_scores(
+#[allow(clippy::too_many_arguments)]
+fn fill_pattern_scores<L: LogSink>(
     experiment: &MSExperiment,
     windows: &IsotopeWindows,
     settings: &Settings,
@@ -578,6 +748,7 @@ fn fill_pattern_scores(
     charge_index: usize,
     scores: &mut ScoreArrays,
     work: &mut Work,
+    log: &mut L,
 ) -> Result<()> {
     let spectra = &experiment.spectra;
     let offsets: Vec<usize> = (0..spectra.len()).map(|s| scores.offset(s)).collect();
@@ -601,7 +772,7 @@ fn fill_pattern_scores(
             let mut units = 1u64;
             for i in 0..size {
                 let isotope_pos = mz + (i as f64 - max_isotope as f64) / c;
-                units += find_isotope(
+                units += find_isotope_logged(
                     spectra,
                     isotope_pos,
                     s,
@@ -609,14 +780,16 @@ fn fill_pattern_scores(
                     i,
                     &mut peak_index,
                     settings.pattern_tolerance,
+                    log,
                 )?;
             }
-            let (pattern_score, score_units) = isotope_score_with_work(
+            let (pattern_score, score_units) = isotope_score_logged(
                 isotopes,
                 &mut pattern,
                 true,
                 settings.min_isotope_fit,
                 settings.optional_fit_improvement,
+                log,
             )?;
             work.consume(units + score_units)?;
             if pattern_score > 0.0 {
@@ -655,12 +828,16 @@ pub fn overall_score(trace: f32, intensity: f32, pattern: f32) -> f32 {
 }
 
 /// Overall scores and seeds of one charge: step 3.2 of source `run_`.
+///
+/// `progress` is called with every scan index the loop visits, as the source
+/// calls `setProgress`.
 fn select_seeds(
     experiment: &MSExperiment,
     settings: &Settings,
     user_seeds: &[UserSeed],
     charge_index: usize,
     scores: &mut ScoreArrays,
+    progress: &mut dyn FnMut(usize) -> Result<()>,
 ) -> Result<Vec<Seed>> {
     let spectra = &experiment.spectra;
     let end = spectra.len() - settings.min_spectra.min(spectra.len());
@@ -669,6 +846,7 @@ fn select_seeds(
     let use_user_seeds = !user_seeds.is_empty();
     let mut seeds = Vec::new();
     for s in settings.min_spectra..end {
+        progress(s)?;
         let spectrum = &spectra[s];
         for (p, peak) in spectrum.peaks.iter().enumerate() {
             let slot = starts[s] + p;
@@ -690,15 +868,10 @@ fn select_seeds(
             }
         }
     }
-    seeds.sort_by(|a, b| {
-        if b.is_less_intense_than(a) {
-            std::cmp::Ordering::Less
-        } else if a.is_less_intense_than(b) {
-            std::cmp::Ordering::Greater
-        } else {
-            std::cmp::Ordering::Equal
-        }
-    });
+    // Source: `std::sort(seeds.rbegin(), seeds.rend())` with `Seed::operator<`.
+    // The intensities are finite (validated input), so the order is strict weak
+    // and the sort cannot fail.
+    source_sort_reversed_by(&mut seeds, Seed::is_less_intense_than)?;
     Ok(seeds)
 }
 
@@ -721,4 +894,9 @@ fn near_user_seed(user_seeds: &[UserSeed], mz: f64, rt: f64, settings: &Settings
         }
     }
     false
+}
+
+/// A scan or window count as a progress value (`SignedSize` in the source).
+fn progress_value(value: usize) -> Result<i64> {
+    i64::try_from(value).map_err(|_| Error::InvalidValue("progress value overflow".into()))
 }

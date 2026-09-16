@@ -38,3 +38,12 @@ pub mod fitting;
 
 /// Overlap resolution and apex annotation (`FeatureFinderAlgorithmPicked.h`).
 pub mod resolution;
+
+/// The C++ Release build's `std::sort` order of equal elements (`FeatureFinderAlgorithmPicked.h`).
+pub mod source_sort;
+
+/// The debug mode: the source's `debug/` output as data (`FeatureFinderAlgorithmPicked.h`).
+pub mod debug;
+
+/// The stateful algorithm instance: reuse, a caller's map, parameters and progress (`FeatureFinderAlgorithmPicked.h`).
+pub mod instance;

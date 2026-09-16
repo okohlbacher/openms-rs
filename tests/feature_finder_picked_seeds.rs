@@ -974,13 +974,21 @@ fn run_continues_past_seed_selection() {
 #[test]
 fn undefined_source_configurations_are_refused() {
     let none = FeatureMap::new();
-    // write_debug reads an undeclared parameter in the source.
+    // write_debug: the stage was refused here while the whole debug mode was.
+    // The source's seed stage is defined in debug mode (the executed C++
+    // writes its seed files and finishes when no seed reaches the fit), and
+    // the flag does not change what the stage computes; its output is tested
+    // in tests/feature_finder_picked_instrumentation.rs.
     let mut p = ffc1_parameters();
     set(&mut p, "write_debug", ParamValue::String("true".into()));
-    assert!(matches!(
-        SeedStage::run(ffc1_input(), &none, &p),
-        Err(Error::Unsupported(_))
-    ));
+    let debug = SeedStage::run(ffc1_input(), &none, &p).unwrap().unwrap();
+    let plain = SeedStage::run(ffc1_input(), &none, &ffc1_parameters())
+        .unwrap()
+        .unwrap();
+    assert!(debug.settings().write_debug);
+    assert_eq!(debug.charges(), plain.charges());
+    assert_eq!(debug.scores(), plain.scores());
+    assert_eq!(debug.log(), plain.log());
     // charge_low more than one above charge_high.
     let mut p = ffc1_parameters();
     set(
