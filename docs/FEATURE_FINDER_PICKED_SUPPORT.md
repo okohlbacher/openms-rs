@@ -15,13 +15,16 @@ resolution (steps 3.3 and 4). `run` now produces features end to end.
 
 | Rust file | Content |
 | --- | --- |
-| [`algorithm.rs`](../src/analysis/feature_finder_picked/algorithm.rs) | defaults, `Settings`, `validate_input`, `Limits`, `Options` with `AbundanceOverride` and `DegenerateBinStep`, `run`, `feature_stage` (the seed loop) |
+| [`algorithm.rs`](../src/analysis/feature_finder_picked/algorithm.rs) | defaults, `Settings`, `validate_input`, `Limits`, `Options` with `AbundanceOverride` and `DegenerateBinStep`, `PseudoRtShiftKey`, `RejectedParameters`, `run` and `run_with_options` (a fresh map), `feature_stage` (stage level) |
 | [`scoring.rs`](../src/analysis/feature_finder_picked/scoring.rs) | `position_score`, `nearest_from`, `IntensityThresholds`, `ScoreArrays`, `find_isotope`, `isotope_score`; the crate-private `x86_64` emulation of the Release build's `UInt` conversion and NaN rules |
 | [`defs.rs`](../src/analysis/feature_finder_picked/defs.rs) | `FeatureFinderDefs`: `IndexPair`, `IndexSet`, `ChargedIndexSet`, `Flag`, `NoSuccessor` |
 | [`seeds.rs`](../src/analysis/feature_finder_picked/seeds.rs) | `IsotopeWindows`, `SeedStage`, `ChargeSeeds`, `UserSeed`, `overall_score` |
 | [`extension.rs`](../src/analysis/feature_finder_picked/extension.rs) | `OverallScores`, `find_best_isotope_fit`, `extend_mass_traces`, `extend_mass_trace` |
 | [`fitting.rs`](../src/analysis/feature_finder_picked/fitting.rs) | `FittedModel`, `crop_feature`, `check_feature_quality`, `build_feature`, the abort reasons |
 | [`resolution.rs`](../src/analysis/feature_finder_picked/resolution.rs) | `intersection`, `resolve_overlaps`, `annotate_apex` |
+| [`instance.rs`](../src/analysis/feature_finder_picked/instance.rs) | `FeatureFinderAlgorithmPicked`, the source object with its state across runs (parameters, seeds, aborts, abort reasons, the log stream, the isotope windows, progress), and its `run` into the caller's map |
+| [`debug.rs`](../src/analysis/feature_finder_picked/debug.rs) | `DebugOutput`, `DebugLog`, `SeedMap`, `AbortReasons`, `seed_map`, `abort_map`, `debug_experiment`, `write_feature_debug_info`, `PseudoRtShift`, `HEAP_ADDRESS_END`, `ReportLine` |
+| [`source_sort.rs`](../src/analysis/feature_finder_picked/source_sort.rs) | `source_sort_by`, `source_sort_reversed_by`, `source_sort_permutation`: the order in which the Linux x86_64 Release build's `std::sort` (libstdc++ introsort) leaves equal elements |
 
 The helper types come from
 [`helper_structs.rs`](../src/analysis/feature_finder_picked/helper_structs.rs)
@@ -40,7 +43,11 @@ Tests: [`tests/feature_finder_picked_seeds.rs`](../tests/feature_finder_picked_s
 (steps 0 to 3.2, the degenerate intensity bins and `FeatureFinderDefs`),
 [`tests/feature_finder_picked.rs`](../tests/feature_finder_picked.rs)
 (steps 3.3 and 4, and the intended abundance override) and, through the tool,
-[`tests/topp_feature_finder_centroided.rs`](../tests/topp_feature_finder_centroided.rs).
+[`tests/topp_feature_finder_centroided.rs`](../tests/topp_feature_finder_centroided.rs);
+[`tests/feature_finder_picked_instrumentation.rs`](../tests/feature_finder_picked_instrumentation.rs)
+(the instance, debug mode, progress and a caller's map; manifest
+[`tests/data/feature_finder_picked_instrumentation_provenance.json`](../tests/data/feature_finder_picked_instrumentation_provenance.json),
+which needs `featurexml` too).
 Manifest: [`tests/data/feature_finder_picked_provenance.json`](../tests/data/feature_finder_picked_provenance.json).
 Nothing is feature-gated in the library. Both integration tests need `mzml` and
 `paramxml`; the user-seed cases also need `featurexml`.
@@ -68,21 +75,21 @@ Every member of the header is listed.
 | base `ProgressLogger` | `instance::FeatureFinderAlgorithmPicked::set_log_type`, `log_type`, `set_progress_logger`, `progress_logger_mut`; the base's public `startProgress`, `setProgress`, `nextProgress` and `endProgress` are the methods of the logger `progress_logger_mut` returns, and are absent under type `NONE` (where the source's calls do nothing), as `progress_logger_mut` then returns `None` | the 20 call sites of `.cpp:241-992`: every start, set and end call with its label, range and value, equal to the Release build's complete event sequence (executed with a counting clock, see *Debug mode*); no logger (type `NONE`, the default) costs nothing. An inverted range (steps 2 and 3.2 on fewer than `2 * min_spectra` scans) is passed with `end = begin`, the one recorded difference; the `CMD` output is the same |
 | `MapType`, `SpectrumType`, `FloatDataArrays` | `MSExperiment`, `MSSpectrum`, `ScoreArrays` | see *Score arrays* below |
 | `PeakType`, `Seed`, `MassTrace`, `MassTraces`, `TheoreticalIsotopePattern`, `IsotopePattern` (protected) | `Peak1D` and the `helper_structs` types | |
-| `FeatureFinderAlgorithmPicked()` | `default_parameters`, `HANDLER_NAME` | |
-| `setSeeds(const FeatureMap&)` | `seeds` argument of `run` and `SeedStage::run` | |
-| `setData_(MSExperiment&&, FeatureMap&)` (private) | `run` consumes the experiment and returns `RunOutput` | |
+| `FeatureFinderAlgorithmPicked()` | `instance::FeatureFinderAlgorithmPicked::new`, `with_options`; `default_parameters`, `HANDLER_NAME` | |
+| `setSeeds(const FeatureMap&)` | `instance::FeatureFinderAlgorithmPicked::set_seeds`, `seeds`; `run` replaces them, as the source's `run` does; the `seeds` argument of `SeedStage::run` | |
+| `setData_(MSExperiment&&, FeatureMap&)` (private) | `instance::FeatureFinderAlgorithmPicked::run` consumes the experiment and extends the caller's `&mut FeatureMap` | |
 | `run(PeakMap&&, FeatureMap&, const Param&, const FeatureMap&)` | `instance::FeatureFinderAlgorithmPicked::run`, which extends the caller's map as the source does (see *Reusing an instance*); `algorithm::run` and `run_with_options` for a fresh map | the stateless functions return `RunOutput` with the features, the log, the abort counts and the debug output |
 | `getDefaultParameters()` | `default_parameters()` | 29 entries, 7 section descriptions |
-| `run_()` (protected) | `SeedStage::compute` (steps 0 to 3.2) then `feature_stage` (steps 3.3 and 4) | |
+| `run_()` (protected) | `instance` `run_core`: `SeedStage::prepare` (steps 0 to 2.5), then per charge `select_next_charge`, `extend_charge` and `settle_charge`, then step 4; `SeedStage::compute` and `feature_stage` at stage level | |
 | `map_` | `SeedStage::experiment`, `into_experiment` | |
-| `features_` | `RunOutput::features` | |
+| `features_` | the caller's `&mut FeatureMap` of `instance::FeatureFinderAlgorithmPicked::run`; `RunOutput::features` of the stateless `run` | |
 | `log_`, `debug_` | `Settings::write_debug`; `debug::DebugOutput` (`log`, `log_opened`) returned by `run` | the log text in source order and formatting, with the stream's state across runs (see *Debug mode*); the tool writes the file |
 | `aborts_`, `abort_()` | `instance::FeatureFinderAlgorithmPicked::aborts` (`u32`, accumulating over runs); `RunOutput::aborts` | counted serially in seed order: the source's single-thread counts at any thread count; the source races them (candidate 5) |
 | `abort_reasons_` | `instance::FeatureFinderAlgorithmPicked::abort_reasons`, `debug::AbortReasons` (keyed by intensity, as `Seed::operator<`), `debug::abort_map` | never cleared, as in the source; the abort map reads the stored indices in the current input (see *Reusing an instance*) |
 | `seeds_` | `SeedStage::user_seeds` (`UserSeed`: m/z and RT) | the only fields the source reads |
 | `pattern_tolerance_` ... `max_feature_intersection_`, `reported_mz_` | `Settings` fields of the same names; `reported_mz` as `ReportedMz` | |
 | `intensity_rt_step_`, `intensity_mz_step_`, `intensity_thresholds_` | `IntensityThresholds::rt_step`, `mz_step`, `quantiles` | |
-| `isotope_distributions_` | `IsotopeWindows::patterns` | |
+| `isotope_distributions_` | `IsotopeWindows::patterns`; `IsotopeWindows::precalculate_onto` and `instance::FeatureFinderAlgorithmPicked::isotope_windows` keep them across runs | extended, never cleared, as in the source (see *Reusing an instance*) |
 | `updateMembers_()` | `Settings::from_parameters` | also reads the `run_` locals: charges, `fit:max_iterations`, abundances, seed thresholds, user-seed tolerances, `feature:min_score`, `feature:rt_shape` |
 | `intersection_()` | `resolution::intersection` | |
 | `getIsotopeDistribution_(double)` | `IsotopeWindows::get` | |
@@ -97,8 +104,8 @@ Every member of the header is listed.
 | `chooseTraceFitter_(double&)` | `fitting::FittedModel::new` from `Settings::rt_shape` | the enum replaces the pointer plus the `tau != 0` flag and the `dynamic_pointer_cast` |
 | `cropFeature_()` | `fitting::crop_feature` | returns the cropped traces instead of an out-parameter |
 | `checkFeatureQuality_()` | `fitting::check_feature_quality` | returns `QualityOutcome`: `Accepted(FeatureQuality)` or `Rejected(reason)` |
-| step 3.3 (`.cpp:576-856`), the `omp parallel for` and the containment pass | `feature_stage`, with `fitting::build_feature` for step 3.3.5 | `concept::parallel::map_collect` over the seed indices |
-| step 4 (`.cpp:859-1016`) | `resolution::resolve_overlaps`, `FeatureMap::sort_by_mz`, `retain`, `sort_by_intensity(true)`, `resolution::annotate_apex` | |
+| step 3.3 (`.cpp:576-856`), the `omp parallel for` and the containment pass | `instance::extend_charge` and `settle_charge`, with `fitting::build_feature` for step 3.3.5 | `concept::parallel::map_collect` over the seed indices |
+| step 4 (`.cpp:859-1016`) | `source_sort::source_sort_by` (the Release build's introsort order), `resolution::resolve_overlaps`, `retain`, `source_sort_by` with the arguments swapped, `resolution::annotate_apex` | |
 | `writeFeatureDebugInfo_()` | `debug::write_feature_debug_info`, `debug::FeatureDebugFiles`, `debug::PseudoRtShift`; `algorithm::PseudoRtShiftKey` | the `.dta`, `_cropped.dta` and `.plot` texts, byte-identical to the Release build; the undeclared `debug:pseudo_rt_shift` is read as the source reads it, a string or list value included (see *Debug mode*) |
 | `operator=`, copy constructor (private, not implemented) | not applicable | the stage is an owned value |
 | step 1, second half (`.cpp:280-287`) | `fill_intensity_scores` (crate-private) | |
@@ -651,8 +658,8 @@ first point where the source becomes undefined:
    every other key is equivalent, the order of the equivalent elements is
    unspecified and observable (it decides the stored quantiles or the spectrum
    order). The Release build's order is libstdc++'s introsort order, which
-   `port/ffap-instrumentation` ports as `source_sort` and this branch does not
-   use. Executed: `int_nan_50_3` (8 features), `int_nan_40_10` (7),
+   `source_sort` reproduces for the seeds and the feature map but which these
+   sites do not use yet. Executed: `int_nan_50_3` (8 features), `int_nan_40_10` (7),
    `seeds_mz_nan` (7) and the six `sw_nan_next2_*` returned; the fixture keeps
    their outcomes. The user seeds are exempt when every other m/z is one value,
    because `near_user_seed` then answers the same for every order.
@@ -694,10 +701,10 @@ native difference 13.
 | `mass_trace:min_spectra = 1` gives `min_spectra_ = 0`. Every trace score becomes 0/0 = NaN and every peak a local maximum; no overall score reaches a threshold, no seed is found and the run returns an empty map | the same: NaN trace scores, no seed, an empty map | The execution (B6 driver, `ffc1_min_spectra_1`) shows the source is *defined* here, so the port follows it (lead decision of 2026-09-15, `CPP-271`). B6 refused the configuration; that refusal is gone. Nothing later in the algorithm is reached, so the source's `size_t(-1)` delta buffer in `extendMassTrace_` stays unreachable; the port returns `Error::InvalidValue` if it ever is. |
 | a zero or infinite intensity bin step makes `intensityScore_` convert `floor(NaN)` or `floor(inf)` to `UInt`, which is undefined | by default the Linux x86_64 Release build's outcome (every intensity score NaN, no seed, an empty map); `DegenerateBinStep::Refuse` refuses exactly the inputs whose seed loop reads those scores | Undefined behaviour of the `float`-to-`int` kind, whose Release outcome is measured, repeatable and explained by the emitted `cvttsd2si`; see *Degenerate intensity bins*. The port refused every zero-width range before, including short inputs, where the result does not depend on the scores. |
 | `charge_low > charge_high + 1` wraps the `UInt` charge count and indexes past the score arrays | `Error::InvalidValue` from `Settings::charge_count` | Undefined behaviour. `charge_low == charge_high + 1` gives zero charges, as in the source. |
-| `write_debug = true` writes `debug/` into the working directory and then throws on the undeclared `debug:pseudo_rt_shift` | `Error::Unsupported` | A defect, and library code does not write files. |
+| `write_debug = true` writes `debug/` into the working directory, and `writeFeatureDebugInfo_` reads the undeclared `debug:pseudo_rt_shift`, which terminates the process at the first seed that reaches the fit | `debug::DebugOutput`, which the tool writes; `Error::Unsupported` at that seed under `PseudoRtShiftKey::Source` | Library code does not write files, and a safe port cannot end the process (see *Debug mode*). |
 | a changed `abundance_12C` or `abundance_14N` builds the override from a default `IsotopeDistribution` that already holds `(0, 1)`; the patterns grow (FFC_1 window 0: 27 normalised bins) and FFC_1 with 12C = 90 % finds 0 seeds, 0 candidates and 0 features (C2 `ffap_ffc1_abundance_12C_90`) | the intended two-isotope distribution, which **does** find seeds and features | `CPP-247`, lead decision of 2026-09-15: follow the intent, not the defect, because the generator rejects the stray-peak construction and refusing a parameter the source accepts is worse. **This is the one place where the port's features differ from the executed C++ by design.** `AbundanceOverride::Refuse` is the opt-in for a caller that must not diverge. |
 | the overall score is `std::pow(float, float)`, the platform `powf` | `libm::pow` in `f64`, rounded once to `f32` | The port's value is the correctly rounded power (60-digit decimal check) and the same on every machine. The reference build's glibc 2.39 `powf` (its FMA variant on the AMD EPYC 7763 capture host) is one binary32 step away on 8 of the 30,840 retained overall scores (2 of 3,084 on FFC_1); the macOS arm64 product SDK's Apple `powf` was on 99. `libm::powf` differed from Apple's on 226 of 3,084. No seed list changes. `tests/data/feature_finder_picked/overall_rounding.tsv` and the `rounding` rows of `degenerate_stage.tsv.gz` list every difference. |
-| `std::sort` of seeds with equal `f32` intensity is unspecified | stable: scan, then peak order | Deterministic. No retained configuration has a tie (the drivers check adjacent ties). |
+| `std::sort` of seeds with equal `f32` intensity leaves an order the standard does not specify | the order the Linux Release build's libstdc++ introsort gives (`source_sort::source_sort_reversed_by`) | Deterministic, and equal to the reference platform (driver mode `sort`, 130 inputs). |
 | `std::sort` of a bin's intensities: `-0.0` and `+0.0` compare equal | `total_cmp`: `-0.0` first | Only a quantile's zero sign can differ, and only for inputs with both signed zeros; the tool path filters non-positive intensities. |
 | progress, `Found N seeds for charge c.` and `Found N feature candidates for charge c.` go to `std::cout`; the overlap count, the abort reasons, the feature count and the apex warning to `OPENMS_LOG_INFO`/`WARN` | `SeedStage::log` and `RunOutput::log`, in the source's order | Library code never prints. The candidate line is inserted directly after its charge's seed line, so the two `std::cout` lines are adjacent as in the source, even though this port computes every charge's seeds first. The bare newlines the source logs around the abort block (`FeatureFinderAlgorithmPicked.cpp:1019` and `1026`) are emitted as empty log entries, so a caller that prints the log line by line — `FeatureFinderCentroided` does — reproduces the executed C++ stdout block exactly. |
 | steps 3.1 to 3.3 run per charge | steps 3.1 and 3.2 run for every charge first | Step 3.3 reads only its own charge's arrays, so the arrays and seeds are identical. |
@@ -708,13 +715,13 @@ native difference 13.
 | `extendMassTraces_` dereferences `pattern.spectrum[0]` when the pattern matched no peak | `Error::InvalidValue` | Undefined behaviour. Unreachable from `run_`, where the pattern always contains the seed; reachable through the public function, which the test exercises. |
 | `traces[traces.max_trace]` is indexed before the fit without a range check | `Error::InvalidValue` | Undefined behaviour when `max_trace` is stale. The one branch that could make it stale (`traces.clear()` for a trace before `max_trace`) is unreachable, because `max_trace` is still 0 at every index that could satisfy `p < max_trace`. |
 | `setWidth` stores any FWHM, including a NaN produced by a non-finite fit that the quality checks let through (every comparison against a NaN is false) | `Error::InvalidValue` from `BaseFeature::set_width` | The kernel setter validates. No executed configuration produces a non-finite fit; the 1,201 features of the 170 non-finite captures that returned, 140 of those captures with an infinite intensity, are all finite. |
-| `f2.getCharge() % f1.getCharge()` divides by zero for a zero charge | the branch is skipped and the quality rule decides | `isotopic_pattern:charge_low` has a minimum of 1, so a zero charge cannot reach step 4; a trap would be worse than the fall-through. |
-| a hull with no point has the default `DBoundingBox` `[DBL_MAX, -DBL_MAX]`, whose `width()` is negative infinity and poisons `intersection_` | such a hull is skipped | Every hull built here holds at least three points. |
-| `plot_nr` is assigned in an OpenMP critical section, so its value depends on the schedule | assigned in seed order | It is overwritten by the feature number for every feature that survives, and only the refused debug output reads it otherwise. |
+| `f2.getCharge() % f1.getCharge()` divides by zero for a zero charge | `Error::InvalidValue` at that pair, only where the remainder the source evaluates would trap (also `INT_MIN % -1`) | The algorithm's own charges are at least 1. A caller's feature of charge 0 traps in the source (executed: SIGFPE, 2 of 2); same-charge pairs and non-overlapping charge-0 features are processed (executed). |
+| a hull with no point has the default `DBoundingBox` `[DBL_MAX, -DBL_MAX]`, whose `width()` is negative infinity | the same arithmetic (`resolution.rs` `SourceBox`) | Only a caller's map can hold such a hull (executed: overlap cases). |
+| `plot_nr` is assigned in an OpenMP critical section, so its value depends on the schedule | assigned in seed order | It is overwritten by the feature number for every feature that survives. The debug file names use it, and with one thread the source's value is this seed-order number. |
 | `aborts_[reason]++` runs inside the parallel region without synchronisation | aggregated serially in seed order | A data race (candidate 5): with two or more threads aborting seeds the source has no reproducible result, so the behaviour at more than one thread cannot be tested against the C++ and is not. The port's counts are exact and independent of the thread count; every executed comparison of `aborts_` (C2, `degenerate_stage`) records the library's map at one thread only, and the multi-thread runs compare everything else. |
 | the seed loop is an OpenMP `parallel for` with four named critical sections | `concept::parallel::map_collect` over the seed indices with `Options::threads` | `map_collect` returns results in input order, so no critical section is needed and the output is bit-identical at 1, 2 and 8 threads (`the_seed_loop_is_bit_identical_across_thread_counts`). The source's results are schedule-independent for the same reason, its `tmp_feature_map` being a `std::map` keyed by seed index; the C++ oracle gave identical output at 1, 2 and 8 threads. |
 | the containment pass scans a growing `std::vector<Size>` of swallowed seeds | a `BTreeSet` | A pure membership test; duplicates in the source's vector change nothing. |
-| `FeatureMap::sortByMZ` and `sortByIntensity` use `std::sort`, which is unstable | stable sorts | Only exactly tied m/z or intensity values could be ordered differently. None of the six executed configurations has one. |
+| `FeatureMap::sortByMZ` and `sortByIntensity` use `std::sort`, which is unstable | the Linux Release build's introsort order (`source_sort::source_sort_by`), NaN keys included; refused only at a step that would read outside the map | Equal to the reference platform (driver modes `sort`, `overlap`). |
 | `setMetaValue("spectrum_index", Size)` stores an unsigned value | `i64`, refused above `i64::MAX` | The source's `DataValue` narrows to a signed integer anyway; the featureXML writer writes the same digits. |
 | `CoarseIsotopePatternGenerator` iterates elements in heap-address order, which varies between runs | ascending atomic number | Inherited from B2. It is the majority order (198 of 200 runs), which every retained execution used; all windows match. |
 | `MSExperiment::sortSpectra` and `sortChromatograms` with `std::sort` | module-local sorts that follow them (`std::is_sorted` first per spectrum, stable within), refusing only NaN keys (see *Non-finite input*) | The kernel's sorts refuse every non-finite value. Spectra with equal retention times and chromatograms with equal product m/z keep their input order, where `std::sort` leaves it unspecified; a spectrum with inconsistent attached records is an error. |
@@ -852,7 +859,7 @@ overall score) for all 7 configurations: 25, 25, 15, 18 and 24 seeds for charge
     MS2 input;
   - unsorted input: sorted with the warning, and scored exactly like the sorted
     input;
-  - the refusals: `write_debug`, charge wrap, a NaN user-seed m/z among
+  - the refusals: charge wrap, a NaN user-seed m/z among
     different ones, an unsorted spectrum with a NaN m/z, abundances under
     `AbundanceOverride::Refuse`, and degenerate bin steps under
     `DegenerateBinStep::Refuse` only when the seed loop reads them;
@@ -934,7 +941,8 @@ cargo test --locked --all-features --test feature_finder_picked \
   --test feature_finder_picked_seeds --test feature_finder_picked_helper_structs \
   --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter \
   --test isotopes_source_precision --test mass_trace --test mass_trace_detection \
-  --test topp_feature_finder_centroided
+  --test topp_feature_finder_centroided --test feature_finder_picked_instrumentation \
+  --test progress_logger
 cargo +1.85.0 test (same targets)
 cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked
 cargo clippy --locked --all-features --all-targets -- -D warnings
@@ -1024,7 +1032,8 @@ Items 1 and 2 are executed; the others come from source review.
 3. **`write_debug` throws.** `writeFeatureDebugInfo_` reads
    `debug:pseudo_rt_shift` (`.cpp:2137`), but the declared parameter is
    `advanced:pseudo_rt_shift` (`.cpp:124`). The resulting `ElementNotFound`
-   escapes the OpenMP region.
+   escapes the OpenMP region. Executed: the Release tool dies of SIGABRT (shell
+   status 134) in every such run (tool cases a4, b1, c1).
 4. **Degenerate intensity bins are undefined behaviour.** With one RT or one
    m/z, or an extent that underflows in the division, `intensity_rt_step_` or
    `intensity_mz_step_` is 0, and an overflowing RT extent makes it infinite;
@@ -1052,14 +1061,14 @@ Items 1 and 2 are executed; the others come from source review.
 ## Ledger notes
 
 - **What is ported.** Every declaration of `FeatureFinderAlgorithmPicked.h` has a
-  counterpart or a recorded reason in the API mapping above. On this branch
-  that includes `FeatureFinderDefs` (`defs.rs`) and the whole algorithm, with
-  the degenerate intensity bins reproduced as the Linux x86_64 Release build
-  computes them. Rows that this branch still lists as not ported —
-  the `ProgressLogger` base, `abort_reasons_`, `writeFeatureDebugInfo_` and the
-  refused `write_debug` — are the work of the parallel
-  `port/ffap-instrumentation` lane, whose rows replace them when the two are
-  merged; the status recommendation depends on that merge.
+  counterpart or a recorded reason in the API mapping above. That includes
+  `FeatureFinderDefs` (`defs.rs`) and the whole algorithm, with the degenerate
+  intensity bins reproduced as the Linux x86_64 Release build computes them
+  (port/ffap-semantics), and `writeFeatureDebugInfo_`, `abort_reasons_`, the
+  `ProgressLogger` base and the whole `write_debug` mode, together with the
+  instance state and `run` into a caller's map (port/ffap-instrumentation).
+  What stays refused there is where the source terminates or is not
+  reproducible (*Debug mode*, *Reusing an instance*).
 - **What is refused, and why each refusal is as narrow as its reason.**
   - `DegenerateBinStep::Refuse` is an opt-out, not the default; it refuses only
     a zero or infinite step whose scores the seed loop reads.
@@ -1068,9 +1077,9 @@ Items 1 and 2 are executed; the others come from source review.
     the count is computed).
   - Non-finite input is read as the Release build reads it (189 executed
     cases). What remains refused is listed in *Non-finite input*: a NaN
-    sort key whose order this branch does not reproduce (undefined, or an
-    observable unspecified order; lifted once `source_sort` from
-    `port/ffap-instrumentation` orders these sorts), the endless NaN
+    sort key whose order the port does not reproduce at these sites
+    (undefined, or an observable unspecified order; lifted once `source_sort`
+    orders these sorts), the endless NaN
     profile merge, and the step-3.3.5 exception that terminates the source.
   - The `Limits` ceilings (bounded work).
   - `AbundanceOverride::Refuse` is an opt-out; the default computes the
@@ -1081,9 +1090,11 @@ Items 1 and 2 are executed; the others come from source review.
   residual count), and the `aborts_` data race at more than one thread has no
   reproducible C++ result, so neither is tested against the C++.
 - Rust files: `src/analysis/feature_finder_picked/algorithm.rs`, `scoring.rs`,
-  `seeds.rs`, `extension.rs`, `fitting.rs`, `resolution.rs` and `defs.rs`.
-  Tests: `tests/feature_finder_picked_seeds.rs`, `tests/feature_finder_picked.rs`
-  and `tests/topp_feature_finder_centroided.rs`.
+  `seeds.rs`, `extension.rs`, `fitting.rs`, `resolution.rs`, `defs.rs`,
+  `instance.rs`, `debug.rs` and `source_sort.rs`. Tests:
+  `tests/feature_finder_picked_seeds.rs`, `tests/feature_finder_picked.rs`,
+  `tests/feature_finder_picked_instrumentation.rs` and
+  `tests/topp_feature_finder_centroided.rs`.
 - The ledger scope's "steps 3.3 to 5" should read "steps 3.3 and 4": the
   source's last step is step 4 (`.cpp:860`).
 - `docs/doc-coverage.json` needs `--write` for `defs.rs`, which is at 100 %;

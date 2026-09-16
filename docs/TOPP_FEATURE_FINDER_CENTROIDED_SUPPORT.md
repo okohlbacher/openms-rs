@@ -284,9 +284,7 @@ instance*).
    seeds, one candidate and one feature, exit 0 — the values of the adapted
    Release replay of the intended override
    (`a_changed_abundance_finds_the_intended_features_where_the_cpp_release_build_finds_none`).
-   `-algorithm:write_debug`, whose source debug output reads an undeclared
-   parameter and writes into the working directory, is refused by the algorithm
-   on this branch and ends in exit 11 with its message.
+   `-algorithm:write_debug` is ported (see *Debug mode*).
 4. **A NaN FAIMS voltage is refused** with exit 6 rather than entering an
    ordered set that cannot hold it: `FaimsHelper::get_compensation_voltages`
    returns an error, which the framework maps to `Invalid parameter: …`. No
