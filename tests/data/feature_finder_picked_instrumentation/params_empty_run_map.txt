@@ -1,0 +1,2 @@
+MAP size=0 uid=0
+ABORT 1 Invalid fit: Fitted model is bigger than 'max_rt_span'

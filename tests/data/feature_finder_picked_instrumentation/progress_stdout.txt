@@ -1,0 +1,95 @@
+== CASE ffc1
+Progress of 'Precalculating intensity scores':
+-- done [took 0.01 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Precalculating mass trace scores':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Precalculating isotope distributions':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Calculating isotope pattern scores for charge 2':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Finding seeds for charge 2':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Found 25 seeds for charge 2.
+Progress of 'Extending seeds for charge 2':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Found 8 feature candidates for charge 2.
+Progress of 'Resolving overlapping features':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+== END ffc1 8
+== CASE short
+Progress of 'Precalculating intensity scores':
+-- done [took 0.02 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Precalculating mass trace scores':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Precalculating isotope distributions':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Calculating isotope pattern scores for charge 1':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Finding seeds for charge 1':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Found 0 seeds for charge 1.
+Progress of 'Extending seeds for charge 1':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Found 0 feature candidates for charge 1.
+Progress of 'Calculating isotope pattern scores for charge 2':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Finding seeds for charge 2':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Found 0 seeds for charge 2.
+Progress of 'Extending seeds for charge 2':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Found 0 feature candidates for charge 2.
+Progress of 'Calculating isotope pattern scores for charge 3':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Finding seeds for charge 3':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Found 0 seeds for charge 3.
+Progress of 'Extending seeds for charge 3':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Found 0 feature candidates for charge 3.
+Progress of 'Calculating isotope pattern scores for charge 4':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Finding seeds for charge 4':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Found 0 seeds for charge 4.
+Progress of 'Extending seeds for charge 4':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Found 0 feature candidates for charge 4.
+Progress of 'Resolving overlapping features':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+== END short 0
+== CASE prefilled
+Progress of 'Precalculating intensity scores':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Precalculating mass trace scores':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Precalculating isotope distributions':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Calculating isotope pattern scores for charge 2':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'Finding seeds for charge 2':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Found 25 seeds for charge 2.
+Progress of 'Extending seeds for charge 2':
+-- done [took 0.01 s (CPU), 0.00 s (Wall)] -- 
+Found 8 feature candidates for charge 2.
+Progress of 'Resolving overlapping features':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+== END prefilled 15
+Removed 0 overlapping features.
+
+Info: reasons for not finalizing a feature during its construction:
+ - Invalid fit: Fitted model is bigger than 'max_rt_span': 1 times
+
+8 features found.
+Removed 0 overlapping features.
+
+Info: reasons for not finalizing a feature during its construction:
+
+0 features found.
+Removed 3 overlapping features.
+
+Info: reasons for not finalizing a feature during its construction:
+ - Invalid fit: Fitted model is bigger than 'max_rt_span': 1 times
+
+15 features found.

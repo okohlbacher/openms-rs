@@ -29,6 +29,7 @@
 //! seeds. See `docs/FEATURE_FINDER_PICKED_SUPPORT.md`.
 
 use crate::analysis::feature_finder_picked::algorithm::{ReportedMz, RtShape, Settings};
+use crate::analysis::feature_finder_picked::debug::{LogSink, NoLog, g, put_all};
 use crate::analysis::feature_finder_picked::egh_trace_fitter::EGHTraceFitter;
 use crate::analysis::feature_finder_picked::gauss_trace_fitter::GaussTraceFitter;
 use crate::analysis::feature_finder_picked::helper_structs::{
@@ -172,13 +173,50 @@ pub fn crop_feature(
     traces: &MassTraces,
     min_trace_score: f64,
 ) -> Result<MassTraces> {
+    crop_feature_logged(fitter, traces, min_trace_score, &mut NoLog)
+}
+
+/// [`crop_feature`] writing the source's debug lines to `log`.
+///
+/// The per-trace line prints the correlation where it says `final score`, as
+/// the source does.
+pub(crate) fn crop_feature_logged<L: LogSink>(
+    fitter: &dyn TraceFitter,
+    traces: &MassTraces,
+    min_trace_score: f64,
+    log: &mut L,
+) -> Result<MassTraces> {
     let low_bound = fitter.lower_rt_bound();
     let high_bound = fitter.upper_rt_bound();
+    if log.enabled() {
+        put_all(
+            log,
+            &[
+                "    => RT bounds: ",
+                &g(low_bound),
+                " - ",
+                &g(high_bound),
+                "\n",
+            ],
+        );
+    }
     let mut new_traces = MassTraces::new();
     let mut theoretical: Vec<f64> = Vec::new();
     let mut real: Vec<f64> = Vec::new();
     for t in 0..traces.len() {
         let trace = &traces[t];
+        if log.enabled() {
+            put_all(
+                log,
+                &[
+                    "   - Trace ",
+                    &t.to_string(),
+                    ": (",
+                    &g(trace.theoretical_int),
+                    ")\n",
+                ],
+            );
+        }
         let mut new_trace = MassTrace::default();
         let mut deviation = 0.0;
         theoretical.clear();
@@ -194,20 +232,49 @@ pub fn crop_feature(
                 deviation += (measured - theo).abs() / theo;
             }
         }
+        let mut fit_score = 0.0;
+        let mut correlation = 0.0;
         let mut final_score = 0.0;
         if !new_trace.peaks.is_empty() {
-            let fit_score = deviation / new_trace.peaks.len() as f64;
-            let correlation = max0(pearson_correlation_coefficient(&theoretical, &real)?);
+            fit_score = deviation / new_trace.peaks.len() as f64;
+            correlation = max0(pearson_correlation_coefficient(&theoretical, &real)?);
             final_score = (correlation * max0(1.0 - fit_score)).sqrt();
+        }
+        if log.enabled() {
+            put_all(
+                log,
+                &[
+                    "     - peaks: ",
+                    &new_trace.peaks.len().to_string(),
+                    " / ",
+                    &trace.peaks.len().to_string(),
+                    " - relative deviation: ",
+                    &g(fit_score),
+                    " - correlation: ",
+                    &g(correlation),
+                    " - final score: ",
+                    &g(correlation),
+                    "\n",
+                ],
+            );
         }
         if !new_trace.is_valid() || final_score < min_trace_score {
             if t < traces.max_trace {
                 new_traces = MassTraces::new();
+                put_all(
+                    log,
+                    &["     - removed this and previous traces due to bad fit\n"],
+                );
                 continue;
             } else if t == traces.max_trace {
                 new_traces = MassTraces::new();
+                put_all(log, &["     - aborting (max trace was removed)\n"]);
                 break;
             }
+            put_all(
+                log,
+                &["     - removed due to bad fit => omitting the rest\n"],
+            );
             break;
         }
         new_trace.theoretical_int = trace.theoretical_int;
@@ -276,20 +343,33 @@ pub fn check_feature_quality(
     seed_mz: f64,
     settings: &Settings,
 ) -> Result<QualityOutcome> {
+    check_feature_quality_logged(fitter, traces, seed_mz, settings, &mut NoLog)
+}
+
+/// [`check_feature_quality`] writing the source's `Quality estimation:` block
+/// to `log`, which the source writes once the first four checks pass.
+pub(crate) fn check_feature_quality_logged<L: LogSink>(
+    fitter: &dyn TraceFitter,
+    traces: &MassTraces,
+    seed_mz: f64,
+    settings: &Settings,
+    log: &mut L,
+) -> Result<QualityOutcome> {
+    let rejected = |reason| Ok(QualityOutcome::Rejected(reason));
     if fitter.check_maximal_rt_span(settings.max_rt_span) {
-        return Ok(QualityOutcome::Rejected(ABORT_MAX_RT_SPAN));
+        return rejected(ABORT_MAX_RT_SPAN);
     }
     if !traces.is_valid(seed_mz, settings.trace_tolerance) {
-        return Ok(QualityOutcome::Rejected(ABORT_TOO_FEW_TRACES));
+        return rejected(ABORT_TOO_FEW_TRACES);
     }
     let rt_bounds = traces.rt_bounds()?;
     if fitter.center() < rt_bounds.0 || fitter.center() > rt_bounds.1 {
-        return Ok(QualityOutcome::Rejected(ABORT_CENTER_OUTSIDE));
+        return rejected(ABORT_CENTER_OUTSIDE);
     }
     // The source reads the bounds a second time for the next check; they cannot
     // have changed.
     if fitter.check_minimal_rt_span(rt_bounds, settings.min_rt_span) {
-        return Ok(QualityOutcome::Rejected(ABORT_MIN_RT_SPAN));
+        return rejected(ABORT_MIN_RT_SPAN);
     }
     let mut theoretical: Vec<f64> = Vec::new();
     let mut real: Vec<f64> = Vec::new();
@@ -306,8 +386,14 @@ pub fn check_feature_quality(
     let fit_score = max0(1.0 - (deviation / traces.peak_count() as f64));
     let correlation = max0(pearson_correlation_coefficient(&theoretical, &real)?);
     let final_score = (correlation * fit_score).sqrt();
+    if log.enabled() {
+        put_all(log, &["Quality estimation:\n"]);
+        put_all(log, &[" - relative deviation: ", &g(fit_score), "\n"]);
+        put_all(log, &[" - correlation: ", &g(correlation), "\n"]);
+        put_all(log, &[" => final score: ", &g(final_score), "\n"]);
+    }
     if final_score < settings.min_feature_score {
-        return Ok(QualityOutcome::Rejected(ABORT_QUALITY_TOO_LOW));
+        return rejected(ABORT_QUALITY_TOO_LOW);
     }
     Ok(QualityOutcome::Accepted(FeatureQuality {
         fit_score,

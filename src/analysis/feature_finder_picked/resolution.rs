@@ -22,7 +22,8 @@
 //! The module is serial, as the source is here. See
 //! `docs/FEATURE_FINDER_PICKED_SUPPORT.md`.
 
-use crate::kernel::{BoundingBox2D, Feature, MSExperiment};
+use crate::analysis::feature_finder_picked::debug::{LogSink, NoLog, g, put_all};
+use crate::kernel::{ConvexHull2D, Feature, MSExperiment};
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
 
@@ -41,15 +42,83 @@ pub fn invalid_apex_warning(count: usize) -> String {
     )
 }
 
-/// The bounding box of every mass-trace hull of a feature: source
-/// `f.getConvexHull().getBoundingBox()`.
+/// The source's `DBoundingBox<2>`: an interval per dimension that starts
+/// empty, with its minimum at `DBL_MAX` and its maximum at `-DBL_MAX`.
 ///
-/// The source builds the overall hull first, which is the single mass-trace
-/// hull when there is one and the rectangle spanning every hull otherwise;
-/// either way its bounding box is the union of the individual hull boxes, which
-/// [`Feature::hull_bounding_box`] returns without building the hull.
-fn overall_box(feature: &Feature) -> Option<BoundingBox2D> {
-    feature.hull_bounding_box()
+/// The native `BoundingBox2D` cannot be empty, but the source's arithmetic on
+/// an empty box is observable once a caller's feature has an empty hull: its
+/// `width()` is `-DBL_MAX - DBL_MAX = -inf`, it intersects nothing, and a
+/// feature with several hulls, one of them empty, gets an overall box spanning
+/// `[-DBL_MAX, DBL_MAX]` in both dimensions (`Feature::getConvexHull`,
+/// `Feature.cpp:93-136`).
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct SourceBox {
+    min: [f64; 2],
+    max: [f64; 2],
+}
+
+impl SourceBox {
+    const EMPTY: Self = Self {
+        min: [f64::MAX, f64::MAX],
+        max: [f64::MIN, f64::MIN],
+    };
+
+    /// `DBoundingBox::enlarge`.
+    fn enlarge(&mut self, rt: f64, mz: f64) {
+        for (dim, value) in [rt, mz].into_iter().enumerate() {
+            if value < self.min[dim] {
+                self.min[dim] = value;
+            }
+            if value > self.max[dim] {
+                self.max[dim] = value;
+            }
+        }
+    }
+
+    /// `ConvexHull2D::getBoundingBox`: the scan envelopes, or the outline of
+    /// an outline-only hull.
+    fn of_hull(hull: &ConvexHull2D) -> Self {
+        let mut bounds = Self::EMPTY;
+        if let Some(native) = hull.bounding_box() {
+            bounds.enlarge(native.min().rt, native.min().mz);
+            bounds.enlarge(native.max().rt, native.max().mz);
+        }
+        bounds
+    }
+
+    /// `f.getConvexHull().getBoundingBox()`: one hull's box, the rectangle
+    /// over the hull boxes' corners for several hulls, and an empty box for
+    /// none.
+    fn of_feature(feature: &Feature) -> Self {
+        match feature.convex_hulls.as_slice() {
+            [] => Self::EMPTY,
+            [hull] => Self::of_hull(hull),
+            hulls => {
+                let mut bounds = Self::EMPTY;
+                for hull in hulls {
+                    let hull_box = Self::of_hull(hull);
+                    bounds.enlarge(hull_box.min[0], hull_box.min[1]);
+                    bounds.enlarge(hull_box.max[0], hull_box.max[1]);
+                }
+                bounds
+            }
+        }
+    }
+
+    /// `DIntervalBase::width`: the retention-time extent.
+    fn width(&self) -> f64 {
+        self.max[0] - self.min[0]
+    }
+
+    /// `DIntervalBase::height`: the m/z extent.
+    fn height(&self) -> f64 {
+        self.max[1] - self.min[1]
+    }
+
+    /// `DBoundingBox::intersects`.
+    fn intersects(&self, other: &Self) -> bool {
+        (0..2).all(|dim| !(other.min[dim] > self.max[dim]) && !(other.max[dim] < self.min[dim]))
+    }
 }
 
 /// The overlap of two feature candidates in retention time: source
@@ -65,33 +134,22 @@ fn overall_box(feature: &Feature) -> Option<BoundingBox2D> {
 /// A feature without hulls gives a zero sum, and the quotient is then a
 /// division by zero, as in the source.
 ///
-/// # Native difference
-///
-/// A hull with no point has no bounding box here and is skipped. The source's
-/// default `DBoundingBox` spans `[DBL_MAX, -DBL_MAX]`, whose `width()` is
-/// negative infinity and poisons the sum. Every hull built by this algorithm
-/// holds at least three points, so the case cannot arise on this path.
+/// A hull with no point has the source's empty bounding box: its width
+/// `-inf` enters the sum, and it intersects no other box. The algorithm never
+/// builds such a hull, but a caller's map may hold one.
 pub fn intersection(f1: &Feature, f2: &Feature) -> f64 {
-    let boxes1: Vec<BoundingBox2D> = f1
-        .convex_hulls
-        .iter()
-        .filter_map(crate::kernel::ConvexHull2D::bounding_box)
-        .collect();
-    let boxes2: Vec<BoundingBox2D> = f2
-        .convex_hulls
-        .iter()
-        .filter_map(crate::kernel::ConvexHull2D::bounding_box)
-        .collect();
+    let boxes1: Vec<SourceBox> = f1.convex_hulls.iter().map(SourceBox::of_hull).collect();
+    let boxes2: Vec<SourceBox> = f2.convex_hulls.iter().map(SourceBox::of_hull).collect();
     let s1: f64 = boxes1.iter().fold(0.0, |sum, b| sum + b.width());
     let s2: f64 = boxes2.iter().fold(0.0, |sum, b| sum + b.width());
     let mut overlap = 0.0;
     for bb1 in &boxes1 {
         for bb2 in &boxes2 {
-            if !bb1.intersects(*bb2) {
+            if !bb1.intersects(bb2) {
                 continue;
             }
-            let (a0, a1) = (bb1.min().rt, bb1.max().rt);
-            let (b0, b1) = (bb2.min().rt, bb2.max().rt);
+            let (a0, a1) = (bb1.min[0], bb1.max[0]);
+            let (b0, b1) = (bb2.min[0], bb2.max[0]);
             if a0 <= b0 && a1 >= b1 {
                 overlap += bb2.width();
             } else if b0 <= a0 && b1 >= a1 {
@@ -114,6 +172,14 @@ enum Keep {
     Second,
 }
 
+/// The branch of the source's decision, which picks the debug text.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Rule {
+    SameCharge,
+    Multiple,
+    Quality,
+}
+
 /// The source's decision for one overlapping pair, in its branch order.
 ///
 /// Equal charges compare the `f32` product of intensity and overall quality,
@@ -122,31 +188,53 @@ enum Keep {
 /// same debug text but different outcomes, and the second branch is reached
 /// only when the first does not hold. Otherwise the higher overall quality
 /// wins, the first winning a tie.
-fn decide(f1: &Feature, f2: &Feature) -> Keep {
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] where the source's `int` remainder traps:
+/// `f2.charge % f1.charge` with `f1.charge == 0` (or `i32::MIN % -1`), and the
+/// same for the second remainder, which the source evaluates only when the
+/// first is not zero. The x86_64 `idiv` raises `SIGFPE` there, which ends the
+/// process. The algorithm's own features have charges of at least 1; a
+/// caller's map can hold charge 0, the featureXML default.
+fn decide(f1: &Feature, f2: &Feature) -> Result<(Keep, Rule)> {
     if f1.charge == f2.charge {
         // Source: `float * float > float * float`, evaluated in binary32.
-        return if f1.intensity * f1.quality > f2.intensity * f2.quality {
+        let keep = if f1.intensity * f1.quality > f2.intensity * f2.quality {
             Keep::First
         } else {
             Keep::Second
         };
+        return Ok((keep, Rule::SameCharge));
     }
+    let trap = |a: i32, b: i32| {
+        Error::InvalidValue(format!(
+            "overlap resolution computes the charge remainder {a} % {b}, which traps (SIGFPE) in \
+             the source and ends the process"
+        ))
+    };
     // Source: `f2.getCharge() % f1.getCharge() == 0` keeps the second feature.
-    // A zero charge would divide by zero there; the parameter minimum of
-    // `isotopic_pattern:charge_low` is 1, so it cannot occur, and the guard
-    // falls through to the quality rule instead of trapping.
-    if f1.charge != 0 && f2.charge.checked_rem(f1.charge) == Some(0) {
-        return Keep::Second;
+    let first = f2
+        .charge
+        .checked_rem(f1.charge)
+        .ok_or_else(|| trap(f2.charge, f1.charge))?;
+    if first == 0 {
+        return Ok((Keep::Second, Rule::Multiple));
     }
     // Source: `f1.getCharge() % f2.getCharge() == 0` keeps the first.
-    if f2.charge != 0 && f1.charge.checked_rem(f2.charge) == Some(0) {
-        return Keep::First;
+    let second = f1
+        .charge
+        .checked_rem(f2.charge)
+        .ok_or_else(|| trap(f1.charge, f2.charge))?;
+    if second == 0 {
+        return Ok((Keep::First, Rule::Multiple));
     }
-    if f1.quality > f2.quality {
+    let keep = if f1.quality > f2.quality {
         Keep::First
     } else {
         Keep::Second
-    }
+    };
+    Ok((keep, Rule::Quality))
 }
 
 /// Resolve overlapping candidates in place: source step 4 up to the removal of
@@ -168,34 +256,82 @@ fn decide(f1: &Feature, f2: &Feature) -> Keep {
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] when a feature's subordinates cannot be
-/// allocated.
+/// allocated, and where the charge rule traps (see `decide`), which only a
+/// caller's feature of charge 0 can cause.
 pub fn resolve_overlaps(features: &mut [Feature], max_intersection: f64) -> Result<usize> {
-    let boxes: Vec<Option<BoundingBox2D>> = features.iter().map(overall_box).collect();
-    let max_mz_span =
-        boxes.iter().flatten().fold(
-            0.0,
-            |max, b| if b.height() > max { b.height() } else { max },
-        );
+    resolve_overlaps_logged(features, max_intersection, &mut NoLog, &mut |_| Ok(()))
+}
+
+/// [`resolve_overlaps`] writing the source's debug lines to `log` and calling
+/// `progress` with `i * n + j` for every pair it visits, before the m/z
+/// cut-off test, as the source calls `setProgress`; the value is computed in
+/// `size_t` arithmetic, wrapping as the source's does.
+pub(crate) fn resolve_overlaps_logged<L: LogSink>(
+    features: &mut [Feature],
+    max_intersection: f64,
+    log: &mut L,
+    progress: &mut dyn FnMut(u64) -> Result<()>,
+) -> Result<usize> {
+    let count = features.len();
+    let boxes: Vec<SourceBox> = features.iter().map(SourceBox::of_feature).collect();
+    let max_mz_span = boxes.iter().fold(
+        0.0,
+        |max, b| if b.height() > max { b.height() } else { max },
+    );
     let mut removed = 0usize;
-    for i in 0..features.len() {
-        for j in i + 1..features.len() {
+    for i in 0..count {
+        for j in i + 1..count {
+            progress((i as u64).wrapping_mul(count as u64).wrapping_add(j as u64))?;
             if features[j].mz - features[i].mz > 2.0 * max_mz_span {
                 break;
             }
             if features[i].intensity == 0.0 || features[j].intensity == 0.0 {
                 continue;
             }
-            let (Some(bb1), Some(bb2)) = (boxes[i], boxes[j]) else {
-                continue;
-            };
-            if !bb1.intersects(bb2) {
+            if !boxes[i].intersects(&boxes[j]) {
                 continue;
             }
             // Source: `intersection >= max_feature_intersection_`, so a NaN
             // quotient (both features without hulls) leaves the pair alone.
-            if intersection(&features[i], &features[j]) >= max_intersection {
+            let overlap = intersection(&features[i], &features[j]);
+            if overlap >= max_intersection {
                 removed += 1;
-                let keep = decide(&features[i], &features[j]);
+                if log.enabled() {
+                    put_all(
+                        log,
+                        &[
+                            " - Intersection (",
+                            &(i + 1).to_string(),
+                            "/",
+                            &(j + 1).to_string(),
+                            "): ",
+                            &g(overlap),
+                            "\n",
+                        ],
+                    );
+                }
+                let (keep, rule) = decide(&features[i], &features[j])?;
+                if log.enabled() {
+                    let removed_one = if keep == Keep::First { j } else { i };
+                    let (text, reported) = match rule {
+                        Rule::SameCharge => {
+                            ("   - same charge -> removing duplicate ", removed_one)
+                        }
+                        // Source: both multiple-of branches print the first
+                        // index, although the second one removes the second
+                        // feature.
+                        Rule::Multiple => (
+                            "   - different charge (one is the multiple of the other) -> removing \
+                             lower charge ",
+                            i,
+                        ),
+                        Rule::Quality => (
+                            "   - different charge -> removing lower score ",
+                            removed_one,
+                        ),
+                    };
+                    put_all(log, &[text, &(reported + 1).to_string(), "\n"]);
+                }
                 let (head, tail) = features.split_at_mut(j);
                 let (f1, f2) = (&mut head[i], &mut tail[0]);
                 let (winner, loser) = match keep {
@@ -222,16 +358,30 @@ pub fn resolve_overlaps(features: &mut [Feature], max_intersection: f64) -> Resu
 /// native identifier, and the count of them is returned (the source logs it
 /// through [`invalid_apex_warning`]).
 ///
+/// `RTBegin` is `std::lower_bound` with `RTLess`, which is well defined for any
+/// retention time on sorted spectra: a NaN compares false with every scan and
+/// gives index 0, `+inf` gives the scan count. A caller's feature can carry
+/// such a value, and it is annotated as the source annotates it.
+///
 /// # Errors
 ///
-/// Returns [`Error::InvalidValue`] when a feature's retention time is not
-/// finite and [`Error::UnsortedData`] when the experiment is not sorted by
-/// retention time, both from [`MSExperiment::rt_begin`]. The source's
-/// `lower_bound` gives an unspecified index instead.
+/// Returns [`Error::UnsortedData`] when the experiment is not sorted by
+/// retention time, where the source's `lower_bound` gives an unspecified
+/// index.
 pub fn annotate_apex(features: &mut [Feature], experiment: &MSExperiment) -> Result<usize> {
+    if experiment
+        .spectra
+        .windows(2)
+        .any(|pair| !(pair[0].rt <= pair[1].rt))
+    {
+        return Err(Error::UnsortedData);
+    }
     let mut invalid = 0usize;
     for feature in features.iter_mut() {
-        let index = experiment.rt_begin(feature.rt)?;
+        let rt = feature.rt;
+        let index = experiment
+            .spectra
+            .partition_point(|spectrum| spectrum.rt < rt);
         feature.metadata.insert(
             SPECTRUM_INDEX.into(),
             MetaValue::from(

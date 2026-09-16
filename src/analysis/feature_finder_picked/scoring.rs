@@ -21,7 +21,9 @@
 //! The source stores them as `float` data arrays of each spectrum, named
 //! `trace_score`, `intensity_score`, `local_max`, `pattern_score_<charge>` and
 //! `overall_score_<charge>`. They are only ever read by the algorithm itself,
-//! and written out only by the debug mode, which the port refuses. They live in
+//! and written out only by the debug mode
+//! ([`debug_experiment`](crate::analysis::feature_finder_picked::debug::debug_experiment)
+//! rebuilds those arrays for it). They live in
 //! [`ScoreArrays`](crate::analysis::feature_finder_picked::scoring::ScoreArrays)
 //! instead, one flat `f32` array per score, so the input spectra
 //! keep their own data arrays and no per-spectrum allocation is needed.
@@ -29,6 +31,7 @@
 //! Arithmetic follows the source operation by operation, including the `float`
 //! narrowing of every stored score. See `docs/FEATURE_FINDER_PICKED_SUPPORT.md`.
 
+use crate::analysis::feature_finder_picked::debug::{LogSink, NoLog, g, number, put_all};
 use crate::analysis::feature_finder_picked::helper_structs::{
     IsotopePattern, PatternPeak, TheoreticalIsotopePattern,
 };
@@ -496,7 +499,7 @@ impl ScoreArrays {
 }
 
 /// A running work budget; [`Error::InvalidValue`] once it is exhausted.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct Work {
     remaining: u64,
 }
@@ -707,6 +710,32 @@ pub fn find_isotope(
     peak_index: &mut usize,
     pattern_tolerance: f64,
 ) -> Result<u64> {
+    find_isotope_logged(
+        spectra,
+        pos,
+        spectrum_index,
+        pattern,
+        pattern_index,
+        peak_index,
+        pattern_tolerance,
+        &mut NoLog,
+    )
+}
+
+/// [`find_isotope`] writing the source's debug lines to `log`: `   - Isotope
+/// <i>: `, each match's intensity with one decimal (suffixed `b` and `a` for
+/// the preceding and following scan), and ` missing` or `=> <mean>`.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn find_isotope_logged<L: LogSink>(
+    spectra: &[MSSpectrum],
+    pos: f64,
+    spectrum_index: usize,
+    pattern: &mut IsotopePattern,
+    pattern_index: usize,
+    peak_index: &mut usize,
+    pattern_tolerance: f64,
+    log: &mut L,
+) -> Result<u64> {
     let out_of_range = || Error::InvalidValue("findIsotope_ index out of range".into());
     let spectrum = spectra.get(spectrum_index).ok_or_else(out_of_range)?;
     if pattern_index >= pattern.peak.len()
@@ -717,6 +746,7 @@ pub fn find_isotope(
     {
         return Err(out_of_range());
     }
+    put_all(log, &["   - Isotope ", &pattern_index.to_string(), ": "]);
     let (nearest_index, steps) =
         nearest_from(&spectrum.peaks, pos, *peak_index).ok_or_else(out_of_range)?;
     *peak_index = nearest_index;
@@ -727,6 +757,10 @@ pub fn find_isotope(
     let this_mz_score = position_score(pos, spectrum.peaks[nearest_index].mz, pattern_tolerance);
     pattern.theoretical_mz[pattern_index] = pos;
     if this_mz_score != 0.0 {
+        if log.enabled() {
+            let intensity = f64::from(spectrum.peaks[nearest_index].intensity);
+            put_all(log, &[&number(intensity, 1), " "]);
+        }
         pattern.peak[pattern_index] = PatternPeak::Found(nearest_index);
         pattern.spectrum[pattern_index] = spectrum_index;
         intensity += f64::from(spectrum.peaks[nearest_index].intensity);
@@ -734,12 +768,18 @@ pub fn find_isotope(
         matches += 1;
     }
     let neighbours = [
-        spectrum_index.checked_sub(1),
-        spectrum_index
-            .checked_add(1)
-            .filter(|&index| index < spectra.len()),
+        (spectrum_index.checked_sub(1), "b "),
+        (
+            spectrum_index
+                .checked_add(1)
+                .filter(|&index| index < spectra.len()),
+            "a ",
+        ),
     ];
-    for neighbour_index in neighbours.into_iter().flatten() {
+    for (neighbour_index, suffix) in neighbours {
+        let Some(neighbour_index) = neighbour_index else {
+            continue;
+        };
         let neighbour = &spectra[neighbour_index];
         let Some(index) = nearest(&neighbour.peaks, pos, |peak| peak.mz) else {
             continue;
@@ -747,6 +787,10 @@ pub fn find_isotope(
         work += 1;
         let mz_score = position_score(pos, neighbour.peaks[index].mz, pattern_tolerance);
         if mz_score != 0.0 {
+            if log.enabled() {
+                let found = f64::from(neighbour.peaks[index].intensity);
+                put_all(log, &[&number(found, 1), suffix]);
+            }
             intensity += f64::from(neighbour.peaks[index].intensity);
             pos_score += mz_score;
             matches += 1;
@@ -757,10 +801,14 @@ pub fn find_isotope(
         }
     }
     if matches == 0 {
+        put_all(log, &[" missing\n"]);
         pattern.peak[pattern_index] = PatternPeak::NotFound;
         pattern.mz_score[pattern_index] = 0.0;
         pattern.intensity[pattern_index] = 0.0;
     } else {
+        if log.enabled() {
+            put_all(log, &["=> ", &g(intensity / f64::from(matches)), "\n"]);
+        }
         pattern.mz_score[pattern_index] = pos_score / f64::from(matches);
         pattern.intensity[pattern_index] = intensity / f64::from(matches);
     }
@@ -819,6 +867,27 @@ pub(crate) fn isotope_score_with_work(
     min_isotope_fit: f64,
     optional_fit_improvement: f64,
 ) -> Result<(f64, u64)> {
+    isotope_score_logged(
+        isotopes,
+        pattern,
+        consider_mz_distances,
+        min_isotope_fit,
+        optional_fit_improvement,
+        &mut NoLog,
+    )
+}
+
+/// [`isotope_score`] writing the source's debug lines to `log`: the number of
+/// peaks, a missing core peak, the starting `best_begin/end`, and every
+/// candidate fit with ` - new best fit ` when it wins.
+pub(crate) fn isotope_score_logged<L: LogSink>(
+    isotopes: &TheoreticalIsotopePattern,
+    pattern: &mut IsotopePattern,
+    consider_mz_distances: bool,
+    min_isotope_fit: f64,
+    optional_fit_improvement: f64,
+    log: &mut L,
+) -> Result<(f64, u64)> {
     let size = isotopes.len();
     if pattern.peak.len() != size
         || pattern.intensity.len() != size
@@ -833,8 +902,19 @@ pub(crate) fn isotope_score_with_work(
         ));
     }
     let mut work = 0u64;
+    if log.enabled() {
+        put_all(
+            log,
+            &[
+                "   - fitting ",
+                &pattern.intensity.len().to_string(),
+                " peaks\n",
+            ],
+        );
+    }
     for iso in isotopes.optional_begin..size - isotopes.optional_end {
         if pattern.peak[iso] == PatternPeak::NotFound {
+            put_all(log, &["   - aborting: core peak is missing\n"]);
             return Ok((0.0, work));
         }
     }
@@ -853,6 +933,18 @@ pub(crate) fn isotope_score_with_work(
             break;
         }
     }
+    if log.enabled() {
+        put_all(
+            log,
+            &[
+                "   - best_begin/end: ",
+                &best_begin.to_string(),
+                "/",
+                &best_end.to_string(),
+                "\n",
+            ],
+        );
+    }
     let first_begin = best_begin;
     for b in first_begin..=isotopes.optional_begin {
         let mut e = best_end;
@@ -870,11 +962,26 @@ pub(crate) fn isotope_score_with_work(
                 if kept == 2 && int_score > min_isotope_fit {
                     int_score = min_isotope_fit;
                 }
+                if log.enabled() {
+                    put_all(
+                        log,
+                        &[
+                            "   - fit (",
+                            &b.to_string(),
+                            "/",
+                            &e.to_string(),
+                            "): ",
+                            &g(int_score),
+                        ],
+                    );
+                }
                 if int_score / best_int_score >= 1.0 + optional_fit_improvement {
+                    put_all(log, &[" - new best fit "]);
                     best_int_score = int_score;
                     best_begin = b;
                     best_end = e;
                 }
+                put_all(log, &["\n"]);
             }
             e += 1;
         }
