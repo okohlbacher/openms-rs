@@ -5,56 +5,85 @@
 //! Histogram-median signal-to-noise estimation.
 //!
 //! Ports the header-only template
-//! `src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h`
-//! and the parts of its base `SignalToNoiseEstimator.h` it uses (the Gaussian
-//! mean and variance estimate). `docs/PEAK_PICKING_SUPPORT.md` holds the API
-//! mapping, the preserved conventions, the native differences and the evidence.
+//! `src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h`.
+//! Its base `SignalToNoiseEstimator.h` is
+//! [`crate::processing::noise_estimation`]. `docs/SIGNAL_TO_NOISE_SUPPORT.md`
+//! holds the API mapping of every public source member, the preserved
+//! conventions, the native differences and the evidence.
 //!
-//! The C++ class is a `DefaultParamHandler` that computes its estimates in
-//! `init` and serves them through `getSignalToNoise(index)`. This port returns
-//! all estimates at once from
-//! [`SignalToNoiseEstimatorMedian::estimate`](crate::processing::peak_picking::SignalToNoiseEstimatorMedian::estimate),
-//! and maps the parameter contract through `defaults`, `from_param` and
-//! `to_param` on the same type.
+//! The C++ class is a `DefaultParamHandler` and `ProgressLogger` that computes
+//! its estimates in `init` and serves them through `getSignalToNoise(index)`.
+//! This port is stateless: [`SignalToNoiseEstimatorMedian::estimate`] and its
+//! variants return all estimates, both percentages and the warnings at once,
+//! and the parameter contract maps through `defaults`, `from_param`,
+//! `set_parameters` and `to_param` on the same type.
+//!
+//! # Native safety profile and source behaviour
+//!
+//! [`PickingCompatibility::default`] is the native safety profile: it refuses
+//! inputs and parameter values on which the source computes non-finite or
+//! degenerate results, and it bins out-of-range intensities by the documented
+//! intent. [`PickingCompatibility::source`], which every TOPP tool path uses,
+//! computes what the Linux x86-64 Release build computes wherever the source is
+//! defined, and refuses exactly where the source is undefined.
 
 use super::{PickingCompatibility, SignalPoint, bad};
+use crate::concept::progress_logger::ProgressLogger;
+use crate::format::file_info::text_format::ostream_g;
+use crate::kernel::{ChromatogramPeak, MSChromatogram, MSSpectrum, Peak1D};
 use crate::param::{DefaultParamHandler, Param, ParamEntry, ParamNode, ParamValue};
+use crate::processing::noise_estimation::{GaussianEstimate, SignalToNoiseEstimator, x86};
 use crate::{Error, Result};
 
 /// How the upper end of the intensity histogram is chosen.
 ///
-/// Source `SignalToNoiseEstimatorMedian::IntensityThresholdCalculation` with the
-/// parameter `auto_mode`: `MANUAL = -1`, `AUTOMAXBYSTDEV = 0` (the default) and
-/// `AUTOMAXBYPERCENT = 1`. Intensities at or above the upper end go into the
-/// last histogram bin.
+/// Source `SignalToNoiseEstimatorMedian::IntensityThresholdCalculation` ("method
+/// to use for estimating the maximal intensity that is used for histogram
+/// calculation") with the parameter `auto_mode`: `MANUAL = -1`,
+/// `AUTOMAXBYSTDEV = 0` (the default) and `AUTOMAXBYPERCENT = 1`. Intensities
+/// at or above the upper end go into the last histogram bin.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum NoiseHistogramRange {
     /// `auto_mode = 0`: mean plus `factor` times the population standard
     /// deviation of all intensities (`auto_max_stdev_factor`, source range
-    /// `0..=999`).
+    /// `0..=999`; a NaN passes the source restriction and is accepted under
+    /// [`NoiseCompatibility::source_value_domain`]).
     StandardDeviation {
         /// Multiplier of the standard deviation.
         factor: f64,
     },
     /// `auto_mode = -1`: a fixed upper end (`max_intensity`). The source throws
     /// `Exception::InvalidValue` when estimation runs with a value `<= 0`; this
-    /// returns [`Error::InvalidValue`] at the same point.
+    /// returns [`Error::InvalidValue`] with the source text at the same point.
     Manual {
         /// Upper end of the histogram. The source parameter is an integer; any
         /// positive finite value is accepted here.
         max_intensity: f64,
     },
-    /// `auto_mode = 1`: the `auto_max_percentile`-th percentile of a
-    /// 100-bin pre-histogram.
+    /// `auto_mode = 1`: the `auto_max_percentile`-th percentile of a 100-bin
+    /// pre-histogram, computed exactly as the source computes it on the inputs
+    /// where the source is defined.
     ///
-    /// Not implemented: at the pinned revision the source finds the *minimum*
-    /// intensity with a reversed `std::max_element` comparator, divides by a
-    /// bin size derived from it and indexes its pre-histogram without a bounds
-    /// check. The executed product SDK crashes on ordinary data (`SIGBUS` or
-    /// `SIGSEGV`). [`SignalToNoiseEstimatorMedian::estimate`] therefore returns
-    /// [`Error::Unsupported`] whenever estimation runs in this mode. Selecting
-    /// the mode is accepted, because the source only crashes when the estimator
-    /// is initialised: a picker with `signal_to_noise = 0` never is.
+    /// The source (`SignalToNoiseEstimatorMedian.h:191-233`) finds the
+    /// **minimum** intensity `m` (the comparator `a > b` at `:208` reverses
+    /// `std::max_element`), sets `bin_size = m / 100` in `f32` (`:211`),
+    /// increments the pre-histogram at `(int)((I - 1) / bin_size)`, with
+    /// `I - 1` in `f32`, without a bounds check (`:216`), and walks at most one
+    /// bin per container element (`:225-230`), so the walk ends after `n`
+    /// bins even when the cumulative count has not reached the target. The
+    /// upper end is `(i + 0.5) * bin_size`, where `i` is the last bin visited
+    /// (`-1` when none is), which a target of zero makes negative.
+    ///
+    /// The source is defined exactly on non-empty containers in which every
+    /// intensity's quotient `q = (I - 1) / bin_size` satisfies `-1 < q < 100`:
+    /// then every index lies in `[0, 99]`, the conversion is in range, and the
+    /// walk stops by bin 99 because the 100 bins hold all `n` elements. Roughly,
+    /// the minimum must exceed `100 / 101` and every intensity must lie below
+    /// `m + 1`. Anywhere else estimation returns [`Error::Unsupported`] naming
+    /// the source line that becomes undefined: `:209` dereferences `end()` of
+    /// an empty container, and `:216` writes outside the pre-histogram (the
+    /// executed product SDK and the Release build end with `SIGSEGV`, `SIGBUS`
+    /// or `SIGABRT` there).
     Percentile {
         /// The percentile, `0..=100` in the source.
         percentile: f64,
@@ -95,6 +124,95 @@ impl Default for NoiseRangeParameters {
     }
 }
 
+/// How an intensity's histogram quotient becomes a bin index.
+///
+/// The source converts before it clamps
+/// (`std::max(std::min<int>((int)(I / bin_size), bin_count - 1), 0)` at
+/// `SignalToNoiseEstimatorMedian.h:297` and `:308`), so a quotient outside the
+/// `int` range, or a NaN, is undefined behaviour (CPP-257). Such quotients arise
+/// with legal parameters: a manual `max_intensity` of `1` and an intensity above
+/// `2^31`, a standard-deviation `factor` of `0` with a large `bin_count`, or
+/// negative intensities.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum BinIndexConversion {
+    /// Clamp the quotient to `[0, bin_count - 1]` before truncating: an
+    /// intensity at or above the histogram's upper end lands in the last bin,
+    /// as the `max_intensity` parameter description promises, and a negative
+    /// quotient in the first. A NaN quotient lands in the last bin. This is also
+    /// what the arm64 build computes. This is the default.
+    #[default]
+    ClampBeforeTruncation,
+    /// The Linux x86-64 Release build: the 32-bit `cvttsd2si` both
+    /// `libOpenMS.so` instantiations emit returns `INT_MIN` for every quotient
+    /// whose truncation does not fit and for NaN, which the clamp then sends to
+    /// bin **0**. Measured bit for bit by the `cpp257_*` oracle cases, including
+    /// `PeakPickerHiRes::pick`.
+    X86_64Release,
+}
+
+/// The source behaviours of the median estimator that the native safety profile
+/// refuses or computes differently.
+///
+/// Part of [`PickingCompatibility`]; [`NoiseCompatibility::source`] selects all
+/// of them.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct NoiseCompatibility {
+    /// Compute with the values the source computes with instead of refusing
+    /// them: the parameter values its restrictions accept (a NaN or infinite
+    /// `win_len`, a NaN `auto_max_stdev_factor`, a zero, negative, infinite or
+    /// NaN `noise_for_empty_window`), non-finite positions and intensities, and
+    /// the infinite or NaN window bounds, histogram ranges and ratios IEEE
+    /// arithmetic then produces (a tiny `noise_for_empty_window` stores an
+    /// infinite ratio). NaN results carry the bits the Linux x86-64 Release
+    /// build produces.
+    pub source_value_domain: bool,
+    /// For an empty input return NaN percentages, from the source's
+    /// `0 * 100 / 0` (`:373-374`), and in the standard-deviation range a NaN
+    /// `max_intensity`, from `0 / 0` in `SignalToNoiseEstimator::estimate_`
+    /// (`SignalToNoiseEstimator.h:127`); both are the x86-64 default NaN
+    /// (`0xfff8000000000000`). The native profile returns zero for all three.
+    pub nan_for_empty_input: bool,
+    /// How an out-of-range histogram quotient is binned.
+    pub bin_index: BinIndexConversion,
+}
+impl NoiseCompatibility {
+    /// Every source behaviour, as the Linux x86-64 Release build computes it.
+    pub const fn source() -> Self {
+        Self {
+            source_value_domain: true,
+            nan_for_empty_input: true,
+            bin_index: BinIndexConversion::X86_64Release,
+        }
+    }
+}
+
+/// A data point the estimator reads: the source's `PeakType`
+/// (`Container::const_iterator::value_type`) reduced to what `computeSTN_`
+/// uses.
+pub trait NoisePoint {
+    /// The position (`getPos()`): m/z for a spectrum, retention time in seconds
+    /// for a chromatogram.
+    fn position(&self) -> f64;
+    /// The stored intensity (`getIntensity()`, a `float`).
+    fn intensity(&self) -> f32;
+}
+impl NoisePoint for Peak1D {
+    fn position(&self) -> f64 {
+        self.mz
+    }
+    fn intensity(&self) -> f32 {
+        self.intensity
+    }
+}
+impl NoisePoint for ChromatogramPeak {
+    fn position(&self) -> f64 {
+        self.rt
+    }
+    fn intensity(&self) -> f32 {
+        self.intensity
+    }
+}
+
 /// Estimates the signal-to-noise ratio of every data point from the median of
 /// a sliding-window intensity histogram.
 ///
@@ -102,26 +220,34 @@ impl Default for NoiseRangeParameters {
 /// [`window_length`](Self::window_length) on either side (both ends inclusive)
 /// form its window. The noise is the median intensity of that window, read
 /// from a histogram of [`bin_count`](Self::bin_count) bins over
-/// `[0, upper end]`: the median bin is the first whose cumulative count reaches
-/// `(count + 1) / 2`, and the noise is linearly interpolated inside that bin,
-/// assuming the bin's points are uniformly distributed, then floored at one.
-/// Bins are at least one intensity unit wide. A window with fewer than
+/// `[0, upper end]`, which determines the level of error and the runtime: the
+/// median bin is the first whose cumulative count reaches `(count + 1) / 2`, and
+/// the noise is linearly interpolated inside that bin, assuming its points are
+/// uniformly distributed, then floored at one. Interpolating keeps the estimate
+/// close to continuous as the data changes, where the bin centre alone could
+/// take only `bin_count` values. Bins are at least one intensity unit wide. A
+/// window with fewer than
 /// [`min_required_elements`](Self::min_required_elements) points is *sparse*
 /// and uses [`noise_for_empty_window`](Self::noise_for_empty_window). The
-/// signal-to-noise ratio is the point's intensity divided by its noise.
+/// signal-to-noise ratio is the point's intensity divided by its noise. The
+/// upper end is determined automatically by one of two methods or set by the
+/// caller ([`NoiseHistogramRange`]).
 ///
 /// # Notes
 ///
+/// If the upper end is too low and the median falls into the last bin, the
+/// estimate is unreliable: increase `max_intensity`, and possibly `bin_count`.
 /// The source warns through `OPENMS_LOG_WARN` when more than 20 percent of
-/// windows are sparse or more than 1 percent of medians fall into the last bin
-/// (an unreliable estimate; increase `max_intensity` and possibly `bin_count`),
-/// unless `write_log_messages` is off. This port does not log; both percentages
-/// are returned in [`NoiseEstimates`], and
-/// [`write_log_messages`](Self::write_log_messages) is kept only as a parameter
-/// value.
+/// windows are sparse or more than 1 percent of medians fall into the last bin,
+/// unless [`write_log_messages`](Self::write_log_messages) is off; it always
+/// warns when an automatic upper end comes out negative. These lines are
+/// returned in [`NoiseEstimates::log`], and both percentages in
+/// [`NoiseEstimates`].
 ///
-/// The source recomputes lazily when a parameter changes; this port recomputes
-/// on every call and has no cache to invalidate.
+/// Changing a parameter invalidates the source's stored estimates, which it
+/// then recomputes on the next request; this port recomputes on every call and
+/// has no cache to invalidate. The source's copy constructor and assignment
+/// clear the copy's estimates for the same reason; a [`Clone`] here has none.
 #[derive(Clone, Debug, PartialEq)]
 pub struct SignalToNoiseEstimatorMedian {
     /// Upper end of the intensity histogram (`auto_mode` and the parameter it
@@ -130,8 +256,10 @@ pub struct SignalToNoiseEstimatorMedian {
     /// Values of the range parameters the selected mode does not use; see
     /// [`NoiseRangeParameters`].
     pub range_parameters: NoiseRangeParameters,
-    /// Full window width `win_len` in coordinate units (Th for spectra,
-    /// seconds for chromatograms). At least one; source default `200`.
+    /// Full window width `win_len` ("window length in Thomson") in coordinate
+    /// units (Th for spectra, seconds for chromatograms). At least one, or NaN
+    /// or infinite under [`NoiseCompatibility::source_value_domain`]; source
+    /// default `200`. An infinite length makes every window the whole input.
     pub window_length: f64,
     /// Number of histogram bins `bin_count`, at least three; source default
     /// `30`.
@@ -140,11 +268,13 @@ pub struct SignalToNoiseEstimatorMedian {
     /// source default `10`.
     pub min_required_elements: usize,
     /// Noise used for sparse windows, `noise_for_empty_window`; source default
-    /// `1e20`. Must be finite and positive here; the source accepts any value
-    /// (see the support document).
+    /// `1e20` ("use a very high value if you want to get a low S/N result").
+    /// The native profile requires a finite positive value; the source accepts
+    /// any.
     pub noise_for_empty_window: f64,
-    /// Source `write_log_messages`. Retained for the parameter contract; this
-    /// port never logs.
+    /// Source `write_log_messages`: whether the sparse-window and rightmost-bin
+    /// warnings are returned in [`NoiseEstimates::log`]. The negative-range
+    /// warning is returned regardless, as in the source.
     pub write_log_messages: bool,
     /// Native ceiling on the number of input points.
     pub max_points: usize,
@@ -173,24 +303,40 @@ impl Default for SignalToNoiseEstimatorMedian {
 /// Result of [`SignalToNoiseEstimatorMedian::estimate`].
 #[derive(Clone, Debug, PartialEq)]
 pub struct NoiseEstimates {
-    /// Signal-to-noise ratio per input point, source `getSignalToNoise(i)`.
+    /// Signal-to-noise ratio per input point, source `getSignalToNoise(i)`
+    /// (the member `stn_estimates_`).
     pub signal_to_noise: Vec<f64>,
     /// Noise per input point (native). `f64::INFINITY` for every point when the
     /// source returns early; see [`SignalToNoiseEstimatorMedian::estimate`].
     pub noise: Vec<f64>,
-    /// The histogram upper end that was used.
+    /// The histogram upper end that was used (the source member
+    /// `max_intensity_` after estimation).
     pub max_intensity: f64,
-    /// Percentage of sparse windows, source `getSparseWindowPercent`.
+    /// Percentage of sparse windows, source `getSparseWindowPercent` ("how many
+    /// percent of the windows were sparse").
     pub sparse_window_percent: f64,
     /// Percentage of medians found in the last bin, source
     /// `getHistogramRightmostPercent`.
     pub histogram_rightmost_percent: f64,
+    /// The lines the source writes to `OPENMS_LOG_WARN` during this
+    /// estimation, without their line ends, in order. The source's log stream
+    /// then suppresses repeated lines and reports them as
+    /// `<line> occurred N times`, which `crate::concept::log_stream` ports.
+    pub log: Vec<String>,
 }
 
 /// Parameter handler name of the source class, used in parameter diagnostics.
 pub const SIGNAL_TO_NOISE_ESTIMATOR_MEDIAN_NAME: &str = "SignalToNoiseEstimatorMedian";
 
+/// The label of the estimator's progress report, source
+/// `startProgress(0, c.size(), "noise estimation of data")`.
+pub const NOISE_PROGRESS_LABEL: &str = "noise estimation of data";
+
 const MAX_INTENSITY_DESCRIPTION: &str = "maximal intensity considered for histogram construction. By default, it will be calculated automatically (see auto_mode). Only provide this parameter if you know what you are doing (and change 'auto_mode' to '-1')! All intensities EQUAL/ABOVE 'max_intensity' will be added to the LAST histogram bin. If you choose 'max_intensity' too small, the noise estimate might be too small as well.  If chosen too big, the bins become quite large (which you could counter by increasing 'bin_count', which increases runtime). In general, the Median-S/N estimator is more robust to a manual max_intensity than the MeanIterative-S/N.";
+
+/// `int` counters of `computeSTN_` (`window_count`, `elements_in_window`) and
+/// `estimate_` (`size`) overflow beyond this many points.
+const SOURCE_MAX_POINTS: usize = i32::MAX as usize;
 
 fn entry(name: &str, value: ParamValue, description: &str, advanced: bool) -> ParamEntry {
     let mut entry = ParamEntry {
@@ -301,10 +447,24 @@ fn integral_i32(value: f64, key: &str) -> Result<i32> {
     }
 }
 
+/// `Exception::InvalidValue(..., message, StringUtils::toStr(value))::what()`.
+fn source_invalid_value(value: f64, message: &str) -> Error {
+    Error::InvalidValue(format!(
+        "the value '{}' was used but is not valid; {message}",
+        crate::format::file_info::text_format::to_str(value)
+    ))
+}
+
+const MANUAL_MESSAGE: &str = "auto_mode is on MANUAL! max_intensity is <=0. Needs to be positive! Use setMaxIntensity(<value>) or enable auto_mode!";
+const PERCENTILE_MESSAGE: &str = "auto_mode is on AUTOMAXBYPERCENT! auto_max_percentile is not in [0,100]. Use setAutoMaxPercentile(<value>) to change it!";
+
 impl SignalToNoiseEstimatorMedian {
     /// The source parameter defaults, as `SignalToNoiseEstimatorMedian()` sets
     /// them: names, values, value types, descriptions, restrictions and the
     /// `advanced` tag, in declaration order.
+    ///
+    /// Source `getDefaults()`, the public member `defaults_` (re-exported by
+    /// `using` at `SignalToNoiseEstimatorMedian.h:71`).
     ///
     /// # Errors
     ///
@@ -415,7 +575,10 @@ impl SignalToNoiseEstimatorMedian {
     /// The parameters of this estimator in the source layout of
     /// [`SignalToNoiseEstimatorMedian::defaults`], carrying the current values.
     ///
-    /// Source `getParameters`.
+    /// Source `getParameters()`, the public member `param_` (re-exported by
+    /// `using` at `SignalToNoiseEstimatorMedian.h:72`). The source member is
+    /// writable, and writing it bypasses `updateMembers_`; here the typed
+    /// fields are the state and the tree is derived from them.
     ///
     /// # Errors
     ///
@@ -461,6 +624,27 @@ impl SignalToNoiseEstimatorMedian {
         handler.set_parameters_with(parameters, Self::from_complete_param)
     }
 
+    /// Replace the parameter values of this estimator, as source
+    /// `setParameters` on an existing object, and return the unknown-parameter
+    /// warnings.
+    ///
+    /// The native resource ceilings are kept. On error the estimator is
+    /// unchanged.
+    ///
+    /// # Errors
+    ///
+    /// As [`SignalToNoiseEstimatorMedian::from_param`].
+    pub fn set_parameters(&mut self, parameters: &Param) -> Result<Vec<String>> {
+        let (updated, warnings) = Self::from_param_with_warnings(parameters)?;
+        *self = Self {
+            max_points: self.max_points,
+            max_bins: self.max_bins,
+            max_work: self.max_work,
+            ..updated
+        };
+        Ok(warnings)
+    }
+
     /// Typed members from a parameter tree that already holds every default.
     pub(super) fn from_complete_param(param: &Param) -> Result<Self> {
         let range_parameters = NoiseRangeParameters {
@@ -497,85 +681,109 @@ impl SignalToNoiseEstimatorMedian {
         })
     }
 
-    pub(super) fn validate(&self) -> Result<()> {
-        if !self.window_length.is_finite()
-            || self.window_length < 1.0
+    /// The option checks estimation runs first, in two groups: values the
+    /// source's parameter restrictions refuse (or that its members cannot hold)
+    /// and native refusals, then the two source exceptions of `computeSTN_`.
+    fn validate(&self, compatibility: &NoiseCompatibility) -> Result<()> {
+        let source = compatibility.source_value_domain;
+        // `win_len >= 1` (Param.cpp skips the unset upper bound, so +inf and,
+        // since `NaN < 1` is false, NaN pass the restriction).
+        let window_ok = if source {
+            self.window_length >= 1.0 || self.window_length.is_nan()
+        } else {
+            self.window_length.is_finite() && self.window_length >= 1.0
+        };
+        let empty_noise_ok = source
+            || (self.noise_for_empty_window.is_finite() && self.noise_for_empty_window > 0.0);
+        if !window_ok
             || self.bin_count < 3
             || self.bin_count > self.max_bins
+            || self.bin_count > SOURCE_MAX_POINTS
             || self.min_required_elements == 0
-            || !self.noise_for_empty_window.is_finite()
-            || self.noise_for_empty_window <= 0.0
+            || !empty_noise_ok
             || self.max_points == 0
             || self.max_work == 0
         {
             return Err(bad("invalid median-noise options or resource limits"));
         }
         match self.histogram_range {
-            NoiseHistogramRange::StandardDeviation { factor }
-                if !factor.is_finite() || !(0.0..=999.0).contains(&factor) =>
-            {
-                Err(bad("noise standard-deviation factor must be in 0..=999"))
+            NoiseHistogramRange::StandardDeviation { factor } => {
+                let in_range = (0.0..=999.0).contains(&factor);
+                if in_range || (source && factor.is_nan()) {
+                    Ok(())
+                } else {
+                    Err(bad("noise standard-deviation factor must be in 0..=999"))
+                }
             }
+            // SignalToNoiseEstimatorMedian.h:236-244. The source member is an
+            // integer parameter, so it is never NaN or infinite.
             NoiseHistogramRange::Manual { max_intensity }
                 if !max_intensity.is_finite() || max_intensity <= 0.0 =>
             {
-                Err(bad(
-                    "auto_mode is on MANUAL! max_intensity is <=0. Needs to be positive!",
-                ))
+                Err(source_invalid_value(max_intensity, MANUAL_MESSAGE))
             }
+            // SignalToNoiseEstimatorMedian.h:195-203. The source member is an
+            // integer parameter in 0..=100, so it is never NaN.
             NoiseHistogramRange::Percentile { percentile }
-                if !percentile.is_finite() || !(0.0..=100.0).contains(&percentile) =>
+                if !(0.0..=100.0).contains(&percentile) =>
             {
-                Err(bad(
-                    "auto_mode is on AUTOMAXBYPERCENT! auto_max_percentile is not in [0,100].",
-                ))
+                Err(source_invalid_value(percentile, PERCENTILE_MESSAGE))
             }
-            NoiseHistogramRange::Percentile { .. } => Err(Error::Unsupported(
-                "SignalToNoiseEstimatorMedian auto_mode 1 (AUTOMAXBYPERCENT) reads out of bounds in the source and is not ported".into(),
-            )),
             _ => Ok(()),
         }
     }
 
     /// Estimate signal-to-noise ratios for parallel position and intensity
-    /// slices.
+    /// slices under the native safety profile.
     ///
     /// Source `init(container)` followed by `getSignalToNoise(i)` for every
     /// point, plus `getSparseWindowPercent` and `getHistogramRightmostPercent`.
     /// Positions must be finite, strictly increasing and in coordinate units;
     /// intensities finite and nonnegative. Use
     /// [`SignalToNoiseEstimatorMedian::estimate_with_compatibility`] for the
-    /// source's acceptance of duplicate positions and negative intensities.
+    /// source's behaviour.
+    ///
+    /// The source's containers store `f32` intensities; values here that are
+    /// not `f32` values have no source counterpart. The percentile range
+    /// narrows each intensity to `f32` for its pre-histogram arithmetic, as the
+    /// source computes it in `f32`.
     ///
     /// The standard-deviation range sums intensities and squared deviations in
-    /// input order, as the source does. An empty input returns empty estimates
-    /// and zero percentages (the source divides zero by zero).
+    /// input order, as the source does. An empty input returns empty estimates,
+    /// a zero upper end in the standard-deviation range and zero percentages;
+    /// the source divides zero by zero there (see
+    /// [`NoiseCompatibility::nan_for_empty_input`]).
     ///
     /// # Errors
     ///
     /// * [`Error::InvalidValue`] for invalid options or resource limits, a
-    ///   manual range that is not positive (the source's
-    ///   `Exception::InvalidValue`), mismatched slice lengths, non-finite
-    ///   values, negative intensities or duplicate positions, or an exhausted
-    ///   work budget.
+    ///   manual range that is not positive or a percentile outside `0..=100`
+    ///   (the source's `Exception::InvalidValue`, with its text), mismatched
+    ///   slice lengths, non-finite values, negative intensities or duplicate
+    ///   positions, a non-finite histogram upper end, window bound or ratio, or
+    ///   an exhausted work budget.
     /// * [`Error::UnsortedData`] when positions decrease.
-    /// * [`Error::Unsupported`] for [`NoiseHistogramRange::Percentile`].
+    /// * [`Error::Unsupported`] where the source is undefined: more than
+    ///   `i32::MAX` points, and the percentile range outside its domain (see
+    ///   [`NoiseHistogramRange::Percentile`]).
     pub fn estimate(&self, positions: &[f64], intensities: &[f64]) -> Result<NoiseEstimates> {
         self.estimate_with_compatibility(positions, intensities, &PickingCompatibility::default())
     }
 
-    /// As [`SignalToNoiseEstimatorMedian::estimate`], accepting the inputs the
-    /// source accepts when `compatibility` says so.
+    /// As [`SignalToNoiseEstimatorMedian::estimate`], adopting the source
+    /// behaviours `compatibility` selects.
     ///
     /// With `allow_duplicate_positions` and `allow_unsorted_positions`, equal
     /// and decreasing positions are accepted; the sliding window then moves its
     /// two ends exactly as the source's iterators do, never past the centre. With
     /// `allow_negative_intensities`, negative intensities are accepted; they
     /// fall into the first histogram bin, as the source's clamped bin index
-    /// puts them. If the standard-deviation range then comes out negative, the
-    /// source logs a warning and returns before computing anything, leaving
-    /// every signal-to-noise ratio at `0.0`; this returns exactly that, with
-    /// `noise` set to `f64::INFINITY` and both percentages `0.0`.
+    /// puts them. If the automatic range then comes out negative, the source
+    /// logs a warning and returns before computing anything, leaving every
+    /// signal-to-noise ratio at `0.0`; this returns exactly that, with `noise`
+    /// set to `f64::INFINITY`, both percentages `0.0` and the warning in
+    /// [`NoiseEstimates::log`]. [`PickingCompatibility::noise`] selects the
+    /// estimator's own source behaviours ([`NoiseCompatibility`]).
     ///
     /// # Errors
     ///
@@ -595,6 +803,95 @@ impl SignalToNoiseEstimatorMedian {
             |i| positions[i],
             |i| intensities[i],
             compatibility,
+            None,
+        )
+    }
+
+    /// As [`SignalToNoiseEstimatorMedian::estimate_with_compatibility`],
+    /// reporting progress to `progress` as the source's `ProgressLogger` base
+    /// does.
+    ///
+    /// The source calls `startProgress(0, n, "noise estimation of data")`
+    /// after the histogram range is known and the negative-range early return
+    /// has not been taken (`:288`), `setProgress(k)` after the `k`-th window
+    /// (`:367`) and `endProgress()` after the last (`:371`), for an empty input
+    /// too. The other entry points report nothing, as a source object whose
+    /// log type is `NONE`. If a native refusal stops the estimation after the
+    /// report started, the report is ended before the error is returned, so the
+    /// logger's nesting stays balanced; the source cannot fail there.
+    ///
+    /// # Errors
+    ///
+    /// As [`SignalToNoiseEstimatorMedian::estimate_with_compatibility`], and the
+    /// errors of `progress`.
+    pub fn estimate_with_progress(
+        &self,
+        positions: &[f64],
+        intensities: &[f64],
+        compatibility: &PickingCompatibility,
+        progress: &mut ProgressLogger,
+    ) -> Result<NoiseEstimates> {
+        if positions.len() != intensities.len() {
+            return Err(bad("signal arrays differ in length or exceed point limit"));
+        }
+        self.estimate_points(
+            positions.len(),
+            |i| positions[i],
+            |i| intensities[i],
+            compatibility,
+            Some(progress),
+        )
+    }
+
+    /// Source `init(spectrum)` for `SignalToNoiseEstimatorMedian<MSSpectrum>`:
+    /// the estimates of a spectrum's peaks, with their `f32` intensities.
+    ///
+    /// # Errors
+    ///
+    /// As [`SignalToNoiseEstimatorMedian::estimate_with_compatibility`].
+    pub fn estimate_spectrum(
+        &self,
+        spectrum: &MSSpectrum,
+        compatibility: &PickingCompatibility,
+    ) -> Result<NoiseEstimates> {
+        self.estimate_peaks(&spectrum.peaks, compatibility, None)
+    }
+
+    /// Source `init(chromatogram)` for
+    /// `SignalToNoiseEstimatorMedian<MSChromatogram>`, the instantiation
+    /// `PeakPickerHiRes` and `PeakPickerChromatogram` use: positions are
+    /// retention times in seconds.
+    ///
+    /// # Errors
+    ///
+    /// As [`SignalToNoiseEstimatorMedian::estimate_with_compatibility`].
+    pub fn estimate_chromatogram(
+        &self,
+        chromatogram: &MSChromatogram,
+        compatibility: &PickingCompatibility,
+    ) -> Result<NoiseEstimates> {
+        self.estimate_peaks(&chromatogram.peaks, compatibility, None)
+    }
+
+    /// Source `init(container)` over any container's points, optionally with a
+    /// progress report (see
+    /// [`SignalToNoiseEstimatorMedian::estimate_with_progress`]).
+    ///
+    /// # Errors
+    ///
+    /// As [`SignalToNoiseEstimatorMedian::estimate_with_progress`].
+    pub fn estimate_peaks<P: NoisePoint>(
+        &self,
+        peaks: &[P],
+        compatibility: &PickingCompatibility,
+        progress: Option<&mut ProgressLogger>,
+    ) -> Result<NoiseEstimates> {
+        self.estimate_points(
+            peaks.len(),
+            |i| peaks[i].position(),
+            |i| x86::widen(peaks[i].intensity()),
+            compatibility,
+            progress,
         )
     }
 
@@ -607,9 +904,121 @@ impl SignalToNoiseEstimatorMedian {
         self.estimate_points(
             points.len(),
             |i| points[i].position(),
-            |i| f64::from(points[i].intensity()),
+            |i| x86::widen(points[i].intensity()),
             compatibility,
+            None,
         )
+    }
+
+    fn validate_points(
+        &self,
+        n: usize,
+        position: &impl Fn(usize) -> f64,
+        intensity: &impl Fn(usize) -> f64,
+        compatibility: &PickingCompatibility,
+    ) -> Result<()> {
+        if n > self.max_points {
+            return Err(bad("signal arrays differ in length or exceed point limit"));
+        }
+        if n > SOURCE_MAX_POINTS {
+            return Err(Error::Unsupported(format!(
+                "SignalToNoiseEstimatorMedian is undefined for {n} points: its int window \
+                 counter overflows at SignalToNoiseEstimatorMedian.h:365 beyond {SOURCE_MAX_POINTS}"
+            )));
+        }
+        let finite_only = !compatibility.noise.source_value_domain;
+        for i in 0..n {
+            let (x, y) = (position(i), intensity(i));
+            if finite_only && (!x.is_finite() || !y.is_finite()) {
+                return Err(bad(
+                    "noise estimation requires finite coordinates and intensities; non-finite values need NoiseCompatibility::source_value_domain",
+                ));
+            }
+            if y < 0.0 && !compatibility.allow_negative_intensities {
+                return Err(bad(
+                    "noise estimation requires nonnegative intensities; negative intensities need PickingCompatibility::allow_negative_intensities",
+                ));
+            }
+        }
+        if !compatibility.allow_unsorted_positions && (1..n).any(|i| position(i - 1) > position(i))
+        {
+            return Err(Error::UnsortedData);
+        }
+        if !compatibility.allow_duplicate_positions
+            && (1..n).any(|i| position(i - 1) == position(i))
+        {
+            return Err(bad(
+                "noise estimation requires distinct coordinates; duplicates need PickingCompatibility::allow_duplicate_positions",
+            ));
+        }
+        Ok(())
+    }
+
+    /// The histogram upper end of AUTOMAXBYPERCENT
+    /// (`SignalToNoiseEstimatorMedian.h:205-232`) on the source's defined
+    /// domain; see [`NoiseHistogramRange::Percentile`].
+    fn percentile_upper_end(
+        n: usize,
+        intensity: &impl Fn(usize) -> f64,
+        percentile: f64,
+    ) -> Result<f64> {
+        let undefined = |detail: String| {
+            Error::Unsupported(format!(
+                "SignalToNoiseEstimatorMedian auto_mode 1 (AUTOMAXBYPERCENT) is undefined for this input: {detail}"
+            ))
+        };
+        if n == 0 {
+            return Err(undefined(
+                "SignalToNoiseEstimatorMedian.h:209 dereferences end() of an empty container"
+                    .into(),
+            ));
+        }
+        // The source reads `float` intensities; `as f32` is the identity on them.
+        let narrow = |i: usize| intensity(i) as f32;
+        // :208-209, `minss`: the first minimum under `<`.
+        let mut minimum = narrow(0);
+        for i in 1..n {
+            let value = narrow(i);
+            if value < minimum {
+                minimum = value;
+            }
+        }
+        // :211, a float division widened to double.
+        let bin_size = f64::from(minimum / 100.0_f32);
+        let mut histogram = [0usize; 100];
+        for i in 0..n {
+            // :216, `subss 1.0f; cvtss2sd; divsd bin_size; cvttsd2si`.
+            let quotient = f64::from(narrow(i) - 1.0_f32) / bin_size;
+            if !(quotient > -1.0 && quotient < 100.0) {
+                return Err(undefined(format!(
+                    "at point {i} (intensity {}), SignalToNoiseEstimatorMedian.h:216 writes the \
+                     pre-histogram at the truncation of {quotient}, outside [0, 99] (minimum \
+                     intensity {minimum}, bin size {bin_size})",
+                    narrow(i)
+                )));
+            }
+            // -1 < quotient < 100: the truncation is in 0..=99.
+            histogram[quotient as usize] += 1;
+        }
+        // :220, `cvtsi2sd n; mulsd p; divsd 100; cvttsd2si`; p * n / 100 <= n.
+        let target = (n as f64 * percentile / 100.0) as usize;
+        // :221-230: at most one bin per container element.
+        let mut seen = 0usize;
+        let mut last: Option<usize> = None;
+        let mut run = 0usize;
+        while run != n && seen < target {
+            let bin = last.map_or(0, |b| b + 1);
+            // The 100 bins hold all n >= target elements, so the walk stops by
+            // bin 99; `get` keeps the proof checked.
+            seen += *histogram
+                .get(bin)
+                .ok_or_else(|| undefined("the pre-histogram walk passes bin 99".into()))?;
+            last = Some(bin);
+            run += 1;
+        }
+        // :232, `(i + 0.5) * bin_size` with i = -1 when no bin was visited.
+        let index = last.map_or(-1.0, |b| b as f64);
+        Ok((index + 0.5) * bin_size)
     }
 
     fn estimate_points(
@@ -618,40 +1027,35 @@ impl SignalToNoiseEstimatorMedian {
         position: impl Fn(usize) -> f64,
         intensity: impl Fn(usize) -> f64,
         compatibility: &PickingCompatibility,
+        mut progress: Option<&mut ProgressLogger>,
     ) -> Result<NoiseEstimates> {
-        self.validate()?;
-        super::validate_points(n, &position, &intensity, self.max_points, compatibility)?;
+        let noise_compat = compatibility.noise;
+        let source = noise_compat.source_value_domain;
+        self.validate(&noise_compat)?;
+        self.validate_points(n, &position, &intensity, compatibility)?;
         let max_intensity = match self.histogram_range {
             NoiseHistogramRange::Manual { max_intensity } => max_intensity,
             NoiseHistogramRange::StandardDeviation { factor } => {
-                if n == 0 {
+                if n == 0 && !noise_compat.nan_for_empty_input {
                     0.0
                 } else {
-                    // SignalToNoiseEstimator::estimate_: two in-order passes,
-                    // population variance.
-                    let mut mean = 0.0;
-                    for i in 0..n {
-                        mean += intensity(i);
-                    }
-                    mean /= n as f64;
-                    let mut variance = 0.0;
-                    for i in 0..n {
-                        let deviation = mean - intensity(i);
-                        variance += deviation * deviation;
-                    }
-                    variance /= n as f64;
-                    mean + variance.sqrt() * factor
+                    // :188-189 with SignalToNoiseEstimator::estimate_; the
+                    // Release build computes `sqrt(v) * factor + mean`.
+                    let gauss = GaussianEstimate::of_indexed(n, &intensity);
+                    x86::add(
+                        x86::mul(x86::sqrt(gauss.variance), factor),
+                        gauss.mean,
+                    )
                 }
             }
-            // validate() refuses this mode before estimation.
-            NoiseHistogramRange::Percentile { .. } => {
-                return Err(Error::Unsupported(
-                    "SignalToNoiseEstimatorMedian auto_mode 1 is not ported".into(),
-                ));
+            NoiseHistogramRange::Percentile { percentile } => {
+                Self::percentile_upper_end(n, &intensity, percentile)?
             }
         };
-        if !max_intensity.is_finite() {
-            return Err(bad("noise histogram maximum overflows"));
+        if !source && !max_intensity.is_finite() && n != 0 {
+            return Err(bad(
+                "noise histogram maximum is not finite; this needs NoiseCompatibility::source_value_domain",
+            ));
         }
         let mut result = NoiseEstimates {
             signal_to_noise: Vec::with_capacity(n),
@@ -659,22 +1063,91 @@ impl SignalToNoiseEstimatorMedian {
             max_intensity,
             sparse_window_percent: 0.0,
             histogram_rightmost_percent: 0.0,
+            log: Vec::new(),
         };
         if max_intensity < 0.0 {
-            // Source: warn "the max_intensity_ value should be positive!" and
-            // return with the zero-initialised estimates.
+            // :247-251: an unconditional warning, then a return with the
+            // zero-initialised estimates.
+            result.log.push(format!(
+                "SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! {}",
+                ostream_g(max_intensity, 6)
+            ));
             result.signal_to_noise.resize(n, 0.0);
             result.noise.resize(n, f64::INFINITY);
             return Ok(result);
         }
-        let half_window = self.window_length / 2.0;
-        let width = (max_intensity / self.bin_count as f64).max(1.0);
-        let last_bin = self.bin_count - 1;
-        // Source: clamp the truncated quotient to [0, bin_count - 1]; `as usize`
-        // saturates negative quotients to zero.
-        let to_bin = |y: f64| (y / width).min(last_bin as f64) as usize;
         let mut histogram = vec![0usize; self.bin_count];
-        let (mut left, mut right, mut work) = (0, 0, 0usize);
+        if let Some(logger) = progress.as_deref_mut() {
+            logger.start_progress(0, n as i64, NOISE_PROGRESS_LABEL)?;
+        }
+        let outcome = self.windows(
+            n,
+            &position,
+            &intensity,
+            max_intensity,
+            &noise_compat,
+            &mut histogram,
+            &mut result,
+            &mut progress,
+        );
+        let (sparse, rightmost) = match progress {
+            Some(logger) => {
+                let ended = logger.end_progress(0);
+                let counts = outcome?;
+                ended?;
+                counts
+            }
+            None => outcome?,
+        };
+        if n == 0 {
+            if noise_compat.nan_for_empty_input {
+                let nan = f64::from_bits(x86::DEFAULT_NAN);
+                result.sparse_window_percent = nan;
+                result.histogram_rightmost_percent = nan;
+            }
+        } else {
+            // :373-374, `(count * 100) / window_count`.
+            result.sparse_window_percent = sparse * 100.0 / n as f64;
+            result.histogram_rightmost_percent = rightmost * 100.0 / n as f64;
+        }
+        // :377-393; a NaN percentage compares false.
+        if result.sparse_window_percent > 20.0 && self.write_log_messages {
+            result.log.push(format!(
+                "WARNING in SignalToNoiseEstimatorMedian: {}% of all windows were sparse. You should consider increasing 'win_len' or decreasing 'min_required_elements'",
+                ostream_g(result.sparse_window_percent, 6)
+            ));
+        }
+        if result.histogram_rightmost_percent > 1.0 && self.write_log_messages {
+            result.log.push(format!(
+                "WARNING in SignalToNoiseEstimatorMedian: {}% of all Signal-to-Noise estimates are too high, because the median was found in the rightmost histogram-bin. You should consider increasing 'max_intensity' (and maybe 'bin_count' with it, to keep bin width reasonable)",
+                ostream_g(result.histogram_rightmost_percent, 6)
+            ));
+        }
+        Ok(result)
+    }
+
+    /// The main loop of `computeSTN_` (`:253-369`). Returns the sparse-window
+    /// and rightmost-bin counts.
+    #[allow(clippy::too_many_arguments)]
+    fn windows(
+        &self,
+        n: usize,
+        position: &impl Fn(usize) -> f64,
+        intensity: &impl Fn(usize) -> f64,
+        max_intensity: f64,
+        compatibility: &NoiseCompatibility,
+        histogram: &mut [usize],
+        result: &mut NoiseEstimates,
+        progress: &mut Option<&mut ProgressLogger>,
+    ) -> Result<(f64, f64)> {
+        let source = compatibility.source_value_domain;
+        // :257-259, `0.5 * win_len` and `maxsd`, which maps a NaN to 1.
+        let half_window = 0.5 * self.window_length;
+        let width = x86::max_one(max_intensity / self.bin_count as f64);
+        let last_bin = self.bin_count - 1;
+        let conversion = compatibility.bin_index;
+        let to_bin = |y: f64| bin_index(y, width, last_bin, conversion);
+        let (mut left, mut right, mut work) = (0usize, 0usize, 0usize);
         let mut charge = || -> Result<()> {
             if work == self.max_work {
                 Err(bad("noise estimation exceeds configured work limit"))
@@ -689,11 +1162,15 @@ impl SignalToNoiseEstimatorMedian {
             let center = position(i);
             let low = center - half_window;
             let high = center + half_window;
-            if !low.is_finite() || !high.is_finite() {
-                return Err(bad("noise window coordinates overflow"));
+            if !source && (!low.is_finite() || !high.is_finite()) {
+                return Err(bad(
+                    "noise window coordinates overflow; this needs NoiseCompatibility::source_value_domain",
+                ));
             }
-            // The centre never leaves its own window, so `left <= i < right`
-            // holds after these loops; the `left < right` guard only bounds them.
+            // The left end never passes the centre, and it only removes points
+            // the right end added, even for unsorted, duplicate or non-finite
+            // positions (see the support document), so `left <= right` holds
+            // and the guard never changes the source's iteration.
             while left < right && position(left) < low {
                 charge()?;
                 histogram[to_bin(intensity(left))] -= 1;
@@ -709,8 +1186,17 @@ impl SignalToNoiseEstimatorMedian {
                 sparse += 1.0;
                 self.noise_for_empty_window
             } else {
-                // Source loop: the first bin whose cumulative count reaches
-                // ceil(count / 2), never past the last bin.
+                if count == SOURCE_MAX_POINTS {
+                    return Err(Error::Unsupported(
+                        "SignalToNoiseEstimatorMedian is undefined here: \
+                         `elements_in_window + 1` overflows int at SignalToNoiseEstimatorMedian.h:324"
+                            .into(),
+                    ));
+                }
+                // :322-329: the first bin whose cumulative count reaches
+                // ceil(count / 2), never past the last bin. The source starts
+                // from bin -1 with a zero count; the first iteration always runs
+                // (count >= 1 and bin_count >= 3), which this unrolls.
                 let half = count.div_ceil(2);
                 let mut median = 0usize;
                 let mut cumulative = histogram[0];
@@ -723,26 +1209,79 @@ impl SignalToNoiseEstimatorMedian {
                     rightmost += 1.0;
                 }
                 let in_bin = histogram[median];
+                // The bin the walk stops in is never empty: the walk entered it
+                // with a cumulative count below `half` and every bin count is
+                // the number of window points in that bin, which sum to `count`
+                // >= `half`, so the stopping bin holds at least one point. The
+                // source's fallback to the bin centre (`:350-353`, whose comment
+                // says it runs when the rightmost bin is hit while empty) is
+                // therefore unreachable; it is kept for fidelity.
                 let estimate = if in_bin > 0 {
                     let before = cumulative - in_bin;
                     median as f64 * width + (half - before) as f64 / in_bin as f64 * width
                 } else {
-                    // Only reachable when the last bin is hit while empty.
                     (median as f64 + 0.5) * width
                 };
-                estimate.max(1.0)
+                // :356, `std::max(1.0, estimate)`.
+                x86::max_one(estimate)
             };
-            let ratio = intensity(i) / noise;
-            if !noise.is_finite() || !ratio.is_finite() {
-                return Err(bad("noise estimate is not finite"));
+            // :360, `cvtss2sd I; divsd noise`: the intensity is the first operand.
+            let ratio = x86::div(intensity(i), noise);
+            if !source && (!noise.is_finite() || !ratio.is_finite()) {
+                return Err(bad(
+                    "noise estimate is not finite; this needs NoiseCompatibility::source_value_domain",
+                ));
             }
             result.noise.push(noise);
             result.signal_to_noise.push(ratio);
+            if let Some(logger) = progress.as_deref_mut() {
+                logger.set_progress(i as i64 + 1)?;
+            }
         }
-        if n != 0 {
-            result.sparse_window_percent = sparse * 100.0 / n as f64;
-            result.histogram_rightmost_percent = rightmost * 100.0 / n as f64;
+        Ok((sparse, rightmost))
+    }
+}
+
+/// The histogram bin of an intensity (`SignalToNoiseEstimatorMedian.h:297`,
+/// `:308`); see [`BinIndexConversion`].
+fn bin_index(intensity: f64, width: f64, last_bin: usize, conversion: BinIndexConversion) -> usize {
+    let quotient = intensity / width;
+    match conversion {
+        // `as usize` saturates a negative quotient to zero; `f64::min` returns
+        // the bound for a NaN quotient.
+        BinIndexConversion::ClampBeforeTruncation => quotient.min(last_bin as f64) as usize,
+        BinIndexConversion::X86_64Release => {
+            // bin_count <= i32::MAX was checked, so the last bin fits i32.
+            let last = i32::try_from(last_bin).unwrap_or(i32::MAX);
+            let truncated = x86::cvttsd2si32(quotient);
+            usize::try_from(truncated.min(last).max(0)).unwrap_or(0)
         }
-        Ok(result)
+    }
+}
+
+impl SignalToNoiseEstimator for SignalToNoiseEstimatorMedian {
+    type Estimates = NoiseEstimates;
+
+    /// [`SignalToNoiseEstimatorMedian::estimate`], the native safety profile;
+    /// [`SignalToNoiseEstimatorMedian::estimate_with_compatibility`] selects
+    /// the source behaviour.
+    fn compute_stn(&self, positions: &[f64], intensities: &[f64]) -> Result<NoiseEstimates> {
+        self.estimate(positions, intensities)
+    }
+
+    fn signal_to_noise(estimates: &NoiseEstimates) -> &[f64] {
+        &estimates.signal_to_noise
+    }
+
+    /// [`SignalToNoiseEstimatorMedian::estimate_spectrum`] with the native
+    /// safety profile.
+    fn compute_stn_spectrum(&self, spectrum: &MSSpectrum) -> Result<NoiseEstimates> {
+        self.estimate_spectrum(spectrum, &PickingCompatibility::default())
+    }
+
+    /// [`SignalToNoiseEstimatorMedian::estimate_chromatogram`] with the native
+    /// safety profile.
+    fn compute_stn_chromatogram(&self, chromatogram: &MSChromatogram) -> Result<NoiseEstimates> {
+        self.estimate_chromatogram(chromatogram, &PickingCompatibility::default())
     }
 }

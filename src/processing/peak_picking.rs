@@ -81,8 +81,9 @@
 
 mod noise;
 pub use noise::{
-    NoiseEstimates, NoiseHistogramRange, NoiseRangeParameters,
-    SIGNAL_TO_NOISE_ESTIMATOR_MEDIAN_NAME, SignalToNoiseEstimatorMedian,
+    BinIndexConversion, NOISE_PROGRESS_LABEL, NoiseCompatibility, NoiseEstimates,
+    NoiseHistogramRange, NoisePoint, NoiseRangeParameters, SIGNAL_TO_NOISE_ESTIMATOR_MEDIAN_NAME,
+    SignalToNoiseEstimatorMedian,
 };
 // The natural cubic spline now lives with the rest of the MATH/MISC splines in
 // `crate::processing::spline`; this re-export keeps its original path, which the
@@ -220,6 +221,9 @@ pub struct PickingCompatibility {
     /// with more than one matching array and copies the input array's
     /// description (metadata and processing handles) onto the output array.
     pub source_mobility_arrays: bool,
+    /// The noise estimator's own source behaviours; see
+    /// [`NoiseCompatibility`].
+    pub noise: NoiseCompatibility,
 }
 impl PickingCompatibility {
     /// Every source behaviour.
@@ -231,6 +235,7 @@ impl PickingCompatibility {
             allow_nonpositive_maximum: true,
             allow_nonpositive_fwhm_position: true,
             source_mobility_arrays: true,
+            noise: NoiseCompatibility::source(),
         }
     }
 }

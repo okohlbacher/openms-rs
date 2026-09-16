@@ -554,6 +554,7 @@ fn each_compatibility_flag_lifts_only_its_own_refusal() {
                 allow_nonpositive_maximum: !flag.allow_nonpositive_maximum,
                 allow_nonpositive_fwhm_position: !flag.allow_nonpositive_fwhm_position,
                 source_mobility_arrays: !flag.source_mobility_arrays,
+                noise: NoiseCompatibility::source(),
             },
             ..Default::default()
         };
@@ -649,6 +650,11 @@ fn each_compatibility_flag_lifts_only_its_own_refusal() {
             allow_nonpositive_maximum: true,
             allow_nonpositive_fwhm_position: true,
             source_mobility_arrays: true,
+            noise: NoiseCompatibility {
+                source_value_domain: true,
+                nan_for_empty_input: true,
+                bin_index: BinIndexConversion::X86_64Release,
+            },
         }
     );
 }

@@ -10,7 +10,10 @@
 //!   (oracle-generated, tier 1 executed differential; driver, inputs and hashes
 //!   in `../oracle/peak-picker-hires/`). Every centroid position, intensity,
 //!   boundary, float-array value and signal-to-noise ratio is compared bit for
-//!   bit.
+//!   bit. The unchanged driver re-run against the Linux x86-64 Release build of
+//!   core `bc9cc12` on `ibminode06` printed the same bytes (sha256 `9eb8f249…`)
+//!   and the same two parameter files (`../oracle/sne-completion/p1/`), so the
+//!   fixture is also the Release build's output.
 //! * `data/peak_picking/defaults.ini` and `noise_defaults.ini` are the product
 //!   SDK's `ParamXMLFile::store` of the two classes' `getDefaults()`, and
 //!   `WRITE_INI_OUT.ini` is the retained output of `TOPPWRITEINI_OVERWRITE`.
@@ -37,9 +40,9 @@ use openms::kernel::{
 use openms::metadata::{DataProcessing, ProcessingAction};
 use openms::param::{Param, ParamValue};
 use openms::processing::peak_picking::{
-    CENTROIDED_INPUT_MESSAGE, FwhmUnit, NoiseEstimates, NoiseHistogramRange, NoiseRangeParameters,
-    PARALLEL_BATCH_RECORDS, PeakBoundary, PeakPickerHiRes, PickingCompatibility,
-    SignalToNoiseEstimatorMedian,
+    BinIndexConversion, CENTROIDED_INPUT_MESSAGE, FwhmUnit, NoiseCompatibility, NoiseEstimates,
+    NoiseHistogramRange, NoiseRangeParameters, PARALLEL_BATCH_RECORDS, PeakBoundary,
+    PeakPickerHiRes, PickingCompatibility, SignalToNoiseEstimatorMedian,
 };
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -608,6 +611,26 @@ fn executed_source_cases_are_reproduced_bit_for_bit() {
                 difference(&source, oracle)
             ));
         }
+        // CPP-257: no case of this oracle bins a quotient outside the int range,
+        // so the clamp-first conversion gives the same outcome as the x86-64 one.
+        let clamped = run(
+            case,
+            &mut inputs,
+            PickingCompatibility {
+                noise: NoiseCompatibility {
+                    bin_index: BinIndexConversion::ClampBeforeTruncation,
+                    ..NoiseCompatibility::source()
+                },
+                ..PickingCompatibility::source()
+            },
+        );
+        if !agrees(&clamped, oracle) {
+            failures.push(format!(
+                "{} (source compatibility, clamp-first bins): {}",
+                case.name,
+                difference(&clamped, oracle)
+            ));
+        }
         let strict = run(case, &mut inputs, PickingCompatibility::default());
         if case.name.starts_with("source_") {
             // The native default refuses what only the source accepts.
@@ -897,7 +920,7 @@ fn parameter_failures_follow_the_source_contract() {
 }
 
 #[test]
-fn percentile_noise_mode_is_refused_only_when_estimation_runs() {
+fn percentile_noise_mode_outside_its_domain_is_refused_only_when_estimation_runs() {
     let input = experiment("orbitrap");
     let percentile = SignalToNoiseEstimatorMedian {
         histogram_range: NoiseHistogramRange::Percentile { percentile: 95.0 },
@@ -910,15 +933,27 @@ fn percentile_noise_mode_is_refused_only_when_estimation_runs() {
         ..Default::default()
     };
     assert!(quiet.pick_experiment(&input).is_ok());
-    // With estimation the product SDK crashes (SIGBUS/SIGSEGV); the port refuses.
+    // With estimation on the orbitrap spectrum the product SDK crashes
+    // (SIGBUS/SIGSEGV): its smallest intensity makes the pre-histogram index
+    // leave [0, 99]. The port refuses there, in both profiles.
     let loud = PeakPickerHiRes {
         signal_to_noise: 1.0,
         ..quiet
     };
-    assert!(matches!(
-        loud.pick_spectrum(&input.spectra[0]),
-        Err(Error::Unsupported(_))
-    ));
+    for compatibility in [
+        PickingCompatibility::default(),
+        PickingCompatibility::source(),
+    ] {
+        let picker = PeakPickerHiRes {
+            compatibility,
+            ..loud.clone()
+        };
+        assert!(matches!(
+            picker.pick_spectrum(&input.spectra[0]),
+            Err(Error::Unsupported(message)) if message.contains("SignalToNoiseEstimatorMedian.h:216")
+        ));
+    }
+    // Minimum 1: the bin size is 0.01 and intensity 2 has quotient 100.
     assert!(matches!(
         percentile.estimate(&[0.0, 1.0], &[1.0, 2.0]),
         Err(Error::Unsupported(_))

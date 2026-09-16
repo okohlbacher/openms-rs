@@ -19,6 +19,9 @@ pub mod deisotoping;
 pub mod feature_overlap_filter;
 pub mod iterative;
 pub mod mean_noise;
+/// The signal-to-noise estimator base and the random-scan noise estimate
+/// (`SignalToNoiseEstimator.h`).
+pub mod noise_estimation;
 pub mod peak_picking;
 pub mod smoothing;
 /// Spline interpolation and smoothing ported from OpenMS `MATH/MISC`.
