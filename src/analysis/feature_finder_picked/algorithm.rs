@@ -1150,7 +1150,7 @@ pub fn run_with_options(
 /// NaN retention time in a mass trace, where the source's intensity profile
 /// never returns; a feature m/z without isotope window is where the source's
 /// exception terminates the process (`FittedModel::fit`,
-/// [`build_feature`]).
+/// [`build_feature`](crate::analysis::feature_finder_picked::fitting::build_feature)).
 pub fn feature_stage(stage: &SeedStage, options: &Options) -> Result<RunOutput> {
     let settings = stage.settings();
     let experiment = stage.experiment();
