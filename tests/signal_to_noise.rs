@@ -739,8 +739,9 @@ fn estimator_cases_match_the_release_build_bit_for_bit() {
     assert_eq!(refused, sorted(NATIVE_REFUSALS));
     assert_eq!(empty, sorted(NATIVE_EMPTY));
     assert_eq!(clamped, sorted(NATIVE_CLAMP));
+    assert_eq!(compared + skipped.len(), 89);
     #[cfg(feature = "mzml")]
-    assert_eq!((compared, skipped.len()), (89, 0));
+    assert!(skipped.is_empty(), "{skipped:?}");
     #[cfg(not(feature = "mzml"))]
     assert_eq!(
         skipped,
