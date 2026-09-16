@@ -1080,7 +1080,8 @@ pub(crate) fn fill_trace_scores(
 /// matched peak of the central scan or else of the first neighbour that
 /// matched, the mean intensity and the mean position score of the matches, or
 /// [`PatternPeak::NotFound`] and zeros when nothing matched. The intensities are
-/// summed in `f64` after promoting each `f32`.
+/// summed in `f64` after promoting each `f32`; `inf + -inf` gives the Release
+/// build's default NaN on every host.
 ///
 /// Returns the number of work units spent: the linear search steps plus the
 /// binary searches.
@@ -1120,7 +1121,10 @@ pub fn find_isotope(
     if this_mz_score != 0.0 {
         pattern.peak[pattern_index] = PatternPeak::Found(nearest_index);
         pattern.spectrum[pattern_index] = spectrum_index;
-        intensity += f64::from(spectrum.peaks[nearest_index].intensity);
+        intensity = x86_64::add(
+            intensity,
+            f64::from(spectrum.peaks[nearest_index].intensity),
+        );
         pos_score += this_mz_score;
         matches += 1;
     }
@@ -1138,7 +1142,7 @@ pub fn find_isotope(
         work += 1;
         let mz_score = position_score(pos, neighbour.peaks[index].mz, pattern_tolerance);
         if mz_score != 0.0 {
-            intensity += f64::from(neighbour.peaks[index].intensity);
+            intensity = x86_64::add(intensity, f64::from(neighbour.peaks[index].intensity));
             pos_score += mz_score;
             matches += 1;
             if pattern.peak[pattern_index] == PatternPeak::NotFound {
