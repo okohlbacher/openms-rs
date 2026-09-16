@@ -1051,8 +1051,9 @@ fn percentile_range_is_refused_exactly_outside_its_domain() {
             Err(Error::Unsupported(_))
         ));
     }
-    // The first oracle run held 10 + 0.33 i (30 points): quotients up to 185.7.
-    // The Release build aborted with SIGABRT on it; it is outside the domain.
+    // 10 + 0.33 i (30 points) has quotients up to 185.7, outside the domain:
+    // the Release build ends with SIGABRT on it in all three runs of probe
+    // x_pctl_spread33 (../oracle/sne-completion/probes/results.txt).
     let x30: Vec<f64> = (0..30).map(f64::from).collect();
     let y30: Vec<f64> = (0..30)
         .map(|i| f64::from((10.0 + 0.33 * f64::from(i)) as f32))
@@ -1247,4 +1248,44 @@ fn percentages_use_count_times_hundred_over_n() {
         estimates.sparse_window_percent.to_bits(),
         (3.0_f64 * 100.0 / 7.0).to_bits()
     );
+}
+
+/// `SignalToNoiseEstimator_test.cpp` (6 sections) exercises the abstract class
+/// through `TestSignalToNoiseEstimator`, whose `computeSTN_` does nothing: the
+/// constructor, the copy constructor, assignment and the destructor, then
+/// `init` on an empty spectrum; `getSignalToNoise` is `NOT_TESTABLE` there.
+/// The same shape here: a trait implementation that estimates nothing.
+#[test]
+fn class_test_base_sections_through_a_trivial_estimator() {
+    #[derive(Clone, Debug, Default, PartialEq)]
+    struct TestSignalToNoiseEstimator;
+    impl SignalToNoiseEstimator for TestSignalToNoiseEstimator {
+        type Estimates = Vec<f64>;
+        fn compute_stn(&self, positions: &[f64], _: &[f64]) -> Result<Vec<f64>> {
+            // "do nothing here": no ratio is computed; the source's vector
+            // keeps its previous (here: zero) contents.
+            Ok(vec![0.0; positions.len()])
+        }
+        fn signal_to_noise(estimates: &Self::Estimates) -> &[f64] {
+            estimates
+        }
+    }
+    let estimator = TestSignalToNoiseEstimator;
+    let copy = estimator.clone();
+    let mut assigned = TestSignalToNoiseEstimator;
+    assigned.clone_from(&copy);
+    assert_eq!(assigned, copy);
+    let empty = estimator
+        .compute_stn_spectrum(&MSSpectrum::default())
+        .unwrap();
+    assert!(TestSignalToNoiseEstimator::signal_to_noise(&empty).is_empty());
+    let chromatogram = MSChromatogram {
+        peaks: vec![ChromatogramPeak::new(1.0, 2.0)],
+        ..Default::default()
+    };
+    let one = estimator.compute_stn_chromatogram(&chromatogram).unwrap();
+    assert_eq!(TestSignalToNoiseEstimator::signal_to_noise(&one), [0.0]);
+    // The index access the source leaves unchecked in Release is a checked
+    // slice access here.
+    assert_eq!(TestSignalToNoiseEstimator::signal_to_noise(&one).get(1), None);
 }

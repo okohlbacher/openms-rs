@@ -1,0 +1,315 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h",
+      "sha256": "f6f81757669c754484cec642bffe9763bb03140f45163f70c13280301a10f54c"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.cpp",
+      "sha256": "7fa69b64c6275000db58f7b453cf103ae90ebeeb2368788ad3f188d88a222330"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h",
+      "sha256": "16b78361f139b2ea0df77737b44980cadb052e5a805deaac85037e152538864a"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.cpp",
+      "sha256": "12a48e0f20e447dc27fdb32fb08ba3572f26466f51878f6fd6f61a5ebef93621"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SignalToNoiseEstimatorMedian_test.cpp",
+      "sha256": "321ce370b2ed89216b004d07ced62629e95dba861fec15439976cc4bda5bcb80"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SignalToNoiseEstimator_test.cpp",
+      "sha256": "5d812322de6feffff0322fd67d93017f6e329bce94e9e65f451c10f5fae61849"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/SignalToNoiseEstimator_test.dta",
+      "sha256": "695000d159fc44a8d6a8691921e4afa588096e86b8867f2ab7dbc0ba546ed9ee"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/SignalToNoiseEstimatorMedian_test.out",
+      "sha256": "9a46c52520ae14b171bcd9f076daa934bebdfdd018254d5c3a448e1330c264af"
+    }
+  ],
+  "context_sources": [
+    {
+      "path": "source/DATASTRUCTURES/Param.cpp",
+      "sha256": "5bfd393df12f6cc6d3238f3a31cdf33e72aeead1ec6831666ac8306889aec407",
+      "operation": "ParamEntry::isValid: a double below min_float is refused, the default maximum DBL_MAX is skipped, so +inf and NaN pass win_len >= 1",
+      "line": 146
+    },
+    {
+      "path": "source/DATASTRUCTURES/Param.cpp",
+      "sha256": "5bfd393df12f6cc6d3238f3a31cdf33e72aeead1ec6831666ac8306889aec407",
+      "operation": "ParamNode::insert on an existing entry replaces its tags, which is why a Param::setValue without tags drops advanced from param_",
+      "line": 406
+    },
+    {
+      "path": "source/DATASTRUCTURES/DefaultParamHandler.cpp",
+      "sha256": "20a4f3386a4fd3b9a203ed36008d7dccb35d2b7c5f0e42b556b4bc8995eecb53",
+      "operation": "setParameters: param_ is the given tree with the defaults merged in, then updateMembers_",
+      "line": 44
+    },
+    {
+      "path": "source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp",
+      "sha256": "160f5cae6edfa02acb664daec881f41c26ce349b5ac0bc76d125ebcc30dd3fca",
+      "operation": "signal_to_noise defaults to 0, which disables estimation in 62 of the 93 P1 cases",
+      "line": 31
+    },
+    {
+      "path": "include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h",
+      "sha256": "702fc1891272baddc88301fab7276ca7a01d0fc1d7078b116f3457ea4755e55b",
+      "operation": "the other SignalToNoiseEstimator subclass, ported in processing::mean_noise; it implements the base trait",
+      "line": 45
+    }
+  ],
+  "context_sources_note": "Read for context and not ported by this group. Paths are spelled below the core checkout's src/openms directory so that tools/core_sdk_coverage.py does not count them as evidence for those headers.",
+  "native_implementation": [
+    "src/processing/peak_picking/noise.rs",
+    "src/processing/noise_estimation.rs"
+  ],
+  "native_tests": [
+    "tests/signal_to_noise.rs",
+    "tests/peak_picking.rs",
+    "tests/peak_picking_experiment.rs",
+    "src/processing/noise_estimation.rs (unit tests)"
+  ],
+  "support_document": "docs/SIGNAL_TO_NOISE_SUPPORT.md",
+  "evidence_tier": "tier 1 executed differential against the Linux x86-64 Release build (143 cases, 390 nth_element permutations, warnings and progress output byte for byte) and the P1 product-SDK oracle re-run on that build; tier 3 class-test sections; tier 4 native refusals, emulation edge values and invariants",
+  "fixtures": [
+    {
+      "path": "tests/data/signal_to_noise/cases.tsv",
+      "sha256": "dc530f0313f08b4c3cb9e3e91060738c9625491257b928d9f95b22a1d4201dd4",
+      "kind": "oracle input, byte-identical to ../oracle/sne-completion/cases/cases.tsv (gen_cases.py)"
+    },
+    {
+      "path": "tests/data/signal_to_noise/synthetic.tsv",
+      "sha256": "aac0aeabb7c91a251cc74f8925bcb5f34532c7095f2049f49298dd4a08e176b4",
+      "kind": "oracle input, byte-identical to ../oracle/sne-completion/cases/synthetic.tsv (gen_cases.py)"
+    },
+    {
+      "path": "tests/data/signal_to_noise/nth_vectors.tsv",
+      "sha256": "ee202a778367a6223e100daab129b7493ea5bd4a6bb67db49bd23e8f29731d43",
+      "kind": "oracle input, byte-identical to ../oracle/sne-completion/data/nth_vectors.tsv (gen_nth.py)"
+    },
+    {
+      "path": "tests/data/signal_to_noise/oracle.tsv",
+      "sha256": "1c0c2e31b3e5b72712701682ade576a6c6aa369325dc08e37339f252f6bd74f1",
+      "kind": "oracle-generated (tier 1 executed differential): byte-identical to ../oracle/sne-completion/results/oracle.tsv, the records of the Linux x86-64 Release build"
+    },
+    {
+      "path": "tests/data/signal_to_noise/streams.tsv",
+      "sha256": "cdf5faf1941c8c91612d378822ab6d95df6e8e9b0975c805e829695f84dcb66b",
+      "kind": "oracle-generated (tier 1 executed differential): byte-identical to ../oracle/sne-completion/results/streams.tsv, each case's C++ standard output (ProgressLogger timings masked) and standard error, base64"
+    }
+  ],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/peak_picking_noise_input.dta",
+      "sha256": "695000d159fc44a8d6a8691921e4afa588096e86b8867f2ab7dbc0ba546ed9ee",
+      "kind": "SignalToNoiseEstimator_test.dta, the class-test input (input dta:noise); byte-identical to ../oracle/sne-completion/data/SignalToNoiseEstimator_test.dta"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_orbitrap.mzML",
+      "sha256": "ca098bbd91668070941cbda1a99019a0cdc17e93862cb34946ab3567f903df22",
+      "kind": "input mzml:orbitrap; byte-identical to ../oracle/sne-completion/data/PeakPickerHiRes_orbitrap.mzML"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_2_input.mzML",
+      "sha256": "006eefa522dd5218ef4efe21636ecd4dc58d901f596e1f3b281f228a0cff3983",
+      "kind": "input mzml:topp2; byte-identical to ../oracle/sne-completion/data/PeakPickerHiRes_2_input.mzML"
+    }
+  ],
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/sne-completion/driver.cpp",
+      "sha256": "7866d64cbed28cf2ae3877a6f340faf8a037848f121f770f290939974a47907f",
+      "origin_key": "tests/data/signal_to_noise/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/gen_cases.py",
+      "sha256": "5253db776716a083f2f1b7e7ac5d1eaeab9083f231fd6cfb789fbe050a95b732",
+      "origin_key": "tests/data/signal_to_noise/cases.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/gen_nth.py",
+      "sha256": "8aceaa0ec3665b89ebc433dd8bae47676cdcc48d604ec247cf7be0273053d391",
+      "origin_key": "tests/data/signal_to_noise/nth_vectors.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/run.sh",
+      "sha256": "9afcf8c943b7c9f4a4e9bce50f98a45fe37ec3fcf474c8238bb779330c702c12",
+      "origin_key": "tests/data/signal_to_noise/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/remote_run.sh",
+      "sha256": "d7cc33548d5dca8df40db5de43fe11ab0f1b20b3388e31afd609c785bf6e2456",
+      "origin_key": "tests/data/signal_to_noise/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/disasm_compare.py",
+      "sha256": "afcefe0ac89eed51ea3df21307018c1d6ae779e0b9d36667a875cd38169719b4",
+      "origin_key": "tests/data/signal_to_noise/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/results/hashes.txt",
+      "sha256": "8397286f45011784ec828f796366d01fd89bca8f35d04add5013796c877f6bbf",
+      "origin_key": "tests/data/signal_to_noise/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/results/oracle.tsv",
+      "sha256": "1c0c2e31b3e5b72712701682ade576a6c6aa369325dc08e37339f252f6bd74f1",
+      "origin_key": "tests/data/signal_to_noise/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/results/streams.tsv",
+      "sha256": "cdf5faf1941c8c91612d378822ab6d95df6e8e9b0975c805e829695f84dcb66b",
+      "origin_key": "tests/data/signal_to_noise/streams.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/results/compiler.txt",
+      "sha256": "149bf683c88687e0bed22aa1bdaf6d2c0ef8de023bf5b2de981251ec01e42ccb",
+      "origin_key": "tests/data/signal_to_noise/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/results/flags.txt",
+      "sha256": "0daf0f2e6321cec902f1cbefc942f45463aa45bad1ac6d308207f5e4ad3ee39e",
+      "origin_key": "tests/data/signal_to_noise/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/results/host.txt",
+      "sha256": "37dad647f8f3867f7bf9023f0e5f06fcda0a593cf2d00e148c5e193a5b5ece7c",
+      "origin_key": "tests/data/signal_to_noise/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/results/time_export.txt",
+      "sha256": "d62ba304e050d46b4ad5bbb0959c76553ee2654e476eb1c3e440cf6b4c1dee5f",
+      "origin_key": "tests/data/signal_to_noise/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/results/rodata_constants.txt",
+      "sha256": "a37a6f56b13be31dae6c0485db7911d0df6ad1bbe29c07849930328f66583926",
+      "origin_key": "src/processing/noise_estimation.rs"
+    },
+    {
+      "path": "../oracle/sne-completion/results/disasm_libOpenMS.so_MSSpectrum.s",
+      "sha256": "6d1cae59b20aeb1bb99d0318901c68b0af9bd39f493ebd11b499dea4bdab1d47",
+      "origin_key": "src/processing/peak_picking/noise.rs"
+    },
+    {
+      "path": "../oracle/sne-completion/results/disasm_libOpenMS.so_MSChromatogram.s",
+      "sha256": "c4537cbcddebf2d706a7f0ace9b41499683b859e0b34eb5858357f58b589f53c",
+      "origin_key": "src/processing/peak_picking/noise.rs"
+    },
+    {
+      "path": "../oracle/sne-completion/results/disasm_libOpenMS.so_estimateNoiseFromRandomScans.s",
+      "sha256": "021444d38010484968cb2b17fa0008e35a20efd10800428dc8abd729179b0e62",
+      "origin_key": "src/processing/noise_estimation.rs"
+    },
+    {
+      "path": "../oracle/sne-completion/results/disasm_compare.txt",
+      "sha256": "42764c1e91adfdf0778064d3cf25cc40cf6a055592ce54d6d2c16fcd8f2132dc",
+      "origin_key": "tests/data/signal_to_noise/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/results/disasm_fp_compare.txt",
+      "sha256": "c35f2fe17a5a4bf5456c17bdc123c3d6dce6968d3df9f8b9d6108cc1451c118e",
+      "origin_key": "tests/data/signal_to_noise/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/libstdcxx/stl_algo.h",
+      "sha256": "0598c5b12d038b2e5b1c7d5e7b4982f8e8689a42d01af75cd919a76557a2dfcf",
+      "origin_key": "src/processing/noise_estimation.rs"
+    },
+    {
+      "path": "../oracle/sne-completion/libstdcxx/stl_heap.h",
+      "sha256": "f18f83b2feddf54c7ea289625628b34a2f6d758b697240b3b5d9abaeee6700ce",
+      "origin_key": "src/processing/noise_estimation.rs"
+    },
+    {
+      "path": "../oracle/sne-completion/p1_remote.sh",
+      "sha256": "78589fefdd0df491771d72d0870a5c4fcee1c3e92420241cfd1e4a370ff9229f",
+      "origin_key": "tests/data/peak_picking/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/p1/driver.cpp",
+      "sha256": "2d06db2fcec04f6af3102401a0e11e8e299e5d47b3276147f41c1e6617c4d4d6",
+      "origin_key": "tests/data/peak_picking/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/p1/results/hashes.txt",
+      "sha256": "22381d94605c87b50432369846cd67922ba1272566833b5ce993e2de137233c5",
+      "origin_key": "tests/data/peak_picking/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/p1/results/peak_picker_hires_oracle.tsv",
+      "sha256": "9eb8f2490b655a725df263ede006e71b4f90ee14ff7b77104b23b362eba62343",
+      "origin_key": "tests/data/peak_picking/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/p1/results/peak_picker_hires_oracle.stderr",
+      "sha256": "594bfed7f5261e858d3e446218138061f999c64a40e21c6091fff6f9c3cde615",
+      "origin_key": "tests/data/peak_picking/oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-completion/probes/gen_probes.py",
+      "sha256": "f1077c14542c9a489f2fb49d9d8f1e30308cb42dcc24c1002cdcb82f0b3e069b",
+      "origin_key": "docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-completion/probes/run_probes.sh",
+      "sha256": "5ced74106445586f9e054a303d8e6dcdfaa47dc6b63193c21af27d372b544610",
+      "origin_key": "docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-completion/probes/cases.tsv",
+      "sha256": "73ca0a4e767dd654a44db8614b4db7065d97d1da84ed1cc22de9ca2bf2e47698",
+      "origin_key": "docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-completion/probes/synthetic.tsv",
+      "sha256": "2a034327517ee2f1df06598c47a2356b867b41a29e517b087a2f781ae0225f79",
+      "origin_key": "docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-completion/probes/results.txt",
+      "sha256": "7b583b2c46c844caa2a5b17f9d4477f76be9e46211da46da2f48d48365ce0f54",
+      "origin_key": "docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-completion/probes/exit0_values.txt",
+      "sha256": "4c0f61a6edd4c1f52d7cb60f22949b08c333196194707a3122cdd39a2370b224",
+      "origin_key": "docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    }
+  ],
+  "external_reference_note": "The C++ driver, its build, the disassembly, the libstdc++ headers the port transcribes and the raw outputs live outside this repository under ../oracle/sne-completion/; only the case files, the vector file and the two result files enter the repository, byte for byte. The build ran on ibminode06 (never ibminode05) against the unmodified Release install below. previous-run-1/ there holds the first capture of 123 cases, which the second capture reproduces byte for byte for every one of those cases.",
+  "oracle": {
+    "release_install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+    "pins": {
+      "core": "bc9cc12",
+      "cli": "c19e494",
+      "topp": "174b576"
+    },
+    "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+    "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+    "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0, the toolchain of the Release build",
+    "compile_options": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp, the flags of SignalToNoiseEstimator.cpp in the Release build's build/core/compile_commands.json, so that the header-only estimator the driver instantiates is compiled as libOpenMS compiles its own copies",
+    "driver_sha256": "7866d64cbed28cf2ae3877a6f340faf8a037848f121f770f290939974a47907f",
+    "driver_binary_sha256": "571d6f9be37534cfc99d1f0e3ffc9e37179788865b5f3f925bc982a53038278c",
+    "time_interposition": "the driver exports time() (-rdynamic, default visibility); libOpenMS resolves its time@plt to it, so the seed of estimateNoiseFromRandomScans and the ProgressLogger throttle read the value each case sets",
+    "runs": 2,
+    "fresh_process_per_case": true,
+    "reproduced_byte_for_byte": true,
+    "cases": 143,
+    "nth_vectors": 390,
+    "comparison": "every ratio, max_intensity_, percentage, random-scan result, engine output, uniform draw, picked peak and boundary as an IEEE-754 bit pattern; the whole nth_element permutation; standard error byte for byte against the port's warnings rendered through LogStream; standard output byte for byte against the port's ProgressLogger with the two timings masked",
+    "p1_rerun": "the unchanged P1 driver (sha256 2d06db2f...) against the same Release install, twice: records byte-identical to the arm64 Debug capture (sha256 9eb8f249...), the same two parameter files, and a standard error that differs only by six mzML loader lines the Debug build alone prints",
+    "probes": "thirteen out-of-domain inputs, three runs each, exit codes and record digests only (probes/results.txt); not fixtures"
+  },
+  "determinism": "The estimator and the random-scan estimate are serial, as the source is (no OpenMP in either header or in SignalToNoiseEstimator.cpp); the random-scan estimate takes its seed as an argument."
+}

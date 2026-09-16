@@ -345,6 +345,17 @@ impl RandomScanNoise {
     ///   reads past the end (a percentile of exactly `100`, or an empty drawn
     ///   scan with a percentile whose product with zero is not NaN).
     ///
+    /// Out-of-domain probes on the Release build (`../oracle/sne-completion/
+    /// probes/`) show what these reads do there: an empty drawn scan ends
+    /// with `SIGSEGV`, and percentiles `100` and `150` return the subnormal
+    /// floats with bits `0x6e` and `0x21`, bytes read past the scan. A NaN
+    /// percentile returned the scan's minimum in all three runs, because
+    /// `lea (%r12,%rcx,4)` wraps the index `2^63` back to the first element;
+    /// the port still refuses it, since `tmp.begin() + idx` is undefined
+    /// pointer arithmetic whose result only that addressing mode decides (the
+    /// same wrap would apply to any position congruent to an element index
+    /// modulo `2^62`).
+    ///
     /// [`Error::InvalidValue`] when the native `max_work` ceiling would be
     /// exceeded.
     ///

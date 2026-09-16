@@ -81,9 +81,13 @@ pub enum NoiseHistogramRange {
     /// the minimum must exceed `100 / 101` and every intensity must lie below
     /// `m + 1`. Anywhere else estimation returns [`Error::Unsupported`] naming
     /// the source line that becomes undefined: `:209` dereferences `end()` of
-    /// an empty container, and `:216` writes outside the pre-histogram (the
-    /// executed product SDK and the Release build end with `SIGSEGV`, `SIGBUS`
-    /// or `SIGABRT` there).
+    /// an empty container, and `:216` writes outside the pre-histogram. There
+    /// is no answer to reproduce there: of nine such inputs run three times
+    /// each on the Release build (`../oracle/sne-completion/probes/`), seven
+    /// end with `SIGSEGV` or `SIGABRT`, and two, a write one bin past the end
+    /// and a negative minimum, return whatever the neighbouring memory then
+    /// yields; the product SDK ended with `SIGBUS` or `SIGSEGV` (CPP-256).
+    /// `docs/SIGNAL_TO_NOISE_SUPPORT.md` writes the domain derivation out.
     Percentile {
         /// The percentile, `0..=100` in the source.
         percentile: f64,
@@ -138,8 +142,11 @@ pub enum BinIndexConversion {
     /// Clamp the quotient to `[0, bin_count - 1]` before truncating: an
     /// intensity at or above the histogram's upper end lands in the last bin,
     /// as the `max_intensity` parameter description promises, and a negative
-    /// quotient in the first. A NaN quotient lands in the last bin. This is also
-    /// what the arm64 build computes. This is the default.
+    /// quotient in the first. A NaN quotient, which only the source value
+    /// domain admits, lands in the last bin. For every non-NaN quotient this is
+    /// also what the arm64 build computes, whose `fcvtzs` saturates (the P1
+    /// verifier's `huge_int` case); for NaN, `fcvtzs` gives `0`. This is the
+    /// default.
     #[default]
     ClampBeforeTruncation,
     /// The Linux x86-64 Release build: the 32-bit `cvttsd2si` both
