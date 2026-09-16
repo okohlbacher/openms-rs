@@ -41,7 +41,8 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use openms::analysis::feature_finder_picked::algorithm::{
-    AbundanceOverride, Limits, Options, RtShape, default_parameters, run, run_with_options,
+    AbundanceOverride, DegenerateBinStep, Limits, Options, RtShape, default_parameters, run,
+    run_with_options,
 };
 use openms::analysis::feature_finder_picked::extension::{
     OverallScores, extend_mass_traces, find_best_isotope_fit,
@@ -1516,7 +1517,7 @@ fn non_finite_inputs_match_the_linux_release_build() {
             threads: Threads::serial(),
             ..Options::default()
         };
-        let stage = SeedStage::run_with_options(experiment, &seeds, &parameters, &options);
+        let stage = SeedStage::run_with_options(experiment.clone(), &seeds, &parameters, &options);
         let status = of("status")[0][0].as_str();
         let rt_config = if case[2..]
             .iter()
@@ -1734,17 +1735,57 @@ fn non_finite_inputs_match_the_linux_release_build() {
 
         check_nonfinite_features(name, rt_config, &of, &output.features);
         *outcomes.entry("features").or_default() += 1;
+
+        // `DegenerateBinStep::Refuse` refuses exactly the runs whose executed
+        // bin steps are zero or infinite (an infinite coordinate makes them
+        // so) and whose seed loop visits a scan; the others run unchanged.
+        let degenerate = [&bins[3], &bins[4]].iter().any(|step| {
+            let step = f64_hex(step);
+            step == 0.0 || step.is_infinite()
+        });
+        let scans = spectra.len();
+        let min_spectra = stage.settings().min_spectra;
+        let read = min_spectra < scans - min_spectra.min(scans);
+        let refusing = SeedStage::run_with_options(
+            experiment,
+            &seeds,
+            &parameters,
+            &Options {
+                degenerate_bin_step: DegenerateBinStep::Refuse,
+                ..options
+            },
+        );
+        if degenerate && read {
+            assert!(
+                matches!(&refusing, Err(Error::InvalidValue(m)) if m.contains("DegenerateBinStep::Refuse")),
+                "{name}"
+            );
+            *outcomes
+                .entry("refused under DegenerateBinStep::Refuse")
+                .or_default() += 1;
+        } else {
+            let refusing = refusing
+                .unwrap_or_else(|error| panic!("{name}: {error}"))
+                .unwrap();
+            assert_eq!(refusing.log(), stage.log(), "{name}");
+        }
     }
     // Of the 170 executed runs that returned features, 161 are reproduced and
     // 9 refused at a NaN sort key; the 16 that threw are reproduced; of the 3
     // that never returned, 2 are refused at the endless profile merge and
-    // `rt_nan_mid_unsorted` earlier, at its NaN retention-time sort.
+    // `rt_nan_mid_unsorted` earlier, at its NaN retention-time sort. Of the
+    // returned runs, the opt-out refuses the seven with an infinite step and a
+    // non-empty seed loop: `rt_posinf_last`, `rt_posinf_last_min0`,
+    // `rt_neginf_first`, `rt_posinf_all`, `rt_neginf_all`,
+    // `rt_posinf_last_bins3` and `mz_posinf_last_nocharge`; `rt_neginf_short`
+    // (10 scans, `min_spectra_` 7) has an empty seed loop.
     assert_eq!(
         outcomes,
         BTreeMap::from([
             ("features", 161),
             ("hang", 2),
             ("nan sort refused", 10),
+            ("refused under DegenerateBinStep::Refuse", 7),
             ("threw", 16)
         ])
     );

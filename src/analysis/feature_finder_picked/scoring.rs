@@ -243,12 +243,15 @@ impl IntensityThresholds {
     ///
     /// A NaN retention time or m/z makes the searches' keys unpartitioned. The
     /// searches still return positions inside the range, and this computes the
-    /// same ones. But when a cell's lower search then lies *above* its upper
-    /// search, the source's area iterator (`AreaIterator.h:205-218`,
-    /// `:276-298`) never meets its end and reads past the scans or past the
-    /// peaks: that is an out-of-bounds read with no reproducible result, and
-    /// this returns [`Error::InvalidValue`] for exactly that cell, before
-    /// reading it.
+    /// same ones. Were a cell's lower search to lie *above* its upper search,
+    /// the source's area iterator (`AreaIterator.h:205-218`, `:276-298`) would
+    /// never meet its end and read out of bounds. That cannot happen: a cell's
+    /// lower border never exceeds its upper border (or one is NaN), and for
+    /// `v <= w` libstdc++'s `lower_bound(v)` and `upper_bound(w)` take the same
+    /// branch at every probe until they first differ, where the lower search
+    /// goes left of the probe and the upper one right of it, whatever the keys.
+    /// The check that returns [`Error::InvalidValue`] there is therefore only a
+    /// guard of the slices below.
     ///
     /// A NaN intensity is sorted with `std::sort`. When the cell holds a value
     /// whose bits differ from the NaN's, the standard leaves the result
@@ -261,7 +264,7 @@ impl IntensityThresholds {
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] when `bins` is zero, when a spectrum is
-    /// not MS1, and for the two undefined cases above;
+    /// not MS1, and for a NaN intensity sorted among other values;
     /// [`Error::InvalidRange`] for an empty range; and
     /// [`Error::UnsortedData`] when the spectra are not sorted as source
     /// `MSExperiment::isSorted(true)` requires.
