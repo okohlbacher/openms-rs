@@ -74,14 +74,26 @@ pub enum NoiseHistogramRange {
     /// (`-1` when none is), which a target of zero makes negative.
     ///
     /// The source is defined exactly on non-empty containers in which every
-    /// intensity's quotient `q = (I - 1) / bin_size` satisfies `-1 < q < 100`:
-    /// then every index lies in `[0, 99]`, the conversion is in range, and the
-    /// walk stops by bin 99 because the 100 bins hold all `n` elements. Roughly,
-    /// the minimum must exceed `100 / 101` and every intensity must lie below
-    /// `m + 1`. Anywhere else estimation returns [`Error::Unsupported`] naming
-    /// the source line that becomes undefined: `:209` dereferences `end()` of
-    /// an empty container, and `:216` writes outside the pre-histogram. There
-    /// is no answer to reproduce there: of nine such inputs run three times
+    /// intensity's quotient `q = (I - 1) / bin_size` satisfies `-1 < q < 100`
+    /// and whose `int` counters do not overflow: then every index lies in
+    /// `[0, 99]`, the conversion is in range, and the walk stops by bin 99
+    /// because the 100 bins hold all `n` elements. Roughly, the minimum must
+    /// exceed `100 / 101` and every intensity must lie below `m + 1`. The
+    /// counters only matter beyond `i32::MAX` points: every pre-histogram bin
+    /// must hold at most `i32::MAX` points (`:216`), and the walk's running
+    /// count must stay within `int` (`:228`). The walk's target
+    /// `p * n / 100` (`:220`) does not fit `int` from `2^31` on; the Release
+    /// build's 32-bit `cvttsd2si` then returns `INT_MIN`, which skips the walk,
+    /// and this port reproduces that measured outcome. A target of zero or
+    /// `INT_MIN` makes the upper end negative, so the source warns and returns
+    /// before its main loop, whatever the number of points; any other upper end
+    /// reaches the main loop, whose counters take at most `i32::MAX` points.
+    /// Anywhere else estimation returns [`Error::Unsupported`] naming the source
+    /// line that becomes undefined: `:209` dereferences `end()` of an empty
+    /// container, `:216` writes outside the pre-histogram or overflows a bin
+    /// count, `:228` overflows the running count, and the main loop overflows
+    /// its window count (`:365`). For the out-of-range writes there is no
+    /// answer to reproduce: of nine such inputs run three times
     /// each on the Release build (`../oracle/sne-completion/probes/`), seven
     /// end with `SIGSEGV` or `SIGABRT`, and two, a write one bin past the end
     /// and a negative minimum, return whatever the neighbouring memory then
@@ -340,8 +352,12 @@ pub const NOISE_PROGRESS_LABEL: &str = "noise estimation of data";
 
 const MAX_INTENSITY_DESCRIPTION: &str = "maximal intensity considered for histogram construction. By default, it will be calculated automatically (see auto_mode). Only provide this parameter if you know what you are doing (and change 'auto_mode' to '-1')! All intensities EQUAL/ABOVE 'max_intensity' will be added to the LAST histogram bin. If you choose 'max_intensity' too small, the noise estimate might be too small as well.  If chosen too big, the bins become quite large (which you could counter by increasing 'bin_count', which increases runtime). In general, the Median-S/N estimator is more robust to a manual max_intensity than the MeanIterative-S/N.";
 
-/// `int` counters of `computeSTN_` (`window_count`, `elements_in_window`) and
-/// `estimate_` (`size`) overflow beyond this many points.
+/// The largest count the source's `int` counters hold. Beyond this many
+/// points, `estimate_` (`size`, `SignalToNoiseEstimator.h:123`) and the main
+/// loop of `computeSTN_` (`window_count` at `:365`) overflow; AUTOMAXBYPERCENT's
+/// counters (`:216`, `:228`) overflow only when a pre-histogram bin or the
+/// walk's running count exceeds it, and a negative range returns before the
+/// main loop. Each refusal is placed where its counter overflows.
 const SOURCE_MAX_POINTS: usize = i32::MAX as usize;
 
 fn entry(name: &str, value: ParamValue, description: &str, advanced: bool) -> ParamEntry {
@@ -851,7 +867,11 @@ impl SignalToNoiseEstimatorMedian {
     ///   an exhausted work budget.
     /// * [`Error::UnsortedData`] when positions decrease.
     /// * [`Error::Unsupported`] where the source is undefined: more than
-    ///   `i32::MAX` points, and the percentile range outside its domain (see
+    ///   `i32::MAX` points in the manual and standard-deviation ranges, and in
+    ///   the percentile range unless the range comes out negative (then only a
+    ///   pre-histogram bin above `i32::MAX` points, `:216`, or a running count
+    ///   above `i32::MAX`, `:228`); a window of exactly `i32::MAX` points
+    ///   (`:324`); and the percentile range outside its domain (see
     ///   [`NoiseHistogramRange::Percentile`]).
     pub fn estimate(&self, positions: &[f64], intensities: &[f64]) -> Result<NoiseEstimates> {
         self.estimate_with_compatibility(positions, intensities, &PickingCompatibility::default())
@@ -1007,12 +1027,6 @@ impl SignalToNoiseEstimatorMedian {
         if n > self.max_points {
             return Err(bad("signal arrays differ in length or exceed point limit"));
         }
-        if n > SOURCE_MAX_POINTS {
-            return Err(Error::Unsupported(format!(
-                "SignalToNoiseEstimatorMedian is undefined for {n} points: its int window \
-                 counter overflows at SignalToNoiseEstimatorMedian.h:365 beyond {SOURCE_MAX_POINTS}"
-            )));
-        }
         let finite_only = !compatibility.noise.source_value_domain;
         for i in 0..n {
             let (x, y) = (position(i), intensity(i));
@@ -1041,6 +1055,40 @@ impl SignalToNoiseEstimatorMedian {
         Ok(())
     }
 
+    /// The histogram upper end, the source member `max_intensity_` after
+    /// `SignalToNoiseEstimatorMedian.h:185-245`.
+    fn histogram_upper_end(
+        &self,
+        n: usize,
+        intensity: &impl Fn(usize) -> f64,
+        compatibility: &NoiseCompatibility,
+    ) -> Result<f64> {
+        match self.histogram_range {
+            NoiseHistogramRange::Manual { max_intensity } => Ok(max_intensity),
+            NoiseHistogramRange::StandardDeviation { factor } => {
+                if n == 0 && !compatibility.nan_for_empty_input {
+                    return Ok(0.0);
+                }
+                if n > SOURCE_MAX_POINTS {
+                    return Err(Error::Unsupported(format!(
+                        "SignalToNoiseEstimatorMedian is undefined for {n} points: `++size` at \
+                         SignalToNoiseEstimator.h:123 overflows int beyond {SOURCE_MAX_POINTS}"
+                    )));
+                }
+                // :188-189 with SignalToNoiseEstimator::estimate_; the Release
+                // build computes `sqrt(v) * factor + mean`.
+                let gauss = GaussianEstimate::of_indexed(n, intensity);
+                Ok(x86::add(
+                    x86::mul(x86::sqrt(gauss.variance), factor),
+                    gauss.mean,
+                ))
+            }
+            NoiseHistogramRange::Percentile { percentile } => {
+                Self::percentile_upper_end(n, intensity, percentile)
+            }
+        }
+    }
+
     /// The histogram upper end of AUTOMAXBYPERCENT
     /// (`SignalToNoiseEstimatorMedian.h:205-232`) on the source's defined
     /// domain; see [`NoiseHistogramRange::Percentile`].
@@ -1049,15 +1097,9 @@ impl SignalToNoiseEstimatorMedian {
         intensity: &impl Fn(usize) -> f64,
         percentile: f64,
     ) -> Result<f64> {
-        let undefined = |detail: String| {
-            Error::Unsupported(format!(
-                "SignalToNoiseEstimatorMedian auto_mode 1 (AUTOMAXBYPERCENT) is undefined for this input: {detail}"
-            ))
-        };
         if n == 0 {
-            return Err(undefined(
-                "SignalToNoiseEstimatorMedian.h:209 dereferences end() of an empty container"
-                    .into(),
+            return Err(percentile_undefined(
+                "SignalToNoiseEstimatorMedian.h:209 dereferences end() of an empty container",
             ));
         }
         // The source reads `float` intensities; `as f32` is the identity on them.
@@ -1077,7 +1119,7 @@ impl SignalToNoiseEstimatorMedian {
             // :216, `subss 1.0f; cvtss2sd; divsd bin_size; cvttsd2si`.
             let quotient = f64::from(narrow(i) - 1.0_f32) / bin_size;
             if !(quotient > -1.0 && quotient < 100.0) {
-                return Err(undefined(format!(
+                return Err(percentile_undefined(&format!(
                     "at point {i} (intensity {}), SignalToNoiseEstimatorMedian.h:216 writes the \
                      pre-histogram at the truncation of {quotient}, outside [0, 99] (minimum \
                      intensity {minimum}, bin size {bin_size})",
@@ -1085,24 +1127,9 @@ impl SignalToNoiseEstimatorMedian {
                 )));
             }
             // -1 < quotient < 100: the truncation is in 0..=99.
-            histogram[quotient as usize] += 1;
+            count_in_pre_histogram(&mut histogram, quotient as usize, i)?;
         }
-        // :220, `cvtsi2sd n; mulsd p; divsd 100; cvttsd2si`; p * n / 100 <= n.
-        let target = (n as f64 * percentile / 100.0) as usize;
-        // :221-230: at most one bin per container element.
-        let mut seen = 0usize;
-        let mut last: Option<usize> = None;
-        let mut run = 0usize;
-        while run != n && seen < target {
-            let bin = last.map_or(0, |b| b + 1);
-            // The 100 bins hold all n >= target elements, so the walk stops by
-            // bin 99; `get` keeps the proof checked.
-            seen += *histogram
-                .get(bin)
-                .ok_or_else(|| undefined("the pre-histogram walk passes bin 99".into()))?;
-            last = Some(bin);
-            run += 1;
-        }
+        let last = percentile_walk(n, &histogram, percentile)?;
         // :232, `(i + 0.5) * bin_size` with i = -1 when no bin was visited.
         let index = last.map_or(-1.0, |b| b as f64);
         Ok((index + 0.5) * bin_size)
@@ -1120,22 +1147,7 @@ impl SignalToNoiseEstimatorMedian {
         let source = noise_compat.source_value_domain;
         self.validate(&noise_compat)?;
         self.validate_points(n, &position, &intensity, compatibility)?;
-        let max_intensity = match self.histogram_range {
-            NoiseHistogramRange::Manual { max_intensity } => max_intensity,
-            NoiseHistogramRange::StandardDeviation { factor } => {
-                if n == 0 && !noise_compat.nan_for_empty_input {
-                    0.0
-                } else {
-                    // :188-189 with SignalToNoiseEstimator::estimate_; the
-                    // Release build computes `sqrt(v) * factor + mean`.
-                    let gauss = GaussianEstimate::of_indexed(n, &intensity);
-                    x86::add(x86::mul(x86::sqrt(gauss.variance), factor), gauss.mean)
-                }
-            }
-            NoiseHistogramRange::Percentile { percentile } => {
-                Self::percentile_upper_end(n, &intensity, percentile)?
-            }
-        };
+        let max_intensity = self.histogram_upper_end(n, &intensity, &noise_compat)?;
         if !source && !max_intensity.is_finite() && n != 0 {
             return Err(bad(
                 "noise histogram maximum is not finite; this needs NoiseCompatibility::source_value_domain",
@@ -1160,6 +1172,7 @@ impl SignalToNoiseEstimatorMedian {
             result.noise.resize(n, f64::INFINITY);
             return Ok(result);
         }
+        main_loop_counters_fit(n)?;
         let mut histogram = vec![0usize; self.bin_count];
         if let Some(logger) = progress.as_deref_mut() {
             logger.start_progress(0, n as i64, NOISE_PROGRESS_LABEL)?;
@@ -1326,6 +1339,89 @@ impl SignalToNoiseEstimatorMedian {
     }
 }
 
+/// The refusal of an AUTOMAXBYPERCENT input on which the source is undefined.
+fn percentile_undefined(detail: &str) -> Error {
+    Error::Unsupported(format!(
+        "SignalToNoiseEstimatorMedian auto_mode 1 (AUTOMAXBYPERCENT) is undefined for this input: {detail}"
+    ))
+}
+
+/// `++histogram_auto[bin]` for the point `point`
+/// (`SignalToNoiseEstimatorMedian.h:216`), whose counts are `int`: a bin that
+/// already holds `i32::MAX` points overflows.
+fn count_in_pre_histogram(histogram: &mut [usize; 100], bin: usize, point: usize) -> Result<()> {
+    let slot = histogram.get_mut(bin).ok_or_else(|| {
+        percentile_undefined("SignalToNoiseEstimatorMedian.h:216 writes outside the pre-histogram")
+    })?;
+    if *slot == SOURCE_MAX_POINTS {
+        return Err(percentile_undefined(&format!(
+            "at point {point}, `++histogram_auto[{bin}]` at SignalToNoiseEstimatorMedian.h:216 \
+             overflows int beyond {SOURCE_MAX_POINTS}"
+        )));
+    }
+    *slot += 1;
+    Ok(())
+}
+
+/// The percentile walk of AUTOMAXBYPERCENT over `n` points
+/// (`SignalToNoiseEstimatorMedian.h:220-230`): the last pre-histogram bin
+/// visited, or `None` for the source's `i = -1`.
+fn percentile_walk(n: usize, histogram: &[usize; 100], percentile: f64) -> Result<Option<usize>> {
+    // :220, `(int)(auto_max_percentile_ * c.size() / 100)`: `cvtsi2sd n;
+    // mulsd p; divsd 100.0; cvttsd2si` into a 32-bit register, then `test;
+    // jle`, which skips the walk for a target <= 0. The product is never
+    // negative or NaN (0 <= p <= 100 was checked); at or above 2^31 it does not
+    // fit int, which is undefined behaviour, and the Release build's 32-bit
+    // `cvttsd2si` returns INT_MIN there, which skips the walk. That is the
+    // measured Linux x86-64 Release outcome (`sne-fix` oracle: n = 2^31 with
+    // p = 100, and n = 3,000,000,001 with p = 72), reproduced here.
+    let target = x86::cvttsd2si32(n as f64 * percentile / 100.0);
+    let target = usize::try_from(target).unwrap_or(0);
+    // :221-230: `elements_seen < elements_below_percentile` on int, at most one
+    // bin per container element. A target <= 0 is 0 here: `seen` is never
+    // negative, so the comparison is the same.
+    let mut seen = 0usize;
+    let mut last: Option<usize> = None;
+    let mut run = 0usize;
+    while run != n && seen < target {
+        let bin = last.map_or(0, |b| b + 1);
+        // target <= n (rounding is monotone, and 100 * n / 100 is exact for
+        // any n a container can hold), and the 100 bins hold all n points, so
+        // the walk stops by bin 99; `get` keeps the proof checked.
+        let count = *histogram.get(bin).ok_or_else(|| {
+            percentile_undefined(
+                "the pre-histogram walk at SignalToNoiseEstimatorMedian.h:228 passes bin 99",
+            )
+        })?;
+        // :228, `elements_seen += histogram_auto[i]` on int.
+        if count > SOURCE_MAX_POINTS - seen {
+            return Err(percentile_undefined(&format!(
+                "`elements_seen += histogram_auto[{bin}]` at SignalToNoiseEstimatorMedian.h:228 \
+                 overflows int ({seen} + {count})"
+            )));
+        }
+        seen += count;
+        last = Some(bin);
+        run += 1;
+    }
+    Ok(last)
+}
+
+/// The main loop of `computeSTN_` counts windows (`++window_count`,
+/// `SignalToNoiseEstimatorMedian.h:365`) and window elements
+/// (`++elements_in_window`, `:310`) in `int`: beyond `i32::MAX` points the
+/// window count overflows at the latest.
+fn main_loop_counters_fit(n: usize) -> Result<()> {
+    if n > SOURCE_MAX_POINTS {
+        return Err(Error::Unsupported(format!(
+            "SignalToNoiseEstimatorMedian is undefined for {n} points: its int counters overflow \
+             beyond {SOURCE_MAX_POINTS}, `++window_count` at SignalToNoiseEstimatorMedian.h:365 at \
+             the latest and `++elements_in_window` at :310 first if a window holds more points"
+        )));
+    }
+    Ok(())
+}
+
 /// The histogram bin of an intensity (`SignalToNoiseEstimatorMedian.h:297`,
 /// `:308`); see [`BinIndexConversion`].
 fn bin_index(intensity: f64, width: f64, last_bin: usize, conversion: BinIndexConversion) -> usize {
@@ -1367,5 +1463,125 @@ impl SignalToNoiseEstimator for SignalToNoiseEstimatorMedian {
     /// safety profile.
     fn compute_stn_chromatogram(&self, chromatogram: &MSChromatogram) -> Result<NoiseEstimates> {
         self.estimate_chromatogram(chromatogram, &PickingCompatibility::default())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    //! The `int` counter refusals beyond `i32::MAX` points, on the helpers that
+    //! take the point count, since a full estimation there needs tens of
+    //! gigabytes. `../oracle/sne-fix` runs the full estimation at `n = 2^31`
+    //! against the Linux x86-64 Release build.
+    use super::*;
+    use std::cell::Cell;
+
+    const TWO_30: usize = 1 << 30;
+    const TWO_31: usize = 1 << 31;
+
+    /// The pre-histogram of the Release cases: intensities alternating `2.0`
+    /// and `2.5` fall into bins 50 and 75 (quotients `50.0000011...` and
+    /// `75.0000016...` with `bin_size = 2.0f / 100.0f`).
+    fn two_bins(first: usize, second: usize) -> [usize; 100] {
+        let mut histogram = [0; 100];
+        histogram[50] = first;
+        histogram[75] = second;
+        histogram
+    }
+
+    fn unsupported_at(result: Result<impl std::fmt::Debug>, line: &str) {
+        match result {
+            Err(Error::Unsupported(message)) => {
+                assert!(message.contains(line), "{message} does not name {line}");
+            }
+            other => panic!("expected Unsupported naming {line}, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn percentile_walk_is_defined_beyond_int_max_points_when_the_target_skips_it() -> Result<()> {
+        let histogram = two_bins(TWO_30, TWO_30);
+        // :220, 0 * 2^31 / 100 = 0: no walk, i = -1 (Release case
+        // chromatogram_2147483648_p0 and spectrum_2147483648_p0).
+        assert_eq!(percentile_walk(TWO_31, &histogram, 0.0)?, None);
+        // 100 * 2^31 / 100 = 2^31 does not fit int: the 32-bit cvttsd2si gives
+        // INT_MIN and `test; jle` skips the walk (Release case *_p100).
+        assert_eq!(percentile_walk(TWO_31, &histogram, 100.0)?, None);
+        // 72 * 3,000,000,001 / 100 = 2,160,000,000.72 >= 2^31 (Release case
+        // chromatogram_3000000001_p72): INT_MIN again.
+        let big = two_bins(1_500_000_001, 1_500_000_000);
+        assert_eq!(percentile_walk(3_000_000_001, &big, 72.0)?, None);
+        // A tiny percentile truncates to zero: 4e-8 * 2^31 / 100 = 0.859.
+        assert_eq!(percentile_walk(TWO_31, &histogram, 4e-8)?, None);
+        Ok(())
+    }
+
+    #[test]
+    fn percentile_walk_refuses_exactly_where_its_running_count_overflows() -> Result<()> {
+        // 49 * 2^31 / 100 = 1,052,266,987.52 <= 2^30: the walk stops in bin 50,
+        // with a positive upper end, so the main loop refuses the point count.
+        let histogram = two_bins(TWO_30, TWO_30);
+        assert_eq!(percentile_walk(TWO_31, &histogram, 49.0)?, Some(50));
+        unsupported_at(
+            main_loop_counters_fit(TWO_31),
+            "SignalToNoiseEstimatorMedian.h:365",
+        );
+        // 99 * 2^31 / 100 = 2,126,008,811.52 > 2^30: bin 75 takes the count
+        // to 2^31, one past INT_MAX (:228).
+        unsupported_at(
+            percentile_walk(TWO_31, &histogram, 99.0),
+            "SignalToNoiseEstimatorMedian.h:228",
+        );
+        // One point fewer ends the walk exactly at INT_MAX, which int holds:
+        // 100 * (2^31 - 1) / 100 = 2^31 - 1 fits the conversion too.
+        let at_max = two_bins(TWO_30, TWO_30 - 1);
+        assert_eq!(
+            percentile_walk(SOURCE_MAX_POINTS, &at_max, 100.0)?,
+            Some(75)
+        );
+        main_loop_counters_fit(SOURCE_MAX_POINTS)?;
+        Ok(())
+    }
+
+    #[test]
+    fn pre_histogram_counts_refuse_exactly_at_int_max() -> Result<()> {
+        let mut histogram = [0; 100];
+        histogram[7] = SOURCE_MAX_POINTS - 1;
+        count_in_pre_histogram(&mut histogram, 7, 0)?;
+        assert_eq!(histogram[7], SOURCE_MAX_POINTS);
+        unsupported_at(
+            count_in_pre_histogram(&mut histogram, 7, 1),
+            "SignalToNoiseEstimatorMedian.h:216",
+        );
+        assert_eq!(histogram[7], SOURCE_MAX_POINTS);
+        // Other bins are independent.
+        count_in_pre_histogram(&mut histogram, 8, 2)?;
+        Ok(())
+    }
+
+    #[test]
+    fn standard_deviation_range_refuses_beyond_int_max_points_before_reading() {
+        let reads = Cell::new(0usize);
+        let intensity = |_: usize| {
+            reads.set(reads.get() + 1);
+            1.0
+        };
+        let estimator = SignalToNoiseEstimatorMedian::default();
+        unsupported_at(
+            estimator.histogram_upper_end(TWO_31, &intensity, &NoiseCompatibility::source()),
+            "SignalToNoiseEstimator.h:123",
+        );
+        assert_eq!(reads.get(), 0);
+        // The manual range has no counter of its own there.
+        let manual = SignalToNoiseEstimatorMedian {
+            histogram_range: NoiseHistogramRange::Manual { max_intensity: 5.0 },
+            ..SignalToNoiseEstimatorMedian::default()
+        };
+        assert_eq!(
+            manual
+                .histogram_upper_end(TWO_31, &intensity, &NoiseCompatibility::source())
+                .ok(),
+            Some(5.0)
+        );
+        assert_eq!(reads.get(), 0);
     }
 }
