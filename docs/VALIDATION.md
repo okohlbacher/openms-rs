@@ -47,8 +47,9 @@ a hand-over.
 ### Instrument-scale comparison
 
 [BENCHMARKS](BENCHMARKS.md) is rewritten around the wave-4 run of 2026-09-16:
-**all eight ported TOPP tools on full-size instrument data at 1 and 32
-threads**, on a quiet node, with 0 of 192 repetitions load-flagged. The wave-3
+**all eight ported TOPP tools at 1 and 32 threads** — seven on full-size
+instrument data, `FeatureFinderCentroided` on the documented 4,000-spectrum
+subset, because neither implementation finishes the full run — on a quiet node, with 0 of 192 repetitions load-flagged. The wave-3
 single-pair picker measurement it used to carry is superseded. In one line: at
 one thread the port is faster on `SpectraFilterWindowMower` (0.73–0.77) and
 `FileInfo`-on-mzML (0.803), level on `PeakPickerHiRes` (1.010, inside the ~3 %
@@ -127,8 +128,8 @@ the feature-sliced lines. The audit that matters — *is any test binary in
 `tests/` unrun?* — was redone from the tree rather than from the previous
 answer: 325 test binaries exist, all 325 are built and run by `cargo test
 --locked --all-features --all-targets`, which is the first step of both the
-`test` and the `minimum-rust` job, and 169 of them are additionally named on a
-reduced-feature line. Nothing is unrun.
+`test` and the `minimum-rust` job, and 174 of them are additionally named on a
+reduced-feature line — 169 before this pass's four lines, 174 after. Nothing is unrun.
 
 The audit did turn up three reduced-feature gaps that this window's work makes
 worth closing, and four lines were changed or added:
@@ -201,6 +202,24 @@ through the gate script, on a detached node-local checkout of this branch.
 | `check_doc_coverage.py --write` | floor **4,362/5,751 = 75.8 % to 4,400/5,770 = 76.3 %**; six modules move, three of them to 100 %: `src/format/featurexml.rs` 3/19 to 20/20, `src/format/featurexml_scaling.rs` new at 10/10, `src/format/identification_xml.rs` 0/2 to 2/2, plus `src/processing/peak_picking.rs` 23 to 27 items, `src/processing/spline/cubic.rs` 10 to 14 and `src/processing/window_mower.rs` 5/6 to 6/6 |
 | `check_module_cycles.py`, then `--write` | 64 cross-module edges, 13 mutually-dependent pairs, exit 0 — and `--write` produces **no diff**. The `cli -> analysis` edge that three lanes asked the integrator to record was already recorded in the wave-3 pass, so there is **no new acyclic edge in this window** and none was invented to look like progress |
 
+An independent adversarial audit of the pass reproduced every one of those
+gates on its own detached worktree, recomputed all 125 provenance hashes (0
+mismatched), confirmed both generators produce zero diff, ran the runnable
+ignored tests against their recorded reasons and checked every `CPP-308`..`313`
+citation in the pins. Verdict **approve with notes**: no blocker, no major, five
+minors, all of them prose. All five are fixed in the follow-up commit — the C++
+thread summary now carries the FileInfo/featureXML exception (33 peak threads,
+not 64) and attributes the util ~5.3 figure to PeakPickerHiRes alone against a
+per-cell range of 1.18 to 12.38; the work-package note no longer repeats the
+picker lane's "does not use `in_thread_pool`" shorthand that this same pass
+corrected elsewhere; the "all eight tools on full-size instrument data" claim is
+qualified wherever it appeared (README, VALIDATION, PORTING_STATUS, CHANGELOG,
+EARLY_TOPP_WORK_PACKAGES and the BENCHMARKS heading), because
+`FeatureFinderCentroided` ran on the 4,000-spectrum subset; the reduced-feature
+binary count is corrected from the pre-change 169 to 174; and the reader lane's
+`base64-simd` request now has its row in the crate register rather than only a
+work-package note.
+
 One gate failed on its first attempt and the failure was in the invocation, not
 the tree: the gate script interpolates its arguments unquoted, so
 `--features "mzml paramxml parallel"` reached cargo as three words. Re-run as
@@ -263,10 +282,13 @@ form, which is correct inside a YAML `run:` step.
   plain and with `--source .reference/openms4-core-bc9cc12`.
 - **C++ issues.** `CPP-308` to `CPP-313`, each checked against the pinned source
   first (see below).
-- **Crate register.** No change. No lane in this window proposed a dependency,
-  and two that could have are recorded as *not* taken: a SIMD base64 decoder
-  (measured at 2.03x the current decoder on the hot path, worth about −0.9 s on
-  a 2.3 GB input) and any allocator change. The `mimalloc` measurement an
+- **Crate register.** One new row, no new dependency. No lane in this window
+  proposed taking a dependency, and two that could have are recorded as *not*
+  taken: a SIMD base64 decoder, which the reader lane asked be written into
+  [THIRD_PARTY_CRATE_DECISIONS](THIRD_PARTY_CRATE_DECISIONS.md) and now is, at
+  *pending; measured, not adopted* (2.03x the current decoder on the hot path,
+  worth about −0.9 s on a 2.3 GB input, against internal `unsafe` in the
+  candidate and an `--offline` registry requirement); and any allocator change. The `mimalloc` measurement an
   earlier profiling lane reported (−1.18 s) is **withdrawn as not reproducible**
   — the library it `LD_PRELOAD`ed defines none of `malloc`/`free`/`calloc`/
   `realloc`/`posix_memalign`, so it initialised and intercepted nothing. Any

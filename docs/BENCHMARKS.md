@@ -92,7 +92,7 @@ logical CPUs, 1 NUMA node, 1019 GB, governor `schedutil` with boost on, kernel
 unnecessary. The node is **not** exclusive and its CPU frequency is **not**
 pinned; what that did and did not cost the wave-4 run is in caveats 3 and 9.
 
-## 3. The wave-4 run: eight tools, full-size data, 1 and 32 threads
+## 3. The wave-4 run: eight tools, 1 and 32 threads
 
 Run directory `/ceph/ibmi/abi/oliver/bench/openms4/results/2026-09-16-w4threads`,
 finalised 2026-09-16T04:00:04+00:00. It replaces the wave-3 results, which are
@@ -246,15 +246,20 @@ on those five tools every 32-thread ratio measures a serial program against a
 parallel one.
 
 **The C++ side's extra threads are a library pool, not extra compute.** Every
-C++ cell at `-threads 32` peaks at 64 threads and every cell at `-threads 1`
-peaks at 2, but that surplus is not an OpenMP team doing tool work, and it is
-wrong to read the 32-thread column as "C++ was given twice the budget":
+C++ cell at `-threads 32` peaks at 64 threads except FileInfo on the featureXML,
+which peaks at 33, and every cell at `-threads 1` peaks at 2 — but that surplus
+is not an OpenMP team doing tool work, and it is wrong to read the 32-thread
+column as "C++ was given twice the budget":
 
 - at `-threads 1` the second thread is `jemalloc_bg_thd`, which accumulates no
   CPU at all — utilisation is exactly 1.00;
-- at `-threads 32` there are 63 tool-named threads but the whole process
-  accumulates 136.0 s of thread CPU over 25.5 s of wall (util ~5.3), i.e. about
-  five cores of work, not 64;
+- on PeakPickerHiRes at `-threads 32` there are 63 tool-named threads but the
+  whole process accumulates 136.0 s of thread CPU over 25.5 s of wall
+  (util ~5.3), i.e. about five cores of work, not 64. That figure is one tool's:
+  the per-cell utilisations in the table above range from 1.18
+  (SpectraFilterWindowMower) to 12.38 (MzMLSplitter), so no single number
+  describes the C++ column — what holds for every cell is only that the peak
+  thread count is not the compute budget;
 - the surplus tracks `OMP_NUM_THREADS`, which the harness sets for the C++ side,
   not the tool: with the variable unset the same binary peaks at **129** threads
   at `-threads 1` and **160** at `-threads 32`, with wall unchanged. Those are

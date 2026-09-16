@@ -1301,8 +1301,10 @@ reviewer showed that one arm had not been rebuilt in the same batch.
   `tests/topp_feature_finder_centroided.rs` still carries the zero-width RT
   divergence as its one ignored test — now with the C++ side logged as executed
   in `CPP-312`. **B10/C5.**
-- **The bundle.** Eight tools are built, run full-size instrument data and agree
-  with the C++ Release build on the data of every one. What the bundle still
+- **The bundle.** Eight tools are built and agree with the C++ Release build on
+  the data of every one — seven of them measured on full-size instrument data,
+  `FeatureFinderCentroided` on the documented 4,000-spectrum subset, because
+  neither implementation finishes the full 43,745-spectrum run. What the bundle still
   lacks is not a tool: it is `-processOption lowmemory` (P4), the three A6
   FileInfo flags, and the acceptance statement B10 owns.
 
@@ -1337,8 +1339,9 @@ New in this window, or restated because this window changed them:
 - **`ToolContext::in_thread_pool` at one worker.** Its doc still says a pool is
   built even for one worker so the body runs on a pool thread, which is what
   bounds a stray `par_iter` — and that costs **0.68 s** on a gigabyte-scale body
-  through glibc's per-thread arenas. `PeakPickerHiRes` deliberately does not use
-  it, scoping its pool to the picking call instead. Decide once for the
+  through glibc's per-thread arenas. `PeakPickerHiRes` calls it
+  (`peak_picker_hi_res.rs:249`) but scopes it to the picking call rather than
+  the tool body, and skips it entirely at one worker. Decide once for the
   framework: a documented one-worker fast path (accepting that a stray
   global-pool `par_iter` would then be unbounded), or a note that a tool scoping
   its pool to its parallel region may skip it. Raised in all three picker

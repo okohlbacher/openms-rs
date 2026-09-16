@@ -72,8 +72,9 @@ byte-identical at every worker count, with peak RSS down 939 MiB; the cubic
 spline takes reusable scratch buffers instead of eight heap vectors per
 constructed spline; and the mzML reader's per-peak validation loop is removed as
 dead, with the argument written into the rustdoc and a mutation-checked test
-pinning its premise. [BENCHMARKS](BENCHMARKS.md) now records all eight tools on
-full-size data at 1 and 32 threads, states plainly where the port is slower, and
+pinning its premise. [BENCHMARKS](BENCHMARKS.md) now records all eight tools at 1 and
+32 threads — seven on full-size data, `FeatureFinderCentroided` on a
+4,000-spectrum subset — states plainly where the port is slower, and
 lists what one session does not establish. See
 [wave 4 status](EARLY_TOPP_WORK_PACKAGES.md#wave-4-status).
 

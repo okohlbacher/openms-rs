@@ -52,8 +52,9 @@
     tool's. It previously wrote 21.2 % less. `FORMAT/DTAFile.h` enters the
     ledger as `partial`, with the load/store proton-mass asymmetry named
     (`CPP-309`).
-  - `docs/BENCHMARKS.md` is replaced by the wave-4 run: all eight tools on
-    full-size instrument data at 1 and 32 threads, both tables, sampled thread
+  - `docs/BENCHMARKS.md` is replaced by the wave-4 run: all eight tools at 1 and 32
+    threads (seven on full-size instrument data, `FeatureFinderCentroided` on
+    the documented 4,000-spectrum subset), both tables, sampled thread
     behaviour, per-tool equivalence judged separately for data and metadata, and
     the comparison against wave 3. The reviewer's corrections are carried, not
     the runner's prose: the output-byte deficit is 92-93 % XML indentation the
