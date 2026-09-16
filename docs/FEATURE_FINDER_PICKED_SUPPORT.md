@@ -72,7 +72,7 @@ Every member of the header is listed.
 | Source member | Rust | Notes |
 | --- | --- | --- |
 | base `DefaultParamHandler` | `instance::FeatureFinderAlgorithmPicked`: `name`, `set_name`, `subsections`, `handler_equal` (`operator==`), `defaults`, `default_parameters`, `parameters`, `set_parameters`, `set_parameters_logged`, over the crate's `DefaultParamHandler`; `Settings::from_parameters` for the stateless `run`. The static `writeParametersToMetaValues` is `DefaultParamHandler::write_parameters_to_meta_values`; the protected `check_defaults_` and `warn_empty_defaults_` are not settable, as the source object never changes them | `setName` renames the handler in the unknown-parameter warnings, `getSubsections` is empty, and `operator==` compares only the handler part, with the refused set the source keeps in `param_` (source-reviewed, `the_handler_base_renames_compares_and_has_no_subsections`). Executed: `getParameters` after construction, after a run and after an empty-input run; the unknown-parameter warnings in `checkDefaults` order, and on a refused set only those before the refused entry; after a refused set `parameters()` shows that set merged with the defaults while the settings stay, as the source assigns before it checks (`algorithm::RejectedParameters::Shown`, the default; `Discarded` keeps the accepted set) |
-| base `ProgressLogger` | `instance::FeatureFinderAlgorithmPicked::set_log_type`, `log_type`, `set_progress_logger`, `progress_logger_mut`; the base's public `startProgress`, `setProgress`, `nextProgress` and `endProgress` are the methods of the logger `progress_logger_mut` returns, and are absent under type `NONE` (where the source's calls do nothing), as `progress_logger_mut` then returns `None` | the 20 call sites of `.cpp:241-992`: every start, set and end call with its label, range and value, equal to the Release build's complete event sequence (executed with a counting clock, see *Debug mode*); no logger (type `NONE`, the default) costs nothing. An inverted range (steps 2 and 3.2 on fewer than `2 * min_spectra` scans) is passed with `end = begin`, the one recorded difference; the `CMD` output is the same |
+| base `ProgressLogger` | `instance::FeatureFinderAlgorithmPicked::set_log_type`, `log_type`, `set_progress_logger`, `progress_logger_mut`; the base's public `startProgress`, `setProgress`, `nextProgress` and `endProgress` are the methods of the logger `progress_logger_mut` returns, and are absent under type `NONE` (where the source's calls do nothing), as `progress_logger_mut` then returns `None` | the 20 call sites of `.cpp:241-992`: every start, set and end call with its label, range and value, equal to the Release build's complete event sequence (executed with a counting clock, see *Debug mode*); no logger (type `NONE`, the default) costs nothing. An inverted range (steps 2 and 3.2 on fewer than `2 * min_spectra` scans) is passed unchanged, as in the Release build |
 | `MapType`, `SpectrumType`, `FloatDataArrays` | `MSExperiment`, `MSSpectrum`, `ScoreArrays` | see *Score arrays* below |
 | `PeakType`, `Seed`, `MassTrace`, `MassTraces`, `TheoreticalIsotopePattern`, `IsotopePattern` (protected) | `Peak1D` and the `helper_structs` types | |
 | `FeatureFinderAlgorithmPicked()` | `instance::FeatureFinderAlgorithmPicked::new`, `with_options`; `default_parameters`, `HANDLER_NAME` | |
@@ -249,12 +249,11 @@ identical in both repetitions. With a counting clock the port's logger
 forwards every call too, and the complete event sequences, 164 to 1,541 lines
 per case in the driver output, are equal for FeatureFinderCentroided_1 with its INI and with the
 defaults (four charges), the four-scan input, a caller's map and a debug run
-(`the_progress_event_sequence_matches_the_release_build`). The one difference
-is the inverted range the source passes in steps 2 and 3.2 on an input of
-fewer than `2 * min_spectra` scans (`S 5 0`): the port's
-`ProgressLogger::start_progress` refuses an inverted range, so the port passes
-`end = begin` (`S 5 5`). No `setProgress` call falls into such a step, so the
-`CMD` output is the same.
+(`the_progress_event_sequence_matches_the_release_build`). They include the
+inverted range the source passes in steps 2 and 3.2 on an input of fewer than
+`2 * min_spectra` scans (`S 5 0`), which the port passes unchanged:
+`ProgressLogger::start_progress` accepts it, as the Release build does
+([PROGRESS_LOGGER_SUPPORT](PROGRESS_LOGGER_SUPPORT.md)).
 
 ## Reusing an instance
 

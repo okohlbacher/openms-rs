@@ -918,9 +918,7 @@ fn assert_experiments_decoded_equal(actual: &MSExperiment, expected: &MSExperime
             assert_eq!(x.name, y.name, "{case} spectrum {index}");
             assert_eq!(x.data.len(), y.data.len(), "{case} spectrum {index}");
             for (u, v) in x.data.iter().zip(&y.data) {
-                // A NaN equals a NaN (decision D6). Its sign is the
-                // hardware's default NaN of `0.0 / 0.0`, negative on x86_64
-                // as in the executed build and positive on arm64.
+                // A NaN equals a NaN (decision D6), whatever its bits.
                 if u.to_bits() == v.to_bits() || (u.is_nan() && v.is_nan()) {
                     continue;
                 }
@@ -1567,8 +1565,7 @@ fn the_progress_transcript_matches_the_release_build() {
 }
 
 /// The default progress type is `NONE`, and a `NONE` logger is removed
-/// rather than called, so an inverted range never reaches the progress
-/// logger's own range check.
+/// rather than called, so it costs nothing.
 #[test]
 fn progress_is_silent_by_default() {
     let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
@@ -1971,9 +1968,9 @@ fn store_line(map: &FeatureMap, map_id_drawn: bool) -> Option<String> {
 /// recording backend prints each call with its raw arguments. With a counting
 /// clock the port's `ProgressLogger` forwards every call too, and every event
 /// and every `std::cout` line matches in order, and the `OPENMS_LOG_INFO`
-/// lines in their own order. The one difference is the documented one: where
-/// the source starts an inverted range (steps 2 and 3.2 on fewer than
-/// `2 * min_spectra` scans, case `short`), the port passes `end = begin`.
+/// lines in their own order. The inverted ranges the source starts in steps 2
+/// and 3.2 on fewer than `2 * min_spectra` scans (case `short`: `S 5 0`, once
+/// for step 2 and once per charge for step 3.2) are passed unchanged.
 #[test]
 fn the_progress_event_sequence_matches_the_release_build() {
     for case in ["ffc1", "defaults", "short", "caller", "debug"] {
@@ -2045,26 +2042,34 @@ fn the_progress_event_sequence_matches_the_release_build() {
         let produced = String::from_utf8(shared.0.lock().unwrap().clone()).unwrap();
         let produced: Vec<&str> = produced.lines().collect();
         assert_eq!(produced.len(), events.len(), "{case}: event count");
-        let mut inverted = 0;
         for (index, (ours, theirs)) in produced.iter().zip(&events).enumerate() {
-            if ours == theirs {
-                continue;
-            }
-            // `S <begin> <end> <depth> <label>` with begin > end in the source.
-            let fields: Vec<&str> = theirs.splitn(5, ' ').collect();
-            let (begin, end): (i64, i64) = (fields[1].parse().unwrap(), fields[2].parse().unwrap());
-            assert!(
-                fields[0] == "S" && begin > end,
-                "{case} event {index}: {ours} against {theirs}"
-            );
-            assert_eq!(
-                *ours,
-                format!("S {begin} {begin} {} {}", fields[3], fields[4]),
-                "{case} event {index}"
-            );
-            inverted += 1;
+            assert_eq!(ours, theirs, "{case} event {index}");
         }
-        assert_eq!(inverted > 0, case == "short", "{case}: inverted ranges");
+        assert_eq!(produced, events, "{case}: events");
+        // `S <begin> <end> <depth> <label>` with begin > end: the executed
+        // `short` case has five (`S 5 0`: step 2, and step 3.2 for each of the
+        // four default charges), every other case none.
+        let inverted: Vec<&str> = produced
+            .iter()
+            .copied()
+            .filter(|line| {
+                line.strip_prefix("S ").is_some_and(|rest| {
+                    let mut fields = rest.splitn(3, ' ');
+                    let begin: i64 = fields.next().unwrap().parse().unwrap();
+                    let end: i64 = fields.next().unwrap().parse().unwrap();
+                    begin > end
+                })
+            })
+            .collect();
+        if case == "short" {
+            assert_eq!(inverted.len(), 5, "{case}: inverted ranges");
+            assert!(
+                inverted.iter().all(|line| line.starts_with("S 5 0 0 ")),
+                "{case}: {inverted:?}"
+            );
+        } else {
+            assert!(inverted.is_empty(), "{case}: {inverted:?}");
+        }
 
         // The OPENMS_LOG_INFO lines, with the store lines of a debug run.
         let debug = algorithm.debug_output();

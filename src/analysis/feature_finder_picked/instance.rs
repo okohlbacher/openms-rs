@@ -77,11 +77,10 @@ pub const ABORT_BLOCK_HEADING: &str =
 /// Without a logger every call is a no-op, which is the source's default
 /// `ProgressLogger` type `NONE` (`ProgressLogger.cpp:127-128`) without its
 /// cost. The source passes some ranges whose begin exceeds their end (step 2
-/// and step 3.2 on an input of fewer than `2 * min_spectra` scans). Its Release
-/// build prints the label and calls no `setProgress` in such a step, while the
-/// port's [`ProgressLogger::start_progress`] refuses an inverted range; such a
-/// range is passed with `end = begin`, which prints the same and differs only
-/// in the `end` a custom backend sees.
+/// and step 3.2 on an input of fewer than `2 * min_spectra` scans); like the
+/// Release build, [`ProgressLogger::start_progress`] accepts them, so they are
+/// passed unchanged (`S 5 0` for a custom backend, as the Release build
+/// passes it).
 pub struct Progress<'a> {
     logger: Option<&'a mut ProgressLogger>,
 }
@@ -102,7 +101,7 @@ impl<'a> Progress<'a> {
     /// `startProgress(begin, end, label)`.
     pub(crate) fn start(&mut self, begin: i64, end: i64, label: &str) -> Result<()> {
         match self.logger.as_deref_mut() {
-            Some(logger) => logger.start_progress(begin, end.max(begin), label),
+            Some(logger) => logger.start_progress(begin, end, label),
             None => Ok(()),
         }
     }
