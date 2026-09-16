@@ -341,13 +341,24 @@ Reproduced with its defined quirks (`RandomScanNoise::estimate`):
   candidate always draws index `0`.
 - :44 reads `exp[scan]`, not `exp[spec_indices[scan]]`, so the drawn spectrum
   may have any MS level (and may be empty).
-- The position is `(Size)(size * percentile / 100.0)` (:48), converted as GCC
-  converts a double to `unsigned long`: `comisd 2^63`; below it (and for NaN)
-  a signed `cvttsd2si`, otherwise `subsd 2^63; cvttsd2si; btc 63`
+- The position is `idx = (Size)(size * percentile / 100.0)` (:48), converted
+  as GCC converts a double to `unsigned long`: `comisd 2^63`; below it (and
+  for NaN) a signed `cvttsd2si`, otherwise `subsd 2^63; cvttsd2si; btc 63`
   (`x86::f64_to_u64`). A value in `(-1, 0)` truncates to `0` (defined); a
-  value of `2^64` or more, and `+inf`, gives `0` (the conversion is undefined
-  there, and this is the Release outcome, `rnd_p_1e21`, `rnd_p_1e30`,
-  `rnd_p_inf`); NaN gives `2^63`.
+  value of `2^64` or more, and `+inf`, gives `0`; a value of `-2^63` or below,
+  and `-inf`, and a NaN, give `2^63`.
+- `tmp.begin() + idx` (the `nth_element` argument at :49) and `tmp[idx]` (the
+  read at :50) both compute `_M_start + 4 * idx`, wrapping modulo `2^64`, and
+  the Release build reuses that one pointer for the read
+  (`lea (%r12,%rcx,4),%r15` at `libOpenMS.so 0x186866c`, then
+  `movss (%r15),%xmm0` at `0x1868aea`). Because `float` is four bytes, the
+  element actually used is `e = idx mod 2^62`. When `e < size` the wrapped
+  pointer equals `tmp.begin() + e`, a valid iterator, so
+  `nth_element(begin, begin + e, end)` and `tmp[e]` are ordinary in-bounds
+  operations; the port runs them (`x86::f64_to_u64`, then the mask, then the
+  `libstdcxx` selection). `+inf`, `-inf`, `1e30` and a `-2^63`-or-below
+  percentile all give `e = 0` (the minimum); a product `2^62 + j*2^10` (low
+  path) or `2^63 + j*2^11` (high path) gives `e = j*2^10`.
 - `std::nth_element` (:49) runs the Release toolchain's algorithm
   (`libstdcxx::nth_element`, a line-by-line port of `bits/stl_algo.h` and
   `bits/stl_heap.h` of conda-forge GCC 14.4.0, sha256 `0598c5b1…` and
@@ -426,22 +437,21 @@ float-to-integer conversions.
 | `SignalToNoiseEstimator.h:123` (`++size`) | signed `int` overflow | `auto_mode 0` with more than `i32::MAX` points |
 | `:365` (`++window_count`; `++elements_in_window` at `:310` first if a window holds more) | signed `int` overflow | more than `i32::MAX` points in `auto_mode -1`, and in `auto_mode 1` unless the range comes out negative (a target of zero or `INT_MIN`, step 6 above), which returns before the main loop. The native `max_points` ceiling is lower by default. |
 | `:324` (`elements_in_window + 1`) | signed `int` overflow | a non-sparse window of exactly `i32::MAX` points |
-| `SignalToNoiseEstimator.cpp:49` | `tmp.begin() + idx` past `end()` | a drawn scan whose position exceeds its size: a percentile above `100`, a product of `-1` or below, a NaN product |
-| `SignalToNoiseEstimator.cpp:50` | `tmp[idx]` one past the end | position equal to the size: percentile `100`, an empty drawn scan |
+| `SignalToNoiseEstimator.cpp:49-50` | the nth pointer `tmp.begin() + idx`, reused for the `tmp[idx]` read, is at or past `end()` | a drawn scan whose wrapped element `e = idx mod 2^62` is at or past its size: `e == size` (percentile `100`, an empty drawn scan) or `e > size` (a percentile above `100`, an ordinary negative percentile, a product of `-1` down to just above `-2^63`) |
 
 Out-of-domain probes on the Release build (`../oracle/sne-completion/probes/`,
-each run three times) show there is no answer to reproduce: seven of the nine
-`auto_mode 1` probes end with `SIGSEGV` (139) or `SIGABRT` (134) every time;
-the other two (a write exactly one bin past the end, and a negative minimum)
-return, as does `percentile 100` and `150`, with values read from neighbouring
-memory (`0x6e`, `0x21`); an empty drawn scan ends with `SIGSEGV`. One probe is
-deterministic in a way the table's rule still refuses: a **NaN percentile**
-returned the scan's minimum in all three runs, because the index `2^63` times
-four wraps to the first element in `lea (%r12,%rcx,4)`. The C++ pointer
-arithmetic at `:49` is undefined all the same, and the lead's rule for this
-wave limits emulation to float-to-integer conversions, so the port refuses it
-and records the measurement here (the same wrap would read element `k` for any
-position `2^62 j + k`, which only a product of at least `2^62` can produce).
+each run three times) show there is no answer to reproduce for the AUTOMAXBYPERCENT
+sites: seven of the nine `auto_mode 1` probes end with `SIGSEGV` (139) or
+`SIGABRT` (134) every time; the other two (a write exactly one bin past the
+end, and a negative minimum) return with values read from neighbouring memory.
+For the random-scan read, `percentile 100` and `150` on a four-point scan
+returned the subnormal floats `0x6e` and `0x21`, bytes past the end
+(`e = 4` and `e = 6`); an empty drawn scan `SIGSEGV`s. An ordinary negative
+percentile (`-50` on a 4096-point scan, `e = 2^62 - 2048`, nth pointer 8192
+bytes before the buffer) returned `0x457fb000` twice in
+`../oracle/sne-followup/probes/`: the read landed on mapped heap before the
+array in that layout instead of faulting, but it is outside the array all the
+same, so the port refuses it.
 
 ## Undefined behaviour reproduced (x86-64 Release)
 
@@ -449,7 +459,8 @@ position `2^62 j + k`, which only a product of at least `2^62` can produce).
 |---|---|---|---|---|
 | `SignalToNoiseEstimatorMedian.h:297`, `:308` | bin 0 for NaN and out-of-range quotients | 32-bit `cvttsd2si`, then `cmovg`/`cmovs` clamp | `x86::cvttsd2si32` via `BinIndexConversion::X86_64Release` | 8 `cpp257_*` cases, each run twice |
 | `SignalToNoiseEstimatorMedian.h:220` | `INT_MIN` for a target `p n / 100` of `2^31` or more, which skips the walk, so the range is `-0.5 * bin_size` and the early return is taken | 32-bit `cvttsd2si %xmm0,%r11d; test; jle` (`0x186cd0b`; `%r10d` at `0x188c60b`) | `x86::cvttsd2si32` in `percentile_walk` | `n = 2^31, p = 100` for both instantiations and `n = 3,000,000,001, p = 72`, each twice (`../oracle/sne-fix/`) |
-| `SignalToNoiseEstimator.cpp:48` | position `0` for products of `2^64` or more and `+inf` | `comisd 2^63; subsd 2^63; cvttsd2si; btc 63` | `x86::f64_to_u64` | `rnd_p_1e21`, `rnd_p_1e30`, `rnd_p_inf`, each twice |
+| `SignalToNoiseEstimator.cpp:48` | position `idx = 0` for products of `2^64` or more and `+inf`; `idx = 2^63` for a NaN, `-inf` or a product of `-2^63` or below | `comisd 2^63`; low path `cvttsd2si`, high path `subsd 2^63; cvttsd2si; btc 63` | `x86::f64_to_u64` | `rnd_p_1e21`, `rnd_p_1e30`, `rnd_p_inf`; `wrap_nan`, `wrap_neg_inf`, `wrap_pos_inf`, `wrap_dle_neg2p63`, `wrap_1e30`, each twice |
+| `SignalToNoiseEstimator.cpp:49-50` | the drawn element is `e = idx mod 2^62`; when `e < size` the read is in bounds and deterministic | `lea (%r12,%rcx,4),%r15` (scale-4 wrap of `idx`), reused by `movss (%r15)` (`0x186866c`, `0x1868aea`) | `index & (2^62 - 1)` | `wrap_low_2p62_j1/j2/j3` (`e = 1024/2048/3072`), `wrap_high_2p63` (`e = 2048`, high path), `wrap_nan_r_one_x3`, each twice (`../oracle/sne-followup/`) |
 | `SignalToNoiseEstimator.cpp:42` | low 32 bits of the truncation (only past `2^32` candidates, unreachable in memory) | 64-bit `cvttsd2si; mov %esi,%esi` | `x86::cvttsd2si64(..) as u32` | the 52 random-scan cases stay in range |
 | `SignalToNoiseEstimator.cpp:49` (not a conversion) | the Release library's permutation for NaN input | `std::nth_element` of GCC 14.4.0 | `libstdcxx::nth_element` | `nth_vectors` (390 vectors, 30 through `__heap_select`), 19 `rnd_nan_*` cases, each twice |
 
@@ -507,6 +518,15 @@ No class test calls `estimateNoiseFromRandomScans`.
     otherwise), the engine's raw outputs and uniform draws in 5, and the whole
     `nth_element` permutation of 390 vectors in 1
     (`permutations_match_the_release_toolchain`).
+  - The emulated `:49-50` pointer wrap in 10 cases
+    (`random_scan_pointer_wrap_matches_the_release_build`,
+    `../oracle/sne-followup/`, same driver binary `571d6f9b…`): the `e = 0`
+    percentiles (`wrap_nan`, `wrap_neg_inf`, `wrap_pos_inf`,
+    `wrap_dle_neg2p63`, `wrap_1e30`), the in-bounds low-path elements
+    `1024/2048/3072` (`wrap_low_2p62_j1/j2/j3`), the high-path element `2048`
+    (`wrap_high_2p63`) and a NaN three-draw average (`wrap_nan_r_one_x3`), each
+    run twice byte-identically. The disassembly re-dumped there has the same
+    `:48` conversion and `lea`/`movss` pointer reuse as `sne-completion`.
   - The tool path: `cpp257_pick_manual` runs `PeakPickerHiRes::pick`, i.e.
     libOpenMS's own instantiation.
 - **Tier 1, Linux x86-64 Release, beyond `INT_MAX` points.** The Release
@@ -578,5 +598,3 @@ No class test calls `estimateNoiseFromRandomScans`.
   non-finite samples and the parameter values the native profile refuses. The
   Rust picker has no source mode yet; its source mode should call
   `estimator.estimate_peaks(&input.peaks, &PickingCompatibility::source(), None)`.
-- The NaN-percentile wrap above is refused under this wave's rule; emulating it
-  would need the rule to cover pointer arithmetic.

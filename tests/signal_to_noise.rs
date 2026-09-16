@@ -846,7 +846,7 @@ fn the_tool_path_bins_like_the_release_build() {
         .noise_estimator
         .estimate_spectrum(&spectrum, &PickingCompatibility::default())
         .unwrap();
-    assert!((native.noise[0] - 29.52).abs() < 1e-12);
+    assert_eq!(native.noise, [29.0 + 13.0 / 25.0; 25]);
 }
 
 #[test]
@@ -943,39 +943,51 @@ fn random_scans_reproduce_the_defined_quirks() {
 #[test]
 fn random_scans_refuse_exactly_where_the_source_is_undefined() {
     let records = synthetic();
+    // The only ms_level 2 candidate is r_ms2a at index 1, so every draw reads
+    // experiment index 0 = r_ms1a, whose 12 intensities have minimum 0.
     let (experiment, _) = input("syn:r_ms1a+r_ms2a", &records).unwrap();
     let undefined = |result: Result<f32>, line: &str| match result {
         Err(Error::Unsupported(message)) => assert!(message.contains(line), "{message}"),
         other => panic!("{other:?}"),
     };
-    // Percentile 100: idx == size, read at :50.
+    // Percentile 100: e == size, the read at :50 is one past the end.
     undefined(
         estimate_noise_from_random_scans(&experiment, 2, 1, 100.0, 1),
-        "SignalToNoiseEstimator.cpp:50",
+        "SignalToNoiseEstimator.cpp:49-50",
     );
-    // Above 100: the iterator passes the end at :49.
+    // Above 100: e > size, the nth pointer passes the end at :49.
     undefined(
         estimate_noise_from_random_scans(&experiment, 2, 1, 150.0, 1),
-        "SignalToNoiseEstimator.cpp:49 advances",
+        "SignalToNoiseEstimator.cpp:49-50",
     );
-    // -100 / 12 or below converts a value <= -1: a huge index.
+    // An ordinary negative percentile: idx wraps to e ~ 2^62, far past the end.
+    undefined(
+        estimate_noise_from_random_scans(&experiment, 2, 1, -50.0, 1),
+        "SignalToNoiseEstimator.cpp:49-50",
+    );
+    // -100 / 12 or below converts a value <= -1, whose wrap is also past the end.
     undefined(
         estimate_noise_from_random_scans(&experiment, 2, 1, -8.34, 1),
-        "SignalToNoiseEstimator.cpp:49 advances",
+        "SignalToNoiseEstimator.cpp:49-50",
     );
-    // A NaN percentile converts to 2^63.
-    undefined(
-        estimate_noise_from_random_scans(&experiment, 2, 1, f64::NAN, 1),
-        "SignalToNoiseEstimator.cpp:49 advances",
-    );
-    // An infinite percentile is defined (index 0) on a non-empty scan, but an
-    // empty drawn scan is read at :50.
+    // An empty drawn scan: e == size == 0, the read at :50 is out of bounds.
     let mut empty_first = experiment.clone();
     empty_first.spectra.insert(0, MSSpectrum::default());
     undefined(
         estimate_noise_from_random_scans(&empty_first, 2, 1, 80.0, 1),
-        "SignalToNoiseEstimator.cpp:50",
+        "SignalToNoiseEstimator.cpp:49-50",
     );
+    // A NaN, an infinite, or a percentile giving a product of -2^63 or below
+    // wraps to element 0 (the minimum, 0 here), which is in bounds and
+    // deterministic, so the port computes it (the Release build too;
+    // ../oracle/sne-followup pins the bits).
+    for percentile in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, -1e30, 1e30] {
+        assert_eq!(
+            estimate_noise_from_random_scans(&experiment, 2, 1, percentile, 1).unwrap(),
+            0.0,
+            "percentile {percentile}"
+        );
+    }
     // A NaN in the drawn scan is not refused: the Release build's
     // std::nth_element stays in bounds (the rnd_nan_* and nth_* oracle cases
     // pin what it returns).
@@ -998,6 +1010,94 @@ fn random_scans_refuse_exactly_where_the_source_is_undefined() {
         .estimate(&experiment),
         Err(Error::InvalidValue(_))
     ));
+}
+
+/// The emulated pointer wrap of `SignalToNoiseEstimator.cpp:49-50`: when the
+/// drawn position `idx` maps to an in-bounds element `e = idx mod 2^62`, the
+/// Release build's `nth_element(begin, begin + idx, end)` and `tmp[idx]` are
+/// ordinary in-bounds operations on element `e`, so the port computes them.
+/// The fixtures are the Linux x86-64 Release build's own output, twice each
+/// byte-identically (`../oracle/sne-followup/`, same driver binary
+/// `571d6f9b…` as `sne-completion`).
+#[test]
+fn random_scan_pointer_wrap_matches_the_release_build() {
+    const WRAP_CASES: &str = include_str!("data/signal_to_noise/wrap_cases.tsv");
+    const WRAP_SYNTHETIC: &str = include_str!("data/signal_to_noise/wrap_synthetic.tsv");
+    const WRAP_ORACLE: &str = include_str!("data/signal_to_noise/wrap_oracle.tsv");
+
+    // The drawn intensity each Release case returned, as f32 bits.
+    let mut expected: BTreeMap<&str, u32> = BTreeMap::new();
+    for line in WRAP_ORACLE.lines() {
+        let c: Vec<&str> = line.split('\t').collect();
+        if c[0] == "random" {
+            expected.insert(c[1], hex32(c[2]));
+        }
+    }
+
+    let records: BTreeMap<String, Synthetic> = WRAP_SYNTHETIC
+        .lines()
+        .filter(|l| !l.starts_with('#') && !l.is_empty())
+        .map(|line| {
+            let c: Vec<&str> = line.split('\t').collect();
+            let x = list(c[3]);
+            let y: Vec<f32> = list(c[4]).into_iter().map(narrow).collect();
+            assert_eq!(x.len(), y.len(), "{}", c[0]);
+            (
+                c[0].to_owned(),
+                Synthetic {
+                    kind: c[1].to_owned(),
+                    ms_level: c[2].parse().unwrap(),
+                    x,
+                    y,
+                },
+            )
+        })
+        .collect();
+
+    let mut compared = 0;
+    for line in WRAP_CASES.lines() {
+        if line.starts_with('#') || line.is_empty() {
+            continue;
+        }
+        let c: Vec<&str> = line.split('\t').collect();
+        assert_eq!(c[1], "random", "{}", c[0]);
+        let (experiment, _) = input(c[2], &records).unwrap();
+        let k = keys(c[3]);
+        let result = estimate_noise_from_random_scans(
+            &experiment,
+            k["ms_level"].parse().unwrap(),
+            k["n_scans"].parse().unwrap(),
+            number(k["percentile"]),
+            k["seed"].parse().unwrap(),
+        )
+        .unwrap_or_else(|e| panic!("{}: {e}", c[0]));
+        assert_eq!(
+            result.to_bits(),
+            expected[c[0]],
+            "{}: got {result} ({:#010x})",
+            c[0],
+            result.to_bits()
+        );
+        compared += 1;
+    }
+    assert_eq!(compared, 10);
+    // The in-bounds low-path and high-path elements are pinned to their exact
+    // values (element index = f64 bits): 1024, 2048 and 3072.
+    assert_eq!(expected["wrap_low_2p62_j1"], 1024.0_f32.to_bits());
+    assert_eq!(expected["wrap_low_2p62_j2"], 2048.0_f32.to_bits());
+    assert_eq!(expected["wrap_low_2p62_j3"], 3072.0_f32.to_bits());
+    assert_eq!(expected["wrap_high_2p63"], 2048.0_f32.to_bits());
+    // The e = 0 percentiles (NaN, +/-inf, 1e30, a product of -2^63 or below)
+    // all read element 0, the minimum (0 here).
+    for name in [
+        "wrap_nan",
+        "wrap_neg_inf",
+        "wrap_pos_inf",
+        "wrap_dle_neg2p63",
+        "wrap_1e30",
+    ] {
+        assert_eq!(expected[name], 0.0_f32.to_bits(), "{name}");
+    }
 }
 
 #[test]

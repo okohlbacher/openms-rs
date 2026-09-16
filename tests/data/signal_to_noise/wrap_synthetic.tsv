@@ -1,0 +1,3 @@
+# sne-followup synthetic records
+f_seq4096	S	2	0:1:4096	4095:-1:4096
+r_one	S	2	0:1:4	1,2,3,4

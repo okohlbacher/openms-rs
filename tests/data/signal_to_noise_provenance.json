@@ -81,7 +81,7 @@
     "src/processing/peak_picking/noise.rs (unit tests)"
   ],
   "support_document": "docs/SIGNAL_TO_NOISE_SUPPORT.md",
-  "evidence_tier": "tier 1 executed differential against the Linux x86-64 Release build (143 cases, 390 nth_element permutations, warnings and progress output byte for byte; 5 AUTOMAXBYPERCENT cases beyond INT_MAX points, compared with the port's full estimation outside CI) and the P1 product-SDK oracle re-run on that build; tier 3 class-test sections; tier 4 native refusals, emulation edge values, invariants and the int-counter refusals at n = 2^31",
+  "evidence_tier": "tier 1 executed differential against the Linux x86-64 Release build (143 cases, 390 nth_element permutations, warnings and progress output byte for byte; 10 emulated :49-50 pointer-wrap cases; 5 AUTOMAXBYPERCENT cases beyond INT_MAX points, compared with the port's full estimation outside CI) and the P1 product-SDK oracle re-run on that build; tier 3 class-test sections; tier 4 native refusals, emulation edge values, invariants and the int-counter refusals at n = 2^31",
   "fixtures": [
     {
       "path": "tests/data/signal_to_noise/cases.tsv",
@@ -107,6 +107,21 @@
       "path": "tests/data/signal_to_noise/streams.tsv",
       "sha256": "cdf5faf1941c8c91612d378822ab6d95df6e8e9b0975c805e829695f84dcb66b",
       "kind": "oracle-generated (tier 1 executed differential): byte-identical to ../oracle/sne-completion/results/streams.tsv, each case's C++ standard output (ProgressLogger timings masked) and standard error, base64"
+    },
+    {
+      "path": "tests/data/signal_to_noise/wrap_cases.tsv",
+      "sha256": "2eb3e12cc26381b081b51255fb68b35dd95b99b74f44f9c9ea7c59f4cd6920f3",
+      "kind": "oracle input, byte-identical to ../oracle/sne-followup/cases/cases.tsv (gen_followup.py): the 10 emulated :49-50 pointer-wrap cases"
+    },
+    {
+      "path": "tests/data/signal_to_noise/wrap_synthetic.tsv",
+      "sha256": "fce0c60a5cc0941e50b993705e122253088b187c20252e36928fd4e3777f1063",
+      "kind": "oracle input, byte-identical to ../oracle/sne-followup/cases/synthetic.tsv (gen_followup.py)"
+    },
+    {
+      "path": "tests/data/signal_to_noise/wrap_oracle.tsv",
+      "sha256": "97d1976bb97d5b43d63b55976f921ac7e24c72f8cbc1f7e2c4d332a2e8b79048",
+      "kind": "oracle-generated (tier 1 executed differential): byte-identical to ../oracle/sne-followup/results/oracle.tsv, the random-scan results of the Linux x86-64 Release build for the in-bounds pointer wrap"
     }
   ],
   "reused_fixtures": [
@@ -391,6 +406,41 @@
       "path": "../oracle/sne-fix/README.md",
       "sha256": "a82375501c5530fbc7a0a5d30f52b4c2f6bdd2f72f14b2ccb67f7fbf777ad5b2",
       "origin_key": "src/processing/peak_picking/noise.rs (unit tests); docs/SIGNAL_TO_NOISE_SUPPORT.md"
+    },
+    {
+      "path": "../oracle/sne-followup/driver.cpp",
+      "sha256": "7866d64cbed28cf2ae3877a6f340faf8a037848f121f770f290939974a47907f",
+      "origin_key": "tests/data/signal_to_noise/wrap_oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-followup/gen_followup.py",
+      "sha256": "ce9ad381f4e95e0ecea3e58227b1830166b94476104488e6d4623a8ffc7ebf2b",
+      "origin_key": "tests/data/signal_to_noise/wrap_cases.tsv"
+    },
+    {
+      "path": "../oracle/sne-followup/remote_followup.sh",
+      "sha256": "c550b74127229a4533dc532c9fafac68732f2c08c6d84f8b521fb50de25d7e8f",
+      "origin_key": "tests/data/signal_to_noise/wrap_oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-followup/results/oracle.tsv",
+      "sha256": "97d1976bb97d5b43d63b55976f921ac7e24c72f8cbc1f7e2c4d332a2e8b79048",
+      "origin_key": "tests/data/signal_to_noise/wrap_oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-followup/results/hashes.txt",
+      "sha256": "2881cabd77f7cf718d164a53782205fea26298052cfe841df6ab84fc936196d5",
+      "origin_key": "tests/data/signal_to_noise/wrap_oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-followup/results/disasm_estimateNoiseFromRandomScans.s",
+      "sha256": "021444d38010484968cb2b17fa0008e35a20efd10800428dc8abd729179b0e62",
+      "origin_key": "tests/data/signal_to_noise/wrap_oracle.tsv"
+    },
+    {
+      "path": "../oracle/sne-followup/probes/results.txt",
+      "sha256": "f8917a0dbb1018d363bf38f200c8f31e07cc22c528d4816ab131e87924817a5d",
+      "origin_key": "tests/data/signal_to_noise/wrap_oracle.tsv"
     }
   ],
   "external_reference_note": "The C++ driver, its build, the disassembly, the libstdc++ headers the port transcribes and the raw outputs live outside this repository under ../oracle/sne-completion/; only the case files, the vector file and the two result files enter the repository, byte for byte. The build ran on ibminode06 (never ibminode05) against the unmodified Release install below. previous-run-1/ there holds the first capture of 123 cases, which the second capture reproduces byte for byte for every one of those cases.",
@@ -438,6 +488,21 @@
       "result": "every case takes the ungated early return: max_intensity_ 0xbf847ae140000000, n zero estimates, both percentages 0, standard error 'SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! -0.01'. p = 100 and p = 72 pin the 32-bit cvttsd2si at :220 (INT_MIN, walk skipped).",
       "disassembly": "the driver's :211-232 instructions equal libOpenMS.so's in all four copies (results/percentile_block.txt); 88 floating-point instructions each, identical for MSSpectrum and up to one memory displacement for MSChromatogram (results/disasm_fp_compare.txt)",
       "rust_comparison": "harness/ (built in release against this branch at ae57d90, crate_commit.txt, and before at 9643c1a, run-9643c1a/, whose logs are byte-identical; run on dax): identical records and warning for all five cases, in both profiles for the two chromatogram n = 2^31 cases; refusals at :365 (p = 49, manual), :228 (p = 99), :216 (constant input), SignalToNoiseEstimator.h:123 (standard deviation); n = 2^31 - 1 with p = 0 accepted (results/compare-harness.txt)"
+    },
+    "pointer_wrap": {
+      "directory": "../oracle/sne-followup/",
+      "host": "ibminode06, Linux x86_64; never ibminode05",
+      "release_install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+      "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+      "driver_sha256": "7866d64cbed28cf2ae3877a6f340faf8a037848f121f770f290939974a47907f",
+      "driver_binary_sha256": "571d6f9be37534cfc99d1f0e3ffc9e37179788865b5f3f925bc982a53038278c",
+      "note": "Same driver.cpp and binary as sne-completion; the estimateNoiseFromRandomScans disassembly re-dumped here has the same :48 conversion (comisd 2^63; low cvttsd2si; high subsd 2^63; cvttsd2si; btc 63) and the same lea (%r12,%rcx,4),%r15 nth pointer reused by movss (%r15) for the read. The element used is e = idx mod 2^62.",
+      "runs": 2,
+      "fresh_process_per_case": true,
+      "reproduced_byte_for_byte": true,
+      "cases": "10 random-scan cases whose drawn position wraps to an in-bounds element e < size: e = 0 (wrap_nan, wrap_neg_inf, wrap_pos_inf, wrap_dle_neg2p63, wrap_1e30 -> 0.0f); low-path e = 1024/2048/3072 (wrap_low_2p62_j1/j2/j3 -> 1024/2048/3072.0f); high-path e = 2048 (wrap_high_2p63 -> 2048.0f); a NaN three-draw average (wrap_nan_r_one_x3 -> 1.0f). differ.txt empty.",
+      "probe": "x_wrap_neg50 (percentile -50 on a 4096-point scan): e = 2^62 - 2048, nth pointer 8192 bytes before the buffer. Two runs both returned 0x457fb000, a read of mapped heap before the array (out of bounds), so the port refuses it. Not a fixture (probes/results.txt).",
+      "rust_test": "tests/signal_to_noise.rs::random_scan_pointer_wrap_matches_the_release_build compares all 10 cases bit for bit."
     }
   },
   "determinism": "The estimator and the random-scan estimate are serial, as the source is (no OpenMP in either header or in SignalToNoiseEstimator.cpp); the random-scan estimate takes its seed as an argument."

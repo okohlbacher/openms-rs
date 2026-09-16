@@ -317,9 +317,20 @@ impl RandomScanNoise {
     ///   keeps the low 32 bits.
     /// * The position in a drawn scan is `(Size)(size * percentile / 100.0)`
     ///   (`:48`), converted as the Release build converts a double to
-    ///   `unsigned long`; a value in `(-1, 0)` selects the minimum, and a value
-    ///   of `2^64` or more, including infinity, selects index `0` (the
-    ///   `subsd 2^63; cvttsd2si; btc 63` path).
+    ///   `unsigned long` (`x86::f64_to_u64`): a value in `(-1, 0)` truncates
+    ///   to `0`; a value of `2^64` or more, including `+inf`, gives `0`; a
+    ///   value of `-2^63` or below, including `-inf`, and a NaN, give
+    ///   `2^63`.
+    /// * `tmp.begin() + idx` (the nth argument at `:49`) and `tmp[idx]` (the
+    ///   read at `:50`) both compute `_M_start + 4 * idx`, wrapping modulo
+    ///   `2^64`, and the Release build reuses that one pointer for the read.
+    ///   Because `float` is four bytes, the element actually used is
+    ///   `e = idx mod 2^62`. When `e < size` — as it is for `+inf`, `-inf`,
+    ///   `1e30`, a NaN or `-2^63`-or-below percentile (all `e = 0`), and for a
+    ///   product `2^62 + j*2^10` or `2^63 + j*2^11` that lands on element
+    ///   `j*2^10` — the wrapped iterator is valid, so
+    ///   `nth_element(begin, begin + e, end)` and `tmp[e]` are ordinary,
+    ///   in-bounds operations, and this port runs them.
     /// * The selected intensity is the one `std::nth_element` puts at that
     ///   position, summed in `f32` in draw order and divided by `n_scans` in
     ///   `f32` (`:50-52`). Without NaN intensities that is the order statistic
@@ -338,26 +349,20 @@ impl RandomScanNoise {
     ///
     /// # Errors
     ///
-    /// [`Error::Unsupported`] exactly where the source becomes undefined, at
-    /// the draw where it happens:
+    /// [`Error::Unsupported`] exactly where the source becomes undefined: at a
+    /// draw whose wrapped element `e = idx mod 2^62` is at or past the drawn
+    /// scan's size (`SignalToNoiseEstimator.cpp:49-50`). Then the nth pointer
+    /// `tmp.begin() + idx` is at or past the end, so `nth_element` and/or the
+    /// `tmp[idx]` read touch memory out of bounds. This covers a percentile
+    /// above `100` (`e > size`), one of exactly `100` or an empty drawn scan
+    /// (`e == size`), and an ordinary negative percentile (`e` near `2^62`).
     ///
-    /// * the position exceeds the drawn scan's size, so `tmp.begin() + idx` at
-    ///   `:49` points past the end (a percentile above `100`, a percentile of
-    ///   `-100 / size` or below, or a NaN product);
-    /// * the position equals the drawn scan's size, so `tmp[idx]` at `:50`
-    ///   reads past the end (a percentile of exactly `100`, or an empty drawn
-    ///   scan with a percentile whose product with zero is not NaN).
-    ///
-    /// Out-of-domain probes on the Release build (`../oracle/sne-completion/
-    /// probes/`) show what these reads do there: an empty drawn scan ends
-    /// with `SIGSEGV`, and percentiles `100` and `150` return the subnormal
-    /// floats with bits `0x6e` and `0x21`, bytes read past the scan. A NaN
-    /// percentile returned the scan's minimum in all three runs, because
-    /// `lea (%r12,%rcx,4)` wraps the index `2^63` back to the first element;
-    /// the port still refuses it, since `tmp.begin() + idx` is undefined
-    /// pointer arithmetic whose result only that addressing mode decides (the
-    /// same wrap would apply to any position congruent to an element index
-    /// modulo `2^62`).
+    /// Out-of-domain probes on the Release build show what these reads do:
+    /// percentiles `100` and `150` on a four-point scan returned the subnormal
+    /// floats `0x6e` and `0x21`, bytes read past the end
+    /// (`../oracle/sne-completion/probes/`); an empty drawn scan and an
+    /// ordinary negative percentile ended with `SIGSEGV`
+    /// (`../oracle/sne-followup/probes/`).
     ///
     /// [`Error::InvalidValue`] when the native `max_work` ceiling would be
     /// exceeded.
@@ -420,24 +425,28 @@ impl RandomScanNoise {
             values.extend(spectrum.peaks.iter().map(|p| p.intensity));
             let len = values.len();
             let index = x86::f64_to_u64(x86::div(x86::mul(len as f64, self.percentile), 100.0));
-            let context = |what: &str| {
-                Error::Unsupported(format!(
+            // `tmp.begin() + idx` (the nth argument at :49) and `tmp[idx]` (the
+            // read at :50) both compute `_M_start + 4 * idx`, wrapping modulo
+            // `2^64`, and the Release build reuses that one pointer for the
+            // read (`lea (%r12,%rcx,4),%r15`, then `movss (%r15)`, libOpenMS.so
+            // at `0x186866c`/`0x1868aea`). Because `float` is four bytes,
+            // `4 * idx mod 2^64 = 4 * (idx mod 2^62)`, so the element actually
+            // used is `e = idx mod 2^62`.
+            let element = index & ((1u64 << 62) - 1);
+            if element >= len as u64 {
+                // `e >= size`: the nth pointer is at or past the end, so
+                // `nth_element` and/or `tmp[idx]` read or write out of bounds.
+                return Err(Error::Unsupported(format!(
                     "estimateNoiseFromRandomScans is undefined here: draw {draw} reads experiment \
-                     index {scan} with {len} intensities and position {index}; {what}"
-                ))
-            };
-            if index > len as u64 {
-                return Err(context(
-                    "SignalToNoiseEstimator.cpp:49 advances the iterator past the end",
-                ));
+                     index {scan} with {len} intensities and a drawn position (idx {index}) that \
+                     maps to element {element}; SignalToNoiseEstimator.cpp:49-50 read or write out \
+                     of bounds"
+                )));
             }
-            if index == len as u64 {
-                return Err(context(
-                    "SignalToNoiseEstimator.cpp:50 reads one element past the end",
-                ));
-            }
-            // index < len, so it fits usize.
-            let position = usize::try_from(index).unwrap_or(0);
+            // `e < size`, so `tmp.begin() + idx == tmp.begin() + e` is a valid
+            // iterator and `nth_element(begin, begin + e, end)` is an ordinary,
+            // in-bounds call whose selected value `tmp[idx]` is element `e`.
+            let position = element as usize;
             // :49, with the Release toolchain's own algorithm, so that NaN
             // intensities land where that build puts them.
             libstdcxx::nth_element(&mut values, position);

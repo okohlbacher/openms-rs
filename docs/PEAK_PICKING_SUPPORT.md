@@ -211,9 +211,11 @@ defaults, including values the selected modes ignore.
 5. **Percentile range.** `auto_mode = 1` is computed exactly on the input
    domain where the source is defined (a non-empty record whose intensities
    lie roughly in `[m, m + 1)` for a minimum `m > 100 / 101`), and estimation
-   returns `Error::Unsupported` everywhere else, where the source reads or
-   writes out of bounds (CPP-256; the derivation is in
-   `SIGNAL_TO_NOISE_SUPPORT.md`). A picker with `signal_to_noise = 0` never
+   returns `Error::Unsupported` everywhere else: where the source reads or
+   writes out of bounds (CPP-256), and, beyond `i32::MAX` points (only with
+   raised `max_points`), where one of its `int` counters overflows (the
+   derivation, conditions D0 to D4, is in `SIGNAL_TO_NOISE_SUPPORT.md`). A
+   picker with `signal_to_noise = 0` never
    estimates, as in the source. Real spectra are outside that domain, the
    orbitrap class-test spectrum included.
 6. **Estimator options and values.** As in the source, estimator options are
