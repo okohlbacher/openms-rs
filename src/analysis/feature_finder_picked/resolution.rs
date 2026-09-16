@@ -22,6 +22,7 @@
 //! The module is serial, as the source is here. See
 //! `docs/FEATURE_FINDER_PICKED_SUPPORT.md`.
 
+use crate::analysis::feature_finder_picked::scoring::libstdcxx;
 use crate::kernel::{BoundingBox2D, Feature, MSExperiment};
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
@@ -224,14 +225,20 @@ pub fn resolve_overlaps(features: &mut [Feature], max_intersection: f64) -> Resu
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidValue`] when a feature's retention time is not
-/// finite and [`Error::UnsortedData`] when the experiment is not sorted by
-/// retention time, both from [`MSExperiment::rt_begin`]. The source's
-/// `lower_bound` gives an unspecified index instead.
+/// The search is libstdc++'s `std::lower_bound` as the Release build runs it
+/// (the crate-private `libstdcxx::lower_bound`), also where a NaN retention
+/// time in the experiment or of the feature leaves the keys unpartitioned; it
+/// never leaves the scans.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] only when an index exceeds `i64`.
 pub fn annotate_apex(features: &mut [Feature], experiment: &MSExperiment) -> Result<usize> {
     let mut invalid = 0usize;
     for feature in features.iter_mut() {
-        let index = experiment.rt_begin(feature.rt)?;
+        // Source `map_.RTBegin(rt)`.
+        let index =
+            libstdcxx::lower_bound(&experiment.spectra, |spectrum| spectrum.rt < feature.rt);
         feature.metadata.insert(
             SPECTRUM_INDEX.into(),
             MetaValue::from(

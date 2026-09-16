@@ -1317,3 +1317,614 @@ fn labels_are_the_feature_numbers_in_order() {
     );
     let _ = MetaValue::from(0i64);
 }
+
+// ---------------------------------------------------------------------------
+// Non-finite input: the Linux x86_64 Release build (tier 1)
+// ---------------------------------------------------------------------------
+
+/// The rows of `nonfinite_stage.tsv.gz`: the driver `nonfinite_stage` run
+/// against `openms4-release-bc9cc12-c19e494-174b576` on 189 modified
+/// FeatureFinderCentroided_1 inputs, twice each, identical, five of them also
+/// twice at four threads, identical apart from the one-thread abort rows
+/// (`../oracle/ffap-sem-completion/extract/extract_nonfinite.py`).
+fn nonfinite_rows() -> Vec<Vec<String>> {
+    use std::io::Read;
+    let bytes = std::fs::read(data("nonfinite_stage.tsv.gz")).unwrap();
+    let mut text = String::new();
+    flate2::read::GzDecoder::new(bytes.as_slice())
+        .read_to_string(&mut text)
+        .unwrap();
+    text.lines()
+        .map(|line| line.split('\t').map(str::to_string).collect())
+        .collect()
+}
+
+/// FNV-1a over little-endian bytes, as the driver and the extraction digest.
+struct Fnv(u64);
+
+impl Fnv {
+    fn new() -> Self {
+        Self(0xcbf2_9ce4_8422_2325)
+    }
+
+    fn bytes(&mut self, bytes: &[u8]) {
+        for &byte in bytes {
+            self.0 ^= u64::from(byte);
+            self.0 = self.0.wrapping_mul(0x0000_0100_0000_01b3);
+        }
+    }
+}
+
+/// A spectrum index of an option: a number or `last`.
+fn spectrum_index(experiment: &MSExperiment, text: &str) -> usize {
+    if text == "last" {
+        experiment.spectra.len() - 1
+    } else {
+        text.parse().unwrap()
+    }
+}
+
+/// The input, parameters and user seeds of one case, built as the driver
+/// built them: `keep=` first, then every modification in option order.
+fn nonfinite_input(options: &[String]) -> (MSExperiment, Param, FeatureMap) {
+    let mut experiment = ffc1_input();
+    let mut parameters = ffc1_parameters();
+    let mut seeds = FeatureMap::new();
+    for option in options {
+        if let Some(keep) = option.strip_prefix("keep=") {
+            experiment.spectra.truncate(keep.parse().unwrap());
+        }
+    }
+    for option in options {
+        let (lhs, value) = option.split_once('=').unwrap();
+        let parts: Vec<&str> = lhs.split(':').collect();
+        match parts[0] {
+            "keep" | "scores" => {}
+            "seeds" => {
+                assert_eq!(
+                    value.rsplit('/').next().unwrap(),
+                    "FeatureFinderCentroided_1_1_output.featureXML"
+                );
+                seeds = ffc1_user_seeds();
+            }
+            "seedkeep" => seeds.features.truncate(value.parse().unwrap()),
+            "seedrt" => seeds.features[parts[1].parse::<usize>().unwrap()].rt = f64_hex(value),
+            "seedmz" => seeds.features[parts[1].parse::<usize>().unwrap()].mz = f64_hex(value),
+            "rtall" => {
+                for spectrum in &mut experiment.spectra {
+                    spectrum.rt = f64_hex(value);
+                }
+            }
+            "empty" => {
+                let s = spectrum_index(&experiment, value);
+                experiment.spectra[s].peaks.clear();
+            }
+            "rt" => {
+                let s = spectrum_index(&experiment, parts[1]);
+                experiment.spectra[s].rt = f64_hex(value);
+            }
+            "trim" => {
+                let s = spectrum_index(&experiment, parts[1]);
+                experiment.spectra[s].peaks.truncate(value.parse().unwrap());
+            }
+            "mzall" => {
+                let s = spectrum_index(&experiment, parts[1]);
+                for peak in &mut experiment.spectra[s].peaks {
+                    peak.mz = f64_hex(value);
+                }
+            }
+            "mz" | "in" => {
+                let s = spectrum_index(&experiment, parts[1]);
+                let peaks = &mut experiment.spectra[s].peaks;
+                let p = if parts[2] == "last" {
+                    peaks.len() - 1
+                } else {
+                    parts[2].parse().unwrap()
+                };
+                if parts[0] == "mz" {
+                    peaks[p].mz = f64_hex(value);
+                } else {
+                    peaks[p].intensity = f32_hex(value);
+                }
+            }
+            "innear" => {
+                // `MSSpectrum::findNearest` on the unmodified, sorted target.
+                let s = spectrum_index(&experiment, parts[1]);
+                let p: usize = parts[2].parse().unwrap();
+                let d: isize = parts[3].parse().unwrap();
+                let mz = experiment.spectra[s].peaks[p].mz;
+                let target = &mut experiment.spectra[s.checked_add_signed(d).unwrap()].peaks;
+                let above = target.partition_point(|peak| peak.mz < mz);
+                let nearest = if above == 0 {
+                    0
+                } else if above == target.len() {
+                    above - 1
+                } else if (target[above].mz - mz).abs() < (target[above - 1].mz - mz).abs() {
+                    above
+                } else {
+                    above - 1
+                };
+                target[nearest].intensity = f32_hex(value);
+            }
+            "i" => set(
+                &mut parameters,
+                &lhs[2..],
+                ParamValue::Integer(value.parse().unwrap()),
+            ),
+            "d" => set(
+                &mut parameters,
+                &lhs[2..],
+                ParamValue::Float(value.parse().unwrap()),
+            ),
+            "s" => set(&mut parameters, &lhs[2..], ParamValue::String(value.into())),
+            other => panic!("unknown option {other}"),
+        }
+    }
+    (experiment, parameters, seeds)
+}
+
+/// Infinite and NaN retention times, m/z values, intensities and user-seed
+/// positions, against the executed Linux x86_64 Release build.
+///
+/// For every case the port gives the executed outcome:
+///
+/// - the executed exception, as [`openms::Error`] with the same `what()` text:
+///   `-inf` m/z fails the positive-m/z check after the sort; `+inf` or `1e300`
+///   m/z leaves no isotope window (the `Size` conversion of `ceil(inf) + 1` is
+///   0), and a NaN m/z asks for window `2^63`, both at the first pattern
+///   lookup of step 3.1; every retention time or every m/z NaN leaves an empty
+///   range. A window count in `[2^63, 2^64)` makes the source's `resize`
+///   throw `std::length_error`; the port's window ceiling refuses it first;
+/// - status 137, the executed run killed after 30 s: a NaN retention time in a
+///   mass trace makes `computeIntensityProfile` loop forever
+///   (`FeatureFinderAlgorithmPickedHelperStructs.cpp:210-236`), and the port
+///   refuses at exactly that merge;
+/// - otherwise the printed lines, the feature count, the abort reasons, the
+///   bin steps and the window count, the seeds, a digest of every quantile
+///   and every per-peak score (NaN bits included; the full rows where few
+///   differ from the unmodified input), and every feature with its meta values
+///   and a digest of its convex hulls. Infinite retention times make every
+///   step infinite and every intensity score NaN (no feature); infinite
+///   intensities shift the quantiles, score NaN at their own peak, join mass
+///   traces and are cut off again by the slope check, as in the source.
+///
+/// Overall scores the Release build's `powf` misrounds (`CPP-272`) are
+/// substituted as in the seed-stage tests. Fitted quantities use the
+/// platform bound of [`tolerance`].
+#[test]
+fn non_finite_inputs_match_the_linux_release_build() {
+    use openms::Error;
+    use openms::analysis::feature_finder_picked::algorithm::feature_stage;
+    let rows = nonfinite_rows();
+    let cases: Vec<&Vec<String>> = rows.iter().filter(|row| row[0] == "case").collect();
+    assert_eq!(cases.len(), 189);
+    let mut outcomes: BTreeMap<&str, usize> = BTreeMap::new();
+    for case in cases {
+        let name = case[1].as_str();
+        let of = |kind: &str| -> Vec<&[String]> {
+            rows.iter()
+                .filter(|row| row[0] == kind && row[1] == name)
+                .map(|row| &row[2..])
+                .collect()
+        };
+        let (experiment, parameters, seeds) = nonfinite_input(&case[2..]);
+        let input = of("input")[0];
+        assert_eq!(experiment.spectra.len().to_string(), input[0], "{name}");
+        let peaks: usize = experiment.spectra.iter().map(|s| s.peaks.len()).sum();
+        assert_eq!(peaks.to_string(), input[1], "{name}");
+        let options = Options {
+            threads: Threads::serial(),
+            ..Options::default()
+        };
+        let stage = SeedStage::run_with_options(experiment, &seeds, &parameters, &options);
+        let status = of("status")[0][0].as_str();
+        let rt_config = if case[2..]
+            .iter()
+            .any(|o| o == "s:feature:rt_shape=asymmetric")
+        {
+            "ffc1_asymmetric"
+        } else {
+            "ffc1_symmetric"
+        };
+        if let Some(expected) = nan_sort_refusal(name, &case[2..]) {
+            // The executed build returned, but only after a `std::sort` over a
+            // NaN key: its order is libstdc++'s introsort order, which this
+            // branch does not reproduce, and the standard leaves it undefined
+            // or unspecified. The port refuses at that sort.
+            let error = stage
+                .and_then(|stage| feature_stage(&stage.unwrap(), &options))
+                .unwrap_err();
+            assert!(
+                matches!(&error, Error::InvalidValue(m) if m.contains(expected)),
+                "{name}: {error}"
+            );
+            *outcomes.entry("nan sort refused").or_default() += 1;
+            continue;
+        }
+        if status == "137" {
+            let error = stage
+                .and_then(|stage| feature_stage(&stage.unwrap(), &options))
+                .unwrap_err();
+            assert!(
+                matches!(&error, Error::InvalidValue(m) if m.contains("NaN retention time cannot be merged")),
+                "{name}: {error}"
+            );
+            *outcomes.entry("hang").or_default() += 1;
+            continue;
+        }
+        assert_eq!(status, "0", "{name}");
+        if let Some(threw) = of("threw").first() {
+            let (kind, text) = threw[0].split_once(": ").unwrap();
+            let error = stage
+                .and_then(|stage| feature_stage(&stage.unwrap(), &options))
+                .unwrap_err();
+            match (kind, &error) {
+                ("IllegalArgument" | "InvalidValue", Error::InvalidValue(message))
+                | ("InvalidRange", Error::InvalidRange(message)) => {
+                    assert_eq!(message, text, "{name}");
+                }
+                ("std::exception", Error::InvalidValue(message)) => {
+                    assert_eq!(text, "vector::_M_default_append", "{name}");
+                    assert!(message.contains("isotope windows"), "{name}: {message}");
+                }
+                _ => panic!("{name}: executed {kind}: {text}, port {error}"),
+            }
+            *outcomes.entry("threw").or_default() += 1;
+            continue;
+        }
+        let stage = stage
+            .unwrap_or_else(|error| panic!("{name}: {error}"))
+            .unwrap();
+        let output =
+            feature_stage(&stage, &options).unwrap_or_else(|error| panic!("{name}: {error}"));
+
+        let printed: Vec<&String> = output
+            .log
+            .iter()
+            .filter(|line| line.starts_with("Found "))
+            .collect();
+        let stdout: Vec<&String> = of("stdout").into_iter().map(|row| &row[0]).collect();
+        assert_eq!(printed, stdout, "{name}: printed lines");
+        assert_eq!(
+            output.features.len().to_string(),
+            of("features")[0][0],
+            "{name}: features"
+        );
+        let aborts: BTreeMap<String, usize> = of("abort")
+            .into_iter()
+            .map(|row| (row[1].clone(), row[0].parse().unwrap()))
+            .collect();
+        assert_eq!(output.aborts, aborts, "{name}: abort reasons");
+
+        // Step 1 and step 2.5.
+        let thresholds = stage.thresholds();
+        let bins = of("bins")[0];
+        assert_eq!(thresholds.bins().to_string(), bins[0], "{name}");
+        for (value, expected) in [
+            thresholds.rt_start(),
+            thresholds.mz_start(),
+            thresholds.rt_step(),
+            thresholds.mz_step(),
+        ]
+        .iter()
+        .zip(&bins[1..])
+        {
+            assert_eq!(value.to_bits(), f64_hex(expected).to_bits(), "{name}: bins");
+        }
+        assert_eq!(
+            stage.windows().patterns().len().to_string(),
+            of("windows")[0][0],
+            "{name}: windows"
+        );
+
+        // Every score, through the digest and the listed rows.
+        let scores = stage.scores();
+        let charges = scores.charge_count();
+        let rounding: BTreeMap<(usize, usize, usize), u32> = of("rounding")
+            .into_iter()
+            .map(|row| {
+                let oracle = u32::from_str_radix(&row[3], 16).unwrap();
+                let correct = u32::from_str_radix(&row[4], 16).unwrap();
+                assert_eq!(oracle.abs_diff(correct), 1, "{name}: rounding row");
+                (
+                    (
+                        row[0].parse().unwrap(),
+                        row[1].parse().unwrap(),
+                        row[2].parse().unwrap(),
+                    ),
+                    oracle,
+                )
+            })
+            .collect();
+        let spectra = &stage.experiment().spectra;
+        let arrays_of = |s: usize, p: usize| -> Vec<u32> {
+            let mut values = vec![
+                scores.trace(s).unwrap()[p].to_bits(),
+                scores.intensity(s).unwrap()[p].to_bits(),
+                scores.local_max(s).unwrap()[p].to_bits(),
+            ];
+            for c in 0..charges {
+                values.push(scores.pattern(c, s).unwrap()[p].to_bits());
+            }
+            for c in 0..charges {
+                let port = scores.overall(c, s).unwrap()[p].to_bits();
+                values.push(rounding.get(&(s, p, c)).copied().unwrap_or(port));
+            }
+            values
+        };
+        for row in of("score") {
+            let s: usize = row[0].parse().unwrap();
+            let p: usize = row[1].parse().unwrap();
+            assert_eq!(
+                spectra[s].peaks[p].mz.to_bits(),
+                f64_hex(&row[2]).to_bits(),
+                "{name}"
+            );
+            let expected: Vec<u32> = row[4..row.len() - 1]
+                .iter()
+                .map(|v| u32::from_str_radix(v, 16).unwrap())
+                .collect();
+            assert_eq!(arrays_of(s, p), expected, "{name}: spectrum {s} peak {p}");
+            let score = thresholds
+                .score(
+                    spectra[s].rt,
+                    spectra[s].peaks[p].mz,
+                    f64::from(spectra[s].peaks[p].intensity),
+                )
+                .unwrap();
+            assert_eq!(
+                score.to_bits(),
+                f64_hex(&row[row.len() - 1]).to_bits(),
+                "{name}: intensityScore_({s}, {p})"
+            );
+        }
+        for row in of("quantiles") {
+            let actual = thresholds
+                .quantiles(row[0].parse().unwrap(), row[1].parse().unwrap())
+                .unwrap();
+            let expected: Vec<u64> = row[2..].iter().map(|q| f64_hex(q).to_bits()).collect();
+            let actual: Vec<u64> = actual.iter().map(|q| q.to_bits()).collect();
+            assert_eq!(actual, expected, "{name}: quantiles");
+        }
+
+        let mut digest = Fnv::new();
+        for rt in 0..thresholds.bins() {
+            for mz in 0..thresholds.bins() {
+                for q in thresholds.quantiles(rt, mz).unwrap() {
+                    digest.bytes(&q.to_bits().to_le_bytes());
+                }
+            }
+        }
+        for (s, spectrum) in spectra.iter().enumerate() {
+            for p in 0..spectrum.peaks.len() {
+                for value in arrays_of(s, p) {
+                    digest.bytes(&value.to_le_bytes());
+                }
+            }
+        }
+        assert_eq!(
+            format!("{:016x}", digest.0),
+            of("digest")[0][0],
+            "{name}: score digest"
+        );
+
+        // Seeds (automatic seeds only), with the executed overall score.
+        if seeds_are_automatic(&case[2..]) {
+            let mut actual = Vec::new();
+            for charge in stage.charges() {
+                let index = (charge.charge - stage.settings().charge_low) as usize;
+                for (rank, seed) in charge.seeds.iter().enumerate() {
+                    let overall = arrays_of(seed.spectrum, seed.peak)[3 + charges + index];
+                    actual.push(vec![
+                        charge.charge.to_string(),
+                        rank.to_string(),
+                        seed.spectrum.to_string(),
+                        seed.peak.to_string(),
+                        format!("{:08x}", seed.intensity.to_bits()),
+                        format!("{overall:08x}"),
+                    ]);
+                }
+            }
+            let expected = of("seed");
+            assert_eq!(actual.len(), expected.len(), "{name}: seed count");
+            for (a, e) in actual.iter().zip(&expected) {
+                assert_eq!(a.as_slice(), *e, "{name}: seed");
+            }
+        }
+
+        check_nonfinite_features(name, rt_config, &of, &output.features);
+        *outcomes.entry("features").or_default() += 1;
+    }
+    // Of the 170 executed runs that returned features, 161 are reproduced and
+    // 9 refused at a NaN sort key; the 16 that threw are reproduced; of the 3
+    // that never returned, 2 are refused at the endless profile merge and
+    // `rt_nan_mid_unsorted` earlier, at its NaN retention-time sort.
+    assert_eq!(
+        outcomes,
+        BTreeMap::from([
+            ("features", 161),
+            ("hang", 2),
+            ("nan sort refused", 10),
+            ("threw", 16)
+        ])
+    );
+}
+
+/// The refusal expected for a case whose source sorts a NaN key with
+/// `std::sort`, or `None`: a NaN intensity in FeatureFinderCentroided_1's one
+/// intensity cell (`intensity:bins` 1), a NaN user-seed m/z among different
+/// ones, and a NaN retention time in an input that `isSorted` finds unsorted.
+fn nan_sort_refusal(name: &str, options: &[String]) -> Option<&'static str> {
+    let nan_intensity = options.iter().any(|option| {
+        (option.starts_with("in:") || option.starts_with("innear:"))
+            && option.ends_with("=7fc00000")
+    });
+    if nan_intensity {
+        return Some("holds a NaN intensity among other values");
+    }
+    match name {
+        "seeds_mz_nan" => Some("not a strict weak ordering"),
+        "rt_nan_mid_unsorted" => Some("MSExperiment::sortSpectra"),
+        _ => None,
+    }
+}
+
+/// The bound of one feature of the non-finite fixture: [`tolerance`] of the
+/// configuration, except for the fits this fixture found ill-conditioned
+/// enough to split between platforms. On Linux x86_64 with glibc every
+/// feature is bit for bit (the Gaussian ones) or within [`EGH_LIBM_GAP`].
+fn nonfinite_tolerance(case: &str, config: &str, index: usize) -> f64 {
+    #[cfg(not(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu")))]
+    if let Some((_, _, bound)) = NONFINITE_FIT_GAP
+        .iter()
+        .find(|(c, i, _)| *c == case && *i == index)
+    {
+        return *bound;
+    }
+    let _ = (case, index);
+    tolerance(config, None)
+}
+
+/// Features of the non-finite fixture whose Gaussian fit departs from the
+/// Linux capture on macOS arm64 by more than the general `5.4e-13`, with the
+/// measured largest relative departure over the feature's coordinates,
+/// qualities and meta values, rounded up at the second significant digit:
+/// `1.1156e-12` (the thirteenth or eleventh feature of `seed:min_score` 0),
+/// `6.5974e-8` and `4.9245e-4` (an infinite intensity next to seed 1, whose
+/// second feature's fit is ill-conditioned; `sw_iso_pinf_1` and
+/// `sw_pinf_1` fit the same traces). Other platforms are unmeasured and use
+/// the same bounds.
+#[cfg(not(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu")))]
+const NONFINITE_FIT_GAP: [(&str, usize, f64); 11] = [
+    ("sw_min0_pinf_0", 11, 1.2e-12),
+    ("sw_min0_pinf_1", 11, 1.2e-12),
+    ("sw_min0_pinf_2", 10, 1.2e-12),
+    ("sw_min0_pinf_3", 11, 1.2e-12),
+    ("sw_min0_pinf_4", 11, 1.2e-12),
+    ("sw_min0_pinf_5", 10, 1.2e-12),
+    ("sw_avg_pinf_next2_1", 1, 6.6e-8),
+    ("sw_max_pinf_next2_1", 1, 6.6e-8),
+    ("sw_pinf_next2_1", 1, 6.6e-8),
+    ("sw_iso_pinf_1", 1, 5.0e-4),
+    ("sw_pinf_1", 1, 5.0e-4),
+];
+
+fn seeds_are_automatic(options: &[String]) -> bool {
+    !options.iter().any(|option| option.starts_with("seeds="))
+}
+
+/// The `feature`, `meta` and `hulls` rows of one case against `map`.
+fn check_nonfinite_features<'a>(
+    name: &str,
+    config: &str,
+    of: &dyn Fn(&str) -> Vec<&'a [String]>,
+    map: &FeatureMap,
+) {
+    let expected = of("feature");
+    assert_eq!(expected.len(), map.len(), "{name}: feature rows");
+    for (index, row) in expected.iter().enumerate() {
+        let relative = nonfinite_tolerance(name, config, index);
+        let feature = &map.features[index];
+        let what = |field: &str| format!("{name}[{index}].{field}");
+        assert_eq!(row[0].parse::<usize>().unwrap(), index);
+        close(feature.rt, f64_hex(&row[1]), relative, &what("rt"));
+        close(feature.mz, f64_hex(&row[2]), relative, &what("mz"));
+        close(
+            f64::from(feature.intensity),
+            f64::from(f32_hex(&row[3])),
+            relative,
+            &what("intensity"),
+        );
+        assert_eq!(feature.charge.to_string(), row[4], "{}", what("charge"));
+        close(
+            f64::from(feature.quality),
+            f64::from(f32_hex(&row[5])),
+            relative,
+            &what("quality"),
+        );
+        assert_eq!(feature.quality_rt.to_bits(), f32_hex(&row[6]).to_bits());
+        assert_eq!(feature.quality_mz.to_bits(), f32_hex(&row[7]).to_bits());
+        close(
+            f64::from(feature.width),
+            f64::from(f32_hex(&row[8])),
+            relative,
+            &what("width"),
+        );
+        assert_eq!(
+            feature.subordinates.len().to_string(),
+            row[9],
+            "{}",
+            what("subordinates")
+        );
+        assert_eq!(
+            feature.convex_hulls.len().to_string(),
+            row[10],
+            "{}",
+            what("hulls")
+        );
+    }
+    let mut metas: BTreeMap<usize, BTreeMap<String, (String, String)>> = BTreeMap::new();
+    for row in of("meta") {
+        metas
+            .entry(row[0].parse().unwrap())
+            .or_default()
+            .insert(row[1].clone(), (row[2].clone(), row[3].clone()));
+    }
+    assert_eq!(metas.len(), map.len(), "{name}: features with meta values");
+    for (index, keys) in metas {
+        let feature = &map.features[index];
+        assert_eq!(
+            feature.metadata.len(),
+            keys.len(),
+            "{name}[{index}]: meta keys"
+        );
+        for (key, (kind, value)) in keys {
+            let actual = feature
+                .metadata
+                .get(&key)
+                .unwrap_or_else(|| panic!("{name}[{index}]: missing meta {key}"));
+            match (kind.as_str(), actual.data()) {
+                ("int", MetaValueData::Integer(got)) => {
+                    assert_eq!(got.to_string(), value, "{name}[{index}].{key}");
+                }
+                ("string", MetaValueData::String(got)) => {
+                    assert_eq!(got.as_str(), value, "{name}[{index}].{key}");
+                }
+                ("double", MetaValueData::Float(got)) => close(
+                    *got,
+                    f64_hex(&value),
+                    nonfinite_tolerance(name, config, index),
+                    &format!("{name}[{index}].{key}"),
+                ),
+                other => panic!("{name}[{index}].{key}: unexpected {other:?} for {kind}"),
+            }
+        }
+    }
+    let hulls = of("hulls");
+    assert_eq!(hulls.len(), map.len(), "{name}: hull rows");
+    for row in hulls {
+        let index: usize = row[0].parse().unwrap();
+        let feature = &map.features[index];
+        let counts: Vec<String> = feature
+            .convex_hulls
+            .iter()
+            .map(|hull| hull.hull_points().len().to_string())
+            .collect();
+        assert_eq!(counts.join(","), row[1], "{name}[{index}]: hull sizes");
+        let mut digest = Fnv::new();
+        for hull in &feature.convex_hulls {
+            let points = hull.hull_points();
+            digest.bytes(&(points.len() as u64).to_le_bytes());
+            for point in points {
+                digest.bytes(&point.rt.to_bits().to_le_bytes());
+                digest.bytes(&point.mz.to_bits().to_le_bytes());
+            }
+        }
+        // Hull points are input coordinates, so they are bit-identical.
+        assert_eq!(
+            format!("{:016x}", digest.0),
+            row[2],
+            "{name}[{index}]: hulls"
+        );
+    }
+}
