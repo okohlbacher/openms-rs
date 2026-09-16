@@ -44,7 +44,8 @@
 //!   positive number that changes from process to process
 //!   ([`PseudoRtShift::HeapAddress`]). Only a shifted value that small an
 //!   addend can change shows it (for the first few traces, a retention time
-//!   below about `1e-293` or a fitted centre below about `1e-303`); everywhere
+//!   below about `1e-293`, or a fitted centre below about `1e-293` whose
+//!   six-digit text lies that close to a rounding boundary); everywhere
 //!   else the port writes the source's bytes, and [`write_feature_debug_info`]
 //!   refuses at the first value that the address can change.
 //! - **`abort_` races.** `abort_` (`:1129-1140`) writes `log_` and
@@ -79,9 +80,9 @@
 use std::collections::BTreeMap;
 
 use crate::analysis::feature_finder_picked::helper_structs::{MassTraces, Seed};
-use crate::analysis::feature_finder_picked::scoring::ScoreArrays;
-use crate::analysis::feature_finder_picked::trace_fitter::TraceFitter;
-use crate::format::file_info::text_format::{fixed_truncated, ostream_g, to_str, to_str_f32};
+use crate::analysis::feature_finder_picked::scoring::{ScoreArrays, x86_64};
+use crate::analysis::feature_finder_picked::trace_fitter::{TraceFitter, stream_number};
+use crate::format::file_info::text_format::{fixed_truncated, to_str, to_str_f32};
 use crate::kernel::{DataArray, Feature, FeatureMap, MSExperiment};
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
@@ -176,9 +177,10 @@ fn glibc_nan(value: f64) -> Option<String> {
     })
 }
 
-/// `std::ostream << double` with the default precision 6.
+/// `std::ostream << double` with the default precision 6, glibc's `-nan`
+/// included ([`stream_number`]).
 pub(crate) fn g(value: f64) -> String {
-    glibc_nan(value).unwrap_or_else(|| ostream_g(value, 6))
+    stream_number(value)
 }
 
 /// `std::ostream << float`: the promoted value at precision 6.
@@ -752,7 +754,7 @@ fn dta_absorbs(rt: f64, k: usize) -> bool {
 /// Whether every heap-address shift leaves the formula text of trace `k` as
 /// it is: `operator<<(pseudo_rt_shift * k + centre)`, six significant digits.
 fn formula_absorbs(center: f64, k: usize) -> bool {
-    !center.is_finite() || ostream_g(center + largest_heap_shift(k), 6) == ostream_g(center, 6)
+    !center.is_finite() || stream_number(center + largest_heap_shift(k)) == stream_number(center)
 }
 
 /// The value `writeFeatureDebugInfo_` reads for `pseudo_rt_shift`: its
@@ -838,14 +840,22 @@ fn text_file(lines: &[Vec<u8>]) -> Vec<u8> {
     out
 }
 
-/// One `.dta` file: `toStr(shift * k + rt) + "\t" + intensity` per peak.
+/// `pseudo_rt_shift * k` as `libOpenMS.so` computes it (`0x18e9541`,
+/// `0x18ea3d5`, `0x18ea83d`): `cvtsi2sd` of `k`, then `mulsd` by the shift.
+/// `inf * 0` is x86_64's default NaN, whose sign bit is set, on every host.
+fn shifted(shift: f64, k: usize) -> f64 {
+    x86_64::mul(k as f64, shift)
+}
+
+/// One `.dta` file: `toStr(shift * k + rt) + "\t" + intensity` per peak, the
+/// sum an `addsd` with the product first (`0x18e9693`, `0x18ea986`).
 fn dta(traces: &MassTraces, shift: f64) -> String {
     let lines: Vec<Vec<u8>> = traces
         .iter()
         .enumerate()
         .flat_map(|(k, trace)| {
             trace.peaks.iter().map(move |peak| {
-                let mut line = to_str(shift * k as f64 + peak.rt);
+                let mut line = to_str(x86_64::add(shifted(shift, k), peak.rt));
                 line.push('\t');
                 line.push_str(&to_str_f32(peak.intensity));
                 line.into_bytes()
@@ -937,7 +947,7 @@ pub fn write_feature_debug_info(input: FeatureDebugInput<'_>) -> Result<FeatureD
         // `char fun = 'f'; fun += (char)k;`: arithmetic modulo 256.
         let name = (usize::from(b'f') + k) as u8;
         let mut formula = fitter
-            .gnuplot_formula(trace, 'f', traces.baseline, pseudo_rt_shift * k as f64)
+            .gnuplot_formula(trace, 'f', traces.baseline, shifted(pseudo_rt_shift, k))
             .into_bytes();
         // The formula starts with the one-byte name 'f'.
         if let Some(first) = formula.first_mut() {

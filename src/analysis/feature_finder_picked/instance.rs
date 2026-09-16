@@ -58,7 +58,7 @@ use crate::analysis::feature_finder_picked::helper_structs::{MassTraces, Seed};
 use crate::analysis::feature_finder_picked::resolution::{
     annotate_apex, invalid_apex_warning, resolve_overlaps_logged,
 };
-use crate::analysis::feature_finder_picked::seeds::{IsotopeWindows, SeedStage};
+use crate::analysis::feature_finder_picked::seeds::{IsotopeWindows, SeedStage, sort_user_seeds};
 use crate::analysis::feature_finder_picked::source_sort::source_sort_by;
 use crate::analysis::feature_finder_picked::trace_fitter::TraceFitterParams;
 use crate::concept::parallel::{Threads, map_collect};
@@ -401,7 +401,8 @@ impl FeatureFinderAlgorithmPicked {
         self.seeds = seeds.clone();
     }
 
-    /// The user-specified seeds (source member `seeds_`).
+    /// The user-specified seeds (source member `seeds_`). A run sorts them by
+    /// m/z in place, as the Release build's `seeds_.sortByMZ()` leaves them.
     pub fn seeds(&self) -> &FeatureMap {
         &self.seeds
     }
@@ -586,6 +587,10 @@ impl FeatureFinderAlgorithmPicked {
         let options = self.options;
         let debug = settings.write_debug;
         let mut progress = Progress::new(self.progress.as_mut());
+
+        // `seeds_.sortByMZ()` (`FeatureFinderAlgorithmPicked.cpp:190`) sorts the
+        // member in place, so the next run sorts the sorted seeds again.
+        sort_user_seeds(&mut self.seeds)?;
 
         // Steps 0 to 2.5.
         let mut prefix = LogFragment::new();

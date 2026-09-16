@@ -846,9 +846,13 @@ fn sha1_hex(data: &[u8]) -> String {
 /// The executed file sizes and SHA-1 digests of `debug_digests.tsv`, by case
 /// and file name.
 fn debug_digests() -> BTreeMap<(String, String), (usize, String)> {
-    fixture("debug_digests.tsv")
-        .lines()
-        .skip(1)
+    // `shift_nonfinite_digests.tsv`: the combined fix round's executed runs
+    // with an infinite and a NaN `debug:pseudo_rt_shift`
+    // (`../oracle/ffap-complete-fix1/node/run_shift.sh`, two runs each,
+    // identical).
+    let text = fixture("debug_digests.tsv") + &fixture("shift_nonfinite_digests.tsv");
+    text.lines()
+        .filter(|line| !line.starts_with("case\t"))
         .map(|line| {
             let fields: Vec<&str> = line.split('\t').collect();
             (
@@ -903,7 +907,6 @@ fn assert_maps_decoded_equal(actual: &FeatureMap, expected: &FeatureMap, case: &
 }
 
 fn assert_experiments_decoded_equal(actual: &MSExperiment, expected: &MSExperiment, case: &str) {
-    let mut powf_steps = 0usize;
     assert_eq!(actual.spectra.len(), expected.spectra.len(), "{case}");
     for (index, (a, e)) in actual.spectra.iter().zip(&expected.spectra).enumerate() {
         assert_eq!(a.native_id, e.native_id, "{case} spectrum {index}");
@@ -918,26 +921,18 @@ fn assert_experiments_decoded_equal(actual: &MSExperiment, expected: &MSExperime
             assert_eq!(x.name, y.name, "{case} spectrum {index}");
             assert_eq!(x.data.len(), y.data.len(), "{case} spectrum {index}");
             for (u, v) in x.data.iter().zip(&y.data) {
-                // A NaN equals a NaN (decision D6), whatever its bits.
-                if u.to_bits() == v.to_bits() || (u.is_nan() && v.is_nan()) {
-                    continue;
-                }
-                // The overall score is the C++ `std::pow(float, float)`,
-                // glibc's `powf` in the Release build, where the port computes
-                // the correctly rounded power (`seeds::overall_score`,
-                // CPP-272); the two differ by one binary32 step on a few
-                // scores. Every other array is bit-identical.
-                let step = (i64::from(u.to_bits()) - i64::from(v.to_bits())).abs();
-                assert!(
-                    x.name.starts_with("overall_score_") && step == 1,
+                // Every array, the overall scores and NaN bits included, is
+                // the executed one: the port computes the Release build's
+                // `powf` (`seeds::overall_score`) and its SSE NaN rules.
+                assert_eq!(
+                    u.to_bits(),
+                    v.to_bits(),
                     "{case} spectrum {index} array {}: {u} against {v}",
                     x.name
                 );
-                powf_steps += 1;
             }
         }
     }
-    eprintln!("{case}: {powf_steps} overall scores one binary32 step from the Release build");
 }
 
 /// Run one debug case through a fresh instance.
@@ -1189,10 +1184,17 @@ type DeclaredCase = (&'static str, Vec<(&'static str, ParamValue)>, &'static str
 /// either key policy. Every `.dta`, `_cropped.dta` and `.plot` file and the
 /// log are byte-identical to the executed ones; the feature map is the plain
 /// run's.
+///
+/// The `shift_*` cases hold a non-finite shift (`shift_nonfinite_digests.tsv`,
+/// under [`PseudoRtShiftKey::Source`] only, since the declared key is
+/// restricted to at least 1): `inf * 0.0` is x86_64's default NaN, whose sign
+/// bit is set, so trace 0 of every plot is centred at a negative NaN, and the
+/// `.plot` formulas spell it `-nan`, as glibc's `operator<<` does; a negative
+/// NaN shift writes `-nan` in every trace, a positive one `nan`.
 #[test]
 fn feature_debug_files_match_the_release_build() {
     let digests = debug_digests();
-    let cases: [DeclaredCase; 4] = [
+    let cases: [DeclaredCase; 8] = [
         (
             "shift500",
             vec![("debug:pseudo_rt_shift", ParamValue::Float(500.0))],
@@ -1222,10 +1224,44 @@ fn feature_debug_files_match_the_release_build() {
             ],
             "declared_egh_map.txt.gz",
         ),
+        (
+            "shift_inf",
+            vec![("debug:pseudo_rt_shift", ParamValue::Float(f64::INFINITY))],
+            "reuse_run1.txt.gz",
+        ),
+        (
+            "shift_neginf",
+            vec![(
+                "debug:pseudo_rt_shift",
+                ParamValue::Float(f64::NEG_INFINITY),
+            )],
+            "reuse_run1.txt.gz",
+        ),
+        (
+            "shift_negnan",
+            vec![(
+                "debug:pseudo_rt_shift",
+                ParamValue::Float(f64::from_bits(0xfff8_0000_0000_0000)),
+            )],
+            "reuse_run1.txt.gz",
+        ),
+        (
+            "shift_nan",
+            vec![(
+                "debug:pseudo_rt_shift",
+                ParamValue::Float(f64::from_bits(0x7ff8_0000_0000_0000)),
+            )],
+            "reuse_run1.txt.gz",
+        ),
     ];
     let mut inexact = 0;
     for (case, overrides, expected_map) in cases {
-        for policy in [PseudoRtShiftKey::Source, PseudoRtShiftKey::Declared] {
+        let policies: &[PseudoRtShiftKey] = if case.starts_with("shift_") {
+            &[PseudoRtShiftKey::Source]
+        } else {
+            &[PseudoRtShiftKey::Source, PseudoRtShiftKey::Declared]
+        };
+        for &policy in policies {
             let mut overrides = overrides.clone();
             if policy == PseudoRtShiftKey::Declared {
                 // The declared key alone; the undeclared one must not matter.

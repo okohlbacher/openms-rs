@@ -640,9 +640,17 @@ pub fn compute_theoretical<F: TraceFitter + ?Sized>(
 /// precision 6 in `%g` style, as `getGnuplotFormula` streams it.
 ///
 /// This is `crate::format::file_info::text_format::ostream_g` at precision 6,
-/// which documents the spelling of non-finite values and the one class of
-/// exact decimal ties where Apple libc differs from the C standard.
+/// which documents the spelling of infinities and the one class of exact
+/// decimal ties where Apple libc differs from the C standard. A NaN is written
+/// as glibc, the C library of the Linux x86_64 reference build, writes it:
+/// `-nan` when its sign bit is set, `nan` otherwise. `inf * 0.0` produces such
+/// a negative NaN on x86_64 (executed: `debug:pseudo_rt_shift` of `inf`,
+/// `-inf` and `-nan` give `.plot` formulas with `(x--nan)`,
+/// `../oracle/ffap-instr-ver2`).
 pub fn stream_number(value: f64) -> String {
+    if value.is_nan() && value.is_sign_negative() {
+        return "-nan".to_owned();
+    }
     ostream_g(value, 6)
 }
 

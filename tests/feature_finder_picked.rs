@@ -1323,14 +1323,20 @@ fn labels_are_the_feature_numbers_in_order() {
 // Non-finite input: the Linux x86_64 Release build (tier 1)
 // ---------------------------------------------------------------------------
 
-/// The rows of `nonfinite_stage.tsv.gz`: the driver `nonfinite_stage` run
-/// against `openms4-release-bc9cc12-c19e494-174b576` on 189 modified
+/// The rows of a stage fixture in the format of
+/// `../oracle/ffap-sem-completion/extract/extract_nonfinite.py`.
+///
+/// `nonfinite_stage.tsv.gz`: the driver `nonfinite_stage` run against
+/// `openms4-release-bc9cc12-c19e494-174b576` on 189 modified
 /// FeatureFinderCentroided_1 inputs, twice each, identical, five of them also
-/// twice at four threads, identical apart from the one-thread abort rows
-/// (`../oracle/ffap-sem-completion/extract/extract_nonfinite.py`).
-fn nonfinite_rows() -> Vec<Vec<String>> {
+/// twice at four threads, identical apart from the one-thread abort rows.
+/// `sort_mobility_stage.tsv.gz`: its variant with drift times
+/// (`nonfinite_stage_dt`) on the sort, drift-time and step-2.5 cases of
+/// `../oracle/ffap-complete-fix1/node/run_stage.sh`, checked and written by
+/// `../oracle/ffap-complete-fix1/extract/extract_stage.py` in the same way.
+fn stage_rows(file: &str) -> Vec<Vec<String>> {
     use std::io::Read;
-    let bytes = std::fs::read(data("nonfinite_stage.tsv.gz")).unwrap();
+    let bytes = std::fs::read(data(file)).unwrap();
     let mut text = String::new();
     flate2::read::GzDecoder::new(bytes.as_slice())
         .read_to_string(&mut text)
@@ -1391,6 +1397,10 @@ fn nonfinite_input(options: &[String]) -> (MSExperiment, Param, FeatureMap) {
             "seedkeep" => seeds.features.truncate(value.parse().unwrap()),
             "seedrt" => seeds.features[parts[1].parse::<usize>().unwrap()].rt = f64_hex(value),
             "seedmz" => seeds.features[parts[1].parse::<usize>().unwrap()].mz = f64_hex(value),
+            "dt" => {
+                let s = spectrum_index(&experiment, parts[1]);
+                experiment.spectra[s].drift_time = f64_hex(value);
+            }
             "rtall" => {
                 for spectrum in &mut experiment.spectra {
                     spectrum.rt = f64_hex(value);
@@ -1464,8 +1474,8 @@ fn nonfinite_input(options: &[String]) -> (MSExperiment, Param, FeatureMap) {
     (experiment, parameters, seeds)
 }
 
-/// Infinite and NaN retention times, m/z values, intensities and user-seed
-/// positions, against the executed Linux x86_64 Release build.
+/// Replay every case of a stage fixture ([`stage_rows`]) and return how many
+/// cases ended in each outcome.
 ///
 /// For every case the port gives the executed outcome:
 ///
@@ -1474,8 +1484,11 @@ fn nonfinite_input(options: &[String]) -> (MSExperiment, Param, FeatureMap) {
 ///   m/z leaves no isotope window (the `Size` conversion of `ceil(inf) + 1` is
 ///   0), and a NaN m/z asks for window `2^63`, both at the first pattern
 ///   lookup of step 3.1; every retention time or every m/z NaN leaves an empty
-///   range. A window count in `[2^63, 2^64)` makes the source's `resize`
-///   throw `std::length_error`; the port's window ceiling refuses it first;
+///   range. A window count above `vector::max_size()` =
+///   164,703,072,086,692,425 makes the source's `resize` throw
+///   `std::length_error`, whose text the port returns; the executed
+///   `std::bad_alloc` of a count just below it is where the port's native
+///   window ceiling refuses instead;
 /// - status 137, the executed run killed after 30 s: a NaN retention time in a
 ///   mass trace makes `computeIntensityProfile` loop forever
 ///   (`FeatureFinderAlgorithmPickedHelperStructs.cpp:210-236`), and the port
@@ -1484,22 +1497,15 @@ fn nonfinite_input(options: &[String]) -> (MSExperiment, Param, FeatureMap) {
 ///   bin steps and the window count, the seeds, a digest of every quantile
 ///   and every per-peak score (NaN bits included; the full rows where few
 ///   differ from the unmodified input), and every feature with its meta values
-///   and a digest of its convex hulls. Infinite retention times make every
-///   step infinite and every intensity score NaN (no feature); infinite
-///   intensities shift the quantiles, score NaN at their own peak, join mass
-///   traces and are cut off again by the slope check, as in the source.
-///
-/// Overall scores the Release build's `powf` misrounds (`CPP-272`) are
-/// substituted as in the seed-stage tests. Fitted quantities use the
-/// platform bound of [`tolerance`].
-#[test]
-fn non_finite_inputs_match_the_linux_release_build() {
+///   and a digest of its convex hulls. Every overall score is the executed
+///   one, including those the Release build's `powf` rounds one binary32 step
+///   away from the correctly rounded value (the `rounding` rows, `CPP-272`).
+///   Fitted quantities use the platform bound of [`tolerance`].
+fn replay_stage_fixture(rows: &[Vec<String>]) -> BTreeMap<&'static str, usize> {
     use openms::Error;
     use openms::analysis::feature_finder_picked::algorithm::feature_stage;
-    let rows = nonfinite_rows();
     let cases: Vec<&Vec<String>> = rows.iter().filter(|row| row[0] == "case").collect();
-    assert_eq!(cases.len(), 189);
-    let mut outcomes: BTreeMap<&str, usize> = BTreeMap::new();
+    let mut outcomes: BTreeMap<&'static str, usize> = BTreeMap::new();
     for case in cases {
         let name = case[1].as_str();
         let of = |kind: &str| -> Vec<&[String]> {
@@ -1527,21 +1533,6 @@ fn non_finite_inputs_match_the_linux_release_build() {
         } else {
             "ffc1_symmetric"
         };
-        if let Some(expected) = nan_sort_refusal(name, &case[2..]) {
-            // The executed build returned, but only after a `std::sort` over a
-            // NaN key: its order is libstdc++'s introsort order, which this
-            // branch does not reproduce, and the standard leaves it undefined
-            // or unspecified. The port refuses at that sort.
-            let error = stage
-                .and_then(|stage| feature_stage(&stage.unwrap(), &options))
-                .unwrap_err();
-            assert!(
-                matches!(&error, Error::InvalidValue(m) if m.contains(expected)),
-                "{name}: {error}"
-            );
-            *outcomes.entry("nan sort refused").or_default() += 1;
-            continue;
-        }
         if status == "137" {
             let error = stage
                 .and_then(|stage| feature_stage(&stage.unwrap(), &options))
@@ -1559,14 +1550,20 @@ fn non_finite_inputs_match_the_linux_release_build() {
             let error = stage
                 .and_then(|stage| feature_stage(&stage.unwrap(), &options))
                 .unwrap_err();
-            match (kind, &error) {
-                ("IllegalArgument" | "InvalidValue", Error::InvalidValue(message))
-                | ("InvalidRange", Error::InvalidRange(message)) => {
+            match (kind, text, &error) {
+                ("IllegalArgument" | "InvalidValue", _, Error::InvalidValue(message))
+                | ("InvalidRange", _, Error::InvalidRange(message))
+                | ("std::exception", "vector::_M_default_append", Error::InvalidValue(message)) => {
                     assert_eq!(message, text, "{name}");
                 }
-                ("std::exception", Error::InvalidValue(message)) => {
-                    assert_eq!(text, "vector::_M_default_append", "{name}");
-                    assert!(message.contains("isotope windows"), "{name}: {message}");
+                ("std::exception", "std::bad_alloc", Error::InvalidValue(message)) => {
+                    // Below `vector::max_size()` the source allocates, which
+                    // fails or not depending on memory; the port's window
+                    // ceiling refuses first.
+                    assert!(
+                        message.contains("isotope windows") && message.contains("exceed the limit"),
+                        "{name}: {message}"
+                    );
                 }
                 _ => panic!("{name}: executed {kind}: {text}, port {error}"),
             }
@@ -1621,22 +1618,6 @@ fn non_finite_inputs_match_the_linux_release_build() {
         // Every score, through the digest and the listed rows.
         let scores = stage.scores();
         let charges = scores.charge_count();
-        let rounding: BTreeMap<(usize, usize, usize), u32> = of("rounding")
-            .into_iter()
-            .map(|row| {
-                let oracle = u32::from_str_radix(&row[3], 16).unwrap();
-                let correct = u32::from_str_radix(&row[4], 16).unwrap();
-                assert_eq!(oracle.abs_diff(correct), 1, "{name}: rounding row");
-                (
-                    (
-                        row[0].parse().unwrap(),
-                        row[1].parse().unwrap(),
-                        row[2].parse().unwrap(),
-                    ),
-                    oracle,
-                )
-            })
-            .collect();
         let spectra = &stage.experiment().spectra;
         let arrays_of = |s: usize, p: usize| -> Vec<u32> {
             let mut values = vec![
@@ -1648,11 +1629,27 @@ fn non_finite_inputs_match_the_linux_release_build() {
                 values.push(scores.pattern(c, s).unwrap()[p].to_bits());
             }
             for c in 0..charges {
-                let port = scores.overall(c, s).unwrap()[p].to_bits();
-                values.push(rounding.get(&(s, p, c)).copied().unwrap_or(port));
+                values.push(scores.overall(c, s).unwrap()[p].to_bits());
             }
             values
         };
+        // The executed `powf` misrounds these scores; the port computes the
+        // same misrounded values.
+        for row in of("rounding") {
+            let (s, p, c): (usize, usize, usize) = (
+                row[0].parse().unwrap(),
+                row[1].parse().unwrap(),
+                row[2].parse().unwrap(),
+            );
+            let executed = u32::from_str_radix(&row[3], 16).unwrap();
+            let correct = u32::from_str_radix(&row[4], 16).unwrap();
+            assert_eq!(executed.abs_diff(correct), 1, "{name}: rounding row");
+            assert_eq!(
+                scores.overall(c, s).unwrap()[p].to_bits(),
+                executed,
+                "{name}: overall score s{s} p{p} c{c}"
+            );
+        }
         for row in of("score") {
             let s: usize = row[0].parse().unwrap();
             let p: usize = row[1].parse().unwrap();
@@ -1770,10 +1767,29 @@ fn non_finite_inputs_match_the_linux_release_build() {
             assert_eq!(refusing.log(), stage.log(), "{name}");
         }
     }
-    // Of the 170 executed runs that returned features, 161 are reproduced and
-    // 9 refused at a NaN sort key; the 16 that threw are reproduced; of the 3
-    // that never returned, 2 are refused at the endless profile merge and
-    // `rt_nan_mid_unsorted` earlier, at its NaN retention-time sort. Of the
+    outcomes
+}
+
+/// Infinite and NaN retention times, m/z values, intensities and user-seed
+/// positions, against the executed Linux x86_64 Release build
+/// (`nonfinite_stage.tsv.gz`, [`replay_stage_fixture`]).
+///
+/// Infinite retention times make every step infinite and every intensity score
+/// NaN (no feature); infinite intensities shift the quantiles, score NaN at
+/// their own peak, join mass traces and are cut off again by the slope check,
+/// as in the source. NaN keys of the source's sorts are sorted as the Release
+/// build's libstdc++ sorts them (the introsort of `std::sort`, the merge sort
+/// of `std::stable_sort`).
+#[test]
+fn non_finite_inputs_match_the_linux_release_build() {
+    let rows = stage_rows("nonfinite_stage.tsv.gz");
+    assert_eq!(rows.iter().filter(|row| row[0] == "case").count(), 189);
+    let outcomes = replay_stage_fixture(&rows);
+    // Of the 170 executed runs that returned features, all are reproduced,
+    // among them the nine whose sorts see a NaN key (a NaN intensity in a
+    // step-1 cell, and `seeds_mz_nan`); the 16 that threw are reproduced; the
+    // 3 that never returned are refused at the endless profile merge, where
+    // `rt_nan_mid_unsorted` gets after its NaN retention-time sort. Of the
     // returned runs, the opt-out refuses the seven with an infinite step and a
     // non-empty seed loop: `rt_posinf_last`, `rt_posinf_last_min0`,
     // `rt_neginf_first`, `rt_posinf_all`, `rt_neginf_all`,
@@ -1782,32 +1798,54 @@ fn non_finite_inputs_match_the_linux_release_build() {
     assert_eq!(
         outcomes,
         BTreeMap::from([
-            ("features", 161),
-            ("hang", 2),
-            ("nan sort refused", 10),
+            ("features", 170),
+            ("hang", 3),
             ("refused under DegenerateBinStep::Refuse", 7),
             ("threw", 16)
         ])
     );
 }
 
-/// The refusal expected for a case whose source sorts a NaN key with
-/// `std::sort`, or `None`: a NaN intensity in FeatureFinderCentroided_1's one
-/// intensity cell (`intensity:bins` 1), a NaN user-seed m/z among different
-/// ones, and a NaN retention time in an input that `isSorted` finds unsorted.
-fn nan_sort_refusal(name: &str, options: &[String]) -> Option<&'static str> {
-    let nan_intensity = options.iter().any(|option| {
-        (option.starts_with("in:") || option.starts_with("innear:"))
-            && option.ends_with("=7fc00000")
-    });
-    if nan_intensity {
-        return Some("holds a NaN intensity among other values");
-    }
-    match name {
-        "seeds_mz_nan" => Some("not a strict weak ordering"),
-        "rt_nan_mid_unsorted" => Some("MSExperiment::sortSpectra"),
-        _ => None,
-    }
+/// The sorts, the drift-time filter and the step-2.5 bound, against the
+/// executed Linux x86_64 Release build (`sort_mobility_stage.tsv.gz`,
+/// [`replay_stage_fixture`]):
+///
+/// - `std::sort` of a step-1 cell holding NaN intensities, NaN bits of both
+///   signs and signed zeros, whether or not the keys are strictly weakly
+///   ordered (`v2_cell_*`, `v3_cell_*`, `v3_ms1_nan_mixed_40`);
+/// - `MSExperiment::sortSpectra` of an unsorted input whose retention times
+///   tie or hold a NaN (`v2_rt_*`, `v3_rt_*`: `v2_rt_tie3_unsorted` finds 26
+///   seeds only in the introsort order; `v3_rt_nan_first_unsorted` never
+///   returns);
+/// - `MSSpectrum::sortByPosition`'s `std::stable_sort` of peaks holding NaN
+///   m/z values (`v3_mz_nan_*`; the `nocharge` cases show the order in the
+///   trace scores, the others end in the NaN window lookup);
+/// - `FeatureMap::sortByMZ` of user seeds with equal and NaN m/z values
+///   (`v2_seeds_*`, `v3_seeds_*`);
+/// - the area iterator's drift-time filter: NaN, `+inf` and `-inf` drift times
+///   leave their scan out of every step-1 cell, `f64::MAX`, `f64::MIN` and
+///   finite ones keep it (`v2_dt_*`, `v3_dt_*`);
+/// - window counts around `vector::max_size()` (`v2_mz_2p64`,
+///   `v2_mz_below_2p64`, `v3_mz_count_above_max_size`,
+///   `v3_mz_count_below_max_size`) and a `-0.0` m/z (`v2_mz_negzero`).
+#[test]
+fn sort_and_mobility_cases_match_the_linux_release_build() {
+    let rows = stage_rows("sort_mobility_stage.tsv.gz");
+    assert_eq!(rows.iter().filter(|row| row[0] == "case").count(), 52);
+    let outcomes = replay_stage_fixture(&rows);
+    // 43 executed runs returned, 8 threw (four NaN window lookups, three
+    // length errors, one allocation failure) and `v3_rt_nan_first_unsorted`
+    // never returned. The two sixteen-scan inputs with one retention time
+    // have a zero step and a non-empty seed loop.
+    assert_eq!(
+        outcomes,
+        BTreeMap::from([
+            ("features", 43),
+            ("hang", 1),
+            ("refused under DegenerateBinStep::Refuse", 2),
+            ("threw", 8)
+        ])
+    );
 }
 
 /// The bound of one feature of the non-finite fixture: [`tolerance`] of the
@@ -1826,17 +1864,20 @@ fn nonfinite_tolerance(case: &str, config: &str, index: usize) -> f64 {
     tolerance(config, None)
 }
 
-/// Features of the non-finite fixture whose Gaussian fit departs from the
-/// Linux capture on macOS arm64 by more than the general `5.4e-13`, with the
+/// Features of the stage fixtures whose Gaussian fit departs from the Linux
+/// capture on macOS arm64 by more than the general `5.4e-13`, with the
 /// measured largest relative departure over the feature's coordinates,
 /// qualities and meta values, rounded up at the second significant digit:
-/// `1.1156e-12` (the thirteenth or eleventh feature of `seed:min_score` 0),
+/// `1.1156e-12` (the thirteenth or eleventh feature of `seed:min_score` 0, and
+/// the tenth feature of `v3_dt_all_nan` in `sort_mobility_stage.tsv.gz`, its
+/// `score_correlation`),
 /// `6.5974e-8` and `4.9245e-4` (an infinite intensity next to seed 1, whose
 /// second feature's fit is ill-conditioned; `sw_iso_pinf_1` and
 /// `sw_pinf_1` fit the same traces). Other platforms are unmeasured and use
 /// the same bounds.
 #[cfg(not(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu")))]
-const NONFINITE_FIT_GAP: [(&str, usize, f64); 11] = [
+const NONFINITE_FIT_GAP: [(&str, usize, f64); 12] = [
+    ("v3_dt_all_nan", 9, 1.2e-12),
     ("sw_min0_pinf_0", 11, 1.2e-12),
     ("sw_min0_pinf_1", 11, 1.2e-12),
     ("sw_min0_pinf_2", 10, 1.2e-12),
@@ -1968,4 +2009,214 @@ fn check_nonfinite_features<'a>(
             "{name}[{index}]: hulls"
         );
     }
+}
+
+// ---------------------------------------------------------------------------
+// The source's sorts against the executed library
+// ---------------------------------------------------------------------------
+
+/// The sorts `run` reaches, against the executed Linux x86_64 Release build
+/// (`sort_probe.tsv.gz`: `../oracle/ffap-complete-fix1/drivers/sort_probe.cpp`
+/// on ibminode06, two runs, identical; 2,272 inputs with ties, signed zeros,
+/// infinities and NaN keys of four bit patterns, drawn from a 32-value
+/// palette).
+///
+/// - `spec`, `specda`, `chrom`, `chromda`: `MSSpectrum::sortByPosition` and
+///   `MSChromatogram::sortByPosition` of one spectrum or chromatogram, without
+///   and with a float data array. For every buffer limit the probe applied
+///   (`full`; `0`, where every `operator new(nothrow)` fails; and two
+///   partial buffers) the libstdc++ `std::stable_sort` port asks for the
+///   executed sequence of buffer sizes and leaves the executed order. With the
+///   full buffer, what the port runs, `validate_input` leaves the executed
+///   order too, with the data array aligned.
+/// - `spectra`, `chroms`: `MSExperiment::sortSpectra(true)` and
+///   `sortChromatograms(true)` through `validate_input`.
+/// - `features`: `FeatureMap::sortByMZ`, the user-seed sort, through
+///   `source_sort_by` with `Feature::MZLess`.
+#[test]
+fn every_source_sort_matches_the_executed_library() {
+    use openms::analysis::feature_finder_picked::algorithm::validate_input;
+    use openms::analysis::feature_finder_picked::source_sort::{
+        TemporaryBuffer, source_sort_by, source_stable_sort_permutation,
+    };
+    use openms::kernel::{ChromatogramPeak, DataArray, MSChromatogram, MSSpectrum, Peak1D};
+    let rows = stage_rows("sort_probe.tsv.gz");
+    let palette: Vec<f64> = rows[0][1..].iter().map(|bits| f64_hex(bits)).collect();
+    assert_eq!(rows[0][0], "palette");
+    assert_eq!(palette.len(), 32);
+    assert_eq!(rows[1], ["sizes", "16", "16", "8"]);
+    // An MS1 spectrum that `isSorted(true)` rejects, so that `validate_input`
+    // sorts; its own two peaks do not take part in the sorts under test.
+    let unsorted_spectrum = || MSSpectrum {
+        rt: 0.0,
+        peaks: vec![Peak1D::new(200.0, 1.0), Peak1D::new(100.0, 1.0)],
+        ..MSSpectrum::default()
+    };
+    let mut counts: BTreeMap<String, usize> = BTreeMap::new();
+    for row in &rows[2..] {
+        assert_eq!(row[0], "case");
+        let (id, site, limit, codes, requests) = (&row[1], &row[2], &row[3], &row[4], &row[5]);
+        let keys: Vec<f64> = (0..codes.len() / 2)
+            .map(|i| palette[usize::from_str_radix(&codes[2 * i..2 * i + 2], 16).unwrap()])
+            .collect();
+        let n = keys.len();
+        let executed: Vec<usize> = if row[6].is_empty() {
+            Vec::new()
+        } else {
+            row[6].split(',').map(|v| v.parse().unwrap()).collect()
+        };
+        let label = format!("{id} {site} {limit}");
+        let tag = |i: usize| i as f32;
+        let order_of = |intensities: &mut dyn Iterator<Item = f32>| -> Vec<usize> {
+            intensities.map(|v| v as usize).collect()
+        };
+        match site.as_str() {
+            "spec" | "specda" | "chrom" | "chromda" => {
+                assert!(row.len() == 7 || row[7] == "ok", "{label}");
+                let size = if site.ends_with("da") { 8 } else { 16 };
+                // `isSorted`: no key less than its predecessor.
+                let sorted = !keys.windows(2).any(|pair| pair[1] < pair[0]);
+                let mut asked = Vec::new();
+                let permutation = if sorted {
+                    (0..n).collect()
+                } else {
+                    let cap = limit.parse::<usize>().ok();
+                    let mut grant = |count: usize| {
+                        let ok = cap.is_none_or(|cap| count * size <= cap);
+                        asked.push(format!("{}:{}", count * size, u8::from(ok)));
+                        ok
+                    };
+                    source_stable_sort_permutation(
+                        n,
+                        |a, b| keys[a] < keys[b],
+                        TemporaryBuffer::Model(&mut grant),
+                    )
+                    .unwrap()
+                };
+                let asked = if asked.is_empty() {
+                    "-".to_owned()
+                } else {
+                    asked.join(",")
+                };
+                assert_eq!(&asked, requests, "{label}: buffer requests");
+                assert_eq!(permutation, executed, "{label}");
+                if limit == "full" {
+                    let array = if site.ends_with("da") {
+                        vec![DataArray::new("tag", (0..n).map(tag).collect())]
+                    } else {
+                        Vec::new()
+                    };
+                    let mut experiment = MSExperiment::default();
+                    if site.starts_with("spec") {
+                        experiment.spectra.push(MSSpectrum {
+                            rt: 0.0,
+                            peaks: keys
+                                .iter()
+                                .enumerate()
+                                .map(|(i, &k)| Peak1D::new(k, tag(i)))
+                                .collect(),
+                            float_data_arrays: array,
+                            ..MSSpectrum::default()
+                        });
+                        let _ = validate_input(&mut experiment, &mut Vec::new());
+                        let spectrum = &experiment.spectra[0];
+                        let got = order_of(&mut spectrum.peaks.iter().map(|p| p.intensity));
+                        assert_eq!(got, executed, "{label}: validate_input");
+                        if let Some(array) = spectrum.float_data_arrays.first() {
+                            assert_eq!(
+                                order_of(&mut array.data.iter().copied()),
+                                executed,
+                                "{label}"
+                            );
+                        }
+                    } else {
+                        experiment.spectra.push(unsorted_spectrum());
+                        experiment.chromatograms.push(MSChromatogram {
+                            peaks: keys
+                                .iter()
+                                .enumerate()
+                                .map(|(i, &k)| ChromatogramPeak::new(k, tag(i)))
+                                .collect(),
+                            float_data_arrays: array,
+                            ..MSChromatogram::default()
+                        });
+                        validate_input(&mut experiment, &mut Vec::new()).unwrap();
+                        let chromatogram = &experiment.chromatograms[0];
+                        let got = order_of(&mut chromatogram.peaks.iter().map(|p| p.intensity));
+                        assert_eq!(got, executed, "{label}: validate_input");
+                        if let Some(array) = chromatogram.float_data_arrays.first() {
+                            assert_eq!(
+                                order_of(&mut array.data.iter().copied()),
+                                executed,
+                                "{label}"
+                            );
+                        }
+                    }
+                }
+            }
+            "spectra" | "chroms" => {
+                assert_eq!(requests, "-", "{label}");
+                let mut experiment = MSExperiment::default();
+                experiment.spectra.push(unsorted_spectrum());
+                if site == "spectra" {
+                    // The probe's spectra hold no peaks; the first carries the
+                    // two unsorted ones, which no RT comparison sees.
+                    experiment.spectra.clear();
+                    for (i, &k) in keys.iter().enumerate() {
+                        let mut spectrum = if i == 0 {
+                            unsorted_spectrum()
+                        } else {
+                            MSSpectrum::default()
+                        };
+                        spectrum.rt = k;
+                        spectrum.native_id = i.to_string();
+                        experiment.spectra.push(spectrum);
+                    }
+                } else {
+                    for (i, &k) in keys.iter().enumerate() {
+                        let mut chromatogram = MSChromatogram {
+                            native_id: i.to_string(),
+                            ..MSChromatogram::default()
+                        };
+                        chromatogram.product.mz = k;
+                        experiment.chromatograms.push(chromatogram);
+                    }
+                }
+                let _ = validate_input(&mut experiment, &mut Vec::new());
+                let got: Vec<usize> = if site == "spectra" {
+                    experiment
+                        .spectra
+                        .iter()
+                        .map(|s| s.native_id.parse().unwrap())
+                        .collect()
+                } else {
+                    experiment
+                        .chromatograms
+                        .iter()
+                        .map(|c| c.native_id.parse().unwrap())
+                        .collect()
+                };
+                assert_eq!(got, executed, "{label}");
+            }
+            "features" => {
+                assert_eq!(requests, "-", "{label}");
+                let mut features: Vec<Feature> = keys
+                    .iter()
+                    .enumerate()
+                    .map(|(i, &k)| Feature::new(0.0, k, tag(i)))
+                    .collect();
+                source_sort_by(&mut features, |a, b| a.mz < b.mz).unwrap();
+                let got = order_of(&mut features.iter().map(|f| f.intensity));
+                assert_eq!(got, executed, "{label}");
+            }
+            other => panic!("unknown site {other}"),
+        }
+        *counts
+            .entry(format!(
+                "{site} {}",
+                if limit == "full" { "full" } else { "limited" }
+            ))
+            .or_default() += 1;
+    }
+    assert_eq!(counts.values().sum::<usize>(), 2272);
 }

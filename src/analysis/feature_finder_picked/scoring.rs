@@ -35,6 +35,7 @@ use crate::analysis::feature_finder_picked::debug::{LogSink, NoLog, g, number, p
 use crate::analysis::feature_finder_picked::helper_structs::{
     IsotopePattern, PatternPeak, TheoreticalIsotopePattern,
 };
+use crate::analysis::feature_finder_picked::source_sort::source_sort_by;
 use crate::kernel::{MSExperiment, MSSpectrum, NumericRange, Peak1D};
 use crate::math::statistic_functions::pearson_correlation_coefficient;
 use crate::{Error, Result};
@@ -242,6 +243,18 @@ impl IntensityThresholds {
     /// [`Self::score`] and
     /// [`DegenerateBinStep`](crate::analysis::feature_finder_picked::algorithm::DegenerateBinStep).
     ///
+    /// The source's area iterator visits only the scans whose drift time lies
+    /// in the full mobility range `[f64::MIN, f64::MAX]`
+    /// (`MSExperiment::areaBeginConst` sets it from `RangeMobility{}`,
+    /// `MSExperiment.cpp:562-571`; `AreaIterator::nextScan_` skips the others,
+    /// `AreaIterator.h:277-298`, with `RangeBase::contains`, `min <= v && v <=
+    /// max`). A scan whose drift time is NaN, `+inf` or `-inf` therefore
+    /// contributes no intensity to any cell, although its retention time and
+    /// m/z still count for the ranges; this walk skips it too. Executed against
+    /// the Release build: a NaN or infinite drift time on one scan, on sixteen,
+    /// on every scan, and together with an unsorted input
+    /// (`../oracle/ffap-complete-fix1`, `v2_dt_*` and `v3_dt_*`).
+    ///
     /// # Undefined behaviour of the source on NaN keys
     ///
     /// A NaN retention time or m/z makes the searches' keys unpartitioned. The
@@ -256,18 +269,19 @@ impl IntensityThresholds {
     /// The check that returns [`Error::InvalidValue`] there is therefore only a
     /// guard of the slices below.
     ///
-    /// A NaN intensity is sorted with `std::sort`. When the cell holds a value
-    /// whose bits differ from the NaN's, the standard leaves the result
-    /// undefined (two other values differ) or the order of the equivalent
-    /// values unspecified, and that order decides the stored quantiles; the
-    /// Release build's order is libstdc++'s introsort, which this module does
-    /// not reproduce. Such a cell is [`Error::InvalidValue`]. A cell whose
-    /// values all have the NaN's bits sorts to itself and is kept.
+    /// Each cell's intensities are sorted with `std::sort`, which the port
+    /// reproduces as the Release build's libstdc++ introsort
+    /// ([`source_sort_by`]): a NaN intensity and signed zeros land where the
+    /// executed sort puts them, and the quantiles read from there. The
+    /// introsort reads outside the cell only for NaN keys in orders no executed
+    /// input produced; there it returns [`Error::InvalidValue`] (module
+    /// documentation of
+    /// [`source_sort`](crate::analysis::feature_finder_picked::source_sort)).
     ///
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] when `bins` is zero, when a spectrum is
-    /// not MS1, and for a NaN intensity sorted among other values;
+    /// not MS1, and where the introsort of a cell would read outside it;
     /// [`Error::InvalidRange`] for an empty range; and
     /// [`Error::UnsortedData`] when the spectra are not sorted as source
     /// `MSExperiment::isSorted(true)` requires.
@@ -315,6 +329,10 @@ impl IntensityThresholds {
                 values.clear();
                 work.consume((end - begin) as u64 + 1)?;
                 for (offset, spectrum) in spectra[begin..end].iter().enumerate() {
+                    // `AreaIterator::nextScan_`: `RangeMobility{lowest, max}.containsMobility`.
+                    if !(f64::MIN..=f64::MAX).contains(&spectrum.drift_time) {
+                        continue;
+                    }
                     let peaks = &spectrum.peaks;
                     // Source `MZBegin(min_mz)` and `MZEnd(max_mz)`.
                     let low = libstdcxx::lower_bound(peaks, |peak| peak.mz < min_mz);
@@ -334,21 +352,9 @@ impl IntensityThresholds {
                 }
                 work.consume(values.len() as u64)?;
                 let mut cell = [0.0; QUANTILE_COUNT];
-                if let Some(&first) = values.first() {
-                    let has_nan = values.iter().any(|value| value.is_nan());
-                    if has_nan
-                        && values
-                            .iter()
-                            .any(|value| value.to_bits() != first.to_bits())
-                    {
-                        return Err(Error::InvalidValue(format!(
-                            "FeatureFinderAlgorithmPicked step 1: the intensity cell {rt_bin}/{mz_bin} \
-                             holds a NaN intensity among other values; the source sorts them with \
-                             std::sort, whose result the standard leaves undefined or unspecified \
-                             there and which the port does not reproduce"
-                        )));
-                    }
-                    values.sort_unstable_by(f64::total_cmp);
+                if !values.is_empty() {
+                    // Source `std::sort(tmp.begin(), tmp.end())` on `double`s.
+                    source_sort_by(&mut values, |a, b| a < b)?;
                     let last = (values.len() - 1) as f64;
                     for (i, quantile) in cell.iter_mut().enumerate() {
                         let index = (0.05 * i as f64 * last).floor() as usize;
@@ -414,9 +420,9 @@ impl IntensityThresholds {
     /// it: the default NaN for `0 / 0`, the intensity's own NaN otherwise.
     ///
     /// The first quantile not below the intensity is found with libstdc++'s
-    /// `std::lower_bound`. A cell's quantiles hold a NaN only when every value
-    /// of the cell had the same NaN bits ([`Self::compute`]), so they are
-    /// partitioned for every intensity and the search is defined.
+    /// `std::lower_bound`, probe by probe ([`libstdcxx::lower_bound`]), also
+    /// when a NaN among a cell's quantiles leaves them unpartitioned, where the
+    /// standard does not define the search ([`Self::compute`]).
     ///
     /// Returns `None` for a cell outside the grid.
     pub fn bin_score(&self, rt_bin: usize, mz_bin: usize, intensity: f64) -> Option<f64> {

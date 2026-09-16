@@ -270,9 +270,9 @@ fn check_stage(stage: &SeedStage, case: &Case) {
     let table = rows(case.scores);
     assert_eq!(table.len(), peaks, "{}: score rows", case.config);
     // Overall scores that the executed glibc powf rounds one binary32 step away
-    // from the correctly rounded power, each with the correctly rounded value
-    // that the port produces (8 of 30,840; the macOS arm64 product SDK's Apple
-    // powf misrounded 99).
+    // from the correctly rounded power (8 of 30,840; the macOS arm64 product
+    // SDK's Apple powf misrounded 99). The port computes that powf, so it
+    // gives the executed, misrounded value at each of them as everywhere else.
     let rounding = rounding_rows(case.scores);
     let mut rounded = 0;
     let mut mismatches = Vec::new();
@@ -298,11 +298,11 @@ fn check_stage(stage: &SeedStage, case: &Case) {
             actual.push(scores.overall(c, s).unwrap()[p]);
         }
         for (column, (value, oracle)) in actual.iter().zip(arrays).enumerate() {
-            let mut expected = f32_hex(oracle);
+            let expected = f32_hex(oracle);
             if column >= 3 + charges {
                 if let Some(&(misrounded, correct)) = rounding.get(&(s, p, column - 3 - charges)) {
                     assert_eq!(misrounded.to_bits(), expected.to_bits(), "{}", case.config);
-                    expected = correct;
+                    assert_ne!(value.to_bits(), correct.to_bits(), "{}", case.config);
                     rounded += 1;
                 }
             }
@@ -354,16 +354,11 @@ fn check_stage(stage: &SeedStage, case: &Case) {
                     seed.spectrum.to_string(),
                     seed.peak.to_string(),
                     format!("{:08x}", seed.intensity.to_bits()),
-                    // The drivers record the executed (possibly misrounded) score.
+                    // The drivers record the executed (possibly misrounded)
+                    // score, which the port computes as well.
                     format!(
                         "{:08x}",
-                        rounding
-                            .get(&(seed.spectrum, seed.peak, charge_index))
-                            .map_or(
-                                scores.overall(charge_index, seed.spectrum).unwrap()[seed.peak],
-                                |&(misrounded, _)| misrounded
-                            )
-                            .to_bits()
+                        scores.overall(charge_index, seed.spectrum).unwrap()[seed.peak].to_bits()
                     ),
                 )
             })
@@ -908,6 +903,18 @@ fn experiment(spectra: Vec<MSSpectrum>) -> MSExperiment {
     }
 }
 
+/// The m/z values of `v3_mz_nan_three_unsorted` after the executed
+/// `MSSpectrum::sortByPosition` (`sort_mobility_stage.tsv.gz`, score rows 0 to
+/// 2): 500, 501, NaN.
+const EXECUTED_NAN_THREE_ORDER: [u64; 3] = [
+    0x407f_4000_0000_0000,
+    0x407f_5000_0000_0000,
+    0x7ff8_0000_0000_0000,
+];
+
+/// The printed seed line of `v3_seeds_nan_500_600` (`sort_mobility_stage.tsv.gz`).
+const EXECUTED_NAN_500_600_SEEDS: &str = "Found 0 seeds for charge 2.";
+
 #[test]
 fn empty_input_returns_an_empty_map_before_the_parameters_are_read() {
     let mut invalid = Param::new();
@@ -969,14 +976,31 @@ fn input_checks_follow_the_source() {
     // An unsorted spectrum holding a NaN m/z beside two different m/z values:
     // `std::is_sorted` stops at 501 > 500, and the source then sorts the peaks
     // with `std::stable_sort` under a comparator that is no strict weak
-    // ordering: refused. (Were the NaN between the two, `std::is_sorted`
-    // would compare nothing false and the source would not sort.)
+    // ordering, which libstdc++'s merge sort does without leaving the range.
+    // The executed Release build leaves 500, 501, NaN
+    // (`v3_mz_nan_three_unsorted` in `sort_mobility_stage.tsv.gz`, whose
+    // score rows list the sorted m/z values; without charges, since the
+    // pattern lookup of a NaN m/z throws). (Were the NaN between the two,
+    // `std::is_sorted` would compare nothing false and the source would not
+    // sort.)
     let e = experiment(vec![spectrum(
         1.0,
         1,
         &[(501.0, 1.0), (500.0, 1.0), (f64::NAN, 1.0)],
     )]);
-    assert!(message(SeedStage::run(e, &none, &p)).contains("std::stable_sort"));
+    let mut no_charges = Param::new();
+    set(
+        &mut no_charges,
+        "isotopic_pattern:charge_low",
+        ParamValue::Integer(5),
+    );
+    let s = SeedStage::run(e, &none, &no_charges).unwrap().unwrap();
+    let sorted: Vec<u64> = s.experiment().spectra[0]
+        .peaks
+        .iter()
+        .map(|peak| peak.mz.to_bits())
+        .collect();
+    assert_eq!(sorted, EXECUTED_NAN_THREE_ORDER);
     // The parameters are checked after the input.
     let mut invalid = Param::new();
     set(&mut invalid, "intensity:bins", ParamValue::Integer(0));
@@ -1126,10 +1150,14 @@ fn undefined_source_configurations_are_refused() {
                 .all(|charge| charge.seeds.is_empty())
         );
     }
-    // A NaN user-seed m/z among two different seed m/z values: the source's
-    // std::sort has no strict weak ordering. A single NaN seed sorts alone and
-    // matches no peak: no seed, as the executed Release build finds
-    // (`seeds_one_mz_nan` in `nonfinite_stage.tsv.gz`).
+    // A single NaN seed sorts alone and matches no peak: no seed, as the
+    // executed Release build finds (`seeds_one_mz_nan` in
+    // `nonfinite_stage.tsv.gz`). A NaN user-seed m/z among two different seed
+    // m/z values leaves the source's std::sort without a strict weak
+    // ordering; libstdc++'s introsort sorts them anyway, and the port finds
+    // the executed seed count (`v3_seeds_nan_500_600` in
+    // `sort_mobility_stage.tsv.gz`, the same three seeds at retention time
+    // 100).
     let mut seeds = FeatureMap::new();
     seeds
         .features
@@ -1142,10 +1170,8 @@ fn undefined_source_configurations_are_refused() {
     seeds
         .features
         .push(openms::kernel::Feature::new(100.0, 600.0, 1.0));
-    assert!(matches!(
-        SeedStage::run(ffc1_input(), &seeds, &ffc1_parameters()),
-        Err(Error::InvalidValue(message)) if message.contains("strict weak ordering")
-    ));
+    let s = stage(ffc1_input(), &seeds, &ffc1_parameters());
+    assert_eq!(s.log(), [EXECUTED_NAN_500_600_SEEDS]);
 }
 
 /// A changed abundance computes the intended two-isotope override by default
@@ -1788,13 +1814,14 @@ fn degenerate_bin_steps_match_the_linux_release_build() {
                 actual.push(scores.overall(c, s).unwrap()[p]);
             }
             for (column, (value, oracle)) in actual.iter().zip(arrays).enumerate() {
-                let mut expected = u32::from_str_radix(oracle, 16).unwrap();
+                let expected = u32::from_str_radix(oracle, 16).unwrap();
                 if column >= 3 + charges {
+                    // The executed powf misrounds here, and so does the port.
                     if let Some(&(misrounded, correct)) =
                         rounding.get(&(s, p, column - 3 - charges))
                     {
                         assert_eq!(misrounded, expected);
-                        expected = correct;
+                        assert_ne!(value.to_bits(), correct, "{config}");
                         rounded += 1;
                     }
                 }
@@ -1831,10 +1858,7 @@ fn degenerate_bin_steps_match_the_linux_release_build() {
         for charge in stage.charges() {
             let index = (charge.charge - settings.charge_low) as usize;
             for (rank, seed) in charge.seeds.iter().enumerate() {
-                let overall = scores.overall(index, seed.spectrum).unwrap()[seed.peak].to_bits();
-                let executed = rounding
-                    .get(&(seed.spectrum, seed.peak, index))
-                    .map_or(overall, |&(misrounded, _)| misrounded);
+                let executed = scores.overall(index, seed.spectrum).unwrap()[seed.peak].to_bits();
                 actual_seeds.push(vec![
                     charge.charge.to_string(),
                     rank.to_string(),
@@ -2060,4 +2084,43 @@ fn feature_finder_defs_match_the_executed_probe() {
             other => panic!("{other:?}"),
         }
     }
+}
+
+/// `ChargedIndexSet` comparisons against the executed probe `defs_eq_probe`
+/// (`../oracle/ffap-complete-fix1`, Linux x86_64 Release build, two
+/// repetitions, identical): the struct has no comparison of its own, so `==`,
+/// `!=`, `<`, `<=`, `>` and `>=` are the base `std::set`'s and ignore the
+/// charge.
+#[test]
+fn charged_index_set_comparisons_match_the_executed_probe() {
+    use openms::analysis::feature_finder_picked::defs::ChargedIndexSet;
+    let text = std::fs::read_to_string(data("defs_eq_probe.tsv")).unwrap();
+    let parse = |charge: &str, set: &str| {
+        let mut value = ChargedIndexSet {
+            charge: charge.parse().unwrap(),
+            ..ChargedIndexSet::default()
+        };
+        if set != "-" {
+            for pair in set.split(';') {
+                let (scan, peak) = pair.split_once('/').unwrap();
+                value.insert((scan.parse().unwrap(), peak.parse().unwrap()));
+            }
+        }
+        value
+    };
+    let mut cases = 0;
+    for line in text.lines() {
+        let row: Vec<&str> = line.split('\t').collect();
+        let a = parse(row[1], row[2]);
+        let b = parse(row[3], row[4]);
+        let flags: Vec<bool> = row[5..11].iter().map(|v| *v == "1").collect();
+        assert_eq!(
+            vec![a == b, a != b, a < b, a <= b, a > b, a >= b],
+            flags,
+            "{}",
+            row[0]
+        );
+        cases += 1;
+    }
+    assert_eq!(cases, 7);
 }

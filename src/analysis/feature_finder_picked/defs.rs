@@ -47,12 +47,42 @@ pub type IndexSet = BTreeSet<IndexPair>;
 /// The source derives it from [`IndexSet`]; here the set is the field
 /// [`Self::indices`], and `Deref` gives the set's methods to the struct as the
 /// base class does.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+///
+/// The source struct declares no comparison of its own, so `a == b` and `a <
+/// b` reach `std::set`'s operators through the base class and compare the
+/// index sets only, lexicographically; the charge takes no part. The
+/// comparisons here do the same (executed against the Release build:
+/// `../oracle/ffap-complete-fix1/drivers/defs_eq_probe.cpp`, where two sets
+/// with equal indices and charges 1 and 2 compare equal).
+#[derive(Clone, Debug, Default)]
 pub struct ChargedIndexSet {
     /// The peak indices (the source's base class).
     pub indices: IndexSet,
     /// Charge estimate; zero, the default, means "no charge estimate".
     pub charge: i32,
+}
+
+impl PartialEq for ChargedIndexSet {
+    /// `std::operator==` on the base `std::set`: the indices only.
+    fn eq(&self, other: &Self) -> bool {
+        self.indices == other.indices
+    }
+}
+
+impl Eq for ChargedIndexSet {}
+
+impl PartialOrd for ChargedIndexSet {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for ChargedIndexSet {
+    /// `std::operator<` on the base `std::set`: the indices only, compared
+    /// lexicographically.
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.indices.cmp(&other.indices)
+    }
 }
 
 impl Deref for ChargedIndexSet {

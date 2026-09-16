@@ -42,8 +42,11 @@ pub mod fitting;
 /// Overlap resolution and apex annotation (`FeatureFinderAlgorithmPicked.h`).
 pub mod resolution;
 
-/// The C++ Release build's `std::sort` order of equal elements (`FeatureFinderAlgorithmPicked.h`).
+/// The C++ Release build's `std::sort` and `std::stable_sort` orders (`FeatureFinderAlgorithmPicked.h`).
 pub mod source_sort;
+
+/// The reference build's C library `powf` of the overall seed score (`FeatureFinderAlgorithmPicked.h`).
+pub(crate) mod glibc_powf;
 
 /// The debug mode: the source's `debug/` output as data (`FeatureFinderAlgorithmPicked.h`).
 pub mod debug;
