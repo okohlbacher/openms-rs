@@ -775,7 +775,7 @@
   },
   {
    "path": "../oracle/ffap-instr-completion/make_manifest.py",
-   "sha256": "2f017e10e16255167a98582005c6f62937e269f960556b38893ae51c359327d1",
+   "sha256": "905807da93c4ea909a860e5fdcdaf4bdc5f0d8838cfb4714065923f4308299e1",
    "origin_key": "ffap_instr_completion"
   },
   {
@@ -931,6 +931,6 @@
   "ParamValue::operator double() returns the union member dou_ for string and list values, i.e. the bits of a heap pointer; writeFeatureDebugInfo_ with a string debug:pseudo_rt_shift writes address-dependent numbers near RT 0 (executed)"
  ],
  "target_verification": {
-  "platform": "Rust gates on dax through ~/.local/bin/openms-kim-gate.sh, slots ffap-instr-impl* and ffap-instr-fix; local tests on macOS arm64"
+  "platform": "Rust gates on dax through ~/.local/bin/openms-kim-gate.sh, slots ffap-instr-impl*, ffap-instr-fix and ffap-instr-fix2 (8a53517: clippy, MSRV 1.85.0, rustdoc, the lane targets with all and with the minimal features, and the full all-targets run, 5228 passed, 0 failed, 22 ignored); local tests on macOS arm64"
  }
 }
