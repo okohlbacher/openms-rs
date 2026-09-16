@@ -108,8 +108,9 @@ fn contains_seed(pattern: &IsotopePattern, seed: Seed) -> bool {
 /// Its m/z reach, `(isotopes + 1) / charge`, bounds a linear search around the
 /// seed peak in the seed's own scan: every peak of that window is tried as the
 /// pattern's first isotope, its isotopes are matched with
-/// [`find_isotope`] (which also inspects the neighbouring scans), and the
-/// placement is scored with [`isotope_score`] *without* the m/z-distance factor.
+/// [`find_isotope`](crate::analysis::feature_finder_picked::scoring::find_isotope) (which also inspects the neighbouring scans), and the
+/// placement is scored with
+/// [`isotope_score`](crate::analysis::feature_finder_picked::scoring::isotope_score) *without* the m/z-distance factor.
 /// A placement counts only while it matches the seed peak itself, checked both
 /// before scoring and again afterwards, because the scoring may drop optional
 /// isotopes. The highest score wins, compared with a strict `>`, so the

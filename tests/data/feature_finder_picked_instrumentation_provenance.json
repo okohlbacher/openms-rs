@@ -1,0 +1,679 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "package_revisions": {
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df"
+ },
+ "rust_base_revision": "59e0e1ce6a1521bd575788ae9495c882c425318f",
+ "license": "BSD-3-Clause",
+ "group": "feature_finder_picked",
+ "work_package": "ffap-instrumentation (FeatureFinderAlgorithmPicked: the instance and its side channels)",
+ "scope": "FEATUREFINDER/FeatureFinderAlgorithmPicked.h/.cpp: the object state across runs (aborts_, abort_reasons_, log_, isotope_distributions_, param_), run into a caller's non-empty FeatureMap, the DefaultParamHandler surface, the ProgressLogger base (20 call sites), write_debug (log_ text, per-charge seed maps, abort map, debug input) and writeFeatureDebugInfo_ (.dta, _cropped.dta, .plot), and FeatureFinderCentroided -algorithm:write_debug.",
+ "method": "Executed differential against the Linux x86_64 Release build. drivers/ffap_instr_driver.cpp subclasses FeatureFinderAlgorithmPicked (reading its protected members) and prints maps with floats as IEEE-754 bit patterns; tool_cases.py runs the Release FeatureFinderCentroided. make_fixtures.py copies the outputs of the .1 repetitions into this directory; the other repetitions were compared and differ only in timing text and in the random map ids the driver draws outside test mode.",
+ "evidence_tier": "tier 1 (executed, Linux x86_64 Release, OMP_NUM_THREADS=1) for every compared output; tier 4 for the refused undefined cases (zero-charge SIGFPE, stale abort seeds SIGSEGV), whose executed signals are recorded but have no value to compare.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
+   "sha256": "a9d5a2373f301e3ac553bdfbcb8e1dba95de46eab1344bf07a4962760e35b8c0"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "sha256": "12730d264da698c53ea7c40e711be76eb91ee4151ef0937b8f1f1e25ff0583a0"
+  }
+ ],
+ "context_sources": [
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/KERNEL/Feature.cpp",
+   "sha256": "5b6ea1b5ecb99d656213c02ebfe4e9a89f5216bd6c7b535ab8d24a0bd7579f72",
+   "role": "getConvexHull (93-136): the overall hull and its bounding box"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/KERNEL/FeatureMap.cpp",
+   "sha256": "210ebf2fbe17259af5034b78855d0f57e16becf525aae370217a044f0c926a27",
+   "role": "sortByMZ, sortByIntensity: std::sort"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DBoundingBox.h",
+   "sha256": "5a71ca1b34de215282edb32ea31e209bb10f583c68c7ce81b534bc216089980d",
+   "role": "empty box, enlarge, intersects"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h",
+   "sha256": "787ed51ddf700a472a09dcaed4eb738c50ab8353e0b212f0a6a8a3171615b495",
+   "role": "empty interval [DBL_MAX, -DBL_MAX], width"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/DATASTRUCTURES/ConvexHull2D.cpp",
+   "sha256": "75181e622beebcde6020cafa816363342cd3e9ed9e18d3e5f8924cac3b1572a1",
+   "role": "getBoundingBox"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/DATASTRUCTURES/Param.cpp",
+   "sha256": "5bfd393df12f6cc6d3238f3a31cdf33e72aeead1ec6831666ac8306889aec407",
+   "role": "getValue/getEntry_: ElementNotFound for debug:pseudo_rt_shift"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/DATASTRUCTURES/DefaultParamHandler.cpp",
+   "sha256": "20a4f3386a4fd3b9a203ed36008d7dccb35d2b7c5f0e42b556b4bc8995eecb53",
+   "role": "setParameters, the unknown-parameter warning"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/CONCEPT/ProgressLogger.cpp",
+   "sha256": "cab7e28a3b62516ccb0d498cacf969a2c18975ece6c97da2aff51c5f25733baf",
+   "role": "startProgress, setProgress, endProgress, CMD output"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/CONCEPT/LogStream.cpp",
+   "sha256": "a68abf7af7a12a0a6133e841f7b1069624b82af3c4a53488c5b38d9c017ae292",
+   "role": "the two-line repetition cache and its flush"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/CONCEPT/GlobalExceptionHandler.cpp",
+   "sha256": "1e599253cb2ccf4722729ace42669d85714fb6e0aaa410242dc935be02ce4a3e",
+   "role": "terminate handler: the fatal-exception block"
+  },
+  {
+   "package": "core",
+   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "sha256": "bf2e3249bc0b10068cea877cecc54abe508f401741c0979160db7a92e949bf44",
+   "role": "Seed::operator<, MassTraces for writeFeatureDebugInfo_"
+  },
+  {
+   "package": "cli",
+   "revision": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+   "path": "source/APPLICATIONS/TOPPBase.cpp",
+   "sha256": "326b96f85b4041febec49e18252d7be2ad0a5450abe5249adecc28ca315fdc05",
+   "role": "flag parsing, exception exit codes, the took line"
+  },
+  {
+   "package": "topp",
+   "revision": "174b576e244e100f2345ca57a8e79aaa607156df",
+   "path": "src/FeatureFinderCentroided.cpp",
+   "sha256": "3456f7a563352ae33a08b0872915970342c46229cce6a2bdbe2313b3ece89f68",
+   "role": "the tool that passes write_debug to the algorithm"
+  },
+  {
+   "package": "libstdc++ (conda-forge gcc 14.4.0, in the Release install)",
+   "revision": "deps/lib/gcc/x86_64-conda-linux-gnu/14.4.0/include/c++",
+   "path": "bits/stl_algo.h",
+   "sha256": "0598c5b12d038b2e5b1c7d5e7b4982f8e8689a42d01af75cd919a76557a2dfcf",
+   "role": "std::sort (__introsort_loop, __partition_by_median_guarded, __insertion_sort) emulated by source_sort.rs"
+  },
+  {
+   "package": "libstdc++ (conda-forge gcc 14.4.0, in the Release install)",
+   "revision": "deps/lib/gcc/x86_64-conda-linux-gnu/14.4.0/include/c++",
+   "path": "bits/stl_heap.h",
+   "sha256": "f18f83b2feddf54c7ea289625628b34a2f6d758b697240b3b5d9abaeee6700ce",
+   "role": "the heapsort fallback"
+  },
+  {
+   "package": "libstdc++ (conda-forge gcc 14.4.0, in the Release install)",
+   "revision": "deps/lib/gcc/x86_64-conda-linux-gnu/14.4.0/include/c++",
+   "path": "bits/fstream.tcc",
+   "sha256": "ffa3dcccad52f014ab39295d6b59e8462d9b7d64563c4487a1974422bdba32a0",
+   "role": "basic_filebuf::xsputn and overflow: what log.txt holds at termination"
+  },
+  {
+   "package": "libstdc++ (conda-forge gcc 14.4.0, in the Release install)",
+   "revision": "deps/lib/gcc/x86_64-conda-linux-gnu/14.4.0/include/c++",
+   "path": "bits/streambuf.tcc",
+   "sha256": "a71b5cd35e827029ca273b9dfeba5446989ab015f147d16120095829c10e1f21",
+   "role": "basic_streambuf::xsputn"
+  }
+ ],
+ "context_sources_note": "Read for context and for the behaviour the port reproduces; this group ports no other header, so tools/core_sdk_coverage.py must not count them as evidence. libstdc++ paths are relative to the Release install below.",
+ "native_implementation": [
+  "src/analysis/feature_finder_picked/instance.rs",
+  "src/analysis/feature_finder_picked/debug.rs",
+  "src/analysis/feature_finder_picked/source_sort.rs",
+  "src/analysis/feature_finder_picked/algorithm.rs",
+  "src/analysis/feature_finder_picked/resolution.rs",
+  "src/cli/tools/feature_finder_centroided.rs"
+ ],
+ "native_tests": [
+  "tests/feature_finder_picked_instrumentation.rs",
+  "tests/topp_feature_finder_centroided.rs",
+  "tests/feature_finder_picked_seeds.rs"
+ ],
+ "support_document": "docs/FEATURE_FINDER_PICKED_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/a1_input.mzML.gz",
+   "sha256": "a1b95a1f757367d767ac5fc57e6b66d3d566a6615877b494278988538e9336fb",
+   "bytes": 57644,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case a1 (FFC_1 INI, mass_trace:min_spectra 1, no seed): debug/input.mzML, gzipped; compared decoded (D6), NaN score values compared as NaN"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/a2_abort_map.featureXML.gz",
+   "sha256": "2090c798f9616a09963a9c9fb439ab06139d412351bea4f5395c77a855e2163b",
+   "bytes": 1157,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case a2: debug/abort_reasons.featureXML (25 aborted seeds)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/a2_input.mzML.gz",
+   "sha256": "768130d732714d43191131374aa26621bae59e16ba839fcfacdfe294f2e048ca",
+   "bytes": 78523,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case a2 (FFC_1 INI, feature:min_isotope_fit 1.0, every seed aborts): debug/input.mzML with the seven score arrays per spectrum"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/a3_input.mzML.gz",
+   "sha256": "3b641fb8967218ca2623b280c1770ad1c9073fdf5ecc927abf240d4192343a20",
+   "bytes": 4966,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case a3 (FileConverter_31_output.mzML, -force, four scans): debug/input.mzML"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/a4_seed_map_1.featureXML.gz",
+   "sha256": "5247c7fbbc384a3cb67ca6294dbae6758f5238209265b792d60ea666378308d0",
+   "bytes": 3033,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case a4 (FFC_1 input with default parameters, terminates in the fit): debug/seeds_1.featureXML"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/debug_digests.tsv",
+   "sha256": "b0d191615b688c9d6a4e9a69868253b1ec2d62431482235f6d9cf9241f1c436a",
+   "bytes": 27820,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "size and SHA-1 of every executed log.txt (a1, a2, a3, a4 and b1 up to termination, the driver's two-run object) and of every .dta, _cropped.dta and .plot file and log of the driver cases declared-shift500, -shift123, -int250, -egh and -prefilled (387 files)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/declared_egh_abort_map.featureXML",
+   "sha256": "26231aa31effbae79b67a275ec3cc9fe4186fc1b33447236f63de1c3a3e81053",
+   "bytes": 750,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case declared-egh: debug/abort_reasons.featureXML (map id random: the driver runs outside test mode; compared without ids)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/declared_egh_map.txt.gz",
+   "sha256": "c399805bd3dab27b2d15648498107f4bb07e0d0d656a5cbcb9de1ed2376d8faf",
+   "bytes": 5525,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case declared-egh: the returned FeatureMap and aborts_ in the driver's dump format (floats as bit patterns)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/declared_prefilled_abort_map.featureXML",
+   "sha256": "972d54861b4766f1dc1c99d9aaf80d6badbc6d70c63171ab21292dfc680c302a",
+   "bytes": 750,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case declared-prefilled: debug/abort_reasons.featureXML"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/declared_shift500_abort_map.featureXML",
+   "sha256": "b62e27df70d7b3e26f14f1635ae7e575c0b66c4efda1b62896027b88601f1fe7",
+   "bytes": 750,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case declared-shift500 (also the abort map of shift123 and int250): debug/abort_reasons.featureXML"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/empty_abort_map.featureXML",
+   "sha256": "16d7b65e623977469c378436f098fe4b76b8af8e70896b77b0ca236f654198c7",
+   "bytes": 336,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case a1: debug/abort_reasons.featureXML without aborts"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/empty_seed_map.featureXML",
+   "sha256": "ba1d631a03642ec2769256b60cbbaaf0d6d4382cd08d35ccc579631aeeed2c3b",
+   "bytes": 308,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case a1: debug/seeds_2.featureXML of a charge without seeds"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/ffc1_seed_map.featureXML.gz",
+   "sha256": "ca4b159b84bf0e4b31685611a316ff53d05a6bd0a58d8a116581e9a8a56309ce",
+   "bytes": 1901,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool cases a2 and b1: debug/seeds_2.featureXML (the 25 FFC_1 seeds)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/overlap_ffc1.txt.gz",
+   "sha256": "65c33db1f7b03c8c220f7bc025384a7dc05e2651ed9d5a9fc1b4768a73cd0d07",
+   "bytes": 5492,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case overlap ffc1: a caller's map of five features that overlap the new ones (same charge, a multiple, quality, an empty hull, no hull) extended by a run"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/overlap_nan_intensity.txt.gz",
+   "sha256": "9f1e06245d89bc1a24729688dd0a928cb4968578fab20ff4a0676680be67c8fb",
+   "bytes": 5554,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case overlap nan_intensity: plus a caller's feature with NaN intensity"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/overlap_nan_mz.txt.gz",
+   "sha256": "e5288711c6c5cd9cae2338a19124a45094be82f4e07fb4c20ee382d2b375fd57",
+   "bytes": 5550,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case overlap nan_mz: plus a caller's feature with NaN m/z (defined: the run completed, twice)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/overlap_odd_rt.txt.gz",
+   "sha256": "a24e2d894ca1c34fed1ede0de56558b0a8a3a3862d927d49f015850675013c3c",
+   "bytes": 5603,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case overlap odd_rt: plus caller's features at RT +inf, NaN and -inf (apex annotation lower_bound)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/overlap_zero.txt.gz",
+   "sha256": "c1aa831a101951fa9975a66ef2503623cacc9aa03c625a3e3587e401d4e028e1",
+   "bytes": 5498,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case overlap zero: the same with feature:max_intersection 0"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/params_after_failed_set.txt",
+   "sha256": "18d8de03ff7a830eaddc1398090c6a85c5ec582926223fed0d6e2c834d80de47",
+   "bytes": 7752,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case params: getParameters after a rejected setParameters (the source keeps the rejected set)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/params_after_run.txt",
+   "sha256": "9c9e23d0068df8a17dba3a0251d8d235df3b0d0b62a50381c7d8e0f4daa41b25",
+   "bytes": 7933,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case params: getParameters after a run (identical after an empty-input run)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/params_defaults.txt",
+   "sha256": "f8393070a4e2f251aaab984b6b92720ef3784987dd8b793db6d66b8dbbb8d1f2",
+   "bytes": 7949,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case params: getDefaults (identical to getDefaultParameters and getParameters after construction)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/params_empty_run_map.txt",
+   "sha256": "7955f7a471e7bf2d3604c4576b5c58bcf63574df170f4d7163016da296260965",
+   "bytes": 80,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case params: the map returned by a run on an empty input"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/params_info.txt",
+   "sha256": "c895f71f8512a9cc20ccd1c293b229869dedd42a2a242650f149e5634de3261c",
+   "bytes": 376,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case params: getName, the what() texts of the two rejected setParameters calls, the feature count after a run, and the unique id and meta state of the map an empty-input run returns"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/params_with_unknown_key.txt",
+   "sha256": "69548b012ab24e0ae36e7bfd946a1f9c08afa3c174039cdf3ca7e6d55fd1612f",
+   "bytes": 8077,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case params: getParameters after setParameters with the undeclared debug:pseudo_rt_shift"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/prefilled_defaults_run.txt.gz",
+   "sha256": "d39a8dc224e877083c421da9d69e2b4ddb9974271ac0db65abb959846fb68c85",
+   "bytes": 14249,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case reuse: a run with default parameters into a caller's non-empty map"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/prefilled_info.txt",
+   "sha256": "cfdd749b5b4d3fbe962e827bea67304647e3f55fee3d01452a805dcf0d4848f8",
+   "bytes": 18,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case reuse: the caller map's unique id and meta value after a run into it (kept)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/prefilled_run.txt.gz",
+   "sha256": "5b9c9153ceab1fc52685bf09f026965a95890d05e7be3ef3fd0d13e375ac7b64",
+   "bytes": 5666,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case reuse: a run into a caller's non-empty map (FFC_1 parameters)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/progress_stdout.txt",
+   "sha256": "64589b5672f91fd56ca1b2ec93fb7e73a9d5a24ef6529552d913c27ce7820927",
+   "bytes": 3918,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case progress: the ProgressLogger transcript with setLogType(CMD) (timing text masked by the test)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/reuse_run1.txt.gz",
+   "sha256": "769f458ecd7d7e44eeb1b446d7f0318f1e6976b36b0a2b4201244936f7416d3e",
+   "bytes": 5112,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case reuse: first run of one object (also the executed map of declared-shift500, -shift123 and -int250, byte for byte)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/reuse_run2.txt.gz",
+   "sha256": "994a26d20344081241357a60f005aab27c99eec9870eefd13bf135d1f5b0dd61",
+   "bytes": 5953,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case reuse: second run of the same object, into the same map (isotope_distributions_ extended, aborts_ accumulated)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/reuse_run3.txt.gz",
+   "sha256": "2995745d312dad6b3ef39f58fbd626c558fce2fe9a483caae626311a8f11d172",
+   "bytes": 1887,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case reuse: third run with changed parameters"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/reuse_run3_params.txt",
+   "sha256": "e5ae86b3e5d63272e1937fe665ea02efcaae5ffdf155cfa5a39394c1c076df79",
+   "bytes": 7933,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case reuse: getParameters before the third run"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/sort.txt.gz",
+   "sha256": "116fea5d76c5a3ea18873550096ca6af3517cbd975bbbd22d3cf56ce381876ce",
+   "bytes": 62145,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case sort: the permutations FeatureMap::sortByMZ and sortByIntensity(true) produced on 130 generated inputs and on the eight lines of sort_keys.txt"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/sort_keys.txt",
+   "sha256": "acd0cf24cb866f6f81e3ef407b45c1856528fe27c34471d447c5026c1bafe5e0",
+   "bytes": 12206,
+   "kind": "generated input (Rust introsort adversary and hand-written keys)",
+   "role": "input of driver case sort: 5 3 5 3 5; three McIlroy-adversary sequences (100, 500, 2000 keys) generated against the Rust introsort emulation; three sequences with NaN keys; two with signed zeros"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/stale_scaled_abort_map.featureXML.gz",
+   "sha256": "b32f5b53fac82b0848b42cbeb1f1c988c477477eaebbcc0bc9df28b71993edc1",
+   "bytes": 1249,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case stale scaled: the second run's debug/abort_reasons.featureXML (stale seeds read from the new input)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/stale_scaled_run1_count.txt",
+   "sha256": "64aeb9975f234becd55bb4635e6e2f2da7a6b7bf0a896f0c07763bdfbfb31420",
+   "bytes": 3,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case stale scaled: abort_reasons_ size after the first debug run"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/stale_scaled_run2_count.txt",
+   "sha256": "673650f936cb3b0a2f93ce09d81be10748b1b203c19e8176b4eefc1964a0cf3a",
+   "bytes": 3,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case stale scaled: abort_reasons_ size after the second debug run of the same object on doubled intensities"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/stale_scaled_run2_map.txt.gz",
+   "sha256": "d023941ab11704b0b18d93df63091dc6074cb8e80f1c97d067a154ffbd903f81",
+   "bytes": 101,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case stale scaled: the second run's map"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/stale_scaled_seed_map_2.featureXML.gz",
+   "sha256": "10981c9134ec230cb3ebece8630f155ce0f0727e76893d1558617934384dd9d3",
+   "bytes": 1342,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case stale scaled: the second run's debug/seeds_2.featureXML"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/tool_a1_out.featureXML",
+   "sha256": "a925201784c24b44c680d9bc0817849e611ec013f0a468d744228c4469b2c1e4",
+   "bytes": 702,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case a1: -out (unique ids of the -test generator)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/tool_a1_stdout.txt",
+   "sha256": "ddffab2ab8166581a2f7ce1836978a9c15b2c98b4786f470a6306002aca07fee",
+   "bytes": 844,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case a1: stdout (the took line is masked)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/tool_a2_out.featureXML",
+   "sha256": "a925201784c24b44c680d9bc0817849e611ec013f0a468d744228c4469b2c1e4",
+   "bytes": 702,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case a2: -out"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/tool_a2_stdout.txt",
+   "sha256": "f85922b28ff7d8ce3b29491d9161cac7a7eec9a53c7ee6613ea161b19789b1c4",
+   "bytes": 979,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case a2: stdout, with the featureXML store warnings of the debug maps and the abort block"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/tool_a3_out.featureXML",
+   "sha256": "2d551f12b784495a16ea5478b746a8740834f17b820b150c08c4e25e0c1655e8",
+   "bytes": 694,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case a3: -out"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/tool_a3_stdout.txt",
+   "sha256": "f90cfc2745c938b4ab1902bb028a3ff0f97f51cb201356a074edd68c7ca5c94a",
+   "bytes": 901,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case a3: stdout, with the log-stream repetition line (occurred 4 times)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/tool_b1_stdout.txt",
+   "sha256": "13661dd4d8471ef8c77ec037aad9f4295eac705a6ea95953d1aa3de4ca1000ba",
+   "bytes": 1101,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case b1 (FFC_1 INI, reaches the fit): stdout up to and including the fatal-exception block; SIGABRT, shell status 134"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/tool_x0_stderr.txt",
+   "sha256": "9470d7637e53777a985ef19888841183fcba3d37649241ad871f204e44e5fd91",
+   "bytes": 2836,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "tool case x0: stderr of -algorithm:write_debug true (exit 6: the flag takes no value)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/twice_abort_map.featureXML.gz",
+   "sha256": "7fa07b4c4466a0ff4372e22af520c0dd53cbd68e63564a8f8d56d241b701c566",
+   "bytes": 1159,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case debug_twice: debug/abort_reasons.featureXML of the second debug run of one object"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/twice_input.mzML.gz",
+   "sha256": "8a8b1341a729c0bdf86ffe86ea4e346002d6ff5af34788194ec1b858127d04fa",
+   "bytes": 97699,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case debug_twice: debug/input.mzML of the second run"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/twice_seed_map_1.featureXML.gz",
+   "sha256": "d2bcbfc5b5160ea2e2f64d0f6934f416f4996e1a8254e242c2ec88627e79f160",
+   "bytes": 1361,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case debug_twice: debug/seeds_1.featureXML"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/twice_seed_map_2.featureXML.gz",
+   "sha256": "956f93a49e62bf509b369208a02ce1011ca5d03b371f65f5e6ded2cbff99bf08",
+   "bytes": 1338,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case debug_twice: debug/seeds_2.featureXML"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/what.txt",
+   "sha256": "57b9646cb8347dfa6f9024f38505849a8049bee810ed6d9aa3423c5d11ad189a",
+   "bytes": 147,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "driver case what: the what() texts of ElementNotFound (debug:pseudo_rt_shift missing) and ConversionError (an empty value)"
+  }
+ ],
+ "oracle": {
+  "directory": "../oracle/ffap-instr-completion",
+  "evidence_label": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+  "release_install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "release_pins": {
+   "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+   "topp": "174b576e244e100f2345ca57a8e79aaa607156df"
+  },
+  "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "FeatureFinderCentroided_sha256": "2781dd7cab48f482118375754038644251705c8bafab1958e310e4063dffb323",
+  "runtime": "deps/lib/libstdc++.so.6.0.36 and deps/lib/libgomp.so.1.0.0 of the install; glibc 2.39 (Ubuntu 24.04)",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) -O2 -std=c++20, build_driver.sh",
+  "host": "ibminode06 (Linux 6.8.0-124-generic x86_64, AMD EPYC 7763), scratch /scratch/kohlbach/ffap-instr-oracle; never ibminode05",
+  "driver_source_sha256": "894fbfa9b2c17cbb4b8f76f0d3c7430303b1b84d4ee43c8b31f4492725df4d60",
+  "driver_binary_sha256": "d20242a3df834fb1100d4d589cf421954f86dc3760e275115ec8176c03a2465c",
+  "driver_note": "run_all.sh ran every driver round with this one binary (results/driver*/driver.sha256).",
+  "environment": "env -i, PATH=/usr/bin:/bin, HOME and OPENMS_HOME_PATH in the case directory, OPENMS_DISABLE_UPDATE_CHECK=ON, OMP_NUM_THREADS=1 (tool cases c1-c3: 4), ulimit -c 0",
+  "driver_cases": {
+   "params, reuse, progress, what, sort, debug_twice, declared-shift500/-shift123/-int250/-egh/-prefilled": "2 repetitions each, exit 0",
+   "overlap ffc1, zero, nan_mz, nan_intensity, odd_rt; stale scaled; sort (round two)": "2 repetitions each, exit 0",
+   "overlap zero_charge": "2 repetitions, killed by SIGFPE (signal 8) in step 4",
+   "stale oob": "7 repetitions (2 + 5), killed by SIGSEGV (signal 11) while building the second run's abort map"
+  },
+  "tool_cases": {
+   "x0_flag_with_value": "2 repetitions, exit 6",
+   "a1_min_spectra_1, a2_min_isotope_fit_1, a3_short_input": "3 repetitions each, exit 0",
+   "a2_control_no_debug, b1_control_no_debug": "1 repetition each, exit 0",
+   "a4_defaults_ffc1": "2 repetitions, SIGABRT (shell status 134)",
+   "b1_reaches_fit": "3 repetitions, SIGABRT (shell status 134)",
+   "c1_reaches_fit_threads4": "3 repetitions, OMP_NUM_THREADS=4, SIGABRT (134); log.txt differs between repetitions (data race), recorded not compared",
+   "c2_aborts_only_threads4": "3 repetitions, OMP_NUM_THREADS=4, exit 0; log.txt differs between repetitions, recorded not compared",
+   "c3_min_spectra_1_threads4": "2 repetitions, OMP_NUM_THREADS=4, exit 0"
+  }
+ },
+ "external_reference_note": "No C++ is committed to this repository. The driver, the scripts, the inputs and the raw outputs live under ../oracle/ffap-instr-completion (relative to the repository root); the entries below pin them.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/ffap-instr-completion/drivers/ffap_instr_driver.cpp",
+   "sha256": "894fbfa9b2c17cbb4b8f76f0d3c7430303b1b84d4ee43c8b31f4492725df4d60",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/build_driver.sh",
+   "sha256": "3c653033ac90ed8ed2bc2faf9137a3c1a6f275e1a3ec9bab26a30fc192f618cf",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/run_driver.sh",
+   "sha256": "c885562961fbbd12b33718cb42c668c6586d0eb865ee64a03ea85e7b9bef1c68",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/run_driver2.sh",
+   "sha256": "95a83de2262b4fc4da4d5e57d5c760383f6ff78965c5b9c3002e09b33f2bbd66",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/run_driver3.sh",
+   "sha256": "6893cbbb84c1fce33d6126e4e26fb2cffb166ee58d8c08818cfb2d4cc08faaf8",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/run_all.sh",
+   "sha256": "078d4cb8d9314a79c56cd6cdf6054979bc9e207912fe6ae374bd36fa349fa803",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/tool_cases.py",
+   "sha256": "bf6636dc8d16c9b6a3089d1b0ea143ac9e1e6573b131fb6e615d5ef03106f12d",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/make_fixtures.py",
+   "sha256": "eef1012df1bfd4c4f1e4b424d93a723d05cb6706d7b6ef4a0b7fe8a1c2938aac",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/make_manifest.py",
+   "sha256": "(this file)",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/inputs/FeatureFinderCentroided_1_input.mzML",
+   "sha256": "a3dfae633502bc457fb3efeddb5d5006af935a51bd99d9a5974e24232885f9d3",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/inputs/FeatureFinderCentroided_1_parameters.ini",
+   "sha256": "175269ed9147ba373a2f42b92cc9c2000c9129b798c88bcea8c2480462489f78",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/inputs/FileConverter_31_output.mzML",
+   "sha256": "daa0dc7f5681a40d65ae0a2ee8747d362e144567f301bc54d991dcff3826fd61",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/inputs/sort_keys.txt",
+   "sha256": "acd0cf24cb866f6f81e3ef407b45c1856528fe27c34471d447c5026c1bafe5e0",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/tool_cases.json",
+   "sha256": "afe70c7e75fa8333759c4712061e146d980db396b28804566a86973a5cba14b8",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/run_driver.log",
+   "sha256": "db655ab6b6739570656075dadd9af0281149a6af7e7f4bad073eab0838e6a9c6",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/run_driver2.log",
+   "sha256": "0c5f3209eeab048ce6eb33d88a93e626f95044fb4862b97ebcbc9af80c669d73",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/run_driver3.log",
+   "sha256": "83d7dc0b8c9ff9445d6b374197e96c9d768ae095a09b1613a05adef0df0fbf75",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/driver/driver.sha256",
+   "sha256": "6616d13359238c52231d9a771a2749ae1d28822381bb6b1d88fd612429dfdcdb",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/driver2/driver.sha256",
+   "sha256": "6616d13359238c52231d9a771a2749ae1d28822381bb6b1d88fd612429dfdcdb",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/driver3/driver.sha256",
+   "sha256": "6616d13359238c52231d9a771a2749ae1d28822381bb6b1d88fd612429dfdcdb",
+   "origin_key": "ffap_instr_completion"
+  }
+ ],
+ "cpp_issue_candidates": [
+  "writeFeatureDebugInfo_ reads the undeclared debug:pseudo_rt_shift (declared: advanced:pseudo_rt_shift); every write_debug run that reaches the fit terminates with SIGABRT (executed)",
+  "abort_reasons_ is never cleared; a reused object's abort map reads the earlier runs' spectrum and peak indices in the new input: the new peaks on an input of the same shape, SIGSEGV on a shorter one (executed)",
+  "abort_reasons_ is a std::map<Seed, std::string> keyed by intensity only: seeds of equal intensity collapse to one entry",
+  "isotope_distributions_ is never cleared; a reused object appends windows and its second run differs from a fresh object's (executed)",
+  "log_ is reopened on every debug run while still open; the open fails and later runs of the object write no log (executed)",
+  "step 4 computes f2.getCharge() % f1.getCharge() without a zero check; a caller's feature of charge 0 traps (SIGFPE, executed)",
+  "aborts_ and abort_reasons_ are written inside the parallel region without synchronisation; at OMP_NUM_THREADS=4 the debug log differs between runs (executed)",
+  "setParameters assigns param_ before the checks, so a rejected set is kept (executed)"
+ ],
+ "target_verification": {
+  "platform": "Rust gates on dax through ~/.local/bin/openms-kim-gate.sh, slots ffap-instr-impl*; local tests on macOS arm64"
+ }
+}

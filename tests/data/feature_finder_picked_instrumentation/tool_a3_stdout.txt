@@ -1,0 +1,21 @@
+Progress of 'loading mzML':
+  Progress of 'loading spectra list':
+  -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+-- done [took 0.00 s (CPU), 0.00 s (Wall) @ 68.31 MiB/s] -- 
+Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
+FeatureXMLHandler::store():  found 1 invalid unique ids
+Found 0 seeds for charge 1.
+Found 0 feature candidates for charge 1.
+Found 0 seeds for charge 2.
+Found 0 feature candidates for charge 2.
+Found 0 seeds for charge 3.
+Found 0 feature candidates for charge 3.
+Found 0 seeds for charge 4.
+Found 0 feature candidates for charge 4.
+Removed 0 overlapping features.
+
+<FeatureXMLHandler::store():  found 1 invalid unique ids> occurred 4 times
+Info: reasons for not finalizing a feature during its construction:
+
+0 features found.
+FeatureFinderCentroided took 0.10 s (wall), 0.10 s (CPU), 0.01 s (system), 0.09 s (user); Peak Memory Usage: 50 MB.

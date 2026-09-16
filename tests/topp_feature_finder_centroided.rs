@@ -1867,3 +1867,369 @@ fn an_empty_feature_map_is_annotated() {
         ["file://FeatureFinderCentroided_1_input.mzML"]
     );
 }
+
+// ---------------------------------------------------------------------------
+// -algorithm:write_debug (package ffap-instrumentation)
+// ---------------------------------------------------------------------------
+//
+// Every case below was executed with the C++ Release FeatureFinderCentroided
+// (`../oracle/ffap-instr-completion`, `tool_cases.py`, three repetitions each
+// with OMP_NUM_THREADS=1): the exit status, the console output and every file
+// the run left behind are compared, log.txt byte for byte (by SHA-1) and the
+// featureXML and mzML files by decoded content (decision D6), with the exact
+// unique ids the seeded -test generator draws.
+
+/// A fixture of the instrumentation package.
+fn instrumentation(name: &str) -> PathBuf {
+    repository("tests/data/feature_finder_picked_instrumentation").join(name)
+}
+
+/// The executed size and SHA-1 of one debug file (`debug_digests.tsv`).
+fn executed_digest(case: &str, file: &str) -> (usize, String) {
+    let table = fs::read_to_string(instrumentation("debug_digests.tsv")).unwrap();
+    for line in table.lines().skip(1) {
+        let fields: Vec<&str> = line.split('\t').collect();
+        if fields[0] == case && fields[1] == file {
+            return (fields[2].parse().unwrap(), fields[3].to_owned());
+        }
+    }
+    panic!("no executed digest for {case} {file}");
+}
+
+fn assert_executed_file(path: &Path, case: &str, file: &str) {
+    let data = fs::read(path).unwrap();
+    let (bytes, sha1) = executed_digest(case, file);
+    assert_eq!(data.len(), bytes, "{case} {file}: size");
+    assert_eq!(digest(&data), sha1, "{case} {file}: content");
+}
+
+fn debug_d6() -> decoded::DecodedOptions {
+    decoded::DecodedOptions::new(decoded::Tolerance::from_settings(
+        &fuzzy::FuzzyDiffSettings::upstream().unwrap(),
+    ))
+    .ignoring_unique_ids()
+}
+
+/// A featureXML file, decoded; `.gz` fixtures included.
+fn decoded_features(path: &Path) -> FeatureMap {
+    openms::format::featurexml::load(path).unwrap()
+}
+
+fn assert_same_features(actual: &Path, expected: &Path) {
+    if let Err(mismatch) = decoded::compare_feature_maps(
+        &decoded_features(actual),
+        &decoded_features(expected),
+        &debug_d6(),
+    ) {
+        panic!("{}: {mismatch}", actual.display());
+    }
+}
+
+/// An mzML file with NaN scores allowed, as the source reads it; `.gz`
+/// fixtures are decompressed first.
+fn decoded_debug_input(path: &Path) -> MSExperiment {
+    let mut bytes = fs::read(path).unwrap();
+    if path.extension().is_some_and(|e| e == "gz") {
+        use std::io::Read;
+        let mut xml = Vec::new();
+        flate2::read::GzDecoder::new(bytes.as_slice())
+            .read_to_end(&mut xml)
+            .unwrap();
+        bytes = xml;
+    }
+    let options = openms::format::mzml::ReadOptions {
+        source_nonfinite_float_arrays: true,
+        ..Default::default()
+    };
+    openms::format::mzml::read_with_options(bytes.as_slice(), &options).unwrap()
+}
+
+/// The debug input written by the port against the executed one: the same
+/// spectra, peaks and score arrays. A NaN equals a NaN (D6); an overall score
+/// may be one binary32 step from the C++ `powf` (CPP-272).
+fn assert_same_debug_input(actual: &Path, expected: &Path) {
+    let a = decoded_debug_input(actual);
+    let e = decoded_debug_input(expected);
+    assert_eq!(a.spectra.len(), e.spectra.len());
+    for (x, y) in a.spectra.iter().zip(&e.spectra) {
+        assert_eq!(x.native_id, y.native_id);
+        assert_eq!(x.rt.to_bits(), y.rt.to_bits());
+        assert_eq!(x.peaks, y.peaks);
+        let names = |s: &MSSpectrum| -> Vec<String> {
+            s.float_data_arrays.iter().map(|a| a.name.clone()).collect()
+        };
+        assert_eq!(names(x), names(y));
+        for (u, v) in x.float_data_arrays.iter().zip(&y.float_data_arrays) {
+            for (p, q) in u.data.iter().zip(&v.data) {
+                let step = (i64::from(p.to_bits()) - i64::from(q.to_bits())).abs();
+                assert!(
+                    p.to_bits() == q.to_bits()
+                        || (p.is_nan() && q.is_nan())
+                        || (u.name.starts_with("overall_score_") && step == 1),
+                    "{} {}: {p} against {q}",
+                    x.native_id,
+                    u.name
+                );
+            }
+        }
+    }
+}
+
+/// The executed console block of a debug run: from the FAIMS line to the end,
+/// without TOPPBase's closing timing line and the fatal block of a terminated
+/// run.
+fn executed_block(name: &str) -> Vec<String> {
+    let text = fs::read_to_string(instrumentation(name)).unwrap();
+    let start = text
+        .find(FeatureFinderCentroided::NO_FAIMS_MESSAGE)
+        .unwrap();
+    let mut lines = Vec::new();
+    for line in text[start..].lines() {
+        if line.starts_with("FeatureFinderCentroided took ")
+            || line.starts_with("-----------------")
+        {
+            break;
+        }
+        lines.push(line.to_owned());
+    }
+    while lines.last().is_some_and(String::is_empty) {
+        lines.pop();
+    }
+    lines
+}
+
+fn port_block(outcome: &Outcome) -> Vec<String> {
+    let start = outcome
+        .out
+        .find(FeatureFinderCentroided::NO_FAIMS_MESSAGE)
+        .unwrap();
+    let mut lines: Vec<String> = outcome.out[start..].lines().map(str::to_owned).collect();
+    while lines.last().is_some_and(String::is_empty) {
+        lines.pop();
+    }
+    lines
+}
+
+fn debug_args<'a>(dir: &'a Workdir, extra: &[&'a str]) -> (String, String, Vec<String>) {
+    let ini = text(ffc1_ini());
+    let input = text(ffc1_input());
+    let mut args = vec![
+        "-test".to_owned(),
+        "-ini".to_owned(),
+        ini.clone(),
+        "-in".to_owned(),
+        input.clone(),
+        "-out".to_owned(),
+        dir.file("out.featureXML"),
+        "-algorithm:write_debug".to_owned(),
+    ];
+    args.extend(extra.iter().map(|s| (*s).to_owned()));
+    (ini, input, args)
+}
+
+fn run_args(dir: &Workdir, args: &[String]) -> Outcome {
+    let refs: Vec<&str> = args.iter().map(String::as_str).collect();
+    run_in(dir, &refs)
+}
+
+/// The id `-test` makes the source draw first: the debug abort map's.
+const FIRST_TEST_MODE_ID: u64 = 5_233_264_595_117_471_314;
+/// The output map's id after the abort map's draw (the executed a1 and a2
+/// outputs); without debug it is the second draw, 4835329514588776807.
+const OUTPUT_ID_AFTER_DEBUG: u64 = 17_749_660_155_506_638_460;
+
+/// Executed case x0: `write_debug` is a true/false string, which TOPPBase
+/// registers as a flag, so a value after it is a command-line error.
+#[test]
+fn write_debug_is_a_flag_on_the_command_line() {
+    let dir = Workdir::new();
+    let (_, _, mut args) = debug_args(&dir, &[]);
+    args.push("true".into());
+    let outcome = run_args(&dir, &args);
+    outcome.assert_exit(ExitCode::IllegalParameters);
+    let executed = fs::read_to_string(instrumentation("tool_x0_stderr.txt")).unwrap();
+    let first = executed.lines().next().unwrap();
+    assert_eq!(
+        first,
+        "Invalid parameter values (InvalidParameter): Command line error: Trailing arguments after flag '-algorithm:write_debug': true. Aborting!"
+    );
+    outcome.assert_err_contains(first);
+    assert!(!dir.path().join("debug").exists());
+}
+
+/// Executed cases a1 and a2: no seed reaches the fit, so the debug run
+/// completes. The console, log.txt, the seed map, the abort map, the input
+/// with its score arrays and the output match the Release build.
+#[test]
+fn a_completed_debug_run_writes_the_executed_files() {
+    for (case, extra, stdout, input, seeds, aborts, out) in [
+        (
+            "a1",
+            ["-algorithm:mass_trace:min_spectra", "1"],
+            "tool_a1_stdout.txt",
+            "a1_input.mzML.gz",
+            "empty_seed_map.featureXML",
+            "empty_abort_map.featureXML",
+            "tool_a1_out.featureXML",
+        ),
+        (
+            "a2",
+            ["-algorithm:feature:min_isotope_fit", "1.0"],
+            "tool_a2_stdout.txt",
+            "a2_input.mzML.gz",
+            "ffc1_seed_map.featureXML.gz",
+            "a2_abort_map.featureXML.gz",
+            "tool_a2_out.featureXML",
+        ),
+    ] {
+        let dir = Workdir::new();
+        let (_, _, args) = debug_args(&dir, &extra);
+        let outcome = run_args(&dir, &args);
+        outcome.assert_exit(ExitCode::ExecutionOk);
+        assert_eq!(port_block(&outcome), executed_block(stdout), "{case}");
+        let debug = dir.path().join("debug");
+        assert!(debug.join("features").is_dir());
+        assert_eq!(fs::read_dir(debug.join("features")).unwrap().count(), 0);
+        assert_executed_file(&debug.join("log.txt"), case, "log.txt");
+        assert_same_features(&debug.join("seeds_2.featureXML"), &instrumentation(seeds));
+        let abort_path = debug.join("abort_reasons.featureXML");
+        assert_same_features(&abort_path, &instrumentation(aborts));
+        assert_eq!(decoded_features(&abort_path).unique_id, FIRST_TEST_MODE_ID);
+        assert_same_debug_input(&debug.join("input.mzML"), &instrumentation(input));
+        let output = PathBuf::from(dir.file("out.featureXML"));
+        assert_same_features(&output, &instrumentation(out));
+        assert_eq!(decoded_features(&output).unique_id, OUTPUT_ID_AFTER_DEBUG);
+        let mut entries: Vec<String> = fs::read_dir(&debug)
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        entries.sort();
+        assert_eq!(
+            entries,
+            [
+                "abort_reasons.featureXML",
+                "features",
+                "input.mzML",
+                "log.txt",
+                "seeds_2.featureXML"
+            ]
+        );
+    }
+}
+
+/// Executed case a3: four scans and all four charges, no seed: one seed map
+/// per charge, and the repeated store line the OpenMS log stream reports
+/// once, with its count, when a later line pushes it out.
+#[test]
+fn a_debug_run_on_a_short_input_writes_the_executed_files() {
+    let dir = Workdir::new();
+    let input = text(fixture("FileConverter_31_output.mzML"));
+    let out = dir.file("out.featureXML");
+    let outcome = run_in(
+        &dir,
+        &[
+            "-test",
+            "-in",
+            &input,
+            "-out",
+            &out,
+            "-force",
+            "-algorithm:write_debug",
+        ],
+    );
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    let block = port_block(&outcome);
+    assert_eq!(block, executed_block("tool_a3_stdout.txt"));
+    assert!(block.contains(
+        &"<FeatureXMLHandler::store():  found 1 invalid unique ids> occurred 4 times".to_owned()
+    ));
+    let debug = dir.path().join("debug");
+    assert_executed_file(&debug.join("log.txt"), "a3", "log.txt");
+    for charge in 1..=4 {
+        assert_same_features(
+            &debug.join(format!("seeds_{charge}.featureXML")),
+            &instrumentation("empty_seed_map.featureXML"),
+        );
+    }
+    assert_same_features(
+        &debug.join("abort_reasons.featureXML"),
+        &instrumentation("empty_abort_map.featureXML"),
+    );
+    assert_same_debug_input(
+        &debug.join("input.mzML"),
+        &instrumentation("a3_input.mzML.gz"),
+    );
+    assert_same_features(Path::new(&out), &instrumentation("tool_a3_out.featureXML"));
+}
+
+/// Executed case b1: the first seed reaches the fit, `writeFeatureDebugInfo_`
+/// throws `ElementNotFound` inside the OpenMP region, and the executed tool
+/// prints OpenMS's fatal-exception block and is killed by SIGABRT (shell
+/// status 134) in all three repetitions. A safe port cannot end that way: it
+/// exits 8 with the message TOPPBase gives the exception where it can catch
+/// it. Everything the executed run wrote before it died is written the same:
+/// the console lines, the seed map, and log.txt up to the last byte the file
+/// buffer had flushed; no output and no later debug file.
+#[test]
+fn a_debug_run_that_reaches_the_fit_ends_where_the_release_build_terminates() {
+    let dir = Workdir::new();
+    let (_, _, args) = debug_args(&dir, &[]);
+    let outcome = run_args(&dir, &args);
+    outcome.assert_exit(ExitCode::UnknownError);
+    outcome.assert_err_contains(
+        "Error: Unexpected internal error (the element 'debug:pseudo_rt_shift' could not be found)",
+    );
+    let executed = fs::read_to_string(instrumentation("tool_b1_stdout.txt")).unwrap();
+    assert!(executed.contains("FATAL: uncaught exception!"));
+    assert!(
+        executed.contains("error message: the element 'debug:pseudo_rt_shift' could not be found")
+    );
+    assert_eq!(port_block(&outcome), executed_block("tool_b1_stdout.txt"));
+    let debug = dir.path().join("debug");
+    assert_executed_file(&debug.join("log.txt"), "b1", "log.txt");
+    assert_same_features(
+        &debug.join("seeds_2.featureXML"),
+        &instrumentation("ffc1_seed_map.featureXML.gz"),
+    );
+    assert!(debug.join("features").is_dir());
+    assert!(!debug.join("abort_reasons.featureXML").exists());
+    assert!(!debug.join("input.mzML").exists());
+    assert!(!dir.path().join("out.featureXML").exists());
+}
+
+/// Executed cases c1 and c2 ran the C++ tool at `-threads 4`: its debug log
+/// then differs from run to run (c2's three logs are pairwise different,
+/// c1's too), because `abort_` and the log writes race; that output is
+/// undefined and not compared. The port writes the single-thread files at
+/// every thread count.
+#[test]
+fn debug_files_do_not_depend_on_the_thread_count() {
+    let mut reference: Option<Vec<(String, Vec<u8>)>> = None;
+    for threads in ["1", "4"] {
+        let dir = Workdir::new();
+        let (_, _, args) = debug_args(
+            &dir,
+            &[
+                "-algorithm:feature:min_isotope_fit",
+                "1.0",
+                "-threads",
+                threads,
+            ],
+        );
+        run_args(&dir, &args).assert_exit(ExitCode::ExecutionOk);
+        let mut files = Vec::new();
+        for name in [
+            "debug/log.txt",
+            "debug/seeds_2.featureXML",
+            "debug/abort_reasons.featureXML",
+            "debug/input.mzML",
+            "out.featureXML",
+        ] {
+            files.push((name.to_owned(), fs::read(dir.path().join(name)).unwrap()));
+        }
+        match &reference {
+            None => reference = Some(files),
+            Some(expected) => assert_eq!(&files, expected),
+        }
+    }
+}

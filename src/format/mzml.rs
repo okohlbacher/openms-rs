@@ -976,10 +976,9 @@ impl Binary {
                     // above. Every coordinate a record hands to the kernel
                     // validator passes through here or through that one, which
                     // is why `Record::finish` can skip the per-peak loop.
-                    if !value.is_finite()
-                        && !(options.source_nonfinite_float_arrays
-                            && matches!(kind, Kind::Auxiliary(_)))
-                    {
+                    let source_auxiliary =
+                        options.source_nonfinite_float_arrays && matches!(kind, Kind::Auxiliary(_));
+                    if !(value.is_finite() || source_auxiliary) {
                         return Err(invalid("nonfinite binary value"));
                     }
                     values.push(value);
@@ -3564,7 +3563,7 @@ pub fn write(writer: impl Write, experiment: &MSExperiment) -> Result<()> {
     write_indexed(writer, experiment, false)
 }
 
-/// [`write`], accepting NaN and infinite values in auxiliary float arrays, as
+/// [`write()`], accepting NaN and infinite values in auxiliary float arrays, as
 /// source `MzMLFile::store` does.
 ///
 /// The default writer rejects them (`nonfinite auxiliary float value`). The
@@ -3575,7 +3574,7 @@ pub fn write(writer: impl Write, experiment: &MSExperiment) -> Result<()> {
 ///
 /// # Errors
 ///
-/// As [`write`], without the non-finite auxiliary check.
+/// As [`write()`], without the non-finite auxiliary check.
 pub fn write_source_float_arrays(writer: impl Write, experiment: &MSExperiment) -> Result<()> {
     write_indexed(writer, experiment, true)
 }

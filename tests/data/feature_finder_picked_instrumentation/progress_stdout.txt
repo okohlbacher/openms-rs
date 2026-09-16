@@ -1,12 +1,12 @@
 == CASE ffc1
 Progress of 'Precalculating intensity scores':
--- done [took 0.01 s (CPU), 0.00 s (Wall)] -- 
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
 Progress of 'Precalculating mass trace scores':
 -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
 Progress of 'Precalculating isotope distributions':
 -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
 Progress of 'Calculating isotope pattern scores for charge 2':
--- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+-- done [took 0.01 s (CPU), 0.00 s (Wall)] -- 
 Progress of 'Finding seeds for charge 2':
 -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
 Found 25 seeds for charge 2.
@@ -18,7 +18,7 @@ Progress of 'Resolving overlapping features':
 == END ffc1 8
 == CASE short
 Progress of 'Precalculating intensity scores':
--- done [took 0.02 s (CPU), 0.00 s (Wall)] -- 
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
 Progress of 'Precalculating mass trace scores':
 -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
 Progress of 'Precalculating isotope distributions':
@@ -71,7 +71,7 @@ Progress of 'Finding seeds for charge 2':
 -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
 Found 25 seeds for charge 2.
 Progress of 'Extending seeds for charge 2':
--- done [took 0.01 s (CPU), 0.00 s (Wall)] -- 
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
 Found 8 feature candidates for charge 2.
 Progress of 'Resolving overlapping features':
 -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 

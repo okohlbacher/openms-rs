@@ -20,8 +20,9 @@
 //!
 //! The source runs steps 3.1 to 3.3 charge by charge. Step 3.3, the extension of
 //! the seeds, only reads the arrays of its own charge, so computing every
-//! charge's seeds first ([`SeedStage::compute`]) gives the same arrays and
-//! seeds. The algorithm instance
+//! charge's seeds first
+//! ([`SeedStage::compute`](crate::analysis::feature_finder_picked::seeds::SeedStage::compute))
+//! gives the same arrays and seeds. The algorithm instance
 //! ([`FeatureFinderAlgorithmPicked`](crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked))
 //! keeps the source's order instead, selecting one charge's seeds right before
 //! extending them, so its log lines, progress calls and debug files come in

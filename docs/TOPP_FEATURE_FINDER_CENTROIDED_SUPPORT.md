@@ -104,7 +104,8 @@ Every member of the source class, and every framework call it makes.
 | `OPENMS_LOG_INFO << "Not FAIMS compensation voltages found …"` (in `splitByFAIMSCV`) | `FeatureFinderCentroided::NO_FAIMS_MESSAGE` on the output stream |
 | `OPENMS_LOG_INFO << "FAIMS data detected with N compensation voltage(s)."` | `FeatureFinderCentroided::faims_detected_message` |
 | `OPENMS_LOG_INFO << "Processing FAIMS CV group: …"`, `"Combined N features …"`, `"FAIMS feature merge: …"` | not reached: the refusal comes first |
-| `FeatureFinderAlgorithmPicked ff; ff.run(std::move(group), features_cv, feafi_param, seeds_cv)` | `crate::analysis::feature_finder_picked::algorithm::run_with_options`, called once, because a refused FAIMS input is the only case with more than one group |
+| `FeatureFinderAlgorithmPicked ff; ff.run(std::move(group), features_cv, feafi_param, seeds_cv)` | `crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked::with_options(…).run(…)` into an empty map, then `take_debug_output` and `report`; one fresh object per group, as the loop body creates one, and called once, because a refused FAIMS input is the only case with more than one group |
+| the files `ff.run` writes with `-algorithm:write_debug` (`debug/log.txt`, `debug/seeds_<charge>.featureXML`, `debug/abort_reasons.featureXML`, `debug/input.mzML`, `debug/features/*`) and the `FeatureXMLHandler::store()` lines they log | `write_debug_log`, `store_debug_features` and `FeatureFinderCentroided::run_io`, from the algorithm's `DebugOutput`, in the source's order (see *Debug mode*) |
 | `features.setPrimaryMSRunPath({"file://" + File::basename(in)})` under `-test`, else `{in}` | `FeatureFinderCentroided::finish_features` step 1 (`FeatureMap::set_primary_ms_run_path`, `file::basename`) |
 | `features.ensureUniqueId(); features.applyMemberFunction(&UniqueIdInterface::setUniqueId)` | step 2 (`HasUniqueId::ensure_unique_id` on the map's id, then `FeatureMap::for_each_unique_id` with one `ToolContext::unique_id_generator`) |
 | the `debug_level_ > 10` metadata listing | step 3 |
@@ -142,6 +143,53 @@ case (C1 = `../oracle/topp-early-bundle`, C5 = `../oracle/ffc-wrapper-c5`).
 
 No branch writes `-out` before the store, and every refusal above was checked
 to leave no output file.
+
+## Debug mode
+
+`-algorithm:write_debug` is a `true`/`false` string parameter, which TOPPBase
+registers as a flag: it takes no value, and `-algorithm:write_debug true` ends
+in exit 6 with `Trailing arguments after flag` (case x0, matched). With the
+flag the algorithm returns its debug output (see
+[FEATURE_FINDER_PICKED_SUPPORT](FEATURE_FINDER_PICKED_SUPPORT.md), *Debug
+mode*), and the tool writes it where the source writes it: it creates
+`debug/features` in the working directory, writes `debug/log.txt`, and stores
+the seed maps, the abort map and the input with the scores at the points of the
+run where the source stores them, with the `FeatureXMLHandler::store():  found N
+invalid unique ids` lines they log. The console output passes through a model
+of OpenMS's log-stream line cache (`LogStream.cpp`), so repeated lines are
+folded into `<line> occurred N times` as in the executed output. The abort
+map's unique id is drawn from the `-test` generator before the output's ids,
+as in the source, so the output ids match too.
+
+Executed against the Release `FeatureFinderCentroided`
+(`../oracle/ffap-instr-completion`, `tool_cases.py`, `OMP_NUM_THREADS=1`,
+three repetitions unless stated):
+
+| Case | C++ Release | This port | Compared |
+| --- | --- | --- | --- |
+| a1: FFC_1 INI, `mass_trace:min_spectra 1` (no seed) | exit 0 | exit 0 | the console lines from the FAIMS line on (without the `took` line), `-out` with its unique id, and every debug file: `log.txt` byte for byte, featureXML and mzML decoded (D6), the abort map's unique id |
+| a2: FFC_1 INI, `feature:min_isotope_fit 1.0` (every seed aborts) | exit 0 | exit 0 | as a1 |
+| a3: `FileConverter_31_output.mzML`, `-force`, default parameters | exit 0 | exit 0 | as a1, four seed maps and the `occurred 4 times` line |
+| a4: FFC_1 input, default parameters with `feature:min_isotope_fit 1.0` (reaches the fit); 2 repetitions | SIGABRT, shell status 134 | the b1 path | at the library level (`feature_finder_picked_instrumentation`): `log.txt` up to termination, `seeds_1.featureXML` |
+| b1: FFC_1 INI (reaches the fit) | SIGABRT, shell status 134, OpenMS's fatal-exception block on stdout | exit 8, `Error: Unexpected internal error (the element 'debug:pseudo_rt_shift' could not be found)` | the console lines before the block, `log.txt` up to the last byte the file buffer had written, `seeds_2.featureXML`, `debug/features/` present, no abort map, no input, no `-out` |
+| c1, c2, c3: as b1, a2 and a1 with `-threads 4` | as b1, a2, a1 | the single-thread files | recorded, not compared: the executed logs differ between repetitions (data race in the source) |
+
+**Termination.** Every write_debug run in which a seed reaches the fit
+terminates the C++ process, because the algorithm reads an undeclared
+parameter inside its OpenMP region. A safe port cannot abort the process; the
+tool writes everything the executed run wrote before it died and exits 8 with
+the message TOPPBase gives that exception where it can catch it. The tool
+always uses the source's key (`PseudoRtShiftKey::Source`); a library caller can
+choose the declared key instead.
+
+## Reusing an instance
+
+The source tool creates a fresh `FeatureFinderAlgorithmPicked` for each FAIMS
+group and runs it into an empty map, so no state carries over between runs,
+and so does this port. The object's behaviour across runs and with a caller's
+non-empty map is ported and tested at the library level
+([FEATURE_FINDER_PICKED_SUPPORT](FEATURE_FINDER_PICKED_SUPPORT.md), *Reusing an
+instance*).
 
 ## Preserved source conventions
 

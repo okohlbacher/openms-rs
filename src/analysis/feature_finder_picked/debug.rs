@@ -53,6 +53,19 @@
 //!   refuses exactly there.
 //!
 //! See `docs/FEATURE_FINDER_PICKED_SUPPORT.md`, section "Debug mode".
+//!
+//! [`DebugOutput`]: crate::analysis::feature_finder_picked::debug::DebugOutput
+//! [`DebugOutput::log`]: crate::analysis::feature_finder_picked::debug::DebugOutput::log
+//! [`DebugOutput::seed_maps`]: crate::analysis::feature_finder_picked::debug::DebugOutput::seed_maps
+//! [`seed_map`]: crate::analysis::feature_finder_picked::debug::seed_map
+//! [`DebugOutput::feature_files`]: crate::analysis::feature_finder_picked::debug::DebugOutput::feature_files
+//! [`write_feature_debug_info`]: crate::analysis::feature_finder_picked::debug::write_feature_debug_info
+//! [`DebugOutput::abort_reasons`]: crate::analysis::feature_finder_picked::debug::DebugOutput::abort_reasons
+//! [`abort_map`]: crate::analysis::feature_finder_picked::debug::abort_map
+//! [`DebugOutput::input`]: crate::analysis::feature_finder_picked::debug::DebugOutput::input
+//! [`debug_experiment`]: crate::analysis::feature_finder_picked::debug::debug_experiment
+//! [`Error::Unsupported`]: crate::Error::Unsupported
+//! [`DebugOutput::termination`]: crate::analysis::feature_finder_picked::debug::DebugOutput::termination
 
 use std::collections::BTreeMap;
 

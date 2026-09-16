@@ -40,6 +40,8 @@
 //! and returns [`Error::InvalidValue`] at exactly the step where the C++ would
 //! read outside it, which is undefined behaviour with no reproducible result.
 //! No other input is refused.
+//!
+//! [`Error::InvalidValue`]: crate::Error::InvalidValue
 
 use crate::{Error, Result};
 
@@ -68,7 +70,12 @@ pub fn source_sort_permutation(
         .try_reserve_exact(len)
         .map_err(|_| Error::InvalidValue("cannot allocate the sort permutation".into()))?;
     order.extend(0..len);
-    let mut sorter = Introsort { order, less };
+    let mut sorter = Introsort {
+        order,
+        less,
+        #[cfg(test)]
+        heap_fallbacks: 0,
+    };
     sorter.sort()?;
     Ok(sorter.order)
 }
@@ -139,6 +146,9 @@ fn floor_log2(n: usize) -> usize {
 struct Introsort<F> {
     order: Vec<usize>,
     less: F,
+    /// How often the depth budget ran out and the heapsort took over.
+    #[cfg(test)]
+    heap_fallbacks: usize,
 }
 
 impl<F: FnMut(usize, usize) -> bool> Introsort<F> {
@@ -167,6 +177,10 @@ impl<F: FnMut(usize, usize) -> bool> Introsort<F> {
     ) -> Result<()> {
         while last - first > THRESHOLD {
             if depth_limit == 0 {
+                #[cfg(test)]
+                {
+                    self.heap_fallbacks += 1;
+                }
                 // `__partial_sort(first, last, last)`: `__heap_select` with an
                 // empty tail is `__make_heap`, followed by `__sort_heap`.
                 self.make_heap(first, last);
@@ -389,10 +403,86 @@ mod tests {
         let mut sorter = Introsort {
             order: (0..keys.len()).collect(),
             less: |a: usize, b: usize| keys[a] < keys[b],
+            heap_fallbacks: 0,
         };
         sorter.heap_sort_only();
         for pair in sorter.order.windows(2) {
             assert!(keys[pair[0]] <= keys[pair[1]]);
+        }
+    }
+
+    /// McIlroy's adversary ("A Killer Adversary for Quicksort", 1999):
+    /// values are fixed lazily so that every pivot is extreme. Returns keys
+    /// that make the introsort take the same path again.
+    pub(super) fn adversarial_keys(len: usize) -> (Vec<f64>, usize) {
+        use std::cell::RefCell;
+        const GAS: usize = usize::MAX;
+        let values = RefCell::new(vec![GAS; len]);
+        let solid = RefCell::new(0usize);
+        let candidate = RefCell::new(0usize);
+        let less = |x: usize, y: usize| {
+            let mut values = values.borrow_mut();
+            if values[x] == GAS && values[y] == GAS {
+                let frozen = if x == *candidate.borrow() { x } else { y };
+                let mut solid = solid.borrow_mut();
+                values[frozen] = *solid;
+                *solid += 1;
+            }
+            if values[x] == GAS {
+                *candidate.borrow_mut() = x;
+            } else if values[y] == GAS {
+                *candidate.borrow_mut() = y;
+            }
+            values[x] < values[y]
+        };
+        let mut sorter = Introsort {
+            order: (0..len).collect(),
+            less,
+            heap_fallbacks: 0,
+        };
+        sorter.sort().unwrap();
+        let fallbacks = sorter.heap_fallbacks;
+        drop(sorter);
+        let values = values.into_inner();
+        let rest = solid.into_inner();
+        let keys = values
+            .iter()
+            .map(|&value| {
+                if value == GAS {
+                    rest as f64
+                } else {
+                    value as f64
+                }
+            })
+            .collect();
+        (keys, fallbacks)
+    }
+
+    #[test]
+    fn an_adversarial_input_reaches_the_heap_fallback() {
+        let file = std::fs::read_to_string(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/data/feature_finder_picked_instrumentation/sort_keys.txt"
+        ))
+        .unwrap();
+        let mut recorded = file.lines().skip(1);
+        for len in [100, 500, 2000] {
+            let (keys, fallbacks) = adversarial_keys(len);
+            assert!(fallbacks > 0, "{len}");
+            // The concrete keys drive the same path.
+            let mut sorter = Introsort {
+                order: (0..len).collect(),
+                less: |a: usize, b: usize| keys[a] < keys[b],
+                heap_fallbacks: 0,
+            };
+            sorter.sort().unwrap();
+            assert_eq!(sorter.heap_fallbacks, fallbacks);
+            for pair in sorter.order.windows(2) {
+                assert!(keys[pair[0]] <= keys[pair[1]]);
+            }
+            // Lines 2 to 4 of the executed driver's key file are these keys.
+            let text: Vec<String> = keys.iter().map(|k| format!("{k}")).collect();
+            assert_eq!(recorded.next(), Some(text.join(" ").as_str()), "{len}");
         }
     }
 

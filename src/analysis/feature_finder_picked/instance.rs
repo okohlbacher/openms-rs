@@ -21,7 +21,7 @@
 //!
 //! Source `run` stores a pointer to the caller's map (`setData_`,
 //! `FeatureFinderAlgorithmPicked.cpp:134-138`) and never clears it unless the
-//! input is empty (`:1060-1064`). Step 3.3 appends to it (`:844`), and step 4
+//! input is empty (`:1059-1063`). Step 3.3 appends to it (`:844`), and step 4
 //! then sorts, resolves, filters, re-sorts and annotates the *whole* map
 //! (`:863-1011`). A caller's features therefore take part in the overlap
 //! resolution, can be moved into a new feature's subordinates or have their

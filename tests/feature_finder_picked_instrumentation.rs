@@ -379,8 +379,11 @@ fn permutation_text(name: &str, order: &[usize]) -> String {
 
 /// `FeatureMap::sortByMZ` and `sortByIntensity(true)` of the Release
 /// `libOpenMS.so` on 130 generated inputs with few distinct keys and on the
-/// key sequences of `sort_keys.txt`: every permutation, ties included, is the
-/// one the executed `std::sort` produced.
+/// eight key sequences of `sort_keys.txt` (three built by McIlroy's adversary
+/// against the emulation so that the depth budget runs out and the heapsort
+/// takes over, three with NaN keys, which are no strict weak ordering but kept
+/// the executed sort inside the range, and two with signed zeros): every
+/// permutation, ties included, is the one the executed `std::sort` produced.
 #[test]
 fn sorts_leave_ties_where_the_release_build_leaves_them() {
     let expected = fixture("sort.txt.gz");
@@ -1529,4 +1532,274 @@ fn the_convenience_run_returns_the_debug_output() {
         &Options::default(),
     );
     assert!(matches!(terminated, Err(openms::Error::Unsupported(_))));
+}
+
+// ---------------------------------------------------------------------------
+// A caller's map that overlaps the new features, and its undefined variants
+// ---------------------------------------------------------------------------
+
+/// The driver's `prefilledOverlapping(variant)` map.
+fn overlapping(variant: &str) -> FeatureMap {
+    let mut features = Vec::new();
+    let mut f = synthetic(4407.0, 646.24, 1.0e7, 2, 0.9, "over-0-same-charge");
+    f.convex_hulls
+        .push(hull(&[(4374.19, 646.229), (4443.42, 646.2585)]));
+    f.convex_hulls
+        .push(hull(&[(4370.78, 646.7377), (4443.42, 646.7672)]));
+    features.push(f);
+    let mut f = synthetic(4389.0, 648.25, 10.0, 4, 0.1, "over-1-z4");
+    f.convex_hulls
+        .push(hull(&[(4360.0, 648.25), (4420.0, 648.26)]));
+    f.convex_hulls
+        .push(hull(&[(4360.0, 648.75), (4420.0, 648.76)]));
+    features.push(f);
+    let mut f = synthetic(4301.0, 651.75, 5.0e4, 3, 0.99, "over-2-z3");
+    f.convex_hulls
+        .push(hull(&[(4280.0, 651.75), (4320.0, 651.77)]));
+    f.convex_hulls
+        .push(hull(&[(4280.0, 652.08), (4320.0, 652.10)]));
+    features.push(f);
+    let mut f = synthetic(4278.0, 653.70, 100.0, 2, 0.5, "over-3-empty-hull");
+    f.convex_hulls.push(ConvexHull2D::new());
+    f.convex_hulls
+        .push(hull(&[(4250.0, 653.77), (4300.0, 653.78)]));
+    features.push(f);
+    features.push(synthetic(4201.0, 652.70, 500.0, 2, 0.5, "over-4-no-hull"));
+    let mut extra =
+        |rt: f64, mz: f64, intensity: f32, charge: i32, label: &str, points: &[(f64, f64)]| {
+            let mut f = synthetic(rt, mz, intensity, charge, 0.5, label);
+            f.convex_hulls.push(hull(points));
+            features.push(f);
+        };
+    match variant {
+        "nan_mz" => extra(
+            4200.0,
+            f64::NAN,
+            700.0,
+            2,
+            "ub-nan-mz",
+            &[(4190.0, 660.0), (4210.0, 660.01)],
+        ),
+        "nan_intensity" => extra(
+            4200.0,
+            660.0,
+            f32::NAN,
+            2,
+            "ub-nan-intensity",
+            &[(4190.0, 660.0), (4210.0, 660.01)],
+        ),
+        "zero_charge" => extra(
+            4201.8,
+            652.70,
+            700.0,
+            0,
+            "ub-zero-charge",
+            &[(4150.0, 652.70), (4260.0, 652.80)],
+        ),
+        "odd_rt" => {
+            extra(
+                f64::INFINITY,
+                700.0,
+                700.0,
+                2,
+                "rt-inf",
+                &[(4190.0, 700.0), (4210.0, 700.01)],
+            );
+            extra(
+                f64::NAN,
+                701.0,
+                700.0,
+                2,
+                "rt-nan",
+                &[(4190.0, 701.0), (4210.0, 701.01)],
+            );
+            extra(
+                f64::NEG_INFINITY,
+                702.0,
+                700.0,
+                2,
+                "rt-minus-inf",
+                &[(4190.0, 702.0), (4210.0, 702.01)],
+            );
+        }
+        _ => {}
+    }
+    FeatureMap::from_features(features)
+}
+
+/// The driver's `overlap` mode: the caller's features overlap new ones
+/// under all three resolution rules (same charge, multiple of the charge,
+/// quality), an empty hull makes a full-plane box that meets every feature,
+/// and `feature:max_intersection = 0` resolves the `-0.0` overlap that box
+/// yields. NaN m/z, NaN intensity and infinite or NaN retention times are
+/// defined inputs here (the sorts stay inside the map, `lower_bound` is
+/// defined for them), and the port matches the executed maps.
+#[test]
+fn an_overlapping_caller_map_matches_the_release_build() {
+    let mut inexact = 0;
+    for variant in ["ffc1", "zero", "nan_mz", "nan_intensity", "odd_rt"] {
+        let mut parameters = ffc1_parameters();
+        if variant == "zero" {
+            set(
+                &mut parameters,
+                "feature:max_intersection",
+                ParamValue::Float(0.0),
+            );
+        }
+        let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+        let mut features = overlapping(variant);
+        algorithm
+            .run(ffc1_input(), &mut features, &parameters, &FeatureMap::new())
+            .unwrap_or_else(|error| panic!("{variant}: {error}"));
+        inexact += assert_dumps_match(
+            &fixture(&format!("overlap_{variant}.txt.gz")),
+            &dump_map(&features, algorithm.aborts()),
+            variant,
+        );
+    }
+    eprintln!("overlap: {inexact} fitted values within {FIT_RELATIVE} but not bit-identical");
+}
+
+/// The driver's `overlap zero_charge`: a caller's feature of charge 0 meets a
+/// charge-2 feature, and the source's `2 % 0` traps; the executed driver is
+/// killed by SIGFPE (signal 8) in both repetitions. The port refuses at that
+/// pair.
+#[test]
+fn a_charge_zero_overlap_is_refused_where_the_release_build_traps() {
+    let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+    let mut features = overlapping("zero_charge");
+    let error = algorithm
+        .run(
+            ffc1_input(),
+            &mut features,
+            &ffc1_parameters(),
+            &FeatureMap::new(),
+        )
+        .unwrap_err();
+    assert!(
+        matches!(&error, openms::Error::InvalidValue(message) if message.contains("% 0") && message.contains("SIGFPE")),
+        "{error}"
+    );
+    // The source's state at the trap: the new features are in the map, which
+    // step 4 has sorted by m/z.
+    assert!(features.len() > overlapping("zero_charge").len());
+    assert!(
+        features
+            .features
+            .windows(2)
+            .all(|pair| pair[0].mz <= pair[1].mz)
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Stale abort-reason seeds
+// ---------------------------------------------------------------------------
+
+fn scaled_ffc1_input() -> MSExperiment {
+    let mut experiment = ffc1_input();
+    for spectrum in &mut experiment.spectra {
+        for peak in &mut spectrum.peaks {
+            peak.intensity *= 2.0;
+        }
+    }
+    experiment
+}
+
+/// The driver's `stale scaled`: a second debug run of one object on the same
+/// scans with doubled intensities. The 25 seeds of the first run stay in
+/// `abort_reasons_` under their old intensities, the second run adds its own
+/// under the doubled ones, and the abort map reads all of them from the
+/// second input.
+#[test]
+fn stale_abort_seeds_are_read_from_the_current_input() {
+    let parameters = with_debug(
+        ffc1_parameters(),
+        &[("feature:min_isotope_fit", ParamValue::Float(1.0))],
+    );
+    let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+    let mut first = FeatureMap::new();
+    algorithm
+        .run(ffc1_input(), &mut first, &parameters, &FeatureMap::new())
+        .unwrap();
+    assert_eq!(
+        format!("{}\n", algorithm.abort_reasons().len()),
+        fixture("stale_scaled_run1_count.txt")
+    );
+    let mut second = FeatureMap::new();
+    algorithm
+        .run(
+            scaled_ffc1_input(),
+            &mut second,
+            &parameters,
+            &FeatureMap::new(),
+        )
+        .unwrap();
+    assert_eq!(
+        format!("{}\n", algorithm.abort_reasons().len()),
+        fixture("stale_scaled_run2_count.txt")
+    );
+    assert_dumps_match(
+        &fixture("stale_scaled_run2_map.txt.gz"),
+        &dump_map(&second, algorithm.aborts()),
+        "stale scaled",
+    );
+    let out = algorithm.debug_output().unwrap();
+    assert!(!out.log_opened);
+    assert_maps_decoded_equal(
+        &out.seed_maps[0].map,
+        &feature_fixture("stale_scaled_seed_map_2.featureXML.gz"),
+        "stale seeds",
+    );
+    assert_maps_decoded_equal(
+        out.abort_reasons.as_ref().unwrap(),
+        &feature_fixture("stale_scaled_abort_map.featureXML.gz"),
+        "stale aborts",
+    );
+}
+
+/// The driver's `stale oob`: the second debug run reads four scans, while
+/// the first run's seeds address scans up to about 100. The source reads
+/// them without a bounds check; the executed driver is killed by SIGSEGV in
+/// all five repetitions. The port refuses at the abort map, after everything
+/// the source does before it.
+#[test]
+fn stale_abort_seeds_outside_the_input_are_refused() {
+    let first_parameters = with_debug(
+        ffc1_parameters(),
+        &[("feature:min_isotope_fit", ParamValue::Float(1.0))],
+    );
+    let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+    let mut first = FeatureMap::new();
+    algorithm
+        .run(
+            ffc1_input(),
+            &mut first,
+            &first_parameters,
+            &FeatureMap::new(),
+        )
+        .unwrap();
+    let mut second = FeatureMap::new();
+    let error = algorithm
+        .run(
+            short_input(),
+            &mut second,
+            &with_debug(Param::new(), &[]),
+            &FeatureMap::new(),
+        )
+        .unwrap_err();
+    assert!(
+        matches!(&error, openms::Error::InvalidValue(message) if message.contains("abort_reasons_")),
+        "{error}"
+    );
+    let out = algorithm.debug_output().unwrap();
+    // The executed run wrote the four seed maps before it crashed, and no
+    // abort map or input of its own.
+    assert_eq!(out.seed_maps.len(), 4);
+    assert!(out.abort_reasons.is_none());
+    assert!(out.input.is_none());
+    assert!(
+        algorithm
+            .report()
+            .contains(&ReportLine::Info("0 features found.".into()))
+    );
 }

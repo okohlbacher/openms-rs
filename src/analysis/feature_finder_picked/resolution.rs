@@ -22,6 +22,8 @@
 //! The module is serial, as the source is here. See
 //! `docs/FEATURE_FINDER_PICKED_SUPPORT.md`.
 
+use std::cmp::Ordering;
+
 use crate::analysis::feature_finder_picked::debug::{LogSink, NoLog, g, put_all};
 use crate::kernel::{ConvexHull2D, Feature, MSExperiment};
 use crate::metadata::MetaValue;
@@ -117,7 +119,11 @@ impl SourceBox {
 
     /// `DBoundingBox::intersects`.
     fn intersects(&self, other: &Self) -> bool {
-        (0..2).all(|dim| !(other.min[dim] > self.max[dim]) && !(other.max[dim] < self.min[dim]))
+        // `!(a > b) && !(c < d)`: an unordered pair (NaN) counts as intersecting.
+        (0..2).all(|dim| {
+            other.min[dim].partial_cmp(&self.max[dim]) != Some(Ordering::Greater)
+                && other.max[dim].partial_cmp(&self.min[dim]) != Some(Ordering::Less)
+        })
     }
 }
 
@@ -369,11 +375,12 @@ pub(crate) fn resolve_overlaps_logged<L: LogSink>(
 /// retention time, where the source's `lower_bound` gives an unspecified
 /// index.
 pub fn annotate_apex(features: &mut [Feature], experiment: &MSExperiment) -> Result<usize> {
-    if experiment
-        .spectra
-        .windows(2)
-        .any(|pair| !(pair[0].rt <= pair[1].rt))
-    {
+    if experiment.spectra.windows(2).any(|pair| {
+        !matches!(
+            pair[0].rt.partial_cmp(&pair[1].rt),
+            Some(Ordering::Less | Ordering::Equal)
+        )
+    }) {
         return Err(Error::UnsortedData);
     }
     let mut invalid = 0usize;
