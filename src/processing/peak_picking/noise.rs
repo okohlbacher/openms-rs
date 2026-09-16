@@ -1154,8 +1154,8 @@ impl SignalToNoiseEstimatorMedian {
             ));
         }
         let mut result = NoiseEstimates {
-            signal_to_noise: Vec::with_capacity(n),
-            noise: Vec::with_capacity(n),
+            signal_to_noise: Vec::new(),
+            noise: Vec::new(),
             max_intensity,
             sparse_window_percent: 0.0,
             histogram_rightmost_percent: 0.0,
@@ -1172,7 +1172,10 @@ impl SignalToNoiseEstimatorMedian {
             result.noise.resize(n, f64::INFINITY);
             return Ok(result);
         }
+        // Refused before the estimates are allocated.
         main_loop_counters_fit(n)?;
+        result.signal_to_noise.reserve_exact(n);
+        result.noise.reserve_exact(n);
         let mut histogram = vec![0usize; self.bin_count];
         if let Some(logger) = progress.as_deref_mut() {
             logger.start_progress(0, n as i64, NOISE_PROGRESS_LABEL)?;
