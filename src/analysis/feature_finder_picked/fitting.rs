@@ -165,9 +165,11 @@ impl FittedModel {
     /// # Errors
     ///
     /// As [`TraceFitter::fit`] of the selected model. From the seed loop, that
-    /// is only one of the port's resource ceilings (the solver's point, byte
-    /// and work ceilings), which the source does not have; the algorithm
-    /// returns such an error instead of recording an abort reason.
+    /// is one of the port's resource ceilings (the solver's point, byte and
+    /// work ceilings), which the source does not have, or the start point's
+    /// refusal of a NaN retention time in the intensity profile
+    /// ([`MassTraces::intensity_profile`]), where the source loops forever; the
+    /// algorithm returns such an error instead of recording an abort reason.
     pub fn fit(&mut self, traces: &MassTraces) -> Result<()> {
         match self {
             Self::Gauss(fitter) => fitter.fit(traces),

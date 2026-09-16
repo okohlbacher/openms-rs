@@ -962,10 +962,10 @@ fn area_overrun(what: String) -> Error {
 /// Both comparisons are false for a NaN, so a NaN never makes the experiment
 /// unsorted, as in the source.
 pub(crate) fn source_is_sorted(experiment: &MSExperiment) -> bool {
-    experiment
+    !experiment
         .spectra
         .windows(2)
-        .all(|pair| !(pair[0].rt > pair[1].rt))
+        .any(|pair| pair[0].rt > pair[1].rt)
         && experiment
             .spectra
             .iter()

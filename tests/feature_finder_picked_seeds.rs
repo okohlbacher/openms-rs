@@ -848,8 +848,24 @@ fn min_spectra_one_follows_the_source_and_finds_no_seed() {
     assert!(stage.charges()[0].seeds.is_empty());
     assert_eq!(stage.log(), ["Found 0 seeds for charge 2."]);
     // Every trace score is the NaN of 0.0 / 0, so no peak can reach the seed
-    // threshold; the whole run therefore ends with an empty map.
-    assert!(stage.scores().trace(0).unwrap().iter().all(|s| s.is_nan()));
+    // threshold; the whole run therefore ends with an empty map. The Release
+    // build stores the x86_64 default NaN `0xffc00000` for every one of the
+    // 3,084 peaks, and the overall score carries it through the product
+    // (`min_spectra_1` in `nonfinite_stage.tsv.gz`, whose score digest
+    // `non_finite_inputs_match_the_linux_release_build` compares); the port
+    // gives these bits on every host.
+    for s in 0..stage.experiment().spectra.len() {
+        assert!(
+            stage
+                .scores()
+                .trace(s)
+                .unwrap()
+                .iter()
+                .chain(stage.scores().overall(0, s).unwrap())
+                .all(|score| score.to_bits() == 0xffc0_0000),
+            "spectrum {s}"
+        );
+    }
     let output = run(ffc1_input(), &FeatureMap::new(), &parameters).unwrap();
     assert!(output.features.is_empty());
     // The two empty entries are the blank lines the source prints before the

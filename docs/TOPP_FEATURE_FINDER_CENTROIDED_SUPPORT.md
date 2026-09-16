@@ -289,6 +289,29 @@ to leave no output file.
     defaults, so an input the C++ reader repairs silently in another way can
     still be refused here. `docs/MZML_HEADER_SUPPORT.md` lists what the option
     covers.
+13. **Non-finite values in the mzML are refused by the reader.** The native
+    mzML reader rejects a decoded NaN or infinite m/z or intensity
+    (`nonfinite binary value`) and a non-finite `scan start time`, so the tool
+    exits 3 before the algorithm runs. The C++ Release tool reads such values
+    and hands them to the algorithm, which the library port follows
+    ([FEATURE_FINDER_PICKED_SUPPORT](FEATURE_FINDER_PICKED_SUPPORT.md),
+    *Non-finite input*). Executed by the adversarial review of this lane
+    (`../oracle/ffap-sem-ver1`, driver `write_mod.cpp` writing FFC_1 with one
+    value replaced through the Release `MzMLFile`, two repetitions each,
+    identical), with the FFC_1 INI and `-test`:
+
+    | Input | C++ Release | This port |
+    |---|---|---|
+    | `ffc1_mz0_neginf.mzML`: the first m/z `-inf` | exit 8, `FeatureFinder can only operate on spectra that contain peaks with positive m/z values. …` | exit 3, `Unable to read file (parse error on line 0: nonfinite binary value)` |
+    | `ffc1_mz0_posinf.mzML`: the first m/z `+inf` (sorted to the end) | exit 8, `the value '12' was used but is not valid; IsotopeDistribution not precalculated. Maximum allowed index is 0` | exit 3, the same reader error |
+    | `ffc1_rtlast_posinf.mzML`: the last `scan start time` `inf` | exit 0, `Found 0 seeds for charge 2.`, an empty map | exit 3, `… nonfinite scan start time` |
+
+    The port's exits were run locally on those three files (release build of
+    this branch). Given the same values in memory, the library returns what the
+    C++ algorithm returns: `mz_neginf_first`, `mz_posinf_last` and
+    `rt_posinf_last` of `non_finite_inputs_match_the_linux_release_build`. The
+    reader's strictness is the mzML port's (`docs/MZML_HEADER_SUPPORT.md`), not
+    this tool's.
 
 ## Checked boundaries and evidence
 

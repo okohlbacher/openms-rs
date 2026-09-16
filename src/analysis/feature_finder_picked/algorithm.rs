@@ -399,7 +399,8 @@ pub enum ReportedMz {
 /// time, when every MS1 peak has the same m/z, or when a subnormal extent
 /// underflows in the division (`4.9e-324 / 2` is zero); the retention-time step
 /// is infinite when the extent overflows (retention times from `-1e308` to
-/// `1e308`). The bins are still computed
+/// `1e308`), and either step is infinite when a coordinate is. The bins are
+/// still computed
 /// ([`IntensityThresholds::compute`](crate::analysis::feature_finder_picked::scoring::IntensityThresholds::compute)),
 /// but `intensityScore_` (`:1837-1838`) then converts `floor(NaN)` or
 /// `floor(inf)` to `UInt` for every peak, which is undefined behaviour.
@@ -807,9 +808,9 @@ pub const UNSORTED_WARNING: &str =
 /// leaves an observable order unspecified:
 ///
 /// - a NaN retention time when the spectra are sorted
-///   (`MSExperiment::sortSpectra`, `std::sort` by retention time, `:793`), and
+///   (`MSExperiment::sortSpectra`, `std::sort` by retention time, `MSExperiment.cpp:793`), and
 ///   a NaN chromatogram product m/z when the chromatograms are
-///   (`sortChromatograms`, `std::sort`, `:813`): either the comparator is not a
+///   (`sortChromatograms`, `std::sort`, `MSExperiment.cpp:813`): either the comparator is not a
 ///   strict weak ordering, or every key is equivalent and the order of the
 ///   spectra or chromatograms, which the output shows, is libstdc++'s
 ///   introsort order, which this module does not reproduce;
@@ -944,10 +945,12 @@ fn source_sort_chromatograms(experiment: &mut MSExperiment) -> Result<()> {
     }
     let mut unsorted = Vec::new();
     for (index, chromatogram) in chromatograms.iter().enumerate() {
-        if chromatogram
+        // Source `MSChromatogram::isSorted`: no retention time greater than the
+        // next, false for a NaN.
+        if !chromatogram
             .peaks
             .windows(2)
-            .all(|pair| !(pair[0].rt > pair[1].rt))
+            .any(|pair| pair[0].rt > pair[1].rt)
         {
             continue;
         }
@@ -1066,10 +1069,12 @@ struct SeedCandidate {
 ///
 /// Returns [`Error::InvalidValue`] when a [`Limits`] ceiling of the seed loop
 /// is exceeded, checked before the loop starts, and every error of the
-/// extension, the fit, the checks and the annotation. A *fit* that fails is not
-/// an error: it becomes that seed's abort reason, which is what the source's
-/// serial behaviour amounts to (inside its parallel region an
-/// `Exception::UnableToFit` is not caught at all).
+/// extension, the fit, the checks and the feature creation, for the first seed
+/// in seed order that fails: a fit error is one of the port's ceilings or a
+/// NaN retention time in a mass trace, where the source's intensity profile
+/// never returns; a feature m/z without isotope window is where the source's
+/// exception terminates the process (`FittedModel::fit`,
+/// [`build_feature`]).
 pub fn feature_stage(stage: &SeedStage, options: &Options) -> Result<RunOutput> {
     let settings = stage.settings();
     let experiment = stage.experiment();
@@ -1275,8 +1280,10 @@ fn extend_seed(
     // The source's fit can throw `Exception::UnableToFit` (`TraceFitter.cpp:111`,
     // `:129`), which would escape its parallel region and end the process, but
     // no input reaches either throw from here (see `FittedModel::fit`). An error
-    // here is therefore one of the port's own ceilings, and the run fails with
-    // it rather than turning it into an abort reason the source never records.
+    // here is therefore one of the port's own ceilings or the refused merge of a
+    // NaN retention time into the intensity profile, where the source never
+    // returns; the run fails with it rather than turning it into an abort
+    // reason the source never records.
     model.fit(&traces)?;
     let new_traces = crop_feature(model.as_fitter(), &traces, settings.min_trace_score)?;
     let quality = match check_feature_quality(model.as_fitter(), &new_traces, seed_mz, settings)? {

@@ -412,7 +412,7 @@ impl SeedStage {
         mut log: Vec<String>,
     ) -> Result<Self> {
         let limits = options.limits;
-        // The source sorts the user seeds first (`FeatureFinderAlgorithmPicked.cpp:150`).
+        // The source sorts the user seeds first (`FeatureFinderAlgorithmPicked.cpp:190`).
         let user_seeds = sorted_user_seeds(user_seeds)?;
         preflight(&experiment, &settings, options)?;
         let charge_count = settings.charge_count()?;
@@ -618,7 +618,7 @@ fn refuse_degenerate_bin_step(experiment: &MSExperiment, settings: &Settings) ->
 }
 
 /// The user seed positions sorted by m/z: source `seeds_.sortByMZ()`
-/// (`FeatureFinderAlgorithmPicked.cpp:150`, `std::sort` with `Feature::MZLess`).
+/// (`FeatureFinderAlgorithmPicked.cpp:190`, `std::sort` with `Feature::MZLess`).
 ///
 /// Infinite positions and a NaN retention time are ordinary values here: the
 /// retention time is no sort key, and `<` orders infinities. A NaN m/z is

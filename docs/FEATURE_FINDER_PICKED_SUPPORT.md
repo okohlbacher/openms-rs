@@ -332,7 +332,8 @@ Step 1 divides the MS1 retention-time and m/z extents by `intensity:bins`
 MS1 spectrum has one retention time, when every MS1 peak has one m/z, or when a
 subnormal extent underflows in the division (`4.9e-324 / 2`), and the
 retention-time step is **infinite** when the extent overflows (retention times
-from `-1e308` to `1e308`). The bins are still defined: with a zero step every
+from `-1e308` to `1e308`); either step is also infinite when a coordinate is
+(see *Non-finite input*). The bins are still defined: with a zero step every
 cell spans the extent, and with an infinite step the first cell's bounds are
 `NaN` and `inf`, which the area iterator, like the port's inclusive walk, reads
 as every spectrum. `intensityScore_` (`:1837-1838`) then converts
@@ -344,8 +345,10 @@ which is undefined behaviour.
 -ffp-contract=off`) the conversion is `cvttsd2si %xmm2,%rdi`, a 64-bit
 truncation that gives `0x8000000000000000` for NaN and out-of-range values,
 followed by the low 32 bits and an unsigned `cmovbe` cap. A NaN or infinite
-position therefore selects half-bin 0, and a negative one the last half-bin;
-the cells read are always inside the grid. The distances to the bin centres
+position therefore selects half-bin 0; a position in `[-2^32, 0)` wraps to a
+value above `2^31` and is capped at the last half-bin; a lower position keeps
+its low 32 bits (at or below `-2^63`, half-bin 0). The cells read are always
+inside the grid. The distances to the bin centres
 are `0 / 0` or `inf / inf` whatever cell was selected, so every intensity score
 is the default NaN `0xfff8000000000000` (stored as `0xffc00000`), every overall
 score the seed loop computes is NaN, no seed is found, and the run returns an
@@ -387,13 +390,144 @@ extent) behaves the same. The Debug oracle's exit 8 for both is
 (`ProgressLogger.cpp:235`), reached from `startProgress(5, 0)` at `:298`, and
 fires for every input shorter than `2 * min_spectra_` scans.
 
+## Non-finite input
+
+The source reads infinite and NaN retention times, m/z values, intensities and
+user-seed positions without a check. The port follows it, and refuses only
+where the source's behaviour has no reproducible answer. What the executed
+Linux x86_64 Release build does was measured with the driver
+`nonfinite_stage` (`../oracle/ffap-sem-completion/drivers/nonfinite_stage.cpp`)
+on 189 modified FeatureFinderCentroided_1 inputs, each run twice (identical;
+five also twice at four threads, identical apart from the one-thread abort
+rows). The fixture `nonfinite_stage.tsv.gz` holds every outcome, and
+`non_finite_inputs_match_the_linux_release_build` replays all 189.
+
+**What the source does, and what the port does.**
+
+- *The input check* (`run`, `.cpp:1057-1098`). `MSExperiment::isSorted(true)`
+  compares retention times with `>` and each spectrum with `std::is_sorted`;
+  both are false for a NaN, so a NaN never makes the input unsorted. `-inf`
+  sorts before every m/z and fails the positive-m/z check (`IllegalArgument`).
+  The port runs the same comparisons (`validate_input`) and sorts as
+  `sortSpectra` does.
+- *The ranges* (`MSExperiment::updateRanges`, `RangeBase::extend`). The
+  minimum is `std::min` and the maximum `std::max` from `DBL_MAX` and
+  `-DBL_MAX`: NaN never enters, the minimum is never `+inf` and the maximum
+  never `-inf`. A range that stays empty (every retention time, or every m/z,
+  NaN) throws `InvalidRange` ("Empty or uninitalized range object. Did you
+  forget to call updateRanges()?") from `getMinRT`/`getMinMZ`. The port
+  computes the ranges the same way and returns `Error::InvalidRange` with that
+  text.
+- *Step 1.* An infinite coordinate makes that step infinite, so every
+  intensity score is NaN and no seed is found (*Degenerate intensity bins*;
+  `DegenerateBinStep::Refuse` covers these inputs too). The area iterator
+  finds its scans and peaks with libstdc++'s `lower_bound`/`upper_bound`; the
+  port runs the same probe sequence (`scoring::libstdcxx`), so a NaN key gives
+  the same cell contents. An infinite intensity sorts to the end of its cell
+  and changes the quantiles; the score of that peak is `inf / inf`, NaN.
+- *Step 2.* The trace scores compare intensities only, so an infinite
+  intensity changes local maxima; a NaN or infinite m/z difference fails both
+  comparisons of `positionScore_` (score 0). `findNearest` is reproduced with
+  the same `lower_bound`.
+- *Step 2.5.* `Size num_isotopes = ceil(max_mass / width) + 1` is converted by
+  `comisd`/`cvttsd2si`/`btc` (`libOpenMS.so` `0x18e46f4`-`0x18e46fe`,
+  `0x18e6c3b`-`0x18e6c44`): an infinite maximum m/z, or a count of `2^64` or
+  more (m/z `1e300`), gives **no** window. A count in `[2^63, 2^64)` makes
+  `resize` throw `std::length_error` (`vector::_M_default_append`); the port's
+  `Limits::max_isotope_windows` refuses it first. The port converts with the
+  crate-private `x86_64::truncate_to_u64`, which reproduces the sequence.
+- *Step 3.1.* `getIsotopeDistribution_` (`0x18dddd0`) converts
+  `floor(mass / width)` with the same sequence and throws `InvalidValue` when
+  the index is not below the window count: with no window, at the first peak
+  (`the value '12' ... Maximum allowed index is 0`; `'0'` for an infinite
+  first peak), and for a NaN m/z at that peak, index `2^63`
+  (`the value '9223372036854775808' ... Maximum allowed index is 15`). The port
+  returns the same text (`IsotopeWindows::get`). With no charge
+  (`charge_low = charge_high + 1`) step 3.1 never runs and the map is empty.
+- *Step 3.2.* An infinite or NaN user-seed position never matches a peak
+  (7 of the 8 FFC_1 features remain when seed 0 or seed 3 is changed); a
+  single NaN seed matches nothing (no feature).
+- *Step 3.3.* A NaN overall score is not below 0.01, so peaks with a NaN
+  intensity score join mass traces; an infinite intensity makes the slope check
+  cut the extension, and no executed feature holds a non-finite value. A NaN
+  retention time in a mass trace makes `MassTraces::computeIntensityProfile`
+  (`FeatureFinderAlgorithmPickedHelperStructs.cpp:210-236`) loop forever:
+  every comparison is false, so the loop neither advances nor consumes a peak.
+  The executed runs `rt_nan_mid` and `rt_nan_mid_bins3` did not return within
+  30 s (killed, twice each; a stack sample shows the loop). The port refuses at
+  that merge (`MassTraces::intensity_profile`).
+
+**Measured outcomes** (FFC_1 with its INI; `in`/`innear` sweeps set one peak of
+or next to each of the 25 seeds):
+
+| Cases | Executed Release outcome | Port |
+| --- | --- | --- |
+| `+inf`/`-inf` intensity at 3 fixed positions and 136 sweep positions (also with `seed:min_score` 0, `mass_trace:min_spectra` 2, the EGH model, `feature:min_isotope_fit` 0, reported m/z `average` and `maximum`) | 7 to 13 features; every score, seed, feature, meta value and hull recorded | the same (bit for bit on Linux x86_64; see below for macOS) |
+| `-inf` m/z (first peak, last peak, a whole spectrum) | `IllegalArgument`, positive m/z | the same text |
+| `+inf` m/z (last peak, a whole first spectrum, 5 spectra), m/z `1e300` | `InvalidValue`, no window | the same text |
+| m/z `6.9e20` (`2^63 <= count < 2^64`) | `std::length_error` | `Limits::max_isotope_windows` |
+| `+inf` m/z with no charge | empty map | the same |
+| `±inf` retention time (first, last, every; 3 bins; 10 scans) | empty map | the same |
+| NaN m/z (one peak, a whole spectrum, a one-peak spectrum, a pair, both NaN signs) | `InvalidValue`, index `2^63` | the same text |
+| NaN m/z in a whole spectrum with no charge | empty map, scores recorded | the same |
+| every m/z or every retention time NaN | `InvalidRange` | the same text |
+| NaN retention time of the first or last scan | 8 features | the same |
+| NaN retention time of scan 50 (1 bin, 3 bins) | never returns | refused at the profile merge |
+| user seed with `±inf` retention time, NaN retention time, `±inf` m/z | 7 features | the same |
+| one user seed with NaN m/z; two, both NaN | no feature | the same |
+| `mass_trace:min_spectra` 1, with and without an infinite intensity | empty map, trace scores `0xffc00000` (the default NaN of `0 / 0`) | the same bits on every host |
+| NaN intensity (2 fixed positions, 6 sweep positions); NaN seed m/z among others; NaN retention time with an unsorted scan | 8, 7, 7 features; never returns | refused at the sort (below) |
+
+**What is refused, and where.** Each refusal is `Error::InvalidValue`, at the
+first point where the source becomes undefined:
+
+1. *A NaN key in a `std::sort` or `std::stable_sort`* whose other keys are not
+   all bit-identical to it: the bin intensities of step 1 (`.cpp:270`), the
+   spectra by retention time and the peaks of an unsorted spectrum by m/z
+   (`MSExperiment::sortSpectra`), the chromatograms by product m/z and the
+   peaks of an unsorted chromatogram by retention time
+   (`sortChromatograms`), and the user seeds by m/z when two of their other
+   m/z values differ (`.cpp:190`). The standard requires a strict weak
+   ordering there, which a NaN breaks as soon as two other keys differ; when
+   every other key is equivalent, the order of the equivalent elements is
+   unspecified and observable (it decides the stored quantiles or the spectrum
+   order). The Release build's order is libstdc++'s introsort order, which
+   `port/ffap-instrumentation` ports as `source_sort` and this branch does not
+   use. Executed: `int_nan_50_3` (8 features), `int_nan_40_10` (7),
+   `seeds_mz_nan` (7) and the six `sw_nan_next2_*` returned; the fixture keeps
+   their outcomes. The user seeds are exempt when every other m/z is one value,
+   because `near_user_seed` then answers the same for every order.
+2. *An area-iterator cell whose lower search lies above its upper search*
+   (possible only with a NaN key): `AreaIterator` never meets its end and reads
+   past the scans or the peaks (`AreaIterator.h:205-218`, `:276-298`), an
+   out-of-bounds read. None of the executed inputs produced one.
+3. *A NaN retention time merged into an intensity profile*: the source never
+   terminates (above).
+4. *A feature m/z without an isotope window at step 3.3.5* (`.cpp:790`): the
+   source's `InvalidValue` leaves its OpenMP region uncaught and
+   `std::terminate` ends the process. A NaN feature m/z (an infinite intensity
+   kept in the reported traces) would reach it; no executed input did
+   (source review).
+
+**The platform split.** On Linux x86_64 with glibc every returned feature is
+bit for bit. On macOS arm64 the Gaussian fits split as in
+`docs/TRACE_FITTER_SUPPORT.md`: of the 1,135 compared features, 1,124 stay
+within the general `5.4e-13`, and 11 ill-conditioned ones depart by up to
+`1.1156e-12`, `6.5974e-8` and `4.9245e-4` relative (`NONFINITE_FIT_GAP` in the
+test).
+
+**The tool.** `FeatureFinderCentroided` reads the mzML with the native reader,
+which refuses non-finite binary values and scan start times; see
+[TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT](TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md),
+native difference 13.
+
 ## Native differences
 
 | Source behaviour | This port | Reason and evidence |
 | --- | --- | --- |
 | scores are float data arrays appended to each spectrum, replacing its existing float arrays | `ScoreArrays`: one flat `f32` array per score, outside the spectra | Only the algorithm reads them, and only debug mode writes them. The input spectra keep their arrays, and no per-spectrum allocation is needed. |
-| `spectrumRanges().byMSLevel(1)` needs `updateRanges()` from the caller | ranges are computed on demand from the validated spectra | No stale-range state exists, so the source's FAIMS "No ranges for this MS level" crash cannot occur. The source message "needs updated ranges" belongs to the peak-count check and is kept verbatim. |
-| NaN or infinite RT, m/z or intensity values are sorted and binned with undefined results | `Error::InvalidValue` | The native readers never produce them. |
+| `spectrumRanges().byMSLevel(1)` needs `updateRanges()` from the caller | ranges are computed on demand from the validated spectra, with `RangeBase`'s `std::min`/`std::max` semantics | No stale-range state exists, so the source's FAIMS "No ranges for this MS level" crash cannot occur. The source message "needs updated ranges" belongs to the peak-count check and is kept verbatim. |
+| infinite and NaN retention times, m/z values, intensities and user-seed positions are read without a check | read as the Linux x86_64 Release build reads them; refused only at a NaN sort key whose order the port does not reproduce, at an out-of-bounds area-iterator cell, at the endless profile merge of a NaN retention time and at the uncaught step-3.3.5 exception | See *Non-finite input*: 189 executed cases, 161 returned runs and 16 exceptions reproduced, 9 returned runs refused at a NaN sort key. The port refused every non-finite value before. |
 | `mass_trace:min_spectra = 1` gives `min_spectra_ = 0`. Every trace score becomes 0/0 = NaN and every peak a local maximum; no overall score reaches a threshold, no seed is found and the run returns an empty map | the same: NaN trace scores, no seed, an empty map | The execution (B6 driver, `ffc1_min_spectra_1`) shows the source is *defined* here, so the port follows it (lead decision of 2026-09-15, `CPP-271`). B6 refused the configuration; that refusal is gone. Nothing later in the algorithm is reached, so the source's `size_t(-1)` delta buffer in `extendMassTrace_` stays unreachable; the port returns `Error::InvalidValue` if it ever is. |
 | a zero or infinite intensity bin step makes `intensityScore_` convert `floor(NaN)` or `floor(inf)` to `UInt`, which is undefined | by default the Linux x86_64 Release build's outcome (every intensity score NaN, no seed, an empty map); `DegenerateBinStep::Refuse` refuses exactly the inputs whose seed loop reads those scores | Undefined behaviour of the `float`-to-`int` kind, whose Release outcome is measured, repeatable and explained by the emitted `cvttsd2si`; see *Degenerate intensity bins*. The port refused every zero-width range before, including short inputs, where the result does not depend on the scores. |
 | `charge_low > charge_high + 1` wraps the `UInt` charge count and indexes past the score arrays | `Error::InvalidValue` from `Settings::charge_count` | Undefined behaviour. `charge_low == charge_high + 1` gives zero charges, as in the source. |
@@ -404,13 +538,13 @@ fires for every input shorter than `2 * min_spectra_` scans.
 | `std::sort` of a bin's intensities: `-0.0` and `+0.0` compare equal | `total_cmp`: `-0.0` first | Only a quantile's zero sign can differ, and only for inputs with both signed zeros; the tool path filters non-positive intensities. |
 | progress, `Found N seeds for charge c.` and `Found N feature candidates for charge c.` go to `std::cout`; the overlap count, the abort reasons, the feature count and the apex warning to `OPENMS_LOG_INFO`/`WARN` | `SeedStage::log` and `RunOutput::log`, in the source's order | Library code never prints. The candidate line is inserted directly after its charge's seed line, so the two `std::cout` lines are adjacent as in the source, even though this port computes every charge's seeds first. The bare newlines the source logs around the abort block (`FeatureFinderAlgorithmPicked.cpp:1019` and `1026`) are emitted as empty log entries, so a caller that prints the log line by line — `FeatureFinderCentroided` does — reproduces the executed C++ stdout block exactly. |
 | steps 3.1 to 3.3 run per charge | steps 3.1 and 3.2 run for every charge first | Step 3.3 reads only its own charge's arrays, so the arrays and seeds are identical. |
-| user seeds are a copied `FeatureMap` sorted with `std::sort` | positions only, sorted stably; non-finite positions are `Error::InvalidValue` | NaN breaks the source sort. Equal m/z values give the same search result in any order. |
+| user seeds are a copied `FeatureMap` sorted with `std::sort` | positions only, sorted stably by `total_cmp`; a NaN m/z among two different other m/z values is `Error::InvalidValue` | Equal m/z values, and a NaN among copies of one value, give the same search result in any order; with two different other values the source sort is undefined. Infinite positions and a NaN retention time are ordinary (executed, 7 features). |
 | unbounded work | `Limits`: spectra, peaks, charges, bins per dimension, windows, pattern values, score bytes, work units | Checked before the allocation or computation each bounds. The FFC_1 workload is several orders of magnitude below every default. |
 | `Math::pearsonCorrelationCoefficient` returns an infinity when its denominator underflows to 0 from non-zero deviations | NaN, which counts as 0 | Inherited from `src/math/statistic_functions.rs`. Unreachable at isotope intensity scales. |
-| `Exception::UnableToFit` from `fitter->fit` would be thrown inside the `omp parallel for`, where nothing catches it, and would end the process | unreachable, so not reproduced; an error from the port's fit (only its point, byte or work ceilings can occur here) ends the run with that error | Both throws of `TraceFitter::optimize_` are unreachable from the seed loop: a fitted candidate has at least two traces of which at most one has fewer than three peaks, so at least 4 residuals for at most 4 parameters (`TraceFitter.cpp:111`), and Eigen returns `ImproperInputParameters` (`:129`) only for `maxfev <= 0`, which the `fit:max_iterations` restriction excludes. The argument is written out at `FittedModel::fit`. The port used to turn any fit error into an abort reason, which hid its own ceilings. |
+| `Exception::UnableToFit` from `fitter->fit` would be thrown inside the `omp parallel for`, where nothing catches it, and would end the process | unreachable, so not reproduced; an error from the port's fit (its point, byte or work ceilings, or the refused NaN profile merge) ends the run with that error | Both throws of `TraceFitter::optimize_` are unreachable from the seed loop: a fitted candidate has at least two traces of which at most one has fewer than three peaks, so at least 4 residuals for at most 4 parameters (`TraceFitter.cpp:111`), and Eigen returns `ImproperInputParameters` (`:129`) only for `maxfev <= 0`, which the `fit:max_iterations` restriction excludes. The residual count is `int` (`GaussTraceFitter.cpp:140`, `EGHTraceFitter.cpp:29`), so more than `INT_MAX` peaks would also throw at `:111`, but the solver's `MAX_POINTS` ceiling refuses such traces first. The argument is written out at `FittedModel::fit`. The port used to turn any fit error into an abort reason, which hid its own ceilings. |
 | `extendMassTraces_` dereferences `pattern.spectrum[0]` when the pattern matched no peak | `Error::InvalidValue` | Undefined behaviour. Unreachable from `run_`, where the pattern always contains the seed; reachable through the public function, which the test exercises. |
 | `traces[traces.max_trace]` is indexed before the fit without a range check | `Error::InvalidValue` | Undefined behaviour when `max_trace` is stale. The one branch that could make it stale (`traces.clear()` for a trace before `max_trace`) is unreachable, because `max_trace` is still 0 at every index that could satisfy `p < max_trace`. |
-| `setWidth` stores any FWHM, including a NaN produced by a non-finite fit that the quality checks let through (every comparison against a NaN is false) | `Error::InvalidValue` from `BaseFeature::set_width` | The kernel setter validates. No executed configuration produces a non-finite fit. |
+| `setWidth` stores any FWHM, including a NaN produced by a non-finite fit that the quality checks let through (every comparison against a NaN is false) | `Error::InvalidValue` from `BaseFeature::set_width` | The kernel setter validates. No executed configuration produces a non-finite fit; the 1,201 features of the 170 non-finite captures that returned, 140 of those captures with an infinite intensity, are all finite. |
 | `f2.getCharge() % f1.getCharge()` divides by zero for a zero charge | the branch is skipped and the quality rule decides | `isotopic_pattern:charge_low` has a minimum of 1, so a zero charge cannot reach step 4; a trap would be worse than the fall-through. |
 | a hull with no point has the default `DBoundingBox` `[DBL_MAX, -DBL_MAX]`, whose `width()` is negative infinity and poisons `intersection_` | such a hull is skipped | Every hull built here holds at least three points. |
 | `plot_nr` is assigned in an OpenMP critical section, so its value depends on the schedule | assigned in seed order | It is overwritten by the feature number for every feature that survives, and only the refused debug output reads it otherwise. |
@@ -420,7 +554,8 @@ fires for every input shorter than `2 * min_spectra_` scans.
 | `FeatureMap::sortByMZ` and `sortByIntensity` use `std::sort`, which is unstable | stable sorts | Only exactly tied m/z or intensity values could be ordered differently. None of the six executed configurations has one. |
 | `setMetaValue("spectrum_index", Size)` stores an unsigned value | `i64`, refused above `i64::MAX` | The source's `DataValue` narrows to a signed integer anyway; the featureXML writer writes the same digits. |
 | `CoarseIsotopePatternGenerator` iterates elements in heap-address order, which varies between runs | ascending atomic number | Inherited from B2. It is the majority order (198 of 200 runs), which every retained execution used; all windows match. |
-| `MSExperiment::sortSpectra` | `MSExperiment::sort_spectra` validates each spectrum first | Existing kernel API; a spectrum with inconsistent attached records is an error. |
+| `MSExperiment::sortSpectra` and `sortChromatograms` with `std::sort` | module-local sorts that follow them (`std::is_sorted` first per spectrum, stable within), refusing only NaN keys (see *Non-finite input*) | The kernel's sorts refuse every non-finite value. Spectra with equal retention times and chromatograms with equal product m/z keep their input order, where `std::sort` leaves it unspecified; a spectrum with inconsistent attached records is an error. |
+| `MSExperiment::RTBegin`, `MSSpectrum::MZBegin`/`MZEnd`/`findNearest` and the quantile search use `std::lower_bound`/`upper_bound` | the same probe sequence (`scoring::libstdcxx`) | On sorted keys any binary search gives the same index; on keys a NaN leaves unpartitioned only libstdc++'s sequence does. |
 
 ### Score arrays
 
@@ -460,6 +595,7 @@ the next section.
 | C2 `ffap_stages` **final `FeatureMap`**, `aborts_` and the two `std::cout` lines, for six configurations | FFC_1 symmetric, FFC_1 asymmetric (EGH), FFC_1 with the retained output as user seeds, the class-test INI, the two `#9247` tolerance swaps | `every_configuration_matches_the_executed_library` |
 | `degenerate_stage` and `iscore_probe` | the degenerate intensity bins (26 configurations, 228 probe positions) | see *Degenerate intensity bins* |
 | `defs_probe` (three repetitions, identical) | `FeatureFinderDefs` | `feature_finder_defs_match_the_executed_probe` |
+| `nonfinite_stage` (two repetitions each, identical; five cases also at four threads) | 189 FFC_1 inputs with infinite or NaN retention times, m/z values, intensities and user-seed positions | `non_finite_inputs_match_the_linux_release_build`; see *Non-finite input* |
 
 The FFC_1 score table also pins every loaded peak's m/z and intensity bits
 against the C++ loader.
@@ -553,9 +689,12 @@ overall score) for all 7 configurations: 25, 25, 15, 18 and 24 seeds for charge
     MS2 input;
   - unsorted input: sorted with the warning, and scored exactly like the sorted
     input;
-  - the refusals: `write_debug`, charge wrap, non-finite user seeds,
-    abundances under `AbundanceOverride::Refuse`, and degenerate bin steps
-    under `DegenerateBinStep::Refuse` only when the seed loop reads them;
+  - the refusals: `write_debug`, charge wrap, a NaN user-seed m/z among
+    different ones, an unsorted spectrum with a NaN m/z, abundances under
+    `AbundanceOverride::Refuse`, and degenerate bin steps under
+    `DegenerateBinStep::Refuse` only when the seed loop reads them;
+  - a single scan with a NaN intensity: sorted alone, scored with the zero
+    steps' default NaN, and never reaching the seed loop (derived);
   - the conversions in `settings_follow_update_members`;
   - restriction and type violations.
 - **Hand-derived (feature stage).**
@@ -764,17 +903,21 @@ Items 1 and 2 are executed; the others come from source review.
   - `charge_low > charge_high + 1` (the `UInt` charge count wraps and the score
     arrays are indexed past their end: an out-of-bounds access, refused where
     the count is computed).
-  - Non-finite retention times, m/z values, intensities and user-seed
-    positions (the native readers never produce them; NaN breaks the source's
-    sorts).
+  - Non-finite input is read as the Release build reads it (189 executed
+    cases). What remains refused is listed in *Non-finite input*: a NaN
+    sort key whose order this branch does not reproduce (undefined, or an
+    observable unspecified order; lifted once `source_sort` from
+    `port/ffap-instrumentation` orders these sorts), an out-of-bounds area
+    iterator cell, the endless NaN profile merge, and the step-3.3.5
+    exception that terminates the source.
   - The `Limits` ceilings (bounded work).
   - `AbundanceOverride::Refuse` is an opt-out; the default computes the
     intended override, the one designed difference (`CPP-247`), now pinned
     against an adapted Release replay.
 - **Unreachable source behaviour.** `Exception::UnableToFit` cannot be thrown
-  from the seed loop (argument at `FittedModel::fit`), and the `aborts_` data
-  race at more than one thread has no reproducible C++ result, so neither is
-  tested against the C++.
+  from the seed loop (argument at `FittedModel::fit`, including the `int`
+  residual count), and the `aborts_` data race at more than one thread has no
+  reproducible C++ result, so neither is tested against the C++.
 - Rust files: `src/analysis/feature_finder_picked/algorithm.rs`, `scoring.rs`,
   `seeds.rs`, `extension.rs`, `fitting.rs`, `resolution.rs` and `defs.rs`.
   Tests: `tests/feature_finder_picked_seeds.rs`, `tests/feature_finder_picked.rs`

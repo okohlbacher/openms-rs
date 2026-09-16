@@ -34,7 +34,7 @@
   {
    "path": "OpenMS/KERNEL/AreaIterator.h",
    "sha256": "ee0c62b7a97bacb035bc1a4084f753dbf37619e1410bdc7f5a8008af8bb00cb3",
-   "role": "areaBeginConst traversal reproduced by the inclusive cell walk of IntensityThresholds"
+   "role": "areaBeginConst traversal reproduced by the libstdc++-order cell walk of IntensityThresholds, including where its end tests would read out of bounds"
   },
   {
    "path": "KERNEL/MSExperiment.cpp",
@@ -80,6 +80,21 @@
    "path": "CONCEPT/ProgressLogger.cpp",
    "sha256": "cab7e28a3b62516ccb0d498cacf969a2c18975ece6c97da2aff51c5f25733baf",
    "role": "startProgress's OPENMS_PRECONDITION(begin <= end) at line 235, the Debug exit of short inputs"
+  },
+  {
+   "path": "OpenMS/KERNEL/RangeManager.h",
+   "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d",
+   "role": "RangeBase::extend and getMin/getMax semantics reproduced by scoring::ms1_ranges"
+  },
+  {
+   "path": "KERNEL/MSChromatogram.cpp",
+   "sha256": "e29198d31abde2302e8e01c4d8e49c1856b788266fc95f767f881ed0f098e78a",
+   "role": "MZLess, isSorted and sortByPosition as called by sortChromatograms"
+  },
+  {
+   "path": "CONCEPT/Exception.cpp",
+   "sha256": "94ad947c904a286f7fe64d84b53cf639a93bca76f1245a7e5d6e2a2e3cf96cbe",
+   "role": "the what() text of InvalidValue and InvalidRange"
   }
  ],
  "context_sources_note": "Read for context and not ported by this group; spelled relative to the core include or source directory so tools/core_sdk_coverage.py does not count them as evidence for their headers. Hashes checked at source_revision.",
@@ -256,6 +271,14 @@
    "kind": "oracle-generated (adapted): library functions on library state, sequenced by intended_abundance.cpp; the run and executed rows are tier 1",
    "role": "intended_abundance: FFC_1 with abundance_12C 90 and 99 and abundance_14N 95; the executed library result (no seed, no feature) and the replay with the intended override (windows, seeds, candidates, aborts, features); two repetitions at OMP_NUM_THREADS 1 and 4, identical (extract_intended.py)",
    "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/nonfinite_stage.tsv.gz",
+   "sha256": "050fc85e39436b7f134721f6766487c8a70ff6e9d00acb2bbc17dfa6c7ddc074",
+   "bytes": 366684,
+   "kind": "oracle-generated (tier 1 executed differential); seed rows adapted; rounding rows derived (tier 4); score and hull digests computed from the executed rows",
+   "role": "nonfinite_stage on 189 FFC_1 inputs with infinite or NaN retention times, m/z values, intensities and user-seed positions (47 fixed cases and a 142-case sweep around the 25 base seeds): case, status (137 = killed after 30 s), input, stdout, threw, features, abort, bins, windows, seed, digest (FNV-1a over every quantile and every per-peak score), feature, meta, hulls (FNV-1a over the hull points), rounding, and the score/quantile rows of the base case and of the cases with at most 300 differing rows; two repetitions at OMP_NUM_THREADS 1 (five cases also at 4), identical (extract_nonfinite.py)",
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06)"
   }
  ],
  "reused_fixtures": [
@@ -299,10 +322,11 @@
    "ffc1_defaults": "B6: FFC_1 input, default parameters; 42, 44, 0, 0 seeds for charges 1 to 4",
    "ffc1_bins7_charge13": "B6: FFC_1 INI with intensity:bins 7, charges 1 to 3; 16, 23, 0 seeds",
    "ffc1_min_spectra_1": "B6: FFC_1 INI with mass_trace:min_spectra 1; min_spectra_ 0, NaN trace scores, 0 seeds, 0 features, exit 0",
-   "ffc1_abundance_12C_90": "C2, documentation only: 12C = 90 %; the stray-peak override yields 27-bin windows and 0 seeds; refused by default in the port"
+   "ffc1_abundance_12C_90": "C2, documentation only: 12C = 90 %; the stray-peak override yields 27-bin windows and 0 seeds; the port's default AbundanceOverride::Intended computes the intended override instead (CPP-247), with AbundanceOverride::Refuse as the opt-out",
+   "nonfinite_stage": "fix round 1: 189 FFC_1 cases with non-finite values (see the nonfinite_stage.tsv.gz fixture); 170 returned, 16 threw (IllegalArgument, InvalidValue with the Size-conversion index, InvalidRange, std::length_error), 3 never returned (a NaN retention time in computeIntensityProfile)"
   },
   "debug_only": [],
-  "comparison": "Exact: every f64 and f32 value of the seed stage bit for bit, every count and index equal, on Linux x86_64 and macOS arm64 against the Linux x86_64 Release capture. The single exception is the overall score (source std::pow(float, float), glibc 2.39 powf in the capture): 8 of 30,840 executed values are one binary32 step away from the correctly rounded power; overall_rounding.tsv (and the rounding rows of degenerate_stage.tsv.gz) list them, and the test requires the port's value to be the correctly rounded one there and the executed one everywhere else. The macOS arm64 product SDK's Apple powf misrounded 99. The feature stage is exact on Linux x86_64 glibc except the EGH configuration (2.3038e-12); macOS arm64 is within 5.355e-13 except two ill-conditioned Gaussian fits (1.07e-3) that no feature depends on.",
+  "comparison": "Exact: every f64 and f32 value of the seed stage bit for bit, every count and index equal, on Linux x86_64 and macOS arm64 against the Linux x86_64 Release capture. The single exception is the overall score (source std::pow(float, float), glibc 2.39 powf in the capture): 8 of 30,840 executed values are one binary32 step away from the correctly rounded power; overall_rounding.tsv (and the rounding rows of degenerate_stage.tsv.gz) list them, and the test requires the port's value to be the correctly rounded one there and the executed one everywhere else. The macOS arm64 product SDK's Apple powf misrounded 99. The feature stage is exact on Linux x86_64 glibc except the EGH configuration (2.3038e-12); macOS arm64 is within 5.355e-13 except two ill-conditioned Gaussian fits (1.07e-3) that no feature depends on. The non-finite captures (fix round 1) compare the same way through a digest of every quantile and score, with the full rows where few differ; their features are exact on Linux x86_64 glibc and on macOS arm64 within 5.4e-13 except 11 ill-conditioned fits (up to 1.1156e-12, 6.5974e-8 and 4.9245e-4, NONFINITE_FIT_GAP).",
   "release_build": {
    "install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
    "pins": {
@@ -321,9 +345,10 @@
     "iscore_probe": "7afb69b2d07d2a9c42e42c2f20240ccde0a835c1a1b8d03ad500da2726ddabae, binary e7ea3241f86af6d00f72f0f53185942ba7b8633b920815f1e23cc0fc643d30ad",
     "defs_probe": "02928d7d54d476ed796e79d85086cde7a41c781bd726d7e5600951118fe34362, binary 472f29956bb0f2be0ebc22068532b8be0901de5b845a11605e09a0624291f666",
     "intended_abundance": "ae6fd6e86044ce6e6f2b3958f01b901c0ec02c8aec864ca8e0ed08f3526156b4, binary 7b13c64a34bc1668b43b3d89f2a63d4bccf37e3be8fb79d734826c5011959554",
-    "defs_both_headers (compile only, expected to fail)": "05ce54bf8e6ce409902fc74e302908a2bf1e161bffb7bd234dcffb9353627b20"
+    "defs_both_headers (compile only, expected to fail)": "05ce54bf8e6ce409902fc74e302908a2bf1e161bffb7bd234dcffb9353627b20",
+    "nonfinite_stage": "becccf9d50a6e4dcfb7f4cb8b4f758652896af2aa53a2130266f007452769026, binary 1673a64ad85ef793277a1fc9100c9a991e17d2224d010b7f2e27b58812766448"
    },
-   "cases": "class: ffap_<7 C2 configurations> x omp 1,4 x 2 repetitions; deg_<26 configurations> and the B6 ffc1_defaults, ffc1_bins7_charge13, ffc1_min_spectra_1, ffc1_ini x omp 1,4 x 3 repetitions; iscore_<grid, zero_rt, zero_mz, tiny_rt> x 3; defs x 3; intended_<ffc1_12C_90, ffc1_14N_95, ffc1_12C_99> x omp 1,4 x 2. tool (tool_cases.py): ffc1 (2), ffc1_abundance_12C_90, zero_rt, zero_rt_threads4, zero_rt_min_score_0, zero_mz, zero_mz_threads4, zero_mz_min_score_0, filefilter_44_force, fileconverter_31 (3 each), zero_mz_control_min_score_0, filefilter_44_noforce (2 each). Every run exited as recorded and every repetition was identical.",
+   "cases": "class: ffap_<7 C2 configurations> x omp 1,4 x 2 repetitions; deg_<26 configurations> and the B6 ffc1_defaults, ffc1_bins7_charge13, ffc1_min_spectra_1, ffc1_ini x omp 1,4 x 3 repetitions; iscore_<grid, zero_rt, zero_mz, tiny_rt> x 3; defs x 3; intended_<ffc1_12C_90, ffc1_14N_95, ffc1_12C_99> x omp 1,4 x 2. tool (tool_cases.py): ffc1 (2), ffc1_abundance_12C_90, zero_rt, zero_rt_threads4, zero_rt_min_score_0, zero_mz, zero_mz_threads4, zero_mz_min_score_0, filefilter_44_force, fileconverter_31 (3 each), zero_mz_control_min_score_0, filefilter_44_noforce (2 each). Every run exited as recorded and every repetition was identical. nonfinite (node/run_nonfinite.sh): 47 fixed cases and 142 sweep cases x omp 1 x 2 repetitions, base, int_posinf_50_3, int_posinf_40_10, mz_posinf_last and rt_posinf_last also x omp 4 x 2; runs killed after 30 s record status 137 (rt_nan_mid, rt_nan_mid_bins3, rt_nan_mid_unsorted: a gdb stack sample shows MassTraces::computeIntensityProfile under GaussTraceFitter::setInitialParameters_).",
    "disassembly": "objdump -d -C of OpenMS::FeatureFinderAlgorithmPicked::intensityScore_(unsigned long, unsigned long) const (0x18dd9c0) and of the bin overload (0x18d8750) in libOpenMS.so, and of run_() (which calls the former through the PLT): results/disasm",
    "derived_inputs": "make_inputs.py: zero_rt_ffc1.mzML sha256 f9b37cc6b640b7440d8f0296aa624208644b01ad9e5eebc6e908e24f7865d6d3 (sha1 c58ee032b11af4ae864fb3016047bf248cbe42ea), zero_mz_ffc1.mzML 4de3b951feadb8815584dfbae0680efd4862bcb1e31d0ad8a17938318b46dc3e (sha1 8311af59499e10154cafab2ff56acbbcde3d9f60), zero_mz_control_ffc1.mzML 4afa3042d33a603620a5f092e56e718f69c7c16408ecd75659389c7eeef8ce73 (sha1 5df2a4e1a7fbbf47a2bb7d6ea142bfab61c20d5e); the TOPP test derives the same bytes and asserts the SHA-1"
   },
@@ -679,6 +704,121 @@
    "path": "../oracle/ffap-sem-completion/results/fixtures_intended/intended_abundance.tsv",
    "sha256": "038c19c8d3564ad3d03535aa8ddd5376959cd1ca79f23a977bbc5b2d4f32e5bc",
    "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/nonfinite_stage.cpp",
+   "sha256": "becccf9d50a6e4dcfb7f4cb8b4f758652896af2aa53a2130266f007452769026",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/run_nonfinite.sh",
+   "sha256": "dc856ec6801757e0bb720424902a7427d99970e1c20b908dd8383db243b29f4d",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/extract/extract_nonfinite.py",
+   "sha256": "e45ef5c52e204c4dcd3ba8b8afd178e07117dae5012720f696deffde2878cc6c",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/fixtures_nonfinite/nonfinite_stage.tsv.gz",
+   "sha256": "050fc85e39436b7f134721f6766487c8a70ff6e9d00acb2bbc17dfa6c7ddc074",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/disasm/getIsotopeDistribution_00000000018dddd0.s",
+   "sha256": "5f4c362e8eefb45d3690856cc2eaf2f047fef4dcaeca6b99f5e97b68e1010a08",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/disasm/getIsotopeDistribution_000000000039e4a6.s",
+   "sha256": "a2704b3de4b3da1db856848f2007681445114499b9e90fe1285e5f9350e5c9f9",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/sha256_nonfinite.txt",
+   "sha256": "5e45cefe76a5c7e1e3d0dc2a57a310045e990c6a4b0e57e01232f6744df756f3",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/nm_getiso.txt",
+   "sha256": "2110e978cbf9bbefca6e442cac37a810025b185133effc6fc2a2d7e2c832d83c",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/nf_sweep.txt",
+   "sha256": "8571a75e18a169aa956f37b7d96fb526e76fa6d1c25d06b14b4f2a4ba8c64a32",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/build_identity_nonfinite.txt",
+   "sha256": "7b6e27a30063fc8a6cf1337bd05b94ac2b2908b1ed9a7e4b33fb13cc0cfefb5f",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/run_nonfinite.log",
+   "sha256": "f5d2a06a8097516835cbc561aee398d3be5f108073c3623d6cf2694913357010",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/drivers/nonfinite_ver.cpp",
+   "sha256": "853ffb6c67004f2e7b8909c2ac252bf29c35afff4a4dc4517204dc2bde768a57",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/drivers/write_mod.cpp",
+   "sha256": "d9f93af82e978cd8abcf742bb9b44cb1c0440d6538dd4c720baa18d3677cecf0",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/node/run_nonfinite.sh",
+   "sha256": "011b4fd5cc3ac627cb26fac98ea1f033586d58a8d0f9de202d944639ed364497",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/node/run_nftool.sh",
+   "sha256": "22011299c74f2ceaae95b7e75824d00dd581d0363ef9e503b9713a5bd5e0cf9d",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/node/run_seeds_nf.sh",
+   "sha256": "cc914f21ab9ab456eea5ef75936688b964f5fd8dcaff7ff5cf233749818ea330",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/inputs/ffc1_mz0_neginf.mzML",
+   "sha256": "a0083b544063e7089f3dad212c93786b2235bc429ae23a4ce7e9d1ee3f8b29d2",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/inputs/ffc1_mz0_posinf.mzML",
+   "sha256": "fba9768eee64fc2804d5b92eeae7fa518ad4d3fc9dee7e705c9e9308693dc606",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/inputs/ffc1_rtlast_posinf.mzML",
+   "sha256": "0aefc9c6a5d742c2a4e6e7a78c1cdcee3328b3bec08e20176a08380183d1eb59",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/results/nftool/mz0_neginf.r1.err",
+   "sha256": "f9ed2fbb6ad52f22183952197dac3d99f19604470226fd8499f48462edd70c62",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/results/nftool/mz0_posinf.r1.err",
+   "sha256": "e83cc21c883033851713cf893758fbacdbf3d28919b3c1923e61899d4a1404e2",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/results/nftool/rtlast_posinf.r1.out",
+   "sha256": "42204e7c6078a49179ed28e2956a41b0e481b18d57fbe8b37f64768b9f341fc8",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/logs/sha256_nftool.txt",
+   "sha256": "2b36588fbd113c3953970c98e0108153fad7bfb13d4e57391990aa407900abfb",
+   "origin_key": "ffap_sem_ver1"
   }
  ],
  "source_anchors": [
@@ -836,11 +976,56 @@
    "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
    "line": 24,
    "operation": "FeatureFinderDefs: IndexPair, ChargedIndexSet, IndexSet, Flag, NoSuccessor"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 1200,
+   "operation": "getIsotopeDistribution_: (Size) floor(mass / width), libOpenMS.so 0x18dddd0 (inline floor, comisd 2^63, cvttsd2si, btc); InvalidValue('IsotopeDistribution not precalculated...', index)"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 357,
+   "operation": "step 2.5: Size num_isotopes = ceil(max_mass / width) + 1, libOpenMS.so 0x18e46f4-0x18e46fe and 0x18e6c3b-0x18e6c44; 0 for +inf and for 2^64 and above"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 790,
+   "operation": "step 3.3.5: getIsotopeDistribution_(f.getMZ()) inside the omp parallel for; an exception here terminates"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 150,
+   "operation": "seeds_.sortByMZ(): std::sort with Feature::MZLess over user seeds"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 268,
+   "operation": "step 1: std::sort of a cell's intensities"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+   "line": 205,
+   "operation": "operator++ and nextScan_ (:276-298) stop only at equality with the end iterators: a lower search above the upper one reads out of bounds"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+   "line": 157,
+   "operation": "RangeBase::extend: std::min/std::max from DBL_MAX/lowest; getMin/getMax throw InvalidRange on an empty range"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+   "line": 829,
+   "operation": "isSorted(true): RT with >, each spectrum with std::is_sorted; sortSpectra (:791) std::sort by RT then sortByPosition"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "line": 210,
+   "operation": "computeIntensityProfile merge loop: a NaN retention time neither advances nor consumes (never returns)"
   }
  ],
  "native_boundaries": [
   "score arrays outside the spectra (ScoreArrays)",
-  "non-finite RT, m/z, intensity and user-seed positions: Error::InvalidValue",
+  "non-finite RT, m/z, intensity and user-seed positions: read as the Linux x86_64 Release build reads them (RangeBase ranges, libstdc++ lower/upper_bound and is_sorted, the cvttsd2si/btc Size conversion of step 2.5 and getIsotopeDistribution_ with the source's InvalidValue text); Error::InvalidValue only for a NaN key in std::sort/std::stable_sort whose other keys are not all bit-identical (bin intensities, spectra by RT, unsorted spectra by m/z, chromatograms, user seeds with two different other m/z values), an area-iterator cell whose lower search exceeds its upper search (out-of-bounds read), a NaN retention time merged into an intensity profile (the source never returns), and a feature m/z without isotope window at .cpp:790 (uncaught inside the OpenMP region: std::terminate); Error::InvalidRange for an empty range",
   "zero or infinite intensity bin step: the Linux x86_64 Release outcome (cvttsd2si emulation, SSE2 NaN rules; NaN intensity scores, no seed) by default; DegenerateBinStep::Refuse refuses exactly when the seed loop reads the scores; charge_low > charge_high + 1: Error::InvalidValue (source out-of-bounds)",
   "write_debug: Error::Unsupported",
   "changed abundance: Error::Unsupported unless AbundanceOverride::Intended (source stray-peak defect not reproducible)",
@@ -872,7 +1057,9 @@
   "the final intensity divides by the isotope window of the feature's m/z instead of its mass (source review, reproduced)",
   "aborts_ and abort_reasons_ are written from inside the omp parallel for without synchronisation (source review; the C2 driver records the library map single-threaded only)",
   "FeatureFinderDefs is defined in both FeatureFinderAlgorithmPicked.h and FeatureFinderDefs.h; including both is a redefinition error (executed compile)",
-  "short inputs (fewer than 2 * min_spectra_ scans) pass an inverted range to startProgress at .cpp:298 and :494; Debug stops with a precondition, Release returns an empty map without a message (executed)"
+  "short inputs (fewer than 2 * min_spectra_ scans) pass an inverted range to startProgress at .cpp:298 and :494; Debug stops with a precondition, Release returns an empty map without a message (executed)",
+  "getIsotopeDistribution_ (.cpp:1197-1209) and step 2.5 (.cpp:357) convert a NaN, infinite or too large double to Size without a check (undefined); the Release build maps +inf and values of 2^64 and above to 0 windows and NaN to index 2^63, so an infinite or huge m/z ends in 'IsotopeDistribution not precalculated. Maximum allowed index is 0' and a count in [2^63, 2^64) in std::length_error (executed, nonfinite_stage)",
+  "MassTraces::computeIntensityProfile (HelperStructs.cpp:210-236) never returns when a trace holds a NaN retention time, and extendMassTrace_ adds such peaks because a NaN overall score is not below 0.01 (executed: rt_nan_mid killed after 30 s, stack in computeIntensityProfile)"
  ],
  "module_edges_added": [
   "analysis -> math (pearson_correlation_coefficient)",
