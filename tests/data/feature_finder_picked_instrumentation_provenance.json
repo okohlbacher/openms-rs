@@ -9,10 +9,10 @@
  "rust_base_revision": "59e0e1ce6a1521bd575788ae9495c882c425318f",
  "license": "BSD-3-Clause",
  "group": "feature_finder_picked",
- "work_package": "ffap-instrumentation (FeatureFinderAlgorithmPicked: the instance and its side channels)",
- "scope": "FEATUREFINDER/FeatureFinderAlgorithmPicked.h/.cpp: the object state across runs (aborts_, abort_reasons_, log_, isotope_distributions_, param_), run into a caller's non-empty FeatureMap, the DefaultParamHandler surface, the ProgressLogger base (20 call sites), write_debug (log_ text, per-charge seed maps, abort map, debug input) and writeFeatureDebugInfo_ (.dta, _cropped.dta, .plot), and FeatureFinderCentroided -algorithm:write_debug.",
+ "work_package": "ffap-instrumentation (FeatureFinderAlgorithmPicked: the instance and its side channels); merged into port/ffap-complete with port/ffap-semantics and port/progress-logger-release-range (wave 5), and completed by its combined fix round",
+ "scope": "FEATUREFINDER/FeatureFinderAlgorithmPicked.h/.cpp: the object state across runs (aborts_, abort_reasons_, log_, isotope_distributions_, param_), run into a caller's non-empty FeatureMap, the DefaultParamHandler surface, the ProgressLogger base (20 call sites), write_debug (log_ text, per-charge seed maps, abort map, debug input) and writeFeatureDebugInfo_ (.dta, _cropped.dta, .plot), and FeatureFinderCentroided -algorithm:write_debug. In the merged code the progress ranges are passed unchanged (inverted ranges as in the Release build), the .plot formulas spell a negative NaN -nan and the k * shift products follow x86_64's NaN rules, and every std::sort and std::stable_sort follows the Release build (source_sort.rs).",
  "method": "Executed differential against the Linux x86_64 Release build. drivers/ffap_instr_driver.cpp subclasses FeatureFinderAlgorithmPicked (reading its protected members) and prints maps with floats as IEEE-754 bit patterns; drivers/ffap_progress_driver.cpp defines time() as a counter (exported with -rdynamic, so libOpenMS.so's ProgressLogger forwards every setProgress call) and records every progress call with a ProgressLoggerImpl, measures the double a string or list ParamValue converts to, runs write_debug with such a shift, and exercises a refused parameter set; tool_cases.py runs the Release FeatureFinderCentroided. make_fixtures.py copies the outputs of the .1 repetitions into this directory; the other repetitions were compared and differ only in timing text and in the random map ids the driver draws outside test mode.",
- "evidence_tier": "tier 1 (executed, Linux x86_64 Release, OMP_NUM_THREADS=1) for every compared output; tier 4 for the refused undefined cases (zero-charge SIGFPE, stale abort seeds SIGSEGV, a heap-address shift where an address below 2^47 - 4096 changes the written text), whose executed signals or varying outputs are recorded but have no value to compare; tier 3 (source-reviewed) for setName, getSubsections and operator== of the DefaultParamHandler base.",
+ "evidence_tier": "tier 1 (executed, Linux x86_64 Release, OMP_NUM_THREADS=1) for every compared output; tier 4 for the refused undefined cases (zero-charge SIGFPE, stale abort seeds SIGSEGV, a heap-address shift where an address below 2^47 - 4096 changes the written text), whose executed signals or varying outputs are recorded but have no value to compare; tier 3 (source-reviewed) for setName, getSubsections and operator== of the DefaultParamHandler base. Combined fix round: the debug files of an infinite and a NaN double shift (shift_nonfinite_digests.tsv, tier 1), and debug/input.mzML compared bit for bit, NaN bits and overall scores included.",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
@@ -193,12 +193,16 @@
   "src/analysis/feature_finder_picked/source_sort.rs",
   "src/analysis/feature_finder_picked/algorithm.rs",
   "src/analysis/feature_finder_picked/resolution.rs",
-  "src/cli/tools/feature_finder_centroided.rs"
+  "src/cli/tools/feature_finder_centroided.rs",
+  "src/analysis/feature_finder_picked/trace_fitter.rs",
+  "src/analysis/feature_finder_picked/seeds.rs",
+  "src/analysis/feature_finder_picked/glibc_powf.rs"
  ],
  "native_tests": [
   "tests/feature_finder_picked_instrumentation.rs",
   "tests/topp_feature_finder_centroided.rs",
-  "tests/feature_finder_picked_seeds.rs"
+  "tests/feature_finder_picked_seeds.rs",
+  "tests/trace_fitter.rs"
  ],
  "support_document": "docs/FEATURE_FINDER_PICKED_SUPPORT.md",
  "fixtures": [
@@ -207,7 +211,7 @@
    "sha256": "a1b95a1f757367d767ac5fc57e6b66d3d566a6615877b494278988538e9336fb",
    "bytes": 57644,
    "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
-   "role": "tool case a1 (FFC_1 INI, mass_trace:min_spectra 1, no seed): debug/input.mzML, gzipped; compared decoded (D6), NaN score values compared as NaN"
+   "role": "tool case a1 (FFC_1 INI, mass_trace:min_spectra 1, no seed): debug/input.mzML, gzipped; every float array compared bit for bit, NaN bits and overall scores included"
   },
   {
    "path": "tests/data/feature_finder_picked_instrumentation/a2_abort_map.featureXML.gz",
@@ -677,6 +681,13 @@
    "bytes": 147,
    "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
    "role": "driver case what: the what() texts of ElementNotFound (debug:pseudo_rt_shift missing) and ConversionError (an empty value)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/shift_nonfinite_digests.tsv",
+   "sha256": "e8503f0df56266ef1ca8eb0a486c540ced6658778bc74a43582d6f3970e400fc",
+   "bytes": 22986,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix1 node/run_shift.sh (the ffap-instr round-2 verifier's ver2_band_driver, mode shift, rebuilt to its binary 24f94fae; two runs each, identical apart from the random featureXML id): bytes and SHA-1 of log.txt and the 75 debug/features files for debug:pseudo_rt_shift inf, -inf, -nan and nan (cases shift_inf, shift_neginf, shift_negnan, shift_nan); written by extract/make_shift_digests.py"
   }
  ],
  "oracle": {
@@ -731,7 +742,7 @@
    "c3_min_spectra_1_threads4": "2 repetitions, OMP_NUM_THREADS=4, exit 0; no seed, so nothing is written inside the parallel region: every file equals a1_min_spectra_1's byte for byte and the console output differs only in its timing lines (make_fixtures.py); compared"
   }
  },
- "external_reference_note": "No C++ is committed to this repository. The driver, the scripts, the inputs and the raw outputs live under ../oracle/ffap-instr-completion (relative to the repository root); the entries below pin them.",
+ "external_reference_note": "No C++ is committed to this repository. The driver, the scripts, the inputs and the raw outputs live under ../oracle/ffap-instr-completion (relative to the repository root); the entries below pin them. The combined fix round's non-finite shift runs live under ../oracle/ffap-complete-fix1 (origin_key ffap_complete_fix1).",
  "external_reference_artifacts": [
   {
    "path": "../oracle/ffap-instr-completion/drivers/ffap_instr_driver.cpp",
@@ -917,6 +928,36 @@
    "path": "../oracle/ffap-instr-completion/results/shift_band/debug_files.sha256",
    "sha256": "6013b343c1c366838e9b31eb571bbd53a987a8283974400ed9449c9831ed6eba",
    "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/drivers/ver2_band_driver.cpp",
+   "sha256": "ac90f5dffcdf46ce932dae18fc3f6c36344b09ba163b7da6ed20918d2483830b",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/node/run_shift.sh",
+   "sha256": "2f390007ff5fb115a1bcf701d13b83163e8d20781080463f2da606f46ea4fd46",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/extract/make_shift_digests.py",
+   "sha256": "96eea8a56a7625a1a26a74fef9e45159e555221c1ad2bdf900201faae65ab17c",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/shift_debug_files.sha256",
+   "sha256": "386b929342649102bccc0c0fadb0e3a26a0e93b1a112aa6a6d220f1b18867515",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/shift.sha256",
+   "sha256": "ad6ede50ca8e07954543f66679e25a9124c3cfef6ff0b68829ef4682a1971f09",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/writeFeatureDebugInfo.s",
+   "sha256": "9145b7477d9b85ed63ede1a9ddab01c0b9d186dd3ab8d3de6af16ae6d436bd5f",
+   "origin_key": "ffap_complete_fix1"
   }
  ],
  "cpp_issue_candidates": [

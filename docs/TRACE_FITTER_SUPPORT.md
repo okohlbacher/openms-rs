@@ -47,7 +47,7 @@ implementations and helpers below them.
 | `virtual bool checkMinimalRTSpan(const std::pair<double,double>&, double) = 0` | `fn check_minimal_rt_span(&self, (f64, f64), f64) -> bool` |
 | `virtual bool checkMaximalRTSpan(double) = 0` | `fn check_maximal_rt_span(&self, f64) -> bool` |
 | `virtual double getArea() = 0` | `fn area(&self) -> f64` |
-| `virtual std::string getGnuplotFormula(const MassTrace&, char, double, double) = 0` | `fn gnuplot_formula(&self, &MassTrace, char, f64, f64) -> String`; numbers through `trace_fitter::stream_number` |
+| `virtual std::string getGnuplotFormula(const MassTrace&, char, double, double) = 0` | `fn gnuplot_formula(&self, &MassTrace, char, f64, f64) -> String`; numbers through `trace_fitter::stream_number`, which spells a NaN with its sign bit set `-nan`, as glibc (the reference build's C library) does (executed `.plot` files, `docs/FEATURE_FINDER_PICKED_SUPPORT.md`, *Debug mode*) |
 | `class GenericFunctor` (`inputs`, `values`, `operator()`, `df`, `m_inputs`, `m_values`) | the closures passed to `optimize`; `inputs()` is `x.len()`, `values()` the `values` argument |
 | `GenericFunctorEigenAdapter` (file-local) | the `jacobian` wrapper inside `optimize_with_status`, which returns 0 consumed evaluations |
 | `struct ModelData { traces_ptr, weighted }` (protected) | fields of each fitter's functor |

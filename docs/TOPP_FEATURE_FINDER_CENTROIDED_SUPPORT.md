@@ -55,7 +55,12 @@ overlapping features.`, `Invalid fit: Fitted model is bigger than 'max_rt_span':
 | `overallquality` | agrees to the six decimals the C++ writer prints | — |
 
 The residue is the last bits of the Levenberg-Marquardt fit, of the same order
-as the C++ build's own Debug-to-Release spread on the same fields. The other
+as the C++ build's own Debug-to-Release spread on the same fields. These tool
+measurements date from `4d53a7e`, before lane B3b made the fit follow the
+Release build's Eigen kernels; the algorithm's features for FFC_1 are now
+bit-identical to the Release build on Linux x86_64 with glibc
+(`every_configuration_matches_the_executed_library` in
+`tests/feature_finder_picked.rs`), and the tool was not re-measured here. The other
 wrapper modes were measured the same way, on the same Linux node, against the
 same Release build:
 
@@ -284,7 +289,6 @@ instance*).
    seeds, one candidate and one feature, exit 0 — the values of the adapted
    Release replay of the intended override
    (`a_changed_abundance_finds_the_intended_features_where_the_cpp_release_build_finds_none`).
-   `-algorithm:write_debug` is ported (see *Debug mode*).
 4. **A NaN FAIMS voltage is refused** with exit 6 rather than entering an
    ordered set that cannot hold it: `FaimsHelper::get_compensation_voltages`
    returns an error, which the framework maps to `Invalid parameter: …`. No

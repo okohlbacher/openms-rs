@@ -156,7 +156,8 @@ fitters) where it writes those meta values.
   documents.
 - **Gnuplot formula.** The source's exact text, with every number written as a
   default C++ stream writes a `double` (precision 6, `%g` style, `-0`, `nan`,
-  `inf`), through the shared `trace_fitter::stream_number`.
+  glibc's `-nan` for a NaN with its sign bit set, `inf`), through the shared
+  `trace_fitter::stream_number`.
 - **Serial.** The source is serial, and so is the port.
 
 ## Native differences
