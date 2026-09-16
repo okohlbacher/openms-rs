@@ -251,9 +251,52 @@ impl FeatureFinderAlgorithmPicked {
         })
     }
 
-    /// `getName()`: `FeatureFinderAlgorithmPicked`.
+    /// `getName()`: `FeatureFinderAlgorithmPicked` unless [`Self::set_name`]
+    /// changed it.
     pub fn name(&self) -> &str {
         self.handler.name()
+    }
+
+    /// `setName(name)` of the `DefaultParamHandler` base: the name the
+    /// unknown-parameter warnings and the parameter errors of later
+    /// [`Self::set_parameters`] calls and runs carry (`error_name_`,
+    /// `DefaultParamHandler.cpp:65`, `Param.cpp:1085`).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for a name beyond the parameter text
+    /// bounds; the name stays.
+    pub fn set_name(&mut self, name: &str) -> Result<()> {
+        self.handler.set_name(name)
+    }
+
+    /// `getSubsections()` (`DefaultParamHandler.cpp:120-123`): the subsections
+    /// `setParameters` does not check.
+    /// The source constructor registers none, so this is empty.
+    pub fn subsections(&self) -> &[String] {
+        self.handler.subsections()
+    }
+
+    /// `operator==` of the `DefaultParamHandler` base, which the source object
+    /// inherits: the current parameters as [`Self::parameters`] shows them (a
+    /// shown refused set included), the defaults, the subsections, the name
+    /// and the two check flags, the parameter trees with the source's `Param`
+    /// predicate (`DefaultParamHandler.cpp:32-40`). Like the source, it
+    /// compares nothing else of the object.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error only if a comparison exceeds the parameter work bound.
+    pub fn handler_equal(&self, other: &Self) -> Result<bool> {
+        Ok(self.handler.name() == other.handler.name()
+            && self.handler.subsections() == other.handler.subsections()
+            && self.handler.check_defaults() == other.handler.check_defaults()
+            && self.handler.warn_empty_defaults() == other.handler.warn_empty_defaults()
+            && self.parameters().source_equal(other.parameters())?
+            && self
+                .handler
+                .defaults()
+                .source_equal(other.handler.defaults())?)
     }
 
     /// `getDefaults()`.

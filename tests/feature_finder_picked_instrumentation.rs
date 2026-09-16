@@ -43,7 +43,7 @@ use openms::analysis::feature_finder_picked::algorithm::{
     Options, PseudoRtShiftKey, RejectedParameters, run_with_options,
 };
 use openms::analysis::feature_finder_picked::debug::{
-    ABSORBING_MAGNITUDE, DebugOutput, FeatureDebugInput, PseudoRtShift, ReportLine,
+    DebugOutput, FeatureDebugInput, HEAP_ADDRESS_END, PseudoRtShift, ReportLine,
     write_feature_debug_info,
 };
 use openms::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
@@ -2101,18 +2101,21 @@ fn the_progress_event_sequence_matches_the_release_build() {
 // ---------------------------------------------------------------------------
 
 /// `ffap_progress_driver pun_value`: the `double` of a string and a list
-/// `ParamValue` is the bit pattern of a heap pointer, a positive number below
-/// `2^-990`, different in each of three processes.
+/// `ParamValue` is the bit pattern of a heap pointer, a subnormal number below
+/// `2^-1027`, different in each of three processes. The pointers lie below
+/// `DEFAULT_MAP_WINDOW = (1 << 47) - 4096` of the reference host's kernel
+/// headers (`shift_band/address_space.txt`), the port's bound.
 #[test]
 fn a_string_shift_is_a_heap_address_in_the_release_build() {
+    assert_eq!(HEAP_ADDRESS_END, (1 << 47) - 4096);
     let values = fixture("pun_values.txt");
     let mut seen = std::collections::BTreeSet::new();
     for line in values.lines() {
         let bits = u64::from_str_radix(line.rsplit(' ').next().unwrap(), 16).unwrap();
         let value = f64::from_bits(bits);
-        assert!(value > 0.0 && value < 2f64.powi(-990), "{line}");
-        // A canonical x86_64 user-space address.
-        assert!(bits < 1 << 47, "{line}");
+        // `2^-1027`, the subnormal of integer `2^47`.
+        assert!(value > 0.0 && value < f64::from_bits(1 << 47), "{line}");
+        assert!(bits < HEAP_ADDRESS_END, "{line}");
         seen.insert(bits);
     }
     assert_eq!(seen.len(), 9, "every value differs");
@@ -2207,12 +2210,185 @@ fn a_heap_address_shift_is_refused_where_the_written_text_depends_on_the_address
     assert_executed_bytes("zero_rt", "log_to_plot0.txt", out.log.text().as_bytes());
 }
 
-/// The check behind the refusal, on its own: trace 0 is never shifted, a
-/// non-finite or large retention time absorbs the shift, and a small finite
-/// one (a trace peak, or the fitted centre in a later trace's formula) does
-/// not.
+/// What `ffap_shift_band_driver pun_rt <value>` printed in each process: the
+/// moved retention time's bits, the shift's bits and the feature count, by
+/// value.
+struct BandRun {
+    value: f64,
+    shifts: Vec<u64>,
+    features: usize,
+}
+
+fn band_run(value: &str) -> BandRun {
+    let text = fixture("band_stdout.txt");
+    let mut values = std::collections::BTreeSet::new();
+    let mut shifts = Vec::new();
+    let mut features = std::collections::BTreeSet::new();
+    for line in text.lines() {
+        let (process, rest) = line.split_once(' ').unwrap();
+        if process.rsplit_once('.').unwrap().0 != value {
+            continue;
+        }
+        let fields: Vec<&str> = rest.split(' ').collect();
+        match fields[0] {
+            "moved" => {
+                assert_eq!(fields[1], "1", "{line}");
+                values.insert(u64::from_str_radix(fields[3], 16).unwrap());
+            }
+            "shift_bits" => shifts.push(u64::from_str_radix(fields[1], 16).unwrap()),
+            "features" => {
+                features.insert(fields[1].parse::<usize>().unwrap());
+            }
+            _ => {}
+        }
+    }
+    assert_eq!(values.len(), 1, "{value}");
+    assert_eq!(features.len(), 1, "{value}");
+    assert_eq!(shifts.len(), 3, "{value}");
+    BandRun {
+        value: f64::from_bits(values.into_iter().next().unwrap()),
+        shifts,
+        features: features.into_iter().next().unwrap(),
+    }
+}
+
+/// The zero_rt input (every retention time reduced by 4404.89 s) with the one
+/// scan at RT 0 moved to `value`, as the driver builds it.
+fn band_input(value: f64) -> MSExperiment {
+    let mut experiment = ffc1_input();
+    let mut moved = 0;
+    for spectrum in &mut experiment.spectra {
+        spectrum.rt -= 4404.89;
+        if spectrum.rt == 0.0 {
+            spectrum.rt = value;
+            moved += 1;
+        }
+    }
+    assert_eq!(moved, 1);
+    experiment
+}
+
+/// `ffap_shift_band_driver pun_rt 5e-275` and `pun_rt 1e-289`: the seed's scan
+/// at a retention time of that magnitude, `debug:pseudo_rt_shift` a string.
+/// Three processes with three different shifts wrote the same log, seed map,
+/// input and 75 feature files, because no shift below `HEAP_ADDRESS_END`
+/// changes `k * shift + rt` there. The port writes those bytes. `1e-289` lies
+/// below the bound an address below `2^56` would give (`1e-289 + 2 * 2^-1007`
+/// is not `1e-289`), which would refuse it.
 #[test]
-fn a_heap_address_shift_is_refused_only_for_small_shifted_values() {
+fn a_heap_address_shift_matches_the_release_build_down_to_the_address_bound() {
+    for value in ["5e-275", "1e-289"] {
+        let executed = band_run(value);
+        let distinct: std::collections::BTreeSet<&u64> = executed.shifts.iter().collect();
+        assert_eq!(distinct.len(), 3, "{value}: three processes, three shifts");
+        assert!(executed.shifts.iter().all(|&bits| bits < HEAP_ADDRESS_END));
+        let case = format!("band_{value}");
+        let parameters = with_debug(
+            ffc1_parameters(),
+            &[("debug:pseudo_rt_shift", ParamValue::String("500".into()))],
+        );
+        let (result, algorithm, features) =
+            debug_run(band_input(executed.value), &parameters, Options::default());
+        result.unwrap();
+        assert_eq!(features.len(), executed.features, "{value}");
+        let out = algorithm.debug_output().unwrap();
+        assert!(out.termination.is_none());
+        assert_executed_bytes(&case, "log.txt", out.log.text().as_bytes());
+        let mut produced = 0;
+        for files in &out.feature_files {
+            let name = |full: String| full.trim_start_matches("debug/").to_owned();
+            assert_executed_bytes(&case, &name(files.dta_name()), files.dta.as_bytes());
+            assert_executed_bytes(&case, &name(files.plot_name()), &files.plot);
+            produced += 2;
+            if let Some(cropped) = &files.cropped_dta {
+                assert_executed_bytes(&case, &name(files.cropped_dta_name()), cropped.as_bytes());
+                produced += 1;
+            }
+        }
+        assert_eq!(produced, 75, "{value}");
+        assert_eq!(out.seed_maps.len(), 1);
+        assert_maps_decoded_equal(
+            &out.seed_maps[0].map,
+            &feature_fixture(&format!("band_{value}_seed_map_2.featureXML.gz")),
+            &format!("{case} seeds"),
+        );
+        assert_maps_decoded_equal(
+            out.abort_reasons.as_ref().unwrap(),
+            &feature_fixture(&format!("band_{value}_abort_map.featureXML.gz")),
+            &format!("{case} aborts"),
+        );
+    }
+}
+
+/// `ffap_shift_band_driver pun_rt 1e-295` and `pun_rt 1e-300`: there the
+/// shift changes the scan's retention time in trace 1 of plot 0, and each of
+/// the three processes wrote a different `0.dta` (the log and the seed map
+/// were the same). The port refuses at that seed's files, after the seed map
+/// and the log up to that point, which match the executed ones.
+#[test]
+fn a_heap_address_shift_is_refused_below_the_address_bound() {
+    let digests = debug_digests();
+    for value in ["1e-295", "1e-300"] {
+        let executed = band_run(value);
+        let files: std::collections::BTreeSet<&String> = (1..=3)
+            .map(|rep| &digests[&(format!("band_{value}.{rep}"), "features/0.dta".to_owned())].1)
+            .collect();
+        assert_eq!(
+            files.len(),
+            3,
+            "{value}: 0.dta differs from process to process"
+        );
+        let parameters = with_debug(
+            ffc1_parameters(),
+            &[("debug:pseudo_rt_shift", ParamValue::String("500".into()))],
+        );
+        let (result, algorithm, features) =
+            debug_run(band_input(executed.value), &parameters, Options::default());
+        let error = result.unwrap_err();
+        let expected = format!("in 0.dta trace 1 has the retention time {value}, ");
+        assert!(
+            matches!(&error, openms::Error::Unsupported(message) if message.contains(&expected)),
+            "{error}"
+        );
+        assert!(features.is_empty());
+        let out = algorithm.debug_output().unwrap();
+        assert!(out.termination.is_none());
+        assert!(out.feature_files.is_empty());
+        assert_eq!(out.seed_maps.len(), 1);
+        assert_maps_decoded_equal(
+            &out.seed_maps[0].map,
+            &feature_fixture(&format!("band_{value}_seed_map_2.featureXML.gz")),
+            &format!("band_{value} seeds"),
+        );
+        assert_executed_bytes(
+            &format!("band_{value}"),
+            "log_to_plot0.txt",
+            out.log.text().as_bytes(),
+        );
+    }
+}
+
+/// The check behind the refusal, on its own, at its boundaries. With
+/// `L = (2^47 - 4096) * 2^-1074`, just below `2^-1027`, trace `k` keeps a
+/// retention time `v` exactly when `v + k * L` rounds to `v`, which needs half
+/// the spacing of the doubles next to `v` (on the side of the shift) above
+/// `k * L`:
+///
+/// - `2^-974` has the spacing `2^-1026` above it, so `2^-974 + L` rounds back
+///   (`L < 2^-1027`), and `2 * L` does not; `2^-973` keeps `2 * L`.
+/// - The double below `2^-974` has the spacing `2^-1027`, so `L` moves it.
+/// - `-2^-974` moves towards zero, where the spacing is `2^-1027`: moved.
+///   The double below it, `-(2^-974 + 2^-1026)`, has the spacing `2^-1026`
+///   on both sides: kept.
+/// - `0`, `-0`, `1e-300` move; NaN and the infinities stay.
+///
+/// The `.plot` prints the centre with six significant digits: `1e-303 + k * L`
+/// prints as `1e-303` up to `k = 7` (`7 * L / 1e-303 < 4.9e-6`) and as
+/// `1.00001e-303` from `k = 8` (`5.6e-6`). A centre of `0` changes at `k = 1`.
+/// Trace 0 is never shifted. Where every value is kept, the files are those of
+/// shift `0`.
+#[test]
+fn a_heap_address_shift_is_refused_only_where_an_address_changes_the_text() {
     use openms::analysis::feature_finder_picked::gauss_trace_fitter::GaussTraceFitter;
     use openms::analysis::feature_finder_picked::helper_structs::{
         MassTrace, MassTraces, TracePeak,
@@ -2230,8 +2406,13 @@ fn a_heap_address_shift_is_refused_only_for_small_shifted_values() {
         }
         traces
     };
-    let fitter = GaussTraceFitter::default();
-    let write = |extended: &MassTraces, cropped: &MassTraces, shift: PseudoRtShift| {
+    let fitter = |center: f64| {
+        let mut fitter = GaussTraceFitter::default();
+        fitter.set_optimized_parameters([100.0, center, 2.0]);
+        fitter
+    };
+    let write = |center: f64, extended: &MassTraces, cropped: &MassTraces, shift: PseudoRtShift| {
+        let fitter = fitter(center);
         write_feature_debug_info(FeatureDebugInput {
             fitter: &fitter,
             traces: extended,
@@ -2246,34 +2427,114 @@ fn a_heap_address_shift_is_refused_only_for_small_shifted_values() {
             path: "debug/features/",
         })
     };
+    let kept = |center: f64, extended: &MassTraces, cropped: &MassTraces| {
+        let files = write(center, extended, cropped, PseudoRtShift::HeapAddress).unwrap();
+        assert_eq!(
+            files,
+            write(center, extended, cropped, PseudoRtShift::Value(0.0)).unwrap()
+        );
+    };
+    let refused = |center: f64, extended: &MassTraces, cropped: &MassTraces, place: &str| {
+        let result = write(center, extended, cropped, PseudoRtShift::HeapAddress);
+        assert!(
+            matches!(&result, Err(openms::Error::Unsupported(message))
+                if message.contains(place) && !message.contains("  ")),
+            "{place}: {result:?}"
+        );
+    };
     let empty = MassTraces::new();
-    // The default fitter's centre is 0, which a second trace would shift.
-    let one = traces(&[0.0]);
-    let zero_shift = write(&one, &empty, PseudoRtShift::Value(0.0)).unwrap();
-    assert_eq!(
-        write(&one, &empty, PseudoRtShift::HeapAddress).unwrap(),
-        zero_shift
+    // `2^-974` and `2^-973`: biased exponents 49 and 50.
+    let low = f64::from_bits(49 << 52);
+    let high = f64::from_bits(50 << 52);
+    let below_low = f64::from_bits(low.to_bits() - 1);
+    let beyond_minus_low = f64::from_bits((-low).to_bits() + 1);
+    assert!(beyond_minus_low < -low);
+
+    // Trace 0 is never shifted, whatever its values.
+    kept(0.0, &traces(&[0.0]), &traces(&[-0.0]));
+    // The `.dta` boundaries, with a centre that keeps its text.
+    kept(100.0, &traces(&[10.0, low]), &empty);
+    kept(100.0, &traces(&[10.0, beyond_minus_low]), &empty);
+    kept(100.0, &traces(&[10.0, 10.0, high]), &empty);
+    kept(
+        100.0,
+        &traces(&[10.0, f64::NAN, f64::INFINITY]),
+        &traces(&[1.0, f64::NEG_INFINITY]),
     );
-    for rts in [
-        [10.0, f64::NAN],
-        [10.0, f64::INFINITY],
-        [10.0, -ABSORBING_MAGNITUDE],
-    ] {
-        let set = traces(&rts);
-        assert!(matches!(
-            write(&set, &empty, PseudoRtShift::HeapAddress),
-            Err(openms::Error::Unsupported(message)) if message.contains(".plot")
-        ));
+    for rt in [below_low, -low, 0.0, -0.0, 1e-300] {
+        refused(
+            100.0,
+            &traces(&[10.0, rt]),
+            &empty,
+            "3.dta trace 1 has the retention time",
+        );
+        refused(
+            100.0,
+            &traces(&[10.0, 20.0]),
+            &traces(&[10.0, rt]),
+            "3_cropped.dta trace 1",
+        );
     }
-    for rts in [[10.0, 0.0], [10.0, -0.0], [10.0, 1e-300]] {
-        let set = traces(&rts);
-        assert!(matches!(
-            write(&set, &empty, PseudoRtShift::HeapAddress),
-            Err(openms::Error::Unsupported(message)) if message.contains("3.dta trace 1")
-        ));
-        assert!(matches!(
-            write(&traces(&[10.0, 20.0]), &set, PseudoRtShift::HeapAddress),
-            Err(openms::Error::Unsupported(message)) if message.contains("3_cropped.dta trace 1")
-        ));
-    }
+    refused(100.0, &traces(&[10.0, 10.0, low]), &empty, "3.dta trace 2");
+    // The `.plot` centre.
+    let eight = traces(&[10.0; 8]);
+    kept(1e-303, &eight, &eight);
+    refused(
+        1e-303,
+        &traces(&[10.0; 9]),
+        &empty,
+        "3.plot trace 8 has the fitted centre 1e-303",
+    );
+    refused(
+        0.0,
+        &traces(&[10.0, 10.0]),
+        &empty,
+        "3.plot trace 1 has the fitted centre 0e0",
+    );
+    kept(f64::NAN, &traces(&[10.0, 10.0]), &empty);
+    // A `.dta` value is checked before the centre.
+    refused(0.0, &traces(&[10.0, 0.0]), &empty, "3.dta trace 1");
+}
+
+/// The rest of the `DefaultParamHandler` base the source object inherits
+/// (source-reviewed: `DefaultParamHandler.cpp:32-40`, `:65`, `:110-123`;
+/// `Param.cpp:1085`): `setName` renames the handler in the unknown-parameter
+/// warnings, `getSubsections` is empty, and `operator==` compares the handler
+/// part only, with the refused set the source keeps in `param_`.
+#[test]
+fn the_handler_base_renames_compares_and_has_no_subsections() {
+    let mut a = FeatureFinderAlgorithmPicked::new().unwrap();
+    let mut b = FeatureFinderAlgorithmPicked::new().unwrap();
+    assert!(a.subsections().is_empty());
+    assert!(a.handler_equal(&b).unwrap());
+    // State outside the handler is not compared.
+    a.set_seeds(&prefilled());
+    assert!(a.handler_equal(&b).unwrap());
+
+    let mut unknown = Param::new();
+    set(&mut unknown, "zz_unknown", ParamValue::Integer(1));
+    assert_eq!(
+        a.set_parameters(&unknown).unwrap(),
+        ["Warning: FeatureFinderAlgorithmPicked received the unknown parameter 'zz_unknown'!"]
+    );
+    assert!(!a.handler_equal(&b).unwrap());
+    b.set_parameters(&unknown).unwrap();
+    assert!(a.handler_equal(&b).unwrap());
+
+    a.set_name("Renamed").unwrap();
+    assert_eq!(a.name(), "Renamed");
+    assert!(!a.handler_equal(&b).unwrap());
+    assert_eq!(
+        a.set_parameters(&unknown).unwrap(),
+        ["Warning: Renamed received the unknown parameter 'zz_unknown'!"]
+    );
+    b.set_name("Renamed").unwrap();
+    assert!(a.handler_equal(&b).unwrap());
+
+    let mut refused = Param::new();
+    set(&mut refused, "intensity:bins", ParamValue::Integer(0));
+    assert!(a.set_parameters(&refused).is_err());
+    assert!(!a.handler_equal(&b).unwrap());
+    assert!(b.set_parameters(&refused).is_err());
+    assert!(a.handler_equal(&b).unwrap());
 }

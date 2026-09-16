@@ -12,7 +12,7 @@
 //! | File | Source | Here |
 //! |---|---|---|
 //! | `debug/` and `debug/features/` | `File::makeDir` at `:230` | the caller creates them ([`DebugOutput`]) |
-//! | `debug/log.txt` | the member `log_`, opened at `:231`, about 40 write sites | [`DebugOutput::log`] |
+//! | `debug/log.txt` | the member `log_`, opened at `:231`, 58 write statements | [`DebugOutput::log`] |
 //! | `debug/seeds_<charge>.featureXML` | `:550-571`, for every charge | [`DebugOutput::seed_maps`] ([`seed_map`]) |
 //! | `debug/features/<n>.dta`, `<n>_cropped.dta`, `<n>.plot` | `writeFeatureDebugInfo_` at `:714-718` | [`DebugOutput::feature_files`] ([`write_feature_debug_info`]) |
 //! | `debug/abort_reasons.featureXML` | the member `abort_reasons_`, `:1028-1045` | [`DebugOutput::abort_reasons`] ([`abort_map`]) |
@@ -42,10 +42,11 @@
 //! - **A string or list under `debug:pseudo_rt_shift`.** The source's
 //!   `double` conversion then returns the bits of a heap pointer, a tiny
 //!   positive number that changes from process to process
-//!   ([`PseudoRtShift::HeapAddress`]). Only a shifted retention time close to
-//!   zero shows it; everywhere else the port writes the source's bytes, and
-//!   [`write_feature_debug_info`] refuses at the first value that would show
-//!   the address.
+//!   ([`PseudoRtShift::HeapAddress`]). Only a shifted value that small an
+//!   addend can change shows it (for the first few traces, a retention time
+//!   below about `1e-293` or a fitted centre below about `1e-303`); everywhere
+//!   else the port writes the source's bytes, and [`write_feature_debug_info`]
+//!   refuses at the first value that the address can change.
 //! - **`abort_` races.** `abort_` (`:1129-1140`) writes `log_` and
 //!   `abort_reasons_` from inside the parallel region without synchronisation;
 //!   the parameter text itself says "do not use in parallel mode". With more
@@ -687,27 +688,72 @@ pub enum PseudoRtShift {
     /// (`ParamValue.cpp:397-408`) returns the union member `dou_` for every
     /// type but `EMPTY` and `INT`; the Release build's code is one `movsd
     /// 0x8(%rdi),%xmm0` (`libOpenMS.so`, `_ZNK6OpenMS10ParamValuecvdEv`), so
-    /// the shift is the bit pattern of the heap pointer the union holds.
+    /// the shift is the bit pattern of the pointer the union holds, the
+    /// `std::string` or `std::vector` the constructor allocated with `new`
+    /// (`ParamValue.cpp:104-116`).
     ///
-    /// Any x86_64 user-space address read as a `double` is a positive number
-    /// below `2^-990`, and it changes from process to process (executed: three
-    /// processes, three values). `k * shift`, with `k` the trace index, is below
-    /// `2^-979`, so adding it to a retention time of magnitude at least
-    /// [`ABSORBING_MAGNITUDE`] or to a non-finite one gives that value back
-    /// unchanged: there the text is the one a shift of `0` gives, and
-    /// reproducible (executed: FeatureFinderCentroided_1 with a string and a
-    /// string-list value, byte-identical files in three processes each). Where
-    /// a shifted value (`k >= 1`) is finite and smaller, the text depends on the
-    /// address (executed: the same input moved to RT 0 at a seed's scan wrote
-    /// different `.dta` files in each of three processes), and
-    /// [`write_feature_debug_info`] refuses.
+    /// That pointer lies below [`HEAP_ADDRESS_END`], so read as a `double` it
+    /// is a subnormal number below `2^-1027`, and it changes from process to
+    /// process (executed: nine values in three processes, all below `2^47` as
+    /// integers). The port cannot know it. Trace `k` of the `.dta` files is
+    /// written as `pseudo_rt_shift * k + rt`, and the formula of trace `k` in
+    /// the `.plot` file prints `pseudo_rt_shift * k + centre` with six
+    /// significant digits; rounded addition, rounded multiplication and that
+    /// rounding are monotone, so a value that the largest possible shift,
+    /// `HEAP_ADDRESS_END * k` as a `double`, leaves unchanged is unchanged by
+    /// every possible address. There the source writes the text of shift `0`,
+    /// and so does the port (executed: FeatureFinderCentroided_1 with a string
+    /// and a string-list value, and the same input moved so that one scan sits
+    /// at RT `5e-275` or `1e-289`; byte-identical files in three processes
+    /// each, with a different address in each). Where that shift changes a
+    /// written value, a peak of trace `k >= 1` (extended or cropped) or the
+    /// fitted centre in such a trace's formula, the text is the address's and
+    /// [`write_feature_debug_info`] refuses (executed: the scan moved to RT
+    /// `0`, `1e-295` or `1e-300` gave a different `0.dta` in each of three
+    /// processes). The refusal is exact for that address range: every value it
+    /// refuses is changed by an address just below [`HEAP_ADDRESS_END`] (the
+    /// product `HEAP_ADDRESS_END * k` is never a power of two, so no rounding
+    /// tie lies between the two), while the lowest mappable address
+    /// (`mmap_min_addr`, 65536 on the reference host) changes it less or not
+    /// at all, so the written text depends on the address the process got. A
+    /// NaN or an infinity absorbs every shift.
     HeapAddress,
 }
 
-/// The smallest magnitude of a finite retention time that a heap-address
-/// shift (see [`PseudoRtShift::HeapAddress`]) cannot change: `1e-270`, whose
-/// half unit in the last place, `2^-950`, exceeds `k * shift < 2^-979`.
-pub const ABSORBING_MAGNITUDE: f64 = 1e-270;
+/// The end of the address range a heap pointer can take in a Linux x86_64
+/// process: `DEFAULT_MAP_WINDOW = (1 << 47) - PAGE_SIZE`
+/// (`arch/x86/include/asm/page_64_types.h`, kernel 6.8 on the reference
+/// host).
+///
+/// With four-level paging (the reference host: 48-bit virtual addresses, no
+/// `la57`) it is the end of user space, `TASK_SIZE_MAX`. With five-level
+/// paging the kernel maps above it only for an `mmap` hint above it; the
+/// program break and the default `mmap` area both lie below it
+/// (`ELF_ET_DYN_BASE = DEFAULT_MAP_WINDOW / 3 * 2`, `TASK_UNMAPPED_BASE` from
+/// `TASK_SIZE_LOW = DEFAULT_MAP_WINDOW`), and `malloc` passes no hint. The
+/// bound of [`PseudoRtShift::HeapAddress`].
+pub const HEAP_ADDRESS_END: u64 = (1 << 47) - 4096;
+
+/// The largest value `pseudo_rt_shift * k` takes for a heap-address shift: the
+/// source's product, `double` times `double(k)`, with the address at
+/// [`HEAP_ADDRESS_END`]. Every address below it gives a product no larger.
+fn largest_heap_shift(k: usize) -> f64 {
+    f64::from_bits(HEAP_ADDRESS_END) * k as f64
+}
+
+/// Whether every heap-address shift leaves the `.dta` value `rt` of trace `k`
+/// as it is: `toStr(pseudo_rt_shift * k + rt)`. [`to_str`] writes a distinct
+/// text for every distinct value that a shift can reach, so the text is the
+/// shift-`0` text exactly when the value is.
+fn dta_absorbs(rt: f64, k: usize) -> bool {
+    !rt.is_finite() || rt + largest_heap_shift(k) == rt
+}
+
+/// Whether every heap-address shift leaves the formula text of trace `k` as
+/// it is: `operator<<(pseudo_rt_shift * k + centre)`, six significant digits.
+fn formula_absorbs(center: f64, k: usize) -> bool {
+    !center.is_finite() || ostream_g(center + largest_heap_shift(k), 6) == ostream_g(center, 6)
+}
 
 /// The value `writeFeatureDebugInfo_` reads for `pseudo_rt_shift`: its
 /// `ParamValue` converted to `double` (`ParamValue::operator double`,
@@ -832,11 +878,12 @@ fn dta(traces: &MassTraces, shift: f64) -> String {
 /// # Errors
 ///
 /// Returns [`Error::Unsupported`] for a [`PseudoRtShift::HeapAddress`] shift
-/// when a shifted value, a peak of trace `k >= 1` (extended or cropped) or the
-/// fitted centre in the formula of such a trace, is finite and smaller than
-/// [`ABSORBING_MAGNITUDE`]: the source writes a text there that depends on the
-/// heap address and differs from process to process. Every other text of such
-/// a shift is the text of shift `0`, which is what the source writes.
+/// at the first value, in the order the source writes them, whose text the
+/// address can change: a peak of trace `k >= 1` in the extended or the
+/// cropped traces, or the fitted centre in the formula of trace `k >= 1`. The
+/// source writes a text there that depends on the heap address and differs
+/// from process to process. Every other text of such a shift is the text of
+/// shift `0`, which is what the source writes.
 pub fn write_feature_debug_info(input: FeatureDebugInput<'_>) -> Result<FeatureDebugFiles> {
     let FeatureDebugInput {
         fitter,
@@ -917,35 +964,33 @@ pub fn write_feature_debug_info(input: FeatureDebugInput<'_>) -> Result<FeatureD
     })
 }
 
-/// Whether adding a heap-address shift leaves `value` unchanged.
-fn absorbs(value: f64) -> bool {
-    !value.is_finite() || value.abs() >= ABSORBING_MAGNITUDE
-}
-
 /// The check of [`write_feature_debug_info`] for a heap-address shift, in the
 /// order the source writes the values: the `.dta` peaks, the `_cropped.dta`
 /// peaks, then the centre in each trace formula of the `.plot` file. Trace 0
-/// is shifted by `0 * shift = 0` and never depends on the address.
+/// is shifted by `shift * 0 = 0` and never depends on the address.
 fn check_absorbed(
     traces: &MassTraces,
     new_traces: &MassTraces,
     center: f64,
     plot_nr: i64,
 ) -> Result<()> {
-    let refuse = |file: &str, trace: usize, value: f64| {
+    let refuse = |file: &str, trace: usize, what: &str, value: f64| {
         Error::Unsupported(format!(
-            "write_debug: debug:pseudo_rt_shift holds a string or a list, so the source shifts              trace k by k times the bits of a heap address; in {plot_nr}{file} trace {trace} has              the retention time {value:e}, where that shift changes the written number, which              then differs from process to process"
+            "write_debug: debug:pseudo_rt_shift holds a string or a list, so the source shifts \
+             trace k by k times the bits of a heap address; in {plot_nr}{file} trace {trace} has \
+             the {what} {value:e}, where such a shift changes the written number, which then \
+             differs from process to process"
         ))
     };
     for (file, set) in [(".dta", traces), ("_cropped.dta", new_traces)] {
         for (k, trace) in set.iter().enumerate().skip(1) {
-            if let Some(peak) = trace.peaks.iter().find(|peak| !absorbs(peak.rt)) {
-                return Err(refuse(file, k, peak.rt));
+            if let Some(peak) = trace.peaks.iter().find(|peak| !dta_absorbs(peak.rt, k)) {
+                return Err(refuse(file, k, "retention time", peak.rt));
             }
         }
     }
-    if traces.len() > 1 && !absorbs(center) {
-        return Err(refuse(".plot", 1, center));
+    if let Some(k) = (1..traces.len()).find(|&k| !formula_absorbs(center, k)) {
+        return Err(refuse(".plot", k, "fitted centre", center));
     }
     Ok(())
 }

@@ -12,7 +12,7 @@
  "work_package": "ffap-instrumentation (FeatureFinderAlgorithmPicked: the instance and its side channels)",
  "scope": "FEATUREFINDER/FeatureFinderAlgorithmPicked.h/.cpp: the object state across runs (aborts_, abort_reasons_, log_, isotope_distributions_, param_), run into a caller's non-empty FeatureMap, the DefaultParamHandler surface, the ProgressLogger base (20 call sites), write_debug (log_ text, per-charge seed maps, abort map, debug input) and writeFeatureDebugInfo_ (.dta, _cropped.dta, .plot), and FeatureFinderCentroided -algorithm:write_debug.",
  "method": "Executed differential against the Linux x86_64 Release build. drivers/ffap_instr_driver.cpp subclasses FeatureFinderAlgorithmPicked (reading its protected members) and prints maps with floats as IEEE-754 bit patterns; drivers/ffap_progress_driver.cpp defines time() as a counter (exported with -rdynamic, so libOpenMS.so's ProgressLogger forwards every setProgress call) and records every progress call with a ProgressLoggerImpl, measures the double a string or list ParamValue converts to, runs write_debug with such a shift, and exercises a refused parameter set; tool_cases.py runs the Release FeatureFinderCentroided. make_fixtures.py copies the outputs of the .1 repetitions into this directory; the other repetitions were compared and differ only in timing text and in the random map ids the driver draws outside test mode.",
- "evidence_tier": "tier 1 (executed, Linux x86_64 Release, OMP_NUM_THREADS=1) for every compared output; tier 4 for the refused undefined cases (zero-charge SIGFPE, stale abort seeds SIGSEGV, a heap-address shift at a retention time near 0), whose executed signals or varying outputs are recorded but have no value to compare.",
+ "evidence_tier": "tier 1 (executed, Linux x86_64 Release, OMP_NUM_THREADS=1) for every compared output; tier 4 for the refused undefined cases (zero-charge SIGFPE, stale abort seeds SIGSEGV, a heap-address shift where an address below 2^47 - 4096 changes the written text), whose executed signals or varying outputs are recorded but have no value to compare; tier 3 (source-reviewed) for setName, getSubsections and operator== of the DefaultParamHandler base.",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
@@ -149,6 +149,41 @@
    "path": "bits/streambuf.tcc",
    "sha256": "a71b5cd35e827029ca273b9dfeba5446989ab015f147d16120095829c10e1f21",
    "role": "basic_streambuf::xsputn"
+  },
+  {
+   "package": "libstdc++ (conda-forge gcc 14.4.0, in the Release install)",
+   "revision": "deps/lib/gcc/x86_64-conda-linux-gnu/14.4.0/include/c++",
+   "path": "ostream",
+   "sha256": "1d632e6914e19f57fd6622c9e5cd03ee74fe113f846083b80e2f4903a1fe9f99",
+   "role": "operator<<(basic_ostream<char>&, char) (577-585): put(c) when the width is 0, which is sputc: the log model's one-byte insertion"
+  },
+  {
+   "package": "libstdc++ runtime (conda-forge libstdcxx 16.2.0-h934c35e_4, in the Release install; the library libOpenMS.so and FeatureFinderCentroided load)",
+   "revision": "deps/lib",
+   "path": "libstdc++.so.6.0.36",
+   "sha256": "e3549df69430b452252a93f037e7bb382ae1011ba247f39cf570e0927a3b3af0",
+   "role": "the code that ran: basic_filebuf<char>::xsputn (a block write when n >= the free space, as fstream.tcc of 14.4.0) and basic_ostream<char>::put (the byte into the put area, overflow when it is full); disassembly in results/shift_band/runtime_libstdcxx.txt"
+  },
+  {
+   "package": "Linux kernel headers 6.8.0-124 (Ubuntu, on the reference host)",
+   "revision": "/usr/src/linux-headers-6.8.0-124",
+   "path": "arch/x86/include/asm/page_64_types.h",
+   "sha256": "0fabfb5b6c79bbd8909e2f69192b56889265438a80b2f2b79768a860ef8ad7d0",
+   "role": "DEFAULT_MAP_WINDOW = (1 << 47) - PAGE_SIZE (65), TASK_SIZE_MAX (57-64), TASK_SIZE_LOW (73-74): debug::HEAP_ADDRESS_END"
+  },
+  {
+   "package": "Linux kernel headers 6.8.0-124 (Ubuntu, on the reference host)",
+   "revision": "/usr/src/linux-headers-6.8.0-124",
+   "path": "arch/x86/include/asm/elf.h",
+   "sha256": "fd0efc973592fdac9e820cef23cf5c799e3f2caaa88a4d5cca8fa4d031190044",
+   "role": "ELF_ET_DYN_BASE = DEFAULT_MAP_WINDOW / 3 * 2 (238-239): where the program and its break start"
+  },
+  {
+   "package": "Linux kernel headers 6.8.0-124 (Ubuntu, on the reference host)",
+   "revision": "/usr/src/linux-headers-6.8.0-124",
+   "path": "arch/x86/include/asm/processor.h",
+   "sha256": "55c8f7b46ef361f4c9b59842803264d890d9b3a361f474cca571a36fafb63806",
+   "role": "TASK_UNMAPPED_BASE from TASK_SIZE_LOW (697-698): the default mmap area"
   }
  ],
  "context_sources_note": "Read for context and for the behaviour the port reproduces; this group ports no other header, so tools/core_sdk_coverage.py must not count them as evidence: core paths are relative to src/openms/ of the pinned core, which keeps them out of its scan. libstdc++ paths are relative to the Release install below.",
@@ -203,11 +238,60 @@
    "role": "tool case a4 (FFC_1 input with default parameters, terminates in the fit): debug/seeds_1.featureXML"
   },
   {
-   "path": "tests/data/feature_finder_picked_instrumentation/debug_digests.tsv",
-   "sha256": "3850cf07fd4bac6c4fefb1cbb6d3c59adf9f19726a8562a4e9de035cb3433b1d",
-   "bytes": 33287,
+   "path": "tests/data/feature_finder_picked_instrumentation/band_1e-289_abort_map.featureXML.gz",
+   "sha256": "4e2d95b30741a39bbf871b0b6062b383d4d6b5f9b8786e0d63b7e282303f0ed6",
+   "bytes": 452,
    "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
-   "role": "size and SHA-1 of every executed log.txt (a1, a2, a3, a4 and b1 up to termination, the driver's two-run object), of the 75 .dta, _cropped.dta and .plot files and the log of each of the driver cases declared-shift500, -shift123, -int250, -egh and -prefilled and of the second driver's pun case (a string and a string-list debug:pseudo_rt_shift, identical in six processes), of 0.dta of the pun zero_rt case in each of its three processes (all different), and of the zero_rt log up to plot 0's writeFeatureDebugInfo_ call (cut by make_fixtures.py at the log's own structure: the first seed section with a fit ends at its Abort line or the next seed header); 467 rows"
+   "role": "third driver, pun_rt 1e-289: debug/abort_reasons.featureXML"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/band_1e-289_seed_map_2.featureXML.gz",
+   "sha256": "ca36f0b9a35af5288fefe8e8688c79e0371d20afdb7bf152e62e5e628308e6ef",
+   "bytes": 1893,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "third driver, pun_rt 1e-289: debug/seeds_2.featureXML, identical in three processes"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/band_1e-295_seed_map_2.featureXML.gz",
+   "sha256": "450ec357d1569c43ec4cf9ce2b79ac99c652e541ec867e4519fa5342cfa7568a",
+   "bytes": 1892,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "third driver, pun_rt 1e-295: debug/seeds_2.featureXML, identical in three processes"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/band_1e-300_seed_map_2.featureXML.gz",
+   "sha256": "dde91fe99f140674f97dd8687a3e5214677451be8964980ae1079679aa9ba333",
+   "bytes": 1891,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "third driver, pun_rt 1e-300: debug/seeds_2.featureXML, identical in three processes"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/band_5e-275_abort_map.featureXML.gz",
+   "sha256": "fd14b7c4f13f80f5e457741546b7d0009699f9da34575a2782b3967097232bac",
+   "bytes": 453,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "third driver, pun_rt 5e-275: debug/abort_reasons.featureXML (map id random: outside test mode; compared without ids)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/band_5e-275_seed_map_2.featureXML.gz",
+   "sha256": "5c72e1037995cf85d4e6dc60e579a107ecdd2f2795b86750ae6f088765ead386",
+   "bytes": 1893,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "third driver, pun_rt 5e-275 (the zero_rt input with the scan at RT 0 moved to RT 5e-275, debug:pseudo_rt_shift a string): debug/seeds_2.featureXML, identical in three processes"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/band_stdout.txt",
+   "sha256": "f01350af653028b64396140cc8be50950f134e0600e7d5db2b86e59f2f309302",
+   "bytes": 1992,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "third driver, pun_rt at 5e-275, 1e-289, 1e-295 and 1e-300, three processes each: the moved scan count and the value's bits, the shift's bits (a different heap address in every process, inside the process's [heap] mapping), the [heap] line of /proc/self/maps, and the feature count"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/debug_digests.tsv",
+   "sha256": "f4d528453c4172c98791e0e77cdb47d56451b1b25bb9e221785373730ae4bb07",
+   "bytes": 45528,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "size and SHA-1 of every executed log.txt (a1, a2, a3, a4 and b1 up to termination, c3, the driver's two-run object), of the 75 .dta, _cropped.dta and .plot files and the log of each of the driver cases declared-shift500, -shift123, -int250, -egh and -prefilled, of the second driver's pun case (a string and a string-list debug:pseudo_rt_shift, identical in six processes) and of the third driver's pun_rt 5e-275 and 1e-289 cases (identical in three processes each), of 0.dta of the pun zero_rt case and of the pun_rt 1e-295 and 1e-300 cases in each of their three processes (all different), and of the log of zero_rt, 1e-295 and 1e-300 up to plot 0's writeFeatureDebugInfo_ call (cut by make_fixtures.py at the log's own structure: the first seed section with a fit ends at its Abort line or the next seed header); 628 rows"
   },
   {
    "path": "tests/data/feature_finder_picked_instrumentation/declared_egh_abort_map.featureXML",
@@ -622,6 +706,13 @@
    "pun string, list": "3 repetitions each, exit 0; log.txt and the 75 feature files identical in all six processes",
    "pun zero_rt": "3 repetitions, exit 0; log.txt and seeds_2.featureXML identical, 16 of the 75 feature files (the .dta and _cropped.dta of plots 0, 1, 2, 4, 8, 9, 18 and 21) differ between processes"
   },
+  "third_driver_source_sha256": "744892728a918c52a72b31b88eed1a4818542fda071e4a4c56be2fefd23264f7",
+  "third_driver_binary_sha256": "c8f85f7466c535470f9a5ab03d62c8ddb490ab69fcfa1d7d47666d095227fb25",
+  "third_driver_note": "build_shift_band_driver.sh (the compiler and flags of build_driver.sh) and run_shift_band_driver.sh, one binary for every case (results/shift_band/driver.sha256). The build script also records the host's address space (results/shift_band/address_space.txt: 48-bit virtual addresses, no la57, randomize_va_space 2, mmap_min_addr 65536, and the kernel header lines behind debug::HEAP_ADDRESS_END) and the runtime libstdc++ (results/shift_band/runtime_libstdcxx.txt: its sha256 and conda package, the ldd lines of libOpenMS.so and FeatureFinderCentroided, the ostream char inserter, and the disassembly of basic_filebuf<char>::xsputn and basic_ostream<char>::put).",
+  "third_driver_cases": {
+   "pun_rt 5e-275, 1e-289": "3 processes each, exit 0, 8 features; three different shifts, all inside the process's [heap] mapping; every debug file identical but abort_reasons.featureXML (random map id)",
+   "pun_rt 1e-295, 1e-300": "3 processes each, exit 0, 8 features; log.txt, seeds_2.featureXML and input.mzML identical; the .dta and _cropped.dta of plots 0, 1, 2, 4, 8, 9, 18 and 21 differ between processes"
+  },
   "environment": "env -i, PATH=/usr/bin:/bin, HOME and OPENMS_HOME_PATH in the case directory, OPENMS_DISABLE_UPDATE_CHECK=ON, OMP_NUM_THREADS=1 (tool cases c1-c3: 4), ulimit -c 0",
   "driver_cases": {
    "params, reuse, progress, what, sort, debug_twice, declared-shift500/-shift123/-int250/-egh/-prefilled": "2 repetitions each, exit 0",
@@ -637,7 +728,7 @@
    "b1_reaches_fit": "3 repetitions, SIGABRT (shell status 134)",
    "c1_reaches_fit_threads4": "3 repetitions, OMP_NUM_THREADS=4, SIGABRT (134); log.txt differs between repetitions (data race), recorded not compared",
    "c2_aborts_only_threads4": "3 repetitions, OMP_NUM_THREADS=4, exit 0; log.txt differs between repetitions, recorded not compared",
-   "c3_min_spectra_1_threads4": "2 repetitions, OMP_NUM_THREADS=4, exit 0"
+   "c3_min_spectra_1_threads4": "2 repetitions, OMP_NUM_THREADS=4, exit 0; no seed, so nothing is written inside the parallel region: every file equals a1_min_spectra_1's byte for byte and the console output differs only in its timing lines (make_fixtures.py); compared"
   }
  },
  "external_reference_note": "No C++ is committed to this repository. The driver, the scripts, the inputs and the raw outputs live under ../oracle/ffap-instr-completion (relative to the repository root); the entries below pin them.",
@@ -679,12 +770,12 @@
   },
   {
    "path": "../oracle/ffap-instr-completion/make_fixtures.py",
-   "sha256": "0cda8528b93697b927c241f9a10a8be5e0e75d9cfec6fe92c93b227dc7119c90",
+   "sha256": "b17157db6de53429ff60a65e9f3e297bff1e1992c858588a53ca595b12b8fbb3",
    "origin_key": "ffap_instr_completion"
   },
   {
    "path": "../oracle/ffap-instr-completion/make_manifest.py",
-   "sha256": "(this file)",
+   "sha256": "2f017e10e16255167a98582005c6f62937e269f960556b38893ae51c359327d1",
    "origin_key": "ffap_instr_completion"
   },
   {
@@ -781,6 +872,51 @@
    "path": "../oracle/ffap-instr-completion/results/progress/debug_files.sha256",
    "sha256": "1a103c997f8ccb61d8bbc281d9d54bcdf650f4d815f70588431a5a9daa8ac174",
    "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/drivers/ffap_shift_band_driver.cpp",
+   "sha256": "744892728a918c52a72b31b88eed1a4818542fda071e4a4c56be2fefd23264f7",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/build_shift_band_driver.sh",
+   "sha256": "68e820b2da0a99efe8f8bb1b9fdd7ca1f768ea47fa2151c526e116c768d1533e",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/run_shift_band_driver.sh",
+   "sha256": "0b631f69e9f278f1e8d4a5fc0b58370678792c4e4b44c8498daf9a25b361a8e0",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/shift_band/driver.sha256",
+   "sha256": "8dde62af208d1fa714a769921d267bad4acde37d8d892ed8f0e0e895f6d30156",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/shift_band/compiler.txt",
+   "sha256": "149bf683c88687e0bed22aa1bdaf6d2c0ef8de023bf5b2de981251ec01e42ccb",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/shift_band/address_space.txt",
+   "sha256": "a945fd08f9a97d274a40520c5a3ae7acaa666759eefe92b0e2a5820878b4445f",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/shift_band/runtime_libstdcxx.txt",
+   "sha256": "26eda9957aaa60afe478fd8dd630c81f1f9b36c25cf4cf8d9ad112932b8e4e1b",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/shift_band/run.log",
+   "sha256": "14dfca53c4d7c4e7419eff4784d0edfecee4bca600082f52be3a803527aa0dba",
+   "origin_key": "ffap_instr_completion"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/results/shift_band/debug_files.sha256",
+   "sha256": "6013b343c1c366838e9b31eb571bbd53a987a8283974400ed9449c9831ed6eba",
+   "origin_key": "ffap_instr_completion"
   }
  ],
  "cpp_issue_candidates": [
@@ -795,6 +931,6 @@
   "ParamValue::operator double() returns the union member dou_ for string and list values, i.e. the bits of a heap pointer; writeFeatureDebugInfo_ with a string debug:pseudo_rt_shift writes address-dependent numbers near RT 0 (executed)"
  ],
  "target_verification": {
-  "platform": "Rust gates on dax through ~/.local/bin/openms-kim-gate.sh, slots ffap-instr-impl*; local tests on macOS arm64"
+  "platform": "Rust gates on dax through ~/.local/bin/openms-kim-gate.sh, slots ffap-instr-impl* and ffap-instr-fix; local tests on macOS arm64"
  }
 }

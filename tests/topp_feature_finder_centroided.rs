@@ -2233,3 +2233,37 @@ fn debug_files_do_not_depend_on_the_thread_count() {
         }
     }
 }
+
+/// Executed case c3: case a1 at `-threads 4`. No seed is found, so nothing is
+/// written from inside the parallel region and the run is defined: both
+/// executed repetitions wrote exactly a1's files (`make_fixtures.py` checks
+/// them byte for byte against a1's). The port at four threads writes them
+/// too; `log.txt` is compared with c3's own digest.
+#[test]
+fn a_debug_run_without_seeds_at_four_threads_writes_the_executed_files() {
+    let dir = Workdir::new();
+    let (_, _, args) = debug_args(
+        &dir,
+        &["-algorithm:mass_trace:min_spectra", "1", "-threads", "4"],
+    );
+    let outcome = run_args(&dir, &args);
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert_eq!(port_block(&outcome), executed_block("tool_a1_stdout.txt"));
+    let debug = dir.path().join("debug");
+    assert_eq!(fs::read_dir(debug.join("features")).unwrap().count(), 0);
+    assert_executed_file(&debug.join("log.txt"), "c3", "log.txt");
+    assert_same_features(
+        &debug.join("seeds_2.featureXML"),
+        &instrumentation("empty_seed_map.featureXML"),
+    );
+    let abort_path = debug.join("abort_reasons.featureXML");
+    assert_same_features(&abort_path, &instrumentation("empty_abort_map.featureXML"));
+    assert_eq!(decoded_features(&abort_path).unique_id, FIRST_TEST_MODE_ID);
+    assert_same_debug_input(
+        &debug.join("input.mzML"),
+        &instrumentation("a1_input.mzML.gz"),
+    );
+    let output = PathBuf::from(dir.file("out.featureXML"));
+    assert_same_features(&output, &instrumentation("tool_a1_out.featureXML"));
+    assert_eq!(decoded_features(&output).unique_id, OUTPUT_ID_AFTER_DEBUG);
+}

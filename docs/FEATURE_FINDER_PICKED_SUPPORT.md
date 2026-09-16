@@ -62,8 +62,8 @@ Every member of the header is listed.
 
 | Source member | Rust | Notes |
 | --- | --- | --- |
-| base `DefaultParamHandler` | `instance::FeatureFinderAlgorithmPicked`: `name`, `defaults`, `default_parameters`, `parameters`, `set_parameters`, `set_parameters_logged`, over the crate's `DefaultParamHandler`; `Settings::from_parameters` for the stateless `run` | executed: `getParameters` after construction, after a run and after an empty-input run; the unknown-parameter warnings in `checkDefaults` order, and on a refused set only those before the refused entry; after a refused set `parameters()` shows that set merged with the defaults while the settings stay, as the source assigns before it checks (`algorithm::RejectedParameters::Shown`, the default; `Discarded` keeps the accepted set) |
-| base `ProgressLogger` | `instance::FeatureFinderAlgorithmPicked::set_log_type`, `log_type`, `set_progress_logger`, `progress_logger_mut` | the 20 call sites of `.cpp:241-992`: every start, set and end call with its label, range and value, equal to the Release build's complete event sequence (executed with a counting clock, see *Debug mode*); no logger (type `NONE`, the default) costs nothing. An inverted range (steps 2 and 3.2 on fewer than `2 * min_spectra` scans) is passed with `end = begin`, the one recorded difference; the `CMD` output is the same |
+| base `DefaultParamHandler` | `instance::FeatureFinderAlgorithmPicked`: `name`, `set_name`, `subsections`, `handler_equal` (`operator==`), `defaults`, `default_parameters`, `parameters`, `set_parameters`, `set_parameters_logged`, over the crate's `DefaultParamHandler`; `Settings::from_parameters` for the stateless `run`. The static `writeParametersToMetaValues` is `DefaultParamHandler::write_parameters_to_meta_values`; the protected `check_defaults_` and `warn_empty_defaults_` are not settable, as the source object never changes them | `setName` renames the handler in the unknown-parameter warnings, `getSubsections` is empty, and `operator==` compares only the handler part, with the refused set the source keeps in `param_` (source-reviewed, `the_handler_base_renames_compares_and_has_no_subsections`). Executed: `getParameters` after construction, after a run and after an empty-input run; the unknown-parameter warnings in `checkDefaults` order, and on a refused set only those before the refused entry; after a refused set `parameters()` shows that set merged with the defaults while the settings stay, as the source assigns before it checks (`algorithm::RejectedParameters::Shown`, the default; `Discarded` keeps the accepted set) |
+| base `ProgressLogger` | `instance::FeatureFinderAlgorithmPicked::set_log_type`, `log_type`, `set_progress_logger`, `progress_logger_mut`; the base's public `startProgress`, `setProgress`, `nextProgress` and `endProgress` are the methods of the logger `progress_logger_mut` returns, and are absent under type `NONE` (where the source's calls do nothing), as `progress_logger_mut` then returns `None` | the 20 call sites of `.cpp:241-992`: every start, set and end call with its label, range and value, equal to the Release build's complete event sequence (executed with a counting clock, see *Debug mode*); no logger (type `NONE`, the default) costs nothing. An inverted range (steps 2 and 3.2 on fewer than `2 * min_spectra` scans) is passed with `end = begin`, the one recorded difference; the `CMD` output is the same |
 | `MapType`, `SpectrumType`, `FloatDataArrays` | `MSExperiment`, `MSSpectrum`, `ScoreArrays` | see *Score arrays* below |
 | `PeakType`, `Seed`, `MassTrace`, `MassTraces`, `TheoreticalIsotopePattern`, `IsotopePattern` (protected) | `Peak1D` and the `helper_structs` types | |
 | `FeatureFinderAlgorithmPicked()` | `default_parameters`, `HANDLER_NAME` | |
@@ -131,9 +131,9 @@ files under the source's names:
 
 | Source output | `DebugOutput` | Evidence (Linux x86_64 Release, `OMP_NUM_THREADS=1`) |
 | --- | --- | --- |
-| `debug/log.txt` (`log_`) | `log` (`DebugLog`), `log_opened` | byte-identical for the tool cases a1, a2, a3 and the driver's two-run object; `double` values printed as `operator<<` prints them, glibc's `nan`/`-nan` included |
+| `debug/log.txt` (`log_`, 58 write statements) | `log` (`DebugLog`), `log_opened` | byte-identical for the tool cases a1, a2, a3 and the driver's two-run object; `double` values printed as `operator<<` prints them, glibc's `nan`/`-nan` included |
 | `debug/seeds_<charge>.featureXML`, per charge, also for a charge without seeds | `seed_maps` (`SeedMap`) | D6 (decoded, ids excluded): a1, a2, a3, a4, b1, stale scaled, debug_twice |
-| `debug/features/<plot_nr>.dta`, `_cropped.dta`, `.plot` (`writeFeatureDebugInfo_`) | `feature_files` (`FeatureDebugFiles`, `debug::write_feature_debug_info`) | byte-identical: the 75 files and the log of each of the driver cases declared-shift500, -shift123, -int250, -egh and -prefilled, and of a string and a string-list shift (`debug_digests.tsv`) |
+| `debug/features/<plot_nr>.dta`, `_cropped.dta`, `.plot` (`writeFeatureDebugInfo_`) | `feature_files` (`FeatureDebugFiles`, `debug::write_feature_debug_info`) | byte-identical: the 75 files and the log of each of the driver cases declared-shift500, -shift123, -int250, -egh and -prefilled, of a string and a string-list shift, and of a string shift with a scan at RT `5e-275` and `1e-289` (`debug_digests.tsv`) |
 | `debug/abort_reasons.featureXML` | `abort_reasons` (`debug::abort_map`) | D6: a1, a2, declared-*, debug_twice, stale scaled; the feature ids `0, 1, ...` exactly |
 | `debug/input.mzML`: the input with the score arrays, without the overall score | `input` (`debug::debug_experiment`) | D6: a1, a2, a3, debug_twice; NaN scores compared as NaN. `mzml::write_source_float_arrays` writes the non-finite values the source writes |
 | the process terminates in `writeFeatureDebugInfo_` | `termination` (`DebugTermination`) and `Error::Unsupported` | a4 and b1: charge, exception and message; `log.flushed_bytes()` is the length of the executed file after the SIGABRT |
@@ -156,23 +156,43 @@ this way. `Options::pseudo_rt_shift` chooses the port's behaviour:
   point. A string or list value does not throw: `ParamValue::operator
   double()` returns the union member `dou_` for every type but `EMPTY` and
   `INT` (one `movsd 0x8(%rdi),%xmm0` in the Release `libOpenMS.so`), so the
-  shift is the bit pattern of a heap pointer, a positive number below
-  `2^-990` that changes from process to process (`pun_values.txt`: nine
-  values in three processes). Added to a retention time of magnitude at
-  least `1e-270` (or a non-finite one) it vanishes, so the files are those of
-  shift 0; the Release build wrote the same 75 files in six processes with a
-  string and a list value, and so does the port (`debug::PseudoRtShift::HeapAddress`).
-  Where a shifted value (a peak of trace `k >= 1`, or the fitted centre in
-  such a trace's formula) is finite and smaller, the written number is the
-  address: the same input moved so that a seed's scan sits at RT 0 wrote a
-  different `0.dta` in each of three processes. The port refuses exactly
-  there (`Error::Unsupported` at that seed's files), after the seed map and
-  the log up to that point, which match the executed ones.
+  shift is the bit pattern of a heap pointer (`pun_values.txt`: nine
+  values in three processes, all different). A heap pointer of a Linux
+  x86_64 process lies below `DEFAULT_MAP_WINDOW = 2^47 - 4096`
+  (`debug::HEAP_ADDRESS_END`; the reference host has 48-bit virtual
+  addresses and no `la57`, and its kernel headers are recorded in
+  `shift_band/address_space.txt`), so the shift is a subnormal number below
+  `2^-1027`. Trace `k` writes `k * shift + rt` in the `.dta` files and
+  `k * shift + centre` with six digits in the `.plot` file. Where the largest
+  possible shift, `(2^47 - 4096) * 2^-1074 * k`, leaves that text as it is,
+  every address does (the arithmetic and the rounding are monotone), and the
+  files are those of shift 0: the Release build wrote the same 75 files and
+  log in three processes each with a string and a list value, and with the
+  first fitted seed's scan moved to RT `5e-275` and to `1e-289`
+  (`ffap_shift_band_driver.cpp`), with a different address in every process,
+  and the port writes those bytes (`debug::PseudoRtShift::HeapAddress`).
+  Where that shift changes the text, the written number depends on the
+  address: the scan moved to RT `0`, `1e-295` and `1e-300` wrote a different
+  `0.dta` in each of three processes. The port refuses exactly there, at the
+  first such value in the order the source writes them (`Error::Unsupported`
+  at that seed's files), after the seed map and the log up to that point,
+  which match the executed ones. For trace 1 the boundary lies at a positive
+  retention time of `2^-974` (about `6.3e-294`; `2^-973` for trace 2) and at
+  a fitted centre between about `1.4e-304` and `1.4e-303`, depending on its
+  digits. A bound from the whole 56-bit address space would refuse `1e-289`,
+  which the Release build writes reproducibly.
 - `PseudoRtShiftKey::Declared`: read `advanced:pseudo_rt_shift` and write the
   feature files for every seed that reaches the fit, which is what the source
   evidently intends. The driver cases declared-* (with `debug:pseudo_rt_shift`
   set, so the Release build completes) give the same bytes under both
   policies.
+
+A fit that throws `UnableToFit` (`TraceFitter.cpp:111`, `:129`) inside the
+same parallel loop ends the source process at `.cpp:670`, before the debug
+write at `:714`. The port records such a fit as an abort (see the
+`Exception::UnableToFit` row of *Native differences*) and stops only at the
+next seed that reaches the debug write, or completes; no executed
+configuration reaches a failing fit.
 
 **The file at termination.** `log_` is an `std::ofstream` whose 8,191-byte
 buffer is lost when the process aborts. `DebugLog` models libstdc++'s

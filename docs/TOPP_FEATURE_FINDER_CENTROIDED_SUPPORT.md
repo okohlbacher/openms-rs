@@ -172,7 +172,8 @@ three repetitions unless stated):
 | a3: `FileConverter_31_output.mzML`, `-force`, default parameters | exit 0 | exit 0 | as a1, four seed maps and the `occurred 4 times` line |
 | a4: FFC_1 input, default parameters with `feature:min_isotope_fit 1.0` (reaches the fit); 2 repetitions | SIGABRT, shell status 134 | the b1 path | at the library level (`feature_finder_picked_instrumentation`): `log.txt` up to termination, `seeds_1.featureXML` |
 | b1: FFC_1 INI (reaches the fit) | SIGABRT, shell status 134, OpenMS's fatal-exception block on stdout | exit 8, `Error: Unexpected internal error (the element 'debug:pseudo_rt_shift' could not be found)` | the console lines before the block, `log.txt` up to the last byte the file buffer had written, `seeds_2.featureXML`, `debug/features/` present, no abort map, no input, no `-out` |
-| c1, c2, c3: as b1, a2 and a1 with `-threads 4` | as b1, a2, a1 | the single-thread files | recorded, not compared: the executed logs differ between repetitions (data race in the source) |
+| c1, c2: as b1 and a2 with `-threads 4` | as b1, a2 | the single-thread files | recorded, not compared: the executed logs differ between repetitions (data race in the source) |
+| c3: as a1 with `-threads 4` (no seed, so nothing is written inside the parallel region; 2 repetitions) | exit 0, every file identical to a1's | exit 0, the single-thread files | as a1: `log.txt` byte for byte against c3's, the other files against a1's, which the executed c3 files equal byte for byte |
 
 **Termination.** Every write_debug run in which a seed reaches the fit
 terminates the C++ process, because the algorithm reads an undeclared
