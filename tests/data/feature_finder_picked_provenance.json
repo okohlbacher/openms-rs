@@ -881,25 +881,47 @@
   "no new edge: tools/check_module_cycles.py reports the same 63 edges as before"
  ],
  "target_verification": {
-  "date": "2026-09-15",
-  "work_package": "B7-FFAP-FEATURES",
-  "platform": "Rust gates on dax (IBMI build node, Linux x86_64, AMD EPYC 9654) through ~/.local/bin/openms-kim-gate.sh slot w3-b7; the local checks and a full --all-features --all-targets run additionally on macOS arm64 with DEVELOPER_DIR=/Library/Developer/CommandLineTools",
+  "date": "2026-09-16",
+  "work_package": "port/ffap-semantics",
+  "platform": "Rust gates on dax (IBMI build node, Linux x86_64, AMD EPYC 9654, glibc 2.39) through ~/.local/bin/openms-kim-gate.sh slots ffap-sem-impl and ffap-sem-impl-min; the three FFAP targets and cargo doc additionally on macOS arm64",
   "commands": [
    "cargo fmt --all -- --check",
-   "cargo test --locked --all-features --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_helper_structs --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test feature_finding_metabo --test feature_overlap_filter --test features --test featurexml --test mass_trace --test mass_trace_detection --test isotopes_source_precision --test parallel_determinism",
-   "cargo +1.85.0 test (the same fourteen targets)",
-   "cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked --test feature_finder_picked_seeds",
-   "cargo test --locked --all-features --all-targets",
-   "cargo test --locked --all-features --doc",
-   "cargo build --locked --no-default-features",
    "cargo clippy --locked --all-features --all-targets -- -D warnings",
+   "cargo test --locked --all-features --test feature_finder_picked --test feature_finder_picked_seeds --test topp_feature_finder_centroided --test feature_finder_picked_helper_structs --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test parallel_determinism",
+   "cargo test --locked --no-default-features --features mzml,paramxml --test feature_finder_picked_seeds --test feature_finder_picked",
+   "cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test topp_feature_finder_centroided --test feature_finder_picked",
+   "cargo +1.85.0 check --locked --all-features --all-targets",
    "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps",
-   "python3 tools/check_core_sdk.py",
-   "python3 tools/check_module_cycles.py",
-   "python3 tools/check_doc_coverage.py"
+   "cargo test --locked --all-features --doc",
+   "cargo test --locked --no-default-features",
+   "cargo test --locked --all-features --all-targets",
+   "python3 tools/check_core_sdk.py, test_core_sdk.py, core_sdk_coverage.py, test_core_sdk_coverage.py, check_schema_feature_graph.py, check_module_cycles.py, check_doc_coverage.py (report only)"
   ],
-  "result": "all green. The fourteen feature-finding targets pass on the current toolchain and on 1.85.0; the full suite passes on both platforms; clippy and doc are clean; check_core_sdk and check_module_cycles pass (63 edges, unchanged); check_doc_coverage reports the surface changed and asks for --write, which was not run because docs/doc-coverage.json is the integrator's. The six modules of this group are at 100 %.",
-  "performance": "FeatureFinderCentroided_1, best of nine on dax (release): the Rust algorithm alone 9.6 ms at one thread, 7.4 ms at two, 5.5 ms at eight; the Rust mzML load 2.4 ms. The C++ Release build bc9cc12-c19e494-174b576 runs the whole tool (startup, INI, load, algorithm, featureXML write) in 90 ms wall at 48 MB peak with -threads 1 and OMP_NUM_THREADS=1, and FileInfo loads the same mzML in 40 to 70 ms. macOS arm64: 6.1 ms for the algorithm at one thread.",
-  "known_gap": "Seeds 11 and 12 of classtest_9247_tight_pattern fit identical traces whose fitted parameters depart from the executed Eigen by up to 2.25e-3 (area) on Linux and 5.81e-4 on macOS arm64. Their fit inputs are bit-identical to the executed ones, so the cause is the Levenberg-Marquardt transcription (docs/TRACE_FITTER_SUPPORT.md, 'Known gap: solver fidelity beyond the fixtures'; lane B3b). Both seeds are rejected by checkFeatureQuality_ in C++ and here with the same reason, so no feature changes. Every other compared value stays within 6.46e-10 on both platforms, and 3,765 of 4,649 are bit-identical."
- }
+  "result": "all green on dax: clippy clean; the eight targets pass (feature_finder_picked 12, feature_finder_picked_seeds 32, topp_feature_finder_centroided 30, helper_structs 26; one pre-existing ignore in gauss_trace_fitter); +1.85.0 check clean; rustdoc clean; doctests pass; the no-default build passes; the full --all-features --all-targets run: 352 test binaries, 5,197 passed, 0 failed, 21 ignored. The first minimal-feature run failed to compile tests/feature_finder_picked.rs, whose cfg did not require the featurexml it imports (pre-existing); the cfg was corrected and the rerun passed (feature_finder_picked_seeds 31, the other target compiled out). check_doc_coverage reports a changed surface and asks for --write (not run; the file is the integrator's); every module of this group is at 100 %.",
+  "known_gap": "None on the reference platform for the Gaussian configurations: every fitted value is bit-identical to the Linux x86_64 Release capture on dax, including seeds 11 and 12 of classtest_9247_tight_pattern (formerly 2.25e-3 against the macOS arm64 product SDK). The EGH configuration departs by at most 2.3038e-12 relative on Linux x86_64 and macOS arm64 alike (the libm crate's exp, log and atan in EGHTraceFitter against glibc's). Platform note: on macOS arm64, Apple's exp moves the Gaussian fits by at most 5.355e-13, except seeds 11 and 12 of classtest_9247_tight_pattern (1.07e-3, area), which both builds reject with the same reason, so no feature changes. The overall score differs from glibc 2.39's powf on 8 of 30,840 scores by one binary32 step (CPP-272)."
+ },
+ "target_verification_history": [
+  {
+   "date": "2026-09-15",
+   "work_package": "B7-FFAP-FEATURES",
+   "platform": "Rust gates on dax (IBMI build node, Linux x86_64, AMD EPYC 9654) through ~/.local/bin/openms-kim-gate.sh slot w3-b7; the local checks and a full --all-features --all-targets run additionally on macOS arm64 with DEVELOPER_DIR=/Library/Developer/CommandLineTools",
+   "commands": [
+    "cargo fmt --all -- --check",
+    "cargo test --locked --all-features --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_helper_structs --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test feature_finding_metabo --test feature_overlap_filter --test features --test featurexml --test mass_trace --test mass_trace_detection --test isotopes_source_precision --test parallel_determinism",
+    "cargo +1.85.0 test (the same fourteen targets)",
+    "cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked --test feature_finder_picked_seeds",
+    "cargo test --locked --all-features --all-targets",
+    "cargo test --locked --all-features --doc",
+    "cargo build --locked --no-default-features",
+    "cargo clippy --locked --all-features --all-targets -- -D warnings",
+    "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps",
+    "python3 tools/check_core_sdk.py",
+    "python3 tools/check_module_cycles.py",
+    "python3 tools/check_doc_coverage.py"
+   ],
+   "result": "all green. The fourteen feature-finding targets pass on the current toolchain and on 1.85.0; the full suite passes on both platforms; clippy and doc are clean; check_core_sdk and check_module_cycles pass (63 edges, unchanged); check_doc_coverage reports the surface changed and asks for --write, which was not run because docs/doc-coverage.json is the integrator's. The six modules of this group are at 100 %.",
+   "performance": "FeatureFinderCentroided_1, best of nine on dax (release): the Rust algorithm alone 9.6 ms at one thread, 7.4 ms at two, 5.5 ms at eight; the Rust mzML load 2.4 ms. The C++ Release build bc9cc12-c19e494-174b576 runs the whole tool (startup, INI, load, algorithm, featureXML write) in 90 ms wall at 48 MB peak with -threads 1 and OMP_NUM_THREADS=1, and FileInfo loads the same mzML in 40 to 70 ms. macOS arm64: 6.1 ms for the algorithm at one thread.",
+   "known_gap": "Seeds 11 and 12 of classtest_9247_tight_pattern fit identical traces whose fitted parameters depart from the executed Eigen by up to 2.25e-3 (area) on Linux and 5.81e-4 on macOS arm64. Their fit inputs are bit-identical to the executed ones, so the cause is the Levenberg-Marquardt transcription (docs/TRACE_FITTER_SUPPORT.md, 'Known gap: solver fidelity beyond the fixtures'; lane B3b). Both seeds are rejected by checkFeatureQuality_ in C++ and here with the same reason, so no feature changes. Every other compared value stays within 6.46e-10 on both platforms, and 3,765 of 4,649 are bit-identical."
+  }
+ ]
 }
