@@ -17,8 +17,11 @@
 //! [`SignalToNoiseEstimatorMedian`](crate::processing::peak_picking::SignalToNoiseEstimatorMedian)
 //! and
 //! [`SignalToNoiseEstimatorMeanIterative`](crate::processing::mean_noise::SignalToNoiseEstimatorMeanIterative),
-//! and both implement [`SignalToNoiseEstimator`], the counterpart of the pure
-//! virtual `computeSTN_` contract.
+//! and both implement
+//! [`SignalToNoiseEstimator`](crate::processing::noise_estimation::SignalToNoiseEstimator),
+//! the counterpart of the pure virtual `computeSTN_` contract. (The explicit
+//! path keeps the link resolvable next to the outer doc comment on the `mod`
+//! declaration.)
 //!
 //! # Linux x86-64 Release arithmetic
 //!
