@@ -575,10 +575,17 @@ impl SignalToNoiseEstimatorMedian {
     /// The parameters of this estimator in the source layout of
     /// [`SignalToNoiseEstimatorMedian::defaults`], carrying the current values.
     ///
-    /// Source `getParameters()`, the public member `param_` (re-exported by
-    /// `using` at `SignalToNoiseEstimatorMedian.h:72`). The source member is
-    /// writable, and writing it bypasses `updateMembers_`; here the typed
-    /// fields are the state and the tree is derived from them.
+    /// The value side of source `getParameters()`: here the typed fields are
+    /// the state and the tree is derived from them, so its names, types,
+    /// descriptions, tags and restrictions are always the defaults'. The
+    /// source member `param_` (public through the `using` at
+    /// `SignalToNoiseEstimatorMedian.h:72`) is instead the caller's tree merged
+    /// with the defaults, so it keeps what the caller's entries carried: a
+    /// `Param::setValue(key, value)` without tags, for example, leaves
+    /// `param_` without the `advanced` tag. That tree, exactly, is
+    /// [`DefaultParamHandler::parameters`] of the handler
+    /// [`SignalToNoiseEstimatorMedian::from_param_with_handler`] returns. The
+    /// values of both trees always agree.
     ///
     /// # Errors
     ///
@@ -619,9 +626,35 @@ impl SignalToNoiseEstimatorMedian {
     ///
     /// As [`SignalToNoiseEstimatorMedian::from_param`].
     pub fn from_param_with_warnings(parameters: &Param) -> Result<(Self, Vec<String>)> {
+        let (estimator, _, warnings) = Self::from_param_with_handler(parameters)?;
+        Ok((estimator, warnings))
+    }
+
+    /// As [`SignalToNoiseEstimatorMedian::from_param_with_warnings`], also
+    /// returning the parameter handler a source object holds after
+    /// `setParameters(parameters)`.
+    ///
+    /// The handler carries the source's public members `defaults_`
+    /// ([`DefaultParamHandler::defaults`], equal to
+    /// [`SignalToNoiseEstimatorMedian::defaults`]) and `param_`
+    /// ([`DefaultParamHandler::parameters`], the given tree merged with the
+    /// defaults, as `getParameters()` returns it). Both are public in the
+    /// source through the `using` declarations at
+    /// `SignalToNoiseEstimatorMedian.h:71-72`; as there, changing the tree
+    /// afterwards does not change the estimator, whose members only
+    /// `updateMembers_`, i.e. this constructor, derives.
+    ///
+    /// # Errors
+    ///
+    /// As [`SignalToNoiseEstimatorMedian::from_param`].
+    pub fn from_param_with_handler(
+        parameters: &Param,
+    ) -> Result<(Self, DefaultParamHandler, Vec<String>)> {
         let mut handler = DefaultParamHandler::new(SIGNAL_TO_NOISE_ESTIMATOR_MEDIAN_NAME)?;
         handler.set_defaults(Self::defaults()?)?;
-        handler.set_parameters_with(parameters, Self::from_complete_param)
+        let (estimator, warnings) =
+            handler.set_parameters_with(parameters, Self::from_complete_param)?;
+        Ok((estimator, handler, warnings))
     }
 
     /// Replace the parameter values of this estimator, as source
@@ -1042,10 +1075,7 @@ impl SignalToNoiseEstimatorMedian {
                     // :188-189 with SignalToNoiseEstimator::estimate_; the
                     // Release build computes `sqrt(v) * factor + mean`.
                     let gauss = GaussianEstimate::of_indexed(n, &intensity);
-                    x86::add(
-                        x86::mul(x86::sqrt(gauss.variance), factor),
-                        gauss.mean,
-                    )
+                    x86::add(x86::mul(x86::sqrt(gauss.variance), factor), gauss.mean)
                 }
             }
             NoiseHistogramRange::Percentile { percentile } => {

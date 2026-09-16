@@ -318,10 +318,20 @@ impl RandomScanNoise {
     ///   of `2^64` or more, including infinity, selects index `0` (the
     ///   `subsd 2^63; cvttsd2si; btc 63` path).
     /// * The selected intensity is the one `std::nth_element` puts at that
-    ///   position, i.e. that order statistic, summed in `f32` in draw order and
-    ///   divided by `n_scans` in `f32` (`:50-52`). `n_scans = 0` divides zero by
-    ///   zero and returns the negative default `f32` NaN.
-    /// * Without candidates the result is `0.0` (`:32`).
+    ///   position, summed in `f32` in draw order and divided by `n_scans` in
+    ///   `f32` (`:50-52`). Without NaN intensities that is the order statistic
+    ///   (a `-0.0` and a `+0.0` are interchangeable there, and the sum, which
+    ///   starts at `+0`, cannot tell them apart). With NaN intensities
+    ///   `operator<` is not a strict weak ordering, which the standard makes
+    ///   undefined; the Release toolchain's `nth_element` nevertheless stays in
+    ///   bounds and is deterministic for every irreflexive, asymmetric
+    ///   comparison, which `<` on `float` is, so this port runs that exact
+    ///   algorithm (see the private `libstdcxx` module) and returns what that
+    ///   build returns.
+    /// * `n_scans = 0` divides zero by zero and returns the negative default
+    ///   `f32` NaN.
+    /// * Without candidates the result is `0.0` (`:32`); the engine is not
+    ///   seeded then, as the source does not call `time` there.
     ///
     /// # Errors
     ///
@@ -331,11 +341,9 @@ impl RandomScanNoise {
     /// * the position exceeds the drawn scan's size, so `tmp.begin() + idx` at
     ///   `:49` points past the end (a percentile above `100`, a percentile of
     ///   `-100 / size` or below, or a NaN product);
-    /// * the drawn scan holds a NaN intensity, which violates the strict weak
-    ///   ordering `std::nth_element` at `:49` requires;
     /// * the position equals the drawn scan's size, so `tmp[idx]` at `:50`
     ///   reads past the end (a percentile of exactly `100`, or an empty drawn
-    ///   scan).
+    ///   scan with a percentile whose product with zero is not NaN).
     ///
     /// [`Error::InvalidValue`] when the native `max_work` ceiling would be
     /// exceeded.
@@ -397,10 +405,7 @@ impl RandomScanNoise {
             values.clear();
             values.extend(spectrum.peaks.iter().map(|p| p.intensity));
             let len = values.len();
-            let index = x86::f64_to_u64(x86::div(
-                x86::mul(len as f64, self.percentile),
-                100.0,
-            ));
+            let index = x86::f64_to_u64(x86::div(x86::mul(len as f64, self.percentile), 100.0));
             let context = |what: &str| {
                 Error::Unsupported(format!(
                     "estimateNoiseFromRandomScans is undefined here: draw {draw} reads experiment \
@@ -412,23 +417,18 @@ impl RandomScanNoise {
                     "SignalToNoiseEstimator.cpp:49 advances the iterator past the end",
                 ));
             }
-            if values.iter().any(|v| v.is_nan()) {
-                return Err(context(
-                    "SignalToNoiseEstimator.cpp:49 passes a NaN to std::nth_element, which needs a strict weak ordering",
-                ));
-            }
             if index == len as u64 {
                 return Err(context(
                     "SignalToNoiseEstimator.cpp:50 reads one element past the end",
                 ));
             }
-            let position = usize::try_from(index).unwrap_or(usize::MAX);
-            let (_, selected, _) = values.select_nth_unstable_by(position, |a, b| {
-                a.partial_cmp(b).unwrap_or(core::cmp::Ordering::Equal)
-            });
+            // index < len, so it fits usize.
+            let position = usize::try_from(index).unwrap_or(0);
+            // :49, with the Release toolchain's own algorithm, so that NaN
+            // intensities land where that build puts them.
+            libstdcxx::nth_element(&mut values, position);
             // `addss noise, tmp[idx]`: the selected value is the first operand.
-            // Zero signs are unobservable here: the sum starts at +0.
-            noise = x86::add32(*selected, noise);
+            noise = x86::add32(values[position], noise);
         }
         Ok(x86::div32(noise, self.n_scans as f32))
     }
@@ -457,6 +457,333 @@ pub fn estimate_noise_from_random_scans(
         ..RandomScanNoise::new(ms_level, seed)
     }
     .estimate(experiment)
+}
+
+/// `std::nth_element` over `float` values with `operator<`, as the Release
+/// toolchain's C++ library implements it.
+///
+/// A line-by-line port of `std::nth_element`, `__introselect`,
+/// `__unguarded_partition_pivot`, `__move_median_to_first`,
+/// `__unguarded_partition`, `__insertion_sort`, `__unguarded_linear_insert`
+/// and `__heap_select` from `bits/stl_algo.h` (sha256 `0598c5b1…`), and
+/// `__make_heap`, `__adjust_heap`, `__pop_heap` and `__push_heap` from
+/// `bits/stl_heap.h` (sha256 `f18f83b2…`) of the conda-forge GCC 14.4.0 that
+/// built `libOpenMS.so`; `__lg` is `bit_width(n) - 1` (`bits/stl_algobase.h`).
+/// Every comparison is made in the library's order and with its operands, and
+/// every move is the library's, so the whole permutation, not only the
+/// selected value, is the one that build produces.
+///
+/// # Memory safety for every `float` input
+///
+/// The source calls this with NaN intensities too, where `<` is not a strict
+/// weak ordering. The algorithm still stays in bounds, because its
+/// "unguarded" loops rely only on comparisons it has made, plus the
+/// irreflexivity (`!(x < x)`) and asymmetry (`x < y` implies `!(y < x)`) that
+/// `<` on `float` keeps with NaN:
+///
+/// * `__move_median_to_first(first, a, b, c)` leaves, in each of its six
+///   branches, one of the two samples it did not move that is not less than
+///   the pivot, established by one of its comparisons (by asymmetry where
+///   that comparison found the pivot less than it).
+/// * The upward scan of `__unguarded_partition` therefore stops at that
+///   sample on its first pass; on later passes it stops at the element the
+///   previous swap put at `last`, which the scan had found not less than the
+///   pivot. The downward scan stops at the pivot's own slot at the latest,
+///   because the pivot is not less than itself, and the pivot does not move
+///   during the partition. The returned cut lies in `first + 1 .. last`, so
+///   `__introselect`'s range shrinks on every pass.
+/// * `__unguarded_linear_insert` is called for an element found not less
+///   than the range's first element, which it does not move, so the scan
+///   stops there at the latest.
+/// * The heap functions index by explicit lengths only.
+///
+/// The Rust loops below carry explicit bounds that, by this argument, never
+/// decide anything.
+pub(crate) mod libstdcxx {
+    /// `__gnu_cxx::__ops::__iter_less_iter` and friends: `lhs < rhs`.
+    fn lt(a: f32, b: f32) -> bool {
+        a < b
+    }
+
+    /// `std::nth_element(v.begin(), v.begin() + nth, v.end())`. An `nth` of
+    /// `v.len()` or more returns at once, as the library does for
+    /// `nth == last` (callers never pass more).
+    pub(crate) fn nth_element(v: &mut [f32], nth: usize) {
+        let n = v.len();
+        if n == 0 || nth >= n {
+            return;
+        }
+        // `std::__lg(last - first) * 2`; n > 0.
+        let lg = (usize::BITS - 1 - n.leading_zeros()) as usize;
+        introselect(v, 0, nth, n, lg * 2);
+    }
+
+    fn introselect(v: &mut [f32], mut first: usize, nth: usize, mut last: usize, mut depth: usize) {
+        while last - first > 3 {
+            if depth == 0 {
+                heap_select(v, first, nth + 1, last);
+                // Place the nth largest element in its final position.
+                v.swap(first, nth);
+                return;
+            }
+            depth -= 1;
+            let cut = unguarded_partition_pivot(v, first, last);
+            if cut <= nth {
+                first = cut;
+            } else {
+                last = cut;
+            }
+        }
+        insertion_sort(v, first, last);
+    }
+
+    fn unguarded_partition_pivot(v: &mut [f32], first: usize, last: usize) -> usize {
+        let mid = first + (last - first) / 2;
+        move_median_to_first(v, first, first + 1, mid, last - 1);
+        unguarded_partition(v, first + 1, last, first)
+    }
+
+    /// Swaps the median of `v[a]`, `v[b]` and `v[c]` under `<` into `result`.
+    fn move_median_to_first(v: &mut [f32], result: usize, a: usize, b: usize, c: usize) {
+        let median = if lt(v[a], v[b]) {
+            if lt(v[b], v[c]) {
+                b
+            } else if lt(v[a], v[c]) {
+                c
+            } else {
+                a
+            }
+        } else if lt(v[a], v[c]) {
+            a
+        } else if lt(v[b], v[c]) {
+            c
+        } else {
+            b
+        };
+        v.swap(result, median);
+    }
+
+    fn unguarded_partition(
+        v: &mut [f32],
+        mut first: usize,
+        mut last: usize,
+        pivot: usize,
+    ) -> usize {
+        let end = last;
+        loop {
+            while first < end && lt(v[first], v[pivot]) {
+                first += 1;
+            }
+            last -= 1;
+            while last > pivot && lt(v[pivot], v[last]) {
+                last -= 1;
+            }
+            if first >= last {
+                return first;
+            }
+            v.swap(first, last);
+            first += 1;
+        }
+    }
+
+    fn insertion_sort(v: &mut [f32], first: usize, last: usize) {
+        if first == last {
+            return;
+        }
+        for i in first + 1..last {
+            if lt(v[i], v[first]) {
+                let value = v[i];
+                // _GLIBCXX_MOVE_BACKWARD3(first, i, i + 1)
+                v.copy_within(first..i, first + 1);
+                v[first] = value;
+            } else {
+                unguarded_linear_insert(v, first, i);
+            }
+        }
+    }
+
+    /// `__unguarded_linear_insert(last)` with `__val_comp_iter`; `floor` is
+    /// the range's first element, which the caller found not greater.
+    fn unguarded_linear_insert(v: &mut [f32], floor: usize, mut last: usize) {
+        let value = v[last];
+        let mut next = last - 1;
+        while lt(value, v[next]) {
+            v[last] = v[next];
+            last = next;
+            if next == floor {
+                break;
+            }
+            next -= 1;
+        }
+        v[last] = value;
+    }
+
+    fn heap_select(v: &mut [f32], first: usize, middle: usize, last: usize) {
+        make_heap(v, first, middle);
+        for i in middle..last {
+            if lt(v[i], v[first]) {
+                pop_heap(v, first, middle, i);
+            }
+        }
+    }
+
+    fn make_heap(v: &mut [f32], first: usize, last: usize) {
+        if last - first < 2 {
+            return;
+        }
+        let len = last - first;
+        let mut parent = (len - 2) / 2;
+        loop {
+            let value = v[first + parent];
+            adjust_heap(v, first, parent, len, value);
+            if parent == 0 {
+                return;
+            }
+            parent -= 1;
+        }
+    }
+
+    fn adjust_heap(v: &mut [f32], first: usize, mut hole: usize, len: usize, value: f32) {
+        let top = hole;
+        let mut second = hole;
+        while second < (len - 1) / 2 {
+            second = 2 * (second + 1);
+            if lt(v[first + second], v[first + second - 1]) {
+                second -= 1;
+            }
+            v[first + hole] = v[first + second];
+            hole = second;
+        }
+        if len & 1 == 0 && second == (len - 2) / 2 {
+            second = 2 * (second + 1);
+            v[first + hole] = v[first + second - 1];
+            hole = second - 1;
+        }
+        push_heap(v, first, hole, top, value);
+    }
+
+    fn pop_heap(v: &mut [f32], first: usize, last: usize, result: usize) {
+        let value = v[result];
+        v[result] = v[first];
+        adjust_heap(v, first, 0, last - first, value);
+    }
+
+    /// `__push_heap` with `__iter_comp_val`; `(hole - 1) / 2` truncates
+    /// toward zero in the signed source, so a hole of `0` has parent `0`.
+    fn push_heap(v: &mut [f32], first: usize, mut hole: usize, top: usize, value: f32) {
+        let mut parent = hole.saturating_sub(1) / 2;
+        while hole > top && lt(v[first + parent], value) {
+            v[first + hole] = v[first + parent];
+            hole = parent;
+            parent = hole.saturating_sub(1) / 2;
+        }
+        v[first + hole] = value;
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::nth_element;
+        use std::collections::BTreeMap;
+
+        /// Tier 1: the whole vector `std::nth_element` leaves, printed by the
+        /// Release toolchain for the 390 vectors of `nth_vectors.tsv`
+        /// (oracle case `nth_vectors`, `../oracle/sne-completion/`), 30 of
+        /// which reach the `__heap_select` fallback, compared bit for bit.
+        #[test]
+        fn permutations_match_the_release_toolchain() {
+            let oracle: BTreeMap<&str, Vec<u32>> =
+                include_str!("../../tests/data/signal_to_noise/oracle.tsv")
+                    .lines()
+                    .filter(|l| l.starts_with("nthout\t"))
+                    .map(|l| {
+                        let c: Vec<&str> = l.split('\t').collect();
+                        let bits = c[3..]
+                            .iter()
+                            .map(|h| u32::from_str_radix(h, 16).unwrap())
+                            .collect();
+                        (c[2], bits)
+                    })
+                    .collect();
+            let mut compared = 0;
+            for line in include_str!("../../tests/data/signal_to_noise/nth_vectors.tsv").lines() {
+                let c: Vec<&str> = line.split('\t').collect();
+                let nth: usize = c[1].parse().unwrap();
+                let mut values: Vec<f32> = c[2]
+                    .split(',')
+                    .map(|h| f32::from_bits(u32::from_str_radix(h, 16).unwrap()))
+                    .collect();
+                nth_element(&mut values, nth);
+                let bits: Vec<u32> = values.iter().map(|v| v.to_bits()).collect();
+                assert_eq!(Some(&bits), oracle.get(c[0]), "{}", c[0]);
+                compared += 1;
+            }
+            assert_eq!((compared, oracle.len()), (390, 390));
+        }
+
+        #[test]
+        fn selects_the_order_statistic_without_nan() {
+            // Independent check: without NaN the selected value is the sorted
+            // value, for every position and for sizes on both sides of the
+            // insertion-sort threshold and past the depth limit.
+            let mut state = 12_345_u32;
+            for n in 1..80usize {
+                for trial in 0..8 {
+                    let values: Vec<f32> = (0..n)
+                        .map(|_| {
+                            state = state.wrapping_mul(1_103_515_245).wrapping_add(12_345);
+                            ((state >> 16) % (3 + trial as u32 * 7)) as f32
+                        })
+                        .collect();
+                    let mut sorted = values.clone();
+                    sorted.sort_by(f32::total_cmp);
+                    for nth in 0..n {
+                        let mut v = values.clone();
+                        nth_element(&mut v, nth);
+                        assert_eq!(v[nth], sorted[nth], "n {n} trial {trial} nth {nth}");
+                        assert!(v[..nth].iter().all(|x| *x <= v[nth]));
+                        assert!(v[nth..].iter().all(|x| *x >= v[nth]));
+                        let mut back = v.clone();
+                        back.sort_by(f32::total_cmp);
+                        assert_eq!(back, sorted);
+                    }
+                }
+            }
+        }
+
+        #[test]
+        fn nan_inputs_stay_in_bounds_and_keep_the_multiset() {
+            let pool = [
+                f32::NAN,
+                -f32::NAN,
+                0.0,
+                -0.0,
+                1.0,
+                2.0,
+                f32::INFINITY,
+                -1.0,
+            ];
+            let mut state = 7_u32;
+            for n in 1..70usize {
+                for _ in 0..20 {
+                    let values: Vec<f32> = (0..n)
+                        .map(|_| {
+                            state = state.wrapping_mul(1_103_515_245).wrapping_add(12_345);
+                            pool[(state >> 16) as usize % pool.len()]
+                        })
+                        .collect();
+                    for nth in [0, n / 2, n - 1] {
+                        let mut v = values.clone();
+                        nth_element(&mut v, nth);
+                        let mut a: Vec<u32> = v.iter().map(|x| x.to_bits()).collect();
+                        let mut b: Vec<u32> = values.iter().map(|x| x.to_bits()).collect();
+                        a.sort_unstable();
+                        b.sort_unstable();
+                        assert_eq!(a, b);
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// Bit-exact emulations of the Linux x86-64 Release build's scalar floating
@@ -616,10 +943,19 @@ pub(crate) mod x86 {
             assert_eq!(sqrt(-0.0).to_bits(), (-0.0_f64).to_bits());
             assert_eq!(max_one(f64::NAN), 1.0);
             assert_eq!(div32(0.0, 0.0).to_bits(), DEFAULT_NAN_F32);
-            assert_eq!(add32(f32::INFINITY, f32::NEG_INFINITY).to_bits(), DEFAULT_NAN_F32);
-            assert_eq!(widen(f32::from_bits(0x7fc0_0000)).to_bits(), 0x7ff8_0000_0000_0000);
+            assert_eq!(
+                add32(f32::INFINITY, f32::NEG_INFINITY).to_bits(),
+                DEFAULT_NAN_F32
+            );
+            assert_eq!(
+                widen(f32::from_bits(0x7fc0_0000)).to_bits(),
+                0x7ff8_0000_0000_0000
+            );
             assert_eq!(widen(f32::from_bits(0xffc0_0000)).to_bits(), DEFAULT_NAN);
-            assert_eq!(widen(f32::from_bits(0x7f80_0001)).to_bits(), 0x7ff8_0000_2000_0000);
+            assert_eq!(
+                widen(f32::from_bits(0x7f80_0001)).to_bits(),
+                0x7ff8_0000_2000_0000
+            );
         }
 
         #[test]

@@ -186,6 +186,7 @@ struct Expected {
     peaks: Vec<(u64, u32)>,
     bounds: Vec<(u64, u64)>,
     exit: i32,
+    nth_vectors: usize,
     stdout: Vec<u8>,
     stderr: Vec<u8>,
 }
@@ -239,6 +240,9 @@ fn oracle() -> BTreeMap<String, Expected> {
             "peak" => e.peaks.push((hex64(c[3]), hex32(c[4]))),
             "bound" => e.bounds.push((hex64(c[3]), hex64(c[4]))),
             "exit" => e.exit = c[2].parse().unwrap(),
+            // The whole permutation of std::nth_element; compared by the unit
+            // test of the private libstdc++ port in noise_estimation.rs.
+            "nthout" => e.nth_vectors += 1,
             other => panic!("unknown oracle record {other}"),
         }
     }
@@ -712,8 +716,7 @@ fn estimator_cases_match_the_release_build_bit_for_bit() {
                     empty.push(case.name.clone());
                 } else {
                     // Exactly the bin conversion.
-                    let lifted =
-                        estimate(case, &experiment, index, &clamp_only, None).unwrap();
+                    let lifted = estimate(case, &experiment, index, &clamp_only, None).unwrap();
                     if !same_estimates(n, &lifted) {
                         fail("the native profile differs beyond the bin conversion".into());
                     }
@@ -872,7 +875,7 @@ fn random_scan_cases_match_the_release_build_bit_for_bit() {
                 );
                 // The seed is read from time(), which the driver interposed:
                 // once per call that has candidates.
-                let candidates = !(case.name == "rnd_ms3_none");
+                let candidates = case.name != "rnd_ms3_none";
                 assert_eq!(oracle.time_calls, u64::from(candidates), "{}", case.name);
                 compared += 1;
             }
@@ -896,15 +899,18 @@ fn random_scan_cases_match_the_release_build_bit_for_bit() {
             _ => {}
         }
     }
-    assert_eq!(compared, 33);
+    assert_eq!(compared, 52);
+    // The permutation records exist for every vector of nth_vectors.tsv.
+    assert_eq!(expected["nth_vectors"].nth_vectors, 390);
 }
 
 #[test]
 fn random_scans_reproduce_the_defined_quirks() {
     let records = synthetic();
-    // One MS2 candidate at experiment index 1: `exp[scan]` reads index 0, the
-    // MS1 spectrum (intensities 0..11 in some order; 5 * 80 / 100 = 4 -> 9 of
-    // the 12 sorted values... the 80th percentile position of 12 is 9).
+    // One MS2 candidate at experiment index 1: the scale is 1 - 1 = 0, so
+    // every draw reads experiment index 0, the MS1 spectrum r_ms1a with the
+    // intensities 0..=11 in some order. The position is (Size)(12 * 80 / 100.0)
+    // = 9, whose order statistic is 9; five draws average to 9.
     let (experiment, _) = input("syn:r_ms1a+r_ms2a", &records).unwrap();
     for seed in [0, 1, 99, u64::MAX] {
         let noise = estimate_noise_from_random_scans(&experiment, 2, 5, 80.0, seed).unwrap();
@@ -969,27 +975,23 @@ fn random_scans_refuse_exactly_where_the_source_is_undefined() {
         estimate_noise_from_random_scans(&empty_first, 2, 1, 80.0, 1),
         "SignalToNoiseEstimator.cpp:50",
     );
-    // A NaN in the drawn scan breaks std::nth_element's ordering.
+    // A NaN in the drawn scan is not refused: the Release build's
+    // std::nth_element stays in bounds (the rnd_nan_* and nth_* oracle cases
+    // pin what it returns).
     let mut with_nan = experiment.clone();
     with_nan.spectra[0].peaks[3].intensity = f32::NAN;
-    undefined(
-        estimate_noise_from_random_scans(&with_nan, 2, 1, 50.0, 1),
-        "strict weak ordering",
-    );
-    // ... but not in a scan that is never drawn.
-    with_nan.spectra[1].peaks[3].intensity = f32::NAN;
-    with_nan.spectra[0].peaks[3].intensity = 1.0;
-    assert!(estimate_noise_from_random_scans(&with_nan, 2, 4, 50.0, 1).is_ok());
-    // The native work ceiling.
+    assert!(estimate_noise_from_random_scans(&with_nan, 2, 1, 50.0, 1).is_ok());
+    // The native work ceiling: every draw reads experiment index 0 (12
+    // intensities) and costs 12 + 1, so three draws need 39.
     let limited = RandomScanNoise {
         n_scans: 3,
-        max_work: 26,
+        max_work: 39,
         ..RandomScanNoise::new(2, 1)
     };
     assert!(limited.estimate(&experiment).is_ok());
     assert!(matches!(
         RandomScanNoise {
-            max_work: 25,
+            max_work: 38,
             ..limited
         }
         .estimate(&experiment),
@@ -1131,7 +1133,10 @@ fn estimates_through_the_base_trait() {
     ) -> (Vec<f64>, Vec<f64>) {
         let a = estimator.compute_stn_spectrum(spectrum).unwrap();
         let b = estimator.compute_stn_chromatogram(chromatogram).unwrap();
-        (E::signal_to_noise(&a).to_vec(), E::signal_to_noise(&b).to_vec())
+        (
+            E::signal_to_noise(&a).to_vec(),
+            E::signal_to_noise(&b).to_vec(),
+        )
     }
     let median = SignalToNoiseEstimatorMedian {
         window_length: 10.0,
@@ -1181,7 +1186,26 @@ fn parameters_are_set_in_place_and_warnings_are_gated() {
     assert_eq!(estimator.max_points, 7);
     assert_eq!(estimator.window_length, 1.0);
     assert!(!estimator.write_log_messages);
-    assert_eq!(estimator.to_param().unwrap(), param);
+    // `Param::setValue(key, value)` replaces an entry's tags, so the driver's
+    // tree lost the `advanced` tag that SignalToNoiseEstimatorMedian.h:114
+    // declares for noise_for_empty_window. The source's `param_` keeps the
+    // caller's tree (Param.cpp:406-414, DefaultParamHandler.cpp:47-49); the
+    // derived tree carries the defaults' tags with the same values.
+    assert!(!param.has_tag("noise_for_empty_window", "advanced").unwrap());
+    let (typed, handler, warnings) =
+        SignalToNoiseEstimatorMedian::from_param_with_handler(&param).unwrap();
+    assert!(warnings.is_empty());
+    assert_eq!(handler.parameters(), &param);
+    assert_eq!(
+        handler.defaults(),
+        &SignalToNoiseEstimatorMedian::defaults().unwrap()
+    );
+    assert_eq!(typed.to_param().unwrap(), estimator.to_param().unwrap());
+    let mut derived = param.clone();
+    derived
+        .add_tag("noise_for_empty_window", "advanced")
+        .unwrap();
+    assert_eq!(estimator.to_param().unwrap(), derived);
     let before = estimator.clone();
     let invalid = apply(
         SignalToNoiseEstimatorMedian::defaults().unwrap(),
