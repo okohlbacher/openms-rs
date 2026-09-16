@@ -88,6 +88,7 @@
 //! differences and the evidence.
 
 use crate::analysis::feature_finder_picked::helper_structs::{MassTrace, MassTraces};
+use crate::analysis::feature_finder_picked::scoring::x86_64;
 use crate::analysis::feature_finder_picked::trace_fitter::{
     FEWER_RESIDUALS_THAN_PARAMETERS, ProfileSmoothing, TraceFitter, TraceFitterParams,
     compute_theoretical, initial_shape, optimize, stream_number, unable_to_fit,
@@ -680,6 +681,14 @@ impl TraceFitter for EGHTraceFitter {
     /// style), through the shared [`stream_number`].
     /// The source writes the name with `StringUtils::toStr(char)`, one byte; a
     /// non-ASCII Rust `char` is written as its UTF-8 bytes.
+    ///
+    /// The computed numbers follow the Linux x86_64 Release build's
+    /// instructions, so that a NaN they produce or pass on prints with the
+    /// executed sign on every host: `S` is `(sigma + sigma) * sigma`
+    /// (`libOpenMS.so` `0x18b6334`-`0x18b633c`), `rt_shift` is the `addsd`
+    /// destination of `C` (`0x18b637f`-`0x18b6384`, `0x18b63d9`,
+    /// `0x18b6487`) and `theoretical_int` the `mulsd` destination of `A`
+    /// (`0x18b63b0`-`0x18b63b5`).
     fn gnuplot_formula(
         &self,
         trace: &MassTrace,
@@ -688,9 +697,9 @@ impl TraceFitter for EGHTraceFitter {
         rt_shift: f64,
     ) -> String {
         let g = stream_number;
-        let two_sigma_squared = g(2.0 * self.sigma * self.sigma);
+        let two_sigma_squared = g(x86_64::mul(x86_64::add(self.sigma, self.sigma), self.sigma));
         let tau = g(self.tau);
-        let center = g(rt_shift + self.apex_rt);
+        let center = g(x86_64::add(rt_shift, self.apex_rt));
         let mut formula = String::new();
         formula.push(function_name);
         formula.push_str("(x)= ");
@@ -702,7 +711,7 @@ impl TraceFitter for EGHTraceFitter {
         formula.push_str(" * (x - ");
         formula.push_str(&center);
         formula.push_str(" )) > 0) ? ");
-        formula.push_str(&g(trace.theoretical_int * self.height));
+        formula.push_str(&g(x86_64::mul(trace.theoretical_int, self.height)));
         formula.push_str(" * exp(-1 * (x - ");
         formula.push_str(&center);
         formula.push_str(")**2 / ( ");

@@ -65,7 +65,7 @@ use crate::analysis::feature_finder_picked::instance::{
 use crate::analysis::feature_finder_picked::resolution::{
     annotate_apex, invalid_apex_warning, resolve_overlaps,
 };
-use crate::analysis::feature_finder_picked::scoring::{libstdcxx, source_is_sorted};
+use crate::analysis::feature_finder_picked::scoring::{libstdcxx, source_is_sorted, x86_64};
 use crate::analysis::feature_finder_picked::seeds::SeedStage;
 use crate::analysis::feature_finder_picked::source_sort::{
     TemporaryBuffer, source_sort_by, source_stable_sort_permutation,
@@ -73,7 +73,7 @@ use crate::analysis::feature_finder_picked::source_sort::{
 use crate::analysis::feature_finder_picked::trace_fitter::TraceFitterParams;
 use crate::concept::parallel::Threads;
 use crate::kernel::{Feature, FeatureMap, MSChromatogram, MSExperiment};
-use crate::param::{DefaultParamHandler, Param, ParamValue};
+use crate::param::{DefaultParamHandler, Param, ParamValue, ParamValueType};
 use crate::{Error, Result};
 
 /// Name of the source parameter handler, `DefaultParamHandler("FeatureFinderAlgorithmPicked")`.
@@ -734,65 +734,146 @@ impl Settings {
     ///
     /// Returns [`Error::InvalidValue`] when a known entry has a different value
     /// type than its default or violates its restriction (source
-    /// `Exception::InvalidParameter`), or when a value cannot be converted.
+    /// `Exception::InvalidParameter`, with its text; [`check_parameters`]), or
+    /// when a value cannot be converted as the source converts it (a negative
+    /// `intensity:bins`, `mass_trace:max_missing` or `fit:max_iterations`
+    /// that passes its restriction, [`NEGATIVE_UNSIGNED_WHAT`]).
     pub fn from_parameters(parameters: &Param) -> Result<(Self, Vec<String>)> {
         let mut handler = DefaultParamHandler::new(HANDLER_NAME)?;
         let defaults = default_parameters()?;
         handler.set_defaults(defaults.clone())?;
         handler.defaults_to_parameters()?;
-        handler.set_parameters_with(parameters, |merged| Self::read(merged, &defaults))
+        // The source's checks, in place of the shared handler's.
+        handler.set_check_defaults(false);
+        handler.set_parameters(parameters)?;
+        let merged = handler.parameters();
+        let mut unknown = Vec::new();
+        check_parameters(merged, &defaults, HANDLER_NAME, &mut unknown)?;
+        let settings = Self::read(merged, &defaults)?;
+        check_run_conversions(merged)?;
+        let warnings = unknown
+            .into_iter()
+            .map(|key| format!("{HANDLER_NAME}: unknown parameter '{key}'"))
+            .collect();
+        Ok((settings, warnings))
     }
 
+    /// The typed values of a checked parameter set: [`Self::update_members`]
+    /// on the defaults' values, then [`Self::read_run_values`].
     pub(crate) fn read(p: &Param, defaults: &Param) -> Result<Self> {
+        let mut settings = Self {
+            pattern_tolerance: 0.0,
+            trace_tolerance: 0.0,
+            min_spectra: 0,
+            max_missing_trace_peaks: 0,
+            slope_bound: 0.0,
+            intensity_percentage: 0.0,
+            intensity_percentage_optional: 0.0,
+            optional_fit_improvement: 0.0,
+            mass_window_width: 0.0,
+            intensity_bins: 0,
+            min_isotope_fit: 0.0,
+            min_trace_score: 0.0,
+            min_rt_span: 0.0,
+            max_rt_span: 0.0,
+            max_feature_intersection: 0.0,
+            reported_mz: ReportedMz::Maximum,
+            min_feature_score: 0.0,
+            charge_low: 0,
+            charge_high: 0,
+            max_iterations: 0,
+            abundance_12c: 0.0,
+            abundance_14n: 0.0,
+            abundance_12c_changed: false,
+            abundance_14n_changed: false,
+            seed_min_score: 0.0,
+            user_seed_rt_tolerance: 0.0,
+            user_seed_mz_tolerance: 0.0,
+            user_seed_min_score: 0.0,
+            write_debug: false,
+            rt_shape: RtShape::Symmetric,
+        };
+        settings.update_members(p)?;
+        settings.read_run_values(p, defaults)?;
+        Ok(settings)
+    }
+
+    /// Source `updateMembers_` (`FeatureFinderAlgorithmPicked.cpp:1108-1126`):
+    /// the members in the source's order, each converted as the Linux x86_64
+    /// Release build converts it.
+    ///
+    /// - `min_spectra_ = (UInt) std::floor((double) value * 0.5)`: the whole
+    ///   64-bit value as a `double`, then `cvttsd2si` into a 64-bit register and
+    ///   its low 32 bits (`libOpenMS.so` `0x18da803`-`0x18da866`).
+    /// - `max_missing_trace_peaks_` and `intensity_bins_` through
+    ///   `ParamValue::operator unsigned int` (`ParamValue.cpp:451-461`,
+    ///   `0x7aee30`): a negative value throws `Exception::ConversionError`,
+    ///   any other keeps its low 32 bits.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] with [`NEGATIVE_UNSIGNED_WHAT`] for a
+    /// negative `mass_trace:max_missing` or `intensity:bins`. The members
+    /// before it keep their new values and the rest their old ones, as in the
+    /// source, where `updateMembers_` throws half way.
+    pub(crate) fn update_members(&mut self, p: &Param) -> Result<()> {
         let float = |key: &str| p.value(key)?.to_f64();
-        let int = |key: &str| p.value(key)?.to_i32();
-        let unsigned = |key: &str| p.value(key)?.to_u32();
-        let min_spectra = (f64::from(int("mass_trace:min_spectra")?) * 0.5).floor();
-        let reported_mz = match p.value("feature:reported_mz")?.as_str()? {
+        self.pattern_tolerance = float("isotopic_pattern:mz_tolerance")?;
+        self.trace_tolerance = float("mass_trace:mz_tolerance")?;
+        let min_spectra = (source_i64(p, "mass_trace:min_spectra")? as f64 * 0.5).floor();
+        self.min_spectra = x86_64::truncate_to_u32(min_spectra) as usize;
+        self.max_missing_trace_peaks = source_unsigned(p, "mass_trace:max_missing")?;
+        self.slope_bound = float("mass_trace:slope_bound")?;
+        self.intensity_percentage = float("isotopic_pattern:intensity_percentage")? / 100.0;
+        self.intensity_percentage_optional =
+            float("isotopic_pattern:intensity_percentage_optional")? / 100.0;
+        self.optional_fit_improvement = float("isotopic_pattern:optional_fit_improvement")? / 100.0;
+        self.mass_window_width = float("isotopic_pattern:mass_window_width")?;
+        self.intensity_bins = source_unsigned(p, "intensity:bins")? as usize;
+        self.min_isotope_fit = float("feature:min_isotope_fit")?;
+        self.min_trace_score = float("feature:min_trace_score")?;
+        self.min_rt_span = float("feature:min_rt_span")?;
+        self.max_rt_span = float("feature:max_rt_span")?;
+        self.max_feature_intersection = float("feature:max_intersection")?;
+        self.reported_mz = match p.value("feature:reported_mz")?.as_str()? {
             "maximum" => ReportedMz::Maximum,
             "average" => ReportedMz::Average,
             _ => ReportedMz::Monoisotopic,
         };
+        Ok(())
+    }
+
+    /// The values source `run_` reads from `param_` itself, in its order.
+    ///
+    /// `charge_low` and `charge_high` are `(Int)` conversions, the low 32 bits
+    /// of the value. `fit:max_iterations` is an `operator unsigned int`
+    /// conversion, which throws for a negative value at the start of `run_`
+    /// (`:152`); this keeps its low 32 bits, and [`check_run_conversions`]
+    /// reports the throw where the run starts.
+    pub(crate) fn read_run_values(&mut self, p: &Param, defaults: &Param) -> Result<()> {
+        let float = |key: &str| p.value(key)?.to_f64();
+        self.min_feature_score = float("feature:min_score")?;
+        self.charge_low = source_i64(p, "isotopic_pattern:charge_low")? as i32;
+        self.charge_high = source_i64(p, "isotopic_pattern:charge_high")? as i32;
+        self.max_iterations = source_i64(p, "fit:max_iterations")? as u32;
+        self.abundance_12c = float("isotopic_pattern:abundance_12C")?;
+        self.abundance_14n = float("isotopic_pattern:abundance_14N")?;
+        let changed = |key: &str| -> Result<bool> { Ok(p.value(key)? != defaults.value(key)?) };
+        self.abundance_12c_changed = changed("isotopic_pattern:abundance_12C")?;
+        self.abundance_14n_changed = changed("isotopic_pattern:abundance_14N")?;
+        self.user_seed_rt_tolerance = float("user-seed:rt_tolerance")?;
+        self.user_seed_mz_tolerance = float("user-seed:mz_tolerance")?;
+        self.user_seed_min_score = float("user-seed:min_score")?;
+        self.write_debug = p.value("write_debug")?.to_bool()?;
+        self.seed_min_score = float("seed:min_score")?;
         // Source: `param_.getValue("feature:rt_shape") == "asymmetric"`, else symmetric.
-        let rt_shape = if p.value("feature:rt_shape")? == &ParamValue::String("asymmetric".into()) {
+        self.rt_shape = if p.value("feature:rt_shape")? == &ParamValue::String("asymmetric".into())
+        {
             RtShape::Asymmetric
         } else {
             RtShape::Symmetric
         };
-        let changed = |key: &str| -> Result<bool> { Ok(p.value(key)? != defaults.value(key)?) };
-        Ok(Self {
-            pattern_tolerance: float("isotopic_pattern:mz_tolerance")?,
-            trace_tolerance: float("mass_trace:mz_tolerance")?,
-            min_spectra: min_spectra as usize,
-            max_missing_trace_peaks: unsigned("mass_trace:max_missing")?,
-            slope_bound: float("mass_trace:slope_bound")?,
-            intensity_percentage: float("isotopic_pattern:intensity_percentage")? / 100.0,
-            intensity_percentage_optional: float("isotopic_pattern:intensity_percentage_optional")?
-                / 100.0,
-            optional_fit_improvement: float("isotopic_pattern:optional_fit_improvement")? / 100.0,
-            mass_window_width: float("isotopic_pattern:mass_window_width")?,
-            intensity_bins: unsigned("intensity:bins")? as usize,
-            min_isotope_fit: float("feature:min_isotope_fit")?,
-            min_trace_score: float("feature:min_trace_score")?,
-            min_rt_span: float("feature:min_rt_span")?,
-            max_rt_span: float("feature:max_rt_span")?,
-            max_feature_intersection: float("feature:max_intersection")?,
-            reported_mz,
-            min_feature_score: float("feature:min_score")?,
-            charge_low: int("isotopic_pattern:charge_low")?,
-            charge_high: int("isotopic_pattern:charge_high")?,
-            max_iterations: unsigned("fit:max_iterations")?,
-            abundance_12c: float("isotopic_pattern:abundance_12C")?,
-            abundance_14n: float("isotopic_pattern:abundance_14N")?,
-            abundance_12c_changed: changed("isotopic_pattern:abundance_12C")?,
-            abundance_14n_changed: changed("isotopic_pattern:abundance_14N")?,
-            seed_min_score: float("seed:min_score")?,
-            user_seed_rt_tolerance: float("user-seed:rt_tolerance")?,
-            user_seed_mz_tolerance: float("user-seed:mz_tolerance")?,
-            user_seed_min_score: float("user-seed:min_score")?,
-            write_debug: p.value("write_debug")?.to_bool()?,
-            rt_shape,
-        })
+        Ok(())
     }
 
     /// The number of charges searched, `charge_high - charge_low + 1`, or zero
@@ -824,6 +905,181 @@ impl Settings {
             + OVERRIDE_EXTRA_ISOTOPES
                 * (usize::from(self.abundance_12c_changed)
                     + usize::from(self.abundance_14n_changed))
+    }
+}
+
+/// The `what()` text of the `Exception::ConversionError` that
+/// `ParamValue::operator unsigned int` throws for a negative integer
+/// (`ParamValue.cpp:456-459`).
+pub const NEGATIVE_UNSIGNED_WHAT: &str =
+    "Could not convert negative integer ParamValue to unsigned int";
+
+/// The 64-bit integer behind an integer parameter (`ParamValue::data_.ssize_`).
+fn source_i64(p: &Param, key: &str) -> Result<i64> {
+    p.value(key)?.to_i64()
+}
+
+/// `ParamValue::operator unsigned int`: [`NEGATIVE_UNSIGNED_WHAT`] for a
+/// negative value, and the low 32 bits of any other (`libOpenMS.so`
+/// `0x7aee30`: `cvtsi2sd`/`comisd` against `0.0`, then the register's low
+/// half).
+fn source_unsigned(p: &Param, key: &str) -> Result<u32> {
+    let value = source_i64(p, key)?;
+    if (value as f64) < 0.0 {
+        return Err(Error::InvalidValue(NEGATIVE_UNSIGNED_WHAT.into()));
+    }
+    Ok(value as u32)
+}
+
+/// The conversion at the start of source `run_` that can throw:
+/// `UInt max_iterations = param_.getValue("fit:max_iterations")`
+/// (`FeatureFinderAlgorithmPicked.cpp:152`).
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] with [`NEGATIVE_UNSIGNED_WHAT`] for a
+/// negative value.
+pub(crate) fn check_run_conversions(p: &Param) -> Result<()> {
+    source_unsigned(p, "fit:max_iterations").map(|_| ())
+}
+
+/// Source `Param::checkDefaults(name, defaults, "")` (`Param.cpp:1066-1167`)
+/// on a merged parameter set, with the source's messages.
+///
+/// Every entry is visited in iteration order. One the defaults do not know is
+/// appended to `unknown` (the source logs a warning for it) and skipped. A
+/// known entry of another value type than its default is refused with
+/// `<name>: Wrong parameter type '<type>' for <type> parameter '<key>'
+/// given!`. Otherwise the default entry with the given value is checked as
+/// `Param::ParamEntry::isValid` checks it (`Param.cpp:57-167`), and a
+/// violation is refused with `<name>: <message>`. That check narrows an
+/// integer with `int tmp = value`, which keeps the low 32 bits of the 64-bit
+/// value (C++20), so `2^32 + 10` passes a minimum of 1 as 10 does and `2^32`
+/// fails it as 0 does (executed: `../oracle/ffap-complete-fix2`, case
+/// `bigint`); the shared [`crate::param`] check refuses both instead.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] with the source's message at the first
+/// refused entry; `unknown` then holds the unknown entries before it.
+pub fn check_parameters(
+    merged: &Param,
+    defaults: &Param,
+    name: &str,
+    unknown: &mut Vec<String>,
+) -> Result<()> {
+    for item in merged.iter()? {
+        if !defaults.exists(&item.key)? {
+            unknown.push(item.key.clone());
+            continue;
+        }
+        let default = defaults.entry(&item.key)?;
+        let given = &item.entry.value;
+        if default.value.value_type() != given.value_type() {
+            return Err(Error::InvalidValue(format!(
+                "{name}: Wrong parameter type '{}' for {} parameter '{}' given!",
+                source_type_name(given.value_type()),
+                source_type_name(default.value.value_type()),
+                item.key
+            )));
+        }
+        if let Some(message) = source_validity(default, given) {
+            return Err(Error::InvalidValue(format!("{name}: {message}")));
+        }
+    }
+    Ok(())
+}
+
+/// The type names of `Param::checkDefaults`.
+fn source_type_name(value_type: ParamValueType) -> &'static str {
+    match value_type {
+        ParamValueType::String => "string",
+        ParamValueType::StringList => "string list",
+        ParamValueType::Empty => "empty",
+        ParamValueType::Integer => "integer",
+        ParamValueType::IntegerList => "integer list",
+        ParamValueType::Float => "float",
+        ParamValueType::FloatList => "float list",
+    }
+}
+
+/// `std::to_string(double)`: `%f`, as glibc prints it.
+fn std_to_string(value: f64) -> String {
+    if value.is_nan() {
+        if value.is_sign_negative() {
+            "-nan"
+        } else {
+            "nan"
+        }
+        .to_owned()
+    } else if value.is_infinite() {
+        if value < 0.0 { "-inf" } else { "inf" }.to_owned()
+    } else {
+        format!("{value:.6}")
+    }
+}
+
+/// `Param::ParamEntry::isValid` of `entry` holding `value`: the message of
+/// its first violation, or `None`.
+fn source_validity(entry: &crate::param::ParamEntry, value: &ParamValue) -> Option<String> {
+    let has = |tag: &str| entry.tags.contains(tag);
+    let valid_list = || entry.valid_strings.join(",");
+    let int_range = |x: i32| {
+        ((entry.min_int != -i32::MAX && x < entry.min_int)
+            || (entry.max_int != i32::MAX && x > entry.max_int))
+            .then(|| {
+                format!(
+                    "Invalid integer parameter value '{x}' for parameter '{}' given! The valid \
+                     range is: [{}:{}].",
+                    entry.name, entry.min_int, entry.max_int
+                )
+            })
+    };
+    let float_range = |x: f64| {
+        ((entry.min_float != -f64::MAX && x < entry.min_float)
+            || (entry.max_float != f64::MAX && x > entry.max_float))
+            .then(|| {
+                format!(
+                    "Invalid double parameter value '{}' for parameter '{}' given! The valid \
+                     range is: [{}:{}].",
+                    std_to_string(x),
+                    entry.name,
+                    std_to_string(entry.min_float),
+                    std_to_string(entry.max_float)
+                )
+            })
+    };
+    match value {
+        ParamValue::String(text) => (!entry.valid_strings.is_empty()
+            && !entry.valid_strings.contains(text)
+            && !(has("input file") || has("output file") || has("output prefix")))
+        .then(|| {
+            format!(
+                "Invalid string parameter value '{text}' for parameter '{}' given! Valid values \
+                 are: '{}'.",
+                entry.name,
+                valid_list()
+            )
+        }),
+        ParamValue::StringList(texts) => texts.iter().find_map(|text| {
+            (!entry.valid_strings.is_empty()
+                && !entry.valid_strings.contains(text)
+                && !(has("input file") || has("output file")))
+            .then(|| {
+                format!(
+                    "Invalid string parameter value '{text}' for parameter '{}' given! Valid \
+                     values are: '{}'.",
+                    entry.name,
+                    valid_list()
+                )
+            })
+        }),
+        // `int tmp = value`: the low 32 bits.
+        ParamValue::Integer(x) => int_range(*x as i32),
+        ParamValue::IntegerList(xs) => xs.iter().find_map(|&x| int_range(x)),
+        ParamValue::Float(x) => float_range(*x),
+        ParamValue::FloatList(xs) => xs.iter().find_map(|&x| float_range(x)),
+        ParamValue::Empty => None,
     }
 }
 

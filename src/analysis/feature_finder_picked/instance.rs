@@ -40,7 +40,7 @@ use std::ops::Range;
 
 use crate::analysis::feature_finder_picked::algorithm::{
     HANDLER_NAME, Limits, Options, PseudoRtShiftKey, RejectedParameters, Settings,
-    default_parameters, validate_input,
+    check_parameters, check_run_conversions, default_parameters, validate_input,
 };
 use crate::analysis::feature_finder_picked::debug::{
     AbortReasons, DebugOutput, DebugTermination, FEATURE_DEBUG_PATH, FeatureDebugFiles,
@@ -52,7 +52,7 @@ use crate::analysis::feature_finder_picked::extension::{
 };
 use crate::analysis::feature_finder_picked::fitting::{
     ABORT_COULD_NOT_EXTEND, ABORT_NO_ISOTOPE_PATTERN, FeatureInput, FittedModel, QualityOutcome,
-    build_feature, check_feature_quality_logged, crop_feature_logged,
+    build_feature_checked, check_feature_quality_logged, crop_feature_logged,
 };
 use crate::analysis::feature_finder_picked::helper_structs::{MassTraces, Seed};
 use crate::analysis::feature_finder_picked::resolution::{
@@ -333,11 +333,23 @@ impl FeatureFinderAlgorithmPicked {
     /// not know (such an entry is kept), in the source's wording and in the
     /// order `Param::checkDefaults` visits the merged set.
     ///
+    /// The checks are the source's ([`check_parameters`]): an integer is
+    /// narrowed to its low 32 bits before its restriction is checked, and the
+    /// typed members are converted as the Linux x86_64 Release build converts
+    /// them ([`Settings`]), so a 64-bit value such as `intensity:bins = 2^32 +
+    /// 10` is accepted and read as 10 (executed:
+    /// `../oracle/ffap-complete-fix2`, case `bigint`).
+    ///
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] for a value of the wrong type or outside
-    /// its restriction, the source's `Exception::InvalidParameter`; the typed
-    /// members keep their values. The source has assigned the merged set to
+    /// its restriction, with the text of the source's
+    /// `Exception::InvalidParameter`; the typed members keep their values. For
+    /// a negative `mass_trace:max_missing` or `intensity:bins` whose low 32
+    /// bits pass the restriction, `updateMembers_` throws
+    /// `Exception::ConversionError` half way
+    /// ([`NEGATIVE_UNSIGNED_WHAT`](crate::analysis::feature_finder_picked::algorithm::NEGATIVE_UNSIGNED_WHAT)): the members before that one have their new
+    /// values, as in the source. The source has assigned the merged set to
     /// `param_` before it checks it, so [`Self::parameters`] then shows the
     /// refused set ([`RejectedParameters::Shown`], the default; executed:
     /// `params_after_failed_set.txt`), or the last accepted one under
@@ -363,26 +375,44 @@ impl FeatureFinderAlgorithmPicked {
         warnings: &mut Vec<String>,
     ) -> Result<()> {
         let defaults = self.handler.defaults().clone();
-        let result = self
-            .handler
-            .set_parameters_with(parameters, |merged| Settings::read(merged, &defaults));
+        let name = self.handler.name().to_owned();
+        // `param_ = tmp` with the defaults filled in, before any check: the
+        // merged set, which the shared handler builds without its own checks.
+        let check = self.handler.check_defaults();
+        let mut merged_handler = self.handler.clone();
+        merged_handler.set_check_defaults(false);
+        merged_handler.set_parameters(parameters)?;
+        merged_handler.set_check_defaults(check);
+        let merged = merged_handler.parameters();
+        // `checkDefaults` (when enabled), then `updateMembers_`.
+        let mut unknown = Vec::new();
+        let checked = if check {
+            check_parameters(merged, &defaults, &name, &mut unknown)
+        } else {
+            Ok(())
+        };
+        warnings.extend(
+            unknown
+                .iter()
+                .map(|key| format!("Warning: {name} received the unknown parameter '{key}'!")),
+        );
+        let mut members = self.settings.clone();
+        let result = checked
+            .and_then(|()| members.update_members(merged))
+            .and_then(|()| members.read_run_values(merged, &defaults));
         match result {
-            Ok((settings, _)) => {
-                self.settings = settings;
+            Ok(()) => {
+                self.handler = merged_handler;
+                self.settings = members;
                 self.rejected = None;
-                let merged = self.handler.parameters();
-                unknown_parameter_warnings(merged, &defaults, self.handler.name(), warnings)
+                Ok(())
             }
             Err(error) => {
-                // The merged set without the checks: what the source assigned.
-                let mut unchecked = self.handler.clone();
-                unchecked.set_check_defaults(false);
-                if unchecked.set_parameters(parameters).is_ok() {
-                    let merged = unchecked.parameters();
-                    unknown_parameter_warnings(merged, &defaults, self.handler.name(), warnings)?;
-                    if self.options.rejected_parameters == RejectedParameters::Shown {
-                        self.rejected = Some(merged.clone());
-                    }
+                // A conversion that throws half way through `updateMembers_`
+                // leaves the members before it updated.
+                self.settings = members;
+                if self.options.rejected_parameters == RejectedParameters::Shown {
+                    self.rejected = Some(merged.clone());
                 }
                 Err(error)
             }
@@ -515,15 +545,26 @@ impl FeatureFinderAlgorithmPicked {
     ///   `write_debug` with [`PseudoRtShiftKey::Source`] and no usable
     ///   `debug:pseudo_rt_shift`, at the first seed that reaches the fit
     ///   ([`DebugOutput::termination`] records it);
+    /// - [`Error::InvalidValue`] where the source terminates without a debug
+    ///   key issue: a feature m/z without an isotope window in step 3.3.5
+    ///   ([`DebugOutput::termination`] records it in a debug run, after that
+    ///   seed's debug files);
     /// - [`Error::InvalidValue`] where the source is undefined on a caller's
     ///   map: a feature of charge 0 in an overlapping pair of different
-    ///   charges, a NaN m/z or intensity that makes `std::sort` read outside
-    ///   the map, and a stale abort-reason seed outside the current input.
+    ///   charges, and a stale abort-reason seed outside the current input;
+    /// - [`Error::InvalidValue`] with the source's `what()` text where the
+    ///   source throws a catchable exception: [`NEGATIVE_UNSIGNED_WHAT`](crate::analysis::feature_finder_picked::algorithm::NEGATIVE_UNSIGNED_WHAT) for a
+    ///   negative `fit:max_iterations` at the start of `run_`, and
+    ///   `std::length_error`'s text for more isotope windows than a vector can
+    ///   hold in step 2.5
+    ///   ([`LENGTH_ERROR_WHAT`](crate::analysis::feature_finder_picked::seeds::LENGTH_ERROR_WHAT)).
     ///
     /// The instance and `features` are left as the source leaves them at that
     /// point: features of the charges already processed are in `features`, and
     /// their aborts are counted. [`Self::report`] and [`Self::debug_output`]
-    /// hold what the run produced up to there.
+    /// hold what the run produced up to there: a debug run that fails after
+    /// the point where the source opens `debug/log.txt` (after the score
+    /// arrays, before step 1) has opened it and written what the source wrote.
     pub fn run(
         &mut self,
         experiment: MSExperiment,
@@ -586,16 +627,23 @@ impl FeatureFinderAlgorithmPicked {
         let settings = self.settings.clone();
         let options = self.options;
         let debug = settings.write_debug;
+        let limits = options.limits;
+        // `UInt max_iterations = param_.getValue(...)` (`:152`) throws before
+        // anything else happens.
+        check_run_conversions(self.handler.parameters())?;
         let mut progress = Progress::new(self.progress.as_mut());
 
         // `seeds_.sortByMZ()` (`FeatureFinderAlgorithmPicked.cpp:190`) sorts the
-        // member in place, so the next run sorts the sorted seeds again.
+        // member in place: every run replaces `seeds_` with the caller's map
+        // (`run_inner`, as the source's `run` calls `setSeeds`) and sorts it
+        // here, and `seeds()` returns the sorted copy.
         sort_user_seeds(&mut self.seeds)?;
 
         // Steps 0 to 2.5.
         let mut prefix = LogFragment::new();
         let stage_log = Vec::new();
-        let mut stage = if debug {
+        let mut opened = false;
+        let prepared = if debug {
             SeedStage::prepare(
                 experiment,
                 &self.seeds,
@@ -605,7 +653,8 @@ impl FeatureFinderAlgorithmPicked {
                 self.windows.as_ref(),
                 &mut prefix,
                 &mut progress,
-            )?
+                &mut opened,
+            )
         } else {
             SeedStage::prepare(
                 experiment,
@@ -616,31 +665,30 @@ impl FeatureFinderAlgorithmPicked {
                 self.windows.as_ref(),
                 &mut NoLog,
                 &mut progress,
-            )?
+                &mut opened,
+            )
+        };
+        let mut stage = match prepared {
+            Ok(stage) => stage,
+            Err(error) => {
+                // The source has opened the stream and created debug/features
+                // before step 1 (`:226-232`) and written its first line; a
+                // failure in steps 1 to 2.5 (the step-2.5 `std::length_error`,
+                // or one of the port's ceilings there) leaves both, and the
+                // stream stays open for the next run.
+                if debug && opened {
+                    let mut out = Some(open_debug_log(&mut self.log_state));
+                    append_log(&mut out, &prefix, &limits)?;
+                    self.debug = out;
+                }
+                return Err(error);
+            }
         };
         // Step 2.5 has replaced the member.
         self.windows = Some(stage.windows().clone());
         // `debug_` and the `log_.open` of `:226-232`, which follow the score
         // arrays.
-        let mut out = if debug {
-            let opened = match self.log_state {
-                LogState::Closed => {
-                    self.log_state = LogState::Open;
-                    true
-                }
-                LogState::Open | LogState::Failed => {
-                    self.log_state = LogState::Failed;
-                    false
-                }
-            };
-            Some(DebugOutput {
-                log_opened: opened,
-                ..DebugOutput::default()
-            })
-        } else {
-            None
-        };
-        let limits = options.limits;
+        let mut out = debug.then(|| open_debug_log(&mut self.log_state));
         let result = (|| -> Result<()> {
             append_log(&mut out, &prefix, &limits)?;
 
@@ -809,32 +857,24 @@ impl FeatureFinderAlgorithmPicked {
     }
 }
 
-/// The `OPENMS_LOG_WARN` lines of `Param::checkDefaults`
-/// (`Param.cpp:1080-1091`) for `merged`, in its iteration order: one per
-/// unknown entry, up to the first entry the defaults refuse, where the source
-/// throws.
-fn unknown_parameter_warnings(
-    merged: &Param,
-    defaults: &Param,
-    name: &str,
-    warnings: &mut Vec<String>,
-) -> Result<()> {
-    for item in merged.iter()? {
-        if !defaults.exists(&item.key)? {
-            warnings.push(format!(
-                "Warning: {name} received the unknown parameter '{}'!",
-                item.key
-            ));
-            continue;
+/// `log_.open("debug/log.txt")` (`FeatureFinderAlgorithmPicked.cpp:231`) on
+/// the instance's never-closed stream: the first open succeeds and truncates
+/// the file, every later one fails and leaves the stream failed.
+fn open_debug_log(state: &mut LogState) -> DebugOutput {
+    let opened = match *state {
+        LogState::Closed => {
+            *state = LogState::Open;
+            true
         }
-        // The entry alone, checked as `checkDefaults` checks it.
-        let mut single = Param::new();
-        single.set_value(&item.key, item.entry.value.clone(), "", &[] as &[String])?;
-        if single.check_defaults(name, defaults, "").is_err() {
-            break;
+        LogState::Open | LogState::Failed => {
+            *state = LogState::Failed;
+            false
         }
+    };
+    DebugOutput {
+        log_opened: opened,
+        ..DebugOutput::default()
     }
-    Ok(())
 }
 
 /// Append a fragment to the run's debug log, unless the stream is not open.
@@ -903,6 +943,9 @@ pub(crate) struct SeedOutcome {
     log: Option<LogFragment>,
     /// The debug write, when the seed reached `:714` in a debug run.
     debug_write: Option<DebugWrite>,
+    /// Where the source terminates after the debug write: the `what()` text
+    /// of the exception step 3.3.5 throws inside the OpenMP region (`:790`).
+    terminated: Option<String>,
 }
 
 /// One accepted candidate and the later seeds it swallows.
@@ -976,6 +1019,7 @@ fn extend_seed<L: LogSink>(
         result: Err(reason.to_owned()),
         log: None,
         debug_write: None,
+        terminated: None,
     };
     let seed_spectrum = &spectra[seed.spectrum];
     let seed_peak = seed_spectrum.peaks[seed.peak];
@@ -1051,7 +1095,7 @@ fn extend_seed<L: LogSink>(
         QualityOutcome::Accepted(quality) => quality,
     };
     let traces = new_traces;
-    let feature = build_feature(FeatureInput {
+    let feature = match build_feature_checked(FeatureInput {
         model: &model,
         traces: &traces,
         pattern: &pattern,
@@ -1061,7 +1105,20 @@ fn extend_seed<L: LogSink>(
         // Overwritten serially; see `settle_charge`.
         plot_nr: -1,
         quality,
-    })?;
+    })? {
+        Ok(feature) => feature,
+        Err(what) => {
+            // The source has written this seed's log lines and debug files
+            // (`:717`) before `:790` throws.
+            return Ok(SeedOutcome {
+                plot_nr_used: true,
+                result: Err(String::new()),
+                log: None,
+                debug_write: write,
+                terminated: Some(what),
+            });
+        }
+    };
 
     // Source: every later seed inside both the overall bounding box and one of
     // the mass-trace hulls.
@@ -1080,6 +1137,7 @@ fn extend_seed<L: LogSink>(
         result: Ok(SeedCandidate { feature, contained }),
         log: None,
         debug_write: write,
+        terminated: None,
     })
 }
 
@@ -1172,6 +1230,24 @@ pub(crate) fn settle_charge(
                     )));
                 }
             }
+        }
+        if let Some(what) = outcome.terminated {
+            // `getIsotopeDistribution_` throws at `:790`, inside the OpenMP
+            // region: the process ends after this seed's debug files.
+            if let Some(out) = book.out.as_mut() {
+                out.termination = Some(DebugTermination {
+                    charge,
+                    seed_index: index,
+                    plot_nr,
+                    exception: "InvalidValue",
+                    message: what.clone(),
+                });
+            }
+            return Err(Error::InvalidValue(format!(
+                "FeatureFinderAlgorithmPicked step 3.3.5: {what}; the source throws this inside \
+                 its OpenMP region for seed {index} of charge {charge}, where std::terminate \
+                 ends the process"
+            )));
         }
         match outcome.result {
             Err(reason) => {

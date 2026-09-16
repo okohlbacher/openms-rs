@@ -502,6 +502,23 @@ pub struct FeatureInput<'a> {
 /// non-finite FWHM needs a non-finite fit, which the source's quality checks let
 /// through because every comparison against a NaN is false.
 pub fn build_feature(input: FeatureInput<'_>) -> Result<Feature> {
+    build_feature_checked(input)?.map_err(|what| {
+        Error::InvalidValue(format!(
+            "FeatureFinderAlgorithmPicked step 3.3.5: {what}; the source throws this inside its \
+             OpenMP region, where std::terminate ends the process"
+        ))
+    })
+}
+
+/// [`build_feature`], with the source's process termination apart: the inner
+/// error is the `what()` text of the `Exception::InvalidValue` that
+/// `getIsotopeDistribution_(f.getMZ())` throws inside the seed loop's OpenMP
+/// region (`FeatureFinderAlgorithmPicked.cpp:790`), where the source calls
+/// `std::terminate`; the outer error is every other error of
+/// [`build_feature`].
+pub(crate) fn build_feature_checked(
+    input: FeatureInput<'_>,
+) -> Result<std::result::Result<Feature, String>> {
     let FeatureInput {
         model,
         traces,
@@ -567,14 +584,11 @@ pub fn build_feature(input: FeatureInput<'_>) -> Result<Feature> {
     // Source `getIsotopeDistribution_(f.getMZ())` inside the seed loop's
     // OpenMP region (`FeatureFinderAlgorithmPicked.cpp:790`): its
     // `Exception::InvalidValue` is not caught there, so the source terminates.
-    let window = windows.get(feature.mz).map_err(|error| {
-        Error::InvalidValue(format!(
-            "FeatureFinderAlgorithmPicked step 3.3.5: the feature m/z {} has no isotope window \
-             ({error}); the source throws this inside its OpenMP region, where std::terminate \
-             ends the process",
-            feature.mz
-        ))
-    })?;
+    let window = match windows.get(feature.mz) {
+        Ok(window) => window,
+        Err(Error::InvalidValue(what)) => return Ok(Err(what)),
+        Err(error) => return Err(error),
+    };
     feature.intensity = (fitter.area() / window.max) as f32;
     let mut hulls = Vec::new();
     hulls
@@ -584,5 +598,5 @@ pub fn build_feature(input: FeatureInput<'_>) -> Result<Feature> {
         hulls.push(trace.convex_hull()?);
     }
     feature.convex_hulls = hulls;
-    Ok(feature)
+    Ok(Ok(feature))
 }

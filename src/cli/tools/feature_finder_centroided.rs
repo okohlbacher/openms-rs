@@ -60,30 +60,33 @@
 //!
 //! The whole chain runs: `TOPP_FeatureFinderCentroided_1` exits 0 and writes
 //! the eight features of the retained expectation, as do the `-seeds`,
-//! `-algorithm:feature:rt_shape asymmetric` and `-debug 5` modes. Measured
-//! against the C++ **Release** build `bc9cc12`/`174b576` on the same input and
-//! INI, the decoded output agrees on every structural field — feature count,
-//! charge, hull count, hull point count and order, metadata key sets,
-//! `spectra_data` and the single `Quantitation` processing record — with
-//! convex-hull coordinates and m/z positions bit-identical and `intensity` and
-//! `FWHM` identical as `f32`. What differs is the last bits of the
-//! Levenberg-Marquardt fit: at most `5.5e-13` relative on the retention time,
-//! `2.2e-10` on `score_fit` and `7.7e-12` on `score_correlation`, against a
-//! spread of `2.2e-13`, `9.1e-11` and `3.1e-12` between the C++ Debug and
-//! Release builds themselves. `overallquality` is printed by the C++ writer
-//! with six decimals, so it can only be compared to that precision, to which it
-//! agrees.
+//! `-algorithm:feature:rt_shape asymmetric` and `-debug 5` modes, and the
+//! decoded output agrees with the C++ **Release** build `bc9cc12`/`174b576` on
+//! every structural field — feature count, charge, hull count, hull point
+//! count and order, metadata key sets, `spectra_data` and the single
+//! `Quantitation` processing record. The algorithm underneath is pinned bit
+//! for bit against that build on Linux x86_64 (except the EGH configuration,
+//! within `2.3038e-12`; `docs/FEATURE_FINDER_PICKED_SUPPORT.md`); the tool's
+//! own last-bits comparison predates that and is recorded in
+//! `docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md`. `overallquality` is
+//! printed by the C++ writer with six decimals, so it can only be compared to
+//! that precision.
 //!
 //! The algorithm's failures, which the source raises as `IllegalArgument` (for
 //! example MS1 spectra that all lose their peaks to the intensity filter:
-//! `FeatureFinder needs updated ranges on input map. Aborting.`), are reported
-//! as `Error: Unexpected internal error (<message>)` with exit 8, as `TOPPBase`
-//! reports them. One such refusal is stricter than the C++ Release build: an
-//! input whose MS1 spectra share a single retention time makes the source
-//! divide by a zero bin width, which its Debug build catches in a precondition
-//! and its Release build carries through to an empty feature map; this port
-//! refuses it with exit 8 instead (`tests/topp_feature_finder_centroided.rs`
-//! measures both).
+//! `FeatureFinder needs updated ranges on input map. Aborting.`) or as another
+//! OpenMS exception, are reported as `Error: Unexpected internal error
+//! (<message>)` with exit 8, as `TOPPBase` reports them. The `std::length_error`
+//! of step 2.5, which is no OpenMS exception, reaches `TOPPBase`'s outer
+//! `std::exception` handler instead (`TOPPBase.cpp:519-522`): `Unable to
+//! initialize or run FeatureFinderCentroided: vector::_M_default_append`, exit
+//! 12 (`INTERNAL_ERROR`), after the debug directory and the first log line of a
+//! `-algorithm:write_debug` run (executed: `../oracle/ffap-complete-fix2`,
+//! `tool_1e19`). The port's own isotope-window ceiling below that bound exits 8
+//! with its message where the executed tool exits 12 with `std::bad_alloc`
+//! (`tool_2e18`). An input whose MS1 spectra share a single retention time or
+//! m/z follows the Release build to an empty feature map
+//! (`tests/topp_feature_finder_centroided.rs`).
 //!
 //! # FAIMS input is refused
 //!
@@ -122,6 +125,7 @@
 use crate::analysis::feature_finder_picked::algorithm::{self, Options};
 use crate::analysis::feature_finder_picked::debug::{DebugOutput, ReportLine};
 use crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
+use crate::analysis::feature_finder_picked::seeds;
 use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
 use crate::concept::{HasUniqueId, UniqueIdGenerator};
 use crate::format::file_handler::FileHandler;
@@ -552,6 +556,19 @@ impl Tool for FeatureFinderCentroided {
                         termination.message
                     )?;
                     return Ok(ExitCode::UnknownError);
+                }
+                if seeds::is_length_error(&error) {
+                    // `std::length_error` is no `BaseException`: TOPPBase's
+                    // outer `catch (const std::exception&)` reports it
+                    // (TOPPBase.cpp:519-522), after the stack unwinding has
+                    // flushed and closed the debug log.
+                    writeln!(
+                        err,
+                        "Unable to initialize or run {}: {}",
+                        Self::NAME,
+                        seeds::LENGTH_ERROR_WHAT
+                    )?;
+                    return Ok(ExitCode::InternalError);
                 }
                 if let Error::InvalidValue(message) = &error {
                     // The algorithm's IllegalArgument and InvalidValue

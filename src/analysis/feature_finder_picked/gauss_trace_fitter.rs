@@ -102,6 +102,7 @@
 //! [`value`]: crate::analysis::feature_finder_picked::trace_fitter::TraceFitter::value
 
 use crate::analysis::feature_finder_picked::helper_structs::{MassTrace, MassTraces};
+use crate::analysis::feature_finder_picked::scoring::x86_64;
 use crate::analysis::feature_finder_picked::trace_fitter::{
     FEWER_RESIDUALS_THAN_PARAMETERS, ProfileSmoothing, TraceFitter, TraceFitterParams,
     compute_theoretical, initial_shape, optimize, stream_number, unable_to_fit,
@@ -333,6 +334,13 @@ impl TraceFitter for GaussTraceFitter {
     ///
     /// The source streams `function_name` as one C++ `char`, a single byte; a
     /// `char` outside ASCII is written here as its UTF-8 encoding.
+    ///
+    /// Both computed numbers follow the Linux x86_64 Release build's
+    /// instructions, so that a NaN they produce or pass on prints with the
+    /// executed sign (`-nan` for SSE's default NaN) on every host:
+    /// `theoretical_int` is the `mulsd` destination of the product and
+    /// `rt_shift` the `addsd` destination of the sum (`libOpenMS.so`
+    /// `0x1979a38`-`0x1979a3d` and `0x1979a62`-`0x1979a6b`).
     fn gnuplot_formula(
         &self,
         trace: &MassTrace,
@@ -343,8 +351,8 @@ impl TraceFitter for GaussTraceFitter {
         format!(
             "{function_name}(x)= {} + {} * exp(-0.5*(x-{})**2/({})**2)",
             stream_number(baseline),
-            stream_number(trace.theoretical_int * self.height),
-            stream_number(rt_shift + self.x0),
+            stream_number(x86_64::mul(trace.theoretical_int, self.height)),
+            stream_number(x86_64::add(rt_shift, self.x0)),
             stream_number(self.sigma)
         )
     }

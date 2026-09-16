@@ -23,9 +23,12 @@
 //! - tier 4: the undefined cases, which have no executed answer.
 //!
 //! Fitted values (retention time, `score_fit`, `score_correlation`, the
-//! `EGH_*` parameters) differ from the Release build's Eigen in their last
-//! bits, as `docs/TRACE_FITTER_SUPPORT.md` records; they are compared within
-//! `FIT_RELATIVE` and everything else exactly.
+//! `EGH_*` parameters) are compared with the bound `fit_bound` gives: bit for
+//! bit on Linux x86_64 with glibc, the reference platform, except the
+//! asymmetric (EGH) configuration, whose fit calls the `libm` crate where the
+//! source calls glibc (`2.3038e-12` relative, as
+//! `tests/feature_finder_picked.rs` measures it); other platforms keep their
+//! measured platform bound. Everything else is compared exactly.
 
 #![cfg(all(feature = "mzml", feature = "paramxml", feature = "featurexml"))]
 
@@ -286,12 +289,41 @@ fn dump_param(parameters: &Param) -> String {
     out
 }
 
-/// The relative tolerance of fitted values: the Levenberg-Marquardt
-/// transcription departs from the Release build's Eigen in the last bits.
-const FIT_RELATIVE: f64 = 1e-9;
+/// The EGH configuration's measured departure from the Linux capture,
+/// `2.3038102266706174e-12` relative on Linux x86_64 and macOS arm64
+/// (`tests/feature_finder_picked.rs`, `EGH_LIBM_GAP`), rounded up.
+const EGH_LIBM_GAP: f64 = 2.4e-12;
 
-/// Whether a dump token holds a fitted value, compared within
-/// [`FIT_RELATIVE`]; everything else is compared exactly.
+/// The Gaussian fits on the reference platform: bit for bit.
+#[cfg(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"))]
+const PLATFORM_FIT_GAP: f64 = 0.0;
+
+/// macOS arm64 (Apple libm) against the Linux capture: the largest measured
+/// relative departure of a fitted value in these cases, `5.1906e-13` (the
+/// Gaussian fits of FFC_1), rounded up to the `5.4e-13` that
+/// `tests/feature_finder_picked.rs` uses there (a platform note, lead
+/// decision D8 of wave 5).
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+const PLATFORM_FIT_GAP: f64 = 5.4e-13;
+
+/// Unmeasured platforms: the work package's `1e-9` contract.
+#[cfg(not(any(
+    all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"),
+    all(target_os = "macos", target_arch = "aarch64")
+)))]
+const PLATFORM_FIT_GAP: f64 = 1e-9;
+
+/// The relative bound of a fitted value of `case`.
+fn fit_bound(case: &str) -> f64 {
+    if case == "egh" {
+        EGH_LIBM_GAP.max(PLATFORM_FIT_GAP)
+    } else {
+        PLATFORM_FIT_GAP
+    }
+}
+
+/// Whether a dump token holds a fitted value, compared within [`fit_bound`];
+/// everything else is compared exactly.
 fn fitted_field(token: &str) -> bool {
     ["rt=", "q=", "w=", "int="]
         .iter()
@@ -314,16 +346,24 @@ fn value_of(token: &str) -> f64 {
     }
 }
 
-fn close(expected: f64, actual: f64) -> bool {
-    expected == actual
-        || (expected.is_nan() && actual.is_nan())
-        || (expected - actual).abs() <= FIT_RELATIVE * expected.abs().max(actual.abs())
+/// Whether two differing fitted tokens are within `bound`, and their relative
+/// departure. A zero bound admits nothing, NaN bits included; elsewhere two
+/// NaNs of any bits are alike, since only the reference platform reproduces
+/// x86_64's NaN bits inside the fit.
+fn close(expected: f64, actual: f64, bound: f64) -> (bool, f64) {
+    if expected.is_nan() && actual.is_nan() {
+        return (bound != 0.0, 0.0);
+    }
+    let departure = (expected - actual).abs() / expected.abs().max(actual.abs());
+    (bound != 0.0 && departure <= bound, departure)
 }
 
 /// Compare two dumps: identical line structure, exact tokens, and fitted
-/// values within [`FIT_RELATIVE`]. Returns the number of fitted values that
-/// were not bit-identical.
+/// values within [`fit_bound`] of `case`. Returns the number of fitted values
+/// that were not bit-identical.
 fn assert_dumps_match(expected: &str, actual: &str, case: &str) -> usize {
+    let bound = fit_bound(case);
+    let mut largest = 0.0f64;
     let expected_lines: Vec<&str> = expected.lines().collect();
     let actual_lines: Vec<&str> = actual.lines().collect();
     assert_eq!(
@@ -348,12 +388,20 @@ fn assert_dumps_match(expected: &str, actual: &str, case: &str) -> usize {
                 Some(key) => fitted_meta(key) && index == 3,
                 None => et.first() == Some(&"F") && fitted_field(x),
             };
+            let (within, departure) = close(value_of(x), value_of(y), bound);
             assert!(
-                fitted && close(value_of(x), value_of(y)),
-                "{case}: line {number} token {index}: expected {x}, got {y}\n{e}\n{a}"
+                fitted && within,
+                "{case}: line {number} token {index}: expected {x}, got {y} (departure \
+                 {departure:e}, bound {bound:e})\n{e}\n{a}"
             );
+            largest = largest.max(departure);
             inexact += 1;
         }
+    }
+    if inexact > 0 {
+        eprintln!(
+            "{case}: {inexact} fitted values within {bound:e}, largest departure {largest:e}"
+        );
     }
     inexact
 }
@@ -784,7 +832,7 @@ fn a_reused_instance_matches_the_release_build() {
         dump_param(algorithm.parameters()),
         fixture("reuse_run3_params.txt")
     );
-    eprintln!("reuse: {inexact} fitted values within {FIT_RELATIVE} but not bit-identical");
+    eprintln!("reuse: {inexact} fitted values not bit-identical");
 }
 
 /// A caller's map with features that overlap new ones, no hull, an empty
@@ -825,7 +873,7 @@ fn a_caller_map_is_extended_as_the_release_build_extends_it() {
         )));
     }
     assert_eq!(fixture("prefilled_info.txt"), "uid 777 meta kept\n");
-    eprintln!("prefilled: {inexact} fitted values within {FIT_RELATIVE} but not bit-identical");
+    eprintln!("prefilled: {inexact} fitted values not bit-identical");
 }
 
 // ---------------------------------------------------------------------------
@@ -1318,7 +1366,7 @@ fn feature_debug_files_match_the_release_build() {
             );
         }
     }
-    eprintln!("declared: {inexact} fitted values within {FIT_RELATIVE} but not bit-identical");
+    eprintln!("declared: {inexact} fitted values not bit-identical");
 }
 
 /// The executed driver case `declared-prefilled`: the feature files number the
@@ -1786,7 +1834,7 @@ fn an_overlapping_caller_map_matches_the_release_build() {
             variant,
         );
     }
-    eprintln!("overlap: {inexact} fitted values within {FIT_RELATIVE} but not bit-identical");
+    eprintln!("overlap: {inexact} fitted values not bit-identical");
 }
 
 /// The driver's `overlap zero_charge`: a caller's feature of charge 0 meets a
@@ -2578,4 +2626,600 @@ fn the_handler_base_renames_compares_and_has_no_subsections() {
     assert!(!a.handler_equal(&b).unwrap());
     assert!(b.set_parameters(&refused).is_err());
     assert!(a.handler_equal(&b).unwrap());
+}
+
+// ---------------------------------------------------------------------------
+// Integer parameters beyond the int range, a failed step 2.5 in a debug run,
+// and the gnuplot formulas on non-finite operands (combined fix round 2,
+// ../oracle/ffap-complete-fix2, every case twice and identical)
+// ---------------------------------------------------------------------------
+
+/// The executed rows of one case of `param_narrowing.tsv`: kind, key, value.
+fn narrowing_rows() -> BTreeMap<String, Vec<(String, String, String)>> {
+    let mut cases: BTreeMap<String, Vec<(String, String, String)>> = BTreeMap::new();
+    for line in fixture("param_narrowing.tsv").lines().skip(2) {
+        let fields: Vec<&str> = line.splitn(4, '\t').collect();
+        cases.entry(fields[0].to_owned()).or_default().push((
+            fields[1].to_owned(),
+            fields[2].to_owned(),
+            fields[3].to_owned(),
+        ));
+    }
+    cases
+}
+
+fn rows_of<'a>(rows: &'a [(String, String, String)], kind: &str) -> Vec<(&'a str, &'a str)> {
+    rows.iter()
+        .filter(|(k, _, _)| k == kind)
+        .map(|(_, key, value)| (key.as_str(), value.as_str()))
+        .collect()
+}
+
+fn row_value<'a>(rows: &'a [(String, String, String)], kind: &str, key: &str) -> Option<&'a str> {
+    rows_of(rows, kind)
+        .into_iter()
+        .find(|(k, _)| *k == key)
+        .map(|(_, v)| v)
+}
+
+/// The typed members against the driver's dump of the protected members.
+fn assert_members(
+    settings: &openms::analysis::feature_finder_picked::algorithm::Settings,
+    rows: &[(String, String, String)],
+    tag: &str,
+    case: &str,
+) {
+    use openms::analysis::feature_finder_picked::algorithm::ReportedMz;
+    let members = rows_of(rows, tag);
+    assert_eq!(members.len(), 16, "{case} {tag}");
+    for (name, value) in members {
+        let double = |actual: f64| {
+            assert_eq!(
+                format!("{:016x}", actual.to_bits()),
+                value,
+                "{case} {tag} {name}"
+            );
+        };
+        match name {
+            "pattern_tolerance" => double(settings.pattern_tolerance),
+            "trace_tolerance" => double(settings.trace_tolerance),
+            "slope_bound" => double(settings.slope_bound),
+            "intensity_percentage" => double(settings.intensity_percentage),
+            "intensity_percentage_optional" => double(settings.intensity_percentage_optional),
+            "optional_fit_improvement" => double(settings.optional_fit_improvement),
+            "mass_window_width" => double(settings.mass_window_width),
+            "min_isotope_fit" => double(settings.min_isotope_fit),
+            "min_trace_score" => double(settings.min_trace_score),
+            "min_rt_span" => double(settings.min_rt_span),
+            "max_rt_span" => double(settings.max_rt_span),
+            "max_feature_intersection" => double(settings.max_feature_intersection),
+            "min_spectra" => assert_eq!(settings.min_spectra.to_string(), value, "{case} {name}"),
+            "max_missing" => assert_eq!(
+                settings.max_missing_trace_peaks.to_string(),
+                value,
+                "{case} {name}"
+            ),
+            "intensity_bins" => {
+                assert_eq!(settings.intensity_bins.to_string(), value, "{case} {name}")
+            }
+            "reported_mz" => {
+                let expected = match value {
+                    "maximum" => ReportedMz::Maximum,
+                    "average" => ReportedMz::Average,
+                    "monoisotopic" => ReportedMz::Monoisotopic,
+                    other => panic!("{other}"),
+                };
+                assert_eq!(settings.reported_mz, expected, "{case} {name}");
+            }
+            other => panic!("unknown member {other}"),
+        }
+    }
+}
+
+/// A stored parameter value as the driver printed it (`ParamValue::toString`),
+/// read back into its type.
+fn assert_stored(parameters: &Param, key: &str, text: &str, case: &str) {
+    match parameters.value(key).unwrap() {
+        ParamValue::Integer(value) => assert_eq!(value.to_string(), text, "{case} {key}"),
+        ParamValue::Float(value) => {
+            assert_eq!(
+                value.to_bits(),
+                text.parse::<f64>().unwrap().to_bits(),
+                "{case} {key}"
+            )
+        }
+        other => panic!("{case} {key}: {other:?}"),
+    }
+}
+
+/// The source narrows a 64-bit integer parameter to `int` for its restriction
+/// check (`Param::ParamEntry::isValid`) and converts the members as the
+/// Release build does: `(Int)` and `operator unsigned int` keep the low 32
+/// bits, a negative value throws `ConversionError` from `operator unsigned
+/// int` (half way through `updateMembers_`, or at the start of `run_` for
+/// `fit:max_iterations`), and `min_spectra_` is the `cvttsd2si` of
+/// `floor(value * 0.5)`. Every executed case: the outcome and its text, the
+/// features bit for bit, the abort counts, the console lines, the typed
+/// members afterwards, and the stored value.
+#[test]
+fn integer_parameters_beyond_the_int_range_follow_the_release_build() {
+    let cases = narrowing_rows();
+    assert_eq!(cases.len(), 21);
+    let key_of = |case: &str| -> Option<(&'static str, i64)> {
+        Some(match case {
+            "bins_2p32_plus_10" => ("intensity:bins", 4_294_967_306),
+            "bins_2p32" => ("intensity:bins", 4_294_967_296),
+            "bins_2p31" => ("intensity:bins", 2_147_483_648),
+            "bins_m2p32_plus_3" => ("intensity:bins", -4_294_967_293),
+            "charge_high_2p32_plus_2" => ("isotopic_pattern:charge_high", 4_294_967_298),
+            "charge_high_m2p32_plus_3" => ("isotopic_pattern:charge_high", -4_294_967_293),
+            "charge_low_2p32_plus_2" => ("isotopic_pattern:charge_low", 4_294_967_298),
+            "max_missing_2p32_plus_1" => ("mass_trace:max_missing", 4_294_967_297),
+            "max_missing_2p32_minus_1" => ("mass_trace:max_missing", 4_294_967_295),
+            "max_missing_m2p32_plus_1" => ("mass_trace:max_missing", -4_294_967_295),
+            "max_iterations_2p32_plus_500" => ("fit:max_iterations", 4_294_967_796),
+            "max_iterations_m2p32_plus_500" => ("fit:max_iterations", -4_294_966_796),
+            "min_spectra_2p32_plus_10" => ("mass_trace:min_spectra", 4_294_967_306),
+            "min_spectra_2p33_plus_22" => ("mass_trace:min_spectra", 8_589_934_614),
+            "min_spectra_m2p32_plus_4" => ("mass_trace:min_spectra", -4_294_967_292),
+            "min_spectra_2p62_plus_30" => ("mass_trace:min_spectra", 4_611_686_018_427_387_934),
+            "min_spectra_2p63_minus_2p32_plus_8" => {
+                ("mass_trace:min_spectra", 9_223_372_032_559_808_520)
+            }
+            _ => return None,
+        })
+    };
+    let mut run_cases = 0;
+    for (case, rows) in &cases {
+        if case.starts_with("partial_") || case == "run_max_iterations_negative" {
+            continue;
+        }
+        run_cases += 1;
+        let mut parameters = ffc1_parameters();
+        let stored_key = match key_of(case) {
+            Some((key, value)) => {
+                set(&mut parameters, key, ParamValue::Integer(value));
+                key
+            }
+            None => {
+                assert_eq!(case, "control");
+                "intensity:bins"
+            }
+        };
+        let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+        let mut features = FeatureMap::new();
+        let result = algorithm.run(ffc1_input(), &mut features, &parameters, &FeatureMap::new());
+        match row_value(rows, "outcome", "status").unwrap() {
+            "returned" => result.unwrap_or_else(|error| panic!("{case}: {error}")),
+            "threw" => {
+                let what = row_value(rows, "outcome", "what").unwrap();
+                match result {
+                    Err(openms::Error::InvalidValue(message)) => {
+                        assert_eq!(message, what, "{case}")
+                    }
+                    other => panic!("{case}: {other:?}"),
+                }
+            }
+            other => panic!("{other}"),
+        }
+        let count: usize = row_value(rows, "count", "features")
+            .unwrap()
+            .parse()
+            .unwrap();
+        assert_eq!(features.len(), count, "{case}");
+        let expected_features = rows_of(rows, "feature");
+        assert_eq!(expected_features.len(), count, "{case}");
+        for (feature, (rt, rest)) in features.features.iter().zip(expected_features) {
+            let rest: Vec<&str> = rest.split(' ').collect();
+            // The retention time and the intensity are fitted: bit for bit on
+            // the reference platform, within the platform bound elsewhere.
+            let fitted = |actual: String, expected: &str, what: &str| {
+                if actual != expected {
+                    let (within, departure) =
+                        close(value_of(expected), value_of(&actual), PLATFORM_FIT_GAP);
+                    assert!(
+                        within,
+                        "{case} {what}: {actual} against {expected} ({departure:e})"
+                    );
+                }
+            };
+            fitted(format!("{:016x}", feature.rt.to_bits()), rt, "rt");
+            assert_eq!(
+                format!("{:016x}", feature.mz.to_bits()),
+                rest[0],
+                "{case} mz"
+            );
+            assert_eq!(feature.charge.to_string(), rest[1], "{case} charge");
+            fitted(
+                format!("{:08x}", feature.intensity.to_bits()),
+                rest[2],
+                "intensity",
+            );
+        }
+        let aborts: Vec<(String, String)> = algorithm
+            .aborts()
+            .iter()
+            .map(|(reason, count)| (reason.clone(), count.to_string()))
+            .collect();
+        let expected_aborts: Vec<(String, String)> = rows_of(rows, "abort")
+            .into_iter()
+            .map(|(reason, count)| (reason.to_owned(), count.to_owned()))
+            .collect();
+        if result_returned(rows) {
+            assert_eq!(aborts, expected_aborts, "{case}");
+        }
+        let console: Vec<String> = algorithm
+            .report()
+            .iter()
+            .filter_map(|line| line.text().map(str::to_owned))
+            .collect();
+        let expected_console: Vec<String> = rows_of(rows, "stdout")
+            .into_iter()
+            .map(|(_, line)| line.to_owned())
+            .collect();
+        assert_eq!(console, expected_console, "{case}");
+        assert_members(algorithm.settings(), rows, "members_after", case);
+        assert_stored(
+            algorithm.parameters(),
+            stored_key,
+            row_value(rows, "stored", stored_key).unwrap(),
+            case,
+        );
+    }
+    assert_eq!(run_cases, 18);
+
+    // A refused set after an accepted one: updateMembers_ threw half way.
+    for case in ["partial_max_missing", "partial_bins"] {
+        let rows = &cases[case];
+        let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+        let mut first = ffc1_parameters();
+        set(
+            &mut first,
+            "mass_trace:mz_tolerance",
+            ParamValue::Float(0.05),
+        );
+        set(&mut first, "mass_trace:min_spectra", ParamValue::Integer(4));
+        set(&mut first, "mass_trace:max_missing", ParamValue::Integer(3));
+        set(
+            &mut first,
+            "isotopic_pattern:mass_window_width",
+            ParamValue::Float(20.0),
+        );
+        set(&mut first, "intensity:bins", ParamValue::Integer(7));
+        set(
+            &mut first,
+            "feature:min_isotope_fit",
+            ParamValue::Float(0.7),
+        );
+        algorithm.set_parameters(&first).unwrap();
+        assert_members(algorithm.settings(), rows, "members_first", case);
+        let mut second = ffc1_parameters();
+        set(
+            &mut second,
+            "mass_trace:mz_tolerance",
+            ParamValue::Float(0.02),
+        );
+        set(
+            &mut second,
+            "mass_trace:min_spectra",
+            ParamValue::Integer(8),
+        );
+        set(
+            &mut second,
+            "isotopic_pattern:mass_window_width",
+            ParamValue::Float(30.0),
+        );
+        set(
+            &mut second,
+            "feature:min_isotope_fit",
+            ParamValue::Float(0.9),
+        );
+        if case == "partial_max_missing" {
+            set(
+                &mut second,
+                "mass_trace:max_missing",
+                ParamValue::Integer(-4_294_967_295),
+            );
+            set(&mut second, "intensity:bins", ParamValue::Integer(9));
+        } else {
+            set(
+                &mut second,
+                "mass_trace:max_missing",
+                ParamValue::Integer(2),
+            );
+            set(
+                &mut second,
+                "intensity:bins",
+                ParamValue::Integer(-4_294_967_293),
+            );
+        }
+        assert_eq!(
+            row_value(rows, "outcome", "exception"),
+            Some("ConversionError")
+        );
+        match algorithm.set_parameters(&second) {
+            Err(openms::Error::InvalidValue(message)) => {
+                assert_eq!(
+                    message,
+                    row_value(rows, "outcome", "what").unwrap(),
+                    "{case}"
+                )
+            }
+            other => panic!("{case}: {other:?}"),
+        }
+        assert_members(algorithm.settings(), rows, "members_second", case);
+        for (key, text) in rows_of(rows, "stored") {
+            assert_stored(algorithm.parameters(), key, text, case);
+        }
+    }
+
+    // `fit:max_iterations` is read at the start of run_, before the user
+    // seeds are sorted and before anything touches the caller's map.
+    let rows = &cases["run_max_iterations_negative"];
+    let mut parameters = ffc1_parameters();
+    set(
+        &mut parameters,
+        "fit:max_iterations",
+        ParamValue::Integer(-4_294_966_796),
+    );
+    let mut features = FeatureMap::new();
+    let mut kept = Feature::new(1.0, 2.0, 0.0);
+    kept.intensity = 0.0;
+    features.features.push(kept);
+    let mut seeds = FeatureMap::new();
+    for mz in [700.0, 500.0, 600.0] {
+        seeds.features.push(Feature::new(4200.0, mz, 0.0));
+    }
+    let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+    match algorithm.run(ffc1_input(), &mut features, &parameters, &seeds) {
+        Err(openms::Error::InvalidValue(message)) => {
+            assert_eq!(message, row_value(rows, "outcome", "what").unwrap())
+        }
+        other => panic!("{other:?}"),
+    }
+    assert_eq!(
+        features.len().to_string(),
+        row_value(rows, "count", "features").unwrap()
+    );
+    assert_eq!(row_value(rows, "count", "windows"), Some("0"));
+    assert!(algorithm.isotope_windows().is_none());
+    let order: Vec<String> = algorithm
+        .seeds()
+        .features
+        .iter()
+        .map(|seed| seed.mz.to_string())
+        .collect();
+    assert_eq!(order.join(" "), row_value(rows, "seeds", "mz").unwrap());
+    assert_members(
+        algorithm.settings(),
+        rows,
+        "members_after",
+        "run_max_iterations_negative",
+    );
+}
+
+fn result_returned(rows: &[(String, String, String)]) -> bool {
+    row_value(rows, "outcome", "status") == Some("returned")
+}
+
+/// The executed rows of `length_error.tsv` for one input and mode.
+fn length_error_rows(input: &str, mode: &str, kind: &str) -> Vec<String> {
+    fixture("length_error.tsv")
+        .lines()
+        .skip(2)
+        .filter_map(|line| {
+            let fields: Vec<&str> = line.splitn(4, '\t').collect();
+            (fields[0] == input && fields[1] == mode && fields[2] == kind)
+                .then(|| fields[3].to_owned())
+        })
+        .collect()
+}
+
+/// FFC_1 with the last m/z of the last spectrum set to `mz`: the oracle's
+/// `huge_mz_1e19.mzML` and `huge_mz_2e18.mzML`
+/// (`../oracle/ffap-complete-fix2/make_inputs.py`), which the tool test
+/// derives byte for byte.
+fn huge_mz_input(mz: f64) -> MSExperiment {
+    let mut experiment = ffc1_input();
+    let last = experiment.spectra.last_mut().unwrap();
+    let peak = last.peaks.last_mut().unwrap();
+    assert!(peak.mz < mz);
+    peak.mz = mz;
+    experiment
+}
+
+/// A debug run whose step 2.5 fails: the Release build has opened
+/// `debug/log.txt` and created `debug/features` before step 1 and written the
+/// step-1 line, which its destructor flushes (the executed log is empty while
+/// the object lives and 40 bytes after it). Above `vector::max_size()` the
+/// source throws `std::length_error` (`what()` `vector::_M_default_append`);
+/// below it the allocation of `1.6e17` windows fails with `std::bad_alloc`,
+/// where the port's native window ceiling refuses instead, with the same debug
+/// output. The object keeps its (empty) isotope windows, and its stream stays
+/// open: a second debug run on FFC_1 writes the seed map, the abort map and the
+/// input exactly as a fresh object does (the executed files are identical),
+/// but no log.
+#[test]
+fn a_debug_run_that_fails_in_step_two_point_five_keeps_the_executed_debug_output() {
+    use openms::analysis::feature_finder_picked::seeds::{LENGTH_ERROR_WHAT, is_length_error};
+    let log = std::fs::read(fixture_path("length_error_log.txt")).unwrap();
+    assert_eq!(log, b"Precalculating intensity thresholds ...\n");
+    let debug_parameters = with_debug(
+        ffc1_parameters(),
+        &[("feature:min_isotope_fit", ParamValue::Float(1.0))],
+    );
+    for (tag, mz) in [("1e19", 1e19), ("2e18", 2e18)] {
+        let report = length_error_rows(tag, "lenerr_single", "report");
+        let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+        let mut features = FeatureMap::new();
+        let error = algorithm
+            .run(
+                huge_mz_input(mz),
+                &mut features,
+                &debug_parameters,
+                &FeatureMap::new(),
+            )
+            .unwrap_err();
+        if tag == "1e19" {
+            assert_eq!(
+                report[0],
+                format!("run1 threw St12length_error what={LENGTH_ERROR_WHAT}")
+            );
+            assert!(is_length_error(&error), "{error}");
+        } else {
+            assert_eq!(report[0], "run1 threw St9bad_alloc what=std::bad_alloc");
+            assert!(!is_length_error(&error), "{error}");
+            assert!(error.to_string().contains("exceed the limit"), "{error}");
+        }
+        assert_eq!(
+            report[1],
+            "run1 features=0 aborts=0 abort_reasons=0 windows=0"
+        );
+        assert!(features.is_empty());
+        assert!(algorithm.aborts().is_empty());
+        assert!(algorithm.abort_reasons().is_empty());
+        assert!(algorithm.isotope_windows().is_none());
+        let out = algorithm.debug_output().unwrap();
+        assert!(out.log_opened);
+        assert!(out.termination.is_none());
+        assert_eq!(out.log.text().as_bytes(), log.as_slice());
+        assert_eq!(
+            length_error_rows(tag, "lenerr_single", "log_bytes_destroyed"),
+            [log.len().to_string()]
+        );
+        assert_eq!(
+            length_error_rows(tag, "lenerr_single", "tree"),
+            ["debug", "debug/features", "debug/log.txt"]
+        );
+        assert!(out.seed_maps.is_empty() && out.feature_files.is_empty());
+        assert!(out.abort_reasons.is_none() && out.input.is_none());
+
+        // The reused object: its stream is open, so the second run's log is
+        // dropped, and its files are a fresh object's.
+        let mut second = FeatureMap::new();
+        algorithm
+            .run(
+                ffc1_input(),
+                &mut second,
+                &debug_parameters,
+                &FeatureMap::new(),
+            )
+            .unwrap();
+        let (fresh_result, fresh, fresh_features) =
+            debug_run(ffc1_input(), &debug_parameters, Options::default());
+        fresh_result.unwrap();
+        let reuse_report = length_error_rows(tag, "lenerr_reuse", "report");
+        assert_eq!(
+            reuse_report[3],
+            "reuse_run2 features=0 aborts=1 abort_reasons=25 windows=15"
+        );
+        assert_eq!(
+            reuse_report[6],
+            "fresh_run features=0 aborts=1 abort_reasons=25 windows=15"
+        );
+        for (object, map) in [(&algorithm, &second), (&fresh, &fresh_features)] {
+            assert!(map.is_empty());
+            assert_eq!(object.abort_reasons().len(), 25);
+            assert_eq!(object.isotope_windows().unwrap().patterns().len(), 15);
+            assert_eq!(
+                object.aborts().iter().collect::<Vec<_>>(),
+                [(
+                    &"Could not find good enough isotope pattern containing the seed".to_owned(),
+                    &25
+                )]
+            );
+        }
+        assert_eq!(
+            length_error_rows(tag, "lenerr_reuse", "compare"),
+            [
+                "seeds_2.featureXML same",
+                "abort_reasons.featureXML same",
+                "input.mzML same"
+            ]
+        );
+        let reused = algorithm.debug_output().unwrap();
+        let fresh_out = fresh.debug_output().unwrap();
+        assert!(!reused.log_opened);
+        assert!(reused.log.text().is_empty());
+        assert_eq!(
+            length_error_rows(tag, "lenerr_reuse", "log_bytes_reuse"),
+            [log.len().to_string()]
+        );
+        assert!(fresh_out.log_opened);
+        assert_eq!(
+            length_error_rows(tag, "lenerr_reuse", "log_bytes_fresh"),
+            [fresh_out.log.text().len().to_string()]
+        );
+        assert_eq!(reused.seed_maps, fresh_out.seed_maps);
+        assert_eq!(reused.abort_reasons, fresh_out.abort_reasons);
+        assert_eq!(reused.input, fresh_out.input);
+        assert!(reused.feature_files.is_empty() && fresh_out.feature_files.is_empty());
+        assert_eq!(
+            length_error_rows(tag, "lenerr_reuse", "tree_reuse"),
+            [
+                "debug",
+                "debug/abort_reasons.featureXML",
+                "debug/features",
+                "debug/input.mzML",
+                "debug/log.txt",
+                "debug/seeds_2.featureXML"
+            ]
+        );
+        // The fresh object's files are the executed a2 files.
+        assert_executed_bytes("a2", "log.txt", fresh_out.log.text().as_bytes());
+    }
+}
+
+/// `getGnuplotFormula` of both fitters on non-finite operands, against the
+/// executed Release build (`gnuplot_formula_nonfinite.tsv`, 648 rows): the
+/// sum `rt_shift + centre` keeps `rt_shift`'s NaN when both are NaN and gives
+/// SSE's default NaN (`-nan`) for `inf + -inf`, the product
+/// `theoretical_int * height` likewise, and EGH's `2 * sigma * sigma` is
+/// `(sigma + sigma) * sigma`; the Gaussian stores `|sigma|`, a NaN's sign
+/// included.
+#[test]
+fn gnuplot_formulas_print_the_executed_nan_signs() {
+    use openms::analysis::feature_finder_picked::egh_trace_fitter::EGHTraceFitter;
+    use openms::analysis::feature_finder_picked::gauss_trace_fitter::GaussTraceFitter;
+    use openms::analysis::feature_finder_picked::helper_structs::MassTrace;
+    use openms::analysis::feature_finder_picked::trace_fitter::TraceFitter;
+    let table = fixture("gnuplot_formula_nonfinite.tsv");
+    let bits = |text: &str| f64::from_bits(u64::from_str_radix(text, 16).unwrap());
+    let mut rows = 0;
+    let mut negative_nan = 0;
+    for line in table.lines().skip(1) {
+        let fields: Vec<&str> = line.split('\t').collect();
+        assert_eq!(fields.len(), 10, "{line}");
+        let (theoretical_int, height, rt_shift, centre, sigma, tau, baseline) = (
+            bits(fields[2]),
+            bits(fields[3]),
+            bits(fields[4]),
+            bits(fields[5]),
+            bits(fields[6]),
+            bits(fields[7]),
+            bits(fields[8]),
+        );
+        let trace = MassTrace {
+            theoretical_int,
+            ..MassTrace::default()
+        };
+        let formula = match fields[0] {
+            "gauss" => {
+                let mut fitter = GaussTraceFitter::new();
+                fitter.set_optimized_parameters([height, centre, sigma]);
+                fitter.gnuplot_formula(&trace, 'f', baseline, rt_shift)
+            }
+            "egh" => {
+                let mut fitter = EGHTraceFitter::new();
+                fitter.set_optimized_parameters([height, centre, sigma, tau]);
+                fitter.gnuplot_formula(&trace, 'f', baseline, rt_shift)
+            }
+            other => panic!("{other}"),
+        };
+        assert_eq!(formula, fields[9], "{line}");
+        rows += 1;
+        negative_nan += usize::from(fields[9].contains("-nan"));
+    }
+    assert_eq!(rows, 648);
+    assert!(negative_nan > 100);
 }

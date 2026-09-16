@@ -87,10 +87,39 @@
 //! first element, which the element it inserts was just found not to be less
 //! than), so the port reproduces it on any keys. The introsort's partition
 //! and final insertion loops have no bound checks: they rely on the ordering to
-//! stop. The port follows them too while they read inside the vector, and
+//! stop. The port follows them while they read inside the vector, and
 //! returns [`Error::InvalidValue`] at exactly the step where the C++ would read
-//! outside it, which is undefined behaviour with no reproducible result. No
-//! other input is refused.
+//! outside it, which is undefined behaviour with no reproducible result.
+//!
+//! That guard is never reached by a deterministic *asymmetric* comparison
+//! (`less(a, b)` excludes `less(b, a)`), which every sort of the picked
+//! feature finder uses: `<` on `f32` or `f64` keys is asymmetric with NaN keys
+//! too. For such a comparison:
+//!
+//! - **Partition.** Whichever of the three elements `__move_median_to_first`
+//!   picks as the pivot `p`, one of the other two is not less than `p` and
+//!   stays in the range, so the upward scan stops inside it; every swap puts
+//!   an element that is not less than `p` at the upper end, where it stops
+//!   the later scans; and the downward scan stops at `p` itself, which is
+//!   not greater than itself. Each partition therefore stays inside its range
+//!   and its cut lies inside it.
+//! - **Final insertion.** An element at position `i >= 16` is either in the
+//!   upper part of one of the top-level partitions, whose elements are all not
+//!   less than that partition's pivot `q`, while `q` stays below that part;
+//!   or it was placed by the heapsort that takes over when the recursion budget
+//!   of the top level runs out. That heapsort pops a root only while the heap
+//!   still holds an element the root is not less than: the sibling the sift
+//!   chose the root over, or the element the sift had moved to the top and the
+//!   root was then pushed above, and neither leaves the heap before the root
+//!   does. Either way an element the
+//!   inserted one is not less than lies to its left, and the walk stops there.
+//!
+//! The executed and generated inputs of the oracles bear this out: none
+//! reached the guard (`docs/FEATURE_FINDER_PICKED_SUPPORT.md`). A comparator
+//! that is not asymmetric, such as `<=`, does reach it: the upward scan can
+//! then leave its range, and the source's signed iterator distance ends the
+//! recursion on such a range, which the port follows while it reads inside the
+//! vector. No other input is refused, and no comparator makes the port panic.
 //!
 //! [`Error::InvalidValue`]: crate::Error::InvalidValue
 
@@ -106,13 +135,15 @@ const THRESHOLD: usize = 16;
 ///
 /// Element `k` of the result is the original position of the element that ends
 /// at position `k`. `less` is called with original positions, in the order the
-/// libstdc++ introsort makes its comparisons; it must be deterministic.
+/// libstdc++ introsort makes its comparisons; it must be deterministic, or
+/// the port may stop a walk the C++ would continue.
 ///
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] when the algorithm would read outside the
-/// vector, which only an ordering that is not a strict weak ordering can cause
-/// (see the module documentation).
+/// vector. Only a comparison that is not asymmetric can cause that; `<` on
+/// floating-point keys, NaN included, never does (see the module
+/// documentation).
 pub fn source_sort_permutation(
     len: usize,
     less: impl FnMut(usize, usize) -> bool,
@@ -620,10 +651,10 @@ impl<F: FnMut(usize, usize) -> bool> StableSort<F> {
 }
 
 /// The refusal of a read outside the vector, which the C++ performs without
-/// a check when the keys are not strictly weakly ordered.
+/// a check when the comparison is not asymmetric (module documentation).
 fn unordered_read(where_: &str) -> Error {
     Error::InvalidValue(format!(
-        "std::sort: the keys are not strictly weakly ordered (a NaN key), and the C++ \
+        "std::sort: the comparison is not a strict weak ordering, and the C++ \
          introsort reads {where_} here, which is undefined behaviour"
     ))
 }
@@ -661,13 +692,19 @@ impl<F: FnMut(usize, usize) -> bool> Introsort<F> {
     }
 
     /// `std::__introsort_loop`. The recursion is at most `2 * log2(len)` deep.
+    ///
+    /// The source compares the signed iterator distance `last - first` with
+    /// the threshold. A partition whose cut lies beyond `last`, which only a
+    /// comparator that is not asymmetric can produce, makes that distance
+    /// negative in the recursive call, which then returns at once; the loop
+    /// here does the same instead of wrapping.
     fn introsort_loop(
         &mut self,
         first: usize,
         mut last: usize,
         mut depth_limit: usize,
     ) -> Result<()> {
-        while last - first > THRESHOLD {
+        while last > first && last - first > THRESHOLD {
             if depth_limit == 0 {
                 #[cfg(test)]
                 {
@@ -716,12 +753,14 @@ impl<F: FnMut(usize, usize) -> bool> Introsort<F> {
 
     /// `std::__unguarded_partition` around the element at `pivot`.
     ///
-    /// Neither scan has a bound in the source. For any deterministic `<` on
-    /// floating-point keys both stay inside the vector: the median selection
-    /// leaves an element that stops the upward scan, every swap moves such an
-    /// element to the upper end, and the downward scan stops at the pivot
-    /// itself, which is not less than itself. A scan that would leave the
-    /// vector anyway is reported as the undefined read it is.
+    /// Neither scan has a bound in the source. For a deterministic asymmetric
+    /// comparison, `<` on floating-point keys included, both stay inside
+    /// `[pivot, last)`: the median selection leaves an element that stops the
+    /// upward scan, every swap moves such an element to the upper end, and the
+    /// downward scan stops at the pivot itself, which is not less than itself.
+    /// Another comparison can move the upward scan past `last`; the port
+    /// follows it while it reads inside the vector, as the C++ does, and
+    /// reports a scan that would leave the vector as the undefined read it is.
     fn unguarded_partition(
         &mut self,
         mut first: usize,
@@ -965,6 +1004,111 @@ mod tests {
             let text: Vec<String> = keys.iter().map(|k| format!("{k}")).collect();
             assert_eq!(recorded.next(), Some(text.join(" ").as_str()), "{len}");
         }
+    }
+
+    /// A deterministic generator for the comparator checks below.
+    struct XorShift(u64);
+
+    impl XorShift {
+        fn next(&mut self) -> u64 {
+            self.0 ^= self.0 << 13;
+            self.0 ^= self.0 >> 7;
+            self.0 ^= self.0 << 17;
+            self.0
+        }
+        fn below(&mut self, n: u64) -> u64 {
+            self.next() % n
+        }
+    }
+
+    /// Asymmetric comparisons never reach the out-of-bounds guard: `<` on
+    /// keys with NaN of either sign, few distinct values and ties, and random
+    /// asymmetric tournaments (module documentation). Lengths up to 300 cover
+    /// the unguarded final insertion; the adversarial keys with NaN mixed in
+    /// cover the top-level heap fallback.
+    #[test]
+    fn asymmetric_comparisons_never_reach_the_guard() {
+        let mut rng = XorShift(0x9e37_79b9_7f4a_7c15);
+        let pool = [0.0, -0.0, 1.0, 2.0, 3.0, f64::NAN, -f64::NAN, f64::INFINITY];
+        for round in 0..4000 {
+            let len = 1 + rng.below(300) as usize;
+            let spread = 1 + rng.below(pool.len() as u64) as usize;
+            let keys: Vec<f64> = (0..len)
+                .map(|_| {
+                    if rng.below(4) == 0 {
+                        pool[rng.below(pool.len() as u64) as usize]
+                    } else {
+                        pool[rng.below(spread as u64) as usize] + rng.below(3) as f64
+                    }
+                })
+                .collect();
+            let order = source_sort_permutation(len, |a, b| keys[a] < keys[b])
+                .unwrap_or_else(|error| panic!("round {round}: {error}"));
+            let mut seen = order.clone();
+            seen.sort_unstable();
+            assert_eq!(seen, (0..len).collect::<Vec<_>>());
+        }
+        for round in 0..1000 {
+            let len = 1 + rng.below(200) as usize;
+            // A random tournament: exactly one of `a < b` and `b < a`, or
+            // neither, for every pair; irreflexive.
+            let relation: Vec<u8> = (0..len * len).map(|_| rng.below(3) as u8).collect();
+            let less = |a: usize, b: usize| {
+                if a == b {
+                    return false;
+                }
+                let (low, high) = (a.min(b), a.max(b));
+                match relation[low * len + high] {
+                    0 => a == low,
+                    1 => a == high,
+                    _ => false,
+                }
+            };
+            source_sort_permutation(len, less)
+                .unwrap_or_else(|error| panic!("tournament {round}: {error}"));
+        }
+        for len in [100, 500, 2000] {
+            let (mut keys, fallbacks) = adversarial_keys(len);
+            assert!(fallbacks > 0);
+            for (index, key) in keys.iter_mut().enumerate() {
+                if index % 7 == 3 {
+                    *key = f64::NAN;
+                }
+            }
+            source_sort_permutation(len, |a, b| keys[a] < keys[b]).unwrap();
+        }
+    }
+
+    /// Comparisons that are not asymmetric may make the C++ read outside the
+    /// vector, which the port refuses, but never make the port panic: a
+    /// partition whose cut lies beyond its range ends the recursion there, as
+    /// the source's signed iterator distance does (verifier report of the
+    /// combined fix round, `<=` with few distinct values, a symmetric relation
+    /// and a nondeterministic one).
+    #[test]
+    fn other_comparisons_are_refused_or_sorted_without_a_panic() {
+        let mut rng = XorShift(0x2545_f491_4f6c_dd1d);
+        let mut refused = 0;
+        for _ in 0..3000 {
+            let len = 1 + rng.below(120) as usize;
+            let keys: Vec<u64> = (0..len).map(|_| rng.below(4)).collect();
+            if source_sort_permutation(len, |a, b| keys[a] <= keys[b]).is_err() {
+                refused += 1;
+            }
+            let relation: Vec<bool> = (0..len * len).map(|_| rng.below(2) == 0).collect();
+            let symmetric = |a: usize, b: usize| relation[a.min(b) * len + a.max(b)];
+            let _ = source_sort_permutation(len, symmetric);
+            let mut coin = XorShift(rng.next() | 1);
+            let _ = source_sort_permutation(len, |_, _| coin.below(2) == 0);
+            let mut coin = XorShift(rng.next() | 1);
+            let _ = source_stable_sort_permutation(
+                len,
+                |_, _| coin.below(2) == 0,
+                TemporaryBuffer::Allocate,
+            )
+            .unwrap();
+        }
+        assert!(refused > 0, "the `<=` generator reaches the guard");
     }
 
     #[test]

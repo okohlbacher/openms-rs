@@ -78,6 +78,14 @@ pub const SOURCE_MAX_WINDOWS: u64 = (i64::MAX as u64) / 56;
 /// above [`SOURCE_MAX_WINDOWS`] (libstdc++ `_M_check_len`, executed).
 pub const LENGTH_ERROR_WHAT: &str = "vector::_M_default_append";
 
+/// Whether `error` is the step-2.5 `std::length_error`
+/// ([`IsotopeWindows::precalculate_onto`], [`LENGTH_ERROR_WHAT`]), which the
+/// source does not throw as an OpenMS exception, so that `TOPPBase` reports it
+/// in its outer `std::exception` handler (exit 12).
+pub fn is_length_error(error: &Error) -> bool {
+    matches!(error, Error::InvalidValue(message) if message == LENGTH_ERROR_WHAT)
+}
+
 impl IsotopeWindows {
     /// The window count of step 2.5, `Size num_isotopes = std::ceil(max_mass /
     /// mass_window_width_) + 1` with `max_mass = max_mz * charge_high`,
@@ -520,6 +528,7 @@ impl SeedStage {
             None,
             &mut NoLog,
             &mut progress,
+            &mut false,
         )?;
         while stage.select_next_charge(&mut NoLog, &mut progress)? {
             progress.end()?;
@@ -541,6 +550,11 @@ impl SeedStage {
     ///
     /// `user_seeds` must already be sorted by [`sort_user_seeds`], as the
     /// source sorts its member `seeds_` in place first.
+    ///
+    /// `opened` is set when the stage reaches the point where the source opens
+    /// its debug stream (`FeatureFinderAlgorithmPicked.cpp:226-232`, after the
+    /// score arrays and before step 1), so that a caller can keep the debug
+    /// side effects of a run that fails later, in step 1, 2 or 2.5.
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn prepare<L: LogSink>(
         experiment: MSExperiment,
@@ -551,6 +565,7 @@ impl SeedStage {
         previous_windows: Option<&IsotopeWindows>,
         debug_log: &mut L,
         progress: &mut Progress<'_>,
+        opened: &mut bool,
     ) -> Result<Self> {
         let limits = options.limits;
         // The caller has sorted the user seeds first, as the source does at
@@ -569,6 +584,8 @@ impl SeedStage {
             limits.max_score_bytes,
         )?;
         let mut work = Work::new(limits.max_work);
+        // `debug_` and `log_.open` (`:225-232`).
+        *opened = true;
 
         // Step 1: intensity quantiles and scores.
         if debug_log.enabled() {

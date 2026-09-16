@@ -1499,15 +1499,32 @@ fn intensity_bin_score_interpolates_the_quantiles() {
     assert!(IntensityThresholds::compute(&e, 0).is_err());
 }
 
+/// `overall_score` is the reference build's `powf(trace * intensity *
+/// pattern, 1.0f / 3.0f)`, not the correctly rounded cube root: the executed
+/// Linux Release score of `scores_ffc1.tsv` spectrum 67, peak 23 (charge 2),
+/// which glibc's `__powf_fma` puts one binary32 step above the correctly
+/// rounded value (`overall_rounding.tsv`). `powf(1, y)` is 1 and `powf(+0, y)`
+/// is `+0` for positive `y` (C11 F.10.4.4), and a NaN operand gives NaN.
 #[test]
-fn overall_score_is_the_float_cube_root_of_the_product() {
-    assert_eq!(overall_score(1.0, 1.0, 1.0), 1.0);
-    assert_eq!(overall_score(0.0, 0.5, 1.0), 0.0);
-    let product = 0.9f32 * 0.8f32 * 0.7f32;
-    assert_eq!(
-        overall_score(0.9, 0.8, 0.7),
-        libm::pow(f64::from(product), f64::from(1.0f32 / 3.0f32)) as f32
+fn overall_score_is_the_reference_builds_powf_of_the_product() {
+    assert_eq!(overall_score(1.0, 1.0, 1.0).to_bits(), 1.0f32.to_bits());
+    assert_eq!(overall_score(0.0, 0.5, 1.0).to_bits(), 0.0f32.to_bits());
+    let row = rows("scores_ffc1.tsv")
+        .into_iter()
+        .find(|row| row[0] == "67" && row[1] == "23")
+        .unwrap();
+    let (trace, intensity, pattern, executed) = (
+        f32_hex(&row[4]),
+        f32_hex(&row[5]),
+        f32_hex(&row[7]),
+        f32_hex(&row[8]),
     );
+    assert_eq!(executed.to_bits(), 0x3f2e_ccf7);
+    let (misrounded, correct) = rounding_rows("scores_ffc1.tsv")[&(67, 23, 0)];
+    assert_eq!(misrounded.to_bits(), executed.to_bits());
+    let score = overall_score(trace, intensity, pattern);
+    assert_eq!(score.to_bits(), executed.to_bits());
+    assert_ne!(score.to_bits(), correct.to_bits());
     assert!(overall_score(f32::NAN, 1.0, 1.0).is_nan());
 }
 

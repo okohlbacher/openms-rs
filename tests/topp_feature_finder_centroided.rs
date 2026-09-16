@@ -2273,8 +2273,8 @@ fn decoded_debug_input(path: &Path) -> MSExperiment {
 }
 
 /// The debug input written by the port against the executed one: the same
-/// spectra, peaks and score arrays. A NaN equals a NaN (D6); an overall score
-/// may be one binary32 step from the C++ `powf` (CPP-272).
+/// spectra, peaks and score arrays, bit for bit (NaN bits and the overall
+/// scores of the reference build's `powf` included).
 fn assert_same_debug_input(actual: &Path, expected: &Path) {
     let a = decoded_debug_input(actual);
     let e = decoded_debug_input(expected);
@@ -2288,12 +2288,11 @@ fn assert_same_debug_input(actual: &Path, expected: &Path) {
         };
         assert_eq!(names(x), names(y));
         for (u, v) in x.float_data_arrays.iter().zip(&y.float_data_arrays) {
+            assert_eq!(u.data.len(), v.data.len(), "{} {}", x.native_id, u.name);
             for (p, q) in u.data.iter().zip(&v.data) {
-                let step = (i64::from(p.to_bits()) - i64::from(q.to_bits())).abs();
-                assert!(
-                    p.to_bits() == q.to_bits()
-                        || (p.is_nan() && q.is_nan())
-                        || (u.name.starts_with("overall_score_") && step == 1),
+                assert_eq!(
+                    p.to_bits(),
+                    q.to_bits(),
                     "{} {}: {p} against {q}",
                     x.native_id,
                     u.name
@@ -2594,4 +2593,147 @@ fn a_debug_run_without_seeds_at_four_threads_writes_the_executed_files() {
     let output = PathBuf::from(dir.file("out.featureXML"));
     assert_same_features(&output, &instrumentation("tool_a1_out.featureXML"));
     assert_eq!(decoded_features(&output).unique_id, OUTPUT_ID_AFTER_DEBUG);
+}
+
+/// FeatureFinderCentroided_1's input with the last m/z of its last spectrum
+/// replaced by `value` (oracle inputs `huge_mz_1e19.mzML` and
+/// `huge_mz_2e18.mzML` of `../oracle/ffap-complete-fix2/make_inputs.py`; the
+/// SHA-1 is that of the file the C++ tool read).
+fn derive_last_mz(source: &[u8], value: f64, expected_sha1: &str) -> Vec<u8> {
+    let engine = base64::engine::general_purpose::STANDARD;
+    let all = lines(source);
+    let mut pending = false;
+    let mut last = None;
+    for (index, line) in all.iter().enumerate() {
+        if find(line, br#"name="m/z array""#).is_some() {
+            pending = true;
+        }
+        if pending && trimmed(line).starts_with(b"<binary>") {
+            last = Some(index);
+            pending = false;
+        }
+    }
+    let last = last.unwrap();
+    let mut out: Vec<Vec<u8>> = all.iter().map(|line| line.to_vec()).collect();
+    let line = all[last];
+    let prefix = &line[..find(line, b"<binary>").unwrap()];
+    let old = &trimmed(line)[b"<binary>".len()..trimmed(line).len() - b"</binary>".len()];
+    let mut raw = engine.decode(old).unwrap();
+    assert_eq!(raw.len(), 24 * 8);
+    let at = raw.len() - 8;
+    let previous = f64::from_le_bytes(raw[at..].try_into().unwrap());
+    assert!(previous < value);
+    raw[at..].copy_from_slice(&value.to_le_bytes());
+    let payload = engine.encode(&raw);
+    assert_eq!(payload.len(), old.len());
+    let mut replaced = prefix.to_vec();
+    replaced.extend_from_slice(b"<binary>");
+    replaced.extend_from_slice(payload.as_bytes());
+    replaced.extend_from_slice(b"</binary>");
+    out[last] = replaced;
+    let derived = join(out);
+    assert_digest(&derived, expected_sha1, "huge m/z");
+    derived
+}
+
+/// The executed rows of `length_error.tsv` for one input and kind of the tool.
+fn length_error_tool(input: &str, kind: &str) -> Vec<String> {
+    fs::read_to_string(instrumentation("length_error.tsv"))
+        .unwrap()
+        .lines()
+        .skip(2)
+        .filter_map(|line| {
+            let fields: Vec<&str> = line.splitn(4, '\t').collect();
+            (fields[0] == input && fields[1] == "tool" && fields[2] == kind)
+                .then(|| fields[3].to_owned())
+        })
+        .collect()
+}
+
+/// Executed cases `tool_1e19` and `tool_2e18` (`../oracle/ffap-complete-fix2`,
+/// two identical runs each): a debug run on an input whose maximum m/z asks
+/// step 2.5 for more isotope windows than it can allocate.
+///
+/// At m/z `1e19` (`8e17 + 1` windows, above `vector::max_size()`) the source's
+/// `resize` throws `std::length_error`, which is no OpenMS exception:
+/// TOPPBase's outer handler prints `Unable to initialize or run
+/// FeatureFinderCentroided: vector::_M_default_append` and returns 12
+/// (`INTERNAL_ERROR`), as this port does. The run has created
+/// `debug/features` and written the first log line, which the unwinding
+/// flushes: 40 bytes. No output is written.
+///
+/// At m/z `2e18` (`1.6e17 + 1` windows, below the bound) the executed
+/// allocation throws `std::bad_alloc`, again exit 12. This port refuses the
+/// count with its native window ceiling and exits 8 with that message (a
+/// recorded native difference); the debug side effects are the executed ones.
+#[test]
+fn a_debug_run_beyond_the_isotope_window_limit_exits_as_the_release_build() {
+    let source = fs::read(ffc1_input()).unwrap();
+    let log = fs::read(instrumentation("length_error_log.txt")).unwrap();
+    for (tag, value, sha1) in [
+        ("1e19", 1e19, "76954c288ddadebd6d4d9fd579ba3be764c85e26"),
+        ("2e18", 2e18, "fee5f77d5582d01388065004ab621116840a8be8"),
+    ] {
+        let dir = Workdir::new();
+        let input = dir.put(
+            &format!("huge_mz_{tag}.mzML"),
+            &derive_last_mz(&source, value, sha1),
+        );
+        let ini = text(ffc1_ini());
+        let out = dir.file("out.featureXML");
+        let outcome = run_in(
+            &dir,
+            &[
+                "-test",
+                "-ini",
+                &ini,
+                "-in",
+                &input,
+                "-out",
+                &out,
+                "-algorithm:write_debug",
+                "-algorithm:feature:min_isotope_fit",
+                "1.0",
+            ],
+        );
+        let executed_status = length_error_tool(tag, "status");
+        let executed_stderr = length_error_tool(tag, "stderr");
+        assert_eq!(executed_status, ["12"]);
+        if tag == "1e19" {
+            outcome.assert_exit(ExitCode::InternalError);
+            assert_eq!(
+                executed_stderr,
+                ["Unable to initialize or run FeatureFinderCentroided: vector::_M_default_append"]
+            );
+            assert_eq!(outcome.err.lines().collect::<Vec<_>>(), executed_stderr);
+        } else {
+            assert_eq!(
+                executed_stderr,
+                ["Unable to initialize or run FeatureFinderCentroided: std::bad_alloc"]
+            );
+            outcome.assert_exit(ExitCode::UnknownError);
+            outcome.assert_err_contains("Error: Unexpected internal error (");
+            outcome.assert_err_contains("exceed the limit");
+        }
+        assert_eq!(
+            port_block(&outcome),
+            length_error_tool(tag, "stdout_block"),
+            "{tag}"
+        );
+        let debug = dir.path().join("debug");
+        assert!(debug.join("features").is_dir());
+        assert_eq!(fs::read_dir(debug.join("features")).unwrap().count(), 0);
+        assert_eq!(fs::read(debug.join("log.txt")).unwrap(), log);
+        assert_eq!(length_error_tool(tag, "log_bytes"), [log.len().to_string()]);
+        let mut entries: Vec<String> = fs::read_dir(&debug)
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        entries.sort();
+        assert_eq!(entries, ["features", "log.txt"]);
+        let tree = length_error_tool(tag, "tree");
+        assert!(tree.contains(&"./debug/log.txt".to_owned()));
+        assert!(!tree.iter().any(|path| path.contains("out.featureXML")));
+        assert!(!Path::new(&out).exists());
+    }
 }
