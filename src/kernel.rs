@@ -798,6 +798,8 @@ impl MSSpectrum {
     ///
     /// Returns [`Error::InvalidValue`] for the first thing that is wrong, in
     /// the same order as [`Self::validate`], minus the peak values.
+    // The mzML reader is the one caller; without it the method is dead code.
+    #[cfg(feature = "mzml")]
     pub(crate) fn validate_given_finite_peaks(&self) -> Result<()> {
         self.validate_scalars()?;
         self.validate_attachments()
@@ -967,6 +969,8 @@ impl MSChromatogram {
     ///
     /// Returns [`Error::InvalidValue`] for the first thing that is wrong, in
     /// the same order as [`Self::validate`], minus the peak values.
+    // The mzML reader is the one caller; without it the method is dead code.
+    #[cfg(feature = "mzml")]
     pub(crate) fn validate_given_finite_peaks(&self) -> Result<()> {
         self.validate_attachments()
     }

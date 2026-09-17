@@ -1,0 +1,5 @@
+name FeatureFinderAlgorithmPicked
+bad_bins InvalidParameter FeatureFinderAlgorithmPicked: Invalid integer parameter value '0' for parameter 'bins' given! The valid range is: [1:2147483647].
+bad_type InvalidParameter FeatureFinderAlgorithmPicked: Wrong parameter type 'string' for integer parameter 'intensity:bins' given!
+features_after_run 8
+empty_run_map_uid 0 meta_empty 1

@@ -1,0 +1,11 @@
+== set good
+Warning: FeatureFinderAlgorithmPicked received the unknown parameter 'a_unknown'!
+Warning: FeatureFinderAlgorithmPicked received the unknown parameter 'intensity:c_unknown'!
+Warning: FeatureFinderAlgorithmPicked received the unknown parameter 'zz:late_unknown'!
+== set rejected
+Warning: FeatureFinderAlgorithmPicked received the unknown parameter 'a_unknown'!
+Warning: FeatureFinderAlgorithmPicked received the unknown parameter 'z_unknown'!
+== run rejected
+== end
+<Warning: FeatureFinderAlgorithmPicked received the unknown parameter 'a_unknown'!> occurred 2 times
+<Warning: FeatureFinderAlgorithmPicked received the unknown parameter 'z_unknown'!> occurred 2 times

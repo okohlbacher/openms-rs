@@ -444,6 +444,19 @@ impl IsotopeDistribution {
     }
 }
 
+/// The result of [`CoarseIsotopePatternGenerator::estimate_from_peptide_weight_source`].
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) enum SourceSingleEstimate {
+    /// The estimate, normalised in the source's binary32 arithmetic.
+    Normalized(IsotopeDistribution),
+    /// Every one of the `len` retained binary32 bins underflowed to zero, so
+    /// the source's `renormalize` made every weight NaN (`0 / 0`).
+    AllUnderflowed {
+        /// The number of weights.
+        len: usize,
+    },
+}
+
 /// Mass labels for the same nominal-isotope probabilities.
 ///
 /// Source `setRoundMasses(false)` (the default) corresponds to
@@ -664,16 +677,7 @@ impl CoarseIsotopePatternGenerator {
         formula: &EmpiricalFormula,
         work: &mut CoarseIsotopeWork,
     ) -> Result<IsotopeDistribution> {
-        if formula.charge < 0 {
-            return Err(invalid(
-                "coarse isotope generation does not support negative charge",
-            ));
-        }
-        if formula.atoms.values().any(|&count| count < 0) {
-            return Err(invalid(
-                "isotope generation requires nonnegative atom counts",
-            ));
-        }
+        self.check_run_preconditions(formula)?;
         if self.precision == ProbabilityPrecision::SourceSingle {
             return self.run_source_single(formula, work);
         }
@@ -708,6 +712,77 @@ impl CoarseIsotopePatternGenerator {
         formula: &EmpiricalFormula,
         work: &mut CoarseIsotopeWork,
     ) -> Result<IsotopeDistribution> {
+        let mut result = self.run_source_single_unnormalized(formula, work)?;
+        result.renormalize_with(ProbabilityPrecision::SourceSingle)?;
+        Ok(result)
+    }
+
+    /// [`Self::estimate_from_peptide_weight`] under
+    /// [`ProbabilityPrecision::SourceSingle`] for a caller that follows the
+    /// source past a zero probability sum.
+    ///
+    /// Where every retained binary32 bin underflows to zero, source
+    /// `renormalize` divides each by the zero sum
+    /// (`IsotopeDistribution.cpp:176-192`), so every weight is NaN; this
+    /// returns [`SourceSingleEstimate::AllUnderflowed`] there instead of the
+    /// error [`Self::estimate_from_peptide_weight`] returns. Everything else is
+    /// that function's result. Only `FeatureFinderAlgorithmPicked` step 2.5
+    /// calls it; the other callers keep the error.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::estimate_from_peptide_weight`], except for the all-underflow
+    /// case, and [`Error::InvalidValue`] when the generator does not use
+    /// [`ProbabilityPrecision::SourceSingle`].
+    pub(crate) fn estimate_from_peptide_weight_source(
+        &self,
+        average_mass: f64,
+    ) -> Result<SourceSingleEstimate> {
+        if self.precision != ProbabilityPrecision::SourceSingle {
+            return Err(invalid(
+                "the source estimate requires ProbabilityPrecision::SourceSingle",
+            ));
+        }
+        let formula = AveragineComposition::PEPTIDE
+            .estimate_average_mass(average_mass)?
+            .formula;
+        let mut work = CoarseIsotopeWork::default();
+        self.check_run_preconditions(&formula)?;
+        let mut result = self.run_source_single_unnormalized(&formula, &mut work)?;
+        let mut all_zero = true;
+        for peak in result.peaks() {
+            if narrow(peak.probability)? != 0.0 {
+                all_zero = false;
+            }
+        }
+        if all_zero && !result.is_empty() {
+            return Ok(SourceSingleEstimate::AllUnderflowed { len: result.len() });
+        }
+        result.renormalize_with(ProbabilityPrecision::SourceSingle)?;
+        Ok(SourceSingleEstimate::Normalized(result))
+    }
+
+    /// The checks [`Self::run`] applies before any convolution.
+    fn check_run_preconditions(&self, formula: &EmpiricalFormula) -> Result<()> {
+        if formula.charge < 0 {
+            return Err(invalid(
+                "coarse isotope generation does not support negative charge",
+            ));
+        }
+        if formula.atoms.values().any(|&count| count < 0) {
+            return Err(invalid(
+                "isotope generation requires nonnegative atom counts",
+            ));
+        }
+        Ok(())
+    }
+
+    /// [`Self::run_source_single`] before its final `renormalize`.
+    fn run_source_single_unnormalized(
+        &self,
+        formula: &EmpiricalFormula,
+        work: &mut CoarseIsotopeWork,
+    ) -> Result<IsotopeDistribution> {
         let atoms = source_atom_order(formula);
         let mut pattern = SinglePattern::identity();
         for &(atom, count) in &atoms {
@@ -727,9 +802,7 @@ impl CoarseIsotopePatternGenerator {
         }
         let lightest = source_lightest_mass(&atoms, formula.charge);
         let probabilities: Vec<f64> = pattern.intensities.iter().copied().map(f64::from).collect();
-        let mut result = self.correct_masses(&probabilities, lightest)?;
-        result.renormalize_with(ProbabilityPrecision::SourceSingle)?;
-        Ok(result)
+        self.correct_masses(&probabilities, lightest)
     }
 
     fn distribution_for(&self, atom: Atom) -> IsotopeDistribution {

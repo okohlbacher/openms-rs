@@ -33,7 +33,12 @@
 //! `float`. `MassTrace::avg_mz`, `MassTraces::update_baseline` and
 //! `MassTraces::intensity_profile` promote each `f32` to `f64` exactly where the
 //! source converts a `float` into a `double` expression, so their sums
-//! accumulate in `f64`, not in `f32`.
+//! accumulate in `f64`, not in `f32`. All three promote with the Linux x86_64
+//! Release build's `cvtss2sd` (`scoring::x86_64::widen`) rather than with a
+//! Rust cast, and `avg_mz` and `intensity_profile` also follow the executed
+//! operand order of the additions, multiplications and the division, so a NaN
+//! any of them creates or passes on carries the executed sign and payload on
+//! every host.
 //!
 //! # Bounded work
 //!
@@ -47,6 +52,11 @@ use std::ops::{Index, IndexMut};
 
 use crate::kernel::{ConvexHull2D, Point2D};
 use crate::{Error, Result};
+
+/// The refusal of [`MassTraces::intensity_profile`] where a NaN retention time
+/// meets the merge that never ends in the source (`CPP-242`).
+pub(crate) const NAN_RT_MERGE_WHAT: &str =
+    "a NaN retention time cannot be merged into an intensity profile";
 
 /// Seed of a feature: a local intensity maximum in one spectrum (source
 /// `FeatureFinderAlgorithmPickedHelperStructs::Seed`).
@@ -202,15 +212,25 @@ impl MassTrace {
     /// the plain IEEE result, as in the source. An empty trace, or one whose
     /// intensities are all zero, yields NaN, and a NaN average never matches a
     /// seed in [`MassTraces::is_valid`].
+    ///
+    /// Every operation follows the Linux x86_64 Release build's SSE
+    /// instructions (`libOpenMS.so` `0x18f1570`: `cvtss2sd` of the intensity,
+    /// `addsd` onto the intensity sum, `mulsd` of the m/z by the intensity,
+    /// `addsd` onto the product sum, `divsd` of the two sums), so a NaN
+    /// carries the executed sign and payload on every host: `0 / 0` is x86_64's
+    /// default NaN, whose sign bit is set, and the `.plot` file of
+    /// `writeFeatureDebugInfo_` prints it as `-nan` (executed:
+    /// `../oracle/ffap-complete-fix5`, a trace of zero intensities).
     pub fn avg_mz(&self) -> f64 {
+        use crate::analysis::feature_finder_picked::scoring::x86_64;
         let mut sum = 0.0;
         let mut intensities = 0.0;
         for peak in &self.peaks {
-            let intensity = f64::from(peak.intensity);
-            sum += peak.mz * intensity;
-            intensities += intensity;
+            let intensity = x86_64::widen(peak.intensity);
+            intensities = x86_64::add(intensities, intensity);
+            sum = x86_64::add(sum, x86_64::mul(peak.mz, intensity));
         }
-        sum / intensities
+        x86_64::div(sum, intensities)
     }
 
     /// Whether the trace holds at least three peaks: source `isValid`, whose
@@ -416,18 +436,34 @@ impl MassTraces {
     ///
     /// Without traces the baseline becomes `0.0`. Otherwise the first peak in
     /// trace order sets it and every later peak with a strictly lower intensity
-    /// replaces it, compared in `f64` after promoting the `f32`. A NaN first
+    /// replaces it, compared in `f64` after promoting the `f32` with the
+    /// Release build's `cvtss2sd` (`x86_64::widen`), so a NaN intensity gives
+    /// the baseline the executed sign and payload on every host. A NaN first
     /// peak therefore leaves a NaN baseline, and a later NaN is skipped. When
     /// traces exist but none holds a peak, the baseline keeps its value, as in
     /// the source, where that value may still be uninitialised.
+    ///
+    /// The baseline is not debug-only: `run_` scales it (`.cpp:661`) and both
+    /// fitters add it to every theoretical intensity (`.cpp:1983`, `.cpp:2098`)
+    /// before the crop and quality correlations, so its bits reach the stored
+    /// `score_fit` and `score_correlation` and the `.plot` formula.
+    ///
+    /// The promoted bits are pinned against the executed build, not reasoned
+    /// from the instruction: 18 `f32` patterns - quiet, signalling, negative
+    /// and maximal-payload NaNs, both zeros, both infinities, both extremes,
+    /// the two smallest subnormals and the smallest normal - in each of five
+    /// peak layouts, 90 baselines, all equal
+    /// (`../oracle/ffap-complete-min6`,
+    /// `update_baseline_promotion_is_the_reference_builds_bits`).
     pub fn update_baseline(&mut self) {
+        use crate::analysis::feature_finder_picked::scoring::x86_64;
         if self.traces.is_empty() {
             self.baseline = 0.0;
             return;
         }
         let mut first = true;
         for peak in self.traces.iter().flat_map(|trace| trace.peaks.iter()) {
-            let intensity = f64::from(peak.intensity);
+            let intensity = x86_64::widen(peak.intensity);
             if first {
                 self.baseline = intensity;
                 first = false;
@@ -508,17 +544,22 @@ impl MassTraces {
         let Some((first, rest)) = self.traces.split_first() else {
             return Ok(Vec::new());
         };
+        // `cvtss2sd` of each intensity and, where two traces meet, `addsd` with
+        // the new intensity as the destination (`libOpenMS.so` `0x18f1912`),
+        // so a NaN (`inf - inf`, or two NaN operands) carries the Release
+        // build's bits on every host.
+        use crate::analysis::feature_finder_picked::scoring::x86_64;
         let mut profile = LinkedProfile::with_capacity(peaks);
         let mut previous = NIL;
         for peak in &first.peaks {
-            previous = profile.insert_after(previous, (peak.rt, f64::from(peak.intensity)));
+            previous = profile.insert_after(previous, (peak.rt, x86_64::widen(peak.intensity)));
         }
         for trace in rest {
             let mut previous = NIL;
             let mut current = profile.head;
             let mut index = 0;
             while let Some(peak) = trace.peaks.get(index) {
-                let intensity = f64::from(peak.intensity);
+                let intensity = x86_64::widen(peak.intensity);
                 if current == NIL {
                     previous = profile.insert_after(previous, (peak.rt, intensity));
                     index += 1;
@@ -532,14 +573,12 @@ impl MassTraces {
                     previous = current;
                     current = profile.next[current];
                 } else if entry_rt == peak.rt {
-                    profile.entries[current].1 += intensity;
+                    profile.entries[current].1 = x86_64::add(intensity, profile.entries[current].1);
                     previous = current;
                     current = profile.next[current];
                     index += 1;
                 } else {
-                    return Err(Error::InvalidValue(
-                        "a NaN retention time cannot be merged into an intensity profile".into(),
-                    ));
+                    return Err(Error::InvalidValue(NAN_RT_MERGE_WHAT.into()));
                 }
             }
         }

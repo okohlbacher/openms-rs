@@ -31,7 +31,14 @@
    "sha256": "4f3e9606fc9bdc7c4e103953404310088df3edf68354097bf04d423f0ebf8905"
   }
  ],
- "evidence": "Source mode/copy/NONE class-test assertions and independently derived deterministic dispatch, duration, percentage and throughput oracles; no C++ execution.",
+ "evidence": "Source mode/copy/NONE class-test assertions and independently derived deterministic dispatch, duration, percentage and throughput oracles (no C++ execution), plus an executed Release differential for range handling: release_oracle.",
+ "evidence_tier": "executed differential (tier 1) against the OpenMS4 Release C++ build for ranges, dispatch, nesting and the StopWatch refusals; source review and independently derived (tiers 3-4) for the remaining oracles",
+ "fixtures": [
+  {
+   "path": "tests/data/progress_logger_release_range.tsv",
+   "sha256": "865549e785fdb7ee8aa470dcf5ab2447c5f7fd53446cff0a538e60bf01ae11ec"
+  }
+ ],
  "runtime_dependency": {
   "name": "cpu-time",
   "version": "1.0.0",
@@ -60,5 +67,141 @@
    "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
   ],
   "source_changes": []
- }
+ },
+ "release_oracle": {
+  "reference_build": "Linux x86_64 Release (user decision): the reference behaviour of the port",
+  "install_prefix": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "install_manifest_sha256": "2efe7501c5c7e3f6dd3feef78628ae6f1158e762b7fc04154de21cfd095b293a",
+  "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "installed_config_h_sha256": "13c7a065862db9f20eaf89140b8aeefcf68df80beb71dc80ac42c039ca4e8729",
+  "pins": {
+   "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+   "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+   "rust_base_revision": "59e0e1c"
+  },
+  "debug_checks_absent": "The installed config.h reads `#  if (0)` around `#define OPENMS_ASSERTIONS` (line 88), so OPENMS_PRECONDITION expands to nothing (Macros.h:91); the driver's op log records 'OPENMS_ASSERTIONS not defined'. libOpenMS.so holds 0 copies of 'ProgressLogger::init : invalid range' and 1 each of 'StopWatch is already started!' and 'StopWatch cannot be stopped if not running!'.",
+  "sources_read_at_core_pin": [
+   {
+    "path": "src/openms/source/CONCEPT/ProgressLogger.cpp",
+    "sha256": "cab7e28a3b62516ccb0d498cacf969a2c18975ece6c97da2aff51c5f25733baf",
+    "lines": "36-40 range stored; 48 begin_ == end_; 52-55 out-of-range diagnostic; 60 percentage; 235 Debug-only OPENMS_PRECONDITION(begin <= end); 244 and 255 same-second throttle"
+   },
+   {
+    "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+    "sha256": "c928fab2492d7be3e530ee639245f675ff7d799e069e2a5836e03d471cf4441b",
+    "lines": "43 and 55 unconditional Exception::Precondition throws (kept by Release)"
+   },
+   {
+    "path": "src/openms/include/OpenMS/CONCEPT/Macros.h",
+    "sha256": "90d8f9cd59f9248df8df8b60d2c2f71e415f0688a31b6fd7f5d3fd9b9590ed82",
+    "lines": "67-71 OPENMS_PRECONDITION with OPENMS_ASSERTIONS; 91 empty otherwise"
+   },
+   {
+    "path": "src/openms/include/OpenMS/config.h.in",
+    "sha256": "9f86d05aa8f96e0e353f4cb29f7841198984fde20f64f31a0915c3a21133808b",
+    "lines": "87-91 OPENMS_ASSERTIONS only when CF_OPENMS_ASSERTIONS"
+   },
+   {
+    "path": "src/openms/CMakeLists.txt",
+    "sha256": "0a5f4d52b9add6a6f63209d182506fd3e9f41193041cfc5655d0dd25d216c6fb",
+    "lines": "28-32 CF_OPENMS_ASSERTIONS"
+   }
+  ],
+  "host": "ibminode06 (Ubuntu 24.04.4 LTS, kernel 6.8.0-124, AMD EPYC 7763), work dir /scratch/kohlbach/plr-oracle",
+  "compiler": "conda-forge x86_64-conda-linux-gnu-g++ 14.4.0 from the install's deps/, -O2 -std=c++20, -lOpenMS with rpath to the install, as ../oracle/picked-chromatogram/run.sh",
+  "driver_sha256": "78dcbb0a39dcf5829965ca7c44fb88f0a0ada080b545be7be7d72099d47fce19",
+  "driver_binary_sha256": "35aa45fbafe6d237604538916ff178a1af246453e1e4e8fc3396ea797df59d84",
+  "method": "driver.cpp runs 60 calls on ProgressLogger objects sharing the static depth: setLogType(CMD) and startProgress(5, 0) with setProgress below, on, between and above both ends (INT64_MIN, -1, 0, 1, 4, 5, 6, INT64_MAX) and two nextProgress; startProgress(2, 1) with setProgress 0-3; startProgress(0, 0) with setProgress 0 and 1 and nextProgress; nested ranges on two loggers (0..10 outside, 10..2 and 0..4 inside); a second start (5, 1) on an active CMD logger; endProgress without start; NONE and the default GUI factory with startProgress(5, 0). Every call runs under try/catch; the op log records the outcome (with exception name, message, file:line and function), the static depth after the call and the stdout byte offsets before and after it (stdout is a regular file, flushed and lseek'd).",
+  "dispatch": "setProgress/nextProgress return early while last_invoke_ == time(nullptr) (ProgressLogger.cpp:244, :255). Before every set/next the driver polls time(nullptr) every 10 ms until it differs from that logger's last_invoke_ (read through a derived class), so each call lands in a new second; the op log's dispatch column records that last_invoke_ changed during the call ('forced' for all 31 set/next calls). The Rust replay advances its manual clock's wall_second at the same calls.",
+  "masking": "Only the two timing texts of each '-- done [took X (CPU), Y (Wall)' line are replaced by <TIME>; every other byte, including carriage returns and indentation, is kept (extract.py).",
+  "repetitions": 3,
+  "repetition_result": "all three runs exit 0 with empty stderr and byte-identical op logs; the masked per-call output is identical, and only the masked timing texts differ between runs",
+  "raw_outputs": [
+   {
+    "name": "oplog_1.tsv (identical for runs 2 and 3)",
+    "sha256": "834e0af142a2acf9f78f4b5a718a93eb4c3149017535ead57e8b1d94e8a9a6fc"
+   },
+   {
+    "name": "stdout_1.raw",
+    "sha256": "5c124f92d09af3df515b85e8b0a52ed864f575f88c48aa2a095edbff8a134286"
+   },
+   {
+    "name": "stdout_2.raw",
+    "sha256": "f63413d59db8f54fa47f169c11fce1f52b8fbfb00fdf54abee10a14bd16c657e"
+   },
+   {
+    "name": "stdout_3.raw",
+    "sha256": "d93201fc9cd1447dacd75e8fff71ba560ca0d1dc1dade6d65c28842e53e191cb"
+   },
+   {
+    "name": "stderr_1.raw, stderr_2.raw, stderr_3.raw (empty)",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   }
+  ],
+  "native_test": "tests/progress_logger.rs::release_range_fixture_replays_call_for_call"
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/progress-logger-release-range/driver.cpp",
+   "sha256": "78dcbb0a39dcf5829965ca7c44fb88f0a0ada080b545be7be7d72099d47fce19",
+   "location": "outside this repository",
+   "origin_key": "release_oracle"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/remote_run.sh",
+   "sha256": "784394e3377406ea38110a178dc8bc957c8b44230179bd5a62efa309124fa3c8",
+   "location": "outside this repository",
+   "origin_key": "release_oracle"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/run.sh",
+   "sha256": "164f0463cd794548a1d595b633b9338e60372f4ef97dbc7a770c23dee6e5e274",
+   "location": "outside this repository",
+   "origin_key": "release_oracle"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/extract.py",
+   "sha256": "e700aee836ded3c154b217e9dbe9b94652673d5959a61fb1501661d1f2e898aa",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/results/build_info.txt",
+   "sha256": "e5a2e5a6a57b4322b13765acdc2969fc23bd6378843ba529ef7987775e2144b8",
+   "location": "outside this repository",
+   "origin_key": "release_oracle"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/results/summary.txt",
+   "sha256": "bf2432164f94c9103ccab8efe38dd0a32c374456eb852ca5f43668b845f91ef5",
+   "location": "outside this repository",
+   "origin_key": "release_oracle"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/results/oplog_1.tsv",
+   "sha256": "834e0af142a2acf9f78f4b5a718a93eb4c3149017535ead57e8b1d94e8a9a6fc",
+   "location": "outside this repository",
+   "origin_key": "release_oracle"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/results/stdout_1.raw",
+   "sha256": "5c124f92d09af3df515b85e8b0a52ed864f575f88c48aa2a095edbff8a134286",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/results/stdout_2.raw",
+   "sha256": "f63413d59db8f54fa47f169c11fce1f52b8fbfb00fdf54abee10a14bd16c657e",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/results/stdout_3.raw",
+   "sha256": "d93201fc9cd1447dacd75e8fff71ba560ca0d1dc1dade6d65c28842e53e191cb",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The Release oracle driver, its node and Mac scripts, the extractor and the raw captures live under ../oracle/progress-logger-release-range/ so that no C++ is committed here. Only the masked per-call table is a fixture; these sha256 values are the evidence chain from the Release install to it. They are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate."
 }

@@ -1,0 +1,17 @@
+Warning: Parameters file version (3.6.0) does not match the version of this tool (1.0.0).
+Your current parameters are still valid, but there might be new valid values or even new parameters. Upgrading the INI might be useful.
+Progress of 'loading mzML':
+  Progress of 'loading spectra list':
+  -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+-- done [took 0.00 s (CPU), 0.00 s (Wall) @ 63.89 MiB/s] -- 
+Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
+FeatureXMLHandler::store():  found 26 invalid unique ids
+Found 25 seeds for charge 2.
+
+---------------------------------------------------
+FATAL: uncaught exception!
+---------------------------------------------------
+last entry in the exception handler: 
+exception of type ElementNotFound occurred in line 1687, function OpenMS::Param::ParamEntry& OpenMS::Param::getEntry_(const std::string&) const of /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/DATASTRUCTURES/Param.cpp
+error message: the element 'debug:pseudo_rt_shift' could not be found
+---------------------------------------------------

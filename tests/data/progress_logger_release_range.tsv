@@ -1,0 +1,67 @@
+# OpenMS4 Release (Linux x86_64) ProgressLogger output, captured by
+# ../oracle/progress-logger-release-range/driver.cpp; see
+# tests/data/progress_logger_provenance.json. One row per call.
+# output: the bytes the call wrote to stdout, with \\ \t \n \r escaped and
+# only the '-- done [took X (CPU), Y (Wall)' timing texts masked as <TIME>.
+# Identical across 3 runs; every set/next call was forced to dispatch.
+seq	case	logger	op	a	b	label	outcome	depth_after	dispatch	output
+1	inverted	L1	type	0	0		ok	0	-	
+2	inverted	L1	start	5	0	inverted	ok	1	-	Progress of 'inverted':\n
+3	inverted	L1	set	-9223372036854775808	0		ok	1	forced	ProgressLogger: Invalid progress value '-9223372036854775808'. Should be between '5' and '0'!\n
+4	inverted	L1	set	-1	0		ok	1	forced	ProgressLogger: Invalid progress value '-1'. Should be between '5' and '0'!\n
+5	inverted	L1	set	0	0		ok	1	forced	ProgressLogger: Invalid progress value '0'. Should be between '5' and '0'!\n
+6	inverted	L1	set	1	0		ok	1	forced	ProgressLogger: Invalid progress value '1'. Should be between '5' and '0'!\n
+7	inverted	L1	set	4	0		ok	1	forced	ProgressLogger: Invalid progress value '4'. Should be between '5' and '0'!\n
+8	inverted	L1	set	5	0		ok	1	forced	ProgressLogger: Invalid progress value '5'. Should be between '5' and '0'!\n
+9	inverted	L1	set	6	0		ok	1	forced	ProgressLogger: Invalid progress value '6'. Should be between '5' and '0'!\n
+10	inverted	L1	set	9223372036854775807	0		ok	1	forced	ProgressLogger: Invalid progress value '9223372036854775807'. Should be between '5' and '0'!\n
+11	inverted	L1	next	0	0		ok	1	forced	ProgressLogger: Invalid progress value '6'. Should be between '5' and '0'!\n
+12	inverted	L1	next	0	0		ok	1	forced	ProgressLogger: Invalid progress value '7'. Should be between '5' and '0'!\n
+13	inverted	L1	end	0	0		ok	0	-	\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+14	bad	L2	type	0	0		ok	0	-	
+15	bad	L2	start	2	1	bad	ok	1	-	Progress of 'bad':\n
+16	bad	L2	set	0	0		ok	1	forced	ProgressLogger: Invalid progress value '0'. Should be between '2' and '1'!\n
+17	bad	L2	set	1	0		ok	1	forced	ProgressLogger: Invalid progress value '1'. Should be between '2' and '1'!\n
+18	bad	L2	set	2	0		ok	1	forced	ProgressLogger: Invalid progress value '2'. Should be between '2' and '1'!\n
+19	bad	L2	set	3	0		ok	1	forced	ProgressLogger: Invalid progress value '3'. Should be between '2' and '1'!\n
+20	bad	L2	end	0	0		ok	0	-	\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+21	zero	L3	type	0	0		ok	0	-	
+22	zero	L3	start	0	0	zero	ok	1	-	Progress of 'zero':\n
+23	zero	L3	set	0	0		ok	1	forced	.
+24	zero	L3	set	1	0		ok	1	forced	.
+25	zero	L3	next	0	0		ok	1	forced	.
+26	zero	L3	end	0	0		ok	0	-	\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+27	nested	O	type	0	0		ok	0	-	
+28	nested	I	type	0	0		ok	0	-	
+29	nested	O	start	0	10	outer	ok	1	-	Progress of 'outer':\n
+30	nested	O	set	5	0		ok	1	forced	\r  50.00 %               
+31	nested	I	start	10	2	inner inverted	ok	2	-	  Progress of 'inner inverted':\n
+32	nested	I	set	2	0		ok	2	forced	ProgressLogger: Invalid progress value '2'. Should be between '10' and '2'!\n
+33	nested	I	set	10	0		ok	2	forced	ProgressLogger: Invalid progress value '10'. Should be between '10' and '2'!\n
+34	nested	I	next	0	0		ok	2	forced	ProgressLogger: Invalid progress value '11'. Should be between '10' and '2'!\n
+35	nested	I	end	0	0		ok	1	-	\r  -- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+36	nested	I	start	0	4	inner	ok	2	-	  Progress of 'inner':\n
+37	nested	I	set	1	0		ok	2	forced	\r    25.00 %               
+38	nested	I	set	4	0		ok	2	forced	\r    100.00 %               
+39	nested	I	end	0	0		ok	1	-	\r  -- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+40	nested	O	set	11	0		ok	1	forced	ProgressLogger: Invalid progress value '11'. Should be between '0' and '10'!\n
+41	nested	O	set	10	0		ok	1	forced	\r  100.00 %               
+42	nested	O	end	0	0		ok	0	-	\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+43	restart	R	type	0	0		ok	0	-	
+44	restart	R	start	0	10	first	ok	1	-	Progress of 'first':\n
+45	restart	R	start	5	1	restart inverted	exception|Precondition failed|StopWatch is already started!|StopWatch.cpp:43|void OpenMS::StopWatch::start()	1	-	  Progress of 'restart inverted':\n
+46	restart	R	set	3	0		ok	1	forced	ProgressLogger: Invalid progress value '3'. Should be between '5' and '1'!\n
+47	restart	R	next	0	0		ok	1	forced	ProgressLogger: Invalid progress value '6'. Should be between '5' and '1'!\n
+48	restart	R	end	0	0		ok	0	-	\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+49	end_without_start	E	type	0	0		ok	0	-	
+50	end_without_start	E	end	0	0		exception|Precondition failed|StopWatch cannot be stopped if not running!|StopWatch.cpp:55|void OpenMS::StopWatch::stop()	0	-	
+51	none	N	type	2	0		ok	0	-	
+52	none	N	start	5	0	none inverted	ok	1	-	
+53	none	N	set	3	0		ok	1	forced	
+54	none	N	next	0	0		ok	1	forced	
+55	none	N	end	0	0		ok	0	-	
+56	gui	G	type	1	0		ok	0	-	
+57	gui	G	start	5	0	gui inverted	ok	1	-	
+58	gui	G	set	3	0		ok	1	forced	
+59	gui	G	next	0	0		ok	1	forced	
+60	gui	G	end	0	0		ok	0	-	

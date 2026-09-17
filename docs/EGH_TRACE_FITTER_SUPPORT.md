@@ -156,7 +156,14 @@ fitters) where it writes those meta values.
   documents.
 - **Gnuplot formula.** The source's exact text, with every number written as a
   default C++ stream writes a `double` (precision 6, `%g` style, `-0`, `nan`,
-  `inf`), through the shared `trace_fitter::stream_number`.
+  glibc's `-nan` for a NaN with its sign bit set, `inf`), through the shared
+  `trace_fitter::stream_number`. `2 * sigma * sigma` is computed as
+  `(sigma + sigma) * sigma`, and `rt_shift + t_R` and `theoretical_int * H`
+  with `rt_shift` and `theoretical_int` as the SSE destinations, as the Linux
+  x86_64 Release build does (`libOpenMS.so` `0x18b6334`, `0x18b637f`,
+  `0x18b63b0`), so a NaN they create or pass on prints with the executed sign
+  on every host (`gnuplot_formulas_print_the_executed_nan_signs` in
+  `tests/feature_finder_picked_instrumentation.rs`).
 - **Serial.** The source is serial, and so is the port.
 
 ## Native differences
@@ -190,16 +197,47 @@ fitters) where it writes those meta values.
    `NUM_PARAMS` are public.
 7. **No debug log.** `setInitialParameters_` logs its intermediate values at
    debug level; the port logs nothing.
-8. **Mathematical functions.** `exp`, `log`, `sqrt` and `atan` come from the
-   `libm` crate, so results are the same on every platform up to the sign and
-   payload of a NaN. The libm crate's `exp` is not correctly rounded, and
-   single evaluations differ from the oracle's Apple libm by one or two units
-   in the last place on about 6% of the functor values; Levenberg-Marquardt
-   results differ by at most 2.0e-11 relative. See the evidence below.
-   `GaussTraceFitter` calls the platform `exp` and `log` instead
-   (TRACE_FITTER_SUPPORT, native difference 1 and "`exp` and `log` across
-   platforms"), which asks that both fitters make the same choice. That choice
-   is the integrator's; this module keeps the `libm` crate until it is made.
+8. **Mathematical functions (lead decision D10 of wave 5).** `exp` and `log`
+   are the reference build's GNU C Library 2.39 functions (`__ieee754_exp_fma`,
+   `__ieee754_log_fma`), ported from Arm optimized-routines in the
+   crate-private `glibc_libm`, as for `GaussTraceFitter`
+   (TRACE_FITTER_SUPPORT, native difference 1); every fit is therefore the
+   Linux x86_64 Release build's on every platform. `sqrt` is correctly rounded
+   everywhere and gets SSE's NaN bits. `atan`, which only `getArea` calls, is
+   `__atan_fma`, the IBM Accurate Mathematical Library's algorithm, which is
+   licensed only under the LGPL inside glibc; no MIT, Apache or fdlibm-style
+   upstream of it exists, so D10's fallback applies: the host's `atan` on
+   x86_64 Linux with the GNU C Library (exact where that library selects
+   `__atan_fma`, glibc 2.39 on a CPU with FMA as on the reference node; the
+   port harness replays every probed `atan` input on kim; other glibc
+   versions and CPUs are not measured), and the `libm` crate's `atan`
+   elsewhere. The crate's `atan` differs from `__atan_fma` on 16,584,995 of
+   `2^28` arguments in `[0, 10]` (6.2 %), on 4,174,993 of `2^28` with `|x|`
+   in `[2^-14, 2^15)` (1.6 %) and on 59,108 of `2^28` random bit patterns
+   (0.02 %; the round-3 verifier's harness, `../oracle/ffc-numerics-v3`).
+   Neither is correctly rounded: of 20,000 arguments in each of the first two
+   ranges the reference misrounds 13 and 7, the crate 1,219 and 324 (80-digit
+   decimal check, re-run in fix round 4), so a correctly rounded `atan` would
+   depart from the reference about 90 times less often, though it is still
+   not the reference algorithm. There the `double` area's last bits are not
+   guaranteed and differ for a few percent of fits. The feature intensity,
+   `getArea() / max` narrowed to `float`, hides nearly all of that: over the
+   fixtures of `tests/feature_finder_picked.rs`, among them the 67 returned
+   EGH runs with 767 features of `extended_stage.tsv.gz`, it moved no EGH
+   intensity on macOS arm64, a
+   measured maximum, not a guarantee. Lead decision D13 of wave 5 keeps the
+   `libm` crate there, as a note for hosts other than the reference
+   platform. The
+   start point, the bounds and the FWHM follow the operand order of the
+   Release build's SSE instructions.
+   - Until fix round 3 of port/ffap-complete this module called the `libm`
+     crate's `exp`, `log`, `sqrt` and `atan`: single evaluations differed from
+     the oracle's Apple libm by one or two units in the last place on about 6%
+     of the functor values, Levenberg-Marquardt results by at most 2.0e-11,
+     and against the Linux Release capture FeatureFinderCentroided_1's EGH
+     configuration departed by up to 2.3038e-12 and further configurations by
+     up to 1.1096e-10 (the numerics verifier of round 2). All of them are now
+     exact against that capture.
 9. **Function name.** The gnuplot function name is a Rust `char`; a non-ASCII
    character is written as its UTF-8 bytes, where the source writes one byte.
 10. **Work ceilings of the shared driver.** `fit` inherits `optimize`'s
@@ -340,16 +378,20 @@ On Linux x86-64 (IBMI node dax), stable and 1.85.0:
   derived bounds, FWHM and area by at most 4.1e-16, and `computeTheoretical` of
   the Rust fit far in the tails (values near `1e-27`) by up to 1.2e-12
   relative.
-- The Rust results are the same on every platform up to the sign and payload
-  of a NaN: the `libm` crate (`=0.2.16`) is pure Rust, Rust does not contract
-  floating-point operations, and the solver uses only IEEE basic operations and
-  `sqrt`. The review hashed every compared Rust value on macOS arm64 and Linux
+- The Rust results are the same on every platform, apart from the `atan` of
+  the area on a host without glibc (native difference 8) and the sign of a NaN
+  the solver creates: `glibc_libm` and the `libm` crate (`=0.2.16`) are pure
+  Rust, `f64::mul_add` is a correctly rounded fused multiply-add on every
+  target, Rust does not contract floating-point operations, and the solver
+  uses only IEEE basic operations and `sqrt`. (The measurements below were
+  taken with the `libm` crate's `exp` and `log`, before D10.) The review hashed every compared Rust value on macOS arm64 and Linux
   x86-64: functor, fit and budget values agree, while start-point and
   parameter-vector hashes differ only in the sign bit of NaN results (x86-64
   produces negative default NaNs). After the rebase on B4 every value the test
   file computes was dumped on macOS arm64 and on dax: the two dumps agree
-  except for the sign bit of NaN results. The tests treat every NaN as equal,
-  and the gnuplot formula writes any NaN as `nan`. A change of the `libm` version or of
+  except for the sign bit of NaN results. The tests treat every NaN as equal;
+  the gnuplot formula's own arithmetic follows x86_64's NaN rules and writes a
+  NaN with its sign bit set as `-nan`, so its text is the same on both hosts. A change of the `libm` version or of
   the Levenberg-Marquardt backend (packages B3 and B3b) needs this test re-run
   and, if it moves, a new measurement, not a wider tolerance.
 

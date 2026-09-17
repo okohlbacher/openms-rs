@@ -73,6 +73,7 @@
 //! [`TraceFitterParams::to_param`]: crate::analysis::feature_finder_picked::trace_fitter::TraceFitterParams::to_param
 
 use crate::analysis::feature_finder_picked::helper_structs::{MassTrace, MassTraces};
+use crate::analysis::feature_finder_picked::scoring::x86_64;
 use crate::format::file_info::text_format::ostream_g;
 use crate::math::fitters::levenberg_marquardt::{
     DenseMatrix, LmParameters, LmStatus, minimize, preflight_points,
@@ -484,15 +485,12 @@ pub const FEWER_RESIDUALS_THAN_PARAMETERS: &str = "Skipping feature, we always e
 /// is what the source sets `lmSolver.parameters.maxfev` to. The weighting flag
 /// of `parameters` is not read here: it belongs to the residual functor.
 ///
-/// The configuration is the source's, but the solver is not yet bit-faithful
-/// to the executed Eigen 5.0.1. On most executed inputs the transcription's
-/// path departs from Eigen's in the last bits at the first trial step, so
-/// fitted parameters can differ well beyond 1e-9 and the status and the number
-/// of evaluations can differ too. The agreement recorded for the class-test
-/// and FeatureFinderCentroided_1 fits holds for those fixtures only. The root
-/// cause is in `src/math/fitters/levenberg_marquardt.rs`, under investigation
-/// in lane B3b; `docs/TRACE_FITTER_SUPPORT.md` ("Known gap") has the
-/// measurements.
+/// The configuration is the source's. Since package B3b-LM-FIDELITY the solver
+/// follows Eigen 5.0.1 as the Linux x86_64 Release build compiles it, the
+/// build the port matches, and is bit-exact there on all 141 traced fits;
+/// against the macOS arm64 build, whose Eigen kernels fuse their arithmetic,
+/// fitted parameters can differ in the last bits. `docs/TRACE_FITTER_SUPPORT.md`
+/// ("Known gap: solver fidelity beyond the fixtures") has the measurements.
 ///
 /// The source believes, after reading Eigen, that every status except
 /// `NotStarted`, `Running` and `ImproperInputParameters` is a good termination;
@@ -643,9 +641,17 @@ pub fn compute_theoretical<F: TraceFitter + ?Sized>(
 /// precision 6 in `%g` style, as `getGnuplotFormula` streams it.
 ///
 /// This is `crate::format::file_info::text_format::ostream_g` at precision 6,
-/// which documents the spelling of non-finite values and the one class of
-/// exact decimal ties where Apple libc differs from the C standard.
+/// which documents the spelling of infinities and the one class of exact
+/// decimal ties where Apple libc differs from the C standard. A NaN is written
+/// as glibc, the C library of the Linux x86_64 reference build, writes it:
+/// `-nan` when its sign bit is set, `nan` otherwise. `inf * 0.0` produces such
+/// a negative NaN on x86_64 (executed: `debug:pseudo_rt_shift` of `inf`,
+/// `-inf` and `-nan` give `.plot` formulas with `(x--nan)`,
+/// `../oracle/ffap-instr-ver2`).
 pub fn stream_number(value: f64) -> String {
+    if value.is_nan() && value.is_sign_negative() {
+        return "-nan".to_owned();
+    }
     ostream_g(value, 6)
 }
 
@@ -757,24 +763,27 @@ pub fn initial_shape(traces: &MassTraces, smoothing: ProfileSmoothing) -> Result
             }
         }
     } else {
+        // The running sum with the Release build's operand order (the sum is
+        // the destination of every `addsd`, `subsd` and `divsd`), so that an
+        // `inf - inf` of infinite intensities is x86_64's NaN on every host.
         let window = (2 * SMOOTHING_LEN + 1) as f64;
         let mut sum = 0.0;
         for index in SMOOTHING_LEN..2 * SMOOTHING_LEN {
-            sum += totals(index);
+            sum = x86_64::add(sum, totals(index));
         }
         for i in 0..n {
-            sum += totals(i + 2 * SMOOTHING_LEN);
-            smoothed.push(sum / window);
-            sum -= totals(i);
+            sum = x86_64::add(sum, totals(i + 2 * SMOOTHING_LEN));
+            smoothed.push(x86_64::div(sum, window));
+            sum = x86_64::sub(sum, totals(i));
             if smoothed[i] > smoothed[max_index] {
                 max_index = i;
             }
         }
     }
-    let height = smoothed[max_index] - traces.baseline;
+    let height = x86_64::sub(smoothed[max_index], traces.baseline);
     let apex_rt = profile[max_index].0;
-    let region_rt_span = last.0 - first.0;
-    let half = height * 0.5;
+    let region_rt_span = x86_64::sub(last.0, first.0);
+    let half = x86_64::mul(height, 0.5);
     let mut left_index = max_index;
     while left_index > 0 && smoothed[left_index] > half {
         left_index -= 1;

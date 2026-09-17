@@ -29,17 +29,18 @@
 //! seeds. See `docs/FEATURE_FINDER_PICKED_SUPPORT.md`.
 
 use crate::analysis::feature_finder_picked::algorithm::{ReportedMz, RtShape, Settings};
+use crate::analysis::feature_finder_picked::debug::{LogSink, NoLog, g, put_all};
 use crate::analysis::feature_finder_picked::egh_trace_fitter::EGHTraceFitter;
 use crate::analysis::feature_finder_picked::gauss_trace_fitter::GaussTraceFitter;
 use crate::analysis::feature_finder_picked::helper_structs::{
     IsotopePattern, MassTrace, MassTraces,
 };
+use crate::analysis::feature_finder_picked::scoring::{source_pearson, x86_64};
 use crate::analysis::feature_finder_picked::seeds::IsotopeWindows;
 use crate::analysis::feature_finder_picked::trace_fitter::{TraceFitter, TraceFitterParams};
 use crate::concept::constants::PROTON_MASS_U;
 use crate::concept::constants::user_param::NUM_OF_DATAPOINTS;
 use crate::kernel::Feature;
-use crate::math::statistic_functions::pearson_correlation_coefficient;
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
 
@@ -74,6 +75,15 @@ pub const ABORT_QUALITY_TOO_LOW: &str = "Feature quality too low after fit";
 
 /// `std::max(0.0, value)` as the source spells it: `(0.0 < value) ? value :
 /// 0.0`, so a NaN gives `0.0` and `-0.0` gives `0.0`.
+/// `deviation += std::fabs(real - theo) / theo` as the Release build
+/// computes it in `cropFeature_` and `checkFeatureQuality_`: the new term is
+/// the first operand of the addition (`addsd (%rsp),%xmm0`), which decides
+/// the NaN bits when both are NaN.
+fn relative_deviation_sum(deviation: f64, real: f64, theo: f64) -> f64 {
+    let term = x86_64::div(x86_64::abs(x86_64::sub(real, theo)), theo);
+    x86_64::add(term, deviation)
+}
+
 fn max0(value: f64) -> f64 {
     if 0.0 < value { value } else { 0.0 }
 }
@@ -125,12 +135,51 @@ impl FittedModel {
 
     /// Fit the model to `traces`: source `fitter->fit(traces)`.
     ///
+    /// # `Exception::UnableToFit` is unreachable from the seed loop
+    ///
+    /// `TraceFitter::optimize_` throws in two places, and the source's seed
+    /// loop (`FeatureFinderAlgorithmPicked.cpp:595-670`) catches neither; the
+    /// exception would leave the OpenMP region and terminate the process. No
+    /// input reaches either:
+    ///
+    /// - `TraceFitter.cpp:111`, fewer residuals than parameters. The residuals
+    ///   are the peaks of the traces the loop fits, and the loop only fits
+    ///   traces that pass `MassTraces::isValid` (`:638`), so there are at
+    ///   least two. `extendMassTraces_` (`:1381-1479`) appends a trace with
+    ///   fewer than three peaks (`MassTrace::isValid`) only at pattern index 0
+    ///   while the maximum trace, which has at least three, is not yet
+    ///   appended (`MassTraces::max_trace` is still 0 then and `p ==
+    ///   max_trace`); every later short trace clears the list or ends it. So at
+    ///   most one trace is short, and it holds at least its start peak: at
+    ///   least `1 + 3 = 4` residuals, and the Gaussian has 3 parameters, the
+    ///   EGH model 4.
+    /// - `TraceFitter.cpp:129`, a solver status up to
+    ///   `ImproperInputParameters`. Eigen's `LevenbergMarquardt::minimize`
+    ///   returns that status only from `minimizeInit`, for `n <= 0`, `m < n`,
+    ///   a negative tolerance, `maxfev <= 0` or `factor <= 0` (Eigen
+    ///   `NonLinearOptimization/LevenbergMarquardt.h`, the install's
+    ///   `deps/include/eigen3`); `minimizeOneStep` returns only `Running` or a
+    ///   positive status. Here `n` is 3 or 4, `m >= n` by the first check, the
+    ///   tolerances and `factor` are Eigen's defaults, and `maxfev` is
+    ///   `fit:max_iterations`, which `DefaultParamHandler::setParameters`
+    ///   restricts to at least 1 (`:89`): `ParamValue::operator int` and
+    ///   `operator unsigned int` keep the same low 32 bits, so a value that
+    ///   passes the restriction reaches the solver unchanged and positive.
+    ///
+    /// The residual count the source checks is `int`
+    /// (`static_cast<int>(getPeakCount())`, `GaussTraceFitter.cpp:140`, and
+    /// `EGHTraceFitter.cpp:29` through the `int` constructor): traces with more
+    /// than `INT_MAX` peaks would also throw at `:111`, but the solver's
+    /// `MAX_POINTS` ceiling refuses such traces first.
+    ///
     /// # Errors
     ///
-    /// As [`TraceFitter::fit`] of the selected model. The source does not catch
-    /// `Exception::UnableToFit` inside its parallel region, so a failing fit
-    /// ends the whole run there; this port reports it as the seed's abort
-    /// reason, which is what the source's later, serial behaviour amounts to.
+    /// As [`TraceFitter::fit`] of the selected model. From the seed loop, that
+    /// is one of the port's resource ceilings (the solver's point, byte and
+    /// work ceilings), which the source does not have, or the start point's
+    /// refusal of a NaN retention time in the intensity profile
+    /// ([`MassTraces::intensity_profile`]), where the source loops forever; the
+    /// algorithm returns such an error instead of recording an abort reason.
     pub fn fit(&mut self, traces: &MassTraces) -> Result<()> {
         match self {
             Self::Gauss(fitter) => fitter.fit(traces),
@@ -164,21 +213,60 @@ impl FittedModel {
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] from
-/// [`TraceFitter::compute_theoretical`] and from
-/// [`pearson_correlation_coefficient`], and the ceilings of
-/// [`MassTraces::reserve`].
+/// [`TraceFitter::compute_theoretical`] and the ceilings of
+/// [`MassTraces::reserve`]. The correlation is
+/// `Math::pearsonCorrelationCoefficient` as the Release build computes it,
+/// which divides by a zero denominator (an infinite correlation where the
+/// denominator underflows from non-zero deviations).
 pub fn crop_feature(
     fitter: &dyn TraceFitter,
     traces: &MassTraces,
     min_trace_score: f64,
 ) -> Result<MassTraces> {
+    crop_feature_logged(fitter, traces, min_trace_score, &mut NoLog)
+}
+
+/// [`crop_feature`] writing the source's debug lines to `log`.
+///
+/// The per-trace line prints the correlation where it says `final score`, as
+/// the source does.
+pub(crate) fn crop_feature_logged<L: LogSink>(
+    fitter: &dyn TraceFitter,
+    traces: &MassTraces,
+    min_trace_score: f64,
+    log: &mut L,
+) -> Result<MassTraces> {
     let low_bound = fitter.lower_rt_bound();
     let high_bound = fitter.upper_rt_bound();
+    if log.enabled() {
+        put_all(
+            log,
+            &[
+                "    => RT bounds: ",
+                &g(low_bound),
+                " - ",
+                &g(high_bound),
+                "\n",
+            ],
+        );
+    }
     let mut new_traces = MassTraces::new();
     let mut theoretical: Vec<f64> = Vec::new();
     let mut real: Vec<f64> = Vec::new();
     for t in 0..traces.len() {
         let trace = &traces[t];
+        if log.enabled() {
+            put_all(
+                log,
+                &[
+                    "   - Trace ",
+                    &t.to_string(),
+                    ": (",
+                    &g(trace.theoretical_int),
+                    ")\n",
+                ],
+            );
+        }
         let mut new_trace = MassTrace::default();
         let mut deviation = 0.0;
         theoretical.clear();
@@ -187,27 +275,58 @@ pub fn crop_feature(
             let peak = trace.peaks[k];
             if peak.rt >= low_bound && peak.rt <= high_bound {
                 new_trace.peaks.push(peak);
-                let theo = traces.baseline + fitter.compute_theoretical(trace, k)?;
+                let theo = x86_64::add(traces.baseline, fitter.compute_theoretical(trace, k)?);
                 theoretical.push(theo);
                 let measured = f64::from(peak.intensity);
                 real.push(measured);
-                deviation += (measured - theo).abs() / theo;
+                deviation = relative_deviation_sum(deviation, measured, theo);
             }
         }
+        let mut fit_score = 0.0;
+        let mut correlation = 0.0;
         let mut final_score = 0.0;
         if !new_trace.peaks.is_empty() {
-            let fit_score = deviation / new_trace.peaks.len() as f64;
-            let correlation = max0(pearson_correlation_coefficient(&theoretical, &real)?);
-            final_score = (correlation * max0(1.0 - fit_score)).sqrt();
+            // `libOpenMS.so` `0x18d8a8d`-`0x18d8ad4`: the operands in the
+            // order of the executed SSE instructions.
+            fit_score = x86_64::div(deviation, new_trace.peaks.len() as f64);
+            correlation = max0(source_pearson(&theoretical, &real)?);
+            final_score = x86_64::sqrt(x86_64::mul(max0(x86_64::sub(1.0, fit_score)), correlation));
+        }
+        if log.enabled() {
+            put_all(
+                log,
+                &[
+                    "     - peaks: ",
+                    &new_trace.peaks.len().to_string(),
+                    " / ",
+                    &trace.peaks.len().to_string(),
+                    " - relative deviation: ",
+                    &g(fit_score),
+                    " - correlation: ",
+                    &g(correlation),
+                    " - final score: ",
+                    &g(correlation),
+                    "\n",
+                ],
+            );
         }
         if !new_trace.is_valid() || final_score < min_trace_score {
             if t < traces.max_trace {
                 new_traces = MassTraces::new();
+                put_all(
+                    log,
+                    &["     - removed this and previous traces due to bad fit\n"],
+                );
                 continue;
             } else if t == traces.max_trace {
                 new_traces = MassTraces::new();
+                put_all(log, &["     - aborting (max trace was removed)\n"]);
                 break;
             }
+            put_all(
+                log,
+                &["     - removed due to bad fit => omitting the rest\n"],
+            );
             break;
         }
         new_trace.theoretical_int = trace.theoretical_int;
@@ -267,47 +386,70 @@ pub enum QualityOutcome {
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidValue`] from [`MassTraces::rt_bounds`],
-/// [`TraceFitter::compute_theoretical`] and
-/// [`pearson_correlation_coefficient`].
+/// Returns [`Error::InvalidValue`] from [`MassTraces::rt_bounds`] and
+/// [`TraceFitter::compute_theoretical`]. The correlation is computed as in
+/// [`crop_feature`].
 pub fn check_feature_quality(
     fitter: &dyn TraceFitter,
     traces: &MassTraces,
     seed_mz: f64,
     settings: &Settings,
 ) -> Result<QualityOutcome> {
+    check_feature_quality_logged(fitter, traces, seed_mz, settings, &mut NoLog)
+}
+
+/// [`check_feature_quality`] writing the source's `Quality estimation:` block
+/// to `log`, which the source writes once the first four checks pass.
+pub(crate) fn check_feature_quality_logged<L: LogSink>(
+    fitter: &dyn TraceFitter,
+    traces: &MassTraces,
+    seed_mz: f64,
+    settings: &Settings,
+    log: &mut L,
+) -> Result<QualityOutcome> {
+    let rejected = |reason| Ok(QualityOutcome::Rejected(reason));
     if fitter.check_maximal_rt_span(settings.max_rt_span) {
-        return Ok(QualityOutcome::Rejected(ABORT_MAX_RT_SPAN));
+        return rejected(ABORT_MAX_RT_SPAN);
     }
     if !traces.is_valid(seed_mz, settings.trace_tolerance) {
-        return Ok(QualityOutcome::Rejected(ABORT_TOO_FEW_TRACES));
+        return rejected(ABORT_TOO_FEW_TRACES);
     }
     let rt_bounds = traces.rt_bounds()?;
     if fitter.center() < rt_bounds.0 || fitter.center() > rt_bounds.1 {
-        return Ok(QualityOutcome::Rejected(ABORT_CENTER_OUTSIDE));
+        return rejected(ABORT_CENTER_OUTSIDE);
     }
     // The source reads the bounds a second time for the next check; they cannot
     // have changed.
     if fitter.check_minimal_rt_span(rt_bounds, settings.min_rt_span) {
-        return Ok(QualityOutcome::Rejected(ABORT_MIN_RT_SPAN));
+        return rejected(ABORT_MIN_RT_SPAN);
     }
     let mut theoretical: Vec<f64> = Vec::new();
     let mut real: Vec<f64> = Vec::new();
     let mut deviation = 0.0;
     for trace in traces.iter() {
         for k in 0..trace.peaks.len() {
-            let theo = traces.baseline + fitter.compute_theoretical(trace, k)?;
+            let theo = x86_64::add(traces.baseline, fitter.compute_theoretical(trace, k)?);
             theoretical.push(theo);
             let measured = f64::from(trace.peaks[k].intensity);
             real.push(measured);
-            deviation += (measured - theo).abs() / theo;
+            deviation = relative_deviation_sum(deviation, measured, theo);
         }
     }
-    let fit_score = max0(1.0 - (deviation / traces.peak_count() as f64));
-    let correlation = max0(pearson_correlation_coefficient(&theoretical, &real)?);
-    let final_score = (correlation * fit_score).sqrt();
+    // `libOpenMS.so` `0x18d9dcb`-`0x18d9e28`.
+    let fit_score = max0(x86_64::sub(
+        1.0,
+        x86_64::div(deviation, traces.peak_count() as f64),
+    ));
+    let correlation = max0(source_pearson(&theoretical, &real)?);
+    let final_score = x86_64::sqrt(x86_64::mul(correlation, fit_score));
+    if log.enabled() {
+        put_all(log, &["Quality estimation:\n"]);
+        put_all(log, &[" - relative deviation: ", &g(fit_score), "\n"]);
+        put_all(log, &[" - correlation: ", &g(correlation), "\n"]);
+        put_all(log, &[" => final score: ", &g(final_score), "\n"]);
+    }
     if final_score < settings.min_feature_score {
-        return Ok(QualityOutcome::Rejected(ABORT_QUALITY_TOO_LOW));
+        return rejected(ABORT_QUALITY_TOO_LOW);
     }
     Ok(QualityOutcome::Accepted(FeatureQuality {
         fit_score,
@@ -367,13 +509,41 @@ pub struct FeatureInput<'a> {
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] when the traces are empty
-/// ([`MassTraces::theoretical_max_position`]), when the isotope window of the
-/// feature's m/z was not precalculated, when the point count of a hull exceeds
-/// its ceiling, and when the model's FWHM is not finite or is negative, which
-/// [`crate::kernel::BaseFeature::set_width`] refuses and the source stores. A
-/// non-finite FWHM needs a non-finite fit, which the source's quality checks let
-/// through because every comparison against a NaN is false.
+/// ([`MassTraces::theoretical_max_position`]); when the isotope window of the
+/// feature's m/z was not precalculated, which a NaN m/z causes (an infinite
+/// intensity in the reported traces makes the average m/z `inf / inf`) and
+/// where the source's exception escapes its parallel region and terminates the
+/// process; when the point count of a hull exceeds
+/// its ceiling.
+///
+/// Like the source's `setWidth` and `setMetaValue`, it stores any FWHM, score
+/// and EGH parameter, non-finite and negative ones included: the width field
+/// directly, the meta values through a crate-private constructor that skips
+/// the finite check of [`MetaValue::try_from`]. An infinite FWHM is reachable
+/// with finite input: once the fitted `sigma` passes about `1.44e38` the
+/// `float` width overflows (on FeatureFinderCentroided_1 with its retention
+/// times scaled, first at `6e36`, all from `1.5e37`), and the Linux x86_64
+/// Release build returns such features.
+/// [`crate::kernel::BaseFeature::validate`] and the featureXML writer refuse
+/// them.
 pub fn build_feature(input: FeatureInput<'_>) -> Result<Feature> {
+    build_feature_checked(input)?.map_err(|what| {
+        Error::InvalidValue(format!(
+            "FeatureFinderAlgorithmPicked step 3.3.5: {what}; the source throws this inside its \
+             OpenMP region, where std::terminate ends the process"
+        ))
+    })
+}
+
+/// [`build_feature`], with the source's process termination apart: the inner
+/// error is the `what()` text of the `Exception::InvalidValue` that
+/// `getIsotopeDistribution_(f.getMZ())` throws inside the seed loop's OpenMP
+/// region (`FeatureFinderAlgorithmPicked.cpp:790`), where the source calls
+/// `std::terminate`; the outer error is every other error of
+/// [`build_feature`].
+pub(crate) fn build_feature_checked(
+    input: FeatureInput<'_>,
+) -> Result<std::result::Result<Feature, String>> {
     let FeatureInput {
         model,
         traces,
@@ -390,16 +560,27 @@ pub fn build_feature(input: FeatureInput<'_>) -> Result<Feature> {
         .metadata
         .insert("label".into(), MetaValue::from(plot_nr));
     feature.charge = charge;
-    feature.quality = quality.final_score as f32;
-    feature
-        .metadata
-        .insert("score_fit".into(), MetaValue::try_from(quality.fit_score)?);
+    feature.quality = x86_64::narrow(quality.final_score);
+    // `setMetaValue` and `setWidth` store any value (`BaseFeature.cpp:87-94`);
+    // an infinite FWHM is reachable with finite input (FFC_1's retention
+    // times scaled by 6e36 and more), and the Release build returns such
+    // features.
+    feature.metadata.insert(
+        "score_fit".into(),
+        MetaValue::source_float(quality.fit_score),
+    );
     feature.metadata.insert(
         "score_correlation".into(),
-        MetaValue::try_from(quality.correlation)?,
+        MetaValue::source_float(quality.correlation),
     );
     feature.rt = fitter.center();
-    feature.base.set_width(fitter.fwhm() as f32)?;
+    // `setWidth(WidthType)`: the double FWHM narrowed at the call, then
+    // stored as the width and, widened again, as the `FWHM` meta value.
+    let width = x86_64::narrow(fitter.fwhm());
+    feature.base.width = width;
+    feature
+        .metadata
+        .insert("FWHM".into(), MetaValue::source_float(x86_64::widen(width)));
     let datapoints: usize = traces.iter().map(|trace| trace.peaks.len()).sum();
     feature
         .metadata
@@ -407,13 +588,13 @@ pub fn build_feature(input: FeatureInput<'_>) -> Result<Feature> {
     if let Some(egh) = model.egh() {
         feature
             .metadata
-            .insert("EGH_tau".into(), MetaValue::try_from(egh.tau())?);
+            .insert("EGH_tau".into(), MetaValue::source_float(egh.tau()));
         feature
             .metadata
-            .insert("EGH_height".into(), MetaValue::try_from(egh.height())?);
+            .insert("EGH_height".into(), MetaValue::source_float(egh.height()));
         feature
             .metadata
-            .insert("EGH_sigma".into(), MetaValue::try_from(egh.sigma())?);
+            .insert("EGH_sigma".into(), MetaValue::source_float(egh.sigma()));
     }
     let c = f64::from(charge);
     feature.mz = match settings.reported_mz {
@@ -436,7 +617,15 @@ pub fn build_feature(input: FeatureInput<'_>) -> Result<Feature> {
                 * (position + pattern.theoretical_pattern.trimmed_left) as f64
         }
     };
-    feature.intensity = (fitter.area() / windows.get(feature.mz)?.max) as f32;
+    // Source `getIsotopeDistribution_(f.getMZ())` inside the seed loop's
+    // OpenMP region (`FeatureFinderAlgorithmPicked.cpp:790`): its
+    // `Exception::InvalidValue` is not caught there, so the source terminates.
+    let window = match windows.get(feature.mz) {
+        Ok(window) => window,
+        Err(Error::InvalidValue(what)) => return Ok(Err(what)),
+        Err(error) => return Err(error),
+    };
+    feature.intensity = x86_64::narrow(x86_64::div(fitter.area(), window.max));
     let mut hulls = Vec::new();
     hulls
         .try_reserve_exact(traces.len())
@@ -445,5 +634,5 @@ pub fn build_feature(input: FeatureInput<'_>) -> Result<Feature> {
         hulls.push(trace.convex_hull()?);
     }
     feature.convex_hulls = hulls;
-    Ok(feature)
+    Ok(Ok(feature))
 }

@@ -34,9 +34,9 @@
 //!
 //! Every expression keeps the source's operand order, so that a single
 //! evaluation (a residual, a Jacobian entry, a start point or a query) follows
-//! the source to the last place in which the mathematical library agrees with
-//! the oracle's. Fitted parameters are compared with the C++ fit within a
-//! tolerance, not bit for bit (see the support document):
+//! the source to the last place. The start point, the retention-time bounds
+//! and the FWHM follow the operand order of the Linux x86_64 Release build's
+//! SSE instructions, so a NaN they create carries x86_64's bits on every host.
 //!
 //! - The residual uses the signed `sigma`; the Jacobian uses `|sigma|`.
 //! - Where `2 sigma^2 + tau (t - t_R) <= 0` the model is `0`, without the
@@ -53,11 +53,15 @@
 //!   is the Lan-Jorgenson approximation with the source's seven coefficients and
 //!   the factor `0.6266571`.
 //!
-//! `exp`, `log`, `sqrt` and `atan` come from the `libm` crate, not from the
-//! platform's C library, so the results are the same on every platform up to the
-//! sign and payload of a NaN. `GaussTraceFitter` calls the platform library
-//! instead; which choice both fitters share is the integrator's decision
-//! (`docs/TRACE_FITTER_SUPPORT.md`, "`exp` and `log` across platforms").
+//! `exp` and `log` are the reference build's GNU C Library 2.39 functions,
+//! ported (the crate-private `glibc_libm`, lead decision D10), so every fit
+//! is the Linux x86_64 Release build's on every platform, as the Gaussian
+//! fitter's is. `atan`, which only the area calls, has no licence-clean
+//! upstream of the reference algorithm: it is the host's with the GNU C
+//! Library (exact on the reference platform) and the `libm` crate's elsewhere,
+//! where the area's last bit is not guaranteed (`docs/TRACE_FITTER_SUPPORT.md`,
+//! "`exp` and `log` across platforms"). `sqrt` is correctly rounded everywhere
+//! and gets SSE's NaN bits.
 //!
 //! # Shared trace-fitter helpers
 //!
@@ -72,17 +76,13 @@
 //! of a refused fit and the gnuplot numbers come from the same module.
 //!
 //! **Solver fidelity.** `optimize` calls
-//! [`minimize`](crate::math::fitters::levenberg_marquardt::minimize), which is
-//! not yet bit-faithful to the executed Eigen solver. Beyond the recorded
-//! fixtures a fit's path can depart from Eigen's at its first trial step, so
-//! fitted parameters, the status and the number of evaluations can differ from
-//! the C++ well beyond the 1e-9 that the EGH fixtures meet. The gap was measured
-//! for `GaussTraceFitter` in `docs/TRACE_FITTER_SUPPORT.md` ("Known gap: solver
-//! fidelity beyond the fixtures"), where the departure arises inside `minimize`
-//! and not in the functor; the EGH functor goes through the same driver and
-//! solver, so the caveat applies to EGH fits as well, although they have not
-//! been measured beyond these fixtures. The root cause is in
-//! `src/math/fitters/levenberg_marquardt.rs`, under investigation in lane B3b.
+//! [`minimize`](crate::math::fitters::levenberg_marquardt::minimize), which
+//! since package B3b-LM-FIDELITY follows Eigen 5.0.1 as the Linux x86_64
+//! Release build compiles it, the build the port matches (user decision of
+//! 2026-09-15). The measurements, and the platform split that remains against
+//! the macOS arm64 build, whose Eigen kernels fuse their arithmetic, are in
+//! `docs/TRACE_FITTER_SUPPORT.md`, "Known gap: solver fidelity beyond the
+//! fixtures"; the EGH functor goes through the same driver and solver.
 //!
 //! The source is serial, and so is this module. Its work is bounded by the
 //! ceilings of `MassTraces::intensity_profile` and of `optimize`, both checked
@@ -91,7 +91,9 @@
 //! See `docs/EGH_TRACE_FITTER_SUPPORT.md` for the API mapping, the native
 //! differences and the evidence.
 
+use crate::analysis::feature_finder_picked::glibc_libm;
 use crate::analysis::feature_finder_picked::helper_structs::{MassTrace, MassTraces};
+use crate::analysis::feature_finder_picked::scoring::x86_64;
 use crate::analysis::feature_finder_picked::trace_fitter::{
     FEWER_RESIDUALS_THAN_PARAMETERS, ProfileSmoothing, TraceFitter, TraceFitterParams,
     compute_theoretical, initial_shape, optimize, stream_number, unable_to_fit,
@@ -285,7 +287,8 @@ impl<'a> EGHTraceFunctor<'a> {
                 let t_diff2 = t_diff * t_diff;
                 let denominator = 2.0 * sigma * sigma + tau * t_diff;
                 let fegh = if denominator > 0.0 {
-                    baseline + trace.theoretical_int * height * libm::exp(-t_diff2 / denominator)
+                    baseline
+                        + trace.theoretical_int * height * glibc_libm::exp(-t_diff2 / denominator)
                 } else {
                     0.0
                 };
@@ -321,7 +324,7 @@ impl<'a> EGHTraceFunctor<'a> {
                 let denominator = 2.0 * sigma * sigma + tau * t_diff;
                 let (derivative_h, derivative_t_r, derivative_sigma, derivative_tau) =
                     if denominator > 0.0 {
-                        let exp1 = libm::exp(-t_diff2 / denominator);
+                        let exp1 = glibc_libm::exp(-t_diff2 / denominator);
                         let denominator2 = denominator * denominator;
                         (
                             theo * exp1,
@@ -459,15 +462,21 @@ impl EGHTraceFitter {
         let shape = initial_shape(traces, ProfileSmoothing::Always)?;
         let height = shape.height;
         let apex_rt = shape.apex_rt;
-        let a = apex_rt - shape.left_rt;
-        let b = shape.right_rt - apex_rt;
-        let alpha = (shape.left_height + shape.right_height) * 0.5 / height;
-        let log_alpha = libm::log(alpha);
-        let mut tau = -1.0 / log_alpha * (b - a);
+        // The operands in the order of the Release build's SSE instructions
+        // (`libOpenMS.so` `0x18b5ac5`-`0x18b5c22`), so that a NaN a flat or
+        // single-scan profile creates carries x86_64's sign on every host.
+        let a = x86_64::sub(apex_rt, shape.left_rt);
+        let b = x86_64::sub(shape.right_rt, apex_rt);
+        let alpha = x86_64::div(
+            x86_64::mul(x86_64::add(shape.left_height, shape.right_height), 0.5),
+            height,
+        );
+        let log_alpha = glibc_libm::log(alpha);
+        let mut tau = x86_64::mul(x86_64::div(-1.0, log_alpha), x86_64::sub(b, a));
         if tau == 0.0 {
             tau = f64::EPSILON;
         }
-        let sigma = libm::sqrt(-0.5 / log_alpha * b * a);
+        let sigma = glibc_libm::sqrt(x86_64::mul(x86_64::mul(x86_64::div(-0.5, log_alpha), b), a));
 
         Ok(EGHInitialParameters {
             height,
@@ -493,16 +502,28 @@ impl EGHTraceFitter {
     /// unchanged: `alpha = 0` gives infinite or NaN bounds and a negative
     /// `alpha` NaN bounds.
     pub fn alpha_boundaries(&self, alpha: f64) -> (f64, f64) {
-        let l = libm::log(alpha);
-        let s =
-            libm::sqrt((l * self.tau) * (l * self.tau) / 4.0 - 2.0 * l * self.sigma * self.sigma);
-        // The source's `-1 * (L * tau_)`: multiplying by -1 is an exact
-        // negation, so `-(l * tau)` has the same bits (a NaN's sign aside).
-        let s1 = (-(l * self.tau) / 2.0) + s;
-        let s2 = (-(l * self.tau) / 2.0) - s;
+        // The Release build's instructions (`libOpenMS.so` `0x18b5118`-
+        // `0x18b51a8`): `L * tau` as `tau * L`, `2 * L` as `L + L`, `/ 4` and
+        // `-1 * ... / 2` as exact multiplications by `0.25` and `-0.5`, and the
+        // sums with the apex second, so every NaN carries x86_64's bits.
+        let l = glibc_libm::log(alpha);
+        let l_tau = x86_64::mul(self.tau, l);
+        let spread = x86_64::mul(x86_64::mul(x86_64::add(l, l), self.sigma), self.sigma);
+        let s = glibc_libm::sqrt(x86_64::sub(
+            x86_64::mul(x86_64::mul(l_tau, l_tau), 0.25),
+            spread,
+        ));
+        let centre = x86_64::mul(l_tau, -0.5);
+        let s2 = x86_64::sub(centre, s);
+        let s1 = x86_64::add(centre, s);
+        // `minsd`/`maxsd`: the second operand unless the first compares
+        // strictly smaller (larger), which is `std::min`/`std::max`.
         let smaller = if s2 < s1 { s2 } else { s1 };
-        let larger = if s1 < s2 { s2 } else { s1 };
-        (self.apex_rt + smaller, self.apex_rt + larger)
+        let larger = if s2 > s1 { s2 } else { s1 };
+        (
+            x86_64::add(smaller, self.apex_rt),
+            x86_64::add(larger, self.apex_rt),
+        )
     }
 
     /// Sets the model to the parameter vector `[H, t_R, sigma, tau]` and
@@ -546,8 +567,8 @@ impl TraceFitter for EGHTraceFitter {
     /// exhausted budget and a start point at which the gradient already
     /// vanishes, as it does for the NaN start of a flat profile.
     ///
-    /// The solver is not yet bit-faithful to the executed Eigen beyond the
-    /// recorded fixtures; see "Solver fidelity" in the module documentation.
+    /// The solver follows Eigen as the Linux x86_64 Release build compiles it;
+    /// see "Solver fidelity" in the module documentation.
     ///
     /// # Errors
     ///
@@ -617,7 +638,7 @@ impl TraceFitter for EGHTraceFitter {
     /// from [`EGHTraceFitter::alpha_boundaries`] at `0.5`.
     fn fwhm(&self) -> f64 {
         let (lower, upper) = self.alpha_boundaries(FWHM_ALPHA);
-        upper - lower
+        x86_64::sub(upper, lower)
     }
 
     /// Equation 12 of the Lan and Jorgenson paper at `rt`: source `getValue`.
@@ -628,7 +649,7 @@ impl TraceFitter for EGHTraceFitter {
         let t_diff = rt - self.apex_rt;
         let denominator = 2.0 * self.sigma * self.sigma + self.tau * t_diff;
         if denominator > 0.0 {
-            self.height * libm::exp(-t_diff * t_diff / denominator)
+            self.height * glibc_libm::exp(-t_diff * t_diff / denominator)
         } else {
             0.0
         }
@@ -644,7 +665,7 @@ impl TraceFitter for EGHTraceFitter {
     fn area(&self) -> f64 {
         let abs_tau = self.tau.abs();
         let abs_sigma = self.sigma.abs();
-        let phi = libm::atan(abs_tau / abs_sigma);
+        let phi = glibc_libm::atan(abs_tau / abs_sigma);
         let mut epsilon = Self::EPSILON_COEFS[0];
         let mut phi_pow = phi;
         for coefficient in &Self::EPSILON_COEFS[1..] {
@@ -684,6 +705,14 @@ impl TraceFitter for EGHTraceFitter {
     /// style), through the shared [`stream_number`].
     /// The source writes the name with `StringUtils::toStr(char)`, one byte; a
     /// non-ASCII Rust `char` is written as its UTF-8 bytes.
+    ///
+    /// The computed numbers follow the Linux x86_64 Release build's
+    /// instructions, so that a NaN they produce or pass on prints with the
+    /// executed sign on every host: `S` is `(sigma + sigma) * sigma`
+    /// (`libOpenMS.so` `0x18b6334`-`0x18b633c`), `rt_shift` is the `addsd`
+    /// destination of `C` (`0x18b637f`-`0x18b6384`, `0x18b63d9`,
+    /// `0x18b6487`) and `theoretical_int` the `mulsd` destination of `A`
+    /// (`0x18b63b0`-`0x18b63b5`).
     fn gnuplot_formula(
         &self,
         trace: &MassTrace,
@@ -692,9 +721,9 @@ impl TraceFitter for EGHTraceFitter {
         rt_shift: f64,
     ) -> String {
         let g = stream_number;
-        let two_sigma_squared = g(2.0 * self.sigma * self.sigma);
+        let two_sigma_squared = g(x86_64::mul(x86_64::add(self.sigma, self.sigma), self.sigma));
         let tau = g(self.tau);
-        let center = g(rt_shift + self.apex_rt);
+        let center = g(x86_64::add(rt_shift, self.apex_rt));
         let mut formula = String::new();
         formula.push(function_name);
         formula.push_str("(x)= ");
@@ -706,7 +735,7 @@ impl TraceFitter for EGHTraceFitter {
         formula.push_str(" * (x - ");
         formula.push_str(&center);
         formula.push_str(" )) > 0) ? ");
-        formula.push_str(&g(trace.theoretical_int * self.height));
+        formula.push_str(&g(x86_64::mul(trace.theoretical_int, self.height)));
         formula.push_str(" * exp(-1 * (x - ");
         formula.push_str(&center);
         formula.push_str(")**2 / ( ");

@@ -1007,3 +1007,115 @@ fn update_baseline_keeps_its_value_when_no_trace_has_peaks() {
     traces.update_baseline();
     assert_eq!(traces.baseline, 42.0);
 }
+
+/// Every bit `updateBaseline` leaves in `baseline` for an `f32` intensity the
+/// promotion cannot round: the executed Linux x86_64 Release build against
+/// the port, compared bit for bit.
+///
+/// `updateBaseline` (`.cpp:135-158`) reads a `float` into a `double` twice per
+/// peak - once for the first assignment, once for the `<` - so every peak
+/// intensity passes the Release build's `cvtss2sd`, which
+/// [`MassTraces::update_baseline`] reproduces with
+/// `scoring::x86_64::widen`. The rustdoc there, the module documentation and
+/// the manifest all claim the resulting baseline carries the executed sign and
+/// payload; before this test the only NaN case in the repository recorded
+/// `is_nan()`, a bool, so the claim rested on reasoning about the instruction
+/// and not on an executed value.
+///
+/// That bool stays as it is. It belongs to the product-SDK oracle above, a
+/// Debug macOS arm64 build, whose promotion is `fcvt` and not the instruction
+/// the claim is about; recording its bits would pin the wrong platform. The
+/// fixture below is the Linux x86_64 Release build the port follows.
+///
+/// The fixture is the executed capture: 18 `f32` patterns - quiet, signalling,
+/// negative and maximal-payload NaNs, both zeros, both infinities, both unit
+/// values, both extremes, the two smallest subnormals, the smallest normal and
+/// one ordinary value - in each of five layouts, giving 90 rows. `first` and
+/// `only` pin what the assignment promotes, `middle` and `last` what survives
+/// the comparison inside one trace, and `cross_trace` what survives it across
+/// a trace boundary. The signed zeros are part of the point: `-0.0 < 0.0` is
+/// false on both sides, so the first assignment decides the sign.
+///
+/// What the test does *not* claim: on the hosts this branch was measured on, a
+/// plain `f64::from` reproduces the executed `cvtss2sd` on every one of these
+/// patterns, as it does on the 60,022 NaN-biased conversions the round-6
+/// verification measured, so the test pins the bits and not the choice of
+/// instruction. `widen` is kept because Rust does not *guarantee* a NaN
+/// payload across a float cast, while the reference build's instruction does;
+/// the fixture is what makes the claim checkable on a host where they part.
+///
+/// Executed: `../oracle/ffap-complete-min6`, `node/run_baseline.sh` against
+/// `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
+/// ibminode06, run twice and byte-identical.
+#[test]
+fn update_baseline_promotion_is_the_reference_builds_bits() {
+    /// The executed capture; `../oracle/ffap-complete-min6`.
+    const CAPTURE: &str =
+        include_str!("data/feature_finder_picked_helper_structs_update_baseline.tsv");
+
+    fn peak(index: usize, rt: f64, mz: f64, intensity: f32) -> TracePeak {
+        TracePeak::new(1, index, rt, mz, intensity)
+    }
+
+    fn one(peaks: &[(f64, f64, f32)]) -> MassTrace {
+        MassTrace {
+            peaks: peaks
+                .iter()
+                .enumerate()
+                .map(|(index, &(rt, mz, intensity))| peak(index, rt, mz, intensity))
+                .collect(),
+            ..MassTrace::default()
+        }
+    }
+
+    let mut lines = CAPTURE.lines();
+    assert_eq!(lines.next().unwrap(), "pattern\tlayout\tkind\tbaseline");
+    let mut rows = 0;
+    let mut nan_baselines = 0;
+    for line in lines {
+        let row: Vec<&str> = line.split('\t').collect();
+        assert_eq!(row.len(), 4, "{line}");
+        let (pattern, layout) = (row[0], row[1]);
+        assert_eq!(row[2], "f64", "{line}");
+        let intensity = f32::from_bits(u32::from_str_radix(pattern, 16).unwrap());
+        let expected = u64::from_str_radix(row[3], 16).unwrap();
+
+        let mut traces = MassTraces::new();
+        match layout {
+            "first" => traces.push(one(&[
+                (1.0, 500.0, intensity),
+                (2.0, 500.0, 3.0),
+                (3.0, 500.0, 1.0),
+            ])),
+            "middle" => traces.push(one(&[
+                (1.0, 500.0, 3.0),
+                (2.0, 500.0, intensity),
+                (3.0, 500.0, 1.0),
+            ])),
+            "last" => traces.push(one(&[
+                (1.0, 500.0, 3.0),
+                (2.0, 500.0, 1.0),
+                (3.0, 500.0, intensity),
+            ])),
+            "cross_trace" => {
+                traces.push(one(&[(1.0, 500.0, 3.0), (2.0, 500.0, intensity)]));
+                traces.push(one(&[(1.0, 501.0, 1.0)]));
+            }
+            "only" => traces.push(one(&[(1.0, 500.0, intensity)])),
+            other => panic!("{pattern}: unknown layout {other}"),
+        }
+        traces.update_baseline();
+        assert_eq!(
+            traces.baseline.to_bits(),
+            expected,
+            "{pattern}/{layout}: the executed baseline is {expected:016x}, the port leaves {:016x}",
+            traces.baseline.to_bits()
+        );
+        nan_baselines += usize::from(traces.baseline.is_nan());
+        rows += 1;
+    }
+    assert_eq!(rows, 90);
+    // The six NaN patterns, each as the first and as the only peak; a NaN
+    // anywhere later loses every comparison and never becomes the baseline.
+    assert_eq!(nan_baselines, 12);
+}

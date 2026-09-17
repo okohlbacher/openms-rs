@@ -123,7 +123,29 @@ this header and is outside this module.
   `f64`. `intensity_profile` adds the promoted intensities into `f64` entries.
   This is what the source does. The oracle confirms that ten `f32` 0.1 peaks at
   one retention time give `0x3ff0000004000000`, which an `f32` accumulation would
-  not.
+  not. All three promote with the Linux x86_64 Release build's `cvtss2sd`
+  rather than with a Rust cast, and the sums, products and the quotient of
+  `avg_mz` and `intensity_profile` follow that build's SSE instructions as well
+  (`cvtss2sd`, `addsd`, `mulsd`, `divsd` with the executed operand order,
+  `libOpenMS.so` `0x18f1570` and `0x18f1912`; port/ffap-complete fix rounds 5
+  and 6), so a NaN they create or pass on carries the executed sign and payload
+  on every host: an all-zero trace's average is x86_64's negative default NaN,
+  which `FeatureFinderAlgorithmPicked`'s debug `.plot` file prints as `-nan`
+  (executed, `../oracle/ffap-complete-fix5`). The baseline is not debug-only -
+  `run_` scales it and both fitters add it to every theoretical intensity
+  before the crop and quality correlations - so its promotion decides the bits
+  of the stored `score_fit` and `score_correlation` as well. Finite results are
+  unchanged. For the baseline that claim is an executed one and not a reading
+  of the instruction: `../oracle/ffap-complete-min6` records what the Release
+  build leaves in `baseline` for 18 `f32` patterns (quiet, signalling,
+  negative and maximal-payload NaNs, both zeros, both infinities, both
+  extremes, the two smallest subnormals, the smallest normal and an ordinary
+  value) in five peak layouts, and the port matches all 90 bit for bit
+  (`update_baseline_promotion_is_the_reference_builds_bits`). The layouts are
+  not decoration: `first` and `only` pin what the assignment promotes,
+  `middle`, `last` and `cross_trace` pin that a NaN loses every later
+  comparison, and the signed zeros pin that `-0.0 < 0.0` is false on both
+  sides, so the first assignment decides the sign.
 - **First maximum wins.** `update_maximum` and `theoretical_max_position` use a
   strict `>`, so ties keep the first and a leading NaN is never replaced.
   `update_baseline` uses a strict `<` after seeding from the first peak in trace

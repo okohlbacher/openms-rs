@@ -235,6 +235,19 @@ pub struct ReadOptions {
     /// [`Error::Parse`] (`nonfinite binary value`) instead, as it already does
     /// for a decoded non-finite value.
     pub source_time_array_precision: bool,
+    /// Accept NaN and infinite values in auxiliary float arrays (named data
+    /// arrays other than m/z, intensity and time), as source `MzMLHandler`
+    /// does, which decodes them without a check.
+    ///
+    /// The port rejects a non-finite decoded value with [`Error::Parse`]
+    /// (`nonfinite binary value`) by default. Coordinates and intensities stay
+    /// rejected either way, because the kernel requires them finite. The source
+    /// writes such auxiliary values itself: the `debug/input.mzML` of
+    /// `FeatureFinderAlgorithmPicked`'s debug mode holds NaN trace scores when
+    /// `mass_trace:min_spectra` is 1. [`write_source_float_arrays`] is the
+    /// matching writer. Not part of [`ReadOptions::source`], so the tools that
+    /// use that preset keep refusing such values at load time.
+    pub source_nonfinite_float_arrays: bool,
 }
 impl Default for ReadOptions {
     fn default() -> Self {
@@ -254,6 +267,7 @@ impl Default for ReadOptions {
             source_invalid_timestamps: true,
             source_dangling_references: false,
             source_time_array_precision: false,
+            source_nonfinite_float_arrays: false,
         }
     }
 }
@@ -962,7 +976,9 @@ impl Binary {
                     // above. Every coordinate a record hands to the kernel
                     // validator passes through here or through that one, which
                     // is why `Record::finish` can skip the per-peak loop.
-                    if !value.is_finite() {
+                    let source_auxiliary =
+                        options.source_nonfinite_float_arrays && matches!(kind, Kind::Auxiliary(_));
+                    if !(value.is_finite() || source_auxiliary) {
                         return Err(invalid("nonfinite binary value"));
                     }
                     values.push(value);
@@ -1008,6 +1024,8 @@ struct Record {
     precursor_filter: Option<crate::kernel::NumericRange>,
     precursor_outside: bool,
     raw_float_arrays: Vec<DataArray<f64>>,
+    /// [`ReadOptions::source_nonfinite_float_arrays`].
+    nonfinite_float_arrays: bool,
     primary_metadata: [crate::metadata::MetaInfo; 2],
     intensity_first: bool,
     wavelength: Option<(usize, usize)>,
@@ -1304,13 +1322,21 @@ impl Record {
         } else {
             &mut self.chromatogram.as_mut().unwrap().float_data_arrays
         };
+        let lenient = self.nonfinite_float_arrays;
         for array in self.raw_float_arrays {
             floats.push(DataArray {
                 name: array.name,
                 data: array
                     .data
                     .into_iter()
-                    .map(intensity)
+                    // The source narrows with `static_cast<float>`.
+                    .map(|value| {
+                        if lenient {
+                            Ok(value as f32)
+                        } else {
+                            intensity(value)
+                        }
+                    })
                     .collect::<Result<_>>()?,
                 metadata: array.metadata,
                 data_processing: array.data_processing,
@@ -2344,6 +2370,7 @@ fn read_engine(
                             }),
                             precursor_outside: false,
                             raw_float_arrays: Vec::new(),
+                            nonfinite_float_arrays: options.source_nonfinite_float_arrays,
                             primary_metadata: Default::default(),
                             wavelength: None,
                             intensity_first: false,
@@ -3467,6 +3494,7 @@ fn check_auxiliary_arrays(
     floats: &[DataArray<f32>],
     integers: &[DataArray<i32>],
     strings: &[DataArray<String>],
+    nonfinite_floats: bool,
 ) -> Result<()> {
     check_array_descriptions(floats, integers, strings)?;
     for array in floats {
@@ -3492,7 +3520,7 @@ fn check_auxiliary_arrays(
             ));
         }
     }
-    if floats.iter().flat_map(|a| &a.data).any(|v| !v.is_finite()) {
+    if !nonfinite_floats && floats.iter().flat_map(|a| &a.data).any(|v| !v.is_finite()) {
         return Err(Error::InvalidValue(
             "nonfinite auxiliary float value".into(),
         ));
@@ -3532,11 +3560,35 @@ fn check_auxiliary_arrays(
 ///
 /// Returns the validation errors of [`write_with_options`] and any I/O error.
 pub fn write(writer: impl Write, experiment: &MSExperiment) -> Result<()> {
+    write_indexed(writer, experiment, false)
+}
+
+/// [`write()`], accepting NaN and infinite values in auxiliary float arrays, as
+/// source `MzMLFile::store` does.
+///
+/// The default writer rejects them (`nonfinite auxiliary float value`). The
+/// source writes whatever the arrays hold; `FeatureFinderAlgorithmPicked`'s
+/// debug mode stores NaN trace scores this way. Coordinates and intensities
+/// must still be finite. [`ReadOptions::source_nonfinite_float_arrays`] reads
+/// such a file back.
+///
+/// # Errors
+///
+/// As [`write()`], without the non-finite auxiliary check.
+pub fn write_source_float_arrays(writer: impl Write, experiment: &MSExperiment) -> Result<()> {
+    write_indexed(writer, experiment, true)
+}
+
+fn write_indexed(
+    writer: impl Write,
+    experiment: &MSExperiment,
+    nonfinite_floats: bool,
+) -> Result<()> {
     if experiment.spectra.is_empty() && experiment.chromatograms.is_empty() {
         return write_with_options(writer, experiment, &WriteOptions::default());
     }
     let header = header::prepare(experiment)?;
-    validate_write(experiment)?;
+    validate_write_arrays(experiment, nonfinite_floats)?;
     let mut output = peak_writer::Output::streamed(writer, experiment)?;
     write_document(
         &mut output,
@@ -3587,6 +3639,9 @@ fn writer_shares(experiment: &MSExperiment) -> usize {
         .saturating_add(1)
 }
 fn validate_write(experiment: &MSExperiment) -> Result<()> {
+    validate_write_arrays(experiment, false)
+}
+fn validate_write_arrays(experiment: &MSExperiment, nonfinite_floats: bool) -> Result<()> {
     experiment_header_guard(experiment)?;
     // O(1) loss guards precede validation of newly supported owned settings.
     for spectrum in &experiment.spectra {
@@ -3727,6 +3782,7 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
             &s.float_data_arrays,
             &s.integer_data_arrays,
             &s.string_data_arrays,
+            nonfinite_floats,
         )?;
     }
     for (i, c) in experiment.chromatograms.iter().enumerate() {
@@ -3749,6 +3805,7 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
             &c.float_data_arrays,
             &c.integer_data_arrays,
             &c.string_data_arrays,
+            nonfinite_floats,
         )?;
     }
     // A precursor `spectrumRef` that names no spectrum of this document is

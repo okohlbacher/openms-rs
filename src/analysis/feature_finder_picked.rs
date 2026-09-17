@@ -12,6 +12,9 @@
 /// Seeds, mass traces and isotope patterns (`FeatureFinderAlgorithmPickedHelperStructs.h`).
 pub mod helper_structs;
 
+/// Index pairs, index sets, the used flag and `NoSuccessor` (`FeatureFinderDefs` in `FeatureFinderAlgorithmPicked.h`).
+pub mod defs;
+
 /// The retention-time shape model shared by the trace fitters (`TraceFitter.h`).
 pub mod trace_fitter;
 
@@ -38,3 +41,18 @@ pub mod fitting;
 
 /// Overlap resolution and apex annotation (`FeatureFinderAlgorithmPicked.h`).
 pub mod resolution;
+
+/// The C++ Release build's `std::sort` and `std::stable_sort` orders (`FeatureFinderAlgorithmPicked.h`).
+pub mod source_sort;
+
+/// The reference build's C library `powf` of the overall seed score (`FeatureFinderAlgorithmPicked.h`).
+pub(crate) mod glibc_powf;
+
+/// The reference build's C library `exp`, `log`, `atan` and `sqrt` of the trace fitters (`FeatureFinderAlgorithmPicked.h`).
+pub(crate) mod glibc_libm;
+
+/// The debug mode: the source's `debug/` output as data (`FeatureFinderAlgorithmPicked.h`).
+pub mod debug;
+
+/// The stateful algorithm instance: reuse, a caller's map, parameters and progress (`FeatureFinderAlgorithmPicked.h`).
+pub mod instance;

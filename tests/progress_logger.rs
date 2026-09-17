@@ -7,9 +7,109 @@ use openms::concept::progress_logger::{
     ProgressClock, ProgressLogType, ProgressLogger, ProgressNesting, ProgressTime,
 };
 use openms::{Error, Result};
-use std::collections::VecDeque;
+use std::collections::{BTreeMap, VecDeque};
 use std::io::{self, Write};
 use std::sync::{Arc, Mutex};
+
+/// Captured OpenMS4 Release output, one row per call; see
+/// `tests/data/progress_logger_provenance.json` (`release_oracle`).
+const RELEASE_FIXTURE: &str = concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/tests/data/progress_logger_release_range.tsv"
+);
+
+/// A cloneable writer, so a command backend owned by a `ProgressLogger` can be
+/// read back per call.
+#[derive(Clone, Default)]
+struct SharedOutput(Arc<Mutex<Vec<u8>>>);
+impl SharedOutput {
+    fn take(&self) -> String {
+        String::from_utf8(std::mem::take(&mut *self.0.lock().unwrap())).unwrap()
+    }
+}
+impl Write for SharedOutput {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        self.0.lock().unwrap().extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+/// The fixture's mask: only the two timing texts of each command summary
+/// line become `<TIME>`, exactly as the oracle's `extract.py` masks them.
+/// Whether `text` has one of the four shapes `StopWatch::toString(double)`
+/// prints (StopWatch.cpp:231-234): `Nd HH:MM:SS h`, `HH:MM:SS h`, `MM:SS m`, or
+/// `StringUtils::number(seconds, 2)` followed by ` s`. The mask accepts only
+/// these, so text the Release build never prints (the port's
+/// `unavailable (CPU)`) cannot pass as Release output.
+fn is_release_time(text: &str) -> bool {
+    let all_digits = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit());
+    let two_digit_fields = |s: &str, n: usize| {
+        s.split(':').count() == n && s.split(':').all(|f| f.len() == 2 && all_digits(f))
+    };
+    if let Some(seconds) = text.strip_suffix(" s") {
+        return match seconds.split_once('.') {
+            Some((whole, fraction)) => all_digits(whole) && all_digits(fraction),
+            None => all_digits(seconds),
+        };
+    }
+    if let Some(minutes) = text.strip_suffix(" m") {
+        return two_digit_fields(minutes, 2);
+    }
+    if let Some(hours) = text.strip_suffix(" h") {
+        return match hours.split_once("d ") {
+            Some((days, rest)) => all_digits(days) && two_digit_fields(rest, 3),
+            None => two_digit_fields(hours, 3),
+        };
+    }
+    false
+}
+
+fn mask_timing(text: &str) -> String {
+    const HEAD: &str = "-- done [took ";
+    let mut out = String::new();
+    let mut rest = text;
+    while let Some(start) = rest.find(HEAD) {
+        let after = &rest[start + HEAD.len()..];
+        let cpu = after.find(" (CPU), ").expect("CPU timing text");
+        let wall_start = cpu + " (CPU), ".len();
+        let wall = after[wall_start..]
+            .find(" (Wall)")
+            .expect("wall timing text");
+        for timing in [&after[..cpu], &after[wall_start..wall_start + wall]] {
+            assert!(
+                is_release_time(timing),
+                "{timing:?} is not a time the Release build prints"
+            );
+        }
+        out.push_str(&rest[..start]);
+        out.push_str("-- done [took <TIME> (CPU), <TIME> (Wall)");
+        rest = &after[wall_start + wall + " (Wall)".len()..];
+    }
+    out.push_str(rest);
+    out
+}
+
+fn unescape(field: &str) -> String {
+    let mut out = String::new();
+    let mut chars = field.chars();
+    while let Some(c) = chars.next() {
+        if c != '\\' {
+            out.push(c);
+            continue;
+        }
+        match chars.next() {
+            Some('n') => out.push('\n'),
+            Some('r') => out.push('\r'),
+            Some('t') => out.push('\t'),
+            Some('\\') => out.push('\\'),
+            other => panic!("bad escape {other:?} in fixture field {field:?}"),
+        }
+    }
+    out
+}
 
 fn sample(second: i64, wall: f64, cpu: Option<f64>) -> ProgressTime {
     ProgressTime {
@@ -311,7 +411,6 @@ fn checked_bounds_and_failures_leave_dispatch_state_usable() {
     let events = Arc::new(Mutex::new(Vec::new()));
     let mut logger = ProgressLogger::with_clock_and_nesting(clock.clone(), nesting.clone());
     logger.set_logger(recorder(&events));
-    assert!(logger.start_progress(2, 1, "bad").is_err());
     assert!(
         logger
             .start_progress(0, 1, &"x".repeat(MAX_PROGRESS_LABEL_BYTES + 1))
@@ -319,10 +418,73 @@ fn checked_bounds_and_failures_leave_dispatch_state_usable() {
     );
     assert_eq!(nesting.depth(), 0);
     assert!(events.lock().unwrap().is_empty());
+
+    // An inverted range is not an error. The source's only range check,
+    // `OPENMS_PRECONDITION(begin <= end)` (ProgressLogger.cpp:235), is compiled
+    // out of the reference Release build, which starts the section and hands
+    // the range to its backend unchanged (:237).
+    logger.start_progress(2, 1, "bad").unwrap();
+    assert_eq!(nesting.depth(), 1);
+    logger.end_progress(0).unwrap();
+    assert_eq!(nesting.depth(), 0);
+    assert_eq!(
+        *events.lock().unwrap(),
+        vec![Event::Start(2, 1, "bad".into(), 0), Event::End(0, 0)]
+    );
+    // Through the command backend, every value is out of the inverted range.
+    // Each expected string is Release output, rows 15-20 (case `bad`) of
+    // tests/data/progress_logger_release_range.tsv. The Release build always
+    // has a CPU time, so this block's clock reports one too.
+    time.lock().unwrap().cpu_seconds = Some(0.0);
+    let output = SharedOutput::default();
+    let mut logger = ProgressLogger::with_clock_and_nesting(clock.clone(), nesting.clone());
+    logger.set_log_type(ProgressLogType::Cmd);
+    logger.set_logger(Box::new(CommandProgressLogger::with_clock(
+        output.clone(),
+        clock.clone(),
+    )));
+    logger.start_progress(2, 1, "bad").unwrap();
+    assert_eq!(nesting.depth(), 1);
+    assert_eq!(output.take(), "Progress of 'bad':\n");
+    for (value, expected) in [
+        (
+            0,
+            "ProgressLogger: Invalid progress value '0'. Should be between '2' and '1'!\n",
+        ),
+        (
+            1,
+            "ProgressLogger: Invalid progress value '1'. Should be between '2' and '1'!\n",
+        ),
+        (
+            2,
+            "ProgressLogger: Invalid progress value '2'. Should be between '2' and '1'!\n",
+        ),
+        (
+            3,
+            "ProgressLogger: Invalid progress value '3'. Should be between '2' and '1'!\n",
+        ),
+    ] {
+        time.lock().unwrap().wall_second += 1; // the driver waited for a new second
+        logger.set_progress(value).unwrap();
+        assert_eq!(output.take(), expected, "set_progress({value})");
+    }
+    logger.end_progress(0).unwrap();
+    assert_eq!(nesting.depth(), 0);
+    assert_eq!(
+        mask_timing(&output.take()),
+        "\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n"
+    );
+    *time.lock().unwrap() = sample(1, 0.0, None);
+
+    // End without start: the Release build's StopWatch::stop throws
+    // unconditionally (StopWatch.cpp:55; fixture row 50), not a Debug check.
     let mut cmd = CommandProgressLogger::with_clock(Vec::new(), clock);
     assert!(cmd.end_progress(0, 0).is_err());
     cmd.start_progress(i64::MAX, i64::MAX, "counter", 0)
         .unwrap();
+    // Native bounds, not source checks: the source's `++current_` and the
+    // differences below are undefined signed overflow, and the depth bound
+    // limits indentation.
     assert!(cmd.next_progress().is_err());
     assert!(cmd.next_progress().is_err()); // error does not wrap counter
     assert!(cmd.set_progress(0, MAX_PROGRESS_DEPTH + 1).is_err());
@@ -345,6 +507,8 @@ fn nesting_limit_is_checked_without_wrapping_and_none_can_unwind() {
     for _ in 0..MAX_PROGRESS_DEPTH {
         logger.start_progress(0, 0, "").unwrap();
     }
+    // The zero-width range is valid (it prints dots); this start fails only on
+    // the native MAX_PROGRESS_DEPTH bound, which has no source counterpart.
     assert!(logger.start_progress(0, 0, "").is_err());
     assert_eq!(nesting.depth(), MAX_PROGRESS_DEPTH);
     for _ in 0..MAX_PROGRESS_DEPTH {
@@ -370,6 +534,8 @@ fn writer_clock_and_backend_errors_propagate() {
         cmd.start_progress(0, 1, "io", 0),
         Err(Error::Io(_))
     ));
+    // Injected clocks are native: a NaN sample, a failing clock and a failing
+    // backend have no source counterpart, and all use valid ranges.
     let mut cmd = CommandProgressLogger::with_clock(Vec::new(), clock);
     time.lock().unwrap().wall_seconds = f64::NAN;
     assert!(cmd.start_progress(0, 1, "bad clock", 0).is_err());
@@ -474,6 +640,9 @@ fn command_timer_excludes_header_io_and_active_restart_matches_current_stopwatch
     let mut cmd = CommandProgressLogger::with_clock(Vec::new(), clock);
     cmd.start_progress(0, 10, "first", 0).unwrap();
     time.lock().unwrap().wall_seconds = 10.0;
+    // A second start on a running command backend fails in the Release build
+    // too: StopWatch::start throws unconditionally (StopWatch.cpp:43) after the
+    // header is printed and the range replaced (fixture row 45).
     assert!(cmd.start_progress(5, 20, "restart", 1).is_err());
     assert_eq!(cmd.next_progress().unwrap(), 6);
     time.lock().unwrap().wall_seconds = 12.0;
@@ -505,4 +674,139 @@ fn system_clock_reports_finite_nondecreasing_process_cpu_without_timing_assumpti
         assert_eq!(first.cpu_seconds, None);
         assert_eq!(second.cpu_seconds, None);
     }
+}
+
+/// Tier-1 differential: every call of the Release oracle driver, replayed in
+/// order against the port with one shared nesting context (the source's static
+/// depth). The driver waited for a new wall-clock second before each
+/// set/next so that every one dispatched; the manual clock advances its second
+/// at the same points. Outcome, depth after the call and the bytes the call
+/// wrote (timing texts masked) must equal the captured Release row.
+#[test]
+fn release_range_fixture_replays_call_for_call() {
+    let fixture = std::fs::read_to_string(RELEASE_FIXTURE).unwrap();
+    let mut lines = fixture.lines().filter(|line| !line.starts_with('#'));
+    assert_eq!(
+        lines.next(),
+        Some("seq\tcase\tlogger\top\ta\tb\tlabel\toutcome\tdepth_after\tdispatch\toutput")
+    );
+    let (clock, time) = manual_clock(sample(1_000, 0.0, Some(0.0)));
+    let nesting = ProgressNesting::default();
+    let output = SharedOutput::default();
+    let mut loggers: BTreeMap<String, ProgressLogger> = BTreeMap::new();
+    let mut rows = 0;
+    let mut exceptions = 0;
+    for line in lines {
+        let fields: Vec<&str> = line.split('\t').collect();
+        assert_eq!(fields.len(), 11, "{line}");
+        let (seq, name, op) = (fields[0], fields[2], fields[3]);
+        let a: i64 = fields[4].parse().unwrap();
+        let b: i64 = fields[5].parse().unwrap();
+        let label = unescape(fields[6]);
+        let (outcome, depth_after, dispatch) = (fields[7], fields[8], fields[9]);
+        let expected = unescape(fields[10]);
+        let logger = loggers.entry(name.to_owned()).or_insert_with(|| {
+            ProgressLogger::with_clock_and_nesting(clock.clone(), nesting.clone())
+        });
+        {
+            // Every sample moves on, so the command timer sees real intervals.
+            let mut now = time.lock().unwrap();
+            now.wall_seconds += 0.25;
+            now.cpu_seconds = now.cpu_seconds.map(|cpu| cpu + 0.01);
+            if matches!(op, "set" | "next") {
+                assert_eq!(dispatch, "forced", "row {seq}");
+                now.wall_second += 1;
+            } else {
+                assert_eq!(dispatch, "-", "row {seq}");
+            }
+        }
+        let result = match op {
+            "type" => {
+                let kind = match a {
+                    0 => ProgressLogType::Cmd,
+                    1 => ProgressLogType::Gui,
+                    2 => ProgressLogType::None,
+                    other => panic!("row {seq}: log type {other}"),
+                };
+                logger.set_log_type(kind);
+                assert_eq!(logger.log_type(), kind, "row {seq}");
+                if kind == ProgressLogType::Cmd {
+                    // setLogType(CMD), with stdout redirected to the capture.
+                    logger.set_logger(Box::new(CommandProgressLogger::with_clock(
+                        output.clone(),
+                        clock.clone(),
+                    )));
+                }
+                Ok(())
+            }
+            "start" => logger.start_progress(a, b, &label),
+            "set" => logger.set_progress(a),
+            "next" => logger.next_progress(),
+            "end" => logger.end_progress(0),
+            other => panic!("row {seq}: operation {other}"),
+        };
+        match outcome {
+            "ok" => assert!(result.is_ok(), "row {seq}: {result:?}"),
+            thrown => {
+                // Release throws Exception::Precondition from StopWatch, which is
+                // not a Debug-only check; the port reports the same condition.
+                let fields: Vec<&str> = thrown.split('|').collect();
+                assert_eq!(
+                    fields[..2],
+                    ["exception", "Precondition failed"],
+                    "row {seq}"
+                );
+                let message = match fields[3] {
+                    "StopWatch.cpp:43" => "progress timer is already running",
+                    "StopWatch.cpp:55" => "progress timer is not running",
+                    other => panic!("row {seq}: unexpected source location {other}"),
+                };
+                assert!(
+                    matches!(&result, Err(Error::InvalidValue(text)) if text == message),
+                    "row {seq}: {result:?}"
+                );
+                exceptions += 1;
+            }
+        }
+        assert_eq!(nesting.depth().to_string(), depth_after, "row {seq}: depth");
+        assert_eq!(mask_timing(&output.take()), expected, "row {seq}: output");
+        rows += 1;
+    }
+    assert_eq!((rows, exceptions), (60, 2));
+    assert_eq!(nesting.depth(), 0);
+}
+
+/// GUI and NONE: the source's `NoProgressLoggerImpl` and default GUI factory
+/// ignore every argument, and the wrapper has no Release range check, so an
+/// inverted range is accepted, reaches a custom GUI backend unchanged and
+/// still nests (fixture rows 51-60 cover the default backends).
+#[test]
+fn gui_and_none_accept_an_inverted_range() {
+    let events = Arc::new(Mutex::new(Vec::new()));
+    let (clock, time) = manual_clock(sample(5, 0.0, None));
+    let nesting = ProgressNesting::default();
+    let mut none = ProgressLogger::with_clock_and_nesting(clock.clone(), nesting.clone());
+    none.start_progress(5, 0, "none inverted").unwrap();
+    assert_eq!(nesting.depth(), 1);
+    let mut gui = ProgressLogger::with_clock_and_nesting(clock, nesting.clone());
+    let factory_events = events.clone();
+    gui.set_gui_factory(Arc::new(move || recorder(&factory_events)));
+    gui.set_log_type(ProgressLogType::Gui);
+    gui.start_progress(i64::MAX, i64::MIN, "gui inverted")
+        .unwrap();
+    assert_eq!(nesting.depth(), 2);
+    time.lock().unwrap().wall_second = 6;
+    gui.set_progress(3).unwrap();
+    gui.end_progress(0).unwrap();
+    none.set_progress(3).unwrap();
+    none.end_progress(0).unwrap();
+    assert_eq!(nesting.depth(), 0);
+    assert_eq!(
+        *events.lock().unwrap(),
+        vec![
+            Event::Start(i64::MAX, i64::MIN, "gui inverted".into(), 1),
+            Event::Set(3, 2),
+            Event::End(1, 0),
+        ]
+    );
 }

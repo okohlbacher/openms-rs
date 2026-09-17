@@ -3,6 +3,12 @@
 // $Maintainer: OpenMS Rust contributors $
 
 //! Replaceable progress reporting with source-compatible whole-second throttling.
+//!
+//! Port of `CONCEPT/ProgressLogger.h` and `ProgressLogger.cpp`. Behaviour
+//! follows the reference Linux x86_64 **Release** build, which compiles the
+//! source's `OPENMS_PRECONDITION` checks out; see
+//! `docs/PROGRESS_LOGGER_SUPPORT.md` for the API mapping, the native
+//! differences and the executed Release evidence.
 
 use crate::{Error, Result};
 use std::io::{self, Write};
@@ -10,12 +16,17 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, OnceLock};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
-/// Source enum values, including GUI's default no-op backend.
+/// Possible log types (source `ProgressLogger::LogType`), with the source
+/// discriminants. The default is `None`, as in the source.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[repr(u8)]
 pub enum ProgressLogType {
+    /// Command-line progress (source `CMD`), written to stdout.
     Cmd = 0,
+    /// Progress dialog (source `GUI`). The backend comes from the logger's GUI
+    /// factory, which defaults to the no-op backend as in the core library.
     Gui = 1,
+    /// No progress logging (source `NONE`); every operation is a no-op.
     #[default]
     None = 2,
 }
@@ -24,7 +35,9 @@ pub enum ProgressLogType {
 /// `wall_second` independently drives the source's wall-clock bucket throttle.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ProgressTime {
+    /// Whole civil seconds, the counterpart of the source's `time(nullptr)`.
     pub wall_second: i64,
+    /// Absolute elapsed wall time in seconds for the command timer.
     pub wall_seconds: f64,
     /// `None` means that process CPU timing is unavailable, not zero CPU usage.
     pub cpu_seconds: Option<f64>,
@@ -62,17 +75,29 @@ pub fn system_progress_clock() -> ProgressClock {
     })
 }
 
-/// Four operations of the source backend, with owned replacement and checked
-/// errors. An explicit `set_progress` need not update `next_progress`'s counter.
+/// Four operations of the source backend (`ProgressLogger::ProgressLoggerImpl`),
+/// with owned replacement and checked errors. An explicit `set_progress` need
+/// not update `next_progress`'s counter.
 pub trait ProgressBackend: Send {
+    /// Starts a section. `begin` and `end` arrive exactly as the caller passed
+    /// them, including `begin > end`: the source's only range check is a
+    /// Debug-only precondition, absent from the Release build.
     fn start_progress(&mut self, begin: i64, end: i64, label: &str, depth: usize) -> Result<()>;
+    /// Shows `value`; `depth` is the nesting depth after the section's start.
     fn set_progress(&mut self, value: i64, depth: usize) -> Result<()>;
+    /// Advances the backend's own counter and returns it; shows nothing.
     fn next_progress(&mut self) -> Result<i64>;
+    /// Finalizes a section; `bytes_processed` (0 = none) requests a rate.
     fn end_progress(&mut self, depth: usize, bytes_processed: u64) -> Result<()>;
 }
 
-/// Bounded indentation and labels prevent caller-controlled output allocations.
+/// Native bound on nesting depth, and so on indentation (two spaces per level).
+/// The source's `static int recursion_depth_` has no limit; this bound keeps
+/// caller-controlled indentation allocations finite. It is not a source check.
 pub const MAX_PROGRESS_DEPTH: usize = 1024;
+/// Native bound on a label's length in bytes (1 MiB), limiting the
+/// caller-controlled header allocation. The source accepts any label; this
+/// bound is not a source check.
 pub const MAX_PROGRESS_LABEL_BYTES: usize = 1024 * 1024;
 
 /// Shared source-style nesting. `Default` creates an isolated context; ordinary
@@ -80,10 +105,13 @@ pub const MAX_PROGRESS_LABEL_BYTES: usize = 1024 * 1024;
 #[derive(Clone, Debug, Default)]
 pub struct ProgressNesting(Arc<AtomicUsize>);
 impl ProgressNesting {
+    /// The process-wide context, the counterpart of the source's static
+    /// `ProgressLogger::recursion_depth_`.
     pub fn global() -> Self {
         static GLOBAL: OnceLock<ProgressNesting> = OnceLock::new();
         GLOBAL.get_or_init(Self::default).clone()
     }
+    /// The current nesting depth: successful starts minus ends, never below 0.
     pub fn depth(&self) -> usize {
         self.0.load(Ordering::Relaxed)
     }
@@ -96,12 +124,14 @@ impl ProgressNesting {
             .map_err(|_| invalid("progress nesting limit exceeded"))
     }
     fn decrement(&self) -> usize {
-        self.0
-            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
-                Some(value.saturating_sub(1))
-            })
-            .expect("the saturating update always succeeds")
-            .saturating_sub(1)
+        // The closure never declines, so this is always `Ok`; both arms carry
+        // the previous depth, which avoids a panicking unwrap.
+        let (Ok(previous) | Err(previous)) =
+            self.0
+                .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
+                    Some(value.saturating_sub(1))
+                });
+        previous.saturating_sub(1)
     }
 }
 
@@ -153,9 +183,13 @@ impl Clone for ProgressLogger {
     }
 }
 impl ProgressLogger {
+    /// A logger of type `None` using the system clock and the global nesting
+    /// context (source default constructor).
     pub fn new() -> Self {
         Self::default()
     }
+    /// A logger of type `None` with an injected `clock` and `nesting` context,
+    /// for deterministic throttling and timing or isolated nesting.
     pub fn with_clock_and_nesting(clock: ProgressClock, nesting: ProgressNesting) -> Self {
         Self {
             log_type: ProgressLogType::None,
@@ -166,13 +200,18 @@ impl ProgressLogger {
             gui_factory: Arc::new(|| Box::new(NoProgress)),
         }
     }
+    /// The type of progress log being used (source `getLogType`).
     pub fn log_type(&self) -> ProgressLogType {
         self.log_type
     }
+    /// Selects the progress log type (source `setLogType`); the default is
+    /// `None`. Always creates a fresh backend, even for the current type.
     pub fn set_log_type(&mut self, log_type: ProgressLogType) {
         self.backend = self.make_backend(log_type);
         self.log_type = log_type;
     }
+    /// Replaces the backend used for progress logging (source `setLogger`),
+    /// taking ownership. The reported log type is unchanged.
     pub fn set_logger(&mut self, backend: Box<dyn ProgressBackend>) {
         self.backend = backend;
     }
@@ -191,8 +230,36 @@ impl ProgressLogger {
             )),
         }
     }
+    /// Initializes the progress display (source `startProgress`).
+    ///
+    /// Sets the progress range from `begin` to `end` and the label to `label`.
+    /// If `begin` equals `end`, [`set_progress`](Self::set_progress) only
+    /// indicates that the program is still running, without an absolute
+    /// progress value. As the source notes, select a type with
+    /// [`set_log_type`](Self::set_log_type) first; the default `None` shows
+    /// nothing.
+    ///
+    /// Every range is accepted and reaches the backend unchanged, including
+    /// `begin > end`. The source's `OPENMS_PRECONDITION(begin <= end, ...)`
+    /// (`ProgressLogger.cpp:235`) exists only in Debug builds; the reference
+    /// Release build has no range check. The command backend stores an
+    /// inverted range as given and then reports every value as invalid,
+    /// because no value lies inside it.
+    ///
+    /// Records the current wall-clock second for the throttle, dispatches at
+    /// the current nesting depth, then increments the depth.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when `label` is longer than
+    /// [`MAX_PROGRESS_LABEL_BYTES`] or the depth has reached
+    /// [`MAX_PROGRESS_DEPTH`]. These are native bounds, not source checks, and
+    /// are tested before any state changes. Clock and backend errors
+    /// propagate. After a backend error the depth is not incremented, as in the
+    /// source when its backend throws (the command backend's
+    /// `StopWatch is already started!` on a second start).
     pub fn start_progress(&mut self, begin: i64, end: i64, label: &str) -> Result<()> {
-        check_start(begin, end, label, self.nesting.depth())?;
+        check_start(label, self.nesting.depth())?;
         if self.nesting.depth() >= MAX_PROGRESS_DEPTH {
             return Err(invalid("progress nesting limit exceeded"));
         }
@@ -201,6 +268,16 @@ impl ProgressLogger {
             .start_progress(begin, end, label, self.nesting.depth())?;
         self.nesting.increment()
     }
+    /// Sets the current progress (source `setProgress`).
+    ///
+    /// Does nothing when the current wall-clock second equals the recorded
+    /// one; otherwise records the second and dispatches `value` at the current
+    /// depth. Any `value` is accepted; the command backend reports one outside
+    /// the range as a printed diagnostic, not as an error.
+    ///
+    /// # Errors
+    ///
+    /// Clock and backend errors propagate.
     pub fn set_progress(&mut self, value: i64) -> Result<()> {
         // The source calls time() twice when dispatching, once when suppressed.
         // A backward clock adjustment to another bucket also dispatches.
@@ -210,19 +287,48 @@ impl ProgressLogger {
         self.last_invoke = (self.clock)()?.wall_second;
         self.backend.set_progress(value, self.nesting.depth())
     }
+    /// Increments progress by one within the range (source `nextProgress`).
+    ///
+    /// The backend counter advances before the same-second throttle, so a
+    /// suppressed call still counts; a dispatched call shows the new count.
+    ///
+    /// # Errors
+    ///
+    /// Backend (including counter overflow), clock and display errors
+    /// propagate.
     pub fn next_progress(&mut self) -> Result<()> {
         let value = self.backend.next_progress()?;
         self.set_progress(value)
     }
+    /// Ends the progress display (source `endProgress`).
+    ///
+    /// `bytes_processed` optionally requests a bytes-per-second estimate; 0
+    /// requests none. The depth is decremented first when nonzero, then the
+    /// backend is called, even without a matching start.
+    ///
+    /// # Errors
+    ///
+    /// Backend errors propagate. The command backend refuses an end without a
+    /// running timer, as the Release build's `StopWatch::stop` throws
+    /// `StopWatch cannot be stopped if not running!`.
     pub fn end_progress(&mut self, bytes_processed: u64) -> Result<()> {
         let depth = self.nesting.decrement();
         self.backend.end_progress(depth, bytes_processed)
     }
 }
 
-/// Command backend writing through `std::io::Write`. It preserves source f32
-/// percentage arithmetic, labels, indentation, diagnostics, and timer formatting.
-/// Missing native process CPU timing is displayed as `unavailable (CPU)`.
+/// Command backend writing through `std::io::Write` (source
+/// `CMDProgressLoggerImpl`). It preserves source f32 percentage arithmetic,
+/// labels, indentation, diagnostics, and timer formatting. Missing native
+/// process CPU timing is displayed as `unavailable (CPU)`.
+///
+/// Like the Release build, it stores any range as given
+/// (`ProgressLogger.cpp:36-40`). Setting a value then prints a dot when begin
+/// equals end (`:48-51`), the invalid-value diagnostic when the value lies
+/// below begin or above end (`:52-56`), and otherwise the percentage (`:57-63`).
+/// For an inverted range every value takes the diagnostic branch, and the
+/// percentage branch is only reached with `begin < end`, so it never divides
+/// by zero.
 pub struct CommandProgressLogger<W: Write> {
     writer: W,
     clock: ProgressClock,
@@ -232,9 +338,11 @@ pub struct CommandProgressLogger<W: Write> {
     started: Option<ProgressTime>,
 }
 impl<W: Write> CommandProgressLogger<W> {
+    /// A backend writing to `writer`, timed by the system clock.
     pub fn new(writer: W) -> Self {
         Self::with_clock(writer, system_progress_clock())
     }
+    /// A backend writing to `writer`, timed by the injected `clock`.
     pub fn with_clock(writer: W, clock: ProgressClock) -> Self {
         Self {
             writer,
@@ -245,13 +353,16 @@ impl<W: Write> CommandProgressLogger<W> {
             started: None,
         }
     }
+    /// Returns the writer, with everything written so far.
     pub fn into_inner(self) -> W {
         self.writer
     }
 }
 impl<W: Write + Send> ProgressBackend for CommandProgressLogger<W> {
     fn start_progress(&mut self, begin: i64, end: i64, label: &str, depth: usize) -> Result<()> {
-        check_start(begin, end, label, depth)?;
+        // Native label/depth bounds only; any begin/end pair is stored, as in
+        // the Release build.
+        check_start(label, depth)?;
         let already_running = self.started.is_some();
         self.begin = begin;
         self.end = end;
@@ -264,7 +375,9 @@ impl<W: Write + Send> ProgressBackend for CommandProgressLogger<W> {
         )?;
         self.writer.flush()?;
         // Source excludes header I/O from the timer. Its reset() restarts an
-        // active StopWatch, so the subsequent start() throws after that reset.
+        // active StopWatch, so the subsequent start() throws after that reset
+        // (`StopWatch.cpp:43`, an unconditional throw that the Release build
+        // executes; not a Debug-only precondition).
         let started = (self.clock)()?;
         check_time(started)?;
         self.started = Some(started);
@@ -284,6 +397,9 @@ impl<W: Write + Send> ProgressBackend for CommandProgressLogger<W> {
                 value, self.begin, self.end
             )?;
         } else {
+            // Reached only with begin < end. The source subtracts without a
+            // check; an i64 difference that overflows is undefined there and an
+            // error here.
             let distance = value
                 .checked_sub(self.begin)
                 .ok_or_else(|| invalid("progress difference exceeds signed range"))?;
@@ -310,6 +426,8 @@ impl<W: Write + Send> ProgressBackend for CommandProgressLogger<W> {
     }
     fn end_progress(&mut self, depth: usize, bytes_processed: u64) -> Result<()> {
         check_depth(depth)?;
+        // Release `StopWatch::stop` throws unconditionally here
+        // (`StopWatch.cpp:55`) before anything is printed.
         let start = self
             .started
             .ok_or_else(|| invalid("progress timer is not running"))?;
@@ -349,6 +467,7 @@ impl<W: Write + Send> ProgressBackend for CommandProgressLogger<W> {
 fn invalid(message: &str) -> Error {
     Error::InvalidValue(message.into())
 }
+/// Native indentation bound for backend calls; not a source check.
 fn check_depth(depth: usize) -> Result<()> {
     if depth > MAX_PROGRESS_DEPTH {
         Err(invalid("progress nesting limit exceeded"))
@@ -356,10 +475,9 @@ fn check_depth(depth: usize) -> Result<()> {
         Ok(())
     }
 }
-fn check_start(begin: i64, end: i64, label: &str, depth: usize) -> Result<()> {
-    if begin > end {
-        return Err(invalid("invalid progress range"));
-    }
+/// Native start bounds. There is deliberately no range check: the source's
+/// `begin <= end` precondition is Debug-only and absent from the Release build.
+fn check_start(label: &str, depth: usize) -> Result<()> {
     if label.len() > MAX_PROGRESS_LABEL_BYTES {
         return Err(invalid("progress label limit exceeded"));
     }

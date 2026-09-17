@@ -8,11 +8,16 @@
 //! Evidence (see `docs/FEATURE_FINDER_PICKED_SUPPORT.md` and
 //! `tests/data/feature_finder_picked_provenance.json`):
 //!
-//! - tier 1, executed C++ (product SDK): the `-write_ini` algorithm section of
-//!   FeatureFinderCentroided (C1), the library state of the C2 driver
-//!   `ffap_stages` (effective members, intensity quantiles, isotope windows,
-//!   per-peak score arrays, printed seed counts) and of the B6 driver
-//!   `seed_stage` (default parameters, 7 bins and charges 1 to 3, min_spectra 1);
+//! - tier 1, executed C++: the `-write_ini` algorithm section of
+//!   FeatureFinderCentroided (C1, product SDK), and, from the Linux x86_64
+//!   Release build `openms4-release-bc9cc12-c19e494-174b576` (the reference
+//!   platform), the library state of the C2 driver `ffap_stages` (effective
+//!   members, intensity quantiles, isotope windows, per-peak score arrays,
+//!   printed seed counts) and of the B6 driver `seed_stage` (default
+//!   parameters, 7 bins and charges 1 to 3, min_spectra 1), re-extracted by
+//!   `../oracle/ffap-sem-completion/extract` with the B6 extraction unchanged;
+//!   the degenerate intensity bins of the same build (driver
+//!   `degenerate_stage`, the generalised `seed_stage`);
 //! - adapted: the ordered seed lists, which both drivers re-derive from the
 //!   library's score arrays with the source's selection code;
 //! - tier 3 and 4: source-review and hand-derived cases for validation, the
@@ -26,8 +31,8 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use openms::analysis::feature_finder_picked::algorithm::{
-    AbundanceOverride, HANDLER_NAME, Limits, Options, ReportedMz, RtShape, Settings,
-    UNSORTED_WARNING, default_parameters, run, run_with_options, validate_input,
+    AbundanceOverride, DegenerateBinStep, HANDLER_NAME, Limits, Options, ReportedMz, RtShape,
+    Settings, UNSORTED_WARNING, default_parameters, run, run_with_options, validate_input,
 };
 use openms::analysis::feature_finder_picked::helper_structs::{
     IsotopePattern, PatternPeak, TheoreticalIsotopePattern,
@@ -35,7 +40,7 @@ use openms::analysis::feature_finder_picked::helper_structs::{
 use openms::analysis::feature_finder_picked::scoring::{
     IntensityThresholds, QUANTILE_COUNT, find_isotope, isotope_score, nearest_from, position_score,
 };
-use openms::analysis::feature_finder_picked::seeds::{SeedStage, overall_score};
+use openms::analysis::feature_finder_picked::seeds::{IsotopeWindows, SeedStage, overall_score};
 use openms::format::{FileHandler, FileType, PeakFileOptions, paramxml};
 use openms::kernel::{FeatureMap, NumericRange};
 use openms::param::{Param, ParamValue};
@@ -264,8 +269,10 @@ fn check_stage(stage: &SeedStage, case: &Case) {
     let charges = scores.charge_count();
     let table = rows(case.scores);
     assert_eq!(table.len(), peaks, "{}: score rows", case.config);
-    // Overall scores that the executed Apple powf misrounds, each with the
-    // correctly rounded value, one binary32 step away, that the port produces.
+    // Overall scores that the executed glibc powf rounds one binary32 step away
+    // from the correctly rounded power (8 of 30,840; the macOS arm64 product
+    // SDK's Apple powf misrounded 99). The port computes that powf, so it
+    // gives the executed, misrounded value at each of them as everywhere else.
     let rounding = rounding_rows(case.scores);
     let mut rounded = 0;
     let mut mismatches = Vec::new();
@@ -291,11 +298,11 @@ fn check_stage(stage: &SeedStage, case: &Case) {
             actual.push(scores.overall(c, s).unwrap()[p]);
         }
         for (column, (value, oracle)) in actual.iter().zip(arrays).enumerate() {
-            let mut expected = f32_hex(oracle);
+            let expected = f32_hex(oracle);
             if column >= 3 + charges {
                 if let Some(&(misrounded, correct)) = rounding.get(&(s, p, column - 3 - charges)) {
                     assert_eq!(misrounded.to_bits(), expected.to_bits(), "{}", case.config);
-                    expected = correct;
+                    assert_ne!(value.to_bits(), correct.to_bits(), "{}", case.config);
                     rounded += 1;
                 }
             }
@@ -347,16 +354,11 @@ fn check_stage(stage: &SeedStage, case: &Case) {
                     seed.spectrum.to_string(),
                     seed.peak.to_string(),
                     format!("{:08x}", seed.intensity.to_bits()),
-                    // The drivers record the executed (possibly misrounded) score.
+                    // The drivers record the executed (possibly misrounded)
+                    // score, which the port computes as well.
                     format!(
                         "{:08x}",
-                        rounding
-                            .get(&(seed.spectrum, seed.peak, charge_index))
-                            .map_or(
-                                scores.overall(charge_index, seed.spectrum).unwrap()[seed.peak],
-                                |&(misrounded, _)| misrounded
-                            )
-                            .to_bits()
+                        scores.overall(charge_index, seed.spectrum).unwrap()[seed.peak].to_bits()
                     ),
                 )
             })
@@ -841,8 +843,24 @@ fn min_spectra_one_follows_the_source_and_finds_no_seed() {
     assert!(stage.charges()[0].seeds.is_empty());
     assert_eq!(stage.log(), ["Found 0 seeds for charge 2."]);
     // Every trace score is the NaN of 0.0 / 0, so no peak can reach the seed
-    // threshold; the whole run therefore ends with an empty map.
-    assert!(stage.scores().trace(0).unwrap().iter().all(|s| s.is_nan()));
+    // threshold; the whole run therefore ends with an empty map. The Release
+    // build stores the x86_64 default NaN `0xffc00000` for every one of the
+    // 3,084 peaks, and the overall score carries it through the product
+    // (`min_spectra_1` in `nonfinite_stage.tsv.gz`, whose score digest
+    // `non_finite_inputs_match_the_linux_release_build` compares); the port
+    // gives these bits on every host.
+    for s in 0..stage.experiment().spectra.len() {
+        assert!(
+            stage
+                .scores()
+                .trace(s)
+                .unwrap()
+                .iter()
+                .chain(stage.scores().overall(0, s).unwrap())
+                .all(|score| score.to_bits() == 0xffc0_0000),
+            "spectrum {s}"
+        );
+    }
     let output = run(ffc1_input(), &FeatureMap::new(), &parameters).unwrap();
     assert!(output.features.is_empty());
     // The two empty entries are the blank lines the source prints before the
@@ -885,6 +903,18 @@ fn experiment(spectra: Vec<MSSpectrum>) -> MSExperiment {
     }
 }
 
+/// The m/z values of `v3_mz_nan_three_unsorted` after the executed
+/// `MSSpectrum::sortByPosition` (`sort_mobility_stage.tsv.gz`, score rows 0 to
+/// 2): 500, 501, NaN.
+const EXECUTED_NAN_THREE_ORDER: [u64; 3] = [
+    0x407f_4000_0000_0000,
+    0x407f_5000_0000_0000,
+    0x7ff8_0000_0000_0000,
+];
+
+/// The printed seed line of `v3_seeds_nan_500_600` (`sort_mobility_stage.tsv.gz`).
+const EXECUTED_NAN_500_600_SEEDS: &str = "Found 0 seeds for charge 2.";
+
 #[test]
 fn empty_input_returns_an_empty_map_before_the_parameters_are_read() {
     let mut invalid = Param::new();
@@ -921,9 +951,56 @@ fn input_checks_follow_the_source() {
     // A negative first m/z, checked after sorting.
     let e = experiment(vec![spectrum(1.0, 1, &[(500.0, 1.0), (-1.0, 1.0)])]);
     assert!(message(SeedStage::run(e, &none, &p)).contains("positive m/z"));
-    // Non-finite values (native).
+    // Non-finite values are read as the source reads them. A single scan
+    // with a NaN intensity: step 1 has zero steps, so every cell holds that one
+    // peak and sorts it alone (defined); its intensity score is the default
+    // NaN of the zero-step distances, whose `divsd` result comes first in
+    // every product (derived from `IntensityThresholds::score` and the
+    // executed `iscore_probe`, which pins NaN intensities on zero-step
+    // grids); and one scan never reaches the seed loop. The executed
+    // counterparts on FeatureFinderCentroided_1 are in
+    // `tests/feature_finder_picked.rs`
+    // (`non_finite_inputs_match_the_linux_release_build`).
     let e = experiment(vec![spectrum(1.0, 1, &[(500.0, f32::NAN)])]);
-    assert!(message(SeedStage::run(e, &none, &p)).contains("finite"));
+    let s = SeedStage::run(e, &none, &p).unwrap().unwrap();
+    assert_eq!(s.scores().intensity(0).unwrap()[0].to_bits(), 0xffc0_0000);
+    assert_eq!(
+        s.log(),
+        [
+            "Found 0 seeds for charge 1.",
+            "Found 0 seeds for charge 2.",
+            "Found 0 seeds for charge 3.",
+            "Found 0 seeds for charge 4.",
+        ]
+    );
+    // An unsorted spectrum holding a NaN m/z beside two different m/z values:
+    // `std::is_sorted` stops at 501 > 500, and the source then sorts the peaks
+    // with `std::stable_sort` under a comparator that is no strict weak
+    // ordering, which libstdc++'s merge sort does without leaving the range.
+    // The executed Release build leaves 500, 501, NaN
+    // (`v3_mz_nan_three_unsorted` in `sort_mobility_stage.tsv.gz`, whose
+    // score rows list the sorted m/z values; without charges, since the
+    // pattern lookup of a NaN m/z throws). (Were the NaN between the two,
+    // `std::is_sorted` would compare nothing false and the source would not
+    // sort.)
+    let e = experiment(vec![spectrum(
+        1.0,
+        1,
+        &[(501.0, 1.0), (500.0, 1.0), (f64::NAN, 1.0)],
+    )]);
+    let mut no_charges = Param::new();
+    set(
+        &mut no_charges,
+        "isotopic_pattern:charge_low",
+        ParamValue::Integer(5),
+    );
+    let s = SeedStage::run(e, &none, &no_charges).unwrap().unwrap();
+    let sorted: Vec<u64> = s.experiment().spectra[0]
+        .peaks
+        .iter()
+        .map(|peak| peak.mz.to_bits())
+        .collect();
+    assert_eq!(sorted, EXECUTED_NAN_THREE_ORDER);
     // The parameters are checked after the input.
     let mut invalid = Param::new();
     set(&mut invalid, "intensity:bins", ParamValue::Integer(0));
@@ -974,13 +1051,21 @@ fn run_continues_past_seed_selection() {
 #[test]
 fn undefined_source_configurations_are_refused() {
     let none = FeatureMap::new();
-    // write_debug reads an undeclared parameter in the source.
+    // write_debug: the stage was refused here while the whole debug mode was.
+    // The source's seed stage is defined in debug mode (the executed C++
+    // writes its seed files and finishes when no seed reaches the fit), and
+    // the flag does not change what the stage computes; its output is tested
+    // in tests/feature_finder_picked_instrumentation.rs.
     let mut p = ffc1_parameters();
     set(&mut p, "write_debug", ParamValue::String("true".into()));
-    assert!(matches!(
-        SeedStage::run(ffc1_input(), &none, &p),
-        Err(Error::Unsupported(_))
-    ));
+    let debug = SeedStage::run(ffc1_input(), &none, &p).unwrap().unwrap();
+    let plain = SeedStage::run(ffc1_input(), &none, &ffc1_parameters())
+        .unwrap()
+        .unwrap();
+    assert!(debug.settings().write_debug);
+    assert_eq!(debug.charges(), plain.charges());
+    assert_eq!(debug.scores(), plain.scores());
+    assert_eq!(debug.log(), plain.log());
     // charge_low more than one above charge_high.
     let mut p = ffc1_parameters();
     set(
@@ -1002,30 +1087,91 @@ fn undefined_source_configurations_are_refused() {
     let s = stage(ffc1_input(), &none, &p);
     assert!(s.charges().is_empty());
     assert_eq!(s.scores().charge_count(), 0);
-    // A single retention time: zero RT bin width.
-    let e = experiment(vec![spectrum(1.0, 1, &[(500.0, 1.0), (501.0, 2.0)])]);
-    assert!(matches!(
-        SeedStage::run(e, &none, &Param::new()),
-        Err(Error::InvalidValue(_))
-    ));
-    // A single m/z: zero m/z bin width.
-    let e = experiment(vec![
-        spectrum(1.0, 1, &[(500.0, 1.0)]),
-        spectrum(2.0, 1, &[(500.0, 2.0)]),
-    ]);
-    assert!(matches!(
-        SeedStage::run(e, &none, &Param::new()),
-        Err(Error::InvalidValue(_))
-    ));
-    // A non-finite user seed.
+    // A single retention time or a single m/z: a zero bin step, for which the
+    // source converts floor(NaN) to UInt. The default follows the Linux x86_64
+    // Release build (every intensity score NaN, no seed; executed in
+    // `degenerate_bin_steps_match_the_linux_release_build`), and
+    // DegenerateBinStep::Refuse refuses once the seed loop reads the scores:
+    // with the default min_spectra 10 (min_spectra_ 5), from 11 scans on. Two
+    // scans never reach the seed loop and are not refused.
+    let refuse = Options {
+        degenerate_bin_step: DegenerateBinStep::Refuse,
+        ..Options::default()
+    };
+    let one_rt = |n: usize| {
+        experiment(
+            (0..n)
+                .map(|_| spectrum(1.0, 1, &[(500.0, 1.0), (501.0, 2.0)]))
+                .collect(),
+        )
+    };
+    let one_mz = |n: usize| {
+        experiment(
+            (0..n)
+                .map(|s| spectrum(s as f64, 1, &[(500.0, 1.0 + s as f32)]))
+                .collect(),
+        )
+    };
+    for e in [one_rt(11), one_mz(11)] {
+        assert!(matches!(
+            SeedStage::run_with_options(e.clone(), &none, &Param::new(), &refuse),
+            Err(Error::InvalidValue(_))
+        ));
+        let s = stage(e, &none, &Param::new());
+        assert!(
+            s.scores()
+                .intensity(5)
+                .unwrap()
+                .iter()
+                .all(|score| score.to_bits() == 0xffc0_0000)
+        );
+        assert!(s.charges().iter().all(|charge| charge.seeds.is_empty()));
+    }
+    for e in [one_rt(2), one_mz(2), one_rt(10), one_mz(10)] {
+        let refusing = SeedStage::run_with_options(e.clone(), &none, &Param::new(), &refuse)
+            .unwrap()
+            .unwrap();
+        // NaN scores make the stages unequal under `PartialEq`; compare bits.
+        let default = stage(e, &none, &Param::new());
+        let bits = |s: &SeedStage| -> Vec<u32> {
+            (0..s.experiment().spectra.len())
+                .flat_map(|index| s.scores().intensity(index).unwrap().to_vec())
+                .map(f32::to_bits)
+                .collect()
+        };
+        assert_eq!(bits(&refusing), bits(&default));
+        assert!(bits(&refusing).iter().all(|&b| b == 0xffc0_0000));
+        assert_eq!(refusing.log(), default.log());
+        assert_eq!(refusing.charges(), default.charges());
+        assert!(
+            refusing
+                .charges()
+                .iter()
+                .all(|charge| charge.seeds.is_empty())
+        );
+    }
+    // A single NaN seed sorts alone and matches no peak: no seed, as the
+    // executed Release build finds (`seeds_one_mz_nan` in
+    // `nonfinite_stage.tsv.gz`). A NaN user-seed m/z among two different seed
+    // m/z values leaves the source's std::sort without a strict weak
+    // ordering; libstdc++'s introsort sorts them anyway, and the port finds
+    // the executed seed count (`v3_seeds_nan_500_600` in
+    // `sort_mobility_stage.tsv.gz`, the same three seeds at retention time
+    // 100).
     let mut seeds = FeatureMap::new();
     seeds
         .features
         .push(openms::kernel::Feature::new(100.0, f64::NAN, 1.0));
-    assert!(matches!(
-        SeedStage::run(ffc1_input(), &seeds, &ffc1_parameters()),
-        Err(Error::InvalidValue(_))
-    ));
+    let s = stage(ffc1_input(), &seeds, &ffc1_parameters());
+    assert_eq!(s.log(), ["Found 0 seeds for charge 2."]);
+    seeds
+        .features
+        .push(openms::kernel::Feature::new(100.0, 500.0, 1.0));
+    seeds
+        .features
+        .push(openms::kernel::Feature::new(100.0, 600.0, 1.0));
+    let s = stage(ffc1_input(), &seeds, &ffc1_parameters());
+    assert_eq!(s.log(), [EXECUTED_NAN_500_600_SEEDS]);
 }
 
 /// A changed abundance computes the intended two-isotope override by default
@@ -1334,18 +1480,836 @@ fn intensity_bin_score_interpolates_the_quantiles() {
         t.score(1.5, 150.0, 3.0).unwrap(),
         expected * weight + expected * weight + expected * weight + expected * weight
     );
-    assert!(t.score(0.5, 150.0, 3.0).is_err());
+    // Below the range, the position floor(-1.0) converts to UInt as the Linux
+    // x86_64 Release build's cvttsd2si does: 0xffffffff, capped at half-bin 1,
+    // the last. Both RT neighbours are bin 0 at distance 1, both m/z neighbours
+    // bin 0 at distance 0, so each weight is 1 / 4 (the probe test covers such
+    // positions on executed grids).
+    let quarter = 0.25 * expected;
+    assert_eq!(
+        t.score(0.5, 150.0, 3.0).unwrap(),
+        quarter + quarter + quarter + quarter
+    );
+    // A NaN retention time selects half-bin 0, and its NaN, sign cleared by the
+    // distance's absolute value, reaches the result first.
+    assert_eq!(
+        t.score(-f64::NAN, 150.0, 3.0).unwrap().to_bits(),
+        0x7ff8_0000_0000_0000
+    );
     assert!(IntensityThresholds::compute(&e, 0).is_err());
 }
 
+/// `overall_score` is the reference build's `powf(trace * intensity *
+/// pattern, 1.0f / 3.0f)`, not the correctly rounded cube root: the executed
+/// Linux Release score of `scores_ffc1.tsv` spectrum 67, peak 23 (charge 2),
+/// which glibc's `__powf_fma` puts one binary32 step above the correctly
+/// rounded value (`overall_rounding.tsv`). `powf(1, y)` is 1 and `powf(+0, y)`
+/// is `+0` for positive `y` (C11 F.10.4.4), and a NaN operand gives NaN.
 #[test]
-fn overall_score_is_the_float_cube_root_of_the_product() {
-    assert_eq!(overall_score(1.0, 1.0, 1.0), 1.0);
-    assert_eq!(overall_score(0.0, 0.5, 1.0), 0.0);
-    let product = 0.9f32 * 0.8f32 * 0.7f32;
-    assert_eq!(
-        overall_score(0.9, 0.8, 0.7),
-        libm::pow(f64::from(product), f64::from(1.0f32 / 3.0f32)) as f32
+fn overall_score_is_the_reference_builds_powf_of_the_product() {
+    assert_eq!(overall_score(1.0, 1.0, 1.0).to_bits(), 1.0f32.to_bits());
+    assert_eq!(overall_score(0.0, 0.5, 1.0).to_bits(), 0.0f32.to_bits());
+    let row = rows("scores_ffc1.tsv")
+        .into_iter()
+        .find(|row| row[0] == "67" && row[1] == "23")
+        .unwrap();
+    let (trace, intensity, pattern, executed) = (
+        f32_hex(&row[4]),
+        f32_hex(&row[5]),
+        f32_hex(&row[7]),
+        f32_hex(&row[8]),
     );
+    assert_eq!(executed.to_bits(), 0x3f2e_ccf7);
+    let (misrounded, correct) = rounding_rows("scores_ffc1.tsv")[&(67, 23, 0)];
+    assert_eq!(misrounded.to_bits(), executed.to_bits());
+    let score = overall_score(trace, intensity, pattern);
+    assert_eq!(score.to_bits(), executed.to_bits());
+    assert_ne!(score.to_bits(), correct.to_bits());
     assert!(overall_score(f32::NAN, 1.0, 1.0).is_nan());
+}
+
+/// Step 2.5 past a zero probability sum and under a NaN trimming cutoff.
+///
+/// Near 10^6 Da every one of the 20 retained averagine bins is below the
+/// smallest binary32 subnormal by more than a hundred orders of magnitude (the
+/// exact bin of 19 heavy isotopes of ~44,000 carbons is ~1e-174), so the
+/// source's `float` bins are all zero, its `renormalize` makes them NaN, its
+/// `trimLeft` erases nothing and its `trimRight` everything: an empty window,
+/// `trimmed_left` 0 and maximum 0. A NaN
+/// `isotopic_pattern:intensity_percentage_optional` fails both trim
+/// comparisons for every weight and empties every window the same way; on a
+/// reused object the windows keep what the earlier run left, re-normalised by
+/// their maximum of 1, and the optional isotopes are counted again over them.
+/// Executed at the stage level: `tests/feature_finder_picked.rs`,
+/// `boundary_cases_match_the_linux_release_build` and
+/// `extended_cases_match_the_linux_release_build`; the reused windows against
+/// an executed object (`reuse_windows.tsv`).
+#[test]
+fn underflowed_windows_and_a_nan_cutoff_leave_nothing_to_append() {
+    let (settings, _) = Settings::from_parameters(&ffc1_parameters()).unwrap();
+    assert_eq!(settings.charge_high, 2);
+    assert_eq!(settings.mass_window_width, 100.0);
+    let options = Options::default();
+    let windows = IsotopeWindows::precalculate(500_000.0, &settings, &options).unwrap();
+    assert_eq!(windows.patterns().len(), 10_001);
+    let empty = |pattern: &TheoreticalIsotopePattern| {
+        pattern.intensity.is_empty()
+            && pattern.max == 0.0
+            && pattern.trimmed_left == 0
+            && pattern.optional_begin == 0
+            && pattern.optional_end == 0
+    };
+    assert!(empty(&windows.patterns()[10_000]));
+    assert!(!windows.patterns()[0].intensity.is_empty());
+
+    let mut nan_cutoff = settings.clone();
+    nan_cutoff.intensity_percentage_optional = f64::NAN;
+    let first = IsotopeWindows::precalculate(1500.0, &settings, &options).unwrap();
+    let nan = IsotopeWindows::precalculate(1500.0, &nan_cutoff, &options).unwrap();
+    assert_eq!(nan.patterns().len(), first.patterns().len());
+    assert!(nan.patterns().iter().all(empty));
+
+    // The reused object: the executed `isotope_distributions_` of one
+    // FeatureFinderAlgorithmPicked object run twice on FeatureFinderCentroided_1
+    // (`reuse_windows.tsv`, `../oracle/ffap-complete-fix4`, `fix4_reuse`, the
+    // round-3 numerics verifier's `v3_reuse`, two runs each, identical).
+    let fixture = std::fs::read_to_string(data("reuse_windows.tsv")).unwrap();
+    let max_mz = ffc1_input()
+        .spectra
+        .iter()
+        .flat_map(|spectrum| spectrum.peaks.iter().map(|peak| peak.mz))
+        .fold(f64::MIN, f64::max);
+    for (scenario, first_max_mz, first, second) in [
+        ("nan_after_default", max_mz, &settings, &nan_cutoff),
+        ("default_after_nan", max_mz, &nan_cutoff, &settings),
+        ("default_after_heavy", 137_000.0, &settings, &settings),
+        ("default_twice", max_mz, &settings, &settings),
+    ] {
+        let earlier = IsotopeWindows::precalculate(first_max_mz, first, &options).unwrap();
+        let reused =
+            IsotopeWindows::precalculate_onto(Some(&earlier), max_mz, second, &options).unwrap();
+        let rows = window_rows(&reused);
+        let executed: Vec<&str> = fixture
+            .lines()
+            .filter_map(|line| line.strip_prefix(scenario)?.strip_prefix('\t'))
+            .filter(|line| !line.starts_with("run\t"))
+            .collect();
+        assert_eq!(rows.len(), executed.len(), "{scenario}: rows");
+        for (actual, expected) in rows.iter().zip(&executed) {
+            assert_eq!(actual, expected, "{scenario}");
+        }
+    }
+}
+
+/// The rows `fix4_reuse` prints for `windows`: the first 40 isotope windows
+/// (index, `trimmed_left`, optional range, maximum and intensities as bits)
+/// and the window count.
+fn window_rows(windows: &IsotopeWindows) -> Vec<String> {
+    let mut rows = Vec::new();
+    for (index, pattern) in windows.patterns().iter().enumerate().take(40) {
+        let mut row = vec![
+            "isowin".to_owned(),
+            index.to_string(),
+            pattern.trimmed_left.to_string(),
+            pattern.optional_begin.to_string(),
+            pattern.optional_end.to_string(),
+            format!("{:016x}", pattern.max.to_bits()),
+            pattern.intensity.len().to_string(),
+        ];
+        row.extend(
+            pattern
+                .intensity
+                .iter()
+                .map(|value| format!("{:016x}", value.to_bits())),
+        );
+        rows.push(row.join("\t"));
+    }
+    rows.push(format!("windows\t{}", windows.patterns().len()));
+    rows
+}
+
+/// The executed reuse scenarios at the instance level (`reuse_windows.tsv`,
+/// `../oracle/ffap-complete-fix4`, `fix4_reuse`, two runs each, identical):
+/// one `FeatureFinderAlgorithmPicked` object runs FeatureFinderCentroided_1
+/// twice, the second run changing one thing, and keeps
+/// `isotope_distributions_` from the first run, which step 2.5 resizes and
+/// trims again (`.cpp:361`, `:378`). The executed feature counts of the two
+/// runs are 8/5 for the same parameters twice and for a first run whose last
+/// peak lies at m/z 137,000 (2,741 windows, shrunk to 15 by the second run),
+/// where a fresh object finds 8; 0/8 for a NaN
+/// `intensity_percentage_optional` in the first run; and 8/8 for a NaN cutoff
+/// in the second. The instance must find the executed counts of both runs and
+/// hold the executed windows afterwards.
+#[test]
+fn a_reused_instance_finds_the_executed_features_and_keeps_the_executed_windows() {
+    use openms::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
+    let fixture = std::fs::read_to_string(data("reuse_windows.tsv")).unwrap();
+    let base = ffc1_parameters();
+    let mut nan_cutoff = base.clone();
+    set(
+        &mut nan_cutoff,
+        "isotopic_pattern:intensity_percentage_optional",
+        ParamValue::Float(f64::NAN),
+    );
+    let heavy_input = || {
+        let mut input = ffc1_input();
+        let last = input.spectra.last_mut().unwrap();
+        last.peaks.last_mut().unwrap().mz = 137_000.0;
+        input
+    };
+    let mut scenarios = 0;
+    for (scenario, first, second, heavy) in [
+        ("nan_after_default", &base, &nan_cutoff, false),
+        ("default_after_nan", &nan_cutoff, &base, false),
+        ("default_after_heavy", &base, &base, true),
+        ("default_twice", &base, &base, false),
+    ] {
+        let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+        let mut rows = Vec::new();
+        for (run, parameters) in [(1, first), (2, second)] {
+            let input = if run == 1 && heavy {
+                heavy_input()
+            } else {
+                ffc1_input()
+            };
+            let mut features = FeatureMap::new();
+            match algorithm.run(input, &mut features, parameters, &FeatureMap::new()) {
+                Ok(()) => rows.push(format!("run\t{run}\tfeatures\t{}", features.len())),
+                Err(error) => rows.push(format!("run\t{run}\tthrew\t{error}")),
+            }
+        }
+        rows.extend(window_rows(algorithm.isotope_windows().unwrap()));
+        let executed: Vec<&str> = fixture
+            .lines()
+            .filter_map(|line| line.strip_prefix(scenario)?.strip_prefix('\t'))
+            .collect();
+        assert_eq!(
+            executed
+                .iter()
+                .filter(|row| row.starts_with("run\t"))
+                .count(),
+            2,
+            "{scenario}: executed run rows"
+        );
+        assert_eq!(rows.len(), executed.len(), "{scenario}: rows");
+        for (actual, expected) in rows.iter().zip(&executed) {
+            assert_eq!(actual, expected, "{scenario}");
+        }
+        scenarios += 1;
+    }
+    assert_eq!(scenarios, 4);
+}
+
+// ---------------------------------------------------------------------------
+// Degenerate intensity bins: the Linux x86_64 Release build (tier 1)
+// ---------------------------------------------------------------------------
+
+/// The rows of `degenerate_stage.tsv.gz`: the driver `degenerate_stage` (the
+/// generalised B6 `seed_stage`) run against
+/// `openms4-release-bc9cc12-c19e494-174b576` on 26 configurations, three
+/// repetitions at one and at four threads, identical
+/// (`../oracle/ffap-sem-completion/extract/extract_degenerate.py`).
+fn degenerate_rows() -> Vec<Vec<String>> {
+    use std::io::Read;
+    let bytes = std::fs::read(data("degenerate_stage.tsv.gz")).unwrap();
+    let mut text = String::new();
+    flate2::read::GzDecoder::new(bytes.as_slice())
+        .read_to_string(&mut text)
+        .unwrap();
+    text.lines()
+        .map(|line| line.split('\t').map(str::to_string).collect())
+        .collect()
+}
+
+/// The FeatureFinderCentroided loading of a fixture of the tool's tests.
+fn tool_fixture(name: &str) -> MSExperiment {
+    let mut options = PeakFileOptions::default();
+    options.add_ms_level(1).unwrap();
+    options.set_intensity_range(NumericRange {
+        min: 0.0,
+        max: f64::MAX,
+    });
+    FileHandler::load_experiment_with_options(
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/data/topp_feature_finder_centroided")
+            .join(name),
+        &[FileType::MzMl],
+        &options,
+    )
+    .unwrap()
+}
+
+/// The experiment and parameters of one `case` row, rebuilt as the driver
+/// built them: the mzML (the derived FFC_1 inputs in memory, by the rules of
+/// `make_inputs.py`, which the score rows then pin peak for peak), then
+/// `keep=`, `rt=`, `rtlast=` and `empty=` in that order, and the parameter
+/// overrides on the INI's algorithm section or on no parameters.
+fn degenerate_input(case: &[String]) -> (MSExperiment, Param) {
+    let mut experiment = match case[0].as_str() {
+        "FeatureFinderCentroided_1_input.mzML" => ffc1_input(),
+        "zero_rt_ffc1.mzML" => {
+            let mut e = ffc1_input();
+            for spectrum in &mut e.spectra {
+                spectrum.rt = 4114.53;
+            }
+            e
+        }
+        name @ ("zero_mz_ffc1.mzML" | "zero_mz_control_ffc1.mzML") => {
+            let mut e = ffc1_input();
+            for spectrum in &mut e.spectra {
+                for peak in &mut spectrum.peaks {
+                    peak.mz = 500.0;
+                }
+            }
+            if name == "zero_mz_control_ffc1.mzML" {
+                e.spectra[0].peaks[0].mz = 499.0;
+            }
+            e
+        }
+        name @ ("FileFilter_44_input.mzML" | "FileConverter_31_output.mzML") => tool_fixture(name),
+        other => panic!("unknown input {other}"),
+    };
+    let mut parameters = match case[1].as_str() {
+        "-" => Param::new(),
+        "FeatureFinderCentroided_1_parameters.ini" => ffc1_parameters(),
+        other => panic!("unknown INI {other}"),
+    };
+    let option = |prefix: &str| {
+        case[2..]
+            .iter()
+            .filter_map(|o| o.strip_prefix(prefix))
+            .collect::<Vec<_>>()
+    };
+    if let Some(keep) = option("keep=").first() {
+        experiment.spectra.truncate(keep.parse().unwrap());
+    }
+    if let Some(bits) = option("rt=").first() {
+        for spectrum in &mut experiment.spectra {
+            spectrum.rt = f64_hex(bits);
+        }
+    }
+    if let Some(bits) = option("rtlast=").first() {
+        experiment.spectra.last_mut().unwrap().rt = f64_hex(bits);
+    }
+    for index in option("empty=") {
+        experiment.spectra[index.parse::<usize>().unwrap()]
+            .peaks
+            .clear();
+    }
+    for assignment in option("i:") {
+        let (key, value) = assignment.split_once('=').unwrap();
+        set(
+            &mut parameters,
+            key,
+            ParamValue::Integer(value.parse().unwrap()),
+        );
+    }
+    for assignment in option("d:") {
+        let (key, value) = assignment.split_once('=').unwrap();
+        set(
+            &mut parameters,
+            key,
+            ParamValue::Float(value.parse().unwrap()),
+        );
+    }
+    (experiment, parameters)
+}
+
+/// Every configuration of the degenerate captures, compared with the executed
+/// library: the input as loaded and modified, the effective members, the bin
+/// steps and quantiles, the isotope windows, every per-peak float array with
+/// its NaN bits, the double result of `intensityScore_(spectrum, peak)` for
+/// every peak, the seeds, the printed lines, the feature count and the abort
+/// reasons.
+///
+/// A zero RT or m/z bin step (every retention time equal, every m/z equal, or
+/// a subnormal extent that underflows in the division) and an infinite RT step
+/// (an overflowing extent) make every intensity score the default NaN
+/// `0xfff8000000000000` (stored as `0xffc00000`), every overall score of the
+/// scans the seed loop visits NaN, and the run find nothing, because the source
+/// converts `floor(NaN)` and `floor(inf)` to `UInt` as `cvttsd2si` does; the
+/// port reproduces that ([`DegenerateBinStep::Source`], the default). The
+/// subnormal step with one bin (`tiny_rt`) is not degenerate and finds the 25
+/// seeds of FFC_1, which the extreme retention times then make fail the
+/// quality check. The short inputs (at most `2 * min_spectra_` scans:
+/// `filefilter_44`, `fileconverter_31`, `*_keep10`, `*_keep14`) never reach the
+/// seed loop.
+///
+/// [`DegenerateBinStep::Refuse`] refuses exactly the configurations whose steps
+/// the executed build computed as zero or infinite and whose seed loop is not
+/// empty.
+#[test]
+fn degenerate_bin_steps_match_the_linux_release_build() {
+    use openms::concept::parallel::Threads;
+    let rows = degenerate_rows();
+    let cases: Vec<&Vec<String>> = rows.iter().filter(|row| row[0] == "case").collect();
+    assert_eq!(cases.len(), 26);
+    let mut refused = 0;
+    let mut nan_configurations = 0;
+    for case in cases {
+        let config = case[1].as_str();
+        let of = |kind: &str| -> Vec<&[String]> {
+            rows.iter()
+                .filter(|row| row[0] == kind && row[1] == config)
+                .map(|row| &row[2..])
+                .collect()
+        };
+        let (experiment, parameters) = degenerate_input(&case[2..]);
+
+        // The input as the executed build saw it.
+        let input = of("input")[0];
+        let peaks: usize = experiment.spectra.iter().map(|s| s.peaks.len()).sum();
+        assert_eq!(experiment.spectra.len().to_string(), input[0], "{config}");
+        assert_eq!(peaks.to_string(), input[1], "{config}");
+        assert_eq!(
+            experiment.spectra[0].rt.to_bits(),
+            f64_hex(&input[2]).to_bits(),
+            "{config}"
+        );
+        assert_eq!(
+            experiment.spectra.last().unwrap().rt.to_bits(),
+            f64_hex(&input[3]).to_bits(),
+            "{config}"
+        );
+        for row in of("rt") {
+            let s: usize = row[0].parse().unwrap();
+            assert_eq!(
+                experiment.spectra[s].rt.to_bits(),
+                f64_hex(&row[1]).to_bits(),
+                "{config}: rt of {s}"
+            );
+            assert_eq!(experiment.spectra[s].native_id, row[2], "{config}");
+        }
+
+        let stage = SeedStage::run(experiment.clone(), &FeatureMap::new(), &parameters)
+            .unwrap_or_else(|error| panic!("{config}: {error}"))
+            .unwrap();
+        let settings = stage.settings();
+        let members: BTreeMap<&str, &str> = of("member")
+            .into_iter()
+            .map(|row| (row[0].as_str(), row[1].as_str()))
+            .collect();
+        assert_eq!(
+            settings.min_spectra.to_string(),
+            members["min_spectra"],
+            "{config}"
+        );
+        assert_eq!(
+            settings.intensity_bins.to_string(),
+            members["intensity_bins"],
+            "{config}"
+        );
+        assert_eq!(
+            settings.pattern_tolerance.to_bits(),
+            f64_hex(members["pattern_tolerance"]).to_bits(),
+            "{config}"
+        );
+        assert_eq!(
+            settings.trace_tolerance.to_bits(),
+            f64_hex(members["trace_tolerance"]).to_bits(),
+            "{config}"
+        );
+
+        // Step 1: the bins, as the executed build computed them.
+        let thresholds = stage.thresholds();
+        let bins = of("bins")[0];
+        assert_eq!(thresholds.bins().to_string(), bins[0], "{config}");
+        assert_eq!(thresholds.rt_start().to_bits(), f64_hex(&bins[1]).to_bits());
+        assert_eq!(thresholds.mz_start().to_bits(), f64_hex(&bins[2]).to_bits());
+        assert_eq!(
+            thresholds.rt_step().to_bits(),
+            f64_hex(&bins[3]).to_bits(),
+            "{config}: rt step"
+        );
+        assert_eq!(
+            thresholds.mz_step().to_bits(),
+            f64_hex(&bins[4]).to_bits(),
+            "{config}: m/z step"
+        );
+        let quantiles = of("quantiles");
+        assert_eq!(quantiles.len(), thresholds.bins() * thresholds.bins());
+        for row in quantiles {
+            let actual = thresholds
+                .quantiles(row[0].parse().unwrap(), row[1].parse().unwrap())
+                .unwrap();
+            let expected: Vec<u64> = row[2..].iter().map(|q| f64_hex(q).to_bits()).collect();
+            let actual: Vec<u64> = actual.iter().map(|q| q.to_bits()).collect();
+            assert_eq!(
+                actual, expected,
+                "{config}: quantiles {}/{}",
+                row[0], row[1]
+            );
+        }
+
+        // Step 2.5.
+        let windows = of("window");
+        let patterns = stage.windows().patterns();
+        assert_eq!(patterns.len(), windows.len(), "{config}: windows");
+        for (pattern, row) in patterns.iter().zip(&windows) {
+            let bits: Vec<u64> = pattern.intensity.iter().map(|v| v.to_bits()).collect();
+            let expected: Vec<u64> = row[7..].iter().map(|v| f64_hex(v).to_bits()).collect();
+            assert_eq!(bits, expected, "{config}: window {}", row[0]);
+            assert_eq!(pattern.max.to_bits(), f64_hex(&row[5]).to_bits());
+        }
+
+        // Every per-peak array, NaN bits included, and intensityScore_.
+        let scores = stage.scores();
+        let charges = scores.charge_count();
+        let rounding: BTreeMap<(usize, usize, usize), (u32, u32)> = of("rounding")
+            .into_iter()
+            .map(|row| {
+                let oracle = u32::from_str_radix(&row[3], 16).unwrap();
+                let correct = u32::from_str_radix(&row[4], 16).unwrap();
+                assert_eq!(oracle.abs_diff(correct), 1, "{config}: rounding row");
+                (
+                    (
+                        row[0].parse().unwrap(),
+                        row[1].parse().unwrap(),
+                        row[2].parse().unwrap(),
+                    ),
+                    (oracle, correct),
+                )
+            })
+            .collect();
+        let score_rows = of("score");
+        let with_scores = !score_rows.is_empty();
+        if with_scores {
+            assert_eq!(score_rows.len(), peaks, "{config}: score rows");
+        }
+        let mut rounded = 0;
+        let mut nan_scores = 0;
+        for row in score_rows {
+            let s: usize = row[0].parse().unwrap();
+            let p: usize = row[1].parse().unwrap();
+            let spectrum = &stage.experiment().spectra[s];
+            let peak = spectrum.peaks[p];
+            assert_eq!(peak.mz.to_bits(), f64_hex(&row[2]).to_bits(), "{config}");
+            assert_eq!(
+                peak.intensity.to_bits(),
+                f32_hex(&row[3]).to_bits(),
+                "{config}"
+            );
+            let arrays = &row[4..row.len() - 1];
+            assert_eq!(arrays.len(), 3 + 2 * charges, "{config}: arrays");
+            let mut actual = vec![
+                scores.trace(s).unwrap()[p],
+                scores.intensity(s).unwrap()[p],
+                scores.local_max(s).unwrap()[p],
+            ];
+            for c in 0..charges {
+                actual.push(scores.pattern(c, s).unwrap()[p]);
+            }
+            for c in 0..charges {
+                actual.push(scores.overall(c, s).unwrap()[p]);
+            }
+            for (column, (value, oracle)) in actual.iter().zip(arrays).enumerate() {
+                let expected = u32::from_str_radix(oracle, 16).unwrap();
+                if column >= 3 + charges {
+                    // The executed powf misrounds here, and so does the port.
+                    if let Some(&(misrounded, correct)) =
+                        rounding.get(&(s, p, column - 3 - charges))
+                    {
+                        assert_eq!(misrounded, expected);
+                        assert_ne!(value.to_bits(), correct, "{config}");
+                        rounded += 1;
+                    }
+                }
+                assert_eq!(
+                    value.to_bits(),
+                    expected,
+                    "{config}: spectrum {s} peak {p} array {column}"
+                );
+            }
+            let score = thresholds
+                .score(spectrum.rt, peak.mz, f64::from(peak.intensity))
+                .unwrap();
+            assert_eq!(
+                score.to_bits(),
+                f64_hex(&row[row.len() - 1]).to_bits(),
+                "{config}: intensityScore_({s}, {p})"
+            );
+            nan_scores += usize::from(score.is_nan());
+        }
+        let degenerate = [&bins[3], &bins[4]].iter().any(|step| {
+            let step = f64_hex(step);
+            step == 0.0 || step.is_infinite()
+        });
+        if with_scores {
+            assert_eq!(rounded, rounding.len(), "{config}: rounding rows");
+            // Every intensity score is NaN exactly when a step is degenerate.
+            assert_eq!(nan_scores, if degenerate { peaks } else { 0 }, "{config}");
+            nan_configurations += usize::from(degenerate);
+        }
+
+        // Seeds, with the executed (possibly misrounded) overall score.
+        let seeds = of("seed");
+        let mut actual_seeds = Vec::new();
+        for charge in stage.charges() {
+            let index = (charge.charge - settings.charge_low) as usize;
+            for (rank, seed) in charge.seeds.iter().enumerate() {
+                let executed = scores.overall(index, seed.spectrum).unwrap()[seed.peak].to_bits();
+                actual_seeds.push(vec![
+                    charge.charge.to_string(),
+                    rank.to_string(),
+                    seed.spectrum.to_string(),
+                    seed.peak.to_string(),
+                    format!("{:08x}", seed.intensity.to_bits()),
+                    format!("{executed:08x}"),
+                ]);
+            }
+        }
+        assert_eq!(actual_seeds.len(), seeds.len(), "{config}: seed count");
+        for (actual, expected) in actual_seeds.iter().zip(&seeds) {
+            assert_eq!(actual.as_slice(), *expected, "{config}: seed");
+        }
+
+        // The whole run: printed lines, feature count, abort reasons.
+        let output = run_with_options(
+            experiment.clone(),
+            &FeatureMap::new(),
+            &parameters,
+            &Options {
+                threads: Threads::serial(),
+                ..Options::default()
+            },
+        )
+        .unwrap_or_else(|error| panic!("{config}: {error}"));
+        let printed: Vec<&String> = output
+            .log
+            .iter()
+            .filter(|line| line.starts_with("Found "))
+            .collect();
+        let stdout: Vec<&String> = of("stdout").into_iter().map(|row| &row[0]).collect();
+        assert_eq!(printed, stdout, "{config}: printed lines");
+        assert_eq!(
+            output.features.len().to_string(),
+            of("features")[0][0],
+            "{config}: features"
+        );
+        let aborts: BTreeMap<String, usize> = of("abort")
+            .into_iter()
+            .map(|row| (row[1].clone(), row[0].parse().unwrap()))
+            .collect();
+        assert_eq!(output.aborts, aborts, "{config}: abort reasons");
+
+        // The opt-out refuses exactly the undefined cases the seed loop reads.
+        let spectra = experiment.spectra.len();
+        let loop_end = spectra - settings.min_spectra.min(spectra);
+        let read = settings.min_spectra < loop_end;
+        let outcome = run_with_options(
+            experiment,
+            &FeatureMap::new(),
+            &parameters,
+            &Options {
+                threads: Threads::serial(),
+                degenerate_bin_step: DegenerateBinStep::Refuse,
+                ..Options::default()
+            },
+        );
+        if degenerate && read {
+            refused += 1;
+            assert!(
+                matches!(&outcome, Err(Error::InvalidValue(message)) if message.contains("DegenerateBinStep::Refuse")),
+                "{config}: {:?}",
+                outcome.map(|o| o.features.len())
+            );
+        } else {
+            let refusing = outcome.unwrap_or_else(|error| panic!("{config}: {error}"));
+            assert_eq!(refusing.log, output.log, "{config}");
+            assert_eq!(refusing.features.len(), output.features.len(), "{config}");
+        }
+    }
+    // zero_rt, its min_score 0 variant, its defaults, keep15 and keep15_empty7
+    // (the FFC_1 INI's min_spectra_ is 7, so keep10 to keep14 are short);
+    // zero_mz, its min_score 0 variant and keep15; tiny_rt with the default
+    // 10 bins (three configurations) and with 2 bins; huge_rt, its min_score 0
+    // variant and its defaults.
+    assert_eq!(refused, 15);
+    // The score rows of 17 configurations: all but tiny_rt, fileconverter_31
+    // and zero_mz_control_min_score_0 are degenerate.
+    assert_eq!(nan_configurations, 17);
+}
+
+/// Driver `iscore_probe`: `intensityScore_(spectrum, peak)` of the Linux x86_64
+/// Release build at 57 positions on four grids of 11 spectra by 11 peaks
+/// (default parameters, 10 bins), including positions outside the binned range
+/// (negative, beyond `2^31`, `2^32` and `2^63`, infinite and NaN) whose
+/// `UInt` conversion is undefined, NaN and infinite intensities, and the grids
+/// with a zero RT step, a zero m/z step and a subnormal RT extent that
+/// underflows to a zero step. The probe moved spectrum 0, peak 0 to each
+/// position without updating the ranges. Every result is compared bit for bit,
+/// NaN sign and payload included.
+#[test]
+fn intensity_scores_outside_the_bins_match_the_linux_release_build() {
+    use std::io::Read;
+    let bytes = std::fs::read(data("iscore_probe.tsv.gz")).unwrap();
+    let mut text = String::new();
+    flate2::read::GzDecoder::new(bytes.as_slice())
+        .read_to_string(&mut text)
+        .unwrap();
+    let rows: Vec<Vec<&str>> = text
+        .lines()
+        .map(|line| line.split('\t').collect())
+        .collect();
+    let mut queries = 0;
+    for grid in ["grid", "zero_rt", "zero_mz", "tiny_rt"] {
+        // iscore_probe.cpp make_grid.
+        let spectra = (0..=10)
+            .map(|s| {
+                let rt = match grid {
+                    "zero_rt" => 5.0,
+                    "tiny_rt" if s == 10 => f64::from_bits(1),
+                    "tiny_rt" => 0.0,
+                    _ => f64::from(s),
+                };
+                let peaks: Vec<(f64, f32)> = (0..=10)
+                    .map(|p| {
+                        let mz = if grid == "zero_mz" {
+                            150.0
+                        } else {
+                            100.0 + 10.0 * f64::from(p)
+                        };
+                        (mz, ((s + 1) * (p + 1)) as f32)
+                    })
+                    .collect();
+                spectrum(rt, 1, &peaks)
+            })
+            .collect();
+        let stage = SeedStage::run(experiment(spectra), &FeatureMap::new(), &Param::new())
+            .unwrap()
+            .unwrap();
+        let thresholds = stage.thresholds();
+        let of = |kind: &'static str| {
+            rows.iter()
+                .filter(move |row| row[0] == kind && row[1] == grid)
+        };
+        let header = of("grid").next().unwrap();
+        assert_eq!(thresholds.bins().to_string(), header[2]);
+        assert_eq!(
+            thresholds.rt_step().to_bits(),
+            f64_hex(header[3]).to_bits(),
+            "{grid}"
+        );
+        assert_eq!(
+            thresholds.mz_step().to_bits(),
+            f64_hex(header[4]).to_bits(),
+            "{grid}"
+        );
+        for row in of("quantiles") {
+            let actual = thresholds
+                .quantiles(row[2].parse().unwrap(), row[3].parse().unwrap())
+                .unwrap();
+            for (value, expected) in actual.iter().zip(&row[4..]) {
+                assert_eq!(value.to_bits(), f64_hex(expected).to_bits(), "{grid}");
+            }
+        }
+        for row in of("query") {
+            let rt = f64_hex(row[2]);
+            let mz = f64_hex(row[3]);
+            let intensity = f32_hex(row[4]);
+            let score = thresholds.score(rt, mz, f64::from(intensity)).unwrap();
+            assert_eq!(
+                format!("{:016x}", score.to_bits()),
+                row[5],
+                "{grid}: rt {rt:e}, m/z {mz:e}, intensity {intensity:e}"
+            );
+            queries += 1;
+        }
+    }
+    assert_eq!(queries, 4 * 57);
+}
+
+/// `FeatureFinderDefs` as `FeatureFinderAlgorithmPicked.h` declares it,
+/// against the executed probe `defs_probe` (Linux x86_64 Release build, three
+/// repetitions, identical output, quoted below): the enumerator values and the
+/// enum's size, a default `ChargedIndexSet`, the order of an `IndexSet`, and the
+/// name and message of `NoSuccessor` for three index pairs, the last with
+/// `SIZE_MAX`.
+#[test]
+fn feature_finder_defs_match_the_executed_probe() {
+    use openms::analysis::feature_finder_picked::defs::{
+        ChargedIndexSet, Flag, IndexPair, NoSuccessor,
+    };
+    // flag UNUSED 0 / flag USED 1 / flag_size 4
+    assert_eq!(Flag::Unused as i32, 0);
+    assert_eq!(Flag::Used as i32, 1);
+    assert_eq!(std::mem::size_of::<Flag>(), 4);
+    // charged_default charge 0 size 0
+    let mut charged = ChargedIndexSet::default();
+    assert_eq!(charged.charge, 0);
+    assert_eq!(charged.len(), 0);
+    // index_set_order 1/2 1/5 2/1 after inserting (2,1), (1,5), (1,2), (1,2)
+    for pair in [(2, 1), (1, 5), (1, 2), (1, 2)] {
+        charged.insert(pair);
+    }
+    let order: Vec<IndexPair> = charged.iter().copied().collect();
+    assert_eq!(order, [(1, 2), (1, 5), (2, 1)]);
+    // no_successor <pair> name NoSuccessor what <message> line_positive 1 file_nonempty 1
+    for (pair, what) in [
+        (
+            (0, 0),
+            "there is no successor/predecessor for the given Index: 0/0",
+        ),
+        (
+            (3, 17),
+            "there is no successor/predecessor for the given Index: 3/17",
+        ),
+        (
+            (usize::MAX, 1),
+            "there is no successor/predecessor for the given Index: 18446744073709551615/1",
+        ),
+    ] {
+        let error = NoSuccessor::new(pair);
+        assert_eq!(error.name(), "NoSuccessor");
+        assert_eq!(error.message(), what);
+        assert_eq!(error.to_string(), what);
+        assert_eq!(error.index(), pair);
+        assert!(error.line() > 0);
+        assert!(error.file().ends_with("feature_finder_picked_seeds.rs"));
+        match Error::from(error) {
+            Error::InvalidValue(message) => {
+                assert_eq!(message, format!("NoSuccessor: {what}"));
+            }
+            other => panic!("{other:?}"),
+        }
+    }
+}
+
+/// `ChargedIndexSet` comparisons against the executed probe `defs_eq_probe`
+/// (`../oracle/ffap-complete-fix1`, Linux x86_64 Release build, two
+/// repetitions, identical): the struct has no comparison of its own, so `==`,
+/// `!=`, `<`, `<=`, `>` and `>=` are the base `std::set`'s and ignore the
+/// charge.
+#[test]
+fn charged_index_set_comparisons_match_the_executed_probe() {
+    use openms::analysis::feature_finder_picked::defs::ChargedIndexSet;
+    let text = std::fs::read_to_string(data("defs_eq_probe.tsv")).unwrap();
+    let parse = |charge: &str, set: &str| {
+        let mut value = ChargedIndexSet {
+            charge: charge.parse().unwrap(),
+            ..ChargedIndexSet::default()
+        };
+        if set != "-" {
+            for pair in set.split(';') {
+                let (scan, peak) = pair.split_once('/').unwrap();
+                value.insert((scan.parse().unwrap(), peak.parse().unwrap()));
+            }
+        }
+        value
+    };
+    let mut cases = 0;
+    for line in text.lines() {
+        let row: Vec<&str> = line.split('\t').collect();
+        let a = parse(row[1], row[2]);
+        let b = parse(row[3], row[4]);
+        let flags: Vec<bool> = row[5..11].iter().map(|v| *v == "1").collect();
+        assert_eq!(
+            vec![a == b, a != b, a < b, a <= b, a > b, a >= b],
+            flags,
+            "{}",
+            row[0]
+        );
+        cases += 1;
+    }
+    assert_eq!(cases, 7);
 }

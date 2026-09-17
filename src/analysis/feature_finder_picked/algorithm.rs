@@ -41,7 +41,12 @@
 //! - this module again:
 //!   [`feature_stage`](crate::analysis::feature_finder_picked::algorithm::feature_stage),
 //!   the seed loop that drives those three and the source's single
-//!   `#pragma omp parallel for`.
+//!   `#pragma omp parallel for`;
+//! - [`crate::analysis::feature_finder_picked::instance`]: the stateful
+//!   algorithm object, which [`run`](crate::analysis::feature_finder_picked::algorithm::run)
+//!   uses with a fresh instance and a fresh feature map;
+//! - [`crate::analysis::feature_finder_picked::debug`]: the `write_debug`
+//!   output as data.
 //!
 //! The API mapping, the preserved source conventions, the native differences
 //! and the evidence are in `docs/FEATURE_FINDER_PICKED_SUPPORT.md`.
@@ -50,25 +55,25 @@
 //! OpenMS log. Library code here never prints: every such line is collected in
 //! the log of the returned value.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
-use crate::analysis::feature_finder_picked::extension::{
-    OverallScores, extend_mass_traces, find_best_isotope_fit,
+use crate::analysis::feature_finder_picked::debug::{AbortReasons, DebugOutput};
+use crate::analysis::feature_finder_picked::instance::{
+    ABORT_BLOCK_HEADING, Bookkeeping, DebugKey, FeatureFinderAlgorithmPicked, Progress,
+    extend_charge, preflight_charge, settle_charge,
 };
-use crate::analysis::feature_finder_picked::fitting::{
-    ABORT_COULD_NOT_EXTEND, ABORT_NO_ISOTOPE_PATTERN, FeatureInput, FittedModel, QualityOutcome,
-    build_feature, check_feature_quality, crop_feature,
-};
-use crate::analysis::feature_finder_picked::helper_structs::Seed;
 use crate::analysis::feature_finder_picked::resolution::{
     annotate_apex, invalid_apex_warning, resolve_overlaps,
 };
+use crate::analysis::feature_finder_picked::scoring::{libstdcxx, source_is_sorted, x86_64};
 use crate::analysis::feature_finder_picked::seeds::SeedStage;
+use crate::analysis::feature_finder_picked::source_sort::{
+    TemporaryBuffer, source_sort_by, source_stable_sort_permutation,
+};
 use crate::analysis::feature_finder_picked::trace_fitter::TraceFitterParams;
-use crate::concept::parallel::{Threads, map_collect};
-use crate::kernel::{Feature, FeatureMap, MSExperiment, Point2D};
-use crate::metadata::MetaValue;
-use crate::param::{DefaultParamHandler, Param, ParamValue};
+use crate::concept::parallel::Threads;
+use crate::kernel::{DataArray, Feature, FeatureMap, MSChromatogram, MSExperiment};
+use crate::param::{DefaultParamHandler, Param, ParamValue, ParamValueType};
 use crate::{Error, Result};
 
 /// Name of the source parameter handler, `DefaultParamHandler("FeatureFinderAlgorithmPicked")`.
@@ -365,8 +370,10 @@ pub fn default_parameters() -> Result<Param> {
 
 /// The retention-time model of the trace fit: parameter `feature:rt_shape`.
 ///
-/// Read here because `run_` reads it through `chooseTraceFitter_`; the fit itself
-/// is not ported yet.
+/// Source `chooseTraceFitter_` (`FeatureFinderAlgorithmPicked.cpp:1897-1912`)
+/// selects the fitter from it:
+/// [`FittedModel::new`](crate::analysis::feature_finder_picked::fitting::FittedModel::new)
+/// is its counterpart.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RtShape {
     /// `symmetric`: a Gaussian (`GaussTraceFitter`), the default.
@@ -386,6 +393,53 @@ pub enum ReportedMz {
     /// `monoisotopic`: the monoisotopic m/z derived from the fitted isotope
     /// model, the default.
     Monoisotopic,
+}
+
+/// What a run does when an intensity bin step is zero or infinite.
+///
+/// Step 1 of source `run_` (`FeatureFinderAlgorithmPicked.cpp:244-245`)
+/// divides the MS1 retention-time and m/z extents by `intensity:bins` without
+/// a check. The step is zero when every MS1 spectrum has the same retention
+/// time, when every MS1 peak has the same m/z, or when a subnormal extent
+/// underflows in the division (`4.9e-324 / 2` is zero); the retention-time step
+/// is infinite when the extent overflows (retention times from `-1e308` to
+/// `1e308`), and either step is infinite when a coordinate is. The bins are
+/// still computed
+/// ([`IntensityThresholds::compute`](crate::analysis::feature_finder_picked::scoring::IntensityThresholds::compute)),
+/// but `intensityScore_` (`:1837-1838`) then converts `floor(NaN)` or
+/// `floor(inf)` to `UInt` for every peak, which is undefined behaviour.
+///
+/// The Linux x86_64 Release build compiles that conversion as `cvttsd2si`
+/// into a 64-bit register, keeps the low 32 bits and caps them, so the
+/// selected cells stay inside the grid; the distances to the bin centres are
+/// `0 / 0` or `inf / inf` whatever cell was selected. Every intensity score is
+/// therefore the default NaN, every overall score the seed loop computes is
+/// NaN, no peak becomes a seed, and the run returns an empty feature map with
+/// the source's log lines (`Found 0 seeds`, `Found 0 feature candidates` per
+/// charge). Executed against `openms4-release-bc9cc12-c19e494-174b576`, three
+/// repetitions at one and at four threads, identical: FeatureFinderCentroided_1
+/// with every retention time equal, with every m/z equal, with a subnormal and
+/// with an overflowing retention-time extent, each with the FFC_1 and the
+/// default parameters and with `seed:min_score` 0, and the class-level score
+/// arrays of each (`../oracle/ffap-sem-completion`). The outcome is explained
+/// by the emitted instructions and reproduced by
+/// [`IntensityThresholds::score`](crate::analysis::feature_finder_picked::scoring::IntensityThresholds::score).
+///
+/// An input with at most `2 * min_spectra` scans (source `min_spectra_`, half
+/// of `mass_trace:min_spectra`) never reaches the seed loop, so its intensity
+/// scores are never read: both variants return the source's empty result for
+/// it, whatever the bin steps.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum DegenerateBinStep {
+    /// Compute what the Linux x86_64 Release build computes: NaN intensity
+    /// scores, no seed, an empty map. The default, and what the
+    /// FeatureFinderCentroided tool uses.
+    #[default]
+    Source,
+    /// Return [`Error::InvalidValue`] before any work when a bin step is zero
+    /// or infinite and the seed loop visits at least one scan, the only case in
+    /// which the undefined scores are read.
+    Refuse,
 }
 
 /// How a non-default `isotopic_pattern:abundance_12C` or `abundance_14N` is
@@ -417,6 +471,61 @@ pub enum AbundanceOverride {
     /// A non-default abundance is [`Error::Unsupported`], so that a caller who
     /// must not diverge from the executed C++ can refuse instead of differing.
     Refuse,
+}
+
+/// Which parameter `writeFeatureDebugInfo_` reads for its pseudo-RT shift in a
+/// `write_debug` run.
+///
+/// The source reads `debug:pseudo_rt_shift` (`FeatureFinderAlgorithmPicked.cpp:2137`),
+/// but declares `advanced:pseudo_rt_shift` (`:124`). Unless the caller passes
+/// the undeclared key itself, `Param::getValue` throws `ElementNotFound` inside
+/// the OpenMP region of the seed loop, and the process terminates (executed:
+/// `FeatureFinderCentroided` with `-algorithm:write_debug` on
+/// FeatureFinderCentroided_1 is killed by `SIGABRT`, shell status 134). A safe
+/// port cannot end the process abnormally; it returns an error at that seed,
+/// and the FeatureFinderCentroided tool exits with code 8 after writing what
+/// the executed process had written.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum PseudoRtShiftKey {
+    /// Read `debug:pseudo_rt_shift`, as the source does: an integer or float
+    /// value is used; a string or list value is the bits of a heap pointer
+    /// ([`PseudoRtShift::HeapAddress`](crate::analysis::feature_finder_picked::debug::PseudoRtShift::HeapAddress)),
+    /// emulated wherever the written text does not depend on the address. At
+    /// the first seed that reaches the fit without the key or with an empty
+    /// value, where the source process terminates, the run returns
+    /// [`Error::Unsupported`] and records the point in
+    /// [`DebugOutput::termination`]. The default, and what the
+    /// FeatureFinderCentroided tool uses.
+    #[default]
+    Source,
+    /// Read the declared `advanced:pseudo_rt_shift` (default 500) and write
+    /// the member's files for every seed that reaches the fit: what the source
+    /// evidently intends.
+    Declared,
+}
+
+/// What [`FeatureFinderAlgorithmPicked::parameters`] returns after
+/// [`FeatureFinderAlgorithmPicked::set_parameters`] (or a run) refused a
+/// parameter set.
+///
+/// Source `DefaultParamHandler::setParameters` (`DefaultParamHandler.cpp`)
+/// assigns the new set, merged with the defaults, to `param_` *before*
+/// `Param::checkDefaults` throws `InvalidParameter` for a value of the wrong
+/// type or outside its restriction, and calls `updateMembers_` only after the
+/// check. After the exception `getParameters()` therefore returns the rejected
+/// set while the typed members keep the values of the last accepted one
+/// (executed: `params_after_failed_set.txt` and `rejected_stdout.txt` of the
+/// oracle). The next `setParameters` or `run` replaces the set again.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum RejectedParameters {
+    /// Show the rejected set, merged with the defaults, as the source does;
+    /// the settings a run uses stay those of the last accepted set, and the
+    /// next accepted set replaces it. The default.
+    #[default]
+    Shown,
+    /// Keep showing the last accepted set: a refused set changes nothing, the
+    /// port's usual atomicity.
+    Discarded,
 }
 
 /// Resource ceilings of the seed stage, checked before the corresponding work.
@@ -454,6 +563,9 @@ pub struct Limits {
     /// on the isotope search around each seed plus the extension of each
     /// isotope's trace through the scans.
     pub max_seed_work: u64,
+    /// Most bytes of the `write_debug` log kept in memory. The source writes
+    /// the log to a file and has no bound.
+    pub max_debug_bytes: usize,
 }
 
 impl Limits {
@@ -479,6 +591,9 @@ impl Limits {
     /// Default [`Self::max_seed_work`]: 44,000 scans with 800,000 seeds of 20
     /// isotopes stay an order of magnitude below it.
     pub const DEFAULT_MAX_SEED_WORK: u64 = 10_000_000_000_000;
+    /// Default [`Self::max_debug_bytes`], 16 GiB; the FeatureFinderCentroided_1
+    /// debug log has about 1.1 MiB.
+    pub const DEFAULT_MAX_DEBUG_BYTES: usize = 16 << 30;
 }
 
 impl Default for Limits {
@@ -494,18 +609,25 @@ impl Default for Limits {
             max_work: Self::DEFAULT_MAX_WORK,
             max_seeds: Self::DEFAULT_MAX_SEEDS,
             max_seed_work: Self::DEFAULT_MAX_SEED_WORK,
+            max_debug_bytes: Self::DEFAULT_MAX_DEBUG_BYTES,
         }
     }
 }
 
-/// Native options of a run; the defaults reproduce the source where it is
-/// defined and refuse where it is not.
+/// Native options of a run.
+///
+/// The defaults reproduce the source where it is defined. Where it is
+/// undefined they reproduce the Linux x86_64 Release build when its outcome is
+/// fixed and explained by the emitted instructions ([`DegenerateBinStep`]), and
+/// refuse otherwise. [`AbundanceOverride`] is the one designed difference.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Options {
     /// Resource ceilings.
     pub limits: Limits,
     /// Handling of non-default isotope abundances.
     pub abundance_override: AbundanceOverride,
+    /// Handling of a zero or infinite intensity bin step.
+    pub degenerate_bin_step: DegenerateBinStep,
     /// Worker threads of the seed loop, the port's counterpart of the source's
     /// `#pragma omp parallel for` and of the TOPP `-threads` parameter.
     ///
@@ -514,6 +636,12 @@ pub struct Options {
     /// order, and everything after the loop is serial. The default is every
     /// available core.
     pub threads: Threads,
+    /// The parameter a `write_debug` run reads for the pseudo-RT shift of its
+    /// feature plots.
+    pub pseudo_rt_shift: PseudoRtShiftKey,
+    /// What the algorithm instance's parameters show after a rejected
+    /// parameter set.
+    pub rejected_parameters: RejectedParameters,
 }
 
 /// The typed parameter values of one run.
@@ -592,6 +720,45 @@ pub struct Settings {
     pub rt_shape: RtShape,
 }
 
+/// `sizeof(MSSpectrum::FloatDataArray)` in the Linux x86_64 Release build:
+/// the `std::vector<float>` base and `MetaInfoDescription` of one score array,
+/// 88 bytes (executed: `../oracle/ffap-complete-fix6`, the driver's `sizes`
+/// mode; the array vector's `max_size()` is `(2^63 - 1) / 88`, far above every
+/// 32-bit count, so `resize` never throws `std::length_error` here).
+pub(crate) const SOURCE_FLOAT_DATA_ARRAY_BYTES: u64 = 88;
+
+/// The largest first-spectrum score-array allocation for which
+/// [`Settings::score_arrays_overrun`] records a termination: the bytes of
+/// 1,000,000,003 arrays, the largest wrapped count measured to die on the
+/// reference platform with the memory that platform actually has.
+///
+/// The source's run reaches the out-of-bounds write or throws `std::bad_alloc`
+/// depending on the memory available to the process, which no deterministic
+/// port can reproduce, so this is a documented line and not a property of the
+/// source. It is set where the measurement sets it and nowhere lower: on
+/// ibminode06 with no address-space cap every wrapped count from 12,201,611 to
+/// 1,000,000,003 arrays died with SIGSEGV, twice each
+/// (`../oracle/ffap-complete-min6`, `node/run_native_wrap.sh`). No executed
+/// configuration died above the line: the counts measured above it are
+/// `2^32 - 5` arrays, which threw `std::bad_alloc` under a 16 GB and under a
+/// 500 GB address space (`../oracle/ffap-complete-fix6`). That count was not
+/// run uncapped, because at the measured 232 bytes per array it needs about
+/// 928 GiB, 93% of the shared reference node's entire memory; the port
+/// therefore records nothing for it, as it records nothing for the unmeasured
+/// counts between the line and it.
+///
+/// The earlier line, 1 GiB, came from runs under the 16 GB `ulimit -v` the
+/// oracle harness imposes, where counts from 80,000,003 arrays up throw; every
+/// one of those counts dies on the reference node itself. That is why the
+/// bytes here are not the memory the source needs: see
+/// [`Settings::score_arrays_overrun`] for the `assign` allocations that go
+/// with them.
+///
+/// It is a crate constant, not a [`Limits`] field, because a caller must not
+/// be able to move where a termination is recorded (lead decision D12).
+pub(crate) const SCORE_ARRAY_TERMINATION_CEILING_BYTES: u64 =
+    1_000_000_003 * SOURCE_FLOAT_DATA_ARRAY_BYTES;
+
 impl Settings {
     /// Apply `parameters` over the defaults and read the typed values: source
     /// `setParameters(param)` with `updateMembers_`, plus the reads at the start
@@ -606,87 +773,272 @@ impl Settings {
     ///
     /// Returns [`Error::InvalidValue`] when a known entry has a different value
     /// type than its default or violates its restriction (source
-    /// `Exception::InvalidParameter`), or when a value cannot be converted.
+    /// `Exception::InvalidParameter`, with its text; [`check_parameters`]), or
+    /// when a value cannot be converted as the source converts it (a negative
+    /// `intensity:bins`, `mass_trace:max_missing` or `fit:max_iterations`
+    /// that passes its restriction, [`NEGATIVE_UNSIGNED_WHAT`]).
     pub fn from_parameters(parameters: &Param) -> Result<(Self, Vec<String>)> {
         let mut handler = DefaultParamHandler::new(HANDLER_NAME)?;
         let defaults = default_parameters()?;
         handler.set_defaults(defaults.clone())?;
         handler.defaults_to_parameters()?;
-        handler.set_parameters_with(parameters, |merged| Self::read(merged, &defaults))
+        // The source's checks, in place of the shared handler's.
+        handler.set_check_defaults(false);
+        handler.set_parameters(parameters)?;
+        let merged = handler.parameters();
+        let mut unknown = Vec::new();
+        check_parameters(merged, &defaults, HANDLER_NAME, &mut unknown)?;
+        let settings = Self::read(merged, &defaults)?;
+        check_run_conversions(merged)?;
+        let warnings = unknown
+            .into_iter()
+            .map(|key| format!("{HANDLER_NAME}: unknown parameter '{key}'"))
+            .collect();
+        Ok((settings, warnings))
     }
 
-    fn read(p: &Param, defaults: &Param) -> Result<Self> {
+    /// The typed values of a checked parameter set: [`Self::update_members`]
+    /// on the defaults' values, then [`Self::read_run_values`].
+    pub(crate) fn read(p: &Param, defaults: &Param) -> Result<Self> {
+        let mut settings = Self {
+            pattern_tolerance: 0.0,
+            trace_tolerance: 0.0,
+            min_spectra: 0,
+            max_missing_trace_peaks: 0,
+            slope_bound: 0.0,
+            intensity_percentage: 0.0,
+            intensity_percentage_optional: 0.0,
+            optional_fit_improvement: 0.0,
+            mass_window_width: 0.0,
+            intensity_bins: 0,
+            min_isotope_fit: 0.0,
+            min_trace_score: 0.0,
+            min_rt_span: 0.0,
+            max_rt_span: 0.0,
+            max_feature_intersection: 0.0,
+            reported_mz: ReportedMz::Maximum,
+            min_feature_score: 0.0,
+            charge_low: 0,
+            charge_high: 0,
+            max_iterations: 0,
+            abundance_12c: 0.0,
+            abundance_14n: 0.0,
+            abundance_12c_changed: false,
+            abundance_14n_changed: false,
+            seed_min_score: 0.0,
+            user_seed_rt_tolerance: 0.0,
+            user_seed_mz_tolerance: 0.0,
+            user_seed_min_score: 0.0,
+            write_debug: false,
+            rt_shape: RtShape::Symmetric,
+        };
+        settings.update_members(p)?;
+        settings.read_run_values(p, defaults)?;
+        Ok(settings)
+    }
+
+    /// Source `updateMembers_` (`FeatureFinderAlgorithmPicked.cpp:1108-1126`):
+    /// the members in the source's order, each converted as the Linux x86_64
+    /// Release build converts it.
+    ///
+    /// - `min_spectra_ = (UInt) std::floor((double) value * 0.5)`: the whole
+    ///   64-bit value as a `double`, then `cvttsd2si` into a 64-bit register and
+    ///   its low 32 bits (`libOpenMS.so` `0x18da803`-`0x18da866`).
+    /// - `max_missing_trace_peaks_` and `intensity_bins_` through
+    ///   `ParamValue::operator unsigned int` (`ParamValue.cpp:451-461`,
+    ///   `0x7aee30`): a negative value throws `Exception::ConversionError`,
+    ///   any other keeps its low 32 bits.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] with [`NEGATIVE_UNSIGNED_WHAT`] for a
+    /// negative `mass_trace:max_missing` or `intensity:bins`. The members
+    /// before it keep their new values and the rest their old ones, as in the
+    /// source, where `updateMembers_` throws half way.
+    pub(crate) fn update_members(&mut self, p: &Param) -> Result<()> {
         let float = |key: &str| p.value(key)?.to_f64();
-        let int = |key: &str| p.value(key)?.to_i32();
-        let unsigned = |key: &str| p.value(key)?.to_u32();
-        let min_spectra = (f64::from(int("mass_trace:min_spectra")?) * 0.5).floor();
-        let reported_mz = match p.value("feature:reported_mz")?.as_str()? {
+        self.pattern_tolerance = float("isotopic_pattern:mz_tolerance")?;
+        self.trace_tolerance = float("mass_trace:mz_tolerance")?;
+        let min_spectra = (source_i64(p, "mass_trace:min_spectra")? as f64 * 0.5).floor();
+        self.min_spectra = x86_64::truncate_to_u32(min_spectra) as usize;
+        self.max_missing_trace_peaks = source_unsigned(p, "mass_trace:max_missing")?;
+        self.slope_bound = float("mass_trace:slope_bound")?;
+        self.intensity_percentage = float("isotopic_pattern:intensity_percentage")? / 100.0;
+        self.intensity_percentage_optional =
+            float("isotopic_pattern:intensity_percentage_optional")? / 100.0;
+        self.optional_fit_improvement = float("isotopic_pattern:optional_fit_improvement")? / 100.0;
+        self.mass_window_width = float("isotopic_pattern:mass_window_width")?;
+        self.intensity_bins = source_unsigned(p, "intensity:bins")? as usize;
+        self.min_isotope_fit = float("feature:min_isotope_fit")?;
+        self.min_trace_score = float("feature:min_trace_score")?;
+        self.min_rt_span = float("feature:min_rt_span")?;
+        self.max_rt_span = float("feature:max_rt_span")?;
+        self.max_feature_intersection = float("feature:max_intersection")?;
+        self.reported_mz = match p.value("feature:reported_mz")?.as_str()? {
             "maximum" => ReportedMz::Maximum,
             "average" => ReportedMz::Average,
             _ => ReportedMz::Monoisotopic,
         };
+        Ok(())
+    }
+
+    /// The values source `run_` reads from `param_` itself, in its order.
+    ///
+    /// `charge_low` and `charge_high` are `(Int)` conversions, the low 32 bits
+    /// of the value. `fit:max_iterations` is an `operator unsigned int`
+    /// conversion, which throws for a negative value at the start of `run_`
+    /// (`:152`); this keeps its low 32 bits, and [`check_run_conversions`]
+    /// reports the throw where the run starts.
+    pub(crate) fn read_run_values(&mut self, p: &Param, defaults: &Param) -> Result<()> {
+        let float = |key: &str| p.value(key)?.to_f64();
+        self.min_feature_score = float("feature:min_score")?;
+        self.charge_low = source_i64(p, "isotopic_pattern:charge_low")? as i32;
+        self.charge_high = source_i64(p, "isotopic_pattern:charge_high")? as i32;
+        self.max_iterations = source_i64(p, "fit:max_iterations")? as u32;
+        self.abundance_12c = float("isotopic_pattern:abundance_12C")?;
+        self.abundance_14n = float("isotopic_pattern:abundance_14N")?;
+        let changed = |key: &str| -> Result<bool> { Ok(p.value(key)? != defaults.value(key)?) };
+        self.abundance_12c_changed = changed("isotopic_pattern:abundance_12C")?;
+        self.abundance_14n_changed = changed("isotopic_pattern:abundance_14N")?;
+        self.user_seed_rt_tolerance = float("user-seed:rt_tolerance")?;
+        self.user_seed_mz_tolerance = float("user-seed:mz_tolerance")?;
+        self.user_seed_min_score = float("user-seed:min_score")?;
+        self.write_debug = p.value("write_debug")?.to_bool()?;
+        self.seed_min_score = float("seed:min_score")?;
         // Source: `param_.getValue("feature:rt_shape") == "asymmetric"`, else symmetric.
-        let rt_shape = if p.value("feature:rt_shape")? == &ParamValue::String("asymmetric".into()) {
+        self.rt_shape = if p.value("feature:rt_shape")? == &ParamValue::String("asymmetric".into())
+        {
             RtShape::Asymmetric
         } else {
             RtShape::Symmetric
         };
-        let changed = |key: &str| -> Result<bool> { Ok(p.value(key)? != defaults.value(key)?) };
-        Ok(Self {
-            pattern_tolerance: float("isotopic_pattern:mz_tolerance")?,
-            trace_tolerance: float("mass_trace:mz_tolerance")?,
-            min_spectra: min_spectra as usize,
-            max_missing_trace_peaks: unsigned("mass_trace:max_missing")?,
-            slope_bound: float("mass_trace:slope_bound")?,
-            intensity_percentage: float("isotopic_pattern:intensity_percentage")? / 100.0,
-            intensity_percentage_optional: float("isotopic_pattern:intensity_percentage_optional")?
-                / 100.0,
-            optional_fit_improvement: float("isotopic_pattern:optional_fit_improvement")? / 100.0,
-            mass_window_width: float("isotopic_pattern:mass_window_width")?,
-            intensity_bins: unsigned("intensity:bins")? as usize,
-            min_isotope_fit: float("feature:min_isotope_fit")?,
-            min_trace_score: float("feature:min_trace_score")?,
-            min_rt_span: float("feature:min_rt_span")?,
-            max_rt_span: float("feature:max_rt_span")?,
-            max_feature_intersection: float("feature:max_intersection")?,
-            reported_mz,
-            min_feature_score: float("feature:min_score")?,
-            charge_low: int("isotopic_pattern:charge_low")?,
-            charge_high: int("isotopic_pattern:charge_high")?,
-            max_iterations: unsigned("fit:max_iterations")?,
-            abundance_12c: float("isotopic_pattern:abundance_12C")?,
-            abundance_14n: float("isotopic_pattern:abundance_14N")?,
-            abundance_12c_changed: changed("isotopic_pattern:abundance_12C")?,
-            abundance_14n_changed: changed("isotopic_pattern:abundance_14N")?,
-            seed_min_score: float("seed:min_score")?,
-            user_seed_rt_tolerance: float("user-seed:rt_tolerance")?,
-            user_seed_mz_tolerance: float("user-seed:mz_tolerance")?,
-            user_seed_min_score: float("user-seed:min_score")?,
-            write_debug: p.value("write_debug")?.to_bool()?,
-            rt_shape,
-        })
+        Ok(())
     }
 
     /// The number of charges searched, `charge_high - charge_low + 1`, or zero
     /// when `charge_low` exceeds `charge_high` by one.
     ///
+    /// The source computes `UInt charge_count = charge_high - charge_low + 1`
+    /// and resizes every spectrum's float data arrays to the `UInt` value
+    /// `3 + 2 * charge_count` before it writes arrays 0, 1 and 2 and the
+    /// pattern and overall arrays `[3, 3 + charge_count)` and
+    /// `[3 + charge_count, 3 + 2 * charge_count)`, both bounds in `UInt`
+    /// (`FeatureFinderAlgorithmPicked.cpp:196-221`). Whether that wraps
+    /// depends on the count `n` alone:
+    ///
+    /// - `0 <= n <= 2^31 - 2`: nothing wraps. `n = 0` (`charge_low =
+    ///   charge_high + 1`) gives three arrays and an empty result, as executed;
+    ///   larger counts are bounded by [`Limits::max_charges`], a native ceiling
+    ///   in front of an allocation of up to `2^32 - 1` arrays per spectrum,
+    ///   whose success depends on memory (executed: `std::bad_alloc` at
+    ///   `n = 2^31 - 2`).
+    /// - `n = 2^31 - 1` (`charge_low = 1`, `charge_high = INT_MAX`, the only
+    ///   positive count that wraps): the size wraps to 1 and the source writes
+    ///   arrays 1 and 2 past the end (executed: SIGSEGV).
+    /// - `n = -1` (`charge_low = charge_high + 2`): the size wraps to 1, the
+    ///   same out-of-bounds write (executed: SIGSEGV).
+    /// - `n = -2` and `n = -3`: the size wraps to `2^32 - 1` or `2^32 - 3` and
+    ///   every later write stays in bounds, so the outcome depends only on
+    ///   whether that allocation succeeds (executed: `std::bad_alloc`).
+    /// - `n <= -4`: the size wraps to `2^32 + 3 + 2n`, at least 9, and the
+    ///   pattern loop writes up to index `2^32 + 2 + n`, past it; the source
+    ///   writes out of bounds wherever the allocation succeeds (executed:
+    ///   SIGSEGV for `charge_low = INT_MAX` with `charge_high` 1 and 498, and
+    ///   `std::bad_alloc` where the wrapped size is near `2^32`).
+    ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when `charge_low` exceeds `charge_high`
-    /// by more than one. The source computes the count in `UInt`, which wraps:
-    /// a difference of one gives zero charges and an empty result, and a larger
-    /// difference resizes the score arrays to a wrapped size and then indexes
-    /// past their end, which is undefined behaviour.
+    /// Returns [`Error::InvalidValue`] for every count that wraps, whatever the
+    /// [`Limits`]: undefined behaviour (an out-of-bounds write) for
+    /// `n = 2^31 - 1`, `n = -1` and `n <= -4`, and for `n = -2` and `n = -3`
+    /// an allocation of billions of arrays per spectrum that the port does not
+    /// attempt.
     pub fn charge_count(&self) -> Result<usize> {
         let count = i64::from(self.charge_high) - i64::from(self.charge_low) + 1;
-        if count < 0 {
+        if count == i64::from(i32::MAX) {
             return Err(Error::InvalidValue(format!(
-                "isotopic_pattern:charge_low {} exceeds charge_high {} by more than one; the source \
+                "isotopic_pattern:charge_low {} and charge_high {}: the source's UInt score-array \
+                 count 3 + 2 * {count} wraps to 1 and the source writes past the arrays; the \
                  behaviour is undefined",
                 self.charge_low, self.charge_high
             )));
         }
+        if count == -2 || count == -3 {
+            let size = (3u32).wrapping_add((count as u32).wrapping_mul(2));
+            return Err(Error::InvalidValue(format!(
+                "isotopic_pattern:charge_low {} exceeds charge_high {} by more than one; the \
+                 source's UInt score-array count wraps to {size} arrays per spectrum, whose \
+                 allocation depends on memory, and the port does not attempt it",
+                self.charge_low, self.charge_high
+            )));
+        }
+        if count < 0 {
+            return Err(Error::InvalidValue(format!(
+                "isotopic_pattern:charge_low {} exceeds charge_high {} by more than one; the \
+                 source's UInt score-array count wraps and the source writes past the arrays; \
+                 the behaviour is undefined",
+                self.charge_low, self.charge_high
+            )));
+        }
         usize::try_from(count).map_err(|_| Error::InvalidValue("charge count overflow".into()))
+    }
+
+    /// Whether the source process ends at the score arrays: the wrapped count
+    /// is one [`Self::charge_count`] refuses as an out-of-bounds write, and the
+    /// allocation before that write succeeds.
+    ///
+    /// The source resizes one spectrum's float data arrays at a time
+    /// (`.cpp:196-221`) and walks past the end of the first one it fills. The
+    /// resize itself is that spectrum's `(3 + 2n) mod 2^32` arrays of
+    /// [`SOURCE_FLOAT_DATA_ARRAY_BYTES`] each, and it is not the whole cost:
+    /// the pattern loop runs to the *unwrapped* `3 + n`, so before it reaches
+    /// the first out-of-bounds index it has given every in-bounds array a name
+    /// and `assign`ed it `scan_size` floats. Measured on the reference node for
+    /// FeatureFinderCentroided_1, whose first spectrum holds 20 peaks: the
+    /// maximum resident set is 2.88 GiB at 12,201,611 arrays and 21.85 GiB at
+    /// 100,000,003, i.e. about 232 bytes per array where the arrays alone are
+    /// 88 (`../oracle/ffap-complete-min6`, `node/run_mem.sh`). The bytes below
+    /// are therefore a count in disguise, not the memory the source needs.
+    ///
+    /// - `n = 2^31 - 1` and `n = -1` wrap to one array, 88 bytes: the write is
+    ///   always reached (executed: SIGSEGV for 1/`INT_MAX` and 4/2).
+    /// - `n <= -4` wraps to `2^32 + 3 + 2n` arrays, between 9 (`INT_MAX`/1)
+    ///   and `2^32 - 5` (7/2). Whether the run reaches the write depends on
+    ///   the memory available to the process, which the port cannot reproduce
+    ///   (lead decision D6's rule for allocations), so it records the
+    ///   termination up to [`SCORE_ARRAY_TERMINATION_CEILING_BYTES`] and
+    ///   nothing above.
+    ///
+    /// Executed on the reference node, every case twice and identical. Under
+    /// the 16 GB address space the oracle harness imposes
+    /// (`../oracle/ffap-complete-fix6`): SIGSEGV at 1, 9, 1003, 2003, 2005,
+    /// 12,201,611, 12,201,613, 20,000,003 and 40,000,003 arrays, and
+    /// `std::bad_alloc` from 80,000,003 up, `2^32 - 5` included; under a
+    /// 500 GB one, SIGSEGV again at 100,000,003, 166,000,001, 200,000,003 and
+    /// 1,000,000,003, where only `2^32 - 5` still throws. Those `bad_alloc`
+    /// rows are a property of the cap and not of the reference platform: with
+    /// no cap at all (`../oracle/ffap-complete-min6`,
+    /// `node/run_native_wrap.sh`) every one of 12,201,611, 12,201,613,
+    /// 20,000,003, 40,000,003, 80,000,003, 100,000,003, 166,000,001,
+    /// 200,000,003 and 1,000,000,003 arrays dies with SIGSEGV.
+    /// The ceiling is therefore drawn at the largest count the reference
+    /// platform is measured to die on rather than inside the measured range:
+    /// no executed configuration dies unrecorded, and the port stays silent
+    /// only where the measurement stops, exactly as
+    /// [`Limits::max_isotope_windows`] refuses before the source's allocation
+    /// fails.
+    pub(crate) fn score_arrays_overrun(&self) -> bool {
+        let count = i64::from(self.charge_high) - i64::from(self.charge_low) + 1;
+        if count == i64::from(i32::MAX) || count == -1 {
+            return true;
+        }
+        if count > -4 {
+            return false;
+        }
+        // `3 + 2 * count` modulo 2^32, as the source's `UInt` arithmetic.
+        let arrays = u64::from((3u32).wrapping_add((count as u32).wrapping_mul(2)));
+        arrays.saturating_mul(SOURCE_FLOAT_DATA_ARRAY_BYTES)
+            <= SCORE_ARRAY_TERMINATION_CEILING_BYTES
     }
 
     /// The isotope count of the precalculated patterns: 20, plus 1000 for each
@@ -696,6 +1048,186 @@ impl Settings {
             + OVERRIDE_EXTRA_ISOTOPES
                 * (usize::from(self.abundance_12c_changed)
                     + usize::from(self.abundance_14n_changed))
+    }
+}
+
+/// The `what()` text of the `Exception::ConversionError` that
+/// `ParamValue::operator unsigned int` throws for a negative integer
+/// (`ParamValue.cpp:456-459`).
+pub const NEGATIVE_UNSIGNED_WHAT: &str =
+    "Could not convert negative integer ParamValue to unsigned int";
+
+/// The 64-bit integer behind an integer parameter (`ParamValue::data_.ssize_`).
+fn source_i64(p: &Param, key: &str) -> Result<i64> {
+    p.value(key)?.to_i64()
+}
+
+/// `ParamValue::operator unsigned int`: [`NEGATIVE_UNSIGNED_WHAT`] for a
+/// negative value, and the low 32 bits of any other (`libOpenMS.so`
+/// `0x7aee30`: `cvtsi2sd`/`comisd` against `0.0`, then the register's low
+/// half).
+fn source_unsigned(p: &Param, key: &str) -> Result<u32> {
+    let value = source_i64(p, key)?;
+    if (value as f64) < 0.0 {
+        return Err(Error::InvalidValue(NEGATIVE_UNSIGNED_WHAT.into()));
+    }
+    Ok(value as u32)
+}
+
+/// The conversion at the start of source `run_` that can throw:
+/// `UInt max_iterations = param_.getValue("fit:max_iterations")`
+/// (`FeatureFinderAlgorithmPicked.cpp:152`).
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] with [`NEGATIVE_UNSIGNED_WHAT`] for a
+/// negative value.
+pub(crate) fn check_run_conversions(p: &Param) -> Result<()> {
+    source_unsigned(p, "fit:max_iterations").map(|_| ())
+}
+
+/// Source `Param::checkDefaults(name, defaults, "")` (`Param.cpp:1066-1167`)
+/// on a merged parameter set, with the source's messages.
+///
+/// Every entry is visited in iteration order. One the defaults do not know is
+/// appended to `unknown` (the source logs a warning for it) and skipped. A
+/// known entry of another value type than its default is refused with
+/// `<name>: Wrong parameter type '<type>' for <type> parameter '<key>'
+/// given!`. Otherwise the default entry with the given value is checked as
+/// `Param::ParamEntry::isValid` checks it (`Param.cpp:57-167`), and a
+/// violation is refused with `<name>: <message>`. That check narrows an
+/// integer with `int tmp = value`, which keeps the low 32 bits of the 64-bit
+/// value (C++20), so `2^32 + 10` passes a minimum of 1 as 10 does and `2^32`
+/// fails it as 0 does (executed: `../oracle/ffap-complete-fix2`, case
+/// `bigint`); the shared [`crate::param`] check refuses both instead.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] with the source's message at the first
+/// refused entry; `unknown` then holds the unknown entries before it.
+pub fn check_parameters(
+    merged: &Param,
+    defaults: &Param,
+    name: &str,
+    unknown: &mut Vec<String>,
+) -> Result<()> {
+    for item in merged.iter()? {
+        if !defaults.exists(&item.key)? {
+            unknown.push(item.key.clone());
+            continue;
+        }
+        let default = defaults.entry(&item.key)?;
+        let given = &item.entry.value;
+        if default.value.value_type() != given.value_type() {
+            return Err(Error::InvalidValue(format!(
+                "{name}: Wrong parameter type '{}' for {} parameter '{}' given!",
+                source_type_name(given.value_type()),
+                source_type_name(default.value.value_type()),
+                item.key
+            )));
+        }
+        if let Some(message) = source_validity(default, given) {
+            return Err(Error::InvalidValue(format!("{name}: {message}")));
+        }
+    }
+    Ok(())
+}
+
+/// The type names of `Param::checkDefaults`.
+fn source_type_name(value_type: ParamValueType) -> &'static str {
+    match value_type {
+        ParamValueType::String => "string",
+        ParamValueType::StringList => "string list",
+        ParamValueType::Empty => "empty",
+        ParamValueType::Integer => "integer",
+        ParamValueType::IntegerList => "integer list",
+        ParamValueType::Float => "float",
+        ParamValueType::FloatList => "float list",
+    }
+}
+
+/// `std::to_string(double)`: `%f`, as glibc prints it.
+fn std_to_string(value: f64) -> String {
+    if value.is_nan() {
+        if value.is_sign_negative() {
+            "-nan"
+        } else {
+            "nan"
+        }
+        .to_owned()
+    } else if value.is_infinite() {
+        if value < 0.0 { "-inf" } else { "inf" }.to_owned()
+    } else {
+        format!("{value:.6}")
+    }
+}
+
+/// `Param::ParamEntry::isValid` of `entry` holding `value`: the message of
+/// its first violation, or `None`.
+fn source_validity(entry: &crate::param::ParamEntry, value: &ParamValue) -> Option<String> {
+    let has = |tag: &str| entry.tags.contains(tag);
+    let valid_list = || entry.valid_strings.join(",");
+    let int_range = |x: i32| {
+        ((entry.min_int != -i32::MAX && x < entry.min_int)
+            || (entry.max_int != i32::MAX && x > entry.max_int))
+            .then(|| {
+                format!(
+                    "Invalid integer parameter value '{x}' for parameter '{}' given! The valid \
+                     range is: [{}:{}].",
+                    entry.name, entry.min_int, entry.max_int
+                )
+            })
+    };
+    let float_range = |x: f64| {
+        ((entry.min_float != -f64::MAX && x < entry.min_float)
+            || (entry.max_float != f64::MAX && x > entry.max_float))
+            .then(|| {
+                format!(
+                    "Invalid double parameter value '{}' for parameter '{}' given! The valid \
+                     range is: [{}:{}].",
+                    std_to_string(x),
+                    entry.name,
+                    std_to_string(entry.min_float),
+                    std_to_string(entry.max_float)
+                )
+            })
+    };
+    match value {
+        ParamValue::String(text) => {
+            let accepted = entry.valid_strings.is_empty()
+                || entry.valid_strings.contains(text)
+                || has("input file")
+                || has("output file")
+                || has("output prefix");
+            (!accepted).then(|| {
+                format!(
+                    "Invalid string parameter value '{text}' for parameter '{}' given! Valid \
+                     values are: '{}'.",
+                    entry.name,
+                    valid_list()
+                )
+            })
+        }
+        ParamValue::StringList(texts) => texts.iter().find_map(|text| {
+            let accepted = entry.valid_strings.is_empty()
+                || entry.valid_strings.contains(text)
+                || has("input file")
+                || has("output file");
+            (!accepted).then(|| {
+                format!(
+                    "Invalid string parameter value '{text}' for parameter '{}' given! Valid \
+                     values are: '{}'.",
+                    entry.name,
+                    valid_list()
+                )
+            })
+        }),
+        // `int tmp = value`: the low 32 bits.
+        ParamValue::Integer(x) => int_range(*x as i32),
+        ParamValue::IntegerList(xs) => xs.iter().find_map(|&x| int_range(x)),
+        ParamValue::Float(x) => float_range(*x),
+        ParamValue::FloatList(xs) => xs.iter().find_map(|&x| float_range(x)),
+        ParamValue::Empty => None,
     }
 }
 
@@ -716,6 +1248,9 @@ pub struct RunOutput {
     /// reasons serially, in seed order, so the counts are exact and
     /// thread-count independent.
     pub aborts: BTreeMap<String, usize>,
+    /// The `write_debug` output, when the parameter is set
+    /// ([`FeatureFinderAlgorithmPicked::debug_output`]).
+    pub debug: Option<DebugOutput>,
 }
 
 /// Source warning when the input is not sorted, verbatim.
@@ -729,20 +1264,39 @@ pub const UNSORTED_WARNING: &str =
 /// 2. No peak in any spectrum or chromatogram (source `getSize() == 0`) is an
 ///    error.
 /// 3. MS levels other than exactly `{1}` are an error.
-/// 4. Every retention time, m/z and intensity must be finite (native, see
-///    below).
-/// 5. When the spectra are not sorted by RT and m/z, they and the
-///    chromatograms are sorted and [`UNSORTED_WARNING`] is logged.
-/// 6. A non-empty spectrum whose first m/z is negative is an error.
+/// 4. When the spectra are not sorted as source `MSExperiment::isSorted(true)`
+///    finds them (no retention time greater than the next, every spectrum
+///    `std::is_sorted` by m/z), the spectra and chromatograms are sorted and
+///    [`UNSORTED_WARNING`] is logged.
+/// 5. A non-empty spectrum whose first m/z is negative is an error; `-inf`
+///    is negative, and the sort moves it to the front of its spectrum.
 ///
 /// Returns `Ok(true)` when the run continues.
+///
+/// Infinite and NaN retention times, m/z values and intensities are not
+/// refused here: the source reads them, and the port follows it (see
+/// `docs/FEATURE_FINDER_PICKED_SUPPORT.md`, "Non-finite input"). The
+/// comparisons of check 4 are false for a NaN, as in the source, so a NaN
+/// never makes the input unsorted.
+///
+/// The sort of check 4 is the Release build's: `std::sort` of the spectra by
+/// retention time and of the chromatograms by product m/z as libstdc++'s
+/// introsort, then `std::stable_sort` of each unsorted spectrum's and
+/// chromatogram's peaks as libstdc++'s merge sort
+/// ([`crate::analysis::feature_finder_picked::source_sort`]), NaN keys and
+/// equal keys included.
 ///
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] with the source messages of
-/// `Exception::IllegalArgument` for checks 2, 3 and 6. Check 4 is native: the
-/// source sorts and bins non-finite values with undefined results, and the
-/// native readers never produce them. A failed sort returns its error.
+/// `Exception::IllegalArgument` for checks 2, 3 and 5, and with the `what()`
+/// text of the source's `Exception::Precondition` when check 4 reaches an
+/// unsorted spectrum (in retention-time order), or then an unsorted
+/// chromatogram, whose non-empty data array differs in length from its peaks
+/// (`FloatDataArray[0] size (25) does not match spectrum size (24)`). The
+/// sorts of check 4 compare with `<` on `f64` keys, for which the introsort's
+/// out-of-bounds guard is unreachable, NaN keys included (module documentation
+/// of [`crate::analysis::feature_finder_picked::source_sort`]).
 pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> Result<bool> {
     if experiment.spectra.is_empty() {
         return Ok(false);
@@ -759,24 +1313,10 @@ pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> R
                 .into(),
         ));
     }
-    for spectrum in &experiment.spectra {
-        if !spectrum.rt.is_finite()
-            || spectrum
-                .peaks
-                .iter()
-                .any(|peak| !peak.mz.is_finite() || !peak.intensity.is_finite())
-        {
-            return Err(Error::InvalidValue(
-                "FeatureFinderAlgorithmPicked needs finite retention times, m/z values and \
-                 intensities"
-                    .into(),
-            ));
-        }
-    }
-    if !experiment.is_sorted(true) {
+    if !source_is_sorted(experiment) {
         log.push(UNSORTED_WARNING.to_string());
-        experiment.sort_spectra(true)?;
-        experiment.sort_chromatograms(true)?;
+        source_sort_spectra(experiment)?;
+        source_sort_chromatograms(experiment)?;
     }
     if experiment
         .spectra
@@ -792,7 +1332,113 @@ pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> R
     Ok(true)
 }
 
-/// Find features: source `run(PeakMap&&, FeatureMap&, const Param&, const FeatureMap& seeds)`.
+/// Source `MSExperiment::sortSpectra(true)`: `std::sort` of the spectra by
+/// retention time (`SpectrumType::RTLess`), then `MSSpectrum::sortByPosition`
+/// on each, in the sorted order, which returns when `std::is_sorted` holds and
+/// otherwise sorts the peaks with `std::stable_sort` (`PositionLess`), keeping
+/// the data arrays aligned.
+///
+/// A spectrum that is sorted this way and holds data arrays first runs
+/// `MSSpectrum::checkDataArraySizes_` (`MSSpectrum.h`, `sort`), so the first
+/// unsorted spectrum *in retention-time order* whose non-empty data array
+/// differs in length from its peaks ends the run with the source's
+/// `Exception::Precondition` text ([`data_array_sizes`]); the spectra before it
+/// are sorted, which a caller cannot observe because `run` consumes the
+/// experiment.
+fn source_sort_spectra(experiment: &mut MSExperiment) -> Result<()> {
+    source_sort_by(&mut experiment.spectra, |a, b| a.rt < b.rt)?;
+    for spectrum in &mut experiment.spectra {
+        if libstdcxx::is_sorted_by(&spectrum.peaks, |a, b| a.mz < b.mz) {
+            continue;
+        }
+        data_array_sizes(
+            &spectrum.float_data_arrays,
+            &spectrum.string_data_arrays,
+            &spectrum.integer_data_arrays,
+            spectrum.peaks.len(),
+            "spectrum",
+        )?;
+        let peaks = &spectrum.peaks;
+        let order = source_stable_sort_permutation(
+            peaks.len(),
+            |a, b| peaks[a].mz < peaks[b].mz,
+            TemporaryBuffer::Allocate,
+        )?;
+        spectrum.select(&order)?;
+    }
+    Ok(())
+}
+
+/// Source `MSSpectrum::checkDataArraySizes_` and
+/// `MSChromatogram::checkDataArraySizes_`: the float, then the string, then the
+/// integer data arrays, each in index order; the first non-empty array whose
+/// length differs from `peaks` is an [`Error::InvalidValue`] with the `what()`
+/// text of the source's `Exception::Precondition`, `<Kind>DataArray[<i>] size
+/// (<n>) does not match <owner> size (<peaks>)` (executed:
+/// `../oracle/ffap-complete-fix3`, `a_*` cases).
+fn data_array_sizes<A, B, C>(
+    floats: &[DataArray<A>],
+    strings: &[DataArray<B>],
+    integers: &[DataArray<C>],
+    peaks: usize,
+    owner: &str,
+) -> Result<()> {
+    fn check<T>(arrays: &[DataArray<T>], kind: &str, peaks: usize, owner: &str) -> Result<()> {
+        for (index, array) in arrays.iter().enumerate() {
+            if !array.data.is_empty() && array.data.len() != peaks {
+                return Err(Error::InvalidValue(format!(
+                    "{kind}DataArray[{index}] size ({}) does not match {owner} size ({peaks})",
+                    array.data.len()
+                )));
+            }
+        }
+        Ok(())
+    }
+    check(floats, "Float", peaks, owner)?;
+    check(strings, "String", peaks, owner)?;
+    check(integers, "Integer", peaks, owner)
+}
+
+/// Source `MSExperiment::sortChromatograms(true)`: `std::sort` of the
+/// chromatograms by product m/z (`ChromatogramType::MZLess`), then
+/// `MSChromatogram::sortByPosition` on each, which returns when no retention
+/// time exceeds the next (false for a NaN) and otherwise sorts the peaks with
+/// `std::stable_sort`, after the same data-array check as the spectra's
+/// ([`data_array_sizes`], "chromatogram size").
+fn source_sort_chromatograms(experiment: &mut MSExperiment) -> Result<()> {
+    let is_sorted = |chromatogram: &MSChromatogram| {
+        !chromatogram
+            .peaks
+            .windows(2)
+            .any(|pair| pair[0].rt > pair[1].rt)
+    };
+    source_sort_by(&mut experiment.chromatograms, |a, b| {
+        a.product.mz < b.product.mz
+    })?;
+    for chromatogram in &mut experiment.chromatograms {
+        if is_sorted(chromatogram) {
+            continue;
+        }
+        data_array_sizes(
+            &chromatogram.float_data_arrays,
+            &chromatogram.string_data_arrays,
+            &chromatogram.integer_data_arrays,
+            chromatogram.peaks.len(),
+            "chromatogram",
+        )?;
+        let peaks = &chromatogram.peaks;
+        let order = source_stable_sort_permutation(
+            peaks.len(),
+            |a, b| peaks[a].rt < peaks[b].rt,
+            TemporaryBuffer::Allocate,
+        )?;
+        chromatogram.select(&order)?;
+    }
+    Ok(())
+}
+
+/// Find features: source `run(PeakMap&&, FeatureMap&, const Param&, const FeatureMap& seeds)`
+/// on a fresh algorithm object and a fresh feature map.
 ///
 /// `experiment` holds centroided MS1 spectra and is consumed, as the source
 /// moves it. `parameters` are applied over [`default_parameters`]. `seeds`
@@ -801,14 +1447,18 @@ pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> R
 ///
 /// An experiment without spectra yields an empty feature map and an empty log.
 /// Otherwise the input is checked ([`validate_input`]), the parameters are
-/// applied ([`Settings::from_parameters`]), the seed stage runs
-/// ([`SeedStage::compute`]) and every seed is extended into a feature
-/// ([`feature_stage`]).
+/// applied ([`Settings::from_parameters`]), the seeds are selected and extended
+/// charge by charge, and the overlaps are resolved
+/// ([`FeatureFinderAlgorithmPicked::run`]). The log holds the text of every
+/// console line in source order; `write_debug` output is in
+/// [`RunOutput::debug`].
+///
+/// A reused object or a non-empty output map, whose state the source carries
+/// from run to run, is [`FeatureFinderAlgorithmPicked`] itself.
 ///
 /// # Errors
 ///
-/// Every error of [`validate_input`], [`Settings::from_parameters`],
-/// [`SeedStage::compute`] and [`feature_stage`].
+/// Every error of [`FeatureFinderAlgorithmPicked::run`].
 pub fn run(experiment: MSExperiment, seeds: &FeatureMap, parameters: &Param) -> Result<RunOutput> {
     run_with_options(experiment, seeds, parameters, &Options::default())
 }
@@ -824,30 +1474,23 @@ pub fn run_with_options(
     parameters: &Param,
     options: &Options,
 ) -> Result<RunOutput> {
-    match SeedStage::run_with_options(experiment, seeds, parameters, options)? {
-        None => Ok(RunOutput {
-            features: FeatureMap::new(),
-            log: Vec::new(),
-            aborts: BTreeMap::new(),
-        }),
-        Some(stage) => feature_stage(&stage, options),
-    }
-}
-
-/// What one seed produced in step 3.3.
-struct SeedOutcome {
-    /// Whether the seed reached the fit and therefore consumed a `plot_nr`.
-    plot_nr_used: bool,
-    /// The candidate, or the source abort reason that dropped the seed.
-    result: std::result::Result<SeedCandidate, String>,
-}
-
-/// One accepted candidate and the later seeds it swallows.
-struct SeedCandidate {
-    feature: Feature,
-    /// Indices of the seeds after this one that lie inside the feature: the
-    /// source's `seeds_in_features[i]`.
-    contained: Vec<usize>,
+    let mut algorithm = FeatureFinderAlgorithmPicked::with_options(*options)?;
+    let mut features = FeatureMap::new();
+    algorithm.run(experiment, &mut features, parameters, seeds)?;
+    Ok(RunOutput {
+        features,
+        log: algorithm
+            .report()
+            .iter()
+            .filter_map(|line| line.text().map(str::to_owned))
+            .collect(),
+        aborts: algorithm
+            .aborts()
+            .iter()
+            .map(|(reason, &count)| (reason.clone(), count as usize))
+            .collect(),
+        debug: algorithm.take_debug_output(),
+    })
 }
 
 /// Steps 3.3 and 4 of source `run_` on a completed seed stage.
@@ -860,7 +1503,9 @@ struct SeedCandidate {
 /// numbers the survivors. After every charge the overlapping features are
 /// resolved ([`resolve_overlaps`]), the zero-intensity losers are removed, the
 /// map is sorted by descending intensity and each feature is annotated with its
-/// apex scan ([`annotate_apex`]).
+/// apex scan ([`annotate_apex`]). Both sorts put equal elements where the C++
+/// Release build's `std::sort` does
+/// ([`crate::analysis::feature_finder_picked::source_sort`]).
 ///
 /// The log receives, in the source's order, the seed counts the stage already
 /// collected, each charge's `Found N feature candidates for charge c.` directly
@@ -874,94 +1519,79 @@ struct SeedCandidate {
 /// results are schedule-independent for the same reason, its `tmp_feature_map`
 /// being keyed by seed index.
 ///
+/// This stage-level entry point writes no debug output and reports no
+/// progress; [`FeatureFinderAlgorithmPicked::run`] does both.
+///
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] when a [`Limits`] ceiling of the seed loop
 /// is exceeded, checked before the loop starts, and every error of the
-/// extension, the fit, the checks and the annotation. A *fit* that fails is not
-/// an error: it becomes that seed's abort reason, which is what the source's
-/// serial behaviour amounts to (inside its parallel region an
-/// `Exception::UnableToFit` is not caught at all).
+/// extension, the fit, the checks and the feature creation, for the first seed
+/// in seed order that fails: a fit error is one of the port's ceilings or a
+/// NaN retention time in a mass trace, where the source's intensity profile
+/// never returns; a feature m/z without isotope window is where the source's
+/// exception terminates the process (`FittedModel::fit`,
+/// [`build_feature`](crate::analysis::feature_finder_picked::fitting::build_feature)).
 pub fn feature_stage(stage: &SeedStage, options: &Options) -> Result<RunOutput> {
     let settings = stage.settings();
     let experiment = stage.experiment();
-    preflight_seed_loop(stage, &options.limits)?;
+    let mut seed_work = 0u64;
+    for charge_index in 0..stage.charges().len() {
+        preflight_charge(stage, charge_index, &options.limits, &mut seed_work)?;
+    }
 
     let fitter_parameters = TraceFitterParams {
         max_iteration: i64::from(settings.max_iterations),
         weighted: false,
     };
     let mut features: Vec<Feature> = Vec::new();
-    let mut aborts: BTreeMap<String, usize> = BTreeMap::new();
+    let mut aborts: BTreeMap<String, u32> = BTreeMap::new();
+    let mut abort_reasons = AbortReasons::new();
     let mut candidate_lines: Vec<(usize, String)> = Vec::new();
     let mut plot_nr_global: i64 = -1;
     let mut feature_nr_global: i64 = 0;
+    let mut progress = Progress::silent();
+    let no_parameters = Param::new();
 
     for (charge_index, charge_seeds) in stage.charges().iter().enumerate() {
-        let charge = charge_seeds.charge;
-        let seeds = &charge_seeds.seeds;
-        let indices: Vec<usize> = (0..seeds.len()).collect();
-        let overall = OverallScores::new(stage.scores(), charge_index);
-        let outcomes = map_collect(&indices, options.threads, |&index| {
-            extend_seed(stage, overall, &fitter_parameters, charge, seeds, index)
-        });
-
-        let mut accepted: Vec<(usize, SeedCandidate)> = Vec::new();
-        for (index, outcome) in outcomes.into_iter().enumerate() {
-            let outcome = outcome?;
-            let plot_nr = if outcome.plot_nr_used {
-                plot_nr_global += 1;
-                plot_nr_global
-            } else {
-                -1
-            };
-            match outcome.result {
-                Err(reason) => *aborts.entry(reason).or_insert(0) += 1,
-                Ok(mut candidate) => {
-                    // The source assigns `plot_nr` inside a critical section,
-                    // so its value depends on the schedule; it is overwritten
-                    // below for every candidate that survives, and only the
-                    // refused debug output reads it otherwise. This port
-                    // numbers the seeds that reached the fit in seed order.
-                    candidate
-                        .feature
-                        .metadata
-                        .insert("label".into(), MetaValue::from(plot_nr));
-                    accepted.push((index, candidate));
-                }
-            }
-        }
-
-        let mut contained_seeds: BTreeSet<usize> = BTreeSet::new();
-        let mut feature_candidates = 0usize;
-        for (seed_nr, candidate) in accepted {
-            if contained_seeds.contains(&seed_nr) {
-                continue;
-            }
-            feature_candidates += 1;
-            let mut feature = candidate.feature;
-            feature
-                .metadata
-                .insert("label".into(), MetaValue::from(feature_nr_global));
-            feature_nr_global += 1;
-            features
-                .try_reserve(1)
-                .map_err(|_| Error::InvalidValue("cannot allocate a feature".into()))?;
-            features.push(feature);
-            contained_seeds.extend(candidate.contained);
-        }
+        let outcomes = extend_charge(
+            stage,
+            charge_index,
+            &fitter_parameters,
+            options.threads,
+            false,
+        );
+        let mut book = Bookkeeping {
+            aborts: &mut aborts,
+            abort_reasons: &mut abort_reasons,
+            out: &mut None,
+            termination: &mut None,
+            features: &mut features,
+            plot_nr_global: &mut plot_nr_global,
+            feature_nr_global: &mut feature_nr_global,
+            progress: &mut progress,
+            limits: &options.limits,
+        };
+        let key = DebugKey {
+            policy: options.pseudo_rt_shift,
+            parameters: &no_parameters,
+        };
+        let feature_candidates = settle_charge(stage, charge_index, outcomes, &mut book, &key)?;
         candidate_lines.push((
             charge_index,
-            format!("Found {feature_candidates} feature candidates for charge {charge}."),
+            format!(
+                "Found {feature_candidates} feature candidates for charge {}.",
+                charge_seeds.charge
+            ),
         ));
     }
 
     // Step 4, serial.
     let mut map = FeatureMap::from_features(features);
-    map.sort_by_mz()?;
+    source_sort_by(&mut map.features, |a, b| a.mz < b.mz)?;
     let removed = resolve_overlaps(&mut map.features, settings.max_feature_intersection)?;
     map.features.retain(|feature| feature.intensity != 0.0);
-    map.sort_by_intensity(true)?;
+    source_sort_by(&mut map.features, |a, b| b.intensity < a.intensity)?;
     let invalid_apex = annotate_apex(&mut map.features, experiment)?;
 
     let mut log = interleave_log(stage, &candidate_lines);
@@ -974,7 +1604,7 @@ pub fn feature_stage(stage: &SeedStage, options: &Options) -> Result<RunOutput> 
     // FeatureFinderAlgorithmPicked.cpp:1019 and the leading "\n" at 1026), which
     // the executed C++ prints whether or not there is an abort reason.
     log.push(String::new());
-    log.push("Info: reasons for not finalizing a feature during its construction:".into());
+    log.push(ABORT_BLOCK_HEADING.into());
     for (reason, count) in &aborts {
         log.push(format!(" - {reason}: {count} times"));
     }
@@ -983,7 +1613,11 @@ pub fn feature_stage(stage: &SeedStage, options: &Options) -> Result<RunOutput> 
     Ok(RunOutput {
         features: map,
         log,
-        aborts,
+        aborts: aborts
+            .into_iter()
+            .map(|(reason, count)| (reason, count as usize))
+            .collect(),
+        debug: None,
     })
 }
 
@@ -1012,120 +1646,4 @@ fn interleave_log(stage: &SeedStage, candidate_lines: &[(usize, String)]) -> Vec
         }
     }
     log
-}
-
-/// The ceilings of the seed loop, checked before it starts.
-fn preflight_seed_loop(stage: &SeedStage, limits: &Limits) -> Result<()> {
-    let spectra = stage.experiment().spectra.len() as u64;
-    let isotopes = stage.settings().max_isotopes() as u64;
-    let per_seed = isotopes.saturating_mul(isotopes.saturating_add(spectra));
-    let mut work = 0u64;
-    for charge in stage.charges() {
-        if charge.seeds.len() > limits.max_seeds {
-            return Err(Error::InvalidValue(format!(
-                "{} seeds for charge {} exceed the limit of {}",
-                charge.seeds.len(),
-                charge.charge,
-                limits.max_seeds
-            )));
-        }
-        work = work.saturating_add((charge.seeds.len() as u64).saturating_mul(per_seed));
-    }
-    if work > limits.max_seed_work {
-        return Err(Error::InvalidValue(format!(
-            "the seed loop may take {work} work units, exceeding the limit of {}",
-            limits.max_seed_work
-        )));
-    }
-    Ok(())
-}
-
-/// One seed of step 3.3: isotope fit, extension, fit, cropping, quality checks
-/// and feature creation.
-fn extend_seed(
-    stage: &SeedStage,
-    overall: OverallScores<'_>,
-    fitter_parameters: &TraceFitterParams,
-    charge: i32,
-    seeds: &[Seed],
-    index: usize,
-) -> Result<SeedOutcome> {
-    let settings = stage.settings();
-    let spectra = &stage.experiment().spectra;
-    let seed = seeds[index];
-    let aborted = |plot_nr_used: bool, reason: &str| SeedOutcome {
-        plot_nr_used,
-        result: Err(reason.to_owned()),
-    };
-
-    let (isotope_fit_quality, pattern) =
-        find_best_isotope_fit(spectra, stage.windows(), settings, seed, charge)?;
-    if isotope_fit_quality < settings.min_isotope_fit {
-        return Ok(aborted(false, ABORT_NO_ISOTOPE_PATTERN));
-    }
-    let mut traces = extend_mass_traces(spectra, overall, settings, &pattern)?;
-    let seed_mz = spectra[seed.spectrum].peaks[seed.peak].mz;
-    if !traces.is_valid(seed_mz, settings.trace_tolerance) {
-        return Ok(aborted(false, ABORT_COULD_NOT_EXTEND));
-    }
-
-    // Source: the baseline estimate is three quarters of the lowest peak.
-    traces.update_baseline();
-    traces.baseline *= 0.75;
-    traces
-        .get_mut(traces.max_trace)
-        .ok_or_else(|| {
-            Error::InvalidValue(
-                "FeatureFinderAlgorithmPicked seed extension: the maximum trace index is out of \
-                 range; the source dereferences it here"
-                    .into(),
-            )
-        })?
-        .update_maximum();
-
-    let mut model = FittedModel::new(settings.rt_shape, *fitter_parameters);
-    if let Err(error) = model.fit(&traces) {
-        // The source does not catch `Exception::UnableToFit` inside its
-        // parallel region, so the run ends there; this port records the failure
-        // as the seed's abort reason and continues, which is what the source's
-        // own abort handling amounts to.
-        return Ok(SeedOutcome {
-            plot_nr_used: true,
-            result: Err(error.to_string()),
-        });
-    }
-    let new_traces = crop_feature(model.as_fitter(), &traces, settings.min_trace_score)?;
-    let quality = match check_feature_quality(model.as_fitter(), &new_traces, seed_mz, settings)? {
-        QualityOutcome::Rejected(reason) => return Ok(aborted(true, reason)),
-        QualityOutcome::Accepted(quality) => quality,
-    };
-    let traces = new_traces;
-    let feature = build_feature(FeatureInput {
-        model: &model,
-        traces: &traces,
-        pattern: &pattern,
-        windows: stage.windows(),
-        settings,
-        charge,
-        // Overwritten serially; see `feature_stage`.
-        plot_nr: -1,
-        quality,
-    })?;
-
-    // Source: every later seed inside both the overall bounding box and one of
-    // the mass-trace hulls.
-    let mut contained = Vec::new();
-    if let Some(bounds) = feature.hull_bounding_box() {
-        for (offset, later) in seeds.iter().enumerate().skip(index + 1) {
-            let rt = spectra[later.spectrum].rt;
-            let mz = spectra[later.spectrum].peaks[later.peak].mz;
-            if bounds.encloses(Point2D::new(rt, mz))? && feature.encloses(rt, mz)? {
-                contained.push(offset);
-            }
-        }
-    }
-    Ok(SeedOutcome {
-        plot_nr_used: true,
-        result: Ok(SeedCandidate { feature, contained }),
-    })
 }

@@ -1063,16 +1063,16 @@ fn ion_mobility_arrays_on_ms2_spectra_only_are_not_refused() {
 
 /// Oracle `FFC_FileFilter_44_noforce`: a registered upstream profile fixture,
 /// numpress-compressed, is refused by the profile check with exit 8. The C++
-/// Release build agrees (exit 8, the same message).
+/// Release build agrees (exit 8, the same message; `../oracle/ffap-sem-completion`
+/// case `filefilter_44_noforce`, two repetitions).
 ///
-/// The `-force` companion (`FFC_FileFilter_44_force`) exits 8 through a
-/// Debug-only `OPENMS_PRECONDITION`, so the Debug exit is not an expectation
-/// (decision D7). This port exits 8 as well, but for its own reason: the
-/// fixture's four MS1 spectra all carry retention time `0.273`, so the source's
-/// intensity binning divides by a zero bin width. See
-/// [`a_zero_width_retention_time_range_diverges_from_the_cpp_release_build`] for
-/// the measured difference to the C++ Release build, which carries the division
-/// through to an empty feature map.
+/// The `-force` companion (`FFC_FileFilter_44_force`) exits 8 in the Debug
+/// oracle through `OPENMS_PRECONDITION(begin <= end)` in
+/// `ProgressLogger::startProgress` (`ProgressLogger.cpp:235`), called with
+/// `(5, 0)` for the mass-trace scores (`FeatureFinderAlgorithmPicked.cpp:298`)
+/// because the input is shorter than the seed loop; that exit is `debug_only`
+/// (decision D7). What `-force` does in the Release build, and here, is
+/// [`a_short_input_never_reaches_the_seed_loop_as_in_the_cpp_release_build`].
 #[test]
 fn the_numpress_profile_fixture_is_refused_without_force() {
     let dir = Workdir::new();
@@ -1085,39 +1085,75 @@ fn the_numpress_profile_fixture_is_refused_without_force() {
 
     let outcome = run_in(&dir, &["-test", "-in", &input, "-out", &out, "-force"]);
     assert_reached_the_algorithm(&outcome);
-    outcome.assert_exit(ExitCode::UnknownError);
-    outcome.assert_err_contains(ZERO_WIDTH_RANGE_REFUSAL);
-    assert!(!Path::new(&out).exists(), "no output is written");
+    outcome.assert_exit(ExitCode::ExecutionOk);
 }
 
-/// The refusal this port raises where the source divides by a zero bin width.
-const ZERO_WIDTH_RANGE_REFUSAL: &str = "Error: Unexpected internal error (FeatureFinderAlgorithmPicked needs a retention-time and an m/z range of positive width";
+/// The algorithm lines of a run in which no seed of any of the default
+/// charges 1 to 4 is found, as the C++ Release build printed them.
+const NOTHING_FOUND_FOR_CHARGES_1_TO_4: &[&str] = &[
+    "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.",
+    "Found 0 seeds for charge 1.",
+    "Found 0 feature candidates for charge 1.",
+    "Found 0 seeds for charge 2.",
+    "Found 0 feature candidates for charge 2.",
+    "Found 0 seeds for charge 3.",
+    "Found 0 feature candidates for charge 3.",
+    "Found 0 seeds for charge 4.",
+    "Found 0 feature candidates for charge 4.",
+    "Removed 0 overlapping features.",
+    "",
+    "Info: reasons for not finalizing a feature during its construction:",
+    "",
+    "0 features found.",
+];
 
-/// **Documented divergence, measured against the C++ Release build.**
+/// The same for the FeatureFinderCentroided_1 INI, which searches charge 2
+/// only.
+const NOTHING_FOUND_FOR_CHARGE_2: &[&str] = &[
+    "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.",
+    "Found 0 seeds for charge 2.",
+    "Found 0 feature candidates for charge 2.",
+    "Removed 0 overlapping features.",
+    "",
+    "Info: reasons for not finalizing a feature during its construction:",
+    "",
+    "0 features found.",
+];
+
+/// Assert an exit 0 with an empty feature map whose `spectra_data` names
+/// `input_basename`, as each of the C++ Release runs quoted below wrote it.
+fn assert_empty_release_map(outcome: &Outcome, out: &str, input_basename: &str) {
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    let map = FileHandler::load_feature_map(out, &[FileType::FeatureXml]).unwrap();
+    assert!(map.features.is_empty());
+    assert_eq!(
+        map.primary_ms_run_path().unwrap(),
+        [format!("file://{input_basename}")]
+    );
+}
+
+/// **The short input: the seed loop is empty.** Measured against the C++
+/// Release build (`../oracle/ffap-sem-completion` case `filefilter_44_force`,
+/// three repetitions, identical).
 ///
-/// `FileFilter_44_input.mzML` has four MS1 spectra at the single retention time
-/// `0.273`. Source `FeatureFinderAlgorithmPicked::run_` divides the retention
-/// time range by `intensity:bins` to size its intensity bins
-/// (`FeatureFinderAlgorithmPicked.cpp`, step 1), which is a division by zero
-/// here. The three builds part company:
-///
-/// * C++ Debug (oracle `FFC_FileFilter_44_force`): exit 8 from an
-///   `OPENMS_PRECONDITION` inside `ProgressLogger::init`, `debug_only`.
-/// * C++ Release (`openms4-release-bc9cc12-c19e494-174b576`, run under the
-///   oracle environment): exit 0. The division produces non-finite bin bounds,
-///   no peak falls in any bin, the run reports `Found 0 seeds` and `Found 0
-///   feature candidates` for charges 1 to 4 and `0 features found.`, and writes
-///   a featureXML with `<featureList count="0">`.
-/// * This port: exit 8 with [`ZERO_WIDTH_RANGE_REFUSAL`], and no output.
-///
-/// The port refuses rather than reproducing arithmetic on non-finite values, so
-/// this test is ignored and kept as the record of the difference. Closing it
-/// means either reproducing the source's non-finite binning or making the
-/// refusal opt-out for the tool path, which is the picked feature finder's
-/// decision, not this wrapper's.
+/// `FileFilter_44_input.mzML` has two MS1 spectra, both at retention time
+/// `0.273` s. Without an INI, `mass_trace:min_spectra` is 10, so the source's
+/// `min_spectra_` is 5 and its seed loop runs over the scans `5 .. n - min(5,
+/// n)` (`FeatureFinderAlgorithmPicked.cpp:493-498`), which is empty for every
+/// input of at most 10 scans. No seed can be found whatever the scores are:
+/// the C++ Release build prints no seed and no candidate for charges 1 to 4,
+/// exits 0 and writes an empty feature map, and so does this port. The zero
+/// retention-time extent is incidental here: the executed intensity scores of
+/// these peaks are NaN, but nothing reads them
+/// (`degenerate_bin_steps_match_the_linux_release_build`,
+/// `tests/feature_finder_picked_seeds.rs`), and
+/// `FileConverter_31_output.mzML`, four scans at retention times 5 to 8 s
+/// ([`ion_mobility_arrays_on_ms2_spectra_only_are_not_refused`]), gives the
+/// same result with a non-zero extent. Until this port reproduced the Release
+/// build's scoring of a zero extent it refused this input, and this test was
+/// ignored under a name that blamed the extent.
 #[test]
-#[ignore = "documented divergence: the port refuses a zero-width RT range that C++ Release carries through to an empty feature map"]
-fn a_zero_width_retention_time_range_diverges_from_the_cpp_release_build() {
+fn a_short_input_never_reaches_the_seed_loop_as_in_the_cpp_release_build() {
     let dir = Workdir::new();
     let out = dir.file("FFC_FileFilter_44_force.tmp.featureXML");
     let input = text(fixture("FileFilter_44_input.mzML"));
@@ -1126,6 +1162,396 @@ fn a_zero_width_retention_time_range_diverges_from_the_cpp_release_build() {
     outcome.assert_out_contains("0 features found.");
     let map = FileHandler::load_feature_map(&out, &[FileType::FeatureXml]).unwrap();
     assert!(map.features.is_empty());
+    assert_out_block(&outcome, NOTHING_FOUND_FOR_CHARGES_1_TO_4);
+    assert_empty_release_map(&outcome, &out, "FileFilter_44_input.mzML");
+}
+
+/// FeatureFinderCentroided_1's input with every `scan start time` replaced by
+/// the first one, `4114.53`: a zero retention-time extent (oracle input
+/// `zero_rt_ffc1.mzML` of `../oracle/ffap-sem-completion/make_inputs.py`; its
+/// sha256 and those of the two m/z inputs are in
+/// `tests/data/feature_finder_picked_provenance.json`, `oracle.release_build`).
+fn derive_zero_rt(source: &[u8]) -> Vec<u8> {
+    const MARKER: &[u8] = br#"name="scan start time" value=""#;
+    let mut out = Vec::with_capacity(source.len());
+    let mut rest = source;
+    let mut replaced = 0;
+    while let Some(at) = find(rest, MARKER) {
+        let value_start = at + MARKER.len();
+        out.extend_from_slice(&rest[..value_start]);
+        rest = &rest[value_start..];
+        let end = rest.iter().position(|byte| *byte == b'"').unwrap();
+        if replaced == 0 {
+            assert_eq!(&rest[..end], b"4114.53");
+        }
+        out.extend_from_slice(b"4114.53");
+        rest = &rest[end..];
+        replaced += 1;
+    }
+    out.extend_from_slice(rest);
+    assert_eq!(replaced, SPECTRA);
+    assert_digest(&out, "c58ee032b11af4ae864fb3016047bf248cbe42ea", "zero_rt");
+    out
+}
+
+/// FeatureFinderCentroided_1's input with every m/z array payload replaced by
+/// `defaultArrayLength` little-endian doubles of 500.0 (oracle input
+/// `zero_mz_ffc1.mzML`), and with `first` as the first m/z of the first
+/// spectrum (`zero_mz_control_ffc1.mzML`, 499.0).
+fn derive_mz(source: &[u8], first: Option<f64>) -> Vec<u8> {
+    let engine = base64::engine::general_purpose::STANDARD;
+    let mut out: Vec<Vec<u8>> = Vec::new();
+    let mut length = 0usize;
+    let mut spectrum = None::<usize>;
+    let mut pending = false;
+    let mut arrays = 0usize;
+    for line in lines(source) {
+        if let Some(value) = default_array_length(line) {
+            length = value;
+            spectrum = Some(spectrum.map_or(0, |index| index + 1));
+        }
+        if find(line, br#"name="m/z array""#).is_some() {
+            pending = true;
+        }
+        if pending && trimmed(line).starts_with(b"<binary>") {
+            let mut values = vec![500.0f64; length];
+            if spectrum == Some(0) {
+                if let Some(value) = first {
+                    values[0] = value;
+                }
+            }
+            let raw: Vec<u8> = values.iter().flat_map(|v| v.to_le_bytes()).collect();
+            let payload = engine.encode(&raw);
+            let prefix = &line[..find(line, b"<binary>").unwrap()];
+            let old = &trimmed(line)[b"<binary>".len()..trimmed(line).len() - b"</binary>".len()];
+            assert_eq!(old.len(), payload.len());
+            let mut replaced = prefix.to_vec();
+            replaced.extend_from_slice(b"<binary>");
+            replaced.extend_from_slice(payload.as_bytes());
+            replaced.extend_from_slice(b"</binary>");
+            out.push(replaced);
+            pending = false;
+            arrays += 1;
+            continue;
+        }
+        out.push(line.to_vec());
+    }
+    assert_eq!(arrays, SPECTRA);
+    let derived = join(out);
+    let (expected, case) = match first {
+        None => ("8311af59499e10154cafab2ff56acbbcde3d9f60", "zero_mz"),
+        Some(_) => (
+            "5df2a4e1a7fbbf47a2bb7d6ea142bfab61c20d5e",
+            "zero_mz_control",
+        ),
+    };
+    assert_digest(&derived, expected, case);
+    derived
+}
+
+/// FeatureFinderCentroided_1's input with every `scan start time` value `v`
+/// written as `v` followed by `suffix` (`e36` or `e39`): the retention times
+/// scaled by that power of ten in the text (oracle inputs `rt_e36.mzML` and
+/// `rt_e39.mzML` of `../oracle/ffap-complete-fix4/node/run_tool.sh`).
+fn derive_rt_suffix(source: &[u8], suffix: &str) -> Vec<u8> {
+    const MARKER: &[u8] = br#"name="scan start time" value=""#;
+    let mut out = Vec::with_capacity(source.len() + SPECTRA * suffix.len());
+    let mut rest = source;
+    let mut replaced = 0;
+    while let Some(at) = find(rest, MARKER) {
+        let value_start = at + MARKER.len();
+        let end = value_start
+            + rest[value_start..]
+                .iter()
+                .position(|byte| *byte == b'"')
+                .unwrap();
+        out.extend_from_slice(&rest[..end]);
+        out.extend_from_slice(suffix.as_bytes());
+        rest = &rest[end..];
+        replaced += 1;
+    }
+    out.extend_from_slice(rest);
+    assert_eq!(replaced, SPECTRA);
+    let expected = match suffix {
+        "e36" => "baadf62aa5ef060d07c8cf010b768da00adf376c",
+        "e39" => "f2acc3a566d722abadf685851c953dd8229c18e7",
+        other => panic!("{other}"),
+    };
+    assert_digest(&out, expected, suffix);
+    out
+}
+
+/// **Features of infinite width and intensity cannot be written** (native
+/// difference 16), measured against the C++ Release build
+/// (`../oracle/ffap-complete-fix4`, cases `rt_e36`, `rt_e39` and
+/// `rt_e39_egh`, two runs each, identical apart from the timing lines;
+/// `rt_scaled_release.tsv`).
+///
+/// With every retention time of FeatureFinderCentroided_1 scaled by `1e36`
+/// the fitted features' `float` intensities overflow, and with `1e39` their
+/// widths too; the Release tool prints its usual lines, exits 0 and writes
+/// `<intensity>inf</intensity>` and `FWHM` `inf` into the featureXML. The
+/// algorithm port computes the same features (`vy_rt_*` of
+/// `extended_cases_match_the_linux_release_build` in
+/// `tests/feature_finder_picked.rs`) and this tool prints the same lines, but
+/// the native featureXML writer refuses a non-finite feature value, so the
+/// tool exits 3 without an output file.
+#[test]
+fn infinite_feature_values_are_refused_by_the_featurexml_writer() {
+    let source = fs::read(ffc1_input()).unwrap();
+    let release = fs::read_to_string(fixture("rt_scaled_release.tsv")).unwrap();
+    let ini = text(ffc1_ini());
+    for (case, suffix, extra) in [
+        ("rt_e36", "e36", &[][..]),
+        ("rt_e39", "e39", &[][..]),
+        (
+            "rt_e39_egh",
+            "e39",
+            &["-algorithm:feature:rt_shape", "asymmetric"][..],
+        ),
+    ] {
+        let rows: Vec<Vec<&str>> = release
+            .lines()
+            .skip(1)
+            .map(|line| line.split('\t').collect())
+            .filter(|row: &Vec<&str>| row[0] == case)
+            .collect();
+        assert_eq!(rows[0][1], "0", "{case}: the Release tool exits 0");
+        let count: usize = rows[0][2].parse().unwrap();
+        let intensities: Vec<&str> = rows
+            .iter()
+            .filter(|row| row[3] == "intensity")
+            .map(|row| row[4])
+            .collect();
+        assert_eq!(intensities.len(), count, "{case}");
+        assert!(intensities.iter().all(|value| *value == "inf"), "{case}");
+        let widths: Vec<&str> = rows
+            .iter()
+            .filter(|row| row[3] == "FWHM")
+            .map(|row| row[4])
+            .collect();
+        assert_eq!(widths.len(), count, "{case}");
+        assert_eq!(
+            widths.iter().all(|value| *value == "inf"),
+            suffix == "e39",
+            "{case}: {widths:?}"
+        );
+        let block: Vec<&str> = rows
+            .iter()
+            .filter(|row| row[3] == "stdout")
+            .map(|row| row[4])
+            .collect();
+
+        let dir = Workdir::new();
+        let input = dir.put(
+            &format!("rt_{suffix}.mzML"),
+            &derive_rt_suffix(&source, suffix),
+        );
+        let out = dir.file(&format!("{case}.tmp.featureXML"));
+        let mut args = vec!["-test", "-ini", &ini, "-in", &input, "-out", &out];
+        args.extend_from_slice(extra);
+        let outcome = run_in(&dir, &args);
+        assert_out_block(&outcome, &block);
+        outcome.assert_exit(ExitCode::InputFileCorrupt);
+        outcome.assert_err_contains("nonfinite feature value");
+        assert!(!Path::new(&out).exists(), "{case}: no output file");
+    }
+}
+
+/// **A zero retention-time extent that reaches the seed loop**, measured
+/// against the C++ Release build (`../oracle/ffap-sem-completion` cases
+/// `zero_rt`, `zero_rt_threads4` and `zero_rt_min_score_0`, three repetitions
+/// each, identical).
+///
+/// Step 1 divides the zero extent by `intensity:bins` and `intensityScore_`
+/// converts `floor(0 / 0)` to `UInt` for every peak
+/// (`FeatureFinderAlgorithmPicked.cpp:1837`), which is undefined behaviour.
+/// The Release build computes it as `cvttsd2si` does, every intensity score is
+/// NaN, and no peak becomes a seed, even with `seed:min_score` 0: the run prints
+/// no seed, exits 0 and writes an empty map, at one and at four threads. This
+/// port reproduces that (`DegenerateBinStep::Source`, the tool's setting).
+#[test]
+fn a_zero_width_retention_time_range_follows_the_cpp_release_build() {
+    let source = fs::read(ffc1_input()).unwrap();
+    let derived = derive_zero_rt(&source);
+    for extra in [
+        &[][..],
+        &["-threads", "4"][..],
+        &["-algorithm:seed:min_score", "0"][..],
+    ] {
+        let dir = Workdir::new();
+        let input = dir.put("zero_rt_ffc1.mzML", &derived);
+        let out = dir.file("zero_rt.tmp.featureXML");
+        let ini = text(ffc1_ini());
+        let mut args = vec!["-test", "-ini", &ini, "-in", &input, "-out", &out];
+        args.extend_from_slice(extra);
+        let outcome = run_in(&dir, &args);
+        assert_out_block(&outcome, NOTHING_FOUND_FOR_CHARGE_2);
+        assert_empty_release_map(&outcome, &out, "zero_rt_ffc1.mzML");
+    }
+}
+
+/// **A zero m/z extent that reaches the seed loop**, measured against the C++
+/// Release build (cases `zero_mz`, `zero_mz_threads4` and
+/// `zero_mz_min_score_0`, three repetitions each, identical): the same
+/// undefined conversion at `FeatureFinderAlgorithmPicked.cpp:1838`, the same
+/// empty result.
+///
+/// The control moves one peak to m/z 499 (case
+/// `zero_mz_control_min_score_0`, two repetitions): the extent is no longer
+/// zero, the intensity scores are defined, and with `seed:min_score` 0 the
+/// Release build finds 735 seeds, none of which has an isotope pattern.
+#[test]
+fn a_zero_width_mz_range_follows_the_cpp_release_build() {
+    let source = fs::read(ffc1_input()).unwrap();
+    let derived = derive_mz(&source, None);
+    let ini = text(ffc1_ini());
+    for extra in [
+        &[][..],
+        &["-threads", "4"][..],
+        &["-algorithm:seed:min_score", "0"][..],
+    ] {
+        let dir = Workdir::new();
+        let input = dir.put("zero_mz_ffc1.mzML", &derived);
+        let out = dir.file("zero_mz.tmp.featureXML");
+        let mut args = vec!["-test", "-ini", &ini, "-in", &input, "-out", &out];
+        args.extend_from_slice(extra);
+        let outcome = run_in(&dir, &args);
+        assert_out_block(&outcome, NOTHING_FOUND_FOR_CHARGE_2);
+        assert_empty_release_map(&outcome, &out, "zero_mz_ffc1.mzML");
+    }
+
+    let dir = Workdir::new();
+    let input = dir.put(
+        "zero_mz_control_ffc1.mzML",
+        &derive_mz(&source, Some(499.0)),
+    );
+    let out = dir.file("zero_mz_control.tmp.featureXML");
+    let outcome = run_in(
+        &dir,
+        &[
+            "-test",
+            "-ini",
+            &ini,
+            "-in",
+            &input,
+            "-out",
+            &out,
+            "-algorithm:seed:min_score",
+            "0",
+        ],
+    );
+    assert_out_block(
+        &outcome,
+        &[
+            "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.",
+            "Found 735 seeds for charge 2.",
+            "Found 0 feature candidates for charge 2.",
+            "Removed 0 overlapping features.",
+            "",
+            "Info: reasons for not finalizing a feature during its construction:",
+            " - Could not find good enough isotope pattern containing the seed: 735 times",
+            "",
+            "0 features found.",
+        ],
+    );
+    assert_empty_release_map(&outcome, &out, "zero_mz_control_ffc1.mzML");
+}
+
+/// **A changed isotope abundance: the one designed difference** (`CPP-247`).
+///
+/// The executed C++ Release tool (`../oracle/ffap-sem-completion` case
+/// `ffc1_abundance_12C_90`, three repetitions, identical) builds the override
+/// with a stray `(0, 1)` peak and finds nothing on FeatureFinderCentroided_1
+/// with `-algorithm:isotopic_pattern:abundance_12C 90`: no seed, no candidate,
+/// no feature, exit 0. The tool uses the library default
+/// `AbundanceOverride::Intended` (`Options::default()`), which computes the
+/// override the source intends and does find features. The expected values of
+/// that result are not this port's: they are the adapted Release replay of the
+/// intended override (driver `intended_abundance.cpp`, configuration
+/// `ffc1_12C_90`, recorded in
+/// `tests/data/feature_finder_picked/intended_abundance.tsv`): 18 seeds, one
+/// candidate, one feature of charge 2 at RT `0x40b12596f2a04222` and m/z
+/// `0x4084420ded67bc0c`, with intensity `81362.57` and quality `0.7551466` as
+/// `f32`, 65 data points, and three abort reasons.
+#[test]
+fn a_changed_abundance_finds_the_intended_features_where_the_cpp_release_build_finds_none() {
+    // The executed C++ tool's lines, for the record: this port differs here by
+    // design.
+    const CPP_RELEASE: &[&str] = &[
+        "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.",
+        "Found 0 seeds for charge 2.",
+        "Found 0 feature candidates for charge 2.",
+        "Removed 0 overlapping features.",
+        "",
+        "Info: reasons for not finalizing a feature during its construction:",
+        "",
+        "0 features found.",
+    ];
+    let dir = Workdir::new();
+    let out = dir.file("abundance_12C_90.tmp.featureXML");
+    let ini = text(ffc1_ini());
+    let input = text(ffc1_input());
+    let outcome = run_in(
+        &dir,
+        &[
+            "-test",
+            "-ini",
+            &ini,
+            "-in",
+            &input,
+            "-out",
+            &out,
+            "-algorithm:isotopic_pattern:abundance_12C",
+            "90",
+        ],
+    );
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert!(
+        !outcome.out.contains(CPP_RELEASE[1]),
+        "the tool follows the executed stray-peak override:\n{}",
+        outcome.out
+    );
+    assert_out_block(
+        &outcome,
+        &[
+            "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.",
+            "Found 18 seeds for charge 2.",
+            "Found 1 feature candidates for charge 2.",
+            "Removed 0 overlapping features.",
+            "",
+            "Info: reasons for not finalizing a feature during its construction:",
+            " - Could not extend seed: 2 times",
+            " - Could not find good enough isotope pattern containing the seed: 8 times",
+            " - Feature quality too low after fit: 6 times",
+            "",
+            "1 features found.",
+        ],
+    );
+    let map = FileHandler::load_feature_map(&out, &[FileType::FeatureXml]).unwrap();
+    assert_eq!(map.features.len(), 1);
+    let feature = &map.features[0];
+    assert_eq!(feature.charge, 2);
+    // The retention time is the fitted centre. It is bit-identical on every
+    // platform: the Gaussian fit calls the reference build's glibc `exp` and
+    // `log`, ported (lead decision D10; `tests/feature_finder_picked.rs`,
+    // `tolerance`).
+    let rt = f64::from_bits(0x40b1_2596_f2a0_4222);
+    assert_eq!(feature.rt.to_bits(), rt.to_bits());
+    assert_eq!(feature.mz.to_bits(), 0x4084_420d_ed67_bc0c);
+    assert_eq!(feature.intensity.to_bits(), 0x479e_e949);
+    assert_eq!(feature.quality.to_bits(), 0x3f41_5149);
+    assert_eq!(
+        feature
+            .metadata
+            .get("num_of_datapoints")
+            .map(MetaValue::to_string),
+        Some("65".to_owned())
+    );
+    assert_eq!(
+        map.primary_ms_run_path().unwrap(),
+        ["file://FeatureFinderCentroided_1_input.mzML"]
+    );
 }
 
 /// Oracle `c5_negative_intensities`: with every MS1 peak negative the load
@@ -1866,4 +2292,608 @@ fn an_empty_feature_map_is_annotated() {
         map.primary_ms_run_path().unwrap(),
         ["file://FeatureFinderCentroided_1_input.mzML"]
     );
+}
+
+// ---------------------------------------------------------------------------
+// -algorithm:write_debug (package ffap-instrumentation)
+// ---------------------------------------------------------------------------
+//
+// Every case below was executed with the C++ Release FeatureFinderCentroided
+// (`../oracle/ffap-instr-completion`, `tool_cases.py`, three repetitions each
+// with OMP_NUM_THREADS=1): the exit status, the console output and every file
+// the run left behind are compared, log.txt byte for byte (by SHA-1) and the
+// featureXML and mzML files by decoded content (decision D6), with the exact
+// unique ids the seeded -test generator draws.
+
+/// A fixture of the instrumentation package.
+fn instrumentation(name: &str) -> PathBuf {
+    repository("tests/data/feature_finder_picked_instrumentation").join(name)
+}
+
+/// The executed size and SHA-1 of one debug file (`debug_digests.tsv`).
+fn executed_digest(case: &str, file: &str) -> (usize, String) {
+    let table = fs::read_to_string(instrumentation("debug_digests.tsv")).unwrap();
+    for line in table.lines().skip(1) {
+        let fields: Vec<&str> = line.split('\t').collect();
+        if fields[0] == case && fields[1] == file {
+            return (fields[2].parse().unwrap(), fields[3].to_owned());
+        }
+    }
+    panic!("no executed digest for {case} {file}");
+}
+
+fn assert_executed_file(path: &Path, case: &str, file: &str) {
+    let data = fs::read(path).unwrap();
+    let (bytes, sha1) = executed_digest(case, file);
+    assert_eq!(data.len(), bytes, "{case} {file}: size");
+    assert_eq!(digest(&data), sha1, "{case} {file}: content");
+}
+
+fn debug_d6() -> decoded::DecodedOptions {
+    decoded::DecodedOptions::new(decoded::Tolerance::from_settings(
+        &fuzzy::FuzzyDiffSettings::upstream().unwrap(),
+    ))
+    .ignoring_unique_ids()
+}
+
+/// A featureXML file, decoded; `.gz` fixtures included.
+fn decoded_features(path: &Path) -> FeatureMap {
+    openms::format::featurexml::load(path).unwrap()
+}
+
+fn assert_same_features(actual: &Path, expected: &Path) {
+    if let Err(mismatch) = decoded::compare_feature_maps(
+        &decoded_features(actual),
+        &decoded_features(expected),
+        &debug_d6(),
+    ) {
+        panic!("{}: {mismatch}", actual.display());
+    }
+}
+
+/// An mzML file with NaN scores allowed, as the source reads it; `.gz`
+/// fixtures are decompressed first.
+fn decoded_debug_input(path: &Path) -> MSExperiment {
+    let mut bytes = fs::read(path).unwrap();
+    if path.extension().is_some_and(|e| e == "gz") {
+        use std::io::Read;
+        let mut xml = Vec::new();
+        flate2::read::GzDecoder::new(bytes.as_slice())
+            .read_to_end(&mut xml)
+            .unwrap();
+        bytes = xml;
+    }
+    let options = openms::format::mzml::ReadOptions {
+        source_nonfinite_float_arrays: true,
+        ..Default::default()
+    };
+    openms::format::mzml::read_with_options(bytes.as_slice(), &options).unwrap()
+}
+
+/// The debug input written by the port against the executed one: the same
+/// spectra, peaks and score arrays, bit for bit (NaN bits and the overall
+/// scores of the reference build's `powf` included).
+fn assert_same_debug_input(actual: &Path, expected: &Path) {
+    let a = decoded_debug_input(actual);
+    let e = decoded_debug_input(expected);
+    assert_eq!(a.spectra.len(), e.spectra.len());
+    for (x, y) in a.spectra.iter().zip(&e.spectra) {
+        assert_eq!(x.native_id, y.native_id);
+        assert_eq!(x.rt.to_bits(), y.rt.to_bits());
+        assert_eq!(x.peaks, y.peaks);
+        let names = |s: &MSSpectrum| -> Vec<String> {
+            s.float_data_arrays.iter().map(|a| a.name.clone()).collect()
+        };
+        assert_eq!(names(x), names(y));
+        for (u, v) in x.float_data_arrays.iter().zip(&y.float_data_arrays) {
+            assert_eq!(u.data.len(), v.data.len(), "{} {}", x.native_id, u.name);
+            for (p, q) in u.data.iter().zip(&v.data) {
+                assert_eq!(
+                    p.to_bits(),
+                    q.to_bits(),
+                    "{} {}: {p} against {q}",
+                    x.native_id,
+                    u.name
+                );
+            }
+        }
+    }
+}
+
+/// The executed console block of a debug run: from the FAIMS line to the end,
+/// without TOPPBase's closing timing line and the fatal block of a terminated
+/// run.
+fn executed_block(name: &str) -> Vec<String> {
+    let text = fs::read_to_string(instrumentation(name)).unwrap();
+    let start = text
+        .find(FeatureFinderCentroided::NO_FAIMS_MESSAGE)
+        .unwrap();
+    let mut lines = Vec::new();
+    for line in text[start..].lines() {
+        if line.starts_with("FeatureFinderCentroided took ")
+            || line.starts_with("-----------------")
+        {
+            break;
+        }
+        lines.push(line.to_owned());
+    }
+    while lines.last().is_some_and(String::is_empty) {
+        lines.pop();
+    }
+    lines
+}
+
+fn port_block(outcome: &Outcome) -> Vec<String> {
+    let start = outcome
+        .out
+        .find(FeatureFinderCentroided::NO_FAIMS_MESSAGE)
+        .unwrap();
+    let mut lines: Vec<String> = outcome.out[start..].lines().map(str::to_owned).collect();
+    while lines.last().is_some_and(String::is_empty) {
+        lines.pop();
+    }
+    lines
+}
+
+fn debug_args<'a>(dir: &'a Workdir, extra: &[&'a str]) -> (String, String, Vec<String>) {
+    let ini = text(ffc1_ini());
+    let input = text(ffc1_input());
+    let mut args = vec![
+        "-test".to_owned(),
+        "-ini".to_owned(),
+        ini.clone(),
+        "-in".to_owned(),
+        input.clone(),
+        "-out".to_owned(),
+        dir.file("out.featureXML"),
+        "-algorithm:write_debug".to_owned(),
+    ];
+    args.extend(extra.iter().map(|s| (*s).to_owned()));
+    (ini, input, args)
+}
+
+fn run_args(dir: &Workdir, args: &[String]) -> Outcome {
+    let refs: Vec<&str> = args.iter().map(String::as_str).collect();
+    run_in(dir, &refs)
+}
+
+/// The id `-test` makes the source draw first: the debug abort map's.
+const FIRST_TEST_MODE_ID: u64 = 5_233_264_595_117_471_314;
+/// The output map's id after the abort map's draw (the executed a1 and a2
+/// outputs); without debug it is the second draw, 4835329514588776807.
+const OUTPUT_ID_AFTER_DEBUG: u64 = 17_749_660_155_506_638_460;
+
+/// Executed case x0: `write_debug` is a true/false string, which TOPPBase
+/// registers as a flag, so a value after it is a command-line error.
+#[test]
+fn write_debug_is_a_flag_on_the_command_line() {
+    let dir = Workdir::new();
+    let (_, _, mut args) = debug_args(&dir, &[]);
+    args.push("true".into());
+    let outcome = run_args(&dir, &args);
+    outcome.assert_exit(ExitCode::IllegalParameters);
+    let executed = fs::read_to_string(instrumentation("tool_x0_stderr.txt")).unwrap();
+    let first = executed.lines().next().unwrap();
+    assert_eq!(
+        first,
+        "Invalid parameter values (InvalidParameter): Command line error: Trailing arguments after flag '-algorithm:write_debug': true. Aborting!"
+    );
+    outcome.assert_err_contains(first);
+    assert!(!dir.path().join("debug").exists());
+}
+
+/// Executed cases a1 and a2: no seed reaches the fit, so the debug run
+/// completes. The console, log.txt, the seed map, the abort map, the input
+/// with its score arrays and the output match the Release build.
+#[test]
+fn a_completed_debug_run_writes_the_executed_files() {
+    for (case, extra, stdout, input, seeds, aborts, out) in [
+        (
+            "a1",
+            ["-algorithm:mass_trace:min_spectra", "1"],
+            "tool_a1_stdout.txt",
+            "a1_input.mzML.gz",
+            "empty_seed_map.featureXML",
+            "empty_abort_map.featureXML",
+            "tool_a1_out.featureXML",
+        ),
+        (
+            "a2",
+            ["-algorithm:feature:min_isotope_fit", "1.0"],
+            "tool_a2_stdout.txt",
+            "a2_input.mzML.gz",
+            "ffc1_seed_map.featureXML.gz",
+            "a2_abort_map.featureXML.gz",
+            "tool_a2_out.featureXML",
+        ),
+    ] {
+        let dir = Workdir::new();
+        let (_, _, args) = debug_args(&dir, &extra);
+        let outcome = run_args(&dir, &args);
+        outcome.assert_exit(ExitCode::ExecutionOk);
+        assert_eq!(port_block(&outcome), executed_block(stdout), "{case}");
+        let debug = dir.path().join("debug");
+        assert!(debug.join("features").is_dir());
+        assert_eq!(fs::read_dir(debug.join("features")).unwrap().count(), 0);
+        assert_executed_file(&debug.join("log.txt"), case, "log.txt");
+        assert_same_features(&debug.join("seeds_2.featureXML"), &instrumentation(seeds));
+        let abort_path = debug.join("abort_reasons.featureXML");
+        assert_same_features(&abort_path, &instrumentation(aborts));
+        assert_eq!(decoded_features(&abort_path).unique_id, FIRST_TEST_MODE_ID);
+        assert_same_debug_input(&debug.join("input.mzML"), &instrumentation(input));
+        let output = PathBuf::from(dir.file("out.featureXML"));
+        assert_same_features(&output, &instrumentation(out));
+        assert_eq!(decoded_features(&output).unique_id, OUTPUT_ID_AFTER_DEBUG);
+        let mut entries: Vec<String> = fs::read_dir(&debug)
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        entries.sort();
+        assert_eq!(
+            entries,
+            [
+                "abort_reasons.featureXML",
+                "features",
+                "input.mzML",
+                "log.txt",
+                "seeds_2.featureXML"
+            ]
+        );
+    }
+}
+
+/// Executed case a3: four scans and all four charges, no seed: one seed map
+/// per charge, and the repeated store line the OpenMS log stream reports
+/// once, with its count, when a later line pushes it out.
+#[test]
+fn a_debug_run_on_a_short_input_writes_the_executed_files() {
+    let dir = Workdir::new();
+    let input = text(fixture("FileConverter_31_output.mzML"));
+    let out = dir.file("out.featureXML");
+    let outcome = run_in(
+        &dir,
+        &[
+            "-test",
+            "-in",
+            &input,
+            "-out",
+            &out,
+            "-force",
+            "-algorithm:write_debug",
+        ],
+    );
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    let block = port_block(&outcome);
+    assert_eq!(block, executed_block("tool_a3_stdout.txt"));
+    assert!(block.contains(
+        &"<FeatureXMLHandler::store():  found 1 invalid unique ids> occurred 4 times".to_owned()
+    ));
+    let debug = dir.path().join("debug");
+    assert_executed_file(&debug.join("log.txt"), "a3", "log.txt");
+    for charge in 1..=4 {
+        assert_same_features(
+            &debug.join(format!("seeds_{charge}.featureXML")),
+            &instrumentation("empty_seed_map.featureXML"),
+        );
+    }
+    assert_same_features(
+        &debug.join("abort_reasons.featureXML"),
+        &instrumentation("empty_abort_map.featureXML"),
+    );
+    assert_same_debug_input(
+        &debug.join("input.mzML"),
+        &instrumentation("a3_input.mzML.gz"),
+    );
+    assert_same_features(Path::new(&out), &instrumentation("tool_a3_out.featureXML"));
+}
+
+/// Executed case b1: the first seed reaches the fit, `writeFeatureDebugInfo_`
+/// throws `ElementNotFound` inside the OpenMP region, and the executed tool
+/// prints OpenMS's fatal-exception block and is killed by SIGABRT (shell
+/// status 134) in all three repetitions. A safe port cannot end that way: it
+/// exits 8 with the message TOPPBase gives the exception where it can catch
+/// it. Everything the executed run wrote before it died is written the same:
+/// the console lines, the seed map, and log.txt up to the last byte the file
+/// buffer had flushed; no output and no later debug file.
+#[test]
+fn a_debug_run_that_reaches_the_fit_ends_where_the_release_build_terminates() {
+    let dir = Workdir::new();
+    let (_, _, args) = debug_args(&dir, &[]);
+    let outcome = run_args(&dir, &args);
+    outcome.assert_exit(ExitCode::UnknownError);
+    outcome.assert_err_contains(
+        "Error: Unexpected internal error (the element 'debug:pseudo_rt_shift' could not be found)",
+    );
+    let executed = fs::read_to_string(instrumentation("tool_b1_stdout.txt")).unwrap();
+    assert!(executed.contains("FATAL: uncaught exception!"));
+    assert!(
+        executed.contains("error message: the element 'debug:pseudo_rt_shift' could not be found")
+    );
+    assert_eq!(port_block(&outcome), executed_block("tool_b1_stdout.txt"));
+    let debug = dir.path().join("debug");
+    assert_executed_file(&debug.join("log.txt"), "b1", "log.txt");
+    assert_same_features(
+        &debug.join("seeds_2.featureXML"),
+        &instrumentation("ffc1_seed_map.featureXML.gz"),
+    );
+    assert!(debug.join("features").is_dir());
+    assert!(!debug.join("abort_reasons.featureXML").exists());
+    assert!(!debug.join("input.mzML").exists());
+    assert!(!dir.path().join("out.featureXML").exists());
+}
+
+/// Executed tool case avg0 (`../oracle/ffap-complete-fix3`): FFC_1 with
+/// `reported_mz` average and the trace, seed, feature and isotope-fit
+/// thresholds at 0, without `write_debug`. A seed whose best isotope pattern
+/// stayed empty reaches `extendMassTraces_`, which reads the pattern's first
+/// entry: the executed tool dies with SIGSEGV (shell status 139) in both
+/// repetitions, with nothing on stderr and no output. The port refuses at
+/// that seed (lead decision D1) and reports it as TOPPBase reports the
+/// algorithm's other errors. Its console block starts with everything the
+/// executed process wrote; after it, the port also prints the `std::cout`
+/// lines of `run_` that the executed process still held in its buffer when it
+/// died, the per-charge seed counts (TOPP native difference: a crash loses
+/// unflushed output).
+#[test]
+fn a_run_that_reaches_an_empty_best_pattern_is_refused_where_the_release_build_crashes() {
+    let dir = Workdir::new();
+    let args: Vec<String> = [
+        "-test",
+        "-ini",
+        &text(ffc1_ini()),
+        "-in",
+        &text(ffc1_input()),
+        "-out",
+        &dir.file("out.featureXML"),
+        "-algorithm:feature:reported_mz",
+        "average",
+        "-algorithm:feature:min_trace_score",
+        "0",
+        "-algorithm:seed:min_score",
+        "0",
+        "-algorithm:feature:min_score",
+        "0",
+        "-algorithm:feature:min_isotope_fit",
+        "0",
+    ]
+    .iter()
+    .map(|arg| (*arg).to_owned())
+    .collect();
+    let outcome = run_args(&dir, &args);
+    outcome.assert_exit(ExitCode::UnknownError);
+    outcome.assert_err_contains(
+        "Error: Unexpected internal error (FeatureFinderAlgorithmPicked seed extension: the \
+         isotope pattern matched no peak; the source reads its first entry here)",
+    );
+    let executed = executed_block("tool_avg0_stdout.txt");
+    assert_eq!(
+        executed,
+        vec![FeatureFinderCentroided::NO_FAIMS_MESSAGE.to_owned()]
+    );
+    let port = port_block(&outcome);
+    assert_eq!(port[..executed.len()], executed[..]);
+    assert!(!port[executed.len()..].is_empty());
+    assert!(
+        port[executed.len()..]
+            .iter()
+            .all(|line| line.starts_with("Found ") && line.contains(" seeds for charge ")),
+        "{port:?}"
+    );
+    assert!(!dir.path().join("out.featureXML").exists());
+    assert!(!dir.path().join("debug").exists());
+}
+
+/// Executed cases c1 and c2 ran the C++ tool at `-threads 4`: its debug log
+/// then differs from run to run (c2's three logs are pairwise different,
+/// c1's too), because `abort_` and the log writes race; that output is
+/// undefined and not compared. The port writes the single-thread files at
+/// every thread count.
+#[test]
+fn debug_files_do_not_depend_on_the_thread_count() {
+    let mut reference: Option<Vec<(String, Vec<u8>)>> = None;
+    for threads in ["1", "4"] {
+        let dir = Workdir::new();
+        let (_, _, args) = debug_args(
+            &dir,
+            &[
+                "-algorithm:feature:min_isotope_fit",
+                "1.0",
+                "-threads",
+                threads,
+            ],
+        );
+        run_args(&dir, &args).assert_exit(ExitCode::ExecutionOk);
+        let mut files = Vec::new();
+        for name in [
+            "debug/log.txt",
+            "debug/seeds_2.featureXML",
+            "debug/abort_reasons.featureXML",
+            "debug/input.mzML",
+            "out.featureXML",
+        ] {
+            files.push((name.to_owned(), fs::read(dir.path().join(name)).unwrap()));
+        }
+        match &reference {
+            None => reference = Some(files),
+            Some(expected) => assert_eq!(&files, expected),
+        }
+    }
+}
+
+/// Executed case c3: case a1 at `-threads 4`. No seed is found, so nothing is
+/// written from inside the parallel region and the run is defined: both
+/// executed repetitions wrote exactly a1's files (`make_fixtures.py` checks
+/// them byte for byte against a1's). The port at four threads writes them
+/// too; `log.txt` is compared with c3's own digest.
+#[test]
+fn a_debug_run_without_seeds_at_four_threads_writes_the_executed_files() {
+    let dir = Workdir::new();
+    let (_, _, args) = debug_args(
+        &dir,
+        &["-algorithm:mass_trace:min_spectra", "1", "-threads", "4"],
+    );
+    let outcome = run_args(&dir, &args);
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert_eq!(port_block(&outcome), executed_block("tool_a1_stdout.txt"));
+    let debug = dir.path().join("debug");
+    assert_eq!(fs::read_dir(debug.join("features")).unwrap().count(), 0);
+    assert_executed_file(&debug.join("log.txt"), "c3", "log.txt");
+    assert_same_features(
+        &debug.join("seeds_2.featureXML"),
+        &instrumentation("empty_seed_map.featureXML"),
+    );
+    let abort_path = debug.join("abort_reasons.featureXML");
+    assert_same_features(&abort_path, &instrumentation("empty_abort_map.featureXML"));
+    assert_eq!(decoded_features(&abort_path).unique_id, FIRST_TEST_MODE_ID);
+    assert_same_debug_input(
+        &debug.join("input.mzML"),
+        &instrumentation("a1_input.mzML.gz"),
+    );
+    let output = PathBuf::from(dir.file("out.featureXML"));
+    assert_same_features(&output, &instrumentation("tool_a1_out.featureXML"));
+    assert_eq!(decoded_features(&output).unique_id, OUTPUT_ID_AFTER_DEBUG);
+}
+
+/// FeatureFinderCentroided_1's input with the last m/z of its last spectrum
+/// replaced by `value` (oracle inputs `huge_mz_1e19.mzML` and
+/// `huge_mz_2e18.mzML` of `../oracle/ffap-complete-fix2/make_inputs.py`; the
+/// SHA-1 is that of the file the C++ tool read).
+fn derive_last_mz(source: &[u8], value: f64, expected_sha1: &str) -> Vec<u8> {
+    let engine = base64::engine::general_purpose::STANDARD;
+    let all = lines(source);
+    let mut pending = false;
+    let mut last = None;
+    for (index, line) in all.iter().enumerate() {
+        if find(line, br#"name="m/z array""#).is_some() {
+            pending = true;
+        }
+        if pending && trimmed(line).starts_with(b"<binary>") {
+            last = Some(index);
+            pending = false;
+        }
+    }
+    let last = last.unwrap();
+    let mut out: Vec<Vec<u8>> = all.iter().map(|line| line.to_vec()).collect();
+    let line = all[last];
+    let prefix = &line[..find(line, b"<binary>").unwrap()];
+    let old = &trimmed(line)[b"<binary>".len()..trimmed(line).len() - b"</binary>".len()];
+    let mut raw = engine.decode(old).unwrap();
+    assert_eq!(raw.len(), 24 * 8);
+    let at = raw.len() - 8;
+    let previous = f64::from_le_bytes(raw[at..].try_into().unwrap());
+    assert!(previous < value);
+    raw[at..].copy_from_slice(&value.to_le_bytes());
+    let payload = engine.encode(&raw);
+    assert_eq!(payload.len(), old.len());
+    let mut replaced = prefix.to_vec();
+    replaced.extend_from_slice(b"<binary>");
+    replaced.extend_from_slice(payload.as_bytes());
+    replaced.extend_from_slice(b"</binary>");
+    out[last] = replaced;
+    let derived = join(out);
+    assert_digest(&derived, expected_sha1, "huge m/z");
+    derived
+}
+
+/// The executed rows of `length_error.tsv` for one input and kind of the tool.
+fn length_error_tool(input: &str, kind: &str) -> Vec<String> {
+    fs::read_to_string(instrumentation("length_error.tsv"))
+        .unwrap()
+        .lines()
+        .skip(2)
+        .filter_map(|line| {
+            let fields: Vec<&str> = line.splitn(4, '\t').collect();
+            (fields[0] == input && fields[1] == "tool" && fields[2] == kind)
+                .then(|| fields[3].to_owned())
+        })
+        .collect()
+}
+
+/// Executed cases `tool_1e19` and `tool_2e18` (`../oracle/ffap-complete-fix2`,
+/// two identical runs each): a debug run on an input whose maximum m/z asks
+/// step 2.5 for more isotope windows than it can allocate.
+///
+/// At m/z `1e19` (`2e17 + 1` windows at the INI's charge 2 and width 100,
+/// above `vector::max_size()`) the source's `resize` throws
+/// `std::length_error`, which is no OpenMS exception:
+/// TOPPBase's outer handler prints `Unable to initialize or run
+/// FeatureFinderCentroided: vector::_M_default_append` and returns 12
+/// (`INTERNAL_ERROR`), as this port does. The run has created
+/// `debug/features` and written the first log line, which the unwinding
+/// flushes: 40 bytes. No output is written.
+///
+/// At m/z `2e18` (`4e16 + 1` windows, below the bound) the executed
+/// allocation throws `std::bad_alloc`, again exit 12. This port refuses the
+/// count with its native window ceiling and exits 8 with that message (a
+/// recorded native difference); the debug side effects are the executed ones.
+#[test]
+fn a_debug_run_beyond_the_isotope_window_limit_exits_as_the_release_build() {
+    let source = fs::read(ffc1_input()).unwrap();
+    let log = fs::read(instrumentation("length_error_log.txt")).unwrap();
+    for (tag, value, sha1) in [
+        ("1e19", 1e19, "76954c288ddadebd6d4d9fd579ba3be764c85e26"),
+        ("2e18", 2e18, "fee5f77d5582d01388065004ab621116840a8be8"),
+    ] {
+        let dir = Workdir::new();
+        let input = dir.put(
+            &format!("huge_mz_{tag}.mzML"),
+            &derive_last_mz(&source, value, sha1),
+        );
+        let ini = text(ffc1_ini());
+        let out = dir.file("out.featureXML");
+        let outcome = run_in(
+            &dir,
+            &[
+                "-test",
+                "-ini",
+                &ini,
+                "-in",
+                &input,
+                "-out",
+                &out,
+                "-algorithm:write_debug",
+                "-algorithm:feature:min_isotope_fit",
+                "1.0",
+            ],
+        );
+        let executed_status = length_error_tool(tag, "status");
+        let executed_stderr = length_error_tool(tag, "stderr");
+        assert_eq!(executed_status, ["12"]);
+        if tag == "1e19" {
+            outcome.assert_exit(ExitCode::InternalError);
+            assert_eq!(
+                executed_stderr,
+                ["Unable to initialize or run FeatureFinderCentroided: vector::_M_default_append"]
+            );
+            assert_eq!(outcome.err.lines().collect::<Vec<_>>(), executed_stderr);
+        } else {
+            assert_eq!(
+                executed_stderr,
+                ["Unable to initialize or run FeatureFinderCentroided: std::bad_alloc"]
+            );
+            outcome.assert_exit(ExitCode::UnknownError);
+            outcome.assert_err_contains("Error: Unexpected internal error (");
+            outcome.assert_err_contains("exceed the limit");
+        }
+        assert_eq!(
+            port_block(&outcome),
+            length_error_tool(tag, "stdout_block"),
+            "{tag}"
+        );
+        let debug = dir.path().join("debug");
+        assert!(debug.join("features").is_dir());
+        assert_eq!(fs::read_dir(debug.join("features")).unwrap().count(), 0);
+        assert_eq!(fs::read(debug.join("log.txt")).unwrap(), log);
+        assert_eq!(length_error_tool(tag, "log_bytes"), [log.len().to_string()]);
+        let mut entries: Vec<String> = fs::read_dir(&debug)
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        entries.sort();
+        assert_eq!(entries, ["features", "log.txt"]);
+        let tree = length_error_tool(tag, "tree");
+        assert!(tree.contains(&"./debug/log.txt".to_owned()));
+        assert!(!tree.iter().any(|path| path.contains("out.featureXML")));
+        assert!(!Path::new(&out).exists());
+    }
 }

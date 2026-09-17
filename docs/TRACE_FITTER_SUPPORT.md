@@ -47,7 +47,7 @@ implementations and helpers below them.
 | `virtual bool checkMinimalRTSpan(const std::pair<double,double>&, double) = 0` | `fn check_minimal_rt_span(&self, (f64, f64), f64) -> bool` |
 | `virtual bool checkMaximalRTSpan(double) = 0` | `fn check_maximal_rt_span(&self, f64) -> bool` |
 | `virtual double getArea() = 0` | `fn area(&self) -> f64` |
-| `virtual std::string getGnuplotFormula(const MassTrace&, char, double, double) = 0` | `fn gnuplot_formula(&self, &MassTrace, char, f64, f64) -> String`; numbers through `trace_fitter::stream_number` |
+| `virtual std::string getGnuplotFormula(const MassTrace&, char, double, double) = 0` | `fn gnuplot_formula(&self, &MassTrace, char, f64, f64) -> String`; numbers through `trace_fitter::stream_number`, which spells a NaN with its sign bit set `-nan`, as glibc (the reference build's C library) does (executed `.plot` files, `docs/FEATURE_FINDER_PICKED_SUPPORT.md`, *Debug mode*) |
 | `class GenericFunctor` (`inputs`, `values`, `operator()`, `df`, `m_inputs`, `m_values`) | the closures passed to `optimize`; `inputs()` is `x.len()`, `values()` the `values` argument |
 | `GenericFunctorEigenAdapter` (file-local) | the `jacobian` wrapper inside `optimize_with_status`, which returns 0 consumed evaluations |
 | `struct ModelData { traces_ptr, weighted }` (protected) | fields of each fitter's functor |
@@ -131,31 +131,42 @@ C++ (the C2 oracle reaches them through a derived probe class).
   `checkMinimalRTSpan` `(upper - lower) < min_rt_span * 5.0 * sigma`.
 - `getGnuplotFormula` writes `<name>(x)= <baseline> + <theo * height> *
   exp(-0.5*(x-<rt_shift + x0>)**2/(<sigma>)**2)` with the default stream
-  precision 6.
+  precision 6. The product and the sum are computed in the Linux x86_64
+  Release build's SSE operand order (`theo` and `rt_shift` are the
+  destinations, `libOpenMS.so` `0x1979a38`, `0x1979a62`), so a NaN they
+  create or pass on prints with the executed sign on every host (648
+  executed formulas, `gnuplot_formulas_print_the_executed_nan_signs` in
+  `tests/feature_finder_picked_instrumentation.rs`).
 - With one or two peaks the start values are set and then the fit is refused,
   so the fitter keeps the start values, as after the source's exception.
 
 ## Native differences
 
-1. **`exp` and `log` come from the platform C library**, as in the source,
-   through `f64::exp` and `f64::ln`, so fitted parameters are **not
-   bit-identical across platforms**. glibc 2.39 (Linux x86-64) and Apple libm
-   (macOS arm64) disagree in the last bit at 70 of the 37,080 distinct `exp`
-   arguments the tests reach. The same commit therefore gives different fits on
-   the two platforms the project tests on; for example `start.trailing_max`
-   deviates from the oracle by 1.72e-3 on Linux and 1.49e-3 on macOS. Both meet
-   every acceptance criterion. A fit is serial and repeats bit for bit on one
-   platform.
-   - The work package's notes proposed the `libm` crate for cross-machine
-     reproducibility. It was measured and rejected: its `exp` differs from both
-     platform libraries by one unit in the last place at 9% of the recorded
-     residual points, which breaks the 1e-14 residual criterion and moves
-     FeatureFinderCentroided_1 fits by up to 1.1e-9.
-   - A correctly rounded `exp` and `log` meets every criterion in a
-     table-lookup simulation and would be identical on every platform. It
-     matches the oracle in fewer last bits.
-   - The choice is the integrator's (see "`exp` and `log` across platforms").
-     B5-EGH must follow it.
+1. **`exp` and `log` are the reference build's, ported** (lead decision D10
+   of wave 5, `src/analysis/feature_finder_picked/glibc_libm.rs`,
+   crate-private). The source calls the C library's `exp` and `log`; the Linux
+   x86_64 Release build, which the port matches (user decision of
+   2026-09-15), binds GNU C Library 2.39, whose indirect functions select
+   `__ieee754_exp_fma` and `__ieee754_log_fma` on the reference CPU. Both are
+   Arm optimized-routines algorithms, so the port carries them from that
+   upstream (MIT; the notice is in the file) with the FMA contractions read
+   from the disassembly, and they equal the executed library on every probed
+   input (`../oracle/ffap-complete-fix3`: an 80-value grid and 10 sets of
+   `2^26` inputs, on Linux x86_64 and macOS arm64). Fits are therefore the
+   same on every platform. Against these tests' fixtures, which the macOS
+   arm64 product SDK (Apple libm, fused Eigen kernels) generated, the port now
+   behaves as it did on Linux with the platform library.
+   - Before D10 this fitter called `f64::exp` and `f64::ln`, and the two
+     project platforms disagreed in the last bit at 70 of the 37,080 distinct
+     `exp` arguments the tests reach (for example `start.trailing_max`
+     deviated from the oracle by 1.72e-3 on Linux and 1.49e-3 on macOS).
+   - The `libm` crate and a correctly rounded `exp` were measured and not
+     adopted (see "`exp` and `log` across platforms"); neither is the
+     reference build's function.
+   - B5-EGH makes the same choice for `exp` and `log`. Its `atan` has no
+     licence-clean upstream of the reference algorithm and follows D10's
+     fallback ([EGH support](EGH_TRACE_FITTER_SUPPORT.md), native
+     difference 8).
 2. **Errors** are `Error::InvalidValue` whose message starts with
    `UnableToFit-FinalSet: `, the source exception's name; the part after it is
    the source's `what()`.
@@ -541,11 +552,12 @@ What this establishes:
   0 at every recorded point, and every other acceptance criterion holds. The
   bit-identical counts fall because neither platform library is correctly
   rounded.
-- **Decision.** Keeping the platform library matches the oracle platform's
-  last bits; a correctly rounded implementation gives the same bits on every
-  platform. Choosing is the integrator's decision (a crate such as a
-  CORE-MATH port would need a `Cargo.toml` change). B5-EGH must make the same
-  choice.
+- **Decision (lead decision D10 of wave 5).** Neither the platform library
+  nor a correctly rounded implementation: the reference build's glibc 2.39
+  `exp` and `log`, ported from Arm optimized-routines, so the last bits are the
+  Linux x86_64 Release build's on every platform (native difference 1). The
+  measurements above remain the record of why the platform library was not
+  enough. B5-EGH uses the same functions.
 
 **Not covered.** A negative `max_iteration` through the tool path cannot occur
 (`fit:max_iterations` has minimum 1). The C++ copy constructor's uninitialised

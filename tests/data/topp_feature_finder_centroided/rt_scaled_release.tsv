@@ -1,0 +1,81 @@
+case	status	features	kind	value
+rt_e36	0	9	count	-
+rt_e36	0	9	stdout	Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
+rt_e36	0	9	stdout	Found 25 seeds for charge 2.
+rt_e36	0	9	stdout	Found 9 feature candidates for charge 2.
+rt_e36	0	9	stdout	Removed 0 overlapping features.
+rt_e36	0	9	stdout	
+rt_e36	0	9	stdout	Info: reasons for not finalizing a feature during its construction:
+rt_e36	0	9	stdout	
+rt_e36	0	9	stdout	9 features found.
+rt_e36	0	9	intensity	inf
+rt_e36	0	9	FWHM	3.7948155120721833e37
+rt_e36	0	9	intensity	inf
+rt_e36	0	9	FWHM	4.793758665148354e37
+rt_e36	0	9	intensity	inf
+rt_e36	0	9	FWHM	3.4233847591209905e37
+rt_e36	0	9	intensity	inf
+rt_e36	0	9	FWHM	3.59167779927717e37
+rt_e36	0	9	intensity	inf
+rt_e36	0	9	FWHM	4.831714659420388e37
+rt_e36	0	9	intensity	inf
+rt_e36	0	9	FWHM	3.7624346451399534e37
+rt_e36	0	9	intensity	inf
+rt_e36	0	9	FWHM	3.368606787853808e37
+rt_e36	0	9	intensity	inf
+rt_e36	0	9	FWHM	7.25900391577356e37
+rt_e36	0	9	intensity	inf
+rt_e36	0	9	FWHM	3.352038087448585e37
+rt_e39	0	9	count	-
+rt_e39	0	9	stdout	Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
+rt_e39	0	9	stdout	Found 25 seeds for charge 2.
+rt_e39	0	9	stdout	Found 9 feature candidates for charge 2.
+rt_e39	0	9	stdout	Removed 0 overlapping features.
+rt_e39	0	9	stdout	
+rt_e39	0	9	stdout	Info: reasons for not finalizing a feature during its construction:
+rt_e39	0	9	stdout	
+rt_e39	0	9	stdout	9 features found.
+rt_e39	0	9	intensity	inf
+rt_e39	0	9	FWHM	inf
+rt_e39	0	9	intensity	inf
+rt_e39	0	9	FWHM	inf
+rt_e39	0	9	intensity	inf
+rt_e39	0	9	FWHM	inf
+rt_e39	0	9	intensity	inf
+rt_e39	0	9	FWHM	inf
+rt_e39	0	9	intensity	inf
+rt_e39	0	9	FWHM	inf
+rt_e39	0	9	intensity	inf
+rt_e39	0	9	FWHM	inf
+rt_e39	0	9	intensity	inf
+rt_e39	0	9	FWHM	inf
+rt_e39	0	9	intensity	inf
+rt_e39	0	9	FWHM	inf
+rt_e39	0	9	intensity	inf
+rt_e39	0	9	FWHM	inf
+rt_e39_egh	0	8	count	-
+rt_e39_egh	0	8	stdout	Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
+rt_e39_egh	0	8	stdout	Found 25 seeds for charge 2.
+rt_e39_egh	0	8	stdout	Found 8 feature candidates for charge 2.
+rt_e39_egh	0	8	stdout	Removed 0 overlapping features.
+rt_e39_egh	0	8	stdout	
+rt_e39_egh	0	8	stdout	Info: reasons for not finalizing a feature during its construction:
+rt_e39_egh	0	8	stdout	 - Invalid fit: Fitted model is bigger than 'max_rt_span': 1 times
+rt_e39_egh	0	8	stdout	
+rt_e39_egh	0	8	stdout	8 features found.
+rt_e39_egh	0	8	intensity	inf
+rt_e39_egh	0	8	FWHM	inf
+rt_e39_egh	0	8	intensity	inf
+rt_e39_egh	0	8	FWHM	inf
+rt_e39_egh	0	8	intensity	inf
+rt_e39_egh	0	8	FWHM	inf
+rt_e39_egh	0	8	intensity	inf
+rt_e39_egh	0	8	FWHM	inf
+rt_e39_egh	0	8	intensity	inf
+rt_e39_egh	0	8	FWHM	inf
+rt_e39_egh	0	8	intensity	inf
+rt_e39_egh	0	8	FWHM	inf
+rt_e39_egh	0	8	intensity	inf
+rt_e39_egh	0	8	FWHM	inf
+rt_e39_egh	0	8	intensity	inf
+rt_e39_egh	0	8	FWHM	inf

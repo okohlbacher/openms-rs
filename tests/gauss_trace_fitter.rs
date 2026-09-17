@@ -29,13 +29,14 @@
 //! 1e-14 relative, as the start values, residuals and Jacobians are. Integers,
 //! booleans, strings and the budget boundaries are compared exactly. The oracle
 //! ran on macOS arm64 with Apple libm and Eigen 5.0.1; the port calls the
-//! platform `exp` and `log` and the Eigen transcription in
-//! `openms::math::fitters::levenberg_marquardt`. The platform `exp` differs in
-//! the last bit between glibc and Apple libm, so the bit-identical counts and
-//! some fit deviations differ between Linux and macOS; every tolerance holds on
-//! both (`docs/TRACE_FITTER_SUPPORT.md`, native difference 1). Each replay
-//! prints how many values were bit-identical and the largest relative
-//! deviation it met.
+//! Linux x86_64 Release build's glibc `exp` and `log`, ported (lead decision
+//! D10), and the Eigen transcription in
+//! `openms::math::fitters::levenberg_marquardt`. glibc's `exp` differs in the
+//! last bit from Apple libm's at some arguments, so the bit-identical counts
+//! and some fit deviations are those the Linux runs measured, now on every
+//! platform; every tolerance holds (`docs/TRACE_FITTER_SUPPORT.md`, native
+//! difference 1). Each replay prints how many values were bit-identical and
+//! the largest relative deviation it met.
 //!
 //! The fit, status, `nfev` and `njev` agreement of these replays holds for
 //! these fixtures only. On other inputs the Eigen transcription departs from

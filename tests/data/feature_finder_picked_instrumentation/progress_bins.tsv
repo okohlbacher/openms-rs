@@ -1,0 +1,10 @@
+bins	outcome
+10	S 0 100 0 Precalculating intensity scores
+2000	S 0 4000000 0 Precalculating intensity scores
+65535	S 0 4294836225 0 Precalculating intensity scores
+65536	S 0 0 0 Precalculating intensity scores
+65537	S 0 131073 0 Precalculating intensity scores
+70000	S 0 605032704 0 Precalculating intensity scores
+100000	S 0 1410065408 0 Precalculating intensity scores
+4294967296	threw InvalidParameter: FeatureFinderAlgorithmPicked: Invalid integer parameter value '0' for parameter 'bins' given! The valid range is: [1:2147483647].
+4295032832	S 0 0 0 Precalculating intensity scores

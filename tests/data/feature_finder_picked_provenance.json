@@ -4,10 +4,10 @@
  "rust_base_revision": "42c21e74b440a307fba697def730c7ad60ef6f68",
  "license": "BSD-3-Clause",
  "group": "feature_finder_picked",
- "work_package": "B6-FFAP-SEEDS (wave 2) for steps 0 to 3.2 and B7-FFAP-FEATURES (wave 3) for steps 3.3 and 4; algorithm.rs, this manifest and the support document passed from B6 to B7",
- "scope": "FEATUREFINDER/FeatureFinderAlgorithmPicked.h/.cpp end to end: getDefaultParameters, updateMembers_ and the run_ parameter reads, the input checks of run, steps 0 to 3.2 (intensity quantiles and scores, trace scores and local maxima, isotope-pattern precalculation, pattern scores, overall scores and seed selection), positionScore_, nearest_, findIsotope_, isotopeScore_, both intensityScore_ overloads and getIsotopeDistribution_; and steps 3.3 and 4 (findBestIsotopeFit_, extendMassTraces_, extendMassTrace_, chooseTraceFitter_, cropFeature_, checkFeatureQuality_, feature creation, the parallel seed loop with its containment pass, intersection_, the overlap resolution, the apex annotation and the abort counts). run produces features end to end. Not ported: writeFeatureDebugInfo_ and abort_reasons_, both reachable only through write_debug, which is refused; the FeatureFinderDefs struct.",
- "method": "Port with executed differential tests. The C2 class-level driver ffap_stages and a B6 driver seed_stage run FeatureFinderAlgorithmPicked::run in the product SDK and read its protected seed-stage state through a derived probe class. ../oracle/b6-ffap-seeds/extract.py converts their records into TSV fixtures with floats as IEEE-754 bit patterns; tests/feature_finder_picked_seeds.rs rebuilds every configuration with the Rust loaders and compares members, quantiles, isotope windows, all per-peak score arrays and the ordered seed lists bit for bit. The executed FeatureFinderCentroided -write_ini output (C1) pins the defaults. For the feature stage, ../oracle/b7-ffap-features/extract.py converts the same C2 driver's final FeatureMap, aborts_ map and per-seed replay records into TSV fixtures with floats as IEEE-754 bit patterns; tests/feature_finder_picked.rs runs the algorithm on each configuration and additionally replays step 3.3 seed by seed through the public extension and fitting functions. No C++ runs in the B7 extraction.",
- "evidence_tier": "tier 1 (executed differential, product SDK): default parameters (C1 -write_ini), effective members, intensity bins and quantiles, isotope windows (bit for bit, closing B2's pending FFC_1 window comparison), every per-peak trace, intensity, local-maximum and pattern score, overall scores (bit for bit except 99 of 30,840 that the oracle's Apple powf misrounds, where the port asserts the correctly rounded value), printed seed counts, and min_spectra 1 behaviour, over 7 configurations; adapted: the ordered seed lists (source selection code replayed on the library arrays; counts equal the library's printed lines); tier 3: FeatureFinderAlgorithmPicked_test constructor and destructor sections, source-order input checks, parameter conversions and refusals; tier 4: hand-derived scoring cases, area-iterator equivalence, limits; tier 1 for the feature stage: the library's final FeatureMap (counts, charges, labels, num_of_datapoints, hull counts and hull point order exactly; coordinates, intensities, qualities, widths and scores within 1e-9 relative), its aborts_ map and its two std::cout lines, over six configurations; adapted: the per-seed intermediate state of the driver's replay; tier 3: all four FeatureFinderAlgorithmPicked_test sections, including the run() and [EXTRA] #9247 literals; tier 4: intersection_ cases, the cropping position rules, the empty-pattern refusal, the seed-loop ceilings and the thread-count determinism",
+ "work_package": "B6-FFAP-SEEDS (wave 2) for steps 0 to 3.2 and B7-FFAP-FEATURES (wave 3) for steps 3.3 and 4; algorithm.rs, this manifest and the support document passed from B6 to B7; port/ffap-semantics (wave 4) for the degenerate bins, FeatureFinderDefs, UnableToFit, the Linux x86_64 Release re-baseline and the intended abundance override evidence; port/ffap-complete (wave 5): the merge with port/ffap-instrumentation and the combined fix round of the lead decisions D1-D9 (every source sort in the Release order, the Release build's powf, the area iterator's drift-time filter, the step-2.5 length_error, ChargedIndexSet equality, glibc -nan); combined fix rounds 2, 3 and 4 of port/ffap-complete (lead decisions D10 to D12: the reference build's glibc exp and log, D11's race exception, UInt wraps)",
+ "scope": "FEATUREFINDER/FeatureFinderAlgorithmPicked.h/.cpp end to end, merged (port/ffap-complete): getDefaultParameters, updateMembers_ and the run_ parameter reads, the input checks of run with MSExperiment::isSorted, sortSpectra and sortChromatograms (libstdc++ introsort of the spectra and chromatograms, libstdc++ 14.4.0 std::stable_sort of each unsorted spectrum's and chromatogram's peaks), steps 0 to 3.2 (intensity quantiles with the area iterator's drift-time filter and the introsort of each cell, scores, trace scores and local maxima, isotope-pattern precalculation with the Release Size conversion and std::length_error above vector::max_size(), pattern scores, overall scores with the reference build's glibc 2.39 powf, user seeds sorted in place and seed selection), positionScore_, nearest_, findIsotope_, isotopeScore_, both intensityScore_ overloads (the undefined UInt conversion of a zero or infinite bin step reproduced as the Linux x86_64 Release build computes it, DegenerateBinStep::Refuse as the opt-out) and getIsotopeDistribution_; steps 3.3 and 4 (findBestIsotopeFit_, extendMassTraces_, extendMassTrace_, chooseTraceFitter_, cropFeature_, checkFeatureQuality_, intersection_, the abort bookkeeping and the overlap resolution); FeatureFinderDefs (with std::set's comparisons for ChargedIndexSet); the instance, write_debug and progress (tests/data/feature_finder_picked_instrumentation_provenance.json). Undefined behaviour follows the Linux x86_64 Release build wherever its outcome is measured, repeatable, explained by the executed instructions and in bounds (lead decision D1): averagine windows whose binary32 bins all underflow and a NaN intensity_percentage_optional (empty windows), the in-bounds wrap of the step-1 progress range, Math::pearsonCorrelationCoefficient's division by a zero denominator, the non-finite FWHM, score and EGH values setWidth and setMetaValue store (an overflowing float width, first at a retention-time scale of 6e36 on FFC_1), the SSE operand order of the crop, quality and start-value arithmetic, and unsorted input with mis-sized data arrays (the source's Exception::Precondition in introsort order); refused only at the endless NaN-RT profile merge (CPP-242), the out-of-bounds read of an empty best isotope pattern in extendMassTraces_ (reachable with feature:min_isotope_fit 0, executed SIGSEGV), every UInt score-array count that wraps (whatever the Limits, D12) and the terminating step-3.3.5 exception (reachable with a trace of zero intensities, executed SIGABRT); every refusal where the executed process ends records its DebugTermination with the length at which it leaves debug/log.txt; the introsort's out-of-bounds guard is kept but unreachable for the algorithm's asymmetric comparisons. Both trace fitters call the reference build's glibc 2.39 exp and log, ported from Arm optimized-routines (glibc_libm, D10), so every fit is the Release build's on every platform; atan, which only the EGH area calls, is the host's on x86_64 Linux with glibc and the libm crate's elsewhere (D10's fallback: the reference algorithm has no licence-clean upstream). The multi-thread race on aborts_, abort_reasons_ and log_ is answered with the single-thread result, the one exception to D1 that lead decision D11 accepts. 64-bit integer parameters are narrowed and converted as the Release build does (tests/data/feature_finder_picked_instrumentation_provenance.json, combined fix round 2).",
+ "method": "Port with executed differential tests. The C2 class-level driver ffap_stages and the B6 driver seed_stage (as its generalisation degenerate_stage) run FeatureFinderAlgorithmPicked::run and read its protected state through a derived probe class; since port/ffap-semantics the fixtures come from the Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), extracted by the unchanged B6 and B7 scripts through ../oracle/ffap-sem-completion/extract. tests/feature_finder_picked_seeds.rs rebuilds every configuration with the Rust loaders and compares members, quantiles, isotope windows, all per-peak score arrays and the ordered seed lists bit for bit, plus the degenerate-bin captures (every array with its NaN bits and intensityScore_ as a double), the intensityScore_ probe and the FeatureFinderDefs probe. tests/feature_finder_picked.rs runs the algorithm on each feature-stage configuration, replays step 3.3 seed by seed through the public extension and fitting functions, and compares the intended abundance override with an adapted Release replay (intended_abundance.cpp). tests/topp_feature_finder_centroided.rs compares the tool with the executed Release tool on the degenerate and short inputs and the changed abundance. The executed FeatureFinderCentroided -write_ini output (C1, product SDK) pins the defaults. The disassembly of intensityScore_ in libOpenMS.so explains the degenerate-bin outcome. The combined fix round (port/ffap-complete) adds ../oracle/ffap-complete-fix1: the stage driver nonfinite_stage_dt (52 cases: sort keys, drift times, window counts around vector::max_size(); sort_mobility_stage.tsv.gz, replayed by sort_and_mobility_cases_match_the_linux_release_build), sort_probe (libOpenMS.so's sortByPosition, sortSpectra, sortChromatograms and FeatureMap::sortByMZ on 2,272 inputs, with a replaced operator new(nothrow) for the partial and missing temporary buffer; sort_probe.tsv.gz, every_source_sort_matches_the_executed_library), powf_probe (the host powf through dlsym; glibc_powf_probe.tsv, unit tests of glibc_powf, and outside CI every binary32 base with y = 1/3 and 2^26 pairs in four sets against a release build of the same module) and defs_eq_probe (defs_eq_probe.tsv). The overall scores are now compared bit for bit everywhere; the rounding rows only assert that the executed and the port's value is the misrounded one. Combined fix round 3 (../oracle/ffap-complete-fix3, origin_key ffap_complete_fix3): libm_probe (the host exp, log and atan through dlsym; glibc_libm_probe.tsv, unit tests of glibc_libm, and outside CI every probe input against a release build of the same module, port-harness), gdb disassembly and table dumps of __ieee754_exp_fma and __ieee754_log_fma against the Arm optimized-routines upstream (check_tables.py: equal), objdump of cropFeature_, checkFeatureQuality_, pearsonCorrelationCoefficient and both fitters' start values for their SSE operand order, and fix3_stage (nonfinite_stage_dt with array and chromatogram options; boundary_stage.tsv.gz, replayed by boundary_cases_match_the_linux_release_build). Combined fix round 4 (../oracle/ffap-complete-fix4, origin_key ffap_complete_fix4): fix4_stage (the round-3 numerics verifier's v3_stage with whole-input modifications and isotope-window rows; extended_stage.tsv.gz, 134 cases whose 124 shared rows equal the verifier's capture, replayed on worker threads by extended_cases_match_the_linux_release_build), fix4_reuse (reuse_windows.tsv, the reused object's windows) and the Release FeatureFinderCentroided on FFC_1 with scaled retention times (tests/data/topp_feature_finder_centroided/rt_scaled_release.tsv).",
+ "evidence_tier": "tier 1 (executed differential, Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576): effective members, intensity bins and quantiles, isotope windows, every per-peak trace, intensity, local-maximum, pattern and overall score bit for bit (the overall score is the reference build's glibc 2.39 powf, reproduced; the 8 of 30,840 scores it rounds one binary32 step from the correctly rounded power included), printed seed counts and min_spectra 1 behaviour over 7 configurations; the degenerate intensity bins over 26 configurations and 228 intensityScore_ probe positions; the final features of six configurations (bit for bit on every platform; the EGH area's atan on a host other than x86_64 Linux with glibc is bounded by a measured maximum of 0 over the fixtures); 189 non-finite, 52 sort, drift-time and step-2.5, 85 boundary and 134 extended stage cases (the extended ones: 67 EGH and 50 Gaussian returned runs, isotope windows at 1-Da resolution, infinite float widths from retention times of about 1e37) (underflowed windows, a NaN trimming cutoff, 34 EGH and Gaussian configurations, the empty best pattern, the charge-count wraps, mis-sized data arrays; every returned run and exception reproduced, the endless runs and SIGSEGV runs refused); every source sort (2,272 inputs, full, partial and no temporary buffer); glibc powf (special grid, generated sets, every binary32 base with the exponent 1/3); glibc exp, log and atan (80-value grid, 13 sets of 2^26 inputs; exp and log equal on Linux and macOS, atan on Linux); FeatureFinderDefs and ChargedIndexSet comparisons. Adapted: the ordered seed lists (source replicas) and the intended abundance override (adapted Release replay). Tier 3: the class-test sections including #9247. Tier 1 also for the refused crashes (the empty best pattern and the charge-count wraps: executed SIGSEGV or std::bad_alloc, twice each). Tier 1 also for the step-3.3.5 termination (16 zeroed-band cases, SIGABRT with the port's what(), the debug side effects byte for byte, ../oracle/ffap-complete-fix5) and for the width-overflow onset (21 cases). The introsort's out-of-bounds guard is unreachable for the algorithm's comparisons (proved in the source_sort module documentation; no executed or generated input reaches it); it is reached only by comparators that are not asymmetric, through the public source_sort_permutation (unit tests). Combined fix round 6: tier 1 for where the wrapped score-array allocation stops succeeding (20 executed counts under two address spaces, score_array_wraps.tsv).",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
@@ -34,12 +34,12 @@
   {
    "path": "OpenMS/KERNEL/AreaIterator.h",
    "sha256": "ee0c62b7a97bacb035bc1a4084f753dbf37619e1410bdc7f5a8008af8bb00cb3",
-   "role": "areaBeginConst traversal reproduced by the inclusive cell walk of IntensityThresholds"
+   "role": "areaBeginConst traversal reproduced by the libstdc++-order cell walk of IntensityThresholds: nextScan_ skips scans whose drift time is outside [lowest, max] (:277-298), and the end tests would read out of bounds only for an inverted cell"
   },
   {
    "path": "KERNEL/MSExperiment.cpp",
    "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05",
-   "role": "updateRanges, getSize, getMSLevels, isSorted, sortSpectra and areaBeginConst as called by run and run_"
+   "role": "updateRanges, getSize, getMSLevels, isSorted, sortSpectra (std::sort by RTLess, :791-803), sortChromatograms (std::sort by MZLess, :810-822) and areaBeginConst with the full mobility range (:562-571) as called by run and run_"
   },
   {
    "path": "OpenMS/KERNEL/SpectrumRangeManager.h",
@@ -49,7 +49,7 @@
   {
    "path": "KERNEL/MSSpectrum.cpp",
    "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913",
-   "role": "findNearest midpoint rule used by steps 2 and 3.1"
+   "role": "findNearest midpoint rule used by steps 2 and 3.1; sortByPosition (:444-460): isSorted, then std::stable_sort of the peaks, or MSSpectrum::sort of an index vector when a data array exists; reproduced by source_stable_sort_permutation"
   },
   {
    "path": "OpenMS/MATH/StatisticFunctions.h",
@@ -60,9 +60,101 @@
    "path": "DATASTRUCTURES/ParamValue.cpp",
    "sha256": "0c0daf17316a0df783774dbb48381c38d761e563a459650a98d510d551af7ec9",
    "role": "exact ParamValue equality of the abundance checks and the integer conversions of updateMembers_"
+  },
+  {
+   "path": "FEATUREFINDER/TraceFitter.cpp",
+   "sha256": "3e7ccb18a04bfe187f73276d6a915d386a1014b915a2d672dc327b72f811f9f7",
+   "role": "optimize_: the two UnableToFit throws (lines 111 and 129) whose unreachability from the seed loop FittedModel::fit argues"
+  },
+  {
+   "path": "OpenMS/FEATUREFINDER/FeatureFinderDefs.h",
+   "sha256": "0760af479ef94a1704e540521952d7d38ee8015c9daa6122ff62213981ceba41",
+   "role": "the duplicate FeatureFinderDefs definition (redefinition when included with FeatureFinderAlgorithmPicked.h)"
+  },
+  {
+   "path": "OpenMS/DATASTRUCTURES/IsotopeCluster.h",
+   "sha256": "dc1862c75d47245a8fa59d1fac43ba9eacd3c1465d28c2a7b05ebb7afd36bf4e",
+   "role": "IndexPair, IndexSet and ChargedIndexSet, the types FeatureFinderDefs names; ChargedIndexSet: derived from IndexSet with no comparison of its own, so == and < are std::set's"
+  },
+  {
+   "path": "CONCEPT/ProgressLogger.cpp",
+   "sha256": "cab7e28a3b62516ccb0d498cacf969a2c18975ece6c97da2aff51c5f25733baf",
+   "role": "startProgress's OPENMS_PRECONDITION(begin <= end) at line 235, the Debug exit of short inputs"
+  },
+  {
+   "path": "OpenMS/KERNEL/RangeManager.h",
+   "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d",
+   "role": "RangeBase::extend and getMin/getMax semantics reproduced by scoring::ms1_ranges; RangeBase::contains and getNonEmptyRange (the area iterator's mobility filter), extend with std::min/std::max"
+  },
+  {
+   "path": "KERNEL/MSChromatogram.cpp",
+   "sha256": "e29198d31abde2302e8e01c4d8e49c1856b788266fc95f767f881ed0f098e78a",
+   "role": "MZLess, isSorted and sortByPosition as called by sortChromatograms; sortByPosition (:165-183) and isSorted: std::stable_sort of the peaks or an index vector, reproduced by source_stable_sort_permutation"
+  },
+  {
+   "path": "CONCEPT/Exception.cpp",
+   "sha256": "94ad947c904a286f7fe64d84b53cf639a93bca76f1245a7e5d6e2a2e3cf96cbe",
+   "role": "the what() text of InvalidValue and InvalidRange"
+  },
+  {
+   "path": "OpenMS/KERNEL/MSSpectrum.h",
+   "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3",
+   "role": "MSSpectrum::sort (:365-376): checkDataArraySizes_, std::stable_sort of an index vector, selectUnchecked"
+  },
+  {
+   "path": "OpenMS/KERNEL/MSChromatogram.h",
+   "sha256": "3f9f2f06c2e259dd719b328b160874c846ae24c73294c61b36f1573f46984117",
+   "role": "MSChromatogram::sort (:241-252), as MSSpectrum::sort"
+  },
+  {
+   "path": "KERNEL/FeatureMap.cpp",
+   "sha256": "210ebf2fbe17259af5034b78855d0f57e16becf525aae370217a044f0c926a27",
+   "role": "sortByMZ (:243-246): std::sort with Feature::MZLess, the user-seed sort of run_ (.cpp:190)"
+  },
+  {
+   "package": "libstdc++ (conda-forge gcc 14.4.0, in the Release install)",
+   "revision": "deps/lib/gcc/x86_64-conda-linux-gnu/14.4.0/include/c++",
+   "path": "bits/stl_algo.h",
+   "sha256": "0598c5b12d038b2e5b1c7d5e7b4982f8e8689a42d01af75cd919a76557a2dfcf",
+   "role": "std::sort (__introsort_loop, __final_insertion_sort) and std::stable_sort (__stable_sort, __stable_sort_adaptive, __stable_sort_adaptive_resize, __merge_sort_with_buffer, __chunk_insertion_sort, __merge_adaptive, __merge_adaptive_resize, __rotate_adaptive, __inplace_stable_sort, __merge_without_buffer, __insertion_sort), emulated by source_sort.rs"
+  },
+  {
+   "package": "libstdc++ (conda-forge gcc 14.4.0, in the Release install)",
+   "revision": "deps/lib/gcc/x86_64-conda-linux-gnu/14.4.0/include/c++",
+   "path": "bits/stl_tempbuf.h",
+   "sha256": "f92e0ecf86e4cae8a707e483f4fc8bf5ddf5ea9fbc52bf407080392ca79edc7c",
+   "role": "get_temporary_buffer's halving loop and _Temporary_buffer, emulated by TemporaryBuffer"
+  },
+  {
+   "package": "libstdc++ (conda-forge gcc 14.4.0, in the Release install)",
+   "revision": "deps/lib/gcc/x86_64-conda-linux-gnu/14.4.0/include/c++",
+   "path": "bits/stl_algobase.h",
+   "sha256": "0ec2358cc592e8397f13fb77260f208ea922796d7bba7f202400e88ac511b332",
+   "role": "std::__lower_bound, used by the merges and emulated by scoring::libstdcxx"
+  },
+  {
+   "package": "libstdc++ (conda-forge gcc 14.4.0, in the Release install)",
+   "revision": "deps/lib/gcc/x86_64-conda-linux-gnu/14.4.0/include/c++",
+   "path": "bits/predefined_ops.h",
+   "sha256": "25478342b5d993b09ebfcc1ee1e372e7391ea160e9222e704cd0b1835558d404",
+   "role": "__iter_comp_val and __val_comp_iter: the argument order of the merge searches"
+  },
+  {
+   "package": "GNU C Library 2.39 (Ubuntu 2.39-0ubuntu8.9, the host libm of ibminode06 that libOpenMS.so binds)",
+   "revision": "/lib/x86_64-linux-gnu",
+   "path": "libm.so.6",
+   "sha256": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+   "role": "powf@GLIBC_2.27 -> __powf_ifunc -> __powf_fma (offset 0x7df50) with __powf_log2_data and __exp2f_data; read from the disassembly (../oracle/ffap-complete-fix1/logs/powf_fma_disasm.txt), never copied: glibc_powf.rs is ported from Arm optimized-routines (MIT)"
+  },
+  {
+   "package": "Arm optimized-routines (MIT OR Apache-2.0 WITH LLVM-exception)",
+   "revision": "https://github.com/ARM-software/optimized-routines master 7f9a4894e9be862882383f4647a5be74d3c421de",
+   "path": "math/powf.c, math/powf_log2_data.c, math/exp2f_data.c",
+   "sha256": "5d782f7fa226131c2ad95a23544aedd7a9050608f917c03dcd4180904f560473",
+   "role": "the algorithm and tables glibc_powf.rs ports (sha256 of math/powf.c; the same numerics as musl's src/math/powf.c); the FMA fusion and the special cases follow the glibc 2.39 disassembly"
   }
  ],
- "context_sources_note": "Read for context and not ported by this group; spelled relative to the core include or source directory so tools/core_sdk_coverage.py does not count them as evidence for their headers. Hashes checked at source_revision.",
+ "context_sources_note": "Read for context and not ported by this group; spelled relative to the core include or source directory so tools/core_sdk_coverage.py does not count them as evidence for their headers. Hashes checked at source_revision. libstdc++ paths are relative to the Release install; libm.so.6 is the reference host's library; the Arm entry is the licence-clean source of glibc_powf.rs.",
  "topp_sources": [
   {
    "package": "test-data",
@@ -89,11 +181,27 @@
   "src/analysis/feature_finder_picked/seeds.rs",
   "src/analysis/feature_finder_picked/extension.rs",
   "src/analysis/feature_finder_picked/fitting.rs",
-  "src/analysis/feature_finder_picked/resolution.rs"
+  "src/analysis/feature_finder_picked/resolution.rs",
+  "src/analysis/feature_finder_picked/defs.rs",
+  "src/analysis/feature_finder_picked/source_sort.rs",
+  "src/analysis/feature_finder_picked/glibc_powf.rs",
+  "src/analysis/feature_finder_picked/instance.rs",
+  "src/analysis/feature_finder_picked/debug.rs",
+  "src/analysis/feature_finder_picked/trace_fitter.rs",
+  "src/analysis/feature_finder_picked/gauss_trace_fitter.rs",
+  "src/analysis/feature_finder_picked/egh_trace_fitter.rs",
+  "src/analysis/feature_finder_picked/glibc_libm.rs",
+  "src/analysis/feature_finder_picked/helper_structs.rs",
+  "src/chemistry/isotopes.rs"
  ],
  "native_tests": [
+  "tests/egh_trace_fitter.rs",
+  "tests/feature_finder_picked.rs",
+  "tests/feature_finder_picked_instrumentation.rs",
   "tests/feature_finder_picked_seeds.rs",
-  "tests/feature_finder_picked.rs"
+  "tests/gauss_trace_fitter.rs",
+  "tests/topp_feature_finder_centroided.rs",
+  "tests/trace_fitter.rs"
  ],
  "support_document": "docs/FEATURE_FINDER_PICKED_SUPPORT.md",
  "fixtures": [
@@ -131,75 +239,180 @@
    "bytes": 55431,
    "kind": "oracle-generated (tier 1 executed differential); seed rows adapted",
    "role": "C2 ffap_stages records for ffc1_symmetric, ffc1_user_seeds, classtest, classtest_9247_tight_pattern and classtest_9247_tight_trace: input, member, stdout, bins, quantiles, window, seed and rt rows (omp1 == omp4)",
-   "rows": 847
+   "rows": 847,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/b6_stage_records.tsv",
-   "sha256": "8835030151b076b897132c99fb33261c0a4c5a18f83a709622d28307f63fc534",
+   "sha256": "786b9eb2257425c84516125723409c445776fae3a5cac76d20080d872e81d890",
    "bytes": 92057,
    "kind": "oracle-generated (tier 1 executed differential); seed rows adapted",
    "role": "B6 seed_stage records for ffc1_defaults, ffc1_bins7_charge13 and ffc1_min_spectra_1 (run1 == run2)",
-   "rows": 496
+   "rows": 496,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/scores_ffc1.tsv",
-   "sha256": "b9f37626c629db714091c278d0e3a314c308600951f91de8776417b957a9f357",
+   "sha256": "74efb2e22a5a8788e8ed6c6dd599634d94c11b991db5ad54212a1e9298cebe5a",
    "bytes": 236457,
    "kind": "oracle-generated (tier 1 executed differential)",
    "role": "C2 per-peak m/z, intensity and score arrays of FFC_1; identical for the class test, the asymmetric and the user-seed configurations (checked by extract.py)",
-   "rows": 3084
+   "rows": 3084,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/scores_tight_pattern.tsv",
-   "sha256": "f4457186cb9251a721c6b3fcfa88e91d02ec90c96a45faee3542b4c634cf67fc",
+   "sha256": "348ec4097adb03376cf352a7168df86cd1723bb1baaa4a7cb89ca62f2d3e7e8f",
    "bytes": 236457,
    "kind": "oracle-generated (tier 1 executed differential)",
    "role": "C2 score arrays for #9247 isotopic_pattern:mz_tolerance 0.005, mass_trace:mz_tolerance 0.5",
-   "rows": 3084
+   "rows": 3084,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/scores_tight_trace.tsv",
-   "sha256": "8d03f2aa13c93e9d2da6d417ae62a8049667cbc6a0de72cd97d75d34f71b2eae",
+   "sha256": "90352ffed59c73fd8f3b8db0cad50f4610e0e642d7f473a785b4d0e99158b990",
    "bytes": 236457,
    "kind": "oracle-generated (tier 1 executed differential)",
    "role": "C2 score arrays for #9247 isotopic_pattern:mz_tolerance 0.5, mass_trace:mz_tolerance 0.005",
-   "rows": 3084
+   "rows": 3084,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/scores_defaults.tsv",
-   "sha256": "2cf68e1207ad19ce619a46aebda2ae94817bdcf908f4433075ae05fcab342bee",
+   "sha256": "383be6af15ce3a79998c4179678c801bcb87b6a5e5986f303f1ee2578e108600",
    "bytes": 322809,
    "kind": "oracle-generated (tier 1 executed differential)",
    "role": "B6 score arrays with default parameters (charges 1 to 4)",
-   "rows": 3084
+   "rows": 3084,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/scores_bins7_charge13.tsv",
-   "sha256": "cee092027414cfe19dae3dffebbc29f8e3badfff95fa90a3195826a5123bdf9b",
+   "sha256": "77b2bcaa7fe66bf70cf9e8e0ba4c6e9b7af146b578a4ff76bc316d8351709e04",
    "bytes": 267297,
    "kind": "oracle-generated (tier 1 executed differential)",
    "role": "B6 score arrays with 7 bins and charges 1 to 3",
-   "rows": 3084
+   "rows": 3084,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/overall_rounding.tsv",
-   "sha256": "11da0b63dc93e5ee3f981e1e1563a7053ff6f8dc1b905f3295017b3975e29b68",
-   "bytes": 4721,
+   "sha256": "226700d5c3c2e3727eb598ab8cf1c36cf767939c5f9a043db8ede354c51cbb20",
+   "bytes": 366,
    "kind": "derived (tier 4): 60-digit decimal ln and exp",
-   "role": "the 99 executed overall scores that Apple powf misrounds by one binary32 step, with the correctly rounded value",
-   "rows": 99
+   "role": "the 8 executed overall scores that glibc 2.39 powf (FMA variant, AMD EPYC 7763) rounds one binary32 step away from the correctly rounded power, with the correctly rounded value; the macOS arm64 product SDK's Apple powf misrounded 99",
+   "rows": 8,
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/b7_feature_records.tsv",
-   "sha256": "436544fb40399bb936b44737a1e9d7faf032b6b511ec6a050903b6a2ef3fa38f",
+   "sha256": "85283ffc7e7b92d169b5a5953e44fd667d1e030489bff325d2eaf9c258ea9cfe",
    "bytes": 167567,
-   "kind": "oracle-generated (tier 1 executed differential): the library's final FeatureMap, aborts_ map and printed counts for six configurations, plus the counts of the abundance-override configuration"
+   "kind": "oracle-generated (tier 1 executed differential): the library's final FeatureMap, aborts_ map and printed counts for six configurations, plus the counts of the abundance-override configuration",
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
   },
   {
    "path": "tests/data/feature_finder_picked/b7_seed_records.tsv",
-   "sha256": "ec9267a9ee7dd9005df053a794d213f315971b98df964dc9ee91028509752b07",
+   "sha256": "0d9ed55f266c99c90c90fa3bb280e1d3ee3906c84001c52ec6e6cde91217d450",
    "bytes": 366013,
-   "kind": "oracle-generated (adapted): the per-seed isotope fit, best pattern, extended, fit-input and cropped traces, fitted model and quality of the C2 driver's replay"
+   "kind": "oracle-generated (adapted): the per-seed isotope fit, best pattern, extended, fit-input and cropped traces, fitted model and quality of the C2 driver's replay",
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), re-extracted by ../oracle/ffap-sem-completion/extract"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/degenerate_stage.tsv.gz",
+   "sha256": "277bfb97421c3e10c31e3a78f4f7c8fb74786dec0231e0422d0fe37c0a884e23",
+   "bytes": 702142,
+   "kind": "oracle-generated (tier 1 executed differential); seed rows adapted; rounding rows derived (tier 4)",
+   "role": "degenerate_stage (the generalised B6 seed_stage) on 26 configurations with zero, subnormal and infinite intensity bin steps and short inputs: case, input, rt, stdout, features, abort, member, bins, quantiles, window, seed, ties, score (with intensityScore_ as a double) and rounding rows; three repetitions at OMP_NUM_THREADS 1 and 4, identical (extract_degenerate.py)",
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/iscore_probe.tsv.gz",
+   "sha256": "1af0b1221d1d39527a95366ae8b3fc2ace29a22366568dae46b4bf63c756f487",
+   "bytes": 4611,
+   "kind": "oracle-generated (tier 1 executed probe)",
+   "role": "iscore_probe: intensityScore_(spectrum, peak) at 57 positions on four 11x11 grids (regular, zero RT step, zero m/z step, underflowing RT step), with the grids bins and quantiles; three repetitions, identical (extract_iscore.py)",
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/intended_abundance.tsv",
+   "sha256": "038c19c8d3564ad3d03535aa8ddd5376959cd1ca79f23a977bbc5b2d4f32e5bc",
+   "bytes": 67318,
+   "kind": "oracle-generated (adapted): library functions on library state, sequenced by intended_abundance.cpp; the run and executed rows are tier 1",
+   "role": "intended_abundance: FFC_1 with abundance_12C 90 and 99 and abundance_14N 95; the executed library result (no seed, no feature) and the replay with the intended override (windows, seeds, candidates, aborts, features); two repetitions at OMP_NUM_THREADS 1 and 4, identical (extract_intended.py)",
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/nonfinite_stage.tsv.gz",
+   "sha256": "050fc85e39436b7f134721f6766487c8a70ff6e9d00acb2bbc17dfa6c7ddc074",
+   "bytes": 366684,
+   "kind": "oracle-generated (tier 1 executed differential); seed rows adapted; rounding rows derived (tier 4); score and hull digests computed from the executed rows",
+   "role": "nonfinite_stage on 189 FFC_1 inputs with infinite or NaN retention times, m/z values, intensities and user-seed positions (47 fixed cases and a 142-case sweep around the 25 base seeds): case, status (137 = killed after 30 s), input, stdout, threw, features, abort, bins, windows, seed, digest (FNV-1a over every quantile and every per-peak score), feature, meta, hulls (FNV-1a over the hull points), rounding, and the score/quantile rows of the base case and of the cases with at most 300 differing rows; two repetitions at OMP_NUM_THREADS 1 (five cases also at 4), identical (extract_nonfinite.py)",
+   "platform": "Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/sort_mobility_stage.tsv.gz",
+   "sha256": "9dea8f7c37eaabc4d77c775dadf38b8fa011574e83a3bb0c75cc30d8cbe51d19",
+   "bytes": 136397,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix1 node/run_stage.sh with drivers/nonfinite_stage_dt.cpp: 52 FFC_1 cases (two repetitions each, identical; three also twice at four threads), in the nonfinite_stage.tsv.gz format, written by extract/extract_stage.py (the lane's extract_nonfinite.py with its paths): sort keys, drift times, window counts around vector::max_size()"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/sort_probe.tsv.gz",
+   "sha256": "4110c3abb05cc9a06dd48eebf56c2584c9cfd6a2486081d6eac760eb68f4a621",
+   "bytes": 565441,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix1 drivers/sort_probe.cpp on inputs/sort_cases.tsv (two runs, identical): palette, element sizes, and per case the input codes, every operator new(nothrow) request with its outcome, and the executed order; written by extract/make_probe_fixtures.py"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/glibc_powf_probe.tsv",
+   "sha256": "602084a9865f3a8fb920aa720a3f77dc13d9a445627d29e8e0a06d4b1fe3bde9",
+   "bytes": 91483,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix1 drivers/powf_probe.c (two runs each, identical): the resolved powf (where), the 42x42 special grid, and the first 256 pairs and 2^20-pair digests of the four generated sets; written by extract/make_probe_fixtures.py"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/defs_eq_probe.tsv",
+   "sha256": "162a6ae5f56b1af6491dbf0e1b7c0633c856a3645590fc84c178749c05d987c7",
+   "bytes": 314,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix1 drivers/defs_eq_probe.cpp (two runs, identical): ChargedIndexSet ==, !=, <, <=, >, >= for seven pairs"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/boundary_stage.tsv.gz",
+   "sha256": "5061a6443f3d66fe6f22920c577591b042e980f9674dc626969160f1e2f821fe",
+   "bytes": 247359,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix3 fix3_stage (85 cases, two runs each, identical; the two four-thread twins equal their one-thread runs apart from the abort rows and are left out): underflowed averagine windows, a NaN intensity_percentage_optional, 34 EGH and Gaussian configurations, the empty best pattern (SIGSEGV), the charge-count wraps (SIGSEGV, std::bad_alloc), unsorted input with mis-sized data arrays (Exception::Precondition); written by extract/extract_stage.py in the nonfinite_stage format"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/glibc_libm_probe.tsv",
+   "sha256": "cfba0c90859ad79214031b9655da6317011a33b5d5588e889a567e730e6858f5",
+   "bytes": 172039,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix3 drivers/libm_probe.c (two runs each, identical): where exp, log and atan resolve, the 80-value special grid through each, and for 13 generated sets the first 256 rows and 64 digests of 2^20 inputs; written by extract/make_libm_fixture.py"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/extended_stage.tsv.gz",
+   "sha256": "8afa75ccd0709fb6a17fed8adf5954ec62e7d7d373bbd6f971f341065d964e59",
+   "bytes": 571415,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix4 drivers/fix4_stage.cpp (the round-3 numerics verifier's v3_stage), 134 cases twice each, identical, the 124 shared ones equal to the verifier's own capture: EGH and Gaussian fits beyond the earlier fixtures, isotope windows across the averagine underflow (isowin rows), charge-count wraps, the empty best pattern, Precondition order under ties, and the RT scales whose float width overflows (vy_*, vx_*); written by extract/extract_stage.py"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/reuse_windows.tsv",
+   "sha256": "ee80c30a6c321b0ba806009679742f509c6e6deefba66b662615c3b1a9d9e0e6",
+   "bytes": 10671,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix4 drivers/fix4_reuse.cpp (the verifier's v3_reuse), four scenarios twice each, identical: one object run twice on FFC_1 (NaN intensity_percentage_optional before or after the default, heavy windows before, the default twice), its feature counts and isotope_distributions_; written by extract/make_fixtures.py"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/width_onset_stage.tsv.gz",
+   "sha256": "f999ca66c46058c33bd689ffdf49d94a95ab6d8759cdf82e8eca6af18094cf69",
+   "bytes": 151121,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix5 drivers/fix4_stage.cpp (= fix4_stage), node/run_onset.sh: the base case and the round-4 numerics verifier's 20 width-onset cases (FFC_1 with every retention time scaled by 2e36 to 5e37, Gaussian and EGH, and three jittered 1e37 inputs), twice each, identical; written by extract/extract_onset.py"
   }
  ],
  "reused_fixtures": [
@@ -225,12 +438,13 @@
  "oracle": {
   "manifests": [
    "../oracle/b6-ffap-seeds/manifest.json",
+   "../oracle/b7-ffap-features/manifest.json",
    "../oracle/featurefinder-picked/manifest.json",
+   "../oracle/ffap-sem-completion (no manifest file; every artifact is listed under external_reference_artifacts with origin_key ffap_sem_completion)",
    "../oracle/topp-early-bundle/manifest.json",
-   "../oracle/b7-ffap-features/manifest.json"
+   "../oracle/ffap-complete-fix1 (no manifest file; every artifact is listed under external_reference_artifacts with origin_key ffap_complete_fix1)"
   ],
   "evidence_label": "oracle-generated (tier 1 executed differential)",
-  "sdk": "product-sdk, Debug build of core 4fdec46b205459b92e7d3b9e56df5d8e912d5c85, AppleClang 21.0.0.21000101, C++23, libc++, macOS arm64",
   "libOpenMS_dylib_sha256": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
   "revision_equivalence": "4fdec46 is an ancestor of bc9cc12; the FEATUREFINDER, CHEMISTRY/ISOTOPEDISTRIBUTION, KERNEL, MATH and DATASTRUCTURES sources on this path hash identically (C2 manifest pins.oracle_to_pin_note)",
   "environment": "env -i PATH=/usr/bin:/bin HOME=<scratch>/home OPENMS_HOME_PATH=<scratch>/home OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=product-sdk/share/OpenMS/4.0.0, OMP_NUM_THREADS 1 (C2 also 4), per-case scratch working directory, perl alarm",
@@ -243,10 +457,101 @@
    "ffc1_defaults": "B6: FFC_1 input, default parameters; 42, 44, 0, 0 seeds for charges 1 to 4",
    "ffc1_bins7_charge13": "B6: FFC_1 INI with intensity:bins 7, charges 1 to 3; 16, 23, 0 seeds",
    "ffc1_min_spectra_1": "B6: FFC_1 INI with mass_trace:min_spectra 1; min_spectra_ 0, NaN trace scores, 0 seeds, 0 features, exit 0",
-   "ffc1_abundance_12C_90": "C2, documentation only: 12C = 90 %; the stray-peak override yields 27-bin windows and 0 seeds; refused by default in the port"
+   "ffc1_abundance_12C_90": "C2, documentation only: 12C = 90 %; the stray-peak override yields 27-bin windows and 0 seeds; the port's default AbundanceOverride::Intended computes the intended override instead (CPP-247), with AbundanceOverride::Refuse as the opt-out",
+   "nonfinite_stage": "fix round 1: 189 FFC_1 cases with non-finite values (see the nonfinite_stage.tsv.gz fixture); 170 returned, 16 threw (IllegalArgument, InvalidValue with the Size-conversion index, InvalidRange, std::length_error), 3 never returned (a NaN retention time in computeIntensityProfile)",
+   "sort_mobility_stage": "combined fix round: 52 FFC_1 cases (sort keys with NaN, ties and signed zeros; NaN and infinite drift times; window counts around vector::max_size()); 43 returned, 8 threw (4 NaN window lookups, 3 std::length_error, 1 std::bad_alloc), 1 never returned"
   },
   "debug_only": [],
-  "comparison": "Exact: every f64 and f32 value bit for bit, every count and index equal, on Linux x86-64 against the macOS arm64 oracle. The single exception is the overall score (source std::pow(float, float), Apple powf in the oracle): 99 of 30,840 executed values are one binary32 step away from the correctly rounded power; overall_rounding.tsv lists them and the test requires the port's value to be the correctly rounded one there and the executed one everywhere else. The port evaluates the power as libm::pow in f64 rounded once to f32, which is platform-independent; libm::powf differed from the oracle on 226 of 3,084 FFC_1 scores. Inputs use only IEEE +, -, *, /, sqrt and comparisons besides that power, so no other libm result enters."
+  "comparison": "Exact: every f64 and f32 value of the seed stage bit for bit, the overall scores included (the port computes the reference build's glibc 2.39 powf; the 8 of 30,840 values it rounds one binary32 step from the correctly rounded power are listed in overall_rounding.tsv and in the rounding rows of the stage fixtures and asserted as executed), every count and index equal, on Linux x86_64 and macOS arm64 against the Linux x86_64 Release capture. The macOS arm64 product SDK's Apple powf misrounded 99. The feature stage is exact on every platform since combined fix round 3 (both trace fitters call the reference build's glibc exp and log, ported; lead decision D10), the EGH configuration and the ill-conditioned Gaussian fits included; only the atan of an EGH area on a host without glibc is bounded, by a measured maximum of 0. The stage captures (non-finite, the combined fix round's sort and mobility cases, and fix round 3's boundary cases) compare the same way through a digest of every quantile and score, with the full rows where few differ; their features are exact on Linux x86_64 and on macOS arm64. Every sort order and buffer request of sort_probe, every powf value of powf_probe and every ChargedIndexSet comparison is exact.",
+  "release_build": {
+   "install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+   "pins": {
+    "core": "bc9cc12",
+    "cli": "c19e494",
+    "topp": "174b576"
+   },
+   "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+   "FeatureFinderCentroided_sha256": "2781dd7cab48f482118375754038644251705c8bafab1958e310e4063dffb323",
+   "host": "ibminode06 (AMD EPYC 7763, FMA; Ubuntu glibc 2.39); never ibminode05",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4), drivers built with -O3 -DNDEBUG -mssse3 -ffp-contract=off -fopenmp -std=gnu++23, the flags of FeatureFinderAlgorithmPicked.cpp in libOpenMS.so, linked as ../oracle/picked-chromatogram/run.sh",
+   "environment": "env -i PATH=/usr/bin:/bin HOME=<scratch>/home OPENMS_HOME_PATH=<scratch>/home OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=<install>/share/OpenMS/4.0.0, ulimit -c 0, per-case scratch working directory, OMP_NUM_THREADS 1 and 4",
+   "drivers": {
+    "ffap_stages (C2, unchanged)": "383be3268068fee5d939edd8f8086fc1aceb1be781fed2cc621c54528699f224, binary 6f60a14e05746055df4997cab97761f07dd6c6dcb902854a95ca38a54241d1f0",
+    "degenerate_stage": "2ce281b0347a78f6a5543a143f629c20b3afc4fbf0a270483dc26a3771f0027c, binary bb403fbc4eeff8c388e1dbca2d5bf00e4c9d1d3d3e9e3b2ac324cd8460c9c1ec",
+    "iscore_probe": "7afb69b2d07d2a9c42e42c2f20240ccde0a835c1a1b8d03ad500da2726ddabae, binary e7ea3241f86af6d00f72f0f53185942ba7b8633b920815f1e23cc0fc643d30ad",
+    "defs_probe": "02928d7d54d476ed796e79d85086cde7a41c781bd726d7e5600951118fe34362, binary 472f29956bb0f2be0ebc22068532b8be0901de5b845a11605e09a0624291f666",
+    "intended_abundance": "ae6fd6e86044ce6e6f2b3958f01b901c0ec02c8aec864ca8e0ed08f3526156b4, binary 7b13c64a34bc1668b43b3d89f2a63d4bccf37e3be8fb79d734826c5011959554",
+    "defs_both_headers (compile only, expected to fail)": "05ce54bf8e6ce409902fc74e302908a2bf1e161bffb7bd234dcffb9353627b20",
+    "nonfinite_stage": "becccf9d50a6e4dcfb7f4cb8b4f758652896af2aa53a2130266f007452769026, binary 1673a64ad85ef793277a1fc9100c9a991e17d2224d010b7f2e27b58812766448"
+   },
+   "cases": "class: ffap_<7 C2 configurations> x omp 1,4 x 2 repetitions; deg_<26 configurations> and the B6 ffc1_defaults, ffc1_bins7_charge13, ffc1_min_spectra_1, ffc1_ini x omp 1,4 x 3 repetitions; iscore_<grid, zero_rt, zero_mz, tiny_rt> x 3; defs x 3; intended_<ffc1_12C_90, ffc1_14N_95, ffc1_12C_99> x omp 1,4 x 2. tool (tool_cases.py): ffc1 (2), ffc1_abundance_12C_90, zero_rt, zero_rt_threads4, zero_rt_min_score_0, zero_mz, zero_mz_threads4, zero_mz_min_score_0, filefilter_44_force, fileconverter_31 (3 each), zero_mz_control_min_score_0, filefilter_44_noforce (2 each). Every run exited as recorded and every repetition was identical. nonfinite (node/run_nonfinite.sh): 47 fixed cases and 142 sweep cases x omp 1 x 2 repetitions, base, int_posinf_50_3, int_posinf_40_10, mz_posinf_last and rt_posinf_last also x omp 4 x 2; runs killed after 30 s record status 137 (rt_nan_mid, rt_nan_mid_bins3, rt_nan_mid_unsorted: a gdb stack sample shows MassTraces::computeIntensityProfile under GaussTraceFitter::setInitialParameters_).",
+   "disassembly": "objdump -d -C of OpenMS::FeatureFinderAlgorithmPicked::intensityScore_(unsigned long, unsigned long) const (0x18dd9c0) and of the bin overload (0x18d8750) in libOpenMS.so, and of run_() (which calls the former through the PLT): results/disasm",
+   "derived_inputs": "make_inputs.py: zero_rt_ffc1.mzML sha256 f9b37cc6b640b7440d8f0296aa624208644b01ad9e5eebc6e908e24f7865d6d3 (sha1 c58ee032b11af4ae864fb3016047bf248cbe42ea), zero_mz_ffc1.mzML 4de3b951feadb8815584dfbae0680efd4862bcb1e31d0ad8a17938318b46dc3e (sha1 8311af59499e10154cafab2ff56acbbcde3d9f60), zero_mz_control_ffc1.mzML 4afa3042d33a603620a5f092e56e718f69c7c16408ecd75659389c7eeef8ce73 (sha1 5df2a4e1a7fbbf47a2bb7d6ea142bfab61c20d5e); the TOPP test derives the same bytes and asserts the SHA-1"
+  },
+  "sdk_history": "product-sdk, Debug build of core 4fdec46b205459b92e7d3b9e56df5d8e912d5c85, AppleClang 21.0.0.21000101, C++23, libc++, macOS arm64",
+  "ffap_complete_fix3": {
+   "directory": "../oracle/ffap-complete-fix3",
+   "host": "ibminode06 (AMD EPYC 7763, fma, avx2; glibc 2.39, libm.so.6 sha256 fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0, libc6-dbg installed); the port harness also on kim (same glibc and libm.so.6)",
+   "drivers": {
+    "libm_probe.c (gcc -O2)": "1555ca8a4b81301a868bce4d525cf234a6e37b493b8c3b3a27cc4538aa67c509, binary 546e68199dd37f16c505fdc1ed9b8c4242fe3b4bfcc812e754920d3bb88d828e",
+    "fix3_stage.cpp (the flags of FeatureFinderAlgorithmPicked.cpp)": "0529ef4163c1d13ebc9f4f1e4efec0efb6d74607734a660022f055156e29702b, binary 14c06e795bca6be5d26237daa94ac04991f89675b4ffe3d164785c69d6859808",
+    "fix3_driver.cpp (-O2 -std=c++20)": "169419f4ec8a4dcd6c9524b65ca3b46ebfbf4a71d7571c0075c9e152503fde12, binary b1b7f3520f03f526c6ab43b56b4abfcb8aef48acb56e552c2a991824b15f5ceb",
+    "vfi2_driver.cpp (copied from ../oracle/ffc-instrumentation-v2)": "b3c590695fb9614c5700b4e2d508e1ecf2d86b2713f00e11bfd42fa2fa0ef848, binary 62b7a0a70d21821f4ccd6fddc6b6d2f9d8dcea560ffefdd8afd5bff1e915db57"
+   },
+   "libm": "exp@GLIBC_2.29 -> __GI___exp -> __ieee754_exp (ifunc) -> __ieee754_exp_fma (0x79b60); log@GLIBC_2.29 -> __log -> __ieee754_log -> __ieee754_log_fma (0x79d50); atan@GLIBC_2.2.5 -> __atan_fma (0x7a860, IBM Accurate Mathematical Library); the wrappers only set errno (logs/libm_disasm*.txt); __exp_data and __log_data equal Arm optimized-routines master 5288c42d's N=128 tables (extract/check_tables.py)",
+   "cases": "libm_probe where, grid, sets 2^26 x 13 (2 repetitions, identical); fix3_stage: 85 cases plus two four-thread twins, 2 repetitions each, identical (logs/stage_cases.txt, results/stage)",
+   "port_harness": "port-harness/src/main.rs over glibc_libm.rs copied unchanged (sync.sh): exp and log equal to every probed input on macOS arm64 (port_macos.txt) and on kim (port_linux.txt); atan equal on kim, different on macOS (the libm crate's atan, D10's fallback)"
+  },
+  "ffap_complete_fix4": {
+   "directory": "../oracle/ffap-complete-fix4",
+   "host": "ibminode06 (AMD EPYC 7763; glibc 2.39); node copy /scratch/kohlbach/ffc-fix4",
+   "drivers": {
+    "fix4_stage.cpp (= ../oracle/ffc-numerics-v3/drivers/v3_stage.cpp, the flags of FeatureFinderAlgorithmPicked.cpp)": "1689ea630cff4f3d1f56edfef8b225498ac4da238e347cbfcb59068681b38695",
+    "fix4_reuse.cpp (= ../oracle/ffc-numerics-v3/drivers/v3_reuse.cpp, -O2 -std=c++20)": "9298c1bc619735a124affb4ac366b61f771f2c12b17936195483fdb13d379ae3",
+    "fix4_vfi.cpp (= ../oracle/ffc-instrumentation-v3/drivers/vfi3_driver.cpp, -O2 -std=c++20)": "0c281909048817ffb65c25bda84e40871ce6030cfb403adcbe8c044b91a54fc6",
+    "binaries": "logs/build.sha256"
+   },
+   "cases": "run_stage.sh: the round-3 numerics verifier's 124 cases plus 10 (Y) width-boundary cases, twice each (134; the 124 shared rows equal the verifier's capture); run_reuse.sh: 4 scenarios twice; run_vfi.sh: nanrt50_dbg, nanrt20_dbg, nanrt50_dbg_egh, nanrt50_nd twice (all killed after 30 s); run_tool.sh: the Release FeatureFinderCentroided on rt_e36.mzML and rt_e39.mzML (every scan start time value v written as ve36 / ve39), Gaussian and EGH, twice (exit 0, featureXML with inf intensities and, at e39, inf FWHM)",
+   "findings": "an infinite float width and FWHM meta value from an RT scale of 1e37 (7 of 9 features; all from 1e38), infinite intensities from 1e36, no non-finite score or EGH value; the NaN-RT merge's flushed log (1,016,234 and 1,065,423 bytes) and plot files; the reused object's isotope windows; the averagine underflow boundary between 273,769.5 and 273,770.5 Da",
+   "extract": "extract/extract_stage.py (extended_stage.tsv.gz), extract/make_fixtures.py (never_returns_digests.tsv, reuse_windows.tsv, rt_scaled_release.tsv)"
+  },
+  "ffap_complete_fix5": {
+   "directory": "../oracle/ffap-complete-fix5",
+   "host": "ibminode06 (AMD EPYC 7763; glibc 2.39); node copy /scratch/kohlbach/ffc-fix5",
+   "drivers": {
+    "fix5_driver.cpp (single, reuse and band modes; -O2 -std=c++20)": "3b4155f74aa0e956d0fc9833c9d3ce97b732fa5a818dbde387330982da673dbc",
+    "ffap_instr_driver.cpp (= ../oracle/ffap-instr-completion/drivers/ffap_instr_driver.cpp)": "894fbfa9b2c17cbb4b8f76f0d3c7430303b1b84d4ee43c8b31f4492725df4d60",
+    "fix4_stage.cpp (= ../oracle/ffap-complete-fix4/drivers/fix4_stage.cpp)": "1689ea630cff4f3d1f56edfef8b225498ac4da238e347cbfcb59068681b38695",
+    "binaries": "logs/build.sha256, logs/build2.sha256, logs/build3.sha256"
+   },
+   "cases": "run_cases.sh and run_cases2.sh: 23 single, stale and reuse cases (the step-4 charge-0 trap, the stale abort seed, the wrapped score arrays, and a reused object's later terminations); run_band.sh: 16 zeroed-band cases (the step-3.3.5 termination); run_onset.sh: 21 width-onset stage cases; every case twice, identical but for the abort map's unique id",
+   "findings": "the executed debug/log.txt is the flushed prefix of the debug run that opened the object's stream, whichever run ends the process (1,163,782 of 1,165,129 bytes; 139,387 of 141,951; 1,114,578 of 1,118,230), and the complete log after a return; a zeroed intensity band with reported_mz maximum or monoisotopic ends in SIGABRT at .cpp:790 (getIsotopeDistribution_ of a NaN m/z), and the executed .plot prints the all-zero trace's m/z as -nan; the float width overflows first at an RT scale of 6e36 on FFC_1",
+   "extract": "extract/make_fixtures.py (termination_digests.tsv.gz and the seed maps), extract/extract_onset.py (width_onset_stage.tsv.gz)",
+   "port_search": "port-harness/zz_fix5_search.rs, logs/port_search_*.log: 109,200 port runs over FFC_1 variants that found the step-3.3.5 inputs (not executed evidence; every prediction was then executed)"
+  },
+  "ffap_complete_fix6": {
+   "directory": "../oracle/ffap-complete-fix6",
+   "host": "ibminode06 (AMD EPYC 7763; glibc 2.39; 995 GB of memory); node copy /scratch/kohlbach/ffc-fix6",
+   "drivers": {
+    "fix6_driver.cpp (= ../oracle/ffap-complete-fix5/drivers/fix5_driver.cpp plus the round-5 verifier's wrapLH variant in single and reuse mode and a sizes mode; -O2 -std=c++20)": "835d08c9d3e9a4501ac6744335f2b728714918a760e7f850ee003f210545cfbd",
+    "binaries": "logs/build.sha256"
+   },
+   "cases": "node/run_wrap.sh: 20 wrapped score-array counts from 1 to 2^32 - 5 arrays, under a 16 GB and a 500 GB address space (ulimit -v); node/run_cases6.sh: the debug side effects at 12,201,611 arrays (a reused object with and without write_debug, and a fresh debug run), captured as fix round 5 captured its cases; every case twice, identical",
+   "findings": "sizeof(MSSpectrum::FloatDataArray) is 88 bytes and the array vector's max_size() is (2^63 - 1) / 88, so resize never throws std::length_error for a 32-bit count; whether the wrapped allocation succeeds decides between the out-of-bounds write (SIGSEGV) and a caught std::bad_alloc, and it depends on the memory the process may have: 100,000,003 arrays (8.2 GiB) throw under a 16 GB address space and die of SIGSEGV under a 500 GB one, as do 166,000,001, 200,000,003 and 1,000,000,003; under 16 GB every count up to 40,000,003 arrays (3.3 GiB) dies and every count from 80,000,003 (6.6 GiB) throws; at 12,201,611 arrays the executed debug/log.txt is the first run's flushed prefix, 1,163,782 bytes, with that run's 79 files; the round-6 minors then ran the same nine counts with no cap at all (../oracle/ffap-complete-min6) and every one of them dies, so these bad_alloc rows are a property of the harness's cap and not of the reference platform",
+   "extract": "extract/make_wrap_fixture.py (score_array_wraps.tsv), extract/make_fixtures6.py (termination_digests.tsv.gz with this round's three cases; it re-runs fix round 5's extractor first, whose fixtures came out byte-identical)"
+  },
+  "ffap_complete_min6": {
+   "directory": "../oracle/ffap-complete-min6",
+   "host": "ibminode06 (AMD EPYC 7763; glibc 2.39; 995 GiB of memory); node copy /scratch/kohlbach/ffc-min6",
+   "purpose": "The round-6 minors: the wrapped score-array counts measured with no address-space cap, i.e. the reference platform as it is actually configured, after the round-6 instrumentation verifier showed that round 6's std::bad_alloc rows come from the 16 GB ulimit -v the oracle harness imposes; and the memory the source really needs before the out-of-bounds write.",
+   "drivers": {
+    "fix6_driver (reused unchanged from ../oracle/ffap-complete-fix6; the binary's sha256 121507282153a39f9cca0562aea3f154b6dfe8afb7c79424bfa9b6751e737d5e equals that round's logs/build.sha256, so the capped and uncapped rows come from one executable)": "835d08c9d3e9a4501ac6744335f2b728714918a760e7f850ee003f210545cfbd",
+    "binaries": "logs/build.sha256"
+   },
+   "cases": "node/run_native_wrap.sh: the nine wrapped counts from 12,201,611 to 1,000,000,003 arrays with no ulimit -v, twice each and identical (each run records its own `ulimit -v` in env.txt); node/run_mem.sh: /usr/bin/time -v on two of them",
+   "findings": "every one of 12,201,611, 12,201,613, 20,000,003, 40,000,003, 80,000,003, 100,000,003, 166,000,001, 200,000,003 and 1,000,000,003 arrays dies with SIGSEGV on the uncapped reference node, 80,000,003 and up included, which throw std::bad_alloc under the harness's 16 GB cap; and the memory the run holds when it writes past the end is not the arrays alone - the maximum resident set is 2.88 GiB at 12,201,611 arrays and 21.85 GiB at 100,000,003, about 232 bytes per array against the 88 the array itself costs, because the loop names and assigns every in-bounds array first. 2^32 - 5 arrays would need about 928 GiB on that model, 93% of the shared node's entire memory, and was not run uncapped; it threw under both measured caps.",
+   "extract": "extract/make_wrap_fixture_min6.py (score_array_wraps.tsv: round 6's twenty rows and these nine, address_space_kib `none`)"
+  }
  },
  "external_reference_artifacts": [
   {
@@ -363,6 +668,1136 @@
    "path": "../oracle/b7-ffap-features/make_manifest.py",
    "sha256": "c11d8736c2184148ee498f5f93be8b0a819fd9f5c7171f3f3245e808c4db923a",
    "origin_key": "b7_ffap_features_manifest"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/make_inputs.py",
+   "sha256": "3f875365a698bccf7d1fb1e8f89680ddc474fd7107155a9a15169eb36aca3400",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/sync.sh",
+   "sha256": "01a91e1ce27e40ff3f9a5eb1b98189c5fa48a53da236b31d61ed9db19f1514ee",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/fetch.sh",
+   "sha256": "fe91093a038f6a12a1607dfd047c6c61d49c80162c0285664ac945846b86c680",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/degenerate_stage.cpp",
+   "sha256": "2ce281b0347a78f6a5543a143f629c20b3afc4fbf0a270483dc26a3771f0027c",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/iscore_probe.cpp",
+   "sha256": "7afb69b2d07d2a9c42e42c2f20240ccde0a835c1a1b8d03ad500da2726ddabae",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/defs_probe.cpp",
+   "sha256": "02928d7d54d476ed796e79d85086cde7a41c781bd726d7e5600951118fe34362",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/defs_both_headers.cpp",
+   "sha256": "05ce54bf8e6ce409902fc74e302908a2bf1e161bffb7bd234dcffb9353627b20",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/intended_abundance.cpp",
+   "sha256": "ae6fd6e86044ce6e6f2b3958f01b901c0ec02c8aec864ca8e0ed08f3526156b4",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/seed_stage_b6_original.cpp",
+   "sha256": "4377de21ffe6310d827c47b037dbf0b930c5ca86c6f0166572d1150e218cee33",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/c2/ffap_stages.cpp",
+   "sha256": "383be3268068fee5d939edd8f8086fc1aceb1be781fed2cc621c54528699f224",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/common/fit_records.h",
+   "sha256": "c6f32ddd53b26ff297d3d12add85ae051265f7add2e45ef39a2d9baf0d5d5426",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/common/fixtures.h",
+   "sha256": "5d0f67549c53f2992467b9f1939eeba2822554e16c279a82ed6af6f2a7b8e3a8",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/common/jsonl.h",
+   "sha256": "2e5310a67478f1c9b78cf2c1a831dcf808db5a7d8e8f6565213d32e1e89cb7f8",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/common/lm_replica.h",
+   "sha256": "6839bb8fe9a025c410fd1099748426674cd6a0076008ba8b953bd26b9c6e3bcd",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/build.sh",
+   "sha256": "0bb5d90bb643ce11a4a87ed122b22347a545b1a8113ace23a7ad701ccbff4e70",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/run_class.sh",
+   "sha256": "596dffb335ab2b3f9c2a1e1a8d784f4fe178067b8c962bb6b767a1a6ee45ca8f",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/run_class2.sh",
+   "sha256": "fe6b3456abd3662500ba25d9c8b382043fc14b82f5c059cb2298379785a048a5",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/run_class3.sh",
+   "sha256": "8e828b3d9cfabfce11696a3432fc416ec29e1411dbea0dff4ac0db99b11a892c",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/run_intended.sh",
+   "sha256": "f53e6b962efeb56fbb4a68c5475ee5d4496509e952a3bdc6ce37c6be5664b5de",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/tool_cases.py",
+   "sha256": "35e43ae5d66b6d1879d3fad7f630f2d73f767298a283fd79626e576ef51b9bc7",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/extract/extract_linux.py",
+   "sha256": "9cd41e5a23f2a3c41355a6f5e6626ff90dd299d120e0137fd8cea680b5eb7ab9",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/extract/extract_linux_seeds.py",
+   "sha256": "06887f7f9acfcbe4e7c0b8b0a84e28292d0b287bde9d131fd003bb924d3808e0",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/extract/extract_degenerate.py",
+   "sha256": "6d355992901ecdf3e8a62ca40eaca6ac69618a19b453656c695934d7c00c9c81",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/extract/extract_iscore.py",
+   "sha256": "955ea1a54d4c16688f526f8e546d4cf5cd80947a4d074d57036381654a863f5e",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/extract/extract_intended.py",
+   "sha256": "5a7fe7ceee4dde5a1c8df976f7cb58e4818ef169e95a5df588fe58dabeb77bf7",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/inputs/derived.json",
+   "sha256": "10ba630589d279e3c3f22e0b9a31c7a5f41cc638c6d6483c45f0344e0627a78b",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/inputs/queries.tsv",
+   "sha256": "67ca8281921101773547bbc03e5f75794127d0d717a6fc6d3c24e976aaf0735f",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/build_identity.txt",
+   "sha256": "e8e12ce1e8b56accf552f501cf7a52c512891414a3529510d3a20105d0277ab6",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/sha256.txt",
+   "sha256": "64bc65aead4dc0c3465d7e6cf4944fb1dbb966b24afa938e94ae4684547cd4d6",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/sha256_class3.txt",
+   "sha256": "f8d346b195922cabccb77d60ca4d220f533cedb945855fda3ac03f8a9d8a32ba",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/sha256_intended.txt",
+   "sha256": "1bb7073127f1ab3d1e7953e9e670d9a9df4d9f148916699980ad15b937e41436",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/host_class3.txt",
+   "sha256": "08b5667d397d626170b38f5e713f8d08dafbcd99452039e22a4a7a7fa3c84aff",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/build_defs_both_headers.log",
+   "sha256": "cfc42ea0cc6bc98d758f855d382a5cceeac9eae72aaf9b198add6e4159e1963c",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/run_class.log",
+   "sha256": "ae031516995be87a749ab14c9e586d526836c73a5f90664104089696adeb1383",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/run_class2.log",
+   "sha256": "9d250346fb09eacf64bb3d3ece01906388f33cd4dadc721723eab166d158ee89",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/run_class3.log",
+   "sha256": "f5002b45f27e3d443ff7b9eee5878df78ec43b2a8918d8e5f3168407bd90fc9f",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/tool_cases.log",
+   "sha256": "b5dbaaf8947604274fc46d7144755cea7a519479e4a567d00f4ac641621ed4af",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/tool/tool_cases.json",
+   "sha256": "5b20cdff5da78751a25faca976825cd7ca29c94f7ebbfdd736742c1ab9c02468",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/disasm/intensityScore_spectrum_peak.s",
+   "sha256": "220cc65e30b51e11b441106b2ecc5c3c92257cd44861b852b480f3f418f229c6",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/disasm/intensityScore_bin.s",
+   "sha256": "01509a7914c6466049d35c214f28644e42033052dd99f938572e5128a47b1835",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/disasm/run_.s",
+   "sha256": "cb1c5bbec2197ce1356e180e10a6931713d424c7b37734db8cb9c301dce0f385",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/class/defs.omp1.r1.stdout",
+   "sha256": "8a5c51455311dda296ea64c2a8fcbcf560fbfb565818d1d74aba6c32d8d7e6ca",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/fixtures_linux/b7_feature_records.tsv",
+   "sha256": "85283ffc7e7b92d169b5a5953e44fd667d1e030489bff325d2eaf9c258ea9cfe",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/fixtures_linux/b7_seed_records.tsv",
+   "sha256": "0d9ed55f266c99c90c90fa3bb280e1d3ee3906c84001c52ec6e6cde91217d450",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/fixtures_degenerate/degenerate_stage.tsv.gz",
+   "sha256": "277bfb97421c3e10c31e3a78f4f7c8fb74786dec0231e0422d0fe37c0a884e23",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/fixtures_degenerate/iscore_probe.tsv.gz",
+   "sha256": "1af0b1221d1d39527a95366ae8b3fc2ace29a22366568dae46b4bf63c756f487",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/fixtures_intended/intended_abundance.tsv",
+   "sha256": "038c19c8d3564ad3d03535aa8ddd5376959cd1ca79f23a977bbc5b2d4f32e5bc",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/nonfinite_stage.cpp",
+   "sha256": "becccf9d50a6e4dcfb7f4cb8b4f758652896af2aa53a2130266f007452769026",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/run_nonfinite.sh",
+   "sha256": "dc856ec6801757e0bb720424902a7427d99970e1c20b908dd8383db243b29f4d",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/extract/extract_nonfinite.py",
+   "sha256": "e45ef5c52e204c4dcd3ba8b8afd178e07117dae5012720f696deffde2878cc6c",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/fixtures_nonfinite/nonfinite_stage.tsv.gz",
+   "sha256": "050fc85e39436b7f134721f6766487c8a70ff6e9d00acb2bbc17dfa6c7ddc074",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/disasm/getIsotopeDistribution_00000000018dddd0.s",
+   "sha256": "5f4c362e8eefb45d3690856cc2eaf2f047fef4dcaeca6b99f5e97b68e1010a08",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/disasm/getIsotopeDistribution_000000000039e4a6.s",
+   "sha256": "a2704b3de4b3da1db856848f2007681445114499b9e90fe1285e5f9350e5c9f9",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/sha256_nonfinite.txt",
+   "sha256": "5e45cefe76a5c7e1e3d0dc2a57a310045e990c6a4b0e57e01232f6744df756f3",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/nm_getiso.txt",
+   "sha256": "2110e978cbf9bbefca6e442cac37a810025b185133effc6fc2a2d7e2c832d83c",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/nf_sweep.txt",
+   "sha256": "8571a75e18a169aa956f37b7d96fb526e76fa6d1c25d06b14b4f2a4ba8c64a32",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/build_identity_nonfinite.txt",
+   "sha256": "7b6e27a30063fc8a6cf1337bd05b94ac2b2908b1ed9a7e4b33fb13cc0cfefb5f",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/run_nonfinite.log",
+   "sha256": "f5d2a06a8097516835cbc561aee398d3be5f108073c3623d6cf2694913357010",
+   "origin_key": "ffap_sem_completion"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/drivers/nonfinite_ver.cpp",
+   "sha256": "853ffb6c67004f2e7b8909c2ac252bf29c35afff4a4dc4517204dc2bde768a57",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/drivers/write_mod.cpp",
+   "sha256": "d9f93af82e978cd8abcf742bb9b44cb1c0440d6538dd4c720baa18d3677cecf0",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/node/run_nonfinite.sh",
+   "sha256": "011b4fd5cc3ac627cb26fac98ea1f033586d58a8d0f9de202d944639ed364497",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/node/run_nftool.sh",
+   "sha256": "22011299c74f2ceaae95b7e75824d00dd581d0363ef9e503b9713a5bd5e0cf9d",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/node/run_seeds_nf.sh",
+   "sha256": "cc914f21ab9ab456eea5ef75936688b964f5fd8dcaff7ff5cf233749818ea330",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/inputs/ffc1_mz0_neginf.mzML",
+   "sha256": "a0083b544063e7089f3dad212c93786b2235bc429ae23a4ce7e9d1ee3f8b29d2",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/inputs/ffc1_mz0_posinf.mzML",
+   "sha256": "fba9768eee64fc2804d5b92eeae7fa518ad4d3fc9dee7e705c9e9308693dc606",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/inputs/ffc1_rtlast_posinf.mzML",
+   "sha256": "0aefc9c6a5d742c2a4e6e7a78c1cdcee3328b3bec08e20176a08380183d1eb59",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/results/nftool/mz0_neginf.r1.err",
+   "sha256": "f9ed2fbb6ad52f22183952197dac3d99f19604470226fd8499f48462edd70c62",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/results/nftool/mz0_posinf.r1.err",
+   "sha256": "e83cc21c883033851713cf893758fbacdbf3d28919b3c1923e61899d4a1404e2",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/results/nftool/rtlast_posinf.r1.out",
+   "sha256": "42204e7c6078a49179ed28e2956a41b0e481b18d57fbe8b37f64768b9f341fc8",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/logs/sha256_nftool.txt",
+   "sha256": "2b36588fbd113c3953970c98e0108153fad7bfb13d4e57391990aa407900abfb",
+   "origin_key": "ffap_sem_ver1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/README.txt",
+   "sha256": "1d1cf26cf99fd8af7ce730b78506bbd6361b6bea092f36bc37ad10ff1b6f63b4",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/make_sort_cases.py",
+   "sha256": "dcc812c9bd7f4d6e267007b48c6906dd7c9f51d9ce6c4bba0f6808a400466b48",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/drivers/powf_where.c",
+   "sha256": "5a03e459d2ad11105935c397294a06251f258d8dd64427817a60febf8e1b2574",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/drivers/powf_probe.c",
+   "sha256": "01801ad50e681f3c213d838bc7122ce9faa36880485350271520190c24f688f1",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/drivers/sort_probe.cpp",
+   "sha256": "50e5ad8a1553644d7d22b6b0ceaf9669ad9833f51d7a9c8a347a4c61fd451b43",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/drivers/defs_eq_probe.cpp",
+   "sha256": "00130eca3b63f87348db151c999198a3ab515689baf9f6c1bd5d96f59dcb5073",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/drivers/nonfinite_stage_dt.cpp",
+   "sha256": "d1fb6d74cadd47ff26f3c15ff6540c4779ec7d18f622e24a62cb98e6fe7e7037",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/drivers/ver2_band_driver.cpp",
+   "sha256": "ac90f5dffcdf46ce932dae18fc3f6c36344b09ba163b7da6ed20918d2483830b",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/node/build_probes.sh",
+   "sha256": "aece00b59bea3d0e66b5a5a12a406231eec868a8259950b59f653c810471eabf",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/node/run_probes.sh",
+   "sha256": "f58fbff5432118fbcd44836e5d15bf210178edac7ebba03cd325542a498deb2f",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/node/run_stage.sh",
+   "sha256": "0dc473816a28401a0225fa91a93df6e9d9e2af1819241b3f3ff730d4d4295098",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/node/run_shift.sh",
+   "sha256": "2f390007ff5fb115a1bcf701d13b83163e8d20781080463f2da606f46ea4fd46",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/extract/make_probe_fixtures.py",
+   "sha256": "1f24c5910f79ad3c139cba9d2a502d910f7a70015692c3039c0b499eb3b63597",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/extract/extract_stage.py",
+   "sha256": "ee125872e5f489850fba89d3462258a5d22f0f915944e2d3b07419a3ddf68d4a",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/extract/make_shift_digests.py",
+   "sha256": "96eea8a56a7625a1a26a74fef9e45159e555221c1ad2bdf900201faae65ab17c",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/inputs/sort_cases.tsv",
+   "sha256": "2ceb5081354717d08e20c5fe7e9abe281e9761270edbac075fb481e40636a3b2",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/powf_fma_disasm.txt",
+   "sha256": "311fd1ce4052613789f5eafd81d1893118be69205ae0912f61cfa2afa4e38484",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/powf_fma_support.txt",
+   "sha256": "33915754e1e3099eb0da7db22a840f2a0c82fa5b2793794c0ea6d16fb502d880",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/libOpenMS_sortByPosition.txt",
+   "sha256": "ed7118d6200f3bea98f2db0a1c827e1b319be44aaf5e86c6421a450f821037c8",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/libOpenMS_imports.txt",
+   "sha256": "a3a941f8c6a91113be34754eac3639db459f39bc09f64c6405aea3611ae9b698",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/writeFeatureDebugInfo.s",
+   "sha256": "9145b7477d9b85ed63ede1a9ddab01c0b9d186dd3ab8d3de6af16ae6d436bd5f",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/sha256_final.txt",
+   "sha256": "523d9366891318de0309c2f5f2df593c0b66204b75fc041a6ff80322b708207b",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/build_identity.txt",
+   "sha256": "52fb70c93a9ea4cda1e51bffc16bd4b47f8e59ad1dc184409d8a59c84d41aa8e",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/stage_results.sha256",
+   "sha256": "cd432d7033332052a0e4b992e1f93bcab87ff57fd2976ee636bbbe6209509718",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/shift_debug_files.sha256",
+   "sha256": "386b929342649102bccc0c0fadb0e3a26a0e93b1a112aa6a6d220f1b18867515",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/probe_results.sha256",
+   "sha256": "d8c6c45b691463c0d5d95e63c9426580c88996a994496f22247f01e6ab2b1922",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/stage_inputs.sha256",
+   "sha256": "87b439cdcedf5cedac3b3ea2ad59abbc806929d047a9d15f6575caf30f0e730f",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/shift.sha256",
+   "sha256": "ad6ede50ca8e07954543f66679e25a9124c3cfef6ff0b68829ef4682a1971f09",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/results/powf_third.r1.tsv",
+   "sha256": "ba698e87fda23b131036e13759193b55a711704347388277d39a9250efa8fcb8",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/results/powf_sets.r1.tsv",
+   "sha256": "6891798e102d053723c0780ebc4ed847fa0e6b1c28bf92140a2957b6fcbfdbb2",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/results/powf_sets_small.r1.tsv",
+   "sha256": "eb4aaea88818c7e5dd1762352aa7cacd9c41f19bfa3a0fdd62d010722d437e9d",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/results/powf_grid.r1.tsv",
+   "sha256": "39972756a91379e7e788c193c2fa6c43d890e275ead292c3484abc712aed5638",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/results/powf_where.r1.tsv",
+   "sha256": "a7f2fd3836a969827cd122c75710d199e232559e18930ee01d3d80156e13c23c",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/results/sort.r1.tsv",
+   "sha256": "4ebd1c95cfc63a42d0ce9f56f0476033ca1ceeefba073d69e24ab0e9e3bd044b",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/results/defs_eq.r1.tsv",
+   "sha256": "162a6ae5f56b1af6491dbf0e1b7c0633c856a3645590fc84c178749c05d987c7",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/port-harness/main.rs",
+   "sha256": "93fd31924df079b1c213ba3674e38ec5bf76e4312405466fa709bd2b2340bac0",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/port-harness/Cargo.toml",
+   "sha256": "dc8468652dab2db8b1842eafc8897d93c554bc0c7847f3cb811fc2e8e3092228",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/port-harness/third.port.tsv",
+   "sha256": "ba698e87fda23b131036e13759193b55a711704347388277d39a9250efa8fcb8",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/port-harness/sets.port.tsv",
+   "sha256": "6891798e102d053723c0780ebc4ed847fa0e6b1c28bf92140a2957b6fcbfdbb2",
+   "origin_key": "ffap_complete_fix1"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/README.txt",
+   "sha256": "19a3582bde5af411747b089aa6025e3ebfa37117538d66b72a7e05af996aad07",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/drivers/libm_probe.c",
+   "sha256": "1555ca8a4b81301a868bce4d525cf234a6e37b493b8c3b3a27cc4538aa67c509",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/drivers/fix3_stage.cpp",
+   "sha256": "0529ef4163c1d13ebc9f4f1e4efec0efb6d74607734a660022f055156e29702b",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/drivers/fix3_driver.cpp",
+   "sha256": "169419f4ec8a4dcd6c9524b65ca3b46ebfbf4a71d7571c0075c9e152503fde12",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/drivers/vfi2_driver.cpp",
+   "sha256": "b3c590695fb9614c5700b4e2d508e1ecf2d86b2713f00e11bfd42fa2fa0ef848",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/node/build.sh",
+   "sha256": "9291974885d6b79149b2b3f436a471634580b4456de7253642a31194e3f6eee0",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/node/run_probes.sh",
+   "sha256": "a5bb01ab1fa30ebaaf16b108844857c035bf8855022a5a5a94573329b167ab12",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/node/run_stage.sh",
+   "sha256": "c471ef9c6d18e355414e183e5df415c36201310dee8c8016d665ba2a5c5755c3",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/upstream_tables.py",
+   "sha256": "b2dac07dff73e8d9e60f6e215ce7a314b608a76a86496c80ddabcb70ee970425",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/check_tables.py",
+   "sha256": "ec645c7c5d7b82d88f4987c245402d35fced67285e129ec45b1c4adc27bb2093",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/extract_stage.py",
+   "sha256": "f9a669811a82972a216e06329432a299ea819edbd21f4db00ae1b2962f9f7be7",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/make_libm_fixture.py",
+   "sha256": "c56d7a8825981363bbd2b09a0658f1c543db4241898775b4a107e7e52c62a155",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/make_crash_fixtures.py",
+   "sha256": "e72d0093ffea96b36a3b6154193f00d65d0887a83da2084857d63e59c62bef96",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/make_progress_fixture.py",
+   "sha256": "9a59079c4ed4811863886d263bf62ae18c8a1bee3df9ca086a519806d269b3ed",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/make_tool_fixture.py",
+   "sha256": "efe3af9f99b9184d60c82d47be5f94ecc1b70b9b1dcdc91ececfc4d67ab33f20",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/upstream/math_exp.c",
+   "sha256": "219b5f666c84864e80ef5ef33bc5453b4702ea74fc5cbf997c3dfacdcf5738cf",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/upstream/math_exp_data.c",
+   "sha256": "a5e84677e7693c7d22195f86faac5fdc6f92bff7ea2e54c0e7888203a78ffc24",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/upstream/math_log.c",
+   "sha256": "10e3774a72279c75d3842bc651a9d81e8fe31f9717caac736a603170ed509530",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/upstream/math_log_data.c",
+   "sha256": "327cf1819870930486eecb5491c68d5887a712b954e5ec82f3f70bfd9e46fdd3",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/upstream/LICENSE",
+   "sha256": "650afbf29f214451e02241adc42534e82c9d6ae2b38e2444b92b5a1ffcaf9346",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/sha256.txt",
+   "sha256": "75784b062dd019d19699eff7309e72aec7937c6926ef2a5c0da0344eeed1161b",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/build_identity.txt",
+   "sha256": "28fa2a0d2e1c25e7bc7cff25e3497e474c01af2a5327fa72350e737a1308442b",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/libm_disasm.txt",
+   "sha256": "449361d5956aeadbb1a40f8ea29880627a329f63441eee6fe73d028d18c6540a",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/libm_disasm2.txt",
+   "sha256": "8111d2c046f506ca99c8e84cb8faaf55c8b68315d591597dfd2d17229d5a9410",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/libm_tables_print.txt",
+   "sha256": "d6f7bfbf40775cf0b4199bd75c077f17b423384e7baf67ab7d76374481ee3f45",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/libm_where.txt",
+   "sha256": "99882e18750ca3c7a78976e8de3bfb442f2732f32f30b3c4f81ba68a7a29e426",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/trace_fitters_libm_calls.txt",
+   "sha256": "3714e9fa247635f4dcb5be8f84b8b557fc6c66ac0d4d5a255ff9001afb880d1e",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/libOpenMS_libm_imports.txt",
+   "sha256": "4f0b35a7db275ff53650e7659b7451f32517f334bb09fe8ad2c6d6a73e4ba117",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/crop_quality.s",
+   "sha256": "cafcd024e96916afdd8596647a0db79f101a225e98ba6de76b36020c7f5b694b",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/initial_parameters.s",
+   "sha256": "7d2dad13926c7f25ff4bcc511f7d521dfc9d71fabbdfdc21207473d7f5bda9d7",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/pearson.s",
+   "sha256": "aaf384ab7cbe14c6e0ead6f405f9b6101e7a7900f0e40aa33e1d4d56bb7de951",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/results.sha256",
+   "sha256": "1b149d6846bfc0d0e8236adadd7e282bb7c5a26577ec16c4953afc22ae3905dd",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/stage_cases.txt",
+   "sha256": "d4277b275ed04970fa606be1312e84d72b7c319a2d6fc9cba979d2ad3ff0c929",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/port-harness/src/main.rs",
+   "sha256": "b1203892e9f845795aaf6a374fc49d7b4250eca63be2ccb12b3097a16f6d424e",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/port-harness/port_macos.txt",
+   "sha256": "de5da43b99d4a2e0ae7df253e63c5429ee209dbb744b260b44ebd2d48c8935dc",
+   "origin_key": "ffap_complete_fix3"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/README.txt",
+   "sha256": "4d912925da6622b36cd7ca177745dca240aa75226a0027b644f328179bba67f0",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/drivers/fix4_reuse.cpp",
+   "sha256": "9298c1bc619735a124affb4ac366b61f771f2c12b17936195483fdb13d379ae3",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/drivers/fix4_stage.cpp",
+   "sha256": "1689ea630cff4f3d1f56edfef8b225498ac4da238e347cbfcb59068681b38695",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/drivers/fix4_vfi.cpp",
+   "sha256": "0c281909048817ffb65c25bda84e40871ce6030cfb403adcbe8c044b91a54fc6",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/extract/extract_stage.py",
+   "sha256": "b5945687d2969869cd799d2edbab20145d65cb6cd455a6b9cb21177ad295afac",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/extract/make_fixtures.py",
+   "sha256": "e22964a6a7db5a47947decd5243e4e9361f80854d871ca5719a0e6d8fa3114c3",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/inputs/FeatureFinderAlgorithmPicked.mzML",
+   "sha256": "5139d8a8d318145cdbc2fefe5e3d0acfcc99c0881a05eb7a06c304bdeedb3f3e",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/atan_rounding_rerun.txt",
+   "sha256": "0fa52bf2540aeb3cdbdcb584e657d3209155d4c1e76e596300d8c2a1864909fc",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/build.rc",
+   "sha256": "90757e51a6523f026f98daaad5576a09fd264aa60ddc241b66ac2dc4c683b72e",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/build.sha256",
+   "sha256": "da48f37b0c8f73dd80d1a570ad60e6497e94d135808858e26fa88331259b4312",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/build_identity.txt",
+   "sha256": "f3236f970e2c2299ccddb1921639f60f4186ce47a55a54402ad9784c4bf3deb3",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/results.sha256",
+   "sha256": "caf6b628d6d201451d6d28f4d3e645df6ce8cdbf26eb3ae07c071106c3d089fb",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/run_all.log",
+   "sha256": "f73315a35fbee15b4b3573040608c55a39eb7a28b640828b4d39349574d19959",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/stage_cases.txt",
+   "sha256": "ad0cb04acfce5d3dfa33b8913941cfce7f2e8807077740eaf281e1a7f7e0fac3",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/stage_inputs.sha256",
+   "sha256": "49533b1e601724659c15ed0ea166ea46f1462947bb83341c982b064ccce845c8",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/tool_inputs.sha256",
+   "sha256": "6ae02b78921b13fe0ba084a73f80a3014d43ae10b7d1a9accbe910d9a1f8b1f6",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/build.sh",
+   "sha256": "975077595d13cfaf0181a6f939dd66060b3231a7b718eb2222733a13b05e8757",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/run_all.sh",
+   "sha256": "fabc40a8a1243be1a9f701b0ef6193bca28f5523633dc0b419da222d7fd7d685",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/run_reuse.sh",
+   "sha256": "d075727cba76eb55e8fecfcc5c25828167e2793c033547fb73759ee199382161",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/run_stage.sh",
+   "sha256": "6a70c63c8cdf40f4c9734dc9a8fb8326f92c84a0b2e7340944b2b75c616719df",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/run_tool.sh",
+   "sha256": "0c91518820df69330cecea1650c68f0d7be1ca4289ebabd8e1c09f2b33dbe9e4",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/run_vfi.sh",
+   "sha256": "185fe378028f830d810fa19059879b82274b5031c27abda3661fc731630d8860",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/sync.sh",
+   "sha256": "0bfe11232b465404eb74c73b82676ed5e15ffa5a5fb7aad1fe25cfbfab15bd43",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffc-numerics-v3/README.txt",
+   "sha256": "7dbbda61c8ef0844cd0d4209eb2bc4ef397be3954a528ba5760ddcb160fd08c0",
+   "origin_key": "ffap_complete_round3_verifiers"
+  },
+  {
+   "path": "../oracle/ffc-numerics-v3/results/harness/node.txt",
+   "sha256": "341c2f83e4d40e7891b2f8fdfd5aa56c5a43b3c2094d0bada850f7e482d10b09",
+   "origin_key": "ffap_complete_round3_verifiers"
+  },
+  {
+   "path": "../oracle/ffc-numerics-v3/extract/atan_rounding.py",
+   "sha256": "bfe45477bf8449834c4c505db0813591a56c0ebcb4ec4ea4169676351ba98435",
+   "origin_key": "ffap_complete_round3_verifiers"
+  },
+  {
+   "path": "../oracle/ffc-numerics-v3/results/verify_numerics_stage.tsv.gz",
+   "sha256": "dde43dc6523c7c9a7b76d0492f93c34289a2b4952993b037e89322dcf8c83644",
+   "origin_key": "ffap_complete_round3_verifiers"
+  },
+  {
+   "path": "../oracle/ffc-instrumentation-v3/README.txt",
+   "sha256": "0488e524e36b460748cd69ec876e077e88b41f265b220ee49955825d293893f4",
+   "origin_key": "ffap_complete_round3_verifiers"
+  },
+  {
+   "path": "../oracle/ffc-instrumentation-v3/drivers/vfi3_driver.cpp",
+   "sha256": "8931be3fa87c876b9f74a9de19a88295ff3eb45377c4b520e10aa4939cd2bb7c",
+   "origin_key": "ffap_complete_round3_verifiers"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/README.txt",
+   "sha256": "dad31ea735db76711d9d269c016e4d4ab7904f63d7c0e6bfde90c042c3d488e9",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/drivers/ffap_instr_driver.cpp",
+   "sha256": "894fbfa9b2c17cbb4b8f76f0d3c7430303b1b84d4ee43c8b31f4492725df4d60",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/drivers/fix4_stage.cpp",
+   "sha256": "1689ea630cff4f3d1f56edfef8b225498ac4da238e347cbfcb59068681b38695",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/drivers/fix5_driver.cpp",
+   "sha256": "3b4155f74aa0e956d0fc9833c9d3ce97b732fa5a818dbde387330982da673dbc",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/drivers/vfi2_driver.cpp",
+   "sha256": "b3c590695fb9614c5700b4e2d508e1ecf2d86b2713f00e11bfd42fa2fa0ef848",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/extract/extract_onset.py",
+   "sha256": "8e8ea159a8520a4a117334615f8f9ebe48e377fd47f7dc86f0c521a75819496b",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/extract/make_fixtures.py",
+   "sha256": "dea15e8782e62c802c500963c00205e196c3d6857feed75242358fe39ff1a233",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/build.rc",
+   "sha256": "153163c0b5fe1eae5029f4775d0a2c26a8f6a4bbd06acf8c783c7e5835cb8197",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/build.sha256",
+   "sha256": "bb3661862c954e96455632f5a211bc496c2013988cbec4b0b963a63db04045db",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/build2.sha256",
+   "sha256": "d22ae92caba28d7d9d39f89e67238f6cc704f1b6a1948d9ab1cf87ca68fe797a",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/build3.sha256",
+   "sha256": "ce2983e6731f632da2702d959c5f6a7d958d8c95fc35c450da2241b3bffd586d",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/build_identity.txt",
+   "sha256": "42dc921b436319e6b796a99af69594ad9b980f2940d6fa07af32a3dfb0995ff5",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/port_search_a.log",
+   "sha256": "d92a125d949295cce5b6234d2194a8e9e2a6755200748e1cc398e4923f9fc070",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/port_search_b.log",
+   "sha256": "6971bc1b3952121dc5437a5f1b92eb7f04180f33f2ee7a4ae2e97159fc909e53",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/port_search_c.log",
+   "sha256": "fa3b758ab9458ab6f69d8cfeb70df4c1855dc311bbebccf562b0e6a40cfe5b7f",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/results.sha256",
+   "sha256": "176fd2dae0a58a215e929902a10327c313973aab6b4f8d6d1d464d136e5f8742",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/run_band.log",
+   "sha256": "f2c2a9445ab4aa288ffe920177d1e941457618fe1fa929559d84aa8bee758988",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/run_cases.log",
+   "sha256": "7a4f1906c8fa8f95548bb7eb4b793997c99d0e597180f9d1dbe0c6dbf91ae8ee",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/run_cases2.log",
+   "sha256": "84eb5b26575cf21f7fcaf42bc2fb5a10f46c573e5862c89d3190a31bb7500ff8",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/run_onset.log",
+   "sha256": "728114fc7083a7f5b3f011063cbc583a62e13c36b6abdf46250399f597caa301",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/stage_cases.txt",
+   "sha256": "563597b7ad2560e3464d5e1d774e0f28468c02795ece9a2ceaffca7ee673cd6a",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/stage_inputs.sha256",
+   "sha256": "00445b8d527b84e4d0acd013053383e86265940da837a6851ffbc36ccc954de0",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/node/build.sh",
+   "sha256": "24f0f20ce6930d3f96793e4a359568284a80678b5c396dea4f0380b7e9534609",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/node/run_band.sh",
+   "sha256": "c83b49aff7b15eb99fc2040abfe1cd7c8d15a35d56dbcae4baa575386b3d98b2",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/node/run_cases.sh",
+   "sha256": "49196996ca5df25099763a7d5f6f1df96761d17ed183a6326aaa28b542da2664",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/node/run_cases2.sh",
+   "sha256": "31ca66147fdb4f898e4f8d56fc34694a1ed505e6ea9f2577330ce39d2e7a4e0f",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/node/run_onset.sh",
+   "sha256": "0547642eb50ad01f5cfbb24e138376f07542297a3d1b51c34dd905609690b285",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/node/sync.sh",
+   "sha256": "8b083ccb88db7c69b6b1bf90c341522069478c41a13aed3df19496ab4e3581db",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/port-harness/zz_fix5_search.rs",
+   "sha256": "9cd75ba32f40fd8f82d564c4e38dc85c29a047ef54c2ca4f411127baf7c4f950",
+   "origin_key": "ffap_complete_fix5"
+  },
+  {
+   "path": "../oracle/ffc-instrumentation-v4/README.txt",
+   "sha256": "79ad398ba4dab7a78135a5d276210ff51b13197ce31128b443624e07f8312b9a",
+   "origin_key": "ffap_complete_round4_verifiers"
+  },
+  {
+   "path": "../oracle/ffc-instrumentation-v4/drivers/vfi4_driver.cpp",
+   "sha256": "a6a436034764f0f7ad549ac4c309ed562bc697c1961542ef6ae6b6c8a33323b5",
+   "origin_key": "ffap_complete_round4_verifiers"
+  },
+  {
+   "path": "../oracle/ffc-numerics-v4/README.txt",
+   "sha256": "211398654d5a1e7daf20da386649d73d23f45025f087ff0c0c8de3d4b9192f52",
+   "origin_key": "ffap_complete_round4_verifiers"
+  },
+  {
+   "path": "../oracle/ffc-numerics-v4/node/run_stage.sh",
+   "sha256": "64a5bad4f6030935ad895330026368c91bff55581ef17e8060271a7ad43ef3b1",
+   "origin_key": "ffap_complete_round4_verifiers"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/README.txt",
+   "sha256": "5a2ecd930152da0f181a09b20f69a346d8029b0cbb3544f6c0ad426c01c93135",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/drivers/fix6_driver.cpp",
+   "sha256": "835d08c9d3e9a4501ac6744335f2b728714918a760e7f850ee003f210545cfbd",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/extract/make_fixtures6.py",
+   "sha256": "1d8422866cab3b01146d6164a5987a45aa3fa923c197f26fdb35af31a2b5357f",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/extract/make_wrap_fixture.py",
+   "sha256": "79d3ee55a56e0a5a72657c5142f6f68ae0eb655ddcb58f132f947a508d58e095",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/build.sha256",
+   "sha256": "8c53a81ded75266c08e59bd048af1ffbcbbeab6be71fd3d077f3e4e8ecf34164",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/build_identity.txt",
+   "sha256": "22df9069c3c07419999dc2da9dc465ae8f4ef6b8313238882edfcfb5c0d364a2",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/cases6.log",
+   "sha256": "7855c50f3eeee42cc34941c2c318af53a42f1e9f9756227b7a8bac82ccda11c6",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/results.sha256",
+   "sha256": "942d7d7a5eaf622960cd86736f1c1374545af10e4074335cc966a5f546b4c09e",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/sizes.txt",
+   "sha256": "722a36d36a4abac8f88d83579f496aa689904255704ae2b7dbff6e53bf3fa426",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap16.log",
+   "sha256": "8fbbdba9fd49d409a5cbe5bf649ee88f401f960983f6f9f0d90e4131bb51fdfe",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap16b.log",
+   "sha256": "1d340ad617e39bd16f5b8e14e08c0a643c0d84e71edd1e21727237b7cbd6f0c1",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap4g.log",
+   "sha256": "876b368dd70dfe593d3f45216b24802b34566a00cae33f45cb43bf2e44cfa8e8",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap500.log",
+   "sha256": "cf2bc33e5d2ff70bcd60b152cdf703f0d69029f058afb6fa3afbb763969f99aa",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap_small.log",
+   "sha256": "ffa171e21f79ff27efb505a0b41e28e6775abdc6e5a1377773bfbbbb2ff74450",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/build.sh",
+   "sha256": "27280ff2b4c851365d9aa5f13f781528ab1e93267687d77b65df36ed7b48a160",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_cases6.sh",
+   "sha256": "1621a915042fb4eddee3090b6e30a7d9a94ff6b8185be67a616a8e8f7f86105a",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_rest.sh",
+   "sha256": "d5f172e7ca7c918600c1a4617a508c560c478dceafc5ba79a790fb1b714f4927",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_reuse.sh",
+   "sha256": "81ee0cf144d086a1e30b31c75e61977e74996f46f12ab3256110d1d330db5eea",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_wrap.sh",
+   "sha256": "6bf3d8e6ba8ec19e1ebc2ee8356f7b3205c9c19772883d0a7ff0154f1d59001b",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/sync.sh",
+   "sha256": "4d28224aa43c27eb30977b9eba929d5d0e52c7804ac6a24fbd7e513d7613a09e",
+   "origin_key": "ffap_complete_fix6"
   }
  ],
  "source_anchors": [
@@ -495,30 +1930,163 @@
    "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
    "line": 1142,
    "operation": "intersection_: the four containment and partial-overlap cases"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 244,
+   "operation": "step 1: RT and m/z bin steps divided by intensity_bins_ without a check (zero or infinite)"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 1837,
+   "operation": "intensityScore_: (UInt) std::floor(...) of the half-bin positions, undefined for NaN, infinite and out-of-range values; cvttsd2si r64 in the Release build"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 493,
+   "operation": "step 3.2: seed loop min_spectra_ .. n - min(min_spectra_, n), empty for n <= 2 * min_spectra_"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 298,
+   "operation": "step 2: startProgress(min_spectra_, end_iteration), an inverted range for short inputs (Debug precondition)"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
+   "line": 24,
+   "operation": "FeatureFinderDefs: IndexPair, ChargedIndexSet, IndexSet, Flag, NoSuccessor"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 1200,
+   "operation": "getIsotopeDistribution_: (Size) floor(mass / width), libOpenMS.so 0x18dddd0 (inline floor, comisd 2^63, cvttsd2si, btc); InvalidValue('IsotopeDistribution not precalculated...', index)"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 357,
+   "operation": "step 2.5: Size num_isotopes = ceil(max_mass / width) + 1, libOpenMS.so 0x18e46f4-0x18e46fe and 0x18e6c3b-0x18e6c44; 0 for +inf and for 2^64 and above"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 790,
+   "operation": "step 3.3.5: getIsotopeDistribution_(f.getMZ()) inside the omp parallel for; an exception here terminates"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 150,
+   "operation": "seeds_.sortByMZ(): std::sort with Feature::MZLess over user seeds"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 268,
+   "operation": "step 1: std::sort of a cell's intensities"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+   "line": 205,
+   "operation": "operator++ and nextScan_ (:276-298) stop only at equality with the end iterators: a lower search above the upper one reads out of bounds"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+   "line": 157,
+   "operation": "RangeBase::extend: std::min/std::max from DBL_MAX/lowest; getMin/getMax throw InvalidRange on an empty range"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+   "line": 829,
+   "operation": "isSorted(true): RT with >, each spectrum with std::is_sorted; sortSpectra (:791) std::sort by RT then sortByPosition"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "line": 210,
+   "operation": "computeIntensityProfile merge loop: a NaN retention time neither advances nor consumes (never returns)"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 190,
+   "operation": "run_: seeds_.sortByMZ() sorts the member in place (std::sort, introsort)"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 261,
+   "operation": "step 1: areaBeginConst over [min_rt, max_rt] x [min_mz, max_mz] with the full mobility range"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 270,
+   "operation": "step 1: std::sort of a cell's intensities (std::vector<double>, introsort)"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 1084,
+   "operation": "run: sortSpectra(true) and sortChromatograms(true) of an unsorted input"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 2148,
+   "operation": "writeFeatureDebugInfo_: pseudo_rt_shift * k + rt (cvtsi2sd k, mulsd shift, addsd rt: x86_64 NaN rules; inf * 0 is the negative default NaN)"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+   "line": 567,
+   "operation": "areaBeginConst: RangeMobility{}.getNonEmptyRange() is [lowest, max]"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+   "line": 793,
+   "operation": "sortSpectra: std::sort(spectra_, RTLess)"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+   "line": 813,
+   "operation": "sortChromatograms: std::sort(chromatograms_, MZLess)"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+   "line": 452,
+   "operation": "sortByPosition: std::stable_sort(peaks, PositionLess) without data arrays"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+   "line": 175,
+   "operation": "sortByPosition: std::stable_sort(peaks, PositionLess) without data arrays"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+   "line": 285,
+   "operation": "nextScan_: skip scans with !mb.containsMobility(getDriftTime())"
   }
  ],
  "native_boundaries": [
   "score arrays outside the spectra (ScoreArrays)",
-  "non-finite RT, m/z, intensity and user-seed positions: Error::InvalidValue",
-  "zero-width RT or m/z range and charge_low > charge_high + 1: Error::InvalidValue (source undefined behaviour)",
-  "write_debug: Error::Unsupported",
-  "changed abundance: Error::Unsupported unless AbundanceOverride::Intended (source stray-peak defect not reproducible)",
-  "overall score correctly rounded in f64 then f32 instead of the platform powf",
-  "stable seed sort; total_cmp quantile sort",
+  "non-finite RT, m/z, intensity, drift time and user-seed positions: read as the Linux x86_64 Release build reads them (RangeBase ranges, the area iterator's drift-time filter, libstdc++ lower/upper_bound and is_sorted, the libstdc++ introsort and stable_sort on NaN and equal keys, the cvttsd2si/btc Size conversion of step 2.5 and getIsotopeDistribution_ with the source's InvalidValue text, std::length_error's text above vector::max_size()); Error::InvalidValue only where the introsort would read outside the vector (no executed input), for a NaN retention time merged into an intensity profile (the source never returns), for the empty best isotope pattern read in extendMassTraces_ (executed SIGSEGV) and for a feature m/z without isotope window at .cpp:790 (uncaught inside the OpenMP region: std::terminate); Error::InvalidRange for an empty range; the area-iterator overrun (lower search above upper) is unreachable with libstdc++'s searches and kept only as a slice guard",
+  "zero or infinite intensity bin step: the Linux x86_64 Release outcome (cvttsd2si emulation, SSE2 NaN rules; NaN intensity scores, no seed) by default; DegenerateBinStep::Refuse refuses exactly when the seed loop reads the scores; every UInt score-array count 3 + 2 * charge_count that wraps (charge_low > charge_high + 1, and charge_low 1 with charge_high INT_MAX): Error::InvalidValue whatever the Limits (lead decision D12; executed SIGSEGV or std::bad_alloc, the two decided by the memory the process may have; uncapped on the reference node every measured count from 12,201,611 to 1,000,000,003 arrays dies, ../oracle/ffap-complete-fix6 and ../oracle/ffap-complete-min6)",
+  "write_debug: ported (tests/data/feature_finder_picked_instrumentation_provenance.json); Error::Unsupported only where the source process terminates (the undeclared debug:pseudo_rt_shift) or writes an address-dependent text",
+  "changed abundance: the intended two-isotope override by default (AbundanceOverride::Intended); Error::Unsupported only under the opt-out AbundanceOverride::Refuse (the source's stray-peak defect is not reproducible)",
+  "overall score: the reference build's glibc 2.39 powf (__powf_fma), ported from Arm optimized-routines with the executed FMA fusion (lead decision D5), on every host",
+  "every std::sort in libstdc++'s introsort order and every std::stable_sort as libstdc++ 14.4.0 sorts (lead decision D3); the temporary buffer halves on the port's own allocation failures, which are not the source's; the introsort's out-of-bounds guard is unreachable for the algorithm's asymmetric comparisons, NaN included, and a comparator that is not asymmetric is refused or sorted, never a panic",
   "log lines returned instead of printed",
   "Limits on spectra, peaks, charges, bins, windows, pattern values, score bytes and work units",
   "mass_trace:min_spectra = 1 follows the source: NaN trace scores, no seed, an empty map (CPP-271)",
   "a changed isotope abundance computes the intended two-isotope override by default (CPP-247); AbundanceOverride::Refuse opts out. This is the only place where the port's features differ from the executed C++ by design",
-  "a failing trace fit becomes the seed's abort reason instead of ending the run",
-  "an isotope pattern that matched no peak, a stale maximum-trace index and a non-finite FWHM are Error::InvalidValue where the source is undefined",
+  "an isotope pattern that matched no peak (reachable from run_ with feature:min_isotope_fit 0, executed SIGSEGV for an empty best pattern; the sub-case of a non-empty pattern whose first isotope has no peak reads heap metadata and was never observed) and a stale maximum-trace index are Error::InvalidValue where the source is undefined; non-finite and negative FWHM, score_fit, score_correlation, EGH_* values are stored as the source stores them (the width field directly, MetaValue::source_float, crate-private; an infinite width is reachable from finite retention times, first at a scale of 6e36 on FFC_1, executed nb_rt_* and vy_rt_*; accepted by lead decision D13), and BaseFeature::validate, MetaValue::validate and the featureXML writer refuse such features",
   "seed-loop ceilings: Limits::max_seeds and Limits::max_seed_work, checked before the loop",
-  "the seed loop is concept::parallel::map_collect over the seed indices; output is bit-identical at 1, 2 and 8 threads"
+  "the seed loop is concept::parallel::map_collect over the seed indices; output is bit-identical at 1, 2 and 8 threads",
+  "Exception::UnableToFit is unreachable from the seed loop; an error of the port's fit (its point, byte or work ceilings) ends the run instead of becoming an abort reason",
+  "aborts_, abort_reasons_ and log_ at more than one thread are a data race in the source, answered with the single-thread result (lead decision D11, the one accepted exception to D1) and not compared; every executed aborts_ record is single-threaded",
+  "FeatureFinderDefs::NoSuccessor records the caller's file and line through #[track_caller]; GlobalExceptionHandler::setMessage is not ported",
+  "step 2.5 window counts at or below vector::max_size(): Limits::max_isotope_windows refuses above its ceiling where the source's allocation depends on memory (executed: std::bad_alloc at 164,703,072,086,692,416); a debug run keeps its opened log and debug/features there, and FeatureFinderCentroided exits 8 with the ceiling's message where the executed tool reports std::bad_alloc with exit 12 (above max_size() it exits 12 with the length_error text, as executed)",
+  "FeatureFinderDefs::ChargedIndexSet compares its index sets only, as the source's inherited std::set operators do (lead decision D7)",
+  "exp and log of both trace fitters: the reference build's glibc 2.39 __ieee754_exp_fma and __ieee754_log_fma, ported from Arm optimized-routines (glibc_libm, lead decision D10), on every host; atan (EGH area only): the host's on x86_64 Linux with glibc (exact where that library selects __atan_fma, glibc 2.39 on a CPU with FMA as on the reference node; other versions and CPUs unmeasured), the libm crate's elsewhere (no licence-clean upstream of the reference algorithm), which differs from __atan_fma for 6.2 % of arguments in [0, 10], 1.6 % with |x| in [2^-14, 2^15) and 0.02 % of random bit patterns (2^28 each, ../oracle/ffc-numerics-v3); the float intensity hides nearly all of it, so the intensity's last bit there is a measured maximum (0 over the fixtures on macOS arm64, the 67 returned EGH runs of extended_stage.tsv.gz included), not a guarantee, and the double area differs for a few percent of fits",
+  "the sign of a NaN that the Levenberg-Marquardt iterations create from finite values follows the host (x86_64 negative, arm64 positive); the start values, bounds, FWHM, cropping and quality arithmetic use x86_64's NaN rules; no executed configuration reaches such a NaN",
+  "step 2.5: averagine windows whose binary32 bins all underflow, and every window under a NaN intensity_percentage_optional, are empty, as the source's NaN weights and trimRight leave them (the shared isotope generator keeps its error for its other callers)",
+  "the terminations outside the seed loop are refused where the executed process ends and recorded as DebugTermination with the length at which it leaves debug/log.txt: the step-4 charge remainder of a caller's charge-0 feature (ArithmeticTrap, executed SIGFPE), a stale abort seed outside the input (OutOfBounds, executed SIGSEGV) and a wrapped score-array count whose first-spectrum arrays are at most the documented bytes of 1,000,000,003 arrays (OutOfBounds at ScoreArrays; the line is the largest count measured to die on the uncapped reference node, where every count from 12,201,611 to 1,000,000,003 arrays dies of SIGSEGV, ../oracle/ffap-complete-min6; under the harness's 16 GB cap the counts from 80,000,003 up throw std::bad_alloc instead, which is a property of the cap). Above the line only 2^32 - 5 arrays were measured, throwing under a 16 GB and a 500 GB address space, and nothing is recorded there, as lead decision D6 has it for the isotope windows; ../oracle/ffap-complete-fix6; a reused object's later termination reports the flushed length of the debug run that opened the never-closed stream (executed: ../oracle/ffap-complete-fix5)"
  ],
  "cpp_issue_candidates": [
   "mass_trace:min_spectra = 1 silently yields NaN trace scores and no seed (executed)",
-  "overall score depends on the platform powf; Apple powf misrounds 99 of 30,840 executed scores (executed)",
+  "overall score depends on the platform powf; Apple powf misrounds 99 and glibc 2.39 powf 8 of 30,840 executed scores (executed); the port reproduces the reference build's glibc powf",
   "write_debug reads the undeclared parameter debug:pseudo_rt_shift (.cpp:2137)",
-  "zero-width RT or m/z range converts floor(NaN) to UInt in intensityScore_ (.cpp:1837-1838)",
+  "a zero or infinite intensity bin step converts floor(NaN) or floor(inf) to UInt in intensityScore_ (.cpp:1837-1838); the Release build silently finds nothing (executed)",
   "charge_low > charge_high wraps UInt charge_count (.cpp:197)",
   "isotopeScore_ inner loop starts at the updated best_end and skips better candidates (.cpp:1759)",
   "getSize() == 0 reports 'needs updated ranges' (.cpp:1069-1071)",
@@ -527,34 +2095,208 @@
   "the better-seed search of extendMassTraces_ looks up the nearest peak at the moving start peak's m/z while comparing the tolerance against the original m/z (source review, reproduced)",
   "the monoisotopic m/z uses PROTON_MASS_U and a trace index instead of the isotope mass difference (source review, reproduced)",
   "the final intensity divides by the isotope window of the feature's m/z instead of its mass (source review, reproduced)",
-  "aborts_ and abort_reasons_ are written from inside the omp parallel for without synchronisation (source review; the C2 driver records the library map single-threaded only)"
+  "aborts_ and abort_reasons_ are written from inside the omp parallel for without synchronisation (source review; the C2 driver records the library map single-threaded only)",
+  "FeatureFinderDefs is defined in both FeatureFinderAlgorithmPicked.h and FeatureFinderDefs.h; including both is a redefinition error (executed compile)",
+  "short inputs (fewer than 2 * min_spectra_ scans) pass an inverted range to startProgress at .cpp:298 and :494; Debug stops with a precondition, Release returns an empty map without a message (executed)",
+  "getIsotopeDistribution_ (.cpp:1197-1209) and step 2.5 (.cpp:357) convert a NaN, infinite or too large double to Size without a check (undefined); the Release build maps +inf and values of 2^64 and above to 0 windows and NaN to index 2^63, so an infinite or huge m/z ends in 'IsotopeDistribution not precalculated. Maximum allowed index is 0' and a count above vector::max_size() = 164,703,072,086,692,425 in std::length_error (executed at 2^62 - 512, 2^62, 164,703,072,086,692,448 and 1.5 * 2^63; nonfinite_stage, sort_mobility_stage)",
+  "CPP-242 (existing, source-reviewed) is now executed: MassTraces::computeIntensityProfile (HelperStructs.cpp:210-236) never returns when a trace holds a NaN retention time, and extendMassTrace_ adds such peaks because a NaN overall score is not below 0.01 (.cpp:1535) (executed: rt_nan_mid killed after 30 s, stack in computeIntensityProfile)",
+  "step 1's area iterator skips every scan whose drift time is NaN or infinite (MSExperiment.cpp:562-571, AreaIterator.h:277-298), silently leaving its intensities out of the quantiles while its peaks are still scored (executed: v2_dt_*, v3_dt_*)",
+  "feature:min_isotope_fit 0 lets a seed with an empty best isotope pattern reach extendMassTraces_, which reads pattern.spectrum[0] of an empty vector (.cpp:1347-1349; executed SIGSEGV on FeatureFinderCentroided_1 with seed:min_score 0, library and tool)",
+  "from an averagine mass of about 273,770 Da on (executed between 273,769.5 and 273,770.5 Da; the windows just below keep a single bin), all 20 binary32 averagine bins underflow; renormalize divides by zero and trimRight discards the NaN weights, so heavy masses silently get empty isotope windows (executed: m/z 136,850.5 to 1e6 at charge 2)",
+  "a NaN isotopic_pattern:intensity_percentage_optional passes ParamEntry::isValid and empties every isotope window (executed: 0 features)",
+  "sortSpectra throws Exception::Precondition for a mis-sized data array after it has reordered the caller's spectra (run takes the map by rvalue reference and sorts it in place), leaving the caller's map partly sorted (executed)",
+  "startProgress(0, intensity_bins_ * intensity_bins_) multiplies two UInt values and wraps (65,536 bins: a range of 0; executed)",
+  "setWidth(fitter->getFWHM()) and setIntensity(getArea() / max) narrow double to float without a range check: FFC_1 with its retention times scaled by 6e36 and more (1 of 9 widths; all from 1.5e37; every intensity from 1e36) returns features of infinite width, FWHM meta value and intensity and FeatureFinderCentroided writes inf into the featureXML, without a message (executed nb_rt_*, vy_rt_*, rt_e36, rt_e39)",
+  "a peak of zero intensity in a cell whose intensity quantiles are zero gets the intensity score 0 / 0 = NaN, which passes extendMassTrace_'s < 0.01 test; a trace of such peaks gives MassTrace::getAvgMZ 0 / 0, and with feature:reported_mz maximum or monoisotopic getIsotopeDistribution_(NaN) throws Exception::InvalidValue inside step 3.3's OpenMP region (.cpp:790), which std::terminate turns into SIGABRT (executed: FFC_1 with one m/z band zeroed, ../oracle/ffap-complete-fix5 run_band.sh)"
  ],
  "module_edges_added": [
   "analysis -> math (pearson_correlation_coefficient)",
   "analysis -> param (Param, DefaultParamHandler)",
   "analysis -> concept (PROTON_MASS_U, UserParam::NUM_OF_DATAPOINTS, parallel::map_collect)",
-  "no new edge: tools/check_module_cycles.py reports the same 63 edges as before"
+  "no new edge: tools/check_module_cycles.py reports the recorded graph unchanged (the combined fix round adds none)"
  ],
  "target_verification": {
-  "date": "2026-09-15",
-  "work_package": "B7-FFAP-FEATURES",
-  "platform": "Rust gates on dax (IBMI build node, Linux x86_64, AMD EPYC 9654) through ~/.local/bin/openms-kim-gate.sh slot w3-b7; the local checks and a full --all-features --all-targets run additionally on macOS arm64 with DEVELOPER_DIR=/Library/Developer/CommandLineTools",
+  "date": "2026-09-17",
+  "work_package": "port/ffap-complete, the round-6 minors (the round-6 verifiers' three minor findings: the score-array recording line, measured on the reference platform with no address-space cap instead of under the oracle harness's 16 GB one; the cvtss2sd promotion of MassTraces::update_baseline, pinned by 90 executed baselines instead of one is_nan() bool; and the two unresolved commits in the consolidated integrator-request file)",
+  "platform": "Rust gates through ~/.local/bin/openms-kim-gate.sh from the worktree at 1a14793: dax slot ffc-min (fmt, clippy, twelve FFAP, fitter, mass-trace and progress targets, the library tests, two feature slices, +1.85.0 check, rustdoc) and macOS arm64 locally (fmt, clippy --all-targets with all features, the two changed targets, the repository's Python checks). Oracle ../oracle/ffap-complete-min6 on ibminode06.",
   "commands": [
    "cargo fmt --all -- --check",
-   "cargo test --locked --all-features --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_helper_structs --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test feature_finding_metabo --test feature_overlap_filter --test features --test featurexml --test mass_trace --test mass_trace_detection --test isotopes_source_precision --test parallel_determinism",
-   "cargo +1.85.0 test (the same fourteen targets)",
-   "cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked --test feature_finder_picked_seeds",
-   "cargo test --locked --all-features --all-targets",
-   "cargo test --locked --all-features --doc",
-   "cargo build --locked --no-default-features",
    "cargo clippy --locked --all-features --all-targets -- -D warnings",
-   "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps",
-   "python3 tools/check_core_sdk.py",
-   "python3 tools/check_module_cycles.py",
-   "python3 tools/check_doc_coverage.py"
+   "cargo test --locked --all-features --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_instrumentation --test feature_finder_picked_helper_structs --test topp_feature_finder_centroided --test progress_logger --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test mass_trace --test parallel_determinism --test topp_threads",
+   "cargo test --locked --all-features --lib feature_finder_picked",
+   "cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_instrumentation --test feature_finder_picked_helper_structs --test topp_feature_finder_centroided",
+   "cargo test --locked --no-default-features --test feature_finder_picked_helper_structs --test progress_logger",
+   "cargo +1.85.0 check --locked --all-features --all-targets",
+   "cargo doc --locked --all-features --no-deps (RUSTDOCFLAGS=-D warnings)",
+   "python3 tools/check_core_sdk.py; python3 tools/check_module_cycles.py; python3 tools/check_schema_feature_graph.py; python3 tools/check_doc_coverage.py"
   ],
-  "result": "all green. The fourteen feature-finding targets pass on the current toolchain and on 1.85.0; the full suite passes on both platforms; clippy and doc are clean; check_core_sdk and check_module_cycles pass (63 edges, unchanged); check_doc_coverage reports the surface changed and asks for --write, which was not run because docs/doc-coverage.json is the integrator's. The six modules of this group are at 100 %.",
-  "performance": "FeatureFinderCentroided_1, best of nine on dax (release): the Rust algorithm alone 9.6 ms at one thread, 7.4 ms at two, 5.5 ms at eight; the Rust mzML load 2.4 ms. The C++ Release build bc9cc12-c19e494-174b576 runs the whole tool (startup, INI, load, algorithm, featureXML write) in 90 ms wall at 48 MB peak with -threads 1 and OMP_NUM_THREADS=1, and FileInfo loads the same mzML in 40 to 70 ms. macOS arm64: 6.1 ms for the algorithm at one thread.",
-  "known_gap": "Seeds 11 and 12 of classtest_9247_tight_pattern fit identical traces whose fitted parameters depart from the executed Eigen by up to 2.25e-3 (area) on Linux and 5.81e-4 on macOS arm64. Their fit inputs are bit-identical to the executed ones, so the cause is the Levenberg-Marquardt transcription (docs/TRACE_FITTER_SUPPORT.md, 'Known gap: solver fidelity beyond the fixtures'; lane B3b). Both seeds are rejected by checkFeatureQuality_ in C++ and here with the same reason, so no feature changes. Every other compared value stays within 6.46e-10 on both platforms, and 3,765 of 4,649 are bit-identical."
- }
+  "result": "all green at the worktree state of the checkpoint below: fmt and clippy (0 warnings) on dax and on macOS arm64, both re-run after the last prose change; on dax with --all-features, 12 FFAP, fitter, mass-trace and progress targets 289 passed, 0 failed, 3 ignored: feature_finder_picked 19 (178.3 s), feature_finder_picked_seeds 35, feature_finder_picked_instrumentation 39, feature_finder_picked_helper_structs 27 (26 before this pass), topp_feature_finder_centroided 39, progress_logger 15, trace_fitter 22, gauss_trace_fitter 33 (+1 pre-existing ignore), egh_trace_fitter 32, mass_trace 12, parallel_determinism 5, topp_threads 11 (+2 pre-existing ignores); library test --lib feature_finder_picked 18; feature slices --no-default-features --features mzml,paramxml,featurexml 159 (19/35/39/27/39, 158 before) and --no-default-features on helper_structs and progress_logger 42 (41 before); cargo +1.85.0 check --locked --all-features --all-targets rc 0; cargo doc --locked --all-features --no-deps with RUSTDOCFLAGS=-D warnings rc 0. Locally on macOS arm64: the two changed targets, and tools/check_core_sdk.py, check_module_cycles.py (64 cross-module edges, 13 mutually-dependent pairs) and check_schema_feature_graph.py rc 0, check_doc_coverage.py 4517/5872 = 76.9%, unchanged. The three new or changed counts are the one new test, update_baseline_promotion_is_the_reference_builds_bits, in every slice that compiles the helper-structs target. Oracle ../oracle/ffap-complete-min6 on ibminode06 (never ibminode05): the baseline capture twice and byte-identical, the nine uncapped wrapped counts twice and identical, and two /usr/bin/time -v runs.",
+  "known_gap": "None on x86_64 Linux with the GNU C Library 2.39 on an FMA CPU: every fitted value is bit for bit. Elsewhere the EGH area's atan is the libm crate's (lead decision D10 fallback, kept by D13), which differs from __atan_fma for 6.2 % of arguments in [0, 10] and 1.6 % with |x| in [2^-14, 2^15); the float intensity hides it on every fixture (measured maximum 0 on macOS arm64), a measured maximum, not a guarantee. A NaN the Levenberg-Marquardt iterations create from finite values carries the host's sign (no executed configuration reaches one). FeatureFinderCentroided cannot write features of infinite width or intensity (TOPP native difference 16; a separate featureXML-writer task by D13).",
+  "performance": "FeatureFinderCentroided_1, the algorithm alone at one thread (round 3, unchanged by this pass): spock 12.94 ms (symmetric) and 7.39 ms (asymmetric); macOS arm64 6.55 and 4.44 ms. The feature_finder_picked target takes 178 s on dax in the unoptimised test build (accepted by lead decision D13); the score-array boundary test replays 15 distinct charge pairs from its 29 executed rows in about 1 s, and the new update_baseline test replays 90 configurations in under a millisecond."
+ },
+ "target_verification_history": [
+  {
+   "date": "2026-09-15",
+   "work_package": "B7-FFAP-FEATURES",
+   "platform": "Rust gates on dax (IBMI build node, Linux x86_64, AMD EPYC 9654) through ~/.local/bin/openms-kim-gate.sh slot w3-b7; the local checks and a full --all-features --all-targets run additionally on macOS arm64 with DEVELOPER_DIR=/Library/Developer/CommandLineTools",
+   "commands": [
+    "cargo fmt --all -- --check",
+    "cargo test --locked --all-features --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_helper_structs --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test feature_finding_metabo --test feature_overlap_filter --test features --test featurexml --test mass_trace --test mass_trace_detection --test isotopes_source_precision --test parallel_determinism",
+    "cargo +1.85.0 test (the same fourteen targets)",
+    "cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked --test feature_finder_picked_seeds",
+    "cargo test --locked --all-features --all-targets",
+    "cargo test --locked --all-features --doc",
+    "cargo build --locked --no-default-features",
+    "cargo clippy --locked --all-features --all-targets -- -D warnings",
+    "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps",
+    "python3 tools/check_core_sdk.py",
+    "python3 tools/check_module_cycles.py",
+    "python3 tools/check_doc_coverage.py"
+   ],
+   "result": "all green. The fourteen feature-finding targets pass on the current toolchain and on 1.85.0; the full suite passes on both platforms; clippy and doc are clean; check_core_sdk and check_module_cycles pass (63 edges, unchanged); check_doc_coverage reports the surface changed and asks for --write, which was not run because docs/doc-coverage.json is the integrator's. The six modules of this group are at 100 %.",
+   "performance": "FeatureFinderCentroided_1, best of nine on dax (release): the Rust algorithm alone 9.6 ms at one thread, 7.4 ms at two, 5.5 ms at eight; the Rust mzML load 2.4 ms. The C++ Release build bc9cc12-c19e494-174b576 runs the whole tool (startup, INI, load, algorithm, featureXML write) in 90 ms wall at 48 MB peak with -threads 1 and OMP_NUM_THREADS=1, and FileInfo loads the same mzML in 40 to 70 ms. macOS arm64: 6.1 ms for the algorithm at one thread.",
+   "known_gap": "Seeds 11 and 12 of classtest_9247_tight_pattern fit identical traces whose fitted parameters depart from the executed Eigen by up to 2.25e-3 (area) on Linux and 5.81e-4 on macOS arm64. Their fit inputs are bit-identical to the executed ones, so the cause is the Levenberg-Marquardt transcription (docs/TRACE_FITTER_SUPPORT.md, 'Known gap: solver fidelity beyond the fixtures'; lane B3b). Both seeds are rejected by checkFeatureQuality_ in C++ and here with the same reason, so no feature changes. Every other compared value stays within 6.46e-10 on both platforms, and 3,765 of 4,649 are bit-identical."
+  },
+  {
+   "date": "2026-09-16",
+   "work_package": "port/ffap-semantics",
+   "platform": "Rust gates on dax (IBMI build node, Linux x86_64, AMD EPYC 9654, glibc 2.39) through ~/.local/bin/openms-kim-gate.sh slots ffap-sem-impl and ffap-sem-impl-min; the three FFAP targets and cargo doc additionally on macOS arm64",
+   "commands": [
+    "cargo fmt --all -- --check",
+    "cargo clippy --locked --all-features --all-targets -- -D warnings",
+    "cargo test --locked --all-features --test feature_finder_picked --test feature_finder_picked_seeds --test topp_feature_finder_centroided --test feature_finder_picked_helper_structs --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test parallel_determinism",
+    "cargo test --locked --no-default-features --features mzml,paramxml --test feature_finder_picked_seeds --test feature_finder_picked",
+    "cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test topp_feature_finder_centroided --test feature_finder_picked",
+    "cargo +1.85.0 check --locked --all-features --all-targets",
+    "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps",
+    "cargo test --locked --all-features --doc",
+    "cargo test --locked --no-default-features",
+    "cargo test --locked --all-features --all-targets",
+    "python3 tools/check_core_sdk.py, test_core_sdk.py, core_sdk_coverage.py, test_core_sdk_coverage.py, check_schema_feature_graph.py, check_module_cycles.py, check_doc_coverage.py (report only)"
+   ],
+   "result": "all green on dax: clippy clean; the eight targets pass (feature_finder_picked 12, feature_finder_picked_seeds 32, topp_feature_finder_centroided 30, helper_structs 26; one pre-existing ignore in gauss_trace_fitter); +1.85.0 check clean; rustdoc clean; doctests pass; the no-default build passes; the full --all-features --all-targets run: 352 test binaries, 5,197 passed, 0 failed, 21 ignored. The first minimal-feature run failed to compile tests/feature_finder_picked.rs, whose cfg did not require the featurexml it imports (pre-existing); the cfg was corrected and the rerun passed (feature_finder_picked_seeds 31, the other target compiled out). check_doc_coverage reports a changed surface and asks for --write (not run; the file is the integrator's); every module of this group is at 100 %.",
+   "known_gap": "None on the reference platform for the Gaussian configurations: every fitted value is bit-identical to the Linux x86_64 Release capture on dax, including seeds 11 and 12 of classtest_9247_tight_pattern (formerly 2.25e-3 against the macOS arm64 product SDK). The EGH configuration departs by at most 2.3038e-12 relative on Linux x86_64 and macOS arm64 alike (the libm crate's exp, log and atan in EGHTraceFitter against glibc's). Platform note: on macOS arm64, Apple's exp moves the Gaussian fits by at most 5.355e-13, except seeds 11 and 12 of classtest_9247_tight_pattern (1.07e-3, area), which both builds reject with the same reason, so no feature changes. The overall score differs from glibc 2.39's powf on 8 of 30,840 scores by one binary32 step (CPP-272)."
+  },
+  {
+   "date": "2026-09-16",
+   "work_package": "port/ffap-semantics, fix round 1 (non-finite input, trace-score NaN bits, records)",
+   "platform": "Rust gates on dax (IBMI build node, Linux x86_64, AMD EPYC 9654, glibc 2.39) through ~/.local/bin/openms-kim-gate.sh slots ffap-sem-fix, ffap-sem-fix-min, ffap-sem-fix-min2, ffap-sem-fix-msrv and ffap-sem-fix-nd; the three FFAP targets, cargo fmt, cargo doc and the repository python checks additionally on macOS arm64",
+   "commands": [
+    "cargo fmt --all -- --check",
+    "cargo clippy --locked --all-features --all-targets -- -D warnings",
+    "cargo test --locked --all-features --test feature_finder_picked --test feature_finder_picked_seeds --test topp_feature_finder_centroided --test feature_finder_picked_helper_structs --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test parallel_determinism",
+    "cargo test --locked --no-default-features --features mzml,paramxml --test feature_finder_picked_seeds --test feature_finder_picked",
+    "cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test topp_feature_finder_centroided --test feature_finder_picked",
+    "cargo +1.85.0 check --locked --all-features --all-targets",
+    "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps",
+    "cargo test --locked --all-features --doc",
+    "cargo test --locked --no-default-features",
+    "cargo test --locked --all-features --all-targets",
+    "python3 tools/check_core_sdk.py, test_core_sdk.py, core_sdk_coverage.py, test_core_sdk_coverage.py, check_schema_feature_graph.py, check_module_cycles.py, check_doc_coverage.py (report only)"
+   ],
+   "result": "all green on dax at 884a2a5 (clippy clean; feature_finder_picked 13, feature_finder_picked_seeds 32, topp_feature_finder_centroided 30, feature_finder_picked_helper_structs 26, trace_fitter 22, gauss_trace_fitter 33 with its pre-existing ignore, egh_trace_fitter 32, parallel_determinism 5; the minimal-feature runs; +1.85.0 check; doctests; the no-default build; the full --all-features --all-targets run: 352 test binaries, 5,198 passed, 0 failed, 21 ignored), except rustdoc, which refused a private intra-doc link in IntensityThresholds::compute; that link was removed and rustdoc, clippy and the FFAP targets were rerun on the final commit (see the lane report). check_doc_coverage reports a changed surface (every feature_finder_picked module at 100 %); core_sdk_coverage reports docs/core-sdk-coverage.json stale because this manifest now references AreaIterator.h, RangeManager.h, MSExperiment.cpp and FeatureFinderAlgorithmPickedHelperStructs.cpp (both files are the integrator's). On macOS arm64, clippy --all-targets fails only on the pre-existing Linux-only constants of tests/topp_threads.rs.",
+   "known_gap": "None on the reference platform for the Gaussian configurations: every fitted value is bit-identical to the Linux x86_64 Release capture on dax, including seeds 11 and 12 of classtest_9247_tight_pattern (formerly 2.25e-3 against the macOS arm64 product SDK). The EGH configuration departs by at most 2.3038e-12 relative on Linux x86_64 and macOS arm64 alike (the libm crate's exp, log and atan in EGHTraceFitter against glibc's). Platform note: on macOS arm64, Apple's exp moves the Gaussian fits by at most 5.355e-13, except seeds 11 and 12 of classtest_9247_tight_pattern (1.07e-3, area), which both builds reject with the same reason, so no feature changes. The overall score differs from glibc 2.39's powf on 8 of 30,840 scores by one binary32 step (CPP-272). The non-finite captures add 11 ill-conditioned Gaussian fits that depart on macOS arm64 by up to 1.1156e-12, 6.5974e-8 and 4.9245e-4 relative (NONFINITE_FIT_GAP); on Linux x86_64 glibc every one of their 1,135 compared features is bit for bit. Nine executed non-finite runs that returned are refused by this branch at a NaN std::sort key (libstdc++ introsort order not reproduced here)."
+  },
+  {
+   "date": "2026-09-16",
+   "work_package": "port/ffap-complete, combined fix round 1 (lead decisions D1-D9 of wave 5; both lanes' round-2 findings)",
+   "platform": "Rust gates through ~/.local/bin/openms-kim-gate.sh from a detached snapshot at ea6063d (e38534c differs only in one doc comment and this record): kim slot ffc-fix1-kim (fmt, clippy, the FFAP and progress targets, the library tests, the minimal-feature and no-default slices, +1.85.0 check, rustdoc, doctests) and dax slot ffc-fix1-dax (the full --all-features --all-targets run); the FFAP targets, fmt, rustdoc and the repository python checks additionally on macOS arm64",
+   "commands": [
+    "cargo fmt --all -- --check",
+    "cargo clippy --locked --all-features --all-targets -- -D warnings",
+    "cargo test --locked --all-features --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_instrumentation --test feature_finder_picked_helper_structs --test topp_feature_finder_centroided --test topp_threads --test progress_logger --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test parallel_determinism",
+    "cargo test --locked --all-features --lib feature_finder_picked",
+    "cargo test --locked --all-features --lib progress_logger",
+    "cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_instrumentation --test feature_finder_picked_helper_structs --test topp_feature_finder_centroided",
+    "cargo test --locked --no-default-features --features mzml,paramxml --test feature_finder_picked_seeds --test feature_finder_picked --test feature_finder_picked_instrumentation",
+    "cargo test --locked --no-default-features --test progress_logger",
+    "cargo test --locked --no-default-features",
+    "cargo +1.85.0 check --locked --all-features --all-targets",
+    "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps",
+    "cargo test --locked --all-features --doc",
+    "cargo test --locked --all-features --all-targets",
+    "python3 tools/check_core_sdk.py, test_core_sdk.py, test_core_sdk_coverage.py, check_schema_feature_graph.py, check_module_cycles.py, core_sdk_coverage.py, check_doc_coverage.py (report only)"
+   ],
+   "result": "all green: fmt; clippy clean; feature_finder_picked 15, feature_finder_picked_seeds 33, feature_finder_picked_instrumentation 28, feature_finder_picked_helper_structs 26, topp_feature_finder_centroided 36, topp_threads 11 with its 2 pre-existing ignores, progress_logger 15, trace_fitter 22, gauss_trace_fitter 33 with its pre-existing ignore, egh_trace_fitter 32, parallel_determinism 5; --lib feature_finder_picked 11 (the glibc_powf and source_sort unit tests included); --lib progress_logger rc 0 (no unit test matches); mzml,paramxml,featurexml: 15, 33, 28, 26, 36; mzml,paramxml: seeds 32 (one test needs featurexml; the other two targets compile out); --no-default-features progress_logger 15 and the whole no-default run 3,560 passed, 0 failed, 3 ignored over 328 result lines; +1.85.0 check rc 0 (cargo 1.85.0); rustdoc rc 0; doctests 67 + 3; the full --all-features --all-targets run 5,245 passed, 0 failed, 21 ignored, 0 measured, 0 filtered over 353 test-result lines (the merge's 5,239 plus the six new tests). check_core_sdk, test_core_sdk, test_core_sdk_coverage, check_schema_feature_graph and check_module_cycles (64 edges, 13 pairs) pass; core_sdk_coverage reports docs/core-sdk-coverage.json stale and check_doc_coverage a changed surface (4509/5864 = 76.9%, every feature_finder_picked module at 100%), both integrator-owned. Outside CI: the port's glibc_powf equals the executed library for all 2^32 binary32 bases with the exponent 1/3 and for 2^26 pairs in each of four sets (release build, ../oracle/ffap-complete-fix1/port-harness). On macOS arm64, clippy --all-targets fails only on the pre-existing Linux-only constants of tests/topp_threads.rs.",
+   "known_gap": "None on the reference platform beyond the EGH configuration (2.3038e-12, the libm crate's exp/log/atan). macOS arm64: the Gaussian fits of 2 class-test seeds (1.07e-3, no feature) and of 12 stage-fixture features (up to 1.1156e-12, 6.5974e-8 and 4.9245e-4) depart from the Linux capture, recorded as platform notes (lead decision D8); every non-fitted value, the overall scores and NaN bits included, is bit for bit there too."
+  },
+  {
+   "date": "2026-09-17",
+   "work_package": "port/ffap-complete, combined fix round 2 (the round-1 numerics and instrumentation verifiers' findings)",
+   "platform": "Rust gates through ~/.local/bin/openms-kim-gate.sh from a detached snapshot at 426a04c (the commit after it changes only this record): kim slot ffc-fix2-kim (fmt, clippy, the FFAP, progress and param targets, the library tests, the minimal-feature and no-default slices, +1.85.0 check, rustdoc, doctests) and dax slot ffc-fix2-dax (the full --all-features --all-targets run); both totals re-counted from an unpiped log written on the node. The FFAP targets, clippy on the changed targets, rustdoc and the repository python checks additionally on macOS arm64",
+   "commands": [
+    "cargo fmt --all -- --check",
+    "cargo clippy --locked --all-features --all-targets -- -D warnings",
+    "cargo test --locked --all-features --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_instrumentation --test feature_finder_picked_helper_structs --test topp_feature_finder_centroided --test topp_threads --test progress_logger --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test parallel_determinism --test param",
+    "cargo test --locked --all-features --lib feature_finder_picked",
+    "cargo test --locked --all-features --lib progress_logger",
+    "cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_instrumentation --test feature_finder_picked_helper_structs --test topp_feature_finder_centroided",
+    "cargo test --locked --no-default-features --features mzml,paramxml --test feature_finder_picked_seeds --test feature_finder_picked --test feature_finder_picked_instrumentation",
+    "cargo test --locked --no-default-features --test progress_logger",
+    "cargo test --locked --no-default-features --lib feature_finder_picked",
+    "cargo test --locked --no-default-features",
+    "cargo +1.85.0 check --locked --all-features --all-targets",
+    "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps",
+    "cargo test --locked --all-features --doc",
+    "cargo test --locked --all-features --all-targets",
+    "python3 tools/check_core_sdk.py, test_core_sdk.py, test_core_sdk_coverage.py, check_schema_feature_graph.py, check_module_cycles.py, core_sdk_coverage.py, check_doc_coverage.py (report only)"
+   ],
+   "result": "all green: fmt; clippy clean; feature_finder_picked 15, feature_finder_picked_seeds 33, feature_finder_picked_instrumentation 31 (Gaussian fitted values bit for bit, the EGH case's 13 inexact values within 7.94e-16), feature_finder_picked_helper_structs 26, topp_feature_finder_centroided 37, topp_threads 11 with its 2 pre-existing ignores, progress_logger 15, trace_fitter 22, gauss_trace_fitter 33 with its pre-existing ignore, egh_trace_fitter 32, parallel_determinism 5, param 17; --lib feature_finder_picked 14; --lib progress_logger rc 0 (no unit test matches); --no-default-features --features mzml,paramxml,featurexml: 15/33/31/26/37; --features mzml,paramxml: seeds 32 (feature_finder_picked and the instrumentation test compile out); --no-default-features progress_logger 15 and --lib feature_finder_picked 14; --no-default-features whole test 3,568 passed, 0 failed, 3 ignored over 329 result lines; cargo 1.85.0 check rc 0; rustdoc -D warnings rc 0; doctests 67 + 3; full --all-features --all-targets on dax 5,252 passed, 0 failed, 21 ignored, 0 measured, 0 filtered over 353 result lines, all ok. macOS arm64: the FFAP targets pass with the platform bounds (instrumentation 31, TOPP 37, ffp 15, seeds 33, lib 14); check_core_sdk, test_core_sdk, test_core_sdk_coverage, check_schema_feature_graph and check_module_cycles (64 edges, 13 pairs) pass; core_sdk_coverage reports STALE until the integrator applies requests A and B; check_doc_coverage 4512/5867 = 76.9%, surface changed (request C)"
+  },
+  {
+   "date": "2026-09-17",
+   "work_package": "port/ffap-complete, combined fix round 3 (the round-2 verifiers' findings; lead decisions D10-D12)",
+   "platform": "Rust gates through ~/.local/bin/openms-kim-gate.sh from a detached snapshot at d562dff (e2a0661 changes only the prose of three test files, whose fmt and clippy were re-run on macOS arm64; the commit after it changes only docs and this record): kim slot ffc-fix3-kim (fmt, clippy, the FFAP, fitter, isotope, progress and param targets, the library tests, the minimal-feature and no-default slices, +1.85.0 check, rustdoc, doctests) and dax slot ffc-fix3-dax (the full --all-features --all-targets run); both totals counted from an unpiped log written on the node. The FFAP and fitter targets at e2a0661, fmt, clippy on the changed test targets and the repository python checks additionally on macOS arm64",
+   "commands": [
+    "cargo fmt --all -- --check",
+    "cargo clippy --locked --all-features --all-targets -- -D warnings",
+    "cargo test --locked --all-features --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_instrumentation --test feature_finder_picked_helper_structs --test topp_feature_finder_centroided --test topp_threads --test progress_logger --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test parallel_determinism --test param --test isotopes --test isotopes_source_precision --test default_param_handler",
+    "cargo test --locked --all-features --lib feature_finder_picked",
+    "cargo test --locked --all-features --lib progress_logger",
+    "cargo test --locked --all-features --lib isotopes",
+    "cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_instrumentation --test feature_finder_picked_helper_structs --test topp_feature_finder_centroided",
+    "cargo test --locked --no-default-features --features mzml,paramxml --test feature_finder_picked_seeds --test feature_finder_picked --test feature_finder_picked_instrumentation",
+    "cargo test --locked --no-default-features --test progress_logger",
+    "cargo test --locked --no-default-features --lib feature_finder_picked",
+    "cargo test --locked --no-default-features",
+    "cargo +1.85.0 check --locked --all-features --all-targets",
+    "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps",
+    "cargo test --locked --all-features --doc",
+    "cargo test --locked --all-features --all-targets",
+    "python3 tools/check_core_sdk.py, test_core_sdk.py, test_core_sdk_coverage.py, check_schema_feature_graph.py, check_module_cycles.py, core_sdk_coverage.py, check_doc_coverage.py (report only)"
+   ],
+   "result": "all green: fmt; clippy clean; feature_finder_picked 17, feature_finder_picked_seeds 34, feature_finder_picked_instrumentation 33 (every fitted value bit for bit), feature_finder_picked_helper_structs 26, topp_feature_finder_centroided 38, topp_threads 11 with its 2 pre-existing ignores, progress_logger 15, trace_fitter 22, gauss_trace_fitter 33 with its pre-existing ignore, egh_trace_fitter 32, parallel_determinism 5, param 17, isotopes 13, isotopes_source_precision 16, default_param_handler 9; --lib feature_finder_picked 18; --lib progress_logger rc 0 (no unit test matches); --lib isotopes 3; --no-default-features --features mzml,paramxml,featurexml: 17/34/33/26/38; --features mzml,paramxml: seeds 33 (feature_finder_picked and the instrumentation test compile out); --no-default-features progress_logger 15 and --lib feature_finder_picked 18; --no-default-features whole test 3,572 passed, 0 failed, 3 ignored over 329 result lines; cargo 1.85.0 check rc 0; rustdoc -D warnings rc 0; doctests 67 + 3; full --all-features --all-targets on dax 5,262 passed, 0 failed, 21 ignored, 0 measured, 0 filtered over 353 result lines, all ok. macOS arm64 at e2a0661: fmt rc 0, clippy -D warnings on the three changed test targets rc 0, and every FFAP, fitter, isotope, progress and param target passes with bit-for-bit bounds (feature_finder_picked 17, seeds 34, instrumentation 33, helper_structs 26, TOPP 38, trace_fitter 22, gauss_trace_fitter 33 with its ignore, egh_trace_fitter 32, isotopes 13, isotopes_source_precision 16, progress_logger 15, param 17; --lib feature_finder_picked 18); the EGH area's atan bound (EGH_ATAN_GAP) is 0 there. check_core_sdk, test_core_sdk, test_core_sdk_coverage, check_schema_feature_graph and check_module_cycles (64 edges, 13 pairs) pass; core_sdk_coverage reports STALE until the integrator applies requests A and B; check_doc_coverage 4513/5868 = 76.9%, surface changed (request C)",
+   "performance": "FeatureFinderCentroided_1, the algorithm alone at one thread, best of nine (release), before (4ce747d) and after (e2a0661) the round: spock 9.61 -> 12.94 ms (feature:rt_shape symmetric) and 6.84 -> 7.39 ms (asymmetric); macOS arm64 6.38 -> 6.55 ms and 4.27 -> 4.44 ms. The Linux cost is the ported FMA fusion: a baseline x86_64 build calls compiler_builtins' out-of-line fma for every f64::mul_add, so the ported exp and log take 26.9 and 27.6 ns per call on kim against glibc's 4.5 and 4.0 ns; built with -C target-feature=+fma they take 3.3 ns and match every libm probe (../oracle/ffap-complete-fix3/port-harness/timing_linux.txt, port_linux_fma.txt).",
+   "known_gap": "None on Linux with the GNU C Library: every fitted value is bit for bit. On other hosts the EGH area's atan is the libm crate's (lead decision D10 fallback); its measured maximum on every fixture is 0 on macOS arm64 (EGH_ATAN_GAP), which is a measurement, not a guarantee (the libm crate differs from glibc on 6 of the 848 executed atan values). The multi-thread race on aborts_, abort_reasons_ and log_ is accepted as the one D1 exception (lead decision D11): the port gives the single-thread result."
+  },
+  {
+   "date": "2026-09-17",
+   "work_package": "port/ffap-complete, combined fix round 4 (the round-3 verifiers' findings: the reachable non-finite width, the atan fallback's rates and host gate, stale oracle hashes, the reuse expectation's provenance, the underflow boundary, the NeverReturns debug output, the charge-wrap and empty-pattern records)",
+   "platform": "Rust gates through ~/.local/bin/openms-kim-gate.sh from a detached snapshot at f8e86e4: kim slot ffc-fix4-kim (fmt, clippy, the FFAP, fitter, isotope, progress, param and metadata targets, the library tests, the feature slices, +1.85.0 check, rustdoc, doctests, the whole no-default run) and dax slot ffc-fix4-dax (the full --all-features --all-targets run); both totals counted from an unpiped log written on the node. The changed targets and the repository python checks additionally on macOS arm64",
+   "commands": [
+    "cargo fmt --all -- --check",
+    "cargo clippy --locked --all-features --all-targets -- -D warnings",
+    "cargo test --locked --all-features --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_instrumentation --test feature_finder_picked_helper_structs --test topp_feature_finder_centroided --test topp_threads --test progress_logger --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test parallel_determinism --test param --test isotopes --test isotopes_source_precision --test default_param_handler",
+    "cargo test --locked --all-features --lib feature_finder_picked",
+    "cargo test --locked --all-features --lib progress_logger",
+    "cargo test --locked --all-features --lib isotopes",
+    "cargo test --locked --all-features --lib metadata",
+    "cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked --test feature_finder_picked_seeds --test feature_finder_picked_instrumentation --test feature_finder_picked_helper_structs --test topp_feature_finder_centroided",
+    "cargo test --locked --no-default-features --features mzml,paramxml --test feature_finder_picked_seeds --test feature_finder_picked --test feature_finder_picked_instrumentation --test topp_threads",
+    "cargo test --locked --features mzml,paramxml --test feature_finder_picked_seeds --test feature_finder_picked --test feature_finder_picked_instrumentation",
+    "cargo test --locked --no-default-features --test progress_logger --test feature_finder_picked_helper_structs",
+    "cargo test --locked --no-default-features --lib feature_finder_picked",
+    "cargo test --locked --no-default-features",
+    "cargo +1.85.0 check --locked --all-features --all-targets",
+    "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps",
+    "cargo test --locked --all-features --doc",
+    "cargo test --locked --all-features --all-targets",
+    "python3 tools/check_core_sdk.py, test_core_sdk.py, test_core_sdk_coverage.py, check_schema_feature_graph.py, check_module_cycles.py, core_sdk_coverage.py, check_doc_coverage.py (report only)"
+   ],
+   "result": "all green at snapshot f8e86e4: fmt; clippy clean (0 warnings); on kim with --all-features: feature_finder_picked 18 (extended_cases_match_the_linux_release_build among them, 187 s for the target), feature_finder_picked_seeds 34, feature_finder_picked_instrumentation 34, feature_finder_picked_helper_structs 26, topp_feature_finder_centroided 39, topp_threads 11 with its 2 pre-existing ignores, progress_logger 15, trace_fitter 22, gauss_trace_fitter 33 with its 1 pre-existing ignore, egh_trace_fitter 32, parallel_determinism 5, param 17, isotopes 13, isotopes_source_precision 16, default_param_handler 9 (324 passed, 0 failed, 3 ignored); --lib feature_finder_picked 18, --lib isotopes 3, --lib metadata 6, --lib progress_logger rc 0 (no match); --no-default-features --features mzml,paramxml,featurexml: 18/34/34/26/39; --no-default-features --features mzml,paramxml: seeds 33, topp_threads 7 (feature_finder_picked and the instrumentation test compile out); --features mzml,paramxml: 18/34/34; --no-default-features: progress_logger 15, feature_finder_picked_helper_structs 26, --lib feature_finder_picked 18; the whole cargo test --locked --no-default-features 3,572 passed, 0 failed, 3 ignored over 329 result lines; +1.85.0 (cargo 1.85.0) check rc 0; rustdoc -D warnings rc 0; doctests 67 + 3; on dax the full --all-features --all-targets run 5,265 passed, 0 failed, 21 ignored, 0 measured, 0 filtered over 353 result lines (both totals from unpiped logs on the node). macOS arm64 at f8e86e4: the twelve FFAP, fitter, isotope, progress and param targets green (feature_finder_picked 18 in 129 s), fmt, clippy on the changed targets, rustdoc -D warnings; python checks pass (check_core_sdk, test_core_sdk, test_core_sdk_coverage, check_schema_feature_graph, check_module_cycles 64 edges / 13 pairs), core_sdk_coverage stale until integrator requests A and B, check_doc_coverage 4513/5868 = 76.9 % (surface changed, request C).",
+   "known_gap": "None on x86_64 Linux with the GNU C Library 2.39 on an FMA CPU: every fitted value is bit for bit. Elsewhere the EGH area's atan is the libm crate's (lead decision D10 fallback), which differs from __atan_fma for 6.2 % of arguments in [0, 10] and 1.6 % with |x| in [2^-14, 2^15) (the round-3 verifier's harness); the float intensity hides it on every fixture (measured maximum 0 on macOS arm64, EGH_ATAN_GAP), which is a measurement, not a guarantee. The multi-thread race on aborts_, abort_reasons_ and log_ is accepted as the one D1 exception (lead decision D11): the port gives the single-thread result. FeatureFinderCentroided cannot write features of infinite width or intensity, which the algorithm now stores as the source does (the native featureXML writer refuses them; TOPP native difference 16). The cargo test --no-default-features build warns about the unused kernel method validate_given_finite_peaks, which predates this branch (main, 13cb4e6).",
+   "performance": "FeatureFinderCentroided_1, the algorithm alone at one thread, best of nine (release), before (4ce747d) and after (e2a0661) the round: spock 9.61 -> 12.94 ms (feature:rt_shape symmetric) and 6.84 -> 7.39 ms (asymmetric); macOS arm64 6.38 -> 6.55 ms and 4.27 -> 4.44 ms. The Linux cost is the ported FMA fusion: a baseline x86_64 build calls compiler_builtins' out-of-line fma for every f64::mul_add, so the ported exp and log take 26.9 and 27.6 ns per call on kim against glibc's 4.5 and 4.0 ns; built with -C target-feature=+fma they take 3.3 ns and match every libm probe (../oracle/ffap-complete-fix3/port-harness/timing_linux.txt, port_linux_fma.txt)."
+  }
+ ],
+ "external_reference_note": "No C++ is committed to this repository. The drivers, scripts, inputs and raw outputs live under ../oracle (relative to the repository root); the entries below pin them by origin."
 }

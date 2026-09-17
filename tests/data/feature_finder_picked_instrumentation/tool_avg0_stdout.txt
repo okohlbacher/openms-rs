@@ -1,0 +1,9 @@
+Warning: Parameters file version (3.6.0) does not match the version of this tool (1.0.0).
+Your current parameters are still valid, but there might be new valid values or even new parameters. Upgrading the INI might be useful.
+Progress of 'loading mzML':
+  Progress of 'loading spectra list':
+
+  -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+
+-- done [took 0.00 s (CPU), 0.00 s (Wall) @ 58.11 MiB/s] -- 
+Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.

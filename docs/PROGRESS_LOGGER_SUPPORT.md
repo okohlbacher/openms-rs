@@ -5,6 +5,10 @@ The native module `concept::progress_logger` implements the pinned Core SDK
 independent of a GUI toolkit and logging framework. Its only direct dependency
 is the pinned `cpu-time =1.0.0` platform CPU-clock adapter on Unix and Windows.
 
+The reference is the Linux x86_64 **Release** build (a project decision). That
+build compiles `OPENMS_PRECONDITION`/`OPENMS_POSTCONDITION` out, so a check that
+exists only in a Debug build is not source behavior for this port.
+
 ## API mapping
 
 | Source API | Native API |
@@ -15,6 +19,7 @@ is the pinned `cpu-time =1.0.0` platform CPU-clock adapter on Unix and Windows.
 | `setLogType`, `getLogType` | `set_log_type`, `log_type` |
 | `setLogger` | `set_logger(Box<dyn ProgressBackend>)`, transferring ownership |
 | `startProgress`, `setProgress`, `nextProgress`, `endProgress` | `start_progress`, `set_progress`, `next_progress`, `end_progress(bytes_processed)` |
+| `startProgress`'s Debug-only `OPENMS_PRECONDITION(begin <= end)` | not ported: absent from the Release reference build, so any range is accepted |
 | four virtual `ProgressLoggerImpl` operations | four corresponding methods of `ProgressBackend`, returning `Result` |
 | `make_gui_progress_logger` | per-logger `set_gui_factory`, retained by copies; GUI defaults to a no-op |
 | source process-static recursion depth | shared `ProgressNesting::global()` by default; `Default` creates an isolated nesting context |
@@ -46,12 +51,30 @@ reported type. Copying a logger discards its active/custom backend, constructing
 a fresh backend for the copied type. Backend counter/timer state is not copied.
 Changing the GUI factory does not replace an already selected GUI backend.
 
+Every range is accepted, including `begin > end`, and reaches the backend
+unchanged. The source's only range check,
+`OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!")`
+(`ProgressLogger.cpp:235`), is Debug-only; the Release build has none. Its
+command backend stores the range as given (`:36-40`). A set then prints a dot
+when begin equals end (`:48`), the diagnostic
+`ProgressLogger: Invalid progress value '<v>'. Should be between '<begin>' and '<end>'!`
+when the value lies below begin or above end (`:52-55`), and the percentage
+otherwise (`:60`). For an inverted range every value, including both endpoints,
+takes the diagnostic branch. The percentage is therefore only computed with
+`begin < end` and never divides by zero. The no-op backend and the default GUI
+factory ignore the range. This is the executed Release behavior (see
+[Evidence](#evidence)).
+
 Every successful start dispatches at the current nesting depth and increments
 that depth afterward, including starts with logging disabled. Every end first
 decrements the depth if nonzero, then dispatches, even without a matching start.
 Dropping a logger does not end progress or unwind nesting. A second start on an active command backend prints its new header, replaces
 the range/counter and resets the timer, then errors: the current source
-`StopWatch::reset()` restarts a running timer, so the following `start()` throws.
+`StopWatch::reset()` restarts a running timer, so the following `start()` throws
+`Exception::Precondition` ("StopWatch is already started!", `StopWatch.cpp:43`).
+That throw is unconditional, not a Debug-only macro, and the Release build
+executes it. An end on a command backend that was never started likewise fails
+in Release (`StopWatch::stop`, `StopWatch.cpp:55`) before printing anything.
 The failed wrapper call does not increment nesting. The caller balances
 successful starts and ends.
 
@@ -106,13 +129,13 @@ built-in operation uses bounded scratch and fixed-size state. The caller owns
 writer buffering, and custom clocks/backends/factories are caller code outside
 these internal work bounds.
 
-Inverted ranges, counter/difference overflow, invalid timer values, elapsed
-intervals above `i32::MAX` seconds, and nonfinite/out-of-`u64` throughput return
-errors. Zero elapsed time is valid without throughput but errors when a nonzero
-byte count requests a rate. Negative or nonfinite elapsed samples are not
-silently clamped. The command timer must have started before end. GUI/None end
-remains a no-op even without start. Checks avoid undefined source signed
-arithmetic and floating-to-integer conversions.
+Counter/difference overflow, invalid timer values, elapsed intervals above
+`i32::MAX` seconds, and nonfinite/out-of-`u64` throughput return errors. Zero
+elapsed time is valid without throughput but errors when a nonzero byte count
+requests a rate. Negative or nonfinite elapsed samples are not silently clamped.
+GUI/None end remains a no-op even without start. Checks avoid undefined source
+signed arithmetic and floating-to-integer conversions. An inverted range is not
+an error (see [Preserved behavior](#preserved-behavior)).
 
 Clock/backend/writer errors propagate. Output streams may already contain a
 partial write when an I/O failure occurs. A command start updates its range/counter before header output and samples
@@ -124,18 +147,79 @@ before dispatch, retaining the source operation order. Failed start dispatch
 does not increment nesting. These operations do not pretend to roll back user
 callback side effects or partially written bytes.
 
+### Native differences: every refusal and its source status
+
+Each refusal in `src/concept/progress_logger.rs` was checked against the pinned
+source for a Debug-only `OPENMS_PRECONDITION`/`OPENMS_POSTCONDITION` ported as a
+Release refusal. The only one found, `begin > end`, was removed from the wrapper
+and the command backend. `ProgressLogger.cpp:235` is the only use of either
+macro in `ProgressLogger.{h,cpp}`, `StopWatch.{h,cpp}`, `SysInfo.{h,cpp}` and
+the `StringUtils` formatting they call. Every remaining refusal is either a
+native bound or a check the Release build also executes:
+
+| Refusal | Where | Status |
+| --- | --- | --- |
+| label longer than `MAX_PROGRESS_LABEL_BYTES` | wrapper and command start | native bound: the source accepts any label |
+| depth at `MAX_PROGRESS_DEPTH` on start, above it on a backend call | wrapper start; command start/set/end | native bound: source `static int recursion_depth_` is unbounded and overflows at `INT_MAX` |
+| second start on a running command backend | command start | source, Release: `StopWatch::start` throws (`StopWatch.cpp:43`); captured |
+| end without a running command timer | command end | source, Release: `StopWatch::stop` throws (`StopWatch.cpp:55`); captured |
+| next-counter overflow | command next | native: source `++current_` is undefined signed overflow |
+| `value - begin` or `end - begin` overflows `i64` | command set, percentage branch | native: undefined signed overflow in the source (`:60`) |
+| nonfinite or negative clock sample | command start/end | native: injected clocks have no source counterpart |
+| elapsed time above `i32::MAX` seconds | command end | native: source day arithmetic multiplies `int`s |
+| nonfinite or out-of-`u64` throughput, including a byte count over zero elapsed time | command end | native: undefined floating-to-integer conversion in the source (`:78`) |
+| clock, writer and custom-backend errors | all | native: `Result` propagation where the source reports no failure |
+| system clock before the epoch or beyond `i64` seconds | `system_progress_clock` | native |
+
 ## Evidence
 
-`tests/progress_logger.rs` includes the source mode/copy/NONE smoke cases plus
-independent deterministic clock/backend traces and literal command-output
-oracles. It checks same-second and backward-second updates, two clock reads,
-copy timestamps, next-counter behavior, shared and bounded nesting, GUI
-replacement, duration/rate boundaries, CPU-unavailable output, and checked I/O,
-clock, overflow, and zero-duration failures. Output literals are derived from
-source expressions; they are not claimed as captured C++ fixture output.
+**Executed Release differential (tier 1).** An oracle driver,
+`../oracle/progress-logger-release-range/driver.cpp`, links the Linux x86_64
+Release install `openms4-release-bc9cc12-c19e494-174b576` (core `bc9cc12`, cli
+`c19e494`, topp `174b576`). It was built with that install's g++ 14.4.0 and
+`-O2`, and run three times on ibminode06. The installed `config.h` leaves
+`OPENMS_ASSERTIONS` undefined, and `libOpenMS.so` contains no copy of the
+`invalid range` message. The driver makes 60 calls:
+
+- `startProgress(5, 0)` with values below, on, between and above both ends, from
+  `INT64_MIN` to `INT64_MAX`, plus two `nextProgress`;
+- `startProgress(2, 1)` with values 0 to 3;
+- `startProgress(0, 0)` with values 0 and 1;
+- nested ranges on two loggers, including an inverted inner range;
+- a second start on an active command logger;
+- an end without start;
+- NONE and the default GUI backend with an inverted range.
+
+`setProgress` is throttled to one dispatch per wall-clock second
+(`ProgressLogger.cpp:244`). The driver therefore waits before every set/next
+until `time(nullptr)` differs from the logger's `last_invoke_`, and the op log
+confirms that all 31 dispatched. Each call's stdout bytes are cut out by file
+offset. Only the two timing texts of the summary line are masked. All three runs
+exit 0 with empty stderr and are identical after masking. The masked table is
+`tests/data/progress_logger_release_range.tsv`.
+`release_range_fixture_replays_call_for_call` replays every row in order with a
+manual clock that advances its second at the same calls. It requires, for each
+call, the same outcome (success, or the refusal matching the two StopWatch
+throws), the same nesting depth afterwards and the same output bytes.
+`checked_bounds_and_failures_leave_dispatch_state_usable` asserts the
+`startProgress(2, 1, "bad")` rows with literal strings copied from that capture.
+`gui_and_none_accept_an_inverted_range` checks that a custom GUI backend
+receives the inverted range unchanged.
+
+**Independent oracles.** `tests/progress_logger.rs` also includes the source
+mode/copy/NONE smoke cases plus independent deterministic clock/backend traces
+and literal command-output oracles. It checks same-second and backward-second
+updates, two clock reads, copy timestamps, next-counter behavior, shared and
+bounded nesting, GUI replacement, duration/rate boundaries, CPU-unavailable
+output, and checked I/O, clock, overflow, and zero-duration failures. Apart from
+the Release rows named above, output literals are derived from source
+expressions and are not claimed as captured C++ output.
 
 `tests/data/progress_logger_provenance.json` pins the original source/header/test
-and formatting dependencies. No C++ code was built or executed to generate the
-native tests. A live-clock sanity test checks finite nondecreasing total process
-CPU samples without requiring a minimum elapsed time or workload.
+and formatting dependencies. Its `release_oracle` section records the install,
+its manifest and library hashes, the pins, the method, the masking and the raw
+capture hashes. `external_reference_artifacts` holds the driver and scripts,
+which stay outside this repository. A live-clock sanity test checks finite
+nondecreasing total process CPU samples without requiring a minimum elapsed
+time or workload.
 The main-crate checks are recorded in [validation results](VALIDATION.md).

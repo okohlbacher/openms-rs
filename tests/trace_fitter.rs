@@ -728,6 +728,14 @@ fn stream_number_is_the_default_ostream() {
     assert_eq!(stream_number(1234567.0), "1.23457e+06");
     assert_eq!(stream_number(0.000123456789), "0.000123457");
     assert_eq!(stream_number(f64::NAN), "nan");
+    // glibc, the reference build's C library, spells a NaN with its sign bit
+    // set `-nan` (executed `.plot` formulas, `../oracle/ffap-complete-fix1`,
+    // `node/run_shift.sh`).
+    assert_eq!(stream_number(f64::from_bits(0x7ff8_0000_0000_0000)), "nan");
+    assert_eq!(stream_number(f64::from_bits(0xfff8_0000_0000_0000)), "-nan");
+    assert_eq!(stream_number(-f64::NAN), "-nan");
+    assert_eq!(stream_number(f64::INFINITY), "inf");
+    assert_eq!(stream_number(f64::NEG_INFINITY), "-inf");
 }
 
 fn single_trace(rts: &[f64], intensities: &[f32], baseline: f64) -> MassTraces {

@@ -1,0 +1,80 @@
+# ../oracle/ffap-complete-fix2 fix2_driver lenerr_* and the Release FeatureFinderCentroided, two identical runs
+input	mode	kind	value
+1e19	lenerr_single	report	run1 threw St12length_error what=vector::_M_default_append
+1e19	lenerr_single	report	run1 features=0 aborts=0 abort_reasons=0 windows=0
+1e19	lenerr_reuse	report	reuse_run1 threw St12length_error what=vector::_M_default_append
+1e19	lenerr_reuse	report	reuse_run1 features=0 aborts=0 abort_reasons=0 windows=0
+1e19	lenerr_reuse	report	reuse_run2 returned
+1e19	lenerr_reuse	report	reuse_run2 features=0 aborts=1 abort_reasons=25 windows=15
+1e19	lenerr_reuse	report	reuse_run2 ABORT 25 Could not find good enough isotope pattern containing the seed
+1e19	lenerr_reuse	report	fresh_run returned
+1e19	lenerr_reuse	report	fresh_run features=0 aborts=1 abort_reasons=25 windows=15
+1e19	lenerr_reuse	report	fresh_run ABORT 25 Could not find good enough isotope pattern containing the seed
+1e19	lenerr_single	log_bytes_alive	0
+1e19	lenerr_single	log_bytes_destroyed	40
+1e19	lenerr_single	tree	debug
+1e19	lenerr_single	tree	debug/features
+1e19	lenerr_single	tree	debug/log.txt
+1e19	lenerr_reuse	compare	seeds_2.featureXML same
+1e19	lenerr_reuse	compare	abort_reasons.featureXML same
+1e19	lenerr_reuse	compare	input.mzML same
+1e19	lenerr_reuse	log_bytes_reuse	40
+1e19	lenerr_reuse	log_bytes_fresh	1118230
+1e19	lenerr_reuse	tree_reuse	debug
+1e19	lenerr_reuse	tree_reuse	debug/abort_reasons.featureXML
+1e19	lenerr_reuse	tree_reuse	debug/features
+1e19	lenerr_reuse	tree_reuse	debug/input.mzML
+1e19	lenerr_reuse	tree_reuse	debug/log.txt
+1e19	lenerr_reuse	tree_reuse	debug/seeds_2.featureXML
+1e19	tool	status	12
+1e19	tool	stderr	Unable to initialize or run FeatureFinderCentroided: vector::_M_default_append
+1e19	tool	tree	.
+1e19	tool	tree	./TOPP.log
+1e19	tool	tree	./debug
+1e19	tool	tree	./debug/features
+1e19	tool	tree	./debug/log.txt
+1e19	tool	tree	./status.txt
+1e19	tool	tree	./stderr.txt
+1e19	tool	tree	./stdout.txt
+1e19	tool	tree	./tree.txt
+1e19	tool	log_bytes	40
+1e19	tool	stdout_block	Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
+2e18	lenerr_single	report	run1 threw St9bad_alloc what=std::bad_alloc
+2e18	lenerr_single	report	run1 features=0 aborts=0 abort_reasons=0 windows=0
+2e18	lenerr_reuse	report	reuse_run1 threw St9bad_alloc what=std::bad_alloc
+2e18	lenerr_reuse	report	reuse_run1 features=0 aborts=0 abort_reasons=0 windows=0
+2e18	lenerr_reuse	report	reuse_run2 returned
+2e18	lenerr_reuse	report	reuse_run2 features=0 aborts=1 abort_reasons=25 windows=15
+2e18	lenerr_reuse	report	reuse_run2 ABORT 25 Could not find good enough isotope pattern containing the seed
+2e18	lenerr_reuse	report	fresh_run returned
+2e18	lenerr_reuse	report	fresh_run features=0 aborts=1 abort_reasons=25 windows=15
+2e18	lenerr_reuse	report	fresh_run ABORT 25 Could not find good enough isotope pattern containing the seed
+2e18	lenerr_single	log_bytes_alive	0
+2e18	lenerr_single	log_bytes_destroyed	40
+2e18	lenerr_single	tree	debug
+2e18	lenerr_single	tree	debug/features
+2e18	lenerr_single	tree	debug/log.txt
+2e18	lenerr_reuse	compare	seeds_2.featureXML same
+2e18	lenerr_reuse	compare	abort_reasons.featureXML same
+2e18	lenerr_reuse	compare	input.mzML same
+2e18	lenerr_reuse	log_bytes_reuse	40
+2e18	lenerr_reuse	log_bytes_fresh	1118230
+2e18	lenerr_reuse	tree_reuse	debug
+2e18	lenerr_reuse	tree_reuse	debug/abort_reasons.featureXML
+2e18	lenerr_reuse	tree_reuse	debug/features
+2e18	lenerr_reuse	tree_reuse	debug/input.mzML
+2e18	lenerr_reuse	tree_reuse	debug/log.txt
+2e18	lenerr_reuse	tree_reuse	debug/seeds_2.featureXML
+2e18	tool	status	12
+2e18	tool	stderr	Unable to initialize or run FeatureFinderCentroided: std::bad_alloc
+2e18	tool	tree	.
+2e18	tool	tree	./TOPP.log
+2e18	tool	tree	./debug
+2e18	tool	tree	./debug/features
+2e18	tool	tree	./debug/log.txt
+2e18	tool	tree	./status.txt
+2e18	tool	tree	./stderr.txt
+2e18	tool	tree	./stdout.txt
+2e18	tool	tree	./tree.txt
+2e18	tool	log_bytes	40
+2e18	tool	stdout_block	Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
