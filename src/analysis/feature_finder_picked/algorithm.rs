@@ -978,7 +978,7 @@ impl Settings {
     /// - `n = 2^31 - 1` and `n = -1` wrap to one array, 88 bytes: the write is
     ///   always reached (executed: SIGSEGV for 1/`INT_MAX` and 4/2).
     /// - `n <= -4` wraps to `2^32 + 3 + 2n` arrays, between 9 (`INT_MAX`/1)
-    ///   and `2^32 - 5` (7/2, 378 GiB). Whether that allocation succeeds
+    ///   and `2^32 - 5` (7/2, 352 GiB). Whether that allocation succeeds
     ///   depends on the memory available to the process, which the port cannot
     ///   reproduce (lead decision D6's rule for allocations), so it records the
     ///   termination up to [`SCORE_ARRAY_TERMINATION_CEILING_BYTES`] and

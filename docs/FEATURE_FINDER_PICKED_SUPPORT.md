@@ -999,7 +999,8 @@ first point where the source's behaviour has no reproducible answer:
    `TerminationKind::OutOfBounds` termination.
 5. *The `UInt` score-array count that wraps* (`.cpp:196-221`, lead decision
    D12): refused for every wrapping count whatever the `Limits`, as
-   `Settings::charge_count` documents; executed at seven wrapping pairs. The
+   `Settings::charge_count` documents; executed at seven wrapping pairs in
+   fix round 3 and at twenty wrapped array counts in fix round 6. The
    counts `-2` and `-3` stay refused unconditionally (lead decision D13):
    their executed outcome, `std::bad_alloc`, depends on memory. Where the
    process dies there, the run records a `ScoreArrays` termination, before
