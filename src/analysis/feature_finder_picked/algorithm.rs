@@ -944,6 +944,35 @@ impl Settings {
         usize::try_from(count).map_err(|_| Error::InvalidValue("charge count overflow".into()))
     }
 
+    /// Whether the source process ends at the score arrays: the wrapped count
+    /// is one [`Self::charge_count`] refuses as an out-of-bounds write, and the
+    /// allocation before that write succeeds.
+    ///
+    /// For `n = 2^31 - 1` and `n = -1` the source allocates one array per
+    /// spectrum and writes past it (executed: SIGSEGV for 1/`INT_MAX` and
+    /// 4/2). For `n <= -4` it allocates `2^32 + 3 + 2n` arrays first; whether
+    /// that succeeds depends on memory (executed: SIGSEGV for `INT_MAX`/1 and
+    /// `INT_MAX`/498, 9 and 1003 arrays; `std::bad_alloc`, which the caller
+    /// catches, for 7/2, `2^32 - 5` arrays, under a 16 GB address space). The
+    /// port takes the allocation to succeed exactly where it would allocate
+    /// that many arrays itself, `3 + 2 * limits.max_charges`, so that a run
+    /// the source leaves with `std::bad_alloc` is not recorded as ended.
+    pub(crate) fn score_arrays_overrun(&self, limits: &Limits) -> bool {
+        let count = i64::from(self.charge_high) - i64::from(self.charge_low) + 1;
+        if count == i64::from(i32::MAX) || count == -1 {
+            return true;
+        }
+        if count > -4 {
+            return false;
+        }
+        // `3 + 2 * count` modulo 2^32, as the source's `UInt` arithmetic.
+        let arrays = u64::from((3u32).wrapping_add((count as u32).wrapping_mul(2)));
+        let ceiling = (limits.max_charges as u64)
+            .saturating_mul(2)
+            .saturating_add(3);
+        arrays <= ceiling
+    }
+
     /// The isotope count of the precalculated patterns: 20, plus 1000 for each
     /// changed abundance, as `run_` computes it.
     pub fn max_isotopes(&self) -> usize {
@@ -1468,6 +1497,7 @@ pub fn feature_stage(stage: &SeedStage, options: &Options) -> Result<RunOutput> 
             aborts: &mut aborts,
             abort_reasons: &mut abort_reasons,
             out: &mut None,
+            termination: &mut None,
             features: &mut features,
             plot_nr_global: &mut plot_nr_global,
             feature_nr_global: &mut feature_nr_global,

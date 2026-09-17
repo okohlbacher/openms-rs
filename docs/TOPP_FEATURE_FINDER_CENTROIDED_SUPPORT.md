@@ -406,7 +406,10 @@ instance*).
     the tool exits 3 (`Unable to read file (parse error on line 0: nonfinite
     feature value)`, the writer's error reported through the framework's
     file-error mapping) and writes no output file. The writer's strictness
-    belongs to the featureXML port, not to this tool. Executed
+    belongs to the featureXML port, not to this tool; lead decision D13 of
+    wave 5 splits the writer's refusal and the misleading "Unable to read
+    file" wording of a write failure off into a separate task, and this
+    difference stays as recorded until that task decides. Executed
     (`../oracle/ffap-complete-fix4`, `node/run_tool.sh`, two runs each,
     identical apart from the timing lines), FFC_1's input with every
     `scan start time` value `v` written as `ve36` or `ve39`, FFC_1 INI and

@@ -213,11 +213,20 @@ fn area_tolerance(config: &str) -> f64 {
 #[cfg(not(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64")))]
 const EGH_ATAN_GAP: f64 = 0.0;
 
+/// Whether `actual` is `expected` within `tolerance` relative (absolute
+/// against an executed zero). A [`BITWISE`] tolerance compares the bits, so
+/// the sign of a zero and the payload of a NaN must be the executed ones too.
 #[track_caller]
 fn close(actual: f64, expected: f64, tolerance: f64, what: &str) {
     if actual.to_bits() == expected.to_bits() {
         return;
     }
+    assert!(
+        tolerance != BITWISE,
+        "{what}: {actual:e} ({:016x}) is not bit for bit the executed {expected:e} ({:016x})",
+        actual.to_bits(),
+        expected.to_bits()
+    );
     let deviation = if expected == 0.0 {
         actual.abs()
     } else {
@@ -2147,14 +2156,16 @@ fn boundary_cases_match_the_linux_release_build() {
 /// - the `Exception::Precondition` of mis-sized data arrays under all-equal
 ///   retention times and 20 chromatograms of equal product m/z (`vp_*`,
 ///   the introsort's order of equal keys);
-/// - extreme retention-time and intensity scales (`vx_*`, `vy_*`). From a
-///   retention-time scale of about `1e37` the fitted `sigma` makes the `float`
-///   width overflow: the Release build returns those features with an
-///   infinite width, `FWHM` meta value and intensity (`vy_rt_1e37` to
+/// - extreme retention-time and intensity scales (`vx_*`, `vy_*`). Once the
+///   fitted `sigma` passes about `1.44e38` the `float` width overflows: the
+///   Release build returns those features with an infinite width, `FWHM` meta
+///   value and intensity (7 of 9 at `vy_rt_1e37`, all from `vy_rt_1e38` to
 ///   `vy_rt_1e150`, `vx_rt_1e150` to `vx_rt_1e300`, the FFC_1 parameters
 ///   unchanged or all thresholds 0), and so does the port, whose
 ///   [`openms::kernel::BaseFeature::validate`] then refuses them;
-///   `vy_rt_1e36` still has finite widths and infinite intensities.
+///   `vy_rt_1e36` still has finite widths and infinite intensities, and
+///   `vy_rt_1e33` finite intensities (the onset in detail:
+///   [`width_onset_cases_match_the_linux_release_build`]).
 #[test]
 fn extended_cases_match_the_linux_release_build() {
     let rows = stage_rows("extended_stage.tsv.gz");
@@ -2198,6 +2209,92 @@ fn extended_cases_match_the_linux_release_build() {
         }
     }
     assert!(infinite >= 30, "{infinite}");
+}
+
+/// The onset of the `float` width overflow on FeatureFinderCentroided_1
+/// (`width_onset_stage.tsv.gz`, `../oracle/ffap-complete-fix5`, `run_onset.sh`:
+/// the round-4 numerics verifier's cases re-executed with `fix4_stage`, every
+/// case twice and identical; [`replay_stage_fixture`]). With every retention
+/// time scaled and the FFC_1 parameters unchanged, the executed features have
+/// infinite widths (and `FWHM` values) as follows, of 9 Gaussian and 8 EGH
+/// features: none at `2e36` and `4e36`; 1 and 0 at `6e36`; 3 and 2 at `8e36`;
+/// all from `1.5e37` (`extended_stage.tsv.gz` adds 7 and 6 at `1e37`, and
+/// finite widths at `1e36`). Every intensity is already infinite from `1e36`
+/// on and finite at `1e33`. Three jittered inputs at `1e37` (`seed:min_score`
+/// 0) have 12 of 14, 14 of 15 and 17 of 17 infinite Gaussian widths and 12 of
+/// 14, 12 of 14 and 16 of 16 EGH ones. The port reproduces every case bit for
+/// bit.
+#[test]
+fn width_onset_cases_match_the_linux_release_build() {
+    let rows = stage_rows("width_onset_stage.tsv.gz");
+    assert_eq!(rows.iter().filter(|row| row[0] == "case").count(), 21);
+    let outcomes = replay_stage_fixture_in_parallel(&rows);
+    assert_eq!(outcomes, BTreeMap::from([("features", 21)]));
+
+    // The executed counts the documentation states: features, infinite
+    // intensities (column 5) and infinite widths (column 10), as bits.
+    let infinite = f32::INFINITY.to_bits();
+    let count = |case: &str| {
+        let features: Vec<&Vec<String>> = rows
+            .iter()
+            .filter(|row| row[0] == "feature" && row[1] == case)
+            .collect();
+        let inf = |column: usize| {
+            features
+                .iter()
+                .filter(|row| u32::from_str_radix(&row[column], 16).unwrap() == infinite)
+                .count()
+        };
+        (features.len(), inf(5), inf(10))
+    };
+    for (case, expected) in [
+        ("nb_rt_2e36", (9, 9, 0)),
+        ("nb_rt_2e36_egh", (8, 8, 0)),
+        ("nb_rt_4e36", (9, 9, 0)),
+        ("nb_rt_4e36_egh", (8, 8, 0)),
+        ("nb_rt_6e36", (9, 9, 1)),
+        ("nb_rt_6e36_egh", (8, 8, 0)),
+        ("nb_rt_8e36", (9, 9, 3)),
+        ("nb_rt_8e36_egh", (8, 8, 2)),
+        ("nb_rt_1p5e37", (9, 9, 9)),
+        ("nb_rt_1p5e37_egh", (8, 8, 8)),
+        ("nb_rt_3e37", (9, 9, 9)),
+        ("nb_rt_3e37_egh", (8, 8, 8)),
+        ("nb_rt_5e37", (9, 9, 9)),
+        ("nb_rt_5e37_egh", (8, 8, 8)),
+        ("nb_rt_1e37_jit81", (14, 14, 12)),
+        ("nb_rt_1e37_jit81_egh", (14, 14, 12)),
+        ("nb_rt_1e37_jit82", (15, 15, 14)),
+        ("nb_rt_1e37_jit82_egh", (14, 14, 12)),
+        ("nb_rt_1e37_jit83", (17, 17, 17)),
+        ("nb_rt_1e37_jit83_egh", (16, 16, 16)),
+    ] {
+        assert_eq!(count(case), expected, "{case}");
+    }
+    let extended = stage_rows("extended_stage.tsv.gz");
+    let count_extended = |case: &str| {
+        let features: Vec<&Vec<String>> = extended
+            .iter()
+            .filter(|row| row[0] == "feature" && row[1] == case)
+            .collect();
+        let inf = |column: usize| {
+            features
+                .iter()
+                .filter(|row| u32::from_str_radix(&row[column], 16).unwrap() == infinite)
+                .count()
+        };
+        (features.len(), inf(5), inf(10))
+    };
+    for (case, expected) in [
+        ("vy_rt_1e33", (9, 0, 0)),
+        ("vy_rt_1e33_egh", (8, 0, 0)),
+        ("vy_rt_1e36", (9, 9, 0)),
+        ("vy_rt_1e36_egh", (8, 8, 0)),
+        ("vy_rt_1e37", (9, 9, 7)),
+        ("vy_rt_1e37_egh", (8, 8, 6)),
+    ] {
+        assert_eq!(count_extended(case), expected, "{case}");
+    }
 }
 
 /// [`replay_stage_fixture`] over the cases of `rows`, spread over worker

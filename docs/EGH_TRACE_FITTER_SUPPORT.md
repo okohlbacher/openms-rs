@@ -225,7 +225,9 @@ fitters) where it writes those meta values.
    fixtures of `tests/feature_finder_picked.rs`, among them the 67 returned
    EGH runs with 767 features of `extended_stage.tsv.gz`, it moved no EGH
    intensity on macOS arm64, a
-   measured maximum, not a guarantee. The
+   measured maximum, not a guarantee. Lead decision D13 of wave 5 keeps the
+   `libm` crate there, as a note for hosts other than the reference
+   platform. The
    start point, the bounds and the FWHM follow the operand order of the
    Release build's SSE instructions.
    - Until fix round 3 of port/ffap-complete this module called the `libm`

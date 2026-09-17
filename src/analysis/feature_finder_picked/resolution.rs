@@ -266,18 +266,27 @@ fn decide(f1: &Feature, f2: &Feature) -> Result<(Keep, Rule)> {
 /// allocated, and where the charge rule traps (see `decide`), which only a
 /// caller's feature of charge 0 can cause.
 pub fn resolve_overlaps(features: &mut [Feature], max_intersection: f64) -> Result<usize> {
-    resolve_overlaps_logged(features, max_intersection, &mut NoLog, &mut |_| Ok(()))
+    resolve_overlaps_logged(
+        features,
+        max_intersection,
+        &mut NoLog,
+        &mut |_| Ok(()),
+        &mut None,
+    )
 }
 
 /// [`resolve_overlaps`] writing the source's debug lines to `log` and calling
 /// `progress` with `i * n + j` for every pair it visits, before the m/z
 /// cut-off test, as the source calls `setProgress`; the value is computed in
-/// `size_t` arithmetic, wrapping as the source's does.
+/// `size_t` arithmetic, wrapping as the source's does. Where the charge rule
+/// traps, `trap` receives the pair `(i, j)` before the error is returned; the
+/// pair's `Intersection` line is in `log` by then, as in the source.
 pub(crate) fn resolve_overlaps_logged<L: LogSink>(
     features: &mut [Feature],
     max_intersection: f64,
     log: &mut L,
     progress: &mut dyn FnMut(u64) -> Result<()>,
+    trap: &mut Option<(usize, usize)>,
 ) -> Result<usize> {
     let count = features.len();
     let boxes: Vec<SourceBox> = features.iter().map(SourceBox::of_feature).collect();
@@ -317,7 +326,13 @@ pub(crate) fn resolve_overlaps_logged<L: LogSink>(
                         ],
                     );
                 }
-                let (keep, rule) = decide(&features[i], &features[j])?;
+                let (keep, rule) = match decide(&features[i], &features[j]) {
+                    Ok(decision) => decision,
+                    Err(error) => {
+                        *trap = Some((i, j));
+                        return Err(error);
+                    }
+                };
                 if log.enabled() {
                     let removed_one = if keep == Keep::First { j } else { i };
                     let (text, reported) = match rule {

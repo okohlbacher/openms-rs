@@ -179,11 +179,6 @@ fn profile(spectra: usize, peaks: usize) -> MSExperiment {
     experiment
 }
 
-/// Spectra of the [`profile`] input the pool sampler uses.
-const PICKING_SPECTRA: usize = 300;
-/// Profile peaks per spectrum of that input.
-const PICKING_PEAKS: usize = 500;
-
 /// The picked output really is picked: one centroid per profile peak, so the
 /// run did the spline work that keeps the picker's pool up.
 ///
@@ -609,6 +604,13 @@ mod linux {
     use super::*;
     use std::process::{Command, ExitStatus, Stdio};
     use std::time::Duration;
+
+    /// Spectra of the [`profile`] input the pool sampler uses. Only the
+    /// `/proc` sampler of this module reads it, so it lives here and is not
+    /// dead code where the module is compiled out.
+    const PICKING_SPECTRA: usize = 300;
+    /// Profile peaks per spectrum of that input.
+    const PICKING_PEAKS: usize = 500;
 
     fn executable(tool: &str) -> &'static str {
         match tool {

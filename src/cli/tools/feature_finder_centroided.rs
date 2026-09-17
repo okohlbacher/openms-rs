@@ -606,15 +606,21 @@ impl Tool for FeatureFinderCentroided {
 ///
 /// After a terminated run the file holds only what the source's file buffer
 /// had written when the process died
-/// ([`DebugLog::flushed_bytes`](crate::analysis::feature_finder_picked::debug::DebugLog::flushed_bytes)).
+/// ([`DebugTermination::log_file_bytes`](crate::analysis::feature_finder_picked::debug::DebugTermination::log_file_bytes);
+/// the tool's instance runs once, so that is this run's
+/// [`DebugLog::flushed_bytes`](crate::analysis::feature_finder_picked::debug::DebugLog::flushed_bytes)).
 fn write_debug_log(debug: &DebugOutput) -> Result<()> {
     file::make_dir("debug/features")?;
     if debug.log_opened {
         let text = debug.log.text().as_bytes();
-        let written = if debug.termination.is_some() {
-            &text[..debug.log.flushed_bytes()]
-        } else {
-            text
+        let written = match debug.termination.as_ref() {
+            Some(termination) => {
+                let bytes = termination
+                    .log_file_bytes
+                    .unwrap_or_else(|| debug.log.flushed_bytes());
+                &text[..bytes.min(text.len())]
+            }
+            None => text,
         };
         crate::format::path_io::store(Path::new("debug/log.txt"), written)?;
     }

@@ -46,7 +46,7 @@ use openms::analysis::feature_finder_picked::algorithm::{
 };
 use openms::analysis::feature_finder_picked::debug::{
     DebugOutput, FeatureDebugInput, HEAP_ADDRESS_END, PseudoRtShift, ReportLine, TerminationKind,
-    write_feature_debug_info,
+    TerminationPoint, write_feature_debug_info,
 };
 use openms::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
 use openms::analysis::feature_finder_picked::source_sort::source_sort_permutation;
@@ -1178,7 +1178,22 @@ fn a_debug_run_that_reaches_the_fit_stops_where_the_release_build_terminates() {
         );
         let out = algorithm.debug_output().unwrap();
         let termination = out.termination.as_ref().unwrap();
-        assert_eq!(termination.charge, charge, "{case}");
+        // The first seed that reaches the fit, which receives plot 0.
+        assert!(
+            matches!(
+                termination.point,
+                TerminationPoint::Seed { charge: c, plot_nr: 0, .. } if c == charge
+            ),
+            "{case}: {:?}",
+            termination.point
+        );
+        assert_eq!(termination.kind, TerminationKind::Exception, "{case}");
+        assert_eq!(
+            termination.log_file_bytes,
+            Some(out.log.flushed_bytes()),
+            "{case}"
+        );
+        assert_eq!(algorithm.termination(), Some(termination), "{case}");
         assert_eq!(termination.exception, "ElementNotFound");
         assert_eq!(
             termination.message,
@@ -1863,6 +1878,19 @@ fn a_charge_zero_overlap_is_refused_where_the_release_build_traps() {
         matches!(&error, openms::Error::InvalidValue(message) if message.contains("% 0") && message.contains("SIGFPE")),
         "{error}"
     );
+    // The process ends there: a termination without debug output, and no
+    // debug run of this instance has opened `debug/log.txt`.
+    let termination = algorithm.termination().unwrap();
+    assert_eq!(termination.kind, TerminationKind::ArithmeticTrap);
+    assert_eq!(termination.exception, "SIGFPE");
+    assert_eq!(termination.message, error.to_string());
+    assert_eq!(termination.log_file_bytes, None);
+    let TerminationPoint::OverlapResolution { first, second } = termination.point else {
+        panic!("{:?}", termination.point);
+    };
+    assert!(first < second && second < features.len());
+    assert!(features.features[first].charge == 0 || features.features[second].charge == 0);
+    assert!(algorithm.debug_output().is_none());
     // The source's state at the trap: the new features are in the map, which
     // step 4 has sorted by m/z.
     assert!(features.len() > overlapping("zero_charge").len());
@@ -1975,6 +2003,17 @@ fn stale_abort_seeds_outside_the_input_are_refused() {
         "{error}"
     );
     let out = algorithm.debug_output().unwrap();
+    // The out-of-bounds read of the first stored seed ends the process, and
+    // the file keeps what the first run's buffer had flushed.
+    let termination = out.termination.as_ref().unwrap();
+    assert_eq!(algorithm.termination(), Some(termination));
+    assert_eq!(termination.point, TerminationPoint::AbortMap { entry: 0 });
+    assert_eq!(termination.kind, TerminationKind::OutOfBounds);
+    assert_eq!(termination.exception, "SIGSEGV");
+    assert_eq!(termination.message, error.to_string());
+    let stream = algorithm.debug_log_file().unwrap();
+    assert!(stream.failed);
+    assert_eq!(termination.log_file_bytes, Some(stream.flushed));
     // The executed run wrote the four seed maps before it crashed, and no
     // abort map or input of its own.
     assert_eq!(out.seed_maps.len(), 4);
@@ -1985,6 +2024,559 @@ fn stale_abort_seeds_outside_the_input_are_refused() {
             .report()
             .contains(&ReportLine::Info("0 features found.".into()))
     );
+}
+
+// ---------------------------------------------------------------------------
+// Where the process ends outside the seed loop, and the never-closed stream
+// ---------------------------------------------------------------------------
+
+/// One case of `termination_digests.tsv.gz`: the executed exit status, the
+/// driver's report lines, and every file below `debug/` with its size and
+/// SHA-1 (`None` for the abort map, whose random unique id changes its bytes).
+#[derive(Default)]
+struct Executed {
+    status: String,
+    report: Vec<String>,
+    files: BTreeMap<String, Option<(usize, String)>>,
+}
+
+impl Executed {
+    /// The number after `<prefix>` in a report line, if the driver printed it.
+    fn reported(&self, prefix: &str) -> Option<usize> {
+        self.report
+            .iter()
+            .find_map(|line| line.strip_prefix(prefix)?.parse().ok())
+    }
+
+    fn printed(&self, line: &str) -> bool {
+        self.report.iter().any(|printed| printed == line)
+    }
+}
+
+/// `termination_digests.tsv.gz` (`../oracle/ffap-complete-fix5`, `fix5_driver`
+/// and the unchanged `ffap_instr_driver`, every case twice, identical but for
+/// the abort map's unique id; `extract/make_fixtures.py`).
+fn termination_digests() -> BTreeMap<String, Executed> {
+    let mut cases: BTreeMap<String, Executed> = BTreeMap::new();
+    for line in fixture("termination_digests.tsv.gz").lines().skip(1) {
+        let fields: Vec<&str> = line.split('\t').collect();
+        let case = cases.entry(fields[0].to_owned()).or_default();
+        match fields[1] {
+            "status" => case.status = fields[4].to_owned(),
+            "report" => case.report.push(fields[2].to_owned()),
+            "file" => {
+                let digest =
+                    (fields[3] != "-").then(|| (fields[3].parse().unwrap(), fields[4].to_owned()));
+                case.files.insert(fields[2].to_owned(), digest);
+            }
+            other => panic!("unknown row kind {other}"),
+        }
+    }
+    cases
+}
+
+/// The files below `debug/` that a caller writes from the port's output,
+/// following the `DebugOutput` protocol: a run that opened the stream
+/// replaces `log.txt` with its log, every stored map and feature file
+/// replaces its namesake, and after a termination `log.txt` is cut to
+/// `DebugTermination::log_file_bytes`. The featureXML and mzML stores are
+/// recorded by name only (their bytes are the shared writers', compared
+/// decoded elsewhere).
+#[derive(Default)]
+struct Disk {
+    files: BTreeMap<String, Option<Vec<u8>>>,
+}
+
+impl Disk {
+    fn write_run(
+        &mut self,
+        out: Option<&DebugOutput>,
+        termination: Option<&openms::analysis::feature_finder_picked::debug::DebugTermination>,
+    ) {
+        if let Some(out) = out {
+            if out.log_opened {
+                self.files
+                    .insert("log.txt".into(), Some(out.log.text().as_bytes().to_vec()));
+            }
+            for seeds in &out.seed_maps {
+                self.files
+                    .insert(format!("seeds_{}.featureXML", seeds.charge), None);
+            }
+            for files in &out.feature_files {
+                let name = |full: String| full.trim_start_matches("debug/").to_owned();
+                self.files
+                    .insert(name(files.dta_name()), Some(files.dta.as_bytes().to_vec()));
+                if let Some(cropped) = &files.cropped_dta {
+                    self.files.insert(
+                        name(files.cropped_dta_name()),
+                        Some(cropped.as_bytes().to_vec()),
+                    );
+                }
+                self.files
+                    .insert(name(files.plot_name()), Some(files.plot.clone()));
+            }
+            if out.abort_reasons.is_some() {
+                self.files.insert("abort_reasons.featureXML".into(), None);
+            }
+            if out.input.is_some() {
+                self.files.insert("input.mzML".into(), None);
+            }
+        }
+        if let Some(bytes) = termination.and_then(|termination| termination.log_file_bytes) {
+            let log = self
+                .files
+                .get_mut("log.txt")
+                .and_then(Option::as_mut)
+                .expect("a termination with a stream length follows a written log");
+            assert!(bytes <= log.len());
+            log.truncate(bytes);
+        }
+    }
+
+    /// Every executed file exists here and nothing else; the log and the
+    /// feature files are byte for byte the executed ones.
+    fn assert_executed(&self, executed: &Executed, case: &str) {
+        assert_eq!(
+            self.files.keys().collect::<Vec<_>>(),
+            executed.files.keys().collect::<Vec<_>>(),
+            "{case}: files"
+        );
+        for (name, data) in &self.files {
+            if name.ends_with(".featureXML") || name.ends_with(".mzML") {
+                continue;
+            }
+            let data = data.as_ref().unwrap();
+            let (bytes, sha1) = executed.files[name].as_ref().unwrap();
+            assert_eq!(data.len(), *bytes, "{case} {name}: size");
+            assert_eq!(&sha1_hex(data), sha1, "{case} {name}: content");
+        }
+    }
+}
+
+/// The FFC_1 section with `write_debug` and `debug:pseudo_rt_shift` 500, as
+/// `fix5_driver` sets them.
+fn ffc1_debug_parameters() -> Param {
+    with_debug(
+        ffc1_parameters(),
+        &[("debug:pseudo_rt_shift", ParamValue::Float(500.0))],
+    )
+}
+
+/// `fix5_driver`'s caller map: the common part of [`overlapping`] and the
+/// variant feature labelled `ub-<variant>`.
+fn overlapping_v4(variant: &str) -> FeatureMap {
+    let mut map = overlapping("none");
+    let (mz, charge) = match variant {
+        "zero_charge" => (652.70, 0),
+        "zero_charge_hi" => (652.79, 0),
+        _ => return map,
+    };
+    let mut feature = synthetic(4201.8, mz, 700.0, charge, 0.5, &format!("ub-{variant}"));
+    feature
+        .convex_hulls
+        .push(hull(&[(4150.0, 652.70), (4260.0, 652.80)]));
+    map.features.push(feature);
+    map
+}
+
+/// Executed `fix5_driver single` and `ffap_instr_driver stale` runs
+/// (`../oracle/ffap-complete-fix5`): the two process-ending points after the
+/// seed loop and the one before it, each with a defined neighbour.
+///
+/// - A caller's charge-0 feature below the found charge-2 feature at
+///   m/z 652.766 makes step 4 compute `2 % 0`: SIGFPE (status 136), with and
+///   without `write_debug`. The debug run left `debug/log.txt` at 1,163,782
+///   bytes, `seeds_2.featureXML` and the files of 25 plots, and no abort map
+///   or input. The port refuses at that pair and records an
+///   `ArithmeticTrap`; the file protocol reproduces every file. The same
+///   feature above it (`0 % 2 == 0`) and no extra feature return with the
+///   complete log.
+/// - A reused object whose abort seeds lie outside a four-scan input reads
+///   them when it builds the abort map: SIGSEGV (status 139), leaving the
+///   first run's flushed prefix, 1,114,578 bytes, and the second run's four
+///   seed maps. The port records an `OutOfBounds` termination at entry 0
+///   with the first run's stream length. On the same scans with doubled
+///   intensities the run returns and the object's destructor completes the
+///   log (1,118,230 bytes).
+/// - `charge_low` 4 with `charge_high` 2 wraps the score-array count to one
+///   array, which the source writes past before it creates `debug/`:
+///   SIGSEGV and no file. The port records an `OutOfBounds` termination at
+///   the score arrays without a stream length.
+#[test]
+fn process_ending_refusals_outside_the_seed_loop_record_their_termination() {
+    let digests = termination_digests();
+
+    // Step 4.
+    for (case, debug) in [("zero_charge_dbg", true), ("zero_charge_nd", false)] {
+        let executed = &digests[case];
+        assert_eq!(executed.status, "136", "{case}: SIGFPE");
+        let parameters = if debug {
+            ffc1_debug_parameters()
+        } else {
+            ffc1_parameters()
+        };
+        let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+        let mut features = overlapping_v4("zero_charge");
+        let error = algorithm
+            .run(ffc1_input(), &mut features, &parameters, &FeatureMap::new())
+            .unwrap_err();
+        assert!(error.to_string().contains("2 % 0"), "{case}: {error}");
+        let termination = algorithm.termination().unwrap();
+        assert!(
+            matches!(termination.point, TerminationPoint::OverlapResolution { first, second } if first < second),
+            "{case}: {:?}",
+            termination.point
+        );
+        assert_eq!(termination.kind, TerminationKind::ArithmeticTrap, "{case}");
+        assert_eq!(termination.exception, "SIGFPE", "{case}");
+        assert_eq!(termination.message, error.to_string(), "{case}");
+        let mut disk = Disk::default();
+        let out = algorithm.debug_output();
+        assert_eq!(out.is_some(), debug, "{case}");
+        if let Some(out) = out {
+            assert_eq!(out.termination.as_ref(), Some(termination), "{case}");
+            assert!(out.log_opened);
+            assert_eq!(termination.log_file_bytes, Some(out.log.flushed_bytes()));
+            assert!(out.log.flushed_bytes() < out.log.len());
+            assert_eq!(out.seed_maps.len(), 1);
+            assert_maps_decoded_equal(
+                &out.seed_maps[0].map,
+                &feature_fixture("zero_charge_seed_map_2.featureXML.gz"),
+                case,
+            );
+            assert!(out.abort_reasons.is_none() && out.input.is_none());
+            let plots: std::collections::BTreeSet<i64> = out
+                .feature_files
+                .iter()
+                .map(|files| files.plot_nr)
+                .collect();
+            assert_eq!(plots.len(), 25, "{case}");
+        } else {
+            assert_eq!(termination.log_file_bytes, None, "{case}");
+        }
+        disk.write_run(out, Some(termination));
+        disk.assert_executed(executed, case);
+    }
+    for case in ["zero_charge_hi_dbg", "none_dbg"] {
+        let executed = &digests[case];
+        assert_eq!(executed.status, "0", "{case}");
+        let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+        let mut features = overlapping_v4(case.trim_end_matches("_dbg"));
+        algorithm
+            .run(
+                ffc1_input(),
+                &mut features,
+                &ffc1_debug_parameters(),
+                &FeatureMap::new(),
+            )
+            .unwrap();
+        assert!(algorithm.termination().is_none(), "{case}");
+        assert_eq!(executed.reported("run features "), Some(features.len()));
+        let mut disk = Disk::default();
+        disk.write_run(algorithm.debug_output(), None);
+        disk.assert_executed(executed, case);
+    }
+
+    // The abort map of a reused object.
+    for (case, scaled) in [("stale_oob", false), ("stale_scaled", true)] {
+        let executed = &digests[case];
+        let first_parameters = with_debug(
+            ffc1_parameters(),
+            &[("feature:min_isotope_fit", ParamValue::Float(1.0))],
+        );
+        let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+        let mut disk = Disk::default();
+        algorithm
+            .run(
+                ffc1_input(),
+                &mut FeatureMap::new(),
+                &first_parameters,
+                &FeatureMap::new(),
+            )
+            .unwrap();
+        let first = algorithm.debug_output().unwrap().clone();
+        disk.write_run(Some(&first), None);
+        let (input, parameters) = if scaled {
+            (scaled_ffc1_input(), first_parameters)
+        } else {
+            (short_input(), with_debug(Param::new(), &[]))
+        };
+        let result = algorithm.run(
+            input,
+            &mut FeatureMap::new(),
+            &parameters,
+            &FeatureMap::new(),
+        );
+        let stream = algorithm.debug_log_file().unwrap();
+        assert_eq!(stream.written, first.log.len(), "{case}");
+        assert_eq!(stream.flushed, first.log.flushed_bytes(), "{case}");
+        assert!(stream.failed, "{case}");
+        let termination = algorithm.termination();
+        if scaled {
+            assert_eq!(executed.status, "0", "{case}");
+            result.unwrap();
+            assert!(termination.is_none(), "{case}");
+        } else {
+            assert_eq!(executed.status, "139", "{case}: SIGSEGV");
+            let error = result.unwrap_err();
+            let termination = termination.unwrap();
+            assert_eq!(termination.point, TerminationPoint::AbortMap { entry: 0 });
+            assert_eq!(termination.kind, TerminationKind::OutOfBounds);
+            assert_eq!(termination.message, error.to_string());
+            assert_eq!(termination.log_file_bytes, Some(first.log.flushed_bytes()));
+            assert_eq!(first.log.flushed_bytes(), 1_114_578);
+        }
+        disk.write_run(algorithm.debug_output(), termination);
+        disk.assert_executed(executed, case);
+    }
+
+    // The score arrays, before `debug/` exists.
+    let executed = &digests["wrap42_fresh_dbg"];
+    assert_eq!(executed.status, "139", "SIGSEGV");
+    assert!(executed.files.is_empty());
+    let mut parameters = ffc1_debug_parameters();
+    set(
+        &mut parameters,
+        "isotopic_pattern:charge_low",
+        ParamValue::Integer(4),
+    );
+    set(
+        &mut parameters,
+        "isotopic_pattern:charge_high",
+        ParamValue::Integer(2),
+    );
+    let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+    let error = algorithm
+        .run(
+            ffc1_input(),
+            &mut FeatureMap::new(),
+            &parameters,
+            &FeatureMap::new(),
+        )
+        .unwrap_err();
+    let termination = algorithm.termination().unwrap();
+    assert_eq!(termination.point, TerminationPoint::ScoreArrays);
+    assert_eq!(termination.kind, TerminationKind::OutOfBounds);
+    assert_eq!(termination.exception, "SIGSEGV");
+    assert_eq!(termination.message, error.to_string());
+    assert_eq!(termination.log_file_bytes, None);
+    assert!(algorithm.debug_output().is_none());
+    assert!(algorithm.debug_log_file().is_none());
+}
+
+/// Executed `fix5_driver reuse` runs (`../oracle/ffap-complete-fix5`): one
+/// object runs FeatureFinderCentroided_1 with `write_debug`, which returns and
+/// leaves `debug/log.txt` open with an unflushed tail (the driver measured the
+/// file at the flushed length), then a second run, with or without
+/// `write_debug`, that ends the process or returns:
+///
+/// - a charge-0 caller feature (SIGFPE in step 4). After a plain first run
+///   the reused windows change the second run's features and nothing traps;
+///   after a first run with a NaN `intensity_percentage_optional`, whose
+///   empty windows leave the second run a fresh object's windows, it traps;
+/// - an empty best isotope pattern (`vfi2_driver neg`'s `avg0` section:
+///   SIGSEGV in the seed loop);
+/// - a score-array count that wraps to 1 (4/2) or to 1003 arrays
+///   (`INT_MAX`/498): SIGSEGV before the stream is touched; one that wraps to
+///   `2^32 - 5` arrays (7/2) throws `std::bad_alloc` under the 16 GB address
+///   space, which the driver catches;
+/// - the same run again, which returns.
+///
+/// Wherever the process ended, `debug/log.txt` is the first run's flushed
+/// prefix, whatever the second run is; where it returned, the destroyed
+/// object has written the complete first-run log. The port records every
+/// termination with the first run's stream length, and the file protocol
+/// reproduces every executed file.
+#[test]
+fn a_reused_instance_leaves_the_executed_log_at_every_later_termination() {
+    let digests = termination_digests();
+    let cases: Vec<(&str, &str, bool, bool)> = vec![
+        ("reuse_zero_charge_dbg", "zero_charge", true, false),
+        ("reuse_zero_charge_nd", "zero_charge", false, false),
+        ("reuse_nanipo_zero_charge_dbg", "zero_charge", true, true),
+        ("reuse_nanipo_zero_charge_nd", "zero_charge", false, true),
+        ("reuse_nanipo_ok_dbg", "ok", true, true),
+        ("reuse_nanipo_ok_nd", "ok", false, true),
+        ("reuse_avg0_dbg", "avg0", true, false),
+        ("reuse_avg0_nd", "avg0", false, false),
+        ("reuse_wrap42_dbg", "wrap42", true, false),
+        ("reuse_wrap42_nd", "wrap42", false, false),
+        ("reuse_wrapmax498_dbg", "wrapmax498", true, false),
+        ("reuse_wrapmax498_nd", "wrapmax498", false, false),
+        ("reuse_wrap72_dbg", "wrap72", true, false),
+        ("reuse_wrap72_nd", "wrap72", false, false),
+        ("reuse_ok_dbg", "ok", true, false),
+        ("reuse_ok_nd", "ok", false, false),
+    ];
+    assert_eq!(
+        digests
+            .keys()
+            .filter(|case| case.starts_with("reuse_"))
+            .count(),
+        cases.len()
+    );
+    let replay = |&(case, second, debug, nan_first): &(&str, &str, bool, bool)| {
+        let executed = &digests[case];
+        let mut first_parameters = ffc1_debug_parameters();
+        if nan_first {
+            set(
+                &mut first_parameters,
+                "isotopic_pattern:intensity_percentage_optional",
+                ParamValue::Float(f64::NAN),
+            );
+        }
+        let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+        let mut features = FeatureMap::new();
+        algorithm
+            .run(
+                ffc1_input(),
+                &mut features,
+                &first_parameters,
+                &FeatureMap::new(),
+            )
+            .unwrap();
+        assert_eq!(
+            executed.reported("run1 features "),
+            Some(features.len()),
+            "{case}"
+        );
+        let first = algorithm.debug_output().unwrap().clone();
+        assert!(first.log_opened && first.termination.is_none(), "{case}");
+        assert_eq!(
+            executed.reported("run1 file_bytes "),
+            Some(first.log.flushed_bytes()),
+            "{case}: the file while the object lives"
+        );
+        let mut disk = Disk::default();
+        disk.write_run(Some(&first), None);
+
+        let (input, mut parameters, mut features) = match second {
+            "zero_charge" => (ffc1_input(), ffc1_parameters(), overlapping_v4(second)),
+            "avg0" => {
+                let (input, parameters) = negated_band(1.0, 0.0, 1.0, 0.0, false);
+                (input, parameters, FeatureMap::new())
+            }
+            "wrap42" | "wrapmax498" | "wrap72" => {
+                let (low, high) = match second {
+                    "wrap42" => (4, 2),
+                    "wrap72" => (7, 2),
+                    _ => (i64::from(i32::MAX), 498),
+                };
+                let mut parameters = ffc1_parameters();
+                set(
+                    &mut parameters,
+                    "isotopic_pattern:charge_low",
+                    ParamValue::Integer(low),
+                );
+                set(
+                    &mut parameters,
+                    "isotopic_pattern:charge_high",
+                    ParamValue::Integer(high),
+                );
+                (ffc1_input(), parameters, FeatureMap::new())
+            }
+            _ => (ffc1_input(), ffc1_parameters(), FeatureMap::new()),
+        };
+        if debug {
+            parameters = with_debug(
+                parameters,
+                &[("debug:pseudo_rt_shift", ParamValue::Float(500.0))],
+            );
+        }
+        let result = algorithm.run(input, &mut features, &parameters, &FeatureMap::new());
+        // A debug run fails to reopen the stream, unless it ends before the
+        // source's `log_.open` (the score arrays come first).
+        let reopened = debug && !second.starts_with("wrap");
+        let stream = algorithm.debug_log_file().unwrap();
+        assert_eq!(
+            (stream.written, stream.flushed, stream.failed),
+            (first.log.len(), first.log.flushed_bytes(), reopened),
+            "{case}: the stream"
+        );
+        let out = algorithm.debug_output();
+        let termination = algorithm.termination();
+        if let Some(out) = out {
+            assert!(!out.log_opened && out.log.is_empty(), "{case}");
+            assert_eq!(out.termination.as_ref(), termination, "{case}");
+        }
+        if executed.printed("run2 returned") {
+            assert_eq!(executed.status, "0", "{case}");
+            result.unwrap_or_else(|error| panic!("{case}: {error}"));
+            assert!(termination.is_none(), "{case}");
+            assert_eq!(
+                executed.reported("run2 features "),
+                Some(features.len()),
+                "{case}"
+            );
+        } else if executed.printed("run2 threw St9bad_alloc what=std::bad_alloc") {
+            // Caught by the driver: no termination, and the destroyed object
+            // writes the complete log.
+            assert_eq!(executed.status, "0", "{case}");
+            assert!(result.is_err(), "{case}");
+            assert!(termination.is_none(), "{case}");
+        } else {
+            assert!(!executed.printed("run2 returned"), "{case}");
+            let error = result.unwrap_err();
+            let termination = termination.unwrap_or_else(|| panic!("{case}: {error}"));
+            let (status, kind, exception) = match second {
+                "zero_charge" => ("136", TerminationKind::ArithmeticTrap, "SIGFPE"),
+                _ => ("139", TerminationKind::OutOfBounds, "SIGSEGV"),
+            };
+            assert_eq!(executed.status, status, "{case}");
+            assert_eq!(termination.kind, kind, "{case}");
+            assert_eq!(termination.exception, exception, "{case}");
+            assert_eq!(termination.message, error.to_string(), "{case}");
+            assert_eq!(
+                termination.log_file_bytes,
+                Some(first.log.flushed_bytes()),
+                "{case}"
+            );
+            match second {
+                "zero_charge" => assert!(
+                    matches!(
+                        termination.point,
+                        TerminationPoint::OverlapResolution { .. }
+                    ),
+                    "{case}"
+                ),
+                "avg0" => assert!(
+                    matches!(
+                        termination.point,
+                        TerminationPoint::Seed { plot_nr: -1, .. }
+                    ),
+                    "{case}: {:?}",
+                    termination.point
+                ),
+                _ => assert_eq!(termination.point, TerminationPoint::ScoreArrays, "{case}"),
+            }
+        }
+        if executed.status == "0" {
+            assert_eq!(
+                executed.reported("run2 file_bytes "),
+                Some(first.log.flushed_bytes()),
+                "{case}"
+            );
+            assert_eq!(
+                executed.reported("destroyed file_bytes "),
+                Some(first.log.len()),
+                "{case}"
+            );
+        }
+        disk.write_run(out, termination);
+        disk.assert_executed(executed, case);
+    };
+    std::thread::scope(|scope| {
+        let replay = &replay;
+        let handles: Vec<_> = cases
+            .chunks(4)
+            .map(|chunk| scope.spawn(move || chunk.iter().for_each(replay)))
+            .collect();
+        for handle in handles {
+            handle
+                .join()
+                .unwrap_or_else(|panic| std::panic::resume_unwind(panic));
+        }
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -2362,11 +2954,24 @@ fn a_seed_loop_crash_keeps_what_the_executed_process_had_written() {
         let termination = out.termination.as_ref().unwrap();
         assert_eq!(termination.kind, TerminationKind::OutOfBounds, "{case}");
         assert_eq!(termination.exception, "SIGSEGV", "{case}");
-        assert_eq!(
-            termination.plot_nr, -1,
-            "{case}: the seed ends before the fit"
+        assert!(
+            matches!(
+                termination.point,
+                TerminationPoint::Seed {
+                    charge: 2,
+                    plot_nr: -1,
+                    ..
+                }
+            ),
+            "{case}: the seed ends before the fit: {:?}",
+            termination.point
         );
         assert_eq!(termination.message, refusal, "{case}");
+        assert_eq!(
+            termination.log_file_bytes,
+            Some(out.log.flushed_bytes()),
+            "{case}"
+        );
         let log = out.log.text().as_bytes();
         let flushed = out.log.flushed_bytes();
         assert!(
@@ -2432,9 +3037,9 @@ fn never_returns_digests() -> (FileDigests, BTreeMap<String, String>) {
 /// The port refuses at that merge (lead decision D1) and records a
 /// `NeverReturns` termination with the plot number the hanging seed had
 /// received. The executed `debug/log.txt` is the prefix of the port's log that
-/// its model of the file buffer had flushed, and the executed feature files
-/// (those of the seeds fitted before) are the port's, byte for byte, no more
-/// and no fewer.
+/// its model of the file buffer had flushed, the executed seed map is the
+/// port's, and the executed feature files (those of the seeds fitted before)
+/// are the port's, byte for byte, no more and no fewer.
 #[test]
 fn a_seed_loop_that_never_returns_keeps_what_the_executed_process_had_written() {
     let (digests, statuses) = never_returns_digests();
@@ -2488,16 +3093,31 @@ fn a_seed_loop_that_never_returns_keeps_what_the_executed_process_had_written() 
         let termination = out.termination.as_ref().unwrap();
         assert_eq!(termination.kind, TerminationKind::NeverReturns, "{case}");
         assert_eq!(termination.exception, "", "{case}");
-        assert_eq!(
-            termination.plot_nr, plots as i64,
-            "{case}: the hanging seed's plot number"
+        assert!(
+            matches!(
+                termination.point,
+                TerminationPoint::Seed { charge: 2, plot_nr, .. } if plot_nr == plots as i64
+            ),
+            "{case}: the hanging seed's plot number: {:?}",
+            termination.point
         );
-        assert_eq!(termination.charge, 2, "{case}");
         assert_eq!(termination.message, refusal, "{case}");
+        assert_eq!(algorithm.termination(), Some(termination), "{case}");
         let log = out.log.text().as_bytes();
         let flushed = out.log.flushed_bytes();
         let (bytes, sha1) = &digests[&(case.to_owned(), "log.txt".to_owned())];
         assert_eq!(flushed, *bytes, "{case}: flushed log bytes");
+        assert_eq!(termination.log_file_bytes, Some(*bytes), "{case}");
+        // The killed process had stored the charge's seed map
+        // (`debug/seeds_2.featureXML`, `../oracle/ffap-complete-fix4`, both
+        // runs identical): the algorithm's seeds, decoded under D6.
+        assert_eq!(out.seed_maps.len(), 1, "{case}");
+        assert_eq!(out.seed_maps[0].charge, 2, "{case}");
+        assert_maps_decoded_equal(
+            &out.seed_maps[0].map,
+            &feature_fixture(&format!("never_returns_seed_map_{case}.featureXML.gz")),
+            case,
+        );
         assert!(
             flushed < log.len(),
             "{case}: the hanging seed's lines are buffered"

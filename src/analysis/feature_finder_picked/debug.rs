@@ -58,11 +58,18 @@
 //!   accepts this as the one documented exception to D1, which would refuse a
 //!   data race: the determinism contract requires parallel output to equal
 //!   serial output, and `aborts_` is written in every run.
-//! - **Crashes in the seed loop.** Where the source reads out of bounds (an
-//!   empty best isotope pattern) or never returns (a NaN retention time in an
-//!   intensity profile), the run is refused at that seed after the seed's log
-//!   lines, and [`DebugOutput::termination`] records the point, so that a
-//!   caller writes only the log bytes the executed process had flushed.
+//! - **Where the process ends.** Where the source reads or writes out of
+//!   bounds (an empty best isotope pattern in the seed loop, a wrapped
+//!   score-array count before it, a stale abort seed after it), traps (the
+//!   step-4 charge remainder of a caller's charge-0 feature) or never returns
+//!   (a NaN retention time in an intensity profile), the run is refused there,
+//!   after the log lines the source had written, and a [`DebugTermination`]
+//!   records the point and the length at which the executed process leaves
+//!   `debug/log.txt`. The source's `log_` is an instance member that is never
+//!   closed, so that length is the flushed part of whichever debug run of the
+//!   instance opened the stream, this one or an earlier one
+//!   ([`DebugTermination::log_file_bytes`]); a caller writes only that prefix,
+//!   and truncates an earlier run's complete log to it.
 //! - **Stale seeds of an earlier run.** `abort_reasons_` is never cleared, and
 //!   its seeds hold spectrum and peak indices of the run that stored them.
 //!   `:1037-1039` reads them from the current map without a bounds check; an
@@ -83,6 +90,8 @@
 //! [`debug_experiment`]: crate::analysis::feature_finder_picked::debug::debug_experiment
 //! [`Error::Unsupported`]: crate::Error::Unsupported
 //! [`DebugOutput::termination`]: crate::analysis::feature_finder_picked::debug::DebugOutput::termination
+//! [`DebugTermination`]: crate::analysis::feature_finder_picked::debug::DebugTermination
+//! [`DebugTermination::log_file_bytes`]: crate::analysis::feature_finder_picked::debug::DebugTermination::log_file_bytes
 //! [`PseudoRtShift::HeapAddress`]: crate::analysis::feature_finder_picked::debug::PseudoRtShift::HeapAddress
 
 use std::collections::BTreeMap;
@@ -392,40 +401,117 @@ pub enum TerminationKind {
     /// catches it, and `std::terminate` aborts the process (SIGABRT).
     Exception,
     /// The source reads or writes out of bounds; the port refuses there
-    /// (lead decision D1). The executed build dies with SIGSEGV where the
-    /// best isotope pattern of `extendMassTraces_` is empty, which every
-    /// executed crash had. The other sub-case of the same read, a non-empty
-    /// pattern whose first isotope has no peak, reads heap metadata just
-    /// before a spectrum's peaks; it was never observed and its executed
-    /// outcome is unknown, but it is recorded the same way.
+    /// (lead decision D1). The executed build dies with SIGSEGV
+    /// ([`DebugTermination::exception`]) wherever this was executed: an empty
+    /// best isotope pattern in `extendMassTraces_`, a score-array count that
+    /// wraps to 1 or to a few arrays (`charge_low`/`charge_high` 4/2,
+    /// `INT_MAX`/1, `INT_MAX`/498, 1/`INT_MAX`), and an abort seed of an
+    /// earlier run whose spectrum lies outside the current input. Two
+    /// sub-cases of the same reads were never observed and their executed
+    /// outcome is unknown, but they are recorded the same way: a non-empty
+    /// best pattern whose first isotope has no peak (it reads heap metadata
+    /// just before a spectrum's peaks), and a stale abort seed whose spectrum
+    /// exists but whose peak does not.
     OutOfBounds,
+    /// An `int` remainder traps: the x86_64 `idiv` raises a divide error,
+    /// which the kernel delivers as SIGFPE. Step 4 computes `f2.getCharge() %
+    /// f1.getCharge()` (and the reverse) for an overlapping pair of different
+    /// charges; a caller's feature of charge 0, the featureXML default, as
+    /// the divisor traps (executed: SIGFPE), and so does `INT_MIN % -1`.
+    ArithmeticTrap,
     /// The source never returns (the endless profile merge of `CPP-242`), so
     /// only a caller's timeout ends the process; the port refuses there.
     NeverReturns,
 }
 
-/// Where the source process terminates in the seed loop, and why: in
+/// Where in `run_` the source process ends.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TerminationPoint {
+    /// Resizing and writing the score arrays (`FeatureFinderAlgorithmPicked.cpp:196-221`),
+    /// before `debug/log.txt` is opened, for a wrapped count
+    /// ([`Settings::charge_count`](crate::analysis::feature_finder_picked::algorithm::Settings::charge_count)).
+    ScoreArrays,
+    /// A seed of step 3.3.
+    Seed {
+        /// The charge being extended.
+        charge: i32,
+        /// The seed's position in that charge's seed list.
+        seed_index: usize,
+        /// The `plot_nr` the seed received, or -1 when it ends before the fit.
+        plot_nr: i64,
+    },
+    /// The overlap resolution of step 4, at the pair of features at positions
+    /// `first < second` of the map sorted by m/z (the debug log prints them
+    /// from 1).
+    OverlapResolution {
+        /// The first feature's position, from 0.
+        first: usize,
+        /// The second feature's position, from 0.
+        second: usize,
+    },
+    /// The debug abort map (`:1028-1045`), at its entry `entry`, from 0 in
+    /// ascending intensity.
+    AbortMap {
+        /// The entry whose stored seed lies outside the current input.
+        entry: usize,
+    },
+}
+
+/// Where the source process terminates, and why: in the seed loop (in
 /// `writeFeatureDebugInfo_`, at the step-3.3.5 exception, at an out-of-bounds
-/// access, or in a merge that never ends.
+/// read or in a merge that never ends), at a wrapped score-array count before
+/// it, or in step 4 or the debug abort map after it.
+///
+/// The instance records one for every run that ends there, with or without
+/// `write_debug`
+/// ([`FeatureFinderAlgorithmPicked::termination`](crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked::termination));
+/// a debug run's [`DebugOutput::termination`] holds the same value.
 #[derive(Clone, Debug, PartialEq)]
 pub struct DebugTermination {
-    /// The charge being extended.
-    pub charge: i32,
-    /// The seed's position in that charge's seed list.
-    pub seed_index: usize,
-    /// The `plot_nr` the seed received, or -1 when it ends before the fit.
-    pub plot_nr: i64,
+    /// Where the process ends.
+    pub point: TerminationPoint,
     /// How the process ends.
     pub kind: TerminationKind,
     /// For [`TerminationKind::Exception`], the C++ exception class that
     /// escapes the OpenMP region; `SIGSEGV` for
-    /// [`TerminationKind::OutOfBounds`] (established for an empty best
-    /// pattern; see there); empty for
+    /// [`TerminationKind::OutOfBounds`] (established for the executed
+    /// sub-cases; see there); `SIGFPE` for
+    /// [`TerminationKind::ArithmeticTrap`]; empty for
     /// [`TerminationKind::NeverReturns`].
     pub exception: &'static str,
     /// For [`TerminationKind::Exception`], its `what()` text, as the executed
     /// build prints it; otherwise the port's refusal.
     pub message: String,
+    /// The length at which the executed process leaves `debug/log.txt`, or
+    /// `None` when no debug run of this instance has opened the stream (the
+    /// process then creates no such file, and leaves any existing one alone).
+    ///
+    /// The source's `log_` is an instance member that is opened by the first
+    /// debug run and never closed; later debug runs fail to reopen it and
+    /// write nothing. Its libstdc++ file buffer hands text to the file in
+    /// blocks ([`DebugLog::flushed_bytes`]) and the rest only when the
+    /// instance is destroyed, which a process that ends here never does. So
+    /// this is the flushed length of the run that opened the stream: this
+    /// run's, when [`DebugOutput::log_opened`] is set, otherwise an earlier
+    /// run's ([`FeatureFinderAlgorithmPicked::debug_log_file`](crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked::debug_log_file)),
+    /// whose complete log a caller that wrote it truncates to this length.
+    pub log_file_bytes: Option<usize>,
+}
+
+/// The source's `debug/log.txt` stream of an instance, which the first debug
+/// run opens and nothing closes until the instance is dropped.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct DebugLogFile {
+    /// The bytes the run that opened the stream wrote into it.
+    pub written: usize,
+    /// How many of them the file buffer has handed to the file
+    /// ([`DebugLog::flushed_bytes`]). The other `written - flushed` bytes
+    /// reach the file when the instance is dropped, as the source's
+    /// destructor closes the stream, and are lost if the process ends first.
+    pub flushed: usize,
+    /// Whether a later debug run tried to open the stream again, which fails
+    /// and sets `failbit`: every later write of the instance is dropped.
+    pub failed: bool,
 }
 
 /// Everything `write_debug` produces in one run, in the order the source
@@ -435,11 +521,17 @@ pub struct DebugTermination {
 /// create (truncate) `debug/log.txt` with [`Self::log`] when
 /// [`Self::log_opened`] is set, and leave the file alone otherwise; store each
 /// seed map, the feature files, the abort map and the input as named in the
-/// module documentation. After a [`Self::termination`] the executed build has
-/// written only [`DebugLog::flushed_bytes`] of the log (the terminating seed's
-/// lines included) and nothing after the last seed map. A run that fails on
-/// one of the port's own ceilings has no termination: its log ends with the
-/// seed before the failing one.
+/// module documentation, at the [`ReportLine`] store points. After a
+/// [`Self::termination`] the executed process has left `debug/log.txt` at
+/// [`DebugTermination::log_file_bytes`] bytes: when this run opened the file,
+/// the prefix [`DebugLog::flushed_bytes`] of [`Self::log`] (the lines written
+/// before the termination point included, in the buffer), otherwise the
+/// flushed prefix of the earlier run of the instance that opened it, to which
+/// a caller truncates the complete log it wrote for that run. The process has
+/// stored nothing after the last store point this run reached. A run that
+/// fails on one of the port's own ceilings, or with an exception the source
+/// throws to its caller, has no termination: the source's stream stays open,
+/// and its log ends where the run failed.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct DebugOutput {
     /// Whether this run opened `debug/log.txt`, truncating it.
@@ -569,10 +661,17 @@ impl AbortReasons {
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] when a seed does not address a peak or a
-/// score is missing, which a seed of the run cannot cause. A non-finite score
-/// is stored as the source stores it (an infinite pattern score, which a zero
-/// correlation denominator gives, makes an infinite overall score that passes
-/// the seed threshold); the featureXML writer refuses such a map.
+/// score is missing, which a seed of the run cannot cause.
+///
+/// The scores of a seed are always finite: the trace and intensity scores lie
+/// in `[0, 1]` or are NaN (`:307-341`, `:1936-1943`), the pattern score is a
+/// correlation of `float` values, whose denominator cannot underflow to zero
+/// while its numerator is non-zero and whose NaN is replaced by 0
+/// (`:1716-1810`), times an m/z factor in `[0, 1]`, and a seed's overall score,
+/// a finite `powf` of their product or NaN, passed `>= seed:min_score`, which
+/// a NaN fails (`:504-522`). The values are stored through
+/// the crate-private `MetaValue::source_float` only to follow
+/// `setMetaValue(float)`'s storage exactly.
 pub fn seed_map(
     experiment: &MSExperiment,
     scores: &ScoreArrays,
@@ -627,9 +726,26 @@ pub fn seed_map(
 /// of `experiment`. The source reads `map_[spectrum][peak]` without a check;
 /// that happens for seeds an earlier run of the same instance stored, whose
 /// indices refer to that run's input, and it is an out-of-bounds read with no
-/// reproducible result. Entries inside the current input are read from it, as
-/// the source does, whatever run stored them.
+/// reproducible result (executed: SIGSEGV for a spectrum outside the input).
+/// Entries inside the current input are read from it, as the source does,
+/// whatever run stored them.
 pub fn abort_map(reasons: &AbortReasons, experiment: &MSExperiment) -> Result<FeatureMap> {
+    abort_map_source(reasons, experiment)?.map_err(|stale| stale.error)
+}
+
+/// A stored abort seed outside the current input: the entry the source reads
+/// out of bounds, and the refusal.
+pub(crate) struct StaleAbortSeed {
+    pub(crate) entry: usize,
+    pub(crate) error: Error,
+}
+
+/// [`abort_map`], with the out-of-bounds entry apart from the port's own
+/// allocation failure.
+pub(crate) fn abort_map_source(
+    reasons: &AbortReasons,
+    experiment: &MSExperiment,
+) -> Result<std::result::Result<FeatureMap, StaleAbortSeed>> {
     let mut features = Vec::new();
     features
         .try_reserve_exact(reasons.len())
@@ -642,14 +758,17 @@ pub fn abort_map(reasons: &AbortReasons, experiment: &MSExperiment) -> Result<Fe
                 .map(|peak| (spectrum.rt, peak))
         });
         let Some((rt, peak)) = peak else {
-            return Err(Error::InvalidValue(format!(
-                "abort_reasons_ holds a seed at spectrum {} peak {} from an earlier run, outside \
-                 the current input of {} spectra; the source reads it without a bounds check, \
-                 which is undefined behaviour",
-                seed.spectrum,
-                seed.peak,
-                experiment.spectra.len()
-            )));
+            return Ok(Err(StaleAbortSeed {
+                entry: counter,
+                error: Error::InvalidValue(format!(
+                    "abort_reasons_ holds a seed at spectrum {} peak {} from an earlier run, \
+                     outside the current input of {} spectra; the source reads it without a \
+                     bounds check, which is undefined behaviour",
+                    seed.spectrum,
+                    seed.peak,
+                    experiment.spectra.len()
+                )),
+            }));
         };
         let mut feature = Feature::new(rt, peak.mz, peak.intensity);
         feature
@@ -658,7 +777,7 @@ pub fn abort_map(reasons: &AbortReasons, experiment: &MSExperiment) -> Result<Fe
         feature.unique_id = counter as u64;
         features.push(feature);
     }
-    Ok(FeatureMap::from_features(features))
+    Ok(Ok(FeatureMap::from_features(features)))
 }
 
 /// The input as the source stores it in `debug/input.mzML`

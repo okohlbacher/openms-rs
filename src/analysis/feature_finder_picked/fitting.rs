@@ -520,10 +520,12 @@ pub struct FeatureInput<'a> {
 /// and EGH parameter, non-finite and negative ones included: the width field
 /// directly, the meta values through a crate-private constructor that skips
 /// the finite check of [`MetaValue::try_from`]. An infinite FWHM is reachable
-/// with finite input: retention times of about `1e37` and more make the
-/// `float` width overflow, and the Linux x86_64 Release build returns such
-/// features. [`crate::kernel::BaseFeature::validate`] and the featureXML
-/// writer refuse them.
+/// with finite input: once the fitted `sigma` passes about `1.44e38` the
+/// `float` width overflows (on FeatureFinderCentroided_1 with its retention
+/// times scaled, first at `6e36`, all from `1.5e37`), and the Linux x86_64
+/// Release build returns such features.
+/// [`crate::kernel::BaseFeature::validate`] and the featureXML writer refuse
+/// them.
 pub fn build_feature(input: FeatureInput<'_>) -> Result<Feature> {
     build_feature_checked(input)?.map_err(|what| {
         Error::InvalidValue(format!(
@@ -560,8 +562,9 @@ pub(crate) fn build_feature_checked(
     feature.charge = charge;
     feature.quality = x86_64::narrow(quality.final_score);
     // `setMetaValue` and `setWidth` store any value (`BaseFeature.cpp:87-94`);
-    // an infinite FWHM is reachable with finite input (retention times of
-    // about 1e37 and more), and the Release build returns such features.
+    // an infinite FWHM is reachable with finite input (FFC_1's retention
+    // times scaled by 6e36 and more), and the Release build returns such
+    // features.
     feature.metadata.insert(
         "score_fit".into(),
         MetaValue::source_float(quality.fit_score),

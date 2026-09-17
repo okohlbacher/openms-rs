@@ -43,10 +43,10 @@ use crate::analysis::feature_finder_picked::algorithm::{
     check_parameters, check_run_conversions, default_parameters, validate_input,
 };
 use crate::analysis::feature_finder_picked::debug::{
-    AbortReasons, DebugOutput, DebugTermination, FEATURE_DEBUG_PATH, FeatureDebugFiles,
-    FeatureDebugInput, LogFragment, LogSink, NoLog, ReportLine, SeedMap, TerminationKind,
-    abort_map, debug_experiment, g, g32, put_all, read_pseudo_rt_shift, seed_map,
-    write_feature_debug_info,
+    AbortReasons, DebugLogFile, DebugOutput, DebugTermination, FEATURE_DEBUG_PATH,
+    FeatureDebugFiles, FeatureDebugInput, LogFragment, LogSink, NoLog, ReportLine, SeedMap,
+    TerminationKind, TerminationPoint, abort_map_source, debug_experiment, g, g32, put_all,
+    read_pseudo_rt_shift, seed_map, write_feature_debug_info,
 };
 use crate::analysis::feature_finder_picked::extension::{
     EMPTY_PATTERN_WHAT, OverallScores, extend_mass_traces_logged, find_best_isotope_fit_logged,
@@ -158,10 +158,32 @@ enum LogState {
     /// Never opened: the next debug run opens (and truncates) the file.
     #[default]
     Closed,
-    /// Opened by a debug run and still open, as the member is never closed.
-    Open,
-    /// A later open failed: `failbit` is set and every write is dropped.
-    Failed,
+    /// Opened by a debug run and still open, as the member is never closed:
+    /// what that run wrote into the stream and how much of it the file buffer
+    /// has handed to the file.
+    Open { written: usize, flushed: usize },
+    /// A later open failed: `failbit` is set and every write is dropped; the
+    /// buffer still holds the opening run's unflushed tail.
+    Failed { written: usize, flushed: usize },
+}
+
+impl LogState {
+    /// The stream as [`DebugLogFile`], once a debug run opened it.
+    fn file(self) -> Option<DebugLogFile> {
+        match self {
+            Self::Closed => None,
+            Self::Open { written, flushed } => Some(DebugLogFile {
+                written,
+                flushed,
+                failed: false,
+            }),
+            Self::Failed { written, flushed } => Some(DebugLogFile {
+                written,
+                flushed,
+                failed: true,
+            }),
+        }
+    }
 }
 
 /// The source algorithm object with its state.
@@ -185,6 +207,8 @@ pub struct FeatureFinderAlgorithmPicked {
     options: Options,
     report: Vec<ReportLine>,
     debug: Option<DebugOutput>,
+    /// Where the source process ends in the last run, if it does.
+    termination: Option<DebugTermination>,
     console: Option<ConsoleSink>,
     /// Source member `isotope_distributions_`, which `run_` extends and never
     /// clears ([`IsotopeWindows::precalculate_onto`]).
@@ -246,6 +270,7 @@ impl FeatureFinderAlgorithmPicked {
             options,
             report: Vec::new(),
             debug: None,
+            termination: None,
             console: None,
             windows: None,
         })
@@ -521,6 +546,26 @@ impl FeatureFinderAlgorithmPicked {
         self.debug.take()
     }
 
+    /// Where the source process ends in the last [`Self::run`], with or
+    /// without `write_debug`: the run was refused there, and the executed
+    /// process leaves `debug/log.txt` at
+    /// [`DebugTermination::log_file_bytes`]. `None` when the source returns
+    /// or throws to its caller, or the run failed on one of the port's own
+    /// ceilings.
+    pub fn termination(&self) -> Option<&DebugTermination> {
+        self.termination.as_ref()
+    }
+
+    /// The instance's never-closed `debug/log.txt` stream (source member
+    /// `log_`), once a debug run opened it: what that run wrote, how much of
+    /// it is in the file while the instance lives, and whether a later debug
+    /// run failed to reopen it. Dropping the instance writes the rest, as the
+    /// source's destructor does; a process that ends first leaves the file at
+    /// [`DebugLogFile::flushed`].
+    pub fn debug_log_file(&self) -> Option<DebugLogFile> {
+        self.log_state.file()
+    }
+
     /// Find features: source `run(PeakMap&&, FeatureMap&, const Param&, const FeatureMap& seeds)`.
     ///
     /// `experiment` holds centroided MS1 spectra and is consumed. The features
@@ -566,6 +611,11 @@ impl FeatureFinderAlgorithmPicked {
     /// hold what the run produced up to there: a debug run that fails after
     /// the point where the source opens `debug/log.txt` (after the score
     /// arrays, before step 1) has opened it and written what the source wrote.
+    /// Where the source process ends instead of returning,
+    /// [`Self::termination`] records the point, whether or not the run writes
+    /// debug output: a wrapping score-array count that writes out of bounds, a
+    /// seed-loop crash, hang or exception, a charge-0 remainder in step 4, and
+    /// a stale abort seed outside the input.
     pub fn run(
         &mut self,
         experiment: MSExperiment,
@@ -575,6 +625,7 @@ impl FeatureFinderAlgorithmPicked {
     ) -> Result<()> {
         let mut report = Vec::new();
         self.debug = None;
+        self.termination = None;
         let mut sink = self.console.take();
         let result = {
             let mut console = Console {
@@ -585,6 +636,20 @@ impl FeatureFinderAlgorithmPicked {
         };
         self.console = sink;
         self.report = report;
+        // A run that opened the stream leaves it open with what it wrote; the
+        // stream keeps those counts for every later run (`LogState`).
+        if let Some(out) = self.debug.as_ref().filter(|out| out.log_opened) {
+            self.log_state = LogState::Open {
+                written: out.log.len(),
+                flushed: out.log.flushed_bytes(),
+            };
+        }
+        if let Some(termination) = self.termination.as_mut() {
+            termination.log_file_bytes = self.log_state.file().map(|file| file.flushed);
+            if let Some(out) = self.debug.as_mut() {
+                out.termination = Some(termination.clone());
+            }
+        }
         result
     }
 
@@ -681,6 +746,21 @@ impl FeatureFinderAlgorithmPicked {
                     let mut out = Some(open_debug_log(&mut self.log_state));
                     append_log(&mut out, &prefix, &limits)?;
                     self.debug = out;
+                } else if !opened
+                    && settings.score_arrays_overrun(&limits)
+                    && settings
+                        .charge_count()
+                        .is_err_and(|refusal| refusal.to_string() == error.to_string())
+                {
+                    // The wrapped score-array count: the source writes past
+                    // the arrays before it opens the stream (`:196-221`).
+                    self.termination = Some(DebugTermination {
+                        point: TerminationPoint::ScoreArrays,
+                        kind: TerminationKind::OutOfBounds,
+                        exception: "SIGSEGV",
+                        message: error.to_string(),
+                        log_file_bytes: None,
+                    });
                 }
                 return Err(error);
             }
@@ -754,6 +834,7 @@ impl FeatureFinderAlgorithmPicked {
                     aborts: &mut self.aborts,
                     abort_reasons: &mut self.abort_reasons,
                     out: &mut out,
+                    termination: &mut self.termination,
                     features: &mut features.features,
                     plot_nr_global: &mut plot_nr_global,
                     feature_nr_global: &mut feature_nr_global,
@@ -793,6 +874,7 @@ impl FeatureFinderAlgorithmPicked {
             }
             // `sortByMZ()`: `std::sort` with `Feature::MZLess`.
             source_sort_by(all, |a, b| a.mz < b.mz)?;
+            let mut trap = None;
             let removed = if debug {
                 resolve_overlaps_logged(
                     all,
@@ -800,6 +882,7 @@ impl FeatureFinderAlgorithmPicked {
                     &mut resolution_log,
                     // `size_t` to `SignedSize`: two's complement.
                     &mut |value| progress.set(value as i64),
+                    &mut trap,
                 )
             } else {
                 resolve_overlaps_logged(
@@ -807,9 +890,22 @@ impl FeatureFinderAlgorithmPicked {
                     settings.max_feature_intersection,
                     &mut NoLog,
                     &mut |value| progress.set(value as i64),
+                    &mut trap,
                 )
             };
             append_log(&mut out, &resolution_log, &limits)?;
+            if let (Some((first, second)), Err(error)) = (trap, &removed) {
+                // `f2.getCharge() % f1.getCharge()` traps (`:936`, `:945`):
+                // the process dies with the pair's `Intersection` line in the
+                // stream's buffer.
+                self.termination = Some(DebugTermination {
+                    point: TerminationPoint::OverlapResolution { first, second },
+                    kind: TerminationKind::ArithmeticTrap,
+                    exception: "SIGFPE",
+                    message: error.to_string(),
+                    log_file_bytes: None,
+                });
+            }
             let removed = removed?;
             report.push(ReportLine::Info(format!(
                 "Removed {removed} overlapping features."
@@ -838,21 +934,46 @@ impl FeatureFinderAlgorithmPicked {
         }
         if let Some(mut debug_out) = out {
             // The abort map (`:1028-1045`) may refuse; what came before stays.
-            let map = abort_map(&self.abort_reasons, stage.experiment());
+            let map = match abort_map_source(&self.abort_reasons, stage.experiment()) {
+                Ok(map) => map,
+                Err(error) => {
+                    self.debug = Some(debug_out);
+                    return Err(error);
+                }
+            };
             match map {
                 Ok(map) => {
                     debug_out.abort_reasons = Some(map);
                     report.push(ReportLine::StoreAbortReasons);
+                }
+                Err(stale) => {
+                    // `map_[it2->first.spectrum]` reads out of bounds: the
+                    // process dies before it stores the map (executed:
+                    // SIGSEGV).
+                    self.termination = Some(DebugTermination {
+                        point: TerminationPoint::AbortMap { entry: stale.entry },
+                        kind: TerminationKind::OutOfBounds,
+                        exception: "SIGSEGV",
+                        message: stale.error.to_string(),
+                        log_file_bytes: None,
+                    });
+                    self.debug = Some(debug_out);
+                    return Err(stale.error);
+                }
+            }
+            let scores = stage.scores().clone();
+            let input = debug_experiment(stage.into_experiment(), &scores);
+            match input {
+                Ok(input) => {
+                    debug_out.input = Some(input);
+                    report.push(ReportLine::StoreInput);
+                    self.debug = Some(debug_out);
                 }
                 Err(error) => {
                     self.debug = Some(debug_out);
                     return Err(error);
                 }
             }
-            let scores = stage.scores().clone();
-            debug_out.input = Some(debug_experiment(stage.into_experiment(), &scores)?);
-            report.push(ReportLine::StoreInput);
-            self.debug = Some(debug_out);
         }
         Ok(())
     }
@@ -864,11 +985,14 @@ impl FeatureFinderAlgorithmPicked {
 fn open_debug_log(state: &mut LogState) -> DebugOutput {
     let opened = match *state {
         LogState::Closed => {
-            *state = LogState::Open;
+            *state = LogState::Open {
+                written: 0,
+                flushed: 0,
+            };
             true
         }
-        LogState::Open | LogState::Failed => {
-            *state = LogState::Failed;
+        LogState::Open { written, flushed } | LogState::Failed { written, flushed } => {
+            *state = LogState::Failed { written, flushed };
             false
         }
     };
@@ -1191,6 +1315,9 @@ pub(crate) struct Bookkeeping<'a, 'p> {
     pub(crate) aborts: &'a mut BTreeMap<String, u32>,
     pub(crate) abort_reasons: &'a mut AbortReasons,
     pub(crate) out: &'a mut Option<DebugOutput>,
+    /// Where the source process ends, debug run or not; the run completes
+    /// the stream length afterwards.
+    pub(crate) termination: &'a mut Option<DebugTermination>,
     pub(crate) features: &'a mut Vec<Feature>,
     pub(crate) plot_nr_global: &'a mut i64,
     pub(crate) feature_nr_global: &'a mut i64,
@@ -1259,15 +1386,17 @@ pub(crate) fn settle_charge(
                     out.feature_files.push(files);
                 }
                 Err((exception, message)) => {
-                    let termination = DebugTermination {
-                        charge,
-                        seed_index: index,
-                        plot_nr,
+                    *book.termination = Some(DebugTermination {
+                        point: TerminationPoint::Seed {
+                            charge,
+                            seed_index: index,
+                            plot_nr,
+                        },
                         kind: TerminationKind::Exception,
                         exception,
                         message: message.clone(),
-                    };
-                    out.termination = Some(termination);
+                        log_file_bytes: None,
+                    });
                     return Err(Error::Unsupported(format!(
                         "write_debug: writeFeatureDebugInfo_ reads '{key_name}', and the source \
                          throws {exception} ({message}) inside its OpenMP region for seed \
@@ -1282,16 +1411,17 @@ pub(crate) fn settle_charge(
             Some(SeedTermination::Exception(what)) => {
                 // `getIsotopeDistribution_` throws at `:790`, inside the OpenMP
                 // region: the process ends after this seed's debug files.
-                if let Some(out) = book.out.as_mut() {
-                    out.termination = Some(DebugTermination {
+                *book.termination = Some(DebugTermination {
+                    point: TerminationPoint::Seed {
                         charge,
                         seed_index: index,
                         plot_nr,
-                        kind: TerminationKind::Exception,
-                        exception: "InvalidValue",
-                        message: what.clone(),
-                    });
-                }
+                    },
+                    kind: TerminationKind::Exception,
+                    exception: "InvalidValue",
+                    message: what.clone(),
+                    log_file_bytes: None,
+                });
                 return Err(Error::InvalidValue(format!(
                     "FeatureFinderAlgorithmPicked step 3.3.5: {what}; the source throws this \
                      inside its OpenMP region for seed {index} of charge {charge}, where \
@@ -1302,19 +1432,21 @@ pub(crate) fn settle_charge(
                 // The executed process dies here (or never returns): its log
                 // file holds what its buffer had flushed, this seed's lines
                 // included in the buffer.
-                if let Some(out) = book.out.as_mut() {
-                    out.termination = Some(DebugTermination {
+                *book.termination = Some(DebugTermination {
+                    point: TerminationPoint::Seed {
                         charge,
                         seed_index: index,
                         plot_nr,
-                        kind,
-                        exception: match kind {
-                            TerminationKind::OutOfBounds => "SIGSEGV",
-                            TerminationKind::Exception | TerminationKind::NeverReturns => "",
-                        },
-                        message: error.to_string(),
-                    });
-                }
+                    },
+                    kind,
+                    exception: match kind {
+                        TerminationKind::OutOfBounds => "SIGSEGV",
+                        TerminationKind::ArithmeticTrap => "SIGFPE",
+                        TerminationKind::Exception | TerminationKind::NeverReturns => "",
+                    },
+                    message: error.to_string(),
+                    log_file_bytes: None,
+                });
                 return Err(error);
             }
         }
@@ -1442,6 +1574,7 @@ mod tests {
             log_opened: true,
             ..DebugOutput::default()
         });
+        let mut termination = None;
         let mut features = Vec::new();
         let (mut plot_nr_global, mut feature_nr_global) = (-1, 0);
         let mut progress = Progress::silent();
@@ -1450,6 +1583,7 @@ mod tests {
             aborts: &mut aborts,
             abort_reasons: &mut abort_reasons,
             out: &mut out,
+            termination: &mut termination,
             features: &mut features,
             plot_nr_global: &mut plot_nr_global,
             feature_nr_global: &mut feature_nr_global,
@@ -1468,15 +1602,20 @@ mod tests {
         assert_eq!(out.log.text(), "\nSeed 0:\n");
         assert_eq!(out.feature_files.len(), 1);
         assert_eq!(out.feature_files[0].dta_name(), "debug/features/0.dta");
+        // The run completes the stream length (`FeatureFinderAlgorithmPicked::run`).
+        assert_eq!(out.termination, None);
         assert_eq!(
-            out.termination,
+            termination,
             Some(DebugTermination {
-                charge: 1,
-                seed_index: 0,
-                plot_nr: 0,
+                point: TerminationPoint::Seed {
+                    charge: 1,
+                    seed_index: 0,
+                    plot_nr: 0,
+                },
                 kind: TerminationKind::Exception,
                 exception: "InvalidValue",
                 message: what.to_owned(),
+                log_file_bytes: None,
             })
         );
     }

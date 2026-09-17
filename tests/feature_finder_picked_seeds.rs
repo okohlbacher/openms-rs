@@ -1588,26 +1588,7 @@ fn underflowed_windows_and_a_nan_cutoff_leave_nothing_to_append() {
         let earlier = IsotopeWindows::precalculate(first_max_mz, first, &options).unwrap();
         let reused =
             IsotopeWindows::precalculate_onto(Some(&earlier), max_mz, second, &options).unwrap();
-        let mut rows = Vec::new();
-        for (index, pattern) in reused.patterns().iter().enumerate().take(40) {
-            let mut row = vec![
-                "isowin".to_owned(),
-                index.to_string(),
-                pattern.trimmed_left.to_string(),
-                pattern.optional_begin.to_string(),
-                pattern.optional_end.to_string(),
-                format!("{:016x}", pattern.max.to_bits()),
-                pattern.intensity.len().to_string(),
-            ];
-            row.extend(
-                pattern
-                    .intensity
-                    .iter()
-                    .map(|value| format!("{:016x}", value.to_bits())),
-            );
-            rows.push(row.join("\t"));
-        }
-        rows.push(format!("windows\t{}", reused.patterns().len()));
+        let rows = window_rows(&reused);
         let executed: Vec<&str> = fixture
             .lines()
             .filter_map(|line| line.strip_prefix(scenario)?.strip_prefix('\t'))
@@ -1618,6 +1599,105 @@ fn underflowed_windows_and_a_nan_cutoff_leave_nothing_to_append() {
             assert_eq!(actual, expected, "{scenario}");
         }
     }
+}
+
+/// The rows `fix4_reuse` prints for `windows`: the first 40 isotope windows
+/// (index, `trimmed_left`, optional range, maximum and intensities as bits)
+/// and the window count.
+fn window_rows(windows: &IsotopeWindows) -> Vec<String> {
+    let mut rows = Vec::new();
+    for (index, pattern) in windows.patterns().iter().enumerate().take(40) {
+        let mut row = vec![
+            "isowin".to_owned(),
+            index.to_string(),
+            pattern.trimmed_left.to_string(),
+            pattern.optional_begin.to_string(),
+            pattern.optional_end.to_string(),
+            format!("{:016x}", pattern.max.to_bits()),
+            pattern.intensity.len().to_string(),
+        ];
+        row.extend(
+            pattern
+                .intensity
+                .iter()
+                .map(|value| format!("{:016x}", value.to_bits())),
+        );
+        rows.push(row.join("\t"));
+    }
+    rows.push(format!("windows\t{}", windows.patterns().len()));
+    rows
+}
+
+/// The executed reuse scenarios at the instance level (`reuse_windows.tsv`,
+/// `../oracle/ffap-complete-fix4`, `fix4_reuse`, two runs each, identical):
+/// one `FeatureFinderAlgorithmPicked` object runs FeatureFinderCentroided_1
+/// twice, the second run changing one thing, and keeps
+/// `isotope_distributions_` from the first run, which step 2.5 resizes and
+/// trims again (`.cpp:361`, `:378`). The executed feature counts of the two
+/// runs are 8/5 for the same parameters twice and for a first run whose last
+/// peak lies at m/z 137,000 (2,741 windows, shrunk to 15 by the second run),
+/// where a fresh object finds 8; 0/8 for a NaN
+/// `intensity_percentage_optional` in the first run; and 8/8 for a NaN cutoff
+/// in the second. The instance must find the executed counts of both runs and
+/// hold the executed windows afterwards.
+#[test]
+fn a_reused_instance_finds_the_executed_features_and_keeps_the_executed_windows() {
+    use openms::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
+    let fixture = std::fs::read_to_string(data("reuse_windows.tsv")).unwrap();
+    let base = ffc1_parameters();
+    let mut nan_cutoff = base.clone();
+    set(
+        &mut nan_cutoff,
+        "isotopic_pattern:intensity_percentage_optional",
+        ParamValue::Float(f64::NAN),
+    );
+    let heavy_input = || {
+        let mut input = ffc1_input();
+        let last = input.spectra.last_mut().unwrap();
+        last.peaks.last_mut().unwrap().mz = 137_000.0;
+        input
+    };
+    let mut scenarios = 0;
+    for (scenario, first, second, heavy) in [
+        ("nan_after_default", &base, &nan_cutoff, false),
+        ("default_after_nan", &nan_cutoff, &base, false),
+        ("default_after_heavy", &base, &base, true),
+        ("default_twice", &base, &base, false),
+    ] {
+        let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+        let mut rows = Vec::new();
+        for (run, parameters) in [(1, first), (2, second)] {
+            let input = if run == 1 && heavy {
+                heavy_input()
+            } else {
+                ffc1_input()
+            };
+            let mut features = FeatureMap::new();
+            match algorithm.run(input, &mut features, parameters, &FeatureMap::new()) {
+                Ok(()) => rows.push(format!("run\t{run}\tfeatures\t{}", features.len())),
+                Err(error) => rows.push(format!("run\t{run}\tthrew\t{error}")),
+            }
+        }
+        rows.extend(window_rows(algorithm.isotope_windows().unwrap()));
+        let executed: Vec<&str> = fixture
+            .lines()
+            .filter_map(|line| line.strip_prefix(scenario)?.strip_prefix('\t'))
+            .collect();
+        assert_eq!(
+            executed
+                .iter()
+                .filter(|row| row.starts_with("run\t"))
+                .count(),
+            2,
+            "{scenario}: executed run rows"
+        );
+        assert_eq!(rows.len(), executed.len(), "{scenario}: rows");
+        for (actual, expected) in rows.iter().zip(&executed) {
+            assert_eq!(actual, expected, "{scenario}");
+        }
+        scenarios += 1;
+    }
+    assert_eq!(scenarios, 4);
 }
 
 // ---------------------------------------------------------------------------
