@@ -2331,7 +2331,8 @@ fn process_ending_refusals_outside_the_seed_loop_record_their_termination() {
     }
 
     // The score arrays, before `debug/` exists: a wrap to one array (4/2) and
-    // one to 12,201,611 arrays, the port's 1 GiB recording line (fix round 6).
+    // one to 12,201,611 arrays, which was the port's recording line in fix
+    // round 6 and is well inside it since the round-6 minors raised it.
     for (case, low, high) in [
         ("wrap42_fresh_dbg", 4, 2),
         ("wrap1g_fresh_dbg", 2_141_382_846, 1),
@@ -2544,10 +2545,11 @@ fn a_wrapped_score_array_count_records_its_termination_up_to_the_documented_ceil
 /// - an empty best isotope pattern (`vfi2_driver neg`'s `avg0` section:
 ///   SIGSEGV in the seed loop);
 /// - a score-array count that wraps to 1 (4/2), to 1003 arrays
-///   (`INT_MAX`/498) or to 12,201,611 arrays (2141382846/1, the port's 1 GiB
-///   recording line, executed in fix round 6): SIGSEGV before the stream is
-///   touched; one that wraps to `2^32 - 5` arrays (7/2) throws
-///   `std::bad_alloc` under the 16 GB address space, which the driver catches;
+///   (`INT_MAX`/498) or to 12,201,611 arrays (2141382846/1, fix round 6's
+///   recording line, below the one the round-6 minors measured): SIGSEGV
+///   before the stream is touched; one that wraps to `2^32 - 5` arrays (7/2)
+///   throws `std::bad_alloc` under the 16 GB address space, which the driver
+///   catches;
 /// - the same run again, which returns.
 ///
 /// Wherever the process ended, `debug/log.txt` is the first run's flushed
@@ -2630,9 +2632,9 @@ fn a_reused_instance_leaves_the_executed_log_at_every_later_termination() {
                 let (low, high) = match second {
                     "wrap42" => (4, 2),
                     "wrap72" => (7, 2),
-                    // 12,201,611 arrays per spectrum: 1 GiB at 88 bytes each,
-                    // the largest allocation for which the port records a
-                    // termination (fix round 6).
+                    // 12,201,611 arrays per spectrum, 1 GiB at 88 bytes each:
+                    // fix round 6's recording line, and still recorded under
+                    // the higher one the round-6 minors measured.
                     "wrap1g" => (2_141_382_846, 1),
                     _ => (i64::from(i32::MAX), 498),
                 };

@@ -743,7 +743,7 @@ pub(crate) const SOURCE_FLOAT_DATA_ARRAY_BYTES: u64 = 88;
 /// `2^32 - 5` arrays, which threw `std::bad_alloc` under a 16 GB and under a
 /// 500 GB address space (`../oracle/ffap-complete-fix6`). That count was not
 /// run uncapped, because at the measured 232 bytes per array it needs about
-/// 928 GiB, within a few percent of the whole shared reference node; the port
+/// 928 GiB, 93% of the shared reference node's entire memory; the port
 /// therefore records nothing for it, as it records nothing for the unmeasured
 /// counts between the line and it.
 ///

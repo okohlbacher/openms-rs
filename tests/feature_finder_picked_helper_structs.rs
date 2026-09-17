@@ -1022,6 +1022,11 @@ fn update_baseline_keeps_its_value_when_no_trace_has_peaks() {
 /// `is_nan()`, a bool, so the claim rested on reasoning about the instruction
 /// and not on an executed value.
 ///
+/// That bool stays as it is. It belongs to the product-SDK oracle above, a
+/// Debug macOS arm64 build, whose promotion is `fcvt` and not the instruction
+/// the claim is about; recording its bits would pin the wrong platform. The
+/// fixture below is the Linux x86_64 Release build the port follows.
+///
 /// The fixture is the executed capture: 18 `f32` patterns - quiet, signalling,
 /// negative and maximal-payload NaNs, both zeros, both infinities, both unit
 /// values, both extremes, the two smallest subnormals, the smallest normal and

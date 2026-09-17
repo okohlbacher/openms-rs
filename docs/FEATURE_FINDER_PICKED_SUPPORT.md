@@ -373,8 +373,8 @@ map's random unique id; `termination_digests.tsv.gz`):
   (`a_wrapped_score_array_count_records_its_termination_up_to_the_documented_ceiling`
   asserts both halves). Above the line the only measured count is 7/2's
   `2^32 - 5` arrays, which throws under a 16 GB and under a 500 GB address
-  space; at 232 bytes per array it would need about 928 GiB, within a few
-  percent of the whole shared reference node, so it was not run uncapped and
+  space; at 232 bytes per array it would need about 928 GiB, 93% of the shared
+  reference node's entire memory, so it was not run uncapped and
   the port stays silent for it and for the unmeasured counts below it. That
   line is a crate constant (`SCORE_ARRAY_TERMINATION_CEILING_BYTES`), not a
   `Limits` field, so no caller can move where a termination is recorded (lead
