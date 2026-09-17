@@ -7,8 +7,10 @@ repetitions per cell on a quiet node, with the equivalence of every output
 judged separately for data and for metadata. They replace the wave-3 results
 entirely. The port is faster on two tools and level on a third at one thread,
 and 1.9x faster on the picker at 32 threads; it is slower on the rest and uses
-more memory on most. Section 5 lists what the run does **not** establish, and
-section 4 the caveats that qualify every figure in it.
+more memory on most. Section 6 lists what the run does **not** establish, and
+section 5 the caveats that qualify every figure in it.
+Section 4 is a separate, narrower wave-5 run that answers one build-flag
+question and is **not** comparable with the wave-4 tables in absolute terms.
 
 Everything below is against **one** C++ reference: the optimised build at
 `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576`. The
@@ -105,7 +107,7 @@ All eight ported TOPP tools are measured on **full-size instrument data**. The
 three tools whose Rust build refused real input in wave 3 — MzMLSplitter,
 SpectraFilterWindowMower and FileInfo on featureXML — now accept it, so none of
 wave 3's reduced substitute inputs is used. FeatureFinderCentroided is the one
-exception and runs on the same documented 4,000-spectrum subset as wave 3; §4.6
+exception and runs on the same documented 4,000-spectrum subset as wave 3; §5.6
 says why, and what that costs the conclusion.
 
 ### 3.1 What ran
@@ -152,7 +154,7 @@ GNU `time %M` of the tool itself, median over repetitions.
 | FeatureFinderCentroided | Velos 4,000-spectrum subset | 5,5 | 112.380 [112.264–112.389] | 90.086 [90.003–90.104] | 1.247 | [1.244, 1.250] | 1.249 | 310.3 | 360.1 | 0.86 |
 
 The SpectraFilterWindowMower ratio is printed as a range on purpose: n = 3 and
-one repetition is 4.6 % high (§4.5).
+one repetition is 4.6 % high (§5.5).
 
 ### 3.3 Thirty-two threads
 
@@ -185,7 +187,7 @@ one repetition is 4.6 % high (§4.5).
   1.06×. A genuine parallelism result, not a start-up or work-volume artefact.
 
 **Level.** `PeakPickerHiRes` at 1 thread, 1.010, CI [1.005, 1.013] — inside the
-~3 % cross-session band of §4.4, so read it as *no difference measured*, not as
+~3 % cross-session band of §5.4, so read it as *no difference measured*, not as
 1 % slower.
 
 **Slower.** Everything else, at both thread counts: `DTAExtractor` 1.099 /
@@ -317,7 +319,7 @@ and a software term that differs (`MS:1000799` in Rust against `MS:1002135` /
 **Container parity.** Both sides write `indexedmzML` with an index. C++ writes
 `<fileChecksum>0</fileChecksum>` (`CPP-049`) and an `indexListOffset` one byte
 early (`CPP-305`); this port computes a real SHA-1 and addresses the opening
-`<indexList` exactly. §4.1 quantifies what that costs, and labels the figure.
+`<indexList` exactly. §5.1 quantifies what that costs, and labels the figure.
 
 **Determinism and thread-invariance.** All 36 repetition checks and all 18
 thread-invariance checks are `bitwise_equal` at the **data** level, on both
@@ -360,7 +362,132 @@ can. Four 1-thread ratios improved by 19–24 %. Both of wave 3's data-correctne
 findings are closed. One tool got slower because it stopped writing less than it
 should.
 
-## 4. Caveats that apply to every number above
+## 4. The wave-5 run: the FMA build-flag question (dax, 2026-09-17)
+
+Run directory
+`/ceph/ibmi/abi/oliver/bench/openms4/results/2026-09-17-fma/fma-ffc-dax-1`
+(`summary.md`), plan `fma-ffc`
+(`/ceph/ibmi/abi/oliver/bench/openms4/fma-2026-09-17/config/plan_fma_ffc.json`,
+sha256 `46be874d7147ed45`), started 2026-09-17T05:34:38+00:00. Harness git
+`962a87e3de8b`. The staged notes are in the session scratchpad as
+`fma-benchmark.md`; that file was written *before* the run and its section 4
+still says "not measured" — the numbers below supersede it.
+
+**This run is not comparable with §3.** It ran on **dax** (AMD EPYC 9654, 2
+sockets, 96 cores each, 384 logical CPUs), not on **ibminode05** (EPYC 7763),
+which is the wave-4 timing node and the only node §3's absolute figures may be
+read against. Nothing here may be put in the same table as a wave-4 second, and
+no wave-4 ratio may be updated from it. The five cells below are comparable
+**with each other**, because they are interleaved repetitions of one plan on one
+node in one session.
+
+It is also a single tool on a single dataset: `FeatureFinderCentroided` on
+`sub_centroid_velos_50amol_r1_first4000`, the same documented 4,000-spectrum
+subset §3 uses, with the same shared INI (sha256 `2869134aeb3f98ed`, the C++
+`-write_ini` defaults, no edits). 1 warm-up and **5 interleaved measured
+rounds**, seed 20260917, at 1 and 32 threads. **0 of the repetitions were
+load-flagged** (gate: flag above 0.25 per core, 0.05 at threads=1).
+
+### 4.1 What ran
+
+| cell | build |
+|---|---|
+| `cpp-release` | the §1 C++ Release build, core `bc9cc12` / cli `c19e494` / topp `174b576`, gcc 14.4 `-O3`, no `-march`, staged node-local |
+| `rust-main` | `openms-rs` main `59e0e1c`, `cargo build --release --locked --offline --bins`, default features, **no `RUSTFLAGS`** (x86-64 baseline) |
+| `rust-ffap` | `port/ffap-complete` `ddc35a7` (fix round 4), same build, no `RUSTFLAGS` |
+| `rust-ffap-fma` | `port/ffap-complete` `ddc35a7`, same build with `RUSTFLAGS='-C target-feature=+fma'` |
+| `rust-main-fma` | main `59e0e1c` with `+fma` — the **control**, which isolates the code-generation effect of the flag from the effect of inlining the port's `mul_add` sites |
+
+The branch measured is `ddc35a7`, not the round-6 head the rest of this wave
+records. Fix rounds 5 and 6 add a few branches per peak (the SSE NaN rules of
+`MassTrace::avg_mz`, the intensity profile and `MassTraces::update_baseline`);
+they are not expected to move these figures and were not measured.
+
+### 4.2 Medians
+
+Wall-clock median of 5 measured rounds, in seconds.
+
+| cell | 1 thread | 32 threads | peak RSS 1 thread, MiB |
+|---|---:|---:|---:|
+| `cpp-release` | 82.069 | 22.641 | 360.0 |
+| `rust-main` | 99.702 | 23.939 | 305.0 |
+| `rust-ffap` | 121.051 | 21.946 | 319.0 |
+| `rust-ffap-fma` | **86.581** | **20.233** | 321.0 |
+| `rust-main-fma` | 97.373 | 23.579 | 306.0 |
+
+### 4.3 Ratios
+
+| pair | 1 thread | 95% CI | 32 threads | 95% CI |
+|---|---:|---|---:|---|
+| `rust-main` / C++ | 1.215 | [1.213, 1.218] | 1.057 | [1.054, 1.062] |
+| `rust-ffap` / C++ | 1.475 | [1.468, 1.521] | 0.969 | [0.956, 0.974] |
+| `rust-ffap-fma` / C++ | **1.055** | [1.053, 1.057] | **0.894** | [0.889, 0.907] |
+| `rust-main-fma` / C++ | 1.186 | [1.185, 1.190] | 1.041 | [1.038, 1.044] |
+| `rust-ffap` / `rust-main` | **1.214** | [1.208, 1.252] | 0.917 | [0.905, 0.920] |
+| `rust-ffap-fma` / `rust-ffap` | **0.715** | [0.693, 0.719] | 0.922 | [0.917, 0.945] |
+| `rust-main-fma` / `rust-main` | **0.977** | [0.974, 0.980] | 0.985 | [0.982, 0.987] |
+
+Read plainly:
+
+- **The completed FeatureFinderAlgorithmPicked costs 21 % at one thread on a
+  default build.** `rust-ffap` / `rust-main` is 1.214. The cost is the port's
+  bit-exact numerics: on a baseline x86-64 build every `f64::mul_add` of the
+  ported glibc `powf`, `exp` and `log` becomes two indirect calls into
+  `compiler_builtins`' `fma` stub (41 call sites in the tool binary), instead of
+  one instruction.
+- **`-C target-feature=+fma` removes that cost and more.** `rust-ffap-fma` /
+  `rust-ffap` is 0.715 at one thread; against C++ the completed port goes from
+  1.475 to **1.055** at one thread and from 0.969 to **0.894** at 32.
+- **The control gains only 2.3 %.** `rust-main-fma` / `rust-main` is 0.977, so
+  almost all of the 28.5 % is the `mul_add` inlining, not the flag's other
+  effects.
+- **Output is unchanged by the flag.** `rust-ffap-fma` against `rust-ffap` is
+  `bitwise_equal` (data) and `equal` (metadata) at **both** thread counts, 4,076
+  features matched, 0 unmatched, 0 charge disagreements. Every Rust cell is
+  `equal_within_tolerance` against C++ on the same counts, and every cell's five
+  repetitions are `bitwise_equal` to each other.
+
+### 4.4 What the flag actually turns on
+
+`-C target-feature=+fma` is **not** limited to the `mul_add` sites. rustc
+implies `avx`, `sse3`, `ssse3`, `sse4.1` and `sse4.2` from `fma`
+(`rustc --print cfg -C target-feature=+fma`), so the whole crate is compiled
+with VEX encoding and 256-bit auto-vectorisation. In the measured binaries the
+tool goes from 469 to 44,645 VEX instructions on the branch, and from 467 to
+40,259 on main, which has no `mul_add` at all.
+
+Two consequences, both for the decision and neither of them a measurement:
+
+- **It raises the minimum CPU.** The binaries then require an FMA-capable
+  processor — Intel Haswell or AMD Piledriver and later — instead of baseline
+  x86-64.
+- **A narrower alternative exists and was not measured.**
+  `#[target_feature(enable = "fma")]` on the three ported replica functions with
+  runtime dispatch would confine the change to them.
+
+### 4.5 The decision is open
+
+**Nothing in the build configuration was changed by this wave.** No
+`RUSTFLAGS`, no `[profile.release]` override and no `.cargo/config.toml` entry
+was added, on any branch or in CI; the `+fma` cells above were built out of tree
+by the harness. Whether release builds should adopt `-C target-feature=+fma`,
+use narrower per-function runtime dispatch, or accept the 21 % at one thread is
+**open with the user**, and is recorded as open in `docs/VALIDATION.md` and
+`docs/EARLY_TOPP_WORK_PACKAGES.md`.
+
+### 4.6 Which caveats of §5 apply
+
+§5's caveats on cross-session drift (treat differences below about 3 % as not
+established without a second session), on the unfixed CPU governor, on the
+differing build flags of the two sides, and on the 4,000-spectrum subset all
+apply here unchanged. The three ratios called out above — 1.214, 0.715 and
+0.977 — are 21 %, 28.5 % and 2.3 %; the first two are far outside that band,
+and **the 2.3 % control figure is inside it**, so read that one as "small, and
+not separated from noise by this session alone". §5's node-specific figures and
+§6's list are written for the wave-4 run on ibminode05 and are not restated
+here.
+
+## 5. Caveats that apply to every number above
 
 1. **The port does work the C++ side skips on every indexed mzML it writes, and
    the size of that work is a projection, not a measurement.**
@@ -496,27 +623,27 @@ should.
     sub-1 % wall difference to a source change. See
     [EARLY_TOPP_WORK_PACKAGES](EARLY_TOPP_WORK_PACKAGES.md).
 
-## 5. What this run does not establish
+## 6. What this run does not establish
 
 - **Anything about FeatureFinderCentroided at production scale.** The
   comparison is a 4,000-spectrum subset; on the full run neither side finishes
-  (§4.6).
+  (§5.6).
 - **Byte-level output compatibility with the source for any mzML-writing
   tool.** The port writes no indentation, so every line differs textually even
-  where every array is bitwise identical (§4.2).
+  where every array is bitwise identical (§5.2).
 - **Memory parity.** The port uses 1.1×–2.7× the peak RSS on six of nine cases
   (§3.4).
-- **Anything at better than about 3 % across sessions** (§4.4), and nothing at
-  all about cold-start or I/O-bound behaviour (§4.8).
+- **Anything at better than about 3 % across sessions** (§5.4), and nothing at
+  all about cold-start or I/O-bound behaviour (§5.8).
 - **A decomposition of the mzML write path.** The SHA-1 share is projected from
-  a throughput measurement, not ablated (§4.1).
+  a throughput measurement, not ablated (§5.1).
 - **Thread scaling beyond 1 and 32**, and nothing about the five Rust tools that
   ignore `-threads` beyond the fact that they ignore it (§3.5).
 - **Any claim that the C++ 32-thread column had a doubled compute budget.** It
   did not; the surplus threads are an idle library pool the harness itself sizes
   (§3.5).
 
-## 6. Reproducing
+## 7. Reproducing
 
 ```
 # C++ reference: already built and staged; verify against its manifest
