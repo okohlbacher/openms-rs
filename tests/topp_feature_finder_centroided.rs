@@ -1423,23 +1423,12 @@ fn a_changed_abundance_finds_the_intended_features_where_the_cpp_release_build_f
     assert_eq!(map.features.len(), 1);
     let feature = &map.features[0];
     assert_eq!(feature.charge, 2);
-    // The retention time is the fitted centre. It is bit-identical on the two
-    // measured platforms, Linux x86_64 with glibc and macOS arm64; elsewhere
-    // the platform `exp` of the Gaussian fit may move its last bits
-    // (`tests/feature_finder_picked.rs`, `tolerance`).
+    // The retention time is the fitted centre. It is bit-identical on every
+    // platform: the Gaussian fit calls the reference build's glibc `exp` and
+    // `log`, ported (lead decision D10; `tests/feature_finder_picked.rs`,
+    // `tolerance`).
     let rt = f64::from_bits(0x40b1_2596_f2a0_4222);
-    if cfg!(any(
-        all(
-            target_os = "linux",
-            target_arch = "x86_64",
-            target_env = "gnu"
-        ),
-        all(target_os = "macos", target_arch = "aarch64")
-    )) {
-        assert_eq!(feature.rt.to_bits(), rt.to_bits());
-    } else {
-        assert!(((feature.rt - rt) / rt).abs() <= 1e-9, "{}", feature.rt);
-    }
+    assert_eq!(feature.rt.to_bits(), rt.to_bits());
     assert_eq!(feature.mz.to_bits(), 0x4084_420d_ed67_bc0c);
     assert_eq!(feature.intensity.to_bits(), 0x479e_e949);
     assert_eq!(feature.quality.to_bits(), 0x3f41_5149);

@@ -72,7 +72,7 @@ use crate::analysis::feature_finder_picked::source_sort::{
 };
 use crate::analysis::feature_finder_picked::trace_fitter::TraceFitterParams;
 use crate::concept::parallel::Threads;
-use crate::kernel::{Feature, FeatureMap, MSChromatogram, MSExperiment};
+use crate::kernel::{DataArray, Feature, FeatureMap, MSChromatogram, MSExperiment};
 use crate::param::{DefaultParamHandler, Param, ParamValue, ParamValueType};
 use crate::{Error, Result};
 
@@ -879,19 +879,65 @@ impl Settings {
     /// The number of charges searched, `charge_high - charge_low + 1`, or zero
     /// when `charge_low` exceeds `charge_high` by one.
     ///
+    /// The source computes `UInt charge_count = charge_high - charge_low + 1`
+    /// and resizes every spectrum's float data arrays to the `UInt` value
+    /// `3 + 2 * charge_count` before it writes arrays 0, 1 and 2 and the
+    /// pattern and overall arrays `[3, 3 + charge_count)` and
+    /// `[3 + charge_count, 3 + 2 * charge_count)`, both bounds in `UInt`
+    /// (`FeatureFinderAlgorithmPicked.cpp:196-221`). Whether that wraps
+    /// depends on the count `n` alone:
+    ///
+    /// - `0 <= n <= 2^31 - 2`: nothing wraps. `n = 0` (`charge_low =
+    ///   charge_high + 1`) gives three arrays and an empty result, as executed;
+    ///   larger counts are bounded by [`Limits::max_charges`], a native ceiling
+    ///   in front of an allocation of up to `2^32 - 1` arrays per spectrum,
+    ///   whose success depends on memory (executed: `std::bad_alloc` at
+    ///   `n = 2^31 - 2`).
+    /// - `n = 2^31 - 1` (`charge_low = 1`, `charge_high = INT_MAX`, the only
+    ///   positive count that wraps): the size wraps to 1 and the source writes
+    ///   arrays 1 and 2 past the end (executed: SIGSEGV).
+    /// - `n = -1` (`charge_low = charge_high + 2`): the size wraps to 1, the
+    ///   same out-of-bounds write (executed: SIGSEGV).
+    /// - `n = -2` and `n = -3`: the size wraps to `2^32 - 1` or `2^32 - 3` and
+    ///   every later write stays in bounds, so the outcome depends only on
+    ///   whether that allocation succeeds (executed: `std::bad_alloc`).
+    /// - `n <= -4`: the size wraps to `2^32 + 3 + 2n`, at least 9, and the
+    ///   pattern loop writes up to index `2^32 + 2 + n`, past it; the source
+    ///   writes out of bounds wherever the allocation succeeds (executed:
+    ///   SIGSEGV for `charge_low = INT_MAX` with `charge_high` 1 and 498, and
+    ///   `std::bad_alloc` where the wrapped size is near `2^32`).
+    ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when `charge_low` exceeds `charge_high`
-    /// by more than one. The source computes the count in `UInt`, which wraps:
-    /// a difference of one gives zero charges and an empty result, and a larger
-    /// difference resizes the score arrays to a wrapped size and then indexes
-    /// past their end, which is undefined behaviour.
+    /// Returns [`Error::InvalidValue`] for every count that wraps, whatever the
+    /// [`Limits`]: undefined behaviour (an out-of-bounds write) for
+    /// `n = 2^31 - 1`, `n = -1` and `n <= -4`, and for `n = -2` and `n = -3`
+    /// an allocation of billions of arrays per spectrum that the port does not
+    /// attempt.
     pub fn charge_count(&self) -> Result<usize> {
         let count = i64::from(self.charge_high) - i64::from(self.charge_low) + 1;
+        if count == i64::from(i32::MAX) {
+            return Err(Error::InvalidValue(format!(
+                "isotopic_pattern:charge_low {} and charge_high {}: the source's UInt score-array \
+                 count 3 + 2 * {count} wraps to 1 and the source writes past the arrays; the \
+                 behaviour is undefined",
+                self.charge_low, self.charge_high
+            )));
+        }
+        if count == -2 || count == -3 {
+            let size = (3u32).wrapping_add((count as u32).wrapping_mul(2));
+            return Err(Error::InvalidValue(format!(
+                "isotopic_pattern:charge_low {} exceeds charge_high {} by more than one; the \
+                 source's UInt score-array count wraps to {size} arrays per spectrum, whose \
+                 allocation depends on memory, and the port does not attempt it",
+                self.charge_low, self.charge_high
+            )));
+        }
         if count < 0 {
             return Err(Error::InvalidValue(format!(
-                "isotopic_pattern:charge_low {} exceeds charge_high {} by more than one; the source \
-                 behaviour is undefined",
+                "isotopic_pattern:charge_low {} exceeds charge_high {} by more than one; the \
+                 source's UInt score-array count wraps and the source writes past the arrays; \
+                 the behaviour is undefined",
                 self.charge_low, self.charge_high
             )));
         }
@@ -1146,10 +1192,12 @@ pub const UNSORTED_WARNING: &str =
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] with the source messages of
-/// `Exception::IllegalArgument` for checks 2, 3 and 5, and the kernel's error
-/// for a data array whose length differs from its peaks' (source
-/// `Exception::Precondition`), checked before anything moves. The sorts of
-/// check 4 compare with `<` on `f64` keys, for which the introsort's
+/// `Exception::IllegalArgument` for checks 2, 3 and 5, and with the `what()`
+/// text of the source's `Exception::Precondition` when check 4 reaches an
+/// unsorted spectrum (in retention-time order), or then an unsorted
+/// chromatogram, whose non-empty data array differs in length from its peaks
+/// (`FloatDataArray[0] size (25) does not match spectrum size (24)`). The
+/// sorts of check 4 compare with `<` on `f64` keys, for which the introsort's
 /// out-of-bounds guard is unreachable, NaN keys included (module documentation
 /// of [`crate::analysis::feature_finder_picked::source_sort`]).
 pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> Result<bool> {
@@ -1189,26 +1237,30 @@ pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> R
 
 /// Source `MSExperiment::sortSpectra(true)`: `std::sort` of the spectra by
 /// retention time (`SpectrumType::RTLess`), then `MSSpectrum::sortByPosition`
-/// on each, which returns when `std::is_sorted` holds and otherwise sorts the
-/// peaks with `std::stable_sort` (`PositionLess`), keeping the data arrays
-/// aligned. The data arrays of every spectrum that moves are checked before
-/// anything moves.
+/// on each, in the sorted order, which returns when `std::is_sorted` holds and
+/// otherwise sorts the peaks with `std::stable_sort` (`PositionLess`), keeping
+/// the data arrays aligned.
+///
+/// A spectrum that is sorted this way and holds data arrays first runs
+/// `MSSpectrum::checkDataArraySizes_` (`MSSpectrum.h`, `sort`), so the first
+/// unsorted spectrum *in retention-time order* whose non-empty data array
+/// differs in length from its peaks ends the run with the source's
+/// `Exception::Precondition` text ([`data_array_sizes`]); the spectra before it
+/// are sorted, which a caller cannot observe because `run` consumes the
+/// experiment.
 fn source_sort_spectra(experiment: &mut MSExperiment) -> Result<()> {
-    let unsorted: Vec<usize> = (0..experiment.spectra.len())
-        .filter(|&index| {
-            !libstdcxx::is_sorted_by(&experiment.spectra[index].peaks, |a, b| a.mz < b.mz)
-        })
-        .collect();
-    for &index in &unsorted {
-        let spectrum = &mut experiment.spectra[index];
-        let identity: Vec<usize> = (0..spectrum.peaks.len()).collect();
-        spectrum.select(&identity)?;
-    }
     source_sort_by(&mut experiment.spectra, |a, b| a.rt < b.rt)?;
     for spectrum in &mut experiment.spectra {
         if libstdcxx::is_sorted_by(&spectrum.peaks, |a, b| a.mz < b.mz) {
             continue;
         }
+        data_array_sizes(
+            &spectrum.float_data_arrays,
+            &spectrum.string_data_arrays,
+            &spectrum.integer_data_arrays,
+            spectrum.peaks.len(),
+            "spectrum",
+        )?;
         let peaks = &spectrum.peaks;
         let order = source_stable_sort_permutation(
             peaks.len(),
@@ -1220,12 +1272,42 @@ fn source_sort_spectra(experiment: &mut MSExperiment) -> Result<()> {
     Ok(())
 }
 
+/// Source `MSSpectrum::checkDataArraySizes_` and
+/// `MSChromatogram::checkDataArraySizes_`: the float, then the string, then the
+/// integer data arrays, each in index order; the first non-empty array whose
+/// length differs from `peaks` is an [`Error::InvalidValue`] with the `what()`
+/// text of the source's `Exception::Precondition`, `<Kind>DataArray[<i>] size
+/// (<n>) does not match <owner> size (<peaks>)` (executed:
+/// `../oracle/ffap-complete-fix3`, `a_*` cases).
+fn data_array_sizes<A, B, C>(
+    floats: &[DataArray<A>],
+    strings: &[DataArray<B>],
+    integers: &[DataArray<C>],
+    peaks: usize,
+    owner: &str,
+) -> Result<()> {
+    fn check<T>(arrays: &[DataArray<T>], kind: &str, peaks: usize, owner: &str) -> Result<()> {
+        for (index, array) in arrays.iter().enumerate() {
+            if !array.data.is_empty() && array.data.len() != peaks {
+                return Err(Error::InvalidValue(format!(
+                    "{kind}DataArray[{index}] size ({}) does not match {owner} size ({peaks})",
+                    array.data.len()
+                )));
+            }
+        }
+        Ok(())
+    }
+    check(floats, "Float", peaks, owner)?;
+    check(strings, "String", peaks, owner)?;
+    check(integers, "Integer", peaks, owner)
+}
+
 /// Source `MSExperiment::sortChromatograms(true)`: `std::sort` of the
 /// chromatograms by product m/z (`ChromatogramType::MZLess`), then
 /// `MSChromatogram::sortByPosition` on each, which returns when no retention
 /// time exceeds the next (false for a NaN) and otherwise sorts the peaks with
-/// `std::stable_sort`. The data arrays of every chromatogram that moves are
-/// checked before anything moves.
+/// `std::stable_sort`, after the same data-array check as the spectra's
+/// ([`data_array_sizes`], "chromatogram size").
 fn source_sort_chromatograms(experiment: &mut MSExperiment) -> Result<()> {
     let is_sorted = |chromatogram: &MSChromatogram| {
         !chromatogram
@@ -1233,14 +1315,6 @@ fn source_sort_chromatograms(experiment: &mut MSExperiment) -> Result<()> {
             .windows(2)
             .any(|pair| pair[0].rt > pair[1].rt)
     };
-    let unsorted: Vec<usize> = (0..experiment.chromatograms.len())
-        .filter(|&index| !is_sorted(&experiment.chromatograms[index]))
-        .collect();
-    for &index in &unsorted {
-        let chromatogram = &mut experiment.chromatograms[index];
-        let identity: Vec<usize> = (0..chromatogram.peaks.len()).collect();
-        chromatogram.select(&identity)?;
-    }
     source_sort_by(&mut experiment.chromatograms, |a, b| {
         a.product.mz < b.product.mz
     })?;
@@ -1248,6 +1322,13 @@ fn source_sort_chromatograms(experiment: &mut MSExperiment) -> Result<()> {
         if is_sorted(chromatogram) {
             continue;
         }
+        data_array_sizes(
+            &chromatogram.float_data_arrays,
+            &chromatogram.string_data_arrays,
+            &chromatogram.integer_data_arrays,
+            chromatogram.peaks.len(),
+            "chromatogram",
+        )?;
         let peaks = &chromatogram.peaks;
         let order = source_stable_sort_permutation(
             peaks.len(),

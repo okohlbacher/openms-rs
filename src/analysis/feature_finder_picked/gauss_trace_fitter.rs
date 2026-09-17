@@ -101,6 +101,7 @@
 //!
 //! [`value`]: crate::analysis::feature_finder_picked::trace_fitter::TraceFitter::value
 
+use crate::analysis::feature_finder_picked::glibc_libm;
 use crate::analysis::feature_finder_picked::helper_structs::{MassTrace, MassTraces};
 use crate::analysis::feature_finder_picked::scoring::x86_64;
 use crate::analysis::feature_finder_picked::trace_fitter::{
@@ -367,15 +368,16 @@ fn pow2(b: f64) -> f64 {
     b * b
 }
 
-/// The exponential the source calls, `exp` of the platform C library. Its last
-/// bit differs between C libraries; see the module documentation.
+/// The exponential the source calls: the reference build's `exp`, ported
+/// (crate-private `glibc_libm`), on every host.
 fn exp(x: f64) -> f64 {
-    x.exp()
+    glibc_libm::exp(x)
 }
 
-/// The natural logarithm the source calls, `log` of the platform C library.
+/// The natural logarithm the source calls: the reference build's `log`,
+/// ported (crate-private `glibc_libm`), on every host.
 fn ln(x: f64) -> f64 {
-    x.ln()
+    glibc_libm::log(x)
 }
 
 /// Residuals and Jacobian of the Gaussian trace model: the source's protected

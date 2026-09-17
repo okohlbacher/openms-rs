@@ -82,6 +82,12 @@ impl<'a> OverallScores<'a> {
     }
 }
 
+/// The refusal of [`extend_mass_traces`] where the source reads the first
+/// entry of a pattern that matched no peak (an out-of-bounds read; executed:
+/// SIGSEGV).
+pub(crate) const EMPTY_PATTERN_WHAT: &str = "FeatureFinderAlgorithmPicked seed extension: the \
+     isotope pattern matched no peak; the source reads its first entry here";
+
 fn out_of_range(what: &str) -> Error {
     Error::InvalidValue(format!(
         "FeatureFinderAlgorithmPicked seed extension: {what} is out of range"
@@ -392,11 +398,7 @@ pub(crate) fn extend_mass_traces_logged<L: LogSink>(
         peak_of(max_trace_index)?
     };
     let Some(start) = matched else {
-        return Err(Error::InvalidValue(
-            "FeatureFinderAlgorithmPicked seed extension: the isotope pattern matched no peak; \
-             the source reads its first entry here"
-                .into(),
-        ));
+        return Err(Error::InvalidValue(EMPTY_PATTERN_WHAT.into()));
     };
     if pattern.theoretical_pattern.len() < pattern.peak.len() {
         return Err(Error::InvalidValue(

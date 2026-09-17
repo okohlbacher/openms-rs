@@ -58,7 +58,10 @@ use openms::analysis::feature_finder_picked::seeds::SeedStage;
 use openms::analysis::feature_finder_picked::trace_fitter::TraceFitterParams;
 use openms::concept::parallel::Threads;
 use openms::format::{FileHandler, FileType, PeakFileOptions, featurexml, paramxml};
-use openms::kernel::{ConvexHull2D, Feature, FeatureMap, MSExperiment, NumericRange, Point2D};
+use openms::kernel::{
+    ChromatogramPeak, ConvexHull2D, DataArray, Feature, FeatureMap, MSChromatogram, MSExperiment,
+    NumericRange, Point2D,
+};
 use openms::metadata::{MetaValue, MetaValueData};
 use openms::param::{Param, ParamValue};
 
@@ -163,98 +166,47 @@ const BITWISE: f64 = 0.0;
 
 /// The comparison bound of the fitted parameters, the qualities and the
 /// feature coordinates of one seed or feature (`index`, `None` for a final
-/// feature) of one configuration.
+/// feature) of one configuration: bit for bit, NaN bits included.
 ///
 /// The fixtures are the **Linux x86_64 Release** build
 /// (`openms4-release-bc9cc12-c19e494-174b576`, the C2 driver `ffap_stages` run on
 /// ibminode06, AMD EPYC 7763, glibc 2.39; `../oracle/ffap-sem-completion`), the
 /// reference platform the user chose on 2026-09-15. Since lane B3b the port's
-/// Levenberg-Marquardt solver follows that build's Eigen kernels, and its
-/// Gaussian fit calls the platform `exp` and `log`, as the source does, so the
-/// bound depends on the platform the test runs on:
+/// Levenberg-Marquardt solver follows that build's Eigen kernels, and since
+/// lead decision D10 both trace fitters call that build's glibc `exp` and
+/// `log`, ported (the FMA variants `__ieee754_exp_fma` and
+/// `__ieee754_log_fma`, equal to the executed library on every probed input,
+/// `../oracle/ffap-complete-fix3`). No fitted quantity depends on the host
+/// any more, so every platform compares bit for bit, except the area of an
+/// asymmetric fit ([`area_tolerance`]).
+fn tolerance(_config: &str, _index: Option<usize>) -> f64 {
+    BITWISE
+}
+
+/// The bound of an EGH fit's area and of the intensity derived from it.
 ///
-/// - Linux x86_64 with glibc: every Gaussian configuration is **bit for bit**,
-///   measured on dax (AMD EPYC 9654). glibc selects FMA variants of `exp` and
-///   `log` on CPUs that have FMA, as both measured hosts do; the exact
-///   comparison assumes such a CPU. The asymmetric (EGH) configuration departs
-///   by at most `2.3038e-12` relative (seed 24's lower retention-time bound):
-///   `EGHTraceFitter` in this port calls the `libm` crate's `exp`, `log` and
-///   `atan` where the source calls glibc's (`docs/EGH_TRACE_FITTER_SUPPORT.md`),
-///   so [`EGH_LIBM_GAP`] bounds it.
-/// - macOS arm64 (Apple libm), measured against the same Linux capture: the
-///   Gaussian fits depart by at most `5.355e-13` relative, except seeds 11 and 12
-///   of `classtest_9247_tight_pattern` ([`KNOWN_FIT_GAP_MACOS`]); the EGH
-///   configuration departs by the same `2.3038e-12` as on Linux.
-/// - Any other platform is unmeasured: the bound is the work package's `1e-9`
-///   contract, and the two ill-conditioned seeds keep the largest departure
-///   recorded before the Linux capture existed ([`KNOWN_FIT_GAP_UNMEASURED`]).
-///
-/// The two ill-conditioned seeds are rejected by `checkFeatureQuality_` in the
-/// executed C++ and here, with the same reason, on every measured platform, so
-/// no feature changes (`every_seed_matches_the_executed_intermediate_state`
-/// asserts that a seed with a platform gap never becomes a feature).
-fn tolerance(config: &str, index: Option<usize>) -> f64 {
+/// `EGHTraceFitter::getArea` calls `atan`, whose reference implementation (the
+/// IBM Accurate Mathematical Library in glibc) has no licence-clean upstream,
+/// so the port calls the host's `atan` on Linux with glibc, exact on the
+/// reference platform, and the `libm` crate's elsewhere (lead decision D10's
+/// fallback). On those other hosts the bound is [`EGH_ATAN_GAP`], the largest
+/// departure measured over these fixtures on macOS arm64; it is a measured
+/// maximum, not a guarantee. The `libm` crate is pure Rust, so the value is the
+/// same on every such host.
+fn area_tolerance(config: &str) -> f64 {
+    #[cfg(not(all(target_os = "linux", target_env = "gnu")))]
     if config == "ffc1_asymmetric" {
-        return EGH_LIBM_GAP;
+        return EGH_ATAN_GAP;
     }
-    platform_tolerance(config, index)
+    let _ = config;
+    BITWISE
 }
 
-/// The EGH configuration's measured departure, `2.3038102266706174e-12`
-/// relative on both Linux x86_64 and macOS arm64, rounded up at the second
-/// significant digit.
-const EGH_LIBM_GAP: f64 = 2.4e-12;
-
-#[cfg(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"))]
-fn platform_tolerance(_config: &str, _index: Option<usize>) -> f64 {
-    0.0
-}
-
-/// macOS arm64: the two seeds whose Gaussian fit is ill-conditioned enough for
-/// Apple's `exp` to move the fitted area by `1.0698e-3` relative (seed 11; seed
-/// 12 fits the same traces), and `5.355e-13` for every other fitted quantity.
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-const KNOWN_FIT_GAP_MACOS: [(&str, usize, f64); 2] = [
-    ("classtest_9247_tight_pattern", 11, 1.1e-3),
-    ("classtest_9247_tight_pattern", 12, 1.1e-3),
-];
-
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-fn platform_tolerance(config: &str, index: Option<usize>) -> f64 {
-    KNOWN_FIT_GAP_MACOS
-        .iter()
-        .find(|(c, i, _)| *c == config && Some(*i) == index)
-        .map_or(5.4e-13, |(_, _, bound)| *bound)
-}
-
-/// Unmeasured platforms: the work package's `1e-9` contract, and for the two
-/// ill-conditioned seeds the largest departure measured before the Linux
-/// capture, `2.25e-3` (Linux x86_64 against the macOS arm64 product SDK).
-#[cfg(not(any(
-    all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"),
-    all(target_os = "macos", target_arch = "aarch64")
-)))]
-const KNOWN_FIT_GAP_UNMEASURED: [(&str, usize, f64); 2] = [
-    ("classtest_9247_tight_pattern", 11, 2.3e-3),
-    ("classtest_9247_tight_pattern", 12, 2.3e-3),
-];
-
-#[cfg(not(any(
-    all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"),
-    all(target_os = "macos", target_arch = "aarch64")
-)))]
-fn platform_tolerance(config: &str, index: Option<usize>) -> f64 {
-    KNOWN_FIT_GAP_UNMEASURED
-        .iter()
-        .find(|(c, i, _)| *c == config && Some(*i) == index)
-        .map_or(1e-9, |(_, _, bound)| *bound)
-}
-
-/// Whether a seed's fit has a platform gap larger than the configuration's
-/// general bound on the platform running the test.
-fn has_platform_gap(config: &str, index: usize) -> bool {
-    tolerance(config, Some(index)) > tolerance(config, None)
-}
+/// The largest relative departure of an EGH area or intensity from the Linux
+/// capture measured on macOS arm64 over the fixtures of this file (the
+/// `libm` crate's `atan`), rounded up at the second significant digit.
+#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
+const EGH_ATAN_GAP: f64 = 0.0;
 
 #[track_caller]
 fn close(actual: f64, expected: f64, tolerance: f64, what: &str) {
@@ -514,7 +466,7 @@ fn check_features(file: &str, config: &str, map: &FeatureMap) {
         close(
             f64::from(feature.intensity),
             f64::from(f32_hex(&row[3])),
-            relative,
+            area_tolerance(config),
             &what("intensity"),
         );
         assert_eq!(
@@ -720,12 +672,6 @@ fn every_seed_matches_the_executed_intermediate_state() {
                     }
                     QualityOutcome::Accepted(q) => {
                         assert_eq!(row[5], "true", "{}", what("feature_ok"));
-                        assert!(
-                            !has_platform_gap(case.config, index),
-                            "{}: a seed whose fit departs from the executed Eigen became a \
-                             feature; the known gap must never change an output",
-                            what("known gap")
-                        );
                         let relative = tolerance(case.config, Some(index));
                         close(q.fit_score, f64_hex(&row[8]), relative, &what("fit_score"));
                         close(
@@ -877,7 +823,12 @@ fn check_fitter(config: &str, index: usize, model: &FittedModel) {
     close(fitter.center(), f64_hex(&row[1]), relative, &what("center"));
     close(fitter.height(), f64_hex(&row[2]), relative, &what("height"));
     close(fitter.fwhm(), f64_hex(&row[3]), relative, &what("fwhm"));
-    close(fitter.area(), f64_hex(&row[4]), relative, &what("area"));
+    close(
+        fitter.area(),
+        f64_hex(&row[4]),
+        area_tolerance(config),
+        &what("area"),
+    );
     close(
         fitter.lower_rt_bound(),
         f64_hex(&row[5]),
@@ -1457,6 +1408,85 @@ fn nonfinite_input(options: &[String]) -> (MSExperiment, Param, FeatureMap) {
                 };
                 target[nearest].intensity = f32_hex(value);
             }
+            "swap" => {
+                let a = spectrum_index(&experiment, parts[1]);
+                let b = spectrum_index(&experiment, value);
+                experiment.spectra.swap(a, b);
+            }
+            "rev" => {
+                let s = spectrum_index(&experiment, parts[1]);
+                experiment.spectra[s].peaks.reverse();
+            }
+            "fa" | "sa" | "ia" => {
+                // `fix3_stage.cpp`: array `i` of spectrum `s` with `n` entries,
+                // `n` a count or `size`, `size+k`, `size-k`; lower arrays are
+                // created empty.
+                let s = spectrum_index(&experiment, parts[1]);
+                let i: usize = parts[2].parse().unwrap();
+                let spectrum = &mut experiment.spectra[s];
+                let n = match value.strip_prefix("size") {
+                    Some("") => spectrum.peaks.len(),
+                    Some(delta) => spectrum
+                        .peaks
+                        .len()
+                        .checked_add_signed(delta.parse::<isize>().unwrap())
+                        .unwrap(),
+                    None => value.parse().unwrap(),
+                };
+                match parts[0] {
+                    "fa" => {
+                        let arrays = &mut spectrum.float_data_arrays;
+                        while arrays.len() <= i {
+                            arrays.push(DataArray::new("", Vec::new()));
+                        }
+                        arrays[i] = DataArray::new(
+                            format!("fa{i}"),
+                            (0..n).map(|k| 0.5 * k as f32).collect(),
+                        );
+                    }
+                    "sa" => {
+                        let arrays = &mut spectrum.string_data_arrays;
+                        while arrays.len() <= i {
+                            arrays.push(DataArray::new("", Vec::new()));
+                        }
+                        arrays[i] = DataArray::new(
+                            format!("sa{i}"),
+                            (0..n).map(|k| format!("s{k}")).collect(),
+                        );
+                    }
+                    _ => {
+                        let arrays = &mut spectrum.integer_data_arrays;
+                        while arrays.len() <= i {
+                            arrays.push(DataArray::new("", Vec::new()));
+                        }
+                        arrays[i] =
+                            DataArray::new(format!("ia{i}"), (0..n).map(|k| k as i32).collect());
+                    }
+                }
+            }
+            "chrom" => {
+                // A chromatogram of `n` peaks with descending retention times
+                // `n - 1 .. 0`, intensities `1 ..= n`, product m/z 500.
+                let n: usize = value.parse().unwrap();
+                let mut chromatogram = MSChromatogram::default();
+                chromatogram.product.mz = 500.0;
+                chromatogram.peaks = (0..n)
+                    .map(|k| ChromatogramPeak {
+                        rt: (n - 1 - k) as f64,
+                        intensity: (k + 1) as f32,
+                    })
+                    .collect();
+                experiment.chromatograms.push(chromatogram);
+            }
+            "cfa" => {
+                let n: usize = value.parse().unwrap();
+                let chromatogram = experiment.chromatograms.last_mut().unwrap();
+                let arrays = &mut chromatogram.float_data_arrays;
+                if arrays.is_empty() {
+                    arrays.push(DataArray::new("", Vec::new()));
+                }
+                arrays[0] = DataArray::new("cfa0", (0..n).map(|k| 0.5 * k as f32).collect());
+            }
             "i" => set(
                 &mut parameters,
                 &lhs[2..],
@@ -1517,7 +1547,17 @@ fn replay_stage_fixture(rows: &[Vec<String>]) -> BTreeMap<&'static str, usize> {
         let (experiment, parameters, seeds) = nonfinite_input(&case[2..]);
         let input = of("input")[0];
         assert_eq!(experiment.spectra.len().to_string(), input[0], "{name}");
-        let peaks: usize = experiment.spectra.iter().map(|s| s.peaks.len()).sum();
+        // `MSExperiment::getSize` counts chromatogram peaks too.
+        let peaks: usize = experiment
+            .spectra
+            .iter()
+            .map(|s| s.peaks.len())
+            .sum::<usize>()
+            + experiment
+                .chromatograms
+                .iter()
+                .map(|c| c.peaks.len())
+                .sum::<usize>();
         assert_eq!(peaks.to_string(), input[1], "{name}");
         let options = Options {
             threads: Threads::serial(),
@@ -1544,6 +1584,22 @@ fn replay_stage_fixture(rows: &[Vec<String>]) -> BTreeMap<&'static str, usize> {
             *outcomes.entry("hang").or_default() += 1;
             continue;
         }
+        if status == "139" {
+            // SIGSEGV, twice: the port refuses where the source reads or writes
+            // out of bounds, at an empty best isotope pattern
+            // (`extendMassTraces_`) or at the wrapped score-array count.
+            let error = stage
+                .and_then(|stage| feature_stage(&stage.unwrap(), &options))
+                .unwrap_err();
+            assert!(
+                matches!(&error, Error::InvalidValue(m)
+                    if m.contains("the isotope pattern matched no peak")
+                        || (m.contains("score-array count") && m.contains("undefined"))),
+                "{name}: {error}"
+            );
+            *outcomes.entry("crash").or_default() += 1;
+            continue;
+        }
         assert_eq!(status, "0", "{name}");
         if let Some(threw) = of("threw").first() {
             let (kind, text) = threw[0].split_once(": ").unwrap();
@@ -1556,12 +1612,26 @@ fn replay_stage_fixture(rows: &[Vec<String>]) -> BTreeMap<&'static str, usize> {
                 | ("std::exception", "vector::_M_default_append", Error::InvalidValue(message)) => {
                     assert_eq!(message, text, "{name}");
                 }
+                ("Precondition failed", _, Error::InvalidValue(message)) => {
+                    // `MSSpectrum::sort` or `MSChromatogram::sort` of an
+                    // unsorted input with a mis-sized data array.
+                    assert_eq!(message, text, "{name}");
+                }
                 ("std::exception", "std::bad_alloc", Error::InvalidValue(message)) => {
                     // Below `vector::max_size()` the source allocates, which
                     // fails or not depending on memory; the port's window
-                    // ceiling refuses first.
+                    // ceiling refuses first. So does its charge ceiling in
+                    // front of `3 + 2 * charge_count` score arrays per
+                    // spectrum, and a wrapped count near 2^32 is refused
+                    // whatever the limits.
                     assert!(
-                        message.contains("isotope windows") && message.contains("exceed the limit"),
+                        (message.contains("isotope windows")
+                            && message.contains("exceed the limit"))
+                            || (message.contains("charges exceed the limit"))
+                            || (message.contains("score-array count wraps")
+                                && message.contains("depends on memory"))
+                            || (message.contains("score-array count wraps")
+                                && message.contains("undefined")),
                         "{name}: {message}"
                     );
                 }
@@ -1848,48 +1918,55 @@ fn sort_and_mobility_cases_match_the_linux_release_build() {
     );
 }
 
-/// The bound of one feature of the non-finite fixture: [`tolerance`] of the
-/// configuration, except for the fits this fixture found ill-conditioned
-/// enough to split between platforms. On Linux x86_64 with glibc every
-/// feature is bit for bit (the Gaussian ones) or within [`EGH_LIBM_GAP`].
-fn nonfinite_tolerance(case: &str, config: &str, index: usize) -> f64 {
-    #[cfg(not(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu")))]
-    if let Some((_, _, bound)) = NONFINITE_FIT_GAP
-        .iter()
-        .find(|(c, i, _)| *c == case && *i == index)
-    {
-        return *bound;
-    }
-    let _ = (case, index);
-    tolerance(config, None)
+/// Boundaries of the combined fix round 3, against the executed Linux x86_64
+/// Release build (`boundary_stage.tsv.gz`, `../oracle/ffap-complete-fix3`,
+/// [`replay_stage_fixture`]):
+///
+/// - averagine windows whose 20 binary32 bins all underflow, from window 2738
+///   (273,850 Da) on: the source's NaN weights empty those windows and the run
+///   continues (`u_mz136850` has no such window, `u_mz136850_5` the first;
+///   `u_mz100k` to `u_mz1e6`, `u_ch1000_keep20`, with `seed:min_score` 0, the
+///   EGH fit and a zero cutoff);
+/// - a NaN `isotopic_pattern:intensity_percentage_optional`, which empties
+///   every window (`p_ipo_nan*`), and the controls at 100 and `-0.0`;
+/// - EGH and Gaussian fits over 34 configurations, compared bit for bit on
+///   every platform (lead decision D10);
+/// - the empty best isotope pattern of `extendMassTraces_` at
+///   `feature:min_isotope_fit` 0, where the source crashes (`g_avg_trace0`,
+///   `g_iso0_seed0`, `p_ipo_*_seed0_iso0`) and a bound of `1e-300` returns;
+/// - the `UInt` count `3 + 2 * charge_count` (lead decision D12): SIGSEGV at
+///   the wraps that write out of bounds, `std::bad_alloc` where the wrapped
+///   count is near 2^32 arrays per spectrum, and the count 0 of
+///   `charge_low = charge_high + 1`;
+/// - unsorted input with mis-sized float, string and integer data arrays and a
+///   chromatogram: the source's `Exception::Precondition` text for the first
+///   such spectrum in its introsort order, then chromatograms; sorted
+///   spectra and exact arrays run through.
+#[test]
+fn boundary_cases_match_the_linux_release_build() {
+    let rows = stage_rows("boundary_stage.tsv.gz");
+    assert_eq!(rows.iter().filter(|row| row[0] == "case").count(), 85);
+    let outcomes = replay_stage_fixture(&rows);
+    // 63 runs returned (`a_ties_exact`, every retention time equal, has a
+    // zero step and a non-empty seed loop), 8 crashed and 14 threw: four
+    // `std::bad_alloc` of the wrapped charge count and ten
+    // `Exception::Precondition`.
+    assert_eq!(
+        outcomes,
+        BTreeMap::from([
+            ("crash", 8),
+            ("features", 63),
+            ("refused under DegenerateBinStep::Refuse", 1),
+            ("threw", 14)
+        ])
+    );
 }
 
-/// Features of the stage fixtures whose Gaussian fit departs from the Linux
-/// capture on macOS arm64 by more than the general `5.4e-13`, with the
-/// measured largest relative departure over the feature's coordinates,
-/// qualities and meta values, rounded up at the second significant digit:
-/// `1.1156e-12` (the thirteenth or eleventh feature of `seed:min_score` 0, and
-/// the tenth feature of `v3_dt_all_nan` in `sort_mobility_stage.tsv.gz`, its
-/// `score_correlation`),
-/// `6.5974e-8` and `4.9245e-4` (an infinite intensity next to seed 1, whose
-/// second feature's fit is ill-conditioned; `sw_iso_pinf_1` and
-/// `sw_pinf_1` fit the same traces). Other platforms are unmeasured and use
-/// the same bounds.
-#[cfg(not(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu")))]
-const NONFINITE_FIT_GAP: [(&str, usize, f64); 12] = [
-    ("v3_dt_all_nan", 9, 1.2e-12),
-    ("sw_min0_pinf_0", 11, 1.2e-12),
-    ("sw_min0_pinf_1", 11, 1.2e-12),
-    ("sw_min0_pinf_2", 10, 1.2e-12),
-    ("sw_min0_pinf_3", 11, 1.2e-12),
-    ("sw_min0_pinf_4", 11, 1.2e-12),
-    ("sw_min0_pinf_5", 10, 1.2e-12),
-    ("sw_avg_pinf_next2_1", 1, 6.6e-8),
-    ("sw_max_pinf_next2_1", 1, 6.6e-8),
-    ("sw_pinf_next2_1", 1, 6.6e-8),
-    ("sw_iso_pinf_1", 1, 5.0e-4),
-    ("sw_pinf_1", 1, 5.0e-4),
-];
+/// The bound of one feature of a stage fixture: [`tolerance`] of the
+/// configuration, and [`area_tolerance`] for its intensity.
+fn nonfinite_tolerance(_case: &str, config: &str, _index: usize) -> f64 {
+    tolerance(config, None)
+}
 
 fn seeds_are_automatic(options: &[String]) -> bool {
     !options.iter().any(|option| option.starts_with("seeds="))
@@ -1914,7 +1991,7 @@ fn check_nonfinite_features<'a>(
         close(
             f64::from(feature.intensity),
             f64::from(f32_hex(&row[3])),
-            relative,
+            area_tolerance(config),
             &what("intensity"),
         );
         assert_eq!(feature.charge.to_string(), row[4], "{}", what("charge"));

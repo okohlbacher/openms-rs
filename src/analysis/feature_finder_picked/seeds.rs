@@ -54,7 +54,7 @@ use crate::analysis::feature_finder_picked::scoring::{
 use crate::analysis::feature_finder_picked::source_sort::source_sort_reversed_by;
 use crate::chemistry::isotopes::{
     CoarseIsotopePatternGenerator, CoarseMassMode, IsotopeDistribution, IsotopePeak,
-    ProbabilityPrecision,
+    ProbabilityPrecision, SourceSingleEstimate,
 };
 use crate::kernel::{FeatureMap, MSExperiment};
 use crate::param::Param;
@@ -130,18 +130,24 @@ impl IsotopeWindows {
     ///
     /// A pattern whose every isotope lies below the trimming cutoff is kept whole
     /// by the left trim and then emptied by the right trim, as in the source; its
-    /// `max` is zero.
+    /// `max` is zero. So is a pattern whose weights the source makes NaN, and
+    /// every pattern under a NaN cutoff (see the errors below).
     ///
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] with the text [`LENGTH_ERROR_WHAT`] when
     /// the converted window count exceeds [`SOURCE_MAX_WINDOWS`], and with a
     /// native message when it exceeds [`Limits::max_isotope_windows`] or the
-    /// windows could hold more
-    /// than [`Limits::max_pattern_values`] values, or when the isotope generator
-    /// fails (for example because every retained bin underflows in binary32,
-    /// where the source produces NaN weights). Returns [`Error::Unsupported`] for
-    /// a changed abundance under [`AbundanceOverride::Refuse`].
+    /// windows could hold more than [`Limits::max_pattern_values`] values, or
+    /// when the isotope generator fails on one of its own ceilings. Returns
+    /// [`Error::Unsupported`] for a changed abundance under
+    /// [`AbundanceOverride::Refuse`].
+    ///
+    /// A window whose 20 binary32 bins all underflow is not an error: the
+    /// source's `renormalize` makes its weights NaN, its `trimRight` empties
+    /// the window, and so does this (executed from a peptide mass of 273,850 Da
+    /// on, `u_*` cases of `../oracle/ffap-complete-fix3`). A NaN
+    /// `intensity_percentage_optional` empties every window the same way.
     pub fn precalculate(max_mz: f64, settings: &Settings, options: &Options) -> Result<Self> {
         Self::precalculate_onto(None, max_mz, settings, options)
     }
@@ -215,9 +221,9 @@ impl IsotopeWindows {
         patterns.extend_from_slice(kept);
         patterns.resize_with(count, TheoreticalIsotopePattern::default);
         for (index, pattern) in patterns.iter_mut().enumerate() {
-            let mut distribution =
-                generator.estimate_from_peptide_weight(0.5 * width + index as f64 * width)?;
-            theoretical_pattern_onto(pattern, &mut distribution, settings)?;
+            let estimate = generator
+                .estimate_from_peptide_weight_source(0.5 * width + index as f64 * width)?;
+            theoretical_pattern_onto(pattern, estimate, settings)?;
         }
         Ok(Self {
             mass_window_width: width,
@@ -324,20 +330,45 @@ fn pattern_generator(
 /// Trim, classify and normalise one estimate into `target`: the body of the
 /// step 2.5 loop, appending to what `target` already holds as the source
 /// appends to its member.
+///
+/// Two inputs leave nothing to append, as in the source, whose `trimLeft` and
+/// `trimRight` compare each weight with `>= cutoff`:
+///
+/// - an estimate whose binary32 bins all underflowed, whose weights the
+///   source's `renormalize` made NaN (`0 / 0`): `trimLeft` finds no weight at
+///   or above the cutoff and erases nothing, so `trimmed_left` is 0, and
+///   `trimRight` erases every weight;
+/// - a NaN `intensity_percentage_optional`, which the parameter check accepts
+///   (both range comparisons are false): the same two comparisons are false for
+///   every weight.
+///
+/// The optional counts, the maximum and the normalisation then run over the
+/// weights `target` already held (none in a first run), and the window's
+/// maximum is 0 when there are none.
 fn theoretical_pattern_onto(
     target: &mut TheoreticalIsotopePattern,
-    distribution: &mut IsotopeDistribution,
+    estimate: SourceSingleEstimate,
     settings: &Settings,
 ) -> Result<()> {
-    let size_before = distribution.len();
-    distribution.trim_left_source(settings.intensity_percentage_optional)?;
-    let trimmed_left = size_before - distribution.len();
-    distribution.trim_right(settings.intensity_percentage_optional)?;
+    let cutoff = settings.intensity_percentage_optional;
+    let (trimmed_left, appended) = match estimate {
+        SourceSingleEstimate::AllUnderflowed { .. } => (0, None),
+        SourceSingleEstimate::Normalized(_) if cutoff.is_nan() => (0, None),
+        SourceSingleEstimate::Normalized(mut distribution) => {
+            let size_before = distribution.len();
+            distribution.trim_left_source(cutoff)?;
+            let trimmed_left = size_before - distribution.len();
+            distribution.trim_right(cutoff)?;
+            (trimmed_left, Some(distribution))
+        }
+    };
     let mut intensity = std::mem::take(&mut target.intensity);
-    intensity
-        .try_reserve(distribution.len())
-        .map_err(|_| Error::InvalidValue("cannot allocate an isotope window".into()))?;
-    intensity.extend(distribution.peaks().iter().map(|peak| peak.probability));
+    if let Some(distribution) = appended {
+        intensity
+            .try_reserve(distribution.len())
+            .map_err(|_| Error::InvalidValue("cannot allocate an isotope window".into()))?;
+        intensity.extend(distribution.peaks().iter().map(|peak| peak.probability));
+    }
     let mut begin = 0;
     let mut end = 0;
     let mut is_begin = true;
@@ -373,6 +404,25 @@ fn theoretical_pattern_onto(
         trimmed_left,
     };
     Ok(())
+}
+
+/// The progress range of step 1 for `bins` intensity bins: the end
+/// `startProgress` receives, `intensity_bins_ * intensity_bins_` in `UInt`
+/// (so modulo 2^32), and the number of `setProgress` calls, `bins * bins` in
+/// `Size`, as the `SignedSize` the calls receive (the product of two `UInt`
+/// values is below 2^64).
+///
+/// A count above `u32::MAX`, which only a caller-built [`Settings`] can hold
+/// (the source member is a `UInt`), is an [`Error::InvalidValue`].
+pub(crate) fn step_one_progress(bins: usize) -> Result<(i64, i64)> {
+    let bins = u32::try_from(bins).map_err(|_| {
+        Error::InvalidValue(format!(
+            "intensity:bins {bins} exceeds the source's UInt member"
+        ))
+    })?;
+    let start_end = i64::from(bins.wrapping_mul(bins));
+    let cells = u64::from(bins) * u64::from(bins);
+    Ok((start_end, cells as i64))
 }
 
 /// A user-specified seed position, the part of a seed feature the source reads.
@@ -590,10 +640,13 @@ impl SeedStage {
         if debug_log.enabled() {
             debug_log.put(LOG_PRECALCULATING);
         }
+        // `startProgress(0, intensity_bins_ * intensity_bins_)`: a `UInt`
+        // product, which wraps modulo 2^32 (65,536 bins give `S 0 0`, executed),
+        // passed as a non-negative `SignedSize`. The `setProgress` values
+        // `rt * intensity_bins_ + mz` are `Size` and do not wrap.
         let bins = settings.intensity_bins;
-        let cells = i64::try_from(bins.saturating_mul(bins))
-            .map_err(|_| Error::InvalidValue("intensity bin count overflow".into()))?;
-        progress.start(0, cells, "Precalculating intensity scores")?;
+        let (start_end, cells) = step_one_progress(bins)?;
+        progress.start(0, start_end, "Precalculating intensity scores")?;
         let thresholds = IntensityThresholds::compute_with_work(
             &experiment,
             settings.intensity_bins,

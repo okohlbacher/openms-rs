@@ -44,17 +44,18 @@ use crate::analysis::feature_finder_picked::algorithm::{
 };
 use crate::analysis::feature_finder_picked::debug::{
     AbortReasons, DebugOutput, DebugTermination, FEATURE_DEBUG_PATH, FeatureDebugFiles,
-    FeatureDebugInput, LogFragment, LogSink, NoLog, ReportLine, SeedMap, abort_map,
-    debug_experiment, g, g32, put_all, read_pseudo_rt_shift, seed_map, write_feature_debug_info,
+    FeatureDebugInput, LogFragment, LogSink, NoLog, ReportLine, SeedMap, TerminationKind,
+    abort_map, debug_experiment, g, g32, put_all, read_pseudo_rt_shift, seed_map,
+    write_feature_debug_info,
 };
 use crate::analysis::feature_finder_picked::extension::{
-    OverallScores, extend_mass_traces_logged, find_best_isotope_fit_logged,
+    EMPTY_PATTERN_WHAT, OverallScores, extend_mass_traces_logged, find_best_isotope_fit_logged,
 };
 use crate::analysis::feature_finder_picked::fitting::{
     ABORT_COULD_NOT_EXTEND, ABORT_NO_ISOTOPE_PATTERN, FeatureInput, FittedModel, QualityOutcome,
     build_feature_checked, check_feature_quality_logged, crop_feature_logged,
 };
-use crate::analysis::feature_finder_picked::helper_structs::{MassTraces, Seed};
+use crate::analysis::feature_finder_picked::helper_structs::{MassTraces, NAN_RT_MERGE_WHAT, Seed};
 use crate::analysis::feature_finder_picked::resolution::{
     annotate_apex, invalid_apex_warning, resolve_overlaps_logged,
 };
@@ -943,9 +944,19 @@ pub(crate) struct SeedOutcome {
     log: Option<LogFragment>,
     /// The debug write, when the seed reached `:714` in a debug run.
     debug_write: Option<DebugWrite>,
-    /// Where the source terminates after the debug write: the `what()` text
-    /// of the exception step 3.3.5 throws inside the OpenMP region (`:790`).
-    terminated: Option<String>,
+    /// Where the source's process ends with this seed.
+    terminated: Option<SeedTermination>,
+}
+
+/// How the source's process ends at one seed.
+pub(crate) enum SeedTermination {
+    /// After the debug write, step 3.3.5 throws `Exception::InvalidValue`
+    /// inside the OpenMP region (`:790`); the `what()` text.
+    Exception(String),
+    /// The port refuses where the executed process dies (an out-of-bounds
+    /// read) or never returns (the NaN profile merge), after the seed's log
+    /// lines so far.
+    Refused(Error, TerminationKind),
 }
 
 /// One accepted candidate and the later seeds it swallows.
@@ -1032,12 +1043,35 @@ fn extend_seed<L: LogSink>(
         put_all(log, &[" - MZ: ", &g(seed_peak.mz), "\n"]);
     }
 
+    // Refusals where the executed process dies or never returns keep the
+    // seed's log lines so far, as the process had written them to its buffer.
+    let refused = |plot_nr_used: bool, error: Error, kind: TerminationKind| SeedOutcome {
+        plot_nr_used,
+        result: Err(String::new()),
+        log: None,
+        debug_write: None,
+        terminated: Some(SeedTermination::Refused(error, kind)),
+    };
+
     let (isotope_fit_quality, pattern) =
         find_best_isotope_fit_logged(spectra, stage.windows(), settings, seed, charge, log)?;
     if isotope_fit_quality < settings.min_isotope_fit {
         return Ok(aborted(false, ABORT_NO_ISOTOPE_PATTERN));
     }
-    let mut traces = extend_mass_traces_logged(spectra, overall, settings, &pattern, log)?;
+    let mut traces = match extend_mass_traces_logged(spectra, overall, settings, &pattern, log) {
+        Ok(traces) => traces,
+        // `extendMassTraces_` reads the first entry of an empty best pattern
+        // (`feature:min_isotope_fit` 0 lets a seed without a placement through):
+        // executed SIGSEGV.
+        Err(Error::InvalidValue(what)) if what == EMPTY_PATTERN_WHAT => {
+            return Ok(refused(
+                false,
+                Error::InvalidValue(what),
+                TerminationKind::OutOfBounds,
+            ));
+        }
+        Err(error) => return Err(error),
+    };
     let seed_mz = seed_peak.mz;
     if !traces.is_valid(seed_mz, settings.trace_tolerance) {
         return Ok(aborted(false, ABORT_COULD_NOT_EXTEND));
@@ -1065,7 +1099,18 @@ fn extend_seed<L: LogSink>(
     // NaN retention time into the intensity profile, where the source never
     // returns; the run fails with it rather than turning it into an abort
     // reason the source never records.
-    model.fit(&traces)?;
+    match model.fit(&traces) {
+        Ok(()) => {}
+        // `computeIntensityProfile` never ends (`CPP-242`).
+        Err(Error::InvalidValue(what)) if what == NAN_RT_MERGE_WHAT => {
+            return Ok(refused(
+                true,
+                Error::InvalidValue(what),
+                TerminationKind::NeverReturns,
+            ));
+        }
+        Err(error) => return Err(error),
+    }
     let new_traces =
         crop_feature_logged(model.as_fitter(), &traces, settings.min_trace_score, log)?;
     let outcome =
@@ -1115,7 +1160,7 @@ fn extend_seed<L: LogSink>(
                 result: Err(String::new()),
                 log: None,
                 debug_write: write,
-                terminated: Some(what),
+                terminated: Some(SeedTermination::Exception(what)),
             });
         }
     };
@@ -1218,6 +1263,7 @@ pub(crate) fn settle_charge(
                         charge,
                         seed_index: index,
                         plot_nr,
+                        kind: TerminationKind::Exception,
                         exception,
                         message: message.clone(),
                     };
@@ -1231,23 +1277,46 @@ pub(crate) fn settle_charge(
                 }
             }
         }
-        if let Some(what) = outcome.terminated {
-            // `getIsotopeDistribution_` throws at `:790`, inside the OpenMP
-            // region: the process ends after this seed's debug files.
-            if let Some(out) = book.out.as_mut() {
-                out.termination = Some(DebugTermination {
-                    charge,
-                    seed_index: index,
-                    plot_nr,
-                    exception: "InvalidValue",
-                    message: what.clone(),
-                });
+        match outcome.terminated {
+            None => {}
+            Some(SeedTermination::Exception(what)) => {
+                // `getIsotopeDistribution_` throws at `:790`, inside the OpenMP
+                // region: the process ends after this seed's debug files.
+                if let Some(out) = book.out.as_mut() {
+                    out.termination = Some(DebugTermination {
+                        charge,
+                        seed_index: index,
+                        plot_nr,
+                        kind: TerminationKind::Exception,
+                        exception: "InvalidValue",
+                        message: what.clone(),
+                    });
+                }
+                return Err(Error::InvalidValue(format!(
+                    "FeatureFinderAlgorithmPicked step 3.3.5: {what}; the source throws this \
+                     inside its OpenMP region for seed {index} of charge {charge}, where \
+                     std::terminate ends the process"
+                )));
             }
-            return Err(Error::InvalidValue(format!(
-                "FeatureFinderAlgorithmPicked step 3.3.5: {what}; the source throws this inside \
-                 its OpenMP region for seed {index} of charge {charge}, where std::terminate \
-                 ends the process"
-            )));
+            Some(SeedTermination::Refused(error, kind)) => {
+                // The executed process dies here (or never returns): its log
+                // file holds what its buffer had flushed, this seed's lines
+                // included in the buffer.
+                if let Some(out) = book.out.as_mut() {
+                    out.termination = Some(DebugTermination {
+                        charge,
+                        seed_index: index,
+                        plot_nr,
+                        kind,
+                        exception: match kind {
+                            TerminationKind::OutOfBounds => "SIGSEGV",
+                            TerminationKind::Exception | TerminationKind::NeverReturns => "",
+                        },
+                        message: error.to_string(),
+                    });
+                }
+                return Err(error);
+            }
         }
         match outcome.result {
             Err(reason) => {
@@ -1365,7 +1434,7 @@ mod tests {
             result: Err(String::new()),
             log: Some(fragment),
             debug_write: Some(write),
-            terminated: Some(what.to_owned()),
+            terminated: Some(SeedTermination::Exception(what.to_owned())),
         };
         let mut aborts = BTreeMap::new();
         let mut abort_reasons = AbortReasons::new();
@@ -1405,6 +1474,7 @@ mod tests {
                 charge: 1,
                 seed_index: 0,
                 plot_nr: 0,
+                kind: TerminationKind::Exception,
                 exception: "InvalidValue",
                 message: what.to_owned(),
             })

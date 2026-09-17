@@ -87,6 +87,7 @@
 //! See `docs/EGH_TRACE_FITTER_SUPPORT.md` for the API mapping, the native
 //! differences and the evidence.
 
+use crate::analysis::feature_finder_picked::glibc_libm;
 use crate::analysis::feature_finder_picked::helper_structs::{MassTrace, MassTraces};
 use crate::analysis::feature_finder_picked::scoring::x86_64;
 use crate::analysis::feature_finder_picked::trace_fitter::{
@@ -282,7 +283,8 @@ impl<'a> EGHTraceFunctor<'a> {
                 let t_diff2 = t_diff * t_diff;
                 let denominator = 2.0 * sigma * sigma + tau * t_diff;
                 let fegh = if denominator > 0.0 {
-                    baseline + trace.theoretical_int * height * libm::exp(-t_diff2 / denominator)
+                    baseline
+                        + trace.theoretical_int * height * glibc_libm::exp(-t_diff2 / denominator)
                 } else {
                     0.0
                 };
@@ -318,7 +320,7 @@ impl<'a> EGHTraceFunctor<'a> {
                 let denominator = 2.0 * sigma * sigma + tau * t_diff;
                 let (derivative_h, derivative_t_r, derivative_sigma, derivative_tau) =
                     if denominator > 0.0 {
-                        let exp1 = libm::exp(-t_diff2 / denominator);
+                        let exp1 = glibc_libm::exp(-t_diff2 / denominator);
                         let denominator2 = denominator * denominator;
                         (
                             theo * exp1,
@@ -459,12 +461,12 @@ impl EGHTraceFitter {
         let a = apex_rt - shape.left_rt;
         let b = shape.right_rt - apex_rt;
         let alpha = (shape.left_height + shape.right_height) * 0.5 / height;
-        let log_alpha = libm::log(alpha);
+        let log_alpha = glibc_libm::log(alpha);
         let mut tau = -1.0 / log_alpha * (b - a);
         if tau == 0.0 {
             tau = f64::EPSILON;
         }
-        let sigma = libm::sqrt(-0.5 / log_alpha * b * a);
+        let sigma = glibc_libm::sqrt(-0.5 / log_alpha * b * a);
 
         Ok(EGHInitialParameters {
             height,
@@ -490,9 +492,10 @@ impl EGHTraceFitter {
     /// unchanged: `alpha = 0` gives infinite or NaN bounds and a negative
     /// `alpha` NaN bounds.
     pub fn alpha_boundaries(&self, alpha: f64) -> (f64, f64) {
-        let l = libm::log(alpha);
-        let s =
-            libm::sqrt((l * self.tau) * (l * self.tau) / 4.0 - 2.0 * l * self.sigma * self.sigma);
+        let l = glibc_libm::log(alpha);
+        let s = glibc_libm::sqrt(
+            (l * self.tau) * (l * self.tau) / 4.0 - 2.0 * l * self.sigma * self.sigma,
+        );
         // The source's `-1 * (L * tau_)`: multiplying by -1 is an exact
         // negation, so `-(l * tau)` has the same bits (a NaN's sign aside).
         let s1 = (-(l * self.tau) / 2.0) + s;
@@ -625,7 +628,7 @@ impl TraceFitter for EGHTraceFitter {
         let t_diff = rt - self.apex_rt;
         let denominator = 2.0 * self.sigma * self.sigma + self.tau * t_diff;
         if denominator > 0.0 {
-            self.height * libm::exp(-t_diff * t_diff / denominator)
+            self.height * glibc_libm::exp(-t_diff * t_diff / denominator)
         } else {
             0.0
         }
@@ -641,7 +644,7 @@ impl TraceFitter for EGHTraceFitter {
     fn area(&self) -> f64 {
         let abs_tau = self.tau.abs();
         let abs_sigma = self.sigma.abs();
-        let phi = libm::atan(abs_tau / abs_sigma);
+        let phi = glibc_libm::atan(abs_tau / abs_sigma);
         let mut epsilon = Self::EPSILON_COEFS[0];
         let mut phi_pow = phi;
         for coefficient in &Self::EPSILON_COEFS[1..] {

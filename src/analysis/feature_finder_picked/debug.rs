@@ -377,18 +377,40 @@ impl FeatureDebugFiles {
     }
 }
 
-/// Where the source process ends in `writeFeatureDebugInfo_`, and why.
+/// How the executed process ends at a [`DebugTermination`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TerminationKind {
+    /// A C++ exception leaves the seed loop's OpenMP region, where nothing
+    /// catches it, and `std::terminate` aborts the process (SIGABRT).
+    Exception,
+    /// The source reads or writes out of bounds and the executed build dies
+    /// with SIGSEGV; the port refuses there (lead decision D1).
+    OutOfBounds,
+    /// The source never returns (the endless profile merge of `CPP-242`), so
+    /// only a caller's timeout ends the process; the port refuses there.
+    NeverReturns,
+}
+
+/// Where the source process terminates in the seed loop, and why: in
+/// `writeFeatureDebugInfo_`, at the step-3.3.5 exception, at an out-of-bounds
+/// access, or in a merge that never ends.
 #[derive(Clone, Debug, PartialEq)]
 pub struct DebugTermination {
     /// The charge being extended.
     pub charge: i32,
     /// The seed's position in that charge's seed list.
     pub seed_index: usize,
-    /// The `plot_nr` the seed received.
+    /// The `plot_nr` the seed received, or -1 when it ends before the fit.
     pub plot_nr: i64,
-    /// The C++ exception class that escapes the OpenMP region.
+    /// How the process ends.
+    pub kind: TerminationKind,
+    /// For [`TerminationKind::Exception`], the C++ exception class that
+    /// escapes the OpenMP region; `SIGSEGV` for
+    /// [`TerminationKind::OutOfBounds`]; empty for
+    /// [`TerminationKind::NeverReturns`].
     pub exception: &'static str,
-    /// Its `what()` text, as the executed build prints it.
+    /// For [`TerminationKind::Exception`], its `what()` text, as the executed
+    /// build prints it; otherwise the port's refusal.
     pub message: String,
 }
 
@@ -400,8 +422,10 @@ pub struct DebugTermination {
 /// [`Self::log_opened`] is set, and leave the file alone otherwise; store each
 /// seed map, the feature files, the abort map and the input as named in the
 /// module documentation. After a [`Self::termination`] the executed build has
-/// written only [`DebugLog::flushed_bytes`] of the log and nothing after the
-/// last seed map.
+/// written only [`DebugLog::flushed_bytes`] of the log (the terminating seed's
+/// lines included) and nothing after the last seed map. A run that fails on
+/// one of the port's own ceilings has no termination: its log ends with the
+/// seed before the failing one.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct DebugOutput {
     /// Whether this run opened `debug/log.txt`, truncating it.

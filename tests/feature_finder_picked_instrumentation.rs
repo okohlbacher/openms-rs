@@ -23,12 +23,11 @@
 //! - tier 4: the undefined cases, which have no executed answer.
 //!
 //! Fitted values (retention time, `score_fit`, `score_correlation`, the
-//! `EGH_*` parameters) are compared with the bound `fit_bound` gives: bit for
-//! bit on Linux x86_64 with glibc, the reference platform, except the
-//! asymmetric (EGH) configuration, whose fit calls the `libm` crate where the
-//! source calls glibc (`2.3038e-12` relative, as
-//! `tests/feature_finder_picked.rs` measures it); other platforms keep their
-//! measured platform bound. Everything else is compared exactly.
+//! `EGH_*` parameters) are compared bit for bit on every platform: both trace
+//! fitters call the reference build's glibc `exp` and `log`, ported (lead
+//! decision D10). The one exception is the intensity of the asymmetric case on
+//! a host without the GNU C Library, whose `atan` is not the reference's
+//! (`fit_bound`). Everything else is compared exactly.
 
 #![cfg(all(feature = "mzml", feature = "paramxml", feature = "featurexml"))]
 
@@ -289,38 +288,33 @@ fn dump_param(parameters: &Param) -> String {
     out
 }
 
-/// The EGH configuration's measured departure from the Linux capture,
-/// `2.3038102266706174e-12` relative on Linux x86_64 and macOS arm64
-/// (`tests/feature_finder_picked.rs`, `EGH_LIBM_GAP`), rounded up.
-const EGH_LIBM_GAP: f64 = 2.4e-12;
+/// Fitted values admit no difference: both trace fitters call the reference
+/// build's glibc `exp` and `log`, ported (lead decision D10), so every fitted
+/// value is the Linux x86_64 Release build's on every platform, NaN bits
+/// included.
+const BIT_FOR_BIT: f64 = 0.0;
 
-/// The Gaussian fits on the reference platform: bit for bit.
-#[cfg(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"))]
-const PLATFORM_FIT_GAP: f64 = 0.0;
-
-/// macOS arm64 (Apple libm) against the Linux capture: the largest measured
-/// relative departure of a fitted value in these cases, `5.1906e-13` (the
-/// Gaussian fits of FFC_1), rounded up to the `5.4e-13` that
-/// `tests/feature_finder_picked.rs` uses there (a platform note, lead
-/// decision D8 of wave 5).
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-const PLATFORM_FIT_GAP: f64 = 5.4e-13;
-
-/// Unmeasured platforms: the work package's `1e-9` contract.
-#[cfg(not(any(
-    all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"),
-    all(target_os = "macos", target_arch = "aarch64")
-)))]
-const PLATFORM_FIT_GAP: f64 = 1e-9;
-
-/// The relative bound of a fitted value of `case`.
-fn fit_bound(case: &str) -> f64 {
-    if case == "egh" {
-        EGH_LIBM_GAP.max(PLATFORM_FIT_GAP)
+/// The relative bound of a differing fitted token of `case`: [`BIT_FOR_BIT`],
+/// except the intensity (`int=`) of the asymmetric case on a host without the
+/// GNU C Library, whose EGH area calls the `libm` crate's `atan` instead of
+/// the reference's (D10's fallback; [`EGH_ATAN_GAP`]).
+fn fit_bound(case: &str, token: &str) -> f64 {
+    if case == "egh" && token.starts_with("int=") {
+        EGH_ATAN_GAP
     } else {
-        PLATFORM_FIT_GAP
+        BIT_FOR_BIT
     }
 }
+
+/// The EGH intensity bound: exact with glibc's `atan`.
+#[cfg(all(target_os = "linux", target_env = "gnu"))]
+const EGH_ATAN_GAP: f64 = BIT_FOR_BIT;
+
+/// The EGH intensity bound elsewhere: the largest relative departure measured
+/// over these cases on macOS arm64 with the `libm` crate's `atan`, a measured
+/// maximum, not a guarantee.
+#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
+const EGH_ATAN_GAP: f64 = 0.0;
 
 /// Whether a dump token holds a fitted value, compared within [`fit_bound`];
 /// everything else is compared exactly.
@@ -362,7 +356,6 @@ fn close(expected: f64, actual: f64, bound: f64) -> (bool, f64) {
 /// values within [`fit_bound`] of `case`. Returns the number of fitted values
 /// that were not bit-identical.
 fn assert_dumps_match(expected: &str, actual: &str, case: &str) -> usize {
-    let bound = fit_bound(case);
     let mut largest = 0.0f64;
     let expected_lines: Vec<&str> = expected.lines().collect();
     let actual_lines: Vec<&str> = actual.lines().collect();
@@ -388,6 +381,7 @@ fn assert_dumps_match(expected: &str, actual: &str, case: &str) -> usize {
                 Some(key) => fitted_meta(key) && index == 3,
                 None => et.first() == Some(&"F") && fitted_field(x),
             };
+            let bound = fit_bound(case, x);
             let (within, departure) = close(value_of(x), value_of(y), bound);
             assert!(
                 fitted && within,
@@ -400,7 +394,7 @@ fn assert_dumps_match(expected: &str, actual: &str, case: &str) -> usize {
     }
     if inexact > 0 {
         eprintln!(
-            "{case}: {inexact} fitted values within {bound:e}, largest departure {largest:e}"
+            "{case}: {inexact} fitted values within their bound, largest departure {largest:e}"
         );
     }
     inexact
@@ -2811,12 +2805,12 @@ fn integer_parameters_beyond_the_int_range_follow_the_release_build() {
         assert_eq!(expected_features.len(), count, "{case}");
         for (feature, (rt, rest)) in features.features.iter().zip(expected_features) {
             let rest: Vec<&str> = rest.split(' ').collect();
-            // The retention time and the intensity are fitted: bit for bit on
-            // the reference platform, within the platform bound elsewhere.
+            // The retention time and the intensity are fitted, and Gaussian:
+            // bit for bit on every platform.
             let fitted = |actual: String, expected: &str, what: &str| {
                 if actual != expected {
                     let (within, departure) =
-                        close(value_of(expected), value_of(&actual), PLATFORM_FIT_GAP);
+                        close(value_of(expected), value_of(&actual), BIT_FOR_BIT);
                     assert!(
                         within,
                         "{case} {what}: {actual} against {expected} ({departure:e})"

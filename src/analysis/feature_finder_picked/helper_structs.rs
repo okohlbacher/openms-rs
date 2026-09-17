@@ -48,6 +48,11 @@ use std::ops::{Index, IndexMut};
 use crate::kernel::{ConvexHull2D, Point2D};
 use crate::{Error, Result};
 
+/// The refusal of [`MassTraces::intensity_profile`] where a NaN retention time
+/// meets the merge that never ends in the source (`CPP-242`).
+pub(crate) const NAN_RT_MERGE_WHAT: &str =
+    "a NaN retention time cannot be merged into an intensity profile";
+
 /// Seed of a feature: a local intensity maximum in one spectrum (source
 /// `FeatureFinderAlgorithmPickedHelperStructs::Seed`).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -537,9 +542,7 @@ impl MassTraces {
                     current = profile.next[current];
                     index += 1;
                 } else {
-                    return Err(Error::InvalidValue(
-                        "a NaN retention time cannot be merged into an intensity profile".into(),
-                    ));
+                    return Err(Error::InvalidValue(NAN_RT_MERGE_WHAT.into()));
                 }
             }
         }

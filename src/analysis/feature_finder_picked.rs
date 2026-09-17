@@ -48,6 +48,9 @@ pub mod source_sort;
 /// The reference build's C library `powf` of the overall seed score (`FeatureFinderAlgorithmPicked.h`).
 pub(crate) mod glibc_powf;
 
+/// The reference build's C library `exp`, `log`, `atan` and `sqrt` of the trace fitters (`FeatureFinderAlgorithmPicked.h`).
+pub(crate) mod glibc_libm;
+
 /// The debug mode: the source's `debug/` output as data (`FeatureFinderAlgorithmPicked.h`).
 pub mod debug;
 
