@@ -5,10 +5,10 @@
   "counts": {
     "registered_public_headers": 786,
     "by_status": {
-      "complete": 60,
+      "complete": 63,
       "evidence_requires_review": 165,
       "native_equivalent": 90,
-      "partial": 62,
+      "partial": 59,
       "unmapped": 409
     },
     "topp_sources": 124,
@@ -2522,7 +2522,7 @@
           "tests/isotopes_source_precision.rs"
         ],
         "documentation": "docs/ISOTOPE_SOURCE_PRECISION_SUPPORT.md",
-        "scope": "run, convolve, convolvePow_, calcFragmentIsotopeDist, the peptide/RNA/DNA and composition estimators, isotope overrides and the mass mode (native conventions in docs/ISOTOPE_SUPPORT.md). ProbabilityPrecision::SourceSingle reproduces the source's binary32 Peak1D arithmetic: bit-identical to the executed SDK runs that iterate elements in the port's order (ascending atomic number for natural elements; 198 of 200 runs for CHNOPS, because the SDK's pointer-keyed element map changes order between runs), except formulas containing iridium, which the SDK builds from rhenium's tables. Class-test literals are tier 3. PARTIAL: setMaxIsotope, setRoundMasses, getIsotopeOverrides and estimateForFragmentFromPeptideWeightAndS are not ported. Native: f64 by default; the abundance override with the stray (0, 1) peak is rejected; errors replace infinities and NaN, including when every binary32 bin underflows."
+        "scope": "run, convolve, convolvePow_, calcFragmentIsotopeDist, the peptide/RNA/DNA and composition estimators, isotope overrides and the mass mode (native conventions in docs/ISOTOPE_SUPPORT.md). ProbabilityPrecision::SourceSingle reproduces the source's binary32 Peak1D arithmetic: bit-identical to the executed SDK runs that iterate elements in the port's order (ascending atomic number for natural elements; 198 of 200 runs for CHNOPS, because the SDK's pointer-keyed element map changes order between runs), except formulas containing iridium, which the SDK builds from rhenium's tables. Class-test literals are tier 3. PARTIAL: setMaxIsotope, setRoundMasses, getIsotopeOverrides and estimateForFragmentFromPeptideWeightAndS are not ported. Native: f64 by default; the abundance override with the stray (0, 1) peak is rejected; errors replace infinities and NaN, including when every binary32 bin underflows (the crate-private estimate_from_peptide_weight_source reports that case to FeatureFinderAlgorithmPicked, which empties the window as the source's NaN weights do)."
       },
       "candidate_rust_files": [
         "src/chemistry/isotopes.rs"
@@ -4091,7 +4091,8 @@
       "reference_manifests": [
         "tests/data/experiment_mobility_provenance.json",
         "tests/data/math_functions_provenance.json",
-        "tests/data/mrm_provenance.json"
+        "tests/data/mrm_provenance.json",
+        "tests/data/progress_logger_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -4122,7 +4123,7 @@
           "tests/progress_logger.rs"
         ],
         "documentation": "docs/PROGRESS_LOGGER_SUPPORT.md",
-        "scope": "All modes, copy/replacement/options and four backend operations, nested whole-second throttling, independent next counter and command timing/rates. Owned per-logger GUI factories, shared atomic nesting and mutable Rust calls replace global/raw-pointer/const mutation. Real total process CPU on Unix/Windows and monotonic elapsed wall timing; source undefined timing/range cases are checked errors. Default GUI is a no-op as in core; product GUI is outside this header."
+        "scope": "All modes, copy/replacement/options and four backend operations, nested whole-second throttling, independent next counter and command timing/rates. Owned per-logger GUI factories, shared atomic nesting and mutable Rust calls replace global/raw-pointer/const mutation. Real total process CPU on Unix/Windows and monotonic elapsed wall timing. Ranges follow the Linux x86_64 Release build: the Debug-only OPENMS_PRECONDITION(begin <= end) is not ported, so inverted ranges are accepted and printed as the Release CMD backend prints them (executed Release differential, tests/data/progress_logger_release_range.tsv); the Release StopWatch refusals are kept and source undefined timing/arithmetic cases are checked errors. Default GUI is a no-op as in core; product GUI is outside this header."
       },
       "candidate_rust_files": [
         "src/concept/progress_logger.rs"
@@ -5297,6 +5298,7 @@
         "status": "complete",
         "rust": [
           "src/analysis/feature_finder_picked/egh_trace_fitter.rs",
+          "src/analysis/feature_finder_picked/glibc_libm.rs",
           "src/analysis/feature_finder_picked/trace_fitter.rs"
         ],
         "tests": [
@@ -5304,7 +5306,7 @@
           "tests/lm_eigen_path_differential.rs"
         ],
         "documentation": "docs/EGH_TRACE_FITTER_SUPPORT.md",
-        "scope": "B5-EGH (7d0c975), rebased on B4's trace_fitter::optimize, defaults and shared helpers: every public and protected member is mapped - the constructors, assignment, fit, getValue, getArea, getFWHM, getTau, getHeight, getSigma, the RT bounds, computeTheoretical, checkMinimalRTSpan, checkMaximalRTSpan, getGnuplotFormula, setInitialParameters_, getOptimizedParameters_ and the EGHTraceFunctor with its analytic Jacobian. Tier 3: the EGHTraceFitter_test sections. Tier 1 against ../oracle/egh-trace-fitter and the C2 class-level oracle: residual and Jacobian evaluations, start points, parameter vectors, the fits and the budget sweep. Residuals, Jacobians, start points and parameter vectors are bit-identical on the oracle platform when its own exp/log are used; the committed comparison classes are 1e-14 relative for single evaluations and 1e-9 for fits and derived quantities, with a measured maximum of 1.98e-11 (tau at budget 240 of the apex_at_last_scan sweep), 1.4e-11 and 1.5e-11 after 500 evaluations and 4.1e-16 elsewhere; the budget-boundary pattern (exact identity with the 500-evaluation result from the boundary on) is asserted per case. The shared Eigen Levenberg-Marquardt transcription in src/math/fitters/levenberg_marquardt.rs was re-measured for B3b-LM-FIDELITY (dc56a9f): with Eigen's own reduction kernels (Redux, Dot, InnerProduct, GeneralMatrixVector and the triangular vector solvers, each where Eigen dispatches to it) every residual-evaluation argument, the final parameters, the status, nfev and njev are bit-identical to Eigen 5.0.1 as the Linux x86_64 Release build compiles it (gcc 14.4, -O3 -mssse3 -ffp-contract=off) on all 141 traced trace fits of ../oracle/lm-eigen-path, and the final parameters equal that build's fits 141 of 141 (tests/lm_eigen_path_differential.rs). Against the macOS arm64 product SDK, whose Eigen uses NEON pmadd (a fused multiply-add), 21 of 141 paths and 96 of 141 final parameter sets agree; that split is Eigen's, not the port's, and the user's decision of 2026-09-15 is to match the Linux x86_64 Release build everywhere, so no fused path exists on any target. KNOWN GAP, the same as GaussTraceFitter's: the fixtures are macOS arm64 and the fit follows the Linux x86_64 Release Eigen. Native: results are identical on every platform up to the sign and payload of a NaN; a failed fit leaves the fitter unchanged, where the source keeps the start values in its members (the algorithm never observes the difference, because it does not catch the exception); the missing alpha >= 1 guard, empty traces, the functor's baseline and sigma-sign inconsistency and the \"gaussian\" wording are reproduced or refused as recorded (CPP-294 to CPP-297)."
+        "scope": "B5-EGH (7d0c975), rebased on B4's trace_fitter::optimize, defaults and shared helpers: every public and protected member is mapped - the constructors, assignment, fit, getValue, getArea, getFWHM, getTau, getHeight, getSigma, the RT bounds, computeTheoretical, checkMinimalRTSpan, checkMaximalRTSpan, getGnuplotFormula, setInitialParameters_, getOptimizedParameters_ and the EGHTraceFunctor with its analytic Jacobian. Tier 3: the EGHTraceFitter_test sections. Tier 1 against ../oracle/egh-trace-fitter and the C2 class-level oracle: residual and Jacobian evaluations, start points, parameter vectors, the fits and the budget sweep. Residuals, Jacobians, start points and parameter vectors are bit-identical on the oracle platform when its own exp/log are used; the committed comparison classes are 1e-14 relative for single evaluations and 1e-9 for fits and derived quantities, with a measured maximum of 1.98e-11 (tau at budget 240 of the apex_at_last_scan sweep), 1.4e-11 and 1.5e-11 after 500 evaluations and 4.1e-16 elsewhere; the budget-boundary pattern (exact identity with the 500-evaluation result from the boundary on) is asserted per case. The shared Eigen Levenberg-Marquardt transcription in src/math/fitters/levenberg_marquardt.rs was re-measured for B3b-LM-FIDELITY (dc56a9f): with Eigen's own reduction kernels (Redux, Dot, InnerProduct, GeneralMatrixVector and the triangular vector solvers, each where Eigen dispatches to it) every residual-evaluation argument, the final parameters, the status, nfev and njev are bit-identical to Eigen 5.0.1 as the Linux x86_64 Release build compiles it (gcc 14.4, -O3 -mssse3 -ffp-contract=off) on all 141 traced trace fits of ../oracle/lm-eigen-path, and the final parameters equal that build's fits 141 of 141 (tests/lm_eigen_path_differential.rs). Against the macOS arm64 product SDK, whose Eigen uses NEON pmadd (a fused multiply-add), 21 of 141 paths and 96 of 141 final parameter sets agree; that split is Eigen's, not the port's, and the user's decision of 2026-09-15 is to match the Linux x86_64 Release build everywhere, so no fused path exists on any target. KNOWN GAP, the same as GaussTraceFitter's: the fixtures are macOS arm64 and the fit follows the Linux x86_64 Release Eigen. Native: exp and log are the reference build's glibc 2.39 functions (__ieee754_exp_fma, __ieee754_log_fma), ported from Arm optimized-routines (glibc_libm, lead decision D10 of wave 5), and the start point, bounds and FWHM follow the Release build's SSE operand order, so fits are the Linux x86_64 Release build's on every platform; atan (the area only) has no licence-clean upstream of its reference algorithm and is the host's on x86_64 Linux with glibc (exact where that library selects __atan_fma) and the libm crate's elsewhere, where the area's last bits are a measured maximum, not a guarantee (the crate's atan differs from __atan_fma for 1.6 to 6.2 % of the arguments in the fits' range; the float intensity hides nearly all of it); a NaN the solver creates from finite values carries the host's sign; a failed fit leaves the fitter unchanged, where the source keeps the start values in its members (the algorithm never observes the difference, because it does not catch the exception); the missing alpha >= 1 guard, empty traces, the functor's baseline and sigma-sign inconsistency and the \"gaussian\" wording are reproduced or refused as recorded (CPP-294 to CPP-297)."
       },
       "candidate_rust_files": [
         "src/analysis/feature_finder_picked/egh_trace_fitter.rs"
@@ -5431,27 +5433,37 @@
       "header": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
       "sha256": "a9d5a2373f301e3ac553bdfbcb8e1dba95de46eab1344bf07a4962760e35b8c0",
       "domain": "FEATUREFINDER",
-      "status": "partial",
+      "status": "complete",
       "review": {
-        "status": "partial",
+        "status": "complete",
         "rust": [
           "src/analysis/feature_finder_picked/algorithm.rs",
+          "src/analysis/feature_finder_picked/debug.rs",
+          "src/analysis/feature_finder_picked/defs.rs",
           "src/analysis/feature_finder_picked/extension.rs",
           "src/analysis/feature_finder_picked/fitting.rs",
+          "src/analysis/feature_finder_picked/glibc_libm.rs",
+          "src/analysis/feature_finder_picked/glibc_powf.rs",
+          "src/analysis/feature_finder_picked/instance.rs",
           "src/analysis/feature_finder_picked/resolution.rs",
           "src/analysis/feature_finder_picked/scoring.rs",
-          "src/analysis/feature_finder_picked/seeds.rs"
+          "src/analysis/feature_finder_picked/seeds.rs",
+          "src/analysis/feature_finder_picked/source_sort.rs"
         ],
         "tests": [
           "tests/feature_finder_picked.rs",
+          "tests/feature_finder_picked_instrumentation.rs",
           "tests/feature_finder_picked_seeds.rs",
           "tests/topp_feature_finder_centroided.rs"
         ],
         "documentation": "docs/FEATURE_FINDER_PICKED_SUPPORT.md",
-        "scope": "The whole algorithm, front half B6-FFAP-SEEDS (80bbdf1) and back half B7-FFAP-FEATURES (ba913da): the 29 parameter defaults with their 7 section descriptions, updateMembers_ as Settings::from_parameters, the input checks of run in source order, the intensity bins and 21 quantiles, the trace, intensity and isotope-pattern scores, the isotope-window precalculation, seed selection, and then steps 3.3 to 5 - extendMassTrace_/extendMassTraces_, findBestIsotopeFit_, the Gauss and EGH trace fits through TraceFitter, the quality checks, intersection_, cropFeature_, the abort bookkeeping and the overlap resolution - so run() now produces features end to end. Five defects of that stage are reproduced exactly because they decide ordinary output: CPP-298 to CPP-302. Tier 1: the defaults equal the executed FeatureFinderCentroided -write_ini algorithm section (C1); settings, quantiles, isotope windows, every per-peak score and the ordered seed lists match the product SDK bit for bit in six of the seven recorded configurations (C2 ffap_stages and ../oracle/b6-ffap-seeds); the seventh, mass_trace:min_spectra = 1, is compared on its outcome and not bit for bit, because every trace score there is NaN and no seed is produced (CPP-271); the feature stage is replayed against ../oracle/b7-ffap-features and, through the FeatureFinderCentroided wrapper, against the C++ Release build openms4-release-bc9cc12-c19e494-174b576 - the FeatureFinderCentroided_1 family gives the same counts as that build: 8 features, 30 hulls and 120 hull points in the default run, 24 seeds in the -seeds run and 1,054 hull points under -debug 5, with bit-identical m/z and hull points, and rt, score_fit and score_correlation within 1e-9 relative (measured 5.5e-13, 2.2e-10 and 7.7e-12), byte-identical at -threads 1/2/4/8/0. Tier 3: the class-test sections, including the #9247 tolerance swaps. The overall seed score is libm::pow in f64 rounded once to f32, the correctly rounded power, so 99 of 30,840 retained overall scores are one binary32 step from the Apple powf the oracle used (CPP-272); no seed list changes. Two lead decisions of 2026-09-15 are applied: mass_trace:min_spectra = 1 follows the source (NaN trace scores, 0 seeds, CPP-271) and a changed isotope abundance computes the intended two-isotope override (CPP-247) - the latter is the one place where this port's features differ from the executed C++ by design, with AbundanceOverride::Refuse as the opt-out. PARTIAL, not complete, for one reason, the same rule that keeps SignalToNoiseEstimatorMedian.h partial: write_debug is refused, so writeFeatureDebugInfo_ and abort_reasons_ are deliberately not ported (the source throws there - it reads debug:pseudo_rt_shift where the declared parameter is advanced:pseudo_rt_shift). The FeatureFinderDefs struct in the same header is context only. Promote when the lead accepts that refusal as the port of an unreachable member. Native: a zero-width RT or m/z range is refused where the C++ Release build computes non-finite bin bounds and returns an empty map (CPP-274, open for B10); charge_low above charge_high + 1 is refused; score arrays live outside the spectra; ranges are computed on demand; the source's log lines are returned in RunOutput::log, blank lines included, instead of printed; work, peak and seed-loop ceilings bound the run."
+        "scope": "The whole of FeatureFinderAlgorithmPicked.h and its FeatureFinderDefs (B6-FFAP-SEEDS, B7-FFAP-FEATURES, port/ffap-semantics, port/ffap-instrumentation and their merge port/ffap-complete with six combined fix rounds and a minors pass) is ported and pinned at tier 1 against the Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 - the 29 defaults, the DefaultParamHandler checks and updateMembers_ with the source's texts and conversions (64-bit integers narrowed as int, operator unsigned int, the min_spectra cvttsd2si), the input checks of run with sortSpectra/sortChromatograms (the Exception::Precondition of a mis-sized data array in introsort order included), steps 1 to 4 (intensity quantiles behind the area iterator's drift-time filter with the step-1 progress range wrapped as UInt, the trace, intensity, isotope-pattern and overall scores, the isotope windows with the Release Size conversion, std::length_error above vector::max_size(), and the empty windows that underflowed binary32 bins or a NaN intensity_percentage_optional leave, seed selection, extension, the Gauss and EGH fits, cropping and quality checks with Math::pearsonCorrelationCoefficient's division by a zero denominator, the stored width, FWHM, score and EGH values whatever they are (infinite once the float width overflows, first at a retention-time scale of 6e36 on FeatureFinderCentroided_1), the abort bookkeeping and overlap resolution, the five reproduced defects CPP-298 to CPP-302), the reusable instance with its accumulated aborts_, abort_reasons_, never-closed log_ (also after a run that fails before the seed loop; after any termination, in this or a later run, the file left at the flushed length of the debug run that opened it), isotope_distributions_, user seeds sorted in place, the ProgressLogger base (inverted ranges passed unchanged) and run into a caller's map, and write_debug with writeFeatureDebugInfo_ byte for byte (glibc's -nan and the SSE operand order of getGnuplotFormula and getAvgMZ included) - with every undefined or unspecified behaviour whose Release outcome is measured, repeatable, explained by the executed instructions and in bounds reproduced (lead decisions D1-D13 of wave 5: the cvttsd2si/btc conversions, in-bounds UInt wraps, libstdc++'s binary searches, its introsort and 14.4.0 stable_sort on NaN and equal keys, the reference build's glibc 2.39 powf, exp and log (__powf_fma, __ieee754_exp_fma, __ieee754_log_fma) ported from Arm optimized-routines with their FMA fusion, SSE NaN bits, the address-independent heap-pointer shift text, ChargedIndexSet compared by its index sets), bit for bit on every platform except the EGH area's atan on a host other than x86_64 Linux with glibc (the IBM algorithm of __atan_fma has no licence-clean upstream: the host's on x86_64 Linux with glibc, exact where it selects __atan_fma, the libm crate's elsewhere, a measured maximum of 0 over the fixtures), the one designed difference being the intended isotope-abundance override (CPP-247, AbundanceOverride::Refuse as the opt-out), refusals only where the source has no reproducible answer, each recording where and how the executed process ends (every UInt score-array count that wraps, whatever the Limits, the counts -2 and -3 unconditionally by D13, the termination recorded up to a documented line, the bytes of 1,000,000,003 arrays - the largest count measured to die on the uncapped reference node - and not above, where the executed outcome depends on the memory the process may have; the out-of-bounds read of an empty best isotope pattern in extendMassTraces_, reachable with feature:min_isotope_fit 0 and executed as SIGSEGV; the endless NaN-RT profile merge CPP-242; the terminating step-3.3.5 exception, reachable with a trace of zero intensities and executed as SIGABRT, and the undeclared debug:pseudo_rt_shift; stale abort seeds outside the input, executed SIGSEGV; a caller's charge-0 feature in a mixed-charge overlap, executed SIGFPE; and, without a termination, an address-dependent shift text), the aborts_/abort_reasons_/log_ race at more than one thread answered with the single-thread result (the one exception to D1 that lead decision D11 accepts, because the determinism contract requires parallel output to equal serial output and aborts_ is written in every run), and the native Limits ceilings (whose isotope-window refusal FeatureFinderCentroided reports with exit 8 where the executed tool reports std::bad_alloc with exit 12)."
       },
-      "candidate_rust_files": [],
+      "candidate_rust_files": [
+        "src/analysis/feature_finder_picked/instance.rs"
+      ],
       "reference_manifests": [
+        "tests/data/feature_finder_picked_instrumentation_provenance.json",
         "tests/data/feature_finder_picked_provenance.json",
         "tests/data/topp_feature_finder_centroided_provenance.json"
       ],
@@ -5473,11 +5485,12 @@
           "tests/feature_finder_picked_helper_structs.rs"
         ],
         "documentation": "docs/FEATURE_FINDER_PICKED_HELPER_STRUCTS_SUPPORT.md",
-        "scope": "Every public member of Seed, MassTrace, MassTraces, TheoreticalIsotopePattern and IsotopePattern is ported; PatternPeak replaces the -1/-2 peak indices and Seed::is_less_intense_than replaces operator< for the seed sort and the debug abort-reason map. Tier 1 for the 13 computational members against ../oracle/feature-finder-picked-helper-structs (164 rows, bitwise on every platform), tier 4 for the accessors. PARTIAL although the surface is complete, because the evidence does not cover one behaviour: MassTrace::convex_hull goes through kernel ConvexHull2D::add_points, which merges one retention time's m/z range with f64::min/f64::max, so signed-zero m/z within one scan differs from the source's keep-first rule and between machines. Promote when that kernel follow-up lands. Native: an empty or NaN-blocked intensity profile gives an empty profile or InvalidValue where the source has undefined behaviour or never terminates; bounded reserve, IsotopePattern::new and profile work. FeatureFinderDefs.h and IsotopeCluster.h are context only and not ported."
+        "scope": "Every public member of Seed, MassTrace, MassTraces, TheoreticalIsotopePattern and IsotopePattern is ported; PatternPeak replaces the -1/-2 peak indices and Seed::is_less_intense_than replaces operator< for the seed sort and the debug abort-reason map. Tier 1 for the 13 computational members against ../oracle/feature-finder-picked-helper-structs (164 rows, bitwise on every platform), tier 4 for the accessors. PARTIAL although the surface is complete, because the evidence does not cover one behaviour: MassTrace::convex_hull goes through kernel ConvexHull2D::add_points, which merges one retention time's m/z range with f64::min/f64::max, so signed-zero m/z within one scan differs from the source's keep-first rule and between machines. Promote when that kernel follow-up lands. MassTrace::getAvgMZ, MassTraces::updateBaseline and MassTraces::computeIntensityProfile promote every float with the Linux x86_64 Release build's cvtss2sd rather than with a Rust cast, and getAvgMZ and computeIntensityProfile follow that build's SSE instructions for every sum, product and quotient as well (cvtss2sd, addsd, mulsd, divsd with the executed operand order), so a NaN any of them creates or passes on carries the executed sign on every host (an all-zero trace's average prints as -nan in the executed FeatureFinderAlgorithmPicked debug .plot file; port/ffap-complete fix rounds 5 and 6, the baseline reaching the stored score_fit and score_correlation through both fitters). Native: an empty or NaN-blocked intensity profile gives an empty profile or InvalidValue where the source has undefined behaviour or never terminates; bounded reserve, IsotopePattern::new and profile work. FeatureFinderDefs.h and IsotopeCluster.h are context only and not ported."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/feature_finder_picked_helper_structs_provenance.json"
+        "tests/data/feature_finder_picked_helper_structs_provenance.json",
+        "tests/data/feature_finder_picked_provenance.json"
       ],
       "direct_topp_consumers": [
         "FeatureFinderMetaboIdent"
@@ -5591,6 +5604,7 @@
         "status": "complete",
         "rust": [
           "src/analysis/feature_finder_picked/gauss_trace_fitter.rs",
+          "src/analysis/feature_finder_picked/glibc_libm.rs",
           "src/analysis/feature_finder_picked/trace_fitter.rs"
         ],
         "tests": [
@@ -5598,7 +5612,7 @@
           "tests/lm_eigen_path_differential.rs"
         ],
         "documentation": "docs/TRACE_FITTER_SUPPORT.md",
-        "scope": "B4-GAUSS (2fc61e5): every public and protected member is mapped - the constructors, assignment, fit, getLowerRTBound/getUpperRTBound/getHeight/getCenter/getFWHM/getSigma, getValue, computeTheoretical, checkMinimalRTSpan, checkMaximalRTSpan, getArea, getGnuplotFormula, setInitialParameters_, getOptimizedParameters_ and the GaussTraceFunctor. Tier 3: all 17 GaussTraceFitter_test START_SECTION blocks with their literals and TOLERANCE_RELATIVE(1.001). Tier 1 against ../oracle/gauss-trace-fitter (driver.cpp built against the product SDK with -ffp-contract=off, run twice with identical output) and the C2 class-level oracle: the class-test fits (start values, residuals, Jacobians at five vectors, the fit at 500, every query, the 1..500 budget sweep and the evaluation path), the degenerate inputs, and the 25 Gaussian fits of FeatureFinderCentroided_1's seed loop. Start values, residuals, Jacobians and queries are compared within 1e-14 relative and are bit-identical; fits, sweeps and paths within 1e-9 (largest 1.44e-12 class tests, 1.83e-10 seeds after B3b); statuses, nfev, njev and the budget boundaries exactly (47 and 31 for the class tests, 29 to 46 and 131 for the seeds). The shared Eigen Levenberg-Marquardt transcription in src/math/fitters/levenberg_marquardt.rs was re-measured for B3b-LM-FIDELITY (dc56a9f): with Eigen's own reduction kernels (Redux, Dot, InnerProduct, GeneralMatrixVector and the triangular vector solvers, each where Eigen dispatches to it) every residual-evaluation argument, the final parameters, the status, nfev and njev are bit-identical to Eigen 5.0.1 as the Linux x86_64 Release build compiles it (gcc 14.4, -O3 -mssse3 -ffp-contract=off) on all 141 traced trace fits of ../oracle/lm-eigen-path, and the final parameters equal that build's fits 141 of 141 (tests/lm_eigen_path_differential.rs). Against the macOS arm64 product SDK, whose Eigen uses NEON pmadd (a fused multiply-add), 21 of 141 paths and 96 of 141 final parameter sets agree; that split is Eigen's, not the port's, and the user's decision of 2026-09-15 is to match the Linux x86_64 Release build everywhere, so no fused path exists on any target. KNOWN GAP, deliberate and documented: the fixtures were generated on macOS arm64, and the fit follows the Linux x86_64 Release Eigen instead, so four ill-conditioned start-value probes of this package carry measured bounds (up to 1e-2) rather than the 1e-9 fit tolerance, and the #[ignore]d solver_gap_probe_reports_the_known_gap prints the 79-input macOS comparison without asserting a Rust value. Native: platform f64::exp/ln instead of the libm crate (which breaks the 1e-14 residual criterion); an all-zero profile, empty traces and unchecked theoretical indexing are refused where the source has NaN or undefined behaviour (CPP-291, CPP-292); the uninitialised region_rt_span_ of a copy (CPP-289), the 0.125 factor in the sigma column of the Jacobian (CPP-290) and the backwards RT-span documentation (CPP-294) are reproduced, the last two deliberately, because correcting them would change every fitted parameter."
+        "scope": "B4-GAUSS (2fc61e5): every public and protected member is mapped - the constructors, assignment, fit, getLowerRTBound/getUpperRTBound/getHeight/getCenter/getFWHM/getSigma, getValue, computeTheoretical, checkMinimalRTSpan, checkMaximalRTSpan, getArea, getGnuplotFormula, setInitialParameters_, getOptimizedParameters_ and the GaussTraceFunctor. Tier 3: all 17 GaussTraceFitter_test START_SECTION blocks with their literals and TOLERANCE_RELATIVE(1.001). Tier 1 against ../oracle/gauss-trace-fitter (driver.cpp built against the product SDK with -ffp-contract=off, run twice with identical output) and the C2 class-level oracle: the class-test fits (start values, residuals, Jacobians at five vectors, the fit at 500, every query, the 1..500 budget sweep and the evaluation path), the degenerate inputs, and the 25 Gaussian fits of FeatureFinderCentroided_1's seed loop. Start values, residuals, Jacobians and queries are compared within 1e-14 relative and are bit-identical; fits, sweeps and paths within 1e-9 (largest 1.44e-12 class tests, 1.83e-10 seeds after B3b); statuses, nfev, njev and the budget boundaries exactly (47 and 31 for the class tests, 29 to 46 and 131 for the seeds). The shared Eigen Levenberg-Marquardt transcription in src/math/fitters/levenberg_marquardt.rs was re-measured for B3b-LM-FIDELITY (dc56a9f): with Eigen's own reduction kernels (Redux, Dot, InnerProduct, GeneralMatrixVector and the triangular vector solvers, each where Eigen dispatches to it) every residual-evaluation argument, the final parameters, the status, nfev and njev are bit-identical to Eigen 5.0.1 as the Linux x86_64 Release build compiles it (gcc 14.4, -O3 -mssse3 -ffp-contract=off) on all 141 traced trace fits of ../oracle/lm-eigen-path, and the final parameters equal that build's fits 141 of 141 (tests/lm_eigen_path_differential.rs). Against the macOS arm64 product SDK, whose Eigen uses NEON pmadd (a fused multiply-add), 21 of 141 paths and 96 of 141 final parameter sets agree; that split is Eigen's, not the port's, and the user's decision of 2026-09-15 is to match the Linux x86_64 Release build everywhere, so no fused path exists on any target. KNOWN GAP, deliberate and documented: the fixtures were generated on macOS arm64, and the fit follows the Linux x86_64 Release Eigen instead, so four ill-conditioned start-value probes of this package carry measured bounds (up to 1e-2) rather than the 1e-9 fit tolerance, and the #[ignore]d solver_gap_probe_reports_the_known_gap prints the 79-input macOS comparison without asserting a Rust value. Native: exp and log are the reference build's glibc 2.39 functions, ported from Arm optimized-routines (glibc_libm, lead decision D10 of wave 5), identical on every platform (the platform library differs between hosts, and the libm crate breaks the 1e-14 residual criterion); the start values follow the Release build's SSE operand order; an all-zero profile, empty traces and unchecked theoretical indexing are refused where the source has NaN or undefined behaviour (CPP-291, CPP-292); the uninitialised region_rt_span_ of a copy (CPP-289), the 0.125 factor in the sigma column of the Jacobian (CPP-290) and the backwards RT-span documentation (CPP-294) are reproduced, the last two deliberately, because correcting them would change every fitted parameter."
       },
       "candidate_rust_files": [
         "src/analysis/feature_finder_picked/gauss_trace_fitter.rs"
@@ -9234,6 +9248,7 @@
       "reference_manifests": [
         "tests/data/area_iteration_provenance.json",
         "tests/data/experiment_mobility_provenance.json",
+        "tests/data/feature_finder_picked_provenance.json",
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/peak_data_provenance.json"
       ],
@@ -9720,6 +9735,7 @@
         "tests/data/chromatogram_tools_provenance.json",
         "tests/data/experiment_aggregation_provenance.json",
         "tests/data/experiment_summary_provenance.json",
+        "tests/data/feature_finder_picked_provenance.json",
         "tests/data/feature_hypothesis_provenance.json",
         "tests/data/on_disc_experiment_provenance.json",
         "tests/data/ranges_provenance.json"
@@ -9774,6 +9790,7 @@
         "tests/data/experiment_mobility_provenance.json",
         "tests/data/experiment_summary_provenance.json",
         "tests/data/experimental_settings_provenance.json",
+        "tests/data/feature_finder_picked_provenance.json",
         "tests/data/map_operations_provenance.json",
         "tests/data/mzml_product_provenance.json",
         "tests/data/peak2d_provenance.json",
@@ -9877,6 +9894,7 @@
         "tests/data/chromatogram_tools_provenance.json",
         "tests/data/experiment_mobility_provenance.json",
         "tests/data/experiment_summary_provenance.json",
+        "tests/data/feature_finder_picked_provenance.json",
         "tests/data/imzml_writer_provenance.json",
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/mzml_centroid_provenance.json",
@@ -10167,6 +10185,7 @@
         "tests/data/area_iteration_provenance.json",
         "tests/data/experiment_mobility_provenance.json",
         "tests/data/experiment_summary_provenance.json",
+        "tests/data/feature_finder_picked_provenance.json",
         "tests/data/math_functions_provenance.json",
         "tests/data/mobilogram_provenance.json",
         "tests/data/peak_data_provenance.json",
@@ -12607,23 +12626,27 @@
       "header": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h",
       "sha256": "16b78361f139b2ea0df77737b44980cadb052e5a805deaac85037e152538864a",
       "domain": "PROCESSING",
-      "status": "partial",
+      "status": "complete",
       "review": {
-        "status": "partial",
+        "status": "complete",
         "rust": [
+          "src/processing/noise_estimation.rs",
           "src/processing/peak_picking/noise.rs"
         ],
         "tests": [
-          "tests/peak_picking.rs",
-          "tests/peak_picking_experiment.rs"
+          "tests/signal_to_noise.rs",
+          "src/processing/noise_estimation.rs"
         ],
-        "documentation": "docs/PEAK_PICKING_SUPPORT.md",
-        "scope": "Only what the median estimator uses (P1-PICKER-LIB, 1566a5f): init and getSignalToNoise become SignalToNoiseEstimatorMedian::estimate, which returns all ratios at once, and GaussianEstimate and estimate_ are inlined in its private estimate_points (mean and population variance in input order), tier 1 through the median estimator's executed cases. SignalToNoiseEstimatorMeanIterative is ported separately in processing::mean_noise. The 6 SignalToNoiseEstimator_test sections exercise an abstract test subclass and are NOT_TESTABLE here. PARTIAL: the abstract class with its pure virtual computeSTN_ is not a trait, the ProgressLogger base is not ported, and the free function estimateNoiseFromRandomScans (SignalToNoiseEstimator.cpp) is not ported."
+        "documentation": "docs/SIGNAL_TO_NOISE_SUPPORT.md",
+        "scope": "port/signal-to-noise: the abstract base as trait SignalToNoiseEstimator (compute_stn for the pure virtual computeSTN_, signal_to_noise for getSignalToNoise), implemented by SignalToNoiseEstimatorMedian and SignalToNoiseEstimatorMeanIterative; GaussianEstimate and estimate_ (GaussianEstimate::of: population variance in input order, default NaN for an empty range); the ProgressLogger base through estimate_with_progress. estimateNoiseFromRandomScans is estimate_noise_from_random_scans / RandomScanNoise with an explicit seed (the source seeds with time()), libstdc++'s minstd_rand0 and generate_canonical<double,53> bit for bit and GCC 14.4.0's nth_element line by line, NaN intensities included. It reproduces the exp[scan] indexing (:44) and the (size()-1) scaling (:42), and the :48 double->unsigned long conversion; the drawn position wraps (tmp.begin()+idx and tmp[idx] both compute _M_start+4*idx mod 2^64, one pointer reused for the read), so the element used is e = idx mod 2^62. When e < size the read is in bounds, deterministic and reproduced (Tier 1: 10 ../oracle/sne-followup cases twice each - +/-inf, NaN, 1e30 and a product of -2^63 or below all read element 0; products 2^62+j*2^10 and 2^63+j*2^11 read element j*2^10). It returns Error::Unsupported only when e >= size (SignalToNoiseEstimator.cpp:49-50: percentile exactly 100 or an empty drawn scan, e==size; a percentile above 100 or an ordinary negative percentile, e>size). Tier 1: 47 random-scan cases (seed set by interposing time()), 5 engine-output cases and 390 whole nth_element permutations against the Linux x86-64 Release build. Tier 3: the 6 SignalToNoiseEstimator_test sections exercise an abstract test subclass and are NOT_TESTABLE here."
       },
-      "candidate_rust_files": [],
+      "candidate_rust_files": [
+        "src/processing/noise_estimation.rs"
+      ],
       "reference_manifests": [
         "tests/data/mean_noise_provenance.json",
-        "tests/data/peak_picking_provenance.json"
+        "tests/data/peak_picking_provenance.json",
+        "tests/data/signal_to_noise_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -12645,18 +12668,20 @@
       "header": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h",
       "sha256": "f6f81757669c754484cec642bffe9763bb03140f45163f70c13280301a10f54c",
       "domain": "PROCESSING",
-      "status": "partial",
+      "status": "complete",
       "review": {
-        "status": "partial",
+        "status": "complete",
         "rust": [
           "src/processing/peak_picking/noise.rs"
         ],
         "tests": [
+          "tests/signal_to_noise.rs",
           "tests/peak_picking.rs",
-          "tests/peak_picking_experiment.rs"
+          "tests/peak_picking_experiment.rs",
+          "src/processing/peak_picking/noise.rs"
         ],
-        "documentation": "docs/PEAK_PICKING_SUPPORT.md",
-        "scope": "P1-PICKER-LIB (1566a5f): every member except the AUTOMAXBYPERCENT computation. Defaults, from_param and to_param (values the selected mode ignores are kept in NoiseRangeParameters so the round trip holds), init and getSignalToNoise as estimate, computeSTN_ for MANUAL and AUTOMAXBYSTDEV with the source histogram, median-bin walk and percentage formulas, and the zero ratios of a negative automatic range. Tier 1: the defaults equal the product SDK's stored getDefaults, and every signal-to-noise ratio and percentage of the 93 executed ../oracle/peak-picker-hires cases matches bit for bit on Linux x86-64, under the same rule as the picker's (non-source_ cases in both modes, source_ cases refused by the native default and compared only under source()) (the driver needs the SDK's -ffp-contract=off). Tier 3: the 5 SignalToNoiseEstimatorMedian_test sections, the [EXTRA] init section bit for bit. Native: noise_for_empty_window must be finite and positive; bin, point and work ceilings. PARTIAL because auto_mode 1 (AUTOMAXBYPERCENT) is accepted as a parameter but estimation returns Error::Unsupported: the source reads out of bounds there (CPP-256). Promote when the lead accepts that documented refusal as the port of the undefined mode. Test gap from the verifier: no case pins count*100/n against count*(100/n)."
+        "documentation": "docs/SIGNAL_TO_NOISE_SUPPORT.md",
+        "scope": "port/signal-to-noise: all 13 public declarations (the enum, the using re-exports of stn_estimates_, defaults_ and param_, the typedefs PeakIterator, PeakType and GaussianEstimate, four special members, two getters), the 13 protected members and the 9 parameters with their restrictions. PickingCompatibility::source(), which every TOPP tool path uses, computes what the Linux x86-64 Release build computes wherever the source is defined: AUTOMAXBYPERCENT on its derived domain (CPP-256), the INT_MIN bin of CPP-257 and the INT_MIN walk target at :220 (both a measured 32-bit cvttsd2si), infinite and NaN window lengths, any noise_for_empty_window, infinite ratios, NaN percentages and range for an empty container, the three OPENMS_LOG_WARN lines (NoiseEstimates::log; write_log_messages gates two) and the ProgressLogger calls (estimate_with_progress). It refuses exactly where the source is undefined: auto_mode 1 on an empty container (:209), a pre-histogram write outside [0, 99] or a pre-histogram bin above i32::MAX points (:216), a walk running count above i32::MAX (:228), more than i32::MAX points in auto_mode 0 (SignalToNoiseEstimator.h:123), in auto_mode -1 (:365), and in auto_mode 1 unless the range comes out negative (:365), and a non-sparse window of exactly i32::MAX points (:324). PickingCompatibility::default() is the documented native safety profile. Tier 1: 143 cases against the Release build bit for bit, warnings and progress output byte for byte; 5 AUTOMAXBYPERCENT cases beyond i32::MAX points (../oracle/sne-fix), matched by the port's full estimation outside CI; the 93 P1 cases re-run on Release byte-identically. Tier 3: the 5 class-test sections. Not ported: the namespace-scope object default_sn_median2 in the .cpp, which no header declares."
       },
       "candidate_rust_files": [
         "src/processing/peak_picking/noise.rs"
@@ -12664,7 +12689,8 @@
       "reference_manifests": [
         "tests/data/chromatogram_processing_provenance.json",
         "tests/data/iterative_provenance.json",
-        "tests/data/peak_picking_provenance.json"
+        "tests/data/peak_picking_provenance.json",
+        "tests/data/signal_to_noise_provenance.json"
       ],
       "direct_topp_consumers": [
         "EICExtractor",
@@ -13993,7 +14019,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
-        "OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h",
         "OpenMS/PROCESSING/SMOOTHING/GaussFilter.h"
       ],
       "workflow_validated": false
@@ -14108,7 +14133,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
         "OpenMS/KERNEL/MSExperiment.h"
@@ -14475,8 +14499,7 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/IdXMLFile.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h"
+        "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
     },
