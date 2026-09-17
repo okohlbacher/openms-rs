@@ -224,9 +224,37 @@ fn histogram_interpolates_median_and_reports_sparse_and_clipped_windows() {
     let out = sparse.estimate(&[0., 1000.], &[2., 4.]).unwrap();
     assert_eq!(out.signal_to_noise, [1., 2.]);
     assert_eq!(out.sparse_window_percent, 100.);
+    // An empty input: the native profile returns zeros where the source
+    // divides zero by zero (SignalToNoiseEstimatorMedian.h:373-374 in every
+    // mode, SignalToNoiseEstimator.h:127 in the standard-deviation range);
+    // the source profile returns the Release build's NaN (oracle cases
+    // empty_stdev and empty_manual in tests/data/signal_to_noise/oracle.tsv).
     let empty = config.estimate(&[], &[]).unwrap();
-    assert!(empty.signal_to_noise.is_empty());
-    assert_eq!(empty.sparse_window_percent, 0.);
+    assert!(empty.signal_to_noise.is_empty() && empty.noise.is_empty());
+    assert_eq!(empty.max_intensity, 30.);
+    assert_eq!(empty.sparse_window_percent.to_bits(), 0);
+    assert_eq!(empty.histogram_rightmost_percent.to_bits(), 0);
+    assert!(empty.log.is_empty());
+    let automatic = SignalToNoiseEstimatorMedian::default();
+    let empty = automatic.estimate(&[], &[]).unwrap();
+    assert_eq!(empty.max_intensity.to_bits(), 0);
+    assert_eq!(empty.sparse_window_percent.to_bits(), 0);
+    assert_eq!(empty.histogram_rightmost_percent.to_bits(), 0);
+    const NAN: u64 = 0xfff8_0000_0000_0000;
+    let source = PickingCompatibility::source();
+    let empty = automatic
+        .estimate_with_compatibility(&[], &[], &source)
+        .unwrap();
+    assert!(empty.signal_to_noise.is_empty() && empty.log.is_empty());
+    assert_eq!(empty.max_intensity.to_bits(), NAN);
+    assert_eq!(empty.sparse_window_percent.to_bits(), NAN);
+    assert_eq!(empty.histogram_rightmost_percent.to_bits(), NAN);
+    let empty = config
+        .estimate_with_compatibility(&[], &[], &source)
+        .unwrap();
+    assert_eq!(empty.max_intensity, 30.);
+    assert_eq!(empty.sparse_window_percent.to_bits(), NAN);
+    assert_eq!(empty.histogram_rightmost_percent.to_bits(), NAN);
     let zero = SignalToNoiseEstimatorMedian {
         min_required_elements: 1,
         ..Default::default()
@@ -554,6 +582,7 @@ fn each_compatibility_flag_lifts_only_its_own_refusal() {
                 allow_nonpositive_maximum: !flag.allow_nonpositive_maximum,
                 allow_nonpositive_fwhm_position: !flag.allow_nonpositive_fwhm_position,
                 source_mobility_arrays: !flag.source_mobility_arrays,
+                noise: NoiseCompatibility::source(),
             },
             ..Default::default()
         };
@@ -649,6 +678,11 @@ fn each_compatibility_flag_lifts_only_its_own_refusal() {
             allow_nonpositive_maximum: true,
             allow_nonpositive_fwhm_position: true,
             source_mobility_arrays: true,
+            noise: NoiseCompatibility {
+                source_value_domain: true,
+                nan_for_empty_input: true,
+                bin_index: BinIndexConversion::X86_64Release,
+            },
         }
     );
 }

@@ -1,7 +1,9 @@
 # High-resolution peak picking
 
-`processing::peak_picking` ports `PeakPickerHiRes` and the median signal-to-noise
-estimator it uses. The reference is OpenMS4-core commit
+`processing::peak_picking` ports `PeakPickerHiRes` and hosts the median
+signal-to-noise estimator it uses, whose API mapping, conventions, native
+differences and evidence are in [SIGNAL_TO_NOISE_SUPPORT.md](SIGNAL_TO_NOISE_SUPPORT.md).
+The reference is OpenMS4-core commit
 `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (re-pinned from `7c029e8`; the diff
 between the two is empty for every file below). No C++ library is called or
 built by the crate.
@@ -9,8 +11,8 @@ built by the crate.
 | Source | Rust |
 |---|---|
 | `PROCESSING/CENTROIDING/PeakPickerHiRes.h`, `PeakPickerHiRes.cpp` | `src/processing/peak_picking.rs` |
-| `PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h` (header-only; the `.cpp` is an explicit instantiation) | `src/processing/peak_picking/noise.rs` |
-| `PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h` (the base: `estimate_`, `init`, `getSignalToNoise`) | `src/processing/peak_picking/noise.rs` |
+| `PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h` (a header template; its `.cpp` only defines a global default object) | `src/processing/peak_picking/noise.rs` (see `SIGNAL_TO_NOISE_SUPPORT.md`) |
+| `PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h`, `SignalToNoiseEstimator.cpp` (the base and `estimateNoiseFromRandomScans`) | `src/processing/noise_estimation.rs` (see `SIGNAL_TO_NOISE_SUPPORT.md`) |
 | `MATH/MISC/CubicSpline2d`, `MATH/MISC/SplineBisection.h` | `src/processing/spline/` (read-only here; see `CUBIC_SPLINE2D_SUPPORT.md` and `SPLINE_BISECTION_SUPPORT.md`) |
 
 ```rust
@@ -76,24 +78,13 @@ afterwards; it gives up that atomicity in exchange.
 
 ### `SignalToNoiseEstimatorMedian` and its base
 
-| Source member | Rust | Notes |
-|---|---|---|
-| `SignalToNoiseEstimatorMedian()` | `SignalToNoiseEstimatorMedian::default()` | |
-| copy constructor, `operator=`, destructor | `Clone`, `Drop` | |
-| `enum IntensityThresholdCalculation { MANUAL, AUTOMAXBYSTDEV, AUTOMAXBYPERCENT }` | `NoiseHistogramRange::{Manual, StandardDeviation, Percentile}` | `Percentile` is refused when estimation runs. |
-| `init(const Container&)` + `getSignalToNoise(index)` | `estimate`, `estimate_with_compatibility` | All ratios returned at once. |
-| `getSparseWindowPercent`, `getHistogramRightmostPercent` | `NoiseEstimates::{sparse_window_percent, histogram_rightmost_percent}` | |
-| `computeSTN_` | private `estimate_points` | |
-| `updateMembers_` | `SignalToNoiseEstimatorMedian::from_param` | |
-| members `max_intensity_`, `auto_max_stdev_Factor_`, `auto_max_percentile_`, `auto_mode_` | `histogram_range` plus `range_parameters: NoiseRangeParameters` | The record keeps the values the selected mode ignores, so `to_param` returns what `from_param` received. |
-| members `win_len_`, `bin_count_`, `min_required_elements_`, `noise_for_empty_window_`, `write_log_messages_` | `window_length`, `bin_count`, `min_required_elements`, `noise_for_empty_window`, `write_log_messages` | |
-| `sparse_window_percent_`, `histogram_oob_percent_` | `NoiseEstimates` | |
-| `getDefaults`, `setParameters`, `getParameters` | `defaults`, `from_param`/`from_param_with_warnings`, `to_param` | |
-| `SignalToNoiseEstimator::GaussianEstimate`, `estimate_` | inlined in `estimate_points` | Mean and population variance in input order. |
-| `SignalToNoiseEstimator::computeSTN_` (pure virtual), the abstract class and its `ProgressLogger` base | not ported as a trait | The only ported subclass is concrete; `SignalToNoiseEstimatorMeanIterative` lives in `processing::mean_noise`. |
-| free function `estimateNoiseFromRandomScans` (`SignalToNoiseEstimator.cpp`) | not ported | Random scan selection; no caller on the bundle path. |
-| — | `NoiseEstimates::noise`, `max_intensity`; `max_points`, `max_bins`, `max_work` | Native. |
-| — | `SIGNAL_TO_NOISE_ESTIMATOR_MEDIAN_NAME` | Handler name. |
+[SIGNAL_TO_NOISE_SUPPORT.md](SIGNAL_TO_NOISE_SUPPORT.md#api-mapping) maps all 13
+public declarations of `SignalToNoiseEstimatorMedian.h`, its protected members,
+the inherited `DefaultParamHandler` and `ProgressLogger` members it uses, and
+every member of `SignalToNoiseEstimator.h` and `SignalToNoiseEstimator.cpp`.
+The picker holds its estimator as `PeakPickerHiRes::noise_estimator` and passes
+its own `compatibility`, whose `noise` field (`NoiseCompatibility`) selects the
+estimator's source behaviours.
 
 ## Parameter contract
 
@@ -187,17 +178,12 @@ defaults, including values the selected modes ignore.
   MS levels and, with `check_spectrum_type`, refuses a listed centroid spectrum
   with `CENTROIDED_INPUT_MESSAGE` before picking it. Every chromatogram is picked
   without spacing checks.
-- **Noise estimation.** The standard-deviation range is `mean + sqrt(variance)
-  * factor` over all intensities, both sums in input order, population variance.
-  The window holds positions within half of `win_len` on either side, both ends
-  inclusive; the two window ends move monotonically as the source's iterators.
-  Bins are `max(1, upper / bin_count)` wide, an intensity maps to the truncated
-  quotient clamped to `[0, bin_count - 1]`, the median bin is the first whose
-  cumulative count reaches `(count + 1) / 2` (never past the last bin), and the
-  noise is interpolated in that bin (the bin centre if it is empty) and floored
-  at one. A sparse window uses `noise_for_empty_window`. A negative automatic
-  range returns every ratio as zero, as the source's early return does.
-  Percentages are `count * 100 / n`.
+- **Noise estimation.** The picker estimates each record it picks, only when
+  `signal_to_noise > 0`, and compares the ratio of each apex against that
+  threshold. The estimator's conventions (range, windows, bins and the CPP-257
+  conversion, the median walk and interpolation, the percentages, warnings and
+  the negative-range early return) are in
+  [SIGNAL_TO_NOISE_SUPPORT.md](SIGNAL_TO_NOISE_SUPPORT.md#preserved-source-conventions).
 - **Serial.** `PeakPickerHiRes.cpp` and `SignalToNoiseEstimatorMedian.h` have no
   OpenMP; the port is serial and its result does not depend on the thread count.
 
@@ -222,23 +208,30 @@ defaults, including values the selected modes ignore.
    returns `Error::InvalidValue`; a defensive ceiling of
    `MAX_BISECTION_STEPS` (4096) halvings is never reached by a search that
    terminates in the source.
-5. **Percentile range.** `auto_mode = 1` reads out of bounds in the source (a
-   reversed `max_element` comparator and an unchecked pre-histogram index; the
-   product SDK ends with `SIGBUS` or `SIGSEGV`, recorded by C1). The mode is a
-   valid parameter, and a picker with `signal_to_noise = 0` works as in the
-   source, but estimation returns `Error::Unsupported`.
-6. **Lazy estimator validation.** As in the source, estimator options are only
-   checked when estimation runs; a manual range with `max_intensity <= 0` is
-   `Error::InvalidValue` there, the source's `Exception::InvalidValue`.
-   `noise_for_empty_window` must be finite and positive; the source accepts any
-   value and divides by it.
+5. **Percentile range.** `auto_mode = 1` is computed exactly on the input
+   domain where the source is defined (a non-empty record whose intensities
+   lie roughly in `[m, m + 1)` for a minimum `m > 100 / 101`), and estimation
+   returns `Error::Unsupported` everywhere else: where the source reads or
+   writes out of bounds (CPP-256), and, beyond `i32::MAX` points (only with
+   raised `max_points`), where one of its `int` counters overflows (the
+   derivation, conditions D0 to D4, is in `SIGNAL_TO_NOISE_SUPPORT.md`). A
+   picker with `signal_to_noise = 0` never
+   estimates, as in the source. Real spectra are outside that domain, the
+   orbitrap class-test spectrum included.
+6. **Estimator options and values.** As in the source, estimator options are
+   only checked when estimation runs; a manual range with `max_intensity <= 0`
+   is `Error::InvalidValue` there, the source's `Exception::InvalidValue`. The
+   values the native profile refuses and `PickingCompatibility::source()`
+   accepts (an infinite or NaN `win_len`, any `noise_for_empty_window`, a NaN
+   `auto_max_stdev_factor`, non-finite results) are listed in
+   `SIGNAL_TO_NOISE_SUPPORT.md`, native differences 2 to 5.
 7. **Finite values.** Non-finite positions, intensities or mobility values are
    refused; an output that overflows float32 (the source stores infinity) or a
    non-finite mobility quotient is an error.
-8. **No logging.** The source logs picked/total spectra per MS level and the
-   estimator's sparse-window and rightmost-bin warnings; the port returns the
-   boundaries and percentages instead. `write_log_messages` is kept only as a
-   parameter value.
+8. **Logging.** The source logs picked/total spectra per MS level; the port
+   returns the boundaries instead. The estimator's three warnings, including
+   the ungated negative-range one, are returned in `NoiseEstimates::log`, and
+   `write_log_messages` gates the other two as in the source.
 9. **Resource limits.** One million points per record, ten million core and
    extension visits, one million histogram bins and fifty million histogram
    updates, all configurable and checked before use. The source has none.
@@ -370,16 +363,12 @@ defaults, including values the selected modes ignore.
 | 15 | boundaries on orbitrap data: 82 peaks, literals 14, 37, 54, 55 and the shared boundary | `class_test_boundary_literals`; oracle `class_orbitrap_boundaries` |
 | 16 | `[EXTRA] allow_missing_flank`: symmetric, missing left, missing right, ion mobility | `source_boundaries_and_missing_flank_mobility`; oracle `class_flank_*` |
 
-`SignalToNoiseEstimatorMedian_test.cpp` (5 sections): the constructor, copy
-constructor, assignment and destructor are `Default`, `Clone` and `Drop`
-(`NOT_TESTABLE` in the source); `[EXTRA] init` with `win_len 40`,
-`noise_for_empty_window 2`, `min_required_elements 10` against
-`SignalToNoiseEstimatorMedian_test.out` is `class_test_noise_estimator_section`
-(through the parameters) and `upstream_noise_values_match_source_fixture`, and
-oracle `class_noise_init` bit for bit.
-
-`SignalToNoiseEstimator_test.cpp` (6 sections): all exercise an abstract test
-subclass and are `NOT_TESTABLE`; there is no Rust base class to test.
+`SignalToNoiseEstimatorMedian_test.cpp` (5 sections) and
+`SignalToNoiseEstimator_test.cpp` (6 sections) are accounted for in
+`SIGNAL_TO_NOISE_SUPPORT.md`; the `[EXTRA] init` section is
+`class_test_noise_estimator_section` here (through the parameters) and
+`upstream_noise_values_match_source_fixture`, and oracle `class_noise_init` bit
+for bit.
 
 Two class-test inputs need care. `PeakPickerHiRes_spectrum_selection.mzML` holds
 three MS2 spectra (`scan=5537`, `5541`, `5544`) with one decreasing m/z step
@@ -399,17 +388,39 @@ gives 82/112/89 and 314/319 centroids at `signal_to_noise 0`, not the stored
 
 - **Tier 1, executed.** `tests/peak_picking_experiment.rs` compares 93 cases of
   `tests/data/peak_picking/cases.tsv` with the unmodified product SDK
-  (`../oracle/peak-picker-hires/`, Debug, core `4fdec46`, run twice
-  byte-identically): 8,795 centroids with their positions, intensities,
-  boundaries, FWHM and ion mobility values, every signal-to-noise ratio and
-  percentage, the copied-record equality flags and the four exceptions, all as
-  IEEE-754 bit patterns, on Linux x86-64. Every non-`source_` case runs in both
-  the native default and `PickingCompatibility::source()`; every `source_` case
-  must be refused by the default. Inputs: the class-test mzML and DTA files, the
-  TOPP workflow 1, 2 and 6 inputs with their parameter values, and synthetic
-  records for flanks, spacing, FWHM units, satellites, ion mobility names and
-  float32 product rounding, histories, marked centroids, negative, duplicate and
-  unsorted data.
+  (`../oracle/peak-picker-hires/`), which is the **macOS arm64 Debug** build of
+  core `4fdec46` (its diff to `bc9cc12` is empty for these sources), run twice
+  byte-identically: 8,795 centroids with their positions, intensities,
+  boundaries, FWHM and ion mobility values, the copied-record equality flags and
+  the four exceptions, all as IEEE-754 bit patterns; the comparison itself runs
+  on every platform the crate's tests run on. Every non-`source_` case runs in
+  both the native default and `PickingCompatibility::source()`; every `source_`
+  case must be refused by the default. Inputs: the class-test mzML and DTA
+  files, the TOPP workflow 1, 2 and 6 inputs with their parameter values, and
+  synthetic records for flanks, spacing, FWHM units, satellites, ion mobility
+  names and float32 product rounding, histories, marked centroids, negative,
+  duplicate and unsorted data.
+
+  The noise estimator's share of this oracle is smaller than the case count
+  suggests: 11 cases carry estimator ratios and percentages directly (the 12
+  `noise` cases less `extra_noise_manual_invalid`, which throws), and their
+  percentages are only ever `0` or `100`; 19 picker cases run the estimator
+  indirectly (`signal_to_noise > 0`), among them 6 chromatogram records (5 in
+  `extra_topp2_parameters`, 1 in `extra_topp2_chromatogram0_check`), where
+  only the picked peaks are compared; the other 62 cases never estimate,
+  because `signal_to_noise` defaults to `0`. The estimator's direct Linux
+  x86-64 Release evidence is in `SIGNAL_TO_NOISE_SUPPORT.md`.
+- **Tier 1, the same cases on Linux x86-64 Release.** The unchanged P1 driver
+  (sha256 `2d06db2f…`) re-run against `openms4-release-bc9cc12-c19e494-174b576`
+  on `ibminode06` (`../oracle/sne-completion/p1/`, twice, byte-identically)
+  printed the same 93 cases byte for byte (sha256 `9eb8f249…`) and the same two
+  parameter files; its standard error differs only by six lines that the Debug
+  build alone prints (five mzML loader diagnostics and one `Update ranges was
+  called but ranges were already up-to-date`). The fixture is therefore also the Release
+  build's output. Every case also runs with the clamp-first bin conversion and
+  gives the same bits, and
+  `no_executed_case_bins_a_quotient_outside_the_int_range` shows that no input
+  record of an estimating case reaches CPP-257 at all.
 - **Tier 1, executed, chromatogram time units.**
   `tests/data/peak_picking/chromatogram_time_oracle.tsv` is the output of the
   prebuilt C++ **Release** build `openms4-release-bc9cc12-c19e494-174b576` over
@@ -435,9 +446,11 @@ gives 82/112/89 and 314/319 centroids at `signal_to_noise 0`, not the stored
   literals, and the historical noise output.
 - **Oracle driver note.** libOpenMS is compiled with `-ffp-contract=off`; the
   driver uses the same flag, because the header-only estimator it instantiates
-  otherwise fuses `a * b + c` into FMA on arm64 and moved six noise cases by one
-  unit in the last place. A Release C++ build for benchmarking needs the same
-  contraction policy to be comparable.
+  otherwise fuses some `a * b + c` into FMA on arm64 and moved six noise cases
+  by one unit in the last place. Which expression fused was not recorded; the
+  candidates are the range `mean + sqrt(variance) * factor` and the
+  interpolation `lower_edge + ratio * bin_size`. A Release C++ build for
+  benchmarking needs the same contraction policy to be comparable.
 - **Tier 4.** Native refusals, each compatibility flag in isolation, resource
   limits and atomicity (`tests/peak_picking.rs`). The acquisition-copy ledger
   and the streaming entry point are covered by two files.

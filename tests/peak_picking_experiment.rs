@@ -10,7 +10,10 @@
 //!   (oracle-generated, tier 1 executed differential; driver, inputs and hashes
 //!   in `../oracle/peak-picker-hires/`). Every centroid position, intensity,
 //!   boundary, float-array value and signal-to-noise ratio is compared bit for
-//!   bit.
+//!   bit. The unchanged driver re-run against the Linux x86-64 Release build of
+//!   core `bc9cc12` on `ibminode06` printed the same bytes (sha256 `9eb8f249…`)
+//!   and the same two parameter files (`../oracle/sne-completion/p1/`), so the
+//!   fixture is also the Release build's output.
 //! * `data/peak_picking/defaults.ini` and `noise_defaults.ini` are the product
 //!   SDK's `ParamXMLFile::store` of the two classes' `getDefaults()`, and
 //!   `WRITE_INI_OUT.ini` is the retained output of `TOPPWRITEINI_OVERWRITE`.
@@ -37,9 +40,9 @@ use openms::kernel::{
 use openms::metadata::{DataProcessing, ProcessingAction};
 use openms::param::{Param, ParamValue};
 use openms::processing::peak_picking::{
-    CENTROIDED_INPUT_MESSAGE, FwhmUnit, NoiseEstimates, NoiseHistogramRange, NoiseRangeParameters,
-    PARALLEL_BATCH_RECORDS, PeakBoundary, PeakPickerHiRes, PickingCompatibility,
-    SignalToNoiseEstimatorMedian,
+    BinIndexConversion, CENTROIDED_INPUT_MESSAGE, FwhmUnit, NoiseCompatibility, NoiseEstimates,
+    NoiseHistogramRange, NoiseRangeParameters, PARALLEL_BATCH_RECORDS, PeakBoundary,
+    PeakPickerHiRes, PickingCompatibility, SignalToNoiseEstimatorMedian,
 };
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -608,6 +611,26 @@ fn executed_source_cases_are_reproduced_bit_for_bit() {
                 difference(&source, oracle)
             ));
         }
+        // CPP-257: no case of this oracle bins a quotient outside the int range,
+        // so the clamp-first conversion gives the same outcome as the x86-64 one.
+        let clamped = run(
+            case,
+            &mut inputs,
+            PickingCompatibility {
+                noise: NoiseCompatibility {
+                    bin_index: BinIndexConversion::ClampBeforeTruncation,
+                    ..NoiseCompatibility::source()
+                },
+                ..PickingCompatibility::source()
+            },
+        );
+        if !agrees(&clamped, oracle) {
+            failures.push(format!(
+                "{} (source compatibility, clamp-first bins): {}",
+                case.name,
+                difference(&clamped, oracle)
+            ));
+        }
         let strict = run(case, &mut inputs, PickingCompatibility::default());
         if case.name.starts_with("source_") {
             // The native default refuses what only the source accepts.
@@ -631,6 +654,93 @@ fn executed_source_cases_are_reproduced_bit_for_bit() {
     );
     // Guard against a silently shrinking oracle.
     assert_eq!(centroids, 8795);
+}
+
+/// CPP-257 (`SignalToNoiseEstimatorMedian.h:297`, `:308`) can only matter for
+/// a quotient `intensity / bin width` that is NaN or whose truncation leaves
+/// the `int` range. Checks that no case of this oracle that runs the
+/// estimator (the 12 `noise` cases and the 19 picker cases with
+/// `signal_to_noise > 0`; `extra_noise_manual_invalid` and
+/// `extra_auto_mode_manual_sn1` throw before binning)
+/// has such a quotient in any record of its input, a superset of the records
+/// the case estimates. So the agreement of the
+/// clamp-first run above is not a coincidence of the medians: the path is not
+/// exercised at all, and the `cpp257_*` cases of `tests/signal_to_noise.rs`
+/// are its only evidence.
+#[test]
+fn no_executed_case_bins_a_quotient_outside_the_int_range() {
+    let mut inputs = Inputs {
+        synthetic: synthetic(),
+        files: BTreeMap::new(),
+    };
+    let (mut estimating_cases, mut series, mut thrown) = (0, 0, Vec::new());
+    for case in cases() {
+        let estimator = if case.operation == "noise" {
+            SignalToNoiseEstimatorMedian::from_param(&apply(
+                SignalToNoiseEstimatorMedian::defaults().unwrap(),
+                &case.parameters,
+            ))
+            .unwrap()
+        } else {
+            let picker = PeakPickerHiRes::from_param(&apply(
+                PeakPickerHiRes::defaults().unwrap(),
+                &case.parameters,
+            ))
+            .unwrap();
+            if picker.signal_to_noise <= 0.0 {
+                continue;
+            }
+            picker.noise_estimator
+        };
+        estimating_cases += 1;
+        let (input, _) = inputs.resolve(&case.input);
+        let records = input
+            .spectra
+            .iter()
+            .map(|s| s.peaks.iter().map(|p| p.intensity).collect::<Vec<f32>>())
+            .chain(
+                input
+                    .chromatograms
+                    .iter()
+                    .map(|c| c.peaks.iter().map(|p| p.intensity).collect()),
+            );
+        for intensities in records {
+            // The histogram range does not depend on the positions.
+            let x: Vec<f64> = (0..intensities.len()).map(|i| i as f64).collect();
+            let y: Vec<f64> = intensities.iter().map(|v| f64::from(*v)).collect();
+            let estimates = match estimator.estimate_with_compatibility(
+                &x,
+                &y,
+                &PickingCompatibility::source(),
+            ) {
+                Ok(estimates) => estimates,
+                // SignalToNoiseEstimatorMedian.h:236-244 throws before any bin.
+                Err(Error::InvalidValue(_)) => {
+                    thrown.push(case.name.clone());
+                    continue;
+                }
+                Err(other) => panic!("{}: {other}", case.name),
+            };
+            // :258, `std::max(1.0, max_intensity_ / bin_count_)`.
+            let width = f64::max(1.0, estimates.max_intensity / estimator.bin_count as f64);
+            for value in &y {
+                let quotient = value / width;
+                assert!(
+                    quotient > -2_147_483_649.0 && quotient < 2_147_483_648.0,
+                    "{}: quotient {quotient}",
+                    case.name
+                );
+            }
+            series += 1;
+        }
+    }
+    assert_eq!(estimating_cases, 31);
+    thrown.dedup();
+    assert_eq!(
+        thrown,
+        ["extra_auto_mode_manual_sn1", "extra_noise_manual_invalid"]
+    );
+    assert!(series > 31);
 }
 
 /// The first difference between two outcomes, for a readable failure.
@@ -897,7 +1007,7 @@ fn parameter_failures_follow_the_source_contract() {
 }
 
 #[test]
-fn percentile_noise_mode_is_refused_only_when_estimation_runs() {
+fn percentile_noise_mode_outside_its_domain_is_refused_only_when_estimation_runs() {
     let input = experiment("orbitrap");
     let percentile = SignalToNoiseEstimatorMedian {
         histogram_range: NoiseHistogramRange::Percentile { percentile: 95.0 },
@@ -910,15 +1020,27 @@ fn percentile_noise_mode_is_refused_only_when_estimation_runs() {
         ..Default::default()
     };
     assert!(quiet.pick_experiment(&input).is_ok());
-    // With estimation the product SDK crashes (SIGBUS/SIGSEGV); the port refuses.
+    // With estimation on the orbitrap spectrum the product SDK crashes
+    // (SIGBUS/SIGSEGV): its smallest intensity makes the pre-histogram index
+    // leave [0, 99]. The port refuses there, in both profiles.
     let loud = PeakPickerHiRes {
         signal_to_noise: 1.0,
         ..quiet
     };
-    assert!(matches!(
-        loud.pick_spectrum(&input.spectra[0]),
-        Err(Error::Unsupported(_))
-    ));
+    for compatibility in [
+        PickingCompatibility::default(),
+        PickingCompatibility::source(),
+    ] {
+        let picker = PeakPickerHiRes {
+            compatibility,
+            ..loud.clone()
+        };
+        assert!(matches!(
+            picker.pick_spectrum(&input.spectra[0]),
+            Err(Error::Unsupported(message)) if message.contains("SignalToNoiseEstimatorMedian.h:216")
+        ));
+    }
+    // Minimum 1: the bin size is 0.01 and intensity 2 has quotient 100.
     assert!(matches!(
         percentile.estimate(&[0.0, 1.0], &[1.0, 2.0]),
         Err(Error::Unsupported(_))

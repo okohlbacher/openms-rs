@@ -376,7 +376,10 @@
     "reproduced_byte_for_byte": true,
     "cases": 93,
     "picked_centroids": 8795,
-    "comparison": "bit for bit (IEEE-754 bit patterns) on Linux x86-64 and in both the native default and PickingCompatibility::source; cases prefixed source_ must be refused by the native default"
+    "comparison": "bit for bit (IEEE-754 bit patterns), in both the native default and PickingCompatibility::source; the comparison runs wherever the tests run (CI: Linux x86-64), the expected values come from the arm64 Debug build; cases prefixed source_ must be refused by the native default",
+    "build": "product SDK, CMake Debug, core 4fdec46 (diff to bc9cc12 empty for these sources)",
+    "estimator_share": "11 cases carry SignalToNoiseEstimatorMedian ratios and percentages directly (the 12 noise cases less extra_noise_manual_invalid), with percentages only 0 or 100; 19 picker cases run the estimator indirectly (signal_to_noise > 0), including 6 chromatogram records (5 in extra_topp2_parameters, 1 in extra_topp2_chromatogram0_check); 62 cases never estimate",
+    "linux_release_rerun": "The unchanged driver re-run twice against the Linux x86-64 Release build openms4-release-bc9cc12-c19e494-174b576 on ibminode06 printed the same records byte for byte (sha256 9eb8f249...) and the same two parameter files; its standard error differs only by six lines the Debug build alone prints (five mzML loader diagnostics and one 'Update ranges was called but ranges were already up-to-date'). Artifacts: ../oracle/sne-completion/p1/, recorded in tests/data/signal_to_noise_provenance.json."
   },
   "determinism": "The picker and the estimator are serial, as the source is (no OpenMP in PeakPickerHiRes.cpp or SignalToNoiseEstimatorMedian.h); results do not depend on the thread count."
 }

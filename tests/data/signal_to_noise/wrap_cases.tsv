@@ -1,0 +1,11 @@
+# sne-followup: emulated wrap of :49-50 (e = idx mod 2^62; in-bounds)
+wrap_nan	random	syn:f_seq4096	ms_level=2;n_scans=1;percentile=nan;seed=1
+wrap_neg_inf	random	syn:f_seq4096	ms_level=2;n_scans=1;percentile=-inf;seed=1
+wrap_pos_inf	random	syn:f_seq4096	ms_level=2;n_scans=1;percentile=inf;seed=1
+wrap_dle_neg2p63	random	syn:f_seq4096	ms_level=2;n_scans=1;percentile=-1e30;seed=1
+wrap_1e30	random	syn:f_seq4096	ms_level=2;n_scans=1;percentile=1e30;seed=1
+wrap_low_2p62_j1	random	syn:f_seq4096	ms_level=2;n_scans=1;percentile=1.1258999068426243e+17;seed=1
+wrap_low_2p62_j2	random	syn:f_seq4096	ms_level=2;n_scans=1;percentile=1.1258999068426245e+17;seed=1
+wrap_low_2p62_j3	random	syn:f_seq4096	ms_level=2;n_scans=1;percentile=1.1258999068426248e+17;seed=1
+wrap_high_2p63	random	syn:f_seq4096	ms_level=2;n_scans=1;percentile=2.2517998136852486e+17;seed=1
+wrap_nan_r_one_x3	random	syn:r_one	ms_level=2;n_scans=3;percentile=nan;seed=1
