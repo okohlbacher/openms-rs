@@ -208,7 +208,8 @@
   "MassTrace::convex_hull refuses non-finite coordinates and more than 1,000,000 peaks; the source accepts infinities as map keys",
   "Known difference: MassTrace::convex_hull merges the m/z range of one retention time through kernel ConvexHull2D::add_points with f64::min and f64::max, and Rust leaves their sign for -0.0 against +0.0 unspecified, while the source keeps the first value (DBoundingBox<1>::encloses and strict < and > in ConvexHull2D::addPoint). An independent review fuzz against product-SDK libOpenMS (not retained) found 2 differing hull rows on Linux x86-64 and 1 on macOS arm64 in a hand-built signed-zero case. m/z is positive on the FeatureFinderCentroided path and the retained rows hold no signed zero; the fix belongs in the kernel",
   "get, get_mut, last and last_mut return Option; Index and IndexMut panic on out-of-range indices like slices",
-  "Scalars the source leaves uninitialised (max_rt, theoretical_int, baseline, TheoreticalIsotopePattern scalars) start at zero"
+  "Scalars the source leaves uninitialised (max_rt, theoretical_int, baseline, TheoreticalIsotopePattern scalars) start at zero",
+  "MassTrace::avg_mz and MassTraces::intensity_profile follow the Linux x86_64 Release build's SSE instructions for every promotion, sum, product and quotient (cvtss2sd, addsd, mulsd, divsd with the executed operand order; libOpenMS.so 0x18f1570 and 0x18f1912), so a NaN they create or pass on carries the executed sign and payload on every host; finite results are unchanged (port/ffap-complete fix round 5: an all-zero trace's average is printed as -nan by the executed FeatureFinderAlgorithmPicked debug .plot file, ../oracle/ffap-complete-fix5, tests/feature_finder_picked_instrumentation.rs)"
  ],
  "not_ported": [
   {
