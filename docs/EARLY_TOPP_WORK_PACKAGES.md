@@ -1592,16 +1592,23 @@ defensible. They are also recorded in [VALIDATION](VALIDATION.md).
   `cfg(any(mzml, consensusxml, idxml, featurexml))` and compiles helpers only the
   idxml/consensusxml tests use. Not this wave's file and not changed here.
   **Owner of that test.**
-- **`tools/check_core_sdk.py`'s "still present in repo" guard compares base
-  names, not paths.** `check_external_artifacts` asserts
+- **CLOSED after the integration pass:
+  `tools/check_core_sdk.py`'s "still present in repo" guard compared base names,
+  not paths.** `check_external_artifacts` asserted
   `not (ROOT / Path(path).name).exists()`, so an oracle artifact called
-  `Cargo.toml` or `LICENSE` is rejected because the crate has files of those
-  names. That is why `tests/data/signal_to_noise_provenance.json` — which
-  otherwise has exactly the shape the checker reads — could not be added to
-  `current_sdk_reference_manifests` and is indexed only through `origin_key`,
-  and it also blocks `../oracle/ffap-complete-fix1/port-harness/Cargo.toml` and
-  `../oracle/ffap-complete-fix3/upstream/LICENSE`. Nothing was weakened to work
-  around it. Comparing the full relative path would fix it. **Checker owner.**
+  `Cargo.toml` or `LICENSE` was rejected because the crate has files of those
+  names, which is why the integrator could not add
+  `tests/data/signal_to_noise_provenance.json` to
+  `current_sdk_reference_manifests` (the signal-to-noise lane's request R5) and
+  reported the limitation instead of weakening the checker. The lead fixed the
+  guard in `1c4f174`: it now compares the artifact's own path with the leading
+  `../` dropped, and for a C++ artifact additionally refuses that file name
+  anywhere in the crate, which is what the guard was written for in `82f2924`
+  when the probes were moved out. Both halves are mutation-checked (a planted
+  mirrored copy and a planted `.cpp` are each caught, and removing them restores
+  exit 0). R5 is applied: the manifest is registered, and the added source
+  references go 1,720 -> 1,728. `../oracle/ffap-complete-fix1/port-harness/Cargo.toml`
+  and `../oracle/ffap-complete-fix3/upstream/LICENSE` are unblocked too.
 - **`tests/data/topp_feature_finder_centroided_provenance.json` cites an absolute
   path.** It records the Release `FeatureFinderCentroided` binary as
   `/ceph/ibmi/abi/oliver/opt/…/bin/FeatureFinderCentroided`, which is not an
