@@ -7,7 +7,7 @@
  "work_package": "B6-FFAP-SEEDS (wave 2) for steps 0 to 3.2 and B7-FFAP-FEATURES (wave 3) for steps 3.3 and 4; algorithm.rs, this manifest and the support document passed from B6 to B7; port/ffap-semantics (wave 4) for the degenerate bins, FeatureFinderDefs, UnableToFit, the Linux x86_64 Release re-baseline and the intended abundance override evidence; port/ffap-complete (wave 5): the merge with port/ffap-instrumentation and the combined fix round of the lead decisions D1-D9 (every source sort in the Release order, the Release build's powf, the area iterator's drift-time filter, the step-2.5 length_error, ChargedIndexSet equality, glibc -nan); combined fix rounds 2, 3 and 4 of port/ffap-complete (lead decisions D10 to D12: the reference build's glibc exp and log, D11's race exception, UInt wraps)",
  "scope": "FEATUREFINDER/FeatureFinderAlgorithmPicked.h/.cpp end to end, merged (port/ffap-complete): getDefaultParameters, updateMembers_ and the run_ parameter reads, the input checks of run with MSExperiment::isSorted, sortSpectra and sortChromatograms (libstdc++ introsort of the spectra and chromatograms, libstdc++ 14.4.0 std::stable_sort of each unsorted spectrum's and chromatogram's peaks), steps 0 to 3.2 (intensity quantiles with the area iterator's drift-time filter and the introsort of each cell, scores, trace scores and local maxima, isotope-pattern precalculation with the Release Size conversion and std::length_error above vector::max_size(), pattern scores, overall scores with the reference build's glibc 2.39 powf, user seeds sorted in place and seed selection), positionScore_, nearest_, findIsotope_, isotopeScore_, both intensityScore_ overloads (the undefined UInt conversion of a zero or infinite bin step reproduced as the Linux x86_64 Release build computes it, DegenerateBinStep::Refuse as the opt-out) and getIsotopeDistribution_; steps 3.3 and 4 (findBestIsotopeFit_, extendMassTraces_, extendMassTrace_, chooseTraceFitter_, cropFeature_, checkFeatureQuality_, intersection_, the abort bookkeeping and the overlap resolution); FeatureFinderDefs (with std::set's comparisons for ChargedIndexSet); the instance, write_debug and progress (tests/data/feature_finder_picked_instrumentation_provenance.json). Undefined behaviour follows the Linux x86_64 Release build wherever its outcome is measured, repeatable, explained by the executed instructions and in bounds (lead decision D1): averagine windows whose binary32 bins all underflow and a NaN intensity_percentage_optional (empty windows), the in-bounds wrap of the step-1 progress range, Math::pearsonCorrelationCoefficient's division by a zero denominator, the non-finite FWHM, score and EGH values setWidth and setMetaValue store (an overflowing float width, first at a retention-time scale of 6e36 on FFC_1), the SSE operand order of the crop, quality and start-value arithmetic, and unsorted input with mis-sized data arrays (the source's Exception::Precondition in introsort order); refused only at the endless NaN-RT profile merge (CPP-242), the out-of-bounds read of an empty best isotope pattern in extendMassTraces_ (reachable with feature:min_isotope_fit 0, executed SIGSEGV), every UInt score-array count that wraps (whatever the Limits, D12) and the terminating step-3.3.5 exception (reachable with a trace of zero intensities, executed SIGABRT); every refusal where the executed process ends records its DebugTermination with the length at which it leaves debug/log.txt; the introsort's out-of-bounds guard is kept but unreachable for the algorithm's asymmetric comparisons. Both trace fitters call the reference build's glibc 2.39 exp and log, ported from Arm optimized-routines (glibc_libm, D10), so every fit is the Release build's on every platform; atan, which only the EGH area calls, is the host's on x86_64 Linux with glibc and the libm crate's elsewhere (D10's fallback: the reference algorithm has no licence-clean upstream). The multi-thread race on aborts_, abort_reasons_ and log_ is answered with the single-thread result, the one exception to D1 that lead decision D11 accepts. 64-bit integer parameters are narrowed and converted as the Release build does (tests/data/feature_finder_picked_instrumentation_provenance.json, combined fix round 2).",
  "method": "Port with executed differential tests. The C2 class-level driver ffap_stages and the B6 driver seed_stage (as its generalisation degenerate_stage) run FeatureFinderAlgorithmPicked::run and read its protected state through a derived probe class; since port/ffap-semantics the fixtures come from the Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (ibminode06), extracted by the unchanged B6 and B7 scripts through ../oracle/ffap-sem-completion/extract. tests/feature_finder_picked_seeds.rs rebuilds every configuration with the Rust loaders and compares members, quantiles, isotope windows, all per-peak score arrays and the ordered seed lists bit for bit, plus the degenerate-bin captures (every array with its NaN bits and intensityScore_ as a double), the intensityScore_ probe and the FeatureFinderDefs probe. tests/feature_finder_picked.rs runs the algorithm on each feature-stage configuration, replays step 3.3 seed by seed through the public extension and fitting functions, and compares the intended abundance override with an adapted Release replay (intended_abundance.cpp). tests/topp_feature_finder_centroided.rs compares the tool with the executed Release tool on the degenerate and short inputs and the changed abundance. The executed FeatureFinderCentroided -write_ini output (C1, product SDK) pins the defaults. The disassembly of intensityScore_ in libOpenMS.so explains the degenerate-bin outcome. The combined fix round (port/ffap-complete) adds ../oracle/ffap-complete-fix1: the stage driver nonfinite_stage_dt (52 cases: sort keys, drift times, window counts around vector::max_size(); sort_mobility_stage.tsv.gz, replayed by sort_and_mobility_cases_match_the_linux_release_build), sort_probe (libOpenMS.so's sortByPosition, sortSpectra, sortChromatograms and FeatureMap::sortByMZ on 2,272 inputs, with a replaced operator new(nothrow) for the partial and missing temporary buffer; sort_probe.tsv.gz, every_source_sort_matches_the_executed_library), powf_probe (the host powf through dlsym; glibc_powf_probe.tsv, unit tests of glibc_powf, and outside CI every binary32 base with y = 1/3 and 2^26 pairs in four sets against a release build of the same module) and defs_eq_probe (defs_eq_probe.tsv). The overall scores are now compared bit for bit everywhere; the rounding rows only assert that the executed and the port's value is the misrounded one. Combined fix round 3 (../oracle/ffap-complete-fix3, origin_key ffap_complete_fix3): libm_probe (the host exp, log and atan through dlsym; glibc_libm_probe.tsv, unit tests of glibc_libm, and outside CI every probe input against a release build of the same module, port-harness), gdb disassembly and table dumps of __ieee754_exp_fma and __ieee754_log_fma against the Arm optimized-routines upstream (check_tables.py: equal), objdump of cropFeature_, checkFeatureQuality_, pearsonCorrelationCoefficient and both fitters' start values for their SSE operand order, and fix3_stage (nonfinite_stage_dt with array and chromatogram options; boundary_stage.tsv.gz, replayed by boundary_cases_match_the_linux_release_build). Combined fix round 4 (../oracle/ffap-complete-fix4, origin_key ffap_complete_fix4): fix4_stage (the round-3 numerics verifier's v3_stage with whole-input modifications and isotope-window rows; extended_stage.tsv.gz, 134 cases whose 124 shared rows equal the verifier's capture, replayed on worker threads by extended_cases_match_the_linux_release_build), fix4_reuse (reuse_windows.tsv, the reused object's windows) and the Release FeatureFinderCentroided on FFC_1 with scaled retention times (tests/data/topp_feature_finder_centroided/rt_scaled_release.tsv).",
- "evidence_tier": "tier 1 (executed differential, Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576): effective members, intensity bins and quantiles, isotope windows, every per-peak trace, intensity, local-maximum, pattern and overall score bit for bit (the overall score is the reference build's glibc 2.39 powf, reproduced; the 8 of 30,840 scores it rounds one binary32 step from the correctly rounded power included), printed seed counts and min_spectra 1 behaviour over 7 configurations; the degenerate intensity bins over 26 configurations and 228 intensityScore_ probe positions; the final features of six configurations (bit for bit on every platform; the EGH area's atan on a host other than x86_64 Linux with glibc is bounded by a measured maximum of 0 over the fixtures); 189 non-finite, 52 sort, drift-time and step-2.5, 85 boundary and 134 extended stage cases (the extended ones: 67 EGH and 50 Gaussian returned runs, isotope windows at 1-Da resolution, infinite float widths from retention times of about 1e37) (underflowed windows, a NaN trimming cutoff, 34 EGH and Gaussian configurations, the empty best pattern, the charge-count wraps, mis-sized data arrays; every returned run and exception reproduced, the endless runs and SIGSEGV runs refused); every source sort (2,272 inputs, full, partial and no temporary buffer); glibc powf (special grid, generated sets, every binary32 base with the exponent 1/3); glibc exp, log and atan (80-value grid, 13 sets of 2^26 inputs; exp and log equal on Linux and macOS, atan on Linux); FeatureFinderDefs and ChargedIndexSet comparisons. Adapted: the ordered seed lists (source replicas) and the intended abundance override (adapted Release replay). Tier 3: the class-test sections including #9247. Tier 1 also for the refused crashes (the empty best pattern and the charge-count wraps: executed SIGSEGV or std::bad_alloc, twice each). Tier 1 also for the step-3.3.5 termination (16 zeroed-band cases, SIGABRT with the port's what(), the debug side effects byte for byte, ../oracle/ffap-complete-fix5) and for the width-overflow onset (21 cases). The introsort's out-of-bounds guard is unreachable for the algorithm's comparisons (proved in the source_sort module documentation; no executed or generated input reaches it); it is reached only by comparators that are not asymmetric, through the public source_sort_permutation (unit tests).",
+ "evidence_tier": "tier 1 (executed differential, Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576): effective members, intensity bins and quantiles, isotope windows, every per-peak trace, intensity, local-maximum, pattern and overall score bit for bit (the overall score is the reference build's glibc 2.39 powf, reproduced; the 8 of 30,840 scores it rounds one binary32 step from the correctly rounded power included), printed seed counts and min_spectra 1 behaviour over 7 configurations; the degenerate intensity bins over 26 configurations and 228 intensityScore_ probe positions; the final features of six configurations (bit for bit on every platform; the EGH area's atan on a host other than x86_64 Linux with glibc is bounded by a measured maximum of 0 over the fixtures); 189 non-finite, 52 sort, drift-time and step-2.5, 85 boundary and 134 extended stage cases (the extended ones: 67 EGH and 50 Gaussian returned runs, isotope windows at 1-Da resolution, infinite float widths from retention times of about 1e37) (underflowed windows, a NaN trimming cutoff, 34 EGH and Gaussian configurations, the empty best pattern, the charge-count wraps, mis-sized data arrays; every returned run and exception reproduced, the endless runs and SIGSEGV runs refused); every source sort (2,272 inputs, full, partial and no temporary buffer); glibc powf (special grid, generated sets, every binary32 base with the exponent 1/3); glibc exp, log and atan (80-value grid, 13 sets of 2^26 inputs; exp and log equal on Linux and macOS, atan on Linux); FeatureFinderDefs and ChargedIndexSet comparisons. Adapted: the ordered seed lists (source replicas) and the intended abundance override (adapted Release replay). Tier 3: the class-test sections including #9247. Tier 1 also for the refused crashes (the empty best pattern and the charge-count wraps: executed SIGSEGV or std::bad_alloc, twice each). Tier 1 also for the step-3.3.5 termination (16 zeroed-band cases, SIGABRT with the port's what(), the debug side effects byte for byte, ../oracle/ffap-complete-fix5) and for the width-overflow onset (21 cases). The introsort's out-of-bounds guard is unreachable for the algorithm's comparisons (proved in the source_sort module documentation; no executed or generated input reaches it); it is reached only by comparators that are not asymmetric, through the public source_sort_permutation (unit tests). Combined fix round 6: tier 1 for where the wrapped score-array allocation stops succeeding (20 executed counts under two address spaces, score_array_wraps.tsv).",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
@@ -528,6 +528,17 @@
    "findings": "the executed debug/log.txt is the flushed prefix of the debug run that opened the object's stream, whichever run ends the process (1,163,782 of 1,165,129 bytes; 139,387 of 141,951; 1,114,578 of 1,118,230), and the complete log after a return; a zeroed intensity band with reported_mz maximum or monoisotopic ends in SIGABRT at .cpp:790 (getIsotopeDistribution_ of a NaN m/z), and the executed .plot prints the all-zero trace's m/z as -nan; the float width overflows first at an RT scale of 6e36 on FFC_1",
    "extract": "extract/make_fixtures.py (termination_digests.tsv.gz and the seed maps), extract/extract_onset.py (width_onset_stage.tsv.gz)",
    "port_search": "port-harness/zz_fix5_search.rs, logs/port_search_*.log: 109,200 port runs over FFC_1 variants that found the step-3.3.5 inputs (not executed evidence; every prediction was then executed)"
+  },
+  "ffap_complete_fix6": {
+   "directory": "../oracle/ffap-complete-fix6",
+   "host": "ibminode06 (AMD EPYC 7763; glibc 2.39; 995 GB of memory); node copy /scratch/kohlbach/ffc-fix6",
+   "drivers": {
+    "fix6_driver.cpp (= ../oracle/ffap-complete-fix5/drivers/fix5_driver.cpp plus the round-5 verifier's wrapLH variant in single and reuse mode and a sizes mode; -O2 -std=c++20)": "835d08c9d3e9a4501ac6744335f2b728714918a760e7f850ee003f210545cfbd",
+    "binaries": "logs/build.sha256"
+   },
+   "cases": "node/run_wrap.sh: 20 wrapped score-array counts from 1 to 2^32 - 5 arrays, under a 16 GB and a 500 GB address space (ulimit -v); node/run_cases6.sh: the debug side effects at 12,201,611 arrays (a reused object with and without write_debug, and a fresh debug run), captured as fix round 5 captured its cases; every case twice, identical",
+   "findings": "sizeof(MSSpectrum::FloatDataArray) is 88 bytes and the array vector's max_size() is (2^63 - 1) / 88, so resize never throws std::length_error for a 32-bit count; whether the wrapped allocation succeeds decides between the out-of-bounds write (SIGSEGV) and a caught std::bad_alloc, and it depends on the memory the process may have: 100,000,003 arrays (8.2 GiB) throw under a 16 GB address space and die of SIGSEGV under a 500 GB one, as do 166,000,001, 200,000,003 and 1,000,000,003; under 16 GB every count up to 40,000,003 arrays (3.3 GiB) dies and every count from 80,000,003 (6.6 GiB) throws; at 12,201,611 arrays the executed debug/log.txt is the first run's flushed prefix, 1,163,782 bytes, with that run's 79 files",
+   "extract": "extract/make_wrap_fixture.py (score_array_wraps.tsv), extract/make_fixtures6.py (termination_digests.tsv.gz with this round's three cases; it re-runs fix round 5's extractor first, whose fixtures came out byte-identical)"
   }
  },
  "external_reference_artifacts": [
@@ -1675,6 +1686,106 @@
    "path": "../oracle/ffc-numerics-v4/node/run_stage.sh",
    "sha256": "64a5bad4f6030935ad895330026368c91bff55581ef17e8060271a7ad43ef3b1",
    "origin_key": "ffap_complete_round4_verifiers"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/README.txt",
+   "sha256": "5a2ecd930152da0f181a09b20f69a346d8029b0cbb3544f6c0ad426c01c93135",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/drivers/fix6_driver.cpp",
+   "sha256": "835d08c9d3e9a4501ac6744335f2b728714918a760e7f850ee003f210545cfbd",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/extract/make_fixtures6.py",
+   "sha256": "1d8422866cab3b01146d6164a5987a45aa3fa923c197f26fdb35af31a2b5357f",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/extract/make_wrap_fixture.py",
+   "sha256": "79d3ee55a56e0a5a72657c5142f6f68ae0eb655ddcb58f132f947a508d58e095",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/build.sha256",
+   "sha256": "8c53a81ded75266c08e59bd048af1ffbcbbeab6be71fd3d077f3e4e8ecf34164",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/build_identity.txt",
+   "sha256": "22df9069c3c07419999dc2da9dc465ae8f4ef6b8313238882edfcfb5c0d364a2",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/cases6.log",
+   "sha256": "7855c50f3eeee42cc34941c2c318af53a42f1e9f9756227b7a8bac82ccda11c6",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/results.sha256",
+   "sha256": "942d7d7a5eaf622960cd86736f1c1374545af10e4074335cc966a5f546b4c09e",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/sizes.txt",
+   "sha256": "722a36d36a4abac8f88d83579f496aa689904255704ae2b7dbff6e53bf3fa426",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap16.log",
+   "sha256": "8fbbdba9fd49d409a5cbe5bf649ee88f401f960983f6f9f0d90e4131bb51fdfe",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap16b.log",
+   "sha256": "1d340ad617e39bd16f5b8e14e08c0a643c0d84e71edd1e21727237b7cbd6f0c1",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap4g.log",
+   "sha256": "876b368dd70dfe593d3f45216b24802b34566a00cae33f45cb43bf2e44cfa8e8",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap500.log",
+   "sha256": "cf2bc33e5d2ff70bcd60b152cdf703f0d69029f058afb6fa3afbb763969f99aa",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap_small.log",
+   "sha256": "ffa171e21f79ff27efb505a0b41e28e6775abdc6e5a1377773bfbbbb2ff74450",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/build.sh",
+   "sha256": "27280ff2b4c851365d9aa5f13f781528ab1e93267687d77b65df36ed7b48a160",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_cases6.sh",
+   "sha256": "1621a915042fb4eddee3090b6e30a7d9a94ff6b8185be67a616a8e8f7f86105a",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_rest.sh",
+   "sha256": "d5f172e7ca7c918600c1a4617a508c560c478dceafc5ba79a790fb1b714f4927",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_reuse.sh",
+   "sha256": "81ee0cf144d086a1e30b31c75e61977e74996f46f12ab3256110d1d330db5eea",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_wrap.sh",
+   "sha256": "6bf3d8e6ba8ec19e1ebc2ee8356f7b3205c9c19772883d0a7ff0154f1d59001b",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/sync.sh",
+   "sha256": "4d28224aa43c27eb30977b9eba929d5d0e52c7804ac6a24fbd7e513d7613a09e",
+   "origin_key": "ffap_complete_fix6"
   }
  ],
  "source_anchors": [
@@ -1937,7 +2048,7 @@
  "native_boundaries": [
   "score arrays outside the spectra (ScoreArrays)",
   "non-finite RT, m/z, intensity, drift time and user-seed positions: read as the Linux x86_64 Release build reads them (RangeBase ranges, the area iterator's drift-time filter, libstdc++ lower/upper_bound and is_sorted, the libstdc++ introsort and stable_sort on NaN and equal keys, the cvttsd2si/btc Size conversion of step 2.5 and getIsotopeDistribution_ with the source's InvalidValue text, std::length_error's text above vector::max_size()); Error::InvalidValue only where the introsort would read outside the vector (no executed input), for a NaN retention time merged into an intensity profile (the source never returns), for the empty best isotope pattern read in extendMassTraces_ (executed SIGSEGV) and for a feature m/z without isotope window at .cpp:790 (uncaught inside the OpenMP region: std::terminate); Error::InvalidRange for an empty range; the area-iterator overrun (lower search above upper) is unreachable with libstdc++'s searches and kept only as a slice guard",
-  "zero or infinite intensity bin step: the Linux x86_64 Release outcome (cvttsd2si emulation, SSE2 NaN rules; NaN intensity scores, no seed) by default; DegenerateBinStep::Refuse refuses exactly when the seed loop reads the scores; every UInt score-array count 3 + 2 * charge_count that wraps (charge_low > charge_high + 1, and charge_low 1 with charge_high INT_MAX): Error::InvalidValue whatever the Limits (lead decision D12; executed SIGSEGV or std::bad_alloc)",
+  "zero or infinite intensity bin step: the Linux x86_64 Release outcome (cvttsd2si emulation, SSE2 NaN rules; NaN intensity scores, no seed) by default; DegenerateBinStep::Refuse refuses exactly when the seed loop reads the scores; every UInt score-array count 3 + 2 * charge_count that wraps (charge_low > charge_high + 1, and charge_low 1 with charge_high INT_MAX): Error::InvalidValue whatever the Limits (lead decision D12; executed SIGSEGV or std::bad_alloc, the two decided by the memory the process may have, ../oracle/ffap-complete-fix6)",
   "write_debug: ported (tests/data/feature_finder_picked_instrumentation_provenance.json); Error::Unsupported only where the source process terminates (the undeclared debug:pseudo_rt_shift) or writes an address-dependent text",
   "changed abundance: the intended two-isotope override by default (AbundanceOverride::Intended); Error::Unsupported only under the opt-out AbundanceOverride::Refuse (the source's stray-peak defect is not reproducible)",
   "overall score: the reference build's glibc 2.39 powf (__powf_fma), ported from Arm optimized-routines with the executed FMA fusion (lead decision D5), on every host",
@@ -1957,7 +2068,7 @@
   "exp and log of both trace fitters: the reference build's glibc 2.39 __ieee754_exp_fma and __ieee754_log_fma, ported from Arm optimized-routines (glibc_libm, lead decision D10), on every host; atan (EGH area only): the host's on x86_64 Linux with glibc (exact where that library selects __atan_fma, glibc 2.39 on a CPU with FMA as on the reference node; other versions and CPUs unmeasured), the libm crate's elsewhere (no licence-clean upstream of the reference algorithm), which differs from __atan_fma for 6.2 % of arguments in [0, 10], 1.6 % with |x| in [2^-14, 2^15) and 0.02 % of random bit patterns (2^28 each, ../oracle/ffc-numerics-v3); the float intensity hides nearly all of it, so the intensity's last bit there is a measured maximum (0 over the fixtures on macOS arm64, the 67 returned EGH runs of extended_stage.tsv.gz included), not a guarantee, and the double area differs for a few percent of fits",
   "the sign of a NaN that the Levenberg-Marquardt iterations create from finite values follows the host (x86_64 negative, arm64 positive); the start values, bounds, FWHM, cropping and quality arithmetic use x86_64's NaN rules; no executed configuration reaches such a NaN",
   "step 2.5: averagine windows whose binary32 bins all underflow, and every window under a NaN intensity_percentage_optional, are empty, as the source's NaN weights and trimRight leave them (the shared isotope generator keeps its error for its other callers)",
-  "the terminations outside the seed loop are refused where the executed process ends and recorded as DebugTermination with the length at which it leaves debug/log.txt: the step-4 charge remainder of a caller's charge-0 feature (ArithmeticTrap, executed SIGFPE), a stale abort seed outside the input (OutOfBounds, executed SIGSEGV) and a wrapped score-array count whose allocation the port takes to succeed (OutOfBounds at ScoreArrays, executed SIGSEGV; 7/2's std::bad_alloc is no termination); a reused object's later termination reports the flushed length of the debug run that opened the never-closed stream (executed: ../oracle/ffap-complete-fix5)"
+  "the terminations outside the seed loop are refused where the executed process ends and recorded as DebugTermination with the length at which it leaves debug/log.txt: the step-4 charge remainder of a caller's charge-0 feature (ArithmeticTrap, executed SIGFPE), a stale abort seed outside the input (OutOfBounds, executed SIGSEGV) and a wrapped score-array count whose first-spectrum allocation is at most the documented 1 GiB (OutOfBounds at ScoreArrays, executed SIGSEGV at every count up to 12,201,611 arrays; above that line the executed outcome depends on the address space available - 100,000,003 arrays die under 500 GB and throw std::bad_alloc under 16 GB - and nothing is recorded, as lead decision D6 has it for the isotope windows; ../oracle/ffap-complete-fix6); a reused object's later termination reports the flushed length of the debug run that opened the never-closed stream (executed: ../oracle/ffap-complete-fix5)"
  ],
  "cpp_issue_candidates": [
   "mass_trace:min_spectra = 1 silently yields NaN trace scores and no seed (executed)",

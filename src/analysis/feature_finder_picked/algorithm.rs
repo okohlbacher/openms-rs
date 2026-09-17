@@ -720,6 +720,27 @@ pub struct Settings {
     pub rt_shape: RtShape,
 }
 
+/// `sizeof(MSSpectrum::FloatDataArray)` in the Linux x86_64 Release build:
+/// the `std::vector<float>` base and `MetaInfoDescription` of one score array,
+/// 88 bytes (executed: `../oracle/ffap-complete-fix6`, the driver's `sizes`
+/// mode; the array vector's `max_size()` is `(2^63 - 1) / 88`, far above every
+/// 32-bit count, so `resize` never throws `std::length_error` here).
+pub(crate) const SOURCE_FLOAT_DATA_ARRAY_BYTES: u64 = 88;
+
+/// The largest first-spectrum score-array allocation for which
+/// [`Settings::score_arrays_overrun`] records a termination: 1 GiB
+/// (12,201,611 arrays).
+///
+/// The source's allocation succeeds or throws `std::bad_alloc` depending on
+/// the memory available to the process, which no deterministic port can
+/// reproduce, so this is a documented line and not a property of the source:
+/// below it every executed configuration reached the out-of-bounds write, and
+/// above it the executed outcome was measured both ways at one count
+/// (`../oracle/ffap-complete-fix6`). It is a crate constant, not a
+/// [`Limits`] field, because a caller must not be able to move where a
+/// termination is recorded (lead decision D12).
+pub(crate) const SCORE_ARRAY_TERMINATION_CEILING_BYTES: u64 = 1 << 30;
+
 impl Settings {
     /// Apply `parameters` over the defaults and read the typed values: source
     /// `setParameters(param)` with `updateMembers_`, plus the reads at the start
@@ -948,16 +969,36 @@ impl Settings {
     /// is one [`Self::charge_count`] refuses as an out-of-bounds write, and the
     /// allocation before that write succeeds.
     ///
-    /// For `n = 2^31 - 1` and `n = -1` the source allocates one array per
-    /// spectrum and writes past it (executed: SIGSEGV for 1/`INT_MAX` and
-    /// 4/2). For `n <= -4` it allocates `2^32 + 3 + 2n` arrays first; whether
-    /// that succeeds depends on memory (executed: SIGSEGV for `INT_MAX`/1 and
-    /// `INT_MAX`/498, 9 and 1003 arrays; `std::bad_alloc`, which the caller
-    /// catches, for 7/2, `2^32 - 5` arrays, under a 16 GB address space). The
-    /// port takes the allocation to succeed exactly where it would allocate
-    /// that many arrays itself, `3 + 2 * limits.max_charges`, so that a run
-    /// the source leaves with `std::bad_alloc` is not recorded as ended.
-    pub(crate) fn score_arrays_overrun(&self, limits: &Limits) -> bool {
+    /// The source resizes one spectrum's float data arrays at a time
+    /// (`.cpp:196-221`) and walks past the end of the first one it fills, so
+    /// the only allocation between the wrap and the out-of-bounds write is
+    /// that spectrum's `(3 + 2n) mod 2^32` arrays of
+    /// [`SOURCE_FLOAT_DATA_ARRAY_BYTES`] each.
+    ///
+    /// - `n = 2^31 - 1` and `n = -1` wrap to one array, 88 bytes: the write is
+    ///   always reached (executed: SIGSEGV for 1/`INT_MAX` and 4/2).
+    /// - `n <= -4` wraps to `2^32 + 3 + 2n` arrays, between 9 (`INT_MAX`/1)
+    ///   and `2^32 - 5` (7/2, 378 GiB). Whether that allocation succeeds
+    ///   depends on the memory available to the process, which the port cannot
+    ///   reproduce (lead decision D6's rule for allocations), so it records the
+    ///   termination up to [`SCORE_ARRAY_TERMINATION_CEILING_BYTES`] and
+    ///   nothing above.
+    ///
+    /// Executed on the reference node (`../oracle/ffap-complete-fix6`, every
+    /// case twice and identical): under a 16 GB address space SIGSEGV at 1, 9,
+    /// 1003, 2003, 2005, 12,201,611 (1 GiB), 12,201,613, 20,000,003 and
+    /// 40,000,003 arrays, and `std::bad_alloc` from 80,000,003 (6.6 GiB) up,
+    /// `2^32 - 5` arrays (352 GiB, the 7/2 case) included; under a 500 GB
+    /// address space SIGSEGV again at 100,000,003, 166,000,001, 200,000,003
+    /// and 1,000,000,003 arrays, where only `2^32 - 5` still throws - the same
+    /// counts deciding the other way.
+    /// The ceiling is therefore a documented line inside the range that every
+    /// measured configuration reached, not a property of the source: between
+    /// it and the address space's own limit the executed process still dies
+    /// and the port records nothing, exactly as
+    /// [`Limits::max_isotope_windows`] refuses before the source's allocation
+    /// fails.
+    pub(crate) fn score_arrays_overrun(&self) -> bool {
         let count = i64::from(self.charge_high) - i64::from(self.charge_low) + 1;
         if count == i64::from(i32::MAX) || count == -1 {
             return true;
@@ -967,10 +1008,8 @@ impl Settings {
         }
         // `3 + 2 * count` modulo 2^32, as the source's `UInt` arithmetic.
         let arrays = u64::from((3u32).wrapping_add((count as u32).wrapping_mul(2)));
-        let ceiling = (limits.max_charges as u64)
-            .saturating_mul(2)
-            .saturating_add(3);
-        arrays <= ceiling
+        arrays.saturating_mul(SOURCE_FLOAT_DATA_ARRAY_BYTES)
+            <= SCORE_ARRAY_TERMINATION_CEILING_BYTES
     }
 
     /// The isotope count of the precalculated patterns: 20, plus 1000 for each

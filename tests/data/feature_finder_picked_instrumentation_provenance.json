@@ -10,9 +10,9 @@
  "license": "BSD-3-Clause",
  "group": "feature_finder_picked",
  "work_package": "ffap-instrumentation (FeatureFinderAlgorithmPicked: the instance and its side channels); merged into port/ffap-complete with port/ffap-semantics and port/progress-logger-release-range (wave 5), and completed by its combined fix round, and by combined fix rounds 2 and 3",
- "scope": "FEATUREFINDER/FeatureFinderAlgorithmPicked.h/.cpp: the object state across runs (aborts_, abort_reasons_, log_, isotope_distributions_, param_), run into a caller's non-empty FeatureMap, the DefaultParamHandler surface, the ProgressLogger base (20 call sites), write_debug (log_ text, per-charge seed maps, abort map, debug input) and writeFeatureDebugInfo_ (.dta, _cropped.dta, .plot), and FeatureFinderCentroided -algorithm:write_debug. In the merged code the progress ranges are passed unchanged (inverted ranges as in the Release build), the .plot formulas spell a negative NaN -nan and the k * shift products follow x86_64's NaN rules, and every std::sort and std::stable_sort follows the Release build (source_sort.rs). Combined fix round 2: a debug run that fails in steps 1 to 2.5 (the step-2.5 std::length_error, or the port's window ceiling where the source's allocation fails) keeps the opened log and debug/features and leaves the stream open; FeatureFinderCentroided reports the length_error through TOPPBase's std::exception arm (exit 12); the DefaultParamHandler checks and the typed members follow the source for 64-bit integer values (int narrowing, operator unsigned int, the min_spectra cvttsd2si); getGnuplotFormula's sums and products follow the executed SSE operand order; a step-3.3.5 termination keeps its seed's log lines and debug files. Combined fix round 3: a seed-loop refusal where the executed process dies (the out-of-bounds read of an empty best pattern) or never returns (the NaN profile merge) appends the seed's log lines and records a DebugTermination with its TerminationKind, so a caller writes only the flushed log; the step-1 startProgress end wraps modulo 2^32 as the UInt product does; the race on aborts_, abort_reasons_ and log_ at more than one thread is answered with the single-thread result (lead decision D11). Combined fix round 4: the NeverReturns termination of the NaN profile merge is pinned against executed runs (flushed log prefix, plot number, feature files), and the empty-pattern termination's SIGSEGV label is qualified as established for an empty best pattern only. Combined fix round 5: the terminations outside the seed loop (the step-4 charge remainder, ArithmeticTrap; a stale abort seed, OutOfBounds; a wrapped score-array count, OutOfBounds at ScoreArrays) are recorded for runs with and without write_debug, every DebugTermination states the length at which the executed process leaves debug/log.txt (the flushed part of the debug run that opened the instance's never-closed stream, kept in the instance as DebugLogFile), and the step-3.3.5 termination is executed (a zeroed intensity band) and pinned with its debug side effects, the seed maps of the NaN-RT merge included.",
+ "scope": "FEATUREFINDER/FeatureFinderAlgorithmPicked.h/.cpp: the object state across runs (aborts_, abort_reasons_, log_, isotope_distributions_, param_), run into a caller's non-empty FeatureMap, the DefaultParamHandler surface, the ProgressLogger base (20 call sites), write_debug (log_ text, per-charge seed maps, abort map, debug input) and writeFeatureDebugInfo_ (.dta, _cropped.dta, .plot), and FeatureFinderCentroided -algorithm:write_debug. In the merged code the progress ranges are passed unchanged (inverted ranges as in the Release build), the .plot formulas spell a negative NaN -nan and the k * shift products follow x86_64's NaN rules, and every std::sort and std::stable_sort follows the Release build (source_sort.rs). Combined fix round 2: a debug run that fails in steps 1 to 2.5 (the step-2.5 std::length_error, or the port's window ceiling where the source's allocation fails) keeps the opened log and debug/features and leaves the stream open; FeatureFinderCentroided reports the length_error through TOPPBase's std::exception arm (exit 12); the DefaultParamHandler checks and the typed members follow the source for 64-bit integer values (int narrowing, operator unsigned int, the min_spectra cvttsd2si); getGnuplotFormula's sums and products follow the executed SSE operand order; a step-3.3.5 termination keeps its seed's log lines and debug files. Combined fix round 3: a seed-loop refusal where the executed process dies (the out-of-bounds read of an empty best pattern) or never returns (the NaN profile merge) appends the seed's log lines and records a DebugTermination with its TerminationKind, so a caller writes only the flushed log; the step-1 startProgress end wraps modulo 2^32 as the UInt product does; the race on aborts_, abort_reasons_ and log_ at more than one thread is answered with the single-thread result (lead decision D11). Combined fix round 4: the NeverReturns termination of the NaN profile merge is pinned against executed runs (flushed log prefix, plot number, feature files), and the empty-pattern termination's SIGSEGV label is qualified as established for an empty best pattern only. Combined fix round 5: the terminations outside the seed loop (the step-4 charge remainder, ArithmeticTrap; a stale abort seed, OutOfBounds; a wrapped score-array count, OutOfBounds at ScoreArrays) are recorded for runs with and without write_debug, every DebugTermination states the length at which the executed process leaves debug/log.txt (the flushed part of the debug run that opened the instance's never-closed stream, kept in the instance as DebugLogFile), and the step-3.3.5 termination is executed (a zeroed intensity band) and pinned with its debug side effects, the seed maps of the NaN-RT merge included. Combined fix round 6: where a wrapped score-array count ends the executed process is measured over 20 counts and two address spaces, and the port records the ScoreArrays termination up to a documented 1 GiB of arrays (a crate constant, not a Limits field) and nothing above, where the executed outcome depends on the memory the process may have; MassTraces::update_baseline promotes its f32 with the same cvtss2sd emulation as MassTrace::avg_mz and MassTraces::intensity_profile.",
  "method": "Executed differential against the Linux x86_64 Release build. drivers/ffap_instr_driver.cpp subclasses FeatureFinderAlgorithmPicked (reading its protected members) and prints maps with floats as IEEE-754 bit patterns; drivers/ffap_progress_driver.cpp defines time() as a counter (exported with -rdynamic, so libOpenMS.so's ProgressLogger forwards every setProgress call) and records every progress call with a ProgressLoggerImpl, measures the double a string or list ParamValue converts to, runs write_debug with such a shift, and exercises a refused parameter set; tool_cases.py runs the Release FeatureFinderCentroided. make_fixtures.py copies the outputs of the .1 repetitions into this directory; the other repetitions were compared and differ only in timing text and in the random map ids the driver draws outside test mode. Combined fix round 2 (../oracle/ffap-complete-fix2, origin_key ffap_complete_fix2): drivers/fix2_driver.cpp (modes lenerr_single and lenerr_reuse after the instrumentation verifier's vfi_driver.cpp, with a fresh object under UniqueIdGenerator::setSeed(4711) for a byte comparison; bigint, subclassing the algorithm to print its protected members; formula, subclassing both fitters to set their parameters through getOptimizedParameters_), the Release FeatureFinderCentroided on the derived huge-m/z inputs, and extract/make_fixtures.py, which checks the second repetition of every case and writes the four fixtures below. Combined fix round 3 (../oracle/ffap-complete-fix3, origin_key ffap_complete_fix3): vfi2_driver neg copied unchanged from ../oracle/ffc-instrumentation-v2 and run on three inputs with and without write_debug (crash_digests.tsv), fix3_driver progress (progress_bins.tsv), and the Release FeatureFinderCentroided case avg0 (tool_avg0_stdout.txt), each twice.",
- "evidence_tier": "tier 1 (executed, Linux x86_64 Release, OMP_NUM_THREADS=1) for every compared output; tier 4 for the refused undefined values (a heap-address shift where an address below 2^47 - 4096 changes the written text), whose executed signals or varying outputs are recorded but have no value to compare; tier 3 (source-reviewed) for setName, getSubsections and operator== of the DefaultParamHandler base. Combined fix round: the debug files of an infinite and a NaN double shift (shift_nonfinite_digests.tsv, tier 1), and debug/input.mzML compared bit for bit, NaN bits and overall scores included. Combined fix round 2: tier 1 for the 21 integer-parameter cases, the debug side effects and the tool exit of a failed step 2.5 (m/z 1e19 and 2e18, library and tool) and the 648 getGnuplotFormula texts on non-finite operands; tier 3 (source review, a crate-internal unit test) for the debug output of a step-3.3.5 termination, which no executed input reaches. Fitted values are compared bit for bit on every platform (the trace fitters call the reference build's glibc exp and log, ported, lead decision D10), except the EGH intensity on a host without glibc, whose atan is the libm crate's (a measured maximum of 0). Combined fix round 3: tier 1 for three negative-intensity library runs that die with SIGSEGV (the flushed log and every feature file), nine step-1 progress events and the tool's SIGSEGV case avg0. Combined fix round 5: tier 1 for the files the refused crashes leave (the zero-charge SIGFPE, the stale abort seed SIGSEGV, the wrapped score arrays, a reused object's later terminations and the step-3.3.5 SIGABRT: exit status, debug/log.txt length and SHA-1, every feature file, the seed maps).",
+ "evidence_tier": "tier 1 (executed, Linux x86_64 Release, OMP_NUM_THREADS=1) for every compared output; tier 4 for the refused undefined values (a heap-address shift where an address below 2^47 - 4096 changes the written text), whose executed signals or varying outputs are recorded but have no value to compare; tier 3 (source-reviewed) for setName, getSubsections and operator== of the DefaultParamHandler base. Combined fix round: the debug files of an infinite and a NaN double shift (shift_nonfinite_digests.tsv, tier 1), and debug/input.mzML compared bit for bit, NaN bits and overall scores included. Combined fix round 2: tier 1 for the 21 integer-parameter cases, the debug side effects and the tool exit of a failed step 2.5 (m/z 1e19 and 2e18, library and tool) and the 648 getGnuplotFormula texts on non-finite operands; tier 3 (source review, a crate-internal unit test) for the debug output of a step-3.3.5 termination, which no executed input reaches. Fitted values are compared bit for bit on every platform (the trace fitters call the reference build's glibc exp and log, ported, lead decision D10), except the EGH intensity on a host without glibc, whose atan is the libm crate's (a measured maximum of 0). Combined fix round 3: tier 1 for three negative-intensity library runs that die with SIGSEGV (the flushed log and every feature file), nine step-1 progress events and the tool's SIGSEGV case avg0. Combined fix round 5: tier 1 for the files the refused crashes leave (the zero-charge SIGFPE, the stale abort seed SIGSEGV, the wrapped score arrays, a reused object's later terminations and the step-3.3.5 SIGABRT: exit status, debug/log.txt length and SHA-1, every feature file, the seed maps). Combined fix round 6: tier 1 for the boundary of the wrapped score-array allocation (20 executed counts under 16 GB and 500 GB) and for the debug side effects at 12,201,611 arrays.",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
@@ -753,10 +753,10 @@
   },
   {
    "path": "tests/data/feature_finder_picked_instrumentation/termination_digests.tsv.gz",
-   "sha256": "37b43ecc6fb5e3b30f60037089ef47ea036282a4cc899645f8fee897efa91c52",
-   "bytes": 28230,
+   "sha256": "112de76ace99af06d984605e3b024c3887ca04edd9d959ad4017d0a5fb0c4d0e",
+   "bytes": 29804,
    "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
-   "role": "../oracle/ffap-complete-fix5 drivers/fix5_driver.cpp and ffap_instr_driver.cpp, node/run_cases.sh, run_cases2.sh and run_band.sh, 39 cases twice each, identical but for the abort map's unique id: exit status, the driver's report (outcome, feature count, the size of debug/log.txt on disk after each run and after the object is destroyed), OpenMS's fatal-exception lines, and the size and SHA-1 of every debug file; written by extract/make_fixtures.py"
+   "role": "../oracle/ffap-complete-fix5 drivers/fix5_driver.cpp and ffap_instr_driver.cpp, node/run_cases.sh, run_cases2.sh and run_band.sh (39 cases) and ../oracle/ffap-complete-fix6 node/run_cases6.sh (3 cases at 12,201,611 arrays), twice each, identical but for the abort map's unique id: exit status, the driver's report (outcome, feature count, the size of debug/log.txt on disk after each run and after the object is destroyed), OpenMS's fatal-exception lines, and the size and SHA-1 of every debug file; written by ../oracle/ffap-complete-fix6 extract/make_fixtures6.py"
   },
   {
    "path": "tests/data/feature_finder_picked_instrumentation/zero_charge_seed_map_2.featureXML.gz",
@@ -792,6 +792,13 @@
    "bytes": 1845,
    "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
    "role": "../oracle/ffap-complete-fix4 results/vfi/nanrt50_dbg_egh: debug/seeds_2.featureXML of the run killed in the endless NaN-RT merge (both runs identical); ../oracle/ffap-complete-fix5 extract/make_fixtures.py"
+  },
+  {
+   "path": "tests/data/feature_finder_picked_instrumentation/score_array_wraps.tsv",
+   "sha256": "2566f71478f274b5d2f859f4c453ce4880115111a63fc425b1f9dfdafb6b2af6",
+   "bytes": 1229,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-fix6 drivers/fix6_driver.cpp, node/run_wrap.sh: 20 wrapped score-array counts (1 to 2^32 - 5 arrays at 88 bytes each) under a 16 GB and a 500 GB address space, twice each, identical - the charges, the wrapped count, its bytes, the cap, the exit status and the outcome; written by extract/make_wrap_fixture.py"
   }
  ],
  "oracle": {
@@ -893,6 +900,17 @@
    "findings": "the executed debug/log.txt is the flushed prefix of the debug run that opened the object's stream, whichever run ends the process (1,163,782 of 1,165,129 bytes; 139,387 of 141,951; 1,114,578 of 1,118,230), and the complete log after a return; a zeroed intensity band with reported_mz maximum or monoisotopic ends in SIGABRT at .cpp:790 (getIsotopeDistribution_ of a NaN m/z), and the executed .plot prints the all-zero trace's m/z as -nan; the float width overflows first at an RT scale of 6e36 on FFC_1",
    "extract": "extract/make_fixtures.py (termination_digests.tsv.gz and the seed maps), extract/extract_onset.py (width_onset_stage.tsv.gz)",
    "port_search": "port-harness/zz_fix5_search.rs, logs/port_search_*.log: 109,200 port runs over FFC_1 variants that found the step-3.3.5 inputs (not executed evidence; every prediction was then executed)"
+  },
+  "ffap_complete_fix6": {
+   "directory": "../oracle/ffap-complete-fix6",
+   "host": "ibminode06 (AMD EPYC 7763; glibc 2.39; 995 GB of memory); node copy /scratch/kohlbach/ffc-fix6",
+   "drivers": {
+    "fix6_driver.cpp (= ../oracle/ffap-complete-fix5/drivers/fix5_driver.cpp plus the round-5 verifier's wrapLH variant in single and reuse mode and a sizes mode; -O2 -std=c++20)": "835d08c9d3e9a4501ac6744335f2b728714918a760e7f850ee003f210545cfbd",
+    "binaries": "logs/build.sha256"
+   },
+   "cases": "node/run_wrap.sh: 20 wrapped score-array counts from 1 to 2^32 - 5 arrays, under a 16 GB and a 500 GB address space (ulimit -v); node/run_cases6.sh: the debug side effects at 12,201,611 arrays (a reused object with and without write_debug, and a fresh debug run), captured as fix round 5 captured its cases; every case twice, identical",
+   "findings": "sizeof(MSSpectrum::FloatDataArray) is 88 bytes and the array vector's max_size() is (2^63 - 1) / 88, so resize never throws std::length_error for a 32-bit count; whether the wrapped allocation succeeds decides between the out-of-bounds write (SIGSEGV) and a caught std::bad_alloc, and it depends on the memory the process may have: 100,000,003 arrays (8.2 GiB) throw under a 16 GB address space and die of SIGSEGV under a 500 GB one, as do 166,000,001, 200,000,003 and 1,000,000,003; under 16 GB every count up to 40,000,003 arrays (3.3 GiB) dies and every count from 80,000,003 (6.6 GiB) throws; at 12,201,611 arrays the executed debug/log.txt is the first run's flushed prefix, 1,163,782 bytes, with that run's 79 files",
+   "extract": "extract/make_wrap_fixture.py (score_array_wraps.tsv), extract/make_fixtures6.py (termination_digests.tsv.gz with this round's three cases; it re-runs fix round 5's extractor first, whose fixtures came out byte-identical)"
   }
  },
  "external_reference_note": "No C++ is committed to this repository. The driver, the scripts, the inputs and the raw outputs live under ../oracle/ffap-instr-completion (relative to the repository root); the entries below pin them. The combined fix round's non-finite shift runs live under ../oracle/ffap-complete-fix1 (origin_key ffap_complete_fix1). The combined fix round 2's integer-parameter, failed-step-2.5 and formula runs live under ../oracle/ffap-complete-fix2 (origin_key ffap_complete_fix2); logs/results.sha256 there pins every raw result.",
@@ -1701,6 +1719,106 @@
    "path": "../oracle/ffc-numerics-v4/node/run_stage.sh",
    "sha256": "64a5bad4f6030935ad895330026368c91bff55581ef17e8060271a7ad43ef3b1",
    "origin_key": "ffap_complete_round4_verifiers"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/README.txt",
+   "sha256": "5a2ecd930152da0f181a09b20f69a346d8029b0cbb3544f6c0ad426c01c93135",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/drivers/fix6_driver.cpp",
+   "sha256": "835d08c9d3e9a4501ac6744335f2b728714918a760e7f850ee003f210545cfbd",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/extract/make_fixtures6.py",
+   "sha256": "1d8422866cab3b01146d6164a5987a45aa3fa923c197f26fdb35af31a2b5357f",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/extract/make_wrap_fixture.py",
+   "sha256": "79d3ee55a56e0a5a72657c5142f6f68ae0eb655ddcb58f132f947a508d58e095",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/build.sha256",
+   "sha256": "8c53a81ded75266c08e59bd048af1ffbcbbeab6be71fd3d077f3e4e8ecf34164",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/build_identity.txt",
+   "sha256": "22df9069c3c07419999dc2da9dc465ae8f4ef6b8313238882edfcfb5c0d364a2",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/cases6.log",
+   "sha256": "7855c50f3eeee42cc34941c2c318af53a42f1e9f9756227b7a8bac82ccda11c6",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/results.sha256",
+   "sha256": "942d7d7a5eaf622960cd86736f1c1374545af10e4074335cc966a5f546b4c09e",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/sizes.txt",
+   "sha256": "722a36d36a4abac8f88d83579f496aa689904255704ae2b7dbff6e53bf3fa426",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap16.log",
+   "sha256": "8fbbdba9fd49d409a5cbe5bf649ee88f401f960983f6f9f0d90e4131bb51fdfe",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap16b.log",
+   "sha256": "1d340ad617e39bd16f5b8e14e08c0a643c0d84e71edd1e21727237b7cbd6f0c1",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap4g.log",
+   "sha256": "876b368dd70dfe593d3f45216b24802b34566a00cae33f45cb43bf2e44cfa8e8",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap500.log",
+   "sha256": "cf2bc33e5d2ff70bcd60b152cdf703f0d69029f058afb6fa3afbb763969f99aa",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/wrap_small.log",
+   "sha256": "ffa171e21f79ff27efb505a0b41e28e6775abdc6e5a1377773bfbbbb2ff74450",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/build.sh",
+   "sha256": "27280ff2b4c851365d9aa5f13f781528ab1e93267687d77b65df36ed7b48a160",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_cases6.sh",
+   "sha256": "1621a915042fb4eddee3090b6e30a7d9a94ff6b8185be67a616a8e8f7f86105a",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_rest.sh",
+   "sha256": "d5f172e7ca7c918600c1a4617a508c560c478dceafc5ba79a790fb1b714f4927",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_reuse.sh",
+   "sha256": "81ee0cf144d086a1e30b31c75e61977e74996f46f12ab3256110d1d330db5eea",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_wrap.sh",
+   "sha256": "6bf3d8e6ba8ec19e1ebc2ee8356f7b3205c9c19772883d0a7ff0154f1d59001b",
+   "origin_key": "ffap_complete_fix6"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/sync.sh",
+   "sha256": "4d28224aa43c27eb30977b9eba929d5d0e52c7804ac6a24fbd7e513d7613a09e",
+   "origin_key": "ffap_complete_fix6"
   }
  ],
  "cpp_issue_candidates": [
@@ -1716,7 +1834,8 @@
   "Param::ParamEntry::isValid narrows a 64-bit integer value to int (int tmp = value) before its range check, and updateMembers_ reads it through operator int / operator unsigned int, so a library caller's intensity:bins = 2^32 + 10 runs with 10 bins and 2^32 is refused as '0' (executed: ../oracle/ffap-complete-fix2, bigint); a negative value whose low 32 bits pass the check throws ConversionError half way through updateMembers_, leaving the members partly updated (executed: partial_max_missing, partial_bins)",
   "startProgress(0, intensity_bins_ * intensity_bins_) multiplies two UInt values and wraps modulo 2^32 (65,536 bins: S 0 0; executed)",
   "a seed-loop SIGSEGV (feature:min_isotope_fit 0) loses the std::cout lines and the debug log text still buffered, so the console and debug/log.txt end mid-run without a message (executed: avg0, neg_*)",
-  "a reused object's log_ is never closed: its first debug run's unflushed tail (up to 8,191 bytes) reaches debug/log.txt only when the object is destroyed, so a process that dies in any later run leaves the first run's flushed prefix (executed, ../oracle/ffap-complete-fix5)"
+  "a reused object's log_ is never closed: its first debug run's unflushed tail (up to 8,191 bytes) reaches debug/log.txt only when the object is destroyed, so a process that dies in any later run leaves the first run's flushed prefix (executed, ../oracle/ffap-complete-fix5)",
+  "the wrapped score-array count's outcome is not a property of the source: the same count (100,000,003 arrays, 8.2 GiB) dies of SIGSEGV where the process may have 500 GB of address space and throws std::bad_alloc where it may have 16 GB (executed, ../oracle/ffap-complete-fix6)"
  ],
  "target_verification": {
   "date": "2026-09-17",

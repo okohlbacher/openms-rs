@@ -45,8 +45,8 @@ use openms::analysis::feature_finder_picked::algorithm::{
     Limits, Options, PseudoRtShiftKey, RejectedParameters, run_with_options,
 };
 use openms::analysis::feature_finder_picked::debug::{
-    DebugOutput, FeatureDebugInput, HEAP_ADDRESS_END, PseudoRtShift, ReportLine, TerminationKind,
-    TerminationPoint, write_feature_debug_info,
+    DebugLogFile, DebugOutput, FeatureDebugInput, HEAP_ADDRESS_END, PseudoRtShift, ReportLine,
+    TerminationKind, TerminationPoint, write_feature_debug_info,
 };
 use openms::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
 use openms::analysis::feature_finder_picked::source_sort::source_sort_permutation;
@@ -2330,38 +2330,160 @@ fn process_ending_refusals_outside_the_seed_loop_record_their_termination() {
         disk.assert_executed(executed, case);
     }
 
-    // The score arrays, before `debug/` exists.
-    let executed = &digests["wrap42_fresh_dbg"];
-    assert_eq!(executed.status, "139", "SIGSEGV");
-    assert!(executed.files.is_empty());
-    let mut parameters = ffc1_debug_parameters();
-    set(
-        &mut parameters,
-        "isotopic_pattern:charge_low",
-        ParamValue::Integer(4),
+    // The score arrays, before `debug/` exists: a wrap to one array (4/2) and
+    // one to 12,201,611 arrays, the port's 1 GiB recording line (fix round 6).
+    for (case, low, high) in [
+        ("wrap42_fresh_dbg", 4, 2),
+        ("wrap1g_fresh_dbg", 2_141_382_846, 1),
+    ] {
+        let executed = &digests[case];
+        assert_eq!(executed.status, "139", "{case}: SIGSEGV");
+        assert!(executed.files.is_empty(), "{case}");
+        let mut parameters = ffc1_debug_parameters();
+        set(
+            &mut parameters,
+            "isotopic_pattern:charge_low",
+            ParamValue::Integer(low),
+        );
+        set(
+            &mut parameters,
+            "isotopic_pattern:charge_high",
+            ParamValue::Integer(high),
+        );
+        let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+        let error = algorithm
+            .run(
+                ffc1_input(),
+                &mut FeatureMap::new(),
+                &parameters,
+                &FeatureMap::new(),
+            )
+            .unwrap_err();
+        let termination = algorithm.termination().unwrap();
+        assert_eq!(termination.point, TerminationPoint::ScoreArrays, "{case}");
+        assert_eq!(termination.kind, TerminationKind::OutOfBounds, "{case}");
+        assert_eq!(termination.exception, "SIGSEGV", "{case}");
+        assert_eq!(termination.message, error.to_string(), "{case}");
+        assert_eq!(termination.log_file_bytes, None, "{case}");
+        assert!(algorithm.debug_output().is_none(), "{case}");
+        assert!(algorithm.debug_log_file().is_none(), "{case}");
+    }
+}
+
+/// Where a wrapped score-array count ends the executed process, and where the
+/// port records that it does (`score_array_wraps.tsv`,
+/// `../oracle/ffap-complete-fix6`, every case twice and identical).
+///
+/// The source resizes one spectrum's float data arrays to
+/// `(3 + 2 * charge_count) mod 2^32` and then walks past the end of that
+/// vector (`.cpp:196-221`), so between the wrap and the out-of-bounds write
+/// stands one allocation of 88 bytes per array (`sizeof` on the reference
+/// build). Whether it succeeds depends on the memory the process may have, and
+/// the executed runs show exactly that: 100,000,003 arrays (8.2 GiB) throw
+/// `std::bad_alloc`, which the caller catches, under the 16 GB address space
+/// every oracle run of this branch uses, and die with SIGSEGV under a 500 GB
+/// one. A deterministic port cannot follow that, so, as lead decision D6 has
+/// it for the isotope windows, it draws a documented line: it records the
+/// termination up to 1 GiB of arrays, which every executed configuration
+/// reached, and records nothing above, although the executed process may still
+/// die there. The line is a crate constant and not a [`Limits`] field, so no
+/// caller can move it (lead decision D12).
+///
+/// The refusal itself never depends on any of this: every wrapping count is
+/// refused, whatever the limits and whatever the count
+/// (`charge_count_wraps_are_refused_whatever_the_limits`).
+#[test]
+fn a_wrapped_score_array_count_records_its_termination_up_to_the_documented_ceiling() {
+    // `algorithm::SCORE_ARRAY_TERMINATION_CEILING_BYTES` and
+    // `SOURCE_FLOAT_DATA_ARRAY_BYTES`, both crate-private.
+    const CEILING: u64 = 1 << 30;
+    const ARRAY_BYTES: u64 = 88;
+    let text = fixture("score_array_wraps.tsv");
+    let mut lines = text.lines();
+    assert_eq!(
+        lines.next().unwrap(),
+        "case\tcharge_low\tcharge_high\tarrays\tbytes\taddress_space_kib\tstatus\toutcome"
     );
-    set(
-        &mut parameters,
-        "isotopic_pattern:charge_high",
-        ParamValue::Integer(2),
-    );
-    let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
-    let error = algorithm
-        .run(
-            ffc1_input(),
-            &mut FeatureMap::new(),
-            &parameters,
-            &FeatureMap::new(),
-        )
-        .unwrap_err();
-    let termination = algorithm.termination().unwrap();
-    assert_eq!(termination.point, TerminationPoint::ScoreArrays);
-    assert_eq!(termination.kind, TerminationKind::OutOfBounds);
-    assert_eq!(termination.exception, "SIGSEGV");
-    assert_eq!(termination.message, error.to_string());
-    assert_eq!(termination.log_file_bytes, None);
-    assert!(algorithm.debug_output().is_none());
-    assert!(algorithm.debug_log_file().is_none());
+    let mut cases = 0;
+    let mut recorded = 0;
+    let mut band = 0;
+    for line in lines {
+        let row: Vec<&str> = line.split('\t').collect();
+        let case = row[0];
+        let low: i64 = row[1].parse().unwrap();
+        let high: i64 = row[2].parse().unwrap();
+        let arrays: u64 = row[3].parse().unwrap();
+        let bytes: u64 = row[4].parse().unwrap();
+        let (status, outcome) = (row[6], row[7]);
+        // The executed row: the wrapped count, and a process that never
+        // returned - it died at the write or the allocation threw.
+        assert_eq!(
+            arrays,
+            (3u32).wrapping_add(((high - low + 1) as u32).wrapping_mul(2)) as u64,
+            "{case}"
+        );
+        assert_eq!(bytes, arrays * ARRAY_BYTES, "{case}");
+        match outcome {
+            "sigsegv" => assert_eq!(status, "139", "{case}"),
+            "bad_alloc" => assert_eq!(status, "0", "{case}: the driver catches it"),
+            other => panic!("{case}: {other}"),
+        }
+        let mut parameters = ffc1_parameters();
+        set(
+            &mut parameters,
+            "isotopic_pattern:charge_low",
+            ParamValue::Integer(low),
+        );
+        set(
+            &mut parameters,
+            "isotopic_pattern:charge_high",
+            ParamValue::Integer(high),
+        );
+        let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+        let error = algorithm
+            .run(
+                ffc1_input(),
+                &mut FeatureMap::new(),
+                &parameters,
+                &FeatureMap::new(),
+            )
+            .unwrap_err();
+        assert!(
+            error.to_string().contains("wraps"),
+            "{case}: {error}: every wrapping count is refused"
+        );
+        match algorithm.termination() {
+            Some(termination) => {
+                assert!(bytes <= CEILING, "{case}: recorded above the ceiling");
+                assert_eq!(
+                    outcome, "sigsegv",
+                    "{case}: recorded where the executed process did not die"
+                );
+                assert_eq!(termination.point, TerminationPoint::ScoreArrays, "{case}");
+                assert_eq!(termination.kind, TerminationKind::OutOfBounds, "{case}");
+                assert_eq!(termination.exception, "SIGSEGV", "{case}");
+                assert_eq!(termination.message, error.to_string(), "{case}");
+                assert_eq!(termination.log_file_bytes, None, "{case}");
+                recorded += 1;
+            }
+            None => {
+                assert!(bytes > CEILING, "{case}: not recorded below the ceiling");
+                // Above the line the record is silent whichever way the
+                // executed run went; where it died, that is the documented
+                // conservative band.
+                band += usize::from(outcome == "sigsegv");
+            }
+        }
+        assert!(algorithm.debug_output().is_none(), "{case}");
+        assert!(algorithm.debug_log_file().is_none(), "{case}");
+        cases += 1;
+    }
+    assert_eq!(cases, 20);
+    // 1, 9, 1003, 2003, 2005 and 12,201,611 arrays.
+    assert_eq!(recorded, 6);
+    // 12,201,613, 20,000,003 and 40,000,003 arrays under 16 GB, and
+    // 100,000,003, 166,000,001, 200,000,003 and 1,000,000,003 under 500 GB.
+    assert_eq!(band, 7);
 }
 
 /// Executed `fix5_driver reuse` runs (`../oracle/ffap-complete-fix5`): one
@@ -2376,10 +2498,11 @@ fn process_ending_refusals_outside_the_seed_loop_record_their_termination() {
 ///   empty windows leave the second run a fresh object's windows, it traps;
 /// - an empty best isotope pattern (`vfi2_driver neg`'s `avg0` section:
 ///   SIGSEGV in the seed loop);
-/// - a score-array count that wraps to 1 (4/2) or to 1003 arrays
-///   (`INT_MAX`/498): SIGSEGV before the stream is touched; one that wraps to
-///   `2^32 - 5` arrays (7/2) throws `std::bad_alloc` under the 16 GB address
-///   space, which the driver catches;
+/// - a score-array count that wraps to 1 (4/2), to 1003 arrays
+///   (`INT_MAX`/498) or to 12,201,611 arrays (2141382846/1, the port's 1 GiB
+///   recording line, executed in fix round 6): SIGSEGV before the stream is
+///   touched; one that wraps to `2^32 - 5` arrays (7/2) throws
+///   `std::bad_alloc` under the 16 GB address space, which the driver catches;
 /// - the same run again, which returns.
 ///
 /// Wherever the process ended, `debug/log.txt` is the first run's flushed
@@ -2403,6 +2526,8 @@ fn a_reused_instance_leaves_the_executed_log_at_every_later_termination() {
         ("reuse_wrap42_nd", "wrap42", false, false),
         ("reuse_wrapmax498_dbg", "wrapmax498", true, false),
         ("reuse_wrapmax498_nd", "wrapmax498", false, false),
+        ("reuse_wrap1g_dbg", "wrap1g", true, false),
+        ("reuse_wrap1g_nd", "wrap1g", false, false),
         ("reuse_wrap72_dbg", "wrap72", true, false),
         ("reuse_wrap72_nd", "wrap72", false, false),
         ("reuse_ok_dbg", "ok", true, false),
@@ -2456,10 +2581,14 @@ fn a_reused_instance_leaves_the_executed_log_at_every_later_termination() {
                 let (input, parameters) = negated_band(1.0, 0.0, 1.0, 0.0, false);
                 (input, parameters, FeatureMap::new())
             }
-            "wrap42" | "wrapmax498" | "wrap72" => {
+            "wrap42" | "wrapmax498" | "wrap72" | "wrap1g" => {
                 let (low, high) = match second {
                     "wrap42" => (4, 2),
                     "wrap72" => (7, 2),
+                    // 12,201,611 arrays per spectrum: 1 GiB at 88 bytes each,
+                    // the largest allocation for which the port records a
+                    // termination (fix round 6).
+                    "wrap1g" => (2_141_382_846, 1),
                     _ => (i64::from(i32::MAX), 498),
                 };
                 let mut parameters = ffc1_parameters();
@@ -4300,6 +4429,70 @@ fn huge_mz_input(mz: f64) -> MSExperiment {
 /// open: a second debug run on FFC_1 writes the seed map, the abort map and the
 /// input exactly as a fresh object does (the executed files are identical),
 /// but no log.
+/// The same failure with the port's own `Limits::max_debug_bytes` ceiling
+/// below the first line: the run stops with the ceiling's error instead of the
+/// source's, and it must still leave the instance what the source leaves - the
+/// stream open on the file it truncated, and `debug/features` created - so
+/// that a caller sees the opened stream and every later termination reports a
+/// length taken from it. The ceiling keeps none of the refused text, so the
+/// counts are zero and are the port's own, which `DebugLogFile` records.
+#[test]
+fn a_debug_run_cut_short_by_the_debug_ceiling_keeps_its_opened_stream() {
+    let debug_parameters = with_debug(
+        ffc1_parameters(),
+        &[("feature:min_isotope_fit", ParamValue::Float(1.0))],
+    );
+    let options = Options {
+        limits: Limits {
+            max_debug_bytes: 8,
+            ..Limits::default()
+        },
+        ..Options::default()
+    };
+    let (result, mut algorithm, features) =
+        debug_run(huge_mz_input(1e19), &debug_parameters, options);
+    let error = result.unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("the debug log exceeds the limit"),
+        "{error}"
+    );
+    assert!(features.is_empty());
+    let out = algorithm.debug_output().unwrap();
+    assert!(out.log_opened && out.log.is_empty());
+    assert!(out.termination.is_none());
+    assert_eq!(
+        algorithm.debug_log_file(),
+        Some(DebugLogFile {
+            written: 0,
+            flushed: 0,
+            failed: false
+        })
+    );
+    // A later debug run finds the stream open, as after any debug run: its
+    // `open` fails, it writes no log, and nothing hits the ceiling again.
+    let mut second = FeatureMap::new();
+    algorithm
+        .run(
+            ffc1_input(),
+            &mut second,
+            &debug_parameters,
+            &FeatureMap::new(),
+        )
+        .unwrap();
+    let out = algorithm.debug_output().unwrap();
+    assert!(!out.log_opened && out.log.is_empty());
+    assert_eq!(
+        algorithm.debug_log_file(),
+        Some(DebugLogFile {
+            written: 0,
+            flushed: 0,
+            failed: true
+        })
+    );
+}
+
 #[test]
 fn a_debug_run_that_fails_in_step_two_point_five_keeps_the_executed_debug_output() {
     use openms::analysis::feature_finder_picked::seeds::{LENGTH_ERROR_WHAT, is_length_error};

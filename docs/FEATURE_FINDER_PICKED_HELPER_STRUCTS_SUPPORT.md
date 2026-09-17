@@ -123,14 +123,19 @@ this header and is outside this module.
   `f64`. `intensity_profile` adds the promoted intensities into `f64` entries.
   This is what the source does. The oracle confirms that ten `f32` 0.1 peaks at
   one retention time give `0x3ff0000004000000`, which an `f32` accumulation would
-  not. The promotions, sums, products and the quotient of `avg_mz` and
-  `intensity_profile` follow the Linux x86_64 Release build's SSE instructions
+  not. All three promote with the Linux x86_64 Release build's `cvtss2sd`
+  rather than with a Rust cast, and the sums, products and the quotient of
+  `avg_mz` and `intensity_profile` follow that build's SSE instructions as well
   (`cvtss2sd`, `addsd`, `mulsd`, `divsd` with the executed operand order,
-  `libOpenMS.so` `0x18f1570` and `0x18f1912`; port/ffap-complete fix round 5),
-  so a NaN they create or pass on carries the executed sign and payload on
-  every host: an all-zero trace's average is x86_64's negative default NaN,
+  `libOpenMS.so` `0x18f1570` and `0x18f1912`; port/ffap-complete fix rounds 5
+  and 6), so a NaN they create or pass on carries the executed sign and payload
+  on every host: an all-zero trace's average is x86_64's negative default NaN,
   which `FeatureFinderAlgorithmPicked`'s debug `.plot` file prints as `-nan`
-  (executed, `../oracle/ffap-complete-fix5`). Finite results are unchanged.
+  (executed, `../oracle/ffap-complete-fix5`). The baseline is not debug-only -
+  `run_` scales it and both fitters add it to every theoretical intensity
+  before the crop and quality correlations - so its promotion decides the bits
+  of the stored `score_fit` and `score_correlation` as well. Finite results are
+  unchanged.
 - **First maximum wins.** `update_maximum` and `theoretical_max_position` use a
   strict `>`, so ties keep the first and a leading NaN is never replaced.
   `update_baseline` uses a strict `<` after seeding from the first peak in trace

@@ -33,7 +33,12 @@
 //! `float`. `MassTrace::avg_mz`, `MassTraces::update_baseline` and
 //! `MassTraces::intensity_profile` promote each `f32` to `f64` exactly where the
 //! source converts a `float` into a `double` expression, so their sums
-//! accumulate in `f64`, not in `f32`.
+//! accumulate in `f64`, not in `f32`. All three promote with the Linux x86_64
+//! Release build's `cvtss2sd` (`scoring::x86_64::widen`) rather than with a
+//! Rust cast, and `avg_mz` and `intensity_profile` also follow the executed
+//! operand order of the additions, multiplications and the division, so a NaN
+//! any of them creates or passes on carries the executed sign and payload on
+//! every host.
 //!
 //! # Bounded work
 //!
@@ -431,18 +436,26 @@ impl MassTraces {
     ///
     /// Without traces the baseline becomes `0.0`. Otherwise the first peak in
     /// trace order sets it and every later peak with a strictly lower intensity
-    /// replaces it, compared in `f64` after promoting the `f32`. A NaN first
+    /// replaces it, compared in `f64` after promoting the `f32` with the
+    /// Release build's `cvtss2sd` (`x86_64::widen`), so a NaN intensity gives
+    /// the baseline the executed sign and payload on every host. A NaN first
     /// peak therefore leaves a NaN baseline, and a later NaN is skipped. When
     /// traces exist but none holds a peak, the baseline keeps its value, as in
     /// the source, where that value may still be uninitialised.
+    ///
+    /// The baseline is not debug-only: `run_` scales it (`.cpp:661`) and both
+    /// fitters add it to every theoretical intensity (`.cpp:1983`, `.cpp:2098`)
+    /// before the crop and quality correlations, so its bits reach the stored
+    /// `score_fit` and `score_correlation` and the `.plot` formula.
     pub fn update_baseline(&mut self) {
+        use crate::analysis::feature_finder_picked::scoring::x86_64;
         if self.traces.is_empty() {
             self.baseline = 0.0;
             return;
         }
         let mut first = true;
         for peak in self.traces.iter().flat_map(|trace| trace.peaks.iter()) {
-            let intensity = f64::from(peak.intensity);
+            let intensity = x86_64::widen(peak.intensity);
             if first {
                 self.baseline = intensity;
                 first = false;

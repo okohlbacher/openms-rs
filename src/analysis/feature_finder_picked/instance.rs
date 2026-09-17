@@ -743,11 +743,15 @@ impl FeatureFinderAlgorithmPicked {
                 // or one of the port's ceilings there) leaves both, and the
                 // stream stays open for the next run.
                 if debug && opened {
-                    let mut out = Some(open_debug_log(&mut self.log_state));
-                    append_log(&mut out, &prefix, &limits)?;
-                    self.debug = out;
+                    // The stream belongs to the instance from the moment it is
+                    // opened, so it is stored before anything is appended: a
+                    // failing `append_log` (the `Limits::max_debug_bytes`
+                    // ceiling) must not leave `run` without the output whose
+                    // byte counts it copies into `log_state`.
+                    self.debug = Some(open_debug_log(&mut self.log_state));
+                    append_log(&mut self.debug, &prefix, &limits)?;
                 } else if !opened
-                    && settings.score_arrays_overrun(&limits)
+                    && settings.score_arrays_overrun()
                     && settings
                         .charge_count()
                         .is_err_and(|refusal| refusal.to_string() == error.to_string())

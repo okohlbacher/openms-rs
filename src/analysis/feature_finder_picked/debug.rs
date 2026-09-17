@@ -500,6 +500,16 @@ pub struct DebugTermination {
 
 /// The source's `debug/log.txt` stream of an instance, which the first debug
 /// run opens and nothing closes until the instance is dropped.
+///
+/// The counts are the port's own: they describe the log this instance holds,
+/// which is the executed one unless the opening run stopped at
+/// [`Limits::max_debug_bytes`](crate::analysis::feature_finder_picked::algorithm::Limits::max_debug_bytes),
+/// a native ceiling the source does not have (16 GiB by default, about
+/// 14,000 times the FeatureFinderCentroided_1 debug log). A run cut short
+/// there keeps the opened stream and `debug/features`, as the source does, but
+/// none of the text it refused to hold, so its counts, and every
+/// [`DebugTermination::log_file_bytes`] taken from them, are that ceiling's,
+/// not the executed process's.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct DebugLogFile {
     /// The bytes the run that opened the stream wrote into it.

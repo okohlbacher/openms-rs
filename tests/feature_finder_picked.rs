@@ -193,10 +193,18 @@ fn tolerance(_config: &str, _index: Option<usize>) -> f64 {
 /// with FMA, as on the reference node and the gate hosts), and the `libm`
 /// crate's elsewhere (lead decision D10's fallback). On those other hosts the
 /// bound is [`EGH_ATAN_GAP`], the largest departure measured over these
-/// fixtures on macOS arm64; it is a measured maximum, not a guarantee: the
-/// crate's `atan` differs from the reference for 1.6 to 6.2 % of the
-/// arguments in the fits' range, and only the `float` narrowing of the
-/// intensity hides it here. The `libm` crate is pure Rust, so the value is the
+/// fixtures on macOS arm64.
+///
+/// That measured maximum is `0.0`, which is [`BITWISE`], so this function
+/// relaxes nothing anywhere: the area and the intensity derived from it must
+/// be bit for bit the executed value on every host, and a departure fails with
+/// [`close`]'s bitwise message. What the measurement bounds is how often the
+/// two `atan` implementations may differ at all without being seen here: the
+/// crate's `atan` differs from the reference for 1.6 to 6.2 % of the arguments
+/// in the fits' range, and only the `float` narrowing of the intensity hides
+/// it over these fixtures, so a failure on a non-reference host means that
+/// host's `atan` is not the reference's on an argument this file reaches, not
+/// that the port regressed. The `libm` crate is pure Rust, so the value is the
 /// same on every such host.
 fn area_tolerance(config: &str) -> f64 {
     #[cfg(not(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64")))]
@@ -210,6 +218,11 @@ fn area_tolerance(config: &str) -> f64 {
 /// The largest relative departure of an EGH area or intensity from the Linux
 /// capture measured on macOS arm64 over the fixtures of this file (the
 /// `libm` crate's `atan`), rounded up at the second significant digit.
+///
+/// The measurement is `0.0`, that is [`BITWISE`], so the comparison is exact
+/// on every host; [`area_tolerance`] says what that does and does not promise.
+/// Only a new measurement on a host whose `atan` departs may change it, and
+/// only upwards from a re-measured maximum, never to pass a failing run.
 #[cfg(not(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64")))]
 const EGH_ATAN_GAP: f64 = 0.0;
 
