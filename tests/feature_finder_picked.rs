@@ -31,9 +31,10 @@
 //!
 //! Peak identities, counts, charges, labels and abort reasons are compared
 //! exactly. Coordinates, intensities, qualities and fitted parameters are
-//! compared bit for bit on Linux x86_64 with glibc, except for the asymmetric
-//! (EGH) configuration, and within measured platform bounds elsewhere; see
-//! [`tolerance`].
+//! compared bit for bit on every platform, since both trace fitters call the
+//! reference build's glibc `exp` and `log` (lead decision D10); only an EGH
+//! area on a host without glibc has a measured bound; see [`tolerance`] and
+//! [`area_tolerance`].
 
 #![cfg(all(feature = "mzml", feature = "paramxml", feature = "featurexml"))]
 

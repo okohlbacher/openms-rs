@@ -38,11 +38,12 @@
 //!   1e-9, `tau` on the scale of `sigma` only where `tau` is rounding noise.
 //!
 //! NaN matches NaN whatever its sign or payload. The Rust results are the same
-//! on every platform up to the sign and payload of a NaN (x86-64 produces
-//! negative default NaNs, AArch64 positive ones): the `libm` crate is pure Rust
-//! and Rust never contracts floating-point operations. The support document
-//! records the measured differences and why bit identity with the C++ is not
-//! reached.
+//! on every platform, apart from the area's `atan` on a host without glibc and
+//! the sign of a NaN the solver creates: `exp` and `log` are the Linux x86_64
+//! Release build's glibc functions, ported in pure Rust (lead decision D10),
+//! and Rust never contracts floating-point operations. The oracles here ran on
+//! the macOS arm64 product SDK (Apple libm), so the bounds below remain; the
+//! support document records the measured differences.
 //!
 //! The fits run through the shared driver `trace_fitter::optimize`, whose
 //! solver is not yet bit-faithful to Eigen beyond recorded fixtures such as
@@ -535,11 +536,11 @@ fn both() -> [(&'static str, Oracle); 2] {
 /// own parameters.
 ///
 /// These evaluate the same expressions in the same order as the C++, so they
-/// differ only where a `libm` crate function returns a neighbouring double of
-/// the platform `exp`, `log` or `atan` the product SDK called (the `libm` crate's
-/// `exp` is not correctly rounded; Apple's was on 3594 of the 3600 functor
-/// inputs). Such a difference is one or two units in the last place of the
-/// affected term, a relative 5e-16 at most in the measurements.
+/// differ only where the port's `exp`, `log` or `atan` (glibc's, since lead
+/// decision D10) returns a neighbouring double of the Apple libm function the
+/// product SDK called (Apple's `exp` was correctly rounded on 3594 of the 3600
+/// functor inputs). Such a difference is one or two units in the last place of
+/// the affected term, a relative 5e-16 at most in the measurements.
 const DIRECT_RELATIVE: f64 = 1e-14;
 
 /// Relative tolerance for a Levenberg-Marquardt result against the C++ fit:
