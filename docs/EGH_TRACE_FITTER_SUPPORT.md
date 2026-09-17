@@ -222,8 +222,9 @@ fitters) where it writes those meta values.
    not the reference algorithm. There the `double` area's last bits are not
    guaranteed and differ for a few percent of fits. The feature intensity,
    `getArea() / max` narrowed to `float`, hides nearly all of that: over the
-   fixtures of `tests/feature_finder_picked.rs`, and in 59 further executed
-   EGH runs with 697 features, it moved no EGH intensity on macOS arm64, a
+   fixtures of `tests/feature_finder_picked.rs`, among them the 67 returned
+   EGH runs with 767 features of `extended_stage.tsv.gz`, it moved no EGH
+   intensity on macOS arm64, a
    measured maximum, not a guarantee. The
    start point, the bounds and the FWHM follow the operand order of the
    Release build's SSE instructions.

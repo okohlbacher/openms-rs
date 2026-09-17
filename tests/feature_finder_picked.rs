@@ -2159,7 +2159,7 @@ fn boundary_cases_match_the_linux_release_build() {
 fn extended_cases_match_the_linux_release_build() {
     let rows = stage_rows("extended_stage.tsv.gz");
     assert_eq!(rows.iter().filter(|row| row[0] == "case").count(), 134);
-    let outcomes = replay_stage_fixture(&rows);
+    let outcomes = replay_stage_fixture_in_parallel(&rows);
     // 8 crashed (SIGSEGV: three wrapped charge counts, five empty best
     // patterns); 9 threw (five `std::bad_alloc` of the charge count, one of
     // them the native ceiling's, and four `Exception::Precondition`); the
@@ -2198,6 +2198,52 @@ fn extended_cases_match_the_linux_release_build() {
         }
     }
     assert!(infinite >= 30, "{infinite}");
+}
+
+/// [`replay_stage_fixture`] over the cases of `rows`, spread over worker
+/// threads: every case is replayed and asserted exactly as in one call, and
+/// the outcome counts are summed. The cases are independent (each builds its
+/// own input and runs serially), and a few of them compute a quarter of a
+/// million isotope windows, which a single thread of an unoptimised test
+/// build takes minutes for.
+fn replay_stage_fixture_in_parallel(rows: &[Vec<String>]) -> BTreeMap<&'static str, usize> {
+    let names: Vec<&str> = rows
+        .iter()
+        .filter(|row| row[0] == "case")
+        .map(|row| row[1].as_str())
+        .collect();
+    let workers = std::thread::available_parallelism()
+        .map_or(1, |n| n.get())
+        .clamp(1, 8);
+    let mut groups: Vec<Vec<Vec<String>>> = vec![Vec::new(); workers];
+    for (index, name) in names.iter().enumerate() {
+        groups[index % workers].extend(
+            rows.iter()
+                .filter(|row| row.len() > 1 && row[1] == *name)
+                .cloned(),
+        );
+    }
+    let mut outcomes: BTreeMap<&'static str, usize> = BTreeMap::new();
+    std::thread::scope(|scope| {
+        let handles: Vec<_> = groups
+            .iter()
+            .map(|group| scope.spawn(move || replay_stage_fixture(group)))
+            .collect();
+        for handle in handles {
+            let part = handle
+                .join()
+                .unwrap_or_else(|panic| std::panic::resume_unwind(panic));
+            for (kind, count) in part {
+                *outcomes.entry(kind).or_default() += count;
+            }
+        }
+    });
+    let replayed: usize = groups
+        .iter()
+        .map(|group| group.iter().filter(|row| row[0] == "case").count())
+        .sum();
+    assert_eq!(replayed, names.len(), "every case is replayed once");
+    outcomes
 }
 
 /// The bound of one feature of a stage fixture: [`tolerance`] of the

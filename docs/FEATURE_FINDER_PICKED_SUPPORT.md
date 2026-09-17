@@ -737,7 +737,16 @@ spectra, data arrays and a chromatogram; every case twice, identical, two also
 twice at four threads): underflowed averagine windows, a NaN trimming cutoff,
 34 EGH and Gaussian fit configurations, the empty best pattern, the
 charge-count wraps and mis-sized data arrays, replayed by
-`boundary_cases_match_the_linux_release_build`.
+`boundary_cases_match_the_linux_release_build`. The fourth fix round
+re-executed the round-3 numerics verifier's 124 cases and ten more
+(`extended_stage.tsv.gz`, `../oracle/ffap-complete-fix4`, driver
+`fix4_stage.cpp`, the verifier's `v3_stage`; every case twice, identical, and
+the 124 shared rows equal to the verifier's own capture): fits on jittered,
+skewed and rescaled inputs, isotope windows at 1-Da resolution across the
+averagine underflow, both sides of every charge wrap and of the empty best
+pattern, the `Precondition` order under ties, and the retention-time scales
+whose `float` width overflows, replayed by
+`extended_cases_match_the_linux_release_build`.
 
 **What the source does, and what the port does.**
 
@@ -988,9 +997,9 @@ still uses the product SDK's executed file.
 Every float of the **seed stage**, the overall scores included, is compared bit
 for bit on every platform. The **feature stage** compares counts,
 identities and orders exactly, and fitted quantities bit for bit on every
-platform, except the area and intensity of an EGH fit on a host without the
-GNU C Library (`area_tolerance`, a measured maximum of 0); the measured
-agreement is in the next section.
+platform, except the area and intensity of an EGH fit on a host other than
+x86_64 Linux with the GNU C Library (`area_tolerance`, a measured maximum of
+0); the measured agreement is in the next section.
 
 | Evidence | Configurations | Test |
 | --- | --- | --- |
@@ -1014,6 +1023,10 @@ agreement is in the next section.
 | `vfi2_driver neg` (after `../oracle/ffc-instrumentation-v2`; two runs each, identical) | three negative-intensity inputs with `feature:min_isotope_fit` 0, with and without `write_debug`: SIGSEGV; the debug log and every feature file left behind | `a_seed_loop_crash_keeps_what_the_executed_process_had_written` |
 | `fix3_driver progress` (two runs each, identical) | the step-1 `startProgress` event for nine `intensity:bins` values, 65,536 and 2^32 + 65,536 among them | `the_step_one_progress_range_wraps_as_the_release_build_computes_it` |
 | the Release FeatureFinderCentroided, case `avg0` (two runs, identical apart from timing text) | the empty best pattern through the tool: SIGSEGV, the console lines written before it | `a_run_that_reaches_an_empty_best_pattern_is_refused_where_the_release_build_crashes` |
+| `fix4_stage` (`../oracle/ffap-complete-fix4`, the round-3 numerics verifier's `v3_stage`; two runs each, identical; one case also at four threads) | 134 inputs: 67 returned EGH runs (767 features) and 50 returned Gaussian runs (445 features) beyond the earlier fixtures, isotope windows (`isowin` rows) across the averagine underflow and under NaN, tiny and full cutoffs, the charge wraps, the empty best pattern at `feature:min_isotope_fit` 0, `-0.0`, NaN (SIGSEGV) and `5e-324`, the `Precondition` order under ties, and the retention-time and intensity scales `vx_*`, `vy_*` (infinite widths and `FWHM` values from `1e37`) | `extended_cases_match_the_linux_release_build` |
+| `fix4_reuse` (the verifier's `v3_reuse`; two runs each, identical) | one object run twice on FFC_1 in four scenarios: feature counts and the kept, appended and re-normalised isotope windows | `underflowed_windows_and_a_nan_cutoff_leave_nothing_to_append` |
+| `fix4_vfi` (the instrumentation verifier's `vfi3_driver`; killed after 30 s, two runs each, identical) | a NaN retention time at scan 50 or 20 with `write_debug`, Gaussian and EGH, and without: the flushed `debug/log.txt` and the feature files of the seeds before the endless merge | `a_seed_loop_that_never_returns_keeps_what_the_executed_process_had_written` |
+| the Release FeatureFinderCentroided on FFC_1 with the retention times scaled by `1e36` and `1e39` in the text (two runs each, identical apart from timing text) | exit 0 with `inf` intensities and, at `1e39`, `inf` widths in the featureXML | `infinite_feature_values_are_refused_by_the_featurexml_writer` (TOPP native difference 16) |
 
 The FFC_1 score table also pins every loaded peak's m/z and intensity bits
 against the C++ loader.
@@ -1046,10 +1059,12 @@ departed by up to `2.3038e-12` while its fit called the `libm` crate's `exp`,
 `1.1096e-10` on further EGH configurations; those 16 configurations and 18
 Gaussian ones are in `boundary_stage.tsv.gz` and are now exact too. The test
 compares with `BITWISE` everywhere; the only other bound is `area_tolerance`,
-for the `atan` of an EGH area on a host without the GNU C Library (D10's
-fallback: the reference `atan` has no licence-clean upstream), where the
-fixtures measured no departure on macOS arm64 (a measured maximum, not a
-guarantee).
+for the `atan` of an EGH area on a host other than x86_64 Linux with the GNU C
+Library (D10's fallback: the reference `atan` has no licence-clean upstream),
+where the fixtures measured no departure on macOS arm64 (a measured maximum,
+not a guarantee). Fix round 4 added 67 returned EGH runs (767 features) and
+50 returned Gaussian runs (445 features) beyond these
+(`extended_stage.tsv.gz`), all bit for bit on Linux x86_64 and macOS arm64.
 
 Counts, charges, labels, `num_of_datapoints`, hull counts, hull point counts,
 hull point coordinates, subordinate counts, abort reasons and abort counts are
@@ -1067,8 +1082,8 @@ depend on the host's `exp` and `log`; the earlier macOS arm64 bounds
   `__atan_fma` for 6.2 % of arguments in `[0, 10]`, 1.6 % with `|x|` in
   `[2^-14, 2^15)` and 0.02 % of random bit patterns (`2^28` inputs each,
   `../oracle/ffc-numerics-v3`); the `float` narrowing of the intensity hides
-  nearly all of it (59 executed EGH runs with 697 features and every fixture
-  bit for bit on macOS arm64), but the `double` area of `getArea` differs for
+  nearly all of it (every fixture bit for bit on macOS arm64, the 67 returned
+  EGH runs with 767 features of `extended_stage.tsv.gz` included), but the `double` area of `getArea` differs for
   a few percent of fits. A correctly rounded `atan` would depart about 90
   times less often (the reference misrounds 13 and 7 of 20,000 arguments of
   the first two ranges, the `libm` crate 1,219 and 324), but it is not the
@@ -1232,6 +1247,15 @@ the cost fits in this lane:
   It also leaves out CPUs without FMA.
 - Dispatching at run time needs `unsafe`, which the crate forbids.
 
+**Test time (fix round 4).** Two cases of `extended_stage.tsv.gz`
+(`vw_w1`, `vw_w1_ipo0`) compute 274,001 isotope windows each, twice (the
+source's run and the `DegenerateBinStep::Refuse` rerun). An unoptimised test
+build takes about 200 µs per heavy window on macOS arm64, so each of those
+cases takes close to two minutes; `extended_cases_match_the_linux_release_build`
+therefore replays its cases on up to eight threads and takes 129 s there
+instead of 276 s serially. The release build computes the same windows in a
+fraction of that.
+
 The source's algorithmic complexity is kept everywhere. The seed loop allocates
 one `MassTraces` and one `IsotopePattern` per seed and reuses the pattern buffer
 across the placements inside `findBestIsotopeFit_`, so nothing is allocated per
@@ -1252,8 +1276,9 @@ cargo test --locked --all-features --test feature_finder_picked \
   --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter \
   --test isotopes --test isotopes_source_precision --test mass_trace --test mass_trace_detection \
   --test topp_feature_finder_centroided --test feature_finder_picked_instrumentation \
-  --test progress_logger
-cargo +1.85.0 test (same targets)
+  --test progress_logger --test topp_threads --test parallel_determinism \
+  --test param --test default_param_handler
+cargo +1.85.0 check --locked --all-features --all-targets
 cargo test --locked --all-features --lib feature_finder_picked
 cargo test --locked --all-features --lib isotopes
 cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked
@@ -1448,12 +1473,15 @@ Items 1 and 2 are executed; the others come from source review.
     a zero or infinite step whose scores the seed loop reads.
   - The `UInt` score-array count `3 + 2 * charge_count` that wraps
     (`charge_low > charge_high + 1`, and `charge_low` 1 with `charge_high`
-    `INT_MAX`): an out-of-bounds write where the wrapped count is allocated,
-    refused where the count is computed, whatever the `Limits` (lead decision
-    D12; executed at seven pairs). The in-bounds wrap of the step-1 progress
+    `INT_MAX`), refused where the count is computed, whatever the `Limits`
+    (lead decision D12): an out-of-bounds write for the counts `2^31 - 1`,
+    `-1` and `-4` and below (executed SIGSEGV), and for `-2` and `-3` an
+    in-bounds allocation of about 2^32 arrays per spectrum whose outcome
+    depends on memory (executed `std::bad_alloc`); open question for the lead
+    whether those two should sit behind a raisable ceiling instead. The in-bounds wrap of the step-1 progress
     range is reproduced.
-  - Non-finite input is read as the Release build reads it (189, 52 and 85
-    executed cases). What remains refused is listed in *Non-finite input*: the
+  - Non-finite input is read as the Release build reads it (189, 52, 85 and
+    134 executed cases). What remains refused is listed in *Non-finite input*: the
     endless NaN profile merge, the out-of-bounds read of an empty best
     pattern (reachable with `feature:min_isotope_fit` 0, executed SIGSEGV),
     the wrapped charge count and the step-3.3.5 exception that terminates the

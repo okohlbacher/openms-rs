@@ -1618,15 +1618,6 @@ fn underflowed_windows_and_a_nan_cutoff_leave_nothing_to_append() {
             assert_eq!(actual, expected, "{scenario}");
         }
     }
-    // The NaN cutoff on the reused windows keeps the earlier values,
-    // re-normalised by their maximum of 1.
-    let reused =
-        IsotopeWindows::precalculate_onto(Some(&first), 1500.0, &nan_cutoff, &options).unwrap();
-    for (kept, again) in first.patterns().iter().zip(reused.patterns()) {
-        assert_eq!(again.intensity, kept.intensity);
-        assert_eq!(again.max, 1.0);
-        assert_eq!(again.trimmed_left, 0);
-    }
 }
 
 // ---------------------------------------------------------------------------

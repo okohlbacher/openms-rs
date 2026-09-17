@@ -117,11 +117,13 @@
 //! `EGHTraceFitter::getArea` calls `atan`. The feature intensity is that area
 //! divided by the window maximum and narrowed to `float`
 //! (`FeatureFinderAlgorithmPicked.cpp:790`), which hides nearly every
-//! last-bit difference: 59 executed EGH runs with 697 features were bit for
-//! bit on macOS arm64, and so are this crate's fixtures (see
+//! last-bit difference: every fixture of this crate, the 67 returned EGH runs
+//! with 767 features of `extended_stage.tsv.gz` included, is bit for bit on
+//! macOS arm64 (see
 //! `docs/EGH_TRACE_FITTER_SUPPORT.md`). The `double` area itself still
-//! differs for a few percent of fits on such hosts, so the bound is a
-//! measured maximum over the listed fixtures, not a guarantee.
+//! differs for a few percent of fits on such hosts (the round-3 verifier's
+//! measurement), so the bound is a measured maximum over the listed
+//! fixtures, not a guarantee.
 //!
 //! # `sqrt`
 //!
