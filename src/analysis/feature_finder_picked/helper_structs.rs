@@ -447,6 +447,14 @@ impl MassTraces {
     /// fitters add it to every theoretical intensity (`.cpp:1983`, `.cpp:2098`)
     /// before the crop and quality correlations, so its bits reach the stored
     /// `score_fit` and `score_correlation` and the `.plot` formula.
+    ///
+    /// The promoted bits are pinned against the executed build, not reasoned
+    /// from the instruction: 18 `f32` patterns - quiet, signalling, negative
+    /// and maximal-payload NaNs, both zeros, both infinities, both extremes,
+    /// the two smallest subnormals and the smallest normal - in each of five
+    /// peak layouts, 90 baselines, all equal
+    /// (`../oracle/ffap-complete-min6`,
+    /// `update_baseline_promotion_is_the_reference_builds_bits`).
     pub fn update_baseline(&mut self) {
         use crate::analysis::feature_finder_picked::scoring::x86_64;
         if self.traces.is_empty() {

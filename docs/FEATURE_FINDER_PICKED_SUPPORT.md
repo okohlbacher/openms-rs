@@ -343,28 +343,49 @@ map's random unique id; `termination_digests.tsv.gz`):
   and the destroyed object leaves the complete 1,118,230 bytes.
 - **The score arrays.** `charge_low` 4 with `charge_high` 2 wraps the array
   count to one array, which the source writes past before it creates
-  `debug/`: SIGSEGV and no file. Between the wrap and that write stands one
-  allocation, the first spectrum's `(3 + 2 * charge_count) mod 2^32` arrays of
-  88 bytes each (`sizeof(MSSpectrum::FloatDataArray)` on the reference build,
-  executed), and whether it succeeds depends on the memory the process may
-  have. The executed runs show both outcomes at one and the same count:
-  100,000,003 arrays (8.2 GiB) throw `std::bad_alloc`, which the caller
-  catches, under the 16 GB address space every oracle run of this branch uses,
-  and die with SIGSEGV under a 500 GB one. A deterministic port cannot follow
-  that, so, as lead decision D6 has it for the isotope windows, it draws a
-  documented line: it records an `OutOfBounds` termination at `ScoreArrays`
-  for every wrapping out-of-bounds count whose first allocation is at most
-  **1 GiB** (12,201,611 arrays) and records nothing above it, although the
-  executed process may still die there. That line is a crate constant
-  (`SCORE_ARRAY_TERMINATION_CEILING_BYTES`), not a `Limits` field, so no
-  caller can move where a termination is recorded (lead decision D12).
+  `debug/`: SIGSEGV and no file. Between the wrap and that write stands the
+  first spectrum's `(3 + 2 * charge_count) mod 2^32` arrays of 88 bytes each
+  (`sizeof(MSSpectrum::FloatDataArray)` on the reference build, executed) and,
+  because the pattern loop runs to the unwrapped `3 + charge_count`, one name
+  and one `assign` of `scan_size` floats for every in-bounds array before the
+  first out-of-bounds index. Measured, that is about 232 bytes per array, not
+  88: the maximum resident set on FeatureFinderCentroided_1 is 2.88 GiB at
+  12,201,611 arrays and 21.85 GiB at 100,000,003
+  (`../oracle/ffap-complete-min6`, `node/run_mem.sh`). Whether the run gets
+  that far depends on the memory the process may have, and fix round 6 saw
+  both outcomes at one and the same count: 100,000,003 arrays throw
+  `std::bad_alloc`, which the caller catches, under the 16 GB address space
+  the oracle harness imposes, and die with SIGSEGV under a 500 GB one.
+  **That disagreement is a property of the cap.** With no cap at all - the
+  reference platform as it is actually configured - every one of 12,201,611,
+  12,201,613, 20,000,003, 40,000,003, 80,000,003, 100,000,003, 166,000,001,
+  200,000,003 and 1,000,000,003 arrays dies with SIGSEGV, twice each
+  (`../oracle/ffap-complete-min6`, `node/run_native_wrap.sh`, run with round
+  6's own driver binary).
+  A deterministic port still cannot follow a memory-dependent outcome, so, as
+  lead decision D6 has it for the isotope windows, it draws a documented line
+  - but at the largest count that measurement supports, not inside the
+  measured range: it records an `OutOfBounds` termination at `ScoreArrays` for
+  every wrapping out-of-bounds count whose arrays are at most the bytes of
+  **1,000,000,003 arrays** and records nothing above it. Nothing that was
+  measured to die is left unrecorded; the conservative band fix round 6
+  documented is now empty
+  (`a_wrapped_score_array_count_records_its_termination_up_to_the_documented_ceiling`
+  asserts both halves). Above the line the only measured count is 7/2's
+  `2^32 - 5` arrays, which throws under a 16 GB and under a 500 GB address
+  space; at 232 bytes per array it would need about 928 GiB, within a few
+  percent of the whole shared reference node, so it was not run uncapped and
+  the port stays silent for it and for the unmeasured counts below it. That
+  line is a crate constant (`SCORE_ARRAY_TERMINATION_CEILING_BYTES`), not a
+  `Limits` field, so no caller can move where a termination is recorded (lead
+  decision D12).
   Executed in fix round 6 (`../oracle/ffap-complete-fix6`, every case twice
   and identical), `charge_high` 1 and `charge_low` chosen for the count:
   SIGSEGV at 1, 9, 1003, 2003, 2005, 12,201,611, 12,201,613, 20,000,003 and
   40,000,003 arrays under 16 GB, `std::bad_alloc` from 80,000,003 (6.6 GiB) up
-  under the same cap, including 7/2's `2^32 - 5` arrays (352 GiB), and SIGSEGV
-  again at 100,000,003, 166,000,001, 200,000,003 and 1,000,000,003 arrays under
-  500 GB, where only `2^32 - 5` arrays still throw. The refusal itself never
+  under the same cap, including 7/2's `2^32 - 5` arrays, and SIGSEGV again at
+  100,000,003, 166,000,001, 200,000,003 and 1,000,000,003 arrays under 500 GB,
+  where only `2^32 - 5` arrays still throw. The refusal itself never
   depends on the count or on any limit (*Non-finite input*, refusal 5). At
   12,201,611 arrays the executed debug side effects are those of 4/2 and
   `INT_MAX`/498: a fresh debug run dies before `debug/` exists, and a reused
@@ -1000,13 +1021,14 @@ first point where the source's behaviour has no reproducible answer:
 5. *The `UInt` score-array count that wraps* (`.cpp:196-221`, lead decision
    D12): refused for every wrapping count whatever the `Limits`, as
    `Settings::charge_count` documents; executed at seven wrapping pairs in
-   fix round 3 and at twenty wrapped array counts in fix round 6. The
+   fix round 3, at twenty wrapped array counts in fix round 6 and at nine of
+   those counts without an address-space cap in the round-6 minors. The
    counts `-2` and `-3` stay refused unconditionally (lead decision D13):
    their executed outcome, `std::bad_alloc`, depends on memory. Where the
    process dies there, the run records a `ScoreArrays` termination, before
-   `debug/log.txt` is opened, up to the documented 1 GiB allocation line of
-   *Debug mode*, above which the executed outcome depends on the address space
-   available and the port records nothing (fix round 6).
+   `debug/log.txt` is opened, up to the documented line of *Debug mode* - the
+   bytes of 1,000,000,003 arrays, the largest count measured to die on the
+   uncapped reference node - above which nothing is recorded.
 6. *A feature m/z without an isotope window at step 3.3.5* (`.cpp:790`): the
    source's `InvalidValue` leaves its OpenMP region uncaught and
    `std::terminate` ends the process. Reachable, and executed in fix round 5
@@ -1148,7 +1170,8 @@ x86_64 Linux with the GNU C Library (`area_tolerance`, a measured maximum of
 | `fix4_stage` (`../oracle/ffap-complete-fix4`, the round-3 numerics verifier's `v3_stage`; two runs each, identical; one case also at four threads) | 134 inputs: 67 returned EGH runs (767 features) and 50 returned Gaussian runs (445 features) beyond the earlier fixtures, isotope windows (`isowin` rows) across the averagine underflow and under NaN, tiny and full cutoffs, the charge wraps, the empty best pattern at `feature:min_isotope_fit` 0, `-0.0`, NaN (SIGSEGV) and `5e-324`, the `Precondition` order under ties, and the retention-time and intensity scales `vx_*`, `vy_*` (infinite widths and `FWHM` values: 7 of 9 at `1e37`, all from `1e38`) | `extended_cases_match_the_linux_release_build` |
 | `fix4_stage` again (`../oracle/ffap-complete-fix5`, `run_onset.sh`, the round-4 numerics verifier's cases; two runs each, identical) | the onset of the width overflow: 20 retention-time scales and jittered inputs from `2e36` to `5e37`, Gaussian and EGH, plus the base case (first infinite width at `6e36`) | `width_onset_cases_match_the_linux_release_build` |
 | `fix5_driver`, `ffap_instr_driver` (`../oracle/ffap-complete-fix5`; two runs each, identical but for the abort map's unique id) | the process-ending points outside the seed loop and a reused object's later terminations: 23 cases, exit status, the log's length on disk after each run and after the object is destroyed, every debug file's size and SHA-1 | `process_ending_refusals_outside_the_seed_loop_record_their_termination`, `a_reused_instance_leaves_the_executed_log_at_every_later_termination` |
-| `fix6_driver` (`../oracle/ffap-complete-fix6`, `run_wrap.sh` and `run_cases6.sh`; two runs each, identical) | where a wrapped score-array count ends the executed process: 20 counts from 1 to `2^32 - 5` arrays under a 16 GB and a 500 GB address space, and the debug side effects at 12,201,611 arrays (a reused object and a fresh debug run) | `a_wrapped_score_array_count_records_its_termination_up_to_the_documented_ceiling`, `process_ending_refusals_outside_the_seed_loop_record_their_termination`, `a_reused_instance_leaves_the_executed_log_at_every_later_termination` |
+| `fix6_driver` (`../oracle/ffap-complete-fix6`, `run_wrap.sh` and `run_cases6.sh`, and the same binary again in `../oracle/ffap-complete-min6`, `run_native_wrap.sh` and `run_mem.sh`; two runs each, identical) | where a wrapped score-array count ends the executed process: 20 counts from 1 to `2^32 - 5` arrays under a 16 GB and a 500 GB address space, nine of them with no cap at all (all SIGSEGV), the maximum resident set of two of those runs, and the debug side effects at 12,201,611 arrays (a reused object and a fresh debug run) | `a_wrapped_score_array_count_records_its_termination_up_to_the_documented_ceiling`, `process_ending_refusals_outside_the_seed_loop_record_their_termination`, `a_reused_instance_leaves_the_executed_log_at_every_later_termination` |
+| `baseline_driver` (`../oracle/ffap-complete-min6`, `run_baseline.sh`; two runs, byte-identical) | what `MassTraces::updateBaseline` leaves in `baseline` for 18 `f32` intensity patterns (quiet, signalling, negative and maximal-payload NaNs, both zeros, both infinities, both extremes, the two smallest subnormals, the smallest normal and an ordinary value) in five peak layouts: 90 executed `f64` bit patterns | `update_baseline_promotion_is_the_reference_builds_bits` |
 | `fix4_reuse` (the verifier's `v3_reuse`; two runs each, identical) | one object run twice on FFC_1 in four scenarios: feature counts and the kept, appended and re-normalised isotope windows | `underflowed_windows_and_a_nan_cutoff_leave_nothing_to_append` |
 | `fix4_vfi` (the instrumentation verifier's `vfi3_driver`; killed after 30 s, two runs each, identical) | a NaN retention time at scan 50 or 20 with `write_debug`, Gaussian and EGH, and without: the flushed `debug/log.txt` and the feature files of the seeds before the endless merge | `a_seed_loop_that_never_returns_keeps_what_the_executed_process_had_written` |
 | the Release FeatureFinderCentroided on FFC_1 with the retention times scaled by `1e36` and `1e39` in the text (two runs each, identical apart from timing text) | exit 0 with `inf` intensities and, at `1e39`, `inf` widths in the featureXML | `infinite_feature_values_are_refused_by_the_featurexml_writer` (TOPP native difference 16) |
@@ -1230,9 +1253,15 @@ depend on the host's `exp` and `log`; the earlier macOS arm64 bounds
   `extension`'s comparisons) is a plain `f64::from`, whose NaN bits the Rust
   reference leaves to the host; `f64::from` and `widen` were measured to agree
   on macOS arm64 for ten quiet, signalling, negative and maximal-payload
-  patterns (fix round 6; the round-5 numerics verifier measured five of them),
+  patterns (fix round 6; the round-5 numerics verifier measured five of them,
+  and the round-6 minors measured 18 against the executed
+  `MassTraces::updateBaseline`, `../oracle/ffap-complete-min6`),
   and on x86_64 the compiler emits `cvtss2sd` itself, so the two supported
-  platforms do not differ. Only a NaN a *caller* supplies as a peak
+  platforms do not differ. That the two agree is measured and not guaranteed -
+  the Rust reference does not promise a NaN payload across a float cast -
+  which is why the three helper-struct members use `widen` and why the
+  baseline's bits are now pinned by an executed capture rather than by a
+  `is_nan()` bool. Only a NaN a *caller* supplies as a peak
   intensity can reach them: the mzML reader refuses non-finite intensities
   unless `source_nonfinite_float_arrays` is set.
 
@@ -1634,9 +1663,10 @@ Items 1 and 2 are executed; the others come from source review.
     `INT_MAX`), refused where the count is computed, whatever the `Limits`
     (lead decision D12): an out-of-bounds write for the counts `2^31 - 1`,
     `-1` and `-4` and below (executed SIGSEGV, recorded as a `ScoreArrays`
-    termination while the allocation before that write is at most the
-    documented 1 GiB, above which the executed outcome depends on the address
-    space available and nothing is recorded), and for `-2` and `-3` an
+    termination while the arrays before that write are at most the documented
+    bytes of 1,000,000,003 arrays - every count up to that one dies on the
+    uncapped reference node - above which nothing is recorded), and for `-2`
+    and `-3` an
     in-bounds allocation of about 2^32
     arrays per spectrum whose outcome depends on memory (executed
     `std::bad_alloc`), refused unconditionally by lead decision D13. The

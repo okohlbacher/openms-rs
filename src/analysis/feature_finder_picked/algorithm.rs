@@ -728,18 +728,36 @@ pub struct Settings {
 pub(crate) const SOURCE_FLOAT_DATA_ARRAY_BYTES: u64 = 88;
 
 /// The largest first-spectrum score-array allocation for which
-/// [`Settings::score_arrays_overrun`] records a termination: 1 GiB
-/// (12,201,611 arrays).
+/// [`Settings::score_arrays_overrun`] records a termination: the bytes of
+/// 1,000,000,003 arrays, the largest wrapped count measured to die on the
+/// reference platform with the memory that platform actually has.
 ///
-/// The source's allocation succeeds or throws `std::bad_alloc` depending on
-/// the memory available to the process, which no deterministic port can
-/// reproduce, so this is a documented line and not a property of the source:
-/// below it every executed configuration reached the out-of-bounds write, and
-/// above it the executed outcome was measured both ways at one count
-/// (`../oracle/ffap-complete-fix6`). It is a crate constant, not a
-/// [`Limits`] field, because a caller must not be able to move where a
-/// termination is recorded (lead decision D12).
-pub(crate) const SCORE_ARRAY_TERMINATION_CEILING_BYTES: u64 = 1 << 30;
+/// The source's run reaches the out-of-bounds write or throws `std::bad_alloc`
+/// depending on the memory available to the process, which no deterministic
+/// port can reproduce, so this is a documented line and not a property of the
+/// source. It is set where the measurement sets it and nowhere lower: on
+/// ibminode06 with no address-space cap every wrapped count from 12,201,611 to
+/// 1,000,000,003 arrays died with SIGSEGV, twice each
+/// (`../oracle/ffap-complete-min6`, `node/run_native_wrap.sh`). No executed
+/// configuration died above the line: the counts measured above it are
+/// `2^32 - 5` arrays, which threw `std::bad_alloc` under a 16 GB and under a
+/// 500 GB address space (`../oracle/ffap-complete-fix6`). That count was not
+/// run uncapped, because at the measured 232 bytes per array it needs about
+/// 928 GiB, within a few percent of the whole shared reference node; the port
+/// therefore records nothing for it, as it records nothing for the unmeasured
+/// counts between the line and it.
+///
+/// The earlier line, 1 GiB, came from runs under the 16 GB `ulimit -v` the
+/// oracle harness imposes, where counts from 80,000,003 arrays up throw; every
+/// one of those counts dies on the reference node itself. That is why the
+/// bytes here are not the memory the source needs: see
+/// [`Settings::score_arrays_overrun`] for the `assign` allocations that go
+/// with them.
+///
+/// It is a crate constant, not a [`Limits`] field, because a caller must not
+/// be able to move where a termination is recorded (lead decision D12).
+pub(crate) const SCORE_ARRAY_TERMINATION_CEILING_BYTES: u64 =
+    1_000_000_003 * SOURCE_FLOAT_DATA_ARRAY_BYTES;
 
 impl Settings {
     /// Apply `parameters` over the defaults and read the typed values: source
@@ -970,32 +988,43 @@ impl Settings {
     /// allocation before that write succeeds.
     ///
     /// The source resizes one spectrum's float data arrays at a time
-    /// (`.cpp:196-221`) and walks past the end of the first one it fills, so
-    /// the only allocation between the wrap and the out-of-bounds write is
-    /// that spectrum's `(3 + 2n) mod 2^32` arrays of
-    /// [`SOURCE_FLOAT_DATA_ARRAY_BYTES`] each.
+    /// (`.cpp:196-221`) and walks past the end of the first one it fills. The
+    /// resize itself is that spectrum's `(3 + 2n) mod 2^32` arrays of
+    /// [`SOURCE_FLOAT_DATA_ARRAY_BYTES`] each, and it is not the whole cost:
+    /// the pattern loop runs to the *unwrapped* `3 + n`, so before it reaches
+    /// the first out-of-bounds index it has given every in-bounds array a name
+    /// and `assign`ed it `scan_size` floats. Measured on the reference node for
+    /// FeatureFinderCentroided_1, whose first spectrum holds 20 peaks: the
+    /// maximum resident set is 2.88 GiB at 12,201,611 arrays and 21.85 GiB at
+    /// 100,000,003, i.e. about 232 bytes per array where the arrays alone are
+    /// 88 (`../oracle/ffap-complete-min6`, `node/run_mem.sh`). The bytes below
+    /// are therefore a count in disguise, not the memory the source needs.
     ///
     /// - `n = 2^31 - 1` and `n = -1` wrap to one array, 88 bytes: the write is
     ///   always reached (executed: SIGSEGV for 1/`INT_MAX` and 4/2).
     /// - `n <= -4` wraps to `2^32 + 3 + 2n` arrays, between 9 (`INT_MAX`/1)
-    ///   and `2^32 - 5` (7/2, 352 GiB). Whether that allocation succeeds
-    ///   depends on the memory available to the process, which the port cannot
-    ///   reproduce (lead decision D6's rule for allocations), so it records the
+    ///   and `2^32 - 5` (7/2). Whether the run reaches the write depends on
+    ///   the memory available to the process, which the port cannot reproduce
+    ///   (lead decision D6's rule for allocations), so it records the
     ///   termination up to [`SCORE_ARRAY_TERMINATION_CEILING_BYTES`] and
     ///   nothing above.
     ///
-    /// Executed on the reference node (`../oracle/ffap-complete-fix6`, every
-    /// case twice and identical): under a 16 GB address space SIGSEGV at 1, 9,
-    /// 1003, 2003, 2005, 12,201,611 (1 GiB), 12,201,613, 20,000,003 and
-    /// 40,000,003 arrays, and `std::bad_alloc` from 80,000,003 (6.6 GiB) up,
-    /// `2^32 - 5` arrays (352 GiB, the 7/2 case) included; under a 500 GB
-    /// address space SIGSEGV again at 100,000,003, 166,000,001, 200,000,003
-    /// and 1,000,000,003 arrays, where only `2^32 - 5` still throws - the same
-    /// counts deciding the other way.
-    /// The ceiling is therefore a documented line inside the range that every
-    /// measured configuration reached, not a property of the source: between
-    /// it and the address space's own limit the executed process still dies
-    /// and the port records nothing, exactly as
+    /// Executed on the reference node, every case twice and identical. Under
+    /// the 16 GB address space the oracle harness imposes
+    /// (`../oracle/ffap-complete-fix6`): SIGSEGV at 1, 9, 1003, 2003, 2005,
+    /// 12,201,611, 12,201,613, 20,000,003 and 40,000,003 arrays, and
+    /// `std::bad_alloc` from 80,000,003 up, `2^32 - 5` included; under a
+    /// 500 GB one, SIGSEGV again at 100,000,003, 166,000,001, 200,000,003 and
+    /// 1,000,000,003, where only `2^32 - 5` still throws. Those `bad_alloc`
+    /// rows are a property of the cap and not of the reference platform: with
+    /// no cap at all (`../oracle/ffap-complete-min6`,
+    /// `node/run_native_wrap.sh`) every one of 12,201,611, 12,201,613,
+    /// 20,000,003, 40,000,003, 80,000,003, 100,000,003, 166,000,001,
+    /// 200,000,003 and 1,000,000,003 arrays dies with SIGSEGV.
+    /// The ceiling is therefore drawn at the largest count the reference
+    /// platform is measured to die on rather than inside the measured range:
+    /// no executed configuration dies unrecorded, and the port stays silent
+    /// only where the measurement stops, exactly as
     /// [`Limits::max_isotope_windows`] refuses before the source's allocation
     /// fails.
     pub(crate) fn score_arrays_overrun(&self) -> bool {

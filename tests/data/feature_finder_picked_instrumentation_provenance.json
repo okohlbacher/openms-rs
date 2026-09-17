@@ -795,10 +795,10 @@
   },
   {
    "path": "tests/data/feature_finder_picked_instrumentation/score_array_wraps.tsv",
-   "sha256": "2566f71478f274b5d2f859f4c453ce4880115111a63fc425b1f9dfdafb6b2af6",
-   "bytes": 1229,
+   "sha256": "628581d7c059581a0ce0fbb2a4a119c443b43618244ccb3387fa72aa78c4d41c",
+   "bytes": 1774,
    "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
-   "role": "../oracle/ffap-complete-fix6 drivers/fix6_driver.cpp, node/run_wrap.sh: 20 wrapped score-array counts (1 to 2^32 - 5 arrays at 88 bytes each) under a 16 GB and a 500 GB address space, twice each, identical - the charges, the wrapped count, its bytes, the cap, the exit status and the outcome; written by extract/make_wrap_fixture.py"
+   "role": "../oracle/ffap-complete-fix6 drivers/fix6_driver.cpp, node/run_wrap.sh: 20 wrapped score-array counts (1 to 2^32 - 5 arrays at 88 bytes each) under a 16 GB and a 500 GB address space, and ../oracle/ffap-complete-min6 node/run_native_wrap.sh: nine of those counts with no cap at all (address_space_kib `none`), the same driver binary, twice each and identical - the charges, the wrapped count, its bytes, the cap, the exit status and the outcome; written by extract/make_wrap_fixture_min6.py"
   }
  ],
  "oracle": {
@@ -909,8 +909,20 @@
     "binaries": "logs/build.sha256"
    },
    "cases": "node/run_wrap.sh: 20 wrapped score-array counts from 1 to 2^32 - 5 arrays, under a 16 GB and a 500 GB address space (ulimit -v); node/run_cases6.sh: the debug side effects at 12,201,611 arrays (a reused object with and without write_debug, and a fresh debug run), captured as fix round 5 captured its cases; every case twice, identical",
-   "findings": "sizeof(MSSpectrum::FloatDataArray) is 88 bytes and the array vector's max_size() is (2^63 - 1) / 88, so resize never throws std::length_error for a 32-bit count; whether the wrapped allocation succeeds decides between the out-of-bounds write (SIGSEGV) and a caught std::bad_alloc, and it depends on the memory the process may have: 100,000,003 arrays (8.2 GiB) throw under a 16 GB address space and die of SIGSEGV under a 500 GB one, as do 166,000,001, 200,000,003 and 1,000,000,003; under 16 GB every count up to 40,000,003 arrays (3.3 GiB) dies and every count from 80,000,003 (6.6 GiB) throws; at 12,201,611 arrays the executed debug/log.txt is the first run's flushed prefix, 1,163,782 bytes, with that run's 79 files",
+   "findings": "sizeof(MSSpectrum::FloatDataArray) is 88 bytes and the array vector's max_size() is (2^63 - 1) / 88, so resize never throws std::length_error for a 32-bit count; whether the wrapped allocation succeeds decides between the out-of-bounds write (SIGSEGV) and a caught std::bad_alloc, and it depends on the memory the process may have: 100,000,003 arrays (8.2 GiB) throw under a 16 GB address space and die of SIGSEGV under a 500 GB one, as do 166,000,001, 200,000,003 and 1,000,000,003; under 16 GB every count up to 40,000,003 arrays (3.3 GiB) dies and every count from 80,000,003 (6.6 GiB) throws; at 12,201,611 arrays the executed debug/log.txt is the first run's flushed prefix, 1,163,782 bytes, with that run's 79 files; the round-6 minors then ran the same nine counts with no cap at all (../oracle/ffap-complete-min6) and every one of them dies, so these bad_alloc rows are a property of the harness's cap and not of the reference platform",
    "extract": "extract/make_wrap_fixture.py (score_array_wraps.tsv), extract/make_fixtures6.py (termination_digests.tsv.gz with this round's three cases; it re-runs fix round 5's extractor first, whose fixtures came out byte-identical)"
+  },
+  "ffap_complete_min6": {
+   "directory": "../oracle/ffap-complete-min6",
+   "host": "ibminode06 (AMD EPYC 7763; glibc 2.39; 995 GiB of memory); node copy /scratch/kohlbach/ffc-min6",
+   "purpose": "The round-6 minors: the wrapped score-array counts measured with no address-space cap, i.e. the reference platform as it is actually configured, after the round-6 instrumentation verifier showed that round 6's std::bad_alloc rows come from the 16 GB ulimit -v the oracle harness imposes; and the memory the source really needs before the out-of-bounds write.",
+   "drivers": {
+    "fix6_driver (reused unchanged from ../oracle/ffap-complete-fix6; the binary's sha256 121507282153a39f9cca0562aea3f154b6dfe8afb7c79424bfa9b6751e737d5e equals that round's logs/build.sha256, so the capped and uncapped rows come from one executable)": "835d08c9d3e9a4501ac6744335f2b728714918a760e7f850ee003f210545cfbd",
+    "binaries": "logs/build.sha256"
+   },
+   "cases": "node/run_native_wrap.sh: the nine wrapped counts from 12,201,611 to 1,000,000,003 arrays with no ulimit -v, twice each and identical (each run records its own `ulimit -v` in env.txt); node/run_mem.sh: /usr/bin/time -v on two of them",
+   "findings": "every one of 12,201,611, 12,201,613, 20,000,003, 40,000,003, 80,000,003, 100,000,003, 166,000,001, 200,000,003 and 1,000,000,003 arrays dies with SIGSEGV on the uncapped reference node, 80,000,003 and up included, which throw std::bad_alloc under the harness's 16 GB cap; and the memory the run holds when it writes past the end is not the arrays alone - the maximum resident set is 2.88 GiB at 12,201,611 arrays and 21.85 GiB at 100,000,003, about 232 bytes per array against the 88 the array itself costs, because the loop names and assigns every in-bounds array first. 2^32 - 5 arrays would need about 928 GiB on that model, within a few percent of the whole shared node, and was not run uncapped; it threw under both measured caps.",
+   "extract": "extract/make_wrap_fixture_min6.py (score_array_wraps.tsv: round 6's twenty rows and these nine, address_space_kib `none`)"
   }
  },
  "external_reference_note": "No C++ is committed to this repository. The driver, the scripts, the inputs and the raw outputs live under ../oracle/ffap-instr-completion (relative to the repository root); the entries below pin them. The combined fix round's non-finite shift runs live under ../oracle/ffap-complete-fix1 (origin_key ffap_complete_fix1). The combined fix round 2's integer-parameter, failed-step-2.5 and formula runs live under ../oracle/ffap-complete-fix2 (origin_key ffap_complete_fix2); logs/results.sha256 there pins every raw result.",

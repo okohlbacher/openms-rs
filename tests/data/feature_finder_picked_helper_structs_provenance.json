@@ -80,6 +80,14 @@
    "rows": 164,
    "kind": "oracle-generated (tier 1 executed differential)",
    "role": "Output of ../oracle/feature-finder-picked-helper-structs/run.sh, byte-identical across two runs. Rows are case, quantity, kind and value; f64 values are IEEE-754 bit patterns. tests/feature_finder_picked_helper_structs.rs rebuilds every input and requires every row."
+  },
+  {
+   "path": "tests/data/feature_finder_picked_helper_structs_update_baseline.tsv",
+   "sha256": "589ca1b7e6627c86165417b52bd27d1064e42cc4019a04154bf47224c4cf190d",
+   "bytes": 3359,
+   "rows": 90,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "../oracle/ffap-complete-min6 drivers/baseline_driver.cpp, node/run_baseline.sh: what MassTraces::updateBaseline leaves in baseline for 18 f32 intensity patterns in five peak layouts, twice each and identical - the pattern, the layout and the resulting f64 as an IEEE-754 bit pattern; written by extract/make_baseline_fixture.py. It pins the cvtss2sd promotion of update_baseline with executed bits, where the macOS-arm64 oracle above records only is_nan() for the one NaN case it has."
   }
  ],
  "class_test_review": {
@@ -100,6 +108,24 @@
   "reproduction": "Two runs from separate scratch directories produced byte-identical output.",
   "debug_only": [],
   "comparison": "Exact: every row string equal, so every f64 matches bit for bit. The Rust replay was checked on the Linux x86-64 build node (IBMI kim), with its current stable toolchain and with 1.85.0, with default and with no default features, against the macOS arm64 oracle output. This bitwise contract is deliberately stricter than the early-bundle plan, which asserts bit equality only on macOS arm64 against the same-platform oracle and 1e-9 relative elsewhere. The recorded members use only basic arithmetic, comparisons and fabs, so no libm result enters. The one expression a compiler may contract, getAvgMZ's sum += mz * intensity, gives the same bits contracted and uncontracted for the recorded mt_avg and boundary inexact cases (checked with Python math.fma; the products of mt1 are exact), so the retained rows do not depend on whether the Debug oracle contracts. Regenerating the oracle from a Release or FMA-contracting build, or adding getAvgMZ cases, requires re-measuring before the bitwise assertion is kept."
+ },
+ "oracle_reference_build": {
+  "directory": "../oracle/ffap-complete-min6",
+  "evidence_label": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+  "purpose": "The bits MassTraces::updateBaseline leaves in baseline when the f32 to f64 promotion cannot round: the claim that update_baseline carries the executed sign and payload, measured instead of reasoned from the instruction (port/ffap-complete round-6 minors, the round-6 numerics verifier's finding).",
+  "release_install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "release_pins": {
+   "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+   "topp": "174b576e244e100f2345ca57a8e79aaa607156df"
+  },
+  "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) -O2 -std=c++20, node/build.sh",
+  "host": "ibminode06 (Linux, AMD EPYC 7763, glibc 2.39), scratch /scratch/kohlbach/ffc-min6; never ibminode05",
+  "driver_source_sha256": "b2a56dd2a0e46694632b1203b0007168381a30d4f7d5bd7e85697d894c0ea3cd",
+  "environment": "env -i PATH=/usr/bin:/bin HOME=<scratch>/home OPENMS_HOME_PATH=<scratch>/home OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=<install>/share/OpenMS/4.0.0 OMP_NUM_THREADS=1, ulimit -c 0, ulimit -v 16000000, 60 s SIGKILL timeout, per-run scratch working directory",
+  "reproduction": "Two runs from separate scratch directories produced byte-identical output (logs/baseline.sha256).",
+  "comparison": "Exact: the port rebuilds all 90 configurations and compares f64 bit patterns (update_baseline_promotion_is_the_reference_builds_bits). A plain f64::from was measured to give the same bits on macOS arm64 for every pattern, so the fixture pins the value and not the choice of instruction; scoring::x86_64::widen is kept because Rust does not guarantee a NaN payload across a float cast."
  },
  "source_anchors": [
   {

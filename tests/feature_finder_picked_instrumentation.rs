@@ -2372,22 +2372,27 @@ fn process_ending_refusals_outside_the_seed_loop_record_their_termination() {
 
 /// Where a wrapped score-array count ends the executed process, and where the
 /// port records that it does (`score_array_wraps.tsv`,
-/// `../oracle/ffap-complete-fix6`, every case twice and identical).
+/// `../oracle/ffap-complete-fix6` and `../oracle/ffap-complete-min6`, every
+/// case twice and identical, one and the same driver binary).
 ///
 /// The source resizes one spectrum's float data arrays to
 /// `(3 + 2 * charge_count) mod 2^32` and then walks past the end of that
-/// vector (`.cpp:196-221`), so between the wrap and the out-of-bounds write
-/// stands one allocation of 88 bytes per array (`sizeof` on the reference
-/// build). Whether it succeeds depends on the memory the process may have, and
-/// the executed runs show exactly that: 100,000,003 arrays (8.2 GiB) throw
-/// `std::bad_alloc`, which the caller catches, under the 16 GB address space
-/// every oracle run of this branch uses, and die with SIGSEGV under a 500 GB
-/// one. A deterministic port cannot follow that, so, as lead decision D6 has
-/// it for the isotope windows, it draws a documented line: it records the
-/// termination up to 1 GiB of arrays, which every executed configuration
-/// reached, and records nothing above, although the executed process may still
-/// die there. The line is a crate constant and not a [`Limits`] field, so no
-/// caller can move it (lead decision D12).
+/// vector (`.cpp:196-221`), naming and filling every in-bounds array on the
+/// way, so whether the run reaches the write depends on the memory the process
+/// may have. Round 6 measured that under the 16 GB `ulimit -v` the oracle
+/// harness imposes and under a 500 GB one, and the two disagreed from
+/// 80,000,003 arrays up. The round-6 minors measured the same counts with no
+/// cap at all, i.e. the reference platform as it is actually configured, and
+/// there every count from 12,201,611 to 1,000,000,003 arrays dies with
+/// SIGSEGV. The `bad_alloc` rows are therefore a property of the cap.
+///
+/// The port draws its line at the largest count that measurement supports, as
+/// lead decision D6 has it for the isotope windows: it records the termination
+/// up to the bytes of 1,000,000,003 arrays and nothing above, and this test
+/// asserts both halves - nothing recorded above the line, and **nothing the
+/// reference platform was measured to die on left unrecorded**. The line is a
+/// crate constant and not a [`Limits`] field, so no caller can move it (lead
+/// decision D12).
 ///
 /// The refusal itself never depends on any of this: every wrapping count is
 /// refused, whatever the limits and whatever the count
@@ -2396,17 +2401,15 @@ fn process_ending_refusals_outside_the_seed_loop_record_their_termination() {
 fn a_wrapped_score_array_count_records_its_termination_up_to_the_documented_ceiling() {
     // `algorithm::SCORE_ARRAY_TERMINATION_CEILING_BYTES` and
     // `SOURCE_FLOAT_DATA_ARRAY_BYTES`, both crate-private.
-    const CEILING: u64 = 1 << 30;
     const ARRAY_BYTES: u64 = 88;
+    const CEILING: u64 = 1_000_000_003 * ARRAY_BYTES;
     let text = fixture("score_array_wraps.tsv");
     let mut lines = text.lines();
     assert_eq!(
         lines.next().unwrap(),
         "case\tcharge_low\tcharge_high\tarrays\tbytes\taddress_space_kib\tstatus\toutcome"
     );
-    let mut cases = 0;
-    let mut recorded = 0;
-    let mut band = 0;
+    let mut rows = Vec::new();
     for line in lines {
         let row: Vec<&str> = line.split('\t').collect();
         let case = row[0];
@@ -2414,7 +2417,7 @@ fn a_wrapped_score_array_count_records_its_termination_up_to_the_documented_ceil
         let high: i64 = row[2].parse().unwrap();
         let arrays: u64 = row[3].parse().unwrap();
         let bytes: u64 = row[4].parse().unwrap();
-        let (status, outcome) = (row[6], row[7]);
+        let (cap, status, outcome) = (row[5], row[6], row[7]);
         // The executed row: the wrapped count, and a process that never
         // returned - it died at the write or the allocation threw.
         assert_eq!(
@@ -2428,6 +2431,51 @@ fn a_wrapped_score_array_count_records_its_termination_up_to_the_documented_ceil
             "bad_alloc" => assert_eq!(status, "0", "{case}: the driver catches it"),
             other => panic!("{case}: {other}"),
         }
+        assert!(cap == "none" || cap.parse::<u64>().is_ok(), "{case}: {cap}");
+        rows.push((case, low, high, bytes, cap, outcome));
+    }
+    assert_eq!(rows.len(), 29);
+
+    // Where the line stands against the reference platform's own runs. A row
+    // with no address-space cap is that platform as it is configured; a capped
+    // row says only what that cap does. The line must not sit below a count
+    // the uncapped platform was measured to die on, and every uncapped count
+    // at or below it must be one of those deaths.
+    let mut uncapped = 0;
+    for &(case, _, _, bytes, cap, outcome) in &rows {
+        if cap != "none" {
+            continue;
+        }
+        uncapped += 1;
+        if outcome == "sigsegv" {
+            assert!(
+                bytes <= CEILING,
+                "{case}: the reference platform dies at {bytes} bytes and the port records nothing"
+            );
+        } else {
+            assert!(
+                bytes > CEILING,
+                "{case}: recorded where the platform did not die"
+            );
+        }
+    }
+    // 12,201,611 and 12,201,613, then 20,000,003, 40,000,003, 80,000,003,
+    // 100,000,003, 166,000,001, 200,000,003 and 1,000,000,003 arrays.
+    assert_eq!(uncapped, 9);
+
+    // The port's own behaviour, once per distinct charge pair.
+    let mut seen: Vec<(i64, i64)> = Vec::new();
+    let mut cases = 0;
+    let mut recorded = 0;
+    let mut band = 0;
+    for &(case, low, high, bytes, _, outcome) in &rows {
+        // Above the line the record is silent whichever way the executed run
+        // went; where one of them died, that is the conservative band.
+        band += usize::from(outcome == "sigsegv" && bytes > CEILING);
+        if seen.contains(&(low, high)) {
+            continue;
+        }
+        seen.push((low, high));
         let mut parameters = ffc1_parameters();
         set(
             &mut parameters,
@@ -2455,10 +2503,6 @@ fn a_wrapped_score_array_count_records_its_termination_up_to_the_documented_ceil
         match algorithm.termination() {
             Some(termination) => {
                 assert!(bytes <= CEILING, "{case}: recorded above the ceiling");
-                assert_eq!(
-                    outcome, "sigsegv",
-                    "{case}: recorded where the executed process did not die"
-                );
                 assert_eq!(termination.point, TerminationPoint::ScoreArrays, "{case}");
                 assert_eq!(termination.kind, TerminationKind::OutOfBounds, "{case}");
                 assert_eq!(termination.exception, "SIGSEGV", "{case}");
@@ -2468,22 +2512,23 @@ fn a_wrapped_score_array_count_records_its_termination_up_to_the_documented_ceil
             }
             None => {
                 assert!(bytes > CEILING, "{case}: not recorded below the ceiling");
-                // Above the line the record is silent whichever way the
-                // executed run went; where it died, that is the documented
-                // conservative band.
-                band += usize::from(outcome == "sigsegv");
             }
         }
         assert!(algorithm.debug_output().is_none(), "{case}");
         assert!(algorithm.debug_log_file().is_none(), "{case}");
         cases += 1;
     }
-    assert_eq!(cases, 20);
-    // 1, 9, 1003, 2003, 2005 and 12,201,611 arrays.
-    assert_eq!(recorded, 6);
-    // 12,201,613, 20,000,003 and 40,000,003 arrays under 16 GB, and
-    // 100,000,003, 166,000,001, 200,000,003 and 1,000,000,003 under 500 GB.
-    assert_eq!(band, 7);
+    // The 29 rows cover 15 distinct charge pairs.
+    assert_eq!(cases, 15);
+    // Every pair but 7/2, whose 2^32 - 5 arrays are the only count above the
+    // line; 1, 9, 1003, 2003, 2005, 12,201,611, 12,201,613, 20,000,003,
+    // 40,000,003, 80,000,003, 100,000,003, 166,000,001, 200,000,003 and
+    // 1,000,000,003 arrays.
+    assert_eq!(recorded, 14);
+    // Nothing that died is left unrecorded: with the line at the largest
+    // count the reference platform is measured to die on, the conservative
+    // band of fix round 6 is empty.
+    assert_eq!(band, 0);
 }
 
 /// Executed `fix5_driver reuse` runs (`../oracle/ffap-complete-fix5`): one

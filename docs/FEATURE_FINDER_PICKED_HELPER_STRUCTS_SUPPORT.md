@@ -135,7 +135,17 @@ this header and is outside this module.
   `run_` scales it and both fitters add it to every theoretical intensity
   before the crop and quality correlations - so its promotion decides the bits
   of the stored `score_fit` and `score_correlation` as well. Finite results are
-  unchanged.
+  unchanged. For the baseline that claim is an executed one and not a reading
+  of the instruction: `../oracle/ffap-complete-min6` records what the Release
+  build leaves in `baseline` for 18 `f32` patterns (quiet, signalling,
+  negative and maximal-payload NaNs, both zeros, both infinities, both
+  extremes, the two smallest subnormals, the smallest normal and an ordinary
+  value) in five peak layouts, and the port matches all 90 bit for bit
+  (`update_baseline_promotion_is_the_reference_builds_bits`). The layouts are
+  not decoration: `first` and `only` pin what the assignment promotes,
+  `middle`, `last` and `cross_trace` pin that a NaN loses every later
+  comparison, and the signed zeros pin that `-0.0 < 0.0` is false on both
+  sides, so the first assignment decides the sign.
 - **First maximum wins.** `update_maximum` and `theoretical_max_position` use a
   strict `>`, so ties keep the first and a leading NaN is never replaced.
   `update_baseline` uses a strict `<` after seeding from the first peak in trace
