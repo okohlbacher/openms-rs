@@ -92,7 +92,7 @@ jobs:
       - run: cargo test --locked --no-default-features --test dposition --test dinterval --test drange
       - run: cargo test --locked --no-default-features --test ims_isotopes --test ims_element --test ims_alphabet --test area_iteration --test peak_data --test peak_index --test numpress
       - run: cargo test --locked --no-default-features --test log_stream --test progress_logger --test modification_definition_io
-      - run: cargo test --locked --no-default-features --test kernel --test spline_math --test peak_picking --test window_mower
+      - run: cargo test --locked --no-default-features --test kernel --test spline_math --test peak_picking --test window_mower --test signal_to_noise
       - run: cargo test --locked --no-default-features --features paramxml --test paramxml --test system_file
       - run: cargo test --locked --no-default-features --test experimental_design --test fasta --test formats --test experiment_aggregation --test experiment_summary --test kernel_value_traits --test peak_file_options --test identification --test metadata_hash --test mass_decomposition --test mass_decomposition_algorithm --test ims_weights --test mobilogram --test data_array_descriptions
       - run: cargo test --locked --no-default-features --features mzml --test mzml_precursor_activation
@@ -110,8 +110,8 @@ jobs:
       - run: cargo test --locked --no-default-features --test boost_regex --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test baseline_filter_edges
       - run: cargo test --locked --no-default-features --features mzml --test peak_type_estimator --test faims_helper --test mzml_mobility --test im_data_converter
       - run: cargo test --locked --no-default-features --features "mzml featurexml" --test file_handler_type_detection --test file_info
-      - run: cargo test --locked --no-default-features --features "mzml paramxml" --test topp_cli_lifecycle --test peak_picking_experiment --test topp_peak_picker_hi_res --test topp_threads --test topp_baseline_filter_edges
-      - run: cargo test --locked --no-default-features --features "mzml paramxml featurexml" --test feature_finder_picked_seeds --test feature_finder_picked --test topp_file_info --test topp_feature_finder_centroided
+      - run: cargo test --locked --no-default-features --features "mzml paramxml" --test topp_cli_lifecycle --test peak_picking_experiment --test topp_peak_picker_hi_res --test topp_threads --test topp_baseline_filter_edges --test signal_to_noise
+      - run: cargo test --locked --no-default-features --features "mzml paramxml featurexml" --test feature_finder_picked_seeds --test feature_finder_picked --test topp_file_info --test topp_feature_finder_centroided --test feature_finder_picked_instrumentation
       - run: cargo test --locked --no-default-features --features "mzml paramxml parallel" --test topp_threads --test topp_peak_picker_hi_res --test peak_picking_experiment
   cross-platform:
     # Linux-first development: these run on a release tag or on demand, not on
