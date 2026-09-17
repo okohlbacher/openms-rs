@@ -220,8 +220,10 @@ Every remaining one, with its reason and owner:
 an IBMI node and cannot run in CI by construction; 5 are named mzML-reader gaps
 outside package A4, each stating the exact construct it does not yet read and what the C++
 does instead, so they are a visible backlog rather than a silent exemption; and the
-remaining 4 print reports and assert no ported value, so none of them could mask
-a regression.
+remaining 3 print reports and assert no ported value; the fourth,
+`verbose_3_log_bytes_are_bounded`, is skipped only for its 256 MiB memory cost and
+does assert the ported log bound, as the table row above records. So none of them
+could mask a regression.
 
 Two of these files **were** touched by this wave — `tests/gauss_trace_fitter.rs` and
 `tests/topp_threads.rs` — but neither diff adds, removes or edits an `#[ignore]`

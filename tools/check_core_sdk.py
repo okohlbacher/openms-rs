@@ -71,7 +71,19 @@ def check_external_artifacts(data, manifest):
         assert not Path(path).is_absolute(), path
         assert re.fullmatch(r"[0-9a-f]{64}", item["sha256"]), path
         assert item.get("origin_key"), f"{manifest}: {path} must record its origin_key"
-        assert not (ROOT / Path(path).name).exists(), f"{manifest}: {path} still present in repo"
+        # No copy may be left behind in the crate. The artifact's path is recorded
+        # relative to the repository root and starts with "../", so the place a copy
+        # would sit is that path with the "../" dropped. A C++ artifact is also
+        # checked by name anywhere in the crate, because "no C++ in this repository"
+        # is a standing rule and moved probes keep their file name. Comparing only the
+        # base name, as this did before, rejected an artifact whose name the crate
+        # happens to use as well (Cargo.toml, LICENSE).
+        mirrored = ROOT.joinpath(*Path(path).parts[1:])
+        assert not mirrored.exists(), f"{manifest}: {path} still present in repo at {mirrored}"
+        if Path(path).suffix in {".cpp", ".cc", ".cxx", ".h", ".hpp"}:
+            name = Path(path).name
+            left = [str(found.relative_to(ROOT)) for found in ROOT.rglob(name) if ".git" not in found.parts]
+            assert not left, f"{manifest}: {path} still present in repo as {left}"
 
 
 def verify(source=None):
