@@ -1,5 +1,247 @@
 # Validation of the ongoing Rust port
 
+## Wave-5 completion of FeatureFinderAlgorithmPicked and the noise estimators (2026-09-17)
+
+`integrate/wave5` merges `port/ffap-complete` (`a11fc26`, itself the merge of
+`port/ffap-instrumentation` `c79e66f`, `port/ffap-semantics` `511d29e` and
+`port/progress-logger-release-range` `f89d5d4`, plus six combined fix rounds and a
+minors pass) and `port/signal-to-noise` (`be70a98`) onto `main` `59e0e1c`. The two
+branches share **no file**, so both merges were conflict-free and every
+integrator-owned record was left to this pass. See
+[the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-5-status) and
+[BENCHMARKS](BENCHMARKS.md) §4.
+
+This wave promotes three headers and closes the port's last documented divergences on
+the feature-finder path:
+
+| Header | Before | After |
+|---|---|---|
+| `FEATUREFINDER/FeatureFinderAlgorithmPicked.h` | `partial` | **`complete`** |
+| `PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h` | `partial` | **`complete`** |
+| `PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h` | `partial` | **`complete`** |
+| `CONCEPT/ProgressLogger.h` | `native_equivalent` | `native_equivalent` (scope rewritten) |
+| `FEATUREFINDER/EGHTraceFitter.h`, `GaussTraceFitter.h` | `complete` | `complete` (scope rewritten) |
+| `CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h` | `partial` | `partial` (scope rewritten) |
+| `FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h` | `partial` | `partial` (scope rewritten) |
+
+Review state across the whole ledger: complete 60 -> **63**, partial 62 -> **59**,
+`native_equivalent` 90 unchanged, 786 registered public headers unchanged.
+
+**No status overstates its evidence.** Each promoted scope sentence states, in the
+lane's own words, what is reproduced, what is refused and why, and the one accepted
+exception. For `FeatureFinderAlgorithmPicked.h` the refusals are exactly lead decision
+D1's classes — an out-of-bounds read or write, a loop that never ends, process
+termination, or output that depends on a heap address — every one of them recording
+where and how the executed process ends, and the single exception is the multi-thread
+race on `aborts_`/`abort_reasons_`/`log_`, which gives the single-thread result under
+**lead decision D11** because the determinism contract requires parallel output to equal
+serial output.
+
+### Lane evidence
+
+- ffap-instrumentation (port/ffap-instrumentation, 8a53517/c79e66f): the FeatureFinderAlgorithmPicked instance and its side channels are ported and checked against the Linux x86_64 Release build. The oracle is ../oracle/ffap-instr-completion: drivers ffap_instr_driver (source 894fbfa9, binary d20242a3), ffap_progress_driver (bf54f670/a742aab8) and ffap_shift_band_driver (74489272/c8f85f74), plus tool_cases.py, run on ibminode06 with OMP_NUM_THREADS=1. Checked: reuse of one object over three runs, and runs into caller maps (11 prefilled and 5 overlapping features, NaN and infinite keys); the parameter surface, including a refused set; the full ProgressLogger event sequence of five cases under a counting time(); write_debug for tool cases a1, a2 and a3 (log.txt byte-identical, featureXML and mzML under D6), c3 (a1 at four threads, defined, equal to a1), and b1 (C++ SIGABRT; the port exits 8 with the same pre-termination files); 375 writeFeatureDebugInfo_ files byte-identical, plus 75 each for a string shift, a list shift, and a string shift with a scan at RT 5e-275 and at 1e-289 (3 processes, 3 addresses, identical). Refused where the source terminates or is not reproducible, and measured there: SIGABRT; SIGSEGV 7 of 7; SIGFPE 2 of 2; an address-dependent 0.dta in 3 of 3 processes at RT 0, 1e-295 and 1e-300; logs differing at 4 threads (c1, c2). Lane gates (dax, 8a53517): 5228 passed, 0 failed, 22 ignored over 353 test-result lines.
+- port/ffap-semantics (FeatureFinderAlgorithmPicked semantics, evidence and records; fix round 1, 2026-09-16). The seed and feature stages were re-baselined on the Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576 (Gaussian features bit for bit on glibc, EGH within 2.3038e-12; macOS arm64 recorded as a platform note). Degenerate intensity bins, short inputs and non-finite input follow that build where its outcome is measured and explained by the emitted instructions (cvttsd2si, cvttsd2si/btc, libstdc++'s probe sequence), pinned by 26 degenerate configurations, 228 probe positions and 189 non-finite cases; FeatureFinderDefs is ported against an executed probe; the intended abundance override is pinned against an adapted Release replay. Lane gates (dax, 884a2a5): 352 test binaries, 5,198 passed, 0 failed, 21 ignored.
+
+  (F5 and F7 below supersede that lane's own list of remaining refusals.)
+
+| Package | Merge | Evidence tier | Gates rerun by the approving verifier |
+|---|---|---|---|
+| `port/progress-logger-release-range` | f89d5d4 | Tier 1: the Debug-only `OPENMS_PRECONDITION(begin <= end)` (`ProgressLogger.cpp:235`) was a refusal in the port. It is removed from the wrapper and the command backend. An oracle driver linked to the Release install `openms4-release-bc9cc12-c19e494-174b576` ran 60 calls on ibminode06, 3 times (inverted, zero-width, nested and restarted ranges, end without start, NONE and default GUI), with every set/next forced past the same-second throttle and only the timing texts masked. The three runs are identical, and the port replays all 60 calls with equal outcome, depth and output bytes. The installed config.h leaves OPENMS_ASSERTIONS undefined, and libOpenMS.so has no copy of the range message | on kim: fmt, clippy `--all-targets`, rustdoc, `+1.85.0 check --all-targets`, 10 ProgressLogger-related targets 349/0/6, `--no-default-features --test progress_logger` 15/0, full `--all-features --all-targets` 5191 passed, 0 failed, 22 ignored |
+
+The count in that row is **5191**, not the 5181 the progress lane first wrote; its
+verifier recounted it.
+
+- port/ffap-complete (merge 4709204, e562e68, 2415946; reconciliation 75cc49a; progress switch 04a14e3; doc link a74137b): the three branches merged with both lanes' tests kept (topp_feature_finder_centroided 36 passed, 0 ignored; feature_finder_picked 13; feature_finder_picked_seeds 32; feature_finder_picked_instrumentation 28; progress_logger 15); FeatureFinderAlgorithmPicked passes the inverted progress ranges of short inputs unchanged, and the_progress_event_sequence_matches_the_release_build compares every event exactly (S 5 0). Gates on kim (slot ffap-complete-gates, 04a14e3): 5,239 passed, 0 failed, 21 ignored over 353 test-result lines; rustdoc, clippy and +1.85.0 check again at a74137b.
+- port/ffap-complete combined fix round 1 (60d050b, 7b40eed, ea6063d, e38534c, f6f9b58; lead decisions D1-D9 of wave 5): every std::sort FeatureFinderAlgorithmPicked reaches (spectra, chromatograms, step-1 cells, user seeds, seeds, feature map) follows libstdc++'s introsort and every std::stable_sort (the peaks of unsorted spectra and chromatograms) libstdc++ 14.4.0's, with the temporary-buffer halving, NaN and equal keys included; the overall seed score is the reference build's glibc 2.39 __powf_fma, ported from Arm optimized-routines (MIT) with the executed FMA fusion; step 1 skips scans with a non-finite drift time, as the area iterator does; step 2.5 returns std::length_error's text above vector::max_size(); ChargedIndexSet compares its index sets only; stream_number and the debug shift products print glibc's -nan with x86_64's NaN bits. Oracle ../oracle/ffap-complete-fix1 on ibminode06, every run twice and identical: sort_probe (2,272 inputs through libOpenMS.so's sortByPosition with and without a data array, sortSpectra, sortChromatograms and FeatureMap::sortByMZ, under a full, a partial and no temporary buffer), powf_probe (the dlsym-resolved powf, __powf_fma: a 42x42 grid, four sets of 2^26 pairs, every binary32 base with the exponent 1/3; the port is equal on all of them), nonfinite_stage_dt (52 stage cases: 43 returned, 8 threw, 1 never returned, all reproduced or refused at the merge; v2_rt_tie3_unsorted finds the executed 26 seeds), defs_eq_probe, and the non-finite shift runs (304 debug files byte for byte). The 9 NaN-sort cases of nonfinite_stage that the Release build returned are reproduced (170 of 170 returned runs). Gates on kim (snapshot ea6063d): fmt, clippy, eleven FFAP and progress targets, the library tests, the minimal-feature and no-default slices (3,560 passed, 0 failed, 3 ignored, counted from a piped log that probably lost a result line: the round-2 unpiped count is 3,568 with three more unit tests), +1.85.0 check, rustdoc, doctests; on dax the full --all-features --all-targets run, 5,245 passed, 0 failed, 21 ignored over 353 test-result lines; rustdoc again at f6f9b58.
+- port/ffap-complete combined fix round 2 (checkpoint 23fdd7d, records 426a04c, gate record 4ce747d; the round-1 verifiers' findings): a debug run that fails in steps 1 to 2.5 keeps the opened debug/log.txt (its first line) and debug/features and leaves the stream open for the object's next run; FeatureFinderCentroided reports the step-2.5 std::length_error from TOPPBase's std::exception handler with exit 12; the parameter checks and typed members follow the source for 64-bit integer values (int narrowing with the source's InvalidParameter texts, operator unsigned int with its ConversionError half way through updateMembers_ or at the start of run_, the min_spectra cvttsd2si); getGnuplotFormula of both fitters computes its sums and products in the Release build's SSE operand order; a step-3.3.5 termination keeps the seed's log lines and feature files (source review); the introsort no longer panics on comparators that are not strict weak orderings, and its out-of-bounds guard is documented, with a proof, as unreachable for the algorithm's asymmetric comparisons; the instrumentation test compares fitted values bit for bit on Linux x86_64 (EGH within 2.4e-12), the TOPP debug input bit for bit, and the overall-score unit test against an executed row. Oracle ../oracle/ffap-complete-fix2 on ibminode06, every case twice and identical: fix2_driver bigint (21 cases), lenerr_single and lenerr_reuse (m/z 1e19: length_error; 2e18: bad_alloc; the reused object's files equal a fresh object's), formula (648 getGnuplotFormula texts), and the Release FeatureFinderCentroided on both huge inputs (exit 12). Gates (snapshot 426a04c): on kim fmt, clippy, twelve FFAP, progress and param targets (instrumentation 31, TOPP 37, feature_finder_picked 15, seeds 33), the library tests (14), the minimal-feature and no-default slices (whole no-default run 3,568 passed, 0 failed, 3 ignored over 329 result lines), +1.85.0 check, rustdoc, doctests; on dax the full --all-features --all-targets run, 5,252 passed, 0 failed, 21 ignored over 353 result lines (both totals counted from unpiped logs on the node).
+- port/ffap-complete combined fix round 3 (checkpoints 6b9a5dc and 7f4b9c4, records f820e73 and e2a0661, clippy fix d562dff, gate record 7c1df72; the round-2 verifiers' findings; lead decisions D10-D12): both trace fitters call the reference build's glibc 2.39 exp and log, ported from Arm optimized-routines with the executed FMA fusion (glibc_libm), and the fit start values, EGH bounds and FWHM, the profile smoothing, cropping and quality arithmetic follow the Release build's SSE operand order, so every fit is bit for bit on Linux x86_64 and macOS arm64 (the former EGH bound 2.4e-12 and the macOS bounds 5.4e-13, 1.1e-3 and NONFINITE_FIT_GAP are gone; only the EGH area's atan on a host without glibc keeps a measured maximum, 0); step 2.5 empties windows whose binary32 bins all underflow and every window under a NaN intensity_percentage_optional, as the source's NaN weights and trimRight do; every wrapping UInt score-array count is refused whatever the Limits, and the step-1 progress range wraps as executed; the correlations divide by a zero denominator as Math::pearsonCorrelationCoefficient does; unsorted input with a mis-sized data array gives the source's Exception::Precondition text in introsort order; the empty best isotope pattern of extendMassTraces_ is refused as reachable, and a seed-loop refusal where the executed process dies or never returns records its termination with the seed's log lines. Oracle ../oracle/ffap-complete-fix3 on ibminode06, every case twice and identical: libm_probe (the host exp, log and atan: an 80-value grid and 13 sets of 2^26 inputs; exp and log equal to the port on every input on Linux and macOS, atan on Linux), gdb disassembly and table dumps of __ieee754_exp_fma and __ieee754_log_fma, fix3_stage (85 stage cases, boundary_stage.tsv.gz), vfi2_driver neg (three SIGSEGV runs with and without write_debug), fix3_driver progress (nine start events) and the Release FeatureFinderCentroided case avg0 (SIGSEGV). Gates (snapshot d562dff; e2a0661 changes only test prose, whose fmt and clippy were re-run): on kim fmt, clippy, fifteen FFAP, fitter, isotope, progress and param targets (feature_finder_picked 17, seeds 34, instrumentation 33, TOPP 38), the library tests (feature_finder_picked 18, isotopes 3), the minimal-feature and no-default slices (whole no-default run 3,572 passed, 0 failed, 3 ignored over 329 result lines), +1.85.0 check, rustdoc, doctests (67 + 3); on dax the full --all-features --all-targets run, 5,262 passed, 0 failed, 21 ignored over 353 result lines (both totals counted from unpiped logs on the node). One thread, FFC_1, best of 9: the algorithm takes 12.94 ms (symmetric) and 7.39 ms (asymmetric) on spock, against 9.61 and 6.84 ms before the round, because baseline x86_64 builds call an out-of-line fma for every fused multiply-add; macOS arm64 6.55 and 4.44 ms (6.38 and 4.27 before).
+- port/ffap-complete combined fix round 4 (checkpoint 2c8e80e, records f8e86e4, gate record ddc35a7; the round-3 verifiers' findings): FeatureFinderAlgorithmPicked stores non-finite and negative FWHM, score and EGH values as setWidth and setMetaValue do (the crate-private MetaValue::source_float; the round-3 numerics verifier had shown an infinite float width reachable from large finite retention times, where the port refused the run; round 5 measured the onset on FFC_1 at a scale of 6e36); the host atan of the EGH area is used only on x86_64 Linux with glibc, and its departure elsewhere is recorded with measured rates; the reused object's isotope windows, the NaN-RT merge's NeverReturns debug output and 134 further stage cases are pinned against executed runs; the charge-wrap, empty-pattern and underflow records were corrected. Oracle ../oracle/ffap-complete-fix4 on ibminode06, every case twice and identical: fix4_stage (the round-3 numerics verifier's 124 cases, whose rows equal the verifier's capture, plus 10 width-boundary cases; extended_stage.tsv.gz), fix4_reuse (four reuse scenarios), fix4_vfi (the NaN-RT merge with and without write_debug, killed after 30 s) and the Release FeatureFinderCentroided on FFC_1 with its retention times scaled by 1e36 and 1e39 (exit 0, inf in the featureXML). Gates (snapshot f8e86e4): on kim fmt, clippy, fifteen FFAP, fitter, isotope, progress and param targets (324 passed, 0 failed, 3 ignored; feature_finder_picked 18, seeds 34, instrumentation 34, TOPP 39), the library tests (feature_finder_picked 18, isotopes 3, metadata 6), the feature slices, the whole no-default run (3,572 passed, 0 failed, 3 ignored over 329 result lines), +1.85.0 check, rustdoc, doctests (67 + 3); on dax the full --all-features --all-targets run, 5,265 passed, 0 failed, 21 ignored over 353 result lines (both totals counted from unpiped logs on the node). The extended replay runs its cases on up to eight worker threads; the feature_finder_picked target takes 187 s on kim and 129 s on macOS arm64 in the unoptimised test build (64 s on kim before the round).
+- port/ffap-complete combined fix round 5 (checkpoints baa77ae and 76fd27c, records fd6f70a, gate record b5ec9e0; the round-4 verifiers' findings; lead decisions D13): the process-ending refusals outside the seed loop record their DebugTermination (the step-4 charge remainder of a caller's charge-0 feature, TerminationKind::ArithmeticTrap; a stale abort seed, OutOfBounds at TerminationPoint::AbortMap; a wrapped score-array count, OutOfBounds at ScoreArrays), for runs with and without write_debug (FeatureFinderAlgorithmPicked::termination); the instance keeps its never-closed log_ stream's counts (debug_log_file) and every termination states the length at which the executed process leaves debug/log.txt (DebugTermination::log_file_bytes), the flushed part of the debug run that opened the stream, in this run or an earlier one; the step-3.3.5 termination, found by a port-side search, is executed (a trace of zero intensities with reported_mz maximum or monoisotopic) and pinned with its debug side effects; MassTrace::avg_mz and MassTraces::intensity_profile follow the Release build's SSE NaN rules (the executed .plot prints -nan); the NaN-RT merge's seed maps, a reused instance's feature counts and the width-overflow onset (first at an RT scale of 6e36) are pinned; the stage tests compare bits under their bitwise tolerance, the sign of zero included; kernel::validate_given_finite_peaks is compiled with the mzML reader only and topp_threads' picking constants live in its Linux module, so every feature slice and macOS clippy --all-targets build without warnings. Oracle ../oracle/ffap-complete-fix5 on ibminode06, every case twice and identical but for the abort map's unique id: fix5_driver single, reuse and band, the unchanged ffap_instr_driver (stale oob and scaled) and fix4_stage (21 onset cases); 39 library cases (termination_digests.tsv.gz), 21 stage cases (width_onset_stage.tsv.gz). Gates (snapshot 76fd27c): on kim fmt, clippy, seventeen FFAP, fitter, mass-trace, isotope, progress and param targets (354 passed, 0 failed, 3 ignored; feature_finder_picked 19, seeds 35, instrumentation 37, TOPP 39), the library tests (feature_finder_picked 18, isotopes 3, metadata 6), the feature slices and their all-targets checks (no warning of this branch), the whole no-default run (3,572 passed, 0 failed, 3 ignored over 329 result lines, 0 warnings), +1.85.0 check, rustdoc, doctests (67 + 3); on dax the full --all-features --all-targets run, 5,270 passed, 0 failed, 21 ignored over 353 result lines (both totals counted from unpiped logs on the node); on macOS arm64 clippy --all-targets with all features and with none, and the changed targets.
+- port/ffap-complete combined fix round 6 (checkpoint a969c27, gate record dc808a4; the round-5 verifiers' findings): where a wrapped score-array count ends the executed process is measured instead of assumed. sizeof(MSSpectrum::FloatDataArray) is 88 bytes and the array vector's max_size() is (2^63 - 1) / 88, so the only allocation between the wrap and the out-of-bounds write is one spectrum's arrays, and the same count decides differently with the memory the process may have: 100,000,003 arrays (8.2 GiB) throw std::bad_alloc under the 16 GB address space every oracle run of this branch uses and die with SIGSEGV under a 500 GB one. The port therefore records the ScoreArrays termination up to a documented 1 GiB of arrays - a crate constant no caller can move (lead decisions D6 and D12), where the earlier bound was 3 + 2 * Limits::max_charges and was falsified at 2005 arrays - and records nothing above it (the round-6 minors re-measured those counts with no address-space cap at all and moved the line; see the next paragraph, which supersedes this sentence); the debug side effects at that line are pinned (a reused object leaves the first run's flushed 1,163,782 bytes and its 79 files, a fresh debug run dies before debug/ exists). A debug run stopped by the port's own Limits::max_debug_bytes ceiling keeps its opened stream and debug/features, as the source leaves them, instead of losing its DebugOutput. MassTraces::update_baseline promotes its f32 with the emulated cvtss2sd, like MassTrace::avg_mz and MassTraces::intensity_profile, so a NaN baseline carries the executed bits into the stored score_fit and score_correlation and into the .plot formula; the remaining f32 promotions of the path use f64::from, measured equal on macOS arm64 for ten NaN patterns and compiled as cvtss2sd on x86_64 (a platform note). The EGH area's tolerance is recorded as equal to BITWISE, so it relaxes nothing. Oracle ../oracle/ffap-complete-fix6 on ibminode06, every case twice and identical: fix6_driver (= fix5_driver with the round-5 verifier's wrapLH variant and a sizes mode), node/run_wrap.sh with 20 wrapped counts from 1 to 2^32 - 5 arrays under a 16 GB and a 500 GB address space, node/run_cases6.sh with the three cases at 12,201,611 arrays; 20 rows (score_array_wraps.tsv) and 42 library cases (termination_digests.tsv.gz). Gates (snapshot a969c27; dc808a4 after it changes only documentation and the two FFAP manifests): on kim fmt, clippy (0 warnings), seventeen FFAP, fitter, mass-trace, isotope, progress and param targets (356 passed, 0 failed, 3 ignored; feature_finder_picked 19, seeds 35, instrumentation 39, helper_structs 26, TOPP 39), the library tests (feature_finder_picked 18, isotopes 3, metadata 6), the feature slices (158, 93, 41, 41) and their all-targets checks (no warning of this branch), the whole no-default run (3,572 passed, 0 failed, 3 ignored over 329 result lines, 0 warnings), +1.85.0 check, rustdoc, doctests (67 + 3); on dax the full --all-features --all-targets run, 5,272 passed, 0 failed, 21 ignored over 353 result lines (both totals counted from unpiped logs on the node); on macOS arm64 clippy --all-targets with all features and with none, rustdoc, the changed targets (feature_finder_picked 19 in 229 s, instrumentation 39, seeds 35, helper_structs 26, TOPP 39 and eight more) and cargo check --lib for four feature slices.
+- port/ffap-complete, the round-6 minors (checkpoint 1a14793, gate record a11fc26; the round-6 verifiers' three minor findings): the score-array recording line is moved to what the reference platform measures, and the cvtss2sd promotion of MassTraces::update_baseline is pinned by executed bits instead of a bool. Round 6 had set SCORE_ARRAY_TERMINATION_CEILING_BYTES to 1 GiB on runs made under the 16 GB `ulimit -v` the oracle harness imposes; re-measured with round 6's own driver binary and no cap at all, every wrapped count from 12,201,611 to 1,000,000,003 arrays dies with SIGSEGV on the reference node, the five counts that threw std::bad_alloc under the cap included, so the line is now the bytes of 1,000,000,003 arrays and the conservative band round 6 documented is empty; the fixture carries the nine uncapped rows beside the capped ones (address_space_kib `none`) and the test asserts both halves - nothing recorded above the line, nothing measured to die left unrecorded - and fails at the old line. The same runs corrected the model: the pattern loop names and assigns every in-bounds array before the first out-of-bounds index, so the process holds about 232 bytes per array and not the 88 the array costs (maximum resident set 2.88 GiB at 12,201,611 arrays, 21.85 GiB at 100,000,003), which is why 2^32 - 5 arrays (about 928 GiB, 93% of the node) stays above the line and unrun. MassTraces::update_baseline's promotion is pinned against 90 executed baselines - 18 f32 patterns (quiet, signalling, negative and maximal-payload NaNs, both zeros, both infinities, both extremes, the two smallest subnormals, the smallest normal and an ordinary value) in five peak layouts - where the only NaN case in the repository had recorded is_nan(); the test states what it does not claim, namely that f64::from gives the same bits on the measured hosts, so it pins the value and not the instruction. Oracle ../oracle/ffap-complete-min6 on ibminode06, every case twice and identical: baseline_driver (node/run_baseline.sh, 90 rows), fix6_driver reused unchanged (node/run_native_wrap.sh, nine uncapped counts; node/run_mem.sh, two /usr/bin/time -v runs); 29 rows (score_array_wraps.tsv) and 90 rows (feature_finder_picked_helper_structs_update_baseline.tsv). Gates (snapshot 1a14793; a11fc26 after it changes only the three manifests' target_verification): on dax fmt, clippy (0 warnings), twelve FFAP, fitter, mass-trace and progress targets, the library tests, the feature slices, +1.85.0 check and rustdoc; on macOS arm64 fmt, clippy --all-targets with all features, the changed targets and the repository's Python checks (check_core_sdk, check_module_cycles, check_schema_feature_graph; doc coverage 4517/5872 = 76.9%, unchanged).
+
+- **Signal-to-noise (port/signal-to-noise).** SignalToNoiseEstimatorMedian.h and SignalToNoiseEstimator.h are complete (docs/SIGNAL_TO_NOISE_SUPPORT.md).
+  - The unmodified Linux x86-64 Release build openms4-release-bc9cc12-c19e494-174b576 ran on ibminode06, each case twice in a fresh process, byte-identically.
+    - 143 cases: 89 estimator cases with every ratio, max_intensity_, both percentages, warnings and CMD progress output; 47 random-scan cases with the seed set through an interposed time(); 5 engine cases; 390 whole nth_element permutations; and PeakPickerHiRes::pick through libOpenMS's own instantiation. The fixtures are in tests/data/signal_to_noise/.
+    - Five AUTOMAXBYPERCENT cases on 2^31 and 3,000,000,001 points (../oracle/sne-fix) all take the negative-range return, which pins the 32-bit cvttsd2si at :220. The port's full estimation matches them outside CI.
+  - The estimator is a header template, so the driver instantiates it with libOpenMS's own compile flags. Its 88 floating-point instructions match libOpenMS's copies, identically for one instantiation and up to one memory displacement for the other. Both copies emit the same four 32-bit cvttsd2si.
+  - The source profile reproduces two undefined-behaviour outcomes of that build, both measured conversions: CPP-257's bin 0 and :220's INT_MIN. It refuses exactly the out-of-bounds and signed-overflow sites.
+  - The unchanged P1 driver re-run on Release printed records byte-identical to the arm64 Debug fixture.
+  - The emulated :49-50 random-scan pointer wrap in 10 cases (../oracle/sne-followup, same driver
+    binary 571d6f9b as sne-completion, each twice byte-identically): the drawn position wraps to an
+    in-bounds element e = idx mod 2^62, which the port computes; the disassembly re-dump confirms the
+    :48 conversion and the `lea (%r12,%rcx,4),%r15` pointer reused for the read.
+  - Full suite: 5213 passed, 0 failed, 22 ignored.
+
+### The six fix rounds and their verdicts
+
+`port/ffap-complete` was verified after every round by **two independent lenses**, one
+on numerics and one on instrumentation, each on its own detached checkout:
+
+| Round | Head | Numerics lens | Instrumentation lens |
+|---|---|---|---|
+| 1 | `f6f9b58` | changes_required | changes_required |
+| 2 | `4ce747d` | changes_required (averagine underflow, NaN `intensity_percentage_optional`, the EGH bound is a measured maximum) | approve_with_notes |
+| 3 | `7c1df72` | approve_with_notes | changes_required (`DebugTermination` missing at two process-ending refusals outside the seed loop) |
+| 4 | `ddc35a7` | approve_with_notes | changes_required |
+| 5 | `b5ec9e0` | approve_with_notes | changes_required (the `score_arrays_overrun` bound was not supported by its evidence) |
+| 6 | `dc808a4` | **approve_with_notes** | **approve_with_notes** |
+| round-6 minors | `a11fc26` | (three minor findings applied; the ceiling re-measured uncapped) | |
+
+`port/signal-to-noise`: round 1 changes_required (one major — the `> i32::MAX` refusal
+was too broad), round 2 approve_with_notes, follow-up **approve**.
+`port/progress-logger-release-range`: approve_with_notes, its one test-integrity minor
+fixed by the lead in `f89d5d4`.
+
+Every round-6 recommendation was to promote. This pass applied all three.
+
+### Lead decisions D1-D13
+
+The full text is in [the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-5-status). In
+one line each:
+
+- **D1** reproduce a measured, repeatable, instruction-explained, **in-bounds** Release
+  outcome; refuse out-of-bounds, races, termination and endless loops.
+- **D2** libstdc++'s binary-search probes on NaN keys.
+- **D3** every `std::sort` as introsort, every `std::stable_sort` as libstdc++ 14.4.0's.
+- **D4** glibc's `-nan` in FFAP's and the trace fitters' formatters; the five others are
+  reported, not changed.
+- **D5** the reference build's glibc `powf`, ported licence-clean from Arm
+  optimized-routines; reproduced exactly, so no fallback was needed.
+- **D6** `std::length_error`'s text above `vector::max_size()`, native ceiling below.
+- **D7** `ChargedIndexSet` equality by index sets.
+- **D8** `RejectedParameters::Shown` default; the heap-address bound scoped to the
+  reference platform.
+- **D9** FAIMS out of scope (a FeatureFinderCentroided decision).
+- **D10** `exp` and `log` ported with their FMA fusion; `atan` takes the fallback,
+  because `__atan_fma` is LGPL-only with no licence-clean upstream.
+- **D11** the abort race gives the single-thread result — **the one accepted exception
+  to D1**.
+- **D12** wraps that lead out of bounds are refused at the wrap, not behind a raisable
+  ceiling; in-bounds wraps are reproduced. Round 6 made the recording line a crate
+  constant; the minors moved it to the largest count measured to die **uncapped**.
+- **D13** `MetaValue::source_float` accepted; the featureXML writer and CLI text split
+  off; the longer test time accepted with no assertion dropped; charge counts `-2`/`-3`
+  refused unconditionally; `atan` keeps the `libm` crate off the reference platform.
+
+### This pass's gates
+
+All on `kim` through the gate script, slot `integ-w5`, detached, logs in the session
+scratchpad under `integ-w5-logs/`. Every figure below is summed from the log's
+`test result:` lines, over **all** of them, so a dropped target cannot hide.
+
+| Gate | Result |
+|---|---|
+| `+1.85.0 check --locked --all-features --all-targets` | exit 0 (MSRV 1.85, no let-chains) |
+| `clippy --locked --all-features --all-targets -- -D warnings` | exit 0, **0 warnings** |
+| `doc --locked --all-features --no-deps`, `RUSTDOCFLAGS=-D warnings` | exit 0 |
+| `test --locked --all-features --all-targets` | **5297 passed, 0 failed, 21 ignored** over 354 result lines, 327 integration targets + 27 unit-test binaries |
+| `test --locked --no-default-features` | **3599 passed, 0 failed, 3 ignored** over 330 result lines |
+| `+1.85.0` minimum-rust line :95 (`--no-default-features`, + `signal_to_noise`) | 80 passed, 0 failed, 0 ignored over 5 result lines |
+| `+1.85.0` minimum-rust line :113 (`mzml paramxml`, + `signal_to_noise`) | 143 passed, 0 failed, 2 ignored over 6 result lines |
+| `+1.85.0` minimum-rust line :114 (`mzml paramxml featurexml`, + `feature_finder_picked_instrumentation`) | 165 passed, 0 failed, 0 ignored over 5 result lines |
+
+Locally on macOS arm64: `cargo fmt --all -- --check` exit 0, and all seven repository
+Python checkers pass — `check_core_sdk` (plain **and** with
+`--source .reference/openms4-core-bc9cc12`, 2,092 distinct source/registration/reference
+files verified at `bc9cc12`), `check_doc_coverage`, `check_module_cycles`,
+`core_sdk_coverage`, `test_core_sdk`, `test_core_sdk_coverage` and
+`check_schema_feature_graph`. `.github/workflows/rust.yml` parses as YAML and every
+changed JSON record round-trips through `json.load`.
+
+No gate needed a rerun: none exited 255.
+
+### CI audit
+
+`.github/workflows/rust.yml` gains exactly three `--test` names, all in the
+`minimum-rust` job, and each was confirmed on `+1.85.0` above: `signal_to_noise` on the
+`--no-default-features` line (:95) and on the `"mzml paramxml"` line (:113), and
+`feature_finder_picked_instrumentation` on the `"mzml paramxml featurexml"` line (:114).
+The ProgressLogger lane needed none: `progress_logger` is already on the
+`--no-default-features` line at :94.
+
+**No test binary in `tests/` is unrun.** There are 327 integration targets on
+disk. Every `--test` name in the workflow resolves to one of them (**0 dangling**), and
+the `test --locked --all-features --all-targets` gate above launched
+**327** of them, i.e. all of them. 176 of the 327 are
+named on a `--test` line; the other 151 are reached only
+by the three `--all-features --all-targets` steps, which is sufficient because all
+80 file-level `#![cfg(...)]` gates in `tests/` are cargo feature gates on
+features declared in `Cargo.toml`, so `--all-features` satisfies every one of them. The
+`--test` lines exist to prove the feature slices, not to reach otherwise unreachable
+targets.
+
+### Ignored tests
+
+22 `#[ignore]` attributes in the tree, all of them in `tests/` and none in `src/`, down
+from 23 on `main`. The gate above reports **21** ignored rather than 22 because
+`tests/lm_eigen_path_differential.rs`'s `macos_arm64_sdk_gap_report` is additionally
+`#[cfg(all(target_os = "macos", target_arch = "aarch64"))]`, so it is not compiled on
+`kim`; the two numbers agree once that is accounted for. **The one that went is the point of this wave**:
+`tests/topp_feature_finder_centroided.rs`'s
+`a_zero_width_retention_time_range_diverges_from_the_cpp_release_build`, whose reason
+read "documented divergence: the port refuses a zero-width RT range that C++ Release
+carries through to an empty feature map". The divergence is closed — the port now
+follows the Release build — and three running tests replace it
+(`a_zero_width_retention_time_range_follows_the_cpp_release_build`,
+`a_zero_width_mz_range_follows_the_cpp_release_build`, and
+`a_short_input_never_reaches_the_seed_loop_as_in_the_cpp_release_build`, which is no
+longer ignored either). No test was ignored, skipped or weakened by this wave; **no new
+`#[ignore]` was added anywhere on either branch**.
+
+Every remaining one, with its reason and owner:
+
+| Attribute | Reason on the attribute | Owner / why it is not a coverage gap |
+|---|---|---|
+| `tests/featurexml.rs:865` | HPC scale: reads the 59.6 MiB and 2.06 GiB benchmark featureXML files by path | benchmark lane. Reads staged multi-gigabyte input on an IBMI node; unrunnable in CI by construction, and run by hand on the node |
+| `tests/file_info.rs:168` | mzML reader gaps outside A4: duplicate userParam 'name', processing on primary arrays, float charge array | mzML reader owner (outside package A4). A **real, named** coverage gap, each naming the exact construct and, where it applies, the C++ behaviour it does not yet match |
+| `tests/file_info.rs:210` | mzML reader gap outside A4: the dangling spectrumList defaultDataProcessingRef 'dp_sp_0' is refused (unresolved dataProcessingRef); P2's source-compatible option (D10) | mzML reader owner (outside package A4). A **real, named** coverage gap, each naming the exact construct and, where it applies, the C++ behaviour it does not yet match |
+| `tests/file_info.rs:325` | mzML reader gaps outside A4: duplicate userParam 'name', processing on primary arrays, float charge array | mzML reader owner (outside package A4). A **real, named** coverage gap, each naming the exact construct and, where it applies, the C++ behaviour it does not yet match |
+| `tests/file_info.rs:351` | mzML reader gap outside A4: 'charge array' stored as 64-bit float is refused (canonical auxiliary array binary type); C++ converts it | mzML reader owner (outside package A4). A **real, named** coverage gap, each naming the exact construct and, where it applies, the C++ behaviour it does not yet match |
+| `tests/file_info.rs:494` | mzML reader gap outside A4 (A3 request 5): C++ copies the selected-ion drift time 8.1 onto the MS2 spectrum (MzMLHandler.cpp:1871-1875), so its ion-mobility ranges end at 8.10; the Rust reader does not | mzML reader owner (outside package A4). A **real, named** coverage gap, each naming the exact construct and, where it applies, the C++ behaviour it does not yet match |
+| `tests/fuzzy_string_comparator.rs:1197` | fills the 256 MiB log buffer | logging owner. A resource cost (256 MiB), not a behavioural gap |
+| `tests/gauss_trace_fitter.rs:1593` | macOS-generated oracle against a solver that matches Linux x86_64 Release Eigen; prints a report, asserts no Rust value | the owning lane. Prints a report and asserts no ported value, so it cannot mask a regression |
+| `tests/lm_budget_differential.rs:1257` | B3-LM gate report for the rejected levenberg-marquardt candidate; run with --ignored --nocapture | the owning lane. Prints a report and asserts no ported value, so it cannot mask a regression |
+| `tests/lm_eigen_path_differential.rs:557` | measures the cost of matching Linux x86_64 Release on macOS arm64; asserts nothing | the owning lane. Prints a report and asserts no ported value, so it cannot mask a regression |
+| `tests/mzml_reader_scale.rs:840` | reads /ceph/ibmi/abi/oliver/bench/openms4/inputs on the IBMI nodes | benchmark lane. Reads staged multi-gigabyte input on an IBMI node; unrunnable in CI by construction, and run by hand on the node |
+| `tests/mzml_reader_scale.rs:846` | reads /ceph/ibmi/abi/oliver/bench/openms4/inputs on the IBMI nodes | benchmark lane. Reads staged multi-gigabyte input on an IBMI node; unrunnable in CI by construction, and run by hand on the node |
+| `tests/mzml_reader_scale.rs:856` | reads /ceph/ibmi/abi/oliver/bench/openms4/inputs on the IBMI nodes | benchmark lane. Reads staged multi-gigabyte input on an IBMI node; unrunnable in CI by construction, and run by hand on the node |
+| `tests/mzml_reader_scale.rs:867` | reads /ceph/ibmi/abi/oliver/bench/openms4/inputs on the IBMI nodes | benchmark lane. Reads staged multi-gigabyte input on an IBMI node; unrunnable in CI by construction, and run by hand on the node |
+| `tests/mzml_reader_scale.rs:877` | reads /ceph/ibmi/abi/oliver/bench/openms4/inputs on the IBMI nodes | benchmark lane. Reads staged multi-gigabyte input on an IBMI node; unrunnable in CI by construction, and run by hand on the node |
+| `tests/mzml_reader_scale.rs:906` | reads /ceph/ibmi/abi/oliver/bench/openms4/inputs on the IBMI nodes | benchmark lane. Reads staged multi-gigabyte input on an IBMI node; unrunnable in CI by construction, and run by hand on the node |
+| `tests/mzml_writer_scale.rs:466` | HPC only: reads the 547 MB UK222_picked benchmark input from /ceph | benchmark lane. Reads staged multi-gigabyte input on an IBMI node; unrunnable in CI by construction, and run by hand on the node |
+| `tests/mzml_writer_scale.rs:475` | HPC only: reads the 2.3 GB UK222 profile benchmark input from /ceph | benchmark lane. Reads staged multi-gigabyte input on an IBMI node; unrunnable in CI by construction, and run by hand on the node |
+| `tests/topp_baseline_filter_edges.rs:293` | reads /ceph/ibmi/abi/oliver on the IBMI nodes | benchmark lane. Reads staged multi-gigabyte input on an IBMI node; unrunnable in CI by construction, and run by hand on the node |
+| `tests/topp_baseline_filter_edges.rs:304` | reads /ceph/ibmi/abi/oliver on the IBMI nodes; multi-GB | benchmark lane. Reads staged multi-gigabyte input on an IBMI node; unrunnable in CI by construction, and run by hand on the node |
+| `tests/topp_threads.rs:930` | HPC: reads /ceph/ibmi/abi/oliver/bench/openms4/inputs/derived; run on an IBMI node | benchmark lane. Reads staged multi-gigabyte input on an IBMI node; unrunnable in CI by construction, and run by hand on the node |
+| `tests/topp_threads.rs:954` | HPC: reads multi-GB inputs under /ceph/ibmi/abi/oliver/bench/openms4/inputs | benchmark lane. Reads staged multi-gigabyte input on an IBMI node; unrunnable in CI by construction, and run by hand on the node |
+
+**None of them hides a wave-5 behaviour.** 13 read staged multi-gigabyte inputs on
+an IBMI node and cannot run in CI by construction; 5 are named mzML-reader gaps
+outside package A4, each stating the exact construct it does not yet read and what the C++
+does instead, so they are a visible backlog rather than a silent exemption; and the
+remaining 4 print reports and assert no ported value, so none of them could mask
+a regression.
+
+Two of these files **were** touched by this wave — `tests/gauss_trace_fitter.rs` and
+`tests/topp_threads.rs` — but neither diff adds, removes or edits an `#[ignore]`
+attribute or the body of an ignored test: `gauss_trace_fitter.rs` gained trace-fitter
+prose and `topp_threads.rs` moved its picking constants into its Linux module.
+
+### What this checkpoint does not claim
+
+- It does not claim a performance result on the wave-4 timing node. §4 of
+  [BENCHMARKS](BENCHMARKS.md) ran on **dax**, not ibminode05, and its absolute numbers
+  are comparable only with each other.
+- It does not settle the `-C target-feature=+fma` question. That is **open with the
+  user**, and no build configuration was changed.
+- It does not claim the signal-to-noise signed-overflow sites are emulated. They stay
+  refused as a stated cost/benefit decision; each needs more than `2^31` points and
+  64-90 GB per evidence run.
+- It does not claim `2^32 - 5` score arrays was executed uncapped: on the measured
+  model that needs about 928 GiB, 93 % of the shared reference node, and it was
+  deliberately not run.
+
 ## Wave-4 performance and correctness integration (2026-09-16)
 
 `main` (`9a392fe`) carries, on top of wave 3's `fabd4b9`, 26 commits from eight
@@ -565,6 +807,9 @@ here so the choice is visible rather than accidental.
     decision 5 keeps `SignalToNoiseEstimatorMedian.h` partial — `write_debug` is
     refused, so `writeFeatureDebugInfo_` and `abort_reasons_` are deliberately
     not ported. Promoting it is the same question, and is the lead's.
+    **Superseded by the wave-5 checkpoint above (2026-09-17): `write_debug` and
+    `writeFeatureDebugInfo_` are ported byte for byte, `abort_reasons_` is
+    reproduced, and both headers are now `complete`.**
   - `PeakPickerHiRes.h` and `FileInfo.h` stay `partial` (P4, and A6/A7/A8) with
     their tools recorded; `MzMLFile.h` gains the reader-scale and writer-parity
     scope; the four `MATH/STATISTICS` fitter rows gain B3b's result and
