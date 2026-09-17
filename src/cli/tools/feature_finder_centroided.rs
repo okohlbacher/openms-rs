@@ -65,8 +65,8 @@
 //! every structural field — feature count, charge, hull count, hull point
 //! count and order, metadata key sets, `spectra_data` and the single
 //! `Quantitation` processing record. The algorithm underneath is pinned bit
-//! for bit against that build on Linux x86_64 (except the EGH configuration,
-//! within `2.3038e-12`; `docs/FEATURE_FINDER_PICKED_SUPPORT.md`); the tool's
+//! for bit against that build on every platform (its fits call that build's
+//! glibc `exp` and `log`, ported; `docs/FEATURE_FINDER_PICKED_SUPPORT.md`); the tool's
 //! own last-bits comparison predates that and is recorded in
 //! `docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md`. `overallquality` is
 //! printed by the C++ writer with six decimals, so it can only be compared to
@@ -76,7 +76,9 @@
 //! example MS1 spectra that all lose their peaks to the intensity filter:
 //! `FeatureFinder needs updated ranges on input map. Aborting.`) or as another
 //! OpenMS exception, are reported as `Error: Unexpected internal error
-//! (<message>)` with exit 8, as `TOPPBase` reports them. The `std::length_error`
+//! (<message>)` with exit 8, as `TOPPBase` reports them; so are the
+//! algorithm's refusals where the source crashes (an empty best isotope
+//! pattern with `feature:min_isotope_fit` 0, SIGSEGV in the executed tool). The `std::length_error`
 //! of step 2.5, which is no OpenMS exception, reaches `TOPPBase`'s outer
 //! `std::exception` handler instead (`TOPPBase.cpp:519-522`): `Unable to
 //! initialize or run FeatureFinderCentroided: vector::_M_default_append`, exit

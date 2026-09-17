@@ -48,13 +48,21 @@
 //!   six-digit text lies that close to a rounding boundary); everywhere
 //!   else the port writes the source's bytes, and [`write_feature_debug_info`]
 //!   refuses at the first value that the address can change.
-//! - **`abort_` races.** `abort_` (`:1129-1140`) writes `log_` and
+//! - **`abort_` races.** `abort_` (`:1129-1140`) writes `aborts_`, `log_` and
 //!   `abort_reasons_` from inside the parallel region without synchronisation;
 //!   the parameter text itself says "do not use in parallel mode". With more
 //!   than one thread the source is undefined (executed: the log differs from
 //!   run to run). This port collects every seed's lines and abort in seed
 //!   order, so its output at any thread count is the source's single-thread
-//!   output: a superset of the source's defined domain.
+//!   output: a superset of the source's defined domain. Lead decision D11
+//!   accepts this as the one documented exception to D1, which would refuse a
+//!   data race: the determinism contract requires parallel output to equal
+//!   serial output, and `aborts_` is written in every run.
+//! - **Crashes in the seed loop.** Where the source reads out of bounds (an
+//!   empty best isotope pattern) or never returns (a NaN retention time in an
+//!   intensity profile), the run is refused at that seed after the seed's log
+//!   lines, and [`DebugOutput::termination`] records the point, so that a
+//!   caller writes only the log bytes the executed process had flushed.
 //! - **Stale seeds of an earlier run.** `abort_reasons_` is never cleared, and
 //!   its seeds hold spectrum and peak indices of the run that stored them.
 //!   `:1037-1039` reads them from the current map without a bounds check; an

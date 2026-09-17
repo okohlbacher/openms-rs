@@ -148,8 +148,9 @@ timing text).
 | FAIMS **profile** input without `-force` | 8, the profile message | the profile check precedes the split | C1 `FFC_faims_interleaved_noforce` |
 | `-algorithm:feature:rt_shape bogus` | 6 | `Invalid string parameter value 'bogus' … Valid values are: 'symmetric,asymmetric'.` | C1 `FFC_invalid_rt_shape` |
 | `-out` without an extension | 0, the FFC_1 features written into it | — | C1 `FFC_out_no_extension` |
-| FFC_1 with its last m/z `1e19`, `-algorithm:write_debug` (step 2.5 needs `8e17 + 1` isotope windows, more than `vector::max_size()`) | 12 | `Unable to initialize or run FeatureFinderCentroided: vector::_M_default_append`: the `std::length_error` reaches TOPPBase's outer `std::exception` handler (`TOPPBase.cpp:519-522`); `debug/features` and a 40-byte `debug/log.txt` are left | F2 `tool_1e19`; `a_debug_run_beyond_the_isotope_window_limit_exits_as_the_release_build` |
-| the same with its last m/z `2e18` (`1.6e17 + 1` windows) | C++ 12; this port 8 | C++ `Unable to initialize or run FeatureFinderCentroided: std::bad_alloc`; this port `Error: Unexpected internal error (… exceed the limit of 1000000)`, the same debug files | F2 `tool_2e18`; native difference 14 |
+| FFC_1 with its last m/z `1e19`, `-algorithm:write_debug` (step 2.5 needs `ceil(1e19 * 2 / 100) + 1 = 2e17 + 1` isotope windows at the INI's charge 2 and width 100, more than `vector::max_size()`) | 12 | `Unable to initialize or run FeatureFinderCentroided: vector::_M_default_append`: the `std::length_error` reaches TOPPBase's outer `std::exception` handler (`TOPPBase.cpp:519-522`); `debug/features` and a 40-byte `debug/log.txt` are left | F2 `tool_1e19`; `a_debug_run_beyond_the_isotope_window_limit_exits_as_the_release_build` |
+| the same with its last m/z `2e18` (`4e16 + 1` windows) | C++ 12; this port 8 | C++ `Unable to initialize or run FeatureFinderCentroided: std::bad_alloc`; this port `Error: Unexpected internal error (… exceed the limit of 1000000)`, the same debug files | F2 `tool_2e18`; native difference 14 |
+| FFC_1 INI with `feature:reported_mz average` and the trace, seed, feature and isotope-fit thresholds at 0 (a seed whose best isotope pattern stayed empty reaches `extendMassTraces_`) | C++ SIGSEGV, shell status 139; this port 8 | C++ nothing on stderr and no output, the console lines up to the FAIMS line; this port `Error: Unexpected internal error (FeatureFinderAlgorithmPicked seed extension: the isotope pattern matched no peak; the source reads its first entry here)`, no output | `avg0` (`../oracle/ffap-complete-fix3`); `a_run_that_reaches_an_empty_best_pattern_is_refused_where_the_release_build_crashes`; native difference 15 |
 
 No branch writes `-out` before the store, and every refusal above was checked
 to leave no output file.
@@ -379,6 +380,20 @@ instance*).
     message, which the tool reports as the other algorithm errors, exit 8. The
     debug files are the executed ones (`tool_2e18`). Above `max_size()` the
     tool exits 12 with the source's text, as the executed tool does.
+
+15. **A seed-loop crash exits 8.** With `feature:min_isotope_fit` 0 a seed
+    whose best isotope pattern stayed empty makes the algorithm read past an
+    empty vector, and the executed tool dies with SIGSEGV (shell status 139,
+    case `avg0`). The algorithm refuses there (lead decision D1), and the tool
+    reports the refusal as the other algorithm errors, exit 8. The executed
+    process had written its console lines up to the FAIMS line; the
+    `Found <n> seeds for charge <c>.` lines it had written to `std::cout` were
+    still buffered and are lost with the process, while this port prints them
+    before the error. In a debug run the port writes `debug/log.txt` up to the
+    last byte the executed file buffer had flushed and the feature files the
+    executed process had written (the library-level evidence of
+    `feature_finder_picked_instrumentation`); the tool reaches that only where
+    no seed reaches the fit first (which terminates it as in case b1).
 
 ## Checked boundaries and evidence
 

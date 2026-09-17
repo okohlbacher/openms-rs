@@ -34,9 +34,9 @@
 //!
 //! Every expression keeps the source's operand order, so that a single
 //! evaluation (a residual, a Jacobian entry, a start point or a query) follows
-//! the source to the last place in which the mathematical library agrees with
-//! the oracle's. Fitted parameters are compared with the C++ fit within a
-//! tolerance, not bit for bit (see the support document):
+//! the source to the last place. The start point, the retention-time bounds
+//! and the FWHM follow the operand order of the Linux x86_64 Release build's
+//! SSE instructions, so a NaN they create carries x86_64's bits on every host.
 //!
 //! - The residual uses the signed `sigma`; the Jacobian uses `|sigma|`.
 //! - Where `2 sigma^2 + tau (t - t_R) <= 0` the model is `0`, without the
@@ -53,11 +53,15 @@
 //!   is the Lan-Jorgenson approximation with the source's seven coefficients and
 //!   the factor `0.6266571`.
 //!
-//! `exp`, `log`, `sqrt` and `atan` come from the `libm` crate, not from the
-//! platform's C library, so the results are the same on every platform up to the
-//! sign and payload of a NaN. `GaussTraceFitter` calls the platform library
-//! instead; which choice both fitters share is the integrator's decision
-//! (`docs/TRACE_FITTER_SUPPORT.md`, "`exp` and `log` across platforms").
+//! `exp` and `log` are the reference build's GNU C Library 2.39 functions,
+//! ported (the crate-private `glibc_libm`, lead decision D10), so every fit
+//! is the Linux x86_64 Release build's on every platform, as the Gaussian
+//! fitter's is. `atan`, which only the area calls, has no licence-clean
+//! upstream of the reference algorithm: it is the host's with the GNU C
+//! Library (exact on the reference platform) and the `libm` crate's elsewhere,
+//! where the area's last bit is not guaranteed (`docs/TRACE_FITTER_SUPPORT.md`,
+//! "`exp` and `log` across platforms"). `sqrt` is correctly rounded everywhere
+//! and gets SSE's NaN bits.
 //!
 //! # Shared trace-fitter helpers
 //!

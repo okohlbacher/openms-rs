@@ -418,7 +418,12 @@ Two measured properties affect that comparison:
   should record or re-execute before it concludes that the port is wrong.
 - Source precision returns an error when every retained bin underflows. B6 must
   handle a per-window `Err` instead of assuming success. FFC_1 (maximum
-  1316.5 Da) is far below that mass.
+  1316.5 Da) is far below that mass. (Resolved in port/ffap-complete fix round
+  3: `FeatureFinderAlgorithmPicked` step 2.5 calls the crate-private
+  `CoarseIsotopePatternGenerator::estimate_from_peptide_weight_source`, which
+  reports that case as `SourceSingleEstimate::AllUnderflowed`, and empties the
+  window as the source's NaN weights do; executed from 273,850 Da on. The
+  public functions keep the error.)
 
 ### Verification commands
 

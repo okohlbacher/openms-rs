@@ -2704,15 +2704,16 @@ fn length_error_tool(input: &str, kind: &str) -> Vec<String> {
 /// two identical runs each): a debug run on an input whose maximum m/z asks
 /// step 2.5 for more isotope windows than it can allocate.
 ///
-/// At m/z `1e19` (`8e17 + 1` windows, above `vector::max_size()`) the source's
-/// `resize` throws `std::length_error`, which is no OpenMS exception:
+/// At m/z `1e19` (`2e17 + 1` windows at the INI's charge 2 and width 100,
+/// above `vector::max_size()`) the source's `resize` throws
+/// `std::length_error`, which is no OpenMS exception:
 /// TOPPBase's outer handler prints `Unable to initialize or run
 /// FeatureFinderCentroided: vector::_M_default_append` and returns 12
 /// (`INTERNAL_ERROR`), as this port does. The run has created
 /// `debug/features` and written the first log line, which the unwinding
 /// flushes: 40 bytes. No output is written.
 ///
-/// At m/z `2e18` (`1.6e17 + 1` windows, below the bound) the executed
+/// At m/z `2e18` (`4e16 + 1` windows, below the bound) the executed
 /// allocation throws `std::bad_alloc`, again exit 12. This port refuses the
 /// count with its native window ceiling and exits 8 with that message (a
 /// recorded native difference); the debug side effects are the executed ones.

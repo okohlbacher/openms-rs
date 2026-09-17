@@ -3238,7 +3238,7 @@ fn huge_mz_input(mz: f64) -> MSExperiment {
 /// step-1 line, which its destructor flushes (the executed log is empty while
 /// the object lives and 40 bytes after it). Above `vector::max_size()` the
 /// source throws `std::length_error` (`what()` `vector::_M_default_append`);
-/// below it the allocation of `1.6e17` windows fails with `std::bad_alloc`,
+/// below it the allocation of `4e16` windows fails with `std::bad_alloc`,
 /// where the port's native window ceiling refuses instead, with the same debug
 /// output. The object keeps its (empty) isotope windows, and its stream stays
 /// open: a second debug run on FFC_1 writes the seed map, the abort map and the
