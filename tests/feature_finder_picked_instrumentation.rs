@@ -2579,6 +2579,299 @@ fn a_reused_instance_leaves_the_executed_log_at_every_later_termination() {
     });
 }
 
+/// `fix5_driver band`'s input and parameters: FeatureFinderCentroided_1
+/// without the intensity filter, every peak with m/z in `[centre - half,
+/// centre + half]` multiplied by `-value` (`neg`, a `float` times a `double`,
+/// narrowed) or set to `value` (`set`); the FFC_1 section with the given
+/// `reported_mz`, `rt_shape`, `feature:min_isotope_fit` and
+/// `seed:min_score`, the other three feature thresholds 0, and for a debug
+/// run `write_debug` with `debug:pseudo_rt_shift` 500.
+#[allow(clippy::too_many_arguments)]
+fn zeroed_band(
+    centre: f64,
+    half: f64,
+    op: &str,
+    value: f64,
+    seed_min: f64,
+    iso: f64,
+    reported: &str,
+    shape: &str,
+    debug: bool,
+) -> (MSExperiment, Param) {
+    let (lo, hi) = (centre - half, centre + half);
+    let mut experiment = raw_ffc1_input();
+    for spectrum in &mut experiment.spectra {
+        for peak in &mut spectrum.peaks {
+            if peak.mz >= lo && peak.mz <= hi {
+                peak.intensity = match op {
+                    "neg" => (f64::from(peak.intensity) * -value) as f32,
+                    _ => value as f32,
+                };
+            }
+        }
+    }
+    let mut parameters = ffc1_parameters();
+    set(
+        &mut parameters,
+        "feature:reported_mz",
+        ParamValue::String(reported.into()),
+    );
+    set(
+        &mut parameters,
+        "feature:rt_shape",
+        ParamValue::String(shape.into()),
+    );
+    for key in [
+        "feature:min_score",
+        "feature:min_trace_score",
+        "feature:min_rt_span",
+    ] {
+        set(&mut parameters, key, ParamValue::Float(0.0));
+    }
+    set(
+        &mut parameters,
+        "feature:min_isotope_fit",
+        ParamValue::Float(iso),
+    );
+    set(
+        &mut parameters,
+        "seed:min_score",
+        ParamValue::Float(seed_min),
+    );
+    if debug {
+        parameters = with_debug(
+            parameters,
+            &[("debug:pseudo_rt_shift", ParamValue::Float(500.0))],
+        );
+    }
+    (experiment, parameters)
+}
+
+/// Executed `fix5_driver band` runs (`../oracle/ffap-complete-fix5`, every
+/// case twice, identical but for the abort map's unique id): the step-3.3.5
+/// termination, found by searching the port and then executed.
+///
+/// Every intensity of one m/z band of FeatureFinderCentroided_1 set to zero
+/// (`-0.0` or `+0.0`) makes the band's cells hold zero quantiles, so a zero
+/// peak's intensity score is `0 / 0`, NaN, which `extendMassTrace_` does not
+/// find below 0.01: the zero peaks join a trace. With `reported_mz`
+/// `maximum` (or `monoisotopic`, which starts from the same trace) a feature
+/// whose most intense theoretical trace holds only zeros gets the m/z
+/// `0 / 0`, and `getIsotopeDistribution_` converts NaN to the index `2^63`
+/// and throws `Exception::InvalidValue` inside the OpenMP region (`.cpp:790`):
+/// the Release process prints OpenMS's fatal-exception block with that
+/// `what()` and dies of SIGABRT (status 134), Gaussian and EGH alike, with and
+/// without `write_debug`, at `seed:min_score` 0 and 0.3. The debug runs left
+/// the seed map, the files of every plot up to the terminating seed's
+/// (37, 59 and 70 plots) and the flushed log. With `reported_mz` `average`
+/// the other traces keep the sum finite and the run returns 12 features; with
+/// `feature:min_isotope_fit` 0 an empty best pattern ends the run earlier
+/// (SIGSEGV).
+///
+/// The port refuses at that seed after its debug files, records an
+/// `Exception` termination with the executed `what()` text, and the file
+/// protocol reproduces every executed file.
+#[test]
+fn a_step_3_3_5_termination_keeps_what_the_executed_process_had_written() {
+    let digests = termination_digests();
+    let what = "the value '9223372036854775808' was used but is not valid; \
+                IsotopeDistribution not precalculated. Maximum allowed index is 15";
+    type BandCase = (
+        &'static str,
+        f64,
+        f64,
+        &'static str,
+        f64,
+        f64,
+        f64,
+        &'static str,
+        &'static str,
+    );
+    let cases: [BandCase; 8] = [
+        (
+            "zi644_neg0_max",
+            644.25,
+            0.02,
+            "neg",
+            0.0,
+            0.0,
+            1e-300,
+            "maximum",
+            "symmetric",
+        ),
+        (
+            "zi644_neg0_mono",
+            644.25,
+            0.02,
+            "neg",
+            0.0,
+            0.0,
+            1e-300,
+            "monoisotopic",
+            "symmetric",
+        ),
+        (
+            "zi644_neg0_avg",
+            644.25,
+            0.02,
+            "neg",
+            0.0,
+            0.0,
+            1e-300,
+            "average",
+            "symmetric",
+        ),
+        (
+            "zi644_set0_max",
+            644.25,
+            0.02,
+            "set",
+            0.0,
+            0.0,
+            1e-300,
+            "maximum",
+            "symmetric",
+        ),
+        (
+            "zi64875_neg0_s03_max",
+            648.75,
+            0.05,
+            "neg",
+            0.0,
+            0.3,
+            1e-300,
+            "maximum",
+            "symmetric",
+        ),
+        (
+            "zi65025_setm0_max",
+            650.25,
+            0.05,
+            "set",
+            -0.0,
+            0.0,
+            1e-300,
+            "maximum",
+            "symmetric",
+        ),
+        (
+            "zi644_neg0_max_egh",
+            644.25,
+            0.02,
+            "neg",
+            0.0,
+            0.0,
+            1e-300,
+            "maximum",
+            "asymmetric",
+        ),
+        (
+            "zi644_neg0_max_iso0",
+            644.25,
+            0.02,
+            "neg",
+            0.0,
+            0.0,
+            0.0,
+            "maximum",
+            "symmetric",
+        ),
+    ];
+    let mut terminated = 0;
+    for (name, centre, half, op, value, seed_min, iso, reported, shape) in cases {
+        for debug in [false, true] {
+            let case = format!("{name}_{}", if debug { "dbg" } else { "nd" });
+            let executed = &digests[&case];
+            let (experiment, parameters) = zeroed_band(
+                centre, half, op, value, seed_min, iso, reported, shape, debug,
+            );
+            let mut algorithm = FeatureFinderAlgorithmPicked::new().unwrap();
+            let mut features = FeatureMap::new();
+            let result = algorithm.run(experiment, &mut features, &parameters, &FeatureMap::new());
+            let termination = algorithm.termination();
+            match executed.status.as_str() {
+                "134" => {
+                    terminated += 1;
+                    let error = result.unwrap_err();
+                    assert!(error.to_string().contains(what), "{case}: {error}");
+                    let termination = termination.unwrap();
+                    assert_eq!(termination.kind, TerminationKind::Exception, "{case}");
+                    assert_eq!(termination.exception, "InvalidValue", "{case}");
+                    assert_eq!(termination.message, what, "{case}");
+                    for line in [
+                        "stdout FATAL: uncaught exception!".to_owned(),
+                        format!(
+                            "stdout exception of type {} occurred",
+                            termination.exception
+                        ),
+                        format!("stdout error message: {}", termination.message),
+                    ] {
+                        assert!(executed.printed(&line), "{case}: {line}");
+                    }
+                    let TerminationPoint::Seed {
+                        charge, plot_nr, ..
+                    } = termination.point
+                    else {
+                        panic!("{case}: {:?}", termination.point);
+                    };
+                    assert_eq!(charge, 2, "{case}");
+                    assert!(plot_nr >= 0, "{case}: the seed reached the fit");
+                    if let Some(out) = algorithm.debug_output() {
+                        // Every plot up to the terminating seed's.
+                        let plots: std::collections::BTreeSet<i64> = out
+                            .feature_files
+                            .iter()
+                            .map(|files| files.plot_nr)
+                            .collect();
+                        assert_eq!(plots.len() as i64, plot_nr + 1, "{case}");
+                        assert_eq!(plots.last().copied(), Some(plot_nr), "{case}");
+                        assert_eq!(
+                            termination.log_file_bytes,
+                            Some(out.log.flushed_bytes()),
+                            "{case}"
+                        );
+                        assert!(out.abort_reasons.is_none() && out.input.is_none());
+                    }
+                }
+                "139" => {
+                    let error = result.unwrap_err();
+                    assert!(
+                        error
+                            .to_string()
+                            .contains("the isotope pattern matched no peak"),
+                        "{case}: {error}"
+                    );
+                    assert_eq!(
+                        termination.map(|termination| termination.kind),
+                        Some(TerminationKind::OutOfBounds),
+                        "{case}"
+                    );
+                }
+                status => {
+                    assert_eq!(status, "0", "{case}");
+                    result.unwrap_or_else(|error| panic!("{case}: {error}"));
+                    assert!(termination.is_none(), "{case}");
+                    assert_eq!(executed.reported("run features "), Some(features.len()));
+                }
+            }
+            assert_eq!(algorithm.debug_output().is_some(), debug, "{case}");
+            if case == "zi644_neg0_max_dbg" {
+                let out = algorithm.debug_output().unwrap();
+                assert_eq!(out.seed_maps.len(), 1);
+                assert_maps_decoded_equal(
+                    &out.seed_maps[0].map,
+                    &feature_fixture("step335_seed_map_2.featureXML.gz"),
+                    &case,
+                );
+            }
+            let mut disk = Disk::default();
+            disk.write_run(algorithm.debug_output(), termination);
+            disk.assert_executed(executed, &case);
+        }
+    }
+    assert_eq!(terminated, 12);
+}
+
 // ---------------------------------------------------------------------------
 // The complete progress sequence (second driver, counting clock)
 // ---------------------------------------------------------------------------

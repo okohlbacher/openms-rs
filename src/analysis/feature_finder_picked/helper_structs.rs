@@ -207,15 +207,25 @@ impl MassTrace {
     /// the plain IEEE result, as in the source. An empty trace, or one whose
     /// intensities are all zero, yields NaN, and a NaN average never matches a
     /// seed in [`MassTraces::is_valid`].
+    ///
+    /// Every operation follows the Linux x86_64 Release build's SSE
+    /// instructions (`libOpenMS.so` `0x18f1570`: `cvtss2sd` of the intensity,
+    /// `addsd` onto the intensity sum, `mulsd` of the m/z by the intensity,
+    /// `addsd` onto the product sum, `divsd` of the two sums), so a NaN
+    /// carries the executed sign and payload on every host: `0 / 0` is x86_64's
+    /// default NaN, whose sign bit is set, and the `.plot` file of
+    /// `writeFeatureDebugInfo_` prints it as `-nan` (executed:
+    /// `../oracle/ffap-complete-fix5`, a trace of zero intensities).
     pub fn avg_mz(&self) -> f64 {
+        use crate::analysis::feature_finder_picked::scoring::x86_64;
         let mut sum = 0.0;
         let mut intensities = 0.0;
         for peak in &self.peaks {
-            let intensity = f64::from(peak.intensity);
-            sum += peak.mz * intensity;
-            intensities += intensity;
+            let intensity = x86_64::widen(peak.intensity);
+            intensities = x86_64::add(intensities, intensity);
+            sum = x86_64::add(sum, x86_64::mul(peak.mz, intensity));
         }
-        sum / intensities
+        x86_64::div(sum, intensities)
     }
 
     /// Whether the trace holds at least three peaks: source `isValid`, whose
@@ -513,17 +523,22 @@ impl MassTraces {
         let Some((first, rest)) = self.traces.split_first() else {
             return Ok(Vec::new());
         };
+        // `cvtss2sd` of each intensity and, where two traces meet, `addsd` with
+        // the new intensity as the destination (`libOpenMS.so` `0x18f1912`),
+        // so a NaN (`inf - inf`, or two NaN operands) carries the Release
+        // build's bits on every host.
+        use crate::analysis::feature_finder_picked::scoring::x86_64;
         let mut profile = LinkedProfile::with_capacity(peaks);
         let mut previous = NIL;
         for peak in &first.peaks {
-            previous = profile.insert_after(previous, (peak.rt, f64::from(peak.intensity)));
+            previous = profile.insert_after(previous, (peak.rt, x86_64::widen(peak.intensity)));
         }
         for trace in rest {
             let mut previous = NIL;
             let mut current = profile.head;
             let mut index = 0;
             while let Some(peak) = trace.peaks.get(index) {
-                let intensity = f64::from(peak.intensity);
+                let intensity = x86_64::widen(peak.intensity);
                 if current == NIL {
                     previous = profile.insert_after(previous, (peak.rt, intensity));
                     index += 1;
@@ -537,7 +552,7 @@ impl MassTraces {
                     previous = current;
                     current = profile.next[current];
                 } else if entry_rt == peak.rt {
-                    profile.entries[current].1 += intensity;
+                    profile.entries[current].1 = x86_64::add(intensity, profile.entries[current].1);
                     previous = current;
                     current = profile.next[current];
                     index += 1;

@@ -1508,14 +1508,16 @@ mod tests {
     use crate::analysis::feature_finder_picked::debug::LogSink;
     use crate::kernel::{MSSpectrum, Peak1D};
 
-    /// Source review of `.cpp:710-790`: a seed whose feature creation throws
-    /// (a feature m/z without an isotope window, `getIsotopeDistribution_` at
-    /// `:790`, inside the OpenMP region) has already written its log lines and
-    /// its `writeFeatureDebugInfo_` files (`:717`) when the process ends. The
+    /// `.cpp:710-790`: a seed whose feature creation throws (a feature m/z
+    /// without an isotope window, `getIsotopeDistribution_` at `:790`, inside
+    /// the OpenMP region) has already written its log lines and its
+    /// `writeFeatureDebugInfo_` files (`:717`) when the process ends. The
     /// serial settlement keeps both, records the termination and fails the
-    /// run at that seed; no abort is counted for it. No executed input reaches
-    /// this path (the executed and generated inputs of the oracles all
-    /// returned), so the outcome is built here.
+    /// run at that seed; no abort is counted for it. The outcome is built
+    /// here; the executed runs that reach it (a zeroed intensity band with
+    /// `reported_mz` `maximum`, `../oracle/ffap-complete-fix5`) are replayed
+    /// by the instrumentation test
+    /// `a_step_3_3_5_termination_keeps_what_the_executed_process_had_written`.
     #[test]
     fn a_step_3_3_5_termination_keeps_the_seed_debug_output() {
         let spectra = (0..3)

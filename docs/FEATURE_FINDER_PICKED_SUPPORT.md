@@ -213,7 +213,7 @@ files under the source's names:
 | `debug/features/<plot_nr>.dta`, `_cropped.dta`, `.plot` (`writeFeatureDebugInfo_`) | `feature_files` (`FeatureDebugFiles`, `debug::write_feature_debug_info`) | byte-identical: the 75 files and the log of each of the driver cases declared-shift500, -shift123, -int250, -egh and -prefilled, of a string and a string-list shift, and of a string shift with a scan at RT `5e-275` and `1e-289` (`debug_digests.tsv`); `double` values in the `.plot` formulas as `operator<<` prints them, glibc's `-nan` included, and `k * shift + rt` with x86_64's NaN rules (`inf * 0` is the negative default NaN on every host): a `+inf`, `-inf`, negative-NaN and positive-NaN shift (`shift_nonfinite_digests.tsv`, `../oracle/ffap-complete-fix1/node/run_shift.sh`, two runs each); the formulas' own sums and products follow the SSE operand order of `getGnuplotFormula` (`rt_shift` and `theoretical_int` are the destinations; EGH's `2 * sigma * sigma` is `(sigma + sigma) * sigma`), so a NaN the formula's own arithmetic creates, or passes on from its operands, prints with the executed sign on every host (`gnuplot_formula_nonfinite.tsv`, 648 executed formulas, `gnuplot_formulas_print_the_executed_nan_signs`). A NaN operand the fit produced keeps the sign the fit gave it; see *The sign of a NaN inside a fit* below |
 | `debug/abort_reasons.featureXML` | `abort_reasons` (`debug::abort_map`) | D6: a1, a2, declared-*, debug_twice, stale scaled; the feature ids `0, 1, ...` exactly |
 | `debug/input.mzML`: the input with the score arrays, without the overall score | `input` (`debug::debug_experiment`) | a1, a2, a3, debug_twice: every float array bit for bit, NaN bits and overall scores included. `mzml::write_source_float_arrays` writes the non-finite values the source writes |
-| the process terminates: in the seed loop in `writeFeatureDebugInfo_`, after it at step 3.3.5 (`.cpp:790`), at the out-of-bounds read of an empty best pattern in `extendMassTraces_`, or never returns from the NaN profile merge (`CPP-242`); before it at a wrapped score-array count (`.cpp:196-221`); after it at the step-4 charge remainder (`.cpp:936`, `:945`) or a stale abort seed (`.cpp:1037-1039`) | `termination` (`DebugTermination`: its `TerminationPoint` `Seed`, `ScoreArrays`, `OverlapResolution` or `AbortMap`, its `TerminationKind` `Exception`, `OutOfBounds`, `ArithmeticTrap` or `NeverReturns`, and `log_file_bytes`, the length the executed process leaves `debug/log.txt` at), with `Error::Unsupported` or `Error::InvalidValue`; `FeatureFinderAlgorithmPicked::termination` records the same for a run without `write_debug` | a4 and b1: charge, exception and message; `log_file_bytes` is the length of the executed file after the SIGABRT. The terminations outside the seed loop and across runs: *The file at termination* below. At step 3.3.5 the seed's log lines and feature files are kept before the termination is recorded (source review; no executed input reaches it; `a_step_3_3_5_termination_keeps_the_seed_debug_output`). At an empty best pattern the refused seed's lines are appended first, and the executed `debug/log.txt` after the SIGSEGV is exactly the flushed prefix, with every executed feature file byte for byte (`neg_oob1`, `neg_oob_seed035`, `neg_none_avg0`: 53, 51 and 26 plots, `crash_digests.tsv`, `a_seed_loop_crash_keeps_what_the_executed_process_had_written`) |
+| the process terminates: in the seed loop in `writeFeatureDebugInfo_`, after it at step 3.3.5 (`.cpp:790`), at the out-of-bounds read of an empty best pattern in `extendMassTraces_`, or never returns from the NaN profile merge (`CPP-242`); before it at a wrapped score-array count (`.cpp:196-221`); after it at the step-4 charge remainder (`.cpp:936`, `:945`) or a stale abort seed (`.cpp:1037-1039`) | `termination` (`DebugTermination`: its `TerminationPoint` `Seed`, `ScoreArrays`, `OverlapResolution` or `AbortMap`, its `TerminationKind` `Exception`, `OutOfBounds`, `ArithmeticTrap` or `NeverReturns`, and `log_file_bytes`, the length the executed process leaves `debug/log.txt` at), with `Error::Unsupported` or `Error::InvalidValue`; `FeatureFinderAlgorithmPicked::termination` records the same for a run without `write_debug` | a4 and b1: charge, exception and message; `log_file_bytes` is the length of the executed file after the SIGABRT. The terminations outside the seed loop and across runs: *The file at termination* below. At step 3.3.5 the seed's log lines and feature files are kept before the termination is recorded, and the executed runs that reach it (a zeroed intensity band, fix round 5) left exactly the port's flushed log prefix, seed map and feature files, and printed the port's `what()` (`a_step_3_3_5_termination_keeps_what_the_executed_process_had_written`; the settlement itself: `a_step_3_3_5_termination_keeps_the_seed_debug_output`). At an empty best pattern the refused seed's lines are appended first, and the executed `debug/log.txt` after the SIGSEGV is exactly the flushed prefix, with every executed feature file byte for byte (`neg_oob1`, `neg_oob_seed035`, `neg_none_avg0`: 53, 51 and 26 plots, `crash_digests.tsv`, `a_seed_loop_crash_keeps_what_the_executed_process_had_written`) |
 
 **The undeclared key.** `writeFeatureDebugInfo_` reads
 `param_.getValue("debug:pseudo_rt_shift")` (`.cpp:2137`), a key the defaults
@@ -984,19 +984,36 @@ first point where the source's behaviour has no reproducible answer:
    `debug/log.txt` is opened (*Debug mode*).
 6. *A feature m/z without an isotope window at step 3.3.5* (`.cpp:790`): the
    source's `InvalidValue` leaves its OpenMP region uncaught and
-   `std::terminate` ends the process. A NaN feature m/z (an infinite intensity
-   kept in the reported traces), or an `average` m/z whose intensity sum
-   nearly cancels, would reach it; no executed input did (source review; the
-   instrumentation verifier's 50 generated inputs with infinite isotope
-   intensities all returned, and fix round 5 searched the port, which
-   reproduces the executed runs, over 18,720 FeatureFinderCentroided_1
-   variants with one m/z band of intensities negated by factors from 0.05 to
-   40, with `reported_mz` `average` and `maximum`, `feature:min_isotope_fit`
-   `1e-300`, the other thresholds 0 and `seed:min_score` 0 and 0.3, and 35,100
-   coarser variants before: none reached `.cpp:790`, so no candidate was
-   executed). In a debug run the source has written that seed's log lines and
-   feature files first, and the port keeps them before it records the
-   termination.
+   `std::terminate` ends the process. Reachable, and executed in fix round 5
+   (`../oracle/ffap-complete-fix5`, `run_band.sh`, every case twice,
+   identical): with every intensity of one m/z band of
+   FeatureFinderCentroided_1 set to zero (`-0.0` or `+0.0`), the band's cells
+   hold zero quantiles, a zero peak's intensity score is `0 / 0`, NaN, which
+   `extendMassTrace_` does not find below 0.01, and the zero peaks form a
+   trace. With `reported_mz` `maximum` (or `monoisotopic`) a feature whose
+   most intense theoretical trace holds only zeros gets the average m/z
+   `0 / 0`, `getIsotopeDistribution_` converts NaN to the index `2^63`, and
+   the Release process prints OpenMS's fatal-exception block ("the value
+   '9223372036854775808' was used but is not valid; IsotopeDistribution not
+   precalculated. Maximum allowed index is 15") and dies of SIGABRT: bands at
+   m/z 644.25, 648.75 and 650.25, `seed:min_score` 0 and 0.3,
+   `feature:min_isotope_fit` `1e-300` and the other feature thresholds 0,
+   Gaussian and EGH, with and without `write_debug`. With `reported_mz`
+   `average` the other traces keep the sum finite and the run returns 12
+   features; with `feature:min_isotope_fit` 0 the empty best pattern of
+   refusal 4 comes first. The port found these inputs: it predicted every
+   executed outcome, and it refuses at that seed after the seed's log lines
+   and feature files, with an `Exception` termination whose message is the
+   executed `what()`; the flushed log, the seed map and every feature file of
+   the debug runs are the executed ones
+   (`a_step_3_3_5_termination_keeps_what_the_executed_process_had_written`,
+   `termination_digests.tsv.gz`). The search ran the port over 109,200
+   variants of FeatureFinderCentroided_1 (`port-harness/zz_fix5_search.rs`,
+   `logs/port_search_*.log`): 97,500 negated bands with factors from 0.05 to
+   about 40 found none (no `average` or `maximum` m/z left the data's range),
+   11,700 zeroed or subnormal bands found 174 terminations. Before, the
+   instrumentation verifier's 50 inputs with infinite isotope intensities had
+   all returned.
 
 **No platform split.** Since lead decision D10 both trace fitters call the
 reference build's glibc `exp` and `log`, ported (`glibc_libm`), so every
@@ -1020,7 +1037,7 @@ native difference 13.
 | --- | --- | --- |
 | scores are float data arrays appended to each spectrum, replacing its existing float arrays | `ScoreArrays`: one flat `f32` array per score, outside the spectra | Only the algorithm reads them, and only debug mode writes them. The input spectra keep their arrays, and no per-spectrum allocation is needed. |
 | `spectrumRanges().byMSLevel(1)` needs `updateRanges()` from the caller | ranges are computed on demand from the validated spectra, with `RangeBase`'s `std::min`/`std::max` semantics | No stale-range state exists, so the source's FAIMS "No ranges for this MS level" crash cannot occur. The source message "needs updated ranges" belongs to the peak-count check and is kept verbatim. |
-| infinite and NaN retention times, m/z values, intensities, drift times and user-seed positions are read without a check | read as the Linux x86_64 Release build reads them; refused only at the endless profile merge of a NaN retention time and at the uncaught step-3.3.5 exception (the introsort's out-of-bounds guard is unreachable for these keys) | See *Non-finite input*: of the 189 executed cases 170 returned runs and 16 exceptions are reproduced and the 3 endless runs refused at the merge; of the 52 fix-round cases 43 returned runs and 8 exceptions are reproduced and 1 endless run refused. |
+| infinite and NaN retention times, m/z values, intensities, drift times and user-seed positions are read without a check | read as the Linux x86_64 Release build reads them; refused only at the endless profile merge of a NaN retention time and at the uncaught step-3.3.5 exception, which a trace of zero intensities reaches (executed SIGABRT, *Non-finite input*, refusal 6; the introsort's out-of-bounds guard is unreachable for these keys) | See *Non-finite input*: of the 189 executed cases 170 returned runs and 16 exceptions are reproduced and the 3 endless runs refused at the merge; of the 52 fix-round cases 43 returned runs and 8 exceptions are reproduced and 1 endless run refused. |
 | `mass_trace:min_spectra = 1` gives `min_spectra_ = 0`. Every trace score becomes 0/0 = NaN and every peak a local maximum; no overall score reaches a threshold, no seed is found and the run returns an empty map | the same: NaN trace scores, no seed, an empty map | The execution (B6 driver, `ffc1_min_spectra_1`) shows the source is *defined* here, so the port follows it (lead decision of 2026-09-15, `CPP-271`). B6 refused the configuration; that refusal is gone. Nothing later in the algorithm is reached, so the source's `size_t(-1)` delta buffer in `extendMassTrace_` stays unreachable; the port returns `Error::InvalidValue` if it ever is. |
 | a zero or infinite intensity bin step makes `intensityScore_` convert `floor(NaN)` or `floor(inf)` to `UInt`, which is undefined | by default the Linux x86_64 Release build's outcome (every intensity score NaN, no seed, an empty map); `DegenerateBinStep::Refuse` refuses exactly the inputs whose seed loop reads those scores | Undefined behaviour of the `float`-to-`int` kind, whose Release outcome is measured, repeatable and explained by the emitted `cvttsd2si`; see *Degenerate intensity bins*. The port refused every zero-width range before, including short inputs, where the result does not depend on the scores. |
 | `UInt charge_count = charge_high - charge_low + 1` and the `UInt` array count `3 + 2 * charge_count` wrap for `charge_low > charge_high + 1` and for `charge_low` 1 with `charge_high` `INT_MAX` | `Error::InvalidValue` from `Settings::charge_count` for every wrapping count, whatever the `Limits` | Lead decision D12. The counts `2^31 - 1`, `-1` and `-4` and below wrap to an array count the pattern loop writes past: an out-of-bounds write, undefined (executed SIGSEGV: 4/2, `INT_MAX`/1, `INT_MAX`/498, 1/`INT_MAX`). The counts `-2` and `-3` wrap to `2^32 - 1` and `2^32 - 3` arrays per spectrum, which stay in bounds if the allocation succeeds; that outcome depends on memory (executed `std::bad_alloc`: 5/2, 6/2), so the port refuses before allocating, and before a debug run opens its log, as the executed runs had not opened it either. `charge_low == charge_high + 1` gives zero charges, as in the source (executed: an empty map). |
@@ -1232,8 +1249,8 @@ overall score) for all 7 configurations: 25, 25, 15, 18 and 24 seeds for charge
   - restriction and type violations;
   - a step-3.3.5 termination in a debug run keeps the seed's log lines and
     feature files (`a_step_3_3_5_termination_keeps_the_seed_debug_output`, a
-    crate-internal unit test, since no executed input reaches it; fix round 5
-    searched for one in vain, *Non-finite input*, refusal 6);
+    crate-internal unit test of the settlement; the executed runs of fix
+    round 5 pin the whole path, *Non-finite input*, refusal 6);
   - a window whose binary32 bins all underflow near `10^6` Da, a NaN trimming
     cutoff and a reused object's kept windows under it
     (`underflowed_windows_and_a_nan_cutoff_leave_nothing_to_append`; the
@@ -1494,6 +1511,20 @@ output.
     FFC_1's input with every scan start time times `1e36` and `1e39`).
     Proposed fix: check the fitted width and area against the `float` range,
     or store them as `double`.
+15. **A trace of zero intensities ends the process.** A zero peak in a cell
+    whose intensity quantiles are zero gets the intensity score `0 / 0`,
+    NaN (`intensityScore_`, `.cpp:1913-1937`), which passes
+    `extendMassTrace_`'s `< 0.01` test, so such peaks form a trace; with
+    `feature:reported_mz` `maximum` or `monoisotopic` a feature whose
+    reported trace holds only zeros gets the m/z `0 / 0`
+    (`MassTrace::getAvgMZ`), and `getIsotopeDistribution_(NaN)` throws
+    `Exception::InvalidValue` inside the OpenMP region of step 3.3
+    (`.cpp:790`), which `std::terminate` turns into SIGABRT (executed:
+    FeatureFinderCentroided_1 with one m/z band of intensities zeroed,
+    `seed:min_score` 0 or 0.3, the feature thresholds 0 but
+    `min_isotope_fit` `1e-300`). Proposed fix: give a zero intensity a zero
+    score, skip traces without intensity, and catch exceptions inside the
+    parallel region.
 
 ### From the seed stage (B6)
 
@@ -1626,9 +1657,10 @@ Items 1 and 2 are executed; the others come from source review.
   native difference 16 stays; the longer `feature_finder_picked` test time is
   accepted; the charge counts `-2` and `-3` stay refused unconditionally; the
   `libm` crate's `atan` off x86_64 Linux with glibc stays, as a note for
-  non-reference platforms; the step-3.3.5 termination keeps its
-  source-review status after one more search for an executed input
-  (*Non-finite input*, refusal 6).
+  non-reference platforms; one more search for an executed input that
+  reaches the step-3.3.5 termination with `write_debug` found one (a zeroed
+  intensity band with `reported_mz` `maximum`), and its debug side effects are
+  now pinned against the executed runs (*Non-finite input*, refusal 6).
 - **Reproduced undefined and unspecified behaviour** (lead decisions D1 to D3):
   the float-to-integer conversions, the binary searches and both sorts on NaN
   keys, the order of equal sort keys, and the address-independent text of a
