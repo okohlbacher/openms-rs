@@ -4262,7 +4262,7 @@ implementation. They do not count as completed Rust functionality.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
-**Status:** Source-reviewed; not executed, because the trigger does not terminate.
+**Status:** Executed (2026-09-16).
 
 **Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp:210–236`, `MassTraces::computeIntensityProfile`.
 
@@ -4272,9 +4272,9 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Treat an unordered comparison as an error, or advance the profile iterator.
 
-**Evidence:** Source review; `tests/data/feature_finder_picked_helper_structs_provenance.json`.
+**Evidence:** FeatureFinderCentroided_1 with the retention time of scan 50 set to NaN, through `FeatureFinderAlgorithmPicked::run` on the Release build (`nonfinite_stage` cases `rt_nan_mid`, `rt_nan_mid_bins3`, `rt_nan_mid_unsorted`), and with scan 0's retention time NaN in an unsorted input (`sort_mobility_stage` case `v3_rt_nan_first_unsorted`): the runs did not return within 30 s (killed, twice each) and a gdb stack sample shows `MassTraces::computeIntensityProfile` under `GaussTraceFitter::setInitialParameters_` in the seed loop. `extendMassTrace_` adds the NaN-RT peak because its NaN overall score is not below 0.01 (`.cpp:1535`). A NaN RT at the first or last scan of a sorted input never joins a trace (8 features); in an unsorted input the introsort moves it (`v3_rt_nan_second_unsorted` and `v3_rt_nan_last_unsorted`: 8 features). Round 4 adds: with `write_debug` (`debug:pseudo_rt_shift 500`), scan 50's or scan 20's retention time NaN (Gaussian and EGH): killed after 30 s, twice each, identical; the process had flushed 1,016,234 or 1,065,423 bytes of `debug/log.txt` and written the files of plots 0-2 or 0-9 (`../oracle/ffap-complete-fix4`, `fix4_vfi`). Also `tests/data/feature_finder_picked_helper_structs_provenance.json`.
 
-**Rust handling:** Returns `Error::InvalidValue`; a NaN that is only copied or appended passes through as in the source.
+**Rust handling:** Returns `Error::InvalidValue`; a NaN that is only copied or appended passes through as in the source. Refused at exactly that merge (`MassTraces::intensity_profile`); the endless runs are replayed as refusals; a debug run records a `NeverReturns` termination with the hanging seed's plot number after the seed's log lines, so a caller writes only the flushed log, which equals the executed file byte for byte, as do the seed map and the feature files (`a_seed_loop_that_never_returns_keeps_what_the_executed_process_had_written`).
 
 ## CPP-243 — updateBaseline leaves the baseline indeterminate when no trace holds a peak
 
@@ -4362,7 +4362,7 @@ implementation. They do not count as completed Rust functionality.
 
 **Evidence:** `../oracle/b2-iso-source-precision/manifest.json` (`probe.tsv`); `tests/data/isotopes_source_precision_provenance.json`; the sizes are asserted in `tests/isotopes_source_precision.rs`.
 
-**Rust handling:** `CoarseIsotopePatternGenerator::set_isotope_override` rejects that construction. FeatureFinderAlgorithmPicked's seed stage (B6-FFAP-SEEDS, `80bbdf1`) refuses a changed abundance with `Error::Unsupported` by default and builds the intended two-isotope distribution only under `AbundanceOverride::Intended`; C2 shows the source's effect on FeatureFinderCentroided_1 (27-bin windows and 0 seeds at 12C = 90%). Which behaviour the tool follows is open for the lead and package B10.
+**Rust handling:** `CoarseIsotopePatternGenerator::set_isotope_override` rejects that construction. FeatureFinderAlgorithmPicked's seed stage (B6-FFAP-SEEDS, `80bbdf1`) refuses a changed abundance with `Error::Unsupported` by default and builds the intended two-isotope distribution only under `AbundanceOverride::Intended`; C2 shows the source's effect on FeatureFinderCentroided_1 (27-bin windows and 0 seeds at 12C = 90%). Since wave 5 the port computes the intended two-isotope override by default (`AbundanceOverride::Intended`, lead decision of 2026-09-15), which FeatureFinderCentroided uses; `AbundanceOverride::Refuse` is the opt-out. The intended result is pinned against an adapted Release replay (`intended_abundance.cpp`: FFC_1 with 12C 90 finds 18 seeds, 1 candidate and 1 feature; 12C 99 25/8/8; 14N 95 13/2/2), where the executed C++ finds 0/0/0 at 12C 90.
 
 ## CPP-248 — CoarseIsotopePatternGenerator::run gives different bits in different runs of one binary
 
@@ -4508,37 +4508,37 @@ implementation. They do not count as completed Rust functionality.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. The crash is executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85` (C1).
 
-**Status:** Executed (crash); the cause is source-reviewed.
+**Status:** Executed (crash) on the product SDK; the out-of-domain behaviour is executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576` (`../oracle/sne-completion/probes`: 7 of 9 inputs SIGSEGV/SIGABRT, 2 read neighbouring memory); the defined domain is derived in `docs/SIGNAL_TO_NOISE_SUPPORT.md`.
 
 **Affected file/function:** `src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h:191–233`, `computeSTN_`, the `AUTOMAXBYPERCENT` branch.
 
 **Trigger:** `auto_mode = 1` with estimation running, for example PeakPickerHiRes with `signal_to_noise > 0`.
 
-**Issue:** `std::max_element` is called with the comparator `a.getIntensity() > b.getIntensity()` (line 208), so it returns the minimum intensity, not the maximum. `bin_size = maxInt / 100` (211) is then 0 for a spectrum with a zero intensity, and `++histogram_auto[(int)((peak.getIntensity() - 1) / bin_size)]` (216) indexes the 100-bin vector with no bounds check: a quotient far above 99, a negative index for intensities below 1, or a division by zero converted to `int`. An empty container dereferences `end()` (209).
+**Issue:** `std::max_element` is called with the comparator `a.getIntensity() > b.getIntensity()` (line 208), so it returns the minimum intensity, not the maximum. `bin_size = maxInt / 100` (211) is then 0 for a spectrum with a zero intensity, and `++histogram_auto[(int)((peak.getIntensity() - 1) / bin_size)]` (216) indexes the 100-bin vector with no bounds check: a quotient far above 99, a negative index for intensities below 1, or a division by zero converted to `int`. An empty container dereferences `end()` (209). Beyond `INT_MAX` points the `int` counters at `:216` and `:228` can overflow, and `(int)(p * n / 100)` at `:220` is undefined from `2^31` on; the Release build's 32-bit `cvttsd2si` returns `INT_MIN` there and skips the walk (measured at `n = 2^31` and `n = 3,000,000,001`, `../oracle/sne-fix`).
 
 **Proposed C++ fix:** Use `std::max_element` with `<` (or `getIntensity()` less), return early for an empty container, guard `bin_size > 0`, and clamp the bin index to `[0, 99]`.
 
 **Evidence:** C1 (`../oracle/topp-early-bundle`) records PeakPickerHiRes with `auto_mode 1` ending in SIGBUS 138 or SIGSEGV 139, varying between attempts. The P1 oracle case `extra_auto_mode_percentile_sn0` (`../oracle/peak-picker-hires`) shows the mode is accepted when no estimation runs; `tests/data/peak_picking_provenance.json`.
 
-**Rust handling:** `NoiseHistogramRange::Percentile` is a valid parameter; estimation with it returns `Error::Unsupported` (`docs/PEAK_PICKING_SUPPORT.md`, native difference 5).
+**Rust handling:** Computed exactly on the defined domain (no empty container, every quotient in `(-1, 100)`, `int` counters within range) in both profiles; the `:220` `INT_MIN` is reproduced; `Error::Unsupported` names `:209`, `:216`, `:228` or `:365` elsewhere (`docs/SIGNAL_TO_NOISE_SUPPORT.md`).
 
 ## CPP-257 — SignalToNoiseEstimatorMedian converts an unbounded bin quotient to int
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
-**Status:** Source-reviewed. The P1 verifier's `huge_int` case ran on the arm64 oracle, where the conversion saturates.
+**Status:** Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`: 8 `cpp257_*` cases (`../oracle/sne-completion`), including `PeakPickerHiRes::pick`; the 32-bit `cvttsd2si` at `libOpenMS.so` `0x186c5d0`/`0x186c64d` gives `INT_MIN`, which the clamp sends to bin 0.
 
 **Affected file/function:** `src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h:297` and `:308`, `computeSTN_`.
 
-**Trigger:** A manual `max_intensity` small against the data, so that `intensity / bin_size` exceeds `INT_MAX`; for example `max_intensity 1` with intensities above 2^31.
+**Trigger:** A manual `max_intensity` small against the data, so that `intensity / bin_size` exceeds `INT_MAX`; for example `max_intensity 1` with intensities above 2^31; also `auto_max_stdev_factor 0` with `bin_count 1,000,000` and one intensity at `f32(1e12)` among 10,000, and negative intensities, which `PeakPickerHiRes` accepts.
 
-**Issue:** `(int)(intensity / bin_size)` is converted before `std::min<int>` clamps it to the last bin. A `double` outside the `int` range makes the conversion undefined. arm64 saturates to `INT_MAX` (the last bin); x86-64 `cvttsd2si` gives `INT_MIN`, which `std::max(..., 0)` clamps to bin 0, so the same input can land in the first or the last histogram bin depending on the platform. In the automatic modes the quotient stays near `10 * sqrt(n)`.
+**Issue:** `(int)(intensity / bin_size)` is converted before `std::min<int>` clamps it to the last bin. A `double` outside the `int` range makes the conversion undefined. arm64 saturates to `INT_MAX` (the last bin); x86-64 `cvttsd2si` gives `INT_MIN`, which `std::max(..., 0)` clamps to bin 0, so the same input can land in the first or the last histogram bin depending on the platform. The automatic modes reach it too: `auto_max_stdev_factor = 0` with a large `bin_count` (`cpp257_stdev_bins`), and negative intensities, which pull the range down against the largest intensity (`cpp257_neg_factor0`, `cpp257_neg_default`).
 
 **Proposed C++ fix:** Clamp in `double` before converting: `std::min(intensity / bin_size, double(bin_count_minus_1))`, then cast.
 
-**Evidence:** Source review of lines 258, 297 and 308; the P1 verifier's adversarial case against `../oracle/peak-picker-hires` (arm64).
+**Evidence:** Source review of lines 258, 297 and 308; the P1 verifier's adversarial case against `../oracle/peak-picker-hires` (arm64). Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`: the 8 `cpp257_*` cases of `../oracle/sne-completion`, twice each, including `PeakPickerHiRes::pick` (`cpp257_pick_manual`).
 
-**Rust handling:** The port clamps in floating point and selects the last bin, which matches the arm64 oracle; a Linux x86-64 C++ benchmark could differ on such input.
+**Rust handling:** `BinIndexConversion::X86_64Release` (`PickingCompatibility::source()`, the TOPP tools) reproduces bin 0; the native profile's `ClampBeforeTruncation` clamps first (the last bin, arm64's and the parameter description's answer).
 
 ## CPP-258 — PeakPickerHiRes's FWHM bisection can loop forever
 
@@ -4794,7 +4794,7 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-272 — The overall seed score depends on the platform's powf
 
-**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85` (macOS arm64).
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85` (macOS arm64). Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576` as well.
 
 **Status:** Executed.
 
@@ -4802,19 +4802,19 @@ implementation. They do not count as completed Rust functionality.
 
 **Trigger:** Any run; the score feeds `seed:min_score`.
 
-**Issue:** `std::pow(float, float)` calls the C library `powf`, which is not correctly rounded on every platform. On macOS 99 of 30,840 executed overall scores are one binary32 step from the correctly rounded value (12 of 3,084 on FeatureFinderCentroided_1), checked against 60-digit decimal arithmetic. A score next to `seed:min_score` can therefore select or drop a seed depending on the platform.
+**Issue:** `std::pow(float, float)` calls the C library `powf`, which is not correctly rounded on every platform. On macOS 99 of 30,840 executed overall scores are one binary32 step from the correctly rounded value (12 of 3,084 on FeatureFinderCentroided_1), checked against 60-digit decimal arithmetic. A score next to `seed:min_score` can therefore select or drop a seed depending on the platform. The Linux x86_64 Release build binds `powf@GLIBC_2.27` of glibc 2.39 (Ubuntu `2.39-0ubuntu8.9`), whose ifunc selects `__powf_fma` on the AMD EPYC 7763 reference node; it is one binary32 step from the correctly rounded value on 8 of the 30,840 scores (2 of 3,084 on FeatureFinderCentroided_1), other scores than Apple's.
 
 **Proposed C++ fix:** Evaluate the cube root in `double` and round once to `float`.
 
-**Evidence:** C2 `ffap_stages` and `../oracle/b6-ffap-seeds` score arrays; `tests/data/feature_finder_picked/overall_rounding.tsv` lists every difference.
+**Evidence:** C2 `ffap_stages` and `../oracle/b6-ffap-seeds` score arrays on both builds; `tests/data/feature_finder_picked/overall_rounding.tsv` lists the 8 Linux Release differences; `../oracle/ffap-complete-fix1` (`powf_probe` through `dlsym`: the resolved function, a 42x42 special grid, four generated sets of `2^26` pairs, every binary32 base with the exponent `1.0f/3.0f`; `logs/powf_fma_disasm.txt`).
 
-**Rust handling:** `overall_score` uses `libm::pow` in `f64` rounded once to `f32`, the same bits on every machine; no retained seed list changes.
+**Rust handling:** `overall_score` computes the reference build's `powf`: `glibc_powf.rs` ports `__powf_fma` from Arm optimized-routines (MIT), with the FMA fusion and special cases read from the glibc 2.39 disassembly, and equals the executed library on every probed pair (all `2^32` bases with the exponent `1/3` included), so every overall score, the 8 misrounded ones included, is the Release build's on every host (lead decision D5 of wave 5).
 
 ## CPP-273 — write_debug reads an undeclared parameter and throws
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
-**Status:** Source-reviewed.
+**Status:** Executed (Linux x86_64 Release, `bc9cc12-c19e494-174b576`).
 
 **Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:2137`, `writeFeatureDebugInfo_`; the declaration at `:124`.
 
@@ -4824,9 +4824,9 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Read `advanced:pseudo_rt_shift`.
 
-**Evidence:** Source review of both lines.
+**Evidence:** Source review of both lines. `FeatureFinderCentroided -algorithm:write_debug` on FeatureFinderCentroided_1: SIGABRT, shell status 134, in 5 of 5 single-thread runs and 3 of 3 four-thread runs (`../oracle/ffap-instr-completion` tool cases `a4`, `b1`, `c1`). An INI that supplies `algorithm:debug:pseudo_rt_shift` is dropped by the tool (verifier, SIGABRT).
 
-**Rust handling:** Debug output is refused with `Error::Unsupported`.
+**Rust handling:** Ported: `PseudoRtShiftKey::Source` stops with `Error::Unsupported` at that seed, and the tool exits 8 after writing what the executed run wrote. `PseudoRtShiftKey::Declared` reads `advanced:pseudo_rt_shift`. A numeric shift, infinite and NaN included, writes the executed files byte for byte (glibc's `-nan` in the `.plot` formulas).
 
 ## CPP-274 — A single retention time or m/z makes the intensity score undefined
 
@@ -4842,27 +4842,27 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Use one bin per dimension when the range is empty, or reject such input with a message.
 
-**Evidence:** Source review, and since 2026-09-15 executed at algorithm level through `FeatureFinderCentroided`. On `FileFilter_44_input.mzML`, whose four MS1 spectra all sit at RT 0.273, the zero-width retention-time range reaches `run_` before `intensityScore_`: the Debug build dies in an `OPENMS_PRECONDITION` inside `ProgressLogger::init` ("invalid range!", exit 8, C1 case `FFC_FileFilter_44_force`), and the Release build computes non-finite bin bounds and silently writes a featureXML with `<featureList count="0">` (exit 0). Both runs are recorded in `tests/data/topp_feature_finder_centroided_provenance.json` and reproduced by this pass.
+**Evidence:** Executed on the Release build `openms4-release-bc9cc12-c19e494-174b576` (port/ffap-semantics, `../oracle/ffap-sem-completion`): 26 configurations of the driver `degenerate_stage` (every RT equal, every m/z equal, a subnormal and an overflowing RT extent, with the FFC_1 INI, the defaults and `seed:min_score 0`; three repetitions at 1 and 4 threads, identical) and the probe `iscore_probe` (57 positions on four grids). `libOpenMS.so` compiles the conversion as `cvttsd2si` into a 64-bit register, low 32 bits, unsigned `cmovbe` cap, so NaN and infinite positions select half-bin 0; the distances are `0/0` or `inf/inf`, every intensity score is the default NaN `0xfff8000000000000`, no seed is found and the map is empty (exit 0). The same holds for an infinite retention time (`nonfinite_stage`); an infinite m/z makes the step infinite too but ends at step 3.1 (see the Size-conversion entry, CPP-314). `FileFilter_44_input.mzML` holds two MS1 spectra, not four, and is a short input (see CPP-312).
 
-**Rust handling:** `Error::InvalidValue` before anything is computed, which the `FeatureFinderCentroided` wrapper maps to exit 8 with the zero-width-range message. This is a documented divergence from the Release build's empty map, pinned by the `#[ignore]`d `a_zero_width_retention_time_range_diverges_from_the_cpp_release_build`; whether to follow the Release behaviour instead is open for B10.
+**Rust handling:** `DegenerateBinStep::Source` (the default and the tool's) reproduces the Release outcome bit for bit, NaN bits included, on Linux x86_64 and macOS arm64; `DegenerateBinStep::Refuse` returns `Error::InvalidValue` exactly when a step is zero or infinite and the seed loop visits a scan. The wave-5 port therefore no longer diverges here, and the `#[ignore]`d divergence test is gone. See also CPP-312, which is the same conversion reached from a short input.
 
 ## CPP-275 — charge_low above charge_high wraps the charge count
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
-**Status:** Source-reviewed.
+**Status:** Executed (Linux x86_64 Release, `bc9cc12-c19e494-174b576`).
 
 **Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:197`, `run`.
 
-**Trigger:** `isotopic_pattern:charge_low` more than one above `isotopic_pattern:charge_high`.
+**Trigger:** `isotopic_pattern:charge_low` more than one above `isotopic_pattern:charge_high`, or `charge_low` 1 with `charge_high` `INT_MAX`.
 
-**Issue:** `UInt charge_count = charge_high - charge_low + 1` wraps to a huge value, and the float data arrays reserved and indexed per charge are then accessed past their end.
+**Issue:** `UInt charge_count = charge_high - charge_low + 1` wraps for `charge_low > charge_high + 1`, and the `UInt` array count `3 + 2 * charge_count` (`.cpp:196-221`) wraps too, also for the positive count `2^31 - 1`. A count of `-1` or `2^31 - 1` wraps to 1 array and the loop writes arrays 1 and 2 past the end; `-2` and `-3` wrap to `2^32 - 1` and `2^32 - 3` arrays per spectrum, which stay in bounds if the allocation succeeds; `-4` and below wrap to `2^32 + 3 + 2 * count` (at least 9) and the pattern loop writes up to index `2^32 + 2 + count`, past the end.
 
 **Proposed C++ fix:** Validate `charge_low <= charge_high` in `updateMembers_` and throw `InvalidParameter`.
 
-**Evidence:** Source review.
+**Evidence:** `../oracle/ffap-complete-fix3` `fix3_stage`, two runs each: `charge_low`/`charge_high` 4/2, `INT_MAX`/1, `INT_MAX`/498 and 1/`INT_MAX` die with SIGSEGV; 5/2, 6/2, 7/2 and 2/`INT_MAX` (no wrap, `2^32 - 1` arrays) throw `std::bad_alloc`; 3/2 returns an empty map. `../oracle/ffap-complete-fix6` `node/run_wrap.sh`, 20 counts twice each: which of the two happens is decided by the memory the process may have, not by the count. `sizeof(MSSpectrum::FloatDataArray)` is 88 and the array vector's `max_size()` is `(2^63 - 1) / 88`, so `resize` never throws `std::length_error` here; under a 16 GB address space every count up to 40,000,003 arrays (3.3 GiB) dies with SIGSEGV and every count from 80,000,003 (6.6 GiB) throws `std::bad_alloc`, while under a 500 GB one 100,000,003, 166,000,001, 200,000,003 and 1,000,000,003 arrays die instead and only `2^32 - 5` arrays still throw. `../oracle/ffap-complete-min6` `node/run_native_wrap.sh`, the round-6 minors, the same driver binary with no `ulimit -v` at all, twice each: 12,201,611, 12,201,613, 20,000,003, 40,000,003, 80,000,003, 100,000,003, 166,000,001, 200,000,003 and 1,000,000,003 arrays all die with SIGSEGV, so the capped `std::bad_alloc` rows are a property of the cap and not of the reference platform. `node/run_mem.sh` measures what the run holds when it writes past the end: the maximum resident set is 2.88 GiB at 12,201,611 arrays and 21.85 GiB at 100,000,003, about 232 bytes per array, because the pattern loop names and `assign`s every in-bounds array before the first out-of-bounds index; `2^32 - 5` arrays would need about 928 GiB on that model, 93% of the shared reference node's entire memory, and was not run uncapped.
 
-**Rust handling:** `Settings::charge_count` returns `Error::InvalidValue`; `charge_low == charge_high + 1` gives zero charges, as in the source.
+**Rust handling:** `Settings::charge_count` refuses every wrapping count with `Error::InvalidValue`, whatever the `Limits` (the out-of-bounds cases as undefined, `-2` and `-3` before their allocation); counts up to `2^31 - 2` stay behind the native `Limits::max_charges`; `charge_low == charge_high + 1` gives zero charges, as in the source; the counts `-2` and `-3` stay refused unconditionally (lead decision D13 of wave 5); where the source writes out of bounds the run records a `DebugTermination` at `TerminationPoint::ScoreArrays`, as long as the one allocation between the wrap and that write - the first spectrum's `(3 + 2n) mod 2^32` arrays of 88 bytes each - is at most the bytes of 1,000,000,003 arrays (a crate constant, not a `Limits` field, so no caller can move it: lead decision D12) - the largest count measured to die on the reference node with the memory that node has, raised in the round-6 minors from the 1 GiB that round 6 read off runs under the harness's 16 GB address-space cap; above that line the executed outcome depends on the memory the process may have and nothing is recorded, as lead decision D6 has it for the isotope windows (executed: a reused object's `debug/log.txt` is left at the first run's flushed prefix after 4/2, `INT_MAX`/498 and 2141382846/1, and complete after 7/2's `std::bad_alloc`) (`charge_count_wraps_are_refused_whatever_the_limits`, `boundary_cases_match_the_linux_release_build`, `a_wrapped_score_array_count_records_its_termination_up_to_the_documented_ceiling`, `a_reused_instance_leaves_the_executed_log_at_every_later_termination`).
 
 ## CPP-276 — isotopeScore_ stops trying shorter isotope tails after a better fit
 
@@ -5178,15 +5178,17 @@ implementation. They do not count as completed Rust functionality.
 
 **Affected file/function:** `src/openms/source/DATASTRUCTURES/Param.cpp:120-127`, `ParamEntry::isValid`.
 
-**Trigger:** An `INT_VALUE` parameter outside the `int` range, with or without `setMinInt`/`setMaxInt`.
+**Trigger:** An `INT_VALUE` parameter outside the `int` range, with or without `setMinInt`/`setMaxInt`. FeatureFinderAlgorithmPicked reaches it through every integer parameter it declares.
 
 **Issue:** `int tmp = value;` narrows the 64-bit `ParamValue` before the `min_int`/`max_int` comparison, so the check runs on the truncated value: `2^32 + 5` passes `setMinInt(1)` as `5`, and the error message prints the truncated number too.
 
+The same narrowing runs on the reading side: `updateMembers_` reads the members through `ParamValue::operator int` / `operator unsigned int`, which keep the low 32 bits (`ParamValue.cpp:445-461`). The consequences for a FeatureFinderAlgorithmPicked caller, all executed: `intensity:bins = 2^32 + 10` runs with 10 bins (10 features on FFC_1); `2^32` is refused as `'0'` and `2^31` as `'-2147483648'`; `min_spectra_ = (UInt) floor(value * 0.5)` keeps the low 32 bits of `cvttsd2si`, so `2^33 + 22` gives 11 and `2^62 + 30` gives 0. A negative value whose low 32 bits pass the check throws `ConversionError` from `operator unsigned int` either half way through `updateMembers_`, leaving the earlier members updated (`mass_trace:max_missing`, `intensity:bins`), or at the start of `run_` (`fit:max_iterations`).
+
 **Proposed C++ fix:** Compare the 64-bit value, and reject anything outside the `int` range explicitly.
 
-**Evidence:** The executed probe `../oracle/gauss-trace-fitter/param-range` shows `TraceFitter` accepting a `max_iteration` beyond `int`; that parameter carries no restriction, so it shows the acceptance and not the bypass. Source review for the bypass itself.
+**Evidence:** The executed probe `../oracle/gauss-trace-fitter/param-range` shows `TraceFitter` accepting a `max_iteration` beyond `int`; that parameter carries no restriction, so it shows the acceptance and not the bypass. `../oracle/ffap-complete-fix2` `fix2_driver bigint`, 21 cases, two runs each, identical, executes the bypass and every consequence listed above on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
-**Rust handling:** `Param` refuses a value that cannot be converted to `i32` in the restriction check, so `TraceFitterParams::to_param`/`from_param` round-trip only within `i32`; `tests/trace_fitter.rs::to_param_and_from_param_disagree_beyond_i32` pins the difference and must flip when this is fixed.
+**Rust handling:** `Param` refuses a value that cannot be converted to `i32` in the restriction check, so `TraceFitterParams::to_param`/`from_param` round-trip only within `i32`; `tests/trace_fitter.rs::to_param_and_from_param_disagree_beyond_i32` pins the difference and must flip when this is fixed. FeatureFinderAlgorithmPicked is the exception: `algorithm::check_parameters` and `Settings` reproduce all of it with the source's texts, because that header is pinned tier 1 against the Release build. The crate's shared `Param` check keeps its native refusal for every other handler.
 
 ## CPP-294 — TraceFitter documents both RT-span checks backwards and calls maxfev an iteration count
 
@@ -5336,7 +5338,7 @@ implementation. They do not count as completed Rust functionality.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
-**Status:** Source-reviewed; not executed as a race.
+**Status:** Executed.
 
 **Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1129-1140` (`abort_`), called at `:627`, `:640` and `:725` inside the `#pragma omp parallel for` opened at `:595`.
 
@@ -5346,9 +5348,9 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Put both writes in a `critical` section, or accumulate per thread and merge after the loop.
 
-**Evidence:** Source review of the pinned file. The C2 driver records the library's abort map single-threaded only, for this reason.
+**Evidence:** Source review of the pinned file. The C2 driver records the library's abort map single-threaded only, for this reason. Executed: at `OMP_NUM_THREADS=4`, `debug/log.txt` differed in each of three runs (`../oracle/ffap-instr-completion` tool cases `c1`, `c2`). A four-thread run with no seed (`c3`) is defined and equals the single-thread run.
 
-**Rust handling:** The port returns `RunOutput::aborts` from the serial merge of per-seed results, so the counts are deterministic at every thread count (asserted byte-identical at `-threads` 1/2/4/8/0).
+**Rust handling:** The port returns `RunOutput::aborts` from the serial merge of per-seed results, so the counts are deterministic at every thread count (asserted byte-identical at `-threads` 1/2/4/8/0); `abort_reasons_` and the debug log are collected in seed order as well. Giving the single-thread result for this race is the one documented exception to wave 5's undefined-behaviour rule (lead decision D11), because the determinism contract requires parallel output to equal serial output.
 
 ## CPP-303 — MorphologicalFilter leaves the last output sample unwritten for a one-sample element
 
@@ -5543,7 +5545,7 @@ The inconsistency is accidental rather than chosen — it follows from `DPositio
 
 **Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:244-245` in `run_`, with the consequence at `:1837-1838` in `intensityScore_`.
 
-**Trigger:** Any input whose MS1 spectra all share one retention time (or one m/z), for instance the four MS1 spectra of `FileFilter_44_input.mzML`, all at RT 0.273.
+**Trigger:** An input with more than `2 * min_spectra_` MS1 scans whose spectra share one retention time or one m/z; separately, any input with fewer than `2 * min_spectra_` scans.
 
 **Issue:** The intensity-score grid is built with
 
@@ -5552,13 +5554,15 @@ intensity_rt_step_ = (…getMaxRT() - rt_start) / (double)intensity_bins_;
 intensity_mz_step_ = (…getMaxMZ() - mz_start) / (double)intensity_bins_;
 ```
 
-and neither numerator is checked for being zero. With `maxRT == minRT` the step is `0.0`, and `intensityScore_` then evaluates `std::floor((rt - rt_min) / intensity_rt_step_ * 2.0)` = `floor(0.0/0.0)` = `floor(NaN)`, whose conversion to `UInt` is undefined behaviour before `std::min` ever sees it. The two builds diverge on what happens next: the **Debug** build dies in an `OPENMS_PRECONDITION` inside `ProgressLogger::init`, and the **Release** build computes non-finite bin bounds and **silently returns an empty feature map with exit 0**. The silent empty map is the worse of the two, because a caller cannot distinguish it from "this run genuinely has no features".
+and neither numerator is checked for being zero. With `maxRT == minRT` the step is `0.0`, and `intensityScore_` then evaluates `std::floor((rt - rt_min) / intensity_rt_step_ * 2.0)` = `floor(0.0/0.0)` = `floor(NaN)`, whose conversion to `UInt` is undefined behaviour before `std::min` ever sees it. The **Release** build computes non-finite bin bounds and **silently returns an empty feature map with exit 0**, which a caller cannot distinguish from a run without features.
 
-**Proposed C++ fix:** Refuse a zero-width range in either dimension with a stated error, or collapse to a single bin when the range is zero (`intensity_bins_ = 1`) and say so in the log.
+`FileFilter_44_input.mzML` is not an instance of the zero-width case: it holds two MS1 spectra, and with the default `mass_trace:min_spectra 10` (`min_spectra_` 5) the seed loop `min_spectra_ .. n - min(min_spectra_, n)` (`.cpp:297`, `:493`) is empty for every input of at most 10 scans, so its empty map is fixed by its length. Its Debug exit 8 is not the zero-width range either: steps 2 and 3.2 call `startProgress(min_spectra_, n - min(min_spectra_, n))` (`.cpp:297-298`, `:493-494`), e.g. `startProgress(5, 0)`, and `ProgressLogger::startProgress` checks `begin <= end` only with `OPENMS_ASSERTIONS` (`OPENMS_PRECONDITION` at `ProgressLogger.cpp:235`), so a Debug build throws `Exception::Precondition` and exits 8 on every input shorter than `2 * min_spectra_` scans, while a Release build stores the inverted range and returns the empty map; the two build types disagree on the same valid input, and the documented contract ("Sets the progress range from begin to end") does not say which is intended.
 
-**Evidence:** Both runs are recorded in the branch's support document; the Release run is the reference behaviour, as always in this log — never the Debug exit code.
+**Proposed C++ fix:** Refuse a zero-width range in either dimension with a stated error, or collapse to a single bin when the range is zero (`intensity_bins_ = 1`) and say so in the log. For the inverted progress range: skip or clamp the two progress sections when `begin > end`, or make `startProgress`'s check unconditional and document it. Debug and Release should agree.
 
-**Rust handling:** The port refuses the zero-width range rather than returning an empty map with exit 0. That is a deliberate divergence from the Release build and it is pinned, not assumed: `tests/topp_feature_finder_centroided.rs::a_zero_width_retention_time_range_diverges_from_the_cpp_release_build` is `#[ignore]`d with exactly that reason on its attribute, so the divergence is visible in the ignored-test inventory rather than buried.
+**Evidence:** Tool cases `zero_rt`, `zero_mz` (1 and 4 threads, `seed:min_score 0`), `zero_mz_control_min_score_0`, `filefilter_44_force` and `fileconverter_31` executed on the Release `FeatureFinderCentroided` (three repetitions). The **Debug** exit 8 is `FFC_FileFilter_44_force` (`debug_only`, `tests/data/topp_feature_finder_centroided_provenance.json`) - the short-input case, not the zero-width one. The Release range behaviour is `../oracle/progress-logger-release-range/driver.cpp` (`tests/data/progress_logger_release_range.tsv`, 60 calls, 3 identical runs); the FFAP Release event sequence of the short case is `S 5 0` (`../oracle/ffap-instr-completion`, progress `short`). The Release run is the reference behaviour, as always in this log — never the Debug exit code.
+
+**Rust handling:** The tool reproduces the Release outcome (exit 0, the source's lines, an empty map); `ProgressLogger` accepts inverted ranges as the Release build does and FeatureFinderAlgorithmPicked passes them unchanged. The wave-5 port therefore no longer diverges here: `a_short_input_never_reaches_the_seed_loop_as_in_the_cpp_release_build` (no longer `#[ignore]`d), `a_zero_width_retention_time_range_follows_the_cpp_release_build`, `a_zero_width_mz_range_follows_the_cpp_release_build` and `the_progress_event_sequence_matches_the_release_build` pin it. See also CPP-274, the same conversion reached from a degenerate range rather than from a short input.
 
 ## CPP-313 — FeatureXMLHandler caps its feature reservation at 1e5 on a premise current data exceeds
 
@@ -5583,3 +5587,391 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 **Evidence:** Executed: the C++ Release `FileInfo` at core `bc9cc12` reads the 826,019-feature map and the 2.06 GiB benchmark map without complaint, so the premise is false on real data. The cost of the missed reservation was not measured and is not claimed.
 
 **Rust handling:** The port's own ceiling on this path was a different and worse defect — a fixed ~12.5 MB decode limit formed by three limits combined with `min()`, which refused the featureXML the port's own `FeatureFinderCentroided` writes — and it is fixed in this window: `src/format/featurexml_scaling.rs` derives the ceilings from the document's size, and features are streamed rather than retained. Both benchmark maps (59.6 MiB / 42,789 features and 2.06 GiB) now load and round-trip. The source has no ceilings at all, so this port is deliberately stricter and says where. See `docs/FEATUREXML_SCALE_SUPPORT.md`.
+
+## CPP-314 — FeatureFinderAlgorithmPicked converts NaN, infinite and huge doubles to Size without a check
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:357` (the step-2.5 window count) and `:1200`, `getIsotopeDistribution_`.
+
+**Trigger:** An infinite, NaN or very large m/z anywhere in the input, reached through `run`.
+
+**Issue:** Both sites convert a `double` to `Size` with no range check: `Size num_isotopes = std::ceil(max_mass / mass_window_width_) + 1` and `Size index = (Size) std::floor(mass / mass_window_width_)`. The Release build emits `comisd` against `2^63`, then `cvttsd2si`, then `btc` (`libOpenMS.so` `0x18e46f4`, `0x18dddd0`): `+inf` and values of `2^64` and above give 0 windows, so an infinite or `1e300` m/z ends in "the value '12' was used but is not valid; IsotopeDistribution not precalculated. Maximum allowed index is 0"; a NaN m/z asks for window `2^63` ("9223372036854775808"); a count above `vector::max_size()` = 164,703,072,086,692,425 makes `resize` throw `std::length_error` ("vector::_M_default_append"; executed at `2^62 - 512`, `2^62`, 164,703,072,086,692,448 and `1.5*2^63`), and a count at or below it allocates 56 bytes per window (164,703,072,086,692,416 windows: `std::bad_alloc` on the reference node).
+
+**Proposed C++ fix:** Reject non-finite m/z values in `run`, and check the count before converting.
+
+**Evidence:** `nonfinite_stage` cases `mz_posinf_last`, `mz_posinf_spectrum0`, `mz_huge_1e300`, `mz_huge_2p63`, `mz_nan_*`; `sort_mobility_stage` cases `v2_mz_2p64`, `v2_mz_below_2p64`, `v3_mz_count_above_max_size`, `v3_mz_count_below_max_size` (`../oracle/ffap-sem-completion`, `../oracle/ffap-complete-fix2`).
+
+**Rust handling:** `x86_64::truncate_to_u64` reproduces the conversion; above `max_size()` the port returns the `length_error` text (`IsotopeWindows::precalculate_onto`, `LENGTH_ERROR_WHAT`); at or below it `Limits::max_isotope_windows` refuses counts above its ceiling, since the source's outcome there depends on memory (lead decision D6 of wave 5). A debug run has opened `debug/log.txt` and created `debug/features` before either failure and keeps both (executed: `../oracle/ffap-complete-fix2` `lenerr_single` and `lenerr_reuse` at m/z `1e19` and `2e18`). Because `std::length_error` and `std::bad_alloc` are no OpenMS exceptions, `FeatureFinderCentroided` reports them from `TOPPBase`'s outer `std::exception` handler ("Unable to initialize or run FeatureFinderCentroided: vector::_M_default_append" / "std::bad_alloc", exit 12; executed `tool_1e19` and `tool_2e18`); the port's tool does the same for the `length_error` and exits 8 with its own message at its window ceiling.
+
+## CPP-315 — FeatureFinderDefs is defined in two headers, so a translation unit including both does not compile
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Compiled with the Release install's GCC 14.
+
+**Status:** Executed (compile).
+
+**Affected file/function:** `src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h:24-55` and `src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderDefs.h:19-50`.
+
+**Trigger:** Any translation unit that includes both headers.
+
+**Issue:** `FeatureFinderDefs` (with `NoSuccessor`, `IndexPair`, `IndexSet` and `ChargedIndexSet`) is defined in full in both headers, with no include guard shared between them, so including both is a redefinition and the translation unit does not compile.
+
+**Proposed C++ fix:** Delete one definition and include `FeatureFinderDefs.h` from the algorithm header.
+
+**Evidence:** `../oracle/ffap-sem-completion/drivers/defs_both_headers.cpp`: `-fsyntax-only` fails with the Release install's GCC 14.
+
+**Rust handling:** One definition in `src/analysis/feature_finder_picked/defs.rs`, whose `ChargedIndexSet` compares its index sets only, as the source's inherited `std::set` operators do (executed: `../oracle/ffap-complete-fix1/drivers/defs_eq_probe.cpp`).
+
+## CPP-316 — A reused FeatureFinderAlgorithmPicked instance carries four kinds of state into its next run
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1138` (`abort_reasons_`), `:361` and `:378` (`isotope_distributions_`), `:231` (`log_`), `:137`, `:844` and `:1062` (the caller's map).
+
+**Trigger:** Calling `run` twice on one `FeatureFinderAlgorithmPicked` object, or passing a non-empty map.
+
+**Issue:** Four members survive a run and are never cleared.
+
+(a) `abort_reasons_` is never cleared; its only writer is `:1138`. A reused object's abort map reads earlier runs' spectrum and peak indices from the **new** input. Executed: wrong peaks on an input of the same shape, and SIGSEGV on a shorter one (9 of 9), which leaves `debug/log.txt` at the first run's flushed prefix (1,114,578 of 1,118,230 bytes) and the second run's seed maps.
+
+(b) `abort_reasons_` is a `std::map<Seed, std::string>` and `Seed::operator<` compares intensity only, so equally intense seeds collapse into one entry (source-reviewed).
+
+(c) `isotope_distributions_` is never cleared. Step 2.5 resizes the kept windows and appends to them (`:361`, `:378`), so a reused object's second run finds different features on the same input (executed).
+
+(d) `log_` is opened on every debug run and never closed (`:231`). A second debug run of the same object fails to open it and writes no log (executed). The first run's unflushed tail (up to 8,191 bytes) reaches the file only when the object is destroyed, so a process that dies in any later run, with or without `write_debug`, leaves the first run's flushed prefix (executed: 1,163,782 of 1,165,129 bytes after SIGSEGV in the seed loop or at the score arrays, 139,387 of 141,951 after SIGFPE in step 4; the complete log after a return).
+
+(e) `run()` never clears a non-empty caller map (`:137`, `:844`, `:1062`). Old features are resolved against new ones, re-sorted, and re-annotated with the new input's `spectrum_index` and native id (executed).
+
+**Proposed C++ fix:** Clear all four at the start of `run`, and document whether a non-empty output map is appended to or replaced. For (b), give `Seed` a total order.
+
+**Evidence:** `../oracle/ffap-instr-completion` (reuse of one object over three runs, `stale scaled` and `stale oob`), `../oracle/ffap-complete-fix4` `fix4_reuse` (four reuse scenarios) and `../oracle/ffap-complete-fix5` reuse cases; every case run twice and identical but for the abort map's unique id.
+
+**Rust handling:** (a) is refused at that read (`debug::abort_map`) with a `DebugTermination` (`TerminationPoint::AbortMap`, `TerminationKind::OutOfBounds`) whose `log_file_bytes` is that prefix. (c), (d) and (e) are reproduced: the instance keeps its isotope windows, its never-closed stream's counts (`FeatureFinderAlgorithmPicked::debug_log_file`, and every termination reports that length through `DebugTermination::log_file_bytes`) and the caller's features. (b) follows from the ported `Seed::is_less_intense_than`.
+
+## CPP-317 — FeatureFinderAlgorithmPicked's step 4 computes a charge remainder without a zero check
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:936` and `:945`, the overlap resolution in `run`.
+
+**Trigger:** A caller's feature with charge 0 (the featureXML default) in a mixed-charge overlap, or the pair `INT_MIN` and `-1`.
+
+**Issue:** `f2.getCharge() % f1.getCharge()` and `f1.getCharge() % f2.getCharge()` are evaluated with no zero check and no `INT_MIN`/`-1` check. A charge-0 feature traps (executed: SIGFPE in every repetition), and so does `INT_MIN % -1` (SIGFPE, 2 of 2). A debug run leaves `debug/log.txt` at the flushed prefix (1,163,782 bytes, the pair's `Intersection` line still buffered), the seed map and the feature files, and no abort map or input.
+
+**Proposed C++ fix:** Skip the pair when either charge is 0, and guard the `INT_MIN`/`-1` case.
+
+**Evidence:** `../oracle/ffap-instr-completion` (runs into caller maps, 11 prefilled and 5 overlapping features) and `../oracle/ffap-complete-fix5`; the `INT_MIN % -1` case is the round-1 verifier's, SIGFPE 2 of 2.
+
+**Rust handling:** Refused at that pair (`resolution::resolve_overlaps`) with a `DebugTermination` (`TerminationPoint::OverlapResolution`, `TerminationKind::ArithmeticTrap`) for runs with and without `write_debug`.
+
+## CPP-318 — DefaultParamHandler::setParameters assigns param_ before checkDefaults throws
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/DATASTRUCTURES/DefaultParamHandler.cpp`, `setParameters`, reached from every `DefaultParamHandler` subclass.
+
+**Trigger:** Any `setParameters` call whose value fails a restriction.
+
+**Issue:** `param_` is assigned before `checkDefaults` throws, so after a refused call `getParameters()` returns the **refused** set while the typed members keep their old values. A caller that catches the exception and reads the parameters back sees a state the object never used.
+
+**Proposed C++ fix:** Validate into a local `Param` and assign only after `checkDefaults` returns.
+
+**Evidence:** Executed through FeatureFinderAlgorithmPicked (`../oracle/ffap-instr-completion`, the parameter surface including a refused set).
+
+**Rust handling:** The port's `set_parameters` reports the error and leaves the typed settings as the source leaves them; the observable state after a refused call is pinned for FeatureFinderAlgorithmPicked.
+
+## CPP-319 — ParamValue::operator double() returns the union's double member for a string or list value
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/DATASTRUCTURES/ParamValue.cpp:397-408`, `operator double()`; reached from `FeatureFinderAlgorithmPicked.cpp`, `writeFeatureDebugInfo_`.
+
+**Trigger:** Reading a `STRING_VALUE` or any list-valued parameter as a `double`, for example `advanced:pseudo_rt_shift` given as a string.
+
+**Issue:** `operator double()` throws only for `EMPTY_VALUE` and converts `INT_VALUE`; for `STRING_VALUE` and the three list types it falls through to `return data_.dou_;`. For a `STRING_VALUE` the live union member is a `std::string*`, so this reinterprets a heap pointer's bit pattern as a `double` (`movsd 0x8(%rdi)` in `libOpenMS.so`). `writeFeatureDebugInfo_` then writes address-dependent numbers near RT 0 into the debug `.dta` files, so one run's debug output cannot be compared with another's. This is the same defect CPP-058 and CPP-141 record for `DataValue`'s floating conversions, in the other value class; `ParamValue` is a separate file with its own copy of it, and this is the first entry with an executed, address-dependent consequence.
+
+**Proposed C++ fix:** Give `operator double()`, `operator float()` and `operator long double()` the type guard their integer siblings already have.
+
+**Evidence:** `../oracle/ffap-instr-completion` `ffap_shift_band_driver`: 3 processes wrote 3 different `0.dta` files at RT 0, `1e-295` and `1e-300`, and identical files at `5e-275` and `1e-289` (75 files each for a string shift, a list shift, and a string shift with a scan at RT `5e-275` and at `1e-289`).
+
+**Rust handling:** The port's debug writer reproduces every shift the value of which is reproducible, and the address-dependent band is refused, not invented: `RejectedParameters::Shown` is the default and the heap-address bound is scoped to the reference platform (lead decision D8 of wave 5). The 304 non-finite shift files outside that band are byte for byte.
+
+## CPP-320 — The debug comment at FeatureFinderAlgorithmPicked.cpp:1047 names the wrong erased array
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed (the effect), source-reviewed (the comment).
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1047`, `run`.
+
+**Trigger:** `write_debug` enabled.
+
+**Issue:** The comment reads "store input map with calculated scores (without overall score)", but the loop erases float data array 2, which is `local_max` (`.cpp:202`), not an overall score. The written `debug/input.mzML` therefore keeps every overall-score array and loses `local_max`. A reader who trusts the comment reads the wrong array names. Documentation defect; no numeric consequence.
+
+**Proposed C++ fix:** Erase the intended array, or fix the comment to say `local_max`.
+
+**Evidence:** The executed `debug/input.mzML` array names (`../oracle/ffap-instr-completion`, tool cases `a1`-`a3`, byte-identical to the port's).
+
+**Rust handling:** The port writes the same arrays as the executed build, so `debug/input.mzML` is byte for byte; the port's own comment names `local_max`.
+
+## CPP-321 — FeatureFinderAlgorithmPicked's step 1 silently drops scans with a non-finite drift time
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:261` with `MSExperiment::areaBeginConst` (`MSExperiment.cpp:562-571`) and `AreaIterator::nextScan_` (`AreaIterator.h:277-298`).
+
+**Trigger:** A scan whose drift time is NaN or `+-inf`.
+
+**Issue:** `areaBeginConst` sets the mobility range to `RangeMobility{}.getNonEmptyRange()` = `[lowest, max]`, and `nextScan_` skips every scan whose drift time the range does not contain - which is every non-finite one. Such a scan's intensities are left out of **every** intensity quantile, while its peaks are still scored against those quantiles and can become seeds. Nothing is reported.
+
+**Proposed C++ fix:** Iterate without a mobility filter in step 1, or refuse non-finite drift times in `run`.
+
+**Evidence:** `../oracle/ffap-complete-fix1` (`nonfinite_stage_dt`, two runs each, identical): a NaN, `+inf` or `-inf` drift time on scan 50 removes its intensities from the FFC_1 quantiles (8 features); sixteen NaN drift times change them further; every drift time NaN leaves every cell empty and finds 10 features instead of 8; `f64::MAX`, `f64::MIN` and finite drift times keep the scan (`v2_dt_*`, `v3_dt_*`).
+
+**Rust handling:** `IntensityThresholds::compute` applies the same filter (`RangeBase::contains` on the full range); the mzML reader refuses non-finite drift times, so only library callers reach it.
+
+## CPP-322 — FeatureFinderAlgorithmPicked dereferences an empty best isotope pattern when feature:min_isotope_fit is 0
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:614-625` and `extendMassTraces_` (`:1347-1349`).
+
+**Trigger:** `feature:min_isotope_fit` 0 - inside its valid range `[0, 1]` - and a seed for which `findBestIsotopeFit_` finds no placement.
+
+**Issue:** `findBestIsotopeFit_` returns 0 and leaves `best_pattern` empty; `0 < min_isotope_fit_` is false, so the seed is not aborted, and `extendMassTraces_` reads `pattern.spectrum[0]` and `map_[...][pattern.peak[0]]` of empty vectors: an out-of-bounds read. The same read with a non-empty pattern whose first matched isotope has no peak reads `map_[spectrum][size_t(-1)]`, heap metadata just before a spectrum's peaks; that sub-case was never observed (6,076 refusals of a 19,200-run grid were all empty patterns) and its executed outcome is unknown.
+
+**Proposed C++ fix:** Abort the seed when the pattern is empty, or give the parameter a positive minimum.
+
+**Evidence:** `../oracle/ffap-complete-fix3` (two runs each): the stage cases `g_avg_trace0`, `g_iso0_seed0`, `p_ipo_100_seed0_iso0` and `p_ipo_nan_seed0_iso0` die with SIGSEGV (a gdb backtrace in `../oracle/ffc-numerics-v2` shows the fault in `extendMassTraces_` under `run_`), `g_avg_trace0_iso_tiny` (bound `1e-300`) returns 14 features; the negative-intensity library runs `neg_oob1`, `neg_oob_seed035` and `neg_none_avg0` die with SIGSEGV with and without `write_debug` and leave a debug log truncated at the file buffer; `FeatureFinderCentroided` case `avg0` dies with SIGSEGV, having written its console lines only up to the FAIMS line.
+
+**Rust handling:** Refused at that read (`extension::EMPTY_PATTERN_WHAT`), both sub-cases; a debug run keeps the seed's log lines, and every run (since round 5 also without `write_debug`) records an `OutOfBounds` termination (its SIGSEGV label is established for the empty pattern), and the tool writes only the flushed log and exits 8.
+
+## CPP-323 — Heavy averagine windows are silently empty
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:365-424` with `CoarseIsotopePatternGenerator::estimateFromPeptideWeight` and `IsotopeDistribution::renormalize`/`trimLeft`/`trimRight`.
+
+**Trigger:** An averagine window centre from about 273,770 Da on (executed between 273,769.5 Da, which keeps one bin, and 273,770.5 Da, the first empty window at width 1; at width 100 window 2738, centre 273,850 Da, is the first empty one and windows up to 2737 keep a single bin).
+
+**Issue:** All 20 binary32 bins of the estimate underflow to zero. `renormalize` divides zero by the zero sum, so every weight is NaN; `trimLeft` erases nothing and `trimRight` everything, so the window is empty with maximum 0 and every peak of such a mass scores 0, without a message.
+
+**Proposed C++ fix:** Compute the averagine in `double` or in log space, or report the mass limit.
+
+**Evidence:** `../oracle/ffap-complete-fix3`, `u_*` cases (m/z 136,850.5 to `1e6` at charge 2, charge 1000 on the first 20 scans; two runs each): the runs return (8, 13 and 0 features), with m/z 136,850 (no such window) and 100,000 as controls; `../oracle/ffap-complete-fix4` `vw_*` cases (isotope windows printed at widths 1, 7.3, 100 and 200 across the boundary).
+
+**Rust handling:** The crate-private `CoarseIsotopePatternGenerator::estimate_from_peptide_weight_source` reports the case, and step 2.5 empties the window as the source does; the public generator functions keep their error.
+
+## CPP-324 — A NaN isotopic_pattern:intensity_percentage_optional is accepted and empties every isotope window
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/DATASTRUCTURES/Param.cpp`, `ParamEntry::isValid` (both range comparisons are false for NaN), and `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:372-374`.
+
+**Trigger:** `isotopic_pattern:intensity_percentage_optional` set to NaN; the other `double` parameters accept NaN the same way.
+
+**Issue:** `trimLeft(NaN)` erases nothing and `trimRight(NaN)` erases everything, so every isotope window is empty and the run finds no seed and no feature, silently.
+
+**Proposed C++ fix:** Reject NaN in `isValid`.
+
+**Evidence:** `../oracle/ffap-complete-fix3` `p_ipo_nan`, `p_ipo_nan_min0`, `p_ipo_nan_seeds`, `p_ipo_nan_seeds_min0`, `p_ipo_nan_bins3`, `p_ipo_nan_egh` (0 features each, two runs).
+
+**Rust handling:** Step 2.5 applies the source's comparisons for a NaN cutoff (empty windows); the shared `IsotopeDistribution` trims keep refusing a NaN cutoff for their other callers.
+
+## CPP-325 — An unsorted input with a mis-sized data array leaves the caller's map partly sorted
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1081-1086`, `run`; `MSExperiment::sortSpectra` and `sortChromatograms` (`MSExperiment.cpp:791-822`); `MSSpectrum::sort` and `MSChromatogram::sort` (`checkDataArraySizes_`).
+
+**Trigger:** An unsorted input in which some spectrum's non-empty data array differs in length from its peaks.
+
+**Issue:** `run` takes the map by rvalue reference and sorts it in place. `sortSpectra` reorders all spectra and sorts the peaks of the earlier unsorted ones before `MSSpectrum::sort` throws `Exception::Precondition` for the first such spectrum **in retention-time order** (then chromatograms), so the caller's object is left half-sorted; and which spectrum is reported depends on `std::sort`'s order of equal retention times.
+
+**Proposed C++ fix:** Check every data array before sorting anything.
+
+**Evidence:** `../oracle/ffap-complete-fix3` `a_*` cases (two runs each): "FloatDataArray[0] size (25) does not match spectrum size (24)" for the spectrum that sorts first, not the first in input order; string and integer variants; an empty array 0 before a mis-sized array 1; "does not match chromatogram size (5)"; sorted spectra and exact arrays run through.
+
+**Rust handling:** The same order and text (`Error::InvalidValue`); `run` consumes the experiment, so the partial sort is not observable.
+
+## CPP-326 — FeatureFinderAlgorithmPicked's step-1 progress range wraps modulo 2^32
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:241`, `startProgress(0, intensity_bins_ * intensity_bins_, ...)`.
+
+**Trigger:** `intensity:bins` at or above 65,536.
+
+**Issue:** The product of two `UInt` values wraps modulo `2^32`, so 65,536 bins announce the range `[0, 0]` and 100,000 bins `[0, 1410065408]`, while `setProgress` then reports `Size` values up to `bins^2`. Cosmetic: the progress display is wrong, the computation is not.
+
+**Proposed C++ fix:** Multiply in `Size`.
+
+**Evidence:** `../oracle/ffap-complete-fix3` `fix3_driver progress`, nine `bins` values including `2^32 + 65,536` (narrowed to 65,536), two runs each.
+
+**Rust handling:** The same wrapped start event (`seeds::step_one_progress`, crate-private). This is an in-bounds wrap, so lead decision D12 of wave 5 has the port reproduce it rather than refuse it.
+
+## CPP-327 — Large retention times silently give features of infinite width and intensity
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:742` (`f.setWidth(fitter->getFWHM())`) and `:790` (`f.setIntensity(fitter->getArea() / ...max)`), which narrow `double` to `float`.
+
+**Trigger:** Finite but large retention times. On FeatureFinderCentroided_1 with every retention time scaled, the first infinite width appears at a scale of `6e36` (1 of 9 features; 3 of 9 at `8e36`, 7 of 9 at `1e37`, all from `1.5e37`; none at `4e36`), and every intensity is infinite from `1e36` on (finite at `1e33`).
+
+**Issue:** The fitted sigma passes about `1.44e38` and the `float` FWHM overflows. The run returns features with an infinite width, FWHM meta value and intensity, and `FeatureFinderCentroided` writes `inf` into the featureXML, without a message.
+
+**Proposed C++ fix:** Check the fitted width and area against the `float` range, or store them as `double`.
+
+**Evidence:** `../oracle/ffap-complete-fix4` (two runs each, identical): stage cases `vy_rt_1e33` (finite), `vy_rt_1e36` (finite widths, infinite intensities), `vy_rt_1e37` (7 of 9 widths infinite), `vy_rt_1e38` to `vy_rt_1e150` (all), Gaussian and EGH, `vx_rt_1e150` to `vx_rt_1e300`; `../oracle/ffap-complete-fix5` `run_onset.sh` (`nb_rt_2e36` to `nb_rt_5e37` and three jittered `1e37` inputs); the Release `FeatureFinderCentroided` on FFC_1 with every scan start time written as `ve36` or `ve39`: exit 0, featureXML with `<intensity>inf</intensity>` and FWHM `inf`.
+
+**Rust handling:** FeatureFinderAlgorithmPicked stores the same values (the width field, the crate-private `MetaValue::source_float`), bit for bit; `BaseFeature::validate` and the featureXML writer refuse such features, so the port's `FeatureFinderCentroided` exits 3 without an output file (TOPP native difference 16, `infinite_feature_values_are_refused_by_the_featurexml_writer`). Whether the writer should follow the C++ build and write `inf` is a separate, recorded task.
+
+## CPP-328 — A trace of zero intensities terminates FeatureFinderAlgorithmPicked
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `intensityScore_` (`src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1913-1937`), `extendMassTrace_` (`:1535`), `MassTrace::getAvgMZ` and `getIsotopeDistribution_` at `:790`, inside step 3.3's OpenMP region.
+
+**Trigger:** Peaks of intensity zero in intensity cells whose quantiles are zero (for example one m/z band of an input zeroed), `feature:reported_mz` `maximum` or `monoisotopic`, and thresholds that let such a feature through.
+
+**Issue:** The zero peak's intensity score is `0 / 0 = NaN`, which passes the `< 0.01` test, so the zero peaks form a trace. Its average m/z is `0 / 0`, and `getIsotopeDistribution_(NaN)` converts the NaN to index `2^63` and throws `Exception::InvalidValue` ("the value '9223372036854775808' was used but is not valid; IsotopeDistribution not precalculated. Maximum allowed index is 15"), which leaves the OpenMP region, so `std::terminate` kills the process (SIGABRT, OpenMS's fatal-exception block on stdout). With `reported_mz average` the other traces keep the sum finite and the run returns.
+
+**Proposed C++ fix:** Score a zero intensity as zero, skip traces without intensity, check the reported m/z, and catch exceptions inside the parallel region.
+
+**Evidence:** `../oracle/ffap-complete-fix5` `run_band.sh`, 16 cases twice each, identical (with and without `write_debug`: 12 SIGABRT, 2 returns with `reported_mz average`, 2 SIGSEGV of the empty best pattern at `feature:min_isotope_fit` 0); the debug runs leave the flushed log prefix, the seed map and the feature files of every plot up to the terminating seed's, whose `.plot` prints the all-zero trace's m/z as `-nan`.
+
+**Rust handling:** Refused at that seed with a `DebugTermination` (`TerminationKind::Exception`, the executed `what()` as its message) after the seed's log lines and feature files, all equal to the executed ones (`a_step_3_3_5_termination_keeps_what_the_executed_process_had_written`); `MassTrace::avg_mz` follows the Release build's SSE NaN rules, so the `-nan` is printed on every host.
+
+## CPP-329 — SignalToNoiseEstimatorMedian leaves its percentage members uninitialised and operator= keeps stale ones
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Source-reviewed.
+
+**Affected file/function:** `src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h:434-436` and `:80-143`.
+
+**Trigger:** Calling `getSparseWindowPercent()` or `getHistogramRightmostPercent()` before `init`, or assigning one estimator to another.
+
+**Issue:** Neither constructor sets `sparse_window_percent_` or `histogram_oob_percent_`; `updateMembers_` does not set them and the copy constructor does not copy them, so both getters read an indeterminate `double` before `init`. `operator=` clears `stn_estimates_` but keeps the target's old percentages, so a reused estimator reports the previous input's diagnostics.
+
+**Proposed C++ fix:** Initialise both to 0, and copy or reset them in the copy constructor and `operator=`.
+
+**Evidence:** Source review of the pinned header. Precedent: CPP-289, the same class of defect in `GaussTraceFitter`.
+
+**Rust handling:** The port's `NoiseEstimates` is stateless: both percentages are returned with the estimates of the run that computed them, so there is nothing to read early or to carry over.
+
+## CPP-330 — SignalToNoiseEstimatorMedian's empty-median-bin fallback is dead code and its comment is wrong
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Source-reviewed, with a proof in `docs/SIGNAL_TO_NOISE_SUPPORT.md`.
+
+**Affected file/function:** `src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h:350-353`.
+
+**Trigger:** Never; the branch is unreachable.
+
+**Issue:** The `else` branch is commented "only possible if the rightmost bin was hit while empty (already flagged above)". The bin counts sum to `elements_in_window`, which is at least `(elements_in_window + 1) / 2`, so the median walk always stops in a non-empty bin and the branch cannot be reached. The comment describes a state the code cannot be in.
+
+**Proposed C++ fix:** Delete the branch, or turn it into an assertion and fix the comment.
+
+**Evidence:** Source review of the pinned header; the counting argument is written out in `docs/SIGNAL_TO_NOISE_SUPPORT.md`.
+
+**Rust handling:** Not ported as a branch; the port's median walk carries the same invariant and the proof is recorded beside it.
+
+## CPP-331 — SignalToNoiseEstimatorMedian divides zero by zero for an empty container
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h:373-374` in every mode, and `SignalToNoiseEstimator.h:127` in `AUTOMAXBYSTDEV`.
+
+**Trigger:** `init` on an empty container.
+
+**Issue:** `window_count` is 0, so `sparse_window_percent_ = sparse_window_percent_ * 100 / window_count` and the `histogram_oob_percent_` line are `0 / 0`; both percentages become NaN (`0xfff8000000000000`), as does `max_intensity_` in mode 0. No error is reported.
+
+**Proposed C++ fix:** Return early for an empty container, or report 0 percent.
+
+**Evidence:** Executed on the Release build: cases `empty_stdev`, `empty_manual`, `empty_stdev_chrom` and `progress_empty` (`../oracle/sne-completion`).
+
+**Rust handling:** `NoiseCompatibility::nan_for_empty_input` reproduces the NaN bit pattern under `PickingCompatibility::source()`; the native profile reports the empty input instead.
+
+## CPP-332 — estimateNoiseFromRandomScans ignores its ms_level filter and can read out of bounds
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.cpp:21-53`.
+
+**Trigger:** Any call; the out-of-bounds read needs a percentile of exactly 100, an empty drawn scan, or a percentile outside `[0, 100]`.
+
+**Issue:** Four defects in one function. `:44` reads `exp[scan]`, not `exp[spec_indices[scan]]`, so the drawn spectrum can have any MS level and can be empty, and `:50` then reads `tmp[0]` of an empty vector. `:42` scales by `(spec_indices.size() - 1)`, so the last candidate is never drawn. A percentile of exactly 100 reads `tmp[size()]` at `:50`. And `Size idx = tmp.size() * percentile / 100.0` at `:48` is an unchecked `double`-to-`unsigned long` conversion, after which `tmp.begin() + idx` and `tmp[idx]` both compute `_M_start + 4*idx mod 2^64` (`lea (%r12,%rcx,4),%r15`, scale 4, wraps) - undefined pointer arithmetic, in bounds or not depending on the value. The seed is `time(nullptr)`, so no run is reproducible.
+
+**Proposed C++ fix:** Index through `spec_indices`, scale by `size()`, clamp the percentile and the index, and take the seed as a parameter.
+
+**Evidence:** 47 in-domain cases executed on the Release build with the seed set through an interposed `time()` (`../oracle/sne-completion`); `../oracle/sne-followup` pins the in-bounds wrap in 10 cases (twice each, byte-identically); an empty drawn scan and an ordinary negative percentile read out of bounds (the `-50%` probe read mapped heap 8,192 bytes before the buffer, twice).
+
+**Rust handling:** `estimate_noise_from_random_scans` / `RandomScanNoise` takes an explicit seed and reproduces libstdc++'s `minstd_rand0`, `generate_canonical<double,53>` and GCC 14.4.0's `nth_element` bit for bit, together with the `exp[scan]` indexing, the `(size()-1)` scaling and the `:48` conversion. The pointer wrap is reproduced where it stays in bounds (the element used is `e = idx mod 2^62`) and refused exactly when `e >= size` (`Error::Unsupported`), which is where the source reads out of bounds.
+
+## CPP-333 — SignalToNoiseEstimatorMedian's int counters overflow beyond INT_MAX points
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. The `:220` conversion is executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Source-reviewed, with the `:220` path executed.
+
+**Affected file/function:** `src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h:123` (the point count) and `SignalToNoiseEstimatorMedian.h:216` (the histogram counts), `:220` (`(int)` of `p*n/100`), `:228` (`elements_seen`), `:310`/`:324` (`elements_in_window`) and `:365` (`window_count`).
+
+**Trigger:** A container with more than `INT_MAX` points, or a window that holds that many.
+
+**Issue:** Every one of these counters is an `int` counting points. Past `2^31` they overflow, which is undefined for a signed type; `(int)(auto_max_percentile_ * c.size() / 100)` at `:220` is an undefined `double`-to-`int` conversion from `2^31` on, where the Release build's 32-bit `cvttsd2si` returns `INT_MIN` and the median walk is skipped entirely.
+
+**Proposed C++ fix:** Use `size_t` or `SignedSize` for all of them.
+
+**Evidence:** Source review of the pinned header, with `:220` executed at `n = 2^31` and `n = 3,000,000,001` (`../oracle/sne-fix`, five AUTOMAXBYPERCENT cases, each needing 64-90 GB).
+
+**Rust handling:** `:220`'s `INT_MIN` is reproduced. The signed-overflow sites stay refused with `Error::Unsupported` naming the line, as a stated cost/benefit decision of the lead: each needs more than `2^31` points per spectrum and 64-90 GB per evidence run. `docs/SIGNAL_TO_NOISE_SUPPORT.md` records that, and the beyond-`INT_MAX` full-path evidence lives outside CI in `../oracle/sne-fix/harness`; unit tests pin the helpers at `n = 2^31`.
+
+## CPP-334 — Param accepts NaN for a bounded double
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/DATASTRUCTURES/Param.cpp:146`, `ParamEntry::isValid`.
+
+**Trigger:** Setting any `DOUBLE_VALUE` parameter that carries `setMinFloat`/`setMaxFloat` to NaN.
+
+**Issue:** The check is `tmp < min_float || tmp > max_float`. Both comparisons are false for NaN, so NaN passes every bounded restriction. `SignalToNoiseEstimatorMedian` then runs with `win_len = NaN` or `auto_max_stdev_factor = NaN`, and FeatureFinderAlgorithmPicked with a NaN `isotopic_pattern:intensity_percentage_optional` (CPP-324); the restriction the parameter declares is simply not enforced.
+
+**Proposed C++ fix:** Reject a non-finite value explicitly before the range comparison.
+
+**Evidence:** Executed on the Release build: the `win_nan` case (`../oracle/sne-completion`), and the `p_ipo_nan*` cases of `../oracle/ffap-complete-fix3` for the FeatureFinderAlgorithmPicked path.
+
+**Rust handling:** `NoiseCompatibility::source_value_domain` accepts NaN where the source does, under `PickingCompatibility::source()`; the native profile refuses it. FeatureFinderAlgorithmPicked applies the source's comparisons in its own module (see CPP-324), and the crate's shared `Param` check keeps its native refusal for every other handler.
