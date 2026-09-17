@@ -3,6 +3,8 @@
 The OpenMS-derived implementation is BSD-3-Clause, as reproduced below.
 The private decoy random helper's bounded-integer mapping additionally retains the Boost Software License
 1.0 and its original author notices; its component terms are reproduced below.
+The picked feature finder's `powf`, `exp` and `log` (`src/analysis/feature_finder_picked/glibc_powf.rs` and `glibc_libm.rs`) are ported from Arm's optimized-routines, whose code is licensed MIT OR Apache-2.0 WITH LLVM-exception and used here under MIT; its notice is reproduced below and in the files.
+
 The feature-overlap quadtree is derived from Pierre Vigier's MIT-licensed Quadtree
 library; its notice is reproduced below.
 The embedded OpenMS Rust Modification Table includes transformed UniMod
@@ -307,6 +309,54 @@ DEALINGS IN THE SOFTWARE.
 
 The unchanged license text is available from the
 [Boost license page](https://www.boost.org/LICENSE_1_0.txt).
+
+## Arm optimized-routines powf, exp and log: MIT
+
+`src/analysis/feature_finder_picked/glibc_powf.rs` and
+`src/analysis/feature_finder_picked/glibc_libm.rs` port the algorithms and tables of
+Arm's optimized-routines — `math/powf.c`, `math/powf_log2_data.c` and
+`math/exp2f_data.c` (master `7f9a4894`), and `math/exp.c`, `math/exp_data.c`,
+`math/log.c` and `math/log_data.c` (master `5288c42d`) — which are the same numerics
+as musl's `src/math/powf.c`, `src/math/exp.c` and `src/math/log.c`. They reproduce the
+reference build's GNU C Library 2.39 `__powf_fma`, `__ieee754_exp_fma` and
+`__ieee754_log_fma` bit for bit. **No GNU C Library (LGPL) text was used**: only the
+FMA contraction and the special cases were read from that library's disassembly, and
+the code itself comes from the MIT-licensed upstream.
+
+Arm's optimized-routines is licensed `MIT OR Apache-2.0 WITH LLVM-exception`; this
+port takes it under MIT. The repository's `LICENSE` line reads
+"Copyright (c) 1999-2022, Arm Limited."; the `powf` files carry
+"Copyright (c) 2017-2018, Arm Limited." and the `exp` and `log` files
+"Copyright (c) 2018-2025, Arm Limited.". The permission notice, as reproduced in the
+file headers of both Rust modules, is:
+
+```text
+Copyright (c) 1999-2022, Arm Limited.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+`EGHTraceFitter`'s `atan` is **not** ported: the reference build's `__atan_fma` is the
+IBM Accurate Mathematical Library's algorithm, which inside the GNU C Library is
+LGPL-only and has no MIT, Apache or fdlibm-style upstream. That one function falls back
+to the host's `atan` on x86_64 Linux with the GNU C Library and to the `libm` crate's
+elsewhere; see `docs/THIRD_PARTY_CRATE_DECISIONS.md`.
 
 ## Feature overlap quadtree: Pierre Vigier MIT
 

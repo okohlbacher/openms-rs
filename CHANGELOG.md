@@ -2,6 +2,175 @@
 
 ## Unreleased
 
+- Integrated the wave-5 completion of `FeatureFinderAlgorithmPicked` and of both
+  noise estimators (2026-09-17), recorded in `docs/VALIDATION.md` and measured in
+  `docs/BENCHMARKS.md` §4. Three header promotions: `FEATUREFINDER/FeatureFinderAlgorithmPicked.h`,
+  `PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h` and
+  `PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h` all move from `partial` to
+  `complete` (review state: complete 60 -> 63, partial 62 -> 59).
+  - `FeatureFinderAlgorithmPicked`: a reusable instance (caller maps, accumulated
+    aborts, parameter surface, progress logging) and `write_debug` output, including
+    `writeFeatureDebugInfo_`; `FeatureFinderCentroided` writes `debug/` as the C++
+    Release build does (`port/ffap-instrumentation`).
+  - `FeatureFinderAlgorithmPicked` follows the Linux x86_64 Release build on degenerate
+    intensity bins, short inputs and non-finite input (infinite and NaN values are read,
+    not refused), ports `FeatureFinderDefs`, and pins the intended abundance override and
+    the re-baselined seed and feature stages against that build (`port/ffap-semantics`).
+  - `ProgressLogger`: inverted progress ranges (`begin > end`) are accepted, as in the
+    Linux Release build. The source's `begin <= end` check is a Debug-only
+    `OPENMS_PRECONDITION`, so the port no longer refuses them. The command backend prints
+    the Release invalid-value diagnostic for every value. The Release `StopWatch` refusals
+    and the native label/depth bounds are kept. New executed Release differential:
+    `tests/data/progress_logger_release_range.tsv`. `FeatureFinderAlgorithmPicked` passes
+    its inverted ranges unchanged.
+  - `FeatureFinderAlgorithmPicked` (`port/ffap-complete` fix round 1): every `std::sort`
+    and `std::stable_sort` the algorithm reaches (spectra, chromatograms and their peaks,
+    step-1 cells, user seeds, seeds, feature map) now leaves the Linux x86_64 Release
+    build's order, NaN and equal keys included (new `source_sort::source_stable_sort_permutation`
+    and `TemporaryBuffer`); the overall seed score is the reference build's glibc 2.39
+    `powf`, ported from Arm optimized-routines (8 of 30,840 retained scores change by one
+    binary32 step to the executed value); step 1 skips scans with a NaN or infinite drift
+    time, as the source's area iterator does; step 2.5 returns `std::length_error`'s text
+    above `vector::max_size()` (new `seeds::SOURCE_MAX_WINDOWS`, `LENGTH_ERROR_WHAT`,
+    `IsotopeWindows::source_count`); `trace_fitter::stream_number` and the debug `.plot`
+    files print glibc's `-nan`.
+  - `FeatureFinderAlgorithmPicked` (fix round 2): a debug run that fails before the seed
+    loop keeps its `debug/log.txt` line and `debug/features`, as the C++ Release build
+    does; `FeatureFinderCentroided` exits 12 (`INTERNAL_ERROR`) with the source's
+    `Unable to initialize or run` line for the step-2.5 `std::length_error`; 64-bit integer
+    parameters are narrowed and converted as the source does, with its `InvalidParameter`
+    and `ConversionError` texts (new `algorithm::check_parameters`, `NEGATIVE_UNSIGNED_WHAT`);
+    the gnuplot formulas of both trace fitters print x86_64's NaN sign for every NaN their
+    own arithmetic creates or passes on, on every host; `source_sort::source_sort_permutation`
+    no longer panics on a comparator that is not a strict weak ordering (new
+    `seeds::is_length_error`).
+  - `FeatureFinderAlgorithmPicked` (fix round 3): `GaussTraceFitter` and `EGHTraceFitter`
+    compute `exp` and `log` as the reference build's GNU C Library 2.39 does (ported from
+    Arm optimized-routines), so every fit is the Linux x86_64 Release build's on every
+    platform; step 2.5 follows the source past averagine windows whose binary32 bins all
+    underflow and past a NaN `isotopic_pattern:intensity_percentage_optional` (empty
+    windows instead of an error); an empty best isotope pattern (`feature:min_isotope_fit`
+    0), where the C++ build crashes, is refused with the seed's debug lines and a recorded
+    termination (new `debug::TerminationKind`); every wrapping `charge_low`/`charge_high`
+    count is refused whatever the limits, and the step-1 progress range wraps as the C++
+    `UInt` product does; the correlations divide by a zero denominator as
+    `Math::pearsonCorrelationCoefficient` does; an unsorted input with a mis-sized data
+    array reports the source's `Exception::Precondition` text for the spectrum the source
+    reports.
+  - `FeatureFinderAlgorithmPicked` (fix round 4): features keep the FWHM, fit scores and
+    EGH parameters the source stores, infinite or negative ones included (an infinite width
+    follows from large retention times, from a scale of `6e36` on FeatureFinderCentroided_1,
+    as in the C++ Release build), instead of failing the run; `EGHTraceFitter`'s area uses
+    the host's `atan` only on x86_64 Linux with the GNU C Library.
+  - `FeatureFinderAlgorithmPicked` (fix round 5): every refusal where the C++ process ends
+    records a `DebugTermination`, also outside the seed loop (step 4's charge-0 remainder, a
+    stale abort seed, a wrapped score-array count) and for runs without `write_debug`
+    (`FeatureFinderAlgorithmPicked::termination`), with the length at which the executed
+    process leaves `debug/log.txt`, which for a reused instance is the flushed part of the
+    earlier debug run that opened the never-closed stream (`DebugTermination::log_file_bytes`,
+    `FeatureFinderAlgorithmPicked::debug_log_file`); the step-3.3.5 termination of a trace of
+    zero intensities is reproduced with its debug output; `MassTrace::avg_mz` and
+    `MassTraces::intensity_profile` follow the C++ Release build's SSE NaN rules.
+  - `FeatureFinderAlgorithmPicked` (fix round 6, corrected by its minors): a wrapped
+    score-array count records where the C++ process ends for every count whose arrays before
+    the out-of-bounds write are at most the bytes of 1,000,000,003 arrays, instead of for
+    those within the port's own charge limit — that is the largest count measured to die on
+    the reference node with the memory it has, and the line is a documented constant that no
+    caller can move; a debug run stopped by the port's own `Limits::max_debug_bytes` ceiling
+    keeps the opened `debug/log.txt` and `debug/features`, as the C++ build leaves them;
+    `MassTraces::update_baseline` promotes its `float` intensities with the C++ Release
+    build's `cvtss2sd`, as `MassTrace::avg_mz` and `MassTraces::intensity_profile` do.
+  - `FeatureFinderAlgorithmPicked` (the round-6 minors): the score-array recording line is
+    the largest wrapped count measured to die on the reference platform with no
+    address-space cap (1,000,000,003 arrays), where fix round 6 had read 1 GiB off runs
+    under the oracle harness's 16 GB cap; `MassTraces::update_baseline`'s `cvtss2sd`
+    promotion is pinned against 90 executed baselines instead of one `is_nan()` bool
+    (`tests/data/feature_finder_picked_helper_structs_update_baseline.tsv`).
+  - `SignalToNoiseEstimatorMedian` and `SignalToNoiseEstimator` are complete
+    (`port/signal-to-noise`). The additions: `AUTOMAXBYPERCENT` on its defined domain; the
+    Release build's CPP-257 binning under `PickingCompatibility::source()`; the three
+    warnings in `NoiseEstimates::log`; optional progress reporting; the
+    `SignalToNoiseEstimator` trait; and `estimate_noise_from_random_scans` with an explicit
+    seed and GCC's `nth_element`. `estimateNoiseFromRandomScans` reproduces the Release
+    build's in-bounds pointer wrap at `:49-50` (`e = idx mod 2^62`), and returns
+    `Error::Unsupported` only when that element is out of bounds.
+  - Performance note: on a default x86-64 baseline build the completed
+    `FeatureFinderAlgorithmPicked` costs **21 % at one thread** against main, because each
+    `f64::mul_add` of the ported glibc `powf`/`exp`/`log` becomes two indirect calls.
+    Building with `-C target-feature=+fma` removes it (0.715x, and 1.055x the C++ Release
+    build at one thread, 0.894x at 32) with **bitwise-identical output**. **No build
+    configuration was changed**: the flag question is open with the user
+    (`docs/BENCHMARKS.md` §4.5).
+  - Breaking (source-level), round 1:
+    - `feature_finder_picked::algorithm::Options` gained `degenerate_bin_step`,
+      `pseudo_rt_shift` and `rejected_parameters`;
+    - `Limits` gained `max_debug_bytes`;
+    - `RunOutput` gained `debug`;
+    - `resolution::annotate_apex` no longer returns `Error::UnsortedData` (it follows
+      libstdc++ `lower_bound` on any key order);
+    - fitting errors of the seed loop now fail the run instead of becoming abort reasons;
+    - mzml `ReadOptions` gained `source_nonfinite_float_arrays`;
+    - `defs::ChargedIndexSet`'s `==` (and the new `Ord`) compare the index sets only, not
+      the charge;
+    - `validate_input`, `SeedStage::run` and `IntensityThresholds::compute` no longer refuse
+      NaN sort keys;
+    - `FeatureFinderAlgorithmPicked::seeds()` returns the seeds sorted by m/z after a run;
+    - `seeds::overall_score` returns the Release build's `powf` value.
+  - Breaking (source-level), round 2:
+    - `Settings::from_parameters` and `FeatureFinderAlgorithmPicked::set_parameters` accept
+      64-bit integer values whose low 32 bits pass the restriction, and refuse with the
+      source's texts;
+    - a failed `set_parameters` may leave `settings()` partly updated, as the source's
+      `updateMembers_` does;
+    - `FeatureFinderAlgorithmPicked::run` reports a negative `fit:max_iterations` before
+      sorting the user seeds;
+    - `fitting::build_feature`'s step-3.3.5 message changed;
+    - FeatureFinderCentroided's exit code for the step-2.5 `length_error` is 12 instead of 8.
+  - Breaking (source-level), round 3:
+    - `debug::DebugTermination` gained `kind` (new enum `TerminationKind`), and a seed-loop
+      refusal at an empty best pattern or a NaN profile merge now records a termination;
+    - `Settings::charge_count` refuses `charge_low` 1 with `charge_high` `INT_MAX` whatever
+      the limits, with new texts for every wrapping count;
+    - `validate_input` and `run` report a mis-sized data array of an unsorted input with the
+      source's `Precondition` text, for the spectrum the source reports (formerly the
+      kernel's text for the first in input order);
+    - `IsotopeWindows::precalculate` and `precalculate_onto` no longer fail when every
+      binary32 bin of a window underflows or the optional cutoff is NaN;
+    - fitted values of both trace fitters change in their last bits on hosts whose C library
+      is not glibc 2.39, and the EGH fitter's on every host (the `libm` crate's `exp` and
+      `log` are no longer used);
+    - the crop and quality correlations can be infinite where they were NaN (0).
+  - Breaking (source-level), round 4:
+    - `fitting::build_feature`, `FeatureFinderAlgorithmPicked::run` and
+      `algorithm::feature_stage` no longer fail on a non-finite or negative FWHM or a
+      non-finite `score_fit`, `score_correlation` or `EGH_*` value; the returned `Feature`
+      may hold them, and `BaseFeature::validate` and the featureXML writer refuse it;
+    - `debug::seed_map` no longer checks its scores for finiteness (a seed's scores are
+      always finite; the values are stored as `setMetaValue(float)` stores them);
+    - on aarch64 (and other non-x86_64) Linux with the GNU C Library the EGH area now uses
+      the `libm` crate's `atan`, as on macOS.
+  - Breaking (source-level), round 5:
+    - `debug::DebugTermination` replaced its fields `charge`, `seed_index` and `plot_nr`
+      with `point` (new enum `debug::TerminationPoint`, whose `Seed` variant holds them) and
+      gained `log_file_bytes`;
+    - `debug::TerminationKind` gained `ArithmeticTrap`;
+    - `DebugOutput::termination` is filled after the run completes it, and a step-4,
+      abort-map or score-array refusal now records a termination;
+    - `MassTrace::avg_mz` and `MassTraces::intensity_profile` return x86_64's NaN bits (a
+      negative default NaN for `0 / 0`) on every host; finite values are unchanged.
+  - Breaking (source-level), round 6:
+    - `FeatureFinderAlgorithmPicked::termination` (and `DebugOutput::termination`) record a
+      `ScoreArrays` termination for every wrapping count whose first-spectrum arrays are at
+      most the bytes of 1,000,000,003 arrays and for no other; the bound no longer moves
+      with `Limits::max_charges`;
+    - a debug run that stops at `Limits::max_debug_bytes` leaves `debug_output()` `Some`
+      (the opened stream, an empty log) where it was `None`;
+    - `MassTraces::update_baseline` returns x86_64's NaN bits for a NaN intensity on every
+      host; finite values are unchanged.
+  - Breaking (source-level), signal-to-noise:
+    - `PickingCompatibility` gained the public field `noise: NoiseCompatibility`, so struct
+      literals outside the crate need `..Default::default()`.
+
 - Integrated the wave-4 performance and correctness work (2026-09-16): the
   parallel peak picker, the rewritten mzML reader, the spline scratch buffers,
   the removal of a dead validation loop, and five tool fixes, recorded in
