@@ -38,7 +38,8 @@
 //!   1e-9, `tau` on the scale of `sigma` only where `tau` is rounding noise.
 //!
 //! NaN matches NaN whatever its sign or payload. The Rust results are the same
-//! on every platform, apart from the area's `atan` on a host without glibc and
+//! on every platform, apart from the area's `atan` on a host other than x86_64
+//! Linux with glibc and
 //! the sign of a NaN the solver creates: `exp` and `log` are the Linux x86_64
 //! Release build's glibc functions, ported in pure Rust (lead decision D10),
 //! and Rust never contracts floating-point operations. The oracles here ran on

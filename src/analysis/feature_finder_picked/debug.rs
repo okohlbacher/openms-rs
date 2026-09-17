@@ -391,8 +391,13 @@ pub enum TerminationKind {
     /// A C++ exception leaves the seed loop's OpenMP region, where nothing
     /// catches it, and `std::terminate` aborts the process (SIGABRT).
     Exception,
-    /// The source reads or writes out of bounds and the executed build dies
-    /// with SIGSEGV; the port refuses there (lead decision D1).
+    /// The source reads or writes out of bounds; the port refuses there
+    /// (lead decision D1). The executed build dies with SIGSEGV where the
+    /// best isotope pattern of `extendMassTraces_` is empty, which every
+    /// executed crash had. The other sub-case of the same read, a non-empty
+    /// pattern whose first isotope has no peak, reads heap metadata just
+    /// before a spectrum's peaks; it was never observed and its executed
+    /// outcome is unknown, but it is recorded the same way.
     OutOfBounds,
     /// The source never returns (the endless profile merge of `CPP-242`), so
     /// only a caller's timeout ends the process; the port refuses there.
@@ -414,7 +419,8 @@ pub struct DebugTermination {
     pub kind: TerminationKind,
     /// For [`TerminationKind::Exception`], the C++ exception class that
     /// escapes the OpenMP region; `SIGSEGV` for
-    /// [`TerminationKind::OutOfBounds`]; empty for
+    /// [`TerminationKind::OutOfBounds`] (established for an empty best
+    /// pattern; see there); empty for
     /// [`TerminationKind::NeverReturns`].
     pub exception: &'static str,
     /// For [`TerminationKind::Exception`], its `what()` text, as the executed
@@ -563,9 +569,10 @@ impl AbortReasons {
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] when a seed does not address a peak or a
-/// score is missing, which a seed of the run cannot cause, and when a score is
-/// not finite, which the native meta values cannot hold; a seed's scores are
-/// finite because its overall score reached the seed threshold.
+/// score is missing, which a seed of the run cannot cause. A non-finite score
+/// is stored as the source stores it (an infinite pattern score, which a zero
+/// correlation denominator gives, makes an infinite overall score that passes
+/// the seed threshold); the featureXML writer refuses such a map.
 pub fn seed_map(
     experiment: &MSExperiment,
     scores: &ScoreArrays,
@@ -598,7 +605,7 @@ pub fn seed_map(
         ] {
             feature
                 .metadata
-                .insert(key.into(), MetaValue::try_from(f64::from(value))?);
+                .insert(key.into(), MetaValue::source_float(x86_64::widen(value)));
         }
         features.push(feature);
     }

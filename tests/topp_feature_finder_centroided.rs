@@ -1249,6 +1249,115 @@ fn derive_mz(source: &[u8], first: Option<f64>) -> Vec<u8> {
     derived
 }
 
+/// FeatureFinderCentroided_1's input with every `scan start time` value `v`
+/// written as `v` followed by `suffix` (`e36` or `e39`): the retention times
+/// scaled by that power of ten in the text (oracle inputs `rt_e36.mzML` and
+/// `rt_e39.mzML` of `../oracle/ffap-complete-fix4/node/run_tool.sh`).
+fn derive_rt_suffix(source: &[u8], suffix: &str) -> Vec<u8> {
+    const MARKER: &[u8] = br#"name="scan start time" value=""#;
+    let mut out = Vec::with_capacity(source.len() + SPECTRA * suffix.len());
+    let mut rest = source;
+    let mut replaced = 0;
+    while let Some(at) = find(rest, MARKER) {
+        let value_start = at + MARKER.len();
+        let end = value_start
+            + rest[value_start..]
+                .iter()
+                .position(|byte| *byte == b'"')
+                .unwrap();
+        out.extend_from_slice(&rest[..end]);
+        out.extend_from_slice(suffix.as_bytes());
+        rest = &rest[end..];
+        replaced += 1;
+    }
+    out.extend_from_slice(rest);
+    assert_eq!(replaced, SPECTRA);
+    let expected = match suffix {
+        "e36" => "baadf62aa5ef060d07c8cf010b768da00adf376c",
+        "e39" => "f2acc3a566d722abadf685851c953dd8229c18e7",
+        other => panic!("{other}"),
+    };
+    assert_digest(&out, expected, suffix);
+    out
+}
+
+/// **Features of infinite width and intensity cannot be written** (native
+/// difference 16), measured against the C++ Release build
+/// (`../oracle/ffap-complete-fix4`, cases `rt_e36`, `rt_e39` and
+/// `rt_e39_egh`, two runs each, identical apart from the timing lines;
+/// `rt_scaled_release.tsv`).
+///
+/// With every retention time of FeatureFinderCentroided_1 scaled by `1e36`
+/// the fitted features' `float` intensities overflow, and with `1e39` their
+/// widths too; the Release tool prints its usual lines, exits 0 and writes
+/// `<intensity>inf</intensity>` and `FWHM` `inf` into the featureXML. The
+/// algorithm port computes the same features (`vy_rt_*` of
+/// `extended_cases_match_the_linux_release_build` in
+/// `tests/feature_finder_picked.rs`) and this tool prints the same lines, but
+/// the native featureXML writer refuses a non-finite feature value, so the
+/// tool exits 3 without an output file.
+#[test]
+fn infinite_feature_values_are_refused_by_the_featurexml_writer() {
+    let source = fs::read(ffc1_input()).unwrap();
+    let release = fs::read_to_string(fixture("rt_scaled_release.tsv")).unwrap();
+    let ini = text(ffc1_ini());
+    for (case, suffix, extra) in [
+        ("rt_e36", "e36", &[][..]),
+        ("rt_e39", "e39", &[][..]),
+        (
+            "rt_e39_egh",
+            "e39",
+            &["-algorithm:feature:rt_shape", "asymmetric"][..],
+        ),
+    ] {
+        let rows: Vec<Vec<&str>> = release
+            .lines()
+            .skip(1)
+            .map(|line| line.split('\t').collect())
+            .filter(|row: &Vec<&str>| row[0] == case)
+            .collect();
+        assert_eq!(rows[0][1], "0", "{case}: the Release tool exits 0");
+        let count: usize = rows[0][2].parse().unwrap();
+        let intensities: Vec<&str> = rows
+            .iter()
+            .filter(|row| row[3] == "intensity")
+            .map(|row| row[4])
+            .collect();
+        assert_eq!(intensities.len(), count, "{case}");
+        assert!(intensities.iter().all(|value| *value == "inf"), "{case}");
+        let widths: Vec<&str> = rows
+            .iter()
+            .filter(|row| row[3] == "FWHM")
+            .map(|row| row[4])
+            .collect();
+        assert_eq!(widths.len(), count, "{case}");
+        assert_eq!(
+            widths.iter().all(|value| *value == "inf"),
+            suffix == "e39",
+            "{case}: {widths:?}"
+        );
+        let block: Vec<&str> = rows
+            .iter()
+            .filter(|row| row[3] == "stdout")
+            .map(|row| row[4])
+            .collect();
+
+        let dir = Workdir::new();
+        let input = dir.put(
+            &format!("rt_{suffix}.mzML"),
+            &derive_rt_suffix(&source, suffix),
+        );
+        let out = dir.file(&format!("{case}.tmp.featureXML"));
+        let mut args = vec!["-test", "-ini", &ini, "-in", &input, "-out", &out];
+        args.extend_from_slice(extra);
+        let outcome = run_in(&dir, &args);
+        assert_out_block(&outcome, &block);
+        outcome.assert_exit(ExitCode::InputFileCorrupt);
+        outcome.assert_err_contains("nonfinite feature value");
+        assert!(!Path::new(&out).exists(), "{case}: no output file");
+    }
+}
+
 /// **A zero retention-time extent that reaches the seed loop**, measured
 /// against the C++ Release build (`../oracle/ffap-sem-completion` cases
 /// `zero_rt`, `zero_rt_threads4` and `zero_rt_min_score_0`, three repetitions

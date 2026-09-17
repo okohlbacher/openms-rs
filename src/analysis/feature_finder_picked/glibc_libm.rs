@@ -93,19 +93,35 @@
 //! LGPL inside the GNU C Library; there is no MIT, Apache or fdlibm-style
 //! upstream of the same algorithm (Arm optimized-routines has no scalar
 //! double `atan`, and musl, fdlibm and CORE-MATH implement other algorithms).
-//! Lead decision D10's fallback therefore applies: on Linux with the GNU C
-//! Library, [`atan`] calls the host's `atan` ([`f64::atan`]), which on x86_64
-//! with GNU C Library 2.39 and an FMA CPU is the reference build's function,
-//! so the result is exact there (the port harness replays every `atan` input
-//! of the probe on kim). Elsewhere it calls the `libm` crate's `atan`
-//! (FreeBSD's `s_atan.c`), which gives the same value on every such host and
-//! agrees with the reference slightly more often than Apple's: of the 848
-//! special and generated `atan` inputs whose results the probe printed, the
-//! `libm` crate misrounds 6 and Apple's `atan` 9 (`atan-check`); a NaN
-//! argument returns `x + x`, as `__atan_fma` does. There the departure is a
-//! measured maximum over the listed fixtures, not a guarantee (see
-//! `docs/EGH_TRACE_FITTER_SUPPORT.md`). Only `EGHTraceFitter::getArea` calls
-//! it, so only the intensity of an asymmetric feature depends on it.
+//! Lead decision D10's fallback therefore applies: on x86_64 Linux with the
+//! GNU C Library, [`atan`] calls the host's `atan` ([`f64::atan`]). That is
+//! the reference build's function, and the result exact, only where the
+//! host's library selects `__atan_fma`: GNU C Library 2.39 on a CPU with FMA,
+//! as on the reference node (the port harness replays every `atan` input of
+//! the probe on kim). Another GNU C Library version, or a CPU without FMA,
+//! whose resolver selects another variant, is not measured. Everywhere else
+//! (macOS, Windows, other architectures, other C libraries) it calls the
+//! `libm` crate's `atan` (FreeBSD's `s_atan.c`), which gives the same value on
+//! every such host; a NaN argument returns `x + x`, as `__atan_fma` does.
+//!
+//! How far that fallback departs from `__atan_fma`, measured by the round-3
+//! verifier (`../oracle/ffc-numerics-v3`, `results/harness/node.txt`, `2^28`
+//! inputs per set): it differs on 16,584,995 inputs `x` in `[0, 10]` (6.2 %),
+//! on 4,174,993 inputs with `|x|` in `[2^-14, 2^15)` (1.6 %) and on 59,108
+//! random bit patterns (0.02 %). Neither is correctly rounded: on 20,000
+//! inputs of each of the first two ranges the reference misrounds 13 and 7,
+//! the `libm` crate 1,219 and 324 (80-digit decimal check,
+//! `extract/atan_rounding.py`), so a correctly rounded `atan` would depart
+//! from the reference about 90 times less often, but it is still not the
+//! reference algorithm and would need a new dependency. Only
+//! `EGHTraceFitter::getArea` calls `atan`. The feature intensity is that area
+//! divided by the window maximum and narrowed to `float`
+//! (`FeatureFinderAlgorithmPicked.cpp:790`), which hides nearly every
+//! last-bit difference: 59 executed EGH runs with 697 features were bit for
+//! bit on macOS arm64, and so are this crate's fixtures (see
+//! `docs/EGH_TRACE_FITTER_SUPPORT.md`). The `double` area itself still
+//! differs for a few percent of fits on such hosts, so the bound is a
+//! measured maximum over the listed fixtures, not a guarantee.
 //!
 //! # `sqrt`
 //!
@@ -757,17 +773,18 @@ fn log_near_one(x: f64, ix: u64) -> f64 {
     poly.mul_add(r3, lo) + hi
 }
 
-/// The arc tangent of `x`: the host's on Linux with the GNU C Library (module
-/// documentation: the reference build's `__atan_fma` has no licence-clean
-/// upstream).
-#[cfg(all(target_os = "linux", target_env = "gnu"))]
+/// The arc tangent of `x`: the host's on x86_64 Linux with the GNU C Library
+/// (module documentation: the reference build's `__atan_fma` has no
+/// licence-clean upstream; exact where the host selects it).
+#[cfg(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64"))]
 pub(crate) fn atan(x: f64) -> f64 {
     x.atan()
 }
 
-/// The arc tangent of `x`: the `libm` crate's where the host is not the GNU C
-/// Library, with `__atan_fma`'s `x + x` for a NaN (module documentation).
-#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
+/// The arc tangent of `x`: the `libm` crate's where the host is not x86_64
+/// Linux with the GNU C Library, with `__atan_fma`'s `x + x` for a NaN (module
+/// documentation).
+#[cfg(not(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64")))]
 pub(crate) fn atan(x: f64) -> f64 {
     if x.is_nan() {
         x86_64::add(x, x)
@@ -797,9 +814,20 @@ mod tests {
         u64::from_str_radix(text, 16).unwrap()
     }
 
-    /// Whether this host's `atan` is the reference's candidate (module
-    /// documentation); elsewhere [`atan`] is the documented fallback.
-    const ATAN_IS_GLIBC: bool = cfg!(all(target_os = "linux", target_env = "gnu"));
+    /// Whether [`atan`] is the host's and the host can select `__atan_fma`
+    /// (x86_64 Linux with the GNU C Library, on a CPU with FMA; module
+    /// documentation). Elsewhere [`atan`] is the documented fallback, which
+    /// is not the reference.
+    fn atan_is_reference() -> bool {
+        #[cfg(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64"))]
+        {
+            std::arch::is_x86_feature_detected!("fma")
+        }
+        #[cfg(not(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64")))]
+        {
+            false
+        }
+    }
 
     fn splitmix64(state: &mut u64) -> u64 {
         *state = state.wrapping_add(0x9e37_79b9_7f4a_7c15);
@@ -867,7 +895,8 @@ mod tests {
     }
 
     /// Every special value through `exp`, `log` and `atan`: bit for bit, NaN
-    /// bits included (`atan` only where it is the host's glibc).
+    /// bits included (`atan` only where it is the reference's, see
+    /// `atan_is_reference`).
     #[test]
     fn special_values_match_the_executed_library() {
         let mut compared = 0;
@@ -878,7 +907,7 @@ mod tests {
             let actual = match fields[1] {
                 "exp" => exp(x),
                 "log" => log(x),
-                "atan" if ATAN_IS_GLIBC || x.is_nan() => atan(x),
+                "atan" if atan_is_reference() || x.is_nan() => atan(x),
                 "atan" => continue,
                 other => panic!("{other}"),
             };
@@ -917,7 +946,7 @@ mod tests {
         }
         assert_eq!(rows.len(), 13);
         for (&set, expected) in &rows {
-            if set >= 30 && !ATAN_IS_GLIBC {
+            if set >= 30 && !atan_is_reference() {
                 continue;
             }
             let f = function(set);

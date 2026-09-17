@@ -207,12 +207,24 @@ fitters) where it writes those meta values.
    `__atan_fma`, the IBM Accurate Mathematical Library's algorithm, which is
    licensed only under the LGPL inside glibc; no MIT, Apache or fdlibm-style
    upstream of it exists, so D10's fallback applies: the host's `atan` on
-   Linux with the GNU C Library (exact on the reference platform; the port
-   harness replays every probed `atan` input on kim), and the `libm` crate's
-   `atan` elsewhere, which rounds 6 of 848 probed inputs differently from
-   glibc (Apple's rounds 9 differently). There the area's last bit is not
-   guaranteed: over the fixtures of `tests/feature_finder_picked.rs` it moved
-   no EGH intensity on macOS arm64, a measured maximum, not a guarantee. The
+   x86_64 Linux with the GNU C Library (exact where that library selects
+   `__atan_fma`, glibc 2.39 on a CPU with FMA as on the reference node; the
+   port harness replays every probed `atan` input on kim; other glibc
+   versions and CPUs are not measured), and the `libm` crate's `atan`
+   elsewhere. The crate's `atan` differs from `__atan_fma` on 16,584,995 of
+   `2^28` arguments in `[0, 10]` (6.2 %), on 4,174,993 of `2^28` with `|x|`
+   in `[2^-14, 2^15)` (1.6 %) and on 59,108 of `2^28` random bit patterns
+   (0.02 %; the round-3 verifier's harness, `../oracle/ffc-numerics-v3`).
+   Neither is correctly rounded: of 20,000 arguments in each of the first two
+   ranges the reference misrounds 13 and 7, the crate 1,219 and 324 (80-digit
+   decimal check, re-run in fix round 4), so a correctly rounded `atan` would
+   depart from the reference about 90 times less often, though it is still
+   not the reference algorithm. There the `double` area's last bits are not
+   guaranteed and differ for a few percent of fits. The feature intensity,
+   `getArea() / max` narrowed to `float`, hides nearly all of that: over the
+   fixtures of `tests/feature_finder_picked.rs`, and in 59 further executed
+   EGH runs with 697 features, it moved no EGH intensity on macOS arm64, a
+   measured maximum, not a guarantee. The
    start point, the bounds and the FWHM follow the operand order of the
    Release build's SSE instructions.
    - Until fix round 3 of port/ffap-complete this module called the `libm`

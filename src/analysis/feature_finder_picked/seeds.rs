@@ -145,8 +145,10 @@ impl IsotopeWindows {
     ///
     /// A window whose 20 binary32 bins all underflow is not an error: the
     /// source's `renormalize` makes its weights NaN, its `trimRight` empties
-    /// the window, and so does this (executed from a peptide mass of 273,850 Da
-    /// on, `u_*` cases of `../oracle/ffap-complete-fix3`). A NaN
+    /// the window, and so does this (executed from an averagine mass between
+    /// 273,769.5 and 273,770.5 Da on, the windows just below keeping a single
+    /// bin: `u_*` cases of `../oracle/ffap-complete-fix3`, `vw_*` of
+    /// `../oracle/ffap-complete-fix4`). A NaN
     /// `intensity_percentage_optional` empties every window the same way.
     pub fn precalculate(max_mz: f64, settings: &Settings, options: &Options) -> Result<Self> {
         Self::precalculate_onto(None, max_mz, settings, options)

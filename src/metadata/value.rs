@@ -64,6 +64,8 @@ pub enum UnitOntology {
 
 /// Source DataValue alternatives. Floating alternatives must be finite when
 /// passed to [`MetaValue::new`]; stored values cannot subsequently be mutated.
+/// A crate port that reproduces a source storing a non-finite value creates
+/// it without that check, and [`MetaValue::validate`] reports it.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub enum MetaValueData {
     #[default]
@@ -115,6 +117,21 @@ impl MetaValue {
         let value = Self { data, unit: None };
         value.validate()?;
         Ok(value)
+    }
+    /// A floating scalar stored as a ported source algorithm stores it,
+    /// without the finite check of [`MetaValue::new`] and `TryFrom<f64>`.
+    ///
+    /// Only for crate ports whose executed source stores a non-finite value
+    /// in a `DataValue` and whose callers can observe it
+    /// (`FeatureFinderAlgorithmPicked`'s `FWHM`, `score_fit`,
+    /// `score_correlation` and `EGH_*` meta values). [`MetaValue::validate`]
+    /// still reports such a value, so every checked consumer (writers,
+    /// merges) refuses it as before.
+    pub(crate) fn source_float(value: f64) -> Self {
+        Self {
+            data: MetaValueData::Float(value),
+            unit: None,
+        }
     }
     pub fn data(&self) -> &MetaValueData {
         &self.data

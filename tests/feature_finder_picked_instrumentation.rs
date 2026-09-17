@@ -295,9 +295,10 @@ fn dump_param(parameters: &Param) -> String {
 const BIT_FOR_BIT: f64 = 0.0;
 
 /// The relative bound of a differing fitted token of `case`: [`BIT_FOR_BIT`],
-/// except the intensity (`int=`) of the asymmetric case on a host without the
-/// GNU C Library, whose EGH area calls the `libm` crate's `atan` instead of
-/// the reference's (D10's fallback; [`EGH_ATAN_GAP`]).
+/// except the intensity (`int=`) of the asymmetric case on a host other than
+/// x86_64 Linux with the GNU C Library, whose EGH area calls the `libm`
+/// crate's `atan` instead of the reference's (D10's fallback;
+/// [`EGH_ATAN_GAP`]).
 fn fit_bound(case: &str, token: &str) -> f64 {
     if case == "egh" && token.starts_with("int=") {
         EGH_ATAN_GAP
@@ -306,14 +307,20 @@ fn fit_bound(case: &str, token: &str) -> f64 {
     }
 }
 
-/// The EGH intensity bound: exact with glibc's `atan`.
-#[cfg(all(target_os = "linux", target_env = "gnu"))]
+/// The EGH intensity bound: exact with the host's `atan` on x86_64 Linux with
+/// the GNU C Library, which is the reference's `__atan_fma` where the host
+/// library selects it (GNU C Library 2.39 on a CPU with FMA, as on the
+/// reference node and the gate hosts; other versions and CPUs are not
+/// measured).
+#[cfg(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64"))]
 const EGH_ATAN_GAP: f64 = BIT_FOR_BIT;
 
 /// The EGH intensity bound elsewhere: the largest relative departure measured
 /// over these cases on macOS arm64 with the `libm` crate's `atan`, a measured
-/// maximum, not a guarantee.
-#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
+/// maximum, not a guarantee (the crate's `atan` itself differs from the
+/// reference for 1.6 to 6.2 % of arguments in the fits' range; the `float`
+/// intensity hides nearly all of it).
+#[cfg(not(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64")))]
 const EGH_ATAN_GAP: f64 = 0.0;
 
 /// Whether a dump token holds a fitted value, compared within [`fit_bound`];
@@ -2376,6 +2383,142 @@ fn a_seed_loop_crash_keeps_what_the_executed_process_had_written() {
             produced += 2;
             if let Some(cropped) = &files.cropped_dta {
                 assert_executed_bytes(case, &name(files.cropped_dta_name()), cropped.as_bytes());
+                produced += 1;
+            }
+            plot_nrs.insert(files.plot_nr);
+        }
+        let expected = digests
+            .keys()
+            .filter(|(c, file)| c == case && file.starts_with("features/"))
+            .count();
+        assert_eq!(produced, expected, "{case}: feature files");
+        assert_eq!(plot_nrs.len(), plots, "{case}: plots");
+        assert_eq!(plot_nrs.last().copied(), Some(plots as i64 - 1), "{case}");
+    }
+}
+
+/// Executed file sizes and SHA-1 digests, by case and file name.
+type FileDigests = BTreeMap<(String, String), (usize, String)>;
+
+/// The executed digests of `never_returns_digests.tsv`, by case and file,
+/// and each case's exit status.
+fn never_returns_digests() -> (FileDigests, BTreeMap<String, String>) {
+    let mut files = BTreeMap::new();
+    let mut statuses = BTreeMap::new();
+    for line in fixture("never_returns_digests.tsv").lines().skip(1) {
+        let fields: Vec<&str> = line.split('\t').collect();
+        if fields[1] == "status" {
+            statuses.insert(fields[0].to_owned(), fields[3].to_owned());
+        } else {
+            files.insert(
+                (fields[0].to_owned(), fields[1].to_owned()),
+                (fields[2].parse().unwrap(), fields[3].to_owned()),
+            );
+        }
+    }
+    (files, statuses)
+}
+
+/// Executed `fix4_vfi` runs (`../oracle/ffap-complete-fix4`, the round-3
+/// instrumentation verifier's `vfi3_driver`, two runs each, identical;
+/// `never_returns_digests.tsv`): FeatureFinderCentroided_1 with the retention
+/// time of scan 50 (or 20) set to NaN and `write_debug` with
+/// `debug:pseudo_rt_shift` 500. A seed whose mass traces include the NaN
+/// scan reaches `MassTraces::computeIntensityProfile` in the fitter's start
+/// values, whose merge never ends (`CPP-242`): the Release process was killed
+/// after 30 s (status 137), Gaussian and EGH alike, with and without
+/// `write_debug`.
+///
+/// The port refuses at that merge (lead decision D1) and records a
+/// `NeverReturns` termination with the plot number the hanging seed had
+/// received. The executed `debug/log.txt` is the prefix of the port's log that
+/// its model of the file buffer had flushed, and the executed feature files
+/// (those of the seeds fitted before) are the port's, byte for byte, no more
+/// and no fewer.
+#[test]
+fn a_seed_loop_that_never_returns_keeps_what_the_executed_process_had_written() {
+    let (digests, statuses) = never_returns_digests();
+    let nan_rt = |scan: usize, egh: bool, debug: bool| {
+        // `vfi3_driver filt`: MS1 with the intensity range
+        // `[numeric_limits<DPosition<1>>::min(), maxPositive()]`, which is
+        // `[0, DBL_MAX]` (`DPosition<1>()` is 0), as `ffc1_input` loads it.
+        let mut experiment = ffc1_input();
+        experiment.spectra[scan].rt = f64::NAN;
+        let mut parameters = ffc1_parameters();
+        if egh {
+            set(
+                &mut parameters,
+                "feature:rt_shape",
+                ParamValue::String("asymmetric".into()),
+            );
+        }
+        if debug {
+            parameters = with_debug(
+                parameters,
+                &[("debug:pseudo_rt_shift", ParamValue::Float(500.0))],
+            );
+        }
+        (experiment, parameters)
+    };
+
+    assert_eq!(statuses["nanrt50_nd"], "137");
+    let (experiment, parameters) = nan_rt(50, false, false);
+    let (result, algorithm, _) = debug_run(experiment, &parameters, Options::default());
+    let refusal = result.unwrap_err().to_string();
+    assert!(
+        refusal.contains("a NaN retention time cannot be merged into an intensity profile"),
+        "{refusal}"
+    );
+    assert!(algorithm.debug_output().is_none());
+
+    for (case, scan, egh, plots) in [
+        ("nanrt50_dbg", 50, false, 3),
+        ("nanrt20_dbg", 20, false, 10),
+        ("nanrt50_dbg_egh", 50, true, 3),
+    ] {
+        assert_eq!(statuses[case], "137", "{case}: killed after 30 s");
+        let (experiment, parameters) = nan_rt(scan, egh, true);
+        let (result, algorithm, _) = debug_run(experiment, &parameters, Options::default());
+        let refusal = result.unwrap_err().to_string();
+        assert!(
+            refusal.contains("a NaN retention time cannot be merged into an intensity profile"),
+            "{case}: {refusal}"
+        );
+        let out = algorithm.debug_output().unwrap();
+        let termination = out.termination.as_ref().unwrap();
+        assert_eq!(termination.kind, TerminationKind::NeverReturns, "{case}");
+        assert_eq!(termination.exception, "", "{case}");
+        assert_eq!(
+            termination.plot_nr, plots as i64,
+            "{case}: the hanging seed's plot number"
+        );
+        assert_eq!(termination.charge, 2, "{case}");
+        assert_eq!(termination.message, refusal, "{case}");
+        let log = out.log.text().as_bytes();
+        let flushed = out.log.flushed_bytes();
+        let (bytes, sha1) = &digests[&(case.to_owned(), "log.txt".to_owned())];
+        assert_eq!(flushed, *bytes, "{case}: flushed log bytes");
+        assert!(
+            flushed < log.len(),
+            "{case}: the hanging seed's lines are buffered"
+        );
+        assert_eq!(&sha1_hex(&log[..flushed]), sha1, "{case}: log.txt");
+        let mut produced = 0;
+        let mut plot_nrs = std::collections::BTreeSet::new();
+        let check = |file: String, data: &[u8]| {
+            let name = file.trim_start_matches("debug/").to_owned();
+            let (bytes, sha1) = digests
+                .get(&(case.to_owned(), name.clone()))
+                .unwrap_or_else(|| panic!("{case}: {name} was not written by the executed run"));
+            assert_eq!(data.len(), *bytes, "{case} {name}: size");
+            assert_eq!(&sha1_hex(data), sha1, "{case} {name}: content");
+        };
+        for files in &out.feature_files {
+            check(files.dta_name(), files.dta.as_bytes());
+            check(files.plot_name(), &files.plot);
+            produced += 2;
+            if let Some(cropped) = &files.cropped_dta {
+                check(files.cropped_dta_name(), cropped.as_bytes());
                 produced += 1;
             }
             plot_nrs.insert(files.plot_nr);

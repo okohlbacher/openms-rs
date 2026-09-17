@@ -1539,8 +1539,11 @@ fn overall_score_is_the_reference_builds_powf_of_the_product() {
 /// `isotopic_pattern:intensity_percentage_optional` fails both trim
 /// comparisons for every weight and empties every window the same way; on a
 /// reused object the windows keep what the earlier run left, re-normalised by
-/// their maximum of 1. Executed at the stage level:
-/// `tests/feature_finder_picked.rs`, `boundary_cases_match_the_linux_release_build`.
+/// their maximum of 1, and the optional isotopes are counted again over them.
+/// Executed at the stage level: `tests/feature_finder_picked.rs`,
+/// `boundary_cases_match_the_linux_release_build` and
+/// `extended_cases_match_the_linux_release_build`; the reused windows against
+/// an executed object (`reuse_windows.tsv`).
 #[test]
 fn underflowed_windows_and_a_nan_cutoff_leave_nothing_to_append() {
     let (settings, _) = Settings::from_parameters(&ffc1_parameters()).unwrap();
@@ -1566,36 +1569,63 @@ fn underflowed_windows_and_a_nan_cutoff_leave_nothing_to_append() {
     assert_eq!(nan.patterns().len(), first.patterns().len());
     assert!(nan.patterns().iter().all(empty));
 
-    // `FeatureFinderAlgorithmPicked.cpp:383-408` over the kept, already
-    // normalised values.
-    let optional = |values: &[f64]| {
-        let (mut begin, mut end, mut is_begin, mut is_end) = (0, 0, true, false);
-        for &value in values {
-            if value < settings.intensity_percentage {
-                if !is_end && !is_begin {
-                    is_end = true;
-                }
-                if is_begin {
-                    begin += 1;
-                } else if is_end {
-                    end += 1;
-                }
-            } else if is_begin {
-                is_begin = false;
-            }
+    // The reused object: the executed `isotope_distributions_` of one
+    // FeatureFinderAlgorithmPicked object run twice on FeatureFinderCentroided_1
+    // (`reuse_windows.tsv`, `../oracle/ffap-complete-fix4`, `fix4_reuse`, the
+    // round-3 numerics verifier's `v3_reuse`, two runs each, identical).
+    let fixture = std::fs::read_to_string(data("reuse_windows.tsv")).unwrap();
+    let max_mz = ffc1_input()
+        .spectra
+        .iter()
+        .flat_map(|spectrum| spectrum.peaks.iter().map(|peak| peak.mz))
+        .fold(f64::MIN, f64::max);
+    for (scenario, first_max_mz, first, second) in [
+        ("nan_after_default", max_mz, &settings, &nan_cutoff),
+        ("default_after_nan", max_mz, &nan_cutoff, &settings),
+        ("default_after_heavy", 137_000.0, &settings, &settings),
+        ("default_twice", max_mz, &settings, &settings),
+    ] {
+        let earlier = IsotopeWindows::precalculate(first_max_mz, first, &options).unwrap();
+        let reused =
+            IsotopeWindows::precalculate_onto(Some(&earlier), max_mz, second, &options).unwrap();
+        let mut rows = Vec::new();
+        for (index, pattern) in reused.patterns().iter().enumerate().take(40) {
+            let mut row = vec![
+                "isowin".to_owned(),
+                index.to_string(),
+                pattern.trimmed_left.to_string(),
+                pattern.optional_begin.to_string(),
+                pattern.optional_end.to_string(),
+                format!("{:016x}", pattern.max.to_bits()),
+                pattern.intensity.len().to_string(),
+            ];
+            row.extend(
+                pattern
+                    .intensity
+                    .iter()
+                    .map(|value| format!("{:016x}", value.to_bits())),
+            );
+            rows.push(row.join("\t"));
         }
-        (begin, end)
-    };
+        rows.push(format!("windows\t{}", reused.patterns().len()));
+        let executed: Vec<&str> = fixture
+            .lines()
+            .filter_map(|line| line.strip_prefix(scenario)?.strip_prefix('\t'))
+            .filter(|line| !line.starts_with("run\t"))
+            .collect();
+        assert_eq!(rows.len(), executed.len(), "{scenario}: rows");
+        for (actual, expected) in rows.iter().zip(&executed) {
+            assert_eq!(actual, expected, "{scenario}");
+        }
+    }
+    // The NaN cutoff on the reused windows keeps the earlier values,
+    // re-normalised by their maximum of 1.
     let reused =
         IsotopeWindows::precalculate_onto(Some(&first), 1500.0, &nan_cutoff, &options).unwrap();
     for (kept, again) in first.patterns().iter().zip(reused.patterns()) {
         assert_eq!(again.intensity, kept.intensity);
         assert_eq!(again.max, 1.0);
         assert_eq!(again.trimmed_left, 0);
-        assert_eq!(
-            (again.optional_begin, again.optional_end),
-            optional(&kept.intensity)
-        );
     }
 }
 

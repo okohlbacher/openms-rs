@@ -151,6 +151,7 @@ timing text).
 | FFC_1 with its last m/z `1e19`, `-algorithm:write_debug` (step 2.5 needs `ceil(1e19 * 2 / 100) + 1 = 2e17 + 1` isotope windows at the INI's charge 2 and width 100, more than `vector::max_size()`) | 12 | `Unable to initialize or run FeatureFinderCentroided: vector::_M_default_append`: the `std::length_error` reaches TOPPBase's outer `std::exception` handler (`TOPPBase.cpp:519-522`); `debug/features` and a 40-byte `debug/log.txt` are left | F2 `tool_1e19`; `a_debug_run_beyond_the_isotope_window_limit_exits_as_the_release_build` |
 | the same with its last m/z `2e18` (`4e16 + 1` windows) | C++ 12; this port 8 | C++ `Unable to initialize or run FeatureFinderCentroided: std::bad_alloc`; this port `Error: Unexpected internal error (… exceed the limit of 1000000)`, the same debug files | F2 `tool_2e18`; native difference 14 |
 | FFC_1 INI with `feature:reported_mz average` and the trace, seed, feature and isotope-fit thresholds at 0 (a seed whose best isotope pattern stayed empty reaches `extendMassTraces_`) | C++ SIGSEGV, shell status 139; this port 8 | C++ nothing on stderr and no output, the console lines up to the FAIMS line; this port `Error: Unexpected internal error (FeatureFinderAlgorithmPicked seed extension: the isotope pattern matched no peak; the source reads its first entry here)`, no output | `avg0` (`../oracle/ffap-complete-fix3`); `a_run_that_reaches_an_empty_best_pattern_is_refused_where_the_release_build_crashes`; native difference 15 |
+| FFC_1 with every retention time scaled by `1e36` or `1e39` in the text (features of infinite intensity, and of infinite width at `1e39`) | C++ 0; this port 3 | C++ none, a featureXML with `inf` values; this port `Error: Unable to read file (parse error on line 0: nonfinite feature value)`, no output | `rt_e36`, `rt_e39`, `rt_e39_egh` (`../oracle/ffap-complete-fix4`); `infinite_feature_values_are_refused_by_the_featurexml_writer`; native difference 16 |
 
 No branch writes `-out` before the store, and every refusal above was checked
 to leave no output file.
@@ -394,6 +395,31 @@ instance*).
     executed process had written (the library-level evidence of
     `feature_finder_picked_instrumentation`); the tool reaches that only where
     no seed reaches the fit first (which terminates it as in case b1).
+
+16. **Features of infinite intensity or width cannot be written.** Finite but
+    very large retention times make the algorithm's `float` intensity and
+    width overflow, and the C++ Release tool writes such features
+    (`<intensity>inf</intensity>`, `FWHM` `inf`) and exits 0. The algorithm
+    port computes the same features (the source's non-finite values are
+    stored since fix round 4), and the tool prints the same console lines,
+    but the native featureXML writer refuses a non-finite feature value, so
+    the tool exits 3 (`Unable to read file (parse error on line 0: nonfinite
+    feature value)`, the writer's error reported through the framework's
+    file-error mapping) and writes no output file. The writer's strictness
+    belongs to the featureXML port, not to this tool. Executed
+    (`../oracle/ffap-complete-fix4`, `node/run_tool.sh`, two runs each,
+    identical apart from the timing lines), FFC_1's input with every
+    `scan start time` value `v` written as `ve36` or `ve39`, FFC_1 INI and
+    `-test`:
+
+    | Input | C++ Release | This port |
+    |---|---|---|
+    | `rt_e36.mzML` | exit 0, 9 features, every intensity `inf`, finite widths | exit 3, the writer error above |
+    | `rt_e39.mzML` | exit 0, 9 features, every intensity and `FWHM` `inf` | exit 3, the same |
+    | `rt_e39.mzML`, `-algorithm:feature:rt_shape asymmetric` | exit 0, 8 features, every intensity and `FWHM` `inf` | exit 3, the same |
+
+    `infinite_feature_values_are_refused_by_the_featurexml_writer` pins both
+    sides (`rt_scaled_release.tsv`).
 
 ## Checked boundaries and evidence
 

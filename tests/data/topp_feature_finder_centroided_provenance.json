@@ -104,6 +104,13 @@
    "upstream": "test-data 0cb15f2 topp/FileFilter_44_input.mzML",
    "kind": "retained upstream",
    "used_by": "FFC_FileFilter_44_noforce and FFC_FileFilter_44_force: a registered numpress-compressed profile fixture"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_centroided/rt_scaled_release.tsv",
+   "sha256": "37781d4cd0ed3a7209dbe38aa242c8c4b217452a5cc98da00a9392cbd21d3182",
+   "upstream": "none (executed C++ Release output)",
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "used_by": "infinite_feature_values_are_refused_by_the_featurexml_writer: the Release FeatureFinderCentroided's exit status, feature count, console block and every intensity and FWHM value on rt_e36.mzML and rt_e39.mzML (../oracle/ffap-complete-fix4, node/run_tool.sh, extract/make_fixtures.py; native difference 16)"
   }
  ],
  "reused_fixtures": [
@@ -230,6 +237,20 @@
    "sha256": "fc1e49fd54f374b21655f1890c5de02fec228abb76ed67270c0bc9562bac099b",
    "sha1": "2cbe3d4e85be40b1086f0e88525d66f28188eecc",
    "hash_note": "the test truncates the retained output itself and asserts no digest, because the truncation is exact by construction; the sha256 above is the file the C++ tool read and equals the sha256 of the first 3000 bytes of tests/data/mzml_mobility/FeatureFinderCentroided_1_1_output.featureXML"
+  },
+  {
+   "name": "rt_e36.mzML",
+   "oracle": "../oracle/ffap-complete-fix4/node/run_tool.sh",
+   "rule": "FeatureFinderCentroided_1_input.mzML with every scan start time value v written as v followed by e36",
+   "sha256": "5f88a5f9ddd54f7b9e72d560f17d2a0dd743bc00d84c28629d5844471a40d99f",
+   "sha1": "baadf62aa5ef060d07c8cf010b768da00adf376c"
+  },
+  {
+   "name": "rt_e39.mzML",
+   "oracle": "../oracle/ffap-complete-fix4/node/run_tool.sh",
+   "rule": "FeatureFinderCentroided_1_input.mzML with every scan start time value v written as v followed by e39",
+   "sha256": "12375bd979e9b31be8e23cbb16ac3ad959aea4991499b22abf107656166168e5",
+   "sha1": "f2acc3a566d722abadf685851c953dd8229c18e7"
   }
  ],
  "oracle_cases": {
@@ -265,6 +286,11 @@
    "c5_faims_corrupt_seeds",
    "c5_faims_partial_cv",
    "c5_seeds_not_featurexml"
+  ],
+  "ffap_complete_fix4": [
+   "rt_e36",
+   "rt_e39",
+   "rt_e39_egh"
   ]
  },
  "external_reference_note": "No C++ is committed to this repository. The tool-level oracle runs, their inputs, streams and outputs live under ../oracle with hashed manifests; the entries below pin the manifests this group's expectations come from.",
@@ -294,6 +320,26 @@
    "sha256": "2781dd7cab48f482118375754038644251705c8bafab1958e310e4063dffb323",
    "origin_key": "cpp_release_build",
    "note": "Optimised C++ build at the same source pins (core bc9cc12, cli c19e494, topp 174b576); used for the numeric comparison of the feature output, not for exit codes."
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/README.txt",
+   "sha256": "07d885e55badf88599d9dc9beb036a09700158e85eed2e176055de36069ce659",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/extract/make_fixtures.py",
+   "sha256": "e22964a6a7db5a47947decd5243e4e9361f80854d871ca5719a0e6d8fa3114c3",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/tool_inputs.sha256",
+   "sha256": "6ae02b78921b13fe0ba084a73f80a3014d43ae10b7d1a9accbe910d9a1f8b1f6",
+   "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/run_tool.sh",
+   "sha256": "0c91518820df69330cecea1650c68f0d7be1ca4289ebabd8e1c09f2b33dbe9e4",
+   "origin_key": "ffap_complete_fix4"
   }
  ],
  "native_implementation": [

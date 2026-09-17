@@ -188,14 +188,18 @@ fn tolerance(_config: &str, _index: Option<usize>) -> f64 {
 ///
 /// `EGHTraceFitter::getArea` calls `atan`, whose reference implementation (the
 /// IBM Accurate Mathematical Library in glibc) has no licence-clean upstream,
-/// so the port calls the host's `atan` on Linux with glibc, exact on the
-/// reference platform, and the `libm` crate's elsewhere (lead decision D10's
-/// fallback). On those other hosts the bound is [`EGH_ATAN_GAP`], the largest
-/// departure measured over these fixtures on macOS arm64; it is a measured
-/// maximum, not a guarantee. The `libm` crate is pure Rust, so the value is the
+/// so the port calls the host's `atan` on x86_64 Linux with glibc, exact where
+/// that library selects the reference's `__atan_fma` (glibc 2.39 on a CPU
+/// with FMA, as on the reference node and the gate hosts), and the `libm`
+/// crate's elsewhere (lead decision D10's fallback). On those other hosts the
+/// bound is [`EGH_ATAN_GAP`], the largest departure measured over these
+/// fixtures on macOS arm64; it is a measured maximum, not a guarantee: the
+/// crate's `atan` differs from the reference for 1.6 to 6.2 % of the
+/// arguments in the fits' range, and only the `float` narrowing of the
+/// intensity hides it here. The `libm` crate is pure Rust, so the value is the
 /// same on every such host.
 fn area_tolerance(config: &str) -> f64 {
-    #[cfg(not(all(target_os = "linux", target_env = "gnu")))]
+    #[cfg(not(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64")))]
     if config == "ffc1_asymmetric" {
         return EGH_ATAN_GAP;
     }
@@ -206,7 +210,7 @@ fn area_tolerance(config: &str) -> f64 {
 /// The largest relative departure of an EGH area or intensity from the Linux
 /// capture measured on macOS arm64 over the fixtures of this file (the
 /// `libm` crate's `atan`), rounded up at the second significant digit.
-#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
+#[cfg(not(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64")))]
 const EGH_ATAN_GAP: f64 = 0.0;
 
 #[track_caller]
@@ -1389,9 +1393,26 @@ fn spectrum_index(experiment: &MSExperiment, text: &str) -> usize {
 }
 
 /// The input, parameters and user seeds of one case, built as the driver
-/// built them: `keep=` first, then every modification in option order.
+/// built them: the mzML (`input=class`: the class test's, loaded as the
+/// driver loads every input), `keep=` first, then every modification in
+/// option order.
 fn nonfinite_input(options: &[String]) -> (MSExperiment, Param, FeatureMap) {
-    let mut experiment = ffc1_input();
+    let mut experiment = if options.iter().any(|option| option == "input=class") {
+        let mut load = PeakFileOptions::default();
+        load.add_ms_level(1).unwrap();
+        load.set_intensity_range(NumericRange {
+            min: 0.0,
+            max: f64::MAX,
+        });
+        FileHandler::load_experiment_with_options(
+            data("FeatureFinderAlgorithmPicked.mzML"),
+            &[FileType::MzMl],
+            &load,
+        )
+        .unwrap()
+    } else {
+        ffc1_input()
+    };
     let mut parameters = ffc1_parameters();
     let mut seeds = FeatureMap::new();
     for option in options {
@@ -1403,7 +1424,58 @@ fn nonfinite_input(options: &[String]) -> (MSExperiment, Param, FeatureMap) {
         let (lhs, value) = option.split_once('=').unwrap();
         let parts: Vec<&str> = lhs.split(':').collect();
         match parts[0] {
-            "keep" | "scores" => {}
+            "keep" | "scores" | "input" | "isowin" => {}
+            // The whole-input modifications of `fix4_stage`
+            // (`../oracle/ffap-complete-fix4`, the round-3 numerics
+            // verifier's `v3_stage`), with the driver's arithmetic.
+            "rtscale" => {
+                let factor = f64_hex(value);
+                for spectrum in &mut experiment.spectra {
+                    spectrum.rt *= factor;
+                }
+            }
+            "rtshift" => {
+                let shift = f64_hex(value);
+                for spectrum in &mut experiment.spectra {
+                    spectrum.rt += shift;
+                }
+            }
+            "inscale" => {
+                let factor = f32_hex(value);
+                for spectrum in &mut experiment.spectra {
+                    for peak in &mut spectrum.peaks {
+                        peak.intensity *= factor;
+                    }
+                }
+            }
+            "skew" => {
+                let a = f64_hex(value);
+                let n = experiment.spectra.len() as f64;
+                for (k, spectrum) in experiment.spectra.iter_mut().enumerate() {
+                    let factor = (a * k as f64) / n + 1.0;
+                    for peak in &mut spectrum.peaks {
+                        peak.intensity = (f64::from(peak.intensity) * factor) as f32;
+                    }
+                }
+            }
+            "jit" => {
+                // splitmix64's finalizer over `(seed << 40) + (k << 20) + q`.
+                let seed: u64 = parts[1].parse().unwrap();
+                let amplitude = f64_hex(value);
+                for (k, spectrum) in experiment.spectra.iter_mut().enumerate() {
+                    for (q, peak) in spectrum.peaks.iter_mut().enumerate() {
+                        let mut z = (seed << 40)
+                            .wrapping_add((k as u64) << 20)
+                            .wrapping_add(q as u64);
+                        z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
+                        z = (z ^ (z >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
+                        z ^= z >> 31;
+                        let u = (z >> 11) as f64 * f64::from_bits(0x3ca0_0000_0000_0000);
+                        let factor = (u - 0.5) * amplitude + 1.0;
+                        peak.intensity = (f64::from(peak.intensity) * factor) as f32;
+                    }
+                }
+            }
             "seeds" => {
                 assert_eq!(
                     value.rsplit('/').next().unwrap(),
@@ -1750,6 +1822,29 @@ fn replay_stage_fixture(rows: &[Vec<String>]) -> BTreeMap<&'static str, usize> {
             of("windows")[0][0],
             "{name}: windows"
         );
+        // `isowin` rows: the executed `isotope_distributions_` entries.
+        for row in of("isowin") {
+            let index: usize = row[0].parse().unwrap();
+            let pattern = &stage.windows().patterns()[index];
+            let mut actual = vec![
+                pattern.trimmed_left.to_string(),
+                pattern.optional_begin.to_string(),
+                pattern.optional_end.to_string(),
+                format!("{:016x}", pattern.max.to_bits()),
+                pattern.intensity.len().to_string(),
+            ];
+            actual.extend(
+                pattern
+                    .intensity
+                    .iter()
+                    .map(|value| format!("{:016x}", value.to_bits())),
+            );
+            assert_eq!(
+                actual.as_slice(),
+                &row[1..],
+                "{name}: isotope window {index}"
+            );
+        }
 
         // Every score, through the digest and the listed rows.
         let scores = stage.scores();
@@ -1988,8 +2083,11 @@ fn sort_and_mobility_cases_match_the_linux_release_build() {
 /// Release build (`boundary_stage.tsv.gz`, `../oracle/ffap-complete-fix3`,
 /// [`replay_stage_fixture`]):
 ///
-/// - averagine windows whose 20 binary32 bins all underflow, from window 2738
-///   (273,850 Da) on: the source's NaN weights empty those windows and the run
+/// - averagine windows whose 20 binary32 bins all underflow, at width 100
+///   from window 2738 (centre 273,850 Da; the executed mass boundary lies
+///   between 273,769.5 and 273,770.5 Da, see
+///   [`extended_cases_match_the_linux_release_build`]) on: the source's NaN
+///   weights empty those windows and the run
 ///   continues (`u_mz136850` has no such window, `u_mz136850_5` the first;
 ///   `u_mz100k` to `u_mz1e6`, `u_ch1000_keep20`, with `seed:min_score` 0, the
 ///   EGH fit and a zero cutoff);
@@ -2026,6 +2124,80 @@ fn boundary_cases_match_the_linux_release_build() {
             ("threw", 14)
         ])
     );
+}
+
+/// Cases beyond the earlier fixtures, against the executed Linux x86_64
+/// Release build (`extended_stage.tsv.gz`, `../oracle/ffap-complete-fix4`,
+/// the round-3 numerics verifier's case list re-executed, every case twice
+/// and identical, and equal to the verifier's own capture;
+/// [`replay_stage_fixture`]):
+///
+/// - EGH and Gaussian fits on jittered, skewed, rescaled and shifted inputs,
+///   tiny, huge and infinite intensities, the class test's input, user seeds,
+///   `fit:max_iterations` 2 and 100, a NaN intensity and a NaN drift time
+///   (`ve_*`, `vg_*`), bit for bit on every platform;
+/// - isotope windows at 1-Da resolution across the binary32 underflow of the
+///   averagine bins (`vw_*`: the window centred at 273,769.5 Da keeps one
+///   bin, 273,770.5 Da is the first empty one; at width 100, windows 2734 to
+///   2737 hold a single bin and 2738 is empty), and under NaN, tiny and 100 %
+///   cutoffs (`isowin` rows);
+/// - both sides of every charge-count wrap (`vc_*`, lead decision D12) and
+///   of the empty best pattern (`vi_*`: `feature:min_isotope_fit` 0, `-0.0`
+///   and NaN crash, `5e-324` returns);
+/// - the `Exception::Precondition` of mis-sized data arrays under all-equal
+///   retention times and 20 chromatograms of equal product m/z (`vp_*`,
+///   the introsort's order of equal keys);
+/// - extreme retention-time and intensity scales (`vx_*`, `vy_*`). From a
+///   retention-time scale of about `1e37` the fitted `sigma` makes the `float`
+///   width overflow: the Release build returns those features with an
+///   infinite width, `FWHM` meta value and intensity (`vy_rt_1e37` to
+///   `vy_rt_1e150`, `vx_rt_1e150` to `vx_rt_1e300`, the FFC_1 parameters
+///   unchanged or all thresholds 0), and so does the port, whose
+///   [`openms::kernel::BaseFeature::validate`] then refuses them;
+///   `vy_rt_1e36` still has finite widths and infinite intensities.
+#[test]
+fn extended_cases_match_the_linux_release_build() {
+    let rows = stage_rows("extended_stage.tsv.gz");
+    assert_eq!(rows.iter().filter(|row| row[0] == "case").count(), 134);
+    let outcomes = replay_stage_fixture(&rows);
+    // 8 crashed (SIGSEGV: three wrapped charge counts, five empty best
+    // patterns); 9 threw (five `std::bad_alloc` of the charge count, one of
+    // them the native ceiling's, and four `Exception::Precondition`); the
+    // other 117 returned, none of them with a zero or infinite bin step.
+    assert_eq!(
+        outcomes,
+        BTreeMap::from([("crash", 8), ("features", 117), ("threw", 9)])
+    );
+
+    // The infinite widths, as stored.
+    let mut infinite = 0;
+    for name in ["vy_rt_1e37", "vy_rt_1e39", "vy_rt_1e39_egh", "vx_rt_1e300"] {
+        let case = rows
+            .iter()
+            .find(|row| row[0] == "case" && row[1] == name)
+            .unwrap();
+        let (experiment, parameters, seeds) = nonfinite_input(&case[2..]);
+        let options = Options {
+            threads: Threads::serial(),
+            ..Options::default()
+        };
+        let stage = SeedStage::run_with_options(experiment, &seeds, &parameters, &options)
+            .unwrap()
+            .unwrap();
+        let output =
+            openms::analysis::feature_finder_picked::algorithm::feature_stage(&stage, &options)
+                .unwrap();
+        for feature in &output.features.features {
+            if feature.width.is_infinite() {
+                infinite += 1;
+                let fwhm = feature.metadata.get("FWHM").unwrap();
+                assert_eq!(fwhm.as_f64().unwrap(), f64::INFINITY, "{name}");
+                assert!(fwhm.validate().is_err(), "{name}");
+                assert!(feature.validate().is_err(), "{name}");
+            }
+        }
+    }
+    assert!(infinite >= 30, "{infinite}");
 }
 
 /// The bound of one feature of a stage fixture: [`tolerance`] of the

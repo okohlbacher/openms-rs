@@ -677,6 +677,20 @@ pub(crate) mod x86_64 {
             x as f32
         }
     }
+
+    /// `cvtss2sd`: `x` widened to `f64`. A NaN keeps its sign and its payload,
+    /// shifted to the top of the wider payload, and is quieted, as the
+    /// instruction does (`DataValue(float)` of `setMetaValue("FWHM", fwhm)`).
+    pub(crate) fn widen(x: f32) -> f64 {
+        if x.is_nan() {
+            let bits = x.to_bits();
+            let sign = u64::from(bits & 0x8000_0000) << 32;
+            let payload = u64::from(bits & 0x003f_ffff) << 29;
+            f64::from_bits(sign | 0x7ff8_0000_0000_0000 | payload)
+        } else {
+            f64::from(x)
+        }
+    }
 }
 
 /// `Math::pearsonCorrelationCoefficient` over two equally long, non-empty

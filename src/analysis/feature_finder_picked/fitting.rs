@@ -514,10 +514,16 @@ pub struct FeatureInput<'a> {
 /// intensity in the reported traces makes the average m/z `inf / inf`) and
 /// where the source's exception escapes its parallel region and terminates the
 /// process; when the point count of a hull exceeds
-/// its ceiling, and when the model's FWHM is not finite or is negative, which
-/// [`crate::kernel::BaseFeature::set_width`] refuses and the source stores. A
-/// non-finite FWHM needs a non-finite fit, which the source's quality checks let
-/// through because every comparison against a NaN is false.
+/// its ceiling.
+///
+/// Like the source's `setWidth` and `setMetaValue`, it stores any FWHM, score
+/// and EGH parameter, non-finite and negative ones included: the width field
+/// directly, the meta values through a crate-private constructor that skips
+/// the finite check of [`MetaValue::try_from`]. An infinite FWHM is reachable
+/// with finite input: retention times of about `1e37` and more make the
+/// `float` width overflow, and the Linux x86_64 Release build returns such
+/// features. [`crate::kernel::BaseFeature::validate`] and the featureXML
+/// writer refuse them.
 pub fn build_feature(input: FeatureInput<'_>) -> Result<Feature> {
     build_feature_checked(input)?.map_err(|what| {
         Error::InvalidValue(format!(
@@ -552,16 +558,26 @@ pub(crate) fn build_feature_checked(
         .metadata
         .insert("label".into(), MetaValue::from(plot_nr));
     feature.charge = charge;
-    feature.quality = quality.final_score as f32;
-    feature
-        .metadata
-        .insert("score_fit".into(), MetaValue::try_from(quality.fit_score)?);
+    feature.quality = x86_64::narrow(quality.final_score);
+    // `setMetaValue` and `setWidth` store any value (`BaseFeature.cpp:87-94`);
+    // an infinite FWHM is reachable with finite input (retention times of
+    // about 1e37 and more), and the Release build returns such features.
+    feature.metadata.insert(
+        "score_fit".into(),
+        MetaValue::source_float(quality.fit_score),
+    );
     feature.metadata.insert(
         "score_correlation".into(),
-        MetaValue::try_from(quality.correlation)?,
+        MetaValue::source_float(quality.correlation),
     );
     feature.rt = fitter.center();
-    feature.base.set_width(fitter.fwhm() as f32)?;
+    // `setWidth(WidthType)`: the double FWHM narrowed at the call, then
+    // stored as the width and, widened again, as the `FWHM` meta value.
+    let width = x86_64::narrow(fitter.fwhm());
+    feature.base.width = width;
+    feature
+        .metadata
+        .insert("FWHM".into(), MetaValue::source_float(x86_64::widen(width)));
     let datapoints: usize = traces.iter().map(|trace| trace.peaks.len()).sum();
     feature
         .metadata
@@ -569,13 +585,13 @@ pub(crate) fn build_feature_checked(
     if let Some(egh) = model.egh() {
         feature
             .metadata
-            .insert("EGH_tau".into(), MetaValue::try_from(egh.tau())?);
+            .insert("EGH_tau".into(), MetaValue::source_float(egh.tau()));
         feature
             .metadata
-            .insert("EGH_height".into(), MetaValue::try_from(egh.height())?);
+            .insert("EGH_height".into(), MetaValue::source_float(egh.height()));
         feature
             .metadata
-            .insert("EGH_sigma".into(), MetaValue::try_from(egh.sigma())?);
+            .insert("EGH_sigma".into(), MetaValue::source_float(egh.sigma()));
     }
     let c = f64::from(charge);
     feature.mz = match settings.reported_mz {
@@ -606,7 +622,7 @@ pub(crate) fn build_feature_checked(
         Err(Error::InvalidValue(what)) => return Ok(Err(what)),
         Err(error) => return Err(error),
     };
-    feature.intensity = (fitter.area() / window.max) as f32;
+    feature.intensity = x86_64::narrow(x86_64::div(fitter.area(), window.max));
     let mut hulls = Vec::new();
     hulls
         .try_reserve_exact(traces.len())
