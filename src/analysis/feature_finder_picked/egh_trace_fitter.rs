@@ -458,15 +458,21 @@ impl EGHTraceFitter {
         let shape = initial_shape(traces, ProfileSmoothing::Always)?;
         let height = shape.height;
         let apex_rt = shape.apex_rt;
-        let a = apex_rt - shape.left_rt;
-        let b = shape.right_rt - apex_rt;
-        let alpha = (shape.left_height + shape.right_height) * 0.5 / height;
+        // The operands in the order of the Release build's SSE instructions
+        // (`libOpenMS.so` `0x18b5ac5`-`0x18b5c22`), so that a NaN a flat or
+        // single-scan profile creates carries x86_64's sign on every host.
+        let a = x86_64::sub(apex_rt, shape.left_rt);
+        let b = x86_64::sub(shape.right_rt, apex_rt);
+        let alpha = x86_64::div(
+            x86_64::mul(x86_64::add(shape.left_height, shape.right_height), 0.5),
+            height,
+        );
         let log_alpha = glibc_libm::log(alpha);
-        let mut tau = -1.0 / log_alpha * (b - a);
+        let mut tau = x86_64::mul(x86_64::div(-1.0, log_alpha), x86_64::sub(b, a));
         if tau == 0.0 {
             tau = f64::EPSILON;
         }
-        let sigma = glibc_libm::sqrt(-0.5 / log_alpha * b * a);
+        let sigma = glibc_libm::sqrt(x86_64::mul(x86_64::mul(x86_64::div(-0.5, log_alpha), b), a));
 
         Ok(EGHInitialParameters {
             height,
@@ -492,17 +498,28 @@ impl EGHTraceFitter {
     /// unchanged: `alpha = 0` gives infinite or NaN bounds and a negative
     /// `alpha` NaN bounds.
     pub fn alpha_boundaries(&self, alpha: f64) -> (f64, f64) {
+        // The Release build's instructions (`libOpenMS.so` `0x18b5118`-
+        // `0x18b51a8`): `L * tau` as `tau * L`, `2 * L` as `L + L`, `/ 4` and
+        // `-1 * ... / 2` as exact multiplications by `0.25` and `-0.5`, and the
+        // sums with the apex second, so every NaN carries x86_64's bits.
         let l = glibc_libm::log(alpha);
-        let s = glibc_libm::sqrt(
-            (l * self.tau) * (l * self.tau) / 4.0 - 2.0 * l * self.sigma * self.sigma,
-        );
-        // The source's `-1 * (L * tau_)`: multiplying by -1 is an exact
-        // negation, so `-(l * tau)` has the same bits (a NaN's sign aside).
-        let s1 = (-(l * self.tau) / 2.0) + s;
-        let s2 = (-(l * self.tau) / 2.0) - s;
+        let l_tau = x86_64::mul(self.tau, l);
+        let spread = x86_64::mul(x86_64::mul(x86_64::add(l, l), self.sigma), self.sigma);
+        let s = glibc_libm::sqrt(x86_64::sub(
+            x86_64::mul(x86_64::mul(l_tau, l_tau), 0.25),
+            spread,
+        ));
+        let centre = x86_64::mul(l_tau, -0.5);
+        let s2 = x86_64::sub(centre, s);
+        let s1 = x86_64::add(centre, s);
+        // `minsd`/`maxsd`: the second operand unless the first compares
+        // strictly smaller (larger), which is `std::min`/`std::max`.
         let smaller = if s2 < s1 { s2 } else { s1 };
-        let larger = if s1 < s2 { s2 } else { s1 };
-        (self.apex_rt + smaller, self.apex_rt + larger)
+        let larger = if s2 > s1 { s2 } else { s1 };
+        (
+            x86_64::add(smaller, self.apex_rt),
+            x86_64::add(larger, self.apex_rt),
+        )
     }
 
     /// Sets the model to the parameter vector `[H, t_R, sigma, tau]` and
@@ -617,7 +634,7 @@ impl TraceFitter for EGHTraceFitter {
     /// from [`EGHTraceFitter::alpha_boundaries`] at `0.5`.
     fn fwhm(&self) -> f64 {
         let (lower, upper) = self.alpha_boundaries(FWHM_ALPHA);
-        upper - lower
+        x86_64::sub(upper, lower)
     }
 
     /// Equation 12 of the Lan and Jorgenson paper at `rt`: source `getValue`.

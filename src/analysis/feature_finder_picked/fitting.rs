@@ -35,12 +35,12 @@ use crate::analysis::feature_finder_picked::gauss_trace_fitter::GaussTraceFitter
 use crate::analysis::feature_finder_picked::helper_structs::{
     IsotopePattern, MassTrace, MassTraces,
 };
+use crate::analysis::feature_finder_picked::scoring::{source_pearson, x86_64};
 use crate::analysis::feature_finder_picked::seeds::IsotopeWindows;
 use crate::analysis::feature_finder_picked::trace_fitter::{TraceFitter, TraceFitterParams};
 use crate::concept::constants::PROTON_MASS_U;
 use crate::concept::constants::user_param::NUM_OF_DATAPOINTS;
 use crate::kernel::Feature;
-use crate::math::statistic_functions::pearson_correlation_coefficient;
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
 
@@ -75,6 +75,15 @@ pub const ABORT_QUALITY_TOO_LOW: &str = "Feature quality too low after fit";
 
 /// `std::max(0.0, value)` as the source spells it: `(0.0 < value) ? value :
 /// 0.0`, so a NaN gives `0.0` and `-0.0` gives `0.0`.
+/// `deviation += std::fabs(real - theo) / theo` as the Release build
+/// computes it in `cropFeature_` and `checkFeatureQuality_`: the new term is
+/// the first operand of the addition (`addsd (%rsp),%xmm0`), which decides
+/// the NaN bits when both are NaN.
+fn relative_deviation_sum(deviation: f64, real: f64, theo: f64) -> f64 {
+    let term = x86_64::div(x86_64::abs(x86_64::sub(real, theo)), theo);
+    x86_64::add(term, deviation)
+}
+
 fn max0(value: f64) -> f64 {
     if 0.0 < value { value } else { 0.0 }
 }
@@ -204,9 +213,11 @@ impl FittedModel {
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] from
-/// [`TraceFitter::compute_theoretical`] and from
-/// [`pearson_correlation_coefficient`], and the ceilings of
-/// [`MassTraces::reserve`].
+/// [`TraceFitter::compute_theoretical`] and the ceilings of
+/// [`MassTraces::reserve`]. The correlation is
+/// `Math::pearsonCorrelationCoefficient` as the Release build computes it,
+/// which divides by a zero denominator (an infinite correlation where the
+/// denominator underflows from non-zero deviations).
 pub fn crop_feature(
     fitter: &dyn TraceFitter,
     traces: &MassTraces,
@@ -264,20 +275,22 @@ pub(crate) fn crop_feature_logged<L: LogSink>(
             let peak = trace.peaks[k];
             if peak.rt >= low_bound && peak.rt <= high_bound {
                 new_trace.peaks.push(peak);
-                let theo = traces.baseline + fitter.compute_theoretical(trace, k)?;
+                let theo = x86_64::add(traces.baseline, fitter.compute_theoretical(trace, k)?);
                 theoretical.push(theo);
                 let measured = f64::from(peak.intensity);
                 real.push(measured);
-                deviation += (measured - theo).abs() / theo;
+                deviation = relative_deviation_sum(deviation, measured, theo);
             }
         }
         let mut fit_score = 0.0;
         let mut correlation = 0.0;
         let mut final_score = 0.0;
         if !new_trace.peaks.is_empty() {
-            fit_score = deviation / new_trace.peaks.len() as f64;
-            correlation = max0(pearson_correlation_coefficient(&theoretical, &real)?);
-            final_score = (correlation * max0(1.0 - fit_score)).sqrt();
+            // `libOpenMS.so` `0x18d8a8d`-`0x18d8ad4`: the operands in the
+            // order of the executed SSE instructions.
+            fit_score = x86_64::div(deviation, new_trace.peaks.len() as f64);
+            correlation = max0(source_pearson(&theoretical, &real)?);
+            final_score = x86_64::sqrt(x86_64::mul(max0(x86_64::sub(1.0, fit_score)), correlation));
         }
         if log.enabled() {
             put_all(
@@ -373,9 +386,9 @@ pub enum QualityOutcome {
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidValue`] from [`MassTraces::rt_bounds`],
-/// [`TraceFitter::compute_theoretical`] and
-/// [`pearson_correlation_coefficient`].
+/// Returns [`Error::InvalidValue`] from [`MassTraces::rt_bounds`] and
+/// [`TraceFitter::compute_theoretical`]. The correlation is computed as in
+/// [`crop_feature`].
 pub fn check_feature_quality(
     fitter: &dyn TraceFitter,
     traces: &MassTraces,
@@ -415,16 +428,20 @@ pub(crate) fn check_feature_quality_logged<L: LogSink>(
     let mut deviation = 0.0;
     for trace in traces.iter() {
         for k in 0..trace.peaks.len() {
-            let theo = traces.baseline + fitter.compute_theoretical(trace, k)?;
+            let theo = x86_64::add(traces.baseline, fitter.compute_theoretical(trace, k)?);
             theoretical.push(theo);
             let measured = f64::from(trace.peaks[k].intensity);
             real.push(measured);
-            deviation += (measured - theo).abs() / theo;
+            deviation = relative_deviation_sum(deviation, measured, theo);
         }
     }
-    let fit_score = max0(1.0 - (deviation / traces.peak_count() as f64));
-    let correlation = max0(pearson_correlation_coefficient(&theoretical, &real)?);
-    let final_score = (correlation * fit_score).sqrt();
+    // `libOpenMS.so` `0x18d9dcb`-`0x18d9e28`.
+    let fit_score = max0(x86_64::sub(
+        1.0,
+        x86_64::div(deviation, traces.peak_count() as f64),
+    ));
+    let correlation = max0(source_pearson(&theoretical, &real)?);
+    let final_score = x86_64::sqrt(x86_64::mul(correlation, fit_score));
     if log.enabled() {
         put_all(log, &["Quality estimation:\n"]);
         put_all(log, &[" - relative deviation: ", &g(fit_score), "\n"]);

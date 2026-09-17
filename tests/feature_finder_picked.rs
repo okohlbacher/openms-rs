@@ -1210,6 +1210,71 @@ fn the_seed_loop_ceilings_are_checked_first() {
     assert!(limited(Limits::default()).is_ok());
 }
 
+/// The `UInt` score-array count `3 + 2 * charge_count` (lead decision D12):
+/// every count that wraps is refused whatever the [`Limits`], where the
+/// executed build writes out of bounds (`charge_high - charge_low + 1` of
+/// `2^31 - 1`, `-1` and `-4` or less: SIGSEGV where the wrapped count is small,
+/// `boundary_stage.tsv.gz`) or allocates about 2^32 arrays per spectrum (`-2`,
+/// `-3`: `std::bad_alloc`). A count of 0 runs and finds nothing, and the
+/// counts in between stay behind the native charge ceiling, which the caller
+/// can raise.
+#[test]
+fn charge_count_wraps_are_refused_whatever_the_limits() {
+    let unlimited = Options {
+        limits: Limits {
+            max_charges: usize::MAX,
+            ..Limits::default()
+        },
+        ..Options::default()
+    };
+    let run_charges = |low: i64, high: i64, options: &Options| {
+        let mut parameters = ffc1_parameters();
+        set(
+            &mut parameters,
+            "isotopic_pattern:charge_low",
+            ParamValue::Integer(low),
+        );
+        set(
+            &mut parameters,
+            "isotopic_pattern:charge_high",
+            ParamValue::Integer(high),
+        );
+        run_with_options(ffc1_input(), &FeatureMap::new(), &parameters, options)
+    };
+    let int_max = i64::from(i32::MAX);
+    for (low, high, text) in [
+        (
+            1,
+            int_max,
+            "wraps to 1 and the source writes past the arrays",
+        ),
+        (4, 2, "wraps and the source writes past the arrays"),
+        (7, 2, "wraps and the source writes past the arrays"),
+        (int_max, 1, "wraps and the source writes past the arrays"),
+        (int_max, 498, "wraps and the source writes past the arrays"),
+        (5, 2, "wraps to 4294967295 arrays per spectrum"),
+        (6, 2, "wraps to 4294967293 arrays per spectrum"),
+    ] {
+        match run_charges(low, high, &unlimited) {
+            Err(openms::Error::InvalidValue(message)) => {
+                assert!(message.contains(text), "{low}..{high}: {message}");
+            }
+            other => panic!("{low}..{high}: {other:?}"),
+        }
+    }
+    // Count 0: the source's three arrays and no charge (executed: no feature).
+    let output = run_charges(3, 2, &Options::default()).unwrap();
+    assert!(output.features.is_empty());
+    // Count 2^31 - 2 does not wrap: the native ceiling refuses it (executed:
+    // `std::bad_alloc`).
+    match run_charges(2, int_max, &Options::default()) {
+        Err(openms::Error::InvalidValue(message)) => {
+            assert!(message.contains("charges exceed the limit"), "{message}");
+        }
+        other => panic!("{other:?}"),
+    }
+}
+
 /// A trace whose peaks all lie outside the fitted bounds is dropped, and the
 /// source's position rules decide what happens to the traces around it.
 #[test]

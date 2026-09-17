@@ -42,10 +42,10 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use openms::analysis::feature_finder_picked::algorithm::{
-    Options, PseudoRtShiftKey, RejectedParameters, run_with_options,
+    Limits, Options, PseudoRtShiftKey, RejectedParameters, run_with_options,
 };
 use openms::analysis::feature_finder_picked::debug::{
-    DebugOutput, FeatureDebugInput, HEAP_ADDRESS_END, PseudoRtShift, ReportLine,
+    DebugOutput, FeatureDebugInput, HEAP_ADDRESS_END, PseudoRtShift, ReportLine, TerminationKind,
     write_feature_debug_info,
 };
 use openms::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
@@ -892,7 +892,12 @@ fn debug_digests() -> BTreeMap<(String, String), (usize, String)> {
     // with an infinite and a NaN `debug:pseudo_rt_shift`
     // (`../oracle/ffap-complete-fix1/node/run_shift.sh`, two runs each,
     // identical).
-    let text = fixture("debug_digests.tsv") + &fixture("shift_nonfinite_digests.tsv");
+    // `crash_digests.tsv`: fix round 3's negative-intensity library runs that
+    // die with SIGSEGV (`../oracle/ffap-complete-fix3`, `vfi2_driver neg`,
+    // two runs each, identical).
+    let text = fixture("debug_digests.tsv")
+        + &fixture("shift_nonfinite_digests.tsv")
+        + &fixture("crash_digests.tsv");
     text.lines()
         .filter(|line| !line.starts_with("case\t"))
         .map(|line| {
@@ -2244,6 +2249,212 @@ fn a_heap_address_shift_matches_the_release_build_where_it_is_reproducible() {
             &dump_map(&features, algorithm.aborts()),
             "pun",
         );
+    }
+}
+
+/// FeatureFinderCentroided_1 as `vfi2_driver neg` loads it: MS1, every
+/// intensity kept.
+fn raw_ffc1_input() -> MSExperiment {
+    let mut options = PeakFileOptions::default();
+    options.add_ms_level(1).unwrap();
+    FileHandler::load_experiment_with_options(
+        repository("tests/data/mzml_mobility/FeatureFinderCentroided_1_input.mzML"),
+        &[FileType::MzMl],
+        &options,
+    )
+    .unwrap()
+}
+
+/// `vfi2_driver neg`'s input and parameters: every intensity whose m/z lies in
+/// `[lo, hi]` multiplied by `-factor` (a `float` times a `double`, narrowed),
+/// the FFC_1 algorithm section with `reported_mz` average, `rt_shape`
+/// symmetric, the four feature thresholds 0 and `seed:min_score`, and for a
+/// debug run `write_debug` with `debug:pseudo_rt_shift` 500.
+fn negated_band(
+    lo: f64,
+    hi: f64,
+    factor: f64,
+    seed_min: f64,
+    debug: bool,
+) -> (MSExperiment, Param) {
+    let mut experiment = raw_ffc1_input();
+    for spectrum in &mut experiment.spectra {
+        for peak in &mut spectrum.peaks {
+            if peak.mz >= lo && peak.mz <= hi {
+                peak.intensity = (f64::from(peak.intensity) * -factor) as f32;
+            }
+        }
+    }
+    let mut parameters = ffc1_parameters();
+    set(
+        &mut parameters,
+        "feature:reported_mz",
+        ParamValue::String("average".into()),
+    );
+    set(
+        &mut parameters,
+        "feature:rt_shape",
+        ParamValue::String("symmetric".into()),
+    );
+    for key in [
+        "feature:min_score",
+        "feature:min_isotope_fit",
+        "feature:min_trace_score",
+        "feature:min_rt_span",
+    ] {
+        set(&mut parameters, key, ParamValue::Float(0.0));
+    }
+    set(
+        &mut parameters,
+        "seed:min_score",
+        ParamValue::Float(seed_min),
+    );
+    if debug {
+        parameters = with_debug(
+            parameters,
+            &[("debug:pseudo_rt_shift", ParamValue::Float(500.0))],
+        );
+    }
+    (experiment, parameters)
+}
+
+/// Executed `vfi2_driver neg` runs (`../oracle/ffap-complete-fix3`, after
+/// `../oracle/ffc-instrumentation-v2`): with `feature:min_isotope_fit` 0 a
+/// seed whose best isotope pattern stayed empty reaches `extendMassTraces_`,
+/// which reads the pattern's first entry, and the Release build dies with
+/// SIGSEGV, with and without `write_debug`, two runs of each, identical. The
+/// three inputs negate an m/z band around 646.74 with `seed:min_score` 0.3 or
+/// 0.35, or nothing with `seed:min_score` 0.
+///
+/// The port refuses at that seed (lead decision D1) and records the
+/// termination. The executed `debug/log.txt` is exactly the prefix of the
+/// port's log that its model of the file buffer had flushed when the seed was
+/// refused, the refused seed's own lines counted, and the executed feature
+/// files are the port's, byte for byte, no more and no fewer.
+#[test]
+fn a_seed_loop_crash_keeps_what_the_executed_process_had_written() {
+    let digests = debug_digests();
+    for (case, lo, hi, factor, seed_min, plots) in [
+        ("neg_oob1", 646.72686, 646.75686, 0.05, 0.3, 53),
+        ("neg_oob_seed035", 646.72686, 646.75686, 0.05, 0.35, 51),
+        ("neg_none_avg0", 1.0, 0.0, 1.0, 0.0, 26),
+    ] {
+        let (experiment, parameters) = negated_band(lo, hi, factor, seed_min, false);
+        let (result, algorithm, _) = debug_run(experiment, &parameters, Options::default());
+        let refusal = result.unwrap_err().to_string();
+        assert!(
+            refusal.contains("the isotope pattern matched no peak"),
+            "{case}: {refusal}"
+        );
+        assert!(algorithm.debug_output().is_none(), "{case}");
+
+        let (experiment, parameters) = negated_band(lo, hi, factor, seed_min, true);
+        let (result, algorithm, _) = debug_run(experiment, &parameters, Options::default());
+        assert_eq!(result.unwrap_err().to_string(), refusal, "{case}");
+        let out = algorithm.debug_output().unwrap();
+        let termination = out.termination.as_ref().unwrap();
+        assert_eq!(termination.kind, TerminationKind::OutOfBounds, "{case}");
+        assert_eq!(termination.exception, "SIGSEGV", "{case}");
+        assert_eq!(
+            termination.plot_nr, -1,
+            "{case}: the seed ends before the fit"
+        );
+        assert_eq!(termination.message, refusal, "{case}");
+        let log = out.log.text().as_bytes();
+        let flushed = out.log.flushed_bytes();
+        assert!(
+            flushed < log.len(),
+            "{case}: the refused seed's lines are buffered"
+        );
+        assert_executed_bytes(case, "log.txt", &log[..flushed]);
+        let mut produced = 0;
+        let mut plot_nrs = std::collections::BTreeSet::new();
+        for files in &out.feature_files {
+            let name = |full: String| full.trim_start_matches("debug/").to_owned();
+            assert_executed_bytes(case, &name(files.dta_name()), files.dta.as_bytes());
+            assert_executed_bytes(case, &name(files.plot_name()), &files.plot);
+            produced += 2;
+            if let Some(cropped) = &files.cropped_dta {
+                assert_executed_bytes(case, &name(files.cropped_dta_name()), cropped.as_bytes());
+                produced += 1;
+            }
+            plot_nrs.insert(files.plot_nr);
+        }
+        let expected = digests
+            .keys()
+            .filter(|(c, file)| c == case && file.starts_with("features/"))
+            .count();
+        assert_eq!(produced, expected, "{case}: feature files");
+        assert_eq!(plot_nrs.len(), plots, "{case}: plots");
+        assert_eq!(plot_nrs.last().copied(), Some(plots as i64 - 1), "{case}");
+    }
+}
+
+/// `fix3_driver progress` (`../oracle/ffap-complete-fix3`, two runs each,
+/// identical): step 1 calls `startProgress(0, intensity_bins_ *
+/// intensity_bins_)` with a `UInt` product, which wraps modulo 2^32 (65,536
+/// bins give `S 0 0`), and the driver ends the process right after that event.
+/// The port logs the same start event (lead decision D12: an in-bounds wrap is
+/// reproduced). Its intensity-bin and work ceilings are raised or lowered so
+/// that the run fails right after the event instead of computing 2^32 cells;
+/// `intensity:bins` 2^32 narrows to 0, which the parameter check refuses with
+/// the executed text.
+#[test]
+fn the_step_one_progress_range_wraps_as_the_release_build_computes_it() {
+    for line in fixture("progress_bins.tsv").lines().skip(1) {
+        let (bins, outcome) = line.split_once('\t').unwrap();
+        let bins: i64 = bins.parse().unwrap();
+        let mut parameters = ffc1_parameters();
+        set(&mut parameters, "intensity:bins", ParamValue::Integer(bins));
+        let shared = Shared::default();
+        // A fresh nesting depth per case, as each executed case is a process
+        // of its own; a failed run leaves its section open.
+        let mut logger = ProgressLogger::with_clock_and_nesting(
+            Arc::new(|| {
+                Ok(ProgressTime {
+                    wall_second: 0,
+                    wall_seconds: 0.0,
+                    cpu_seconds: None,
+                })
+            }),
+            ProgressNesting::default(),
+        );
+        logger.set_logger(Box::new(Recorder(shared.clone())));
+        let mut algorithm = FeatureFinderAlgorithmPicked::with_options(Options {
+            limits: Limits {
+                max_intensity_bins: 1 << 17,
+                max_work: 1,
+                ..Limits::default()
+            },
+            ..Options::default()
+        })
+        .unwrap();
+        algorithm.set_progress_logger(Some(logger));
+        let result = algorithm.run(
+            ffc1_input(),
+            &mut FeatureMap::new(),
+            &parameters,
+            &FeatureMap::new(),
+        );
+        if let Some(what) = outcome.strip_prefix("threw InvalidParameter: ") {
+            assert_eq!(
+                result.unwrap_err().to_string(),
+                format!("invalid value: {what}"),
+                "{bins}"
+            );
+            continue;
+        }
+        let events = String::from_utf8(shared.0.lock().unwrap().clone()).unwrap();
+        let start = events
+            .lines()
+            .find(|line| line.ends_with(" Precalculating intensity scores"))
+            .unwrap_or_else(|| panic!("{bins}: no step-1 event in {events}"));
+        assert_eq!(start, outcome, "{bins}");
+        if bins > 2000 {
+            // The raised bin ceiling lets the run reach step 1; the work
+            // ceiling ends it there.
+            assert!(result.is_err(), "{bins}");
+        }
     }
 }
 

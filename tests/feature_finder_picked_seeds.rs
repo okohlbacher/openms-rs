@@ -40,7 +40,7 @@ use openms::analysis::feature_finder_picked::helper_structs::{
 use openms::analysis::feature_finder_picked::scoring::{
     IntensityThresholds, QUANTILE_COUNT, find_isotope, isotope_score, nearest_from, position_score,
 };
-use openms::analysis::feature_finder_picked::seeds::{SeedStage, overall_score};
+use openms::analysis::feature_finder_picked::seeds::{IsotopeWindows, SeedStage, overall_score};
 use openms::format::{FileHandler, FileType, PeakFileOptions, paramxml};
 use openms::kernel::{FeatureMap, NumericRange};
 use openms::param::{Param, ParamValue};
@@ -1526,6 +1526,77 @@ fn overall_score_is_the_reference_builds_powf_of_the_product() {
     assert_eq!(score.to_bits(), executed.to_bits());
     assert_ne!(score.to_bits(), correct.to_bits());
     assert!(overall_score(f32::NAN, 1.0, 1.0).is_nan());
+}
+
+/// Step 2.5 past a zero probability sum and under a NaN trimming cutoff.
+///
+/// Near 10^6 Da every one of the 20 retained averagine bins is below the
+/// smallest binary32 subnormal by more than a hundred orders of magnitude (the
+/// exact bin of 19 heavy isotopes of ~44,000 carbons is ~1e-174), so the
+/// source's `float` bins are all zero, its `renormalize` makes them NaN, its
+/// `trimLeft` erases nothing and its `trimRight` everything: an empty window,
+/// `trimmed_left` 0 and maximum 0. A NaN
+/// `isotopic_pattern:intensity_percentage_optional` fails both trim
+/// comparisons for every weight and empties every window the same way; on a
+/// reused object the windows keep what the earlier run left, re-normalised by
+/// their maximum of 1. Executed at the stage level:
+/// `tests/feature_finder_picked.rs`, `boundary_cases_match_the_linux_release_build`.
+#[test]
+fn underflowed_windows_and_a_nan_cutoff_leave_nothing_to_append() {
+    let (settings, _) = Settings::from_parameters(&ffc1_parameters()).unwrap();
+    assert_eq!(settings.charge_high, 2);
+    assert_eq!(settings.mass_window_width, 100.0);
+    let options = Options::default();
+    let windows = IsotopeWindows::precalculate(500_000.0, &settings, &options).unwrap();
+    assert_eq!(windows.patterns().len(), 10_001);
+    let empty = |pattern: &TheoreticalIsotopePattern| {
+        pattern.intensity.is_empty()
+            && pattern.max == 0.0
+            && pattern.trimmed_left == 0
+            && pattern.optional_begin == 0
+            && pattern.optional_end == 0
+    };
+    assert!(empty(&windows.patterns()[10_000]));
+    assert!(!windows.patterns()[0].intensity.is_empty());
+
+    let mut nan_cutoff = settings.clone();
+    nan_cutoff.intensity_percentage_optional = f64::NAN;
+    let first = IsotopeWindows::precalculate(1500.0, &settings, &options).unwrap();
+    let nan = IsotopeWindows::precalculate(1500.0, &nan_cutoff, &options).unwrap();
+    assert_eq!(nan.patterns().len(), first.patterns().len());
+    assert!(nan.patterns().iter().all(empty));
+
+    // `FeatureFinderAlgorithmPicked.cpp:383-408` over the kept, already
+    // normalised values.
+    let optional = |values: &[f64]| {
+        let (mut begin, mut end, mut is_begin, mut is_end) = (0, 0, true, false);
+        for &value in values {
+            if value < settings.intensity_percentage {
+                if !is_end && !is_begin {
+                    is_end = true;
+                }
+                if is_begin {
+                    begin += 1;
+                } else if is_end {
+                    end += 1;
+                }
+            } else if is_begin {
+                is_begin = false;
+            }
+        }
+        (begin, end)
+    };
+    let reused =
+        IsotopeWindows::precalculate_onto(Some(&first), 1500.0, &nan_cutoff, &options).unwrap();
+    for (kept, again) in first.patterns().iter().zip(reused.patterns()) {
+        assert_eq!(again.intensity, kept.intensity);
+        assert_eq!(again.max, 1.0);
+        assert_eq!(again.trimmed_left, 0);
+        assert_eq!(
+            (again.optional_begin, again.optional_end),
+            optional(&kept.intensity)
+        );
+    }
 }
 
 // ---------------------------------------------------------------------------

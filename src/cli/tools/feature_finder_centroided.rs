@@ -123,7 +123,7 @@
 //! preserved source conventions, the native differences and the evidence.
 
 use crate::analysis::feature_finder_picked::algorithm::{self, Options};
-use crate::analysis::feature_finder_picked::debug::{DebugOutput, ReportLine};
+use crate::analysis::feature_finder_picked::debug::{DebugOutput, ReportLine, TerminationKind};
 use crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
 use crate::analysis::feature_finder_picked::seeds;
 use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
@@ -544,11 +544,19 @@ impl Tool for FeatureFinderCentroided {
         match outcome {
             Ok(()) => {}
             Err(error) => {
-                if let Some(termination) = debug.as_ref().and_then(|d| d.termination.as_ref()) {
+                if let Some(termination) = debug
+                    .as_ref()
+                    .and_then(|d| d.termination.as_ref())
+                    .filter(|t| t.kind == TerminationKind::Exception)
+                {
                     // The source process terminates here (std::terminate from
                     // an exception that leaves the OpenMP region, then
                     // SIGABRT). The port reports the exception as TOPPBase
-                    // reports it where it can catch it.
+                    // reports it where it can catch it. Where the source dies
+                    // from an out-of-bounds access or never returns, the
+                    // port's refusal is reported below like any other error;
+                    // either way the debug log holds only what the executed
+                    // process had flushed (`write_debug_log`).
                     let _ = error;
                     writeln!(
                         err,

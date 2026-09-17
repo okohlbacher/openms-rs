@@ -205,12 +205,21 @@ impl GaussTraceFitter {
     /// unchanged on error.
     pub fn set_initial_parameters(&mut self, traces: &MassTraces) -> Result<()> {
         let shape = initial_shape(traces, ProfileSmoothing::SkipShortProfiles)?;
-        let delta_x = shape.right_rt - shape.left_rt;
-        let alpha = (shape.left_height + shape.right_height) * 0.5 / shape.height;
+        // The operands in the order of the Release build's SSE instructions
+        // (`libOpenMS.so` `0x1979250`-`0x1979487`), so that a NaN carries
+        // x86_64's bits on every host.
+        let delta_x = x86_64::sub(shape.right_rt, shape.left_rt);
+        let alpha = x86_64::div(
+            x86_64::mul(x86_64::add(shape.left_height, shape.right_height), 0.5),
+            shape.height,
+        );
         let sigma = if alpha >= 1.0 {
             1.0
         } else {
-            delta_x * 0.5 / (-2.0 * ln(alpha)).sqrt()
+            x86_64::div(
+                x86_64::mul(delta_x, 0.5),
+                glibc_libm::sqrt(x86_64::mul(ln(alpha), -2.0)),
+            )
         };
         self.height = shape.height;
         self.x0 = shape.apex_rt;

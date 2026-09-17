@@ -73,6 +73,7 @@
 //! [`TraceFitterParams::to_param`]: crate::analysis::feature_finder_picked::trace_fitter::TraceFitterParams::to_param
 
 use crate::analysis::feature_finder_picked::helper_structs::{MassTrace, MassTraces};
+use crate::analysis::feature_finder_picked::scoring::x86_64;
 use crate::format::file_info::text_format::ostream_g;
 use crate::math::fitters::levenberg_marquardt::{
     DenseMatrix, LmParameters, LmStatus, minimize, preflight_points,
@@ -762,24 +763,27 @@ pub fn initial_shape(traces: &MassTraces, smoothing: ProfileSmoothing) -> Result
             }
         }
     } else {
+        // The running sum with the Release build's operand order (the sum is
+        // the destination of every `addsd`, `subsd` and `divsd`), so that an
+        // `inf - inf` of infinite intensities is x86_64's NaN on every host.
         let window = (2 * SMOOTHING_LEN + 1) as f64;
         let mut sum = 0.0;
         for index in SMOOTHING_LEN..2 * SMOOTHING_LEN {
-            sum += totals(index);
+            sum = x86_64::add(sum, totals(index));
         }
         for i in 0..n {
-            sum += totals(i + 2 * SMOOTHING_LEN);
-            smoothed.push(sum / window);
-            sum -= totals(i);
+            sum = x86_64::add(sum, totals(i + 2 * SMOOTHING_LEN));
+            smoothed.push(x86_64::div(sum, window));
+            sum = x86_64::sub(sum, totals(i));
             if smoothed[i] > smoothed[max_index] {
                 max_index = i;
             }
         }
     }
-    let height = smoothed[max_index] - traces.baseline;
+    let height = x86_64::sub(smoothed[max_index], traces.baseline);
     let apex_rt = profile[max_index].0;
-    let region_rt_span = last.0 - first.0;
-    let half = height * 0.5;
+    let region_rt_span = x86_64::sub(last.0, first.0);
+    let half = x86_64::mul(height, 0.5);
     let mut left_index = max_index;
     while left_index > 0 && smoothed[left_index] > half {
         left_index -= 1;

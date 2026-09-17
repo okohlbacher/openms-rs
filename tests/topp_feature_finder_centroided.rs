@@ -2513,6 +2513,67 @@ fn a_debug_run_that_reaches_the_fit_ends_where_the_release_build_terminates() {
     assert!(!dir.path().join("out.featureXML").exists());
 }
 
+/// Executed tool case avg0 (`../oracle/ffap-complete-fix3`): FFC_1 with
+/// `reported_mz` average and the trace, seed, feature and isotope-fit
+/// thresholds at 0, without `write_debug`. A seed whose best isotope pattern
+/// stayed empty reaches `extendMassTraces_`, which reads the pattern's first
+/// entry: the executed tool dies with SIGSEGV (shell status 139) in both
+/// repetitions, with nothing on stderr and no output. The port refuses at
+/// that seed (lead decision D1) and reports it as TOPPBase reports the
+/// algorithm's other errors. Its console block starts with everything the
+/// executed process wrote; after it, the port also prints the `std::cout`
+/// lines of `run_` that the executed process still held in its buffer when it
+/// died, the per-charge seed counts (TOPP native difference: a crash loses
+/// unflushed output).
+#[test]
+fn a_run_that_reaches_an_empty_best_pattern_is_refused_where_the_release_build_crashes() {
+    let dir = Workdir::new();
+    let args: Vec<String> = [
+        "-test",
+        "-ini",
+        &text(ffc1_ini()),
+        "-in",
+        &text(ffc1_input()),
+        "-out",
+        &dir.file("out.featureXML"),
+        "-algorithm:feature:reported_mz",
+        "average",
+        "-algorithm:feature:min_trace_score",
+        "0",
+        "-algorithm:seed:min_score",
+        "0",
+        "-algorithm:feature:min_score",
+        "0",
+        "-algorithm:feature:min_isotope_fit",
+        "0",
+    ]
+    .iter()
+    .map(|arg| (*arg).to_owned())
+    .collect();
+    let outcome = run_args(&dir, &args);
+    outcome.assert_exit(ExitCode::UnknownError);
+    outcome.assert_err_contains(
+        "Error: Unexpected internal error (FeatureFinderAlgorithmPicked seed extension: the \
+         isotope pattern matched no peak; the source reads its first entry here)",
+    );
+    let executed = executed_block("tool_avg0_stdout.txt");
+    assert_eq!(
+        executed,
+        vec![FeatureFinderCentroided::NO_FAIMS_MESSAGE.to_owned()]
+    );
+    let port = port_block(&outcome);
+    assert_eq!(port[..executed.len()], executed[..]);
+    assert!(!port[executed.len()..].is_empty());
+    assert!(
+        port[executed.len()..]
+            .iter()
+            .all(|line| line.starts_with("Found ") && line.contains(" seeds for charge ")),
+        "{port:?}"
+    );
+    assert!(!dir.path().join("out.featureXML").exists());
+    assert!(!dir.path().join("debug").exists());
+}
+
 /// Executed cases c1 and c2 ran the C++ tool at `-threads 4`: its debug log
 /// then differs from run to run (c2's three logs are pairwise different,
 /// c1's too), because `abort_` and the log writes race; that output is

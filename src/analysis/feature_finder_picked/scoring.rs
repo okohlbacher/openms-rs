@@ -679,6 +679,46 @@ pub(crate) mod x86_64 {
     }
 }
 
+/// `Math::pearsonCorrelationCoefficient` over two equally long, non-empty
+/// ranges, as the Linux x86_64 Release build computes it
+/// (`libOpenMS.so` `0x18d5240`): both means as left folds divided by the
+/// length, then one pass accumulating `numerator += temp_a * temp_b` and the
+/// two squared sums, and `numerator / sqrt(denominator_a * denominator_b)`,
+/// every step with SSE's NaN rule.
+///
+/// Unlike the crate's shared
+/// [`pearson_correlation_coefficient`], a zero denominator is divided by: a
+/// denominator that underflows to zero from non-zero deviations gives the
+/// source's signed infinity, and an all-equal range `0 / 0`, the default NaN.
+///
+/// # Errors
+///
+/// Returns the shared function's error for an empty range or ranges of
+/// different length (the source's `Exception::InvalidRange`), which no caller
+/// in this algorithm passes.
+pub(crate) fn source_pearson(a: &[f64], b: &[f64]) -> Result<f64> {
+    if a.is_empty() || a.len() != b.len() {
+        return pearson_correlation_coefficient(a, b);
+    }
+    let dist = a.len() as f64;
+    let avg_a = x86_64::div(a.iter().fold(0.0, |sum, &x| x86_64::add(sum, x)), dist);
+    let avg_b = x86_64::div(b.iter().fold(0.0, |sum, &x| x86_64::add(sum, x)), dist);
+    let mut numerator = 0.0;
+    let mut denominator_a = 0.0;
+    let mut denominator_b = 0.0;
+    for (&value_a, &value_b) in a.iter().zip(b) {
+        let temp_a = x86_64::sub(value_a, avg_a);
+        let temp_b = x86_64::sub(value_b, avg_b);
+        numerator = x86_64::add(numerator, x86_64::mul(temp_a, temp_b));
+        denominator_a = x86_64::add(denominator_a, x86_64::mul(temp_a, temp_a));
+        denominator_b = x86_64::add(denominator_b, x86_64::mul(temp_b, temp_b));
+    }
+    Ok(x86_64::div(
+        numerator,
+        x86_64::sqrt(x86_64::mul(denominator_a, denominator_b)),
+    ))
+}
+
 /// The RT and m/z bin steps of step 1: the extents divided by `bins`
 /// (`FeatureFinderAlgorithmPicked.cpp:244-245`).
 pub(crate) fn bin_steps(rt: &NumericRange, mz: &NumericRange, bins: usize) -> (f64, f64) {
@@ -1355,7 +1395,7 @@ pub(crate) fn isotope_score_logged<L: LogSink>(
             let kept = size - b - e;
             if kept > 2 || (b == best_begin && e == best_end && kept > 1) {
                 work += kept as u64;
-                let mut int_score = pearson_correlation_coefficient(
+                let mut int_score = source_pearson(
                     &isotopes.intensity[b..size - e],
                     &pattern.intensity[b..size - e],
                 )?;
