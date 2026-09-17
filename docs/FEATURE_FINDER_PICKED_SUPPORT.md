@@ -1171,6 +1171,38 @@ leaves roughly 30 to 50 ms for the C++ algorithm against this port's 9.6 ms at
 one thread. That subtraction is an estimate, not a measurement; the instrumented
 tool-level comparison belongs to B10.
 
+The rows above predate combined fix round 3. Round 3 replaced the `libm`
+crate's `exp` and `log` with the reference build's glibc 2.39 routines
+(`glibc_libm`) and moved the fitter arithmetic to x86_64's operand order. It
+was timed before (4ce747d) and after (e2a0661) with the same scratch test:
+`run` at one thread, best of 9, `feature:rt_shape` symmetric (Gaussian
+fits) and asymmetric (EGH fits), release build.
+
+| Host | Symmetric, before / after | Asymmetric, before / after |
+| --- | --- | --- |
+| Linux, IBMI spock, AMD EPYC 9654 | 9.61 / 12.94 ms (+35 %) | 6.84 / 7.39 ms (+8 %) |
+| macOS arm64 | 6.38 / 6.55 ms (+3 %) | 4.27 / 4.44 ms (+4 %) |
+
+The Linux cost comes from the ported FMA fusion. The crate builds for the
+baseline x86_64 target, which has no `fma` feature, so every `f64::mul_add`
+in `glibc_libm` becomes an out-of-line `fma` call (Rust's
+`compiler_builtins`, dispatched at run time).
+
+Per-call timings over 2^24 inputs (`../oracle/ffap-complete-fix3/port-harness`):
+
+| Host | Ported `exp` / `log` | glibc `exp` / `log` |
+| --- | --- | --- |
+| kim, baseline build | 26.9 / 27.6 ns | 4.5 / 4.0 ns |
+| kim, `-C target-feature=+fma` | 3.3 / 3.3 ns | 4.5 / 4.0 ns |
+| macOS arm64 (`mul_add` is one instruction) | 1.8 / 2.5 ns | 1.8 / 1.9 ns (Apple's) |
+
+The `+fma` build matches every libm probe. Neither of the two ways to remove
+the cost fits in this lane:
+
+- Building with `-C target-feature=+fma` is a build-configuration decision.
+  It also leaves out CPUs without FMA.
+- Dispatching at run time needs `unsafe`, which the crate forbids.
+
 The source's algorithmic complexity is kept everywhere. The seed loop allocates
 one `MassTraces` and one `IsotopePattern` per seed and reuses the pattern buffer
 across the placements inside `findBestIsotopeFit_`, so nothing is allocated per
@@ -1189,11 +1221,12 @@ cargo fmt --all -- --check
 cargo test --locked --all-features --test feature_finder_picked \
   --test feature_finder_picked_seeds --test feature_finder_picked_helper_structs \
   --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter \
-  --test isotopes_source_precision --test mass_trace --test mass_trace_detection \
+  --test isotopes --test isotopes_source_precision --test mass_trace --test mass_trace_detection \
   --test topp_feature_finder_centroided --test feature_finder_picked_instrumentation \
   --test progress_logger
 cargo +1.85.0 test (same targets)
 cargo test --locked --all-features --lib feature_finder_picked
+cargo test --locked --all-features --lib isotopes
 cargo test --locked --no-default-features --features mzml,paramxml,featurexml --test feature_finder_picked
 cargo clippy --locked --all-features --all-targets -- -D warnings
 cargo doc --locked --all-features --no-deps
