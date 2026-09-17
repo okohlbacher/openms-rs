@@ -1623,9 +1623,2049 @@
    "package": "C2-ORACLE-FFAP",
    "role": "stage records for the changed-abundance FFC_1 run; cited by B6, B7 and the FFC wrapper",
    "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/README.txt",
+   "sha256": "1d1cf26cf99fd8af7ce730b78506bbd6361b6bea092f36bc37ad10ff1b6f63b4",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "oracle README; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/drivers/defs_eq_probe.cpp",
+   "sha256": "00130eca3b63f87348db151c999198a3ab515689baf9f6c1bd5d96f59dcb5073",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source defs_eq_probe.cpp; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/drivers/nonfinite_stage_dt.cpp",
+   "sha256": "d1fb6d74cadd47ff26f3c15ff6540c4779ec7d18f622e24a62cb98e6fe7e7037",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source nonfinite_stage_dt.cpp; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/drivers/powf_probe.c",
+   "sha256": "01801ad50e681f3c213d838bc7122ce9faa36880485350271520190c24f688f1",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source powf_probe.c; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/drivers/powf_where.c",
+   "sha256": "5a03e459d2ad11105935c397294a06251f258d8dd64427817a60febf8e1b2574",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source powf_where.c; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/drivers/sort_probe.cpp",
+   "sha256": "50e5ad8a1553644d7d22b6b0ceaf9669ad9833f51d7a9c8a347a4c61fd451b43",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source sort_probe.cpp; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/drivers/ver2_band_driver.cpp",
+   "sha256": "ac90f5dffcdf46ce932dae18fc3f6c36344b09ba163b7da6ed20918d2483830b",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source ver2_band_driver.cpp; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/extract/extract_stage.py",
+   "sha256": "ee125872e5f489850fba89d3462258a5d22f0f915944e2d3b07419a3ddf68d4a",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor extract_stage.py; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/extract/make_probe_fixtures.py",
+   "sha256": "1f24c5910f79ad3c139cba9d2a502d910f7a70015692c3039c0b499eb3b63597",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_probe_fixtures.py; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/extract/make_shift_digests.py",
+   "sha256": "96eea8a56a7625a1a26a74fef9e45159e555221c1ad2bdf900201faae65ab17c",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_shift_digests.py; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/build_identity.txt",
+   "sha256": "52fb70c93a9ea4cda1e51bffc16bd4b47f8e59ad1dc184409d8a59c84d41aa8e",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build_identity.txt; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/powf_fma_disasm.txt",
+   "sha256": "311fd1ce4052613789f5eafd81d1893118be69205ae0912f61cfa2afa4e38484",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "disassembly capture powf_fma_disasm.txt; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/probe_results.sha256",
+   "sha256": "d8c6c45b691463c0d5d95e63c9426580c88996a994496f22247f01e6ab2b1922",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest probe_results.sha256; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/sha256_final.txt",
+   "sha256": "523d9366891318de0309c2f5f2df593c0b66204b75fc041a6ff80322b708207b",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "run record logs/sha256_final.txt; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/shift.sha256",
+   "sha256": "ad6ede50ca8e07954543f66679e25a9124c3cfef6ff0b68829ef4682a1971f09",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest shift.sha256; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/shift_debug_files.sha256",
+   "sha256": "386b929342649102bccc0c0fadb0e3a26a0e93b1a112aa6a6d220f1b18867515",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest shift_debug_files.sha256; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/stage_inputs.sha256",
+   "sha256": "87b439cdcedf5cedac3b3ea2ad59abbc806929d047a9d15f6575caf30f0e730f",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest stage_inputs.sha256; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/logs/stage_results.sha256",
+   "sha256": "cd432d7033332052a0e4b992e1f93bcab87ff57fd2976ee636bbbe6209509718",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest stage_results.sha256; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/make_sort_cases.py",
+   "sha256": "dcc812c9bd7f4d6e267007b48c6906dd7c9f51d9ce6c4bba0f6808a400466b48",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_sort_cases.py; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/node/build_probes.sh",
+   "sha256": "aece00b59bea3d0e66b5a5a12a406231eec868a8259950b59f653c810471eabf",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script build_probes.sh; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/node/run_probes.sh",
+   "sha256": "f58fbff5432118fbcd44836e5d15bf210178edac7ebba03cd325542a498deb2f",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_probes.sh; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/node/run_shift.sh",
+   "sha256": "2f390007ff5fb115a1bcf701d13b83163e8d20781080463f2da606f46ea4fd46",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_shift.sh; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix1/node/run_stage.sh",
+   "sha256": "0dc473816a28401a0225fa91a93df6e9d9e2af1819241b3f3ff730d4d4295098",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_stage.sh; port/ffap-complete combined fix round 1 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/README.txt",
+   "sha256": "70d5534af82cf85a57dca06d536f571509874680f29b5322c9b8b12565cbefdf",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "oracle README; port/ffap-complete combined fix round 2 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/drivers/fix2_driver.cpp",
+   "sha256": "4a8c13c801fd5c0e0328586cb7b8c708fd5088cf1660669c6965c9bb63db4220",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source fix2_driver.cpp; port/ffap-complete combined fix round 2 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/extract/make_fixtures.py",
+   "sha256": "7559ad1b113c189e0e5a36eda4df2c636609a720191532812bd890de46c0802b",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_fixtures.py; port/ffap-complete combined fix round 2 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs/build_identity.txt",
+   "sha256": "148cf99a64e188c47d0f37ea1173a0d7b493db7be9d756803c9c77666f66b000",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build_identity.txt; port/ffap-complete combined fix round 2 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs/results.sha256",
+   "sha256": "f8d2e3b43717ae4e3636c72068d9bac65063749e5df6d1b62d6b304e6f88ec98",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest results.sha256; port/ffap-complete combined fix round 2 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/logs/sha256.txt",
+   "sha256": "0a57c305d3fdb1237e2a3243b9001592d8c8b7c7ff226eade7b32ccbbc5ae80f",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "run record logs/sha256.txt; port/ffap-complete combined fix round 2 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/make_inputs.py",
+   "sha256": "a913142867a5b3cc1d64ea4f76ec52695b28df8b0750cd3f1c3512ffa451e8d9",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_inputs.py; port/ffap-complete combined fix round 2 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/node/build.sh",
+   "sha256": "bfd77db22eba624752990043e008adf7bb85c2fd2ec6838376f17fb075345c2a",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script build.sh; port/ffap-complete combined fix round 2 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix2/node/run.sh",
+   "sha256": "06676895faba0fc5ce8149aaedc1d72702a6827fef1a84bdb687686e4dd692df",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run.sh; port/ffap-complete combined fix round 2 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/README.txt",
+   "sha256": "19a3582bde5af411747b089aa6025e3ebfa37117538d66b72a7e05af996aad07",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "oracle README; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/drivers/fix3_driver.cpp",
+   "sha256": "169419f4ec8a4dcd6c9524b65ca3b46ebfbf4a71d7571c0075c9e152503fde12",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source fix3_driver.cpp; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/drivers/fix3_stage.cpp",
+   "sha256": "0529ef4163c1d13ebc9f4f1e4efec0efb6d74607734a660022f055156e29702b",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source fix3_stage.cpp; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/drivers/libm_probe.c",
+   "sha256": "1555ca8a4b81301a868bce4d525cf234a6e37b493b8c3b3a27cc4538aa67c509",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source libm_probe.c; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/drivers/vfi2_driver.cpp",
+   "sha256": "b3c590695fb9614c5700b4e2d508e1ecf2d86b2713f00e11bfd42fa2fa0ef848",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source vfi2_driver.cpp; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/check_tables.py",
+   "sha256": "ec645c7c5d7b82d88f4987c245402d35fced67285e129ec45b1c4adc27bb2093",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor check_tables.py; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/extract_stage.py",
+   "sha256": "f9a669811a82972a216e06329432a299ea819edbd21f4db00ae1b2962f9f7be7",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor extract_stage.py; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/make_crash_fixtures.py",
+   "sha256": "e72d0093ffea96b36a3b6154193f00d65d0887a83da2084857d63e59c62bef96",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_crash_fixtures.py; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/make_libm_fixture.py",
+   "sha256": "c56d7a8825981363bbd2b09a0658f1c543db4241898775b4a107e7e52c62a155",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_libm_fixture.py; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/make_progress_fixture.py",
+   "sha256": "9a59079c4ed4811863886d263bf62ae18c8a1bee3df9ca086a519806d269b3ed",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_progress_fixture.py; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/make_tool_fixture.py",
+   "sha256": "efe3af9f99b9184d60c82d47be5f94ecc1b70b9b1dcdc91ececfc4d67ab33f20",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_tool_fixture.py; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/extract/upstream_tables.py",
+   "sha256": "b2dac07dff73e8d9e60f6e215ce7a314b608a76a86496c80ddabcb70ee970425",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor upstream_tables.py; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/build_identity.txt",
+   "sha256": "28fa2a0d2e1c25e7bc7cff25e3497e474c01af2a5327fa72350e737a1308442b",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build_identity.txt; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/libm_disasm.txt",
+   "sha256": "449361d5956aeadbb1a40f8ea29880627a329f63441eee6fe73d028d18c6540a",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "disassembly capture libm_disasm.txt; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/libm_disasm2.txt",
+   "sha256": "8111d2c046f506ca99c8e84cb8faaf55c8b68315d591597dfd2d17229d5a9410",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "disassembly capture libm_disasm2.txt; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/results.sha256",
+   "sha256": "1b149d6846bfc0d0e8236adadd7e282bb7c5a26577ec16c4953afc22ae3905dd",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest results.sha256; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/logs/sha256.txt",
+   "sha256": "75784b062dd019d19699eff7309e72aec7937c6926ef2a5c0da0344eeed1161b",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "run record logs/sha256.txt; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/node/build.sh",
+   "sha256": "9291974885d6b79149b2b3f436a471634580b4456de7253642a31194e3f6eee0",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script build.sh; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/node/run_probes.sh",
+   "sha256": "a5bb01ab1fa30ebaaf16b108844857c035bf8855022a5a5a94573329b167ab12",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_probes.sh; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/node/run_stage.sh",
+   "sha256": "c471ef9c6d18e355414e183e5df415c36201310dee8c8016d665ba2a5c5755c3",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_stage.sh; port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/upstream/LICENSE",
+   "sha256": "650afbf29f214451e02241adc42534e82c9d6ae2b38e2444b92b5a1ffcaf9346",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "vendored upstream source LICENSE (hashed, not copied into the repository); port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/upstream/math_exp.c",
+   "sha256": "219b5f666c84864e80ef5ef33bc5453b4702ea74fc5cbf997c3dfacdcf5738cf",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "vendored upstream source math_exp.c (hashed, not copied into the repository); port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/upstream/math_exp_data.c",
+   "sha256": "a5e84677e7693c7d22195f86faac5fdc6f92bff7ea2e54c0e7888203a78ffc24",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "vendored upstream source math_exp_data.c (hashed, not copied into the repository); port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/upstream/math_log.c",
+   "sha256": "10e3774a72279c75d3842bc651a9d81e8fe31f9717caac736a603170ed509530",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "vendored upstream source math_log.c (hashed, not copied into the repository); port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix3/upstream/math_log_data.c",
+   "sha256": "327cf1819870930486eecb5491c68d5887a712b954e5ec82f3f70bfd9e46fdd3",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "vendored upstream source math_log_data.c (hashed, not copied into the repository); port/ffap-complete combined fix round 3 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/README.txt",
+   "sha256": "4d912925da6622b36cd7ca177745dca240aa75226a0027b644f328179bba67f0",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "oracle README; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/drivers/fix4_reuse.cpp",
+   "sha256": "9298c1bc619735a124affb4ac366b61f771f2c12b17936195483fdb13d379ae3",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source fix4_reuse.cpp; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/drivers/fix4_stage.cpp",
+   "sha256": "1689ea630cff4f3d1f56edfef8b225498ac4da238e347cbfcb59068681b38695",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source fix4_stage.cpp; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/drivers/fix4_vfi.cpp",
+   "sha256": "0c281909048817ffb65c25bda84e40871ce6030cfb403adcbe8c044b91a54fc6",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source fix4_vfi.cpp; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/extract/extract_stage.py",
+   "sha256": "b5945687d2969869cd799d2edbab20145d65cb6cd455a6b9cb21177ad295afac",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor extract_stage.py; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/extract/make_fixtures.py",
+   "sha256": "e22964a6a7db5a47947decd5243e4e9361f80854d871ca5719a0e6d8fa3114c3",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_fixtures.py; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/build.rc",
+   "sha256": "90757e51a6523f026f98daaad5576a09fd264aa60ddc241b66ac2dc4c683b72e",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build.rc; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/build.sha256",
+   "sha256": "da48f37b0c8f73dd80d1a570ad60e6497e94d135808858e26fa88331259b4312",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build.sha256; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/build_identity.txt",
+   "sha256": "f3236f970e2c2299ccddb1921639f60f4186ce47a55a54402ad9784c4bf3deb3",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build_identity.txt; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/results.sha256",
+   "sha256": "caf6b628d6d201451d6d28f4d3e645df6ce8cdbf26eb3ae07c071106c3d089fb",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest results.sha256; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/stage_inputs.sha256",
+   "sha256": "49533b1e601724659c15ed0ea166ea46f1462947bb83341c982b064ccce845c8",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest stage_inputs.sha256; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/logs/tool_inputs.sha256",
+   "sha256": "6ae02b78921b13fe0ba084a73f80a3014d43ae10b7d1a9accbe910d9a1f8b1f6",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest tool_inputs.sha256; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/build.sh",
+   "sha256": "975077595d13cfaf0181a6f939dd66060b3231a7b718eb2222733a13b05e8757",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script build.sh; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/run_all.sh",
+   "sha256": "fabc40a8a1243be1a9f701b0ef6193bca28f5523633dc0b419da222d7fd7d685",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_all.sh; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/run_reuse.sh",
+   "sha256": "d075727cba76eb55e8fecfcc5c25828167e2793c033547fb73759ee199382161",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_reuse.sh; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/run_stage.sh",
+   "sha256": "6a70c63c8cdf40f4c9734dc9a8fb8326f92c84a0b2e7340944b2b75c616719df",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_stage.sh; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/run_tool.sh",
+   "sha256": "0c91518820df69330cecea1650c68f0d7be1ca4289ebabd8e1c09f2b33dbe9e4",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_tool.sh; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/run_vfi.sh",
+   "sha256": "185fe378028f830d810fa19059879b82274b5031c27abda3661fc731630d8860",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_vfi.sh; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix4/node/sync.sh",
+   "sha256": "0bfe11232b465404eb74c73b82676ed5e15ffa5a5fb7aad1fe25cfbfab15bd43",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script sync.sh; port/ffap-complete combined fix round 4 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/README.txt",
+   "sha256": "dad31ea735db76711d9d269c016e4d4ab7904f63d7c0e6bfde90c042c3d488e9",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "oracle README; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/drivers/ffap_instr_driver.cpp",
+   "sha256": "894fbfa9b2c17cbb4b8f76f0d3c7430303b1b84d4ee43c8b31f4492725df4d60",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source ffap_instr_driver.cpp; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/drivers/fix4_stage.cpp",
+   "sha256": "1689ea630cff4f3d1f56edfef8b225498ac4da238e347cbfcb59068681b38695",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source fix4_stage.cpp; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/drivers/fix5_driver.cpp",
+   "sha256": "3b4155f74aa0e956d0fc9833c9d3ce97b732fa5a818dbde387330982da673dbc",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source fix5_driver.cpp; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/drivers/vfi2_driver.cpp",
+   "sha256": "b3c590695fb9614c5700b4e2d508e1ecf2d86b2713f00e11bfd42fa2fa0ef848",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source vfi2_driver.cpp; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/extract/extract_onset.py",
+   "sha256": "8e8ea159a8520a4a117334615f8f9ebe48e377fd47f7dc86f0c521a75819496b",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor extract_onset.py; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/extract/make_fixtures.py",
+   "sha256": "dea15e8782e62c802c500963c00205e196c3d6857feed75242358fe39ff1a233",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_fixtures.py; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/build.rc",
+   "sha256": "153163c0b5fe1eae5029f4775d0a2c26a8f6a4bbd06acf8c783c7e5835cb8197",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build.rc; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/build.sha256",
+   "sha256": "bb3661862c954e96455632f5a211bc496c2013988cbec4b0b963a63db04045db",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build.sha256; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/build2.sha256",
+   "sha256": "d22ae92caba28d7d9d39f89e67238f6cc704f1b6a1948d9ab1cf87ca68fe797a",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build2.sha256; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/build3.sha256",
+   "sha256": "ce2983e6731f632da2702d959c5f6a7d958d8c95fc35c450da2241b3bffd586d",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build3.sha256; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/build_identity.txt",
+   "sha256": "42dc921b436319e6b796a99af69594ad9b980f2940d6fa07af32a3dfb0995ff5",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build_identity.txt; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/results.sha256",
+   "sha256": "176fd2dae0a58a215e929902a10327c313973aab6b4f8d6d1d464d136e5f8742",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest results.sha256; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/logs/stage_inputs.sha256",
+   "sha256": "00445b8d527b84e4d0acd013053383e86265940da837a6851ffbc36ccc954de0",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest stage_inputs.sha256; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/node/build.sh",
+   "sha256": "24f0f20ce6930d3f96793e4a359568284a80678b5c396dea4f0380b7e9534609",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script build.sh; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/node/run_band.sh",
+   "sha256": "c83b49aff7b15eb99fc2040abfe1cd7c8d15a35d56dbcae4baa575386b3d98b2",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_band.sh; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/node/run_cases.sh",
+   "sha256": "49196996ca5df25099763a7d5f6f1df96761d17ed183a6326aaa28b542da2664",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_cases.sh; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/node/run_cases2.sh",
+   "sha256": "31ca66147fdb4f898e4f8d56fc34694a1ed505e6ea9f2577330ce39d2e7a4e0f",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_cases2.sh; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/node/run_onset.sh",
+   "sha256": "0547642eb50ad01f5cfbb24e138376f07542297a3d1b51c34dd905609690b285",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_onset.sh; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix5/node/sync.sh",
+   "sha256": "8b083ccb88db7c69b6b1bf90c341522069478c41a13aed3df19496ab4e3581db",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script sync.sh; port/ffap-complete combined fix round 5 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/README.txt",
+   "sha256": "5a2ecd930152da0f181a09b20f69a346d8029b0cbb3544f6c0ad426c01c93135",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "oracle README; port/ffap-complete combined fix round 6 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/drivers/fix6_driver.cpp",
+   "sha256": "835d08c9d3e9a4501ac6744335f2b728714918a760e7f850ee003f210545cfbd",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source fix6_driver.cpp; port/ffap-complete combined fix round 6 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/extract/make_fixtures6.py",
+   "sha256": "1d8422866cab3b01146d6164a5987a45aa3fa923c197f26fdb35af31a2b5357f",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_fixtures6.py; port/ffap-complete combined fix round 6 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/extract/make_wrap_fixture.py",
+   "sha256": "79d3ee55a56e0a5a72657c5142f6f68ae0eb655ddcb58f132f947a508d58e095",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_wrap_fixture.py; port/ffap-complete combined fix round 6 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/build.sha256",
+   "sha256": "8c53a81ded75266c08e59bd048af1ffbcbbeab6be71fd3d077f3e4e8ecf34164",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build.sha256; port/ffap-complete combined fix round 6 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/build_identity.txt",
+   "sha256": "22df9069c3c07419999dc2da9dc465ae8f4ef6b8313238882edfcfb5c0d364a2",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build_identity.txt; port/ffap-complete combined fix round 6 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/logs/results.sha256",
+   "sha256": "942d7d7a5eaf622960cd86736f1c1374545af10e4074335cc966a5f546b4c09e",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest results.sha256; port/ffap-complete combined fix round 6 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/build.sh",
+   "sha256": "27280ff2b4c851365d9aa5f13f781528ab1e93267687d77b65df36ed7b48a160",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script build.sh; port/ffap-complete combined fix round 6 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_cases6.sh",
+   "sha256": "1621a915042fb4eddee3090b6e30a7d9a94ff6b8185be67a616a8e8f7f86105a",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_cases6.sh; port/ffap-complete combined fix round 6 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_rest.sh",
+   "sha256": "d5f172e7ca7c918600c1a4617a508c560c478dceafc5ba79a790fb1b714f4927",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_rest.sh; port/ffap-complete combined fix round 6 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_reuse.sh",
+   "sha256": "81ee0cf144d086a1e30b31c75e61977e74996f46f12ab3256110d1d330db5eea",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_reuse.sh; port/ffap-complete combined fix round 6 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/run_wrap.sh",
+   "sha256": "6bf3d8e6ba8ec19e1ebc2ee8356f7b3205c9c19772883d0a7ff0154f1d59001b",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_wrap.sh; port/ffap-complete combined fix round 6 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-fix6/node/sync.sh",
+   "sha256": "4d28224aa43c27eb30977b9eba929d5d0e52c7804ac6a24fbd7e513d7613a09e",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script sync.sh; port/ffap-complete combined fix round 6 oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/build_driver.sh",
+   "sha256": "3c653033ac90ed8ed2bc2faf9137a3c1a6f275e1a3ec9bab26a30fc192f618cf",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "node build/run script build_driver.sh; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/build_progress_driver.sh",
+   "sha256": "208863fcb6a513a91f6a472f0ff9393ed43f137cb6f90069545feb93c865d2dd",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "node build/run script build_progress_driver.sh; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/build_shift_band_driver.sh",
+   "sha256": "68e820b2da0a99efe8f8bb1b9fdd7ca1f768ea47fa2151c526e116c768d1533e",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "node build/run script build_shift_band_driver.sh; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/drivers/ffap_instr_driver.cpp",
+   "sha256": "894fbfa9b2c17cbb4b8f76f0d3c7430303b1b84d4ee43c8b31f4492725df4d60",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "executed driver source ffap_instr_driver.cpp; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/drivers/ffap_progress_driver.cpp",
+   "sha256": "bf54f670e0f3fe7967897df0bc818f3ba9e0ebbd9e1a0bb608c9477c04d2a390",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "executed driver source ffap_progress_driver.cpp; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/drivers/ffap_shift_band_driver.cpp",
+   "sha256": "744892728a918c52a72b31b88eed1a4818542fda071e4a4c56be2fefd23264f7",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "executed driver source ffap_shift_band_driver.cpp; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/make_fixtures.py",
+   "sha256": "b17157db6de53429ff60a65e9f3e297bff1e1992c858588a53ca595b12b8fbb3",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "case generator / fixture extractor make_fixtures.py; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/make_manifest.py",
+   "sha256": "905807da93c4ea909a860e5fdcdaf4bdc5f0d8838cfb4714065923f4308299e1",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "case generator / fixture extractor make_manifest.py; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/run_all.sh",
+   "sha256": "078d4cb8d9314a79c56cd6cdf6054979bc9e207912fe6ae374bd36fa349fa803",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "node build/run script run_all.sh; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/run_driver.sh",
+   "sha256": "c885562961fbbd12b33718cb42c668c6586d0eb865ee64a03ea85e7b9bef1c68",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "node build/run script run_driver.sh; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/run_driver2.sh",
+   "sha256": "95a83de2262b4fc4da4d5e57d5c760383f6ff78965c5b9c3002e09b33f2bbd66",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "node build/run script run_driver2.sh; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/run_driver3.sh",
+   "sha256": "6893cbbb84c1fce33d6126e4e26fb2cffb166ee58d8c08818cfb2d4cc08faaf8",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "node build/run script run_driver3.sh; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/run_progress_driver.sh",
+   "sha256": "6659f47f5652d52cf45d3246c2a89d78f98530b4633b06d1b3f1818a4fffecf2",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "node build/run script run_progress_driver.sh; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/run_shift_band_driver.sh",
+   "sha256": "0b631f69e9f278f1e8d4a5fc0b58370678792c4e4b44c8498daf9a25b361a8e0",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "node build/run script run_shift_band_driver.sh; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-instr-completion/tool_cases.py",
+   "sha256": "bf6636dc8d16c9b6a3089d1b0ea143ac9e1e6573b131fb6e615d5ef03106f12d",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "case generator / fixture extractor tool_cases.py; port/ffap-instrumentation completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/c2/ffap_stages.cpp",
+   "sha256": "383be3268068fee5d939edd8f8086fc1aceb1be781fed2cc621c54528699f224",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source ffap_stages.cpp; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/common/fit_records.h",
+   "sha256": "c6f32ddd53b26ff297d3d12add85ae051265f7add2e45ef39a2d9baf0d5d5426",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source fit_records.h; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/common/fixtures.h",
+   "sha256": "5d0f67549c53f2992467b9f1939eeba2822554e16c279a82ed6af6f2a7b8e3a8",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source fixtures.h; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/common/jsonl.h",
+   "sha256": "2e5310a67478f1c9b78cf2c1a831dcf808db5a7d8e8f6565213d32e1e89cb7f8",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source jsonl.h; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/common/lm_replica.h",
+   "sha256": "6839bb8fe9a025c410fd1099748426674cd6a0076008ba8b953bd26b9c6e3bcd",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source lm_replica.h; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/defs_both_headers.cpp",
+   "sha256": "05ce54bf8e6ce409902fc74e302908a2bf1e161bffb7bd234dcffb9353627b20",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source defs_both_headers.cpp; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/defs_probe.cpp",
+   "sha256": "02928d7d54d476ed796e79d85086cde7a41c781bd726d7e5600951118fe34362",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source defs_probe.cpp; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/degenerate_stage.cpp",
+   "sha256": "2ce281b0347a78f6a5543a143f629c20b3afc4fbf0a270483dc26a3771f0027c",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source degenerate_stage.cpp; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/intended_abundance.cpp",
+   "sha256": "ae6fd6e86044ce6e6f2b3958f01b901c0ec02c8aec864ca8e0ed08f3526156b4",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source intended_abundance.cpp; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/iscore_probe.cpp",
+   "sha256": "7afb69b2d07d2a9c42e42c2f20240ccde0a835c1a1b8d03ad500da2726ddabae",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source iscore_probe.cpp; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/nonfinite_stage.cpp",
+   "sha256": "becccf9d50a6e4dcfb7f4cb8b4f758652896af2aa53a2130266f007452769026",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source nonfinite_stage.cpp; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/drivers/seed_stage_b6_original.cpp",
+   "sha256": "4377de21ffe6310d827c47b037dbf0b930c5ca86c6f0166572d1150e218cee33",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source seed_stage_b6_original.cpp; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/extract/extract_degenerate.py",
+   "sha256": "6d355992901ecdf3e8a62ca40eaca6ac69618a19b453656c695934d7c00c9c81",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "case generator / fixture extractor extract_degenerate.py; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/extract/extract_intended.py",
+   "sha256": "5a7fe7ceee4dde5a1c8df976f7cb58e4818ef169e95a5df588fe58dabeb77bf7",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "case generator / fixture extractor extract_intended.py; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/extract/extract_iscore.py",
+   "sha256": "955ea1a54d4c16688f526f8e546d4cf5cd80947a4d074d57036381654a863f5e",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "case generator / fixture extractor extract_iscore.py; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/extract/extract_linux.py",
+   "sha256": "9cd41e5a23f2a3c41355a6f5e6626ff90dd299d120e0137fd8cea680b5eb7ab9",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "case generator / fixture extractor extract_linux.py; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/extract/extract_linux_seeds.py",
+   "sha256": "06887f7f9acfcbe4e7c0b8b0a84e28292d0b287bde9d131fd003bb924d3808e0",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "case generator / fixture extractor extract_linux_seeds.py; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/extract/extract_nonfinite.py",
+   "sha256": "e45ef5c52e204c4dcd3ba8b8afd178e07117dae5012720f696deffde2878cc6c",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "case generator / fixture extractor extract_nonfinite.py; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/fetch.sh",
+   "sha256": "fe91093a038f6a12a1607dfd047c6c61d49c80162c0285664ac945846b86c680",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "node build/run script fetch.sh; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/make_inputs.py",
+   "sha256": "3f875365a698bccf7d1fb1e8f89680ddc474fd7107155a9a15169eb36aca3400",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "case generator / fixture extractor make_inputs.py; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/build.sh",
+   "sha256": "0bb5d90bb643ce11a4a87ed122b22347a545b1a8113ace23a7ad701ccbff4e70",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "node build/run script build.sh; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/run_class.sh",
+   "sha256": "596dffb335ab2b3f9c2a1e1a8d784f4fe178067b8c962bb6b767a1a6ee45ca8f",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "node build/run script run_class.sh; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/run_class2.sh",
+   "sha256": "fe6b3456abd3662500ba25d9c8b382043fc14b82f5c059cb2298379785a048a5",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "node build/run script run_class2.sh; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/run_class3.sh",
+   "sha256": "8e828b3d9cfabfce11696a3432fc416ec29e1411dbea0dff4ac0db99b11a892c",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "node build/run script run_class3.sh; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/run_intended.sh",
+   "sha256": "f53e6b962efeb56fbb4a68c5475ee5d4496509e952a3bdc6ce37c6be5664b5de",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "node build/run script run_intended.sh; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/run_nonfinite.sh",
+   "sha256": "dc856ec6801757e0bb720424902a7427d99970e1c20b908dd8383db243b29f4d",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "node build/run script run_nonfinite.sh; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/node/tool_cases.py",
+   "sha256": "35e43ae5d66b6d1879d3fad7f630f2d73f767298a283fd79626e576ef51b9bc7",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "case generator / fixture extractor tool_cases.py; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/build_defs_both_headers.log",
+   "sha256": "cfc42ea0cc6bc98d758f855d382a5cceeac9eae72aaf9b198add6e4159e1963c",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "run record results/logs/build_defs_both_headers.log; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/build_identity.txt",
+   "sha256": "e8e12ce1e8b56accf552f501cf7a52c512891414a3529510d3a20105d0277ab6",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "build/result digest build_identity.txt; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/build_identity_nonfinite.txt",
+   "sha256": "7b6e27a30063fc8a6cf1337bd05b94ac2b2908b1ed9a7e4b33fb13cc0cfefb5f",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "build/result digest build_identity_nonfinite.txt; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/sha256.txt",
+   "sha256": "64bc65aead4dc0c3465d7e6cf4944fb1dbb966b24afa938e94ae4684547cd4d6",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "run record results/logs/sha256.txt; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/sha256_class3.txt",
+   "sha256": "f8d346b195922cabccb77d60ca4d220f533cedb945855fda3ac03f8a9d8a32ba",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "run record results/logs/sha256_class3.txt; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/sha256_intended.txt",
+   "sha256": "1bb7073127f1ab3d1e7953e9e670d9a9df4d9f148916699980ad15b937e41436",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "run record results/logs/sha256_intended.txt; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/results/logs/sha256_nonfinite.txt",
+   "sha256": "5e45cefe76a5c7e1e3d0dc2a57a310045e990c6a4b0e57e01232f6744df756f3",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "run record results/logs/sha256_nonfinite.txt; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-completion/sync.sh",
+   "sha256": "01a91e1ce27e40ff3f9a5eb1b98189c5fa48a53da236b31d61ed9db19f1514ee",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "node build/run script sync.sh; port/ffap-semantics completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/drivers/nonfinite_ver.cpp",
+   "sha256": "853ffb6c67004f2e7b8909c2ac252bf29c35afff4a4dc4517204dc2bde768a57",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source nonfinite_ver.cpp; port/ffap-semantics round-1 verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/drivers/write_mod.cpp",
+   "sha256": "d9f93af82e978cd8abcf742bb9b44cb1c0440d6538dd4c720baa18d3677cecf0",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "executed driver source write_mod.cpp; port/ffap-semantics round-1 verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/logs/sha256_nftool.txt",
+   "sha256": "2b36588fbd113c3953970c98e0108153fad7bfb13d4e57391990aa407900abfb",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "run record logs/sha256_nftool.txt; port/ffap-semantics round-1 verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/node/run_nftool.sh",
+   "sha256": "22011299c74f2ceaae95b7e75824d00dd581d0363ef9e503b9713a5bd5e0cf9d",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "node build/run script run_nftool.sh; port/ffap-semantics round-1 verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/node/run_nonfinite.sh",
+   "sha256": "011b4fd5cc3ac627cb26fac98ea1f033586d58a8d0f9de202d944639ed364497",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "node build/run script run_nonfinite.sh; port/ffap-semantics round-1 verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-sem-ver1/node/run_seeds_nf.sh",
+   "sha256": "cc914f21ab9ab456eea5ef75936688b964f5fd8dcaff7ff5cf233749818ea330",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-SEMANTICS",
+   "role": "node build/run script run_seeds_nf.sh; port/ffap-semantics round-1 verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffc-instrumentation-v3/README.txt",
+   "sha256": "0488e524e36b460748cd69ec876e077e88b41f265b220ee49955825d293893f4",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "oracle README; port/ffap-complete round-3 instrumentation verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffc-instrumentation-v3/drivers/vfi3_driver.cpp",
+   "sha256": "8931be3fa87c876b9f74a9de19a88295ff3eb45377c4b520e10aa4939cd2bb7c",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "executed driver source vfi3_driver.cpp; port/ffap-complete round-3 instrumentation verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffc-instrumentation-v4/README.txt",
+   "sha256": "79ad398ba4dab7a78135a5d276210ff51b13197ce31128b443624e07f8312b9a",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "oracle README; port/ffap-complete round-4 instrumentation verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffc-instrumentation-v4/drivers/vfi4_driver.cpp",
+   "sha256": "a6a436034764f0f7ad549ac4c309ed562bc697c1961542ef6ae6b6c8a33323b5",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-INSTRUMENTATION",
+   "role": "executed driver source vfi4_driver.cpp; port/ffap-complete round-4 instrumentation verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffc-numerics-v3/README.txt",
+   "sha256": "7dbbda61c8ef0844cd0d4209eb2bc4ef397be3954a528ba5760ddcb160fd08c0",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "oracle README; port/ffap-complete round-3 numerics verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffc-numerics-v3/extract/atan_rounding.py",
+   "sha256": "bfe45477bf8449834c4c505db0813591a56c0ebcb4ec4ea4169676351ba98435",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor atan_rounding.py; port/ffap-complete round-3 numerics verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffc-numerics-v4/README.txt",
+   "sha256": "211398654d5a1e7daf20da386649d73d23f45025f087ff0c0c8de3d4b9192f52",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "oracle README; port/ffap-complete round-4 numerics verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffc-numerics-v4/node/run_stage.sh",
+   "sha256": "64a5bad4f6030935ad895330026368c91bff55581ef17e8060271a7ad43ef3b1",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_stage.sh; port/ffap-complete round-4 numerics verifier oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/driver.cpp",
+   "sha256": "78dcbb0a39dcf5829965ca7c44fb88f0a0ada080b545be7be7d72099d47fce19",
+   "origin_key": "tests/data/progress_logger_provenance.json",
+   "package": "W5-PROGRESS-RANGE",
+   "role": "executed driver source driver.cpp; port/progress-logger-release-range Release range differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/extract.py",
+   "sha256": "e700aee836ded3c154b217e9dbe9b94652673d5959a61fb1501661d1f2e898aa",
+   "origin_key": "tests/data/progress_logger_provenance.json",
+   "package": "W5-PROGRESS-RANGE",
+   "role": "case generator / fixture extractor extract.py; port/progress-logger-release-range Release range differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/remote_run.sh",
+   "sha256": "784394e3377406ea38110a178dc8bc957c8b44230179bd5a62efa309124fa3c8",
+   "origin_key": "tests/data/progress_logger_provenance.json",
+   "package": "W5-PROGRESS-RANGE",
+   "role": "node build/run script remote_run.sh; port/progress-logger-release-range Release range differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/results/build_info.txt",
+   "sha256": "e5a2e5a6a57b4322b13765acdc2969fc23bd6378843ba529ef7987775e2144b8",
+   "origin_key": "tests/data/progress_logger_provenance.json",
+   "package": "W5-PROGRESS-RANGE",
+   "role": "run record results/build_info.txt; port/progress-logger-release-range Release range differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/results/oplog_1.tsv",
+   "sha256": "834e0af142a2acf9f78f4b5a718a93eb4c3149017535ead57e8b1d94e8a9a6fc",
+   "origin_key": "tests/data/progress_logger_provenance.json",
+   "package": "W5-PROGRESS-RANGE",
+   "role": "run record results/oplog_1.tsv; port/progress-logger-release-range Release range differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/results/stdout_1.raw",
+   "sha256": "5c124f92d09af3df515b85e8b0a52ed864f575f88c48aa2a095edbff8a134286",
+   "origin_key": "tests/data/progress_logger_provenance.json",
+   "package": "W5-PROGRESS-RANGE",
+   "role": "run record results/stdout_1.raw; port/progress-logger-release-range Release range differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/results/stdout_2.raw",
+   "sha256": "f63413d59db8f54fa47f169c11fce1f52b8fbfb00fdf54abee10a14bd16c657e",
+   "origin_key": "tests/data/progress_logger_provenance.json",
+   "package": "W5-PROGRESS-RANGE",
+   "role": "run record results/stdout_2.raw; port/progress-logger-release-range Release range differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/results/stdout_3.raw",
+   "sha256": "d93201fc9cd1447dacd75e8fff71ba560ca0d1dc1dade6d65c28842e53e191cb",
+   "origin_key": "tests/data/progress_logger_provenance.json",
+   "package": "W5-PROGRESS-RANGE",
+   "role": "run record results/stdout_3.raw; port/progress-logger-release-range Release range differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/results/summary.txt",
+   "sha256": "bf2432164f94c9103ccab8efe38dd0a32c374456eb852ca5f43668b845f91ef5",
+   "origin_key": "tests/data/progress_logger_provenance.json",
+   "package": "W5-PROGRESS-RANGE",
+   "role": "run record results/summary.txt; port/progress-logger-release-range Release range differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-logger-release-range/run.sh",
+   "sha256": "164f0463cd794548a1d595b633b9338e60372f4ef97dbc7a770c23dee6e5e274",
+   "origin_key": "tests/data/progress_logger_provenance.json",
+   "package": "W5-PROGRESS-RANGE",
+   "role": "node build/run script run.sh; port/progress-logger-release-range Release range differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/disasm_compare.py",
+   "sha256": "afcefe0ac89eed51ea3df21307018c1d6ae779e0b9d36667a875cd38169719b4",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "case generator / fixture extractor disasm_compare.py; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/driver.cpp",
+   "sha256": "7866d64cbed28cf2ae3877a6f340faf8a037848f121f770f290939974a47907f",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "executed driver source driver.cpp; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/gen_cases.py",
+   "sha256": "5253db776716a083f2f1b7e7ac5d1eaeab9083f231fd6cfb789fbe050a95b732",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "case generator / fixture extractor gen_cases.py; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/gen_nth.py",
+   "sha256": "8aceaa0ec3665b89ebc433dd8bae47676cdcc48d604ec247cf7be0273053d391",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "case generator / fixture extractor gen_nth.py; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/libstdcxx/stl_algo.h",
+   "sha256": "0598c5b12d038b2e5b1c7d5e7b4982f8e8689a42d01af75cd919a76557a2dfcf",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "executed driver source stl_algo.h; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/libstdcxx/stl_heap.h",
+   "sha256": "f18f83b2feddf54c7ea289625628b34a2f6d758b697240b3b5d9abaeee6700ce",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "executed driver source stl_heap.h; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/p1/driver.cpp",
+   "sha256": "2d06db2fcec04f6af3102401a0e11e8e299e5d47b3276147f41c1e6617c4d4d6",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "executed driver source driver.cpp; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/p1/results/hashes.txt",
+   "sha256": "22381d94605c87b50432369846cd67922ba1272566833b5ce993e2de137233c5",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record p1/results/hashes.txt; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/p1/results/peak_picker_hires_oracle.stderr",
+   "sha256": "594bfed7f5261e858d3e446218138061f999c64a40e21c6091fff6f9c3cde615",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record p1/results/peak_picker_hires_oracle.stderr; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/p1/results/peak_picker_hires_oracle.tsv",
+   "sha256": "9eb8f2490b655a725df263ede006e71b4f90ee14ff7b77104b23b362eba62343",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record p1/results/peak_picker_hires_oracle.tsv; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/p1_remote.sh",
+   "sha256": "78589fefdd0df491771d72d0870a5c4fcee1c3e92420241cfd1e4a370ff9229f",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "node build/run script p1_remote.sh; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/probes/cases.tsv",
+   "sha256": "73ca0a4e767dd654a44db8614b4db7065d97d1da84ed1cc22de9ca2bf2e47698",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record probes/cases.tsv; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/probes/exit0_values.txt",
+   "sha256": "4c0f61a6edd4c1f52d7cb60f22949b08c333196194707a3122cdd39a2370b224",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record probes/exit0_values.txt; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/probes/gen_probes.py",
+   "sha256": "f1077c14542c9a489f2fb49d9d8f1e30308cb42dcc24c1002cdcb82f0b3e069b",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "case generator / fixture extractor gen_probes.py; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/probes/results.txt",
+   "sha256": "7b583b2c46c844caa2a5b17f9d4477f76be9e46211da46da2f48d48365ce0f54",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record probes/results.txt; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/probes/run_probes.sh",
+   "sha256": "5ced74106445586f9e054a303d8e6dcdfaa47dc6b63193c21af27d372b544610",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "node build/run script run_probes.sh; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/probes/synthetic.tsv",
+   "sha256": "2a034327517ee2f1df06598c47a2356b867b41a29e517b087a2f781ae0225f79",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record probes/synthetic.tsv; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/remote_run.sh",
+   "sha256": "d7cc33548d5dca8df40db5de43fe11ab0f1b20b3388e31afd609c785bf6e2456",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "node build/run script remote_run.sh; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/results/compiler.txt",
+   "sha256": "149bf683c88687e0bed22aa1bdaf6d2c0ef8de023bf5b2de981251ec01e42ccb",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/compiler.txt; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/results/disasm_compare.txt",
+   "sha256": "42764c1e91adfdf0778064d3cf25cc40cf6a055592ce54d6d2c16fcd8f2132dc",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "disassembly capture disasm_compare.txt; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/results/disasm_fp_compare.txt",
+   "sha256": "c35f2fe17a5a4bf5456c17bdc123c3d6dce6968d3df9f8b9d6108cc1451c118e",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "disassembly capture disasm_fp_compare.txt; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/results/disasm_libOpenMS.so_MSChromatogram.s",
+   "sha256": "c4537cbcddebf2d706a7f0ace9b41499683b859e0b34eb5858357f58b589f53c",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "disassembly capture disasm_libOpenMS.so_MSChromatogram.s; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/results/disasm_libOpenMS.so_MSSpectrum.s",
+   "sha256": "6d1cae59b20aeb1bb99d0318901c68b0af9bd39f493ebd11b499dea4bdab1d47",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "disassembly capture disasm_libOpenMS.so_MSSpectrum.s; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/results/disasm_libOpenMS.so_estimateNoiseFromRandomScans.s",
+   "sha256": "021444d38010484968cb2b17fa0008e35a20efd10800428dc8abd729179b0e62",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "disassembly capture disasm_libOpenMS.so_estimateNoiseFromRandomScans.s; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/results/flags.txt",
+   "sha256": "0daf0f2e6321cec902f1cbefc942f45463aa45bad1ac6d308207f5e4ad3ee39e",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/flags.txt; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/results/hashes.txt",
+   "sha256": "8397286f45011784ec828f796366d01fd89bca8f35d04add5013796c877f6bbf",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/hashes.txt; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/results/host.txt",
+   "sha256": "37dad647f8f3867f7bf9023f0e5f06fcda0a593cf2d00e148c5e193a5b5ece7c",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/host.txt; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/results/oracle.tsv",
+   "sha256": "1c0c2e31b3e5b72712701682ade576a6c6aa369325dc08e37339f252f6bd74f1",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/oracle.tsv; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/results/rodata_constants.txt",
+   "sha256": "a37a6f56b13be31dae6c0485db7911d0df6ad1bbe29c07849930328f66583926",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/rodata_constants.txt; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/results/streams.tsv",
+   "sha256": "cdf5faf1941c8c91612d378822ab6d95df6e8e9b0975c805e829695f84dcb66b",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/streams.tsv; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/results/time_export.txt",
+   "sha256": "d62ba304e050d46b4ad5bbb0959c76553ee2654e476eb1c3e440cf6b4c1dee5f",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/time_export.txt; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-completion/run.sh",
+   "sha256": "9afcf8c943b7c9f4a4e9bce50f98a45fe37ec3fcf474c8238bb779330c702c12",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "node build/run script run.sh; port/signal-to-noise completion oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/README.md",
+   "sha256": "a82375501c5530fbc7a0a5d30f52b4c2f6bdd2f72f14b2ccb67f7fbf777ad5b2",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "oracle README; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/big_driver.cpp",
+   "sha256": "4a09196bcfbe5fb1636b8098542e17f27bb7d81c475c81d42d1e803ab910fded",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "executed driver source big_driver.cpp; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/compare.py",
+   "sha256": "ccd9569b8736b75ffb7782229631c0270d97a1b71839a89dcad72aa491a08725",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "case generator / fixture extractor compare.py; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/disasm_fp_compare.py",
+   "sha256": "29f357a5a921ef00552fa32c8bb30fec03e89fb1001b5f6756b4c34498ebd44c",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "case generator / fixture extractor disasm_fp_compare.py; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/harness/Cargo.toml",
+   "sha256": "bbedad2babc7f866b64c0b88d05f0b51d13139077fbcd8a69b64968177d197cb",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record harness/Cargo.toml; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/harness/crate_commit.txt",
+   "sha256": "66d66f94df195b8a27a4e0c7f48a6c4da547e4d6184faee806a094254b2ac542",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record harness/crate_commit.txt; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/harness/harness-chromatogram.log",
+   "sha256": "1aecd8131b757ae1fb0bf995b56ad5894ef92da8fc04eec4fc4a52acda97db02",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record harness/harness-chromatogram.log; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/harness/harness-chromatogram3e9.log",
+   "sha256": "75f44e8fb2435dc8bac791fabb846513fa11796524b1893c8944ee0405c27788",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record harness/harness-chromatogram3e9.log; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/harness/harness-spectrum.log",
+   "sha256": "9ad1a183b5f8b4d31a72594a38ee533ee06b06dfdc2fb14e8e4c40cd3da51191",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record harness/harness-spectrum.log; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/harness/run-9643c1a/harness-chromatogram.log",
+   "sha256": "1aecd8131b757ae1fb0bf995b56ad5894ef92da8fc04eec4fc4a52acda97db02",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record harness/run-9643c1a/harness-chromatogram.log; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/harness/run_remote.sh",
+   "sha256": "8837573adeb9754c7308c561a70380a0be6b19c9ef6f832f86e23a6139f7609e",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "node build/run script run_remote.sh; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/harness/src/main.rs",
+   "sha256": "2b3bc8278e98b386e1173ba258b183bfb36270f664baacb17373da5f01c62f93",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record harness/src/main.rs; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/remote_big.sh",
+   "sha256": "16e7c8977eb5eaaba68d08a77dd01ab44ba49564f2727b22f6585fdc19af16f7",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "node build/run script remote_big.sh; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/results/compare-harness.txt",
+   "sha256": "27e9cb349a007e248ccbb05df0ca7bb3a77fe34874590b4d4f73e4b028ba61dc",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/compare-harness.txt; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/results/compare-harness_run-9643c1a.txt",
+   "sha256": "27e9cb349a007e248ccbb05df0ca7bb3a77fe34874590b4d4f73e4b028ba61dc",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/compare-harness_run-9643c1a.txt; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/results/differ.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/differ.txt; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/results/disasm_fp_compare.txt",
+   "sha256": "ea338043aeea9353141c03c378a2107e12ed2a874d4b1cc572e1ba04c5ebb518",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "disassembly capture disasm_fp_compare.txt; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/results/hashes.txt",
+   "sha256": "5b9fe54f28ba2e7b71ceb02b923ca1dc281cef4c8477e2668b0c996c21661948",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/hashes.txt; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/results/oracle.txt",
+   "sha256": "ad6f3f214ae5a858de41036dc1087ec0796e71081845688bd0162a1a1f5285cc",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/oracle.txt; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/results/percentile_block.txt",
+   "sha256": "a8261893b82825b4253ec7b4d196ff798ae6c5888998a4cf318a829b29323196",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/percentile_block.txt; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-fix/results/timing.txt",
+   "sha256": "ae9c0d2537e0c6e2250ade34bf13633c5e7a605bfa8211f10adc0e3d53d55073",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/timing.txt; port/signal-to-noise beyond-INT_MAX harness",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-followup/driver.cpp",
+   "sha256": "7866d64cbed28cf2ae3877a6f340faf8a037848f121f770f290939974a47907f",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "executed driver source driver.cpp; port/signal-to-noise pointer-wrap follow-up oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-followup/gen_followup.py",
+   "sha256": "ce9ad381f4e95e0ecea3e58227b1830166b94476104488e6d4623a8ffc7ebf2b",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "case generator / fixture extractor gen_followup.py; port/signal-to-noise pointer-wrap follow-up oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-followup/probes/results.txt",
+   "sha256": "f8917a0dbb1018d363bf38f200c8f31e07cc22c528d4816ab131e87924817a5d",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record probes/results.txt; port/signal-to-noise pointer-wrap follow-up oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-followup/remote_followup.sh",
+   "sha256": "c550b74127229a4533dc532c9fafac68732f2c08c6d84f8b521fb50de25d7e8f",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "node build/run script remote_followup.sh; port/signal-to-noise pointer-wrap follow-up oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-followup/results/disasm_estimateNoiseFromRandomScans.s",
+   "sha256": "021444d38010484968cb2b17fa0008e35a20efd10800428dc8abd729179b0e62",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "disassembly capture disasm_estimateNoiseFromRandomScans.s; port/signal-to-noise pointer-wrap follow-up oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-followup/results/hashes.txt",
+   "sha256": "2881cabd77f7cf718d164a53782205fea26298052cfe841df6ab84fc936196d5",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/hashes.txt; port/signal-to-noise pointer-wrap follow-up oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/sne-followup/results/oracle.tsv",
+   "sha256": "97d1976bb97d5b43d63b55976f921ac7e24c72f8cbc1f7e2c4d332a2e8b79048",
+   "origin_key": "tests/data/signal_to_noise_provenance.json",
+   "package": "W5-SIGNAL-TO-NOISE",
+   "role": "run record results/oracle.tsv; port/signal-to-noise pointer-wrap follow-up oracle",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-min6/README.txt",
+   "sha256": "38fe62cfeff90764e4ddf1d8d40b7da378d25ee5a73e502ba2369fbdec1cb05f",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "oracle README; port/ffap-complete round-6 minors oracle (uncapped score-array wraps, update_baseline bits)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-min6/drivers/baseline_driver.cpp",
+   "sha256": "b2a56dd2a0e46694632b1203b0007168381a30d4f7d5bd7e85697d894c0ea3cd",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "executed driver source baseline_driver.cpp; port/ffap-complete round-6 minors oracle (uncapped score-array wraps, update_baseline bits)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-min6/node/build.sh",
+   "sha256": "ddc99a6e7658c8d30f85fd7ce7c44753194bb171cf46bdfdebdce4171fe52883",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script build.sh; port/ffap-complete round-6 minors oracle (uncapped score-array wraps, update_baseline bits)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-min6/node/sync.sh",
+   "sha256": "3319f3be80df5c66ebb5fbfd672de4d3507e4094892effeb94f0e0e0862d9ca2",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script sync.sh; port/ffap-complete round-6 minors oracle (uncapped score-array wraps, update_baseline bits)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-min6/node/run_baseline.sh",
+   "sha256": "cf28e64019d2a1e108a5ad7ee36fddab94eed71fff9a18fdd68bc3446291d870",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_baseline.sh; port/ffap-complete round-6 minors oracle (uncapped score-array wraps, update_baseline bits)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-min6/node/run_native_wrap.sh",
+   "sha256": "0a448e441347ef1b69c030b9d98c9ac1484f780f291d39b1b3794bc8f6114a92",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_native_wrap.sh; port/ffap-complete round-6 minors oracle (uncapped score-array wraps, update_baseline bits)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-min6/node/run_mem.sh",
+   "sha256": "c43558074a969e66631668366a169778004cd499325bbd9c4038e1fdd559613d",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "node build/run script run_mem.sh; port/ffap-complete round-6 minors oracle (uncapped score-array wraps, update_baseline bits)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-min6/extract/make_baseline_fixture.py",
+   "sha256": "6f38558c53aa74ad8f141018899b4c241416e0d9e46e7c725dddea062634a2a0",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_baseline_fixture.py; port/ffap-complete round-6 minors oracle (uncapped score-array wraps, update_baseline bits)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-min6/extract/make_wrap_fixture_min6.py",
+   "sha256": "51e7a5756485260b983be5b9c3ac6c838f4907ee3b4412f38f17405bbd5b84f0",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "case generator / fixture extractor make_wrap_fixture_min6.py; port/ffap-complete round-6 minors oracle (uncapped score-array wraps, update_baseline bits)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-min6/logs/baseline.sha256",
+   "sha256": "8729ce8cf3b0f395ff8c4299765482dccef0f23805ac3ce3ae054a3d26bd320a",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest baseline.sha256; port/ffap-complete round-6 minors oracle (uncapped score-array wraps, update_baseline bits)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-min6/logs/build.sha256",
+   "sha256": "43460424b3f1c5df44211bc9fb49a68106fd306f8b423dc3ac09a5e00d9ffdb2",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build.sha256; port/ffap-complete round-6 minors oracle (uncapped score-array wraps, update_baseline bits)",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/ffap-complete-min6/logs/build_identity.txt",
+   "sha256": "35a3e07b9af3fa73a6324d092ee02485c4c773aaed05f14e15fd763a32ef4bb3",
+   "origin_key": "tests/data/feature_finder_picked_instrumentation_provenance.json",
+   "package": "W5-FFAP-COMPLETE",
+   "role": "build/result digest build_identity.txt; port/ffap-complete round-6 minors oracle (uncapped score-array wraps, update_baseline bits)",
+   "label": "oracle-generated (tier 1 executed differential)"
   }
  ],
- "external_reference_note": "Executed C++ oracle artifacts of the early-TOPP bundle, registered at integration. They live outside this repository under ../oracle/, so no C++ enters it; each sha256 was recomputed from the file at registration and equals the hash in the group manifest named by origin_key, which records the oracle's full artifact list. Wave 1 (2026-09-14): A1-PTE-FAIMS (../oracle/pte-faims-helper), CLI-1 (../oracle/topp-cli-lifecycle) and A2-TEXTFMT (../oracle/file-info-text-format and ../oracle/text-format) were registered at the final wave-1 merge, after their fix rounds had changed those files. The A2 group manifest tests/data/file_info_text_format_provenance.json is indexed only through origin_key: its fixtures are constants embedded in tests/file_info_text_format.rs, not files, and its target_verification has no source_revisions or source_changes, so it lacks the current_sdk_reference_manifests shape that tools/check_core_sdk.py verifies. Wave 2 (2026-09-14): P1-PICKER-LIB, A4-FILEINFO-CORE, B8-IMSPLIT and B9-OVERLAP (fix round) have that shape and are also listed in current_sdk_reference_manifests. B3-LM, P2-MZML-LENIENCY and B6-FFAP-SEEDS are indexed only through origin_key, because their target_verification records verification commands or results rather than the revision, source_revisions and source_changes the checker reads; B6's group manifest also has no external_reference_note. CLI-2 updates two CLI-1 rows (ini_read_failures.sh and its manifest, now 15 cases) and adds its own 34-case manifest, driver and rerun manifest. C1 (../oracle/topp-early-bundle) and C2 (../oracle/featurefinder-picked), which A4, B3, B6, B8 and B9 cite, are registered at W4.4. Wave 4 (2026-09-16): fix/map-normalizer's ../oracle/map-normalizer-divergence is registered here for the first time -- ten artifacts, four of them executed drivers and their logs on dax, which are the evidence behind CPP-308 and behind the closed ~13x normalisation divergence. C2 (../oracle/featurefinder-picked) is registered in the same pass: the note above said it was registered at W4.4 and it was not, so the eight artifacts tests/data/feature_finder_picked_provenance.json cites are added now. Every sha256 in this key, the 107 carried forward and the 18 added, was recomputed from the file at this integration and equals the hash in the group manifest named by origin_key; 0 mismatched and 0 were missing. The other directories these wave-4 lanes cite (../oracle/picked-chromatogram, mzml-reader-scale, topp-peak-picker-scale, baseline-filter-edges, lm-eigen-path, gauss-trace-fitter including solver-gap, b7-ffap-features, tool-threads, mzml-writer-scale-parity and topp-early-bundle) were already registered in waves 1 to 3 and were re-verified unchanged rather than re-registered. The wave-4 performance lanes archived their own callgrind profiles, A/B logs and build recipes on Ceph under /ceph/ibmi/abi/oliver/bench/openms4/results/2026-09-15-* and node-local under /scratch; those are measurement evidence, not differential oracles, and are cited by path in the support documents rather than hashed here.",
+ "external_reference_note": "Executed C++ oracle artifacts of the early-TOPP bundle, registered at integration. They live outside this repository under ../oracle/, so no C++ enters it; each sha256 was recomputed from the file at registration and equals the hash in the group manifest named by origin_key, which records the oracle's full artifact list. Wave 1 (2026-09-14): A1-PTE-FAIMS (../oracle/pte-faims-helper), CLI-1 (../oracle/topp-cli-lifecycle) and A2-TEXTFMT (../oracle/file-info-text-format and ../oracle/text-format) were registered at the final wave-1 merge, after their fix rounds had changed those files. The A2 group manifest tests/data/file_info_text_format_provenance.json is indexed only through origin_key: its fixtures are constants embedded in tests/file_info_text_format.rs, not files, and its target_verification has no source_revisions or source_changes, so it lacks the current_sdk_reference_manifests shape that tools/check_core_sdk.py verifies. Wave 2 (2026-09-14): P1-PICKER-LIB, A4-FILEINFO-CORE, B8-IMSPLIT and B9-OVERLAP (fix round) have that shape and are also listed in current_sdk_reference_manifests. B3-LM, P2-MZML-LENIENCY and B6-FFAP-SEEDS are indexed only through origin_key, because their target_verification records verification commands or results rather than the revision, source_revisions and source_changes the checker reads; B6's group manifest also has no external_reference_note. CLI-2 updates two CLI-1 rows (ini_read_failures.sh and its manifest, now 15 cases) and adds its own 34-case manifest, driver and rerun manifest. C1 (../oracle/topp-early-bundle) and C2 (../oracle/featurefinder-picked), which A4, B3, B6, B8 and B9 cite, are registered at W4.4. Wave 4 (2026-09-16): fix/map-normalizer's ../oracle/map-normalizer-divergence is registered here for the first time -- ten artifacts, four of them executed drivers and their logs on dax, which are the evidence behind CPP-308 and behind the closed ~13x normalisation divergence. C2 (../oracle/featurefinder-picked) is registered in the same pass: the note above said it was registered at W4.4 and it was not, so the eight artifacts tests/data/feature_finder_picked_provenance.json cites are added now. Every sha256 in this key, the 107 carried forward and the 18 added, was recomputed from the file at this integration and equals the hash in the group manifest named by origin_key; 0 mismatched and 0 were missing. The other directories these wave-4 lanes cite (../oracle/picked-chromatogram, mzml-reader-scale, topp-peak-picker-scale, baseline-filter-edges, lm-eigen-path, gauss-trace-fitter including solver-gap, b7-ffap-features, tool-threads, mzml-writer-scale-parity and topp-early-bundle) were already registered in waves 1 to 3 and were re-verified unchanged rather than re-registered. The wave-4 performance lanes archived their own callgrind profiles, A/B logs and build recipes on Ceph under /ceph/ibmi/abi/oliver/bench/openms4/results/2026-09-15-* and node-local under /scratch; those are measurement evidence, not differential oracles, and are cited by path in the support documents rather than hashed here. Wave 5 (2026-09-17): the completion of FeatureFinderAlgorithmPicked and of both noise estimators registers 255 artifacts from 18 new oracle directories -- ../oracle/ffap-complete-fix1, ../oracle/ffap-complete-fix2, ../oracle/ffap-complete-fix3, ../oracle/ffap-complete-fix4, ../oracle/ffap-complete-fix5, ../oracle/ffap-complete-fix6, ../oracle/ffap-complete-min6, ../oracle/ffap-instr-completion, ../oracle/ffap-sem-completion, ../oracle/ffap-sem-ver1, ../oracle/ffc-instrumentation-v3, ../oracle/ffc-instrumentation-v4, ../oracle/ffc-numerics-v3, ../oracle/ffc-numerics-v4, ../oracle/progress-logger-release-range, ../oracle/sne-completion, ../oracle/sne-fix, ../oracle/sne-followup. Every sha256 in this key, the 125 carried forward and the 255 added, was recomputed from the file at this integration; the 354 added artifacts that a group manifest also cites were additionally asserted equal to the hash recorded there, and 0 mismatched and 0 were missing. ../oracle/ffap-complete-min6 is registered here for the first time because the round-6 minors cited it only in the three FFAP manifests' `oracle` block and in no external_reference_artifacts list, so its executed evidence -- the 90 update_baseline baselines, the nine uncapped wrapped-count runs and the two /usr/bin/time -v memory runs -- had no hashed registration anywhere; its entry points are hashed straight from disk. For the wave-5 directories this key registers the entry points (README, driver sources, node build and run scripts, fixture extractors, vendored upstream sources and the build/result digests), which is what an auditor needs to rebuild and re-run the oracle; the per-case result files stay in the group manifest named by origin_key, which records the oracle's full artifact list. ../oracle/sne-completion, sne-fix, sne-followup and progress-logger-release-range are registered in full, as those two lanes asked. Four wave-5 group manifests are indexed only through origin_key and are NOT added to current_sdk_reference_manifests, for reasons tools/check_core_sdk.py enforces: feature_finder_picked_provenance.json and feature_finder_picked_instrumentation_provenance.json record verification commands and results in target_verification rather than the revision, source_revisions and source_changes the checker reads (the same reason B3-LM, P2-MZML-LENIENCY and B6-FFAP-SEEDS are indexed that way); topp_feature_finder_centroided_provenance.json additionally cites the Release FeatureFinderCentroided binary by absolute path under /ceph, which is not an ../oracle/ path; and signal_to_noise_provenance.json has the shape the checker reads but cites ../oracle/sne-fix/harness/Cargo.toml, whose base name collides with this crate's own Cargo.toml in check_external_artifacts' \"still present in repo\" guard. That guard compares base names, not paths, so it also rejects ../oracle/ffap-complete-fix1/port-harness/Cargo.toml and ../oracle/ffap-complete-fix3/upstream/LICENSE. Nothing was weakened to work around it; the limitation is recorded for the checker's owner.",
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
  "cpp_reference_evidence": {
