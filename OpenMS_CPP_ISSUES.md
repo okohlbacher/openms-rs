@@ -5628,7 +5628,7 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
-**Status:** Executed.
+**Status:** Executed for (a), (c), (d) and (e); (b) is source-reviewed.
 
 **Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1138` (`abort_reasons_`), `:361` and `:378` (`isotope_distributions_`), `:231` (`log_`), `:137`, `:844` and `:1062` (the caller's map).
 
@@ -5746,7 +5746,7 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
-**Status:** Executed.
+**Status:** Executed for the empty-pattern case; the `size_t(-1)` sub-case has never been observed and its executed outcome is unknown.
 
 **Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:614-625` and `extendMassTraces_` (`:1347-1349`).
 
