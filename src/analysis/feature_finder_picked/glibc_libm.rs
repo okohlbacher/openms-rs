@@ -594,15 +594,16 @@ fn exp_special_case(tmp: f64, sbits: u64, ki: u64) -> f64 {
     let scale = f64::from_bits(sbits.wrapping_add(1022 << 52));
     let product = tmp * scale;
     let y = scale + product;
-    if !(ONE > y) {
+    // `comisd`/`ja`: the branch is taken only for `1 > y` (never for a NaN).
+    if ONE > y {
+        let hi = y + ONE;
+        let lo = (scale - y) + product;
+        let lo = ((ONE - hi) + y) + lo;
+        let y = (lo + hi) - ONE;
+        if y == 0.0 {
+            return 0.0;
+        }
         return y * f64::from_bits(TWO_POW_MINUS_1022);
-    }
-    let hi = y + ONE;
-    let lo = (scale - y) + product;
-    let lo = ((ONE - hi) + y) + lo;
-    let y = (lo + hi) - ONE;
-    if y == 0.0 {
-        return 0.0;
     }
     y * f64::from_bits(TWO_POW_MINUS_1022)
 }
