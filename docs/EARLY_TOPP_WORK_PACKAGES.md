@@ -1436,3 +1436,190 @@ New in this window, or restated because this window changed them:
   wording: `ibminode06` is **not** unreachable — it answers SSH from ibminode05
   and rejects the key, and from the workstation the bare name does not resolve.
   **Infrastructure.**
+
+## Wave 5 status
+
+Status on 2026-09-17. `main` is at `59e0e1c`, pushed and green; this wave is
+collected on `integrate/wave5`, which merges `port/ffap-complete` and
+`port/signal-to-noise` (the third lane, `port/progress-logger-release-range`, is
+already inside the first). The two branches share **no file**, so both merges
+were conflict-free; everything integrator-owned was left to this pass.
+[VALIDATION](VALIDATION.md) records the lanes, the six fix rounds and their
+verdicts, the gates and the ignored-test inventory; [BENCHMARKS](BENCHMARKS.md)
+§4 is the wave-5 measurement.
+
+This is a completion wave, not a new-surface wave: it moves three headers from
+`partial` to `complete` and closes the port's last documented divergences from
+the Linux x86_64 Release build on the feature-finder path.
+
+**Merged:**
+
+| Lane | Branch | Merge | Outcome |
+|---|---|---|---|
+| `port/ffap-complete` (merge of `port/ffap-instrumentation` `c79e66f`, `port/ffap-semantics` `511d29e` and `port/progress-logger-release-range` `f89d5d4`; six combined fix rounds and a minors pass, each adversarially verified by two independent lenses) | `a11fc26` | `087ebd6` | done; `FEATUREFINDER/FeatureFinderAlgorithmPicked.h` **partial -> complete** |
+| `port/signal-to-noise` (2 review rounds and a follow-up) | `be70a98` | `1a98104` | done; `SignalToNoiseEstimatorMedian.h` and `SignalToNoiseEstimator.h` both **partial -> complete** |
+| `port/progress-logger-release-range` | `f89d5d4` | inside `087ebd6` | done; the Debug-only `OPENMS_PRECONDITION(begin <= end)` is no longer a refusal, and `CONCEPT/ProgressLogger.h` stays `native_equivalent` |
+
+Review state across the ledger: complete 60 -> **63**, partial 62 -> **59**,
+`native_equivalent` 90 unchanged, 786 registered public headers unchanged.
+
+### Lead decisions of this wave (D1-D13)
+
+These governed all six fix rounds and are the reason the three promotions are
+defensible. They are also recorded in [VALIDATION](VALIDATION.md).
+
+- **D1, the undefined-behaviour rule.** Reproduce the Linux x86_64 Release
+  outcome when it is measured, repeatable, explained by the executed
+  instructions and **in bounds**; refuse out-of-bounds reads or writes, data
+  races, process termination and loops that never end. Round 4 applies it to the
+  non-finite widths and meta values the source stores (`MetaValue::source_float`).
+- **D2.** libstdc++'s binary-search probes on NaN keys.
+- **D3.** Every `std::sort` as libstdc++'s introsort, and every
+  `std::stable_sort` as libstdc++ 14.4.0's, NaN and equal keys included.
+- **D4.** glibc's `-nan` in every ported `%g`/ostream formatter of FFAP and the
+  trace fitters; the five formatters outside them are reported, not changed
+  (carried forward below).
+- **D5.** The reference build's glibc `powf`, ported licence-clean from Arm
+  optimized-routines. It was reproduced exactly, so no fallback was needed.
+- **D6.** `std::length_error`'s text above `vector::max_size()` in step 2.5, and
+  the native ceiling below it.
+- **D7.** `ChargedIndexSet` equality by index sets.
+- **D8.** `RejectedParameters::Shown` stays the default, the heap-address bound
+  is scoped to the reference platform, and macOS-only fit departures are platform
+  notes. Since D10 only the EGH area's `atan` and the sign of a NaN the solver
+  creates remain.
+- **D9.** FAIMS is out of scope (a FeatureFinderCentroided tool decision, B11).
+- **D10.** Every libm transcendental on the FFAP path follows the reference
+  host's glibc: `exp` and `log` ported from Arm optimized-routines with the FMA
+  fusion of `__ieee754_exp_fma` and `__ieee754_log_fma` (exact against 670
+  million probed inputs on Linux x86_64 and macOS arm64); `atan` (`__atan_fma`,
+  the IBM Accurate Mathematical Library, LGPL only) takes the fallback — the
+  host's on x86_64 Linux with glibc, the `libm` crate's elsewhere, with a
+  measured-maximum bound.
+- **D11, the one accepted exception to D1.** The multi-thread race on `aborts_`,
+  `abort_reasons_` and `log_` gives the **single-thread result**, because the
+  determinism contract requires parallel output to equal serial output and a
+  refusal would block essentially every parallel run.
+- **D12.** Every `UInt`/`int` wrap that leads to an out-of-bounds write is
+  refused exactly where it wraps, not through a raisable ceiling (the score-array
+  count `3 + 2 * charge_count`); every wrap that stays in bounds is reproduced
+  (step 1's `startProgress` range). Round 6 applies the same rule to the record
+  of where the executed process ends: that line is a crate constant, not a
+  `Limits` field. The round-6 minors then moved it from 1 GiB of arrays — read
+  off runs under the oracle harness's 16 GB address-space cap — to the bytes of
+  1,000,000,003 arrays, the largest count measured to die on the **uncapped**
+  reference node.
+- **D13** (after round 4). The crate-private `MetaValue::source_float` is
+  accepted (the public API still refuses non-finite values); the featureXML
+  writer's refusal of non-finite values and the CLI's "Unable to read file" text
+  for a write failure are a separate task, and TOPP native difference 16 stays as
+  recorded; the longer `feature_finder_picked` test time is accepted, with no
+  assertion dropped; the charge counts `-2` and `-3` stay refused
+  unconditionally; `atan` off x86_64 with glibc keeps the `libm` crate; and the
+  step-3.3.5 termination was searched for once more and found.
+
+### What remains
+
+- **B10-FFC-ACCEPT.** Still the largest open item, and this wave narrows it
+  rather than closing it. Its clause about `FeatureFinderAlgorithmPicked` being
+  `partial` is now answered: the header is `complete`, the zero-width-range and
+  short-input divergences are gone (the port follows the Release build), and
+  `write_debug` is ported byte for byte. What is left is the **tool** level:
+  TOPP native differences 14 and 16 (see below).
+- **The `-C target-feature=+fma` build-flag question is OPEN WITH THE USER.**
+  Measured on dax: the completed `FeatureFinderAlgorithmPicked` costs 21 % at one
+  thread on a default x86-64 baseline build, the flag removes it and more
+  (0.715x, 1.055x the C++ Release build at one thread and 0.894x at 32) with
+  bitwise-identical output, and the control — main with the flag — gains only
+  2.3 %. The flag also enables AVX and SSE4.2 crate-wide and raises the minimum
+  CPU to Haswell/Piledriver and later. **Nothing was changed**: no `RUSTFLAGS`,
+  no `[profile.release]` override, no `.cargo/config.toml`, on any branch or in
+  CI. The alternatives are the flag, narrower `#[target_feature]` dispatch on the
+  three ported replica functions (not measured), or accepting the 21 %.
+  **User decision.**
+- **TOPP native difference 16.** The featureXML writer refuses the non-finite
+  feature values the C++ build writes as `inf`, so the port's
+  `FeatureFinderCentroided` exits 3 without an output file where the C++ exits 0.
+  Split off by D13 as `task_d0b10659`, together with the CLI reporting a **write**
+  failure as "Unable to read file (parse error on line 0: …)" with exit 3.
+  **featureXML and CLI owners.**
+- **TOPP native difference 14.** At the port's own isotope-window ceiling the
+  tool exits 8 with its own message where the Release build reports
+  `std::bad_alloc` with exit 12. Memory-dependent, and deliberate under D6.
+  **B10.**
+- **The signal-to-noise signed-overflow refusals stay refusals.**
+  `SignalToNoiseEstimator.h:123` and `SignalToNoiseEstimatorMedian.h:216`, `:228`,
+  `:324` and `:365` each need more than `2^31` points per spectrum and 64-90 GB
+  per evidence run, so emulating them is a stated cost/benefit decision, not an
+  oversight. Reopening needs another evidence run. The beyond-`INT_MAX` full-path
+  evidence lives outside CI in `../oracle/sne-fix/harness`. **Lead.**
+- **The two consumer call sites of the noise estimator** —
+  `PeakPickerChromatogram` (`src/processing/chromatogram.rs:181`) and
+  `PeakPickerIterative` (`src/processing/iterative.rs:298`) — still call the
+  strict `estimate` instead of the source-mode
+  `estimate_peaks(..., &PickingCompatibility::source(), None)`.
+  `PeakPickerIterative` has no source mode at all yet. Split off as
+  `task_7dcbc815`. **Centroiding owner.**
+- **`2^32 - 5` score arrays was not run uncapped.** On the measured model (about
+  232 bytes per array, because the pattern loop names and `assign`s every
+  in-bounds array first) it needs about 928 GiB, 93 % of the shared reference
+  node's memory, so it was deliberately not run. That is why a recording ceiling
+  exists at all. **No owner; documented.**
+
+### Carried forward, with owners
+
+- **CLOSED this wave:** the wave-4 item "`tests/feature_finder_picked.rs` does
+  not compile under `--no-default-features --features mzml,paramxml`". The file
+  is now gated `#![cfg(all(feature = "mzml", feature = "paramxml", feature =
+  "featurexml"))]`, which matches what it imports, and the feature slices build
+  clean. `tests/topp_threads.rs`'s unused picking constants on macOS and
+  `kernel::validate_given_finite_peaks` under `--no-default-features` were fixed
+  in the same round.
+- **Five ported `%g`/ostream formatters still print `nan` for a NaN whose sign
+  bit is set, where glibc prints `-nan`** (lead decision D4 applies only to FFAP
+  and the trace fitters, which are fixed). They are
+  `src/format/file_info/text_format.rs:615-623`,
+  `src/math/posterior_error_probability.rs:1093-1096`,
+  `src/format/mascot_generic.rs:908-911`, `src/format/pepxml.rs:3135-3137` and
+  `src/format/sv_out_stream.rs:177-179`, `:208-210` and `:378`. The last one
+  prints `NaN` and `nan`; check both against the source's spelling.
+  `src/param/value.rs:612-619` and `src/processing/peak_picking/noise.rs`'s
+  `stream_double` are already glibc-conformant. **Format owners.**
+- **`tests/data_array_xml.rs` warns in two feature slices.**
+  `cargo check --no-default-features --features mzml,paramxml --all-targets`
+  reports `struct NoOutput` (`:16`) never constructed and `fn unsupported`
+  (`:41`) never used; adding `featurexml` leaves the second. The file is gated
+  `cfg(any(mzml, consensusxml, idxml, featurexml))` and compiles helpers only the
+  idxml/consensusxml tests use. Not this wave's file and not changed here.
+  **Owner of that test.**
+- **`tools/check_core_sdk.py`'s "still present in repo" guard compares base
+  names, not paths.** `check_external_artifacts` asserts
+  `not (ROOT / Path(path).name).exists()`, so an oracle artifact called
+  `Cargo.toml` or `LICENSE` is rejected because the crate has files of those
+  names. That is why `tests/data/signal_to_noise_provenance.json` — which
+  otherwise has exactly the shape the checker reads — could not be added to
+  `current_sdk_reference_manifests` and is indexed only through `origin_key`,
+  and it also blocks `../oracle/ffap-complete-fix1/port-harness/Cargo.toml` and
+  `../oracle/ffap-complete-fix3/upstream/LICENSE`. Nothing was weakened to work
+  around it. Comparing the full relative path would fix it. **Checker owner.**
+- **`tests/data/topp_feature_finder_centroided_provenance.json` cites an absolute
+  path.** It records the Release `FeatureFinderCentroided` binary as
+  `/ceph/ibmi/abi/oliver/opt/…/bin/FeatureFinderCentroided`, which is not an
+  `../oracle/` path, so that manifest can never enter
+  `current_sdk_reference_manifests` as written. **TOPP FFC owner.**
+- **`OpenMS_CPP_ISSUES.md`'s header and summary table have fallen behind the
+  log.** The header says findings "were checked against OpenMS4-core
+  `82ce5b3…`", while every entry from the CPP-2xx range on is checked against
+  `bc9cc12`; and the summary table at the top stops at CPP-058, so 276 of the 334
+  entries have no index row. Both are pre-existing and neither was changed here,
+  because fixing them touches every entry. **C++ issue-log owner.**
+- **Infrastructure, unchanged from wave 4:** `kernel.perf_event_paranoid = 4`
+  cluster-wide; `/usr/local/bin/cc` on ibminode06 shadows the compiler; and
+  `ibminode06` has no `~/.ssh/config` entry. Wave 5's oracle work ran on
+  ibminode06 with the same PATH shim. **Infrastructure.**
+- **`.reference/` is gitignored, so it exists only in the main checkout.**
+  `tools/check_core_sdk.py --source .reference/openms4-core-bc9cc12` therefore
+  fails from a worktree under `.claude/worktrees/`; pass the absolute path in the
+  main checkout instead. Likewise `../oracle/` resolves against the **main**
+  repository root, not a worktree's. **No owner; documented so the next
+  integrator does not lose a cycle to it.**
