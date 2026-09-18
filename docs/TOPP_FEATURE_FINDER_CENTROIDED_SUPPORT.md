@@ -151,7 +151,7 @@ timing text).
 | Every MS1 peak below the intensity range | 8 | `Error: Unexpected internal error (FeatureFinder needs updated ranges on input map. Aborting.)` | C5 `c5_negative_intensities` |
 | `-seeds` that is not featureXML | 6 | `Input file '…' has invalid format 'mzML'. Valid formats are: 'featureXML'.` | C5 `c5_seeds_not_featurexml` |
 | FAIMS input with an unreadable `-seeds` file | 3 | `Error: Unable to read file (…)`, before any FAIMS message | C5 `c5_faims_corrupt_seeds` |
-| Any FAIMS input (one, two or three voltages, a voltage on half the spectra, `-faims_merge_features false`, the two upstream FAIMS fixtures) | C++ 8; this port 0 | C++ `Error: Unexpected internal error (the value '1' was used but is not valid; No ranges for this MS level)` after the first `Processing FAIMS CV group:` line and no output (`CPP-278`); this port writes the features of every voltage group, merged unless `-faims_merge_features false` | C1 `FFC_faims_*`, C5 `c5_faims_partial_cv`, B11 `faims_*` (`../oracle/b11-faims`, seven inputs, all rc 8); native difference 1 |
+| Any FAIMS input (one, two or three voltages, a voltage on half the spectra, `-faims_merge_features false`, the two upstream FAIMS fixtures) | C++ 8; this port 0 | C++ `Error: Unexpected internal error (the value '1' was used but is not valid; No ranges for this MS level)` after the first `Processing FAIMS CV group:` line and no output (`CPP-278`); this port writes the features of every voltage group, merged unless `-faims_merge_features false` | C1 `FFC_faims_*`, C5 `c5_faims_partial_cv`, B11 `faims_*` (`../oracle/b11-faims`, eight runs on six inputs, all rc 8); native difference 1 |
 | A FAIMS input whose skipped spectra carry no voltage | 0 | `Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout).` on **stderr**, folded by the warn stream's cache into one line and `<…> occurred 56 times`, as the executed C++ wrote it | C5 `c5_faims_partial_cv`, B11 `faims_partial_cv` |
 | FAIMS **profile** input without `-force` | 8, the profile message | the profile check precedes the split | C1 `FFC_faims_interleaved_noforce` |
 | `-algorithm:feature:rt_shape bogus` | 6 | `Invalid string parameter value 'bogus' … Valid values are: 'symmetric,asymmetric'.` | C1 `FFC_invalid_rt_shape` |
@@ -369,8 +369,8 @@ instance*).
      each voltage group with `addSpectrum` and never calls `updateRanges`, so
      `FeatureFinderAlgorithmPicked` throws `the value '1' was used but is not
      valid; No ranges for this MS level` on the first group and every FAIMS
-     input exits 8. Re-executed for this package: seven FAIMS inputs through
-     the Release build, all rc 8, each after printing `FAIMS data detected with
+     input exits 8. Re-executed for this package: eight runs on six FAIMS
+     inputs through the Release build, all rc 8, each after printing `FAIMS data detected with
      N compensation voltage(s).` and the first `Processing FAIMS CV group:`
      line (`../oracle/b11-faims`). The native containers compute ranges on
      demand (`MSExperiment::spectrum_range_manager`), so a group has its own
@@ -600,8 +600,9 @@ instance*).
 - **No panics on untrusted input.** Every branch returns an exit code or an
   `Error`; the only indexing is `spectra[0]` after the emptiness check.
 - **Evidence.** Tier 1 for every asserted exit code, diagnostic and absent
-  output (29 executed C++ cases, each run twice and reproduced; 18 more for the
-  FAIMS closure, `../oracle/b11-faims`), for the
+  output (29 executed C++ cases, each run twice and reproduced; 19 more for the
+  FAIMS closure, `../oracle/b11-faims`, whose `manifest.json` records every
+  exit status, feature count and stderr line), for the
   `-write_ini` defaults, which are compared with the executed file line by line
   with exact numbers and as a decoded parameter tree, and for the feature
   output, which is compared decoded against the retained expectation and

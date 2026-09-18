@@ -1760,9 +1760,9 @@ fn seeds_are_loaded_before_the_faims_check() {
 //
 // The corrected path has no whole-tool C++ oracle: the executed C++ tool exits
 // 8 on every FAIMS input, because its voltage groups carry no per-MS-level
-// ranges (`CPP-278`; re-executed in `../oracle/b11-faims`, six inputs, all
-// rc 8 with `the value '1' was used but is not valid; No ranges for this MS
-// level`). The oracle is built from the parts instead: each compensation
+// ranges (`CPP-278`; re-executed in `../oracle/b11-faims`, eight runs on six
+// FAIMS inputs, all rc 8 with `the value '1' was used but is not valid; No
+// ranges for this MS level`). The oracle is built from the parts instead: each compensation
 // voltage group is written as its own single-voltage mzML, with the FAIMS
 // cvParam removed so that the C++ tool takes its non-FAIMS path, and the C++
 // Release build is run on that file. The port's features for that group must

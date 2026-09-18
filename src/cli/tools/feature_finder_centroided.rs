@@ -111,7 +111,8 @@
 //!   each voltage group with `addSpectrum` and never calls `updateRanges`, so
 //!   `FeatureFinderAlgorithmPicked` throws `the value '1' was used but is not
 //!   valid; No ranges for this MS level` on the first group and every FAIMS
-//!   input exits 8 (re-executed: `../oracle/b11-faims`, six inputs, all rc 8).
+//!   input exits 8 (re-executed: `../oracle/b11-faims`, eight runs on six
+//!   FAIMS inputs, all rc 8).
 //!   The native containers compute ranges on demand
 //!   ([`MSExperiment::spectrum_range_manager`]), so a group has its own ranges
 //!   the moment it holds spectra; there is no state to forget and nothing to
