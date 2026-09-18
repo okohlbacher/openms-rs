@@ -93,8 +93,11 @@ Two things to read out of that table. The 41 fused multiply-adds are exactly the
 41 call sites the flag was for. And `FileInfo`, which never touches the ported
 glibc math, still gains 23,738 VEX instructions — **the processor requirement is
 not confined to the tools that do fused arithmetic.** The 2 `vfmadd` in the
-opt-out binary are inside the standard library's own runtime-dispatched `fma`,
-which is what a baseline build calls instead.
+opt-out binary are not the port's: they are in
+`compiler_builtins::math::libm_math::arch::x86::fma::fma_with_fma` and
+`fma_with_fma4`, the CPUID-dispatched bodies a baseline build calls instead of
+emitting the instruction, which is the whole 21 % (checked by locating the
+enclosing symbol of each).
 
 ## 4. The opt-out, and why that one command is enough
 
@@ -207,15 +210,15 @@ SSE instruction before the check:
 ```
 <FileInfo::main>:
   push   %rax
-  call   *<got>                      # unsupported_cpu
-  test   %rax,%rax
-  jne    <the message path>
+  call   *0x1f1369(%rip)             # the check, through the GOT
+  test   %rax,%rax                   # Option<&str>: null means "run"
+  jne    <the message path>          # which calls report_unsupported_cpu
   call   <openms::cli::run_from_environment>
   pop    %rcx
   ret
 ```
 
-`main` itself, ahead of it, is six integer instructions and the call into
+`main` itself, ahead of it, is eight integer instructions and the call into
 `std::rt::lang_start`, which is standard-library code compiled for the baseline.
 `report_unsupported_cpu` is likewise integer-only: it locks standard error,
 makes two `write_all` calls, drops the lock and returns 12. A different compiler
@@ -284,19 +287,37 @@ Every job now builds with the flag, so every x64 runner must have FMA.
 * `macos-latest` and the other macOS runners are arm64 (GitHub documents
   `macos-latest` as "3 (M1), arm64"), so the flag is not applied there at all —
   the `cfg` scope, measured in section 2, is what makes that true.
-* `ubuntu-latest` and `windows-latest` are x64. GitHub does not publish the
-  processor model. Third-party measurement of the current fleet reports AMD EPYC
+* `ubuntu-latest` and `windows-latest` are x64. **GitHub does not publish the
+  processor model** — its runner-specifications page gives core count, memory and
+  architecture and nothing else. Third-party measurement of the current fleet
+  (runs-on.com's GitHub Actions CPU benchmark, read 2026-09-18) reports AMD EPYC
   7763 (Zen 3) and AMD EPYC 9V74 (Zen 4) for the x64 runners, both of which have
-  FMA3; the ARM64 runners are Neoverse-N2. This is the best confirmation
+  FMA3, and Neoverse-N2 for the ARM64 ones. That is the best confirmation
   available without running a job, and it is a claim about a fleet that can
   change. If a runner ever lacks FMA, the tool binaries say so and exit 12 while
   the unit tests fault (section 8).
 
+Which jobs this was reasoned about: `test`, `quality` and `minimum-rust`, all
+`ubuntu-latest`; `cross-platform` and `schema-minimum-platforms`, which are
+`macos-latest` (arm64, unaffected) and `windows-latest` and run only on a tag or
+a dispatch; and `portable-feature-graph`, `ubuntu-latest`. **None of them was
+executed by this lane** — the branch is not pushed — so this is a reading of the
+workflow and of the runner fleet, not a green run.
+
 ## 11. The benchmark harness
 
-The harness builds with `cargo build --release --locked --offline`, inside the
-checkout, so it now picks the flag up from `.cargo/config.toml` without being
-told. Two consequences:
+`build/build_rust_orig.sh` extracts a tarball of the repository into
+`$root/src`, `unset`s `RUSTFLAGS` and the other Cargo overrides, and runs
+`cargo build --release --locked --offline --bins` from that directory. So it
+picks the flag up on its own: `.cargo/config.toml` is tracked and `git archive`
+carries it (checked), the working directory is the extracted checkout, and
+nothing in the script sets `RUSTFLAGS` that would replace it. Three
+consequences:
+
+* **`--offline` will fail until the shared `~/.cargo` registry cache on the
+  benchmark nodes holds `raw-cpuid 11.6.0`.** The script says so itself: "the
+  shared `~/.cargo` registry cache must already hold every locked crate,
+  otherwise the build fails and says so." Fetch it once before the next run;
 
 * a `rust-*` cell built from a commit at or after this change is an FMA build,
   and is **not** comparable with the `rust-main` and `rust-ffap` cells of
