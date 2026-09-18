@@ -1406,7 +1406,7 @@ pub fn run_with<T: Tool>(
 /// line, because on an x86_64 build with `-C target-feature=+fma` even that much
 /// is compiled with VEX encoding and would fault on a processor old enough to
 /// lack AVX. Everything after the check is in
-/// [`run_from_environment`](fn@run_from_environment), which is never inlined, so
+/// `run_from_environment`, which is never inlined, so
 /// no instruction of it can be hoisted above the check. See
 /// `docs/FMA_BUILD_FLAG.md` for what that does and does not guarantee.
 pub fn run<T: Tool>() -> ExitCode {

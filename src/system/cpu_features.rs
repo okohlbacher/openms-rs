@@ -15,7 +15,8 @@
 //!
 //! The price of that flag is a minimum processor. Without a guard, running such
 //! a binary on an older CPU kills it with `SIGILL` and no explanation at
-//! whatever arithmetic happens to come first. [`unsupported_cpu`] turns that
+//! whatever arithmetic happens to come first.
+//! [`unsupported_cpu`](crate::system::cpu_features::unsupported_cpu) turns that
 //! into a diagnosis: it reads CPUID, and the caller prints the message and
 //! exits with a documented status. The TOPP framework's `cli::run` calls it as
 //! its very first statement — before it even reads the command line — and
@@ -43,8 +44,8 @@
 //! The check costs one `cpuid` — a few hundred cycles, executed twice in the
 //! life of a tool process and nothing is cached because nothing needs to be —
 //! and is compiled out entirely on a build that does not set the flag, because
-//! [`build_requires_fma`] is then a compile-time `false` and the `&&` folds
-//! away with it.
+//! [`build_requires_fma`](crate::system::cpu_features::build_requires_fma) is
+//! then a compile-time `false` and the `&&` folds away with it.
 
 /// What a binary that requires FMA prints on a processor that has none.
 ///
