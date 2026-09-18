@@ -833,12 +833,14 @@ mod tests {
     /// asked.
     ///
     /// **Why not `system::cpu_features::cpu_provides_fma`**, which is the
-    /// production copy of exactly this read: `analysis` may not name `crate::
-    /// system`. `system` already reaches `analysis` through `format`, so that
-    /// edge closes a module cycle and `tools/check_module_cycles.py` fails on
-    /// it. The two must stay the same architectural bit — leaf 1, `ECX` bit 12,
-    /// absent leaf 1 counting as present — and `cpu_features`' own
-    /// documentation is where that convention is written down.
+    /// production copy of exactly this read: a module under `analysis` may not
+    /// name the crate's `system` module at all — not even in a comment, because
+    /// `tools/check_module_cycles.py` reads the file as text. `system` already
+    /// reaches `analysis` through `format`, so that edge would close a module
+    /// cycle and the gate fails on it. The two must stay the same architectural
+    /// bit — leaf 1, `ECX` bit 12, with an absent leaf 1 counting as present —
+    /// and `cpu_features`' own documentation is where that convention is
+    /// written down.
     ///
     /// Nothing about what the test compares changes: a `+fma` binary cannot
     /// start on a processor without FMA, so the two mechanisms agree on every
