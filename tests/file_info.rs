@@ -966,6 +966,12 @@ fn validation_is_refused_for_every_type() {
 /// each now reads the file instead. `tests/file_info_checks.rs` compares what
 /// they write with the Release C++ output; here only the change of outcome is
 /// pinned, so this file cannot silently go back to refusing them.
+///
+/// The one refusal that survives is a build capability, not a port gap: a build
+/// without the `mzml` feature has no index decoder, so `-i` names that. It is
+/// asserted positively in
+/// [`the_index_check_names_the_missing_feature`], so it cannot hide a
+/// regression here.
 #[test]
 fn the_index_detail_and_corrupt_flags_are_no_longer_refused() {
     for (input, options) in [
@@ -993,9 +999,30 @@ fn the_index_detail_and_corrupt_flags_are_no_longer_refused() {
     ] {
         // The file is absent, so each reaches its reader and fails there.
         if let Err(Error::Unsupported(message)) = FileInfo::new().run(input, &options) {
-            panic!("{input}: still refused: {message}");
+            assert!(
+                message.contains("lacks the mzml feature"),
+                "{input}: still refused: {message}"
+            );
         }
     }
+}
+
+/// Without the `mzml` feature there is no index decoder, so `-i` says exactly
+/// that instead of answering. The check reads the file itself, so this is the
+/// only build where it refuses.
+#[cfg(not(feature = "mzml"))]
+#[test]
+fn the_index_check_names_the_missing_feature() {
+    let options = Options {
+        check_index: true,
+        ..Options::default()
+    };
+    let error = FileInfo::new().run("missing.mzML", &options).unwrap_err();
+    assert!(
+        matches!(&error, Error::Unsupported(message)
+            if message == "FileInfo indexed-mzML check (-i): this build lacks the mzml feature"),
+        "{error:?}"
+    );
 }
 
 #[cfg(feature = "featurexml")]
