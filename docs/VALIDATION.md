@@ -167,11 +167,20 @@ per-target feature table are in [FMA_BUILD_FLAG](FMA_BUILD_FLAG.md) section 6.
 
 ### Gates
 
-All on **kim**, slot `integ-w6`, one battery pinned to `288dfb6`, every gate rc
-0 on its first attempt — **no gate exited 255, so none needed a rerun**. Driver
-and logs are in the session scratchpad under `integ-w6-logs/`. Every figure
-below is summed from the log's `test result:` lines, over **all** of them, so a
-dropped target cannot hide.
+All on **kim**, slot `integ-w6`. Every gate rc 0 on its first attempt —
+**no gate exited 255, so none needed a rerun**. Driver and logs are in the
+session scratchpad under `integ-w6-logs/`. Every figure below is summed from the
+log's `test result:` lines, over **all** of them, so a dropped target cannot
+hide.
+
+The eight-gate battery ran at `288dfb6`, the last commit before this checkpoint
+was written. Because the checkpoint itself changes two files, the six decisive
+gates were then **re-run at `4c5c6ec`, the branch's final code-bearing head**,
+rather than arguing that documentation cannot affect a build: MSRV check,
+clippy, rustdoc, the full suite, the `--no-default-features` suite and the
+doctests all exit 0 again with **every count identical** — 5317 / 0 / 21 over
+355 lines, 3616 / 0 / 3 over 331 lines, 76 doctests. The only change after that
+run is the paragraph you are reading.
 
 | Gate | Result |
 |---|---|
