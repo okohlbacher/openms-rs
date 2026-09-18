@@ -38,7 +38,14 @@
 //! 6. the data-array names with their occurrence counts, padded by the byte
 //!    length of the longest name;
 //! 7. the FAIMS compensation voltages, unconditionally computed;
-//! 8. the chromatogram counts and the count per chromatogram type.
+//! 8. the chromatogram counts and the count per chromatogram type, and, with
+//!    `-d` and a selected-reaction-monitoring chromatogram among them, the
+//!    transition listing
+//!    ([`crate::format::file_info::checks`]);
+//! 9. with `-d`, the per-spectrum listing, and with `-c`, the corrupt-data
+//!    check, in that order. Both are guarded here rather than in the report
+//!    root, because the source guards them inside this branch, so a featureXML
+//!    map ignores them.
 //!
 //! `-m` adds the document, sample, instrument and contact metadata; `-p` the
 //! data processing of the first spectrum; `-s` the MS1 intensity statistics
