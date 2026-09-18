@@ -103,7 +103,7 @@ Every member of `TOPPPeakPickerHiRes`, in source order.
 - **`-threads` changes no output byte.** `PeakPickerHiRes.cpp` has no OpenMP, so
   the source picks serially; this port picks in parallel and still writes the
   same file at every worker count (tested at 1, 2, 8, 16, 32 and 0, and on the
-  2.3 GB benchmark run at 1, 8 and 32). See native difference 9.
+  2.3 GB benchmark run at 1, 8 and 32). See native difference 10.
 
 ## The low-memory mode
 
@@ -133,7 +133,7 @@ disagree.
 4. **Each record is picked and written immediately**, then dropped. Peak memory
    is one read batch (`max_data_pool_size`, 100 records, as upstream) plus the
    rendered text of one record, not the experiment.
-5. **The document is closed with an index.** See *Native differences* 4 and the
+5. **The document is closed with an index.** See *Native differences* 5 and the
    writing consumer's own support document.
 
 ### Where it differs from the in-memory mode, by the source's own construction
@@ -170,6 +170,49 @@ written bytes cannot depend on it — trivially, rather than by the batch-order
 argument the in-memory mode needs. Pinned at 1, 8 and 32 on an input with
 spectra and on one with chromatograms
 (`the_low_memory_output_is_bit_identical_at_every_thread_count`).
+
+### What the mode is worth, measured
+
+`ibminode06` (128 cores, 995 GB, load 0.04 per core at the start), the C++
+Release install at the pins
+(`/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576`) and the
+Rust release binary, over the benchmark's 2.3 GB Q Exactive profile run
+`UK222.mzML` (2,317,975,830 bytes, 40,856 spectra, one chromatogram), with the
+INI the C++ tool writes with `-write_ini`, `-threads 1` and `-no_progress`.
+**Peak RSS and output size are the measurement**; the wall times are context and
+not a timing claim — the timing node is not used by this lane. Drivers, logs and
+hashes: `../oracle/p4-lowmemory/`.
+
+| | exit | peak RSS | wall | output |
+| --- | --- | --- | --- | --- |
+| C++ `-processOption lowmemory` | 0 | 165,544 KiB (161.7 MiB) | 26.6 s | 549,528,621 B |
+| C++ in-memory | 0 | 3,977,240 KiB (3.79 GiB) | 25.2 s | 549,528,688 B |
+| Rust `-processOption lowmemory` | 0 | **83,632 KiB (81.7 MiB)** | 66.8 s | 535,615,900 B |
+| Rust in-memory | 0 | 3,451,904 KiB (3.29 GiB) | 25.0 s | 535,615,963 B |
+
+The mode does what it exists for, in both implementations and more so here:
+**41 times less resident memory than the in-memory mode on a 2.3 GB input**, and
+half the C++ low-memory footprint. What it costs is time: this port's streaming
+path renders each record as a one-record document and splices the record element
+out of it, which is how one definition of the mzML encoding is kept, and that
+shows up as 2.7 times the in-memory wall time where the C++ path, which writes
+the record element directly, is level with its own in-memory run. Nothing about
+the output depends on it.
+
+**The two modes write the same data.** In each implementation the mzML body,
+`<run …>` through `</mzML>`, is byte-identical between the modes: 532,278,411
+bytes (`e2141e3a…`) for this port, 546,109,040 bytes (`ae37b166…`) for C++. All
+four outputs carry 40,856 spectra, one chromatogram and 22,784,372 summed
+`defaultArrayLength`.
+
+The headers differ by one line, 63 bytes here and 67 in C++, and **the source
+does it too**: the consumer's header comes from the experimental settings plus
+the first record (`MSDataWritingConsumer.cpp:73-83`), so the `fileContent` terms
+that are derived from records come from that one record. On this input the
+in-memory mode writes `MS1 spectrum` and `MSn spectrum` and the low-memory mode
+writes `MS1 spectrum` alone — in the C++ Release build exactly as here. A
+low-memory output therefore understates the file's own content by design, and
+that is reproduced, not repaired.
 
 ### The one place this port is stricter
 
@@ -217,7 +260,32 @@ either way.
    registrations. A pre-existing native difference of the mzML writer, pinned
    from the retained pair by
    `the_two_retained_cpp_outputs_differ_only_in_the_data_processing_count`.
-4. **Container differences are documented, not compared** (decision D6). The
+4. **The C++ low-memory mode cannot read an mzML holding both spectra and
+   chromatograms while progress logging is on; this port can.** The C++ tool
+   exits 3 with
+   `Error: Unable to read file (- due to that error of type Precondition failed
+   in: StopWatch.cpp@43-void OpenMS::StopWatch::start())` and writes nothing.
+   `MzMLFile::transform` parses the file twice through one `ProgressLogger`
+   (`MzMLFile.cpp:178-190`); in the first pass `MzMLHandler` runs with
+   `LD_RAWCOUNTS` and, at `<chromatogramList>`, calls
+   `logger_.startProgress("loading chromatogram list")`
+   (`MzMLHandler.cpp:997`) and then immediately throws `EndParsingSoftly`
+   because it now has both counts (`MzMLHandler.cpp:1001-1006`), so the
+   `endProgress()` at `</chromatogramList>` (`MzMLHandler.cpp:1493-1498`) is
+   never reached and the shared stopwatch is still running when the second pass
+   calls `startProgress` again. One record kind alone means no early throw and a
+   balanced pair, which is why the upstream registrations never see it: their
+   inputs hold spectra only and chromatograms only. `-no_progress` avoids it;
+   `-test` does not. Reproduced on a 450 KB two-kind input made on the node by
+   the Release `FileMerger`, and on the 2.3 GB benchmark input; the control runs
+   (spectra only, chromatograms only, and the in-memory mode on the same input)
+   all exit 0. This port has no shared progress logger and completes on every
+   one of those inputs. It reaches every caller of `MzMLFile::transform`, so
+   `NoiseFilterGaussian`, `NoiseFilterSGolay`, `FileConverter -process_lowmemory`
+   and `PeakPickerIM` are affected the same way: **integrator request for
+   `OpenMS_CPP_ISSUES.md`**. Evidence:
+   `../oracle/p4-lowmemory/logs/probe_06.log` and that oracle's `manifest.json`.
+5. **Container differences are documented, not compared** (decision D6). The
    C++ output is an `indexedmzML` with an ISO-8859-1 declaration, the software
    alias `MS:1002135 TOPP PeakPickerHiRes`, a `dataProcessingList count`
    computed as `max(1, histories + float arrays)` (CPP-019) and the constant
@@ -225,14 +293,14 @@ either way.
    with the exact software name, one `dataProcessing` entry and the real SHA-1.
    Both modes write the same container here, as both do in the source. Both
    decode to the same content, which is what the tests compare.
-5. **The ion mobility peak type in the warning is `im_profile`.** The source
+6. **The ion mobility peak type in the warning is `im_profile`.** The source
    prints `imPeakTypeToString(spec.getIMPeakType())`; the native spectrum has no
    stored peak type. `im_profile` is what the source mzML reader stores for ion
    mobility data without `MS:1003441` (`MzMLHandler.cpp:253-255`), which is the
    oracle's text; an input carrying that term would read `im_centroided` in the
    source.
-6. **No debug dump and no progress logging**, as listed in the API mapping.
-7. **Bounded work on the input.** The C++ tool has no resource ceilings; this
+7. **No debug dump and no progress logging**, as listed in the API mapping.
+8. **Bounded work on the input.** The C++ tool has no resource ceilings; this
    port bounds every cumulative quantity, and an input beyond a ceiling is
    refused before anything is written.
 
@@ -257,13 +325,13 @@ either way.
    before any record is picked). That ledger, not the loader, is what refuses an
    instrument-sized run on `integrate/wave2`; the measurements below record both
    the refusal and the complete run with the sibling lane that lifts it.
-8. **A picker failure that is not the centroided refusal** is reported as
+9. **A picker failure that is not the centroided refusal** is reported as
    `Error: Unexpected internal error (<reason>)` with `UNKNOWN_ERROR`, the code
    `TOPPBase` gives an unmapped exception, rather than the framework's default
    mapping of `Error::InvalidValue` to `ILLEGAL_PARAMETERS`: these are data and
    resource conditions, not parameter errors. One of them, a non-converging
    FWHM bisection, is where the source loops forever.
-9. **`-threads` reaches the picking, where the source's does not.** The source
+10. **`-threads` reaches the picking, where the source's does not.** The source
    tool applies the setting before `main_` (`TOPPBase.cpp:408-415`), but
    `PeakPickerHiRes.cpp` has no OpenMP anywhere, so in the C++ the setting
    cannot share any picking. It is not inert for the C++ tool — on a fixed set
@@ -320,7 +388,7 @@ either way.
    threads: …)` with `UNKNOWN_ERROR` — where it previously propagated out of
    `run_io` to the framework. The source has no such path at all: libgomp aborts
    the process when it cannot create a thread.
-10. **Picking is in place.** The tool picks with
+11. **Picking is in place.** The tool picks with
     `PeakPickerHiRes::pick_experiment_in_place_with_threads` rather than the
     borrowing `pick_experiment`: it writes the picked experiment and never reads
     the profile data again, so replacing each record as its centroids appear
@@ -343,6 +411,15 @@ measurement below is against the optimised C++ Release build. Hashes are in
 | Case | Source of the expectation | What is compared |
 | --- | --- | --- |
 | `TOPP_PeakPickerHiRes_1`, `_2`, `_5`, `_6` | retained `PeakPickerHiRes*_output.mzML` (`CMakeLists.txt:2523-2549`) | exit 0, stdout, and decoded content: record counts, native ids, MS levels, spectrum types, float array names, every m/z, RT, intensity and array value bit for bit, history lengths 6/2/1/3, and the whole decoded walk with exact numbers |
+| `TOPP_PeakPickerHiRes_3` | retained `PeakPickerHiRes_output_lowMem.mzML` (`CMakeLists.txt:2533-2536`), reproduced byte for byte by the C++ Release build (oracle `p4-lowmemory`, `w1_lowmem`) | exit 0, empty stdout and stderr, decoded content, history lengths 6, and byte equality with this port's in-memory run |
+| `TOPP_PeakPickerHiRes_4` | retained `PeakPickerHiRes_2_output.mzML` (`CMakeLists.txt:2538-2540`), which the C++ Release build writes in both modes | as above, plus the five chromatogram peak counts |
+| the retained C++ pair itself | `PeakPickerHiRes_output.mzML` against `PeakPickerHiRes_output_lowMem.mzML` | exactly one differing byte, `dataProcessingList count="3"` against `"2"` |
+| the automatic-mode divergence | C++ Release output `oracle_lowmem_w6_auto.mzML` (oracle `p4-lowmemory`) | 4 centroids in the low-memory mode against the in-memory mode's 33 copied samples and `MS-level 1: 0 / 1`, and decoded equality with the C++ output |
+| the absent centroided refusal, `-force` inert | the same C++ output, and the in-memory refusal | exit 0 and 4 centroids where the in-memory mode exits 8 with the source message; the same bytes with and without `-force` |
+| the absent input checks | C++ Release outputs `oracle_lowmem_im_peak.mzML`, `oracle_lowmem_unsorted_spectrum.mzML`, and the empty-input run | no ion mobility warning, exit 0 and a zero-byte output for an input without records, and the workflow outputs for the unsorted inputs |
+| the index | the retained low-memory output, and this port's own | both are `indexedmzML`; every offset in this port's index lands on the `<spectrum` element whose `id` it names |
+| `-threads` on the low-memory path | this port at 1, 8 and 32 on two inputs; both implementations at 1, 8 and 32 on the node (oracle `p4-lowmemory`, `threads`) | bit-identical bytes |
+| instrument scale, both modes | the 2.3 GB `UK222.mzML` through both implementations and both modes on `ibminode06` | peak RSS, and the byte-identical mzML body between the modes on each side (see *The low-memory mode*) |
 | `TOPP_INI_INVALIDVALUE`, `TOPP_CLI_INVALIDVALUE`, `_SECTION` (both), `TOPP_INI_INVALIDNAME`, `TOPP_CLI_INVALIDNAME` | `CMakeLists.txt:107-131` plus the C1 oracle | exit 6 and every diagnostic `ExpectToolFailure.cmake` requires |
 | `TOPPWRITEINI_OVERWRITE` | retained `WRITE_INI_OUT.ini` (`CMakeLists.txt:104-106`) | line-level `FuzzyDiff` with the registered `version` whitelist, plus five of the C++ update diagnostics |
 | `-write_ini` defaults | P3 oracle `write_ini` | line-level `FuzzyDiff` with the upstream settings and no whitelist |
@@ -414,7 +491,7 @@ is not the state of this branch.
 
 Both implementations print the same per-MS-level summary
 (`MS-level 1: 6911 / 6911`, `MS-level 2: 0 / 33945`); the C++ adds progress
-logging and a timing line, which this port does not write (native difference 6).
+logging and a timing line, which this port does not write (native difference 7).
 
 ### Instrument scale across thread counts (`perf/peak-picker`)
 
@@ -510,7 +587,7 @@ names `ToolContext::in_thread_pool` gives its pool, beside the main thread and
 nothing else; the pool is the only source of threads in the process, and
 `-threads 0` reaches all 128 processors of the node. At `-threads 1` the process
 is **one thread**: no pool is built and the picking runs on the calling thread
-(native difference 9). All five runs wrote the same
+(native difference 10). All five runs wrote the same
 `bb13eecf…` output. These counts are exact because this pick takes about
 fifteen seconds. `tests/topp_threads.rs` samples the same executables the same
 way on a synthetic input and holds this tool to exactly `-threads n` workers and
@@ -550,7 +627,7 @@ against that version with only the tests applied: the first found standard
 output carrying nothing but the INI version warning, the second found standard
 error carrying the refusal without the mobility warning ahead of it. Both pass
 here. The exit code and the wording of the store failure itself
-differ between the C++ tool and the port and always have (native difference 8:
+differ between the C++ tool and the port and always have (native difference 9:
 an unmapped error takes `UNKNOWN_ERROR`); what this case is evidence for is
 where the two lines are written, not how the store failure is reported. A
 control run of the same fixture with a writable `-out` gives exit 0 and the same
@@ -593,7 +670,7 @@ references do, which is what removing copies rather than computation looks like.
 the whole tool body on the pool and built one even for `-threads 1`, and that
 cost 0.68 s on this run — entirely glibc's second malloc arena, since
 `MALLOC_ARENA_MAX=1` recovered it exactly. The pool is now opened around the
-picking and not built at all at one worker (native difference 9), and the cost
+picking and not built at all at one worker (native difference 10), and the cost
 is gone. The deterministic counter says so more clearly than wall time can:
 minor page faults over the 2.3 GB run at `-threads 1` are **1,701,679** for this
 branch against **1,701,678** for the same code built without `parallel`, where
@@ -650,7 +727,7 @@ file.
 **Comparison of the two outputs.** The C++ `FuzzyDiff` from the same prefix
 (`-ratio 1.001 -absdiff 1e-5`) fails at line 1, column 31 — the XML declaration,
 ISO-8859-1 against UTF-8 — so it never reaches the data: the container
-difference is documented, not compared (native difference 4), and D6 makes the
+difference is documented, not compared (native difference 5), and D6 makes the
 decoded content the contract. Decoded (`../oracle/topp-peak-picker-scale/decoded_compare_probe.rs`):
 
 - 40,856 spectra on both sides, with equal native ids, MS levels and peak
