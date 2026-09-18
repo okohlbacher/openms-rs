@@ -379,3 +379,10 @@ the test as a comment. That has happened twice and both were real findings.
   instead.
 - **Claiming tier 1 from a source-review fixture.** Tier 1 needs output the C++
   actually produced, hashed in the manifest.
+- **A runtime CPU check the build flag folds away.**
+  `is_x86_feature_detected!("fma" | "avx" | "sse3" | "ssse3" | "sse4.1" |
+  "sse4.2")` is a compile-time `true` on x86_64 since `.cargo/config.toml` sets
+  `-C target-feature=+fma`, and `-O` then deletes the guard, with no diagnostic
+  and no clippy lint. Ask `system::cpu_features::cpu_provides_fma()` when the
+  question is about the **processor**; `is_x86_feature_detected!` and
+  `cfg!(target_feature = ...)` answer a question about the **build**.

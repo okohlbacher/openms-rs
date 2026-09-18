@@ -1,5 +1,319 @@
 # Validation of the ongoing Rust port
 
+## Wave-6 FAIMS closure and the FMA build default (2026-09-18)
+
+`integrate/wave6` merges `port/b11-faims` (`7921409`) and `port/fma-default`
+(`86b0337`) onto `main` `e1c3115`. The two branches share **no file** — 13 files
+against 10, `comm -12` of their name-only diffs empty, re-checked at those exact
+heads — so both merges were conflict-free. That was verified rather than
+assumed, and then confirmed after the fact: the merged tree changes exactly 23
+files against `main`, which is 13 + 10. Every integrator-owned record was left
+to this pass. See
+[the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-6-status),
+[TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT](TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md)
+and [FMA_BUILD_FLAG](FMA_BUILD_FLAG.md).
+
+Both lanes were adversarially verified and both came back
+**approve_with_notes**: B11 in round 2 with four minors, `port/fma-default` with
+three. Every minor was applied on its own branch before this pass, and each lane
+reported one deviation from a verifier's *proposed fix*, neither of which
+changed the finding:
+
+- B11 declined the wording "a convenience wrapper of `mergeOverlappingFeatures`"
+  for `mergeFAIMSFeatures`, because at the pin it does not delegate — it builds
+  its own callback and calls `filter` itself (`FeatureOverlapFilter.cpp:384-527`,
+  `:507-511`) — and took the verifier's alternative instead, quoting
+  `mergeFAIMSFeatures`' own Doxygen block with per-line pins.
+- `port/fma-default` could not route `atan_is_reference()` through
+  `cpu_features::cpu_provides_fma()` as its verifier proposed, because
+  `analysis -> system` closes a module cycle and
+  `tools/check_module_cycles.py` — a CI step — refuses it. It reads the same
+  architectural bit (leaf 1, `ECX` bit 12) through `raw_cpuid` directly, with the
+  production copy named in the doc comment. The verifier's substance is met:
+  `cpuid` is executed, so the answer is the processor's and not the build's.
+
+### The ledger
+
+**No header changes status this wave**, and that is the correct outcome rather
+than a missing promotion. `PROCESSING/FEATURE/FeatureOverlapFilter.h` was
+already `complete` and stays `complete` with its scope rewritten: the sentence
+that deferred the FeatureFinderCentroided FAIMS closure to B11 is replaced by
+what B11 actually added, one native mode (`FaimsMergeFidelity`) beside faithful
+entry points that are unchanged. `IONMOBILITY/IMDataConverter.h` stays
+`partial`, because B11 consumed `splitByFAIMSCV` and ported no further member;
+its scope says so. Review state across the whole ledger is unchanged: complete
+**63**, partial **59**, `native_equivalent` **90**,
+`evidence_requires_review` 165, unmapped 409, 786 registered public headers.
+
+**`validated_topp_workflows` stays 8, and that is a decision, not an oversight.**
+The count is derived, not written: `tools/core_sdk_coverage.py`'s
+`validated_workflows()` reads `SOURCE_PROVENANCE.json`'s
+`topp_package_reference_manifests` and counts a tool whose manifest declares
+tier 1 *and* names the upstream test definition it reproduces.
+`FeatureFinderCentroided` was already in that set on `main` — checked, the eight
+names are identical before and after — on the strength of its non-FAIMS
+differential evidence, so the closure cannot raise the count. It must not lower
+it either. The FAIMS evidence B11 adds is itself an executed differential
+against retained C++ output: each compensation-voltage group written as its own
+single-voltage mzML with the FAIMS cvParam removed, run through the C++ Release
+build on `ibminode06`, and the port's features for that group compared with what
+that run found. That strengthens the tier-1 claim. The **cross-voltage merge**
+is the part with no C++ oracle, and the tool's tier-1 standing never rested on
+it; the manifest's own `method` field says so in as many words.
+
+### The FAIMS closure, and where its evidence stops
+
+Decision **D5 is closed for `FeatureFinderCentroided` (2026-09-18)**. The tool
+no longer refuses FAIMS input: it splits by compensation voltage, runs the
+picked feature finder once per voltage on that voltage's seeds, annotates every
+feature with its `FAIMS_CV` and merges across voltages under
+`-faims_merge_features`. `IMDataConverter` stays `partial` for the members D5
+left out.
+
+Three C++ defects lie on that path, all already recorded: `CPP-278` (the split's
+groups carry no ranges, so the C++ tool exits 8 on **every** FAIMS input),
+`CPP-282` (the merge erases every feature whose unique id is still 0) and
+`CPP-283` (a cluster of three or more voltages is split in two, double-counting
+one member). The port answers all three. What this wave does **not** claim:
+
+- **No patched C++ build was ever executed.** The composite statement appended
+  to `CPP-278` — that fixing only the ranges makes the tool write an empty
+  feature map — is read from the pinned source and confirmed on the port's
+  call-for-call faithful merge. Nobody has seen a C++ run produce that empty
+  map, and the outcome additionally rests on `CPP-282`'s own premise. The entry
+  says this in its own "Basis of the composite claim" paragraph.
+- **The statement is qualified, not general.** The empty map follows only on an
+  input where at least one cross-voltage merge actually fires. With
+  `-faims_merge_features false` the merge is never called, and on single-voltage
+  FAIMS input the callback refuses every pair, so nothing is erased. Both
+  non-merging cases are pinned by executed tests of this package.
+- **The corrected merge has no C++ oracle and cannot get one from the pinned
+  build.** It is pinned against the specification derived from the source's own
+  parameter documentation and against hand-derived cases whose numbers are
+  written out in `tests/feature_overlap_filter.rs`, each written next to the
+  executed `c2_*` case that records what the source does instead.
+
+One change outside the FAIMS path: the tool's `OPENMS_LOG_WARN` lines now go to
+**stderr**, where the executed C++ writes them. No test asserted the old
+destination.
+
+### The processor guard: what it rests on, and what it does not cover
+
+`.cargo/config.toml` sets `-C target-feature=+fma` for
+`cfg(target_arch = "x86_64")`. This is a **breaking runtime change**: a binary
+built from this checkout needs an FMA3-capable processor, Intel Haswell (2013)
+or AMD Piledriver (2012) and newer.
+
+What is measured, in [FMA_BUILD_FLAG](FMA_BUILD_FLAG.md) §7: the flag can change
+only instruction encoding, element-wise vector width and `mul_add`'s
+implementation. It cannot contract `a * b + c`, because Rust lowers that to
+`fmul`/`fadd` with no fast-math flags, and it cannot auto-vectorise a
+floating-point reduction, because that needs `reassoc`, which Rust never sets.
+Both matter here and are not theoretical: `levenberg_marquardt.rs`'s
+`lane_madd` reproduces Eigen's `pmadd` **unfused**, and `eigen_sum` hand-writes
+Eigen's two-lane summation order. Five `rustc --emit=asm` probes back this, and
+the probe source and both `rustc` commands are printed in the document, so the
+check depends on nothing outside the file. Cross-check on the shipped binaries:
+the crate has exactly 41 `f64::mul_add` call sites and the `+fma`
+`FeatureFinderCentroided` on kim has exactly 41 `vfmadd`/`vfmsub`, so no fused
+multiply-add in it came from anywhere but an explicit `mul_add`.
+
+The guard's documented limits, each accepted by the lead rather than left
+implicit:
+
+- **Test binaries are not guarded.** They do not go through `cli::run`, so on a
+  processor without FMA a test binary dies on `SIGILL` with no message, where a
+  tool binary prints the requirement and exits 12. This is also the CI failure
+  mode if a runner ever lacks FMA.
+- **The flag stays scoped to x86_64.** A 32-bit x86 build does not get it, so
+  the guard is inert there, which is consistent.
+- **Pre-AVX processors get best effort**, measured rather than guaranteed. A
+  separate baseline-built launcher is out of scope.
+- **No runner's processor was measured at this integration.** Nothing in this
+  pass executed a CPUID read, a `/proc/cpuinfo` read or a job on a GitHub
+  runner. That the CI runners satisfy the requirement is an inference from the
+  published images being far newer than 2013, not a measurement. The first CI
+  run of this branch is the measurement.
+
+### Standing hazard: `is_x86_feature_detected!` is a compile-time constant here
+
+**From `port/fma-default` on, `is_x86_feature_detected!` answers a question
+about the build, not about the processor, on x86_64.** `.cargo/config.toml`
+builds x86_64 with `-C target-feature=+fma`, and the macro is documented to
+answer `true` *without consulting the processor* for any feature the build
+already enables: on `x86_64-unknown-linux-gnu` that is `fma`, `avx`, `sse3`,
+`sse4.1`, `sse4.2` and `ssse3`, and on `x86_64-apple-darwin`, whose baseline
+already has most of those, `fma`, `avx` and `sse4.2`. Under `-O` the guard
+written around it is then deleted outright. **Nothing warns**: no compiler
+diagnostic, no clippy lint, and in review the code reads exactly right while
+being absent from the binary.
+
+This is not hypothetical. It cost `port/fma-default` a shipped guard that was
+not there — `FileInfo::main` disassembled to a bare `jmp` into the body of `run`
+— and it had already, silently, turned the `atan_is_reference()` gate in
+`src/analysis/feature_finder_picked/glibc_libm.rs` into a constant `true`, which
+that lane fixes. The same short-circuit is built into the `cpufeatures` crate's
+`new!` macro, which the lock already carries through `sha1`; it is unaffected
+today only because `sha1` asks for `"sha"`, which `+fma` does not enable.
+
+The rule, recorded here and as a bullet in
+`.claude/skills/openms-port-header.md`: a question about the **processor** goes
+to `system::cpu_features::cpu_provides_fma()`, or — from a module that may not
+name `crate::system` without closing a module cycle — to `raw_cpuid` directly
+for the same architectural bit. `is_x86_feature_detected!` and
+`cfg!(target_feature = ...)` answer a question about the **build**, which on
+x86_64 now has a known answer. Measurements, the affected sites and the
+per-target feature table are in [FMA_BUILD_FLAG](FMA_BUILD_FLAG.md) section 6.
+
+### Gates
+
+All on **kim**, slot `integ-w6`, one battery pinned to `288dfb6`, every gate rc
+0 on its first attempt — **no gate exited 255, so none needed a rerun**. Driver
+and logs are in the session scratchpad under `integ-w6-logs/`. Every figure
+below is summed from the log's `test result:` lines, over **all** of them, so a
+dropped target cannot hide.
+
+| Gate | Result |
+|---|---|
+| `+1.85.0 check --locked --all-features --all-targets` | exit 0 (MSRV 1.85), non-vacuous: the log compiles `openms` itself |
+| `clippy --locked --all-features --all-targets -- -D warnings` | exit 0, **0 warnings**, non-vacuous |
+| `doc --locked --all-features --no-deps`, `RUSTDOCFLAGS=-D warnings` | exit 0 |
+| `test --locked --all-features --all-targets` | **5317 passed, 0 failed, 21 ignored** over **355** result lines |
+| `test --locked --no-default-features` | **3616 passed, 0 failed, 3 ignored** over **331** result lines |
+| `test --locked --all-features --doc` | **76 passed, 0 failed** (73 + 3) |
+| `+1.85.0` minimum-rust line :109 as changed (`--no-default-features`, + `fma_build_flag` + `build_info`) | 177 passed, 0 failed, 2 ignored over 10 result lines |
+| `--all-features`, the two lanes' targets (`topp_feature_finder_centroided`, `feature_overlap_filter`, `fma_build_flag`, `build_info`, `topp_cli_lifecycle`) | 170 passed, 0 failed, 0 ignored: **45, 39, 3, 10, 73** |
+
+Each log is internally consistent: for the full suite, 355 `Running` headers =
+355 `running N tests` lines = 355 `test result:` lines, every status `ok`, and
+the announced total 5338 equals 5317 + 0 + 21, so nothing was lost through the
+pipe. The same three counts agree for every other gate.
+
+An earlier single-gate probe, run before the battery and before any document was
+written, had already proved the changed CI line at `+1.85.0`: rc 0.
+
+The five per-target counts in the last row reproduce **exactly** what the B11
+lane reported for them on its own branch (45, 39, 10, 73) with the FMA lane's
+new target beside them, which is the check that the merge changed neither lane's
+behaviour.
+
+### The suite totals against `main`, target by target
+
+`main`'s recorded figures were not taken on trust. `main` (`e1c3115`) was
+checked out into its own worktree and run on the **same host, same toolchain,
+same commands**, and it reproduces the wave-5 record exactly: **5297 passed, 0
+failed, 21 ignored over 354 result lines** with all features, and **3599
+passed, 0 failed, 3 ignored over 330 result lines** with none. The two runs were
+then compared target by target, not just in total.
+
+| | `main` `e1c3115` | `integrate/wave6` | delta |
+|---|---|---|---|
+| `--all-features --all-targets` | 5297 / 0 / 21 over 354 lines | **5317 / 0 / 21** over **355** lines | **+20 passed**, +1 line, ignored unchanged |
+| `--no-default-features` | 3599 / 0 / 3 over 330 lines | **3616 / 0 / 3** over **331** lines | **+17 passed**, +1 line, ignored unchanged |
+
+**Every one of those tests is accounted for, and no other target moved by a
+single test.** With all features the +20 is exactly four targets:
+
+| Target | `main` | wave 6 | delta | Lane |
+|---|---:|---:|---:|---|
+| `tests/topp_feature_finder_centroided.rs` | 39 | 45 | +6 | B11 |
+| `tests/feature_overlap_filter.rs` | 33 | 39 | +6 | B11 |
+| `src/lib.rs` unit tests | 358 | 363 | +5 | FMA (`cpu_features`) |
+| `tests/fma_build_flag.rs` | — | 3 | +3 | FMA (new target) |
+
+6 + 6 = **12** for `port/b11-faims` and 5 + 3 = **8** for `port/fma-default`,
+which are exactly the deltas the two lanes reported on their own branches
+(5309 and 5305 against the same 5297). The merge is additive to the test, which
+is what two branches sharing no file must produce. The one extra result line is
+`tests/fma_build_flag.rs`, the wave's only new test target.
+
+Without default features the +17 is the same three feature-independent targets —
+`src/lib.rs` +5, `feature_overlap_filter` +6, `fma_build_flag` +3 — plus **+3
+doctests** (58 to 61), the `cpu_features` documentation examples;
+`topp_feature_finder_centroided` is gated behind `mzml`, `paramxml` and
+`featurexml` and contributes nothing there. The dedicated doctest gate shows the
+same three: 73 + 3 = **76**, against `main`'s 73.
+
+Locally on macOS arm64, all rc 0: `cargo fmt --all -- --check`; all seven
+repository Python checkers — `check_core_sdk` (plain **and** with `--source`
+against the pinned checkout, 2,092 distinct source/registration/reference files
+verified at `bc9cc12`), `check_doc_coverage`, `check_module_cycles`,
+`core_sdk_coverage`, `test_core_sdk`, `test_core_sdk_coverage` and
+`check_schema_feature_graph`; and the ten generator `--check` scripts the
+`quality` job runs. `.github/workflows/rust.yml` parses as YAML (6 jobs, 111
+steps) and every changed JSON record round-trips through `json.load` — as does
+every tracked `.json` in the repository, checked in passing.
+
+Both ledger generators are idempotent: re-running
+`core_sdk_coverage.py --write` and `check_doc_coverage.py --write` after the
+edits leaves `docs/` clean. `docs/module-cycles.json` is **byte-unchanged**
+against `main`, so neither lane added a cross-module edge.
+
+The integrator pass touched **no** `.rs` file, no file under `tests/data/`, and
+neither `Cargo.toml` nor `Cargo.lock`: its 15 files are the ledger, the
+provenance, the C++ issue log, the crate and licence records, CI, the porting
+skill and six documents. `Cargo.toml`'s `[lints.rust] unsafe_code = "forbid"` is
+untouched, `src/` contains no `unsafe`, and **0** C++ files are tracked.
+
+### CI audit
+
+`.github/workflows/rust.yml` gains exactly two `--test` names, both on the same
+`minimum-rust` line — the general `--no-default-features` slice that already
+carried `feature_overlap_filter` — and one new step. `fma_build_flag` is this
+wave's only new test target; before the change it ran at `1.85.0` only under
+`--all-features --all-targets`, because `minimum-rust` has no bare
+`cargo test --no-default-features` line the way the `test` job does.
+`build_info` joins it for the same reason and because this wave changes what it
+reports. The new `quality` step,
+`RUSTFLAGS="-C target-feature=-fma" cargo check --locked --all-features
+--all-targets`, keeps the opt-out this crate prints from silently rotting.
+
+**No test binary in `tests/` is unrun.** There are **328** integration targets
+on disk, one more than the 327 of wave 5, which is `tests/fma_build_flag.rs`.
+Every `--test` name in the workflow resolves to one of them (**0 dangling**, 178
+distinct names), and the `test --locked --all-features --all-targets` gate
+below launched all 328. The other **150** are reached only by the
+`--all-features --all-targets` steps, which is sufficient because all **80**
+file-level `#![cfg(...)]` gates in `tests/` are cargo feature gates on features
+declared in `Cargo.toml` — checked mechanically, **0** of them uses a
+non-feature predicate — so `--all-features` satisfies every one.
+
+### Ignored tests
+
+**22 `#[ignore]` attributes in the tree, all of them in `tests/` and none in
+`src/` — byte-identical to `main`**, file for file and count for count. No test
+was ignored, skipped, deleted or weakened by this wave; no tolerance was
+widened; no expected value was derived from Rust output. Across both branches
+the `.rs` diff against `main` adds **0** occurrences of `unsafe` and **0** new
+`#[ignore]`, and adds 20 `#[test]` functions. The gate below reports **21**
+ignored rather than 22 for the reason wave 5 recorded: the macOS-arm64-gated
+`macos_arm64_sdk_gap_report` in `tests/lm_eigen_path_differential.rs` is not
+compiled on `kim`.
+
+### What this checkpoint does not claim
+
+- **It does not claim any C++ evidence for the cross-voltage merge.** See *The
+  FAIMS closure, and where its evidence stops* above. No patched C++ build was
+  executed, and the pinned one exits 8 before the merge on every FAIMS input.
+- **It does not claim that the FMA flag was validated on a processor without
+  FMA.** Every gate ran on `kim`, which has FMA, so the guard's refusal path was
+  exercised by its unit tests and not by a real refusal on real hardware. That
+  the gate counts are identical to each lane's pre-integration counts is the
+  expected outcome of running on an FMA host, not evidence about a non-FMA one.
+- **It does not claim anything about the CI runners' processors.** Nothing here
+  executed a job on a GitHub runner.
+- **It does not claim a performance result.** No benchmark was run at this
+  integration. §4 of [BENCHMARKS](BENCHMARKS.md) is the wave-5 measurement on
+  **dax**, and §4.5 now records the decision rather than new numbers.
+- **It does not re-verify the pinned TOPP source line by line.** The core
+  references the new `CPP-278` text rests on were checked here against the
+  pinned checkout `.reference/openms4-core-bc9cc12`
+  (`FeatureOverlapFilter.cpp:384-527` is `mergeFAIMSFeatures` and calls `filter`
+  itself at `:507-511`; its own Doxygen block is `:156-180`, with the sentences
+  quoted at `:157`, `:159-160` and `:175`). The `FeatureFinderCentroided.cpp`
+  line references are the lane's: the pinned `topp` revision `174b576` is not in
+  any local checkout, so they were not re-checked against the pin at this pass.
+
 ## Wave-5 completion of FeatureFinderAlgorithmPicked and the noise estimators (2026-09-17)
 
 `integrate/wave5` merges `port/ffap-complete` (`a11fc26`, itself the merge of
@@ -235,8 +549,11 @@ prose and `topp_threads.rs` moved its picking constants into its Linux module.
 - It does not claim a performance result on the wave-4 timing node. §4 of
   [BENCHMARKS](BENCHMARKS.md) ran on **dax**, not ibminode05, and its absolute numbers
   are comparable only with each other.
-- It does not settle the `-C target-feature=+fma` question. That is **open with the
-  user**, and no build configuration was changed.
+- It did not settle the `-C target-feature=+fma` question; nothing in the build
+  configuration was changed by that wave. The user decided it on 2026-09-18 and
+  `port/fma-default` carries it: x86_64 builds set the flag, output is unchanged,
+  and a processor without FMA is refused with exit 12 rather than `SIGILL`
+  ([FMA_BUILD_FLAG](FMA_BUILD_FLAG.md)).
 - It does not claim the signal-to-noise signed-overflow sites are emulated. They stay
   refused as a stated cost/benefit decision; each needs more than `2^31` points and
   64-90 GB per evidence run.
