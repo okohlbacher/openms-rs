@@ -53,6 +53,12 @@
 //!   outline, which for most hulls is the first scan again, so the trace-level
 //!   test usually compares only where the traces start.
 //!
+//! Two of those conventions together are `CPP-283`: the removed-set check that
+//! still offers a removed feature to a later survivor, and the `FAIMS_CV` a
+//! survivor loses on its first merge. `merge_faims_features_with_fidelity`
+//! offers the corrected merge beside them (`FaimsMergeFidelity`), which the
+//! `FeatureFinderCentroided` tool runs. Nothing else changes behaviour.
+//!
 //! # Native differences
 //!
 //! - **Atomic.** An error leaves the map exactly as it was. The source sorts the
@@ -122,6 +128,64 @@ pub enum FeatureOverlapMode {
 
 /// The source's backward-compatible alias `FeatureOverlapFilter::OverlapMode`.
 pub type OverlapMode = FeatureOverlapMode;
+
+/// Which behaviour [`FeatureOverlapFilter::merge_faims_features_with_fidelity`]
+/// follows where the source merge is defective.
+///
+/// The source's FAIMS merge has two executed defects, both recorded as
+/// `CPP-283`, and both in the same place: the overlap loop offers a feature it
+/// has already removed to a later survivor, so that feature's intensity is
+/// added twice, and the merge callback refuses once the survivor has lost its
+/// `FAIMS_CV`, so a survivor absorbs at most one feature. Together they turn
+/// three mutually overlapping features at three voltages, 1000, 900 and 800,
+/// into **two** features of 1900 and 1700 — 3600 units of intensity where the
+/// input held 2700.
+///
+/// What the merge is meant to do is not in doubt. `mergeFAIMSFeatures` has its
+/// own Doxygen block, `FeatureOverlapFilter.h:156-180` at the pin, and it
+/// states it: *Merge FAIMS features that represent the same analyte detected at
+/// different CV values* (`:157`), *It only merges features that have the
+/// FAIMS_CV meta value annotation AND have DIFFERENT CV values* (`:159-160`),
+/// and *The feature with highest intensity is kept, and intensities are summed*
+/// (`:175`). A cluster is therefore one analyte seen at several voltages, it
+/// collapses to **one** feature, and the summed intensity is the analyte's
+/// total — each contributing feature counted once.
+/// [`Corrected`](Self::Corrected) is that merge; see
+/// `docs/FEATURE_OVERLAP_FILTER_SUPPORT.md`.
+///
+/// The neighbouring `mergeOverlappingFeatures` (`:116-147`) is documented with
+/// an `intensity_mode` under which *intensities are either summed or the
+/// maximum is kept*; that clause is **not** part of the FAIMS contract.
+/// `mergeFAIMSFeatures` takes no intensity mode and sums unconditionally
+/// (`FeatureOverlapFilter.cpp:496`), and although its brief calls it a
+/// convenience function it does not delegate: its body (`:384-527`) calls
+/// `filter` itself (`:507-511`), as `mergeOverlappingFeatures` does
+/// (`:357-382`).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum FaimsMergeFidelity {
+    /// The merge the source's own documentation describes: a cluster of
+    /// features at pairwise different voltages collapses to the one of highest
+    /// intensity, whose intensity is the sum of all of them, counted once
+    /// each. Answers `CPP-283` in both places — a candidate already marked
+    /// removed is not offered again, and a survivor keeps absorbing, because
+    /// the test is against the voltages it has already taken
+    /// ([`MERGED_CENTROID_IMS`]) rather than against a `FAIMS_CV` it no longer
+    /// has.
+    ///
+    /// Removal is still keyed by unique ID, as in the source, so this variant
+    /// requires the features to carry **distinct** unique IDs, zero included,
+    /// and returns [`Error::InvalidValue`] otherwise: with the repeated ID 0
+    /// that `FeatureFinderAlgorithmPicked` leaves, removal by ID erases every
+    /// feature (`CPP-282`). The caller assigns the IDs; the
+    /// `FeatureFinderCentroided` tool does.
+    ///
+    /// This is the default.
+    #[default]
+    Corrected,
+    /// Reproduce the executed source, both defects included, as
+    /// [`FeatureOverlapFilter::merge_faims_features`] does.
+    Source,
+}
 
 /// How merged intensities combine (source `MergeIntensityMode`).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -363,6 +427,7 @@ impl FeatureOverlapFilter {
                 Ok(on_overlap(best, other))
             },
             Rollback::SnapshotWhenFallible,
+            Removal::Source,
         )
     }
 
@@ -397,6 +462,7 @@ impl FeatureOverlapFilter {
                 on_overlap(best, other)
             },
             Rollback::Snapshot,
+            Removal::Source,
         )
     }
 
@@ -459,6 +525,7 @@ impl FeatureOverlapFilter {
             &tolerances,
             &mut journaled_merge(callback),
             Rollback::Journal,
+            Removal::Source,
         )
     }
 
@@ -493,6 +560,58 @@ impl FeatureOverlapFilter {
         max_rt_diff: f64,
         max_mz_diff: f64,
     ) -> Result<()> {
+        Self::merge_faims_features_with_fidelity(
+            feature_map,
+            max_rt_diff,
+            max_mz_diff,
+            FaimsMergeFidelity::Source,
+        )
+    }
+
+    /// [`Self::merge_faims_features`], choosing whether the two defects of the
+    /// source merge are reproduced or corrected.
+    ///
+    /// [`FaimsMergeFidelity::Source`] is exactly [`Self::merge_faims_features`].
+    /// [`FaimsMergeFidelity::Corrected`] collapses each cluster of features at
+    /// pairwise different voltages to one feature whose intensity is the sum of
+    /// the cluster, each member counted once; see [`FaimsMergeFidelity`] for
+    /// the derivation and for the distinct-unique-ID requirement it carries.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_rt_diff` — largest retention-time difference, in seconds.
+    /// * `max_mz_diff` — largest m/z difference, in Da.
+    /// * `fidelity` — reproduce the source, or correct it.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::merge_faims_features`], and, for
+    /// [`FaimsMergeFidelity::Corrected`] with more than one FAIMS feature,
+    /// [`Error::InvalidValue`] when two of them share a unique ID. The map is
+    /// unchanged after any error.
+    pub fn merge_faims_features_with_fidelity(
+        feature_map: &mut FeatureMap,
+        max_rt_diff: f64,
+        max_mz_diff: f64,
+        fidelity: FaimsMergeFidelity,
+    ) -> Result<()> {
+        if fidelity == FaimsMergeFidelity::Corrected {
+            // Removal keys on unique IDs, as in the source, so a repeated ID
+            // would erase a feature that was never merged (CPP-282). Two FAIMS
+            // features share an ID only if the caller left them unassigned.
+            let mut seen = HashSet::new();
+            let repeated = feature_map
+                .features
+                .iter()
+                .filter(|feature| feature.metadata.contains_key(FAIMS_CV))
+                .find(|feature| !seen.insert(feature.unique_id));
+            if let Some(feature) = repeated {
+                return Err(Error::InvalidValue(format!(
+                    "the corrected FAIMS merge keys removal on unique IDs, and two features carry the ID {}; assign unique IDs before merging (CPP-282)",
+                    feature.unique_id
+                )));
+            }
+        }
         if !feature_map
             .features
             .iter()
@@ -522,13 +641,22 @@ impl FeatureOverlapFilter {
                 require_same_charge: true,
                 require_same_im: false,
             };
+            let mut callback: MergeCallback<'_> = match fidelity {
+                FaimsMergeFidelity::Source => &mut merge_different_voltages,
+                FaimsMergeFidelity::Corrected => &mut merge_further_voltages,
+            };
+            let removal = match fidelity {
+                FaimsMergeFidelity::Source => Removal::Source,
+                FaimsMergeFidelity::Corrected => Removal::SkipRemoved,
+            };
             let merged = run(
                 &mut faims,
                 &mut higher_intensity,
                 FeatureOverlapMode::CentroidBased,
                 &tolerances,
-                &mut merge_different_voltages,
+                &mut callback,
                 Rollback::Journal,
+                removal,
             );
             if let Err(error) = merged {
                 feature_map.features = interleave(faims, others, &is_faims);
@@ -540,6 +668,10 @@ impl FeatureOverlapFilter {
         Ok(())
     }
 }
+
+/// A merge callback of this module, as the two fidelities choose between them.
+type MergeCallback<'a> =
+    &'a mut dyn FnMut(&mut [Feature], usize, usize, &mut Journal) -> Result<bool>;
 
 /// The comparator of the merge functions: the higher intensity is better.
 fn higher_intensity(left: &Feature, right: &Feature) -> bool {
@@ -590,6 +722,65 @@ fn merge_different_voltages(
     };
     ims.push(other_cv);
     plan.ims = Some(ims);
+    plan.apply(&mut features[best_index], Some(journal), best_index)?;
+    Ok(true)
+}
+
+/// The corrected callback of `mergeFAIMSFeatures`
+/// ([`FaimsMergeFidelity::Corrected`]): a survivor keeps absorbing.
+///
+/// The source's callback tests `best`'s `FAIMS_CV`, which the first merge
+/// removes, so it refuses every further merge (`CPP-283`). The voltages the
+/// survivor stands for are in [`MERGED_CENTROID_IMS`] from then on, and this
+/// callback tests against that list, which is the same test on the first merge
+/// and the intended one afterwards: the cluster is one analyte, and a feature
+/// may join it when its voltage is not one of those already in it.
+///
+/// Refuses, without changing anything:
+///
+/// - when `other` carries no `FAIMS_CV`, so it is a survivor of another merge
+///   rather than a feature of one voltage — merging it would discard the
+///   centroid lists it accumulated, and it is the one of higher intensity,
+///   which the source's documentation keeps;
+/// - when `best` carries neither `FAIMS_CV` nor [`MERGED_CENTROID_IMS`], so it
+///   stands for no voltage at all (unreachable from `merge_faims_features`,
+///   which passes only features with `FAIMS_CV`);
+/// - when `other`'s voltage is already one of `best`'s, exactly as the source
+///   compares the two voltages exactly.
+fn merge_further_voltages(
+    features: &mut [Feature],
+    best_index: usize,
+    other_index: usize,
+    journal: &mut Journal,
+) -> Result<bool> {
+    let best = &features[best_index];
+    let other = &features[other_index];
+    if !other.metadata.contains_key(FAIMS_CV) {
+        return Ok(false);
+    }
+    let other_cv = faims_cv(other)?;
+    let mut remove_cv = false;
+    let mut ims = match best.metadata.get(MERGED_CENTROID_IMS) {
+        Some(existing) => float_list(existing, MERGED_CENTROID_IMS)?.to_vec(),
+        None => {
+            if !best.metadata.contains_key(FAIMS_CV) {
+                return Ok(false);
+            }
+            remove_cv = true;
+            vec![faims_cv(best)?]
+        }
+    };
+    if ims.contains(&other_cv) {
+        return Ok(false);
+    }
+    ims.push(other_cv);
+    let plan = MergePlan {
+        intensity: combine(best.intensity, other.intensity, MergeIntensityMode::Sum)?,
+        rts: Some(extend_list(best, MERGED_CENTROID_RTS, best.rt, other.rt)?),
+        mzs: Some(extend_list(best, MERGED_CENTROID_MZS, best.mz, other.mz)?),
+        ims: Some(ims),
+        remove_cv,
+    };
     plan.apply(&mut features[best_index], Some(journal), best_index)?;
     Ok(true)
 }
@@ -746,6 +937,19 @@ fn pair_mut(features: &mut [Feature], first: usize, second: usize) -> (&mut Feat
 // ---------------------------------------------------------------------------
 // The filter itself
 
+/// Whether the overlap loop offers the callback a candidate it has already
+/// removed.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Removal {
+    /// The source: only the querying feature is tested against the removed
+    /// set, so a removed candidate is offered again to every later survivor
+    /// whose box reaches it (`CPP-283`).
+    Source,
+    /// Skip a candidate already marked removed, so each feature is merged into
+    /// at most one cluster.
+    SkipRemoved,
+}
+
 /// How a failed run restores the features.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Rollback {
@@ -876,6 +1080,7 @@ fn run<L, O>(
     tolerances: &CentroidTolerances,
     on_overlap: &mut O,
     rollback: Rollback,
+    removal: Removal,
 ) -> Result<()>
 where
     L: FnMut(&Feature, &Feature) -> bool,
@@ -912,7 +1117,7 @@ where
         .collect();
 
     let mut journal = Journal::default();
-    match overlap_loop(&mut sorted, &plan, on_overlap, &mut journal) {
+    match overlap_loop(&mut sorted, &plan, on_overlap, &mut journal, removal) {
         Ok(removed) => {
             sorted.retain(|feature| !removed.contains(&feature.unique_id));
             *features = sorted;
@@ -938,6 +1143,7 @@ fn overlap_loop<O>(
     plan: &Plan,
     on_overlap: &mut O,
     journal: &mut Journal,
+    removal: Removal,
 ) -> Result<HashSet<u64>>
 where
     O: FnMut(&mut [Feature], usize, usize, &mut Journal) -> Result<bool>,
@@ -971,6 +1177,12 @@ where
         }
         for &candidate in &candidates {
             if candidate == index {
+                continue;
+            }
+            // The source checks the removed set only for the querying feature,
+            // so a feature it has already removed is offered again here and its
+            // intensity counted twice (CPP-283).
+            if removal == Removal::SkipRemoved && removed.contains(&features[candidate].unique_id) {
                 continue;
             }
             if plan.overlaps(&features[index], &features[candidate])?
@@ -1375,7 +1587,8 @@ mod tests {
         let tolerances = CentroidTolerances::default();
         let plan = Plan::new(features, FeatureOverlapMode::CentroidBased, &tolerances).unwrap();
         let mut journal = Journal::default();
-        let removed = overlap_loop(features, &plan, on_overlap, &mut journal).unwrap();
+        let removed =
+            overlap_loop(features, &plan, on_overlap, &mut journal, Removal::Source).unwrap();
         (removed.len(), journal)
     }
 

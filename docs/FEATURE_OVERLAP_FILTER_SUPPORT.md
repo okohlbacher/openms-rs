@@ -4,7 +4,9 @@ Native coverage of `PROCESSING/FEATURE/FeatureOverlapFilter.h` and
 `PROCESSING/FEATURE/FeatureOverlapFilter.cpp`, and of the quadtree the source
 bundles as `src/openms/extern/Quadtree` (`Quadtree.h`, `Box.h`, `Vector2.h`), at
 Core SDK `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Work package B9-OVERLAP of
-the early TOPP bundle, source mode only (decision D5).
+the early TOPP bundle ported the source faithfully; package **B11** added one
+corrected mode beside it, `FaimsMergeFidelity`, for the FeatureFinderCentroided
+FAIMS closure. Nothing else changed.
 
 | Artifact | Path |
 | --- | --- |
@@ -20,8 +22,10 @@ lines 304-316) calls `mergeFAIMSFeatures(features, 5.0, 0.05)` when
 `Biosaur2Algorithm.cpp:361`, `FeatureFinderIdentificationAlgorithm.cpp:621` and
 `FeatureFinderAlgorithmMetaboIdent.cpp:256`;
 `FeatureFinderAlgorithmMetaboIdent.cpp:490` calls `filter` with a trace-level
-check. The FeatureFinderCentroided FAIMS closure itself is deferred (D5, package
-B11); this package ports the library only.
+check. The FeatureFinderCentroided FAIMS closure is package B11's and is
+documented in
+[TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT](TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md);
+it runs `merge_faims_features_with_fidelity` with `FaimsMergeFidelity::Corrected`.
 
 The module uses the edges `processing -> kernel` and `processing -> metadata`,
 which exist, and adds `processing -> concept` for the `FAIMS_CV` key. That edge
@@ -72,6 +76,7 @@ placement and order, and it is checked against the pinned header executed
 | the lambda it returns | `FaimsMergeCallback { intensity_mode, write_meta_values }` with `merge(&self, &mut Feature, &Feature) -> Result<bool>` |
 | `static void mergeOverlappingFeatures(FeatureMap&, double = 5.0, double = 0.05, bool = true, bool = false, MergeIntensityMode = SUM, bool = true)` | `FeatureOverlapFilter::merge_overlapping_features(&mut FeatureMap, f64, f64, bool, bool, MergeIntensityMode, bool) -> Result<()>` |
 | `static void mergeFAIMSFeatures(FeatureMap&, double = 5.0, double = 0.05)` | `FeatureOverlapFilter::merge_faims_features(&mut FeatureMap, f64, f64) -> Result<()>` |
+| — (native) | `FeatureOverlapFilter::merge_faims_features_with_fidelity(…, FaimsMergeFidelity)`: the same, choosing whether the two defects of the source merge (`CPP-283`) are reproduced or corrected. `FaimsMergeFidelity::Source` is `merge_faims_features` exactly; `Corrected` is the default of the type and what the FeatureFinderCentroided tool runs |
 | meta value names `"merged_centroid_rts"`, `"merged_centroid_mzs"`, `"merged_centroid_IMs"`, `"FAIMS_merge_count"` | `MERGED_CENTROID_RTS`, `MERGED_CENTROID_MZS`, `MERGED_CENTROID_IMS`, `FAIMS_MERGE_COUNT` |
 | used: `Constants::UserParam::FAIMS_CV` | `concept::constants::user_param::FAIMS_CV` (ported earlier) |
 | file-local `struct MassTraceBounds`, `FeatureBoundsMap`, `getFeatureBounds`, `hasOverlappingBounds`, `tracesOverlap` (`.cpp:20-120`) | private `TraceBounds`, `trace_bounds` (keyed by unique ID in a `BTreeMap`) and `Plan::overlaps`/`Plan::traces_of`; `MassTraceBounds::sub_index` is written but never read in the source and is not kept |
@@ -355,11 +360,14 @@ Candidates for `OpenMS_CPP_ISSUES.md`, with executed evidence in the oracle:
 1. `mergeFAIMSFeatures` on features without unique IDs (as
    `FeatureFinderAlgorithmPicked` returns them before the tool assigns IDs)
    removes every FAIMS feature, because removal is keyed by unique ID
-   (`FeatureOverlapFilter.cpp:269-281`; `c2_uid0_wipe`, also C2).
+   (`FeatureOverlapFilter.cpp:269-281`; `c2_uid0_wipe`, also C2). Recorded as
+   `CPP-282`; the FeatureFinderCentroided tool assigns the IDs before merging,
+   and `FaimsMergeFidelity::Corrected` refuses a map that repeats one.
 2. `filter` does not skip candidates that were already removed, so a removed
    feature is merged again into a later survivor and its intensity counted twice;
    in `mergeFAIMSFeatures` a survivor absorbs at most one feature because its
-   `FAIMS_CV` is removed after the first merge (`c2_three_cvs`).
+   `FAIMS_CV` is removed after the first merge (`c2_three_cvs`). Recorded as
+   `CPP-283`; `FaimsMergeFidelity::Corrected` answers both halves.
 3. The quadtree boxes are `float` and intersect strictly, while the tolerance
    test is inclusive `double`: a zero tolerance, a tolerance below the float
    spacing, or coordinates near 2^24 never merge features that are within the
@@ -383,10 +391,46 @@ Candidates for `OpenMS_CPP_ISSUES.md`, with executed evidence in the oracle:
    and `(double)` on a string `FAIMS_CV` reads the wrong union member (source
    review; not executed).
 
-## Deferrals
+## The corrected FAIMS merge (package B11)
 
-- The FeatureFinderCentroided FAIMS closure (`faims_merge_features`) is B11's,
-  after decision D5. No corrected mode exists here: the source mode is the only
-  mode.
+`FaimsMergeFidelity` is the one designed difference of this module, in the
+pattern `AbundanceOverride` sets in `src/analysis/feature_finder_picked`: an
+explicit option with a source-following variant and a corrected variant, the
+corrected one being the type's default and what the tool uses. It answers
+`CPP-283` in both of its places, and nothing else in this module changes: every
+other entry point, and `merge_faims_features` itself, still reproduce the source
+exactly, and the executed `c2_*` cases that hold the source's answers are
+untouched.
+
+What the merge is meant to do is derived from the source's own parameter
+documentation in
+[TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT](TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md),
+*What the merge is meant to do*. In this module:
+
+- the overlap loop skips a candidate already marked removed, so no feature is
+  merged into two clusters and no intensity is counted twice;
+- the callback tests `other`'s voltage against the voltages the survivor
+  already stands for — its `FAIMS_CV`, or `merged_centroid_IMs` once it has
+  merged — instead of against a `FAIMS_CV` the first merge removed, so a
+  survivor keeps absorbing;
+- `other` must still carry a `FAIMS_CV`: a survivor of another cluster is not
+  absorbed, because it carries the merged lists of that cluster and is the
+  member of higher intensity, which the source's documentation keeps;
+- removal is still keyed by unique ID, as in the source, so the corrected mode
+  **refuses** a map whose FAIMS features share an ID (`Error::InvalidValue`
+  naming `CPP-282`) rather than erasing them all. The caller assigns the IDs;
+  the FeatureFinderCentroided tool does, from its own generator, before it
+  merges.
+
+There is **no C++ oracle** for it: the C++ FeatureFinderCentroided exits 8 before
+the merge on every FAIMS input (`CPP-278`), so no C++ build produces a merged
+FAIMS feature. The evidence is the derivation above plus hand-derived cases
+in `tests/feature_overlap_filter.rs`
+(`the_corrected_merge_collapses_a_three_voltage_cluster_into_one_feature` and
+the four cases beside it), each written next to the executed `c2_*` case that
+records what the source does instead: 1000, 900 and 800 at three voltages become
+one feature of 2700 where the source keeps 1900 and 1700.
+
+## Deferrals
 - Ledger status: `FeatureOverlapFilter.h` can be recorded as ported with the
   evidence above; the promotion is the integrator's.

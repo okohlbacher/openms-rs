@@ -26,9 +26,9 @@ use openms::kernel::{ConvexHull2D, Feature, FeatureMap, Point2D};
 use openms::metadata::{MetaValue, MetaValueData};
 use openms::processing::feature_overlap_filter::quadtree::{QuadBox, Quadtree, Vector2};
 use openms::processing::feature_overlap_filter::{
-    CentroidTolerances, FAIMS_MERGE_COUNT, FaimsMergeCallback, FeatureOverlapFilter,
-    FeatureOverlapMode, MERGED_CENTROID_IMS, MERGED_CENTROID_MZS, MERGED_CENTROID_RTS,
-    MergeIntensityMode,
+    CentroidTolerances, FAIMS_MERGE_COUNT, FaimsMergeCallback, FaimsMergeFidelity,
+    FeatureOverlapFilter, FeatureOverlapMode, MERGED_CENTROID_IMS, MERGED_CENTROID_MZS,
+    MERGED_CENTROID_RTS, MergeIntensityMode,
 };
 use std::collections::BTreeMap;
 
@@ -1424,4 +1424,223 @@ fn faims_merge_callback_keeps_best_unchanged_on_a_conversion_error() {
     assert!(silent.merge(&mut best, &other).unwrap());
     assert_eq!(best.intensity, 1000.0);
     assert_eq!(best.metadata, before.metadata);
+}
+
+// ---------------------------------------------------------------------------
+// Tier 4: the corrected FAIMS merge (`FaimsMergeFidelity::Corrected`, CPP-283)
+//
+// The corrected merge has no C++ oracle: the C++ path is broken, so no C++
+// build produces the merged features of a FAIMS run. It is pinned against the
+// specification derived in `FaimsMergeFidelity` — a cluster of features at
+// pairwise different voltages is one analyte and collapses to the member of
+// highest intensity, whose intensity is the sum of the cluster with each
+// member counted once — and against the executed source behaviour it departs
+// from, which the `c2_*` cases above hold.
+// ---------------------------------------------------------------------------
+
+/// The three features of `c2_three_voltages_merge_twice_into_1900_and_1700`,
+/// with the unique ids the merge keys on.
+fn three_voltage_cluster() -> FeatureMap {
+    let mut fmap = FeatureMap::from_features(vec![
+        c2_feature(100.0, 500.0, 1000.0, -45.0),
+        c2_feature(100.5, 500.01, 900.0, -60.0),
+        c2_feature(101.0, 500.02, 800.0, -75.0),
+    ]);
+    for (i, f) in fmap.features.iter_mut().enumerate() {
+        f.unique_id = i as u64 + 1;
+    }
+    fmap
+}
+
+/// The executed source keeps 1900 and 1700 for this input — 3600 units where
+/// the input held 2700, because the survivor stops absorbing after its first
+/// merge and the feature it removed is offered to the next survivor
+/// (`CPP-283`). The corrected merge collapses the cluster to one feature of
+/// 2700.
+///
+/// The three features are the only ones in the map, so the quadtree's root
+/// node holds all of them (below its threshold of 16) and returns them in
+/// insertion order, which after the intensity sort is 1000, 900, 800: the
+/// survivor absorbs 900 and then 800, and the lists follow that order.
+#[test]
+fn the_corrected_merge_collapses_a_three_voltage_cluster_into_one_feature() {
+    let mut fmap = three_voltage_cluster();
+    FeatureOverlapFilter::merge_faims_features_with_fidelity(
+        &mut fmap,
+        5.0,
+        0.05,
+        FaimsMergeFidelity::Corrected,
+    )
+    .unwrap();
+    assert_eq!(fmap.len(), 1);
+    let merged = &fmap.features[0];
+    assert_eq!(merged.intensity.to_bits(), 2700.0f32.to_bits());
+    assert_eq!(merged.rt, 100.0);
+    assert_eq!(merged.mz, 500.0);
+    assert_eq!(merged.unique_id, 1);
+    assert_eq!(
+        float_list(merged, MERGED_CENTROID_RTS),
+        [100.0f64.to_bits(), 100.5f64.to_bits(), 101.0f64.to_bits()]
+    );
+    assert_eq!(
+        float_list(merged, MERGED_CENTROID_MZS),
+        [500.0f64.to_bits(), 500.01f64.to_bits(), 500.02f64.to_bits()]
+    );
+    assert_eq!(
+        float_list(merged, MERGED_CENTROID_IMS),
+        [
+            (-45.0f64).to_bits(),
+            (-60.0f64).to_bits(),
+            (-75.0f64).to_bits()
+        ]
+    );
+    assert_eq!(merged.metadata[FAIMS_MERGE_COUNT].as_i64().unwrap(), 3);
+    assert!(!merged.metadata.contains_key(FAIMS_CV));
+}
+
+/// `FaimsMergeFidelity::Source` is exactly `merge_faims_features`, so the
+/// executed 1900/1700 answer is still available.
+#[test]
+fn the_source_fidelity_is_the_executed_merge() {
+    let mut corrected = three_voltage_cluster();
+    let mut source = three_voltage_cluster();
+    let mut plain = three_voltage_cluster();
+    FeatureOverlapFilter::merge_faims_features_with_fidelity(
+        &mut corrected,
+        5.0,
+        0.05,
+        FaimsMergeFidelity::Corrected,
+    )
+    .unwrap();
+    FeatureOverlapFilter::merge_faims_features_with_fidelity(
+        &mut source,
+        5.0,
+        0.05,
+        FaimsMergeFidelity::Source,
+    )
+    .unwrap();
+    FeatureOverlapFilter::merge_faims_features(&mut plain, 5.0, 0.05).unwrap();
+    assert_eq!(source, plain);
+    let intensities: Vec<f32> = source.features.iter().map(|f| f.intensity).collect();
+    assert_eq!(intensities, [1900.0, 1700.0]);
+    assert_ne!(corrected, source);
+    assert_eq!(FaimsMergeFidelity::default(), FaimsMergeFidelity::Corrected);
+}
+
+/// Two voltages still give the source's answer: the defect needs a third
+/// feature in the cluster, so every two-voltage cluster merges the same way.
+#[test]
+fn the_corrected_merge_equals_the_source_on_two_voltage_clusters() {
+    let features = vec![
+        c2_feature(100.0, 500.0, 1000.0, -45.0),
+        c2_feature(101.0, 500.01, 500.0, -60.0),
+        c2_feature(900.0, 700.0, 300.0, -45.0),
+    ];
+    let with_ids = |features: Vec<Feature>| {
+        let mut fmap = FeatureMap::from_features(features);
+        for (i, f) in fmap.features.iter_mut().enumerate() {
+            f.unique_id = i as u64 + 1;
+        }
+        fmap
+    };
+    let mut corrected = with_ids(features.clone());
+    let mut source = with_ids(features);
+    FeatureOverlapFilter::merge_faims_features_with_fidelity(
+        &mut corrected,
+        5.0,
+        0.05,
+        FaimsMergeFidelity::Corrected,
+    )
+    .unwrap();
+    FeatureOverlapFilter::merge_faims_features(&mut source, 5.0, 0.05).unwrap();
+    assert_eq!(corrected, source);
+    assert_eq!(corrected.len(), 2);
+    assert_eq!(
+        corrected.features[0].intensity.to_bits(),
+        1500.0f32.to_bits()
+    );
+}
+
+/// The corrected merge still keys removal on unique ids, so it refuses the
+/// repeated id 0 that `FeatureFinderAlgorithmPicked` leaves, instead of
+/// erasing every feature as the source does (`CPP-282`,
+/// `c2_unique_id_zero_merge_removes_every_faims_feature`). The map is
+/// unchanged.
+#[test]
+fn the_corrected_merge_refuses_features_that_share_a_unique_id() {
+    let mut fmap = FeatureMap::from_features(vec![
+        c2_feature(100.0, 500.0, 1000.0, -45.0),
+        c2_feature(101.0, 500.01, 500.0, -60.0),
+        c2_feature(900.0, 700.0, 300.0, -45.0),
+    ]);
+    let before = fmap.clone();
+    let error = FeatureOverlapFilter::merge_faims_features_with_fidelity(
+        &mut fmap,
+        5.0,
+        0.05,
+        FaimsMergeFidelity::Corrected,
+    )
+    .unwrap_err();
+    match &error {
+        Error::InvalidValue(message) => assert!(message.contains("CPP-282"), "{message}"),
+        other => panic!("{other:?}"),
+    }
+    assert_eq!(fmap, before);
+}
+
+/// One FAIMS feature cannot collide with itself, so the id check does not fire
+/// and the merge is the no-op both fidelities make of it.
+#[test]
+fn the_corrected_merge_accepts_a_single_unassigned_faims_feature() {
+    let mut fmap = FeatureMap::from_features(vec![
+        c2_feature(100.0, 500.0, 1000.0, -45.0),
+        create_test_feature(101.0, 500.01, 500.0, 2),
+    ]);
+    let before = fmap.clone();
+    FeatureOverlapFilter::merge_faims_features_with_fidelity(
+        &mut fmap,
+        5.0,
+        0.05,
+        FaimsMergeFidelity::Corrected,
+    )
+    .unwrap();
+    assert_eq!(fmap, before);
+}
+
+/// A survivor does not absorb another survivor: it carries no `FAIMS_CV` any
+/// more, and it is the one of higher intensity, which the specification keeps.
+/// Four features within the tolerances of each other, two per voltage, are
+/// therefore two analytes of two voltages each and not one analyte of four.
+#[test]
+fn the_corrected_merge_does_not_absorb_a_survivor() {
+    let mut fmap = FeatureMap::from_features(vec![
+        c2_feature(100.0, 500.0, 1000.0, -45.0),
+        c2_feature(100.2, 500.005, 900.0, -60.0),
+        c2_feature(100.4, 500.01, 200.0, -45.0),
+        c2_feature(100.6, 500.015, 100.0, -60.0),
+    ]);
+    for (i, f) in fmap.features.iter_mut().enumerate() {
+        f.unique_id = i as u64 + 1;
+    }
+    FeatureOverlapFilter::merge_faims_features_with_fidelity(
+        &mut fmap,
+        5.0,
+        0.05,
+        FaimsMergeFidelity::Corrected,
+    )
+    .unwrap();
+    // 1000 takes 900, the first -60 it meets, and then refuses both 200 (its
+    // -45 is already in the survivor's list) and 100 (so is its -60). 200 then
+    // queries, refuses the 1900 survivor because that carries no `FAIMS_CV`,
+    // and takes 100, which no one had removed.
+    let intensities: Vec<f32> = fmap.features.iter().map(|f| f.intensity).collect();
+    assert_eq!(intensities, [1900.0, 300.0]);
+    for merged in &fmap.features {
+        assert!(!merged.metadata.contains_key(FAIMS_CV));
+        assert_eq!(
+            float_list(merged, MERGED_CENTROID_IMS),
+            [(-45.0f64).to_bits(), (-60.0f64).to_bits()]
+        );
+        assert_eq!(merged.metadata[FAIMS_MERGE_COUNT].as_i64().unwrap(), 2);
+    }
 }

@@ -242,6 +242,16 @@ const FFC_SEEDS_ALGORITHM_LINES: &[&str] = &[
 ];
 
 /// Assert that `lines` appear in `outcome.out` consecutively and in order.
+/// One whole line of stdout, so that a message is not matched inside a longer
+/// one.
+fn assert_out_contains_line(outcome: &Outcome, line: &str) {
+    assert!(
+        outcome.out.lines().any(|written| written == line),
+        "stdout has no line {line:?}:\n{}",
+        outcome.out
+    );
+}
+
 fn assert_out_block(outcome: &Outcome, lines: &[&str]) {
     let actual: Vec<&str> = outcome.out.lines().collect();
     let found = actual.windows(lines.len()).any(|window| window == lines);
@@ -1746,99 +1756,96 @@ fn seeds_are_loaded_before_the_faims_check() {
 }
 
 // ---------------------------------------------------------------------------
-// The FAIMS refusal (decision D5)
+// The FAIMS closure (package B11)
+//
+// The corrected path has no whole-tool C++ oracle: the executed C++ tool exits
+// 8 on every FAIMS input, because its voltage groups carry no per-MS-level
+// ranges (`CPP-278`; re-executed in `../oracle/b11-faims`, eight runs on six
+// FAIMS inputs, all rc 8 with `the value '1' was used but is not valid; No
+// ranges for this MS level`). The oracle is built from the parts instead: each compensation
+// voltage group is written as its own single-voltage mzML, with the FAIMS
+// cvParam removed so that the C++ tool takes its non-FAIMS path, and the C++
+// Release build is run on that file. The port's features for that group must
+// equal what the Release build found (decision D6). Only the cross-voltage
+// merge has no executed counterpart; it is pinned against the specification
+// derived in `FaimsMergeFidelity` and against hand-derived cases whose numbers
+// are written out below.
 // ---------------------------------------------------------------------------
 
-/// The refusal message and the informational line, for one FAIMS input.
-fn assert_faims_refusal(outcome: &Outcome, voltages: &[f64], out_path: &str) {
-    outcome.assert_exit(ExitCode::IncompatibleInputData);
-    outcome.assert_out_contains(&FeatureFinderCentroided::faims_detected_message(
-        voltages.len(),
-    ));
-    outcome.assert_err_contains(&FeatureFinderCentroided::faims_refusal_message(voltages));
-    assert!(
-        !outcome
-            .out
-            .contains(FeatureFinderCentroided::NO_FAIMS_MESSAGE),
-        "{}",
-        outcome.out
-    );
-    assert!(!Path::new(out_path).exists(), "no output is written");
+/// The features the C++ Release build found on one compensation-voltage group,
+/// run on that group written as its own single-voltage mzML
+/// (`../oracle/b11-faims`, `run.sh`, `cases.sh`; `OMP_NUM_THREADS=1`, `-test`).
+fn faims_group_map(name: &str) -> FeatureMap {
+    FileHandler::load_feature_map(fixture(name), &[FileType::FeatureXml]).unwrap()
 }
 
-/// Oracle `FFC_faims_test_data`, `FFC_faims_interleaved_force`,
-/// `FFC_faims_interleaved_force_nomerge`, `FFC_faims_one_cv`,
-/// `FFC_faims_two_cv` and `FFC_faims_two_cv_nomerge`: the C++ tool reaches the
-/// algorithm and fails with exit 8 (`the value '1' was used but is not valid;
-/// No ranges for this MS level`) on every FAIMS input, whatever
-/// `-faims_merge_features` says. Decision D5 defers the closure, so this port
-/// refuses such input explicitly with exit 11 and writes nothing.
-#[test]
-fn faims_input_is_refused() {
-    let source = fs::read(ffc1_input()).unwrap();
-    let dir = Workdir::new();
-    let one_cv = dir.put("faims_one_cv.mzML", &derive_faims_one_cv(&source));
-    let two_cv = dir.put("faims_two_cv.mzML", &derive_faims_two_cv(&source));
-    let interleaved = text(mobility("FAIMS_CV-60C_V-45_Interleaved.mzML"));
-    let test_data = text(mobility("FAIMS_test_data.mzML"));
-
-    let ini = text(ffc1_ini());
-    for (case, input, voltages, extra) in [
-        ("FFC_faims_one_cv", one_cv.as_str(), &[-45.0][..], &[][..]),
-        (
-            "FFC_faims_two_cv",
-            two_cv.as_str(),
-            &[-60.0, -45.0][..],
-            &[][..],
-        ),
-        (
-            "FFC_faims_two_cv_nomerge",
-            two_cv.as_str(),
-            &[-60.0, -45.0][..],
-            &["-faims_merge_features", "false"][..],
-        ),
-    ] {
-        let out = dir.file(&format!("{case}.featureXML"));
-        let mut arguments = vec!["-test", "-ini", &ini, "-in", input, "-out", &out];
-        arguments.extend_from_slice(extra);
-        let outcome = run_in(&dir, &arguments);
-        assert_faims_refusal(&outcome, voltages, &out);
+/// The feature map the tool must write for a FAIMS input whose voltage groups
+/// the C++ Release build produced one by one: the groups concatenated in
+/// ascending voltage order, each feature annotated with its voltage, under the
+/// FAIMS input's own `spectra_data`.
+fn expected_faims_map(groups: &[(&str, f64)], input_basename: &str) -> FeatureMap {
+    let mut expected = FeatureMap::new();
+    for (name, volts) in groups {
+        let group = faims_group_map(name);
+        if expected.data_processing.is_empty() {
+            expected.data_processing = group.data_processing.clone();
+        }
+        for mut feature in group.features {
+            feature
+                .metadata
+                .insert("FAIMS_CV".into(), MetaValue::try_from(*volts).unwrap());
+            expected.features.push(feature);
+        }
     }
-
-    // The interleaved upstream file is profile data, so without -force the
-    // profile check fires first, exactly as in oracle
-    // FFC_faims_interleaved_noforce (exit 8).
-    let out = dir.file("interleaved.featureXML");
-    let outcome = run_in(&dir, &["-test", "-in", &interleaved, "-out", &out]);
-    outcome.assert_exit(ExitCode::UnknownError);
-    outcome.assert_err_contains(FeatureFinderCentroided::PROFILE_DATA_MESSAGE);
-    let outcome = run_in(
-        &dir,
-        &["-test", "-in", &interleaved, "-out", &out, "-force"],
-    );
-    assert_faims_refusal(&outcome, &[-60.0, -45.0], &out);
-
-    let out = dir.file("test_data.featureXML");
-    let outcome = run_in(&dir, &["-test", "-in", &test_data, "-out", &out]);
-    assert_faims_refusal(&outcome, &[-65.0], &out);
+    expected
+        .set_primary_ms_run_path(&[format!("file://{input_basename}")])
+        .unwrap();
+    expected
 }
 
-/// Oracle `c5_faims_partial_cv`: a compensation voltage on half of the MS1
-/// spectra is still FAIMS input. The C++ tool assigns the annotated spectra to
-/// the voltage group, skips the others with a warning and fails with exit 8;
-/// this port refuses the input.
+/// Compare a written featureXML with an expected map under decision D6:
+/// decoded content, the upstream `FuzzyDiff` rule (ratio `1.01` or absolute
+/// difference `0.01`) and generated identifiers skipped. The loose rule is the
+/// upstream one; every caller also pins counts and the exact numbers that
+/// matter.
+fn assert_decoded_matches(path: &str, expected: &FeatureMap) {
+    let actual = FileHandler::load_feature_map(path, &[FileType::FeatureXml]).unwrap();
+    let options =
+        decoded::DecodedOptions::new(decoded::Tolerance::new(1.01, 0.01)).ignoring_unique_ids();
+    if let Err(mismatch) = decoded::compare_feature_maps(&actual, expected, &options) {
+        panic!("{path}: {mismatch}");
+    }
+}
+
+/// The `FAIMS_CV` of a feature, or `None` once a merge replaced it with the
+/// merged-voltage list.
+fn faims_cv(feature: &Feature) -> Option<f64> {
+    feature
+        .metadata
+        .get("FAIMS_CV")
+        .map(|v| v.as_f64().unwrap())
+}
+
+fn float_list(feature: &Feature, key: &str) -> Vec<f64> {
+    feature.metadata[key].as_float_list().unwrap().to_vec()
+}
+
+/// A single compensation voltage: the split hands the whole input to one
+/// group, so the algorithm sees exactly what it sees without FAIMS and the
+/// features are `TOPP_FeatureFinderCentroided_1`'s, each annotated with the
+/// voltage. Executed: the C++ Release build on the same 112 spectra is
+/// `TOPP_FeatureFinderCentroided_1` itself, whose retained output this
+/// compares against; the C++ tool on the FAIMS file itself exits 8 after
+/// printing the two lines asserted here (oracle `faims_one_cv`).
+///
+/// The merge runs — there are eight FAIMS features — and merges nothing,
+/// because every feature carries the same voltage.
 #[test]
-fn a_faims_voltage_on_some_spectra_is_refused() {
+fn a_single_faims_voltage_finds_the_features_of_the_plain_input() {
     let dir = Workdir::new();
     let source = fs::read(ffc1_input()).unwrap();
-    let derived = derive_faims(&source, &["-45", ""]);
-    assert_digest(
-        &derived,
-        "bf274d61a77be9b2af64e51ab4f5bf266452aab9",
-        "faims_partial_cv",
-    );
-    let input = dir.put("faims_partial_cv.mzML", &derived);
-    let out = dir.file("c5.tmp.featureXML");
+    let input = dir.put("faims_one_cv.mzML", &derive_faims_one_cv(&source));
+    let out = dir.file("one_cv.featureXML");
     let outcome = run_in(
         &dir,
         &[
@@ -1851,7 +1858,614 @@ fn a_faims_voltage_on_some_spectra_is_refused() {
             &out,
         ],
     );
-    assert_faims_refusal(&outcome, &[-45.0], &out);
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert!(
+        !outcome
+            .out
+            .contains(FeatureFinderCentroided::NO_FAIMS_MESSAGE),
+        "the split reported no voltages:\n{}",
+        outcome.out
+    );
+    let detected = FeatureFinderCentroided::faims_detected_message(1);
+    let group = FeatureFinderCentroided::processing_group_message(-45.0, 112);
+    let combined = FeatureFinderCentroided::combined_features_message(8);
+    let merge = FeatureFinderCentroided::faims_merge_message(8, 8);
+    assert_out_block(
+        &outcome,
+        &[
+            detected.as_str(),
+            group.as_str(),
+            "Found 25 seeds for charge 2.",
+            "Found 8 feature candidates for charge 2.",
+            "Removed 0 overlapping features.",
+            "",
+            "Info: reasons for not finalizing a feature during its construction:",
+            " - Invalid fit: Fitted model is bigger than 'max_rt_span': 1 times",
+            "",
+            "8 features found.",
+            combined.as_str(),
+            merge.as_str(),
+        ],
+    );
+
+    let mut expected = ffc1_expected_map();
+    for feature in &mut expected.features {
+        feature
+            .metadata
+            .insert("FAIMS_CV".into(), MetaValue::try_from(-45.0).unwrap());
+    }
+    expected
+        .set_primary_ms_run_path(&["file://faims_one_cv.mzML".to_owned()])
+        .unwrap();
+    assert_decoded_matches(&out, &expected);
+
+    let written = FileHandler::load_feature_map(&out, &[FileType::FeatureXml]).unwrap();
+    assert_eq!(written.features.len(), 8);
+    for feature in &written.features {
+        assert_eq!(faims_cv(feature), Some(-45.0));
+        assert!(!feature.metadata.contains_key("merged_centroid_IMs"));
+        assert!(!feature.metadata.contains_key("FAIMS_merge_count"));
+    }
+}
+
+/// Two voltages, one algorithm run each. With `-faims_merge_features false`
+/// the output is exactly the two groups, in ascending voltage order, so it can
+/// be compared feature by feature with what the C++ Release build found on
+/// each group on its own (oracle cases `group_m60` and `group_m45`: three and
+/// two features, and the console lines asserted here).
+#[test]
+fn two_faims_voltages_reproduce_the_release_build_group_by_group() {
+    let dir = Workdir::new();
+    let source = fs::read(ffc1_input()).unwrap();
+    let input = dir.put("faims_two_cv.mzML", &derive_faims_two_cv(&source));
+    let out = dir.file("two_cv.featureXML");
+    let outcome = run_in(
+        &dir,
+        &[
+            "-test",
+            "-ini",
+            &text(ffc1_ini()),
+            "-in",
+            &input,
+            "-out",
+            &out,
+            "-faims_merge_features",
+            "false",
+        ],
+    );
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    let detected = FeatureFinderCentroided::faims_detected_message(2);
+    let first = FeatureFinderCentroided::processing_group_message(-60.0, 56);
+    let second = FeatureFinderCentroided::processing_group_message(-45.0, 56);
+    assert_out_block(
+        &outcome,
+        &[
+            detected.as_str(),
+            first.as_str(),
+            "Found 14 seeds for charge 2.",
+            "Found 3 feature candidates for charge 2.",
+            "Removed 0 overlapping features.",
+            "",
+            "Info: reasons for not finalizing a feature during its construction:",
+            " - Could not extend seed: 6 times",
+            "",
+            "3 features found.",
+            second.as_str(),
+            "Found 14 seeds for charge 2.",
+            "Found 2 feature candidates for charge 2.",
+        ],
+    );
+    assert_out_contains_line(&outcome, "2 features found.");
+    assert_out_contains_line(
+        &outcome,
+        &FeatureFinderCentroided::combined_features_message(5),
+    );
+    assert!(
+        !outcome.out.contains("FAIMS feature merge:"),
+        "-faims_merge_features false still merged:\n{}",
+        outcome.out
+    );
+
+    assert_decoded_matches(
+        &out,
+        &expected_faims_map(
+            &[
+                ("faims_group_m60.featureXML", -60.0),
+                ("faims_group_m45.featureXML", -45.0),
+            ],
+            "faims_two_cv.mzML",
+        ),
+    );
+    let written = FileHandler::load_feature_map(&out, &[FileType::FeatureXml]).unwrap();
+    let voltages: Vec<Option<f64>> = written.features.iter().map(faims_cv).collect();
+    assert_eq!(
+        voltages,
+        [
+            Some(-60.0),
+            Some(-60.0),
+            Some(-60.0),
+            Some(-45.0),
+            Some(-45.0)
+        ]
+    );
+}
+
+/// The merge of the same two voltages. Hand-derived from the executed group
+/// features (`../oracle/b11-faims`, `results/out/group_m45`, `group_m60`) and
+/// the specification of `FaimsMergeFidelity::Corrected`:
+///
+/// | analyte | −45 V | −60 V | survivor | merged intensity |
+/// |---|---|---|---|---|
+/// | 4389.11 s, 648.257 | 45181.723 | 44601.215 | −45 | 89782.9375 |
+/// | 4300.95 s, 651.760 | 35109.383 | 34660.066 | −45 | 69769.453125 |
+/// | 4278.07 s, 653.770 | — | 19216.809 | −60 | 19216.80859375 |
+///
+/// Every pair is within 5 s and 0.05 Da and has charge 2, the third feature is
+/// 23 s and 2 Da away from the second and merges with nothing. The survivor is
+/// the member of higher intensity, and the sum is `f32(f64(a) + f64(b))`, the
+/// source's `setIntensity(double + double)` into a `float`. The survivors keep
+/// the descending-intensity order of the merge.
+// The literals below are written with the digits the C++ featureXML writer
+// printed, and the `f32` sums with every digit the value has, so that each one
+// can be checked against the oracle file by eye. Clippy would shorten them to
+// the fewest digits that name the same float.
+#[allow(clippy::excessive_precision)]
+#[test]
+fn the_faims_merge_joins_the_two_voltages_of_each_analyte() {
+    let dir = Workdir::new();
+    let source = fs::read(ffc1_input()).unwrap();
+    let input = dir.put("faims_two_cv.mzML", &derive_faims_two_cv(&source));
+    let out = dir.file("two_cv_merged.featureXML");
+    let outcome = run_in(
+        &dir,
+        &[
+            "-test",
+            "-ini",
+            &text(ffc1_ini()),
+            "-in",
+            &input,
+            "-out",
+            &out,
+        ],
+    );
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert_out_contains_line(
+        &outcome,
+        &FeatureFinderCentroided::combined_features_message(5),
+    );
+    assert_out_contains_line(
+        &outcome,
+        &FeatureFinderCentroided::faims_merge_message(5, 3),
+    );
+
+    let written = FileHandler::load_feature_map(&out, &[FileType::FeatureXml]).unwrap();
+    assert_eq!(written.features.len(), 3);
+    let intensities: Vec<u32> = written
+        .features
+        .iter()
+        .map(|f| f.base.intensity.to_bits())
+        .collect();
+    assert_eq!(
+        intensities,
+        [
+            89782.9375f32.to_bits(),
+            69769.453125f32.to_bits(),
+            19216.80859375f32.to_bits()
+        ]
+    );
+    for (index, feature) in written.features.iter().take(2).enumerate() {
+        assert_eq!(faims_cv(feature), None, "features[{index}] kept FAIMS_CV");
+        assert_eq!(
+            float_list(feature, "merged_centroid_IMs"),
+            [-45.0, -60.0],
+            "features[{index}] merged voltages"
+        );
+        assert_eq!(
+            feature.metadata["FAIMS_merge_count"].as_i64().unwrap(),
+            2,
+            "features[{index}] merge count"
+        );
+    }
+    assert_eq!(
+        float_list(&written.features[0], "merged_centroid_rts"),
+        [4389.113192580538453, 4389.204616887192060]
+    );
+    assert_eq!(
+        float_list(&written.features[0], "merged_centroid_mzs"),
+        [648.257466504270724, 648.255764126700569]
+    );
+    // The third analyte was found at one voltage only, so it is untouched.
+    assert_eq!(faims_cv(&written.features[2]), Some(-60.0));
+    assert!(
+        !written.features[2]
+            .metadata
+            .contains_key("merged_centroid_IMs")
+    );
+}
+
+/// Three voltages, with `mass_trace:min_spectra 5` so that every group finds
+/// the same analytes: the case that separates the corrected merge from the
+/// source's, because six clusters hold **three** features each. The source
+/// merges a survivor once and then refuses (`CPP-283`), which would leave those
+/// six clusters as twelve features; the corrected merge collapses each to one.
+///
+/// The three groups are executed (`../oracle/b11-faims`, `cases2.sh`,
+/// `group3s5_m45`, `group3s5_m60`, `group3s5_m70`: 8, 8 and 7 features), and
+/// `-faims_merge_features false` reproduces them exactly. The merged
+/// expectation is hand-derived from those 23 features by the specification and
+/// written out in the table below; the intensity of each survivor is the `f32`
+/// running sum of its cluster.
+// The literals below are written with the digits the C++ featureXML writer
+// printed, and the `f32` sums with every digit the value has, so that each one
+// can be checked against the oracle file by eye. Clippy would shorten them to
+// the fewest digits that name the same float.
+#[allow(clippy::excessive_precision)]
+#[test]
+fn three_faims_voltages_collapse_a_cluster_of_three_into_one_feature() {
+    let dir = Workdir::new();
+    let source = fs::read(ffc1_input()).unwrap();
+    let derived = derive_faims(&source, &["-45", "-60", "-70"]);
+    assert_digest(
+        &derived,
+        "7edd8c78aebe6f6553498bbce3c0586bb6817fa7",
+        "faims_three_cv",
+    );
+    let input = dir.put("faims_three_cv.mzML", &derived);
+    let ini = text(ffc1_ini());
+    let short_trace = ["-algorithm:mass_trace:min_spectra", "5"];
+
+    // Without the merge: the three executed groups, in ascending voltage order.
+    let unmerged = dir.file("three_cv_unmerged.featureXML");
+    let mut arguments = vec![
+        "-test",
+        "-ini",
+        &ini,
+        "-in",
+        &input,
+        "-out",
+        &unmerged,
+        "-faims_merge_features",
+        "false",
+    ];
+    arguments.extend_from_slice(&short_trace);
+    let outcome = run_in(&dir, &arguments);
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert_out_contains_line(
+        &outcome,
+        &FeatureFinderCentroided::faims_detected_message(3),
+    );
+    for (volts, spectra) in [(-70.0, 37), (-60.0, 37), (-45.0, 38)] {
+        assert_out_contains_line(
+            &outcome,
+            &FeatureFinderCentroided::processing_group_message(volts, spectra),
+        );
+    }
+    assert_out_contains_line(
+        &outcome,
+        &FeatureFinderCentroided::combined_features_message(23),
+    );
+    assert_decoded_matches(
+        &unmerged,
+        &expected_faims_map(
+            &[
+                ("faims_group3s5_m70.featureXML", -70.0),
+                ("faims_group3s5_m60.featureXML", -60.0),
+                ("faims_group3s5_m45.featureXML", -45.0),
+            ],
+            "faims_three_cv.mzML",
+        ),
+    );
+
+    // With the merge: ten survivors.
+    let merged = dir.file("three_cv_merged.featureXML");
+    let mut arguments = vec!["-test", "-ini", &ini, "-in", &input, "-out", &merged];
+    arguments.extend_from_slice(&short_trace);
+    let outcome = run_in(&dir, &arguments);
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert_out_contains_line(
+        &outcome,
+        &FeatureFinderCentroided::faims_merge_message(23, 10),
+    );
+
+    let written = FileHandler::load_feature_map(&merged, &[FileType::FeatureXml]).unwrap();
+    assert_eq!(written.features.len(), 10);
+    // survivor voltage, retention time, m/z, merged voltages, intensity
+    let expected: &[(f64, f64, f64, &[f64], f32)] = &[
+        (
+            -70.0,
+            4407.335644965823121,
+            646.237161048441294,
+            &[-70.0, -60.0, -45.0],
+            152660.390625,
+        ),
+        (
+            -45.0,
+            4388.999406220842502,
+            648.257121711850118,
+            &[-45.0, -70.0, -60.0],
+            134546.578125,
+        ),
+        (
+            -70.0,
+            4301.190310864986714,
+            651.757210503288547,
+            &[-70.0, -60.0, -45.0],
+            103111.703125,
+        ),
+        // The only cluster of this package whose `f32` running sum could
+        // depend on the order in which the survivor absorbs its two partners.
+        // In the order below it is exact twice over: 20089.396484375 +
+        // 19694.748046875 = 39784.14453125 and + 18861.0546875 =
+        // 58645.19921875, both representable. The other order rounds twice —
+        // 20089.396484375 + 18861.0546875 = 38950.451171875 is a tie, rounded
+        // to even as 38950.453125, and the second sum ties again — and would
+        // give 58645.203125. Which order the merge takes is the quadtree's
+        // query order, **derived** rather than measured: the derivation is in
+        // the note below this table.
+        (
+            -70.0,
+            4278.163376914249966,
+            653.775964531109253,
+            &[-70.0, -45.0, -60.0],
+            58645.19921875,
+        ),
+        (
+            -60.0,
+            4201.935576947686059,
+            652.764241594621922,
+            &[-60.0, -70.0, -45.0],
+            38816.55859375,
+        ),
+        (
+            -45.0,
+            4221.610088053402251,
+            646.766440532254705,
+            &[-45.0, -60.0, -70.0],
+            25299.296875,
+        ),
+        (
+            -60.0,
+            4183.539151442289949,
+            654.782096916037176,
+            &[-60.0, -70.0],
+            14590.9267578125,
+        ),
+    ];
+    let by_position = |rt: f64, mz: f64| {
+        written
+            .features
+            .iter()
+            .find(|f| (f.base.rt - rt).abs() < 1e-6 && (f.base.mz - mz).abs() < 1e-9)
+            .unwrap_or_else(|| panic!("no survivor at {rt} s, {mz} Da"))
+    };
+    for &(_, rt, mz, voltages, intensity) in expected {
+        let feature = by_position(rt, mz);
+        assert_eq!(faims_cv(feature), None, "{rt}: kept FAIMS_CV");
+        assert_eq!(
+            float_list(feature, "merged_centroid_IMs"),
+            voltages,
+            "{rt}: merged voltages"
+        );
+        assert_eq!(
+            usize::try_from(feature.metadata["FAIMS_merge_count"].as_i64().unwrap()).unwrap(),
+            voltages.len(),
+            "{rt}: merge count"
+        );
+        assert_eq!(
+            feature.base.intensity.to_bits(),
+            intensity.to_bits(),
+            "{rt}: merged intensity"
+        );
+    }
+
+    // The absorption order of the 653.776 Da cluster, on which its running sum
+    // hangs, is derived and not read off this run. `../oracle/b11-faims/quadorder.py`
+    // re-implements `Plan::new`, `Plan::feature_box`, the stable sort by
+    // intensity and the quadtree's `add`/`split`/`quadrant`/`query_node` in
+    // `f32`, reads the three C++ Release group fixtures and executes no Rust.
+    // Its answer for that cluster is `[-70, -45, -60]`, the row above. The same
+    // run reproduces the other six rows of the table, the survivor count and the
+    // three single-voltage intensities below, which is what shows the
+    // re-implementation to be of this algorithm; `../oracle/b11-faims/results/quadorder.txt`
+    // holds its output.
+
+    // Three analytes were found at one voltage only and keep their `FAIMS_CV`.
+    let untouched: Vec<f64> = written.features.iter().filter_map(faims_cv).collect();
+    assert_eq!(untouched.len(), 3);
+    let single: Vec<u32> = written
+        .features
+        .iter()
+        .filter(|f| faims_cv(f).is_some())
+        .map(|f| f.base.intensity.to_bits())
+        .collect();
+    assert_eq!(
+        single,
+        [
+            4783.8017578125f32.to_bits(),
+            4171.59326171875f32.to_bits(),
+            3829.223388671875f32.to_bits()
+        ]
+    );
+}
+
+/// Oracle `c5_faims_partial_cv`: a compensation voltage on half of the MS1
+/// spectra is still FAIMS input. The split assigns the annotated spectra to the
+/// voltage group and skips the others, each with the warning the executed C++
+/// wrote to **stderr**, folded by the log stream's line cache into one line and
+/// one `occurred 56 times` report. The group is exactly the 56 spectra the
+/// oracle case `group_m45` was run on, so its features are that case's.
+#[test]
+fn a_faims_voltage_on_some_spectra_leaves_one_group_and_a_warning_per_skip() {
+    let dir = Workdir::new();
+    let source = fs::read(ffc1_input()).unwrap();
+    let derived = derive_faims(&source, &["-45", ""]);
+    assert_digest(
+        &derived,
+        "bf274d61a77be9b2af64e51ab4f5bf266452aab9",
+        "faims_partial_cv",
+    );
+    let input = dir.put("faims_partial_cv.mzML", &derived);
+    let out = dir.file("partial_cv.featureXML");
+    let outcome = run_in(
+        &dir,
+        &[
+            "-test",
+            "-ini",
+            &text(ffc1_ini()),
+            "-in",
+            &input,
+            "-out",
+            &out,
+        ],
+    );
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    let skipped =
+        "Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout).";
+    assert_eq!(
+        outcome.err.lines().collect::<Vec<&str>>(),
+        [skipped, &format!("<{skipped}> occurred 56 times")]
+    );
+    assert_out_contains_line(
+        &outcome,
+        &FeatureFinderCentroided::faims_detected_message(1),
+    );
+    assert_out_contains_line(
+        &outcome,
+        &FeatureFinderCentroided::processing_group_message(-45.0, 56),
+    );
+    assert_decoded_matches(
+        &out,
+        &expected_faims_map(
+            &[("faims_group_m45.featureXML", -45.0)],
+            "faims_partial_cv.mzML",
+        ),
+    );
+}
+
+/// The two upstream FAIMS fixtures (test-data `0cb15f2`), which spell the volt
+/// unit `UO:000218` (`CPP-240`) and are too short for the default
+/// `mass_trace:min_spectra` of 10, so every group gives an empty map — as the
+/// C++ Release build does on each group written out on its own (oracle
+/// `testdata_cvm65`, `interleaved_cvm45`, `interleaved_cvm60`: exit 0, `0
+/// features found.`).
+///
+/// `FAIMS_test_data.mzML` holds one MS1 and one MS2 spectrum at −65 V, and the
+/// loader keeps MS level 1 only, so the group holds one spectrum — the count
+/// the executed C++ printed. The interleaved file is profile data, so without
+/// `-force` the profile check still fires before the split
+/// (oracle `FFC_faims_interleaved_noforce`).
+#[test]
+fn the_upstream_faims_fixtures_run_to_an_empty_map() {
+    let dir = Workdir::new();
+    let test_data = text(mobility("FAIMS_test_data.mzML"));
+    let interleaved = text(mobility("FAIMS_CV-60C_V-45_Interleaved.mzML"));
+
+    let out = dir.file("test_data.featureXML");
+    let outcome = run_in(&dir, &["-test", "-in", &test_data, "-out", &out]);
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert_out_contains_line(
+        &outcome,
+        &FeatureFinderCentroided::faims_detected_message(1),
+    );
+    assert_out_contains_line(
+        &outcome,
+        &FeatureFinderCentroided::processing_group_message(-65.0, 1),
+    );
+    assert_out_contains_line(&outcome, "0 features found.");
+    assert_out_contains_line(
+        &outcome,
+        &FeatureFinderCentroided::combined_features_message(0),
+    );
+    assert!(
+        FileHandler::load_feature_map(&out, &[FileType::FeatureXml])
+            .unwrap()
+            .features
+            .is_empty()
+    );
+
+    let out = dir.file("interleaved.featureXML");
+    let outcome = run_in(&dir, &["-test", "-in", &interleaved, "-out", &out]);
+    outcome.assert_exit(ExitCode::UnknownError);
+    outcome.assert_err_contains(FeatureFinderCentroided::PROFILE_DATA_MESSAGE);
+    assert!(!Path::new(&out).exists());
+
+    let outcome = run_in(
+        &dir,
+        &["-test", "-in", &interleaved, "-out", &out, "-force"],
+    );
+    outcome.assert_exit(ExitCode::ExecutionOk);
+    assert_out_contains_line(
+        &outcome,
+        &FeatureFinderCentroided::faims_detected_message(2),
+    );
+    for volts in [-60.0, -45.0] {
+        assert_out_contains_line(
+            &outcome,
+            &FeatureFinderCentroided::processing_group_message(volts, 6),
+        );
+    }
+    assert_out_contains_line(
+        &outcome,
+        &FeatureFinderCentroided::combined_features_message(0),
+    );
+    assert!(
+        FileHandler::load_feature_map(&out, &[FileType::FeatureXml])
+            .unwrap()
+            .features
+            .is_empty()
+    );
+}
+
+/// The per-group seed filter (`FeatureFinderCentroided.cpp:258-281`): a seed
+/// with a `FAIMS_CV` within 0.01 V of the group joins it, a seed without one
+/// joins every group, and without FAIMS input the list is used as it is.
+#[test]
+fn seeds_are_filtered_by_compensation_voltage() {
+    let mut seeds = FeatureMap::new();
+    let mut annotated = |cv: Option<f64>, rt: f64| {
+        let mut feature = Feature::new(rt, 0.0, 0.0);
+        if let Some(cv) = cv {
+            feature
+                .metadata
+                .insert("FAIMS_CV".into(), MetaValue::try_from(cv).unwrap());
+        }
+        seeds.features.push(feature);
+    };
+    annotated(Some(-45.0), 1.0);
+    annotated(Some(-60.0), 2.0);
+    annotated(None, 3.0);
+    annotated(Some(-45.005), 4.0);
+    annotated(Some(-45.02), 5.0);
+
+    let times = |map: &FeatureMap| -> Vec<f64> { map.features.iter().map(|f| f.base.rt).collect() };
+    assert_eq!(
+        times(&FeatureFinderCentroided::seeds_of_group(&seeds, true, -45.0).unwrap()),
+        [1.0, 3.0, 4.0]
+    );
+    assert_eq!(
+        times(&FeatureFinderCentroided::seeds_of_group(&seeds, true, -60.0).unwrap()),
+        [2.0, 3.0]
+    );
+    // Not FAIMS input: the whole list, whatever the voltage argument says.
+    assert_eq!(
+        times(&FeatureFinderCentroided::seeds_of_group(&seeds, false, f64::NAN).unwrap()),
+        [1.0, 2.0, 3.0, 4.0, 5.0]
+    );
+    // An empty list stays empty rather than being filtered.
+    assert!(
+        FeatureFinderCentroided::seeds_of_group(&FeatureMap::new(), true, -45.0)
+            .unwrap()
+            .features
+            .is_empty()
+    );
+    // A non-numeric FAIMS_CV is a ConversionError in the source.
+    let mut bad = FeatureMap::new();
+    let mut feature = Feature::new(0.0, 0.0, 0.0);
+    feature
+        .metadata
+        .insert("FAIMS_CV".into(), MetaValue::from("text"));
+    bad.features.push(feature);
+    assert!(FeatureFinderCentroided::seeds_of_group(&bad, true, -45.0).is_err());
 }
 
 // ---------------------------------------------------------------------------
@@ -2001,6 +2615,59 @@ fn the_output_is_byte_identical_at_every_thread_count() {
         );
         outcome.assert_exit(ExitCode::ExecutionOk);
         assert_out_block(&outcome, FFC1_ALGORITHM_LINES);
+        let written = fs::read(&out).unwrap();
+        match &reference {
+            None => reference = Some(written),
+            Some(first) => assert!(
+                *first == written,
+                "-threads {threads} wrote a different file"
+            ),
+        }
+    }
+}
+
+/// The same contract on the path this package adds, which the case above does
+/// not reach: three compensation voltages are three algorithm runs, three seed
+/// filters and a cross-voltage merge whose intensity is an `f32` running sum
+/// over a quadtree query order. Nothing there may depend on the thread count,
+/// so 1, 2, 4, 8 and 0 must again write one byte-identical file — unique ids
+/// included, since the generator is drawn from in the merge as well.
+#[test]
+fn the_faims_output_is_byte_identical_at_every_thread_count() {
+    let dir = Workdir::new();
+    let source = fs::read(ffc1_input()).unwrap();
+    let derived = derive_faims(&source, &["-45", "-60", "-70"]);
+    assert_digest(
+        &derived,
+        "7edd8c78aebe6f6553498bbce3c0586bb6817fa7",
+        "faims_three_cv",
+    );
+    let input = dir.put("faims_three_cv.mzML", &derived);
+    let ini = text(ffc1_ini());
+    let mut reference: Option<Vec<u8>> = None;
+    for threads in ["1", "2", "4", "8", "0"] {
+        let out = dir.file(&format!("faims_threads_{threads}.featureXML"));
+        let outcome = run_in(
+            &dir,
+            &[
+                "-test",
+                "-ini",
+                &ini,
+                "-in",
+                &input,
+                "-threads",
+                threads,
+                "-out",
+                &out,
+                "-algorithm:mass_trace:min_spectra",
+                "5",
+            ],
+        );
+        outcome.assert_exit(ExitCode::ExecutionOk);
+        assert_out_contains_line(
+            &outcome,
+            &FeatureFinderCentroided::faims_merge_message(23, 10),
+        );
         let written = fs::read(&out).unwrap();
         match &reference {
             None => reference = Some(written),
