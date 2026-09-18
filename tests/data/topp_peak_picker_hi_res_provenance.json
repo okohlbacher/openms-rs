@@ -281,7 +281,22 @@
         "badlen, badrt, dupid: C++ exit 0 in both modes where this port exits 3 in both modes. A reader strictness difference identical in the two process options, not part of the low-memory specification.",
         "am1 (-algorithm:ms_levels 2 with SignalToNoise:auto_mode 1): C++ writes all five records and dies of SIGSEGV (exit 139) leaving 404,915 bytes with no index, because a signal runs no destructor; this port exits 11 over a closed, indexed document holding its one written record. The source is therefore not comparable on the path a_failure_after_the_first_record_still_closes_the_document pins, which asserts the ~MSDataWritingConsumer/doCleanup_ contract instead.",
         "the healthy low-memory run is unchanged by the fix: C++ sha256 91b0fdb0... equals the retained PeakPickerHiRes_output_lowMem.mzML and the Rust release binary writes 0037871e..., the bytes recorded before the fix."
-      ]
+      ],
+      "follow_ups": {
+        "drivers": [
+          "../oracle/p4-lowmemory/fixdiff2_06.sh",
+          "../oracle/p4-lowmemory/fixdiff3_06.sh"
+        ],
+        "logs": [
+          "../oracle/p4-lowmemory/logs/fixdiff2_06.log",
+          "../oracle/p4-lowmemory/logs/fixdiff3_06.log"
+        ],
+        "shows": [
+          "The C++ second pass decodes and hands over in batches of 100 records (PeakFileOptions.h:248, MzMLHandler.cpp:198-244 and 259-274), so a corrupt record kills its whole batch before any of it reaches the writer: on the five-record input the C++ low-memory run writes 0 bytes whichever record is corrupt (first, third, last).",
+          "On a 110-spectrum FileMerger output with spectrum 104 corrupted, the C++ low-memory run exits 3 leaving 875,255 bytes - the 100 records of the first batch, a closed </mzML>, an index and a fileChecksum, under the announced count=\"110\". This is the executed evidence that the source's destructor leaves a closed partial document, which is what a_failure_after_the_first_record_still_closes_the_document asserts for this port.",
+          "New divergence, not a regression of this round: on the HEALTHY 110-spectrum FileMerger output the C++ low-memory run writes all 110 records and this port stops after five with 'record needs a different mzML sourceFileList or dataProcessingList than the header written for the first record' (exit 11), because each merged part carries its own dataProcessing. This port's in-memory mode handles the same file. Recorded as native difference 12 in the support document; not pinned by a test, because whether MSDataWritingConsumer should emit the source's dangling reference is an open decision. Inspected afterwards: that C++ output declares one dataProcessing (dp_sp_0) and one sourceFile while its 110 records reference dp_sp_0 through dp_sp_109, so what the source writes there is 109 dangling references."
+        ]
+      }
     }
   },
   "derived_inputs_built_by_the_tests": [

@@ -245,11 +245,28 @@ that the failure which ended the run is the one reported. The records already
 written stay where they are, under the `count` the first pass declared: a
 streaming writer cannot take bytes back. A failure before the first record
 leaves the created file empty, as `doCleanup_` writes nothing while
-`started_writing_` is false. Pinned by
-`a_failure_after_the_first_record_still_closes_the_document`, which reaches the
-case through `SignalToNoise:auto_mode 1` with `ms_levels 2`, so the MS1
-spectrum is copied and written before the first MS2 spectrum reaches the
-estimator. The source cannot be compared on that command line, because it does
+`started_writing_` is false.
+
+**That is measured, not only argued.** A C++ low-memory run can indeed end in a
+closed, partial document, and it takes more than a hundred records to see it.
+The source's second pass decodes and hands over in batches of
+`maximal_data_pool_size_`, 100 by default (`PeakFileOptions.h:248`):
+`populateSpectraWithData_` decodes a whole batch under OpenMP, throws
+`ParseError` if any record of it failed (`MzMLHandler.cpp:198-244`), and only
+then loops over the batch calling `consumeSpectrum` (`:259-274`). A corrupt
+record therefore kills its entire batch before any of it reaches the writer, so
+on a five-record file the C++ run writes nothing whichever record is corrupt —
+first, third or last, all measured (`logs/fixdiff2_06.log`). On a 110-spectrum
+file built on the node by the Release `FileMerger`, with the base64 of spectrum
+104 corrupted, the C++ low-memory run exits 3 and leaves **875,255 bytes: the
+100 records of the first batch, `</mzML>`, an index and a `fileChecksum`, under
+the announced `count="110"`** (`logs/fixdiff3_06.log`, case `many_104`). That is
+the document this port now leaves on its own failing paths.
+
+Pinned by `a_failure_after_the_first_record_still_closes_the_document`, which
+reaches the case through `SignalToNoise:auto_mode 1` with `ms_levels 2`, so the
+MS1 spectrum is copied and written before the first MS2 spectrum reaches the
+estimator. The source cannot be compared on *that* command line, because it does
 not fail there in any orderly way: the same run on `ibminode06` writes all five
 records and then dies of SIGSEGV (exit 139), leaving 404,915 bytes with no
 index and no footer, since a signal runs no destructor
@@ -260,11 +277,12 @@ had written.
 The two first passes are not equally thorough, and it costs the mode nothing.
 The source's runs with `LD_RAWCOUNTS` and sets `skip_spectrum_`
 (`MzMLHandler.cpp:966-974`), stepping over every record's contents, so a record
-that is well-formed XML but wrong inside is seen only by the second pass, with
-earlier records already written; this port's counting pass reads those records,
-so it refuses before the writer is touched. On the malformed-base64 input above
-that difference is invisible — the C++ run reaches the fault in its second pass
-but still before its first record is handed over, so both write nothing.
+that is well-formed XML but wrong inside is seen only by the second pass; this
+port's counting pass reads those records, so it refuses before the writer is
+touched. Because of the batching above, the difference is invisible on any file
+of at most 100 records: both write nothing. Beyond that the source leaves the
+completed batches and this port leaves an empty file — the port's answer is
+never a partial one.
 
 Where it **is** visible, the difference is the reader's and not the mode's,
 because it shows identically in both process options. Three inputs measured on
@@ -471,6 +489,30 @@ added to the source's output, not a change to it. Pinned by
     only the peak memory differs, by 886 MB on the benchmark run. The in-place
     form is not atomic, which costs this tool nothing: its only reaction to a
     picking error is to report it and exit without writing an output file.
+12. **An input whose records reference header entries the first record does not
+    is refused in the low-memory mode, where the source writes it with dangling
+    references.** The consumer writes its header from the settings plus the
+    first record, so the `sourceFileList` and `dataProcessingList` it declares
+    are that record's. A later record needing different ones cannot be numbered
+    against that header, and this port answers
+    `Error: unsupported: record needs a different mzML sourceFileList or
+    dataProcessingList than the header written for the first record` with
+    `INCOMPATIBLE_INPUT_DATA`; the source emits the reference anyway (the
+    consumer's own documented choice — see
+    [MS_DATA_WRITING_CONSUMER_SUPPORT](MS_DATA_WRITING_CONSUMER_SUPPORT.md)).
+    **This is reachable on ordinary data, and what the source writes there is
+    not valid mzML**: on the file the Release `FileMerger` builds from 22 copies
+    of `PeakPickerHiRes_input.mzML`, the C++ low-memory run exits 0 over all 110
+    records and its output declares **one** `dataProcessing` (`dp_sp_0`) and one
+    `sourceFile` while its records reference `dp_sp_0` through `dp_sp_109` — 109
+    dangling references, which `KEYREF` in the mzML 1.1 schema forbids. This
+    port stops after the first five records with the message above
+    (`../oracle/p4-lowmemory/logs/fixdiff3_06.log`, case `many_ok`). Its
+    **in-memory** mode processes the same file to completion (exit 0, 1,480,415
+    bytes), so the gap is the streaming writer's and not the tool's. Found while
+    evidencing the review round's findings, recorded here rather than changed:
+    reproducing the source means deciding to write those dangling references,
+    and that is a decision about a library type this package only uses.
 
 ## Checked boundaries and evidence
 
