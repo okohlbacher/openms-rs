@@ -954,13 +954,7 @@ fn a_forced_type_the_file_contradicts_is_refused() {
 /// `_10`-`_14`, `_16`-`_20`, `FileInfo_mzDat_in_type_mzData`).
 #[test]
 fn unported_branches_are_refused_explicitly() {
-    let faims = data("mzml_mobility/FAIMS_test_data.mzML");
     let mzdat = data("mzml_mobility/FileInfo_5_input.mzDat");
-    // TOPP_FileInfo_11 runs FileInfo_11_input.mzML, byte-identical to the
-    // FileInfo_9 input (sha256 e14e087c...).
-    let fi11 = library("inputs/FileInfo_9_input.mzML");
-    let fi12 = library("inputs/FileInfo_12_input.mzML");
-    let fi1 = library("inputs/FileInfo_1_input.dta");
     let cases: Vec<(&str, Vec<String>, &str)> = vec![
         (
             "TOPP_FileInfo_4",
@@ -991,16 +985,6 @@ fn unported_branches_are_refused_explicitly() {
             "FileInfo idXML branch is not ported",
         ),
         (
-            "TOPP_FileInfo_11",
-            args(&fi11, &["-i"]),
-            "FileInfo indexed-mzML check (-i) is not ported",
-        ),
-        (
-            "TOPP_FileInfo_12",
-            args(&fi12, &["-i"]),
-            "FileInfo indexed-mzML check (-i) is not ported",
-        ),
-        (
             "TOPP_FileInfo_13",
             args(&tool("inputs/FileInfo_13_input.consensusXML"), &[]),
             "FileInfo consensusXML branch is not ported",
@@ -1026,19 +1010,9 @@ fn unported_branches_are_refused_explicitly() {
             "FileInfo fasta branch is not ported",
         ),
         (
-            "TOPP_FileInfo_19",
-            args(&faims, &["-d"]),
-            "FileInfo detailed spectrum and chromatogram listing (-d) is not ported",
-        ),
-        (
             "TOPP_FileInfo_20",
             args(&tool("inputs/FileInfo_20_input.fasta"), &[]),
             "FileInfo fasta branch is not ported",
-        ),
-        (
-            "corrupt-data check on a peak file",
-            args(&fi1, &["-in_type", "dta", "-c"]),
-            "FileInfo corrupt-data check (-c) is not ported",
         ),
         (
             "validation of a featureXML map",
@@ -1062,6 +1036,43 @@ fn unported_branches_are_refused_explicitly() {
         );
         assert!(outcome.out.is_empty(), "{case}: {}", outcome.out);
         assert_eq!(read(&out), "", "{case}");
+    }
+}
+
+/// A6 implemented `-i`, `-d` and `-c`, so the four rows this table used to hold
+/// for them are gone. What they do instead is compared with the Release C++
+/// output in `tests/file_info_checks.rs`; pinned here is only that the tool no
+/// longer answers them with a not-ported refusal, so the table cannot quietly
+/// regain them.
+#[test]
+fn the_flags_a6_implemented_are_no_longer_refused() {
+    let faims = data("mzml_mobility/FAIMS_test_data.mzML");
+    // TOPP_FileInfo_11 runs FileInfo_11_input.mzML, byte-identical to the
+    // FileInfo_9 input (sha256 e14e087c...).
+    let fi11 = library("inputs/FileInfo_9_input.mzML");
+    let fi12 = library("inputs/FileInfo_12_input.mzML");
+    let fi1 = library("inputs/FileInfo_1_input.dta");
+    for (case, case_args) in [
+        ("TOPP_FileInfo_11", args(&fi11, &["-i"])),
+        ("TOPP_FileInfo_12", args(&fi12, &["-i"])),
+        ("TOPP_FileInfo_19", args(&faims, &["-d"])),
+        (
+            "corrupt-data check on a peak file",
+            args(&fi1, &["-in_type", "dta", "-c"]),
+        ),
+    ] {
+        let dir = Workdir::new();
+        let out = dir.file("a6.tmp.txt");
+        let mut full: Vec<&str> = vec!["-test", "-no_progress", "-out", &out];
+        full.extend(case_args.iter().map(String::as_str));
+        let outcome = run(&full);
+        for flag in ["(-i)", "(-d)", "(-c)"] {
+            assert!(
+                !outcome.err.contains("is not ported") || !outcome.err.contains(flag),
+                "{case}: still refused: {}",
+                outcome.err
+            );
+        }
     }
 }
 
