@@ -204,7 +204,12 @@ Each is documented at the item in `checks.rs` as well.
     `std::cerr` — the uninitialised buffer itself — and the manifest records
     both raw hashes under `indeterminate_stderr`. **Owner:**
     `src/format/indexed_mzml.rs`, which every index reader in the crate shares,
-    not this package.
+    not this package. The departure is that package's own reviewed decision and
+    is already recorded in `docs/INDEXED_MZML_SUPPORT.md` ("small files search
+    their full contents"; "checked small-file reads … replace unchecked or
+    platform-dependent source cases"). What is new here is that `-i` prints its
+    consequence, and that the two oracle cases pin where it starts.
+
 12. **An index without whitespace keeps the offset the source drops.**
     `domParseIndexedEnd_` walks the children of each `<index>` as
     `iter = getFirstChild(); while (iter != lastChild) { iter = getNextSibling(); … }`
@@ -215,9 +220,13 @@ Each is documented at the item in `checks.rs` as well.
     the Release build counts one spectrum in the two-offset
     `index_offsets_unspaced.mzML`, the port counts two. Reproducing it would
     mean re-implementing the source's DOM walk in `parse_offsets`, which every
-    other index reader in the crate calls. **Owner:**
-    `src/format/indexed_mzml.rs`, not this package; the source defect is
-    recorded for `OpenMS_CPP_ISSUES.md`.
+    other index reader in the crate calls — and it would break random access,
+    because a dropped offset is a record that cannot be found. **Owner:**
+    `src/format/indexed_mzml.rs`, not this package. That package already states
+    the decision in `docs/INDEXED_MZML_SUPPORT.md` ("the native parser corrects
+    the source DOM sibling loop that skips an offset when it is the first child
+    without preceding whitespace"); the source defect is recorded for
+    `OpenMS_CPP_ISSUES.md` as CPP-337.
 
 ## Checked boundaries and evidence
 

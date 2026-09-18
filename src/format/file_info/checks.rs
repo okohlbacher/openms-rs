@@ -120,8 +120,13 @@ const CHROMATOGRAM_COMMENT: &str = "";
 /// # Two boundaries of the source's decoder this check does not reproduce
 ///
 /// Both belong to [`IndexedMzMLDecoder`](crate::format::indexed_mzml::IndexedMzMLDecoder),
-/// which every other index reader in this crate shares, so neither is repaired
-/// here; both change what this line prints, so both are pinned by the oracle.
+/// which every other index reader in this crate shares. Both departures were
+/// decided and recorded by that package — `docs/INDEXED_MZML_SUPPORT.md` says
+/// "small files search their full contents" and "the native parser corrects the
+/// source DOM sibling loop that skips an offset when it is the first child
+/// without preceding whitespace" — so neither is re-decided here. What is new
+/// is that `-i` prints their consequence, which is why both are pinned by
+/// oracle cases of this package.
 ///
 /// 1. **A file shorter than 1023 bytes.** `findIndexListOffset` allocates
 ///    `new char[buffersize + 1]`, seeks `-buffersize` from the end and reads
@@ -131,9 +136,11 @@ const CHROMATOGRAM_COMMENT: &str = "";
 ///    and wave 5's rule does not ask for it to be reproduced. The port reads
 ///    `min(length, 1023)` bytes and searches the whole file. The Release build
 ///    reports no index for the 967-byte `index_window_below.mzML` and exits
-///    `ILLEGAL_PARAMETERS`, three runs alike; this port finds its index and
-///    reports the file in full. `index_window_above.mzML`, the same file padded
-///    to 1217 bytes, is the control the two agree on byte for byte.
+///    `ILLEGAL_PARAMETERS`, three runs alike — while the bytes it dumps to
+///    `std::cerr`, which are that buffer, differ between the runs, which is
+///    what proves the read indeterminate. This port finds the index and reports
+///    the file in full. `index_window_above.mzML`, the same file padded to 1217
+///    bytes, is the control the two agree on byte for byte.
 /// 2. **The first child of every `<index>` element.**
 ///    `domParseIndexedEnd_` walks the children as
 ///    `iter = getFirstChild(); while (iter != lastChild) { iter = getNextSibling(); ... }`
