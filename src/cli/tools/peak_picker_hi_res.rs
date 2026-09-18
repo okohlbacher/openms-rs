@@ -582,14 +582,14 @@ impl Tool for PeakPickerHiRes {
     /// terminates in the source, not parameter errors. A refusal by the
     /// operating system to start the `-threads` workers is reported the same
     /// way, as `Error: Unexpected internal error (cannot start <n> worker
-    /// threads: <reason>)` with [`ExitCode::UnknownError`]. A low-memory run's
-    /// failures take the same arm - `run_low_memory` in this module lists them
-    /// - except that a partially written output file is left behind, which a
-    /// streaming writer cannot take back: the pool is built
+    /// threads: <reason>)` with [`ExitCode::UnknownError`]: the pool is built
     /// inside the picking call now (`pick_experiment` in this module), so the
     /// [`Error::Io`] it raises reaches the same arm as a picker failure instead
     /// of propagating out of `run_io` as it did while the pool wrapped the whole
-    /// body. No output file is written in either case. The exception is
+    /// body. No output file is written in either case. A low-memory run's
+    /// failures, which `run_low_memory` in this module lists, take that same
+    /// arm, except that the partially written output file stays where it is:
+    /// a streaming writer cannot take its bytes back. The exception is
     /// [`Error::Unsupported`], which propagates (`INCOMPATIBLE_INPUT_DATA`):
     /// the picker returns it for `SignalToNoise:auto_mode` 1 when noise
     /// estimation runs on a record outside the narrow input domain where that
