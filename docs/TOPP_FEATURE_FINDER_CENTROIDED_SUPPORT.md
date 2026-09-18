@@ -475,9 +475,14 @@ instance*).
    (`a_changed_abundance_finds_the_intended_features_where_the_cpp_release_build_finds_none`).
 4. **A NaN FAIMS voltage is refused** with exit 6 rather than entering an
    ordered set that cannot hold it: `FaimsHelper::get_compensation_voltages`
-   returns an error, which the framework maps to `Invalid parameter: …`. No
-   native reader produces such a spectrum; the source would insert the NaN into
-   a `std::set<double>` and break its ordering.
+   returns an error, which the framework maps to `Invalid parameter: …`. The
+   source would insert the NaN into a `std::set<double>` and break its
+   ordering. Through **this tool** that refusal cannot be reached, because the
+   native mzML reader refuses the spectrum first: the
+   FeatureFinderCentroided_1 input with `MS:1001581` value `NaN` added to all
+   112 scans exits 3 with `Unable to read file (parse error on line 0:
+   nonfinite spectrum mobility)`, measured. The difference therefore lives at
+   the library entry point; no native reader hands the split a NaN.
 5. **The ion-mobility peak type in the message.** The source prints
    `imPeakTypeToString(spec.getIMPeakType())`; its mzML reader sets `IM_PROFILE`
    on every spectrum with an ion-mobility array, except one carrying
