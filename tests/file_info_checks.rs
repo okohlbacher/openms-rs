@@ -9,24 +9,26 @@
 //! Evidence, in order of strength (see
 //! `tests/data/file_info_checks_provenance.json` and
 //! `docs/FILE_INFO_CHECKS_SUPPORT.md`):
-//! - tier 1, executed differential: 56 cases of `../oracle/a6-fileinfo` run
+//! - tier 1, executed differential: 59 cases of `../oracle/a6-fileinfo` run
 //!   against the **Release** C++ FileInfo of
 //!   `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
-//!   ibminode06, twice and reproduced. 37 of them have their `-out` and
-//!   `-out_tsv` reports compared here byte for byte and one (`i_truncated_index`)
-//!   its text, with only the three lines that embed the input path normalised —
-//!   `File name: `, `general: file name` and the `-i` failure line; the rest
-//!   carry exit codes and refusals;
+//!   ibminode06, twice and reproduced. 38 of them have their `-out` and
+//!   `-out_tsv` reports compared here byte for byte, one (`i_truncated_index`)
+//!   its text and one (`i_window_below`) its report against the padded file's,
+//!   which is native difference 11 itself; only the three lines that embed the
+//!   input path are normalised — `File name: `, `general: file name` and the
+//!   `-i` failure line — and the rest of the cases carry exit codes, counts and
+//!   refusals;
 //! - tier 1, retained upstream definition: TOPP_FileInfo_11
 //!   (`topp/CMakeLists.txt:908-909`, test-data `0cb15f2`, `WILL_FAIL 1`) and
-//!   TOPP_FileInfo_19 (`:927-929`) reproduced, the first including its exit
+//!   TOPP_FileInfo_19 (`:928-930`) reproduced, the first including its exit
 //!   code. TOPP_FileInfo_12 (`:910-911`) is not: its input's `charge array` is
 //!   stored as 64-bit float, which the strict mzML reader refuses, so only its
 //!   index is checked here;
 //! - tier 4, the refusal of the two places the source's behaviour is undefined
 //!   (an empty SRM chromatogram, a NaN coordinate in a `std::sort`), the
-//!   infinity that is *not* refused, and the result fields the source leaves at
-//!   their defaults.
+//!   infinity and the non-MS1 NaN retention time that are *not* refused, and the
+//!   result fields the source leaves at their defaults.
 //!
 //! Four oracle cases load the original `FileInfo_9_input.mzML`, which the strict
 //! mzML reader refuses for three reasons outside this package (see
@@ -310,6 +312,95 @@ fn index_truncated_is_not_valid() {
         &result.text,
         &data("file_info_checks/expected/i_truncated_index.txt"),
         "i_truncated_index",
+    );
+}
+
+/// The control for the two cases below: an indexed mzML of 1217 bytes, whose
+/// footer is inside the 1023-byte window the source searches and whose index is
+/// written with a newline inside `<index>`. Both implementations parse it, and
+/// both reports agree byte for byte.
+#[test]
+fn index_inside_the_footer_window_agrees() {
+    let result = check(
+        &input("index_window_above.mzML"),
+        &index_only(),
+        "i_window_above",
+    );
+    assert!(result.validation.index_valid);
+    assert_eq!(result.validation.indexed_spectra, 1);
+    assert_eq!(result.validation.indexed_chromatograms, 0);
+}
+
+/// Native difference 11: the same file with its padding removed, 967 bytes.
+///
+/// `findIndexListOffset` seeks `-1023` from the end (`IndexedMzMLDecoder.cpp:165-168`),
+/// which fails on a shorter file, so its regex searches a heap buffer nothing
+/// wrote. The Release build therefore reports no index and exits
+/// `ILLEGAL_PARAMETERS`, and its stderr dump of those bytes differs from run to
+/// run — the oracle records both hashes under `indeterminate_stderr` and masks
+/// the dump alone. There is nothing defined to reproduce, so this port reads
+/// `min(length, 1023)` bytes instead and finds the index: its report for this
+/// file is the C++ report for the padded one, line for line.
+///
+/// The difference belongs to `src/format/indexed_mzml.rs`, which every index
+/// reader in the crate shares, not to this package.
+#[test]
+fn index_below_the_footer_window_diverges_from_the_source() {
+    let cpp = read_text(&data("file_info_checks/expected/i_window_below.txt"));
+    assert!(
+        cpp.contains("Could not detect a valid index for the mzML file"),
+        "the Release build reports no index below the window: {cpp}"
+    );
+
+    let result = FileInfo::new()
+        .run(input("index_window_below.mzML"), &index_only())
+        .expect("the port finds the index the source's failed seek hides");
+    assert!(result.validation.index_valid);
+    assert_eq!(result.validation.indexed_spectra, 1);
+    assert_report(
+        &result.text,
+        &data("file_info_checks/expected/i_window_above.txt"),
+        "i_window_below text against the padded file's C++ report",
+    );
+    assert_report(
+        &result.tsv,
+        &data("file_info_checks/expected/i_window_above.tsv"),
+        "i_window_below tsv against the padded file's C++ report",
+    );
+}
+
+/// Native difference 12: an index whose two `<offset>` elements have no
+/// whitespace between them.
+///
+/// `domParseIndexedEnd_` walks the children of each `<index>` as
+/// `iter = getFirstChild(); while (iter != lastChild) { iter = getNextSibling(); ... }`
+/// (`IndexedMzMLDecoder.cpp:280-283`), advancing before it reads, so the first
+/// child is never looked at. A newline there makes it a text node and the walk
+/// loses nothing — which is why every index an OpenMS writer produces parses —
+/// but without one the source drops the first offset. The Release build counts
+/// one spectrum in this two-offset file; this port counts both.
+///
+/// The difference belongs to `src/format/indexed_mzml.rs`, not to this package.
+#[test]
+fn an_unspaced_index_keeps_the_offset_the_source_skips() {
+    let cpp = read_text(&data("file_info_checks/expected/i_offsets_unspaced.txt"));
+    assert!(
+        cpp.contains("Found a valid indexed mzML XML File with 1 spectra and 0 chromatograms.\n"),
+        "the Release build loses the first of the two offsets: {cpp}"
+    );
+
+    let result = FileInfo::new()
+        .run(input("index_offsets_unspaced.mzML"), &index_only())
+        .expect("the index parses");
+    assert!(result.validation.index_valid);
+    assert_eq!(result.validation.indexed_spectra, 2);
+    assert_eq!(result.validation.indexed_chromatograms, 0);
+    assert!(
+        result
+            .text
+            .contains("Found a valid indexed mzML XML File with 2 spectra and 0 chromatograms.\n"),
+        "{}",
+        result.text
     );
 }
 

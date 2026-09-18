@@ -997,12 +997,18 @@ fn the_index_detail_and_corrupt_flags_are_no_longer_refused() {
             },
         ),
     ] {
-        // The file is absent, so each reaches its reader and fails there.
-        if let Err(Error::Unsupported(message)) = FileInfo::new().run(input, &options) {
-            assert!(
+        // The file is absent, so each reaches its reader and fails there: an
+        // `Error::Io`, in any build that can run the flag at all. The one
+        // `Unsupported` allowed here is the missing `mzml` feature, which the
+        // `-i` case raises before it opens anything; every other refusal, and
+        // every other error text, is the regression this test exists to catch.
+        match FileInfo::new().run(input, &options) {
+            Err(Error::Unsupported(message)) => assert!(
                 message.contains("lacks the mzml feature"),
                 "{input}: still refused: {message}"
-            );
+            ),
+            Err(Error::Io(_)) => {}
+            other => panic!("{input}: expected the reader to fail, got {other:?}"),
         }
     }
 }

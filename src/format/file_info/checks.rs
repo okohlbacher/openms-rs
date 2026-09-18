@@ -47,11 +47,16 @@
 //!
 //! `-c` sorts the MS1 retention times and each spectrum's m/z values with
 //! `std::sort`, whose comparator is not a strict weak ordering when a value is
-//! NaN, so the source's behaviour there is undefined. This port refuses a NaN
-//! retention time or m/z with [`Error::InvalidValue`] before writing anything,
-//! rather than reproducing an undefined order. No loader on the peak-file branch
-//! produces one — each validates its coordinates — so the refusal is
-//! unreachable through [`FileInfo::run`](crate::format::file_info::report::FileInfo::run).
+//! NaN, so the source's behaviour there is undefined. This port refuses such a
+//! value with [`Error::InvalidValue`] before writing anything, rather than
+//! reproducing an undefined order. The refusal covers exactly what the source
+//! sorts: every spectrum's m/z values (`FileInfo.cpp:1956`), but only the
+//! retention time of an MS-level-1 spectrum (`:1921-1924`, `:1927`). A NaN
+//! retention time anywhere else is reported as it is, because the only other
+//! thing the source does with it is compare it with `>`, which is defined.
+//! No loader on the peak-file branch produces a NaN at all — each validates its
+//! coordinates — so neither case arises through
+//! [`FileInfo::run`](crate::format::file_info::report::FileInfo::run).
 //!
 //! Infinities are left alone, because the source's `<`, `>` and `==` are all
 //! defined on them. That costs one deliberate departure from the crate: the two
@@ -101,9 +106,43 @@ const CHROMATOGRAM_COMMENT: &str = "";
 /// offset vectors. Nothing is read from the records themselves, so a file whose
 /// index is valid but whose spectra are not still passes, as in the source.
 ///
+/// The reduction is of what the source *records*, not of how it reads: the
+/// source only ever looks at the last 1023 bytes of the file, and it skips the
+/// first child of every `<index>` element. Both are visible in this line's
+/// counts and neither is reproduced here; they are native differences 11 and
+/// 12 of `docs/FILE_INFO_CHECKS_SUPPORT.md`, described below and owned by
+/// [`crate::format::indexed_mzml`], not by this package.
+///
 /// [`IndexedMzMLHandler`](crate::format::indexed_mzml_handler::IndexedMzMLHandler)
 /// is deliberately not used here: it goes on to locate the record list tags and
 /// read the document header, and refuses files the source's index check accepts.
+///
+/// # Two boundaries of the source's decoder this check does not reproduce
+///
+/// Both belong to [`IndexedMzMLDecoder`](crate::format::indexed_mzml::IndexedMzMLDecoder),
+/// which every other index reader in this crate shares, so neither is repaired
+/// here; both change what this line prints, so both are pinned by the oracle.
+///
+/// 1. **A file shorter than 1023 bytes.** `findIndexListOffset` allocates
+///    `new char[buffersize + 1]`, seeks `-buffersize` from the end and reads
+///    (`IndexedMzMLDecoder.cpp:165-168`). On a shorter file the seek fails, the
+///    read writes nothing, and the regex at `:179-181` searches a heap buffer
+///    nothing initialised — so what the source finds there is indeterminate,
+///    and wave 5's rule does not ask for it to be reproduced. The port reads
+///    `min(length, 1023)` bytes and searches the whole file. The Release build
+///    reports no index for the 967-byte `index_window_below.mzML` and exits
+///    `ILLEGAL_PARAMETERS`, three runs alike; this port finds its index and
+///    reports the file in full. `index_window_above.mzML`, the same file padded
+///    to 1217 bytes, is the control the two agree on byte for byte.
+/// 2. **The first child of every `<index>` element.**
+///    `domParseIndexedEnd_` walks the children as
+///    `iter = getFirstChild(); while (iter != lastChild) { iter = getNextSibling(); ... }`
+///    (`:280-283`), which advances before it reads and therefore never looks at
+///    the first child. A newline inside `<index>` puts a text node there and
+///    the walk loses nothing, which is why every index an OpenMS writer
+///    produces parses; an index written without that whitespace loses its first
+///    offset. The Release build counts one spectrum in the two-offset
+///    `index_offsets_unspaced.mzML`, this port counts two.
 ///
 /// The source applies the check to whatever `-in` names, of any type; only the
 /// FileInfo tool restricts `-i` to mzML, before the library runs.
@@ -112,10 +151,11 @@ const CHROMATOGRAM_COMMENT: &str = "";
 ///
 /// Returns [`Error::Io`] when the file cannot be opened or read, which the
 /// source raises as `Exception::FileNotFound`, `FileNotReadable` or
-/// `IOException`, and [`Error::Parse`] when the footer's offset is not a
-/// non-negative 63-bit integer, which the source raises as
-/// `Exception::ConversionError` (`IndexedMzMLDecoder.cpp:51-61`,
-/// `:79-87`, `:152-160`). Every other decoding failure is *not* an error: it is
+/// `IOException` (`IndexedMzMLDecoder.cpp:79-87` in `parseOffsets` and
+/// `:152-160` in `findIndexListOffset`), and [`Error::Parse`] when the footer's
+/// offset is not a non-negative 63-bit integer, which the source raises as
+/// `Exception::ConversionError` (`:51-61`, the two throws of
+/// `stringToStreampos`). Every other decoding failure is *not* an error: it is
 /// the invalid-index outcome, because `parseOffsets` reports all of its own
 /// failures — an offset outside the file, a failed allocation and a malformed
 /// index — by returning `-1` (`:97-99`, `:115-118`, `:332`). The port's index
@@ -338,8 +378,8 @@ pub(crate) fn write_detailed_spectra(experiment: &MSExperiment, os: &mut ReportS
 ///
 /// 1. one line when the spectra are not in ascending retention time
 ///    (`MSExperiment::isSorted(false)`, which looks at the retention times
-///    alone and compares neighbours with `>`, so an infinity is ordinary
-///    there);
+///    alone and compares neighbours with `>`, so an infinity is ordinary there
+///    and a NaN, which is never greater, never makes a file unsorted);
 /// 2. per spectrum, in storage order: MS level zero, no peaks, and every
 ///    repetition of a data-array name. The three array kinds share one name set,
 ///    as the source's single `std::map` does, so a float array and an integer
@@ -356,10 +396,10 @@ pub(crate) fn write_detailed_spectra(experiment: &MSExperiment, os: &mut ReportS
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidValue`] for a NaN retention time or m/z, which would
-/// enter a `std::sort` in the source and leave its behaviour undefined (see the
-/// module documentation), and when the retention-time or m/z buffer cannot be
-/// allocated. Both are checked before the header is written, so a refusal leaves
+/// Returns [`Error::InvalidValue`] for a NaN the source would put into a
+/// `std::sort`, leaving its behaviour undefined — any spectrum's m/z, or an
+/// MS-level-1 spectrum's retention time (see the module documentation) — and
+/// when the retention-time or m/z buffer cannot be allocated. Both are checked before the header is written, so a refusal leaves
 /// the report untouched.
 pub(crate) fn write_corruption_check(
     experiment: &MSExperiment,
@@ -477,12 +517,20 @@ fn nondescending(values: impl IntoIterator<Item = f64>) -> bool {
 
 /// Refuse the NaN coordinates the source's two `std::sort` calls leave
 /// undefined, before any of the check is written.
+///
+/// The two calls do not see the same set. `FileInfo.cpp:1921-1924` pushes a
+/// retention time into `ms1_rts` only for an MS-level-1 spectrum and `:1927`
+/// sorts that vector alone, so a NaN retention time on any other spectrum never
+/// reaches a sort: it only reaches `exp.isSorted(false)`, which compares with
+/// `>` and is therefore defined on it, and the report lines that print it. The
+/// refusal is narrowed to the same set. The m/z sort at `:1956` runs over every
+/// spectrum, so the m/z half is not.
 fn preflight(experiment: &MSExperiment) -> Result<()> {
     for spectrum in &experiment.spectra {
-        if spectrum.rt.is_nan() {
+        if spectrum.ms_level == 1 && spectrum.rt.is_nan() {
             return Err(Error::InvalidValue(
-                "FileInfo -c: a spectrum retention time is NaN, which the source's std::sort of \
-                 the MS1 retention times leaves undefined"
+                "FileInfo -c: an MS1 spectrum retention time is NaN, which the source's \
+                 std::sort of the MS1 retention times leaves undefined"
                     .into(),
             ));
         }
@@ -538,6 +586,8 @@ mod tests {
 
     /// A NaN coordinate would enter one of the source's two `std::sort` calls
     /// and leave its order undefined; the port refuses before writing anything.
+    /// `MSSpectrum::default()` is MS level 1, which is the level the source
+    /// sorts.
     #[test]
     fn a_nan_retention_time_is_refused() {
         let mut experiment = MSExperiment::default();
@@ -566,6 +616,45 @@ mod tests {
         let mut os = ReportStream::new();
         let error = write_corruption_check(&experiment, &mut os).unwrap_err();
         assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
+    }
+
+    /// Only an MS-level-1 retention time reaches the source's `std::sort`
+    /// (`FileInfo.cpp:1921-1924`, `:1927`), so a NaN on any other spectrum
+    /// leaves the source defined: `exp.isSorted(false)` compares with `>`, for
+    /// which a NaN is never greater, and the value is otherwise only printed.
+    /// The port refuses exactly the set the source sorts, so this experiment is
+    /// checked rather than refused. The spelling of the printed NaN is
+    /// `text_format::ostream_g`'s, which A2 pinned to `nan` whatever the sign
+    /// bit; no loader on this path produces one, so no differential case can
+    /// reach the line.
+    #[test]
+    fn a_nan_retention_time_outside_ms_level_one_is_checked() {
+        let mut experiment = MSExperiment::default();
+        experiment.spectra.push(MSSpectrum {
+            rt: 10.0,
+            peaks: vec![Peak1D::new(100.0, 1.0)],
+            ..MSSpectrum::default()
+        });
+        experiment.spectra.push(MSSpectrum {
+            rt: f64::NAN,
+            ms_level: 2,
+            ..MSSpectrum::default()
+        });
+        let mut os = ReportStream::new();
+        write_corruption_check(&experiment, &mut os).unwrap();
+        let text = os.into_string();
+        assert!(
+            text.contains("Warning: No peaks in spectrum (RT: nan)\n"),
+            "{text}"
+        );
+        assert!(
+            !text.contains("Error: Spectrum retention times are not sorted"),
+            "a NaN is never greater than its neighbour: {text}"
+        );
+        assert!(
+            !text.contains("Error: Duplicate spectrum retention time"),
+            "the NaN is not an MS1 retention time: {text}"
+        );
     }
 
     /// An infinity is not NaN: the source's `<` and `==` are defined on it, so

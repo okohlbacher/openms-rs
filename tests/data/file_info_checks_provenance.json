@@ -86,7 +86,7 @@
             },
             {
                 "name": "TOPP_FileInfo_19",
-                "lines": "927-929",
+                "lines": "928-930",
                 "note": "-d on FAIMS_test_data.mzML, compared with the retained output"
             }
         ],
@@ -105,7 +105,7 @@
     },
     "method": "Library-level: FileInfo::run on each input with the flags the oracle passed the tool (including source_dangling_references, which the tool sets under decision D10); text and TSV compared byte for byte with the retained Release C++ reports after replacing the 'File name: ' text line, the 'general: file name' TSV line and the failure line of -i, which all embed the input path. Tool-level: the exit codes of -i through run_with.",
     "evidence_tier": 1,
-    "evidence": "Tier 1 (executed differential): the Release C++ FileInfo of openms4-release-bc9cc12-c19e494-174b576, at all three pins this port follows, ran 56 cases on ibminode06 twice, reproduced (../oracle/a6-fileinfo/manifest.json). 37 of them have both reports compared here byte for byte and one (i_truncated_index) its text; the others carry exit codes and refusals. Two masks: the \"FileInfo took\" stdout line and the ProgressLogger \"-- done [took ...] --\" lines, which carry wall and CPU seconds; both go to stdout only, never into -out or -out_tsv, and only the case that reproduces TOPP_FileInfo_19 verbatim emits the second. Tier 1 (retained upstream definition): TOPP_FileInfo_11 and _19 reproduced, including _11's WILL_FAIL exit code; _12's exit code and _6 are out of reach for reader reasons recorded below. Tier 4: the two places the source is undefined (an empty SRM chromatogram read with front()/back(), a NaN in one of the two std::sort calls) are refused, and the CorruptionInfo and DetailInfo aggregates the source declares and never fills stay at their defaults.",
+    "evidence": "Tier 1 (executed differential): the Release C++ FileInfo of openms4-release-bc9cc12-c19e494-174b576, at all three pins this port follows, ran 59 cases on ibminode06 twice, reproduced (../oracle/a6-fileinfo/manifest.json). 38 of them have both reports compared here byte for byte, one (i_truncated_index) its text and one (i_window_below) its report against the padded file's, which is exactly native difference 11; the others carry exit codes, counts and refusals. Three masks: the \"FileInfo took\" stdout line; the ProgressLogger \"-- done [took ...] --\" lines, which carry wall and CPU seconds, and which only the case that reproduces TOPP_FileInfo_19 verbatim emits; and, for i_window_below alone, the bytes findIndexListOffset dumps to stderr after \"Maybe this is not a indexedMzML.\", which on a file shorter than its 1023-byte search window are an uninitialised heap buffer and differ from run to run (the manifest records both runs' raw hashes under indeterminate_stderr). None of the three goes into -out or -out_tsv, and the cases whose dump is the file's real tail are left unmasked and reproduce exactly. Tier 1 (retained upstream definition): TOPP_FileInfo_11 and _19 reproduced, including _11's WILL_FAIL exit code; _12's exit code and _6 are out of reach for reader reasons recorded below. Tier 4: the two places the source is undefined (an empty SRM chromatogram read with front()/back(), a NaN in one of the two std::sort calls) are refused, and the CorruptionInfo and DetailInfo aggregates the source declares and never fills stay at their defaults.",
     "known_gaps": [
         {
             "what": "the -c duplicate-data-array-name line cannot be reached through the mzML reader",
@@ -131,6 +131,16 @@
             "what": "the C++ decoder's stderr diagnostics are not written",
             "why": "IndexedMzMLDecoder prints \"findIndexListOffset Error: ...\" and a dump of the searched bytes on std::cerr; this port writes nothing there. No report line depends on it, and the oracle case i_truncated_index shows the two agree on the report and the exit code.",
             "owner": "this package (documented native difference)"
+        },
+        {
+            "what": "a file shorter than 1023 bytes: the source reports no index where the port finds one",
+            "why": "IndexedMzMLDecoder::findIndexListOffset seeks -1023 from the end and reads (IndexedMzMLDecoder.cpp:165-168); on a shorter file the seek fails, nothing is written into the buffer and the regex at :179-181 searches uninitialised memory, so the source's answer there is indeterminate and wave 5's rule does not ask for it. find_index_list_offset_with_buffer_size (src/format/indexed_mzml.rs:74) clamps the read to the file length and searches the whole file. Measured on the Release build: index_window_below.mzML (967 bytes, a valid index) reports no index and exits ILLEGAL_PARAMETERS, while index_window_above.mzML (the same file padded to 1217 bytes) parses; the port writes the padded file's report for both. Native difference 11.",
+            "owner": "src/format/indexed_mzml.rs, which every index reader in the crate shares, not this package"
+        },
+        {
+            "what": "an index with no whitespace inside <index>: the source drops its first offset, the port keeps it",
+            "why": "domParseIndexedEnd_ walks the children as iter = getFirstChild(); while (iter != lastChild) { iter = getNextSibling(); ... } (IndexedMzMLDecoder.cpp:280-283), advancing before it reads, so the first child is never looked at. A newline there makes it a text node and nothing is lost, which is why every index an OpenMS writer produces parses. Measured on the Release build: index_offsets_unspaced.mzML holds two spectrum offsets and the C++ counts one; the port counts two. Reproducing it would mean re-implementing the DOM walk in parse_offsets, which every other index reader calls. Native difference 12; the source defect is recorded for OpenMS_CPP_ISSUES.md.",
+            "owner": "src/format/indexed_mzml.rs, not this package"
         }
     ],
     "native_implementation": [
@@ -149,7 +159,7 @@
     "external_reference_artifacts": [
         {
             "path": "../oracle/a6-fileinfo/oracle.py",
-            "sha256": "85e2e739c614aa76a7540950c5f8fc97ed7d8d93dacbcf5a22b4340d4a44ec62",
+            "sha256": "05045fec815d1a4391adbc2304716fd4816acd5932d70c37e920f6bb0e01f877",
             "origin_key": "fixtures",
             "role": "driver: case table, per-case scratch runs, reproduction check, manifest writer"
         },
@@ -166,10 +176,16 @@
             "role": "generator of the degenerate mzML, DTA and DTA2D inputs the -c cases need"
         },
         {
-            "path": "../oracle/a6-fileinfo/manifest.json",
-            "sha256": "82afb219bb0c63a4b44247a5b1db0145eb6cf1237bf3da6f14608d697467bfa1",
+            "path": "../oracle/a6-fileinfo/scripts/make_index_window_fixtures.py",
+            "sha256": "adf70fa129c82f7cc514c0c115f2fdde1413be3abd5305a76d6064285f9b999e",
             "origin_key": "fixtures",
-            "role": "tool hash, environment, fixture hashes, per-case argv, exit codes and output hashes, reproduction verdict"
+            "role": "generator of the three minimal indexed mzML inputs that pin the decoder's footer window and its DOM child walk"
+        },
+        {
+            "path": "../oracle/a6-fileinfo/manifest.json",
+            "sha256": "3f08e23ceadaa12346472d501a1b01c2cefaf93ad4b88c4c34b08cc1e656d89a",
+            "origin_key": "fixtures",
+            "role": "tool hash, environment, fixture hashes, per-case argv, exit codes and output hashes, reproduction verdict, known_gaps"
         }
     ],
     "fixtures": [
@@ -206,6 +222,27 @@
             "sha256": "af024626632928a76f2c4773f511520e226975ade42f11a904f773031cad790e",
             "bytes": 7153,
             "kind": "generated degenerate input of this package, written by ../oracle/a6-fileinfo/scripts/make_corrupt_fixtures.py; no value in it comes from any Rust output",
+            "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info/inputs/index_offsets_unspaced.mzML",
+            "sha256": "fd9dff92db516c035cd9da53d6d3f2484ec2c6b3897da47d15b70d07e2ca58c6",
+            "bytes": 1247,
+            "kind": "generated input of this package, written by ../oracle/a6-fileinfo/scripts/make_index_window_fixtures.py; no value in it comes from any Rust output; two spectrum offsets with no whitespace inside <index>",
+            "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info/inputs/index_window_above.mzML",
+            "sha256": "f194cd1a3381368797e78f6731b162d45b04492b94c101c4e7a2f5eca6a84a8a",
+            "bytes": 1217,
+            "kind": "generated input of this package, written by ../oracle/a6-fileinfo/scripts/make_index_window_fixtures.py; no value in it comes from any Rust output; the same file padded to 1217 bytes: inside the window",
+            "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info/inputs/index_window_below.mzML",
+            "sha256": "0c2927243a0f0b4cb055be3582c99aeabb2679506e6449a658a3a1cd3076a9d4",
+            "bytes": 967,
+            "kind": "generated input of this package, written by ../oracle/a6-fileinfo/scripts/make_index_window_fixtures.py; no value in it comes from any Rust output; 967 bytes: shorter than the source's 1023-byte footer window",
             "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
         },
         {
