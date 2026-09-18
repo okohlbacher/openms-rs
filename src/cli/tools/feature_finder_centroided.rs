@@ -43,9 +43,15 @@
 //!    `IllegalArgument`.
 //! 5. Load `-seeds` when given.
 //! 6. Copy the `algorithm:` parameters.
-//! 7. Refuse FAIMS input (see below), exit 11, before the algorithm runs.
+//! 7. Split the input by FAIMS compensation voltage
+//!    ([`ImDataConverter::split_by_faims_cv`](crate::kernel::im_data_converter::ImDataConverter::split_by_faims_cv)),
+//!    which returns one group per voltage, or a single group holding the whole
+//!    input when there is none.
 //! 8. Run the picked feature finder
-//!    ([`run_with_options`](crate::analysis::feature_finder_picked::algorithm::run_with_options)).
+//!    ([`run_with_options`](crate::analysis::feature_finder_picked::algorithm::run_with_options))
+//!    once per group, on that group's seeds, and annotate the group's features
+//!    with their voltage; with `-faims_merge_features true` merge features of
+//!    the same analyte across voltages (see below).
 //! 9. Annotate and clean the features
 //!    ([`finish_features`](crate::cli::tools::FeatureFinderCentroided::finish_features)):
 //!    the primary MS run path, fresh unique ids, the `Quantitation` processing
@@ -90,24 +96,61 @@
 //! m/z follows the Release build to an empty feature map
 //! (`tests/topp_feature_finder_centroided.rs`).
 //!
-//! # FAIMS input is refused
+//! # FAIMS input, and the two defects the closure corrects
 //!
 //! The source splits FAIMS data by compensation voltage
 //! (`IMDataConverter::splitByFAIMSCV`), runs the algorithm once per voltage,
 //! annotates each feature with its voltage and, with `-faims_merge_features
-//! true`, merges features across voltages (`FeatureOverlapFilter`). Decision D5
-//! of the early TOPP bundle defers that closure: the executed C++ tool exits 8
-//! on every FAIMS input (its voltage groups have no updated ranges), and its
-//! merge would remove every feature. This port therefore refuses any input in
-//! which
-//! [`FaimsHelper::get_compensation_voltages`](crate::kernel::faims_helper::FaimsHelper::get_compensation_voltages)
-//! finds a voltage, with
-//! [`faims_refusal_message`](crate::cli::tools::FeatureFinderCentroided::faims_refusal_message),
-//! exit 11 and no output, instead of pooling the voltages silently. The refusal
-//! comes at the source's position of the split, after the profile check and the
+//! true`, merges features of the same analyte across voltages
+//! (`FeatureOverlapFilter::mergeFAIMSFeatures`). All of that is ported here.
+//! The executed C++ tool nevertheless fails on **every** FAIMS input, and two
+//! of its defects lie on this path; the tool ships the corrected behaviour and
+//! names each point:
+//!
+//! - **`CPP-278`, the missing ranges, cannot arise here.** The source builds
+//!   each voltage group with `addSpectrum` and never calls `updateRanges`, so
+//!   `FeatureFinderAlgorithmPicked` throws `the value '1' was used but is not
+//!   valid; No ranges for this MS level` on the first group and every FAIMS
+//!   input exits 8 (re-executed: `../oracle/b11-faims`, six inputs, all rc 8).
+//!   The native containers compute ranges on demand
+//!   ([`MSExperiment::spectrum_range_manager`]), so a group has its own ranges
+//!   the moment it holds spectra; there is no state to forget and nothing to
+//!   reproduce. This is a property of the container port, not a choice made
+//!   here.
+//! - **`CPP-282`, the merge that erases everything.** `mergeFAIMSFeatures`
+//!   records removal by unique ID, and the algorithm returns every feature with
+//!   ID 0, so one merge marks ID 0 removed and the final `erase` drops every
+//!   feature. The tool draws a unique ID per feature before merging, so the
+//!   merge keys on real IDs; those IDs are overwritten immediately afterwards
+//!   by the source's own `applyMemberFunction(setUniqueId)`, so nothing else
+//!   changes.
+//! - **`CPP-283`, the double count and the survivor that stops absorbing.**
+//!   [`FAIMS_MERGE_FIDELITY`](crate::cli::tools::FeatureFinderCentroided::FAIMS_MERGE_FIDELITY)
+//!   is [`FaimsMergeFidelity::Corrected`], which skips a candidate already
+//!   removed and lets a survivor keep absorbing voltages it does not yet stand
+//!   for. A cluster of features at pairwise different voltages therefore
+//!   collapses to one feature whose intensity is the sum of the cluster, each
+//!   member counted once.
+//!
+//! Two further defects of the split are handled by the ported library: a NaN
+//! compensation voltage is refused rather than allowed to break an ordered set
+//! (`CPP-280`), and the chromatograms the source destroys are returned instead
+//! of dropped (`CPP-279`) — this tool loads MS level 1 only and uses none, so
+//! it discards them as the source does. The information line of a non-FAIMS
+//! input keeps the source's wording, `Not FAIMS compensation voltages …`
+//! (`CPP-281`), because it is the line every executed run prints.
+//!
+//! The split comes at the source's position, after the profile check and the
 //! seed load, so a FAIMS profile file without `-force` still exits 8 with the
-//! profile message, as in the C++ tool. `-faims_merge_features` is registered
-//! and validated but has no other effect yet.
+//! profile message and an unreadable `-seeds` file still exits 3, as in the C++
+//! tool.
+//!
+//! There is no whole-tool C++ oracle for the corrected path, because the C++
+//! path is broken. Each voltage group is pinned instead against the Release
+//! build run on that group written as its own single-voltage mzML, and the
+//! merge against the specification derived in
+//! [`FaimsMergeFidelity`] and hand-derived cases; see
+//! `docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md`.
 //!
 //! # Threads
 //!
@@ -129,17 +172,22 @@ use crate::analysis::feature_finder_picked::debug::{DebugOutput, ReportLine, Ter
 use crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
 use crate::analysis::feature_finder_picked::seeds;
 use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
+use crate::concept::constants::user_param::FAIMS_CV;
 use crate::concept::{HasUniqueId, UniqueIdGenerator};
 use crate::format::file_handler::FileHandler;
+use crate::format::file_info::text_format::{DEFAULT_STREAM_PRECISION, ostream_g};
 use crate::format::file_types::FileType;
 use crate::format::mzml::ReadOptions;
 use crate::format::peak_options::PeakFileOptions;
 use crate::kernel::faims_helper::FaimsHelper;
+use crate::kernel::im_data_converter::{FaimsSplitLogLevel, ImDataConverter};
 use crate::kernel::{FeatureMap, MSExperiment, NumericRange, SpectrumType};
 use crate::metadata::{
-    ImTypes, IonMobilityFormat, IonMobilityPeakType, ProcessingAction, im_peak_type_to_string,
+    ImTypes, IonMobilityFormat, IonMobilityPeakType, MetaValue, ProcessingAction,
+    im_peak_type_to_string,
 };
 use crate::param::Param;
+use crate::processing::feature_overlap_filter::{FaimsMergeFidelity, FeatureOverlapFilter};
 use crate::system::file;
 use crate::{Error, Result};
 use std::io::Write;
@@ -148,8 +196,10 @@ use std::path::Path;
 /// The `FeatureFinderCentroided` TOPP tool.
 ///
 /// Registration, `-write_ini`, every wrapper branch and the algorithm itself
-/// run, so a non-FAIMS input produces a feature map; FAIMS input is refused
-/// (see the module documentation).
+/// run, and so does the FAIMS closure: the split by compensation voltage, one
+/// algorithm run per voltage, the `FAIMS_CV` annotation and the cross-voltage
+/// merge, with the two defects of the source merge corrected (see the module
+/// documentation).
 pub struct FeatureFinderCentroided;
 
 impl FeatureFinderCentroided {
@@ -167,9 +217,12 @@ impl FeatureFinderCentroided {
     /// The informational line `IMDataConverter::splitByFAIMSCV` logs for data
     /// without FAIMS voltages (`IMDataConverter.cpp:34`), which the C++ tool
     /// prints on every run that reaches the split; verbatim, including the
-    /// source's wording.
-    pub const NO_FAIMS_MESSAGE: &'static str =
-        "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.";
+    /// source's wording (`CPP-281`, "Not" for "No").
+    ///
+    /// The split itself produces it, as
+    /// [`ImDataConverter::NO_COMPENSATION_VOLTAGES_INFO`](crate::kernel::im_data_converter::ImDataConverter::NO_COMPENSATION_VOLTAGES_INFO);
+    /// this is the same text under the tool's name.
+    pub const NO_FAIMS_MESSAGE: &'static str = ImDataConverter::NO_COMPENSATION_VOLTAGES_INFO;
 
     /// The per-peak ion-mobility diagnostic
     /// (`FeatureFinderCentroided.cpp:205-208`).
@@ -196,18 +249,104 @@ impl FeatureFinderCentroided {
         format!("FAIMS data detected with {count} compensation voltage(s).")
     }
 
-    /// The refusal of FAIMS input, naming the voltages found, ascending, in
-    /// volts.
+    /// The source's line before each compensation-voltage group
+    /// (`FeatureFinderCentroided.cpp:253`), for `volts` and a group of
+    /// `spectra` spectra.
     ///
-    /// Native: the source processes FAIMS input, and its executed C++ build
-    /// fails on every such input with exit 8; see the module documentation and
-    /// decision D5.
-    pub fn faims_refusal_message(voltages: &[f64]) -> String {
-        let list: Vec<String> = voltages.iter().map(|volts| format!("{volts}")).collect();
+    /// The voltage is formatted as `std::ostream << double` formats it at the
+    /// log stream's default precision 6, the text the executed runs printed
+    /// (`Processing FAIMS CV group: -60 V (56 spectra)`).
+    pub fn processing_group_message(volts: f64, spectra: usize) -> String {
         format!(
-            "Error: FAIMS input is not supported by this port of FeatureFinderCentroided yet (compensation voltages {} V): per-voltage feature detection and the cross-voltage merge are not ported. No output was written.",
-            list.join(", ")
+            "Processing FAIMS CV group: {} V ({spectra} spectra)",
+            ostream_g(volts, DEFAULT_STREAM_PRECISION)
         )
+    }
+
+    /// The source's line after the group loop
+    /// (`FeatureFinderCentroided.cpp:307`).
+    pub fn combined_features_message(features: usize) -> String {
+        format!("Combined {features} features from all FAIMS CV groups.")
+    }
+
+    /// The source's line after the cross-voltage merge
+    /// (`FeatureFinderCentroided.cpp:314-315`).
+    ///
+    /// The source computes the third number as `before - after` in `Size`; the
+    /// merge only removes features, so it never wraps.
+    pub fn faims_merge_message(before: usize, after: usize) -> String {
+        format!(
+            "FAIMS feature merge: {before} -> {after} features (merged {})",
+            before.saturating_sub(after)
+        )
+    }
+
+    /// The largest retention-time difference of the cross-voltage merge, in
+    /// seconds: the source's literal argument
+    /// (`FeatureFinderCentroided.cpp:313`), not the parameter default.
+    pub const FAIMS_MERGE_MAX_RT_DIFF: f64 = 5.0;
+
+    /// The largest m/z difference of the cross-voltage merge, in Da
+    /// (`FeatureFinderCentroided.cpp:313`).
+    pub const FAIMS_MERGE_MAX_MZ_DIFF: f64 = 0.05;
+
+    /// Which cross-voltage merge the tool runs: the **corrected** one, the
+    /// tool's one designed difference in the FAIMS closure.
+    ///
+    /// [`FaimsMergeFidelity::Corrected`] answers two executed defects of the
+    /// source merge:
+    ///
+    /// - `CPP-282`: removal keys on unique IDs, and
+    ///   `FeatureFinderAlgorithmPicked` returns every feature with ID 0, so the
+    ///   source's merge erases every FAIMS feature. The tool draws a unique ID
+    ///   for each feature before merging, from the generator whose later draws
+    ///   overwrite them, so the merge keys on real IDs.
+    /// - `CPP-283`: the loop offers a feature it has already removed to a later
+    ///   survivor, and a survivor refuses every merge after its first. A
+    ///   cluster of features at pairwise different voltages therefore collapses
+    ///   to one feature whose intensity is the sum of the cluster, each member
+    ///   counted once.
+    ///
+    /// Setting it to [`FaimsMergeFidelity::Source`] would reproduce the source:
+    /// an empty feature map for every FAIMS input with `-faims_merge_features
+    /// true`. That is a silent wrong answer, not a crash, so it is
+    /// reproducible; it is exercised at the library level
+    /// (`tests/feature_overlap_filter.rs`) rather than shipped in the tool.
+    pub const FAIMS_MERGE_FIDELITY: FaimsMergeFidelity = FaimsMergeFidelity::Corrected;
+
+    /// The seeds of one compensation-voltage group
+    /// (`FeatureFinderCentroided.cpp:258-281`).
+    ///
+    /// Without FAIMS input, or with an empty seed list, the whole list is used
+    /// as it is. Otherwise a seed with a `FAIMS_CV` meta value joins the group
+    /// when the two voltages differ by less than
+    /// [`FaimsHelper::DEFAULT_CV_TOLERANCE`](crate::kernel::faims_helper::FaimsHelper::DEFAULT_CV_TOLERANCE)
+    /// (the source's literal `0.01`), and a seed without one joins every group,
+    /// *for backward compatibility* as the source comment says. The filtered
+    /// list is a fresh map, as the source's `FeatureMap seeds_cv` is, so it
+    /// carries none of the seed map's own identifier, metadata or
+    /// identifications.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when a seed's `FAIMS_CV` is not numeric; the
+    /// source's `double seed_cv = seed.getMetaValue(...)` throws
+    /// `ConversionError` there.
+    pub fn seeds_of_group(seeds: &FeatureMap, has_faims: bool, volts: f64) -> Result<FeatureMap> {
+        if !has_faims || seeds.features.is_empty() {
+            return Ok(seeds.clone());
+        }
+        let mut group = FeatureMap::new();
+        for seed in &seeds.features {
+            let keep = match seed.metadata.get(FAIMS_CV) {
+                Some(value) => (value.as_f64()? - volts).abs() < FaimsHelper::DEFAULT_CV_TOLERANCE,
+                None => true,
+            };
+            if keep {
+                group.features.push(seed.clone());
+            }
+        }
+        Ok(group)
     }
 
     /// The source `PeakFileOptions` of `main_`
@@ -465,129 +604,111 @@ impl Tool for FeatureFinderCentroided {
         // debug level 3 (writeDebug_) is not ported by the TOPP framework.
         let parameters = ctx.subsection("algorithm")?;
 
-        // The FAIMS split (238-244), refused until its closure is ported (D5).
-        let voltages = FaimsHelper::get_compensation_voltages(&experiment)?;
-        for warning in &voltages.warnings {
-            writeln!(err, "{warning}")?;
-        }
-        if !voltages.voltages.is_empty() {
-            let values: Vec<f64> = voltages.values().collect();
-            writeln!(out, "{}", Self::faims_detected_message(values.len()))?;
-            writeln!(err, "{}", Self::faims_refusal_message(&values))?;
-            return Ok(ExitCode::IncompatibleInputData);
-        }
+        // The two log-stream caches of the process: OPENMS_LOG_INFO on stdout
+        // and OPENMS_LOG_WARN on stderr.
         let mut info = LogStreamLines::default();
         let mut warn = LogStreamLines::default();
-        info.line(out, Self::NO_FAIMS_MESSAGE)?;
-
-        // The algorithm (283-291), on the worker count -threads asks for, as
-        // TOPPBase applies the setting before main_ (TOPPBase.cpp:408-415).
-        // A fresh object per run, as the source's loop body creates one.
-        let options = Options {
-            threads: ctx.thread_policy(),
-            ..Options::default()
-        };
-        let mut finder = FeatureFinderAlgorithmPicked::with_options(options)?;
-        let mut features = FeatureMap::new();
-        let outcome = finder.run(experiment, &mut features, &parameters, &seeds);
-        let debug = finder.take_debug_output();
         let mut generator = ctx.unique_id_generator();
-        if let Some(debug) = &debug {
-            write_debug_log(debug)?;
-        }
-        // The console lines and debug stores, in the order the source makes
-        // them.
-        for line in finder.report() {
-            match line {
-                ReportLine::Out(text) => writeln!(out, "{text}")?,
-                ReportLine::Info(text) => info.line(out, text)?,
-                ReportLine::Warn(text) => warn.line(out, text)?,
-                ReportLine::StoreSeedMap(index) => {
-                    if let Some(seeds) = debug.as_ref().and_then(|d| d.seed_maps.get(*index)) {
-                        let name = format!("debug/seeds_{}.featureXML", seeds.charge);
-                        store_debug_features(&name, &seeds.map, &mut info, out)?;
-                    }
-                }
-                ReportLine::StoreAbortReasons => {
-                    if let Some(map) = debug.as_ref().and_then(|d| d.abort_reasons.as_ref()) {
-                        // `abort_map.setUniqueId()` draws from the generator
-                        // the output ids come from later.
-                        let mut map = map.clone();
-                        map.unique_id = generator.get_unique_id();
-                        store_debug_features(
-                            "debug/abort_reasons.featureXML",
-                            &map,
-                            &mut info,
-                            out,
-                        )?;
-                    }
-                }
-                ReportLine::StoreInput => {
-                    if let Some(input) = debug.as_ref().and_then(|d| d.input.as_ref()) {
-                        crate::format::path_io::write(Path::new("debug/input.mzML"), |writer| {
-                            crate::format::mzml::write_source_float_arrays(writer, input)
-                        })?;
-                    }
-                }
+
+        // The FAIMS split (238-244). Its log records come first, as the source
+        // writes them from inside splitByFAIMSCV.
+        let mut experiment = experiment;
+        let split = ImDataConverter::split_by_faims_cv(&mut experiment)?;
+        for message in &split.messages {
+            match message.level() {
+                FaimsSplitLogLevel::Info => info.line(out, &message.text())?,
+                FaimsSplitLogLevel::Warning => warn.line(err, &message.text())?,
             }
         }
-        if let Some(debug) = &debug {
-            for files in &debug.feature_files {
-                crate::format::path_io::store(Path::new(&files.dta_name()), files.dta.as_bytes())?;
-                if let Some(cropped) = &files.cropped_dta {
-                    crate::format::path_io::store(
-                        Path::new(&files.cropped_dta_name()),
-                        cropped.as_bytes(),
-                    )?;
+        let has_faims = split.has_faims();
+        if has_faims {
+            info.line(out, &Self::faims_detected_message(split.groups.len()))?;
+        }
+
+        // One run of the algorithm per compensation-voltage group (246-302),
+        // in ascending voltage order; exactly one group for non-FAIMS input.
+        let mut features = FeatureMap::new();
+        for group in split.groups {
+            let volts = group.key.volts();
+            if has_faims {
+                info.line(
+                    out,
+                    &Self::processing_group_message(volts, group.experiment.spectra.len()),
+                )?;
+            }
+            let group_seeds = match Self::seeds_of_group(&seeds, has_faims, volts) {
+                Ok(group_seeds) => group_seeds,
+                Err(error) => {
+                    // A non-numeric FAIMS_CV on a seed is a ConversionError in
+                    // the source, which reaches TOPPBase's catch-all.
+                    writeln!(err, "Error: Unexpected internal error ({error})")?;
+                    return Ok(ExitCode::UnknownError);
                 }
-                crate::format::path_io::store(Path::new(&files.plot_name()), &files.plot)?;
+            };
+            let mut group_features = FeatureMap::new();
+            if let Some(code) = run_group(
+                ctx,
+                group.experiment,
+                &mut group_features,
+                &parameters,
+                &group_seeds,
+                out,
+                err,
+                &mut info,
+                &mut warn,
+                &mut generator,
+            )? {
+                return Ok(code);
+            }
+            if features.features.len() + group_features.features.len() > FeatureMap::MAX_ITEMS {
+                return Err(Error::InvalidValue(format!(
+                    "the FAIMS groups produced more than {} features",
+                    FeatureMap::MAX_ITEMS
+                )));
+            }
+            for mut feature in group_features.features {
+                if has_faims {
+                    feature
+                        .metadata
+                        .insert(FAIMS_CV.to_owned(), MetaValue::try_from(volts)?);
+                }
+                features.features.push(feature);
             }
         }
-        match outcome {
-            Ok(()) => {}
-            Err(error) => {
-                if let Some(termination) = debug
-                    .as_ref()
-                    .and_then(|d| d.termination.as_ref())
-                    .filter(|t| t.kind == TerminationKind::Exception)
-                {
-                    // The source process terminates here (std::terminate from
-                    // an exception that leaves the OpenMP region, then
-                    // SIGABRT). The port reports the exception as TOPPBase
-                    // reports it where it can catch it. Where the source dies
-                    // from an out-of-bounds access or never returns, the
-                    // port's refusal is reported below like any other error;
-                    // either way the debug log holds only what the executed
-                    // process had flushed (`write_debug_log`).
-                    let _ = error;
-                    writeln!(
-                        err,
-                        "Error: Unexpected internal error ({})",
-                        termination.message
-                    )?;
+
+        // The cross-voltage merge (304-318).
+        if has_faims {
+            info.line(
+                out,
+                &Self::combined_features_message(features.features.len()),
+            )?;
+            if ctx.string("faims_merge_features")? == "true" {
+                let before = features.features.len();
+                if Self::FAIMS_MERGE_FIDELITY == FaimsMergeFidelity::Corrected {
+                    // The merge keys removal on unique ids and the algorithm
+                    // leaves every feature with id 0, so the source erases them
+                    // all (CPP-282). The ids drawn here are overwritten by
+                    // `finish_features_with` a few lines below, exactly as the
+                    // source's `applyMemberFunction(setUniqueId)` overwrites
+                    // whatever the features carried.
+                    for feature in &mut features.features {
+                        feature.unique_id = generator.get_unique_id();
+                    }
+                }
+                let merged = FeatureOverlapFilter::merge_faims_features_with_fidelity(
+                    &mut features,
+                    Self::FAIMS_MERGE_MAX_RT_DIFF,
+                    Self::FAIMS_MERGE_MAX_MZ_DIFF,
+                    Self::FAIMS_MERGE_FIDELITY,
+                );
+                if let Err(error) = merged {
+                    writeln!(err, "Error: Unexpected internal error ({error})")?;
                     return Ok(ExitCode::UnknownError);
                 }
-                if seeds::is_length_error(&error) {
-                    // `std::length_error` is no `BaseException`: TOPPBase's
-                    // outer `catch (const std::exception&)` reports it
-                    // (TOPPBase.cpp:519-522), after the stack unwinding has
-                    // flushed and closed the debug log.
-                    writeln!(
-                        err,
-                        "Unable to initialize or run {}: {}",
-                        Self::NAME,
-                        seeds::LENGTH_ERROR_WHAT
-                    )?;
-                    return Ok(ExitCode::InternalError);
-                }
-                if let Error::InvalidValue(message) = &error {
-                    // The algorithm's IllegalArgument and InvalidValue
-                    // exceptions reach TOPPBase's catch-all
-                    // (TOPPBase.cpp:495-499).
-                    writeln!(err, "Error: Unexpected internal error ({message})")?;
-                    return Ok(ExitCode::UnknownError);
-                }
-                return Err(error);
+                info.line(
+                    out,
+                    &Self::faims_merge_message(before, features.features.len()),
+                )?;
             }
         }
 
@@ -596,8 +717,134 @@ impl Tool for FeatureFinderCentroided {
         FileHandler::store_feature_map(&output, &features, Some(FileType::FeatureXml))?;
         // TOPPBase's closing info line and the log streams' caches at exit.
         info.close(out)?;
-        warn.close(out)?;
+        warn.close(err)?;
         Ok(ExitCode::ExecutionOk)
+    }
+}
+
+/// One run of the picked feature finder on one compensation-voltage group
+/// (`FeatureFinderCentroided.cpp:283-291`), with the debug files and console
+/// lines that run writes.
+///
+/// A fresh [`FeatureFinderAlgorithmPicked`] per group, as the source's loop
+/// body creates one, running into the empty `features` of that group. Returns
+/// `Some(code)` when the run failed in a way the source's `TOPPBase` reports
+/// with that exit code, and the tool must stop; the debug files the run had
+/// written are on disk either way, as they are in the executed process. The
+/// source's fixed debug file names mean a later group overwrites an earlier
+/// group's files, which this reproduces by writing them the same way per group.
+#[allow(clippy::too_many_arguments)]
+fn run_group(
+    ctx: &ToolContext,
+    experiment: MSExperiment,
+    features: &mut FeatureMap,
+    parameters: &Param,
+    seeds: &FeatureMap,
+    out: &mut dyn Write,
+    err: &mut dyn Write,
+    info: &mut LogStreamLines,
+    warn: &mut LogStreamLines,
+    generator: &mut UniqueIdGenerator,
+) -> Result<Option<ExitCode>> {
+    // The algorithm (283-291), on the worker count -threads asks for, as
+    // TOPPBase applies the setting before main_ (TOPPBase.cpp:408-415).
+    let options = Options {
+        threads: ctx.thread_policy(),
+        ..Options::default()
+    };
+    let mut finder = FeatureFinderAlgorithmPicked::with_options(options)?;
+    let outcome = finder.run(experiment, features, parameters, seeds);
+    let debug = finder.take_debug_output();
+    if let Some(debug) = &debug {
+        write_debug_log(debug)?;
+    }
+    // The console lines and debug stores, in the order the source makes them.
+    for line in finder.report() {
+        match line {
+            ReportLine::Out(text) => writeln!(out, "{text}")?,
+            ReportLine::Info(text) => info.line(out, text)?,
+            ReportLine::Warn(text) => warn.line(err, text)?,
+            ReportLine::StoreSeedMap(index) => {
+                if let Some(seeds) = debug.as_ref().and_then(|d| d.seed_maps.get(*index)) {
+                    let name = format!("debug/seeds_{}.featureXML", seeds.charge);
+                    store_debug_features(&name, &seeds.map, info, out)?;
+                }
+            }
+            ReportLine::StoreAbortReasons => {
+                if let Some(map) = debug.as_ref().and_then(|d| d.abort_reasons.as_ref()) {
+                    // `abort_map.setUniqueId()` draws from the generator
+                    // the output ids come from later.
+                    let mut map = map.clone();
+                    map.unique_id = generator.get_unique_id();
+                    store_debug_features("debug/abort_reasons.featureXML", &map, info, out)?;
+                }
+            }
+            ReportLine::StoreInput => {
+                if let Some(input) = debug.as_ref().and_then(|d| d.input.as_ref()) {
+                    crate::format::path_io::write(Path::new("debug/input.mzML"), |writer| {
+                        crate::format::mzml::write_source_float_arrays(writer, input)
+                    })?;
+                }
+            }
+        }
+    }
+    if let Some(debug) = &debug {
+        for files in &debug.feature_files {
+            crate::format::path_io::store(Path::new(&files.dta_name()), files.dta.as_bytes())?;
+            if let Some(cropped) = &files.cropped_dta {
+                crate::format::path_io::store(
+                    Path::new(&files.cropped_dta_name()),
+                    cropped.as_bytes(),
+                )?;
+            }
+            crate::format::path_io::store(Path::new(&files.plot_name()), &files.plot)?;
+        }
+    }
+    match outcome {
+        Ok(()) => Ok(None),
+        Err(error) => {
+            if let Some(termination) = debug
+                .as_ref()
+                .and_then(|d| d.termination.as_ref())
+                .filter(|t| t.kind == TerminationKind::Exception)
+            {
+                // The source process terminates here (std::terminate from an
+                // exception that leaves the OpenMP region, then SIGABRT). The
+                // port reports the exception as TOPPBase reports it where it
+                // can catch it. Where the source dies from an out-of-bounds
+                // access or never returns, the port's refusal is reported
+                // below like any other error; either way the debug log holds
+                // only what the executed process had flushed
+                // (`write_debug_log`).
+                let _ = error;
+                writeln!(
+                    err,
+                    "Error: Unexpected internal error ({})",
+                    termination.message
+                )?;
+                return Ok(Some(ExitCode::UnknownError));
+            }
+            if seeds::is_length_error(&error) {
+                // `std::length_error` is no `BaseException`: TOPPBase's outer
+                // `catch (const std::exception&)` reports it
+                // (TOPPBase.cpp:519-522), after the stack unwinding has
+                // flushed and closed the debug log.
+                writeln!(
+                    err,
+                    "Unable to initialize or run {}: {}",
+                    FeatureFinderCentroided::NAME,
+                    seeds::LENGTH_ERROR_WHAT
+                )?;
+                return Ok(Some(ExitCode::InternalError));
+            }
+            if let Error::InvalidValue(message) = &error {
+                // The algorithm's IllegalArgument and InvalidValue exceptions
+                // reach TOPPBase's catch-all (TOPPBase.cpp:495-499).
+                writeln!(err, "Error: Unexpected internal error ({message})")?;
+                return Ok(Some(ExitCode::UnknownError));
+            }
+            Err(error)
+        }
     }
 }
 

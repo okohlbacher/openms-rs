@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_4835329514588776807" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="spectra_data" value="[file://group3_m45.mzML]"/>
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FeatureFinderCentroided" version="version_string" />
+		<processingAction name="Quantitation" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<featureList count="8">
+		<feature id="f_17749660155506638460">
+			<position dim="0">4407.157683172910765</position>
+			<position dim="1">646.244835940261055</position>
+			<intensity>5.0499973e04</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.902872</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="4374.1899999999996" y="646.24224853515625" />
+				<pt x="4443.420000000000073" y="646.24224853515625" />
+				<pt x="4443.420000000000073" y="646.258544921875" />
+				<pt x="4374.1899999999996" y="646.258544921875" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="4374.1899999999996" y="646.73779296875" />
+				<pt x="4443.420000000000073" y="646.73779296875" />
+				<pt x="4443.420000000000073" y="646.75372314453125" />
+				<pt x="4374.1899999999996" y="646.75372314453125" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="4374.1899999999996" y="647.248046875" />
+				<pt x="4443.420000000000073" y="647.248046875" />
+				<pt x="4443.420000000000073" y="647.26251220703125" />
+				<pt x="4374.1899999999996" y="647.26251220703125" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="4394.659999999999854" y="647.729736328125" />
+				<pt x="4443.420000000000073" y="647.729736328125" />
+				<pt x="4443.420000000000073" y="647.74444580078125" />
+				<pt x="4394.659999999999854" y="647.74444580078125" />
+			</convexhull>
+			<UserParam type="int" name="label" value="0"/>
+			<UserParam type="float" name="score_fit" value="0.818325481707459"/>
+			<UserParam type="float" name="score_correlation" value="0.996154578435931"/>
+			<UserParam type="float" name="FWHM" value="35.353244781494141"/>
+			<UserParam type="int" name="num_of_datapoints" value="28"/>
+			<UserParam type="int" name="spectrum_index" value="30"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=91"/>
+		</feature>
+		<feature id="f_7804704400743266335">
+			<position dim="0">4388.999406220842502</position>
+			<position dim="1">648.257121711850118</position>
+			<intensity>4.5009867e04</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.892899</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="4363.949999999999818" y="648.25390625" />
+				<pt x="4414.529999999999745" y="648.25390625" />
+				<pt x="4414.529999999999745" y="648.2694091796875" />
+				<pt x="4363.949999999999818" y="648.2694091796875" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="4363.949999999999818" y="648.75006103515625" />
+				<pt x="4414.529999999999745" y="648.75006103515625" />
+				<pt x="4414.529999999999745" y="648.77777099609375" />
+				<pt x="4363.949999999999818" y="648.77777099609375" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="4363.949999999999818" y="649.2584228515625" />
+				<pt x="4414.529999999999745" y="649.2584228515625" />
+				<pt x="4414.529999999999745" y="649.2755126953125" />
+				<pt x="4363.949999999999818" y="649.2755126953125" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="4374.1899999999996" y="649.75616455078125" />
+				<pt x="4414.529999999999745" y="649.75616455078125" />
+				<pt x="4414.529999999999745" y="649.7862548828125" />
+				<pt x="4374.1899999999996" y="649.7862548828125" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="4363.949999999999818" y="650.26763916015625" />
+				<pt x="4394.659999999999854" y="650.26763916015625" />
+				<pt x="4394.659999999999854" y="650.28240966796875" />
+				<pt x="4363.949999999999818" y="650.28240966796875" />
+			</convexhull>
+			<UserParam type="int" name="label" value="1"/>
+			<UserParam type="float" name="score_fit" value="0.801376750834107"/>
+			<UserParam type="float" name="score_correlation" value="0.994872640532184"/>
+			<UserParam type="float" name="FWHM" value="32.345493316650391"/>
+			<UserParam type="int" name="num_of_datapoints" value="27"/>
+			<UserParam type="int" name="spectrum_index" value="28"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=85"/>
+		</feature>
+		<feature id="f_15004869347769368353">
+			<position dim="0">4301.133134634352245</position>
+			<position dim="1">651.76128033548548</position>
+			<intensity>3.402734e04</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.879944</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="4273.460000000000036" y="651.7569580078125" />
+				<pt x="4333.449999999999818" y="651.7569580078125" />
+				<pt x="4333.449999999999818" y="651.77178955078125" />
+				<pt x="4273.460000000000036" y="651.77178955078125" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="4273.460000000000036" y="652.255126953125" />
+				<pt x="4333.449999999999818" y="652.255126953125" />
+				<pt x="4333.449999999999818" y="652.2703857421875" />
+				<pt x="4273.460000000000036" y="652.2703857421875" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="4273.460000000000036" y="652.75238037109375" />
+				<pt x="4333.449999999999818" y="652.75238037109375" />
+				<pt x="4333.449999999999818" y="652.76727294921875" />
+				<pt x="4273.460000000000036" y="652.76727294921875" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="4273.460000000000036" y="653.24993896484375" />
+				<pt x="4333.449999999999818" y="653.24993896484375" />
+				<pt x="4333.449999999999818" y="653.27947998046875" />
+				<pt x="4273.460000000000036" y="653.27947998046875" />
+			</convexhull>
+			<UserParam type="int" name="label" value="2"/>
+			<UserParam type="float" name="score_fit" value="0.777117714005656"/>
+			<UserParam type="float" name="score_correlation" value="0.996375527296357"/>
+			<UserParam type="float" name="FWHM" value="34.209266662597656"/>
+			<UserParam type="int" name="num_of_datapoints" value="28"/>
+			<UserParam type="int" name="spectrum_index" value="19"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=58"/>
+		</feature>
+		<feature id="f_3332699010107892018">
+			<position dim="0">4278.268031987570794</position>
+			<position dim="1">653.772104067661758</position>
+			<intensity>1.9694748e04</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.939056</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="4254.199999999999818" y="653.76214599609375" />
+				<pt x="4302.75" y="653.76214599609375" />
+				<pt x="4302.75" y="653.77667236328125" />
+				<pt x="4254.199999999999818" y="653.77667236328125" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="4254.199999999999818" y="654.26055908203125" />
+				<pt x="4302.75" y="654.26055908203125" />
+				<pt x="4302.75" y="654.28887939453125" />
+				<pt x="4254.199999999999818" y="654.28887939453125" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="4254.199999999999818" y="654.75567626953125" />
+				<pt x="4302.75" y="654.75567626953125" />
+				<pt x="4302.75" y="654.77288818359375" />
+				<pt x="4254.199999999999818" y="654.77288818359375" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="4254.199999999999818" y="655.2545166015625" />
+				<pt x="4302.75" y="655.2545166015625" />
+				<pt x="4302.75" y="655.28533935546875" />
+				<pt x="4254.199999999999818" y="655.28533935546875" />
+			</convexhull>
+			<UserParam type="int" name="label" value="3"/>
+			<UserParam type="float" name="score_fit" value="0.887027704797639"/>
+			<UserParam type="float" name="score_correlation" value="0.994136881403933"/>
+			<UserParam type="float" name="FWHM" value="31.006431579589844"/>
+			<UserParam type="int" name="num_of_datapoints" value="24"/>
+			<UserParam type="int" name="spectrum_index" value="17"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=52"/>
+		</feature>
+		<feature id="f_13440783915218733453">
+			<position dim="0">4201.963720126763292</position>
+			<position dim="1">652.767491074835334</position>
+			<intensity>1.2802996e04</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.9058</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="4175.729999999999563" y="652.75146484375" />
+				<pt x="4234.930000000000291" y="652.75146484375" />
+				<pt x="4234.930000000000291" y="652.78094482421875" />
+				<pt x="4175.729999999999563" y="652.78094482421875" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="4185.760000000000218" y="653.26312255859375" />
+				<pt x="4234.930000000000291" y="653.26312255859375" />
+				<pt x="4234.930000000000291" y="653.279296875" />
+				<pt x="4185.760000000000218" y="653.279296875" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="4175.729999999999563" y="653.7618408203125" />
+				<pt x="4234.930000000000291" y="653.7618408203125" />
+				<pt x="4234.930000000000291" y="653.791015625" />
+				<pt x="4175.729999999999563" y="653.791015625" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="4175.729999999999563" y="654.2449951171875" />
+				<pt x="4234.930000000000291" y="654.2449951171875" />
+				<pt x="4234.930000000000291" y="654.2740478515625" />
+				<pt x="4175.729999999999563" y="654.2740478515625" />
+			</convexhull>
+			<UserParam type="int" name="label" value="4"/>
+			<UserParam type="float" name="score_fit" value="0.826728363569497"/>
+			<UserParam type="float" name="score_correlation" value="0.992433628626795"/>
+			<UserParam type="float" name="FWHM" value="32.259033203125"/>
+			<UserParam type="int" name="num_of_datapoints" value="26"/>
+			<UserParam type="int" name="spectrum_index" value="9"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=28"/>
+		</feature>
+		<feature id="f_15916652588957785155">
+			<position dim="0">4221.610088053402251</position>
+			<position dim="1">646.766440532254705</position>
+			<intensity>8527.775391</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.91162</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="4196.0" y="646.75311279296875" />
+				<pt x="4254.199999999999818" y="646.75311279296875" />
+				<pt x="4254.199999999999818" y="646.768798828125" />
+				<pt x="4196.0" y="646.768798828125" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="4196.0" y="647.261962890625" />
+				<pt x="4244.5600000000004" y="647.261962890625" />
+				<pt x="4244.5600000000004" y="647.27691650390625" />
+				<pt x="4196.0" y="647.27691650390625" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="4196.0" y="647.75921630859375" />
+				<pt x="4244.5600000000004" y="647.75921630859375" />
+				<pt x="4244.5600000000004" y="647.77215576171875" />
+				<pt x="4196.0" y="647.77215576171875" />
+			</convexhull>
+			<UserParam type="int" name="label" value="5"/>
+			<UserParam type="float" name="score_fit" value="0.849673421644404"/>
+			<UserParam type="float" name="score_correlation" value="0.978083159497633"/>
+			<UserParam type="float" name="FWHM" value="32.776988983154297"/>
+			<UserParam type="int" name="num_of_datapoints" value="18"/>
+			<UserParam type="int" name="spectrum_index" value="11"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=34"/>
+		</feature>
+		<feature id="f_15157403601844400700">
+			<position dim="0">4399.189720010568635</position>
+			<position dim="1">644.25308432268821</position>
+			<intensity>4171.593262</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.744582</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="4353.920000000000073" y="644.23651123046875" />
+				<pt x="4462.6899999999996" y="644.23651123046875" />
+				<pt x="4462.6899999999996" y="644.2662353515625" />
+				<pt x="4353.920000000000073" y="644.2662353515625" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="4353.920000000000073" y="644.73089599609375" />
+				<pt x="4424.170000000000073" y="644.73089599609375" />
+				<pt x="4424.170000000000073" y="644.7606201171875" />
+				<pt x="4353.920000000000073" y="644.7606201171875" />
+			</convexhull>
+			<UserParam type="int" name="label" value="6"/>
+			<UserParam type="float" name="score_fit" value="0.824611707717518"/>
+			<UserParam type="float" name="score_correlation" value="0.672318992961401"/>
+			<UserParam type="float" name="FWHM" value="76.924720764160156"/>
+			<UserParam type="int" name="num_of_datapoints" value="19"/>
+			<UserParam type="int" name="spectrum_index" value="29"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=88"/>
+		</feature>
+		<feature id="f_6408859317243173796">
+			<position dim="0">4322.756822292973084</position>
+			<position dim="1">656.771833646480218</position>
+			<intensity>3829.223389</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.909373</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="4283.100000000000364" y="656.76513671875" />
+				<pt x="4343.6899999999996" y="656.76513671875" />
+				<pt x="4343.6899999999996" y="656.7808837890625" />
+				<pt x="4283.100000000000364" y="656.7808837890625" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="4283.100000000000364" y="657.24871826171875" />
+				<pt x="4333.449999999999818" y="657.24871826171875" />
+				<pt x="4333.449999999999818" y="657.28125" />
+				<pt x="4283.100000000000364" y="657.28125" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="4302.75" y="657.7647705078125" />
+				<pt x="4343.6899999999996" y="657.7647705078125" />
+				<pt x="4343.6899999999996" y="657.7950439453125" />
+				<pt x="4302.75" y="657.7950439453125" />
+			</convexhull>
+			<UserParam type="int" name="label" value="7"/>
+			<UserParam type="float" name="score_fit" value="0.861510132617831"/>
+			<UserParam type="float" name="score_correlation" value="0.959895509569467"/>
+			<UserParam type="float" name="FWHM" value="50.028816223144531"/>
+			<UserParam type="int" name="num_of_datapoints" value="17"/>
+			<UserParam type="int" name="spectrum_index" value="21"/>
+			<UserParam type="string" name="spectrum_native_id" value="spectrum=64"/>
+		</feature>
+	</featureList>
+</featureMap>
