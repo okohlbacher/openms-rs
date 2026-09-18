@@ -4,7 +4,8 @@ Native coverage of the FileInfo TOPP tool, `OpenMS4-topp/src/FileInfo.cpp` at
 topp `174b576e244e100f2345ca57a8e79aaa607156df`, on top of the TOPPBase
 lifecycle (`docs/TOPP_CLI_SUPPORT.md`) and the FileInfo library
 (`docs/FILE_INFO_SUPPORT.md`). Work package A5-FILEINFO-TOOL of the early TOPP
-bundle, stage 1 of the FileInfo preview; `-i`, `-d` and `-c` are A6, the
+bundle, stage 1 of the FileInfo preview; `-i`, `-d` and `-c` are A6, which has
+landed — see [FILE_INFO_CHECKS_SUPPORT](FILE_INFO_CHECKS_SUPPORT.md) — the
 consensusXML, identification and FASTA branches A7, and `-v`, mzXML, mzData and
 trafoXML A8.
 
@@ -32,9 +33,10 @@ does here:
 | --- | --- | --- |
 | `dta`, `dta2d`, `mzML` | none, `-m`, `-p`, `-s` (any combination) | full report to `-out` or the output stream, TSV to `-out_tsv` |
 | `featureXML` | none, `-m`, `-p`, `-s`, and `-d`/`-c`, which the source ignores there | full report and TSV |
-| any of the above | `-d` or `-c` on a peak file | exit 11, `Error: unsupported: FileInfo detailed spectrum and chromatogram listing (-d) is not ported` / `... corrupt-data check (-c) is not ported` (A6) |
+| `dta`, `dta2d`, `mzML` | `-d`, `-c`, in any combination with the above | the detailed listing and the corrupt-data check in the report, A6 |
 | any | `-v` | exit 11, `... schema and semantic validation (-v) is not ported` (A8) |
-| `mzML` | `-i` | exit 11, `... indexed-mzML check (-i) is not ported` (A6) |
+| `mzML` | `-i`, valid index | the index line, then the content; exit 0 (A6) |
+| `mzML` | `-i`, no index | the failure text and nothing after it; exit 6 (A6) |
 | non-mzML | `-i` | exit 6 with the source's message and the usage text, before the library runs |
 | `mzXML`, `mzData`, `mgf`, `sqMass`, `fid` | any | exit 11, `... peak-file branch for <type> input is not ported` |
 | `consensusXML`, `idXML`, `mzid`, `pepXML`, `mzTab`, `trafoXML`, `fasta`, `pqp` | any | exit 11, `FileInfo <type> branch is not ported` |
@@ -66,7 +68,7 @@ Every member of the source `TOPPFileInfo` and the behaviour it carries.
 | `FileInfo::Options` assignment (eight members plus `log_type_`) | the `Options` literal in `run_io`, plus the native `source_dangling_references` |
 | `FileInfo fi; fi.run(in, opt)` | `format::file_info::report::FileInfo::new().run(&input, &options)` |
 | `os << FileInfo::toText(r)`, `os_tsv << FileInfo::toTSV(r)` | `write_all` of `to_text` and `to_tsv` |
-| `if (opt.check_index && r.validation.index_checked && !r.validation.index_valid) return ILLEGAL_PARAMETERS;` | the same condition; unreachable until A6 ports `-i` |
+| `if (opt.check_index && r.validation.index_checked && !r.validation.index_valid) return ILLEGAL_PARAMETERS;` | the same condition, reached since A6; TOPP_FileInfo_11's `WILL_FAIL` exit code is reproduced |
 | `PARSE_ERROR`, `ILLEGAL_PARAMETERS`, `EXECUTION_OK` | `ExitCode::ParseError`, `IllegalParameters`, `ExecutionOk` |
 | `throw Exception::FileNotWritable(...)` in `main_` | `open_output`'s `UNKNOWN_ERROR` with the source's `BaseException` wording; the source path is unreachable after `outputFileWritable_`, this one is reached for a directory (oracle `out_is_directory`) |
 | `int main(int argc, const char** argv)` | `src/bin/FileInfo.rs`, three lines around `cli::run::<FileInfo>()` |
@@ -119,8 +121,10 @@ Every member of the source `TOPPFileInfo` and the behaviour it carries.
    `FileInfo_9_strict_reader.mzML`, whose C++ report is identical apart from the
    file name, and the original input's refusal is asserted as a tripwire
    (`topp_file_info_9_registered_input_is_refused_by_the_mzml_reader`).
-   FileInfo_12's input hits the same `charge array` gap, but `-i` is refused
-   before it is read.
+   FileInfo_12's input hits the same `charge array` gap. Since A6 its *index*
+   is checked and parses with the counts the C++ reports, but the content after
+   it still cannot be read, so TOPP_FileInfo_12's exit code stays out of reach
+   and the loadable `-i` cases use the core `IndexedmzMLFile_1` fixture.
 3. **A forced type the file contradicts.** The source's loaders detect the type
    themselves and throw when it is not the forced one: `ParseError`, exit 3, from
    `loadExperiment` (oracle `forced_dta_on_featurexml`,
@@ -186,7 +190,9 @@ numeric tolerance is applied outside the registered FuzzyDiff comparisons.
 
 ## Deferrals
 
-- `-i`, `-d` and `-c` (A6), which also close TOPP_FileInfo_11, _12 and _19.
+- `-i`, `-d` and `-c` are no longer deferred: A6 ported them and closed
+  TOPP_FileInfo_11 and _19. TOPP_FileInfo_12 stays open on the `charge array`
+  reader gap, not on the flag.
 - consensusXML, idXML/mzIdentML and FASTA (A7): TOPP_FileInfo_7, _10, _13, _17,
   _18 and _20.
 - `-v`, mzXML, mzData and trafoXML (A8): TOPP_FileInfo_4, _5, _6, _14, _15 and
