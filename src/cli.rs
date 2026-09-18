@@ -1356,26 +1356,11 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
 /// standard error; so does every diagnostic. `out` receives what the source
 /// writes through its info log, such as the INI-version notice and a tool's
 /// report.
-///
-/// The first thing it does is
-/// [`check_required_cpu_features`](crate::system::build_info::check_required_cpu_features):
-/// an x86 binary of this repository is built with `-C target-feature=+fma`, and
-/// on a processor without those instructions this returns
-/// [`ExitCode::InternalError`] with the message that says so and how to build
-/// one that runs. Nothing is printed and nothing changes on a processor that
-/// has them, which is every machine the gates and CI run on.
 pub fn run_with<T: Tool>(
     arguments: &[String],
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> ExitCode {
-    // Before anything else: this binary may need instructions the processor
-    // does not have (`.cargo/config.toml` builds x86 with
-    // `-C target-feature=+fma`). Refuse with the remedy rather than leave the
-    // machine with SIGILL.
-    if !crate::system::build_info::check_required_cpu_features(err) {
-        return ExitCode::InternalError;
-    }
     let spec = match tool_spec::<T>() {
         Ok(spec) => spec,
         Err(error) => return initialisation_failure::<T>(&error, err),

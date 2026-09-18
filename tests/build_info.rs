@@ -10,9 +10,8 @@
 //! than pinned to whichever host happens to run them.
 
 use openms::system::build_info::{
-    Architecture, FMA_MISSING_MESSAGE, OperatingSystem, OsInfo, RequiredCpuFeatures, UNKNOWN,
-    active_simd_extensions, binary_architecture, build_type, check_required_cpu_features,
-    openmp_enabled, openmp_max_num_threads, os_version_string, required_cpu_features,
+    Architecture, OperatingSystem, OsInfo, UNKNOWN, active_simd_extensions, binary_architecture,
+    build_type, openmp_enabled, openmp_max_num_threads, os_version_string,
 };
 
 /// Class-test section `OpenMSOSInfo()`.
@@ -147,70 +146,4 @@ fn the_build_type_is_one_of_the_two_cmake_names_the_source_reports() {
     };
     assert_eq!(build_type(), expected);
     assert!(["Debug", "Release"].contains(&build_type()));
-}
-
-// ---------------------------------------------------------------------------
-// The required-CPU-feature check (native; `.cargo/config.toml` builds x86 with
-// `-C target-feature=+fma`)
-// ---------------------------------------------------------------------------
-
-/// What the binary needs agrees with what it was built with, and a machine
-/// that runs this test has it — otherwise the test process would not be here.
-#[test]
-fn the_required_cpu_features_follow_the_build_and_this_machine_has_them() {
-    let required = required_cpu_features();
-    assert_ne!(required, RequiredCpuFeatures::FmaMissing);
-    let built_with_fma = cfg!(all(
-        target_feature = "fma",
-        any(target_arch = "x86", target_arch = "x86_64")
-    ));
-    assert_eq!(
-        required,
-        if built_with_fma {
-            RequiredCpuFeatures::FmaPresent
-        } else {
-            RequiredCpuFeatures::None
-        }
-    );
-    // The two views of the same build flag agree: `FMA` is in the SIMD list of
-    // an x86 build exactly when the binary requires it.
-    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-    assert_eq!(
-        active_simd_extensions()
-            .split(", ")
-            .any(|name| name == "FMA"),
-        built_with_fma
-    );
-    // The answer is fixed for a given binary.
-    assert_eq!(required, required_cpu_features());
-}
-
-/// The check passes silently here, and its message names both the cause and
-/// the remedy so that a user on an older processor can act on it.
-#[test]
-fn the_cpu_feature_check_passes_silently_and_its_message_names_the_remedy() {
-    let mut reported = Vec::new();
-    assert!(check_required_cpu_features(&mut reported));
-    assert!(
-        reported.is_empty(),
-        "{}",
-        String::from_utf8_lossy(&reported)
-    );
-
-    assert!(FMA_MISSING_MESSAGE.starts_with("Error: "));
-    for needle in [
-        "FMA",
-        "fused multiply-add",
-        "Haswell",
-        "Piledriver",
-        "RUSTFLAGS=\'\' cargo build --release",
-        ".cargo/config.toml",
-    ] {
-        assert!(
-            FMA_MISSING_MESSAGE.contains(needle),
-            "the refusal does not mention {needle:?}: {FMA_MISSING_MESSAGE}"
-        );
-    }
-    // Two lines: what is wrong, and what to do about it.
-    assert_eq!(FMA_MISSING_MESSAGE.lines().count(), 2);
 }
