@@ -16,13 +16,22 @@
 //! The price of that flag is a minimum processor. Without a guard, running such
 //! a binary on an older CPU kills it with `SIGILL` and no explanation at
 //! whatever arithmetic happens to come first. [`unsupported_cpu`] turns that
-//! into a diagnosis: it asks CPUID through the safe standard-library macro
-//! [`std::arch::is_x86_feature_detected!`], and the caller prints the message
-//! and exits with a documented status. [`crate::cli::run`] calls it as its very
+//! into a diagnosis: it reads CPUID, and the caller prints the message and
+//! exits with a documented status. [`crate::cli::run`] calls it as its very
 //! first statement — before it even reads the command line — and
 //! [`crate::cli::run_with`] calls it again for a caller that drives a tool in
 //! process, so every ported TOPP executable is covered before it touches a
 //! floating-point number.
+//!
+//! **`std::arch::is_x86_feature_detected!` cannot be used here.** It is
+//! documented to answer `true` without asking the processor whenever the
+//! feature is already enabled at compile time, which is precisely this case: a
+//! `+fma` build folds `is_x86_feature_detected!("fma")` to a constant and the
+//! whole guard disappears. That was measured, not assumed — under `rustc -O`
+//! the probe function is eliminated outright in a `+fma` build and keeps its
+//! CPUID cache lookup in a baseline one (`docs/FMA_BUILD_FLAG.md`, section *The
+//! standard library cannot answer this*). The question is therefore put to
+//! `raw-cpuid`, which always executes `cpuid`.
 //!
 //! What that does and does not guarantee is in `docs/FMA_BUILD_FLAG.md`:
 //! `fma` implies `avx`, so the whole crate is compiled with VEX encoding, and a
@@ -65,11 +74,12 @@ identical either way; only the speed of the ported glibc `exp`, `log` and \
 /// Whether this build may emit fused-multiply-add instructions the processor
 /// has to provide.
 ///
-/// True only on x86_64 compiled with the `fma` target feature, which is what
-/// `.cargo/config.toml` sets and what `RUSTFLAGS="-C target-feature=-fma"`
-/// removes. Every other target either has fused multiply-add in its baseline —
-/// aarch64 does, and rejects the `fma` feature name — or never has the compiler
-/// emit it, so there is nothing to check and this is a compile-time `false`.
+/// True only on x86 or x86_64 compiled with the `fma` target feature, which is
+/// what `.cargo/config.toml` sets for x86_64 and what
+/// `RUSTFLAGS="-C target-feature=-fma"` removes. Every other target either has
+/// fused multiply-add in its baseline — aarch64 does, and rejects the `fma`
+/// feature name — or never has the compiler emit it, so there is nothing to
+/// check and this is a compile-time `false`.
 ///
 /// This is a property of *this crate's* compilation, not of the process: a
 /// dependency compiled with different flags would not change it. All of the
@@ -82,17 +92,28 @@ identical either way; only the speed of the ported glibc `exp`, `log` and \
 /// assert_eq!(build_requires_fma(), build_requires_fma());
 /// ```
 pub fn build_requires_fma() -> bool {
-    cfg!(all(target_arch = "x86_64", target_feature = "fma"))
+    cfg!(all(
+        any(target_arch = "x86", target_arch = "x86_64"),
+        target_feature = "fma"
+    ))
 }
 
 /// Whether the processor running this code provides those instructions.
 ///
-/// On x86_64 this is the CPUID query of
-/// [`std::arch::is_x86_feature_detected!`], which is safe, needs no `unsafe`
-/// block and caches its answer. On every other target the question does not
-/// arise — nothing there requires FMA at build time, see
-/// [`build_requires_fma`] — and this reports `true` rather than a guess about a
-/// processor it cannot interrogate.
+/// On x86 and x86_64 this executes `cpuid` through `raw-cpuid` and reads bit 12
+/// of `ECX` in leaf 1, the architectural FMA bit. It is not
+/// [`std::arch::is_x86_feature_detected!`], which would be a compile-time
+/// `true` on exactly the builds that need the answer; see the module
+/// documentation.
+///
+/// A processor whose CPUID does not even report leaf 1 — nothing since the 486
+/// — is taken to provide it. The guard exists to turn a crash into an
+/// explanation, never to invent a refusal on a machine it cannot diagnose.
+///
+/// On every other architecture the question does not arise, because nothing
+/// there requires FMA at build time (see [`build_requires_fma`]), and this
+/// reports `true` rather than a guess about a processor it has no instruction
+/// to interrogate.
 ///
 /// ```
 /// # use openms::system::cpu_features::{build_requires_fma, cpu_provides_fma};
@@ -100,11 +121,14 @@ pub fn build_requires_fma() -> bool {
 /// assert!(!build_requires_fma() || cpu_provides_fma());
 /// ```
 pub fn cpu_provides_fma() -> bool {
-    #[cfg(target_arch = "x86_64")]
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     {
-        std::arch::is_x86_feature_detected!("fma")
+        match raw_cpuid::CpuId::new().get_feature_info() {
+            Some(info) => info.has_fma(),
+            None => true,
+        }
     }
-    #[cfg(not(target_arch = "x86_64"))]
+    #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
     {
         true
     }
@@ -180,12 +204,36 @@ mod tests {
         assert!(!build_requires_fma() || cpu_provides_fma());
     }
 
-    /// x86_64 is the only target the requirement can apply to.
+    /// x86 is the only architecture the requirement can apply to.
     #[test]
-    fn no_target_but_x86_64_requires_anything() {
-        if !cfg!(target_arch = "x86_64") {
+    fn no_target_but_x86_requires_anything() {
+        if !cfg!(any(target_arch = "x86", target_arch = "x86_64")) {
             assert!(!build_requires_fma());
             assert!(cpu_provides_fma());
         }
+    }
+
+    /// The detector must be the processor's answer and not the build's. On
+    /// Linux the kernel publishes the same CPUID bit as a `flags` word, so the
+    /// two can be compared; they must agree on any build, with the flag or
+    /// without it.
+    #[cfg(all(target_os = "linux", any(target_arch = "x86", target_arch = "x86_64")))]
+    #[test]
+    fn the_detector_agrees_with_what_the_kernel_reports() {
+        let Ok(text) = std::fs::read_to_string("/proc/cpuinfo") else {
+            return; // No procfs: nothing to compare against, and nothing wrong.
+        };
+        let Some(flags) = text
+            .lines()
+            .find_map(|line| line.strip_prefix("flags").and_then(|l| l.split_once(':')))
+        else {
+            return;
+        };
+        let kernel_says = flags.1.split_whitespace().any(|flag| flag == "fma");
+        assert_eq!(
+            cpu_provides_fma(),
+            kernel_says,
+            "CPUID and /proc/cpuinfo disagree about FMA"
+        );
     }
 }

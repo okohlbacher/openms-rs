@@ -585,6 +585,7 @@ dependencies = [
  "nalgebra",
  "quick-xml",
  "rand_mt",
+ "raw-cpuid",
  "rayon",
  "rusqlite",
  "rustfft",
@@ -659,6 +660,15 @@ name = "rand_mt"
 version = "6.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4f926523c30345680eb6641f4256a151f0826c5605e190177541f9e40a32390"
+
+[[package]]
+name = "raw-cpuid"
+version = "11.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "498cd0dc59d73224351ee52a95fee0f1a617a2eae0e7d9d720cc622c73a54186"
+dependencies = [
+ "bitflags",
+]
 
 [[package]]
 name = "rayon"
