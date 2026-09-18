@@ -9,7 +9,7 @@
 //! summarise it. Each writes into the human-readable report only; none of them
 //! touches the TSV report, because the source writes none.
 //!
-//! - **`-i`, the indexed-mzML check** ([`write_index_check`]) runs directly
+//! - **`-i`, the indexed-mzML check** (`write_index_check`) runs directly
 //!   after the general header and before the content of the file type. It is the
 //!   only one of the three that fills a structured result:
 //!   [`ValidationInfo::index_checked`], [`ValidationInfo::index_valid`] and,
@@ -19,11 +19,11 @@
 //!   the two trailing newlines that `report_` writes at `:2443`. The FileInfo
 //!   tool turns that state into its `ILLEGAL_PARAMETERS` exit code.
 //! - **`-d`, the detailed listing**, is two blocks:
-//!   [`write_detailed_chromatograms`] inside the chromatogram section, only when
+//!   `write_detailed_chromatograms` inside the chromatogram section, only when
 //!   a selected-reaction-monitoring chromatogram is present, and
-//!   [`write_detailed_spectra`] after it, only when the experiment holds a
+//!   `write_detailed_spectra` after it, only when the experiment holds a
 //!   spectrum.
-//! - **`-c`, the corrupt-data check** ([`write_corruption_check`]), last in the
+//! - **`-c`, the corrupt-data check** (`write_corruption_check`), last in the
 //!   peak-file branch.
 //!
 //! `-d` and `-c` reach only the peak-file branch: the source guards both with
@@ -55,7 +55,7 @@
 //!
 //! Infinities are left alone, because the source's `<`, `>` and `==` are all
 //! defined on them. That costs one deliberate departure from the crate: the two
-//! sortedness tests use [`nondescending`] rather than
+//! sortedness tests use `nondescending` rather than
 //! [`MSExperiment::is_sorted`](crate::MSExperiment::is_sorted) and
 //! [`MSSpectrum::is_sorted`](crate::kernel::MSSpectrum::is_sorted), which report
 //! a container holding a non-finite coordinate as unsorted and would make the
@@ -462,7 +462,7 @@ pub(crate) fn write_corruption_check(
 /// non-finite coordinate, and report a spectrum holding one as unsorted. The
 /// source compares with `>` alone, for which an infinity is ordinary, so this
 /// check uses the source's comparison: a NaN is already refused by
-/// [`preflight`], and an infinity must not produce a line the C++ does not
+/// `preflight`, and an infinity must not produce a line the C++ does not
 /// write. Every other caller in the crate keeps the kernel predicates.
 fn nondescending(values: impl IntoIterator<Item = f64>) -> bool {
     let mut previous = None;

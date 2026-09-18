@@ -143,7 +143,10 @@ impl FileInfo {
     ///   cannot open it;
     /// - [`Error::Unsupported`] for a flag or branch this port does not run
     ///   (see the module documentation), before the file is loaded; before any
-    ///   file access only when the type is forced or recognised from the name;
+    ///   file access only when the type is forced or recognised from the name.
+    ///   A branch refusal follows the `-i` check, as the source's order does,
+    ///   so a file whose index does not parse yields the report of that failure
+    ///   rather than the refusal;
     /// - [`Error::Parse`] for a type the source cannot load as a peak file
     ///   either, with the source message `type is not supported for loading
     ///   experiments`;
@@ -154,7 +157,11 @@ impl FileInfo {
     /// - the loader's error for malformed input or exceeded reader limits, and
     ///   the kernel's error for values the range and type computations refuse.
     ///
-    /// Nothing is returned on error; there is no partial report.
+    /// Nothing is returned on error; there is no partial report. The one report
+    /// that is deliberately short is `-i`'s: an index that does not parse ends
+    /// the report there and returns it, as the source `return`s from `report_`,
+    /// and the FileInfo tool turns that into its `ILLEGAL_PARAMETERS` exit code
+    /// by reading [`ValidationInfo::index_valid`](crate::format::file_info::model::ValidationInfo::index_valid).
     pub fn run(&self, filename: impl AsRef<Path>, options: &Options) -> Result<FileInfoResult> {
         let path = filename.as_ref();
         let name = path
@@ -206,7 +213,7 @@ impl FileInfo {
             Branch::Peaks => {
                 super::peaks::report(path, in_type, options, &mut os, &mut os_tsv, &mut result)?
             }
-            // check_supported refused these; kept exhaustive for the compiler.
+            // check_branch_supported refused these; kept exhaustive for the compiler.
             Branch::Unported | Branch::UnportedPeaks => return Err(unported_branch(in_type)),
             Branch::ImagingPeaks | Branch::NotLoadable => {
                 return Err(refused_by_source_loader(path, name, in_type));
