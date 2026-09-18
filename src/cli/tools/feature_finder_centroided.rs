@@ -308,10 +308,16 @@ impl FeatureFinderCentroided {
     ///   to one feature whose intensity is the sum of the cluster, each member
     ///   counted once.
     ///
-    /// Setting it to [`FaimsMergeFidelity::Source`] would reproduce the source:
-    /// an empty feature map for every FAIMS input with `-faims_merge_features
-    /// true`. That is a silent wrong answer, not a crash, so it is
-    /// reproducible; it is exercised at the library level
+    /// Setting it to [`FaimsMergeFidelity::Source`] would reproduce the source,
+    /// including the unique IDs it leaves at 0 — the ID draw above is part of
+    /// the corrected route. On any FAIMS input where at least one cross-voltage
+    /// merge actually fires, so from two voltages with an overlapping cluster
+    /// upwards, that writes an **empty** feature map. It does not on input
+    /// where nothing merges: with `-faims_merge_features false` the merge never
+    /// runs, and a single voltage merges nothing, because the source's callback
+    /// refuses a candidate whose voltage equals the survivor's, so no ID is
+    /// ever marked removed. The empty map is a silent wrong answer, not a
+    /// crash, so it is reproducible; it is exercised at the library level
     /// (`tests/feature_overlap_filter.rs`) rather than shipped in the tool.
     pub const FAIMS_MERGE_FIDELITY: FaimsMergeFidelity = FaimsMergeFidelity::Corrected;
 

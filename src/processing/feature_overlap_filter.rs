@@ -47,15 +47,17 @@
 //!   counted twice.
 //! - `merge_faims_features` removes `FAIMS_CV` from a survivor after its first
 //!   merge, so a survivor absorbs at most one feature.
-//!
-//! The last two are `CPP-283`, and `merge_faims_features_with_fidelity` offers
-//! the corrected merge beside them (`FaimsMergeFidelity`), which the
-//! `FeatureFinderCentroided` tool runs. Nothing else changes behaviour.
 //! - The quadtree extent follows `FeatureMap::updateRanges`, which skips a hull
 //!   whose bounding box has zero width or height.
 //! - A mass trace's retention-time end is read from the last point of its hull
 //!   outline, which for most hulls is the first scan again, so the trace-level
 //!   test usually compares only where the traces start.
+//!
+//! Two of those conventions together are `CPP-283`: the removed-set check that
+//! still offers a removed feature to a later survivor, and the `FAIMS_CV` a
+//! survivor loses on its first merge. `merge_faims_features_with_fidelity`
+//! offers the corrected merge beside them (`FaimsMergeFidelity`), which the
+//! `FeatureFinderCentroided` tool runs. Nothing else changes behaviour.
 //!
 //! # Native differences
 //!
@@ -139,17 +141,26 @@ pub type OverlapMode = FeatureOverlapMode;
 /// into **two** features of 1900 and 1700 — 3600 units of intensity where the
 /// input held 2700.
 ///
-/// What the merge is meant to do is not in doubt. The parameter documentation
-/// of `mergeFAIMSFeatures` states it: *Identifies features whose centroids are
-/// within the specified RT and m/z tolerances and merges them into a single
-/// representative feature … The feature with the highest intensity is kept as
-/// the representative … intensities are either summed or the maximum is kept*,
-/// and *It only merges features that have the `FAIMS_CV` meta value annotation
-/// AND have DIFFERENT CV values*. A cluster is therefore one analyte seen at
-/// several voltages, it collapses to **one** feature, and the summed intensity
-/// is the analyte's total — each contributing feature counted once.
+/// What the merge is meant to do is not in doubt. `mergeFAIMSFeatures` has its
+/// own Doxygen block, `FeatureOverlapFilter.h:156-180` at the pin, and it
+/// states it: *Merge FAIMS features that represent the same analyte detected at
+/// different CV values* (`:157`), *It only merges features that have the
+/// FAIMS_CV meta value annotation AND have DIFFERENT CV values* (`:159-160`),
+/// and *The feature with highest intensity is kept, and intensities are summed*
+/// (`:175`). A cluster is therefore one analyte seen at several voltages, it
+/// collapses to **one** feature, and the summed intensity is the analyte's
+/// total — each contributing feature counted once.
 /// [`Corrected`](Self::Corrected) is that merge; see
 /// `docs/FEATURE_OVERLAP_FILTER_SUPPORT.md`.
+///
+/// The neighbouring `mergeOverlappingFeatures` (`:116-147`) is documented with
+/// an `intensity_mode` under which *intensities are either summed or the
+/// maximum is kept*; that clause is **not** part of the FAIMS contract.
+/// `mergeFAIMSFeatures` takes no intensity mode and sums unconditionally
+/// (`FeatureOverlapFilter.cpp:496`), and although its brief calls it a
+/// convenience function it does not delegate: its body (`:384-527`) calls
+/// `filter` itself (`:507-511`), as `mergeOverlappingFeatures` does
+/// (`:357-382`).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub enum FaimsMergeFidelity {
     /// The merge the source's own documentation describes: a cluster of

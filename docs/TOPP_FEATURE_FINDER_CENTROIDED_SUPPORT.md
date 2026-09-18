@@ -212,7 +212,16 @@ The cross-voltage merge has no C++ oracle: the executed C++ tool never reaches
 it, so no C++ build produces a merged FAIMS feature. What it is *meant* to
 produce is nevertheless written down, in the parameter documentation of
 `FeatureOverlapFilter::mergeFAIMSFeatures` and `mergeOverlappingFeatures`
-(`FeatureOverlapFilter.h`), and the derivation is this, sentence by sentence:
+(`FeatureOverlapFilter.h`), and the derivation is this, sentence by sentence.
+Points 1, 2, 3 and 5 quote `mergeFAIMSFeatures`'s own Doxygen block
+(`:156-180` at the pin: `:157`, `:169-173`, `:175`, `:161` and `:165-166`).
+Point 4 quotes `mergeOverlappingFeatures`' block (`:116-147`), at `:126-130`,
+which is where the meta values are described; `mergeFAIMSFeatures` writes the
+same four from its own inline callback (`FeatureOverlapFilter.cpp:454-493`), so
+that description carries over. What does **not** carry over is the same block's
+`intensity_mode` clause, *intensities are either summed or the maximum is
+kept*: `mergeFAIMSFeatures` takes no intensity mode and sums unconditionally
+(`FeatureOverlapFilter.cpp:496`), which is why point 3 quotes `:175` instead:
 
 1. *Merge FAIMS features that represent the same analyte detected at different
    CV values.* A cluster is **one analyte**, so it collapses to **one**
