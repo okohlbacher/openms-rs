@@ -63,7 +63,6 @@ use super::model::FileInfoResult;
 use super::report::ReportStream;
 use crate::Error;
 use crate::Result;
-use crate::format::indexed_mzml::IndexedMzMLDecoder;
 use crate::kernel::MSExperiment;
 use crate::metadata::{ChromatogramType, DriftTimeUnit};
 use std::collections::{BTreeMap, BTreeSet};
@@ -116,16 +115,25 @@ const CHROMATOGRAM_COMMENT: &str = "";
 /// index — by returning `-1` (`:97-99`, `:115-118`, `:332`). The port's index
 /// byte and offset-count ceilings land in that same bucket, which is where the
 /// source puts an index too large to hold.
+///
+/// A build without the `mzml` feature has no index decoder, so the check is
+/// refused with [`Error::Unsupported`](crate::Error::Unsupported) instead.
+///
+/// The footer is read before the first line is written, where the source writes
+/// its line first and lets the exception carry it away. Nothing observes the
+/// difference: a run that cannot read the footer returns the error and no
+/// report.
 pub(crate) fn write_index_check(
     path: &Path,
     name: &str,
     os: &mut ReportStream,
     result: &mut FileInfoResult,
 ) -> Result<bool> {
+    let parsed = parse_index(path)?;
     result.validation.index_checked = true;
     // `os << "..." << std::endl`: a newline, and a flush a string stream ignores.
     os.text("Checking mzML file for valid indices ... \n");
-    match parse_index(path)? {
+    match parsed {
         Some((spectra, chromatograms)) => {
             result.validation.index_valid = true;
             result.validation.indexed_spectra = spectra;
@@ -149,7 +157,9 @@ pub(crate) fn write_index_check(
 
 /// The source `parseFooter_`: the record counts of a parsed index, or `None`
 /// when `parsing_success_` would stay `false`.
+#[cfg(feature = "mzml")]
 fn parse_index(path: &Path) -> Result<Option<(u64, u64)>> {
+    use crate::format::indexed_mzml::IndexedMzMLDecoder;
     let decoder = IndexedMzMLDecoder::default();
     let Some(offset) = decoder.find_index_list_offset(path)? else {
         return Ok(None);
@@ -164,6 +174,15 @@ fn parse_index(path: &Path) -> Result<Option<(u64, u64)>> {
         Err(Error::Io(error)) => Err(Error::Io(error)),
         Err(_) => Ok(None),
     }
+}
+
+/// Without the `mzml` feature there is no index decoder, so the check is
+/// refused rather than answered.
+#[cfg(not(feature = "mzml"))]
+fn parse_index(_path: &Path) -> Result<Option<(u64, u64)>> {
+    Err(Error::Unsupported(
+        "FileInfo indexed-mzML check (-i): this build lacks the mzml feature".into(),
+    ))
 }
 
 /// Write the `-d` listing of selected-reaction-monitoring transitions, the
@@ -392,9 +411,11 @@ pub(crate) fn write_corruption_check(
     let mut mzs: Vec<f64> = Vec::new();
     for spectrum in &experiment.spectra {
         if !spectrum.is_sorted() {
-            os.text("Error: Peak m/z positions are not sorted in ascending order in spectrum (RT: ")
-                .double(spectrum.rt)
-                .text(")\n");
+            os.text(
+                "Error: Peak m/z positions are not sorted in ascending order in spectrum (RT: ",
+            )
+            .double(spectrum.rt)
+            .text(")\n");
         }
         mzs.clear();
         mzs.try_reserve(spectrum.peaks.len())
@@ -480,9 +501,7 @@ mod tests {
     #[test]
     fn a_listing_without_srm_writes_nothing() {
         let mut experiment = MSExperiment::default();
-        experiment
-            .chromatograms
-            .push(MSChromatogram::default());
+        experiment.chromatograms.push(MSChromatogram::default());
         let types = BTreeMap::from([(ChromatogramType::Mass, 1u64)]);
         let mut os = ReportStream::new();
         write_detailed_chromatograms(&experiment, &types, &mut os).unwrap();
@@ -501,7 +520,11 @@ mod tests {
         let mut os = ReportStream::new();
         let error = write_corruption_check(&experiment, &mut os).unwrap_err();
         assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
-        assert_eq!(os.into_string(), "", "the refusal leaves the report untouched");
+        assert_eq!(
+            os.into_string(),
+            "",
+            "the refusal leaves the report untouched"
+        );
     }
 
     #[test]
@@ -604,6 +627,7 @@ mod tests {
 
     /// TOPP_FileInfo_12's input: its index parses with the counts the C++
     /// reports, although the strict mzML reader refuses its content.
+    #[cfg(feature = "mzml")]
     #[test]
     fn the_upstream_test_12_index_parses() {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -623,6 +647,7 @@ mod tests {
 
     /// A file with no footer offset: the failure text names the file as it was
     /// given, and nothing follows it.
+    #[cfg(feature = "mzml")]
     #[test]
     fn a_file_without_an_index_reports_the_failure() {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -645,9 +670,7 @@ mod tests {
     #[test]
     fn no_spectrum_listing_without_spectra() {
         let mut experiment = MSExperiment::default();
-        experiment
-            .chromatograms
-            .push(MSChromatogram::default());
+        experiment.chromatograms.push(MSChromatogram::default());
         let mut os = ReportStream::new();
         write_detailed_spectra(&experiment, &mut os);
         assert_eq!(os.into_string(), "");

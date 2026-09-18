@@ -9,10 +9,10 @@
 //! Evidence, in order of strength (see
 //! `tests/data/file_info_checks_provenance.json` and
 //! `docs/FILE_INFO_CHECKS_SUPPORT.md`):
-//! - tier 1, executed differential: 51 cases of `../oracle/a6-fileinfo` run
+//! - tier 1, executed differential: 56 cases of `../oracle/a6-fileinfo` run
 //!   against the **Release** C++ FileInfo of
 //!   `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
-//!   ibminode06, twice and reproduced. 40 of them have their `-out` and
+//!   ibminode06, twice and reproduced. 37 of them have their `-out` and
 //!   `-out_tsv` reports compared here byte for byte, with only the `File name`
 //!   lines normalised; the rest are exit codes and diagnostics;
 //! - tier 1, retained upstream outputs: TOPP_FileInfo_11, _12 and _19
@@ -197,14 +197,22 @@ fn the_upstream_test_12_input_passes_the_index_but_not_the_reader() {
 /// trailing newlines.
 #[test]
 fn index_invalid_ends_the_report() {
-    let result = check(&input("FileInfo_9_input.mzML"), &index_only(), "i_invalid_11");
+    let result = check(
+        &input("FileInfo_9_input.mzML"),
+        &index_only(),
+        "i_invalid_11",
+    );
     assert!(result.validation.index_checked);
     assert!(!result.validation.index_valid);
     assert_eq!(result.validation.indexed_spectra, 0);
     assert_eq!(result.validation.indexed_chromatograms, 0);
     assert!(result.peak.is_none(), "no content was computed");
     assert!(!result.text.ends_with("\n\n"), "no trailing blank line");
-    assert!(result.text.ends_with("Either the index is not present or is not correct.\n"));
+    assert!(
+        result
+            .text
+            .ends_with("Either the index is not present or is not correct.\n")
+    );
 }
 
 /// The upstream TOPP_FileInfo_11 and _12 inputs are the same bytes; this port
@@ -374,7 +382,11 @@ fn detailed_srm_mixed_with_ordinary_spectra() {
         &detailed_only(),
         "d_srm_mixed",
     );
-    assert!(result.text.contains(" -- Detailed chromatogram listing -- "));
+    assert!(
+        result
+            .text
+            .contains(" -- Detailed chromatogram listing -- ")
+    );
     assert!(result.text.contains("-- Detailed spectrum listing --"));
 }
 
@@ -421,7 +433,11 @@ fn detailed_on_an_empty_experiment() {
 
 #[test]
 fn detailed_on_an_mzml_without_a_run() {
-    check(&input("MzMLFile_2_minimal.mzML"), &detailed_only(), "d_minimal");
+    check(
+        &input("MzMLFile_2_minimal.mzML"),
+        &detailed_only(),
+        "d_minimal",
+    );
 }
 
 #[test]
@@ -435,7 +451,11 @@ fn detailed_on_a_dta() {
 
 #[test]
 fn detailed_on_a_dta2d() {
-    check(&input("FileInfo_2_input.dta2d"), &detailed_only(), "d_dta2d");
+    check(
+        &input("FileInfo_2_input.dta2d"),
+        &detailed_only(),
+        "d_dta2d",
+    );
 }
 
 /// A drift time unit adds the `IM:` line; without one there is none.
@@ -472,9 +492,11 @@ fn detailed_leaves_an_empty_spectrum_line_open() {
 #[test]
 fn corrupt_duplicate_mz_and_negative_intensity() {
     let result = check(&input("corrupt_peaks.mzML"), &corrupt_only(), "c_peaks");
-    assert!(result.text.contains(
-        "Warning: Negative peak intensity peak (RT: 10.5 MZ: 200 intensity: -2.5)\n"
-    ));
+    assert!(
+        result
+            .text
+            .contains("Warning: Negative peak intensity peak (RT: 10.5 MZ: 200 intensity: -2.5)\n")
+    );
     assert!(
         result
             .text
@@ -539,7 +561,11 @@ fn corrupt_check_on_the_derived_file_info_9() {
         &corrupt_only(),
         "c_9_strict",
     );
-    assert!(result.text.contains("Warning: No peaks in spectrum (RT: 5.4)\n"));
+    assert!(
+        result
+            .text
+            .contains("Warning: No peaks in spectrum (RT: 5.4)\n")
+    );
 }
 
 #[test]
@@ -750,10 +776,17 @@ fn run_tool(args: &[&str]) -> (openms::cli::ExitCode, String, String) {
 #[test]
 fn upstream_test_11_exits_illegal_parameters() {
     let path = input("FileInfo_9_input.mzML");
-    let (code, out, err) = run_tool(&["-test", "-in", path.to_str().unwrap(), "-i", "-no_progress"]);
+    let (code, out, err) =
+        run_tool(&["-test", "-in", path.to_str().unwrap(), "-i", "-no_progress"]);
     assert_eq!(code, openms::cli::ExitCode::IllegalParameters, "{err}");
-    assert!(out.contains("Could not detect a valid index for the mzML file"), "{out}");
-    assert!(out.ends_with("Either the index is not present or is not correct.\n"), "{out}");
+    assert!(
+        out.contains("Could not detect a valid index for the mzML file"),
+        "{out}"
+    );
+    assert!(
+        out.ends_with("Either the index is not present or is not correct.\n"),
+        "{out}"
+    );
 }
 
 /// A valid index lets the run finish, so the tool exits 0, as the Release
@@ -764,7 +797,8 @@ fn upstream_test_11_exits_illegal_parameters() {
 #[test]
 fn a_valid_index_exits_zero() {
     let path = data("indexed_mzml/IndexedmzMLFile_1.mzML");
-    let (code, _out, err) = run_tool(&["-test", "-in", path.to_str().unwrap(), "-i", "-no_progress"]);
+    let (code, _out, err) =
+        run_tool(&["-test", "-in", path.to_str().unwrap(), "-i", "-no_progress"]);
     assert_eq!(code, openms::cli::ExitCode::ExecutionOk, "{err}");
 }
 
