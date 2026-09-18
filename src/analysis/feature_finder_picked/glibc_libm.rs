@@ -820,10 +820,38 @@ mod tests {
     /// (x86_64 Linux with the GNU C Library, on a CPU with FMA; module
     /// documentation). Elsewhere [`atan`] is the documented fallback, which
     /// is not the reference.
+    ///
+    /// This asks about the **processor**, because glibc's indirect-function
+    /// resolver reads CPUID when `libm.so.6` is loaded. It must therefore not
+    /// be asked with `std::arch::is_x86_feature_detected!("fma")`, which is
+    /// documented to answer `true` *without* consulting the processor whenever
+    /// the feature is already enabled at compile time — and since
+    /// `.cargo/config.toml` builds x86_64 with `-C target-feature=+fma`, that
+    /// is now every build of this crate, so the macro would fold to a constant
+    /// here (`docs/FMA_BUILD_FLAG.md` section 6). It asks `raw_cpuid` instead,
+    /// which always executes `cpuid`, so the question stays the one that was
+    /// asked.
+    ///
+    /// **Why not `system::cpu_features::cpu_provides_fma`**, which is the
+    /// production copy of exactly this read: a module under `analysis` may not
+    /// name the crate's `system` module at all — not even in a comment, because
+    /// `tools/check_module_cycles.py` reads the file as text. `system` already
+    /// reaches `analysis` through `format`, so that edge would close a module
+    /// cycle and the gate fails on it. The two must stay the same architectural
+    /// bit — leaf 1, `ECX` bit 12, with an absent leaf 1 counting as present —
+    /// and `cpu_features`' own documentation is where that convention is
+    /// written down.
+    ///
+    /// Nothing about what the test compares changes: a `+fma` binary cannot
+    /// start on a processor without FMA, so the two mechanisms agree on every
+    /// host that can run this code at all. Only the mechanism differs, and this
+    /// one cannot be silenced by a build flag.
     fn atan_is_reference() -> bool {
         #[cfg(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64"))]
         {
-            std::arch::is_x86_feature_detected!("fma")
+            raw_cpuid::CpuId::new()
+                .get_feature_info()
+                .is_none_or(|info| info.has_fma())
         }
         #[cfg(not(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64")))]
         {

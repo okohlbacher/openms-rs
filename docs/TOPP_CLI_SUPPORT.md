@@ -86,8 +86,12 @@ backs the expected exit code:
   source's exceptions, so there is no C++ case to execute; the row says what the
   source does instead where the two differ.
 
+One row has no source phase at all and runs before all of them; *The x86_64 FMA
+requirement* below says why.
+
 | Phase | Condition | Exit | Source | Test | Evidence |
 | --- | --- | --- | --- | --- | --- |
+| CPU check | this build requires the x86-64 FMA3 instructions and the processor does not have them | 12 | — | `only_a_requiring_build_on_a_processor_without_fma_is_refused` and the other cases in `src/system/cpu_features.rs` | tier 4, native: the C++ build has no such requirement, so there is nothing to execute |
 | registration | tool registration fails | 6 | 505-508 | `an_initialisation_failure_is_illegal_parameters` | tier 4, derived |
 | parse | more than `MAX_ARGUMENTS` tokens or `MAX_ARGUMENT_BYTES` bytes | 6 | — | `an_oversized_command_line_is_refused_before_parsing` | tier 4, native bound |
 | parse | a flag followed by text | 6 | 186-191, 2336-2348 | `a_flag_followed_by_text_is_refused`, `upstream_flag_with_trailing_arguments` | tier 1: `flag_with_trailing_text` |
@@ -338,6 +342,32 @@ confirmed on the oracle):
    copy has no leaf match outside the root (`ini_common_top_level`).
 
 ## Native differences
+
+**The x86_64 FMA requirement.** The C++ SDK is built for the baseline
+architecture with no `-march`, so a C++ tool binary runs on any processor its
+operating system runs on. This port's x86_64 builds do not: `.cargo/config.toml`
+sets `-C target-feature=+fma`, because the ported glibc `exp`, `log` and `powf`
+are built out of `f64::mul_add` and a baseline x86-64 target has to call out of
+line for every one of them. An x86_64 binary built in this checkout therefore
+needs an FMA3-capable processor — Intel Haswell, AMD Piledriver or newer — and a
+tool refuses to start on anything older, printing the requirement and the
+command that rebuilds without the flag and exiting `INTERNAL_ERROR` (12) rather
+than dying on `SIGILL` at whatever arithmetic came first.
+
+The check is the **first statement of `cli::run`** (`src/cli.rs`), which is what
+every tool executable calls, ahead of reading the command line and ahead of every
+source phase; everything after it is in `run_from_environment`, which is
+`#[inline(never)]`, so no instruction of the body can be hoisted above it. That
+placement is the shipped one and it was arrived at by measurement: with the check
+one level lower, in `run_with`, `cli::run`'s own prologue emitted `vpxor`,
+`vmovdqu` and `vmovups %ymm0` while building the argument vector, all of them
+ahead of the check. In the release `FileInfo` on kim, `cli::run` inlines into the
+tool's `main` and the check is the first call, with no VEX or SSE instruction
+before it. `cli::run_with` holds a second copy of the same check, for a caller
+that drives a tool in process; no tool binary reaches the guard through that
+copy. A build without the flag compiles both away. See `docs/FMA_BUILD_FLAG.md`
+section 8 for what this does and does not guarantee, and
+`src/system/cpu_features.rs`; the flag changes no result, only speed.
 
 **Usage text.** The layout is the one the source writes when standard error is
 not a terminal and `COLUMNS` is unset, as in the oracle, and for the five ported

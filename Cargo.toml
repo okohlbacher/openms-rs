@@ -125,6 +125,18 @@ nalgebra = { version = "=0.33.3", default-features = false, features = ["alloc",
 [target.'cfg(any(unix, windows))'.dependencies]
 cpu-time = "=1.0.0"
 
+# CPUID, for the startup check that this processor has the instructions an
+# x86_64 build was compiled to use (src/system/cpu_features.rs). The standard
+# library's `is_x86_feature_detected!` cannot answer that question: it is a
+# compile-time `true` for any feature the build already enables, which is
+# exactly the case the guard exists for (measured, docs/FMA_BUILD_FLAG.md).
+# Reading CPUID by hand means `core::arch::__cpuid`, which is `unsafe` and this
+# crate forbids; `raw-cpuid` is MIT, depends only on `core` and `bitflags`, and
+# is the crate the x86 ecosystem uses for this. Not needed on any other
+# architecture, so it is not in their dependency graph at all.
+[target.'cfg(any(target_arch = "x86", target_arch = "x86_64"))'.dependencies]
+raw-cpuid = { version = "=11.6.0", default-features = false }
+
 # Line tables keep panics and backtraces addressable while cutting the full
 # DWARF that made target/ reach 27 GB across 225 test binaries. Test semantics
 # (opt-level, overflow and debug assertions) are unchanged. Stable since 1.71.

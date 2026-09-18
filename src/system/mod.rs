@@ -6,6 +6,8 @@
 //! owned temporary resources.
 /// Build and runtime platform identity, from `SYSTEM/BuildInfo.h`.
 pub mod build_info;
+/// The processor features this binary requires; no counterpart in the C++ SDK.
+pub mod cpu_features;
 /// Starting an external program and forwarding its output, from `SYSTEM/ExternalProcess.h`.
 pub mod external_process;
 /// Filesystem queries, copies, temporaries and resource lookup, from `SYSTEM/File.h`.
