@@ -1,0 +1,27 @@
+# Build configuration of this repository.
+#
+# `-C target-feature=+fma` is set for every x86 target. Measured on dax
+# (docs/BENCHMARKS.md, section 4): the completed FeatureFinderAlgorithmPicked
+# costs 21 % at one thread on a baseline x86-64 build, because every
+# `f64::mul_add` of the ported glibc `powf`, `exp` and `log` becomes two
+# indirect calls into `compiler_builtins`' `fma` stub instead of one
+# instruction; the flag removes that cost and more (0.715 at one thread), and
+# the output is bitwise identical with and without it at every thread count.
+#
+# rustc implies `avx`, `sse3`, `ssse3`, `sse4.1` and `sse4.2` from `fma`, so an
+# x86 binary built from this repository needs an FMA-capable processor: Intel
+# Haswell (2013) or AMD Piledriver (2012) and later.
+# `openms::system::build_info::check_required_cpu_features` refuses to run on
+# anything older, with the hint to build without this flag; every TOPP tool
+# calls it before it does anything else.
+#
+# To build without it — for an older processor, or to compare — override the
+# flags on the command line, which replaces this section wholesale:
+#
+#     RUSTFLAGS='' cargo build --release
+#
+# Nothing here applies to aarch64: `fma` is an x86 target feature name, and
+# AArch64 has fused multiply-add in its base instruction set, so `mul_add` is
+# already one instruction there.
+[target.'cfg(any(target_arch = "x86_64", target_arch = "x86"))']
+rustflags = ["-C", "target-feature=+fma"]

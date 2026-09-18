@@ -125,6 +125,48 @@ on in an optimised build reports `"Debug"`.
 **`/etc/os-release` reads are capped** at 64 KiB; the source reads the file line
 by line with no bound.
 
+## The required-CPU-feature check (native, no source counterpart)
+
+`.cargo/config.toml` builds every **x86** target of this repository with
+`-C target-feature=+fma`. The measurement behind that decision is section 4 of
+[BENCHMARKS](BENCHMARKS.md): the completed `FeatureFinderAlgorithmPicked` costs
+21 % at one thread on a baseline x86-64 build, because every `f64::mul_add` of
+the ported glibc `powf`, `exp` and `log` becomes two indirect calls into
+`compiler_builtins`' `fma` stub instead of one instruction; the flag removes
+that cost and more (0.715 at one thread, 1.055 against the C++ build), and the
+output is **bitwise identical** with and without it at both measured thread
+counts. AArch64 is untouched: `fma` is an x86 target-feature name, and AArch64
+has fused multiply-add in its base instruction set.
+
+rustc implies `avx`, `sse3`, `ssse3`, `sse4.1` and `sse4.2` from `fma`, so the
+whole crate may be compiled with VEX encoding, and such a binary needs Intel
+Haswell (2013) or AMD Piledriver (2012) or later. Three items answer that:
+
+| Item | What it does |
+|---|---|
+| `RequiredCpuFeatures` | `None` (not x86, or built without the flag), `FmaPresent`, `FmaMissing` |
+| `required_cpu_features()` | `cfg!(target_feature = "fma")` for the build, `std::arch::is_x86_feature_detected!("fma")` for the processor. Both are safe; the crate keeps `#![forbid(unsafe_code)]` |
+| `check_required_cpu_features(err)` | `true` and nothing printed when the binary can run; otherwise `FMA_MISSING_MESSAGE` on `err` and `false`. `cli::run_with` calls it first and returns `ExitCode::InternalError` (12) on `false`, so every TOPP executable of this repository refuses before it reads its arguments |
+
+`FMA_MISSING_MESSAGE` is two lines: what is missing and which processors have
+it, then how to build a binary that runs here
+(`RUSTFLAGS='' cargo build --release`, which replaces the section of
+`.cargo/config.toml` wholesale).
+
+**It is a courtesy, not a guarantee, and the documentation says so.** The whole
+crate is compiled with those instructions, so a processor without them can fault
+on one before the check is reached; the check is the first thing each tool does,
+but it cannot be the first instruction of the process. What it guarantees is
+that a machine which gets that far is told the cause and the remedy instead of
+being left with `SIGILL`. A narrower alternative — `#[target_feature(enable =
+"fma")]` on the three ported replica functions with runtime dispatch — needs
+`unsafe fn` at this MSRV and was not taken; BENCHMARKS section 4.4 records it as
+unmeasured.
+
+`active_simd_extensions` and `required_cpu_features` read the same build flag
+from the two sides, and `tests/build_info.rs` asserts that they agree: an x86
+binary lists `FMA` exactly when it requires it.
+
 ## Checked boundaries and evidence
 
 | Boundary | Value | Source behaviour |

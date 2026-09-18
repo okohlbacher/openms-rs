@@ -73,6 +73,15 @@ phase, as in the source, where errors inside the run-phase `try`
 (`TOPPBase.cpp:258-425`) take the inner catch (430-499) and anything else takes
 the initialisation catch (505-514).
 
+One phase comes before all of them and has no source counterpart:
+[`check_required_cpu_features`](BUILD_INFO_SUPPORT.md#the-required-cpu-feature-check-native-no-source-counterpart).
+x86 binaries of this repository are built with `-C target-feature=+fma`
+(`.cargo/config.toml`), so on a processor that lacks those instructions every
+tool prints what is missing and how to build one that runs, and exits 12
+(`INTERNAL_ERROR`, the source's code for a failure of the program rather than of
+its input). On every processor that has them — every machine the gates and CI
+run on — nothing is printed and nothing changes.
+
 The *Test* column names the cases that assert each row, in
 `tests/topp_cli_lifecycle.rs` unless another file is named. *Evidence* says what
 backs the expected exit code:
