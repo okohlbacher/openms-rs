@@ -4914,9 +4914,46 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Call `updateRanges()` on each group before returning.
 
+**The whole C++ FAIMS fix for FeatureFinderCentroided** is this entry's
+`updateRanges()` **plus** CPP-282 and CPP-283. With only this one applied the
+tool runs to the end, and on any input where at least one cross-voltage merge
+actually fires -- the ordinary multi-voltage case under the default
+`-faims_merge_features true` -- it then writes an **empty** feature map,
+because `mergeFAIMSFeatures` erases every feature that still carries unique
+id 0 (CPP-282), and by `FeatureFinderCentroided.cpp:294-299` every feature of
+a FAIMS run carries `FAIMS_CV`, so none is held back in the untouched
+non-FAIMS group. It does **not** write an empty map when no merge fires: with
+`-faims_merge_features false` the merge is never called
+(`FeatureFinderCentroided.cpp:309`), and on single-voltage FAIMS input the
+callback returns `false` for every pair (`FeatureOverlapFilter.cpp:445-448`),
+so `removed_uids` stays empty and the `erase` at
+`FeatureOverlapFilter.cpp:277-281` removes nothing. With CPP-282 also applied
+the tool writes features, but a cluster of three or more voltages is split
+into two features whose intensities double-count one member (CPP-283). The
+Rust port applies all three:
+`docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md`, *The FAIMS closure*.
+
+*Basis of the composite claim.* The three-fix chain is read from the pinned
+source (`FeatureOverlapFilter.cpp:263-271` inserts into `removed_uids` only
+when the callback returns `true`; `:277-281` erases exactly those ids;
+`FeatureFinderCentroided.cpp:318-320` assigns the unique ids only *after* the
+merge) and confirmed on the Rust port, whose source-faithful merge
+(`FeatureOverlapFilter::merge_faims_features`) is call-for-call the source's.
+Two executed tests of package B11 pin the two non-merging cases:
+`a_single_faims_voltage_finds_the_features_of_the_plain_input` asserts the
+console line `FAIMS feature merge: 8 -> 8 features (merged 0)` on
+single-voltage input, and `two_faims_voltages_reproduce_the_release_build_group_by_group`
+asserts that `-faims_merge_features false` prints no `FAIMS feature merge:`
+line at all. **No patched C++ build was ever executed**: the pinned build
+exits 8 before the merge on every FAIMS input (this entry), so the post-fix
+behaviour of the C++ tool is read from its source, not observed -- in
+particular nobody has seen a C++ run produce the empty map. The empty-map
+outcome also rests on CPP-282's own premise, that the features still carry
+unique id 0 when the merge runs.
+
 **Evidence:** All 35 voltage groups in `../oracle/im-data-converter` throw at `byMSLevel(1)`, as do C2 `faims_facts` 1a and 1b (`../oracle/featurefinder-picked`); `tests/data/im_data_converter_provenance.json`.
 
-**Rust handling:** Ranges are computed on demand, so groups with finite drift times have correct ranges; the crash is not emulated.
+**Rust handling:** Ranges are computed on demand, so a voltage group has its own ranges the moment it holds spectra; the defect is not reachable in the port and is not emulated. Re-executed for package B11 against the Release build with eight runs on six FAIMS inputs (`../oracle/b11-faims`), all rc 8 after the first `Processing FAIMS CV group:` line. `FeatureFinderCentroided` now processes FAIMS input end to end (`docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md`, native difference 1).
 
 ## CPP-279 — splitByFAIMSCV destroys the chromatograms of FAIMS input
 
@@ -4934,7 +4971,7 @@ implementation. They do not count as completed Rust functionality.
 
 **Evidence:** Oracle cases `faims_test_data` and `settings_and_chromatograms_faims` in `../oracle/im-data-converter`.
 
-**Rust handling:** `FaimsSplit::dropped_chromatograms` and `skipped_spectra` return them.
+**Rust handling:** `FaimsSplit::dropped_chromatograms` and `skipped_spectra` return them. `FeatureFinderCentroided` loads MS level 1 only and uses no chromatogram, so it discards them as the source does; no output of that tool can show the difference.
 
 ## CPP-280 — splitByFAIMSCV groups NaN voltages unpredictably
 
@@ -4988,7 +5025,7 @@ implementation. They do not count as completed Rust functionality.
 
 **Evidence:** Oracle case `c2_uid0_wipe` in `../oracle/feature-overlap-filter`, and C2 `faims_facts` (0 features); `tests/data/feature_overlap_filter_provenance.json`.
 
-**Rust handling:** Reproduced exactly; a corrected mode would be a new opt-in API after decision D5.
+**Rust handling:** Reproduced exactly by `FeatureOverlapFilter::merge_faims_features` and by the executed case `c2_uid0_wipe`. Package B11 added the corrected route the tool takes: `FeatureFinderCentroided` draws a unique id for every feature before it merges -- the ids its own `applyMemberFunction(setUniqueId)` overwrites a few lines later -- so removal keys on real ids, and `FaimsMergeFidelity::Corrected` refuses a map whose FAIMS features share an id instead of erasing them.
 
 ## CPP-283 — FeatureOverlapFilter merges already removed features again
 
@@ -5006,7 +5043,7 @@ implementation. They do not count as completed Rust functionality.
 
 **Evidence:** Oracle case `c2_three_cvs` in `../oracle/feature-overlap-filter`.
 
-**Rust handling:** Reproduced exactly.
+**Rust handling:** Reproduced exactly by `FeatureOverlapFilter::merge_faims_features` and by the executed case `c2_three_cvs` (1900 and 1700). Package B11 added `FaimsMergeFidelity::Corrected` beside it, which skips a candidate already marked removed and tests a candidate's voltage against the voltages the survivor already stands for (`merged_centroid_IMs`) rather than against a `FAIMS_CV` the first merge removed, so 1000, 900 and 800 at three voltages become one feature of 2700. `FeatureFinderCentroided` runs the corrected merge; the source one stays available and stays tested.
 
 ## CPP-284 — FeatureOverlapFilter's float boxes miss pairs within tolerance
 
