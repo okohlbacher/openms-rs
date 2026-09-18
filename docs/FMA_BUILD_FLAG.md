@@ -201,7 +201,8 @@ processor. Three places in the tree touch this today:
   Its answer does change — an x86_64 Linux build now reports
   `SSE, SSE2, SSE3, SSE4.1, SSE4.2, AVX, FMA` where a baseline build reports
   `SSE, SSE2`. `tests/build_info.rs` asserts only that the value is stable and
-  well formed, so it holds either way, and no tool prints it.
+  well formed, so it holds either way, and no ported tool calls the function
+  today, so no tool's output changes.
 * **`cpufeatures 0.2.17`**, in the lock through `sha1`, short-circuits the same
   way by construction: its `__unless_target_features!` is
   `#[cfg(all(target_feature = …))]`. It is unaffected today, because `sha1` asks

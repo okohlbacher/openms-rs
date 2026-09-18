@@ -1401,14 +1401,16 @@ pub fn run_with<T: Tool>(
 /// Run a tool against the process arguments and standard streams, returning the
 /// status the executable should exit with.
 ///
-/// This is what every ported tool executable calls, and the processor check
-/// [`run_with`] describes is its first statement — ahead of reading the command
-/// line, because on an x86_64 build with `-C target-feature=+fma` even that much
-/// is compiled with VEX encoding and would fault on a processor old enough to
-/// lack AVX. Everything after the check is in
-/// `run_from_environment`, which is never inlined, so
-/// no instruction of it can be hoisted above the check. See
-/// `docs/FMA_BUILD_FLAG.md` for what that does and does not guarantee.
+/// This is what every ported tool executable calls. The processor check that
+/// [`run_with`] describes is the **first statement of this function** — ahead of
+/// reading the command line, because on an x86_64 build with
+/// `-C target-feature=+fma` even that much is compiled with VEX encoding and
+/// would fault on a processor old enough to lack AVX. Everything after the check
+/// is in `run_from_environment`, which is never inlined, so no instruction of it
+/// can be hoisted above the check. [`run_with`] holds a second copy for a caller
+/// that drives a tool in process; no tool binary reaches the guard through that
+/// copy. See `docs/FMA_BUILD_FLAG.md` section 8 for what this does and does not
+/// guarantee.
 pub fn run<T: Tool>() -> ExitCode {
     if let Some(message) = crate::system::cpu_features::unsupported_cpu() {
         return report_unsupported_cpu(message);
