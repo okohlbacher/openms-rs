@@ -111,9 +111,14 @@ Rust 1.85 or newer is required.
 
 **On x86_64 this repository builds with `-C target-feature=+fma`**
 (`.cargo/config.toml`), so a binary built here needs an FMA3-capable processor:
-**Intel Haswell (2013), AMD Piledriver (2012) or newer**. A tool run on anything
-older prints what it needs and exits 12 rather than dying on an illegal
-instruction. To build for an older processor -- which changes no result and only
+**Intel Haswell (2013), AMD Piledriver (2012) or newer**. A tool run on a
+processor that has AVX but not FMA (Sandy Bridge, Ivy Bridge, Bulldozer) prints
+what it needs and exits 12 rather than dying on an illegal instruction. On a
+processor older than AVX entirely (before 2011) that refusal is best effort
+rather than a guarantee: `+fma` implies AVX, so such a machine can fault on a
+vector instruction that is not a fused multiply-add. The path to the check was
+measured to be free of them for this compiler, which is a measurement and not a
+property of the design -- see `docs/FMA_BUILD_FLAG.md`. To build for an older processor -- which changes no result and only
 costs speed -- use exactly:
 
 ```sh

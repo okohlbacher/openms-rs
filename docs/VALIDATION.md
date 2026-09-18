@@ -212,8 +212,10 @@ that the gap had hidden wrong line citations. Correcting them changed
 documentation, one JSON string and doc comments in
 `src/cli/tools/feature_finder_centroided.rs` — nothing executable: with comment
 lines stripped, that file is byte-identical to its parent at both repair
-commits. The six decisive gates were re-run anyway, at `422233c`, the branch's
-final head, with the worktree clean and equal to that commit for the whole run
+commits. The six decisive gates were re-run anyway, at `422233c`, the last
+commit on this branch that changes anything the compiler reads; every commit
+after it, including the one that adds this paragraph, is documentation only.
+They ran with the worktree clean and equal to that commit for the whole run
 (2112 tracked files, every blob hash recomputed, nothing untracked): MSRV check,
 clippy, rustdoc, the doctests, the full suite and the `--no-default-features`
 suite, **all exit 0 on the first attempt, none exited 255**, with every count
@@ -370,9 +372,10 @@ compiled on `kim`.
   the `topp-sdk-validation/source` copy is byte-identical to the pin, and the
   `topp` working tree at `HEAD`, which differs from the pin elsewhere, carries
   the same six FAIMS anchors at `254`, `306`, `312`, `313`, `318` and `328`.
-  Checking those references opened the CLI pin `c19e494` as well, so all 66
-  distinct `TOPPBase.cpp` citations in this repository (99 occurrences across 26
-  files) were swept against it. One is wrong, and it is **not** this wave's:
+  Checking those references opened the CLI pin `c19e494` as well, so every
+  distinct `TOPPBase.cpp` citation in this repository was swept against it: 66
+  when the sweep ran, and 67 in 100 occurrences across 26 files at this head,
+  because the sentence below quotes a citation that no other file carried. One is wrong, and it is **not** this wave's:
   `TOPPBase.cpp:519-522`, which `main` already carries in three places, is blank
   lines and the head of `toolName_()` at the pin. The outer
   `catch (const std::exception&)` those three sentences mean — the one that
