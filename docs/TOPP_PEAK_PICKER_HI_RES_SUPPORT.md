@@ -119,13 +119,13 @@ disagree.
 
 1. **The output file is created before the input is read**, because the source
    consumer opens its `std::ofstream` in its constructor
-   (`MSDataWritingConsumer.cpp:32`). An input that cannot be parsed still leaves
+   (`MSDataWritingConsumer.cpp:33`). An input that cannot be parsed still leaves
    a file behind — empty, when the failure comes before the first record. The
    in-memory mode writes nothing until the whole run has succeeded.
 2. **The input is read twice.** `transform` runs `transformFirstPass_`, which
    parses the whole file for the declared record counts and the experimental
    settings and hands them to `setExpectedSize`/`setExperimentalSettings`, then
-   parses it again for the records (`MzMLFile.cpp:178-231`). The mode trades I/O
+   parses it again for the records (`MzMLFile.cpp:178-191` and `212-231`). The mode trades I/O
    for memory: a low-memory run reads roughly twice the bytes an in-memory run
    does.
 3. **The header comes from those settings plus the first record**, and each list
@@ -140,7 +140,7 @@ disagree.
 
 | | `-processOption inmemory` | `-processOption lowmemory` |
 | --- | --- | --- |
-| automatic-mode type test | `getType(true)`: stored type, then a `PEAK_PICKING` entry in the record's processing history, then `PeakTypeEstimator` over the samples (`PeakPickerHiRes.cpp:510`) | `s.getType()`, the `SpectrumSettings` accessor `MSSpectrum` re-exposes with `using` (`MSSpectrum.h:655`): the **stored type only** (`PeakPickerHiRes.cpp:122`) |
+| automatic-mode type test | `getType(true)`: stored type, then a `PEAK_PICKING` entry in the record's processing history, then `PeakTypeEstimator` over the samples (`PeakPickerHiRes.cpp:510`, `531`) | `s.getType()`, the `SpectrumSettings` accessor `MSSpectrum` re-exposes with `using` (`MSSpectrum.h:655`): the **stored type only** (`PeakPickerHiRes.cpp:124`) |
 | centroided data on a selected MS level | `IllegalArgument` unless `-force` | picked; **there is no check at all**, so `-force` is inert |
 | per-peak ion mobility | warns once | silent |
 | input with neither spectra nor chromatograms | `INCOMPATIBLE_INPUT_DATA` | exit 0; nothing is written, because no record ever reaches the consumer |
@@ -163,7 +163,7 @@ samples, and the low-memory mode writes 4 centroids. Both are reproduced
 ### Threads
 
 The mode is serial in the source and here. The source's consumer dispatch loop
-hands over one record at a time (`MzMLHandler.cpp:259-272`), and the one OpenMP
+hands over one record at a time (`MzMLHandler.cpp:259-274`), and the one OpenMP
 region on that path decodes binary arrays, which this port's reader does not
 parallelise either. `-threads` therefore reaches nothing on this path, and the
 written bytes cannot depend on it — trivially, rather than by the batch-order
@@ -207,7 +207,7 @@ four outputs carry 40,856 spectra, one chromatogram and 22,784,372 summed
 
 The headers differ by one line, 63 bytes here and 67 in C++, and **the source
 does it too**: the consumer's header comes from the experimental settings plus
-the first record (`MSDataWritingConsumer.cpp:73-83`), so the `fileContent` terms
+the first record (`MSDataWritingConsumer.cpp:76-83`), so the `fileContent` terms
 that are derived from records come from that one record. On this input the
 in-memory mode writes `MS1 spectrum` and `MSn spectrum` and the low-memory mode
 writes `MS1 spectrum` alone — in the C++ Release build exactly as here. A
@@ -251,7 +251,7 @@ either way.
    file" (`CMakeLists.txt:2534`). The two retained files differ in exactly one
    byte: `<dataProcessingList count="3">` against `count="2">`. The C++ writer
    puts `max(1, dps.size() + <float data arrays of the whole experiment>)` in
-   that attribute (`MzMLHandler.cpp:5160-5170`), and the consumer's
+   that attribute (`MzMLHandler.cpp:5161-5170`), and the consumer's
    `writeHeader_` is handed a dummy map holding only the first record, so it
    counts one record's arrays. This port's writer counts the processing
    histories it writes (`mzml_header/write.rs:329`), which does not depend on
@@ -271,7 +271,7 @@ either way.
    `logger_.startProgress("loading chromatogram list")`
    (`MzMLHandler.cpp:997`) and then immediately throws `EndParsingSoftly`
    because it now has both counts (`MzMLHandler.cpp:1001-1006`), so the
-   `endProgress()` at `</chromatogramList>` (`MzMLHandler.cpp:1493-1498`) is
+   `endProgress()` at `</chromatogramList>` (`MzMLHandler.cpp:1493-1498`, the `endProgress()` at `1497`) is
    never reached and the shared stopwatch is still running when the second pass
    calls `startProgress` again. One record kind alone means no early throw and a
    balanced pair, which is why the upstream registrations never see it: their

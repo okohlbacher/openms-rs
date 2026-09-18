@@ -122,7 +122,7 @@ const UNSORTED_SPECTRA_ERROR: &str = "Error: Not all spectra are sorted accordin
 const UNSORTED_CHROMATOGRAMS_ERROR: &str = "Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!";
 
 /// The per-record hook of `-processOption lowmemory`: source nested class
-/// `PPHiResMzMLConsumer` (`PeakPickerHiRes.cpp:107-146`).
+/// `PPHiResMzMLConsumer` (`PeakPickerHiRes.cpp:107-150`).
 ///
 /// The source class derives from `MSDataWritingConsumer` and overrides its two
 /// template-method hooks; this port is the hook pair alone
@@ -139,7 +139,7 @@ const UNSORTED_CHROMATOGRAMS_ERROR: &str = "Error: Not all chromatograms are sor
 /// `using SpectrumSettings::getType` (`MSSpectrum.h:655`), and the no-argument
 /// overload is that base one, which returns the `type_` member and nothing
 /// else. `pickExperiment`, the in-memory path, spells the same test
-/// `getType(true)` (`PeakPickerHiRes.cpp:510`, `531`) - stored type, then a
+/// `getType(true)` (`PeakPickerHiRes.cpp:510` and `531`) - stored type, then a
 /// scan of the record's data-processing history for a `PEAK_PICKING` action,
 /// then `PeakTypeEstimator` over the samples.
 ///
@@ -163,7 +163,7 @@ struct LowMemoryPicker {
 }
 
 impl MSDataWritingProcessor for LowMemoryPicker {
-    /// Source `processSpectrum_` (`PeakPickerHiRes.cpp:119-134`).
+    /// Source `processSpectrum_` (`PeakPickerHiRes.cpp:120-137`).
     ///
     /// Automatic mode (no `ms_levels`) leaves a spectrum whose **stored** type
     /// is centroided untouched; manual mode leaves every spectrum whose MS level
@@ -190,7 +190,7 @@ impl MSDataWritingProcessor for LowMemoryPicker {
         Ok(())
     }
 
-    /// Source `processChromatogram_` (`PeakPickerHiRes.cpp:136-141`): every
+    /// Source `processChromatogram_` (`PeakPickerHiRes.cpp:139-144`): every
     /// chromatogram is picked, unconditionally, exactly as `pickExperiment`
     /// picks every chromatogram in the in-memory mode. `ms_levels` does not
     /// apply to chromatograms in either mode.
@@ -204,7 +204,7 @@ impl MSDataWritingProcessor for LowMemoryPicker {
     }
 }
 
-/// Source `doLowMemAlgorithm` (`PeakPickerHiRes.cpp:176-192`).
+/// Source `doLowMemAlgorithm` (`PeakPickerHiRes.cpp:170-186`).
 ///
 /// Builds the writing consumer on `output`, gives it the `peak picking`
 /// processing record, and streams `input` past it with
@@ -214,19 +214,27 @@ impl MSDataWritingProcessor for LowMemoryPicker {
 ///
 /// 1. **The output file is created before the input is read**, because the
 ///    source consumer opens its `std::ofstream` in its constructor
-///    (`MSDataWritingConsumer.cpp:32`) and the constructor runs before
+///    (`MSDataWritingConsumer.cpp:33`) and the constructor runs before
 ///    `transform`. An input that cannot be parsed therefore still leaves a file
 ///    behind - empty, if the failure comes before the first record. The
 ///    in-memory mode writes nothing until the whole run has succeeded.
 /// 2. **The input is read twice.** `transform` runs `transformFirstPass_` and
-///    then a second full parse (`MzMLFile.cpp:178-190`). The first pass hands
+///    then a second full parse (`MzMLFile.cpp:178-191`). The first pass hands
 ///    the consumer the record counts declared by the document and the
 ///    experimental settings; the second hands it the records. Both passes are
 ///    complete parses of the file - the mode trades I/O for memory, and a
 ///    low-memory run reads roughly twice the bytes an in-memory run does.
 /// 3. **The header is written from the settings of pass one plus the first
 ///    record**, and each list tag announces the count pass one declared, not
-///    the records that follow. The source notes that these counts are not
+///    the records that follow. A header field derived from the records
+///    therefore describes that one record: on the 2.3 GB benchmark input the
+///    `fileContent` of a low-memory output carries `MS1 spectrum` alone where
+///    the in-memory output carries `MS1 spectrum` and `MSn spectrum`. **The C++
+///    Release build does the same** on the same input - it is the one-record
+///    dummy map of `MSDataWritingConsumer.cpp:76-83` - and apart from that one
+///    line the two modes' mzML bodies are byte-identical on both sides
+///    (`../oracle/p4-lowmemory`, `logs/verify2_06.log`).
+///    The source notes that the list counts are not
 ///    enforced and that a wrong one "will lead to an inconsistent mzML".
 ///    [`CountPolicy::Checked`](crate::format::ms_data_writing_consumer::CountPolicy::Checked),
 ///    the consumer's default, is kept: a document whose declared counts and
@@ -251,7 +259,7 @@ impl MSDataWritingProcessor for LowMemoryPicker {
 ///
 /// The mode is serial, in the source and here. The source's consumer dispatch
 /// loop calls `consumeSpectrum` one record at a time
-/// (`MzMLHandler.cpp:259-272`); its only OpenMP region on this path decodes
+/// (`MzMLHandler.cpp:259-274`); its only OpenMP region on this path decodes
 /// binary arrays, which this port's reader does not parallelise either. So
 /// `-threads` reaches nothing here and the written bytes are identical at every
 /// value of it - trivially, rather than by the batch-order argument the
