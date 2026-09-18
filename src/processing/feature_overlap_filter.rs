@@ -47,6 +47,10 @@
 //!   counted twice.
 //! - `merge_faims_features` removes `FAIMS_CV` from a survivor after its first
 //!   merge, so a survivor absorbs at most one feature.
+//!
+//! The last two are `CPP-283`, and `merge_faims_features_with_fidelity` offers
+//! the corrected merge beside them (`FaimsMergeFidelity`), which the
+//! `FeatureFinderCentroided` tool runs. Nothing else changes behaviour.
 //! - The quadtree extent follows `FeatureMap::updateRanges`, which skips a hull
 //!   whose bounding box has zero width or height.
 //! - A mass trace's retention-time end is read from the last point of its hull
@@ -626,12 +630,7 @@ impl FeatureOverlapFilter {
                 require_same_charge: true,
                 require_same_im: false,
             };
-            let mut callback: &mut dyn FnMut(
-                &mut [Feature],
-                usize,
-                usize,
-                &mut Journal,
-            ) -> Result<bool> = match fidelity {
+            let mut callback: MergeCallback<'_> = match fidelity {
                 FaimsMergeFidelity::Source => &mut merge_different_voltages,
                 FaimsMergeFidelity::Corrected => &mut merge_further_voltages,
             };
@@ -658,6 +657,10 @@ impl FeatureOverlapFilter {
         Ok(())
     }
 }
+
+/// A merge callback of this module, as the two fidelities choose between them.
+type MergeCallback<'a> =
+    &'a mut dyn FnMut(&mut [Feature], usize, usize, &mut Journal) -> Result<bool>;
 
 /// The comparator of the merge functions: the higher intensity is better.
 fn higher_intensity(left: &Feature, right: &Feature) -> bool {
@@ -1573,7 +1576,8 @@ mod tests {
         let tolerances = CentroidTolerances::default();
         let plan = Plan::new(features, FeatureOverlapMode::CentroidBased, &tolerances).unwrap();
         let mut journal = Journal::default();
-        let removed = overlap_loop(features, &plan, on_overlap, &mut journal).unwrap();
+        let removed =
+            overlap_loop(features, &plan, on_overlap, &mut journal, Removal::Source).unwrap();
         (removed.len(), journal)
     }
 
