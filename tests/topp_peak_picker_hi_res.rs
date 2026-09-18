@@ -42,7 +42,7 @@ use openms::format::controlled_vocabulary::ControlledVocabulary;
 use openms::format::file_handler::FileHandler;
 use openms::format::file_types::FileType;
 use openms::format::mzml::{InputScaling, ReadOptions};
-use openms::kernel::MSExperiment;
+use openms::kernel::{MSExperiment, SpectrumType};
 use openms::metadata::{DataProcessing, MetaValue, ProcessingAction};
 use openms::system::file::TempDir;
 use std::path::{Path, PathBuf};
@@ -798,32 +798,345 @@ fn command_line_subsection_values_reach_the_picker() {
     );
 }
 
-/// `-processOption lowmemory` is refused explicitly until package P4 ports the
-/// source's transforming consumer, and nothing is written.
-#[test]
-fn low_memory_processing_is_refused_explicitly() {
+/// One `-processOption lowmemory` run into a temporary directory: the run, the
+/// bytes written and the guard. The bytes, not only the decoded experiment,
+/// because the mode's container is part of what it produces.
+fn low_memory(ini: Option<&str>, input: &Path, extra: &[&str]) -> (Run, Vec<u8>, LowMemoryRun) {
     let temp = workdir();
-    let out = temp.path().join("PeakPickerHiRes_3.tmp.mzML");
-    let outcome = run(&[
-        "-test",
-        "-ini",
-        &text(&fixture("PeakPickerHiRes_parameters.ini")),
+    let out = temp.path().join("PeakPickerHiRes_lowmem.tmp.mzML");
+    let ini_path = ini.map(|name| text(&fixture(name)));
+    let (input, out_text) = (text(input), text(&out));
+    let mut args = vec!["-test"];
+    if let Some(ini) = &ini_path {
+        args.extend(["-ini", ini]);
+    }
+    args.extend([
         "-in",
-        &text(&workflow_input(1)),
+        &input,
         "-out",
-        &text(&out),
+        &out_text,
         "-processOption",
         "lowmemory",
     ]);
-    assert_eq!(outcome.code, ExitCode::IncompatibleInputData);
-    assert!(
-        outcome.err.contains(
-            "Error: unsupported: PeakPickerHiRes -processOption lowmemory is not ported yet"
-        ),
-        "{}",
-        outcome.err
+    args.extend_from_slice(extra);
+    let outcome = run(&args);
+    let bytes = std::fs::read(&out).unwrap_or_default();
+    (outcome, bytes, LowMemoryRun { out, _temp: temp })
+}
+
+/// The output path of a [`low_memory`] run and the guard that removes it.
+struct LowMemoryRun {
+    out: PathBuf,
+    _temp: TempDir,
+}
+
+/// The same run in the in-memory mode, for the mode-to-mode comparisons.
+fn in_memory_bytes(ini: Option<&str>, input: &Path, extra: &[&str]) -> Vec<u8> {
+    let temp = workdir();
+    let out = temp.path().join("PeakPickerHiRes_inmem.tmp.mzML");
+    let ini_path = ini.map(|name| text(&fixture(name)));
+    let (input, out_text) = (text(input), text(&out));
+    let mut args = vec!["-test"];
+    if let Some(ini) = &ini_path {
+        args.extend(["-ini", ini]);
+    }
+    args.extend(["-in", &input, "-out", &out_text]);
+    args.extend_from_slice(extra);
+    assert_eq!(run(&args).code, ExitCode::ExecutionOk);
+    std::fs::read(&out).unwrap()
+}
+
+/// `TOPP_PeakPickerHiRes_3` (test-data `0cb15f2` `topp/CMakeLists.txt:2533-2536`):
+/// workflow 1 through `-processOption lowmemory`, compared against the retained
+/// `PeakPickerHiRes_output_lowMem.mzML`.
+///
+/// The registration exists because of one attribute. Upstream's own comment on
+/// it reads: the output "SHOULD be identical to 'PeakPickerHiRes_output.mzML',
+/// but due to a missing 'Dataprocessing' entry (which is not known when writing
+/// the mzML header), we need an extra output file". The two retained C++ files
+/// differ in exactly one byte-length-preserving place, `dataProcessingList
+/// count="3"` against `count="2"`, which
+/// [`the_two_retained_cpp_outputs_differ_only_in_the_data_processing_count`]
+/// pins; the C++ count is `max(1, dps.size() + float data arrays of the whole
+/// experiment)` (`MzMLHandler.cpp:5160-5170`) and the consumer's header sees a
+/// one-record dummy map, so it counts one record's arrays. This port's writer
+/// counts the processing histories it writes, so that artifact has no analogue
+/// here and both modes write the same count - a native difference of the mzML
+/// writer, not of this mode.
+///
+/// Nothing reaches standard output: the per-MS-level summary belongs to
+/// `pickExperiment`, which this path never calls.
+#[test]
+fn topp_peak_picker_hi_res_3_matches_the_retained_low_memory_output() {
+    let (outcome, bytes, produced_at) = low_memory(
+        Some("PeakPickerHiRes_parameters.ini"),
+        &workflow_input(1),
+        &[],
     );
-    assert!(!out.exists());
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.out, VERSION_WARNING_3_6_0);
+    assert_eq!(outcome.err, "");
+    let produced = load(&produced_at.out);
+    let expected = load(fixture("PeakPickerHiRes_output_lowMem.mzML"));
+    assert_decoded_equal(&produced, &expected);
+    assert_eq!(history_lengths(&produced), vec![6; 5]);
+    assert_final_test_mode_record(&produced);
+    // And, as upstream's comment wanted, identical to the in-memory run.
+    assert_eq!(
+        bytes,
+        in_memory_bytes(Some("PeakPickerHiRes_parameters.ini"), &workflow_input(1), &[])
+    );
+}
+
+/// `TOPP_PeakPickerHiRes_4` (`CMakeLists.txt:2538-2540`): workflow 2, five
+/// chromatograms and no spectra, through the low-memory mode. Upstream compares
+/// this one against the **in-memory** output file, so there the two modes agree
+/// in the source as well; `processChromatogram_` picks every chromatogram
+/// unconditionally, exactly as `pickExperiment` does.
+#[test]
+fn topp_peak_picker_hi_res_4_matches_the_in_memory_retained_output() {
+    let (outcome, bytes, produced_at) = low_memory(
+        Some("PeakPickerHiRes_parameters.ini"),
+        &workflow_input(2),
+        &[],
+    );
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.out, VERSION_WARNING_3_6_0);
+    assert_eq!(outcome.err, "");
+    let produced = load(&produced_at.out);
+    assert_decoded_equal(&produced, &load(fixture("PeakPickerHiRes_2_output.mzML")));
+    assert_eq!(history_lengths(&produced), vec![2; 5]);
+    assert_eq!(
+        produced
+            .chromatograms
+            .iter()
+            .map(|c| c.peaks.len())
+            .collect::<Vec<_>>(),
+        vec![2, 4, 1, 2, 3]
+    );
+    assert_eq!(
+        bytes,
+        in_memory_bytes(Some("PeakPickerHiRes_parameters.ini"), &workflow_input(2), &[])
+    );
+}
+
+/// The retained C++ pair, byte for byte: the low-memory output differs from the
+/// in-memory one in the `dataProcessingList count` attribute and nowhere else.
+///
+/// This pins the source divergence the registration exists for, from the two
+/// files upstream retained, without depending on either implementation.
+#[test]
+fn the_two_retained_cpp_outputs_differ_only_in_the_data_processing_count() {
+    let in_memory = std::fs::read(fixture("PeakPickerHiRes_output.mzML")).unwrap();
+    let low_memory = std::fs::read(fixture("PeakPickerHiRes_output_lowMem.mzML")).unwrap();
+    assert_eq!(in_memory.len(), low_memory.len());
+    let differing: Vec<usize> = in_memory
+        .iter()
+        .zip(&low_memory)
+        .enumerate()
+        .filter(|(_, (a, b))| a != b)
+        .map(|(i, _)| i)
+        .collect();
+    assert_eq!(differing.len(), 1, "{differing:?}");
+    let at = differing[0];
+    assert_eq!((in_memory[at], low_memory[at]), (b'3', b'2'));
+    let context = &in_memory[at.saturating_sub(30)..at + 2];
+    assert!(
+        String::from_utf8_lossy(context).contains("dataProcessingList count=\""),
+        "{}",
+        String::from_utf8_lossy(context)
+    );
+}
+
+/// The mode writes indexed mzML, as `doCleanup_` does through
+/// `MzMLHandlerHelper::writeFooter_` with the consumer's inherited
+/// `write_index_`: the retained `PeakPickerHiRes_output_lowMem.mzML` is an
+/// `indexedmzML`, and so is this.
+///
+/// Every offset in the index is checked to land on the record element it names,
+/// which is the property a downstream random-access reader depends on and the
+/// reason the mode is worth using on a file too large to hold.
+#[test]
+fn the_low_memory_output_is_indexed_and_its_offsets_land_on_the_records() {
+    let retained = std::fs::read(fixture("PeakPickerHiRes_output_lowMem.mzML")).unwrap();
+    assert!(String::from_utf8_lossy(&retained).contains("<indexedmzML "));
+
+    let (outcome, bytes, _produced_at) = low_memory(
+        Some("PeakPickerHiRes_parameters.ini"),
+        &workflow_input(1),
+        &[],
+    );
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    let document = String::from_utf8(bytes).unwrap();
+    assert!(document.contains("<indexedmzML "), "{document}");
+    assert!(
+        document.ends_with("</fileChecksum>\n</indexedmzML>\n"),
+        "{}",
+        &document[document.len() - 120..]
+    );
+    let entries: Vec<(&str, usize)> = document
+        .lines()
+        .filter_map(|line| {
+            let rest = line.strip_prefix("<offset idRef=\"")?;
+            let (id, rest) = rest.split_once("\">")?;
+            let offset = rest.strip_suffix("</offset>")?.parse().ok()?;
+            Some((id, offset))
+        })
+        .collect();
+    assert_eq!(entries.len(), 5, "{entries:?}");
+    for (id, offset) in entries {
+        let at = &document[offset..];
+        assert!(at.starts_with("<spectrum "), "{id} at {offset}: {:?}", &at[..40]);
+        assert!(at.contains(&format!("id=\"{id}\"")), "{id} at {offset}");
+    }
+}
+
+/// **The divergence that matters.** Automatic mode in the low-memory path tests
+/// the *stored* spectrum type only - `s.getType()`, the `SpectrumSettings`
+/// accessor `MSSpectrum` re-exposes (`MSSpectrum.h:655`) - where `pickExperiment`
+/// tests `getType(true)`, which falls through to the data-processing history and
+/// then to `PeakTypeEstimator` (`PeakPickerHiRes.cpp:119-124` against `510`).
+///
+/// Workflow 6's input carries `MS:1000525` and neither `MS:1000127` nor
+/// `MS:1000128`, so its stored type is unknown while the estimator calls its 33
+/// samples centroided. The in-memory mode therefore copies it and reports
+/// `0 / 1`; the low-memory mode picks it, to four centroids. Two different
+/// files from one input, and the source specifies both.
+#[test]
+fn low_memory_automatic_mode_tests_only_the_stored_spectrum_type() {
+    let (outcome, in_memory, _temp) = {
+        let (outcome, produced, temp) = workflow(None, &workflow_input(6), &[]);
+        (outcome, produced, temp)
+    };
+    assert_eq!(
+        outcome.out,
+        "#Spectra that needed to and could be picked by MS-level:\n  MS-level 1: 0 / 1\n"
+    );
+    assert_eq!(in_memory.spectra.len(), 1);
+    assert_eq!(in_memory.spectra[0].peaks.len(), 33);
+    assert_eq!(in_memory.spectra[0].spectrum_type, SpectrumType::Unknown);
+
+    let (outcome, _bytes, produced_at) = low_memory(None, &workflow_input(6), &[]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.out, "");
+    let low = load(&produced_at.out);
+    assert_eq!(low.spectra.len(), 1);
+    assert_eq!(low.spectra[0].peaks.len(), 4);
+    assert_eq!(low.spectra[0].spectrum_type, SpectrumType::Centroid);
+}
+
+/// The low-memory path runs `pp.pick` with no spectrum-type check at all, so a
+/// centroided spectrum on a selected MS level is picked instead of refused and
+/// **`-force` is inert**: `check_spectrum_type` is read only by the experiment
+/// entry points. The in-memory mode on the same input and parameters exits 8
+/// with the source's message.
+#[test]
+fn low_memory_never_refuses_centroided_data_and_force_is_inert() {
+    let refusal = run(&[
+        "-test",
+        "-in",
+        &text(&workflow_input(6)),
+        "-out",
+        &text(&workdir().path().join("unused.mzML")),
+        "-algorithm:ms_levels",
+        "1",
+    ]);
+    assert_eq!(refusal.code, ExitCode::UnknownError);
+    assert_eq!(
+        refusal.err,
+        "Error: Unexpected internal error (Error: Centroided data provided but profile spectra expected.)\n"
+    );
+
+    let (outcome, without_force, without_force_at) =
+        low_memory(None, &workflow_input(6), &["-algorithm:ms_levels", "1"]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.err, "");
+    assert_eq!(load(&without_force_at.out).spectra[0].peaks.len(), 4);
+
+    let (outcome, with_force, _with_force_at) = low_memory(
+        None,
+        &workflow_input(6),
+        &["-algorithm:ms_levels", "1", "-force"],
+    );
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(with_force, without_force);
+}
+
+/// None of the in-memory mode's input phases exists on this path, in the source
+/// or here: the per-peak ion mobility warning, the
+/// [`ExitCode::IncompatibleInputData`] for an input without spectra and
+/// chromatograms, and the two sortedness refusals are all `main_` code that
+/// `doLowMemAlgorithm` returns before. Each input below is one the in-memory
+/// mode reacts to; the low-memory mode writes a file and exits 0 on every one.
+#[test]
+fn low_memory_runs_none_of_the_in_memory_input_checks() {
+    // Per-peak ion mobility: the in-memory mode warns once on standard error.
+    let warned = run(&[
+        "-test",
+        "-in",
+        &text(&fixture("p3_im_peak.mzML")),
+        "-out",
+        &text(&workdir().path().join("im.mzML")),
+    ]);
+    assert!(warned.err.contains("IM_PEAK"), "{}", warned.err);
+    let (outcome, bytes, _produced_at) = low_memory(None, &fixture("p3_im_peak.mzML"), &[]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.err, "");
+    assert!(!bytes.is_empty());
+
+    // An input without spectra and chromatograms: the in-memory mode exits 11.
+    let empty = run(&[
+        "-test",
+        "-in",
+        &text(&fixture("empty.mzML")),
+        "-out",
+        &text(&workdir().path().join("empty.mzML")),
+    ]);
+    assert_eq!(empty.code, ExitCode::IncompatibleInputData);
+    let (outcome, bytes, _produced_at) = low_memory(None, &fixture("empty.mzML"), &[]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.err, "");
+    // No record ever reached the consumer, so no header was written either: the
+    // source's `doCleanup_` writes a footer only when `started_writing_` is set.
+    assert!(bytes.is_empty(), "{}", String::from_utf8_lossy(&bytes));
+
+    // Unsorted records: the in-memory mode's two sortedness refusals are
+    // unreachable through its loader, which sorts every record by position
+    // (`unsorted_records_are_sorted_on_load_and_picked`). The low-memory path
+    // does not even contain the checks, and its reader sorts the same way, so
+    // the two modes agree here rather than differing.
+    for (name, ini) in [
+        ("p3_unsorted_chromatogram.mzML", "PeakPickerHiRes_parameters.ini"),
+        ("p3_unsorted_spectrum.mzML", "PeakPickerHiRes_6.ini"),
+    ] {
+        let (outcome, bytes, _produced_at) = low_memory(Some(ini), &fixture(name), &[]);
+        assert_eq!(outcome.code, ExitCode::ExecutionOk, "{name}: {}", outcome.err);
+        assert_eq!(outcome.err, "", "{name}");
+        assert_eq!(bytes, in_memory_bytes(Some(ini), &fixture(name), &[]), "{name}");
+    }
+}
+
+/// The mode is serial - the source's consumer dispatch loop hands over one
+/// record at a time and this port's reader does the same - so `-threads` reaches
+/// nothing on this path and the written bytes cannot depend on it. Pinned at 1,
+/// 8 and 32, on an input with spectra and on one with chromatograms.
+#[test]
+fn the_low_memory_output_is_bit_identical_at_every_thread_count() {
+    for input in [workflow_input(1), workflow_input(2)] {
+        let mut reference: Option<Vec<u8>> = None;
+        for threads in ["1", "8", "32"] {
+            let (outcome, bytes, _produced_at) = low_memory(
+                Some("PeakPickerHiRes_parameters.ini"),
+                &input,
+                &["-threads", threads],
+            );
+            assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+            match &reference {
+                None => reference = Some(bytes),
+                Some(first) => assert_eq!(first, &bytes, "{input:?} at -threads {threads}"),
+            }
+        }
+    }
 }
 
 /// P3 oracle `empty`: an mzML without spectra and chromatograms (the C1 derived

@@ -54,7 +54,7 @@ Every public and protected member of the three classes in the header.
 | `protected ExperimentalSettings settings_` | `MSDataWritingConsumer::settings()` | Read-only. |
 | `protected std::vector<std::vector<ConstDataProcessingPtr>> dps_` | not ported as a field: the equivalent state is the rendered `dataProcessingList` text and the set of identifiers it declares, both captured from the first record's header | See *Native differences*. |
 | inherited `MzMLHandler::writeHeader_` / `writeSpectrum_` / `writeChromatogram_` | `crate::format::mzml::write_with_options`, driven once per record | The port composes rather than inherits. |
-| inherited `MzMLHandlerHelper::writeFooter_` | the document-closing tags in `finish()` | Index emission is not ported; see *Native differences*. |
+| inherited `MzMLHandlerHelper::writeFooter_` | the document-closing tags and the index in `finish()` | Indexed, as the inherited `write_index_` is. See *Indexed output*. |
 | inherited `ProgressLogger` base | not ported | |
 
 ### `PlainMSDataWritingConsumer`
@@ -174,11 +174,47 @@ constants, `CountPolicy`, `with_limits`, `with_write_options`,
 - **`NoopMSDataWritingConsumer` takes no path**, so asking for a consumer that
   does nothing cannot truncate an existing output — the source's does, through
   its base constructor.
-- **Indexed mzML is not offered.** `writeFooter_` can emit an index from
-  `spectra_offsets_`/`chromatograms_offsets_`; this port tracks no offsets.
 - **`MzMLValidator` and `ProgressLogger` are not threaded through.**
 - **Serial.** `MzMLHandler` carries `#pragma omp` in its binary encoding; this
   port introduces no threads, so a large record encodes on one core.
+
+## Indexed output
+
+The source consumer is an `MzMLHandler`, so it carries that handler's
+`PeakFileOptions`, whose `write_index_` defaults to true, and no TOPP consumer
+reaches those options to change it. `doCleanup_` therefore hands over to
+`MzMLHandlerHelper::writeFooter_`, which emits `indexList`, `indexListOffset`,
+`fileChecksum` and the closing `indexedmzML` from the offsets
+`writeSpectrum_`/`writeChromatogram_` recorded; `writeHeader_` opened the
+`indexedmzML` element to match. The retained upstream output
+`PeakPickerHiRes_output_lowMem.mzML`, which `TOPP_PeakPickerHiRes_3` compares
+against, is an `indexedmzML` accordingly.
+
+This port does the same, and reuses the whole-document writer's own output
+adapter (`mzml::IndexedOutput`, `src/format/mzml_write_options.rs`) rather than
+restating the layout: the adapter writes the `indexedmzML` opening after the XML
+declaration, counts bytes, and hashes them as they go. This consumer keeps its
+own identifier-and-offset table, because it learns its records one at a time and
+cannot reserve the adapter's table up front, and passes it to
+`Output::footer_ids` at the end.
+
+Two consequences are asserted by the tests:
+
+* **A streamed document is byte-identical to the document the whole-document
+  indexed writer would have produced** from the same records, when the announced
+  list counts are the real ones. The record blocks already came from that writer;
+  the index entries, `indexListOffset` and the SHA-1 `fileChecksum` fall out of
+  the same byte positions. The file a caller gets from streaming is the file it
+  would have got from holding the experiment.
+* **A consumer that received no record still writes nothing at all**, index
+  included, because `doCleanup_` writes a footer only when `started_writing_` is
+  set. The source's `writeFooter_` would emit a dummy `-1` index entry, but it is
+  never reached on that path.
+
+`fileChecksum` is the real SHA-1 over every byte through the opening
+`<fileChecksum>` tag, as the indexed mzML schema specifies and as this crate's
+whole-document writer already did; the source writes the constant `0` there
+(CPP-049).
 
 ## Checked boundaries and evidence
 

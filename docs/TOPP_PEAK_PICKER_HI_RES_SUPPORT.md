@@ -28,10 +28,10 @@ Every member of `TOPPPeakPickerHiRes`, in source order.
 | Source member | Rust | Notes |
 | --- | --- | --- |
 | `TOPPPeakPickerHiRes()` (name, description) | `Tool::NAME`, `Tool::DESCRIPTION` | Same two strings. |
-| `class PPHiResMzMLConsumer` (`processSpectrum_`, `processChromatogram_`, members `pp_`, `ms_levels_`) | not ported | The low-memory path; package P4-PICKER-LOWMEM ports it against `format::ms_data_writing_consumer` and `mzml::transform`. |
+| `class PPHiResMzMLConsumer` (`processSpectrum_`, `processChromatogram_`, members `pp_`, `ms_levels_`) | `LowMemoryPicker` + `MSDataWritingConsumer` | The source class is the consumer base plus the two hooks; the port is the hooks alone, handed to `format::ms_data_writing_consumer::MSDataWritingConsumer`, which is that base. `ms_levels_` is read from the picker rather than copied out of its parameters a second time. See *The low-memory mode*. |
 | `registerOptionsAndFlags_` | `Tool::register` | `-in`, `-out` (mzML only), advanced `-processOption` restricted to `inmemory,lowmemory`, subsection `algorithm`. |
 | `getSubsectionDefaults_(section)` | `Tool::subsection_defaults` | Returns `PeakPickerHiRes::defaults()` for every section, as the source ignores its argument. |
-| `doLowMemAlgorithm(pp)` | not ported | Refused, see below. |
+| `doLowMemAlgorithm(pp)` | `run_low_memory` | Consumer on `-out`, `addDataProcessing`, `MzMLFile::transform` → `mzml::transform_with_options` with the tool's read options. |
 | `main_(int, const char**)` | `Tool::run_io` | `Tool::run` forwards with the process streams. |
 | members `in`, `out` | `ToolContext::string("in")`, `("out")` | Read where the source reads them. |
 | `getParam_().copy("algorithm:", true)` + `pp.setParameters` | `ToolContext::subsection("algorithm")` + `PeakPickerHiRes::from_param` | |
@@ -52,8 +52,8 @@ Every member of `TOPPPeakPickerHiRes`, in source order.
 | Mode | State |
 | --- | --- |
 | `-processOption inmemory` (the default) | ported, `TOPP_PeakPickerHiRes_1`, `_2`, `_5`, `_6` |
-| `-processOption lowmemory` | refused explicitly, `INCOMPATIBLE_INPUT_DATA` (package P4) |
-| `-force` | ported (`check_spectrum_type = !force`) |
+| `-processOption lowmemory` | ported, `TOPP_PeakPickerHiRes_3`, `_4` |
+| `-force` | ported (`check_spectrum_type = !force`); **inert under `-processOption lowmemory`**, as in the source |
 | `-test` | ported (processing record and unique-id seed through the framework) |
 | `-write_ini`, `-ini`, `-threads`, `-debug`, `-no_progress` | through the framework; `-debug` prints nothing here, `-no_progress` has nothing to suppress |
 | `-write_ctd` and the CWL/JSON writers | refused by the framework |
@@ -105,6 +105,80 @@ Every member of `TOPPPeakPickerHiRes`, in source order.
   same file at every worker count (tested at 1, 2, 8, 16, 32 and 0, and on the
   2.3 GB benchmark run at 1, 8 and 32). See native difference 9.
 
+## The low-memory mode
+
+`-processOption lowmemory` is not the in-memory mode with a smaller footprint.
+It is a second, shorter program: `doLowMemAlgorithm` builds a
+`PPHiResMzMLConsumer` on the output file, gives it the `peak picking` processing
+record, and calls `MzMLFile::transform`, which streams the input past it. None
+of `main_`'s input handling runs. The source's low-memory path is the
+specification for this port's low-memory path, including where the two modes
+disagree.
+
+### What it does, in order
+
+1. **The output file is created before the input is read**, because the source
+   consumer opens its `std::ofstream` in its constructor
+   (`MSDataWritingConsumer.cpp:32`). An input that cannot be parsed still leaves
+   a file behind — empty, when the failure comes before the first record. The
+   in-memory mode writes nothing until the whole run has succeeded.
+2. **The input is read twice.** `transform` runs `transformFirstPass_`, which
+   parses the whole file for the declared record counts and the experimental
+   settings and hands them to `setExpectedSize`/`setExperimentalSettings`, then
+   parses it again for the records (`MzMLFile.cpp:178-231`). The mode trades I/O
+   for memory: a low-memory run reads roughly twice the bytes an in-memory run
+   does.
+3. **The header comes from those settings plus the first record**, and each list
+   tag announces the count the first pass declared, not the records that follow.
+4. **Each record is picked and written immediately**, then dropped. Peak memory
+   is one read batch (`max_data_pool_size`, 100 records, as upstream) plus the
+   rendered text of one record, not the experiment.
+5. **The document is closed with an index.** See *Native differences* 4 and the
+   writing consumer's own support document.
+
+### Where it differs from the in-memory mode, by the source's own construction
+
+| | `-processOption inmemory` | `-processOption lowmemory` |
+| --- | --- | --- |
+| automatic-mode type test | `getType(true)`: stored type, then a `PEAK_PICKING` entry in the record's processing history, then `PeakTypeEstimator` over the samples (`PeakPickerHiRes.cpp:510`) | `s.getType()`, the `SpectrumSettings` accessor `MSSpectrum` re-exposes with `using` (`MSSpectrum.h:655`): the **stored type only** (`PeakPickerHiRes.cpp:122`) |
+| centroided data on a selected MS level | `IllegalArgument` unless `-force` | picked; **there is no check at all**, so `-force` is inert |
+| per-peak ion mobility | warns once | silent |
+| input with neither spectra nor chromatograms | `INCOMPATIBLE_INPUT_DATA` | exit 0; nothing is written, because no record ever reaches the consumer |
+| unsorted records | two `INCOMPATIBLE_INPUT_DATA` checks (unreachable through either loader, which sorts) | no checks; the reader sorts, so the two modes agree here |
+| per-MS-level summary on stdout | written by `pickExperiment` | none |
+| chromatograms | all picked | all picked |
+| input reads | one | two |
+
+The first row is the one that changes numbers. A spectrum whose mzML carries
+`MS:1000525` but neither `MS:1000127` nor `MS:1000128` has an unknown stored
+type, which is common — it is what a converter that only records the
+representation term produces. The in-memory mode falls through to the estimator
+and may call it centroided and copy it; the low-memory mode sees `UNKNOWN`,
+which is not `CENTROID`, and picks it. Upstream's own workflow 6 input is such a
+file: the in-memory mode reports `MS-level 1: 0 / 1` and writes the 33 input
+samples, and the low-memory mode writes 4 centroids. Both are reproduced
+(`low_memory_automatic_mode_tests_only_the_stored_spectrum_type`,
+`low_memory_never_refuses_centroided_data_and_force_is_inert`).
+
+### Threads
+
+The mode is serial in the source and here. The source's consumer dispatch loop
+hands over one record at a time (`MzMLHandler.cpp:259-272`), and the one OpenMP
+region on that path decodes binary arrays, which this port's reader does not
+parallelise either. `-threads` therefore reaches nothing on this path, and the
+written bytes cannot depend on it — trivially, rather than by the batch-order
+argument the in-memory mode needs. Pinned at 1, 8 and 32 on an input with
+spectra and on one with chromatograms
+(`the_low_memory_output_is_bit_identical_at_every_thread_count`).
+
+### The one place this port is stricter
+
+The consumer's `CountPolicy::Checked` is kept: a document whose declared list
+counts and actual records disagree ends the run with an error after the output
+has been closed, where the source silently writes an mzML whose `count`
+attributes lie (its own class note says so). The file left behind is well-formed
+either way.
+
 ## Native differences
 
 1. **List-valued parameters in the processing record.** Outside `-test`,
@@ -126,16 +200,31 @@ Every member of `TOPPPeakPickerHiRes`, in source order.
    nothing. With `signal_to_noise` 0 the estimator never runs in either
    implementation and both produce the ordinary output (P3 oracle
    `auto_mode_1_without_estimation`).
-3. **`-processOption lowmemory` is refused** with `Error::Unsupported`
-   (`INCOMPATIBLE_INPUT_DATA`) and a message naming package P4, before anything
-   is read. The source runs its `PPHiResMzMLConsumer` there, whose spectrum
-   selection deliberately differs from the in-memory mode.
+3. **The one difference the source has between its two modes' outputs does not
+   appear here.** Upstream retains two output files for workflow 1 because of
+   it, with the comment that the low-memory output "SHOULD be identical to
+   'PeakPickerHiRes_output.mzML', but due to a missing 'Dataprocessing' entry
+   (which is not known when writing the mzML header), we need an extra output
+   file" (`CMakeLists.txt:2534`). The two retained files differ in exactly one
+   byte: `<dataProcessingList count="3">` against `count="2">`. The C++ writer
+   puts `max(1, dps.size() + <float data arrays of the whole experiment>)` in
+   that attribute (`MzMLHandler.cpp:5160-5170`), and the consumer's
+   `writeHeader_` is handed a dummy map holding only the first record, so it
+   counts one record's arrays. This port's writer counts the processing
+   histories it writes (`mzml_header/write.rs:329`), which does not depend on
+   the records at all, so both modes write the same count and the low-memory
+   output here is **byte-identical to the in-memory output** on both upstream
+   registrations. A pre-existing native difference of the mzML writer, pinned
+   from the retained pair by
+   `the_two_retained_cpp_outputs_differ_only_in_the_data_processing_count`.
 4. **Container differences are documented, not compared** (decision D6). The
    C++ output is an `indexedmzML` with an ISO-8859-1 declaration, the software
-   alias `MS:1002135 TOPP PeakPickerHiRes` and a `dataProcessingList count`
-   computed as `max(1, histories + float arrays)` (CPP-019); this port writes a
-   plain mzML in UTF-8 with the exact software name and one `dataProcessing`
-   entry. Both decode to the same content, which is what the tests compare.
+   alias `MS:1002135 TOPP PeakPickerHiRes`, a `dataProcessingList count`
+   computed as `max(1, histories + float arrays)` (CPP-019) and the constant
+   `0` for `fileChecksum` (CPP-049); this port writes an `indexedmzML` in UTF-8
+   with the exact software name, one `dataProcessing` entry and the real SHA-1.
+   Both modes write the same container here, as both do in the source. Both
+   decode to the same content, which is what the tests compare.
 5. **The ion mobility peak type in the warning is `im_profile`.** The source
    prints `imPeakTypeToString(spec.getIMPeakType())`; the native spectrum has no
    stored peak type. `im_profile` is what the source mzML reader stores for ion
