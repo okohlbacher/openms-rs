@@ -314,14 +314,34 @@ compiled on `kim`.
 - **It does not claim a performance result.** No benchmark was run at this
   integration. §4 of [BENCHMARKS](BENCHMARKS.md) is the wave-5 measurement on
   **dax**, and §4.5 now records the decision rather than new numbers.
-- **It does not re-verify the pinned TOPP source line by line.** The core
-  references the new `CPP-278` text rests on were checked here against the
-  pinned checkout `.reference/openms4-core-bc9cc12`
-  (`FeatureOverlapFilter.cpp:384-527` is `mergeFAIMSFeatures` and calls `filter`
-  itself at `:507-511`; its own Doxygen block is `:156-180`, with the sentences
-  quoted at `:157`, `:159-160` and `:175`). The `FeatureFinderCentroided.cpp`
-  line references are the lane's: the pinned `topp` revision `174b576` is not in
-  any local checkout, so they were not re-checked against the pin at this pass.
+- **It does not re-verify the pinned sources line by line — but every line
+  reference this wave adds was checked against its pin.** The `CPP-278` core
+  references were checked against the pinned checkout
+  `.reference/openms4-core-bc9cc12`: `FeatureOverlapFilter.cpp:384-527` is
+  `mergeFAIMSFeatures` and calls `filter` itself at `:507-511`, `:263-271`
+  inserts into `removed_uids` only on a `true` callback, `:277-281` erases
+  exactly those ids, `:445-448` refuses a same-voltage pair, and the function's
+  own Doxygen block is `:156-180`, with the sentences quoted at `:157`,
+  `:159-160` and `:175`. The `FeatureFinderCentroided.cpp` references were
+  checked against the pinned `topp` revision `174b576`, which **is** locally
+  reachable: `OpenMS4-tests/packages/topp` is the `OpenMS4-topp` repository, the
+  pin is an ancestor of its `HEAD`, and `git show
+  174b576:src/FeatureFinderCentroided.cpp` yields the pinned file (387 lines).
+  Correct as written: `:258-281`, `:283-291`, `:294-299`, `:309`. **Five were
+  wrong and are corrected here**: in
+  `src/cli/tools/feature_finder_centroided.rs` the group log line is `:254` not
+  `:253`, the combined-features line `:306` not `:307`, the merge log line
+  `:313-314` not `:314-315`, and the merge's literal `5.0`/`0.05` arguments
+  `:312` not `:313`; in `CPP-278` the unique ids are assigned at `:328-329`, not
+  `:318-320`. Every correction is to a line number only — each claim's subject
+  was right, including `CPP-278`'s, whose ids are indeed assigned after the
+  merge call at `:312`. The wrong numbers match no local copy at any revision:
+  the `topp-sdk-validation/source` copy is byte-identical to the pin, and the
+  `topp` working tree at `HEAD`, which differs from the pin elsewhere, carries
+  the same six FAIMS anchors at `254`, `306`, `312`, `313`, `318` and `328`.
+  What is still unclaimed is the rest of both files: only the references this
+  wave cites were read, and reading them is a source check, not an executed
+  build.
 
 ## Wave-5 completion of FeatureFinderAlgorithmPicked and the noise estimators (2026-09-17)
 

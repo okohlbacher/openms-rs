@@ -4936,7 +4936,7 @@ Rust port applies all three:
 *Basis of the composite claim.* The three-fix chain is read from the pinned
 source (`FeatureOverlapFilter.cpp:263-271` inserts into `removed_uids` only
 when the callback returns `true`; `:277-281` erases exactly those ids;
-`FeatureFinderCentroided.cpp:318-320` assigns the unique ids only *after* the
+`FeatureFinderCentroided.cpp:328-329` assigns the unique ids only *after* the
 merge) and confirmed on the Rust port, whose source-faithful merge
 (`FeatureOverlapFilter::merge_faims_features`) is call-for-call the source's.
 Two executed tests of package B11 pin the two non-merging cases:

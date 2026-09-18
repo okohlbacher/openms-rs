@@ -251,7 +251,7 @@ impl FeatureFinderCentroided {
     }
 
     /// The source's line before each compensation-voltage group
-    /// (`FeatureFinderCentroided.cpp:253`), for `volts` and a group of
+    /// (`FeatureFinderCentroided.cpp:254`), for `volts` and a group of
     /// `spectra` spectra.
     ///
     /// The voltage is formatted as `std::ostream << double` formats it at the
@@ -265,13 +265,13 @@ impl FeatureFinderCentroided {
     }
 
     /// The source's line after the group loop
-    /// (`FeatureFinderCentroided.cpp:307`).
+    /// (`FeatureFinderCentroided.cpp:306`).
     pub fn combined_features_message(features: usize) -> String {
         format!("Combined {features} features from all FAIMS CV groups.")
     }
 
     /// The source's line after the cross-voltage merge
-    /// (`FeatureFinderCentroided.cpp:314-315`).
+    /// (`FeatureFinderCentroided.cpp:313-314`).
     ///
     /// The source computes the third number as `before - after` in `Size`; the
     /// merge only removes features, so it never wraps.
@@ -284,11 +284,11 @@ impl FeatureFinderCentroided {
 
     /// The largest retention-time difference of the cross-voltage merge, in
     /// seconds: the source's literal argument
-    /// (`FeatureFinderCentroided.cpp:313`), not the parameter default.
+    /// (`FeatureFinderCentroided.cpp:312`), not the parameter default.
     pub const FAIMS_MERGE_MAX_RT_DIFF: f64 = 5.0;
 
     /// The largest m/z difference of the cross-voltage merge, in Da
-    /// (`FeatureFinderCentroided.cpp:313`).
+    /// (`FeatureFinderCentroided.cpp:312`).
     pub const FAIMS_MERGE_MAX_MZ_DIFF: f64 = 0.05;
 
     /// Which cross-voltage merge the tool runs: the **corrected** one, the
