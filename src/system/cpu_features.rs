@@ -17,10 +17,10 @@
 //! a binary on an older CPU kills it with `SIGILL` and no explanation at
 //! whatever arithmetic happens to come first. [`unsupported_cpu`] turns that
 //! into a diagnosis: it reads CPUID, and the caller prints the message and
-//! exits with a documented status. [`crate::cli::run`] calls it as its very
-//! first statement — before it even reads the command line — and
-//! [`crate::cli::run_with`] calls it again for a caller that drives a tool in
-//! process, so every ported TOPP executable is covered before it touches a
+//! exits with a documented status. The TOPP framework's `cli::run` calls it as
+//! its very first statement — before it even reads the command line — and
+//! `cli::run_with` calls it again for a caller that drives a tool in process,
+//! so every ported TOPP executable is covered before it touches a
 //! floating-point number.
 //!
 //! **`std::arch::is_x86_feature_detected!` cannot be used here.** It is
@@ -40,10 +40,11 @@
 //! AVX but not FMA, and measured — not guaranteed by construction — for the
 //! older ones.
 //!
-//! The check costs one relaxed atomic load after the first call — the standard
-//! library caches the CPUID result — and is compiled out entirely on a build
-//! that does not set the flag, because [`build_requires_fma`] is then a
-//! compile-time `false`.
+//! The check costs one `cpuid` — a few hundred cycles, executed twice in the
+//! life of a tool process and nothing is cached because nothing needs to be —
+//! and is compiled out entirely on a build that does not set the flag, because
+//! [`build_requires_fma`] is then a compile-time `false` and the `&&` folds
+//! away with it.
 
 /// What a binary that requires FMA prints on a processor that has none.
 ///
@@ -140,10 +141,9 @@ pub fn cpu_provides_fma() -> bool {
 /// `Some` exactly when [`build_requires_fma`] and not [`cpu_provides_fma`].
 /// Callers print the message to standard error and exit; they must not
 /// continue, because the very next floating-point operation may be the illegal
-/// instruction. [`crate::cli::run_with`] does this with
-/// [`ExitCode::InternalError`](crate::cli::ExitCode::InternalError), the status
-/// `docs/TOPP_CLI_SUPPORT.md` records for a failure of the build rather than of
-/// the input.
+/// instruction. `cli::run` and `cli::run_with` do this with the exit status
+/// `INTERNAL_ERROR` (12), which `docs/TOPP_CLI_SUPPORT.md` records for a failure
+/// of the build rather than of the input.
 ///
 /// ```
 /// # use openms::system::cpu_features::unsupported_cpu;
@@ -151,7 +151,12 @@ pub fn cpu_provides_fma() -> bool {
 /// assert!(unsupported_cpu().is_none());
 /// ```
 pub fn unsupported_cpu() -> Option<&'static str> {
-    message_for(build_requires_fma(), cpu_provides_fma())
+    let requires = build_requires_fma();
+    // `cpuid` is executed only when its answer can change anything: on a build
+    // without the flag `requires` is a compile-time `false` and this whole
+    // function folds to `None`.
+    let provides = !requires || cpu_provides_fma();
+    message_for(requires, provides)
 }
 
 /// The decision itself, with both answers supplied.
