@@ -171,7 +171,53 @@ which is `unsafe`; the crate keeps that out of this one. The unit test
 `flags` line of `/proc/cpuinfo` on Linux, so the detector is checked against
 something outside the build.
 
-## 7. The flag changes no result
+### Where else this trap can bite
+
+The flag is now the default, so **every `is_x86_feature_detected!` argument the
+flag enables is a compile-time `true` in this crate from here on.** Measured with
+`rustc --print cfg` (rustc 1.96.0):
+
+| target | baseline `target_feature` | added by the flag |
+|---|---|---|
+| `x86_64-unknown-linux-gnu` (kim) | `fxsr sse sse2` | `avx fma sse3 ssse3 sse4.1 sse4.2` |
+| `x86_64-apple-darwin` | `cmpxchg16b fxsr sse sse2 sse3 ssse3 sse4.1` | `avx fma sse4.2` |
+
+So `is_x86_feature_detected!` folds for `"fma"`, `"avx"`, `"sse3"`, `"ssse3"`,
+`"sse4.1"` and `"sse4.2"`; `"avx2"`, `"sha"`, `"bmi2"` and the rest still ask the
+processor. Three places in the tree touch this today:
+
+* **`src/analysis/feature_finder_picked/glibc_libm.rs`, `atan_is_reference()`**
+  — a `#[cfg(test)]` helper, and the one instance of the macro that existed in
+  the tree before this lane. It is a genuine question about the processor: it
+  asks whether the host's glibc resolves `atan` to `__atan_fma`, which decides
+  whether `special_values_match_the_executed_library` compares `atan` against the
+  fixture at all. This lane routes it through `cpu_features::cpu_provides_fma()`.
+  No assertion moved — a `+fma` binary cannot start on a processor without FMA,
+  so on any host that can run this code the two mechanisms give the same answer
+  — but the mechanism is no longer one a build flag can silence.
+* **`src/system/build_info.rs`, `active_simd_extensions()`** reads
+  `cfg!(target_feature = …)` deliberately: it reports what the compiler was
+  *allowed to emit*, which is a compile-time question and the right one there.
+  Its answer does change — an x86_64 Linux build now reports
+  `SSE, SSE2, SSE3, SSE4.1, SSE4.2, AVX, FMA` where a baseline build reports
+  `SSE, SSE2`. `tests/build_info.rs` asserts only that the value is stable and
+  well formed, so it holds either way, and no tool prints it.
+* **`cpufeatures 0.2.17`**, in the lock through `sha1`, short-circuits the same
+  way by construction: its `__unless_target_features!` is
+  `#[cfg(all(target_feature = …))]`. It is unaffected today, because `sha1` asks
+  for `"sha", "sse2", "ssse3", "sse4.1"` and `+fma` does not enable `sha`, so the
+  CPUID read survives. A dependency that asked only for features the flag enables
+  would lose its runtime check silently.
+
+The rule for a future lane: **a question about the processor goes to
+`cpu_features::cpu_provides_fma()`, or to another detector that always executes
+`cpuid`. `is_x86_feature_detected!` and `cpufeatures` answer a question about the
+build, and on x86_64 this build has already answered it.**
+
+
+## 7. The flag changes no result — and why it cannot
+
+### 7.1 What was measured
 
 Measured on kim, release binaries built with and without the flag from the same
 commit, on `tests/data/topp_feature_finder_centroided/FileConverter_31_output.mzML`:
@@ -182,6 +228,117 @@ commit, on `tests/data/topp_feature_finder_centroided/FileConverter_31_output.mz
 
 The whole test suite was run with the flag on; section 9 records the counts
 against the recorded main run.
+
+That is one build, one commit and one input. The rest of this section is the
+argument for why it is not a coincidence, so that the record survives a compiler
+or a dependency change rather than having to be re-established from scratch.
+
+### 7.2 Why no result can move
+
+The flag can change exactly three things in the emitted code:
+
+1. **Encoding.** `mulsd` becomes `vmulsd`: same operation, same operands, same
+   rounding.
+2. **The width of an element-wise vector loop.** SSE 128-bit becomes AVX 256-bit.
+   An element-wise IEEE-754 operation is independent per lane, so the width
+   decides how many are done at once and never what any one of them yields.
+3. **`f64::mul_add`**, from an out-of-line call into `compiler_builtins`'
+   CPUID-dispatched `fma` to a single `vfmadd`. Both are a *fused* multiply-add
+   by contract — one rounding — so the value is identical and only the cost
+   differs. That is the whole point of the flag.
+
+What makes that list complete is two things the flag cannot reach:
+
+* **Rust does not contract `a * b + c`.** `f64 * f64` and `f64 + f64` lower to
+  LLVM `fmul` and `fadd` with no fast-math flags — Rust emits no `contract` flag
+  and has no `-ffp-contract=fast` — so LLVM may not fuse them however capable
+  the target is. Only an explicit `mul_add` is a fused multiply-add.
+* **Auto-vectorising a floating-point reduction would mean reassociating it.**
+  Accumulating into vector lanes and combining them at the end is a different
+  order of additions, hence a different IEEE-754 result, so LLVM does it only
+  under the `reassoc` fast-math flag, which Rust never sets.
+
+Both are load-bearing in this port, not theoretical:
+
+* `src/math/fitters/levenberg_marquardt.rs` defines
+  `lane_madd(a, b, acc) = a * b + acc` to reproduce Eigen's `pmadd`
+  **unfused**, which is what the C++ builds do (`cmake/compiler_flags.cmake`
+  passes `-mssse3` and deliberately no AVX, so `EIGEN_VECTORIZE_FMA` is
+  undefined). Contraction there would fuse it silently and break the fitters
+  against the reference.
+* The same file's `eigen_sum` hand-writes Eigen's two-lane summation order.
+  Reassociation there would change the very order the port exists to reproduce.
+
+### 7.3 The codegen this rests on
+
+Five probes, `rustc 1.96.0`, `--target x86_64-apple-darwin -O --emit=asm`, once
+plain and once with `-C target-feature=+fma`:
+
+```rust
+#[inline(never)] pub fn p1(a: f64, b: f64, c: f64) -> f64 { a * b + c }
+#[inline(never)] pub fn p2(a: f64, b: f64, c: f64) -> f64 { a.mul_add(b, c) }
+#[inline(never)] pub fn p3(xs: &[f64; 16]) -> f64 {
+    let mut s = 0.0; for &x in xs.iter() { s += x; } s
+}
+#[inline(never)] pub fn p4(xs: &[f64; 16], ys: &[f64; 16]) -> f64 {
+    let mut s = 0.0; for i in 0..16 { s += xs[i] * ys[i]; } s
+}
+#[inline(never)] pub fn p5(xs: &mut [f64; 16], k: f64) {
+    for x in xs.iter_mut() { *x = *x * k + 1.0; }
+}
+```
+
+| probe | baseline | `+fma` | what it shows |
+|---|---|---|---|
+| `p1`, `a*b+c` | `mulsd`, `addsd` | `vmulsd`, `vaddsd` | **not contracted**: two roundings either way |
+| `p2`, `mul_add` | `jmp _fma`, out of line | `vfmadd213sd` | fused both ways; only the cost changes |
+| `p3`, `+=` sum | 16 serial `addsd` | 16 serial `vaddsd` | **not vectorised**: same order |
+| `p4`, dot product | scalar `addsd` chain, `mulpd` products | scalar `vaddsd` chain, `vmulpd` products | products may vectorise; the accumulation stays serial and unfused |
+| `p5`, `x*k + 1.0` | `mulpd`/`addpd`, 128-bit | `vmulpd`/`vaddpd`, 256-bit | width widened, still **no `vfmadd`** |
+
+`vfmadd`/`vfmsub` in the whole baseline object: **0**. In the `+fma` object:
+**1**, and it is `p2`. `%ymm` registers: 0 and 14, all of them in `p5`.
+
+`p4` is the sharpest of the five. Even with the products already in 128-bit
+packets and FMA available, LLVM extracts each lane and adds it into a scalar
+accumulator in source order (`unpckhpd`/`vshufpd`, then `addsd`/`vaddsd`), and
+does not fuse a single one of the sixteen multiply-adds. The reduction rule and
+the contraction rule are visible in one function.
+
+The shipped binaries agree with the probes (section 3): the release
+`FeatureFinderCentroided` built with the flag contains **41** `vfmadd`/`vfmsub`,
+and the crate contains **41** `f64::mul_add` call sites — 32 in
+`glibc_libm.rs`, 9 in `glibc_powf.rs`. Not one fused multiply-add in that binary
+came from anywhere but an explicit `mul_add`. `FileInfo`, with 23,738 VEX
+instructions, has none at all.
+
+### 7.4 What would invalidate this argument
+
+It is a statement about today's compiler and today's build configuration. Each
+of these breaks it, and each has a check:
+
+1. **Rust or LLVM contracting by default** — a stabilised floating-point
+   contraction control, or a change in how `f64` arithmetic is lowered. Re-run
+   7.3; `p1` must stay `mul` + `add`.
+2. **A second entry in `.cargo/config.toml`** — another `-C target-feature`, a
+   `-C target-cpu`, or anything fast-math-adjacent. That route is pinned:
+   `tests/fma_build_flag.rs` fails on any table but the x86_64 one and any
+   `rustflags` line but this one. A `RUSTFLAGS` set by hand is not pinned and
+   cannot be; section 4 is the whole contract there.
+3. **Hand-written vector code.** 7.2 argues about *auto*-vectorisation of scalar
+   source. An explicit `std::simd` or `#[target_feature]` kernel whose lane count
+   or reduction order followed the enabled feature set would let the flag change
+   results directly. The port has none today — `active_simd_extensions` says so
+   in its own documentation — and the lane that adds one owns this section.
+4. **A dependency entering a numeric path** while doing its own compile-time
+   feature dispatch (section 6): `+fma` would make it take its wide path
+   unconditionally, without saying so. No dependency is on a numeric path today.
+5. **A newer rustc whose auto-vectoriser widens a reduction it leaves alone
+   today.** That needs reassociation, so it would be an LLVM correctness change
+   rather than a tuning change — but the check is the same, re-run 7.3.
+
+Re-checking is two `rustc` invocations and takes seconds. The probes are in this
+file so that it depends on nothing outside it.
 
 ## 8. What the check does and does not guarantee
 

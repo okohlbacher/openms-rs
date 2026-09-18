@@ -820,10 +820,25 @@ mod tests {
     /// (x86_64 Linux with the GNU C Library, on a CPU with FMA; module
     /// documentation). Elsewhere [`atan`] is the documented fallback, which
     /// is not the reference.
+    ///
+    /// This asks about the **processor**, because glibc's indirect-function
+    /// resolver reads CPUID when `libm.so.6` is loaded. It must therefore not
+    /// be asked with `std::arch::is_x86_feature_detected!("fma")`, which is
+    /// documented to answer `true` *without* consulting the processor whenever
+    /// the feature is already enabled at compile time — and since
+    /// `.cargo/config.toml` builds x86_64 with `-C target-feature=+fma`, that
+    /// is now every build of this crate, so the macro would fold to a constant
+    /// here (`docs/FMA_BUILD_FLAG.md` section 6). `cpu_provides_fma` always
+    /// executes `cpuid`, so the question stays the one that was asked.
+    ///
+    /// Nothing about what the test compares changes: a `+fma` binary cannot
+    /// start on a processor without FMA, so the two mechanisms agree on every
+    /// host that can run this code at all. Only the mechanism differs, and this
+    /// one cannot be silenced by a build flag.
     fn atan_is_reference() -> bool {
         #[cfg(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64"))]
         {
-            std::arch::is_x86_feature_detected!("fma")
+            crate::system::cpu_features::cpu_provides_fma()
         }
         #[cfg(not(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64")))]
         {
