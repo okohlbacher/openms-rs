@@ -179,8 +179,8 @@ flag enables is a compile-time `true` in this crate from here on.** Measured wit
 
 | target | baseline `target_feature` | added by the flag |
 |---|---|---|
-| `x86_64-unknown-linux-gnu` (kim) | `fxsr sse sse2` | `avx fma sse3 ssse3 sse4.1 sse4.2` |
-| `x86_64-apple-darwin` | `cmpxchg16b fxsr sse sse2 sse3 ssse3 sse4.1` | `avx fma sse4.2` |
+| `x86_64-unknown-linux-gnu` (kim, section 3) | `fxsr sse sse2` | `avx fma sse3 sse4.1 sse4.2 ssse3` |
+| `x86_64-apple-darwin` | `cmpxchg16b fxsr sse sse2 sse3 sse4.1 ssse3` | `avx fma sse4.2` |
 
 So `is_x86_feature_detected!` folds for `"fma"`, `"avx"`, `"sse3"`, `"ssse3"`,
 `"sse4.1"` and `"sse4.2"`; `"avx2"`, `"sha"`, `"bmi2"` and the rest still ask the
