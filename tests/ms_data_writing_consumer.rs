@@ -109,7 +109,17 @@ fn cleanup_closes_the_open_list_and_the_document() {
         .consume_spectrum(&mut spectrum("scan=1", 1.0, 100.0))
         .unwrap();
     let text = written(consumer);
-    assert!(text.ends_with("</spectrumList>\n</run></mzML>\n"), "{text}");
+    // `doCleanup_` closes the open list, then the document, then hands over to
+    // `MzMLHandlerHelper::writeFooter_`, whose inherited `PeakFileOptions` has
+    // `write_index_` true: the index, its offset and the checksum follow, and
+    // the `indexedmzML` wrapper the header opened is closed last.
+    assert!(
+        text.contains("</spectrumList>\n</run></mzML>\n<indexList count=\"1\">\n"),
+        "{text}"
+    );
+    assert!(text.contains("<index name=\"spectrum\">\n"), "{text}");
+    assert!(text.contains("<offset idRef=\"scan=1\">"), "{text}");
+    assert!(text.ends_with("</fileChecksum>\n</indexedmzML>\n"), "{text}");
 
     let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new())
         .with_count_policy(CountPolicy::SourceInconsistent);
@@ -118,9 +128,12 @@ fn cleanup_closes_the_open_list_and_the_document() {
         .unwrap();
     let text = written(consumer);
     assert!(
-        text.ends_with("</chromatogramList>\n</run></mzML>\n"),
+        text.contains("</chromatogramList>\n</run></mzML>\n<indexList count=\"1\">\n"),
         "{text}"
     );
+    assert!(text.contains("<index name=\"chromatogram\">\n"), "{text}");
+    assert!(text.contains("<offset idRef=\"chrom=1\">"), "{text}");
+    assert!(text.ends_with("</fileChecksum>\n</indexedmzML>\n"), "{text}");
 
     // Dropping without finishing leaves the document unclosed, deliberately.
     let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new());
@@ -244,12 +257,17 @@ fn spectra_are_streamed_and_read_back_unchanged() {
     assert_eq!(loaded.spectra.len(), 3);
     assert_eq!(loaded.spectra, source.spectra);
 
-    // Byte-identical to the plain whole-document writer, because the record
-    // blocks come from that writer and only the list count can differ.
-    // (`mzml::write` itself now writes indexed mzML, as the source default.)
+    // Byte-identical to the **indexed** whole-document writer, which is what
+    // `MzMLFile::store` and this consumer both are: the record blocks come from
+    // the same encoder, the header differs only in the list `count` this test
+    // announces correctly, and the index entries, `indexListOffset` and SHA-1
+    // `fileChecksum` fall out of the same byte positions. This is the strongest
+    // statement the streaming path can make - the file a caller gets from
+    // streaming is the file it would have got from holding the experiment.
     let mut whole = Vec::new();
-    mzml::write_with_options(&mut whole, &source, &Default::default()).unwrap();
+    mzml::write(&mut whole, &source).unwrap();
     assert_eq!(text, String::from_utf8(whole).unwrap());
+    assert!(text.contains("<indexedmzML "), "{text}");
 }
 
 #[test]

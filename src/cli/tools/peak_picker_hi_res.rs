@@ -18,10 +18,17 @@
 //! records a 2.3 GB, 40,856-spectrum Q Exactive file picked end to end and
 //! compared against the C++ tool.
 //!
-//! Not ported yet: `-processOption lowmemory`, the source's
-//! `PPHiResMzMLConsumer` path through `MzMLFile::transform`, is refused with
-//! `INCOMPATIBLE_INPUT_DATA` until package P4-PICKER-LOWMEM ports it; the
-//! debug dump of the algorithm parameters at `-debug 3`, and progress logging.
+//! `-processOption lowmemory` is ported too: the source's `PPHiResMzMLConsumer`
+//! driven by `MzMLFile::transform`, which streams the input past a picking
+//! consumer that writes each record as it is produced, so no experiment is ever
+//! held. That mode is not the in-memory mode with a smaller footprint - it
+//! omits five of the in-memory checks, decides automatic mode on the stored
+//! spectrum type alone, and can therefore write a different file from the same
+//! input. [`LowMemoryPicker`] and [`run_low_memory`](fn@run_low_memory) carry
+//! the list and the evidence.
+//!
+//! Not ported yet: the debug dump of the algorithm parameters at `-debug 3`,
+//! and progress logging.
 //!
 //! `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md` lists the source members, the
 //! preserved conventions, the native differences and the evidence.
@@ -30,8 +37,9 @@ use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
 use crate::format::PeakFileOptions;
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
+use crate::format::ms_data_writing_consumer::{MSDataWritingConsumer, MSDataWritingProcessor};
 use crate::format::mzml;
-use crate::kernel::MSExperiment;
+use crate::kernel::{MSChromatogram, MSExperiment, MSSpectrum, SpectrumType};
 use crate::metadata::{
     DataProcessing, ImTypes, IonMobilityFormat, IonMobilityPeakType, MetaValue, MetaValueData,
     ProcessingAction, im_peak_type_to_string,
@@ -113,8 +121,177 @@ const UNSORTED_SPECTRA_ERROR: &str = "Error: Not all spectra are sorted accordin
 /// which also says m/z.
 const UNSORTED_CHROMATOGRAMS_ERROR: &str = "Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!";
 
-/// The refusal of `-processOption lowmemory` until package P4 ports it.
-const LOW_MEMORY_UNSUPPORTED: &str = "PeakPickerHiRes -processOption lowmemory is not ported yet (package P4-PICKER-LOWMEM of the early TOPP bundle ports it); use -processOption inmemory";
+/// The per-record hook of `-processOption lowmemory`: source nested class
+/// `PPHiResMzMLConsumer` (`PeakPickerHiRes.cpp:107-146`).
+///
+/// The source class derives from `MSDataWritingConsumer` and overrides its two
+/// template-method hooks; this port is the hook pair alone
+/// ([`MSDataWritingProcessor`]), handed to
+/// [`MSDataWritingConsumer`], which is that base class. It carries nothing but
+/// the picker: the source keeps a second copy of `ms_levels` read out of
+/// `pp.getParameters()`, which is by construction the picker's own
+/// `ms_levels_`, so this reads [`Picker::ms_levels`] and the two cannot drift.
+///
+/// # How the selection differs from the in-memory mode
+///
+/// The source spells the automatic-mode test here as `s.getType()`, the
+/// **stored** spectrum type: `MSSpectrum` re-exposes the base accessor with
+/// `using SpectrumSettings::getType` (`MSSpectrum.h:655`), and the no-argument
+/// overload is that base one, which returns the `type_` member and nothing
+/// else. `pickExperiment`, the in-memory path, spells the same test
+/// `getType(true)` (`PeakPickerHiRes.cpp:510`, `531`) - stored type, then a
+/// scan of the record's data-processing history for a `PEAK_PICKING` action,
+/// then `PeakTypeEstimator` over the samples.
+///
+/// So a spectrum whose stored type is `UNKNOWN` - which is every spectrum whose
+/// mzML carries no `MS:1000127`/`MS:1000128` term, including everything written
+/// by a converter that only sets `MS:1000525` - is **picked by the low-memory
+/// mode and copied by the in-memory mode** whenever the slower test would have
+/// called it centroided. That is not a rounding difference; it is a different
+/// output file. It is reproduced here, not repaired: the source's low-memory
+/// path is the specification for the low-memory path.
+///
+/// The manual-mode arm diverges in the same direction: `pickExperiment` refuses
+/// a centroided spectrum on a selected MS level unless `-force` is given, and
+/// this class runs `pp_.pick` straight away. **`-force` is inert in the
+/// low-memory mode**, in the source and here, because
+/// [`Picker::check_spectrum_type`] is read only by the experiment entry points
+/// and this hook calls the single-record [`Picker::pick_spectrum`].
+struct LowMemoryPicker {
+    /// The configured picker, source member `pp_`.
+    picker: Picker,
+}
+
+impl MSDataWritingProcessor for LowMemoryPicker {
+    /// Source `processSpectrum_` (`PeakPickerHiRes.cpp:119-134`).
+    ///
+    /// Automatic mode (no `ms_levels`) leaves a spectrum whose **stored** type
+    /// is centroided untouched; manual mode leaves every spectrum whose MS level
+    /// is not selected untouched. Everything else is picked, with no type check.
+    /// An untouched spectrum is still written, and still receives the tool's
+    /// `peak picking` processing record, because the consumer appends that to
+    /// every record after this hook returns.
+    ///
+    /// # Errors
+    ///
+    /// [`Picker::pick_spectrum`]'s errors. The source's hook returns `void` and
+    /// can only throw; a throw there escapes through `MzMLFile::transform` and
+    /// ends the run with a partially written output file, which is what this
+    /// error does too - see [`run_low_memory`](fn@run_low_memory).
+    fn process_spectrum(&mut self, spectrum: &mut MSSpectrum) -> Result<()> {
+        if self.picker.ms_levels.is_empty() {
+            if spectrum.spectrum_type == SpectrumType::Centroid {
+                return Ok(());
+            }
+        } else if !self.picker.ms_levels.contains(&spectrum.ms_level) {
+            return Ok(());
+        }
+        *spectrum = self.picker.pick_spectrum(spectrum)?.spectrum;
+        Ok(())
+    }
+
+    /// Source `processChromatogram_` (`PeakPickerHiRes.cpp:136-141`): every
+    /// chromatogram is picked, unconditionally, exactly as `pickExperiment`
+    /// picks every chromatogram in the in-memory mode. `ms_levels` does not
+    /// apply to chromatograms in either mode.
+    ///
+    /// # Errors
+    ///
+    /// [`Picker::pick_chromatogram`]'s errors.
+    fn process_chromatogram(&mut self, chromatogram: &mut MSChromatogram) -> Result<()> {
+        *chromatogram = self.picker.pick_chromatogram(chromatogram)?.chromatogram;
+        Ok(())
+    }
+}
+
+/// Source `doLowMemAlgorithm` (`PeakPickerHiRes.cpp:176-192`).
+///
+/// Builds the writing consumer on `output`, gives it the `peak picking`
+/// processing record, and streams `input` past it with
+/// [`mzml::transform_with_options`], the port of `MzMLFile::transform`.
+///
+/// # What the mode does, in order
+///
+/// 1. **The output file is created before the input is read**, because the
+///    source consumer opens its `std::ofstream` in its constructor
+///    (`MSDataWritingConsumer.cpp:32`) and the constructor runs before
+///    `transform`. An input that cannot be parsed therefore still leaves a file
+///    behind - empty, if the failure comes before the first record. The
+///    in-memory mode writes nothing until the whole run has succeeded.
+/// 2. **The input is read twice.** `transform` runs `transformFirstPass_` and
+///    then a second full parse (`MzMLFile.cpp:178-190`). The first pass hands
+///    the consumer the record counts declared by the document and the
+///    experimental settings; the second hands it the records. Both passes are
+///    complete parses of the file - the mode trades I/O for memory, and a
+///    low-memory run reads roughly twice the bytes an in-memory run does.
+/// 3. **The header is written from the settings of pass one plus the first
+///    record**, and each list tag announces the count pass one declared, not
+///    the records that follow. The source notes that these counts are not
+///    enforced and that a wrong one "will lead to an inconsistent mzML".
+///    [`CountPolicy::Checked`](crate::format::ms_data_writing_consumer::CountPolicy::Checked),
+///    the consumer's default, is kept: a document whose declared counts and
+///    actual records disagree ends this run with [`Error::InvalidValue`] after
+///    the output has been closed, where the source silently writes an mzML
+///    whose `count` attributes lie. Native difference, recorded in the support
+///    document.
+/// 4. **Each record is picked and written immediately**, then dropped. Peak
+///    memory is one read batch
+///    ([`PeakFileOptions::max_data_pool_size`], 100 records, as upstream) plus
+///    the rendered text of one record, not the experiment.
+///
+/// # What the mode does *not* do
+///
+/// None of the in-memory mode's four input phases exists on this path, in the
+/// source or here: no per-peak ion mobility warning, no
+/// [`ExitCode::IncompatibleInputData`] for an input without spectra and
+/// chromatograms, no sortedness refusal, and no per-MS-level summary on stdout.
+/// An empty input produces an empty output file and exit 0.
+///
+/// # Threads
+///
+/// The mode is serial, in the source and here. The source's consumer dispatch
+/// loop calls `consumeSpectrum` one record at a time
+/// (`MzMLHandler.cpp:259-272`); its only OpenMP region on this path decodes
+/// binary arrays, which this port's reader does not parallelise either. So
+/// `-threads` reaches nothing here and the written bytes are identical at every
+/// value of it - trivially, rather than by the batch-order argument the
+/// in-memory mode needs. The test suite pins that at 1, 8 and 32.
+///
+/// # Errors
+///
+/// [`Error::Io`] when `output` cannot be created; the read errors of
+/// [`mzml::transform_with_options`] under [`PeakPickerHiRes::read_options`];
+/// the picker's errors from the hooks; and the consumer's own refusals -
+/// a duplicate native identifier, a record whose header references cannot be
+/// satisfied by the one header already written, and the count mismatch of
+/// point 3. Every one of them leaves the partially written output file in
+/// place, as the source does, because a streaming writer cannot take bytes
+/// back. `run_io` reports them all as
+/// `Error: Unexpected internal error (<reason>)` with
+/// [`ExitCode::UnknownError`], except [`Error::Unsupported`], which propagates
+/// as `INCOMPATIBLE_INPUT_DATA` - the same split the in-memory mode uses.
+fn run_low_memory(
+    ctx: &ToolContext,
+    input: &str,
+    output: &str,
+    picker: Picker,
+) -> Result<ExitCode> {
+    let mut processing = ctx.processing_info(&[ProcessingAction::PeakPicking])?;
+    render_list_parameters(&mut processing);
+    let mut consumer = MSDataWritingConsumer::create(output, LowMemoryPicker { picker })?;
+    consumer.add_data_processing(processing)?;
+    let options = mzml::TransformOptions {
+        load: mzml::LoadOptions {
+            scientific: PeakFileOptions::default(),
+            ..mzml::LoadOptions::default()
+        },
+        read: PeakPickerHiRes::read_options(),
+        ..mzml::TransformOptions::default()
+    };
+    mzml::transform_with_options(input, &mut consumer, &options)?;
+    consumer.finish()?;
+    Ok(ExitCode::ExecutionOk)
+}
 
 /// The in-memory input checks of `main_` before picking
 /// (`PeakPickerHiRes.cpp:216-256`), in source order.
@@ -418,7 +595,14 @@ impl Tool for PeakPickerHiRes {
         picker.check_spectrum_type = !ctx.force();
 
         if process_option == "lowmemory" {
-            return Err(Error::Unsupported(LOW_MEMORY_UNSUPPORTED.into()));
+            return match run_low_memory(ctx, input, output, picker) {
+                Ok(code) => Ok(code),
+                Err(error @ Error::Unsupported(_)) => Err(error),
+                Err(error) => {
+                    writeln!(err, "Error: Unexpected internal error ({error})")?;
+                    Ok(ExitCode::UnknownError)
+                }
+            };
         }
 
         let mut experiment = FileHandler::load_experiment_with_read_options(

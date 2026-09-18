@@ -30,7 +30,7 @@
 //! instead of a second, drifting one; the cost and the guards are described at
 //! [`consume_spectrum`](crate::format::ms_data_writing_consumer::MSDataWritingConsumer::consume_spectrum).
 
-use crate::format::mzml::{self, WriteOptions};
+use crate::format::mzml::{self, IndexedOutput, WriteOptions};
 use crate::interfaces::MSDataConsumer;
 use crate::kernel::{MSChromatogram, MSExperiment, MSSpectrum};
 use crate::metadata::{DataProcessing, ExperimentalSettings};
@@ -55,6 +55,12 @@ const CHROMATOGRAM_LIST_OPEN: &str =
 const CHROMATOGRAM_LIST_CLOSE: &str = "</chromatogramList>\n";
 /// The document's final tags, written once by the equivalent of `doCleanup_`.
 const DOCUMENT_CLOSE: &str = "</run></mzML>\n";
+/// The XML declaration every rendered document opens with. The streaming
+/// consumer strips it from the rendered header and lets
+/// [`mzml::IndexedOutput::header`] write it, so that the `indexedmzML` opening
+/// tag lands between the declaration and `<mzML`, where the whole-document
+/// indexed writer puts it.
+const XML_DECLARATION: &str = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 /// The default processing reference both list tags carry.
 const DEFAULT_PROCESSING: &str = "dp_00000000000000000000";
 /// The `index` attribute of a record rendered on its own, always zero, which
@@ -237,8 +243,12 @@ impl MSDataWritingProcessor for PlainProcessor {
 /// [`CountPolicy`] turns from a silent inconsistency into a reported one.
 #[derive(Debug)]
 pub struct MSDataWritingConsumer<W: Write, P: MSDataWritingProcessor = PlainProcessor> {
-    writer: W,
+    writer: IndexedOutput<'static, W>,
     processor: P,
+    /// Identifier and byte offset of every spectrum written, for the index.
+    spectrum_ids: Vec<(String, u64)>,
+    /// Identifier and byte offset of every chromatogram written.
+    chromatogram_ids: Vec<(String, u64)>,
     options: WriteOptions,
     limits: WritingLimits,
     counts: CountPolicy,
@@ -270,8 +280,14 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
     /// place. [`create`](Self::create) is the filename form.
     pub fn new(writer: W, processor: P) -> Self {
         Self {
-            writer,
+            // The offset tables of the wrapped output stay empty: this consumer
+            // learns its records one at a time and keeps its own tables, filled
+            // from `IndexedOutput::position`.
+            writer: IndexedOutput::streamed_with_capacity(writer, 0, 0)
+                .expect("two empty offset tables need no allocation"),
             processor,
+            spectrum_ids: Vec::new(),
+            chromatogram_ids: Vec::new(),
             options: WriteOptions::default(),
             limits: WritingLimits::default(),
             counts: CountPolicy::default(),
@@ -523,6 +539,8 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
         }
         if self.started_writing {
             self.writer.write_all(DOCUMENT_CLOSE.as_bytes())?;
+            let (spectra, chromatograms) = (self.spectrum_ids, self.chromatogram_ids);
+            self.writer.footer_ids(&spectra, &chromatograms)?;
         }
         self.writer.flush()?;
         let expected = (self.spectra_expected, self.chromatograms_expected);
@@ -532,7 +550,7 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
                 "mzML list counts announce {expected:?} records but {written:?} were written"
             )));
         }
-        Ok(self.writer)
+        Ok(self.writer.into_inner())
     }
 
     fn apply_settings(&mut self, settings: &ExperimentalSettings) -> Result<()> {
@@ -578,6 +596,7 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
             copy.native_id = format!("index={index}");
         }
         self.remember_native_id(&copy.native_id)?;
+        let id = copy.native_id.clone();
         let mut document = self.document();
         document.spectra.push(copy);
         let (head, block) = self.prepare(
@@ -588,8 +607,7 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
             "spectrum",
         )?;
         if let Some(head) = head {
-            self.writer.write_all(head.as_bytes())?;
-            self.started_writing = true;
+            self.write_head(&head)?;
         }
         if !self.writing_spectra {
             let count = self.spectra_expected;
@@ -601,6 +619,7 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
             )?;
             self.writing_spectra = true;
         }
+        self.spectrum_ids.push((id, self.writer.position()));
         self.writer.write_all(block.as_bytes())?;
         self.spectra_written = index.saturating_add(1);
         Ok(())
@@ -620,6 +639,7 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
             copy.native_id = format!("chromatogram={index}");
         }
         self.remember_native_id(&copy.native_id)?;
+        let id = copy.native_id.clone();
         let mut document = self.document();
         document.chromatograms.push(copy);
         let (head, block) = self.prepare(
@@ -630,8 +650,7 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
             "chromatogram",
         )?;
         if let Some(head) = head {
-            self.writer.write_all(head.as_bytes())?;
-            self.started_writing = true;
+            self.write_head(&head)?;
         }
         if self.writing_spectra {
             self.writer.write_all(SPECTRUM_LIST_CLOSE.as_bytes())?;
@@ -647,10 +666,28 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
             )?;
             self.writing_chromatograms = true;
         }
+        self.chromatogram_ids.push((id, self.writer.position()));
         self.writer.write_all(block.as_bytes())?;
         self.chromatograms_written = index.saturating_add(1);
         Ok(())
     }
+
+    /// Write the document header, letting the indexed output put the
+    /// `indexedmzML` opening tag between the XML declaration and `<mzML`,
+    /// where the whole-document indexed writer puts it.
+    ///
+    /// The rendered header always begins with the declaration
+    /// [`XML_DECLARATION`]; anything else means the writer's layout changed
+    /// under this module and is refused rather than guessed at.
+    fn write_head(&mut self, head: &str) -> Result<()> {
+        let body = head
+            .strip_prefix(XML_DECLARATION)
+            .ok_or_else(|| layout("XML declaration"))?;
+        self.writer.header(body)?;
+        self.started_writing = true;
+        Ok(())
+    }
+
 
     /// A one-record document carrying the experimental settings.
     ///
