@@ -214,7 +214,6 @@ The rule for a future lane: **a question about the processor goes to
 `cpuid`. `is_x86_feature_detected!` and `cpufeatures` answer a question about the
 build, and on x86_64 this build has already answered it.**
 
-
 ## 7. The flag changes no result — and why it cannot
 
 ### 7.1 What was measured
@@ -242,8 +241,9 @@ The flag can change exactly three things in the emitted code:
 2. **The width of an element-wise vector loop.** SSE 128-bit becomes AVX 256-bit.
    An element-wise IEEE-754 operation is independent per lane, so the width
    decides how many are done at once and never what any one of them yields.
-3. **`f64::mul_add`**, from an out-of-line call into `compiler_builtins`'
-   CPUID-dispatched `fma` to a single `vfmadd`. Both are a *fused* multiply-add
+3. **`f64::mul_add`**, from an out-of-line call into the CPUID-dispatched
+   `fma` of `compiler_builtins` to a single `vfmadd`. Both are a *fused*
+   multiply-add
    by contract — one rounding — so the value is identical and only the cost
    differs. That is the whole point of the flag.
 
@@ -271,19 +271,28 @@ Both are load-bearing in this port, not theoretical:
 
 ### 7.3 The codegen this rests on
 
-Five probes, `rustc 1.96.0`, `--target x86_64-apple-darwin -O --emit=asm`, once
-plain and once with `-C target-feature=+fma`:
+Five probes in one file, compiled twice with `rustc 1.96.0`:
+
+```sh
+rustc --target x86_64-apple-darwin -O --emit=asm -o base.s probe.rs
+rustc --target x86_64-apple-darwin -O -C target-feature=+fma --emit=asm -o fma.s probe.rs
+```
+
+`--emit=asm` needs no linker, so both run on any host with the target's standard
+library installed; these were run on the macOS arm64 host. `probe.rs`:
 
 ```rust
-#[inline(never)] pub fn p1(a: f64, b: f64, c: f64) -> f64 { a * b + c }
-#[inline(never)] pub fn p2(a: f64, b: f64, c: f64) -> f64 { a.mul_add(b, c) }
-#[inline(never)] pub fn p3(xs: &[f64; 16]) -> f64 {
+#![crate_type = "lib"]
+// `#[no_mangle]` only so the symbols are greppable in the .s files.
+#[inline(never)] #[no_mangle] pub fn p1(a: f64, b: f64, c: f64) -> f64 { a * b + c }
+#[inline(never)] #[no_mangle] pub fn p2(a: f64, b: f64, c: f64) -> f64 { a.mul_add(b, c) }
+#[inline(never)] #[no_mangle] pub fn p3(xs: &[f64; 16]) -> f64 {
     let mut s = 0.0; for &x in xs.iter() { s += x; } s
 }
-#[inline(never)] pub fn p4(xs: &[f64; 16], ys: &[f64; 16]) -> f64 {
+#[inline(never)] #[no_mangle] pub fn p4(xs: &[f64; 16], ys: &[f64; 16]) -> f64 {
     let mut s = 0.0; for i in 0..16 { s += xs[i] * ys[i]; } s
 }
-#[inline(never)] pub fn p5(xs: &mut [f64; 16], k: f64) {
+#[inline(never)] #[no_mangle] pub fn p5(xs: &mut [f64; 16], k: f64) {
     for x in xs.iter_mut() { *x = *x * k + 1.0; }
 }
 ```
@@ -337,8 +346,8 @@ of these breaks it, and each has a check:
    today.** That needs reassociation, so it would be an LLVM correctness change
    rather than a tuning change — but the check is the same, re-run 7.3.
 
-Re-checking is two `rustc` invocations and takes seconds. The probes are in this
-file so that it depends on nothing outside it.
+Re-checking is the two `rustc` invocations of 7.3 and takes seconds. The probe
+source is in this file so that the check depends on nothing outside it.
 
 ## 8. What the check does and does not guarantee
 
