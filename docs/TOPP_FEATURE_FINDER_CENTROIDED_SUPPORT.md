@@ -22,13 +22,14 @@ The framework behaviour this tool inherits is documented in
 | Registration, `-write_ini`, INI merge and validation | complete; `-write_ini` is compared with the executed C++ file line by line with exact numbers and as a decoded parameter tree. `--help` is the framework's rendering of the same registration and has no oracle snapshot here |
 | Loading `-in` (mzML, MS1, executed intensity range), `-seeds` (featureXML) | complete |
 | Empty-input, per-peak ion-mobility and profile branches | complete, in source order |
-| FAIMS input | **refused** with exit 11 (decision D5); the closure is package B11's |
+| FAIMS input | **complete** (package B11): the split by compensation voltage, one algorithm run and seed filter per voltage, the `FAIMS_CV` annotation and the cross-voltage merge of `-faims_merge_features`, with the two defects of the source merge corrected (native difference 1) |
 | The picked algorithm | complete (package B7); `-threads` reaches its seed loop |
 | Primary MS run path, unique ids, `QUANTITATION` processing record, hull and subordinate clean-up, featureXML store | complete; reached by every accepted run and additionally tested on its own |
 | `TOPP_FeatureFinderCentroided_1`, `-seeds`, `feature:rt_shape asymmetric`, `-debug 5`, `-threads 0/1/2/4/8` | run end to end and measured against the C++ Release build (see below); the `1e-9` acceptance against the C1 oracle outputs and the `-algorithm:fit:max_iterations` sweep are package B10's |
 
-The tool therefore stays **partial** in the ledger, for one reason only: FAIMS
-input is refused. Everything else runs, and `TOPP_FeatureFinderCentroided_1`
+Every branch of `main_` therefore runs. The one reason the tool stayed
+**partial** in the ledger — the FAIMS refusal — is gone, and the ledger scope
+change is requested with this package. `TOPP_FeatureFinderCentroided_1`
 produces the retained expectation.
 
 ## How close the output is to the executed C++
@@ -87,7 +88,7 @@ Every member of the source class, and every framework call it makes.
 | `registerInputFile_("in", "<file>", "", "input file")` + `setValidFormats_("in", {"mzML"[, "raw"]})` | `ToolSpec::register_input_file` + `set_valid_formats`; the `raw` entry exists only in a `WITH_THERMO_RAW` build and is not ported |
 | `registerOutputFile_("out", …)` + `setValidFormats_("out", {"featureXML"})` | `ToolSpec::register_output_file` + `set_valid_formats` |
 | `registerInputFile_("seeds", …, false)` + `setValidFormats_("seeds", {"featureXML"})` | as above, `required = false` |
-| `registerStringOption_("faims_merge_features", "<true/false>", "true", …, false)` + `setValidStrings_` | `ToolSpec::register_string_option` + `set_valid_strings`; registered and validated, without effect while FAIMS input is refused |
+| `registerStringOption_("faims_merge_features", "<true/false>", "true", …, false)` + `setValidStrings_` | `ToolSpec::register_string_option` + `set_valid_strings`; read before the merge |
 | `addEmptyLine_()` (twice) | `ToolSpec::add_empty_line` |
 | `registerSubsection_("algorithm", "Algorithm section")` | `ToolSpec::register_subsection` |
 | `getSubsectionDefaults_(const std::string&)` | `Tool::subsection_defaults`, returning `crate::analysis::feature_finder_picked::algorithm::default_parameters` for any name, as the source ignores the name |
@@ -105,11 +106,17 @@ Every member of the source class, and every framework call it makes.
 | `FileHandler().loadFeatures(seeds, map, {FEATUREXML})` | `FileHandler::load_feature_map` |
 | `getParam_().copy("algorithm:", true)` | `ToolContext::subsection("algorithm")` |
 | `writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3)` | not ported: the framework ports no debug log or `-log` file |
-| `IMDataConverter::splitByFAIMSCV(std::move(exp))`, `has_faims`, the per-group loop, the seed filter, the FAIMS_CV annotation and `FeatureOverlapFilter::mergeFAIMSFeatures` | not ported here (decision D5): `FaimsHelper::get_compensation_voltages` decides whether the input is FAIMS input, and a non-empty set is refused with `FeatureFinderCentroided::faims_refusal_message`. `crate::kernel::im_data_converter` (B8) and `crate::processing::feature_overlap_filter` (B9) hold the library halves; package B11 joins them |
+| `IMDataConverter::splitByFAIMSCV(std::move(exp))` | `ImDataConverter::split_by_faims_cv` (B8), whose `FaimsSplit::messages` are written to the two log-stream caches by their level. The source's `std::pair<double, MSExperiment>` key is `FaimsGroupKey`, whose `NotFaims` variant names the source's NaN |
+| `const bool has_faims = faims_groups.size() > 1 \|\| !std::isnan(faims_groups[0].first)` | `FaimsSplit::has_faims`, the same predicate on the named key |
+| the per-group loop `for (auto& [group_cv, faims_group] : faims_groups)` | the loop over `FaimsSplit::groups`, ascending by voltage as the source's `std::map` is |
+| `OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V (" << faims_group.size() << " spectra)"` | `FeatureFinderCentroided::processing_group_message`, the voltage at the stream's default precision 6 |
+| the seed filter (`258-281`), `Constants::UserParam::FAIMS_CV`, tolerance `0.01` | `FeatureFinderCentroided::seeds_of_group`, with `FaimsHelper::DEFAULT_CV_TOLERANCE` |
+| `feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv)` | the same meta value on each of the group's features, before they join the result |
+| `OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups."` | `FeatureFinderCentroided::combined_features_message` |
+| `getStringOption_("faims_merge_features") == "true"`, `FeatureOverlapFilter::mergeFAIMSFeatures(features, 5.0, 0.05)` and its `"FAIMS feature merge: …"` line | `FeatureOverlapFilter::merge_faims_features_with_fidelity` (B9) with `FAIMS_MERGE_MAX_RT_DIFF`, `FAIMS_MERGE_MAX_MZ_DIFF` and `FeatureFinderCentroided::FAIMS_MERGE_FIDELITY`, then `FeatureFinderCentroided::faims_merge_message`. The fidelity is the tool's one designed difference here (native difference 1) |
 | `OPENMS_LOG_INFO << "Not FAIMS compensation voltages found …"` (in `splitByFAIMSCV`) | `FeatureFinderCentroided::NO_FAIMS_MESSAGE` on the output stream |
 | `OPENMS_LOG_INFO << "FAIMS data detected with N compensation voltage(s)."` | `FeatureFinderCentroided::faims_detected_message` |
-| `OPENMS_LOG_INFO << "Processing FAIMS CV group: …"`, `"Combined N features …"`, `"FAIMS feature merge: …"` | not reached: the refusal comes first |
-| `FeatureFinderAlgorithmPicked ff; ff.run(std::move(group), features_cv, feafi_param, seeds_cv)` | `crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked::with_options(…).run(…)` into an empty map, then `take_debug_output` and `report`; one fresh object per group, as the loop body creates one, and called once, because a refused FAIMS input is the only case with more than one group |
+| `FeatureFinderAlgorithmPicked ff; ff.run(std::move(group), features_cv, feafi_param, seeds_cv)` | `crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked::with_options(…).run(…)` into an empty map, then `take_debug_output` and `report`, in `run_group`; one fresh object per group, as the loop body creates one |
 | the files `ff.run` writes with `-algorithm:write_debug` (`debug/log.txt`, `debug/seeds_<charge>.featureXML`, `debug/abort_reasons.featureXML`, `debug/input.mzML`, `debug/features/*`) and the `FeatureXMLHandler::store()` lines they log | `write_debug_log`, `store_debug_features` and `FeatureFinderCentroided::run_io`, from the algorithm's `DebugOutput`, in the source's order (see *Debug mode*) |
 | `features.setPrimaryMSRunPath({"file://" + File::basename(in)})` under `-test`, else `{in}` | `FeatureFinderCentroided::finish_features` step 1 (`FeatureMap::set_primary_ms_run_path`, `file::basename`) |
 | `features.ensureUniqueId(); features.applyMemberFunction(&UniqueIdInterface::setUniqueId)` | step 2 (`HasUniqueId::ensure_unique_id` on the map's id, then `FeatureMap::for_each_unique_id` with one `ToolContext::unique_id_generator`) |
@@ -144,7 +151,8 @@ timing text).
 | Every MS1 peak below the intensity range | 8 | `Error: Unexpected internal error (FeatureFinder needs updated ranges on input map. Aborting.)` | C5 `c5_negative_intensities` |
 | `-seeds` that is not featureXML | 6 | `Input file '…' has invalid format 'mzML'. Valid formats are: 'featureXML'.` | C5 `c5_seeds_not_featurexml` |
 | FAIMS input with an unreadable `-seeds` file | 3 | `Error: Unable to read file (…)`, before any FAIMS message | C5 `c5_faims_corrupt_seeds` |
-| Any FAIMS input (one voltage, two voltages, a voltage on half the spectra, `-faims_merge_features false`) | C++ 8; this port 11 | `Error: FAIMS input is not supported by this port of FeatureFinderCentroided yet (compensation voltages … V): …` | C1 `FFC_faims_*`, C5 `c5_faims_partial_cv` |
+| Any FAIMS input (one, two or three voltages, a voltage on half the spectra, `-faims_merge_features false`, the two upstream FAIMS fixtures) | C++ 8; this port 0 | C++ `Error: Unexpected internal error (the value '1' was used but is not valid; No ranges for this MS level)` after the first `Processing FAIMS CV group:` line and no output (`CPP-278`); this port writes the features of every voltage group, merged unless `-faims_merge_features false` | C1 `FFC_faims_*`, C5 `c5_faims_partial_cv`, B11 `faims_*` (`../oracle/b11-faims`, seven inputs, all rc 8); native difference 1 |
+| A FAIMS input whose skipped spectra carry no voltage | 0 | `Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout).` on **stderr**, folded by the warn stream's cache into one line and `<…> occurred 56 times`, as the executed C++ wrote it | C5 `c5_faims_partial_cv`, B11 `faims_partial_cv` |
 | FAIMS **profile** input without `-force` | 8, the profile message | the profile check precedes the split | C1 `FFC_faims_interleaved_noforce` |
 | `-algorithm:feature:rt_shape bogus` | 6 | `Invalid string parameter value 'bogus' … Valid values are: 'symmetric,asymmetric'.` | C1 `FFC_invalid_rt_shape` |
 | `-out` without an extension | 0, the FFC_1 features written into it | — | C1 `FFC_out_no_extension` |
@@ -196,6 +204,111 @@ the message TOPPBase gives that exception where it can catch it. The tool
 always uses the source's key (`PseudoRtShiftKey::Source`); a library caller can
 choose the declared key instead.
 
+## The FAIMS closure
+
+### What the merge is meant to do
+
+The cross-voltage merge has no C++ oracle: the executed C++ tool never reaches
+it, so no C++ build produces a merged FAIMS feature. What it is *meant* to
+produce is nevertheless written down, in the parameter documentation of
+`FeatureOverlapFilter::mergeFAIMSFeatures` and `mergeOverlappingFeatures`
+(`FeatureOverlapFilter.h`), and the derivation is this, sentence by sentence:
+
+1. *Merge FAIMS features that represent the same analyte detected at different
+   CV values.* A cluster is **one analyte**, so it collapses to **one**
+   feature. The source's result for three voltages is two features.
+2. *Features are considered the same analyte if they have DIFFERENT FAIMS_CV
+   values, are within `max_rt_diff` seconds in RT, within `max_mz_diff` Da in
+   m/z, and have the same charge state.* Membership is a property of the pair
+   of features, not of how many merges have happened; after a merge the
+   survivor stands for the set of voltages in `merged_centroid_IMs`, so the
+   test *different CV* becomes *a voltage the survivor does not yet stand for*.
+   The source instead tests the survivor's `FAIMS_CV`, which its own callback
+   has just removed, so it refuses every merge after the first.
+3. *The feature with highest intensity is kept, and intensities are summed.*
+   The kept feature is the cluster's maximum, which the descending-intensity
+   sort puts first, and the sum is the analyte's total — so each member is
+   counted **once**. The source offers a feature it has already removed to the
+   next survivor, which adds it a second time.
+4. *`merged_centroid_rts` / `merged_centroid_mzs` / `merged_centroid_IMs`:
+   positions of all features that were merged; `FAIMS_merge_count`: number of
+   FAIMS CV values that were merged.* The lists therefore grow to the size of
+   the cluster, starting with the survivor's own values, and the count is the
+   length of the voltage list.
+5. *Features without `FAIMS_CV` are left unchanged*, and *non-FAIMS data: no
+   merging occurs; single-CV FAIMS data: no merging occurs.* Unchanged here.
+
+Two consequences that the wording does not state and that the port fixes by
+the same reasoning: a survivor is never absorbed into another cluster (it
+carries no `FAIMS_CV` any more, and it is the member of higher intensity,
+which point 3 keeps), and the arithmetic is the source's — each merge stores
+`double + double` into a `float`, so the running sum is narrowed to `f32` after
+every step and the order in which a survivor absorbs its cluster can change the
+last bit.
+
+`FaimsMergeFidelity::Corrected` is exactly that merge; `FaimsMergeFidelity::Source`
+is the executed one, kept for a caller who must not diverge, and tested against
+the executed `c2_*` cases of `tests/feature_overlap_filter.rs`.
+
+### The oracle, built from the parts
+
+Because no C++ run produces the whole-tool answer, each compensation-voltage
+group is written as its own single-voltage mzML — the spectra the split assigns
+to that voltage, in input order, with the FAIMS cvParam removed so the C++ tool
+takes its non-FAIMS path — and the C++ Release build is run on that file. The
+port's features for that group must equal that run's under decision D6. That
+pins the split, the per-group algorithm run, the group order and the annotation
+against executed C++; only the merge is left, and it is pinned against the
+derivation above with hand-derived numbers.
+
+Executed on ibminode06 against
+`openms4-release-bc9cc12-c19e494-174b576`, `OMP_NUM_THREADS=1`, `-test`
+(`../oracle/b11-faims`: `derive.py`, `split_groups.py`, `run.sh`, `cases.sh`,
+`cases2.sh`):
+
+| Case | Input | C++ Release | This port |
+|---|---|---|---|
+| `faims_one_cv` | FFC_1 input with `-45` on every scan, FFC_1 INI | exit 8 after `FAIMS data detected with 1 compensation voltage(s).` and `Processing FAIMS CV group: -45 V (112 spectra)` | exit 0; the group is the whole input, so the features are `TOPP_FeatureFinderCentroided_1`'s, each with `FAIMS_CV` `-45`; the merge merges nothing (one voltage) |
+| `faims_two_cv`, `faims_two_cv_nomerge` | `-45` and `-60` in turn, FFC_1 INI | exit 8 after the `-60` group line | exit 0; `-60` gives 3 features and `-45` gives 2, each equal to `group_m60` and `group_m45` below; merged, 3 features |
+| `faims_three_cv` | `-45`, `-60`, `-70` in turn, FFC_1 INI with `mass_trace:min_spectra 5` | exit 8 after the `-70` group line | exit 0; 8 + 8 + 7 features equal to `group3s5_*`; merged, 10 features |
+| `faims_partial_cv` | `-45` on every second scan, FFC_1 INI | exit 8, with the skip warning 57 times on stderr | exit 0, the same stderr; the group equals `group_m45` |
+| `faims_test_data`, `faims_interleaved` | the two upstream fixtures (`CPP-240`: they spell the volt unit `UO:000218`) | exit 8 | exit 0, an empty map, as the group runs below |
+| `group_m45`, `group_m60` | the two voltage groups of `faims_two_cv` as their own mzML, FFC_1 INI | exit 0, 2 and 3 features | the same, feature by feature (D6) |
+| `group3s5_m45`, `group3s5_m60`, `group3s5_m70` | the three groups of `faims_three_cv`, `min_spectra 5` | exit 0, 8, 8 and 7 features | the same |
+| `testdata_cvm65`, `interleaved_cvm45`, `interleaved_cvm60` | the upstream fixtures' groups | exit 0, `0 features found.` | the same |
+
+The five group outputs are retained as fixtures
+(`tests/data/topp_feature_finder_centroided/faims_group*.featureXML`); the
+inputs are re-derived in the tests from `FeatureFinderCentroided_1_input.mzML`
+by the recorded rule and pinned to the executed file by SHA-1.
+
+### The merged numbers, hand-derived
+
+Two voltages, from `group_m45` and `group_m60`; every pair is within 5 s and
+0.05 Da and has charge 2, and the sum is the `f32` of the two `f64` intensities:
+
+| analyte | −45 V | −60 V | survivor | merged |
+|---|---|---|---|---|
+| 4389.11 s, 648.257 Da | 45181.723 | 44601.215 | −45 | **89782.9375** |
+| 4300.95 s, 651.760 Da | 35109.383 | 34660.066 | −45 | **69769.453125** |
+| 4278.07 s, 653.770 Da | — | 19216.809 | −60 | **19216.80859375**, `FAIMS_CV` kept |
+
+`5 -> 3 features (merged 2)`. Each survivor carries `merged_centroid_IMs`
+`[-45, -60]`, `FAIMS_merge_count` 2, and the two retention times and m/z values
+of its pair, and has lost its `FAIMS_CV`.
+
+Three voltages with `min_spectra 5` are the case `CPP-283` answers: six of the
+ten clusters hold **three** features. The source's merge would leave those six
+as twelve features of 1900/1700 shape; the corrected merge gives one each,
+`23 -> 10 features (merged 13)`. The ten survivors, their merged voltage lists
+and their intensities are written out in
+`three_faims_voltages_collapse_a_cluster_of_three_into_one_feature`. One
+cluster there — 4278.16 s, 653.776 Da — is the only place in this package where
+the `f32` running sum depends on the order in which the survivor absorbs its
+two partners (58645.19921875 or 58645.203125). That order is the quadtree's
+traversal order: deterministic for a given input, but not derivable by hand, so
+the test accepts those two values and nothing else and says why.
+
 ## Reusing an instance
 
 The source tool creates a fresh `FeatureFinderAlgorithmPicked` for each FAIMS
@@ -210,7 +323,10 @@ instance*).
 - **Check order.** Load, empty input, per-peak ion mobility, profile, seeds,
   `algorithm:` parameters, FAIMS, algorithm, annotation, clean-up, store. Three
   of these orders are observable and each is pinned by an executed case:
-  ion mobility before profile, profile before FAIMS, seeds before FAIMS.
+  ion mobility before profile, profile before FAIMS, seeds before FAIMS. The
+  split is where the source performs it, so a FAIMS profile file without
+  `-force` still exits 8 with the profile message and an unreadable `-seeds`
+  file still exits 3 before any FAIMS line.
 - **Only `exp[0]`.** The profile check reads the stored type of the first
   spectrum only, and never estimates it from the data. An mzML `MS:1000525
   spectrum representation` term after a profile term resets the stored type to
@@ -244,15 +360,55 @@ instance*).
 
 ## Native differences
 
-1. **FAIMS input is refused** (decision D5). The C++ tool splits by compensation
-   voltage and fails afterwards: its groups are built with `addSpectrum`, which
-   leaves them without per-MS-level ranges, so `FeatureFinderAlgorithmPicked`
-   throws `the value '1' was used but is not valid; No ranges for this MS level`
-   and every FAIMS input exits 8. Even with that fixed, `mergeFAIMSFeatures`
-   removes every feature, because the features still carry unique id 0 when it
-   keys removal by id. Reproducing either would be pointless, and pooling the
-   voltages silently would be wrong, so the port refuses such input with exit 11
-   and writes nothing. Package B11 ports the closure and removes the refusal.
+1. **FAIMS input is processed, with the two defects of the source merge
+   corrected.** Decision D5 deferred the closure and the tool refused FAIMS
+   input with exit 11; package B11 ships it. The corrected points, each named
+   at the item it answers:
+
+   - **`CPP-278`, the missing ranges, cannot arise here.** The source builds
+     each voltage group with `addSpectrum` and never calls `updateRanges`, so
+     `FeatureFinderAlgorithmPicked` throws `the value '1' was used but is not
+     valid; No ranges for this MS level` on the first group and every FAIMS
+     input exits 8. Re-executed for this package: seven FAIMS inputs through
+     the Release build, all rc 8, each after printing `FAIMS data detected with
+     N compensation voltage(s).` and the first `Processing FAIMS CV group:`
+     line (`../oracle/b11-faims`). The native containers compute ranges on
+     demand (`MSExperiment::spectrum_range_manager`), so a group has its own
+     ranges the moment it holds spectra. There is no state to forget, nothing
+     to emulate and no option: the defect is not reachable in this port. That
+     is a property of the container port, not a choice made here.
+   - **`CPP-282`, the merge that erases every feature.** `mergeFAIMSFeatures`
+     records removal in an `unordered_set` keyed by `getUniqueId()`, and
+     `FeatureFinderAlgorithmPicked` returns every feature with id 0, so the
+     first merge marks id 0 removed, every later feature is skipped as a
+     querier, and the closing `erase` drops all of them. Executed: oracle case
+     `c2_uid0_wipe` of `../oracle/feature-overlap-filter`, three features in
+     and none out. The tool draws a unique id for each feature from its
+     generator **before** the merge, so removal keys on real ids. Those ids are
+     overwritten immediately afterwards by the source's own
+     `applyMemberFunction(&UniqueIdInterface::setUniqueId)`, so the only
+     observable effect is that a FAIMS run consumes that many draws earlier
+     than a non-FAIMS run; the ids of a featureXML are excluded from every
+     comparison anyway (upstream whitelists `id=`). The corrected merge refuses
+     a map whose FAIMS features share an id rather than silently erasing them.
+   - **`CPP-283`, the double count and the survivor that stops absorbing.**
+     `FeatureFinderCentroided::FAIMS_MERGE_FIDELITY` is
+     `FaimsMergeFidelity::Corrected`, the library option B11 added beside the
+     source-following `FaimsMergeFidelity::Source` (the pattern of
+     `AbundanceOverride`, native difference 3). It skips a candidate already
+     marked removed and lets a survivor keep absorbing voltages it does not yet
+     stand for. See *What the merge is meant to do* below.
+
+   Two further defects of the split belong to the ported library and are
+   unchanged by this package: a NaN compensation voltage is refused rather than
+   allowed to break an ordered set (`CPP-280`, native difference 4), and the
+   chromatograms the source destroys are returned by `FaimsSplit` instead of
+   dropped (`CPP-279`) — this tool loads MS level 1 only and uses none, so it
+   discards them as the source does, and no output of this tool can show the
+   difference. The information line of a non-FAIMS input keeps the source's
+   wording, `Not FAIMS compensation voltages …` (`CPP-281`), because it is the
+   line every executed run of this tool prints and every console comparison in
+   this document rests on it.
 2. **Degenerate intensity bins and short inputs follow the C++ Release
    build.** Where every MS1 spectrum has one retention time or every MS1 peak
    one m/z, the algorithm's intensity bin step is zero and the source converts
@@ -427,8 +583,13 @@ instance*).
 ## Checked boundaries and evidence
 
 - **Bounded work.** The wrapper itself walks the spectra once for the
-  ion-mobility check and once for the FAIMS voltages; both walks are bounded by
+  ion-mobility check and once for the FAIMS split; both walks are bounded by
   `FaimsHelper::MAX_SPECTRA` respectively by the loader's own limits. The
+  per-group loop runs the algorithm once per detected voltage, and there are at
+  most as many voltages as spectra; the accumulated feature map is bounded by
+  `FeatureMap::MAX_ITEMS`, and the merge by
+  `FeatureOverlapFilter::MAX_FEATURES` and
+  `FeatureOverlapFilter::MAX_CANDIDATE_VISITS`. The
   annotation steps are bounded by `FeatureMap::MAX_ITEMS` through
   `set_primary_ms_run_path` and `for_each_unique_id`. Loading, seed loading and
   storing inherit the reader and writer ceilings.
@@ -439,7 +600,8 @@ instance*).
 - **No panics on untrusted input.** Every branch returns an exit code or an
   `Error`; the only indexing is `spectra[0]` after the emptiness check.
 - **Evidence.** Tier 1 for every asserted exit code, diagnostic and absent
-  output (29 executed C++ cases, each run twice and reproduced), for the
+  output (29 executed C++ cases, each run twice and reproduced; 18 more for the
+  FAIMS closure, `../oracle/b11-faims`), for the
   `-write_ini` defaults, which are compared with the executed file line by line
   with exact numbers and as a decoded parameter tree, and for the feature
   output, which is compared decoded against the retained expectation and
@@ -448,6 +610,15 @@ instance*).
   derived in the tests from the retained
   `FeatureFinderCentroided_1_input.mzML` by the recorded rules and pinned to the
   executed files by digest, so no derived megabyte enters the repository.
+- **No C++ oracle.** The cross-voltage merge, because the C++ path never
+  reaches it. It is pinned against the derivation in *What the merge is meant
+  to do* and against hand-derived numbers, at the tool level
+  (`the_faims_merge_joins_the_two_voltages_of_each_analyte`,
+  `three_faims_voltages_collapse_a_cluster_of_three_into_one_feature`) and at
+  the library level (`tests/feature_overlap_filter.rs`, the corrected-merge
+  section), always beside the executed `c2_*` cases that hold what the source
+  does instead. Everything the merge is given — the split, the per-group runs,
+  the group order and the annotation — is pinned against executed C++.
 - **Not asserted.** The Debug exit codes of the two `debug_only` cases (D7); the
   C++ Release behaviour is asserted instead for both, `FFC_im_arrays_ms2_only`
   and `FFC_FileFilter_44_force`. The `1e-9` comparison

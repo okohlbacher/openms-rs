@@ -1,14 +1,14 @@
 {
  "group": "topp_feature_finder_centroided",
- "work_package": "C5-FFC-WRAPPER (early TOPP bundle, wave 3a), reconciled with the completed algorithm of B7-FFAP-FEATURES after both merged; src/cli/tools/feature_finder_centroided.rs, this manifest, the tests and the support document pass to B10 in wave 4",
+ "work_package": "C5-FFC-WRAPPER (early TOPP bundle, wave 3a), reconciled with the completed algorithm of B7-FFAP-FEATURES after both merged; src/cli/tools/feature_finder_centroided.rs, this manifest, the tests and the support document pass to B10 in wave 4; the FAIMS closure is package B11 (wave 6), which replaced the exit-11 refusal with the ported split, per-voltage runs, annotation and the corrected cross-voltage merge",
  "package_revisions": {
   "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
   "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
   "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3"
  },
  "core_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
- "scope": "The FeatureFinderCentroided TOPP wrapper end to end: registration and -write_ini, the source loading options, the empty-input, per-peak ion-mobility and profile branches in source order, the seed load, the FAIMS refusal of decision D5, the error mapping of the algorithm's failures, the algorithm run itself with -threads reaching its seed loop, and the post-algorithm annotation and clean-up (primary MS run path, unique ids, the QUANTITATION processing record, hull and subordinate reduction). TOPP_FeatureFinderCentroided_1 is compared decoded against the retained expectation and measured against the C++ Release build. Not in scope: the 1e-9 acceptance against the C1 oracle outputs of FFC_seeds, FFC_asymmetric and FFC_debug5 and the -algorithm:fit:max_iterations boundary sweep (B10), and the FAIMS closure (B11).",
- "method": "The tool is transcribed from the pinned topp source and exercised through the built executable in a temporary working directory, because the FeatureFinderCentroided_1 INI sets log=TOPP.log. Every wrapper branch is compared with a C++ run of the same command against the product SDK: the planned regressions in the C1 oracle (../oracle/topp-early-bundle) and the branch-order cases this package added (../oracle/ffc-wrapper-c5), each executed twice and reproduced. Synthetic inputs are not committed: the tests re-derive them from the retained FeatureFinderCentroided_1_input.mzML by the rule the oracle manifests record and check the derived bytes against the SHA-1 of the file the C++ tool read, whose SHA-256 is recorded below. The runs that reach the algorithm are additionally measured against the optimised C++ build openms4-release-bc9cc12-c19e494-174b576 on an IBMI Linux node under the same environment shape (env -i, OPENMS_DATA_PATH, per-case scratch cwd); that build's featureXML reproduces the Debug oracle to within 9.1e-11 relative, and the measured port-to-Release gaps are recorded in docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md.",
+ "scope": "The FeatureFinderCentroided TOPP wrapper end to end: registration and -write_ini, the source loading options, the empty-input, per-peak ion-mobility and profile branches in source order, the seed load, the FAIMS closure (the split by compensation voltage, one algorithm run and seed filter per voltage, the FAIMS_CV annotation and the corrected cross-voltage merge of -faims_merge_features), the error mapping of the algorithm's failures, the algorithm run itself with -threads reaching its seed loop, and the post-algorithm annotation and clean-up (primary MS run path, unique ids, the QUANTITATION processing record, hull and subordinate reduction). TOPP_FeatureFinderCentroided_1 is compared decoded against the retained expectation and measured against the C++ Release build. Not in scope: the 1e-9 acceptance against the C1 oracle outputs of FFC_seeds, FFC_asymmetric and FFC_debug5 and the -algorithm:fit:max_iterations boundary sweep (B10).",
+ "method": "The tool is transcribed from the pinned topp source and exercised through the built executable in a temporary working directory, because the FeatureFinderCentroided_1 INI sets log=TOPP.log. Every wrapper branch is compared with a C++ run of the same command against the product SDK: the planned regressions in the C1 oracle (../oracle/topp-early-bundle) and the branch-order cases this package added (../oracle/ffc-wrapper-c5), each executed twice and reproduced. Synthetic inputs are not committed: the tests re-derive them from the retained FeatureFinderCentroided_1_input.mzML by the rule the oracle manifests record and check the derived bytes against the SHA-1 of the file the C++ tool read, whose SHA-256 is recorded below. The runs that reach the algorithm are additionally measured against the optimised C++ build openms4-release-bc9cc12-c19e494-174b576 on an IBMI Linux node under the same environment shape (env -i, OPENMS_DATA_PATH, per-case scratch cwd); that build's featureXML reproduces the Debug oracle to within 9.1e-11 relative, and the measured port-to-Release gaps are recorded in docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md. The FAIMS closure has no whole-tool C++ oracle, because the executed C++ tool exits 8 on every FAIMS input (CPP-278): each compensation-voltage group is written as its own single-voltage mzML with the FAIMS cvParam removed, so the C++ Release build takes its non-FAIMS path on it, and the port's features for that group are compared with what that run found (../oracle/b11-faims, derive.py, split_groups.py, run.sh, cases.sh and cases2.sh on ibminode06). The cross-voltage merge is pinned against the specification derived in crate::processing::feature_overlap_filter::FaimsMergeFidelity and against hand-derived cases whose numbers are written out in the tests.",
  "evidence_tier": "tier 1 (executed differential) for every asserted exit code, diagnostic and absence of output, for the -write_ini defaults, and for the feature output: the product SDK Debug core 4fdec46 for the oracle cases, and the Release build openms4-release-bc9cc12-c19e494-174b576 for the numeric comparison; tier 3 (source review of FeatureFinderCentroided.cpp at topp 174b576) for the registration details",
  "cpp_sources": [
   {
@@ -111,6 +111,41 @@
    "upstream": "none (executed C++ Release output)",
    "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
    "used_by": "infinite_feature_values_are_refused_by_the_featurexml_writer: the Release FeatureFinderCentroided's exit status, feature count, console block and every intensity and FWHM value on rt_e36.mzML and rt_e39.mzML (../oracle/ffap-complete-fix4, node/run_tool.sh, extract/make_fixtures.py; native difference 16)"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_centroided/faims_group_m45.featureXML",
+   "sha256": "8b3f9a0d9dec3003a9360b14fa71006316bdc6c90a3c56630fbd63f3d7dd8b2a",
+   "upstream": "none (executed C++ Release output)",
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release, ibminode06)",
+   "used_by": "the FAIMS closure: the -45 V group of faims_two_cv.mzML (the even 56 spectra), FeatureFinderCentroided_1 INI: 14 seeds, 2 candidates, 2 features (../oracle/b11-faims, case group_m45)"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_centroided/faims_group_m60.featureXML",
+   "sha256": "10ded602c97779662dcceb58dacf0550734dbafd026ff119aa26489aec3d9f7e",
+   "upstream": "none (executed C++ Release output)",
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release, ibminode06)",
+   "used_by": "the FAIMS closure: the -60 V group of faims_two_cv.mzML (the odd 56 spectra), FeatureFinderCentroided_1 INI: 14 seeds, 3 candidates, 3 features (../oracle/b11-faims, case group_m60)"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_centroided/faims_group3s5_m45.featureXML",
+   "sha256": "5c5ab4786b2c58f6196a5483a091f8fc8442cecb0bfe910914d1033d2f68156f",
+   "upstream": "none (executed C++ Release output)",
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release, ibminode06)",
+   "used_by": "the FAIMS closure: the -45 V group of faims_three_cv.mzML (38 spectra), FeatureFinderCentroided_1 INI with mass_trace:min_spectra 5: 8 features (../oracle/b11-faims, case group3s5_m45)"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_centroided/faims_group3s5_m60.featureXML",
+   "sha256": "3fb5715c8b78b21b8965b09830dbebf472922137fdfd2456b7cb05fbd6d02b6f",
+   "upstream": "none (executed C++ Release output)",
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release, ibminode06)",
+   "used_by": "the FAIMS closure: the -60 V group of faims_three_cv.mzML (37 spectra), same parameters: 8 features (../oracle/b11-faims, case group3s5_m60)"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_centroided/faims_group3s5_m70.featureXML",
+   "sha256": "8047528100529b58e8c5d9fde210253b375dec4aceb8b8257685a473397ac181",
+   "upstream": "none (executed C++ Release output)",
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release, ibminode06)",
+   "used_by": "the FAIMS closure: the -70 V group of faims_three_cv.mzML (37 spectra), same parameters: 7 features (../oracle/b11-faims, case group3s5_m70)"
   }
  ],
  "reused_fixtures": [
@@ -183,15 +218,15 @@
   },
   {
    "name": "faims_one_cv.mzML",
-   "oracle": "../oracle/topp-early-bundle/cases/derived.json",
-   "rule": "an unindented scan-level 'MS:1001581 FAIMS compensation voltage' cvParam (value -45, UO:0000218 volt) inserted after every <scan> line (112 spectra)",
+   "oracle": "../oracle/b11-faims/derive.py",
+   "rule": "a FAIMS compensation voltage cvParam with value -45 inserted after every '<scan>' line (112 spectra)",
    "sha256": "11616c7b050ba5f0399920e7c2b9649e4a897d24590b98684a115a0d5de6560e",
    "sha1": "44aba90786460e1e167db1b549e04a960db9edd9"
   },
   {
    "name": "faims_two_cv.mzML",
-   "oracle": "../oracle/topp-early-bundle/cases/derived.json",
-   "rule": "as faims_one_cv.mzML, alternating -45 (even spectrum index) and -60 (odd index)",
+   "oracle": "../oracle/b11-faims/derive.py",
+   "rule": "the same with the values -45 and -60 in turn (56 spectra each)",
    "sha256": "ec1116e2e20f6e162d814753b8414d501feee7ea9b3dc68ddf99386efc727816",
    "sha1": "9c0e2c828f30123468799c10169d61e6d728e6e4"
   },
@@ -225,8 +260,8 @@
   },
   {
    "name": "faims_partial_cv.mzML",
-   "oracle": "../oracle/ffc-wrapper-c5/manifest.json",
-   "rule": "an unindented scan-level 'MS:1001581 FAIMS compensation voltage' cvParam (value -45, UO:0000218 volt) inserted after the <scan> line of every even-indexed spectrum (56 of 112)",
+   "oracle": "../oracle/b11-faims/derive.py",
+   "rule": "the same with -45 and no value in turn, so 56 spectra carry a voltage and 56 do not",
    "sha256": "eb42c56d1c8bde797577f2a51d4ac95892939c8cb0e0c3cda9a89a0da62dce79",
    "sha1": "bf274d61a77be9b2af64e51ab4f5bf266452aab9"
   },
@@ -251,6 +286,13 @@
    "rule": "FeatureFinderCentroided_1_input.mzML with every scan start time value v written as v followed by e39",
    "sha256": "12375bd979e9b31be8e23cbb16ac3ad959aea4991499b22abf107656166168e5",
    "sha1": "f2acc3a566d722abadf685851c953dd8229c18e7"
+  },
+  {
+   "name": "faims_three_cv.mzML",
+   "oracle": "../oracle/b11-faims/derive.py",
+   "rule": "the same with the values -45, -60 and -70 in turn (38, 37 and 37 spectra)",
+   "sha256": "8b3e5087563d249a00e14b7e7bebe2f5e073f9c888aa4a70e43c7bb5be4b7f98",
+   "sha1": "7edd8c78aebe6f6553498bbce3c0586bb6817fa7"
   }
  ],
  "oracle_cases": {
@@ -291,6 +333,26 @@
    "rt_e36",
    "rt_e39",
    "rt_e39_egh"
+  ],
+  "b11_faims": [
+   "faims_one_cv (C++ exit 8)",
+   "faims_two_cv (C++ exit 8)",
+   "faims_two_cv_nomerge (C++ exit 8)",
+   "faims_three_cv (C++ exit 8)",
+   "faims_partial_cv (C++ exit 8)",
+   "faims_test_data (C++ exit 8)",
+   "faims_interleaved (C++ exit 8)",
+   "group_m45",
+   "group_m60",
+   "group3_m45",
+   "group3_m60",
+   "group3_m70",
+   "group3s5_m45",
+   "group3s5_m60",
+   "group3s5_m70",
+   "testdata_cvm65",
+   "interleaved_cvm45",
+   "interleaved_cvm60"
   ]
  },
  "external_reference_note": "No C++ is committed to this repository. The tool-level oracle runs, their inputs, streams and outputs live under ../oracle with hashed manifests; the entries below pin the manifests this group's expectations come from.",
