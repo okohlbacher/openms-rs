@@ -337,7 +337,8 @@ fn index_check_runs_before_the_branch_is_judged() {
 
 /// An unparsable index on a branch this port does not run is still reported in
 /// full, because the source checks the index before it reaches the content.
-#[cfg(feature = "consensusxml")]
+/// `FileType` carries every type whatever the feature set, so the branch this
+/// forces is refused in any build.
 #[test]
 fn index_check_precedes_an_unported_branch() {
     let options = Options {
