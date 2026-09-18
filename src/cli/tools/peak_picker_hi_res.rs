@@ -536,10 +536,10 @@ impl Tool for PeakPickerHiRes {
     ///    [`PickingCompatibility::source`](crate::processing::peak_picking::PickingCompatibility::source)
     ///    enabled, because the source picks duplicate positions, negative
     ///    intensities and non-positive spline maxima without refusing them.
-    /// 2. `-processOption lowmemory` leaves for
-    ///    [`run_low_memory`](fn@run_low_memory) before anything is read, as
-    ///    `main_` returns from `doLowMemAlgorithm`. Steps 3 to 5 below are the
-    ///    in-memory mode only, and the low-memory mode runs none of them.
+    /// 2. `-processOption lowmemory` leaves for `run_low_memory` in this
+    ///    module before anything is read, as `main_` returns from
+    ///    `doLowMemAlgorithm`. Steps 3 to 5 below are the in-memory mode only,
+    ///    and the low-memory mode runs none of them.
     /// 3. The input is loaded as mzML with [`PeakPickerHiRes::read_options`] —
     ///    the source's dangling header references accepted (decision D10) and
     ///    the size-derived library ceilings, which admit an instrument-sized
@@ -583,10 +583,9 @@ impl Tool for PeakPickerHiRes {
     /// operating system to start the `-threads` workers is reported the same
     /// way, as `Error: Unexpected internal error (cannot start <n> worker
     /// threads: <reason>)` with [`ExitCode::UnknownError`]. A low-memory run's
-    /// failures take the same arm - see
-    /// [`run_low_memory`](fn@run_low_memory) for what they are - except that a
-    /// partially written output file is left behind, which a streaming writer
-    /// cannot take back: the pool is built
+    /// failures take the same arm - `run_low_memory` in this module lists them
+    /// - except that a partially written output file is left behind, which a
+    /// streaming writer cannot take back: the pool is built
     /// inside the picking call now (`pick_experiment` in this module), so the
     /// [`Error::Io`] it raises reaches the same arm as a picker failure instead
     /// of propagating out of `run_io` as it did while the pool wrapped the whole
