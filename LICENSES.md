@@ -397,6 +397,15 @@ timing on Unix/Windows uses `cpu-time 1.0.0`. Both are licensed MIT OR Apache-2.
 platform adapter dependencies and their exact versions are recorded in Cargo.lock.
 Their source archives retain the individual dependency license notices.
 
+The x86 startup check that the processor has the FMA instructions an x86_64 build
+was compiled to use (`src/system/cpu_features.rs`) reads CPUID through
+`raw-cpuid 11.6.0`, which is licensed **MIT only** rather than the MIT OR
+Apache-2.0 of the clock crates. It is a target dependency of `x86` and `x86_64`
+alone, so it is absent from the dependency graph of any other architecture, and
+it adds exactly one package to Cargo.lock: its own single dependency,
+`bitflags 2.13.2`, was already present. No `raw-cpuid` source is vendored here;
+its own LICENSE.md travels in its Cargo package.
+
 
 ## Raw Numpress codec: Johan Teleman BSD-3-Clause
 
