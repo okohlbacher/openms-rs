@@ -206,6 +206,37 @@ lane reported for them on its own branch (45, 39, 10, 73) with the FMA lane's
 new target beside them, which is the check that the merge changed neither lane's
 behaviour.
 
+**Repair round (2026-09-18).** The audit of this checkpoint found that the
+"does not claim" bullet above recorded an evidence gap that did not exist, and
+that the gap had hidden wrong line citations. Correcting them changed
+documentation, one JSON string and doc comments in
+`src/cli/tools/feature_finder_centroided.rs` — nothing executable: with comment
+lines stripped, that file is byte-identical to its parent at both repair
+commits. The six decisive gates were re-run anyway, at `422233c`, the branch's
+final head, with the worktree clean and equal to that commit for the whole run
+(2112 tracked files, every blob hash recomputed, nothing untracked): MSRV check,
+clippy, rustdoc, the doctests, the full suite and the `--no-default-features`
+suite, **all exit 0 on the first attempt, none exited 255**, with every count
+identical to the `4c5c6ec` run — **5317 / 0 / 21** over **355** result lines,
+**3616 / 0 / 3** over **331**, and **76 doctests**. The full suite's target list
+was compared run against run as well: 328 targets each, symmetric difference
+empty, so no target silently dropped out.
+
+One honest wrinkle in that log, because a future reader diffing it will hit it.
+`x_test_all.log` has **four lines where the ssh transport interleaved a
+`Running` header into the middle of another line**, and two of them swallow
+numbers: at `:848` a `test result:` line lost its counts, and at `:7250` a test
+line lost its trailing `ok`. A naive `awk` over the log therefore reports 5308
+rather than 5317. Both reconcile exactly and independently: the 354 well-formed
+result lines sum to 5308 passed + 21 ignored = 5329, and the announced total is
+5338, leaving exactly the 9 tests of the one target whose result line was
+mangled; and the unanchored `... ok` count is 5316, one short of 5317, which is
+the line at `:7250`. `cargo test` also exits non-zero on any failure and this
+gate exited 0, and the log contains no `FAILED` marker and no `failures:` block.
+The `4c5c6ec` log has no interleaved line at all, which is why its `awk` total
+was clean. **No test changed status; the difference is in the pipe, not the
+suite.**
+
 ### The suite totals against `main`, target by target
 
 `main`'s recorded figures were not taken on trust. `main` (`e1c3115`) was
