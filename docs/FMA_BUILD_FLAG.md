@@ -109,7 +109,10 @@ feature set (section 3), the binaries run, and their output is byte for byte the
 output of the default build (section 7).
 
 Anyone adding a second entry to that config must revisit the message in
-`src/system/cpu_features.rs`, which quotes this command.
+`src/system/cpu_features.rs`, which quotes this command — and will be made to:
+`tests/fma_build_flag.rs` reads `.cargo/config.toml` and fails if it holds any
+table but the x86_64 one or any `rustflags` line but this one, because a second
+entry would be silently dropped by the very command the crate prints.
 
 ## 5. The startup check
 
