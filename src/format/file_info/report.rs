@@ -14,24 +14,31 @@
 //! [`FileInfo::to_tsv`] only return the cache.
 //!
 //! Report order, as `report_` writes it: the general header, `-v`, `-i`, the
-//! content of the file type, `-m`, `-p`, `-s`, and two trailing newlines.
+//! content of the file type (which ends with `-d` and `-c` on a peak file),
+//! `-m`, `-p`, `-s`, and two trailing newlines. A `-v` or `-i` failure returns
+//! early and writes none of what follows it, the two trailing newlines
+//! included.
 //!
 //! # Scope
 //!
 //! This port runs the peak-file branch for DTA, DTA2D and mzML
 //! ([`crate::format::file_info::peaks`]) and the featureXML branch
-//! ([`crate::format::file_info::features`]), each with `-m`, `-p` and `-s`.
+//! ([`crate::format::file_info::features`]), each with `-m`, `-p` and `-s`, and
+//! the `-i`, `-d` and `-c` checks ([`crate::format::file_info::checks`]): `-i`
+//! before the content of any type, `-d` and `-c` inside the peak-file branch,
+//! which is where the source guards them, so a featureXML map ignores both as
+//! the source does.
+//!
 //! Every other part of the source report is refused with
 //! [`Error::Unsupported`] naming the branch, once the type is known and before
 //! the file is loaded, so a run never returns a partial report. The type is
 //! known without touching the file when it is forced or recognised from the
 //! name; otherwise the type detection reads the start of the file first, and
-//! its I/O error comes before the refusal. Refused are:
+//! its I/O error comes before the refusal. A branch refusal comes after the
+//! `-i` check, as the source's order has it, so an unparsable index is reported
+//! in full even on a branch this port does not run. Refused are:
 //!
-//! - `-v` (schema and semantic validation) and `-i` (indexed-mzML check), for
-//!   every type;
-//! - `-d` (detailed listing) and `-c` (corrupt-data check) on peak files; on a
-//!   featureXML map the source ignores both, and so does this port;
+//! - `-v` (schema and semantic validation), for every type;
 //! - the consensusXML, idXML, mzIdentML, FASTA, pepXML, mzTab, trafoXML and PQP
 //!   branches;
 //! - peak files of the types the source loads but no native loader serves on
@@ -165,7 +172,7 @@ impl FileInfo {
         if in_type == FileType::Unknown {
             return Ok(result);
         }
-        check_supported(in_type, options)?;
+        check_flags_supported(options)?;
 
         let mut os = ReportStream::new();
         let mut os_tsv = ReportStream::new();
@@ -180,6 +187,19 @@ impl FileInfo {
             .text("\ngeneral: file type\t")
             .text(in_type.name())
             .text("\n");
+
+        // FileInfo.cpp:827-846: the index check sits after the general header and
+        // before the content, for every type, and its failure ends the report
+        // there. Only then is a branch this port does not run refused, so an
+        // invalid index is reported in full even on such a branch.
+        if options.check_index
+            && !super::checks::write_index_check(path, name, &mut os, &mut result)?
+        {
+            result.text = os.into_string();
+            result.tsv = os_tsv.into_string();
+            return Ok(result);
+        }
+        check_branch_supported(in_type)?;
 
         match branch(in_type) {
             Branch::Features => report_features(path, options, &mut os, &mut os_tsv, &mut result)?,
@@ -334,34 +354,22 @@ fn branch(in_type: FileType) -> Branch {
     }
 }
 
-/// Refuse, before the file is loaded, every flag and branch this port does not
-/// run. The source's order is the report's: `-v`, then `-i`, then the content.
-fn check_supported(in_type: FileType, options: &Options) -> Result<()> {
+/// Refuse the flags this port does not run, before anything is written. The
+/// source's order is the report's: `-v`, then `-i`, then the content, so `-v` is
+/// refused here and the branch only after the index check has had its turn.
+fn check_flags_supported(options: &Options) -> Result<()> {
     if options.validate {
         return Err(Error::Unsupported(
             "FileInfo schema and semantic validation (-v) is not ported".into(),
         ));
     }
-    if options.check_index {
-        return Err(Error::Unsupported(
-            "FileInfo indexed-mzML check (-i) is not ported".into(),
-        ));
-    }
+    Ok(())
+}
+
+/// Refuse, before the file is loaded, every branch this port does not run.
+fn check_branch_supported(in_type: FileType) -> Result<()> {
     match branch(in_type) {
-        Branch::Features => Ok(()),
-        Branch::Peaks => {
-            if options.detailed {
-                return Err(Error::Unsupported(
-                    "FileInfo detailed spectrum and chromatogram listing (-d) is not ported".into(),
-                ));
-            }
-            if options.check_corrupt {
-                return Err(Error::Unsupported(
-                    "FileInfo corrupt-data check (-c) is not ported".into(),
-                ));
-            }
-            Ok(())
-        }
+        Branch::Features | Branch::Peaks => Ok(()),
         Branch::Unported | Branch::UnportedPeaks => Err(unported_branch(in_type)),
         // Refused by the source loader too; reported once the report runs.
         Branch::ImagingPeaks | Branch::NotLoadable => Ok(()),

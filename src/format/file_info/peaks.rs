@@ -104,7 +104,15 @@ pub(crate) fn report(
     }
     let summary = Summary::compute(&experiment)?;
 
-    write_content(&experiment, &summary, os, os_tsv, result)?;
+    write_content(&experiment, &summary, options, os, os_tsv, result)?;
+    // FileInfo.cpp:1799-1848 and :1851-1964: the per-spectrum listing and the
+    // corrupt-data check close the peak-file content, before -m, -p and -s.
+    if options.detailed {
+        super::checks::write_detailed_spectra(&experiment, os);
+    }
+    if options.check_corrupt {
+        super::checks::write_corruption_check(&experiment, os)?;
+    }
     result
         .warnings
         .extend(summary.faims_warnings.iter().cloned());
@@ -315,6 +323,7 @@ fn to_int(level: u32) -> Result<i32> {
 fn write_content(
     experiment: &MSExperiment,
     summary: &Summary,
+    options: &Options,
     os: &mut ReportStream,
     os_tsv: &mut ReportStream,
     result: &mut FileInfoResult,
@@ -466,6 +475,15 @@ fn write_content(
                 .text(":                         ")
                 .value(count)
                 .text("\n");
+        }
+        // FileInfo.cpp:1779-1795: still inside the source's
+        // `if (!exp.getChromatograms().empty())`.
+        if options.detailed {
+            super::checks::write_detailed_chromatograms(
+                experiment,
+                &summary.chromatogram_types,
+                os,
+            )?;
         }
     }
     Ok(())
