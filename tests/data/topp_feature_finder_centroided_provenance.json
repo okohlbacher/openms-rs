@@ -402,6 +402,17 @@
    "path": "../oracle/ffap-complete-fix4/node/run_tool.sh",
    "sha256": "0c91518820df69330cecea1650c68f0d7be1ca4289ebabd8e1c09f2b33dbe9e4",
    "origin_key": "ffap_complete_fix4"
+  },
+  {
+   "path": "../oracle/b11-faims/manifest.json",
+   "sha256": "f88f0497fe492d95e387b8df4f44dce89d32c2dde76a3b3d2e5e99262d850b05",
+   "origin_key": "b11_oracle_faims"
+  },
+  {
+   "path": "../oracle/b11-faims/quadorder.py",
+   "sha256": "b6bb2d545ecd6ec4cf88ff99df822ec68c0d565e2b1a45fcaa3d4dcd1234008f",
+   "origin_key": "b11_oracle_faims",
+   "note": "Not a C++ run: it re-implements Plan::new, Plan::feature_box, the stable sort by intensity and the quadtree's add/split/quadrant/query_node in f32 and reads the three C++ Release group fixtures, so the absorption order of the 653.776 Da cluster is derived rather than read off a port run. Its output is results/quadorder.txt (sha256 a0e8be904dd094b08ece991fbb6186e2c035b7700025a8eb6a975b637c54f524)."
   }
  ],
  "native_implementation": [
@@ -413,5 +424,5 @@
  ],
  "support_document": "docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md",
  "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 425-428 (TOPP_FeatureFinderCentroided_1 and its FuzzyDiff comparison) and lines 83-85 (TOPPWRITEINI_<tool>)",
- "determinism": "The wrapper passes ToolContext::thread_policy to the algorithm's seed loop, whose results keep seed order, and every later step is serial. -threads 0, 1, 2, 4 and 8 write byte-identical featureXML, unique ids included, which tests/topp_feature_finder_centroided.rs::the_output_is_byte_identical_at_every_thread_count asserts; every other assertion here is exact."
+ "determinism": "The wrapper passes ToolContext::thread_policy to the algorithm's seed loop, whose results keep seed order, and every later step is serial. -threads 0, 1, 2, 4 and 8 write byte-identical featureXML, unique ids included, which tests/topp_feature_finder_centroided.rs::the_output_is_byte_identical_at_every_thread_count asserts for the plain input and ::the_faims_output_is_byte_identical_at_every_thread_count for the three-voltage FAIMS input, where the path runs the algorithm once per voltage, draws further unique ids and sums intensities in f32 over a quadtree query order; every other assertion here is exact."
 }

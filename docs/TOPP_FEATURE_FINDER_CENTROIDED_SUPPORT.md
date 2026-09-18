@@ -302,12 +302,32 @@ ten clusters hold **three** features. The source's merge would leave those six
 as twelve features of 1900/1700 shape; the corrected merge gives one each,
 `23 -> 10 features (merged 13)`. The ten survivors, their merged voltage lists
 and their intensities are written out in
-`three_faims_voltages_collapse_a_cluster_of_three_into_one_feature`. One
-cluster there — 4278.16 s, 653.776 Da — is the only place in this package where
-the `f32` running sum depends on the order in which the survivor absorbs its
-two partners (58645.19921875 or 58645.203125). That order is the quadtree's
-traversal order: deterministic for a given input, but not derivable by hand, so
-the test accepts those two values and nothing else and says why.
+`three_faims_voltages_collapse_a_cluster_of_three_into_one_feature`.
+
+One cluster there — 4278.16 s, 653.776 Da — is the only place in this package
+where the `f32` running sum depends on the order in which the survivor absorbs
+its two partners. Absorbing −45 V before −60 V is exact twice over
+(20089.396484375 + 19694.748046875 = 39784.14453125, + 18861.0546875 =
+58645.19921875); the other order ties and rounds to even twice and would give
+58645.203125. The order is the quadtree's query order, and it is **derived**,
+not measured. `../oracle/b11-faims/quadorder.py` re-implements `Plan::new`,
+`Plan::feature_box`, the stable sort by intensity and the quadtree's
+`add`/`split`/`quadrant`/`query_node` in `f32`, takes its numbers from the three
+C++ Release group fixtures and executes no Rust; it reports `[-70, -45, -60]`
+for that cluster. The same run reproduces the other six merged clusters' voltage
+lists and intensities, the survivor count and the three single-voltage
+intensities, which is what pins the re-implementation to this algorithm. Its
+output is `../oracle/b11-faims/results/quadorder.txt`, and the test pins the
+derived single value with no slack.
+
+### Determinism
+
+`the_faims_output_is_byte_identical_at_every_thread_count` runs the
+three-voltage input at `-threads` 1, 2, 4, 8 and 0 and requires one
+byte-identical file. The FAIMS path is where this could break and the
+non-FAIMS case could not see it: three algorithm runs instead of one, three
+seed filters, extra draws from the unique-id generator, and a merge whose
+intensity is an `f32` running sum over a quadtree query order.
 
 ## Reusing an instance
 

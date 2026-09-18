@@ -2192,6 +2192,23 @@ fn three_faims_voltages_collapse_a_cluster_of_three_into_one_feature() {
             &[-70.0, -60.0, -45.0],
             103111.703125,
         ),
+        // The only cluster of this package whose `f32` running sum could
+        // depend on the order in which the survivor absorbs its two partners.
+        // In the order below it is exact twice over: 20089.396484375 +
+        // 19694.748046875 = 39784.14453125 and + 18861.0546875 =
+        // 58645.19921875, both representable. The other order rounds twice —
+        // 20089.396484375 + 18861.0546875 = 38950.451171875 is a tie, rounded
+        // to even as 38950.453125, and the second sum ties again — and would
+        // give 58645.203125. Which order the merge takes is the quadtree's
+        // query order, **derived** rather than measured: the derivation is in
+        // the note below this table.
+        (
+            -70.0,
+            4278.163376914249966,
+            653.775964531109253,
+            &[-70.0, -45.0, -60.0],
+            58645.19921875,
+        ),
         (
             -60.0,
             4201.935576947686059,
@@ -2241,19 +2258,16 @@ fn three_faims_voltages_collapse_a_cluster_of_three_into_one_feature() {
         );
     }
 
-    // The 653.776 Da cluster is the one whose `f32` running sum depends on the
-    // order in which the survivor absorbs its two partners: 19694.748046875
-    // first gives 58645.19921875 and 18861.0546875 first gives 58645.203125.
-    // The order is the quadtree's traversal order, which is deterministic but
-    // not derivable by hand, so both are accepted here and nothing else is.
-    let ambiguous = by_position(4278.163376914249966, 653.775964531109253);
-    assert_eq!(float_list(ambiguous, "merged_centroid_IMs").len(), 3);
-    assert!(
-        ambiguous.base.intensity.to_bits() == 58645.19921875f32.to_bits()
-            || ambiguous.base.intensity.to_bits() == 58645.203125f32.to_bits(),
-        "{} is neither running sum of the cluster",
-        ambiguous.base.intensity
-    );
+    // The absorption order of the 653.776 Da cluster, on which its running sum
+    // hangs, is derived and not read off this run. `../oracle/b11-faims/quadorder.py`
+    // re-implements `Plan::new`, `Plan::feature_box`, the stable sort by
+    // intensity and the quadtree's `add`/`split`/`quadrant`/`query_node` in
+    // `f32`, reads the three C++ Release group fixtures and executes no Rust.
+    // Its answer for that cluster is `[-70, -45, -60]`, the row above. The same
+    // run reproduces the other six rows of the table, the survivor count and the
+    // three single-voltage intensities below, which is what shows the
+    // re-implementation to be of this algorithm; `../oracle/b11-faims/results/quadorder.txt`
+    // holds its output.
 
     // Three analytes were found at one voltage only and keep their `FAIMS_CV`.
     let untouched: Vec<f64> = written.features.iter().filter_map(faims_cv).collect();
@@ -2601,6 +2615,59 @@ fn the_output_is_byte_identical_at_every_thread_count() {
         );
         outcome.assert_exit(ExitCode::ExecutionOk);
         assert_out_block(&outcome, FFC1_ALGORITHM_LINES);
+        let written = fs::read(&out).unwrap();
+        match &reference {
+            None => reference = Some(written),
+            Some(first) => assert!(
+                *first == written,
+                "-threads {threads} wrote a different file"
+            ),
+        }
+    }
+}
+
+/// The same contract on the path this package adds, which the case above does
+/// not reach: three compensation voltages are three algorithm runs, three seed
+/// filters and a cross-voltage merge whose intensity is an `f32` running sum
+/// over a quadtree query order. Nothing there may depend on the thread count,
+/// so 1, 2, 4, 8 and 0 must again write one byte-identical file — unique ids
+/// included, since the generator is drawn from in the merge as well.
+#[test]
+fn the_faims_output_is_byte_identical_at_every_thread_count() {
+    let dir = Workdir::new();
+    let source = fs::read(ffc1_input()).unwrap();
+    let derived = derive_faims(&source, &["-45", "-60", "-70"]);
+    assert_digest(
+        &derived,
+        "7edd8c78aebe6f6553498bbce3c0586bb6817fa7",
+        "faims_three_cv",
+    );
+    let input = dir.put("faims_three_cv.mzML", &derived);
+    let ini = text(ffc1_ini());
+    let mut reference: Option<Vec<u8>> = None;
+    for threads in ["1", "2", "4", "8", "0"] {
+        let out = dir.file(&format!("faims_threads_{threads}.featureXML"));
+        let outcome = run_in(
+            &dir,
+            &[
+                "-test",
+                "-ini",
+                &ini,
+                "-in",
+                &input,
+                "-threads",
+                threads,
+                "-out",
+                &out,
+                "-algorithm:mass_trace:min_spectra",
+                "5",
+            ],
+        );
+        outcome.assert_exit(ExitCode::ExecutionOk);
+        assert_out_contains_line(
+            &outcome,
+            &FeatureFinderCentroided::faims_merge_message(23, 10),
+        );
         let written = fs::read(&out).unwrap();
         match &reference {
             None => reference = Some(written),
