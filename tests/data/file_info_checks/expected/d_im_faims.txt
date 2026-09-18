@@ -1,0 +1,293 @@
+
+-- General information --
+
+File name: /scratch/kohlbach/a6-fileinfo/oracle/inputs/IM_FAIMS_test.mzML
+File type: mzML
+
+Instrument: 
+
+MS levels: 1, 2
+Total number of peaks: 44354
+Number of spectra: 19
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 136.33 .. 144.85 sec (0.1 min)
+  mass-to-charge: 100.08 .. 1590.89
+  ion mobility: -65.00 .. -45.00
+  intensity: 0.00 .. 113452328.00
+
+Spectrum Ranges:
+  retention time: 136.33 .. 144.85 sec (0.1 min)
+  mass-to-charge: 100.08 .. 1590.89
+  ion mobility: -65.00 .. -45.00
+  intensity: 0.00 .. 113452328.00
+
+MS Level 1 Ranges:
+  retention time: 136.33 .. 144.85 sec (0.1 min)
+  mass-to-charge: 371.27 .. 1590.89
+  ion mobility: -65.00 .. -45.00
+  intensity: 0.00 .. 113452328.00
+
+MS Level 2 Ranges:
+  retention time: 136.47 .. 142.92 sec (0.1 min)
+  mass-to-charge: 100.08 .. 1162.45
+  ion mobility: -65.00 .. -45.00
+  intensity: 1153.82 .. 1999661.88
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 9
+  level 2: 10
+
+Peak type from metadata (or estimated from data)
+  level 1: Centroid (Centroid)
+  level 2: Centroid (Centroid)
+
+Activation methods
+    MS-Level 2 & HCD (beam-type collision-induced dissociation): 10
+
+Precursor charge distribution:
+  charge 2: 9x
+  charge 3: 1x
+
+IM (FAIMS_CV): [-65.0, -55.0, -45.0]
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   MS1Spectrum
+  peaks:      4247
+  RT:         136.327
+  m/z:        371.268 .. 1590.88
+  IM:         -55 FAIMS_CV
+Precursors:  0
+
+Spectrum 2:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      378
+  RT:         136.465
+  m/z:        101.071 .. 971.321
+  IM:         -55 FAIMS_CV
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     473.235
+  activation methods: 
+    HCD (beam-type collision-induced dissociation)
+
+
+Spectrum 3:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      106
+  RT:         136.534
+  m/z:        101.071 .. 839.418
+  IM:         -55 FAIMS_CV
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     456.202
+  activation methods: 
+    HCD (beam-type collision-induced dissociation)
+
+
+Spectrum 4:
+  mslevel:    1
+  scanMode:   MS1Spectrum
+  peaks:      4060
+  RT:         137.391
+  m/z:        371.268 .. 1590.88
+  IM:         -65 FAIMS_CV
+Precursors:  0
+
+Spectrum 5:
+  mslevel:    1
+  scanMode:   MS1Spectrum
+  peaks:      5918
+  RT:         138.464
+  m/z:        371.268 .. 1590.88
+  IM:         -45 FAIMS_CV
+Precursors:  0
+
+Spectrum 6:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      77
+  RT:         138.603
+  m/z:        102.055 .. 883.958
+  IM:         -45 FAIMS_CV
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     473.236
+  activation methods: 
+    HCD (beam-type collision-induced dissociation)
+
+
+Spectrum 7:
+  mslevel:    1
+  scanMode:   MS1Spectrum
+  peaks:      4017
+  RT:         139.546
+  m/z:        371.268 .. 1590.88
+  IM:         -55 FAIMS_CV
+Precursors:  0
+
+Spectrum 8:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      76
+  RT:         139.685
+  m/z:        100.202 .. 1162.45
+  IM:         -55 FAIMS_CV
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     574.297
+  activation methods: 
+    HCD (beam-type collision-induced dissociation)
+
+
+Spectrum 9:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      168
+  RT:         139.766
+  m/z:        102.055 .. 1092.47
+  IM:         -55 FAIMS_CV
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     557.73
+  activation methods: 
+    HCD (beam-type collision-induced dissociation)
+
+
+Spectrum 10:
+  mslevel:    1
+  scanMode:   MS1Spectrum
+  peaks:      4411
+  RT:         140.601
+  m/z:        371.268 .. 1590.88
+  IM:         -65 FAIMS_CV
+Precursors:  0
+
+Spectrum 11:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      223
+  RT:         140.824
+  m/z:        101.011 .. 947.384
+  IM:         -65 FAIMS_CV
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     538.226
+  activation methods: 
+    HCD (beam-type collision-induced dissociation)
+
+
+Spectrum 12:
+  mslevel:    1
+  scanMode:   MS1Spectrum
+  peaks:      5616
+  RT:         141.679
+  m/z:        371.268 .. 1590.88
+  IM:         -45 FAIMS_CV
+Precursors:  0
+
+Spectrum 13:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      244
+  RT:         141.817
+  m/z:        101.071 .. 624.384
+  IM:         -45 FAIMS_CV
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     381.642
+  activation methods: 
+    HCD (beam-type collision-induced dissociation)
+
+
+Spectrum 14:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      325
+  RT:         141.899
+  m/z:        100.076 .. 704.276
+  IM:         -45 FAIMS_CV
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     385.636
+  activation methods: 
+    HCD (beam-type collision-induced dissociation)
+
+
+Spectrum 15:
+  mslevel:    1
+  scanMode:   MS1Spectrum
+  peaks:      4025
+  RT:         142.701
+  m/z:        371.268 .. 1590.89
+  IM:         -55 FAIMS_CV
+Precursors:  0
+
+Spectrum 16:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      38
+  RT:         142.839
+  m/z:        110.071 .. 1162.42
+  IM:         -55 FAIMS_CV
+Precursors:  1
+Precursor[0]
+  charge: 3
+  mz:     383.469
+  activation methods: 
+    HCD (beam-type collision-induced dissociation)
+
+
+Spectrum 17:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      82
+  RT:         142.921
+  m/z:        101.071 .. 843.455
+  IM:         -55 FAIMS_CV
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     471.772
+  activation methods: 
+    HCD (beam-type collision-induced dissociation)
+
+
+Spectrum 18:
+  mslevel:    1
+  scanMode:   MS1Spectrum
+  peaks:      4001
+  RT:         143.714
+  m/z:        371.268 .. 1590.88
+  IM:         -65 FAIMS_CV
+Precursors:  0
+
+Spectrum 19:
+  mslevel:    1
+  scanMode:   MS1Spectrum
+  peaks:      6342
+  RT:         144.852
+  m/z:        371.267 .. 1590.88
+  IM:         -45 FAIMS_CV
+Precursors:  0
+
+

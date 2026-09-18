@@ -1,0 +1,22 @@
+
+-- General information --
+
+File name: /scratch/kohlbach/a6-fileinfo/oracle/inputs/empty.featureXML
+File type: featureXML
+Number of features: 0
+
+Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Total ion current in features: 0
+
+Charge distribution:
+
+Distribution of peptide identifications (IDs) per feature:
+
+Assigned peptide identifications: 0
+Unassigned peptide identifications: 0
+
+

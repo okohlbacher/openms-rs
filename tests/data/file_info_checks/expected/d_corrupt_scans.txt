@@ -1,0 +1,90 @@
+
+-- General information --
+
+File name: /scratch/kohlbach/a6-fileinfo/oracle/inputs/corrupt_scans.mzML
+File type: mzML
+
+Instrument: 
+
+MS levels: 0, 1
+Total number of peaks: 4
+Number of spectra: 5
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 10.00 .. 40.00 sec (0.5 min)
+  mass-to-charge: 100.00 .. 100.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 1.00
+
+Spectrum Ranges:
+  retention time: 10.00 .. 40.00 sec (0.5 min)
+  mass-to-charge: 100.00 .. 100.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 1.00
+
+MS Level 1 Ranges:
+  retention time: 10.00 .. 40.00 sec (0.5 min)
+  mass-to-charge: 100.00 .. 100.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 1.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 0: 1
+  level 1: 4
+
+Peak type from metadata (or estimated from data)
+  level 0: Unknown (Unknown)
+  level 1: Unknown (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      1
+  RT:         20
+  m/z:        100 .. 100
+Precursors:  0
+
+Spectrum 2:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      1
+  RT:         10
+  m/z:        100 .. 100
+Precursors:  0
+
+Spectrum 3:
+  mslevel:    0
+  scanMode:   Absorption
+  peaks:      1
+  RT:         30
+  m/z:        100 .. 100
+Precursors:  0
+
+Spectrum 4:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      0
+  RT:         40
+  m/z:        Precursors:  0
+
+Spectrum 5:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      1
+  RT:         10
+  m/z:        100 .. 100
+Precursors:  0
+
+

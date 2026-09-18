@@ -451,3 +451,205 @@ fn preflight(experiment: &MSExperiment) -> Result<()> {
 fn allocation(what: &str) -> Error {
     Error::InvalidValue(format!("FileInfo -c: cannot allocate the {what} buffer"))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::kernel::{MSChromatogram, MSSpectrum, Peak1D};
+
+    /// The source reads `ms.front()` and `ms.back()` of every selected-reaction
+    /// monitoring chromatogram unchecked, which is undefined on an empty one.
+    /// No loader produces one, so this experiment is built by hand.
+    #[test]
+    fn an_empty_srm_chromatogram_is_refused() {
+        let mut experiment = MSExperiment::default();
+        experiment.chromatograms.push(MSChromatogram {
+            chromatogram_type: ChromatogramType::SelectedReactionMonitoring,
+            native_id: "empty_transition".into(),
+            ..MSChromatogram::default()
+        });
+        let types = BTreeMap::from([(ChromatogramType::SelectedReactionMonitoring, 1u64)]);
+        let mut os = ReportStream::new();
+        let error = write_detailed_chromatograms(&experiment, &types, &mut os).unwrap_err();
+        assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
+        assert!(format!("{error}").contains("empty_transition"));
+    }
+
+    /// Without a selected-reaction-monitoring chromatogram nothing is written,
+    /// so an empty chromatogram of another type is never read.
+    #[test]
+    fn a_listing_without_srm_writes_nothing() {
+        let mut experiment = MSExperiment::default();
+        experiment
+            .chromatograms
+            .push(MSChromatogram::default());
+        let types = BTreeMap::from([(ChromatogramType::Mass, 1u64)]);
+        let mut os = ReportStream::new();
+        write_detailed_chromatograms(&experiment, &types, &mut os).unwrap();
+        assert_eq!(os.into_string(), "");
+    }
+
+    /// A NaN coordinate would enter one of the source's two `std::sort` calls
+    /// and leave its order undefined; the port refuses before writing anything.
+    #[test]
+    fn a_nan_retention_time_is_refused() {
+        let mut experiment = MSExperiment::default();
+        experiment.spectra.push(MSSpectrum {
+            rt: f64::NAN,
+            ..MSSpectrum::default()
+        });
+        let mut os = ReportStream::new();
+        let error = write_corruption_check(&experiment, &mut os).unwrap_err();
+        assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
+        assert_eq!(os.into_string(), "", "the refusal leaves the report untouched");
+    }
+
+    #[test]
+    fn a_nan_mz_is_refused() {
+        let mut experiment = MSExperiment::default();
+        experiment.spectra.push(MSSpectrum {
+            rt: 1.0,
+            peaks: vec![Peak1D::new(f64::NAN, 1.0)],
+            ..MSSpectrum::default()
+        });
+        let mut os = ReportStream::new();
+        let error = write_corruption_check(&experiment, &mut os).unwrap_err();
+        assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
+    }
+
+    /// An infinity is not NaN: the source's `<` and `==` are defined on it, so
+    /// the check runs and reports the duplicate.
+    #[test]
+    fn an_infinite_mz_is_checked_like_any_other() {
+        let mut experiment = MSExperiment::default();
+        experiment.spectra.push(MSSpectrum {
+            rt: 1.0,
+            peaks: vec![
+                Peak1D::new(f64::INFINITY, 1.0),
+                Peak1D::new(f64::INFINITY, 2.0),
+            ],
+            ..MSSpectrum::default()
+        });
+        let mut os = ReportStream::new();
+        write_corruption_check(&experiment, &mut os).unwrap();
+        let text = os.into_string();
+        assert!(
+            text.contains("Error: Duplicate peak m/z inf in spectrum (RT: 1)\n"),
+            "{text}"
+        );
+    }
+
+    /// A value stored three times gives two lines, as the source's pairwise
+    /// comparison over the sorted values does.
+    #[test]
+    fn a_triplicate_mz_reports_twice() {
+        let mut experiment = MSExperiment::default();
+        experiment.spectra.push(MSSpectrum {
+            rt: 2.0,
+            peaks: vec![
+                Peak1D::new(5.0, 1.0),
+                Peak1D::new(5.0, 2.0),
+                Peak1D::new(5.0, 3.0),
+            ],
+            ..MSSpectrum::default()
+        });
+        let mut os = ReportStream::new();
+        write_corruption_check(&experiment, &mut os).unwrap();
+        assert_eq!(
+            os.into_string()
+                .matches("Error: Duplicate peak m/z 5 in spectrum (RT: 2)\n")
+                .count(),
+            2
+        );
+    }
+
+    /// A repeated data-array name, which this port's mzML reader refuses before
+    /// `-c` can see it (`src/format/mzml.rs:1038`), so no file reaches this
+    /// line. The C++ reader loads such a file and the Release oracle's
+    /// `c_arrays` and `c_arrays_mixed` cases record what it writes; this is the
+    /// same rendering, from an experiment built in memory. The three array
+    /// kinds share one name set, as the source's single `std::map` does.
+    #[test]
+    fn a_repeated_data_array_name_is_reported_across_array_kinds() {
+        use crate::kernel::DataArray;
+        let mut spectrum = MSSpectrum {
+            rt: 2.0,
+            peaks: vec![Peak1D::new(100.0, 1.0)],
+            ..MSSpectrum::default()
+        };
+        spectrum.float_data_arrays.push(DataArray {
+            name: "shared".into(),
+            ..DataArray::default()
+        });
+        spectrum.integer_data_arrays.push(DataArray {
+            name: "shared".into(),
+            ..DataArray::default()
+        });
+        spectrum.string_data_arrays.push(DataArray {
+            name: "shared".into(),
+            ..DataArray::default()
+        });
+        let mut experiment = MSExperiment::default();
+        experiment.spectra.push(spectrum);
+        let mut os = ReportStream::new();
+        write_corruption_check(&experiment, &mut os).unwrap();
+        assert_eq!(
+            os.into_string()
+                .matches("Error: Duplicate meta data array name 'shared' in spectrum (RT: 2)\n")
+                .count(),
+            2,
+            "the first array claims the name; the other two repeat it"
+        );
+    }
+
+    /// TOPP_FileInfo_12's input: its index parses with the counts the C++
+    /// reports, although the strict mzML reader refuses its content.
+    #[test]
+    fn the_upstream_test_12_index_parses() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/data/file_info/inputs/FileInfo_12_input.mzML");
+        let mut result = FileInfoResult::default();
+        let mut os = ReportStream::new();
+        assert!(write_index_check(&path, "in.mzML", &mut os, &mut result).unwrap());
+        assert!(result.validation.index_valid);
+        assert_eq!(result.validation.indexed_spectra, 3);
+        assert_eq!(result.validation.indexed_chromatograms, 0);
+        assert_eq!(
+            os.into_string(),
+            "Checking mzML file for valid indices ... \n\
+             Found a valid indexed mzML XML File with 3 spectra and 0 chromatograms.\n"
+        );
+    }
+
+    /// A file with no footer offset: the failure text names the file as it was
+    /// given, and nothing follows it.
+    #[test]
+    fn a_file_without_an_index_reports_the_failure() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/data/file_info/inputs/empty.mzML");
+        let mut result = FileInfoResult::default();
+        let mut os = ReportStream::new();
+        assert!(!write_index_check(&path, "given/name.mzML", &mut os, &mut result).unwrap());
+        assert!(result.validation.index_checked);
+        assert!(!result.validation.index_valid);
+        assert_eq!(
+            os.into_string(),
+            "Checking mzML file for valid indices ... \n\
+             Could not detect a valid index for the mzML file given/name.mzML\n\
+             Either the index is not present or is not correct.\n"
+        );
+    }
+
+    /// `empty()` asks about the spectra alone, so an experiment of
+    /// chromatograms only writes no per-spectrum listing.
+    #[test]
+    fn no_spectrum_listing_without_spectra() {
+        let mut experiment = MSExperiment::default();
+        experiment
+            .chromatograms
+            .push(MSChromatogram::default());
+        let mut os = ReportStream::new();
+        write_detailed_spectra(&experiment, &mut os);
+        assert_eq!(os.into_string(), "");
+    }
+}

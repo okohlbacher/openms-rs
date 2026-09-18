@@ -1,0 +1,54 @@
+
+-- General information --
+
+File name: /scratch/kohlbach/a6-fileinfo/oracle/inputs/unsorted_peaks.dta
+File type: dta
+
+Instrument: 
+
+MS levels: 2
+Total number of peaks: 4
+Number of spectra: 1
+
+Combined Ranges (spectra + chromatograms):
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 300.00 .. 500.00
+  ion mobility: <none> .. <none>
+  intensity: -5.00 .. 30.00
+
+Spectrum Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 300.00 .. 500.00
+  ion mobility: <none> .. <none>
+  intensity: -5.00 .. 30.00
+
+MS Level 2 Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 300.00 .. 500.00
+  ion mobility: <none> .. <none>
+  intensity: -5.00 .. 30.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 2: 1
+
+Peak type from metadata (or estimated from data)
+  level 2: Unknown (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+  charge 2: 1x
+
+
+-- Checking for corrupt data --
+
+Error: Peak m/z positions are not sorted in ascending order in spectrum (RT: -1)
+Warning: Negative peak intensity peak (RT: -1 MZ: 500 intensity: -5)
+Error: Duplicate peak m/z 300 in spectrum (RT: -1)
+
+

@@ -78,7 +78,7 @@
 			</spectrum>
 			<spectrum index="2" id="index=2" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="0" />
-				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000806" name="absorption spectrum" />
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan>

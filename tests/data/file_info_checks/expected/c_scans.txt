@@ -1,0 +1,56 @@
+
+-- General information --
+
+File name: /scratch/kohlbach/a6-fileinfo/oracle/inputs/corrupt_scans.mzML
+File type: mzML
+
+Instrument: 
+
+MS levels: 0, 1
+Total number of peaks: 4
+Number of spectra: 5
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 10.00 .. 40.00 sec (0.5 min)
+  mass-to-charge: 100.00 .. 100.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 1.00
+
+Spectrum Ranges:
+  retention time: 10.00 .. 40.00 sec (0.5 min)
+  mass-to-charge: 100.00 .. 100.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 1.00
+
+MS Level 1 Ranges:
+  retention time: 10.00 .. 40.00 sec (0.5 min)
+  mass-to-charge: 100.00 .. 100.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 1.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 0: 1
+  level 1: 4
+
+Peak type from metadata (or estimated from data)
+  level 0: Unknown (Unknown)
+  level 1: Unknown (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+
+
+-- Checking for corrupt data --
+
+Error: Spectrum retention times are not sorted in ascending order
+Error: MS-level 0 in spectrum (RT: 30)
+Warning: No peaks in spectrum (RT: 40)
+Error: Duplicate spectrum retention time: 10
+
+

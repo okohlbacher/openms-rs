@@ -1,0 +1,46 @@
+
+-- General information --
+
+File name: /scratch/kohlbach/a6-fileinfo/oracle/inputs/srm_spectra.mzML
+File type: mzML
+
+Instrument: 
+  Mass Analyzer: Quadrupole (resolution: 0)
+
+MS levels: 
+Total number of peaks: 3
+Number of spectra: 0
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 1.00 .. 3.00 sec (0.0 min)
+  mass-to-charge: 300.00 .. 400.00
+  ion mobility: <none> .. <none>
+  intensity: 5.00 .. 20.00
+
+Spectrum Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  ion mobility: <none> .. <none>
+  intensity: <none> .. <none>
+
+Chromatogram Ranges:
+  retention time: 1.00 .. 3.00 sec (0.0 min)
+  mass-to-charge: 300.00 .. 400.00
+  intensity: 5.00 .. 20.00
+
+Peak type from metadata (or estimated from data)
+
+Activation methods
+
+Precursor charge distribution:
+
+Number of chromatograms: 2
+Number of chromatographic peaks: 3
+
+Number of chromatograms per type: 
+  selected reaction monitoring chromatogram:                         2
+
+-- Checking for corrupt data --
+
+
+
