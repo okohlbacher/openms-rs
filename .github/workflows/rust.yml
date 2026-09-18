@@ -60,6 +60,11 @@ jobs:
       - run: python3 tools/test_core_sdk.py
       - run: python3 tools/core_sdk_coverage.py
       - run: python3 tools/test_core_sdk_coverage.py
+      # The opt-out docs/FMA_BUILD_FLAG.md documents and src/system/cpu_features.rs
+      # prints. RUSTFLAGS replaces .cargo/config.toml's rustflags rather than
+      # adding to them, so this is the baseline build a user on an older
+      # processor gets, and it must keep compiling.
+      - run: RUSTFLAGS="-C target-feature=-fma" cargo check --locked --all-features --all-targets
       - run: cargo clippy --locked --all-features --all-targets -- -D warnings
       - run: cargo doc --locked --all-features --no-deps
         env:
@@ -106,7 +111,7 @@ jobs:
       - run: cargo test --locked --no-default-features --features consensusxml --test msstats --test transformation_xml
       - run: cargo test --locked --no-default-features --features featurexml --test transformation_xml
       - run: cargo test --locked --no-default-features --features paramxml --test qcml
-      - run: cargo test --locked --no-default-features --test feature_finder_picked_helper_structs --test isotopes_source_precision --test geometry_bounding_box --test fuzzy_string_comparator --test file_info_text_format --test lm_budget_differential --test lm_eigen_path_differential --test feature_overlap_filter
+      - run: cargo test --locked --no-default-features --test feature_finder_picked_helper_structs --test isotopes_source_precision --test geometry_bounding_box --test fuzzy_string_comparator --test file_info_text_format --test lm_budget_differential --test lm_eigen_path_differential --test feature_overlap_filter --test fma_build_flag --test build_info
       - run: cargo test --locked --no-default-features --test boost_regex --test trace_fitter --test gauss_trace_fitter --test egh_trace_fitter --test baseline_filter_edges
       - run: cargo test --locked --no-default-features --features mzml --test peak_type_estimator --test faims_helper --test mzml_mobility --test im_data_converter
       - run: cargo test --locked --no-default-features --features "mzml featurexml" --test file_handler_type_detection --test file_info
