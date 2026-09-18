@@ -877,6 +877,10 @@ fn topp_peak_picker_hi_res_3_matches_the_retained_low_memory_output() {
     assert_eq!(outcome.out, VERSION_WARNING_3_6_0);
     assert_eq!(outcome.err, "");
     let produced = load(&produced_at.out);
+    // The C++ Release build at the pins reproduces this retained file byte for
+    // byte on this command line (oracle `p4-lowmemory`, case `w1_lowmem`,
+    // sha256 `91b0fdb0...`), so comparing against it is comparing against that
+    // build's own output.
     let expected = load(fixture("PeakPickerHiRes_output_lowMem.mzML"));
     assert_decoded_equal(&produced, &expected);
     assert_eq!(history_lengths(&produced), vec![6; 5]);
@@ -1023,6 +1027,9 @@ fn low_memory_automatic_mode_tests_only_the_stored_spectrum_type() {
     assert_eq!(low.spectra.len(), 1);
     assert_eq!(low.spectra[0].peaks.len(), 4);
     assert_eq!(low.spectra[0].spectrum_type, SpectrumType::Centroid);
+    // The C++ Release build's own output on this command line, which is what
+    // makes this a divergence of the source rather than a claim about it.
+    assert_decoded_equal(&low, &load(fixture("oracle_lowmem_w6_auto.mzML")));
 }
 
 /// The low-memory path runs `pp.pick` with no spectrum-type check at all, so a
@@ -1051,7 +1058,9 @@ fn low_memory_never_refuses_centroided_data_and_force_is_inert() {
         low_memory(None, &workflow_input(6), &["-algorithm:ms_levels", "1"]);
     assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
     assert_eq!(outcome.err, "");
-    assert_eq!(load(&without_force_at.out).spectra[0].peaks.len(), 4);
+    let picked = load(&without_force_at.out);
+    assert_eq!(picked.spectra[0].peaks.len(), 4);
+    assert_decoded_equal(&picked, &load(fixture("oracle_lowmem_w6_auto.mzML")));
 
     let (outcome, with_force, _with_force_at) = low_memory(
         None,
@@ -1079,10 +1088,14 @@ fn low_memory_runs_none_of_the_in_memory_input_checks() {
         &text(&workdir().path().join("im.mzML")),
     ]);
     assert!(warned.err.contains("IM_PEAK"), "{}", warned.err);
-    let (outcome, bytes, _produced_at) = low_memory(None, &fixture("p3_im_peak.mzML"), &[]);
+    let (outcome, bytes, im_at) = low_memory(None, &fixture("p3_im_peak.mzML"), &[]);
     assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
     assert_eq!(outcome.err, "");
     assert!(!bytes.is_empty());
+    // Silent, and the four centroids the C++ Release build writes here - the
+    // automatic-mode divergence again, on a second input: the in-memory mode
+    // copies this spectrum's 33 samples.
+    assert_decoded_equal(&load(&im_at.out), &load(fixture("oracle_lowmem_im_peak.mzML")));
 
     // An input without spectra and chromatograms: the in-memory mode exits 11.
     let empty = run(&[
@@ -1105,14 +1118,23 @@ fn low_memory_runs_none_of_the_in_memory_input_checks() {
     // (`unsorted_records_are_sorted_on_load_and_picked`). The low-memory path
     // does not even contain the checks, and its reader sorts the same way, so
     // the two modes agree here rather than differing.
-    for (name, ini) in [
-        ("p3_unsorted_chromatogram.mzML", "PeakPickerHiRes_parameters.ini"),
-        ("p3_unsorted_spectrum.mzML", "PeakPickerHiRes_6.ini"),
+    for (name, ini, oracle) in [
+        (
+            "p3_unsorted_chromatogram.mzML",
+            "PeakPickerHiRes_parameters.ini",
+            "PeakPickerHiRes_2_output.mzML",
+        ),
+        (
+            "p3_unsorted_spectrum.mzML",
+            "PeakPickerHiRes_6.ini",
+            "oracle_lowmem_unsorted_spectrum.mzML",
+        ),
     ] {
-        let (outcome, bytes, _produced_at) = low_memory(Some(ini), &fixture(name), &[]);
+        let (outcome, bytes, unsorted_at) = low_memory(Some(ini), &fixture(name), &[]);
         assert_eq!(outcome.code, ExitCode::ExecutionOk, "{name}: {}", outcome.err);
         assert_eq!(outcome.err, "", "{name}");
         assert_eq!(bytes, in_memory_bytes(Some(ini), &fixture(name), &[]), "{name}");
+        assert_decoded_equal(&load(&unsorted_at.out), &load(fixture(oracle)));
     }
 }
 
