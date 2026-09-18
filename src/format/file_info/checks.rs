@@ -52,8 +52,14 @@
 //! rather than reproducing an undefined order. No loader on the peak-file branch
 //! produces one — each validates its coordinates — so the refusal is
 //! unreachable through [`FileInfo::run`](crate::format::file_info::report::FileInfo::run).
-//! Infinities are left alone: they order and compare exactly as the source's
-//! `<` and `==` do.
+//!
+//! Infinities are left alone, because the source's `<`, `>` and `==` are all
+//! defined on them. That costs one deliberate departure from the crate: the two
+//! sortedness tests use [`nondescending`] rather than
+//! [`MSExperiment::is_sorted`](crate::MSExperiment::is_sorted) and
+//! [`MSSpectrum::is_sorted`](crate::kernel::MSSpectrum::is_sorted), which report
+//! a container holding a non-finite coordinate as unsorted and would make the
+//! port write a line the C++ does not.
 //!
 //! [`ValidationInfo::index_checked`]: crate::format::file_info::model::ValidationInfo::index_checked
 //! [`ValidationInfo::index_valid`]: crate::format::file_info::model::ValidationInfo::index_valid
@@ -332,7 +338,8 @@ pub(crate) fn write_detailed_spectra(experiment: &MSExperiment, os: &mut ReportS
 ///
 /// 1. one line when the spectra are not in ascending retention time
 ///    (`MSExperiment::isSorted(false)`, which looks at the retention times
-///    alone);
+///    alone and compares neighbours with `>`, so an infinity is ordinary
+///    there);
 /// 2. per spectrum, in storage order: MS level zero, no peaks, and every
 ///    repetition of a data-array name. The three array kinds share one name set,
 ///    as the source's single `std::map` does, so a float array and an integer
@@ -362,7 +369,7 @@ pub(crate) fn write_corruption_check(
     os.text("\n-- Checking for corrupt data --\n\n");
 
     // `exp.isSorted(false)`: the retention times only, the source's "// TODO CHROM".
-    if !experiment.is_sorted(false) {
+    if !nondescending(experiment.spectra.iter().map(|spectrum| spectrum.rt)) {
         os.text("Error: Spectrum retention times are not sorted in ascending order\n");
     }
 
@@ -410,7 +417,7 @@ pub(crate) fn write_corruption_check(
 
     let mut mzs: Vec<f64> = Vec::new();
     for spectrum in &experiment.spectra {
-        if !spectrum.is_sorted() {
+        if !nondescending(spectrum.peaks.iter().map(|peak| peak.mz)) {
             os.text(
                 "Error: Peak m/z positions are not sorted in ascending order in spectrum (RT: ",
             )
@@ -445,6 +452,27 @@ pub(crate) fn write_corruption_check(
         }
     }
     Ok(())
+}
+
+/// `MSExperiment::isSorted(false)` and `MSSpectrum::isSorted()`, which both
+/// reduce to "no neighbour is greater than the next".
+///
+/// The crate's [`MSExperiment::is_sorted`](crate::MSExperiment::is_sorted) and
+/// [`MSSpectrum::is_sorted`](crate::kernel::MSSpectrum::is_sorted) also refuse a
+/// non-finite coordinate, and report a spectrum holding one as unsorted. The
+/// source compares with `>` alone, for which an infinity is ordinary, so this
+/// check uses the source's comparison: a NaN is already refused by
+/// [`preflight`], and an infinity must not produce a line the C++ does not
+/// write. Every other caller in the crate keeps the kernel predicates.
+fn nondescending(values: impl IntoIterator<Item = f64>) -> bool {
+    let mut previous = None;
+    for value in values {
+        if previous.is_some_and(|earlier: f64| earlier > value) {
+            return false;
+        }
+        previous = Some(value);
+    }
+    true
 }
 
 /// Refuse the NaN coordinates the source's two `std::sort` calls leave
@@ -560,6 +588,7 @@ mod tests {
             text.contains("Error: Duplicate peak m/z inf in spectrum (RT: 1)\n"),
             "{text}"
         );
+        assert!(!text.contains("not sorted"), "{text}");
     }
 
     /// A value stored three times gives two lines, as the source's pairwise

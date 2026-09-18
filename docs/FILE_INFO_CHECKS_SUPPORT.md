@@ -51,8 +51,8 @@ exports no public item: the three writers are `pub(crate)`, as
 | `MSSpectrum::getDriftTimeUnitAsString` | `DriftTimeUnit::name` | `NamesOfDriftTimeUnit` |
 | `Precursor::NamesOfActivationMethodShort` | `ActivationMethod::short_name` | |
 | `Precursor::NamesOfActivationMethod` | `ActivationMethod::name` | |
-| `MSExperiment::isSorted(false)` | `MSExperiment::is_sorted(false)` | retention times only |
-| `MSSpectrum::isSorted()` | `MSSpectrum::is_sorted()` | m/z only |
+| `MSExperiment::isSorted(false)` | `checks::nondescending` over the retention times | not the kernel predicate — see native difference 10 |
+| `MSSpectrum::isSorted()` | `checks::nondescending` over the m/z values | not the kernel predicate — see native difference 10 |
 | `ChromatogramSettings::getComment()` | not ported | no native field; always empty on this path — see below |
 | `MSChromatogram::getName()` | `MSChromatogram::name` | |
 | `MSChromatogram::getPrecursor().getMZ()` | `MSChromatogram::precursor.mz` | |
@@ -128,8 +128,9 @@ Each is documented at the item in `checks.rs` as well.
    source undefined. The port refuses with `Error::InvalidValue` before the
    header is written, so the report is untouched. Unreachable through
    `FileInfo::run`: every loader on this path validates its coordinates.
-   Infinities are *not* refused — `<` and `==` are defined on them and the port
-   orders with `f64::total_cmp`, which agrees with `<` for every non-NaN pair.
+   Infinities are *not* refused — `<`, `>` and `==` are defined on them and the
+   port orders with `f64::total_cmp`, which agrees with `<` for every non-NaN
+   pair.
 4. **The chromatogram comment is always empty.**
    `ChromatogramSettings::getComment()` has no counterpart in
    `MSChromatogram`, and nothing in the pinned source calls `setComment` on a
@@ -159,6 +160,18 @@ Each is documented at the item in `checks.rs` as well.
    (`:332`). The port's index byte and offset-count ceilings land in the
    failed-allocation bucket, which is where the source puts an index too large
    to hold.
+
+10. **The two sortedness tests do not use the kernel predicates.**
+    `MSExperiment::is_sorted` and `MSSpectrum::is_sorted` in this crate refuse a
+    non-finite coordinate and therefore report a container holding an infinity
+    as unsorted. The source compares neighbours with `>` alone, for which an
+    infinity is ordinary, so `checks::nondescending` applies the source's
+    comparison and the port writes no line the C++ would not. Every other caller
+    in the crate keeps the kernel predicates; NaN is refused first, so the two
+    agree everywhere else. Caught by the unit test
+    `an_infinite_mz_is_checked_like_any_other`, which asserted only the
+    duplicate line until it was strengthened to assert the absence of the
+    unsorted one.
 
 ## Checked boundaries and evidence
 
