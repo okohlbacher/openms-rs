@@ -119,7 +119,10 @@ fn cleanup_closes_the_open_list_and_the_document() {
     );
     assert!(text.contains("<index name=\"spectrum\">\n"), "{text}");
     assert!(text.contains("<offset idRef=\"scan=1\">"), "{text}");
-    assert!(text.ends_with("</fileChecksum>\n</indexedmzML>\n"), "{text}");
+    assert!(
+        text.ends_with("</fileChecksum>\n</indexedmzML>\n"),
+        "{text}"
+    );
 
     let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new())
         .with_count_policy(CountPolicy::SourceInconsistent);
@@ -133,7 +136,10 @@ fn cleanup_closes_the_open_list_and_the_document() {
     );
     assert!(text.contains("<index name=\"chromatogram\">\n"), "{text}");
     assert!(text.contains("<offset idRef=\"chrom=1\">"), "{text}");
-    assert!(text.ends_with("</fileChecksum>\n</indexedmzML>\n"), "{text}");
+    assert!(
+        text.ends_with("</fileChecksum>\n</indexedmzML>\n"),
+        "{text}"
+    );
 
     // Dropping without finishing leaves the document unclosed, deliberately.
     let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new());

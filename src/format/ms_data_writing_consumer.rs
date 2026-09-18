@@ -688,7 +688,6 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
         Ok(())
     }
 
-
     /// A one-record document carrying the experimental settings.
     ///
     /// Every record is rendered against the same settings, not only the first.

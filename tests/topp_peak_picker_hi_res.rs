@@ -888,7 +888,11 @@ fn topp_peak_picker_hi_res_3_matches_the_retained_low_memory_output() {
     // And, as upstream's comment wanted, identical to the in-memory run.
     assert_eq!(
         bytes,
-        in_memory_bytes(Some("PeakPickerHiRes_parameters.ini"), &workflow_input(1), &[])
+        in_memory_bytes(
+            Some("PeakPickerHiRes_parameters.ini"),
+            &workflow_input(1),
+            &[]
+        )
     );
 }
 
@@ -920,7 +924,11 @@ fn topp_peak_picker_hi_res_4_matches_the_in_memory_retained_output() {
     );
     assert_eq!(
         bytes,
-        in_memory_bytes(Some("PeakPickerHiRes_parameters.ini"), &workflow_input(2), &[])
+        in_memory_bytes(
+            Some("PeakPickerHiRes_parameters.ini"),
+            &workflow_input(2),
+            &[]
+        )
     );
 }
 
@@ -990,7 +998,11 @@ fn the_low_memory_output_is_indexed_and_its_offsets_land_on_the_records() {
     assert_eq!(entries.len(), 5, "{entries:?}");
     for (id, offset) in entries {
         let at = &document[offset..];
-        assert!(at.starts_with("<spectrum "), "{id} at {offset}: {:?}", &at[..40]);
+        assert!(
+            at.starts_with("<spectrum "),
+            "{id} at {offset}: {:?}",
+            &at[..40]
+        );
         assert!(at.contains(&format!("id=\"{id}\"")), "{id} at {offset}");
     }
 }
@@ -1095,7 +1107,10 @@ fn low_memory_runs_none_of_the_in_memory_input_checks() {
     // Silent, and the four centroids the C++ Release build writes here - the
     // automatic-mode divergence again, on a second input: the in-memory mode
     // copies this spectrum's 33 samples.
-    assert_decoded_equal(&load(&im_at.out), &load(fixture("oracle_lowmem_im_peak.mzML")));
+    assert_decoded_equal(
+        &load(&im_at.out),
+        &load(fixture("oracle_lowmem_im_peak.mzML")),
+    );
 
     // An input without spectra and chromatograms: the in-memory mode exits 11.
     let empty = run(&[
@@ -1131,9 +1146,18 @@ fn low_memory_runs_none_of_the_in_memory_input_checks() {
         ),
     ] {
         let (outcome, bytes, unsorted_at) = low_memory(Some(ini), &fixture(name), &[]);
-        assert_eq!(outcome.code, ExitCode::ExecutionOk, "{name}: {}", outcome.err);
+        assert_eq!(
+            outcome.code,
+            ExitCode::ExecutionOk,
+            "{name}: {}",
+            outcome.err
+        );
         assert_eq!(outcome.err, "", "{name}");
-        assert_eq!(bytes, in_memory_bytes(Some(ini), &fixture(name), &[]), "{name}");
+        assert_eq!(
+            bytes,
+            in_memory_bytes(Some(ini), &fixture(name), &[]),
+            "{name}"
+        );
         assert_decoded_equal(&load(&unsorted_at.out), &load(fixture(oracle)));
     }
 }
