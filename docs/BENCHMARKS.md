@@ -465,15 +465,31 @@ Two consequences, both for the decision and neither of them a measurement:
   `#[target_feature(enable = "fma")]` on the three ported replica functions with
   runtime dispatch would confine the change to them.
 
-### 4.5 The decision is open
+### 4.5 The decision: on by default since `port/fma-default`
 
-**Nothing in the build configuration was changed by this wave.** No
-`RUSTFLAGS`, no `[profile.release]` override and no `.cargo/config.toml` entry
-was added, on any branch or in CI; the `+fma` cells above were built out of tree
-by the harness. Whether release builds should adopt `-C target-feature=+fma`,
-use narrower per-function runtime dispatch, or accept the 21 % at one thread is
-**open with the user**, and is recorded as open in `docs/VALIDATION.md` and
-`docs/EARLY_TOPP_WORK_PACKAGES.md`.
+**The user decided on 2026-09-18 to enable the flag by default.**
+`.cargo/config.toml` now sets `-C target-feature=+fma` for
+`cfg(target_arch = "x86_64")`, with a startup check that refuses a processor
+without FMA instead of letting it die on `SIGILL`. `docs/FMA_BUILD_FLAG.md`
+records the scope, the opt-out and everything that was measured. Until that
+change nothing in the build configuration was set on any branch or in CI, and
+the `+fma` cells above were built out of tree by the harness.
+
+**For the harness this changes what "no `RUSTFLAGS`" means.**
+`build/build_rust_orig.sh` extracts a tarball of the repository, `unset`s
+`RUSTFLAGS` and runs `cargo build --release --locked --offline --bins` from the
+extracted checkout, so from that commit on it picks the flag up from
+`.cargo/config.toml` without being told. That the archive carries the file is
+checked here: `git archive HEAD | tar -t` lists `.cargo/config.toml`, and
+`.gitattributes` marks nothing under `.cargo/` `export-ignore`. The script
+itself lives on the cluster and was not read at this integration; the FMA lane
+reports that it warns about the `--offline` consequence below. Three
+consequences. **`--offline` will fail until the shared `~/.cargo` cache on the
+benchmark nodes holds `raw-cpuid 11.6.0`**, the one crate this change adds. A `rust-*` cell built at or after `port/fma-default` is an FMA build and is **not** comparable
+with the `rust-main` and `rust-ffap` cells of this section, which were baseline
+builds; the comparable cells are `rust-ffap-fma` and `rust-main-fma`. And a cell
+that wants a baseline build must now say `RUSTFLAGS="-C target-feature=-fma"`,
+where before it got one by saying nothing.
 
 ### 4.6 Which caveats of §5 apply
 

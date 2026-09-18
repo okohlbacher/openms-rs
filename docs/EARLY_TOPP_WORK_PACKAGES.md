@@ -43,7 +43,7 @@ them decided differently.**
 | D2 | Levenberg-Marquardt backend for the trace fitters | Crate behind package B3's gate, with Eigen `maxfev` emulated exactly; if the gate fails, the transcription stays for FEATUREFINDER | Crates-first policy; for analytic Jacobians the evaluation accounting already matches Eigen |
 | D3 | TOPPBase strictness and exit codes | Adopt the C++ behaviour for every tool, including the five existing ones | Fidelity. Strict INI and command-line validation. Phase-aware exit codes: initialisation 6, run-phase parse 3, empty input 4, other exceptions 8, bare invocation 6. One SpectraFilterWindowMower test and three missing-parameter assertions flip. |
 | D4 | Four existing tools omit the DataProcessing entry C++ adds | Add it in wave 2 and re-validate without regenerating expectations | Fidelity |
-| D5 | FAIMS in FeatureFinderCentroided | **Open until wave 5.** The preview refuses FAIMS input explicitly | C++ exits 8 on every FAIMS input, and its merge removes every feature. Reproducing that or shipping a corrected closure is a scientific choice. |
+| D5 | FAIMS in FeatureFinderCentroided | **Settled in wave 6 (2026-09-18): the corrected closure.** Package B11 replaced the refusal; the tool splits by compensation voltage, runs once per voltage, annotates `FAIMS_CV` and merges across voltages with `FaimsMergeFidelity::Corrected` | C++ exits 8 on every FAIMS input, and past that failure its merge removes every feature. Reproducing that or shipping a corrected closure was the scientific choice; the corrected one was taken, with the source merge kept and still tested beside it. `IMDataConverter` stays `partial` for the members D5 left out. |
 | D6 | Comparing XML outputs | Decoded content with FuzzyDiff's per-number rule and id exclusion, plus exact structure | [DIFFERENTIAL_VALIDATION](DIFFERENTIAL_VALIDATION.md); line-layout parity (package C7) only if reversed |
 | D7 | Oracle identity | Accept the product SDK with the labels above; correct the documents that say TOPP binaries do not run (that was `topp-build/bin`) | Built C++ is an accepted development-time oracle |
 | D8 | Source pins | Keep them | Refreshing is a separate checkpoint |
@@ -97,7 +97,7 @@ Letters mark lanes:
 | 4 | B10 FeatureFinderCentroided acceptance: FFC_1, seeds, asymmetric, debug, threads, LM budget | B7, C5, B3 |
 | 4 | A6 FileInfo `-i`, `-d`, `-c` | A5, A3, C1 |
 | 4 | P3 PeakPickerHiRes tool, parameter failures, `-write_ini` | P1, P2, C1, C3, CLI part 2 |
-| 5 | B11 FeatureFinderCentroided FAIMS closure | B10, B8, B9, C2, D5 |
+| 5 | B11 FeatureFinderCentroided FAIMS closure: the split, one run and seed filter per voltage, the `FAIMS_CV` annotation and the corrected cross-voltage merge | B10, B8, B9, C2, D5 |
 | 5 | P4 PeakPickerHiRes low-memory mode | P3 |
 | 5 | C6 end-to-end chain and eight-executable release bundle | A6, B10, P3 |
 | 6 | A7 FileInfo consensusXML, idXML/mzid and FASTA branches | A6 |
@@ -421,6 +421,7 @@ CLI-1 `f6bdd99` (fix round `9612872`), C1 and C2 under `../oracle/`.
 | P2-MZML-LENIENCY | Source-compatible dangling `softwareRef` and `defaultDataProcessingRef` (D10) | baseline | before P3; the integrator lands the FileHandler call site |
 | B8-IMSPLIT | `IMDataConverter::splitByFAIMSCV` only (D5) | A1, A3 | independent; before B11 |
 | B9-OVERLAP | FeatureOverlapFilter with its quadtree, source mode only (D5) | C2 | independent; before B11 |
+| B11-FAIMS | The FeatureFinderCentroided FAIMS closure; `FaimsMergeFidelity` in `FeatureOverlapFilter` | B8, B9, C5/B10 | closes D5 for this tool; the split and the filter are unchanged apart from the one added mode |
 
 ### Decisions in force
 
@@ -1526,7 +1527,8 @@ defensible. They are also recorded in [VALIDATION](VALIDATION.md).
   short-input divergences are gone (the port follows the Release build), and
   `write_debug` is ported byte for byte. What is left is the **tool** level:
   TOPP native differences 14 and 16 (see below).
-- **The `-C target-feature=+fma` build-flag question is OPEN WITH THE USER.**
+- **The `-C target-feature=+fma` build-flag question is SETTLED: on by default
+  since `port/fma-default` (2026-09-18).**
   Measured on dax: the completed `FeatureFinderAlgorithmPicked` costs 21 % at one
   thread on a default x86-64 baseline build, the flag removes it and more
   (0.715x, 1.055x the C++ Release build at one thread and 0.894x at 32) with
@@ -1536,7 +1538,10 @@ defensible. They are also recorded in [VALIDATION](VALIDATION.md).
   no `[profile.release]` override, no `.cargo/config.toml`, on any branch or in
   CI. The alternatives are the flag, narrower `#[target_feature]` dispatch on the
   three ported replica functions (not measured), or accepting the 21 %.
-  **User decision.**
+  The user chose the flag. `.cargo/config.toml` sets it for
+  `cfg(target_arch = "x86_64")` and a startup CPUID check refuses a processor
+  without FMA with exit 12 and the rebuild command; output is unchanged
+  ([FMA_BUILD_FLAG](FMA_BUILD_FLAG.md)).
 - **TOPP native difference 16.** The featureXML writer refuses the non-finite
   feature values the C++ build writes as `inf`, so the port's
   `FeatureFinderCentroided` exits 3 without an output file where the C++ exits 0.
@@ -1630,3 +1635,90 @@ defensible. They are also recorded in [VALIDATION](VALIDATION.md).
   main checkout instead. Likewise `../oracle/` resolves against the **main**
   repository root, not a worktree's. **No owner; documented so the next
   integrator does not lose a cycle to it.**
+
+## Wave 6 status
+
+Status on 2026-09-18. `main` is at `e1c3115`, pushed and green; this wave is
+collected on `integrate/wave6`, which merges `port/b11-faims` (`7921409`) and
+`port/fma-default` (`86b0337`). The two branches share **no file** — 13 files
+against 10, `comm -12` of their name-only diffs empty, re-checked at those two
+heads — so both merges were conflict-free, and the merged tree changes exactly
+23 files, which is 13 + 10. Everything integrator-owned was left to this pass.
+[VALIDATION](VALIDATION.md) records the lanes, their verdicts, the guard's
+evidence and its documented limits; [BENCHMARKS](BENCHMARKS.md) §4.5 records the
+build-flag decision now that it is taken.
+
+**B11 — the FeatureFinderCentroided FAIMS closure (`port/b11-faims`).** The
+refusal of decision D5 is gone: the tool splits by compensation voltage (B8),
+runs the algorithm once per voltage on that voltage's seeds, annotates each
+feature with `FAIMS_CV` and merges across voltages (B9). Three defects lie on
+that path and each is named at its item in
+[TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT](TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md),
+native difference 1: `CPP-278` cannot arise, because native ranges are computed
+on demand; `CPP-282` is answered by assigning unique ids before the merge;
+`CPP-283` by `FaimsMergeFidelity::Corrected`, the library option added beside
+the faithful one, in the `AbundanceOverride` pattern. The corrected path has no
+whole-tool C++ oracle — the C++ exits 8 on every FAIMS input — so each voltage
+group was written as its own single-voltage mzML and run through the C++ Release
+build, and the port's per-group features must equal that run (D6); the merge is
+pinned against the derivation in *What the merge is meant to do* and
+hand-derived numbers. 19 executed runs in `../oracle/b11-faims`, with a
+`manifest.json`. The tool is no longer `partial` for the FAIMS reason.
+
+One thing changed outside the FAIMS path: the tool's `OPENMS_LOG_WARN` lines now
+go to **stderr**, where the executed C++ writes them (`faims_partial_cv`: the
+skip warning and its `occurred 56 times` line are on the C++ stderr). This
+closes the C5/B10 minor "the wrapper writes the apex warning to stdout where the
+source writes it to stderr". No test asserted the old destination.
+
+**The FMA build flag (`port/fma-default`).** The wave-5 open question is taken:
+x86_64 builds set `-C target-feature=+fma` from the tracked `.cargo/config.toml`,
+and `cli::run` refuses a processor without FMA with exit 12 and the exact rebuild
+command rather than letting it die on `SIGILL`. No result moves;
+[FMA_BUILD_FLAG](FMA_BUILD_FLAG.md) §7 measures that and says what would
+invalidate it. `raw-cpuid =11.6.0` is the one new crate
+([THIRD_PARTY_CRATE_DECISIONS](THIRD_PARTY_CRATE_DECISIONS.md)).
+
+### What remains
+
+Everything listed under *Wave 5 status → What remains* that this wave did not
+touch still stands, in particular **B10-FFC-ACCEPT**, TOPP native differences 14
+and 16, and the signal-to-noise refusals. New or changed here:
+
+- **The cross-voltage merge has no C++ oracle and cannot get one from the pinned
+  build.** Every per-voltage group is pinned against an executed C++ Release run,
+  but the merge across voltages is pinned against a derivation and hand-derived
+  numbers, because the C++ tool exits 8 before reaching it (`CPP-278`). The
+  composite three-fix statement in `OpenMS_CPP_ISSUES.md` now says plainly that
+  **no patched C++ build was ever executed**. Closing this needs a patched build,
+  which is a decision about running modified C++, not a porting task. **Lead.**
+- **The `is_x86_feature_detected!` trap is now live for every lane.** With the
+  flag on by default, that macro and `cfg!(target_feature = …)` answer a question
+  about the *build*, not the processor, for `fma`, `avx`, `sse3`, `ssse3`,
+  `sse4.1` and `sse4.2` on `x86_64-unknown-linux-gnu`, and `-O` then deletes the
+  guard written around them with no diagnostic. It had already, silently, folded
+  `atan_is_reference()` in `glibc_libm.rs` to a constant `true`. Recorded as a
+  standing hazard in [VALIDATION](VALIDATION.md) and in the porting skill.
+  **Every lane owner.**
+- **Test binaries are not guarded.** They do not go through `cli::run`, so a test
+  binary on a processor without FMA dies on `SIGILL` with no message where a tool
+  binary would print the requirement and exit 12. Accepted and documented; it is
+  also the CI failure mode if a runner ever lacks FMA. **Documented, no owner.**
+- **Pre-AVX processors get best effort, measured rather than guaranteed.** A
+  separate baseline-built launcher is out of scope. **Lead.**
+- **The benchmark nodes' shared `~/.cargo` cache needs `raw-cpuid 11.6.0`**
+  before `build/build_rust_orig.sh` can keep building `--offline`. Being
+  populated by the lead. **Lead.**
+- **The `format` ↔ `system` module cycle forces a four-line duplicated CPUID
+  read** in `src/analysis/feature_finder_picked/glibc_libm.rs`, because `analysis`
+  may not name `crate::system` without closing a cycle that
+  `tools/check_module_cycles.py` refuses. When that cycle is unpicked the
+  duplication collapses into a single call to `cpu_features::cpu_provides_fma`.
+  **Workspace-split owner.**
+- **`tools/check_module_cycles.py` counts a module path written in a comment as a
+  dependency**, because it scans raw file text with
+  `re.findall(r"\bcrate::(\w+)")`. That is enough to fail the gate on
+  documentation alone, and it did, twice, in the FMA lane. The heuristic is cheap
+  and conservative, so this is a note, not a bug report; stripping `//` lines
+  before the scan would be a two-line change if it ever bites a docstring nobody
+  can reword. **Tooling owner.**

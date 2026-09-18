@@ -2,6 +2,47 @@
 
 ## Unreleased
 
+- **BREAKING (runtime, x86_64): a binary built from this checkout now needs an
+  FMA3-capable processor.** `.cargo/config.toml` sets `-C target-feature=+fma`
+  for `cfg(target_arch = "x86_64")`, which removes the 21 % one-thread cost the
+  port's bit-exact glibc `exp`, `log` and `powf` pay on a baseline x86-64
+  target: against the C++ Release build `FeatureFinderCentroided` goes from
+  1.475x to 1.055x at one thread and from 0.969x to 0.894x at 32
+  (`docs/BENCHMARKS.md` §4). **No output changes** -- the featureXML and the
+  `FileInfo` report of a build with the flag and one without are byte for byte
+  equal on the same input, and the whole test suite passes with it. The minimum
+  processor is Intel Haswell (2013) or AMD Piledriver (2012); rustc implies
+  `avx`, `sse3`, `ssse3`, `sse4.1` and `sse4.2` from `fma`, so the requirement
+  covers every tool binary, including the ones that do no fused arithmetic at
+  all. An x86_64 tool run on an older processor prints the requirement and the
+  exact rebuild command and exits 12 (`INTERNAL_ERROR`) instead of dying on
+  `SIGILL`: the check is the first statement of `cli::run` and reads CPUID
+  through the new `raw-cpuid` dependency, because
+  `std::arch::is_x86_feature_detected!` is a compile-time `true` for a feature
+  the build already enables and folds the whole guard away. Test binaries are
+  **not** guarded, because they do not reach `cli::run`. `aarch64` is untouched,
+  and so is a project that depends on this crate by path from its own checkout.
+  To build for an older processor:
+  `RUSTFLAGS="-C target-feature=-fma" cargo build --release --locked`. New:
+  `.cargo/config.toml`, `src/system/cpu_features.rs`, `tests/fma_build_flag.rs`,
+  `docs/FMA_BUILD_FLAG.md`. (`port/fma-default`)
+- `FeatureFinderCentroided` processes FAIMS input. The tool splits by
+  compensation voltage, runs the picked feature finder once per voltage on that
+  voltage's seeds, annotates every feature with its `FAIMS_CV` and merges
+  features of the same analyte across voltages under `-faims_merge_features`.
+  The C++ tool fails on every FAIMS input (`CPP-278`); past that failure its
+  merge erases every feature as soon as one merge fires (`CPP-282`), and with
+  that corrected it splits a cluster of three or more voltages into two features
+  that double-count one member (`CPP-283`). The port ships the corrected
+  behaviour and names each point, pinned per voltage group against the C++
+  Release build run on that group alone. This settles decision D5 for this tool;
+  `IMDataConverter` stays partial for the members D5 left out.
+  (`port/b11-faims`)
+- `FeatureOverlapFilter::merge_faims_features_with_fidelity` chooses between the
+  source's FAIMS merge and the corrected one (`FaimsMergeFidelity`). The
+  faithful entry points are unchanged.
+- The `FeatureFinderCentroided` warning lines go to standard error, where the
+  C++ writes them.
 - Integrated the wave-5 completion of `FeatureFinderAlgorithmPicked` and of both
   noise estimators (2026-09-17), recorded in `docs/VALIDATION.md` and measured in
   `docs/BENCHMARKS.md` §4. Three header promotions: `FEATUREFINDER/FeatureFinderAlgorithmPicked.h`,
