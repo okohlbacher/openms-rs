@@ -86,7 +86,7 @@
 //! algorithm's refusals where the source crashes (an empty best isotope
 //! pattern with `feature:min_isotope_fit` 0, SIGSEGV in the executed tool). The `std::length_error`
 //! of step 2.5, which is no OpenMS exception, reaches `TOPPBase`'s outer
-//! `std::exception` handler instead (`TOPPBase.cpp:519-522`): `Unable to
+//! `std::exception` handler instead (`TOPPBase.cpp:510-514`): `Unable to
 //! initialize or run FeatureFinderCentroided: vector::_M_default_append`, exit
 //! 12 (`INTERNAL_ERROR`), after the debug directory and the first log line of a
 //! `-algorithm:write_debug` run (executed: `../oracle/ffap-complete-fix2`,
@@ -834,7 +834,7 @@ fn run_group(
             if seeds::is_length_error(&error) {
                 // `std::length_error` is no `BaseException`: TOPPBase's outer
                 // `catch (const std::exception&)` reports it
-                // (TOPPBase.cpp:519-522), after the stack unwinding has
+                // (TOPPBase.cpp:510-514), after the stack unwinding has
                 // flushed and closed the debug log.
                 writeln!(
                     err,

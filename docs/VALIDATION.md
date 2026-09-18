@@ -339,9 +339,19 @@ compiled on `kim`.
   the `topp-sdk-validation/source` copy is byte-identical to the pin, and the
   `topp` working tree at `HEAD`, which differs from the pin elsewhere, carries
   the same six FAIMS anchors at `254`, `306`, `312`, `313`, `318` and `328`.
-  What is still unclaimed is the rest of both files: only the references this
-  wave cites were read, and reading them is a source check, not an executed
-  build.
+  Checking those references opened the CLI pin `c19e494` as well, so all 66
+  distinct `TOPPBase.cpp` citations in this repository (99 occurrences across 26
+  files) were swept against it. One is wrong, and it is **not** this wave's:
+  `TOPPBase.cpp:519-522`, which `main` already carries in three places, is blank
+  lines and the head of `toolName_()` at the pin. The outer
+  `catch (const std::exception&)` those three sentences mean — the one that
+  reports `Unable to initialize or run ...` and returns `INTERNAL_ERROR` — is
+  `:510-514`, and it is corrected here; the sibling citation `:505-508` for the
+  `BaseException` handler was already right. No other `TOPPBase.cpp` citation
+  mismatched.
+  What is still unclaimed is the rest of those files: only the references this
+  repository cites were read, and reading them is a source check, not an
+  executed build.
 
 ## Wave-5 completion of FeatureFinderAlgorithmPicked and the noise estimators (2026-09-17)
 
