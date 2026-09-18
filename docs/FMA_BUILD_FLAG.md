@@ -191,10 +191,14 @@ processor. Three places in the tree touch this today:
   the tree before this lane. It is a genuine question about the processor: it
   asks whether the host's glibc resolves `atan` to `__atan_fma`, which decides
   whether `special_values_match_the_executed_library` compares `atan` against the
-  fixture at all. This lane routes it through `cpu_features::cpu_provides_fma()`.
-  No assertion moved — a `+fma` binary cannot start on a processor without FMA,
-  so on any host that can run this code the two mechanisms give the same answer
-  — but the mechanism is no longer one a build flag can silence.
+  fixture at all. This lane has it read the FMA bit through `raw_cpuid` directly,
+  which is what `cpu_provides_fma` does. It cannot *call* `cpu_provides_fma`:
+  `analysis` may not name `crate::system`, because `system` already reaches
+  `analysis` through `format` and `tools/check_module_cycles.py` fails on an edge
+  that closes a cycle. No assertion moved — a `+fma` binary cannot start on a
+  processor without FMA, so on any host that can run this code the two mechanisms
+  give the same answer — but the mechanism is no longer one a build flag can
+  silence.
 * **`src/system/build_info.rs`, `active_simd_extensions()`** reads
   `cfg!(target_feature = …)` deliberately: it reports what the compiler was
   *allowed to emit*, which is a compile-time question and the right one there.
@@ -211,9 +215,10 @@ processor. Three places in the tree touch this today:
   would lose its runtime check silently.
 
 The rule for a future lane: **a question about the processor goes to
-`cpu_features::cpu_provides_fma()`, or to another detector that always executes
-`cpuid`. `is_x86_feature_detected!` and `cpufeatures` answer a question about the
-build, and on x86_64 this build has already answered it.**
+`cpu_features::cpu_provides_fma()` — or, from a module that may not name
+`crate::system` without closing a module cycle, to `raw_cpuid` directly, reading
+the same architectural bit. `is_x86_feature_detected!` and `cpufeatures` answer a
+question about the build, and on x86_64 this build has already answered it.**
 
 ## 7. The flag changes no result — and why it cannot
 

@@ -828,8 +828,17 @@ mod tests {
     /// the feature is already enabled at compile time — and since
     /// `.cargo/config.toml` builds x86_64 with `-C target-feature=+fma`, that
     /// is now every build of this crate, so the macro would fold to a constant
-    /// here (`docs/FMA_BUILD_FLAG.md` section 6). `cpu_provides_fma` always
-    /// executes `cpuid`, so the question stays the one that was asked.
+    /// here (`docs/FMA_BUILD_FLAG.md` section 6). It asks `raw_cpuid` instead,
+    /// which always executes `cpuid`, so the question stays the one that was
+    /// asked.
+    ///
+    /// **Why not `system::cpu_features::cpu_provides_fma`**, which is the
+    /// production copy of exactly this read: `analysis` may not name `crate::
+    /// system`. `system` already reaches `analysis` through `format`, so that
+    /// edge closes a module cycle and `tools/check_module_cycles.py` fails on
+    /// it. The two must stay the same architectural bit — leaf 1, `ECX` bit 12,
+    /// absent leaf 1 counting as present — and `cpu_features`' own
+    /// documentation is where that convention is written down.
     ///
     /// Nothing about what the test compares changes: a `+fma` binary cannot
     /// start on a processor without FMA, so the two mechanisms agree on every
@@ -838,7 +847,9 @@ mod tests {
     fn atan_is_reference() -> bool {
         #[cfg(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64"))]
         {
-            crate::system::cpu_features::cpu_provides_fma()
+            raw_cpuid::CpuId::new()
+                .get_feature_info()
+                .is_none_or(|info| info.has_fma())
         }
         #[cfg(not(all(target_os = "linux", target_env = "gnu", target_arch = "x86_64")))]
         {
