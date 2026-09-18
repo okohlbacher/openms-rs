@@ -221,6 +221,8 @@ and every branch of `-c`:
 **Tier 1, retained upstream definition.** `TOPP_FileInfo_11`
 (`topp/CMakeLists.txt:908-909`, `WILL_FAIL 1`) and `TOPP_FileInfo_19`
 (`:927-929`) are reproduced, the first including its exit code.
+`TOPP_FileInfo_12` (`:910-911`) and `TOPP_FileInfo_6` (`:896-898`) are not, for
+the reader reasons below.
 
 **Tier 4.** The two undefined places above, the aggregates the source never
 fills, the `-v` refusal that remains, and the infinity that is *not* refused.

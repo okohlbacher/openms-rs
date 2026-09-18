@@ -13,19 +13,26 @@
 //!   against the **Release** C++ FileInfo of
 //!   `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
 //!   ibminode06, twice and reproduced. 37 of them have their `-out` and
-//!   `-out_tsv` reports compared here byte for byte, with only the `File name`
-//!   lines normalised; the rest are exit codes and diagnostics;
-//! - tier 1, retained upstream outputs: TOPP_FileInfo_11, _12 and _19
-//!   (test-data `0cb15f2`, `topp/CMakeLists.txt:896-897`, `:908-911`, `:927-929`)
-//!   reproduced verbatim, including the `WILL_FAIL` exit codes;
+//!   `-out_tsv` reports compared here byte for byte and one (`i_truncated_index`)
+//!   its text, with only the three lines that embed the input path normalised —
+//!   `File name: `, `general: file name` and the `-i` failure line; the rest
+//!   carry exit codes and refusals;
+//! - tier 1, retained upstream definition: TOPP_FileInfo_11
+//!   (`topp/CMakeLists.txt:908-909`, test-data `0cb15f2`, `WILL_FAIL 1`) and
+//!   TOPP_FileInfo_19 (`:927-929`) reproduced, the first including its exit
+//!   code. TOPP_FileInfo_12 (`:910-911`) is not: its input's `charge array` is
+//!   stored as 64-bit float, which the strict mzML reader refuses, so only its
+//!   index is checked here;
 //! - tier 4, the refusal of the two places the source's behaviour is undefined
-//!   (an empty SRM chromatogram, a NaN coordinate in a `std::sort`) and the
-//!   result fields the source leaves at their defaults.
+//!   (an empty SRM chromatogram, a NaN coordinate in a `std::sort`), the
+//!   infinity that is *not* refused, and the result fields the source leaves at
+//!   their defaults.
 //!
-//! Four oracle cases run the original `FileInfo_9_input.mzML`, which the strict
+//! Four oracle cases load the original `FileInfo_9_input.mzML`, which the strict
 //! mzML reader refuses for three reasons outside this package (see
 //! `tests/file_info.rs`); `FileInfo_9_strict_reader.mzML`, the input A4 derived
-//! for them, carries those cases here instead.
+//! for them, carries those cases here instead. The `-i` cases on that same file
+//! need no substitute, because the check returns before the file is loaded.
 //!
 //! Every tool case runs in its own temporary directory, because the tests run in
 //! parallel.
