@@ -271,6 +271,44 @@
         "command": "PeakPickerHiRes -test -ini PeakPickerHiRes_6.ini -in p3_unsorted_spectrum.mzML -out <out> -processOption lowmemory",
         "shows": "the reader sorts on this path too, so the unsorted input picks to the workflow 6 output; the C++ bytes equal the retained PeakPickerHiRes_6_output.mzML."
       }
-    ]
-  }
+    ],
+    "fix_round_differential": {
+      "driver": "../oracle/p4-lowmemory/fixdiff_06.sh",
+      "log": "../oracle/p4-lowmemory/logs/fixdiff_06.log",
+      "shows": [
+        "trunc, garbage, badb64: C++ exit 3 in BOTH process options with an 'Unable to read file' message, a zero-byte low-memory output and no in-memory output. This port now answers the same; it previously answered exit 8 'Unexpected internal error' in the low-memory mode alone. Pinned by a_corrupt_input_exits_3_in_both_modes.",
+        "badcount: C++ low memory exit 0 writing <spectrumList count=\"9\"> over five records, C++ in memory exit 0 with count=\"5\". This is the executed evidence for 'the one place this port is stricter' - the port writes the same lying count over a closed document and then reports it. Pinned by a_low_memory_run_reports_a_lying_list_count_over_a_closed_document.",
+        "badlen, badrt, dupid: C++ exit 0 in both modes where this port exits 3 in both modes. A reader strictness difference identical in the two process options, not part of the low-memory specification.",
+        "am1 (-algorithm:ms_levels 2 with SignalToNoise:auto_mode 1): C++ writes all five records and dies of SIGSEGV (exit 139) leaving 404,915 bytes with no index, because a signal runs no destructor; this port exits 11 over a closed, indexed document holding its one written record. The source is therefore not comparable on the path a_failure_after_the_first_record_still_closes_the_document pins, which asserts the ~MSDataWritingConsumer/doCleanup_ contract instead.",
+        "the healthy low-memory run is unchanged by the fix: C++ sha256 91b0fdb0... equals the retained PeakPickerHiRes_output_lowMem.mzML and the Rust release binary writes 0037871e..., the bytes recorded before the fix."
+      ]
+    }
+  },
+  "derived_inputs_built_by_the_tests": [
+    {
+      "name": "trunc.mzML",
+      "rule": "the first 215,000 bytes of tests/data/peak_picking/PeakPickerHiRes_input.mzML",
+      "sha256": "665ad4e3635992a48cac1fa8650cbd734273cc7f3ef3610348c397bdec53f1c5",
+      "used_by": "a_corrupt_input_exits_3_in_both_modes"
+    },
+    {
+      "name": "garbage.mzML",
+      "rule": "the line 'this is not xml at all' repeated 100 times",
+      "sha256": "b0792e585ec2e49302e01055fc868b1064bf473155d6fba262c34dd608eb860d",
+      "used_by": "a_corrupt_input_exits_3_in_both_modes"
+    },
+    {
+      "name": "bad_base64.mzML",
+      "rule": "'!!!' inserted at the start of the third spectrum's first <binary> element of PeakPickerHiRes_input.mzML",
+      "sha256": "2323c13117373fe289193df65645321cb26d5769684e6db891377c9fc176e48e",
+      "used_by": "a_corrupt_input_exits_3_in_both_modes"
+    },
+    {
+      "name": "bad_count.mzML",
+      "rule": "the spectrumList count of PeakPickerHiRes_input.mzML rewritten from 5 to 9",
+      "sha256": "02bc401935d5469edff790a60da2fb5a2f5b1e5b8b7752e621169da8194200d9",
+      "used_by": "a_low_memory_run_reports_a_lying_list_count_over_a_closed_document"
+    }
+  ],
+  "derived_inputs_note": "These four are built inside the test from a retained input by the rule named, not committed as fixtures. The sha256 values are the bytes the C++ Release build was run on for the same cases on ibminode06 (../oracle/p4-lowmemory/fixdiff_06.sh derives them by the identical rules), so the two implementations are compared on the same bytes."
 }

@@ -170,7 +170,12 @@ constants, `CountPolicy`, `with_limits`, `with_write_options`,
 - **`finish()` instead of a destructor.** Dropping a consumer without calling it
   leaves the `run` and `mzML` elements unclosed. That is deliberate: a
   best-effort `Drop` would have to swallow the I/O failure on a file the caller
-  believes is complete.
+  believes is complete. The cost is that a caller which wants the source's
+  destructor semantics has to say so, on its failing paths as well as its
+  successful one — `PeakPickerHiRes -processOption lowmemory` calls `finish()`
+  on both and discards its result on the failing one, so that a run which ends
+  in an error still leaves the closed, indexed document `doCleanup_` would have
+  left (`docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`, *How a failure ends*).
 - **`NoopMSDataWritingConsumer` takes no path**, so asking for a consumer that
   does nothing cannot truncate an existing output — the source's does, through
   its base constructor.

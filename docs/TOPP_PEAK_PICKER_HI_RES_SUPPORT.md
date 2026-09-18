@@ -214,13 +214,86 @@ writes `MS1 spectrum` alone — in the C++ Release build exactly as here. A
 low-memory output therefore understates the file's own content by design, and
 that is reproduced, not repaired.
 
+### How a failure ends, and what it leaves behind
+
+`doLowMemAlgorithm` catches nothing (`PeakPickerHiRes.cpp:170-186`), so every
+failure of the mode is classified by `TOPPBase::main` on the exception type
+alone. A reader failure is therefore `Error: Unable to read file (…)` and
+`INPUT_FILE_CORRUPT`, exactly as in the in-memory mode, whose `loadExperiment`
+failures take the same arm (`TOPPBase.cpp:460-465`). This port reproduces that:
+`run_low_memory` lets a reader error out to the framework's own mapping of that
+catch chain, and keeps `Error: Unexpected internal error (…)` / `UNKNOWN_ERROR`
+for the three error kinds whose source counterparts — `InvalidValue`,
+`InvalidRange` and `MissingInformation` — derive straight from `BaseException`
+and take its arm in the source while this port's framework maps them to
+parameter codes. Executed on `ibminode06` against the C++ Release build over a
+truncated mzML, a non-XML input and an mzML whose third record carries base64
+of an impossible length: both implementations exit 3 in both modes, with
+`Unable to read file`, and both leave a zero-byte output behind in the
+low-memory mode and none in the in-memory mode
+(`../oracle/p4-lowmemory/logs/fixdiff_06.log`, cases `trunc`, `garbage` and
+`badb64`; pinned by `a_corrupt_input_exits_3_in_both_modes`).
+
+The document is closed on the failing path as well. The source's
+`~MSDataWritingConsumer` runs `doCleanup_` on every path
+(`MSDataWritingConsumer.cpp:37-40`), which closes the open list and writes the
+footer whenever writing started (`:151-173`), so a source run that throws after
+its first record still leaves a closed, indexed document. `finish` is this
+port's destructor — Rust cannot report an error from a drop — and
+`run_low_memory` calls it on the failing path too, discarding its own result so
+that the failure which ended the run is the one reported. The records already
+written stay where they are, under the `count` the first pass declared: a
+streaming writer cannot take bytes back. A failure before the first record
+leaves the created file empty, as `doCleanup_` writes nothing while
+`started_writing_` is false. Pinned by
+`a_failure_after_the_first_record_still_closes_the_document`, which reaches the
+case through `SignalToNoise:auto_mode 1` with `ms_levels 2`, so the MS1
+spectrum is copied and written before the first MS2 spectrum reaches the
+estimator. The source cannot be compared on that command line, because it does
+not fail there in any orderly way: the same run on `ibminode06` writes all five
+records and then dies of SIGSEGV (exit 139), leaving 404,915 bytes with no
+index and no footer, since a signal runs no destructor
+(`logs/fixdiff_06.log`, case `am1`; native difference 2). This port exits 11
+with its diagnosis over a closed, indexed document holding the one record it
+had written.
+
+The two first passes are not equally thorough, and it costs the mode nothing.
+The source's runs with `LD_RAWCOUNTS` and sets `skip_spectrum_`
+(`MzMLHandler.cpp:966-974`), stepping over every record's contents, so a record
+that is well-formed XML but wrong inside is seen only by the second pass, with
+earlier records already written; this port's counting pass reads those records,
+so it refuses before the writer is touched. On the malformed-base64 input above
+that difference is invisible — the C++ run reaches the fault in its second pass
+but still before its first record is handed over, so both write nothing.
+
+Where it **is** visible, the difference is the reader's and not the mode's,
+because it shows identically in both process options. Three inputs measured on
+`ibminode06` make that concrete: a third record whose `defaultArrayLength`
+declares 906 for a 905-value array, a non-numeric `scan start time`, and two
+records sharing a native id. The C++ build exits 0 on all three in **both**
+modes — warning once about the array length and saying nothing at all about the
+other two — while this port refuses all three with `Unable to read file` in
+**both** modes (`logs/fixdiff_06.log`, cases `badlen`, `badrt`, `dupid`). That
+is the mzML reader's strictness: [MZML_SUPPORT](MZML_SUPPORT.md) already states
+that duplicate records and incorrect array lengths are errors, and a CV value
+that cannot be converted is one too. It is the same in the in-memory mode, so
+it is not part of this mode's specification and no low-memory behaviour is
+derived from it.
+
 ### The one place this port is stricter
 
 The consumer's `CountPolicy::Checked` is kept: a document whose declared list
-counts and actual records disagree ends the run with an error after the output
-has been closed, where the source silently writes an mzML whose `count`
-attributes lie (its own class note says so). The file left behind is well-formed
-either way.
+counts and actual records disagree ends the run with
+`Error: Unexpected internal error (invalid value: mzML list counts announce …)`
+and `UNKNOWN_ERROR`, after the output has been closed. The source writes such a
+document silently. Executed on `ibminode06` on `PeakPickerHiRes_input.mzML`
+with `<spectrumList count="5"` rewritten to `count="9"`: the C++ low-memory run
+exits 0 and writes `<spectrumList count="9">` over its five records, and both
+in-memory runs are unaffected (`../oracle/p4-lowmemory/logs/fixdiff_06.log`,
+case `badcount`). The file this port leaves behind is the same complete,
+indexed document carrying the same lying count — the refusal is a diagnosis
+added to the source's output, not a change to it. Pinned by
+`a_low_memory_run_reports_a_lying_list_count_over_a_closed_document`.
 
 ## Native differences
 
@@ -418,6 +491,9 @@ measurement below is against the optimised C++ Release build. Hashes are in
 | the absent centroided refusal, `-force` inert | the same C++ output, and the in-memory refusal | exit 0 and 4 centroids where the in-memory mode exits 8 with the source message; the same bytes with and without `-force` |
 | the absent input checks | C++ Release outputs `oracle_lowmem_im_peak.mzML`, `oracle_lowmem_unsorted_spectrum.mzML`, and the empty-input run | no ion mobility warning, exit 0 and a zero-byte output for an input without records, and the workflow outputs for the unsorted inputs |
 | the index | the retained low-memory output, and this port's own | both are `indexedmzML`; every offset in this port's index lands on the `<spectrum` element whose `id` it names |
+| a corrupt input in either mode | the C++ Release build on a truncated, a non-XML and a malformed-base64 input, both process options (oracle `p4-lowmemory`, `logs/fixdiff_06.log`, `trunc`, `garbage`, `badb64`) | exit 3 and `Error: Unable to read file (…)` on both sides and in both modes; a zero-byte low-memory output and no in-memory output |
+| a `spectrumList count` that overstates its records | the C++ Release build on the same derived input (`badcount`): exit 0, `count="9"` written over five records | this port writes the same count over a closed, indexed, reloadable document and then exits 8 with the count-mismatch message; its in-memory run is unaffected |
+| a failure after the first record | the source's `~MSDataWritingConsumer`/`doCleanup_` contract; the C++ run on that command line dies of SIGSEGV and so cannot be compared (`am1`) | exit 11, and the output left behind is closed, indexed and reloadable, holding the one record written under the first pass's count |
 | `-threads` on the low-memory path | this port at 1, 8 and 32 on two inputs; both implementations at 1, 8 and 32 on the node (oracle `p4-lowmemory`, `threads`) | bit-identical bytes |
 | instrument scale, both modes | the 2.3 GB `UK222.mzML` through both implementations and both modes on `ibminode06` | peak RSS, and the byte-identical mzML body between the modes on each side (see *The low-memory mode*) |
 | `TOPP_INI_INVALIDVALUE`, `TOPP_CLI_INVALIDVALUE`, `_SECTION` (both), `TOPP_INI_INVALIDNAME`, `TOPP_CLI_INVALIDNAME` | `CMakeLists.txt:107-131` plus the C1 oracle | exit 6 and every diagnostic `ExpectToolFailure.cmake` requires |

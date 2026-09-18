@@ -272,12 +272,45 @@ impl MSDataWritingProcessor for LowMemoryPicker {
 /// the picker's errors from the hooks; and the consumer's own refusals -
 /// a duplicate native identifier, a record whose header references cannot be
 /// satisfied by the one header already written, and the count mismatch of
-/// point 3. Every one of them leaves the partially written output file in
-/// place, as the source does, because a streaming writer cannot take bytes
-/// back. `run_io` reports them all as
+/// point 3.
+///
+/// Whichever of them ends the run, the document is closed before the error is
+/// returned. The source's `~MSDataWritingConsumer` calls `doCleanup_` on every
+/// path (`MSDataWritingConsumer.cpp:37-40`), which closes the open list and
+/// writes the footer whenever writing started (`:151-173`), so a failed source
+/// run leaves a closed, indexed document holding the records it got to.
+/// [`MSDataWritingConsumer::finish`](crate::format::ms_data_writing_consumer::MSDataWritingConsumer::finish)
+/// is this port's destructor - Rust cannot report an error from a drop - so
+/// the failing path calls it too and discards its own result, which keeps the
+/// failure that caused it rather than the count mismatch that a half-written
+/// run raises by construction. The records already written stay where they
+/// are, under the `count` attributes pass one declared: a streaming writer
+/// cannot take bytes back. A failure before the first record leaves the file
+/// empty, because `doCleanup_` writes nothing while `started_writing_` is
+/// false.
+///
+/// `run_io` classifies the error as `TOPPBase::main` classifies the exceptions
+/// this path lets through uncaught - `doLowMemAlgorithm` catches nothing
+/// (`PeakPickerHiRes.cpp:170-186`). A reader failure is
+/// `Error: Unable to read file (<reason>)` with
+/// [`ExitCode::InputFileCorrupt`], as the source's `ParseError` arm
+/// (`TOPPBase.cpp:460-465`) and as in the in-memory mode, whose loader errors
+/// propagate the same way; [`Error::Unsupported`] is
+/// `INCOMPATIBLE_INPUT_DATA`. Only [`Error::InvalidValue`],
+/// [`Error::InvalidRange`] and [`Error::MissingInformation`] are reported as
 /// `Error: Unexpected internal error (<reason>)` with
-/// [`ExitCode::UnknownError`], except [`Error::Unsupported`], which propagates
-/// as `INCOMPATIBLE_INPUT_DATA` - the same split the in-memory mode uses.
+/// [`ExitCode::UnknownError`], because the source exceptions they stand for
+/// derive straight from `BaseException` and take that arm there, while this
+/// port's framework mapping reserves parameter codes for them.
+///
+/// One error has no source counterpart and no agreement between the two modes:
+/// the transform's own administrative ceiling
+/// ([`mzml::TransformOptions::max_bytes`] and `max_work`) is an
+/// [`Error::InvalidValue`], so it takes the `Unexpected internal error` arm
+/// here, where the in-memory mode's loader ceilings reach the framework's
+/// `InvalidValue` mapping and exit `ILLEGAL_PARAMETERS`. The source has no
+/// ceiling of either kind, so neither code is its answer, and nothing
+/// distinguishes this error from the picker's by kind alone.
 fn run_low_memory(
     ctx: &ToolContext,
     input: &str,
@@ -296,9 +329,16 @@ fn run_low_memory(
         read: PeakPickerHiRes::read_options(),
         ..mzml::TransformOptions::default()
     };
-    mzml::transform_with_options(input, &mut consumer, &options)?;
-    consumer.finish()?;
-    Ok(ExitCode::ExecutionOk)
+    match mzml::transform_with_options(input, &mut consumer, &options) {
+        Ok(_) => {
+            consumer.finish()?;
+            Ok(ExitCode::ExecutionOk)
+        }
+        Err(error) => {
+            let _ = consumer.finish();
+            Err(error)
+        }
+    }
 }
 
 /// The in-memory input checks of `main_` before picking
@@ -587,9 +627,14 @@ impl Tool for PeakPickerHiRes {
     /// [`Error::Io`] it raises reaches the same arm as a picker failure instead
     /// of propagating out of `run_io` as it did while the pool wrapped the whole
     /// body. No output file is written in either case. A low-memory run's
-    /// failures, which `run_low_memory` in this module lists, take that same
-    /// arm, except that the partially written output file stays where it is:
-    /// a streaming writer cannot take its bytes back. The exception is
+    /// failures, which `run_low_memory` in this module lists, are split
+    /// differently: only the three kinds standing for source exceptions that
+    /// derive straight from `BaseException` take that arm there, and a reader
+    /// failure propagates to the framework's `ParseError` mapping exactly as
+    /// this path's loader call does, so both modes answer a corrupt input with
+    /// `Error: Unable to read file (<reason>)` and `INPUT_FILE_CORRUPT`. What
+    /// the low-memory mode cannot do is take back the bytes it has already
+    /// streamed; it closes the document over them instead. The exception is
     /// [`Error::Unsupported`], which propagates (`INCOMPATIBLE_INPUT_DATA`):
     /// the picker returns it for `SignalToNoise:auto_mode` 1 when noise
     /// estimation runs on a record outside the narrow input domain where that
@@ -610,11 +655,24 @@ impl Tool for PeakPickerHiRes {
         if process_option == "lowmemory" {
             return match run_low_memory(ctx, input, output, picker) {
                 Ok(code) => Ok(code),
-                Err(error @ Error::Unsupported(_)) => Err(error),
-                Err(error) => {
+                // `doLowMemAlgorithm` catches nothing, so every failure of
+                // this path is classified by `TOPPBase::main` on the exception
+                // type alone, wherever it was raised. The three kinds below
+                // stand for source exceptions that derive straight from
+                // `BaseException` and therefore take its `UNKNOWN_ERROR` arm
+                // (`TOPPBase.cpp:495-499`) where `run_failure` would map them
+                // to a parameter code. Everything else - a reader failure
+                // above all - propagates to `run_failure`, whose arms are that
+                // same catch chain.
+                Err(
+                    error @ (Error::InvalidValue(_)
+                    | Error::InvalidRange(_)
+                    | Error::MissingInformation(_)),
+                ) => {
                     writeln!(err, "Error: Unexpected internal error ({error})")?;
                     Ok(ExitCode::UnknownError)
                 }
+                Err(error) => Err(error),
             };
         }
 

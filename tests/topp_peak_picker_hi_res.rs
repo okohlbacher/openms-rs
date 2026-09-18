@@ -1185,6 +1185,191 @@ fn the_low_memory_output_is_bit_identical_at_every_thread_count() {
     }
 }
 
+/// A file derived from a retained input by one stated rule, in a directory of
+/// its own that the returned guard removes.
+///
+/// The rules below are byte for byte the ones the C++ differential ran on
+/// (`../oracle/p4-lowmemory/fixdiff_06.sh`), so the two implementations are
+/// compared on the same bytes without a new fixture. The retained inputs are
+/// pure ASCII despite their `ISO-8859-1` declaration, which is why a text rule
+/// is a byte rule here.
+fn derived(name: &str, from: &Path, rule: impl FnOnce(&str) -> String) -> (PathBuf, TempDir) {
+    let temp = workdir();
+    let path = temp.path().join(name);
+    let source = std::fs::read(from).unwrap();
+    let source = String::from_utf8(source).expect("the retained inputs are ASCII");
+    std::fs::write(&path, rule(&source)).unwrap();
+    (path, temp)
+}
+
+/// A corrupt input is a corrupt input in **both** process options.
+///
+/// `doLowMemAlgorithm` catches nothing (`PeakPickerHiRes.cpp:170-186`), so a
+/// reader failure leaves `MzMLFile::transform` and reaches `TOPPBase::main`,
+/// whose `ParseError` arm writes `Error: Unable to read file (…)` and returns
+/// `INPUT_FILE_CORRUPT` (`TOPPBase.cpp:460-465`) — the same arm the in-memory
+/// mode's `loadExperiment` failures take. The exit code and the diagnostic are
+/// therefore the mode's, not the reader's caller's.
+///
+/// Executed against the C++ Release build on `ibminode06`
+/// (`../oracle/p4-lowmemory`, `logs/fixdiff_06.log`, cases `trunc`, `garbage`
+/// and `badb64`): on each input below the C++ tool exits 3 in both modes. The
+/// low-memory runs leave a zero-byte output behind — the consumer's constructor
+/// created the file before anything was read — and the in-memory runs leave
+/// none, on both sides.
+#[test]
+fn a_corrupt_input_exits_3_in_both_modes() {
+    for (name, rule) in [
+        // Truncated inside the third record: neither pass can finish the XML.
+        (
+            "trunc.mzML",
+            (|s: &str| s[..215_000].to_owned()) as fn(&str) -> String,
+        ),
+        // Not XML at all.
+        ("garbage.mzML", |_: &str| {
+            "this is not xml at all\n".repeat(100)
+        }),
+        // Well-formed XML whose third record carries base64 of a length no
+        // decoder accepts. The C++ first pass steps over record contents
+        // (`skip_spectrum_`, `MzMLHandler.cpp:966-974`), so the C++ low-memory
+        // run reaches this only in its second pass and still writes nothing:
+        // the refusal comes before the first record is handed over.
+        ("bad_base64.mzML", |s: &str| {
+            let record = s.find("<spectrum id=\"scan=12665\" index=\"2\"").unwrap();
+            let binary = s[record..].find("<binary>").unwrap() + record + "<binary>".len();
+            format!("{}!!!{}", &s[..binary], &s[binary..])
+        }),
+    ] {
+        let (input, _temp) = derived(name, &workflow_input(1), rule);
+        let (outcome, bytes, produced_at) = low_memory(None, &input, &[]);
+        assert_eq!(
+            outcome.code,
+            ExitCode::InputFileCorrupt,
+            "{name}: {}",
+            outcome.err
+        );
+        assert!(
+            outcome.err.starts_with("Error: Unable to read file ("),
+            "{name}: {}",
+            outcome.err
+        );
+        // The file the consumer's constructor created is still there and still
+        // empty: no record reached the writer, so `doCleanup_` wrote no footer.
+        assert!(produced_at.out.exists(), "{name}");
+        assert!(bytes.is_empty(), "{name}");
+
+        let temp = workdir();
+        let out = temp.path().join("in_memory.tmp.mzML");
+        let in_memory = run(&["-test", "-in", &text(&input), "-out", &text(&out)]);
+        assert_eq!(in_memory.code, ExitCode::InputFileCorrupt, "{name}");
+        assert!(
+            in_memory.err.starts_with("Error: Unable to read file ("),
+            "{name}: {}",
+            in_memory.err
+        );
+        assert!(!out.exists(), "{name}");
+    }
+}
+
+/// The one place this port is stricter than the source, pinned.
+///
+/// A `spectrumList count` that overstates the records that follow is written
+/// silently by the source: the header carries the first pass's count, nothing
+/// re-checks it, and its own class note says a wrong count "will lead to an
+/// inconsistent mzML". The consumer's `CountPolicy::Checked` default is kept
+/// here, so the run ends with an error — **after** the document has been closed
+/// and indexed, so the file left behind is complete and readable, carrying the
+/// same lying count the source writes.
+///
+/// Executed on `ibminode06` against the C++ Release build on this exact input
+/// (`../oracle/p4-lowmemory`, `logs/fixdiff_06.log`, case `badcount`): the C++
+/// low-memory run exits 0 and writes `<spectrumList count="9">` over five
+/// records. Both in-memory runs are unaffected.
+#[test]
+fn a_low_memory_run_reports_a_lying_list_count_over_a_closed_document() {
+    let (input, _temp) = derived("bad_count.mzML", &workflow_input(1), |s| {
+        s.replacen("<spectrumList count=\"5\"", "<spectrumList count=\"9\"", 1)
+    });
+    let (outcome, bytes, produced_at) = low_memory(None, &input, &[]);
+    assert_eq!(outcome.code, ExitCode::UnknownError, "{}", outcome.err);
+    assert_eq!(
+        outcome.err,
+        "Error: Unexpected internal error (invalid value: mzML list counts announce (9, 0) \
+         records but (5, 0) were written)\n"
+    );
+    // Closed, indexed, complete - and announcing the count the source announces.
+    let written = String::from_utf8(bytes).unwrap();
+    assert!(
+        written.contains("<spectrumList count=\"9\""),
+        "{written:.400}"
+    );
+    assert!(written.contains("</spectrumList>\n</run></mzML>\n"));
+    assert!(written.ends_with("</indexedmzML>\n"));
+    let reloaded = load(&produced_at.out);
+    assert_eq!(reloaded.spectra.len(), 5);
+
+    // The in-memory mode never sees the declared count as a promise.
+    let temp = workdir();
+    let out = temp.path().join("in_memory.tmp.mzML");
+    let in_memory = run(&["-test", "-in", &text(&input), "-out", &text(&out)]);
+    assert_eq!(in_memory.code, ExitCode::ExecutionOk, "{}", in_memory.err);
+    assert_eq!(load(&out).spectra.len(), 5);
+}
+
+/// A failure after the first record still leaves a closed document.
+///
+/// The source's `~MSDataWritingConsumer` calls `doCleanup_` on every path
+/// (`MSDataWritingConsumer.cpp:37-40`), which closes the open list and writes
+/// the footer whenever writing started (`:151-173`), so a source run that
+/// throws after the first record still leaves a closed, indexed document.
+/// `MSDataWritingConsumer::finish` is this port's destructor, and
+/// `run_low_memory` calls it on the failing path too.
+///
+/// `SignalToNoise:auto_mode 1` with `ms_levels 2` is the reachable case: the
+/// MS1 spectrum of workflow 1 is copied and written, and the first MS2 spectrum
+/// is the first record the picker touches, so the refusal of native difference
+/// 2 arrives with one record already on disc. The source cannot be compared
+/// here: the same command line on `ibminode06` writes all five records and then
+/// dies of SIGSEGV (exit 139), leaving 404,915 bytes with no index and no
+/// footer, because a signal runs no destructor (oracle `PPHR_auto_mode_1`, and
+/// `../oracle/p4-lowmemory/logs/fixdiff_06.log` case `am1`). The assertions
+/// below are therefore on the source's `doCleanup_` contract rather than on
+/// executed C++ bytes.
+#[test]
+fn a_failure_after_the_first_record_still_closes_the_document() {
+    let (outcome, bytes, produced_at) = low_memory(
+        None,
+        &workflow_input(1),
+        &[
+            "-algorithm:ms_levels",
+            "2",
+            "-algorithm:signal_to_noise",
+            "1",
+            "-algorithm:SignalToNoise:auto_mode",
+            "1",
+        ],
+    );
+    assert_eq!(
+        outcome.code,
+        ExitCode::IncompatibleInputData,
+        "{}",
+        outcome.err
+    );
+    assert!(outcome.err.contains("auto_mode 1"), "{}", outcome.err);
+    let written = String::from_utf8(bytes).unwrap();
+    assert!(
+        written.contains("</spectrumList>\n</run></mzML>\n"),
+        "truncated output"
+    );
+    assert!(written.ends_with("</indexedmzML>\n"), "no footer");
+    // One record written, under the count the first pass declared: a streaming
+    // writer cannot take back what it has already sent.
+    assert!(written.contains("<spectrumList count=\"5\""));
+    let reloaded = load(&produced_at.out);
+    assert_eq!(reloaded.spectra.len(), 1);
+    assert_eq!(reloaded.spectra[0].native_id, "scan=12663");
+}
+
 /// P3 oracle `empty`: an mzML without spectra and chromatograms (the C1 derived
 /// `empty.mzML`) exits 11 with the source warning on standard error and
 /// nothing on standard output, and writes nothing.
