@@ -22,6 +22,10 @@
 //! A failure maps to the exit code of the phase it occurs in, as the source's
 //! two catch blocks do. See `docs/TOPP_CLI_SUPPORT.md` for the supported source
 //! subset and the exit-code table.
+//!
+//! One phase has no source counterpart and precedes all of these: a check that
+//! this processor has the instructions this binary was built to use. See
+//! [`crate::system::cpu_features`] and `docs/FMA_BUILD_FLAG.md`.
 
 mod context;
 mod parameter;
@@ -1356,11 +1360,29 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
 /// standard error; so does every diagnostic. `out` receives what the source
 /// writes through its info log, such as the INI-version notice and a tool's
 /// report.
+///
+/// One phase precedes all of the source's: this build may require processor
+/// features the source's does not, and
+/// [`system::cpu_features::unsupported_cpu`](crate::system::cpu_features::unsupported_cpu)
+/// is asked before anything else happens. On a processor that cannot run this
+/// binary the message goes to `err` — through [`Write::write_all`], not the
+/// formatting machinery — and the status is [`ExitCode::InternalError`], which
+/// is a diagnosis rather than the `SIGILL` the first fused multiply-add would
+/// otherwise raise. Nothing before that point does floating-point arithmetic.
+/// On a build without the flag the whole phase is compiled out.
+///
+/// [`run`] asks the same question one step earlier still, before it reads the
+/// command line; this copy covers a caller that drives a tool in process.
 pub fn run_with<T: Tool>(
     arguments: &[String],
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> ExitCode {
+    if let Some(message) = crate::system::cpu_features::unsupported_cpu() {
+        let _ = err.write_all(message.as_bytes());
+        let _ = err.write_all(b"\n");
+        return ExitCode::InternalError;
+    }
     let spec = match tool_spec::<T>() {
         Ok(spec) => spec,
         Err(error) => return initialisation_failure::<T>(&error, err),
@@ -1378,7 +1400,44 @@ pub fn run_with<T: Tool>(
 
 /// Run a tool against the process arguments and standard streams, returning the
 /// status the executable should exit with.
+///
+/// This is what every ported tool executable calls, and the processor check
+/// [`run_with`] describes is its first statement — ahead of reading the command
+/// line, because on an x86_64 build with `-C target-feature=+fma` even that much
+/// is compiled with VEX encoding and would fault on a processor old enough to
+/// lack AVX. Everything after the check is in
+/// [`run_from_environment`](fn@run_from_environment), which is never inlined, so
+/// no instruction of it can be hoisted above the check. See
+/// `docs/FMA_BUILD_FLAG.md` for what that does and does not guarantee.
 pub fn run<T: Tool>() -> ExitCode {
+    if let Some(message) = crate::system::cpu_features::unsupported_cpu() {
+        return report_unsupported_cpu(message);
+    }
+    run_from_environment::<T>()
+}
+
+/// Write the processor refusal to standard error and give the exit status.
+///
+/// Kept as small and as plain as it can be: the message is a constant, it goes
+/// out through [`Write::write_all`] on a locked [`std::io::Stderr`] rather than
+/// through the formatting machinery, and nothing here allocates or computes.
+/// This code runs on a processor that cannot execute everything the build
+/// emitted, so the less of the build it uses, the better.
+#[cold]
+#[inline(never)]
+fn report_unsupported_cpu(message: &'static str) -> ExitCode {
+    let mut err = std::io::stderr().lock();
+    let _ = err.write_all(message.as_bytes());
+    let _ = err.write_all(b"\n");
+    ExitCode::InternalError
+}
+
+/// The body of [`run`]: the process arguments and the standard streams.
+///
+/// Separate and `#[inline(never)]` only so that [`run`]'s processor check comes
+/// first in the emitted code as well as in the source.
+#[inline(never)]
+fn run_from_environment<T: Tool>() -> ExitCode {
     let arguments: Vec<String> = std::env::args().collect();
     let mut out = std::io::stdout();
     let mut err = std::io::stderr();

@@ -1,0 +1,41 @@
+# Build configuration for this repository.
+#
+# Cargo reads this file from the working directory of the `cargo` invocation
+# upwards, not from a package's own directory, so it applies to builds run
+# inside this checkout and NOT to a project that depends on `openms` by path.
+#
+# ## Why x86_64 is built with FMA
+#
+# The port reproduces the reference build's glibc `exp`, `log` and `powf` bit
+# for bit, which means fusing multiply-adds exactly where glibc does. In Rust
+# that is `f64::mul_add`, which is a fused multiply-add by contract. On a
+# baseline x86-64 target the CPU has no such instruction, so every `mul_add`
+# becomes an out-of-line call that dispatches again through a CPUID-set
+# function pointer: 41 such calls in the hot math (9 in `exp`, 23 in `log`,
+# 9 in `powf`). Measured on dax, `FeatureFinderCentroided` costs 21 % at one
+# thread without this flag and 0.715x of that with it; against the C++ Release
+# build 1.475x becomes 1.055x at one thread and 0.894x at 32, and the output is
+# bitwise identical either way (docs/BENCHMARKS.md section 4).
+#
+# The scope is deliberately `cfg(target_arch = "x86_64")`:
+#
+# * aarch64 has fused multiply-add in its baseline and rejects this feature
+#   name outright, so it must not see the flag;
+# * 32-bit x86, wasm and everything else are left alone for the same reason.
+#
+# ## The cost, and how to opt out
+#
+# rustc implies `avx`, `sse3`, `ssse3`, `sse4.1` and `sse4.2` from `fma`, so an
+# x86_64 binary built here requires an FMA3-capable processor: Intel Haswell
+# (2013), AMD Piledriver (2012) or newer. A binary run on an older CPU refuses
+# to start with a message instead of dying on an illegal instruction; see
+# `src/system/cpu_features.rs` and docs/FMA_BUILD_FLAG.md.
+#
+# To build for a pre-FMA processor:
+#
+#     RUSTFLAGS="-C target-feature=-fma" cargo build --release --locked
+#
+# `RUSTFLAGS` replaces the flags below rather than adding to them, which is why
+# that single command is the whole opt-out. The results are unchanged.
+[target.'cfg(target_arch = "x86_64")']
+rustflags = ["-C", "target-feature=+fma"]
