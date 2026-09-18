@@ -152,8 +152,8 @@ not exposed to the ~3 % cross-session drift band. §3.7 reports it.
 | repetitions | 1 discarded warm-up + 5 measured rounds; cells under 10 s raised to 10; SpectraFilterWindowMower 3 |
 | temp | `TMPDIR` and `OPENMS_TMPDIR` under `/dev/shm`, per sub-run |
 | peak-RSS floor | `/bin/true` through the launcher recorded 1,024 KiB before and after the cases (limit 4,096); the naive `Popen`+`wait4` path recorded the harness's own high-water mark instead |
-| size | four sub-runs (`w6-profile`, `w6-centroid`, `w6-ffc-subset`, `w6-sfwm`), **52 cells, 281 measured repetitions**, 333 successful executions counting warm-ups and start-up baselines |
-| load | pre-cell gate value 0.0016–0.0125 per core against a flag limit of 0.25 (0.05 at threads = 1); foreign CPU during the measured repetitions 0.0012–0.0199 per core, median 0.0091. **0 repetitions load-flagged, 0 refused, 0 retried**; `majflt` 0 in every one |
+| size | four sub-runs (`w6-profile`, `w6-centroid`, `w6-ffc-subset`, `w6-sfwm`), **52 cells, 281 measured repetitions**, 333 successful timing executions counting warm-ups, and 783 counting the `-write_ini` and start-up-slice baselines too |
+| load | pre-cell gate value 0.0016–0.0125 per core against a flag limit of 0.25 (0.05 at threads = 1); foreign CPU during the measured repetitions 0.0012–0.0199 per core, median 0.0091. **0 of the 281 measured repetitions load-flagged, 0 refused, 0 retried**; `majflt` 0 in every one. Exactly one execution of the whole run carried a flag, and it enters no table here: a 2.2 ms `-write_ini` start-up baseline (DTAExtractor, `rust-release`, threads = 1, repetition 3) saw 0.0565 per core against the single-thread limit of 0.05 |
 | failures | **one**, on the C++ side: `FeatureFinderCentroided` at 32 threads died of `SIGSEGV` in one repetition (§3.9). Every Rust execution of both builds completed |
 | wall | 2026-09-18T19:40 to 2026-09-19T01:05 local, sequential, nothing else of this project's on the node |
 
@@ -162,36 +162,41 @@ not exposed to the ~3 % cross-session drift band. §3.7 reports it.
 Wall is the median of the measured repetitions with the interquartile range.
 Ratio is rust/cpp (**< 1 = Rust faster**) with a 10,000-resample percentile
 bootstrap 95 % CI of the ratio of medians. The wave-4 column is that run's
-ratio **recomputed from its own raw repetitions by the method used here**, so
-the two columns come from one computation rather than a transcription; it
-agrees with the published wave-4 table to three digits except FileInfo on the
-featureXML (1.482 here, 1.486 published). "moved" is the change in the ratio;
-the drift band is about 3 % (§5.2), so a smaller figure is **not** a result.
+ratio **recomputed from its own raw repetitions by the method used here** —
+the same four measured sub-runs, the same filter (`phase == "timing"`, no
+warm-up, `status == "ok"`) and the same median, with the pilot sub-runs of both
+runs excluded on both sides — so the two columns really do come from one
+computation rather than a transcription. Recomputed that way it reproduces the
+published wave-4 table to three digits on **all eighteen cells**, with no
+exception. "moved" is the change in the ratio, taken from the full-precision
+medians rather than from the three-digit columns, so recomputing it by hand
+from the printed ratios can differ in the last digit; the drift band is about
+3 % (§5.2), so a figure smaller than that is **not** a result.
 
 | tool | dataset | n (r,c) | rust wall med s [IQR] | cpp wall med s [IQR] | ratio rust/cpp | 95 % CI | wave-4 ratio | moved | rust RSS MiB | cpp RSS MiB | RSS ratio |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| DTAExtractor | Velos centroid 1.2 GB | 5,5 | 29.122 [29.119–29.129] | 26.345 [26.344–26.397] | 1.105 | [1.101, 1.113] | 1.100 | +0.5 % | 1691.0 | 1517.0 | 1.11 |
-| MzMLSplitter | Velos centroid 1.2 GB | 5,5 | 18.741 [18.713–18.766] | 14.483 [14.448–14.485] | 1.294 | [1.292, 1.301] | 1.275 | +1.5 % | 4064.0 | 1524.0 | 2.67 |
+| DTAExtractor | Velos centroid 1.2 GB | 5,5 | 29.122 [29.119–29.129] | 26.345 [26.344–26.397] | 1.105 | [1.101, 1.113] | 1.099 | +0.6 % | 1691.0 | 1517.0 | 1.11 |
+| MzMLSplitter | Velos centroid 1.2 GB | 5,5 | 18.741 [18.713–18.766] | 14.483 [14.448–14.485] | 1.294 | [1.292, 1.301] | 1.274 | +1.5 % | 4064.0 | 1524.0 | 2.67 |
 | BaselineFilter | QE profile 2.3 GB | 5,5 | 25.187 [25.152–25.211] | 15.961 [15.857–15.974] | 1.578 | [1.565, 1.599] | 1.579 | −0.1 % | 6600.0 | 3200.9 | 2.06 |
-| MapNormalizer | Velos centroid 1.2 GB | 5,5 | 16.752 [16.737–16.777] | 14.670 [14.659–14.690] | 1.142 | [1.138, 1.145] | 1.131 | +1.0 % | 1778.8 | 1518.0 | 1.17 |
+| MapNormalizer | Velos centroid 1.2 GB | 5,5 | 16.752 [16.737–16.777] | 14.670 [14.659–14.690] | 1.142 | [1.138, 1.145] | 1.130 | +1.0 % | 1778.8 | 1518.0 | 1.17 |
 | SpectraFilterWindowMower | Velos centroid 1.2 GB | 3,3 | 564.434 [547.575–575.153] | 699.092 [698.780–699.305] | **0.76–0.84** | [0.759, 0.839] | 0.730 | see §3.8 | 3345.8 | 1516.0 | 2.21 |
 | PeakPickerHiRes | QE profile 2.3 GB | 5,5 | 25.407 [25.339–25.412] | 25.275 [25.218–25.319] | 1.005 | [1.000, 1.011] | 1.010 | −0.5 % | 3371.0 | 3880.5 | 0.87 |
 | FileInfo | Velos centroid 1.2 GB | 5,5 | 12.716 [12.677–12.717] | 15.976 [15.970–15.982] | **0.796** | [0.793, 0.800] | 0.803 | −0.9 % | 2427.9 | 2008.0 | 1.21 |
-| FileInfo | featureXML 60 MB | 10,10 | 1.508 [1.503–1.520] | 1.006 [1.003–1.007] | 1.499 | [1.492, 1.514] | 1.482 | +1.1 % | 151.0 | 79.0 | 1.91 |
-| FeatureFinderCentroided | Velos 4,000-spectrum subset | 5,5 | 101.063 [100.948–101.223] | 89.974 [89.973–90.023] | **1.123** | [1.118, 1.126] | 1.247 | **−9.9 %** | 322.8 | 361.7 | 0.89 |
+| FileInfo | featureXML 60 MB | 10,10 | 1.508 [1.503–1.520] | 1.006 [1.003–1.007] | 1.499 | [1.492, 1.515] | 1.486 | +0.9 % | 151.0 | 79.0 | 1.91 |
+| FeatureFinderCentroided | Velos 4,000-spectrum subset | 5,5 | 101.063 [100.948–101.223] | 89.974 [89.973–90.023] | **1.123** | [1.118, 1.126] | 1.247 | **−10.0 %** | 322.8 | 361.7 | 0.89 |
 
 ### 3.3 Thirty-two threads
 
 | tool | dataset | n (r,c) | rust wall med s [IQR] | cpp wall med s [IQR] | ratio rust/cpp | 95 % CI | wave-4 ratio | moved | rust RSS MiB | cpp RSS MiB | RSS ratio |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | DTAExtractor | Velos centroid 1.2 GB | 5,5 | 29.303 [29.292–29.449] | 21.705 [21.633–21.725] | 1.350 | [1.342, 1.427] | 1.333 | +1.3 % | 1691.0 | 1523.7 | 1.11 |
-| MzMLSplitter | Velos centroid 1.2 GB | 5,5 | 18.848 [18.834–18.848] | 9.729 [9.723–9.761] | 1.937 | [1.925, 1.941] | 1.891 | +2.4 % | 4063.8 | 1531.0 | 2.65 |
+| MzMLSplitter | Velos centroid 1.2 GB | 5,5 | 18.848 [18.834–18.848] | 9.729 [9.723–9.761] | 1.937 | [1.925, 1.941] | 1.891 | +2.5 % | 4063.8 | 1531.0 | 2.65 |
 | BaselineFilter | QE profile 2.3 GB | 5,5 | 25.212 [25.073–25.247] | 14.406 [14.387–14.421] | 1.750 | [1.711, 1.762] | 1.752 | −0.1 % | 6600.0 | 3198.7 | 2.06 |
 | MapNormalizer | Velos centroid 1.2 GB | 5,5 | 16.618 [16.564–16.733] | 9.929 [9.916–9.961] | 1.674 | [1.663, 1.699] | 1.671 | +0.2 % | 1778.9 | 1526.6 | 1.17 |
 | SpectraFilterWindowMower | Velos centroid 1.2 GB | 3,3 | 537.475 [532.947–556.211] | 641.690 [641.058–641.737] | **0.82–0.90** | [0.823, 0.898] | 0.807 | see §3.8 | 3345.0 | 1532.7 | 2.18 |
-| PeakPickerHiRes | QE profile 2.3 GB | 5,5 | 12.734 [12.703–12.764] | 23.810 [23.790–23.871] | **0.535** | [0.532, 0.537] | 0.531 | +0.7 % | 3370.0 | 3895.0 | 0.87 |
+| PeakPickerHiRes | QE profile 2.3 GB | 5,5 | 12.734 [12.703–12.764] | 23.810 [23.790–23.871] | **0.535** | [0.532, 0.537] | 0.531 | +0.6 % | 3370.0 | 3895.0 | 0.87 |
 | FileInfo | Velos centroid 1.2 GB | 5,5 | 12.701 [12.685–12.797] | 11.336 [11.314–11.344] | 1.120 | [1.118, 1.133] | 1.132 | −1.0 % | 2427.9 | 2017.0 | 1.20 |
-| FileInfo | featureXML 60 MB | 10,10 | 1.507 [1.497–1.516] | 1.054 [1.044–1.057] | 1.430 | [1.416, 1.448] | 1.427 | +0.2 % | 151.0 | 84.0 | 1.80 |
+| FileInfo | featureXML 60 MB | 10,10 | 1.507 [1.497–1.516] | 1.054 [1.044–1.057] | 1.430 | [1.417, 1.447] | 1.427 | +0.2 % | 151.0 | 84.0 | 1.80 |
 | FeatureFinderCentroided | Velos 4,000-spectrum subset | 5,**4** | 23.276 [23.247–23.474] | 25.216 [25.214–25.230] | **0.923** | [0.921, 0.933] | 1.060 | **−12.9 %** | 317.8 | 378.8 | 0.84 |
 
 **The C++ FeatureFinderCentroided cell has n = 4, not 5.** One of its five
@@ -208,10 +213,11 @@ the window mower where the port is outright faster than the C++ Release build.
 the same commit is 1.560 and 1.003.
 
 **Six of the remaining seven are where wave 4 left them.** Their ratios moved by
-between −1.0 % and +2.4 % at one thread and −1.0 % and +2.4 % at 32 — all inside
+between −0.9 % and +1.5 % at one thread and −1.0 % and +2.5 % at 32 — all inside
 the ~3 % cross-session band, so **nothing else moved** is the honest reading, not
-"MzMLSplitter got 2.4 % worse". The largest single figure is MzMLSplitter at 32
-threads, +2.4 %, still inside the band.
+"MzMLSplitter got 2.5 % worse". The largest single figure is MzMLSplitter at 32
+threads, +2.5 %, still inside the band; at one thread the widest is the same tool
+at +1.5 %.
 
 **The seventh, SpectraFilterWindowMower, is not resolvable.** Its medians moved
 from 0.730 to 0.807 at one thread and 0.807 to 0.838 at 32, which looks like a
@@ -259,6 +265,8 @@ actually kept busy. A tool that asked for 32 threads and shows util ~1.0 did
 | BaselineFilter | QE 2.3 GB | cpp | 2 | 1.00 | 64 | 9.03 | 123.3 | 1.11× |
 | MapNormalizer | Velos 1.2 GB | rust `+fma` | 2 | 1.00 | 33 | 1.00 | 13.6 | 1.01× |
 | MapNormalizer | Velos 1.2 GB | cpp | 2 | 1.00 | 64 | 12.29 | 119.1 | 1.48× |
+| SpectraFilterWindowMower | Velos 1.2 GB | rust `+fma` | 2 | 1.00 | 33 | 1.00 | 534.4 | 1.05× |
+| SpectraFilterWindowMower | Velos 1.2 GB | cpp | 2 | 1.00 | 64 | **1.18** | 752.0 | 1.09× |
 | PeakPickerHiRes | QE 2.3 GB | rust `+fma` | 1 | 1.00 | 33 | 2.23 | 24.7 | 2.00× |
 | PeakPickerHiRes | QE 2.3 GB | cpp | 2 | 1.00 | 64 | 5.85 | 133.9 | 1.06× |
 | FileInfo | Velos 1.2 GB | rust `+fma` | 1 | 1.00 | 1 | 1.00 | 11.1 | 1.00× |
@@ -272,7 +280,8 @@ actually kept busy. A tool that asked for 32 threads and shows util ~1.0 did
 The `-fma` rows are shown only where they say something: on the six tools
 measured without fused multiply-adds they are indistinguishable from the `+fma` rows
 (util and peak threads identical, user time within 0.4 s), which is itself the
-point. On FeatureFinderCentroided they are not: the `-fma` build reaches util
+point. SpectraFilterWindowMower has no `-fma` row because it has no `-fma` arm
+at all (§5.3). On FeatureFinderCentroided they are not: the `-fma` build reaches util
 6.03 and scales 5.55× where the `+fma` build reaches 4.82 and 4.34×. **That is
 not better parallelism, it is more work to spread** — 152.2 s of thread CPU
 against 111.9 s for the same 4,076 features. A speed-up ratio flatters the
@@ -285,8 +294,10 @@ FeatureFinderCentroided 4.34×), five build the 33-thread pool and leave it idle
 all. The C++ side peaks at 64 threads in every 32-thread cell but FileInfo on
 the featureXML (33), and at 2 at `-threads 1`; as wave 4 established, that
 surplus is a library pool the harness itself sizes through `OMP_NUM_THREADS`
-and not a doubled compute budget — the per-cell utilisations run from 4.22 to
-12.47, not 64.
+and not a doubled compute budget — the per-cell utilisations run from **1.18 to
+12.47**, not 64. The floor of that range is the clearest case: C++
+SpectraFilterWindowMower holds 64 threads and spends 752.0 s of user CPU to turn
+699.1 s of wall into 641.7 s, a utilisation of 1.18 for a 1.09× gain.
 
 ### 3.6 Output equivalence, data and metadata judged separately
 
@@ -332,9 +343,12 @@ openms-rust:empty-processing-actions`, and a differing software term.
 computes a real SHA-1 and addresses the opening `<indexList` exactly. §5.1
 quantifies what that costs and labels the figure a projection.
 
-**Determinism and thread-invariance.** All 48 repetition checks (16 per
-implementation) and all 24 thread-invariance checks (8 per implementation) are
-`bitwise_equal` at the **data** level, on all three implementations. As in
+**Determinism and thread-invariance.** All **52** repetition checks (18
+`rust-release`, 18 `cpp-release`, 16 `rust-nofma`) and all **26**
+thread-invariance checks (9, 9 and 8) are `bitwise_equal` at the **data** level,
+on all three implementations. Nine cases, not eight, because FileInfo is
+measured on two datasets; `rust-nofma` has one case fewer because
+SpectraFilterWindowMower has no `-fma` arm (§5.3). As in
 wave 4 that is not the same as byte-identical files: counting distinct output
 sha256 per cell, DTAExtractor, MzMLSplitter and FileInfo produce one distinct
 sha256 across all repetitions, while the five tools that stamp a processing
@@ -435,20 +449,22 @@ The control is strong: the C++ binaries are byte-identical across the two waves
 (`binary_sha256` per tool), the inputs are byte-identical (`dataset_sha256` per
 dataset), the harness is byte-identical (`files_sha256` and even the
 working-tree status string), and the node is the same. Against that fixed
-control **the C++ medians reproduce between the two waves within ±0.95 % on all eighteen cells**,
+control **the C++ medians reproduce between the two waves within ±0.96 % on all
+eighteen cells** (widest: BaselineFilter at one thread, +0.96 %, and
+SpectraFilterWindowMower at one thread, −0.94 %),
 which is the run's own estimate of what a session boundary is worth and the
 reason the drift band of §5.2 is set where it is.
 
 | tool | w4 t1 | w6 t1 | w4 t32 | w6 t32 | what moved, and why |
 |---|---|---|---|---|---|
-| DTAExtractor | 1.100 | 1.105 | 1.333 | 1.350 | nothing. No commit in the window touches it; the flag gives it no `vfma*` |
-| MzMLSplitter | 1.275 | 1.294 | 1.891 | 1.937 | nothing established. +2.4 % at 32 threads is the run's largest move and is still inside the band |
+| DTAExtractor | 1.099 | 1.105 | 1.333 | 1.350 | nothing established. `src/cli/tools/dta_extractor.rs` is untouched in the window, but 32 source files changed in it and the shared mzML reader, the progress logger, `cli.rs`, `kernel.rs` and `metadata/value.rs` are all on this tool's path, so this row is *not* an unchanged-code control; the flag gives it no `vfma*` |
+| MzMLSplitter | 1.274 | 1.294 | 1.891 | 1.937 | nothing established. +2.5 % at 32 threads is the run's largest move and is still inside the band |
 | BaselineFilter | 1.579 | 1.578 | 1.752 | 1.750 | nothing, to three digits, at both thread counts |
-| MapNormalizer | 1.131 | 1.142 | 1.671 | 1.674 | nothing established |
+| MapNormalizer | 1.130 | 1.142 | 1.671 | 1.674 | nothing established |
 | SpectraFilterWindowMower | 0.730 | 0.76–0.84 | 0.807 | 0.82–0.90 | **not resolvable at n = 3.** The port is substantially faster in both waves — every Rust repetition beats every C++ repetition — but the wave-6 Rust repetitions are more scattered than wave 4's, and the bootstrap intervals overlap at 32 threads and touch at one. This tool has no `-fma` arm (§5.3), so nothing here separates the build flag from the scatter |
 | PeakPickerHiRes | 1.010 | 1.005 | 0.531 | 0.535 | nothing established, at either thread count, despite `peak_picking/noise.rs` and the new `noise_estimation.rs` changing in the window. Still level at one thread and still 1.87× faster at 32 |
 | FileInfo (1.2 GB mzML) | 0.803 | 0.796 | 1.132 | 1.120 | nothing established; the one-thread win is intact |
-| FileInfo (60 MB featureXML) | 1.482 | 1.499 | 1.427 | 1.430 | nothing established |
+| FileInfo (60 MB featureXML) | 1.486 | 1.499 | 1.427 | 1.430 | nothing established |
 | **FeatureFinderCentroided** | 1.247 | **1.123** | 1.060 | **0.923** | the only tool that moved. Two causes, and they are separable: the FeatureFinderAlgorithmPicked port was completed (`instance.rs`, `source_sort.rs`, `scoring.rs`, `seeds.rs`, and the bit-exact `glibc_libm.rs` / `glibc_powf.rs`), which makes the tool *slower* — the `-fma` build of this commit takes 140.3 s where wave 4's incomplete algorithm took 112.4 s — and the build flag, which more than pays that back (§3.7) |
 
 So the summary of the movement is short: **one of eight tools moved, and it is
@@ -460,8 +476,11 @@ did not buy it a `-fma` arm that might have narrowed the question.
 
 ### 3.9 The one execution that failed
 
-Across wave 4's 296 and wave 6's 372 timing records, exactly **one** execution
-failed, and it is on the C++ side:
+Across wave 4's **228** and wave 6's **334** timing executions — the four
+measured sub-runs of each run, with the `case_load` bookkeeping rows (36 and 52)
+excluded and the warm-ups included; 244 and 337 if the pilot sub-runs of both
+runs are counted as well — exactly **one** execution failed, and it is on the
+C++ side:
 
 | field | value |
 |---|---|
@@ -470,7 +489,7 @@ failed, and it is on the C++ side:
 | outcome | `SIGSEGV` — signal 11, launcher exit 139, `Command terminated by signal 11` |
 | when | 7.094 s wall, 12.818 s user, 64 live threads, peak RSS 340,628 KiB |
 | output | none — 0 files written |
-| load | foreign CPU 0.0092 per core, **not** load-flagged; the gate value for the cell was 0.0086–0.0125 |
+| load | foreign CPU 0.0092 per core, **not** load-flagged; the pre-cell gate value was 0.0098 per core, the same value every repetition of that cell ran under, including the four that succeeded |
 | parameters | the same INI sha256 `2869134aeb3f98ed…` as the four repetitions that succeeded |
 | last output | stdout `Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.`; stderr the known non-fatal `DateTime conversion error of "-infinity"` |
 
@@ -659,7 +678,7 @@ here; this section's own figures are dax's and stand on their own.
    within-session noise only. In §3.2 and §3.3 **every wave-4-to-wave-6 move
    except FeatureFinderCentroided's is inside this band**, and so are all
    fourteen non-FFC entries of the §3.7 flag table. None of them is a result.
-   The figures that *are* outside the band: FeatureFinderCentroided's −9.9 % and
+   The figures that *are* outside the band: FeatureFinderCentroided's −10.0 % and
    −12.9 % against wave 4, and its flag ratios 1.388 and 1.087.
 
 3. **The flag's effect on SpectraFilterWindowMower was not measured.** That plan
@@ -714,8 +733,9 @@ here; this section's own figures are dax's and stand on their own.
 
 8. **The two sides do not write the same number of bytes, and the reason is
    indentation, not metadata.** Rust/C++ output bytes, unchanged from wave 4:
-   BaselineFilter 0.9958, MapNormalizer 0.9906, MzMLSplitter 0.9906,
-   PeakPickerHiRes 0.9747; FeatureFinderCentroided 1.0072 the other way;
+   SpectraFilterWindowMower 0.9434 — the largest deficit of the set —
+   PeakPickerHiRes 0.9747, MapNormalizer 0.9906, MzMLSplitter 0.9906,
+   BaselineFilter 0.9958; FeatureFinderCentroided 1.0072 the other way;
    DTAExtractor and both FileInfo cases exactly 1.0000. Wave 4's byte census
    attributed 92–93 % of the deficit to XML indentation the port does not write:
    the Rust files contain **zero** tab characters, and C++ writes about 6.3 extra
@@ -755,11 +775,13 @@ here; this section's own figures are dax's and stand on their own.
 
 14. **The node was reserved for this lane but is not exclusive by
     construction.** ibminode05 was held for the benchmark for the whole run and
-    no other lane ran on it. Foreign CPU during the measured repetitions was
-    0.0077–0.0199 per core (median 0.0091) and the pre-cell gate value
-    0.0086–0.0125 per core, against a flag limit of 0.25 (0.05 at threads = 1).
-    **0 repetitions were load-flagged, 0 refused and 0 retried.** Exclusive use
-    would still need an admin or a Slurm reservation.
+    no other lane ran on it. Foreign CPU during the 281 measured repetitions was
+    0.0012–0.0199 per core (median 0.0091) and the pre-cell gate value
+    0.0016–0.0125 per core, against a flag limit of 0.25 (0.05 at threads = 1) —
+    the same figures §3.1 prints. **0 of those 281 repetitions were load-flagged,
+    0 refused and 0 retried.** One execution outside them was: a 2.2 ms
+    `-write_ini` start-up baseline at 0.0565 per core (§3.1). It feeds no table.
+    Exclusive use would still need an admin or a Slurm reservation.
 
 15. **Build configurations differ and can no longer be equalised at all.** C++
     is gcc 14.4 `-O3 -DNDEBUG -mssse3 -ffp-contract=off`, shared libraries, no
@@ -831,11 +853,17 @@ here; this section's own figures are dax's and stand on their own.
 # C++ reference: already built and staged; verify against its manifest
 sha256sum /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/BUILD_MANIFEST.json
 
-# the two Rust builds of this run, from one clean export of 36c26a0
+# the two Rust builds of this run, from one clean export of 36c26a0.
+# The build scripts are archived beside the run config, as wave 5's are (§4):
+# /ceph/ibmi/abi/oliver/bench/openms4/w6-2026-09-18/build/ holds build_rust_orig.sh,
+# build_rust_flags.sh, build_both.sh, flags.diff (the one added line:
+# `if [ -n "${BUILD_RUSTFLAGS:-}" ]; then export RUSTFLAGS="$BUILD_RUSTFLAGS"; fi`),
+# the two build logs and SHA256SUMS. /scratch is node-local and is not preserved.
+BLD=/ceph/ibmi/abi/oliver/bench/openms4/w6-2026-09-18/build
 B=/scratch/$USER/bench-w6
-$B/build_rust_orig.sh  openms-rs-36c26a0a…tar.gz $B/default   # no RUSTFLAGS -> +fma from .cargo/config.toml
+$BLD/build_rust_orig.sh  openms-rs-36c26a0a…tar.gz $B/default   # no RUSTFLAGS -> +fma from .cargo/config.toml
 BUILD_RUSTFLAGS="-C target-feature=-fma" \
-  $B/build_rust_flags.sh openms-rs-36c26a0a…tar.gz $B/nofma   # the documented opt-out
+  $BLD/build_rust_flags.sh openms-rs-36c26a0a…tar.gz $B/nofma   # the documented opt-out
 
 # the wave-6 matrix: the harness is unmodified, the config is this run's own
 H=/ceph/ibmi/abi/oliver/bench/openms4/harness
