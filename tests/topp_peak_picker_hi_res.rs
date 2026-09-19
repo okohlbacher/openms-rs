@@ -1756,3 +1756,278 @@ fn the_tool_load_options_admit_an_input_the_library_defaults_refuse() {
         }
     }
 }
+
+/// The path of a file as the command line spells it.
+fn text_of(path: &Path) -> String {
+    text(path)
+}
+
+/// The new fixtures this round adds, in `tests/data/peak_picking/`.
+fn close_fixture(name: &str) -> PathBuf {
+    data("peak_picking").join(name)
+}
+
+/// The record start tags of an mzML document, in order.
+fn start_tags(text: &str) -> Vec<String> {
+    text.match_indices("<spectrum id=")
+        .map(|(at, _)| {
+            let rest = &text[at..];
+            rest[..rest.find('>').expect("a start tag")].to_owned()
+        })
+        .collect()
+}
+
+/// Native difference 12, now reproduced rather than refused: the low-memory
+/// mode writes the source's dangling header references.
+///
+/// Only the first record reaches the header, so a later record's
+/// `dataProcessing` cannot be numbered against it. The source numbers the
+/// reference by the record's position in the stream instead
+/// (`MzMLHandler.cpp:5258-5272`, `dps_` holding one entry), and a
+/// `sourceFileRef` by the same number for **every** record after the first
+/// that carries one (`:5252-5255`, which never consults the header).
+/// [`ReferencePolicy::SourceDangling`] reproduces both, because refusing would
+/// stop the mode on any `FileMerger` output.
+///
+/// Executed against the C++ Release build on `ibminode06` on this exact
+/// fixture (`../oracle/p4-lowmemory`, `logs/closediff2_06.log` section A and
+/// `logs/closediff3_06.log` section A). The C++ low-memory output's five start
+/// tags carry, in order:
+///
+/// | record | `sourceFileRef` | `dataProcessingRef` |
+/// | --- | --- | --- |
+/// | 0 | `sf_sp_0`, declared | `dp_sp_0`, declared |
+/// | 1 | `sf_sp_1` | `dp_sp_1` |
+/// | 2 | `sf_sp_2` | `dp_sp_2` |
+/// | 3 | `sf_sp_3` | none |
+/// | 4 | `sf_sp_4` | none |
+///
+/// against a header declaring one record `sourceFile` and one
+/// `dataProcessing` — six dangling references. This port writes the same
+/// references for records 1 to 4, in the source's own spelling; the first
+/// record's point at the header entries this writer's own scheme names.
+#[test]
+fn the_low_memory_mode_writes_the_sources_dangling_references() {
+    let input = close_fixture("PeakPickerHiRes_refs_input.mzML");
+    let (outcome, bytes, produced_at) = low_memory(None, &input, &[]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    let text = String::from_utf8(bytes).unwrap();
+    let tags = start_tags(&text);
+    assert_eq!(tags.len(), 5, "{text:.800}");
+    // Record 0 establishes the header, so its references are the ones the
+    // header declares and it needs no `dataProcessingRef` of its own.
+    assert!(
+        tags[0].contains(" sourceFileRef=\"sf_00000000000000000003\""),
+        "{}",
+        tags[0]
+    );
+    assert!(!tags[0].contains("dataProcessingRef="), "{}", tags[0]);
+    for (index, processing) in [(1usize, true), (2, true), (3, false), (4, false)] {
+        let tag = &tags[index];
+        assert!(
+            tag.contains(&format!(" sourceFileRef=\"sf_sp_{index}\"")),
+            "{tag}"
+        );
+        assert_eq!(
+            tag.contains(&format!(" dataProcessingRef=\"dp_sp_{index}\"")),
+            processing,
+            "{tag}"
+        );
+        assert_eq!(tag.contains("dataProcessingRef="), processing, "{tag}");
+    }
+    // Every one of those identifiers dangles: nothing declares it.
+    for dangling in [
+        "sf_sp_1", "sf_sp_2", "sf_sp_3", "sf_sp_4", "dp_sp_1", "dp_sp_2",
+    ] {
+        assert!(
+            !text.contains(&format!(" id=\"{dangling}\"")),
+            "{dangling} is declared"
+        );
+    }
+    // The document is complete, and the records carry the peaks the in-memory
+    // mode produces — compared through the text, because this port's reader
+    // will not read the file back; see below.
+    assert!(text.ends_with("</indexedmzML>\n"));
+    let temp = workdir();
+    let out = temp.path().join("refs_in_memory.tmp.mzML");
+    let in_memory = run(&["-test", "-in", &text_of(&input), "-out", &text_of(&out)]);
+    assert_eq!(in_memory.code, ExitCode::ExecutionOk, "{}", in_memory.err);
+    let mem = std::fs::read_to_string(&out).unwrap();
+    assert_eq!(binaries(&text), binaries(&mem), "the encoded arrays differ");
+
+    // And this is what the dangling `sourceFileRef` costs: this port's reader
+    // refuses an unregistered one under either dangling-reference policy
+    // (`src/format/mzml_header/read.rs:113-121`), so it will not read back the
+    // file it has just written — exactly as it will not read the C++ output of
+    // the same run. The source's reader warns once per reference and carries
+    // on: measured on `ibminode06`, `FileInfo` on the C++ low-memory output of
+    // this fixture exits 0 saying `Error: unregistered source file reference
+    // sf_sp_1.` (`../oracle/p4-lowmemory`, `logs/closediff2_06.log` section B).
+    // Raised for the lead rather than decided here, because the reader's
+    // strictness is an earlier lane's documented choice.
+    let error = FileHandler::load_experiment_with_read_options(
+        &produced_at.out,
+        &[FileType::MzMl],
+        &PeakFileOptions::default(),
+        &PeakPickerHiRes::read_options(),
+    )
+    .unwrap_err();
+    assert!(
+        error.to_string().contains("unresolved sourceFileRef"),
+        "{error}"
+    );
+}
+
+/// Every `<binary>` payload of a document, in order: the encoded arrays, which
+/// are the same in both modes whatever the header around them says.
+fn binaries(text: &str) -> Vec<&str> {
+    text.match_indices("<binary>")
+        .map(|(at, _)| {
+            let rest = &text[at + "<binary>".len()..];
+            &rest[..rest.find("</binary>").expect("a closed array")]
+        })
+        .collect()
+}
+
+/// Where a low-memory run fails, it leaves the batches it had already sent.
+///
+/// Both implementations read in batches of `max_data_pool_size`, the 100 of
+/// `PeakFileOptions.h:248`, and neither counting pass reads record contents —
+/// the source's runs with `LD_RAWCOUNTS` and `skip_spectrum_`
+/// (`MzMLHandler.cpp:966-974`), this port's sets `state.raw` and a
+/// `skip_depth` at the list tag (`src/format/mzml_counts.rs:859`, `:465-467`).
+/// A record that is well-formed XML but wrong inside is therefore discovered
+/// only in the second pass, with `floor(index / 100) * 100` records already
+/// written, and what stays on disc is a closed, indexed, **reloadable**
+/// document announcing the count the first pass declared.
+///
+/// Executed on `ibminode06` on this fixture with four corruptions at index 4
+/// and at index 104 (`../oracle/p4-lowmemory`, `logs/closediff2_06.log`
+/// section D and `logs/closediff3_06.log` section C). Malformed base64 fails
+/// on both sides: the C++ low-memory run leaves 0 bytes at index 4 and 100
+/// records at index 104. The other three — a `defaultArrayLength` one too
+/// large, a non-numeric `scan start time`, two records sharing a native id —
+/// the C++ accepts, exiting 0 with all 110 records in **both** modes, while
+/// this port's reader refuses them; so at index 104 this port leaves a
+/// truncated 100-record document where the C++ writes the file in full.
+#[test]
+fn a_low_memory_failure_leaves_the_batches_already_written() {
+    let batches = close_fixture("PeakPickerHiRes_batches_input.mzML");
+    let corrupt = |index: usize, rule: &dyn Fn(&str) -> String| -> (PathBuf, TempDir) {
+        derived(&format!("batch_{index}.mzML"), &batches, |s| {
+            let at = s
+                .match_indices("<spectrum ")
+                .nth(index)
+                .expect("the record")
+                .0;
+            let end = at + s[at..].find("</spectrum>").expect("the record end");
+            format!("{}{}{}", &s[..at], rule(&s[at..end]), &s[end..])
+        })
+    };
+    let bad_base64 = |record: &str| {
+        let at = record.find("<binary>").expect("an array") + "<binary>".len();
+        format!("{}!!!{}", &record[..at], &record[at..])
+    };
+    let duplicate_id = |record: &str| {
+        let at = record.find("id=\"").expect("the id") + "id=\"".len();
+        let end = at + record[at..].find('"').expect("the id end");
+        format!("{}spectrum=0{}", &record[..at], &record[end..])
+    };
+
+    for (index, records) in [(4usize, 0usize), (104, 100)] {
+        for (kind, rule) in [
+            ("base64", &bad_base64 as &dyn Fn(&str) -> String),
+            ("duplicate id", &duplicate_id),
+        ] {
+            let (input, _temp) = corrupt(index, rule);
+            let (outcome, bytes, produced_at) = low_memory(None, &input, &[]);
+            let at = format!("{kind} at {index}");
+            assert_eq!(
+                outcome.code,
+                ExitCode::InputFileCorrupt,
+                "{at}: {}",
+                outcome.err
+            );
+            assert!(
+                outcome.err.starts_with("Error: Unable to read file ("),
+                "{at}: {}",
+                outcome.err
+            );
+            let text = String::from_utf8(bytes).unwrap();
+            assert_eq!(start_tags(&text).len(), records, "{at}");
+            if records == 0 {
+                // Nothing reached the writer, so there is no document at all.
+                assert!(text.is_empty(), "{at}");
+                continue;
+            }
+            // Closed, indexed, and announcing the whole input's count.
+            assert!(text.contains("<spectrumList count=\"110\""), "{at}");
+            assert!(text.contains("</spectrumList>\n</run></mzML>\n"), "{at}");
+            assert!(text.ends_with("</indexedmzML>\n"), "{at}");
+            assert_eq!(load(&produced_at.out).spectra.len(), records, "{at}");
+
+            // The in-memory mode leaves no file behind on the same input.
+            let temp = workdir();
+            let out = temp.path().join("batch_in_memory.tmp.mzML");
+            let in_memory = run(&["-test", "-in", &text_of(&input), "-out", &text_of(&out)]);
+            assert_eq!(in_memory.code, ExitCode::InputFileCorrupt, "{at}");
+            assert!(!out.exists(), "{at}");
+        }
+    }
+
+    // The healthy fixture crosses the same boundary with both modes agreeing.
+    let (outcome, bytes, _at) = low_memory(None, &batches, &[]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(
+        start_tags(&String::from_utf8(bytes.clone()).unwrap()).len(),
+        110
+    );
+    assert_eq!(bytes, in_memory_bytes(None, &batches, &[]));
+}
+
+/// An `-out` that names an existing directory: the one measured case where the
+/// C++ low-memory run reports success on a run that produced nothing.
+///
+/// `MSDataWritingConsumer`'s constructor never checks its `std::ofstream`
+/// (`MSDataWritingConsumer.cpp:33`), and `doLowMemAlgorithm` returns
+/// `EXECUTION_OK` regardless, so the C++ low-memory run exits 0 with an empty
+/// standard error having written nothing, where its in-memory run exits 5
+/// `Error: Unable to write file`. Measured on `ibminode06`
+/// (`../oracle/p4-lowmemory`, `logs/closediff1_06.log` section F,
+/// `logs/closediff3_06.log` section D), with the two controls that do **not**
+/// reach the consumer — a read-only `-out` and an `-out` under a missing
+/// directory — exiting 5 with `Cannot write output file given from parameter
+/// '-out'!` in both implementations and both modes.
+///
+/// This port reports the operating system's refusal instead, in both modes.
+#[test]
+fn an_out_that_names_a_directory_is_reported_in_both_modes() {
+    let temp = workdir();
+    let out = temp.path().join("isdir.mzML");
+    std::fs::create_dir(&out).unwrap();
+    let input = text_of(&workflow_input(6));
+    for extra in [&["-processOption", "lowmemory"][..], &[]] {
+        let mut args = vec!["-test", "-in", &input, "-out"];
+        let out_text = text_of(&out);
+        args.push(&out_text);
+        args.extend_from_slice(extra);
+        let outcome = run(&args);
+        assert_eq!(
+            outcome.code,
+            ExitCode::UnknownError,
+            "{:?}: {}",
+            extra,
+            outcome.err
+        );
+        assert!(
+            outcome
+                .err
+                .starts_with("Error: Unexpected internal error (")
+                && outcome.err.contains("directory"),
+            "{extra:?}: {}",
+            outcome.err
+        );
+        // Nothing was written into the directory either way.
+        assert_eq!(std::fs::read_dir(&out).unwrap().count(), 0, "{extra:?}");
+    }
+}
