@@ -310,6 +310,98 @@ fn topp_file_info_1() {
     assert_report(&read(&out), &library("expected/FileInfo_1_tsv.txt"));
 }
 
+/// TOPP_FileInfo_7 (`CMakeLists.txt:899-901`), reproduced by A7 with the
+/// registration's own `-s -m -p`. The retained output is the upstream
+/// `FileInfo_7_output.txt`, compared through FuzzyDiff as the registration
+/// does; `tests/file_info_a7.rs` compares the same report with the Release C++
+/// output byte for byte.
+#[cfg(feature = "consensusxml")]
+#[test]
+fn topp_file_info_7() {
+    let dir = Workdir::new();
+    let input = tool("inputs/FileInfo_7_input.consensusXML");
+    let out = registration(
+        &dir,
+        "FileInfo_7",
+        &["-test", "-in", &input, "-s", "-m", "-p", "-no_progress"],
+    );
+    fuzzy_diff_against_retained(&out, &library("retained/FileInfo_7_output.txt"));
+}
+
+/// TOPP_FileInfo_10 (`CMakeLists.txt:905-907`), reproduced by A7.
+#[cfg(feature = "idxml")]
+#[test]
+fn topp_file_info_10() {
+    let dir = Workdir::new();
+    let input = tool("inputs/FileInfo_10_input.idXML");
+    let out = registration(
+        &dir,
+        "FileInfo_10",
+        &["-test", "-in", &input, "-no_progress"],
+    );
+    fuzzy_diff_against_retained(&out, &library("retained/FileInfo_10_output.txt"));
+}
+
+/// TOPP_FileInfo_13 (`CMakeLists.txt:912`), reproduced by A7. The registration
+/// has no retained output and no comparison: it exists only to show that an
+/// empty consensusXML does not crash the tool, so the exit code is the whole
+/// assertion.
+#[cfg(feature = "consensusxml")]
+#[test]
+fn topp_file_info_13() {
+    let input = tool("inputs/FileInfo_13_input.consensusXML");
+    let outcome = run(&["-test", "-in", &input, "-no_progress"]);
+    assert_code(&outcome, ExitCode::ExecutionOk);
+    assert!(
+        outcome
+            .out
+            .contains("No consensus features found, map is empty!\n"),
+        "{}",
+        outcome.out
+    );
+}
+
+/// TOPP_FileInfo_17, _18 and _20 (`CMakeLists.txt:922-924`, `:925-927`,
+/// `:931-933`), reproduced by A7.
+#[test]
+fn topp_file_info_17_18_and_20() {
+    for name in ["FileInfo_17", "FileInfo_18", "FileInfo_20"] {
+        let dir = Workdir::new();
+        let input = tool(&format!("inputs/{name}_input.fasta"));
+        let out = registration(&dir, name, &["-test", "-in", &input, "-no_progress"]);
+        fuzzy_diff_against_retained(&out, &library(&format!("retained/{name}_output.txt")));
+    }
+}
+
+/// A7 implemented the consensusXML, idXML, mzIdentML and FASTA branches, so the
+/// six rows the not-ported table used to hold for them are gone. Pinned here is
+/// only that the tool no longer answers those inputs with a not-ported refusal,
+/// so the table cannot quietly regain them.
+#[test]
+fn the_branches_a7_implemented_are_no_longer_refused() {
+    for (input, flags) in [
+        (tool("inputs/FileInfo_7_input.consensusXML"), &["-s"][..]),
+        (tool("inputs/FileInfo_13_input.consensusXML"), &[][..]),
+        (tool("inputs/FileInfo_10_input.idXML"), &[][..]),
+        (tool("inputs/FileInfo_17_input.fasta"), &[][..]),
+        (tool("inputs/FileInfo_18_input.fasta"), &[][..]),
+        (tool("inputs/FileInfo_20_input.fasta"), &[][..]),
+    ] {
+        let dir = Workdir::new();
+        let out = dir.file("ported.tmp.txt");
+        let mut full: Vec<&str> = vec!["-test", "-no_progress", "-in", &input, "-out", &out];
+        full.extend(flags.iter().copied());
+        let outcome = run(&full);
+        assert_code(&outcome, ExitCode::ExecutionOk);
+        assert!(
+            !outcome.err.contains("is not ported"),
+            "{input}: {}",
+            outcome.err
+        );
+        assert!(read(&out).contains("-- General information --"), "{input}");
+    }
+}
+
 /// TOPP_FileInfo_2 (`CMakeLists.txt:884-886`).
 #[test]
 fn topp_file_info_2() {
@@ -972,24 +1064,6 @@ fn unported_branches_are_refused_explicitly() {
             "FileInfo peak-file branch for mzData input is not ported",
         ),
         (
-            "TOPP_FileInfo_7",
-            args(
-                &tool("inputs/FileInfo_7_input.consensusXML"),
-                &["-s", "-m", "-p"],
-            ),
-            "FileInfo consensusXML branch is not ported",
-        ),
-        (
-            "TOPP_FileInfo_10",
-            args(&tool("inputs/FileInfo_10_input.idXML"), &[]),
-            "FileInfo idXML branch is not ported",
-        ),
-        (
-            "TOPP_FileInfo_13",
-            args(&tool("inputs/FileInfo_13_input.consensusXML"), &[]),
-            "FileInfo consensusXML branch is not ported",
-        ),
-        (
             "TOPP_FileInfo_14",
             args(&tool("inputs/FileInfo_14_input.mzid"), &["-v"]),
             "FileInfo schema and semantic validation (-v) is not ported",
@@ -998,21 +1072,6 @@ fn unported_branches_are_refused_explicitly() {
             "TOPP_FileInfo_16",
             args(&tool("inputs/FileInfo_16_input.trafoXML"), &[]),
             "FileInfo trafoXML branch is not ported",
-        ),
-        (
-            "TOPP_FileInfo_17",
-            args(&tool("inputs/FileInfo_17_input.fasta"), &[]),
-            "FileInfo fasta branch is not ported",
-        ),
-        (
-            "TOPP_FileInfo_18",
-            args(&tool("inputs/FileInfo_18_input.fasta"), &[]),
-            "FileInfo fasta branch is not ported",
-        ),
-        (
-            "TOPP_FileInfo_20",
-            args(&tool("inputs/FileInfo_20_input.fasta"), &[]),
-            "FileInfo fasta branch is not ported",
         ),
         (
             "validation of a featureXML map",
@@ -1104,16 +1163,22 @@ fn the_executable_writes_the_report_to_standard_output() {
     let expected = tool("expected/stdout_dta.stdout.txt");
     assert_report_text(&stdout, &cpp_stdout_report(&expected), &expected);
 
+    // A7 ported the consensusXML branch, so the executable now writes its
+    // report to standard output like any other branch instead of refusing.
     let consensus = tool("inputs/FileInfo_7_input.consensusXML");
     let output = std::process::Command::new(&binary)
         .args(["-test", "-in", &consensus, "-no_progress"])
         .output()
         .unwrap();
-    assert_eq!(output.status.code(), Some(11), "{output:?}");
-    assert!(output.stdout.is_empty());
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("File type: consensusXML\n"), "{stdout}");
     assert!(
-        String::from_utf8(output.stderr)
-            .unwrap()
-            .contains("Error: unsupported: FileInfo consensusXML branch is not ported\n")
+        stdout.contains("Number of consensus features:\n"),
+        "{stdout}"
+    );
+    assert!(
+        stdout.contains("Assigned peptide identifications: 0\n"),
+        "{stdout}"
     );
 }

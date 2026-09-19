@@ -1,0 +1,16 @@
+general: file name	<FIX>/ConsensusID_1_input.idXML
+general: file type	idXML
+general: database	ECOlL
+general: database version	Ecoli_K12_TaxID_83333.proteomes.decoy.fasta
+general: taxonomy	All entries
+general: search engine	Mascot	(version: 2.2.04)
+general: search engine	OMSSA	(version: 2.1.4)
+general: search engine	XTandem	(version: )
+general: num. of runs	3
+general: num. of protein hits	3
+general: num. of non-redundant protein hits (only hits that differ in the accession)	2
+general: num. of matched spectra	3
+general: num. of peptide hits	17
+general: num. of modified top-hits	0
+general: num. of non-redundant peptide hits (only hits that differ in sequence and/or modifications): 	14
+meta: document ID	

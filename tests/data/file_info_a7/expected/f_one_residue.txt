@@ -1,0 +1,25 @@
+
+-- General information --
+
+File name: <FIX>/a7_fasta_one_residue.fasta
+File type: fasta
+
+Number of sequences   : 1
+Sequence length distribution:
+  Minimum : 1
+  25%ile  : 1
+  Median  : 1
+  75%ile  : 1
+  Maximum : 1
+Number of sequences with ambiguous nucleotides: 1 (100%)
+# duplicated headers  : 0 (0%)
+# duplicated sequences: 0 (0%) [by exact string matching]
+Total nucleotides     : 1
+
+Nucleotide counts:
+  M:	1
+Ambiguous nucleotides (N)      : 0 (0%)
+All IUPAC ambiguity codes      : 1 (100%)
+
+
+

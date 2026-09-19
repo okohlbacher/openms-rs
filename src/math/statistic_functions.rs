@@ -21,21 +21,43 @@
 //!
 //! # NaN
 //!
-//! A NaN has no place in a total order, and the source's `std::sort` has a
-//! strict-weak-ordering precondition that a NaN violates outright, so a C++
-//! call that sorts a NaN-bearing range has no defined answer at all. Every
-//! function here that **orders** values therefore refuses a NaN input rather
-//! than producing a plausible number from an arbitrary permutation:
+//! A NaN has no place in a total order. Under `operator<` it is incomparable
+//! with every value, itself included, and what that costs the source's
+//! `std::sort` depends on what else the range holds:
+//!
+//! - **two or more distinct numbers.** Transitivity of incomparability fails —
+//!   `1 ~ NaN` and `NaN ~ 3` while `1 < 3` — so the strict-weak-ordering
+//!   precondition is violated and the call is undefined.
+//! - **at most one distinct number.** Every element is incomparable with every
+//!   other, so `operator<` is still a strict weak ordering, but it makes them
+//!   all *equivalent*, and `std::sort` may return any permutation of
+//!   equivalent elements.
+//!
+//! Either way a C++ call that sorts a NaN-bearing range has no single answer to
+//! reproduce, unless the set of permutations it may return happens to have only
+//! one possible output. Every function here that **orders** values therefore
+//! refuses a NaN input rather than producing a plausible number from an
+//! arbitrary permutation:
 //!
 //! - [`median`](crate::math::statistic_functions::median),
 //!   [`quantile1st`](crate::math::statistic_functions::quantile1st),
 //!   [`quantile3rd`](crate::math::statistic_functions::quantile3rd),
 //!   [`mad`](crate::math::statistic_functions::mad),
-//!   [`compute_rank`](crate::math::statistic_functions::compute_rank),
+//!   [`compute_rank`](crate::math::statistic_functions::compute_rank) and
 //!   [`rank_correlation_coefficient`](crate::math::statistic_functions::rank_correlation_coefficient)
-//!   and [`SummaryStatistics::new`](crate::math::statistic_functions::SummaryStatistics::new)
 //!   sort or stage a buffer themselves and return
 //!   [`Error::InvalidValue`](crate::Error::InvalidValue).
+//! - [`SummaryStatistics::new`](crate::math::statistic_functions::SummaryStatistics::new)
+//!   also sorts, and refuses the same way — **except** for the two shapes whose
+//!   set of possible outputs has exactly one member: a sample of one value,
+//!   which has only one permutation at all, and a sample whose values are all
+//!   NaN, every permutation of which produces the same eight fields. Both are
+//!   reached from real input: `FileInfo`'s consensusXML `-s` blocks divide, and
+//!   a pair of sub-features of intensity `-0.0` and `0.0` under one centroid
+//!   contributes `(-inf) + (+inf) = NaN` to the per-consensus-feature sample. A
+//!   NaN next to a number is still refused; section 5.2 of
+//!   `docs/FILE_INFO_A7_SUPPORT.md` has the measurement and CPP-347 the source
+//!   defect.
 //! - [`median_sorted`](crate::math::statistic_functions::median_sorted),
 //!   [`quantile1st_sorted`](crate::math::statistic_functions::quantile1st_sorted),
 //!   [`quantile3rd_sorted`](crate::math::statistic_functions::quantile3rd_sorted)
@@ -374,14 +396,20 @@ pub fn quantile1st_sorted(values: &[f64]) -> Result<f64> {
     if !is_ascending(values) {
         return Err(Error::UnsortedData);
     }
+    Ok(quantile1st_of_sorted(values))
+}
+
+/// First quartile of an ascending, non-empty slice. Callers have already
+/// checked both, exactly as for [`median_of_sorted`].
+fn quantile1st_of_sorted(values: &[f64]) -> f64 {
     let size = values.len();
     if size < 3 {
-        return Ok(values[0]);
+        return values[0];
     }
     if size % 2 == 0 {
-        return Ok(median_of_sorted(&values[..size / 2 - 1]));
+        return median_of_sorted(&values[..size / 2 - 1]);
     }
-    Ok(median_of_sorted(&values[..size / 2]))
+    median_of_sorted(&values[..size / 2])
 }
 
 /// First quartile of a range, sorting it in place first.
@@ -398,14 +426,7 @@ pub fn quantile1st(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
     check_no_nan(values)?;
     sort_ascending(values);
-    let size = values.len();
-    if size < 3 {
-        return Ok(values[0]);
-    }
-    if size % 2 == 0 {
-        return Ok(median_of_sorted(&values[..size / 2 - 1]));
-    }
-    Ok(median_of_sorted(&values[..size / 2]))
+    Ok(quantile1st_of_sorted(values))
 }
 
 /// Third quartile of an already ascending range, by the median-of-halves rule.
@@ -426,11 +447,17 @@ pub fn quantile3rd_sorted(values: &[f64]) -> Result<f64> {
     if !is_ascending(values) {
         return Err(Error::UnsortedData);
     }
+    Ok(quantile3rd_of_sorted(values))
+}
+
+/// Third quartile of an ascending, non-empty slice. Callers have already
+/// checked both, exactly as for [`median_of_sorted`].
+fn quantile3rd_of_sorted(values: &[f64]) -> f64 {
     let size = values.len();
     if size < 3 {
-        return Ok(values[size - 1]);
+        return values[size - 1];
     }
-    Ok(median_of_sorted(&values[size / 2 + 1..]))
+    median_of_sorted(&values[size / 2 + 1..])
 }
 
 /// Third quartile of a range, sorting it in place first.
@@ -447,11 +474,7 @@ pub fn quantile3rd(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
     check_no_nan(values)?;
     sort_ascending(values);
-    let size = values.len();
-    if size < 3 {
-        return Ok(values[size - 1]);
-    }
-    Ok(median_of_sorted(&values[size / 2 + 1..]))
+    Ok(quantile3rd_of_sorted(values))
 }
 
 /// The `q`-quantile of an already ascending range, Hyndman-Fan type 7.
@@ -1156,12 +1179,18 @@ impl SummaryStatistics {
     /// the source substitutes the empty case's value rather than propagating
     /// NaN.
     ///
+    /// A sample holding a NaN is summarised only when the permutation
+    /// `std::sort` leaves behind cannot be observed: a sample of one value, and
+    /// a sample whose values are all NaN. See the module's NaN section and
+    /// section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md`.
+    ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the sample contains a NaN, which
-    /// the summary would otherwise sort to one end and report quartiles around;
-    /// see the module's NaN section. The refusal happens before the sort, so a
-    /// rejected call leaves the caller's sample in its original order.
+    /// Returns [`Error::InvalidValue`] when the sample holds a NaN next to a
+    /// number, which the summary would otherwise report quartiles around
+    /// without having ordered anything; see the module's NaN section. The
+    /// refusal happens before the sort, so a rejected call leaves the caller's
+    /// sample in its original order.
     ///
     /// Returns [`Error::InvalidRange`] only when an internal quantile refuses,
     /// which the sort makes unreachable for a non-empty, NaN-free sample; the
@@ -1171,7 +1200,9 @@ impl SummaryStatistics {
         if data.is_empty() {
             return Ok(Self::default());
         }
-        check_no_nan(data)?;
+        if !is_free_of_nan(data) {
+            return Self::of_nan_sample(data);
+        }
         sort_ascending(data);
         let mean_value = mean(data)?;
         let variance_value = if count > 1 {
@@ -1187,6 +1218,60 @@ impl SummaryStatistics {
             lowerq: quantile1st_sorted(data)?,
             median: median_sorted(data)?,
             upperq: quantile3rd_sorted(data)?,
+            max: data[count - 1],
+        })
+    }
+
+    /// Summarise a non-empty sample that holds at least one NaN.
+    ///
+    /// The module's NaN section refuses a NaN wherever ordering it would decide
+    /// the answer, because `std::sort` may then return any of several
+    /// permutations — or, with two or more distinct numbers present, has its
+    /// precondition violated outright. The test applied here is what that
+    /// leaves over: **is the set of possible outputs a singleton?** Two shapes
+    /// pass it, and for both the answer is a proof rather than an observation
+    /// that it happened not to matter:
+    ///
+    /// - **One value.** A one-element range has exactly one permutation, so
+    ///   there is nothing for `std::sort` to choose. Every positional field is
+    ///   that value.
+    /// - **Every value a NaN.** `std::sort` may return any permutation, but all
+    ///   of them produce the same eight fields, because every field is read
+    ///   from, or computed out of, values that are all NaN.
+    ///
+    /// Anything else — a NaN next to a number — is refused. The order
+    /// statistics the source prints there are positional reads of a range whose
+    /// elements `std::sort` was free to leave in any order, and the same
+    /// multiset in a different input order does give different lines:
+    /// `../oracle/a7-fileinfo` measures exactly that with `c_nan_then_finite_s`
+    /// and `c_finite_then_nan_s`.
+    ///
+    /// The sample is *not* sorted in this arm — there is nothing to order — so
+    /// a caller's slice comes back in its original order either way.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the sample holds a NaN next to a
+    /// number.
+    fn of_nan_sample(data: &[f64]) -> Result<Self> {
+        let count = data.len();
+        if count > 1 && !data.iter().all(|value| value.is_nan()) {
+            return Err(bad("statistics input must not contain NaN"));
+        }
+        let mean_value = mean(data)?;
+        let variance_value = if count > 1 {
+            variance_with_mean(data, mean_value)?
+        } else {
+            0.0
+        };
+        Ok(Self {
+            count,
+            mean: mean_value,
+            variance: variance_value,
+            min: data[0],
+            lowerq: quantile1st_of_sorted(data),
+            median: median_of_sorted(data),
+            upperq: quantile3rd_of_sorted(data),
             max: data[count - 1],
         })
     }

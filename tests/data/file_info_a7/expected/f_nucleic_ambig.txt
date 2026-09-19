@@ -1,0 +1,53 @@
+
+-- General information --
+
+File name: <FIX>/a7_fasta_nucleic_ambig.fasta
+File type: fasta
+
+Number of sequences   : 3
+Sequence length distribution:
+  Minimum : 32
+  25%ile  : 32
+  Median  : 32
+  75%ile  : 32
+  Maximum : 32
+Number of sequences with ambiguous nucleotides: 2 (66.67%)
+# duplicated headers  : 0 (0%)
+# duplicated sequences: 0 (0%) [by exact string matching]
+Total nucleotides     : 96
+
+Nucleotide counts:
+  A:	17
+  B:	1
+  C:	17
+  D:	1
+  G:	17
+  H:	1
+  K:	1
+  M:	1
+  N:	4
+  R:	1
+  S:	1
+  T:	17
+  V:	1
+  W:	1
+  Y:	1
+  a:	1
+  b:	1
+  c:	1
+  d:	1
+  g:	1
+  h:	1
+  k:	1
+  m:	1
+  r:	1
+  s:	1
+  t:	1
+  v:	1
+  w:	1
+  y:	1
+Ambiguous nucleotides (N)      : 4 (4.17%)
+All IUPAC ambiguity codes      : 24 (25%)
+
+
+

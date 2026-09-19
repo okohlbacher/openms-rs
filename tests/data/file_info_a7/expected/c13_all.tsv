@@ -1,0 +1,20 @@
+general: file name	<FIX>/FileInfo_13_input.consensusXML
+general: file type	consensusXML
+general: assigned peptide identifications	0
+general: unassigned peptide identifications	0
+data processing: 1: software name	IDMapper
+data processing: 1: software version	2.0.0
+data processing: 1: completion time	2015-07-19 18:46:46
+data processing: 1: actions	Identification mapping
+data processing: 2: software name	IDConflictResolver
+data processing: 2: software version	2.0.0
+data processing: 2: completion time	2015-07-19 18:46:56
+data processing: 2: actions	Data filtering
+data processing: 3: software name	FileFilter
+data processing: 3: software version	2.0.0
+data processing: 3: completion time	2015-07-19 18:47:04
+data processing: 3: actions	Data filtering
+data processing: 4: software name	FileFilter
+data processing: 4: software version	2.0.0
+data processing: 4: completion time	2015-07-20 15:11:08
+data processing: 4: actions	Data filtering

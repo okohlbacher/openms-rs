@@ -1,0 +1,35 @@
+
+-- General information --
+
+File name: <FIX>/a7_id_hits.idXML
+File type: idXML
+Search Engine(s):
+  A7Engine (version: 2.5)
+Number of:
+  runs:                       1
+  protein hits:               2
+  non-redundant protein hits: 2
+  (only hits that differ in the accession)
+
+  matched spectra:    3
+  peptide sequences:  6
+  PSMs / spectrum (ignoring unidentified spectra):    2
+  peptide hits:               7 (avg. length: 9)
+  modified top-hits:          0/3 (0.0%)
+  non-redundant peptide hits: 6
+  (only hits that differ in sequence and/or modifications)
+
+-- Meta information --
+
+Document ID: 
+
+
+-- Data processing information --
+
+No information about data processing available!
+
+
+-- Statistics --
+
+
+

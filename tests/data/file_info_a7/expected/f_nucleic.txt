@@ -1,0 +1,28 @@
+
+-- General information --
+
+File name: <FIX>/a7_fasta_nucleic.fasta
+File type: fasta
+
+Number of sequences   : 3
+Sequence length distribution:
+  Minimum : 30
+  25%ile  : 30
+  Median  : 45
+  75%ile  : 60
+  Maximum : 60
+Number of sequences with ambiguous nucleotides: 0 (0%)
+# duplicated headers  : 0 (0%)
+# duplicated sequences: 0 (0%) [by exact string matching]
+Total nucleotides     : 135
+
+Nucleotide counts:
+  A:	35
+  C:	34
+  G:	33
+  T:	33
+Ambiguous nucleotides (N)      : 0 (0%)
+All IUPAC ambiguity codes      : 0 (0%)
+
+
+

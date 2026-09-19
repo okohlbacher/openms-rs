@@ -1,0 +1,36 @@
+
+-- General information --
+
+File name: <FIX>/a7_fasta_lowercase.fasta
+File type: fasta
+
+Number of sequences   : 1
+Sequence length distribution:
+  Minimum : 16
+  25%ile  : 16
+  Median  : 16
+  75%ile  : 16
+  Maximum : 16
+Number of sequences with ambiguous amino acids: 0 (0%)
+# duplicated headers  : 0 (0%)
+# duplicated sequences: 0 (0%) [by exact string matching]
+Total amino acids     : 16
+
+Amino acid counts:
+  A:	1
+  K:	1
+  L:	2
+  M:	1
+  T:	2
+  V:	1
+  a:	1
+  k:	1
+  l:	2
+  m:	1
+  t:	2
+  v:	1
+Ambiguous amino acids (B/Z/X)  : 0 (0%)
+                      (B/Z/X/J): 0 (0%)
+
+
+

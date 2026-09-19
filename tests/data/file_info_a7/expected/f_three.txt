@@ -1,0 +1,44 @@
+
+-- General information --
+
+File name: <FIX>/a7_fasta_three.fasta
+File type: fasta
+
+Number of sequences   : 3
+Sequence length distribution:
+  Minimum : 20
+  25%ile  : 20
+  Median  : 40
+  75%ile  : 60
+  Maximum : 60
+Number of sequences with ambiguous amino acids: 0 (0%)
+# duplicated headers  : 0 (0%)
+# duplicated sequences: 0 (0%) [by exact string matching]
+Total amino acids     : 120
+
+Amino acid counts:
+  A:	9
+  C:	3
+  D:	6
+  E:	6
+  F:	6
+  G:	9
+  H:	6
+  I:	6
+  K:	9
+  L:	12
+  M:	6
+  N:	3
+  P:	3
+  Q:	3
+  R:	6
+  S:	6
+  T:	9
+  V:	6
+  W:	3
+  Y:	3
+Ambiguous amino acids (B/Z/X)  : 0 (0%)
+                      (B/Z/X/J): 0 (0%)
+
+
+

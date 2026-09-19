@@ -1,0 +1,165 @@
+
+-- General information --
+
+File name: <FIX>/ConsensusXMLFile_1.consensusXML
+File type: consensusXML
+
+Number of consensus features:
+  of size 2: 4	 (features: 8 )	 with at least one ID: 1	 (features: 2 )
+  of size 1: 2	 (features: 2 )	 with at least one ID: 1	 (features: 1 )
+  peptides (with different mod. and charge) observed in 2 maps: 1	 (features: 2 )
+  peptides (with different mod. and charge) observed in 1 maps: 1	 (features: 1 )
+  total consensus features:    6  with at least one ID: 2
+  total features:              10  with at least one ID:  3
+Ranges:
+  retention time: 1184.46 .. 1352.31 sec (2.8 min)
+  mass-to-charge: 777.10 .. 973.42
+  intensity: 17821500.00 .. 31253900.00
+
+File descriptions:
+  data/MapAlignmentFeatureMap1.xml:
+    identifier: 0
+    label:      label
+    size:       144
+  data/MapAlignmentFeatureMap2.xml:
+    identifier: 1
+    label:      
+    size:       0
+
+Assigned peptide identifications: 3
+Unassigned peptide identifications: 2
+
+-- Meta information --
+
+Document ID: lsid
+
+
+-- Data processing information --
+
+Processing 1:
+  software name:    Software1
+  software version: 0.91a
+  completion time:  2001-02-03 04:05:07
+  actions:          Deisotoping
+
+Processing 2:
+  software name:    Software2
+  software version: 0.92a
+  completion time:  2001-02-03 04:05:06
+  actions:          Smoothing, Baseline reduction
+
+
+-- Statistics --
+
+Intensities of consensus features:
+  num. of values: 6
+  mean:           2.40463e+07
+  minimum:        1.78215e+07
+  lower quartile: 1.87967e+07
+  median:         2.47563e+07
+  upper quartile: 2.85859e+07
+  maximum:        3.12539e+07
+  variance:       2.28265e+13
+
+Qualities of consensus features:
+  num. of values: 12
+  mean:           0.308333
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 1.1
+  maximum:        1.4
+  variance:       0.315379
+
+Retention time differences ("element - center", weight 1 per element):
+  num. of values: 10
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Absolute retention time differences ("|element - center|", weight 1 per element):
+  num. of values: 10
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Average absolute differences of retention time within consensus features ("|element - center|", weight 1 per consensus features):
+  num. of values: 6
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Mass-to-charge differences ("element - center", weight 1 per element):
+  num. of values: 10
+  mean:           1.13686837721616e-14
+  minimum:        -0.000999999999976353
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0.00100000000009004
+  variance:       2.22222222236976e-07
+
+Absolute differences of mass-to-charge ("|element - center|", weight 1 per element):
+  num. of values: 10
+  mean:           0.000200000000006639
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0.000499999999988177
+  maximum:        0.00100000000009004
+  variance:       1.77777777789581e-07
+
+Average absolute differences of mass-to-charge within consensus features ("|element - center|", weight 1 per consensus features):
+  num. of values: 6
+  mean:           0.000166666666672199
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0.000500000000016598
+  maximum:        0.0010000000000332
+  variance:       1.66666666677732e-07
+
+Intensity ratios ("element / center", weight 1 per element):
+  num. of values: 10
+  mean:           1
+  minimum:        1
+  lower quartile: 1
+  median:         1
+  upper quartile: 1
+  maximum:        1
+  variance:       0
+
+Relative intensity error ("max{(element / center), (center / element)}", weight 1 per element):
+  num. of values: 10
+  mean:           1
+  minimum:        1
+  lower quartile: 1
+  median:         1
+  upper quartile: 1
+  maximum:        1
+  variance:       0
+
+Average relative intensity error within consensus features ("max{(element / center), (center / element)}", weight 1 per consensus features):
+  num. of values: 6
+  mean:           1
+  minimum:        1
+  lower quartile: 1
+  median:         1
+  upper quartile: 1
+  maximum:        1
+  variance:       0
+
+
+

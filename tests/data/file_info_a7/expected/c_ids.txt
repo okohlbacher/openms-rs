@@ -1,0 +1,32 @@
+
+-- General information --
+
+File name: <FIX>/a7_cons_ids.consensusXML
+File type: consensusXML
+
+Number of consensus features:
+  of size 2: 3	 (features: 6 )	 with at least one ID: 2	 (features: 4 )
+  of size 1: 1	 (features: 1 )	 with at least one ID: 1	 (features: 1 )
+  peptides (with different mod. and charge) observed in 2 maps: 1	 (features: 4 )
+  peptides (with different mod. and charge) observed in 1 maps: 1	 (features: 1 )
+  total consensus features:    4  with at least one ID: 3
+  total features:              7  with at least one ID:  5
+Ranges:
+  retention time: 9.90 .. 40.10 sec (0.5 min)
+  mass-to-charge: 499.90 .. 800.10
+  intensity: 90.00 .. 410.00
+
+File descriptions:
+  a7_map_0.featureXML:
+    identifier: 0
+    label:      label_0
+    size:       7
+  a7_map_1.featureXML:
+    identifier: 1
+    label:      label_1
+    size:       7
+
+Assigned peptide identifications: 3
+Unassigned peptide identifications: 0
+
+

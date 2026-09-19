@@ -578,7 +578,20 @@ fn peak_info(experiment: &MSExperiment, summary: &Summary) -> Result<PeakInfo> {
     Ok(info)
 }
 
-fn write_meta(experiment: &MSExperiment, os: &mut ReportStream, os_tsv: &mut ReportStream) {
+/// The `-m` block of the peak-file arm (`FileInfo.cpp:2005-2081`), title
+/// included: the document id and date, the `Sample:` and `Instrument:` blocks,
+/// and the contact-person loop at `:2072-2080`.
+///
+/// `pub(crate)` because the identification branch reaches this same arm: `-m`
+/// has no mzIdentML case, so an mzIdentML input falls through to the peak-file
+/// one and is reported off an `MSExperiment` that was never loaded. Calling
+/// this with a default experiment is what the source does, and keeps the two
+/// renderings from drifting apart.
+pub(crate) fn write_meta(
+    experiment: &MSExperiment,
+    os: &mut ReportStream,
+    os_tsv: &mut ReportStream,
+) {
     let settings = &experiment.settings;
     let date = settings.date_time.get();
     write_meta_title(os);

@@ -1,0 +1,14 @@
+general: file name	<FIX>/IDFileConverter_10_output.idXML
+general: file type	idXML
+general: database	c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta
+general: database version	
+general: taxonomy	
+general: search engine	X! Tandem	(version: )
+general: num. of runs	2
+general: num. of protein hits	4
+general: num. of non-redundant protein hits (only hits that differ in the accession)	4
+general: num. of matched spectra	4
+general: num. of peptide hits	4
+general: num. of modified top-hits	4
+general: num. of non-redundant peptide hits (only hits that differ in sequence and/or modifications): 	4
+meta: document ID	

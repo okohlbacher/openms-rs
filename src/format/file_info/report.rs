@@ -22,12 +22,15 @@
 //! # Scope
 //!
 //! This port runs the peak-file branch for DTA, DTA2D and mzML
-//! ([`crate::format::file_info::peaks`]) and the featureXML branch
-//! ([`crate::format::file_info::features`]), each with `-m`, `-p` and `-s`, and
+//! ([`crate::format::file_info::peaks`]), the featureXML branch
+//! ([`crate::format::file_info::features`]), the consensusXML branch
+//! ([`crate::format::file_info::consensus`]), the idXML and mzIdentML branch
+//! ([`crate::format::file_info::identifications`]) and the FASTA branch
+//! ([`crate::format::file_info::fasta`]), each with `-m`, `-p` and `-s`, and
 //! the `-i`, `-d` and `-c` checks ([`crate::format::file_info::checks`]): `-i`
 //! before the content of any type, `-d` and `-c` inside the peak-file branch,
-//! which is where the source guards them, so a featureXML map ignores both as
-//! the source does.
+//! which is where the source guards them, so no other branch reaches either, as
+//! in the source.
 //!
 //! Every other part of the source report is refused with
 //! [`Error::Unsupported`] naming the branch, once the type is known and before
@@ -39,12 +42,18 @@
 //! in full even on a branch this port does not run. Refused are:
 //!
 //! - `-v` (schema and semantic validation), for every type;
-//! - the consensusXML, idXML, mzIdentML, FASTA, pepXML, mzTab, trafoXML and PQP
-//!   branches;
+//! - the pepXML, mzTab, trafoXML and PQP branches;
 //! - peak files of the types the source loads but no native loader serves on
 //!   this path: mzXML, mzData, MGF, MS2, sqMass, XMass (`fid`) and MSP, and
 //!   Thermo RAW and Bruker TDF, which the source loads when built with its
 //!   default `WITH_THERMO_RAW` and `WITH_OPENTIMS` options.
+//!
+//! Three inputs are refused where the source's behaviour is an out-of-bounds
+//! `std::vector` access, under lead decision D1: a consensus sub-feature whose
+//! map index is at or beyond the column-header count, an identification file
+//! with no protein identification run, and a peptide identification with no
+//! hit. `docs/FILE_INFO_A7_SUPPORT.md` records all three with the Release
+//! build's answer to each.
 //!
 //! `docs/FILE_INFO_SUPPORT.md` holds the API mapping, the preserved source
 //! conventions, the native differences and the evidence.
@@ -213,6 +222,15 @@ impl FileInfo {
             Branch::Peaks => {
                 super::peaks::report(path, in_type, options, &mut os, &mut os_tsv, &mut result)?
             }
+            Branch::Consensus => {
+                report_consensus(path, options, &mut os, &mut os_tsv, &mut result)?
+            }
+            Branch::Identifications => {
+                report_identifications(path, in_type, options, &mut os, &mut os_tsv, &mut result)?
+            }
+            Branch::Fasta => {
+                super::fasta::report(path, options, &mut os, &mut os_tsv, &mut result)?
+            }
             // check_branch_supported refused these; kept exhaustive for the compiler.
             Branch::Unported | Branch::UnportedPeaks => return Err(unported_branch(in_type)),
             Branch::ImagingPeaks | Branch::NotLoadable => {
@@ -302,6 +320,57 @@ fn report_features(
     ))
 }
 
+#[cfg(feature = "consensusxml")]
+fn report_consensus(
+    path: &Path,
+    options: &Options,
+    os: &mut ReportStream,
+    os_tsv: &mut ReportStream,
+    result: &mut FileInfoResult,
+) -> Result<()> {
+    super::consensus::report(path, options, os, os_tsv, result)
+}
+
+#[cfg(not(feature = "consensusxml"))]
+fn report_consensus(
+    _path: &Path,
+    _options: &Options,
+    _os: &mut ReportStream,
+    _os_tsv: &mut ReportStream,
+    _result: &mut FileInfoResult,
+) -> Result<()> {
+    Err(Error::Unsupported(
+        "FileInfo consensusXML branch: this build lacks the consensusxml feature".into(),
+    ))
+}
+
+#[cfg(feature = "idxml")]
+fn report_identifications(
+    path: &Path,
+    in_type: FileType,
+    options: &Options,
+    os: &mut ReportStream,
+    os_tsv: &mut ReportStream,
+    result: &mut FileInfoResult,
+) -> Result<()> {
+    super::identifications::report(path, in_type, options, os, os_tsv, result)
+}
+
+#[cfg(not(feature = "idxml"))]
+fn report_identifications(
+    _path: &Path,
+    in_type: FileType,
+    _options: &Options,
+    _os: &mut ReportStream,
+    _os_tsv: &mut ReportStream,
+    _result: &mut FileInfoResult,
+) -> Result<()> {
+    Err(Error::Unsupported(format!(
+        "FileInfo {} branch: this build lacks the idxml feature",
+        in_type.name()
+    )))
+}
+
 /// `FileHandler::getType` as the source `run` sees it.
 ///
 /// The source content check opens a directory as a stream that yields no line
@@ -320,6 +389,12 @@ fn detect_type(path: &Path) -> Result<FileType> {
 enum Branch {
     /// The featureXML branch.
     Features,
+    /// The consensusXML branch.
+    Consensus,
+    /// The idXML and mzIdentML branch.
+    Identifications,
+    /// The FASTA branch.
+    Fasta,
     /// The peak-file branch with a native loader: DTA, DTA2D and mzML.
     Peaks,
     /// A non-peak branch of the source that is not ported.
@@ -336,14 +411,12 @@ fn branch(in_type: FileType) -> Branch {
     match in_type {
         FileType::FeatureXml => Branch::Features,
         FileType::Dta | FileType::Dta2d | FileType::MzMl => Branch::Peaks,
-        FileType::ConsensusXml
-        | FileType::IdXml
-        | FileType::MzIdentMl
-        | FileType::Fasta
-        | FileType::PepXml
-        | FileType::MzTab
-        | FileType::TransformationXml
-        | FileType::Pqp => Branch::Unported,
+        FileType::ConsensusXml => Branch::Consensus,
+        FileType::IdXml | FileType::MzIdentMl => Branch::Identifications,
+        FileType::Fasta => Branch::Fasta,
+        FileType::PepXml | FileType::MzTab | FileType::TransformationXml | FileType::Pqp => {
+            Branch::Unported
+        }
         // Thermo RAW and Bruker TDF load in the source built with its default
         // WITH_THERMO_RAW and WITH_OPENTIMS options; without them the source
         // loader throws ParseError. Neither has a native reader here.
@@ -376,7 +449,11 @@ fn check_flags_supported(options: &Options) -> Result<()> {
 /// Refuse, before the file is loaded, every branch this port does not run.
 fn check_branch_supported(in_type: FileType) -> Result<()> {
     match branch(in_type) {
-        Branch::Features | Branch::Peaks => Ok(()),
+        Branch::Features
+        | Branch::Peaks
+        | Branch::Consensus
+        | Branch::Identifications
+        | Branch::Fasta => Ok(()),
         Branch::Unported | Branch::UnportedPeaks => Err(unported_branch(in_type)),
         // Refused by the source loader too; reported once the report runs.
         Branch::ImagingPeaks | Branch::NotLoadable => Ok(()),
@@ -672,7 +749,10 @@ pub(crate) fn write_processing(
 /// # Errors
 ///
 /// [`Error::InvalidValue`] above the ceiling, and as
-/// [`SummaryStatistics::new`] for a NaN.
+/// [`SummaryStatistics::new`] for a NaN next to a number — a NaN the
+/// consensusXML `-s` arithmetic computes into the sample itself is summarised
+/// rather than refused when the sample's order cannot decide the answer; see
+/// section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md`.
 pub(crate) fn summarize(values: &mut [f64]) -> Result<SummaryStatistics> {
     check_statistics_values(values.len())?;
     SummaryStatistics::new(values)

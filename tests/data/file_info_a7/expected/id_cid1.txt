@@ -1,0 +1,37 @@
+
+-- General information --
+
+File name: <FIX>/ConsensusID_1_input.idXML
+File type: idXML
+Search Engine(s):
+  Mascot (version: 2.2.04)
+  OMSSA (version: 2.1.4)
+  XTandem (version: )
+Number of:
+  runs:                       3
+  protein hits:               3
+  non-redundant protein hits: 2
+  (only hits that differ in the accession)
+
+  matched spectra:    3
+  peptide sequences:  14
+  PSMs / spectrum (ignoring unidentified spectra):    5
+  peptide hits:               17 (avg. length: 12)
+  modified top-hits:          0/3 (0.0%)
+  non-redundant peptide hits: 14
+  (only hits that differ in sequence and/or modifications)
+
+-- Meta information --
+
+Document ID: 
+
+
+-- Data processing information --
+
+No information about data processing available!
+
+
+-- Statistics --
+
+
+

@@ -68,7 +68,7 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 | helper `writeRangesMachineReadable_` (map and `MSExperiment`) | `report::write_ranges_tsv`, with the block's key prefix |
 | helper `writeSummaryStatisticsMachineReadable_` | `features::write_summary_tsv` (only the featureXML branch writes statistics TSV) |
 | helpers `extractRangeSet_`, `extractRanges_`, `extractRangesExp_` | `report::range_set`; `features::feature_map_ranges`; the range part of `peaks::Summary::compute` |
-| helper `struct IdData` | not ported (identification branch, A7) |
+| helper `struct IdData` | `identifications::IdData` (A7) |
 | native only | `FileInfo::MAX_STATISTICS_VALUES`; `peaks::PEAK_TYPE_ESTIMATION_MIN_PEAKS`; `FileInfoResult::warnings` |
 
 ## Preserved source conventions
@@ -161,8 +161,7 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 ## Native differences
 
 1. **Refusals instead of partial support.** `-v` for every type, the
-   consensusXML, idXML, mzIdentML, FASTA, pepXML,
-   mzTab, trafoXML and PQP branches, and peak files of mzXML, mzData, MGF, MS2,
+   pepXML, mzTab, trafoXML and PQP branches, and peak files of mzXML, mzData, MGF, MS2,
    sqMass, XMass, MSP, Thermo RAW and Bruker TDF return `Error::Unsupported`
    naming the branch. The source reports them; it loads RAW and TDF when built
    with its default `WITH_THERMO_RAW` and `WITH_OPENTIMS` options (the
@@ -191,13 +190,35 @@ Every public member of `FileInfo.h`, and the file-local helpers of
    strict default reader options; `Options` has no field for the
    source-compatibility load options of D10 yet (see *Deferrals*).
 6. **Non-finite and signed-zero values.** The readers refuse NaN and infinite
-   coordinates and intensities, `SummaryStatistics` refuses NaN, and a FAIMS
-   spectrum with a NaN voltage is refused; the source would print `nan` or break
-   its set order. `SummaryStatistics` sorts with `f64::total_cmp`, so `-0.0`
-   sorts before `0.0`; `std::sort` leaves equal elements in an unspecified
-   order, so a sample holding both zeros can print `-0` where the source prints
-   `0` as minimum or maximum. Kernel hull boxes merge with `f64::min` and
-   `f64::max` (open B1 follow-up); FileInfo loads no hulls.
+   coordinates and intensities, and a FAIMS spectrum with a NaN voltage is
+   refused; the source would print `nan` or break its set order.
+   `SummaryStatistics` sorts with `f64::total_cmp`, so `-0.0` sorts before
+   `0.0`; `std::sort` leaves equal elements in an unspecified order, so a sample
+   holding both zeros can print `-0` where the source prints `0` as minimum or
+   maximum. Kernel hull boxes merge with `f64::min` and `f64::max` (open B1
+   follow-up); FileInfo loads no hulls. All of that is about non-finite
+   *inputs*.
+
+   A statistics block can also compute a non-finite value from finite input, and
+   that is a separate matter. The consensusXML `-s` relative intensity error
+   divides (`FileInfo.cpp:2310`) and inverts every ratio below 1
+   (`:2312-2315`), so a sub-feature of intensity zero makes the sample
+   `{1, +inf}`, whose mean is `+inf` and whose variance is a NaN; one of
+   intensity `-0.0` next to one of `0.0` contributes `(-inf) + (+inf)`, which
+   puts a NaN into the per-consensus-feature *sample* itself. The port
+   reproduces those values bit for bit and writes every NaN `nan` where glibc
+   writes a sign-bit NaN `-nan`. That is native difference 5 of
+   [the A7 document](FILE_INFO_A7_SUPPORT.md) — a class of line, since any of
+   the eight summary lines can carry one, and the only class on which the 50
+   compared oracle reports disagree.
+
+   `SummaryStatistics::new` therefore does **not** refuse every NaN. It
+   summarises the two shapes in which the permutation `std::sort` leaves behind
+   cannot be observed — a one-value sample and an all-NaN sample — and refuses a
+   NaN next to a number, where the reference build's order statistics are
+   positional reads of a range it never ordered. That last refusal is a
+   deferral pending a libstdc++ `std::sort` emulation in shared math, not a D1
+   refusal; see section 5.2 of the A7 document for the measurement.
 7. **Bounded work.** A statistics block holds at most
    `FileInfo::MAX_STATISTICS_VALUES` (2^27) values, checked before collection
    and allocated fallibly; the kernel range managers, the FAIMS scan, the
@@ -304,12 +325,14 @@ sections.
 
 ## Deferrals
 
-- consensusXML, idXML/mzIdentML and FASTA (A7); `-v`, mzXML, mzData, trafoXML
-  (A8); pepXML, mzTab, PQP, sqMass, XMass, MSP, MGF and MS2 have no package
-  yet. `-i`, `-d` and `-c` are no longer deferred: A6 ported them
-  ([FILE_INFO_CHECKS_SUPPORT](FILE_INFO_CHECKS_SUPPORT.md)), and its two open
-  items are the mzML reader and kernel refusals that keep two `-c` lines out of
-  reach.
+- `-v`, mzXML, mzData, trafoXML (A8); pepXML, mzTab, PQP, sqMass, XMass, MSP,
+  MGF and MS2 have no package yet. `-i`, `-d` and `-c` are no longer deferred:
+  A6 ported them ([FILE_INFO_CHECKS_SUPPORT](FILE_INFO_CHECKS_SUPPORT.md)), and
+  its two open items are the mzML reader and kernel refusals that keep two `-c`
+  lines out of reach. The consensusXML, idXML/mzIdentML and FASTA branches are
+  no longer deferred either: A7 ported them
+  ([FILE_INFO_A7_SUPPORT](FILE_INFO_A7_SUPPORT.md)), refusing only the three
+  places the source's behaviour is an out-of-bounds `std::vector` access.
 - The tool wrapper, exit codes and output routing are A5's.
 - Source-compatibility load options (D10): closed for dangling header
   references, open for the rest. A5 added the native
