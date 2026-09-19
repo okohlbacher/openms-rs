@@ -144,8 +144,8 @@ const CHROMATOGRAM_COMMENT: &str = "";
 /// 2. **The first child of every `<index>` element.**
 ///    `domParseIndexedEnd_` walks the children as
 ///    `iter = getFirstChild(); while (iter != lastChild) { iter = getNextSibling(); ... }`
-///    (`:280-283`), which advances before it reads and therefore never looks at
-///    the first child. A newline inside `<index>` puts a text node there and
+///    (`:280-282` sets `iter`, the walk itself is `:290-293`), which advances
+///    before it reads and therefore never looks at the first child. A newline inside `<index>` puts a text node there and
 ///    the walk loses nothing, which is why every index an OpenMS writer
 ///    produces parses; an index written without that whitespace loses its first
 ///    offset. The Release build counts one spectrum in the two-offset

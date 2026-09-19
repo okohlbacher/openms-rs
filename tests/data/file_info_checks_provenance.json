@@ -139,7 +139,7 @@
         },
         {
             "what": "an index with no whitespace inside <index>: the source drops its first offset, the port keeps it",
-            "why": "domParseIndexedEnd_ walks the children as iter = getFirstChild(); while (iter != lastChild) { iter = getNextSibling(); ... } (IndexedMzMLDecoder.cpp:280-283), advancing before it reads, so the first child is never looked at. A newline there makes it a text node and nothing is lost, which is why every index an OpenMS writer produces parses. Measured on the Release build: index_offsets_unspaced.mzML holds two spectrum offsets and the C++ counts one; the port counts two. Reproducing it would mean re-implementing the DOM walk in parse_offsets, which every other index reader calls. Native difference 12; the source defect is recorded for OpenMS_CPP_ISSUES.md.",
+            "why": "domParseIndexedEnd_ walks the children as iter = getFirstChild(); while (iter != lastChild) { iter = getNextSibling(); ... } (IndexedMzMLDecoder.cpp:280-282 sets iter, :290-293 is the walk), advancing before it reads, so the first child is never looked at. A newline there makes it a text node and nothing is lost, which is why every index an OpenMS writer produces parses. Measured on the Release build: index_offsets_unspaced.mzML holds two spectrum offsets and the C++ counts one; the port counts two. Reproducing it would mean re-implementing the DOM walk in parse_offsets, which every other index reader calls. Native difference 12; the source defect is recorded for OpenMS_CPP_ISSUES.md.",
             "owner": "src/format/indexed_mzml.rs, not this package"
         }
     ],
@@ -159,7 +159,7 @@
     "external_reference_artifacts": [
         {
             "path": "../oracle/a6-fileinfo/oracle.py",
-            "sha256": "3b866cb6ba4ae5a15995dfb1ae1291368049dae0c474b425bd13606caccb868d",
+            "sha256": "e51f031126cf9ae4ae5ee3a95b04c5265d5fc090422bab8fc66b8a15ac5bfd87",
             "origin_key": "fixtures",
             "role": "driver: case table, per-case scratch runs, reproduction check, manifest writer"
         },
@@ -177,13 +177,13 @@
         },
         {
             "path": "../oracle/a6-fileinfo/scripts/make_index_window_fixtures.py",
-            "sha256": "adf70fa129c82f7cc514c0c115f2fdde1413be3abd5305a76d6064285f9b999e",
+            "sha256": "cf8d29a579391472da7da2495305d53b1d14fa8608c82d420101c1f7313a13cc",
             "origin_key": "fixtures",
             "role": "generator of the three minimal indexed mzML inputs that pin the decoder's footer window and its DOM child walk"
         },
         {
             "path": "../oracle/a6-fileinfo/manifest.json",
-            "sha256": "cd88104474caff2fbf6e573f5fa4d2519badf2bb417228aa9ad034240e787a12",
+            "sha256": "fc597ca07a6487732ea45da63d3dfd365703dee4b2f435e2aa68f7bc4abdde52",
             "origin_key": "fixtures",
             "role": "tool hash, environment, fixture hashes, per-case argv, exit codes and output hashes, reproduction verdict, known_gaps"
         }

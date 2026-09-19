@@ -166,8 +166,8 @@ Every member of the source `TOPPFileInfo` and the behaviour it carries.
    this tool's C++ counterpart exits `ILLEGAL_PARAMETERS`, while the port
    searches the file it has and finds the index that is there; and
    *an `<index>` element written without whitespace*, whose first `<offset>`
-   the C++ DOM walk skips (`:280-283`, upstream `CPP-337`), so every section is
-   counted one short — a section holding a single offset is dropped entirely —
+   the C++ DOM walk skips (`:280-282` and `:290-293`, upstream `CPP-337`), so
+   every section is counted one short — a section holding a single offset is dropped entirely —
    while the port keeps it. Reproducing either would mean changing a decoder
    every index reader in the crate shares, and the second would break random
    access, because a dropped offset is a record that cannot be found. The

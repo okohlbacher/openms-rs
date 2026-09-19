@@ -214,8 +214,8 @@ Each is documented at the item in `checks.rs` as well.
 12. **An index without whitespace keeps the offset the source drops.**
     `domParseIndexedEnd_` walks the children of each `<index>` as
     `iter = getFirstChild(); while (iter != lastChild) { iter = getNextSibling(); … }`
-    (`:280-283`), advancing before it reads, so the first child is never
-    looked at. A newline inside `<index>` puts a text node there and the walk
+    (`:280-282` sets `iter`, and the walk itself is `:290-293`), advancing
+    before it reads, so the first child is never looked at. A newline inside `<index>` puts a text node there and the walk
     loses nothing, which is why every index an OpenMS writer produces parses;
     an index written without that whitespace loses its first offset. Measured:
     the Release build counts one spectrum in the two-offset
