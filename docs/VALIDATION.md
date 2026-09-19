@@ -262,9 +262,11 @@ build writes. `CPP-327`'s Rust-handling paragraph is corrected to match.
 
 `tools/check_source_citations.py` resolves C++ source citations against the pins
 this repository already declares and reads them back. At this integration head
-it exits **0** over the whole tree: **3,346 citations resolved, 104 confirmed
-against code quoted beside them, 196 ambiguous, 0 problems**, in about four
-seconds. Getting
+it exits **0** over the whole tree: **3,344 citations resolved, 102 confirmed
+against code quoted beside them, 192 ambiguous, 0 problems**, in about four
+seconds. (The polish round below takes those to 3,346 / 104 / 196: two more
+citations because a docstring there quotes its source verbatim, and four more
+ambiguous because the guard learned to count two paths of one pin.) Getting
 there took the six substitutions the lane asked for in `OpenMS_CPP_ISSUES.md`
 — four in one `MSSpectrum.cpp` block whose lines had shifted by six, and two
 single-line citations, one in `MzTabFile.cpp` and one in `SVOutStream.cpp`,
@@ -283,7 +285,8 @@ means — `:1347` the guard, `:1352` the reference, `:1354` the read.
 
 What a green run does **not** mean is stated by the tool itself and repeated
 here, because a count that reads as more than it measures is the failure mode
-this lane exists to prevent. Only 104 of 3,346 citations are *confirmed*; the
+this lane exists to prevent. On the tree as it now stands, only 104 of 3,346
+citations are *confirmed*; the
 rest are checked for existence, for a non-blank single line, and for annotation
 blocks. Most citations in this repository paraphrase the source instead of
 reproducing it, and a paraphrase cannot be read back. **The A6 defect that
@@ -370,9 +373,10 @@ pairs, unchanged from `main`; `check_core_sdk.py`, `core_sdk_coverage.py`,
 `test_core_sdk.py`, `test_core_sdk_coverage.py`,
 `check_schema_feature_graph.py`, `test_source_citations.py` and all ten
 `generate_*.py --check` / projection / probe checkers exit 0;
-`check_source_citations.py` exits 0 with 3,346 citations resolved, 104
-confirmed and 196 ambiguous. Every changed JSON parses (14 files), and
-`.github/workflows/rust.yml` parses as YAML. Determinism was re-checked here rather than taken on report:
+`check_source_citations.py` exits 0 with 3,344 citations resolved and 102
+confirmed. Every changed JSON parses (14 files), and
+`.github/workflows/rust.yml` parses as YAML. Determinism was re-checked here
+rather than taken on report:
 `parallel_determinism` 5 passed and `topp_threads` 7 passed, including
 `sums_are_bit_identical_across_thread_counts` and
 `map_collect_preserves_input_order_at_every_thread_count`.
