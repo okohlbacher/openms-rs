@@ -1065,7 +1065,10 @@ fn the_release_nonfinite_document_reads_back_with_the_values_the_source_reads() 
                 assert!(alike(f64::from(value), f64::from(narrow)), "{label} {name}");
             }
             for name in ["FWHM", "probe_float"] {
-                assert!(alike(f.metadata[name].as_f64().unwrap(), wide), "{label} {name}");
+                assert!(
+                    alike(f.metadata[name].as_f64().unwrap(), wide),
+                    "{label} {name}"
+                );
             }
             let list = f.metadata["probe_floatlist"].as_float_list().unwrap();
             assert_eq!(list.len(), 2, "{label}");

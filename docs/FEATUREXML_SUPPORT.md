@@ -35,7 +35,59 @@ no XML element: `BaseFeature::set_width` stores matching numeric `FWHM` metadata
 Reading restores width from this metadata on top-level features only. Subordinate
 FWHM metadata remains available, but its width field stays zero. Writing rejects
 nonzero subordinate width and inconsistent top-level width/FWHM, preventing an
-unreported change on the next read.
+unreported change on the next read. A NaN width and a NaN `FWHM` agree, as
+`setWidth` leaves them.
+
+### Non-finite values
+
+The source writes and reads them, so this dialect does too. `writeFeature_`
+sends every scalar through `precisionWrapper` and `writeUserParam_` sends a
+`DataValue` through the same conversion, and
+`Internal::NumericFormatting::appendNumeric` answers before it formats
+anything: `NaN` for a NaN of **either** sign, then `-inf` or `inf`
+(`src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h:29-35`; the
+header records that `inf.0` was once produced and could not be read back).
+`StringUtils::toDouble` reads all three: `tryParseNaN` takes any case of `nan`,
+and `std::from_chars` takes any case of `inf`, `infinity` and `nan` with an
+optional sign, after a leading `+` is skipped
+(`StringUtils.cpp:35-58, 239-276`). The executed evidence is
+`../oracle/featurexml-inf`, whose probes store every non-finite value in every
+place featureXML has and read it back, and take twelve spellings through the
+pinned reader.
+
+So the writer writes `inf`, `-inf` and `NaN` for a non-finite position,
+intensity, quality, overall quality, `float` meta value or `floatList` entry,
+and the reader accepts `inf`, `+inf`, `-inf`, `infinity`, `Infinity`, `INF`,
+`NaN`, `nan`, `NAN` and `-nan`. `FeatureFinderAlgorithmPicked` reaches infinite
+widths, `FWHM` values and intensities on finite input, and the port's
+`FeatureFinderCentroided` now writes what the Release build writes (this closed
+TOPP native difference 16). `MetaValue::validate` and the public
+`TryFrom<f64>` still refuse a non-finite value; the reader stores one through
+the crate-private `MetaValue::source_float` and `source_float_list`, as the
+algorithm does (lead decision D13).
+
+Three refusals remain, all of them older than and separate from the spellings:
+
+- **A non-finite hull point.** `ConvexHull2D::setHullPoints` validates nothing
+  (`ConvexHull2D.cpp:119-123`), so the Release build writes and reads one; this
+  port refuses it, because its hulls and the bounding boxes derived from them
+  rest on finite coordinates — a scan ordering and `ConvexHull2D::bounding_box`
+  are undefined for a NaN. No ported algorithm produces such a point: the hulls
+  `FeatureFinderAlgorithmPicked` builds come from peak positions and stay finite
+  at every retention-time scale measured, including the ones where its widths
+  and intensities overflow. The refusal is a parse error, never a panic.
+- **A finite value that `f32` cannot hold**, such as `1e50` in an `intensity`.
+  The source narrows it to an infinity; this port refuses it.
+- **A decimal literal that is merely out of range**, such as `1e999`. The
+  pinned reader fails the load on one too — `attributeAsDouble_` lets the
+  `ConversionError` out (`XMLHandler.h:401-406`), recorded as `LOAD_THREW` in
+  `../oracle/featurexml-inf/results/spellings.tsv` — while an element's text
+  would reach `asDouble_`, which logs a non-fatal line and keeps `0.0`. Only a
+  spelled token is non-finite here.
+
+A finite **negative** width also stays refused. `setWidth` stores any value
+(`BaseFeature.cpp:87-94`), but no source path produces a negative FWHM, and the
+mirror check would have to let it through silently.
 
 ## Options
 
@@ -77,10 +129,16 @@ The following native behavior is deliberate:
   transports raw UserParams but does not encode its in-memory group structures;
   use consensusXML for group quantity arrays. Raw group-like UserParams are
   preserved without an invented group interpretation.
-- Nonfinite numeric fields, out-of-range f32 values, invalid dimensions,
+- Out-of-range f32 values, non-finite hull points, invalid dimensions,
   unsupported XML fields, malformed references, and unrepresentable native
-  metadata are checked errors. Required timestamps must be present rather than
+  metadata are checked errors (see *Non-finite values* above for what is
+  accepted instead). Required timestamps must be present rather than
   emitting an invalid schema timestamp.
+- Metadata on a data-processing entry, an identification run, a protein hit or
+  a peptide identification inside a featureXML still refuses a non-finite
+  value: those are written through the shared map/identification codecs, which
+  every dialect uses, and no source algorithm puts a non-finite value there.
+  Only the map's own metadata and a feature's carry the source's spellings.
 
 Modern IdentificationData graph attachments are not serialized by either source
 map XML handler and are outside this transport. A complete public inherited
@@ -127,12 +185,16 @@ writing to a caller stream. A stream's own I/O failure can still leave bytes in
 that external stream; atomic file replacement is provided by `store`.
 
 [Focused tests](../tests/featurexml.rs) use three byte-identical upstream fixtures
-and independent boundary cases. [Provenance](../tests/data/featurexml_provenance.json)
-pins source files, schemas and fixture SHA-256 hashes. No C++ build or execution
-is used as an oracle for field semantics; the executed C++ `FileInfo` is used
-only as the scale reference in `docs/FEATUREXML_SCALE_SUPPORT.md`, which the
+and independent boundary cases. Two further fixtures are documents the Release
+build itself wrote: `featurexml_nonfinite_release.featureXML` and
+`featurexml_nonfinite_hull_release.featureXML`, which differ only in whether
+their outline points are non-finite. [Provenance](../tests/data/featurexml_provenance.json)
+pins source files, schemas and fixture SHA-256 hashes. The executed C++ `FileInfo` is used
+as the scale reference in `docs/FEATUREXML_SCALE_SUPPORT.md`, which the
 `#[ignore]`d `hpc_scale_benchmark_featurexml_files_load_and_round_trip` checks
-against by reading the benchmark files by path.
+against by reading the benchmark files by path, and the executed
+`FeatureXMLFile` of `../oracle/featurexml-inf` is the oracle for the non-finite
+spellings above. Everything else is read from the pinned source.
 
 The source file loader also accepts ZIP archives. ZIP input is not yet supported
 by the native shared path transport and remains an explicit completion gap.

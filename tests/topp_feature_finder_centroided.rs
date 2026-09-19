@@ -1491,7 +1491,10 @@ fn a_store_that_fails_is_the_sources_write_failure() {
     );
 
     let missing = dir.file("nosuch/out.featureXML");
-    let outcome = run_in(&dir, &["-test", "-ini", &ini, "-in", &input, "-out", &missing]);
+    let outcome = run_in(
+        &dir,
+        &["-test", "-ini", &ini, "-in", &input, "-out", &missing],
+    );
     outcome.assert_exit(ExitCode::CannotWriteOutputFile);
     assert_eq!(
         outcome.err.lines().collect::<Vec<_>>(),
