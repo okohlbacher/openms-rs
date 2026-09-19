@@ -301,7 +301,13 @@ impl MSDataWritingProcessor for PlainProcessor {
 /// let bytes = consumer.finish()?;
 /// let text = String::from_utf8(bytes).unwrap();
 /// assert!(text.contains("<spectrumList count=\"1\""));
-/// assert!(text.ends_with("</run></mzML>\n"));
+/// assert!(text.contains("</run>"));
+/// // An indexed document, as the source writes by default: PeakFileOptions
+/// // keeps `write_index_ = true` (PeakFileOptions.h:244) and the consumer
+/// // never overrides it, so `MzMLHandlerHelper::writeFooter_` appends the
+/// // index and closes `indexedmzML` (MzMLHandlerHelper.cpp:86-89).
+/// assert!(text.contains("<indexListOffset>"));
+/// assert!(text.ends_with("</indexedmzML>\n"));
 /// # Ok::<(), openms::Error>(())
 /// ```
 ///
