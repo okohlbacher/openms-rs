@@ -181,8 +181,8 @@ stable per input, so D1 would have the port reproduce them; it does not, because
 in the two-element samples measured here libstdc++ compares every pair
 involving the NaN false and therefore moves nothing, which makes the `minimum`,
 quartile and `maximum` lines positional reads of a range whose elements
-`std::sort` was free to leave in any order. That "moves nothing" is a property of this
-sample's **size and arrangement** rather than of the NaN, and the libstdc++
+`std::sort` was free to leave in any order. That "moves nothing" is a property
+of this sample's **size and arrangement** rather than of the NaN, and the libstdc++
 headers the reference build was compiled with say exactly when it holds.
 `std::sort` is `__introsort_loop` followed by `__final_insertion_sort`
 (`stl_algo.h:1899-1910`), and `__introsort_loop` runs only
@@ -198,7 +198,8 @@ byte-stable runs: `{NaN, 2}` and `{2, NaN}` come back unchanged and
 relocates a whole block when a later element belongs before `*__first`, and
 that carries the NaN with it — `{3, NaN, 2}` sorts to `{2, 3, NaN}` at three
 elements. What none of it changes is the one thing the refusal rests on: the
-order statistics are a property of the input order. Measured: the oracle's `c_nan_then_finite_s`
+order statistics are a property of the input order. Measured: the oracle's
+`c_nan_then_finite_s`
 and `c_finite_then_nan_s` hold the same two consensus features in opposite file
 order and disagree on exactly those four lines. Reproducing them means porting
 libstdc++'s `std::sort` permutation into `sort_ascending`, which every

@@ -474,8 +474,9 @@ reference build exits 0. The reason is measured rather than assumed: in the
 two-element samples measured here libstdc++ compares every pair involving the
 NaN false and therefore moves nothing, so the `minimum`, quartile and `maximum`
 lines the reference prints are positional reads of a range whose elements
-`std::sort` was free to leave in any order. "Moves nothing" is a property of this
-sample's **size and arrangement**, not of the NaN. `__introsort_loop` runs only
+`std::sort` was free to leave in any order. "Moves nothing" is a property of
+this sample's **size and arrangement**, not of the NaN. `__introsort_loop` runs
+only
 above `_S_threshold`, which the headers this build was compiled with enumerate
 as 16, so at 17 elements or more it moves the NaN outright — a 20-element
 sample `{NaN, 2..20}` prints `minimum: 2` and `median: -nan` — and even below

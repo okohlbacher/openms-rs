@@ -371,8 +371,8 @@ pairs, unchanged from `main`; `check_core_sdk.py`, `core_sdk_coverage.py`,
 `check_schema_feature_graph.py`, `test_source_citations.py` and all ten
 `generate_*.py --check` / projection / probe checkers exit 0;
 `check_source_citations.py` exits 0 with 3,346 citations resolved, 104
-confirmed and 196 ambiguous. Every changed JSON parses (14 files), and `.github/workflows/rust.yml`
-parses as YAML. Determinism was re-checked here rather than taken on report:
+confirmed and 196 ambiguous. Every changed JSON parses (14 files), and
+`.github/workflows/rust.yml` parses as YAML. Determinism was re-checked here rather than taken on report:
 `parallel_determinism` 5 passed and `topp_threads` 7 passed, including
 `sums_are_bit_identical_across_thread_counts` and
 `map_collect_preserves_input_order_at_every_thread_count`.

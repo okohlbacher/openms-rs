@@ -710,7 +710,8 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
 ///   runs only above `_S_threshold`, 16 in the headers this build was
 ///   compiled with, so a 20-element sample `{NaN, 2..20}` prints
 ///   `minimum: 2` and `median: -nan`, and even below the threshold a block
-///   move can carry the NaN, as `{3, NaN, 2}` sorting to `{2, 3, NaN}` shows. The two frozen reports below
+///   move can carry the NaN, as `{3, NaN, 2}` sorting to `{2, 3, NaN}` shows.
+///   The two frozen reports below
 ///   hold the same two consensus features in opposite file order and disagree
 ///   on exactly those four lines — which is the measurement that says there is
 ///   no answer to reproduce. This crate refuses that shape; it is a deferral
