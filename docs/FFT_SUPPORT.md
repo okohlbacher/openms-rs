@@ -138,10 +138,10 @@ without conversion.
 2. **`integer_log2` rounds instead of rejecting.**
    `integer_log2` (`shape_to_log_shape.hpp:4-14`) computes `round(log2(val))`
    (`:8`) and guards the power-of-two assertion behind `#ifdef SHAPE_CHECK`
-   (`:9-11`), which the OpenMS build does not define. A non-power-of-two length therefore transforms a different
-   number of points than the caller asked for. `KernelDensityEstimation::forRt`
-   documents "rounds up to next power of 2" and implements no such thing, so the
-   header and the code disagree as well.
+   (`:9-11`), which the OpenMS build does not define. A non-power-of-two length
+   therefore transforms a different number of points than the caller asked for.
+   `KernelDensityEstimation::forRt` documents "rounds up to next power of 2" and
+   implements no such thing, so the header and the code disagree as well.
 
 Both are reported in the work package's C++ issue list.
 
