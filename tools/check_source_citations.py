@@ -23,7 +23,8 @@ working tree - and then, at four levels of evidence:
 * a code fragment quoted beside the citation, if the cited file contains it at
   all, must be inside the cited lines - a fragment the file does not contain is
   a paraphrase, a Rust name or a proposed fix, and is ignored;
-* a transcribed code block's ``// :NNN`` annotations must match those lines.
+* a transcribed code block's ``// :NNN`` annotations must match those lines,
+  read against the file the block's own entry names.
 
 What makes the third check quiet enough to be worth running is that it asks
 only about quotations, and only about the one a citation is written beside. A
@@ -33,16 +34,23 @@ anything on them. A backticked *fragment* with syntax in it reproduces a line.
 And a quotation on the far side of a full stop or a semicolon belongs to
 another clause, so it is not attached.
 
+*Beside* is meant strictly. Each quotation answers for one citation and each
+citation for one quotation, paired over the whole paragraph at once, so that a
+paragraph citing one file eight times has each of its citations read against
+what stands next to it. A correct citation cannot vouch for a wrong one beside
+it - which is the defect this was written for - though a span the same
+paragraph cites *around* a line does answer for a quotation of that span.
+
   python3 tools/check_source_citations.py            # gate
   python3 tools/check_source_citations.py --report   # show the pins and the count
   python3 tools/check_source_citations.py --verbose  # and what could not be checked
 
 Citations it cannot check are counted, never guessed at: a file no reachable
-pin contains, and a bare ``:a-b`` that fits no file the same paragraph cites.
-Nor can it check a citation whose text quotes nothing, or paraphrases what it
-quotes - ``--report`` says how many of the citations it read were confirmed
-against code, which is the honest measure of how much of this is a check and
-how much is only a resolution.
+pin contains, a bare ``:a-b`` that fits no file the same paragraph cites, and a
+manifest too malformed to parse. Nor can it check a citation whose text quotes
+nothing, or paraphrases what it quotes - ``--report`` says how many of the
+citations it read were confirmed against code, which is the honest measure of
+how much of this is a check and how much is only a resolution.
 """
 
 import argparse
@@ -66,6 +74,11 @@ CITATION = re.compile(
     r"(?P<path>(?:[A-Za-z0-9_.-]+/)*)(?P<file>[A-Za-z_][A-Za-z0-9_]*\.(?:" + EXTENSIONS + r"))"
     r":(?P<first>\d+)(?:[-\u2013\u2014](?P<last>\d+))?\b"
 )
+# A C++ file named on its own, with no line number: how an entry introduces the
+# file whose code it goes on to transcribe.
+FILE_NAMED = re.compile(
+    r"(?P<path>(?:[A-Za-z0-9_.-]+/)*)(?P<file>[A-Za-z_][A-Za-z0-9_]*\.(?:" + EXTENSIONS + r"))\b"
+)
 # A bare range continues the file named before it: "Decoder.cpp:165-168, :179-181".
 CONTINUATION = re.compile(r"(?<![\w.:/-]):(?P<first>\d+)(?:[-\u2013\u2014](?P<last>\d+))?\b")
 # A transcribed code block annotates its lines: "DOMNode* iter = firstChild;  // :282".
@@ -87,11 +100,15 @@ SYNTAX = re.compile(r"[=;!#]|<<|>>|->|\*|\+|&&|\|\||\b(?:if|for|while|return|swi
 # "MSChromatogram::operator==". Punctuation makes it look like code without
 # making it a quotation of anything.
 REFERENCE = re.compile(r"[\w:.~]+(?:operator\s*(?:\[\]|\(\)|[^\w\s]{1,3}|\s+[\w:]+))?")
-# A full stop, a semicolon or a colon between a quotation and a citation ends
-# the clause the citation belongs to, and with it the claim that they go
-# together: what follows a colon is a remark about the citation - "...:1779-1795:
-# still inside the source's `if (...)`" - and not a quotation of those lines.
-BOUNDARY = re.compile(r"[.;:]\s")
+# A full stop, a semicolon, a colon or an em dash between a quotation and a
+# citation ends the clause the citation belongs to, and with it the claim that
+# they go together: what follows a colon is a remark about the citation -
+# "...:1779-1795: still inside the source's `if (...)`" - and not a quotation of
+# those lines. A comma is not one of them: this repository writes a quotation
+# and its own citation as "`++window_count`, `Estimator.h:365`". Markup that
+# closes after the stop - the bold of a heading, a closing backtick or bracket -
+# does not keep it from being one.
+BOUNDARY = re.compile(r"[.;:\u2014][*_`)\]]*\s")
 REVISION = re.compile(r"\b[0-9a-f]{40}\b")
 ISSUE_HEADING = re.compile(r"^##\s+CPP-\d+\b")
 
@@ -234,6 +251,10 @@ class Pins:
         return f"{self.sources[revision]}:{path}"
 
 
+class Unreadable(Exception):
+    """A document that cannot be parsed at all, and so cannot be checked."""
+
+
 def first_directory(paths):
     for path in paths:
         if path.is_dir():
@@ -254,6 +275,10 @@ def units(path, text, default_revisions):
     """
     if path.suffix == ".json":
         found = []
+        try:
+            tree = json.loads(text)
+        except ValueError as problem:
+            raise Unreadable(f"not valid JSON ({problem})") from problem
 
         def walk(node):
             if isinstance(node, str):
@@ -265,7 +290,7 @@ def units(path, text, default_revisions):
                 for value in node:
                     walk(value)
 
-        walk(json.loads(text))
+        walk(tree)
         return found
 
     issue_log = path.name == ISSUE_LOG
@@ -389,78 +414,155 @@ def quotations(unit, spans=CODE_SPAN):
 
 
 def attach(unit, citations, quoted):
-    """Give each citation the one quotation it is written beside.
+    """Pair each citation with the one quotation it is written beside.
 
     A paragraph quotes more than it cites: a residual is cited at its own line
     while the constant it reuses, quoted in the same sentence, lives ten lines
     higher and is named without a citation of its own; a sentence later another
     paragraph quotes something else entirely. Attaching every quotation in the
-    paragraph to every citation in it would report all of those. The quotation a
-    citation answers for is the nearest one it is not separated from by a full
-    stop, a semicolon or a colon, which is as far as one clause reaches.
+    paragraph to every citation in it would report all of those. A quotation may
+    answer for a citation only when it is not separated from it by a full stop,
+    a semicolon, a colon or an em dash, which is as far as one clause reaches.
+
+    Among the pairings that leaves, the one taken is the pairing of the whole
+    unit: every citation answers for at most one quotation and every quotation
+    for at most one citation, as many are paired as can be, and among those the
+    closest overall. Both halves matter. A paragraph that cites one file eight
+    times and quotes the line of one of them - "fills them under ``#pragma omp
+    parallel for`` (``:409``, loop body to ``:487``)" - must give that quotation
+    to one citation and not to all eight, or seven correct citations are
+    reported. And "``a = f();`` at ``:214-218``, ``b = g();`` at ``:228-232``"
+    puts the second quotation four characters from the first citation and its
+    own six away, so pairing each citation with whatever is nearest crosses
+    them over; pairing the unit as a whole costs 12 that way against 49, and
+    reads it as it is written.
     """
-    attached = collections.defaultdict(set)
-    for position, length, key in citations:
+    allowed = {}
+    for order, (position, length, _) in enumerate(citations):
         finish = position + length
-        near = []
-        for start, end, fragment in quoted:
-            between = unit[end:position] if end <= position else unit[finish:start]
+        for index, (start, end, fragment) in enumerate(quoted):
             if end > position and start < finish:
-                near.append((0, fragment))
-            elif not BOUNDARY.search(between):
-                near.append((len(between), fragment))
-        if near:
-            attached[key].add(min(near)[1])
-    return attached
+                allowed[(order, index)] = 0
+                continue
+            between = unit[end:position] if end <= position else unit[finish:start]
+            if not BOUNDARY.search(between):
+                allowed[(order, index)] = len(between)
+    if not allowed:
+        return {}
+    chosen = pair_up(allowed, len(citations), len(quoted))
+    return {citations[order][2]: quoted[index][2] for order, index in chosen}
 
 
-def annotations_in(unit):
-    """The ``code  // :NNN`` line annotations of a transcribed code block."""
+# Beyond this many quotations in one unit the pairing is taken greedily rather
+# than as a whole: the search is exponential in them, and the most any document
+# here puts in one paragraph is twelve.
+MOST_QUOTATIONS_PAIRED = 14
+
+
+def pair_up(allowed, citations, quotations):
+    """The pairing of a unit: most pairs first, then least distance overall.
+
+    ``allowed`` gives the distance of every pair that may be made at all. The
+    search walks the citations in order, carrying for each set of quotations
+    already spoken for the best way to have reached it, which is exponential in
+    the quotations and linear in the citations. A unit with more quotations
+    than :data:`MOST_QUOTATIONS_PAIRED` is paired greedily instead, closest
+    pair first; that can pair fewer of them, never differently by accident.
+    """
+    if quotations > MOST_QUOTATIONS_PAIRED:
+        taken, spoken, greedy = set(), set(), []
+        for distance, order, index in sorted((d, o, i) for (o, i), d in allowed.items()):
+            if order not in taken and index not in spoken:
+                taken.add(order)
+                spoken.add(index)
+                greedy.append((order, index))
+        return sorted(greedy)
+    states = {0: (0, 0, ())}
+    for order in range(citations):
+        moves = {}
+        for mask, value in states.items():
+            for candidate, reached in [(value, mask)] + [
+                ((value[0] - 1, value[1] + allowed[(order, index)], value[2] + ((order, index),)),
+                 mask | 1 << index)
+                for index in range(quotations)
+                if not mask >> index & 1 and (order, index) in allowed
+            ]:
+                if reached not in moves or candidate < moves[reached]:
+                    moves[reached] = candidate
+        states = moves
+    return min(states.values())[2]
+
+
+def annotations_in(unit, certain=True):
+    """The ``code  // :NNN`` line annotations of a transcribed code block.
+
+    ``certain`` says whether the file the block belongs to was cited in the
+    block's own span or only inferred from the entry it sits under; an inferred
+    file is checked more cautiously, see :func:`problems_with`.
+    """
     found = []
     for line in unit.splitlines():
         match = ANNOTATED.match(line)
         if match and match.group("code").strip():
-            found.append((int(match.group("line")), match.group("code").strip()))
+            found.append((int(match.group("line")), match.group("code").strip(), certain))
     return found
 
 
-def problems_with(pins, revision, path, ranges, quoted, annotated, report=None):
-    """Everything wrong with one file's citations in one unit, against one revision."""
+def problems_with(pins, revision, path, ranges, quoted, annotated):
+    """Everything wrong with one file's citations in one unit, against one revision.
+
+    ``ranges`` are that file's cited ranges, ``quoted`` the quotations attached
+    to them as ``(fragment, first, last, text)`` - each read against the one
+    range it was written beside - and ``annotated`` the ``// :NNN`` lines of a
+    transcribed block. Returns ``(problems, confirmed)``: the caller adds the
+    confirmations only once it has settled on a revision, so a candidate that
+    is rejected does not leave its count behind.
+    """
     lines = pins.lines(revision, path)
-    found = []
+    found, confirmed = [], 0
     for first, last, text, _ in ranges:
         if last < first:
             found.append(f"{text}: the range runs backwards")
         elif last > len(lines):
             found.append(f"{text}: the file has {len(lines)} lines")
     if found:
-        return found
+        return found, 0
     for first, last, text, named in ranges:
         # Only for a citation that names its file: a bare range's file is
         # inferred, and a blank line is too weak a signal to report on a guess.
         if named and first == last and not lines[first - 1].strip():
             found.append(f"{text}: that line is blank")
     if found:
-        return found
-    quoting = " / ".join(text for _, _, text, _ in ranges)
+        return found, 0
     whole = flatten(" ".join(lines))
-    cited = flatten(" ".join(line for first, last, _, _ in ranges for line in lines[first - 1:last]))
-    for fragment in sorted(quoted):
-        if fragment in cited:
-            if report is not None:
-                report["quoted"] += 1
+    for fragment, first, last, text in sorted(quoted):
+        # The lines the quotation may sit on: the ones it is written beside,
+        # and any span the same unit cites around them. A document that cites a
+        # loop whole - "the banded dynamic program, `SpectrumAlignment.h:79-176`"
+        # - and then single lines inside it quotes the loop, not the line, so
+        # the enclosing span answers for the quotation as much as the line does.
+        # Two ranges that merely sit beside each other do not, which is what
+        # keeps a right citation from vouching for a wrong one next to it.
+        allowed = [(first, last)] + [
+            (a, b) for a, b, _, _ in ranges if a <= first and last <= b and (a, b) != (first, last)
+        ]
+        if any(fragment in flatten(" ".join(lines[a - 1:b])) for a, b in allowed):
+            confirmed += 1
             continue
         if fragment not in whole:
             continue
-        found.append(f"{quoting}: `{fragment}` is in the file but not on the cited lines")
-    for number, code in annotated:
+        found.append(f"{text}: `{fragment}` is in the file but not on the cited lines")
+    for number, code, certain in annotated:
+        body = flatten(code).rstrip(". ")
+        if not certain and body not in whole:
+            continue  # The entry's file is not the one this block was taken from.
         if number > len(lines):
             found.append(f"// :{number}: the file has {len(lines)} lines")
-        elif flatten(code).rstrip(". ") not in flatten(lines[number - 1]):
+        elif body not in flatten(lines[number - 1]):
             found.append(f"// :{number} is `{lines[number - 1].strip()}`, not `{code}`")
-        elif report is not None:
-            report["quoted"] += 1
-    return found
+        else:
+            confirmed += 1
+    return found, confirmed
 
 
 def resolvable(pins, revisions, directory, name):
@@ -496,45 +598,86 @@ def owner_of(pins, revisions, bare, named):
     return None
 
 
-def check_unit(pins, unit, revisions, quoted_only, report):
-    """Check one unit against the revisions it may cite; return its findings."""
-    named, bare = citations_in(unit, quoted_only)
-    if not named:
+def check_file(pins, revisions, key, cited, quoted, annotated, report):
+    """Check one cited file against every revision and path it resolves to.
+
+    A file that no reachable pin contains is counted, not guessed at. Where it
+    resolves to more than one candidate - the same header under two pins, or
+    two files of the same name - a candidate that has nothing wrong with it
+    settles the matter; when they all disagree the one that disagrees least is
+    reported, since a citation is written against one file, not all of them.
+    """
+    directory, name = key
+    attempts = resolvable(pins, revisions, directory, name)
+    if not attempts:
+        report["skipped"] += len(cited)
+        report["skipped_files"][name] += len(cited)
         return []
+    disagreements = []
+    for revision, path in attempts:
+        wrong, confirmed = problems_with(pins, revision, path, cited, quoted, annotated)
+        if not wrong:
+            report["checked"] += len(cited)
+            report["quoted"] += confirmed
+            return []
+        disagreements.append((revision, path, wrong))
+    # Every candidate disagrees; report the one that disagrees least.
+    revision, path, wrong = min(disagreements, key=lambda item: len(item[2]))
+    return [(pins.where(revision, path), wrong)]
+
+
+def check_unit(pins, unit, revisions, quoted_only, report, context=None):
+    """Check one unit against the revisions it may cite; return its findings.
+
+    ``context`` is the source file the document named most recently before this
+    unit. A transcribed code block is written under the entry that names its
+    file and is separated from it by a blank line, so it is a unit of its own
+    with no citation in it; without the context its ``// :NNN`` annotations
+    would have nothing to be read against, which is how they went unchecked.
+    """
+    named, bare = citations_in(unit, quoted_only)
+    annotated = annotations_in(unit, certain=bool(named))
+    if not named:
+        if not annotated or context is None:
+            return []
+        return check_file(pins, revisions, context, [], (), annotated, report)
     ranges = collections.defaultdict(list)
     placed = []
-    for position, directory, name, first, last, text in named:
-        ranges[(directory, name)].append((first, last, text, True))
-        placed.append((position, len(text), (directory, name)))
-    for position, first, last, text in bare:
+    for index, (position, directory, name, first, last, text) in enumerate(named):
+        ranges[(directory, name)].append((first, last, text, True, index))
+        placed.append((position, len(text), index))
+    for offset, (position, first, last, text) in enumerate(bare):
         owner = owner_of(pins, revisions, (position, first, last, text), named)
         if owner is None:
             report["unresolved"] += 1
             continue
-        ranges[owner].append((first, last, text, False))
-        placed.append((position, len(text), owner))
-    quoted = attach(unit, placed, quotations(unit, CODE_SPAN if quoted_only else BARE_QUOTATION))
-    annotated = annotations_in(unit)
+        index = len(named) + offset
+        ranges[owner].append((first, last, text, False, index))
+        placed.append((position, len(text), index))
+    attached = attach(unit, placed, quotations(unit, CODE_SPAN if quoted_only else BARE_QUOTATION))
     findings = []
     for key, cited in ranges.items():
-        directory, name = key
-        attempts = resolvable(pins, revisions, directory, name)
-        if not attempts:
-            report["skipped"] += len(cited)
-            report["skipped_files"][name] += len(cited)
-            continue
-        disagreements = []
-        for revision, path in attempts:
-            wrong = problems_with(pins, revision, path, cited, quoted.get(key, ()), annotated, report)
-            if not wrong:
-                report["checked"] += len(cited)
-                break
-            disagreements.append((revision, path, wrong))
-        else:
-            # Every candidate disagrees; report the one that disagrees least.
-            revision, path, wrong = min(disagreements, key=lambda item: len(item[2]))
-            findings.append((pins.where(revision, path), wrong))
+        quoted = [
+            (attached[index], first, last, text)
+            for first, last, text, _, index in cited if index in attached
+        ]
+        ranged = [item[:4] for item in cited]
+        findings.extend(check_file(pins, revisions, key, ranged, quoted, annotated, report))
+        annotated = ()  # One block belongs to one file: the one cited first.
     return findings
+
+
+def named_file(unit):
+    """The last source file the unit names, cited or not, or None.
+
+    An entry names its file once - in the issue log, on an ``Affected
+    file/function`` line - and transcribes it further down, so the name has to
+    be carried forward from the span that gives it to the span that uses it.
+    """
+    last = None
+    for match in FILE_NAMED.finditer(unit):
+        last = (match.group("path"), match.group("file"))
+    return last
 
 
 def documents():
@@ -564,20 +707,29 @@ def main():
         "checked": 0, "quoted": 0, "skipped": 0, "unresolved": 0,
         "skipped_files": collections.Counter(),
     }
-    failures = []
+    failures, unreadable = [], []
     for document in documents():
         name = str(document.relative_to(ROOT))
         # Markdown, and a Rust doc comment, which is Markdown; a manifest has no
         # code spans, so there a bare range has to stand on its own shape.
         quoted_only = document.suffix in (".md", ".rs")
-        for unit, revisions in units(document, document.read_text(errors="replace"), default):
-            for where, problems in check_unit(pins, unit, revisions, quoted_only, report):
+        try:
+            spans = units(document, document.read_text(errors="replace"), default)
+        except Unreadable as problem:
+            unreadable.append(f"{name}: {problem}; its citations are skipped")
+            continue
+        context = None
+        for unit, revisions in spans:
+            context = named_file(unit) or context
+            for where, problems in check_unit(pins, unit, revisions, quoted_only, report, context):
                 failures.extend((name, where, problem) for problem in problems)
 
     missing = pins.missing()
     if missing:
         listed = ", ".join(f"{k} {v[:7]}" for k, v in sorted(missing.items()))
         print(f"Pinned sources not reachable, their citations are skipped: {listed}")
+    for line in unreadable:
+        print(line)
     for name, where, problem in failures:
         print(f"{name}: {where}\n    {problem}")
     if arguments.verbose and report["skipped_files"]:
@@ -595,6 +747,8 @@ def main():
         f"{report['skipped']} skipped for an unreachable file and "
         f"{report['unresolved']} bare ranges left unresolved"
     )
+    if unreadable:
+        summary += f", and {len(unreadable)} document(s) that could not be read"
     if missing and arguments.require_pins:
         print(f"{summary}; --require-pins was given.")
         return 1
