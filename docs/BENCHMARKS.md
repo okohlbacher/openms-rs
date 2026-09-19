@@ -152,8 +152,8 @@ not exposed to the ~3 % cross-session drift band. §3.7 reports it.
 | repetitions | 1 discarded warm-up + 5 measured rounds; cells under 10 s raised to 10; SpectraFilterWindowMower 3 |
 | temp | `TMPDIR` and `OPENMS_TMPDIR` under `/dev/shm`, per sub-run |
 | peak-RSS floor | `/bin/true` through the launcher recorded 1,024 KiB before and after the cases (limit 4,096); the naive `Popen`+`wait4` path recorded the harness's own high-water mark instead |
-| size | four sub-runs (`w6-profile`, `w6-centroid`, `w6-ffc-subset`, `w6-sfwm`), **52 cells, 281 measured repetitions**, 333 successful timing executions counting warm-ups, and 783 counting the `-write_ini` and start-up-slice baselines too |
-| load | pre-cell gate value 0.0016–0.0125 per core against a flag limit of 0.25 (0.05 at threads = 1); foreign CPU during the measured repetitions 0.0012–0.0199 per core, median 0.0091. **0 of the 281 measured repetitions load-flagged, 0 refused, 0 retried**; `majflt` 0 in every one. Exactly one execution of the whole run carried a flag, and it enters no table here: a 2.2 ms `-write_ini` start-up baseline (DTAExtractor, `rust-release`, threads = 1, repetition 3) saw 0.0565 per core against the single-thread limit of 0.05 |
+| size | four sub-runs (`w6-profile`, `w6-centroid`, `w6-ffc-subset`, `w6-sfwm`), **52 cells, 282 measured repetitions of which 281 succeeded** (the one that did not is §3.9), 333 successful timing executions counting the 52 warm-ups, and 783 counting the `-write_ini` and start-up-slice baselines too |
+| load | pre-cell gate value 0.0016–0.0125 per core against a flag limit of 0.25 (0.05 at threads = 1); foreign CPU during the measured repetitions 0.0012–0.0199 per core, median 0.0091 — both ranges and the median are the same whether the failed repetition is counted or not. **0 of the 282 measured repetitions load-flagged, 0 refused, 0 retried**; `majflt` 0 in every one. Exactly one execution of the whole run carried a flag, and it enters no table here: a 2.2 ms `-write_ini` start-up baseline (DTAExtractor, `rust-release`, threads = 1, repetition 3) saw 0.0565 per core against the single-thread limit of 0.05 |
 | failures | **one**, on the C++ side: `FeatureFinderCentroided` at 32 threads died of `SIGSEGV` in one repetition (§3.9). Every Rust execution of both builds completed |
 | wall | 2026-09-18T19:40 to 2026-09-19T01:05 local, sequential, nothing else of this project's on the node |
 
@@ -240,12 +240,29 @@ MzMLSplitter 1.294 / 1.937, BaselineFilter 1.578 / 1.750, FileInfo on the 60 MB
 featureXML 1.499 / 1.430, FeatureFinderCentroided at one thread 1.123, and
 FileInfo on the mzML at 32 threads 1.120.
 
-**Memory.** Unchanged from wave 4 to the same three digits on every tool: the
-port uses more resident memory on six of the nine cases — worst MzMLSplitter
-4.06 GB against 1.52 GB (2.67×), BaselineFilter 6.60 GB against 3.20 GB
-(2.06×) — and less on PeakPickerHiRes (0.87×) and FeatureFinderCentroided
-(0.89× at one thread, 0.84× at 32). There is no memory parity and none is
-claimed.
+**Memory.** The port uses more resident memory on **seven of the nine cases**
+— six of the eight tools, FileInfo being measured on two datasets — worst
+MzMLSplitter 4.06 GB against 1.52 GB (2.67×), BaselineFilter 6.60 GB against
+3.20 GB (2.06×); the two below parity are PeakPickerHiRes (0.87×) and
+FeatureFinderCentroided (0.89× at one thread, 0.84× at 32). There is no memory
+parity and none is claimed.
+
+**Memory against wave 4: one tool moved, the same one.** The peak RSS of both
+sides reproduces wave 4 on every tool **except FeatureFinderCentroided**, whose
+algorithm was completed in the window (§5.4). Its Rust peak rose from 310.3 to
+322.8 MiB at one thread (+4.0 %) and from 306.4 to 317.8 MiB at 32 (+3.7 %)
+against a C++ side that did not move (360.1 → 361.7 and 378.9 → 378.8 MiB), so
+its RSS ratio went from 0.86 to **0.89** at one thread and from 0.81 to **0.84**
+at 32. On every other tool the wave-6 Rust median is within 0.09 % of wave 4's
+and the C++ median within 0.13 %; twelve of those sixteen printed RSS ratios are
+identical across the waves and the other four differ by one unit in the last
+digit, from that sub-tenth-of-a-percent movement alone — DTAExtractor
+1.12 → 1.11 at one thread, and at 32 threads MapNormalizer 1.16 → 1.17,
+SpectraFilterWindowMower
+2.19 → 2.18 and PeakPickerHiRes 0.86 → 0.87. The wave-4 figures quoted
+here are
+medians of the same four measured sub-runs under the same filter as §3.2's
+wave-4 ratio column, so they are comparable cell for cell.
 
 ### 3.5 Thread behaviour, sampled rather than assumed
 
@@ -277,12 +294,20 @@ actually kept busy. A tool that asked for 32 threads and shows util ~1.0 did
 | FeatureFinderCentroided | Velos 4,000 subset | rust `-fma` | 1 | 1.00 | 33 | 6.03 | 152.2 | 5.55× |
 | FeatureFinderCentroided | Velos 4,000 subset | cpp | 2 | 1.00 | 64 | 4.22 | 106.2 | 3.57× |
 
-The `-fma` rows are shown only where they say something: on the six tools
-measured without fused multiply-adds they are indistinguishable from the `+fma` rows
-(util and peak threads identical, user time within 0.4 s), which is itself the
-point. SpectraFilterWindowMower has no `-fma` row because it has no `-fma` arm
-at all (§5.3). On FeatureFinderCentroided they are not: the `-fma` build reaches util
-6.03 and scales 5.55× where the `+fma` build reaches 4.82 and 4.34×. **That is
+Of the six tools measured without fused multiply-adds, **DTAExtractor's `-fma`
+row is kept as the exemplar and the other five are left out**, because on all
+six the `-fma` build is indistinguishable from the `+fma` one and the rows would
+only repeat each other: peak threads identical in every cell, utilisation
+identical to two decimals in every cell but PeakPickerHiRes at 32 threads (2.23
+against 2.22), and user time within 0.45 s in all twelve cells — widest
+DTAExtractor, 0.440 s at one thread and 0.435 s at 32, the latter being the
+difference between the 26.3 s and 25.9 s its two rows print. That is itself the
+point.
+SpectraFilterWindowMower has no `-fma` row because it has no `-fma` arm
+at all (§5.3). On FeatureFinderCentroided the two builds are **not**
+indistinguishable, which is why both of its rows are shown: the `-fma`
+build reaches util 6.03 and scales 5.55× where the `+fma` build reaches
+4.82 and 4.34×. **That is
 not better parallelism, it is more work to spread** — 152.2 s of thread CPU
 against 111.9 s for the same 4,076 features. A speed-up ratio flatters the
 slower build.
@@ -353,10 +378,14 @@ wave 4 that is not the same as byte-identical files: counting distinct output
 sha256 per cell, DTAExtractor, MzMLSplitter and FileInfo produce one distinct
 sha256 across all repetitions, while the five tools that stamp a processing
 completion time into the output produce as many distinct sha256 as they have
-repetitions — on the C++ side too, and on three of its cells only four of five,
-because two repetitions happened to land in the same second. The numeric content
-is deterministic and thread-invariant everywhere; five of the eight tools carry
-a timestamp.
+repetitions — on the C++ side too, and on **two** of its cells only four of
+five, because two repetitions happened to land in the same second:
+MapNormalizer at one thread and PeakPickerHiRes at 32. The C++ 32-thread
+FeatureFinderCentroided cell also carries four distinct sha256, but out of the
+four repetitions that wrote an output rather than five, for the reason §3.9
+gives; that is as many distinct files as it has repetitions, not a collision.
+The numeric content is deterministic and thread-invariant everywhere; five of
+the eight tools carry a timestamp.
 
 ### 3.7 What `-C target-feature=+fma` is worth, measured
 
@@ -436,10 +465,14 @@ the flag also switches on is real in the binaries and did not show up in the
 wall clock of these seven workloads, which are dominated by XML parsing,
 base64 and I/O rather than by float arithmetic.
 
-**The flag does not change any output.** Every `-fma` against `+fma` comparison
-is `bitwise_equal` on data and `equal` on metadata, at both thread counts, on
-every case measured. On FeatureFinderCentroided all four maximum differences —
-m/z, RT, intensity and quality — are **exactly 0.0**, over all 4,076 features;
+**The flag does not change any output.** All sixteen `-fma` against `+fma`
+comparisons are `bitwise_equal` on **data**, at both thread counts, on every
+case measured. On **metadata** ten of them are `equal` and the other six are
+`not_applicable`: DTAExtractor and the two FileInfo cases write DTA or plain
+text, which carries no metadata to compare — the same three cases §3.6 prints
+as `n/a` against the C++ build. On FeatureFinderCentroided all four maximum
+differences — m/z, RT, intensity and quality — are **exactly 0.0**, over all
+4,076 features;
 the two files differ by 8 bytes of timestamp. This reproduces the wave-5 finding
 on a second node with a completed algorithm.
 
@@ -676,10 +709,16 @@ here; this section's own figures are dax's and stand on their own.
    single-case medians by up to 2.1 % while within-session IQRs were 0.1–0.5 %.
    The bootstrap CIs resample one session's repetitions and describe
    within-session noise only. In §3.2 and §3.3 **every wave-4-to-wave-6 move
-   except FeatureFinderCentroided's is inside this band**, and so are all
-   fourteen non-FFC entries of the §3.7 flag table. None of them is a result.
-   The figures that *are* outside the band: FeatureFinderCentroided's −10.0 % and
-   −12.9 % against wave 4, and its flag ratios 1.388 and 1.087.
+   that those tables print, except FeatureFinderCentroided's, is inside this
+   band**, and so are all fourteen non-FFC entries of the §3.7 flag table. None
+   of them is a result. The figures that *are* outside the band:
+   FeatureFinderCentroided's −10.0 % and −12.9 % against wave 4, and its flag
+   ratios 1.388 and 1.087. One move is outside the band but is not printed as a
+   move: SpectraFilterWindowMower's point ratio goes from 0.730 to 0.807 at one
+   thread (+10.5 %) and from 0.807 to 0.838 at 32 (+3.8 %), and at n = 3 its
+   bootstrap intervals overlap wave 4's at 32 threads and touch at one, so §3.4
+   and caveat 10 below treat it as unresolved and the tables print a range and
+   "see §3.8" instead of a figure. Unresolved is not the same as unmoved.
 
 3. **The flag's effect on SpectraFilterWindowMower was not measured.** That plan
    carries no `-fma` arm: a third implementation would have added about 69
@@ -764,10 +803,13 @@ here; this section's own figures are dax's and stand on their own.
 
 12. **Start-up is under 1 % of every full-size case.** The C++ binaries pay
     63.7–69.5 ms on `-write_ini` alone against the port's 3.1–4.2 ms, a
-    difference of about 60–65 ms, which is under 0.5 % of every full-size case
-    here and identical between the two Rust builds (within 0.4 ms on every
-    tool). It matters only on the ~1 s FileInfo/featureXML row, and there it
-    works *against* the port, whose start-up is the cheaper one.
+    difference of 60.6–65.7 ms per tool, which is under 0.7 % of every full-size
+    case here — widest MapNormalizer at 32 threads, 0.65 % of its 9.93 s C++
+    cell — and near-identical between the two Rust builds (within 0.45 ms on
+    every tool; widest MzMLSplitter, 0.443 ms). It matters only on the ~1 s
+    FileInfo/featureXML row, where it is 4.2 % of the Rust cell and 6.3 % of the
+    C++ one, and there it works *against* the port, whose start-up is the
+    cheaper one.
 
 13. **This is a warm-cache CPU benchmark.** `majflt` is 0 in every measured
     repetition: inputs were staged node-local and resident. Fair to both sides,
@@ -775,12 +817,14 @@ here; this section's own figures are dax's and stand on their own.
 
 14. **The node was reserved for this lane but is not exclusive by
     construction.** ibminode05 was held for the benchmark for the whole run and
-    no other lane ran on it. Foreign CPU during the 281 measured repetitions was
+    no other lane ran on it. Foreign CPU during the 282 measured repetitions was
     0.0012–0.0199 per core (median 0.0091) and the pre-cell gate value
     0.0016–0.0125 per core, against a flag limit of 0.25 (0.05 at threads = 1) —
-    the same figures §3.1 prints. **0 of those 281 repetitions were load-flagged,
-    0 refused and 0 retried.** One execution outside them was: a 2.2 ms
-    `-write_ini` start-up baseline at 0.0565 per core (§3.1). It feeds no table.
+    the same figures §3.1 prints, and unchanged to the printed digit whether the
+    one failed repetition is included or not. **0 of those 282 repetitions were
+    load-flagged, 0 refused and 0 retried.** One execution outside them was:
+    a 2.2 ms `-write_ini` start-up baseline at 0.0565 per core (§3.1). It
+    feeds no table.
     Exclusive use would still need an admin or a Slurm reservation.
 
 15. **Build configurations differ and can no longer be equalised at all.** C++
@@ -834,8 +878,8 @@ here; this section's own figures are dax's and stand on their own.
 - **Byte-level output compatibility with the source for any mzML-writing tool.**
   The port writes no indentation, so every line differs textually even where
   every array is bitwise identical (§5.8).
-- **Memory parity.** The port uses 1.1×–2.7× the peak RSS on six of the nine
-  cases (§3.4).
+- **Memory parity.** The port uses 1.1×–2.7× the peak RSS on seven of the nine
+  cases — six of the eight tools — and less on the other two (§3.4).
 - **Anything at better than about 3 % across sessions** (§5.2), and nothing at
   all about cold-start or I/O-bound behaviour (§5.13).
 - **A decomposition of the mzML write path.** The SHA-1 share is projected from
