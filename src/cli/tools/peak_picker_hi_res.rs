@@ -37,7 +37,9 @@ use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
 use crate::format::PeakFileOptions;
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
-use crate::format::ms_data_writing_consumer::{MSDataWritingConsumer, MSDataWritingProcessor};
+use crate::format::ms_data_writing_consumer::{
+    MSDataWritingConsumer, MSDataWritingProcessor, ReferencePolicy,
+};
 use crate::format::mzml;
 use crate::kernel::{MSChromatogram, MSExperiment, MSSpectrum, SpectrumType};
 use crate::metadata::{
@@ -242,7 +244,19 @@ impl MSDataWritingProcessor for LowMemoryPicker {
 ///    the output has been closed, where the source silently writes an mzML
 ///    whose `count` attributes lie. Native difference, recorded in the support
 ///    document.
-/// 4. **Each record is picked and written immediately**, then dropped. Peak
+/// 4. **A record needing header entries the first record did not contribute
+///    is written with the source's dangling reference.** The header is the
+///    first record's, so a later record's `dataProcessing` cannot be numbered
+///    against it; the source numbers the reference by the record's position in
+///    the stream instead, which names nothing the header declares. This path
+///    selects
+///    [`ReferencePolicy::SourceDangling`](crate::format::ms_data_writing_consumer::ReferencePolicy::SourceDangling)
+///    to reproduce that exactly, because the alternative - the library
+///    default, which refuses the record - would stop the mode on any
+///    `FileMerger` output, where every merged part carries its own
+///    `dataProcessing`. Native difference, recorded in the support document
+///    with the C++ issue the dangling reference itself deserves.
+/// 5. **Each record is picked and written immediately**, then dropped. Peak
 ///    memory is one read batch
 ///    ([`PeakFileOptions::max_data_pool_size`], 100 records, as upstream) plus
 ///    the rendered text of one record, not the experiment.
@@ -319,7 +333,8 @@ fn run_low_memory(
 ) -> Result<ExitCode> {
     let mut processing = ctx.processing_info(&[ProcessingAction::PeakPicking])?;
     render_list_parameters(&mut processing);
-    let mut consumer = MSDataWritingConsumer::create(output, LowMemoryPicker { picker })?;
+    let mut consumer = MSDataWritingConsumer::create(output, LowMemoryPicker { picker })?
+        .with_reference_policy(ReferencePolicy::SourceDangling);
     consumer.add_data_processing(processing)?;
     let options = mzml::TransformOptions {
         load: mzml::LoadOptions {

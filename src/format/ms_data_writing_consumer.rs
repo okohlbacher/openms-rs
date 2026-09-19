@@ -73,25 +73,44 @@ const RECORD_REFERENCES: [&str; 3] = [
     " sourceFileRef=\"",
     " instrumentConfigurationRef=\"",
 ];
+/// The attribute with which a record references a `dataProcessing`.
+const PROCESSING_REFERENCE: &str = RECORD_REFERENCES[0];
+/// The attribute with which a record references a `sourceFile`.
+const SOURCE_REFERENCE: &str = RECORD_REFERENCES[1];
 /// Header element openings whose `id` a record element may reference.
 const HEADER_DECLARATIONS: [&str; 3] = [
     "<dataProcessing id=\"",
     "<sourceFile id=\"",
     "<instrumentConfiguration id=\"",
 ];
-/// The header lists whose entries a record's references are numbered against.
+/// The header lists a record contributes to, whose entries its references are
+/// numbered against.
 ///
-/// An identifier a record emits is an index into one of these, so two records
-/// may only share one header when both lists come out identical. Comparing the
-/// rendered text is exact and needs no knowledge of how the indices are
-/// assigned. `fileContent` and `instrumentConfigurationList` are deliberately
-/// not compared: the first is descriptive and legitimately differs between an
-/// MS1 and an MS2 record, and the second comes from the frozen experimental
-/// settings rather than from the record.
-const DECLARATION_BLOCKS: [(&str, &str); 2] = [
+/// An identifier a record emits is an index into one of the first two, so two
+/// records may only share one header when the lists come out identical.
+/// Comparing the rendered text is exact and needs no knowledge of how the
+/// indices are assigned.
+///
+/// `softwareList` is compared although no record references it directly,
+/// because the rendered `dataProcessing` names its software by the history's
+/// *position* (`so_dp_<history>_<method>`): two histories differing only in
+/// the software they name therefore render an identical `dataProcessingList`
+/// and a differing `softwareList`, and without this entry the later record
+/// would be written silently under the first record's software. Its other
+/// entries — the instrument's and the fallback — come from the frozen
+/// experimental settings and are identical in every render.
+///
+/// `fileContent` and `instrumentConfigurationList` are deliberately not
+/// compared: the first is descriptive and legitimately differs between an MS1
+/// and an MS2 record, and the second comes from the settings rather than from
+/// the record.
+const DECLARATION_BLOCKS: [(&str, &str); 3] = [
     ("<sourceFileList", "</sourceFileList>"),
     ("<dataProcessingList", "</dataProcessingList>"),
+    ("<softwareList", "</softwareList>"),
 ];
+/// The [`DECLARATION_BLOCKS`] slots a record's processing history renders into.
+const PROCESSING_BLOCKS: [usize; 2] = [1, 2];
 
 fn limit(what: &str) -> Error {
     Error::InvalidValue(format!("mzML writing consumer {what} limit exceeded"))
@@ -119,6 +138,43 @@ pub enum CountPolicy {
     Checked,
     /// Accept the mismatch, as the source does.
     SourceInconsistent,
+}
+
+/// How a record that needs header entries the first record did not contribute
+/// is written.
+///
+/// Only the first record reaches `writeHeader_`, so the `sourceFileList` and
+/// `dataProcessingList` of a streamed file are that record's. The source keeps
+/// writing the later records anyway and numbers their references by the
+/// record's own position in the stream, which yields an identifier the header
+/// does not declare (`MzMLHandler.cpp:5251-5272`, with `dps_` holding the one
+/// entry `writeHeader_` filled it with). mzML 1.1 forbids that. Both
+/// attributes are `xs:IDREF` on `SpectrumType` (`mzML_1_10.xsd:851`, `:856`)
+/// against `xs:ID` on `DataProcessingType` and `SourceFileType`, and
+/// `dataProcessingRef` on a `spectrum` additionally carries
+/// `KEYREF_DPREF`, whose `refer` is `KEY_DP_ID`, the `id` of a
+/// `dataProcessingList/dataProcessing` (`mzML_1_10.xsd:1064-1071`, `:983-990`).
+///
+/// The crate's policy for a source behaviour that loses or corrupts
+/// information is to refuse by default and to offer the source behaviour
+/// explicitly, as [`CountPolicy`] does.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum ReferencePolicy {
+    /// Refuse the record, leaving the document closed but short.
+    ///
+    /// [`Error::Unsupported`], because the streamed layout cannot express what
+    /// the record needs. Nothing of the record is written.
+    #[default]
+    Checked,
+    /// Write the record with the reference the source writes, dangling.
+    ///
+    /// Reproduces `writeSpectrum_` exactly: a `sourceFileRef` is renumbered to
+    /// the record's position in the stream whenever the record carries one and
+    /// is not the first, and a `dataProcessingRef` to the same number whenever
+    /// the record's processing history differs from the first record's. A
+    /// chromatogram carries neither reference in the source
+    /// (`MzMLHandler.cpp:5879`) and carries neither here.
+    SourceDangling,
 }
 
 /// Administrative ceilings for one consumer, charged before anything is written.
@@ -252,10 +308,13 @@ pub struct MSDataWritingConsumer<W: Write, P: MSDataWritingProcessor = PlainProc
     options: WriteOptions,
     limits: WritingLimits,
     counts: CountPolicy,
+    references: ReferencePolicy,
     settings: ExperimentalSettings,
     additional_data_processing: Option<Arc<DataProcessing>>,
     declared: BTreeSet<String>,
-    declarations: String,
+    /// The rendered [`DECLARATION_BLOCKS`] of the header, which every later
+    /// record's own render is compared with.
+    declarations: [String; 3],
     native_ids: BTreeSet<String>,
     native_id_bytes: usize,
     started_writing: bool,
@@ -291,10 +350,11 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
             options: WriteOptions::default(),
             limits: WritingLimits::default(),
             counts: CountPolicy::default(),
+            references: ReferencePolicy::default(),
             settings: ExperimentalSettings::default(),
             additional_data_processing: None,
             declared: BTreeSet::new(),
-            declarations: String::new(),
+            declarations: [String::new(), String::new(), String::new()],
             native_ids: BTreeSet::new(),
             native_id_bytes: 0,
             started_writing: false,
@@ -328,6 +388,12 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
         self
     }
 
+    /// Replace the header-reference policy; see [`ReferencePolicy`].
+    pub fn with_reference_policy(mut self, references: ReferencePolicy) -> Self {
+        self.references = references;
+        self
+    }
+
     /// The mzML writer options in force.
     pub fn write_options(&self) -> WriteOptions {
         self.options
@@ -341,6 +407,11 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
     /// The list-count policy in force.
     pub fn count_policy(&self) -> CountPolicy {
         self.counts
+    }
+
+    /// The header-reference policy in force; see [`ReferencePolicy`].
+    pub fn reference_policy(&self) -> ReferencePolicy {
+        self.references
     }
 
     /// The per-record processor, for a caller that wants to read its state.
@@ -720,23 +791,39 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
         let (head, body) = split(&rendered, open, close, what)?;
         let block = stamp_index(body, index)?;
         let declarations = declaration_text(head);
-        if self.started_writing {
-            if declarations != self.declarations {
-                return Err(Error::Unsupported(
-                    "record needs a different mzML sourceFileList or dataProcessingList than the \
-                     header written for the first record"
-                        .into(),
-                ));
-            }
-            check_references(&block, &self.declared)?;
-            return Ok((None, block));
+        if !self.started_writing {
+            let declared = declared_ids(head);
+            check_references(&block, &declared)?;
+            let head = head.to_owned();
+            self.declared = declared;
+            self.declarations = declarations;
+            return Ok((Some(head), block));
         }
-        let declared = declared_ids(head);
-        check_references(&block, &declared)?;
-        let head = head.to_owned();
-        self.declared = declared;
-        self.declarations = declarations;
-        Ok((Some(head), block))
+        match self.references {
+            ReferencePolicy::Checked => {
+                if declarations != self.declarations {
+                    return Err(Error::Unsupported(
+                        "record needs a different mzML sourceFileList or dataProcessingList than \
+                         the header written for the first record"
+                            .into(),
+                    ));
+                }
+                check_references(&block, &self.declared)?;
+                Ok((None, block))
+            }
+            // The source numbers this record's references by its own position
+            // in the stream whenever they cannot come from the header, which
+            // leaves an identifier nothing declares.
+            ReferencePolicy::SourceDangling => Ok((
+                None,
+                source_references(
+                    &block,
+                    what,
+                    index,
+                    processing_differs(&declarations, &self.declarations),
+                )?,
+            )),
+        }
     }
 
     /// Render a one-record document with the crate's whole-document writer.
@@ -949,14 +1036,15 @@ fn stamp_index(block: &str, index: usize) -> Result<String> {
     ))
 }
 
-/// The rendered text of the header lists a record's references index into.
+/// The rendered text of the header lists a record's references index into,
+/// one entry per [`DECLARATION_BLOCKS`] list and in that order.
 ///
-/// A list that is absent contributes nothing, so two headers that both omit it
-/// still compare equal. Both markers are ASCII and located with [`str::find`],
-/// so every index used here is a character boundary.
-fn declaration_text(head: &str) -> String {
-    let mut text = String::new();
-    for (open, close) in DECLARATION_BLOCKS {
+/// A list that is absent contributes an empty string, so two headers that both
+/// omit it still compare equal. Both markers are ASCII and located with
+/// [`str::find`], so every index used here is a character boundary.
+fn declaration_text(head: &str) -> [String; 3] {
+    let mut text = [String::new(), String::new(), String::new()];
+    for (slot, (open, close)) in DECLARATION_BLOCKS.iter().enumerate() {
         let Some(open_at) = head.find(open) else {
             continue;
         };
@@ -970,7 +1058,7 @@ fn declaration_text(head: &str) -> String {
             .checked_add(close.len())
             .and_then(|end| rest.get(..end))
         {
-            text.push_str(block);
+            text[slot].push_str(block);
         }
     }
     text
@@ -1000,6 +1088,134 @@ fn check_references(block: &str, declared: &BTreeSet<String>) -> Result<()> {
         }
     }
     Ok(())
+}
+
+/// Whether this record's own processing history differs from the header's,
+/// the source's `spec.getDataProcessing() != dps[0]`
+/// (`MzMLHandler.cpp:5258`), read off the rendered header blocks that history
+/// contributes to; see [`DECLARATION_BLOCKS`].
+fn processing_differs(record: &[String; 3], header: &[String; 3]) -> bool {
+    PROCESSING_BLOCKS
+        .iter()
+        .any(|&slot| record[slot] != header[slot])
+}
+
+/// Renumber one record's header references the way the source numbers them
+/// when the header cannot declare them (`MzMLHandler.cpp:5251-5272`).
+///
+/// `processing` is the source's `spec.getDataProcessing() != dps[0]`: the
+/// record's own rendered `dataProcessingList` differs from the header's, and
+/// `dps_` never grows past the one entry `writeHeader_` filled it with, so the
+/// source's search for a matching entry fails and it falls back to the
+/// record's position in the stream.
+///
+/// Only the record's start tag is rewritten. A reference a binary data array
+/// carries keeps the number the one-record render gave it, which dangles
+/// exactly as the source's `dp_sp_<s>_bi_<m>` does
+/// (`MzMLHandler.cpp:5560-5600`).
+fn source_references(block: &str, what: &str, index: usize, processing: bool) -> Result<String> {
+    let opening = format!("<{what} ");
+    let at = block.find(&opening).ok_or_else(|| layout(what))?;
+    let end = tag_end(block, at).ok_or_else(|| layout(what))?;
+    let mut tag = block.get(..end).ok_or_else(|| layout(what))?.to_owned();
+    let rest = block.get(end..).ok_or_else(|| layout(what))?;
+    if what != "spectrum" {
+        // `writeChromatogram_` writes neither reference (`MzMLHandler.cpp:5879`)
+        // and the one-record render produces neither, so there is nothing to
+        // renumber. A block that does carry one means the writer's layout
+        // changed under this module.
+        if RECORD_REFERENCES
+            .iter()
+            .any(|pattern| tag.contains(pattern))
+        {
+            return Err(layout("chromatogram reference"));
+        }
+        return Ok(block.to_owned());
+    }
+    if index > 0 {
+        // `sourceFileRef="sf_sp_<s>"` whenever the record carries a source
+        // file, for every record but the first (`MzMLHandler.cpp:5252-5255`).
+        tag = renumber(&tag, SOURCE_REFERENCE, &source_id("sf_sp_", index))?;
+    }
+    if processing {
+        // `dataProcessingRef="dp_sp_<s>"` (`MzMLHandler.cpp:5258-5272`). The
+        // one-record render leaves the attribute out, because the record is
+        // the only entry of its own rendered list, so it is appended where the
+        // source writes it: last.
+        tag = renumber_or_append(&tag, PROCESSING_REFERENCE, &source_id("dp_sp_", index))?;
+    }
+    tag.push_str(rest);
+    Ok(tag)
+}
+
+/// The identifier the source gives the `index`-th record's own `sourceFile` or
+/// `dataProcessing`, written verbatim.
+///
+/// The source has two identifier namespaces, `*_ru_<i>` for what the run
+/// declares and `*_sp_<i>` for what a record declares
+/// (`MzMLHandler.cpp:4959-4967`, `:5179-5181`), and numbers a record's own by
+/// its position. This writer has one namespace and zero-pads it, so a bare
+/// position would alias a declared entry — on the fixture below, stream index
+/// 3 would name the header's fourth `sourceFile`, turning a reference that
+/// must dangle into a valid one pointing at the wrong file. Emitting the
+/// source's own spelling both avoids that by construction, since nothing this
+/// writer declares is spelled that way, and puts the same bytes in the
+/// attribute that the source puts there.
+fn source_id(prefix: &str, index: usize) -> String {
+    format!("{prefix}{index}")
+}
+
+/// The byte index of the `>` that ends the start tag beginning at `from`.
+///
+/// Attribute values are tracked by quote parity, which is exact because the
+/// writer escapes a `"` inside a value as `&quot;` — the property
+/// [`stamp_index`] relies on as well. Both markers are ASCII, so the index
+/// returned is a character boundary.
+fn tag_end(block: &str, from: usize) -> Option<usize> {
+    let mut quoted = false;
+    for (at, byte) in block.get(from..)?.bytes().enumerate() {
+        match byte {
+            b'"' => quoted = !quoted,
+            b'>' if !quoted => return from.checked_add(at),
+            _ => {}
+        }
+    }
+    None
+}
+
+/// Replace the value of an attribute the start tag may carry.
+///
+/// An absent attribute leaves the tag alone, because the source writes one
+/// only when the record has the thing it names. More than one occurrence means
+/// the tag is not the one this module renders, and is refused rather than
+/// half-rewritten.
+fn renumber(tag: &str, pattern: &str, id: &str) -> Result<String> {
+    let mut found = tag.match_indices(pattern);
+    let Some((at, _)) = found.next() else {
+        return Ok(tag.to_owned());
+    };
+    if found.next().is_some() {
+        return Err(layout("record reference"));
+    }
+    let start = at
+        .checked_add(pattern.len())
+        .ok_or_else(|| layout("record reference"))?;
+    let rest = tag.get(start..).ok_or_else(|| layout("record reference"))?;
+    let end = rest.find('"').ok_or_else(|| layout("record reference"))?;
+    let head = tag.get(..start).ok_or_else(|| layout("record reference"))?;
+    let tail = rest.get(end..).ok_or_else(|| layout("record reference"))?;
+    Ok(format!("{head}{id}{tail}"))
+}
+
+/// [`renumber`], appending the attribute last when the render left it out.
+fn renumber_or_append(tag: &str, pattern: &str, id: &str) -> Result<String> {
+    if tag.contains(pattern) {
+        return renumber(tag, pattern, id);
+    }
+    if tag.ends_with('/') {
+        return Err(layout("record start tag"));
+    }
+    Ok(format!("{tag}{pattern}{id}\""))
 }
 
 /// Every attribute value introduced by `pattern`, which must end in `="`.
