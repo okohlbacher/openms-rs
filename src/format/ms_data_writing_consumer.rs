@@ -109,8 +109,6 @@ const DECLARATION_BLOCKS: [(&str, &str); 3] = [
     ("<dataProcessingList", "</dataProcessingList>"),
     ("<softwareList", "</softwareList>"),
 ];
-/// The [`DECLARATION_BLOCKS`] slots a record's processing history renders into.
-const PROCESSING_BLOCKS: [usize; 2] = [1, 2];
 
 fn limit(what: &str) -> Error {
     Error::InvalidValue(format!("mzML writing consumer {what} limit exceeded"))
@@ -168,24 +166,26 @@ pub enum ReferencePolicy {
     Checked,
     /// Write the record with the reference the source writes, dangling.
     ///
-    /// Reproduces `writeSpectrum_` on every input where the source's pointer
-    /// comparison and content equality agree: a `sourceFileRef` is renumbered
-    /// to the record's position in the stream whenever the record carries one
-    /// and is not the first, and a `dataProcessingRef` to the same number
-    /// whenever the record's processing history differs from the first
-    /// record's. "Differs" is read here off the rendered declaration blocks,
-    /// which is content equality; the source compares
-    /// `spec.getDataProcessing() != dps[0]` over
-    /// `std::vector<std::shared_ptr<const DataProcessing>>`, which is pointer
-    /// identity. The two part company on an input carrying two textually
-    /// identical `dataProcessing` entries under different identifiers, where
-    /// the source writes the dangling reference and this policy writes none;
-    /// see native difference 12 of
-    /// `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`. A
+    /// Reproduces `writeSpectrum_`: a `sourceFileRef` is renumbered to the
+    /// record's position in the stream whenever the record carries one and is
+    /// not the first, and a `dataProcessingRef` to the same number whenever
+    /// the record's processing history differs from the first record's.
+    ///
+    /// "Differs" is the source's own test, `spec.getDataProcessing() !=
+    /// dps[0]` over `std::vector<std::shared_ptr<const DataProcessing>>`
+    /// (`MzMLHandler.cpp:5258`), which `std::shared_ptr::operator==` makes
+    /// **pointer identity**. This port answers it with element-wise
+    /// [`Arc::ptr_eq`] over the record's own
+    /// `Vec<Arc<DataProcessing>>`, which is the same test on the same model:
+    /// the mzML reader hands every record that names one `dataProcessingRef`
+    /// the same `Arc` handles, exactly as `processing_[ref]` hands every such
+    /// record the same `shared_ptr`s. Two textually identical `dataProcessing`
+    /// entries under different identifiers are therefore two distinct
+    /// histories on both sides, and the reference dangles on both sides. A
     /// reference a binary data array carries is renumbered the same way, into
-    /// the source's `dp_sp_<s>_bi_<m>`, for the same reason. A
-    /// chromatogram carries neither reference on its start tag in the source
-    /// (`MzMLHandler.cpp:5879`) and carries neither here.
+    /// the source's `dp_sp_<s>_bi_<m>`. A chromatogram carries neither
+    /// reference on its start tag in the source (`MzMLHandler.cpp:5879`) and
+    /// carries neither here.
     ///
     /// Under this policy the consumer stops checking references altogether,
     /// exactly as the source never checks them.
@@ -334,8 +334,14 @@ pub struct MSDataWritingConsumer<W: Write, P: MSDataWritingProcessor = PlainProc
     additional_data_processing: Option<Arc<DataProcessing>>,
     declared: BTreeSet<String>,
     /// The rendered [`DECLARATION_BLOCKS`] of the header, which every later
-    /// record's own render is compared with.
+    /// record's own render is compared with under
+    /// [`ReferencePolicy::Checked`].
     declarations: [String; 3],
+    /// The `Arc` handles of the first record's processing history, which is
+    /// the source's `dps[0]`; see [`processing_differs`]. Its length is the
+    /// first record's history length, which the consumer has already cloned
+    /// whole.
+    header_processing: Vec<Arc<DataProcessing>>,
     native_ids: BTreeSet<String>,
     native_id_bytes: usize,
     started_writing: bool,
@@ -376,6 +382,7 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
             additional_data_processing: None,
             declared: BTreeSet::new(),
             declarations: [String::new(), String::new(), String::new()],
+            header_processing: Vec::new(),
             native_ids: BTreeSet::new(),
             native_id_bytes: 0,
             started_writing: false,
@@ -812,12 +819,17 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
         let (head, body) = split(&rendered, open, close, what)?;
         let block = stamp_index(body, index)?;
         let declarations = declaration_text(head);
+        let history = record_processing(document);
         if !self.started_writing {
             let declared = declared_ids(head);
             check_references(&block, &declared)?;
             let head = head.to_owned();
             self.declared = declared;
             self.declarations = declarations;
+            // The source's `dps[0]`: `writeHeader_` fills `dps_` from the
+            // one-record dummy map it is handed, so it holds this record's
+            // history and never grows.
+            self.header_processing = history.to_vec();
             return Ok((Some(head), block));
         }
         match self.references {
@@ -841,7 +853,7 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
                     &block,
                     what,
                     index,
-                    processing_differs(&declarations, &self.declarations),
+                    processing_differs(history, &self.header_processing),
                 )?,
             )),
         }
@@ -1111,30 +1123,48 @@ fn check_references(block: &str, declared: &BTreeSet<String>) -> Result<()> {
     Ok(())
 }
 
-/// Whether this record's own processing history differs from the header's.
+/// The processing history of the one record a per-record document carries.
 ///
-/// This stands in for the source's `spec.getDataProcessing() != dps[0]`
-/// (`MzMLHandler.cpp:5258`), read off the rendered header blocks that history
-/// contributes to; see [`DECLARATION_BLOCKS`]. It is **content** equality
-/// where the source's is pointer identity, so it answers the same on every
-/// input whose textually distinct histories are also distinct objects, and
-/// differs on one carrying two identical `dataProcessing` entries under
-/// different identifiers.
-fn processing_differs(record: &[String; 3], header: &[String; 3]) -> bool {
-    PROCESSING_BLOCKS
-        .iter()
-        .any(|&slot| record[slot] != header[slot])
+/// A document rendered by [`MSDataWritingConsumer::document`] holds exactly
+/// one record; an empty slice is unreachable there and is what the source's
+/// `dps[0]` would be for an empty history anyway.
+fn record_processing(document: &MSExperiment) -> &[Arc<DataProcessing>] {
+    if let Some(spectrum) = document.spectra.first() {
+        return &spectrum.data_processing;
+    }
+    if let Some(chromatogram) = document.chromatograms.first() {
+        return &chromatogram.data_processing;
+    }
+    &[]
+}
+
+/// Whether this record's own processing history differs from the first
+/// record's, by the source's test.
+///
+/// The source writes `spec.getDataProcessing() != dps[0]`
+/// (`MzMLHandler.cpp:5258`) over
+/// `std::vector<std::shared_ptr<const DataProcessing>>`, whose `operator==`
+/// compares sizes and then the stored **pointers**. This is that comparison:
+/// same length, and [`Arc::ptr_eq`] at every position.
+///
+/// Pointer identity is meaningful here for the same reason it is meaningful
+/// there. The mzML reader resolves every `dataProcessingRef` through one
+/// registry entry per identifier and clones the `Arc` handles out of it
+/// (`src/format/mzml_header/read.rs`, `Registry::processing`), so records
+/// naming one identifier share one allocation and records naming two
+/// identifiers do not — whatever the two entries render into. That is exactly
+/// what `processing_[ref]` does with `shared_ptr`.
+fn processing_differs(record: &[Arc<DataProcessing>], header: &[Arc<DataProcessing>]) -> bool {
+    record.len() != header.len() || !std::iter::zip(record, header).all(|(a, b)| Arc::ptr_eq(a, b))
 }
 
 /// Renumber one record's header references the way the source numbers them
 /// when the header cannot declare them (`MzMLHandler.cpp:5251-5272`).
 ///
-/// `processing` is this writer's content reading of the source's
-/// `spec.getDataProcessing() != dps[0]`: the record's own rendered
-/// `dataProcessingList` differs from the header's, and `dps_` never grows past
-/// the one entry `writeHeader_` filled it with, so the source's search for a
-/// matching entry fails and it falls back to the record's position in the
-/// stream. See [`processing_differs`] for where content and pointer part.
+/// `processing` is the source's `spec.getDataProcessing() != dps[0]`, decided
+/// by [`processing_differs`]. `dps_` never grows past the one entry
+/// `writeHeader_` filled it with, so the source's search for a matching entry
+/// fails and it falls back to the record's position in the stream.
 ///
 /// Only the record's start tag is rewritten. A reference a binary data array
 /// carries keeps the number the one-record render gave it, which dangles

@@ -771,29 +771,32 @@ fn the_source_policy_renumbers_every_later_source_file_reference() {
     assert!(!text.contains("<sourceFile id=\"sf_sp_"), "{text:.600}");
 }
 
-/// `SourceDangling` decides "differs from the first record's" by content,
-/// where the source decides it by pointer — this pins where they part.
+/// Two content-equal but pointer-distinct histories are two histories, and
+/// the second record is renumbered — the source's answer.
 ///
 /// The source compares `spec.getDataProcessing() != dps[0]`
 /// (`MzMLHandler.cpp:5258`) over
 /// `std::vector<std::shared_ptr<const DataProcessing>>`
 /// (`SpectrumSettings.h:165`), which is pointer identity, so two histories
 /// that are equal in every field but held in different objects count as
-/// different and the second record gets a dangling `dp_sp_<s>`. This port has
-/// no pointer identity in its model: it compares the text each history renders
-/// into the declaration blocks, so the second record gets no
-/// `dataProcessingRef` and inherits the list's `defaultDataProcessingRef`.
+/// different and the second record gets a dangling `dp_sp_<s>`. This port
+/// answers it with element-wise `Arc::ptr_eq` over the same model, which is
+/// the same test — the mzML reader hands every record naming one
+/// `dataProcessingRef` the same `Arc` handles, as `processing_[ref]` hands
+/// every such record the same `shared_ptr`s.
 ///
 /// Measured against the executed C++ on `ibminode06`
-/// (`../oracle/integ-w7/dupdp_06.sh`): on the committed `refs` fixture with
-/// `dp_sp_1`'s `softwareRef` repointed at `so_dp_0`, so that `dp_sp_0` and
-/// `dp_sp_1` render identically, the C++ low-memory output is byte-identical
-/// to its output on the unmodified fixture and still dangles `dp_sp_1` and
-/// `dp_sp_2`, while this port writes neither. Recorded as a divergence in
-/// native difference 12 of `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`; this
-/// test fails loudly if the decision ever becomes pointer-like.
+/// (`../oracle/reader-roundtrip/roundtrip_06.sh`, section A, and before this
+/// round `../oracle/integ-w7/dupdp_06.sh`): on `PeakPickerHiRes_dupdp_input`,
+/// which is the committed `refs` fixture with `dp_sp_1`'s `softwareRef`
+/// repointed at `so_dp_0` so that `dp_sp_0` and `dp_sp_1` render identically,
+/// the C++ low-memory output dangles `dp_sp_1` and `dp_sp_2`. Until this round
+/// the port compared the rendered declaration text instead and wrote neither,
+/// which was native difference 12 of
+/// `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`; that difference is closed and
+/// this test fails loudly if the decision ever becomes content-like again.
 #[test]
-fn a_history_equal_to_the_headers_by_content_is_not_renumbered() {
+fn a_history_equal_to_the_headers_by_content_but_not_by_pointer_is_renumbered() {
     let mut first = spectrum("scan=1", 1.0, 100.0);
     first.data_processing = history("PeakPickerHiRes", "1.0");
     // Separately constructed, equal in every field: a distinct object holding
@@ -808,27 +811,38 @@ fn a_history_equal_to_the_headers_by_content_is_not_renumbered() {
     ));
     let mut third = spectrum("scan=3", 3.0, 300.0);
     third.data_processing = history("PeakPickerHiRes", "2.0");
+    // And one that IS the first record's object, which the source calls equal.
+    let mut fourth = spectrum("scan=4", 4.0, 400.0);
+    fourth.data_processing = first.data_processing.clone();
 
     let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new())
         .with_reference_policy(ReferencePolicy::SourceDangling);
-    consumer.set_expected_size(3, 0).unwrap();
+    consumer.set_expected_size(4, 0).unwrap();
     consumer.consume_spectrum(&mut first).unwrap();
     consumer.consume_spectrum(&mut second).unwrap();
     consumer.consume_spectrum(&mut third).unwrap();
+    consumer.consume_spectrum(&mut fourth).unwrap();
     let text = written(consumer);
 
-    // The second record renders the header's own declaration blocks, so this
-    // port writes it no reference at all where the source would dangle
-    // `dp_sp_1`.
+    // The second record's history is a different object, so it dangles
+    // `dp_sp_1` — numbered by its position, as the source numbers it.
     assert!(
-        !text.contains("dataProcessingRef=\"dp_sp_1\""),
+        text.contains("dataProcessingRef=\"dp_sp_1\""),
         "{text:.900}"
     );
-    // The third record genuinely differs and is renumbered, as the source does.
+    // The third genuinely differs in content too, and is renumbered the same
+    // way.
     assert!(
         text.contains("dataProcessingRef=\"dp_sp_2\""),
         "{text:.900}"
     );
+    // The fourth shares the first record's allocation and gets no reference.
+    assert!(
+        !text.contains("dataProcessingRef=\"dp_sp_3\""),
+        "{text:.900}"
+    );
+    // Nothing renumbered is declared: every one of these dangles, which is the
+    // defect being reproduced (CPP-172).
     assert!(!text.contains("<dataProcessing id=\"dp_sp_"), "{text:.900}");
 }
 
