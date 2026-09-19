@@ -1119,18 +1119,22 @@ fn source_references(block: &str, what: &str, index: usize, processing: bool) ->
     let end = tag_end(block, at).ok_or_else(|| layout(what))?;
     let mut tag = block.get(..end).ok_or_else(|| layout(what))?.to_owned();
     let rest = block.get(end..).ok_or_else(|| layout(what))?;
-    if what != "spectrum" {
-        // `writeChromatogram_` writes neither reference (`MzMLHandler.cpp:5879`)
-        // and the one-record render produces neither, so there is nothing to
-        // renumber. A block that does carry one means the writer's layout
-        // changed under this module.
-        if RECORD_REFERENCES
-            .iter()
-            .any(|pattern| tag.contains(pattern))
-        {
-            return Err(layout("chromatogram reference"));
+    match what {
+        "spectrum" => {}
+        "chromatogram" => {
+            // `writeChromatogram_` writes neither reference
+            // (`MzMLHandler.cpp:5879`) and the one-record render produces
+            // neither, so there is nothing to renumber. A block that does
+            // carry one means the writer's layout changed under this module.
+            if RECORD_REFERENCES
+                .iter()
+                .any(|pattern| tag.contains(pattern))
+            {
+                return Err(layout("chromatogram reference"));
+            }
+            return Ok(block.to_owned());
         }
-        return Ok(block.to_owned());
+        _ => return Err(layout(what)),
     }
     if index > 0 {
         // `sourceFileRef="sf_sp_<s>"` whenever the record carries a source
@@ -1155,9 +1159,10 @@ fn source_references(block: &str, what: &str, index: usize, processing: bool) ->
 /// declares and `*_sp_<i>` for what a record declares
 /// (`MzMLHandler.cpp:4959-4967`, `:5179-5181`), and numbers a record's own by
 /// its position. This writer has one namespace and zero-pads it, so a bare
-/// position would alias a declared entry — on the fixture below, stream index
-/// 3 would name the header's fourth `sourceFile`, turning a reference that
-/// must dangle into a valid one pointing at the wrong file. Emitting the
+/// position would alias a declared entry — on the `refs` fixture of
+/// `tests/topp_peak_picker_hi_res.rs`, stream index 3 would name the header's
+/// fourth `sourceFile`, turning a reference that must dangle into a valid one
+/// pointing at the wrong file. Emitting the
 /// source's own spelling both avoids that by construction, since nothing this
 /// writer declares is spelled that way, and puts the same bytes in the
 /// attribute that the source puts there.
