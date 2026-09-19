@@ -1515,11 +1515,22 @@ defensible. They are also recorded in [VALIDATION](VALIDATION.md).
   off runs under the oracle harness's 16 GB address-space cap — to the bytes of
   1,000,000,003 arrays, the largest count measured to die on the **uncapped**
   reference node.
+- **D13** (after round 4). The crate-private `MetaValue::source_float` is
+  accepted (the public API still refuses non-finite values); the featureXML
+  writer's refusal of non-finite values and the CLI's "Unable to read file" text
+  for a write failure are a separate task, and TOPP native difference 16 stays as
+  recorded; the longer `feature_finder_picked` test time is accepted, with no
+  assertion dropped; the charge counts `-2` and `-3` stay refused
+  unconditionally; `atan` off x86_64 with glibc keeps the `libm` crate; and the
+  step-3.3.5 termination was searched for once more and found.
 - **D16** (shared-math wave, 2026-09-19). **Reproducing an unspecified
-  `std::sort` permutation is in scope.** The question the bullet below and
-  section 5.2 of [VALIDATION](VALIDATION.md) carried — whether the port should
-  reproduce a permutation the C++ standard leaves unspecified — is decided yes,
-  on four grounds:
+  `std::sort` permutation is in scope.** The question the
+  `sort_ascending` bullet of this document and the "Still open" section of
+  [VALIDATION](VALIDATION.md) carried, and which section 5.2 of
+  [STATISTIC_FUNCTIONS_SUPPORT](STATISTIC_FUNCTIONS_SUPPORT.md) and of
+  [FILE_INFO_A7_SUPPORT](FILE_INFO_A7_SUPPORT.md) left open — whether the port
+  should reproduce a permutation the C++ standard leaves unspecified — is
+  decided yes, on four grounds:
   1. **The port already does it.** `src/math/source_sort.rs` is a
      comparison-by-comparison, move-by-move port of the GCC 14.4.0 libstdc++
      introsort and `stable_sort`, validated tier 1 against two oracle drivers
@@ -1538,14 +1549,6 @@ defensible. They are also recorded in [VALIDATION](VALIDATION.md).
   4. The **pin risk is already managed**: `source_sort` names the sha256 of
      every libstdc++ header whose algorithm it reproduces, so a toolchain change
      is detectable rather than silent.
-- **D13** (after round 4). The crate-private `MetaValue::source_float` is
-  accepted (the public API still refuses non-finite values); the featureXML
-  writer's refusal of non-finite values and the CLI's "Unable to read file" text
-  for a write failure are a separate task, and TOPP native difference 16 stays as
-  recorded; the longer `feature_finder_picked` test time is accepted, with no
-  assertion dropped; the charge counts `-2` and `-3` stay refused
-  unconditionally; `atan` off x86_64 with glibc keeps the `libm` crate; and the
-  step-3.3.5 termination was searched for once more and found.
 
 ### What remains
 
