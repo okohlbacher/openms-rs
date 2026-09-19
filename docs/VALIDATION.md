@@ -6,8 +6,10 @@
 `fix/featurexml-nonfinite` (`511fafa`), `fix/picker-noise-consumers`
 (`8d3e052`), `port/a7-fileinfo` (`7801a05`) and `tools/citation-checker`
 (`f9c692f`) onto `main` `2ba9c1d`. All five merged without a conflict, and the
-merged tree changes 248 files against `main` (+28,739/−534) before this pass's
-own records. See [FILE_INFO_A7_SUPPORT](FILE_INFO_A7_SUPPORT.md),
+merged tree changes **255 files** against `main` (+29,435/−580), which is the
+237 paths the five lanes touch plus 18 this pass adds: the 11 integrator-owned
+records, and the seven files — one fixture and six frozen Release reports — the
+A7 verifier's major finding required. See [FILE_INFO_A7_SUPPORT](FILE_INFO_A7_SUPPORT.md),
 [MZML_HEADER_SUPPORT](MZML_HEADER_SUPPORT.md),
 [MS_DATA_WRITING_CONSUMER_SUPPORT](MS_DATA_WRITING_CONSUMER_SUPPORT.md),
 [FEATUREXML_SUPPORT](FEATUREXML_SUPPORT.md),
@@ -21,8 +23,9 @@ compared pairwise: 237 paths, **zero** appearing in more than one lane.
 `src/format/` splits cleanly — the reader lane owns `mzml.rs`,
 `mzml_header/read.rs` and `ms_data_writing_consumer.rs`, the featureXML lane
 owns `featurexml.rs` and `identification_xml.rs`, A7 owns `file_info.rs` and
-`file_info/*`. Confirmed after the fact: the merged tree changes 248 files,
-which is the 237 lane paths plus the 11 this pass's own records touch.
+`file_info/*`. Confirmed after the fact rather than left as an intention:
+every one of the 237 appears in the merged diff, and the 18 paths that are not
+a lane's are this pass's own.
 
 ### The five verdicts, and what this pass had to finish
 
@@ -71,9 +74,11 @@ Measured here, both ways. `a7_cons_zero_swapped.consensusXML` is
 | `maximum:` | `0` | `-0` |
 
 The port prints the left column for both. That the re-run is *additive* is
-checked rather than asserted: **all 104 expectations frozen before it rebuild
-byte for byte out of the new manifest**, and the reference tool's sha256
-`5d82c8a7…1172dc` is the same binary A6 recorded.
+checked rather than asserted: **all 110 frozen expectations rebuild byte for
+byte out of the new manifest**, of which 104 predate the re-run, and the
+reference tool's sha256 `5d82c8a7…1172dc` is the same binary A6 recorded — the
+same one A6 and the A7 lane ran, which is an independent check that all three
+packages measured the same Release build.
 
 Recorded as **native difference 6**, not as a refusal. Refusing would widen a
 refusal in `sort_ascending` — which every `SummaryStatistics` caller in the
@@ -299,6 +304,74 @@ checker fails with `Exception.h still present in repo as [nine .reference/
 paths]`, rc 1; with the merged tool and the same `ROOT` it passes,
 `Verified 2092 distinct current source/registration/reference files`. The main
 worktree was not modified — `git status --porcelain` was empty before and after.
+
+### This pass's gates
+
+All on `kim` through the gate script, slot `integ-w8`, one gate at a time on one
+slot, detached and polled; logs in the session scratchpad under
+`integ-w8-logs/final/`. Every figure below is summed from **all** the log's
+`test result:` lines and cross-checked against an anchored recount of the
+`... ok` and `... ignored` lines between them, so a dropped or interleaved line
+cannot hide a binary. It earned its keep on the full run: the triple sum reads
+5,477 and the anchored recount 5,475, because the shared ssh capture swallowed
+two `... ok` lines, and taking the larger of each pair repairs exactly that.
+
+| Gate | Result |
+|---|---|
+| `+1.85.0 check --locked --all-features --all-targets` | exit 0 (MSRV 1.85) |
+| `clippy --locked --all-features --all-targets -- -D warnings` | exit 0 |
+| `clippy --locked --no-default-features --all-targets -- -D warnings` | exit 0 |
+| `doc --locked --all-features --no-deps`, `RUSTDOCFLAGS=-D warnings` | exit 0 |
+| `test --locked --all-features --doc` | exit 0, 73 + 3 = **76 doctests**, unchanged from `main` |
+| `test --locked --all-features --all-targets --no-fail-fast` | exit 0, **5,477 passed / 0 failed / 21 ignored** over 359 result lines |
+| `test --locked --no-default-features --no-fail-fast` | exit 0, **3,660 passed / 0 failed / 3 ignored** over 335 result lines |
+| `test --locked --no-default-features --features mzml --test mzml_source_file_round_trip` | exit 0, 5 passed |
+| `test --locked --no-default-features --features consensusxml,idxml --test file_info_a7` | exit 0, 34 passed |
+| `test --locked --no-default-features --test file_info_a7 --test picker_noise_consumers --test statistic_functions` | exit 0, 11 + 19 + 27 passed |
+
+The doctest gate is run separately on purpose: `--all-targets` does not cover
+doctests, so a battery without it passes vacuously on that slice.
+
+**The full-suite difference from `main` is accounted for lane by lane**, not
+merely noted. `main` is 5,401 passed / 0 failed / 21 ignored; this head is
+5,477 / 0 / 21, a difference of +76 passed and **no change in
+ignored**. The `.rs` diff against `main` adds exactly 76 `#[test]` functions
+(5,430 → 5,506) and removes none, and they attribute cleanly: `fix/reader-round-trip` 7,
+`fix/featurexml-nonfinite` 7, `fix/picker-noise-consumers` 19,
+`port/a7-fileinfo` 42, this pass 1 (the signed-zero test), `tools/citation-checker`
+0 Rust tests and 49 Python ones. Each lane's own reported full-suite figure
+reconciles against the same base: 5,401 + 7 = 5,408 for the reader and the
+featureXML lane, 5,401 + 19 = 5,420 for the picker lane, 5,401 + 42 = 5,443 for
+A7 — the three numbers those lanes reported at their own heads — and the
+citation lane reported 5,401 unchanged.
+
+Two gates ran twice, and the reason is recorded rather than smoothed over. The
+first battery's `doc` gate failed, rc 101, on a broken intra-doc link this pass
+introduced: `[`sort_ascending`]` in the new "Signed zeros" section of
+`src/math/statistic_functions.rs` names a private item, which rustdoc cannot
+resolve and `-D warnings` therefore rejects. Fixed by writing the name in plain
+backticks, and the whole battery re-run at the final head; no other gate was
+touched by the change. Everything committed after the gate head `a6c7f34` is
+Markdown only — `docs/VALIDATION.md`, `docs/EARLY_TOPP_WORK_PACKAGES.md` and
+`SOURCE_PROVENANCE.json`'s prose note — which `git diff --name-only
+a6c7f34..HEAD` confirms, so no cargo gate can be affected by it.
+
+Locally, from the integration worktree: `cargo fmt --all -- --check` exit 0;
+`tools/check_doc_coverage.py` 4563/5918 = 77.1 %, recorded with `--write`;
+`tools/check_module_cycles.py` 64 cross-module edges and 13 mutually-dependent
+pairs, unchanged from `main`; `check_core_sdk.py`, `core_sdk_coverage.py`,
+`test_core_sdk.py`, `test_core_sdk_coverage.py`,
+`check_schema_feature_graph.py`, `test_source_citations.py` and all ten
+`generate_*.py --check` / projection / probe checkers exit 0;
+`check_source_citations.py` exits 0 with 3,344 citations resolved and 102
+confirmed. Every changed JSON parses (14 files), and `.github/workflows/rust.yml`
+parses as YAML. Determinism was re-checked here rather than taken on report:
+`parallel_determinism` 5 passed and `topp_threads` 7 passed, including
+`sums_are_bit_identical_across_thread_counts` and
+`map_collect_preserves_input_order_at_every_thread_count`.
+
+No C++ was built or run in this pass except the A7 oracle re-run on
+`ibminode06`. `ibminode05` was never contacted.
 
 ### Ignored tests
 

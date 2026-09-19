@@ -1818,8 +1818,9 @@ this wave is collected on `integrate/wave8`, which merges
 `tools/citation-checker` (`f9c692f`). Three of the five touch `src/format/`, so
 disjointness was checked rather than assumed: the five name-only diffs against
 `main` cover 237 paths and **no path appears in more than one lane**. All five
-merged without a conflict, and the merged tree changes 248 files, which is those
-237 plus the 11 this pass's own records touch. No lane touched an
+merged without a conflict, and the merged tree changes 255 files: those 237, the
+11 integrator-owned records, and the seven files of the fixture and frozen
+reports the A7 verifier's major finding required. No lane touched an
 integrator-owned file. [VALIDATION](VALIDATION.md) records the five lanes, their
 verdicts, the A7 major applied in the merged branch and its re-measurement, the
 two new lead decisions, the gates and the ignored-test inventory.
