@@ -268,6 +268,26 @@ class Pins:
         """Every path in one revision whose file name is this one."""
         return self.index.get((revision, name), [])
 
+    def packaged(self, inside, name, besides):
+        """A package pin whose layout this path fits, when none of ``besides`` does.
+
+        The issue log checks each entry against the revisions the entry itself
+        names, because its entries predate the current pin - and those are core
+        revisions, so a TOPP or CLI path written in an old entry found nothing
+        to narrow in and fell back to the core file of the same name. A package
+        has exactly one pin in this repository and no older revision of it to
+        prefer, so a path that fits its layout names it whatever the entry says:
+        ``src/PeakPickerHiRes.cpp:170-186`` is ``doLowMemAlgorithm`` in the TOPP
+        tool, and nothing at all in the core algorithm of the same name.
+        """
+        return [
+            (revision, path)
+            for revision in dict.fromkeys(self.declared.values())
+            if revision not in besides and isinstance(self.sources.get(revision), Objects)
+            for path in self.paths_named(revision, name)
+            if path.endswith(inside + name)
+        ]
+
     def lines(self, revision, path):
         key = (revision, path)
         if key not in self._lines:
@@ -633,9 +653,11 @@ def resolvable(pins, revisions, directory, name):
     unreachable rather than answered by something else. Otherwise every revision
     whose own layout the rest of the path fits is kept and the revisions it does
     not fit are dropped, instead of each of them falling back to its own file of
-    that name. Only a name with no usable path - or one whose path fits nothing
-    anywhere - resolves everywhere it exists, and :func:`check_file` then has to
-    tell those apart or count the citation ambiguous.
+    that name. If the path fits none of the revisions offered but does fit a
+    package pin outside them, that pin answers - see :meth:`Pins.packaged`. Only
+    a name with no usable path, or one whose path fits nothing anywhere,
+    resolves everywhere it exists, and :func:`check_file` then has to tell those
+    apart or count the citation ambiguous.
     """
     package, inside = split_package(directory)
     if package is not None:
@@ -649,6 +671,8 @@ def resolvable(pins, revisions, directory, name):
             anywhere.append((revision, path))
             if inside and path.endswith(inside + name):
                 narrowed.append((revision, path))
+    if inside and not narrowed and package is None:
+        narrowed = pins.packaged(inside, name, revisions)
     return narrowed or anywhere
 
 

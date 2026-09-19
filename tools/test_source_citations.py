@@ -220,6 +220,13 @@ class TwoPins:
     def paths_named(self, revision, name):
         return self.paths[revision] if name == "FileInfo.cpp" else []
 
+    def packaged(self, inside, name, besides):
+        # Only the tool is a package pin here; the SDK checkout is not.
+        return [] if TOPP in besides else [
+            (TOPP, path) for path in self.paths_named(TOPP, name)
+            if path.endswith(inside + name)
+        ]
+
     def lines(self, _revision, path):
         return self.text[path]
 
@@ -256,6 +263,21 @@ class PinResolutionTests(unittest.TestCase):
         # that name - it did, because it is the revision declared first.
         self.assertEqual(self.resolved("src/"), [TOPP])
         self.assertEqual(self.resolved("src/openms/source/FORMAT/"), [CORE])
+
+    def test_a_package_pin_claims_a_path_no_offered_revision_fits(self):
+        # An issue-log entry is checked against the revisions it names, and
+        # those are core revisions; a TOPP path in such an entry used to find
+        # nothing to narrow in and fall back to the SDK file of that name.
+        self.assertEqual(
+            [revision for revision, _ in resolvable(TwoPins(), (CORE,), "src/", "FileInfo.cpp")],
+            [TOPP],
+        )
+        # But an offered revision that does fit keeps it.
+        self.assertEqual(
+            [revision for revision, _ in
+             resolvable(TwoPins(), (CORE,), "src/openms/source/FORMAT/", "FileInfo.cpp")],
+            [CORE],
+        )
 
     def test_a_path_that_fits_no_pin_at_all_still_resolves_by_name(self):
         # Some citations write an absolute path into a .reference/ checkout.
