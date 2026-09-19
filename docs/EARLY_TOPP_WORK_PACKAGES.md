@@ -1784,7 +1784,7 @@ wave 6 so a reader can check it.
   writer, which still deduplicates by content on both sides; see wave 8 in
   `VALIDATION.md`. **mzML writer owner.**
 - ~~**A mechanical citation check would pay for itself.**~~ **Built in wave 8**
-  (`tools/citation-checker`): `tools/check_source_citations.py` resolves 3,297
+  (`tools/citation-checker`): `tools/check_source_citations.py` resolves 3,344
   citations against the pins and reads them back, and it caught a defect A7
   shipped and three review rounds missed. Read its limits before reading a green
   run for more than it says — the A6 instance that motivated it is still **not**

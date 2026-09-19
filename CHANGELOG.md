@@ -116,7 +116,7 @@
   git objects — and reads them back: a cited range must exist, a citation naming
   one line may not name a blank one, a code fragment quoted beside a citation
   must be inside the cited lines, and a transcribed block's `// :NNN`
-  annotations must match. On the whole tree it resolves 3,297 citations in about
+  annotations must match. On the whole tree it resolves 3,344 citations in about
   four seconds, confirms 102 against quoted code, and exits non-zero on a
   mismatch; `tools/test_source_citations.py` (44 tests) joins the `quality` CI
   job, while the checker itself stays in the pre-push battery, because CI has no

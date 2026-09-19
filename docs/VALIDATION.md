@@ -193,24 +193,40 @@ so it is twice as long as it should be with a zero half, which upstream's own
 picker's division by a negative integrated intensity; and the chromatogram
 picker's bin-index conversion for a histogram quotient outside `int` range.
 
-**One deferral that is explicitly NOT a D1 refusal**, kept visible so the
-distinction does not blur: a statistics sample holding a NaN **next to a
-number** is refused with
-`Error::InvalidValue("statistics input must not contain NaN")` although the
-Release build exits 0 and prints a stable report. Nothing is out of bounds
-there, so D1 would have the port reproduce it. It does not, because the
-`minimum`, quartile and `maximum` lines are positional reads of a range
-`std::sort` was free to leave in any order: `c_nan_then_finite_s` and
-`c_finite_then_nan_s` hold the same two consensus features in opposite file
-order and disagree on exactly those four lines. Reproducing them means porting
-libstdc++'s `std::sort` permutation into `sort_ascending` in shared math, which
-every `SummaryStatistics` caller consumes. See `CPP-347`.
+**A NaN next to a number is refused, and that refusal is two different things
+depending on the sample**, which is worth keeping apart because only one of them
+needs a decision:
 
-That deferral and **native difference 6** are two halves of one question, and
-they are scoped differently on purpose: the NaN half is refused, the signed-zero
-half is accepted and its divergence pinned. The reason is the source's own
-precondition — violated in the first, satisfied in the second — and the
-shared-math wave has to close both.
+- *a D1 refusal*, for a sample holding a NaN and **two or more distinct
+  numbers**. Transitivity of incomparability fails there — `1 ~ NaN` and
+  `NaN ~ 3` while `1 < 3` — so `std::sort`'s strict-weak-ordering precondition
+  is violated outright and the call is undefined. D1 refuses undefined
+  behaviour, and no lead decision is needed.
+- *a deferral that is explicitly NOT a D1 refusal*, for a NaN next to **at most
+  one distinct number**. The precondition holds there, every element is
+  equivalent, and only the permutation is unspecified; the Release build exits 0
+  and prints a stable report, so D1 would have the port reproduce it. It does
+  not, because the `minimum`, quartile and `maximum` lines are positional reads
+  of a range `std::sort` was free to leave in any order: `c_nan_then_finite_s`
+  and `c_finite_then_nan_s` hold the same two consensus features in opposite
+  file order and disagree on exactly those four lines. Reproducing them means
+  porting libstdc++'s `std::sort` permutation into `sort_ascending` in shared
+  math, which every `SummaryStatistics` caller consumes. **This is the one the
+  lead has to decide.** See `CPP-347`.
+
+Both are refused by the same message today, which is why the distinction is
+recorded here rather than left to be read off the code.
+
+That deferral and **native difference 6** are the two halves of one question,
+and they are scoped differently on purpose. Both are samples whose elements
+`std::sort` calls equivalent, in both the precondition holds, and in both the
+order statistics are positional reads — but the NaN half is refused and the
+signed-zero half is accepted with its divergence pinned. The difference is what
+refusing would cost: refusing a NaN sample turns away an input no caller has a
+use for, while refusing a signed-zero sample would turn away ordinary finite
+data the Release build summarises without complaint. The shared-math wave has to
+close both, and `CPP-347` is written around what they share rather than around
+the NaN.
 
 ### The featureXML round trip, and one divergence in each direction
 
@@ -239,7 +255,7 @@ build writes. `CPP-327`'s Rust-handling paragraph is corrected to match.
 
 `tools/check_source_citations.py` resolves C++ source citations against the pins
 this repository already declares and reads them back. At this integration head
-it exits **0** over the whole tree: **3,297 citations resolved, 102 confirmed
+it exits **0** over the whole tree: **3,344 citations resolved, 102 confirmed
 against code quoted beside them, 0 problems**, in about four seconds. Getting
 there took the six substitutions the lane asked for in `OpenMS_CPP_ISSUES.md`
 — four in one `MSSpectrum.cpp` block whose lines had shifted by six, and two
@@ -259,7 +275,7 @@ means — `:1347` the guard, `:1352` the reference, `:1354` the read.
 
 What a green run does **not** mean is stated by the tool itself and repeated
 here, because a count that reads as more than it measures is the failure mode
-this lane exists to prevent. Only 102 of 3,297 citations are *confirmed*; the
+this lane exists to prevent. Only 102 of 3,344 citations are *confirmed*; the
 rest are checked for existence, for a non-blank single line, and for annotation
 blocks. Most citations in this repository paraphrase the source instead of
 reproducing it, and a paraphrase cannot be read back. **The A6 defect that
@@ -267,9 +283,10 @@ motivated the lane is still not caught**: all eight places that write `:290-293`
 for code at `:280-283` paraphrase, and the replay at the lane's final head
 produces no finding. What the tool covers is the *class* — the transcribed block
 in `CPP-337` that reproduces the same code is read line by line, and shifting it
-fires. A further 79 citations name a file more than one pin carries with nothing
+fires. A further 192 citations name a file more than one pin carries with nothing
 to tell them apart; one pin answered each, and that count is how often the pin
-that answered may have been the wrong file of the right name. The lever that
+that answered may have been the wrong file of the right name. It is 192 rather
+than the lane's 79 because this pass's own records cite those file names too. The lever that
 would raise the confirmed fraction is a convention — quote the source verbatim
 in the code span beside the citation — not a cleverer checker.
 
@@ -364,8 +381,8 @@ recomputed in this pass rather than copied from a report.
   Whether real consensusXML files carry samples with both zeros is not measured,
   and the port's behaviour is deterministic either way.
 - **It does not claim a green citation run means the citations are right.** It
-  means 102 of 3,297 were read back against quoted code and none of the
-  remaining 3,195 is impossible. The section above says what that leaves out.
+  means 102 of 3,344 were read back against quoted code and none of the
+  remaining 3,242 is impossible. The section above says what that leaves out.
 - **It does not claim `validated_topp_workflows` moved.** It is 8, unchanged.
   Three of the eight are the tools this wave changed, and all three were already
   validated; no lane added a tool with a `src/bin/*.rs` and a tier-1 manifest.
