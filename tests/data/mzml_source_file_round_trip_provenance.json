@@ -88,7 +88,7 @@
  "external_reference_artifacts": [
   {
    "path": "../oracle/reader-roundtrip/manifest.json",
-   "sha256": "5d2d53c93225094b6a4573b20cd6abcde810f620b24cd6c745e82e082953da40",
+   "sha256": "fc83c381a0729ed18e876750e036f1af34ca5b34785c4a3760bf024400e5e594",
    "label": "oracle-generated (tier 1 executed differential)"
   },
   {
