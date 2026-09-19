@@ -76,7 +76,7 @@ caller that wanted "same size as before" passes that length.
   `density(i) / gauss_sum * sum()`, evaluated left to right, so the entries
   carry the distribution's own mass rather than integrating to one.
 - **An empty approximation succeeds and is empty.**
-  `normalApproximationHelper_` (`BasicStatistics.h:236-252`) runs
+  `normalApproximationHelper_` (`BasicStatistics.h:246-264`) runs
   `for (i = 0; i < size; ++i)` twice; for `size == 0` neither loop executes, so
   `gaussSum` stays `0` but nothing ever divides by it and `probability` is
   returned empty with no exception. Both `normalApproximation(probability, 0)`

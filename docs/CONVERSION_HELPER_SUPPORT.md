@@ -53,8 +53,9 @@ forbids overloading; the names say which direction each one runs.
   (`ConsensusFeature.cpp:35`). The port calls
   `BaseFeature::clone_with_map_index` first, for exactly that reason.
 * **The consensus-to-feature conversion copies only the `BaseFeature` slice.**
-  The source resizes the output with default-constructed features and then
-  assigns `f.BaseFeature::operator=(c)` (`ConversionHelper.cpp:56`), so position,
+  The source resizes the output with default-constructed features
+  (`ConversionHelper.cpp:56`) and then assigns `f.BaseFeature::operator=(c)`
+  (`:74`), so position,
   intensity, quality, charge, width, meta values, peptide identifications and
   identification-graph references survive, while the consensus handles and
   ratios are dropped and the produced features have no convex hulls, no

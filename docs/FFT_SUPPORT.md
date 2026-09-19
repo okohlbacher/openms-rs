@@ -127,7 +127,7 @@ without conversion.
 ## Source defects found
 
 1. **`LinearTemplateSearch` falls through silently above `log2(N) = 16`.**
-   `FFT.hpp:9` sets `FFT1D_MAX_LOG_N = 16` and `TemplateSearch.hpp:30`
+   `FFT.hpp:7` sets `FFT1D_MAX_LOG_N = 16` and `TemplateSearch.hpp:30`
    terminates the search with `assert(v == MAXIMUM); WORKER<MAXIMUM>::apply(...)`.
    With `NDEBUG` — every release build — the assertion vanishes and a transform
    of any larger length runs the **length-65536** transform over the caller's
@@ -136,12 +136,12 @@ without conversion.
    a wrong density with no diagnostic. Reachable from `MultipleTesting::lfdr`,
    whose `gridsize` is a caller parameter.
 2. **`integer_log2` rounds instead of rejecting.**
-   `shape_to_log_shape.hpp:4` computes `round(log2(val))` and guards the
-   power-of-two assertion behind `#ifdef SHAPE_CHECK`, which the OpenMS build
-   does not define. A non-power-of-two length therefore transforms a different
-   number of points than the caller asked for. `KernelDensityEstimation::forRt`
-   documents "rounds up to next power of 2" and implements no such thing, so the
-   header and the code disagree as well.
+   `integer_log2` (`shape_to_log_shape.hpp:4-14`) computes `round(log2(val))`
+   (`:8`) and guards the power-of-two assertion behind `#ifdef SHAPE_CHECK`
+   (`:9-11`), which the OpenMS build does not define. A non-power-of-two length
+   therefore transforms a different number of points than the caller asked for.
+   `KernelDensityEstimation::forRt` documents "rounds up to next power of 2" and
+   implements no such thing, so the header and the code disagree as well.
 
 Both are reported in the work package's C++ issue list.
 
