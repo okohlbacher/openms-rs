@@ -1840,8 +1840,9 @@ fn the_low_memory_mode_writes_the_sources_dangling_references() {
         );
     }
     // The document is complete, and the records carry the peaks the in-memory
-    // mode produces — compared through the text, because this port's reader
-    // will not read the file back; see below.
+    // mode produces — compared through the text, which is the stronger
+    // comparison here because it also covers the encoding, not only the
+    // decoded values the round trip below checks.
     assert!(written.ends_with("</indexedmzML>\n"));
     let temp = workdir();
     let out = temp.path().join("refs_in_memory.tmp.mzML");
