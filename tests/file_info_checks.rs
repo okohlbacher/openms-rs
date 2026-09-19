@@ -376,10 +376,10 @@ fn index_below_the_footer_window_diverges_from_the_source() {
 /// `iter = getFirstChild(); while (iter != lastChild) { iter = getNextSibling(); ... }`
 /// (`IndexedMzMLDecoder.cpp:280-282` sets `iter`, and the walk itself is
 /// `:290-293`), advancing before it reads, so the first child is never looked
-/// at. A newline there makes it a text node and the walk
-/// loses nothing — which is why every index an OpenMS writer produces parses —
-/// but without one the source drops the first offset. The Release build counts
-/// one spectrum in this two-offset file; this port counts both.
+/// at. A newline there makes it a text node and the walk loses nothing — which
+/// is why every index an OpenMS writer produces parses — but without one the
+/// source drops the first offset. The Release build counts one spectrum in
+/// this two-offset file; this port counts both.
 ///
 /// The difference belongs to `src/format/indexed_mzml.rs`, not to this package.
 #[test]

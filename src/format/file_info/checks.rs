@@ -145,11 +145,12 @@ const CHROMATOGRAM_COMMENT: &str = "";
 ///    `domParseIndexedEnd_` walks the children as
 ///    `iter = getFirstChild(); while (iter != lastChild) { iter = getNextSibling(); ... }`
 ///    (`:280-282` sets `iter`, the walk itself is `:290-293`), which advances
-///    before it reads and therefore never looks at the first child. A newline inside `<index>` puts a text node there and
-///    the walk loses nothing, which is why every index an OpenMS writer
-///    produces parses; an index written without that whitespace loses its first
-///    offset. The Release build counts one spectrum in the two-offset
-///    `index_offsets_unspaced.mzML`, this port counts two.
+///    before it reads and therefore never looks at the first child. A newline
+///    inside `<index>` puts a text node there and the walk loses nothing, which
+///    is why every index an OpenMS writer produces parses; an index written
+///    without that whitespace loses its first offset. The Release build counts
+///    one spectrum in the two-offset `index_offsets_unspaced.mzML`, this port
+///    counts two.
 ///
 /// The source applies the check to whatever `-in` names, of any type; only the
 /// FileInfo tool restricts `-i` to mzML, before the library runs.
