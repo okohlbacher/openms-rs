@@ -46,11 +46,32 @@ paragraph cites *around* a line does answer for a quotation of that span.
   python3 tools/check_source_citations.py --verbose  # and what could not be checked
 
 Citations it cannot check are counted, never guessed at: a file no reachable
-pin contains, a bare ``:a-b`` that fits no file the same paragraph cites, and a
-manifest too malformed to parse. Nor can it check a citation whose text quotes
-nothing, or paraphrases what it quotes - ``--report`` says how many of the
-citations it read were confirmed against code, which is the honest measure of
-how much of this is a check and how much is only a resolution.
+pin contains, a bare ``:a-b`` that fits no file the same paragraph cites, a
+file name that more than one pin carries and nothing else narrows, and a
+manifest too malformed to parse. ``--report`` also says which pin answered how
+many citations and confirmed how many, because a citation confirmed against the
+wrong file is worse than an unchecked one.
+
+What this does not catch, stated plainly so that a green run is not read for
+more than it says. Of the 2,917 citations it resolves, 97 are confirmed against
+code quoted beside them; the rest are checked only for existing, because most
+citations in this repository paraphrase the source instead of reproducing it,
+and a paraphrase cannot be read back. The A6 defect that this tool was written
+for - eight places citing ``:290-293`` for code that sits at ``:280-283`` - is
+still not caught, for exactly that reason: those places write
+"iter = getFirstChild()" where the source has
+``xercesc::DOMNode* firstChild = currentNode->getFirstChild();``. The replay is
+on the record and was repeated after every change made here. What the tool does
+cover is the class of defect, not that instance: the block in the issue log that
+transcribes the same code is read line by line, and shifting it fires.
+
+So the lever that would raise the confirmed fraction is a convention rather than
+a cleverer checker - quote the source verbatim in the code span beside the
+citation, and this reads it back against the pinned file. Whoever picks this up
+next should spend the effort there, and on the population named in the lane's
+``not_done``: a bare range written under a file named without a line number,
+which is where the issue log puts most of its line numbers, and which needs its
+own measurement pass over all the ranges that are currently left unresolved.
 """
 
 import argparse
@@ -109,6 +130,12 @@ REFERENCE = re.compile(r"[\w:.~]+(?:operator\s*(?:\[\]|\(\)|[^\w\s]{1,3}|\s+[\w:
 # closes after the stop - the bold of a heading, a closing backtick or bracket -
 # does not keep it from being one.
 BOUNDARY = re.compile(r"[.;:\u2014][*_`)\]]*\s")
+# How this repository writes a path inside one of the pinned packages: from the
+# package's own root, "OpenMS4-topp/src/FileInfo.cpp", and from the checkout
+# that holds them all, "OpenMS4-tests/packages/cli/source/APPLICATIONS/". The
+# pin's own paths begin below that prefix, so it has to come off before the path
+# can narrow anything - and while it is off, it says which pin is meant.
+PACKAGE_PATH = re.compile(r"^(?:OpenMS4-tests/packages/|OpenMS4-)(?P<package>[A-Za-z][\w-]*)/")
 REVISION = re.compile(r"\b[0-9a-f]{40}\b")
 ISSUE_HEADING = re.compile(r"^##\s+CPP-\d+\b")
 
@@ -119,7 +146,7 @@ MIN_QUOTATION = 14
 # Everything in the repository that cites the C++: the documents, the manifests
 # and the Rust sources, whose module and item documentation cites it too.
 DOCUMENT_GLOBS = (
-    "*.md", "docs/*.md", "docs/*.json", "tests/data/*.json", "tests/data/*/*.json",
+    "*.md", "docs/**/*.md", "docs/**/*.json", "tests/data/**/*.md", "tests/data/**/*.json",
     "src/**/*.rs", "tests/**/*.rs", "examples/*.rs", "build.rs",
 )
 
@@ -232,14 +259,9 @@ class Pins:
         """The declared pins that are not reachable here."""
         return {name: sha for name, sha in self.declared.items() if sha not in self.sources}
 
-    def candidates(self, revision, name, directory):
-        """Paths in one revision whose file name matches, narrowed by any given path."""
-        paths = self.index.get((revision, name), [])
-        if directory:
-            narrowed = [p for p in paths if p.endswith(directory + name)]
-            if narrowed:
-                return narrowed
-        return paths
+    def paths_named(self, revision, name):
+        """Every path in one revision whose file name is this one."""
+        return self.index.get((revision, name), [])
 
     def lines(self, revision, path):
         key = (revision, path)
@@ -250,9 +272,29 @@ class Pins:
     def where(self, revision, path):
         return f"{self.sources[revision]}:{path}"
 
+    def label(self, revision):
+        """A pin's short name for a tally: what the repository calls it, if anything."""
+        for name, sha in sorted(self.declared.items()):
+            if sha == revision:
+                return f"{name} {revision[:7]}"
+        source = self.sources[revision]
+        return source.path.name if isinstance(source, Directory) else str(source)
+
 
 class Unreadable(Exception):
     """A document that cannot be parsed at all, and so cannot be checked."""
+
+
+def split_package(directory):
+    """Split a cited path into the package its prefix names, if any, and the rest.
+
+    ``OpenMS4-topp/src/`` is the TOPP package's own ``src/``; ``FORMAT/`` is
+    nobody's package and comes back unchanged.
+    """
+    match = PACKAGE_PATH.match(directory)
+    if not match:
+        return None, directory
+    return match.group("package").replace("-", "_"), directory[match.end():]
 
 
 def first_directory(paths):
@@ -467,7 +509,13 @@ def pair_up(allowed, citations, quotations):
     already spoken for the best way to have reached it, which is exponential in
     the quotations and linear in the citations. A unit with more quotations
     than :data:`MOST_QUOTATIONS_PAIRED` is paired greedily instead, closest
-    pair first; that can pair fewer of them, never differently by accident.
+    pair first, which can pair both fewer of them and *differently*: greedy
+    takes a close pair that the whole-unit pairing would have split in order to
+    do better overall, so on such a unit a quotation can be attached to a
+    citation it was not written beside. Nothing in this repository reaches that
+    many - twelve is the most any unit holds - so the greedy branch is a guard
+    against a document that grows rather than a path anything here takes, and
+    ``test_the_greedy_fallback_may_pair_differently`` pins what it does.
     """
     if quotations > MOST_QUOTATIONS_PAIRED:
         taken, spoken, greedy = set(), set(), []
@@ -566,13 +614,57 @@ def problems_with(pins, revision, path, ranges, quoted, annotated):
 
 
 def resolvable(pins, revisions, directory, name):
-    """Every (revision, path) a cited file name resolves to, across the revisions."""
-    return [
-        (revision, path)
-        for revision in revisions
-        if revision in pins.sources
-        for path in pins.candidates(revision, name, directory)
-    ]
+    """Every (revision, path) a cited file name resolves to, across the revisions.
+
+    Two pins carry the same file name more often than one would think -
+    ``FileInfo.cpp`` is a core SDK source *and* a TOPP tool, and fourteen names
+    collide that way here - so answering such a citation with whichever pin
+    happens to be declared first reads the document against a file it never
+    meant. The path the citation writes decides instead, in two steps.
+
+    A path that opens with one of this repository's package prefixes names its
+    pin outright, and the citation is resolved in that pin and nowhere else; a
+    prefix naming a package with no pin resolves nowhere, and is counted as
+    unreachable rather than answered by something else. Otherwise every revision
+    whose own layout the rest of the path fits is kept and the revisions it does
+    not fit are dropped, instead of each of them falling back to its own file of
+    that name. Only a name with no usable path - or one whose path fits nothing
+    anywhere - resolves everywhere it exists, and :func:`check_file` then has to
+    tell those apart or count the citation ambiguous.
+    """
+    package, inside = split_package(directory)
+    if package is not None:
+        pinned = pins.declared.get(package)
+        revisions = (pinned,) if pinned else ()
+    narrowed, anywhere = [], []
+    for revision in revisions:
+        if revision not in pins.sources:
+            continue
+        for path in pins.paths_named(revision, name):
+            anywhere.append((revision, path))
+            if inside and path.endswith(inside + name):
+                narrowed.append((revision, path))
+    return narrowed or anywhere
+
+
+def holding(pins, attempts, quoted):
+    """The candidates whose own text holds the most of the quotations beside them.
+
+    What tells a tool's ``FileInfo.cpp`` from the SDK's, when the citation wrote
+    no path, is the code the document quotes next to it: the pin whose file
+    contains that line is the one the citation was written against. Nothing
+    quoted, or nothing found in any candidate, settles nothing - the caller then
+    keeps every candidate and counts the citation as ambiguous.
+    """
+    fragments = {fragment for fragment, _, _, _ in quoted}
+    if not fragments:
+        return []
+    scored = collections.defaultdict(list)
+    for revision, path in attempts:
+        whole = flatten(" ".join(pins.lines(revision, path)))
+        scored[sum(fragment in whole for fragment in fragments)].append((revision, path))
+    best = max(scored)
+    return scored[best] if best else []
 
 
 def owner_of(pins, revisions, bare, named):
@@ -601,11 +693,18 @@ def owner_of(pins, revisions, bare, named):
 def check_file(pins, revisions, key, cited, quoted, annotated, report):
     """Check one cited file against every revision and path it resolves to.
 
-    A file that no reachable pin contains is counted, not guessed at. Where it
-    resolves to more than one candidate - the same header under two pins, or
-    two files of the same name - a candidate that has nothing wrong with it
-    settles the matter; when they all disagree the one that disagrees least is
-    reported, since a citation is written against one file, not all of them.
+    A file that no reachable pin contains is counted, not guessed at. Where the
+    name still reaches into more than one pin - the same header under two core
+    checkouts, or a TOPP tool and an SDK source that share a name - the pin
+    whose file holds the code quoted beside the citation answers it; where
+    nothing quoted settles it the citation is counted as ambiguous, so that a
+    number stands against the chance it was read in the wrong file, instead of
+    the first pin declared quietly taking it. Among the candidates that remain,
+    one that has nothing wrong with it settles the matter; when they all
+    disagree the one that disagrees least is reported, since a citation is
+    written against one file, not all of them. Either way the pin that answered
+    is tallied, because which pin confirmed how much is the thing a reader has
+    to be able to see.
     """
     directory, name = key
     attempts = resolvable(pins, revisions, directory, name)
@@ -613,16 +712,24 @@ def check_file(pins, revisions, key, cited, quoted, annotated, report):
         report["skipped"] += len(cited)
         report["skipped_files"][name] += len(cited)
         return []
+    if len({revision for revision, _ in attempts}) > 1:
+        attempts = holding(pins, attempts, quoted) or attempts
+        if len({revision for revision, _ in attempts}) > 1:
+            report["ambiguous"] += len(cited)
+            report["ambiguous_files"][name] += len(cited)
     disagreements = []
     for revision, path in attempts:
         wrong, confirmed = problems_with(pins, revision, path, cited, quoted, annotated)
         if not wrong:
             report["checked"] += len(cited)
             report["quoted"] += confirmed
+            report["answered"][pins.label(revision)] += len(cited)
+            report["confirmed"][pins.label(revision)] += confirmed
             return []
         disagreements.append((revision, path, wrong))
     # Every candidate disagrees; report the one that disagrees least.
     revision, path, wrong = min(disagreements, key=lambda item: len(item[2]))
+    report["answered"][pins.label(revision)] += len(cited)
     return [(pins.where(revision, path), wrong)]
 
 
@@ -680,6 +787,15 @@ def named_file(unit):
     return last
 
 
+def tally():
+    """The counters one run fills in, in one place so that a caller cannot miss one."""
+    return {
+        "checked": 0, "quoted": 0, "skipped": 0, "unresolved": 0, "ambiguous": 0,
+        "skipped_files": collections.Counter(), "ambiguous_files": collections.Counter(),
+        "answered": collections.Counter(), "confirmed": collections.Counter(),
+    }
+
+
 def documents():
     seen = []
     for pattern in DOCUMENT_GLOBS:
@@ -703,10 +819,7 @@ def main():
 
     pins = Pins(arguments.reference, arguments.packages)
     default = tuple(pins.declared.values())
-    report = {
-        "checked": 0, "quoted": 0, "skipped": 0, "unresolved": 0,
-        "skipped_files": collections.Counter(),
-    }
+    report = tally()
     failures, unreadable = [], []
     for document in documents():
         name = str(document.relative_to(ROOT))
@@ -736,15 +849,27 @@ def main():
         print("Cited files that no reachable pin contains:")
         for name, count in report["skipped_files"].most_common():
             print(f"  {name} ({count})")
+    if arguments.verbose and report["ambiguous_files"]:
+        print("Cited file names that more than one pin carries, with nothing to tell them apart:")
+        for name, count in report["ambiguous_files"].most_common():
+            print(f"  {name} ({count})")
     if arguments.report or arguments.verbose:
         print("Pins: " + ", ".join(
             f"{name} {sha[:7]}" + ("" if sha in pins.sources else " (unreachable)")
             for name, sha in sorted(pins.declared.items())
         ))
+        # Which pin answered how much: a citation confirmed against the wrong
+        # file of the right name is worse than one nothing was checked against,
+        # so the split has to be visible and not only the total.
+        print("Answered by: " + (", ".join(
+            f"{where} {count} ({report['confirmed'][where]} confirmed)"
+            for where, count in report["answered"].most_common()
+        ) or "no pin"))
     summary = (
         f"{report['checked']} citations checked against the pins, "
         f"{report['quoted']} of them confirmed against code quoted beside them; "
-        f"{report['skipped']} skipped for an unreachable file and "
+        f"{report['skipped']} skipped for an unreachable file, "
+        f"{report['ambiguous']} that more than one pin could answer and "
         f"{report['unresolved']} bare ranges left unresolved"
     )
     if unreadable:

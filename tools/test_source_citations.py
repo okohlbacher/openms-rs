@@ -14,10 +14,12 @@ machine with no pinned C++ checkout to hand - which is every CI runner.
 import collections
 import pathlib
 import unittest
+from unittest import mock
 
+import check_source_citations as checker
 from check_source_citations import (
-    Unreadable, annotations_in, attach, check_unit, citations_in, named_file, problems_with,
-    quotations, units,
+    Unreadable, annotations_in, attach, check_file, check_unit, citations_in, holding,
+    named_file, pair_up, problems_with, quotations, resolvable, split_package, tally, units,
 )
 
 # A stand-in for one pinned file, with a blank line at 4 and a walk at 5-8.
@@ -43,13 +45,19 @@ class Pinned:
     def lines(_revision, _path):
         return LINES
 
+    declared = {}
+
     @staticmethod
-    def candidates(_revision, name, _directory):
+    def paths_named(_revision, name):
         return ["HANDLERS/" + name] if name == "Decoder.cpp" else []
 
     @staticmethod
     def where(_revision, path):
         return "pinned:" + path
+
+    @staticmethod
+    def label(revision):
+        return revision
 
 
 def check(ranges, quoted=(), annotated=()):
@@ -62,7 +70,7 @@ def quoted_at(fragment, first, last, text=None):
 
 
 def findings_for(unit, context=None):
-    report = {"checked": 0, "quoted": 0, "skipped": 0, "unresolved": 0, "skipped_files": collections.Counter()}
+    report = tally()
     found = check_unit(Pinned(), unit, ("r",), True, report, context)
     return [problem for _, problems in found for problem in problems]
 
@@ -139,7 +147,8 @@ class AttachmentTests(unittest.TestCase):
         self.assertEqual(self.attached(unit), {"Decoder.cpp:7": "iter = iter->getNextSibling();"})
 
     def test_a_full_stop_a_semicolon_or_a_colon_detaches_a_quotation(self):
-        for glue in (". Elsewhere,", "; elsewhere,", ": still inside", ".** Elsewhere,"):
+        for glue in (". Elsewhere,", "; elsewhere,", ": still inside", ".** Elsewhere,",
+                     "\u2014 Elsewhere,"):
             unit = f"`Decoder.cpp:3`{glue} the other branch writes `iter = iter->getNextSibling();`"
             with self.subTest(glue=glue):
                 self.assertEqual(self.attached(unit), {})
@@ -154,6 +163,17 @@ class AttachmentTests(unittest.TestCase):
                 "(`Decoder.cpp:7`, body to `Decoder.cpp:8`) and returns at `Decoder.cpp:9`")
         self.assertEqual(self.attached(unit), {"Decoder.cpp:7": "iter = iter->getNextSibling();"})
 
+    def test_the_greedy_fallback_may_pair_differently(self):
+        # Above MOST_QUOTATIONS_PAIRED the pairing is taken greedily, and greedy
+        # is not merely a smaller version of the whole-unit answer: it takes the
+        # closest pair, which here costs it both of the others. Nothing in this
+        # repository has that many quotations in one unit; this pins what the
+        # branch does if one ever grows to.
+        allowed = {(0, 0): 1, (0, 1): 10, (1, 0): 2, (1, 1): 100}
+        self.assertEqual(pair_up(allowed, 2, 2), ((0, 1), (1, 0)))
+        with mock.patch.object(checker, "MOST_QUOTATIONS_PAIRED", 1):
+            self.assertEqual(pair_up(allowed, 2, 2), [(0, 0), (1, 1)])
+
     def test_two_citations_each_keep_their_own_quotation(self):
         # The second quotation stands four characters from the first citation and
         # six from its own; pairing the paragraph as a whole does not cross them.
@@ -166,6 +186,147 @@ class AttachmentTests(unittest.TestCase):
                 "Decoder.cpp:7": "iter = iter->getNextSibling();",
             },
         )
+
+
+CORE, TOPP = "c" * 40, "t" * 40
+
+
+class TwoPins:
+    """Two pins that both carry a ``FileInfo.cpp``: the core SDK, and a TOPP tool.
+
+    Fourteen file names collide across the pins this repository declares, and
+    this is the shape of all of them - one file deep in the SDK's tree, one at
+    the top of a tool's ``src/``, sharing nothing but a name.
+    """
+
+    declared = {"core": CORE, "topp": TOPP}
+    sources = {CORE: "core bc9cc12", TOPP: "topp 174b576"}
+    paths = {CORE: ["src/openms/source/FORMAT/FileInfo.cpp"], TOPP: ["src/FileInfo.cpp"]}
+    text = {
+        "src/openms/source/FORMAT/FileInfo.cpp": [
+            "void FileInfo::run()",                      # 1
+            "{",                                         # 2
+            '  os << "Number of peaks: " << count;',     # 3
+            "",                                          # 4
+            "  for (const auto& s : exp)",               # 5
+            "  {",                                       # 6
+            "    total += s.size();",                    # 7
+            "  }",                                       # 8
+            "}",                                         # 9
+        ],
+        "src/FileInfo.cpp": ['  registerFlag_("c", "Check for corrupt data");'],
+    }
+
+    def paths_named(self, revision, name):
+        return self.paths[revision] if name == "FileInfo.cpp" else []
+
+    def lines(self, _revision, path):
+        return self.text[path]
+
+    def label(self, revision):
+        return self.sources[revision]
+
+    def where(self, revision, path):
+        return f"{self.sources[revision]}:{path}"
+
+
+FLAG = 'registerFlag_("c", "Check for corrupt data");'
+PEAKS = 'os << "Number of peaks: " << count;'
+
+
+class PinResolutionTests(unittest.TestCase):
+    """Which pin answers a citation, when two of them carry the file name."""
+
+    def resolved(self, directory):
+        return [revision for revision, _ in resolvable(TwoPins(), (CORE, TOPP), directory, "FileInfo.cpp")]
+
+    def test_a_bare_name_both_pins_carry_resolves_into_both(self):
+        self.assertEqual(self.resolved(""), [CORE, TOPP])
+
+    def test_a_package_prefix_resolves_in_that_pin_and_nowhere_else(self):
+        self.assertEqual(self.resolved("OpenMS4-topp/src/"), [TOPP])
+        self.assertEqual(self.resolved("OpenMS4-tests/packages/topp/src/"), [TOPP])
+
+    def test_a_prefix_naming_a_package_with_no_pin_resolves_nowhere(self):
+        self.assertEqual(self.resolved("OpenMS4-flash/src/"), [])
+
+    def test_a_path_that_fits_one_pin_drops_the_pins_it_does_not_fit(self):
+        # The defect this closes: "src/" is the tool's whole layout and fits
+        # nothing in the SDK, so the SDK may not answer with its own file of
+        # that name - it did, because it is the revision declared first.
+        self.assertEqual(self.resolved("src/"), [TOPP])
+        self.assertEqual(self.resolved("src/openms/source/FORMAT/"), [CORE])
+
+    def test_a_path_that_fits_no_pin_at_all_still_resolves_by_name(self):
+        # Some citations write an absolute path into a .reference/ checkout.
+        self.assertEqual(
+            self.resolved(".reference/openms4-core-bc9cc12/src/openms/source/FORMAT/"),
+            [CORE, TOPP],
+        )
+
+    def test_split_package_leaves_an_ordinary_path_alone(self):
+        self.assertEqual(split_package("FORMAT/"), (None, "FORMAT/"))
+        self.assertEqual(split_package("OpenMS4-topp/src/"), ("topp", "src/"))
+        self.assertEqual(
+            split_package("OpenMS4-tests/packages/test-data/topp/"), ("test_data", "topp/")
+        )
+
+    def test_a_tool_citation_is_read_against_the_tool_and_not_the_sdk(self):
+        # ":1-9" exists in the SDK's file of the same name and not in the
+        # tool's, so before this the SDK answered and the citation passed.
+        report = tally()
+        found = check_file(
+            TwoPins(), (CORE, TOPP), ("OpenMS4-topp/src/", "FileInfo.cpp"),
+            [(1, 9, "OpenMS4-topp/src/FileInfo.cpp:1-9", True)], (), (), report,
+        )
+        self.assertEqual([where for where, _ in found], ["topp 174b576:src/FileInfo.cpp"])
+        self.assertIn("the file has 1 lines", found[0][1][0])
+        self.assertEqual(report["checked"], 0)
+
+    def test_the_pin_whose_file_holds_the_quotation_answers_a_bare_name(self):
+        report = tally()
+        found = check_file(
+            TwoPins(), (CORE, TOPP), ("", "FileInfo.cpp"), [(1, 1, "FileInfo.cpp:1", True)],
+            [(FLAG, 1, 1, "FileInfo.cpp:1")], (), report,
+        )
+        self.assertEqual(found, [])
+        self.assertEqual(report["answered"], collections.Counter({"topp 174b576": 1}))
+        self.assertEqual(report["confirmed"], collections.Counter({"topp 174b576": 1}))
+        self.assertEqual(report["ambiguous"], 0)
+
+    def test_choosing_the_pin_by_its_quotation_does_not_excuse_the_line(self):
+        # The SDK holds this line, so the SDK answers - and then says it is at
+        # :3 and not at the :5 the citation named.
+        report = tally()
+        found = check_file(
+            TwoPins(), (CORE, TOPP), ("", "FileInfo.cpp"), [(5, 5, "FileInfo.cpp:5", True)],
+            [(PEAKS, 5, 5, "FileInfo.cpp:5")], (), report,
+        )
+        self.assertEqual([where for where, _ in found], ["core bc9cc12:src/openms/source/FORMAT/FileInfo.cpp"])
+        self.assertIn("not on the cited lines", found[0][1][0])
+
+    def test_a_bare_name_with_nothing_quoted_beside_it_is_counted_ambiguous(self):
+        report = tally()
+        self.assertEqual(
+            check_file(TwoPins(), (CORE, TOPP), ("", "FileInfo.cpp"),
+                       [(1, 1, "FileInfo.cpp:1", True)], (), (), report),
+            [],
+        )
+        self.assertEqual(report["ambiguous"], 1)
+        self.assertEqual(report["ambiguous_files"]["FileInfo.cpp"], 1)
+        self.assertEqual(report["answered"], collections.Counter({"core bc9cc12": 1}))
+
+    def test_a_name_only_one_pin_carries_is_not_ambiguous(self):
+        report = tally()
+        check_file(TwoPins(), (CORE,), ("", "FileInfo.cpp"),
+                   [(1, 1, "FileInfo.cpp:1", True)], (), (), report)
+        self.assertEqual(report["ambiguous"], 0)
+        self.assertEqual(report["checked"], 1)
+
+    def test_holding_decides_nothing_when_no_candidate_has_the_quotation(self):
+        attempts = [(CORE, "src/openms/source/FORMAT/FileInfo.cpp"), (TOPP, "src/FileInfo.cpp")]
+        self.assertEqual(holding(TwoPins(), attempts, [("nothing = here();", 1, 1, ":1")]), [])
+        self.assertEqual(holding(TwoPins(), attempts, ()), [])
 
 
 class UnitTests(unittest.TestCase):
