@@ -268,7 +268,8 @@ crashes the reference FileInfo.
    `FileHandler` maps that refusal throughout this crate.
 5. **Every NaN the FileInfo text layer prints is spelled `nan`, where glibc
    spells a NaN whose sign bit is set `-nan`.** This is a class of line, not one
-   line: any of the eight `SummaryStatistics` lines can carry one, and the
+   line: any of the seven value lines a `SummaryStatistics` block prints — the
+   mean, the five order statistics and the variance — can carry one, and the
    consensusXML `-s` blocks are the first FileInfo path whose own arithmetic can
    produce one at all.
 
@@ -299,8 +300,8 @@ crashes the reference FileInfo.
 
    *`variance` is not the only statistic these branches can make non-finite.*
    The frozen `c_zero_intensity_s` report itself carries `mean: inf` and
-   `maximum: inf`, and the `c_nan_two_s` report carries a NaN on all eight
-   lines. What is true of the oracle's cases is narrower and is what the tests
+   `maximum: inf`, and the `c_nan_two_s` report carries a NaN on every value
+   line of its block — the mean, all five order statistics and the variance. What is true of the oracle's cases is narrower and is what the tests
    assert: the `nan`/`-nan` class is the only way any of them disagrees.
 
    *The value is reproduced; only the text differs.* Measured on x86_64:
@@ -387,10 +388,11 @@ Two shapes answer yes, and both are **reproduced**:
 | one value | a one-element range has exactly one permutation | `c_nan_one_s` |
 | every value a NaN | `std::sort` may permute freely, but every permutation prints the same eight lines | `c_nan_two_s` |
 
-For the first the reference prints the NaN on all six positional lines and `0`
-for the variance — the `n <= 1` substitution of
-`StatisticFunctions.h:951`. For the second it prints a NaN on all eight,
-because `n > 1` lets `Math::variance` run.
+For the first the reference prints the NaN on the mean and on all five order
+statistics, and `0` for the variance — the `n <= 1` substitution of
+`StatisticFunctions.h:951`. For the second the variance is a NaN too, because
+`n > 1` lets `Math::variance` run, so all seven value lines carry one and only
+`num. of values` does not.
 `SummaryStatistics::of_nan_sample` (`src/math/statistic_functions.rs`) computes
 both without sorting, since there is nothing to order.
 

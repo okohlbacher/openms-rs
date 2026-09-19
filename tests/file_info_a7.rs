@@ -692,8 +692,8 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
 ///
 /// - **one value** (`a7_cons_nan_one`): a one-element range has exactly one
 ///   permutation, so there is nothing to choose. The Release build prints the
-///   NaN on all six positional lines and `0` for the variance, which is the
-///   `n <= 1` substitution;
+///   NaN on the mean and on all five order statistics, and `0` for the
+///   variance, which is the `n <= 1` substitution;
 /// - **every value a NaN** (`a7_cons_nan_two`): `std::sort` may permute
 ///   freely, but every permutation of an all-NaN range prints the same eight
 ///   lines. Here `n > 1`, so the variance is a NaN too;
@@ -771,8 +771,8 @@ fn consensus_nan_in_the_statistics_sample() {
         );
     }
 
-    // The one-value sample: the six positional lines are the NaN and the
-    // variance is the substituted zero, exactly as the reference prints them.
+    // The one-value sample: the mean and the five order statistics are the NaN
+    // and the variance is the substituted zero, as the reference prints them.
     let one_s = FileInfo::new()
         .run(input("a7_cons_nan_one.consensusXML"), &statistics)
         .expect("c_nan_one_s");

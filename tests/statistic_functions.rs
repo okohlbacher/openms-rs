@@ -834,8 +834,9 @@ fn the_sorting_entry_points_refuse_a_nan() {
 #[test]
 fn summary_statistics_summarises_the_two_unobservable_nan_samples() {
     // One value. `std::sort` over a one-element range is a no-op by
-    // [alg.sorting]. Reference: num. of values 1, mean/minimum/lower quartile/
-    // median/upper quartile/maximum all `-nan`, variance `0`.
+    // a one-element range has exactly one permutation. Reference: num. of
+    // values 1, mean/minimum/lower quartile/median/upper quartile/maximum all
+    // `-nan`, variance `0`.
     let mut lone = [f64::NAN];
     let stats = SummaryStatistics::new(&mut lone).unwrap();
     assert_eq!(stats.count, 1);
@@ -851,8 +852,8 @@ fn summary_statistics_summarises_the_two_unobservable_nan_samples() {
     assert!(lone[0].is_nan());
 
     // Every value a NaN. The permutation is unspecified but unobservable.
-    // Reference: num. of values 2 and all eight lines `-nan`, the variance
-    // included, because n > 1 lets Math::variance run.
+    // Reference: num. of values 2 and all seven value lines `-nan`, the
+    // variance included, because n > 1 lets Math::variance run.
     let mut all = [f64::NAN, f64::NAN];
     let stats = SummaryStatistics::new(&mut all).unwrap();
     assert_eq!(stats.count, 2);
