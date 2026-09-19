@@ -120,7 +120,7 @@ whole content is a length question and the class test calls one of them on
 | The `sorted` boolean becomes two functions | The `false` case mutates the caller's range. `&mut [f64]` states that in the signature; `&[f64]` proves the other does not. |
 | The `mean = DBL_MAX` sentinel becomes two functions | A caller that genuinely wants the deviation about `DBL_MAX` cannot express it in the source. |
 | Sortedness is always checked | `median_sorted`, `quantile1st_sorted`, `quantile3rd_sorted` and `quantile` return `Error::UnsortedData` for a non-ascending input. The source states the precondition as `@pre` and checks it only through `OPENMS_PRECONDITION`, compiled out of a release build. A NaN also fails this check, including in a one-element range, which has no adjacent pair to disagree and which `std::is_sorted` accepts. |
-| A NaN is refused by everything that orders values | See "NaN policy" below. The four functions above report `Error::UnsortedData`, because a NaN makes the caller's sortedness claim false; the seven that sort or stage a buffer themselves — `median`, `quantile1st`, `quantile3rd`, `mad`, `compute_rank`, `rank_correlation_coefficient`, `SummaryStatistics::new` — report `Error::InvalidValue`. |
+| A NaN is refused wherever ordering it would decide the answer | See "NaN policy" below. The four functions above report `Error::UnsortedData`, because a NaN makes the caller's sortedness claim false; the six that sort or stage a buffer themselves — `median`, `quantile1st`, `quantile3rd`, `mad`, `compute_rank`, `rank_correlation_coefficient` — report `Error::InvalidValue`. `SummaryStatistics::new` reports it too, except for the two sample shapes in which the permutation cannot be observed. |
 | `variance`, `sd` and `covariance` refuse `n < 2` | The `n - 1` divisor is zero there and the source returns NaN. A NaN variance is exactly what this layer would propagate into everything built on it. `SummaryStatistics` keeps the source's `0.0` for `n <= 1`, because the source's own comment fixes that value. |
 | A zero correlation denominator returns NaN explicitly instead of dividing | For both Matthews and Pearson a zero denominator forces a zero numerator (proved below), so `0 / 0 = NaN` is the source's value in every reachable case. The one divergence is a denominator that *underflows* to zero from non-zero deviations, where the source yields an infinity and the port yields NaN. |
 | `adaptive_quantile` rejects non-finite `k`, `r_sparse`, `r_dense` | The source accepts a NaN threshold and lets it decide the blend weight through comparisons that are all false. |
@@ -141,7 +141,8 @@ whatever the library's introsort happens to do. The port draws the line at
 
 | Group | Functions | NaN input |
 | --- | --- | --- |
-| Sorts or stages a buffer it then sorts | `median`, `quantile1st`, `quantile3rd`, `mad`, `compute_rank`, `rank_correlation_coefficient`, `SummaryStatistics::new` | `Error::InvalidValue`, raised before the sort, so the caller's range is left in its original order |
+| Sorts or stages a buffer it then sorts | `median`, `quantile1st`, `quantile3rd`, `mad`, `compute_rank`, `rank_correlation_coefficient` | `Error::InvalidValue`, raised before the sort, so the caller's range is left in its original order |
+| Sorts, but answers the shapes whose permutation is unobservable | `SummaryStatistics::new` | `Error::InvalidValue` as above, **except** for a one-value sample and an all-NaN sample; see below |
 | Requires the caller to have sorted | `median_sorted`, `quantile1st_sorted`, `quantile3rd_sorted`, `quantile` | `Error::UnsortedData`, the same error any other order violation gets |
 | Drops non-finite values first | `tukey_upper_fence`, `tail_fraction_above`, `winsorized_quantile`, `adaptive_quantile` | filtered out, exactly as the source's `std::isfinite` filter does; never reaches an ordering |
 | Neither sorts nor buffers | `sum`, `mean`, `variance`, `sd`, `covariance`, `mean_square_error`, `root_mean_square_error`, `absdev`, `mean_absolute_deviation`, `pearson_correlation_coefficient` | propagates to a NaN result, as in the source |
@@ -150,6 +151,37 @@ whatever the library's introsort happens to do. The port draws the line at
 `mad` additionally refuses a NaN `median_of_numbers`, and refuses the staged
 differences when they contain a NaN neither input had — `inf - inf` is the only
 way that happens.
+
+`SummaryStatistics::new` is the one exception, and it is a narrow one. Two
+sample shapes make the unspecified permutation *unobservable*, and in both cases
+that is a proof rather than an observation that it happened not to matter:
+
+- **one value.** Sorting a one-element range is a no-op by `[alg.sorting]`, so
+  there is no permutation to be unspecified about. Every positional field is
+  that value, and `variance` is the `0.0` the source substitutes for `n <= 1`;
+- **every value a NaN.** Every permutation of an all-NaN range produces the same
+  eight fields, because every field is read from, or computed out of, values
+  that are all NaN.
+
+`SummaryStatistics::of_nan_sample` computes both without sorting, since there is
+nothing to order, and a NaN next to a number is still refused. Both shapes are
+reached from real input and both are pinned against the Release C++ build:
+`FileInfo`'s consensusXML `-s` blocks divide, and a pair of sub-features of
+intensity `-0.0` and `0.0` under one centroid contributes `(-inf) + (+inf)` to
+the per-consensus-feature sample (`../oracle/a7-fileinfo`, cases `c_nan_one_s`
+and `c_nan_two_s`).
+
+The refusal that remains is a **deferral, not a decision-D1 refusal**, and is
+raised for the lead. Nothing is out of bounds and the Release build's values are
+stable per input, so D1 would have the port reproduce them; it does not, because
+libstdc++ compares every pair involving a NaN false and therefore moves nothing,
+which makes the `minimum`, quartile and `maximum` lines positional reads of a
+range `std::sort` never ordered. Measured: the oracle's `c_nan_then_finite_s`
+and `c_finite_then_nan_s` hold the same two consensus features in opposite file
+order and disagree on exactly those four lines. Reproducing them means porting
+libstdc++'s `std::sort` permutation into `sort_ascending`, which every
+`SummaryStatistics` caller consumes — its own wave. See CPP-347 and section 5.2
+of `docs/FILE_INFO_A7_SUPPORT.md`.
 
 An infinity is refused nowhere. Both `std::sort` and `f64::total_cmp` order it
 consistently, so the source's answer is well defined and is the port's answer.

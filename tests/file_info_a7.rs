@@ -812,6 +812,18 @@ fn consensus_nan_in_the_statistics_sample() {
         assert_eq!(message, "statistics input must not contain NaN", "{name}");
     }
 
+    // The refused runs write no TSV at all, and the Release build's `-s` TSV
+    // for the same two files is byte-identical to its bare one, because
+    // FileInfo.cpp:2257-2372 writes nothing to os_tsv. So nothing of the TSV
+    // side is lost by refusing, and the bare run above already reproduces it.
+    for case in ["c_nan_then_finite", "c_finite_then_nan"] {
+        assert_eq!(
+            read_text(&data(&format!("file_info_a7/expected/{case}.tsv"))),
+            read_text(&data(&format!("file_info_a7/expected/{case}_s.tsv"))),
+            "{case}: the -s TSV is the bare TSV"
+        );
+    }
+
     // Why it is refused: the retained Release reports for those two files are
     // the same length and disagree on exactly the four order statistics, so the
     // values are a property of the file order rather than of the sample.
