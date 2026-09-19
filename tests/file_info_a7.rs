@@ -679,8 +679,8 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
 /// `FileInfo.cpp:2310` divides and `:2312-2315` inverts every ratio below 1, so
 /// a sub-feature of intensity `-0.0` under a positive centroid contributes
 /// `1 / -0.0 = -inf` and one of intensity `0.0` contributes `1 / 0.0 = +inf`.
-/// `:2317` accumulates `(-inf) + (+inf) = NaN` and `:2321-2323` divides it by
-/// `cm.size()`, so the NaN is pushed into `it_aad_by_cfs` — the sample of the
+/// `:2317` accumulates `(-inf) + (+inf) = NaN`, `:2323` divides it by
+/// `cm.size()` and `:2327` pushes it into `it_aad_by_cfs` — the sample of the
 /// *Average relative intensity error within consensus features* block — and is
 /// handed to `std::sort`. Under `operator<` a NaN is incomparable with every
 /// value, itself included, so `std::sort` may return any permutation of the

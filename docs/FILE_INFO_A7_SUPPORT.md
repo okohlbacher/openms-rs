@@ -369,8 +369,8 @@ raised for the lead rather than worked around here.
 
 `:2310` divides and `:2312-2315` inverts, so a consensus feature with one
 sub-feature of intensity `-0.0` and one of `0.0` under a positive centroid
-contributes `(-inf) + (+inf)` at `:2317`, and `:2321-2323` pushes the resulting
-NaN into `it_aad_by_cfs` — the *sample* of the `Average relative intensity error
+contributes `(-inf) + (+inf)` at `:2317`, which `:2323` divides by `cm.size()`
+and `:2327` pushes into `it_aad_by_cfs` — the *sample* of the `Average relative intensity error
 within consensus features` block, not a statistic summarised out of one. The
 sample then goes to `std::sort`.
 

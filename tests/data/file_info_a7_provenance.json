@@ -174,7 +174,7 @@
         },
         {
             "what": "a Math::SummaryStatistics sample holding a NaN next to a number is refused (Error::InvalidValue, \"statistics input must not contain NaN\") where the reference build exits 0 and prints a report",
-            "why": "Reached from the same arithmetic as the item above: a consensus feature with one sub-feature of intensity -0.0 and one of 0.0 contributes a NaN to it_aad_by_cfs (FileInfo.cpp:2317, :2321-2323). SummaryStatistics summarises the two shapes in which the sample's order cannot decide the answer -- one value, which has exactly one permutation, and an all-NaN sample, every permutation of which prints the same eight lines -- and both are reproduced (oracle cases c_nan_one_s and c_nan_two_s). A NaN next to a number is different: std::sort may return any permutation of the elements it cannot tell apart (and, once two or more distinct numbers are present, its strict-weak-ordering precondition fails outright, since 1 ~ NaN and NaN ~ 3 while 1 < 3); libstdc++ compares every pair involving the NaN false and therefore moves nothing, so the minimum, quartile and maximum lines the reference prints are positional reads of a range it was free to leave in any order. Measured: c_nan_then_finite_s and c_finite_then_nan_s hold the same two consensus features in opposite file order, both stable across runs, and disagree on minimum, lower quartile, upper quartile and maximum. Reproducing them means porting libstdc++'s std::sort permutation into sort_ascending in shared math, which every SummaryStatistics caller in the crate consumes; that is its own wave. This is therefore a DEFERRAL, not a D1 refusal, and it is raised for the lead. consensus_nan_in_the_statistics_sample asserts the exact refusal, that the bare run still succeeds, and that the two retained reference reports disagree on exactly those four lines.",
+            "why": "Reached from the same arithmetic as the item above: a consensus feature with one sub-feature of intensity -0.0 and one of 0.0 contributes a NaN to it_aad_by_cfs (FileInfo.cpp:2317, :2323, :2327). SummaryStatistics summarises the two shapes in which the sample's order cannot decide the answer -- one value, which has exactly one permutation, and an all-NaN sample, every permutation of which prints the same eight lines -- and both are reproduced (oracle cases c_nan_one_s and c_nan_two_s). A NaN next to a number is different: std::sort may return any permutation of the elements it cannot tell apart (and, once two or more distinct numbers are present, its strict-weak-ordering precondition fails outright, since 1 ~ NaN and NaN ~ 3 while 1 < 3); libstdc++ compares every pair involving the NaN false and therefore moves nothing, so the minimum, quartile and maximum lines the reference prints are positional reads of a range it was free to leave in any order. Measured: c_nan_then_finite_s and c_finite_then_nan_s hold the same two consensus features in opposite file order, both stable across runs, and disagree on minimum, lower quartile, upper quartile and maximum. Reproducing them means porting libstdc++'s std::sort permutation into sort_ascending in shared math, which every SummaryStatistics caller in the crate consumes; that is its own wave. This is therefore a DEFERRAL, not a D1 refusal, and it is raised for the lead. consensus_nan_in_the_statistics_sample asserts the exact refusal, that the bare run still succeeds, and that the two retained reference reports disagree on exactly those four lines.",
             "owner": "shared math (src/math/statistic_functions.rs, SummaryStatistics::of_nan_sample and sort_ascending); this package pins the boundary and the evidence"
         }
     ],
@@ -197,7 +197,7 @@
     "external_reference_artifacts": [
         {
             "path": "../oracle/a7-fileinfo/oracle.py",
-            "sha256": "6e8f3e3e87f90f5e2bf959604f52fe54b57156d4b9ce0e031a3900d839caea65",
+            "sha256": "12c83f45e06ab2d90590cab508cdf53327027c4fa9774134a6b1ee251251696a",
             "origin_key": "fixtures",
             "role": "driver: case table, per-case scratch runs, reproduction check, manifest writer"
         },
@@ -209,7 +209,7 @@
         },
         {
             "path": "../oracle/a7-fileinfo/scripts/make_a7_fixtures.py",
-            "sha256": "ab03687f44c83f71dea069bb52fa996bbdcdf5620d2766ad2952b7f03edc7b10",
+            "sha256": "4342047de92c9e943f06f72175b688922a593ec1b4697b915c539de3e1dd9cc9",
             "origin_key": "fixtures",
             "role": "generator of the degenerate FASTA, consensusXML and idXML inputs"
         },
@@ -221,7 +221,7 @@
         },
         {
             "path": "../oracle/a7-fileinfo/manifest.json",
-            "sha256": "d48058215be9a0c1116de276525ad2341482d7e35c3af66a9f17108a4070d19a",
+            "sha256": "8d548fddb7c0298508463f984154f64af71c1c1b4e77d93cf5733d9e96c39e56",
             "origin_key": "fixtures",
             "role": "tool hash, environment, fixture hashes, per-case argv, exit codes and output hashes, reproduction verdict, out_of_bounds records"
         }
