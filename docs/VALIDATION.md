@@ -382,20 +382,26 @@ No C++ was built or run in this pass except the A7 oracle re-run on
 
 ### The polish round on top of this head
 
-Twelve minors were carried into a polish round after the integration head.
-Seven were already applied by the integrator while merging and are recorded
-here only so that a re-reader does not go looking: the whole A7 group
-(the mechanism claim's scoping, integrator request 8's split, the oracle case
-note, the garbled test comment), the A7 handover's commit list and the citation
-lane's commit count, which live in handover text rather than in the repository,
-and the ledger claim above, which was never written into a committed file.
+Twelve minors were carried into a polish round after the integration head, and
+each was checked against this head before anything was changed.
 
-Five needed work, and two of them were not wording. **The chromatogram
+**Four were already applied** by the integrator while merging — the whole A7
+group: the mechanism claim scoped in all eight places, integrator request 8's
+refused class split in two, the oracle case note rewritten and its manifest
+re-emitted, and the garbled test comment finished. They are named here so that
+a re-reader does not go looking for them. The mechanism claim was nevertheless
+sharpened again, because checking that the applied scoping was *true* turned up
+a second condition it did not carry; that is the first bullet below. Three further findings turned out to
+be about handover text rather than about the repository, and no committed file
+carries them: the A7 handover's commit list, the citation lane's commit count,
+and the ledger claim answered above.
+
+**Eight needed work**, and two of those were not wording. **The chromatogram
 `sourceFileRef` refusal is now executed** rather than only described, and
 **the citation checker's ambiguity guard now counts per file rather than per
 pin** and counts only where it counts `checked`, with `Pins.packaged` and both
 directions of the subset relation pinned by tests that fail when the fix is
-mutated away.
+mutated away. The other six are the counts and wording below.
 
 Three figures were re-measured rather than carried, and two of them moved
 against what the round was told:
@@ -425,8 +431,10 @@ through `/scratch/kohlbach/openms-rs-env.sh` for `pkg-config` and `libxml2`:
 | `doc --locked --all-features --no-deps`, `RUSTDOCFLAGS=-D warnings` | exit 0 |
 | `test --locked --all-features --doc` | exit 0, 73 + 3 = **76 doctests**, unchanged |
 | `test --locked --all-features --all-targets --no-fail-fast` | exit 0, **5,478 passed / 0 failed / 21 ignored** over 359 result lines |
+| `test --locked --no-default-features --no-fail-fast` | exit 0, **3,660 passed / 0 failed / 3 ignored**, unchanged |
 
-5,478 is 5,477 **+1**, and the one is
+The no-default suite does not move because the new test is behind the `mzml`
+feature. 5,478 is 5,477 **+1**, and the one is
 `a_chromatograms_source_file_ref_is_refused_under_both_policies`. The triple
 sum and the anchored recount of `... ok` lines agree at 5,478 this time, with
 0 `FAILED`, 0 `panicked`, 0 `failures:` and 0 lines starting `error`. Locally:
