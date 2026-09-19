@@ -74,6 +74,18 @@
    "sha256": "fad32145209a6c575a9ad082a6404b3e1d98d0a1e7a0b53aeca84d6f2b78bcbe",
    "extraction": "Verbatim, byte-identical source fixture; no C++ execution.",
    "path": "tests/data/featurexml_source_old.featureXML"
+  },
+  {
+   "source": "none (executed C++ Release output)",
+   "sha256": "f8feb8ea8615f877f5dc1318c120cae7b0edce6e947e889a7c1956dd230a3786",
+   "extraction": "Written by FeatureXMLFile::store of the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (../oracle/featurexml-inf, drivers/probe_nonfinite.cpp, two repetitions whose documents are byte-identical). Every feature field, meta value, float-list entry and FWHM non-finite (+inf, -inf, NaN, -NaN), the hull points finite.",
+   "path": "tests/data/featurexml_nonfinite_release.featureXML"
+  },
+  {
+   "source": "none (executed C++ Release output)",
+   "sha256": "f87c4c233495fa3f66a40538877a46fc635398c6c9bf8ab09148f037ecb79b93",
+   "extraction": "Written by FeatureXMLFile::store of the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (../oracle/featurexml-inf, drivers/probe_nonfinite.cpp, two repetitions whose documents are byte-identical). The same document with its hull points non-finite too, and nothing else changed; this port refuses it.",
+   "path": "tests/data/featurexml_nonfinite_hull_release.featureXML"
   }
  ],
  "verification": "Native Rust tests use upstream literal field/count assertions plus independent synthetic boundaries. No upstream build or executable oracle.",

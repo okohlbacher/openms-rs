@@ -227,6 +227,22 @@ const FFC1_ALGORITHM_LINES: &[&str] = &[
     "8 features found.",
 ];
 
+/// The Release build's algorithm block for the `rt_e39` input, from its own
+/// stdout (`../oracle/featurexml-inf/results/out_dir.txt` and
+/// `results/tool/rt_e39.r1/stdout.txt`): one candidate more than
+/// [`FFC1_ALGORITHM_LINES`] and no unfinalized-feature reason, because every
+/// retention time is scaled by `1e39`.
+const RT_E39_ALGORITHM_LINES: &[&str] = &[
+    "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.",
+    "Found 25 seeds for charge 2.",
+    "Found 9 feature candidates for charge 2.",
+    "Removed 0 overlapping features.",
+    "",
+    "Info: reasons for not finalizing a feature during its construction:",
+    "",
+    "9 features found.",
+];
+
 /// The same lines for the `-seeds` run, whose 24 given seeds give one candidate
 /// more and one overlap removal (oracle `FFC_seeds`, C++ Release confirmed).
 const FFC_SEEDS_ALGORITHM_LINES: &[&str] = &[
@@ -1291,25 +1307,38 @@ fn derive_rt_suffix(source: &[u8], suffix: &str) -> Vec<u8> {
     out
 }
 
-/// **Features of infinite width and intensity cannot be written** (native
-/// difference 16), measured against the C++ Release build
-/// (`../oracle/ffap-complete-fix4`, cases `rt_e36`, `rt_e39` and
-/// `rt_e39_egh`, two runs each, identical apart from the timing lines;
-/// `rt_scaled_release.tsv`).
+/// **Features of infinite width and intensity are written**, measured against
+/// the C++ Release build (`../oracle/featurexml-inf`, cases `rt_e36`, `rt_e39`
+/// and `rt_e39_egh`, two runs each whose output featureXML is byte-identical;
+/// `rt_scaled_release.tsv` and `rt_scaled_release_features.tsv`).
 ///
-/// With every retention time of FeatureFinderCentroided_1 scaled by `1e36`
-/// the fitted features' `float` intensities overflow, and with `1e39` their
-/// widths too; the Release tool prints its usual lines, exits 0 and writes
-/// `<intensity>inf</intensity>` and `FWHM` `inf` into the featureXML. The
-/// algorithm port computes the same features (`vy_rt_*` of
-/// `extended_cases_match_the_linux_release_build` in
-/// `tests/feature_finder_picked.rs`) and this tool prints the same lines, but
-/// the native featureXML writer refuses a non-finite feature value, so the
-/// tool exits 3 without an output file.
+/// With every retention time of FeatureFinderCentroided_1 scaled by `1e36` the
+/// fitted features' `float` intensities overflow, and with `1e39` their widths
+/// too; the Release tool prints its usual lines, exits 0 and writes
+/// `<intensity>inf</intensity>` and `FWHM` `inf` into the featureXML, because
+/// `precisionWrapper` and `writeUserParam_` spell a non-finite value rather
+/// than refusing it. This port now does the same, and the written document
+/// carries every value the Release build's does: the fixture holds all 1263
+/// of them, taken from the executed output, and each is compared after
+/// rendering this port's value the way the source renders it — six fractional
+/// digits for a `float` field, fifteen for a `double`
+/// (`writtenDigits`, `NumericFormatting.h:27-135`).
+///
+/// That precision is one of three differences of text that remain, and none of
+/// the three is a difference of value. The other two are older than this lane
+/// and belong to the shared metadata codec: the source joins a `floatList`
+/// with `", "` (`ListUtilsIO.h:35-40`) where this port joins with `","`, and
+/// it writes a `UserParam`'s attributes as `type`, `name`, `value` where this
+/// port writes `name`, `type`, `value`. The pinned reader reads this port's
+/// separator back to the same numbers, executed over every spelling
+/// (`../oracle/featurexml-inf/results/r2/all.tsv`, the `listnospace_*` cases).
+///
+/// This closes TOPP native difference 16, which recorded the earlier refusal.
 #[test]
-fn infinite_feature_values_are_refused_by_the_featurexml_writer() {
+fn infinite_feature_values_are_written_as_the_release_build_writes_them() {
     let source = fs::read(ffc1_input()).unwrap();
     let release = fs::read_to_string(fixture("rt_scaled_release.tsv")).unwrap();
+    let values = fs::read_to_string(fixture("rt_scaled_release_features.tsv")).unwrap();
     let ini = text(ffc1_ini());
     for (case, suffix, extra) in [
         ("rt_e36", "e36", &[][..]),
@@ -1362,9 +1391,173 @@ fn infinite_feature_values_are_refused_by_the_featurexml_writer() {
         args.extend_from_slice(extra);
         let outcome = run_in(&dir, &args);
         assert_out_block(&outcome, &block);
-        outcome.assert_exit(ExitCode::InputFileCorrupt);
-        outcome.assert_err_contains("nonfinite feature value");
-        assert!(!Path::new(&out).exists(), "{case}: no output file");
+        outcome.assert_exit(ExitCode::ExecutionOk);
+        assert_eq!(outcome.err, "", "{case}");
+
+        // The document on disk still spells the infinities the way the
+        // Release build spells them.
+        let written = fs::read_to_string(&out).unwrap();
+        assert!(written.contains("<intensity>inf</intensity>"), "{case}");
+        assert_eq!(
+            written.matches("<intensity>inf</intensity>").count(),
+            count,
+            "{case}"
+        );
+        assert_eq!(
+            written
+                .matches("name=\"FWHM\" type=\"float\" value=\"inf\"")
+                .count(),
+            if suffix == "e39" { count } else { 0 },
+            "{case}"
+        );
+
+        let map = openms::format::featurexml::load(&out).unwrap();
+        assert_eq!(map.len(), count, "{case}");
+        assert_release_values(&values, case, &map);
+    }
+}
+
+/// Every recorded value of the Release build's own output document, compared
+/// with `map`.
+///
+/// The fixture holds the Release text; this port's value is rendered the way
+/// `NumericFormatting::appendNumeric` renders it before the comparison, so a
+/// row passes only when the two agree at the source's own precision. A
+/// `float` field is rendered by the `float` instantiation and everything else
+/// by the `double` one, exactly as `precisionWrapper` picks them.
+fn assert_release_values(fixture: &str, case: &str, map: &FeatureMap) {
+    use openms::format::sv_out_stream::{
+        F32_FIXED_DIGITS, F64_FIXED_DIGITS, source_f32_text, source_float_text,
+    };
+    let wide = |value: f64| source_float_text(value, F64_FIXED_DIGITS);
+    let narrow = |value: f32| source_f32_text(value, F32_FIXED_DIGITS);
+    let mut checked = 0usize;
+    for line in fixture.lines().skip(1) {
+        let row: Vec<&str> = line.split('\t').collect();
+        if row[0] != case {
+            continue;
+        }
+        let (feature, detail, kind, want) = (row[1], row[2], row[3], row[4]);
+        if feature == "map" {
+            assert_eq!(kind, "count");
+            assert_eq!(map.len().to_string(), want, "{case} count");
+            checked += 1;
+            continue;
+        }
+        let f = &map.features[feature.parse::<usize>().unwrap()];
+        let got = match kind {
+            "id" => format!("f_{}", f.unique_id),
+            "position0" => wide(f.rt),
+            "position1" => wide(f.mz),
+            "intensity" => narrow(f.intensity),
+            "quality0" => narrow(f.quality_rt),
+            "quality1" => narrow(f.quality_mz),
+            "overallquality" => narrow(f.quality),
+            "charge" => f.charge.to_string(),
+            "hull_points" => f.convex_hulls[detail.parse::<usize>().unwrap()]
+                .hull_points()
+                .len()
+                .to_string(),
+            other if other.starts_with("pt") => {
+                let hull = f.convex_hulls[detail.parse::<usize>().unwrap()].hull_points();
+                let (index, axis) = other[2..].split_once('_').unwrap();
+                let point = hull[index.parse::<usize>().unwrap()];
+                wide(if axis == "x" { point.rt } else { point.mz })
+            }
+            other => {
+                let value = &f.metadata[other.strip_prefix("meta:").unwrap()];
+                match detail {
+                    "float" => wide(value.as_f64().unwrap()),
+                    "int" => value.as_i64().unwrap().to_string(),
+                    _ => value.as_str().unwrap().to_owned(),
+                }
+            }
+        };
+        assert_eq!(got, want, "{case} feature {feature} {kind}");
+        checked += 1;
+    }
+    assert!(checked > 400, "{case}: only {checked} values compared");
+}
+
+/// **A store that fails is a write failure, not a read failure.**
+///
+/// The source's run-phase catch has one write-side arm: `UnableToCreateFile`
+/// becomes `Error: Unable to write file (<what>)` with
+/// `CANNOT_WRITE_OUTPUT_FILE` (`TOPPBase.cpp:430-435`, cli pin `c19e494`), and
+/// a featureXML store raises exactly that exception when it cannot produce the
+/// file — for a stream it cannot open (`XMLFile.cpp:366-372`) and for a name
+/// whose extension it does not accept (`FeatureXMLFile.cpp:75-78`), both
+/// recorded in `../oracle/featurexml-inf/results/store_failures.tsv`. This
+/// port used to report such a failure through the `ParseError` arm instead.
+///
+/// The first case below is the one that reaches the store rather than
+/// `outputFileWritable_`: `-out` is an existing **directory** whose name
+/// carries the featureXML extension, so the writability check passes.
+/// Executed against the Release build on `ibminode06` with the `rt_e39` input
+/// (`../oracle/featurexml-inf/results/err_dir.txt`, `out_dir.txt`,
+/// `out_directory.status`): exit 5, the single stderr line below, and a
+/// stdout that runs the whole algorithm block and then stops — the exception
+/// unwinds past the closing `FeatureFinderCentroided took …` line
+/// (`TOPPBase.cpp:424`) that the same input's successful run ends with
+/// (`results/tool/rt_e39.r1/stdout.txt`).
+///
+/// The second is `-out` inside a directory that does not exist: the check
+/// fires during parameter handling, so the Release build prints only its two
+/// INI-version warning lines and never reaches the algorithm
+/// (`out_missing.txt`, `err_missing.txt`, `out_missing.status`). Both builds
+/// print two stderr lines and exit 5, which is what the port already did.
+/// Keeping both stdout sides here is what separates them: a port that
+/// processed the input before the writability check, or that printed the
+/// closing line after a failed store, would still pass the exit code and the
+/// stderr.
+#[test]
+fn a_store_that_fails_is_the_sources_write_failure() {
+    let dir = Workdir::new();
+    let ini = text(ffc1_ini());
+    let source = fs::read(ffc1_input()).unwrap();
+    let input = dir.put("rt_e39.mzML", &derive_rt_suffix(&source, "e39"));
+
+    let out = dir.file("adir.featureXML");
+    fs::create_dir(&out).unwrap();
+    let outcome = run_in(&dir, &["-test", "-ini", &ini, "-in", &input, "-out", &out]);
+    outcome.assert_exit(ExitCode::CannotWriteOutputFile);
+    assert_eq!(
+        outcome.err.trim_end(),
+        format!("Error: Unable to write file (the file '{out}' could not be created. )"),
+        "stdout:\n{}",
+        outcome.out
+    );
+    assert_out_block(&outcome, RT_E39_ALGORITHM_LINES);
+    assert!(
+        !outcome.out.contains("FeatureFinderCentroided took"),
+        "the closing line follows a failed store:\n{}",
+        outcome.out
+    );
+
+    let missing = dir.file("nosuch/out.featureXML");
+    let outcome = run_in(
+        &dir,
+        &["-test", "-ini", &ini, "-in", &input, "-out", &missing],
+    );
+    outcome.assert_exit(ExitCode::CannotWriteOutputFile);
+    assert_eq!(
+        outcome.err.lines().collect::<Vec<_>>(),
+        vec![
+            "Cannot write output file given from parameter '-out'!",
+            &format!("Error: Unable to write file (the file '{missing}' could not be created. )"),
+        ]
+    );
+    for absent in [
+        "Not FAIMS",
+        "Found 25 seeds",
+        "features found.",
+        "FeatureFinderCentroided took",
+    ] {
+        assert!(
+            !outcome.out.contains(absent),
+            "{absent} on stdout although the writability check fires first:\n{}",
+            outcome.out
+        );
     }
 }
 

@@ -1351,6 +1351,49 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
     code
 }
 
+/// A failure raised while an output file is written, mapped as the source's
+/// `UnableToCreateFile` arm (`TOPPBase.cpp:430-435`): the diagnostic
+/// `Error: Unable to write file (<what>)` and
+/// [`ExitCode::CannotWriteOutputFile`].
+///
+/// [`run_failure`] cannot tell a read from a write, because [`Error`] does not
+/// say which side raised it, and its `Error::Parse` arm is the source's
+/// `ParseError`, which is a *read* failure. A store that fails therefore has to
+/// be mapped where it is known to be a store; otherwise a writer's refusal is
+/// announced as `Error: Unable to read file (parse error on line 0: …)` with
+/// `INPUT_FILE_CORRUPT`, which is what the featureXML store did before native
+/// difference 16 was closed.
+///
+/// Every failure takes one arm, because the source's write side has one: a
+/// store reaches `XMLFile::save_`, whose only exception is
+/// `UnableToCreateFile` for a stream it cannot open (`XMLFile.cpp:366-372`),
+/// and `FeatureXMLFile::store` raises the same one for a name whose extension
+/// it does not accept (`FeatureXMLFile.cpp:75-78`). A native refusal this port
+/// adds — an exceeded writer ceiling, a duplicate assigned feature ID, a field
+/// this dialect cannot represent — is likewise a failure to produce the output
+/// file and belongs in the same arm.
+///
+/// The text in the parentheses is the source's `UnableToCreateFile::what()`
+/// whenever the port failed for the same reason the source would have, which
+/// is any I/O failure of the store; `path` names the file it was producing. A
+/// native refusal has no source counterpart, so it contributes its own message
+/// there, as every other arm of [`run_failure`] does.
+///
+/// Only the `-out` store of `FeatureFinderCentroided` is mapped here so far,
+/// because that is the store this port has executed C++ evidence for
+/// (`../oracle/featurexml-inf`: with `-out` an existing directory whose name
+/// carries the featureXML extension, the writability check passes and the
+/// Release tool prints this line and exits 5); every other tool's store still
+/// reaches [`run_failure`].
+pub(crate) fn write_failure(path: &str, error: &Error, err: &mut dyn Write) -> ExitCode {
+    let detail = match error {
+        Error::Io(_) => format!("the file '{path}' could not be created. "),
+        other => other.to_string(),
+    };
+    let _ = writeln!(err, "Error: Unable to write file ({detail})");
+    ExitCode::CannotWriteOutputFile
+}
+
 /// Run a tool against explicit arguments and streams. `arguments[0]` is the
 /// executable name, as in `main(argc, argv)`.
 ///

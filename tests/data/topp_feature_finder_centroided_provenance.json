@@ -110,7 +110,7 @@
    "sha256": "37781d4cd0ed3a7209dbe38aa242c8c4b217452a5cc98da00a9392cbd21d3182",
    "upstream": "none (executed C++ Release output)",
    "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
-   "used_by": "infinite_feature_values_are_refused_by_the_featurexml_writer: the Release FeatureFinderCentroided's exit status, feature count, console block and every intensity and FWHM value on rt_e36.mzML and rt_e39.mzML (../oracle/ffap-complete-fix4, node/run_tool.sh, extract/make_fixtures.py; native difference 16)"
+   "used_by": "infinite_feature_values_are_written_as_the_release_build_writes_them: the Release FeatureFinderCentroided's exit status, feature count, console block and every intensity and FWHM value on rt_e36.mzML and rt_e39.mzML (../oracle/ffap-complete-fix4, node/run_tool.sh, extract/make_fixtures.py; native difference 16, closed)"
   },
   {
    "path": "tests/data/topp_feature_finder_centroided/faims_group_m45.featureXML",
@@ -146,6 +146,13 @@
    "upstream": "none (executed C++ Release output)",
    "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release, ibminode06)",
    "used_by": "the FAIMS closure: the -70 V group of faims_three_cv.mzML (37 spectra), same parameters: 7 features (../oracle/b11-faims, case group3s5_m70)"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_centroided/rt_scaled_release_features.tsv",
+   "sha256": "9c75abd8ee7478fa682cad5c6815df18c20a81941f77fc35173362d64114c7de",
+   "upstream": "none (executed C++ Release output)",
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release, ibminode06)",
+   "used_by": "infinite_feature_values_are_written_as_the_release_build_writes_them: every value of the Release FeatureFinderCentroided's own output featureXML on rt_e36.mzML and rt_e39.mzML (1263 rows: feature ids, positions, intensity, qualities, charge, every hull point and every meta value), read out of the document with extract/make_fixtures.py (../oracle/featurexml-inf, node/run_all.sh, two runs per case whose output is byte-identical; native difference 16, closed)"
   }
  ],
  "reused_fixtures": [

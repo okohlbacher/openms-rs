@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="float" name="map_float" value="inf"/>
+	<featureList count="4">
+		<feature id="f_100">
+			<position dim="0">inf</position>
+			<position dim="1">inf</position>
+			<intensity>inf</intensity>
+			<quality dim="0">inf</quality>
+			<quality dim="1">inf</quality>
+			<overallquality>inf</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="3.0" y="4.0" />
+				<pt x="1.0" y="2.0" />
+			</convexhull>
+			<subordinate>
+				<feature id="f_100_200">
+					<position dim="0">inf</position>
+					<position dim="1">inf</position>
+					<intensity>inf</intensity>
+					<quality dim="0">inf</quality>
+					<quality dim="1">inf</quality>
+					<overallquality>inf</overallquality>
+					<charge>2</charge>
+					<convexhull nr="0">
+						<pt x="3.0" y="4.0" />
+						<pt x="1.0" y="2.0" />
+					</convexhull>
+					<UserParam type="string" name="label" value="p_inf_sub"/>
+					<UserParam type="float" name="FWHM" value="inf"/>
+					<UserParam type="float" name="probe_float" value="inf"/>
+					<UserParam type="floatList" name="probe_floatlist" value="[inf, 1.5]"/>
+				</feature>
+			</subordinate>
+			<UserParam type="string" name="label" value="p_inf"/>
+			<UserParam type="float" name="FWHM" value="inf"/>
+			<UserParam type="float" name="probe_float" value="inf"/>
+			<UserParam type="floatList" name="probe_floatlist" value="[inf, 1.5]"/>
+		</feature>
+		<feature id="f_101">
+			<position dim="0">-inf</position>
+			<position dim="1">-inf</position>
+			<intensity>-inf</intensity>
+			<quality dim="0">-inf</quality>
+			<quality dim="1">-inf</quality>
+			<overallquality>-inf</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="3.0" y="4.0" />
+				<pt x="1.0" y="2.0" />
+			</convexhull>
+			<subordinate>
+				<feature id="f_101_201">
+					<position dim="0">-inf</position>
+					<position dim="1">-inf</position>
+					<intensity>-inf</intensity>
+					<quality dim="0">-inf</quality>
+					<quality dim="1">-inf</quality>
+					<overallquality>-inf</overallquality>
+					<charge>2</charge>
+					<convexhull nr="0">
+						<pt x="3.0" y="4.0" />
+						<pt x="1.0" y="2.0" />
+					</convexhull>
+					<UserParam type="string" name="label" value="n_inf_sub"/>
+					<UserParam type="float" name="FWHM" value="-inf"/>
+					<UserParam type="float" name="probe_float" value="-inf"/>
+					<UserParam type="floatList" name="probe_floatlist" value="[-inf, 1.5]"/>
+				</feature>
+			</subordinate>
+			<UserParam type="string" name="label" value="n_inf"/>
+			<UserParam type="float" name="FWHM" value="-inf"/>
+			<UserParam type="float" name="probe_float" value="-inf"/>
+			<UserParam type="floatList" name="probe_floatlist" value="[-inf, 1.5]"/>
+		</feature>
+		<feature id="f_102">
+			<position dim="0">NaN</position>
+			<position dim="1">NaN</position>
+			<intensity>NaN</intensity>
+			<quality dim="0">NaN</quality>
+			<quality dim="1">NaN</quality>
+			<overallquality>NaN</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="3.0" y="4.0" />
+				<pt x="1.0" y="2.0" />
+			</convexhull>
+			<subordinate>
+				<feature id="f_102_202">
+					<position dim="0">NaN</position>
+					<position dim="1">NaN</position>
+					<intensity>NaN</intensity>
+					<quality dim="0">NaN</quality>
+					<quality dim="1">NaN</quality>
+					<overallquality>NaN</overallquality>
+					<charge>2</charge>
+					<convexhull nr="0">
+						<pt x="3.0" y="4.0" />
+						<pt x="1.0" y="2.0" />
+					</convexhull>
+					<UserParam type="string" name="label" value="p_nan_sub"/>
+					<UserParam type="float" name="FWHM" value="NaN"/>
+					<UserParam type="float" name="probe_float" value="NaN"/>
+					<UserParam type="floatList" name="probe_floatlist" value="[NaN, 1.5]"/>
+				</feature>
+			</subordinate>
+			<UserParam type="string" name="label" value="p_nan"/>
+			<UserParam type="float" name="FWHM" value="NaN"/>
+			<UserParam type="float" name="probe_float" value="NaN"/>
+			<UserParam type="floatList" name="probe_floatlist" value="[NaN, 1.5]"/>
+		</feature>
+		<feature id="f_103">
+			<position dim="0">NaN</position>
+			<position dim="1">NaN</position>
+			<intensity>NaN</intensity>
+			<quality dim="0">NaN</quality>
+			<quality dim="1">NaN</quality>
+			<overallquality>NaN</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="3.0" y="4.0" />
+				<pt x="1.0" y="2.0" />
+			</convexhull>
+			<subordinate>
+				<feature id="f_103_203">
+					<position dim="0">NaN</position>
+					<position dim="1">NaN</position>
+					<intensity>NaN</intensity>
+					<quality dim="0">NaN</quality>
+					<quality dim="1">NaN</quality>
+					<overallquality>NaN</overallquality>
+					<charge>2</charge>
+					<convexhull nr="0">
+						<pt x="3.0" y="4.0" />
+						<pt x="1.0" y="2.0" />
+					</convexhull>
+					<UserParam type="string" name="label" value="n_nan_sub"/>
+					<UserParam type="float" name="FWHM" value="NaN"/>
+					<UserParam type="float" name="probe_float" value="NaN"/>
+					<UserParam type="floatList" name="probe_floatlist" value="[NaN, 1.5]"/>
+				</feature>
+			</subordinate>
+			<UserParam type="string" name="label" value="n_nan"/>
+			<UserParam type="float" name="FWHM" value="NaN"/>
+			<UserParam type="float" name="probe_float" value="NaN"/>
+			<UserParam type="floatList" name="probe_floatlist" value="[NaN, 1.5]"/>
+		</feature>
+	</featureList>
+</featureMap>
