@@ -17,7 +17,12 @@ PQP open (A8), together with `-v`.
 
 Evidence and hashes: `tests/data/file_info_a7_provenance.json`.
 Tests: `tests/file_info_a7.rs`, plus the `std::hash` unit tests in
-`src/format/file_info/fasta.rs`.
+`src/format/file_info/fasta.rs`. Two older files change with the scope:
+`tests/file_info.rs` runs the consensusXML and FASTA class-test sections that
+A4 had to leave as refusals, and `tests/topp_file_info.rs` reproduces
+TOPP_FileInfo_7, _10, _13, _17, _18 and _20 through FuzzyDiff against the
+retained upstream outputs instead of listing them as not ported. Each keeps a
+tripwire that fails if a branch goes back to refusing.
 Oracle: `../oracle/a7-fileinfo`, 60 cases against the Release C++ FileInfo of
 `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
 ibminode06, run twice and reproduced. 40 of them have both reports compared

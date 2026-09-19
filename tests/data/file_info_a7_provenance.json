@@ -176,7 +176,9 @@
         "src/format/file_info/peaks.rs"
     ],
     "native_tests": [
-        "tests/file_info_a7.rs"
+        "tests/file_info_a7.rs",
+        "tests/file_info.rs",
+        "tests/topp_file_info.rs"
     ],
     "support_document": "docs/FILE_INFO_A7_SUPPORT.md",
     "related_manifests": [
@@ -1039,5 +1041,6 @@
             "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
             "evidence_label": "oracle-generated (tier 1 executed differential)"
         }
-    ]
+    ],
+    "native_tests_note": "tests/file_info_a7.rs is this package's own. The other two held the scope tripwires A4 and A5 left for these branches: tests/file_info.rs now runs the consensusXML and FASTA class-test sections instead of asserting their refusal, and tests/topp_file_info.rs reproduces TOPP_FileInfo_7, _10, _13, _17, _18 and _20 through FuzzyDiff against the retained upstream outputs instead of listing them as not ported. Each file keeps a tripwire that fails if a branch goes back to refusing."
 }
