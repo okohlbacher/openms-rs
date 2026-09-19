@@ -156,6 +156,18 @@
       "path": "tests/data/topp_peak_picker_hi_res/PeakPickerHiRes_output_lowMem.mzML",
       "sha256": "91b0fdb00917e379963a9065bf7d679d45d3f670e336d191d8988214245348f2",
       "origin": "test-data 0cb15f2 topp/PeakPickerHiRes_output_lowMem.mzML (retained upstream expectation of TOPP_PeakPickerHiRes_3, the -processOption lowmemory run of workflow 1); reproduced byte for byte by the C++ Release install at these pins, oracle ../oracle/p4-lowmemory case w1_lowmem"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_refs_input.mzML",
+      "sha256": "e37ced4a0411af3c83f42facc3596deee18ad002c460bf0ebf54f317be2436bd",
+      "origin": "built for P4-PICKER-LOWMEM's close round: five one-peak profile records covering the truth table of 'this record's dataProcessing and sourceFile are the first record's or are not', with three sourceFile and three dataProcessing declarations. Hand-written mzML 1.1, ASCII, 64-bit uncompressed arrays; the generator is ../oracle/p4-lowmemory/mkfixtures.py.",
+      "used_by": "the_low_memory_mode_writes_the_sources_dangling_references"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_batches_input.mzML",
+      "sha256": "bba06fd6a9844e00b3e0851f0b9cdb6f255c96b8760447257bb6235a89bf5631",
+      "origin": "built for P4-PICKER-LOWMEM's close round: 110 one-peak profile records with ONE sourceFile and ONE dataProcessing, so the 100-record batch boundary of PeakFileOptions' maximal_data_pool_size is isolated from the reference question. Same generator.",
+      "used_by": "a_low_memory_failure_leaves_the_batches_already_written"
     }
   ],
   "reused_fixtures": [
@@ -297,6 +309,42 @@
           "New divergence, not a regression of this round: on the HEALTHY 110-spectrum FileMerger output the C++ low-memory run writes all 110 records and this port stops after five with 'record needs a different mzML sourceFileList or dataProcessingList than the header written for the first record' (exit 11), because each merged part carries its own dataProcessing. This port's in-memory mode handles the same file. Recorded as native difference 12 in the support document; not pinned by a test, because whether MSDataWritingConsumer should emit the source's dangling reference is an open decision. Inspected afterwards: that C++ output declares one dataProcessing (dp_sp_0) and one sourceFile while its 110 records reference dp_sp_0 through dp_sp_109, so what the source writes there is 109 dangling references."
         ]
       }
+    },
+    "close_round_differential": {
+      "drivers": [
+        "../oracle/p4-lowmemory/closediff1_06.sh",
+        "../oracle/p4-lowmemory/closediff2_06.sh",
+        "../oracle/p4-lowmemory/closediff3_06.sh"
+      ],
+      "logs": [
+        "../oracle/p4-lowmemory/logs/closediff1_06.log",
+        "../oracle/p4-lowmemory/logs/closediff2_06.log",
+        "../oracle/p4-lowmemory/logs/closediff3_06.log"
+      ],
+      "rust_binary_sha256": "4ec8b5d961a1ee8dcaebf1a7fb1608c63342ea28a7f106854816d41a6ed03ade",
+      "retained_cpp_outputs": [
+        {
+          "path": "../oracle/p4-lowmemory/outputs/oracle_refs_lowmem.cpp.mzML",
+          "sha256": "7c75908440e1c15406bebdfa5c84be8fb208e87525ff2172cac4e81796f17aec",
+          "command": "PeakPickerHiRes -test -no_progress -in PeakPickerHiRes_refs_input.mzML -out <out> -processOption lowmemory",
+          "shows": "the source's reference numbering for every cell of the truth table: sourceFileRef sf_sp_0..sf_sp_4 on all five records, dataProcessingRef dp_sp_0 on record 0 and dp_sp_1, dp_sp_2 on the two records whose history is not the first's; six of the eleven references dangle."
+        },
+        {
+          "path": "../oracle/p4-lowmemory/outputs/oracle_batches_lowmem.cpp.mzML",
+          "sha256": "c37a261ce21709f725702a517afccbd4f87d7f4f42eac38989b95b29afd74627",
+          "command": "PeakPickerHiRes -test -no_progress -in PeakPickerHiRes_batches_input.mzML -out <out> -processOption lowmemory",
+          "shows": "the healthy 110-record baseline, byte-identical to the C++ in-memory output of the same input."
+        }
+      ],
+      "shows": [
+        "refs fixture: this port's low-memory output now carries the SAME six dangling identifiers as the C++ low-memory output (dp_sp_1, dp_sp_2, sf_sp_1..sf_sp_4) and the same decoded content (md5 902f49fd94e5a4a8 on both sides, and on both in-memory outputs too). Pinned by the_low_memory_mode_writes_the_sources_dangling_references.",
+        "110-record FileMerger output: C++ low-memory 110 records with 105 dangling dataProcessingRefs (dp_sp_5..dp_sp_109) against three declared ids; this port now writes the same 110 records with the same 105 dangling identifiers and the same decoded content (md5 d198b89cba89e1ea both sides). The in-memory pair agree too (e57261d0e43b6653). Before this round the port stopped after five records with exit 11.",
+        "cross-reading: the C++ reader accepts both low-memory outputs of the refs fixture (exit 0, 'Error: unregistered source file reference sf_sp_1.' on stderr); this port's reader refuses both (exit 3, 'unresolved sourceFileRef'). For the FileMerger file, whose only dangling references are dataProcessingRefs, both readers accept both outputs, this port warning once.",
+        "batches fixture, corrupted at index 4 and at index 104: malformed base64 fails on both sides, leaving nothing at index 4 and 100 records at index 104 (C++ 150,901 bytes, this port 137,074, both closed, indexed and announcing count=\"110\"); a defaultArrayLength one too large, a non-numeric scan start time and a duplicate native id are accepted by the C++ in BOTH modes with all 110 records, while this port's reader refuses them, so its low-memory run leaves 0 records at index 4 and the same 100-record document at index 104 and its in-memory run leaves no file. This port's 100-record partial reloads through the tool at exit 0 with 100 spectra. Pinned by a_low_memory_failure_leaves_the_batches_already_written.",
+        "-out naming an existing directory: C++ low-memory exit 0 with empty stderr having written nothing, C++ in-memory exit 5 'Error: Unable to write file (... could not be created. )', this port exit 8 'Error: Unexpected internal error (Is a directory (os error 21))' in both modes. Controls, which do not reach the consumer: a read-only -out and an -out under a missing directory are exit 5 'Cannot write output file given from parameter '-out'!' on both sides and in both modes. Pinned by an_out_that_names_a_directory_is_reported_in_both_modes.",
+        "determinism on the new path: the 110-record FileMerger output through this port's low-memory mode is byte-identical at -threads 1, 8 and 32 (sha256 e8059addadf8ab2af1fa0c2ab9a3351c4744a3eeb6039489ace2d2c19513e8b3)."
+      ],
+      "node_discipline": "ibminode06 only; ibminode05 was never contacted."
     }
   },
   "derived_inputs_built_by_the_tests": [
@@ -323,6 +371,24 @@
       "rule": "the spectrumList count of PeakPickerHiRes_input.mzML rewritten from 5 to 9",
       "sha256": "02bc401935d5469edff790a60da2fb5a2f5b1e5b8b7752e621169da8194200d9",
       "used_by": "a_low_memory_run_reports_a_lying_list_count_over_a_closed_document"
+    },
+    {
+      "name": "batch_4.mzML / batch_104.mzML (malformed base64)",
+      "rule": "'!!!' inserted at the start of the first <binary> element of record 4, respectively record 104, of tests/data/peak_picking/PeakPickerHiRes_batches_input.mzML",
+      "sha256": [
+        "80a64f07fdd8ec9ad603968fb0e9912221ed6af36ae8edd15273237511a91ffe",
+        "d33daf246a4c265b4aa5474ee20719a0b21fbc2f180fa581548679a2c0e6fb19"
+      ],
+      "used_by": "a_low_memory_failure_leaves_the_batches_already_written"
+    },
+    {
+      "name": "batch_4.mzML / batch_104.mzML (duplicate native id)",
+      "rule": "the id of record 4, respectively record 104, of the same fixture rewritten to 'spectrum=0'",
+      "sha256": [
+        "ee5b422cb87197346d2ffd8a4735df7c4dbb538ad965a7318b52670ac9a2013f",
+        "f35f938b1b2a8e42933ac4e6d66f81e36c29045c15dba7c615d2ead0f3f5ed21"
+      ],
+      "used_by": "a_low_memory_failure_leaves_the_batches_already_written"
     }
   ],
   "derived_inputs_note": "These four are built inside the test from a retained input by the rule named, not committed as fixtures. The sha256 values are the bytes the C++ Release build was run on for the same cases on ibminode06 (../oracle/p4-lowmemory/fixdiff_06.sh derives them by the identical rules), so the two implementations are compared on the same bytes."

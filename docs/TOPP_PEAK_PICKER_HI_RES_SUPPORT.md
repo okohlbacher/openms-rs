@@ -148,6 +148,9 @@ disagree.
 | per-MS-level summary on stdout | written by `pickExperiment` | none |
 | chromatograms | all picked | all picked |
 | input reads | one | two |
+| a record needing header entries the first record did not contribute | numbered against a header written from the whole experiment | written with a dangling reference, numbered by the record's position in the stream (`MzMLHandler.cpp:5252-5272`) |
+| what a failing run leaves on disc | nothing | the batches already sent — floor(N / 100) × 100 records, closed and indexed, under the count pass one declared |
+| an `-out` that names an existing directory | `CANNOT_WRITE_OUTPUT_FILE` | in the source, **exit 0 having written nothing**: the consumer's constructor never checks its `std::ofstream` (`MSDataWritingConsumer.cpp:33`) |
 
 The first row is the one that changes numbers. A spectrum whose mzML carries
 `MS:1000525` but neither `MS:1000127` nor `MS:1000128` has an unknown stored
@@ -274,29 +277,48 @@ index and no footer, since a signal runs no destructor
 with its diagnosis over a closed, indexed document holding the one record it
 had written.
 
-The two first passes are not equally thorough, and it costs the mode nothing.
-The source's runs with `LD_RAWCOUNTS` and sets `skip_spectrum_`
-(`MzMLHandler.cpp:966-974`), stepping over every record's contents, so a record
-that is well-formed XML but wrong inside is seen only by the second pass; this
-port's counting pass reads those records, so it refuses before the writer is
-touched. Because of the batching above, the difference is invisible on any file
-of at most 100 records: both write nothing. Beyond that the source leaves the
-completed batches and this port leaves an empty file — the port's answer is
-never a partial one.
+**Neither counting pass reads record contents, and this port leaves exactly
+the same partial document.** The source's runs with `LD_RAWCOUNTS` and sets
+`skip_spectrum_` (`MzMLHandler.cpp:966-974`); this port's sets `state.raw` and,
+at the list's start tag, a `skip_depth` that skips to the matching end tag
+(`src/format/mzml_counts.rs:859`, `:465-467`). A record that is well-formed XML
+but wrong inside is therefore invisible to both first passes and is discovered
+by both second passes, which deliver records to the writer in batches of
+`max_data_pool_size` — the same 100 on both sides
+(`src/format/mzml_consumer.rs:193`, `PeakFileOptions.h:248`). So **a low-memory
+run that fails at record N leaves floor(N / 100) × 100 records behind**,
+whichever implementation runs it, in a closed, indexed and reloadable document
+announcing the count pass one declared. Measured on the 110-record `batches`
+fixture with the base64 of one record corrupted: at index 4 both sides write
+nothing, and at index 104 the C++ leaves 150,901 bytes holding 100 records and
+this port leaves 137,074 bytes holding the same 100, both closed, indexed and
+announcing `count="110"`. This port's partial reloads through the tool at exit
+0 with 100 spectra (`logs/closediff2_06.log` section D,
+`logs/closediff3_06.log` section C).
 
-Where it **is** visible, the difference is the reader's and not the mode's,
-because it shows identically in both process options. Three inputs measured on
-`ibminode06` make that concrete: a third record whose `defaultArrayLength`
-declares 906 for a 905-value array, a non-numeric `scan start time`, and two
-records sharing a native id. The C++ build exits 0 on all three in **both**
-modes — warning once about the array length and saying nothing at all about the
-other two — while this port refuses all three with `Unable to read file` in
-**both** modes (`logs/fixdiff_06.log`, cases `badlen`, `badrt`, `dupid`). That
-is the mzML reader's strictness: [MZML_SUPPORT](MZML_SUPPORT.md) already states
-that duplicate records and incorrect array lengths are errors, and a CV value
-that cannot be converted is one too. It is the same in the in-memory mode, so
-it is not part of this mode's specification and no low-memory behaviour is
-derived from it.
+**Where the two readers disagree, that partial document is this mode's most
+consequential divergence, and it is silent.** Three inputs measured on
+`ibminode06` make it concrete: a record whose `defaultArrayLength` declares one
+value too many, a non-numeric `scan start time`, and two records sharing a
+native id. The C++ build exits 0 on all three in **both** process options —
+warning once about the array length and saying nothing at all about the other
+two — while this port refuses all three with `Unable to read file` in **both**
+(`logs/fixdiff_06.log`, cases `badlen`, `badrt`, `dupid`;
+`logs/closediff2_06.log` section D). The refusal is the mzML reader's
+strictness, not the mode's: [MZML_SUPPORT](MZML_SUPPORT.md) already states that
+duplicate records and incorrect array lengths are errors, and a CV value that
+cannot be converted is one too. The **exit code** is therefore the same in both
+modes. The **artefact** is not, and that part does belong to this mode: the
+in-memory mode writes no file at all, while the low-memory mode, on an input
+longer than one batch, leaves a complete, reloadable mzML holding only the
+completed batches under a `spectrumList count` announcing every record — a
+silently truncated output on a file the C++ tool accepts and writes in full.
+Measured for each of the three kinds at index 4 and at index 104 of the
+`batches` fixture: the C++ exits 0 with all 110 records in both modes at both
+positions; this port leaves 0 records at index 4 and 100 at index 104.
+
+Pinned by `a_low_memory_failure_leaves_the_batches_already_written`, which
+runs the boundary from both sides on that fixture.
 
 ### The one place this port is stricter
 
@@ -489,30 +511,85 @@ added to the source's output, not a change to it. Pinned by
     only the peak memory differs, by 886 MB on the benchmark run. The in-place
     form is not atomic, which costs this tool nothing: its only reaction to a
     picking error is to report it and exit without writing an output file.
-12. **An input whose records reference header entries the first record does not
-    is refused in the low-memory mode, where the source writes it with dangling
-    references.** The consumer writes its header from the settings plus the
-    first record, so the `sourceFileList` and `dataProcessingList` it declares
-    are that record's. A later record needing different ones cannot be numbered
-    against that header, and this port answers
-    `Error: unsupported: record needs a different mzML sourceFileList or
-    dataProcessingList than the header written for the first record` with
-    `INCOMPATIBLE_INPUT_DATA`; the source emits the reference anyway (the
-    consumer's own documented choice — see
+12. **A record needing header entries the first record did not contribute is
+    written with the source's dangling reference.** The consumer writes its
+    header from the settings plus the first record, so the `sourceFileList`,
+    `dataProcessingList` and `softwareList` it declares are that record's. A
+    later record needing different ones cannot be numbered against that header;
+    the source numbers its references by the record's own position in the
+    stream instead (`MzMLHandler.cpp:5252-5272`, with `dps_` holding the one
+    entry `writeHeader_` filled it with), which names nothing the header
+    declares. **That is not valid mzML.** `dataProcessingRef` and
+    `sourceFileRef` on a `spectrum` are `xs:IDREF` against `xs:ID` on
+    `DataProcessingType` and `SourceFileType` (`mzML_1_10.xsd:851`, `:856`),
+    and `dataProcessingRef` additionally carries `KEYREF_DPREF`, whose `refer`
+    is `KEY_DP_ID`, the `id` of a `dataProcessingList/dataProcessing`
+    (`:1064-1071`, `:983-990`). Requested as a C++ issue.
+
+    It is reachable on ordinary data — every `FileMerger` output carries one
+    `dataProcessing` per merged part — so this port reproduces it rather than
+    refusing. The library type keeps both answers:
+    `ReferencePolicy::Checked`, still the default, refuses the record, and
+    `ReferencePolicy::SourceDangling`, which this tool's low-memory path
+    selects, writes what the source writes (see
     [MS_DATA_WRITING_CONSUMER_SUPPORT](MS_DATA_WRITING_CONSUMER_SUPPORT.md)).
-    **This is reachable on ordinary data, and what the source writes there is
-    not valid mzML**: on the file the Release `FileMerger` builds from 22 copies
-    of `PeakPickerHiRes_input.mzML`, the C++ low-memory run exits 0 over all 110
-    records and its output declares **one** `dataProcessing` (`dp_sp_0`) and one
-    `sourceFile` while its records reference `dp_sp_0` through `dp_sp_109` — 109
-    dangling references, which `KEYREF` in the mzML 1.1 schema forbids. This
-    port stops after the first five records with the message above
-    (`../oracle/p4-lowmemory/logs/fixdiff3_06.log`, case `many_ok`). Its
-    **in-memory** mode processes the same file to completion (exit 0, 1,480,415
-    bytes), so the gap is the streaming writer's and not the tool's. Found while
-    evidencing the review round's findings, recorded here rather than changed:
-    reproducing the source means deciding to write those dangling references,
-    and that is a decision about a library type this package only uses.
+    The dangling identifier is the source's own spelling, `dp_sp_<s>` and
+    `sf_sp_<s>`: a bare position in this writer's single zero-padded namespace
+    would alias a declared entry instead of dangling.
+
+    Measured on `ibminode06` against the C++ Release build at the pins. On the
+    file the Release `FileMerger` builds from 22 copies of
+    `PeakPickerHiRes_input.mzML`, the C++ low-memory run exits 0 over all 110
+    records; its output declares three referenceable ids and carries 109
+    references, of which **105 dangle** — `dp_sp_5` through `dp_sp_109`,
+    records 1 to 4 needing none because their `dataProcessing` is the first
+    record's (`logs/closediff1_06.log` sections B, C and E). The C++
+    **in-memory** run of the same file declares two `dataProcessing` entries
+    and dangles nothing. This port's low-memory run now writes all 110 records
+    with the same references; before this round it stopped after five with
+    `Error: unsupported: record needs a different mzML sourceFileList or
+    dataProcessingList than the header written for the first record`.
+
+    The five-record `refs` fixture pins every cell of the rule, because the
+    110-record file exercises only one of them. Against the C++ output
+    (`logs/closediff2_06.log` section A):
+
+    | record | its `dataProcessing` | its `sourceFile` | C++ writes |
+    | --- | --- | --- | --- |
+    | 0 | — | — | `sourceFileRef="sf_sp_0" dataProcessingRef="dp_sp_0"`, both declared |
+    | 1 | not the first's | the first's | `sf_sp_1`, `dp_sp_1` |
+    | 2 | not the first's | not the first's | `sf_sp_2`, `dp_sp_2` |
+    | 3 | the first's | not the first's | `sf_sp_3`, no `dataProcessingRef` |
+    | 4 | the first's | the first's | `sf_sp_4`, no `dataProcessingRef` |
+
+    Two things to read off it. `dataProcessingRef` is numbered by the record's
+    *position*, not by which entry it would have matched — records 1 and 2
+    share one `dataProcessing` in the input and come out as `dp_sp_1` and
+    `dp_sp_2`. And `sourceFileRef` is renumbered for **every** record after the
+    first that carries one, whether or not the source file is the first
+    record's: record 4's is, and it still gets the dangling `sf_sp_4`, because
+    `MzMLHandler.cpp:5252-5255` never consults the header. This port reproduces
+    both (`the_low_memory_mode_writes_the_sources_dangling_references`).
+
+    A chromatogram is the silent case on both sides: `writeChromatogram_`
+    (`MzMLHandler.cpp:5879`) writes `id`, `index` and `defaultArrayLength` and
+    no reference at all, so a chromatogram whose history the header does not
+    declare is written under the list's default and its own history is lost.
+    This port does the same
+    (`the_source_policy_writes_a_chromatogram_without_any_reference`).
+
+    **What the dangling `sourceFileRef` costs here, and is raised rather than
+    decided.** This port's reader refuses an unregistered spectrum
+    `sourceFileRef` under *either* dangling-reference policy
+    (`src/format/mzml_header/read.rs:113-121`), where the source's warns once
+    and carries on (`MzMLHandler.cpp:899-906`, leniency this port deliberately
+    does not have). So on an input with per-record source files this port now
+    writes a low-memory output it will not read back — exactly as it will not
+    read the C++ output of the same run, measured both ways. The dangling
+    `dataProcessingRef` has no such problem: the reader's source policy, which
+    this tool selects, reads it as an empty history with one warning, so the
+    `FileMerger` case round-trips.
+
 
 ## Checked boundaries and evidence
 
@@ -536,6 +613,9 @@ measurement below is against the optimised C++ Release build. Hashes are in
 | a corrupt input in either mode | the C++ Release build on a truncated, a non-XML and a malformed-base64 input, both process options (oracle `p4-lowmemory`, `logs/fixdiff_06.log`, `trunc`, `garbage`, `badb64`) | exit 3 and `Error: Unable to read file (…)` on both sides and in both modes; a zero-byte low-memory output and no in-memory output |
 | a `spectrumList count` that overstates its records | the C++ Release build on the same derived input (`badcount`): exit 0, `count="9"` written over five records | this port writes the same count over a closed, indexed, reloadable document and then exits 8 with the count-mismatch message; its in-memory run is unaffected |
 | a failure after the first record | the source's `~MSDataWritingConsumer`/`doCleanup_` contract; the C++ run on that command line dies of SIGSEGV and so cannot be compared (`am1`) | exit 11, and the output left behind is closed, indexed and reloadable, holding the one record written under the first pass's count |
+| the batch boundary a failing run leaves | the C++ Release build on the 110-record `batches` fixture with four corruptions at index 4 and at index 104 (`logs/closediff2_06.log` section D, `logs/closediff3_06.log` section C) | malformed base64: both sides write nothing at index 4 and 100 records at index 104; a bad `defaultArrayLength`, a non-numeric `scan start time` and a duplicate native id: the C++ exits 0 with all 110 records in both modes, this port leaves 0 and 100 records and its in-memory run writes no file |
+| the source's dangling header references | the C++ Release build on the 110-record `FileMerger` output (105 dangling `dataProcessingRef`s over 110 records) and on the five-record `refs` fixture, whose start tags give the numbering rule for every combination (`logs/closediff1_06.log`, `logs/closediff2_06.log` section A, `logs/closediff3_06.log` section A) | the same references, in the source's own spelling, over the same records; the encoded arrays of this port's two modes; and the reader refusal an unregistered `sourceFileRef` still causes here, against the source's warn-and-continue |
+| an `-out` naming an existing directory | the C++ Release build in both modes, with a read-only `-out` and an `-out` under a missing directory as controls (`logs/closediff1_06.log` section F, `logs/closediff3_06.log` section D) | the C++ low-memory run exits 0 with empty standard error having written nothing, its in-memory run exits 5 `Error: Unable to write file (…could not be created. )`, and both controls exit 5 with `Cannot write output file given from parameter '-out'!` on both sides and in both modes; this port exits 8 with the operating system's refusal in both modes |
 | `-threads` on the low-memory path | this port at 1, 8 and 32 on two inputs; both implementations at 1, 8 and 32 on the node (oracle `p4-lowmemory`, `threads`) | bit-identical bytes |
 | instrument scale, both modes | the 2.3 GB `UK222.mzML` through both implementations and both modes on `ibminode06` | peak RSS, and the byte-identical mzML body between the modes on each side (see *The low-memory mode*) |
 | `TOPP_INI_INVALIDVALUE`, `TOPP_CLI_INVALIDVALUE`, `_SECTION` (both), `TOPP_INI_INVALIDNAME`, `TOPP_CLI_INVALIDNAME` | `CMakeLists.txt:107-131` plus the C1 oracle | exit 6 and every diagnostic `ExpectToolFailure.cmake` requires |
