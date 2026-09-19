@@ -80,6 +80,12 @@ class QuotationTests(unittest.TestCase):
             {"iter = iter->getNextSibling();"},
         )
 
+    def test_an_operator_name_is_a_reference_and_an_operator_call_is_not(self):
+        self.assertEqual(self.fragments("`MSChromatogram::operator==` and `std::operator==`"), set())
+        self.assertEqual(
+            self.fragments("`f.BaseFeature::operator=(c)`"), {"f.BaseFeature::operator=(c)"}
+        )
+
     def test_a_citation_is_not_part_of_the_quotation_beside_it(self):
         self.assertEqual(self.fragments("`Decoder.cpp:3-7`"), set())
 
@@ -99,8 +105,8 @@ class AttachmentTests(unittest.TestCase):
         unit = "reuses `iter = getFirstChild();` and writes `iter = iter->getNextSibling();` (`Decoder.cpp:7`)"
         self.assertEqual(self.attached(unit), {"Decoder.cpp": ["iter = iter->getNextSibling();"]})
 
-    def test_a_full_stop_or_a_semicolon_detaches_a_quotation(self):
-        for glue in (". Elsewhere,", "; elsewhere,"):
+    def test_a_full_stop_a_semicolon_or_a_colon_detaches_a_quotation(self):
+        for glue in (". Elsewhere,", "; elsewhere,", ": still inside"):
             unit = f"`Decoder.cpp:3`{glue} the other branch writes `iter = iter->getNextSibling();`"
             with self.subTest(glue=glue):
                 self.assertEqual(self.attached(unit), {})
