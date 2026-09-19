@@ -379,14 +379,23 @@ fn topp_file_info_17_18_and_20() {
 /// so the table cannot quietly regain them.
 #[test]
 fn the_branches_a7_implemented_are_no_longer_refused() {
-    for (input, flags) in [
-        (tool("inputs/FileInfo_7_input.consensusXML"), &["-s"][..]),
-        (tool("inputs/FileInfo_13_input.consensusXML"), &[][..]),
-        (tool("inputs/FileInfo_10_input.idXML"), &[][..]),
-        (tool("inputs/FileInfo_17_input.fasta"), &[][..]),
-        (tool("inputs/FileInfo_18_input.fasta"), &[][..]),
-        (tool("inputs/FileInfo_20_input.fasta"), &[][..]),
-    ] {
+    // Each branch is behind the feature that carries its format, and this file
+    // is built in slices that lack some of them (CI's minimum-rust line builds
+    // `mzml paramxml featurexml` only). A branch whose feature is absent is
+    // refused with "this build lacks the <feature> feature", which is the
+    // build's own answer and not the not-ported refusal this test guards.
+    let mut cases: Vec<(String, &[&str])> = Vec::new();
+    #[cfg(feature = "consensusxml")]
+    {
+        cases.push((tool("inputs/FileInfo_7_input.consensusXML"), &["-s"][..]));
+        cases.push((tool("inputs/FileInfo_13_input.consensusXML"), &[][..]));
+    }
+    #[cfg(feature = "idxml")]
+    cases.push((tool("inputs/FileInfo_10_input.idXML"), &[][..]));
+    cases.push((tool("inputs/FileInfo_17_input.fasta"), &[][..]));
+    cases.push((tool("inputs/FileInfo_18_input.fasta"), &[][..]));
+    cases.push((tool("inputs/FileInfo_20_input.fasta"), &[][..]));
+    for (input, flags) in cases {
         let dir = Workdir::new();
         let out = dir.file("ported.tmp.txt");
         let mut full: Vec<&str> = vec!["-test", "-no_progress", "-in", &input, "-out", &out];
@@ -1165,20 +1174,26 @@ fn the_executable_writes_the_report_to_standard_output() {
 
     // A7 ported the consensusXML branch, so the executable now writes its
     // report to standard output like any other branch instead of refusing.
-    let consensus = tool("inputs/FileInfo_7_input.consensusXML");
-    let output = std::process::Command::new(&binary)
-        .args(["-test", "-in", &consensus, "-no_progress"])
-        .output()
-        .unwrap();
-    assert_eq!(output.status.code(), Some(0), "{output:?}");
-    let stdout = String::from_utf8(output.stdout).unwrap();
-    assert!(stdout.contains("File type: consensusXML\n"), "{stdout}");
-    assert!(
-        stdout.contains("Number of consensus features:\n"),
-        "{stdout}"
-    );
-    assert!(
-        stdout.contains("Assigned peptide identifications: 0\n"),
-        "{stdout}"
-    );
+    // Only when this build carries the format: without the feature the tool
+    // answers "this build lacks the consensusxml feature", which is the
+    // build's own refusal and is asserted by the feature-sliced tests.
+    #[cfg(feature = "consensusxml")]
+    {
+        let consensus = tool("inputs/FileInfo_7_input.consensusXML");
+        let output = std::process::Command::new(&binary)
+            .args(["-test", "-in", &consensus, "-no_progress"])
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(0), "{output:?}");
+        let stdout = String::from_utf8(output.stdout).unwrap();
+        assert!(stdout.contains("File type: consensusXML\n"), "{stdout}");
+        assert!(
+            stdout.contains("Number of consensus features:\n"),
+            "{stdout}"
+        );
+        assert!(
+            stdout.contains("Assigned peptide identifications: 0\n"),
+            "{stdout}"
+        );
+    }
 }
