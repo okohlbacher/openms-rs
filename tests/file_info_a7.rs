@@ -11,10 +11,10 @@
 //! `tests/data/file_info_a7_provenance.json` and
 //! `docs/FILE_INFO_A7_SUPPORT.md`):
 //!
-//! - tier 1, executed differential: 60 cases of `../oracle/a7-fileinfo` run
+//! - tier 1, executed differential: 63 cases of `../oracle/a7-fileinfo` run
 //!   against the **Release** C++ FileInfo of
 //!   `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
-//!   ibminode06, twice and reproduced. 40 of them have their `-out` and
+//!   ibminode06, twice and reproduced. 43 of them have their `-out` and
 //!   `-out_tsv` reports compared here byte for byte; only the two lines that
 //!   embed the input path are normalised, `File name: ` and
 //!   `general: file name`;
@@ -532,6 +532,122 @@ fn consensus_degenerate_maps() {
     let feature = headers.feature.expect("feature");
     assert_eq!(feature.num_features, 0);
     assert_eq!(feature.map_columns.len(), 2);
+}
+
+/// Compare a report with the Release build's, allowing exactly one line to
+/// differ and only in the way native difference 5 of
+/// `docs/FILE_INFO_A7_SUPPORT.md` describes: the reference spells a NaN whose
+/// sign bit is set `-nan`, this crate spells every NaN `nan`.
+///
+/// The assertion is deliberately narrow. It fails if a second line differs, if
+/// the exception moves to another line, if the reference line is not the
+/// `-nan` variance, or if this crate stops writing `nan` there.
+#[cfg(feature = "consensusxml")]
+fn assert_report_but_the_nan_spelling(actual: &str, expected_file: &Path, label: &str) {
+    let expected = normalise_file_name(&read_text(expected_file));
+    let actual = normalise_file_name(actual);
+    let reference: Vec<&str> = expected.split_inclusive('\n').collect();
+    let ours: Vec<&str> = actual.split_inclusive('\n').collect();
+    assert_eq!(
+        ours.len(),
+        reference.len(),
+        "{label}: line count, {}",
+        first_difference(&actual, &expected)
+    );
+    let differing: Vec<usize> = (0..ours.len())
+        .filter(|&i| ours[i] != reference[i])
+        .collect();
+    assert_eq!(
+        differing.len(),
+        1,
+        "{label}: expected exactly the NaN spelling to differ, differing lines {differing:?}"
+    );
+    let line = differing[0];
+    assert_eq!(
+        reference[line].trim_end_matches('\n'),
+        "  variance:       -nan",
+        "{label}: the reference line at {}",
+        line + 1
+    );
+    assert_eq!(
+        ours[line].trim_end_matches('\n'),
+        "  variance:       nan",
+        "{label}: our line at {}",
+        line + 1
+    );
+}
+
+/// The one statistic these branches can make non-finite, and the only line of
+/// any A7 report where the two builds disagree.
+///
+/// `FileInfo.cpp:2310` divides each sub-feature's intensity by the consensus
+/// centroid's, and `:2312-2315` inverts every ratio below 1, so a sub-feature
+/// of intensity 0 under a centroid of intensity 100 contributes `1 / 0`, which
+/// is `+inf`. `Math::SummaryStatistics` (`StatisticFunctions.h:933-958`) then
+/// summarises `{1, +inf}`: the mean is `+inf`, and `Math::variance`
+/// (`:541-556`) adds `(1 - inf)^2 = +inf` to `(inf - inf)^2 = NaN` and divides
+/// by one, so the variance is a NaN. Nothing here is out of bounds and both
+/// runs of the oracle agree, so D1 says to reproduce it.
+///
+/// The port does reproduce the value: measured on x86_64, `inf - inf` is
+/// `0xfff8000000000000` — SSE2's default NaN, whose sign bit is set — in the
+/// reference build and in this crate alike. Only the spelling differs, because
+/// `text_format`'s `nonfinite` writes every NaN as `nan` while glibc writes a
+/// negative one as `-nan`. That is a deliberate property of the FileInfo text
+/// layer, not of this branch: the sign of a *generated* NaN belongs to the
+/// hardware (AArch64's default NaN is positive), and Apple libc prints `nan`
+/// for `0xfff8000000000000` anyway, which `../oracle/file-info-text-format`
+/// measured on that exact bit pattern and `tests/file_info_text_format.rs`
+/// asserts.
+///
+/// So the Release build's three reports are frozen whole, the bare one matches
+/// byte for byte, and the two that carry the statistics are asserted to differ
+/// on that one line and nowhere else.
+#[cfg(feature = "consensusxml")]
+#[test]
+fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
+    // No -s: nothing is non-finite, so this one matches byte for byte.
+    let bare_result = check(
+        "a7_cons_zero_intensity.consensusXML",
+        &bare(),
+        "c_zero_intensity",
+    );
+    let feature = bare_result.feature.expect("feature");
+    assert_eq!(feature.num_features, 1);
+    assert_eq!(feature.size_distribution[&2], 1);
+    assert!(!bare_result.text.contains("nan"));
+
+    for (options, case) in [
+        (
+            Options {
+                statistics: true,
+                ..Options::default()
+            },
+            "c_zero_intensity_s",
+        ),
+        (all_flags(), "c_zero_intensity_all"),
+    ] {
+        let result = FileInfo::new()
+            .run(input("a7_cons_zero_intensity.consensusXML"), &options)
+            .unwrap_or_else(|e| panic!("{case}: {e}"));
+        assert_report_but_the_nan_spelling(
+            &result.text,
+            &data(&format!("file_info_a7/expected/{case}.txt")),
+            &format!("{case} text"),
+        );
+        // FileInfo.cpp:2257-2372 writes nothing to os_tsv, so the TSV of a -s
+        // run is the bare TSV and matches exactly.
+        assert_report(
+            &result.tsv,
+            &data(&format!("file_info_a7/expected/{case}.tsv")),
+            &format!("{case} tsv"),
+        );
+        // The infinities around it are spelled the same on both sides, so only
+        // the NaN needs the exception above.
+        assert!(result.text.contains("  mean:           inf\n"), "{case}");
+        assert!(result.text.contains("  maximum:        inf\n"), "{case}");
+        assert_eq!(result.text.matches("nan").count(), 1, "{case}");
+    }
 }
 
 /// Upstream consensus maps whose map ids do run from zero, so the occurrence

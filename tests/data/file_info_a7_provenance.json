@@ -130,7 +130,7 @@
     },
     "method": "Library-level: FileInfo::run on each input with the flags the oracle passed the tool; text and TSV compared byte for byte with the retained Release C++ reports after replacing the 'File name: ' text line and the 'general: file name' TSV line, which embed the input path. The FASTA duplicate warnings, which the source writes with OPENMS_LOG_WARN rather than into the reports, are compared with the tool's stderr.",
     "evidence_tier": 1,
-    "evidence": "Tier 1 (executed differential): the Release C++ FileInfo of openms4-release-bc9cc12-c19e494-174b576, at all three pins this port follows, ran 60 cases on ibminode06 twice, reproduced (../oracle/a7-fileinfo/manifest.json). 40 of them have both reports compared here byte for byte; the rest carry refusals, exit codes and the duplicate warnings. One mask only: the \"FileInfo took\" stdout line, which goes into neither -out nor -out_tsv. Tier 1 (retained upstream definition): TOPP_FileInfo_7, _10, _13, _17, _18 and _20 reproduced with their own flags; _14 and _15 pass -v, which is not ported, so their inputs run without it. Tier 1 (executed probe): scripts/probe_std_hash.cpp pins libstdc++'s std::hash<std::string> over the empty string, every tail length, bytes above 0x7f and an embedded NUL, and 28 of its 60 values are asserted in a unit test of src/format/file_info/fasta.rs. Tier 4: the three out-of-bounds std::vector accesses are refused under decision D1, and the ValidationInfo, CorruptionInfo and DetailInfo aggregates these branches never fill stay at their defaults.",
+    "evidence": "Tier 1 (executed differential): the Release C++ FileInfo of openms4-release-bc9cc12-c19e494-174b576, at all three pins this port follows, ran 63 cases on ibminode06 twice, reproduced (../oracle/a7-fileinfo/manifest.json). 43 of them have both reports compared here byte for byte, one of them with the single documented exception of the NaN spelling; the rest carry refusals, exit codes and the duplicate warnings. One mask only: the \"FileInfo took\" stdout line, which goes into neither -out nor -out_tsv. Tier 1 (retained upstream definition): TOPP_FileInfo_7, _10, _13, _17, _18 and _20 reproduced with their own flags; _14 and _15 pass -v, which is not ported, so their inputs run without it. Tier 1 (executed probe): scripts/probe_std_hash.cpp pins libstdc++'s std::hash<std::string> over the empty string, every tail length, bytes above 0x7f and an embedded NUL, and 28 of its 60 values are asserted in a unit test of src/format/file_info/fasta.rs. Tier 4: the three out-of-bounds std::vector accesses are refused under decision D1, and the ValidationInfo, CorruptionInfo and DetailInfo aggregates these branches never fill stay at their defaults.",
     "known_gaps": [
         {
             "what": "a consensus sub-feature whose map index is at or beyond the column-header count is refused, where the C++ reports",
@@ -139,12 +139,12 @@
         },
         {
             "what": "an identification file with no protein identification run is refused",
-            "why": "FileInfo.cpp:1336-1341 reads id_data.proteins[0] unconditionally, while the structured block at :1446 guards the same access with if (!id_data.proteins.empty()). Measured on the Release build: a7_id_no_runs.idXML segmentation-faults. The idXML reader of this crate refuses such a file first, for its own reason, so the refusal is reached either way.",
+            "why": "FileInfo.cpp:1336-1341 reads id_data.proteins[0] unconditionally, while the structured block at :1451 guards the same access with if (!id_data.proteins.empty()). Measured on the Release build: a7_id_no_runs.idXML segmentation-faults. This crate refuses the file one layer earlier: the idXML reader itself rejects it with 'idXML needs at least one IdentificationRun' (src/format/idxml.rs:310) and the tool exits 3, not the 6 the branch's own guard would give; mzidentml.rs:1596-1598 rejects a document with no SpectrumIdentification element just as early. The branch's proteins.first() guard therefore has no reachable input and stays as a defence.",
             "owner": "this package (documented native difference); the source defect is recorded for OpenMS_CPP_ISSUES.md"
         },
         {
             "what": "a peptide identification with no hit is refused",
-            "why": "FileInfo.cpp:1352 reads getHits()[0] behind the guard !id_data.peptides[i].empty(), but PeptideIdentification::empty() (PeptideIdentification.cpp:210-217) tests for a default-constructed object and also checks id_, which IdXMLFile::load always fills from the enclosing IdentificationRun. The guard therefore never protects the read for a LOADED file. Measured on the Release build: a7_id_empty_hitlist.idXML and a7_id_empty_hitlist_ok.idXML, the second with an empty score type, both segmentation-fault.",
+            "why": "FileInfo.cpp:1354 reads temp_hits[0] behind the guard !id_data.peptides[i].empty(), but PeptideIdentification::empty() (PeptideIdentification.cpp:210-217) tests for a default-constructed object and also checks id_, which IdXMLFile::load always fills from the enclosing IdentificationRun. The guard therefore never protects the read for a LOADED file. Measured on the Release build: a7_id_empty_hitlist.idXML and a7_id_empty_hitlist_ok.idXML, the second with an empty score type, both segmentation-fault.",
             "owner": "this package (documented native difference); the source defect is recorded for OpenMS_CPP_ISSUES.md"
         },
         {
@@ -159,8 +159,13 @@
         },
         {
             "what": "the consensusXML -s `qualities` block summarises twice as many values as there are consensus features",
-            "why": "FileInfo.cpp:2262-2263 declares vector<double> qualities(size) -- size zero-initialised values -- and then appends to it, so the sample is 2*size long with size leading zeros. `widths` has the same defect and is never printed. This is reproduced, not refused: it is deterministic, in bounds and recorded in the UPSTREAM expected output FileInfo_7_output.txt (five consensus features, `num. of values: 10` for the qualities). The source defect is recorded for OpenMS_CPP_ISSUES.md.",
+            "why": "FileInfo.cpp:2263-2266 declares vector<double> qualities(size) -- size zero-initialised values -- and then appends to it, so the sample is 2*size long with size leading zeros. `widths` has the same defect and is never printed. This is reproduced, not refused: it is deterministic, in bounds and recorded in the UPSTREAM expected output FileInfo_7_output.txt (five consensus features, `num. of values: 10` for the qualities). The source defect is recorded for OpenMS_CPP_ISSUES.md.",
             "owner": "this package (reproduced source behaviour)"
+        },
+        {
+            "what": "a NaN variance is written `nan` where the reference build writes `-nan`",
+            "why": "FileInfo.cpp:2310 divides each sub-feature's intensity by the centroid's and :2312-2315 inverts every ratio below 1, so a sub-feature of intensity 0 under a positive centroid contributes 1/0 = +inf; Math::SummaryStatistics (StatisticFunctions.h:933-958) then has mean = +inf and Math::variance (:541-556) adds (1-inf)^2 = +inf to (inf-inf)^2 = NaN. In bounds and reproducible in both oracle runs, so D1 reproduces it. The VALUE is reproduced exactly: measured on x86_64, inf - inf is 0xfff8000000000000 (SSE2's default NaN, sign bit set) in the reference build and in this crate's variance_with_mean alike, both probes fed from argv so nothing is constant-folded. Only the spelling differs: glibc writes a negative NaN as -nan, while src/format/file_info/text_format.rs writes every NaN as nan by design, because the sign of a GENERATED NaN belongs to the hardware (AArch64's default NaN is positive, and this crate's CI runs the full suite on macos-latest) and Apple libc writes nan for 0xfff8000000000000 anyway -- ../oracle/file-info-text-format measured that exact bit pattern and tests/file_info_text_format.rs asserts the nan it produced. Oracle cases c_zero_intensity, c_zero_intensity_s and c_zero_intensity_all on a7_cons_zero_intensity.consensusXML; consensus_zero_intensity_sub_feature_makes_the_variance_a_nan asserts that exactly one line of the frozen Release report differs and that it differs in exactly this way.",
+            "owner": "the FileInfo text layer (src/format/file_info/text_format.rs, package A2); this package pins the one report that reaches it"
         },
         {
             "what": "-m, -p and -s on an mzIdentML input report an empty MSExperiment",
@@ -176,9 +181,7 @@
         "src/format/file_info/peaks.rs"
     ],
     "native_tests": [
-        "tests/file_info_a7.rs",
-        "tests/file_info.rs",
-        "tests/topp_file_info.rs"
+        "tests/file_info_a7.rs"
     ],
     "support_document": "docs/FILE_INFO_A7_SUPPORT.md",
     "related_manifests": [
@@ -189,7 +192,7 @@
     "external_reference_artifacts": [
         {
             "path": "../oracle/a7-fileinfo/oracle.py",
-            "sha256": "6f1585983e1bf335d078321c71b8035e2368a3ae092f5868888edd915de37004",
+            "sha256": "658a003d7c633c6bdec04079292ca0b9e3153ed2710ca595821f21c5abc591cd",
             "origin_key": "fixtures",
             "role": "driver: case table, per-case scratch runs, reproduction check, manifest writer"
         },
@@ -201,7 +204,7 @@
         },
         {
             "path": "../oracle/a7-fileinfo/scripts/make_a7_fixtures.py",
-            "sha256": "242cc0cf4490398db33b374b34e334b83c3941b0de2af85631ddcf4e8534420e",
+            "sha256": "d20b9cc487d270f05862a385b6120c3a3d818702f0cd73e3f014b91740ec4341",
             "origin_key": "fixtures",
             "role": "generator of the degenerate FASTA, consensusXML and idXML inputs"
         },
@@ -213,7 +216,7 @@
         },
         {
             "path": "../oracle/a7-fileinfo/manifest.json",
-            "sha256": "21710d7f5581f021c16a7af9d519d33f3c812281da002b9e4a841d5108537559",
+            "sha256": "2514d9c9f870d21f867dbd3425c7447b317c36b5bca3faa25bcf13c0419f682a",
             "origin_key": "fixtures",
             "role": "tool hash, environment, fixture hashes, per-case argv, exit codes and output hashes, reproduction verdict, out_of_bounds records"
         }
@@ -364,6 +367,13 @@
             "path": "tests/data/file_info/inputs/a7_cons_wide.consensusXML",
             "sha256": "6c4889a84ba8993859aa9792ff272f76a98d204ceb05d194624ef2ee9d5f5db3",
             "bytes": 3985,
+            "kind": "generated degenerate input of this package, written by ../oracle/a7-fileinfo/scripts/make_a7_fixtures.py; no value in it comes from any Rust output",
+            "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info/inputs/a7_cons_zero_intensity.consensusXML",
+            "sha256": "915fc880a61348fc18fe6b8285075241a140ae674e9fdc7ae70ff6f49073cd85",
+            "bytes": 1381,
             "kind": "generated degenerate input of this package, written by ../oracle/a7-fileinfo/scripts/make_a7_fixtures.py; no value in it comes from any Rust output",
             "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
         },
@@ -688,6 +698,48 @@
             "path": "tests/data/file_info_a7/expected/c_wide.txt",
             "sha256": "13d520639ec304d918969a1beeb682792ac25c1fca5d6a3542c8c57b3a322268",
             "bytes": 1770,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_zero_intensity.tsv",
+            "sha256": "dc385c4a38e1f9d2558433955dc03b00c43562d4e88032fc15deccc39492362a",
+            "bytes": 432,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_zero_intensity.txt",
+            "sha256": "52ae80f6ccfe0652b02f44b5cf97ac2caabb2940960f79ed2cce6951af536d02",
+            "bytes": 705,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_zero_intensity_all.tsv",
+            "sha256": "dc385c4a38e1f9d2558433955dc03b00c43562d4e88032fc15deccc39492362a",
+            "bytes": 432,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_zero_intensity_all.txt",
+            "sha256": "249ee9fc56cc16ce648c4e7b0475a14b2789934ee49fc96d61d861340984a043",
+            "bytes": 4169,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_zero_intensity_s.tsv",
+            "sha256": "dc385c4a38e1f9d2558433955dc03b00c43562d4e88032fc15deccc39492362a",
+            "bytes": 432,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_zero_intensity_s.txt",
+            "sha256": "56f6c507770d5c333ad4c90f8501dae2e7accaaff9715f645bac44a38971417d",
+            "bytes": 4037,
             "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
             "evidence_label": "oracle-generated (tier 1 executed differential)"
         },
@@ -1041,6 +1093,5 @@
             "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
             "evidence_label": "oracle-generated (tier 1 executed differential)"
         }
-    ],
-    "native_tests_note": "tests/file_info_a7.rs is this package's own. The other two held the scope tripwires A4 and A5 left for these branches: tests/file_info.rs now runs the consensusXML and FASTA class-test sections instead of asserting their refusal, and tests/topp_file_info.rs reproduces TOPP_FileInfo_7, _10, _13, _17, _18 and _20 through FuzzyDiff against the retained upstream outputs instead of listing them as not ported. Each file keeps a tripwire that fails if a branch goes back to refusing."
+    ]
 }

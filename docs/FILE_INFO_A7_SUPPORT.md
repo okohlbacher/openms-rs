@@ -23,9 +23,9 @@ A4 had to leave as refusals, and `tests/topp_file_info.rs` reproduces
 TOPP_FileInfo_7, _10, _13, _17, _18 and _20 through FuzzyDiff against the
 retained upstream outputs instead of listing them as not ported. Each keeps a
 tripwire that fails if a branch goes back to refusing.
-Oracle: `../oracle/a7-fileinfo`, 60 cases against the Release C++ FileInfo of
+Oracle: `../oracle/a7-fileinfo`, 63 cases against the Release C++ FileInfo of
 `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
-ibminode06, run twice and reproduced. 40 of them have both reports compared
+ibminode06, run twice and reproduced. 43 of them have both reports compared
 byte for byte in the test.
 
 ---
@@ -265,6 +265,50 @@ crashes the reference FileInfo.
    the tool exits 3; the port returns
    `Error::InvalidValue("idXML is not an allowed input format")`, which is how
    `FileHandler` maps that refusal throughout this crate.
+5. **A NaN variance is spelled `nan`, where the reference build spells it
+   `-nan`.** This is the only line of any A7 report on which the two builds
+   disagree, and the only statistic these branches can make non-finite.
+
+   *Where it comes from.* `:2310` computes
+   `it_ratio = element_intensity / (centroid_intensity > 0 ? centroid_intensity : 1)`
+   and `:2312-2315` replaces every ratio below 1 by its reciprocal, so a
+   sub-feature of intensity 0 under a centroid of positive intensity
+   contributes `1 / 0 = +inf`. `Math::SummaryStatistics`
+   (`StatisticFunctions.h:933-958`) then summarises `{1, +inf}`: the mean is
+   `+inf`, and `Math::variance` (`:541-556`) adds `(1 - inf)^2 = +inf` to
+   `(inf - inf)^2 = NaN`, so the `Relative intensity error` block reports a NaN
+   variance. Nothing is out of bounds, and both oracle runs agree, so D1 asks
+   for it to be reproduced rather than refused. Oracle cases
+   `c_zero_intensity`, `c_zero_intensity_s` and `c_zero_intensity_all` on
+   `a7_cons_zero_intensity.consensusXML`; all three exit 0.
+
+   *The value is reproduced; only the text differs.* Measured on x86_64:
+   `inf - inf` is `0xfff8000000000000`, SSE2's default NaN, whose sign bit is
+   set — in the reference build (probe compiled on ibminode06, fed from `argv`
+   so nothing is constant-folded, `printf` and `std::ostream` both `-nan`) and
+   in this crate's `variance_with_mean` alike (the same probe in Rust on kim,
+   optimised and unoptimised, `sign_negative=true`). The port computes the
+   identical bits.
+
+   *Why the text layer writes `nan` anyway.* `text_format`'s `nonfinite`
+   ignores the sign of a NaN by design, and that design is not this package's:
+   the sign of a *generated* NaN belongs to the hardware — AArch64's default
+   NaN is the positive one, and this crate's own CI runs the full suite on
+   `macos-latest` — and Apple libc writes `nan` for `0xfff8000000000000`
+   regardless. `../oracle/file-info-text-format` measured exactly that bit
+   pattern (`results/driver.tsv`, the `D fff8000000000000` row) and
+   `tests/file_info_text_format.rs` asserts the `nan` it produced. Spelling the
+   sign here would contradict that executed row and make every frozen
+   expectation architecture-dependent. The A2 module note at
+   `src/format/file_info/text_format.rs` states the rule.
+
+   *How it is pinned.* The Release build's three reports are frozen whole. The
+   bare one matches byte for byte through `check`;
+   `consensus_zero_intensity_sub_feature_makes_the_variance_a_nan` asserts that
+   the other two differ on exactly one line, that the reference line there is
+   `  variance:       -nan` and that ours is `  variance:       nan`. A second
+   divergence, a divergence on another line, or a change of either spelling
+   fails the test.
 
 ---
 
