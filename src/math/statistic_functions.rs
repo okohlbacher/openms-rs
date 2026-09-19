@@ -300,8 +300,10 @@ fn check_no_nan(values: &[f64]) -> Result<()> {
 /// final-insertion loop would read outside the vector, which is the one thing
 /// [`source_sort_by`] refuses, and
 /// which no asymmetric comparison — `<` on `f64` keys, NaN keys included — can
-/// provoke; and when the owned copy the permutation is applied through cannot
-/// be allocated. `values` is left in its original order in either case.
+/// provoke; when the owned copy the permutation is applied through cannot be
+/// allocated; and — unreachably, but checked rather than left to panic — when
+/// the sort returns something that is not a permutation of the input. `values`
+/// is left in its original order in every case.
 fn sort_ascending(values: &mut [f64]) -> Result<()> {
     let mut owned: Vec<f64> = Vec::new();
     owned
@@ -309,6 +311,12 @@ fn sort_ascending(values: &mut [f64]) -> Result<()> {
         .map_err(|_| bad("cannot allocate the sort buffer"))?;
     owned.extend_from_slice(values);
     source_sort_by(&mut owned, |a, b| a < b)?;
+    // `source_sort_by` applies a permutation of `0..len`, so the length cannot
+    // change; `copy_from_slice` would panic rather than refuse if it ever did,
+    // and this module may not panic on an input.
+    if owned.len() != values.len() {
+        return Err(bad("the sort did not return a permutation"));
+    }
     values.copy_from_slice(&owned);
     Ok(())
 }
