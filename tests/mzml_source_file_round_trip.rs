@@ -29,7 +29,7 @@ use openms::concept::log_stream::{LogColor, LogLevel, LogSink, with_thread_local
 use openms::format::ms_data_writing_consumer::{PlainMSDataWritingConsumer, ReferencePolicy};
 use openms::format::mzml::{self, AcquisitionMode, ReadOptions};
 use openms::kernel::MSExperiment;
-use openms::metadata::SourceFile;
+use openms::metadata::{MetaInfo, SourceFile};
 use openms::{Error, Result};
 use std::io::{self, Cursor, Write};
 use std::sync::{Arc, Mutex};
@@ -249,9 +249,31 @@ fn strict_default_refuses_every_dangling_source_file_reference() {
             "unresolved sourceFileRef",
             "{what}"
         );
-        // And the same document reads under the source policy.
+        // And the same document reads under the source policy, into the value
+        // the executed C++ leaves behind for that shape.
         let experiment = mzml::read_with_options(Cursor::new(&only), &source()).unwrap();
         assert_eq!(experiment.spectra.len(), 1, "{what}");
+        let spectrum = &experiment.spectra[0];
+        assert_eq!(spectrum.source_file, SourceFile::default(), "{what}");
+        let carried: Vec<&MetaInfo> = spectrum
+            .acquisition_info
+            .acquisitions
+            .iter()
+            .map(|a| &a.metadata)
+            .chain(spectrum.precursors.iter().map(|p| &p.cv_terms.metadata))
+            .collect();
+        match what {
+            // The spectrum's own reference leaves no metadata anywhere: the
+            // record simply keeps a default `SourceFile`.
+            "spectrum" => assert!(carried.is_empty(), "{carried:?}"),
+            // A scan's and a precursor's set both keys, to empty strings.
+            _ => {
+                assert_eq!(carried.len(), 1, "{what}: {carried:?}");
+                assert_eq!(carried[0].len(), 2, "{what}: {carried:?}");
+                assert_eq!(carried[0]["source_file_name"].to_string(), "", "{what}");
+                assert_eq!(carried[0]["source_file_path"].to_string(), "", "{what}");
+            }
+        }
     }
 }
 
