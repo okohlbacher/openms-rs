@@ -20,7 +20,9 @@ use openms::processing::chromatogram::{
     ChromatogramPickingMethod, ChromatogramSmoothing, PeakPickerChromatogram,
 };
 use openms::processing::iterative::PeakPickerIterative;
-use openms::processing::peak_picking::{PickingCompatibility, SignalToNoiseEstimatorMedian};
+use openms::processing::peak_picking::{
+    NoiseHistogramRange, PickingCompatibility, SignalToNoiseEstimatorMedian,
+};
 use std::collections::BTreeMap;
 
 const DATA: &str = "tests/data/picker_consumers";
@@ -86,6 +88,10 @@ struct SntCase {
     win_len: f64,
     bin_count: usize,
     write_log: bool,
+    /// `-1` leaves the automatic standard-deviation range, which is the only
+    /// range either picker can reach; a nonnegative value is the source's
+    /// manual upper end with `auto_mode = -1`.
+    max_intensity: i32,
     status: String,
     ratios: Vec<u64>,
 }
@@ -109,7 +115,8 @@ fn snt_oracle() -> BTreeMap<String, SntCase> {
                         win_len: parse_scalar(f[4]),
                         bin_count: f[5].parse().expect("bin_count"),
                         write_log: f[6] == "true",
-                        status: f[7].to_string(),
+                        max_intensity: f[7].parse().expect("max_intensity"),
+                        status: f[8].to_string(),
                         ratios: Vec::new(),
                     },
                 );
@@ -134,6 +141,8 @@ struct PickCase {
     status: String,
     arrays: BTreeMap<String, Vec<u32>>,
     out: Vec<(u64, u32)>,
+    /// The smoothed trace the chromatogram picker produced, empty for `ppi`.
+    smooth: Vec<(u64, u32)>,
 }
 impl PickCase {
     fn number(&self, key: &str, fallback: f64) -> f64 {
@@ -176,10 +185,18 @@ fn pick_oracle() -> BTreeMap<String, PickCase> {
                         status: f[5].to_string(),
                         arrays: BTreeMap::new(),
                         out: Vec::new(),
+                        smooth: Vec::new(),
                     },
                 );
             }
-            "smooth" => {}
+            "smooth" => cases
+                .get_mut(f[1])
+                .expect("smooth before case")
+                .smooth
+                .push((
+                    u64::from_str_radix(&f[3][2..], 16).expect("f64 bits"),
+                    u32::from_str_radix(&f[4][2..], 16).expect("f32 bits"),
+                )),
             "out" => cases.get_mut(f[1]).expect("out before case").out.push((
                 u64::from_str_radix(&f[3][2..], 16).expect("f64 bits"),
                 u32::from_str_radix(&f[4][2..], 16).expect("f32 bits"),
@@ -212,6 +229,19 @@ fn consumer_estimator(
     }
 }
 
+/// The estimator of one `snt_oracle.tsv` case, including the manual histogram
+/// range that only the two `*_bigmax` cases carry.
+fn snt_estimator(case: &SntCase) -> SignalToNoiseEstimatorMedian {
+    let mut estimator = consumer_estimator(case.win_len, case.bin_count, case.write_log);
+    if case.max_intensity >= 0 {
+        estimator.histogram_range = NoiseHistogramRange::Manual {
+            max_intensity: f64::from(case.max_intensity),
+        };
+        estimator.range_parameters.max_intensity = case.max_intensity;
+    }
+    estimator
+}
+
 fn bits(values: &[f64]) -> Vec<u64> {
     values.iter().map(|v| v.to_bits()).collect()
 }
@@ -237,7 +267,7 @@ fn consumer_noise_estimates_match_the_release_build() {
     let cases = snt_oracle();
     let mut checked = 0;
     for (name, case) in &cases {
-        let estimator = consumer_estimator(case.win_len, case.bin_count, case.write_log);
+        let estimator = snt_estimator(case);
         // Both consumers hand the estimator a plain source object.
         let profile = PickingCompatibility::source();
         let result = match case.kind.as_str() {
@@ -270,7 +300,7 @@ fn consumer_noise_estimates_match_the_release_build() {
         checked += 1;
     }
     assert_eq!(checked, cases.len());
-    assert!(checked >= 36, "the fixture lost cases: {checked}");
+    assert!(checked >= 42, "the fixture lost cases: {checked}");
 }
 
 /// The estimator reads each `f32` intensity through the widening the Release
@@ -788,4 +818,563 @@ fn negative_mz_stays_refused_by_the_iterative_picker_although_the_source_picks_i
             "negative m/z must stay refused"
         );
     }
+}
+
+// ------------------------------------ every measured case, every measured column
+
+/// Which profile a recorded refusal stands in. No case is refused in the source
+/// profile and accepted natively — `PickingCompatibility::source` sets every
+/// flag, so it accepts everything the native default accepts — and the replay
+/// below fails if that ever stops holding.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum RefusedIn {
+    /// Accepted once `compatibility` is `PickingCompatibility::source()`.
+    NativeOnly,
+    /// Refused in both profiles: a gap between this port and the source that no
+    /// flag covers yet. Each of these is listed in the branch's `not_done`.
+    BothProfiles,
+}
+use RefusedIn::{BothProfiles, NativeOnly};
+
+/// Every `ok` case of `pick_oracle.tsv` this port refuses, the profile the
+/// refusal stands in, and the text the message must carry.
+///
+/// The replay fails if a case outside this table is refused, if a case in it is
+/// accepted where the table says it is refused, or if an entry here is never
+/// reached — so the table cannot drift away from what the port does.
+const REFUSED: &[(&str, RefusedIn, &str)] = &[
+    // Negative intensities: no source check exists, so these are native-only.
+    ("ppc_gauss_neg", NativeOnly, "allow_negative_intensities"),
+    ("ppc_gauss_neg_ov", NativeOnly, "allow_negative_intensities"),
+    ("ppc_gauss_neg_pw", NativeOnly, "allow_negative_intensities"),
+    ("ppc_gauss2_neg", NativeOnly, "allow_negative_intensities"),
+    ("ppc_gauss8_neg", NativeOnly, "allow_negative_intensities"),
+    ("ppc_gauss16_neg", NativeOnly, "allow_negative_intensities"),
+    ("ppc_sg_neg", NativeOnly, "allow_negative_intensities"),
+    ("ppc_legacy_neg", NativeOnly, "allow_negative_intensities"),
+    (
+        "ppc_winnan_legacy",
+        NativeOnly,
+        "allow_negative_intensities",
+    ),
+    (
+        "ppc_gauss_negbase",
+        NativeOnly,
+        "allow_negative_intensities",
+    ),
+    (
+        "ppc_gauss_negbase_sn0",
+        NativeOnly,
+        "allow_negative_intensities",
+    ),
+    (
+        "ppc_legacy_negbase",
+        NativeOnly,
+        "allow_negative_intensities",
+    ),
+    ("ppc_sg_negbase", NativeOnly, "allow_negative_intensities"),
+    ("ppc_gauss_allneg", NativeOnly, "allow_negative_intensities"),
+    (
+        "ppc_legacy_allneg",
+        NativeOnly,
+        "allow_negative_intensities",
+    ),
+    ("ppi_neg", NativeOnly, "allow_negative_intensities"),
+    ("ppi_negbase", NativeOnly, "allow_negative_intensities"),
+    ("ppi_allneg", NativeOnly, "allow_negative_intensities"),
+    ("ppi_neg_sn0", NativeOnly, "allow_negative_intensities"),
+    ("ppi_negbase_sn0", NativeOnly, "allow_negative_intensities"),
+    ("ppi_allneg_sn0", NativeOnly, "allow_negative_intensities"),
+    // Duplicate retention times, which `MSChromatogram::isSorted` lets through.
+    ("ppc_sg_dup", NativeOnly, "allow_duplicate_positions"),
+    ("ppc_gauss_dup", NativeOnly, "allow_duplicate_positions"),
+    // Both at once; the intensity check runs first.
+    ("ppc_gauss_dupneg", NativeOnly, "allow_negative_intensities"),
+    // A `win_len` the source's `setMinFloat(1.0)` lets through, refused by the
+    // native median-noise profile. Only the iterative picker's estimate follows
+    // the picker's profile, which is why no `ppc_win*` case appears here.
+    ("ppi_winnan", NativeOnly, "invalid median-noise options"),
+    ("ppi_wininf", NativeOnly, "invalid median-noise options"),
+    // --- refused in both profiles: recorded gaps, all in `not_done` ---
+    // `pickRecenterPeaks_` keys each peak's support on `std::map<double,double>`;
+    // see `PeakPickerIterative::compatibility`.
+    ("ppi_dup", BothProfiles, "distinct profile coordinates"),
+    ("ppi_unsorted", BothProfiles, "UnsortedData"),
+    // No `PickingCompatibility` flag covers the sign of a position.
+    ("ppi_negmz", BothProfiles, "nonnegative m/z"),
+    // The kernel validators refuse a non-finite sample before either picker
+    // runs, and `PeakPickerHiRes::validate_points` refuses one again behind
+    // them; no flag lifts either.
+    ("ppi_nfint", BothProfiles, "peak intensity must be finite"),
+    (
+        "ppi_nonfinite",
+        BothProfiles,
+        "peak intensity must be finite",
+    ),
+    (
+        "ppc_gauss_nfint",
+        BothProfiles,
+        "chromatogram intensity must be finite",
+    ),
+];
+
+fn refusal(name: &str, native: bool) -> Option<&'static str> {
+    REFUSED
+        .iter()
+        .find(|(n, r, _)| *n == name && (native || *r == BothProfiles))
+        .map(|(_, _, message)| *message)
+}
+
+/// Replay every case the Release build picked, in both profiles, asserting
+/// every column the fixture carries: the picked peaks, the smoothed trace, and
+/// each of `IntegratedIntensity`, `leftWidth`, `rightWidth` and `SN`.
+///
+/// The per-case tests above pin the individual behaviours and their refusal
+/// messages; this one exists so that no measured case sits in the fixture
+/// unasserted, and so that a case this port refuses has to be a listed gap.
+#[test]
+fn every_release_picked_case_matches_in_every_profile_that_accepts_it() {
+    let cases = pick_oracle();
+    let mut reached: Vec<&str> = Vec::new();
+    let mut accepted = 0usize;
+    let mut refused = 0usize;
+    for (name, case) in &cases {
+        if case.status != "ok" {
+            continue;
+        }
+        for native in [true, false] {
+            let profile = if native {
+                PickingCompatibility::default()
+            } else {
+                PickingCompatibility::source()
+            };
+            let tag = if native { "native" } else { "source" };
+            let expected = refusal(name, native);
+            let (peaks, arrays, smoothed) = match case.which.as_str() {
+                "ppc" => {
+                    let picker = PeakPickerChromatogram {
+                        compatibility: profile,
+                        ..chromatogram_picker(case)
+                    };
+                    match picker.pick_chromatogram(&chromatogram(&case.data)) {
+                        Ok(picked) => {
+                            let peaks = picked
+                                .picked
+                                .chromatogram
+                                .peaks
+                                .iter()
+                                .map(|p| (p.rt.to_bits(), p.intensity.to_bits()))
+                                .collect::<Vec<_>>();
+                            let smoothed = picked
+                                .smoothed
+                                .peaks
+                                .iter()
+                                .map(|p| (p.rt.to_bits(), p.intensity.to_bits()))
+                                .collect::<Vec<_>>();
+                            (
+                                peaks,
+                                picked.picked.chromatogram.float_data_arrays.clone(),
+                                Some(smoothed),
+                            )
+                        }
+                        Err(error) => {
+                            let message = expected.unwrap_or_else(|| {
+                                panic!("{name}/{tag}: the Release build picked this, got {error:?}")
+                            });
+                            assert!(
+                                format!("{error:?}").contains(message),
+                                "{name}/{tag}: refusal must mention {message}, got {error:?}"
+                            );
+                            reached.push(name);
+                            refused += 1;
+                            continue;
+                        }
+                    }
+                }
+                "ppi" => {
+                    let picker = PeakPickerIterative {
+                        compatibility: profile,
+                        ..iterative_picker(case)
+                    };
+                    match picker.pick_spectrum(&spectrum(&case.data)) {
+                        Ok(picked) => {
+                            let peaks = picked
+                                .picked
+                                .spectrum
+                                .peaks
+                                .iter()
+                                .map(|p| (p.mz.to_bits(), p.intensity.to_bits()))
+                                .collect::<Vec<_>>();
+                            (
+                                peaks,
+                                picked.picked.spectrum.float_data_arrays.clone(),
+                                None,
+                            )
+                        }
+                        Err(error) => {
+                            let message = expected.unwrap_or_else(|| {
+                                panic!("{name}/{tag}: the Release build picked this, got {error:?}")
+                            });
+                            assert!(
+                                format!("{error:?}").contains(message),
+                                "{name}/{tag}: refusal must mention {message}, got {error:?}"
+                            );
+                            reached.push(name);
+                            refused += 1;
+                            continue;
+                        }
+                    }
+                }
+                other => panic!("unknown consumer {other}"),
+            };
+            assert!(
+                expected.is_none(),
+                "{name}/{tag}: listed as refused ({}), but the port accepted it",
+                expected.unwrap_or_default()
+            );
+            assert_eq!(
+                peaks, case.out,
+                "{name}/{tag}: picked peaks differ from the Release build"
+            );
+            if let Some(smoothed) = smoothed {
+                assert_eq!(
+                    smoothed, case.smooth,
+                    "{name}/{tag}: the smoothed trace differs from the Release build"
+                );
+            }
+            // Six measured cases pick nothing at all — the Release build runs
+            // them without throwing and returns an empty record. The port then
+            // has to return the three (or four) named arrays empty, not absent.
+            if case.out.is_empty() {
+                assert!(
+                    case.arrays.is_empty(),
+                    "{name}: no peaks but arrays in the fixture"
+                );
+                for data in &arrays {
+                    assert!(
+                        data.data.is_empty(),
+                        "{name}/{tag}: {} must be empty when no peak is picked",
+                        data.name
+                    );
+                }
+            } else {
+                assert!(
+                    !case.arrays.is_empty(),
+                    "{name}: the fixture carries no output array"
+                );
+            }
+            for (array_name, expected_bits) in &case.arrays {
+                assert_eq!(
+                    &f32_bits(array(&arrays, array_name)),
+                    expected_bits,
+                    "{name}/{tag}: {array_name} differs from the Release build"
+                );
+            }
+            accepted += 1;
+        }
+    }
+    for (name, _, _) in REFUSED {
+        assert!(
+            reached.contains(name),
+            "{name} is listed as refused but the replay never refused it"
+        );
+    }
+    let picked_by_source = cases.values().filter(|c| c.status == "ok").count();
+    assert_eq!(
+        accepted + refused,
+        2 * picked_by_source,
+        "every case the Release build accepted must be replayed in both profiles"
+    );
+    assert!(
+        accepted >= 56 && refused >= 38,
+        "the fixture lost cases: {accepted} accepted runs, {refused} refusals"
+    );
+}
+
+/// Every case the Release build itself threw on, and the refusal this port
+/// answers with. Two of them are refused a step earlier than the source
+/// throws, which is the point of recording the text rather than the kind.
+const EXCEPTIONS: &[(&str, &str)] = &[
+    // `pickChromatogram` (`PeakPickerChromatogram.cpp:68-72`) throws
+    // `IllegalArgument`, "Chromatogram must be sorted by position", because
+    // `MSChromatogram::isSorted` compares `prev.getRT() > next.getRT()` and the
+    // `+inf` retention time at index 29 is greater than the finite one after
+    // it. Here `MSChromatogram::validate` refuses the same chromatogram one
+    // step earlier, for its non-finite intensities.
+    ("ppc_sg_nonfinite", "chromatogram intensity must be finite"),
+    ("ppc_sg_unsorted", "UnsortedData"),
+    // `Param::checkDefaults` throws before `init` runs: `setMinInt("bin_count",
+    // 3)` and `setMinFloat("win_len", 1.0)`.
+    ("ppi_bins1", "invalid median-noise options"),
+    ("ppi_winsmall", "invalid median-noise options"),
+    // `signal_to_noise_` carries no restriction of its own
+    // (`PeakPickerIterative.h:92`) and is copied into `PeakPickerHiRes`'s
+    // `signal_to_noise`, which carries `setMinFloat(0.0)`
+    // (`PeakPickerHiRes.cpp:31-32`), so the Release build aborts naming a class
+    // the caller never mentioned. This port refuses the option itself. CPP-341.
+    ("ppi_snneg", "invalid iterative picker options"),
+];
+
+/// The cases the Release build itself refused stay refused here, in both
+/// profiles, with the refusal `EXCEPTIONS` records.
+#[test]
+fn every_release_exception_case_stays_refused_in_both_profiles() {
+    let cases = pick_oracle();
+    let mut checked = 0usize;
+    for (name, case) in &cases {
+        if case.status == "ok" {
+            continue;
+        }
+        for profile in [
+            PickingCompatibility::default(),
+            PickingCompatibility::source(),
+        ] {
+            let error = match case.which.as_str() {
+                "ppc" => PeakPickerChromatogram {
+                    compatibility: profile,
+                    ..chromatogram_picker(case)
+                }
+                .pick_chromatogram(&chromatogram(&case.data))
+                .err(),
+                _ => PeakPickerIterative {
+                    compatibility: profile,
+                    ..iterative_picker(case)
+                }
+                .pick_spectrum(&spectrum(&case.data))
+                .err(),
+            };
+            let error =
+                error.unwrap_or_else(|| panic!("{name}: the Release build threw, port accepted"));
+            let (_, expected) = EXCEPTIONS
+                .iter()
+                .find(|(n, _)| *n == name)
+                .unwrap_or_else(|| {
+                    panic!("{name}: no recorded refusal for a case the source threw on")
+                });
+            assert!(
+                format!("{error:?}").contains(expected),
+                "{name}: refusal must mention {expected}, got {error:?}"
+            );
+            checked += 1;
+        }
+    }
+    assert_eq!(
+        checked,
+        2 * EXCEPTIONS.len(),
+        "every recorded exception case must be replayed in both profiles"
+    );
+}
+
+/// `signal_to_noise_ = 0.0` is what `PeakPickerIterative.h:92` documents as the
+/// way to turn the S/N gate off, and `:185`, `:205` and `:315` honour it by
+/// skipping `snt.init` and every S/N break. A candidate's support then extends
+/// across the negative samples, `weighted_mz /= integrated_intensity` (`:228`)
+/// divides by a negative sum, and `:231-234` stores both the quotient and that
+/// negative sum. The Release build does all of this; `allow_negative_intensities`
+/// is what makes the branch reachable, so the refusal it used to carry belongs
+/// to the native profile alone.
+#[test]
+fn a_negative_integrated_intensity_divides_as_the_source_divides_by_it() {
+    let cases = pick_oracle();
+    for name in ["ppi_neg_sn0", "ppi_negbase_sn0", "ppi_allneg_sn0"] {
+        let case = &cases[name];
+        assert_eq!((case.which.as_str(), case.status.as_str()), ("ppi", "ok"));
+        assert_eq!(
+            case.number("signal_to_noise_", 1.0),
+            0.0,
+            "{name}: the case must turn the S/N gate off"
+        );
+        // Without at least one negative sum this case would not reach the
+        // branch, and the test below would pass for the wrong reason.
+        let negative = case
+            .array("IntegratedIntensity")
+            .iter()
+            .filter(|bits| *bits & 0x8000_0000 != 0)
+            .count();
+        assert!(
+            negative > 0,
+            "{name}: the Release build stored no negative integrated intensity"
+        );
+
+        let mut picker = iterative_picker(case);
+        match picker.pick_spectrum(&spectrum(&case.data)) {
+            Err(Error::InvalidValue(message)) => assert!(
+                message.contains("allow_negative_intensities"),
+                "{name}: the native refusal must name the flag, got {message}"
+            ),
+            other => panic!("{name}: the native profile must refuse, got {other:?}"),
+        }
+
+        picker.compatibility = PickingCompatibility::source();
+        let picked = picker
+            .pick_spectrum(&spectrum(&case.data))
+            .unwrap_or_else(|e| panic!("{name}: the Release build picked this: {e:?}"));
+        let peaks: Vec<(u64, u32)> = picked
+            .picked
+            .spectrum
+            .peaks
+            .iter()
+            .map(|p| (p.mz.to_bits(), p.intensity.to_bits()))
+            .collect();
+        assert_eq!(peaks, case.out, "{name}: picked peaks differ");
+        let arrays = &picked.picked.spectrum.float_data_arrays;
+        assert_eq!(
+            f32_bits(array(arrays, "IntegratedIntensity")),
+            case.array("IntegratedIntensity"),
+            "{name}: integrated intensities differ from the Release build"
+        );
+        assert_eq!(
+            f32_bits(array(arrays, "leftWidth")),
+            case.array("leftWidth")
+        );
+        assert_eq!(
+            f32_bits(array(arrays, "rightWidth")),
+            case.array("rightWidth")
+        );
+    }
+}
+
+/// Non-finite samples are refused by the kernel validators, before either
+/// picker's own checks and before `PeakPickerHiRes::validate_points` refuses
+/// them again behind those. The Release build accepts all three — it picks
+/// peaks from the two spectra and returns an empty chromatogram for the third —
+/// so the gap is pinned here together with what it produced, as the negative-m/z
+/// and duplicate gaps are.
+#[test]
+fn non_finite_samples_stay_refused_by_both_pickers_although_the_release_build_picks_them() {
+    let cases = pick_oracle();
+
+    // `nfint` and `nonfinite` carry the same five non-finite intensities; the
+    // latter also carries a non-finite position, which the chromatogram side
+    // rejects as unsorted first, so only the spectrum side reaches it here.
+    for name in ["ppi_nfint", "ppi_nonfinite"] {
+        let case = &cases[name];
+        assert_eq!(case.status, "ok", "{name}: the Release build picked this");
+        assert!(
+            !case.out.is_empty(),
+            "{name}: the Release build returned peaks"
+        );
+        for profile in [
+            PickingCompatibility::default(),
+            PickingCompatibility::source(),
+        ] {
+            let picker = PeakPickerIterative {
+                compatibility: profile,
+                ..iterative_picker(case)
+            };
+            assert!(
+                matches!(picker.pick_spectrum(&spectrum(&case.data)),
+                    Err(Error::InvalidValue(m)) if m == "peak intensity must be finite"),
+                "{name}: a non-finite intensity must stay refused"
+            );
+        }
+    }
+
+    let case = &cases["ppc_gauss_nfint"];
+    // The Release build runs this one without throwing and returns an empty
+    // chromatogram: the non-finite intensities propagate through the Gaussian
+    // smoother, so no seed survives. Recorded so the gap is measured rather
+    // than asserted to exist.
+    assert_eq!(case.status, "ok");
+    assert!(
+        case.out.is_empty() && case.arrays.is_empty(),
+        "the Release build returned peaks for ppc_gauss_nfint"
+    );
+    for profile in [
+        PickingCompatibility::default(),
+        PickingCompatibility::source(),
+    ] {
+        let picker = PeakPickerChromatogram {
+            compatibility: profile,
+            ..chromatogram_picker(case)
+        };
+        assert!(
+            matches!(picker.pick_chromatogram(&chromatogram(&case.data)),
+                Err(Error::InvalidValue(m)) if m == "chromatogram intensity must be finite"),
+            "a non-finite intensity must stay refused"
+        );
+    }
+}
+
+/// The chromatogram picker's estimate runs under `PickingCompatibility::source`
+/// whatever the picker's own profile says, which also selects the Linux x86-64
+/// Release build's bin-index conversion: a histogram quotient outside `int`
+/// range becomes `INT_MIN` and lands in bin `0`, where clamping before
+/// truncation would put it in the last bin.
+///
+/// Reaching that needs a hand-set histogram range, which the source's picker
+/// never sets (`PeakPickerChromatogram.cpp:408-412` configures `win_len`,
+/// `bin_count` and `write_log_messages` only). The Rust field exposes the whole
+/// estimator, so the configuration exists here; the numbers it produces are the
+/// Release build's own, measured at the estimator as `ppc_bigmax`.
+#[test]
+fn the_chromatogram_estimator_bins_out_of_range_quotients_as_the_release_build_does() {
+    let snt = snt_oracle();
+    let case = &snt["ppc_bigmax"];
+    assert_eq!((case.kind.as_str(), case.status.as_str()), ("chrom", "ok"));
+    assert_eq!(case.max_intensity, 10);
+    let input = chromatogram(&case.data);
+    assert!(
+        input.peaks.iter().any(|p| f64::from(p.intensity)
+            > f64::from(u32::MAX) * f64::from(case.max_intensity) / case.bin_count as f64),
+        "the case must carry an intensity whose quotient leaves int range"
+    );
+
+    // What the Release build's estimator answers over exactly these samples.
+    let estimator = snt_estimator(case);
+    let source = estimator
+        .estimate_chromatogram(&input, &PickingCompatibility::source())
+        .expect("the source profile estimates this");
+    assert_eq!(
+        bits(&source.signal_to_noise),
+        case.ratios,
+        "the source profile must reproduce the Release build"
+    );
+    // The native profile accepts every sample of this chromatogram — finite,
+    // nonnegative, strictly increasing retention times — and answers
+    // differently only because it clamps the quotient before truncating it.
+    let native = estimator
+        .estimate_chromatogram(&input, &PickingCompatibility::default())
+        .expect("the native profile accepts this chromatogram in full");
+    assert_ne!(
+        bits(&native.signal_to_noise),
+        case.ratios,
+        "the two bin-index conversions must disagree here, or this pins nothing"
+    );
+
+    // The picker at its default profile reports the source values. `legacy`
+    // makes the boundary signal the caller's chromatogram, so the estimate runs
+    // over exactly the samples the fixture was measured over.
+    let picker = PeakPickerChromatogram {
+        method: ChromatogramPickingMethod::Legacy,
+        noise_estimator: estimator,
+        report_sn: true,
+        ..Default::default()
+    };
+    assert_eq!(picker.compatibility, PickingCompatibility::default());
+    let picked = picker
+        .pick_chromatogram(&input)
+        .expect("the chromatogram is accepted at the default profile");
+    let reported = f32_bits(array(&picked.picked.chromatogram.float_data_arrays, "SN"));
+    assert!(!reported.is_empty(), "the picker reported no apex S/N");
+    let from_source: Vec<u32> = source
+        .signal_to_noise
+        .iter()
+        .map(|v| (*v as f32).to_bits())
+        .collect();
+    let from_native: Vec<u32> = native
+        .signal_to_noise
+        .iter()
+        .map(|v| (*v as f32).to_bits())
+        .collect();
+    for value in &reported {
+        assert!(
+            from_source.contains(value),
+            "reported apex S/N {value:#010x} is not a Release-measured ratio"
+        );
+    }
+    assert!(
+        reported.iter().any(|v| !from_native.contains(v)),
+        "the reported ratios are also native ones, so this does not discriminate"
+    );
 }

@@ -1,9 +1,156 @@
 # SignalToNoiseEstimatorMedian as each consumer configures it, from the
 # Linux x86_64 Release build openms4-release-bc9cc12-c19e494-174b576.
-# case	<name>	<chrom|spec>	<data>	<win_len>	<bin_count>	<write_log>	<ok|exception>
+# case	<name>	<chrom|spec>	<data>	<win_len>	<bin_count>	<write_log>	<max_intensity>	<ok|exception>
 # sn	<name>	<index>	<f64 bits>
-case	ppc_bins1	chrom	clean	1000.0	1	false	InvalidParameter
-case	ppc_clean	chrom	clean	1000.0	30	false	ok
+case	ppc_allneg	chrom	allneg	1000.0	30	false	-1	ok
+sn	ppc_allneg	0	0xbfeb42181c76f8be
+sn	ppc_allneg	1	0xc0005adb5a15dbbc
+sn	ppc_allneg	2	0xbff471937240d595
+sn	ppc_allneg	3	0xc003c3230d00dfb8
+sn	ppc_allneg	4	0xbffb4253916ec3a2
+sn	ppc_allneg	5	0xbfedfe811a762f45
+sn	ppc_allneg	6	0xc0010c90a8a21b8d
+sn	ppc_allneg	7	0xbff5eba927fcdac7
+sn	ppc_allneg	8	0xc004ac17c68eddcc
+sn	ppc_allneg	9	0xbffe4307f50a183d
+sn	ppc_allneg	10	0xbff59fb1b8e2a687
+sn	ppc_allneg	11	0xc00949c080b6415b
+sn	ppc_allneg	12	0xc00f0d02571fb68c
+sn	ppc_allneg	13	0xc0207aa14732501a
+sn	ppc_allneg	14	0xc02acde0a8ba5c61
+sn	ppc_allneg	15	0xc03658feb52960db
+sn	ppc_allneg	16	0xc042a8db91f6b32e
+sn	ppc_allneg	17	0xc04a996d732556d4
+sn	ppc_allneg	18	0xc051bbc809f87ace
+sn	ppc_allneg	19	0xc054a26a179a6f3e
+sn	ppc_allneg	20	0xc05597f580263f74
+sn	ppc_allneg	21	0xc054bdac2fb6e637
+sn	ppc_allneg	22	0xc05174e8fe7b457b
+sn	ppc_allneg	23	0xc04a42338c63da1e
+sn	ppc_allneg	24	0xc0428825db6e246a
+sn	ppc_allneg	25	0xc036849ba88a1f36
+sn	ppc_allneg	26	0xc02bff2b505f90dc
+sn	ppc_allneg	27	0xc01d35c5a4144466
+sn	ppc_allneg	28	0xc00af64b860dde09
+sn	ppc_allneg	29	0xc0089b4cb33347f0
+sn	ppc_allneg	30	0xbffb13503ac8eb90
+sn	ppc_allneg	31	0xc0054396341fd0e3
+sn	ppc_allneg	32	0xbffd140b19e83210
+sn	ppc_allneg	33	0xbff0780abbe50f6e
+sn	ppc_allneg	34	0xc001bb04762514f8
+sn	ppc_allneg	35	0xbff72cae2f5ec8a8
+sn	ppc_allneg	36	0xc00520239d58196c
+sn	ppc_allneg	37	0xbffdfbf0dcd81b95
+sn	ppc_allneg	38	0xbff1b7c43c34efe8
+sn	ppc_allneg	39	0xc0026636c29ec7fe
+sn	ppc_allneg	40	0xbff88848e66b1312
+sn	ppc_allneg	41	0xc005ce79b05f2d65
+sn	ppc_allneg	42	0xbfff58ceed88d141
+sn	ppc_allneg	43	0xbff314aa7a5347b9
+sn	ppc_allneg	44	0xc00314aa7a5347b9
+sn	ppc_allneg	45	0xbff9e530817105e8
+sn	ppc_allneg	46	0xbfeb42181c76f8be
+sn	ppc_allneg	47	0xc0005adb4447620c
+case	ppc_bigint	chrom	bigint	1000.0	30	false	-1	ok
+sn	ppc_bigint	0	0x3e9d3fe05d59bbde
+sn	ppc_bigint	1	0x3eb18cb9e9028a9d
+sn	ppc_bigint	2	0x3ea5efe9bc681e5e
+sn	ppc_bigint	3	0x3eb534bafba85224
+sn	ppc_bigint	4	0x3ead40202a47ede4
+sn	ppc_bigint	5	0x3ea017ba35d5682c
+sn	ppc_bigint	6	0x3eb24b6ab6f708fe
+sn	ppc_bigint	7	0x3ea7859e626889ac
+sn	ppc_bigint	8	0x3eb62eb472b16b97
+sn	ppc_bigint	9	0x3eb03c7e6e44a5e5
+sn	ppc_bigint	10	0x3ea7341a3992e073
+sn	ppc_bigint	11	0x3ebb22b08d7b1fa2
+sn	ppc_bigint	12	0x3ec0a8dc51764d95
+sn	ppc_bigint	13	0x3ed1aed20ebc0de6
+sn	ppc_bigint	14	0x3edcc32b6e3abab0
+sn	ppc_bigint	15	0x3ee7faf0b3eac5b5
+sn	ppc_bigint	16	0x3ef405d451aa67b4
+sn	ppc_bigint	17	0x3efc8ae34d1a1ace
+sn	ppc_bigint	18	0x3f03076efd364b7b
+sn	ppc_bigint	19	0x3f062451c2202cb8
+sn	ppc_bigint	20	0x4060582d5086e640
+sn	ppc_bigint	21	0x3f064191a27d8674
+sn	ppc_bigint	22	0x3f02bb6282a9fbc6
+sn	ppc_bigint	23	0x3efc2d4a18bc2edb
+sn	ppc_bigint	24	0x3ef3e2bade072f39
+sn	ppc_bigint	25	0x3ee829bd4e19bbae
+sn	ppc_bigint	26	0x3ede0ac3a5837482
+sn	ppc_bigint	27	0x3ecf580edd6ef85e
+sn	ppc_bigint	28	0x3ebcee8a2e858bc8
+sn	ppc_bigint	29	0x3eba677e24bf47bc
+sn	ppc_bigint	30	0x3ead0dad96d7ecb7
+sn	ppc_bigint	31	0x3eb6d1441cdf3cf7
+sn	ppc_bigint	32	0x3eaf33dd882da90a
+sn	ppc_bigint	33	0x3ea1ac0b1c89ca80
+sn	ppc_bigint	34	0x3eb3069d1fb2e0e4
+sn	ppc_bigint	35	0x3ea8de171ea386ee
+sn	ppc_bigint	36	0x3eb6ab3a95363dcf
+sn	ppc_bigint	37	0x3eb0165a1e856add
+sn	ppc_bigint	38	0x3ea303201978bec8
+sn	ppc_bigint	39	0x3eb3be512336124d
+sn	ppc_bigint	40	0x3eaa5316ba6a5c48
+sn	ppc_bigint	41	0x3eb7664d177afcb2
+sn	ppc_bigint	42	0x3eb0d18768e065a0
+sn	ppc_bigint	43	0x3ea47983748b9d1c
+sn	ppc_bigint	44	0x3eb47983748b9d1c
+sn	ppc_bigint	45	0x3eabc97b8be20c13
+sn	ppc_bigint	46	0x3e9d3fe05d59bbde
+sn	ppc_bigint	47	0x3eb18cb9d19c3d85
+case	ppc_bigmax	chrom	bigint	1000.0	30	false	10	ok
+sn	ppc_bigmax	0	0x3fd6db6db6db6db7
+sn	ppc_bigmax	1	0x3feb6db700000000
+sn	ppc_bigmax	2	0x3fe124936db6db6e
+sn	ppc_bigmax	3	0x3ff0924d24924925
+sn	ppc_bigmax	4	0x3fe6db9f92492492
+sn	ppc_bigmax	5	0x3fd926c092492492
+sn	ppc_bigmax	6	0x3fec97bf24924925
+sn	ppc_bigmax	7	0x3fe2619db6db6db7
+sn	ppc_bigmax	8	0x3ff155a512492492
+sn	ppc_bigmax	9	0x3fe9603700000000
+sn	ppc_bigmax	10	0x3fe221ea36db6db7
+sn	ppc_bigmax	11	0x3ff5348424924925
+sn	ppc_bigmax	12	0x3ffa099500000000
+sn	ppc_bigmax	13	0x400ba30049249249
+sn	ppc_bigmax	14	0x401679f9db6db6db
+sn	ppc_bigmax	15	0x4022bd4c24924925
+sn	ppc_bigmax	16	0x402f4b3249249249
+sn	ppc_bigmax	17	0x40364dfe92492492
+sn	ppc_bigmax	18	0x403dbd996db6db6e
+sn	ppc_bigmax	19	0x40414d876db6db6e
+sn	ppc_bigmax	20	0x41998b7b24924925
+sn	ppc_bigmax	21	0x40416462db6db6db
+sn	ppc_bigmax	22	0x403d46be00000000
+sn	ppc_bigmax	23	0x403604da00000000
+sn	ppc_bigmax	24	0x402f1456db6db6db
+sn	ppc_bigmax	25	0x4022e1de6db6db6e
+sn	ppc_bigmax	26	0x401779f9db6db6db
+sn	ppc_bigmax	27	0x40087e6e00000000
+sn	ppc_bigmax	28	0x3ff69bde24924925
+sn	ppc_bigmax	29	0x3ff4a23b00000000
+sn	ppc_bigmax	30	0x3fe6b4336db6db6e
+sn	ppc_bigmax	31	0x3ff1d4adc9249249
+sn	ppc_bigmax	32	0x3fe8622592492492
+sn	ppc_bigmax	33	0x3fdb9ea924924925
+sn	ppc_bigmax	34	0x3fedbc516db6db6e
+sn	ppc_bigmax	35	0x3fe36ece00000000
+sn	ppc_bigmax	36	0x3ff1b6f45b6db6db
+sn	ppc_bigmax	37	0x3fe9249a49249249
+sn	ppc_bigmax	38	0x3fddb6ddb6db6db7
+sn	ppc_bigmax	39	0x3feedb6ddb6db6db
+sn	ppc_bigmax	40	0x3fe4924924924925
+sn	ppc_bigmax	41	0x3ff2492492492492
+sn	ppc_bigmax	42	0x3fea492492492492
+sn	ppc_bigmax	43	0x3fe0000000000000
+sn	ppc_bigmax	44	0x3ff0000000000000
+sn	ppc_bigmax	45	0x3fe5b6db6db6db6e
+sn	ppc_bigmax	46	0x3fd6db6db6db6db7
+sn	ppc_bigmax	47	0x3feb6db6db6db6db
+case	ppc_bins1	chrom	clean	1000.0	1	false	-1	InvalidParameter
+case	ppc_clean	chrom	clean	1000.0	30	false	-1	ok
 sn	ppc_clean	0	0x3fd5e6589d39051b
 sn	ppc_clean	1	0x3fea479dac81c71c
 sn	ppc_clean	2	0x3fe06cc38e3bfee4
@@ -52,7 +199,7 @@ sn	ppc_clean	44	0x3feea8e275b63a5a
 sn	ppc_clean	45	0x3fe4ce0762295e74
 sn	ppc_clean	46	0x3fd5e6589d39051b
 sn	ppc_clean	47	0x3fea479d89779fba
-case	ppc_dup	chrom	dup	1000.0	30	false	ok
+case	ppc_dup	chrom	dup	1000.0	30	false	-1	ok
 sn	ppc_dup	0	0x3fd5e6589d39051b
 sn	ppc_dup	1	0x3fea479dac81c71c
 sn	ppc_dup	2	0x3fe06cc38e3bfee4
@@ -101,7 +248,7 @@ sn	ppc_dup	44	0x3feea8e275b63a5a
 sn	ppc_dup	45	0x3fe4ce0762295e74
 sn	ppc_dup	46	0x3fd5e6589d39051b
 sn	ppc_dup	47	0x3fea479d89779fba
-case	ppc_dupneg	chrom	dupneg	1000.0	30	false	ok
+case	ppc_dupneg	chrom	dupneg	1000.0	30	false	-1	ok
 sn	ppc_dupneg	0	0x3fda86dd6899b9c8
 sn	ppc_dupneg	1	0x3fefd509db29daca
 sn	ppc_dupneg	2	0x3fe3e52761fe5d5e
@@ -150,7 +297,7 @@ sn	ppc_dupneg	44	0x3ff2919afc6b9ba5
 sn	ppc_dupneg	45	0x3fe9335256920a17
 sn	ppc_dupneg	46	0x3fda86dd6899b9c8
 sn	ppc_dupneg	47	0x3fefd509b0b87889
-case	ppc_neg	chrom	neg	1000.0	30	false	ok
+case	ppc_neg	chrom	neg	1000.0	30	false	-1	ok
 sn	ppc_neg	0	0x3fda86dd6899b9c8
 sn	ppc_neg	1	0x3fefd509db29daca
 sn	ppc_neg	2	0x3fe3e52761fe5d5e
@@ -199,7 +346,7 @@ sn	ppc_neg	44	0x3ff2919afc6b9ba5
 sn	ppc_neg	45	0x3fe9335256920a17
 sn	ppc_neg	46	0x3fda86dd6899b9c8
 sn	ppc_neg	47	0x3fefd509b0b87889
-case	ppc_negbase	chrom	negbase	1000.0	30	false	ok
+case	ppc_negbase	chrom	negbase	1000.0	30	false	-1	ok
 sn	ppc_negbase	0	0xc00102bd52860162
 sn	ppc_negbase	1	0xbff87ed3039b3c0c
 sn	ppc_negbase	2	0xbffe9e874cc0ad45
@@ -248,7 +395,7 @@ sn	ppc_negbase	44	0xbff5c6110d7853b1
 sn	ppc_negbase	45	0xbffbe5c5d9422b3b
 sn	ppc_negbase	46	0xc00102bd52860162
 sn	ppc_negbase	47	0xbff87ed32f275e27
-case	ppc_negmz	chrom	negmz	1000.0	30	false	ok
+case	ppc_negmz	chrom	negmz	1000.0	30	false	-1	ok
 sn	ppc_negmz	0	0x3fd5e6589d39051b
 sn	ppc_negmz	1	0x3fea479dac81c71c
 sn	ppc_negmz	2	0x3fe06cc38e3bfee4
@@ -297,7 +444,7 @@ sn	ppc_negmz	44	0x3feea8e275b63a5a
 sn	ppc_negmz	45	0x3fe4ce0762295e74
 sn	ppc_negmz	46	0x3fd5e6589d39051b
 sn	ppc_negmz	47	0x3fea479d89779fba
-case	ppc_nfint	chrom	nfint	1000.0	30	false	ok
+case	ppc_nfint	chrom	nfint	1000.0	30	false	-1	ok
 sn	ppc_nfint	0	0x3fd999999999999a
 sn	ppc_nfint	1	0x3feeb852147ae148
 sn	ppc_nfint	2	0x3fe333347ae147ae
@@ -346,7 +493,7 @@ sn	ppc_nfint	44	0x3ff1eb851eb851ec
 sn	ppc_nfint	45	0x3fe851eb851eb852
 sn	ppc_nfint	46	0x3fd999999999999a
 sn	ppc_nfint	47	0x3feeb851eb851eb8
-case	ppc_nonfinite	chrom	nonfinite	1000.0	30	false	ok
+case	ppc_nonfinite	chrom	nonfinite	1000.0	30	false	-1	ok
 sn	ppc_nonfinite	0	0x3fd5f96860afcb43
 sn	ppc_nonfinite	1	0x3fea5e7d63fb9aeb
 sn	ppc_nonfinite	2	0x3fe07b0f61c9107b
@@ -395,7 +542,7 @@ sn	ppc_nonfinite	44	0x3c14a90ceafff9df
 sn	ppc_nonfinite	45	0x3c0c09ff3eedae8a
 sn	ppc_nonfinite	46	0x3bfd83c94fb6d2ac
 sn	ppc_nonfinite	47	0x3c11b578c96db19b
-case	ppc_spike	chrom	spike	1000.0	30	false	ok
+case	ppc_spike	chrom	spike	1000.0	30	false	-1	ok
 sn	ppc_spike	0	0x3fc0b75a4755d1f7
 sn	ppc_spike	1	0x3fc0b75a4755d1f7
 sn	ppc_spike	2	0x3fc0b75a4755d1f7
@@ -444,7 +591,7 @@ sn	ppc_spike	44	0x3fc0b75a4755d1f7
 sn	ppc_spike	45	0x3fc0b75a4755d1f7
 sn	ppc_spike	46	0x3fc0b75a4755d1f7
 sn	ppc_spike	47	0x3fc0b75a4755d1f7
-case	ppc_unsorted	chrom	unsorted	1000.0	30	false	ok
+case	ppc_unsorted	chrom	unsorted	1000.0	30	false	-1	ok
 sn	ppc_unsorted	0	0x3fd5e6589d39051b
 sn	ppc_unsorted	1	0x3fea479dac81c71c
 sn	ppc_unsorted	2	0x3fe06cc38e3bfee4
@@ -493,7 +640,7 @@ sn	ppc_unsorted	44	0x3feea8e275b63a5a
 sn	ppc_unsorted	45	0x3fe4ce0762295e74
 sn	ppc_unsorted	46	0x3fd5e6589d39051b
 sn	ppc_unsorted	47	0x3fea479d89779fba
-case	ppc_win8_dup	chrom	dup	8.0	30	false	ok
+case	ppc_win8_dup	chrom	dup	8.0	30	false	-1	ok
 sn	ppc_win8_dup	0	0x3bfd83c94fb6d2ac
 sn	ppc_win8_dup	1	0x3c11b578e10a52a7
 sn	ppc_win8_dup	2	0x3c0622d875932eca
@@ -542,7 +689,7 @@ sn	ppc_win8_dup	44	0x3c14a90ceafff9df
 sn	ppc_win8_dup	45	0x3c0c09ff3eedae8a
 sn	ppc_win8_dup	46	0x3bfd83c94fb6d2ac
 sn	ppc_win8_dup	47	0x3c11b578c96db19b
-case	ppc_win8_neg	chrom	neg	8.0	30	false	ok
+case	ppc_win8_neg	chrom	neg	8.0	30	false	-1	ok
 sn	ppc_win8_neg	0	0x3bfd83c94fb6d2ac
 sn	ppc_win8_neg	1	0x3c11b578e10a52a7
 sn	ppc_win8_neg	2	0x3c0622d875932eca
@@ -591,7 +738,7 @@ sn	ppc_win8_neg	44	0x3c14a90ceafff9df
 sn	ppc_win8_neg	45	0x3c0c09ff3eedae8a
 sn	ppc_win8_neg	46	0x3bfd83c94fb6d2ac
 sn	ppc_win8_neg	47	0x3c11b578c96db19b
-case	ppc_wininf	chrom	clean	inf	30	false	ok
+case	ppc_wininf	chrom	clean	inf	30	false	-1	ok
 sn	ppc_wininf	0	0x3fd5e6589d39051b
 sn	ppc_wininf	1	0x3fea479dac81c71c
 sn	ppc_wininf	2	0x3fe06cc38e3bfee4
@@ -640,7 +787,7 @@ sn	ppc_wininf	44	0x3feea8e275b63a5a
 sn	ppc_wininf	45	0x3fe4ce0762295e74
 sn	ppc_wininf	46	0x3fd5e6589d39051b
 sn	ppc_wininf	47	0x3fea479d89779fba
-case	ppc_winnan	chrom	clean	nan	30	false	ok
+case	ppc_winnan	chrom	clean	nan	30	false	-1	ok
 sn	ppc_winnan	0	0x3bfd83c94fb6d2ac
 sn	ppc_winnan	1	0x3c11b578e10a52a7
 sn	ppc_winnan	2	0x3c0622d875932eca
@@ -689,11 +836,158 @@ sn	ppc_winnan	44	0x3c14a90ceafff9df
 sn	ppc_winnan	45	0x3c0c09ff3eedae8a
 sn	ppc_winnan	46	0x3bfd83c94fb6d2ac
 sn	ppc_winnan	47	0x3c11b578c96db19b
-case	ppc_winneginf	chrom	clean	-inf	30	false	InvalidParameter
-case	ppc_winsmall	chrom	clean	0.5	30	false	InvalidParameter
-case	ppi_bins1	spec	clean	20.0	1	true	InvalidParameter
-case	ppi_bins2	spec	clean	20.0	2	true	InvalidParameter
-case	ppi_bins3	spec	clean	20.0	3	true	ok
+case	ppc_winneginf	chrom	clean	-inf	30	false	-1	InvalidParameter
+case	ppc_winsmall	chrom	clean	0.5	30	false	-1	InvalidParameter
+case	ppi_allneg	spec	allneg	20.0	30	true	-1	ok
+sn	ppi_allneg	0	0xbfe8fc961a17b959
+sn	ppi_allneg	1	0xc0005adb5a15dbbc
+sn	ppi_allneg	2	0xbff2fbbfc585589c
+sn	ppi_allneg	3	0xc003c3230d00dfb8
+sn	ppi_allneg	4	0xbff98e2e5857d768
+sn	ppi_allneg	5	0xbfedfe811a762f45
+sn	ppi_allneg	6	0xc0001a16d82752e9
+sn	ppi_allneg	7	0xbff5eba927fcdac7
+sn	ppi_allneg	8	0xc003a37cfca152b6
+sn	ppi_allneg	9	0xbffe4307f50a183d
+sn	ppi_allneg	10	0xbff4a4125f06e4c6
+sn	ppi_allneg	11	0xc008237d922255a8
+sn	ppi_allneg	12	0xc00da3b0c786ffb4
+sn	ppi_allneg	13	0xc01f75bf87ebb031
+sn	ppi_allneg	14	0xc02995f95b3d86b9
+sn	ppi_allneg	15	0xc03554f3214a6817
+sn	ppi_allneg	16	0xc041cfba5125ab09
+sn	ppi_allneg	17	0xc04963e8798c5e84
+sn	ppi_allneg	18	0xc050ed6d7de18c7f
+sn	ppi_allneg	19	0xc053b24dff41f5d3
+sn	ppi_allneg	20	0xc0549cb028deb0ee
+sn	ppi_allneg	21	0xc053cc52e7ba38d7
+sn	ppi_allneg	22	0xc050a9c72175ab0c
+sn	ppi_allneg	23	0xc04910a591a521a9
+sn	ppi_allneg	24	0xc041b0813a2ef436
+sn	ppi_allneg	25	0xc0357e94953e0685
+sn	ppi_allneg	26	0xc02ab96386e6dbbb
+sn	ppi_allneg	27	0xc01be1df90fc12bf
+sn	ppi_allneg	28	0xc009bc8de8b02565
+sn	ppi_allneg	29	0xc0077cf7c253dbf1
+sn	ppi_allneg	30	0xbff9d840f24b6c7e
+sn	ppi_allneg	31	0xc0044c26a61e5eaa
+sn	ppi_allneg	32	0xbffbc1ad8174e9f8
+sn	ppi_allneg	33	0xbfef70ceac86c05e
+sn	ppi_allneg	34	0xc000ecb2cddd9404
+sn	ppi_allneg	35	0xbff61f035bc333e7
+sn	ppi_allneg	36	0xc0042a508a8e46d0
+sn	ppi_allneg	37	0xbffc9f08d2ce48df
+sn	ppi_allneg	38	0xbff1b7c43c34efe8
+sn	ppi_allneg	39	0xc0017ab405b07131
+sn	ppi_allneg	40	0xbff88848e66b1312
+sn	ppi_allneg	41	0xc00498567be81ca7
+sn	ppi_allneg	42	0xbfff58ceed88d141
+sn	ppi_allneg	43	0xbff1e35fd2ae133d
+sn	ppi_allneg	44	0xc00314aa7a5347b9
+sn	ppi_allneg	45	0xbff80bad0a7b3c57
+sn	ppi_allneg	46	0xbfeb42181c76f8be
+sn	ppi_allneg	47	0xbffdfbe75282de6b
+case	ppi_bigint	spec	bigint	20.0	30	true	-1	ok
+sn	ppi_bigint	0	0x3e9b61ed470d3299
+sn	ppi_bigint	1	0x3eb1ec50edf7b3b0
+sn	ppi_bigint	2	0x3ea4cdbaa4aa5345
+sn	ppi_bigint	3	0x3eb5a83c3ced438c
+sn	ppi_bigint	4	0x3eac017b64658c9e
+sn	ppi_bigint	5	0x3ea06f6193932394
+sn	ppi_bigint	6	0x3eb1a556970ef4b4
+sn	ppi_bigint	7	0x3ea805bcfd0345cb
+sn	ppi_bigint	8	0x3eb5858d4d81a67b
+sn	ppi_bigint	9	0x3eb094ee0e925d2b
+sn	ppi_bigint	10	0x3ea58afd1d30b89e
+sn	ppi_bigint	11	0x3eb93189ac744aec
+sn	ppi_bigint	12	0x3ebeef46e77b1dac
+sn	ppi_bigint	13	0x3ed06ad9cd4f0775
+sn	ppi_bigint	14	0x3edab4362fdf6094
+sn	ppi_bigint	15	0x3ee64398ab0097de
+sn	ppi_bigint	16	0x3ef296fd92a12e45
+sn	ppi_bigint	17	0x3efa7ff533484476
+sn	ppi_bigint	18	0x3f01aacd0cc2ff45
+sn	ppi_bigint	19	0x3f048ea801f93ad9
+sn	ppi_bigint	20	0x405e597551b0b5f1
+sn	ppi_bigint	21	0x3f04a9d00054d9ec
+sn	ppi_bigint	22	0x3f016431ddd4c815
+sn	ppi_bigint	23	0x3efa290ed223143b
+sn	ppi_bigint	24	0x3ef276672e333c2f
+sn	ppi_bigint	25	0x3ee66f0bdb932ffb
+sn	ppi_bigint	26	0x3edbe45c83e18962
+sn	ppi_bigint	27	0x3ecd19cd6e04fc61
+sn	ppi_bigint	28	0x3ebadc7a59bcdae8
+sn	ppi_bigint	29	0x3eb883bcea29ea76
+sn	ppi_bigint	30	0x3eaaf963453d5498
+sn	ppi_bigint	31	0x3eb63e6314b7f420
+sn	ppi_bigint	32	0x3eae6b028bafbb12
+sn	ppi_bigint	33	0x3ea13a4939090cb6
+sn	ppi_bigint	34	0x3eb28c24506b09c8
+sn	ppi_bigint	35	0x3ea83e03b8dad5bc
+sn	ppi_bigint	36	0x3eb6194e66e03455
+sn	ppi_bigint	37	0x3eaf5d97717af6fa
+sn	ppi_bigint	38	0x3ea36aae6644d8a1
+sn	ppi_bigint	39	0x3eb327c3484a3f83
+sn	ppi_bigint	40	0x3eaae279411aebdc
+sn	ppi_bigint	41	0x3eb691e10d91dc21
+sn	ppi_bigint	42	0x3eb12d22cd268877
+sn	ppi_bigint	43	0x3ea39a786a23a151
+sn	ppi_bigint	44	0x3eb4e908f9bf9b01
+sn	ppi_bigint	45	0x3eaa59eaa872c4a5
+sn	ppi_bigint	46	0x3e9ddf3164c8944a
+sn	ppi_bigint	47	0x3eb06df4c43b1e5c
+case	ppi_bigmax	spec	bigint	20.0	30	true	10	ok
+sn	ppi_bigmax	0	0x3fde79e79e79e79e
+sn	ppi_bigmax	1	0x3ff24924aaaaaaab
+sn	ppi_bigmax	2	0x3fe4de9d37a6f4df
+sn	ppi_bigmax	3	0x3ff42c8a6f4de9bd
+sn	ppi_bigmax	4	0x3fe999d170a3d70a
+sn	ppi_bigmax	5	0x3fdc2b670a3d70a4
+sn	ppi_bigmax	6	0x3feecacdd89d89d9
+sn	ppi_bigmax	7	0x3fe3cb9627627627
+sn	ppi_bigmax	8	0x3ff0ade616df733e
+sn	ppi_bigmax	9	0x3fe86c9b56666667
+sn	ppi_bigmax	10	0x3fe173d7d4cccccd
+sn	ppi_bigmax	11	0x3ff45b60231bcb56
+sn	ppi_bigmax	12	0x3ff8f0ed0ac76918
+sn	ppi_bigmax	13	0x400a6c642cf4c2d0
+sn	ppi_bigmax	14	0x40157d5cc7ce0c7d
+sn	ppi_bigmax	15	0x4021e33d0ba2e8ba
+sn	ppi_bigmax	16	0x402dd4344a139bc7
+sn	ppi_bigmax	17	0x40353bea28f5c290
+sn	ppi_bigmax	18	0x403c481a1cfb2b79
+sn	ppi_bigmax	19	0x4040743b3aeda532
+sn	ppi_bigmax	20	0x41984aad21cfb2b8
+sn	ppi_bigmax	21	0x404085c450750751
+sn	ppi_bigmax	22	0x403bd71359d76d2a
+sn	ppi_bigmax	23	0x4034f6485e353f7d
+sn	ppi_bigmax	24	0x402d9fea3677d46d
+sn	ppi_bigmax	25	0x40220625c5d1745d
+sn	ppi_bigmax	26	0x401668cb9745d175
+sn	ppi_bigmax	27	0x40076b247ce0c7ce
+sn	ppi_bigmax	28	0x3ff5a82b0563b48c
+sn	ppi_bigmax	29	0x3ff3cef0f5c28f5c
+sn	ppi_bigmax	30	0x3fe5da3e4ccccccd
+sn	ppi_bigmax	31	0x3ff11e17796ac9e0
+sn	ppi_bigmax	32	0x3fe77810f6666667
+sn	ppi_bigmax	33	0x3fdb9ea924924925
+sn	ppi_bigmax	34	0x3fedbc516db6db6e
+sn	ppi_bigmax	35	0x3fe4270e84bda12f
+sn	ppi_bigmax	36	0x3ff4aac7c0000000
+sn	ppi_bigmax	37	0x3fed555eaaaaaaab
+sn	ppi_bigmax	38	0x3fe216442c8590b2
+sn	ppi_bigmax	39	0x3ff2c85921642c86
+sn	ppi_bigmax	40	0x3fea2e8ba2e8ba2f
+sn	ppi_bigmax	41	0x3ff642c8590b2164
+sn	ppi_bigmax	42	0x3ff0ba2e8ba2e8ba
+sn	ppi_bigmax	43	0x3fe37a6f4de9bd38
+sn	ppi_bigmax	44	0x3ff37a6f4de9bd38
+sn	ppi_bigmax	45	0x3fea6f4de9bd37a7
+sn	ppi_bigmax	46	0x3fdbd37a6f4de9bd
+sn	ppi_bigmax	47	0x3ff0b21642c8590b
+case	ppi_bins1	spec	clean	20.0	1	true	-1	InvalidParameter
+case	ppi_bins2	spec	clean	20.0	2	true	-1	InvalidParameter
+case	ppi_bins3	spec	clean	20.0	3	true	-1	ok
 sn	ppi_bins3	0	0x3faa94f1bd1202ab
 sn	ppi_bins3	1	0x3fc166254d22b8cb
 sn	ppi_bins3	2	0x3fb431fed2b331d7
@@ -742,7 +1036,7 @@ sn	ppi_bins3	44	0x3fc44c80beed2bee
 sn	ppi_bins3	45	0x3fb994a778716a4d
 sn	ppi_bins3	46	0x3facff9359e51a2f
 sn	ppi_bins3	47	0x3fbfe5eee2e2699a
-case	ppi_clean	spec	clean	20.0	30	true	ok
+case	ppi_clean	spec	clean	20.0	30	true	-1	ok
 sn	ppi_clean	0	0x3fe09d17162b41ab
 sn	ppi_clean	1	0x3ff3efb5686273bd
 sn	ppi_clean	2	0x3fe55c43ad9ffe8f
@@ -791,7 +1085,7 @@ sn	ppi_clean	44	0x3ff95fa0eea876e9
 sn	ppi_clean	45	0x3feff9d1568dc4e0
 sn	ppi_clean	46	0x3fe21fbc182f305d
 sn	ppi_clean	47	0x3ff3efb54dcd8200
-case	ppi_dup	spec	dup	20.0	30	true	ok
+case	ppi_dup	spec	dup	20.0	30	true	-1	ok
 sn	ppi_dup	0	0x3fdc7b03016eb9b7
 sn	ppi_dup	1	0x3fede7901c93ad9b
 sn	ppi_dup	2	0x3fe2b0bb37ebfebd
@@ -840,7 +1134,7 @@ sn	ppi_dup	44	0x3ff7f6c2a882a931
 sn	ppi_dup	45	0x3ff137bf7d60078c
 sn	ppi_dup	46	0x3fe21fbc182f305d
 sn	ppi_dup	47	0x3ff431fd7a08b23c
-case	ppi_dupneg	spec	dupneg	20.0	30	true	ok
+case	ppi_dupneg	spec	dupneg	20.0	30	true	-1	ok
 sn	ppi_dupneg	0	0x3fdc9580dd61ba9c
 sn	ppi_dupneg	1	0x3ff05eef20416936
 sn	ppi_dupneg	2	0x3fe62b3a8322bfce
@@ -889,7 +1183,7 @@ sn	ppi_dupneg	44	0x3ff80d0d02ad82e5
 sn	ppi_dupneg	45	0x3ff147c36e9006ec
 sn	ppi_dupneg	46	0x3fe23097d2b28e06
 sn	ppi_dupneg	47	0x3ff444c66e6f308a
-case	ppi_neg	spec	neg	20.0	30	true	ok
+case	ppi_neg	spec	neg	20.0	30	true	-1	ok
 sn	ppi_neg	0	0x3fe0ac8b2bce5785
 sn	ppi_neg	1	0x3ff40240b5a547b3
 sn	ppi_neg	2	0x3fe5702213e95707
@@ -938,7 +1232,7 @@ sn	ppi_neg	44	0x3ff9773af3c6c6d5
 sn	ppi_neg	45	0x3ff00bc7c218066e
 sn	ppi_neg	46	0x3fe23097d2b28e06
 sn	ppi_neg	47	0x3ff402409af79c3a
-case	ppi_negbase	spec	negbase	20.0	30	true	ok
+case	ppi_negbase	spec	negbase	20.0	30	true	-1	ok
 sn	ppi_negbase	0	0xc006038b97f8b680
 sn	ppi_negbase	1	0xc0014a76d55e84be
 sn	ppi_negbase	2	0xc00411dbe92a64ab
@@ -987,7 +1281,7 @@ sn	ppi_negbase	44	0xbffebd4540316719
 sn	ppi_negbase	45	0xc00249297b0b1a30
 sn	ppi_negbase	46	0xc00803de1a26988b
 sn	ppi_negbase	47	0xbfffb32f6a32f253
-case	ppi_negmz	spec	negmz	20.0	30	true	ok
+case	ppi_negmz	spec	negmz	20.0	30	true	-1	ok
 sn	ppi_negmz	0	0x3fe09d17162b41ab
 sn	ppi_negmz	1	0x3ff3efb5686273bd
 sn	ppi_negmz	2	0x3fe55c43ad9ffe8f
@@ -1036,7 +1330,7 @@ sn	ppi_negmz	44	0x3ff95fa0eea876e9
 sn	ppi_negmz	45	0x3feff9d1568dc4e0
 sn	ppi_negmz	46	0x3fe21fbc182f305d
 sn	ppi_negmz	47	0x3ff3efb54dcd8200
-case	ppi_nfint	spec	nfint	20.0	30	true	ok
+case	ppi_nfint	spec	nfint	20.0	30	true	-1	ok
 sn	ppi_nfint	0	0x3fde79e79e79e79e
 sn	ppi_nfint	1	0x3ff8000020000000
 sn	ppi_nfint	2	0x3fe6db6f3cf3cf3d
@@ -1085,7 +1379,7 @@ sn	ppi_nfint	44	0x3ff37a6f4de9bd38
 sn	ppi_nfint	45	0x3fea6f4de9bd37a7
 sn	ppi_nfint	46	0x3fdbd37a6f4de9bd
 sn	ppi_nfint	47	0x3ff0b21642c8590b
-case	ppi_nonfinite	spec	nonfinite	20.0	30	true	ok
+case	ppi_nonfinite	spec	nonfinite	20.0	30	true	-1	ok
 sn	ppi_nonfinite	0	0x3fde79e79e79e79e
 sn	ppi_nonfinite	1	0x3ff8000020000000
 sn	ppi_nonfinite	2	0x3fe6db6f3cf3cf3d
@@ -1134,7 +1428,7 @@ sn	ppi_nonfinite	44	0x3c14a90ceafff9df
 sn	ppi_nonfinite	45	0x3c0c09ff3eedae8a
 sn	ppi_nonfinite	46	0x3bfd83c94fb6d2ac
 sn	ppi_nonfinite	47	0x3c11b578c96db19b
-case	ppi_spike	spec	spike	20.0	30	true	ok
+case	ppi_spike	spec	spike	20.0	30	true	-1	ok
 sn	ppi_spike	0	0x3fbf4c67abb10667
 sn	ppi_spike	1	0x3fc1126717d4ec38
 sn	ppi_spike	2	0x3fbfb47650d4921e
@@ -1183,7 +1477,7 @@ sn	ppi_spike	44	0x3fc1126717d4ec38
 sn	ppi_spike	45	0x3fbfb47650d4921e
 sn	ppi_spike	46	0x3fc1126717d4ec38
 sn	ppi_spike	47	0x3fbf4c67abb10667
-case	ppi_unsorted	spec	unsorted	20.0	30	true	ok
+case	ppi_unsorted	spec	unsorted	20.0	30	true	-1	ok
 sn	ppi_unsorted	0	0x3fe09d17162b41ab
 sn	ppi_unsorted	1	0x3ff3efb5686273bd
 sn	ppi_unsorted	2	0x3fe55c43ad9ffe8f
@@ -1232,7 +1526,7 @@ sn	ppi_unsorted	44	0x3ff7c9a6dfbdef7a
 sn	ppi_unsorted	45	0x3ff02443858a0713
 sn	ppi_unsorted	46	0x3fe0fdc056ac3d57
 sn	ppi_unsorted	47	0x3ff463b39b351669
-case	ppi_win8_neg	spec	neg	8.0	30	true	ok
+case	ppi_win8_neg	spec	neg	8.0	30	true	-1	ok
 sn	ppi_win8_neg	0	0x3bfd83c94fb6d2ac
 sn	ppi_win8_neg	1	0x3c11b578e10a52a7
 sn	ppi_win8_neg	2	0x3c0622d875932eca
@@ -1281,7 +1575,7 @@ sn	ppi_win8_neg	44	0x3c14a90ceafff9df
 sn	ppi_win8_neg	45	0x3c0c09ff3eedae8a
 sn	ppi_win8_neg	46	0x3bfd83c94fb6d2ac
 sn	ppi_win8_neg	47	0x3c11b578c96db19b
-case	ppi_win8_nonfinite	spec	nonfinite	8.0	30	true	ok
+case	ppi_win8_nonfinite	spec	nonfinite	8.0	30	true	-1	ok
 sn	ppi_win8_nonfinite	0	0x3bfd83c94fb6d2ac
 sn	ppi_win8_nonfinite	1	0x3c11b578e10a52a7
 sn	ppi_win8_nonfinite	2	0x3c0622d875932eca
@@ -1330,7 +1624,7 @@ sn	ppi_win8_nonfinite	44	0x3c14a90ceafff9df
 sn	ppi_win8_nonfinite	45	0x3c0c09ff3eedae8a
 sn	ppi_win8_nonfinite	46	0x3bfd83c94fb6d2ac
 sn	ppi_win8_nonfinite	47	0x3c11b578c96db19b
-case	ppi_wininf	spec	clean	inf	30	true	ok
+case	ppi_wininf	spec	clean	inf	30	true	-1	ok
 sn	ppi_wininf	0	0x3fd5e6589d39051b
 sn	ppi_wininf	1	0x3fea479dac81c71c
 sn	ppi_wininf	2	0x3fe06cc38e3bfee4
@@ -1379,7 +1673,7 @@ sn	ppi_wininf	44	0x3feea8e275b63a5a
 sn	ppi_wininf	45	0x3fe4ce0762295e74
 sn	ppi_wininf	46	0x3fd5e6589d39051b
 sn	ppi_wininf	47	0x3fea479d89779fba
-case	ppi_winnan	spec	clean	nan	30	true	ok
+case	ppi_winnan	spec	clean	nan	30	true	-1	ok
 sn	ppi_winnan	0	0x3bfd83c94fb6d2ac
 sn	ppi_winnan	1	0x3c11b578e10a52a7
 sn	ppi_winnan	2	0x3c0622d875932eca
@@ -1428,5 +1722,5 @@ sn	ppi_winnan	44	0x3c14a90ceafff9df
 sn	ppi_winnan	45	0x3c0c09ff3eedae8a
 sn	ppi_winnan	46	0x3bfd83c94fb6d2ac
 sn	ppi_winnan	47	0x3c11b578c96db19b
-case	ppi_winneginf	spec	clean	-inf	30	true	InvalidParameter
-case	ppi_winsmall	spec	clean	0.5	30	true	InvalidParameter
+case	ppi_winneginf	spec	clean	-inf	30	true	-1	InvalidParameter
+case	ppi_winsmall	spec	clean	0.5	30	true	-1	InvalidParameter

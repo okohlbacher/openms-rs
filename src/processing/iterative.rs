@@ -74,8 +74,10 @@ pub struct PeakPickerIterative {
     /// so this field is handed to both.
     ///
     /// [`allow_negative_intensities`](PickingCompatibility::allow_negative_intensities)
-    /// accepts negative sample and seed intensities, and the estimator then
-    /// bins them as the source does. The
+    /// accepts negative sample and seed intensities, the estimator then bins
+    /// them as the source does, and a candidate whose support sums to a
+    /// negative intensity divides by that sum as the source does rather than
+    /// being refused. The
     /// [`noise`](PickingCompatibility::noise) sub-profile selects the
     /// estimator's own source behaviours, including the `win_len` values the
     /// source's parameter restriction lets through (NaN and `+inf`, since
@@ -208,8 +210,11 @@ impl PeakPickerIterative {
     ///   intensities. Also for a seed whose two raw neighbours do not exist or
     ///   whose recentering would read outside the spectrum, where the source
     ///   reads out of bounds; for a candidate whose integrated intensity is
-    ///   not positive, where the source divides by it; for a value that leaves `f32`
-    ///   range; and for an exhausted work or point budget.
+    ///   zero, where the source divides by it and gets an infinite or NaN
+    ///   centroid, and — unless
+    ///   [`compatibility`](Self::compatibility) allows negative intensities —
+    ///   for one whose integrated intensity is negative; for a value that
+    ///   leaves `f32` range; and for an exhausted work or point budget.
     /// * The errors of the seed [`PeakPickerHiRes`] and of the noise
     ///   estimator.
     pub fn pick_spectrum(&self, input: &MSSpectrum) -> Result<IterativePickingResult> {
@@ -484,19 +489,30 @@ impl PeakPickerIterative {
             integrated = finite(integrated + f64::from(point.intensity))?;
         }
         // The source divides by the integrated intensity unconditionally
-        // (`PeakPickerIterative.h:225`), so a zero sum gives an infinite or, if
-        // the weighted sum is zero too, a NaN m/z, and a negative sum gives a
-        // finite centroid of the wrong sign. `sortByPosition` then orders the
-        // output with `std::stable_sort`, whose comparator a NaN makes not a
-        // strict weak ordering; libstdc++'s merge sort stays in bounds there,
-        // so this is a wrong order rather than an out-of-bounds read.
+        // (`PeakPickerIterative.h:228`) and stores both the quotient and the sum
+        // (`:231-234`).
         //
-        // This refusal is kept as it was, in both profiles: no case in
-        // `oracle/picker-consumers` reaches it, so what the Release build
-        // produces here is not pinned, and relaxing it under
-        // `allow_negative_intensities` would ship behaviour this wave has not
-        // measured. Left for a lane that can pin it.
-        if integrated <= 0.0 {
+        // A negative sum divides to a finite centroid, so under
+        // `allow_negative_intensities` — the flag that makes negative samples
+        // reach this arithmetic at all — the sum passes and the peak carries its
+        // negative integrated intensity, as the Release build stores it. The
+        // measured cases are `ppi_neg_sn0`, `ppi_negbase_sn0` and
+        // `ppi_allneg_sn0`, which reach here because `signal_to_noise_ = 0.0`
+        // turns the S/N gate off (`:92` documents that, and `:185`, `:205` and
+        // `:315` honour it by skipping `snt.init` and every S/N break), so a
+        // peak's support extends across the negative samples.
+        //
+        // A zero sum still fails, through `finite` below: it divides to an
+        // infinite or, when the weighted sum is zero too, a NaN m/z.
+        // `sortByPosition` then orders the output with `std::stable_sort`, whose
+        // comparator a NaN makes not a strict weak ordering; libstdc++'s merge
+        // sort stays in bounds there, so this is a wrong order rather than an
+        // out-of-bounds read, but which order it is is not pinned by any case.
+        //
+        // The native profile keeps the whole refusal, since it does not admit
+        // the negative samples that produce a nonpositive sum in the first
+        // place.
+        if !self.compatibility.allow_negative_intensities && integrated <= 0.0 {
             return Err(bad(
                 "iterative candidate has nonpositive integrated intensity",
             ));

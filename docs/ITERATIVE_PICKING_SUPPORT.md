@@ -123,7 +123,7 @@ caller's, so `PeakPickerIterative::compatibility` is handed to both, exactly as
 
 | Flag | Source behaviour |
 |---|---|
-| `allow_negative_intensities` | No intensity check exists in the source. Negative samples reach `snt.init`, and a negative integrated intensity divides to a finite recentred m/z. |
+| `allow_negative_intensities` | No intensity check exists in the source. Negative samples reach `snt.init`, and a candidate whose support sums to a negative intensity divides by that sum (`PeakPickerIterative.h:228`) to a finite recentred m/z and is stored with that negative intensity (`:231-234`). Measured as `ppi_neg_sn0`, `ppi_negbase_sn0` and `ppi_allneg_sn0`, which reach the negative sum because `signal_to_noise_ = 0.0` turns the S/N gate off (`:92`, honoured at `:185`, `:205` and `:315`). A zero sum stays refused in both profiles: it divides to an infinite or NaN centroid, and no case pins the order `std::stable_sort` then produces. |
 
 The `noise` sub-profile carries the estimator's own source behaviours, including
 the `win_len` values the source's `setMinFloat("win_len", 1.0)` restriction lets
@@ -155,13 +155,18 @@ so both stay refused. Porting them is tracked as remaining scope below.
 
 ## Checked differences and resource bounds
 
-- Profile m/z and intensities must be finite and nonnegative, with strictly
-  increasing m/z. Negative coordinates would collide with source `-1` deletion
-  sentinels. Duplicate positions would be collapsed by the C++ map and are
-  rejected instead. Zero intensities are accepted.
+- Profile m/z must be finite, nonnegative and strictly increasing; intensities
+  must be finite, and nonnegative unless
+  `PickingCompatibility::allow_negative_intensities` is set. Negative
+  coordinates would collide with source `-1` deletion sentinels. Duplicate
+  positions would be collapsed by the C++ map and are rejected instead. Zero
+  intensities are accepted.
 - Zero iterations, zero limits, negative or nonfinite width/noise/spacing
-  settings, missing center neighbors, nonpositive integrated intensity and nonfinite
-  arithmetic return errors. Values not representable as finite output `f32`
+  settings, missing center neighbors and nonfinite arithmetic return errors. A
+  nonpositive integrated intensity returns an error in the native profile; under
+  `allow_negative_intensities` a negative sum divides as the source divides by
+  it (`PeakPickerIterative.h:228`) and only a zero sum still fails, through the
+  infinite or NaN centroid it produces. Values not representable as finite output `f32`
   values also return errors. A finite rounded output centroid can lie outside
   its exact integration boundaries; the source rounding behavior is retained.
 - Empty and short profiles return empty centroid spectra with preserved record

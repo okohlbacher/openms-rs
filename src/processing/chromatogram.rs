@@ -77,6 +77,21 @@ pub struct PeakPickerChromatogram {
     /// Boundary-extension S/N threshold. Zero disables the boundary S/N gate.
     pub signal_to_noise: f64,
     /// Boundary and apex-report estimator; source window defaults to 1000 s.
+    ///
+    /// This estimator always runs under [`PickingCompatibility::source`], so
+    /// its whole source profile applies whatever
+    /// [`compatibility`](Self::compatibility) says, including the Linux x86-64
+    /// Release build's bin-index conversion: a histogram quotient that leaves
+    /// `int` range is binned as that build bins it (bin `0`, from
+    /// `cvttsd2si`'s `INT_MIN`) rather than clamped to the last bin. Producing
+    /// one needs [`histogram_range`](SignalToNoiseEstimatorMedian::histogram_range)
+    /// to be set by hand: the source's own picker sets only `win_len` and
+    /// `bin_count` on `snt_`
+    /// (`ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp:408-412`), leaving
+    /// `max_intensity` at `-1`, and with the automatic range the bin width
+    /// scales with the data, so the quotient stays inside `int` for any
+    /// histogram that fits in memory. This field exposes the whole estimator,
+    /// which the source's parameter set does not.
     pub noise_estimator: SignalToNoiseEstimatorMedian,
     /// Seed picking is independent: C++ configures HiRes once at S/N 1, with
     /// its 200 s default noise window, even after boundary settings change.
@@ -253,7 +268,10 @@ impl PeakPickerChromatogram {
             // writes `std::max(0.0, help)` and the Gaussian kernel is
             // nonnegative, so under `corrected` a negative sample survives only
             // where the local weighted average is itself negative.) It also
-            // makes a NaN or infinite `win_len` pick, as the Release build does.
+            // makes a NaN or infinite `win_len` pick, as the Release build
+            // does, and bins an out-of-`int` histogram quotient as the Release
+            // build bins it; `noise_estimator` above records why only a
+            // hand-set histogram range can produce one.
             // Passing the peaks widens each `f32` with `cvtss2sd` semantics
             // rather than leaving a `f64::from` NaN payload to the compiler.
             Some(

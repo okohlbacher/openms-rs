@@ -197,6 +197,29 @@ rejects `1` and `2`. The port refuses and accepts exactly the same set, and a
 NaN or infinite window picks rather than failing because the estimate uses the
 source profile.
 
+Using the source profile at that call site also selects the Linux x86-64
+Release build's bin-index conversion, which is the one behavioural change the
+default `compatibility` sees beyond the non-finite window. The source truncates
+before it clamps — `std::max(std::min<int>((int)(I / bin_size), bin_count - 1),
+0)` at `SignalToNoiseEstimatorMedian.h:297` and `:308` — so a quotient that
+leaves `int` range becomes `INT_MIN` in that build and lands in bin `0`, where
+the port's native conversion clamps it into the last bin. The quotient is
+`I / std::max(1.0, max_intensity_ / bin_count_)` (`:258`), so producing an
+out-of-range one needs `max_intensity` set by hand, which the source's picker
+never does: `updateMembers_` sets only `win_len`, `bin_count` and
+`write_log_messages` (`PeakPickerChromatogram.cpp:408-412`), leaving
+`max_intensity` at `-1` and the range automatic at `mean + 3 sd`. With that
+automatic range the bin width scales with the data — for one sample of `I`
+among `n` near-zero ones the quotient is about `sqrt(n) * bin_count / 3`, so
+exceeding `2^31` would take a `bin_count` near `10^9` and a histogram of tens of
+gigabytes. The Rust `noise_estimator` field exposes the whole estimator,
+including `histogram_range`, so a caller can build the configuration the source
+cannot; there the estimate is the Release build's own, measured as the
+`ppc_bigmax` / `ppi_bigmax` cases in `tests/data/picker_consumers/snt_oracle.tsv`
+(a hand-set upper end of 10 over 30 bins floors the bin width at 1.0, so a 3e9
+sample's quotient leaves `int` range) and asserted in
+`tests/picker_noise_consumers.rs`.
+
 ## Validation, limits and remaining scope
 
 Coordinates must be finite and non-decreasing; intensities must be finite.

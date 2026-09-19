@@ -41,3 +41,13 @@ ppc_gauss_negbase_sn0	ppc	negbase	use_gauss=true signal_to_noise=0.0 report_sn=t
 ppc_legacy_negbase	ppc	negbase	use_gauss=true method=legacy report_sn=true
 ppc_sg_negbase	ppc	negbase	use_gauss=false report_sn=true
 ppi_negbase	ppi	negbase	
+ppi_neg_sn0	ppi	neg	signal_to_noise_=0.0
+ppi_negbase_sn0	ppi	negbase	signal_to_noise_=0.0
+ppi_allneg_sn0	ppi	allneg	signal_to_noise_=0.0
+ppi_allneg	ppi	allneg	
+ppc_gauss_allneg	ppc	allneg	use_gauss=true report_sn=true
+ppc_legacy_allneg	ppc	allneg	use_gauss=true method=legacy report_sn=true
+ppc_gauss_bigint	ppc	bigint	use_gauss=true report_sn=true
+ppc_legacy_bigint	ppc	bigint	use_gauss=true method=legacy report_sn=true
+ppi_bigint	ppi	bigint	
+ppi_snneg	ppi	clean	signal_to_noise_=-1.0
