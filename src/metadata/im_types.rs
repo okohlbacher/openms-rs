@@ -128,7 +128,7 @@ pub fn im_peak_type_to_string(peak_type: IonMobilityPeakType) -> &'static str {
 const MASON_SCHAMP_CONSTANT: f64 = 1059.62245;
 
 /// Ion-gas reduced mass in Da, with the ion mass approximated as `mz * |charge|`
-/// (source `reducedMass_`, `IMTypes.cpp:115-119`).
+/// (source `reducedMass_`, `IMTypes.cpp:114-119`).
 fn reduced_mass(mz: f64, charge: i32, buffer_gas_mass: f64) -> f64 {
     let ion_mass = mz * f64::from(charge.unsigned_abs());
     (ion_mass * buffer_gas_mass) / (ion_mass + buffer_gas_mass)

@@ -73,9 +73,15 @@ IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]{2,}")
 # says which symbol is meant, while an assignment, a comparison, a statement, a
 # stream write or a directive reproduces something that was written on a line.
 SYNTAX = re.compile(r"[=;!#]|<<|>>|->|\*|\+|&&|\|\||\b(?:if|for|while|return|switch|case|throw)\b")
-# A full stop or a semicolon between a quotation and a citation ends the
-# clause the citation belongs to, and with it the claim that they go together.
-BOUNDARY = re.compile(r"[.;]\s")
+# A qualified name, possibly of an operator: "MzTabFile::load",
+# "MSChromatogram::operator==". Punctuation makes it look like code without
+# making it a quotation of anything.
+REFERENCE = re.compile(r"[\w:.~]+(?:operator\s*(?:\[\]|\(\)|[^\w\s]{1,3}|\s+[\w:]+))?")
+# A full stop, a semicolon or a colon between a quotation and a citation ends
+# the clause the citation belongs to, and with it the claim that they go
+# together: what follows a colon is a remark about the citation - "...:1779-1795:
+# still inside the source's `if (...)`" - and not a quotation of those lines.
+BOUNDARY = re.compile(r"[.;:]\s")
 REVISION = re.compile(r"\b[0-9a-f]{40}\b")
 ISSUE_HEADING = re.compile(r"^##\s+CPP-\d+\b")
 
@@ -341,8 +347,8 @@ def flatten(text):
 def quotations(unit):
     """The code fragments the unit reproduces verbatim, with where they sit.
 
-    A backticked name - ``writeHeader_``, ``MzTabFile::load``, ``updateRanges()``
-    - is a reference to a symbol, and what it names is almost always the
+    A backticked name - ``writeHeader_``, ``MzTabFile::load``, ``updateRanges()``,
+    ``MSChromatogram::operator==`` - is a reference to a symbol, and what it names is almost always the
     enclosing function or the class the cited lines belong to rather than
     anything written on them, so checking one against a line range produces
     nothing but noise. A fragment that reproduces a line instead of naming a
@@ -359,6 +365,8 @@ def quotations(unit):
             continue
         if not SYNTAX.search(span) or not IDENTIFIER.search(span):
             continue
+        if REFERENCE.fullmatch(span):
+            continue
         found.append((match.start(1), match.end(1), span))
     return found
 
@@ -372,7 +380,7 @@ def attach(unit, citations, quoted):
     paragraph quotes something else entirely. Attaching every quotation in the
     paragraph to every citation in it would report all of those. The quotation a
     citation answers for is the nearest one it is not separated from by a full
-    stop or a semicolon, which is as far as one clause reaches.
+    stop, a semicolon or a colon, which is as far as one clause reaches.
     """
     attached = collections.defaultdict(set)
     for position, length, key in citations:
@@ -542,7 +550,9 @@ def main():
     failures = []
     for document in documents():
         name = str(document.relative_to(ROOT))
-        quoted_only = document.suffix == ".md"
+        # Markdown, and a Rust doc comment, which is Markdown; a manifest has no
+        # code spans, so there a bare range has to stand on its own shape.
+        quoted_only = document.suffix in (".md", ".rs")
         for unit, revisions in units(document, document.read_text(errors="replace"), default):
             for where, problems in check_unit(pins, unit, revisions, quoted_only, report):
                 failures.extend((name, where, problem) for problem in problems)

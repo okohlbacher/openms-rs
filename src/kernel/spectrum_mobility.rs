@@ -202,7 +202,7 @@ impl ImFrameRaster {
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] when `im_bins * mz_bins` overflows
-    /// `usize`. The source multiplies unchecked (`MSSpectrum.cpp:889`) and then
+    /// `usize`. The source multiplies unchecked (`MSSpectrum.cpp:895`) and then
     /// writes `im_bins * mz_bins` floats through a caller-supplied pointer, so
     /// an overflowing product there silently under-allocates.
     pub fn pixels(&self) -> Result<usize> {
