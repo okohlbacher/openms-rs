@@ -187,7 +187,7 @@
     "external_reference_artifacts": [
         {
             "path": "../oracle/a7-fileinfo/oracle.py",
-            "sha256": "cec8bc394773f8130bba050f8ec4b9da9781155bde3011e0760e55fead25dcce",
+            "sha256": "6f1585983e1bf335d078321c71b8035e2368a3ae092f5868888edd915de37004",
             "origin_key": "fixtures",
             "role": "driver: case table, per-case scratch runs, reproduction check, manifest writer"
         },
@@ -211,7 +211,7 @@
         },
         {
             "path": "../oracle/a7-fileinfo/manifest.json",
-            "sha256": "6858f4fddb4fd887783762eedbc2bb968b190c6bef8b992c1099873a880079db",
+            "sha256": "21710d7f5581f021c16a7af9d519d33f3c812281da002b9e4a841d5108537559",
             "origin_key": "fixtures",
             "role": "tool hash, environment, fixture hashes, per-case argv, exit codes and output hashes, reproduction verdict, out_of_bounds records"
         }
