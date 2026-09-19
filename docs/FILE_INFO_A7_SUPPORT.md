@@ -371,16 +371,21 @@ sub-feature of intensity `-0.0` and one of `0.0` under a positive centroid
 contributes `(-inf) + (+inf)` at `:2317`, and `:2321-2323` pushes the resulting
 NaN into `it_aad_by_cfs` — the *sample* of the `Average relative intensity error
 within consensus features` block, not a statistic summarised out of one. The
-sample then goes to `std::sort`, whose strict-weak-ordering precondition a NaN
-violates.
+sample then goes to `std::sort`.
 
-Whether that is answerable depends on the sample's shape, and both answerable
-shapes are **reproduced**:
+Under `operator<` a NaN is incomparable with every value, itself included, so
+`std::sort` is free to return **any** permutation of the elements it cannot
+tell apart — and if the sample also holds two or more distinct numbers,
+transitivity of incomparability fails (`1 ~ NaN` and `NaN ~ 3` while `1 < 3`)
+and the call is undefined outright. Either way the question is the same: *is
+the set of outputs the source may produce a singleton?*
 
-| sample | why the permutation cannot be observed | oracle case |
+Two shapes answer yes, and both are **reproduced**:
+
+| sample | why the set of outputs has one member | oracle case |
 | --- | --- | --- |
-| one value | sorting a one-element range is a no-op by `[alg.sorting]` | `c_nan_one_s` |
-| every value a NaN | every permutation prints the same eight lines | `c_nan_two_s` |
+| one value | a one-element range has exactly one permutation | `c_nan_one_s` |
+| every value a NaN | `std::sort` may permute freely, but every permutation prints the same eight lines | `c_nan_two_s` |
 
 For the first the reference prints the NaN on all six positional lines and `0`
 for the variance — the `n <= 1` substitution of
@@ -394,9 +399,10 @@ both without sorting, since there is nothing to order.
 reference build exits 0. The reason is measured rather than assumed: libstdc++
 compares every pair involving a NaN false and therefore moves nothing, so the
 `minimum`, quartile and `maximum` lines the reference prints are positional
-reads of a range it never ordered. Oracle cases `c_nan_then_finite_s` and
-`c_finite_then_nan_s` hold **the same two consensus features in opposite file
-order**, are each stable over three runs, and disagree on exactly four lines:
+reads of a range whose elements `std::sort` was free to leave in any order.
+Oracle cases `c_nan_then_finite_s` and `c_finite_then_nan_s` hold **the same
+two consensus features in opposite file order**, are each stable over three
+runs, and disagree on exactly four lines:
 
 ```text
                     c_nan_then_finite_s      c_finite_then_nan_s

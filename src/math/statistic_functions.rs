@@ -21,11 +21,23 @@
 //!
 //! # NaN
 //!
-//! A NaN has no place in a total order, and the source's `std::sort` has a
-//! strict-weak-ordering precondition that a NaN violates outright, so a C++
-//! call that sorts a NaN-bearing range has no defined answer at all. Every
-//! function here that **orders** values therefore refuses a NaN input rather
-//! than producing a plausible number from an arbitrary permutation:
+//! A NaN has no place in a total order. Under `operator<` it is incomparable
+//! with every value, itself included, and what that costs the source's
+//! `std::sort` depends on what else the range holds:
+//!
+//! - **two or more distinct numbers.** Transitivity of incomparability fails —
+//!   `1 ~ NaN` and `NaN ~ 3` while `1 < 3` — so the strict-weak-ordering
+//!   precondition is violated and the call is undefined.
+//! - **at most one distinct number.** Every element is incomparable with every
+//!   other, so `operator<` is still a strict weak ordering, but it makes them
+//!   all *equivalent*, and `std::sort` may return any permutation of
+//!   equivalent elements.
+//!
+//! Either way a C++ call that sorts a NaN-bearing range has no single answer to
+//! reproduce, unless the set of permutations it may return happens to have only
+//! one possible output. Every function here that **orders** values therefore
+//! refuses a NaN input rather than producing a plausible number from an
+//! arbitrary permutation:
 //!
 //! - [`median`](crate::math::statistic_functions::median),
 //!   [`quantile1st`](crate::math::statistic_functions::quantile1st),
@@ -36,16 +48,16 @@
 //!   sort or stage a buffer themselves and return
 //!   [`Error::InvalidValue`](crate::Error::InvalidValue).
 //! - [`SummaryStatistics::new`](crate::math::statistic_functions::SummaryStatistics::new)
-//!   also sorts, and refuses the same way — **except** for the two shapes in
-//!   which the unspecified permutation cannot be observed: a sample of one
-//!   value, which `std::sort` leaves alone by `[alg.sorting]`, and a sample
-//!   whose values are all NaN, every permutation of which produces the same
-//!   eight fields. Both are reached from real input: `FileInfo`'s consensusXML
-//!   `-s` blocks divide, and a pair of sub-features of intensity `-0.0` and
-//!   `0.0` under one centroid contributes `(-inf) + (+inf) = NaN` to the
-//!   per-consensus-feature sample. A NaN next to a number is still refused;
-//!   section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md` has the measurement and
-//!   CPP-347 the source defect.
+//!   also sorts, and refuses the same way — **except** for the two shapes whose
+//!   set of possible outputs has exactly one member: a sample of one value,
+//!   which has only one permutation at all, and a sample whose values are all
+//!   NaN, every permutation of which produces the same eight fields. Both are
+//!   reached from real input: `FileInfo`'s consensusXML `-s` blocks divide, and
+//!   a pair of sub-features of intensity `-0.0` and `0.0` under one centroid
+//!   contributes `(-inf) + (+inf) = NaN` to the per-consensus-feature sample. A
+//!   NaN next to a number is still refused; section 5.2 of
+//!   `docs/FILE_INFO_A7_SUPPORT.md` has the measurement and CPP-347 the source
+//!   defect.
 //! - [`median_sorted`](crate::math::statistic_functions::median_sorted),
 //!   [`quantile1st_sorted`](crate::math::statistic_functions::quantile1st_sorted),
 //!   [`quantile3rd_sorted`](crate::math::statistic_functions::quantile3rd_sorted)
@@ -1213,24 +1225,26 @@ impl SummaryStatistics {
     /// Summarise a non-empty sample that holds at least one NaN.
     ///
     /// The module's NaN section refuses a NaN wherever ordering it would decide
-    /// the answer, because `std::sort`'s strict-weak-ordering precondition is
-    /// violated and the permutation it leaves behind is unspecified. That
-    /// argument has two exceptions, and both of them are *proofs* that the
-    /// permutation cannot be observed rather than observations that it happened
-    /// not to matter:
+    /// the answer, because `std::sort` may then return any of several
+    /// permutations — or, with two or more distinct numbers present, has its
+    /// precondition violated outright. The test applied here is what that
+    /// leaves over: **is the set of possible outputs a singleton?** Two shapes
+    /// pass it, and for both the answer is a proof rather than an observation
+    /// that it happened not to matter:
     ///
-    /// - **One value.** Sorting a one-element range is a no-op by
-    ///   `[alg.sorting]`, so there is no permutation to be unspecified about.
-    ///   Every positional field is that value.
-    /// - **Every value a NaN.** Every permutation of an all-NaN range produces
-    ///   the same eight fields, because every field is read from, or computed
-    ///   out of, values that are all NaN.
+    /// - **One value.** A one-element range has exactly one permutation, so
+    ///   there is nothing for `std::sort` to choose. Every positional field is
+    ///   that value.
+    /// - **Every value a NaN.** `std::sort` may return any permutation, but all
+    ///   of them produce the same eight fields, because every field is read
+    ///   from, or computed out of, values that are all NaN.
     ///
-    /// Anything else — a NaN next to a number — is refused, because the order
-    /// statistics the source prints there are positional reads of a range
-    /// `std::sort` did not order, and the same multiset in a different input
-    /// order gives different lines. `../oracle/a7-fileinfo` measures exactly
-    /// that with `c_nan_then_finite_s` and `c_finite_then_nan_s`.
+    /// Anything else — a NaN next to a number — is refused. The order
+    /// statistics the source prints there are positional reads of a range whose
+    /// elements `std::sort` was free to leave in any order, and the same
+    /// multiset in a different input order does give different lines:
+    /// `../oracle/a7-fileinfo` measures exactly that with `c_nan_then_finite_s`
+    /// and `c_finite_then_nan_s`.
     ///
     /// The sample is *not* sorted in this arm — there is nothing to order — so
     /// a caller's slice comes back in its original order either way.

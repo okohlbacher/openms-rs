@@ -682,23 +682,26 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
 /// `:2317` accumulates `(-inf) + (+inf) = NaN` and `:2321-2323` divides it by
 /// `cm.size()`, so the NaN is pushed into `it_aad_by_cfs` — the sample of the
 /// *Average relative intensity error within consensus features* block — and is
-/// handed to `std::sort`, whose strict-weak-ordering precondition it violates.
+/// handed to `std::sort`. Under `operator<` a NaN is incomparable with every
+/// value, itself included, so `std::sort` may return any permutation of the
+/// elements it cannot tell apart — and once two or more distinct numbers are
+/// present, transitivity of incomparability fails and the call is undefined.
 ///
-/// Whether that matters depends on the shape of the sample, so all four are
-/// exercised:
+/// The question is therefore whether the set of outputs the source may produce
+/// has one member, and all three answers are exercised:
 ///
-/// - **one value** (`a7_cons_nan_one`): sorting a one-element range is a no-op
-///   by `[alg.sorting]`, so nothing is unspecified. The Release build prints
-///   the NaN on all six positional lines and `0` for the variance, which is the
+/// - **one value** (`a7_cons_nan_one`): a one-element range has exactly one
+///   permutation, so there is nothing to choose. The Release build prints the
+///   NaN on all six positional lines and `0` for the variance, which is the
 ///   `n <= 1` substitution;
-/// - **every value a NaN** (`a7_cons_nan_two`): the permutation is unspecified
-///   but unobservable, because every permutation of an all-NaN range prints the
-///   same eight lines. Here `n > 1`, so the variance is a NaN too;
+/// - **every value a NaN** (`a7_cons_nan_two`): `std::sort` may permute
+///   freely, but every permutation of an all-NaN range prints the same eight
+///   lines. Here `n > 1`, so the variance is a NaN too;
 /// - **a NaN next to a number** (`a7_cons_nan_then_finite` and its swapped twin
 ///   `a7_cons_finite_then_nan`): the permutation *is* observable. libstdc++
 ///   compares every pair involving the NaN false and therefore moves nothing,
 ///   so the reference build's `minimum`, quartile and `maximum` lines are
-///   positional reads of a range it never ordered. The two frozen reports below
+///   positional reads of a range it was free to leave in any order. The two frozen reports below
 ///   hold the same two consensus features in opposite file order and disagree
 ///   on exactly those four lines — which is the measurement that says there is
 ///   no answer to reproduce. This crate refuses that shape; it is a deferral

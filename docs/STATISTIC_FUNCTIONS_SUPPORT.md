@@ -133,11 +133,14 @@ whole content is a length question and the class test calls one of them on
 
 ### NaN policy
 
-The source sorts with `std::sort`, whose strict-weak-ordering precondition a
-NaN violates outright, so a C++ call that sorts a NaN-bearing range has no
-defined answer to reproduce — the permutation, and therefore the statistic, is
-whatever the library's introsort happens to do. The port draws the line at
-*ordering*:
+The source sorts with `std::sort`. Under `operator<` a NaN is incomparable with
+every value, itself included, so `std::sort` is free to return any permutation
+of the elements it cannot tell apart; and once the range holds two or more
+distinct numbers as well, transitivity of incomparability fails (`1 ~ NaN` and
+`NaN ~ 3` while `1 < 3`) and the strict-weak-ordering precondition is violated
+outright. Either way a C++ call that sorts a NaN-bearing range has no single
+answer to reproduce — the permutation, and therefore the statistic, is whatever
+the library's introsort happens to do. The port draws the line at *ordering*:
 
 | Group | Functions | NaN input |
 | --- | --- | --- |
@@ -152,16 +155,17 @@ whatever the library's introsort happens to do. The port draws the line at
 differences when they contain a NaN neither input had — `inf - inf` is the only
 way that happens.
 
-`SummaryStatistics::new` is the one exception, and it is a narrow one. Two
-sample shapes make the unspecified permutation *unobservable*, and in both cases
-that is a proof rather than an observation that it happened not to matter:
+`SummaryStatistics::new` is the one exception, and it is a narrow one. The test
+it applies is whether the set of outputs the source may produce has exactly one
+member. Two sample shapes pass it, and in both cases that is a proof rather than
+an observation that the permutation happened not to matter:
 
-- **one value.** Sorting a one-element range is a no-op by `[alg.sorting]`, so
-  there is no permutation to be unspecified about. Every positional field is
-  that value, and `variance` is the `0.0` the source substitutes for `n <= 1`;
-- **every value a NaN.** Every permutation of an all-NaN range produces the same
-  eight fields, because every field is read from, or computed out of, values
-  that are all NaN.
+- **one value.** A one-element range has exactly one permutation, so there is
+  nothing for `std::sort` to choose. Every positional field is that value, and
+  `variance` is the `0.0` the source substitutes for `n <= 1`;
+- **every value a NaN.** `std::sort` may permute freely, but every permutation
+  of an all-NaN range produces the same eight fields, because every field is
+  read from, or computed out of, values that are all NaN.
 
 `SummaryStatistics::of_nan_sample` computes both without sorting, since there is
 nothing to order, and a NaN next to a number is still refused. Both shapes are
@@ -176,7 +180,7 @@ raised for the lead. Nothing is out of bounds and the Release build's values are
 stable per input, so D1 would have the port reproduce them; it does not, because
 libstdc++ compares every pair involving a NaN false and therefore moves nothing,
 which makes the `minimum`, quartile and `maximum` lines positional reads of a
-range `std::sort` never ordered. Measured: the oracle's `c_nan_then_finite_s`
+range whose elements `std::sort` was free to leave in any order. Measured: the oracle's `c_nan_then_finite_s`
 and `c_finite_then_nan_s` hold the same two consensus features in opposite file
 order and disagree on exactly those four lines. Reproducing them means porting
 libstdc++'s `std::sort` permutation into `sort_ascending`, which every
