@@ -1,0 +1,113 @@
+
+-- General information --
+
+File name: /scratch/kohlbach/a6-fileinfo/oracle/inputs/FileInfo_2_input.dta2d
+File type: dta2d
+
+Instrument: 
+
+MS levels: 1
+Total number of peaks: 8
+Number of spectra: 8
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 0.00 .. 6.00 sec (0.1 min)
+  mass-to-charge: 500.00 .. 1100.00
+  ion mobility: <none> .. <none>
+  intensity: 50.00 .. 400.00
+
+Spectrum Ranges:
+  retention time: 0.00 .. 6.00 sec (0.1 min)
+  mass-to-charge: 500.00 .. 1100.00
+  ion mobility: <none> .. <none>
+  intensity: 50.00 .. 400.00
+
+MS Level 1 Ranges:
+  retention time: 0.00 .. 6.00 sec (0.1 min)
+  mass-to-charge: 500.00 .. 1100.00
+  ion mobility: <none> .. <none>
+  intensity: 50.00 .. 400.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 8
+
+Peak type from metadata (or estimated from data)
+  level 1: Unknown (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         0
+  m/z:        500 .. 500
+Precursors:  0
+
+Spectrum 2:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         1
+  m/z:        600 .. 600
+Precursors:  0
+
+Spectrum 3:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2
+  m/z:        700 .. 700
+Precursors:  0
+
+Spectrum 4:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         3
+  m/z:        800 .. 800
+Precursors:  0
+
+Spectrum 5:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         4
+  m/z:        900 .. 900
+Precursors:  0
+
+Spectrum 6:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         5
+  m/z:        1000 .. 1000
+Precursors:  0
+
+Spectrum 7:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         6
+  m/z:        1100 .. 1100
+Precursors:  0
+
+Spectrum 8:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2
+  m/z:        900 .. 900
+Precursors:  0
+
+

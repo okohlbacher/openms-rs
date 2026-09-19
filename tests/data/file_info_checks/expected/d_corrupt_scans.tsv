@@ -1,0 +1,32 @@
+general: file name	/scratch/kohlbach/a6-fileinfo/oracle/inputs/corrupt_scans.mzML
+general: file type	mzML
+number of spectra	5
+total number of peaks	4
+general: combined ranges: retention time: min	10.00
+general: combined ranges: retention time: max	40.00
+general: combined ranges: mass-to-charge: min	100.00
+general: combined ranges: mass-to-charge: max	100.00
+general: combined ranges: intensity: min	1.00
+general: combined ranges: intensity: max	1.00
+general: spectrum ranges: retention time: min	10.00
+general: spectrum ranges: retention time: max	40.00
+general: spectrum ranges: mass-to-charge: min	100.00
+general: spectrum ranges: mass-to-charge: max	100.00
+general: spectrum ranges: intensity: min	1.00
+general: spectrum ranges: intensity: max	1.00
+general: MS1 ranges: retention time: min	10.00
+general: MS1 ranges: retention time: max	40.00
+general: MS1 ranges: mass-to-charge: min	100.00
+general: MS1 ranges: mass-to-charge: max	100.00
+general: MS1 ranges: intensity: min	1.00
+general: MS1 ranges: intensity: max	1.00
+general: chromatogram ranges: retention time: min	<none>
+general: chromatogram ranges: retention time: max	<none>
+general: chromatogram ranges: mass-to-charge: min	<none>
+general: chromatogram ranges: mass-to-charge: max	<none>
+general: chromatogram ranges: intensity: min	<none>
+general: chromatogram ranges: intensity: max	<none>
+number of MS0 spectra	1
+number of MS1 spectra	4
+peak type metadata [annotation, estimate]	Unknown	Unknown
+peak type metadata [annotation, estimate]	Unknown	Unknown

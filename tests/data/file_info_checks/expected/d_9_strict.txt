@@ -1,0 +1,102 @@
+
+-- General information --
+
+File name: /scratch/kohlbach/a6-fileinfo/oracle/inputs/FileInfo_9_strict_reader.mzML
+File type: mzML
+
+Instrument: LCQ Deca
+  Mass Analyzer: Quadrupole ion trap (resolution: 0)
+  Mass Analyzer: Linear ion trap (resolution: 0)
+
+MS levels: 1, 2
+Total number of peaks: 40
+Number of spectra: 4
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 5.10 .. 5.40 sec (0.0 min)
+  mass-to-charge: 0.00 .. 18.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 20.00
+
+Spectrum Ranges:
+  retention time: 5.10 .. 5.40 sec (0.0 min)
+  mass-to-charge: 0.00 .. 18.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 20.00
+
+MS Level 1 Ranges:
+  retention time: 5.10 .. 5.40 sec (0.0 min)
+  mass-to-charge: 0.00 .. 14.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 15.00
+
+MS Level 2 Ranges:
+  retention time: 5.20 .. 5.20 sec (0.0 min)
+  mass-to-charge: 0.00 .. 18.00
+  ion mobility: <none> .. <none>
+  intensity: 2.00 .. 20.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 3
+  level 2: 1
+
+Peak type from metadata (or estimated from data)
+  level 1: Centroid (Centroid)
+  level 2: Centroid (Unknown)
+
+Activation methods
+    MS-Level 2 & CID (Collision-induced dissociation): 1
+
+Precursor charge distribution:
+  charge 2: 1x
+
+Meta data array:
+  charge array:          1 spectra
+  signal to noise array: 1 spectra
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   MSnSpectrum
+  peaks:      15
+  RT:         5.1
+  m/z:        0 .. 14
+Precursors:  0
+
+Spectrum 2:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      10
+  RT:         5.2
+  m/z:        0 .. 18
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     5.55
+  activation methods: 
+    CID (Collision-induced dissociation)
+
+
+Spectrum 3:
+  mslevel:    1
+  scanMode:   MSnSpectrum
+  peaks:      15
+  RT:         5.3
+  m/z:        0 .. 14
+Precursors:  0
+
+Spectrum 4:
+  mslevel:    1
+  scanMode:   MSnSpectrum
+  peaks:      0
+  RT:         5.4
+  m/z:        Precursors:  0
+
+

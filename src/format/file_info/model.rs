@@ -14,11 +14,12 @@
 //! conventions, the native differences and the evidence.
 //!
 //! The source declares every type, including those of branches this port does
-//! not run yet (consensus maps, identifications, FASTA, mzTab, validation,
-//! corrupt-data checks and detailed listings). They are ported here with their
-//! fields so the result keeps the source shape; a run that would fill them
-//! returns [`crate::Error::Unsupported`] instead of an incompletely filled
-//! result.
+//! not run yet (consensus maps, identifications, FASTA, mzTab and schema
+//! validation). They are ported here with their fields so the result keeps the
+//! source shape; a run that would fill them returns
+//! [`crate::Error::Unsupported`] instead of an incompletely filled result. The
+//! `-i`, `-d` and `-c` checks do run; see
+//! [`crate::format::file_info::checks`].
 //!
 //! Several declared fields are never written by the source `run` at core
 //! `bc9cc12` either:
@@ -392,7 +393,12 @@ pub struct MzTabInfo {
 }
 
 /// The `-v` schema and semantic validation and `-i` indexed-mzML blocks, the
-/// source `FileInfo::ValidationInfo`. Neither flag runs in this port yet.
+/// source `FileInfo::ValidationInfo`.
+///
+/// `-i` runs in this port and fills [`Self::index_checked`],
+/// [`Self::index_valid`] and, for an index that parsed, the two record counts.
+/// `-v` does not run yet, so `performed`, `supported`, `valid`, `warnings` and
+/// `errors` stay at their defaults.
 ///
 /// The source `run` fills `performed`, `supported`, `valid`, `warnings`,
 /// `errors` and the four index fields; it never writes `schema_version` or
@@ -448,7 +454,8 @@ impl Default for ValidationInfo {
 ///
 /// Declared by the source, never filled by its `run` at core `bc9cc12`: the
 /// `-c` messages go only into the text report. [`FileInfoResult::corruption`]
-/// therefore stays at its default here too.
+/// therefore stays at its default here too, including after a run that
+/// requested `-c` and found corrupt data.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CorruptionInfo {
     /// Whether the check ran.
@@ -464,7 +471,8 @@ pub struct CorruptionInfo {
 ///
 /// Declared by the source, never filled by its `run` at core `bc9cc12`: the
 /// listing goes only into the text report. [`FileInfoResult::detail`]
-/// therefore stays at its default here too.
+/// therefore stays at its default here too, including after a run that
+/// requested `-d`.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct DetailInfo {
     /// Whether the listing ran.
@@ -502,8 +510,9 @@ pub struct FileInfoResult {
     pub processing: Vec<ProcessingStep>,
     /// Always empty, as the source leaves it; see [`NamedStats`].
     pub statistics: Vec<NamedStats>,
-    /// Validation and index-check results; `-v` and `-i` do not run in this
-    /// port yet, so it stays at its default.
+    /// Validation and index-check results. `-i` fills the four index fields;
+    /// `-v` does not run in this port yet, so its fields stay at their
+    /// defaults.
     pub validation: ValidationInfo,
     /// Always at its default, as the source leaves it; see [`CorruptionInfo`].
     pub corruption: CorruptionInfo,
@@ -541,13 +550,16 @@ pub struct Options {
     pub processing: bool,
     /// `-s`: summary statistics.
     pub statistics: bool,
-    /// `-d`: detailed listing. Not ported yet.
+    /// `-d`: the detailed per-spectrum and transition listing, on peak files;
+    /// a featureXML map ignores it, as the source does.
     pub detailed: bool,
-    /// `-c`: corrupt-data check. Not ported yet.
+    /// `-c`: the corrupt-data check, on peak files; a featureXML map ignores
+    /// it, as the source does.
     pub check_corrupt: bool,
     /// `-v`: schema and semantic validation. Not ported yet.
     pub validate: bool,
-    /// `-i`: indexed-mzML check. Not ported yet.
+    /// `-i`: the indexed-mzML check, which runs before the content of any type
+    /// and ends the report when the index does not parse.
     pub check_index: bool,
     /// Progress-logging verbosity forwarded to the loaders, the tool's
     /// `-no_progress`; [`ProgressLogType::None`] keeps the library silent.

@@ -1,0 +1,122 @@
+
+-- General information --
+
+File name: /scratch/kohlbach/a6-fileinfo/oracle/inputs/IndexedmzMLFile_1.mzML
+File type: mzML
+Checking mzML file for valid indices ... 
+Found a valid indexed mzML XML File with 2 spectra and 1 chromatograms.
+
+Instrument: LTQ FT
+  Mass Analyzer: Fourier transform ion cyclotron resonance mass spectrometer (resolution: 0)
+
+MS levels: 1
+Total number of peaks: 39762
+Number of spectra: 2
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 0.00 .. 0.49 sec (0.0 min)
+  mass-to-charge: 0.00 .. 2000.01
+  ion mobility: <none> .. <none>
+  intensity: 0.00 .. 22136832.00
+
+Spectrum Ranges:
+  retention time: 0.30 .. 0.47 sec (0.0 min)
+  mass-to-charge: 200.00 .. 2000.01
+  ion mobility: <none> .. <none>
+  intensity: 0.00 .. 1471224.88
+
+MS Level 1 Ranges:
+  retention time: 0.30 .. 0.47 sec (0.0 min)
+  mass-to-charge: 200.00 .. 2000.01
+  ion mobility: <none> .. <none>
+  intensity: 0.00 .. 1471224.88
+
+Chromatogram Ranges:
+  retention time: 0.00 .. 0.49 sec (0.0 min)
+  mass-to-charge: 0.00 .. 0.00
+  intensity: 71677.03 .. 22136832.00
+
+Number of spectra per MS level:
+  level 1: 2
+
+Peak type from metadata (or estimated from data)
+  level 1: Profile (Profile)
+
+Activation methods
+
+Precursor charge distribution:
+
+Number of chromatograms: 1
+Number of chromatographic peaks: 48
+
+Number of chromatograms per type: 
+  total ion current chromatogram:                         1
+
+-- Meta information --
+
+Document ID:        
+Date:               2005-07-20 14:44:22
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             LTQ FT
+  model:            
+  vendor:           
+  ion source(s):    Electrospray ionisation
+  mass analyzer(s): Fourier transform ion cyclotron resonance mass spectrometer
+  detector(s):      inductive detector
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    ProteoWizard software
+  software version: 1.4.0
+  completion time:  0000-00-00 00:00:00
+  actions:          Conversion to mzML format
+
+Processing 2:
+  software name:    FileFilter
+  software version: 1.11.0
+  completion time:  2013-08-05 22:17:00
+  actions:          Data filtering
+
+Processing 3:
+  software name:    FileFilter
+  software version: 1.12.0
+  completion time:  2014-11-10 00:10:00
+  actions:          Data filtering
+
+Processing 4:
+  software name:    FileFilter
+  software version: 1.12.0
+  completion time:  2014-11-10 16:31:00
+  actions:          Data filtering
+
+Processing 5:
+  software name:    FileFilter
+  software version: version_string
+  completion time:  1999-12-31 23:59:00
+  actions:          Data filtering
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 39714
+  mean:           2071.89
+  minimum:        0
+  lower quartile: 0
+  median:         124.664
+  upper quartile: 1411.03
+  maximum:        1.47122e+06
+  variance:       4.3233e+08
+
+
+

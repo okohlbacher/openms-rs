@@ -5,8 +5,11 @@ Native coverage of `FORMAT/FileInfo.h` and `FORMAT/FileInfo.cpp` at Core SDK
 and mzML and the featureXML branch, each with `-m`, `-p` and `-s`, and the text
 and TSV reports. Work package A4-FILEINFO-CORE of the early TOPP bundle. The
 FileInfo tool (`topp/src/FileInfo.cpp`) is package A5; `-i`, `-d` and `-c` are
-A6; the consensusXML, identification and FASTA branches A7; `-v`, mzXML, mzData
-and trafoXML A8. The ledger row for `FileInfo.h` stays partial until those land.
+A6, which has landed — see
+[FILE_INFO_CHECKS_SUPPORT](FILE_INFO_CHECKS_SUPPORT.md) and
+`src/format/file_info/checks.rs`; the consensusXML, identification and FASTA
+branches A7; `-v`, mzXML, mzData and trafoXML A8. The ledger row for
+`FileInfo.h` stays partial until those land.
 
 | Artifact | Path |
 | --- | --- |
@@ -47,7 +50,7 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 | `struct IdentInfo` | `model::IdentInfo`; declared, filled by A7 |
 | `struct FastaInfo` | `model::FastaInfo`; `std::map<char, UInt64>` is `BTreeMap<u8, u64>`; declared, filled by A7 |
 | `struct MzTabInfo` | `model::MzTabInfo`; the member `type` is `kind`; filled by the mzTab branch, which no package ports yet |
-| `struct ValidationInfo` | `model::ValidationInfo`, `supported` defaulting to `true`; filled by A6 (`-i`) and A8 (`-v`); `schema_version` and `detail` are never written by the source run |
+| `struct ValidationInfo` | `model::ValidationInfo`, `supported` defaulting to `true`; the four index fields are filled by A6 (`-i`) from `src/format/indexed_mzml.rs`, which departs from the source's decoder at two measured boundaries (native differences 11 and 12 of [FILE_INFO_CHECKS_SUPPORT](FILE_INFO_CHECKS_SUPPORT.md)), and the rest awaits A8 (`-v`); `schema_version` and `detail` are never written by the source run |
 | `struct CorruptionInfo`, `struct DetailInfo` | `model::CorruptionInfo`, `model::DetailInfo`; never filled, as in the source (the `-c` and `-d` output goes only into the text) |
 | `struct Result` | `model::FileInfoResult` (`Result` is the crate's error alias); native field `warnings` |
 | `struct Options` (all eight members) | `model::Options`; `ProgressLogger::LogType` is `concept::progress_logger::ProgressLogType` |
@@ -157,8 +160,8 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 
 ## Native differences
 
-1. **Refusals instead of partial support.** `-v` and `-i` for every type, `-d`
-   and `-c` on peak files, the consensusXML, idXML, mzIdentML, FASTA, pepXML,
+1. **Refusals instead of partial support.** `-v` for every type, the
+   consensusXML, idXML, mzIdentML, FASTA, pepXML,
    mzTab, trafoXML and PQP branches, and peak files of mzXML, mzData, MGF, MS2,
    sqMass, XMass, MSP, Thermo RAW and Bruker TDF return `Error::Unsupported`
    naming the branch. The source reports them; it loads RAW and TDF when built
@@ -301,9 +304,12 @@ sections.
 
 ## Deferrals
 
-- `-i`, `-d`, `-c` (A6); consensusXML, idXML/mzIdentML and FASTA (A7); `-v`,
-  mzXML, mzData, trafoXML (A8); pepXML, mzTab, PQP, sqMass, XMass, MSP, MGF and
-  MS2 have no package yet.
+- consensusXML, idXML/mzIdentML and FASTA (A7); `-v`, mzXML, mzData, trafoXML
+  (A8); pepXML, mzTab, PQP, sqMass, XMass, MSP, MGF and MS2 have no package
+  yet. `-i`, `-d` and `-c` are no longer deferred: A6 ported them
+  ([FILE_INFO_CHECKS_SUPPORT](FILE_INFO_CHECKS_SUPPORT.md)), and its two open
+  items are the mzML reader and kernel refusals that keep two `-c` lines out of
+  reach.
 - The tool wrapper, exit codes and output routing are A5's.
 - Source-compatibility load options (D10): closed for dangling header
   references, open for the rest. A5 added the native

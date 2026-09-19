@@ -38,7 +38,14 @@
 //! 6. the data-array names with their occurrence counts, padded by the byte
 //!    length of the longest name;
 //! 7. the FAIMS compensation voltages, unconditionally computed;
-//! 8. the chromatogram counts and the count per chromatogram type.
+//! 8. the chromatogram counts and the count per chromatogram type, and, with
+//!    `-d` and a selected-reaction-monitoring chromatogram among them, the
+//!    transition listing
+//!    ([`crate::format::file_info::checks`]);
+//! 9. with `-d`, the per-spectrum listing, and with `-c`, the corrupt-data
+//!    check, in that order. Both are guarded here rather than in the report
+//!    root, because the source guards them inside this branch, so a featureXML
+//!    map ignores them.
 //!
 //! `-m` adds the document, sample, instrument and contact metadata; `-p` the
 //! data processing of the first spectrum; `-s` the MS1 intensity statistics
@@ -104,7 +111,15 @@ pub(crate) fn report(
     }
     let summary = Summary::compute(&experiment)?;
 
-    write_content(&experiment, &summary, os, os_tsv, result)?;
+    write_content(&experiment, &summary, options, os, os_tsv, result)?;
+    // FileInfo.cpp:1799-1848 and :1851-1964: the per-spectrum listing and the
+    // corrupt-data check close the peak-file content, before -m, -p and -s.
+    if options.detailed {
+        super::checks::write_detailed_spectra(&experiment, os);
+    }
+    if options.check_corrupt {
+        super::checks::write_corruption_check(&experiment, os)?;
+    }
     result
         .warnings
         .extend(summary.faims_warnings.iter().cloned());
@@ -315,6 +330,7 @@ fn to_int(level: u32) -> Result<i32> {
 fn write_content(
     experiment: &MSExperiment,
     summary: &Summary,
+    options: &Options,
     os: &mut ReportStream,
     os_tsv: &mut ReportStream,
     result: &mut FileInfoResult,
@@ -466,6 +482,15 @@ fn write_content(
                 .text(":                         ")
                 .value(count)
                 .text("\n");
+        }
+        // FileInfo.cpp:1779-1795: still inside the source's
+        // `if (!exp.getChromatograms().empty())`.
+        if options.detailed {
+            super::checks::write_detailed_chromatograms(
+                experiment,
+                &summary.chromatogram_types,
+                os,
+            )?;
         }
     }
     Ok(())

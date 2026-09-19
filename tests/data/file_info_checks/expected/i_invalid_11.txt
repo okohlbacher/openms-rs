@@ -1,0 +1,8 @@
+
+-- General information --
+
+File name: /scratch/kohlbach/a6-fileinfo/oracle/inputs/FileInfo_11_input.mzML
+File type: mzML
+Checking mzML file for valid indices ... 
+Could not detect a valid index for the mzML file /scratch/kohlbach/a6-fileinfo/oracle/inputs/FileInfo_11_input.mzML
+Either the index is not present or is not correct.

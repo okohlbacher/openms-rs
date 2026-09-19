@@ -22,3 +22,6 @@ pub mod peaks;
 
 /// The FileInfo summary of featureXML feature maps.
 pub mod features;
+
+/// The FileInfo checks and listings of `-i`, `-d` and `-c`.
+pub mod checks;

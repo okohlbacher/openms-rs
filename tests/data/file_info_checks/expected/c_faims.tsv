@@ -1,0 +1,50 @@
+general: file name	/scratch/kohlbach/a6-fileinfo/oracle/inputs/FAIMS_test_data.mzML
+general: file type	mzML
+number of spectra	2
+total number of peaks	2681
+general: combined ranges: retention time: min	18.25
+general: combined ranges: retention time: max	18.39
+general: combined ranges: mass-to-charge: min	0.00
+general: combined ranges: mass-to-charge: max	1590.88
+general: combined ranges: ion-mobility: min	-65.00
+general: combined ranges: ion-mobility: max	-65.00
+general: combined ranges: intensity: min	0.00
+general: combined ranges: intensity: max	31878566.00
+general: spectrum ranges: retention time: min	18.25
+general: spectrum ranges: retention time: max	18.39
+general: spectrum ranges: mass-to-charge: min	110.07
+general: spectrum ranges: mass-to-charge: max	1590.88
+general: spectrum ranges: ion-mobility: min	-65.00
+general: spectrum ranges: ion-mobility: max	-65.00
+general: spectrum ranges: intensity: min	0.00
+general: spectrum ranges: intensity: max	5057372.00
+general: MS1 ranges: retention time: min	18.25
+general: MS1 ranges: retention time: max	18.25
+general: MS1 ranges: mass-to-charge: min	371.27
+general: MS1 ranges: mass-to-charge: max	1590.88
+general: MS1 ranges: ion-mobility: min	-65.00
+general: MS1 ranges: ion-mobility: max	-65.00
+general: MS1 ranges: intensity: min	0.00
+general: MS1 ranges: intensity: max	5057372.00
+general: MS2 ranges: retention time: min	18.39
+general: MS2 ranges: retention time: max	18.39
+general: MS2 ranges: mass-to-charge: min	110.07
+general: MS2 ranges: mass-to-charge: max	871.38
+general: MS2 ranges: ion-mobility: min	-65.00
+general: MS2 ranges: ion-mobility: max	-65.00
+general: MS2 ranges: intensity: min	1030.52
+general: MS2 ranges: intensity: max	15416.40
+general: chromatogram ranges: retention time: min	18.25
+general: chromatogram ranges: retention time: max	18.39
+general: chromatogram ranges: mass-to-charge: min	0.00
+general: chromatogram ranges: mass-to-charge: max	0.00
+general: chromatogram ranges: intensity: min	117547.12
+general: chromatogram ranges: intensity: max	31878566.00
+number of MS1 spectra	1
+number of MS2 spectra	1
+peak type metadata [annotation, estimate]	Centroid	Centroid
+peak type metadata [annotation, estimate]	Centroid	Centroid
+activation methods (mslevel, method, count)	2	HCD	1
+general: charge distribution: charge: 2	1
+number of chromatograms	1
+number of chromatographic peaks	2

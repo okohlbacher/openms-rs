@@ -1,0 +1,60 @@
+general: file name	/scratch/kohlbach/a6-fileinfo/oracle/inputs/IndexedmzMLFile_1.mzML
+general: file type	mzML
+number of spectra	2
+total number of peaks	39762
+general: combined ranges: retention time: min	0.00
+general: combined ranges: retention time: max	0.49
+general: combined ranges: mass-to-charge: min	0.00
+general: combined ranges: mass-to-charge: max	2000.01
+general: combined ranges: intensity: min	0.00
+general: combined ranges: intensity: max	22136832.00
+general: spectrum ranges: retention time: min	0.30
+general: spectrum ranges: retention time: max	0.47
+general: spectrum ranges: mass-to-charge: min	200.00
+general: spectrum ranges: mass-to-charge: max	2000.01
+general: spectrum ranges: intensity: min	0.00
+general: spectrum ranges: intensity: max	1471224.88
+general: MS1 ranges: retention time: min	0.30
+general: MS1 ranges: retention time: max	0.47
+general: MS1 ranges: mass-to-charge: min	200.00
+general: MS1 ranges: mass-to-charge: max	2000.01
+general: MS1 ranges: intensity: min	0.00
+general: MS1 ranges: intensity: max	1471224.88
+general: chromatogram ranges: retention time: min	0.00
+general: chromatogram ranges: retention time: max	0.49
+general: chromatogram ranges: mass-to-charge: min	0.00
+general: chromatogram ranges: mass-to-charge: max	0.00
+general: chromatogram ranges: intensity: min	71677.03
+general: chromatogram ranges: intensity: max	22136832.00
+number of MS1 spectra	2
+peak type metadata [annotation, estimate]	Profile	Profile
+number of chromatograms	1
+number of chromatographic peaks	48
+document id	
+date	2005-07-20 14:44:22
+sample name	
+sample organism	
+sample comment	
+instrument name	LTQ FT
+instrument model	
+instrument vendor	
+data processing: 1: software name	ProteoWizard software
+data processing: 1: software version	1.4.0
+data processing: 1: completion time	0000-00-00 00:00:00
+data processing: 1: actions	Conversion to mzML format
+data processing: 2: software name	FileFilter
+data processing: 2: software version	1.11.0
+data processing: 2: completion time	2013-08-05 22:17:00
+data processing: 2: actions	Data filtering
+data processing: 3: software name	FileFilter
+data processing: 3: software version	1.12.0
+data processing: 3: completion time	2014-11-10 00:10:00
+data processing: 3: actions	Data filtering
+data processing: 4: software name	FileFilter
+data processing: 4: software version	1.12.0
+data processing: 4: completion time	2014-11-10 16:31:00
+data processing: 4: actions	Data filtering
+data processing: 5: software name	FileFilter
+data processing: 5: software version	version_string
+data processing: 5: completion time	1999-12-31 23:59:00
+data processing: 5: actions	Data filtering

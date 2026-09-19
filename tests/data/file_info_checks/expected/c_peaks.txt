@@ -1,0 +1,52 @@
+
+-- General information --
+
+File name: /scratch/kohlbach/a6-fileinfo/oracle/inputs/corrupt_peaks.mzML
+File type: mzML
+
+Instrument: 
+
+MS levels: 1
+Total number of peaks: 4
+Number of spectra: 1
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 10.50 .. 10.50 sec (0.0 min)
+  mass-to-charge: 200.00 .. 400.25
+  ion mobility: <none> .. <none>
+  intensity: -2.50 .. 40.00
+
+Spectrum Ranges:
+  retention time: 10.50 .. 10.50 sec (0.0 min)
+  mass-to-charge: 200.00 .. 400.25
+  ion mobility: <none> .. <none>
+  intensity: -2.50 .. 40.00
+
+MS Level 1 Ranges:
+  retention time: 10.50 .. 10.50 sec (0.0 min)
+  mass-to-charge: 200.00 .. 400.25
+  ion mobility: <none> .. <none>
+  intensity: -2.50 .. 40.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 1
+
+Peak type from metadata (or estimated from data)
+  level 1: Unknown (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+
+
+-- Checking for corrupt data --
+
+Warning: Negative peak intensity peak (RT: 10.5 MZ: 200 intensity: -2.5)
+Error: Duplicate peak m/z 200 in spectrum (RT: 10.5)
+
+
