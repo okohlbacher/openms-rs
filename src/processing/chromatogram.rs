@@ -246,11 +246,16 @@ impl PeakPickerChromatogram {
             // passed the checks above. So the estimate reproduces the source
             // unconditionally rather than following `self.compatibility`.
             //
-            // This matters on ordinary data: a Savitzky-Golay frame has
-            // negative coefficients, so an entirely nonnegative chromatogram
-            // smooths to a signal containing negative samples, which the strict
-            // profile refused. Passing the peaks also widens each `f32` with
-            // `cvtss2sd` semantics instead of `f64::from`.
+            // Under `legacy` that is what makes a baseline-subtracted
+            // chromatogram work at all: its negative samples go straight into
+            // the estimate, which the strict profile refused. (Neither smoother
+            // produces them from a nonnegative input: `SavitzkyGolayFilter.h:115`
+            // writes `std::max(0.0, help)` and the Gaussian kernel is
+            // nonnegative, so under `corrected` a negative sample survives only
+            // where the local weighted average is itself negative.) It also
+            // makes a NaN or infinite `win_len` pick, as the Release build does.
+            // Passing the peaks widens each `f32` with `cvtss2sd` semantics
+            // rather than leaving a `f64::from` NaN payload to the compiler.
             Some(
                 estimator
                     .estimate_peaks(

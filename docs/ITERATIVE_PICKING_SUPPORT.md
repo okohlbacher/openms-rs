@@ -160,7 +160,7 @@ so both stay refused. Porting them is tracked as remaining scope below.
   sentinels. Duplicate positions would be collapsed by the C++ map and are
   rejected instead. Zero intensities are accepted.
 - Zero iterations, zero limits, negative or nonfinite width/noise/spacing
-  settings, missing center neighbors, zero integrated intensity and nonfinite
+  settings, missing center neighbors, nonpositive integrated intensity and nonfinite
   arithmetic return errors. Values not representable as finite output `f32`
   values also return errors. A finite rounded output centroid can lie outside
   its exact integration boundaries; the source rounding behavior is retained.

@@ -208,7 +208,7 @@ impl PeakPickerIterative {
     ///   intensities. Also for a seed whose two raw neighbours do not exist or
     ///   whose recentering would read outside the spectrum, where the source
     ///   reads out of bounds; for a candidate whose integrated intensity is
-    ///   zero, where the source divides by it; for a value that leaves `f32`
+    ///   not positive, where the source divides by it; for a value that leaves `f32`
     ///   range; and for an exhausted work or point budget.
     /// * The errors of the seed [`PeakPickerHiRes`] and of the noise
     ///   estimator.
@@ -483,16 +483,23 @@ impl PeakPickerIterative {
             weighted = finite(weighted + point.mz * f64::from(point.intensity))?;
             integrated = finite(integrated + f64::from(point.intensity))?;
         }
-        // The source divides by the integrated intensity unconditionally. A
-        // negative sum is only reachable with negative intensities and divides
-        // to a finite centroid, so the source profile computes it; a zero sum
-        // divides to an infinity or, when the weighted sum is zero too, to a
-        // NaN m/z, which makes the source's final `sortByPosition` violate the
-        // strict weak ordering `std::sort` requires and read outside the
-        // spectrum, so it stays refused in both profiles.
-        if integrated == 0.0 || (integrated < 0.0 && !self.compatibility.allow_negative_intensities)
-        {
-            return Err(bad("iterative candidate has zero integrated intensity"));
+        // The source divides by the integrated intensity unconditionally
+        // (`PeakPickerIterative.h:225`), so a zero sum gives an infinite or, if
+        // the weighted sum is zero too, a NaN m/z, and a negative sum gives a
+        // finite centroid of the wrong sign. `sortByPosition` then orders the
+        // output with `std::stable_sort`, whose comparator a NaN makes not a
+        // strict weak ordering; libstdc++'s merge sort stays in bounds there,
+        // so this is a wrong order rather than an out-of-bounds read.
+        //
+        // This refusal is kept as it was, in both profiles: no case in
+        // `oracle/picker-consumers` reaches it, so what the Release build
+        // produces here is not pinned, and relaxing it under
+        // `allow_negative_intensities` would ship behaviour this wave has not
+        // measured. Left for a lane that can pin it.
+        if integrated <= 0.0 {
+            return Err(bad(
+                "iterative candidate has nonpositive integrated intensity",
+            ));
         }
         let weighted_mz = finite(weighted / integrated)?;
         candidate.intensity = integrated;
