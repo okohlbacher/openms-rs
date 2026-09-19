@@ -114,12 +114,14 @@ Each is documented at the item in `checks.rs` as well.
    text goes only into the stream. A caller using the library from Rust or
    pyOpenMS therefore cannot read the `-d` or `-c` findings as data, only as
    text. The port reproduces that rather than filling them, because filling
-   them is a different API; the defect is recorded for `OpenMS_CPP_ISSUES.md`.
+   them is a different API; the defect is recorded for `OpenMS_CPP_ISSUES.md`
+   as `CPP-335`.
 2. **An empty selected-reaction-monitoring chromatogram is refused.** The
    source reads `ms.front()` and `ms.back()` without checking, which is
    undefined on an empty container, so there is no behaviour to reproduce
    (wave 5's rule: refuse exactly where the source is out of bounds). The port
-   returns `Error::InvalidValue` naming the chromatogram. Unreachable through
+   returns `Error::InvalidValue` naming the chromatogram (upstream `CPP-336`).
+   Unreachable through
    `FileInfo::run`: the mzML reader gives every chromatogram its points and
    `ChromatogramTools::convert_spectra_to_chromatograms` builds one point per
    source spectrum.

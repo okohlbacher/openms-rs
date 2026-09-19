@@ -3068,21 +3068,43 @@ change or a claim that the Rust behavior was corrected.
 
 **Rust handling:** Default writer refuses scan modes that cannot round-trip through the source-compatible mapping. Parser updates the current spectrum, not the previous spectrum, for unknown MSn modes. It does not add recognition of these three spellings. See [src/format/mzdata.rs](src/format/mzdata.rs), [tests/mzdata.rs](tests/mzdata.rs) and [MZDATA_SUPPORT.md](docs/MZDATA_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
-## CPP-172 — Streaming mzML consumer references header entries declared only for first record
+## CPP-172 — mzML writers emit `dataProcessingRef` and `sourceFileRef` the header never declares
 
-**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
-**Affected files and functions:** `MSDataWritingConsumer::consumeSpectrum` in [src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp:62](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp#L62); `Internal::MzMLHandler::writeSpectrum_` in [src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp:5250](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L5250).
+**Status:** Executed. (Was: source-reviewed, no C++ execution, and scoped to the streaming consumer. Both the reproduction and the wider scope below are new.)
 
-**Trigger:** Second streamed spectrum has non-default source file or processing history differing from first.
+**Affected files/functions:** `src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp:5060-5069`, `MzMLHandler::writeHeader_`, which builds `dps` by **content**; `:5252-5255` and `:5258-5272`, `MzMLHandler::writeSpectrum_`, which searches the same `dps` by **pointer**; `src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp:53-95`, `MSDataWritingConsumer::consumeSpectrum`, which additionally calls `writeHeader_` on a one-record dummy map so that its `dps_` never grows past one entry.
 
-**Issue:** Header derives from dummy one-record map; second sourceFileRef/processing fallback points to undeclared entry. This is independent of numeric-overload claims.
+**Trigger:** Two independent ones.
 
-**Proposed C++ fix:** Predeclare record dependencies or refuse new dependencies after header publication. No upstream patch is claimed.
+1. **The ordinary whole-document writer,** `MzMLFile::store`, on any experiment whose records carry `DataProcessing` vectors that are equal in content but held in distinct objects. **Every `FileMerger` output is such a file** — `FileMerger` writes with `FileHandler().storeExperiment` (`FileMerger.cpp:538` at the TOPP pin `174b576`), and each merged part contributes its own history object.
+2. **The streaming consumer,** `MSDataWritingConsumer`, on any mzML whose records do not all share the first record's `sourceFile` and `dataProcessing`. Reached from every TOPP tool that uses it — `PeakPickerHiRes`, `PeakPickerIM`, `NoiseFilterGaussian`, `NoiseFilterSGolay` and `FileConverter` in their low-memory modes, plus `CometAdapter`, `OpenSwathMzMLFileCacher`, `OpenSwathWorkflow`, `SageAdapter` and `TICCalculator`.
 
-**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+**Issue:** The two halves of the writer disagree about what makes two processing histories the same.
 
-**Rust handling:** Native consumer rejects dependencies absent from first header rather than emitting dangling references. See [src/format/ms_data_writing_consumer.rs](src/format/ms_data_writing_consumer.rs), [tests/ms_data_writing_consumer.rs](tests/ms_data_writing_consumer.rs) and [MS_DATA_WRITING_CONSUMER_SUPPORT.md](docs/MS_DATA_WRITING_CONSUMER_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+`writeHeader_` deduplicates them by content: `already_present = OpenMS::Helpers::cmpPtrContainer(exp[s].getDataProcessing(), dps[j])` (`:5060-5069`), and `cmpPtrContainer` reduces to `cmpPtrSafe`, whose own comment reads "We are not interested whether the pointers are equal but whether the contents are equal" and whose body is `*a == *b` (`Helpers.h:35-51`). Content-equal histories therefore collapse into one declared `dataProcessing` entry.
+
+`writeSpectrum_` then searches that same `dps` by pointer: `spec.getDataProcessing() != dps[0]` (`:5258`) and `spec.getDataProcessing() == dps[i]` (`:5265`) over `std::vector<std::shared_ptr<const DataProcessing>>` (`SpectrumSettings.h:165`), which compares the `shared_ptr`s, not the objects. A record whose history is content-equal to a declared entry but a distinct object matches nothing, and the search falls through to `dp_ref_num = s` — the record's own position in the stream — so the attribute is written as `dataProcessingRef="dp_sp_<s>"` naming an element that does not exist.
+
+`sourceFileRef` has a second, simpler form of the same fault: `:5252-5255` writes `sourceFileRef="sf_sp_<s>"` whenever the record has a non-default source file, unconditionally, without consulting the header at all, so it dangles for every record after the first even when the source file *is* the first record's. The same numbering applies to a reference a binary data array carries, written as `dp_sp_<s>_bi_<m>` (`:5567`, `:5597`, `:5806` for a spectrum's three array kinds, `:5965` and `:5997` for a chromatogram's).
+
+In the streaming consumer both faults are amplified but not caused: only the first record reaches `writeHeader_`, so `dps_` holds exactly one entry and never grows, and the source's own `// TODO writeSpectrum assumes that dps_ has at least one value -> assert this here` (`MSDataWritingConsumer.cpp:93`) marks the gap.
+
+The result is not valid mzML. Both attributes are `xs:IDREF` on `SpectrumType` (`share/OpenMS/SCHEMAS/mzML_1_10.xsd:851`, `:856`) against `xs:ID` on `DataProcessingType` and `SourceFileType`, and `dataProcessingRef` additionally carries `xs:keyref KEYREF_DPREF`, whose `refer` is `KEY_DP_ID`, the `id` of a `dataProcessingList/dataProcessing` (`:1064-1071`, `:983-990`).
+
+A chromatogram is the silent form of the same defect: `writeChromatogram_` (`MzMLHandler.cpp:5879`) writes `id`, `index` and `defaultArrayLength` and no reference at all, so a chromatogram whose history is not the first record's is written under the list's `defaultDataProcessingRef` and its own history is lost without a diagnostic.
+
+**Proposed C++ fix:** Make the two halves agree. In `writeSpectrum_`, search `dps` with `Helpers::cmpPtrContainer` — the same comparison `writeHeader_` used to build it — instead of `operator==`; that alone removes the whole-document trigger, because every history the experiment holds is then found. `sourceFileRef` should likewise be resolved against the header and not renumbered when the record's source file is one the header declares. For the streaming consumer a second remedy is still needed, because there the wanted entry genuinely is not in the published header: either publish the whole `dataProcessingList` up front from `setExperimentalSettings`, or omit the attribute and let the record inherit `defaultDataProcessingRef`, which loses information but keeps the file valid, or throw. Whichever is chosen, `MSDataWritingConsumer`'s class documentation should say so and the `// TODO` at `.cpp:93` should be resolved. Add a class-test case with two records carrying different histories (see CPP-188: that test is currently disabled).
+
+**Evidence:** Executed on the Release build on `ibminode06`. Drivers and logs under `../oracle/p4-lowmemory` (`closediff1_06.sh`, `closediff2_06.sh`, `closediff3_06.sh`; `logs/closediff1_06.log`, `logs/closediff2_06.log`, `logs/closediff3_06.log`) and, for the whole-document trigger and the content/pointer split, `../oracle/integ-w7` (`refcheck_06.sh`, `dupdp_06.sh`; logs under the wave-7 integration log directory).
+
+* **Whole-document writer.** The ~9.3 MB, 110-spectrum file the Release `FileMerger` builds from 22 copies of `PeakPickerHiRes_input.mzML` declares `<sourceFileList count="22">` and **exactly one** `<dataProcessing id="dp_sp_0">`, and carries **106** record `dataProcessingRef`s of which **105 dangle**, `dp_sp_5` through `dp_sp_109`; records 1 to 4 carry none, because their history is the first record's, and record 0 carries the one that resolves. The single declared entry against 22 merged parts is the content deduplication; the 105 references are the pointer comparison. A two-part merge is the minimal case: one declared `dp_sp_0`, six references, five dangling (`dp_sp_5` … `dp_sp_9`). No streaming consumer is involved in either.
+* **Content against pointer, isolated.** On a five-record fixture whose `dp_sp_0` and `dp_sp_1` are byte-identical apart from their `id` (the committed `PeakPickerHiRes_refs_input.mzML` with `dp_sp_1`'s `softwareRef` repointed from `so_dp_1` to `so_dp_0`), `PeakPickerHiRes -processOption inmemory` declares one `dataProcessing`, `dp_sp_0`, and still writes `dataProcessingRef="dp_sp_1"` and `"dp_sp_2"` on records 1 and 2 — two dangling references in a 12 KB file. The control is the same tool and mode on the unmodified fixture, where the histories differ in content: it declares `dp_sp_0` and `dp_sp_1` and dangles nothing.
+* **Streaming consumer.** On the same 110-record file, `PeakPickerHiRes -test -no_progress -processOption lowmemory` exits 0 and writes all 110 records; its output declares `sf_ru_0` and `dp_sp_0` and reproduces the same 106 references and the same 105 dangling identifiers. On the five-record `refs` fixture the whole numbering rule is visible: records 0 to 4 come out as `sourceFileRef="sf_sp_0"` … `"sf_sp_4"` against a header declaring one record source file, and `dataProcessingRef` appears as `dp_sp_0`, `dp_sp_1`, `dp_sp_2` and then not at all. Records 1 and 2 share one `dataProcessing` in the input and still get two different dangling identifiers, and record 4's source file *is* the first record's and it still gets the dangling `sf_sp_4`.
+* **The source's own reader accepts these files:** `FileInfo` exits 0 and prints `Error: unregistered source file reference sf_sp_1.` for the spectrum references (`MzMLHandler.cpp:899-906`) and says nothing at all about the dangling `dataProcessingRef`, which CPP-262 already covers: `processing_[ref]` resolves with `std::map::operator[]`, so an unknown id silently yields an empty history.
+
+**Rust handling:** `ReferencePolicy`, in `src/format/ms_data_writing_consumer.rs`. `Checked`, the default, refuses the record with `Error::Unsupported` rather than writing a reference that cannot resolve. `SourceDangling` reproduces the source in the source's own `sf_sp_<s>`, `dp_sp_<s>` and `dp_sp_<s>_bi_<m>` spelling — this writer's own identifiers are zero-padded positions in one namespace, so reusing them would make the reference *resolve*, to the wrong entry, instead of dangling — and `PeakPickerHiRes -processOption lowmemory` selects it, because refusing stops that mode after five records on any `FileMerger` output. On the 110-record file the port's low-memory output carries the same 105 dangling identifiers as the C++ one and the same decoded content. It is **not** an exact reproduction, and is not claimed as one: the port has no pointer identity in its model and decides "differs from the first record's" by the text the history renders, so on the `dp_sp_0`/`dp_sp_1` fixture above it writes no `dataProcessingRef` where the source dangles one. The two agree on every input whose textually distinct histories are also distinct objects. See [src/format/ms_data_writing_consumer.rs](src/format/ms_data_writing_consumer.rs), [tests/ms_data_writing_consumer.rs](tests/ms_data_writing_consumer.rs), [MS_DATA_WRITING_CONSUMER_SUPPORT.md](docs/MS_DATA_WRITING_CONSUMER_SUPPORT.md) and native difference 12 of [TOPP_PEAK_PICKER_HI_RES_SUPPORT.md](docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md).
 
 ## CPP-173 — mzXML release decode reads beyond short peak payload
 
@@ -6012,3 +6034,148 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 **Evidence:** Executed on the Release build: the `win_nan` case (`../oracle/sne-completion`), and the `p_ipo_nan*` cases of `../oracle/ffap-complete-fix3` for the FeatureFinderAlgorithmPicked path.
 
 **Rust handling:** `NoiseCompatibility::source_value_domain` accepts NaN where the source does, under `PickingCompatibility::source()`; the native profile refuses it. FeatureFinderAlgorithmPicked applies the source's comparisons in its own module (see CPP-324), and the crate's shared `Param` check keeps its native refusal for every other handler.
+
+## CPP-335 — FileInfo declares CorruptionInfo and DetailInfo and never fills them
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/include/OpenMS/FORMAT/FileInfo.h:206-217` and `src/openms/source/FORMAT/FileInfo.cpp:1779-1964`, `FileInfo::report_`.
+
+**Trigger:** `FileInfo::run` with `Options::detailed` or `Options::check_corrupt` set.
+
+**Issue:** The header declares `CorruptionInfo {performed, errors, warnings}` and `DetailInfo {performed, lines}` as part of the structured `Result`, and documents the latter as "kept as pre-rendered lines". `report_` never assigns to either: every `-d` and `-c` message goes straight into the text stream. The class's stated purpose is that "the result is consumable directly from C++ and pyOpenMS without any stream" (`FileInfo.h:36-38`), and for these two flags it is not — a caller must re-parse the rendered text. Both flags are also the ones whose findings a caller would most want as data.
+
+**Proposed C++ fix:** Push each message onto the matching vector as it is written, and set `performed` where the flag ran.
+
+**Evidence:** Source review of the pinned header and implementation (a grep for `r.corruption` and `r.detail` in `FileInfo.cpp` returns nothing), plus the executed Release runs of `../oracle/a6-fileinfo`, whose `-d` and `-c` reports are entirely in the text stream.
+
+**Rust handling:** Reproduced. `FileInfoResult::corruption` and `::detail` stay at their defaults after a run that requested both flags, and `tests/file_info_checks.rs` asserts that for every compared case. `docs/FILE_INFO_CHECKS_SUPPORT.md` records it as native difference 1.
+
+## CPP-336 — FileInfo's `-d` listing reads front() and back() of an SRM chromatogram unchecked
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source review (the input that triggers it cannot be produced by any pinned loader).
+
+**Affected file/function:** `src/openms/source/FORMAT/FileInfo.cpp:1792`, `FileInfo::report_`.
+
+**Trigger:** `-d` on a peak file holding a selected-reaction-monitoring chromatogram with no points.
+
+**Issue:** `ms.front().getRT()` and `ms.back().getRT()` are called on every SRM chromatogram without checking `ms.empty()`. Both are undefined on an empty container.
+
+**Proposed C++ fix:** Skip an empty chromatogram, or print a placeholder.
+
+**Evidence:** Source review. No pinned loader produces an empty chromatogram — the mzML reader gives every chromatogram its points and `ChromatogramTools::convertSpectraToChromatograms` builds one point per source spectrum — so the line is currently unreachable rather than latent.
+
+**Rust handling:** Refused with `Error::InvalidValue` naming the chromatogram, because there is no defined behaviour to reproduce (native difference 2 of `docs/FILE_INFO_CHECKS_SUPPORT.md`), with a unit test in `src/format/file_info/checks.rs`.
+
+## CPP-337 — IndexedMzMLDecoder skips the first child of every `<index>` element
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576` (`FileInfo` sha256 `5d82c8a7248c9ccb37c6f4e64a0ed2202f375418befd095261590935de1172dc`), on `ibminode06`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/HANDLERS/IndexedMzMLDecoder.cpp`, `IndexedMzMLDecoder::domParseIndexedEnd_` (`:206`) — `:280-282` declares `firstChild`, `lastChild` and `iter`, and `:290-293` is the walk itself.
+
+**Trigger:** Reading the index of an `indexedmzML` whose `<index>` element has **no text node immediately after its opening tag** — that is, whose first child is an `<offset>` element. Whitespace elsewhere inside `<index>`, between the offsets or before `</index>`, does not avoid it.
+
+**Issue:** The child walk is
+
+    DOMNode* firstChild = currentNode->getFirstChild();   // :280
+    DOMNode* lastChild  = currentNode->getLastChild();    // :281
+    DOMNode* iter = firstChild;                           // :282
+    while (iter != lastChild)                             // :290
+    {
+      iter = iter->getNextSibling();                      // :292
+      DOMNode* currentONode = iter;                       // :293
+      ...
+
+It advances before it reads, so the first child is never looked at, and only that one position matters. Every index an OpenMS writer produces is indented, which puts a text node first and hides the defect; an index whose first child is an `<offset>` silently loses that offset, and an index whose section holds exactly one offset parses as EMPTY. Nothing reports an error: `parseOffsets` returns 0 (`:339`, against its `return -1` failure sites at `:97-99`, `:115-118` and `:332`) and the caller sees a short offset vector, so `FileInfo -i` prints a spectrum count that is too low and still exits 0.
+
+**Proposed C++ fix:** Iterate the children with `for (DOMNode* iter = firstChild; iter != nullptr; iter = iter->getNextSibling())` and keep the existing `ELEMENT_NODE` test. (The loop's own NOTE explains why `DOMNodeList::item` is avoided; the sibling walk is right, only its first step is.)
+
+**Evidence:** Executed, three ways, all on the Release build named above.
+
+* **Pinned oracle case:** `../oracle/a6-fileinfo` case `i_offsets_unspaced` on `index_offsets_unspaced.mzML` (1247 bytes, sha256 `fd9dff92db516c03…`), two `<offset>` children and no whitespace inside `<index>`: the Release `FileInfo` prints "Found a valid indexed mzML XML File with 1 spectra and 0 chromatograms.", exit 0. Its control `index_window_above.mzML`, the same generator with a newline between the index elements, prints 1 for its one offset.
+* **Probe,** `ibminode06` `/scratch/kohlbach/a6-fileinfo-close/probe`, each case run twice with identical output, inputs built by the pinned generator `../oracle/a6-fileinfo/scripts/make_index_window_fixtures.py` (sha256 `cf8d29a579391472…`) through its own `build(pad, entries, separator)`:
+
+      build(250, 1, "\n")  1217 B  sha256 f194cd1a3381368797e78f6731b162d45b04492b94c101c4e7a2f5eca6a84a8a
+                                -> "... with 1 spectra and 0 chromatograms."   exit 0
+      build(250, 1, "")    1213 B  sha256 542ddaa763e20ce1acb17b38f973e83eb7c602a522b8019f1d1c587473382c4c
+                                -> "... with 0 spectra and 0 chromatograms."   exit 0
+      build(250, 3, "")    1281 B  sha256 fdcbc198100cd5d048be807670c238edf7596ab1fecbf3bb1e132657d1644ca0
+                                -> "... with 2 spectra and 0 chromatograms."   exit 0
+
+  The first is byte-identical to the pinned fixture `index_window_above.mzML` (sha256 `f194cd1a33813687…`), which is what makes the other two re-derivable: exactly one offset is lost per `<index>`, and a single-offset section disappears entirely.
+* **Which whitespace matters,** measured by the closing reviewer on the same build: with a newline only *after* the opening `<index …>` tag the C++ counts 2 of 2 offsets; with a newline only *between* the two offsets, or only *before* `</index>`, it counts 1. The affected class is therefore "first child is an `<offset>`", which is what the mechanism above predicts.
+* **Source:** the pinned lines above.
+
+**Rust handling:** NOT reproduced, and deliberately so by the OWNING package, whose support document already states the decision: `docs/INDEXED_MZML_SUPPORT.md`, "the native parser corrects the source DOM sibling loop that skips an offset when it is the first child without preceding whitespace." Reproducing the skip would break random access, because a dropped offset is a record that cannot be found. A6 records only the consequence for `-i`: native difference 12 of `docs/FILE_INFO_CHECKS_SUPPORT.md`, native difference 9 of `docs/TOPP_FILE_INFO_SUPPORT.md` and `known_gaps` of both manifests, with `src/format/indexed_mzml.rs` named as owner; `tests/file_info_checks.rs` pins both sides.
+
+Note under the same entry, with no number of its own because the source's behaviour there is indeterminate rather than wrong: `IndexedMzMLDecoder::findIndexListOffset` (`:165-168`) does `new char[buffersize+1]`, `f.seekg(-buffersize, f.end)`, `f.read(...)`. On a file shorter than `buffersize` (1023 by default, `IndexedMzMLDecoder.h:80`) the seek fails, the read writes nothing, and the regex at `:179-181` searches uninitialised memory; the `else` branch at `:198-200` then prints that memory to `std::cerr` after "Maybe this is not a indexedMzML.". Executed: two oracle runs of the same 967-byte file produced two different stderr dumps and the same report and exit code. A file that short cannot hold a real spectrum, so no writer-produced mzML reaches it, but `if (length < buffersize) buffersize = length;` before the seek would remove the read of uninitialised memory. The Rust side already does exactly that, and `docs/INDEXED_MZML_SUPPORT.md` records it ("small files search their full contents"), so this too is an owning-package decision A6 only inherits and prints.
+
+## CPP-338 — FeatureFinderCentroided crashes intermittently at `-threads 32`
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Observed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, binary sha256 `2781dd7cab48f482118375754038644251705c8bafab1958e310e4063dffb323`.
+
+**Status:** Observed once, on the Release build. **Not diagnosed** — no faulting code identified, no reproduction under a debugger attempted.
+
+**Affected file/function:** Unknown. The process died before writing any output; nothing in this evidence localises the fault.
+
+**Trigger:** `FeatureFinderCentroided -threads 32` with `OMP_NUM_THREADS=32` on a 4,000-spectrum centroided Velos mzML. Intermittent: one failure in six executions of that cell in the wave-6 benchmark run (2026-09-18, `ibminode05`) and none in six in the wave-4 run (2026-09-16, same node, same binary, same input, same INI), so 1 in 12 observed at 32 threads and 0 in 12 at one thread.
+
+**Issue:** The process terminated with `SIGSEGV` (signal 11, launcher exit 139) after 7.094 s wall and 12.818 s user, with 64 live threads and a peak RSS of 340,628 KiB, and wrote 0 output files. The four repetitions of the same cell that succeeded ran the same binary sha256, the same INI sha256 `2869134aeb3f98ed181fb4b8e089fd955a339d77958fb149f39a0f9d98a39b50`, the same input sha256 `6d0c151853d717aca0ce8ae625d5021aa10774bb9bda5921d21f164d74b04006` and the same environment, and took 25.2 s each. The node was quiet: foreign CPU 0.0092 per core, the pre-cell gate value 0.0098, `majflt` 0, and the repetition was **not** load-flagged. The last stdout line was `Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.`; the last stderr line was the known non-fatal `Non-fatal error while loading '…first4000.mzML': DateTime conversion error of "-infinity"`.
+
+**Proposed C++ fix:** None proposed — the fault is not localised. The next step would be a repeat run of this cell under a debugger or with a core dump enabled, which needs a separate run.
+
+**Evidence:** `/ceph/ibmi/abi/oliver/bench/openms4/results/2026-09-18-w6refresh/w6-ffc-subset/results.jsonl`, the record with `tool = FeatureFinderCentroided`, `impl = cpp-release`, `threads = 32`, `rep = 2`, `status = nonzero_exit`, `signal = 11`. It is the only record with a status other than `ok` or `case_load` in either wave, the pilot sub-runs of both waves included. The census behind that statement covers 334 timing executions in wave 6 and 228 in wave 4 counting the four measured sub-runs of each wave only, and 337 and 244 with the pilot sub-runs added. Reported in `docs/BENCHMARKS.md` §3.9.
+
+**Rust handling:** Not applicable — this is a defect observation against the pinned C++ Release build, not a portability decision. For the record, neither Rust build (`+fma` default and the `-fma` opt-out) failed in any of its 24 executions of this cell, and none of the port's 186 measured repetitions in the run (96 `rust-release` + 90 `rust-nofma`) failed. Of the run's 282 measured repetitions, 281 succeeded; the one that did not is this C++ crash.
+
+## CPP-339 — MzMLFile::transform's first pass leaves a ProgressLogger running, so every low-memory TOPP path fails on an mzML with both spectra and chromatograms
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/MzMLFile.cpp:178-231`, `MzMLFile::transform` and `transformFirstPass_`; `src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp:997-1006`, `MzMLHandler::startElement` for `chromatogramList` under `LD_RAWCOUNTS`.
+
+**Trigger:** Any `MzMLFile::transform` call with progress logging on, over an mzML that holds both a `spectrumList` and a `chromatogramList`. Through the TOPP tools: `PeakPickerHiRes -processOption lowmemory`, `NoiseFilterGaussian -processOption lowmemory`, `NoiseFilterSGolay -processOption lowmemory`, `FileConverter -process_lowmemory` and `PeakPickerIM -processOption lowmemory`. `-no_progress` avoids it; `-test` does not.
+
+**Issue:** `transform` parses the file twice through one `ProgressLogger` (`*this`). In the first pass the handler runs with `XMLHandler::LD_RAWCOUNTS`. At `<spectrumList>` it calls `logger_.startProgress(0, scan_count_total_, "loading spectra list")` (`MzMLHandler.cpp:966`) and at `<chromatogramList>` `logger_.startProgress(0, chrom_count_total_, "loading chromatogram list")` (`MzMLHandler.cpp:997`); immediately after the second one, now holding both counts, it throws `EndParsingSoftly` (`MzMLHandler.cpp:1001-1006`). The matching `logger_.endProgress()` at `</chromatogramList>` (`MzMLHandler.cpp:1493-1498`) and the outer `pg_outer.endProgress()` at `</mzML>` (`MzMLHandler.cpp:1524`) are therefore never reached, and the shared logger's `StopWatch` is still running when the second pass calls `startProgress` again. The `is_running_` guard in `StopWatch::start()` then throws `Exception::Precondition` (`src/openms/source/SYSTEM/StopWatch.cpp:41-43`) — an unconditional runtime check, not the assertions-only `OPENMS_PRECONDITION` macro, which `src/openms/include/OpenMS/CONCEPT/Macros.h:91` defines as nothing when `OPENMS_ASSERTIONS` is off; that is why a Release build fails too, and the failure below was observed on one. The tool exits 3 with
+
+    Error: Unable to read file (- due to that error of type Precondition failed in: .../StopWatch.cpp@43-void OpenMS::StopWatch::start())
+
+having written nothing. An input with only one record kind never takes the early throw, so its `startProgress`/`endProgress` pair is balanced — which is why the upstream registrations `TOPP_PeakPickerHiRes_3` and `_4` do not see it: their inputs hold spectra only and chromatograms only.
+
+**Proposed C++ fix:** End the progress before throwing `EndParsingSoftly` in the two `LD_RAWCOUNTS` early-exit branches, or do not start a progress at all when `load_detail_ == LD_RAWCOUNTS`, since the first pass reports no useful progress anyway.
+
+**Evidence:** `../oracle/p4-lowmemory/logs/probe_06.log`, section `(a)`. Minimal reproduction `../oracle/p4-lowmemory/outputs/probe_both_input.mzML`, 450,674 bytes, sha256 `23cb36d87ace821443539ec7a391711482ee6aad7100fb2c0243ccfcc6077f78`, produced on the node by that build's own `FileMerger` from the two upstream inputs `PeakPickerHiRes_input.mzML` (5 spectra) and `PeakPickerHiRes_2_input.mzML` (5 chromatograms). `PeakPickerHiRes -in both.mzML -out x.mzML -processOption lowmemory` exits 3; with `-no_progress` it exits 0 and writes 66,243 bytes; with `-test` it exits 3. Controls on the same build: the spectra-only and chromatogram-only inputs exit 0 in the same mode, and the in-memory mode on the two-kind input exits 0. The 2.3 GB benchmark input `UK222.mzML` (40,856 spectra, one chromatogram) fails the same way (`logs/rss_06.log`).
+
+**Rust handling:** The port's `mzml::transform` carries no shared progress logger — the crate has no progress logging on this path at all — so `PeakPickerHiRes -processOption lowmemory` completes on every one of those inputs, including the 2.3 GB one. Recorded as native difference 4 in `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`.
+
+## CPP-340 — MSDataWritingConsumer never checks its output stream, so a low-memory TOPP run whose output cannot be created exits 0 having written nothing
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp:19-34`, the constructor, whose `ofs_.open(filename.c_str(), std::ios::out | std::ios::binary)` at `:33` is never checked; `doCleanup_` at `:151-173`, which closes the same stream at `:172` without checking it; `src/PeakPickerHiRes.cpp:170-186` at the TOPP pin `174b576`, `doLowMemAlgorithm`, which returns `EXECUTION_OK` unconditionally at `:185`.
+
+**Trigger:** Any low-memory TOPP run whose `-out` cannot be opened for writing but passes the framework's pre-check. The reachable case is an `-out` that names an existing **directory**: `TOPPBase`'s writability pre-check accepts it, and `std::ofstream::open` then fails.
+
+**Issue:** The constructor never tests `ofs_.is_open()` or the stream state, and nothing on the writing path does either — `consumeSpectrum` and `doCleanup_` stream into a failed `ofstream`, which silently discards everything. `doLowMemAlgorithm` returns `EXECUTION_OK`, so the tool exits 0 with an empty standard error having produced no output at all. The in-memory path of the same tool reports the same situation properly, because `MzMLFile::store` throws `UnableToCreateFile`. Silent data loss, and the two process options of one tool disagree about whether the run succeeded.
+
+**Proposed C++ fix:** Throw `Exception::UnableToCreateFile` from the constructor when the stream is not open, as `MzMLFile::store` does, and check `ofs_` again in `doCleanup_` so that a write failure partway through is reported rather than swallowed.
+
+**Evidence:** Executed on the Release build, `../oracle/p4-lowmemory/logs/closediff1_06.log` section F and `logs/closediff3_06.log` section D. With `-out` naming a pre-existing directory:
+
+| | `-processOption lowmemory` | `-processOption inmemory` |
+| --- | --- | --- |
+| C++ Release | **exit 0**, empty stderr, nothing written | exit 5, `Error: Unable to write file (the file '…' could not be created. )` |
+
+Two controls that do **not** reach the consumer, because the framework's pre-check catches them, exit 5 with `Cannot write output file given from parameter '-out'!` in both process options: an `-out` naming an existing read-only file, and an `-out` under a directory that does not exist.
+
+**Rust handling:** `MSDataWritingConsumer::create` returns `Error::Io` when the file cannot be created, and `run_low_memory` propagates it, so the port answers `Error: Unexpected internal error (Is a directory (os error 21))` with `UNKNOWN_ERROR` in **both** process options. This is the one row of that tool's low-memory divergence table the port deliberately does not reproduce, because reproducing it means swallowing an I/O error on the one file the run exists to produce; recorded as native difference 13 of `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`, with the two controls that agree exactly, and pinned by `an_out_that_names_a_directory_is_reported_in_both_modes`.

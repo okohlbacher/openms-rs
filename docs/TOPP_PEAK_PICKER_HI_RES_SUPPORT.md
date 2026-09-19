@@ -374,7 +374,8 @@ added to the source's output, not a change to it. Pinned by
    from the retained pair by
    `the_two_retained_cpp_outputs_differ_only_in_the_data_processing_count`.
 4. **The C++ low-memory mode cannot read an mzML holding both spectra and
-   chromatograms while progress logging is on; this port can.** The C++ tool
+   chromatograms while progress logging is on; this port can** (upstream
+   `CPP-339`). The C++ tool
    exits 3 with
    `Error: Unable to read file (- due to that error of type Precondition failed
    in: StopWatch.cpp@43-void OpenMS::StopWatch::start())` and writes nothing.
@@ -524,7 +525,10 @@ added to the source's output, not a change to it. Pinned by
     `DataProcessingType` and `SourceFileType` (`mzML_1_10.xsd:851`, `:856`),
     and `dataProcessingRef` additionally carries `KEYREF_DPREF`, whose `refer`
     is `KEY_DP_ID`, the `id` of a `dataProcessingList/dataProcessing`
-    (`:1064-1071`, `:983-990`). Requested as a C++ issue.
+    (`:1064-1071`, `:983-990`). Recorded upstream as `CPP-172`, which this
+    wave promoted to executed and widened: the whole-document `MzMLFile::store`
+    emits the same invalid references, so the defect is not the streaming
+    consumer's alone.
 
     It is reachable on ordinary data — every `FileMerger` output carries one
     `dataProcessing` per merged part — so this port reproduces it rather than
@@ -649,7 +653,8 @@ added to the source's output, not a change to it. Pinned by
 
 
 13. **An `-out` that cannot be created is reported, in both modes, where the
-    source's low-memory run exits 0 having written nothing.** This is the one
+    source's low-memory run exits 0 having written nothing** (upstream
+    `CPP-340`). This is the one
     row of the divergence table above that this port does not reproduce, so it
     is worth saying why. `MSDataWritingConsumer`'s constructor never checks its
     `std::ofstream` (`MSDataWritingConsumer.cpp:33`) and `doLowMemAlgorithm`
