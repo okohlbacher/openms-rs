@@ -9,7 +9,7 @@
   "oracle_core": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85"
  },
  "license": "BSD-3-Clause",
- "scope": "Source-compatible resolution of mzML header references that name no preceding definition (work package P2-MZML-LENIENCY, decision D10): instrumentConfiguration and processingMethod softwareRef, and record-list defaultDataProcessingRef, spectrum and chromatogram dataProcessingRef and binaryDataArray dataProcessingRef. Selected by mzml::ReadOptions::source_dangling_references; the default stays strict. sourceFileRef, sampleRef, instrument configuration and parameter group references are out of scope and stay strict.",
+ "scope": "Source-compatible resolution of mzML header references that name no preceding definition (work package P2-MZML-LENIENCY, decision D10): instrumentConfiguration and processingMethod softwareRef, and record-list defaultDataProcessingRef, spectrum and chromatogram dataProcessingRef and binaryDataArray dataProcessingRef. Selected by mzml::ReadOptions::source_dangling_references; the default stays strict. sampleRef, instrument configuration and parameter group references are out of scope and stay strict. sourceFileRef was out of scope for THIS group and joined the same switch in wave 8 under decision D14, with its own executed evidence; see tests/data/mzml_source_file_round_trip_provenance.json.",
  "source_files": [
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
@@ -142,6 +142,6 @@
  "support_document": "docs/MZML_HEADER_SUPPORT.md",
  "target_verification": {
   "tests": "tests/mzml_header_leniency.rs (7) and the private read.rs tests (6), on stable and 1.85.0, under --all-features and under --no-default-features --features mzml; every mzml*, file_handler*, imzml*, indexed_mzml*, mzxml, mzdata, precursor_workflow, workflows and topp_mzml_splitter test binary green on both toolchains",
-  "cpp_issue_candidate": "MzMLHandler resolves softwareRef and data-processing references with std::map::operator[] (MzMLHandler.cpp:920-952, 1034, 1264, 1288): a reference naming no definition silently becomes an empty Software or an empty processing history, with no diagnostic, while an unregistered spectrum sourceFileRef is checked and warned about (899-906). The upstream fixture PeakPickerHiRes_5_input.mzML depends on it."
+  "cpp_issue_candidate": "MzMLHandler resolves softwareRef and data-processing references with std::map::operator[] (MzMLHandler.cpp:920-952, 1034, 1264, 1288): a reference naming no definition silently becomes an empty Software or an empty processing history, with no diagnostic, while an unregistered spectrum sourceFileRef is checked and warned about (896-906) and a chromatogram's, a scan's and a precursor's are not (937-941, 1131-1137, 1313-1318, 1339-1344). The upstream fixture PeakPickerHiRes_5_input.mzML depends on it."
  }
 }

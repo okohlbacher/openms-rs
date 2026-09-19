@@ -1,0 +1,124 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "package_revisions": {
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "topp": "174b576",
+  "cli": "c19e494",
+  "test-data": "0cb15f2"
+ },
+ "license": "BSD-3-Clause",
+ "scope": "Source-compatible resolution of an mzML sourceFileRef that names no preceding definition, on a spectrum, a scan and a precursor (decision D14, wave 8), and the round trip it exists for: the streaming MSDataWritingConsumer under ReferencePolicy::SourceDangling writes the sf_sp_<s> the source writes, and the reader must take it back. Selected by the existing mzml::ReadOptions::source_dangling_references; the default stays strict. This reverses the 'sourceFileRef is out of scope and stays strict' line of work package P2-MZML-LENIENCY, deliberately, because the port had otherwise introduced a file only the C++ reader would read. A chromatogram's sourceFileRef is not covered: mzML 1.1 has no such attribute on ChromatogramType and the reader refuses it before any policy applies.",
+ "source_files": [
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
+   "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/AcquisitionInfo.h",
+   "sha256": "37bf43638163b6c90862222bfccd984cfe3b10a4507a81b8871069494c96bac1"
+  }
+ ],
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 896,
+   "operation": "spectrum sourceFileRef: `if (source_files_.contains(ref)) spec_.setSourceFile(source_files_[ref]); else OPENMS_LOG_WARN << \"Error: unregistered source file reference \" << ref` -- the record keeps the SourceFile() its fresh construction gave it, and nothing is inserted into the map"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 937,
+   "operation": "chromatogram sourceFileRef: chromatogram_.setSourceFile(source_files_[ref]); std::map::operator[] default-constructs AND inserts, silently"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 1131,
+   "operation": "scan sourceFileRef: tmp.setMetaValue(\"source_file_name\", source_files_[ref].getNameOfFile()) and the path beside it; both keys are set unconditionally, to empty strings for an unknown ID"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 1313,
+   "operation": "spectrum precursor sourceFileRef, and at 1339 a chromatogram precursor's: the same two metaValues through operator[]"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 1499,
+   "operation": "end of sourceFileList: source_files_ is copied into exp_->getSourceFiles(). This runs before the run element, so the record-time operator[] insertions never reach the experiment's source-file list -- measured: exp_source_files = 1 on a fixture naming two dangling IDs"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 5252,
+   "operation": "writeSpectrum_: sourceFileRef=\"sf_sp_<s>\" for every record after the first that carries a source file, and dataProcessingRef=\"dp_sp_<s>\" when spec.getDataProcessing() != dps[0] -- a POINTER comparison over std::vector<std::shared_ptr<const DataProcessing>>"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 5060,
+   "operation": "writeHeader_: dps is deduplicated by CONTENT with Helpers::cmpPtrContainer, which is why the whole-document writer dangles on content-equal, pointer-distinct histories (CPP-172)"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/mzml_source_file_round_trip/record_source_file_dangling.mzML",
+   "sha256": "15a74d3128dec1d8dd2a459003172aa462d19e387421b80a15d00fb3437c9fd7",
+   "kind": "synthetic, hand-written mzML 1.1: one declared sourceFile and five records covering the shapes -- a resolved spectrum reference, a dangling one, a dangling scan reference, a dangling precursor reference, and the first dangling ID named a second time so the per-occurrence/per-ID warning difference is visible"
+  },
+  {
+   "path": "tests/data/mzml_source_file_round_trip/source_file_refs_oracle.tsv",
+   "sha256": "1ea8d16f1b32d4522b6596efc7589631646176caf493f3a6ed9129a27ec6a51b",
+   "rows": 52,
+   "kind": "oracle-generated (tier 1 executed differential): the lines of ../oracle/reader-roundtrip/logs/probe_06.log that the probe wrote for the three inputs, verbatim"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/peak_picking/PeakPickerHiRes_refs_input.mzML",
+   "sha256": "e37ced4a0411af3c83f42facc3596deee18ad002c460bf0ebf54f317be2436bd",
+   "owner": "tests/data/topp_peak_picker_hi_res_provenance.json"
+  },
+  {
+   "path": "tests/data/peak_picking/PeakPickerHiRes_dupdp_input.mzML",
+   "sha256": "e78a16b6f9f7378f766468810071a032a3d63832429ed2066ec04507952a9755",
+   "owner": "tests/data/topp_peak_picker_hi_res_provenance.json"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/reader-roundtrip/manifest.json",
+   "sha256": "5d2d53c93225094b6a4573b20cd6abcde810f620b24cd6c745e82e082953da40",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/reader-roundtrip/probe_source_refs.cpp",
+   "sha256": "bdb4ca438350d7e273f2dc210e79ac7afd9acd753fe762e395166ec8b48f1a34",
+   "label": "oracle probe source"
+  },
+  {
+   "path": "../oracle/reader-roundtrip/roundtrip_06.sh",
+   "sha256": "ead660637f34e8a15e698aebb5307d7fcda2235c439f62fd47564261f4faa361",
+   "label": "round-trip driver"
+  }
+ ],
+ "external_reference_note": "No C++ is committed to this repository. The probe, its build and the round-trip driver live in ../oracle/reader-roundtrip/ and link the unmodified Release install at the pins, /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, on ibminode06. Only the probe's stdout and the two mzML inputs enter the repository, with the hashes above.",
+ "evidence_tier": "tier_1_executed_differential_oracle_generated_plus_rust_only",
+ "method": "Oracle-generated (tier 1 executed differential): probe_source_refs.cpp loads each input with MzMLFile::load and prints, per record, the SourceFile the reader ends up with, whether a scan's and a precursor's source_file_name/source_file_path metadata exist and what they hold, the experiment's own source-file list, and which records share one DataProcessing allocation. tests/mzml_source_file_round_trip.rs renders the Rust reader's results in the same line format, reading with source_dangling_references and AcquisitionMode::Source (the default Canonical mode collapses a lone empty scan, a separately documented native normalization that would otherwise enter this comparison), and requires all 52 lines to be equal. Round trip, executed both ways on ibminode06 by roundtrip_06.sh: both implementations write the refs, dupdp and 110-record FileMerger inputs in both -processOption modes, and every written file is read by BOTH implementations -- FileInfo for the exit code and the in-memory tool for a read-and-write-back whose decoded content is compared under rule D6. Tier 4 (Rust-only): the strict default refuses all three shapes, on the whole fixture and on each shape alone; one warning per distinct dangling ID per read and none for a strict read; the crate's own low-memory output of an input with per-record source files reads back with the peaks bit-identical; the whole-document writer's remaining content deduplication is pinned as a divergence.",
+ "native_implementation": [
+  "src/format/mzml_header/read.rs",
+  "src/format/mzml.rs",
+  "src/format/ms_data_writing_consumer.rs"
+ ],
+ "native_tests": [
+  "tests/mzml_source_file_round_trip.rs",
+  "tests/mzml_header_leniency.rs",
+  "tests/ms_data_writing_consumer.rs",
+  "tests/topp_peak_picker_hi_res.rs"
+ ],
+ "support_document": "docs/MZML_HEADER_SUPPORT.md",
+ "target_verification": {
+  "tests": "tests/mzml_source_file_round_trip.rs (5), the updated tests/mzml_header_leniency.rs (8), tests/ms_data_writing_consumer.rs (36) and tests/topp_peak_picker_hi_res.rs (34), on stable and 1.85.0, under --all-features and under --no-default-features --features mzml,paramxml",
+  "cpp_issue_candidate": "Already recorded as CPP-172 and widened by wave 7: MzMLHandler::writeHeader_ deduplicates data-processing histories by content (Helpers::cmpPtrContainer) while writeSpectrum_ compares them by pointer, so both the streaming consumer and the whole-document MzMLFile::store emit dataProcessingRef and sourceFileRef values that no id declares, which mzML 1.1 forbids (xs:IDREF against xs:ID, plus KEYREF_DPREF). This group adds the measured reader side: the same MzMLHandler reads those files without failing, warning only for a spectrum's sourceFileRef and saying nothing for a chromatogram's, a scan's or a precursor's."
+ }
+}

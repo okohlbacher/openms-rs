@@ -419,3 +419,72 @@ fn the_low_memory_output_of_a_per_record_source_file_input_reads_back() {
             .all(|s| s.source_file == SourceFile::default())
     );
 }
+
+/// The whole-document writer still decides by content, and this pins it.
+///
+/// `MzMLHandler::writeHeader_` deduplicates histories by **content**
+/// (`Helpers::cmpPtrContainer`, `MzMLHandler.cpp:5060-5069`) while
+/// `writeSpectrum_` compares them by **pointer** (`:5258`), so the C++
+/// whole-document `MzMLFile::store` dangles on an input carrying two
+/// textually identical `dataProcessing` entries under different identifiers —
+/// the defect `CPP-172` records, in the path that is not the streaming
+/// consumer. Measured on `ibminode06`
+/// (`../oracle/reader-roundtrip/logs/roundtrip_06.log`, section `dupdp`): the
+/// C++ in-memory output of `PeakPickerHiRes_dupdp_input` declares ten
+/// referenceable ids against eleven references, **two** of them dangling,
+/// `dp_sp_1` and `dp_sp_2`; this crate's declares ten against eight, none
+/// dangling, because it deduplicates by content on both sides and records 1
+/// and 2 fall back to the list default.
+///
+/// The streaming consumer's half of this is closed —
+/// `ReferencePolicy::SourceDangling` now compares by pointer, and the two
+/// low-memory outputs carry the same two dangling identifiers. Closing the
+/// whole-document half would make `mzml::write` emit references that mzML
+/// forbids on every write path, by default and with nothing to opt into,
+/// which is a change to the crate's default output validity rather than a
+/// fidelity fix inside one policy. Recorded as a divergence and left for the
+/// lead; the decoded content is identical either way and each implementation
+/// reads the other's file.
+#[test]
+fn the_whole_document_writer_still_deduplicates_by_content() {
+    discard_warnings();
+    let experiment = mzml::read_with_options(Cursor::new(DUPDP), &source()).unwrap();
+    // The input really is the pointer-vs-content case: records 0 and 1 hold
+    // equal but distinct histories.
+    let (first, second) = (
+        &experiment.spectra[0].data_processing,
+        &experiment.spectra[1].data_processing,
+    );
+    assert_eq!(first, second);
+    assert!(!Arc::ptr_eq(&first[0], &second[0]));
+
+    let mut written = Vec::new();
+    mzml::write(&mut written, &experiment).unwrap();
+    let text = String::from_utf8(written).unwrap();
+    // No record carries a reference the document does not declare: the port's
+    // whole-document output stays valid mzML where the source's does not.
+    let declared: Vec<&str> = text
+        .match_indices("<dataProcessing id=\"")
+        .map(|(at, pattern)| {
+            let rest = &text[at + pattern.len()..];
+            &rest[..rest.find('"').expect("a quoted id")]
+        })
+        .collect();
+    let referenced: Vec<&str> = text
+        .match_indices("dataProcessingRef=\"")
+        .map(|(at, pattern)| {
+            let rest = &text[at + pattern.len()..];
+            &rest[..rest.find('"').expect("a quoted id")]
+        })
+        .collect();
+    for id in &referenced {
+        assert!(declared.contains(id), "{id} dangles: {declared:?}");
+    }
+    // The five content-equal histories collapse to one declaration and no
+    // record carries a reference at all, where the source declares the same
+    // one and still writes `dp_sp_1` on record 1 and `dp_sp_2` on record 2.
+    assert_eq!(declared.len(), 1, "{declared:?}");
+    assert!(referenced.is_empty(), "{referenced:?}");
+    assert!(!text.contains("dp_sp_1"), "{text:.400}");
+    assert!(!text.contains("dp_sp_2"), "{text:.400}");
+}
