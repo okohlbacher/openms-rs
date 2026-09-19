@@ -196,7 +196,14 @@ Every public member of `FileInfo.h`, and the file-local helpers of
    sorts before `0.0`; `std::sort` leaves equal elements in an unspecified
    order, so a sample holding both zeros can print `-0` where the source prints
    `0` as minimum or maximum. Kernel hull boxes merge with `f64::min` and
-   `f64::max` (open B1 follow-up); FileInfo loads no hulls.
+   `f64::max` (open B1 follow-up); FileInfo loads no hulls. All of that is about
+   non-finite *inputs*. A statistics block can also compute one from finite
+   input: the consensusXML `-s` relative intensity error divides, and a
+   sub-feature of intensity zero makes the sample `{1, +inf}`, whose variance is
+   a NaN. The port reproduces that value bit for bit and writes it `nan` where
+   the reference build writes `-nan`; see native difference 5 of
+   [the A7 document](FILE_INFO_A7_SUPPORT.md), which is the only line of any
+   FileInfo report on which the two builds disagree.
 7. **Bounded work.** A statistics block holds at most
    `FileInfo::MAX_STATISTICS_VALUES` (2^27) values, checked before collection
    and allocated fallibly; the kernel range managers, the FAIMS scan, the
