@@ -6,7 +6,8 @@ lifecycle (`docs/TOPP_CLI_SUPPORT.md`) and the FileInfo library
 (`docs/FILE_INFO_SUPPORT.md`). Work package A5-FILEINFO-TOOL of the early TOPP
 bundle, stage 1 of the FileInfo preview; `-i`, `-d` and `-c` are A6, which has
 landed — see [FILE_INFO_CHECKS_SUPPORT](FILE_INFO_CHECKS_SUPPORT.md) — the
-consensusXML, identification and FASTA branches A7, and `-v`, mzXML, mzData and
+consensusXML, identification and FASTA branches A7, which has landed too — see
+[FILE_INFO_A7_SUPPORT](FILE_INFO_A7_SUPPORT.md) — and `-v`, mzXML, mzData and
 trafoXML A8.
 
 | Artifact | Path |
@@ -39,7 +40,8 @@ does here:
 | `mzML` | `-i`, no index | the failure text and nothing after it; exit 6 (A6). Which files have no index is also this port's decoder's answer — native difference 9 |
 | non-mzML | `-i` | exit 6 with the source's message and the usage text, before the library runs |
 | `mzXML`, `mzData`, `mgf`, `sqMass`, `fid` | any | exit 11, `... peak-file branch for <type> input is not ported` |
-| `consensusXML`, `idXML`, `mzid`, `pepXML`, `mzTab`, `trafoXML`, `fasta`, `pqp` | any | exit 11, `FileInfo <type> branch is not ported` |
+| `pepXML`, `mzTab`, `trafoXML`, `pqp` | any | exit 11, `FileInfo <type> branch is not ported` |
+| `consensusXML`, `idXML`, `mzid`, `fasta` | any | reported since A7; exit 6 only where the source's behaviour is an out-of-bounds access (`FILE_INFO_A7_SUPPORT`) |
 | undetermined type | any | exit 10, `Error: Could not determine input file type!` |
 
 Every refusal is explicit and writes no report: the C++ tool reports these
@@ -214,9 +216,10 @@ only the `File name` text line and the `general: file name` TSV line normalised,
 because they hold the path the run was given.
 
 Tier 4: the refusal, message and empty `-out` of every unported branch and flag,
-including all upstream registrations A7 and A8 will close; the executable's exit
-status and its report on the process's standard output; the strict library
-default behind the tool's source-compatible mzML reading.
+including the upstream registrations A8 will close; the executable's exit status
+and its report on the process's standard output; the strict library default
+behind the tool's source-compatible mzML reading. The six registrations A7
+closed left that table for registrations of their own.
 
 The `File name` normalisation is the only tolerance used on a report; no
 numeric tolerance is applied outside the registered FuzzyDiff comparisons.
@@ -226,8 +229,9 @@ numeric tolerance is applied outside the registered FuzzyDiff comparisons.
 - `-i`, `-d` and `-c` are no longer deferred: A6 ported them and closed
   TOPP_FileInfo_11 and _19. TOPP_FileInfo_12 stays open on the `charge array`
   reader gap, not on the flag.
-- consensusXML, idXML/mzIdentML and FASTA (A7): TOPP_FileInfo_7, _10, _13, _17,
-  _18 and _20.
+- consensusXML, idXML/mzIdentML and FASTA are no longer deferred: A7 ported
+  them and closed TOPP_FileInfo_7, _10, _13, _17, _18 and _20, five of them
+  against the retained upstream output through FuzzyDiff.
 - `-v`, mzXML, mzData and trafoXML (A8): TOPP_FileInfo_4, _5, _6, _14, _15 and
   _16. TOPP_FileInfo_15's input is not retained here; it differs from _14's only
   inside the document and takes the same `-v` refusal.

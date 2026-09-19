@@ -68,7 +68,7 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 | helper `writeRangesMachineReadable_` (map and `MSExperiment`) | `report::write_ranges_tsv`, with the block's key prefix |
 | helper `writeSummaryStatisticsMachineReadable_` | `features::write_summary_tsv` (only the featureXML branch writes statistics TSV) |
 | helpers `extractRangeSet_`, `extractRanges_`, `extractRangesExp_` | `report::range_set`; `features::feature_map_ranges`; the range part of `peaks::Summary::compute` |
-| helper `struct IdData` | not ported (identification branch, A7) |
+| helper `struct IdData` | `identifications::IdData` (A7) |
 | native only | `FileInfo::MAX_STATISTICS_VALUES`; `peaks::PEAK_TYPE_ESTIMATION_MIN_PEAKS`; `FileInfoResult::warnings` |
 
 ## Preserved source conventions
@@ -161,8 +161,7 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 ## Native differences
 
 1. **Refusals instead of partial support.** `-v` for every type, the
-   consensusXML, idXML, mzIdentML, FASTA, pepXML,
-   mzTab, trafoXML and PQP branches, and peak files of mzXML, mzData, MGF, MS2,
+   pepXML, mzTab, trafoXML and PQP branches, and peak files of mzXML, mzData, MGF, MS2,
    sqMass, XMass, MSP, Thermo RAW and Bruker TDF return `Error::Unsupported`
    naming the branch. The source reports them; it loads RAW and TDF when built
    with its default `WITH_THERMO_RAW` and `WITH_OPENTIMS` options (the
@@ -304,12 +303,14 @@ sections.
 
 ## Deferrals
 
-- consensusXML, idXML/mzIdentML and FASTA (A7); `-v`, mzXML, mzData, trafoXML
-  (A8); pepXML, mzTab, PQP, sqMass, XMass, MSP, MGF and MS2 have no package
-  yet. `-i`, `-d` and `-c` are no longer deferred: A6 ported them
-  ([FILE_INFO_CHECKS_SUPPORT](FILE_INFO_CHECKS_SUPPORT.md)), and its two open
-  items are the mzML reader and kernel refusals that keep two `-c` lines out of
-  reach.
+- `-v`, mzXML, mzData, trafoXML (A8); pepXML, mzTab, PQP, sqMass, XMass, MSP,
+  MGF and MS2 have no package yet. `-i`, `-d` and `-c` are no longer deferred:
+  A6 ported them ([FILE_INFO_CHECKS_SUPPORT](FILE_INFO_CHECKS_SUPPORT.md)), and
+  its two open items are the mzML reader and kernel refusals that keep two `-c`
+  lines out of reach. The consensusXML, idXML/mzIdentML and FASTA branches are
+  no longer deferred either: A7 ported them
+  ([FILE_INFO_A7_SUPPORT](FILE_INFO_A7_SUPPORT.md)), refusing only the three
+  places the source's behaviour is an out-of-bounds `std::vector` access.
 - The tool wrapper, exit codes and output routing are A5's.
 - Source-compatibility load options (D10): closed for dangling header
   references, open for the rest. A5 added the native
