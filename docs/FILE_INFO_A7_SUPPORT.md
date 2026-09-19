@@ -474,11 +474,16 @@ reference build exits 0. The reason is measured rather than assumed: in the
 two-element samples measured here libstdc++ compares every pair involving the
 NaN false and therefore moves nothing, so the `minimum`, quartile and `maximum`
 lines the reference prints are positional reads of a range whose elements
-`std::sort` was free to leave in any order. "Moves nothing" is a property of the
-**size**, not of the NaN — above libstdc++'s insertion-sort threshold
-`__introsort_loop` does move it, and a 20-element sample `{NaN, 2..20}` prints
-`minimum: 2` and `median: -nan` — which makes the order statistics no less a
-property of the input order, and the refusal no less necessary.
+`std::sort` was free to leave in any order. "Moves nothing" is a property of this
+sample's **size and arrangement**, not of the NaN. `__introsort_loop` runs only
+above `_S_threshold`, which the headers this build was compiled with enumerate
+as 16, so at 17 elements or more it moves the NaN outright — a 20-element
+sample `{NaN, 2..20}` prints `minimum: 2` and `median: -nan` — and even below
+the threshold a block move can carry it, as `{3, NaN, 2}` sorting to
+`{2, 3, NaN}` shows. Neither makes the order statistics any less a property of
+the input order, or the refusal any less necessary; the full reading of the
+headers is in
+[the shared-math document](STATISTIC_FUNCTIONS_SUPPORT.md#nan-policy).
 Oracle cases `c_nan_then_finite_s` and `c_finite_then_nan_s` hold **the same
 two consensus features in opposite file order**, are each stable over three
 runs, and disagree on exactly four lines:

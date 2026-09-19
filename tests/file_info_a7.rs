@@ -705,10 +705,12 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
 ///   two-element samples measured here libstdc++ compares every pair involving
 ///   the NaN false and therefore moves nothing, so the reference build's
 ///   `minimum`, quartile and `maximum` lines are positional reads of a range it
-///   was free to leave in any order. That "moves nothing" is a property of the
-///   size, not of the NaN: above libstdc++'s insertion-sort threshold
-///   `__introsort_loop` does move it, and a 20-element sample `{NaN, 2..20}`
-///   prints `minimum: 2` and `median: -nan`. The two frozen reports below
+///   was free to leave in any order. That "moves nothing" is a property of
+///   this sample's size and arrangement, not of the NaN: `__introsort_loop`
+///   runs only above `_S_threshold`, 16 in the headers this build was
+///   compiled with, so a 20-element sample `{NaN, 2..20}` prints
+///   `minimum: 2` and `median: -nan`, and even below the threshold a block
+///   move can carry the NaN, as `{3, NaN, 2}` sorting to `{2, 3, NaN}` shows. The two frozen reports below
 ///   hold the same two consensus features in opposite file order and disagree
 ///   on exactly those four lines — which is the measurement that says there is
 ///   no answer to reproduce. This crate refuses that shape; it is a deferral
