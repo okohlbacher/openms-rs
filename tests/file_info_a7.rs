@@ -534,51 +534,67 @@ fn consensus_degenerate_maps() {
     assert_eq!(feature.map_columns.len(), 2);
 }
 
-/// Compare a report with the Release build's, allowing exactly one line to
+/// Compare a report with the Release build's, allowing `expected` lines to
 /// differ and only in the way native difference 5 of
 /// `docs/FILE_INFO_A7_SUPPORT.md` describes: the reference spells a NaN whose
 /// sign bit is set `-nan`, this crate spells every NaN `nan`.
 ///
-/// The assertion is deliberately narrow. It fails if a second line differs, if
-/// the exception moves to another line, if the reference line is not the
-/// `-nan` variance, or if this crate stops writing `nan` there.
+/// Native difference 5 is a **class of line**, not one line, so the count is
+/// passed in and every differing line is checked against the class: the
+/// reference line must end in `-nan`, ours must end in `nan` and not in
+/// `-nan`, and putting the sign back must reproduce the reference line
+/// character for character. The assertion therefore fails if a line outside the
+/// class differs, if the number of NaN-spelled lines changes, if a `-nan`
+/// appears where the reference has a number, or if this crate starts or stops
+/// writing the sign.
 #[cfg(feature = "consensusxml")]
-fn assert_report_but_the_nan_spelling(actual: &str, expected_file: &Path, label: &str) {
-    let expected = normalise_file_name(&read_text(expected_file));
+fn assert_report_but_the_nan_spelling(
+    actual: &str,
+    expected_file: &Path,
+    label: &str,
+    expected: usize,
+) {
+    let reference_text = normalise_file_name(&read_text(expected_file));
     let actual = normalise_file_name(actual);
-    let reference: Vec<&str> = expected.split_inclusive('\n').collect();
+    let reference: Vec<&str> = reference_text.split_inclusive('\n').collect();
     let ours: Vec<&str> = actual.split_inclusive('\n').collect();
     assert_eq!(
         ours.len(),
         reference.len(),
         "{label}: line count, {}",
-        first_difference(&actual, &expected)
+        first_difference(&actual, &reference_text)
     );
     let differing: Vec<usize> = (0..ours.len())
         .filter(|&i| ours[i] != reference[i])
         .collect();
     assert_eq!(
         differing.len(),
-        1,
-        "{label}: expected exactly the NaN spelling to differ, differing lines {differing:?}"
+        expected,
+        "{label}: expected exactly the NaN spellings to differ, differing lines {differing:?}"
     );
-    let line = differing[0];
-    assert_eq!(
-        reference[line].trim_end_matches('\n'),
-        "  variance:       -nan",
-        "{label}: the reference line at {}",
-        line + 1
-    );
-    assert_eq!(
-        ours[line].trim_end_matches('\n'),
-        "  variance:       nan",
-        "{label}: our line at {}",
-        line + 1
-    );
+    for &line in &differing {
+        let theirs = reference[line].trim_end_matches('\n');
+        let mine = ours[line].trim_end_matches('\n');
+        let at = line + 1;
+        assert!(
+            theirs.ends_with("-nan"),
+            "{label}: the reference line at {at} is {theirs:?}, not a signed NaN"
+        );
+        assert!(
+            mine.ends_with("nan") && !mine.ends_with("-nan"),
+            "{label}: our line at {at} is {mine:?}, not an unsigned NaN"
+        );
+        assert_eq!(
+            theirs,
+            mine.replacen("nan", "-nan", 1),
+            "{label}: our line at {at} differs by more than the NaN's sign"
+        );
+    }
 }
 
-/// The one statistic these branches can make non-finite, and the only line of
-/// any A7 report where the two builds disagree.
+/// The first FileInfo path whose own arithmetic makes a statistic non-finite,
+/// and the simplest case of the one class of line on which the two builds
+/// disagree: a NaN this crate spells `nan` and glibc spells `-nan`.
 ///
 /// `FileInfo.cpp:2310` divides each sub-feature's intensity by the consensus
 /// centroid's, and `:2312-2315` inverts every ratio below 1, so a sub-feature
@@ -602,7 +618,9 @@ fn assert_report_but_the_nan_spelling(actual: &str, expected_file: &Path, label:
 ///
 /// So the Release build's three reports are frozen whole, the bare one matches
 /// byte for byte, and the two that carry the statistics are asserted to differ
-/// on that one line and nowhere else.
+/// on that one line and nowhere else. `consensus_nan_in_the_statistics_sample`
+/// covers the shapes that put a NaN into the sample itself, where more lines
+/// of the same class differ.
 #[cfg(feature = "consensusxml")]
 #[test]
 fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
@@ -634,6 +652,7 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
             &result.text,
             &data(&format!("file_info_a7/expected/{case}.txt")),
             &format!("{case} text"),
+            1,
         );
         // FileInfo.cpp:2257-2372 writes nothing to os_tsv, so the TSV of a -s
         // run is the bare TSV and matches exactly.
@@ -648,6 +667,172 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
         assert!(result.text.contains("  maximum:        inf\n"), "{case}");
         assert_eq!(result.text.matches("nan").count(), 1, "{case}");
     }
+}
+
+/// A NaN in the statistics **sample**, not only in a statistic summarised out
+/// of one, and the boundary of what `Math::SummaryStatistics` can answer.
+///
+/// `FileInfo.cpp:2310` divides and `:2312-2315` inverts every ratio below 1, so
+/// a sub-feature of intensity `-0.0` under a positive centroid contributes
+/// `1 / -0.0 = -inf` and one of intensity `0.0` contributes `1 / 0.0 = +inf`.
+/// `:2317` accumulates `(-inf) + (+inf) = NaN` and `:2321-2323` divides it by
+/// `cm.size()`, so the NaN is pushed into `it_aad_by_cfs` — the sample of the
+/// *Average relative intensity error within consensus features* block — and is
+/// handed to `std::sort`, whose strict-weak-ordering precondition it violates.
+///
+/// Whether that matters depends on the shape of the sample, so all four are
+/// exercised:
+///
+/// - **one value** (`a7_cons_nan_one`): sorting a one-element range is a no-op
+///   by `[alg.sorting]`, so nothing is unspecified. The Release build prints
+///   the NaN on all six positional lines and `0` for the variance, which is the
+///   `n <= 1` substitution;
+/// - **every value a NaN** (`a7_cons_nan_two`): the permutation is unspecified
+///   but unobservable, because every permutation of an all-NaN range prints the
+///   same eight lines. Here `n > 1`, so the variance is a NaN too;
+/// - **a NaN next to a number** (`a7_cons_nan_then_finite` and its swapped twin
+///   `a7_cons_finite_then_nan`): the permutation *is* observable. libstdc++
+///   compares every pair involving the NaN false and therefore moves nothing,
+///   so the reference build's `minimum`, quartile and `maximum` lines are
+///   positional reads of a range it never ordered. The two frozen reports below
+///   hold the same two consensus features in opposite file order and disagree
+///   on exactly those four lines — which is the measurement that says there is
+///   no answer to reproduce. This crate refuses that shape; it is a deferral
+///   pending a libstdc++ `std::sort` emulation in shared math, not a D1
+///   refusal, and the oracle records both reports under `unspecified_order`.
+#[cfg(feature = "consensusxml")]
+#[test]
+fn consensus_nan_in_the_statistics_sample() {
+    // Without -s no statistics block is written, so all four files are
+    // byte-identical on both reports.
+    let one = check("a7_cons_nan_one.consensusXML", &bare(), "c_nan_one");
+    assert_eq!(one.feature.expect("feature").num_features, 1);
+    let two = check("a7_cons_nan_two.consensusXML", &bare(), "c_nan_two");
+    assert_eq!(two.feature.expect("feature").num_features, 2);
+    check(
+        "a7_cons_nan_then_finite.consensusXML",
+        &bare(),
+        "c_nan_then_finite",
+    );
+    check(
+        "a7_cons_finite_then_nan.consensusXML",
+        &bare(),
+        "c_finite_then_nan",
+    );
+
+    // With -s the two answerable shapes are reproduced, and every line that
+    // differs differs only by the NaN's sign.
+    let statistics = Options {
+        statistics: true,
+        ..Options::default()
+    };
+    for (name, options, case, nan_lines) in [
+        (
+            "a7_cons_nan_one.consensusXML",
+            &statistics,
+            "c_nan_one_s",
+            9_usize,
+        ),
+        (
+            "a7_cons_nan_one.consensusXML",
+            &all_flags(),
+            "c_nan_one_all",
+            9,
+        ),
+        (
+            "a7_cons_nan_two.consensusXML",
+            &statistics,
+            "c_nan_two_s",
+            10,
+        ),
+    ] {
+        let result = FileInfo::new()
+            .run(input(name), options)
+            .unwrap_or_else(|e| panic!("{case}: {e}"));
+        assert_report_but_the_nan_spelling(
+            &result.text,
+            &data(&format!("file_info_a7/expected/{case}.txt")),
+            &format!("{case} text"),
+            nan_lines,
+        );
+        // FileInfo.cpp:2257-2372 writes nothing to os_tsv, so the TSV of a -s
+        // run is the bare TSV and matches exactly.
+        assert_report(
+            &result.tsv,
+            &data(&format!("file_info_a7/expected/{case}.tsv")),
+            &format!("{case} tsv"),
+        );
+    }
+
+    // The one-value sample: the six positional lines are the NaN and the
+    // variance is the substituted zero, exactly as the reference prints them.
+    let one_s = FileInfo::new()
+        .run(input("a7_cons_nan_one.consensusXML"), &statistics)
+        .expect("c_nan_one_s");
+    assert!(one_s.text.contains(
+        "Average relative intensity error within consensus features \
+         (\"max{(element / center), (center / element)}\", weight 1 per consensus features):\n  \
+         num. of values: 1\n  \
+         mean:           nan\n  \
+         minimum:        nan\n  \
+         lower quartile: nan\n  \
+         median:         nan\n  \
+         upper quartile: nan\n  \
+         maximum:        nan\n  \
+         variance:       0\n"
+    ));
+    // The all-NaN sample: the same six lines, and a NaN variance because n > 1.
+    let two_s = FileInfo::new()
+        .run(input("a7_cons_nan_two.consensusXML"), &statistics)
+        .expect("c_nan_two_s");
+    assert!(two_s.text.contains(
+        "  num. of values: 2\n  \
+         mean:           nan\n  \
+         minimum:        nan\n  \
+         lower quartile: nan\n  \
+         median:         nan\n  \
+         upper quartile: nan\n  \
+         maximum:        nan\n  \
+         variance:       nan\n"
+    ));
+
+    // A NaN next to a number is refused, in either file order.
+    for name in [
+        "a7_cons_nan_then_finite.consensusXML",
+        "a7_cons_finite_then_nan.consensusXML",
+    ] {
+        let error = FileInfo::new()
+            .run(input(name), &statistics)
+            .expect_err(&format!("{name} with -s must be refused"));
+        let Error::InvalidValue(message) = &error else {
+            panic!("{name}: expected InvalidValue, got {error}");
+        };
+        assert_eq!(message, "statistics input must not contain NaN", "{name}");
+    }
+
+    // Why it is refused: the retained Release reports for those two files are
+    // the same length and disagree on exactly the four order statistics, so the
+    // values are a property of the file order rather than of the sample.
+    let nan_first = read_text(&data("file_info_a7/expected/c_nan_then_finite_s.txt"));
+    let nan_last = read_text(&data("file_info_a7/expected/c_finite_then_nan_s.txt"));
+    let first: Vec<&str> = nan_first.split_inclusive('\n').collect();
+    let last: Vec<&str> = nan_last.split_inclusive('\n').collect();
+    assert_eq!(first.len(), last.len());
+    let differing: Vec<&str> = (0..first.len())
+        .filter(|&i| first[i] != last[i])
+        // The `File name: ` line names the fixture and differs by definition.
+        .filter(|&i| !first[i].starts_with("File name: "))
+        .map(|i| first[i].trim_end_matches('\n'))
+        .collect();
+    assert_eq!(
+        differing,
+        vec![
+            "  minimum:        -nan",
+            "  lower quartile: -nan",
+            "  upper quartile: 2",
+            "  maximum:        2",
+        ]
+    );
 }
 
 /// Upstream consensus maps whose map ids do run from zero, so the occurrence

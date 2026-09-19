@@ -130,7 +130,7 @@
     },
     "method": "Library-level: FileInfo::run on each input with the flags the oracle passed the tool; text and TSV compared byte for byte with the retained Release C++ reports after replacing the 'File name: ' text line and the 'general: file name' TSV line, which embed the input path. The FASTA duplicate warnings, which the source writes with OPENMS_LOG_WARN rather than into the reports, are compared with the tool's stderr.",
     "evidence_tier": 1,
-    "evidence": "Tier 1 (executed differential): the Release C++ FileInfo of openms4-release-bc9cc12-c19e494-174b576, at all three pins this port follows, ran 63 cases on ibminode06 twice, reproduced (../oracle/a7-fileinfo/manifest.json). 43 of them have both reports compared here byte for byte, two of them (c_zero_intensity_s and c_zero_intensity_all) with the single documented exception of the NaN spelling on exactly one line, which the test asserts rather than masks; the rest carry refusals, exit codes and the duplicate warnings. One mask only: the \"FileInfo took\" stdout line, which goes into neither -out nor -out_tsv. Tier 1 (retained upstream definition): TOPP_FileInfo_7, _10, _13, _17, _18 and _20 reproduced with their own flags; _14 and _15 pass -v, which is not ported, so their inputs run without it. Tier 1 (executed probe): scripts/probe_std_hash.cpp pins libstdc++'s std::hash<std::string> over the empty string, every tail length, bytes above 0x7f and an embedded NUL, and 28 of its 60 values are asserted in a unit test of src/format/file_info/fasta.rs. Tier 4: the three out-of-bounds std::vector accesses are refused under decision D1, and the ValidationInfo, CorruptionInfo and DetailInfo aggregates these branches never fill stay at their defaults.",
+    "evidence": "Tier 1 (executed differential): the Release C++ FileInfo of openms4-release-bc9cc12-c19e494-174b576, at all three pins this port follows, ran 72 cases on ibminode06 twice, reproduced (../oracle/a7-fileinfo/manifest.json). 50 of them have both reports compared here byte for byte, five of them (c_zero_intensity_s, c_zero_intensity_all, c_nan_one_s, c_nan_one_all and c_nan_two_s) with the single documented exception of native difference 5 -- every NaN the FileInfo text layer prints is spelled nan where glibc spells a sign-bit NaN -nan -- which the tests assert line by line rather than mask; the rest carry refusals, exit codes and the duplicate warnings. Two further cases (c_nan_then_finite_s and c_finite_then_nan_s) are retained as evidence rather than compared: their samples hold a NaN next to a number, so std::sort's strict weak ordering is violated and the two reports, which cover the same two consensus features in opposite file order, disagree on four order statistics. That pair is the measurement behind the refusal recorded in known_gaps. One mask only: the \"FileInfo took\" stdout line, which goes into neither -out nor -out_tsv. Tier 1 (retained upstream definition): TOPP_FileInfo_7, _10, _13, _17, _18 and _20 reproduced with their own flags; _14 and _15 pass -v, which is not ported, so their inputs run without it. Tier 1 (executed probe): scripts/probe_std_hash.cpp pins libstdc++'s std::hash<std::string> over the empty string, every tail length, bytes above 0x7f and an embedded NUL, and 28 of its 60 values are asserted in a unit test of src/format/file_info/fasta.rs. Tier 4: the three out-of-bounds std::vector accesses are refused under decision D1, and the ValidationInfo, CorruptionInfo and DetailInfo aggregates these branches never fill stay at their defaults.",
     "known_gaps": [
         {
             "what": "a consensus sub-feature whose map index is at or beyond the column-header count is refused, where the C++ reports",
@@ -163,14 +163,19 @@
             "owner": "this package (reproduced source behaviour)"
         },
         {
-            "what": "a NaN variance is written `nan` where the reference build writes `-nan`",
-            "why": "FileInfo.cpp:2310 divides each sub-feature's intensity by the centroid's and :2312-2315 inverts every ratio below 1, so a sub-feature of intensity 0 under a positive centroid contributes 1/0 = +inf; Math::SummaryStatistics (StatisticFunctions.h:933-958) then has mean = +inf and Math::variance (:541-556) adds (1-inf)^2 = +inf to (inf-inf)^2 = NaN. In bounds and reproducible in both oracle runs, so D1 reproduces it. The VALUE is reproduced exactly: measured on x86_64, inf - inf is 0xfff8000000000000 (SSE2's default NaN, sign bit set) in the reference build and in this crate's variance_with_mean alike, both probes fed from argv so nothing is constant-folded. Only the spelling differs: glibc writes a negative NaN as -nan, while src/format/file_info/text_format.rs writes every NaN as nan by design, because the sign of a GENERATED NaN belongs to the hardware (AArch64's default NaN is positive, and this crate's CI runs the full suite on macos-latest) and Apple libc writes nan for 0xfff8000000000000 anyway -- ../oracle/file-info-text-format measured that exact bit pattern and tests/file_info_text_format.rs asserts the nan it produced. Oracle cases c_zero_intensity, c_zero_intensity_s and c_zero_intensity_all on a7_cons_zero_intensity.consensusXML; consensus_zero_intensity_sub_feature_makes_the_variance_a_nan asserts that exactly one line of the frozen Release report differs and that it differs in exactly this way.",
+            "what": "every NaN the FileInfo text layer prints is spelled `nan`, where glibc spells a NaN whose sign bit is set `-nan`",
+            "why": "A class of line, not one line. FileInfo.cpp:2310 divides each sub-feature's intensity by the centroid's and :2312-2315 inverts every ratio below 1, so the consensusXML -s blocks are the first FileInfo path whose own arithmetic can make a statistic non-finite: a sub-feature of intensity 0 under a positive centroid contributes 1/0 = +inf, and one of intensity -0.0 next to one of 0.0 contributes (-inf) + (+inf) = NaN. Math::SummaryStatistics (StatisticFunctions.h:933-958) can therefore report a NaN mean, median or variance, and a NaN can also land in the sample itself. In bounds and reproducible in both oracle runs, so D1 reproduces it. The VALUE is reproduced exactly: measured on x86_64, inf - inf is 0xfff8000000000000 (SSE2's default NaN, sign bit set) in the reference build and in this crate's variance_with_mean alike, both probes fed from argv so nothing is constant-folded. Only the spelling differs: glibc writes a negative NaN as -nan, while src/format/file_info/text_format.rs writes every NaN as nan by design, because the sign of a GENERATED NaN belongs to the hardware (AArch64's default NaN is positive, and this crate's CI runs the full suite on macos-latest in its cross-platform job) and Apple libc writes nan for 0xfff8000000000000 anyway -- ../oracle/file-info-text-format measured that exact bit pattern and tests/file_info_text_format.rs asserts the nan it produced. Scope of the claim as measured: this is the only class of line on which the 50 compared oracle reports disagree. Oracle cases c_zero_intensity{,_s,_all}, c_nan_one{,_s,_all} and c_nan_two{,_s}; consensus_zero_intensity_sub_feature_makes_the_variance_a_nan and consensus_nan_in_the_statistics_sample assert every differing line against the class -- the reference ends in -nan, ours in nan, and restoring the sign reproduces the reference line character for character -- and pin how many such lines each report has (1, 9, 9 and 10).",
             "owner": "the FileInfo text layer (src/format/file_info/text_format.rs, package A2); this package pins the one report that reaches it"
         },
         {
             "what": "-m, -p and -s on an mzIdentML input report an empty MSExperiment",
             "why": "none of the three sections has an MZIDENTML arm, so all three fall into the trailing `else //peaks` arm (FileInfo.cpp:2005, :2115, :2384) and report the experiment the identification branch never loaded. Reproduced verbatim, including the empty document id and the 0000-00-00 00:00:00 date; oracle cases mzid14_all and mzid15_all.",
             "owner": "this package (reproduced source behaviour)"
+        },
+        {
+            "what": "a Math::SummaryStatistics sample holding a NaN next to a number is refused (Error::InvalidValue, \"statistics input must not contain NaN\") where the reference build exits 0 and prints a report",
+            "why": "Reached from the same arithmetic as the item above: a consensus feature with one sub-feature of intensity -0.0 and one of 0.0 contributes a NaN to it_aad_by_cfs (FileInfo.cpp:2317, :2321-2323). SummaryStatistics summarises the two shapes in which the sample's order cannot decide the answer -- one value, which std::sort leaves alone by [alg.sorting], and an all-NaN sample, every permutation of which prints the same eight lines -- and both are reproduced (oracle cases c_nan_one_s and c_nan_two_s). A NaN next to a number is different: std::sort's strict-weak-ordering precondition is violated, libstdc++ compares every pair involving the NaN false and therefore moves nothing, and the minimum, quartile and maximum lines the reference prints are positional reads of a range it never ordered. Measured: c_nan_then_finite_s and c_finite_then_nan_s hold the same two consensus features in opposite file order, both stable across runs, and disagree on minimum, lower quartile, upper quartile and maximum. Reproducing them means porting libstdc++'s std::sort permutation into sort_ascending in shared math, which every SummaryStatistics caller in the crate consumes; that is its own wave. This is therefore a DEFERRAL, not a D1 refusal, and it is raised for the lead. consensus_nan_in_the_statistics_sample asserts the exact refusal, that the bare run still succeeds, and that the two retained reference reports disagree on exactly those four lines.",
+            "owner": "shared math (src/math/statistic_functions.rs, SummaryStatistics::of_nan_sample and sort_ascending); this package pins the boundary and the evidence"
         }
     ],
     "native_implementation": [
@@ -192,7 +197,7 @@
     "external_reference_artifacts": [
         {
             "path": "../oracle/a7-fileinfo/oracle.py",
-            "sha256": "658a003d7c633c6bdec04079292ca0b9e3153ed2710ca595821f21c5abc591cd",
+            "sha256": "d2fae49c8c00c41819c24501fa36b57e7c87e0aabb346b9e84795ddcd285714e",
             "origin_key": "fixtures",
             "role": "driver: case table, per-case scratch runs, reproduction check, manifest writer"
         },
@@ -204,7 +209,7 @@
         },
         {
             "path": "../oracle/a7-fileinfo/scripts/make_a7_fixtures.py",
-            "sha256": "d20b9cc487d270f05862a385b6120c3a3d818702f0cd73e3f014b91740ec4341",
+            "sha256": "ab03687f44c83f71dea069bb52fa996bbdcdf5620d2766ad2952b7f03edc7b10",
             "origin_key": "fixtures",
             "role": "generator of the degenerate FASTA, consensusXML and idXML inputs"
         },
@@ -216,7 +221,7 @@
         },
         {
             "path": "../oracle/a7-fileinfo/manifest.json",
-            "sha256": "2514d9c9f870d21f867dbd3425c7447b317c36b5bca3faa25bcf13c0419f682a",
+            "sha256": "ad6e92f875f132a910bef5e491c61a0308c15ab41b52fc037360e3c2be6d8d96",
             "origin_key": "fixtures",
             "role": "tool hash, environment, fixture hashes, per-case argv, exit codes and output hashes, reproduction verdict, out_of_bounds records"
         }
@@ -315,6 +320,13 @@
             "evidence_label": "retained upstream fixture (tier 1)"
         },
         {
+            "path": "tests/data/file_info/inputs/a7_cons_finite_then_nan.consensusXML",
+            "sha256": "db18cae304822fa79b5a2e35dad898ac2ff2e8447a727e907f05c0fdd396901d",
+            "bytes": 1688,
+            "kind": "generated degenerate input of this package, written by ../oracle/a7-fileinfo/scripts/make_a7_fixtures.py; no value in it comes from any Rust output",
+            "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+        },
+        {
             "path": "tests/data/file_info/inputs/a7_cons_headers_only.consensusXML",
             "sha256": "0ef85641a6d8e7055f3784af06f61d89f9eebd2c9a2750f07cd3ae52f84b9428",
             "bytes": 529,
@@ -346,6 +358,27 @@
             "path": "tests/data/file_info/inputs/a7_cons_mapindex_high_noid.consensusXML",
             "sha256": "d987c316d84e0d0573894d3735beaf07c265bdedcc5bb2d1ebcba3d16b70c3fd",
             "bytes": 1382,
+            "kind": "generated degenerate input of this package, written by ../oracle/a7-fileinfo/scripts/make_a7_fixtures.py; no value in it comes from any Rust output",
+            "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info/inputs/a7_cons_nan_one.consensusXML",
+            "sha256": "99826e89a6f38b9849a94ee5e877e97cd1e8330336555dc152d3f01948e02dca",
+            "bytes": 1380,
+            "kind": "generated degenerate input of this package, written by ../oracle/a7-fileinfo/scripts/make_a7_fixtures.py; no value in it comes from any Rust output",
+            "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info/inputs/a7_cons_nan_then_finite.consensusXML",
+            "sha256": "c35cc76d331f185d630dff2614bd578437402a805b1c29263c766c0d93c30369",
+            "bytes": 1688,
+            "kind": "generated degenerate input of this package, written by ../oracle/a7-fileinfo/scripts/make_a7_fixtures.py; no value in it comes from any Rust output",
+            "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info/inputs/a7_cons_nan_two.consensusXML",
+            "sha256": "64e677389db55e82c461c141982b5746e943ae727900cfaefe68f661b5326789",
+            "bytes": 1685,
             "kind": "generated degenerate input of this package, written by ../oracle/a7-fileinfo/scripts/make_a7_fixtures.py; no value in it comes from any Rust output",
             "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
         },
@@ -618,6 +651,34 @@
             "evidence_label": "oracle-generated (tier 1 executed differential)"
         },
         {
+            "path": "tests/data/file_info_a7/expected/c_finite_then_nan.tsv",
+            "sha256": "ddf47e9a7aeb65f41a40b2c75dec397c1e6356404f164690aa8f7384231035c5",
+            "bytes": 434,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_finite_then_nan.txt",
+            "sha256": "68df1fc3940cb56f785fbb2d2e77ddf728fbc106b536697619c5cc38fc748334",
+            "bytes": 707,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_finite_then_nan_s.tsv",
+            "sha256": "ddf47e9a7aeb65f41a40b2c75dec397c1e6356404f164690aa8f7384231035c5",
+            "bytes": 434,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_finite_then_nan_s.txt",
+            "sha256": "892e13043913c2846d9db23b8c371f98701ce4a410dc9bfb6baabc971d6af39a",
+            "bytes": 4099,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
             "path": "tests/data/file_info_a7/expected/c_headers_only.tsv",
             "sha256": "1c9df3a1c620598bfe4ae3adbfb9e84d0aecd40a64835ba30cd43855d92b991f",
             "bytes": 181,
@@ -670,6 +731,104 @@
             "path": "tests/data/file_info_a7/expected/c_mapindex_high_noid.txt",
             "sha256": "fe7c1844446a9d36e596b169e4c4ff90d5652338112e3ab36c28afdb3d7fb9a7",
             "bytes": 4230,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_one.tsv",
+            "sha256": "51f6477ba10126780b6fe65ba0f320fd00d4a80c1e4575af75c5341c47001dfe",
+            "bytes": 426,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_one.txt",
+            "sha256": "8f5278434edfc8a4525ecc1e648ec6d77cf65a18fb1a8e161ff02086ed834125",
+            "bytes": 699,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_one_all.tsv",
+            "sha256": "51f6477ba10126780b6fe65ba0f320fd00d4a80c1e4575af75c5341c47001dfe",
+            "bytes": 426,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_one_all.txt",
+            "sha256": "0a78a6a2ca9b5cee205eb0119772d76d4aa448fa384555409d821fb2130dab5f",
+            "bytes": 4173,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_one_s.tsv",
+            "sha256": "51f6477ba10126780b6fe65ba0f320fd00d4a80c1e4575af75c5341c47001dfe",
+            "bytes": 426,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_one_s.txt",
+            "sha256": "16a1f32e5b2c8fcfaaa0c04dae5371b8c7db4d9addca3540e61c8395d0312bca",
+            "bytes": 4041,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_then_finite.tsv",
+            "sha256": "ad296931a89f36e9365d627d10143c6e7ab99e78ae41f4e34fae7d392a46adc3",
+            "bytes": 434,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_then_finite.txt",
+            "sha256": "5e304b293db40e133b2f80995345051e4385c3f8c8a2f1d51bd5bb3ebe61ffa5",
+            "bytes": 707,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_then_finite_s.tsv",
+            "sha256": "ad296931a89f36e9365d627d10143c6e7ab99e78ae41f4e34fae7d392a46adc3",
+            "bytes": 434,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_then_finite_s.txt",
+            "sha256": "60c7f9867fb1a048443cb5d914975a019dcb7699be3fee533aa605a471a4a7b6",
+            "bytes": 4099,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_two.tsv",
+            "sha256": "ce499da88c21677c6b714ea6fdf0b7c1a7d8032228ac6a689e9648e170e4caa9",
+            "bytes": 426,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_two.txt",
+            "sha256": "f2a2783d7de56334553f59dfec6bf7d6dad9bd697d8438fb211903f490a3370c",
+            "bytes": 699,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_two_s.tsv",
+            "sha256": "ce499da88c21677c6b714ea6fdf0b7c1a7d8032228ac6a689e9648e170e4caa9",
+            "bytes": 426,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_nan_two_s.txt",
+            "sha256": "925a756f26e995bbfde7b112dd7f9509f7af804f8c6e43504b96fe523b2b5bee",
+            "bytes": 4086,
             "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
             "evidence_label": "oracle-generated (tier 1 executed differential)"
         },

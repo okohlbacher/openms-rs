@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<consensusXML version="1.7" document_id="a7_cons" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<IdentificationRun id="PI_0" date="2024-01-01T00:00:00" search_engine="A7" search_engine_version="1">
+		<SearchParameters db="a7.fasta" db_version="1" taxonomy="0" mass_type="monoisotopic" charges="+2" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" peak_mass_tolerance="10" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="A7PROT" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<mapList count="2">
+		<map id="0" name="a7_map_0.featureXML" label="label_0" size="7">
+		</map>
+		<map id="1" name="a7_map_1.featureXML" label="label_1" size="7">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_0" quality="0.0">
+			<centroid rt="10.0" mz="500.0" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="10.1" mz="500.1" it="-0.0" charge="2"/>
+				<element map="1" id="2" rt="9.9" mz="499.9" it="0.0" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

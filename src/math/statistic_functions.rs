@@ -31,11 +31,21 @@
 //!   [`quantile1st`](crate::math::statistic_functions::quantile1st),
 //!   [`quantile3rd`](crate::math::statistic_functions::quantile3rd),
 //!   [`mad`](crate::math::statistic_functions::mad),
-//!   [`compute_rank`](crate::math::statistic_functions::compute_rank),
+//!   [`compute_rank`](crate::math::statistic_functions::compute_rank) and
 //!   [`rank_correlation_coefficient`](crate::math::statistic_functions::rank_correlation_coefficient)
-//!   and [`SummaryStatistics::new`](crate::math::statistic_functions::SummaryStatistics::new)
 //!   sort or stage a buffer themselves and return
 //!   [`Error::InvalidValue`](crate::Error::InvalidValue).
+//! - [`SummaryStatistics::new`](crate::math::statistic_functions::SummaryStatistics::new)
+//!   also sorts, and refuses the same way — **except** for the two shapes in
+//!   which the unspecified permutation cannot be observed: a sample of one
+//!   value, which `std::sort` leaves alone by `[alg.sorting]`, and a sample
+//!   whose values are all NaN, every permutation of which produces the same
+//!   eight fields. Both are reached from real input: `FileInfo`'s consensusXML
+//!   `-s` blocks divide, and a pair of sub-features of intensity `-0.0` and
+//!   `0.0` under one centroid contributes `(-inf) + (+inf) = NaN` to the
+//!   per-consensus-feature sample. See
+//!   [`SummaryStatistics::of_nan_sample`](crate::math::statistic_functions::SummaryStatistics)
+//!   and `docs/FILE_INFO_A7_SUPPORT.md`.
 //! - [`median_sorted`](crate::math::statistic_functions::median_sorted),
 //!   [`quantile1st_sorted`](crate::math::statistic_functions::quantile1st_sorted),
 //!   [`quantile3rd_sorted`](crate::math::statistic_functions::quantile3rd_sorted)
@@ -374,14 +384,20 @@ pub fn quantile1st_sorted(values: &[f64]) -> Result<f64> {
     if !is_ascending(values) {
         return Err(Error::UnsortedData);
     }
+    Ok(quantile1st_of_sorted(values))
+}
+
+/// First quartile of an ascending, non-empty slice. Callers have already
+/// checked both, exactly as for [`median_of_sorted`].
+fn quantile1st_of_sorted(values: &[f64]) -> f64 {
     let size = values.len();
     if size < 3 {
-        return Ok(values[0]);
+        return values[0];
     }
     if size % 2 == 0 {
-        return Ok(median_of_sorted(&values[..size / 2 - 1]));
+        return median_of_sorted(&values[..size / 2 - 1]);
     }
-    Ok(median_of_sorted(&values[..size / 2]))
+    median_of_sorted(&values[..size / 2])
 }
 
 /// First quartile of a range, sorting it in place first.
@@ -398,14 +414,7 @@ pub fn quantile1st(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
     check_no_nan(values)?;
     sort_ascending(values);
-    let size = values.len();
-    if size < 3 {
-        return Ok(values[0]);
-    }
-    if size % 2 == 0 {
-        return Ok(median_of_sorted(&values[..size / 2 - 1]));
-    }
-    Ok(median_of_sorted(&values[..size / 2]))
+    Ok(quantile1st_of_sorted(values))
 }
 
 /// Third quartile of an already ascending range, by the median-of-halves rule.
@@ -426,11 +435,17 @@ pub fn quantile3rd_sorted(values: &[f64]) -> Result<f64> {
     if !is_ascending(values) {
         return Err(Error::UnsortedData);
     }
+    Ok(quantile3rd_of_sorted(values))
+}
+
+/// Third quartile of an ascending, non-empty slice. Callers have already
+/// checked both, exactly as for [`median_of_sorted`].
+fn quantile3rd_of_sorted(values: &[f64]) -> f64 {
     let size = values.len();
     if size < 3 {
-        return Ok(values[size - 1]);
+        return values[size - 1];
     }
-    Ok(median_of_sorted(&values[size / 2 + 1..]))
+    median_of_sorted(&values[size / 2 + 1..])
 }
 
 /// Third quartile of a range, sorting it in place first.
@@ -447,11 +462,7 @@ pub fn quantile3rd(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
     check_no_nan(values)?;
     sort_ascending(values);
-    let size = values.len();
-    if size < 3 {
-        return Ok(values[size - 1]);
-    }
-    Ok(median_of_sorted(&values[size / 2 + 1..]))
+    Ok(quantile3rd_of_sorted(values))
 }
 
 /// The `q`-quantile of an already ascending range, Hyndman-Fan type 7.
@@ -1156,12 +1167,17 @@ impl SummaryStatistics {
     /// the source substitutes the empty case's value rather than propagating
     /// NaN.
     ///
+    /// A sample holding a NaN is summarised only when the permutation
+    /// `std::sort` leaves behind cannot be observed; see
+    /// [`Self::of_nan_sample`].
+    ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the sample contains a NaN, which
-    /// the summary would otherwise sort to one end and report quartiles around;
-    /// see the module's NaN section. The refusal happens before the sort, so a
-    /// rejected call leaves the caller's sample in its original order.
+    /// Returns [`Error::InvalidValue`] when the sample holds a NaN next to a
+    /// number, which the summary would otherwise report quartiles around
+    /// without having ordered anything; see the module's NaN section. The
+    /// refusal happens before the sort, so a rejected call leaves the caller's
+    /// sample in its original order.
     ///
     /// Returns [`Error::InvalidRange`] only when an internal quantile refuses,
     /// which the sort makes unreachable for a non-empty, NaN-free sample; the
@@ -1171,7 +1187,9 @@ impl SummaryStatistics {
         if data.is_empty() {
             return Ok(Self::default());
         }
-        check_no_nan(data)?;
+        if !is_free_of_nan(data) {
+            return Self::of_nan_sample(data);
+        }
         sort_ascending(data);
         let mean_value = mean(data)?;
         let variance_value = if count > 1 {
@@ -1187,6 +1205,58 @@ impl SummaryStatistics {
             lowerq: quantile1st_sorted(data)?,
             median: median_sorted(data)?,
             upperq: quantile3rd_sorted(data)?,
+            max: data[count - 1],
+        })
+    }
+
+    /// Summarise a non-empty sample that holds at least one NaN.
+    ///
+    /// The module's NaN section refuses a NaN wherever ordering it would decide
+    /// the answer, because `std::sort`'s strict-weak-ordering precondition is
+    /// violated and the permutation it leaves behind is unspecified. That
+    /// argument has two exceptions, and both of them are *proofs* that the
+    /// permutation cannot be observed rather than observations that it happened
+    /// not to matter:
+    ///
+    /// - **One value.** Sorting a one-element range is a no-op by
+    ///   `[alg.sorting]`, so there is no permutation to be unspecified about.
+    ///   Every positional field is that value.
+    /// - **Every value a NaN.** Every permutation of an all-NaN range produces
+    ///   the same eight fields, because every field is read from, or computed
+    ///   out of, values that are all NaN.
+    ///
+    /// Anything else — a NaN next to a number — is refused, because the order
+    /// statistics the source prints there are positional reads of a range
+    /// `std::sort` did not order, and the same multiset in a different input
+    /// order gives different lines. `../oracle/a7-fileinfo` measures exactly
+    /// that with `c_nan_then_finite_s` and `c_finite_then_nan_s`.
+    ///
+    /// The sample is *not* sorted in this arm — there is nothing to order — so
+    /// a caller's slice comes back in its original order either way.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the sample holds a NaN next to a
+    /// number.
+    fn of_nan_sample(data: &[f64]) -> Result<Self> {
+        let count = data.len();
+        if count > 1 && !data.iter().all(|value| value.is_nan()) {
+            return Err(bad("statistics input must not contain NaN"));
+        }
+        let mean_value = mean(data)?;
+        let variance_value = if count > 1 {
+            variance_with_mean(data, mean_value)?
+        } else {
+            0.0
+        };
+        Ok(Self {
+            count,
+            mean: mean_value,
+            variance: variance_value,
+            min: data[0],
+            lowerq: quantile1st_of_sorted(data),
+            median: median_of_sorted(data),
+            upperq: quantile3rd_of_sorted(data),
             max: data[count - 1],
         })
     }

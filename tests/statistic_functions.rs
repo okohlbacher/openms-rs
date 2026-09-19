@@ -800,11 +800,21 @@ fn the_sorting_entry_points_refuse_a_nan() {
     let mut s = [1.0, f64::NAN, 3.0];
     assert!(invalid_value(&SummaryStatistics::new(&mut s).unwrap_err()));
     assert!(s[1].is_nan());
-    // A one-value sample too, which sorts trivially and so slipped through a
-    // check phrased as "is it ascending".
-    let mut lone = [f64::NAN];
+    // Refused before any sort, so the caller's sample is untouched.
+    assert_eq!(s[0], 1.0);
+    assert_eq!(s[2], 3.0);
+    // Two values, one of them a number: refused for the same reason, and the
+    // mirror image is refused too. The reference build prints DIFFERENT
+    // minimum, quartile and maximum lines for these two orders of the same
+    // multiset (oracle cases c_nan_then_finite_s and c_finite_then_nan_s),
+    // which is why neither has an answer to reproduce.
+    let mut nan_first = [f64::NAN, 2.0];
     assert!(invalid_value(
-        &SummaryStatistics::new(&mut lone).unwrap_err()
+        &SummaryStatistics::new(&mut nan_first).unwrap_err()
+    ));
+    let mut nan_last = [2.0, f64::NAN];
+    assert!(invalid_value(
+        &SummaryStatistics::new(&mut nan_last).unwrap_err()
     ));
 
     // An infinity is *not* refused: both `std::sort` and `total_cmp` order it,
@@ -813,6 +823,58 @@ fn the_sorting_entry_points_refuse_a_nan() {
     close(median(&mut inf).unwrap(), 3.0);
     let mut inf2 = [1.0, f64::NEG_INFINITY, 3.0];
     close(median(&mut inf2).unwrap(), 1.0);
+}
+
+// `SummaryStatistics` is the one sorting entry point that does NOT refuse every
+// NaN, because two sample shapes make the unspecified permutation unobservable.
+// Both values come from the Release C++ build, not from this crate:
+// ../oracle/a7-fileinfo cases `c_nan_one_s` and `c_nan_two_s`, whose "Average
+// relative intensity error within consensus features" blocks the tool printed
+// on ibminode06 and which tests/data/file_info_a7/expected holds verbatim.
+#[test]
+fn summary_statistics_summarises_the_two_unobservable_nan_samples() {
+    // One value. `std::sort` over a one-element range is a no-op by
+    // [alg.sorting]. Reference: num. of values 1, mean/minimum/lower quartile/
+    // median/upper quartile/maximum all `-nan`, variance `0`.
+    let mut lone = [f64::NAN];
+    let stats = SummaryStatistics::new(&mut lone).unwrap();
+    assert_eq!(stats.count, 1);
+    assert!(stats.mean.is_nan());
+    assert!(stats.min.is_nan());
+    assert!(stats.lowerq.is_nan());
+    assert!(stats.median.is_nan());
+    assert!(stats.upperq.is_nan());
+    assert!(stats.max.is_nan());
+    // Not a NaN: the source substitutes the empty case's 0.0 for n <= 1.
+    assert_eq!(stats.variance, 0.0);
+    // The sample is left alone, as a refused one would be.
+    assert!(lone[0].is_nan());
+
+    // Every value a NaN. The permutation is unspecified but unobservable.
+    // Reference: num. of values 2 and all eight lines `-nan`, the variance
+    // included, because n > 1 lets Math::variance run.
+    let mut all = [f64::NAN, f64::NAN];
+    let stats = SummaryStatistics::new(&mut all).unwrap();
+    assert_eq!(stats.count, 2);
+    assert!(stats.mean.is_nan());
+    assert!(stats.variance.is_nan());
+    assert!(stats.min.is_nan());
+    assert!(stats.lowerq.is_nan());
+    assert!(stats.median.is_nan());
+    assert!(stats.upperq.is_nan());
+    assert!(stats.max.is_nan());
+
+    // A NaN-free sample is unaffected: it is still sorted in place and
+    // summarised the same way.
+    let mut ordinary = [3.0, 1.0, 2.0];
+    let stats = SummaryStatistics::new(&mut ordinary).unwrap();
+    assert_eq!(ordinary, [1.0, 2.0, 3.0]);
+    assert_eq!(stats.count, 3);
+    close(stats.mean, 2.0);
+    close(stats.median, 2.0);
+    assert_eq!(stats.min, 1.0);
+    assert_eq!(stats.max, 3.0);
+    close(stats.variance, 1.0);
 }
 
 // Native: the staged-buffer entry points refuse a NaN for the same reason —

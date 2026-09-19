@@ -1,0 +1,142 @@
+
+-- General information --
+
+File name: <FIX>/a7_cons_nan_two.consensusXML
+File type: consensusXML
+
+Number of consensus features:
+  of size 2: 2	 (features: 4 )	 with at least one ID: 0	 (features: 0 )
+  total consensus features:    2  with at least one ID: 0
+  total features:              4  with at least one ID:  0
+Ranges:
+  retention time: 9.90 .. 20.10 sec (0.2 min)
+  mass-to-charge: 499.90 .. 600.10
+  intensity: -0.00 .. 200.00
+
+File descriptions:
+  a7_map_0.featureXML:
+    identifier: 0
+    label:      label_0
+    size:       7
+  a7_map_1.featureXML:
+    identifier: 1
+    label:      label_1
+    size:       7
+
+Assigned peptide identifications: 0
+Unassigned peptide identifications: 0
+
+-- Statistics --
+
+Intensities of consensus features:
+  num. of values: 2
+  mean:           150
+  minimum:        100
+  lower quartile: 100
+  median:         150
+  upper quartile: 200
+  maximum:        200
+  variance:       5000
+
+Qualities of consensus features:
+  num. of values: 4
+  mean:           0.025
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0.1
+  maximum:        0.1
+  variance:       0.0025
+
+Retention time differences ("element - center", weight 1 per element):
+  num. of values: 4
+  mean:           0
+  minimum:        -0.100000000000001
+  lower quartile: -0.100000000000001
+  median:         0
+  upper quartile: 0.100000000000001
+  maximum:        0.100000000000001
+  variance:       0.0133333333333335
+
+Absolute retention time differences ("|element - center|", weight 1 per element):
+  num. of values: 4
+  mean:           0.100000000000001
+  minimum:        0.0999999999999996
+  lower quartile: 0.0999999999999996
+  median:         0.100000000000001
+  upper quartile: 0.100000000000001
+  maximum:        0.100000000000001
+  variance:       1.05181454029468e-30
+
+Average absolute differences of retention time within consensus features ("|element - center|", weight 1 per consensus features):
+  num. of values: 2
+  mean:           0.100000000000001
+  minimum:        0.0999999999999996
+  lower quartile: 0.0999999999999996
+  median:         0.100000000000001
+  upper quartile: 0.100000000000001
+  maximum:        0.100000000000001
+  variance:       1.57772181044202e-30
+
+Mass-to-charge differences ("element - center", weight 1 per element):
+  num. of values: 4
+  mean:           0
+  minimum:        -0.100000000000023
+  lower quartile: -0.100000000000023
+  median:         0
+  upper quartile: 0.100000000000023
+  maximum:        0.100000000000023
+  variance:       0.0133333333333394
+
+Absolute differences of mass-to-charge ("|element - center|", weight 1 per element):
+  num. of values: 4
+  mean:           0.100000000000023
+  minimum:        0.100000000000023
+  lower quartile: 0.100000000000023
+  median:         0.100000000000023
+  upper quartile: 0.100000000000023
+  maximum:        0.100000000000023
+  variance:       0
+
+Average absolute differences of mass-to-charge within consensus features ("|element - center|", weight 1 per consensus features):
+  num. of values: 2
+  mean:           0.100000000000023
+  minimum:        0.100000000000023
+  lower quartile: 0.100000000000023
+  median:         0.100000000000023
+  upper quartile: 0.100000000000023
+  maximum:        0.100000000000023
+  variance:       0
+
+Intensity ratios ("element / center", weight 1 per element):
+  num. of values: 4
+  mean:           0
+  minimum:        -0
+  lower quartile: -0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Relative intensity error ("max{(element / center), (center / element)}", weight 1 per element):
+  num. of values: 4
+  mean:           -nan
+  minimum:        -inf
+  lower quartile: -inf
+  median:         -nan
+  upper quartile: inf
+  maximum:        inf
+  variance:       -nan
+
+Average relative intensity error within consensus features ("max{(element / center), (center / element)}", weight 1 per consensus features):
+  num. of values: 2
+  mean:           -nan
+  minimum:        -nan
+  lower quartile: -nan
+  median:         -nan
+  upper quartile: -nan
+  maximum:        -nan
+  variance:       -nan
+
+
+
