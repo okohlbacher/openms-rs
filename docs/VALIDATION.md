@@ -294,10 +294,12 @@ motivated the lane is still not caught**: all eight places that write `:290-293`
 for code at `:280-283` paraphrase, and the replay at the lane's final head
 produces no finding. What the tool covers is the *class* — the transcribed block
 in `CPP-337` that reproduces the same code is read line by line, and shifting it
-fires. A further 192 citations name a file more than one pin carries with nothing
+fires. A further 196 citations name a file more than one pin carries with nothing
 to tell them apart; one pin answered each, and that count is how often the pin
-that answered may have been the wrong file of the right name. It is 192 rather
-than the lane's 79 because this pass's own records cite those file names too. The lever that
+that answered may have been the wrong file of the right name. It is 196 rather
+than the lane's 79 because this pass's own records cite those file names too,
+and because the polish round counts a name one pin carries at two paths as
+ambiguous as well. The lever that
 would raise the confirmed fraction is a convention — quote the source verbatim
 in the code span beside the citation — not a cleverer checker.
 
@@ -357,8 +359,8 @@ introduced: `[`sort_ascending`]` in the new "Signed zeros" section of
 `src/math/statistic_functions.rs` names a private item, which rustdoc cannot
 resolve and `-D warnings` therefore rejects. Fixed by writing the name in plain
 backticks, and the whole battery re-run at the final head; no other gate was
-touched by the change. `git diff --name-only a6c7f34..HEAD` names three files
-committed after the gate head: `docs/VALIDATION.md`,
+touched by the change. `git diff --name-only a6c7f34..1e1833a` names three files
+committed after the gate head and before the polish round: `docs/VALIDATION.md`,
 `docs/EARLY_TOPP_WORK_PACKAGES.md` and `SOURCE_PROVENANCE.json`. Two are
 Markdown; the third is a JSON record whose change is one prose sentence inside
 `external_reference_note`, and `grep -rn SOURCE_PROVENANCE --include='*.rs'`
@@ -456,9 +458,18 @@ the finding above asks: `git diff --name-only 9cd037c..HEAD` returns
 extension the compiler reads.
 
 The oracle directory under `../oracle/a7-fileinfo` was deliberately **not**
-re-emitted. Its per-case note is scoped to the two-element samples it
-describes, where it is exact, and re-emitting the manifest would move a sha256
-this wave has already handed to the integrator.
+re-emitted, and the justification has to be narrower than it first read. The
+note's first half is scoped to the two-element samples it describes and is
+exact there. Its second half — "that 'moves nothing' is a property of the SIZE,
+not of the NaN" — over-generalises in exactly the way the in-repo places did:
+below the insertion-sort threshold a block move can carry a NaN too, as
+`{3, NaN, 2}` sorting to `{2, 3, NaN}` shows, so the property is of the size
+**and** the arrangement. The corrected statement lives in
+[STATISTIC_FUNCTIONS_SUPPORT](STATISTIC_FUNCTIONS_SUPPORT.md) and
+[FILE_INFO_A7_SUPPORT](FILE_INFO_A7_SUPPORT.md); the driver keeps the older
+sentence because re-emitting it would move a sha256 already registered in
+`SOURCE_PROVENANCE.json`, and the sentence changes no case, no fixture and no
+recorded value. It is the next re-emission's to fix.
 
 ### Ignored tests
 

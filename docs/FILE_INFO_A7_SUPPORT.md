@@ -478,7 +478,8 @@ lines the reference prints are positional reads of a range whose elements
 this sample's **size and arrangement**, not of the NaN. `__introsort_loop` runs
 only
 above `_S_threshold`, which the headers this build was compiled with enumerate
-as 16, so at 17 elements or more it moves the NaN outright — a 20-element
+as 16, so at 17 elements or more it is free to move the NaN, and for the
+`{NaN, 2..n}` family measured here it does — a 20-element
 sample `{NaN, 2..20}` prints `minimum: 2` and `median: -nan` — and even below
 the threshold a block move can carry it, as `{3, NaN, 2}` sorting to
 `{2, 3, NaN}` shows. Neither makes the order statistics any less a property of

@@ -310,8 +310,11 @@ fn strict_default_refuses_every_dangling_source_file_reference() {
 /// document and silently default-constructs an empty `SourceFile` for an id it
 /// has never seen. Three places in this wave describe that difference as
 /// measured — the [`ReadOptions::source_dangling_references`] rustdoc, the
-/// header reader and the deferred list — and until this test nothing executed
-/// the branch they describe.
+/// header reader and the deferred list. `mzml_header.rs`'s
+/// `chromatogram_source_file_is_rejected_instead_of_emitting_an_invalid_attribute`
+/// already executed the branch on the writing side; this test executes it on
+/// the reading side, under both policies, which is what those three places
+/// describe.
 ///
 /// Neither writer in this crate emits the attribute, so the round trip does
 /// not reach this; it is the boundary beside the round trip, not inside it.

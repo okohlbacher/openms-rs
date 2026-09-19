@@ -189,7 +189,9 @@ headers the reference build was compiled with say exactly when it holds.
 `while (__last - __first > int(_S_threshold))` with `_S_threshold` enumerated as
 16 (`stl_algo.h:1806`, `stl_algo.h:1880`). So at **16 elements or fewer** the
 whole sort is a single `__insertion_sort` pass, and at **17 or more** the
-partitioning moves the NaN outright. Measured with that compiler, three
+partitioning is free to move it, which for the `{NaN, 2..n}` family measured
+here it does. Neither bound says the NaN stands still below the threshold: a
+block move carries it without any comparison involving it ever being true. Measured with that compiler, three
 byte-stable runs: `{NaN, 2}` and `{2, NaN}` come back unchanged and
 `{NaN, 2..16}` keeps the NaN at index 0, while `{NaN, 2..17}` moves it to index
 8 and `{NaN, 2..20}` to index 10 — which is why that sample prints
