@@ -211,8 +211,8 @@ never does: `updateMembers_` sets only `win_len`, `bin_count` and
 `max_intensity` at `-1` and the range automatic at `mean + 3 sd`. With that
 automatic range the bin width scales with the data — for one sample of `I`
 among `n` near-zero ones the quotient is about `sqrt(n) * bin_count / 3`, so
-exceeding `2^31` would take a `bin_count` near `10^9` and a histogram of tens of
-gigabytes. The Rust `noise_estimator` field exposes the whole estimator,
+exceeding `2^31` over 48 samples would take a `bin_count` near `9.3e8` and a
+histogram of about eleven gigabytes. The Rust `noise_estimator` field exposes the whole estimator,
 including `histogram_range`, so a caller can build the configuration the source
 cannot; there the estimate is the Release build's own, measured as the
 `ppc_bigmax` / `ppi_bigmax` cases in `tests/data/picker_consumers/snt_oracle.tsv`
