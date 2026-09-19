@@ -600,9 +600,14 @@ instance*).
     mapping — and wrote no output file.
 
     Both halves are fixed on `fix/featurexml-nonfinite`. The writer writes the
-    spellings `NumericFormatting::appendNumeric` writes and the reader accepts
-    every spelling `StringUtils::toDouble` accepts
-    ([FEATUREXML_SUPPORT](FEATUREXML_SUPPORT.md), *Non-finite values*), and a
+    spellings `NumericFormatting::appendNumeric` writes, and the reader accepts
+    every spelling `StringUtils::toDouble` turns into a non-finite value, its
+    `nan(<payload>)` forms included. A literal that routine cannot convert at
+    all, such as `1e999`, `banana` or `inf.0`, this port refuses; the source
+    refuses it in an attribute and keeps `0.0` for it in an element's text,
+    which is a divergence in both directions, recorded with its executed
+    evidence in [FEATUREXML_SUPPORT](FEATUREXML_SUPPORT.md), *Non-finite
+    values*. A
     store that fails now takes the source's write-side arm
     (`Error: Unable to write file (…)`, `CANNOT_WRITE_OUTPUT_FILE`,
     `TOPPBase.cpp:430-435`) instead of the `ParseError` one. **This entry is
@@ -625,8 +630,14 @@ instance*).
     output documents (`rt_scaled_release_features.tsv`, one row per feature
     field, hull point and meta value), each after rendering this port's value
     the way the source renders it — six fractional digits for a `float` field
-    and fifteen for a `double` (`writtenDigits`) — which is the one difference
-    left, and a difference of text rather than of value.
+    and fifteen for a `double` (`writtenDigits`) — one of three differences of
+    text that remain, none of them a difference of value. The other two are
+    older than this lane and belong to the shared metadata codec: the source
+    joins a `floatList` with `", "` (`ListUtilsIO.h:35-40`) where this port
+    joins with `","`, and it writes a `UserParam`'s attributes as `type`,
+    `name`, `value` where this port writes `name`, `type`, `value`. The pinned
+    reader reads this port's separator back to the same numbers, executed over
+    every spelling (FX `results/r2/all.tsv`, the `listnospace_*` cases).
     `rt_scaled_release.tsv` keeps the exit status, feature count, console
     block and the intensity and `FWHM` values of the earlier run.
 

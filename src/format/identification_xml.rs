@@ -92,15 +92,25 @@ pub(crate) fn finite(value: &str) -> Result<f64> {
 /// `nan` with an optional sign after a leading `+` is skipped
 /// (`src/openms/source/DATASTRUCTURES/StringUtils.cpp:35-58, 239-276`).
 ///
+/// A parenthesised NaN payload is a spelling too, and one the two source
+/// routines take in different widths; [`nan_with_payload`] is the model.
+///
 /// A decimal literal that is merely out of range, such as `1e999`, stays
-/// refused. The source does not store an infinity for one either: an element's
-/// text reaches `asDouble_`, which turns the `ConversionError` into a
-/// non-fatal log line and keeps `0.0`
-/// (`src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h:305-317`,
-/// `XMLHandler.cpp:71-87`), while an attribute's reaches `attributeAsDouble_`,
-/// whose `ConversionError` leaves the parse (`XMLHandler.h:401-406`). Only a
-/// spelled token is non-finite here.
+/// refused, and so does an unreadable one such as `banana`. Against an
+/// *attribute* that agrees with the source, whose `ConversionError` leaves the
+/// parse through `attributeAsDouble_`
+/// (`src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h:401-406`). Against
+/// an *element's text* it diverges: that reaches `asDouble_`, which turns the
+/// `ConversionError` into a non-fatal log line and keeps `0.0`
+/// (`XMLHandler.h:305-317`, `XMLHandler.cpp:71-87`), so the Release build
+/// loads such a document and this port refuses it. FEATUREXML_SUPPORT.md
+/// records that divergence, and the opposite one — an underflowing attribute
+/// literal, which the source refuses and this port reads as `0.0` — with the
+/// executed evidence for both.
 pub(crate) fn source_float_text(value: &str) -> Result<f64> {
+    if let Some(nan) = nan_with_payload(value.trim()) {
+        return Ok(nan);
+    }
     let parsed = number::<f64>(value)?;
     if parsed.is_finite() || spells_nonfinite(value.trim()) {
         Ok(parsed)
@@ -131,11 +141,63 @@ pub(crate) fn nonfinite_text(value: f64) -> Option<&'static str> {
 
 /// Whether `text` is one of the tokens `StringUtils::toDouble` turns into a
 /// non-finite value, rather than a decimal literal that overflows to one.
+///
+/// The `nan(<payload>)` forms are [`nan_with_payload`]'s, not this function's.
 fn spells_nonfinite(text: &str) -> bool {
     let body = text.strip_prefix(['+', '-']).unwrap_or(text);
     body.eq_ignore_ascii_case("inf")
         || body.eq_ignore_ascii_case("infinity")
         || body.eq_ignore_ascii_case("nan")
+}
+
+/// The quiet NaN `StringUtils::toDouble` gives a `nan(<payload>)` spelling, and
+/// `None` for every other text.
+///
+/// Two routines take that form and they do not take the same set. `tryParseNaN`
+/// runs first (`src/openms/source/DATASTRUCTURES/StringUtils.cpp:246-256`) and
+/// consumes any case of `nan` followed by `(`, anything up to the first `)`,
+/// and nothing after it — but never a sign, because it returns at once unless
+/// the first character is `n` or `N` (`StringUtils.cpp:41-42`). What it leaves
+/// goes to `std::from_chars` (`StringUtils.cpp:258-261`), which takes
+/// `nan(<n-char-sequence>)` with a sign, the payload being alphanumeric or `_`.
+/// So `nan(hello world)` is a NaN, `-nan(hello world)` is a `ConversionError`,
+/// and `-nan(0x1)` is a NaN of the other sign.
+///
+/// `appendNumeric` never writes a payload, so no document the source writes
+/// carries one: this is the reader's boundary, not the writer's.
+fn nan_with_payload(text: &str) -> Option<f64> {
+    // `tryParseNaN`: no sign, and any payload that has no `)` in it.
+    if nan_payload(text).is_some() {
+        return Some(f64::NAN);
+    }
+    // `std::from_chars`: a sign, and only an n-char-sequence.
+    let (negative, body) = match text.strip_prefix('-') {
+        Some(body) => (true, body),
+        None => (false, text.strip_prefix('+').unwrap_or(text)),
+    };
+    let payload = nan_payload(body)?;
+    if !payload
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '_')
+    {
+        return None;
+    }
+    Some(if negative { -f64::NAN } else { f64::NAN })
+}
+
+/// The text between the parentheses of an unsigned `nan(<payload>)`, when
+/// `body` is one and its first `)` is the last character.
+fn nan_payload(body: &str) -> Option<&str> {
+    if !body.get(..3)?.eq_ignore_ascii_case("nan") {
+        return None;
+    }
+    let inner = body.get(3..)?.strip_prefix('(')?;
+    let end = inner.find(')')?;
+    if end + 1 == inner.len() {
+        Some(&inner[..end])
+    } else {
+        None
+    }
 }
 pub(crate) fn boolean(value: &str) -> Result<bool> {
     match value {

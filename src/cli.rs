@@ -1368,7 +1368,7 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
 /// store reaches `XMLFile::save_`, whose only exception is
 /// `UnableToCreateFile` for a stream it cannot open (`XMLFile.cpp:366-372`),
 /// and `FeatureXMLFile::store` raises the same one for a name whose extension
-/// it does not accept (`FeatureXMLFile.cpp:74-77`). A native refusal this port
+/// it does not accept (`FeatureXMLFile.cpp:75-78`). A native refusal this port
 /// adds — an exceeded writer ceiling, a duplicate assigned feature ID, a field
 /// this dialect cannot represent — is likewise a failure to produce the output
 /// file and belongs in the same arm.

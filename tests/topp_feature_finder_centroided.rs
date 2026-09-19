@@ -227,6 +227,22 @@ const FFC1_ALGORITHM_LINES: &[&str] = &[
     "8 features found.",
 ];
 
+/// The Release build's algorithm block for the `rt_e39` input, from its own
+/// stdout (`../oracle/featurexml-inf/results/out_dir.txt` and
+/// `results/tool/rt_e39.r1/stdout.txt`): one candidate more than
+/// [`FFC1_ALGORITHM_LINES`] and no unfinalized-feature reason, because every
+/// retention time is scaled by `1e39`.
+const RT_E39_ALGORITHM_LINES: &[&str] = &[
+    "Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.",
+    "Found 25 seeds for charge 2.",
+    "Found 9 feature candidates for charge 2.",
+    "Removed 0 overlapping features.",
+    "",
+    "Info: reasons for not finalizing a feature during its construction:",
+    "",
+    "9 features found.",
+];
+
 /// The same lines for the `-seeds` run, whose 24 given seeds give one candidate
 /// more and one overlap removal (oracle `FFC_seeds`, C++ Release confirmed).
 const FFC_SEEDS_ALGORITHM_LINES: &[&str] = &[
@@ -1306,8 +1322,16 @@ fn derive_rt_suffix(source: &[u8], suffix: &str) -> Vec<u8> {
 /// of them, taken from the executed output, and each is compared after
 /// rendering this port's value the way the source renders it — six fractional
 /// digits for a `float` field, fifteen for a `double`
-/// (`writtenDigits`, `NumericFormatting.h:27-135`), which is the only
-/// difference left, and a difference of text rather than of value.
+/// (`writtenDigits`, `NumericFormatting.h:27-135`).
+///
+/// That precision is one of three differences of text that remain, and none of
+/// the three is a difference of value. The other two are older than this lane
+/// and belong to the shared metadata codec: the source joins a `floatList`
+/// with `", "` (`ListUtilsIO.h:35-40`) where this port joins with `","`, and
+/// it writes a `UserParam`'s attributes as `type`, `name`, `value` where this
+/// port writes `name`, `type`, `value`. The pinned reader reads this port's
+/// separator back to the same numbers, executed over every spelling
+/// (`../oracle/featurexml-inf/results/r2/all.tsv`, the `listnospace_*` cases).
 ///
 /// This closes TOPP native difference 16, which recorded the earlier refusal.
 #[test]
@@ -1462,31 +1486,51 @@ fn assert_release_values(fixture: &str, case: &str, map: &FeatureMap) {
 /// `CANNOT_WRITE_OUTPUT_FILE` (`TOPPBase.cpp:430-435`, cli pin `c19e494`), and
 /// a featureXML store raises exactly that exception when it cannot produce the
 /// file — for a stream it cannot open (`XMLFile.cpp:366-372`) and for a name
-/// whose extension it does not accept (`FeatureXMLFile.cpp:74-77`), both
+/// whose extension it does not accept (`FeatureXMLFile.cpp:75-78`), both
 /// recorded in `../oracle/featurexml-inf/results/store_failures.tsv`. This
 /// port used to report such a failure through the `ParseError` arm instead.
 ///
-/// The case below is the one that reaches the store rather than
+/// The first case below is the one that reaches the store rather than
 /// `outputFileWritable_`: `-out` is an existing **directory** whose name
 /// carries the featureXML extension, so the writability check passes.
-/// Executed against the Release build on `ibminode06`
-/// (`../oracle/featurexml-inf/results/err_dir.txt`, `out_directory.status`):
-/// exit 5 and the single line below. With `-out` inside a directory that does
-/// not exist the check fires first and both builds print two lines and exit 5
-/// (`err_missing.txt`), which is what the port already did.
+/// Executed against the Release build on `ibminode06` with the `rt_e39` input
+/// (`../oracle/featurexml-inf/results/err_dir.txt`, `out_dir.txt`,
+/// `out_directory.status`): exit 5, the single stderr line below, and a
+/// stdout that runs the whole algorithm block and then stops — the exception
+/// unwinds past the closing `FeatureFinderCentroided took …` line
+/// (`TOPPBase.cpp:424`) that the same input's successful run ends with
+/// (`results/tool/rt_e39.r1/stdout.txt`).
+///
+/// The second is `-out` inside a directory that does not exist: the check
+/// fires during parameter handling, so the Release build prints only its two
+/// INI-version warning lines and never reaches the algorithm
+/// (`out_missing.txt`, `err_missing.txt`, `out_missing.status`). Both builds
+/// print two stderr lines and exit 5, which is what the port already did.
+/// Keeping both stdout sides here is what separates them: a port that
+/// processed the input before the writability check, or that printed the
+/// closing line after a failed store, would still pass the exit code and the
+/// stderr.
 #[test]
 fn a_store_that_fails_is_the_sources_write_failure() {
     let dir = Workdir::new();
+    let ini = text(ffc1_ini());
+    let source = fs::read(ffc1_input()).unwrap();
+    let input = dir.put("rt_e39.mzML", &derive_rt_suffix(&source, "e39"));
+
     let out = dir.file("adir.featureXML");
     fs::create_dir(&out).unwrap();
-    let ini = text(ffc1_ini());
-    let input = text(ffc1_input());
     let outcome = run_in(&dir, &["-test", "-ini", &ini, "-in", &input, "-out", &out]);
     outcome.assert_exit(ExitCode::CannotWriteOutputFile);
     assert_eq!(
         outcome.err.trim_end(),
         format!("Error: Unable to write file (the file '{out}' could not be created. )"),
         "stdout:\n{}",
+        outcome.out
+    );
+    assert_out_block(&outcome, RT_E39_ALGORITHM_LINES);
+    assert!(
+        !outcome.out.contains("FeatureFinderCentroided took"),
+        "the closing line follows a failed store:\n{}",
         outcome.out
     );
 
@@ -1503,6 +1547,18 @@ fn a_store_that_fails_is_the_sources_write_failure() {
             &format!("Error: Unable to write file (the file '{missing}' could not be created. )"),
         ]
     );
+    for absent in [
+        "Not FAIMS",
+        "Found 25 seeds",
+        "features found.",
+        "FeatureFinderCentroided took",
+    ] {
+        assert!(
+            !outcome.out.contains(absent),
+            "{absent} on stdout although the writability check fires first:\n{}",
+            outcome.out
+        );
+    }
 }
 
 /// **A zero retention-time extent that reaches the seed loop**, measured

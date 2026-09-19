@@ -1094,15 +1094,32 @@ fn the_release_nonfinite_document_reads_back_with_the_values_the_source_reads() 
     }
 }
 
-/// **The spellings the pinned reader takes, and the two it refuses.**
+/// **The spellings the pinned reader takes, and the literals it refuses.**
 ///
 /// `probe_read` took twelve of them through `FeatureXMLFile::load` on
 /// `ibminode06` (`../oracle/featurexml-inf/results/spellings.tsv`,
 /// `extract/make_spellings.py`, each spelling substituted into every float
-/// place at once). Ten load and give the value below in every field. `inf.0`
-/// and `1e999` make the load throw `ConversionError` — the first because the
-/// trailing `.0` is left over, the second because `std::from_chars` reports
-/// the literal as out of range — and this port refuses both.
+/// place at once). Round 2 took thirteen more, each in a single place at a
+/// time (`results/r2/all.tsv`, `extract/make_single_place.py`, 65 documents,
+/// two repetitions, all 65 pairs identical): the five `nan(<payload>)` forms
+/// below read as a NaN in an element, a hull `pt`, a `UserParam value` and a
+/// `floatList` entry alike, `-nan(0x1)` as a NaN of the other sign
+/// (`0xfff8000000000000`).
+///
+/// Two source routines take the payload and they do not take the same set.
+/// `tryParseNaN` runs first and consumes an unsigned `nan` with any payload up
+/// to the first `)` (`StringUtils.cpp:246-256`); what it leaves reaches
+/// `std::from_chars`, which takes a sign but only an alphanumeric-or-underscore
+/// payload (`StringUtils.cpp:258-261`). So `nan(hello world)` is a NaN and
+/// `-nan(hello world)` is a `ConversionError`.
+///
+/// The refused list is what `StringUtils::toDouble` cannot convert at all.
+/// Every float place of the document this test builds carries the literal, so
+/// one of them is always an attribute and the Release build fails the load
+/// too. In an element's text alone it keeps `0.0` instead and loads the
+/// document, which is a divergence;
+/// `an_unconvertible_literal_diverges_by_the_place_it_stands_in` pins this
+/// port's side of it and FEATUREXML_SUPPORT.md records both directions.
 #[test]
 fn every_nonfinite_spelling_the_pinned_reader_takes_is_accepted() {
     let document = |spelling: &str| {
@@ -1128,6 +1145,12 @@ fn every_nonfinite_spelling_the_pinned_reader_takes_is_accepted() {
         ("nan", f64::NAN),
         ("NAN", f64::NAN),
         ("-nan", f64::NAN),
+        ("nan(1)", f64::NAN),
+        ("NAN(1)", f64::NAN),
+        ("nan()", f64::NAN),
+        ("+nan(1)", f64::NAN),
+        ("nan(hello world)", f64::NAN),
+        ("-nan(0x1)", f64::NAN),
     ] {
         let map = featurexml::read(document(spelling).as_slice())
             .unwrap_or_else(|error| panic!("{spelling}: {error}"));
@@ -1154,7 +1177,13 @@ fn every_nonfinite_spelling_the_pinned_reader_takes_is_accepted() {
         assert!(alike(list[0], expected), "{spelling} list");
         assert_eq!(list[1], 1.5, "{spelling} list");
     }
-    for refused in ["inf.0", "1e999"] {
+    // The sign `std::from_chars` gives a signed payload survives, and an
+    // unsigned one stays positive, as the Release build read them.
+    let signed = featurexml::read(document("-nan(0x1)").as_slice()).unwrap();
+    assert!(signed.features[0].rt.is_sign_negative(), "-nan(0x1) sign");
+    let unsigned = featurexml::read(document("nan(1)").as_slice()).unwrap();
+    assert!(!unsigned.features[0].rt.is_sign_negative(), "nan(1) sign");
+    for refused in ["inf.0", "1e999", "banana", "-nan(hello world)", "nan(1)x"] {
         assert!(
             featurexml::read(document(refused).as_slice()).is_err(),
             "{refused}"
@@ -1162,15 +1191,75 @@ fn every_nonfinite_spelling_the_pinned_reader_takes_is_accepted() {
     }
 }
 
+/// **A literal the source cannot convert is read by the place it stands in,
+/// and this port has one path for both places.**
+///
+/// `StringUtils::toDouble` throws a `ConversionError` for a literal it cannot
+/// convert. An element's text reaches `XMLHandler::asDouble_`, which catches
+/// it, writes one non-fatal line to the log and keeps `0.0`
+/// (`XMLHandler.h:305-317`, `XMLHandler.cpp:71-87`); an attribute reaches
+/// `attributeAsDouble_`, which lets it out and fails the load
+/// (`XMLHandler.h:401-406`). This port refuses what it cannot convert wherever
+/// it stands, and reads what it can, so it diverges both ways. Executed
+/// against the pinned Release install on `ibminode06`
+/// (`../oracle/featurexml-inf/results/r2/all.tsv`, cases `elem_*` and `pt_*`,
+/// two repetitions, every pair identical); FEATUREXML_SUPPORT.md records it.
+#[test]
+fn an_unconvertible_literal_diverges_by_the_place_it_stands_in() {
+    let in_element = |literal: &str| {
+        simple(&format!(
+            "<feature id=\"f_100\"><position dim=\"0\">{literal}</position>\
+             <position dim=\"1\">2.0</position><intensity>3.0</intensity>\
+             <charge>2</charge></feature>"
+        ))
+    };
+    let in_attribute = |literal: &str| {
+        simple(&format!(
+            "<feature id=\"f_100\"><position dim=\"0\">1.0</position>\
+             <position dim=\"1\">2.0</position><intensity>3.0</intensity>\
+             <charge>2</charge>\
+             <UserParam type=\"float\" name=\"probe_float\" value=\"{literal}\"/>\
+             </feature>"
+        ))
+    };
+    // The Release build loads each of these and keeps 0.0 for the position,
+    // logging `Double conversion error of "..."`; this port refuses the
+    // document.
+    for literal in ["1e999", "banana", "inf.0", "-nan(hello world)", "nan(1)x"] {
+        assert!(
+            featurexml::read(in_element(literal).as_slice()).is_err(),
+            "element {literal}"
+        );
+        // In an attribute the Release build fails the load as well.
+        assert!(
+            featurexml::read(in_attribute(literal).as_slice()).is_err(),
+            "attribute {literal}"
+        );
+    }
+    // An underflowing literal is the other direction: `std::from_chars`
+    // reports it out of range, so the Release build keeps 0.0 for it in an
+    // element and fails the load on it in an attribute, while this port reads
+    // 0.0 in both places.
+    let map = featurexml::read(in_element("1e-999").as_slice()).unwrap();
+    assert_eq!(map.features[0].rt, 0.0);
+    let map = featurexml::read(in_attribute("1e-999").as_slice()).unwrap();
+    assert_eq!(
+        map.features[0].metadata["probe_float"].as_f64().unwrap(),
+        0.0
+    );
+}
+
 /// **A non-finite hull point is the one place this port stays stricter.**
 ///
 /// `ConvexHull2D::setHullPoints` validates nothing
 /// (`ConvexHull2D.cpp:119-123`), so the Release build writes and reads
 /// `NONFINITE_HULL_RELEASE`, which is `NONFINITE_RELEASE` with its outline
-/// points non-finite too and nothing else changed. This port refuses it,
-/// because its hulls and the bounding boxes derived from them rest on finite
-/// coordinates; the refusal is a parse error, not a panic, and no ported
-/// algorithm produces such a point. See FEATUREXML_SUPPORT.md.
+/// points non-finite too and nothing else changed. This port refuses it at the
+/// reader: its hull and bounding-box invariants are finite and enforced at the
+/// setter, so such a point would be a checked error wherever it surfaced
+/// rather than a panic, and accepting one would mean threading non-finite
+/// bounds through the range machinery. No ported algorithm produces such a
+/// point. See FEATUREXML_SUPPORT.md.
 #[test]
 fn a_nonfinite_hull_point_is_refused_where_the_release_build_keeps_it() {
     let error = featurexml::read(NONFINITE_HULL_RELEASE).unwrap_err();

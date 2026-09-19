@@ -1106,13 +1106,20 @@ fn wide(value: f64) -> String {
 /// `ConvexHull2D::setHullPoints` validates nothing
 /// (`ConvexHull2D.cpp:119-123`) and the handler writes and reads an outline
 /// point like any other scalar, so the source both writes and accepts a
-/// non-finite one. This port refuses it, because [`ConvexHull2D`] and the
-/// bounding boxes derived from it rest on finite coordinates -- their scan
-/// ordering and [`ConvexHull2D::bounding_box`] are undefined for a NaN. No
-/// ported algorithm produces one: the hulls `FeatureFinderAlgorithmPicked`
-/// builds come from peak positions and stay finite even where its widths and
-/// intensities overflow. The refusal is a parse error like any other, never a
-/// panic. See FEATUREXML_SUPPORT.md.
+/// non-finite one. This port refuses it here, at the reader.
+///
+/// Not to avert a panic: [`ConvexHull2D`]'s own invariants are finite and
+/// enforced at the setter -- [`ConvexHull2D::set_hull_points`], which
+/// [`read_hull`] builds through, [`ConvexHull2D::add_point`] and
+/// [`ConvexHull2D::add_points`] each validate a point before they store or
+/// compare it -- so a non-finite outline point that reached them would be a
+/// checked error, and [`ConvexHull2D::bounding_box`] never sees one. Accepting
+/// it would instead mean threading non-finite bounds through the range
+/// machinery, which is a kernel change with its own evidence. No ported
+/// algorithm produces such a point either: the hulls
+/// `FeatureFinderAlgorithmPicked` builds come from peak positions and stay
+/// finite even where its widths and intensities overflow. See
+/// FEATUREXML_SUPPORT.md.
 fn hull_coordinate(text: &str) -> Result<f64> {
     let value = coordinate(text)?;
     if value.is_finite() {
