@@ -253,13 +253,17 @@ fn is_ascending(values: &[f64]) -> bool {
     is_free_of_nan(values) && values.windows(2).all(|pair| pair[0] <= pair[1])
 }
 
-/// Fail when any value is NaN, for a function that orders values itself.
+/// Fail when any value is NaN.
 ///
-/// See the module's NaN section: the source sorts such a range with
-/// `std::sort`, whose strict-weak-ordering precondition a NaN violates, so
-/// there is no source answer to reproduce. Returning a statistic computed from
-/// an arbitrary permutation would be a plausible wrong number, which is worse
-/// than a refusal.
+/// Since decision D16 the functions that *sort* no longer use this: they
+/// reproduce the Release build's own permutation instead. Its two remaining
+/// callers are [`compute_rank`](crate::math::statistic_functions::compute_rank)
+/// and
+/// [`rank_correlation_coefficient`](crate::math::statistic_functions::rank_correlation_coefficient),
+/// whose `std::sort` is a different call — a lambda on `std::pair::second`
+/// rather than the default `operator<` — and whose relative tie test a NaN
+/// defeats in a second, independent way that no oracle row measures. See the
+/// module's NaN section.
 fn check_no_nan(values: &[f64]) -> Result<()> {
     if !is_free_of_nan(values) {
         return Err(bad("statistics input must not contain NaN"));
@@ -275,7 +279,7 @@ fn check_no_nan(values: &[f64]) -> Result<()> {
 /// `:281`, `MAD` through its own `median` call at `:189`, and
 /// `SummaryStatistics`'s unqualified `sort(data.begin(), data.end())` at `:948`
 /// (core `bc9cc12`). This function is that call:
-/// [`source_sort_by`](crate::math::source_sort::source_sort_by) with
+/// [`source_sort_by`] with
 /// `|a, b| a < b`, which reproduces the libstdc++ introsort comparison by
 /// comparison and move by move.
 ///
@@ -294,7 +298,7 @@ fn check_no_nan(values: &[f64]) -> Result<()> {
 ///
 /// Returns [`Error::InvalidValue`] when the introsort's unbounded partition or
 /// final-insertion loop would read outside the vector, which is the one thing
-/// [`source_sort_by`](crate::math::source_sort::source_sort_by) refuses, and
+/// [`source_sort_by`] refuses, and
 /// which no asymmetric comparison — `<` on `f64` keys, NaN keys included — can
 /// provoke; and when the owned copy the permutation is applied through cannot
 /// be allocated. `values` is left in its original order in either case.
@@ -429,10 +433,15 @@ fn median_of_sorted(values: &[f64]) -> f64 {
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidRange`] for an empty range and
-/// [`Error::InvalidValue`] when any value is NaN; see the module's NaN section.
-/// The refusal happens before the sort, so a rejected call leaves the caller's
-/// range in its original order.
+/// Returns [`Error::InvalidRange`] for an empty range. A NaN is **not**
+/// refused: the range is sorted into the permutation the Release build's
+/// `std::sort` leaves and the statistic is read positionally out of it, as the
+/// source does; see the module's NaN section and decision D16. The only
+/// [`Error::InvalidValue`] left is the one
+/// [`source_sort_by`] raises when the
+/// introsort would read outside the vector, which `<` on `f64` keys cannot
+/// provoke, and it is raised before anything is written back, so a rejected
+/// call leaves the caller's range in its original order.
 pub fn median(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
     sort_ascending(values)?;
@@ -561,10 +570,15 @@ fn quantile1st_of_sorted(values: &[f64]) -> f64 {
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidRange`] for an empty range and
-/// [`Error::InvalidValue`] when any value is NaN; see the module's NaN section.
-/// The refusal happens before the sort, so a rejected call leaves the caller's
-/// range in its original order.
+/// Returns [`Error::InvalidRange`] for an empty range. A NaN is **not**
+/// refused: the range is sorted into the permutation the Release build's
+/// `std::sort` leaves and the statistic is read positionally out of it, as the
+/// source does; see the module's NaN section and decision D16. The only
+/// [`Error::InvalidValue`] left is the one
+/// [`source_sort_by`] raises when the
+/// introsort would read outside the vector, which `<` on `f64` keys cannot
+/// provoke, and it is raised before anything is written back, so a rejected
+/// call leaves the caller's range in its original order.
 pub fn quantile1st(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
     sort_ascending(values)?;
@@ -608,10 +622,15 @@ fn quantile3rd_of_sorted(values: &[f64]) -> f64 {
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidRange`] for an empty range and
-/// [`Error::InvalidValue`] when any value is NaN; see the module's NaN section.
-/// The refusal happens before the sort, so a rejected call leaves the caller's
-/// range in its original order.
+/// Returns [`Error::InvalidRange`] for an empty range. A NaN is **not**
+/// refused: the range is sorted into the permutation the Release build's
+/// `std::sort` leaves and the statistic is read positionally out of it, as the
+/// source does; see the module's NaN section and decision D16. The only
+/// [`Error::InvalidValue`] left is the one
+/// [`source_sort_by`] raises when the
+/// introsort would read outside the vector, which `<` on `f64` keys cannot
+/// provoke, and it is raised before anything is written back, so a rejected
+/// call leaves the caller's range in its original order.
 pub fn quantile3rd(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
     sort_ascending(values)?;
@@ -1324,22 +1343,33 @@ impl SummaryStatistics {
     /// the source substitutes the empty case's value rather than propagating
     /// NaN.
     ///
-    /// A sample holding a NaN is summarised only when the permutation
-    /// `std::sort` leaves behind cannot be observed: a sample of one value, and
-    /// a sample whose values are all NaN. See the module's NaN section and
-    /// section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md`.
+    /// A sample holding a NaN is summarised like any other, since decision
+    /// D16: the sort is the Release build's own, so the permutation it leaves
+    /// is reproduced rather than guessed at, and `min`, the three quantiles and
+    /// `max` are read out of it positionally exactly as
+    /// `StatisticFunctions.h:952-956` reads them. That the source reads order
+    /// statistics out of a range whose order the comparison did not determine
+    /// is a C++ defect and is recorded as `CPP-347`; reproducing it is a
+    /// decision about this port, not a defence of the source. See the module's
+    /// NaN section and section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md`.
+    ///
+    /// The order statistics are taken through the private `_of_sorted` helpers
+    /// rather than the public `_sorted` entry points, because those verify a
+    /// caller's sortedness claim and `std::sort`'s own output is not ascending
+    /// when a NaN is in it.
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the sample holds a NaN next to a
-    /// number, which the summary would otherwise report quartiles around
-    /// without having ordered anything; see the module's NaN section. The
-    /// refusal happens before the sort, so a rejected call leaves the caller's
-    /// sample in its original order.
+    /// Returns [`Error::InvalidValue`] only where
+    /// [`source_sort_by`] does: an
+    /// introsort read outside the vector, which `<` on `f64` keys — NaN keys
+    /// included — cannot provoke, and which is raised before anything is
+    /// written back, so a rejected call leaves the caller's sample in its
+    /// original order.
     ///
-    /// Returns [`Error::InvalidRange`] only when an internal quantile refuses,
-    /// which the sort makes unreachable for a non-empty, NaN-free sample; the
-    /// signature keeps the error path rather than asserting the impossibility.
+    /// Returns [`Error::InvalidRange`] only when the internal mean refuses,
+    /// which the emptiness check above makes unreachable; the signature keeps
+    /// the error path rather than asserting the impossibility.
     pub fn new(data: &mut [f64]) -> Result<Self> {
         let count = data.len();
         if data.is_empty() {
