@@ -281,7 +281,7 @@ had written.
 the same partial document.** The source's runs with `LD_RAWCOUNTS` and sets
 `skip_spectrum_` (`MzMLHandler.cpp:966-974`); this port's sets `state.raw` and,
 at the list's start tag, a `skip_depth` that skips to the matching end tag
-(`src/format/mzml_counts.rs:859`, `:465-467`). A record that is well-formed XML
+(`src/format/mzml_counts.rs:859`, `:465-469`). A record that is well-formed XML
 but wrong inside is therefore invisible to both first passes and is discovered
 by both second passes, which deliver records to the writer in batches of
 `max_data_pool_size` — the same 100 on both sides

@@ -1757,11 +1757,6 @@ fn the_tool_load_options_admit_an_input_the_library_defaults_refuse() {
     }
 }
 
-/// The path of a file as the command line spells it.
-fn text_of(path: &Path) -> String {
-    text(path)
-}
-
 /// The new fixtures this round adds, in `tests/data/peak_picking/`.
 fn close_fixture(name: &str) -> PathBuf {
     data("peak_picking").join(name)
@@ -1811,9 +1806,9 @@ fn the_low_memory_mode_writes_the_sources_dangling_references() {
     let input = close_fixture("PeakPickerHiRes_refs_input.mzML");
     let (outcome, bytes, produced_at) = low_memory(None, &input, &[]);
     assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
-    let text = String::from_utf8(bytes).unwrap();
-    let tags = start_tags(&text);
-    assert_eq!(tags.len(), 5, "{text:.800}");
+    let written = String::from_utf8(bytes).unwrap();
+    let tags = start_tags(&written);
+    assert_eq!(tags.len(), 5, "{written:.800}");
     // Record 0 establishes the header, so its references are the ones the
     // header declares and it needs no `dataProcessingRef` of its own.
     assert!(
@@ -1840,20 +1835,24 @@ fn the_low_memory_mode_writes_the_sources_dangling_references() {
         "sf_sp_1", "sf_sp_2", "sf_sp_3", "sf_sp_4", "dp_sp_1", "dp_sp_2",
     ] {
         assert!(
-            !text.contains(&format!(" id=\"{dangling}\"")),
+            !written.contains(&format!(" id=\"{dangling}\"")),
             "{dangling} is declared"
         );
     }
     // The document is complete, and the records carry the peaks the in-memory
     // mode produces — compared through the text, because this port's reader
     // will not read the file back; see below.
-    assert!(text.ends_with("</indexedmzML>\n"));
+    assert!(written.ends_with("</indexedmzML>\n"));
     let temp = workdir();
     let out = temp.path().join("refs_in_memory.tmp.mzML");
-    let in_memory = run(&["-test", "-in", &text_of(&input), "-out", &text_of(&out)]);
+    let in_memory = run(&["-test", "-in", &text(&input), "-out", &text(&out)]);
     assert_eq!(in_memory.code, ExitCode::ExecutionOk, "{}", in_memory.err);
     let mem = std::fs::read_to_string(&out).unwrap();
-    assert_eq!(binaries(&text), binaries(&mem), "the encoded arrays differ");
+    assert_eq!(
+        binaries(&written),
+        binaries(&mem),
+        "the encoded arrays differ"
+    );
 
     // And this is what the dangling `sourceFileRef` costs: this port's reader
     // refuses an unregistered one under either dangling-reference policy
@@ -1895,7 +1894,7 @@ fn binaries(text: &str) -> Vec<&str> {
 /// `PeakFileOptions.h:248`, and neither counting pass reads record contents —
 /// the source's runs with `LD_RAWCOUNTS` and `skip_spectrum_`
 /// (`MzMLHandler.cpp:966-974`), this port's sets `state.raw` and a
-/// `skip_depth` at the list tag (`src/format/mzml_counts.rs:859`, `:465-467`).
+/// `skip_depth` at the list tag (`src/format/mzml_counts.rs:859`, `:465-469`).
 /// A record that is well-formed XML but wrong inside is therefore discovered
 /// only in the second pass, with `floor(index / 100) * 100` records already
 /// written, and what stays on disc is a closed, indexed, **reloadable**
@@ -1953,23 +1952,23 @@ fn a_low_memory_failure_leaves_the_batches_already_written() {
                 "{at}: {}",
                 outcome.err
             );
-            let text = String::from_utf8(bytes).unwrap();
-            assert_eq!(start_tags(&text).len(), records, "{at}");
+            let written = String::from_utf8(bytes).unwrap();
+            assert_eq!(start_tags(&written).len(), records, "{at}");
             if records == 0 {
                 // Nothing reached the writer, so there is no document at all.
-                assert!(text.is_empty(), "{at}");
+                assert!(written.is_empty(), "{at}");
                 continue;
             }
             // Closed, indexed, and announcing the whole input's count.
-            assert!(text.contains("<spectrumList count=\"110\""), "{at}");
-            assert!(text.contains("</spectrumList>\n</run></mzML>\n"), "{at}");
-            assert!(text.ends_with("</indexedmzML>\n"), "{at}");
+            assert!(written.contains("<spectrumList count=\"110\""), "{at}");
+            assert!(written.contains("</spectrumList>\n</run></mzML>\n"), "{at}");
+            assert!(written.ends_with("</indexedmzML>\n"), "{at}");
             assert_eq!(load(&produced_at.out).spectra.len(), records, "{at}");
 
             // The in-memory mode leaves no file behind on the same input.
             let temp = workdir();
             let out = temp.path().join("batch_in_memory.tmp.mzML");
-            let in_memory = run(&["-test", "-in", &text_of(&input), "-out", &text_of(&out)]);
+            let in_memory = run(&["-test", "-in", &text(&input), "-out", &text(&out)]);
             assert_eq!(in_memory.code, ExitCode::InputFileCorrupt, "{at}");
             assert!(!out.exists(), "{at}");
         }
@@ -2005,10 +2004,10 @@ fn an_out_that_names_a_directory_is_reported_in_both_modes() {
     let temp = workdir();
     let out = temp.path().join("isdir.mzML");
     std::fs::create_dir(&out).unwrap();
-    let input = text_of(&workflow_input(6));
+    let input = text(&workflow_input(6));
     for extra in [&["-processOption", "lowmemory"][..], &[]] {
         let mut args = vec!["-test", "-in", &input, "-out"];
-        let out_text = text_of(&out);
+        let out_text = text(&out);
         args.push(&out_text);
         args.extend_from_slice(extra);
         let outcome = run(&args);
