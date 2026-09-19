@@ -1,5 +1,256 @@
 # Validation of the ongoing Rust port
 
+## Wave 7: the FileInfo checks, the low-memory picker and the wave-6 benchmark refresh (2026-09-19)
+
+`integrate/wave7` merges `bench/wave6-refresh` (`3096196`), `port/a6-fileinfo`
+(`0510382`) and `port/p4-lowmemory` (`4293aab`) onto `main` `36c26a0`. All three
+merged without a conflict, and the merged tree changes 119 files against `main`
+(+14,398/−663) before this pass's own records. The three lanes are disjoint by
+construction: the benchmark lane owns one Markdown file, A6 owns
+`src/format/file_info/*` and its tests and fixtures, P4 owns
+`src/format/ms_data_writing_consumer.rs`, `src/cli/tools/peak_picker_hi_res.rs`
+and the picker's fixtures. See
+[FILE_INFO_CHECKS_SUPPORT](FILE_INFO_CHECKS_SUPPORT.md),
+[TOPP_PEAK_PICKER_HI_RES_SUPPORT](TOPP_PEAK_PICKER_HI_RES_SUPPORT.md),
+[MS_DATA_WRITING_CONSUMER_SUPPORT](MS_DATA_WRITING_CONSUMER_SUPPORT.md),
+[BENCHMARKS](BENCHMARKS.md) §3 and
+[the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-7-status).
+
+### The three verdicts, and what this pass had to finish
+
+| lane | round-2 verdict | closing verdict | carried into this pass |
+|---|---|---|---|
+| `bench/wave6-refresh` | changes_required (1 major, 5 minors) | **approve_with_notes**, 7 minors | 6 applied here, 1 was the integrator's own text |
+| `port/a6-fileinfo` | approve_with_notes (3 minors) | **approve_with_notes**, 3 minors | 2 applied here, 1 declined with a reason |
+| `port/p4-lowmemory` | changes_required (1 major, 2 minors) | **changes_required**, 2 majors + 5 minors | both majors and 4 minors applied here |
+
+P4 is the one lane that did not close clean, so its two majors were applied in
+the merged branch rather than carried. **Neither was taken on the reviewer's
+word**: both were re-measured here against the C++ Release build at the pins on
+`ibminode06`, and the measurements are registered as
+`../oracle/integ-w7/refcheck_06.sh` and `dupdp_06.sh`.
+
+**Major 1 — the dangling reference is not a streaming defect.** The reviewer
+claimed the ordinary whole-document `MzMLFile::store` emits the same invalid
+references, so P4's own 110-record `FileMerger` evidence file is already invalid
+mzML before `PeakPickerHiRes` reads it. Measured: that file declares
+`<sourceFileList count="22">` and **exactly one** `<dataProcessing id="dp_sp_0">`,
+and carries **106** record `dataProcessingRef`s of which **105 dangle**,
+`dp_sp_5` through `dp_sp_109`. A two-part merge is the minimal case — one
+declared `dp_sp_0`, six references, five dangling. No streaming consumer is
+involved in either. The root cause is confirmed at the pin: `writeHeader_`
+deduplicates histories by content with `Helpers::cmpPtrContainer`
+(`MzMLHandler.cpp:5060-5069`; `Helpers.h:35-51`) while `writeSpectrum_` compares
+them by pointer over `std::vector<std::shared_ptr<const DataProcessing>>`
+(`:5258`, `:5265`; `SpectrumSettings.h:165`). The single declared entry against
+22 merged parts *is* the content deduplication; the 105 references *are* the
+pointer comparison. CPP-172 is rewritten around that, with both triggers and a
+fix that covers the non-streaming half.
+
+**Major 2 — `SourceDangling` is not an exact reproduction, and three places said
+it was.** The port decides "differs from the first record's" by the text the
+history renders; the source decides it by pointer identity. Measured on the
+committed five-record `refs` fixture with `dp_sp_1`'s `softwareRef` repointed
+from `so_dp_1` to `so_dp_0`, so that `dp_sp_0` and `dp_sp_1` render identically
+and only their `id` differs: the C++ low-memory output is **byte-identical** to
+its output on the unmodified fixture (sha256 `7c75908440e1c154…`) and still
+carries `dataProcessingRef="dp_sp_1"` and `"dp_sp_2"` against a header declaring
+only `dp_sp_0`, while this port writes **no** `dataProcessingRef` at all. The
+three claims are narrowed to "wherever the source's pointer comparison and
+content equality agree", the divergence is recorded as such in native difference
+12, and a new consumer test,
+`a_history_equal_to_the_headers_by_content_is_not_renumbered`, fails loudly if
+the decision ever becomes pointer-like. Reproducing the pointer rule means
+carrying the input's own `dataProcessing` identifier through the reader into the
+write decision, which is the mzML reader's model to change and is left open.
+
+The same probe measured the figure P4's minor 3 disputed. **Both the lane and
+its reviewer were wrong about it.** The lane wrote "three referenceable ids and
+109 references"; the reviewer proposed "23 declared and 106 references". The
+C++ low-memory *output* declares **two** referenceable ids, `sf_ru_0` and
+`dp_sp_0`, and carries **106** references — the reviewer's 23 is the count for
+the `FileMerger` *input*, not the tool's output. 106 is right and is also the
+only self-consistent figure, since records 1 to 4 carry none and 105 dangle. The
+document now says two and 106.
+
+### What else was applied here rather than carried
+
+- **A6, CPP-337's affected class.** The documents said an index loses its first
+  offset when it is "written without whitespace". Only a text node *immediately
+  after the opening `<index …>` tag* saves it — the walk sets `iter = firstChild`
+  and advances before it reads, so only the identity of the first child matters,
+  and whitespace between the offsets or before `</index>` does not help. That is
+  the mechanism at the pin (`:280-282`, `:290-293`) and it is what the reviewer
+  measured on the Release build. Corrected in five places.
+- **The benchmark minors, each recomputed from the raw per-repetition records on
+  dax rather than accepted.** User time is within 0.45 s in **fourteen** cells,
+  not twelve (the six `-fma` tools at both thread counts, FileInfo counting
+  twice). The widest 32-thread delta is **0.434 s**: the raw medians are
+  26.339561 s and 25.905422 s, and the document's 0.435 was the difference of
+  their three-decimal roundings. The worst peak RSS figures are **4,064 MiB** and
+  **6,600 MiB**, not "4.06 GB" and "6.60 GB", which were MiB divided by 1000 and
+  understated each by 4.9 %. The four last-digit RSS ratio shifts come from
+  movements of at most **0.13 %**, which the sentence's own bound already said;
+  "sub-tenth-of-a-percent" contradicted it. The `-fma` table's last column is a
+  speed-up and is now headed `t1/t32`.
+- **Caveat 12's dependency is now disclosed.** §3.1 and caveat 14 say the run's
+  one load-flagged execution "enters no table", which is true; caveat 12's
+  `-write_ini` figures are prose, and that execution is one of the five samples
+  behind DTAExtractor's 3.133 ms median. Recomputed here: the five samples are
+  3.133, 3.053, 2.216 (flagged), 3.933 and 3.955 ms, so the median over the four
+  unflagged ones is 3.533 ms and the two ranges would read 3.5–4.2 ms and
+  60.2–65.7 ms. The published figures keep the run's own filter, which is the
+  basis every other median in that document uses, and caveat 12 now prints both.
+
+**Declined, with the reason.** A6's reviewer asked for the CPP-337 correction to
+be carried into `../oracle/a6-fileinfo/manifest.json` as well, which means
+re-executing the oracle so the manifest is generated and not edited. The five
+repository statements are corrected; the oracle manifest's one `known_gaps`
+sentence still carries the narrower wording, and its sha256 is registered as it
+stands. Re-running 59 Release cases to reword one sentence in a run artifact was
+not worth the risk of moving 81 committed expectations in an integration pass.
+It is listed as deferred.
+
+### The wave-6 benchmark refresh
+
+`docs/BENCHMARKS.md` gains §3, the wave-6 run of 2026-09-18 on ibminode05
+(`2026-09-18-w6refresh`): eight TOPP tools at 1 and 32 threads, the port's
+default x86_64 build — which now carries `-C target-feature=+fma` — against the
+pinned C++ Release build `openms4-release-bc9cc12-c19e494-174b576`, plus a
+`RUSTFLAGS="-C target-feature=-fma"` arm on eight of the nine cases. Output
+equivalence under D6 is **unchanged from wave 4 on every tool and every count**,
+at both thread counts: **three cases (two tools)** bitwise equal —
+DTAExtractor on the Velos mzML and FileInfo on both its datasets — five equal
+within tolerance with 0 arrays different, and FeatureFinderCentroided matching
+all 4,076 features with 0 unmatched either way and metadata `equal` after the
+algorithm was completed. All 52 repetition-determinism and all 26
+thread-invariance checks are `bitwise_equal`, on all three implementations. All
+sixteen `-fma`-against-`+fma` comparisons are `bitwise_equal` on data; metadata
+is `equal` on ten of them and `not_applicable` on the **six comparisons whose
+three cases** — DTAExtractor and the two FileInfo datasets — write DTA or plain
+text and carry no metadata at all. Details and caveats in
+[BENCHMARKS](BENCHMARKS.md) §3.
+
+One tool moved outside the ~3 % cross-session drift band:
+FeatureFinderCentroided, whose algorithm was completed between the waves and for
+which the build flag is worth 38.8 % at one thread and 8.7 % at 32. The other
+seven reproduce wave 4 inside the band. Peak RSS reproduces wave 4 on every tool
+but FeatureFinderCentroided, whose Rust peak rose about 4 % — 310.3 → 322.8 MiB
+at one thread and 306.4 → 317.8 at 32, against a C++ side that did not move, so
+the RSS ratio went 0.86 → 0.89 and 0.81 → 0.84. That wave-4 comparison is the
+major its round-2 review raised: the document had claimed the RSS was "unchanged
+from wave 4 to the same three digits on every tool", which was false and which
+printed no wave-4 number a reader could check. It now prints both waves side by
+side. The lane ran nothing on ibminode05 in that round and re-timed nothing; the
+correction came from the raw per-repetition records of both waves.
+
+### The ledger
+
+**A6 advances `FORMAT/FileInfo.h`, and it stays `partial`.** The flags now
+covered are **`-i`, `-d` and `-c`**, which leaves exactly one flag refused,
+`-v`; `partial` is now owed to A7 (consensusXML, identification, FASTA) and A8
+(`-v`, mzXML, mzData, trafoXML) alone. `src/format/file_info/checks.rs` and
+`tests/file_info_checks.rs` join its `rust` and `tests` lists, each in sorted
+position — `checks.rs` sorts *before* `features.rs`, and
+`tests/file_info_checks.rs` is *second* after `tests/file_info.rs` because `.`
+precedes `_`; the lane's own placement hints had both the wrong way round.
+
+**P4 advances two headers.** `FORMAT/DATAACCESS/MSDataWritingConsumer.h` records
+the indexed footer (no longer an exception), `ReferencePolicy`, the `softwareList`
+gap that the refs fixture exposed in `Checked`, and the content-versus-pointer
+divergence above. `PROCESSING/CENTROIDING/PeakPickerHiRes.h` records
+`-processOption lowmemory` as ported and drops it from the PARTIAL list, which
+now holds the Mobilogram overloads, `pickExperiment` on `OnDiscMSExperiment` and
+the `ProgressLogger` base.
+
+**`validated_topp_workflows` does not move. It stays at 8.** That is the honest
+answer, not a missing promotion. The counter is derived, not written: it counts
+tools whose TOPP *package* provenance manifest declares tier 1 and names an
+upstream test definition, and both `FileInfo` and `PeakPickerHiRes` were already
+among the eight. This wave deepens those two workflows — three more FileInfo
+flags, a second PeakPickerHiRes process option — without validating a ninth
+tool. A6's new manifest, `tests/data/file_info_checks_provenance.json`, is a
+**core SDK** reference manifest rather than a TOPP package one (it cites
+`src/openms/` sources), so by construction it cannot move this counter either.
+`core_sdk_coverage.py --write` confirms every count unchanged: 786 registered
+public headers, 63 complete / 165 evidence_requires_review / 90
+native_equivalent / 59 partial / 409 unmapped, 124 TOPP sources, 8 validated.
+
+### C++ issues
+
+Six new entries, `CPP-335` to `CPP-340`, and one rewrite. **The numbers are not
+the ones the lanes proposed:** all three lanes independently claimed "CPP-335",
+so they were assigned here after main's highest, `CPP-334`. A6's three keep
+335–337, because `CPP-337` was the only number a lane had already written into
+its own repository files; the benchmark crash is 338, and P4's two are 339 and
+340. Every citation was re-read at the pins before the entries were written.
+
+The dangling-reference finding is **not** a new number: `CPP-172` already covered
+it as a source-review entry, so it is replaced in place, promoted to Executed,
+and widened from "streaming consumer" to the `writeHeader_`/`writeSpectrum_`
+asymmetry with its two triggers. All 340 entries are `##` headings; the lanes'
+requests used `###`, which would have nested them one level too deep.
+
+### Lead decisions of this wave, and where they landed
+
+1. **Reproduce the source's dangling references rather than refuse them**
+   (native difference 12). Discharged, and now qualified by the measured limit of
+   that reproduction. The 110-record `FileMerger` file is measured end to end at
+   the lane's final head and again here; it is pinned in the oracle rather than
+   by a repository test, because the merged input is ~9.3 MB and not byte-stable
+   (`FileMerger` runs without `-test` and stamps a time in). The committed
+   five-record `refs` fixture pins all four cells of the rule, where the
+   `FileMerger` file exercises one.
+2. **`-i` answers with this port's index decoder** (native difference 9 of the
+   FileInfo tool document). Discharged: reachable from both `-i` rows of the
+   capability table and from the `ValidationInfo` row of the library document,
+   with both boundaries, their pinned lines, their owner
+   (`src/format/indexed_mzml.rs`) and why the departure stands.
+3. **File CPP-337.** Discharged, as `CPP-337`, with three kinds of evidence.
+
+### Still open, and deliberately not closed here
+
+- **The reader's other half.** This port's reader refuses an unregistered
+  spectrum `sourceFileRef` under *either* dangling-reference policy
+  (`src/format/mzml_header/read.rs:113-121`) where the source warns once and
+  continues (`MzMLHandler.cpp:899-906`). Now that the writer reproduces the
+  source's references, the port writes a low-memory output it will not read back
+  on an input with per-record source files, and will not read the C++ output of
+  the same run either, while the C++ reader reads both. The `FileMerger` case has
+  only dangling `dataProcessingRef`s and round-trips on both sides. Changing it
+  reverses an earlier lane's documented decision and belongs with the mzML
+  reader, not this tool.
+- **Reproducing the pointer rule** in `SourceDangling`, above.
+- **Two classes of corruption `-c` cannot report**, because this port refuses
+  them before `-c` sees them: a repeated auxiliary array name
+  (`src/format/mzml.rs:1038`) and an MS-level-0 mass spectrum
+  (`src/kernel.rs:810-821`). The C++ loads both and lets `-c` do its job.
+- **CPP-337's singleton consequence is a probe, not a pinned oracle case.**
+  `build(250, 1, "")` makes the Release `FileInfo` print "0 spectra" and exit 0 —
+  an entire index section vanishing with a success status. Pinning it costs a
+  fixture, two expectations, a test and five recounts.
+- **SpectraFilterWindowMower is unresolved at n = 3** in the benchmark, and has
+  no `-fma` arm; the C++ FeatureFinderCentroided crash is one event, not a
+  diagnosis. Both are labelled open in `BENCHMARKS.md` rather than resolved.
+
+### What this checkpoint does not claim
+
+- **It does not claim the benchmark was re-measured.** Nothing ran on
+  ibminode05 in this wave's closing round or in this pass. No cell, table or
+  measurement in `BENCHMARKS.md` changed; the raw per-repetition records were
+  read from dax, and the figures this pass corrected are prose restatements
+  recomputed from those same records.
+- **It does not claim C++ evidence for the `dupdp` case beyond one fixture.**
+  The content-versus-pointer split is measured on one purpose-built five-record
+  file and on the 110-record `FileMerger` output. It is not a survey of how often
+  real files carry content-equal, pointer-distinct histories.
+- **It does not claim the oracle manifests were regenerated.** A6's oracle was
+  re-executed by its own lane, twice, at its canonical path; this pass did not
+  re-run it and did not edit it. The integration probes are new drivers with
+  their own logs, not modifications of an existing oracle.
+- **It does not claim anything about a non-FMA processor.** Every gate ran on
+  kim, dax or ibminode06, all of which have FMA.
+
 ## Wave-6 FAIMS closure and the FMA build default (2026-09-18)
 
 `integrate/wave6` merges `port/b11-faims` (`7921409`) and `port/fma-default`
@@ -1043,6 +1294,8 @@ gate script (Linux x86_64: spock, kim or dax); "1.96" is current stable and
 | B7-FFAP-FEATURES | `ba913da` | Tier 1: the feature stage replayed against `../oracle/b7-ffap-features` and, through the wrapper, against the Release build — the `FeatureFinderCentroided_1` family gives the Release build's own counts: 8 features, 30 hulls and 120 hull points in the default run, 24 seeds in the `-seeds` run and 1,054 hull points under `-debug 5`, with bit-identical m/z and hull points and rt/`score_fit`/`score_correlation` within 1e-9 (5.5e-13, 2.2e-10, 7.7e-12) | `test --locked --all-features --all-targets` 341 binaries, 4,960 passed, 0 failed; 14 feature-finding targets on 1.85, 271 passed; `--no-default-features --features mzml,paramxml,featurexml` 11 + 29; `build --no-default-features` ok; clippy and rustdoc exit 0; the verifier's own determinism harness fingerprinted every feature field, hull point, log line and abort entry at `Threads::serial()`, 2, 3 and 8 — byte-identical |
 | wave-3a scaffold | `8f0bb3e` | Integrator-owned: the three tool registrations, their `[[bin]]` entries and `FileHandler::load_experiment_with_read_options` | covered by the wave-3a package gates below |
 | P3-PICKER-TOOL | final commit (merge `4c2806d`) | Tier 1: the four registered workflows `TOPP_PeakPickerHiRes_1/_2/_5/_6` against the retained outputs (decoded, D6), the six parameter-failure registrations and `TOPPWRITEINI_OVERWRITE`, and the C1 oracle regressions plus `../oracle/topp-peak-picker-tool` | `--no-default-features --features mzml,paramxml --test topp_peak_picker_hi_res --lib` 17 + 243 on 1.96 and 1.85; the seven-target TOPP line 109 passed; `--all-features --all-targets` 338 ok lines, 0 failures; `+1.85.0 check --all-targets`, clippy, rustdoc exit 0; three release builds of the binary; 17 of the verifier's own product-SDK C++ reference runs |
+| P4-PICKER-LOWMEM | `4293aab` (integrated at `integrate/wave7`) | Tier 1: the two registered low-memory workflows `TOPP_PeakPickerHiRes_3` and `_4` against the retained outputs (decoded, D6), and `../oracle/p4-lowmemory` — the C++ Release build at the pins in both modes over the upstream fixtures, over failing inputs of six kinds at two positions of a 110-record file, over a 110-record `FileMerger` output and a five-record reference fixture, and over the 2.3 GB `UK222.mzML`; that differential reproduced both retained files byte for byte, confirmed every divergence, established how each implementation ends a failing run and what it leaves on disc, and pinned the source's dangling-reference numbering record by record. Extended at integration: `../oracle/integ-w7` re-measured the same rule on the whole-document writer and isolated the content-versus-pointer split (CPP-172) | the lane's battery on kim, one gate at a time: `fmt --check`; clippy `--locked --all-features --all-targets -D warnings`; `+1.85.0 check --locked --all-features --all-targets`; `doc` with `RUSTDOCFLAGS=-D warnings`; the reduced slice `--no-default-features --features mzml,paramxml`; and `test --locked --all-features --all-targets` reconciled to 5,337 / 0 / 21. Re-verified by the reviewer on spock at the same head |
+| A6-FILEINFO | `0510382` (integrated at `integrate/wave7`) | Tier 1: 59 cases of `../oracle/a6-fileinfo` against the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576` on ibminode06, executed twice and reproduced; 38 of them compare `-out` and `-out_tsv` byte for byte and one its text, with only the lines that embed the input path normalised and three masks (the `FileInfo took` footer, the ProgressLogger `-- done [took …] --` lines, and the `std::cerr` byte dump of the one below-window case). `TOPP_FileInfo_11` (WILL_FAIL) and `_19` reproduced; `_12`'s exit code not, for a reader reason recorded in the checkpoint. Tier 4: an empty SRM chromatogram and a NaN entering either `std::sort` are refused | all eight green on dax at `0510382`, first attempt each: `fmt`; clippy `-D warnings`; `test --locked --all-features --all-targets` 5,380 / 0 / 21; the `mzml,paramxml,featurexml` slice 143 / 0 / 5; `--features mzml --test file_info_checks` 47 / 0 / 0; `--no-default-features` 3,626 / 0 / 3; `+1.85.0 check --locked --all-features --all-targets`; `doc` with `RUSTDOCFLAGS=-D warnings`. Re-run independently by the reviewer on spock with every figure reproduced |
 | A5-FILEINFO-TOOL | `a4eb586` | Tier 1: `TOPP_FileInfo_1`, `_2`, `_3` and `_9` through FuzzyDiff against the retained outputs, and 17 executed product-SDK cases in `../oracle/topp-file-info-tool`, run twice | `--features mzml,paramxml,featurexml --test topp_file_info --test file_info` 33 and 58 (5 ignored) on 1.96 and 1.85; `--all-features` four targets 33/59/73/8; `--no-default-features --test file_info` 22; `+1.85.0 check --all-targets`, clippy, rustdoc exit 0; 66 + 2 doctests; a release build of the binary; the verifier reran all 40 C1 FileInfo cases, all 17 package cases and 47 further argv pairs against the C++ |
 | C5-FFC-WRAPPER | `ba67aa9` | Tier 1: 25 cases against 29 executed C++ runs (C1 plus `../oracle/ffc-wrapper-c5`, each run twice and reproduced) | `--features mzml,paramxml,featurexml --test topp_feature_finder_centroided` 25 passed; the same on 1.85 and under `--all-features`; the whole suite under `--all-features`; clippy, rustdoc and `+1.85.0 check --all-targets` exit 0; a release build of all bins; the oracle re-executed from a copy, all 7 cases reproducing their exit codes and hashes |
 | fix/ffc-integration | `4d53a7e` | Tier 1: the wrapper re-derived against the Release build now that B7 ports the algorithm — `FFC_1` decoded within 1e-9 relative on the fitted fields, byte-identical at `-threads` 1/2/4/8/0, and the two Debug-only cases re-expected from the Release build's exit 0 | whole suite 5,124 passed / 0 failed / 21 ignored on 1.96 **and** 1.85; `+1.85.0 --no-default-features --all-targets` 3,474 passed; 69 doctests; clippy, rustdoc, fmt exit 0; macOS arm64 26 passed / 1 ignored; six C++ Debug cases and seven Release cases rerun by the verifier; a probe merge onto the then-tip `4c2806d` green |

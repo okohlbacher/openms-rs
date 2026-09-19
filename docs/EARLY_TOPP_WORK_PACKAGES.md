@@ -105,13 +105,13 @@ Letters mark lanes:
 | 6 | C7 featureXML writer layout parity | B10, and only if D6 is reversed |
 
 **Preview criteria.**
-- FileInfo: A5 and A6.
+- FileInfo: A5 and A6 (both done; the three flags are ported).
 - FeatureFinderCentroided on non-FAIMS centroided mzML: B10 with C5's error branches.
 - PeakPickerHiRes in memory: P3.
 - The bundle: C6.
 
 The three tools stay `partial` in the ledger until waves 5 and 6 close them;
-FileInfo.h is `partial` since A4 and stays so until A6-A8 land.
+FileInfo.h is `partial` since A4 and stays so until A7 and A8 land; A6 closed `-i`, `-d` and `-c`, which leaves `-v` the only refused flag.
 
 ## Wave 1 status
 
@@ -987,6 +987,8 @@ evidence, its verifier's reruns and this pass's gates;
 | B7-FFAP-FEATURES | `ba913da` | — | done; `run()` produces features end to end. It also applied the lead's B6 (a) and (b) decisions in `seeds.rs` and its tests, with the reports disclosing the out-of-scope edits |
 | P3-PICKER-TOOL | final commit | `4c2806d` | done for the preview: in-memory mode; `-processOption lowmemory` is P4 |
 | A5-FILEINFO-TOOL | `a4eb586` | — | done for stage 1; `-i`, `-d` and `-c` need A6 |
+| P4-PICKER-LOWMEM | `4293aab` | `4293aab` | done: `-processOption lowmemory`, the source's `PPHiResMzMLConsumer` through `MzMLFile::transform`; the mode's divergences from the in-memory mode reproduced, including the source's dangling header references and the partial document a failing run leaves; the index it writes ported into `MSDataWritingConsumer`; `CPP-172` promoted to executed and widened, `CPP-339` and `CPP-340` found |
+| A6-FILEINFO | `0510382` | `0510382` | done: `-i`, `-d` and `-c`, tier 1 on 59 executed Release-build cases of which 38 compare both reports byte for byte; `CPP-335`, `CPP-336` and `CPP-337` found |
 | C5-FFC-WRAPPER | `ba67aa9` | — | superseded in part by `fix/ffc-integration` |
 | crate/regex-facade | `2a29bd0` | — | done after six review rounds; the crate register row is closed |
 | fix/mzml-reader-scale | `f03ef85` | — | done; size-derived reader allowances and the source's timestamp leniency |
@@ -1306,8 +1308,8 @@ reviewer showed that one arm had not been rebuilt in the same batch.
   the data of every one — seven of them measured on full-size instrument data,
   `FeatureFinderCentroided` on the documented 4,000-spectrum subset, because
   neither implementation finishes the full 43,745-spectrum run. What the bundle still
-  lacks is not a tool: it is `-processOption lowmemory` (P4), the three A6
-  FileInfo flags, and the acceptance statement B10 owns.
+  lacks is not a tool: `-processOption lowmemory` (P4) and the three A6 FileInfo
+  flags are ported as of wave 7, which leaves the acceptance statement B10 owns.
 
 ### Carried forward, with owners
 
@@ -1722,3 +1724,81 @@ and 16, and the signal-to-noise refusals. New or changed here:
   and conservative, so this is a note, not a bug report; stripping `//` lines
   before the scan would be a two-line change if it ever bites a docstring nobody
   can reword. **Tooling owner.**
+
+## Wave 7 status
+
+Status on 2026-09-19. `main` is at `36c26a0`, pushed and green at 5,317 tests;
+this wave is collected on `integrate/wave7`, which merges
+`bench/wave6-refresh` (`3096196`), `port/a6-fileinfo` (`0510382`) and
+`port/p4-lowmemory` (`4293aab`). All three merged without a conflict; the merged
+tree changes 119 files against `main` before this pass's own records, and no
+integrator-owned file was touched by any lane.
+[VALIDATION](VALIDATION.md) records the three lanes, their verdicts, the two
+majors applied in the merged branch and their re-measurement, the corrected
+wave-4 memory basis, the lead decisions of this wave, the gates and the
+ignored-test inventory; [BENCHMARKS](BENCHMARKS.md) §3 is the wave-6 refresh.
+
+**A6 — the FileInfo `-i`, `-d` and `-c` checks (`port/a6-fileinfo`).** The three
+sections of `FileInfo::report_` that inspect a file rather than summarise it are
+ported, with a Release-build executed differential: 59 cases, 38 of them
+compared on both reports byte for byte, run twice and reproduced. `-i` ends the
+report where the source returns, so the tool reproduces `TOPP_FileInfo_11`'s
+non-zero exit, and `TOPP_FileInfo_19` is reproduced verbatim. Two places where
+the source is undefined are refused rather than guessed. Three C++ defects were
+found and are filed as `CPP-335`, `CPP-336` and `CPP-337`.
+
+**P4 — the low-memory picker (`port/p4-lowmemory`).** `-processOption lowmemory`
+is ported through the port's own `MSDataWritingConsumer`, with the mode's
+divergences from the in-memory mode reproduced where the source is defined and
+recorded where it is not. 81.7 MiB resident against the in-memory mode's 3.29
+GiB on a 2.3 GB run, with a byte-identical mzML body. `CPP-172` is promoted to
+executed and widened; `CPP-339` and `CPP-340` are new.
+
+**The benchmark refresh (`bench/wave6-refresh`).** One Markdown file, no
+measurement changed in its closing round, nothing run on ibminode05. Its major
+was a false memory claim, now replaced by a paragraph that prints wave 4 beside
+wave 6 so a reader can check it.
+
+### What this wave leaves for the next one
+
+- **A7 and A8** are what `FileInfo.h` is still `partial` for. A6 closed `-i`,
+  `-d` and `-c`; `-v` is the only refused flag left, and the consensusXML,
+  identification, FASTA, mzXML, mzData and trafoXML branches are still open.
+- **`-c` cannot report two classes of corruption**, because this port's reader
+  and kernel refuse them before `-c` sees them
+  (`src/format/mzml.rs:1038`, `src/kernel.rs:810-821`). The C++ loads both.
+  **mzML reader / kernel owners.**
+- **The mzML reader's dangling-`sourceFileRef` strictness.** The writer now
+  reproduces the source's references, so the port writes a low-memory output it
+  will not read back on an input with per-record source files. Giving
+  `Registry::source` the two-policy treatment `Registry::processing` already has
+  is the one-line shape of the change; it reverses an earlier lane's documented
+  decision, so it is not made here. **mzML reader owner.**
+- **`SourceDangling` reproduces the source by rendered content where the source
+  compares by pointer.** Measured, recorded, and pinned by a test. Closing it
+  means carrying the input's own `dataProcessing` identifier through the reader
+  into the write decision. **mzML reader owner.**
+- **A mechanical citation check would pay for itself.** Four citation defects in
+  A6 alone, two found by reviewers and two by the lane, and one — `:280-283` for
+  code at `:290-293` — survived two rounds in seven places at once, in a round
+  whose finding was itself about a wrong line range. The cheap version is a
+  script over the support documents and manifests: for every
+  `<File>.cpp:<a>-<b>` citation that sits next to quoted source, assert the
+  quoted tokens appear within those lines of the pin. **Tooling owner.**
+- **A robust suite count belongs next to the gate brief, not in each lane.** The
+  ssh capture on the gate path drops lines, and both damage kinds matter: an
+  eaten `... ok` line leaves the count low and the `test result:` line right,
+  while an eaten `test result:` line leaves the window covering two binaries, so
+  the count is right and the surviving result line is low by a whole binary.
+  Walking the log and taking the larger of each pair repairs both; detecting the
+  disagreement alone repairs neither. **Gate-brief owner.**
+- **`/usr/local/bin/cc` on ibminode06 is an admin ceph-quota shell script**, not
+  a compiler, and it shadows `/usr/bin/cc` on `PATH`. `rustc` links a build
+  script through it, writes no binary and still exits 0, so cargo fails later
+  with "could not execute process .../build-script-build (never executed)". Name
+  the linker with `CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=/usr/bin/gcc`,
+  **not** with `RUSTFLAGS`, which replaces the repository `.cargo/config.toml`
+  entry and silently drops `-C target-feature=+fma`. **Gate-brief owner.**
+- **A second gate host is worth assigning when lanes close in parallel.** One
+  lane's first full-suite attempt exited 255 from an ssh drop mid-run while dax
+  carried another lane's test gate at load 11.4. **Gate-brief owner.**

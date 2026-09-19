@@ -2,6 +2,63 @@
 
 ## Unreleased
 
+- **`FileInfo` gained `-i`, `-d` and `-c`.** The indexed-mzML check, the detailed
+  spectrum and SRM-transition listing and the corrupt-data check are ported from
+  `FORMAT/FileInfo.cpp:827-846`, `:1779-1795`, `:1799-1848` and `:1851-1964`,
+  byte for byte against the Linux x86_64 **Release** build at the three pins this
+  port follows: 59 executed cases, 38 of them compared on both reports. `-i` ends
+  the report where the source returns, so the tool reproduces
+  `TOPP_FileInfo_11`'s non-zero exit, and `TOPP_FileInfo_19` is reproduced
+  verbatim. Two places where the source is undefined are refused instead of
+  guessed: an empty SRM chromatogram read with `front()`/`back()` (`CPP-336`),
+  and a NaN entering one of its two `std::sort` calls; an infinity is not, which
+  is why `-c` compares with the source's own `>` rather than the kernel's
+  sortedness predicates. `CorruptionInfo` and `DetailInfo` stay empty, as the
+  source leaves them (`CPP-335`). Two boundaries of the shared indexed-mzML
+  decoder are documented rather than copied: below 1023 bytes the C++ searches
+  uninitialised memory, and an index whose first child is an `<offset>` loses
+  that offset to the C++ DOM walk (`CPP-337`). Two `-c` lines stay out of reach
+  because this port's mzML reader and kernel refuse the corrupt input before `-c`
+  can report it; both are recorded with their owners. See
+  `docs/FILE_INFO_CHECKS_SUPPORT.md`. (`port/a6-fileinfo`)
+- **`PeakPickerHiRes -processOption lowmemory`.** The streaming low-memory mode,
+  ported exactly where the source is defined, including where it deliberately
+  differs from the in-memory mode: the automatic mode tests the stored spectrum
+  type only; there is no centroided refusal, so `-force` is inert; none of the
+  in-memory input checks runs; the input is read twice; and a failing run leaves
+  the batches it had already written — `floor(N / 100) x 100` records, closed and
+  indexed, under the count pass one declared. Measured on a 2.3 GB instrument
+  run: **81.7 MiB resident against the in-memory mode's 3.29 GiB**, with a
+  byte-identical mzML body. (`port/p4-lowmemory`)
+- `MSDataWritingConsumer` now writes indexed mzML, as the source's inherited
+  `write_index_` does. A streamed document is byte-identical to the one
+  `mzml::write` would have produced from the same records.
+- `MSDataWritingConsumer::ReferencePolicy`: a record needing header entries the
+  first record did not contribute is refused by default, or written with the
+  source's dangling reference under `SourceDangling`, which the low-memory tool
+  path selects. Without it the streaming mode stopped after five records on any
+  `FileMerger` output. The reproduction has a measured limit: the source decides
+  "differs from the first record's" by pointer identity and this port by rendered
+  content, so on an input carrying two textually identical `dataProcessing`
+  entries under different identifiers the source writes a dangling reference and
+  this port writes none (`CPP-172`).
+- `docs/BENCHMARKS.md`: the wave-6 benchmark refresh. Eight tools re-timed at 1
+  and 32 threads on the FMA default build against the same C++ Release binaries,
+  the same inputs and the same harness as wave 4, plus a measured `-fma` opt-out
+  arm. One tool moved outside the ~3 % cross-session drift band
+  (`FeatureFinderCentroided`, whose algorithm was completed and for which the
+  build flag is worth 38.8 % at one thread and 8.7 % at 32); the other seven
+  reproduce wave 4 inside the band, with `SpectraFilterWindowMower` unresolved at
+  n = 3. Peak RSS reproduces wave 4 on every tool but `FeatureFinderCentroided`,
+  whose Rust peak rose about 4 %. The wave-5 record that the flag decision was
+  open is kept, with the decision now recorded as taken and in effect.
+  (`bench/wave6-refresh`)
+- `OpenMS_CPP_ISSUES.md` gains `CPP-335` to `CPP-340` and rewrites `CPP-172`,
+  which is promoted from source-reviewed to executed and widened: the dangling
+  `dataProcessingRef` is not a streaming defect, because `writeHeader_`
+  deduplicates processing histories by content while `writeSpectrum_` compares
+  them by pointer, so the ordinary whole-document `MzMLFile::store` emits it too
+  and every `FileMerger` output already carries it.
 - **BREAKING (runtime, x86_64): a binary built from this checkout now needs an
   FMA3-capable processor.** `.cargo/config.toml` sets `-C target-feature=+fma`
   for `cfg(target_arch = "x86_64")`, which removes the 21 % one-thread cost the
