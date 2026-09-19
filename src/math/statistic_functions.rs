@@ -79,8 +79,8 @@
 //! `-0.0 < 0.0` and `0.0 < -0.0` are false. Unlike a NaN they do not break
 //! `std::sort`'s precondition, so the call is well formed — but every
 //! permutation is a conforming result, and libstdc++ leaves a small range as it
-//! found it. [`sort_ascending`] orders them by the IEEE-754 total order
-//! instead, which puts `-0.0` first deterministically. A caller that reads
+//! found it. This module's private `sort_ascending` orders them by the
+//! IEEE-754 total order instead, which puts `-0.0` first deterministically. A caller that reads
 //! order statistics *positionally* out of such a sample and then prints them
 //! can therefore disagree with the source in the sign of a printed zero, and
 //! one does: `FileInfo`'s consensusXML `-s` `Intensity ratios` block. That is

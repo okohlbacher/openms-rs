@@ -2,6 +2,136 @@
 
 ## Unreleased
 
+- **`FileInfo` gained its consensusXML, identification and FASTA branches.** The
+  three content branches A4 left open are ported from
+  `FORMAT/FileInfo.cpp:853-1076`, `:1146-1311` and `:1312-1470` with their `-m`,
+  `-p` and `-s` arms, byte for byte against the Linux x86_64 **Release** build at
+  the three pins this port follows: 75 executed cases, 53 of them compared on
+  both reports, and the FASTA duplicate warnings compared with the tool's
+  standard error. `TOPP_FileInfo_7`, `_10`, `_13`, `_17`, `_18` and `_20` are
+  reproduced, five against the retained upstream output through FuzzyDiff.
+  libstdc++'s `std::hash<std::string>` is implemented because the FASTA
+  duplicate detection is sensitive to it — the source assigns each bucket a
+  one-element vector instead of appending, so a collision hides a duplicate
+  (`CPP-346`) — and an executed probe pins it. Two source defects are reproduced
+  rather than guessed at: the consensusXML `-s` quality sample, which the source
+  pre-sizes and then appends to, so it carries twice as many values as there are
+  consensus features and upstream's own expected output records it (`CPP-344`),
+  and the peak-file arm that `-m`, `-p` and `-s` give an mzIdentML input
+  (`CPP-345`). Two more are reproduced in value and recorded in text, both
+  classes of line rather than single lines: every NaN the report layer prints is
+  spelled `nan` where glibc spells a sign-bit NaN `-nan`, though both builds
+  compute the same bits; and a statistics sample holding both a negative and a
+  positive zero is ordered here by the IEEE-754 total order where `std::sort`
+  calls the two equivalent and leaves them in file order, so two files holding
+  the same consensus feature with its sub-feature intensities exchanged disagree
+  on four order-statistic lines. Three places where the source goes out of bounds
+  are refused instead: a consensus sub-feature whose map index is at or beyond
+  the column-header count, because `getMapIndex()` is the file's map id and not a
+  position — which segmentation-faults with no `<mapList>` and otherwise prints a
+  wrong peptide row, on the upstream `ConsensusID_3_input.consensusXML` among
+  others (`CPP-341`); an identification file with no protein run (`CPP-342`); and
+  a peptide identification with no hit, whose guard can never fire for a loaded
+  file (`CPP-343`). One boundary is deferred and raised for the lead: the same
+  arithmetic can put a NaN into a statistics *sample*, and `std::sort`'s
+  strict-weak-ordering precondition then fails, so two files holding the same two
+  consensus features in opposite order print different minimum, quartiles and
+  maximum (`CPP-347`). The two shapes in which that permutation cannot be
+  observed are reproduced; the rest is refused pending shared-math work. See
+  `docs/FILE_INFO_A7_SUPPORT.md`. (`port/a7-fileinfo`)
+- **featureXML writes and reads the source's non-finite values, and a failed
+  store is a write failure.** `NumericFormatting::appendNumeric` writes `NaN` for
+  a NaN of either sign and `inf`/`-inf` for an infinity
+  (`CONCEPT/Detail/NumericFormatting.h:27-35`), and `StringUtils::toDouble` reads
+  all three back, so this dialect now does the same for a feature's position,
+  intensity, qualities, overall quality, width/`FWHM` and every `float` and
+  `floatList` meta value, through the crate-private `MetaValue::source_float`
+  (decision D13); the public `TryFrom<f64>` and `MetaValue::validate` still
+  refuse a non-finite value, and so do the shared map and identification codecs,
+  a hull point and a finite value `f32` cannot hold. The reader takes every
+  spelling `toDouble` turns into a non-finite value, its `nan(<payload>)` forms
+  included. A literal that routine cannot convert at all — `1e999`, `banana`,
+  `inf.0` — stays refused: that agrees with the source wherever the literal is an
+  **attribute**, whose `ConversionError` leaves the parse, and diverges from it
+  in an **element's text**, where `asDouble_` logs a non-fatal line and keeps
+  `0.0`, so the Release build loads a document this port refuses; an underflowing
+  literal diverges the other way. Both directions are recorded in
+  `docs/FEATUREXML_SUPPORT.md` with their executed evidence. A store that fails
+  now takes the source's write-side arm (`Error: Unable to write file (…)`,
+  `CANNOT_WRITE_OUTPUT_FILE`, `TOPPBase.cpp:430-435`) instead of being announced
+  as a read failure. Together these close **TOPP native difference 16**:
+  `FeatureFinderCentroided` on a retention-time-scaled input exits 0 and writes
+  all 1263 values the Release build writes. Executed against the Release build at
+  the three pins (`../oracle/featurexml-inf`, two repetitions per case,
+  byte-identical). (`fix/featurexml-nonfinite`)
+- **The mzML reader reads back the low-memory file the port writes** (decision
+  D14). `ReadOptions::source_dangling_references` now covers `sourceFileRef` as
+  it covers `softwareRef` and `dataProcessingRef`: a spectrum's dangling
+  reference yields `SourceFile::default()` and a scan's or a precursor's yields
+  two present, empty metadata keys, which is what source
+  `MzMLHandler.cpp:896-906`, `:1131-1137`, `:1313-1318` and `:1339-1344` leave
+  behind. The library default still refuses all three. Wave 7 had left the port
+  writing, on any input with per-record source files, a file neither it nor a
+  strict reader would take while the C++ reader took both its own output and the
+  port's. Measured on `ibminode06` against the Release build at the pins: twelve
+  files written across two implementations, three inputs and both
+  `-processOption` modes, every one read by both implementations with exit 0, and
+  every read-and-write-back reproducing the file's own decoded content under rule
+  D6. (`fix/reader-round-trip`)
+- `MSDataWritingConsumer::ReferencePolicy::SourceDangling` now decides "differs
+  from the first record's" by **pointer**, as the source does, closing the
+  measured limit recorded in the previous release's entry. No identifier had to
+  be carried through the reader: a record's history is `Vec<Arc<DataProcessing>>`
+  and the reader shares one `Arc` per `dataProcessingRef`, exactly as
+  `processing_[ref]` shares one `shared_ptr`, so element-wise `Arc::ptr_eq` is
+  the source's own comparison. On the new `PeakPickerHiRes_dupdp_input` fixture,
+  whose `dp_sp_0` and `dp_sp_1` render identically, each implementation's
+  low-memory output is now byte-identical to its own output of the unmodified
+  `refs` fixture and both carry the same six dangling identifiers. What is left
+  of `CPP-172` on this port's side is the whole-document writer, which still
+  deduplicates by content; recorded as a divergence with its measurement.
+- `PeakPickerChromatogram` and `PeakPickerIterative` gained a
+  `compatibility: PickingCompatibility` field (decision D15). Both previously
+  called the strict noise entry point, so the median estimator refused inputs the
+  C++ computes with; the chromatogram picker now estimates the boundary noise
+  with the source profile **unconditionally** and the iterative picker with its
+  own profile. `allow_negative_intensities` now lets a baseline-subtracted
+  chromatogram or spectrum through, and on the iterative picker a candidate whose
+  support sums to a negative intensity now divides by that sum as the source does
+  instead of being refused; `allow_duplicate_positions` lets equal retention
+  times through the chromatogram picker. Because the chromatogram picker's
+  estimate is unconditional, its behaviour at the default (native) profile
+  changes too: a NaN or infinite `sn_win_len`, and the other estimator parameter
+  values the source's `Param` restrictions accept, now pick rather than failing,
+  and a histogram quotient outside `int` range is binned as the Linux x86-64
+  Release build bins it (bin 0) rather than clamped into the last bin. Reaching
+  such a quotient takes a `histogram_range` set by hand, which the source's own
+  picker never sets, so the port exposes a configuration the source's parameter
+  set does not; the numbers it produces there are the Release build's own. The
+  unrestricted-parameter defect behind all of this is filed as `CPP-348`.
+  (`fix/picker-noise-consumers`)
+- **`tools/check_source_citations.py`**, a repository checker that resolves every
+  C++ source citation against the pins this repository declares — the core
+  checkouts under `.reference/` and the TOPP and CLI packages read out of their
+  git objects — and reads them back: a cited range must exist, a citation naming
+  one line may not name a blank one, a code fragment quoted beside a citation
+  must be inside the cited lines, and a transcribed block's `// :NNN`
+  annotations must match. On the whole tree it resolves 3,297 citations in about
+  four seconds, confirms 102 against quoted code, and exits non-zero on a
+  mismatch; `tools/test_source_citations.py` (44 tests) joins the `quality` CI
+  job, while the checker itself stays in the pre-push battery, because CI has no
+  pins and would skip every named citation. Seven citation defects in
+  `OpenMS_CPP_ISSUES.md` were corrected to get it to zero. What it does **not**
+  catch is stated in its own module header: most citations paraphrase, and a
+  paraphrase cannot be read back. (`tools/citation-checker`)
+- `tools/check_core_sdk.py` asked the working directory rather than the
+  repository whether C++ had been left behind, so its "no C++ in the tree" check
+  answered differently depending on where it was started — and answered "yes,
+  C++ is here" in the one tree that has the pinned `.reference/` checkouts, which
+  is the tree anyone would run it in. It now asks `git ls-files`, and the
+  mirrored-path check asks that one exact path of both the repository and the
+  disk. `tools/test_core_sdk.py` grew from 3 tests to 8, five of which build
+  small real git repositories to pin the scope.
 - **`FileInfo` gained `-i`, `-d` and `-c`.** The indexed-mzML check, the detailed
   spectrum and SRM-transition listing and the corrupt-data check are ported from
   `FORMAT/FileInfo.cpp:827-846`, `:1779-1795`, `:1799-1848` and `:1851-1964`,
@@ -41,7 +171,9 @@
   "differs from the first record's" by pointer identity and this port by rendered
   content, so on an input carrying two textually identical `dataProcessing`
   entries under different identifiers the source writes a dangling reference and
-  this port writes none (`CPP-172`).
+  this port writes none (`CPP-172`). **Closed in the following wave**: the
+  consumer compares by `Arc::ptr_eq`; only the whole-document writer still
+  deduplicates by content.
 - `docs/BENCHMARKS.md`: the wave-6 benchmark refresh. Eight tools re-timed at 1
   and 32 threads on the FMA default build against the same C++ Release binaries,
   the same inputs and the same harness as wave 4, plus a measured `-fma` opt-out

@@ -100,18 +100,18 @@ Letters mark lanes:
 | 5 | B11 FeatureFinderCentroided FAIMS closure: the split, one run and seed filter per voltage, the `FAIMS_CV` annotation and the corrected cross-voltage merge | B10, B8, B9, C2, D5 |
 | 5 | P4 PeakPickerHiRes low-memory mode | P3 |
 | 5 | C6 end-to-end chain and eight-executable release bundle | A6, B10, P3 |
-| 6 | A7 FileInfo consensusXML, idXML/mzid and FASTA branches | A6 |
+| 6 | ~~A7 FileInfo consensusXML, idXML/mzid and FASTA branches~~ **landed**, wave 8 (`port/a7-fileinfo` `7801a05`, merge `b2a173c`) | A6 |
 | 6 | A8 FileInfo schema validation, mzXML/mzData, trafoXML | A7 |
 | 6 | C7 featureXML writer layout parity | B10, and only if D6 is reversed |
 
 **Preview criteria.**
-- FileInfo: A5 and A6 (both done; the three flags are ported).
+- FileInfo: A5, A6 and A7 (all done; the three flags and the consensusXML, identification and FASTA branches are ported).
 - FeatureFinderCentroided on non-FAIMS centroided mzML: B10 with C5's error branches.
 - PeakPickerHiRes in memory: P3.
 - The bundle: C6.
 
 The three tools stay `partial` in the ledger until waves 5 and 6 close them;
-FileInfo.h is `partial` since A4 and stays so until A7 and A8 land; A6 closed `-i`, `-d` and `-c`, which leaves `-v` the only refused flag.
+FileInfo.h is `partial` since A4 and stays so until A8 lands; A6 closed `-i`, `-d` and `-c` and A7 the consensusXML, identification and FASTA branches, which leaves `-v` the only refused flag and pepXML, mzTab, trafoXML and PQP the only refused branches.
 
 ## Wave 1 status
 
@@ -861,10 +861,13 @@ doc-only and accepted.
     `ReadOptions` rustdoc should say so;
   - untested: `IndexedMzMLHandler::open_with_limits` with the flag probably warns
     on every fetched record (**P4**);
-  - the option leaves `sampleRef`, `defaultInstrumentConfigurationRef`, the
-    `sourceFileRef` variants and scan `instrumentConfigurationRef` strict, where
-    C++ is equally lenient; a follow-up if a tool input needs them; with the option
-    on, the Rust tool prints warnings where C++ is silent (**P3**).
+  - the option leaves `sampleRef`, `defaultInstrumentConfigurationRef` and scan
+    `instrumentConfigurationRef` strict, where C++ is equally lenient; a
+    follow-up if a tool input needs them. The `sourceFileRef` variants were on
+    this list and came off it in wave 8 under decision D14, because the port's
+    own writer produces them; with the option on, the Rust tool prints warnings
+    where C++ is silent, or warns once per ID where C++ warns once per
+    occurrence (**P3**).
   **P2**.
 - **CLI-2, `docs/TOPP_CLI_SUPPORT.md`, `src/cli/usage.rs` and
   `tests/topp_cli_lifecycle.rs`:**
@@ -1768,23 +1771,26 @@ wave 6 so a reader can check it.
   and kernel refuse them before `-c` sees them
   (`src/format/mzml.rs:1038`, `src/kernel.rs:810-821`). The C++ loads both.
   **mzML reader / kernel owners.**
-- **The mzML reader's dangling-`sourceFileRef` strictness.** The writer now
-  reproduces the source's references, so the port writes a low-memory output it
-  will not read back on an input with per-record source files. Giving
-  `Registry::source` the two-policy treatment `Registry::processing` already has
-  is the one-line shape of the change; it reverses an earlier lane's documented
-  decision, so it is not made here. **mzML reader owner.**
-- **`SourceDangling` reproduces the source by rendered content where the source
-  compares by pointer.** Measured, recorded, and pinned by a test. Closing it
-  means carrying the input's own `dataProcessing` identifier through the reader
-  into the write decision. **mzML reader owner.**
-- **A mechanical citation check would pay for itself.** Four citation defects in
-  A6 alone, two found by reviewers and two by the lane, and one — `:280-283` for
-  code at `:290-293` — survived two rounds in seven places at once, in a round
-  whose finding was itself about a wrong line range. The cheap version is a
-  script over the support documents and manifests: for every
-  `<File>.cpp:<a>-<b>` citation that sits next to quoted source, assert the
-  quoted tokens appear within those lines of the pin. **Tooling owner.**
+- ~~**The mzML reader's dangling-`sourceFileRef` strictness.**~~ **Closed in
+  wave 8 as decision D14** (`fix/reader-round-trip`): `Registry::source` has the
+  two-policy treatment, the reversal is recorded, and the round trip is executed
+  both ways against the Release build.
+- ~~**`SourceDangling` reproduces the source by rendered content where the
+  source compares by pointer.**~~ **Closed in wave 8**, and not the way this
+  bullet expected: no identifier had to be carried through the reader, because
+  `Registry::processing` already shares one `Arc` per `dataProcessingRef`
+  exactly as `processing_[ref]` shares one `shared_ptr`, so element-wise
+  `Arc::ptr_eq` *is* the source's comparison. What remains is the whole-document
+  writer, which still deduplicates by content on both sides; see wave 8 in
+  `VALIDATION.md`. **mzML writer owner.**
+- ~~**A mechanical citation check would pay for itself.**~~ **Built in wave 8**
+  (`tools/citation-checker`): `tools/check_source_citations.py` resolves 3,297
+  citations against the pins and reads them back, and it caught a defect A7
+  shipped and three review rounds missed. Read its limits before reading a green
+  run for more than it says — the A6 instance that motivated it is still **not**
+  caught, because all eight places that write it paraphrase the source, and a
+  paraphrase cannot be read back. The lever for the rest is a convention: quote
+  the source verbatim in the span beside the citation. **Tooling owner.**
 - **A robust suite count belongs next to the gate brief, not in each lane.** The
   ssh capture on the gate path drops lines, and both damage kinds matter: an
   eaten `... ok` line leaves the count low and the `test result:` line right,
@@ -1802,3 +1808,109 @@ wave 6 so a reader can check it.
 - **A second gate host is worth assigning when lanes close in parallel.** One
   lane's first full-suite attempt exited 255 from an ssh drop mid-run while dax
   carried another lane's test gate at load 11.4. **Gate-brief owner.**
+
+## Wave 8 status
+
+Status on 2026-09-19. `main` is at `2ba9c1d`, pushed and green at 5,401 tests;
+this wave is collected on `integrate/wave8`, which merges
+`fix/reader-round-trip` (`42064c6`), `fix/featurexml-nonfinite` (`511fafa`),
+`fix/picker-noise-consumers` (`8d3e052`), `port/a7-fileinfo` (`7801a05`) and
+`tools/citation-checker` (`f9c692f`). Three of the five touch `src/format/`, so
+disjointness was checked rather than assumed: the five name-only diffs against
+`main` cover 237 paths and **no path appears in more than one lane**. All five
+merged without a conflict, and the merged tree changes 248 files, which is those
+237 plus the 11 this pass's own records touch. No lane touched an
+integrator-owned file. [VALIDATION](VALIDATION.md) records the five lanes, their
+verdicts, the A7 major applied in the merged branch and its re-measurement, the
+two new lead decisions, the gates and the ignored-test inventory.
+
+**A7 — the FileInfo consensusXML, identification and FASTA branches
+(`port/a7-fileinfo`, merge `b2a173c`).** The three content branches A4 left open
+are ported with their `-m`, `-p` and `-s` arms, against a Release-build executed
+differential: 75 cases, 53 of them compared on both reports, run twice and
+reproduced. libstdc++'s `std::hash<std::string>` is implemented because the
+FASTA duplicate detection is sensitive to it. Seven C++ defects are filed,
+`CPP-341` to `CPP-347`.
+
+**The reader's round trip (`fix/reader-round-trip`, merge `bfd54a3`).** Decision
+D14, and the pointer rule wave 7 left open, closed together — the second without
+the reader change that bullet anticipated, because the identity was already in
+the model.
+
+**The featureXML writer (`fix/featurexml-nonfinite`, merge `008a09a`).** The
+source's `inf`, `-inf` and `NaN` are written and read back, a failed store is a
+write failure, and TOPP native difference 16 is closed.
+
+**The picker consumers (`fix/picker-noise-consumers`, merge `c9d5b75`).**
+Decision D15. `CPP-348` is new.
+
+**The citation checker (`tools/citation-checker`, merge `ca960d1`).** A
+repository checker that reads C++ citations back against the pins, plus a fix to
+`check_core_sdk.py`, which had been answering "yes, C++ is in the tree" in the
+one worktree that has the pinned checkouts.
+
+### What this wave leaves for the next one
+
+- **A8 is the last package `FileInfo.h` is `partial` for**, and it owes exactly
+  four things now: `-v`, the pepXML, mzTab, trafoXML and PQP branches, the
+  mzXML, mzData, MGF, MS2, sqMass, XMass and MSP peak files, and the schema
+  validation A8 was scoped for. A6 closed `-i`, `-d` and `-c`; A7 closed
+  consensusXML, idXML/mzIdentML and FASTA.
+- **The x86_64-emulation promotion, carried forward with its three parts.**
+  This is the lead's route-(b) decision of this round made concrete: the port
+  spells every NaN the FileInfo text layer prints `nan` where glibc spells a
+  sign-bit NaN `-nan` (native difference 5), and spelling the sign honestly
+  requires the *value* to stop depending on the host first. Three parts, all
+  prerequisites, in this order:
+  1. promote the x86_64 emulation out of
+     `analysis::feature_finder_picked::scoring` into shared math, where it can
+     be reused;
+  2. give `src/math/statistic_functions.rs` an x86_64-faithful
+     `variance_with_mean` built on it, so the NaN a variance produces carries a
+     host-independent sign;
+  3. re-capture A2's oracle row against the **Linux Release build** rather than
+     the macOS SDK — `../oracle/file-info-text-format/results/driver.tsv:92` is
+     `D fff8000000000000 nan nan nan nan nan NaN`, measured with Apple libc, and
+     `tests/file_info_text_format.rs:145` asserts it verbatim.
+
+  Only after all three can `text_format`'s `nonfinite` rule change; until then
+  changing it would contradict an executed oracle row and make every frozen
+  expectation architecture-dependent. **Owner: shared math
+  (`src/math/statistic_functions.rs`), with A2 as second party.**
+- **A libstdc++-faithful `sort_ascending`, the other half of the same file.**
+  `SummaryStatistics::new` reproduces the two NaN shapes whose set of outputs
+  has one member and refuses a NaN next to a number — a **deferral**, not a D1
+  refusal, because nothing is out of bounds and the values are stable. The same
+  `std::sort` equivalence without a NaN is *accepted* and its divergence pinned
+  (native difference 6, signed zeros). Closing either means porting libstdc++'s
+  permutation into `sort_ascending`, which every `SummaryStatistics` caller
+  consumes, and pinning it against a build that is free to change it. Evidence
+  is already on disk: oracle cases `c_nan_one_s`, `c_nan_two_s`,
+  `c_nan_then_finite_s`, `c_finite_then_nan_s` and `c_zero_swapped_s`, all
+  frozen. **What the lead has to decide is whether reproducing an unspecified
+  `std::sort` permutation is in scope at all**; refusing is what the port does
+  today for the NaN half, and the signed-zero half shows that refusing
+  everything would mean refusing inputs the Release build handles in bounds.
+  **Owner: shared math.** Run this as one wave with the promotion above: both
+  land in the same file, both are consumed by landed ports, and one wave can
+  re-capture A2's oracle row once instead of twice.
+- **The whole-document mzML writer still deduplicates by content**, where
+  `MzMLFile::store` dangles. Reproducing it would emit references mzML forbids
+  by default from every write path, with nothing to opt into, so it is the
+  lead's call rather than a fidelity fix. **mzML writer owner.**
+- **The identification-XML reader's modified-hit budget.** More than 14 modified
+  peptide hits in one idXML is refused, because `AASequence::parse_with_budget`
+  charges a per-modified-sequence preflight against one document-wide
+  50-million budget. Two A7 oracle cases have no differential because of it, and
+  the oracle already records what the C++ prints for both, so closing it needs
+  no reference-build run. **Identification-XML reader owner.**
+- **The citation checker's item 7** — a bare range under a bare file name — is
+  the largest unchecked population left and the largest false-positive surface
+  in the tool. It needs its own measurement pass over the unresolved ranges
+  before a line of it is written. **Tooling owner.**
+- **One gate-slot rule, learned twice this wave.** `openms-kim-gate.sh` rsyncs
+  with `--delete-excluded`, which deletes the remote `target/`, so two batteries
+  sharing one slot produce failures that look like code failures — "extern
+  location for approx does not exist", a build-script panic on a missing
+  `OUT_DIR`. One slot, one battery at a time; check `ps -ax | grep
+  openms-kim-gate` before launching. **Gate-brief owner.**
