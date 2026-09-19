@@ -848,7 +848,10 @@ fn read_hull(node: &Node, work: &mut Work) -> Result<ConvexHull2D> {
     for child in &node.children {
         let point = if child.name == "pt" {
             check(child, &["x", "y"], &[], false)?;
-            Point2D::new(coordinate(child.get("x")?)?, coordinate(child.get("y")?)?)
+            Point2D::new(
+                hull_coordinate(child.get("x")?)?,
+                hull_coordinate(child.get("y")?)?,
+            )
         } else {
             check(child, &[], &["hposition"], false)?;
             let mut values = [0.0; 2];
@@ -858,7 +861,7 @@ fn read_hull(node: &Node, work: &mut Work) -> Result<ConvexHull2D> {
                 if dim > 1 {
                     return Err(bad("hull dimension must be zero or one"));
                 }
-                values[dim] = coordinate(&position.text)?;
+                values[dim] = hull_coordinate(&position.text)?;
             }
             Point2D::new(values[0], values[1])
         };
@@ -1097,6 +1100,26 @@ fn text_node(name: &str, value: impl ToString) -> Node {
 /// rendering for a finite one.
 fn wide(value: f64) -> String {
     xml::nonfinite_text(value).map_or_else(|| value.to_string(), ToOwned::to_owned)
+}
+/// One hull-point coordinate.
+///
+/// `ConvexHull2D::setHullPoints` validates nothing
+/// (`ConvexHull2D.cpp:119-123`) and the handler writes and reads an outline
+/// point like any other scalar, so the source both writes and accepts a
+/// non-finite one. This port refuses it, because [`ConvexHull2D`] and the
+/// bounding boxes derived from it rest on finite coordinates -- their scan
+/// ordering and [`ConvexHull2D::bounding_box`] are undefined for a NaN. No
+/// ported algorithm produces one: the hulls `FeatureFinderAlgorithmPicked`
+/// builds come from peak positions and stay finite even where its widths and
+/// intensities overflow. The refusal is a parse error like any other, never a
+/// panic. See FEATUREXML_SUPPORT.md.
+fn hull_coordinate(text: &str) -> Result<f64> {
+    let value = coordinate(text)?;
+    if value.is_finite() {
+        Ok(value)
+    } else {
+        Err(bad("featureXML hull point coordinates must be finite"))
+    }
 }
 /// [`wide`] for the `float` fields: intensity and the three qualities.
 fn narrow(value: f32) -> String {

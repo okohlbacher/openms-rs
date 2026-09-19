@@ -727,7 +727,7 @@ impl Tool for FeatureFinderCentroided {
         if let Err(error) =
             FileHandler::store_feature_map(&output, &features, Some(FileType::FeatureXml))
         {
-            return Ok(crate::cli::write_failure(&error, err));
+            return Ok(crate::cli::write_failure(&output, &error, err));
         }
         // TOPPBase's closing info line and the log streams' caches at exit.
         info.close(out)?;

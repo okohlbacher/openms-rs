@@ -307,7 +307,17 @@ fn parse_and_write_failures_leave_destination_unchanged() {
     assert!(featurexml::write(&mut output, &bad).is_err());
     assert_eq!(output, b"existing");
     bad.features[1].unique_id = 20;
-    bad.features[1].intensity = f32::NAN;
+    // A width that no longer matches its `FWHM` mirror. A non-finite value is
+    // no longer one of these: the Release build writes those, and so does this
+    // writer now (`the_release_spelling_of_a_nonfinite_value_is_written_for_every_field`).
+    bad.features[1].base.width = 3.0;
+    assert!(featurexml::write(&mut output, &bad).is_err());
+    assert_eq!(output, b"existing");
+    // The same for a finite negative width, which no source path produces.
+    bad.features[1].base.width = -1.0;
+    bad.features[1]
+        .metadata
+        .insert("FWHM".into(), MetaValue::try_from(-1.0).unwrap());
     assert!(featurexml::write(&mut output, &bad).is_err());
     assert_eq!(output, b"existing");
 }
@@ -929,4 +939,249 @@ fn hpc_scale_benchmark_featurexml_files_load_and_round_trip() {
     let restored = featurexml::load(&path).unwrap();
     assert_eq!(restored.features, small.features);
     assert_eq!(restored.metadata, small.metadata);
+}
+
+/// The document the Release build writes when every feature field, meta value,
+/// float-list entry and `FWHM` holds a non-finite value and the hull points
+/// stay finite (`../oracle/featurexml-inf`, `drivers/probe_nonfinite.cpp` on
+/// `ibminode06` against `openms4-release-bc9cc12-c19e494-174b576`, two
+/// identical repetitions; `results/probe_scalars.r1.featureXML`).
+///
+/// Its four features were stored from `+inf`, `-inf`, `NaN` and `-NaN`.
+const NONFINITE_RELEASE: &[u8] = include_bytes!("data/featurexml_nonfinite_release.featureXML");
+/// The same document with non-finite hull points as well
+/// (`results/probe_hulls.r1.featureXML`); the two differ in nothing else.
+const NONFINITE_HULL_RELEASE: &[u8] =
+    include_bytes!("data/featurexml_nonfinite_hull_release.featureXML");
+
+/// The four spellings that document carries, in feature order.
+const NONFINITE_CASES: [(&str, f64); 4] = [
+    ("p_inf", f64::INFINITY),
+    ("n_inf", f64::NEG_INFINITY),
+    ("p_nan", f64::NAN),
+    // The Release build writes a NaN of either sign as `NaN`, so the fourth
+    // feature comes back as a positive quiet NaN.
+    ("n_nan", f64::NAN),
+];
+
+/// `a` and `b` are the same value, NaN included; NaN payloads are not compared,
+/// as the source does not preserve them through text either.
+fn alike(a: f64, b: f64) -> bool {
+    a == b || (a.is_nan() && b.is_nan())
+}
+
+/// **The Release build's spelling of a non-finite value, written for every
+/// field it has.**
+///
+/// `NumericFormatting::appendNumeric` answers before it formats anything:
+/// `NaN` for a NaN of either sign, then `-inf` or `inf`
+/// (`src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h:29-35`).
+/// `writeFeature_` sends every scalar through `precisionWrapper` and
+/// `writeUserParam_` sends a `DataValue` through the same conversion, so one
+/// spelling covers positions, intensity, qualities, the overall quality and
+/// every `float`/`floatList` meta value.
+///
+/// The map is the executed document read back, so nothing here is derived from
+/// a value this port invented.
+#[test]
+fn the_release_spelling_of_a_nonfinite_value_is_written_for_every_field() {
+    let map = featurexml::read(NONFINITE_RELEASE).unwrap();
+    let mut written = Vec::new();
+    featurexml::write(&mut written, &map).unwrap();
+    let text = String::from_utf8(written).unwrap();
+    for spelling in [
+        "<position dim=\"0\">inf</position>",
+        "<position dim=\"1\">inf</position>",
+        "<position dim=\"0\">-inf</position>",
+        "<position dim=\"1\">-inf</position>",
+        "<position dim=\"0\">NaN</position>",
+        "<intensity>inf</intensity>",
+        "<intensity>-inf</intensity>",
+        "<intensity>NaN</intensity>",
+        "<quality dim=\"0\">inf</quality>",
+        "<quality dim=\"1\">-inf</quality>",
+        "<quality dim=\"0\">NaN</quality>",
+        "<overallquality>inf</overallquality>",
+        "<overallquality>-inf</overallquality>",
+        "<overallquality>NaN</overallquality>",
+    ] {
+        assert!(text.contains(spelling), "{spelling} missing");
+    }
+    for value in ["value=\"inf\"", "value=\"-inf\"", "value=\"NaN\""] {
+        assert!(text.contains(value), "{value} missing");
+    }
+    for list in ["[inf,1.5]", "[-inf,1.5]", "[NaN,1.5]"] {
+        assert!(text.contains(list), "{list} missing");
+    }
+    // A NaN never carries a sign, whichever sign the value has, and no
+    // alternative spelling is used for a value: `inf.0` is the one the
+    // source's header records as unreadable, and it once produced it.
+    // (`nan` also occurs inside the `p_nan` labels, so only values are
+    // inspected.)
+    for spelling in ["-NaN", "nan", "NAN", "inf.0", "infinity", "Infinity"] {
+        for absent in [
+            format!(">{spelling}<"),
+            format!("=\"{spelling}\""),
+            format!("[{spelling},"),
+        ] {
+            assert!(!text.contains(&absent), "{absent} present");
+        }
+    }
+}
+
+/// **Every value of that document survives reading, writing and reading
+/// again**, checked against the bit patterns the pinned `FeatureXMLFile::load`
+/// produced for it (`../oracle/featurexml-inf/results/probe_scalars.r1.txt`).
+///
+/// A subordinate's width stays 0 on both sides: the load hack restores a width
+/// from `FWHM` on top-level features only (`FeatureXMLFile.cpp:57-66`), while
+/// the meta value itself survives at every level.
+#[test]
+fn the_release_nonfinite_document_reads_back_with_the_values_the_source_reads() {
+    let map = featurexml::read(NONFINITE_RELEASE).unwrap();
+    assert_eq!(map.len(), 4);
+    assert_eq!(map.metadata["map_float"].as_f64().unwrap(), f64::INFINITY);
+    let round = {
+        let mut written = Vec::new();
+        featurexml::write(&mut written, &map).unwrap();
+        featurexml::read(written.as_slice()).unwrap()
+    };
+    assert_eq!(round.metadata["map_float"].as_f64().unwrap(), f64::INFINITY);
+    for source in [&map, &round] {
+        for (index, (label, wide)) in NONFINITE_CASES.into_iter().enumerate() {
+            let narrow = wide as f32;
+            let f = &source.features[index];
+            assert_eq!(f.metadata["label"].as_str().unwrap(), label);
+            assert_eq!(f.charge, 2, "{label}");
+            assert!(alike(f.rt, wide), "{label} rt");
+            assert!(alike(f.mz, wide), "{label} mz");
+            for (name, value) in [
+                ("intensity", f.intensity),
+                ("quality", f.quality),
+                ("quality_rt", f.quality_rt),
+                ("quality_mz", f.quality_mz),
+                ("width", f.width),
+            ] {
+                assert!(alike(f64::from(value), f64::from(narrow)), "{label} {name}");
+            }
+            for name in ["FWHM", "probe_float"] {
+                assert!(alike(f.metadata[name].as_f64().unwrap(), wide), "{label} {name}");
+            }
+            let list = f.metadata["probe_floatlist"].as_float_list().unwrap();
+            assert_eq!(list.len(), 2, "{label}");
+            assert!(alike(list[0], wide), "{label} list");
+            assert_eq!(list[1], 1.5, "{label} list");
+            assert_eq!(
+                f.convex_hulls[0].hull_points(),
+                vec![Point2D::new(3.0, 4.0), Point2D::new(1.0, 2.0)],
+                "{label} hull"
+            );
+            let sub = &f.subordinates[0];
+            assert_eq!(
+                sub.metadata["label"].as_str().unwrap(),
+                format!("{label}_sub")
+            );
+            assert!(alike(sub.rt, wide), "{label} subordinate rt");
+            assert_eq!(sub.width, 0.0, "{label} subordinate width");
+            assert!(
+                alike(sub.metadata["FWHM"].as_f64().unwrap(), wide),
+                "{label} subordinate FWHM"
+            );
+        }
+    }
+}
+
+/// **The spellings the pinned reader takes, and the two it refuses.**
+///
+/// `probe_read` took twelve of them through `FeatureXMLFile::load` on
+/// `ibminode06` (`../oracle/featurexml-inf/results/spellings.tsv`,
+/// `extract/make_spellings.py`, each spelling substituted into every float
+/// place at once). Ten load and give the value below in every field. `inf.0`
+/// and `1e999` make the load throw `ConversionError` — the first because the
+/// trailing `.0` is left over, the second because `std::from_chars` reports
+/// the literal as out of range — and this port refuses both.
+#[test]
+fn every_nonfinite_spelling_the_pinned_reader_takes_is_accepted() {
+    let document = |spelling: &str| {
+        simple(&format!(
+            "<feature id=\"f_100\"><position dim=\"0\">{spelling}</position>\
+             <position dim=\"1\">{spelling}</position><intensity>{spelling}</intensity>\
+             <quality dim=\"0\">{spelling}</quality><quality dim=\"1\">{spelling}</quality>\
+             <overallquality>{spelling}</overallquality><charge>2</charge>\
+             <UserParam type=\"float\" name=\"FWHM\" value=\"{spelling}\"/>\
+             <UserParam type=\"float\" name=\"probe_float\" value=\"{spelling}\"/>\
+             <UserParam type=\"floatList\" name=\"probe_floatlist\" value=\"[{spelling},1.5]\"/>\
+             </feature>"
+        ))
+    };
+    for (spelling, expected) in [
+        ("inf", f64::INFINITY),
+        ("+inf", f64::INFINITY),
+        ("infinity", f64::INFINITY),
+        ("Infinity", f64::INFINITY),
+        ("INF", f64::INFINITY),
+        ("-inf", f64::NEG_INFINITY),
+        ("NaN", f64::NAN),
+        ("nan", f64::NAN),
+        ("NAN", f64::NAN),
+        ("-nan", f64::NAN),
+    ] {
+        let map = featurexml::read(document(spelling).as_slice())
+            .unwrap_or_else(|error| panic!("{spelling}: {error}"));
+        let f = &map.features[0];
+        let narrow = f64::from(expected as f32);
+        assert!(alike(f.rt, expected), "{spelling} rt");
+        assert!(alike(f.mz, expected), "{spelling} mz");
+        for (name, value) in [
+            ("intensity", f.intensity),
+            ("quality", f.quality),
+            ("quality_rt", f.quality_rt),
+            ("quality_mz", f.quality_mz),
+            ("width", f.width),
+        ] {
+            assert!(alike(f64::from(value), narrow), "{spelling} {name}");
+        }
+        for name in ["FWHM", "probe_float"] {
+            assert!(
+                alike(f.metadata[name].as_f64().unwrap(), expected),
+                "{spelling} {name}"
+            );
+        }
+        let list = f.metadata["probe_floatlist"].as_float_list().unwrap();
+        assert!(alike(list[0], expected), "{spelling} list");
+        assert_eq!(list[1], 1.5, "{spelling} list");
+    }
+    for refused in ["inf.0", "1e999"] {
+        assert!(
+            featurexml::read(document(refused).as_slice()).is_err(),
+            "{refused}"
+        );
+    }
+}
+
+/// **A non-finite hull point is the one place this port stays stricter.**
+///
+/// `ConvexHull2D::setHullPoints` validates nothing
+/// (`ConvexHull2D.cpp:119-123`), so the Release build writes and reads
+/// `NONFINITE_HULL_RELEASE`, which is `NONFINITE_RELEASE` with its outline
+/// points non-finite too and nothing else changed. This port refuses it,
+/// because its hulls and the bounding boxes derived from them rest on finite
+/// coordinates; the refusal is a parse error, not a panic, and no ported
+/// algorithm produces such a point. See FEATUREXML_SUPPORT.md.
+#[test]
+fn a_nonfinite_hull_point_is_refused_where_the_release_build_keeps_it() {
+    let error = featurexml::read(NONFINITE_HULL_RELEASE).unwrap_err();
+    assert!(
+        format!("{error}").contains("hull point coordinates must be finite"),
+        "{error}"
+    );
+    // The hposition spelling of the same outline is refused for the same
+    // reason, and so is a hull point in a document this port otherwise reads.
+    for body in [
+        "<feature id=\"f_1\"><convexhull nr=\"0\"><pt x=\"inf\" y=\"1\"/></convexhull></feature>",
+        "<feature id=\"f_1\"><convexhull nr=\"0\"><hullpoint><hposition dim=\"0\">NaN</hposition>\
+         <hposition dim=\"1\">1</hposition></hullpoint></convexhull></feature>",
+    ] {
+        assert!(featurexml::read(simple(body).as_slice()).is_err(), "{body}");
+    }
 }

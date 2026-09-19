@@ -1373,11 +1373,24 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
 /// this dialect cannot represent — is likewise a failure to produce the output
 /// file and belongs in the same arm.
 ///
+/// The text in the parentheses is the source's `UnableToCreateFile::what()`
+/// whenever the port failed for the same reason the source would have, which
+/// is any I/O failure of the store; `path` names the file it was producing. A
+/// native refusal has no source counterpart, so it contributes its own message
+/// there, as every other arm of [`run_failure`] does.
+///
 /// Only the `-out` store of `FeatureFinderCentroided` is mapped here so far,
-/// because that is the store this port has executed C++ evidence for; every
-/// other tool's store still reaches [`run_failure`].
-pub(crate) fn write_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
-    let _ = writeln!(err, "Error: Unable to write file ({error})");
+/// because that is the store this port has executed C++ evidence for
+/// (`../oracle/featurexml-inf`: with `-out` an existing directory whose name
+/// carries the featureXML extension, the writability check passes and the
+/// Release tool prints this line and exits 5); every other tool's store still
+/// reaches [`run_failure`].
+pub(crate) fn write_failure(path: &str, error: &Error, err: &mut dyn Write) -> ExitCode {
+    let detail = match error {
+        Error::Io(_) => format!("the file '{path}' could not be created. "),
+        other => other.to_string(),
+    };
+    let _ = writeln!(err, "Error: Unable to write file ({detail})");
     ExitCode::CannotWriteOutputFile
 }
 
