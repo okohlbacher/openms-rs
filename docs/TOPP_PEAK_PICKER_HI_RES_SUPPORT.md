@@ -533,9 +533,12 @@ added to the source's output, not a change to it. Pinned by
     `ReferencePolicy::SourceDangling`, which this tool's low-memory path
     selects, writes what the source writes (see
     [MS_DATA_WRITING_CONSUMER_SUPPORT](MS_DATA_WRITING_CONSUMER_SUPPORT.md)).
-    The dangling identifier is the source's own spelling, `dp_sp_<s>` and
-    `sf_sp_<s>`: a bare position in this writer's single zero-padded namespace
-    would alias a declared entry instead of dangling.
+    The dangling identifier is the source's own spelling, `dp_sp_<s>`,
+    `sf_sp_<s>` and, for a reference a binary data array carries,
+    `dp_sp_<s>_bi_<m>`: a bare position in this writer's single zero-padded
+    namespace would alias a declared entry instead of dangling — a reference
+    that *resolves*, to the wrong entry, which is worse than the defect being
+    reproduced.
 
     Measured on `ibminode06` against the C++ Release build at the pins. On the
     file the Release `FileMerger` builds from 22 copies of
@@ -546,7 +549,11 @@ added to the source's output, not a change to it. Pinned by
     record's (`logs/closediff1_06.log` sections B, C and E). The C++
     **in-memory** run of the same file declares two `dataProcessing` entries
     and dangles nothing. This port's low-memory run now writes all 110 records
-    with the same references; before this round it stopped after five, which is
+    with the same 105 dangling identifiers and the same decoded content — the
+    array shapes, identifiers and every sample bit for bit hash to
+    `d198b89cba89e1ea` on both sides, and the two in-memory outputs to
+    `e57261d0e43b6653` (`logs/closediff3_06.log` section B). Before this round
+    it stopped after five, which is
     what `ReferencePolicy::Checked` still does — `Error: unsupported: record
     needs a different mzML sourceFileList, dataProcessingList or softwareList
     than the header written for the first record`, `INCOMPATIBLE_INPUT_DATA`.
