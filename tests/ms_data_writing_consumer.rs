@@ -17,14 +17,16 @@
 use openms::Error;
 use openms::format::ms_data_writing_consumer::{
     CountPolicy, MSDataWritingConsumer, MSDataWritingProcessor, NoopMSDataWritingConsumer,
-    PlainMSDataWritingConsumer, PlainProcessor, WritingLimits,
+    PlainMSDataWritingConsumer, PlainProcessor, ReferencePolicy, WritingLimits,
 };
 use openms::format::mzml::{self, WriteOptions};
 use openms::interfaces::MSDataConsumer;
 use openms::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D,
 };
-use openms::metadata::{DataProcessing, ExperimentalSettings, ProcessingAction, SourceFile};
+use openms::metadata::{
+    DataProcessing, ExperimentalSettings, ProcessingAction, Software, SourceFile,
+};
 use openms::system::file::TempDir;
 use std::sync::Arc;
 
@@ -109,7 +111,20 @@ fn cleanup_closes_the_open_list_and_the_document() {
         .consume_spectrum(&mut spectrum("scan=1", 1.0, 100.0))
         .unwrap();
     let text = written(consumer);
-    assert!(text.ends_with("</spectrumList>\n</run></mzML>\n"), "{text}");
+    // `doCleanup_` closes the open list, then the document, then hands over to
+    // `MzMLHandlerHelper::writeFooter_`, whose inherited `PeakFileOptions` has
+    // `write_index_` true: the index, its offset and the checksum follow, and
+    // the `indexedmzML` wrapper the header opened is closed last.
+    assert!(
+        text.contains("</spectrumList>\n</run></mzML>\n<indexList count=\"1\">\n"),
+        "{text}"
+    );
+    assert!(text.contains("<index name=\"spectrum\">\n"), "{text}");
+    assert!(text.contains("<offset idRef=\"scan=1\">"), "{text}");
+    assert!(
+        text.ends_with("</fileChecksum>\n</indexedmzML>\n"),
+        "{text}"
+    );
 
     let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new())
         .with_count_policy(CountPolicy::SourceInconsistent);
@@ -118,7 +133,13 @@ fn cleanup_closes_the_open_list_and_the_document() {
         .unwrap();
     let text = written(consumer);
     assert!(
-        text.ends_with("</chromatogramList>\n</run></mzML>\n"),
+        text.contains("</chromatogramList>\n</run></mzML>\n<indexList count=\"1\">\n"),
+        "{text}"
+    );
+    assert!(text.contains("<index name=\"chromatogram\">\n"), "{text}");
+    assert!(text.contains("<offset idRef=\"chrom=1\">"), "{text}");
+    assert!(
+        text.ends_with("</fileChecksum>\n</indexedmzML>\n"),
         "{text}"
     );
 
@@ -244,12 +265,17 @@ fn spectra_are_streamed_and_read_back_unchanged() {
     assert_eq!(loaded.spectra.len(), 3);
     assert_eq!(loaded.spectra, source.spectra);
 
-    // Byte-identical to the plain whole-document writer, because the record
-    // blocks come from that writer and only the list count can differ.
-    // (`mzml::write` itself now writes indexed mzML, as the source default.)
+    // Byte-identical to the **indexed** whole-document writer, which is what
+    // `MzMLFile::store` and this consumer both are: the record blocks come from
+    // the same encoder, the header differs only in the list `count` this test
+    // announces correctly, and the index entries, `indexListOffset` and SHA-1
+    // `fileChecksum` fall out of the same byte positions. This is the strongest
+    // statement the streaming path can make - the file a caller gets from
+    // streaming is the file it would have got from holding the experiment.
     let mut whole = Vec::new();
-    mzml::write_with_options(&mut whole, &source, &Default::default()).unwrap();
+    mzml::write(&mut whole, &source).unwrap();
     assert_eq!(text, String::from_utf8(whole).unwrap());
+    assert!(text.contains("<indexedmzML "), "{text}");
 }
 
 #[test]
@@ -597,6 +623,268 @@ fn a_record_referencing_an_undeclared_header_element_is_refused() {
     let loaded = mzml::read(text.as_bytes()).unwrap();
     assert_eq!(loaded.spectra.len(), 2);
     assert_eq!(loaded.spectra[0].source_file.name, "other.RAW");
+}
+
+/// A second software with a name and a version, for the histories below.
+fn history(name: &str, version: &str) -> Vec<Arc<DataProcessing>> {
+    vec![Arc::new(DataProcessing {
+        software: Software {
+            name: name.to_owned(),
+            version: version.to_owned(),
+            ..Default::default()
+        },
+        actions: [ProcessingAction::Smoothing].into_iter().collect(),
+        ..Default::default()
+    })]
+}
+
+/// Two histories that differ only in their software render the same
+/// `dataProcessingList`, and must still not share one header.
+///
+/// The rendered `processingMethod` names its software by the history's
+/// *position* (`so_dp_<history>_<method>`), which is zero for the single
+/// record of every per-record render, so the `dataProcessingList` text of two
+/// such records is identical and only the `softwareList` differs. Without that
+/// list in the comparison the second record would be written silently under
+/// the first record's software — the reader would then report a
+/// `PeakPickerHiRes 1.0` step for data a `PeakPickerHiRes 2.0` produced.
+#[test]
+fn two_histories_differing_only_in_their_software_are_not_one_header() {
+    let mut first = spectrum("scan=1", 1.0, 100.0);
+    first.data_processing = history("PeakPickerHiRes", "1.0");
+    let mut second = spectrum("scan=2", 2.0, 200.0);
+    second.data_processing = history("PeakPickerHiRes", "2.0");
+
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new());
+    consumer.set_expected_size(2, 0).unwrap();
+    consumer.consume_spectrum(&mut first).unwrap();
+    let error = consumer.consume_spectrum(&mut second).unwrap_err();
+    assert!(matches!(error, Error::Unsupported(_)), "{error}");
+    assert_eq!(consumer.spectra_written(), 1);
+}
+
+// ---------------------------------------------------------------------------
+// ReferencePolicy: the source's dangling header references.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn the_reference_policy_defaults_to_refusing() {
+    let consumer = PlainMSDataWritingConsumer::plain(Vec::new());
+    assert_eq!(consumer.reference_policy(), ReferencePolicy::Checked);
+    let consumer = consumer.with_reference_policy(ReferencePolicy::SourceDangling);
+    assert_eq!(consumer.reference_policy(), ReferencePolicy::SourceDangling);
+}
+
+/// Under the source policy a record whose history the header does not declare
+/// is written with the reference the source writes: `dp_sp_<index>`, numbered
+/// by the record's position in the stream and naming nothing.
+///
+/// `MzMLHandler.cpp:5258-5272` with `dps_` holding the one entry
+/// `writeHeader_` filled it with: the search for a matching entry fails, so
+/// `dp_ref_num` keeps the record's own index. Executed against the C++ Release
+/// build on the `refs` fixture (`../oracle/p4-lowmemory`,
+/// `logs/closediff2_06.log`, case `refs_low`), where records 1 and 2 of five
+/// come out as `dataProcessingRef="dp_sp_1"` and `"dp_sp_2"`.
+#[test]
+fn the_source_policy_writes_the_dangling_processing_reference() {
+    let mut first = spectrum("scan=1", 1.0, 100.0);
+    first.data_processing = history("PeakPickerHiRes", "1.0");
+    let mut second = spectrum("scan=2", 2.0, 200.0);
+    second.data_processing = history("PeakPickerHiRes", "2.0");
+    let mut third = spectrum("scan=3", 3.0, 300.0);
+    third.data_processing = first.data_processing.clone();
+
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new())
+        .with_reference_policy(ReferencePolicy::SourceDangling);
+    consumer.set_expected_size(3, 0).unwrap();
+    consumer.consume_spectrum(&mut first).unwrap();
+    consumer.consume_spectrum(&mut second).unwrap();
+    consumer.consume_spectrum(&mut third).unwrap();
+    assert_eq!(consumer.spectra_written(), 3);
+    let text = written(consumer);
+    let tags: Vec<&str> = text
+        .match_indices("<spectrum id=")
+        .map(|(at, _)| {
+            let rest = &text[at..];
+            &rest[..rest.find('>').expect("a start tag")]
+        })
+        .collect();
+    assert_eq!(tags.len(), 3, "{text:.600}");
+    // The first record IS the header, so it needs no reference of its own.
+    assert!(!tags[0].contains("dataProcessingRef="), "{}", tags[0]);
+    assert!(
+        tags[1].ends_with(" dataProcessingRef=\"dp_sp_1\""),
+        "{}",
+        tags[1]
+    );
+    // The third record's history is the header's again, so the source writes
+    // no reference and it inherits the list's default.
+    assert!(!tags[2].contains("dataProcessingRef="), "{}", tags[2]);
+    // The identifier dangles, which is the whole point, and cannot collide
+    // with anything this writer declares.
+    assert!(
+        !text.contains("<dataProcessing id=\"dp_sp_1\""),
+        "{text:.600}"
+    );
+    assert!(text.contains("<dataProcessing id=\"dp_00000000000000000000\""));
+}
+
+/// The source renumbers a `sourceFileRef` by the record's position for **every**
+/// record after the first that carries one, whether or not the source file is
+/// the first record's (`MzMLHandler.cpp:5252-5255`, which does not look at
+/// `dps` or at the header at all).
+///
+/// Executed on the `refs` fixture: the C++ low-memory output carries
+/// `sourceFileRef="sf_sp_0"` … `"sf_sp_4"` over five records against a header
+/// declaring one record source file, and records 3 and 4, whose source file is
+/// **not** the first record's, get `sf_sp_3` and `sf_sp_4` just the same.
+#[test]
+fn the_source_policy_renumbers_every_later_source_file_reference() {
+    let one = SourceFile {
+        name: "part_one.RAW".into(),
+        path: "file://.".into(),
+        ..Default::default()
+    };
+    let two = SourceFile {
+        name: "part_two.RAW".into(),
+        path: "file://.".into(),
+        ..Default::default()
+    };
+    let mut first = spectrum("scan=1", 1.0, 100.0);
+    first.source_file = one.clone();
+    let mut second = spectrum("scan=2", 2.0, 200.0);
+    second.source_file = one;
+    let mut third = spectrum("scan=3", 3.0, 300.0);
+    third.source_file = two;
+
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new())
+        .with_reference_policy(ReferencePolicy::SourceDangling);
+    consumer.set_expected_size(3, 0).unwrap();
+    consumer.consume_spectrum(&mut first).unwrap();
+    consumer.consume_spectrum(&mut second).unwrap();
+    consumer.consume_spectrum(&mut third).unwrap();
+    let text = written(consumer);
+    assert!(text.contains(" sourceFileRef=\"sf_00000000000000000000\""));
+    assert!(text.contains(" sourceFileRef=\"sf_sp_1\""), "{text:.600}");
+    assert!(text.contains(" sourceFileRef=\"sf_sp_2\""), "{text:.600}");
+    assert!(!text.contains("<sourceFile id=\"sf_sp_"), "{text:.600}");
+}
+
+/// A chromatogram carries neither reference in the source
+/// (`MzMLHandler.cpp:5879` writes `id`, `index` and `defaultArrayLength` and
+/// nothing else), so a chromatogram whose history the header does not declare
+/// is written unchanged and inherits the list's default — the information is
+/// lost, silently, on both sides.
+#[test]
+fn the_source_policy_writes_a_chromatogram_without_any_reference() {
+    let mut first = chromatogram("chrom=1", 1.0);
+    first.data_processing = history("PeakPickerHiRes", "1.0");
+    let mut second = chromatogram("chrom=2", 2.0);
+    second.data_processing = history("PeakPickerHiRes", "2.0");
+
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new())
+        .with_reference_policy(ReferencePolicy::SourceDangling);
+    consumer.set_expected_size(0, 2).unwrap();
+    consumer.consume_chromatogram(&mut first).unwrap();
+    consumer.consume_chromatogram(&mut second).unwrap();
+    assert_eq!(consumer.chromatograms_written(), 2);
+    let text = written(consumer);
+    assert!(!text.contains("dp_sp_"), "{text:.600}");
+    assert!(!text.contains("sf_sp_"), "{text:.600}");
+    let loaded = mzml::read(text.as_bytes()).unwrap();
+    assert_eq!(loaded.chromatograms.len(), 2);
+    // Both now report the header's history, which is the first one's.
+    assert_eq!(loaded.chromatograms[1].data_processing.len(), 1);
+    assert_eq!(
+        loaded.chromatograms[1].data_processing[0].software.version,
+        "1.0"
+    );
+}
+
+/// A binary array's own `dataProcessingRef` is renumbered into the source's
+/// array namespace, so it dangles instead of resolving to the wrong entry.
+///
+/// The per-record render numbers each record's array histories from one again,
+/// so leaving this writer's `dp_<1>` in place would name whatever the *first*
+/// record's render declared at that position — a reference that resolves, to
+/// the wrong processing. The source writes `dp_sp_<s>_bi_<m>` there
+/// (`MzMLHandler.cpp:5567`, `:5597`, `:5806`), which names nothing from the
+/// second record on.
+#[test]
+fn the_source_policy_renumbers_an_array_history_reference() {
+    let smoothing = Arc::new(DataProcessing {
+        actions: [ProcessingAction::Smoothing].into_iter().collect(),
+        ..Default::default()
+    });
+    let calibration = Arc::new(DataProcessing {
+        actions: [ProcessingAction::MzCalibration].into_iter().collect(),
+        ..Default::default()
+    });
+    let with_array = |id: &str, history: Vec<Arc<DataProcessing>>| {
+        let mut record = spectrum(id, 1.0, 100.0);
+        record.float_data_arrays.push(DataArray {
+            name: "signal to noise".into(),
+            data: vec![1.0, 2.0],
+            metadata: Default::default(),
+            data_processing: history,
+        });
+        record
+    };
+
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new())
+        .with_reference_policy(ReferencePolicy::SourceDangling);
+    consumer.set_expected_size(2, 0).unwrap();
+    consumer
+        .consume_spectrum(&mut with_array("scan=1", vec![Arc::clone(&smoothing)]))
+        .unwrap();
+    consumer
+        .consume_spectrum(&mut with_array("scan=2", vec![Arc::clone(&calibration)]))
+        .unwrap();
+    let text = written(consumer);
+
+    // The first record's array reference is the one the header declares.
+    let declared = "dp_00000000000000000001";
+    assert!(
+        text.contains(&format!("<dataProcessing id=\"{declared}\"")),
+        "{text:.900}"
+    );
+    assert_eq!(
+        text.matches(&format!("dataProcessingRef=\"{declared}\""))
+            .count(),
+        1,
+        "only the first record may point at the header's array history\n{text:.900}"
+    );
+    // The second record's names nothing.
+    assert!(
+        text.contains("dataProcessingRef=\"dp_sp_1_bi_0\""),
+        "{text:.900}"
+    );
+    assert!(!text.contains("<dataProcessing id=\"dp_sp_1_bi_0\""));
+}
+
+/// The policy changes nothing when every record fits the header, which is the
+/// ordinary case: the bytes are the same under either policy.
+#[test]
+fn the_source_policy_is_inert_when_every_record_fits_the_header() {
+    let write = |policy| {
+        let mut consumer =
+            PlainMSDataWritingConsumer::plain(Vec::new()).with_reference_policy(policy);
+        consumer.set_expected_size(2, 1).unwrap();
+        consumer
+            .consume_spectrum(&mut spectrum("scan=1", 1.0, 100.0))
+            .unwrap();
+        consumer
+            .consume_spectrum(&mut spectrum("scan=2", 2.0, 200.0))
+            .unwrap();
+        consumer
+            .consume_chromatogram(&mut chromatogram("chrom=1", 1.0))
+            .unwrap();
+        written(consumer)
+    };
+    assert_eq!(
+        write(ReferencePolicy::Checked),
+        write(ReferencePolicy::SourceDangling)
+    );
 }
 
 #[test]

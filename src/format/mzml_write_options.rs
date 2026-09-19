@@ -206,6 +206,7 @@ fn add(a: usize, b: usize) -> Result<usize> {
 fn mul(a: usize, b: usize) -> Result<usize> {
     a.checked_mul(b).ok_or_else(resource)
 }
+#[derive(Debug)]
 struct Work {
     remaining: usize,
     bytes: usize,
@@ -305,6 +306,7 @@ impl Work {
         self.charge(mul(records, 4096)?, mul(records, 4096)?)
     }
 }
+#[derive(Debug)]
 struct Layout {
     indexed: bool,
     spectra: Vec<u64>,
@@ -439,6 +441,7 @@ pub(super) fn native_id(id: &str, index: usize, chrom: bool) -> Cow<'_, str> {
     }
 }
 /// How an [`Output`] treats record offsets, the index and the checksum.
+#[derive(Debug)]
 enum Mode<'a> {
     /// Plain mzML: no offsets, no index.
     Legacy,
@@ -459,14 +462,15 @@ enum Mode<'a> {
         chromatograms: Vec<u64>,
     },
 }
-pub(super) struct Output<'a, W> {
+#[derive(Debug)]
+pub(crate) struct Output<'a, W> {
     writer: W,
     position: u64,
     hash: Option<Sha1>,
     mode: Mode<'a>,
 }
 impl<W: Write> Output<'_, W> {
-    pub(super) fn legacy(writer: W) -> Self {
+    pub(crate) fn legacy(writer: W) -> Self {
         Self {
             writer,
             position: 0,
@@ -481,14 +485,37 @@ impl<W: Write> Output<'_, W> {
     ///
     /// Returns [`Error::InvalidValue`] when the offset tables (8 bytes per
     /// record) cannot be allocated.
-    pub(super) fn streamed(writer: W, experiment: &MSExperiment) -> Result<Self> {
+    pub(crate) fn streamed(writer: W, experiment: &MSExperiment) -> Result<Self> {
+        Self::streamed_with_capacity(
+            writer,
+            experiment.spectra.len(),
+            experiment.chromatograms.len(),
+        )
+    }
+    /// [`Output::streamed`] for a producer that knows the record counts but
+    /// not the records: the mzML writing consumer, which is told them by
+    /// `setExpectedSize` before the first record arrives.
+    ///
+    /// The reservations are ceilings, not promises: [`Output::record`] refuses
+    /// a record beyond them, so a document that turns out to hold more records
+    /// than it declared is refused instead of silently losing index entries.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the offset tables (8 bytes per
+    /// record) cannot be allocated.
+    pub(crate) fn streamed_with_capacity(
+        writer: W,
+        spectra_expected: usize,
+        chromatograms_expected: usize,
+    ) -> Result<Self> {
         let mut spectra = Vec::new();
         spectra
-            .try_reserve_exact(experiment.spectra.len())
+            .try_reserve_exact(spectra_expected)
             .map_err(|_| resource())?;
         let mut chromatograms = Vec::new();
         chromatograms
-            .try_reserve_exact(experiment.chromatograms.len())
+            .try_reserve_exact(chromatograms_expected)
             .map_err(|_| resource())?;
         Ok(Self {
             writer,
@@ -500,6 +527,19 @@ impl<W: Write> Output<'_, W> {
             },
         })
     }
+    /// The wrapped writer, after the document has been closed.
+    pub(crate) fn into_inner(self) -> W {
+        self.writer
+    }
+    /// Bytes written so far, which is the offset the next byte will take.
+    ///
+    /// A streaming producer that keeps its own offset table - the mzML writing
+    /// consumer, which learns its records one at a time and cannot reserve a
+    /// table for them up front - reads a record's offset here instead of
+    /// calling [`Output::record`].
+    pub(crate) fn position(&self) -> u64 {
+        self.position
+    }
     fn indexed(&self) -> bool {
         match &self.mode {
             Mode::Legacy => false,
@@ -508,7 +548,7 @@ impl<W: Write> Output<'_, W> {
             Mode::Stream { .. } => true,
         }
     }
-    pub(super) fn header(&mut self, prefix: &str) -> Result<()> {
+    pub(crate) fn header(&mut self, prefix: &str) -> Result<()> {
         self.write_all(b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")?;
         if self.indexed() {
             self.write_all(b"<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd\">\n")?;
@@ -516,7 +556,7 @@ impl<W: Write> Output<'_, W> {
         self.write_all(prefix.as_bytes())?;
         Ok(())
     }
-    pub(super) fn record(&mut self, chrom: bool) -> Result<()> {
+    pub(crate) fn record(&mut self, chrom: bool) -> Result<()> {
         let offsets = match &mut self.mode {
             Mode::Measure { layout, .. } if layout.indexed => {
                 if chrom {
@@ -557,7 +597,48 @@ impl<W: Write> Output<'_, W> {
         let offsets = if chrom { chromatograms } else { spectra };
         offsets.get(i).copied().ok_or_else(resource)
     }
-    pub(super) fn footer(&mut self, experiment: &MSExperiment) -> Result<()> {
+    pub(crate) fn footer(&mut self, experiment: &MSExperiment) -> Result<()> {
+        if !self.indexed() {
+            return Ok(());
+        }
+        let mut spectra = Vec::new();
+        spectra
+            .try_reserve_exact(experiment.spectra.len())
+            .map_err(|_| resource())?;
+        for (i, s) in experiment.spectra.iter().enumerate() {
+            spectra.push((
+                native_id(&s.native_id, i, false).into_owned(),
+                self.offset(false, i)?,
+            ));
+        }
+        let mut chromatograms = Vec::new();
+        chromatograms
+            .try_reserve_exact(experiment.chromatograms.len())
+            .map_err(|_| resource())?;
+        for (i, c) in experiment.chromatograms.iter().enumerate() {
+            chromatograms.push((
+                native_id(&c.native_id, i, true).into_owned(),
+                self.offset(true, i)?,
+            ));
+        }
+        self.footer_ids(&spectra, &chromatograms)
+    }
+    /// [`Output::footer`] for a caller that kept the identifier and offset of
+    /// every record it wrote rather than the records themselves.
+    ///
+    /// The identifiers must already be final - an empty one is not filled in
+    /// here, because the caller has to have written the same text into the
+    /// record's `id` attribute for the index to point at anything.
+    ///
+    /// # Errors
+    ///
+    /// The prepared-layout mismatch [`Output::footer`] reports, and any I/O
+    /// error.
+    pub(crate) fn footer_ids(
+        &mut self,
+        spectra: &[(String, u64)],
+        chromatograms: &[(String, u64)],
+    ) -> Result<()> {
         if !self.indexed() {
             return Ok(());
         }
@@ -570,30 +651,19 @@ impl<W: Write> Output<'_, W> {
                 return Err(invalid("prepared index offset changed"));
             }
         }
-        let count = usize::from(!experiment.spectra.is_empty())
-            + usize::from(!experiment.chromatograms.is_empty());
+        let count = usize::from(!spectra.is_empty()) + usize::from(!chromatograms.is_empty());
         writeln!(self, "<indexList count=\"{count}\">")?;
-        if !experiment.spectra.is_empty() {
+        if !spectra.is_empty() {
             writeln!(self, "<index name=\"spectrum\">")?;
-            for (i, s) in experiment.spectra.iter().enumerate() {
-                let offset = self.offset(false, i)?;
-                writeln!(
-                    self,
-                    "<offset idRef=\"{}\">{offset}</offset>",
-                    escape(&native_id(&s.native_id, i, false))
-                )?;
+            for (id, offset) in spectra {
+                writeln!(self, "<offset idRef=\"{}\">{offset}</offset>", escape(id))?;
             }
             writeln!(self, "</index>")?;
         }
-        if !experiment.chromatograms.is_empty() {
+        if !chromatograms.is_empty() {
             writeln!(self, "<index name=\"chromatogram\">")?;
-            for (i, c) in experiment.chromatograms.iter().enumerate() {
-                let offset = self.offset(true, i)?;
-                writeln!(
-                    self,
-                    "<offset idRef=\"{}\">{offset}</offset>",
-                    escape(&native_id(&c.native_id, i, true))
-                )?;
+            for (id, offset) in chromatograms {
+                writeln!(self, "<offset idRef=\"{}\">{offset}</offset>", escape(id))?;
             }
             writeln!(self, "</index>")?;
         }

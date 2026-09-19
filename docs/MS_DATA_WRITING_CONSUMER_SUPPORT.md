@@ -52,9 +52,10 @@ Every public and protected member of the three classes in the header.
 | `protected DataProcessingPtr additional_dataprocessing_` | `MSDataWritingConsumer::additional_data_processing() -> Option<&Arc<DataProcessing>>` | |
 | `protected Internal::MzMLValidator* validator_` | not ported: the crate's semantic validation is a separate operation behind the `mzml-validation` feature and is not run per record | |
 | `protected ExperimentalSettings settings_` | `MSDataWritingConsumer::settings()` | Read-only. |
-| `protected std::vector<std::vector<ConstDataProcessingPtr>> dps_` | not ported as a field: the equivalent state is the rendered `dataProcessingList` text and the set of identifiers it declares, both captured from the first record's header | See *Native differences*. |
+| `protected std::vector<std::vector<ConstDataProcessingPtr>> dps_` | not ported as a field: the equivalent state is the rendered `sourceFileList`, `dataProcessingList` and `softwareList` text and the set of identifiers the header declares, all captured from the first record's header | The comparison of a later record's render against that text is the source's `spec.getDataProcessing() != dps[0]`. See *Native differences*. |
+| *(no source counterpart)* | `MSDataWritingConsumer::with_reference_policy`, `reference_policy()`, `ReferencePolicy` | `Checked` refuses a record the header cannot number; `SourceDangling` writes the source's dangling reference. See *Native differences*. |
 | inherited `MzMLHandler::writeHeader_` / `writeSpectrum_` / `writeChromatogram_` | `crate::format::mzml::write_with_options`, driven once per record | The port composes rather than inherits. |
-| inherited `MzMLHandlerHelper::writeFooter_` | the document-closing tags in `finish()` | Index emission is not ported; see *Native differences*. |
+| inherited `MzMLHandlerHelper::writeFooter_` | the document-closing tags and the index in `finish()` | Indexed, as the inherited `write_index_` is. See *Indexed output*. |
 | inherited `ProgressLogger` base | not ported | |
 
 ### `PlainMSDataWritingConsumer`
@@ -141,19 +142,48 @@ constants, `CountPolicy`, `with_limits`, `with_write_options`,
   settings' own source files, so dropping them would renumber the reference and
   point it at the run's source file instead of the record's. A test with two
   run-level source files pins that the record reference stays `sf_…2`.
-- **Dangling references are refused, not written.** Only the first record
-  contributes to the header, so a later record needing a different
-  `sourceFileList` or `dataProcessingList` — its own, or one on an auxiliary
-  array — has nothing correct to point at. This port compares the rendered
-  declaration lists and the set of declared identifiers and returns
-  `Error::Unsupported`. The source emits the dangling reference:
-  `MzMLHandler.cpp:5254` builds `sourceFileRef="sf_sp_<n>"` from the running
-  index, and `MzMLHandler.cpp:5258-5272` falls back to
-  `dataProcessingRef="dp_sp_<n>"` when no entry in its one-element `dps` matches
-  — the gap the source's own `// TODO ... assert this here` at `.cpp:93` marks.
-  The consequence for a caller is real: a stream with per-record source files or
-  histories cannot be written by this port at all, and must go through the
-  whole-document writer.
+- **`ReferencePolicy`.** Only the first record contributes to the header, so a
+  later record needing a different `sourceFileList`, `dataProcessingList` or
+  `softwareList` — its own, or one on an auxiliary array — has nothing correct
+  to point at. The source emits a dangling reference:
+  `MzMLHandler.cpp:5252-5255` builds `sourceFileRef="sf_sp_<s>"` from the
+  running index for *every* record after the first that carries a source file,
+  and `:5258-5272` falls back to `dataProcessingRef="dp_sp_<s>"` when no entry
+  of its one-element `dps_` matches — the gap the source's own
+  `// TODO ... assert this here` at `.cpp:93` marks. Neither is valid mzML:
+  both attributes are `xs:IDREF` against `xs:ID` on `DataProcessingType` and
+  `SourceFileType` (`mzML_1_10.xsd:851`, `:856`), and `dataProcessingRef` on a
+  `spectrum` additionally carries `KEYREF_DPREF` against `KEY_DP_ID`
+  (`:1064-1071`, `:983-990`).
+
+  `ReferencePolicy::Checked`, the default, compares the rendered declaration
+  lists and the set of declared identifiers and returns `Error::Unsupported`
+  ("record needs a different mzML sourceFileList, dataProcessingList or
+  softwareList than the header written for the first record").
+  `ReferencePolicy::SourceDangling` writes what the source writes, in the
+  source's own spelling — a bare position in this writer's single zero-padded
+  namespace would *alias* a declared entry instead of dangling, turning a
+  reference that must not resolve into one resolving to the wrong entry. A
+  binary data array's own `dataProcessingRef` is renumbered the same way, into
+  the source's `dp_sp_<s>_bi_<m>` (`MzMLHandler.cpp:5567`, `:5597`, `:5806`,
+  `:5965`, `:5997`), for the same reason: the per-record render numbers each
+  record's array histories from one again, so leaving this writer's own
+  identifier would give a reference that *resolves*, to whatever the first
+  record's render declared at that position. The same pattern as
+  `CountPolicy`: refuse the lossy source behaviour by default, offer it
+  explicitly. `PeakPickerHiRes -processOption lowmemory` selects it,
+  because refusing stops that mode after five records on any `FileMerger`
+  output (`docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`, native difference 12,
+  where the whole rule is pinned against the executed C++). Under
+  `SourceDangling` the consumer stops checking references altogether, exactly
+  as the source never checks them.
+- **`softwareList` is part of the comparison.** A rendered `processingMethod`
+  names its software by the history's *position* (`so_dp_<history>_<method>`),
+  which is zero for the single record of every per-record render, so two
+  histories differing only in the software they name render an identical
+  `dataProcessingList` and differ only in `softwareList`. Without that list in
+  the comparison, the later record would be written silently under the first
+  record's software.
 - **An empty `native_id` is filled in** with `index=N` or `chromatogram=N`,
   which is what the whole-document writer would have produced at that position.
   The source writes the empty identifier through, giving a file whose records
@@ -170,15 +200,56 @@ constants, `CountPolicy`, `with_limits`, `with_write_options`,
 - **`finish()` instead of a destructor.** Dropping a consumer without calling it
   leaves the `run` and `mzML` elements unclosed. That is deliberate: a
   best-effort `Drop` would have to swallow the I/O failure on a file the caller
-  believes is complete.
+  believes is complete. The cost is that a caller which wants the source's
+  destructor semantics has to say so, on its failing paths as well as its
+  successful one — `PeakPickerHiRes -processOption lowmemory` calls `finish()`
+  on both and discards its result on the failing one, so that a run which ends
+  in an error still leaves the closed, indexed document `doCleanup_` would have
+  left (`docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`, *How a failure ends*).
 - **`NoopMSDataWritingConsumer` takes no path**, so asking for a consumer that
   does nothing cannot truncate an existing output — the source's does, through
   its base constructor.
-- **Indexed mzML is not offered.** `writeFooter_` can emit an index from
-  `spectra_offsets_`/`chromatograms_offsets_`; this port tracks no offsets.
 - **`MzMLValidator` and `ProgressLogger` are not threaded through.**
 - **Serial.** `MzMLHandler` carries `#pragma omp` in its binary encoding; this
   port introduces no threads, so a large record encodes on one core.
+
+## Indexed output
+
+The source consumer is an `MzMLHandler`, so it carries that handler's
+`PeakFileOptions`, whose `write_index_` defaults to true, and no TOPP consumer
+reaches those options to change it. `doCleanup_` therefore hands over to
+`MzMLHandlerHelper::writeFooter_`, which emits `indexList`, `indexListOffset`,
+`fileChecksum` and the closing `indexedmzML` from the offsets
+`writeSpectrum_`/`writeChromatogram_` recorded; `writeHeader_` opened the
+`indexedmzML` element to match. The retained upstream output
+`PeakPickerHiRes_output_lowMem.mzML`, which `TOPP_PeakPickerHiRes_3` compares
+against, is an `indexedmzML` accordingly.
+
+This port does the same, and reuses the whole-document writer's own output
+adapter (`mzml::IndexedOutput`, `src/format/mzml_write_options.rs`) rather than
+restating the layout: the adapter writes the `indexedmzML` opening after the XML
+declaration, counts bytes, and hashes them as they go. This consumer keeps its
+own identifier-and-offset table, because it learns its records one at a time and
+cannot reserve the adapter's table up front, and passes it to
+`Output::footer_ids` at the end.
+
+Two consequences are asserted by the tests:
+
+* **A streamed document is byte-identical to the document the whole-document
+  indexed writer would have produced** from the same records, when the announced
+  list counts are the real ones. The record blocks already came from that writer;
+  the index entries, `indexListOffset` and the SHA-1 `fileChecksum` fall out of
+  the same byte positions. The file a caller gets from streaming is the file it
+  would have got from holding the experiment.
+* **A consumer that received no record still writes nothing at all**, index
+  included, because `doCleanup_` writes a footer only when `started_writing_` is
+  set. The source's `writeFooter_` would emit a dummy `-1` index entry, but it is
+  never reached on that path.
+
+`fileChecksum` is the real SHA-1 over every byte through the opening
+`<fileChecksum>` tag, as the indexed mzML schema specifies and as this crate's
+whole-document writer already did; the source writes the constant `0` there
+(CPP-049).
 
 ## Checked boundaries and evidence
 
@@ -216,9 +287,17 @@ no format output was retained, so this is not a tier-1 differential.
 
 Two candidate defects are specific to this class: dangling `sf_sp_`/`dp_sp_`
 references in streamed files and a disabled class test whose constructor call
-no longer matches the class. Both are source-review findings; no full consumer
-C++ execution is claimed. The separate `SVOutStream` manipulator-state finding
-is recorded in [its support document](SV_OUT_STREAM_SUPPORT.md).
+no longer matches the class. The second is a source-review finding. The
+**first is now executed**: `PeakPickerHiRes -processOption lowmemory` reaches
+this class in the C++ Release build at the pins, and the differential in
+`../oracle/p4-lowmemory` measured the reference numbering of that build record
+by record on two purpose-built inputs — 105 dangling `dataProcessingRef`s over
+a 110-record `FileMerger` output, and every cell of the rule on a five-record
+fixture (`logs/closediff1_06.log`, `logs/closediff2_06.log`,
+`logs/closediff3_06.log`). `ReferencePolicy::SourceDangling` is pinned against
+those bytes; the C++ issue is requested separately. The separate `SVOutStream`
+manipulator-state finding is recorded in
+[its support document](SV_OUT_STREAM_SUPPORT.md).
 
 The earlier additional claim that `std::string + Size` narrows numeric IDs to
 characters is withdrawn. The pinned `StringUtils.h` supplies numeric string

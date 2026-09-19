@@ -15,6 +15,11 @@ pub use super::mzml_schema::{
 };
 #[path = "mzml_write_options.rs"]
 mod peak_writer;
+/// The indexed-mzML output the whole-document writer uses, reachable by the
+/// streaming [`MSDataWritingConsumer`](crate::format::ms_data_writing_consumer::MSDataWritingConsumer)
+/// so that both writers emit one definition of the `indexedmzML` wrapper, the
+/// index and the checksum. Crate-internal: it is a writer adapter, not API.
+pub(crate) use peak_writer::Output as IndexedOutput;
 pub use peak_writer::{
     PeakWriteLimits, PeakWriteReport, store_with_peak_options, store_with_peak_options_and_limits,
     write_with_peak_options, write_with_peak_options_and_limits,

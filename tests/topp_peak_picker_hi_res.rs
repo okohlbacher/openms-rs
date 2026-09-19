@@ -42,7 +42,7 @@ use openms::format::controlled_vocabulary::ControlledVocabulary;
 use openms::format::file_handler::FileHandler;
 use openms::format::file_types::FileType;
 use openms::format::mzml::{InputScaling, ReadOptions};
-use openms::kernel::MSExperiment;
+use openms::kernel::{MSExperiment, SpectrumType};
 use openms::metadata::{DataProcessing, MetaValue, ProcessingAction};
 use openms::system::file::TempDir;
 use std::path::{Path, PathBuf};
@@ -798,32 +798,576 @@ fn command_line_subsection_values_reach_the_picker() {
     );
 }
 
-/// `-processOption lowmemory` is refused explicitly until package P4 ports the
-/// source's transforming consumer, and nothing is written.
-#[test]
-fn low_memory_processing_is_refused_explicitly() {
+/// One `-processOption lowmemory` run into a temporary directory: the run, the
+/// bytes written and the guard. The bytes, not only the decoded experiment,
+/// because the mode's container is part of what it produces.
+fn low_memory(ini: Option<&str>, input: &Path, extra: &[&str]) -> (Run, Vec<u8>, LowMemoryRun) {
     let temp = workdir();
-    let out = temp.path().join("PeakPickerHiRes_3.tmp.mzML");
-    let outcome = run(&[
-        "-test",
-        "-ini",
-        &text(&fixture("PeakPickerHiRes_parameters.ini")),
+    let out = temp.path().join("PeakPickerHiRes_lowmem.tmp.mzML");
+    let ini_path = ini.map(|name| text(&fixture(name)));
+    let (input, out_text) = (text(input), text(&out));
+    let mut args = vec!["-test"];
+    if let Some(ini) = &ini_path {
+        args.extend(["-ini", ini]);
+    }
+    args.extend([
         "-in",
-        &text(&workflow_input(1)),
+        &input,
         "-out",
-        &text(&out),
+        &out_text,
         "-processOption",
         "lowmemory",
     ]);
-    assert_eq!(outcome.code, ExitCode::IncompatibleInputData);
+    args.extend_from_slice(extra);
+    let outcome = run(&args);
+    let bytes = std::fs::read(&out).unwrap_or_default();
+    (outcome, bytes, LowMemoryRun { out, _temp: temp })
+}
+
+/// The output path of a [`low_memory`] run and the guard that removes it.
+struct LowMemoryRun {
+    out: PathBuf,
+    _temp: TempDir,
+}
+
+/// The same run in the in-memory mode, for the mode-to-mode comparisons.
+fn in_memory_bytes(ini: Option<&str>, input: &Path, extra: &[&str]) -> Vec<u8> {
+    let temp = workdir();
+    let out = temp.path().join("PeakPickerHiRes_inmem.tmp.mzML");
+    let ini_path = ini.map(|name| text(&fixture(name)));
+    let (input, out_text) = (text(input), text(&out));
+    let mut args = vec!["-test"];
+    if let Some(ini) = &ini_path {
+        args.extend(["-ini", ini]);
+    }
+    args.extend(["-in", &input, "-out", &out_text]);
+    args.extend_from_slice(extra);
+    assert_eq!(run(&args).code, ExitCode::ExecutionOk);
+    std::fs::read(&out).unwrap()
+}
+
+/// `TOPP_PeakPickerHiRes_3` (test-data `0cb15f2` `topp/CMakeLists.txt:2533-2536`):
+/// workflow 1 through `-processOption lowmemory`, compared against the retained
+/// `PeakPickerHiRes_output_lowMem.mzML`.
+///
+/// The registration exists because of one attribute. Upstream's own comment on
+/// it reads: the output "SHOULD be identical to 'PeakPickerHiRes_output.mzML',
+/// but due to a missing 'Dataprocessing' entry (which is not known when writing
+/// the mzML header), we need an extra output file". The two retained C++ files
+/// differ in exactly one byte-length-preserving place, `dataProcessingList
+/// count="3"` against `count="2"`, which
+/// [`the_two_retained_cpp_outputs_differ_only_in_the_data_processing_count`]
+/// pins; the C++ count is `max(1, dps.size() + float data arrays of the whole
+/// experiment)` (`MzMLHandler.cpp:5160-5170`) and the consumer's header sees a
+/// one-record dummy map, so it counts one record's arrays. This port's writer
+/// counts the processing histories it writes, so that artifact has no analogue
+/// here and both modes write the same count - a native difference of the mzML
+/// writer, not of this mode.
+///
+/// Nothing reaches standard output: the per-MS-level summary belongs to
+/// `pickExperiment`, which this path never calls.
+#[test]
+fn topp_peak_picker_hi_res_3_matches_the_retained_low_memory_output() {
+    let (outcome, bytes, produced_at) = low_memory(
+        Some("PeakPickerHiRes_parameters.ini"),
+        &workflow_input(1),
+        &[],
+    );
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.out, VERSION_WARNING_3_6_0);
+    assert_eq!(outcome.err, "");
+    let produced = load(&produced_at.out);
+    // The C++ Release build at the pins reproduces this retained file byte for
+    // byte on this command line (oracle `p4-lowmemory`, case `w1_lowmem`,
+    // sha256 `91b0fdb0...`), so comparing against it is comparing against that
+    // build's own output.
+    let expected = load(fixture("PeakPickerHiRes_output_lowMem.mzML"));
+    assert_decoded_equal(&produced, &expected);
+    assert_eq!(history_lengths(&produced), vec![6; 5]);
+    assert_final_test_mode_record(&produced);
+    // And, as upstream's comment wanted, identical to the in-memory run.
+    assert_eq!(
+        bytes,
+        in_memory_bytes(
+            Some("PeakPickerHiRes_parameters.ini"),
+            &workflow_input(1),
+            &[]
+        )
+    );
+}
+
+/// `TOPP_PeakPickerHiRes_4` (`CMakeLists.txt:2538-2540`): workflow 2, five
+/// chromatograms and no spectra, through the low-memory mode. Upstream compares
+/// this one against the **in-memory** output file, so there the two modes agree
+/// in the source as well; `processChromatogram_` picks every chromatogram
+/// unconditionally, exactly as `pickExperiment` does.
+#[test]
+fn topp_peak_picker_hi_res_4_matches_the_in_memory_retained_output() {
+    let (outcome, bytes, produced_at) = low_memory(
+        Some("PeakPickerHiRes_parameters.ini"),
+        &workflow_input(2),
+        &[],
+    );
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.out, VERSION_WARNING_3_6_0);
+    assert_eq!(outcome.err, "");
+    let produced = load(&produced_at.out);
+    assert_decoded_equal(&produced, &load(fixture("PeakPickerHiRes_2_output.mzML")));
+    assert_eq!(history_lengths(&produced), vec![2; 5]);
+    assert_eq!(
+        produced
+            .chromatograms
+            .iter()
+            .map(|c| c.peaks.len())
+            .collect::<Vec<_>>(),
+        vec![2, 4, 1, 2, 3]
+    );
+    assert_eq!(
+        bytes,
+        in_memory_bytes(
+            Some("PeakPickerHiRes_parameters.ini"),
+            &workflow_input(2),
+            &[]
+        )
+    );
+}
+
+/// The retained C++ pair, byte for byte: the low-memory output differs from the
+/// in-memory one in the `dataProcessingList count` attribute and nowhere else.
+///
+/// This pins the source divergence the registration exists for, from the two
+/// files upstream retained, without depending on either implementation.
+#[test]
+fn the_two_retained_cpp_outputs_differ_only_in_the_data_processing_count() {
+    let in_memory = std::fs::read(fixture("PeakPickerHiRes_output.mzML")).unwrap();
+    let low_memory = std::fs::read(fixture("PeakPickerHiRes_output_lowMem.mzML")).unwrap();
+    assert_eq!(in_memory.len(), low_memory.len());
+    let differing: Vec<usize> = in_memory
+        .iter()
+        .zip(&low_memory)
+        .enumerate()
+        .filter(|(_, (a, b))| a != b)
+        .map(|(i, _)| i)
+        .collect();
+    assert_eq!(differing.len(), 1, "{differing:?}");
+    let at = differing[0];
+    assert_eq!((in_memory[at], low_memory[at]), (b'3', b'2'));
+    let context = &in_memory[at.saturating_sub(30)..at + 2];
     assert!(
-        outcome.err.contains(
-            "Error: unsupported: PeakPickerHiRes -processOption lowmemory is not ported yet"
+        String::from_utf8_lossy(context).contains("dataProcessingList count=\""),
+        "{}",
+        String::from_utf8_lossy(context)
+    );
+}
+
+/// The mode writes indexed mzML, as `doCleanup_` does through
+/// `MzMLHandlerHelper::writeFooter_` with the consumer's inherited
+/// `write_index_`: the retained `PeakPickerHiRes_output_lowMem.mzML` is an
+/// `indexedmzML`, and so is this.
+///
+/// Every offset in the index is checked to land on the record element it names,
+/// which is the property a downstream random-access reader depends on and the
+/// reason the mode is worth using on a file too large to hold.
+#[test]
+fn the_low_memory_output_is_indexed_and_its_offsets_land_on_the_records() {
+    let retained = std::fs::read(fixture("PeakPickerHiRes_output_lowMem.mzML")).unwrap();
+    assert!(String::from_utf8_lossy(&retained).contains("<indexedmzML "));
+
+    let (outcome, bytes, _produced_at) = low_memory(
+        Some("PeakPickerHiRes_parameters.ini"),
+        &workflow_input(1),
+        &[],
+    );
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    let document = String::from_utf8(bytes).unwrap();
+    assert!(document.contains("<indexedmzML "), "{document}");
+    assert!(
+        document.ends_with("</fileChecksum>\n</indexedmzML>\n"),
+        "{}",
+        &document[document.len() - 120..]
+    );
+    let entries: Vec<(&str, usize)> = document
+        .lines()
+        .filter_map(|line| {
+            let rest = line.strip_prefix("<offset idRef=\"")?;
+            let (id, rest) = rest.split_once("\">")?;
+            let offset = rest.strip_suffix("</offset>")?.parse().ok()?;
+            Some((id, offset))
+        })
+        .collect();
+    assert_eq!(entries.len(), 5, "{entries:?}");
+    for (id, offset) in entries {
+        let at = &document[offset..];
+        assert!(
+            at.starts_with("<spectrum "),
+            "{id} at {offset}: {:?}",
+            &at[..40]
+        );
+        assert!(at.contains(&format!("id=\"{id}\"")), "{id} at {offset}");
+    }
+}
+
+/// **The divergence that matters.** Automatic mode in the low-memory path tests
+/// the *stored* spectrum type only - `s.getType()`, the `SpectrumSettings`
+/// accessor `MSSpectrum` re-exposes (`MSSpectrum.h:655`) - where `pickExperiment`
+/// tests `getType(true)`, which falls through to the data-processing history and
+/// then to `PeakTypeEstimator` (`PeakPickerHiRes.cpp:119-124` against `510`).
+///
+/// Workflow 6's input carries `MS:1000525` and neither `MS:1000127` nor
+/// `MS:1000128`, so its stored type is unknown while the estimator calls its 33
+/// samples centroided. The in-memory mode therefore copies it and reports
+/// `0 / 1`; the low-memory mode picks it, to four centroids. Two different
+/// files from one input, and the source specifies both.
+#[test]
+fn low_memory_automatic_mode_tests_only_the_stored_spectrum_type() {
+    let (outcome, in_memory, _temp) = {
+        let (outcome, produced, temp) = workflow(None, &workflow_input(6), &[]);
+        (outcome, produced, temp)
+    };
+    assert_eq!(
+        outcome.out,
+        "#Spectra that needed to and could be picked by MS-level:\n  MS-level 1: 0 / 1\n"
+    );
+    assert_eq!(in_memory.spectra.len(), 1);
+    assert_eq!(in_memory.spectra[0].peaks.len(), 33);
+    assert_eq!(in_memory.spectra[0].spectrum_type, SpectrumType::Unknown);
+
+    let (outcome, _bytes, produced_at) = low_memory(None, &workflow_input(6), &[]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.out, "");
+    let low = load(&produced_at.out);
+    assert_eq!(low.spectra.len(), 1);
+    assert_eq!(low.spectra[0].peaks.len(), 4);
+    assert_eq!(low.spectra[0].spectrum_type, SpectrumType::Centroid);
+    // The C++ Release build's own output on this command line, which is what
+    // makes this a divergence of the source rather than a claim about it.
+    assert_decoded_equal(&low, &load(fixture("oracle_lowmem_w6_auto.mzML")));
+}
+
+/// The low-memory path runs `pp.pick` with no spectrum-type check at all, so a
+/// centroided spectrum on a selected MS level is picked instead of refused and
+/// **`-force` is inert**: `check_spectrum_type` is read only by the experiment
+/// entry points. The in-memory mode on the same input and parameters exits 8
+/// with the source's message.
+#[test]
+fn low_memory_never_refuses_centroided_data_and_force_is_inert() {
+    let refusal = run(&[
+        "-test",
+        "-in",
+        &text(&workflow_input(6)),
+        "-out",
+        &text(&workdir().path().join("unused.mzML")),
+        "-algorithm:ms_levels",
+        "1",
+    ]);
+    assert_eq!(refusal.code, ExitCode::UnknownError);
+    assert_eq!(
+        refusal.err,
+        "Error: Unexpected internal error (Error: Centroided data provided but profile spectra expected.)\n"
+    );
+
+    let (outcome, without_force, without_force_at) =
+        low_memory(None, &workflow_input(6), &["-algorithm:ms_levels", "1"]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.err, "");
+    let picked = load(&without_force_at.out);
+    assert_eq!(picked.spectra[0].peaks.len(), 4);
+    assert_decoded_equal(&picked, &load(fixture("oracle_lowmem_w6_auto.mzML")));
+
+    let (outcome, with_force, _with_force_at) = low_memory(
+        None,
+        &workflow_input(6),
+        &["-algorithm:ms_levels", "1", "-force"],
+    );
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(with_force, without_force);
+}
+
+/// None of the in-memory mode's input phases exists on this path, in the source
+/// or here: the per-peak ion mobility warning, the
+/// [`ExitCode::IncompatibleInputData`] for an input without spectra and
+/// chromatograms, and the two sortedness refusals are all `main_` code that
+/// `doLowMemAlgorithm` returns before. Each input below is one the in-memory
+/// mode reacts to; the low-memory mode writes a file and exits 0 on every one.
+#[test]
+fn low_memory_runs_none_of_the_in_memory_input_checks() {
+    // Per-peak ion mobility: the in-memory mode warns once on standard error.
+    let warned = run(&[
+        "-test",
+        "-in",
+        &text(&fixture("p3_im_peak.mzML")),
+        "-out",
+        &text(&workdir().path().join("im.mzML")),
+    ]);
+    assert!(warned.err.contains("IM_PEAK"), "{}", warned.err);
+    let (outcome, bytes, im_at) = low_memory(None, &fixture("p3_im_peak.mzML"), &[]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.err, "");
+    assert!(!bytes.is_empty());
+    // Silent, and the four centroids the C++ Release build writes here - the
+    // automatic-mode divergence again, on a second input: the in-memory mode
+    // copies this spectrum's 33 samples.
+    assert_decoded_equal(
+        &load(&im_at.out),
+        &load(fixture("oracle_lowmem_im_peak.mzML")),
+    );
+
+    // An input without spectra and chromatograms: the in-memory mode exits 11.
+    let empty = run(&[
+        "-test",
+        "-in",
+        &text(&fixture("empty.mzML")),
+        "-out",
+        &text(&workdir().path().join("empty.mzML")),
+    ]);
+    assert_eq!(empty.code, ExitCode::IncompatibleInputData);
+    let (outcome, bytes, _produced_at) = low_memory(None, &fixture("empty.mzML"), &[]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.err, "");
+    // No record ever reached the consumer, so no header was written either: the
+    // source's `doCleanup_` writes a footer only when `started_writing_` is set.
+    assert!(bytes.is_empty(), "{}", String::from_utf8_lossy(&bytes));
+
+    // Unsorted records: the in-memory mode's two sortedness refusals are
+    // unreachable through its loader, which sorts every record by position
+    // (`unsorted_records_are_sorted_on_load_and_picked`). The low-memory path
+    // does not even contain the checks, and its reader sorts the same way, so
+    // the two modes agree here rather than differing.
+    for (name, ini, oracle) in [
+        (
+            "p3_unsorted_chromatogram.mzML",
+            "PeakPickerHiRes_parameters.ini",
+            "PeakPickerHiRes_2_output.mzML",
         ),
+        (
+            "p3_unsorted_spectrum.mzML",
+            "PeakPickerHiRes_6.ini",
+            "oracle_lowmem_unsorted_spectrum.mzML",
+        ),
+    ] {
+        let (outcome, bytes, unsorted_at) = low_memory(Some(ini), &fixture(name), &[]);
+        assert_eq!(
+            outcome.code,
+            ExitCode::ExecutionOk,
+            "{name}: {}",
+            outcome.err
+        );
+        assert_eq!(outcome.err, "", "{name}");
+        assert_eq!(
+            bytes,
+            in_memory_bytes(Some(ini), &fixture(name), &[]),
+            "{name}"
+        );
+        assert_decoded_equal(&load(&unsorted_at.out), &load(fixture(oracle)));
+    }
+}
+
+/// The mode is serial - the source's consumer dispatch loop hands over one
+/// record at a time and this port's reader does the same - so `-threads` reaches
+/// nothing on this path and the written bytes cannot depend on it. Pinned at 1,
+/// 8 and 32, on an input with spectra and on one with chromatograms.
+#[test]
+fn the_low_memory_output_is_bit_identical_at_every_thread_count() {
+    for input in [workflow_input(1), workflow_input(2)] {
+        let mut reference: Option<Vec<u8>> = None;
+        for threads in ["1", "8", "32"] {
+            let (outcome, bytes, _produced_at) = low_memory(
+                Some("PeakPickerHiRes_parameters.ini"),
+                &input,
+                &["-threads", threads],
+            );
+            assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+            match &reference {
+                None => reference = Some(bytes),
+                Some(first) => assert_eq!(first, &bytes, "{input:?} at -threads {threads}"),
+            }
+        }
+    }
+}
+
+/// A file derived from a retained input by one stated rule, in a directory of
+/// its own that the returned guard removes.
+///
+/// The rules below are byte for byte the ones the C++ differential ran on
+/// (`../oracle/p4-lowmemory/fixdiff_06.sh`), so the two implementations are
+/// compared on the same bytes without a new fixture. The retained inputs are
+/// pure ASCII despite their `ISO-8859-1` declaration, which is why a text rule
+/// is a byte rule here.
+fn derived(name: &str, from: &Path, rule: impl FnOnce(&str) -> String) -> (PathBuf, TempDir) {
+    let temp = workdir();
+    let path = temp.path().join(name);
+    let source = std::fs::read(from).unwrap();
+    let source = String::from_utf8(source).expect("the retained inputs are ASCII");
+    std::fs::write(&path, rule(&source)).unwrap();
+    (path, temp)
+}
+
+/// A corrupt input is a corrupt input in **both** process options.
+///
+/// `doLowMemAlgorithm` catches nothing (`PeakPickerHiRes.cpp:170-186`), so a
+/// reader failure leaves `MzMLFile::transform` and reaches `TOPPBase::main`,
+/// whose `ParseError` arm writes `Error: Unable to read file (…)` and returns
+/// `INPUT_FILE_CORRUPT` (`TOPPBase.cpp:460-465`) — the same arm the in-memory
+/// mode's `loadExperiment` failures take. The exit code and the diagnostic are
+/// therefore the mode's, not the reader's caller's.
+///
+/// Executed against the C++ Release build on `ibminode06`
+/// (`../oracle/p4-lowmemory`, `logs/fixdiff_06.log`, cases `trunc`, `garbage`
+/// and `badb64`): on each input below the C++ tool exits 3 in both modes. The
+/// low-memory runs leave a zero-byte output behind — the consumer's constructor
+/// created the file before anything was read — and the in-memory runs leave
+/// none, on both sides.
+#[test]
+fn a_corrupt_input_exits_3_in_both_modes() {
+    for (name, rule) in [
+        // Truncated inside the third record: neither pass can finish the XML.
+        (
+            "trunc.mzML",
+            (|s: &str| s[..215_000].to_owned()) as fn(&str) -> String,
+        ),
+        // Not XML at all.
+        ("garbage.mzML", |_: &str| {
+            "this is not xml at all\n".repeat(100)
+        }),
+        // Well-formed XML whose third record carries base64 of a length no
+        // decoder accepts. The C++ first pass steps over record contents
+        // (`skip_spectrum_`, `MzMLHandler.cpp:966-974`), so the C++ low-memory
+        // run reaches this only in its second pass and still writes nothing:
+        // the refusal comes before the first record is handed over.
+        ("bad_base64.mzML", |s: &str| {
+            let record = s.find("<spectrum id=\"scan=12665\" index=\"2\"").unwrap();
+            let binary = s[record..].find("<binary>").unwrap() + record + "<binary>".len();
+            format!("{}!!!{}", &s[..binary], &s[binary..])
+        }),
+    ] {
+        let (input, _temp) = derived(name, &workflow_input(1), rule);
+        let (outcome, bytes, produced_at) = low_memory(None, &input, &[]);
+        assert_eq!(
+            outcome.code,
+            ExitCode::InputFileCorrupt,
+            "{name}: {}",
+            outcome.err
+        );
+        assert!(
+            outcome.err.starts_with("Error: Unable to read file ("),
+            "{name}: {}",
+            outcome.err
+        );
+        // The file the consumer's constructor created is still there and still
+        // empty: no record reached the writer, so `doCleanup_` wrote no footer.
+        assert!(produced_at.out.exists(), "{name}");
+        assert!(bytes.is_empty(), "{name}");
+
+        let temp = workdir();
+        let out = temp.path().join("in_memory.tmp.mzML");
+        let in_memory = run(&["-test", "-in", &text(&input), "-out", &text(&out)]);
+        assert_eq!(in_memory.code, ExitCode::InputFileCorrupt, "{name}");
+        assert!(
+            in_memory.err.starts_with("Error: Unable to read file ("),
+            "{name}: {}",
+            in_memory.err
+        );
+        assert!(!out.exists(), "{name}");
+    }
+}
+
+/// The one place this port is stricter than the source, pinned.
+///
+/// A `spectrumList count` that overstates the records that follow is written
+/// silently by the source: the header carries the first pass's count, nothing
+/// re-checks it, and its own class note says a wrong count "will lead to an
+/// inconsistent mzML". The consumer's `CountPolicy::Checked` default is kept
+/// here, so the run ends with an error — **after** the document has been closed
+/// and indexed, so the file left behind is complete and readable, carrying the
+/// same lying count the source writes.
+///
+/// Executed on `ibminode06` against the C++ Release build on this exact input
+/// (`../oracle/p4-lowmemory`, `logs/fixdiff_06.log`, case `badcount`): the C++
+/// low-memory run exits 0 and writes `<spectrumList count="9">` over five
+/// records. Both in-memory runs are unaffected.
+#[test]
+fn a_low_memory_run_reports_a_lying_list_count_over_a_closed_document() {
+    let (input, _temp) = derived("bad_count.mzML", &workflow_input(1), |s| {
+        s.replacen("<spectrumList count=\"5\"", "<spectrumList count=\"9\"", 1)
+    });
+    let (outcome, bytes, produced_at) = low_memory(None, &input, &[]);
+    assert_eq!(outcome.code, ExitCode::UnknownError, "{}", outcome.err);
+    assert_eq!(
+        outcome.err,
+        "Error: Unexpected internal error (invalid value: mzML list counts announce (9, 0) \
+         records but (5, 0) were written)\n"
+    );
+    // Closed, indexed, complete - and announcing the count the source announces.
+    let written = String::from_utf8(bytes).unwrap();
+    assert!(
+        written.contains("<spectrumList count=\"9\""),
+        "{written:.400}"
+    );
+    assert!(written.contains("</spectrumList>\n</run></mzML>\n"));
+    assert!(written.ends_with("</indexedmzML>\n"));
+    let reloaded = load(&produced_at.out);
+    assert_eq!(reloaded.spectra.len(), 5);
+
+    // The in-memory mode never sees the declared count as a promise.
+    let temp = workdir();
+    let out = temp.path().join("in_memory.tmp.mzML");
+    let in_memory = run(&["-test", "-in", &text(&input), "-out", &text(&out)]);
+    assert_eq!(in_memory.code, ExitCode::ExecutionOk, "{}", in_memory.err);
+    assert_eq!(load(&out).spectra.len(), 5);
+}
+
+/// A failure after the first record still leaves a closed document.
+///
+/// The source's `~MSDataWritingConsumer` calls `doCleanup_` on every path
+/// (`MSDataWritingConsumer.cpp:37-40`), which closes the open list and writes
+/// the footer whenever writing started (`:151-173`), so a source run that
+/// throws after the first record still leaves a closed, indexed document.
+/// `MSDataWritingConsumer::finish` is this port's destructor, and
+/// `run_low_memory` calls it on the failing path too.
+///
+/// `SignalToNoise:auto_mode 1` with `ms_levels 2` is the reachable case: the
+/// MS1 spectrum of workflow 1 is copied and written, and the first MS2 spectrum
+/// is the first record the picker touches, so the refusal of native difference
+/// 2 arrives with one record already on disc. The source cannot be compared
+/// here: the same command line on `ibminode06` writes all five records and then
+/// dies of SIGSEGV (exit 139), leaving 404,915 bytes with no index and no
+/// footer, because a signal runs no destructor (oracle `PPHR_auto_mode_1`, and
+/// `../oracle/p4-lowmemory/logs/fixdiff_06.log` case `am1`). The assertions
+/// below are therefore on the source's `doCleanup_` contract rather than on
+/// executed C++ bytes.
+#[test]
+fn a_failure_after_the_first_record_still_closes_the_document() {
+    let (outcome, bytes, produced_at) = low_memory(
+        None,
+        &workflow_input(1),
+        &[
+            "-algorithm:ms_levels",
+            "2",
+            "-algorithm:signal_to_noise",
+            "1",
+            "-algorithm:SignalToNoise:auto_mode",
+            "1",
+        ],
+    );
+    assert_eq!(
+        outcome.code,
+        ExitCode::IncompatibleInputData,
         "{}",
         outcome.err
     );
-    assert!(!out.exists());
+    assert!(outcome.err.contains("auto_mode 1"), "{}", outcome.err);
+    let written = String::from_utf8(bytes).unwrap();
+    assert!(
+        written.contains("</spectrumList>\n</run></mzML>\n"),
+        "truncated output"
+    );
+    assert!(written.ends_with("</indexedmzML>\n"), "no footer");
+    // One record written, under the count the first pass declared: a streaming
+    // writer cannot take back what it has already sent.
+    assert!(written.contains("<spectrumList count=\"5\""));
+    let reloaded = load(&produced_at.out);
+    assert_eq!(reloaded.spectra.len(), 1);
+    assert_eq!(reloaded.spectra[0].native_id, "scan=12663");
 }
 
 /// P3 oracle `empty`: an mzML without spectra and chromatograms (the C1 derived
@@ -1210,5 +1754,279 @@ fn the_tool_load_options_admit_an_input_the_library_defaults_refuse() {
         for (centroid, expected) in centroids.iter().zip([400.0, 410.0, 420.0]) {
             assert!((centroid - expected).abs() < 1e-3, "{centroid} {expected}");
         }
+    }
+}
+
+/// The new fixtures this round adds, in `tests/data/peak_picking/`.
+fn close_fixture(name: &str) -> PathBuf {
+    data("peak_picking").join(name)
+}
+
+/// The record start tags of an mzML document, in order.
+fn start_tags(text: &str) -> Vec<String> {
+    text.match_indices("<spectrum id=")
+        .map(|(at, _)| {
+            let rest = &text[at..];
+            rest[..rest.find('>').expect("a start tag")].to_owned()
+        })
+        .collect()
+}
+
+/// Native difference 12, now reproduced rather than refused: the low-memory
+/// mode writes the source's dangling header references.
+///
+/// Only the first record reaches the header, so a later record's
+/// `dataProcessing` cannot be numbered against it. The source numbers the
+/// reference by the record's position in the stream instead
+/// (`MzMLHandler.cpp:5258-5272`, `dps_` holding one entry), and a
+/// `sourceFileRef` by the same number for **every** record after the first
+/// that carries one (`:5252-5255`, which never consults the header).
+/// [`ReferencePolicy::SourceDangling`] reproduces both, because refusing would
+/// stop the mode on any `FileMerger` output.
+///
+/// Executed against the C++ Release build on `ibminode06` on this exact
+/// fixture (`../oracle/p4-lowmemory`, `logs/closediff2_06.log` section A and
+/// `logs/closediff3_06.log` section A). The C++ low-memory output's five start
+/// tags carry, in order:
+///
+/// | record | `sourceFileRef` | `dataProcessingRef` |
+/// | --- | --- | --- |
+/// | 0 | `sf_sp_0`, declared | `dp_sp_0`, declared |
+/// | 1 | `sf_sp_1` | `dp_sp_1` |
+/// | 2 | `sf_sp_2` | `dp_sp_2` |
+/// | 3 | `sf_sp_3` | none |
+/// | 4 | `sf_sp_4` | none |
+///
+/// against a header declaring one record `sourceFile` and one
+/// `dataProcessing` — six dangling references. This port writes the same
+/// references for records 1 to 4, in the source's own spelling; the first
+/// record's point at the header entries this writer's own scheme names.
+#[test]
+fn the_low_memory_mode_writes_the_sources_dangling_references() {
+    let input = close_fixture("PeakPickerHiRes_refs_input.mzML");
+    let (outcome, bytes, produced_at) = low_memory(None, &input, &[]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    let written = String::from_utf8(bytes).unwrap();
+    let tags = start_tags(&written);
+    assert_eq!(tags.len(), 5, "{written:.800}");
+    // Record 0 establishes the header, so its references are the ones the
+    // header declares and it needs no `dataProcessingRef` of its own.
+    assert!(
+        tags[0].contains(" sourceFileRef=\"sf_00000000000000000003\""),
+        "{}",
+        tags[0]
+    );
+    assert!(!tags[0].contains("dataProcessingRef="), "{}", tags[0]);
+    for (index, processing) in [(1usize, true), (2, true), (3, false), (4, false)] {
+        let tag = &tags[index];
+        assert!(
+            tag.contains(&format!(" sourceFileRef=\"sf_sp_{index}\"")),
+            "{tag}"
+        );
+        assert_eq!(
+            tag.contains(&format!(" dataProcessingRef=\"dp_sp_{index}\"")),
+            processing,
+            "{tag}"
+        );
+        assert_eq!(tag.contains("dataProcessingRef="), processing, "{tag}");
+    }
+    // Every one of those identifiers dangles: nothing declares it.
+    for dangling in [
+        "sf_sp_1", "sf_sp_2", "sf_sp_3", "sf_sp_4", "dp_sp_1", "dp_sp_2",
+    ] {
+        assert!(
+            !written.contains(&format!(" id=\"{dangling}\"")),
+            "{dangling} is declared"
+        );
+    }
+    // The document is complete, and the records carry the peaks the in-memory
+    // mode produces — compared through the text, because this port's reader
+    // will not read the file back; see below.
+    assert!(written.ends_with("</indexedmzML>\n"));
+    let temp = workdir();
+    let out = temp.path().join("refs_in_memory.tmp.mzML");
+    let in_memory = run(&["-test", "-in", &text(&input), "-out", &text(&out)]);
+    assert_eq!(in_memory.code, ExitCode::ExecutionOk, "{}", in_memory.err);
+    let mem = std::fs::read_to_string(&out).unwrap();
+    assert_eq!(
+        binaries(&written),
+        binaries(&mem),
+        "the encoded arrays differ"
+    );
+
+    // And this is what the dangling `sourceFileRef` costs: this port's reader
+    // refuses an unregistered one under either dangling-reference policy
+    // (`src/format/mzml_header/read.rs:113-121`), so it will not read back the
+    // file it has just written — exactly as it will not read the C++ output of
+    // the same run. The source's reader warns once per reference and carries
+    // on: measured on `ibminode06`, `FileInfo` on the C++ low-memory output of
+    // this fixture exits 0 saying `Error: unregistered source file reference
+    // sf_sp_1.` (`../oracle/p4-lowmemory`, `logs/closediff2_06.log` section B).
+    // Raised for the lead rather than decided here, because the reader's
+    // strictness is an earlier lane's documented choice.
+    let error = FileHandler::load_experiment_with_read_options(
+        &produced_at.out,
+        &[FileType::MzMl],
+        &PeakFileOptions::default(),
+        &PeakPickerHiRes::read_options(),
+    )
+    .unwrap_err();
+    assert!(
+        error.to_string().contains("unresolved sourceFileRef"),
+        "{error}"
+    );
+}
+
+/// Every `<binary>` payload of a document, in order: the encoded arrays, which
+/// are the same in both modes whatever the header around them says.
+fn binaries(text: &str) -> Vec<&str> {
+    text.match_indices("<binary>")
+        .map(|(at, _)| {
+            let rest = &text[at + "<binary>".len()..];
+            &rest[..rest.find("</binary>").expect("a closed array")]
+        })
+        .collect()
+}
+
+/// Where a low-memory run fails, it leaves the batches it had already sent.
+///
+/// Both implementations read in batches of `max_data_pool_size`, the 100 of
+/// `PeakFileOptions.h:248`, and neither counting pass reads record contents —
+/// the source's runs with `LD_RAWCOUNTS` and `skip_spectrum_`
+/// (`MzMLHandler.cpp:966-974`), this port's sets `state.raw` and a
+/// `skip_depth` at the list tag (`src/format/mzml_counts.rs:859`, `:465-469`).
+/// A record that is well-formed XML but wrong inside is therefore discovered
+/// only in the second pass, with `floor(index / 100) * 100` records already
+/// written, and what stays on disc is a closed, indexed, **reloadable**
+/// document announcing the count the first pass declared.
+///
+/// Executed on `ibminode06` on this fixture with four corruptions at index 4
+/// and at index 104 (`../oracle/p4-lowmemory`, `logs/closediff2_06.log`
+/// section D and `logs/closediff3_06.log` section C). Malformed base64 fails
+/// on both sides: the C++ low-memory run leaves 0 bytes at index 4 and 100
+/// records at index 104. The other three — a `defaultArrayLength` one too
+/// large, a non-numeric `scan start time`, two records sharing a native id —
+/// the C++ accepts, exiting 0 with all 110 records in **both** modes, while
+/// this port's reader refuses them; so at index 104 this port leaves a
+/// truncated 100-record document where the C++ writes the file in full.
+#[test]
+fn a_low_memory_failure_leaves_the_batches_already_written() {
+    let batches = close_fixture("PeakPickerHiRes_batches_input.mzML");
+    let corrupt = |index: usize, rule: &dyn Fn(&str) -> String| -> (PathBuf, TempDir) {
+        derived(&format!("batch_{index}.mzML"), &batches, |s| {
+            let at = s
+                .match_indices("<spectrum ")
+                .nth(index)
+                .expect("the record")
+                .0;
+            let end = at + s[at..].find("</spectrum>").expect("the record end");
+            format!("{}{}{}", &s[..at], rule(&s[at..end]), &s[end..])
+        })
+    };
+    let bad_base64 = |record: &str| {
+        let at = record.find("<binary>").expect("an array") + "<binary>".len();
+        format!("{}!!!{}", &record[..at], &record[at..])
+    };
+    let duplicate_id = |record: &str| {
+        let at = record.find("id=\"").expect("the id") + "id=\"".len();
+        let end = at + record[at..].find('"').expect("the id end");
+        format!("{}spectrum=0{}", &record[..at], &record[end..])
+    };
+
+    for (index, records) in [(4usize, 0usize), (104, 100)] {
+        for (kind, rule) in [
+            ("base64", &bad_base64 as &dyn Fn(&str) -> String),
+            ("duplicate id", &duplicate_id),
+        ] {
+            let (input, _temp) = corrupt(index, rule);
+            let (outcome, bytes, produced_at) = low_memory(None, &input, &[]);
+            let at = format!("{kind} at {index}");
+            assert_eq!(
+                outcome.code,
+                ExitCode::InputFileCorrupt,
+                "{at}: {}",
+                outcome.err
+            );
+            assert!(
+                outcome.err.starts_with("Error: Unable to read file ("),
+                "{at}: {}",
+                outcome.err
+            );
+            let written = String::from_utf8(bytes).unwrap();
+            assert_eq!(start_tags(&written).len(), records, "{at}");
+            if records == 0 {
+                // Nothing reached the writer, so there is no document at all.
+                assert!(written.is_empty(), "{at}");
+                continue;
+            }
+            // Closed, indexed, and announcing the whole input's count.
+            assert!(written.contains("<spectrumList count=\"110\""), "{at}");
+            assert!(written.contains("</spectrumList>\n</run></mzML>\n"), "{at}");
+            assert!(written.ends_with("</indexedmzML>\n"), "{at}");
+            assert_eq!(load(&produced_at.out).spectra.len(), records, "{at}");
+
+            // The in-memory mode leaves no file behind on the same input.
+            let temp = workdir();
+            let out = temp.path().join("batch_in_memory.tmp.mzML");
+            let in_memory = run(&["-test", "-in", &text(&input), "-out", &text(&out)]);
+            assert_eq!(in_memory.code, ExitCode::InputFileCorrupt, "{at}");
+            assert!(!out.exists(), "{at}");
+        }
+    }
+
+    // The healthy fixture crosses the same boundary with both modes agreeing.
+    let (outcome, bytes, _at) = low_memory(None, &batches, &[]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(
+        start_tags(&String::from_utf8(bytes.clone()).unwrap()).len(),
+        110
+    );
+    assert_eq!(bytes, in_memory_bytes(None, &batches, &[]));
+}
+
+/// An `-out` that names an existing directory: the one measured case where the
+/// C++ low-memory run reports success on a run that produced nothing.
+///
+/// `MSDataWritingConsumer`'s constructor never checks its `std::ofstream`
+/// (`MSDataWritingConsumer.cpp:33`), and `doLowMemAlgorithm` returns
+/// `EXECUTION_OK` regardless, so the C++ low-memory run exits 0 with an empty
+/// standard error having written nothing, where its in-memory run exits 5
+/// `Error: Unable to write file`. Measured on `ibminode06`
+/// (`../oracle/p4-lowmemory`, `logs/closediff1_06.log` section F,
+/// `logs/closediff3_06.log` section D), with the two controls that do **not**
+/// reach the consumer — a read-only `-out` and an `-out` under a missing
+/// directory — exiting 5 with `Cannot write output file given from parameter
+/// '-out'!` in both implementations and both modes.
+///
+/// This port reports the operating system's refusal instead, in both modes.
+#[test]
+fn an_out_that_names_a_directory_is_reported_in_both_modes() {
+    let temp = workdir();
+    let out = temp.path().join("isdir.mzML");
+    std::fs::create_dir(&out).unwrap();
+    let input = text(&workflow_input(6));
+    for extra in [&["-processOption", "lowmemory"][..], &[]] {
+        let mut args = vec!["-test", "-in", &input, "-out"];
+        let out_text = text(&out);
+        args.push(&out_text);
+        args.extend_from_slice(extra);
+        let outcome = run(&args);
+        assert_eq!(
+            outcome.code,
+            ExitCode::UnknownError,
+            "{:?}: {}",
+            extra,
+            outcome.err
+        );
+        assert!(
+            outcome
+                .err
+                .starts_with("Error: Unexpected internal error (")
+                && outcome.err.contains("directory"),
+            "{extra:?}: {}",
+            outcome.err
+        );
+        // Nothing was written into the directory either way.
+        assert_eq!(std::fs::read_dir(&out).unwrap().count(), 0, "{extra:?}");
     }
 }
