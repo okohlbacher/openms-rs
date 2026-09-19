@@ -213,6 +213,15 @@ impl FileInfo {
             Branch::Peaks => {
                 super::peaks::report(path, in_type, options, &mut os, &mut os_tsv, &mut result)?
             }
+            Branch::Consensus => {
+                report_consensus(path, options, &mut os, &mut os_tsv, &mut result)?
+            }
+            Branch::Identifications => {
+                report_identifications(path, in_type, options, &mut os, &mut os_tsv, &mut result)?
+            }
+            Branch::Fasta => {
+                super::fasta::report(path, options, &mut os, &mut os_tsv, &mut result)?
+            }
             // check_branch_supported refused these; kept exhaustive for the compiler.
             Branch::Unported | Branch::UnportedPeaks => return Err(unported_branch(in_type)),
             Branch::ImagingPeaks | Branch::NotLoadable => {
@@ -302,6 +311,57 @@ fn report_features(
     ))
 }
 
+#[cfg(feature = "consensusxml")]
+fn report_consensus(
+    path: &Path,
+    options: &Options,
+    os: &mut ReportStream,
+    os_tsv: &mut ReportStream,
+    result: &mut FileInfoResult,
+) -> Result<()> {
+    super::consensus::report(path, options, os, os_tsv, result)
+}
+
+#[cfg(not(feature = "consensusxml"))]
+fn report_consensus(
+    _path: &Path,
+    _options: &Options,
+    _os: &mut ReportStream,
+    _os_tsv: &mut ReportStream,
+    _result: &mut FileInfoResult,
+) -> Result<()> {
+    Err(Error::Unsupported(
+        "FileInfo consensusXML branch: this build lacks the consensusxml feature".into(),
+    ))
+}
+
+#[cfg(feature = "idxml")]
+fn report_identifications(
+    path: &Path,
+    in_type: FileType,
+    options: &Options,
+    os: &mut ReportStream,
+    os_tsv: &mut ReportStream,
+    result: &mut FileInfoResult,
+) -> Result<()> {
+    super::identifications::report(path, in_type, options, os, os_tsv, result)
+}
+
+#[cfg(not(feature = "idxml"))]
+fn report_identifications(
+    _path: &Path,
+    in_type: FileType,
+    _options: &Options,
+    _os: &mut ReportStream,
+    _os_tsv: &mut ReportStream,
+    _result: &mut FileInfoResult,
+) -> Result<()> {
+    Err(Error::Unsupported(format!(
+        "FileInfo {} branch: this build lacks the idxml feature",
+        in_type.name()
+    )))
+}
+
 /// `FileHandler::getType` as the source `run` sees it.
 ///
 /// The source content check opens a directory as a stream that yields no line
@@ -320,6 +380,12 @@ fn detect_type(path: &Path) -> Result<FileType> {
 enum Branch {
     /// The featureXML branch.
     Features,
+    /// The consensusXML branch.
+    Consensus,
+    /// The idXML and mzIdentML branch.
+    Identifications,
+    /// The FASTA branch.
+    Fasta,
     /// The peak-file branch with a native loader: DTA, DTA2D and mzML.
     Peaks,
     /// A non-peak branch of the source that is not ported.
@@ -336,11 +402,10 @@ fn branch(in_type: FileType) -> Branch {
     match in_type {
         FileType::FeatureXml => Branch::Features,
         FileType::Dta | FileType::Dta2d | FileType::MzMl => Branch::Peaks,
-        FileType::ConsensusXml
-        | FileType::IdXml
-        | FileType::MzIdentMl
-        | FileType::Fasta
-        | FileType::PepXml
+        FileType::ConsensusXml => Branch::Consensus,
+        FileType::IdXml | FileType::MzIdentMl => Branch::Identifications,
+        FileType::Fasta => Branch::Fasta,
+        FileType::PepXml
         | FileType::MzTab
         | FileType::TransformationXml
         | FileType::Pqp => Branch::Unported,
@@ -376,7 +441,11 @@ fn check_flags_supported(options: &Options) -> Result<()> {
 /// Refuse, before the file is loaded, every branch this port does not run.
 fn check_branch_supported(in_type: FileType) -> Result<()> {
     match branch(in_type) {
-        Branch::Features | Branch::Peaks => Ok(()),
+        Branch::Features
+        | Branch::Peaks
+        | Branch::Consensus
+        | Branch::Identifications
+        | Branch::Fasta => Ok(()),
         Branch::Unported | Branch::UnportedPeaks => Err(unported_branch(in_type)),
         // Refused by the source loader too; reported once the report runs.
         Branch::ImagingPeaks | Branch::NotLoadable => Ok(()),

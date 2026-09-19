@@ -25,3 +25,12 @@ pub mod features;
 
 /// The FileInfo checks and listings of `-i`, `-d` and `-c`.
 pub mod checks;
+
+/// The FileInfo summary of consensusXML consensus maps.
+pub mod consensus;
+
+/// The FileInfo summary of idXML and mzIdentML identifications.
+pub mod identifications;
+
+/// The FileInfo summary of FASTA sequence databases.
+pub mod fasta;
