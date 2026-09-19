@@ -721,7 +721,14 @@ impl Tool for FeatureFinderCentroided {
 
         // Annotation and clean-up (318-373), then the store (375).
         let features = Self::finish_features_with(ctx, &input, features, out, &mut generator)?;
-        FileHandler::store_feature_map(&output, &features, Some(FileType::FeatureXml))?;
+        // A store that fails is the source's `UnableToCreateFile`
+        // (`TOPPBase.cpp:430-435`), not a read failure; see
+        // [`crate::cli::write_failure`].
+        if let Err(error) =
+            FileHandler::store_feature_map(&output, &features, Some(FileType::FeatureXml))
+        {
+            return Ok(crate::cli::write_failure(&error, err));
+        }
         // TOPPBase's closing info line and the log streams' caches at exit.
         info.close(out)?;
         warn.close(err)?;

@@ -81,6 +81,62 @@ pub(crate) fn finite(value: &str) -> Result<f64> {
         Err(bad("idXML numeric values must be finite"))
     }
 }
+/// [`finite`], but also accepting the spellings of a non-finite value the
+/// source's handler writes and reads back.
+///
+/// `NumericFormatting::appendNumeric` writes `NaN` for a NaN of either sign and
+/// `inf`/`-inf` for an infinity
+/// (`src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h:27-35`), and
+/// `StringUtils::toDouble` reads all three back: `tryParseNaN` takes any case
+/// of `nan`, and `std::from_chars` takes any case of `inf`, `infinity` and
+/// `nan` with an optional sign after a leading `+` is skipped
+/// (`src/openms/source/DATASTRUCTURES/StringUtils.cpp:35-58, 239-276`).
+///
+/// A decimal literal that is merely out of range, such as `1e999`, stays
+/// refused. The source does not store an infinity for one either: an element's
+/// text reaches `asDouble_`, which turns the `ConversionError` into a
+/// non-fatal log line and keeps `0.0`
+/// (`src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h:305-317`,
+/// `XMLHandler.cpp:71-87`), while an attribute's reaches `attributeAsDouble_`,
+/// whose `ConversionError` leaves the parse (`XMLHandler.h:401-406`). Only a
+/// spelled token is non-finite here.
+pub(crate) fn source_float_text(value: &str) -> Result<f64> {
+    let parsed = number::<f64>(value)?;
+    if parsed.is_finite() || spells_nonfinite(value.trim()) {
+        Ok(parsed)
+    } else {
+        Err(bad(format!("numeric value {value:?} is out of range")))
+    }
+}
+/// The text the source writes for a non-finite value, and `None` for a finite
+/// one, which each dialect renders its own way.
+///
+/// `NumericFormatting::appendNumeric` answers before it formats anything:
+/// `NaN` for a NaN of either sign, then `-inf` or `inf`
+/// (`src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h:29-35`).
+/// [`crate::format::sv_out_stream::source_float_text`] is the full model of
+/// that function and agrees on these three; this is the part a dialect needs
+/// when it renders finite values itself.
+pub(crate) fn nonfinite_text(value: f64) -> Option<&'static str> {
+    if value.is_nan() {
+        Some("NaN")
+    } else if value == f64::INFINITY {
+        Some("inf")
+    } else if value == f64::NEG_INFINITY {
+        Some("-inf")
+    } else {
+        None
+    }
+}
+
+/// Whether `text` is one of the tokens `StringUtils::toDouble` turns into a
+/// non-finite value, rather than a decimal literal that overflows to one.
+fn spells_nonfinite(text: &str) -> bool {
+    let body = text.strip_prefix(['+', '-']).unwrap_or(text);
+    body.eq_ignore_ascii_case("inf")
+        || body.eq_ignore_ascii_case("infinity")
+        || body.eq_ignore_ascii_case("nan")
+}
 pub(crate) fn boolean(value: &str) -> Result<bool> {
     match value {
         "true" | "1" => Ok(true),
@@ -741,7 +797,32 @@ pub(crate) fn list<'a>(value: &'a str, options: &ReadOptions) -> Result<Vec<&'a 
     }
     Ok(values)
 }
+/// Whether a dialect's `UserParam` carries the non-finite floating values the
+/// source's `XMLHandler::writeUserParam_` writes as `inf`, `-inf` and `NaN`.
+///
+/// The conversion is shared (`StringUtils::toStr` and `StringUtils::toDouble`),
+/// so every dialect built on that handler can spell them; this port accepts
+/// them only where an executed source writes them, which today is featureXML
+/// (see `crate::format::featurexml`).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(crate) enum NonFinite {
+    /// Refuse a non-finite metadata value, as every other dialect here does.
+    #[default]
+    Refuse,
+    /// Write and read it as the source's handler does.
+    Source,
+}
+
 pub(crate) fn read_meta(node: &Node, options: &ReadOptions) -> Result<MetaInfo> {
+    read_meta_with(node, options, NonFinite::Refuse)
+}
+/// [`read_meta`], reading the `float` and `floatList` spellings of a non-finite
+/// value when `nonfinite` is [`NonFinite::Source`].
+pub(crate) fn read_meta_with(
+    node: &Node,
+    options: &ReadOptions,
+    nonfinite: NonFinite,
+) -> Result<MetaInfo> {
     let mut meta = MetaInfo::new();
     for child in node.children.iter().filter(|c| c.name == "UserParam") {
         child.check(&["name", "type", "value"], &[])?;
@@ -750,7 +831,10 @@ pub(crate) fn read_meta(node: &Node, options: &ReadOptions) -> Result<MetaInfo> 
         let value = match child.get("type")? {
             "string" => MetaValue::from(value),
             "int" => MetaValue::from(number::<i64>(value)?),
-            "float" => MetaValue::try_from(finite(value)?)?,
+            "float" => match nonfinite {
+                NonFinite::Refuse => MetaValue::try_from(finite(value)?)?,
+                NonFinite::Source => MetaValue::source_float(source_float_text(value)?),
+            },
             "stringList" => MetaValue::from(
                 list(value, options)?
                     .into_iter()
@@ -763,12 +847,20 @@ pub(crate) fn read_meta(node: &Node, options: &ReadOptions) -> Result<MetaInfo> 
                     .map(|v| number::<i64>(v.trim()))
                     .collect::<Result<Vec<_>>>()?,
             ),
-            "floatList" => MetaValue::try_from(
-                list(value, options)?
-                    .into_iter()
-                    .map(|v| finite(v.trim()))
-                    .collect::<Result<Vec<_>>>()?,
-            )?,
+            "floatList" => match nonfinite {
+                NonFinite::Refuse => MetaValue::try_from(
+                    list(value, options)?
+                        .into_iter()
+                        .map(|v| finite(v.trim()))
+                        .collect::<Result<Vec<_>>>()?,
+                )?,
+                NonFinite::Source => MetaValue::source_float_list(
+                    list(value, options)?
+                        .into_iter()
+                        .map(|v| source_float_text(v.trim()))
+                        .collect::<Result<Vec<_>>>()?,
+                ),
+            },
             other => return Err(unsupported(format!("UserParam type {other}"))),
         };
         if meta.insert(name.into(), value).is_some() {
@@ -1175,8 +1267,21 @@ pub(crate) fn insert_meta(meta: &mut MetaInfo, key: &str, value: MetaValue) -> R
     Ok(())
 }
 pub(crate) fn write_meta(node: &mut Node, meta: &MetaInfo) -> Result<()> {
+    write_meta_with(node, meta, NonFinite::Refuse)
+}
+/// [`write_meta`], writing a non-finite `float` or `floatList` value as the
+/// source's `writeUserParam_` writes it when `nonfinite` is
+/// [`NonFinite::Source`]: `inf`, `-inf` and `NaN`, which is what
+/// `f64`'s [`std::fmt::Display`] already renders.
+pub(crate) fn write_meta_with(
+    node: &mut Node,
+    meta: &MetaInfo,
+    nonfinite: NonFinite,
+) -> Result<()> {
     for (key, value) in meta {
-        value.validate()?;
+        if nonfinite == NonFinite::Refuse {
+            value.validate()?;
+        }
         if value.unit().is_some() {
             return Err(unsupported("idXML UserParam cannot represent units"));
         }
@@ -1188,7 +1293,10 @@ pub(crate) fn write_meta(node: &mut Node, meta: &MetaInfo) -> Result<()> {
             }
             MetaValueData::String(value) => ("string", value.clone()),
             MetaValueData::Integer(value) => ("int", value.to_string()),
-            MetaValueData::Float(value) => ("float", value.to_string()),
+            MetaValueData::Float(value) => (
+                "float",
+                nonfinite_text(*value).map_or_else(|| value.to_string(), ToOwned::to_owned),
+            ),
             MetaValueData::IntegerList(value) => (
                 "intList",
                 format!(
@@ -1206,7 +1314,8 @@ pub(crate) fn write_meta(node: &mut Node, meta: &MetaInfo) -> Result<()> {
                     "[{}]",
                     value
                         .iter()
-                        .map(ToString::to_string)
+                        .map(|v| nonfinite_text(*v)
+                            .map_or_else(|| v.to_string(), ToOwned::to_owned))
                         .collect::<Vec<_>>()
                         .join(",")
                 ),

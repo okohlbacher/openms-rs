@@ -13,7 +13,7 @@ use super::identification_xml::{self as xml, Detach, Node};
 use super::{FileType, map_xml, path_io};
 use crate::chemistry::ModificationsDB;
 use crate::kernel::{ConvexHull2D, Feature, FeatureMap, Point2D};
-use crate::metadata::{MetaInfo, MetaValueData};
+use crate::metadata::{MetaInfo, MetaValue, MetaValueData};
 use crate::{Error, Result};
 use std::collections::BTreeSet;
 use std::io::{BufRead, Write};
@@ -182,9 +182,24 @@ fn xml_options(limits: Limits, ceilings: Ceilings) -> xml::ReadOptions {
 fn uid(text: &str) -> Result<u64> {
     map_xml::unique_id(text)
 }
+/// One `double` coordinate, as the source's `asDouble_`/`attributeAsDouble_`
+/// read it: the `inf`, `-inf` and `NaN` this dialect writes for a non-finite
+/// value included. See [`xml::source_float_text`].
+fn coordinate(text: &str) -> Result<f64> {
+    xml::source_float_text(text)
+}
+/// One `float` field -- intensity and the three qualities -- read as a `double`
+/// and narrowed at the setter, as the source narrows it
+/// (`FeatureXMLHandler.cpp:861-877`).
+///
+/// A non-finite value narrows to the same non-finite `f32`. A finite one that
+/// `f32` cannot hold is still refused: the source keeps the infinity the
+/// narrowing produces, this port does not, and that difference is older than
+/// and separate from the non-finite spellings.
 fn scalar(text: &str) -> Result<f32> {
-    let value = xml::finite(text)? as f32;
-    if !value.is_finite() {
+    let wide = coordinate(text)?;
+    let value = wide as f32;
+    if wide.is_finite() && !value.is_finite() {
         return Err(bad("featureXML value exceeds f32 range"));
     }
     Ok(value)
@@ -288,7 +303,10 @@ impl Work {
                 self.string(unit.name())?;
                 self.string(unit.cv_ref())?;
             }
-            value.validate()?;
+            // No finiteness check: `writeUserParam_` writes whatever the
+            // `DataValue` holds, and `NumericFormatting::appendNumeric` spells a
+            // non-finite one `inf`, `-inf` or `NaN`. `write_feature` passes
+            // `NonFinite::Source` for the same reason.
         }
         Ok(())
     }
@@ -301,20 +319,15 @@ impl Work {
         // nested IDs also grow with depth. Charge this before formatting either.
         self.allocate(std::mem::size_of::<Feature>() + 8 * std::mem::size_of::<Node>() + 4096)?;
         self.allocate(mul(depth + 1, 128)?)?;
-        for value in [
-            feature.rt,
-            feature.mz,
-            f64::from(feature.intensity),
-            f64::from(feature.quality),
-            f64::from(feature.quality_rt),
-            f64::from(feature.quality_mz),
-            f64::from(feature.width),
-        ] {
-            if !value.is_finite() {
-                return Err(bad("nonfinite feature value"));
-            }
-        }
-        if feature.width < 0.0 {
+        // No value is refused for being non-finite. `writeFeature_` writes every
+        // scalar through `precisionWrapper`, which spells an infinity `inf` or
+        // `-inf` and a NaN of either sign `NaN`
+        // (`FeatureXMLHandler.cpp:888-955`, `NumericFormatting.h:27-35`), and
+        // `StringUtils::toDouble` reads all three back, so such a document is
+        // the source's own output rather than something it cannot load.
+        // `FeatureFinderAlgorithmPicked` reaches infinite widths and
+        // intensities on finite input; see FEATUREXML_SUPPORT.md.
+        if feature.width.is_finite() && feature.width < 0.0 {
             return Err(bad("negative feature width"));
         }
         // Width has no XML element. Source reads FWHM into top-level width only.
@@ -330,7 +343,8 @@ impl Work {
                 .map(|v| v.as_f64())
                 .transpose()?
                 .unwrap_or(0.0) as f32;
-            if stored != feature.width {
+            // A NaN width and a NaN mirror agree, as `setWidth` leaves them.
+            if !(stored == feature.width || (stored.is_nan() && feature.width.is_nan())) {
                 return Err(bad("feature width must match FWHM metadata; use set_width"));
             }
         }
@@ -500,7 +514,19 @@ fn push_feature(
     if accepts(&feature, options)? {
         if let Some(width) = feature.metadata.get("FWHM") {
             let width = width.as_f64()? as f32;
-            feature.set_width(width)?;
+            // `FeatureXMLFile::load` restores the width with `setWidth`, which
+            // stores any value and mirrors it back into `FWHM` as
+            // `(double)(float)` (`FeatureXMLFile.cpp:57-66`,
+            // `BaseFeature.cpp:87-94`). `Feature::set_width` refuses what the
+            // public API refuses, so a non-finite mirror is written here.
+            if width.is_finite() {
+                feature.set_width(width)?;
+            } else {
+                feature.base.width = width;
+                feature
+                    .metadata
+                    .insert("FWHM".into(), MetaValue::source_float(f64::from(width)));
+            }
         }
         map.features.push(feature);
     }
@@ -690,7 +716,7 @@ fn read_document(
 fn metadata(node: &Node, opts: &xml::ReadOptions) -> Result<MetaInfo> {
     // Normalize only the old spelling; all values use the shared typed codec.
     if node.children.iter().all(|n| n.name != "userParam") {
-        return xml::read_meta(node, opts);
+        return xml::read_meta_with(node, opts, xml::NonFinite::Source);
     }
     let mut holder = Node::new("metadata");
     for child in &node.children {
@@ -700,7 +726,7 @@ fn metadata(node: &Node, opts: &xml::ReadOptions) -> Result<MetaInfo> {
             holder.children.push(child);
         }
     }
-    xml::read_meta(&holder, opts)
+    xml::read_meta_with(&holder, opts, xml::NonFinite::Source)
 }
 fn accepts(feature: &Feature, options: &FeatureFileOptions) -> Result<bool> {
     for (value, range) in [
@@ -760,8 +786,8 @@ fn read_feature(
                 check(child, &["dim"], &[], true)?;
                 let dim: usize = xml::number(child.get("dim")?)?;
                 match (child.name.as_str(), dim) {
-                    ("position", 0) => feature.rt = xml::finite(&child.text)?,
-                    ("position", 1) => feature.mz = xml::finite(&child.text)?,
+                    ("position", 0) => feature.rt = coordinate(&child.text)?,
+                    ("position", 1) => feature.mz = coordinate(&child.text)?,
                     ("quality", 0) => feature.quality_rt = scalar(&child.text)?,
                     ("quality", 1) => feature.quality_mz = scalar(&child.text)?,
                     _ => return Err(bad("feature dimension must be zero or one")),
@@ -804,7 +830,7 @@ fn read_feature(
                 let mut entry = child.clone();
                 entry.name = "UserParam".into();
                 holder.children.push(entry);
-                let values = xml::read_meta(&holder, opts)?;
+                let values = xml::read_meta_with(&holder, opts, xml::NonFinite::Source)?;
                 feature.metadata.extend(values);
             }
             _ => {}
@@ -822,7 +848,7 @@ fn read_hull(node: &Node, work: &mut Work) -> Result<ConvexHull2D> {
     for child in &node.children {
         let point = if child.name == "pt" {
             check(child, &["x", "y"], &[], false)?;
-            Point2D::new(xml::finite(child.get("x")?)?, xml::finite(child.get("y")?)?)
+            Point2D::new(coordinate(child.get("x")?)?, coordinate(child.get("y")?)?)
         } else {
             check(child, &[], &["hposition"], false)?;
             let mut values = [0.0; 2];
@@ -832,7 +858,7 @@ fn read_hull(node: &Node, work: &mut Work) -> Result<ConvexHull2D> {
                 if dim > 1 {
                     return Err(bad("hull dimension must be zero or one"));
                 }
-                values[dim] = xml::finite(&position.text)?;
+                values[dim] = coordinate(&position.text)?;
             }
             Point2D::new(values[0], values[1])
         };
@@ -1001,7 +1027,7 @@ fn encode(map: &FeatureMap, options: &WriteOptions, registry: &ModificationsDB) 
     if !map.identifier.is_empty() {
         root.attr("document_id", &map.identifier);
     }
-    xml::write_meta(&mut root, &map.metadata)?;
+    xml::write_meta_with(&mut root, &map.metadata, xml::NonFinite::Source)?;
     for processing in &map.data_processing {
         root.children.push(map_xml::write_processing(processing)?);
     }
@@ -1066,6 +1092,16 @@ fn text_node(name: &str, value: impl ToString) -> Node {
     n.text = value.to_string();
     n
 }
+/// One `double` scalar as `precisionWrapper` writes it: the source's spelling
+/// for a non-finite value ([`xml::nonfinite_text`]), this dialect's own
+/// rendering for a finite one.
+fn wide(value: f64) -> String {
+    xml::nonfinite_text(value).map_or_else(|| value.to_string(), ToOwned::to_owned)
+}
+/// [`wide`] for the `float` fields: intensity and the three qualities.
+fn narrow(value: f32) -> String {
+    xml::nonfinite_text(f64::from(value)).map_or_else(|| value.to_string(), ToOwned::to_owned)
+}
 fn write_feature(
     feature: &Feature,
     prefix: &str,
@@ -1077,22 +1113,22 @@ fn write_feature(
     let id = format!("{prefix}{}", feature.unique_id);
     node.attr("id", &id);
     for (dim, value) in [feature.rt, feature.mz].into_iter().enumerate() {
-        let mut n = text_node("position", value);
+        let mut n = text_node("position", wide(value));
         n.attr("dim", dim);
         node.children.push(n);
     }
     node.children
-        .push(text_node("intensity", feature.intensity));
+        .push(text_node("intensity", narrow(feature.intensity)));
     for (dim, value) in [feature.quality_rt, feature.quality_mz]
         .into_iter()
         .enumerate()
     {
-        let mut n = text_node("quality", value);
+        let mut n = text_node("quality", narrow(value));
         n.attr("dim", dim);
         node.children.push(n);
     }
     node.children
-        .push(text_node("overallquality", feature.quality));
+        .push(text_node("overallquality", narrow(feature.quality)));
     node.children.push(text_node("charge", feature.charge));
     for (i, hull) in feature.convex_hulls.iter().enumerate() {
         let mut h = Node::new("convexhull");
@@ -1101,8 +1137,8 @@ fn write_feature(
         hull.compress();
         for point in hull.hull_points() {
             let mut p = Node::new("pt");
-            p.attr("x", point.rt);
-            p.attr("y", point.mz);
+            p.attr("x", wide(point.rt));
+            p.attr("y", wide(point.mz));
             h.children.push(p);
         }
         node.children.push(h);
@@ -1126,7 +1162,7 @@ fn write_feature(
             &mut work.bytes,
         )?);
     }
-    xml::write_meta(&mut node, &feature.metadata)?;
+    xml::write_meta_with(&mut node, &feature.metadata, xml::NonFinite::Source)?;
     Ok(node)
 }
 

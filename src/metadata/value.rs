@@ -133,6 +133,20 @@ impl MetaValue {
             unit: None,
         }
     }
+    /// A floating list stored as a ported source reader stores it, without the
+    /// finite check of [`MetaValue::new`] and `TryFrom<Vec<f64>>`.
+    ///
+    /// The list counterpart of [`MetaValue::source_float`], for the featureXML
+    /// reader: `writeUserParam_` writes a `DOUBLE_LIST` element-wise through
+    /// the same conversion as a scalar (`ListUtilsIO.h:29-44`), so a stored
+    /// document can spell `[inf, -inf, NaN]`, and `ListUtils::create<double>`
+    /// reads it back. [`MetaValue::validate`] still reports such a value.
+    pub(crate) fn source_float_list(values: Vec<f64>) -> Self {
+        Self {
+            data: MetaValueData::FloatList(values),
+            unit: None,
+        }
+    }
     pub fn data(&self) -> &MetaValueData {
         &self.data
     }
