@@ -1791,9 +1791,9 @@ fraction. No upstream fix is claimed.
 
 ## CPP-076 — rasterizeIMFrame clears the caller's image before the check that can throw
 
-**Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:889-907 (total_pixels, std::fill, empty early return, then the IM/peak size Precondition)
+**Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:895-912 (total_pixels, std::fill, empty early return, then the IM/peak size Precondition)
 
-**Issue and reproduction:** The output buffer is zero-filled at line 892, before the ion-mobility array's length is compared against the peak count at line 900. A spectrum whose IM array length differs from its peak count therefore throws Exception::Precondition *after* the caller's pre-allocated image has been wiped. A caller that catches the exception and keeps rendering shows a blank frame rather than the previous one. Trigger: any non-empty spectrum whose IM float array has a different number of entries than the peak list — reachable after a partial mzML load or after peaks are appended without extending the array.
+**Issue and reproduction:** The output buffer is zero-filled at line 898, before the ion-mobility array's length is compared against the peak count at line 907. A spectrum whose IM array length differs from its peak count therefore throws Exception::Precondition *after* the caller's pre-allocated image has been wiped. A caller that catches the exception and keeps rendering shows a blank frame rather than the previous one. Trigger: any non-empty spectrum whose IM float array has a different number of entries than the peak list — reachable after a partial mzML load or after peaks are appended without extending the array.
 
 **Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
 
@@ -1803,9 +1803,9 @@ fraction. No upstream fix is claimed.
 
 ## CPP-077 — rasterizeIMFrame multiplies the bin counts without an overflow check
 
-**Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:889 (`const Size total_pixels = im_bins * mz_bins;`), :892 (std::fill), :946 (pixel_idx)
+**Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:895 (`const Size total_pixels = im_bins * mz_bins;`), :898 (std::fill), :951 (pixel_idx)
 
-**Issue and reproduction:** `im_bins * mz_bins` is unchecked `size_t` arithmetic. With bin counts whose product overflows, `total_pixels` wraps to a small value, `std::fill` clears only that prefix, and the per-peak write at line 946 computes `mz_bin * im_bins + im_bin` from the *unwrapped* bin counts and writes far outside whatever the caller allocated — a heap buffer overflow. Trigger: `spec.rasterizeIMFrame(buf, 1ull << 33, 1ull << 33, …)` on a 64-bit build, or any pair whose product exceeds SIZE_MAX; the bin counts come straight from a viewer's zoom level or a Python caller.
+**Issue and reproduction:** `im_bins * mz_bins` is unchecked `size_t` arithmetic. With bin counts whose product overflows, `total_pixels` wraps to a small value, `std::fill` clears only that prefix, and the per-peak write at line 951 computes `mz_bin * im_bins + im_bin` from the *unwrapped* bin counts and writes far outside whatever the caller allocated — a heap buffer overflow. Trigger: `spec.rasterizeIMFrame(buf, 1ull << 33, 1ull << 33, …)` on a 64-bit build, or any pair whose product exceeds SIZE_MAX; the bin counts come straight from a viewer's zoom level or a Python caller.
 
 **Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
 
@@ -2656,7 +2656,7 @@ change or a claim that the Rust behavior was corrected.
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
-**Affected files and functions:** `MzTabFile::generateMzTabProteinHeader_` in [src/openms/source/FORMAT/MzTabFile.cpp:2033](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabFile.cpp#L2033); `MzTabFile::generateMzTabSectionRow_ (protein overload)` in [src/openms/source/FORMAT/MzTabFile.cpp:2114](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabFile.cpp#L2114).
+**Affected files and functions:** `MzTabFile::generateMzTabProteinHeader_` in [src/openms/source/FORMAT/MzTabFile.cpp:2037](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabFile.cpp#L2037); `MzTabFile::generateMzTabSectionRow_ (protein overload)` in [src/openms/source/FORMAT/MzTabFile.cpp:2119](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabFile.cpp#L2119).
 
 **Trigger:** Protein row has scores1/2 and runs1/2 with four distinct values.
 
@@ -3142,7 +3142,7 @@ A chromatogram is the silent form of the same defect: `writeChromatogram_` (`MzM
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
-**Affected files and functions:** `SVOutStream::operator<<(std::ostream& (*)(std::ostream&))` in [src/openms/source/FORMAT/SVOutStream.cpp:101](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SVOutStream.cpp#L101).
+**Affected files and functions:** `SVOutStream::operator<<(std::ostream& (*)(std::ostream&))` in [src/openms/source/FORMAT/SVOutStream.cpp:102](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SVOutStream.cpp#L102).
 
 **Trigger:** Write field, apply std::ends then std::endl then write next field.
 
@@ -5907,7 +5907,7 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 **Evidence:** `../oracle/ffap-complete-fix4` (two runs each, identical): stage cases `vy_rt_1e33` (finite), `vy_rt_1e36` (finite widths, infinite intensities), `vy_rt_1e37` (7 of 9 widths infinite), `vy_rt_1e38` to `vy_rt_1e150` (all), Gaussian and EGH, `vx_rt_1e150` to `vx_rt_1e300`; `../oracle/ffap-complete-fix5` `run_onset.sh` (`nb_rt_2e36` to `nb_rt_5e37` and three jittered `1e37` inputs); the Release `FeatureFinderCentroided` on FFC_1 with every scan start time written as `ve36` or `ve39`: exit 0, featureXML with `<intensity>inf</intensity>` and FWHM `inf`.
 
-**Rust handling:** FeatureFinderAlgorithmPicked stores the same values (the width field, the crate-private `MetaValue::source_float`), bit for bit; `BaseFeature::validate` and the featureXML writer refuse such features, so the port's `FeatureFinderCentroided` exits 3 without an output file (TOPP native difference 16, `infinite_feature_values_are_refused_by_the_featurexml_writer`). Whether the writer should follow the C++ build and write `inf` is a separate, recorded task.
+**Rust handling:** FeatureFinderAlgorithmPicked stores the same values (the width field, the crate-private `MetaValue::source_float`), bit for bit; `BaseFeature::validate` and `MetaValue::validate` still refuse such features, while the featureXML writer writes them as the source writes them since `fix/featurexml-nonfinite`, so the port's `FeatureFinderCentroided` exits 0 and writes the document the C++ build writes (TOPP native difference 16, closed; `infinite_feature_values_are_written_as_the_release_build_writes_them`).
 
 ## CPP-328 — A trace of zero intensities terminates FeatureFinderAlgorithmPicked
 
@@ -6179,3 +6179,275 @@ having written nothing. An input with only one record kind never takes the early
 Two controls that do **not** reach the consumer, because the framework's pre-check catches them, exit 5 with `Cannot write output file given from parameter '-out'!` in both process options: an `-out` naming an existing read-only file, and an `-out` under a directory that does not exist.
 
 **Rust handling:** `MSDataWritingConsumer::create` returns `Error::Io` when the file cannot be created, and `run_low_memory` propagates it, so the port answers `Error: Unexpected internal error (Is a directory (os error 21))` with `UNKNOWN_ERROR` in **both** process options. This is the one row of that tool's low-memory divergence table the port deliberately does not reproduce, because reproducing it means swallowing an I/O error on the one file the run exists to produce; recorded as native difference 13 of `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`, with the two controls that agree exactly, and pinned by `an_out_that_names_a_directory_is_reported_in_both_modes`.
+
+## CPP-341 — FileInfo indexes a per-peptide occurrence vector with the consensus map's *id* instead of its position, which is out of bounds whenever a consensusXML numbers its maps from one
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/FileInfo.cpp:1176-1183`, inside the consensusXML branch of `FileInfo::report_`.
+
+**Trigger:** Any consensusXML whose `<map id="...">` values are not exactly `0 .. n-1`, where at least one consensus feature carries a peptide identification whose first hit has a sequence. Map ids starting at one are enough, and the upstream fixture `topp/ConsensusID_3_input.consensusXML` (test-data `0cb15f2`) is such a file.
+
+**Issue:** `:1176` sizes the occurrence vector from the *number* of column headers,
+
+```cpp
+seq_charge2map_occurence[make_pair(s,z)] = vector<int>(cons.getColumnHeaders().size(), 0);
+```
+
+and `:1183` then indexes it with the sub-feature's map index,
+
+```cpp
+Size map_index = f.getMapIndex();
+seq_charge2map_occurence[make_pair(s,z)][map_index] += 1;
+```
+
+but `ColumnHeaders` is a `std::map<UInt64, ColumnHeader>` keyed by the file's `id` attribute (`ConsensusXMLHandler.cpp:150-152`, `getColumnHeaders()[last_map]`) and `FeatureHandle::getMapIndex()` returns that same id (`ConsensusXMLHandler.cpp:216-228`, `setMapIndex(map_index)` from the `map` attribute). A count and an identifier are not the same thing: the container is sparse in general, and the ids are under the writer's control. `operator[]` on `std::vector` does no bounds checking, so every id at or beyond the header count reads and writes past the end.
+
+The blast radius is larger than a single wrong number. With no `<mapList>` at all the vector is empty and the very first write is out of bounds; the process dies. With ids `1` and `2` and two headers the write at index 2 lands in adjacent heap, the run exits 0, and the report is quietly wrong: the aggregation at `:1193-1209` then counts only the slots it can see.
+
+**Proposed C++ fix:** Index by position rather than by id. Build a `map<UInt64, Size>` from map id to its position in `getColumnHeaders()` once, before the loop, and use it at `:1183`; or key `seq_charge2map_occurence`'s value on the id, as a `map<UInt64, int>`, and take `n` and `f` from that map at `:1200-1206`. Either way the count that sizes the vector and the value that indexes it stop being different quantities.
+
+**Evidence:** Executed on the Release build, `../oracle/a7-fileinfo/manifest.json`, cases `c_no_headers`, `c_mapindex_high`, `c_ids_one_based` and `c_cid3`, each run twice with the same result:
+
+| input | `<map id=...>` | headers | result |
+| --- | --- | --- | --- |
+| `a7_cons_no_headers.consensusXML` | (no `<mapList>` entry) | 0 | **SIGSEGV** (exit -11) |
+| `a7_cons_mapindex_high.consensusXML` | 0, 5 | 2 | exit 0, silent out-of-bounds write |
+| `a7_cons_ids_one_based.consensusXML` | 1, 2 | 2 | exit 0, wrong peptide row |
+| `ConsensusID_3_input.consensusXML` (**upstream**) | 1, 2 | 2 | exit 0, wrong peptide row |
+
+On the upstream fixture the Release build prints
+
+```
+  peptides (with different mod. and charge) observed in 1 maps: 2	 (features: 2 )
+```
+
+Both consensus features hold a sub-feature in map 1 *and* one in map 2, and each of the two distinct (sequence, charge) keys is therefore present in two maps with two sub-features, so the correct row is `observed in 2 maps: 2	 (features: 4 )`. The write for map id 2 goes past the two-slot vector, so `n` and `f` only ever see slot 1.
+
+**Rust handling:** `src/format/file_info/consensus.rs::reject_out_of_range_map_index` refuses the input with `Error::InvalidValue` before any of the report is written, naming the map index and the header count, under lead decision D1 (an out-of-bounds access is refused, not reproduced). A file with the same map index but no peptide identification on that consensus feature never reaches the indexing and is reported normally, exactly as the Release build reports it; that control is the oracle case `c_mapindex_high_noid` and the test `consensus_out_of_range_map_index_without_an_identification_is_reported`. Pinned by `consensus_out_of_bounds_map_index_is_refused` in `tests/file_info_a7.rs`, which covers all four inputs above.
+
+## CPP-342 — FileInfo reads `proteins[0]` of an identification file before establishing that a run exists, while its own structured block guards the same access
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/FileInfo.cpp:1336-1341`, the TSV metadata export of the identification branch of `FileInfo::report_`.
+
+**Trigger:** An idXML or mzIdentML whose load yields no protein identification run at all.
+
+**Issue:** The branch writes the database, database version and taxonomy to the TSV report straight after loading:
+
+```cpp
+os_tsv << "general: database"
+       << '\t' << id_data.proteins[0].getSearchParameters().db << '\n'
+       ...
+```
+
+`id_data.proteins` is a `std::vector<ProteinIdentification>` and nothing has tested it. The same function knows better 110 lines later: the structured-result block at `:1451` writes `if (!id_data.proteins.empty())` around the identical three reads. The unguarded copy runs first and unconditionally.
+
+**Proposed C++ fix:** Move the three TSV lines behind the same emptiness test the structured block already uses, writing empty values (or nothing at all) for a file with no run, so that the two readings of `proteins[0]` agree.
+
+**Evidence:** Executed on the Release build, `../oracle/a7-fileinfo/manifest.json`, cases `id_no_runs`, `id_no_runs_bare` and `id_no_runs_all` on `a7_id_no_runs.idXML`, an idXML with a well-formed root and no `<IdentificationRun>`: **SIGSEGV** (exit -11) with empty stdout and empty stderr, in all three flag combinations and in both runs. The in-bounds control `a7_id_empty_run.idXML` — one run, no hits, no identifications — exits 0 and reports normally (case `id_empty_run`).
+
+**Rust handling:** the file is refused, but **one layer before this branch**. The shared idXML reader rejects it itself with `idXML needs at least one IdentificationRun` (`src/format/idxml.rs:310`), an `Error::Parse`, and the tool exits **3**. `src/format/file_info/identifications.rs` does carry the matching guard — `data.proteins.first()` returning `Error::InvalidValue` naming both line ranges, under lead decision D1, which would exit 6 — but no input reaches it: `src/format/mzidentml.rs:1596-1598` rejects a document with no `SpectrumIdentification` element just as early, and the branch has no entry that does not load from a file. The guard is therefore a defence with no executed coverage, kept so the branch cannot index an empty vector if a reader ever hands it one. Measured refusal pinned by `identifications_without_a_run_are_refused`, which asserts the reader's variant and message.
+
+## CPP-343 — FileInfo reads `getHits()[0]` behind a guard that `PeptideIdentification::empty()` can never satisfy for a loaded file, so any identification file with a hit-less spectrum crashes it
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/FileInfo.cpp:1347-1354`, the per-spectrum loop of the identification branch of `FileInfo::report_`; `src/openms/source/METADATA/PeptideIdentification.cpp:210-217`, `PeptideIdentification::empty()`.
+
+**Trigger:** Any idXML or mzIdentML holding a `<PeptideIdentification>` with no `<PeptideHit>` child. Files like these are ordinary output of filtering tools.
+
+**Issue:** The loop reads the top hit behind what looks like a guard:
+
+```cpp
+if (!id_data.peptides[i].empty())
+{
+  ...
+  const vector<PeptideHit> &temp_hits = id_data.peptides[i].getHits();
+  if (temp_hits[0].getSequence().isModified())   // :1354
+```
+
+but `PeptideIdentification::empty()` is a *default-constructed* test, not an empty-hit-list test:
+
+```cpp
+return id_.empty() && hits_.empty() && getSignificanceThreshold() == 0.0
+       && score_type_.empty() && higher_score_better_ == true;
+```
+
+An identifier, a score type, a non-zero significance threshold or `higher_score_better == false` each make it false on their own with no hits present, and `temp_hits[0]` is then an out-of-bounds read on an empty vector.
+
+Worse, the guard is unreachable in practice: `IdXMLFile::load` gives every `PeptideIdentification` the enclosing `IdentificationRun`'s identifier, so `id_` is never empty for a *loaded* file. There is no idXML or mzIdentML input for which this guard protects the read.
+
+**Proposed C++ fix:** Guard on the hit list itself — `if (!id_data.peptides[i].getHits().empty())` — which is what the code at `:1354` actually requires. Separately, `PeptideIdentification::empty()` is a confusing name for a default-constructed test and is worth either renaming or documenting at the declaration, because this is not the only caller that reads it as "has no hits".
+
+**Evidence:** Executed on the Release build, `../oracle/a7-fileinfo/manifest.json`, cases `id_empty_hitlist` and `id_empty_hitlist_ok`, both twice. `a7_id_empty_hitlist.idXML` holds one identification with a hit and one with `score_type="score"` and no hit: **SIGSEGV** (exit -11). `a7_id_empty_hitlist_ok.idXML` is the same file with the score type cleared, in an attempt to make `empty()` true: it **also SIGSEGVs**, which is what shows that the loader's identifier keeps `empty()` false regardless.
+
+**Rust handling:** `src/format/file_info/identifications.rs` ports `empty()` faithfully as `source_is_empty`, and then returns `Error::InvalidValue` naming the offending identification index when the guard passes and the hit list is nevertheless empty, under lead decision D1. Pinned by `identifications_with_a_hitless_identification_are_refused`, which covers both files.
+
+## CPP-344 — FileInfo's consensusXML statistics summarise the qualities and widths of twice as many values as there are consensus features, half of them zero
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/FileInfo.cpp:2263-2266`, the sample declarations of the consensusXML arm of the `-s` block.
+
+**Trigger:** `FileInfo -in <file>.consensusXML -s` on any non-empty consensus map.
+
+**Issue:** Three samples are declared side by side, and only the first is declared the way it is used:
+
+```cpp
+vector<double> intensities;
+intensities.reserve(size);     // empty, capacity size
+vector<double> qualities(size);
+qualities.reserve(size);       // size ZERO VALUES, then a no-op reserve
+vector<double> widths(size);
+widths.reserve(size);          // the same
+```
+
+The loop then `push_back`s onto all three, so `qualities` and `widths` end up `2 * size` long with `size` leading `0.0`s. Every figure of the `Qualities of consensus features:` block is therefore computed over a sample half of which is fabricated: the count is doubled, the mean is halved, the minimum is pinned to zero and the quartiles are dragged down. `widths` is collected and never printed, so its copy of the defect is invisible but equally wrong.
+
+The defect is visible in the project's own reference output: `topp/FileInfo_7_output.txt` (test-data `0cb15f2`) records five consensus features, `Intensities of consensus features: num. of values: 5` and `Qualities of consensus features: num. of values: 10`.
+
+**Proposed C++ fix:** Declare `qualities` and `widths` as `intensities` is declared — empty with a `reserve(size)` — or drop the `push_back`s and assign by index. `widths` is dead and can go.
+
+**Evidence:** Executed on the Release build, `../oracle/a7-fileinfo/manifest.json`, case `c7_all` on the upstream `FileInfo_7_input.consensusXML` with the upstream flags `-s -m -p`, which reproduces the retained expected output above, and case `c_cid3`, where two consensus features give `num. of values: 2` for the intensities and `4` for the qualities.
+
+**Rust handling:** Reproduced, not refused: the behaviour is deterministic, in bounds and explained by the executed instructions, which is what lead decision D1 asks for. `src/format/file_info/consensus.rs::collect` pre-fills the quality sample with `size` zeros exactly as the source does and documents why; `widths` is not collected, because nothing reads it. Pinned by `consensus_upstream_7_with_all_flags`, which asserts both counts on the rendered report.
+
+## CPP-345 — FileInfo's `-m`, `-p` and `-s` have no mzIdentML arm, so an mzIdentML input is reported against an MSExperiment that was never loaded
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/FileInfo.cpp:1990-1996` and `:2005` (the `-m` block), `:2105-2107` and `:2115` (`-p`), `:2373-2376` and `:2384` (`-s`).
+
+**Trigger:** `FileInfo -in <file>.mzid -m`, `-p` or `-s`.
+
+**Issue:** Each of the three sections dispatches on the input type with an `IDXML` arm and a trailing `else //peaks`, and none of them has an `MZIDENTML` arm — even though the content branch at `:1312` handles `IDXML` and `MZIDENTML` together. An mzIdentML input therefore falls into the peak-file arm of all three and is reported against the `PeakMap exp` that the identification branch never filled. The output is a full peak-file metadata block with every field empty and a date of `0000-00-00 00:00:00`, a data-processing section that finds an empty experiment, and an `Intensities:` statistics block over no values — none of which has anything to do with the file that was read. The `-m` section also loses the document identifier that the `IDXML` arm would have printed.
+
+**Proposed C++ fix:** Extend each of the three type tests to `in_type == FileTypes::IDXML || in_type == FileTypes::MZIDENTML`, matching the content branch at `:1312`. `-p` and `-s` then correctly contribute nothing beyond their titles, and `-m` prints the document identifier.
+
+**Evidence:** Executed on the Release build, `../oracle/a7-fileinfo/manifest.json`, cases `mzid14_all` and `mzid15_all` on the upstream `FileInfo_14_input.mzid` and `FileInfo_15_input.mzid`, both twice. The retained text carries `Document ID:        `, `Date:               0000-00-00 00:00:00`, empty `Sample:` and `Instrument:` blocks and `Intensities:\n  num. of values: 0`, and the retained TSV carries `document id`, `date`, `sample name`, `sample organism`, `sample comment` and the three `instrument ...` rows.
+
+**Rust handling:** Reproduced verbatim, as the behaviour is well defined. `src/format/file_info/identifications.rs` calls `peaks::write_meta` with a default `MSExperiment` rather than writing the text out again, so the peak-file rendering and its fall-through copy cannot drift apart. Pinned by `identifications_mzidentml_and_its_peak_file_fall_through`.
+
+## CPP-346 — FileInfo's FASTA duplicate detection overwrites each hash bucket instead of appending to it, so a hash collision hides a duplicate
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
+
+**Status:** Executed (the mechanism; the collision itself is latent).
+
+**Affected file/function:** `src/openms/source/FORMAT/FileInfo.cpp:931` and `:949`, the two `SHashmap` updates of the FASTA branch of `FileInfo::report_`.
+
+**Trigger:** A FASTA in which two entries with different headers (or different sequences) have colliding `std::hash<std::string>` values, with a third entry duplicating the first.
+
+**Issue:** Both buckets are `std::unordered_map<size_t, vector<ptrdiff_t>>`, and the lookup above each update searches the bucket with `find_if`, so the intent is plainly to accumulate every index with a given hash. The update does the opposite:
+
+```cpp
+// add our own hash
+m_headers[id_hash] = { std::distance(entries.begin(), loopiter) };
+```
+
+It **assigns** a fresh one-element vector, discarding whatever was there. The bucket is therefore only ever "the last index with this hash", the `find_if` only ever examines one candidate, and an intervening entry that merely collides evicts the real match: with headers A, B (colliding with A) and A again, the third entry is compared with the second, `headerMatches` fails, and the duplicate is not reported.
+
+The reported counts are consequently a function of the standard library's string hash, which no standard guarantees, rather than of the file alone. Nothing here is out of bounds and nothing crashes; the count is simply low on a collision.
+
+**Proposed C++ fix:** `m_headers[id_hash].push_back(std::distance(entries.begin(), loopiter));`, and the same at `:949` for `m_seqs`, which is what the surrounding `find_if` already expects.
+
+**Evidence:** Executed on the Release build, `../oracle/a7-fileinfo/manifest.json`, cases `f17_bare` and `f_dup3_bare`. `FileInfo_17_input.fasta` reports `crab_chick` at index 7 as a duplicate of index 2, five entries later, which shows the bucket surviving intervening entries when no collision occurs; `a7_fasta_dup3.fasta`, three identical entries, reports #1 against #0 and #2 against #1 — never #2 against #0 — which is the overwrite made visible. `../oracle/a7-fileinfo/scripts/probe_std_hash.cpp` records the reference toolchain's `std::hash<std::string>` (g++ 13.3.0 on ibminode06) over the empty string, every `length % 8` tail case, bytes above `0x7f` and an embedded NUL; those 60 values are what a port has to match for the counts to agree.
+
+**Rust handling:** Reproduced, including the hash: `src/format/file_info/fasta.rs::string_hash` implements libstdc++'s `_Hash_bytes` (the 64-bit Murmur variant, multiplier `0xc6a4a7935bd1e995`, seed `0xc70f6907`, 47-bit shift-mix) so that the counts agree with the reference build even on a collision, and the bucket is a `BTreeMap<u64, usize>` holding the single last index, as the source's assignment does. 28 of the probe's 60 values are asserted by `string_hash_matches_the_reference_libstdcxx`; the duplicate counts and the warning text by `fasta_duplicate_warnings_match_the_source_log` and `fasta_three_identical_entries_count_two_duplicates`.
+
+## CPP-347 — FileInfo reads order statistics positionally out of a `std::sort`ed sample whose elements `operator<` calls equivalent, so the consensusXML `-s` minimum, quartiles and maximum depend on the order of the values in the file
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/FileInfo.cpp:2310-2327` and `:2371` (the sample and the call), and `src/openms/include/OpenMS/MATH/StatisticFunctions.h:948` (the `sort` inside `Math::SummaryStatistics`).
+
+**Trigger:** A consensusXML run with `-s` in which one consensus feature holds a sub-feature of intensity `-0.0` and one of intensity `0.0` under a centroid of positive intensity, together with at least one consensus feature whose own value is finite. Two such finite features with different values make the `std::sort` call undefined rather than merely unspecified.
+
+**Issue:** `:2310` computes
+
+```cpp
+double it_ratio = hs_iter->getIntensity() / (cm.getIntensity() > 0 ? cm.getIntensity() : 1.);
+```
+
+and `:2312-2315` replaces every ratio below 1 by its reciprocal, so a sub-feature of intensity `-0.0` gives `1 / -0.0 = -inf` and one of intensity `0.0` gives `1 / 0.0 = +inf`. `:2317` then accumulates
+
+```cpp
+it_aad += it_ratio;
+```
+
+so `it_aad` becomes `(-inf) + (+inf) = NaN`, `:2323` divides it by `cm.size()` and `:2327` pushes the NaN into `it_aad_by_cfs`. That vector is handed to `Math::SummaryStatistics<vector<double>>` at `:2371`, whose constructor calls `sort(data.begin(), data.end())` at `StatisticFunctions.h:948`.
+
+`std::sort` requires its comparison to be a strict weak ordering, and it is free to return any permutation of elements its comparison calls equivalent. `operator<` on `double` makes a NaN incomparable with every value, itself included, so both of those bite:
+
+- with **two or more distinct numbers** in the sample alongside the NaN, transitivity of incomparability fails — `1 ~ NaN` and `NaN ~ 3` while `1 < 3` — so the precondition is violated and the call is **undefined**;
+- with **at most one distinct number**, the precondition still holds, but every element is *equivalent* to every other, so **every** permutation is a conforming result and the one `std::sort` returns is **unspecified**.
+
+libstdc++ does not crash in either case — for a range of this size it runs `__insertion_sort`, and because every comparison against the NaN is false, no element ever moves. (That last is a property of the **size**, not of the NaN: above the insertion-sort threshold `__introsort_loop` does move it, and a 20-element sample `{NaN, 2..20}` prints `minimum: 2` and `median: -nan`.) The consequence is the same either way: `data.front()` at `:952`, the three quantiles at `:953-955` and `data.back()` at `:956` are read out of a range whose order the library was free to choose, and they therefore report whatever position the consensus features happened to occupy in the file.
+
+**A NaN is not the only value this bites.** `operator<` also calls `-0.0` and `0.0` equivalent — both `-0.0 < 0.0` and `0.0 < -0.0` are false — and the `Intensity ratios` sample that `:2310-2311` fills *before* the inversion at `:2312-2315` holds exactly those two for the same input. There the strict-weak-ordering precondition **holds**, so nothing is undefined; the permutation is merely unspecified, `std::sort` leaves it as it found it, and `ostream` writes `-0` for a negative zero, so the same four positional reads print different signs for the two file orders. The defect is therefore not "a NaN reaches `std::sort`" but "order statistics are read positionally out of a range whose order the comparison did not determine", and a fix that only filters non-finite values leaves the signed-zero half in place.
+
+**Proposed C++ fix:** Decide what a non-finite sample means before summarising it. Either filter the sample with `std::isfinite` before the constructor, as `tukeyUpperFence` and `adaptiveQuantile` in the same header already do, and say how many values were dropped; or refuse the sample; or guard the arithmetic at `:2317` so a `(-inf) + (+inf)` never enters `it_aad` in the first place. What must not stay is passing a NaN-bearing range to `std::sort` and then reading order statistics out of the result.
+
+**Evidence (the NaN half):** Executed on the Release build, `../oracle/a7-fileinfo/manifest.json`, cases `c_nan_then_finite_s` and `c_finite_then_nan_s`, each run twice there and three times in a separate probe, all stable. The two inputs hold **the same two consensus features in the opposite file order**; each report is 142 lines and they disagree on exactly four (five before the `File name:` line is normalised away):
+
+| line | `a7_cons_nan_then_finite.consensusXML` | `a7_cons_finite_then_nan.consensusXML` |
+| --- | --- | --- |
+| `minimum:` | `-nan` | `2` |
+| `lower quartile:` | `-nan` | `2` |
+| `upper quartile:` | `2` | `-nan` |
+| `maximum:` | `2` | `-nan` |
+
+A genuinely sorted range cannot have that property: the minimum and maximum of a multiset do not depend on the order it is presented in. The two-element samples here are the *unspecified* case rather than the undefined one, which is why the Release build is stable per input and still answers the same question two different ways.
+
+Two related shapes are **not** affected and are recorded as controls, because in them the permutation cannot be observed: `c_nan_one_s`, whose sample is a single NaN — a one-element range has exactly one permutation, so there is nothing for `std::sort` to choose — and `c_nan_two_s`, whose sample is all NaN, so every permutation prints the same eight lines.
+
+**Evidence (the signed-zero half):** the same manifest, cases `c_nan_one_s` and `c_zero_swapped_s`, annotated `signed_zero_order`, each run twice and reproduced. The two inputs hold **the same consensus feature with its two sub-feature intensities exchanged**, and their `Intensity ratios` blocks disagree on exactly four lines:
+
+| line | `a7_cons_nan_one.consensusXML` | `a7_cons_zero_swapped.consensusXML` |
+| --- | --- | --- |
+| `minimum:` | `-0` | `0` |
+| `lower quartile:` | `-0` | `0` |
+| `upper quartile:` | `0` | `-0` |
+| `maximum:` | `0` | `-0` |
+
+No NaN is in that sample at all. The `Ranges` line `intensity:` differs the same way, through `std::min` in `updateRanges`.
+
+**Rust handling:** Two answers, because the two halves differ in whether the source's own precondition holds. **The NaN half:** `SummaryStatistics::new` (`src/math/statistic_functions.rs`) summarises the two control shapes, reproducing the Release build's output for both, and refuses a NaN next to a number with `Error::InvalidValue("statistics input must not contain NaN")`. That refusal is a **deferral** rather than a decision-D1 refusal: nothing is out of bounds, and the values are stable per input, so D1 would have the port reproduce them — but doing so means porting libstdc++'s `std::sort` permutation into `sort_ascending`, which every `SummaryStatistics` caller in the crate consumes. It is raised for the lead. Pinned by `consensus_nan_in_the_statistics_sample` in `tests/file_info_a7.rs`, which asserts the exact refusal, that the run without `-s` still succeeds, and that the two retained reference reports disagree on exactly those four lines. Section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md` documents it.
+
+**The signed-zero half** is *not* refused: the values compare equal, the source's precondition holds, nothing is out of bounds, and refusing would widen a refusal in `sort_ascending` — which every `SummaryStatistics` caller in the crate consumes — to an input the Release build handles stably. `sort_ascending` orders by `f64::total_cmp`, which puts `-0.0` first deterministically, so the port prints the `a7_cons_nan_one` column for both file orders. Recorded as native difference 6 of `docs/FILE_INFO_A7_SUPPORT.md` and pinned by `consensus_a_signed_zero_sample_is_ordered_by_the_total_order`, which asserts the four differing lines of the two Release reports and that each of the port's four lines is the Release build's own line for the unswapped file. The shared-math wave that would close the deferral has to cover **any** sample whose elements `std::sort` calls equivalent but `f64::total_cmp` orders, not only NaN-bearing ones.
+
+## CPP-348 — All three re-exposed peak-picker parameters forward an unrestricted value into a restricted one, so NaN silently suppresses every S/N gate and an out-of-range value aborts with a message naming a class the user never mentioned
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`, `libOpenMS.so` sha256 `abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h:92`, `:97`, `:100`, `:290` and `:314-321`, `PeakPickerIterative::PeakPickerIterative` and `::pick`; `src/openms/source/ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp:33-34` and `:408-412`, `PeakPickerChromatogram::PeakPickerChromatogram` and `::updateMembers_`. Against `src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h:105-109` and `src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp:31-32`.
+
+**Trigger:** Any run of either picker with a caller-chosen noise window or S/N threshold: `PeakPickerIterative`'s `algorithm:sn_win_len_` and `algorithm:signal_to_noise_` (a TOPP tool, `src/PeakPickerIterative.cpp:85-106` at the pinned TOPP revision `174b576`, which exposes the algorithm's whole parameter set under `algorithm:`) or `PeakPickerChromatogram`'s `sn_win_len`.
+
+**Issue:** `SignalToNoiseEstimatorMedian` declares `defaults_.setValue("win_len", 200.0, ...)` with `defaults_.setMinFloat("win_len", 1.0)` (`:105-106`) and `defaults_.setValue("bin_count", 30, ...)` with `defaults_.setMinInt("bin_count", 3)` (`:108-109`). `PeakPickerHiRes` declares `defaults_.setValue("signal_to_noise", 0.0, ...)` with `defaults_.setMinFloat("signal_to_noise", 0.0)` (`PeakPickerHiRes.cpp:31-32`). Three consumer parameters re-expose those values under their own names — `sn_bin_count_` (`PeakPickerIterative.h:97`), `sn_win_len_` (`:100`) and `signal_to_noise_` (`:92`), and `sn_win_len`/`sn_bin_count` (`PeakPickerChromatogram.cpp:33-34`) — **with no restriction at all**, then copy them into the restricted `Param` and call `setParameters` (`PeakPickerIterative.h:290` and `:318-319`; `PeakPickerChromatogram.cpp:408-412`), where `DefaultParamHandler::setParameters` runs `Param::checkDefaults` and `ParamEntry::isValid` against the *other* class's restrictions. Note that `signal_to_noise_` is not an advanced parameter: it is the first one a user of `PeakPickerIterative` sets. Two distinct failures follow.
+
+First, a value the restriction rejects aborts the tool with a message about a parameter name, and a class, the user never typed. Measured: `sn_win_len_ = 0.5` throws `Exception::InvalidParameter`, "SignalToNoiseEstimatorMedian: Invalid double parameter value '0.500000' for parameter 'win_len' given! The valid range is: [1.000000:1797693134862315708...368.000000]" — the upper bound printed in full as `DBL_MAX`, 309 digits; `sn_bin_count_ = 1` or `2` throws "Invalid integer parameter value '1' for parameter 'bin_count' given! The valid range is: [3:2147483647]"; and `signal_to_noise_ = -1.0` throws "PeakPickerHiRes: Invalid double parameter value '-1.000000' for parameter 'signal_to_noise' given! The valid range is: [0.000000:...]" (case `ppi_snneg`). Nothing in any of these messages mentions `sn_win_len_`, `sn_bin_count_`, `signal_to_noise_`, the picker, or the section the value came from.
+
+Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and skips the upper bound when `max_float` was never set, so **NaN and `+inf` pass**: `NaN < 1.0` is false, and no upper bound exists. A NaN window then makes every sliding window sparse, so every ratio becomes the point's intensity over `noise_for_empty_window`, whose default is `1e20`, and every S/N gate in the picker fails silently. Measured on a 48-point profile with one peak, `PeakPickerIterative` at its defaults reports one peak with `leftWidth` 16.0 (`0x41800000`), `rightWidth` 24.0 (`0x41c00000`) and `IntegratedIntensity` 6723.68 (`0x45d21d70`); with only `sn_win_len_` set to NaN it reports the same single peak with `leftWidth` 20.0 (`0x41a00000`), `rightWidth` 22.0 (`0x41b00000`) and `IntegratedIntensity` 2807.70 (`0x452f7b26`) — 58 % of the integrated intensity lost, exit 0, nothing on stderr. `PeakPickerChromatogram` behaves the same way: `leftWidth` 8.0, `rightWidth` 31.0 and `SN` 3.564 (`0x40641e68`) at its defaults become `leftWidth` 19.0, `rightWidth` 21.0 and `SN` 4.543e-18 (`0x22a79d9a`) with `sn_win_len = nan`. A `-inf` window is rejected, because `-inf < 1.0` is true, so the three non-finite values are not treated alike.
+
+**Proposed C++ fix:** Give every re-exposed parameter the same restriction as the parameter it feeds — `setMinFloat("sn_win_len_", 1.0)`, `setMinInt("sn_bin_count_", 3)` and `setMinFloat("signal_to_noise_", 0.0)` in `PeakPickerIterative`, and `setMinFloat("sn_win_len", 1.0)` and `setMinInt("sn_bin_count", 3)` in `PeakPickerChromatogram` — so the error names the parameter the user set. Separately, `ParamEntry::isValid` should reject a non-finite value for a parameter that carries any numeric restriction, since neither a NaN nor an infinity is inside any interval the author meant to express.
+
+**Evidence:** `oracle/picker-consumers/` — `probe_snt.cpp` and `probe_pickers.cpp` built against that install, `gen_cases.py` for the inputs, `run.sh` for the two identical repeats. The throwing cases are `ppi_winsmall`, `ppi_bins1`, `ppi_bins2`, `ppi_snneg`, `ppc_winsmall`, `ppc_bins1` and the rejected `ppi_winneginf`/`ppc_winneginf`; the silently-suppressed cases are `ppi_winnan` against `ppi_clean` and `ppc_winnan_pick` against `ppc_gauss_clean`, all in `results/run1.tsv`. The same rows are in the repository fixtures `tests/data/picker_consumers/{snt_oracle.tsv,pick_oracle.tsv}`.
+
+**Rust handling:** Reproduced, not fixed. `SignalToNoiseEstimatorMedian::validate` already accepted a NaN or infinite `window_length` under `NoiseCompatibility::source_value_domain` and refused it natively; this wave wired both pickers to it, so a NaN window picks in the source profile with the Release build's bits and is refused in the native one (`tests/picker_noise_consumers.rs`). The port has no separate `sn_win_len` parameter to restrict: the estimator is a public field of each picker. A negative `signal_to_noise` is already refused by `PeakPickerIterative`'s own option check, in both profiles, naming the picker rather than another class (`every_release_exception_case_stays_refused_in_both_profiles`, case `ppi_snneg`).

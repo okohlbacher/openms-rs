@@ -64,8 +64,9 @@
 //!   mzIdentML with `mzIdentML has no SpectrumIdentification element`
 //!   (`mzidentml.rs:1596-1598`) — so the guard below is a defence with no
 //!   reachable input rather than the refusal that is measured;
-//! - `FileInfo.cpp:1354` reads `getHits()[0]` behind a
-//!   `!id_data.peptides[i].empty()` guard, but `PeptideIdentification::empty()`
+//! - `FileInfo.cpp:1354` reads `temp_hits[0]`, the first element of the
+//!   `getHits()` reference taken at `:1352`, behind the `:1347` guard
+//!   `if (!id_data.peptides[i].empty())`. But `PeptideIdentification::empty()`
 //!   (`PeptideIdentification.cpp:210-217`) tests for a default-constructed
 //!   object rather than for an empty hit list: a score type, an identifier, a
 //!   non-zero significance threshold or `higher_score_better == false` each
