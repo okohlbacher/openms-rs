@@ -169,9 +169,14 @@ build:
 `allow_unsorted_positions` is deliberately inert here. `pickChromatogram`
 (`PeakPickerChromatogram.cpp:68-72`) throws `Exception::IllegalArgument`,
 "Chromatogram must be sorted by position", so decreasing retention times stay
-`Error::UnsortedData` in both profiles. The same throw is what a non-finite
-retention time produces, since `std::is_sorted` reads a NaN as ordered against
-its neighbour but an infinity is not.
+`Error::UnsortedData` in both profiles. `MSChromatogram::isSorted` decides that
+with `prev.getRT() > next.getRT()` (`KERNEL/MSChromatogram.cpp`), which is why
+equal retention times pass it, a NaN passes it (every comparison against a NaN
+is false), and an infinity ahead of a finite sample does not — the measured
+`IllegalArgument` for the `nonfinite` case comes from that last one.
+Non-finite retention times and intensities are refused earlier here, by
+`MSChromatogram::validate`, and no flag lifts that; `PeakPickerHiRes` refuses
+them unconditionally too.
 
 Two smoother facts decide how far a negative sample travels, and both were read
 from the pinned source rather than assumed. `SavitzkyGolayFilter`
@@ -194,8 +199,9 @@ source profile.
 
 ## Validation, limits and remaining scope
 
-Coordinates must be finite and increasing; intensities must be finite.
-Decreasing retention times are refused in both profiles, as the source throws.
+Coordinates must be finite and non-decreasing; intensities must be finite.
+Decreasing retention times are refused in both profiles, as the source throws;
+equal ones need the source profile.
 Duplicate RT samples and negative intensities are refused by the native profile
 and accepted by the source profile, as the table above records. Malformed
 parallel arrays, invalid active noise parameters, nonpositive forced widths,
