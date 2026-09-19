@@ -208,6 +208,68 @@ requests used `###`, which would have nested them one level too deep.
    (`src/format/indexed_mzml.rs`) and why the departure stands.
 3. **File CPP-337.** Discharged, as `CPP-337`, with three kinds of evidence.
 
+### Gates at the integration head
+
+Node discipline held: **nothing ran on ibminode05 at any point in this pass.**
+The full suite ran on kim, every other gate on dax, and the two C++ probes on
+ibminode06. Logs under the wave-7 integration log directory.
+
+| gate | host | result |
+|---|---|---|
+| `fmt --all -- --check` | local | rc 0 |
+| `clippy --locked --all-features --all-targets -- -D warnings` | dax | rc 0, zero warning lines |
+| `+1.85.0 check --locked --all-features --all-targets` | dax | rc 0 |
+| `doc --locked --all-features --no-deps`, `RUSTDOCFLAGS=-D warnings` | dax | rc 0, zero warnings |
+| `test --locked --all-features --all-targets --no-fail-fast` | kim | **5,401 passed / 0 failed / 21 ignored** |
+| `test --locked --no-default-features --all-targets --no-fail-fast` | dax | 3,565 passed / 0 failed / 3 ignored |
+| `--no-default-features --features mzml,paramxml,featurexml --test topp_file_info --test topp_feature_finder_centroided --test file_info_checks` | dax | 51 + 45 + 34, rc 0 — CI job `test` |
+| the same slice on **`+1.85.0`** with the five other targets of CI job `minimum-rust` | dax | 19 + 39 + 35 + 51 + 45 + 34, rc 0 |
+| `--no-default-features --features mzml --test file_info_checks` | dax | 47 / 0 / 0 |
+| `--no-default-features --features mzml,paramxml --test topp_peak_picker_hi_res --test ms_data_writing_consumer` | dax | 33 + 36, rc 0 |
+| `--no-default-features --features mzml --test ms_data_writing_consumer --test mzxml --test mzdata` | dax | 36 + 64 + 61, rc 0 — CI job `minimum-rust` |
+| `tools/check_core_sdk.py`, plain and `--source <absolute pin path>` | local | rc 0 both; 2,092 distinct source/registration/reference files verified at `bc9cc12` |
+| `tools/check_doc_coverage.py --write` | local | 4,560/5,915 = 77.1 % |
+| `tools/check_module_cycles.py` | local | 64 cross-module edges, 13 mutually-dependent pairs — unchanged |
+| `tools/check_schema_feature_graph.py`, `tools/core_sdk_coverage.py`, `tools/test_core_sdk.py`, `tools/test_core_sdk_coverage.py` | local | rc 0 |
+| YAML parse of `.github/workflows/rust.yml`; `json.load` of all six changed JSON files | local | all parse |
+
+**The difference from `main` is fully accounted for.** `main` is
+5,317 / 0 / 21; this head is 5,401 / 0 / 21, which is **+84**: A6 adds 63
+(5,380 at `0510382`, the figure both the lane and its reviewer reported), P4
+adds 20 (5,337 at `4293aab`, likewise), and this pass adds **one** —
+`a_history_equal_to_the_headers_by_content_is_not_renumbered`, the test that
+pins P4's second major. 63 + 20 + 1 = 84. The ignored count does not move.
+
+The suite was summed by reconciliation rather than by trusting one number,
+because the ssh capture on the gate path drops lines in two different ways: the
+log is walked, each `test result:` line is compared with the `... ok` and
+`... ignored` lines counted since the previous one, and the larger of each pair
+is taken. The `--all-features` capture came through **clean** — 356 result lines
+and **zero** disagreements — so its 5,401 is the same figure on either method.
+The `--no-default-features` capture had exactly one damaged spot (a result line
+reading 7 where 17 had been counted, an eaten `test result:` line whose window
+then covered two binaries); the reconciliation repaired it, and no other line
+disagreed. Neither log contains a `FAILED` marker, a `failures:` block or a
+panic. The `--all-targets` form excludes doctests, which is why its
+`--no-default-features` total is below the 3,626 A6 reported for the plain form.
+
+### Ignored tests
+
+**28 `#[ignore]` attributes in the tree, all of them in `tests/` and none in
+`src/` — byte-identical to `main`**, file for file and count for count, across
+the same ten files. No test was ignored, skipped, deleted or weakened by this
+wave; no tolerance was widened; no expected value was derived from Rust output.
+The `.rs` diff against `main` adds **0** occurrences of `unsafe` and **0** new
+`#[ignore]`, and adds 85 `#[test]` functions (5,345 → 5,430). The gate reports
+**21** ignored rather than 28 for the reasons earlier waves recorded: the
+platform-gated tests are not compiled on the Linux gate hosts.
+
+Two hygiene facts, mechanically checked rather than asserted: `Cargo.toml` still
+carries `unsafe_code = "forbid"` and `rust-version = "1.85"`, and no C++ entered
+the repository — the two integration probes are shell drivers under
+`../oracle/integ-w7/`, registered in `SOURCE_PROVENANCE.json` by sha256, with no
+copy inside the crate.
+
 ### Still open, and deliberately not closed here
 
 - **The reader's other half.** This port's reader refuses an unregistered
