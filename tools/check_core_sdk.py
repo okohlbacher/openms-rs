@@ -6,6 +6,7 @@
 
 import argparse
 from collections import Counter
+import functools
 import hashlib
 import json
 from pathlib import Path
@@ -13,6 +14,31 @@ import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+@functools.lru_cache(maxsize=None)
+def tracked_paths():
+    """Every path this repository tracks, which is what "in this repository" means.
+
+    Walking the working tree instead answers differently depending on which
+    worktree it is run from. The main one carries material git deliberately
+    ignores - the ``.reference/`` core checkouts, every port lane's worktree
+    under ``.claude/worktrees/``, build output - and a fresh worktree carries
+    none of it, so :func:`check_external_artifacts` refused from the main tree
+    and passed from a clean one. A checker whose verdict depends on the
+    directory it was started in is worse than no checker, and git is the only
+    thing that knows which files are the repository and which are working
+    material sitting beside it.
+
+    A checkout that git cannot be asked is not answered with a guess: the
+    assertion says so instead.
+    """
+    done = subprocess.run(
+        ["git", "-C", str(ROOT), "ls-files", "-z"],
+        capture_output=True, text=True, check=False,
+    )
+    assert done.returncode == 0, f"cannot list tracked files: {done.stderr.strip() or done.returncode}"
+    return tuple(Path(path) for path in done.stdout.split("\0") if path)
 
 
 def reference_sources(data, revision, manifest):
@@ -73,16 +99,22 @@ def check_external_artifacts(data, manifest):
         assert item.get("origin_key"), f"{manifest}: {path} must record its origin_key"
         # No copy may be left behind in the crate. The artifact's path is recorded
         # relative to the repository root and starts with "../", so the place a copy
-        # would sit is that path with the "../" dropped. A C++ artifact is also
-        # checked by name anywhere in the crate, because "no C++ in this repository"
-        # is a standing rule and moved probes keep their file name. Comparing only the
-        # base name, as this did before, rejected an artifact whose name the crate
-        # happens to use as well (Cargo.toml, LICENSE).
-        mirrored = ROOT.joinpath(*Path(path).parts[1:])
-        assert not mirrored.exists(), f"{manifest}: {path} still present in repo at {mirrored}"
+        # would sit is that path with the "../" dropped; that one exact place is
+        # asked of the repository and of the disk, since a file sitting there is
+        # unambiguous however it got there. A C++ artifact is additionally looked
+        # for by name, because "no C++ in this repository" is a standing rule and a
+        # moved probe keeps its file name - but among the repository's own files
+        # and not everything under the directory, which is what made the answer
+        # depend on the worktree. Comparing only the base name, as this did before,
+        # rejected an artifact whose name the crate happens to use as well
+        # (Cargo.toml, LICENSE).
+        tracked = tracked_paths()
+        mirrored = Path(*Path(path).parts[1:])
+        assert mirrored not in tracked and not (ROOT / mirrored).exists(), \
+            f"{manifest}: {path} still present in repo at {mirrored}"
         if Path(path).suffix in {".cpp", ".cc", ".cxx", ".h", ".hpp"}:
             name = Path(path).name
-            left = [str(found.relative_to(ROOT)) for found in ROOT.rglob(name) if ".git" not in found.parts]
+            left = sorted(str(found) for found in tracked if found.name == name)
             assert not left, f"{manifest}: {path} still present in repo as {left}"
 
 
