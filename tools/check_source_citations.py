@@ -6,30 +6,38 @@
 
 Every port document cites the source it reproduces as ``<File>.<ext>:<a>`` or
 ``:<a>-<b>``, and every one of those line numbers was read by a human. Package
-A6 alone shipped four citation defects; one of them - a range quoted ten lines
-above the code it described - survived two review rounds in seven places at
-once, in a round whose own finding was about a wrong line range. Nothing in the
-gate battery reads a line number, so nothing catches them.
+A6 alone shipped four citation defects; one of them - a range quoted for code
+ten lines below it - survived two review rounds in seven places at once, in a
+round whose own finding was about a wrong line range. Nothing in the gate
+battery reads a line number back, so nothing catches them.
 
-This does. For each citation it resolves the file against the pins the
-repository already declares - the core SDK checkouts under ``.reference/``, and
-the TOPP and CLI packages read out of their git objects at the pinned
-revisions, never out of a working tree - and checks that the source the
-surrounding text quotes really is inside the cited lines.
+This does. It resolves each citation against the pins the repository already
+declares - the core SDK checkouts under ``.reference/``, and the TOPP and CLI
+packages read out of their git objects at the pinned revisions, never out of a
+working tree - and then, at four levels of evidence:
 
-What counts as a quotation is decided by the cited file, not by a word list. A
-token spelled out in a code span beside the citation is treated as a quotation
-only when the cited file contains it at all, and contains it on few enough
-lines to locate something; a token the file never contains is prose, a Rust
-name or a test name, and is ignored. So the check fires on exactly the defect
-it is for: the quoted identifier is in the file the citation names, but not in
-the lines the citation gives. It also rejects a range that runs backwards or
-ends past the end of its file, and verifies the ``// :NNN`` line annotations
-that the issue log's transcribed code blocks carry.
+* a cited range must exist: it may not run backwards or end past the end of
+  its file;
+* a citation that names its file and one line may not name a blank one;
+* a code fragment quoted beside the citation, if the cited file contains it at
+  all, must be inside the cited lines - a fragment the file does not contain is
+  a paraphrase, a Rust name or a proposed fix, and is ignored;
+* a transcribed code block's ``// :NNN`` annotations must match those lines.
+
+What makes the third check quiet enough to be worth running is that it asks
+only about quotations, and only about the one a citation is written beside. A
+backticked *name* - ``writeHeader_``, ``MzTabFile::load`` - is a reference, and
+what it names is usually the function the cited lines sit inside rather than
+anything on them. A backticked *fragment* with syntax in it reproduces a line.
+And a quotation on the far side of a full stop or a semicolon belongs to
+another clause, so it is not attached.
 
   python3 tools/check_source_citations.py            # gate
-  python3 tools/check_source_citations.py --report   # show what was checked
-  python3 tools/check_source_citations.py --verbose  # and what could not be
+  python3 tools/check_source_citations.py --report   # show the pins and the count
+  python3 tools/check_source_citations.py --verbose  # and what could not be checked
+
+Citations it cannot check are counted, never guessed at: a file no reachable
+pin contains, and a bare ``:a-b`` that fits no file the same paragraph cites.
 """
 
 import argparse
@@ -51,13 +59,14 @@ EXTENSIONS = "|".join(SOURCE_EXTENSIONS)
 # A citation names a C++ file - optionally by its full path - and a line or range.
 CITATION = re.compile(
     r"(?P<path>(?:[A-Za-z0-9_.-]+/)*)(?P<file>[A-Za-z_][A-Za-z0-9_]*\.(?:" + EXTENSIONS + r"))"
-    r":(?P<first>\d+)(?:-(?P<last>\d+))?\b"
+    r":(?P<first>\d+)(?:[-\u2013\u2014](?P<last>\d+))?\b"
 )
 # A bare range continues the file named before it: "Decoder.cpp:165-168, :179-181".
-CONTINUATION = re.compile(r"(?<![\w.:/-]):(?P<first>\d+)(?:-(?P<last>\d+))?\b")
+CONTINUATION = re.compile(r"(?<![\w.:/-]):(?P<first>\d+)(?:[-\u2013\u2014](?P<last>\d+))?\b")
 # A transcribed code block annotates its lines: "DOMNode* iter = firstChild;  // :282".
 ANNOTATED = re.compile(r"^(?P<code>.*?)\s*//\s*:(?P<line>\d+)\s*$")
-CODE_SPAN = re.compile(r"`([^`\n]+)`")
+# A code span may be broken over two lines by the document's own wrapping.
+CODE_SPAN = re.compile(r"`([^`]+?)`")
 IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]{2,}")
 # What separates a quotation from a reference: a name, a call or a signature
 # says which symbol is meant, while an assignment, a comparison, a statement, a
@@ -266,17 +275,17 @@ def units(path, text, default_revisions):
             spans.append(("\n".join(current), revisions))
             current = []
             continue
+        if fenced:
+            continue  # A fenced block quotes without citing.
         if issue_log and ISSUE_HEADING.match(line):
             revisions = named.get(line) or header or default_revisions
         stripped = line.strip()
-        breaks = (
-            not stripped
-            or stripped.startswith(("|", "#"))
-            or bool(re.match(r"[-*+]\s|\d+[.)]\s", stripped))
-        )
-        if breaks and not fenced:
+        alone = stripped.startswith(("|", "#"))
+        if alone or not stripped or re.match(r"[-*+]\s|\d+[.)]\s", stripped):
             spans.append(("\n".join(current), revisions))
-            current = [line] if stripped else []
+            current = [] if alone or not stripped else [line]
+            if alone:
+                spans.append((line, revisions))
         else:
             current.append(line)
     spans.append(("\n".join(current), revisions))
@@ -339,6 +348,8 @@ def quotations(unit):
     """
     found = []
     for match in CODE_SPAN.finditer(unit):
+        if match.group(1).count("\n") > 1:
+            continue  # An unpaired backtick, not a span.
         span = flatten(CITATION.sub(" ", match.group(1)))
         if len(span) < MIN_QUOTATION and span.count(" ") < 2:
             continue
@@ -397,29 +408,42 @@ def compress(numbers):
     return ", ".join(str(a) if a == b else f"{a}-{b}" for a, b in spans)
 
 
-def problems_with(pins, revision, path, ranges, quoted, annotated):
+def problems_with(pins, revision, path, ranges, quoted, annotated, report=None):
     """Everything wrong with one file's citations in one unit, against one revision."""
     lines = pins.lines(revision, path)
     found = []
-    for first, last, text in ranges:
+    for first, last, text, named in ranges:
         if last < first:
             found.append(f"{text}: the range runs backwards")
         elif last > len(lines):
             found.append(f"{text}: the file has {len(lines)} lines")
     if found:
         return found
-    named = " / ".join(text for _, _, text in ranges)
+    for first, last, text, named in ranges:
+        # Only for a citation that names its file: a bare range's file is
+        # inferred, and a blank line is too weak a signal to report on a guess.
+        if named and first == last and not lines[first - 1].strip():
+            found.append(f"{text}: that line is blank")
+    if found:
+        return found
+    quoting = " / ".join(text for _, _, text, _ in ranges)
     whole = flatten(" ".join(lines))
-    cited = flatten(" ".join(line for first, last, _ in ranges for line in lines[first - 1:last]))
+    cited = flatten(" ".join(line for first, last, _, _ in ranges for line in lines[first - 1:last]))
     for fragment in sorted(quoted):
-        if fragment in cited or fragment not in whole:
+        if fragment in cited:
+            if report is not None:
+                report["quoted"] += 1
             continue
-        found.append(f"{named}: `{fragment}` is in the file but not on the cited lines")
+        if fragment not in whole:
+            continue
+        found.append(f"{quoting}: `{fragment}` is in the file but not on the cited lines")
     for number, code in annotated:
         if number > len(lines):
             found.append(f"// :{number}: the file has {len(lines)} lines")
         elif flatten(code).rstrip(". ") not in flatten(lines[number - 1]):
             found.append(f"// :{number} is `{lines[number - 1].strip()}`, not `{code}`")
+        elif report is not None:
+            report["quoted"] += 1
     return found
 
 
@@ -464,14 +488,14 @@ def check_unit(pins, unit, revisions, quoted_only, report):
     ranges = collections.defaultdict(list)
     placed = []
     for position, directory, name, first, last, text in named:
-        ranges[(directory, name)].append((first, last, text))
+        ranges[(directory, name)].append((first, last, text, True))
         placed.append((position, len(text), (directory, name)))
     for position, first, last, text in bare:
         owner = owner_of(pins, revisions, (position, first, last, text), named)
         if owner is None:
             report["unresolved"] += 1
             continue
-        ranges[owner].append((first, last, text))
+        ranges[owner].append((first, last, text, False))
         placed.append((position, len(text), owner))
     quoted = attach(unit, placed, quotations(unit)) if quoted_only else {}
     annotated = annotations_in(unit)
@@ -485,7 +509,7 @@ def check_unit(pins, unit, revisions, quoted_only, report):
             continue
         disagreements = []
         for revision, path in attempts:
-            wrong = problems_with(pins, revision, path, cited, quoted.get(key, ()), annotated)
+            wrong = problems_with(pins, revision, path, cited, quoted.get(key, ()), annotated, report)
             if not wrong:
                 report["checked"] += len(cited)
                 break
@@ -520,7 +544,10 @@ def main():
 
     pins = Pins(arguments.reference, arguments.packages)
     default = tuple(pins.declared.values())
-    report = {"checked": 0, "skipped": 0, "unresolved": 0, "skipped_files": collections.Counter()}
+    report = {
+        "checked": 0, "quoted": 0, "skipped": 0, "unresolved": 0,
+        "skipped_files": collections.Counter(),
+    }
     failures = []
     for document in documents():
         name = str(document.relative_to(ROOT))
@@ -546,6 +573,7 @@ def main():
         ))
     summary = (
         f"{report['checked']} citations checked against the pins, "
+        f"{report['quoted']} of them confirmed against code quoted beside them; "
         f"{report['skipped']} skipped for an unreachable file and "
         f"{report['unresolved']} bare ranges left unresolved"
     )
