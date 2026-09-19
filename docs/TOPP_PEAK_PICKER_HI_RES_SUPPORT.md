@@ -150,7 +150,7 @@ disagree.
 | input reads | one | two |
 | a record needing header entries the first record did not contribute | numbered against a header written from the whole experiment | written with a dangling reference, numbered by the record's position in the stream (`MzMLHandler.cpp:5252-5272`) |
 | what a failing run leaves on disc | nothing | the batches already sent — floor(N / 100) × 100 records, closed and indexed, under the count pass one declared |
-| an `-out` that names an existing directory | `CANNOT_WRITE_OUTPUT_FILE` | in the source, **exit 0 having written nothing**: the consumer's constructor never checks its `std::ofstream` (`MSDataWritingConsumer.cpp:33`) |
+| an `-out` that names an existing directory | `CANNOT_WRITE_OUTPUT_FILE` | in the source, **exit 0 having written nothing**: the consumer's constructor never checks its `std::ofstream` (`MSDataWritingConsumer.cpp:33`). The one row of this table this port does **not** reproduce; native difference 13 |
 
 The first row is the one that changes numbers. A spectrum whose mzML carries
 `MS:1000525` but neither `MS:1000127` nor `MS:1000128` has an unknown stored
@@ -598,6 +598,33 @@ added to the source's output, not a change to it. Pinned by
     this tool selects, reads it as an empty history with one warning, so the
     `FileMerger` case round-trips.
 
+
+13. **An `-out` that cannot be created is reported, in both modes, where the
+    source's low-memory run exits 0 having written nothing.** This is the one
+    row of the divergence table above that this port does not reproduce, so it
+    is worth saying why. `MSDataWritingConsumer`'s constructor never checks its
+    `std::ofstream` (`MSDataWritingConsumer.cpp:33`) and `doLowMemAlgorithm`
+    returns `EXECUTION_OK` regardless, so the whole run is streamed into a
+    failed stream and discarded in silence. Measured on `ibminode06` with an
+    `-out` naming an existing directory, which `TOPPBase`'s writability
+    pre-check accepts: the C++ low-memory run exits 0 with an empty standard
+    error and writes nothing, while its in-memory run exits 5
+    `Error: Unable to write file (…could not be created. )`
+    (`logs/closediff1_06.log` section F, `logs/closediff3_06.log` section D).
+
+    Reproducing it would mean deliberately swallowing an I/O error on the one
+    file the run exists to produce, which is the lossy-source-behaviour case
+    the crate refuses by default. Unlike native difference 12, refusing costs
+    nothing: the run produces no output either way, and the only difference is
+    whether the caller is told. `MSDataWritingConsumer::create` therefore
+    returns `Error::Io` and `run_low_memory` propagates it, so this port
+    answers `Error: Unexpected internal error (Is a directory (os error 21))`
+    with `UNKNOWN_ERROR` in both modes. The two controls that do not reach the
+    consumer — a read-only `-out` and an `-out` under a missing directory —
+    are exit 5 with `Cannot write output file given from parameter '-out'!` on
+    both sides and in both modes, so only this one case diverges. Requested as
+    a C++ issue and pinned by
+    `an_out_that_names_a_directory_is_reported_in_both_modes`.
 
 ## Checked boundaries and evidence
 
