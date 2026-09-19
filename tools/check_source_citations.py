@@ -53,7 +53,7 @@ many citations and confirmed how many, because a citation confirmed against the
 wrong file is worse than an unchecked one.
 
 What this does not catch, stated plainly so that a green run is not read for
-more than it says. Of the 2,917 citations it resolves, 97 are confirmed against
+more than it says. Of the 2,979 citations it resolves, 97 are confirmed against
 code quoted beside them; the rest are checked only for existing, because most
 citations in this repository paraphrase the source instead of reproducing it,
 and a paraphrase cannot be read back. The A6 defect that this tool was written
@@ -144,9 +144,14 @@ ISSUE_HEADING = re.compile(r"^##\s+CPP-\d+\b")
 MIN_QUOTATION = 14
 
 # Everything in the repository that cites the C++: the documents, the manifests
-# and the Rust sources, whose module and item documentation cites it too.
+# and the Rust sources, whose module and item documentation cites it too, plus
+# the fixture tables and probe scripts under tests/data/, which carry the source
+# a row was read off in a column of their own. Not tools/: this checker and its
+# tests are full of invented citations of an invented Decoder.cpp, and reading
+# them would be reading a fixture as a claim.
 DOCUMENT_GLOBS = (
-    "*.md", "docs/**/*.md", "docs/**/*.json", "tests/data/**/*.md", "tests/data/**/*.json",
+    "*.md", "docs/**/*.md", "docs/**/*.json",
+    "tests/data/**/*.md", "tests/data/**/*.json", "tests/data/**/*.tsv", "tests/data/**/*.py",
     "src/**/*.rs", "tests/**/*.rs", "examples/*.rs", "build.rs",
 )
 
