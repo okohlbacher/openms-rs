@@ -121,6 +121,17 @@ was not attempted: `src/format/file_info/text_format.rs` was not touched, and
 its `nonfinite` rule is part 3 of the promotion bullet, which still needs A2's
 oracle row re-captured against the Linux Release build.
 
+**One cost, measured rather than assumed.** `sort_ascending` builds a
+permutation with an interpreted introsort and a closure per comparison where it
+used to call `slice::sort_by`, and that is 2.3x slower at 1,000 values rising to
+5.0x at 1,000,000 (macOS arm64, release; the table is in section "The cost of
+the faithful sort" of [STATISTIC_FUNCTIONS_SUPPORT](STATISTIC_FUNCTIONS_SUPPORT.md)).
+The blast radius is narrow — the only consumers of the sorting entry points are
+`FileInfo`'s `summarize` and `fasta.rs`'s length summary, both on bounded
+samples, and the picked feature finder already called `source_sort` directly —
+but it is a real regression on a shared-math path and the lead should see the
+number rather than discover it.
+
 **What this wave did not close, and says so at the item.**
 
 - `compute_rank` and `rank_correlation_coefficient` still refuse a NaN. Their

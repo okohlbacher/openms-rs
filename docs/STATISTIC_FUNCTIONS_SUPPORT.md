@@ -238,6 +238,36 @@ reproduces the defect, and the defect stands.
    `SummaryStatistics::new` does its own sorting and so reads through the
    private `_of_sorted` helpers, which do not re-check.
 
+#### The cost of the faithful sort
+
+`sort_ascending` is no longer a library sort. It builds a permutation of
+`0..n` with the libstdc++ introsort reproduced in Rust, calling a closure for
+every comparison and applying the permutation through an owned buffer, where it
+used to call `slice::sort_by`. That is measurably slower, and the figure is
+recorded here rather than left for a reviewer to find, measured on macOS arm64
+in a release build over a deterministic pseudo-random sample:
+
+| n | `sort_by(f64::total_cmp)` | `source_sort_by` | ratio |
+| --- | --- | --- | --- |
+| 1,000 | 35 µs | 81 µs | 2.3x |
+| 10,000 | 197 µs | 843 µs | 4.3x |
+| 100,000 | 2.1 ms | 9.7 ms | 4.6x |
+| 1,000,000 | 15.9 ms | 79.6 ms | 5.0x |
+
+Whether that matters depends on who calls it, and in this crate the answer is
+narrow: the only consumers of the sorting entry points are `FileInfo`'s
+`summarize` (`src/format/file_info/report.rs`), whose samples are bounded by
+`FileInfo::MAX_STATISTICS_VALUES` and are in practice one value per feature, and
+`fasta.rs`'s sequence-length summary. `mass_trace_detection.rs` has a `median`
+of its own and does not reach this one. No hot inner loop of the crate sorts
+through `statistic_functions`: the picked feature finder already called
+`crate::math::source_sort` directly and is unchanged by this.
+
+The ratio is the price of the permutation being the source's rather than the
+library's, and D16 accepts it. If a future caller needs the speed on a large
+sample, the place to fix it is `source_sort`, not a second sort here — two
+sorting rules in one module is exactly the divergence this wave removed.
+
 ### Signed zeros
 
 `-0.0` and `0.0` are the other pair `operator<` calls *equivalent*: both
