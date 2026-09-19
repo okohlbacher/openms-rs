@@ -190,7 +190,7 @@ fn coordinate(text: &str) -> Result<f64> {
 }
 /// One `float` field -- intensity and the three qualities -- read as a `double`
 /// and narrowed at the setter, as the source narrows it
-/// (`FeatureXMLHandler.cpp:861-877`).
+/// (`FeatureXMLHandler.cpp:862-885`).
 ///
 /// A non-finite value narrows to the same non-finite `f32`. A finite one that
 /// `f32` cannot hold is still refused: the source keeps the infinity the
