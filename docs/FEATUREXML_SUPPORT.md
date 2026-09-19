@@ -59,8 +59,8 @@ thirteen literals through it with each one in a single place at a time.
 So the writer writes `inf`, `-inf` and `NaN` for a non-finite position,
 intensity, quality, overall quality, `float` meta value or `floatList` entry,
 and the reader accepts `inf`, `+inf`, `-inf`, `infinity`, `Infinity`, `INF`,
-`NaN`, `nan`, `NAN`, `-nan` and the `nan(<payload>)` forms below.
-`FeatureFinderAlgorithmPicked` reaches infinite
+`NaN`, `nan`, `NAN`, `-nan` and the `nan(<payload>)` forms recorded at the end
+of this section. `FeatureFinderAlgorithmPicked` reaches infinite
 widths, `FWHM` values and intensities on finite input, and the port's
 `FeatureFinderCentroided` now writes what the Release build writes (this closed
 TOPP native difference 16). `MetaValue::validate` and the public
@@ -87,7 +87,24 @@ Three refusals remain, all of them older than and separate from the spellings:
 - **A literal `StringUtils::toDouble` cannot convert**, such as `1e999`,
   `banana` or `inf.0`. Only a spelled token is non-finite here. Where the
   source refuses such a literal too, the two agree; where it does not, they
-  diverge, in both directions — see below.
+  diverge, in both directions — see the end of this section.
+
+A finite **negative** width also stays refused. `setWidth` stores any value
+(`BaseFeature.cpp:87-94`), but no source path produces a negative FWHM, and the
+mirror check would have to let it through silently.
+
+Accepting such a document is what lets one reach the rest of the crate, and
+the kernel's own finite invariants then apply. `FeatureMap::ranges` — the
+port's `FeatureMap::updateRanges` — refuses a non-finite value, so the map
+reads and its ranges are a checked error. The Release `FileInfo` on the
+document above exits 0 and prints `retention time: -inf .. inf sec (inf min)`
+and `Total ion current in features: nan`
+(`../oracle/featurexml-inf/results/fileinfo_nonfinite.out`); this port's
+`FileInfo` exits 6 with `Invalid parameter: invalid value: range value must be
+finite`. That is a **checked refusal, never a panic**
+(`a_nonfinite_map_reads_and_its_ranges_are_a_checked_error`); making the ranges
+themselves non-finite is a kernel change with its own evidence, not a
+featureXML one, and is open for the lead.
 
 #### A literal the reader cannot convert: two source paths, two divergences
 
@@ -129,23 +146,6 @@ Neither direction of the divergence has a source-written document behind it
 either — `appendNumeric` writes `inf`, `-inf`, `NaN` or a decimal literal an
 `f64` holds, and nothing else — so both stay as recorded and are open for the
 lead.
-
-A finite **negative** width also stays refused. `setWidth` stores any value
-(`BaseFeature.cpp:87-94`), but no source path produces a negative FWHM, and the
-mirror check would have to let it through silently.
-
-Accepting such a document is what lets one reach the rest of the crate, and
-the kernel's own finite invariants then apply. `FeatureMap::ranges` — the
-port's `FeatureMap::updateRanges` — refuses a non-finite value, so the map
-reads and its ranges are a checked error. The Release `FileInfo` on the
-document above exits 0 and prints `retention time: -inf .. inf sec (inf min)`
-and `Total ion current in features: nan`
-(`../oracle/featurexml-inf/results/fileinfo_nonfinite.out`); this port's
-`FileInfo` exits 6 with `Invalid parameter: invalid value: range value must be
-finite`. That is a **checked refusal, never a panic**
-(`a_nonfinite_map_reads_and_its_ranges_are_a_checked_error`); making the ranges
-themselves non-finite is a kernel change with its own evidence, not a
-featureXML one, and is open for the lead.
 
 ## Options
 
@@ -192,6 +192,15 @@ The following native behavior is deliberate:
   metadata are checked errors (see *Non-finite values* above for what is
   accepted instead). Required timestamps must be present rather than
   emitting an invalid schema timestamp.
+- The written text differs from the source's in three places, none of them a
+  difference of value: the source renders a finite `float` with six fractional
+  digits and a finite `double` with fifteen (`writtenDigits`) where this port
+  uses Rust's shortest round-trip form; it joins a `floatList` with `", "`
+  (`ListUtilsIO.h:35-40`) where this port joins with `","`; and it writes a
+  `UserParam`'s attributes as `type`, `name`, `value` where this port writes
+  `name`, `type`, `value`. The pinned reader reads this port's separator back
+  to the same numbers for every spelling
+  (`../oracle/featurexml-inf/results/r2/all.tsv`, the `listnospace_*` cases).
 - Metadata on a data-processing entry, an identification run, a protein hit or
   a peptide identification inside a featureXML still refuses a non-finite
   value: those are written through the shared map/identification codecs, which
