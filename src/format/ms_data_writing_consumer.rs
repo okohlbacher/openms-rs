@@ -1120,36 +1120,93 @@ fn source_references(block: &str, what: &str, index: usize, processing: bool) ->
     let mut tag = block.get(..end).ok_or_else(|| layout(what))?.to_owned();
     let rest = block.get(end..).ok_or_else(|| layout(what))?;
     match what {
-        "spectrum" => {}
+        "spectrum" => {
+            if index > 0 {
+                // `sourceFileRef="sf_sp_<s>"` whenever the record carries a
+                // source file, for every record but the first
+                // (`MzMLHandler.cpp:5252-5255`).
+                tag = renumber(&tag, SOURCE_REFERENCE, &source_id("sf_sp_", index))?;
+            }
+            if processing {
+                // `dataProcessingRef="dp_sp_<s>"` (`MzMLHandler.cpp:5258-5272`).
+                // The one-record render leaves the attribute out, because the
+                // record is the only entry of its own rendered list, so it is
+                // appended where the source writes it: last.
+                tag = renumber_or_append(&tag, PROCESSING_REFERENCE, &source_id("dp_sp_", index))?;
+            }
+        }
         "chromatogram" => {
-            // `writeChromatogram_` writes neither reference
+            // `writeChromatogram_` writes neither reference on the start tag
             // (`MzMLHandler.cpp:5879`) and the one-record render produces
-            // neither, so there is nothing to renumber. A block that does
-            // carry one means the writer's layout changed under this module.
+            // neither. A start tag that does carry one means the writer's
+            // layout changed under this module.
             if RECORD_REFERENCES
                 .iter()
                 .any(|pattern| tag.contains(pattern))
             {
                 return Err(layout("chromatogram reference"));
             }
-            return Ok(block.to_owned());
         }
         _ => return Err(layout(what)),
     }
     if index > 0 {
-        // `sourceFileRef="sf_sp_<s>"` whenever the record carries a source
-        // file, for every record but the first (`MzMLHandler.cpp:5252-5255`).
-        tag = renumber(&tag, SOURCE_REFERENCE, &source_id("sf_sp_", index))?;
+        tag.push_str(&array_references(rest, index)?);
+    } else {
+        tag.push_str(rest);
     }
-    if processing {
-        // `dataProcessingRef="dp_sp_<s>"` (`MzMLHandler.cpp:5258-5272`). The
-        // one-record render leaves the attribute out, because the record is
-        // the only entry of its own rendered list, so it is appended where the
-        // source writes it: last.
-        tag = renumber_or_append(&tag, PROCESSING_REFERENCE, &source_id("dp_sp_", index))?;
-    }
-    tag.push_str(rest);
     Ok(tag)
+}
+
+/// Renumber the `dataProcessingRef` of each binary data array the record
+/// carries into the source's own namespace.
+///
+/// A record's own array histories are written as `dp_sp_<s>_bi_<m>`
+/// (`MzMLHandler.cpp:5567`, `:5597`, `:5806` for a spectrum's three array
+/// kinds, `:5965` and `:5997` for a chromatogram's), so from the second record
+/// on they name nothing the header declares, exactly as the start tag's
+/// references do. Leaving this writer's own `dp_<index>` in place would be
+/// worse than dangling: the per-record render numbers the record's array
+/// histories from one again, so the identifier would *resolve*, to whatever
+/// the first record's render declared at that position.
+///
+/// `<m>` counts the references in document order, where the source counts each
+/// array kind from zero separately. Since the identifier dangles on both
+/// sides, the number is not observable in the document's content.
+///
+/// Only a `binaryDataArray` start tag is rewritten, located by its element
+/// name rather than by the attribute alone, so a `userParam` whose value
+/// happens to contain the attribute's text is left alone.
+fn array_references(body: &str, index: usize) -> Result<String> {
+    const ARRAY: &str = "<binaryDataArray";
+    let mut out = String::new();
+    let mut rest = body;
+    let mut ordinal = 0usize;
+    while let Some(at) = rest.find(ARRAY) {
+        let end = tag_end(rest, at).ok_or_else(|| layout("binary data array"))?;
+        let tag = rest
+            .get(at..end)
+            .ok_or_else(|| layout("binary data array"))?;
+        out.push_str(rest.get(..at).ok_or_else(|| layout("binary data array"))?);
+        if tag.contains(PROCESSING_REFERENCE) {
+            out.push_str(&renumber(
+                tag,
+                PROCESSING_REFERENCE,
+                &array_id(index, ordinal),
+            )?);
+            ordinal = ordinal.saturating_add(1);
+        } else {
+            out.push_str(tag);
+        }
+        rest = rest.get(end..).ok_or_else(|| layout("binary data array"))?;
+    }
+    out.push_str(rest);
+    Ok(out)
+}
+
+/// The identifier the source gives the `ordinal`-th array history of the
+/// `index`-th record, `dp_sp_<s>_bi_<m>`; see [`array_references`].
+fn array_id(index: usize, ordinal: usize) -> String {
+    format!("dp_sp_{index}_bi_{ordinal}")
 }
 
 /// The identifier the source gives the `index`-th record's own `sourceFile` or

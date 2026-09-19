@@ -801,6 +801,67 @@ fn the_source_policy_writes_a_chromatogram_without_any_reference() {
     );
 }
 
+/// A binary array's own `dataProcessingRef` is renumbered into the source's
+/// array namespace, so it dangles instead of resolving to the wrong entry.
+///
+/// The per-record render numbers each record's array histories from one again,
+/// so leaving this writer's `dp_<1>` in place would name whatever the *first*
+/// record's render declared at that position — a reference that resolves, to
+/// the wrong processing. The source writes `dp_sp_<s>_bi_<m>` there
+/// (`MzMLHandler.cpp:5567`, `:5597`, `:5806`), which names nothing from the
+/// second record on.
+#[test]
+fn the_source_policy_renumbers_an_array_history_reference() {
+    let smoothing = Arc::new(DataProcessing {
+        actions: [ProcessingAction::Smoothing].into_iter().collect(),
+        ..Default::default()
+    });
+    let calibration = Arc::new(DataProcessing {
+        actions: [ProcessingAction::MzCalibration].into_iter().collect(),
+        ..Default::default()
+    });
+    let with_array = |id: &str, history: Vec<Arc<DataProcessing>>| {
+        let mut record = spectrum(id, 1.0, 100.0);
+        record.float_data_arrays.push(DataArray {
+            name: "signal to noise".into(),
+            data: vec![1.0, 2.0],
+            metadata: Default::default(),
+            data_processing: history,
+        });
+        record
+    };
+
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new())
+        .with_reference_policy(ReferencePolicy::SourceDangling);
+    consumer.set_expected_size(2, 0).unwrap();
+    consumer
+        .consume_spectrum(&mut with_array("scan=1", vec![Arc::clone(&smoothing)]))
+        .unwrap();
+    consumer
+        .consume_spectrum(&mut with_array("scan=2", vec![Arc::clone(&calibration)]))
+        .unwrap();
+    let text = written(consumer);
+
+    // The first record's array reference is the one the header declares.
+    let declared = "dp_00000000000000000001";
+    assert!(
+        text.contains(&format!("<dataProcessing id=\"{declared}\"")),
+        "{text:.900}"
+    );
+    assert_eq!(
+        text.matches(&format!("dataProcessingRef=\"{declared}\""))
+            .count(),
+        1,
+        "only the first record may point at the header's array history\n{text:.900}"
+    );
+    // The second record's names nothing.
+    assert!(
+        text.contains("dataProcessingRef=\"dp_sp_1_bi_0\""),
+        "{text:.900}"
+    );
+    assert!(!text.contains("<dataProcessing id=\"dp_sp_1_bi_0\""));
+}
+
 /// The policy changes nothing when every record fits the header, which is the
 /// ordinary case: the bytes are the same under either policy.
 #[test]

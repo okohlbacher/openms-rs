@@ -163,9 +163,15 @@ constants, `CountPolicy`, `with_limits`, `with_write_options`,
   `ReferencePolicy::SourceDangling` writes what the source writes, in the
   source's own spelling — a bare position in this writer's single zero-padded
   namespace would *alias* a declared entry instead of dangling, turning a
-  reference that must not resolve into one resolving to the wrong entry. The
-  same pattern as `CountPolicy`: refuse the lossy source behaviour by default,
-  offer it explicitly. `PeakPickerHiRes -processOption lowmemory` selects it,
+  reference that must not resolve into one resolving to the wrong entry. A
+  binary data array's own `dataProcessingRef` is renumbered the same way, into
+  the source's `dp_sp_<s>_bi_<m>` (`MzMLHandler.cpp:5567`, `:5597`, `:5806`,
+  `:5965`, `:5997`), for the same reason: the per-record render numbers each
+  record's array histories from one again, so leaving this writer's own
+  identifier would give a reference that *resolves*, to whatever the first
+  record's render declared at that position. The same pattern as
+  `CountPolicy`: refuse the lossy source behaviour by default, offer it
+  explicitly. `PeakPickerHiRes -processOption lowmemory` selects it,
   because refusing stops that mode after five records on any `FileMerger`
   output (`docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`, native difference 12,
   where the whole rule is pinned against the executed C++). Under
