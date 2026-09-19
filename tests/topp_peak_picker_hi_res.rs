@@ -1840,8 +1840,9 @@ fn the_low_memory_mode_writes_the_sources_dangling_references() {
         );
     }
     // The document is complete, and the records carry the peaks the in-memory
-    // mode produces — compared through the text, because this port's reader
-    // will not read the file back; see below.
+    // mode produces — compared through the text, which is the stronger
+    // comparison here because it also covers the encoding, not only the
+    // decoded values the round trip below checks.
     assert!(written.ends_with("</indexedmzML>\n"));
     let temp = workdir();
     let out = temp.path().join("refs_in_memory.tmp.mzML");
@@ -1854,27 +1855,105 @@ fn the_low_memory_mode_writes_the_sources_dangling_references() {
         "the encoded arrays differ"
     );
 
-    // And this is what the dangling `sourceFileRef` costs: this port's reader
-    // refuses an unregistered one under either dangling-reference policy
-    // (`src/format/mzml_header/read.rs:113-121`), so it will not read back the
-    // file it has just written — exactly as it will not read the C++ output of
-    // the same run. The source's reader warns once per reference and carries
-    // on: measured on `ibminode06`, `FileInfo` on the C++ low-memory output of
-    // this fixture exits 0 saying `Error: unregistered source file reference
-    // sf_sp_1.` (`../oracle/p4-lowmemory`, `logs/closediff2_06.log` section B).
-    // Raised for the lead rather than decided here, because the reader's
-    // strictness is an earlier lane's documented choice.
-    let error = FileHandler::load_experiment_with_read_options(
+    // And the tool reads its own output back. Until decision D14 the reader
+    // refused an unregistered `sourceFileRef` under either policy, so the port
+    // wrote, on this fixture, a file neither it nor the C++ reader's strict
+    // equivalent would take — while the C++ reader took both its own output
+    // and this one. `PeakPickerHiRes::read_options()` is
+    // `mzml::ReadOptions::source()`, which now covers `sourceFileRef` as it
+    // covers `dataProcessingRef`, and the records survive the round trip.
+    // Measured on `ibminode06` in both directions
+    // (`../oracle/reader-roundtrip/logs/roundtrip_06.log`, section `refs`):
+    // each implementation's `FileInfo` exits 0 on the other's low-memory
+    // output, and reading either file back and writing it out again gives the
+    // same decoded content, `902f49fd94e5a4a8`, in all four combinations.
+    let back = FileHandler::load_experiment_with_read_options(
         &produced_at.out,
         &[FileType::MzMl],
         &PeakFileOptions::default(),
         &PeakPickerHiRes::read_options(),
     )
-    .unwrap_err();
+    .unwrap();
+    assert_eq!(back.spectra.len(), 5);
+    // The first record's source file is the declared one; the four renumbered
+    // references named nothing and are dropped, as `MzMLHandler.cpp:896-906`
+    // drops them.
+    assert_eq!(back.spectra[0].source_file.name, "part_one.mzML");
     assert!(
-        error.to_string().contains("unresolved sourceFileRef"),
-        "{error}"
+        back.spectra[1..]
+            .iter()
+            .all(|s| s.source_file == Default::default())
     );
+    // The strict default still refuses the file, which is what makes the
+    // reference genuinely dangling rather than merely unusual.
+    let error = FileHandler::load_experiment_with_read_options(
+        &produced_at.out,
+        &[FileType::MzMl],
+        &PeakFileOptions::default(),
+        &ReadOptions::default(),
+    )
+    .unwrap_err();
+    assert!(error.to_string().contains("unresolved"), "{error}");
+}
+
+/// The pointer rule, at the tool level: two textually identical
+/// `dataProcessing` entries under different identifiers are two histories.
+///
+/// `PeakPickerHiRes_dupdp_input.mzML` is `PeakPickerHiRes_refs_input.mzML`
+/// with `dp_sp_1`'s `softwareRef` repointed from `so_dp_1` to `so_dp_0`, so
+/// that `dp_sp_0` and `dp_sp_1` render identically and only their identifiers
+/// differ. The source compares `spec.getDataProcessing() != dps[0]`
+/// (`MzMLHandler.cpp:5258`) by pointer, so it still writes `dp_sp_1` on record
+/// 1 and `dp_sp_2` on record 2.
+///
+/// Measured on `ibminode06` against the Release build at the pins
+/// (`../oracle/reader-roundtrip/logs/roundtrip_06.log`, section `dupdp`): the
+/// C++ low-memory output of this fixture is **byte-identical** to its
+/// low-memory output of the unmodified `refs` fixture, sha256
+/// `7c75908440e1c154…`. This port's two low-memory outputs are likewise
+/// byte-identical to each other, sha256 `6ef28364d62ea7a7…`, and carry the
+/// same six dangling identifiers as the C++ output. Before this round the port
+/// compared the rendered declaration text instead and wrote no
+/// `dataProcessingRef` at all here; that was native difference 12, and it is
+/// closed.
+#[test]
+fn the_low_memory_mode_decides_a_duplicate_history_by_pointer() {
+    let refs = low_memory(None, &close_fixture("PeakPickerHiRes_refs_input.mzML"), &[]);
+    let dupdp = low_memory(
+        None,
+        &close_fixture("PeakPickerHiRes_dupdp_input.mzML"),
+        &[],
+    );
+    assert_eq!(refs.0.code, ExitCode::ExecutionOk, "{}", refs.0.err);
+    assert_eq!(dupdp.0.code, ExitCode::ExecutionOk, "{}", dupdp.0.err);
+    // The two inputs differ, in exactly one attribute value.
+    assert_ne!(
+        std::fs::read(close_fixture("PeakPickerHiRes_refs_input.mzML")).unwrap(),
+        std::fs::read(close_fixture("PeakPickerHiRes_dupdp_input.mzML")).unwrap()
+    );
+    // The outputs do not, on either side.
+    assert_eq!(refs.1, dupdp.1);
+    let written = String::from_utf8(dupdp.1).unwrap();
+    let tags = start_tags(&written);
+    assert_eq!(tags.len(), 5, "{written:.800}");
+    assert!(
+        tags[1].contains(" dataProcessingRef=\"dp_sp_1\""),
+        "{}",
+        tags[1]
+    );
+    assert!(
+        tags[2].contains(" dataProcessingRef=\"dp_sp_2\""),
+        "{}",
+        tags[2]
+    );
+    assert!(!tags[3].contains("dataProcessingRef="), "{}", tags[3]);
+    assert!(!tags[4].contains("dataProcessingRef="), "{}", tags[4]);
+    for dangling in ["dp_sp_1", "dp_sp_2"] {
+        assert!(
+            !written.contains(&format!(" id=\"{dangling}\"")),
+            "{dangling} is declared"
+        );
+    }
 }
 
 /// Every `<binary>` payload of a document, in order: the encoded arrays, which

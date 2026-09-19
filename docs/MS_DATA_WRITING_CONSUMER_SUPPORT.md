@@ -52,7 +52,7 @@ Every public and protected member of the three classes in the header.
 | `protected DataProcessingPtr additional_dataprocessing_` | `MSDataWritingConsumer::additional_data_processing() -> Option<&Arc<DataProcessing>>` | |
 | `protected Internal::MzMLValidator* validator_` | not ported: the crate's semantic validation is a separate operation behind the `mzml-validation` feature and is not run per record | |
 | `protected ExperimentalSettings settings_` | `MSDataWritingConsumer::settings()` | Read-only. |
-| `protected std::vector<std::vector<ConstDataProcessingPtr>> dps_` | not ported as a field: the equivalent state is the rendered `sourceFileList`, `dataProcessingList` and `softwareList` text and the set of identifiers the header declares, all captured from the first record's header | The comparison of a later record's render against that text stands in for the source's `spec.getDataProcessing() != dps[0]`; it is content equality where the source's is pointer identity. See *Native differences*. |
+| `protected std::vector<std::vector<ConstDataProcessingPtr>> dps_` | the first record's own `Vec<Arc<DataProcessing>>`, kept as `header_processing`, beside the rendered `sourceFileList`, `dataProcessingList` and `softwareList` text and the set of identifiers the header declares | `dps_` never grows past the one entry `writeHeader_` fills it with, so `header_processing` is `dps[0]`. `processing_differs` compares a later record's history against it with element-wise `Arc::ptr_eq`, which is the source's `spec.getDataProcessing() != dps[0]` on the same model. The rendered text serves `ReferencePolicy::Checked`'s refusal instead. See *Native differences*. |
 | *(no source counterpart)* | `MSDataWritingConsumer::with_reference_policy`, `reference_policy()`, `ReferencePolicy` | `Checked` refuses a record the header cannot number; `SourceDangling` writes the source's dangling reference. See *Native differences*. |
 | inherited `MzMLHandler::writeHeader_` / `writeSpectrum_` / `writeChromatogram_` | `crate::format::mzml::write_with_options`, driven once per record | The port composes rather than inherits. |
 | inherited `MzMLHandlerHelper::writeFooter_` | the document-closing tags and the index in `finish()` | Indexed, as the inherited `write_index_` is. See *Indexed output*. |
@@ -177,38 +177,68 @@ constants, `CountPolicy`, `with_limits`, `with_write_options`,
   where the whole rule is pinned against the executed C++). Under
   `SourceDangling` the consumer stops checking references altogether, exactly
   as the source never checks them.
-- **`SourceDangling` is content equality, where the source is pointer
-  identity, and that is measurable.** `writeHeader_` deduplicates histories by
-  content, with `Helpers::cmpPtrContainer` (`MzMLHandler.cpp:5060-5069`;
-  `Helpers.h:35-51`, whose comment says it is "not interested whether the
-  pointers are equal but whether the contents are equal"), while
-  `writeSpectrum_` compares them with `!=` and `==` over
-  `std::vector<std::shared_ptr<const DataProcessing>>` (`:5258`, `:5265`,
-  `SpectrumSettings.h:165`), which is pointer identity. This port has no
-  pointer identity to reproduce: a record's history is compared by the text it
-  renders into the declaration blocks. On every input whose textually distinct
-  histories are also distinct objects the two agree, which is every case this
-  package measured against the executed C++. They part company on an input
-  carrying two textually identical `dataProcessing` entries under different
-  identifiers: the source writes a dangling reference for the second, this
-  port writes none, and the record inherits the list's
-  `defaultDataProcessingRef`. Measured at integration on the committed
-  five-record `refs` fixture with `dp_sp_1`'s `softwareRef` repointed at
-  `so_dp_0`, so that `dp_sp_0` and `dp_sp_1` render identically
-  (`../oracle/integ-w7/dupdp_06.sh`): the C++ low-memory output is
-  byte-identical to its output on the unmodified fixture, sha256
-  `7c75908440e1c154…`, with records 1 and 2 carrying `dataProcessingRef`
-  `dp_sp_1` and `dp_sp_2` against a header declaring only `dp_sp_0`, while
-  this port writes neither. Pinned by
-  `a_history_equal_to_the_headers_by_content_is_not_renumbered`.
+- **`SourceDangling` decides by pointer, as the source does.**
+  `writeHeader_` deduplicates histories by content, with
+  `Helpers::cmpPtrContainer` (`MzMLHandler.cpp:5060-5069`; `Helpers.h:35-51`,
+  whose comment says it is "not interested whether the pointers are equal but
+  whether the contents are equal"), while `writeSpectrum_` compares them with
+  `!=` and `==` over `std::vector<std::shared_ptr<const DataProcessing>>`
+  (`:5258`, `:5265`, `SpectrumSettings.h:165`), which is **pointer identity**.
+  Until wave 8 this consumer stood in for that with the text a history renders
+  into the declaration blocks, and the two parted company on an input carrying
+  two textually identical `dataProcessing` entries under different
+  identifiers.
 
-  The port's output is the more informative of the two here — it keeps a
-  history the source loses, because a dangling reference resolves to nothing —
-  but it is a divergence and is recorded as one, in native difference 12 of
-  `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`. Reproducing the pointer rule
-  would mean carrying the input's own `dataProcessing` identifier through the
-  reader into the write decision, which is the mzML reader's model to change,
-  not this package's.
+  The identity was there all along. A record's history is
+  `Vec<Arc<DataProcessing>>`, and the mzML reader resolves every
+  `dataProcessingRef` through one registry entry per identifier and clones the
+  `Arc` handles out of it (`mzml_header/read.rs`, `Registry::processing`), so
+  records naming one identifier share one allocation and records naming two do
+  not — whatever the two entries render into. That is exactly what
+  `processing_[ref]` does with `shared_ptr`. `processing_differs` is now
+  element-wise `Arc::ptr_eq` against the first record's history, which is the
+  source's own test on the same model, and the consumer keeps that history in
+  `header_processing` as `writeHeader_` keeps `dps_`.
+
+  Measured on `ibminode06` against the Release build at the pins
+  (`../oracle/reader-roundtrip`, `logs/probe_06.log` and
+  `logs/roundtrip_06.log`). The reader probe shows both implementations giving
+  the identical sharing pattern on the committed `refs` fixture and on
+  `PeakPickerHiRes_dupdp_input`, its copy with `dp_sp_1`'s `softwareRef`
+  repointed at `so_dp_0` so that `dp_sp_0` and `dp_sp_1` render identically:
+  record 1's history is a distinct allocation on both sides. The round trip
+  shows the consequence: each implementation's low-memory output of the
+  modified fixture is byte-identical to its own output of the unmodified one
+  — C++ sha256 `7c75908440e1c154…`, this port `6ef28364d62ea7a7…` — and both
+  carry the same six dangling identifiers, `sf_sp_1` through `sf_sp_4`,
+  `dp_sp_1` and `dp_sp_2`. Pinned by
+  `a_history_equal_to_the_headers_by_content_but_not_by_pointer_is_renumbered`
+  and, at the tool level, by
+  `the_low_memory_mode_decides_a_duplicate_history_by_pointer`.
+
+  **What is left, and where.** The whole-document writer `mzml::write` still
+  deduplicates by content on both sides, so on the same input it declares one
+  `dataProcessing` and writes no record reference at all, where the C++
+  whole-document `MzMLFile::store` declares one and still dangles `dp_sp_1`
+  and `dp_sp_2` (measured: ten declared ids against eleven references with two
+  dangling, against ten and eight with none). That is `CPP-172` in the path
+  that is not this consumer, and reproducing it would make every `mzml::write`
+  caller emit references mzML forbids, by default, with nothing to opt into —
+  a change to the crate's default output validity rather than a fidelity fix
+  inside one policy. Recorded as a divergence and left for the lead; pinned by
+  `the_whole_document_writer_still_deduplicates_by_content` in
+  `tests/mzml_source_file_round_trip.rs`.
+- **The reader takes the file back (decision D14).** A file this consumer
+  writes under `SourceDangling` carries `sourceFileRef` values the streamed
+  header does not declare, and until wave 8 the crate's own reader refused
+  them, so the port wrote — on any input with per-record source files — a file
+  neither it nor a strict reader would read while the C++ reader read both its
+  own output and this one. `mzml::ReadOptions::source_dangling_references` now
+  covers `sourceFileRef` as it covers `dataProcessingRef`, and the strict
+  default still refuses it. Executed both ways on `ibminode06`: every file
+  either implementation writes is read by both, exit 0, and reading it back
+  and writing it out again reproduces the file's own decoded digest under rule
+  D6 (`../oracle/reader-roundtrip/logs/roundtrip_06.log`).
 - **`softwareList` is part of the comparison.** A rendered `processingMethod`
   names its software by the history's *position* (`so_dp_<history>_<method>`),
   which is zero for the single record of every per-record render, so two

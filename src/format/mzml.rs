@@ -189,21 +189,37 @@ pub struct ReadOptions {
     /// Read a dangling header reference the way source `MzMLHandler` does.
     ///
     /// Covers a `softwareRef` on an `instrumentConfiguration` or
-    /// `processingMethod`, and a `dataProcessingRef` or
+    /// `processingMethod`, a `dataProcessingRef` or
     /// `defaultDataProcessingRef` on a record list, record or binary array,
-    /// whose ID names no preceding definition. `false`, the default, rejects
-    /// such a document with [`Error::Parse`] (`unresolved softwareRef`,
-    /// `unresolved dataProcessingRef`), because the reference cannot be kept.
+    /// and a `sourceFileRef` on a spectrum, a scan or a precursor, whose ID
+    /// names no preceding definition. (A chromatogram's is not reachable:
+    /// mzML 1.1 has no such attribute on `ChromatogramType`, and the reader
+    /// refuses one with [`Error::Unsupported`] before any policy applies.) `false`, the
+    /// default, rejects such a document with [`Error::Parse`] (`unresolved
+    /// softwareRef`, `unresolved dataProcessingRef`, `unresolved
+    /// sourceFileRef`), because the reference cannot be kept.
     ///
     /// `true` selects the source behaviour, which `std::map::operator[]`
-    /// produces there (`MzMLHandler.cpp:920-952`, `:1034`, `:1264`, `:1288`):
-    /// the software becomes `Software::default()` and the processing history
-    /// becomes empty, so the reference is dropped. Each distinct dangling ID is
-    /// reported once per read on the crate's warning log stream, where the
-    /// source is silent. Malformed IDs, and unresolved `sourceFileRef`,
-    /// `sampleRef`, instrument configuration and parameter group references,
-    /// remain errors. Tool paths that reproduce source loading enable it; see
-    /// `docs/MZML_HEADER_SUPPORT.md`.
+    /// produces there (`MzMLHandler.cpp:920-952`, `:1034`, `:1264`, `:1288`
+    /// for software and processing; `:896-906`, `:937-941`, `:1131-1137`,
+    /// `:1313-1318` and `:1339-1344` for source files): the software becomes
+    /// `Software::default()`, the processing history becomes empty and the
+    /// source file becomes `SourceFile::default()`, so the reference is
+    /// dropped. Each distinct dangling ID is reported once per read on the
+    /// crate's warning log stream; the source is silent except for a
+    /// spectrum's `sourceFileRef`, where it warns per occurrence. Malformed
+    /// IDs, and unresolved `sampleRef`, instrument configuration and parameter
+    /// group references, remain errors. Tool paths that reproduce source
+    /// loading enable it; see `docs/MZML_HEADER_SUPPORT.md`.
+    ///
+    /// The `sourceFileRef` half of this switch is what lets the crate read
+    /// back a low-memory file it wrote itself: the streaming
+    /// [`crate::format::ms_data_writing_consumer::MSDataWritingConsumer`]
+    /// under
+    /// [`ReferencePolicy::SourceDangling`](crate::format::ms_data_writing_consumer::ReferencePolicy::SourceDangling)
+    /// reproduces the dangling `sf_sp_<s>` the source writes, and without it
+    /// the port would write a file only the C++ reader would take. See
+    /// decision D14 of `docs/VALIDATION.md`.
     pub source_dangling_references: bool,
     /// Round a unit-converted **32-bit** `time array` back to `f32`, as source
     /// `MzMLHandlerHelper::decodeBase64Arrays` does.

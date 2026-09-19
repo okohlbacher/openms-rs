@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mzML xmlns="http://psi.hupo.org/ms/mzml" version="1.1.0">
+<fileDescription><fileContent/><sourceFileList count="1"><sourceFile id="sf" name="declared.raw" location="file:///fixtures"><cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="0000000000000000000000000000000000000000"/></sourceFile></sourceFileList></fileDescription>
+<softwareList count="1"><software id="sw" version="2.0"><cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="tool"/></software></softwareList>
+<instrumentConfigurationList count="1"><instrumentConfiguration id="ic"><softwareRef ref="sw"/></instrumentConfiguration></instrumentConfigurationList>
+<dataProcessingList count="1"><dataProcessing id="dp"><processingMethod order="0" softwareRef="sw"><cvParam cvRef="MS" accession="MS:1000035" name="peak picking"/></processingMethod></dataProcessing></dataProcessingList>
+<run id="r" defaultInstrumentConfigurationRef="ic">
+<spectrumList count="5" defaultDataProcessingRef="dp">
+<spectrum id="scan=1" index="0" defaultArrayLength="0" sourceFileRef="sf"/>
+<spectrum id="scan=2" index="1" defaultArrayLength="0" sourceFileRef="sf_sp_1"/>
+<spectrum id="scan=3" index="2" defaultArrayLength="0"><scanList count="1"><cvParam cvRef="MS" accession="MS:1000795" name="no combination"/><scan sourceFileRef="sf_sp_2"/></scanList></spectrum>
+<spectrum id="scan=4" index="3" defaultArrayLength="0"><precursorList count="1"><precursor sourceFileRef="sf_sp_2"><selectedIonList count="1"><selectedIon><cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="500.0"/></selectedIon></selectedIonList></precursor></precursorList></spectrum>
+<spectrum id="scan=5" index="4" defaultArrayLength="0" sourceFileRef="sf_sp_1"/>
+</spectrumList>
+</run>
+</mzML>

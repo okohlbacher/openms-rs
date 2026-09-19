@@ -164,6 +164,12 @@
       "used_by": "the_low_memory_mode_writes_the_sources_dangling_references"
     },
     {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_dupdp_input.mzML",
+      "sha256": "e78a16b6f9f7378f766468810071a032a3d63832429ed2066ec04507952a9755",
+      "origin": "built for the wave-8 reader round trip: PeakPickerHiRes_refs_input.mzML with dp_sp_1's processingMethod softwareRef repointed from so_dp_1 to so_dp_0, the one-attribute change that makes dp_sp_0 and dp_sp_1 render identically while their identifiers still differ. It isolates the source's pointer comparison (MzMLHandler.cpp:5258) from content equality; the two files differ in one line and the C++ low-memory outputs of both are byte-identical.",
+      "used_by": "the_low_memory_mode_decides_a_duplicate_history_by_pointer"
+    },
+    {
       "path": "tests/data/peak_picking/PeakPickerHiRes_batches_input.mzML",
       "sha256": "bba06fd6a9844e00b3e0851f0b9cdb6f255c96b8760447257bb6235a89bf5631",
       "origin": "built for P4-PICKER-LOWMEM's close round: 110 one-peak profile records with ONE sourceFile and ONE dataProcessing, so the 100-record batch boundary of PeakFileOptions' maximal_data_pool_size is isolated from the reference question. Same generator.",
@@ -246,6 +252,11 @@
     {
       "path": "../oracle/p4-lowmemory/manifest.json",
       "role": "P4 executed differential and resource measurement: both -processOption modes of the C++ Release build and the Rust release binary over the upstream fixtures and over the 2.3 GB UK222.mzML benchmark input, on ibminode06"
+    },
+    {
+      "path": "../oracle/reader-roundtrip/manifest.json",
+      "sha256": "fc83c381a0729ed18e876750e036f1af34ca5b34785c4a3760bf024400e5e594",
+      "role": "wave-8 round-trip oracle: both implementations writing the refs, dupdp and 110-record FileMerger inputs in both modes on ibminode06, every written file read by BOTH implementations (FileInfo for the exit code, the in-memory tool for a read-and-write-back compared under D6), plus the C++ reader probe for a dangling sourceFileRef"
     }
   ],
   "native_implementation": [

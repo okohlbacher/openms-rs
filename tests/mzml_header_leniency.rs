@@ -408,6 +408,13 @@ fn file_handler_hands_explicit_read_options_to_the_mzml_reader() {
     );
 }
 
+/// Every reference kind this switch does *not* cover stays strict under it.
+///
+/// `sourceFileRef` left this list in wave 8 (decision D14): the crate writes
+/// dangling ones of its own under
+/// `ms_data_writing_consumer::ReferencePolicy::SourceDangling`, so refusing
+/// them left the port unable to read a file it had written. It is asserted
+/// below on its own, and in full in `tests/mzml_source_file_round_trip.rs`.
 #[test]
 fn source_option_leaves_other_references_and_malformed_ids_strict() {
     discard_warnings();
@@ -436,11 +443,21 @@ fn source_option_leaves_other_references_and_malformed_ids_strict() {
         )
     };
     assert!(mzml::read_with_options(Cursor::new(scan("ic")), &source()).is_ok());
+    // The one kind this switch gained in wave 8: strict by default, accepted
+    // and dropped under the source policy, as `MzMLHandler.cpp:896-906` drops
+    // it.
+    let dangling_source_file =
+        valid.replacen(r#"sourceFileRef="sf""#, r#"sourceFileRef="absent""#, 1);
+    assert_ne!(dangling_source_file, valid);
+    assert_eq!(
+        parse_message(mzml::read(Cursor::new(&dangling_source_file))),
+        "unresolved sourceFileRef"
+    );
+    let lenient = mzml::read_with_options(Cursor::new(&dangling_source_file), &source()).unwrap();
+    assert_eq!(lenient.spectra.len(), 1);
+    assert_eq!(lenient.spectra[0].source_file, Default::default());
+
     for (changed, message) in [
-        (
-            valid.replacen(r#"sourceFileRef="sf""#, r#"sourceFileRef="absent""#, 1),
-            "unresolved sourceFileRef",
-        ),
         (
             valid.replacen(r#"sampleRef="sa""#, r#"sampleRef="absent""#, 1),
             "unresolved sampleRef",

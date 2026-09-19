@@ -1,0 +1,52 @@
+dangling_sf	LOAD	ok	spectra	5	chromatograms	0	exp_source_files	1
+dangling_sf	EXPSF	0	name	declared.raw	path	file:///fixtures
+dangling_sf	SPEC	scan=1	sf_name	declared.raw	sf_path	file:///fixtures	sf_checksum	0000000000000000000000000000000000000000	sf_type	<empty>	sf_nativeid	<empty>	is_default	no
+dangling_sf	SPEC	scan=2	sf_name	<empty>	sf_path	<empty>	sf_checksum	<empty>	sf_type	<empty>	sf_nativeid	<empty>	is_default	yes
+dangling_sf	SPEC	scan=3	sf_name	<empty>	sf_path	<empty>	sf_checksum	<empty>	sf_type	<empty>	sf_nativeid	<empty>	is_default	yes
+dangling_sf	SCAN	scan=3	0	has_name	yes	name	<empty>	has_path	yes	path	<empty>
+dangling_sf	SPEC	scan=4	sf_name	<empty>	sf_path	<empty>	sf_checksum	<empty>	sf_type	<empty>	sf_nativeid	<empty>	is_default	yes
+dangling_sf	PREC	scan=4	0	has_name	yes	name	<empty>	has_path	yes	path	<empty>
+dangling_sf	SPEC	scan=5	sf_name	<empty>	sf_path	<empty>	sf_checksum	<empty>	sf_type	<empty>	sf_nativeid	<empty>	is_default	yes
+dangling_sf	DPPTR	scan=1	size	1	slot0_same_as_record	-1	equals_record0	self
+dangling_sf	DPPTR	scan=2	size	1	slot0_same_as_record	0	equals_record0	yes
+dangling_sf	DPPTR	scan=3	size	1	slot0_same_as_record	0	equals_record0	yes
+dangling_sf	DPPTR	scan=4	size	1	slot0_same_as_record	0	equals_record0	yes
+dangling_sf	DPPTR	scan=5	size	1	slot0_same_as_record	0	equals_record0	yes
+refs	LOAD	ok	spectra	5	chromatograms	0	exp_source_files	3
+refs	EXPSF	0	name	run.mzML	path	file:///fixtures
+refs	EXPSF	1	name	part_one.mzML	path	file:///fixtures
+refs	EXPSF	2	name	part_two.mzML	path	file:///fixtures
+refs	SPEC	spectrum=0	sf_name	part_one.mzML	sf_path	file:///fixtures	sf_checksum	0000000000000000000000000000000000000000	sf_type	mzML format	sf_nativeid	spectrum identifier nativeID format	is_default	no
+refs	SCAN	spectrum=0	0	has_name	no	name	<absent>	has_path	no	path	<absent>
+refs	SPEC	spectrum=1	sf_name	part_one.mzML	sf_path	file:///fixtures	sf_checksum	0000000000000000000000000000000000000000	sf_type	mzML format	sf_nativeid	spectrum identifier nativeID format	is_default	no
+refs	SCAN	spectrum=1	0	has_name	no	name	<absent>	has_path	no	path	<absent>
+refs	SPEC	spectrum=2	sf_name	part_two.mzML	sf_path	file:///fixtures	sf_checksum	0000000000000000000000000000000000000000	sf_type	mzML format	sf_nativeid	spectrum identifier nativeID format	is_default	no
+refs	SCAN	spectrum=2	0	has_name	no	name	<absent>	has_path	no	path	<absent>
+refs	SPEC	spectrum=3	sf_name	part_two.mzML	sf_path	file:///fixtures	sf_checksum	0000000000000000000000000000000000000000	sf_type	mzML format	sf_nativeid	spectrum identifier nativeID format	is_default	no
+refs	SCAN	spectrum=3	0	has_name	no	name	<absent>	has_path	no	path	<absent>
+refs	SPEC	spectrum=4	sf_name	part_one.mzML	sf_path	file:///fixtures	sf_checksum	0000000000000000000000000000000000000000	sf_type	mzML format	sf_nativeid	spectrum identifier nativeID format	is_default	no
+refs	SCAN	spectrum=4	0	has_name	no	name	<absent>	has_path	no	path	<absent>
+refs	DPPTR	spectrum=0	size	1	slot0_same_as_record	-1	equals_record0	self
+refs	DPPTR	spectrum=1	size	1	slot0_same_as_record	-1	equals_record0	no
+refs	DPPTR	spectrum=2	size	1	slot0_same_as_record	1	equals_record0	no
+refs	DPPTR	spectrum=3	size	1	slot0_same_as_record	0	equals_record0	yes
+refs	DPPTR	spectrum=4	size	1	slot0_same_as_record	0	equals_record0	yes
+dupdp	LOAD	ok	spectra	5	chromatograms	0	exp_source_files	3
+dupdp	EXPSF	0	name	run.mzML	path	file:///fixtures
+dupdp	EXPSF	1	name	part_one.mzML	path	file:///fixtures
+dupdp	EXPSF	2	name	part_two.mzML	path	file:///fixtures
+dupdp	SPEC	spectrum=0	sf_name	part_one.mzML	sf_path	file:///fixtures	sf_checksum	0000000000000000000000000000000000000000	sf_type	mzML format	sf_nativeid	spectrum identifier nativeID format	is_default	no
+dupdp	SCAN	spectrum=0	0	has_name	no	name	<absent>	has_path	no	path	<absent>
+dupdp	SPEC	spectrum=1	sf_name	part_one.mzML	sf_path	file:///fixtures	sf_checksum	0000000000000000000000000000000000000000	sf_type	mzML format	sf_nativeid	spectrum identifier nativeID format	is_default	no
+dupdp	SCAN	spectrum=1	0	has_name	no	name	<absent>	has_path	no	path	<absent>
+dupdp	SPEC	spectrum=2	sf_name	part_two.mzML	sf_path	file:///fixtures	sf_checksum	0000000000000000000000000000000000000000	sf_type	mzML format	sf_nativeid	spectrum identifier nativeID format	is_default	no
+dupdp	SCAN	spectrum=2	0	has_name	no	name	<absent>	has_path	no	path	<absent>
+dupdp	SPEC	spectrum=3	sf_name	part_two.mzML	sf_path	file:///fixtures	sf_checksum	0000000000000000000000000000000000000000	sf_type	mzML format	sf_nativeid	spectrum identifier nativeID format	is_default	no
+dupdp	SCAN	spectrum=3	0	has_name	no	name	<absent>	has_path	no	path	<absent>
+dupdp	SPEC	spectrum=4	sf_name	part_one.mzML	sf_path	file:///fixtures	sf_checksum	0000000000000000000000000000000000000000	sf_type	mzML format	sf_nativeid	spectrum identifier nativeID format	is_default	no
+dupdp	SCAN	spectrum=4	0	has_name	no	name	<absent>	has_path	no	path	<absent>
+dupdp	DPPTR	spectrum=0	size	1	slot0_same_as_record	-1	equals_record0	self
+dupdp	DPPTR	spectrum=1	size	1	slot0_same_as_record	-1	equals_record0	no
+dupdp	DPPTR	spectrum=2	size	1	slot0_same_as_record	1	equals_record0	no
+dupdp	DPPTR	spectrum=3	size	1	slot0_same_as_record	0	equals_record0	yes
+dupdp	DPPTR	spectrum=4	size	1	slot0_same_as_record	0	equals_record0	yes

@@ -18,6 +18,9 @@ const SOFTWARE_REF: &str = "softwareRef";
 /// `dataProcessingRef` on a record or array, or a list's
 /// `defaultDataProcessingRef`.
 const DATA_PROCESSING_REF: &str = "dataProcessingRef";
+/// The error message and warning label for an unresolved `sourceFileRef` on a
+/// record, a scan or a precursor.
+const SOURCE_FILE_REF: &str = "sourceFileRef";
 
 /// Resolution policy for header references that name no preceding definition,
 /// with the per-read warning state of the source-compatible policy.
@@ -28,6 +31,16 @@ const DATA_PROCESSING_REF: &str = "dataProcessingRef";
 /// value, so a dangling reference silently becomes an empty `Software` or an
 /// empty processing history. The native default refuses that loss; the source
 /// policy is selected with `mzml::ReadOptions::source_dangling_references`.
+///
+/// A `sourceFileRef` is the same loss under a different spelling. A record's
+/// takes the `contains` branch on a spectrum (`MzMLHandler.cpp:896-906`),
+/// which warns `Error: unregistered source file reference <id>.` and leaves
+/// `spec_` with the `SourceFile()` its fresh construction gave it, and plain
+/// `source_files_[ref]` on a chromatogram (`:937-941`) and on a scan's or a
+/// precursor's metadata (`:1131-1137`, `:1313-1318`, `:1339-1344`), which
+/// default-constructs the same empty value silently. Either way the reference
+/// is dropped and an empty `SourceFile` stands in its place, so this policy
+/// covers it too.
 #[derive(Default)]
 pub(crate) struct DanglingReferences {
     /// Substitute the source's default-constructed value instead of failing.
@@ -36,6 +49,8 @@ pub(crate) struct DanglingReferences {
     software: BTreeSet<String>,
     /// Dangling processing-reference IDs already reported during this read.
     processing: BTreeSet<String>,
+    /// Dangling `sourceFileRef` IDs already reported during this read.
+    source_files: BTreeSet<String>,
 }
 impl DanglingReferences {
     /// A policy that rejects dangling references, or substitutes the source's
@@ -46,8 +61,8 @@ impl DanglingReferences {
             ..Self::default()
         }
     }
-    /// Handle the reference `id` of kind `label` (`softwareRef` or
-    /// `dataProcessingRef`) that names no definition.
+    /// Handle the reference `id` of kind `label` (`softwareRef`,
+    /// `dataProcessingRef` or `sourceFileRef`) that names no definition.
     ///
     /// # Errors
     ///
@@ -61,17 +76,20 @@ impl DanglingReferences {
     /// Under the source policy, the first occurrence of each distinct ID per
     /// kind writes one line to the crate's warning log stream
     /// (`LogLevel::Warn`, standard error unless reconfigured), so a file whose
-    /// every record names the same dangling ID warns once. The source writes
-    /// nothing here; the warning is native, so a caller that opted into the
-    /// loss can still see it. A logging failure never changes the read result.
+    /// every record names the same dangling ID warns once. The source is
+    /// silent for a `softwareRef` and for a processing reference, and for a
+    /// `sourceFileRef` warns once *per occurrence* and only where a spectrum
+    /// carries it (`MzMLHandler.cpp:904`); the warning here is native in both
+    /// its wording and its frequency, so a caller that opted into the loss can
+    /// still see it. A logging failure never changes the read result.
     fn dangling(&mut self, label: &'static str, id: &str, work: &mut Work) -> Result<()> {
         if !self.source {
             return Err(invalid(format!("unresolved {label}")));
         }
-        let (warned, replacement) = if label == SOFTWARE_REF {
-            (&mut self.software, "empty software")
-        } else {
-            (&mut self.processing, "an empty processing history")
+        let (warned, replacement) = match label {
+            SOFTWARE_REF => (&mut self.software, "empty software"),
+            SOURCE_FILE_REF => (&mut self.source_files, "an empty source file"),
+            _ => (&mut self.processing, "an empty processing history"),
         };
         work.charge(id.len().saturating_mul(64), 0)?;
         if warned.contains(id) {
@@ -104,19 +122,26 @@ pub(crate) struct Registry {
 impl Registry {
     /// A deep copy of the source file with ID `id`.
     ///
+    /// Serves `sourceFileRef` on a spectrum; mzML 1.1 has no such attribute on
+    /// `ChromatogramType` and the reader refuses one before reaching here. An
+    /// ID that names no definition yields `SourceFile::default()` under the
+    /// source policy — the value `spec_` already holds when
+    /// `MzMLHandler.cpp:896-906` declines to set one, which is also the value
+    /// `source_files_[ref]` default-constructs for a chromatogram at `:937-941`
+    /// — and is warned about once per read.
+    ///
     /// # Errors
     ///
-    /// Returns [`Error::Parse`] for a malformed or unresolved `sourceFileRef`,
-    /// under either dangling-reference policy, and when the allowance is
-    /// exhausted. Source `MzMLHandler.cpp:899-906` warns about an unregistered
-    /// spectrum source file and continues; that leniency is not ported.
-    pub fn source(&self, id: &str, work: &mut Work) -> Result<SourceFile> {
+    /// Returns [`Error::Parse`] for a malformed ID, for an unresolved ID under
+    /// the default policy (`unresolved sourceFileRef`), and when the allowance
+    /// is exhausted.
+    pub fn source(&mut self, id: &str, work: &mut Work) -> Result<SourceFile> {
         let id = parameter_id(id)?;
         work.charge(id.len().saturating_mul(64), 0)?;
-        let value = self
-            .source_files
-            .get(id)
-            .ok_or_else(|| invalid("unresolved sourceFileRef"))?;
+        let Some(value) = self.source_files.get(id) else {
+            self.dangling.dangling(SOURCE_FILE_REF, id, work)?;
+            return Ok(SourceFile::default());
+        };
         copy_source(value, work)
     }
     /// The processing history with ID `id`, sharing the definition's `Arc`
@@ -145,13 +170,20 @@ impl Registry {
     /// The `source_file_name` and `source_file_path` metadata of an optional
     /// `sourceFileRef` attribute on a scan or precursor.
     ///
+    /// An ID that names no definition contributes both keys with empty values
+    /// under the source policy, which is what `source_files_[ref]`
+    /// default-constructs and what `getNameOfFile()` and `getPathToFile()`
+    /// then return (`MzMLHandler.cpp:1131-1137`, `:1313-1318`, `:1339-1344`).
+    /// The keys are present rather than absent because the source sets them
+    /// unconditionally once the attribute is there.
+    ///
     /// # Errors
     ///
-    /// Returns [`Error::Parse`] for a malformed or unresolved reference under
-    /// either dangling-reference policy, and when the parameter budget or the
-    /// allowance is exhausted.
+    /// Returns [`Error::Parse`] for a malformed ID, for an unresolved ID under
+    /// the default policy (`unresolved sourceFileRef`), and when the parameter
+    /// budget or the allowance is exhausted.
     pub fn source_metadata(
-        &self,
+        &mut self,
         attrs: &BTreeMap<String, String>,
         budget: &mut ParameterBudget,
         work: &mut Work,
@@ -159,10 +191,15 @@ impl Registry {
         let mut metadata = MetaInfo::new();
         if let Some(id) = attrs.get("sourceFileRef") {
             work.charge(id.len().saturating_mul(64), 0)?;
-            let value = self
-                .source_files
-                .get(parameter_id(id)?)
-                .ok_or_else(|| invalid("unresolved sourceFileRef"))?;
+            let id = parameter_id(id)?;
+            if !self.source_files.contains_key(id) {
+                self.dangling.dangling(SOURCE_FILE_REF, id, work)?;
+            }
+            // The source's own stand-in: `source_files_[ref]` on a key the
+            // header never declared. `SourceFile::default()` allocates
+            // nothing, so the substitute costs no allowance.
+            let empty = SourceFile::default();
+            let value = self.source_files.get(id).unwrap_or(&empty);
             budget.attribute("source_file_name".len(), value.name.len())?;
             budget.attribute("source_file_path".len(), value.path.len())?;
             work.meter().tree::<(String, MetaValue)>(2)?;
@@ -178,11 +215,12 @@ impl Registry {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Parse`] for a malformed or unresolved source-file or
-    /// instrument reference under either dangling-reference policy, and when
-    /// the parameter budget or the allowance is exhausted.
+    /// Returns [`Error::Parse`] for a malformed source-file or instrument
+    /// reference, for an unresolved source-file reference under the default
+    /// policy, for an unresolved instrument reference under either policy, and
+    /// when the parameter budget or the allowance is exhausted.
     pub fn scan(
-        &self,
+        &mut self,
         attrs: &BTreeMap<String, String>,
         budget: &mut ParameterBudget,
         work: &mut Work,
@@ -1200,6 +1238,68 @@ mod tests {
         assert!(source.dangling.software.is_empty());
         // Malformed IDs stay errors under the source policy.
         assert!(source.processing("1bad", &mut unlimited()).is_err());
+    }
+    /// The same two-policy shape for `sourceFileRef`, with its own warned set
+    /// and the scan/precursor metadata the source writes for a dangling one.
+    #[test]
+    fn dangling_source_file_references_follow_the_selected_policy() {
+        discard_warnings();
+        let unlimited = || Work {
+            remaining: usize::MAX,
+            bytes: usize::MAX,
+        };
+        let budget = || ParameterBudget {
+            remaining: usize::MAX,
+            bytes: usize::MAX,
+        };
+        let attrs: BTreeMap<String, String> =
+            [("sourceFileRef".to_owned(), "absent".to_owned())].into();
+
+        let mut strict = Registry::default();
+        assert_eq!(
+            strict
+                .source("absent", &mut unlimited())
+                .unwrap_err()
+                .to_string(),
+            invalid("unresolved sourceFileRef").to_string()
+        );
+        assert_eq!(
+            strict
+                .source_metadata(&attrs, &mut budget(), &mut unlimited())
+                .unwrap_err()
+                .to_string(),
+            invalid("unresolved sourceFileRef").to_string()
+        );
+
+        let mut source = Registry {
+            dangling: DanglingReferences::new(true),
+            ..Registry::default()
+        };
+        assert_eq!(
+            source.source("absent", &mut unlimited()).unwrap(),
+            SourceFile::default()
+        );
+        // `source_files_[ref].getNameOfFile()` on an unknown key: the keys are
+        // there, and empty (`MzMLHandler.cpp:1131-1137`).
+        let metadata = source
+            .source_metadata(&attrs, &mut budget(), &mut unlimited())
+            .unwrap();
+        assert_eq!(metadata.len(), 2);
+        assert_eq!(metadata["source_file_name"].to_string(), "");
+        assert_eq!(metadata["source_file_path"].to_string(), "");
+        // One record per distinct ID, in this kind's own set.
+        assert_eq!(source.dangling.source_files.len(), 1);
+        assert!(source.dangling.processing.is_empty());
+        assert!(source.dangling.software.is_empty());
+        // Malformed IDs stay errors under the source policy.
+        assert!(source.source("1bad", &mut unlimited()).is_err());
+        let malformed: BTreeMap<String, String> =
+            [("sourceFileRef".to_owned(), "1bad".to_owned())].into();
+        assert!(
+            source
+                .source_metadata(&malformed, &mut budget(), &mut unlimited())
+                .is_err()
+        );
     }
     #[test]
     fn dangling_reference_record_is_charged_before_it_is_retained() {
