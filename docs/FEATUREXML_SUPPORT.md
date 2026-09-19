@@ -89,6 +89,19 @@ A finite **negative** width also stays refused. `setWidth` stores any value
 (`BaseFeature.cpp:87-94`), but no source path produces a negative FWHM, and the
 mirror check would have to let it through silently.
 
+Accepting such a document is what lets one reach the rest of the crate, and
+the kernel's own finite invariants then apply. `FeatureMap::ranges` — the
+port's `FeatureMap::updateRanges` — refuses a non-finite value, so the map
+reads and its ranges are a checked error. The Release `FileInfo` on the
+document above exits 0 and prints `retention time: -inf .. inf sec (inf min)`
+and `Total ion current in features: nan`
+(`../oracle/featurexml-inf/results/fileinfo_nonfinite.out`); this port's
+`FileInfo` exits 6 with `Invalid parameter: invalid value: range value must be
+finite`. That is a **checked refusal, never a panic**
+(`a_nonfinite_map_reads_and_its_ranges_are_a_checked_error`); making the ranges
+themselves non-finite is a kernel change with its own evidence, not a
+featureXML one, and is open for the lead.
+
 ## Options
 
 The defaults load convex hulls and subordinates, load all metadata and feature

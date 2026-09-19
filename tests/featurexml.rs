@@ -1188,3 +1188,30 @@ fn a_nonfinite_hull_point_is_refused_where_the_release_build_keeps_it() {
         assert!(featurexml::read(simple(body).as_slice()).is_err(), "{body}");
     }
 }
+
+/// **What a reader consumer sees on such a document**, pinned because
+/// accepting it here is what lets one reach the rest of the crate.
+///
+/// `FeatureMap::ranges` — the port's `FeatureMap::updateRanges` — refuses a
+/// non-finite value, so the map reads but its ranges are a checked error, and
+/// `FileInfo` reports it as one. The Release `FileInfo` on the same document
+/// exits 0 and prints `retention time: -inf .. inf sec (inf min)`,
+/// `mass-to-charge: -inf .. inf`, `intensity: -inf .. inf` and
+/// `Total ion current in features: nan`
+/// (`../oracle/featurexml-inf/results/fileinfo_nonfinite.out`, the pinned
+/// Release install on `ibminode06`); this port exits 6 with
+/// `Invalid parameter: invalid value: range value must be finite`.
+///
+/// The point of the test is the **absence of a panic**: a document a caller
+/// did not write reaches the kernel's finite invariants and is refused there,
+/// never aborts. Making the ranges themselves non-finite is a kernel change
+/// with its own evidence, not a featureXML one.
+#[test]
+fn a_nonfinite_map_reads_and_its_ranges_are_a_checked_error() {
+    let map = featurexml::read(NONFINITE_RELEASE).unwrap();
+    let error = map.ranges().unwrap_err();
+    assert!(format!("{error}").contains("must be finite"), "{error}");
+    // A finite map of the same shape still answers.
+    let finite = featurexml::read(SOURCE).unwrap();
+    assert!(finite.ranges().is_ok());
+}
