@@ -60,16 +60,16 @@ for the same reason: a citation confirmed against the wrong file is worse than
 an unchecked one, so the split has to be readable and not only the total.
 
 What this does not catch, stated plainly so that a green run is not read for
-more than it says. Of the 3,345 citations it resolves, 102 are confirmed against
+more than it says. Of the 3,346 citations it resolves, 104 are confirmed against
 code quoted beside them; the rest are checked only for existing, because most
 citations in this repository paraphrase the source instead of reproducing it,
 and a paraphrase cannot be read back.
 
 How much the confirmed fraction is worth was measured by mutation: record every
 confirmation, then shift each unique confirmed citation by +40 lines in its own
-document and re-scan. 94 unique citation texts, 90 caught, 4 missed. That
+document and re-scan. 96 unique citation texts, 92 caught, 4 missed. That
 figure bounds *one shift*, not the checker - shifting by +13 instead misses 6
-and by +77 misses 4 other ones - because a miss happens for either of two
+and by +77 misses 4 partly different ones - because a miss happens for either of two
 reasons. One is structural and will not go away: a quotation confirmed through
 an enclosing span the same unit cites stays inside that span for any small
 shift, which is two of the four (``docs/SPECTRUM_ALIGNMENT_SUPPORT.md``

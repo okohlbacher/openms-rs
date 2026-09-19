@@ -262,7 +262,7 @@ build writes. `CPP-327`'s Rust-handling paragraph is corrected to match.
 
 `tools/check_source_citations.py` resolves C++ source citations against the pins
 this repository already declares and reads them back. At this integration head
-it exits **0** over the whole tree: **3,345 citations resolved, 102 confirmed
+it exits **0** over the whole tree: **3,346 citations resolved, 104 confirmed
 against code quoted beside them, 196 ambiguous, 0 problems**, in about four
 seconds. Getting
 there took the six substitutions the lane asked for in `OpenMS_CPP_ISSUES.md`
@@ -283,7 +283,7 @@ means — `:1347` the guard, `:1352` the reference, `:1354` the read.
 
 What a green run does **not** mean is stated by the tool itself and repeated
 here, because a count that reads as more than it measures is the failure mode
-this lane exists to prevent. Only 102 of 3,345 citations are *confirmed*; the
+this lane exists to prevent. Only 104 of 3,346 citations are *confirmed*; the
 rest are checked for existence, for a non-blank single line, and for annotation
 blocks. Most citations in this repository paraphrase the source instead of
 reproducing it, and a paraphrase cannot be read back. **The A6 defect that
@@ -370,7 +370,7 @@ pairs, unchanged from `main`; `check_core_sdk.py`, `core_sdk_coverage.py`,
 `test_core_sdk.py`, `test_core_sdk_coverage.py`,
 `check_schema_feature_graph.py`, `test_source_citations.py` and all ten
 `generate_*.py --check` / projection / probe checkers exit 0;
-`check_source_citations.py` exits 0 with 3,345 citations resolved, 102
+`check_source_citations.py` exits 0 with 3,346 citations resolved, 104
 confirmed and 196 ambiguous. Every changed JSON parses (14 files), and `.github/workflows/rust.yml`
 parses as YAML. Determinism was re-checked here rather than taken on report:
 `parallel_determinism` 5 passed and `topp_threads` 7 passed, including
@@ -393,7 +393,9 @@ was derived from Rust output. The `.rs` diff against `main` adds **0**
 occurrences of `unsafe` and **0** new `#[ignore]`, and adds 76 `#[test]`
 functions (5,430 → 5,506), which reconcile lane by lane: reader 7, featureXML 7,
 picker 19, A7 42, this pass 1, the citation lane 0 Rust tests and 49 Python ones
-(`tools/test_source_citations.py` 44, `tools/test_core_sdk.py` 3 → 8). The gate
+(`tools/test_source_citations.py` 44, `tools/test_core_sdk.py` 3 → 8). The
+polish round below adds one more of each kind, taking `#[test]` to 5,507 and
+`test_source_citations.py` to 52. The gate
 reports **21** ignored rather than 28 for the reason earlier waves recorded: the
 platform-gated tests are not compiled on the Linux gate hosts.
 
@@ -473,11 +475,11 @@ recomputed in this pass rather than copied from a report.
   Whether real consensusXML files carry samples with both zeros is not measured,
   and the port's behaviour is deterministic either way.
 - **It does not claim a green citation run means the citations are right.** It
-  means 102 of 3,345 were read back against quoted code and none of the
-  remaining 3,243 is impossible. The section above says what that leaves out.
+  means 104 of 3,346 were read back against quoted code and none of the
+  remaining 3,242 is impossible. The section above says what that leaves out.
   Nor does it mean that a wrong line number would always be caught: shifting
-  each of the 94 unique confirmed citations by +40 in its own document catches
-  90 of them, and the four it misses include two that a span the same unit
+  each of the 96 unique confirmed citations by +40 in its own document catches
+  92 of them, and the four it misses include two that a span the same unit
   cites around them answers for either way.
 - **It does not claim `validated_topp_workflows` moved.** It is 8, unchanged.
   Three of the eight are the tools this wave changed, and all three were already

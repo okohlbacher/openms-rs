@@ -302,9 +302,13 @@ fn strict_default_refuses_every_dangling_source_file_reference() {
 ///
 /// This is a **divergence from the Release reader**, which is why it is pinned
 /// here rather than left to the prose that asserts it. `MzMLHandler.cpp:937-941`
-/// reads the attribute with a plain `source_files_[ref]`, so the C++ accepts
-/// the document and silently default-constructs an empty `SourceFile` for an
-/// id it has never seen. Three places in this wave describe that difference as
+/// reads the attribute with an unguarded
+/// `chromatogram_.setSourceFile(source_files_[source_file_ref]);`. The
+/// spectrum arm at `:896-906` asks
+/// `if (source_files_.contains(source_file_ref))` first and warns when the
+/// answer is no. The chromatogram arm does neither, so the C++ accepts the
+/// document and silently default-constructs an empty `SourceFile` for an id it
+/// has never seen. Three places in this wave describe that difference as
 /// measured — the [`ReadOptions::source_dangling_references`] rustdoc, the
 /// header reader and the deferred list — and until this test nothing executed
 /// the branch they describe.
