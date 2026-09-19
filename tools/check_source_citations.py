@@ -100,6 +100,12 @@ CITATION = re.compile(
 FILE_NAMED = re.compile(
     r"(?P<path>(?:[A-Za-z0-9_.-]+/)*)(?P<file>[A-Za-z_][A-Za-z0-9_]*\.(?:" + EXTENSIONS + r"))\b"
 )
+# A cheap test for whether a span could hold either of those at all. Both open
+# with a long character class, which costs time quadratic in a run of word
+# characters that turns out not to end in a source extension - and a fixture
+# table can hold a single 84 kB cell of captured stdout. Asking for the
+# extension first is linear in the span, and a span without one holds neither.
+HAS_SOURCE = re.compile(r"\.(?:" + EXTENSIONS + r")\b")
 # A bare range continues the file named before it: "Decoder.cpp:165-168, :179-181".
 CONTINUATION = re.compile(r"(?<![\w.:/-]):(?P<first>\d+)(?:[-\u2013\u2014](?P<last>\d+))?\b")
 # A transcribed code block annotates its lines: "DOMNode* iter = firstChild;  // :282".
@@ -360,6 +366,15 @@ def units(path, text, default_revisions):
         walk(tree)
         return found
 
+    if path.suffix == ".tsv":
+        # A fixture table: one row is one record, and the column that names the
+        # upstream test a row was read off belongs to that row alone. Cutting at
+        # rows also keeps CITATION off a whole table at once - thousands of
+        # characters of tab-separated values it cannot match, which its optional
+        # leading path directory backtracks through at a cost out of all
+        # proportion to the handful of citations these files hold.
+        return [(line, default_revisions) for line in text.splitlines() if line.strip()]
+
     issue_log = path.name == ISSUE_LOG
     if issue_log:
         # Entries predate the current pin and name the revision they were read
@@ -419,6 +434,8 @@ def citations_in(unit, quoted_only):
     it; a manifest has no code spans, so there the shape has to stand on its own.
     """
     named, bare = [], []
+    if not HAS_SOURCE.search(unit):
+        return [], []
     for match in CITATION.finditer(unit):
         named.append(
             (match.start(), match.group("path"), match.group("file"),
@@ -811,6 +828,8 @@ def named_file(unit):
     be carried forward from the span that gives it to the span that uses it.
     """
     last = None
+    if not HAS_SOURCE.search(unit):
+        return None
     for match in FILE_NAMED.finditer(unit):
         last = (match.group("path"), match.group("file"))
     return last

@@ -365,6 +365,14 @@ class UnitTests(unittest.TestCase):
     def test_a_fenced_block_is_not_a_unit(self):
         self.assertEqual(self.spans("doc.md", "before\n\n```\n`A.cpp:1`\n```\n\nafter"), ["before", "after"])
 
+    def test_a_fixture_table_is_cut_into_its_rows(self):
+        # One row is one record: a citation in it answers for that row, and the
+        # pattern is never put to a whole table at once.
+        text = "case\torigin\nfirst\tA.cpp:1\n\nsecond\tB.cpp:2\n"
+        self.assertEqual(
+            self.spans("t.tsv", text), ["case\torigin", "first\tA.cpp:1", "second\tB.cpp:2"]
+        )
+
     def test_a_manifest_is_cut_into_its_string_values(self):
         self.assertEqual(
             self.spans("m.json", '{"why": "A.cpp:1", "how": ["B.cpp:2"]}'), ["A.cpp:1", "B.cpp:2"]
