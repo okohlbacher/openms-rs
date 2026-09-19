@@ -157,7 +157,9 @@ constants, `CountPolicy`, `with_limits`, `with_write_options`,
   (`:1064-1071`, `:983-990`).
 
   `ReferencePolicy::Checked`, the default, compares the rendered declaration
-  lists and the set of declared identifiers and returns `Error::Unsupported`.
+  lists and the set of declared identifiers and returns `Error::Unsupported`
+  ("record needs a different mzML sourceFileList, dataProcessingList or
+  softwareList than the header written for the first record").
   `ReferencePolicy::SourceDangling` writes what the source writes, in the
   source's own spelling — a bare position in this writer's single zero-padded
   namespace would *alias* a declared entry instead of dangling, turning a

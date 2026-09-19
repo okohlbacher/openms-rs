@@ -546,9 +546,10 @@ added to the source's output, not a change to it. Pinned by
     record's (`logs/closediff1_06.log` sections B, C and E). The C++
     **in-memory** run of the same file declares two `dataProcessing` entries
     and dangles nothing. This port's low-memory run now writes all 110 records
-    with the same references; before this round it stopped after five with
-    `Error: unsupported: record needs a different mzML sourceFileList or
-    dataProcessingList than the header written for the first record`.
+    with the same references; before this round it stopped after five, which is
+    what `ReferencePolicy::Checked` still does — `Error: unsupported: record
+    needs a different mzML sourceFileList, dataProcessingList or softwareList
+    than the header written for the first record`, `INCOMPATIBLE_INPUT_DATA`.
 
     The five-record `refs` fixture pins every cell of the rule, because the
     110-record file exercises only one of them. Against the C++ output

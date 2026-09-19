@@ -803,8 +803,8 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
             ReferencePolicy::Checked => {
                 if declarations != self.declarations {
                     return Err(Error::Unsupported(
-                        "record needs a different mzML sourceFileList or dataProcessingList than \
-                         the header written for the first record"
+                        "record needs a different mzML sourceFileList, dataProcessingList or \
+                         softwareList than the header written for the first record"
                             .into(),
                     ));
                 }
