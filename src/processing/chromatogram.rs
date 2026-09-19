@@ -4,6 +4,11 @@
 
 //! OpenSWATH chromatogram picking with smoothed spline seeds, source boundary
 //! extension and inclusive raw intensity sums. See CHROMATOGRAM_PICKING_SUPPORT.md.
+//!
+//! [`PeakPickerChromatogram::compatibility`] selects the source behaviours the
+//! native default refuses; the internal noise estimate always reproduces the
+//! source, because the signal it reads is this picker's own smoothed trace or a
+//! chromatogram the picker has already validated.
 
 use super::checked_intensity;
 use super::peak_picking::{
@@ -142,6 +147,33 @@ impl PeakPickerChromatogram {
     /// Pick without changing input. Five arrays are returned in source order:
     /// FWHM, IntegratedIntensity, leftWidth, rightWidth, SN. IntegratedIntensity
     /// is the inclusive sum of raw f32 samples promoted to f64, not trapezoidal area.
+    ///
+    /// The boundary signal is the input under
+    /// [`ChromatogramPickingMethod::Legacy`] and the smoothed trace under
+    /// [`ChromatogramPickingMethod::Corrected`], matching source
+    /// `pickChromatogram_(chromatogram | smoothed_chrom, ...)`. Its noise is
+    /// estimated with [`PickingCompatibility::source`] whatever
+    /// [`compatibility`](Self::compatibility) says, because `snt_` is a plain
+    /// source estimator over a signal that is either picker-generated or
+    /// already validated here. A `win_len` of NaN or `+inf`, which the source's
+    /// `setMinFloat("win_len", 1.0)` restriction lets through, therefore picks
+    /// rather than failing.
+    ///
+    /// # Errors
+    ///
+    /// * [`Error::UnsortedData`] when retention times decrease, as source
+    ///   `pickChromatogram` throws `Exception::IllegalArgument` for a
+    ///   chromatogram that is not sorted by position. No compatibility flag
+    ///   lifts this.
+    /// * [`Error::InvalidValue`] for invalid options or resource limits,
+    ///   non-finite coordinates or intensities, and — unless
+    ///   [`compatibility`](Self::compatibility) allows them — negative
+    ///   intensities or duplicate retention times. Also for a `win_len` below
+    ///   the source's minimum of one, a `bin_count` below three, an integration
+    ///   bound outside the input, an intensity that leaves `f32` range, and an
+    ///   exhausted work or point budget.
+    /// * The errors of the configured smoother and of the seed
+    ///   [`PeakPickerHiRes`].
     pub fn pick_chromatogram(&self, input: &MSChromatogram) -> Result<ChromatogramPickingResult> {
         if self.max_points == 0
             || self.max_work == 0
@@ -221,7 +253,11 @@ impl PeakPickerChromatogram {
             // `cvtss2sd` semantics instead of `f64::from`.
             Some(
                 estimator
-                    .estimate_peaks(&boundary_signal.peaks, &PickingCompatibility::source(), None)?
+                    .estimate_peaks(
+                        &boundary_signal.peaks,
+                        &PickingCompatibility::source(),
+                        None,
+                    )?
                     .signal_to_noise,
             )
         } else {

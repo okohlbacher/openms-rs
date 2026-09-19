@@ -8,6 +8,11 @@
 //! Ported from `PROCESSING/CENTROIDING/PeakPickerIterative.h` at revision
 //! `7c029e8`. The source's asymmetric rightward recentering and intermediate
 //! f32 centroid rounding are retained. See `docs/ITERATIVE_PICKING_SUPPORT.md`.
+//!
+//! [`PeakPickerIterative::compatibility`] selects the source behaviours the
+//! native default refuses, and is handed to both the seed [`PeakPickerHiRes`]
+//! and the refinement noise estimator, as the source's own `pp` and `snt` are
+//! plain source objects.
 
 use super::SpectrumFilter;
 use super::peak_picking::{
@@ -184,6 +189,29 @@ impl PeakPickerIterative {
 
     /// Pick a spectrum without mutating input. Output intensity is the inclusive
     /// raw sample sum, not a trapezoidal area. Equal-priority seeds retain order.
+    ///
+    /// Source `pick` estimates the noise over the caller's raw spectrum
+    /// (`PeakPickerIterative.h:321`), so that estimate follows
+    /// [`compatibility`](Self::compatibility) rather than being fixed to the
+    /// source, and is skipped entirely when
+    /// [`signal_to_noise`](Self::signal_to_noise) is not positive, as the
+    /// source skips `snt.init`.
+    ///
+    /// # Errors
+    ///
+    /// * [`Error::UnsortedData`] when m/z decreases, and
+    ///   [`Error::InvalidValue`] for equal m/z. Neither is lifted by
+    ///   [`compatibility`](Self::compatibility); see that field.
+    /// * [`Error::InvalidValue`] for invalid options or resource limits,
+    ///   negative m/z, non-finite coordinates or intensities, and — unless
+    ///   [`compatibility`](Self::compatibility) allows them — negative
+    ///   intensities. Also for a seed whose two raw neighbours do not exist or
+    ///   whose recentering would read outside the spectrum, where the source
+    ///   reads out of bounds; for a candidate whose integrated intensity is
+    ///   zero, where the source divides by it; for a value that leaves `f32`
+    ///   range; and for an exhausted work or point budget.
+    /// * The errors of the seed [`PeakPickerHiRes`] and of the noise
+    ///   estimator.
     pub fn pick_spectrum(&self, input: &MSSpectrum) -> Result<IterativePickingResult> {
         self.pick_spectrum_with_acquisition(input, &mut super::AcquisitionCopies::default())
     }
@@ -462,8 +490,7 @@ impl PeakPickerIterative {
         // NaN m/z, which makes the source's final `sortByPosition` violate the
         // strict weak ordering `std::sort` requires and read outside the
         // spectrum, so it stays refused in both profiles.
-        if integrated == 0.0
-            || (integrated < 0.0 && !self.compatibility.allow_negative_intensities)
+        if integrated == 0.0 || (integrated < 0.0 && !self.compatibility.allow_negative_intensities)
         {
             return Err(bad("iterative candidate has zero integrated intensity"));
         }
