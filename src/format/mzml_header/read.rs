@@ -123,7 +123,9 @@ impl Registry {
     /// A deep copy of the source file with ID `id`.
     ///
     /// Serves `sourceFileRef` on a spectrum; mzML 1.1 has no such attribute on
-    /// `ChromatogramType` and the reader refuses one before reaching here. An
+    /// `ChromatogramType` and the reader refuses one before reaching here
+    /// (pinned by `a_chromatograms_source_file_ref_is_refused_under_both_policies`
+    /// in `tests/mzml_source_file_round_trip.rs`). An
     /// ID that names no definition yields `SourceFile::default()` under the
     /// source policy — the value `spec_` already holds when
     /// `MzMLHandler.cpp:896-906` declines to set one, which is also the value

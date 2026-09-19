@@ -108,12 +108,14 @@ The full text of D1-D13 is in
 [the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-5-status). Two are new this
 wave, and they collided: **both** `fix/reader-round-trip` and
 `fix/picker-noise-consumers` numbered their decision D14. The reader lane's
-number is cited in eight committed files — `MZML_HEADER_SUPPORT.md`, native
+number is cited in nine committed files — `MZML_HEADER_SUPPORT.md`, native
 difference 12 of `TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`,
 `MS_DATA_WRITING_CONSUMER_SUPPORT.md`, the `ReadOptions` rustdoc in
 `src/format/mzml.rs`, `tests/mzml_source_file_round_trip.rs`,
-`tests/mzml_header_leniency.rs` and `tests/topp_peak_picker_hi_res.rs` — and the
-picker lane's only in its handover text, so the reader lane keeps D14 and the
+`tests/mzml_header_leniency.rs`, `tests/topp_peak_picker_hi_res.rs` and the two
+manifests `tests/data/mzml_source_file_round_trip_provenance.json` and
+`tests/data/mzml_header_leniency_provenance.json` — and the picker lane's only
+in its handover text, so the reader lane keeps D14 and the
 picker lane becomes **D15**. Nothing in the tree had to change.
 
 - **D14** the mzML reader accepts a dangling `sourceFileRef` under
@@ -351,10 +353,14 @@ introduced: `[`sort_ascending`]` in the new "Signed zeros" section of
 `src/math/statistic_functions.rs` names a private item, which rustdoc cannot
 resolve and `-D warnings` therefore rejects. Fixed by writing the name in plain
 backticks, and the whole battery re-run at the final head; no other gate was
-touched by the change. Everything committed after the gate head `a6c7f34` is
-Markdown only — `docs/VALIDATION.md`, `docs/EARLY_TOPP_WORK_PACKAGES.md` and
-`SOURCE_PROVENANCE.json`'s prose note — which `git diff --name-only
-a6c7f34..HEAD` confirms, so no cargo gate can be affected by it.
+touched by the change. `git diff --name-only a6c7f34..HEAD` names three files
+committed after the gate head: `docs/VALIDATION.md`,
+`docs/EARLY_TOPP_WORK_PACKAGES.md` and `SOURCE_PROVENANCE.json`. Two are
+Markdown; the third is a JSON record whose change is one prose sentence inside
+`external_reference_note`, and `grep -rn SOURCE_PROVENANCE --include='*.rs'`
+finds no Rust reader for it. So nothing the compiler reads moved after the gate
+head — which is the claim that matters, and it is narrower than "Markdown
+only".
 
 Locally, from the integration worktree: `cargo fmt --all -- --check` exit 0;
 `tools/check_doc_coverage.py` 4563/5918 = 77.1 %, recorded with `--write`;
@@ -390,11 +396,19 @@ picker 19, A7 42, this pass 1, the citation lane 0 Rust tests and 49 Python ones
 reports **21** ignored rather than 28 for the reason earlier waves recorded: the
 platform-gated tests are not compiled on the Linux gate hosts.
 
-One assertion was removed in this wave, and it is a specification change rather
-than a weakening: `SummaryStatistics::new(&mut [NaN])` being refused, which the
-lead's instruction made false. It is replaced by two new refusal assertions for
-the mixed sample in both orders, by the untouched-input assertions around it,
-and by two whole new tests.
+Six assertion sites were removed in this wave, and every one of them is a
+specification change rather than a weakening. Five are A7 scope tripwires that
+asserted a branch was *unported* — two in `tests/file_info.rs`, two in
+`tests/topp_file_info.rs` and one in `tests/topp_feature_finder_centroided.rs`
+— and each is replaced by an assertion of what the now-ported branch does,
+which is the stronger statement. The sixth is
+`SummaryStatistics::new(&mut [NaN])` being refused, which the lead's
+instruction made false; it is replaced by two new refusal assertions for the
+mixed sample in both orders, by the untouched-input assertions around it, and
+by two whole new tests, taking `tests/statistic_functions.rs` from 85 assertion
+macros to 109. `git diff main..HEAD -- '*.rs' | grep -cE '^-[[:space:]]*assert'`
+counts five of the six; the sixth is an `unwrap_err()` binding rather than an
+`assert` line.
 
 Two hygiene facts, mechanically checked rather than asserted: `Cargo.toml` still
 carries `unsafe_code = "forbid"` and `rust-version = "1.85"`, and no C++ entered
@@ -421,7 +435,11 @@ recomputed in this pass rather than copied from a report.
   such attribute on `ChromatogramType`, so the reader refuses one with
   `Error::Unsupported` before any dangling-reference policy applies, while the
   C++ reads it and default-constructs an empty `SourceFile`. Nothing either
-  writer emits produces one, so it is outside the round trip.
+  writer emits produces one, so it is outside the round trip. The divergence
+  itself is no longer only asserted in prose:
+  `a_chromatograms_source_file_ref_is_refused_under_both_policies` executes it,
+  with a reference the header declares and one it does not, under the strict
+  default and under `source_dangling_references`.
 - **The identification-XML reader's modified-hit budget.** An idXML with more
   than 14 modified peptide hits is refused by the shared reader, because
   `AASequence::parse_with_budget` charges a per-modified-sequence preflight
@@ -459,6 +477,14 @@ recomputed in this pass rather than copied from a report.
 - **It does not claim `validated_topp_workflows` moved.** It is 8, unchanged.
   Three of the eight are the tools this wave changed, and all three were already
   validated; no lane added a tool with a `src/bin/*.rs` and a tier-1 manifest.
+- **It does not claim the picker consumers moved the ledger.** The handover
+  wrote that they "raise `evidence_requires_review` coverage". No count moves:
+  `docs/core-sdk-coverage.json` reads complete 63 /
+  evidence_requires_review 165 / native_equivalent 90 / partial 59 /
+  unmapped 409 at `main` and the same five numbers at this head. What the lane
+  did is add `tests/data/picker_consumers_provenance.json` as a second
+  reference manifest to `PeakPickerChromatogram.h` and `PeakPickerIterative.h`,
+  both of which were already at `evidence_requires_review` and stay there.
 
 ## Wave 7: the FileInfo checks, the low-memory picker and the wave-6 benchmark refresh (2026-09-19)
 

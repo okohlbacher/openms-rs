@@ -194,7 +194,9 @@ pub struct ReadOptions {
     /// and a `sourceFileRef` on a spectrum, a scan or a precursor, whose ID
     /// names no preceding definition. (A chromatogram's is not reachable:
     /// mzML 1.1 has no such attribute on `ChromatogramType`, and the reader
-    /// refuses one with [`Error::Unsupported`] before any policy applies.) `false`, the
+    /// refuses one with [`Error::Unsupported`] before any policy applies, as
+    /// `a_chromatograms_source_file_ref_is_refused_under_both_policies`
+    /// executes.) `false`, the
     /// default, rejects such a document with [`Error::Parse`] (`unresolved
     /// softwareRef`, `unresolved dataProcessingRef`, `unresolved
     /// sourceFileRef`), because the reference cannot be kept.

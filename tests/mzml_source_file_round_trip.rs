@@ -38,6 +38,11 @@ const ORACLE: &str = include_str!("data/mzml_source_file_round_trip/source_file_
 const DANGLING: &str =
     include_str!("data/mzml_source_file_round_trip/record_source_file_dangling.mzML");
 const REFS: &str = include_str!("data/peak_picking/PeakPickerHiRes_refs_input.mzML");
+/// Four spectra and two chromatograms, with five `sourceFile` definitions
+/// declared in the header; untouched by this wave.
+const CHROM: &str = include_str!("data/mzml_validator/MzMLFile_1.mzML");
+/// The opening tag of that file's first chromatogram, verbatim.
+const CHROM_TAG: &str = r#"<chromatogram index="0" id="tic native" defaultArrayLength="15" >"#;
 const DUPDP: &str = include_str!("data/peak_picking/PeakPickerHiRes_dupdp_input.mzML");
 
 /// The oracle's cases, in the order `probe_06.sh` passes them to the driver.
@@ -82,6 +87,14 @@ fn parse_message(result: Result<impl Sized>) -> String {
         Err(Error::Parse { message, .. }) => message,
         Err(other) => panic!("expected a parse error, got {other}"),
         Ok(_) => panic!("expected a parse error, got a result"),
+    }
+}
+
+fn unsupported_message(result: Result<impl Sized>) -> String {
+    match result {
+        Err(Error::Unsupported(message)) => message,
+        Err(other) => panic!("expected an unsupported error, got {other}"),
+        Ok(_) => panic!("expected an unsupported error, got a result"),
     }
 }
 
@@ -273,6 +286,62 @@ fn strict_default_refuses_every_dangling_source_file_reference() {
                 assert_eq!(carried[0]["source_file_name"].to_string(), "", "{what}");
                 assert_eq!(carried[0]["source_file_path"].to_string(), "", "{what}");
             }
+        }
+    }
+}
+
+/// A chromatogram's `sourceFileRef` is refused before any policy is consulted,
+/// and refused whether the reference resolves or dangles.
+///
+/// mzML 1.1 puts `sourceFileRef` on `SpectrumType`, `ScanType` and
+/// `PrecursorType` and **not** on `ChromatogramType`
+/// (`share/OpenMS/SCHEMAS/mzML_1_10.xsd` of the pinned core `bc9cc12`, whose
+/// `ChromatogramType` carries only `id`, `index`, `defaultArrayLength` and
+/// `dataProcessingRef`), so a document with one is not mzML at all and there is
+/// no reference for a dangling-reference policy to have an opinion about.
+///
+/// This is a **divergence from the Release reader**, which is why it is pinned
+/// here rather than left to the prose that asserts it. `MzMLHandler.cpp:937-941`
+/// reads the attribute with a plain `source_files_[ref]`, so the C++ accepts
+/// the document and silently default-constructs an empty `SourceFile` for an
+/// id it has never seen. Three places in this wave describe that difference as
+/// measured — the [`ReadOptions::source_dangling_references`] rustdoc, the
+/// header reader and the deferred list — and until this test nothing executed
+/// the branch they describe.
+///
+/// Neither writer in this crate emits the attribute, so the round trip does
+/// not reach this; it is the boundary beside the round trip, not inside it.
+#[test]
+fn a_chromatograms_source_file_ref_is_refused_under_both_policies() {
+    discard_warnings();
+    // The fixture itself reads, so the refusal below is about the attribute.
+    let clean = mzml::read(Cursor::new(CHROM)).unwrap();
+    assert_eq!(clean.spectra.len(), 4);
+    assert_eq!(clean.chromatograms.len(), 2);
+
+    for (what, id) in [
+        // `sf1` IS declared in this file's `sourceFileList`, so this document
+        // has nothing dangling in it at all and is still refused.
+        ("a reference the header declares", "sf1"),
+        ("a reference nothing declares", "sf_not_declared"),
+    ] {
+        let doc = CHROM.replacen(
+            CHROM_TAG,
+            &CHROM_TAG.replace(" >", &format!(" sourceFileRef=\"{id}\">")),
+            1,
+        );
+        assert_ne!(doc, CHROM, "{what}: the chromatogram tag was not rewritten");
+        assert!(doc.contains(&format!("sourceFileRef=\"{id}\"")), "{what}");
+
+        for (policy, options) in [
+            ("the strict default", ReadOptions::default()),
+            ("source_dangling_references", source()),
+        ] {
+            assert_eq!(
+                unsupported_message(mzml::read_with_options(Cursor::new(&doc), &options)),
+                "chromatogram sourceFileRef is not permitted by mzML",
+                "{what}, under {policy}"
+            );
         }
     }
 }
