@@ -316,9 +316,10 @@ fn index_truncated_is_not_valid() {
 }
 
 /// The control for the two cases below: an indexed mzML of 1217 bytes, whose
-/// footer is inside the 1023-byte window the source searches and whose index is
-/// written with a newline inside `<index>`. Both implementations parse it, and
-/// both reports agree byte for byte.
+/// footer is inside the 1023-byte window the source searches and whose
+/// `<index name="spectrum">` is followed immediately by a newline, so the
+/// source's DOM walk starts on a text node and loses no offset. Both
+/// implementations parse it, and both reports agree byte for byte.
 #[test]
 fn index_inside_the_footer_window_agrees() {
     let result = check(

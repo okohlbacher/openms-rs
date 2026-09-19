@@ -168,10 +168,20 @@ pub enum ReferencePolicy {
     Checked,
     /// Write the record with the reference the source writes, dangling.
     ///
-    /// Reproduces `writeSpectrum_` exactly: a `sourceFileRef` is renumbered to
-    /// the record's position in the stream whenever the record carries one and
-    /// is not the first, and a `dataProcessingRef` to the same number whenever
-    /// the record's processing history differs from the first record's. A
+    /// Reproduces `writeSpectrum_` on every input where the source's pointer
+    /// comparison and content equality agree: a `sourceFileRef` is renumbered
+    /// to the record's position in the stream whenever the record carries one
+    /// and is not the first, and a `dataProcessingRef` to the same number
+    /// whenever the record's processing history differs from the first
+    /// record's. "Differs" is read here off the rendered declaration blocks,
+    /// which is content equality; the source compares
+    /// `spec.getDataProcessing() != dps[0]` over
+    /// `std::vector<std::shared_ptr<const DataProcessing>>`, which is pointer
+    /// identity. The two part company on an input carrying two textually
+    /// identical `dataProcessing` entries under different identifiers, where
+    /// the source writes the dangling reference and this policy writes none;
+    /// see native difference 12 of
+    /// `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`. A
     /// reference a binary data array carries is renumbered the same way, into
     /// the source's `dp_sp_<s>_bi_<m>`, for the same reason. A
     /// chromatogram carries neither reference on its start tag in the source
@@ -1095,10 +1105,15 @@ fn check_references(block: &str, declared: &BTreeSet<String>) -> Result<()> {
     Ok(())
 }
 
-/// Whether this record's own processing history differs from the header's,
-/// the source's `spec.getDataProcessing() != dps[0]`
+/// Whether this record's own processing history differs from the header's.
+///
+/// This stands in for the source's `spec.getDataProcessing() != dps[0]`
 /// (`MzMLHandler.cpp:5258`), read off the rendered header blocks that history
-/// contributes to; see [`DECLARATION_BLOCKS`].
+/// contributes to; see [`DECLARATION_BLOCKS`]. It is **content** equality
+/// where the source's is pointer identity, so it answers the same on every
+/// input whose textually distinct histories are also distinct objects, and
+/// differs on one carrying two identical `dataProcessing` entries under
+/// different identifiers.
 fn processing_differs(record: &[String; 3], header: &[String; 3]) -> bool {
     PROCESSING_BLOCKS
         .iter()
@@ -1108,11 +1123,12 @@ fn processing_differs(record: &[String; 3], header: &[String; 3]) -> bool {
 /// Renumber one record's header references the way the source numbers them
 /// when the header cannot declare them (`MzMLHandler.cpp:5251-5272`).
 ///
-/// `processing` is the source's `spec.getDataProcessing() != dps[0]`: the
-/// record's own rendered `dataProcessingList` differs from the header's, and
-/// `dps_` never grows past the one entry `writeHeader_` filled it with, so the
-/// source's search for a matching entry fails and it falls back to the
-/// record's position in the stream.
+/// `processing` is this writer's content reading of the source's
+/// `spec.getDataProcessing() != dps[0]`: the record's own rendered
+/// `dataProcessingList` differs from the header's, and `dps_` never grows past
+/// the one entry `writeHeader_` filled it with, so the source's search for a
+/// matching entry fails and it falls back to the record's position in the
+/// stream. See [`processing_differs`] for where content and pointer part.
 ///
 /// Only the record's start tag is rewritten. A reference a binary data array
 /// carries keeps the number the one-record render gave it, which dangles

@@ -211,13 +211,17 @@ Each is documented at the item in `checks.rs` as well.
     platform-dependent source cases"). What is new here is that `-i` prints its
     consequence, and that the two oracle cases pin where it starts.
 
-12. **An index without whitespace keeps the offset the source drops.**
-    `domParseIndexedEnd_` walks the children of each `<index>` as
+12. **An index whose first child is an `<offset>` keeps the offset the source
+    drops.** `domParseIndexedEnd_` walks the children of each `<index>` as
     `iter = getFirstChild(); while (iter != lastChild) { iter = getNextSibling(); … }`
     (`:280-282` sets `iter`, and the walk itself is `:290-293`), advancing
-    before it reads, so the first child is never looked at. A newline inside `<index>` puts a text node there and the walk
-    loses nothing, which is why every index an OpenMS writer produces parses;
-    an index written without that whitespace loses its first offset. Measured:
+    before it reads, so the first child is never looked at. A text node —
+    any whitespace — immediately after the opening `<index …>` tag takes that
+    place and the walk loses nothing, which is why every index an OpenMS
+    writer produces parses. Only that one position matters: whitespace between
+    the offsets or before `</index>` does not save the first offset, so the
+    affected class is "first child is an `<offset>`", not "written without
+    whitespace". Measured:
     the Release build counts one spectrum in the two-offset
     `index_offsets_unspaced.mzML`, the port counts two. Reproducing it would
     mean re-implementing the source's DOM walk in `parse_offsets`, which every

@@ -153,7 +153,7 @@ not exposed to the ~3 % cross-session drift band. §3.7 reports it.
 | temp | `TMPDIR` and `OPENMS_TMPDIR` under `/dev/shm`, per sub-run |
 | peak-RSS floor | `/bin/true` through the launcher recorded 1,024 KiB before and after the cases (limit 4,096); the naive `Popen`+`wait4` path recorded the harness's own high-water mark instead |
 | size | four sub-runs (`w6-profile`, `w6-centroid`, `w6-ffc-subset`, `w6-sfwm`), **52 cells, 282 measured repetitions of which 281 succeeded** (the one that did not is §3.9), 333 successful timing executions counting the 52 warm-ups, and 783 counting the `-write_ini` and start-up-slice baselines too |
-| load | pre-cell gate value 0.0016–0.0125 per core against a flag limit of 0.25 (0.05 at threads = 1); foreign CPU during the measured repetitions 0.0012–0.0199 per core, median 0.0091 — both ranges and the median are the same whether the failed repetition is counted or not. **0 of the 282 measured repetitions load-flagged, 0 refused, 0 retried**; `majflt` 0 in every one. Exactly one execution of the whole run carried a flag, and it enters no table here: a 2.2 ms `-write_ini` start-up baseline (DTAExtractor, `rust-release`, threads = 1, repetition 3) saw 0.0565 per core against the single-thread limit of 0.05 |
+| load | pre-cell gate value 0.0016–0.0125 per core against a flag limit of 0.25 (0.05 at threads = 1); foreign CPU during the measured repetitions 0.0012–0.0199 per core, median 0.0091 — both ranges and the median are the same whether the failed repetition is counted or not. **0 of the 282 measured repetitions load-flagged, 0 refused, 0 retried**; `majflt` 0 in every one. Exactly one execution of the whole run carried a flag, and it enters no table here: a 2.2 ms `-write_ini` start-up baseline (DTAExtractor, `rust-release`, threads = 1, repetition 3) saw 0.0565 per core against the single-thread limit of 0.05. It is not in any table, but it **is** one of the five samples behind the `-write_ini` median caveat 12 quotes in prose, because that median uses the run's own filter; see caveat 12 |
 | failures | **one**, on the C++ side: `FeatureFinderCentroided` at 32 threads died of `SIGSEGV` in one repetition (§3.9). Every Rust execution of both builds completed |
 | wall | 2026-09-18T19:40 to 2026-09-19T01:05 local, sequential, nothing else of this project's on the node |
 
@@ -242,8 +242,8 @@ FileInfo on the mzML at 32 threads 1.120.
 
 **Memory.** The port uses more resident memory on **seven of the nine cases**
 — six of the eight tools, FileInfo being measured on two datasets — worst
-MzMLSplitter 4.06 GB against 1.52 GB (2.67×), BaselineFilter 6.60 GB against
-3.20 GB (2.06×); the two below parity are PeakPickerHiRes (0.87×) and
+MzMLSplitter 4,064 MiB against 1,524 MiB (2.67×), BaselineFilter 6,600 MiB
+against 3,201 MiB (2.06×); the two below parity are PeakPickerHiRes (0.87×) and
 FeatureFinderCentroided (0.89× at one thread, 0.84× at 32). There is no memory
 parity and none is claimed.
 
@@ -256,7 +256,7 @@ its RSS ratio went from 0.86 to **0.89** at one thread and from 0.81 to **0.84**
 at 32. On every other tool the wave-6 Rust median is within 0.09 % of wave 4's
 and the C++ median within 0.13 %; twelve of those sixteen printed RSS ratios are
 identical across the waves and the other four differ by one unit in the last
-digit, from that sub-tenth-of-a-percent movement alone — DTAExtractor
+digit, from movements of at most 0.13 % alone — DTAExtractor
 1.12 → 1.11 at one thread, and at 32 threads MapNormalizer 1.16 → 1.17,
 SpectraFilterWindowMower
 2.19 → 2.18 and PeakPickerHiRes 0.86 → 0.87. The wave-4 figures quoted
@@ -271,7 +271,7 @@ wave-4 ratio column, so they are comparable cell for cell.
 actually kept busy. A tool that asked for 32 threads and shows util ~1.0 did
 **not** use them, however many threads exist.
 
-| tool | dataset | impl | t1 peak thr | t1 util | t32 peak thr | t32 util | t32 user s | t32/t1 wall |
+| tool | dataset | impl | t1 peak thr | t1 util | t32 peak thr | t32 util | t32 user s | t1/t32 wall (speed-up) |
 |---|---|---|---|---|---|---|---|---|
 | DTAExtractor | Velos 1.2 GB | rust `+fma` | 2 | 1.00 | 33 | 1.00 | 26.3 | 0.99× |
 | DTAExtractor | Velos 1.2 GB | rust `-fma` | 2 | 1.00 | 33 | 1.00 | 25.9 | 0.99× |
@@ -299,10 +299,12 @@ row is kept as the exemplar and the other five are left out**, because on all
 six the `-fma` build is indistinguishable from the `+fma` one and the rows would
 only repeat each other: peak threads identical in every cell, utilisation
 identical to two decimals in every cell but PeakPickerHiRes at 32 threads (2.23
-against 2.22), and user time within 0.45 s in all twelve cells — widest
-DTAExtractor, 0.440 s at one thread and 0.435 s at 32, the latter being the
-difference between the 26.3 s and 25.9 s its two rows print. That is itself the
-point.
+against 2.22), and user time within 0.45 s in all **fourteen** cells — the six
+tools at both thread counts, FileInfo counting twice because it is measured on
+two datasets, as §3.7 and caveat 2 also count them. The widest is DTAExtractor,
+0.440 s at one thread and 0.434 s at 32; both are recomputed from the raw
+per-repetition user times, not from the one-decimal figures the rows print.
+That is itself the point.
 SpectraFilterWindowMower has no `-fma` row because it has no `-fma` arm
 at all (§5.3). On FeatureFinderCentroided the two builds are **not**
 indistinguishable, which is why both of its rows are shown: the `-fma`
@@ -811,6 +813,13 @@ here; this section's own figures are dax's and stand on their own.
     C++ one, and there it works *against* the port, whose start-up is the
     cheaper one.
 
+    The low end of both port ranges is DTAExtractor's 3.133 ms median, which
+    the run's own filter (non-warm-up, status `ok`) computes over five samples
+    **including** the single load-flagged execution of the whole run, §3.1's
+    2.216 ms one; over the four unflagged samples that median is 3.533 ms and
+    the two ranges read 3.5–4.2 ms and 60.2–65.7 ms. The figures above are the
+    run's filter, used here as everywhere else in this document.
+
 13. **This is a warm-cache CPU benchmark.** `majflt` is 0 in every measured
     repetition: inputs were staged node-local and resident. Fair to both sides,
     excludes I/O, not a cold-start measurement.
@@ -824,7 +833,9 @@ here; this section's own figures are dax's and stand on their own.
     one failed repetition is included or not. **0 of those 282 repetitions were
     load-flagged, 0 refused and 0 retried.** One execution outside them was:
     a 2.2 ms `-write_ini` start-up baseline at 0.0565 per core (§3.1). It
-    feeds no table.
+    feeds no table, but it is one of the five samples behind the `-write_ini`
+    median caveat 12 prints, which is prose rather than a table; caveat 12
+    says so and gives the figure both ways.
     Exclusive use would still need an admin or a Slurm reservation.
 
 15. **Build configurations differ and can no longer be equalised at all.** C++

@@ -148,7 +148,7 @@ disagree.
 | per-MS-level summary on stdout | written by `pickExperiment` | none |
 | chromatograms | all picked | all picked |
 | input reads | one | two |
-| a record needing header entries the first record did not contribute | numbered against a header written from the whole experiment | written with a dangling reference, numbered by the record's position in the stream (`MzMLHandler.cpp:5252-5272`) |
+| a record needing header entries the first record did not contribute | numbered against a header written from the whole experiment — which does **not** make the whole-document writer safe: `writeHeader_` deduplicates histories by content and `writeSpectrum_` compares them by pointer, so every `FileMerger` output already dangles (CPP-172) | written with a dangling reference, numbered by the record's position in the stream (`MzMLHandler.cpp:5252-5272`); this port reproduces it wherever content and pointer agree, native difference 12 |
 | what a failing run leaves on disc | nothing | the batches already sent — floor(N / 100) × 100 records, closed and indexed, under the count pass one declared |
 | an `-out` that names an existing directory | `CANNOT_WRITE_OUTPUT_FILE` | in the source, **exit 0 having written nothing**: the consumer's constructor never checks its `std::ofstream` (`MSDataWritingConsumer.cpp:33`). The one row of this table this port does **not** reproduce; native difference 13 |
 
@@ -540,15 +540,37 @@ added to the source's output, not a change to it. Pinned by
     that *resolves*, to the wrong entry, which is worse than the defect being
     reproduced.
 
-    Measured on `ibminode06` against the C++ Release build at the pins. On the
+    Measured on `ibminode06` against the C++ Release build at the pins, and
+    re-measured at integration (`../oracle/integ-w7/refcheck_06.sh`). On the
     file the Release `FileMerger` builds from 22 copies of
     `PeakPickerHiRes_input.mzML`, the C++ low-memory run exits 0 over all 110
-    records; its output declares three referenceable ids and carries 109
-    references, of which **105 dangle** — `dp_sp_5` through `dp_sp_109`,
-    records 1 to 4 needing none because their `dataProcessing` is the first
-    record's (`logs/closediff1_06.log` sections B, C and E). The C++
-    **in-memory** run of the same file declares two `dataProcessing` entries
-    and dangles nothing. This port's low-memory run now writes all 110 records
+    records; its output declares **two** referenceable ids, `sf_ru_0` and
+    `dp_sp_0`, and carries **106** record `dataProcessingRef`s, of which
+    **105 dangle** — `dp_sp_5` through `dp_sp_109` — records 1 to 4 carrying
+    none because their `dataProcessing` is the first record's and record 0
+    carrying the one that resolves (`logs/closediff1_06.log` sections B, C and
+    E). The C++ **in-memory** run of the same file declares two
+    `dataProcessing` entries and dangles nothing.
+
+    The defect is **not** confined to the streaming consumer, and the port's
+    evidence file shows it: that 110-record `FileMerger` output is *itself*
+    already invalid before `PeakPickerHiRes` reads it. `FileMerger` writes it
+    with the whole-document `MzMLFile::store` (`FileMerger.cpp:538` at the
+    TOPP pin), and it declares one `dataProcessing` id, `dp_sp_0`, against 106
+    record references of which the same 105 dangle, `dp_sp_5` through
+    `dp_sp_109`. A two-part merge is the minimal case: one declared
+    `dp_sp_0`, six references, five dangling. The root cause is an asymmetry
+    inside `MzMLHandler` rather than `dps_` failing to grow: `writeHeader_`
+    deduplicates histories by **content**, with
+    `Helpers::cmpPtrContainer` (`MzMLHandler.cpp:5060-5069`, and
+    `Helpers.h:35-51`, whose own comment is "not interested whether the
+    pointers are equal but whether the contents are equal"), while
+    `writeSpectrum_` compares them by **pointer**, `spec.getDataProcessing()
+    != dps[0]` and `== dps[i]` over
+    `std::vector<std::shared_ptr<const DataProcessing>>`
+    (`:5258`, `:5265`, `SpectrumSettings.h:165`). Twenty-two content-equal,
+    pointer-distinct histories therefore collapse to one declaration and
+    still produce 105 references numbered by position. Recorded as CPP-172. This port's low-memory run now writes all 110 records
     with the same 105 dangling identifiers and the same decoded content: the
     110 record identifiers, each record's array names and every sample's bit
     pattern hash to `d198b89cba89e1ea` on both sides, and the two in-memory
@@ -579,6 +601,32 @@ added to the source's output, not a change to it. Pinned by
     record's: record 4's is, and it still gets the dangling `sf_sp_4`, because
     `MzMLHandler.cpp:5252-5255` never consults the header. This port reproduces
     both (`the_low_memory_mode_writes_the_sources_dangling_references`).
+
+    **Where this port stops reproducing it, measured.** The source decides
+    "differs from the first record's" by **pointer**; this port has no
+    pointer identity in its model and decides it by the text the history
+    renders into the declaration blocks, which is **content**. The two agree
+    on every input whose textually distinct histories are also distinct
+    objects — which is every case above, including the whole 110-record file —
+    and part company on an input carrying two textually identical
+    `dataProcessing` entries under different identifiers. Measured at
+    integration on `ibminode06` (`../oracle/integ-w7/dupdp_06.sh`) with the
+    committed `refs` fixture modified in one place, `dp_sp_1`'s `softwareRef`
+    repointed from `so_dp_1` to `so_dp_0` so that `dp_sp_0` and `dp_sp_1`
+    render identically and only their identifiers differ:
+
+    | | records 1 and 2 of the modified fixture |
+    | --- | --- |
+    | C++ `-processOption lowmemory` | `dataProcessingRef="dp_sp_1"` and `"dp_sp_2"`, dangling against a header declaring only `dp_sp_0`; the output is byte-identical to its output on the unmodified fixture, sha256 `7c75908440e1c154…` |
+    | this port, `SourceDangling` | no `dataProcessingRef` at all; the records inherit the list's `defaultDataProcessingRef` |
+
+    The port's answer keeps a history the source loses — a dangling reference
+    resolves to nothing — but it is a divergence and is recorded as one rather
+    than claimed as fidelity. Reproducing the pointer rule means carrying the
+    input's own `dataProcessing` identifier through the reader into the write
+    decision, which is the mzML reader's model to change, not this tool's.
+    Pinned from the consumer's side by
+    `a_history_equal_to_the_headers_by_content_is_not_renumbered`.
 
     A chromatogram is the silent case on both sides: `writeChromatogram_`
     (`MzMLHandler.cpp:5879`) writes `id`, `index` and `defaultArrayLength` and

@@ -138,7 +138,7 @@
             "owner": "src/format/indexed_mzml.rs, which every index reader in the crate shares, not this package"
         },
         {
-            "what": "an index with no whitespace inside <index>: the source drops its first offset, the port keeps it",
+            "what": "an <index> whose first child is an <offset>, i.e. no whitespace immediately after the opening tag: the source drops that first offset, the port keeps it. Whitespace elsewhere inside <index> does not change it",
             "why": "domParseIndexedEnd_ walks the children as iter = getFirstChild(); while (iter != lastChild) { iter = getNextSibling(); ... } (IndexedMzMLDecoder.cpp:280-282 sets iter, :290-293 is the walk), advancing before it reads, so the first child is never looked at. A newline there makes it a text node and nothing is lost, which is why every index an OpenMS writer produces parses. Measured on the Release build: index_offsets_unspaced.mzML holds two spectrum offsets and the C++ counts one; the port counts two. Reproducing it would mean re-implementing the DOM walk in parse_offsets, which every other index reader calls. Native difference 12; the source defect is recorded for OpenMS_CPP_ISSUES.md.",
             "owner": "src/format/indexed_mzml.rs, not this package"
         }
@@ -228,7 +228,7 @@
             "path": "tests/data/file_info/inputs/index_offsets_unspaced.mzML",
             "sha256": "fd9dff92db516c035cd9da53d6d3f2484ec2c6b3897da47d15b70d07e2ca58c6",
             "bytes": 1247,
-            "kind": "generated input of this package, written by ../oracle/a6-fileinfo/scripts/make_index_window_fixtures.py; no value in it comes from any Rust output; two spectrum offsets with no whitespace inside <index>",
+            "kind": "generated input of this package, written by ../oracle/a6-fileinfo/scripts/make_index_window_fixtures.py; no value in it comes from any Rust output; two spectrum offsets with no whitespace immediately after the opening <index> tag, so the source's DOM walk starts on the first <offset> and skips it",
             "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
         },
         {

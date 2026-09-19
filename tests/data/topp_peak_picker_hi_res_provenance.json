@@ -391,5 +391,5 @@
       "used_by": "a_low_memory_failure_leaves_the_batches_already_written"
     }
   ],
-  "derived_inputs_note": "These four are built inside the test from a retained input by the rule named, not committed as fixtures. The sha256 values are the bytes the C++ Release build was run on for the same cases on ibminode06 (../oracle/p4-lowmemory/fixdiff_06.sh derives them by the identical rules), so the two implementations are compared on the same bytes."
+  "derived_inputs_note": "These six entries, eight files in all, are built inside the test from a retained input by the rule named, not committed as fixtures. The sha256 values are the bytes the C++ Release build was run on for the same cases on ibminode06 (../oracle/p4-lowmemory/fixdiff_06.sh derives the first four by the identical rules, and closediff2_06.sh the four batch-boundary files), so the two implementations are compared on the same bytes."
 }

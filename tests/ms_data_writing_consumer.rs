@@ -736,8 +736,9 @@ fn the_source_policy_writes_the_dangling_processing_reference() {
 ///
 /// Executed on the `refs` fixture: the C++ low-memory output carries
 /// `sourceFileRef="sf_sp_0"` … `"sf_sp_4"` over five records against a header
-/// declaring one record source file, and records 3 and 4, whose source file is
-/// **not** the first record's, get `sf_sp_3` and `sf_sp_4` just the same.
+/// declaring one record source file. Record 3's source file is not the first
+/// record's and record 4's is, and both get `sf_sp_3` and `sf_sp_4` just the
+/// same.
 #[test]
 fn the_source_policy_renumbers_every_later_source_file_reference() {
     let one = SourceFile {
@@ -768,6 +769,67 @@ fn the_source_policy_renumbers_every_later_source_file_reference() {
     assert!(text.contains(" sourceFileRef=\"sf_sp_1\""), "{text:.600}");
     assert!(text.contains(" sourceFileRef=\"sf_sp_2\""), "{text:.600}");
     assert!(!text.contains("<sourceFile id=\"sf_sp_"), "{text:.600}");
+}
+
+/// `SourceDangling` decides "differs from the first record's" by content,
+/// where the source decides it by pointer — this pins where they part.
+///
+/// The source compares `spec.getDataProcessing() != dps[0]`
+/// (`MzMLHandler.cpp:5258`) over
+/// `std::vector<std::shared_ptr<const DataProcessing>>`
+/// (`SpectrumSettings.h:165`), which is pointer identity, so two histories
+/// that are equal in every field but held in different objects count as
+/// different and the second record gets a dangling `dp_sp_<s>`. This port has
+/// no pointer identity in its model: it compares the text each history renders
+/// into the declaration blocks, so the second record gets no
+/// `dataProcessingRef` and inherits the list's `defaultDataProcessingRef`.
+///
+/// Measured against the executed C++ on `ibminode06`
+/// (`../oracle/integ-w7/dupdp_06.sh`): on the committed `refs` fixture with
+/// `dp_sp_1`'s `softwareRef` repointed at `so_dp_0`, so that `dp_sp_0` and
+/// `dp_sp_1` render identically, the C++ low-memory output is byte-identical
+/// to its output on the unmodified fixture and still dangles `dp_sp_1` and
+/// `dp_sp_2`, while this port writes neither. Recorded as a divergence in
+/// native difference 12 of `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`; this
+/// test fails loudly if the decision ever becomes pointer-like.
+#[test]
+fn a_history_equal_to_the_headers_by_content_is_not_renumbered() {
+    let mut first = spectrum("scan=1", 1.0, 100.0);
+    first.data_processing = history("PeakPickerHiRes", "1.0");
+    // Separately constructed, equal in every field: a distinct object holding
+    // the same content, which is exactly what the source's pointer comparison
+    // calls different.
+    let mut second = spectrum("scan=2", 2.0, 200.0);
+    second.data_processing = history("PeakPickerHiRes", "1.0");
+    assert_eq!(first.data_processing, second.data_processing);
+    assert!(!Arc::ptr_eq(
+        &first.data_processing[0],
+        &second.data_processing[0]
+    ));
+    let mut third = spectrum("scan=3", 3.0, 300.0);
+    third.data_processing = history("PeakPickerHiRes", "2.0");
+
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new())
+        .with_reference_policy(ReferencePolicy::SourceDangling);
+    consumer.set_expected_size(3, 0).unwrap();
+    consumer.consume_spectrum(&mut first).unwrap();
+    consumer.consume_spectrum(&mut second).unwrap();
+    consumer.consume_spectrum(&mut third).unwrap();
+    let text = written(consumer);
+
+    // The second record renders the header's own declaration blocks, so this
+    // port writes it no reference at all where the source would dangle
+    // `dp_sp_1`.
+    assert!(
+        !text.contains("dataProcessingRef=\"dp_sp_1\""),
+        "{text:.900}"
+    );
+    // The third record genuinely differs and is renumbered, as the source does.
+    assert!(
+        text.contains("dataProcessingRef=\"dp_sp_2\""),
+        "{text:.900}"
+    );
+    assert!(!text.contains("<dataProcessing id=\"dp_sp_"), "{text:.900}");
 }
 
 /// A chromatogram carries neither reference in the source
