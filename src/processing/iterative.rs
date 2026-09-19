@@ -11,7 +11,8 @@
 
 use super::SpectrumFilter;
 use super::peak_picking::{
-    PeakBoundary, PeakPickerHiRes, PickedSpectrum, SignalToNoiseEstimatorMedian,
+    PeakBoundary, PeakPickerHiRes, PickedSpectrum, PickingCompatibility,
+    SignalToNoiseEstimatorMedian,
 };
 use crate::kernel::{DataArray, MSExperiment, MSSpectrum, Peak1D, SpectrumType};
 use crate::{Error, Result};
@@ -59,6 +60,39 @@ pub struct PeakPickerIterative {
     pub check_width_internally: bool,
     /// Applies only to experiment picking; pick_spectrum always processes input.
     pub ms1_only: bool,
+    /// Which source behaviours this picker adopts where the native default
+    /// refuses; see [`PickingCompatibility`].
+    ///
+    /// The source's `pick` (`PeakPickerIterative.h:314-321`) builds a plain
+    /// `SignalToNoiseEstimatorMedian<MSSpectrum>` over the caller's raw
+    /// spectrum, and its seed `PeakPickerHiRes` is a plain source object too,
+    /// so this field is handed to both.
+    ///
+    /// [`allow_negative_intensities`](PickingCompatibility::allow_negative_intensities)
+    /// accepts negative sample and seed intensities, and the estimator then
+    /// bins them as the source does. The
+    /// [`noise`](PickingCompatibility::noise) sub-profile selects the
+    /// estimator's own source behaviours, including the `win_len` values the
+    /// source's parameter restriction lets through (NaN and `+inf`, since
+    /// `NaN < 1` is false and the restriction sets no upper bound) while the
+    /// native profile refuses them.
+    ///
+    /// Two flags are **not yet honoured here** and leave the corresponding
+    /// refusal in place in both profiles:
+    /// [`allow_duplicate_positions`](PickingCompatibility::allow_duplicate_positions)
+    /// and
+    /// [`allow_unsorted_positions`](PickingCompatibility::allow_unsorted_positions).
+    /// The source reaches `snt.init` with such spectra, but `pickRecenterPeaks_`
+    /// then collects each peak's support in a `std::map<double, double>` keyed
+    /// by m/z and takes its spacing bounds from `begin()`/`rbegin()` and its
+    /// spacings through `std::fabs`, so an equal m/z overwrites a stored
+    /// intensity and contributes once to the integrated intensity, and a
+    /// decreasing m/z changes which samples bound the support. This port
+    /// integrates over an index range instead, which is equivalent only for
+    /// strictly increasing positions. Accepting either flag without porting
+    /// those semantics would silently return different peaks, so both stay
+    /// refused until they are ported; see `docs/ITERATIVE_PICKING_SUPPORT.md`.
+    pub compatibility: PickingCompatibility,
     /// Clear the three generated float arrays only in experiment picking.
     /// Exact regions remain available in the result.
     pub clear_meta_data: bool,
@@ -82,6 +116,7 @@ impl Default for PeakPickerIterative {
             iterations: 5,
             check_width_internally: false,
             ms1_only: false,
+            compatibility: PickingCompatibility::default(),
             clear_meta_data: false,
             max_points: 1_000_000,
             max_work: 50_000_000,
@@ -122,11 +157,20 @@ impl PeakPickerIterative {
             return Err(bad("iterative picker input exceeds point limit"));
         }
         input.validate()?;
-        if input.peaks.iter().any(|p| p.mz < 0.0 || p.intensity < 0.0) {
+        if input.peaks.iter().any(|p| p.mz < 0.0) {
+            return Err(bad("iterative picking requires nonnegative m/z"));
+        }
+        if !self.compatibility.allow_negative_intensities
+            && input.peaks.iter().any(|p| p.intensity < 0.0)
+        {
             return Err(bad(
-                "iterative picking requires nonnegative m/z and intensities",
+                "iterative picking requires nonnegative intensities; negative intensities need PickingCompatibility::allow_negative_intensities",
             ));
         }
+        // Neither refusal below is lifted by `allow_unsorted_positions` or
+        // `allow_duplicate_positions`; see `PeakPickerIterative::compatibility`
+        // for the `std::map` support semantics that would have to be ported
+        // first.
         if input.peaks.windows(2).any(|w| w[0].mz > w[1].mz) {
             return Err(Error::UnsortedData);
         }
@@ -160,6 +204,10 @@ impl PeakPickerIterative {
             signal_to_noise: self.signal_to_noise,
             spacing_difference: self.spacing_difference,
             noise_estimator: seed_noise,
+            // Source `pp` is a default-constructed `PeakPickerHiRes` whose only
+            // changed parameters are these two (`PeakPickerIterative.h:288-292`),
+            // so it reproduces the source exactly as this picker is asked to.
+            compatibility: self.compatibility,
             max_points: self.max_points,
             max_work: self.max_work,
             ..Default::default()
@@ -247,8 +295,15 @@ impl PeakPickerIterative {
             return Err(bad("iterative seed count exceeds point limit"));
         }
         seeds.validate()?;
-        if seeds.peaks.iter().any(|p| p.mz < 0.0 || p.intensity < 0.0) {
-            return Err(bad("iterative seeds must be nonnegative"));
+        if seeds.peaks.iter().any(|p| p.mz < 0.0) {
+            return Err(bad("iterative seeds must have nonnegative m/z"));
+        }
+        if !self.compatibility.allow_negative_intensities
+            && seeds.peaks.iter().any(|p| p.intensity < 0.0)
+        {
+            return Err(bad(
+                "iterative seeds must have nonnegative intensities; negative intensities need PickingCompatibility::allow_negative_intensities",
+            ));
         }
         if seeds.peaks.windows(2).any(|p| p[0].mz > p[1].mz) {
             return Err(Error::UnsortedData);
@@ -293,9 +348,16 @@ impl PeakPickerIterative {
         let noise = if self.signal_to_noise > 0.0 {
             let mut estimator = self.noise_estimator.clone();
             self.limit_noise(&mut estimator)?;
-            let xs: Vec<_> = input.peaks.iter().map(|p| p.mz).collect();
-            let ys: Vec<_> = input.peaks.iter().map(|p| f64::from(p.intensity)).collect();
-            Some(estimator.estimate(&xs, &ys)?.signal_to_noise)
+            // Source `snt.init(input)` (`PeakPickerIterative.h:321`) over the
+            // caller's raw spectrum. Passing the peaks rather than copied
+            // slices both widens each `f32` intensity with `cvtss2sd`
+            // semantics, as the source's `getIntensity()` feeds `computeSTN_`,
+            // and lets this picker's profile decide what the estimator accepts.
+            Some(
+                estimator
+                    .estimate_peaks(&input.peaks, &self.compatibility, None)?
+                    .signal_to_noise,
+            )
         } else {
             None
         };
@@ -393,7 +455,16 @@ impl PeakPickerIterative {
             weighted = finite(weighted + point.mz * f64::from(point.intensity))?;
             integrated = finite(integrated + f64::from(point.intensity))?;
         }
-        if integrated <= 0.0 {
+        // The source divides by the integrated intensity unconditionally. A
+        // negative sum is only reachable with negative intensities and divides
+        // to a finite centroid, so the source profile computes it; a zero sum
+        // divides to an infinity or, when the weighted sum is zero too, to a
+        // NaN m/z, which makes the source's final `sortByPosition` violate the
+        // strict weak ordering `std::sort` requires and read outside the
+        // spectrum, so it stays refused in both profiles.
+        if integrated == 0.0
+            || (integrated < 0.0 && !self.compatibility.allow_negative_intensities)
+        {
             return Err(bad("iterative candidate has zero integrated intensity"));
         }
         let weighted_mz = finite(weighted / integrated)?;
