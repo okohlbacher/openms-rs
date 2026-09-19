@@ -729,7 +729,7 @@ def check_file(pins, revisions, key, cited, quoted, annotated, report):
             report["checked"] += len(cited)
             report["quoted"] += confirmed
             report["answered"][pins.label(revision)] += len(cited)
-            report["confirmed"][pins.label(revision)] += confirmed
+            report["confirmed_by"][pins.label(revision)] += confirmed
             return []
         disagreements.append((revision, path, wrong))
     # Every candidate disagrees; report the one that disagrees least.
@@ -797,7 +797,7 @@ def tally():
     return {
         "checked": 0, "quoted": 0, "skipped": 0, "unresolved": 0, "ambiguous": 0,
         "skipped_files": collections.Counter(), "ambiguous_files": collections.Counter(),
-        "answered": collections.Counter(), "confirmed": collections.Counter(),
+        "answered": collections.Counter(), "confirmed_by": collections.Counter(),
     }
 
 
@@ -867,7 +867,7 @@ def main():
         # file of the right name is worse than one nothing was checked against,
         # so the split has to be visible and not only the total.
         print("Answered by: " + (", ".join(
-            f"{where} {count} ({report['confirmed'][where]} confirmed)"
+            f"{where} {count} ({report['confirmed_by'][where]} confirmed)"
             for where, count in report["answered"].most_common()
         ) or "no pin"))
     summary = (

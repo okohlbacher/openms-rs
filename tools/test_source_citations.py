@@ -291,7 +291,7 @@ class PinResolutionTests(unittest.TestCase):
         )
         self.assertEqual(found, [])
         self.assertEqual(report["answered"], collections.Counter({"topp 174b576": 1}))
-        self.assertEqual(report["confirmed"], collections.Counter({"topp 174b576": 1}))
+        self.assertEqual(report["confirmed_by"], collections.Counter({"topp 174b576": 1}))
         self.assertEqual(report["ambiguous"], 0)
 
     def test_choosing_the_pin_by_its_quotation_does_not_excuse_the_line(self):
