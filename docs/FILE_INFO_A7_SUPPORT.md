@@ -273,12 +273,15 @@ crashes the reference FileInfo.
    consensusXML `-s` blocks are the first FileInfo path whose own arithmetic can
    produce one at all.
 
-   *Scope of the claim, as measured.* It and native difference 6 are the only
-   two classes of line on which the 53 compared oracle reports disagree, and
-   this one is the only class that reaches more than one report. How many lines of it a report holds
-   depends on the input: `c_zero_intensity_s` has one, `c_nan_one_s` nine and
-   `c_nan_two_s` ten. The tests pin those counts and check each line against the
-   class rather than against a single expected line.
+   *Scope of the claim, as measured.* Since the shared-math wave closed native
+   difference 6 this is the **only** class of line on which any compared oracle
+   report disagrees with the Release build. Nine reports carry it, and how many
+   lines of it each one holds depends on the input: `c_zero_intensity_s` has
+   one, `c_nan_then_finite_s` and `c_finite_then_nan_s` seven each,
+   `c_nan_one_s`, `c_nan_one_all`, `c_zero_swapped_s` and `c_zero_swapped_all`
+   nine, and `c_nan_two_s` ten. The tests pin those counts and check each line
+   against the class rather than against a single expected line, so a line
+   outside the class cannot slip through.
 
    *Where it comes from.* `:2310` computes
    `it_ratio = element_intensity / (centroid_intensity > 0 ? centroid_intensity : 1)`
@@ -326,14 +329,21 @@ crashes the reference FileInfo.
    frozen expectation architecture-dependent. The A2 module note at
    `src/format/file_info/text_format.rs` states the rule.
 
-   *Making the sign printable is its own wave, not this package's.* Spelling it
-   honestly would first have to make the value host-independent: an
-   x86_64-faithful `variance_with_mean` in `src/math/statistic_functions.rs`,
-   which needs the x86_64 emulation promoted out of
-   `analysis::feature_finder_picked::scoring` into shared math, plus A2's oracle
-   row re-captured against the Linux Release build instead of the macOS SDK.
-   That is a cross-cutting change to shared math which landed ports already
-   consume, so it is carried forward for the lead rather than done here.
+   *Making the sign printable is its own wave, not this package's; two thirds
+   of it is now done.* Spelling it honestly first has to make the value
+   host-independent, and the shared-math wave of 2026-09-19 did that: the
+   x86_64 emulation is promoted to `crate::math::x86_64`, and every operation of
+   `src/math/statistic_functions.rs` that can *generate* a NaN is built on it,
+   so `inf - inf` is `0xfff8000000000000` on an arm64 host too and not only on
+   x86_64. Two things are still outstanding before `text_format`'s `nonfinite`
+   rule may change, and neither belongs to this package. A2's oracle row has to
+   be re-captured against the Linux Release build instead of the macOS SDK —
+   `../oracle/file-info-text-format/results/driver.tsv:92` is
+   `D fff8000000000000 nan nan nan nan nan NaN`, measured with Apple libc, and
+   `tests/file_info_text_format.rs` asserts it verbatim. And
+   `src/format/file_info/consensus.rs` still computes its own NaN in plain Rust
+   arithmetic: `it_aad += it_ratio` is the `(-inf) + (+inf)` of section 5.2, so
+   that one value is still host-shaped. Both are carried forward for the lead.
 
    *How it is pinned.* Every Release report is frozen whole. The bare ones match
    byte for byte through `check`; for the `-s` ones,
