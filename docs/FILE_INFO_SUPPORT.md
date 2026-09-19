@@ -192,16 +192,20 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 6. **Non-finite and signed-zero values.** The readers refuse NaN and infinite
    coordinates and intensities, and a FAIMS spectrum with a NaN voltage is
    refused; the source would print `nan` or break its set order.
-   `SummaryStatistics` sorts with `f64::total_cmp`, so `-0.0` sorts before
-   `0.0`; `std::sort` calls the two equivalent and libstdc++ leaves them in
-   input order, so a sample holding both zeros can print `-0` where the source
-   prints `0` as minimum or maximum. That is **measured in both orders and
-   pinned** since wave 8 — native difference 6 of
-   [A7](FILE_INFO_A7_SUPPORT.md), oracle cases `c_nan_one_s` and
-   `c_zero_swapped_s`, test
-   `consensus_a_signed_zero_sample_is_ordered_by_the_total_order` — and it is a
-   difference rather than a refusal, because the source's own precondition
-   holds there and nothing is out of bounds. Kernel hull boxes merge with `f64::min` and `f64::max` (open B1
+   `SummaryStatistics` used to sort with `f64::total_cmp`, so `-0.0` sorted
+   before `0.0` where `std::sort` calls the two equivalent and libstdc++ leaves
+   them in input order, and a sample holding both zeros could print `-0` where
+   the source prints `0` as minimum or maximum. That was **measured in both
+   orders and pinned** in wave 8 as native difference 6 of
+   [A7](FILE_INFO_A7_SUPPORT.md) (oracle cases `c_nan_one_s` and
+   `c_zero_swapped_s`), and it is **closed** since the shared-math wave of
+   2026-09-19: under lead decision D16 the crate's private `sort_ascending` is
+   the Release build's own `std::sort`
+   ([`crate::math::source_sort`](STATISTIC_FUNCTIONS_SUPPORT.md#nan-policy)), so
+   the port keeps the input order the source keeps and reproduces **both**
+   members of the measured pair. The test is renamed
+   `consensus_a_signed_zero_sample_keeps_the_release_builds_order` and now
+   asserts equality rather than a divergence. Kernel hull boxes merge with `f64::min` and `f64::max` (open B1
    follow-up); FileInfo loads no hulls. All of that is about non-finite
    *inputs*.
 
@@ -215,16 +219,25 @@ Every public member of `FileInfo.h`, and the file-local helpers of
    reproduces those values bit for bit and writes every NaN `nan` where glibc
    writes a sign-bit NaN `-nan`. That is native difference 5 of
    [the A7 document](FILE_INFO_A7_SUPPORT.md) — a class of line, since any of
-   the eight summary lines can carry one, and the only class on which the 50
+   the eight summary lines can carry one, and the only class on which the
    compared oracle reports disagree.
 
-   `SummaryStatistics::new` therefore does **not** refuse every NaN. It
-   summarises the two shapes in which the permutation `std::sort` leaves behind
-   cannot be observed — a one-value sample and an all-NaN sample — and refuses a
-   NaN next to a number, where the reference build's order statistics are
-   positional reads of a range it never ordered. That last refusal is a
-   deferral pending a libstdc++ `std::sort` emulation in shared math, not a D1
-   refusal; see section 5.2 of the A7 document for the measurement.
+   "Bit for bit" became true of every host, and not only of x86_64, in the
+   shared-math wave of 2026-09-19: every operation of
+   `src/math/statistic_functions.rs` that can *generate* a NaN is built on
+   `crate::math::x86_64`, so `inf - inf` is the Release build's
+   `0xfff8000000000000` on an arm64 host too. One generator is still outside
+   that: `src/format/file_info/consensus.rs`'s `it_aad += it_ratio`, the
+   `(-inf) + (+inf)` above, is still plain Rust arithmetic. Fixing the spelling
+   has to take it, and A2's oracle row, with it.
+
+   `SummaryStatistics::new` no longer refuses any NaN. It used to summarise only
+   the two shapes in which the permutation `std::sort` leaves behind cannot be
+   observed — a one-value sample and an all-NaN sample — and refuse a NaN next
+   to a number. Under lead decision D16 the crate reproduces the permutation
+   itself, so every shape is summarised and the only refusal left is the
+   out-of-bounds one `crate::math::source_sort` raises; see section 5.2 of the
+   A7 document for the measurement.
 7. **Bounded work.** A statistics block holds at most
    `FileInfo::MAX_STATISTICS_VALUES` (2^27) values, checked before collection
    and allocated fallibly; the kernel range managers, the FAIMS scan, the

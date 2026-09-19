@@ -345,13 +345,13 @@ crashes the reference FileInfo.
    reference has a number, or a change of either spelling fails the test.
    `consensus_zero_intensity_sub_feature_makes_the_variance_a_nan` pins one such
    line and `consensus_nan_in_the_statistics_sample` pins nine, nine and ten.
-6. **A sample holding both a negative and a positive zero is ordered by the
-   IEEE-754 total order, where `std::sort` leaves it as it found it.** This is
-   the same `std::sort` boundary as section 5.2 with **no NaN anywhere**, and
-   unlike section 5.2 the port *accepts* the input: it exits 0, as the Release
-   build does, and reproduces every line of the report except four.
+6. ~~**A sample holding both a negative and a positive zero is ordered by the
+   IEEE-754 total order, where `std::sort` leaves it as it found it.**~~
+   **CLOSED** in the shared-math wave of 2026-09-19, under lead decision D16.
+   It is kept here with its measurement, because the measurement is what makes
+   the closure checkable.
 
-   *Where it comes from.* `:2310-2311` pushes every intensity ratio into
+   *Where it came from.* `:2310-2311` pushes every intensity ratio into
    `it_delta_by_elems` **before** `:2312-2315` inverts the ones below 1, so a
    consensus feature with a sub-feature of intensity `-0.0` and one of `0.0`
    under a positive centroid contributes `-0.0` and `0.0` to the
@@ -363,9 +363,9 @@ crashes the reference FileInfo.
    leaves a range this size as it found it, `front()`, the quantiles and
    `back()` at `:952-956` are positional reads, and `ostream` writes `-0` for a
    negative zero, so the four lines are a property of the order the
-   sub-features appear in the file. This port's `sort_ascending` uses
-   `f64::total_cmp`, which orders `-0.0` before `0.0` deterministically, so it
-   prints one of the two answers for both orders.
+   sub-features appear in the file. This port's `sort_ascending` used
+   `f64::total_cmp`, which orders `-0.0` before `0.0` regardless of input order,
+   so it printed one of the two answers for both.
 
    *Measured, both orders.* `a7_cons_nan_one.consensusXML` and
    `a7_cons_zero_swapped.consensusXML` hold the **same consensus feature with
@@ -380,42 +380,34 @@ crashes the reference FileInfo.
    | `upper quartile:` | `0` | `-0` |
    | `maximum:` | `0` | `-0` |
 
-   The port prints the left-hand column for **both** files, so it agrees with
-   the reference on `c_nan_one_s` and differs from it on `c_zero_swapped_s`
-   on exactly those four lines. Each of the four lines the port prints is the
-   Release build's own line for the other file, which the test asserts: nothing
-   here is invented, the port simply always picks the permutation `total_cmp`
-   puts first.
+   *How it was closed.* `sort_ascending` is now
+   `source_sort_by(&mut values, |a, b| a < b)` — `std::sort(begin, end)` itself,
+   reproduced comparison by comparison by `crate::math::source_sort` from the
+   GCC 14.4.0 libstdc++ headers the reference build was compiled with. A
+   two-element range of equivalent values comes back in the order it went in, so
+   the port prints the **left** column for `a7_cons_nan_one` and the **right**
+   column for `a7_cons_zero_swapped`: both members of the measured pair, rather
+   than one answer for both.
 
-   *What is reproduced.* Everything else, including the `Ranges` line
-   `intensity: -0.00 .. 100.00` against `intensity: 0.00 .. 100.00`, which the
-   same equivalence produces through `std::min` in `updateRanges` and which the
-   port **does** follow, because that path keeps the file's own order on both
-   sides. The bare and `-out_tsv` reports of both files are reproduced byte for
-   byte; `FileInfo.cpp:2257-2372` writes nothing to `os_tsv`, so only the text
-   report carries the statistics at all.
-
-   *Why it is a difference and not a refusal.* Refusing the shape would widen a
-   refusal in `sort_ascending`, which every `SummaryStatistics` caller in the
-   crate consumes, to an input the Release build handles in bounds, stably and
-   with a well-defined precondition — a decision the lead has not taken (see
-   section 5.2's open question, which this instance widens). Reproducing it
-   means porting libstdc++'s `std::sort` permutation, which is the same
-   shared-math wave `CPP-347` names; that wave has to cover **any** sample
-   whose elements `std::sort` calls equivalent but `f64::total_cmp` orders, not
-   only NaN-bearing ones.
-
-   *How it is pinned.*
-   `consensus_a_signed_zero_sample_is_ordered_by_the_total_order` asserts the
+   *How the closure is pinned.*
+   `consensus_a_signed_zero_sample_keeps_the_release_builds_order` (renamed from
+   `consensus_a_signed_zero_sample_is_ordered_by_the_total_order`) asserts the
    two bare reports byte for byte, that the two frozen Release `-s` reports
-   disagree on exactly those four lines plus the `Ranges` line, that the port's
-   swapped report differs from its reference on exactly thirteen lines — nine
-   of the class of native difference 5 and those four — and that each of the
-   four equals the Release build's own line for the unswapped file. Before this
-   test the divergence was real but unpinned: `docs/FILE_INFO_SUPPORT.md` item
-   6 recorded that "a sample holding both zeros can print `-0` where the source
-   prints `0`", and nothing in the suite would have noticed either a regression
-   or a fix.
+   disagree on exactly those four lines plus the `Ranges` line, and then — the
+   part that changed — that **both** the port's swapped report and its unswapped
+   report match their own references through
+   `assert_report_but_the_nan_spelling` with nine differing lines each, all nine
+   of the native-difference-5 class. Zero order-statistic lines differ.
+   `a_signed_zero_keeps_the_order_the_release_build_keeps` in
+   `tests/statistic_functions.rs` pins the same behaviour at the
+   `SummaryStatistics` level, in both input orders.
+
+   *What is still reproduced the way it always was.* The `Ranges` line
+   `intensity: -0.00 .. 100.00` against `intensity: 0.00 .. 100.00`, which the
+   same equivalence produces through `std::min` in `updateRanges`; the bare and
+   `-out_tsv` reports of both files, byte for byte.
+   `FileInfo.cpp:2257-2372` writes nothing to `os_tsv`, so only the text report
+   carries the statistics at all.
 
 ---
 
@@ -453,42 +445,35 @@ transitivity of incomparability fails (`1 ~ NaN` and `NaN ~ 3` while `1 < 3`)
 and the call is undefined outright. Either way the question is the same: *is
 the set of outputs the source may produce a singleton?*
 
-Two shapes answer yes, and both are **reproduced**:
+**That question is no longer the one that decides.** Lead decision **D16**
+(shared-math wave, 2026-09-19) says that reproducing a permutation the standard
+leaves *unspecified* is in scope, because the Release build runs one particular
+algorithm deterministically and the port already reproduces it comparison by
+comparison (`crate::math::source_sort`, tier 1 over 2,272 inputs). Since that
+decision `sort_ascending` is `source_sort_by(&mut values, |a, b| a < b)` —
+`std::sort(begin, end)` itself — and **every shape in this section is
+reproduced**, not only the two whose output set is a singleton:
 
-| sample | why the set of outputs has one member | oracle case |
-| --- | --- | --- |
-| one value | a one-element range has exactly one permutation | `c_nan_one_s` |
-| every value a NaN | `std::sort` may permute freely, but every permutation prints the same eight lines | `c_nan_two_s` |
+| sample | oracle case | before D16 | after |
+| --- | --- | --- | --- |
+| one value | `c_nan_one_s` | reproduced (one permutation exists) | reproduced |
+| every value a NaN | `c_nan_two_s` | reproduced (all permutations print the same) | reproduced |
+| a NaN then a number | `c_nan_then_finite_s` | **refused** | reproduced |
+| a number then a NaN | `c_finite_then_nan_s` | **refused** | reproduced |
 
 For the first the reference prints the NaN on the mean and on all five order
 statistics, and `0` for the variance — the `n <= 1` substitution of
 `StatisticFunctions.h:951`. For the second the variance is a NaN too, because
 `n > 1` lets `Math::variance` run, so all seven value lines carry one and only
-`num. of values` does not.
-`SummaryStatistics::of_nan_sample` (`src/math/statistic_functions.rs`) computes
-both without sorting, since there is nothing to order.
+`num. of values` does not. `SummaryStatistics::of_nan_sample`, which used to
+compute those two without sorting, is **gone**: they are ordinary sorts now.
 
-**A NaN next to a number is refused**, with
-`Error::InvalidValue("statistics input must not contain NaN")`, where the
-reference build exits 0. The reason is measured rather than assumed: in the
-two-element samples measured here libstdc++ compares every pair involving the
-NaN false and therefore moves nothing, so the `minimum`, quartile and `maximum`
-lines the reference prints are positional reads of a range whose elements
-`std::sort` was free to leave in any order. "Moves nothing" is a property of
-this sample's **size and arrangement**, not of the NaN. `__introsort_loop` runs
-only
-above `_S_threshold`, which the headers this build was compiled with enumerate
-as 16, so at 17 elements or more it is free to move the NaN, and for the
-`{NaN, 2..n}` family measured here it does — a 20-element
-sample `{NaN, 2..20}` prints `minimum: 2` and `median: -nan` — and even below
-the threshold a block move can carry it, as `{3, NaN, 2}` sorting to
-`{2, 3, NaN}` shows. Neither makes the order statistics any less a property of
-the input order, or the refusal any less necessary; the full reading of the
-headers is in
-[the shared-math document](STATISTIC_FUNCTIONS_SUPPORT.md#nan-policy).
-Oracle cases `c_nan_then_finite_s` and `c_finite_then_nan_s` hold **the same
-two consensus features in opposite file order**, are each stable over three
-runs, and disagree on exactly four lines:
+**What made the last two hard, and what settles them.** The `minimum`, quartile
+and `maximum` lines the reference prints are positional reads of a range whose
+elements `std::sort` was free to leave in any order, and the two files prove it:
+`c_nan_then_finite_s` and `c_finite_then_nan_s` hold **the same two consensus
+features in opposite file order**, are each stable over three runs, and disagree
+on exactly four lines:
 
 ```text
                     c_nan_then_finite_s      c_finite_then_nan_s
@@ -498,25 +483,47 @@ runs, and disagree on exactly four lines:
   maximum:          2                        -nan
 ```
 
-Reproducing those values means porting libstdc++'s `std::sort` permutation into
-`sort_ascending`, which every `SummaryStatistics` caller in the crate consumes.
-That is shared-math work of its own wave, so **this is a deferral, not a D1
-refusal**, and it is raised for the lead. The manifest of
-`../oracle/a7-fileinfo` records both reports under `unspecified_order` with the
-reason, and `consensus_nan_in_the_statistics_sample` asserts the exact refusal,
-that the run without `-s` still succeeds, and that the two retained reference
-reports disagree on exactly those four lines.
+A genuinely sorted range cannot have that property, which is why `CPP-347`
+stands as a C++ defect. But "which permutation" is a question with a measured
+answer for this build: for a two-element range libstdc++ runs one
+`__insertion_sort` pass, `2 < NaN` and `NaN < 2` are both false, so nothing
+moves and the sample keeps its file order. The port reproduces that, and both
+reports are now compared line for line by
+`consensus_nan_in_the_statistics_sample` — seven differing lines each, all seven
+of the `nan` / `-nan` class of native difference 5, nothing else.
 
-**The same boundary without a NaN, which this port does not refuse.** `-0.0`
-and `0.0` are also equivalent under `operator<`, so a sample holding both is
-left in file order by `std::sort` for exactly the same reason — but there the
-precondition *holds*, nothing is undefined, and this port accepts the input and
-prints the order `f64::total_cmp` gives. That is native difference 6 of section
-4, measured on `c_nan_one_s` against `c_zero_swapped_s` and pinned by
-`consensus_a_signed_zero_sample_is_ordered_by_the_total_order`. It matters for
-the lead's decision in two ways: the shared-math wave has to cover **any**
-sample whose elements `std::sort` calls equivalent but `f64::total_cmp` orders,
-not only NaN-bearing ones; and until this round it was the one instance of this
-boundary that was *silent* — recorded in prose in `docs/FILE_INFO_SUPPORT.md`
-item 6, but with no oracle case, no frozen report and no test, so neither a
-regression nor a fix would have been noticed.
+"Moves nothing" is a property of the sample's **size and arrangement**, not of
+the NaN, and the port reproduces that too. `__introsort_loop` runs only above
+`_S_threshold`, which the headers this build was compiled with enumerate as 16,
+so at 17 elements or more it is free to move the NaN and for the `{NaN, 2..n}`
+family it does — `{NaN, 2..20}` prints `minimum: 2` and `median: -nan` — and
+even below the threshold a block move can carry it, as `{3, NaN, 2}` sorting to
+`{2, 3, NaN}` shows. `the_introsort_threshold_decides_where_a_nan_lands` in
+`tests/statistic_functions.rs` pins the whole permutation for the 16-, 17- and
+20-element cases; the full reading of the headers is in
+[the shared-math document](STATISTIC_FUNCTIONS_SUPPORT.md#nan-policy).
+
+The manifest of `../oracle/a7-fileinfo` records both reports under
+`unspecified_order` with the reason; that annotation is now a statement about
+the C++ standard's guarantee rather than about what the port does with them.
+
+**The same boundary without a NaN is closed with it.** `-0.0` and `0.0` are also
+equivalent under `operator<`, so a sample holding both is left in file order by
+`std::sort` for exactly the same reason — and since D16 the port leaves it there
+too. That was native difference 6 of section 4, measured on `c_nan_one_s`
+against `c_zero_swapped_s`; it is now pinned as an *equality* by
+`consensus_a_signed_zero_sample_keeps_the_release_builds_order`. Until the A7
+round it was the one instance of this boundary that was *silent* — recorded in
+prose in `docs/FILE_INFO_SUPPORT.md` item 6, but with no oracle case, no frozen
+report and no test, so neither a regression nor a fix would have been noticed.
+
+**What is left.** The five frozen reports are not byte-identical to the
+reference, and cannot be from this wave: the `nan` / `-nan` spelling is native
+difference 5, it belongs to `src/format/file_info/text_format.rs`, and changing
+it needs A2's oracle row re-captured against the Linux Release build rather than
+the macOS SDK. That file was deliberately not touched. One thing the wave found
+on the way: `src/format/file_info/consensus.rs` still generates its NaN in plain
+Rust arithmetic — `it_aad += it_ratio` is the `(-inf) + (+inf)` of this very
+section — so that value is still host-shaped even though every value
+`statistic_functions` produces no longer is. The spelling step has to take it
+with it.

@@ -1181,7 +1181,7 @@ fn a_generated_nan_carries_the_release_builds_bits() {
 // refused. Each expectation below is derived from the libstdc++ algorithm the
 // reference build was compiled with, not from this crate's output.
 //
-// The relevant piece of `__insertion_sort` (`bits/stl_algo.h:1826-1847`), which
+// The relevant piece of `__insertion_sort` (`bits/stl_algo.h:1770-1788`), which
 // is the whole of `std::sort` for a range of at most `_S_threshold == 16`:
 // for every element after the first, if it is `< *first` the block in front of
 // it is shifted up and it moves to the front; otherwise
@@ -1273,11 +1273,14 @@ fn the_sorting_entry_points_reproduce_the_release_builds_permutation() {
 // - 16 elements: no partition at all, one `__insertion_sort` pass, and since
 //   every comparison against the NaN is false nothing moves — the NaN stays at
 //   index 0;
-// - 17 elements: `__unguarded_partition_pivot` takes the median of `*(first+1)`,
-//   `*mid` and `*(last-1)` — 2, 9 and 17 — and `__move_median_to_first` swaps
-//   the middle one to the front, which puts the NaN at index 8. The partition
-//   then stops on both sides at that NaN, `__final_insertion_sort` bubbles the
-//   displaced 9 back into place, and the NaN stays at index 8;
+// - 17 elements: `__unguarded_partition_pivot` (`:1851-1858`) takes the median
+//   of `*(first+1)`, `*mid` and `*(last-1)` — 2, 9 and 17 — and
+//   `__move_median_to_first` swaps the middle one to the front, which puts the
+//   NaN at index 8. The partition then stops on both sides at that NaN, and
+//   `__final_insertion_sort` (`:1812-1823`, which below the threshold is one
+//   `__insertion_sort` pass and above it one over the first 16 elements plus an
+//   `__unguarded_insertion_sort` over the rest) bubbles the displaced 9 back
+//   into place, leaving the NaN at index 8;
 // - 20 elements: the same swap against `*mid == 11` leaves it at index 10.
 //
 // The three positions are the ones measured against the reference compiler and

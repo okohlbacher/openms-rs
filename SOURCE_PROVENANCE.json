@@ -4152,5 +4152,22 @@
   "tests/data/math_kde_provenance.json",
   "tests/data/network_provenance.json",
   "tests/data/system_process_provenance.json"
- ]
+ ],
+ "shared_math_wave": {
+  "date": "2026-09-19",
+  "decision": "D16 (docs/EARLY_TOPP_WORK_PACKAGES.md): reproducing an unspecified std::sort permutation is in scope",
+  "new_external_artifacts": "none -- no C++ entered the repository, no oracle directory was created, and no fixture was regenerated",
+  "what_moved": [
+   "src/analysis/feature_finder_picked/scoring.rs::x86_64 -> src/math/x86_64.rs",
+   "src/analysis/feature_finder_picked/scoring.rs::libstdcxx -> src/math/libstdcxx.rs",
+   "src/analysis/feature_finder_picked/source_sort.rs -> src/math/source_sort.rs"
+  ],
+  "evidence_manifests": [
+   "tests/data/math_statistics_provenance.json",
+   "tests/data/file_info_a7_provenance.json",
+   "tests/data/feature_finder_picked_provenance.json",
+   "tests/data/feature_finder_picked_instrumentation_provenance.json"
+  ],
+  "note": "The wave consumed evidence that was already registered here rather than producing any of its own. The std::sort permutation is validated tier 1 through ../oracle/ffap-instr-completion and ../oracle/ffap-complete-fix1 (2,272 inputs with ties, signed zeros, infinities and four NaN bit patterns), whose artifacts are listed under source_files; the five frozen -s reports of ../oracle/a7-fileinfo (c_nan_one_s, c_nan_two_s, c_nan_then_finite_s, c_finite_then_nan_s, c_zero_swapped_s) are the acceptance test and are unchanged on disk. The NaN bit patterns are derived from Intel SDM vol. 1's rules for handling NaNs rather than measured, and are labelled tier 4 in tests/data/math_statistics_provenance.json. Native difference 6 of docs/FILE_INFO_A7_SUPPORT.md is closed; native difference 5 (the nan/-nan spelling) is not, and still owes A2's oracle row re-captured against the Linux x86_64 Release build rather than the macOS SDK."
+ }
 }

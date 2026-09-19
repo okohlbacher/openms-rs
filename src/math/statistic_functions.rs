@@ -107,8 +107,10 @@
 //!   positions the NaN lands in are libstdc++'s: `{NaN, 2..16}` leaves it at
 //!   index 0, `{NaN, 2..17}` moves it to index 8 and `{NaN, 2..20}` to index
 //!   10, because `__introsort_loop` only runs while the range is longer than
-//!   `_S_threshold == 16` (`stl_algo.h:1806`, `:1880`, `:1899-1910`). That is
-//!   why `{NaN, 2..20}` prints `minimum: 2` and `median: -nan`.
+//!   `_S_threshold == 16` (`stl_algo.h:1806`, `:1880`, `:1899-1910`, with
+//!   `__insertion_sort` at `:1770-1788` and `__final_insertion_sort` at
+//!   `:1812-1823`). That is why `{NaN, 2..20}` prints `minimum: 2` and
+//!   `median: -nan`.
 //! - The only refusal left is
 //!   [`Error::InvalidValue`](crate::Error::InvalidValue) at the step where the
 //!   introsort's unbounded partition or final-insertion loop would read
