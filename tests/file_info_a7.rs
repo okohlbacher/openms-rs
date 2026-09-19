@@ -663,8 +663,10 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
             &data(&format!("file_info_a7/expected/{case}.tsv")),
             &format!("{case} tsv"),
         );
-        // The infinities around it are spelled the same on both sides, so only
-        // the NaN needs the exception above.
+        // The one line of the class here is the variance, and the infinities
+        // around it are spelled the same on both sides, so only that one needs
+        // the exception above.
+        assert!(result.text.contains("  variance:       nan\n"), "{case}");
         assert!(result.text.contains("  mean:           inf\n"), "{case}");
         assert!(result.text.contains("  maximum:        inf\n"), "{case}");
         assert_eq!(result.text.matches("nan").count(), 1, "{case}");

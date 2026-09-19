@@ -43,9 +43,9 @@
 //!   eight fields. Both are reached from real input: `FileInfo`'s consensusXML
 //!   `-s` blocks divide, and a pair of sub-features of intensity `-0.0` and
 //!   `0.0` under one centroid contributes `(-inf) + (+inf) = NaN` to the
-//!   per-consensus-feature sample. See
-//!   [`SummaryStatistics::new`](crate::math::statistic_functions::SummaryStatistics::new)
-//!   and section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md`.
+//!   per-consensus-feature sample. A NaN next to a number is still refused;
+//!   section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md` has the measurement and
+//!   CPP-347 the source defect.
 //! - [`median_sorted`](crate::math::statistic_functions::median_sorted),
 //!   [`quantile1st_sorted`](crate::math::statistic_functions::quantile1st_sorted),
 //!   [`quantile3rd_sorted`](crate::math::statistic_functions::quantile3rd_sorted)
