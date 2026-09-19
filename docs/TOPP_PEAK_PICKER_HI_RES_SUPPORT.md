@@ -549,10 +549,11 @@ added to the source's output, not a change to it. Pinned by
     record's (`logs/closediff1_06.log` sections B, C and E). The C++
     **in-memory** run of the same file declares two `dataProcessing` entries
     and dangles nothing. This port's low-memory run now writes all 110 records
-    with the same 105 dangling identifiers and the same decoded content — the
-    array shapes, identifiers and every sample bit for bit hash to
-    `d198b89cba89e1ea` on both sides, and the two in-memory outputs to
-    `e57261d0e43b6653` (`logs/closediff3_06.log` section B). Before this round
+    with the same 105 dangling identifiers and the same decoded content: the
+    110 record identifiers, each record's array names and every sample's bit
+    pattern hash to `d198b89cba89e1ea` on both sides, and the two in-memory
+    outputs to `e57261d0e43b6653` (`logs/closediff3_06.log` section B, and
+    reproduced at this head in `logs/closediff4_06.log`). Before this round
     it stopped after five, which is
     what `ReferencePolicy::Checked` still does — `Error: unsupported: record
     needs a different mzML sourceFileList, dataProcessingList or softwareList
