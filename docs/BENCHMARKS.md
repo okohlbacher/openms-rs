@@ -538,9 +538,10 @@ Two consequences, and no more than two. The C++ 32-thread median in §3.3 rests
 on **n = 4**, which is why that cell is marked. And this is a defect
 observation against the pinned C++ Release build that belongs in
 `OpenMS_CPP_ISSUES.md`; the benchmark lane does not own that file, so the entry
-is proposed to the integrator rather than written here. **One event is not a
-diagnosis**: nothing here identifies the faulting code, and no attempt was made
-to reproduce it under a debugger, which would need a separate run.
+was proposed to the integrator, who filed it as **`CPP-338`**, status *observed
+once, not diagnosed*. **One event is not a diagnosis**: nothing here identifies
+the faulting code, and no attempt was made to reproduce it under a debugger,
+which would need a separate run.
 
 ## 4. The wave-5 run: the FMA build-flag question (dax, 2026-09-17)
 
