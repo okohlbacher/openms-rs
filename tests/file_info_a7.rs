@@ -349,7 +349,7 @@ fn fasta_flag_sections_are_titles_only() {
 ///
 /// The upstream reference output records the source defect this reproduces:
 /// five consensus features, `Intensities ... num. of values: 5` and
-/// `Qualities ... num. of values: 10`, because `FileInfo.cpp:2262-2265`
+/// `Qualities ... num. of values: 10`, because `FileInfo.cpp:2263-2266`
 /// declares `vector<double> qualities(size)` and then appends to it.
 #[cfg(feature = "consensusxml")]
 #[test]

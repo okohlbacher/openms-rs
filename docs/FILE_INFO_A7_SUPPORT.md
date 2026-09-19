@@ -110,7 +110,7 @@ the identifier), and the port maps that case to the empty key too.
 
 ### 2.1 The consensusXML `-s` quality sample is twice as long as it should be
 
-`:2262-2265` declares
+`:2263-2266` declares
 
 ```cpp
 vector<double> qualities(size);   // size zero-initialised values
