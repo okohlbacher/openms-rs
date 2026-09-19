@@ -4,10 +4,16 @@
 
 //! OpenSWATH chromatogram picking with smoothed spline seeds, source boundary
 //! extension and inclusive raw intensity sums. See CHROMATOGRAM_PICKING_SUPPORT.md.
+//!
+//! [`PeakPickerChromatogram::compatibility`] selects the source behaviours the
+//! native default refuses; the internal noise estimate always reproduces the
+//! source, because the signal it reads is this picker's own smoothed trace or a
+//! chromatogram the picker has already validated.
 
 use super::checked_intensity;
 use super::peak_picking::{
-    FwhmUnit, PeakPickerHiRes, PickedChromatogram, SignalToNoiseEstimatorMedian,
+    FwhmUnit, PeakPickerHiRes, PickedChromatogram, PickingCompatibility,
+    SignalToNoiseEstimatorMedian,
 };
 use super::smoothing::{GaussFilter, GaussianWidth, SavitzkyGolayFilter};
 use crate::kernel::{ChromatogramPeak, DataArray, MSChromatogram};
@@ -71,6 +77,21 @@ pub struct PeakPickerChromatogram {
     /// Boundary-extension S/N threshold. Zero disables the boundary S/N gate.
     pub signal_to_noise: f64,
     /// Boundary and apex-report estimator; source window defaults to 1000 s.
+    ///
+    /// This estimator always runs under [`PickingCompatibility::source`], so
+    /// its whole source profile applies whatever
+    /// [`compatibility`](Self::compatibility) says, including the Linux x86-64
+    /// Release build's bin-index conversion: a histogram quotient that leaves
+    /// `int` range is binned as that build bins it (bin `0`, from
+    /// `cvttsd2si`'s `INT_MIN`) rather than clamped to the last bin. Producing
+    /// one needs [`histogram_range`](SignalToNoiseEstimatorMedian::histogram_range)
+    /// to be set by hand: the source's own picker sets only `win_len` and
+    /// `bin_count` on `snt_`
+    /// (`ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp:408-412`), leaving
+    /// `max_intensity` at `-1`, and with the automatic range the bin width
+    /// scales with the data, so the quotient stays inside `int` for any
+    /// histogram that fits in memory. This field exposes the whole estimator,
+    /// which the source's parameter set does not.
     pub noise_estimator: SignalToNoiseEstimatorMedian,
     /// Seed picking is independent: C++ configures HiRes once at S/N 1, with
     /// its 200 s default noise window, even after boundary settings change.
@@ -79,6 +100,27 @@ pub struct PeakPickerChromatogram {
     /// Report apex S/N even when the boundary S/N gate is disabled.
     pub report_sn: bool,
     pub remove_overlapping_peaks: bool,
+    /// Which source behaviours this picker adopts where the native default
+    /// refuses; see [`PickingCompatibility`].
+    ///
+    /// Two flags change what this picker accepts.
+    /// [`allow_duplicate_positions`](PickingCompatibility::allow_duplicate_positions)
+    /// accepts equal retention times, which `MSChromatogram::isSorted` lets
+    /// through to `snt_.init`, and
+    /// [`allow_negative_intensities`](PickingCompatibility::allow_negative_intensities)
+    /// accepts negative sample intensities. The flag is also handed to the
+    /// seed [`PeakPickerHiRes`], as the source's `pp_` member reproduces the
+    /// source unconditionally.
+    ///
+    /// [`allow_unsorted_positions`](PickingCompatibility::allow_unsorted_positions)
+    /// has no effect here: `pickChromatogram`
+    /// (`ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp:68-72`) throws
+    /// `Exception::IllegalArgument` for a chromatogram that is not sorted by
+    /// position, so decreasing retention times stay refused in both profiles.
+    ///
+    /// The internal noise estimate does not consult this field; see
+    /// [`PeakPickerChromatogram::pick_chromatogram`].
+    pub compatibility: PickingCompatibility,
     pub max_points: usize,
     /// Per-stage work limit: conservative smoothing work, HiRes seed work,
     /// each noise estimate, and boundary/overlap/integration sample visits.
@@ -99,6 +141,7 @@ impl Default for PeakPickerChromatogram {
             seed_noise_estimator: Default::default(),
             report_sn: false,
             remove_overlapping_peaks: false,
+            compatibility: PickingCompatibility::default(),
             max_points: 1_000_000,
             max_work: 50_000_000,
         }
@@ -119,6 +162,33 @@ impl PeakPickerChromatogram {
     /// Pick without changing input. Five arrays are returned in source order:
     /// FWHM, IntegratedIntensity, leftWidth, rightWidth, SN. IntegratedIntensity
     /// is the inclusive sum of raw f32 samples promoted to f64, not trapezoidal area.
+    ///
+    /// The boundary signal is the input under
+    /// [`ChromatogramPickingMethod::Legacy`] and the smoothed trace under
+    /// [`ChromatogramPickingMethod::Corrected`], matching source
+    /// `pickChromatogram_(chromatogram | smoothed_chrom, ...)`. Its noise is
+    /// estimated with [`PickingCompatibility::source`] whatever
+    /// [`compatibility`](Self::compatibility) says, because `snt_` is a plain
+    /// source estimator over a signal that is either picker-generated or
+    /// already validated here. A `win_len` of NaN or `+inf`, which the source's
+    /// `setMinFloat("win_len", 1.0)` restriction lets through, therefore picks
+    /// rather than failing.
+    ///
+    /// # Errors
+    ///
+    /// * [`Error::UnsortedData`] when retention times decrease, as source
+    ///   `pickChromatogram` throws `Exception::IllegalArgument` for a
+    ///   chromatogram that is not sorted by position. No compatibility flag
+    ///   lifts this.
+    /// * [`Error::InvalidValue`] for invalid options or resource limits,
+    ///   non-finite coordinates or intensities, and — unless
+    ///   [`compatibility`](Self::compatibility) allows them — negative
+    ///   intensities or duplicate retention times. Also for a `win_len` below
+    ///   the source's minimum of one, a `bin_count` below three, an integration
+    ///   bound outside the input, an intensity that leaves `f32` range, and an
+    ///   exhausted work or point budget.
+    /// * The errors of the configured smoother and of the seed
+    ///   [`PeakPickerHiRes`].
     pub fn pick_chromatogram(&self, input: &MSChromatogram) -> Result<ChromatogramPickingResult> {
         if self.max_points == 0
             || self.max_work == 0
@@ -133,16 +203,27 @@ impl PeakPickerChromatogram {
             ));
         }
         input.validate()?;
-        if input.peaks.iter().any(|p| p.intensity < 0.0) {
+        if !self.compatibility.allow_negative_intensities
+            && input.peaks.iter().any(|p| p.intensity < 0.0)
+        {
             return Err(invalid(
-                "chromatogram picking requires nonnegative intensities",
+                "chromatogram picking requires nonnegative intensities; negative intensities need PickingCompatibility::allow_negative_intensities",
             ));
         }
+        // The source throws `Exception::IllegalArgument` here
+        // (`PeakPickerChromatogram.cpp:68-72`), so this refusal is not one
+        // `allow_unsorted_positions` may lift.
         if input.peaks.windows(2).any(|p| p[0].rt > p[1].rt) {
             return Err(Error::UnsortedData);
         }
-        if input.peaks.windows(2).any(|p| p[0].rt == p[1].rt) {
-            return Err(invalid("chromatogram picking requires distinct RT samples"));
+        // `isSorted` accepts equal positions, so the source reaches both the
+        // seed picker and `snt_.init` with duplicate retention times.
+        if !self.compatibility.allow_duplicate_positions
+            && input.peaks.windows(2).any(|p| p[0].rt == p[1].rt)
+        {
+            return Err(invalid(
+                "chromatogram picking requires distinct RT samples; duplicates need PickingCompatibility::allow_duplicate_positions",
+            ));
         }
         let mut copies = super::AcquisitionCopies::default();
         copies.chromatogram(input)?;
@@ -157,6 +238,7 @@ impl PeakPickerChromatogram {
             spacing_difference: 0.0,
             spacing_difference_gap: 0.0,
             report_fwhm: Some(FwhmUnit::Absolute),
+            compatibility: self.compatibility,
             max_points: self.max_points,
             max_work: self.max_work,
             ..Default::default()
@@ -170,15 +252,35 @@ impl PeakPickerChromatogram {
             let mut estimator = self.noise_estimator.clone();
             estimator.max_points = estimator.max_points.min(self.max_points);
             estimator.max_work = estimator.max_work.min(self.max_work);
-            let positions: Vec<_> = boundary_signal.peaks.iter().map(|p| p.rt).collect();
-            let intensities: Vec<_> = boundary_signal
-                .peaks
-                .iter()
-                .map(|p| f64::from(p.intensity))
-                .collect();
+            // Source `snt_.init(chromatogram)`
+            // (`ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp:171`), where
+            // `chromatogram` is this same boundary signal. `snt_` is a plain
+            // source estimator with no native variant, and the signal it reads
+            // is not caller data: under `corrected` this picker produced it by
+            // smoothing, and under `legacy` the caller's chromatogram already
+            // passed the checks above. So the estimate reproduces the source
+            // unconditionally rather than following `self.compatibility`.
+            //
+            // Under `legacy` that is what makes a baseline-subtracted
+            // chromatogram work at all: its negative samples go straight into
+            // the estimate, which the strict profile refused. (Neither smoother
+            // produces them from a nonnegative input: `SavitzkyGolayFilter.h:115`
+            // writes `std::max(0.0, help)` and the Gaussian kernel is
+            // nonnegative, so under `corrected` a negative sample survives only
+            // where the local weighted average is itself negative.) It also
+            // makes a NaN or infinite `win_len` pick, as the Release build
+            // does, and bins an out-of-`int` histogram quotient as the Release
+            // build bins it; `noise_estimator` above records why only a
+            // hand-set histogram range can produce one.
+            // Passing the peaks widens each `f32` with `cvtss2sd` semantics
+            // rather than leaving a `f64::from` NaN payload to the compiler.
             Some(
                 estimator
-                    .estimate(&positions, &intensities)?
+                    .estimate_peaks(
+                        &boundary_signal.peaks,
+                        &PickingCompatibility::source(),
+                        None,
+                    )?
                     .signal_to_noise,
             )
         } else {

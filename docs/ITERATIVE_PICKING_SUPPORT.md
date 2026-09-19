@@ -108,15 +108,65 @@ priorities retain original seed order; this deterministic choice replaces
 the C++ `std::sort` unspecified ordering of equivalent elements. Equal rounded
 output coordinates retain that candidate-priority order.
 
+## Which profile the noise estimate uses
+
+Source `pick` builds a fresh `SignalToNoiseEstimatorMedian<MSSpectrum>`, sets
+`win_len` and `bin_count` on it and calls `snt.init(input)` over the caller's
+raw spectrum, but only when `signal_to_noise_` is positive
+(`PROCESSING/CENTROIDING/PeakPickerIterative.h:314-321`). Its seed picker `pp`
+is likewise a default-constructed `PeakPickerHiRes` with two parameters changed
+(`:288-292`). Both are plain source objects, and the signal they read is the
+caller's, so `PeakPickerIterative::compatibility` is handed to both, exactly as
+`PeakPickerHiRes` uses its own.
+
+`compatibility` lifts one refusal here:
+
+| Flag | Source behaviour |
+|---|---|
+| `allow_negative_intensities` | No intensity check exists in the source. Negative samples reach `snt.init`, and a candidate whose support sums to a negative intensity divides by that sum (`PeakPickerIterative.h:228`) to a finite recentred m/z and is stored with that negative intensity (`:231-234`). Measured as `ppi_neg_sn0`, `ppi_negbase_sn0` and `ppi_allneg_sn0`, which reach the negative sum because `signal_to_noise_ = 0.0` turns the S/N gate off (`:92`, honoured at `:185`, `:205` and `:315`). A zero sum stays refused in both profiles: it divides to an infinite or NaN centroid, and no case pins the order `std::stable_sort` then produces. |
+
+The `noise` sub-profile carries the estimator's own source behaviours, including
+the `win_len` values the source's `setMinFloat("win_len", 1.0)` restriction lets
+through — NaN, because `NaN < 1` is false, and `+inf`, because the unset upper
+bound is skipped — which the native median-noise profile refuses. Values the
+restriction rejects (`0.5`, `-inf`, `bin_count` of `1` or `2`) throw
+`Exception::InvalidParameter` in the Release build before `init` runs, and are
+refused in both profiles here.
+
+Reading the peaks through `estimate_peaks` rather than copying two `f64` slices
+also fixes the intensity widening: the source's `getIntensity()` feeds
+`computeSTN_` through `cvtss2sd`, and `x86::widen` reproduces that for every NaN
+payload, where a `f32`-to-`f64` cast in Rust is free to produce any NaN.
+
+### Two flags this picker does not yet honour
+
+`allow_duplicate_positions` and `allow_unsorted_positions` leave the
+corresponding refusals in place in both profiles. The source does reach
+`snt.init` with such spectra — measured, the Release build picks both without
+complaint — but `pickRecenterPeaks_` then collects each peak's support in a
+`std::map<double, double>` keyed by m/z: an equal m/z overwrites the stored
+intensity and contributes once to the integrated intensity and to the weighted
+centroid, the spacing bounds come from `begin()`/`rbegin()` rather than from the
+first and last visited index, and every spacing is taken through `std::fabs`.
+This port integrates over an index range, which agrees with all of that only for
+strictly increasing positions. Accepting either flag before those semantics are
+ported would return different peaks under a flag that claims source behaviour,
+so both stay refused. Porting them is tracked as remaining scope below.
+
 ## Checked differences and resource bounds
 
-- Profile m/z and intensities must be finite and nonnegative, with strictly
-  increasing m/z. Negative coordinates would collide with source `-1` deletion
-  sentinels. Duplicate positions would be collapsed by the C++ map and are
-  rejected instead. Zero intensities are accepted.
+- Profile m/z must be finite, nonnegative and strictly increasing; intensities
+  must be finite, and nonnegative unless
+  `PickingCompatibility::allow_negative_intensities` is set. Negative
+  coordinates would collide with source `-1` deletion sentinels. Duplicate
+  positions would be collapsed by the C++ map and are rejected instead. Zero
+  intensities are accepted.
 - Zero iterations, zero limits, negative or nonfinite width/noise/spacing
-  settings, missing center neighbors, zero integrated intensity and nonfinite
-  arithmetic return errors. Values not representable as finite output `f32`
+  settings, missing center neighbors and nonfinite arithmetic return errors. A
+  nonpositive integrated intensity returns an error in the native profile; under
+  `allow_negative_intensities` a negative sum divides as the source divides by
+  it (`PeakPickerIterative.h:228`) and only a zero sum still fails, through the
+  infinite or NaN centroid it produces. Values not representable as finite output `f32`
   values also return errors. A finite rounded output centroid can lie outside
   its exact integration boundaries; the source rounding behavior is retained.
 - Empty and short profiles return empty centroid spectra with preserved record

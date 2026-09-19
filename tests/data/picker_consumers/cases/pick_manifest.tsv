@@ -1,0 +1,53 @@
+# case	which	data	params
+ppc_sg_spike	ppc	spike	use_gauss=false sgolay_frame_length=15 sgolay_polynomial_order=3 report_sn=true
+ppc_sg_clean	ppc	clean	use_gauss=false sgolay_frame_length=15 sgolay_polynomial_order=3 report_sn=true
+ppc_gauss_clean	ppc	clean	use_gauss=true report_sn=true
+ppc_sg_legacy_spike	ppc	spike	use_gauss=false method=legacy report_sn=true
+ppc_sg_dup	ppc	dup	use_gauss=false report_sn=true
+ppc_sg_neg	ppc	neg	use_gauss=false report_sn=true
+ppc_sg_unsorted	ppc	unsorted	use_gauss=false report_sn=true
+ppc_sg_nonfinite	ppc	nonfinite	use_gauss=false report_sn=true
+ppc_sn0_reportsn	ppc	clean	use_gauss=false signal_to_noise=0.0 report_sn=true
+ppc_sn0_noreport	ppc	clean	use_gauss=false signal_to_noise=0.0 report_sn=false
+ppi_clean	ppi	clean	
+ppi_dup	ppi	dup	
+ppi_neg	ppi	neg	
+ppi_unsorted	ppi	unsorted	
+ppi_nonfinite	ppi	nonfinite	
+ppi_winnan	ppi	clean	sn_win_len_=nan
+ppi_wininf	ppi	clean	sn_win_len_=inf
+ppi_winsmall	ppi	clean	sn_win_len_=0.5
+ppi_bins1	ppi	clean	sn_bin_count_=1
+ppi_sn0	ppi	clean	signal_to_noise_=0.0
+ppi_pw	ppi	clean	peak_width=3.0 check_width_internally=true
+ppc_gauss_neg	ppc	neg	use_gauss=true report_sn=true
+ppc_gauss_dupneg	ppc	dupneg	use_gauss=true report_sn=true
+ppc_gauss_nfint	ppc	nfint	use_gauss=true report_sn=true
+ppc_gauss_negmz	ppc	negmz	use_gauss=true report_sn=true
+ppc_legacy_neg	ppc	neg	use_gauss=true method=legacy report_sn=true
+ppc_gauss_neg_pw	ppc	neg	use_gauss=true peak_width=4.0 report_sn=true
+ppc_gauss_neg_ov	ppc	neg	use_gauss=true remove_overlapping_peaks=true report_sn=true
+ppc_gauss_dup	ppc	dup	use_gauss=true report_sn=true
+ppi_negmz	ppi	negmz	
+ppi_nfint	ppi	nfint	
+ppc_winnan_pick	ppc	clean	use_gauss=true sn_win_len=nan report_sn=true
+ppc_wininf_pick	ppc	clean	use_gauss=true sn_win_len=inf report_sn=true
+ppc_winnan_legacy	ppc	neg	use_gauss=true method=legacy sn_win_len=nan report_sn=true
+ppc_gauss2_neg	ppc	neg	use_gauss=true gauss_width=2.0 report_sn=true
+ppc_gauss8_neg	ppc	neg	use_gauss=true gauss_width=8.0 report_sn=true
+ppc_gauss16_neg	ppc	neg	use_gauss=true gauss_width=16.0 report_sn=true
+ppc_gauss_negbase	ppc	negbase	use_gauss=true report_sn=true
+ppc_gauss_negbase_sn0	ppc	negbase	use_gauss=true signal_to_noise=0.0 report_sn=true
+ppc_legacy_negbase	ppc	negbase	use_gauss=true method=legacy report_sn=true
+ppc_sg_negbase	ppc	negbase	use_gauss=false report_sn=true
+ppi_negbase	ppi	negbase	
+ppi_neg_sn0	ppi	neg	signal_to_noise_=0.0
+ppi_negbase_sn0	ppi	negbase	signal_to_noise_=0.0
+ppi_allneg_sn0	ppi	allneg	signal_to_noise_=0.0
+ppi_allneg	ppi	allneg	
+ppc_gauss_allneg	ppc	allneg	use_gauss=true report_sn=true
+ppc_legacy_allneg	ppc	allneg	use_gauss=true method=legacy report_sn=true
+ppc_gauss_bigint	ppc	bigint	use_gauss=true report_sn=true
+ppc_legacy_bigint	ppc	bigint	use_gauss=true method=legacy report_sn=true
+ppi_bigint	ppi	bigint	
+ppi_snneg	ppi	clean	signal_to_noise_=-1.0

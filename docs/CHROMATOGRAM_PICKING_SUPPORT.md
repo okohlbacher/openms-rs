@@ -144,12 +144,91 @@ on both returned traces. All profile arrays stay aligned on `smoothed`; the
 picked trace reports their names through the existing HiRes `omitted_arrays`.
 No profile-array reduction is invented.
 
+## Which profile the noise estimate uses
+
+The C++ picker owns one `SignalToNoiseEstimatorMedian<MSChromatogram>` member
+and configures it with `win_len`, `bin_count` and `write_log_messages` only
+(`ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp:408-412`). It calls
+`snt_.init(chromatogram)` at `:171` on the boundary signal, which is the
+caller's chromatogram under `legacy` and the smoothed trace under `corrected`.
+There is no native variant of that member: by the time it runs, the caller's
+chromatogram has already passed `pickChromatogram`'s own checks, and under
+`corrected` the signal is one this picker produced. The port therefore estimates
+with `PickingCompatibility::source()` at that call site regardless of
+`compatibility`, and `compatibility` governs only what the picker accepts from
+its caller.
+
+`compatibility` lifts exactly two refusals, both measured against the Release
+build:
+
+| Flag | Source behaviour |
+|---|---|
+| `allow_negative_intensities` | The source has no intensity check anywhere. A baseline-subtracted chromatogram under `legacy` puts negative samples straight into `snt_.init`, which bins them in the first histogram bin or, when the automatic range comes out negative, reports zero everywhere. |
+| `allow_duplicate_positions` | `MSChromatogram::isSorted` accepts equal retention times, so they reach both the seed picker and `snt_.init`. |
+
+`allow_unsorted_positions` is deliberately inert here. `pickChromatogram`
+(`PeakPickerChromatogram.cpp:68-72`) throws `Exception::IllegalArgument`,
+"Chromatogram must be sorted by position", so decreasing retention times stay
+`Error::UnsortedData` in both profiles. `MSChromatogram::isSorted` decides that
+with `prev.getRT() > next.getRT()` (`KERNEL/MSChromatogram.cpp`), which is why
+equal retention times pass it, a NaN passes it (every comparison against a NaN
+is false), and an infinity ahead of a finite sample does not — the measured
+`IllegalArgument` for the `nonfinite` case comes from that last one.
+Non-finite retention times and intensities are refused earlier here, by
+`MSChromatogram::validate`, and no flag lifts that; `PeakPickerHiRes` refuses
+them unconditionally too.
+
+Two smoother facts decide how far a negative sample travels, and both were read
+from the pinned source rather than assumed. `SavitzkyGolayFilter`
+(`PROCESSING/SMOOTHING/SavitzkyGolayFilter.h:115`, `:135`, `:153`) writes
+`std::max(0.0, help)`, so an SG-smoothed trace is never negative. `GaussFilter`
+(`PROCESSING/SMOOTHING/GaussFilter.cpp:138`) does not clamp, but its kernel is
+non-negative, so it only carries a negative sample through where the local
+weighted average is itself negative. Under `corrected` the estimator therefore
+usually sees a non-negative trace even from a negative input; under `legacy` it
+sees the negatives directly.
+
+The parameter domain follows the source's own `Param` restrictions, which
+`DefaultParamHandler::setParameters` enforces through `Param::checkDefaults`.
+`setMinFloat("win_len", 1.0)` rejects `0.5` and `-inf` with
+`Exception::InvalidParameter` but passes NaN, because `NaN < 1` is false, and
+`+inf`, because the unset upper bound is skipped; `setMinInt("bin_count", 3)`
+rejects `1` and `2`. The port refuses and accepts exactly the same set, and a
+NaN or infinite window picks rather than failing because the estimate uses the
+source profile.
+
+Using the source profile at that call site also selects the Linux x86-64
+Release build's bin-index conversion, which is the one behavioural change the
+default `compatibility` sees beyond the non-finite window. The source truncates
+before it clamps — `std::max(std::min<int>((int)(I / bin_size), bin_count - 1),
+0)` at `SignalToNoiseEstimatorMedian.h:297` and `:308` — so a quotient that
+leaves `int` range becomes `INT_MIN` in that build and lands in bin `0`, where
+the port's native conversion clamps it into the last bin. The quotient is
+`I / std::max(1.0, max_intensity_ / bin_count_)` (`:258`), so producing an
+out-of-range one needs `max_intensity` set by hand, which the source's picker
+never does: `updateMembers_` sets only `win_len`, `bin_count` and
+`write_log_messages` (`PeakPickerChromatogram.cpp:408-412`), leaving
+`max_intensity` at `-1` and the range automatic at `mean + 3 sd`. With that
+automatic range the bin width scales with the data — for one sample of `I`
+among `n` near-zero ones the quotient is about `sqrt(n) * bin_count / 3`, so
+exceeding `2^31` over 48 samples would take a `bin_count` near `9.3e8` and a
+histogram of about eleven gigabytes. The Rust `noise_estimator` field exposes the whole estimator,
+including `histogram_range`, so a caller can build the configuration the source
+cannot; there the estimate is the Release build's own, measured as the
+`ppc_bigmax` / `ppi_bigmax` cases in `tests/data/picker_consumers/snt_oracle.tsv`
+(a hand-set upper end of 10 over 30 bins floors the bin width at 1.0, so a 3e9
+sample's quotient leaves `int` range) and asserted in
+`tests/picker_noise_consumers.rs`.
+
 ## Validation, limits and remaining scope
 
-Coordinates must be finite and strictly increasing; intensities must be finite
-and nonnegative. Duplicate RT samples, malformed parallel arrays, invalid active
-noise parameters, nonpositive forced widths, unsupported smoother settings and
-numerical overflow are checked errors. A valid empty input gives fresh empty
+Coordinates must be finite and non-decreasing; intensities must be finite.
+Decreasing retention times are refused in both profiles, as the source throws;
+equal ones need the source profile.
+Duplicate RT samples and negative intensities are refused by the native profile
+and accepted by the source profile, as the table above records. Malformed
+parallel arrays, invalid active noise parameters, nonpositive forced widths,
+unsupported smoother settings and numerical overflow are checked errors. A valid empty input gives fresh empty
 results with preserved metadata and all five empty output arrays; it does not
 retain an unrelated old output object as the C++ early-return overload can.
 Short or flat traces without a HiRes seed also produce well-formed empty output.

@@ -1,0 +1,70 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h",
+      "sha256": "835e9bb87beaaba121abf96e92fdbaf73642180f14c8c453ceb59466ee436056"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp",
+      "sha256": "95164ec3705651d9cfe548d6dfab3d50e5ba5663acc87404e21d4e6471d552c7"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h",
+      "sha256": "3fcb1c5347d13c0a6c72fe14f853afcca2d08bedb3709eeb8bfb96630690220c"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h",
+      "sha256": "f6f81757669c754484cec642bffe9763bb03140f45163f70c13280301a10f54c"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h",
+      "sha256": "65964ce9690052ed33cd7e2769eae1cb6c099b5579ffdb8b219f44ced75525c8"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/SMOOTHING/GaussFilter.cpp",
+      "sha256": "8d6ddcd32c7825f6f1157580f92be0ceb9214017e28ece00d54aa8f667d8f3df"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/Param.cpp",
+      "sha256": "5bfd393df12f6cc6d3238f3a31cdf33e72aeead1ec6831666ac8306889aec407"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DefaultParamHandler.cpp",
+      "sha256": "20a4f3386a4fd3b9a203ed36008d7dccb35d2b7c5f0e42b556b4bc8995eecb53"
+    }
+  ],
+  "oracle": {
+    "build": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+    "platform": "Linux x86_64, ibminode06",
+    "driver": "oracle/picker-consumers/{probe_snt.cpp,probe_pickers.cpp,gen_cases.py,run.sh}",
+    "repeats": 2,
+    "repeats_identical": true,
+    "binaries": [
+      "3d4dd4a2d5f65f770083bc7444549e4a023d9509b24f47788c8c39ae78fac1d3  probe_snt",
+      "e145bfaa6d43889bca2677828c8b4f536d85e0036d32ad32aeb0cfa962f1fa17  probe_pickers",
+      "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/lib/libOpenMS.so",
+      "differ_rc=0"
+    ]
+  },
+  "fixtures": {
+    "snt_oracle.tsv": "0c1f059c31424c8241430c7eaf893b07ab822c7ad98c343c9b52aa87dd82ce43",
+    "pick_oracle.tsv": "6adcb2788e4520d2f045b8609c8568883d42d1f9509289b91dc295cd19980489",
+    "cases/allneg.tsv": "c66b9d86466503d8b388a2d86a638c0f88fdda930620af328b9b011e5be5dde3",
+    "cases/bigint.tsv": "2c3d37ba13cff7195a72bc9cf5870776858b7ee0d82fb6268f0c4f11ac3a83cd",
+    "cases/clean.tsv": "c94181147d7622e1481e0f924bb508d95ba135a34f9df37a80a7871511514901",
+    "cases/dup.tsv": "6954429ead642d93fe502e0f2e5d4abefa4545b2f26dfd14e2c6d268e41bafef",
+    "cases/dupneg.tsv": "2c50859812ee186ad6de2211ea8bb6c729c3fac85728e9118e2d4f28b2967c2c",
+    "cases/neg.tsv": "9feb35219876f3446ca12ad37463c271f0086d773e0b4738412ee22ba8ead43c",
+    "cases/negbase.tsv": "fdc6c4c1ebfdbf708d12745452664873dfb946ee15c787ddb6d568b84e9f8a97",
+    "cases/negmz.tsv": "eeab7d9e3242a4114fb280c17d1d52ee4525429ffb269033bbea7eb7d5078bcd",
+    "cases/nfint.tsv": "11d30f8f0c85d958d394ce854cb7722572eaf5d42d274bf3c3c37d254acc9fac",
+    "cases/nonfinite.tsv": "e14f19abd34b2caabdacd8e3ffbcf04bc0fe76cca981aaeb8bd1e60fe86ca0d1",
+    "cases/pick_manifest.tsv": "d17d7c763033ca113c2d3000200f648c8a408e5fbcb8ff3782c43a00233d1cf8",
+    "cases/snt_manifest.tsv": "aa72ce6318e1e0364dfab63fc1ac9d6e75c591294c0cdc0f5069dcc0b40f7d0c",
+    "cases/spike.tsv": "b1613a0d17d829b88d10e17fad4a645ca1c41f200f4e5140724b88a8c9bc5bba",
+    "cases/unsorted.tsv": "ade438a9a52d24e85896094b05e61ae3424eb30a063a1b62a476131ce4d1900d"
+  }
+}
