@@ -173,7 +173,7 @@ pub enum ReferencePolicy {
     /// is not the first, and a `dataProcessingRef` to the same number whenever
     /// the record's processing history differs from the first record's. A
     /// reference a binary data array carries is renumbered the same way, into
-    /// the source's `dp_sp_<s>_bi_<m>`; see [`array_references`]. A
+    /// the source's `dp_sp_<s>_bi_<m>`, for the same reason. A
     /// chromatogram carries neither reference on its start tag in the source
     /// (`MzMLHandler.cpp:5879`) and carries neither here.
     ///
