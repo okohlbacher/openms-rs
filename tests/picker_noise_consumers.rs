@@ -726,3 +726,66 @@ fn iterative_duplicate_and_unsorted_positions_stay_refused_in_both_profiles() {
     assert_eq!(cases["ppi_dup"].status, "ok");
     assert_eq!(cases["ppi_unsorted"].status, "ok");
 }
+
+/// Neither the source nor this picker checks the sign of a retention time, so
+/// a chromatogram that starts before zero picks in both profiles. Recorded
+/// because the iterative picker below does refuse the matching spectrum.
+#[test]
+fn negative_retention_times_pick_in_both_profiles() {
+    let case = &pick_oracle()["ppc_gauss_negmz"];
+    assert_eq!(case.status, "ok");
+    for profile in [
+        PickingCompatibility::default(),
+        PickingCompatibility::source(),
+    ] {
+        let picker = PeakPickerChromatogram {
+            compatibility: profile,
+            ..chromatogram_picker(case)
+        };
+        let picked = picker
+            .pick_chromatogram(&chromatogram(&case.data))
+            .expect("negative retention times are accepted");
+        let arrays = &picked.picked.chromatogram.float_data_arrays;
+        assert_eq!(f32_bits(array(arrays, "SN")), case.array("SN"));
+        assert_eq!(
+            f32_bits(array(arrays, "leftWidth")),
+            case.array("leftWidth")
+        );
+        assert_eq!(
+            f32_bits(array(arrays, "rightWidth")),
+            case.array("rightWidth")
+        );
+    }
+}
+
+/// The Release build picks a spectrum with negative m/z, and `PeakPickerHiRes`
+/// does not check the sign of a position either, but this picker refuses it in
+/// both profiles and no `PickingCompatibility` flag covers positions. The
+/// refusal is therefore pinned here together with what the source does, so the
+/// gap stays visible rather than being mistaken for source behaviour.
+#[test]
+fn negative_mz_stays_refused_by_the_iterative_picker_although_the_source_picks_it() {
+    let case = &pick_oracle()["ppi_negmz"];
+    assert_eq!(case.status, "ok");
+    assert_eq!(case.out.len(), 1, "the Release build returns one peak");
+    // m/z 7.9908..., integrated 6723.68 over leftWidth 4.0 and rightWidth 12.0.
+    assert_eq!(case.out[0], (0x401f_f751_a000_0000, 0x45d2_1d70));
+    assert_eq!(case.array("leftWidth"), [0x4080_0000]);
+    assert_eq!(case.array("rightWidth"), [0x4140_0000]);
+
+    let input = spectrum(&case.data);
+    for profile in [
+        PickingCompatibility::default(),
+        PickingCompatibility::source(),
+    ] {
+        let picker = PeakPickerIterative {
+            compatibility: profile,
+            ..iterative_picker(case)
+        };
+        assert!(
+            matches!(picker.pick_spectrum(&input),
+                Err(Error::InvalidValue(m)) if m.contains("nonnegative m/z")),
+            "negative m/z must stay refused"
+        );
+    }
+}
