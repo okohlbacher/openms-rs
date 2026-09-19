@@ -47,20 +47,36 @@ paragraph cites *around* a line does answer for a quotation of that span.
 
 Citations it cannot check are counted, never guessed at: a file no reachable
 pin contains, a bare ``:a-b`` that fits no file the same paragraph cites, and a
-manifest too malformed to parse. A name that more than one pin carries and
+manifest too malformed to parse. A name that reaches more than one file and
 nothing narrows is a fourth case, and a different one: it *is* checked, against
 the first candidate that agrees with it, so it is counted among the checked and
 counted again apart, and named under ``--verbose``. The separate count is the
-warning that the pin which answered may not be the file the document meant.
+warning that the file which answered may not be the one the document meant.
+Two pins carrying one name is the common way in, but one pin carrying it at two
+paths counts the same - ``Macros.h`` is a ``CONCEPT`` header and an
+``OPENSWATHALGO`` one at a single revision.
 ``--report`` says which pin answered how many citations and confirmed how many,
 for the same reason: a citation confirmed against the wrong file is worse than
 an unchecked one, so the split has to be readable and not only the total.
 
 What this does not catch, stated plainly so that a green run is not read for
-more than it says. Of the 2,984 citations it resolves, 97 are confirmed against
+more than it says. Of the 3,345 citations it resolves, 102 are confirmed against
 code quoted beside them; the rest are checked only for existing, because most
 citations in this repository paraphrase the source instead of reproducing it,
-and a paraphrase cannot be read back. The A6 defect that this tool was written
+and a paraphrase cannot be read back.
+
+How much the confirmed fraction is worth was measured by mutation: record every
+confirmation, then shift each unique confirmed citation by +40 lines in its own
+document and re-scan. 94 unique citation texts, 90 caught, 4 missed. That
+figure bounds *one shift*, not the checker - shifting by +13 instead misses 6
+and by +77 misses 4 other ones - because a miss happens for either of two
+reasons. One is structural and will not go away: a quotation confirmed through
+an enclosing span the same unit cites stays inside that span for any small
+shift, which is two of the four (``docs/SPECTRUM_ALIGNMENT_SUPPORT.md``
+``:112`` and ``:119``, both inside the ``SpectrumAlignment.h:79-176`` the unit
+also cites). The other is incidental: the shifted lines happen to contain the
+fragment too. So the honest reading is that a shifted citation is usually
+caught, never that it always is. The A6 defect that this tool was written
 for - eight places citing ``:290-293`` for code that sits at ``:280-283`` - is
 still not caught, for exactly that reason: those places write
 "iter = getFirstChild()" where the source has
@@ -764,11 +780,17 @@ def check_file(pins, revisions, key, cited, quoted, annotated, report):
         report["skipped"] += len(cited)
         report["skipped_files"][name] += len(cited)
         return []
-    if len({revision for revision, _ in attempts}) > 1:
+    if len(attempts) > 1:
         attempts = holding(pins, attempts, quoted) or attempts
-        if len({revision for revision, _ in attempts}) > 1:
-            report["ambiguous"] += len(cited)
-            report["ambiguous_files"][name] += len(cited)
+    # More than one candidate still standing means nothing told them apart, and
+    # that is as true of two paths inside one pin as of two pins: `Macros.h` is
+    # a CONCEPT header and an OPENSWATHALGO one at the same revision, so a bare
+    # `Macros.h:91` is settled by whichever of the two happens to agree first.
+    # Counted below, on the path that also counts `checked`, so that the
+    # ambiguous count is a subset of the checked one rather than a fourth kind
+    # of unchecked. Where every candidate disagrees the citation is reported by
+    # name instead, which says more than a tally would.
+    ambiguous = len(attempts) > 1
     disagreements = []
     for revision, path in attempts:
         wrong, confirmed = problems_with(pins, revision, path, cited, quoted, annotated)
@@ -777,6 +799,9 @@ def check_file(pins, revisions, key, cited, quoted, annotated, report):
             report["quoted"] += confirmed
             report["answered"][pins.label(revision)] += len(cited)
             report["confirmed_by"][pins.label(revision)] += confirmed
+            if ambiguous:
+                report["ambiguous"] += len(cited)
+                report["ambiguous_files"][name] += len(cited)
             return []
         disagreements.append((revision, path, wrong))
     # Every candidate disagrees; report the one that disagrees least.
@@ -904,7 +929,7 @@ def main():
         for name, count in report["skipped_files"].most_common():
             print(f"  {name} ({count})")
     if arguments.verbose and report["ambiguous_files"]:
-        print("Cited file names that more than one pin carries, with nothing to tell them apart:")
+        print("Cited file names that resolve to more than one file, with nothing to tell them apart:")
         for name, count in report["ambiguous_files"].most_common():
             print(f"  {name} ({count})")
     if arguments.report or arguments.verbose:
@@ -922,13 +947,15 @@ def main():
     # The ambiguous count is a subset of the checked one, not a fourth kind of
     # unchecked, and saying it in the same breath as "skipped" and "unresolved"
     # would read as though those citations had been left alone. They were not:
-    # one of the pins answered each of them, and the count is how many times
-    # that pin may have been the wrong file of the right name.
+    # a file agreed with each of them, and the count is how many times that
+    # file may have been the wrong one of the right name. It is a strict subset
+    # because `check_file` counts it only where it counts `checked`; a citation
+    # every candidate disagrees with is reported by name instead of tallied.
     summary = (
         f"{report['checked']} citations checked against the pins, "
         f"{report['quoted']} of them confirmed against code quoted beside them, "
-        f"{report['ambiguous']} of them answered by a pin that may be the wrong "
-        f"one because more than one carries that file name; "
+        f"{report['ambiguous']} of them answered by a file that may be the wrong "
+        f"one because the name reaches more than one; "
         f"{report['skipped']} skipped for an unreachable file and "
         f"{report['unresolved']} bare ranges left unresolved"
     )

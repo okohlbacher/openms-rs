@@ -18,8 +18,9 @@ from unittest import mock
 
 import check_source_citations as checker
 from check_source_citations import (
-    Unreadable, annotations_in, attach, check_file, check_unit, citations_in, holding,
-    named_file, pair_up, problems_with, quotations, resolvable, split_package, tally, units,
+    Directory, Objects, Pins, Unreadable, annotations_in, attach, check_file, check_unit,
+    citations_in, holding, named_file, pair_up, problems_with, quotations, resolvable,
+    split_package, tally, units,
 )
 
 # A stand-in for one pinned file, with a blank line at 4 and a walk at 5-8.
@@ -237,6 +238,45 @@ class TwoPins:
         return f"{self.sources[revision]}:{path}"
 
 
+class OnePinTwoPaths:
+    """One pin that carries ``Macros.h`` at two paths, as the core checkout does.
+
+    A file name does not need two *pins* to be ambiguous. At ``bc9cc12`` the
+    core SDK carries ``Macros.h`` under both ``CONCEPT/`` and
+    ``OPENSWATHALGO/``, so a bare ``Macros.h:1`` reaches two different files
+    inside a single revision and nothing but the quotation beside it can say
+    which one the document meant.
+    """
+
+    declared = {"core": CORE}
+    sources = {CORE: "core bc9cc12"}
+    paths = {
+        CORE: [
+            "src/openms/include/OpenMS/CONCEPT/Macros.h",
+            "src/openswathalgo/include/OpenMS/OPENSWATHALGO/Macros.h",
+        ]
+    }
+    text = {
+        "src/openms/include/OpenMS/CONCEPT/Macros.h": ["#define OPENMS_PRECONDITION(x, m)"],
+        "src/openswathalgo/include/OpenMS/OPENSWATHALGO/Macros.h": ["#define OPENSWATH_PRECONDITION(x, m)"],
+    }
+
+    def paths_named(self, revision, name):
+        return self.paths[revision] if name == "Macros.h" else []
+
+    def packaged(self, inside, name, besides):
+        return []
+
+    def lines(self, _revision, path):
+        return self.text[path]
+
+    def label(self, _revision):
+        return "core bc9cc12"
+
+    def where(self, revision, path):
+        return f"core bc9cc12:{path}"
+
+
 FLAG = 'registerFlag_("c", "Check for corrupt data");'
 PEAKS = 'os << "Number of peaks: " << count;'
 
@@ -350,10 +390,128 @@ class PinResolutionTests(unittest.TestCase):
         self.assertEqual(report["ambiguous"], 0)
         self.assertEqual(report["checked"], 1)
 
+    def test_a_name_one_pin_carries_at_two_paths_is_counted_ambiguous_too(self):
+        # The guard used to ask how many REVISIONS were still standing, so a
+        # name one pin carried at two paths was settled silently by whichever
+        # file agreed first. Path granularity is the same risk one level down.
+        report = tally()
+        self.assertEqual(
+            check_file(OnePinTwoPaths(), (CORE,), ("", "Macros.h"),
+                       [(1, 1, "Macros.h:1", True)], (), (), report),
+            [],
+        )
+        self.assertEqual(report["ambiguous"], 1)
+        self.assertEqual(report["ambiguous_files"]["Macros.h"], 1)
+        self.assertEqual(report["checked"], 1)
+
+    def test_a_quotation_tells_two_paths_of_one_pin_apart(self):
+        # And when the document does quote the file, nothing is ambiguous:
+        # `holding` narrows inside the revision exactly as it does across pins.
+        report = tally()
+        quoted = [("#define OPENSWATH_PRECONDITION(x, m)", 1, 1, "Macros.h:1")]
+        self.assertEqual(
+            check_file(OnePinTwoPaths(), (CORE,), ("", "Macros.h"),
+                       [(1, 1, "Macros.h:1", True)], quoted, (), report),
+            [],
+        )
+        self.assertEqual(report["ambiguous"], 0)
+        self.assertEqual(report["checked"], 1)
+        self.assertEqual(report["quoted"], 1)
+
+    def test_a_citation_no_candidate_agrees_with_is_reported_not_counted_ambiguous(self):
+        # The other direction of the subset relation. When every candidate
+        # disagrees the citation is REPORTED by name, and `checked` does not
+        # move - so `ambiguous` must not move either, or the summary would say
+        # "N checked, M of them answered by a file that may be the wrong one"
+        # with M not a subset of N.
+        report = tally()
+        found = check_file(TwoPins(), (CORE, TOPP), ("", "FileInfo.cpp"),
+                           [(99, 100, "FileInfo.cpp:99-100", True)], (), (), report)
+        self.assertEqual(len(found), 1)
+        self.assertIn("the file has", found[0][1][0])
+        self.assertEqual(report["checked"], 0)
+        self.assertEqual(report["ambiguous"], 0)
+        self.assertEqual(report["ambiguous_files"], collections.Counter())
+        self.assertEqual(report["skipped"], 0)
+        # It was still answered by one of them, which is what `--report` shows.
+        self.assertEqual(sum(report["answered"].values()), 1)
+
     def test_holding_decides_nothing_when_no_candidate_has_the_quotation(self):
         attempts = [(CORE, "src/openms/source/FORMAT/FileInfo.cpp"), (TOPP, "src/FileInfo.cpp")]
         self.assertEqual(holding(TwoPins(), attempts, [("nothing = here();", 1, 1, ":1")]), [])
         self.assertEqual(holding(TwoPins(), attempts, ()), [])
+
+
+class PackagedPinTests(unittest.TestCase):
+    """`Pins.packaged` itself, on a real `Pins` rather than a stand-in.
+
+    Every other test here supplies its own `packaged`, so the shipped method
+    was never executed by the suite: mutating its comprehension so that it can
+    never match left all of it green while moving two citations on the real
+    tree. These call the real one.
+
+    It is the third limb of "resolve a citation in the pin its own path names":
+    the issue log checks each entry against the revisions that entry names, and
+    those are core revisions, so a TOPP path written in an old entry found
+    nothing to narrow in and fell back to the core file of the same name. A
+    package has exactly one pin here and no older revision to prefer, so a path
+    that fits its layout names it whatever the entry says.
+    """
+
+    CORE_PATH = "src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp"
+    TOPP_PATH = "src/PeakPickerHiRes.cpp"
+
+    def pins(self):
+        """A `Pins` with one `Directory` core pin and one `Objects` package pin."""
+        pins = object.__new__(Pins)
+        pins.declared = {"core": CORE, "topp": TOPP}
+        pins.sources = {
+            CORE: Directory(pathlib.Path("/nowhere/openms4-core-bc9cc12")),
+            TOPP: Objects(pathlib.Path("/nowhere/packages/topp"), TOPP),
+        }
+        pins.index = {
+            (CORE, "PeakPickerHiRes.cpp"): [self.CORE_PATH],
+            (TOPP, "PeakPickerHiRes.cpp"): [self.TOPP_PATH],
+        }
+        return pins
+
+    def test_a_package_pin_claims_a_path_only_its_layout_fits(self):
+        self.assertEqual(
+            self.pins().packaged("src/", "PeakPickerHiRes.cpp", (CORE,)),
+            [(TOPP, self.TOPP_PATH)],
+        )
+
+    def test_a_core_shaped_path_is_not_claimed_by_the_package_pin(self):
+        self.assertEqual(
+            self.pins().packaged(
+                "src/openms/source/PROCESSING/CENTROIDING/", "PeakPickerHiRes.cpp", (CORE,)
+            ),
+            [],
+        )
+
+    def test_a_revision_already_offered_is_not_claimed_again(self):
+        # `besides` is what `resolvable` already tried; claiming one of those
+        # would answer twice with the same file.
+        self.assertEqual(
+            self.pins().packaged("src/", "PeakPickerHiRes.cpp", (CORE, TOPP)), []
+        )
+
+    def test_only_a_package_pin_may_claim_it_never_an_unpacked_checkout(self):
+        # The core pin is a `Directory`, not an `Objects`, so even a path that
+        # fits its layout is not claimed this way - `resolvable` had its chance.
+        pins = self.pins()
+        self.assertEqual(
+            pins.packaged("src/openms/source/PROCESSING/CENTROIDING/", "PeakPickerHiRes.cpp", ()),
+            [],
+        )
+        # And with both offered as package pins, only the one whose layout fits.
+        pins.sources[CORE] = Objects(pathlib.Path("/nowhere/core"), CORE)
+        self.assertEqual(
+            pins.packaged("src/", "PeakPickerHiRes.cpp", ()), [(TOPP, self.TOPP_PATH)]
+        )
+
+    def test_a_name_the_package_pin_does_not_carry_is_not_claimed(self):
+        self.assertEqual(self.pins().packaged("src/", "FileInfo.cpp", (CORE,)), [])
 
 
 class UnitTests(unittest.TestCase):

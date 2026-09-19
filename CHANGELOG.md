@@ -116,9 +116,14 @@
   git objects — and reads them back: a cited range must exist, a citation naming
   one line may not name a blank one, a code fragment quoted beside a citation
   must be inside the cited lines, and a transcribed block's `// :NNN`
-  annotations must match. On the whole tree it resolves 3,344 citations in about
+  annotations must match. On the whole tree it resolves 3,345 citations in about
   four seconds, confirms 102 against quoted code, and exits non-zero on a
-  mismatch; `tools/test_source_citations.py` (44 tests) joins the `quality` CI
+  mismatch. A name that reaches more than one file with nothing to tell the
+  candidates apart is counted apart as well — 196 of them, and that counts two
+  paths inside one pin, such as the `CONCEPT` and `OPENSWATHALGO` `Macros.h`,
+  exactly as it counts two pins — on the path that also counts it checked, so
+  the ambiguous count is a strict subset of the checked one;
+  `tools/test_source_citations.py` (52 tests) joins the `quality` CI
   job, while the checker itself stays in the pre-push battery, because CI has no
   pins and would skip every named citation. Seven citation defects in
   `OpenMS_CPP_ISSUES.md` were corrected to get it to zero. What it does **not**
