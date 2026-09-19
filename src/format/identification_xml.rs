@@ -810,6 +810,10 @@ pub(crate) enum NonFinite {
     #[default]
     Refuse,
     /// Write and read it as the source's handler does.
+    ///
+    /// Only `featurexml` asks for this today, so a build without that feature
+    /// compiles the variant without a constructor.
+    #[cfg_attr(not(feature = "featurexml"), allow(dead_code))]
     Source,
 }
 
