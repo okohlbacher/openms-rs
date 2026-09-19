@@ -58,7 +58,12 @@
 //! - `FileInfo.cpp:1336-1341` reads `id_data.proteins[0]` unconditionally,
 //!   while the structured block at `:1451` guards the very same access with
 //!   `if (!id_data.proteins.empty())`. A file with no identification run at all
-//!   reaches the unguarded read;
+//!   reaches the unguarded read. This crate refuses such a file, but one layer
+//!   earlier: both readers reject a run-less document themselves — idXML with
+//!   `idXML needs at least one IdentificationRun` (`idxml.rs:310`) and
+//!   mzIdentML with `mzIdentML has no SpectrumIdentification element`
+//!   (`mzidentml.rs:1596-1598`) — so the guard below is a defence with no
+//!   reachable input rather than the refusal that is measured;
 //! - `FileInfo.cpp:1354` reads `getHits()[0]` behind a
 //!   `!id_data.peptides[i].empty()` guard, but `PeptideIdentification::empty()`
 //!   (`PeptideIdentification.cpp:210-217`) tests for a default-constructed
@@ -109,7 +114,10 @@ pub(crate) fn report(
     result: &mut FileInfoResult,
 ) -> Result<()> {
     let data = load(path, in_type)?;
-    // FileInfo.cpp:1336-1341 reads proteins[0] before any emptiness test.
+    // FileInfo.cpp:1336-1341 reads proteins[0] before any emptiness test. No
+    // input reaches this arm of the guard: `load` above refuses a run-less
+    // idXML and a run-less mzIdentML in the readers themselves, so the tool
+    // exits 3 on such a file, never 6. It stays as the branch's own defence.
     let first_run = data.proteins.first().ok_or_else(|| {
         Error::InvalidValue(
             "FileInfo identification branch: the file holds no protein identification run, and \

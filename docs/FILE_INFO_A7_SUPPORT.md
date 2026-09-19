@@ -208,8 +208,21 @@ and is reported normally, exactly as the Release build reports it
 `:1336-1341` reads `id_data.proteins[0]` unconditionally, while the structured
 block at `:1451` guards the very same access with
 `if (!id_data.proteins.empty())`. `a7_id_no_runs.idXML` segmentation-faults on
-the Release build. (This crate's idXML reader refuses such a file first, for its
-own reason, so the refusal is reached either way.)
+the Release build.
+
+The port refuses the file, but **not from this branch**: the shared reader
+refuses it first, and `identifications.rs`'s `data.proteins.first()` is defence
+in depth that no accepted input reaches. Measured on `a7_id_no_runs.idXML`:
+`Error::Parse`, `idXML needs at least one IdentificationRun`, and the tool exits
+**3**, not the 6 the branch's own `Error::InvalidValue` would give. The other
+reader answers the same shape: `mzidentml.rs:1596-1598` refuses a document with
+no `SpectrumIdentification` element before it can produce a run-less
+`MzIdentMLDocument`, and `identifications::report` has no entry that does not
+load from a file. So the guard has no executed coverage on any input, and none
+can be written while either reader keeps its own refusal; it stays because the
+branch must not index an empty vector if a future reader ever hands it one.
+`identifications_without_a_run_are_refused` pins the measured refusal, with its
+message.
 
 ### 3.3 A peptide identification with no hit
 

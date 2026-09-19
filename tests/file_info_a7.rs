@@ -744,19 +744,26 @@ fn identifications_mzidentml_and_its_peak_file_fall_through() {
 /// established that a run exists, while the structured block at `:1451` guards
 /// the same access. The Release build segmentation-faults.
 ///
-/// The idXML reader refuses the file first, for its own reason; the refusal is
-/// what matters, and the identification branch carries the same guard for the
-/// inputs that do reach it.
+/// The refusal measured here is the shared idXML reader's, not this branch's:
+/// it rejects the file before `identifications::report` can take
+/// `data.proteins.first()`, so the tool exits 3 rather than the 6 that guard's
+/// `Error::InvalidValue` would give. `mzidentml.rs:1596-1598` refuses a
+/// document with no `SpectrumIdentification` element just as early, and the
+/// branch has no entry that does not load from a file, so the guard has no
+/// reachable input; section 3.2 of `docs/FILE_INFO_A7_SUPPORT.md` records that.
+/// What D1 asks for is that the file the Release build crashes on is refused,
+/// which this pins, message included.
 #[cfg(feature = "idxml")]
 #[test]
 fn identifications_without_a_run_are_refused() {
     let error = FileInfo::new()
         .run(input("a7_id_no_runs.idXML"), &bare())
         .expect_err("a file with no IdentificationRun must be refused");
-    assert!(
-        matches!(error, Error::Parse { .. } | Error::InvalidValue(_)),
-        "{error}"
-    );
+    let Error::Parse { line, message } = &error else {
+        panic!("expected the idXML reader's refusal, got {error}");
+    };
+    assert_eq!(*line, 0);
+    assert_eq!(message, "idXML needs at least one IdentificationRun");
 }
 
 /// D1: `FileInfo.cpp:1354` reads `getHits()[0]` behind a guard that tests for a

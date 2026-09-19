@@ -578,8 +578,9 @@ fn peak_info(experiment: &MSExperiment, summary: &Summary) -> Result<PeakInfo> {
     Ok(info)
 }
 
-/// The `-m` block of the peak-file arm (`FileInfo.cpp:2005-2074`), title
-/// included.
+/// The `-m` block of the peak-file arm (`FileInfo.cpp:2005-2081`), title
+/// included: the document id and date, the `Sample:` and `Instrument:` blocks,
+/// and the contact-person loop at `:2072-2080`.
 ///
 /// `pub(crate)` because the identification branch reaches this same arm: `-m`
 /// has no mzIdentML case, so an mzIdentML input falls through to the peak-file
