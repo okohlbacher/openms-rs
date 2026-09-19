@@ -749,7 +749,10 @@ pub(crate) fn write_processing(
 /// # Errors
 ///
 /// [`Error::InvalidValue`] above the ceiling, and as
-/// [`SummaryStatistics::new`] for a NaN.
+/// [`SummaryStatistics::new`] for a NaN next to a number — a NaN the
+/// consensusXML `-s` arithmetic computes into the sample itself is summarised
+/// rather than refused when the sample's order cannot decide the answer; see
+/// section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md`.
 pub(crate) fn summarize(values: &mut [f64]) -> Result<SummaryStatistics> {
     check_statistics_values(values.len())?;
     SummaryStatistics::new(values)

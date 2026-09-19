@@ -44,8 +44,8 @@
 //!   `-s` blocks divide, and a pair of sub-features of intensity `-0.0` and
 //!   `0.0` under one centroid contributes `(-inf) + (+inf) = NaN` to the
 //!   per-consensus-feature sample. See
-//!   [`SummaryStatistics::of_nan_sample`](crate::math::statistic_functions::SummaryStatistics)
-//!   and `docs/FILE_INFO_A7_SUPPORT.md`.
+//!   [`SummaryStatistics::new`](crate::math::statistic_functions::SummaryStatistics::new)
+//!   and section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md`.
 //! - [`median_sorted`](crate::math::statistic_functions::median_sorted),
 //!   [`quantile1st_sorted`](crate::math::statistic_functions::quantile1st_sorted),
 //!   [`quantile3rd_sorted`](crate::math::statistic_functions::quantile3rd_sorted)
@@ -1168,8 +1168,9 @@ impl SummaryStatistics {
     /// NaN.
     ///
     /// A sample holding a NaN is summarised only when the permutation
-    /// `std::sort` leaves behind cannot be observed; see
-    /// [`Self::of_nan_sample`].
+    /// `std::sort` leaves behind cannot be observed: a sample of one value, and
+    /// a sample whose values are all NaN. See the module's NaN section and
+    /// section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md`.
     ///
     /// # Errors
     ///

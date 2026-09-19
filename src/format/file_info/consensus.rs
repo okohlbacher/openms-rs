@@ -426,10 +426,15 @@ fn collect(map: &ConsensusMap) -> Result<Samples> {
             // FileInfo.cpp:2310-2315. A sub-feature of intensity 0 under a
             // centroid of positive intensity gives 1 / 0 = +inf here, and the
             // summary of a sample holding it has an infinite mean and a NaN
-            // variance. That is in bounds and reproducible, so D1 keeps it;
-            // `nan` against the reference build's `-nan` is native difference 5
-            // of docs/FILE_INFO_A7_SUPPORT.md, pinned by
-            // `consensus_zero_intensity_sub_feature_makes_the_variance_a_nan`.
+            // variance; one of intensity -0.0 gives 1 / -0.0 = -inf, so the
+            // `it_aad` below can be (-inf) + (+inf) = NaN and the NaN reaches
+            // the per-consensus-feature sample itself. All of that is in bounds
+            // and reproducible, so D1 keeps it; `nan` against the reference
+            // build's `-nan` is native difference 5 of
+            // docs/FILE_INFO_A7_SUPPORT.md, pinned by
+            // `consensus_zero_intensity_sub_feature_makes_the_variance_a_nan`
+            // and `consensus_nan_in_the_statistics_sample`. Section 5.2 of that
+            // document covers the one shape `SummaryStatistics` cannot answer.
             let it_ratio = f64::from(handle.intensity) / denominator;
             samples.it_delta_by_elems.push(it_ratio);
             let it_ratio = if it_ratio < 1.0 {

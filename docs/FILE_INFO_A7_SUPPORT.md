@@ -23,10 +23,11 @@ A4 had to leave as refusals, and `tests/topp_file_info.rs` reproduces
 TOPP_FileInfo_7, _10, _13, _17, _18 and _20 through FuzzyDiff against the
 retained upstream outputs instead of listing them as not ported. Each keeps a
 tripwire that fails if a branch goes back to refusing.
-Oracle: `../oracle/a7-fileinfo`, 63 cases against the Release C++ FileInfo of
+Oracle: `../oracle/a7-fileinfo`, 72 cases against the Release C++ FileInfo of
 `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
-ibminode06, run twice and reproduced. 43 of them have both reports compared
-byte for byte in the test.
+ibminode06, run twice and reproduced. 50 of them have both reports compared
+byte for byte in the test; two more are retained as evidence for section 5.2
+rather than compared.
 
 ---
 
@@ -265,22 +266,42 @@ crashes the reference FileInfo.
    the tool exits 3; the port returns
    `Error::InvalidValue("idXML is not an allowed input format")`, which is how
    `FileHandler` maps that refusal throughout this crate.
-5. **A NaN variance is spelled `nan`, where the reference build spells it
-   `-nan`.** This is the only line of any A7 report on which the two builds
-   disagree, and the only statistic these branches can make non-finite.
+5. **Every NaN the FileInfo text layer prints is spelled `nan`, where glibc
+   spells a NaN whose sign bit is set `-nan`.** This is a class of line, not one
+   line: any of the eight `SummaryStatistics` lines can carry one, and the
+   consensusXML `-s` blocks are the first FileInfo path whose own arithmetic can
+   produce one at all.
+
+   *Scope of the claim, as measured.* It is the only class of line on which the
+   50 compared oracle reports disagree. How many lines of it a report holds
+   depends on the input: `c_zero_intensity_s` has one, `c_nan_one_s` nine and
+   `c_nan_two_s` ten. The tests pin those counts and check each line against the
+   class rather than against a single expected line.
 
    *Where it comes from.* `:2310` computes
    `it_ratio = element_intensity / (centroid_intensity > 0 ? centroid_intensity : 1)`
    and `:2312-2315` replaces every ratio below 1 by its reciprocal, so a
    sub-feature of intensity 0 under a centroid of positive intensity
-   contributes `1 / 0 = +inf`. `Math::SummaryStatistics`
+   contributes `1 / 0 = +inf`, and one of intensity `-0.0` contributes
+   `1 / -0.0 = -inf`. `Math::SummaryStatistics`
    (`StatisticFunctions.h:933-958`) then summarises `{1, +inf}`: the mean is
    `+inf`, and `Math::variance` (`:541-556`) adds `(1 - inf)^2 = +inf` to
    `(inf - inf)^2 = NaN`, so the `Relative intensity error` block reports a NaN
-   variance. Nothing is out of bounds, and both oracle runs agree, so D1 asks
-   for it to be reproduced rather than refused. Oracle cases
-   `c_zero_intensity`, `c_zero_intensity_s` and `c_zero_intensity_all` on
-   `a7_cons_zero_intensity.consensusXML`; all three exit 0.
+   variance. A `-inf` and a `+inf` in the same block make the `mean` and the
+   `median` NaNs too, and `:2317` adding them makes a NaN that goes into the
+   *sample* of the per-consensus-feature block rather than into a statistic
+   summarised out of one — see section 5.2. Nothing is out of bounds, and both
+   oracle runs agree, so D1 asks for all of it to be reproduced rather than
+   refused. Oracle cases `c_zero_intensity{,_s,_all}` on
+   `a7_cons_zero_intensity.consensusXML`, `c_nan_one{,_s,_all}` on
+   `a7_cons_nan_one.consensusXML` and `c_nan_two{,_s}` on
+   `a7_cons_nan_two.consensusXML`; all of them exit 0.
+
+   *`variance` is not the only statistic these branches can make non-finite.*
+   The frozen `c_zero_intensity_s` report itself carries `mean: inf` and
+   `maximum: inf`, and the `c_nan_two_s` report carries a NaN on all eight
+   lines. What is true of the oracle's cases is narrower and is what the tests
+   assert: the `nan`/`-nan` class is the only way any of them disagrees.
 
    *The value is reproduced; only the text differs.* Measured on x86_64:
    `inf - inf` is `0xfff8000000000000`, SSE2's default NaN, whose sign bit is
@@ -293,26 +314,41 @@ crashes the reference FileInfo.
    *Why the text layer writes `nan` anyway.* `text_format`'s `nonfinite`
    ignores the sign of a NaN by design, and that design is not this package's:
    the sign of a *generated* NaN belongs to the hardware — AArch64's default
-   NaN is the positive one, and this crate's own CI runs the full suite on
-   `macos-latest` — and Apple libc writes `nan` for `0xfff8000000000000`
-   regardless. `../oracle/file-info-text-format` measured exactly that bit
-   pattern (`results/driver.tsv`, the `D fff8000000000000` row) and
-   `tests/file_info_text_format.rs` asserts the `nan` it produced. Spelling the
-   sign here would contradict that executed row and make every frozen
-   expectation architecture-dependent. The A2 module note at
+   NaN is the positive one, and this crate's `cross-platform` CI job runs the
+   full suite on `macos-latest`, on tags and on `workflow_dispatch`
+   (`.github/workflows/rust.yml:127`, `:134`) — and Apple libc writes `nan` for
+   `0xfff8000000000000` regardless. `../oracle/file-info-text-format` measured
+   exactly that bit pattern (`results/driver.tsv`, the `D fff8000000000000`
+   row) and `tests/file_info_text_format.rs` asserts the `nan` it produced.
+   Spelling the sign here would contradict that executed row and make every
+   frozen expectation architecture-dependent. The A2 module note at
    `src/format/file_info/text_format.rs` states the rule.
 
-   *How it is pinned.* The Release build's three reports are frozen whole. The
-   bare one matches byte for byte through `check`;
-   `consensus_zero_intensity_sub_feature_makes_the_variance_a_nan` asserts that
-   the other two differ on exactly one line, that the reference line there is
-   `  variance:       -nan` and that ours is `  variance:       nan`. A second
-   divergence, a divergence on another line, or a change of either spelling
-   fails the test.
+   *Making the sign printable is its own wave, not this package's.* Spelling it
+   honestly would first have to make the value host-independent: an
+   x86_64-faithful `variance_with_mean` in `src/math/statistic_functions.rs`,
+   which needs the x86_64 emulation promoted out of
+   `analysis::feature_finder_picked::scoring` into shared math, plus A2's oracle
+   row re-captured against the Linux Release build instead of the macOS SDK.
+   That is a cross-cutting change to shared math which landed ports already
+   consume, so it is carried forward for the lead rather than done here.
+
+   *How it is pinned.* Every Release report is frozen whole. The bare ones match
+   byte for byte through `check`; for the `-s` ones,
+   `assert_report_but_the_nan_spelling` takes the number of lines of this class
+   the report has and, for each differing line, asserts that the reference ends
+   in `-nan`, that ours ends in `nan` and not `-nan`, and that putting the sign
+   back reproduces the reference line character for character. A divergence
+   outside the class, a change in how many lines carry a NaN, a `-nan` where the
+   reference has a number, or a change of either spelling fails the test.
+   `consensus_zero_intensity_sub_feature_makes_the_variance_a_nan` pins one such
+   line and `consensus_nan_in_the_statistics_sample` pins nine, nine and ten.
 
 ---
 
-## 5. Known gap outside this package
+## 5. Known gaps outside this package
+
+### 5.1 The identification-XML reader's modified-hit budget
 
 The shared identification-XML reader cannot load an idXML with more than **14
 modified peptide hits**, whatever the file size.
@@ -327,3 +363,54 @@ hits) and `FalseDiscoveryRate_5_input.idXML` (75) — so they have no differenti
 here; the oracle records what the C++ prints for both. This is a limit of that
 reader and of the sequence parsing budget, not of these branches, and it is
 raised for the lead rather than worked around here.
+
+### 5.2 A NaN next to a number in a `SummaryStatistics` sample
+
+`:2310` divides and `:2312-2315` inverts, so a consensus feature with one
+sub-feature of intensity `-0.0` and one of `0.0` under a positive centroid
+contributes `(-inf) + (+inf)` at `:2317`, and `:2321-2323` pushes the resulting
+NaN into `it_aad_by_cfs` — the *sample* of the `Average relative intensity error
+within consensus features` block, not a statistic summarised out of one. The
+sample then goes to `std::sort`, whose strict-weak-ordering precondition a NaN
+violates.
+
+Whether that is answerable depends on the sample's shape, and both answerable
+shapes are **reproduced**:
+
+| sample | why the permutation cannot be observed | oracle case |
+| --- | --- | --- |
+| one value | sorting a one-element range is a no-op by `[alg.sorting]` | `c_nan_one_s` |
+| every value a NaN | every permutation prints the same eight lines | `c_nan_two_s` |
+
+For the first the reference prints the NaN on all six positional lines and `0`
+for the variance — the `n <= 1` substitution of
+`StatisticFunctions.h:951`. For the second it prints a NaN on all eight,
+because `n > 1` lets `Math::variance` run.
+`SummaryStatistics::of_nan_sample` (`src/math/statistic_functions.rs`) computes
+both without sorting, since there is nothing to order.
+
+**A NaN next to a number is refused**, with
+`Error::InvalidValue("statistics input must not contain NaN")`, where the
+reference build exits 0. The reason is measured rather than assumed: libstdc++
+compares every pair involving a NaN false and therefore moves nothing, so the
+`minimum`, quartile and `maximum` lines the reference prints are positional
+reads of a range it never ordered. Oracle cases `c_nan_then_finite_s` and
+`c_finite_then_nan_s` hold **the same two consensus features in opposite file
+order**, are each stable over three runs, and disagree on exactly four lines:
+
+```text
+                    c_nan_then_finite_s      c_finite_then_nan_s
+  minimum:          -nan                     2
+  lower quartile:   -nan                     2
+  upper quartile:   2                        -nan
+  maximum:          2                        -nan
+```
+
+Reproducing those values means porting libstdc++'s `std::sort` permutation into
+`sort_ascending`, which every `SummaryStatistics` caller in the crate consumes.
+That is shared-math work of its own wave, so **this is a deferral, not a D1
+refusal**, and it is raised for the lead. The manifest of
+`../oracle/a7-fileinfo` records both reports under `unspecified_order` with the
+reason, and `consensus_nan_in_the_statistics_sample` asserts the exact refusal,
+that the run without `-s` still succeeds, and that the two retained reference
+reports disagree on exactly those four lines.

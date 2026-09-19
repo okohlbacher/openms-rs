@@ -11,13 +11,15 @@
 //! `tests/data/file_info_a7_provenance.json` and
 //! `docs/FILE_INFO_A7_SUPPORT.md`):
 //!
-//! - tier 1, executed differential: 63 cases of `../oracle/a7-fileinfo` run
+//! - tier 1, executed differential: 72 cases of `../oracle/a7-fileinfo` run
 //!   against the **Release** C++ FileInfo of
 //!   `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
-//!   ibminode06, twice and reproduced. 43 of them have their `-out` and
+//!   ibminode06, twice and reproduced. 50 of them have their `-out` and
 //!   `-out_tsv` reports compared here byte for byte; only the two lines that
 //!   embed the input path are normalised, `File name: ` and
-//!   `general: file name`;
+//!   `general: file name`. Two more (`c_nan_then_finite_s` and
+//!   `c_finite_then_nan_s`) are retained as evidence rather than compared: see
+//!   `consensus_nan_in_the_statistics_sample`;
 //! - tier 1, retained upstream definition: TOPP_FileInfo_7, _10, _13, _17, _18
 //!   and _20 (`topp/CMakeLists.txt:899-901`, `:905-907`, `:912`, `:922-927`,
 //!   `:931-933`,

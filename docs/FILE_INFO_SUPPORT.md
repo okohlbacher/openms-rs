@@ -190,20 +190,35 @@ Every public member of `FileInfo.h`, and the file-local helpers of
    strict default reader options; `Options` has no field for the
    source-compatibility load options of D10 yet (see *Deferrals*).
 6. **Non-finite and signed-zero values.** The readers refuse NaN and infinite
-   coordinates and intensities, `SummaryStatistics` refuses NaN, and a FAIMS
-   spectrum with a NaN voltage is refused; the source would print `nan` or break
-   its set order. `SummaryStatistics` sorts with `f64::total_cmp`, so `-0.0`
-   sorts before `0.0`; `std::sort` leaves equal elements in an unspecified
-   order, so a sample holding both zeros can print `-0` where the source prints
-   `0` as minimum or maximum. Kernel hull boxes merge with `f64::min` and
-   `f64::max` (open B1 follow-up); FileInfo loads no hulls. All of that is about
-   non-finite *inputs*. A statistics block can also compute one from finite
-   input: the consensusXML `-s` relative intensity error divides, and a
-   sub-feature of intensity zero makes the sample `{1, +inf}`, whose variance is
-   a NaN. The port reproduces that value bit for bit and writes it `nan` where
-   the reference build writes `-nan`; see native difference 5 of
-   [the A7 document](FILE_INFO_A7_SUPPORT.md), which is the only line of any
-   FileInfo report on which the two builds disagree.
+   coordinates and intensities, and a FAIMS spectrum with a NaN voltage is
+   refused; the source would print `nan` or break its set order.
+   `SummaryStatistics` sorts with `f64::total_cmp`, so `-0.0` sorts before
+   `0.0`; `std::sort` leaves equal elements in an unspecified order, so a sample
+   holding both zeros can print `-0` where the source prints `0` as minimum or
+   maximum. Kernel hull boxes merge with `f64::min` and `f64::max` (open B1
+   follow-up); FileInfo loads no hulls. All of that is about non-finite
+   *inputs*.
+
+   A statistics block can also compute a non-finite value from finite input, and
+   that is a separate matter. The consensusXML `-s` relative intensity error
+   divides (`FileInfo.cpp:2310`) and inverts every ratio below 1
+   (`:2312-2315`), so a sub-feature of intensity zero makes the sample
+   `{1, +inf}`, whose mean is `+inf` and whose variance is a NaN; one of
+   intensity `-0.0` next to one of `0.0` contributes `(-inf) + (+inf)`, which
+   puts a NaN into the per-consensus-feature *sample* itself. The port
+   reproduces those values bit for bit and writes every NaN `nan` where glibc
+   writes a sign-bit NaN `-nan`. That is native difference 5 of
+   [the A7 document](FILE_INFO_A7_SUPPORT.md) — a class of line, since any of
+   the eight summary lines can carry one, and the only class on which the 50
+   compared oracle reports disagree.
+
+   `SummaryStatistics::new` therefore does **not** refuse every NaN. It
+   summarises the two shapes in which the permutation `std::sort` leaves behind
+   cannot be observed — a one-value sample and an all-NaN sample — and refuses a
+   NaN next to a number, where the reference build's order statistics are
+   positional reads of a range it never ordered. That last refusal is a
+   deferral pending a libstdc++ `std::sort` emulation in shared math, not a D1
+   refusal; see section 5.2 of the A7 document for the measurement.
 7. **Bounded work.** A statistics block holds at most
    `FileInfo::MAX_STATISTICS_VALUES` (2^27) values, checked before collection
    and allocated fallibly; the kernel range managers, the FAIMS scan, the
