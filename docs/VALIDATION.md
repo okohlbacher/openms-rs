@@ -445,6 +445,12 @@ adds one Rust test and eight Python ones, removes none, and removes no
 assertion; `unsafe` and `#[ignore]` counts and `Cargo.toml`/`Cargo.lock` are
 untouched.
 
+The battery ran at `9cd037c` from a clean worktree. Everything committed after
+it is Markdown — and this time that claim is the narrow one, checked the way
+the finding above asks: `git diff --name-only 9cd037c..HEAD` returns
+`docs/MZML_HEADER_SUPPORT.md` and this file, both Markdown, and nothing with an
+extension the compiler reads.
+
 The oracle directory under `../oracle/a7-fileinfo` was deliberately **not**
 re-emitted. Its per-case note is scoped to the two-element samples it
 describes, where it is exact, and re-emitting the manifest would move a sha256
