@@ -67,7 +67,7 @@
     "upstream_test_definition": {
         "path": "topp/CMakeLists.txt",
         "revision": "test-data 0cb15f2",
-        "sha256": "26197debdcd0c80bdbb214f4f3cca1e50fa5b475c1afbb533174b3b7e3f41df1",
+        "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb",
         "registrations": [
             {
                 "name": "TOPP_FileInfo_6",
@@ -129,7 +129,7 @@
         },
         {
             "what": "the C++ decoder's stderr diagnostics are not written",
-            "why": "IndexedMzMLDecoder prints \"findIndexListOffset Error: ...\" and a dump of the searched bytes on std::cerr; this port writes nothing there. No report line depends on it, and the oracle case i_truncated_index shows the two agree on the report and the exit code.",
+            "why": "IndexedMzMLDecoder prints \"findIndexListOffset Error: ...\" and a dump of the searched bytes on std::cerr (IndexedMzMLDecoder.cpp:198-200); this port writes nothing there. No report line depends on it, and the oracle case i_truncated_index shows the two agree on the report and the exit code.",
             "owner": "this package (documented native difference)"
         },
         {
@@ -159,7 +159,7 @@
     "external_reference_artifacts": [
         {
             "path": "../oracle/a6-fileinfo/oracle.py",
-            "sha256": "05045fec815d1a4391adbc2304716fd4816acd5932d70c37e920f6bb0e01f877",
+            "sha256": "3b866cb6ba4ae5a15995dfb1ae1291368049dae0c474b425bd13606caccb868d",
             "origin_key": "fixtures",
             "role": "driver: case table, per-case scratch runs, reproduction check, manifest writer"
         },
@@ -183,7 +183,7 @@
         },
         {
             "path": "../oracle/a6-fileinfo/manifest.json",
-            "sha256": "3f08e23ceadaa12346472d501a1b01c2cefaf93ad4b88c4c34b08cc1e656d89a",
+            "sha256": "cd88104474caff2fbf6e573f5fa4d2519badf2bb417228aa9ad034240e787a12",
             "origin_key": "fixtures",
             "role": "tool hash, environment, fixture hashes, per-case argv, exit codes and output hashes, reproduction verdict, known_gaps"
         }

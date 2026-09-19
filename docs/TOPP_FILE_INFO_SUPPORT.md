@@ -35,8 +35,8 @@ does here:
 | `featureXML` | none, `-m`, `-p`, `-s`, and `-d`/`-c`, which the source ignores there | full report and TSV |
 | `dta`, `dta2d`, `mzML` | `-d`, `-c`, in any combination with the above | the detailed listing and the corrupt-data check in the report, A6 |
 | any | `-v` | exit 11, `... schema and semantic validation (-v) is not ported` (A8) |
-| `mzML` | `-i`, valid index | the index line, then the content; exit 0 (A6) |
-| `mzML` | `-i`, no index | the failure text and nothing after it; exit 6 (A6) |
+| `mzML` | `-i`, valid index | the index line, then the content; exit 0 (A6). Its counts are this port's decoder's — native difference 9 |
+| `mzML` | `-i`, no index | the failure text and nothing after it; exit 6 (A6). Which files have no index is also this port's decoder's answer — native difference 9 |
 | non-mzML | `-i` | exit 6 with the source's message and the usage text, before the library runs |
 | `mzXML`, `mzData`, `mgf`, `sqMass`, `fid` | any | exit 11, `... peak-file branch for <type> input is not ported` |
 | `consensusXML`, `idXML`, `mzid`, `pepXML`, `mzTab`, `trafoXML`, `fasta`, `pqp` | any | exit 11, `FileInfo <type> branch is not ported` |
@@ -153,6 +153,31 @@ Every member of the source `TOPPFileInfo` and the behaviour it carries.
    source's own `FileNotWritable` throw is unreachable there because
    `outputFileWritable_` ran first.
 8. **`writeDebug_`** of the detected type at debug level 2 is not ported.
+9. **`-i` answers with this port's index decoder, which departs from the source
+   in two measured places.** Whether a file has an index, and the spectrum and
+   chromatogram counts printed on the line above the content, come from
+   `src/format/indexed_mzml.rs`, not from a re-implementation of
+   `IndexedMzMLDecoder`. Two boundaries of that decoder differ, and both
+   departures are the owning package's own reviewed decisions, recorded in
+   `docs/INDEXED_MZML_SUPPORT.md`:
+   *a file shorter than 1023 bytes*, where the C++ seeks back past the start of
+   the file and its regex searches an uninitialised heap buffer
+   (`IndexedMzMLDecoder.cpp:165-168`, `:179-181`), so it reports no index and
+   this tool's C++ counterpart exits `ILLEGAL_PARAMETERS`, while the port
+   searches the file it has and finds the index that is there; and
+   *an `<index>` element written without whitespace*, whose first `<offset>`
+   the C++ DOM walk skips (`:280-283`, upstream `CPP-337`), so every section is
+   counted one short — a section holding a single offset is dropped entirely —
+   while the port keeps it. Reproducing either would mean changing a decoder
+   every index reader in the crate shares, and the second would break random
+   access, because a dropped offset is a record that cannot be found. The
+   departure therefore stands, and `-i`'s counts are not bit-identical to the
+   source's on those two classes of file. No file an OpenMS writer produces is
+   in either class: its indexes are indented and its files are far longer than
+   the search window. Measured against the Release build and pinned by the
+   oracle cases `i_window_below`, `i_window_above` and `i_offsets_unspaced`;
+   native differences 11 and 12 of `docs/FILE_INFO_CHECKS_SUPPORT.md` carry the
+   full record, with `src/format/indexed_mzml.rs` named as the owner.
 
 ## Checked boundaries and evidence
 

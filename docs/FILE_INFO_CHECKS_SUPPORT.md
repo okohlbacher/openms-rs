@@ -148,7 +148,8 @@ Each is documented at the item in `checks.rs` as well.
    does not print.
 5. **No `std::cerr` diagnostics.** `IndexedMzMLDecoder` prints
    `findIndexListOffset Error: ...` and a dump of the searched bytes to
-   `std::cerr` when it finds no footer. The port writes nothing there. No
+   `std::cerr` when it finds no footer (`IndexedMzMLDecoder.cpp:198-200`, the
+   `else` of the match at `:183`). The port writes nothing there. No
    report line and no exit code depends on it; the oracle case
    `i_truncated_index` shows the two agree on both.
 6. **Spectrum and precursor numbers do not wrap.** The source counts in `UInt`,
@@ -201,8 +202,8 @@ Each is documented at the item in `checks.rs` as well.
     C++ writes for `index_window_above.mzML`, the same file padded to 1217
     bytes, which both implementations agree on byte for byte. The two runs of
     the below-window case differ *only* in the bytes the source dumps to
-    `std::cerr` — the uninitialised buffer itself — and the manifest records
-    both raw hashes under `indeterminate_stderr`. **Owner:**
+    `std::cerr` (`:198-200`) — the uninitialised buffer itself — and the
+    manifest records both raw hashes under `indeterminate_stderr`. **Owner:**
     `src/format/indexed_mzml.rs`, which every index reader in the crate shares,
     not this package. The departure is that package's own reviewed decision and
     is already recorded in `docs/INDEXED_MZML_SUPPORT.md` ("small files search
