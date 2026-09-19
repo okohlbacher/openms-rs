@@ -1,0 +1,21 @@
+general: file name	<FIX>/FileInfo_14_input.mzid
+general: file type	mzid
+general: database	/home/lars/Desktop/validate_mzid/Yasset/uniprot-koli-k12-nov24-2011-plus-shuffled.fasta
+general: database version	
+general: taxonomy	
+general: search engine	MS-GF+	(version: Beta (v10089))
+general: num. of runs	4
+general: num. of protein hits	67
+general: num. of non-redundant protein hits (only hits that differ in the accession)	44
+general: num. of matched spectra	69
+general: num. of peptide hits	69
+general: num. of modified top-hits	4
+general: num. of non-redundant peptide hits (only hits that differ in sequence and/or modifications): 	49
+document id	
+date	0000-00-00 00:00:00
+sample name	
+sample organism	
+sample comment	
+instrument name	
+instrument model	
+instrument vendor	

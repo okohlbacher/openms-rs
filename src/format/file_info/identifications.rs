@@ -6,7 +6,7 @@
 //! (`FORMAT/FileInfo.cpp:1312-1470`, `:1990-1996`, `:2105-2107`, `:2373-2376`).
 //!
 //! The identification branch of the report, shared by idXML and mzIdentML. The
-//! runs are loaded through [`FileHandler::load_identifications`] for idXML and
+//! runs are loaded through [`FileHandler::load_identifications`](crate::format::FileHandler::load_identifications) for idXML and
 //! through [`crate::format::mzidentml::load`] for mzIdentML, and the branch
 //! then writes:
 //!
@@ -26,7 +26,7 @@
 //! reproduced as they are:
 //!
 //! - `PSMs / spectrum` is an integer division of a `Size` by an `int`, so it
-//!   truncates. The structured [`IdentInfo::psms_per_spectrum`] carries the
+//!   truncates. The structured [`IdentInfo::psms_per_spectrum`](crate::format::file_info::model::IdentInfo::psms_per_spectrum) carries the
 //!   real ratio, which is what the source's own `Result` records;
 //! - the average peptide length is `Math::round` of the mean of the hit
 //!   lengths, streamed at the report's precision rather than through
@@ -56,10 +56,10 @@
 //! before any of the report is written:
 //!
 //! - `FileInfo.cpp:1336-1341` reads `id_data.proteins[0]` unconditionally,
-//!   while the structured block at `:1446` guards the very same access with
+//!   while the structured block at `:1451` guards the very same access with
 //!   `if (!id_data.proteins.empty())`. A file with no identification run at all
 //!   reaches the unguarded read;
-//! - `FileInfo.cpp:1352` reads `getHits()[0]` behind a
+//! - `FileInfo.cpp:1354` reads `getHits()[0]` behind a
 //!   `!id_data.peptides[i].empty()` guard, but `PeptideIdentification::empty()`
 //!   (`PeptideIdentification.cpp:210-217`) tests for a default-constructed
 //!   object rather than for an empty hit list: a score type, an identifier, a
@@ -67,7 +67,7 @@
 //!   make it false on their own. A hit-less identification carrying any of
 //!   those reaches the unguarded read.
 //!
-//! See `docs/FILE_INFO_IDENT_SUPPORT.md` for the evidence and the native
+//! See `docs/FILE_INFO_A7_SUPPORT.md` for the evidence and the native
 //! differences.
 
 #![cfg(feature = "idxml")]
@@ -114,7 +114,7 @@ pub(crate) fn report(
         Error::InvalidValue(
             "FileInfo identification branch: the file holds no protein identification run, and \
              the source reads id_data.proteins[0] unguarded (FileInfo.cpp:1336-1341) while its \
-             own structured block guards the same access (FileInfo.cpp:1446)"
+             own structured block guards the same access (FileInfo.cpp:1451)"
                 .into(),
         )
     })?;
@@ -149,13 +149,13 @@ pub(crate) fn report(
         peptide_hit_count = peptide_hit_count
             .checked_add(hits)
             .ok_or_else(|| overflow("FileInfo peptide hit count overflows 64 bits"))?;
-        // FileInfo.cpp:1352 reads temp_hits[0] behind a guard that does not
+        // FileInfo.cpp:1354 reads temp_hits[0] behind a guard that does not
         // test the hit list.
         let top = identification.hits.first().ok_or_else(|| {
             Error::InvalidValue(format!(
                 "FileInfo identification branch: peptide identification #{index} carries no hit \
                  while PeptideIdentification::empty() is false, and the source reads \
-                 getHits()[0] unguarded (FileInfo.cpp:1347-1352)"
+                 getHits()[0] unguarded (FileInfo.cpp:1347-1354)"
             ))
         })?;
         if top.sequence.is_modified() {
@@ -187,7 +187,7 @@ pub(crate) fn report(
         ));
     }
 
-    // FileInfo.cpp:1394-1397: a single zero keeps Math::mean off an empty range.
+    // FileInfo.cpp:1396-1399: a single zero keeps Math::mean off an empty range.
     if peptide_length.is_empty() {
         peptide_length.push(0.0);
     }
@@ -202,13 +202,23 @@ pub(crate) fn report(
             .text(")\n");
     }
     os.text("Number of:\n");
-    os.text("  runs:                       ").value(runs_count).text("\n");
-    os.text("  protein hits:               ").value(protein_hit_count).text("\n");
-    os.text("  non-redundant protein hits: ").value(proteins_seen.len()).text("\n");
+    os.text("  runs:                       ")
+        .value(runs_count)
+        .text("\n");
+    os.text("  protein hits:               ")
+        .value(protein_hit_count)
+        .text("\n");
+    os.text("  non-redundant protein hits: ")
+        .value(proteins_seen.len())
+        .text("\n");
     os.text("  (only hits that differ in the accession)\n");
     os.text("\n");
-    os.text("  matched spectra:    ").value(spectrum_count).text("\n");
-    os.text("  peptide sequences:  ").value(peptides_ignore_mods.len()).text("\n");
+    os.text("  matched spectra:    ")
+        .value(spectrum_count)
+        .text("\n");
+    os.text("  peptide sequences:  ")
+        .value(peptides_ignore_mods.len())
+        .text("\n");
     os.text("  PSMs / spectrum (ignoring unidentified spectra):    ")
         .value(average_peptide_hits / divisor(spectrum_count))
         .text("\n");
@@ -223,7 +233,9 @@ pub(crate) fn report(
         .value(spectrum_count)
         .text(&modified_percentage(modified_peptide_count, spectrum_count))
         .text("\n");
-    os.text("  non-redundant peptide hits: ").value(peptides.len()).text("\n");
+    os.text("  non-redundant peptide hits: ")
+        .value(peptides.len())
+        .text("\n");
     os.text("  (only hits that differ in sequence and/or modifications)\n");
     for (index, (name, count)) in modification_counts.iter().enumerate() {
         if index == 0 {
@@ -242,7 +254,10 @@ pub(crate) fn report(
             .text(version)
             .text(")\n");
     }
-    os_tsv.text("general: num. of runs\t").value(runs_count).text("\n");
+    os_tsv
+        .text("general: num. of runs\t")
+        .value(runs_count)
+        .text("\n");
     os_tsv
         .text("general: num. of protein hits\t")
         .value(protein_hit_count)
@@ -265,8 +280,10 @@ pub(crate) fn report(
         .text("\n");
     // The source's trailing space before the tab is part of the label.
     os_tsv
-        .text("general: num. of non-redundant peptide hits (only hits that differ in sequence \
-               and/or modifications): \t")
+        .text(
+            "general: num. of non-redundant peptide hits (only hits that differ in sequence \
+               and/or modifications): \t",
+        )
         .value(peptides.len())
         .text("\n");
 
@@ -313,7 +330,7 @@ fn write_trailing_sections(
             // FileInfo.cpp:1994-1995 streams the value with no trailing newline.
             os_tsv.text("meta: document ID\t").text(&data.identifier);
         } else {
-            // FileInfo.cpp:2005-2074: the peak-file arm, over the MSExperiment
+            // FileInfo.cpp:2005-2081: the peak-file arm, over the MSExperiment
             // this branch never loaded.
             super::peaks::write_meta(&MSExperiment::default(), os, os_tsv);
         }
@@ -327,7 +344,7 @@ fn write_trailing_sections(
     if options.statistics {
         write_statistics_title(os);
         if !is_idxml {
-            // FileInfo.cpp:2384-2422 over an empty experiment: no MS-level-1
+            // FileInfo.cpp:2384-2434 over an empty experiment: no MS-level-1
             // peak contributes an intensity and `meta_names` is empty, so the
             // arm writes one all-zero block at writtenDigits<float>() and
             // nothing to the TSV report.
@@ -378,7 +395,7 @@ fn source_is_empty(identification: &PeptideIdentification) -> bool {
         && identification.higher_score_better
 }
 
-/// `FileInfo.cpp:1353-1367`: the C-terminal modification, then the N-terminal
+/// `FileInfo.cpp:1353-1372`: the C-terminal modification, then the N-terminal
 /// one, then every modified residue in order.
 ///
 /// A terminal modification is counted under `getId()`, which

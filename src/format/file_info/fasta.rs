@@ -6,7 +6,7 @@
 //! (`FORMAT/FileInfo.cpp:853-1076`, `:2001-2004`, `:2112-2114`, `:2377-2379`).
 //!
 //! The FASTA branch of the report. The entries are loaded through
-//! [`FASTAFile::load`], and the branch then writes, in the source order:
+//! [`FASTAFile::load`](crate::format::fasta::FASTAFile::load), and the branch then writes, in the source order:
 //!
 //! 1. the number of sequences;
 //! 2. the sequence-length distribution, five lines, but only when there is at
@@ -29,39 +29,42 @@
 //! `:2377-2379`), so `-m` and `-s` contribute only their titles and `-p` its
 //! title and the no-information line.
 //!
-//! The structured [`FastaInfo`] is filled alongside, as the source fills its
+//! The structured [`FastaInfo`](crate::format::file_info::model::FastaInfo) is filled alongside, as the source fills its
 //! `Result`; the duplicate warnings the source writes with `OPENMS_LOG_WARN`
-//! go into [`FileInfoResult::warnings`], which is where this port collects the
+//! go into [`FileInfoResult::warnings`](crate::format::file_info::model::FileInfoResult::warnings), which is where this port collects the
 //! messages the source keeps out of the reports.
 //!
-//! See `docs/FILE_INFO_FASTA_SUPPORT.md` for the evidence and the native
+//! See `docs/FILE_INFO_A7_SUPPORT.md` for the evidence and the native
 //! differences.
 
 use super::model::{FastaInfo, FileInfoResult, Options};
-use super::report::{ReportStream, write_meta_title, write_processing, write_processing_title,
-                    write_statistics_title};
+use super::report::{
+    ReportStream, write_meta_title, write_processing, write_processing_title,
+    write_statistics_title,
+};
 use crate::concept::math_functions::percent_of;
 use crate::format::fasta::{FASTAEntry, FASTAFile};
 use crate::math::statistic_functions::{
-    SummaryStatistics, mean, median_sorted, quantile1st_sorted, quantile3rd_sorted, variance_with_mean,
+    SummaryStatistics, mean, median_sorted, quantile1st_sorted, quantile3rd_sorted,
+    variance_with_mean,
 };
 use crate::{Error, Result};
 use std::collections::BTreeMap;
 use std::path::Path;
 
-/// `AA_AMBIGUOUS_BXZJ` (`FileInfo.cpp:896`): B = Asx, Z = Glx, X = unknown,
+/// `AA_AMBIGUOUS_BXZJ` (`FileInfo.cpp:890`): B = Asx, Z = Glx, X = unknown,
 /// J = Leu/Ile, in both cases.
 const AA_AMBIGUOUS_BXZJ: &[u8] = b"BZXbzxJj";
 
-/// `AA_AMBIGUOUS_BXZ` (`FileInfo.cpp:897`), the same without J.
+/// `AA_AMBIGUOUS_BXZ` (`FileInfo.cpp:891`), the same without J.
 const AA_AMBIGUOUS_BXZ: &[u8] = b"BZXbzx";
 
-/// `NUCLEOTIDE_CHARS` (`FileInfo.cpp:901`): the standard codes A, C, G, T and
+/// `NUCLEOTIDE_CHARS` (`FileInfo.cpp:895`): the standard codes A, C, G, T and
 /// U and the ambiguity codes, in both cases. A sequence byte outside this set
 /// makes the whole file amino acid.
 const NUCLEOTIDE_CHARS: &[u8] = b"ACGTUNacgtunRYSWKMBDHVryswkmbdhv";
 
-/// `NA_AMBIGUOUS` (`FileInfo.cpp:902`): every IUPAC nucleotide ambiguity code,
+/// `NA_AMBIGUOUS` (`FileInfo.cpp:896`): every IUPAC nucleotide ambiguity code,
 /// in both cases.
 const NA_AMBIGUOUS: &[u8] = b"NRYSWKMBDHVnryswkmbdhv";
 
@@ -106,7 +109,8 @@ pub(crate) fn report(
     let mut sequences_by_hash: BTreeMap<u64, usize> = BTreeMap::new();
 
     for (index, entry) in entries.iter().enumerate() {
-        if let Some(previous) = headers_by_hash.insert(string_hash(entry.identifier.as_bytes()), index)
+        if let Some(previous) =
+            headers_by_hash.insert(string_hash(entry.identifier.as_bytes()), index)
         {
             if entries[previous].header_matches(entry) {
                 dup_header += 1;
@@ -116,7 +120,8 @@ pub(crate) fn report(
                 ));
             }
         }
-        if let Some(previous) = sequences_by_hash.insert(string_hash(entry.sequence.as_bytes()), index)
+        if let Some(previous) =
+            sequences_by_hash.insert(string_hash(entry.sequence.as_bytes()), index)
         {
             if entries[previous].sequence_matches(entry) {
                 dup_seq += 1;
@@ -153,7 +158,9 @@ pub(crate) fn report(
     };
     let entry_count = count(entries.len())?;
 
-    os.text("\nNumber of sequences   : ").value(entry_count).text("\n");
+    os.text("\nNumber of sequences   : ")
+        .value(entry_count)
+        .text("\n");
 
     if !sequence_lengths.is_empty() {
         sequence_lengths.sort_unstable();
@@ -239,7 +246,10 @@ pub(crate) fn report(
 
     let mut ambiguity_counts = BTreeMap::new();
     if is_nucleic_acid {
-        ambiguity_counts.insert("N".to_owned(), count_residues(&residue_counts, NA_AMBIGUOUS_N));
+        ambiguity_counts.insert(
+            "N".to_owned(),
+            count_residues(&residue_counts, NA_AMBIGUOUS_N),
+        );
         ambiguity_counts.insert(
             "IUPAC".to_owned(),
             count_residues(&residue_counts, NA_AMBIGUOUS),
@@ -289,16 +299,19 @@ pub(crate) fn report(
     Ok(())
 }
 
-/// `is_nucleic_acid` (`FileInfo.cpp:907-919`): true until one sequence byte
+/// `is_nucleic_acid` (`FileInfo.cpp:900-912`): true until one sequence byte
 /// falls outside [`NUCLEOTIDE_CHARS`]. An empty entry list leaves it true, as
 /// the source's initial value does.
 fn is_nucleic_acid(entries: &[FASTAEntry]) -> bool {
-    entries
-        .iter()
-        .all(|entry| entry.sequence.bytes().all(|byte| NUCLEOTIDE_CHARS.contains(&byte)))
+    entries.iter().all(|entry| {
+        entry
+            .sequence
+            .bytes()
+            .all(|byte| NUCLEOTIDE_CHARS.contains(&byte))
+    })
 }
 
-/// `count_residues` (`FileInfo.cpp:881-891`): the counts of `which`'s bytes
+/// `count_residues` (`FileInfo.cpp:877-885`): the counts of `which`'s bytes
 /// that the table holds, absent keys contributing nothing. The source looks
 /// the keys up with `find`, so this never inserts.
 fn count_residues(residue_counts: &BTreeMap<u8, u64>, which: &[u8]) -> u64 {
@@ -348,7 +361,7 @@ fn reject_non_ascii(entries: &[FASTAEntry]) -> Result<()> {
     Ok(())
 }
 
-/// The structured length statistics (`FileInfo.cpp:1045-1066`): three or more
+/// The structured length statistics (`FileInfo.cpp:1046-1065`): three or more
 /// sequences go through the full [`SummaryStatistics`], one or two are filled
 /// field by field with the quartiles falling back to the extremes, and none
 /// leaves the default.
@@ -385,8 +398,8 @@ fn length_stats(lengths: &[u64]) -> Result<SummaryStatistics> {
 /// `libstdc++-v3/libsupc++/hash_bytes.cc`.
 ///
 /// The hash is observable. FileInfo's duplicate detection ASSIGNS each bucket
-/// a one-element vector instead of appending to it (`FileInfo.cpp:935` and
-/// `:950`), so a bucket only ever remembers the last index with that hash. Two
+/// a one-element vector instead of appending to it (`FileInfo.cpp:931` and
+/// `:949`), so a bucket only ever remembers the last index with that hash. Two
 /// different strings that collide therefore hide a duplicate that a
 /// collision-free hash would have reported, and reproducing the reference
 /// build needs its hash function rather than merely some hash function. No
@@ -438,4 +451,68 @@ fn count(value: usize) -> Result<u64> {
 
 fn overflow(message: &str) -> Error {
     Error::InvalidValue(message.into())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::string_hash;
+
+    /// 28 of the 60 values `oracle/a7-fileinfo/scripts/probe_std_hash.cpp`
+    /// printed on ibminode06 (g++ 13.3.0, the reference build's toolchain):
+    /// the empty string, every `length % 8` tail case, one exactly-aligned
+    /// input, the identifiers the A7 fixtures use, two bytes above `0x7f` and
+    /// an embedded NUL. The probe's own record is
+    /// `oracle/a7-fileinfo/scripts/probe_std_hash.cpp`; the hash matters
+    /// because the source overwrites each duplicate-detection bucket instead of
+    /// appending to it, so a collision hides a duplicate.
+    #[test]
+    fn string_hash_matches_the_reference_libstdcxx() {
+        const PROBE: [(&[u8], u64); 28] = [
+            (b"", 0x553e_9390_1e46_2a6e),
+            (b"A", 0x6006_68de_4345_e18e),
+            (b"AC", 0x365a_fb19_3177_08eb),
+            (b"ACD", 0x5266_fbbb_b357_8c7a),
+            (b"ACDE", 0x9e97_a9eb_486c_cae7),
+            (b"ACDEF", 0x1538_0b27_6091_8a57),
+            (b"ACDEFG", 0x4105_bb2d_29df_d0d6),
+            (b"ACDEFGH", 0x36bf_acb5_e10c_dcac),
+            (b"ACDEFGHI", 0xc326_f1c7_b6b6_7380),
+            (b"ACDEFGHIK", 0x959b_3450_528c_4632),
+            (b"ACDEFGHIKLMNPQRS", 0xc39f_dc69_f5e7_653d),
+            (b"DUP", 0xddae_ab53_8cf9_1be7),
+            (b"SAME", 0x52bb_604c_c6c3_24b4),
+            (b"SEQ1", 0x6c95_a25e_3c3c_74c1),
+            (b"SEQ2", 0x90bc_5527_6222_8415),
+            (b"SEQ3", 0xdaeb_6802_1175_e753),
+            (b"DNA1", 0x7b14_bebf_849f_067a),
+            (b"DNA2", 0xaeb8_3a32_871d_d15b),
+            (b"DNA3", 0x9cc1_18f8_987b_8732),
+            (b"AA1", 0x682d_3f78_6dc9_2510),
+            (b"AA2", 0x3acb_bcac_5774_31f9),
+            (b"AA3", 0x6509_6d05_3ab0_0b09),
+            (b"MIX", 0xc0a1_9812_dd37_6ede),
+            (b"TINY", 0xc3d2_7402_1ab6_8fc0),
+            (b"M", 0x5043_d991_72e3_9881),
+            (b"MKVLmkvlATTLattl", 0x4d66_1ddb_623a_2463),
+            (b"\xc3\xa9\xc3\xa9", 0xb319_0c67_004b_b667),
+            (b"a\x00b", 0xad5e_8d18_a187_2c2f),
+        ];
+        for (input, expected) in PROBE {
+            assert_eq!(
+                string_hash(input),
+                expected,
+                "std::hash of {input:?} (length {})",
+                input.len()
+            );
+        }
+    }
+
+    /// The hash of a long input is not the hash of its prefix: the aligned loop
+    /// runs more than once.
+    #[test]
+    fn string_hash_consumes_every_eight_byte_block() {
+        let long = b"ACDEFGHIKLMNPQRSTVWYacdefghiklmnpqrstvwy";
+        assert_ne!(string_hash(long), string_hash(&long[..16]));
+        assert_ne!(string_hash(long), string_hash(&long[..32]));
+    }
 }

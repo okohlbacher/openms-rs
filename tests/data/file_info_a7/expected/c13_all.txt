@@ -1,0 +1,168 @@
+
+-- General information --
+
+File name: <FIX>/FileInfo_13_input.consensusXML
+File type: consensusXML
+
+Number of consensus features: 0
+No consensus features found, map is empty!
+
+File descriptions:
+  D:\data\Lars\temp\2015-05-21_082116_ukmz1005immz_11636_1\TOPPAS_tmp\peptide_quant\002_FeatureFinderMultiplex\out\WL384.mzML_tmp2:
+    identifier: 0
+    label:      Dimethyl0
+    size:       8035
+  D:\data\Lars\temp\2015-05-21_082116_ukmz1005immz_11636_1\TOPPAS_tmp\peptide_quant\002_FeatureFinderMultiplex\out\WL384.mzML_tmp2:
+    identifier: 1
+    label:      Dimethyl6
+    size:       8035
+
+Assigned peptide identifications: 0
+Unassigned peptide identifications: 0
+
+-- Meta information --
+
+Document ID: 
+
+
+-- Data processing information --
+
+Processing 1:
+  software name:    IDMapper
+  software version: 2.0.0
+  completion time:  2015-07-19 18:46:46
+  actions:          Identification mapping
+
+Processing 2:
+  software name:    IDConflictResolver
+  software version: 2.0.0
+  completion time:  2015-07-19 18:46:56
+  actions:          Data filtering
+
+Processing 3:
+  software name:    FileFilter
+  software version: 2.0.0
+  completion time:  2015-07-19 18:47:04
+  actions:          Data filtering
+
+Processing 4:
+  software name:    FileFilter
+  software version: 2.0.0
+  completion time:  2015-07-20 15:11:08
+  actions:          Data filtering
+
+
+-- Statistics --
+
+Intensities of consensus features:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Qualities of consensus features:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Retention time differences ("element - center", weight 1 per element):
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Absolute retention time differences ("|element - center|", weight 1 per element):
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Average absolute differences of retention time within consensus features ("|element - center|", weight 1 per consensus features):
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Mass-to-charge differences ("element - center", weight 1 per element):
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Absolute differences of mass-to-charge ("|element - center|", weight 1 per element):
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Average absolute differences of mass-to-charge within consensus features ("|element - center|", weight 1 per consensus features):
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Intensity ratios ("element / center", weight 1 per element):
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Relative intensity error ("max{(element / center), (center / element)}", weight 1 per element):
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Average relative intensity error within consensus features ("max{(element / center), (center / element)}", weight 1 per consensus features):
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+
+

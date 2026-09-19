@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<consensusXML version="1.7" document_id="a7_cons" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="2">
+		<map id="0" name="a7_map_0.featureXML" label="label_0" size="7">
+		</map>
+		<map id="1" name="a7_map_1.featureXML" label="label_1" size="7">
+		</map>
+	</mapList>
+	<consensusElementList>
+	</consensusElementList>
+</consensusXML>

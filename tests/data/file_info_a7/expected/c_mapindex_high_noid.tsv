@@ -1,0 +1,10 @@
+general: file name	<FIX>/a7_cons_mapindex_high_noid.consensusXML
+general: file type	consensusXML
+general: ranges: retention time: min	9.90
+general: ranges: retention time: max	10.10
+general: ranges: mass-to-charge: min	499.90
+general: ranges: mass-to-charge: max	500.10
+general: ranges: intensity: min	90.00
+general: ranges: intensity: max	110.00
+general: assigned peptide identifications	0
+general: unassigned peptide identifications	0

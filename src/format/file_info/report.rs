@@ -22,12 +22,15 @@
 //! # Scope
 //!
 //! This port runs the peak-file branch for DTA, DTA2D and mzML
-//! ([`crate::format::file_info::peaks`]) and the featureXML branch
-//! ([`crate::format::file_info::features`]), each with `-m`, `-p` and `-s`, and
+//! ([`crate::format::file_info::peaks`]), the featureXML branch
+//! ([`crate::format::file_info::features`]), the consensusXML branch
+//! ([`crate::format::file_info::consensus`]), the idXML and mzIdentML branch
+//! ([`crate::format::file_info::identifications`]) and the FASTA branch
+//! ([`crate::format::file_info::fasta`]), each with `-m`, `-p` and `-s`, and
 //! the `-i`, `-d` and `-c` checks ([`crate::format::file_info::checks`]): `-i`
 //! before the content of any type, `-d` and `-c` inside the peak-file branch,
-//! which is where the source guards them, so a featureXML map ignores both as
-//! the source does.
+//! which is where the source guards them, so no other branch reaches either, as
+//! in the source.
 //!
 //! Every other part of the source report is refused with
 //! [`Error::Unsupported`] naming the branch, once the type is known and before
@@ -39,12 +42,18 @@
 //! in full even on a branch this port does not run. Refused are:
 //!
 //! - `-v` (schema and semantic validation), for every type;
-//! - the consensusXML, idXML, mzIdentML, FASTA, pepXML, mzTab, trafoXML and PQP
-//!   branches;
+//! - the pepXML, mzTab, trafoXML and PQP branches;
 //! - peak files of the types the source loads but no native loader serves on
 //!   this path: mzXML, mzData, MGF, MS2, sqMass, XMass (`fid`) and MSP, and
 //!   Thermo RAW and Bruker TDF, which the source loads when built with its
 //!   default `WITH_THERMO_RAW` and `WITH_OPENTIMS` options.
+//!
+//! Three inputs are refused where the source's behaviour is an out-of-bounds
+//! `std::vector` access, under lead decision D1: a consensus sub-feature whose
+//! map index is at or beyond the column-header count, an identification file
+//! with no protein identification run, and a peptide identification with no
+//! hit. `docs/FILE_INFO_A7_SUPPORT.md` records all three with the Release
+//! build's answer to each.
 //!
 //! `docs/FILE_INFO_SUPPORT.md` holds the API mapping, the preserved source
 //! conventions, the native differences and the evidence.
@@ -405,10 +414,9 @@ fn branch(in_type: FileType) -> Branch {
         FileType::ConsensusXml => Branch::Consensus,
         FileType::IdXml | FileType::MzIdentMl => Branch::Identifications,
         FileType::Fasta => Branch::Fasta,
-        FileType::PepXml
-        | FileType::MzTab
-        | FileType::TransformationXml
-        | FileType::Pqp => Branch::Unported,
+        FileType::PepXml | FileType::MzTab | FileType::TransformationXml | FileType::Pqp => {
+            Branch::Unported
+        }
         // Thermo RAW and Bruker TDF load in the source built with its default
         // WITH_THERMO_RAW and WITH_OPENTIMS options; without them the source
         // loader throws ParseError. Neither has a native reader here.

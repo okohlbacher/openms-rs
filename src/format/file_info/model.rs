@@ -529,11 +529,13 @@ pub struct FileInfoResult {
     /// Empty for an unknown file type.
     pub tsv: String,
     /// Messages the source writes with `OPENMS_LOG_WARN` during the run
-    /// instead of into the reports, in order: currently only
-    /// `FAIMSHelper`'s missing-voltage warning, which the source logs twice
-    /// (it asks for the voltages twice) and this field holds once. Native
-    /// field: the library prints nothing, and a caller such as the FileInfo
-    /// tool decides where the messages go.
+    /// instead of into the reports, in order: `FAIMSHelper`'s
+    /// missing-voltage warning, which the source logs twice (it asks for the
+    /// voltages twice) and this field holds once, and the FASTA branch's
+    /// duplicate-header and duplicate-sequence warnings, one per duplicate in
+    /// the order the source logs them. Native field: the library prints
+    /// nothing, and a caller such as the FileInfo tool decides where the
+    /// messages go.
     pub warnings: Vec<String>,
 }
 

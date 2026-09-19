@@ -1,0 +1,22 @@
+
+-- General information --
+
+File name: <FIX>/FileInfo_14_input.mzid
+File type: mzid
+Search Engine(s):
+  MS-GF+ (version: Beta (v10089))
+Number of:
+  runs:                       4
+  protein hits:               67
+  non-redundant protein hits: 44
+  (only hits that differ in the accession)
+
+  matched spectra:    69
+  peptide sequences:  49
+  PSMs / spectrum (ignoring unidentified spectra):    1
+  peptide hits:               69 (avg. length: 11)
+  modified top-hits:          4/69 (5.8%)
+  non-redundant peptide hits: 49
+  (only hits that differ in sequence and/or modifications)
+  Modification count (top-hits only): Carbamidomethyl (C) 4
+

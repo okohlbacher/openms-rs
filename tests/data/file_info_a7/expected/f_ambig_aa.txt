@@ -1,0 +1,48 @@
+
+-- General information --
+
+File name: <FIX>/a7_fasta_ambig_aa.fasta
+File type: fasta
+
+Number of sequences   : 3
+Sequence length distribution:
+  Minimum : 36
+  25%ile  : 36
+  Median  : 36
+  75%ile  : 36
+  Maximum : 36
+Number of sequences with ambiguous amino acids: 2 (66.67%)
+# duplicated headers  : 0 (0%)
+# duplicated sequences: 0 (0%) [by exact string matching]
+Total amino acids     : 108
+
+Amino acid counts:
+  A:	9
+  B:	2
+  C:	3
+  D:	4
+  E:	4
+  F:	4
+  G:	7
+  H:	3
+  I:	3
+  J:	2
+  K:	6
+  L:	9
+  M:	6
+  N:	3
+  P:	3
+  Q:	3
+  R:	6
+  S:	6
+  T:	9
+  V:	6
+  W:	3
+  X:	2
+  Y:	3
+  Z:	2
+Ambiguous amino acids (B/Z/X)  : 6 (5.56%)
+                      (B/Z/X/J): 8 (7.41%)
+
+
+

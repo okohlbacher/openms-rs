@@ -1,0 +1,35 @@
+
+-- General information --
+
+File name: <FIX>/IDFileConverter_10_output.idXML
+File type: idXML
+Search Engine(s):
+  X! Tandem (version: )
+Number of:
+  runs:                       2
+  protein hits:               4
+  non-redundant protein hits: 4
+  (only hits that differ in the accession)
+
+  matched spectra:    4
+  peptide sequences:  4
+  PSMs / spectrum (ignoring unidentified spectra):    1
+  peptide hits:               4 (avg. length: 18)
+  modified top-hits:          4/4 (100.0%)
+  non-redundant peptide hits: 4
+  (only hits that differ in sequence and/or modifications)
+  Modification count (top-hits only): Dimethyl 2, Dimethyl (K) 1, Dimethyl:2H(4)13C(2) 2, Dimethyl:2H(4)13C(2) (K) 1
+-- Meta information --
+
+Document ID: 
+
+
+-- Data processing information --
+
+No information about data processing available!
+
+
+-- Statistics --
+
+
+

@@ -1,0 +1,35 @@
+
+-- General information --
+
+File name: <FIX>/a7_id_mods.idXML
+File type: idXML
+Search Engine(s):
+  A7Engine (version: 2.5)
+Number of:
+  runs:                       1
+  protein hits:               2
+  non-redundant protein hits: 2
+  (only hits that differ in the accession)
+
+  matched spectra:    5
+  peptide sequences:  3
+  PSMs / spectrum (ignoring unidentified spectra):    1
+  peptide hits:               5 (avg. length: 9)
+  modified top-hits:          4/5 (80.0%)
+  non-redundant peptide hits: 5
+  (only hits that differ in sequence and/or modifications)
+  Modification count (top-hits only): Amidated 1, Carbamidomethyl (C) 1, Dimethyl 1, Oxidation (M) 2
+-- Meta information --
+
+Document ID: 
+
+
+-- Data processing information --
+
+No information about data processing available!
+
+
+-- Statistics --
+
+
+

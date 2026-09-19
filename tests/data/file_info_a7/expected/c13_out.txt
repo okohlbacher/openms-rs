@@ -1,0 +1,23 @@
+
+-- General information --
+
+File name: <FIX>/FileInfo_13_input.consensusXML
+File type: consensusXML
+
+Number of consensus features: 0
+No consensus features found, map is empty!
+
+File descriptions:
+  D:\data\Lars\temp\2015-05-21_082116_ukmz1005immz_11636_1\TOPPAS_tmp\peptide_quant\002_FeatureFinderMultiplex\out\WL384.mzML_tmp2:
+    identifier: 0
+    label:      Dimethyl0
+    size:       8035
+  D:\data\Lars\temp\2015-05-21_082116_ukmz1005immz_11636_1\TOPPAS_tmp\peptide_quant\002_FeatureFinderMultiplex\out\WL384.mzML_tmp2:
+    identifier: 1
+    label:      Dimethyl6
+    size:       8035
+
+Assigned peptide identifications: 0
+Unassigned peptide identifications: 0
+
+

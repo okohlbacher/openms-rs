@@ -6,7 +6,7 @@
 //! (`FORMAT/FileInfo.cpp:1146-1311`, `:1985-1989`, `:2101-2104`, `:2257-2372`).
 //!
 //! The consensusXML branch of the report. The map is loaded through
-//! [`FileHandler::load_consensus_map`], and the branch then writes, in the
+//! [`FileHandler::load_consensus_map`](crate::format::FileHandler::load_consensus_map), and the branch then writes, in the
 //! source order:
 //!
 //! 1. the consensus-feature size histogram, in *descending* size, each row
@@ -30,23 +30,23 @@
 //! branch; `-p` the map's data processing; `-s` eleven statistics blocks, none of
 //! which is written to the TSV.
 //!
-//! The structured [`FeatureInfo`] and ranges are filled alongside, as the
+//! The structured [`FeatureInfo`](crate::format::file_info::model::FeatureInfo) and ranges are filled alongside, as the
 //! source fills its `Result`.
 //!
 //! # What this port refuses
 //!
-//! `FileInfo.cpp:1175-1183` sizes one occurrence vector from the number of
+//! `FileInfo.cpp:1176-1183` sizes one occurrence vector from the number of
 //! column headers and then indexes it with each sub-feature's map index. A map
 //! index at or beyond the header count — a map with no `<mapList>` at all
 //! among them — is an out-of-bounds `std::vector::operator[]`, which the
 //! reference build answers with a segmentation fault or with whatever occupies
 //! the adjacent heap. Lead decision D1 refuses exactly there, so
-//! [`report`] returns [`Error::InvalidValue`] before any of the report is
+//! [`report`] returns [`Error::InvalidValue`](crate::Error::InvalidValue) before any of the report is
 //! written. The same file without a peptide identification on the offending
 //! consensus feature never reaches the indexing and is reported normally, as
 //! it is by the reference build.
 //!
-//! See `docs/FILE_INFO_CONSENSUS_SUPPORT.md` for the evidence and the native
+//! See `docs/FILE_INFO_A7_SUPPORT.md` for the evidence and the native
 //! differences.
 
 #![cfg(feature = "consensusxml")]
@@ -79,7 +79,7 @@ pub(crate) fn report(
     let ranges = consensus_map_ranges(&map)?;
     let columns = map.column_headers.len();
 
-    // FileInfo.cpp:1152-1186. `size_with_id` is read through operator[] in the
+    // FileInfo.cpp:1153-1186. `size_with_id` is read through operator[] in the
     // print loop, so an absent size reads as zero; a BTreeMap lookup with a
     // zero default is the same reading.
     let mut size_histogram: BTreeMap<u64, u64> = BTreeMap::new();
@@ -138,7 +138,7 @@ pub(crate) fn report(
             .keys()
             .next_back()
             .expect("the histogram is not empty");
-        // FileInfo.cpp:1213: the source's own expression, not a digit count.
+        // FileInfo.cpp:1221: the source's own expression, not a digit count.
         let field_width = usize::try_from(largest / 10 + 1)
             .map_err(|_| overflow("consensus size column width overflows this platform's usize"))?;
         os.text("\nNumber of consensus features:\n");
@@ -281,12 +281,12 @@ pub(crate) fn report(
 }
 
 /// Refuse a sub-feature whose map index is at or beyond the number of column
-/// headers, which `FileInfo.cpp:1181` would use to index a vector sized from
+/// headers, which `FileInfo.cpp:1183` would use to index a vector sized from
 /// that number.
 ///
 /// # Errors
 ///
-/// [`Error::InvalidValue`] naming the index and the header count.
+/// [`Error::InvalidValue`](crate::Error::InvalidValue) naming the index and the header count.
 fn reject_out_of_range_map_index(feature: &ConsensusFeature, columns: usize) -> Result<()> {
     let columns_available = u64::try_from(columns)
         .map_err(|_| overflow("consensus column-header count overflows 64 bits"))?;
@@ -296,7 +296,7 @@ fn reject_out_of_range_map_index(feature: &ConsensusFeature, columns: usize) -> 
                 "FileInfo consensusXML branch: a consensus feature with a peptide \
                  identification holds a sub-feature of map {} while the map has {columns} column \
                  header(s); the source indexes an occurrence vector of that length with the map \
-                 index (FileInfo.cpp:1175-1183), which is out of bounds",
+                 index (FileInfo.cpp:1176-1183), which is out of bounds",
                 handle.map_index
             )));
         }
@@ -343,7 +343,7 @@ fn to_range(range: &RangeBase) -> Result<Option<Range>> {
     }))
 }
 
-/// The samples the `-s` block summarises (`FileInfo.cpp:2259-2323`).
+/// The samples the `-s` block summarises (`FileInfo.cpp:2259-2328`).
 ///
 /// `qualities` and `widths` reproduce a source defect: both are declared as
 /// `vector<double> qualities(size)` — `size` zero-initialised values — and then

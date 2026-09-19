@@ -1,0 +1,181 @@
+
+-- General information --
+
+File name: <FIX>/Epifany_2_input.consensusXML
+File type: consensusXML
+
+Number of consensus features:
+  of size 4: 4	 (features: 16 )	 with at least one ID: 2	 (features: 8 )
+  of size 3: 2	 (features: 6 )	 with at least one ID: 1	 (features: 3 )
+  of size 1: 1	 (features: 1 )	 with at least one ID: 1	 (features: 1 )
+  peptides (with different mod. and charge) observed in 4 maps: 2	 (features: 8 )
+  peptides (with different mod. and charge) observed in 3 maps: 1	 (features: 3 )
+  peptides (with different mod. and charge) observed in 1 maps: 1	 (features: 1 )
+  total consensus features:    7  with at least one ID: 4
+  total features:              23  with at least one ID:  12
+Ranges:
+  retention time: 3122.84 .. 3953.19 sec (13.8 min)
+  mass-to-charge: 451.75 .. 736.86
+  intensity: 571030.00 .. 23348200.00
+
+File descriptions:
+  C:\c1f1r1.mzML:
+    identifier: 0
+    label:      label-free
+    size:       3
+  C:\c1f2r1.mzML:
+    identifier: 1
+    label:      label-free
+    size:       4
+  C:\c1f1r2.mzML:
+    identifier: 2
+    label:      label-free
+    size:       3
+  C:\c1f2r2.mzML:
+    identifier: 3
+    label:      label-free
+    size:       4
+  C:\c2f1r1.mzML:
+    identifier: 4
+    label:      label-free
+    size:       3
+  C:\c2f2r1.mzML:
+    identifier: 5
+    label:      label-free
+    size:       4
+  C:\c2f1r2.mzML:
+    identifier: 6
+    label:      label-free
+    size:       3
+  C:\c2f2r2.mzML:
+    identifier: 7
+    label:      label-free
+    size:       4
+
+Assigned peptide identifications: 12
+Unassigned peptide identifications: 19
+
+-- Meta information --
+
+Document ID: 
+
+
+-- Data processing information --
+
+No information about data processing available!
+
+
+-- Statistics --
+
+Intensities of consensus features:
+  num. of values: 7
+  mean:           4.56975e+06
+  minimum:        610027
+  lower quartile: 1.57671e+06
+  median:         3.20261e+06
+  upper quartile: 4.33027e+06
+  maximum:        1.62624e+07
+  variance:       2.80844e+13
+
+Qualities of consensus features:
+  num. of values: 14
+  mean:           0.491662
+  minimum:        0
+  lower quartile: 0
+  median:         0.48687
+  upper quartile: 0.986154
+  maximum:        0.992136
+  variance:       0.260354
+
+Retention time differences ("element - center", weight 1 per element):
+  num. of values: 23
+  mean:           -0.152205379498691
+  minimum:        -6.8440953395002
+  lower quartile: -1.85690632289015
+  median:         -0.599922860890274
+  upper quartile: 3.00329945147996
+  maximum:        3.67653023018011
+  variance:       9.20024444446157
+
+Absolute retention time differences ("|element - center|", weight 1 per element):
+  num. of values: 23
+  mean:           2.46117620765697
+  minimum:        0.340252924140259
+  lower quartile: 1.1215743921498
+  median:         1.88172505932971
+  upper quartile: 3.65986599541975
+  maximum:        6.8440953395002
+  variance:       2.89173978561914
+
+Average absolute differences of retention time within consensus features ("|element - center|", weight 1 per consensus features):
+  num. of values: 7
+  mean:           2.34847245895394
+  minimum:        1.01351639248014
+  lower quartile: 1.11300931592996
+  median:         1.78204332377732
+  upper quartile: 3.96219238104754
+  maximum:        4.56273022633331
+  variance:       2.08561469195553
+
+Mass-to-charge differences ("element - center", weight 1 per element):
+  num. of values: 23
+  mean:           -3.1994760866422e-05
+  minimum:        -0.000339499521032849
+  lower quartile: -0.000186669866025113
+  median:         -3.99909860107073e-05
+  upper quartile: 0.000150964688032218
+  maximum:        0.000379250543005583
+  variance:       3.43260644946241e-08
+
+Absolute differences of mass-to-charge ("|element - center|", weight 1 per element):
+  num. of values: 23
+  mean:           0.000155919053818944
+  minimum:        1.51346189909418e-05
+  lower quartile: 5.51256050016491e-05
+  median:         0.000167655279938117
+  upper quartile: 0.000199464820013873
+  maximum:        0.000379250543005583
+  variance:       9.9804739364155e-09
+
+Average absolute differences of mass-to-charge within consensus features ("|element - center|", weight 1 per consensus features):
+  num. of values: 7
+  mean:           0.000155981736786056
+  minimum:        3.75605490035014e-05
+  lower quartile: 0.000100860914216128
+  median:         0.000151412963020903
+  upper quartile: 0.000226333014325064
+  maximum:        0.000236292738037491
+  variance:       5.22210838755245e-09
+
+Intensity ratios ("element / center", weight 1 per element):
+  num. of values: 23
+  mean:           1.08523
+  minimum:        0.919442
+  lower quartile: 0.996325
+  median:         1.03562
+  upper quartile: 1.21782
+  maximum:        1.43572
+  variance:       0.0199274
+
+Relative intensity error ("max{(element / center), (center / element)}", weight 1 per element):
+  num. of values: 23
+  mean:           1.11117
+  minimum:        1.00235
+  lower quartile: 1.01825
+  median:         1.06935
+  upper quartile: 1.21782
+  maximum:        1.43572
+  variance:       0.0147339
+
+Average relative intensity error within consensus features ("max{(element / center), (center / element)}", weight 1 per consensus features):
+  num. of values: 7
+  mean:           1.1108
+  minimum:        1.08762
+  lower quartile: 1.08762
+  median:         1.09052
+  upper quartile: 1.13704
+  maximum:        1.16914
+  variance:       0.00100171
+
+
+
