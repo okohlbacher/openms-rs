@@ -55,7 +55,7 @@ documented line no caller can move.
 | [`resolution.rs`](../src/analysis/feature_finder_picked/resolution.rs) | `intersection`, `resolve_overlaps`, `annotate_apex` |
 | [`instance.rs`](../src/analysis/feature_finder_picked/instance.rs) | `FeatureFinderAlgorithmPicked`, the source object with its state across runs (parameters, seeds, aborts, abort reasons, the log stream, the isotope windows, progress), and its `run` into the caller's map |
 | [`debug.rs`](../src/analysis/feature_finder_picked/debug.rs) | `DebugOutput`, `DebugLog`, `SeedMap`, `AbortReasons`, `seed_map`, `abort_map`, `debug_experiment`, `write_feature_debug_info`, `PseudoRtShift`, `HEAP_ADDRESS_END`, `ReportLine` |
-| [`source_sort.rs`](../src/analysis/feature_finder_picked/source_sort.rs) | `source_sort_by`, `source_sort_reversed_by`, `source_sort_permutation` (the Linux x86_64 Release build's `std::sort`, libstdc++'s introsort) and `source_stable_sort_permutation` with `TemporaryBuffer` (its `std::stable_sort`), comparison by comparison, NaN keys included |
+| [`source_sort.rs`](../src/math/source_sort.rs) | `source_sort_by`, `source_sort_reversed_by`, `source_sort_permutation` (the Linux x86_64 Release build's `std::sort`, libstdc++'s introsort) and `source_stable_sort_permutation` with `TemporaryBuffer` (its `std::stable_sort`), comparison by comparison, NaN keys included |
 | [`glibc_powf.rs`](../src/analysis/feature_finder_picked/glibc_powf.rs) (crate-private) | `powf` as the reference build's GNU C Library 2.39 computes it (`__powf_fma`), ported from Arm optimized-routines (MIT; the notice is in the file), and `mul`, SSE's `mulss` NaN rule |
 | [`glibc_libm.rs`](../src/analysis/feature_finder_picked/glibc_libm.rs) (crate-private) | `exp` and `log` as the reference build's GNU C Library 2.39 computes them (`__ieee754_exp_fma`, `__ieee754_log_fma`), ported from Arm optimized-routines (MIT; the notice is in the file); `atan` (the host's with glibc, the `libm` crate's elsewhere, lead decision D10's fallback) and `sqrt` with SSE's NaN bits |
 
@@ -882,7 +882,7 @@ whose `float` width overflows, replayed by
   intensity score is NaN and no seed is found (*Degenerate intensity bins*;
   `DegenerateBinStep::Refuse` covers these inputs too). The area iterator
   finds its scans and peaks with libstdc++'s `lower_bound`/`upper_bound`; the
-  port runs the same probe sequence (`scoring::libstdcxx`), so a NaN key gives
+  port runs the same probe sequence (`math::libstdcxx`), so a NaN key gives
   the same cell contents. It skips a scan whose drift time is NaN or infinite
   (`v2_dt_*`, `v3_dt_*`: one scan, sixteen, all, and with an unsorted input;
   `f64::MAX`, `f64::MIN` and finite drift times keep their scan). Each cell is
@@ -1114,7 +1114,7 @@ native difference 13.
 | `std::stable_sort` asks `operator new(nothrow)` for its buffer and halves the request after each failure | the same halving on the port's own allocation (`TemporaryBuffer::Allocate`); the port's buffer holds 8-byte indices where the source's holds 16-byte peaks or 8-byte indices | Which requests fail depends on the process's memory and is not reproducible; the algorithm for every buffer size is the source's (executed with a replaced `operator new(nothrow)` that refuses above a byte limit: full, partial and no buffer, `sort_probe.cpp`). |
 | step 2.5 allocates `56 * count` bytes for a window count at or below `vector::max_size()` | `Limits::max_isotope_windows` (default 1,000,000) refuses larger counts first, after the point where a debug run has opened its log; FeatureFinderCentroided exits 8 with that message where the executed tool reports `std::bad_alloc` with exit 12 | Allocation failure depends on memory (executed: 164,703,072,086,692,416 windows, and the `4e16 + 1` of m/z `2e18` at charge 2 and width 100, throw `std::bad_alloc` on the reference node); above `max_size()` the port returns the source's `length_error` text and the tool exits 12 as the executed one does (lead decision D6; m/z `1e19` gives `2e17 + 1` windows). |
 | the charge loop resizes every spectrum's float arrays to `3 + 2 * charge_count` in `UInt`, `charge_count` up to `2^31 - 2` without wrapping | `Limits::max_charges` (default 1,000) refuses more charges | A native ceiling in front of an allocation that depends on memory (executed: `std::bad_alloc` for `charge_low` 2, `charge_high` `INT_MAX`). The wrapping counts are refused whatever the limits (*Non-finite input*, refusal 5). |
-| `MSExperiment::RTBegin`, `MSSpectrum::MZBegin`/`MZEnd`/`findNearest` and the quantile search use `std::lower_bound`/`upper_bound` | the same probe sequence (`scoring::libstdcxx`) | On sorted keys any binary search gives the same index; on keys a NaN leaves unpartitioned only libstdc++'s sequence does. |
+| `MSExperiment::RTBegin`, `MSSpectrum::MZBegin`/`MZEnd`/`findNearest` and the quantile search use `std::lower_bound`/`upper_bound` | the same probe sequence (`math::libstdcxx`) | On sorted keys any binary search gives the same index; on keys a NaN leaves unpartitioned only libstdc++'s sequence does. |
 
 ### Score arrays
 
@@ -1248,7 +1248,7 @@ depend on the host's `exp` and `log`; the earlier macOS arm64 bounds
   provides as a correctly rounded fused multiply-add;
 - the payload of a NaN `f32` intensity promoted to `f64` outside the three
   helper-struct members, which use the emulated `cvtss2sd`
-  (`scoring::x86_64::widen`). Every other promotion on this path (the
+  (`math::x86_64::widen`). Every other promotion on this path (the
   residuals and Jacobians of both fitters, `fitting`'s measured intensities,
   `extension`'s comparisons) is a plain `f64::from`, whose NaN bits the Rust
   reference leaves to the host; `f64::from` and `widen` were measured to agree

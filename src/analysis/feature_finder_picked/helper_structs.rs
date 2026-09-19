@@ -34,7 +34,7 @@
 //! `MassTraces::intensity_profile` promote each `f32` to `f64` exactly where the
 //! source converts a `float` into a `double` expression, so their sums
 //! accumulate in `f64`, not in `f32`. All three promote with the Linux x86_64
-//! Release build's `cvtss2sd` (`scoring::x86_64::widen`) rather than with a
+//! Release build's `cvtss2sd` (`x86_64::widen`) rather than with a
 //! Rust cast, and `avg_mz` and `intensity_profile` also follow the executed
 //! operand order of the additions, multiplications and the division, so a NaN
 //! any of them creates or passes on carries the executed sign and payload on
@@ -222,7 +222,7 @@ impl MassTrace {
     /// `writeFeatureDebugInfo_` prints it as `-nan` (executed:
     /// `../oracle/ffap-complete-fix5`, a trace of zero intensities).
     pub fn avg_mz(&self) -> f64 {
-        use crate::analysis::feature_finder_picked::scoring::x86_64;
+        use crate::math::x86_64;
         let mut sum = 0.0;
         let mut intensities = 0.0;
         for peak in &self.peaks {
@@ -456,7 +456,7 @@ impl MassTraces {
     /// (`../oracle/ffap-complete-min6`,
     /// `update_baseline_promotion_is_the_reference_builds_bits`).
     pub fn update_baseline(&mut self) {
-        use crate::analysis::feature_finder_picked::scoring::x86_64;
+        use crate::math::x86_64;
         if self.traces.is_empty() {
             self.baseline = 0.0;
             return;
@@ -548,7 +548,7 @@ impl MassTraces {
         // the new intensity as the destination (`libOpenMS.so` `0x18f1912`),
         // so a NaN (`inf - inf`, or two NaN operands) carries the Release
         // build's bits on every host.
-        use crate::analysis::feature_finder_picked::scoring::x86_64;
+        use crate::math::x86_64;
         let mut profile = LinkedProfile::with_capacity(peaks);
         let mut previous = NIL;
         for peak in &first.peaks {

@@ -73,11 +73,11 @@
 //! [`TraceFitterParams::to_param`]: crate::analysis::feature_finder_picked::trace_fitter::TraceFitterParams::to_param
 
 use crate::analysis::feature_finder_picked::helper_structs::{MassTrace, MassTraces};
-use crate::analysis::feature_finder_picked::scoring::x86_64;
 use crate::format::file_info::text_format::ostream_g;
 use crate::math::fitters::levenberg_marquardt::{
     DenseMatrix, LmParameters, LmStatus, minimize, preflight_points,
 };
+use crate::math::x86_64;
 use crate::param::{DefaultParamHandler, Param, ParamValue};
 use crate::{Error, Result};
 

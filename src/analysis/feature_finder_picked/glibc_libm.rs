@@ -130,7 +130,7 @@
 //! `sqrt` is correctly rounded everywhere; [`sqrt`] only gives a NaN result
 //! the bits `sqrtsd` gives it (`x86_64::sqrt` of the scoring module).
 
-use crate::analysis::feature_finder_picked::scoring::x86_64;
+use crate::math::x86_64;
 
 /// `__exp_data.tab`: for each `k` in `0..128`, `T[k]` as bits and then the
 /// bits of `H[k]` minus `(k << 52) / 128`, where `2^(k/128) ~= H[k] * (1 + T[k])`.

@@ -125,7 +125,7 @@
   "driver_source_sha256": "b2a56dd2a0e46694632b1203b0007168381a30d4f7d5bd7e85697d894c0ea3cd",
   "environment": "env -i PATH=/usr/bin:/bin HOME=<scratch>/home OPENMS_HOME_PATH=<scratch>/home OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=<install>/share/OpenMS/4.0.0 OMP_NUM_THREADS=1, ulimit -c 0, ulimit -v 16000000, 60 s SIGKILL timeout, per-run scratch working directory",
   "reproduction": "Two runs from separate scratch directories produced byte-identical output (logs/baseline.sha256).",
-  "comparison": "Exact: the port rebuilds all 90 configurations and compares f64 bit patterns (update_baseline_promotion_is_the_reference_builds_bits). A plain f64::from was measured to give the same bits on macOS arm64 for every pattern, so the fixture pins the value and not the choice of instruction; scoring::x86_64::widen is kept because Rust does not guarantee a NaN payload across a float cast."
+  "comparison": "Exact: the port rebuilds all 90 configurations and compares f64 bit patterns (update_baseline_promotion_is_the_reference_builds_bits). A plain f64::from was measured to give the same bits on macOS arm64 for every pattern, so the fixture pins the value and not the choice of instruction; math::x86_64::widen is kept because Rust does not guarantee a NaN payload across a float cast."
  },
  "source_anchors": [
   {
