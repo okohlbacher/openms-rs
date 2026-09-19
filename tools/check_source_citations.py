@@ -4,12 +4,13 @@
 # $Maintainer: OpenMS Rust contributors $
 """Check that C++ source citations point at the lines whose code they quote.
 
-Every port document cites the source it reproduces as ``<File>.<ext>:<a>`` or
-``:<a>-<b>``, and every one of those line numbers was read by a human. Package
-A6 alone shipped four citation defects; one of them - a range quoted for code
-ten lines below it - survived two review rounds in seven places at once, in a
-round whose own finding was about a wrong line range. Nothing in the gate
-battery reads a line number back, so nothing catches them.
+Every port document, manifest and Rust module cites the source it reproduces as
+``<File>.<ext>:<a>`` or ``:<a>-<b>``, and every one of those line numbers was
+read off by a human. Package A6 alone shipped four citation defects; one of
+them - a range quoted for code ten lines below it - survived two review rounds
+in seven places at once, in a round whose own finding was about a wrong line
+range. Nothing in the gate battery reads a line number back, so nothing catches
+them.
 
 This does. It resolves each citation against the pins the repository already
 declares - the core SDK checkouts under ``.reference/``, and the TOPP and CLI
@@ -82,10 +83,12 @@ ISSUE_HEADING = re.compile(r"^##\s+CPP-\d+\b")
 # locate anything, unless it is long enough in words to be a statement.
 MIN_QUOTATION = 14
 
-# Documents and manifests are scanned. The Rust sources are not: their citations
-# sit in doc comments whose surrounding code is Rust, so there is nothing there
-# that the C++ could be quoted by.
-DOCUMENT_GLOBS = ("*.md", "docs/*.md", "docs/*.json", "tests/data/*.json", "tests/data/*/*.json")
+# Everything in the repository that cites the C++: the documents, the manifests
+# and the Rust sources, whose module and item documentation cites it too.
+DOCUMENT_GLOBS = (
+    "*.md", "docs/*.md", "docs/*.json", "tests/data/*.json", "tests/data/*/*.json",
+    "src/**/*.rs", "tests/**/*.rs", "examples/*.rs", "build.rs",
+)
 
 
 class Directory:
@@ -225,12 +228,13 @@ def first_directory(paths):
 def units(path, text, default_revisions):
     """Cut a document into spans, each paired with the revisions it may cite.
 
-    Markdown is cut at blank lines, at list bullets and at table rows, because a
-    citation is quoted by its own bullet or row and not by its neighbours. A
-    manifest is cut into its string values, which is exactly how its prose is
-    written. The issue log additionally declares a source revision per entry,
-    and entries predate the current pin, so each of its entries is checked
-    against the revisions that entry names.
+    Prose - Markdown, and the documentation comments of a Rust module, which
+    wrap the same way - is cut at blank lines, at list bullets and at table
+    rows, because a citation is quoted by its own bullet or row and not by its
+    neighbours. A manifest is cut into its string values, which is exactly how
+    its prose is written. The issue log additionally declares a source revision
+    per entry, and its entries predate the current pin, so each is checked
+    against the revisions that entry itself names.
     """
     if path.suffix == ".json":
         found = []
@@ -395,24 +399,11 @@ def annotations_in(unit):
     return found
 
 
-def compress(numbers):
-    """Render line numbers as ranges: [1, 2, 3, 9] -> '1-3, 9'."""
-    spans, start, previous = [], numbers[0], numbers[0]
-    for number in numbers[1:]:
-        if number == previous + 1:
-            previous = number
-            continue
-        spans.append((start, previous))
-        start = previous = number
-    spans.append((start, previous))
-    return ", ".join(str(a) if a == b else f"{a}-{b}" for a, b in spans)
-
-
 def problems_with(pins, revision, path, ranges, quoted, annotated, report=None):
     """Everything wrong with one file's citations in one unit, against one revision."""
     lines = pins.lines(revision, path)
     found = []
-    for first, last, text, named in ranges:
+    for first, last, text, _ in ranges:
         if last < first:
             found.append(f"{text}: the range runs backwards")
         elif last > len(lines):
