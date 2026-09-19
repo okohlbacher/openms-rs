@@ -50,7 +50,7 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 | `struct IdentInfo` | `model::IdentInfo`; declared, filled by A7 |
 | `struct FastaInfo` | `model::FastaInfo`; `std::map<char, UInt64>` is `BTreeMap<u8, u64>`; declared, filled by A7 |
 | `struct MzTabInfo` | `model::MzTabInfo`; the member `type` is `kind`; filled by the mzTab branch, which no package ports yet |
-| `struct ValidationInfo` | `model::ValidationInfo`, `supported` defaulting to `true`; the four index fields are filled by A6 (`-i`), the rest awaits A8 (`-v`); `schema_version` and `detail` are never written by the source run |
+| `struct ValidationInfo` | `model::ValidationInfo`, `supported` defaulting to `true`; the four index fields are filled by A6 (`-i`) from `src/format/indexed_mzml.rs`, which departs from the source's decoder at two measured boundaries (native differences 11 and 12 of [FILE_INFO_CHECKS_SUPPORT](FILE_INFO_CHECKS_SUPPORT.md)), and the rest awaits A8 (`-v`); `schema_version` and `detail` are never written by the source run |
 | `struct CorruptionInfo`, `struct DetailInfo` | `model::CorruptionInfo`, `model::DetailInfo`; never filled, as in the source (the `-c` and `-d` output goes only into the text) |
 | `struct Result` | `model::FileInfoResult` (`Result` is the crate's error alias); native field `warnings` |
 | `struct Options` (all eight members) | `model::Options`; `ProgressLogger::LogType` is `concept::progress_logger::ProgressLogType` |
