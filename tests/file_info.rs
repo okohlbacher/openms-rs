@@ -657,18 +657,25 @@ fn class_test_run_featurexml() {
 
 #[cfg(feature = "consensusxml")]
 #[test]
-fn class_test_run_consensusxml_is_pending() {
+fn class_test_run_consensusxml() {
     // START_SECTION((Result run ...) - consensusXML) expects a consensus
-    // FeatureInfo. The consensusXML branch is not ported yet, so the section is
-    // pending; until then the run refuses explicitly instead of returning a
-    // result without it.
-    let error = FileInfo::new()
-        .run_all("AccurateMassSearchEngine_input1.consensusXML")
-        .unwrap_err();
-    assert!(
-        matches!(&error, Error::Unsupported(message) if message.contains("consensusXML branch")),
-        "{error}"
-    );
+    // FeatureInfo. A7 ported the branch, so the section runs: what it writes is
+    // compared with the Release C++ output in `tests/file_info_a7.rs`, and
+    // pinned here is the shape of the structured result the class test asks
+    // for.
+    let result = FileInfo::new()
+        .run_all(data("file_info/inputs/FileInfo_7_input.consensusXML"))
+        .unwrap();
+    assert_eq!(result.meta.file_type, FileType::ConsensusXml);
+    let feature = result.feature.as_ref().unwrap();
+    assert!(feature.is_consensus);
+    assert_eq!(feature.num_features, 5);
+    assert!(!feature.size_distribution.is_empty());
+    assert_eq!(feature.map_columns.len(), 2);
+    // A consensus map is not an experiment and carries no mobility dimension.
+    assert!(!result.ranges.is_experiment);
+    assert!(!result.ranges.combined.has_mobility);
+    assert!(result.peak.is_none());
 }
 
 #[cfg(feature = "mzml")]
@@ -687,14 +694,21 @@ fn class_test_run_mzml_peaks() {
 }
 
 #[test]
-fn class_test_run_fasta_is_pending() {
-    // START_SECTION((Result run ...) - FASTA) expects a FastaInfo; the FASTA
-    // branch is not ported yet. The refusal comes before any file access.
-    let error = FileInfo::new().run_all("FASTAFile_test.fasta").unwrap_err();
-    assert!(
-        matches!(&error, Error::Unsupported(message) if message.contains("fasta branch")),
-        "{error}"
-    );
+fn class_test_run_fasta() {
+    // START_SECTION((Result run ...) - FASTA) expects a FastaInfo. A7 ported
+    // the branch, so the section runs; the report itself is compared with the
+    // Release C++ output in `tests/file_info_a7.rs`.
+    let result = FileInfo::new()
+        .run_all(data("file_info/inputs/FileInfo_17_input.fasta"))
+        .unwrap();
+    assert_eq!(result.meta.file_type, FileType::Fasta);
+    let fasta = result.fasta.as_ref().unwrap();
+    assert_eq!(fasta.num_sequences, 11);
+    assert_eq!(fasta.total_residues, 1933);
+    assert!(!fasta.is_nucleic_acid);
+    // The FASTA branch fills no ranges, no peak and no feature block.
+    assert_eq!(result.ranges, Default::default());
+    assert!(result.peak.is_none() && result.feature.is_none());
 }
 
 #[cfg(feature = "featurexml")]
@@ -1048,13 +1062,39 @@ fn detailed_listing_and_corrupt_check_do_not_change_a_featurexml_report() {
     );
 }
 
+/// A7 implemented the consensusXML, idXML, mzIdentML and FASTA branches, so
+/// the four rows the table below used to hold for them are gone. What they do
+/// instead is compared with the Release C++ output in `tests/file_info_a7.rs`;
+/// pinned here is only that the run no longer answers them with a not-ported
+/// refusal, so the table cannot quietly regain them.
+///
+/// Each name is a file that does not exist, so a ported branch reaches its
+/// loader and fails there. An `Error::Unsupported` is allowed only when it
+/// names a missing build feature, which is a build capability and not a port
+/// gap; every other refusal is the regression this test exists to catch.
+#[test]
+fn the_branches_a7_implemented_are_no_longer_refused() {
+    for input in [
+        "missing.consensusXML",
+        "missing.idXML",
+        "missing.mzid",
+        "missing.fasta",
+    ] {
+        match FileInfo::new().run(input, &Options::default()) {
+            Err(Error::Unsupported(message)) => assert!(
+                message.contains("lacks the consensusxml feature")
+                    || message.contains("lacks the idxml feature"),
+                "{input}: still refused: {message}"
+            ),
+            Err(Error::Io(_)) => {}
+            other => panic!("{input}: expected the loader to fail, got {other:?}"),
+        }
+    }
+}
+
 #[test]
 fn unported_branches_are_refused_by_name() {
     for (input, branch) in [
-        ("missing.consensusXML", "consensusXML branch"),
-        ("missing.idXML", "idXML branch"),
-        ("missing.mzid", "mzid branch"),
-        ("missing.fasta", "fasta branch"),
         ("missing.pepXML", "pepXML branch"),
         ("missing.mzTab", "mzTab branch"),
         ("missing.trafoXML", "trafoXML branch"),
