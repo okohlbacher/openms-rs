@@ -191,8 +191,10 @@ pub struct ReadOptions {
     /// Covers a `softwareRef` on an `instrumentConfiguration` or
     /// `processingMethod`, a `dataProcessingRef` or
     /// `defaultDataProcessingRef` on a record list, record or binary array,
-    /// and a `sourceFileRef` on a spectrum, a chromatogram, a scan or a
-    /// precursor, whose ID names no preceding definition. `false`, the
+    /// and a `sourceFileRef` on a spectrum, a scan or a precursor, whose ID
+    /// names no preceding definition. (A chromatogram's is not reachable:
+    /// mzML 1.1 has no such attribute on `ChromatogramType`, and the reader
+    /// refuses one with [`Error::Unsupported`] before any policy applies.) `false`, the
     /// default, rejects such a document with [`Error::Parse`] (`unresolved
     /// softwareRef`, `unresolved dataProcessingRef`, `unresolved
     /// sourceFileRef`), because the reference cannot be kept.
