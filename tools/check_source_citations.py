@@ -39,6 +39,10 @@ another clause, so it is not attached.
 
 Citations it cannot check are counted, never guessed at: a file no reachable
 pin contains, and a bare ``:a-b`` that fits no file the same paragraph cites.
+Nor can it check a citation whose text quotes nothing, or paraphrases what it
+quotes - ``--report`` says how many of the citations it read were confirmed
+against code, which is the honest measure of how much of this is a check and
+how much is only a resolution.
 """
 
 import argparse
@@ -68,6 +72,12 @@ CONTINUATION = re.compile(r"(?<![\w.:/-]):(?P<first>\d+)(?:[-\u2013\u2014](?P<la
 ANNOTATED = re.compile(r"^(?P<code>.*?)\s*//\s*:(?P<line>\d+)\s*$")
 # A code span may be broken over two lines by the document's own wrapping.
 CODE_SPAN = re.compile(r"`([^`]+?)`")
+# A manifest has no code spans, so a quotation in one has to be recognised by
+# its shape: a name, or a chain of them, related by an operator to another name
+# or call. Requiring a call or a member access on one side keeps "t_wait = 0.2 s"
+# - prose about a value - from being read as a line of the source.
+NAME = r"[A-Za-z_][\w:.]*(?:\s*(?:->|::|\.)\s*[A-Za-z_][\w:.]*)*(?:\([^)]{0,40}\))?"
+BARE_QUOTATION = re.compile(NAME + r"\s*(?:==|!=|<=|>=|<<|=)\s*" + NAME)
 IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]{2,}")
 # What separates a quotation from a reference: a name, a call or a signature
 # says which symbol is meant, while an assignment, a comparison, a statement, a
@@ -344,30 +354,37 @@ def flatten(text):
     return re.sub(r"\s+", " ", text).strip()
 
 
-def quotations(unit):
+def quotations(unit, spans=CODE_SPAN):
     """The code fragments the unit reproduces verbatim, with where they sit.
 
-    A backticked name - ``writeHeader_``, ``MzTabFile::load``, ``updateRanges()``,
-    ``MSChromatogram::operator==`` - is a reference to a symbol, and what it names is almost always the
-    enclosing function or the class the cited lines belong to rather than
-    anything written on them, so checking one against a line range produces
-    nothing but noise. A fragment that reproduces a line instead of naming a
-    symbol - an assignment, a comparison, a statement, a stream write, a
-    directive - is a quotation, and a quotation is the thing a line number is
-    supposed to point at.
+    A name - ``writeHeader_``, ``MzTabFile::load``, ``updateRanges()``,
+    ``MSChromatogram::operator==`` - is a reference to a symbol, and what it
+    names is almost always the enclosing function or the class the cited lines
+    belong to rather than anything written on them, so checking one against a
+    line range produces nothing but noise. A fragment that reproduces a line
+    instead of naming a symbol - an assignment, a comparison, a statement, a
+    stream write, a directive - is a quotation, and a quotation is the thing a
+    line number is supposed to point at.
+
+    ``spans`` says how a quotation is delimited: backticks in prose, and in a
+    manifest, which has none, the shape of the code itself. Either pattern
+    yields the fragment in its last group, or in the whole match when it has no
+    groups.
     """
-    found = []
-    for match in CODE_SPAN.finditer(unit):
-        if match.group(1).count("\n") > 1:
+    found, group = [], spans.groups
+    for match in spans.finditer(unit):
+        if match.group(0).count("\n") > 1:
             continue  # An unpaired backtick, not a span.
-        span = flatten(CITATION.sub(" ", match.group(1)))
+        span = flatten(CITATION.sub(" ", match.group(group)))
         if len(span) < MIN_QUOTATION and span.count(" ") < 2:
             continue
         if not SYNTAX.search(span) or not IDENTIFIER.search(span):
             continue
         if REFERENCE.fullmatch(span):
             continue
-        found.append((match.start(1), match.end(1), span))
+        if spans is BARE_QUOTATION and not re.search(r"\(|->|::", span):
+            continue  # Prose about a value, not a line of the source.
+        found.append((match.start(group), match.end(group), span))
     return found
 
 
@@ -496,7 +513,7 @@ def check_unit(pins, unit, revisions, quoted_only, report):
             continue
         ranges[owner].append((first, last, text, False))
         placed.append((position, len(text), owner))
-    quoted = attach(unit, placed, quotations(unit)) if quoted_only else {}
+    quoted = attach(unit, placed, quotations(unit, CODE_SPAN if quoted_only else BARE_QUOTATION))
     annotated = annotations_in(unit)
     findings = []
     for key, cited in ranges.items():

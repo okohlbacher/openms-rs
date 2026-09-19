@@ -86,6 +86,14 @@ class QuotationTests(unittest.TestCase):
             self.fragments("`f.BaseFeature::operator=(c)`"), {"f.BaseFeature::operator=(c)"}
         )
 
+    def test_a_manifest_quotation_is_recognised_by_its_shape(self):
+        from check_source_citations import BARE_QUOTATION
+        found = {item[2] for item in quotations(
+            "the walk is iter = iter->getNextSibling(); bounded against t_wait = 0.2 s",
+            BARE_QUOTATION,
+        )}
+        self.assertEqual(found, {"iter = iter->getNextSibling()"})
+
     def test_a_citation_is_not_part_of_the_quotation_beside_it(self):
         self.assertEqual(self.fragments("`Decoder.cpp:3-7`"), set())
 
