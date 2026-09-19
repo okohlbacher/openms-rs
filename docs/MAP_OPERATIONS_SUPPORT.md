@@ -270,7 +270,7 @@ These are behaviours a caller can observe, kept exactly as the source has them.
   and the ID does not.
 * **Unassigned (zero) unique IDs never conflict.** The source's
   `updateUniqueIdToIndex` postcondition compares the number of *distinct* valid
-  IDs against the number of valid IDs (`UniqueIdIndexer.h:86`), so a container
+  IDs against the number of valid IDs (`UniqueIdIndexer.h:118-125`), so a container
   of unassigned elements is accepted and no redraw happens.
 * **`applyMemberFunction` counts the container itself.** Both maps add their own
   unique ID to the accumulated total before visiting their elements, and the

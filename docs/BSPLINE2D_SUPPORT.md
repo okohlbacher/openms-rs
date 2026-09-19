@@ -99,7 +99,7 @@ reproduced deliberately.
 2. **A zero cutoff wavelength does not disable the derivative constraint.** Both
    the OpenMS and the eol-bspline documentation say it does. `Setup` instead
    rewrites `waveLength = 1.0` — one unit of `x` — before `Alpha` is evaluated
-   (`BSplineBase.cpp:560` for an explicit node count, `:566` for the automatic
+   (`BSplineBase.cpp:561` for an explicit node count, `:567` for the automatic
    one). For the class-test fixture that leaves `alpha = 954.99`, not zero. The
    port reproduces the rewrite and contradicts the documentation at the item.
 3. **The `float` accumulators.** `calculateQ` declares `float b1, b2, q` and
