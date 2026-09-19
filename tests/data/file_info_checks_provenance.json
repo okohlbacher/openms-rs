@@ -188,6 +188,7 @@
             "role": "tool hash, environment, fixture hashes, per-case argv, exit codes and output hashes, reproduction verdict, known_gaps"
         }
     ],
+    "external_reference_note": "No C++ and no oracle driver is committed to this repository. The oracle directory lives next to it at ../oracle/a6-fileinfo; its driver, its two fixture generators and its manifest are recorded here by sha256, and every fixture they produced is hashed in fixtures. The same five artifacts are registered in SOURCE_PROVENANCE.json under this manifest's origin_key.",
     "fixtures": [
         {
             "path": "tests/data/file_info/inputs/clean_pair.mzML",

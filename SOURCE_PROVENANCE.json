@@ -617,6 +617,7 @@
   "tests/data/peak_picking_provenance.json",
   "tests/data/signal_to_noise_provenance.json",
   "tests/data/file_info_provenance.json",
+  "tests/data/file_info_checks_provenance.json",
   "tests/data/im_data_converter_provenance.json",
   "tests/data/feature_overlap_filter_provenance.json",
   "tests/data/boost_regex_provenance.json",
@@ -3728,6 +3729,78 @@
    "package": "B11-FAIMS",
    "role": "the executed quadtree visit order itself; cited by tests/topp_feature_finder_centroided.rs and docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md and hashed nowhere else; port/b11-faims 2026-09-18, ibminode06",
    "label": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)"
+  },
+  {
+   "path": "../oracle/a6-fileinfo/oracle.py",
+   "sha256": "e51f031126cf9ae4ae5ee3a95b04c5265d5fc090422bab8fc66b8a15ac5bfd87",
+   "origin_key": "tests/data/file_info_checks_provenance.json",
+   "package": "A6-FILEINFO",
+   "role": "Release-build FileInfo runner: 59 cases, per-case scratch runs, reproduction check, manifest writer; port/a6-fileinfo 2026-09-19, ibminode06",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a6-fileinfo/run.sh",
+   "sha256": "84bd6d0bf708b100357876c0086de2a547d99401074ffc09013f35152fae049b",
+   "origin_key": "tests/data/file_info_checks_provenance.json",
+   "package": "A6-FILEINFO",
+   "role": "entry point with the clean environment; port/a6-fileinfo 2026-09-19, ibminode06",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a6-fileinfo/scripts/make_corrupt_fixtures.py",
+   "sha256": "1ebc672487c69cdd3b80c3464bf978806e6ad1f019b36ce9e88a1f7403954a89",
+   "origin_key": "tests/data/file_info_checks_provenance.json",
+   "package": "A6-FILEINFO",
+   "role": "generator of the degenerate mzML, DTA and DTA2D inputs the -c cases need",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a6-fileinfo/scripts/make_index_window_fixtures.py",
+   "sha256": "cf8d29a579391472da7da2495305d53b1d14fa8608c82d420101c1f7313a13cc",
+   "origin_key": "tests/data/file_info_checks_provenance.json",
+   "package": "A6-FILEINFO",
+   "role": "generator of the three minimal indexed mzML inputs that pin the decoder's footer window and its DOM child walk",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a6-fileinfo/manifest.json",
+   "sha256": "fc597ca07a6487732ea45da63d3dfd365703dee4b2f435e2aa68f7bc4abdde52",
+   "origin_key": "tests/data/file_info_checks_provenance.json",
+   "package": "A6-FILEINFO",
+   "role": "tool hash, environment, fixture hashes, per-case argv, exit codes and output hashes, reproduction verdict, known_gaps with an owner per entry",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/p4-lowmemory/manifest.json",
+   "sha256": "f2ed641d48bfc78090466c8122fee80857dd3349a3b5e2859eba43bdd5eee528",
+   "origin_key": "tests/data/topp_peak_picker_hi_res_provenance.json",
+   "package": "P4-PICKER-LOWMEM",
+   "role": "pins, C++ and Rust build identity, host, per-script log hashes, the executed differential of -processOption lowmemory, the resource measurement on the 2.3 GB run, and the close round; port/p4-lowmemory 2026-09-19, ibminode06",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/p4-lowmemory/mkfixtures.py",
+   "sha256": "0a3f01a6ab04e8f62e6711c2f146310738df9cc3dd7e52771e1ad6934ace2206",
+   "origin_key": "tests/data/topp_peak_picker_hi_res_provenance.json",
+   "package": "P4-PICKER-LOWMEM",
+   "role": "generator of the committed PeakPickerHiRes_refs_input.mzML and PeakPickerHiRes_batches_input.mzML, which pin the source's dangling-reference truth table and the batch boundary",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/integ-w7/refcheck_06.sh",
+   "sha256": "c62bcda43306187256270505f82bf239ffa58a446bfc74e4682d2511398289fb",
+   "origin_key": "tests/data/topp_peak_picker_hi_res_provenance.json",
+   "package": "INTEGRATE-WAVE7",
+   "role": "integration re-measurement of CPP-172 on ibminode06: the whole-document MzMLFile::store used by FileMerger already emits 105 dangling dataProcessingRefs over 106 references, before any streaming consumer runs; also confirms the low-memory output's two declared ids and 106 references",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/integ-w7/dupdp_06.sh",
+   "sha256": "3546c943bbcbce52298f174359e4e290e01a20c6881a10743f03dde1cc9abf77",
+   "origin_key": "tests/data/topp_peak_picker_hi_res_provenance.json",
+   "package": "INTEGRATE-WAVE7",
+   "role": "integration probe isolating the writeHeader_/writeSpectrum_ content-versus-pointer split: the refs fixture with dp_sp_1's softwareRef repointed at so_dp_0, on which the C++ still dangles dp_sp_1 and dp_sp_2 while the port writes neither",
+   "label": "oracle-generated (tier 1 executed differential)"
   }
  ],
  "external_reference_note": "Executed C++ oracle artifacts of the early-TOPP bundle, registered at integration. They live outside this repository under ../oracle/, so no C++ enters it; each sha256 was recomputed from the file at registration and equals the hash in the group manifest named by origin_key, which records the oracle's full artifact list. Wave 1 (2026-09-14): A1-PTE-FAIMS (../oracle/pte-faims-helper), CLI-1 (../oracle/topp-cli-lifecycle) and A2-TEXTFMT (../oracle/file-info-text-format and ../oracle/text-format) were registered at the final wave-1 merge, after their fix rounds had changed those files. The A2 group manifest tests/data/file_info_text_format_provenance.json is indexed only through origin_key: its fixtures are constants embedded in tests/file_info_text_format.rs, not files, and its target_verification has no source_revisions or source_changes, so it lacks the current_sdk_reference_manifests shape that tools/check_core_sdk.py verifies. Wave 2 (2026-09-14): P1-PICKER-LIB, A4-FILEINFO-CORE, B8-IMSPLIT and B9-OVERLAP (fix round) have that shape and are also listed in current_sdk_reference_manifests. B3-LM, P2-MZML-LENIENCY and B6-FFAP-SEEDS are indexed only through origin_key, because their target_verification records verification commands or results rather than the revision, source_revisions and source_changes the checker reads; B6's group manifest also has no external_reference_note. CLI-2 updates two CLI-1 rows (ini_read_failures.sh and its manifest, now 15 cases) and adds its own 34-case manifest, driver and rerun manifest. C1 (../oracle/topp-early-bundle) and C2 (../oracle/featurefinder-picked), which A4, B3, B6, B8 and B9 cite, are registered at W4.4. Wave 4 (2026-09-16): fix/map-normalizer's ../oracle/map-normalizer-divergence is registered here for the first time -- ten artifacts, four of them executed drivers and their logs on dax, which are the evidence behind CPP-308 and behind the closed ~13x normalisation divergence. C2 (../oracle/featurefinder-picked) is registered in the same pass: the note above said it was registered at W4.4 and it was not, so the eight artifacts tests/data/feature_finder_picked_provenance.json cites are added now. Every sha256 in this key, the 107 carried forward and the 18 added, was recomputed from the file at this integration and equals the hash in the group manifest named by origin_key; 0 mismatched and 0 were missing. The other directories these wave-4 lanes cite (../oracle/picked-chromatogram, mzml-reader-scale, topp-peak-picker-scale, baseline-filter-edges, lm-eigen-path, gauss-trace-fitter including solver-gap, b7-ffap-features, tool-threads, mzml-writer-scale-parity and topp-early-bundle) were already registered in waves 1 to 3 and were re-verified unchanged rather than re-registered. The wave-4 performance lanes archived their own callgrind profiles, A/B logs and build recipes on Ceph under /ceph/ibmi/abi/oliver/bench/openms4/results/2026-09-15-* and node-local under /scratch; those are measurement evidence, not differential oracles, and are cited by path in the support documents rather than hashed here. Wave 5 (2026-09-17): the completion of FeatureFinderAlgorithmPicked and of both noise estimators registers 255 artifacts from 18 new oracle directories -- ../oracle/ffap-complete-fix1, ../oracle/ffap-complete-fix2, ../oracle/ffap-complete-fix3, ../oracle/ffap-complete-fix4, ../oracle/ffap-complete-fix5, ../oracle/ffap-complete-fix6, ../oracle/ffap-complete-min6, ../oracle/ffap-instr-completion, ../oracle/ffap-sem-completion, ../oracle/ffap-sem-ver1, ../oracle/ffc-instrumentation-v3, ../oracle/ffc-instrumentation-v4, ../oracle/ffc-numerics-v3, ../oracle/ffc-numerics-v4, ../oracle/progress-logger-release-range, ../oracle/sne-completion, ../oracle/sne-fix, ../oracle/sne-followup. Every sha256 in this key, the 125 carried forward and the 255 added, was recomputed from the file at this integration; the 354 added artifacts that a group manifest also cites were additionally asserted equal to the hash recorded there, and 0 mismatched and 0 were missing. ../oracle/ffap-complete-min6 is registered here for the first time because the round-6 minors cited it only in the three FFAP manifests' `oracle` block and in no external_reference_artifacts list, so its executed evidence -- the 90 update_baseline baselines, the nine uncapped wrapped-count runs and the two /usr/bin/time -v memory runs -- had no hashed registration anywhere; its entry points are hashed straight from disk. For the wave-5 directories this key registers the entry points (README, driver sources, node build and run scripts, fixture extractors, vendored upstream sources and the build/result digests), which is what an auditor needs to rebuild and re-run the oracle; the per-case result files stay in the group manifest named by origin_key, which records the oracle's full artifact list. ../oracle/sne-completion, sne-fix, sne-followup and progress-logger-release-range are registered with their group manifests' full artifact lists (60 and 10 entries), as those two lanes asked; the directories' remaining working files are not hashed here. Three wave-5 group manifests are indexed only through origin_key and are NOT added to current_sdk_reference_manifests, for reasons tools/check_core_sdk.py enforces: feature_finder_picked_provenance.json and feature_finder_picked_instrumentation_provenance.json record verification commands and results in target_verification rather than the revision, source_revisions and source_changes the checker reads (the same reason B3-LM, P2-MZML-LENIENCY and B6-FFAP-SEEDS are indexed that way); and topp_feature_finder_centroided_provenance.json cites the Release FeatureFinderCentroided binary by absolute path under /ceph, which is not an ../oracle/ path. signal_to_noise_provenance.json IS registered, which is the signal-to-noise lane's request R5: the integration pass had to leave it out because check_external_artifacts' \"still present in repo\" guard compared base names rather than paths, so it rejected ../oracle/sne-fix/harness/Cargo.toml for colliding with this crate's own Cargo.toml, and likewise ../oracle/ffap-complete-fix1/port-harness/Cargo.toml and ../oracle/ffap-complete-fix3/upstream/LICENSE. The lead fixed the guard rather than the request: it now compares the artifact's own path with the leading \"../\" dropped, and additionally refuses a C++ artifact whose file name appears anywhere in the crate, which is what the guard was written for when the probes were moved out of this repository. Both halves are mutation-checked. Wave 6 (2026-09-18): the FeatureFinderCentroided FAIMS closure registers one new oracle directory, ../oracle/b11-faims, with its 8 entry points -- the group manifest, the five drivers named in that manifest's drivers block (derive.py, split_groups.py, run.sh, cases.sh and cases2.sh), and the quadtree-order extractor with its output. Those 8 are hashed straight from disk, because the group manifest records none of them: it hashes the 12 case inputs and the 11 executed outputs, and names the drivers without digests, while quadorder.py and results/quadorder.txt -- which tests/topp_feature_finder_centroided.rs and docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md both cite -- appear in it not at all. The per-case results stay in the group manifest, which records the oracle's full artifact list, as for the wave-5 directories. Every digest the group manifest does record was recomputed from the file at this integration: 12 case inputs and 11 run outputs, 23 in all, 0 mismatched and 0 missing, and the five featureXML files this repository retains under tests/data/topp_feature_finder_centroided/ equal the oracle outputs they were copied from, digest for digest. tests/data/topp_feature_finder_centroided_provenance.json is still indexed only through origin_key and is still NOT in current_sdk_reference_manifests, for the reason recorded above: it cites the Release FeatureFinderCentroided binary by absolute path under /ceph, which is not an ../oracle/ path. tests/data/feature_overlap_filter_provenance.json, which IS in current_sdk_reference_manifests, was changed by the same package and re-verified in place. The second lane of this wave, port/fma-default, registers nothing here, and that is not an omission: it adds no oracle directory and no reference manifest. Its evidence is codegen and timing measured on kim -- rustc --emit=asm probes, disassembly of the shipped tool binaries and the benchmark cells of docs/BENCHMARKS.md section 4 -- which is measurement evidence rather than a differential oracle, and is cited by path in docs/FMA_BUILD_FLAG.md, the same treatment the wave-4 performance lanes' profiles were given.",
