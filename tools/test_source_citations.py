@@ -337,6 +337,11 @@ class PinResolutionTests(unittest.TestCase):
         self.assertEqual(report["ambiguous"], 1)
         self.assertEqual(report["ambiguous_files"]["FileInfo.cpp"], 1)
         self.assertEqual(report["answered"], collections.Counter({"core bc9cc12": 1}))
+        # An ambiguous citation is still checked - one of the pins answered it -
+        # so the count is a subset of "checked" and not a fourth kind of
+        # unchecked. The summary line has to be read that way, and says so.
+        self.assertEqual(report["checked"], 1)
+        self.assertEqual(report["skipped"], 0)
 
     def test_a_name_only_one_pin_carries_is_not_ambiguous(self):
         report = tally()

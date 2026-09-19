@@ -46,11 +46,15 @@ paragraph cites *around* a line does answer for a quotation of that span.
   python3 tools/check_source_citations.py --verbose  # and what could not be checked
 
 Citations it cannot check are counted, never guessed at: a file no reachable
-pin contains, a bare ``:a-b`` that fits no file the same paragraph cites, a
-file name that more than one pin carries and nothing else narrows, and a
-manifest too malformed to parse. ``--report`` also says which pin answered how
-many citations and confirmed how many, because a citation confirmed against the
-wrong file is worse than an unchecked one.
+pin contains, a bare ``:a-b`` that fits no file the same paragraph cites, and a
+manifest too malformed to parse. A name that more than one pin carries and
+nothing narrows is a fourth case, and a different one: it *is* checked, against
+the first candidate that agrees with it, so it is counted among the checked and
+counted again apart, and named under ``--verbose``. The separate count is the
+warning that the pin which answered may not be the file the document meant.
+``--report`` says which pin answered how many citations and confirmed how many,
+for the same reason: a citation confirmed against the wrong file is worse than
+an unchecked one, so the split has to be readable and not only the total.
 
 What this does not catch, stated plainly so that a green run is not read for
 more than it says. Of the 2,984 citations it resolves, 97 are confirmed against
@@ -915,11 +919,17 @@ def main():
             f"{where} {count} ({report['confirmed_by'][where]} confirmed)"
             for where, count in report["answered"].most_common()
         ) or "no pin"))
+    # The ambiguous count is a subset of the checked one, not a fourth kind of
+    # unchecked, and saying it in the same breath as "skipped" and "unresolved"
+    # would read as though those citations had been left alone. They were not:
+    # one of the pins answered each of them, and the count is how many times
+    # that pin may have been the wrong file of the right name.
     summary = (
         f"{report['checked']} citations checked against the pins, "
-        f"{report['quoted']} of them confirmed against code quoted beside them; "
-        f"{report['skipped']} skipped for an unreachable file, "
-        f"{report['ambiguous']} that more than one pin could answer and "
+        f"{report['quoted']} of them confirmed against code quoted beside them, "
+        f"{report['ambiguous']} of them answered by a pin that may be the wrong "
+        f"one because more than one carries that file name; "
+        f"{report['skipped']} skipped for an unreachable file and "
         f"{report['unresolved']} bare ranges left unresolved"
     )
     if unreadable:
