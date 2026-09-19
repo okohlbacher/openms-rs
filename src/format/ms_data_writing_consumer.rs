@@ -172,8 +172,13 @@ pub enum ReferencePolicy {
     /// the record's position in the stream whenever the record carries one and
     /// is not the first, and a `dataProcessingRef` to the same number whenever
     /// the record's processing history differs from the first record's. A
-    /// chromatogram carries neither reference in the source
+    /// reference a binary data array carries is renumbered the same way, into
+    /// the source's `dp_sp_<s>_bi_<m>`; see [`array_references`]. A
+    /// chromatogram carries neither reference on its start tag in the source
     /// (`MzMLHandler.cpp:5879`) and carries neither here.
+    ///
+    /// Under this policy the consumer stops checking references altogether,
+    /// exactly as the source never checks them.
     SourceDangling,
 }
 
