@@ -73,6 +73,24 @@
 //!   **drop** non-finite values before ordering anything, exactly as the
 //!   source's `std::isfinite` filter does, and so never see a NaN at all.
 //!
+//! # Signed zeros
+//!
+//! `-0.0` and `0.0` are the other pair `operator<` calls *equivalent*: both
+//! `-0.0 < 0.0` and `0.0 < -0.0` are false. Unlike a NaN they do not break
+//! `std::sort`'s precondition, so the call is well formed — but every
+//! permutation is a conforming result, and libstdc++ leaves a small range as it
+//! found it. [`sort_ascending`] orders them by the IEEE-754 total order
+//! instead, which puts `-0.0` first deterministically. A caller that reads
+//! order statistics *positionally* out of such a sample and then prints them
+//! can therefore disagree with the source in the sign of a printed zero, and
+//! one does: `FileInfo`'s consensusXML `-s` `Intensity ratios` block. That is
+//! native difference 6 of `docs/FILE_INFO_A7_SUPPORT.md`, measured in both
+//! orders and pinned by
+//! `consensus_a_signed_zero_sample_is_ordered_by_the_total_order`. Nothing is
+//! refused here: the values compare equal, the source's own precondition holds,
+//! and the shared-math wave CPP-347 names — a libstdc++-faithful
+//! `sort_ascending` — has to cover this shape as well as the NaN one.
+//!
 //! An infinity is *not* refused anywhere: it is ordered consistently by both
 //! `std::sort` and `f64::total_cmp`, so the source's answer is well defined and
 //! is reproduced. The functions that neither sort nor buffer — `sum`, `mean`,
@@ -168,8 +186,12 @@ fn check_no_nan(values: &[f64]) -> Result<()> {
 /// The source calls `std::sort`, whose strict-weak-ordering precondition a NaN
 /// violates. Every caller here has already refused a NaN input, so the total
 /// order and `std::sort`'s comparison agree on everything that reaches this
-/// function; `total_cmp` is kept because it also orders `-0.0` before `0.0`
-/// deterministically.
+/// function **except a signed zero**: `operator<` calls `-0.0` and `0.0`
+/// equivalent and libstdc++ leaves them in input order, while `total_cmp` puts
+/// `-0.0` first. That is deterministic rather than arbitrary, and it is what
+/// this port prints; see the module's "Signed zeros" section and native
+/// difference 6 of `docs/FILE_INFO_A7_SUPPORT.md` for the one caller whose
+/// output it reaches.
 fn sort_ascending(values: &mut [f64]) {
     values.sort_by(f64::total_cmp);
 }

@@ -193,9 +193,15 @@ Every public member of `FileInfo.h`, and the file-local helpers of
    coordinates and intensities, and a FAIMS spectrum with a NaN voltage is
    refused; the source would print `nan` or break its set order.
    `SummaryStatistics` sorts with `f64::total_cmp`, so `-0.0` sorts before
-   `0.0`; `std::sort` leaves equal elements in an unspecified order, so a sample
-   holding both zeros can print `-0` where the source prints `0` as minimum or
-   maximum. Kernel hull boxes merge with `f64::min` and `f64::max` (open B1
+   `0.0`; `std::sort` calls the two equivalent and libstdc++ leaves them in
+   input order, so a sample holding both zeros can print `-0` where the source
+   prints `0` as minimum or maximum. That is **measured in both orders and
+   pinned** since wave 8 — native difference 6 of
+   [A7](FILE_INFO_A7_SUPPORT.md), oracle cases `c_nan_one_s` and
+   `c_zero_swapped_s`, test
+   `consensus_a_signed_zero_sample_is_ordered_by_the_total_order` — and it is a
+   difference rather than a refusal, because the source's own precondition
+   holds there and nothing is out of bounds. Kernel hull boxes merge with `f64::min` and `f64::max` (open B1
    follow-up); FileInfo loads no hulls. All of that is about non-finite
    *inputs*.
 

@@ -11,15 +11,18 @@
 //! `tests/data/file_info_a7_provenance.json` and
 //! `docs/FILE_INFO_A7_SUPPORT.md`):
 //!
-//! - tier 1, executed differential: 72 cases of `../oracle/a7-fileinfo` run
+//! - tier 1, executed differential: 75 cases of `../oracle/a7-fileinfo` run
 //!   against the **Release** C++ FileInfo of
 //!   `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
-//!   ibminode06, twice and reproduced. 50 of them have their `-out` and
+//!   ibminode06, twice and reproduced. 53 of them have their `-out` and
 //!   `-out_tsv` reports compared here byte for byte; only the two lines that
 //!   embed the input path are normalised, `File name: ` and
 //!   `general: file name`. Two more (`c_nan_then_finite_s` and
 //!   `c_finite_then_nan_s`) are retained as evidence rather than compared: see
-//!   `consensus_nan_in_the_statistics_sample`;
+//!   `consensus_nan_in_the_statistics_sample`. Two of the compared reports
+//!   differ from the reference on lines that are documented native differences
+//!   rather than byte-identical — `c_zero_swapped_s` and `c_zero_swapped_all`,
+//!   see `consensus_a_signed_zero_sample_is_ordered_by_the_total_order`;
 //! - tier 1, retained upstream definition: TOPP_FileInfo_7, _10, _13, _17, _18
 //!   and _20 (`topp/CMakeLists.txt:899-901`, `:905-907`, `:912`, `:922-927`,
 //!   `:931-933`,
@@ -698,10 +701,14 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
 ///   freely, but every permutation of an all-NaN range prints the same eight
 ///   lines. Here `n > 1`, so the variance is a NaN too;
 /// - **a NaN next to a number** (`a7_cons_nan_then_finite` and its swapped twin
-///   `a7_cons_finite_then_nan`): the permutation *is* observable. libstdc++
-///   compares every pair involving the NaN false and therefore moves nothing,
-///   so the reference build's `minimum`, quartile and `maximum` lines are
-///   positional reads of a range it was free to leave in any order. The two frozen reports below
+///   `a7_cons_finite_then_nan`): the permutation *is* observable. In the
+///   two-element samples measured here libstdc++ compares every pair involving
+///   the NaN false and therefore moves nothing, so the reference build's
+///   `minimum`, quartile and `maximum` lines are positional reads of a range it
+///   was free to leave in any order. That "moves nothing" is a property of the
+///   size, not of the NaN: above libstdc++'s insertion-sort threshold
+///   `__introsort_loop` does move it, and a 20-element sample `{NaN, 2..20}`
+///   prints `minimum: 2` and `median: -nan`. The two frozen reports below
 ///   hold the same two consensus features in opposite file order and disagree
 ///   on exactly those four lines — which is the measurement that says there is
 ///   no answer to reproduce. This crate refuses that shape; it is a deferral
@@ -852,6 +859,148 @@ fn consensus_nan_in_the_statistics_sample() {
             "  maximum:        2",
         ]
     );
+}
+
+/// Native difference 6: the same `std::sort` boundary **without a NaN**, where
+/// this port accepts the input and prints four lines the Release build does not.
+///
+/// `FileInfo.cpp:2310-2311` pushes every intensity ratio into
+/// `it_delta_by_elems` *before* `:2312-2315` inverts the ones below 1, so a
+/// consensus feature holding a sub-feature of intensity `-0.0` and one of `0.0`
+/// under a positive centroid contributes `-0.0` and `0.0` to the
+/// `Intensity ratios` sample. `Math::SummaryStatistics` hands that sample to
+/// `std::sort` at `StatisticFunctions.h:948` with the default `operator<`,
+/// under which `-0.0 < 0.0` and `0.0 < -0.0` are **both false**: the two are
+/// *equivalent*. The strict-weak-ordering precondition therefore holds — unlike
+/// the NaN shapes of
+/// [`consensus_nan_in_the_statistics_sample`] this is not undefined at all —
+/// but every permutation is a conforming result, and libstdc++ leaves a range
+/// this size as it found it. `front()`, the quantiles and `back()` at `:952-956`
+/// are positional reads, and `ostream` writes `-0` for a negative zero, so the
+/// four lines depend on the order the sub-features appear in the file.
+///
+/// This port sorts with `f64::total_cmp`, which orders `-0.0` before `0.0`
+/// deterministically, so it prints one of the two answers for both files. That
+/// is a **native difference**, not a refusal: the port accepts both inputs and
+/// exits 0, as the Release build does, and reproduces every other line.
+///
+/// The two fixtures hold the same consensus feature with its two sub-feature
+/// intensities exchanged (`a7_cons_nan_one` and `a7_cons_zero_swapped`, oracle
+/// cases `c_nan_one_s` and `c_zero_swapped_s`, both annotated
+/// `signed_zero_order` in the manifest). Widening `sort_ascending` to reproduce
+/// libstdc++'s permutation is the same shared-math wave `CPP-347` names, and it
+/// has to cover this shape as well as the NaN one; section 5.3 of
+/// `docs/FILE_INFO_A7_SUPPORT.md` records both.
+#[cfg(feature = "consensusxml")]
+#[test]
+fn consensus_a_signed_zero_sample_is_ordered_by_the_total_order() {
+    // Without `-s` there is no statistics block and both files are reproduced
+    // byte for byte — including the `Ranges` intensity line, whose `std::min`
+    // over `{-0.0, 0.0, 100.0}` keeps the file's own order on both sides.
+    check("a7_cons_nan_one.consensusXML", &bare(), "c_nan_one");
+    check(
+        "a7_cons_zero_swapped.consensusXML",
+        &bare(),
+        "c_zero_swapped",
+    );
+    assert!(
+        read_text(&data("file_info_a7/expected/c_nan_one.txt"))
+            .contains("  intensity: -0.00 .. 100.00\n")
+    );
+    assert!(
+        read_text(&data("file_info_a7/expected/c_zero_swapped.txt"))
+            .contains("  intensity: 0.00 .. 100.00\n")
+    );
+
+    let statistics = Options {
+        statistics: true,
+        ..Options::default()
+    };
+    for (options, neg_case, pos_case) in [
+        (&statistics, "c_nan_one_s", "c_zero_swapped_s"),
+        (&all_flags(), "c_nan_one_all", "c_zero_swapped_all"),
+    ] {
+        // The measurement: the two retained Release reports are the same length
+        // and disagree on exactly the four order statistics of the
+        // `Intensity ratios` block, plus the `Ranges` line the same `std::min`
+        // produces. No NaN is in that sample, so this is purely the signed zero.
+        let neg_first = read_text(&data(&format!("file_info_a7/expected/{neg_case}.txt")));
+        let pos_first = read_text(&data(&format!("file_info_a7/expected/{pos_case}.txt")));
+        let neg: Vec<&str> = neg_first.split_inclusive('\n').collect();
+        let pos: Vec<&str> = pos_first.split_inclusive('\n').collect();
+        assert_eq!(neg.len(), pos.len(), "{pos_case}: line count");
+        let differing: Vec<&str> = (0..neg.len())
+            .filter(|&i| neg[i] != pos[i])
+            // The `File name: ` line names the fixture and differs by definition.
+            .filter(|&i| !neg[i].starts_with("File name: "))
+            .map(|i| neg[i].trim_end_matches('\n'))
+            .collect();
+        assert_eq!(
+            differing,
+            vec![
+                "  intensity: -0.00 .. 100.00",
+                "  minimum:        -0",
+                "  lower quartile: -0",
+                "  upper quartile: 0",
+                "  maximum:        0",
+            ],
+            "{pos_case}: the two Release reports"
+        );
+
+        // What this port prints for the swapped file: the nine NaN spellings of
+        // native difference 5, and then those four lines in the *other* file's
+        // order. Each of the four equals the Release build's own line for the
+        // unswapped file, so nothing here is invented — both spellings are
+        // measured, the port just always picks the one `total_cmp` puts first.
+        let swapped = FileInfo::new()
+            .run(input("a7_cons_zero_swapped.consensusXML"), options)
+            .unwrap_or_else(|e| panic!("{pos_case}: {e}"));
+        let ours_text = normalise_file_name(&swapped.text);
+        let reference_text = normalise_file_name(&pos_first);
+        let ours: Vec<&str> = ours_text.split_inclusive('\n').collect();
+        let reference: Vec<&str> = reference_text.split_inclusive('\n').collect();
+        assert_eq!(ours.len(), reference.len(), "{pos_case}: our line count");
+        let differing: Vec<usize> = (0..ours.len())
+            .filter(|&i| ours[i] != reference[i])
+            .collect();
+        let nan_lines: Vec<usize> = differing
+            .iter()
+            .copied()
+            .filter(|&i| reference[i].trim_end().ends_with("-nan"))
+            .collect();
+        let zero_lines: Vec<usize> = differing
+            .iter()
+            .copied()
+            .filter(|&i| !reference[i].trim_end().ends_with("-nan"))
+            .collect();
+        assert_eq!(
+            nan_lines.len(),
+            9,
+            "{pos_case}: the NaN class, as in {neg_case}"
+        );
+        assert_eq!(
+            zero_lines.len(),
+            4,
+            "{pos_case}: exactly the four order statistics differ, differing lines {differing:?}"
+        );
+        let neg_first_normalised = normalise_file_name(&neg_first);
+        let neg_lines: Vec<&str> = neg_first_normalised.split_inclusive('\n').collect();
+        for line in zero_lines {
+            assert_eq!(
+                ours[line],
+                neg_lines[line],
+                "{pos_case}: our line at {} is not the Release build's own line for {neg_case}",
+                line + 1
+            );
+        }
+
+        // The TSV carries no statistics at all, so it is reproduced exactly.
+        assert_report(
+            &swapped.tsv,
+            &data(&format!("file_info_a7/expected/{pos_case}.tsv")),
+            &format!("{pos_case} tsv"),
+        );
+    }
 }
 
 /// Upstream consensus maps whose map ids do run from zero, so the occurrence

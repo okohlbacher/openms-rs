@@ -273,8 +273,9 @@ crashes the reference FileInfo.
    consensusXML `-s` blocks are the first FileInfo path whose own arithmetic can
    produce one at all.
 
-   *Scope of the claim, as measured.* It is the only class of line on which the
-   50 compared oracle reports disagree. How many lines of it a report holds
+   *Scope of the claim, as measured.* It and native difference 6 are the only
+   two classes of line on which the 53 compared oracle reports disagree, and
+   this one is the only class that reaches more than one report. How many lines of it a report holds
    depends on the input: `c_zero_intensity_s` has one, `c_nan_one_s` nine and
    `c_nan_two_s` ten. The tests pin those counts and check each line against the
    class rather than against a single expected line.
@@ -344,6 +345,77 @@ crashes the reference FileInfo.
    reference has a number, or a change of either spelling fails the test.
    `consensus_zero_intensity_sub_feature_makes_the_variance_a_nan` pins one such
    line and `consensus_nan_in_the_statistics_sample` pins nine, nine and ten.
+6. **A sample holding both a negative and a positive zero is ordered by the
+   IEEE-754 total order, where `std::sort` leaves it as it found it.** This is
+   the same `std::sort` boundary as section 5.2 with **no NaN anywhere**, and
+   unlike section 5.2 the port *accepts* the input: it exits 0, as the Release
+   build does, and reproduces every line of the report except four.
+
+   *Where it comes from.* `:2310-2311` pushes every intensity ratio into
+   `it_delta_by_elems` **before** `:2312-2315` inverts the ones below 1, so a
+   consensus feature with a sub-feature of intensity `-0.0` and one of `0.0`
+   under a positive centroid contributes `-0.0` and `0.0` to the
+   `Intensity ratios` sample. `Math::SummaryStatistics` hands that sample to
+   `std::sort` (`StatisticFunctions.h:948`) with the default `operator<`, under
+   which `-0.0 < 0.0` and `0.0 < -0.0` are **both false**. The two are therefore
+   *equivalent*, the strict-weak-ordering precondition **holds** — nothing here
+   is undefined — and every permutation is a conforming result. libstdc++
+   leaves a range this size as it found it, `front()`, the quantiles and
+   `back()` at `:952-956` are positional reads, and `ostream` writes `-0` for a
+   negative zero, so the four lines are a property of the order the
+   sub-features appear in the file. This port's `sort_ascending` uses
+   `f64::total_cmp`, which orders `-0.0` before `0.0` deterministically, so it
+   prints one of the two answers for both orders.
+
+   *Measured, both orders.* `a7_cons_nan_one.consensusXML` and
+   `a7_cons_zero_swapped.consensusXML` hold the **same consensus feature with
+   its two sub-feature intensities exchanged**. On the Release build, each run
+   twice and reproduced (oracle cases `c_nan_one_s` and `c_zero_swapped_s`,
+   annotated `signed_zero_order` in the manifest):
+
+   | line | `a7_cons_nan_one` | `a7_cons_zero_swapped` |
+   | --- | --- | --- |
+   | `minimum:` | `-0` | `0` |
+   | `lower quartile:` | `-0` | `0` |
+   | `upper quartile:` | `0` | `-0` |
+   | `maximum:` | `0` | `-0` |
+
+   The port prints the left-hand column for **both** files, so it agrees with
+   the reference on `c_nan_one_s` and differs from it on `c_zero_swapped_s`
+   on exactly those four lines. Each of the four lines the port prints is the
+   Release build's own line for the other file, which the test asserts: nothing
+   here is invented, the port simply always picks the permutation `total_cmp`
+   puts first.
+
+   *What is reproduced.* Everything else, including the `Ranges` line
+   `intensity: -0.00 .. 100.00` against `intensity: 0.00 .. 100.00`, which the
+   same equivalence produces through `std::min` in `updateRanges` and which the
+   port **does** follow, because that path keeps the file's own order on both
+   sides. The bare and `-out_tsv` reports of both files are reproduced byte for
+   byte; `FileInfo.cpp:2257-2372` writes nothing to `os_tsv`, so only the text
+   report carries the statistics at all.
+
+   *Why it is a difference and not a refusal.* Refusing the shape would widen a
+   refusal in `sort_ascending`, which every `SummaryStatistics` caller in the
+   crate consumes, to an input the Release build handles in bounds, stably and
+   with a well-defined precondition — a decision the lead has not taken (see
+   section 5.2's open question, which this instance widens). Reproducing it
+   means porting libstdc++'s `std::sort` permutation, which is the same
+   shared-math wave `CPP-347` names; that wave has to cover **any** sample
+   whose elements `std::sort` calls equivalent but `f64::total_cmp` orders, not
+   only NaN-bearing ones.
+
+   *How it is pinned.*
+   `consensus_a_signed_zero_sample_is_ordered_by_the_total_order` asserts the
+   two bare reports byte for byte, that the two frozen Release `-s` reports
+   disagree on exactly those four lines plus the `Ranges` line, that the port's
+   swapped report differs from its reference on exactly thirteen lines — nine
+   of the class of native difference 5 and those four — and that each of the
+   four equals the Release build's own line for the unswapped file. Before this
+   test the divergence was real but unpinned: `docs/FILE_INFO_SUPPORT.md` item
+   6 recorded that "a sample holding both zeros can print `-0` where the source
+   prints `0`", and nothing in the suite would have noticed either a regression
+   or a fix.
 
 ---
 
@@ -398,10 +470,15 @@ both without sorting, since there is nothing to order.
 
 **A NaN next to a number is refused**, with
 `Error::InvalidValue("statistics input must not contain NaN")`, where the
-reference build exits 0. The reason is measured rather than assumed: libstdc++
-compares every pair involving a NaN false and therefore moves nothing, so the
-`minimum`, quartile and `maximum` lines the reference prints are positional
-reads of a range whose elements `std::sort` was free to leave in any order.
+reference build exits 0. The reason is measured rather than assumed: in the
+two-element samples measured here libstdc++ compares every pair involving the
+NaN false and therefore moves nothing, so the `minimum`, quartile and `maximum`
+lines the reference prints are positional reads of a range whose elements
+`std::sort` was free to leave in any order. "Moves nothing" is a property of the
+**size**, not of the NaN — above libstdc++'s insertion-sort threshold
+`__introsort_loop` does move it, and a 20-element sample `{NaN, 2..20}` prints
+`minimum: 2` and `median: -nan` — which makes the order statistics no less a
+property of the input order, and the refusal no less necessary.
 Oracle cases `c_nan_then_finite_s` and `c_finite_then_nan_s` hold **the same
 two consensus features in opposite file order**, are each stable over three
 runs, and disagree on exactly four lines:
@@ -422,3 +499,17 @@ refusal**, and it is raised for the lead. The manifest of
 reason, and `consensus_nan_in_the_statistics_sample` asserts the exact refusal,
 that the run without `-s` still succeeds, and that the two retained reference
 reports disagree on exactly those four lines.
+
+**The same boundary without a NaN, which this port does not refuse.** `-0.0`
+and `0.0` are also equivalent under `operator<`, so a sample holding both is
+left in file order by `std::sort` for exactly the same reason — but there the
+precondition *holds*, nothing is undefined, and this port accepts the input and
+prints the order `f64::total_cmp` gives. That is native difference 6 of section
+4, measured on `c_nan_one_s` against `c_zero_swapped_s` and pinned by
+`consensus_a_signed_zero_sample_is_ordered_by_the_total_order`. It matters for
+the lead's decision in two ways: the shared-math wave has to cover **any**
+sample whose elements `std::sort` calls equivalent but `f64::total_cmp` orders,
+not only NaN-bearing ones; and until this round it was the one instance of this
+boundary that was *silent* — recorded in prose in `docs/FILE_INFO_SUPPORT.md`
+item 6, but with no oracle case, no frozen report and no test, so neither a
+regression nor a fix would have been noticed.

@@ -130,7 +130,7 @@
     },
     "method": "Library-level: FileInfo::run on each input with the flags the oracle passed the tool; text and TSV compared byte for byte with the retained Release C++ reports after replacing the 'File name: ' text line and the 'general: file name' TSV line, which embed the input path. The FASTA duplicate warnings, which the source writes with OPENMS_LOG_WARN rather than into the reports, are compared with the tool's stderr.",
     "evidence_tier": 1,
-    "evidence": "Tier 1 (executed differential): the Release C++ FileInfo of openms4-release-bc9cc12-c19e494-174b576, at all three pins this port follows, ran 72 cases on ibminode06 twice, reproduced (../oracle/a7-fileinfo/manifest.json). 50 of them have both reports compared here byte for byte, five of them (c_zero_intensity_s, c_zero_intensity_all, c_nan_one_s, c_nan_one_all and c_nan_two_s) with the single documented exception of native difference 5 -- every NaN the FileInfo text layer prints is spelled nan where glibc spells a sign-bit NaN -nan -- which the tests assert line by line rather than mask; the rest carry refusals, exit codes and the duplicate warnings. Two further cases (c_nan_then_finite_s and c_finite_then_nan_s) are retained as evidence rather than compared: their samples hold a NaN next to a number, so std::sort's strict weak ordering is violated and the two reports, which cover the same two consensus features in opposite file order, disagree on four order statistics. That pair is the measurement behind the refusal recorded in known_gaps. One mask only: the \"FileInfo took\" stdout line, which goes into neither -out nor -out_tsv. Tier 1 (retained upstream definition): TOPP_FileInfo_7, _10, _13, _17, _18 and _20 reproduced with their own flags; _14 and _15 pass -v, which is not ported, so their inputs run without it. Tier 1 (executed probe): scripts/probe_std_hash.cpp pins libstdc++'s std::hash<std::string> over the empty string, every tail length, bytes above 0x7f and an embedded NUL, and 28 of its 60 values are asserted in a unit test of src/format/file_info/fasta.rs. Tier 4: the three out-of-bounds std::vector accesses are refused under decision D1, and the ValidationInfo, CorruptionInfo and DetailInfo aggregates these branches never fill stay at their defaults.",
+    "evidence": "Tier 1 (executed differential): the Release C++ FileInfo of openms4-release-bc9cc12-c19e494-174b576, at all three pins this port follows, ran 75 cases on ibminode06 twice, reproduced (../oracle/a7-fileinfo/manifest.json). 53 of them have both reports compared here byte for byte, five of them (c_zero_intensity_s, c_zero_intensity_all, c_nan_one_s, c_nan_one_all and c_nan_two_s) with the single documented exception of native difference 5 -- every NaN the FileInfo text layer prints is spelled nan where glibc spells a sign-bit NaN -nan -- which the tests assert line by line rather than mask, and two of them (c_zero_swapped_s and c_zero_swapped_all) with a second documented exception, native difference 6 -- a sample holding both a negative and a positive zero is left in file order by std::sort, which treats them as equivalent, and ordered by f64::total_cmp here, so four order-statistic lines of the Intensity ratios block carry the other file's signs; the tests assert those four against the Release build's own lines for the unswapped file rather than mask them; the rest carry refusals, exit codes and the duplicate warnings. Two further cases (c_nan_then_finite_s and c_finite_then_nan_s) are retained as evidence rather than compared: their samples hold a NaN next to a number, so std::sort's strict weak ordering is violated and the two reports, which cover the same two consensus features in opposite file order, disagree on four order statistics. That pair is the measurement behind the refusal recorded in known_gaps. One mask only: the \"FileInfo took\" stdout line, which goes into neither -out nor -out_tsv. Tier 1 (retained upstream definition): TOPP_FileInfo_7, _10, _13, _17, _18 and _20 reproduced with their own flags; _14 and _15 pass -v, which is not ported, so their inputs run without it. Tier 1 (executed probe): scripts/probe_std_hash.cpp pins libstdc++'s std::hash<std::string> over the empty string, every tail length, bytes above 0x7f and an embedded NUL, and 28 of its 60 values are asserted in a unit test of src/format/file_info/fasta.rs. Tier 4: the three out-of-bounds std::vector accesses are refused under decision D1, and the ValidationInfo, CorruptionInfo and DetailInfo aggregates these branches never fill stay at their defaults.",
     "known_gaps": [
         {
             "what": "a consensus sub-feature whose map index is at or beyond the column-header count is refused, where the C++ reports",
@@ -174,7 +174,12 @@
         },
         {
             "what": "a Math::SummaryStatistics sample holding a NaN next to a number is refused (Error::InvalidValue, \"statistics input must not contain NaN\") where the reference build exits 0 and prints a report",
-            "why": "Reached from the same arithmetic as the item above: a consensus feature with one sub-feature of intensity -0.0 and one of 0.0 contributes a NaN to it_aad_by_cfs (FileInfo.cpp:2317, :2323, :2327). SummaryStatistics summarises the two shapes in which the sample's order cannot decide the answer -- one value, which has exactly one permutation, and an all-NaN sample, every permutation of which prints the same eight lines -- and both are reproduced (oracle cases c_nan_one_s and c_nan_two_s). A NaN next to a number is different: std::sort may return any permutation of the elements it cannot tell apart (and, once two or more distinct numbers are present, its strict-weak-ordering precondition fails outright, since 1 ~ NaN and NaN ~ 3 while 1 < 3); libstdc++ compares every pair involving the NaN false and therefore moves nothing, so the minimum, quartile and maximum lines the reference prints are positional reads of a range it was free to leave in any order. Measured: c_nan_then_finite_s and c_finite_then_nan_s hold the same two consensus features in opposite file order, both stable across runs, and disagree on minimum, lower quartile, upper quartile and maximum. Reproducing them means porting libstdc++'s std::sort permutation into sort_ascending in shared math, which every SummaryStatistics caller in the crate consumes; that is its own wave. This is therefore a DEFERRAL, not a D1 refusal, and it is raised for the lead. consensus_nan_in_the_statistics_sample asserts the exact refusal, that the bare run still succeeds, and that the two retained reference reports disagree on exactly those four lines.",
+            "why": "Reached from the same arithmetic as the item above: a consensus feature with one sub-feature of intensity -0.0 and one of 0.0 contributes a NaN to it_aad_by_cfs (FileInfo.cpp:2317, :2323, :2327). SummaryStatistics summarises the two shapes in which the sample's order cannot decide the answer -- one value, which has exactly one permutation, and an all-NaN sample, every permutation of which prints the same eight lines -- and both are reproduced (oracle cases c_nan_one_s and c_nan_two_s). A NaN next to a number is different: std::sort may return any permutation of the elements it cannot tell apart (and, once two or more distinct numbers are present, its strict-weak-ordering precondition fails outright, since 1 ~ NaN and NaN ~ 3 while 1 < 3); in the two-element samples measured here libstdc++ compares every pair involving the NaN false and therefore moves nothing (that is a property of the size and not of the NaN: above its insertion-sort threshold __introsort_loop does move it, and a 20-element sample {NaN, 2..20} prints minimum: 2 and median: -nan), so the minimum, quartile and maximum lines the reference prints are positional reads of a range it was free to leave in any order. Measured: c_nan_then_finite_s and c_finite_then_nan_s hold the same two consensus features in opposite file order, both stable across runs, and disagree on minimum, lower quartile, upper quartile and maximum. Reproducing them means porting libstdc++'s std::sort permutation into sort_ascending in shared math, which every SummaryStatistics caller in the crate consumes; that is its own wave. This is therefore a DEFERRAL, not a D1 refusal, and it is raised for the lead. consensus_nan_in_the_statistics_sample asserts the exact refusal, that the bare run still succeeds, and that the two retained reference reports disagree on exactly those four lines.",
+            "owner": "shared math (src/math/statistic_functions.rs, SummaryStatistics::of_nan_sample and sort_ascending); this package pins the boundary and the evidence"
+        },
+        {
+            "what": "A SummaryStatistics sample holding both a negative and a positive zero is ordered by the IEEE-754 total order, where the source's std::sort leaves it in file order: this port accepts the input and prints four lines of the consensusXML -s Intensity ratios block that the Release build does not.",
+            "why": "The same std::sort boundary as entry 9 with NO NaN anywhere. FileInfo.cpp:2310-2311 pushes every intensity ratio into it_delta_by_elems BEFORE :2312-2315 inverts the ones below 1, so a consensus feature with a sub-feature of intensity -0.0 and one of 0.0 under a positive centroid contributes -0.0 and 0.0 to that sample. Under operator< both -0.0 < 0.0 and 0.0 < -0.0 are false, so the two are equivalent, std::sort's strict-weak-ordering precondition HOLDS -- nothing is undefined -- and only the permutation is unspecified; libstdc++ leaves a range this size as it found it, front(), the quantiles and back() at :952-956 are positional reads, and ostream writes -0 for a negative zero. sort_ascending uses f64::total_cmp, which orders -0.0 before 0.0 deterministically, so the port prints one of the two answers for both orders. Measured: oracle cases c_nan_one_s and c_zero_swapped_s hold the same consensus feature with its two sub-feature intensities exchanged, both reproduced over two runs, and disagree on minimum, lower quartile, upper quartile and maximum (and on the Ranges intensity line, which the same equivalence produces through std::min in updateRanges and which the port DOES follow). Recorded as native difference 6 of docs/FILE_INFO_A7_SUPPORT.md rather than as a refusal, because refusing would widen a refusal in shared math to an input the Release build handles in bounds and stably, which is the lead's decision and not this package's; the shared-math wave CPP-347 names has to cover ANY sample whose elements std::sort calls equivalent but f64::total_cmp orders, not only NaN-bearing ones. Pinned by consensus_a_signed_zero_sample_is_ordered_by_the_total_order, which asserts the two bare reports byte for byte, the four differing lines of the two Release reports, and that each of the port's four lines is the Release build's own line for the unswapped file.",
             "owner": "shared math (src/math/statistic_functions.rs, SummaryStatistics::of_nan_sample and sort_ascending); this package pins the boundary and the evidence"
         }
     ],
@@ -197,7 +202,7 @@
     "external_reference_artifacts": [
         {
             "path": "../oracle/a7-fileinfo/oracle.py",
-            "sha256": "12c83f45e06ab2d90590cab508cdf53327027c4fa9774134a6b1ee251251696a",
+            "sha256": "a2689e07605a48d42c635ce2f1f3fd8839b0bb3977b5906498cb538e83610592",
             "origin_key": "fixtures",
             "role": "driver: case table, per-case scratch runs, reproduction check, manifest writer"
         },
@@ -209,7 +214,7 @@
         },
         {
             "path": "../oracle/a7-fileinfo/scripts/make_a7_fixtures.py",
-            "sha256": "4342047de92c9e943f06f72175b688922a593ec1b4697b915c539de3e1dd9cc9",
+            "sha256": "f1d53d23406e17566a8ed8f23be8fae5243f9578bec8d743ecf28cb2998ddb34",
             "origin_key": "fixtures",
             "role": "generator of the degenerate FASTA, consensusXML and idXML inputs"
         },
@@ -221,7 +226,7 @@
         },
         {
             "path": "../oracle/a7-fileinfo/manifest.json",
-            "sha256": "8d548fddb7c0298508463f984154f64af71c1c1b4e77d93cf5733d9e96c39e56",
+            "sha256": "f671f4bc5eb9bb2e1922acb3dcba27a760653d54414be22a7aedb6aac5213ffe",
             "origin_key": "fixtures",
             "role": "tool hash, environment, fixture hashes, per-case argv, exit codes and output hashes, reproduction verdict, out_of_bounds records"
         }
@@ -408,6 +413,13 @@
             "sha256": "915fc880a61348fc18fe6b8285075241a140ae674e9fdc7ae70ff6f49073cd85",
             "bytes": 1381,
             "kind": "generated degenerate input of this package, written by ../oracle/a7-fileinfo/scripts/make_a7_fixtures.py; no value in it comes from any Rust output",
+            "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info/inputs/a7_cons_zero_swapped.consensusXML",
+            "sha256": "809a0199ca66ec85bd324812627c6c73b63e2bda4264b1d865bde0dabd712a71",
+            "bytes": 1380,
+            "kind": "generated by ../oracle/a7-fileinfo/scripts/make_a7_fixtures.py: a7_cons_nan_one with the two sub-feature intensities exchanged, so the Intensity ratios sample is {0.0, -0.0} where a7_cons_nan_one's is {-0.0, 0.0}",
             "evidence_label": "generated input (rule recorded in the generator); tool outputs on it remain oracle-generated (tier 1 executed differential)"
         },
         {
@@ -899,6 +911,48 @@
             "path": "tests/data/file_info_a7/expected/c_zero_intensity_s.txt",
             "sha256": "56f6c507770d5c333ad4c90f8501dae2e7accaaff9715f645bac44a38971417d",
             "bytes": 4037,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_zero_swapped.tsv",
+            "sha256": "96506b27a5b7f8b75230efe09aa93d7a299564cb3e3111584177bec711aa6f9c",
+            "bytes": 430,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_zero_swapped.txt",
+            "sha256": "71b4ef85d02e1ff8ca8bc0dcf719b20cc0150704ac63e74adb3cf8dd4bd57f61",
+            "bytes": 703,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_zero_swapped_all.tsv",
+            "sha256": "96506b27a5b7f8b75230efe09aa93d7a299564cb3e3111584177bec711aa6f9c",
+            "bytes": 430,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_zero_swapped_all.txt",
+            "sha256": "e4d5d1ef3c0ac11596e6f8fb908fa2f6679fa480310cd96034ac4e121beef7f7",
+            "bytes": 4177,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_zero_swapped_s.tsv",
+            "sha256": "96506b27a5b7f8b75230efe09aa93d7a299564cb3e3111584177bec711aa6f9c",
+            "bytes": 430,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/c_zero_swapped_s.txt",
+            "sha256": "8529de387fa65b6a004e64eb0b846d45e0b4e40e717f96d14e57914b135af376",
+            "bytes": 4045,
             "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
             "evidence_label": "oracle-generated (tier 1 executed differential)"
         },

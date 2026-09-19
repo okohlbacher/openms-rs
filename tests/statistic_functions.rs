@@ -833,8 +833,8 @@ fn the_sorting_entry_points_refuse_a_nan() {
 // on ibminode06 and which tests/data/file_info_a7/expected holds verbatim.
 #[test]
 fn summary_statistics_summarises_the_two_unobservable_nan_samples() {
-    // One value. `std::sort` over a one-element range is a no-op by
-    // a one-element range has exactly one permutation. Reference: num. of
+    // One value. A one-element range has exactly one permutation, so there is
+    // nothing for `std::sort` to choose. Reference: num. of
     // values 1, mean/minimum/lower quartile/median/upper quartile/maximum all
     // `-nan`, variance `0`.
     let mut lone = [f64::NAN];

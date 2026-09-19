@@ -178,9 +178,14 @@ and `c_nan_two_s`).
 The refusal that remains is a **deferral, not a decision-D1 refusal**, and is
 raised for the lead. Nothing is out of bounds and the Release build's values are
 stable per input, so D1 would have the port reproduce them; it does not, because
-libstdc++ compares every pair involving a NaN false and therefore moves nothing,
-which makes the `minimum`, quartile and `maximum` lines positional reads of a
-range whose elements `std::sort` was free to leave in any order. Measured: the oracle's `c_nan_then_finite_s`
+in the two-element samples measured here libstdc++ compares every pair
+involving the NaN false and therefore moves nothing, which makes the `minimum`,
+quartile and `maximum` lines positional reads of a range whose elements
+`std::sort` was free to leave in any order. That "moves nothing" is a property
+of the **size** rather than of the NaN — above libstdc++'s insertion-sort
+threshold `__introsort_loop` does move it, and a 20-element sample
+`{NaN, 2..20}` prints `minimum: 2` and `median: -nan` — which makes the order
+statistics no less a property of the input order. Measured: the oracle's `c_nan_then_finite_s`
 and `c_finite_then_nan_s` hold the same two consensus features in opposite file
 order and disagree on exactly those four lines. Reproducing them means porting
 libstdc++'s `std::sort` permutation into `sort_ascending`, which every
