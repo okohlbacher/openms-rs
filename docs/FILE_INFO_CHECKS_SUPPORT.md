@@ -223,9 +223,8 @@ Each is documented at the item in `checks.rs` as well.
     writer produces parses. Only that one position matters: whitespace between
     the offsets or before `</index>` does not save the first offset, so the
     affected class is "first child is an `<offset>`", not "written without
-    whitespace". Measured:
-    the Release build counts one spectrum in the two-offset
-    `index_offsets_unspaced.mzML`, the port counts two. Reproducing it would
+    whitespace". Measured: the Release build counts one spectrum in the
+    two-offset `index_offsets_unspaced.mzML`, the port counts two. Reproducing it would
     mean re-implementing the source's DOM walk in `parse_offsets`, which every
     other index reader in the crate calls — and it would break random access,
     because a dropped offset is a record that cannot be found. **Owner:**

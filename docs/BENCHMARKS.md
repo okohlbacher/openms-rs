@@ -457,8 +457,9 @@ and **0.923** at 32: the flag is what puts this tool ahead of the C++ Release
 build at 32 threads, and it removes four fifths of its one-thread deficit.
 
 **Where it is not measurable, say so plainly.** On the other seven cases all
-fourteen ratios lie between 0.985 and 1.015 — inside the ~3 % band on every one
-— and the sign is **not even consistent**: the flag is nominally faster on
+fourteen ratios round to between 0.985 and 1.015 at the three decimals printed
+above; unrounded, the widest is DTAExtractor at one thread, 0.98487. Every one
+is inside the ~3 % band, and the sign is **not even consistent**: the flag is nominally faster on
 BaselineFilter, MapNormalizer and FileInfo-on-mzML and nominally slower on
 DTAExtractor, MzMLSplitter, PeakPickerHiRes and FileInfo-on-featureXML. The
 correct statement is **no effect was measured on any tool without a fused
