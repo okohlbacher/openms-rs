@@ -380,6 +380,68 @@ parses as YAML. Determinism was re-checked here rather than taken on report:
 No C++ was built or run in this pass except the A7 oracle re-run on
 `ibminode06`. `ibminode05` was never contacted.
 
+### The polish round on top of this head
+
+Twelve minors were carried into a polish round after the integration head.
+Seven were already applied by the integrator while merging and are recorded
+here only so that a re-reader does not go looking: the whole A7 group
+(the mechanism claim's scoping, integrator request 8's split, the oracle case
+note, the garbled test comment), the A7 handover's commit list and the citation
+lane's commit count, which live in handover text rather than in the repository,
+and the ledger claim above, which was never written into a committed file.
+
+Five needed work, and two of them were not wording. **The chromatogram
+`sourceFileRef` refusal is now executed** rather than only described, and
+**the citation checker's ambiguity guard now counts per file rather than per
+pin** and counts only where it counts `checked`, with `Pins.packaged` and both
+directions of the subset relation pinned by tests that fail when the fix is
+mutated away.
+
+Three figures were re-measured rather than carried, and two of them moved
+against what the round was told:
+
+- The libstdc++ mechanism behind the NaN refusal was read out of the headers
+  the Release build was compiled with, not inferred. `_S_threshold` is 16 and
+  `__introsort_loop` runs only above it, so at sixteen elements or fewer
+  `std::sort` is a single `__insertion_sort` pass — but a NaN can still be
+  carried by a block move there, which the "property of the size" wording did
+  not allow for. `{3, NaN, 2}` sorts to `{2, 3, NaN}` at three elements.
+- The citation mutation replay was recomputed from scratch at both heads. The
+  lane report's "caught 72, missed 2" does not reproduce; the four misses the
+  verifier found do, at the lane head and here, and the count is a property of
+  the shift chosen rather than a bound on the checker.
+- The removed-assertion count was not six. It is **eight**; the two the audit's
+  own grep missed are written as `outcome.assert_*` method calls.
+
+**Gates at the polish head**, on `dax`, slot `w8-polish`, detached and polled,
+through `/scratch/kohlbach/openms-rs-env.sh` for `pkg-config` and `libxml2`:
+
+| Gate | Result |
+|---|---|
+| `fmt --all -- --check` | exit 0 |
+| `clippy --locked --all-features --all-targets -- -D warnings` | exit 0 |
+| `clippy --locked --no-default-features --all-targets -- -D warnings` | exit 0 |
+| `+1.85.0 check --locked --all-features --all-targets` | exit 0 |
+| `doc --locked --all-features --no-deps`, `RUSTDOCFLAGS=-D warnings` | exit 0 |
+| `test --locked --all-features --doc` | exit 0, 73 + 3 = **76 doctests**, unchanged |
+| `test --locked --all-features --all-targets --no-fail-fast` | exit 0, **5,478 passed / 0 failed / 21 ignored** over 359 result lines |
+
+5,478 is 5,477 **+1**, and the one is
+`a_chromatograms_source_file_ref_is_refused_under_both_policies`. The triple
+sum and the anchored recount of `... ok` lines agree at 5,478 this time, with
+0 `FAILED`, 0 `panicked`, 0 `failures:` and 0 lines starting `error`. Locally:
+every `tools/*.py` checker exits 0, `core_sdk_coverage.py --write` leaves no
+diff, `check_source_citations.py` reports 3,346 resolved / 104 confirmed / 196
+ambiguous / 0 problems, and `test_source_citations.py` runs 52 tests. The round
+adds one Rust test and eight Python ones, removes none, and removes no
+assertion; `unsafe` and `#[ignore]` counts and `Cargo.toml`/`Cargo.lock` are
+untouched.
+
+The oracle directory under `../oracle/a7-fileinfo` was deliberately **not**
+re-emitted. Its per-case note is scoped to the two-element samples it
+describes, where it is exact, and re-emitting the manifest would move a sha256
+this wave has already handed to the integrator.
+
 ### Ignored tests
 
 **28 `#[ignore]` attributes in the tree, all of them in `tests/` and none in
@@ -399,19 +461,31 @@ polish round below adds one more of each kind, taking `#[test]` to 5,507 and
 reports **21** ignored rather than 28 for the reason earlier waves recorded: the
 platform-gated tests are not compiled on the Linux gate hosts.
 
-Six assertion sites were removed in this wave, and every one of them is a
-specification change rather than a weakening. Five are A7 scope tripwires that
-asserted a branch was *unported* — two in `tests/file_info.rs`, two in
-`tests/topp_file_info.rs` and one in `tests/topp_feature_finder_centroided.rs`
-— and each is replaced by an assertion of what the now-ported branch does,
-which is the stronger statement. The sixth is
-`SummaryStatistics::new(&mut [NaN])` being refused, which the lead's
-instruction made false; it is replaced by two new refusal assertions for the
-mixed sample in both orders, by the untouched-input assertions around it, and
-by two whole new tests, taking `tests/statistic_functions.rs` from 85 assertion
-macros to 109. `git diff main..HEAD -- '*.rs' | grep -cE '^-[[:space:]]*assert'`
-counts five of the six; the sixth is an `unwrap_err()` binding rather than an
-`assert` line.
+Eight assertion sites were removed in this wave, and every one of them is a
+specification change rather than a weakening. They group in three:
+
+- **Four A7 scope tripwires**, which asserted a branch was *unported*: two in
+  `tests/file_info.rs` (`class_test_run_consensusxml_is_pending` and
+  `class_test_run_fasta_is_pending`, each asserting an
+  `Error::Unsupported`) and two in `tests/topp_file_info.rs` (exit code 11 and
+  an empty stdout). A7 ported those branches, so each is replaced by an
+  assertion of what the branch now does, which is the stronger statement.
+- **Three closing TOPP native difference 16**, all in
+  `tests/topp_feature_finder_centroided.rs`: `assert_exit(InputFileCorrupt)`,
+  `assert_err_contains("nonfinite feature value")` and the no-output-file
+  check, replaced by `ExecutionOk`, an empty stderr and assertions on the
+  values the Release build itself writes.
+- **One lead-ordered**: `SummaryStatistics::new(&mut [NaN])` being refused,
+  which the lead's instruction made false, replaced by two new refusal
+  assertions for the mixed sample in both orders, by the untouched-input
+  assertions around it, and by two whole new tests — `tests/statistic_functions.rs`
+  goes from 85 assertion macros to 109.
+
+The count is worth stating carefully, because the obvious way to take it
+undercounts: `git diff main..HEAD -- '*.rs' | grep -cE '^-[[:space:]]*assert'`
+returns five, missing the one written as an `unwrap_err()` argument and the two
+written as `outcome.assert_*` method calls rather than as macros at the start
+of a line.
 
 Two hygiene facts, mechanically checked rather than asserted: `Cargo.toml` still
 carries `unsafe_code = "forbid"` and `rust-version = "1.85"`, and no C++ entered
