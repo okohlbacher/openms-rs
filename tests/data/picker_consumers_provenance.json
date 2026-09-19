@@ -49,22 +49,71 @@
       "differ_rc=0"
     ]
   },
-  "fixtures": {
-    "snt_oracle.tsv": "0c1f059c31424c8241430c7eaf893b07ab822c7ad98c343c9b52aa87dd82ce43",
-    "pick_oracle.tsv": "6adcb2788e4520d2f045b8609c8568883d42d1f9509289b91dc295cd19980489",
-    "cases/allneg.tsv": "c66b9d86466503d8b388a2d86a638c0f88fdda930620af328b9b011e5be5dde3",
-    "cases/bigint.tsv": "2c3d37ba13cff7195a72bc9cf5870776858b7ee0d82fb6268f0c4f11ac3a83cd",
-    "cases/clean.tsv": "c94181147d7622e1481e0f924bb508d95ba135a34f9df37a80a7871511514901",
-    "cases/dup.tsv": "6954429ead642d93fe502e0f2e5d4abefa4545b2f26dfd14e2c6d268e41bafef",
-    "cases/dupneg.tsv": "2c50859812ee186ad6de2211ea8bb6c729c3fac85728e9118e2d4f28b2967c2c",
-    "cases/neg.tsv": "9feb35219876f3446ca12ad37463c271f0086d773e0b4738412ee22ba8ead43c",
-    "cases/negbase.tsv": "fdc6c4c1ebfdbf708d12745452664873dfb946ee15c787ddb6d568b84e9f8a97",
-    "cases/negmz.tsv": "eeab7d9e3242a4114fb280c17d1d52ee4525429ffb269033bbea7eb7d5078bcd",
-    "cases/nfint.tsv": "11d30f8f0c85d958d394ce854cb7722572eaf5d42d274bf3c3c37d254acc9fac",
-    "cases/nonfinite.tsv": "e14f19abd34b2caabdacd8e3ffbcf04bc0fe76cca981aaeb8bd1e60fe86ca0d1",
-    "cases/pick_manifest.tsv": "d17d7c763033ca113c2d3000200f648c8a408e5fbcb8ff3782c43a00233d1cf8",
-    "cases/snt_manifest.tsv": "aa72ce6318e1e0364dfab63fc1ac9d6e75c591294c0cdc0f5069dcc0b40f7d0c",
-    "cases/spike.tsv": "b1613a0d17d829b88d10e17fad4a645ca1c41f200f4e5140724b88a8c9bc5bba",
-    "cases/unsorted.tsv": "ade438a9a52d24e85896094b05e61ae3424eb30a063a1b62a476131ce4d1900d"
-  }
+  "fixtures": [
+    {
+      "path": "tests/data/picker_consumers/snt_oracle.tsv",
+      "sha256": "0c1f059c31424c8241430c7eaf893b07ab822c7ad98c343c9b52aa87dd82ce43"
+    },
+    {
+      "path": "tests/data/picker_consumers/pick_oracle.tsv",
+      "sha256": "6adcb2788e4520d2f045b8609c8568883d42d1f9509289b91dc295cd19980489"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/allneg.tsv",
+      "sha256": "c66b9d86466503d8b388a2d86a638c0f88fdda930620af328b9b011e5be5dde3"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/bigint.tsv",
+      "sha256": "2c3d37ba13cff7195a72bc9cf5870776858b7ee0d82fb6268f0c4f11ac3a83cd"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/clean.tsv",
+      "sha256": "c94181147d7622e1481e0f924bb508d95ba135a34f9df37a80a7871511514901"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/dup.tsv",
+      "sha256": "6954429ead642d93fe502e0f2e5d4abefa4545b2f26dfd14e2c6d268e41bafef"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/dupneg.tsv",
+      "sha256": "2c50859812ee186ad6de2211ea8bb6c729c3fac85728e9118e2d4f28b2967c2c"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/neg.tsv",
+      "sha256": "9feb35219876f3446ca12ad37463c271f0086d773e0b4738412ee22ba8ead43c"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/negbase.tsv",
+      "sha256": "fdc6c4c1ebfdbf708d12745452664873dfb946ee15c787ddb6d568b84e9f8a97"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/negmz.tsv",
+      "sha256": "eeab7d9e3242a4114fb280c17d1d52ee4525429ffb269033bbea7eb7d5078bcd"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/nfint.tsv",
+      "sha256": "11d30f8f0c85d958d394ce854cb7722572eaf5d42d274bf3c3c37d254acc9fac"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/nonfinite.tsv",
+      "sha256": "e14f19abd34b2caabdacd8e3ffbcf04bc0fe76cca981aaeb8bd1e60fe86ca0d1"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/pick_manifest.tsv",
+      "sha256": "d17d7c763033ca113c2d3000200f648c8a408e5fbcb8ff3782c43a00233d1cf8"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/snt_manifest.tsv",
+      "sha256": "aa72ce6318e1e0364dfab63fc1ac9d6e75c591294c0cdc0f5069dcc0b40f7d0c"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/spike.tsv",
+      "sha256": "b1613a0d17d829b88d10e17fad4a645ca1c41f200f4e5140724b88a8c9bc5bba"
+    },
+    {
+      "path": "tests/data/picker_consumers/cases/unsorted.tsv",
+      "sha256": "ade438a9a52d24e85896094b05e61ae3424eb30a063a1b62a476131ce4d1900d"
+    }
+  ],
+  "fixtures_note": "Paths are repository-relative so that tools/check_core_sdk.py verifies every hash on each run; the wave-8 integration converted the {name: sha256} map this lane shipped into that shape, hash for hash, when it listed this manifest among SOURCE_PROVENANCE.json's current_sdk_reference_manifests as the lane asked."
 }
