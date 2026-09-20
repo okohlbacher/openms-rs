@@ -671,7 +671,11 @@ fn source_precision(requested: u32) -> usize {
 /// generalisation it is.
 fn nonfinite(value: f64) -> &'static str {
     if value.is_nan() {
-        if value.is_sign_negative() { "-nan" } else { "nan" }
+        if value.is_sign_negative() {
+            "-nan"
+        } else {
+            "nan"
+        }
     } else if value < 0.0 {
         "-inf"
     } else {

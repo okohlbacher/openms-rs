@@ -432,7 +432,10 @@ fn collect(map: &ConsensusMap) -> Result<Samples> {
             // the per-consensus-feature sample itself. All of that is in bounds
             // and reproducible, so D1 keeps it, and it is pinned by
             // `consensus_zero_intensity_sub_feature_makes_the_variance_a_nan`
-            // and `consensus_nan_in_the_statistics_sample`. Section 5.2 of
+            // and `consensus_nan_in_the_statistics_sample`. Since D16 there is
+            // no shape here that `SummaryStatistics` declines: it sorts with
+            // `std::sort(begin, end)` itself and reads its order statistics out
+            // of whatever that leaves. Section 5.2 of
             // docs/FILE_INFO_A7_SUPPORT.md records the measurement.
             let it_ratio = f64::from(handle.intensity) / denominator;
             samples.it_delta_by_elems.push(it_ratio);

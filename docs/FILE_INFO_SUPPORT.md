@@ -216,20 +216,43 @@ Every public member of `FileInfo.h`, and the file-local helpers of
    `{1, +inf}`, whose mean is `+inf` and whose variance is a NaN; one of
    intensity `-0.0` next to one of `0.0` contributes `(-inf) + (+inf)`, which
    puts a NaN into the per-consensus-feature *sample* itself. The port
-   reproduces those values bit for bit and writes every NaN `nan` where glibc
-   writes a sign-bit NaN `-nan`. That is native difference 5 of
-   [the A7 document](FILE_INFO_A7_SUPPORT.md) — a class of line, since any of
-   the eight summary lines can carry one, and the only class on which the
-   compared oracle reports disagree.
+   reproduces those values bit for bit **and spells them as the reference build
+   spells them**. That was native difference 5 of
+   [the A7 document](FILE_INFO_A7_SUPPORT.md) — the port wrote every NaN `nan`
+   where glibc writes a sign-bit NaN `-nan` — and it is **closed**. Every
+   compared A7 oracle report is now byte-identical to the Release build's.
 
-   "Bit for bit" became true of every host, and not only of x86_64, in the
-   shared-math wave of 2026-09-19: every operation of
-   `src/math/statistic_functions.rs` that can *generate* a NaN is built on
-   `crate::math::x86_64`, so `inf - inf` is the Release build's
-   `0xfff8000000000000` on an arm64 host too. One generator is still outside
-   that: `src/format/file_info/consensus.rs`'s `it_aad += it_ratio`, the
-   `(-inf) + (+inf)` above, is still plain Rust arithmetic. Fixing the spelling
-   has to take it, and A2's oracle row, with it.
+   Closing it took two steps, in this order, because the spelling is only
+   honest once the value is:
+
+   - *The value.* "Bit for bit" became true of every host, and not only of
+     x86_64, in the shared-math wave of 2026-09-19: every operation of
+     `src/math/statistic_functions.rs` that can *generate* a NaN is built on
+     `crate::math::x86_64`, so `inf - inf` is the Release build's
+     `0xfff8000000000000` on an arm64 host too. One generator was outside that,
+     `src/format/file_info/consensus.rs`'s `it_aad += it_ratio` — the
+     `(-inf) + (+inf)` above — and it now goes through `math::x86_64::add`. A
+     sweep of `src/format/file_info/` found no second instance: the consensusXML
+     reader's `map.validate()` refuses a non-finite coordinate, and the
+     featureXML branch's TIC loop runs after `RangeBase::extend_value` has
+     refused one, so nothing else there can reach an invalid operation.
+   - *The spelling.* `text_format::nonfinite` writes `-nan` for a NaN whose
+     sign bit is set. All three of its callers reach C `printf`; the
+     `StringUtils::toStr` path does not come through it and still writes `NaN`
+     for either sign, which is `NumericFormatting.h:29`. The measurement is
+     `../oracle/a2-textfmt-linux`, which re-ran A2's driver against the Linux
+     Release install: of 1018 rows exactly one differs from the macOS capture,
+     and it differs in the five `printf` columns and not in the `toStr` column.
+
+   *What is measured and what is generalised.* That corpus holds exactly three
+   NaN bit patterns and one sign-bit NaN row, so it pins `number(-NaN, n)` at
+   `n` in `{0, 1, 2}` and `ostream(-NaN, p)` at `p` in `{6, 15}`, and no
+   sign-bit NaN `float` at all. Every other digit count, precision and the
+   `float` overload follow from glibc writing the sign before `__printf_fp`
+   dispatches on the class; a wider negative-NaN sweep is being captured
+   separately. A macOS C++ build writes `nan` for the same bits, so a macOS
+   comparison must not count the difference as a port defect — the same caveat
+   the `%g` tie class carries.
 
    `SummaryStatistics::new` no longer refuses any NaN. It used to summarise only
    the two shapes in which the permutation `std::sort` leaves behind cannot be

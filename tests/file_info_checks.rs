@@ -25,10 +25,12 @@
 //!   code. TOPP_FileInfo_12 (`:910-911`) is not: its input's `charge array` is
 //!   stored as 64-bit float, which the strict mzML reader refuses, so only its
 //!   index is checked here;
-//! - tier 4, the refusal of the two places the source's behaviour is undefined
-//!   (an empty SRM chromatogram, a NaN coordinate in a `std::sort`), the
-//!   infinity and the non-MS1 NaN retention time that are *not* refused, and the
-//!   result fields the source leaves at their defaults.
+//! - tier 4, the refusal of the one place the source's behaviour is undefined
+//!   (an empty SRM chromatogram), the infinity and every NaN coordinate that
+//!   are *not* refused, and the result fields the source leaves at their
+//!   defaults. A NaN in either of the two `std::sort` calls was refused until
+//!   lead decision D16; it is now reproduced, and the unit tests of
+//!   `src/format/file_info/checks.rs` pin the permutation libstdc++ leaves.
 //!
 //! Four oracle cases load the original `FileInfo_9_input.mzML`, which the strict
 //! mzML reader refuses for three reasons outside this package (see
@@ -833,10 +835,12 @@ fn detailed_and_corrupt_are_ignored_on_featurexml() {
 // Tier 4: where the source's behaviour is undefined, and what stays untouched
 // ---------------------------------------------------------------------------
 
-/// The two places the source's behaviour is undefined — an empty SRM
-/// chromatogram and a NaN coordinate in a `std::sort` — are refused, and an
-/// infinity is not. They need an experiment no loader produces, so they are
-/// unit tests of `src/format/file_info/checks.rs` instead of cases here.
+/// The one place the source's behaviour is undefined — an empty SRM
+/// chromatogram — is refused; an infinity is not, and since lead decision D16
+/// neither is a NaN in either `std::sort`, whose libstdc++ permutation the port
+/// reproduces instead. All of those need an experiment no loader produces, so
+/// they are unit tests of `src/format/file_info/checks.rs` instead of cases
+/// here.
 ///
 /// `-v` is the one flag of this block that is still refused.
 #[test]

@@ -746,13 +746,20 @@ pub(crate) fn write_processing(
 /// `SummaryStatistics(values)` over a collected sample, refusing a sample
 /// above [`FileInfo::MAX_STATISTICS_VALUES`].
 ///
+/// A NaN in the sample is **not** refused. Under lead decision D16
+/// [`SummaryStatistics::new`] sorts with `std::sort(begin, end)` itself and
+/// reads its order statistics positionally out of the result, whatever the
+/// sample holds, so every shape the consensusXML `-s` arithmetic can compute
+/// into a sample — including a NaN next to a number — is reproduced rather
+/// than declined. Section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md` records the
+/// measurement.
+///
 /// # Errors
 ///
 /// [`Error::InvalidValue`] above the ceiling, and as
-/// [`SummaryStatistics::new`] for a NaN next to a number — a NaN the
-/// consensusXML `-s` arithmetic computes into the sample itself is summarised
-/// rather than refused when the sample's order cannot decide the answer; see
-/// section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md`.
+/// [`SummaryStatistics::new`], whose only failures for a sample of `f64` are
+/// an introsort read outside the vector — which `<` on `f64` keys, NaN keys
+/// included, cannot provoke — and the allocation of its own sort buffer.
 pub(crate) fn summarize(values: &mut [f64]) -> Result<SummaryStatistics> {
     check_statistics_values(values.len())?;
     SummaryStatistics::new(values)

@@ -14,16 +14,22 @@
 //! - tier 1, executed differential: 75 cases of `../oracle/a7-fileinfo` run
 //!   against the **Release** C++ FileInfo of
 //!   `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
-//!   ibminode06, twice and reproduced. 53 of them have their `-out` and
-//!   `-out_tsv` reports compared here byte for byte; only the two lines that
-//!   embed the input path are normalised, `File name: ` and
-//!   `general: file name`. Seven more are compared line for line with the
-//!   reference and differ only in native difference 5, the `nan` / `-nan`
-//!   spelling of the FileInfo text layer: `c_nan_one_s`, `c_nan_one_all`,
-//!   `c_nan_two_s`, `c_nan_then_finite_s`, `c_finite_then_nan_s`,
-//!   `c_zero_swapped_s` and `c_zero_swapped_all`. The last five of those were
-//!   refusals or divergences before decision D16 put reproducing libstdc++'s
-//!   `std::sort` permutation in scope; see
+//!   ibminode06, twice and reproduced. 55 of them have their `-out` and
+//!   `-out_tsv` reports compared here byte for byte, with no exemption of any
+//!   kind; only the two lines that embed the input path are normalised,
+//!   `File name: ` and `general: file name`.
+//!
+//!   That count was 46 until two differences closed. Decision D16 put
+//!   reproducing libstdc++'s `std::sort` permutation in scope, which turned
+//!   `c_nan_then_finite_s` and `c_finite_then_nan_s` from refusals into
+//!   reproductions and `c_nan_one_s`/`c_zero_swapped_s` from a divergence into
+//!   an equality; the NaN-spelling step then closed native difference 5, the
+//!   `nan` / `-nan` spelling of the FileInfo text layer, which had been the
+//!   last thing keeping nine reports off byte equality —
+//!   `c_zero_intensity_s`, `c_zero_intensity_all`, `c_nan_one_s`,
+//!   `c_nan_one_all`, `c_nan_two_s`, `c_nan_then_finite_s`,
+//!   `c_finite_then_nan_s`, `c_zero_swapped_s` and `c_zero_swapped_all`. See
+//!   `consensus_zero_intensity_sub_feature_makes_the_variance_a_nan`,
 //!   `consensus_nan_in_the_statistics_sample` and
 //!   `consensus_a_signed_zero_sample_keeps_the_release_builds_order`;
 //! - tier 1, retained upstream definition: TOPP_FileInfo_7, _10, _13, _17, _18
@@ -704,10 +710,12 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
 ///   move can carry the NaN, as `{3, NaN, 2}` sorting to `{2, 3, NaN}` shows.
 ///   The two frozen reports below
 ///   hold the same two consensus features in opposite file order and disagree
-///   on exactly those four lines — which is the measurement that says there is
-///   no answer to reproduce. This crate refuses that shape; it is a deferral
-///   pending a libstdc++ `std::sort` emulation in shared math, not a D1
-///   refusal, and the oracle records both reports under `unspecified_order`.
+///   on exactly those four lines — which is the measurement that says the
+///   answer is a property of the file order rather than of the sample. Under
+///   decision D16 this crate reproduces that order rather than refusing the
+///   shape, and both reports are asserted below. The oracle still records them
+///   under `unspecified_order`; that annotation is a statement about what the
+///   C++ standard guarantees, not about what the port does with them.
 #[cfg(feature = "consensusxml")]
 #[test]
 fn consensus_nan_in_the_statistics_sample() {
