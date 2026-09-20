@@ -684,9 +684,21 @@ mod tests {
             !text.contains("Error: Duplicate spectrum retention time"),
             "libstdc++ leaves {{5, NaN, 5}} as it found it: {text}"
         );
-        // The same three values under the IEEE-754 total order would be
-        // adjacent and would produce exactly one such line, which is the
-        // measurement this test exists to prevent regressing to.
+        // The permutation itself, not only its consequence: the sample comes
+        // back in its original order. `{3, NaN, 2}` is the counter-example that
+        // keeps this honest — below the threshold `__insertion_sort` still
+        // relocates a whole block, so "a short range never moves" would be the
+        // wrong rule to read out of the line above.
+        let mut sample = vec![5.0_f64, f64::NAN, 5.0];
+        sort_as_the_source_does(&mut sample).unwrap();
+        assert!(sample[0] == 5.0 && sample[1].is_nan() && sample[2] == 5.0);
+        let mut block_move = vec![3.0_f64, f64::NAN, 2.0];
+        sort_as_the_source_does(&mut block_move).unwrap();
+        assert!(block_move[0] == 2.0 && block_move[1] == 3.0 && block_move[2].is_nan());
+
+        // The same three retention times under the IEEE-754 total order would
+        // be adjacent and would produce exactly one duplicate line, which is
+        // the regression this test exists to prevent.
         let mut total_order = [5.0_f64, f64::NAN, 5.0];
         total_order.sort_unstable_by(f64::total_cmp);
         assert_eq!(total_order[0], total_order[1]);
