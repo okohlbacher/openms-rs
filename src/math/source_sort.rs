@@ -174,7 +174,7 @@ pub fn source_sort_permutation(
 ///
 /// As [`source_sort_permutation`], and — unreachably, but refused rather than
 /// left to panic or to spin — as [`apply_permutation`].
-pub fn source_sort_by<T>(items: &mut Vec<T>, mut less: impl FnMut(&T, &T) -> bool) -> Result<()> {
+pub fn source_sort_by<T>(items: &mut [T], mut less: impl FnMut(&T, &T) -> bool) -> Result<()> {
     let mut order = source_sort_permutation(items.len(), |a, b| less(&items[a], &items[b]))?;
     apply_permutation(items, &mut order)
 }
@@ -190,7 +190,7 @@ pub fn source_sort_by<T>(items: &mut Vec<T>, mut less: impl FnMut(&T, &T) -> boo
 ///
 /// As [`source_sort_by`].
 pub fn source_sort_reversed_by<T>(
-    items: &mut Vec<T>,
+    items: &mut [T],
     mut less: impl FnMut(&T, &T) -> bool,
 ) -> Result<()> {
     let len = items.len();

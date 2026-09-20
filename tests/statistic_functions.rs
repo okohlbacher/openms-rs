@@ -7,6 +7,7 @@
 //! at the assertion, and the native guard tests are tier 4.
 
 use openms::Error;
+use openms::math::source_sort::source_sort_by;
 use openms::math::statistic_functions::{
     AdaptiveQuantileResult, DEFAULT_R_DENSE, DEFAULT_R_SPARSE, DEFAULT_TUKEY_FACTOR,
     SummaryStatistics, absdev, absdev_with_mean, check_exhausted, check_not_empty,
@@ -773,18 +774,21 @@ fn invalid_value(error: &Error) -> bool {
     matches!(error, Error::InvalidValue(_))
 }
 
-// `SummaryStatistics` is the one sorting entry point that does NOT refuse every
-// NaN, because two sample shapes make the unspecified permutation unobservable.
-// Both values come from the Release C++ build, not from this crate:
-// ../oracle/a7-fileinfo cases `c_nan_one_s` and `c_nan_two_s`, whose "Average
-// relative intensity error within consensus features" blocks the tool printed
-// on ibminode06 and which tests/data/file_info_a7/expected holds verbatim.
+// Since decision D16 every sorting entry point of this header reproduces a
+// NaN-bearing sample rather than refusing it, `SummaryStatistics` included: the
+// permutation is libstdc++'s own and is pinned by
+// `the_introsort_threshold_decides_where_a_nan_lands`. These two shapes are
+// kept as a separate test because they are the two the Release build's own
+// output was retained for. Both values come from the Release C++ build, not
+// from this crate: ../oracle/a7-fileinfo cases `c_nan_one_s` and `c_nan_two_s`,
+// whose "Average relative intensity error within consensus features" blocks the
+// tool printed on ibminode06 and which tests/data/file_info_a7/expected holds
+// verbatim.
 #[test]
-fn summary_statistics_summarises_the_two_unobservable_nan_samples() {
-    // One value. A one-element range has exactly one permutation, so there is
-    // nothing for `std::sort` to choose. Reference: num. of
-    // values 1, mean/minimum/lower quartile/median/upper quartile/maximum all
-    // `-nan`, variance `0`.
+fn summary_statistics_matches_the_release_build_on_the_two_retained_nan_samples() {
+    // One value. Reference: num. of values 1,
+    // mean/minimum/lower quartile/median/upper quartile/maximum all `-nan`,
+    // variance `0`.
     let mut lone = [f64::NAN];
     let stats = SummaryStatistics::new(&mut lone).unwrap();
     assert_eq!(stats.count, 1);
@@ -799,9 +803,8 @@ fn summary_statistics_summarises_the_two_unobservable_nan_samples() {
     // The sample is left alone, as a refused one would be.
     assert!(lone[0].is_nan());
 
-    // Every value a NaN. The permutation is unspecified but unobservable.
-    // Reference: num. of values 2 and all seven value lines `-nan`, the
-    // variance included, because n > 1 lets Math::variance run.
+    // Every value a NaN. Reference: num. of values 2 and all seven value lines
+    // `-nan`, the variance included, because n > 1 lets Math::variance run.
     let mut all = [f64::NAN, f64::NAN];
     let stats = SummaryStatistics::new(&mut all).unwrap();
     assert_eq!(stats.count, 2);
@@ -975,6 +978,31 @@ fn the_x86_64_helpers_change_no_finite_result() {
                 absdev(values).unwrap(),
                 plain_absdev,
             );
+        }
+
+        // `mad`: `fabs` of the same differences (`andpd`), sorted, then the
+        // same interpolating read `median_sorted` makes. Covering it is what
+        // makes the "across every function" claim of
+        // `docs/STATISTIC_FUNCTIONS_SUPPORT.md` true: `mad` is a rebuilt entry
+        // point and was the one whose finite-result invariance no assertion
+        // reached.
+        for &centre in &[plain_mean, 0.0, 1.0, -2.5] {
+            let mut plain_diffs: Vec<f64> =
+                values.iter().map(|value| (value - centre).abs()).collect();
+            plain_diffs.sort_by(f64::total_cmp);
+            let diffs = plain_diffs.len();
+            let plain_mad = if diffs % 2 == 0 {
+                (plain_diffs[diffs / 2 - 1] + plain_diffs[diffs / 2]) / 2.0
+            } else {
+                plain_diffs[(diffs - 1) / 2]
+            };
+            if !plain_mad.is_nan() {
+                bits(
+                    &format!("mad[{index}] about {centre}"),
+                    mad(values, centre).unwrap(),
+                    plain_mad,
+                );
+            }
         }
 
         // `median_sorted` and `quantile`: the two interpolating reads.
@@ -1447,4 +1475,87 @@ fn a_signed_zero_keeps_the_order_the_release_build_keeps() {
     assert_eq!(stats.max, 1.0);
     assert!(!mixed[1].is_sign_negative(), "{mixed:?}: 0.0 stays first");
     assert!(mixed[2].is_sign_negative(), "{mixed:?}: -0.0 stays second");
+}
+
+// Native, lead decision D17: the public entry points route through
+// `sort_ascending`, which takes a proved-equivalent fast path where
+// `std::sort`'s choice among equivalent elements cannot be seen in the output
+// bytes. `median` sorts the caller's own range, so its side effect is
+// `sort_ascending`'s output, and `openms::math::source_sort::source_sort_by` is
+// the libstdc++ introsort itself. This asserts the two agree bit for bit
+// through the public surface -- the module's own
+// `both_paths_agree_bit_for_bit_wherever_the_fast_one_is_taken` calls the two
+// paths directly and is the wider battery; this one proves the entry points
+// reach them.
+#[test]
+fn the_public_entry_points_agree_with_the_release_builds_permutation() {
+    let samples: &[&[f64]] = &[
+        // Fast path: no NaN, one zero spelling.
+        &[3.0, 1.0, 2.0],
+        &[1.0; 20],
+        &[5.0, 4.0, 3.0, 2.0, 1.0, 0.0, -1.0, -2.0],
+        &[
+            0.0,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            f64::MIN_POSITIVE,
+            5e-324,
+        ],
+        &[-0.0, -0.0, 1.0, -1.0],
+        // Faithful path: both zero spellings.
+        &[-0.0, 0.0],
+        &[0.0, -0.0],
+        &[1.0, 0.0, -1.0, -0.0, 2.0],
+        // Faithful path: a NaN, on both sides of `_S_threshold`.
+        &[f64::NAN, 2.0, 3.0],
+        &[3.0, f64::NAN, 2.0],
+        &[
+            f64::NAN,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0,
+            7.0,
+            8.0,
+            9.0,
+            10.0,
+            11.0,
+            12.0,
+            13.0,
+            14.0,
+            15.0,
+            16.0,
+        ],
+        &[
+            f64::NAN,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0,
+            7.0,
+            8.0,
+            9.0,
+            10.0,
+            11.0,
+            12.0,
+            13.0,
+            14.0,
+            15.0,
+            16.0,
+            17.0,
+        ],
+    ];
+    for sample in samples {
+        let mut through_median = sample.to_vec();
+        median(&mut through_median).unwrap();
+
+        let mut through_libstdcxx = sample.to_vec();
+        source_sort_by(&mut through_libstdcxx, |a, b| a < b).unwrap();
+
+        let left: Vec<u64> = through_median.iter().map(|v| v.to_bits()).collect();
+        let right: Vec<u64> = through_libstdcxx.iter().map(|v| v.to_bits()).collect();
+        assert_eq!(left, right, "{sample:?}");
+    }
 }
