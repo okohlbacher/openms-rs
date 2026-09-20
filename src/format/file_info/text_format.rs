@@ -129,8 +129,10 @@
 //!   `{6, 15}`. No sign-bit NaN `float` is pinned at all. Every other digit
 //!   count, precision and the `float` overload are **generalised** from glibc
 //!   writing the sign before `__printf_fp` dispatches on the class, which makes
-//!   the spelling independent of both; a wider negative-NaN sweep is being
-//!   captured separately.
+//!   the spelling independent of both. A wider negative-NaN sweep,
+//!   `../oracle/a2-textfmt-nan-sweep`, was captured by another lane while this
+//!   one ran; it is named rather than cited, because it is not registered in
+//!   this repository's manifests and is the lead's to fold in.
 //! - Only the classic `"C"` locale is modelled; FileInfo never imbues another.
 //! - Work is bounded: `%g` precisions above 800 and `%f` digit counts above 1100
 //!   are clamped internally. A double's exact decimal expansion has at most 767

@@ -325,8 +325,10 @@ crashes the reference FileInfo.
    `number(-NaN, n)` at `n` in `{0, 1, 2}` and `ostream(-NaN, p)` at `p` in
    `{6, 15}`; no sign-bit NaN `float` is pinned at all. Every other digit count,
    precision and the `float` overload are **generalised** from glibc writing the
-   sign before `__printf_fp` dispatches on the class. A wider negative-NaN sweep
-   is being captured separately and is not claimed here.
+   sign before `__printf_fp` dispatches on the class. A wider negative-NaN
+   sweep, `../oracle/a2-textfmt-nan-sweep`, was captured by another lane while
+   this one ran; it is named rather than cited, because it is not registered in
+   this repository's manifests and is the lead's to fold in.
 
    *Where it comes from.* `:2310` computes
    `it_ratio = element_intensity / (centroid_intensity > 0 ? centroid_intensity : 1)`

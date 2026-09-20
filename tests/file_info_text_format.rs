@@ -15,7 +15,7 @@
 //!    ibminode06 (conda-forge GCC 14.4.0, libstdc++ 6.0.36, glibc 2.39, core
 //!    flags `-O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off`). Manifest:
 //!    `../oracle/a2-textfmt-linux/manifest.json`, sha256
-//!    `1ae828addd8b66f355a57b4a968972b80e92b99b1c1f0eca3dcca63ab7788541`.
+//!    `2bfca88e8f9bf1412939e3acde00c51e0202d88da6ee0ac5122471b8e8dcf72a`.
 //!    The same run compiles the pinned
 //!    `NumericFormatting.h` (core bc9cc12, sha256
 //!    `09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a`) as an

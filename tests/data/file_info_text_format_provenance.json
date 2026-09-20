@@ -191,13 +191,13 @@
  "external_reference_artifacts": [
   {
    "path": "../oracle/a2-textfmt-linux/manifest.json",
-   "sha256": "1ae828addd8b66f355a57b4a968972b80e92b99b1c1f0eca3dcca63ab7788541",
+   "sha256": "2bfca88e8f9bf1412939e3acde00c51e0202d88da6ee0ac5122471b8e8dcf72a",
    "location": "outside this repository",
    "origin_key": "fixtures"
   },
   {
    "path": "../oracle/a2-textfmt-linux/results/column_attribution.txt",
-   "sha256": "816c2c52b23706d2b68d282004c49462aa36d170267a62c5a7fdc4641452fb3d",
+   "sha256": "14aa015b7a62c8c8716c5a9b24fb0ccfc4dc6e36ab941d087167cae67875641b",
    "location": "outside this repository",
    "origin_key": "fixtures"
   },
@@ -356,7 +356,7 @@
  "target_verification": {
   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
   "oracle_build": "Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0, libstdc++ 6.0.36, glibc 2.39, core flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off). ../oracle/a2-textfmt-linux compiles the pinned NumericFormatting.h and reproduces the install's D, S and F rows byte for byte; both runs reproduce, and an -O0 control is byte-identical. Superseded build: product-sdk libOpenMS core 4fdec46, Debug, AppleClang 21, libc++, macOS arm64, where 4fdec46..bc9cc12 changes appendNumeric only in a libc++ long-double branch (commit 74526a8).",
-  "nan_sign_coverage": "The corpus holds exactly three NaN bit patterns: 7ff8000000000000 (D and the F/G sections), fff8000000000000 (D row 92) and the float 7fc00000 (S row 420). Row 92 is the only sign-bit NaN anywhere, so number(-NaN, n) is pinned at n in {0,1,2} and ostream(-NaN, p) at p in {6,15}. No sign-bit NaN float is pinned at all; every other digit count, precision and the float overload are generalised from glibc writing the sign before __printf_fp dispatches on the class. A wider negative-NaN sweep is being captured separately.",
+  "nan_sign_coverage": "The corpus holds exactly three NaN bit patterns: 7ff8000000000000 (D and the F/G sections), fff8000000000000 (D row 92) and the float 7fc00000 (S row 420). Row 92 is the only sign-bit NaN anywhere, so number(-NaN, n) is pinned at n in {0,1,2} and ostream(-NaN, p) at p in {6,15}. No sign-bit NaN float is pinned at all; every other digit count, precision and the float overload are generalised from glibc writing the sign before __printf_fp dispatches on the class. A wider negative-NaN sweep, ../oracle/a2-textfmt-nan-sweep, was captured by another lane while this one ran; it is named rather than cited, because it is not registered in this repository's manifests and is the lead's to fold in.",
   "tie_rule_full_sweep": {
    "rows": {
     "D": 60457,

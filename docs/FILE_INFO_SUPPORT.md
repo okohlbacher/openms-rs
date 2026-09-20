@@ -249,8 +249,10 @@ Every public member of `FileInfo.h`, and the file-local helpers of
    `n` in `{0, 1, 2}` and `ostream(-NaN, p)` at `p` in `{6, 15}`, and no
    sign-bit NaN `float` at all. Every other digit count, precision and the
    `float` overload follow from glibc writing the sign before `__printf_fp`
-   dispatches on the class; a wider negative-NaN sweep is being captured
-   separately. A macOS C++ build writes `nan` for the same bits, so a macOS
+   dispatches on the class. A wider negative-NaN sweep,
+   `../oracle/a2-textfmt-nan-sweep`, was captured by another lane while this
+   one ran; it is named rather than cited, because it is not registered in this
+   repository's manifests and is the lead's to fold in. A macOS C++ build writes `nan` for the same bits, so a macOS
    comparison must not count the difference as a port defect — the same caveat
    the `%g` tie class carries.
 
