@@ -687,7 +687,7 @@ mod tests {
         // The same three values under the IEEE-754 total order would be
         // adjacent and would produce exactly one such line, which is the
         // measurement this test exists to prevent regressing to.
-        let mut total_order = vec![5.0_f64, f64::NAN, 5.0];
+        let mut total_order = [5.0_f64, f64::NAN, 5.0];
         total_order.sort_unstable_by(f64::total_cmp);
         assert_eq!(total_order[0], total_order[1]);
     }
@@ -774,7 +774,7 @@ mod tests {
         // The two excluded shapes. Both spell a different sequence under the
         // two orders, which is exactly why the guard sends them to the
         // faithful path.
-        let mut total_order = vec![-0.0_f64, 0.0];
+        let mut total_order = [-0.0_f64, 0.0];
         total_order.sort_unstable_by(f64::total_cmp);
         let mut source_order = vec![-0.0_f64, 0.0];
         source_sort_by(&mut source_order, |a, b| a < b).unwrap();
