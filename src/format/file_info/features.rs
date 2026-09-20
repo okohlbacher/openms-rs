@@ -47,6 +47,7 @@ use crate::format::featurexml::FeatureFileOptions;
 use crate::kernel::ranges::RangeBase;
 use crate::kernel::{Feature, FeatureMap};
 use crate::math::statistic_functions::SummaryStatistics;
+use crate::math::x86_64;
 use crate::metadata::DataProcessing;
 use crate::{Error, Result};
 use std::collections::BTreeMap;
@@ -85,7 +86,23 @@ pub(crate) fn report(
     let mut assigned = 0_u64;
     for feature in &map.features {
         *charges.entry(feature.charge).or_insert(0) += 1;
-        tic += f64::from(feature.intensity);
+        // `FileInfo.cpp:1098,1103`: `double tic = 0.0; tic += feat[i].getIntensity()`,
+        // where `getIntensity()` is a `float` — a `cvtss2sd` and an `addsd`.
+        // Both can produce a NaN, and plain Rust would leave its bits to the
+        // host, which the report's spelling now reads.
+        //
+        // Not reachable through `FileInfo` today: featureXML does read `inf`,
+        // `-inf` and `NaN` for an intensity (`format::featurexml`), but
+        // `FeatureMap::ranges` folds intensity into its ranges and refuses a
+        // non-finite one, so such a document is declined before this loop runs
+        // (`tests/featurexml.rs::a_nonfinite_map_reads_and_its_ranges_are_a_checked_error`,
+        // which also pins what the Release build prints for one: `nan`, its
+        // sign bit clear, because the file's first NaN intensity propagates
+        // quieted). Routed through the emulation regardless, so that the value
+        // is the Release build's if the kernel's finite invariant is ever
+        // relaxed — that is a kernel change with its own evidence, and this
+        // line should not be the thing that then has to be found.
+        tic = x86_64::add(tic, x86_64::widen(feature.intensity));
         let ids = to_count(feature.peptide_identifications.len())?;
         *ids_per_feature.entry(ids).or_insert(0) += 1;
         assigned = assigned.checked_add(ids).ok_or_else(count_overflow)?;

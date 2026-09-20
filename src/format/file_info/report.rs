@@ -81,6 +81,7 @@ use super::text_format::{DEFAULT_STREAM_PRECISION, fixed_truncated, ostream_g};
 use crate::format::{FileHandler, FileType};
 use crate::kernel::ranges::{MSDim, RangeManager};
 use crate::math::statistic_functions::SummaryStatistics;
+use crate::math::x86_64;
 use crate::metadata::DataProcessing;
 use crate::{Error, Result};
 use std::collections::BTreeMap;
@@ -590,7 +591,22 @@ pub(crate) fn write_ranges_text(os: &mut ReportStream, ranges: &RangeSet, mobili
                 .text(" .. ")
                 .text(&number2(rt.max))
                 .text(" sec (")
-                .text(&fixed_truncated((rt.max - rt.min) / 60.0, 1))
+                // `FileInfo.cpp:109`: `(map.getMaxRT() - map.getMinRT()) / 60`,
+                // a `subsd` and a `divsd`. `inf - inf` is invalid and answers a
+                // NaN whose bits plain Rust leaves to the host.
+                //
+                // It needs both ends infinite with the *same* sign: the
+                // measured `-inf .. inf` map gives `inf - (-inf) = inf` and the
+                // Release build prints `(inf min)`, not a NaN. And a map with
+                // non-finite positions is refused by `FeatureMap::ranges`
+                // before this line, so the shape is unreachable today. Routed
+                // through the emulation anyway, for the same reason as the
+                // feature TIC: the arithmetic should be the source's wherever
+                // the source's could differ from the host's.
+                .text(&fixed_truncated(
+                    x86_64::div(x86_64::sub(rt.max, rt.min), 60.0),
+                    1,
+                ))
                 .text(" min)\n");
         }
     }
