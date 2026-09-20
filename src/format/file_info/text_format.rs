@@ -301,8 +301,9 @@ const INTEGER_TO_STR_MAX_BYTES: usize = 20;
 /// Rounding uses the exact binary value with ties to even, and the sign of zero
 /// is kept (`-0.00`). NaN and the infinities ignore `digits` and print as
 /// `printf` writes them: `nan`, `-nan` for a NaN whose sign bit is set, `inf`
-/// and `-inf` (see [`nonfinite`]). The source parameter is a `double`, so a
-/// `float` argument is promoted first; pass `f64::from(x)`.
+/// and `-inf`, as the module's native-difference note records. The source
+/// parameter is a `double`, so a `float` argument is promoted first; pass
+/// `f64::from(x)`.
 ///
 /// # Errors
 ///
@@ -396,9 +397,9 @@ pub fn fixed_truncated(value: f64, digits: u32) -> String {
 /// formatted, so pass `f64::from(x)`.
 ///
 /// Negative zero prints as `-0`, a NaN as `nan` or, with its sign bit set, as
-/// `-nan` (see [`nonfinite`]), and the infinities as `inf` and `-inf`. A
-/// precision above `i32::MAX` reaches `printf` as a negative `int` in both
-/// libc++ and libstdc++ and counts as six.
+/// `-nan`, as the module's native-difference note records, and the infinities
+/// as `inf` and `-inf`. A precision above `i32::MAX` reaches `printf` as a
+/// negative `int` in both libc++ and libstdc++ and counts as six.
 ///
 /// Exact decimal ties follow the C standard, rounding half to even and then
 /// stripping zeros, as glibc does. Apple libc keeps the zeros of an integer below
