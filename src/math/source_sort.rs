@@ -165,49 +165,120 @@ pub fn source_sort_permutation(
 
 /// Sort `items` as the C++ Release build's `std::sort` does under `less`.
 ///
-/// `items` is left unchanged when an error is returned.
+/// `items` is left unchanged when an error is returned. Every reachable error
+/// is raised by [`source_sort_permutation`], before a single element has been
+/// moved; the unreachable one [`apply_permutation`] can raise is documented
+/// there.
 ///
 /// # Errors
 ///
-/// As [`source_sort_permutation`].
+/// As [`source_sort_permutation`], and — unreachably, but refused rather than
+/// left to panic or to spin — as [`apply_permutation`].
 pub fn source_sort_by<T>(items: &mut Vec<T>, mut less: impl FnMut(&T, &T) -> bool) -> Result<()> {
-    let order = source_sort_permutation(items.len(), |a, b| less(&items[a], &items[b]))?;
-    apply_permutation(items, &order);
-    Ok(())
+    let mut order = source_sort_permutation(items.len(), |a, b| less(&items[a], &items[b]))?;
+    apply_permutation(items, &mut order)
 }
 
 /// Sort `items` as `std::sort(items.rbegin(), items.rend())` does under
 /// `less`: the reversed sequence is sorted ascending, which leaves the
 /// sequence itself descending.
 ///
-/// `items` is left unchanged when an error is returned.
+/// `items` is left unchanged when an error is returned, on the same terms as
+/// [`source_sort_by`].
 ///
 /// # Errors
 ///
-/// As [`source_sort_permutation`].
+/// As [`source_sort_by`].
 pub fn source_sort_reversed_by<T>(
     items: &mut Vec<T>,
     mut less: impl FnMut(&T, &T) -> bool,
 ) -> Result<()> {
     let len = items.len();
     // Position `k` of the reversed view is element `len - 1 - k`.
-    let order =
+    let mut order =
         source_sort_permutation(len, |a, b| less(&items[len - 1 - a], &items[len - 1 - b]))?;
-    // The reversed view ends as `order`, so the sequence is its reverse.
-    let original: Vec<usize> = order.iter().rev().map(|&k| len - 1 - k).collect();
-    apply_permutation(items, &original);
-    Ok(())
+    // The reversed view ends as `order`, so the sequence itself is its
+    // reverse, read back through the same index map. Rewriting `order` in
+    // place rather than collecting the composition keeps this function's
+    // allocation to the one permutation `source_sort_permutation` reserved
+    // fallibly.
+    order.reverse();
+    for position in order.iter_mut() {
+        *position = len - 1 - *position;
+    }
+    apply_permutation(items, &mut order)
 }
 
 /// Reorder `items` so that position `k` holds the element that was at
-/// `order[k]`; `order` is a permutation of `0..items.len()`.
-fn apply_permutation<T>(items: &mut Vec<T>, order: &[usize]) {
-    let mut slots: Vec<Option<T>> = items.drain(..).map(Some).collect();
-    for &position in order {
-        if let Some(item) = slots.get_mut(position).and_then(Option::take) {
-            items.push(item);
+/// `order[k]`.
+///
+/// Applied **in place**, cycle by cycle, with [`slice::swap`] and no auxiliary
+/// buffer: `order` is the caller's own vector and is used as the scratch that
+/// marks progress, every entry it has visited being set to its own index. The
+/// buffered predecessor staged a `Vec<Option<T>>` — 16 bytes per `f64` — with
+/// an infallible `collect`, so at `FileInfo::MAX_STATISTICS_VALUES` an
+/// allocation failure **aborted the process**, which is the outcome lead
+/// decision D1 refuses to reproduce. There is now nothing to fail.
+///
+/// `order` is left as the identity on success and is otherwise unspecified.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] when `order` is not a permutation of
+/// `0..items.len()`, which is unreachable from either caller above:
+/// [`source_sort_permutation`] starts from `0..len` and only ever swaps within
+/// it. It is checked rather than assumed because the two ways a walk can leave
+/// the cycle structure of a permutation are an index outside the slice, which
+/// would make `swap` panic, and a second visit to a position already marked,
+/// which would make the walk spin forever. Neither is acceptable on an input,
+/// so both end the call instead. `items` may then hold a partially applied
+/// permutation — the elements are all still there, in some order.
+///
+/// Completing without that error *proves* `order` was a permutation: each walk
+/// marks every position it visits and refuses on a revisit, so the walks are
+/// disjoint cycles, and every position no walk visited was already a fixed
+/// point.
+fn apply_permutation<T>(items: &mut [T], order: &mut [usize]) -> Result<()> {
+    let len = items.len();
+    if order.len() != len {
+        return Err(Error::InvalidValue(
+            "the sort permutation does not cover the range".into(),
+        ));
+    }
+    for start in 0..len {
+        if order[start] == start {
+            // A fixed point, or a position an earlier walk already filled.
+            continue;
+        }
+        // The cycle through `start` is `start -> order[start] -> ...`, and the
+        // value position `k` must end with is the one at `order[k]`, so the
+        // values rotate one step along it. Walking it with `swap` carries the
+        // value that belongs at the *last* position of the cycle ahead of the
+        // walk, and leaves it there when the cycle closes.
+        let mut hole = start;
+        loop {
+            let source = order[hole];
+            if source >= len {
+                return Err(Error::InvalidValue(
+                    "the sort permutation leaves the range".into(),
+                ));
+            }
+            if source == hole && hole != start {
+                return Err(Error::InvalidValue(
+                    "the sort permutation visits a position twice".into(),
+                ));
+            }
+            order[hole] = hole;
+            if source == start {
+                // The cycle is closed: `items[hole]` is already the element
+                // that started at `start`, which is where it belongs.
+                break;
+            }
+            items.swap(hole, source);
+            hole = source;
         }
     }
+    Ok(())
 }
 
 /// How [`source_stable_sort_permutation`] obtains `std::stable_sort`'s
@@ -1125,5 +1196,106 @@ mod tests {
         let mut items = vec![3.0, 1.0, 2.0, 5.0, 4.0];
         source_sort_reversed_by(&mut items, |a, b| a < b).unwrap();
         assert_eq!(items, vec![5.0, 4.0, 3.0, 2.0, 1.0]);
+    }
+
+    /// The buffered `apply_permutation` this module replaced: `order[k]` is
+    /// read out of a `Vec<Option<T>>` staged from `items`. Kept here, in test
+    /// code only, as the reference the in-place walk is differentially
+    /// compared against — it is the behaviour that was tier-1 validated, and
+    /// the only way to prove the replacement is a replacement.
+    fn apply_permutation_buffered<T>(items: &mut Vec<T>, order: &[usize]) {
+        let mut slots: Vec<Option<T>> = items.drain(..).map(Some).collect();
+        for &position in order {
+            if let Some(item) = slots.get_mut(position).and_then(Option::take) {
+                items.push(item);
+            }
+        }
+    }
+
+    /// A deterministic 64-bit xorshift, so the property test is the same
+    /// sequence on every host and in every run.
+    fn xorshift(state: &mut u64) -> u64 {
+        *state ^= *state << 13;
+        *state ^= *state >> 7;
+        *state ^= *state << 17;
+        *state
+    }
+
+    // Native, finding F2: `apply_permutation` is applied in place, following
+    // cycles with `slice::swap` and no auxiliary buffer, where it used to
+    // stage a `Vec<Option<T>>` of 16 bytes per `f64` with an infallible
+    // `collect`. This asserts the two agree element for element over random
+    // permutations of every length that matters, including the empty one, the
+    // identity, the full reversal and a rotation — which between them cover a
+    // single long cycle, `n` fixed points and everything in between.
+    #[test]
+    fn the_in_place_permutation_equals_the_buffered_one() {
+        let mut state = 0x2545_F491_4F6C_DD1Du64;
+        let mut lengths: Vec<usize> = (0..40).collect();
+        lengths.extend([64, 127, 128, 255, 1000]);
+        for &len in &lengths {
+            // Four shapes per length, then random ones.
+            let mut orders: Vec<Vec<usize>> = vec![
+                (0..len).collect(),
+                (0..len).rev().collect(),
+                (0..len).map(|k| (k + 1) % len.max(1)).collect(),
+                (0..len).map(|k| (k + len / 2) % len.max(1)).collect(),
+            ];
+            for _ in 0..8 {
+                // Fisher-Yates from the same stream.
+                let mut order: Vec<usize> = (0..len).collect();
+                for i in (1..len).rev() {
+                    let j = (xorshift(&mut state) % (i as u64 + 1)) as usize;
+                    order.swap(i, j);
+                }
+                orders.push(order);
+            }
+            for order in orders {
+                let items: Vec<usize> = (0..len).map(|k| k * 7 + 1).collect();
+
+                let mut buffered = items.clone();
+                apply_permutation_buffered(&mut buffered, &order);
+
+                let mut in_place = items.clone();
+                let mut scratch = order.clone();
+                apply_permutation(&mut in_place, &mut scratch).unwrap();
+
+                assert_eq!(in_place, buffered, "len {len}, order {order:?}");
+                // The permutation applied is the one asked for.
+                for (k, &source) in order.iter().enumerate() {
+                    assert_eq!(in_place[k], items[source]);
+                }
+                // `order` is left as the identity.
+                assert!(scratch.iter().enumerate().all(|(k, &v)| k == v));
+            }
+        }
+    }
+
+    // Native, finding F2: the walk refuses rather than panicking on an index
+    // outside the slice or spinning forever on a repeated one. Neither is
+    // reachable from `source_sort_permutation`, which starts from `0..len` and
+    // only swaps within it, but this module may not panic or hang on any
+    // input, so both are checked.
+    #[test]
+    fn a_non_permutation_is_refused_rather_than_panicking_or_spinning() {
+        // An index outside the slice.
+        let mut items = vec![1.0, 2.0, 3.0];
+        let mut order = vec![0, 3, 2];
+        assert!(apply_permutation(&mut items, &mut order).is_err());
+
+        // A repeated index: position 1 is visited twice.
+        let mut items = vec![1.0, 2.0];
+        let mut order = vec![1, 1];
+        assert!(apply_permutation(&mut items, &mut order).is_err());
+
+        // A longer one whose walk leaves the cycle structure.
+        let mut items = vec![1.0, 2.0, 3.0, 4.0];
+        let mut order = vec![1, 2, 0, 0];
+        assert!(apply_permutation(&mut items, &mut order).is_err());
+
+        // A length mismatch.
+        let mut items = vec![1.0, 2.0, 3.0];
+        let mut order = vec![0, 1];
+        assert!(apply_permutation(&mut items, &mut order).is_err());
     }
 }
