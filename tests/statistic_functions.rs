@@ -1692,6 +1692,9 @@ fn benchmark_sample(n: usize) -> Vec<f64> {
 // A sample misses the fast path only if it holds a NaN or both spellings of
 // zero. Run with `OPENMS_BENCH_IMPL=corpus`; the normal suite skips it, and
 // `tools/bench_sort_ascending.sh --corpus` is the recorded command.
+// Gated on the feature that carries the reader it uses: CI builds this test
+// binary under `--no-default-features`, where `format::mzml` does not exist.
+#[cfg(feature = "mzml")]
 #[test]
 fn how_often_the_fast_path_is_taken_over_the_mzml_corpus() {
     if std::env::var("OPENMS_BENCH_IMPL").as_deref() != Ok("corpus") {
@@ -1785,6 +1788,7 @@ fn how_often_the_fast_path_is_taken_over_the_mzml_corpus() {
 /// The guard of `math::statistic_functions::observability`, restated here
 /// because it is private. Kept deliberately naive so that it is obviously the
 /// same sentence: no NaN, and not both spellings of zero.
+#[cfg(feature = "mzml")]
 fn takes_the_fast_path(values: &[f64]) -> bool {
     let mut negative_zero = false;
     let mut positive_zero = false;
@@ -1806,6 +1810,7 @@ fn takes_the_fast_path(values: &[f64]) -> bool {
     true
 }
 
+#[cfg(feature = "mzml")]
 fn collect_mzml(directory: &std::path::Path, into: &mut Vec<std::path::PathBuf>) {
     let entries = match std::fs::read_dir(directory) {
         Ok(entries) => entries,
