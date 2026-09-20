@@ -1092,7 +1092,23 @@ fn process_outliers(x_scores: &mut Vec<f64>, handling: OutlierHandling) -> Resul
 /// different byte sequence for the same fit.
 fn format_g(value: f64) -> String {
     if value.is_nan() {
-        return "nan".to_string();
+        // `getGaussGnuplotFormula` and its siblings build the formula with
+        // `stringstream formula; formula << params.A << ...`
+        // (`PosteriorErrorProbabilityModel.cpp:674-679`, `:681-687`), an
+        // unconfigured `std::ostream` insertion of a `double`. That is
+        // libstdc++'s `num_put` through `__convert_from_v` to glibc
+        // `__printf_fp` at `%g`, which writes the sign of a NaN. Measured at
+        // this default precision and every other in
+        // `../oracle/a2-textfmt-nan-sweep`: 912 sign-bearing rows, none
+        // printing a sign that disagrees with the argument's sign bit. A
+        // diverged fit is exactly where a NaN parameter reaches this formula,
+        // so the sign is observable in a written `.plot` file.
+        return if value.is_sign_negative() {
+            "-nan"
+        } else {
+            "nan"
+        }
+        .to_string();
     }
     if value.is_infinite() {
         return if value < 0.0 { "-inf" } else { "inf" }.to_string();

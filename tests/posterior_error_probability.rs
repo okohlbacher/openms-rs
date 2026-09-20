@@ -521,3 +521,54 @@ fn gnuplot_numbers_use_the_ostream_format() {
         );
     }
 }
+
+/// A NaN parameter reaches the formula with the sign the C library writes.
+///
+/// `getGaussGnuplotFormula` builds its text with
+/// `stringstream formula; formula << params.A << ...`
+/// (`PosteriorErrorProbabilityModel.cpp:674-679`), an unconfigured
+/// `std::ostream` insertion of a `double` — libstdc++'s `num_put` through
+/// `__convert_from_v` to glibc `__printf_fp` at `%g`, the same path
+/// `format::file_info::text_format::ostream_g` reproduces. glibc writes the
+/// sign of a NaN there, so a diverged fit whose parameter is the SSE2 default
+/// NaN puts `-nan` into the written `.plot` file and not `nan`.
+///
+/// Tier 1 for the spelling: `../oracle/a2-textfmt-nan-sweep` measured this
+/// formatter's own path at 16 precisions including the default six, over six
+/// NaN shapes in both signs and both widths — 912 sign-bearing rows, none
+/// printing a sign that disagrees with the argument's sign bit.
+#[test]
+fn a_nan_parameter_keeps_the_sign_the_c_library_writes() {
+    let positive = f64::from_bits(0x7ff8_0000_0000_0000);
+    let negative = f64::from_bits(0xfff8_0000_0000_0000);
+    assert!(positive.is_nan() && !positive.is_sign_negative());
+    assert!(negative.is_nan() && negative.is_sign_negative());
+
+    for (value, expected) in [(positive, "nan"), (negative, "-nan")] {
+        let formula = PosteriorErrorProbabilityModel::gauss_gnuplot_formula(GaussFitResult::new(
+            value, 0.0, 1.0,
+        ));
+        assert!(
+            formula.starts_with(&format!("{expected} * exp(")),
+            "amplitude {expected} formatted into {formula}"
+        );
+        // And in the two positions that are not the leading amplitude.
+        let formula = PosteriorErrorProbabilityModel::gauss_gnuplot_formula(GaussFitResult::new(
+            1.0, value, value,
+        ));
+        assert!(
+            formula.contains(&format!(
+                "exp(-(x - {expected}) ** 2 / 2 / ({expected}) ** 2)"
+            )),
+            "x0/sigma {expected} formatted into {formula}"
+        );
+    }
+
+    // The infinities are unchanged, and `-0.0` still keeps its sign.
+    let infinite = PosteriorErrorProbabilityModel::gauss_gnuplot_formula(GaussFitResult::new(
+        f64::NEG_INFINITY,
+        0.0,
+        1.0,
+    ));
+    assert!(infinite.starts_with("-inf * exp("), "{infinite}");
+}
