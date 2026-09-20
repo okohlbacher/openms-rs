@@ -17,12 +17,15 @@
 //!   ibminode06, twice and reproduced. 53 of them have their `-out` and
 //!   `-out_tsv` reports compared here byte for byte; only the two lines that
 //!   embed the input path are normalised, `File name: ` and
-//!   `general: file name`. Two more (`c_nan_then_finite_s` and
-//!   `c_finite_then_nan_s`) are retained as evidence rather than compared: see
-//!   `consensus_nan_in_the_statistics_sample`. Two of the compared reports
-//!   differ from the reference on lines that are documented native differences
-//!   rather than byte-identical — `c_zero_swapped_s` and `c_zero_swapped_all`,
-//!   see `consensus_a_signed_zero_sample_is_ordered_by_the_total_order`;
+//!   `general: file name`. Seven more are compared line for line with the
+//!   reference and differ only in native difference 5, the `nan` / `-nan`
+//!   spelling of the FileInfo text layer: `c_nan_one_s`, `c_nan_one_all`,
+//!   `c_nan_two_s`, `c_nan_then_finite_s`, `c_finite_then_nan_s`,
+//!   `c_zero_swapped_s` and `c_zero_swapped_all`. The last five of those were
+//!   refusals or divergences before decision D16 put reproducing libstdc++'s
+//!   `std::sort` permutation in scope; see
+//!   `consensus_nan_in_the_statistics_sample` and
+//!   `consensus_a_signed_zero_sample_keeps_the_release_builds_order`;
 //! - tier 1, retained upstream definition: TOPP_FileInfo_7, _10, _13, _17, _18
 //!   and _20 (`topp/CMakeLists.txt:899-901`, `:905-907`, `:912`, `:922-927`,
 //!   `:931-933`,
@@ -762,6 +765,18 @@ fn consensus_nan_in_the_statistics_sample() {
             "c_nan_two_s",
             10,
         ),
+        (
+            "a7_cons_nan_then_finite.consensusXML",
+            &statistics,
+            "c_nan_then_finite_s",
+            7,
+        ),
+        (
+            "a7_cons_finite_then_nan.consensusXML",
+            &statistics,
+            "c_finite_then_nan_s",
+            7,
+        ),
     ] {
         let result = FileInfo::new()
             .run(input(name), options)
@@ -813,24 +828,9 @@ fn consensus_nan_in_the_statistics_sample() {
          variance:       nan\n"
     ));
 
-    // A NaN next to a number is refused, in either file order.
-    for name in [
-        "a7_cons_nan_then_finite.consensusXML",
-        "a7_cons_finite_then_nan.consensusXML",
-    ] {
-        let error = FileInfo::new()
-            .run(input(name), &statistics)
-            .expect_err(&format!("{name} with -s must be refused"));
-        let Error::InvalidValue(message) = &error else {
-            panic!("{name}: expected InvalidValue, got {error}");
-        };
-        assert_eq!(message, "statistics input must not contain NaN", "{name}");
-    }
-
-    // The refused runs write no TSV at all, and the Release build's `-s` TSV
-    // for the same two files is byte-identical to its bare one, because
-    // FileInfo.cpp:2257-2372 writes nothing to os_tsv. So nothing of the TSV
-    // side is lost by refusing, and the bare run above already reproduces it.
+    // The Release build's `-s` TSV for those two files is byte-identical to its
+    // bare one, because FileInfo.cpp:2257-2372 writes nothing to os_tsv; the
+    // loop above already compared both.
     for case in ["c_nan_then_finite", "c_finite_then_nan"] {
         assert_eq!(
             read_text(&data(&format!("file_info_a7/expected/{case}.tsv"))),
@@ -839,9 +839,12 @@ fn consensus_nan_in_the_statistics_sample() {
         );
     }
 
-    // Why it is refused: the retained Release reports for those two files are
-    // the same length and disagree on exactly the four order statistics, so the
-    // values are a property of the file order rather than of the sample.
+    // What the reproduction is worth: the retained Release reports for those
+    // two files are the same length and disagree on exactly the four order
+    // statistics, so those values are a property of the *file order* rather
+    // than of the sample — and the port now gets both of them right, which is
+    // what the two `assert_report_but_the_nan_spelling` calls above proved.
+    // Before decision D16 this pair was the reason `-s` was refused outright.
     let nan_first = read_text(&data("file_info_a7/expected/c_nan_then_finite_s.txt"));
     let nan_last = read_text(&data("file_info_a7/expected/c_finite_then_nan_s.txt"));
     let first: Vec<&str> = nan_first.split_inclusive('\n').collect();
@@ -864,8 +867,9 @@ fn consensus_nan_in_the_statistics_sample() {
     );
 }
 
-/// Native difference 6: the same `std::sort` boundary **without a NaN**, where
-/// this port accepts the input and prints four lines the Release build does not.
+/// Native difference 6, **closed**: the same `std::sort` boundary without a
+/// NaN, where this port used to print four lines the Release build does not and
+/// now prints the Release build's own.
 ///
 /// `FileInfo.cpp:2310-2311` pushes every intensity ratio into
 /// `it_delta_by_elems` *before* `:2312-2315` inverts the ones below 1, so a
@@ -882,21 +886,24 @@ fn consensus_nan_in_the_statistics_sample() {
 /// are positional reads, and `ostream` writes `-0` for a negative zero, so the
 /// four lines depend on the order the sub-features appear in the file.
 ///
-/// This port sorts with `f64::total_cmp`, which orders `-0.0` before `0.0`
-/// deterministically, so it prints one of the two answers for both files. That
-/// is a **native difference**, not a refusal: the port accepts both inputs and
-/// exits 0, as the Release build does, and reproduces every other line.
+/// This port sorted with `f64::total_cmp`, which orders `-0.0` before `0.0`
+/// regardless of input order, so it printed one of the two answers for both
+/// files — a native difference, not a refusal. Under decision D16
+/// `sort_ascending` is now `std::sort(begin, end)` itself
+/// (`crate::math::source_sort`), which leaves a two-element range of equivalent
+/// values in the order it found it, so **both** files are reproduced and the
+/// four lines below are no longer a divergence but an assertion of equality.
 ///
 /// The two fixtures hold the same consensus feature with its two sub-feature
 /// intensities exchanged (`a7_cons_nan_one` and `a7_cons_zero_swapped`, oracle
 /// cases `c_nan_one_s` and `c_zero_swapped_s`, both annotated
-/// `signed_zero_order` in the manifest). Widening `sort_ascending` to reproduce
-/// libstdc++'s permutation is the same shared-math wave `CPP-347` names, and it
-/// has to cover this shape as well as the NaN one; section 5.3 of
-/// `docs/FILE_INFO_A7_SUPPORT.md` records both.
+/// `signed_zero_order` in the manifest). Section 5.3 of
+/// `docs/FILE_INFO_A7_SUPPORT.md` records both measurements; the only class of
+/// line on which the two builds still disagree anywhere in these reports is
+/// native difference 5, the `nan` / `-nan` spelling of the FileInfo text layer.
 #[cfg(feature = "consensusxml")]
 #[test]
-fn consensus_a_signed_zero_sample_is_ordered_by_the_total_order() {
+fn consensus_a_signed_zero_sample_keeps_the_release_builds_order() {
     // Without `-s` there is no statistics block and both files are reproduced
     // byte for byte — including the `Ranges` intensity line, whose `std::min`
     // over `{-0.0, 0.0, 100.0}` keeps the file's own order on both sides.
@@ -950,52 +957,34 @@ fn consensus_a_signed_zero_sample_is_ordered_by_the_total_order() {
             "{pos_case}: the two Release reports"
         );
 
-        // What this port prints for the swapped file: the nine NaN spellings of
-        // native difference 5, and then those four lines in the *other* file's
-        // order. Each of the four equals the Release build's own line for the
-        // unswapped file, so nothing here is invented — both spellings are
-        // measured, the port just always picks the one `total_cmp` puts first.
+        // What this port prints for the swapped file: the Release build's own
+        // report for *that* file, line for line, with only the nine NaN
+        // spellings of native difference 5 left over. The four order
+        // statistics — the whole of native difference 6 — now agree, which is
+        // what `assert_report_but_the_nan_spelling` proves: it fails if a line
+        // outside the NaN class differs at all.
         let swapped = FileInfo::new()
             .run(input("a7_cons_zero_swapped.consensusXML"), options)
             .unwrap_or_else(|e| panic!("{pos_case}: {e}"));
-        let ours_text = normalise_file_name(&swapped.text);
-        let reference_text = normalise_file_name(&pos_first);
-        let ours: Vec<&str> = ours_text.split_inclusive('\n').collect();
-        let reference: Vec<&str> = reference_text.split_inclusive('\n').collect();
-        assert_eq!(ours.len(), reference.len(), "{pos_case}: our line count");
-        let differing: Vec<usize> = (0..ours.len())
-            .filter(|&i| ours[i] != reference[i])
-            .collect();
-        let nan_lines: Vec<usize> = differing
-            .iter()
-            .copied()
-            .filter(|&i| reference[i].trim_end().ends_with("-nan"))
-            .collect();
-        let zero_lines: Vec<usize> = differing
-            .iter()
-            .copied()
-            .filter(|&i| !reference[i].trim_end().ends_with("-nan"))
-            .collect();
-        assert_eq!(
-            nan_lines.len(),
+        assert_report_but_the_nan_spelling(
+            &swapped.text,
+            &data(&format!("file_info_a7/expected/{pos_case}.txt")),
+            &format!("{pos_case} text"),
             9,
-            "{pos_case}: the NaN class, as in {neg_case}"
         );
-        assert_eq!(
-            zero_lines.len(),
-            4,
-            "{pos_case}: exactly the four order statistics differ, differing lines {differing:?}"
+
+        // And the unswapped file is still the Release build's other answer, so
+        // the port reproduces both members of the measured pair rather than
+        // collapsing them onto one.
+        let unswapped = FileInfo::new()
+            .run(input("a7_cons_nan_one.consensusXML"), options)
+            .unwrap_or_else(|e| panic!("{neg_case}: {e}"));
+        assert_report_but_the_nan_spelling(
+            &unswapped.text,
+            &data(&format!("file_info_a7/expected/{neg_case}.txt")),
+            &format!("{neg_case} text"),
+            9,
         );
-        let neg_first_normalised = normalise_file_name(&neg_first);
-        let neg_lines: Vec<&str> = neg_first_normalised.split_inclusive('\n').collect();
-        for line in zero_lines {
-            assert_eq!(
-                ours[line],
-                neg_lines[line],
-                "{pos_case}: our line at {} is not the Release build's own line for {neg_case}",
-                line + 1
-            );
-        }
 
         // The TSV carries no statistics at all, so it is reproduced exactly.
         assert_report(

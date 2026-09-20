@@ -6371,7 +6371,7 @@ The reported counts are consequently a function of the standard library's string
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
-**Status:** Executed.
+**Status:** Executed. **Closed by reproduction** in the Rust port (shared-math wave, 2026-09-19, lead decision D16); the C++ defect itself stands and is unreported upstream.
 
 **Affected file/function:** `src/openms/source/FORMAT/FileInfo.cpp:2310-2327` and `:2371` (the sample and the call), and `src/openms/include/OpenMS/MATH/StatisticFunctions.h:948` (the `sort` inside `Math::SummaryStatistics`).
 
@@ -6426,9 +6426,21 @@ Two related shapes are **not** affected and are recorded as controls, because in
 
 No NaN is in that sample at all. The `Ranges` line `intensity:` differs the same way, through `std::min` in `updateRanges`.
 
-**Rust handling:** Two answers, because the two halves differ in whether the source's own precondition holds. **The NaN half:** `SummaryStatistics::new` (`src/math/statistic_functions.rs`) summarises the two control shapes, reproducing the Release build's output for both, and refuses a NaN next to a number with `Error::InvalidValue("statistics input must not contain NaN")`. That refusal is a **deferral** rather than a decision-D1 refusal: nothing is out of bounds, and the values are stable per input, so D1 would have the port reproduce them — but doing so means porting libstdc++'s `std::sort` permutation into `sort_ascending`, which every `SummaryStatistics` caller in the crate consumes. It is raised for the lead. Pinned by `consensus_nan_in_the_statistics_sample` in `tests/file_info_a7.rs`, which asserts the exact refusal, that the run without `-s` still succeeds, and that the two retained reference reports disagree on exactly those four lines. Section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md` documents it.
+**Rust handling:** **Reproduced, not refused, and not fixed** — since the shared-math wave of 2026-09-19 and lead decision D16. Both halves are reproduced by the same change, because they are the same defect: `sort_ascending` in `src/math/statistic_functions.rs` is now `source_sort_by(&mut values, |a, b| a < b)`, i.e. `std::sort(begin, end)` with the default `operator<`, reproduced comparison by comparison and move by move by `crate::math::source_sort` from the GCC 14.4.0 libstdc++ headers the reference build was compiled with. `median`, `quantile1st`, `quantile3rd`, `mad` and `SummaryStatistics::new` therefore leave the sample in the permutation the Release build leaves it in, and read `front()`, the three quantiles and `back()` positionally out of it, as `:952-956` does.
 
-**The signed-zero half** is *not* refused: the values compare equal, the source's precondition holds, nothing is out of bounds, and refusing would widen a refusal in `sort_ascending` — which every `SummaryStatistics` caller in the crate consumes — to an input the Release build handles stably. `sort_ascending` orders by `f64::total_cmp`, which puts `-0.0` first deterministically, so the port prints the `a7_cons_nan_one` column for both file orders. Recorded as native difference 6 of `docs/FILE_INFO_A7_SUPPORT.md` and pinned by `consensus_a_signed_zero_sample_is_ordered_by_the_total_order`, which asserts the four differing lines of the two Release reports and that each of the port's four lines is the Release build's own line for the unswapped file. The shared-math wave that would close the deferral has to cover **any** sample whose elements `std::sort` calls equivalent but `f64::total_cmp` orders, not only NaN-bearing ones.
+What that buys, measured: all five frozen oracle cases are now compared line for line against the retained Release reports by `tests/file_info_a7.rs`, and each differs only in native difference 5's `nan` / `-nan` spelling, which belongs to the FileInfo text layer:
+
+| oracle case | before | after |
+| --- | --- | --- |
+| `c_nan_one_s` | compared, 9 NaN-spelling lines | unchanged |
+| `c_nan_two_s` | compared, 10 NaN-spelling lines | unchanged |
+| `c_nan_then_finite_s` | **refused** (`Error::InvalidValue`), retained as evidence | compared; 7 NaN-spelling lines, nothing else differs |
+| `c_finite_then_nan_s` | **refused**, retained as evidence | compared; 7 NaN-spelling lines, nothing else differs |
+| `c_zero_swapped_s` | compared, but 4 order-statistic lines diverged (native difference 6) | compared; **0** order-statistic lines differ |
+
+`consensus_nan_in_the_statistics_sample` now asserts the reproduction of both file orders instead of the refusal, and keeps the measurement that motivated the issue: the two retained Release reports disagree on exactly four lines. `consensus_a_signed_zero_sample_is_ordered_by_the_total_order` — which asserted a divergence — is renamed `consensus_a_signed_zero_sample_keeps_the_release_builds_order` and asserts equality with **both** members of the measured pair. Native difference 6 of `docs/FILE_INFO_A7_SUPPORT.md` is closed. At the unit level, `the_introsort_threshold_decides_where_a_nan_lands` pins the whole permutation for `{NaN, 2..16}`, `{NaN, 2..17}` and `{NaN, 2..20}`, whose NaN lands at index 0, 8 and 10.
+
+**The C++ defect stands and is still worth raising with maintainers.** Reproducing it is a fidelity decision about the port, not a verdict on the source. `Math::SummaryStatistics` reads order statistics *positionally* out of a range whose order the comparison did not determine, and that remains wrong for the reason the evidence above shows: a genuinely sorted range cannot report a different minimum and maximum for two presentations of the same multiset. The proposed C++ fix is unchanged, and so is the observation that a fix filtering only non-finite values leaves the signed-zero half in place. The port having a faithful answer for every input the Release build accepts is precisely why the defect is now *visible* rather than hidden behind a refusal: `tests/file_info_a7.rs` will notice the day upstream changes it, and `src/math/source_sort.rs` names the sha256 of every libstdc++ header whose algorithm it reproduces, so a toolchain change is detectable rather than silent.
 
 ## CPP-348 — All three re-exposed peak-picker parameters forward an unrestricted value into a restricted one, so NaN silently suppresses every S/N gate and an out-of-range value aborts with a message naming a class the user never mentioned
 

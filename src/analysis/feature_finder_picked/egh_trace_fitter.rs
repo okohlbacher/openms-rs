@@ -93,11 +93,11 @@
 
 use crate::analysis::feature_finder_picked::glibc_libm;
 use crate::analysis::feature_finder_picked::helper_structs::{MassTrace, MassTraces};
-use crate::analysis::feature_finder_picked::scoring::x86_64;
 use crate::analysis::feature_finder_picked::trace_fitter::{
     FEWER_RESIDUALS_THAN_PARAMETERS, ProfileSmoothing, TraceFitter, TraceFitterParams,
     compute_theoretical, initial_shape, optimize, stream_number, unable_to_fit,
 };
+use crate::math::x86_64;
 use crate::{Error, Result};
 
 /// Relative height at which the retention-time bounds are taken: the source

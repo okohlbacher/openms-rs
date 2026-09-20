@@ -48,15 +48,15 @@ use crate::analysis::feature_finder_picked::helper_structs::{
 use crate::analysis::feature_finder_picked::instance::Progress;
 use crate::analysis::feature_finder_picked::scoring::{
     IntensityThresholds, ScoreArrays, Work, fill_intensity_scores, fill_trace_scores,
-    find_isotope_logged, isotope_score_logged, libstdcxx, ms1_ranges, nearest, reset_pattern,
-    x86_64,
+    find_isotope_logged, isotope_score_logged, ms1_ranges, nearest, reset_pattern,
 };
-use crate::analysis::feature_finder_picked::source_sort::source_sort_reversed_by;
 use crate::chemistry::isotopes::{
     CoarseIsotopePatternGenerator, CoarseMassMode, IsotopeDistribution, IsotopePeak,
     ProbabilityPrecision, SourceSingleEstimate,
 };
 use crate::kernel::{FeatureMap, MSExperiment};
+use crate::math::source_sort::source_sort_reversed_by;
+use crate::math::{libstdcxx, x86_64};
 use crate::param::Param;
 use crate::{Error, Result};
 
@@ -535,7 +535,7 @@ impl SeedStage {
     /// `std::sort(seeds.rbegin(), seeds.rend())`, which leaves seeds of equal
     /// intensity in an order the standard does not specify; the port puts them
     /// where the Linux x86_64 Release build's libstdc++ introsort does
-    /// ([`crate::analysis::feature_finder_picked::source_sort`]).
+    /// ([`crate::math::source_sort`]).
     ///
     /// `write_debug` does not change what this stage computes. Its log lines
     /// and seed maps are produced by the algorithm instance, which runs the same
@@ -903,7 +903,7 @@ fn refuse_degenerate_bin_step(experiment: &MSExperiment, settings: &Settings) ->
 /// Source `seeds_.sortByMZ()` (`FeatureFinderAlgorithmPicked.cpp:190`):
 /// `std::sort` of the user seeds with `Feature::MZLess`, in place, as the
 /// Release build's libstdc++ introsort leaves them
-/// ([`source_sort_by`](crate::analysis::feature_finder_picked::source_sort::source_sort_by)).
+/// ([`source_sort_by`](crate::math::source_sort::source_sort_by)).
 ///
 /// Seeds with equal m/z land where the executed sort puts them, and so do NaN
 /// m/z values, whose order decides which seeds [`near_user_seed`]'s binary
@@ -915,16 +915,13 @@ fn refuse_degenerate_bin_step(experiment: &MSExperiment, settings: &Settings) ->
 /// [`Error::InvalidValue`] where the introsort would read outside the map,
 /// which `<` on the m/z values never makes it do, NaN included (the guard is
 /// unreachable; module documentation of
-/// [`source_sort`](crate::analysis::feature_finder_picked::source_sort)). The
+/// [`source_sort`](crate::math::source_sort)). The
 /// seeds are then unchanged.
 pub(crate) fn sort_user_seeds(seeds: &mut FeatureMap) -> Result<()> {
     if seeds.features.is_empty() {
         return Ok(());
     }
-    crate::analysis::feature_finder_picked::source_sort::source_sort_by(
-        &mut seeds.features,
-        |a, b| a.mz < b.mz,
-    )
+    crate::math::source_sort::source_sort_by(&mut seeds.features, |a, b| a.mz < b.mz)
 }
 
 /// The positions of seeds that [`sort_user_seeds`] has sorted.

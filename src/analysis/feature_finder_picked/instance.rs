@@ -60,11 +60,11 @@ use crate::analysis::feature_finder_picked::resolution::{
     annotate_apex, invalid_apex_warning, resolve_overlaps_logged,
 };
 use crate::analysis::feature_finder_picked::seeds::{IsotopeWindows, SeedStage, sort_user_seeds};
-use crate::analysis::feature_finder_picked::source_sort::source_sort_by;
 use crate::analysis::feature_finder_picked::trace_fitter::TraceFitterParams;
 use crate::concept::parallel::{Threads, map_collect};
 use crate::concept::progress_logger::{ProgressLogType, ProgressLogger};
 use crate::kernel::{Feature, FeatureMap, MSExperiment, Point2D};
+use crate::math::source_sort::source_sort_by;
 use crate::metadata::MetaValue;
 use crate::param::{DefaultParamHandler, Param};
 use crate::{Error, Result};

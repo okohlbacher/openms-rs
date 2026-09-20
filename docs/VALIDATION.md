@@ -1,5 +1,174 @@
 # Validation of the ongoing Rust port
 
+## Shared-math wave: the source's own arithmetic and its own `std::sort` (2026-09-19)
+
+Decision **D16** was taken for this wave and is recorded in full in
+[the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-5-status): **reproducing an
+unspecified `std::sort` permutation is in scope**, because the port already does
+it (`src/math/source_sort.rs`, tier 1 against two oracle drivers over 2,272
+inputs), because doing so is D1-compliant by construction (it reproduces the
+in-bounds measured behaviour and refuses exactly where the introsort reads
+outside the vector), because refusing is worse (the signed-zero half is ordinary
+finite data), and because the pin risk is managed (`source_sort` names the
+sha256 of every libstdc++ header it reproduces). That decision closes the two
+bullets wave 8 left open below.
+
+The wave has three parts, all in the same two files plus the promotion.
+
+**Part 1 — the promotion, behaviour-preserving.** `scoring::x86_64`,
+`scoring::libstdcxx` and `analysis::feature_finder_picked::source_sort` are now
+`src/math/x86_64.rs`, `src/math/libstdcxx.rs` and `src/math/source_sort.rs`.
+They are not the picked feature finder's: they are the arithmetic and the
+ordering the Release build's own results depend on, and shared math needs them.
+Visibility is unchanged (the two emulation modules stay crate-private,
+`source_sort` stays public), 28 path references across 14 Rust files follow, and
+`RUSTDOCFLAGS=-D warnings cargo doc` is clean. That nothing moved but paths was
+*checked*, not asserted: the extracted `x86_64` body is token-identical to the
+block it came from, and `libstdcxx` differs only where rustfmt dropped a
+trailing comma from a signature that fits on one line after the dedent.
+`python3 tools/check_module_cycles.py` confirms the direction is cycle-safe —
+`analysis → math` exists, `math → analysis` does not — at 64 cross-module edges
+and 13 mutually-dependent pairs, unchanged. `glibc_libm.rs` was deliberately
+left where it is and is the obvious candidate for the next promotion.
+
+**Part 2 — the NaN bits.** IEEE 754 fixes every finite result of `+ - * / sqrt`
+but not which NaN bit pattern an operation *generates* out of non-NaN operands.
+The Release build's SSE2 answers `0xfff8000000000000`, which glibc spells
+`-nan`; an arm64 host answers `0x7ff8000000000000`. Native difference 5 is that
+spelling, and the *value* had to stop depending on the host before the spelling
+could be argued about at all. Every function in
+`src/math/statistic_functions.rs` whose own arithmetic can generate a NaN is now
+built on `crate::math::x86_64`: `sum`, `mean`, `variance`, `variance_with_mean`,
+`sd`, `sd_with_mean`, `covariance`, `mean_square_error`,
+`root_mean_square_error`, `mean_absolute_deviation`, `mad`'s `fabs`, and the two
+places an order statistic is *interpolated* rather than read —
+`median_of_sorted`'s even-size average and `quantile`'s linear blend. The module
+documentation states per function why it is or is not affected.
+
+The invariant that makes this safe is that the helpers return the IEEE result
+whenever it is not a NaN, so no finite value may move, and that is asserted
+directly rather than hoped for: `the_x86_64_helpers_change_no_finite_result`
+compares bit for bit against the plain-Rust arithmetic the module used before,
+over a battery reaching subnormals, both zeros, `DBL_MAX` and ranges whose
+squared deviations overflow to an infinity, across every function and every
+equally long pair. **No frozen expectation in `tests/statistic_functions.rs`
+moved.** `a_generated_nan_carries_the_release_builds_bits` then pins fourteen
+bit patterns derived from the SSE2 rules of Intel SDM vol. 1 rather than from
+this crate's output, including the *positive* NaN `andpd` leaves behind in
+`mean_absolute_deviation` and the quieted payload a signalling NaN input keeps.
+
+One correction to the brief this wave was given, recorded because it is the kind
+of thing a reader would otherwise take on faith:
+`variance_with_mean(&[+inf, -inf], 0.0)` does **not** produce a NaN. Both
+squared deviations are `+inf` and they add, so the result is `+inf`; the test
+pins that too. The shapes that do generate the indefinite NaN are the ones where
+a *subtraction* cancels two infinities — `variance(&[1.0, +inf])`, which is the
+`FileInfo` path itself, and `variance_with_mean(&[+inf, -inf], +inf)`.
+
+**Part 3 — the permutation.** `sort_ascending` was
+`values.sort_by(f64::total_cmp)`, and every entry point above it refused a NaN.
+It is now `source_sort_by(&mut values, |a, b| a < b)`: `std::sort(begin, end)`
+with the default `operator<` and no comparator, which is the call at
+`MATH/StatisticFunctions.h:140` (`median`), `:244` (`quantile1st`), `:281`
+(`quantile3rd`), `:189` (`MAD`, through its own `median`) and `:948`
+(`SummaryStatistics`'s unqualified `sort(data.begin(), data.end())`), core
+`bc9cc12`. `median`, `quantile1st`, `quantile3rd`, `mad` and
+`SummaryStatistics::new` therefore **reproduce** a NaN-bearing sample instead of
+refusing it, and the only refusal left in the sort path is D1's: an introsort
+read outside the vector, which an asymmetric comparison cannot provoke and `<`
+on `f64` keys — NaN keys included — is asymmetric.
+`SummaryStatistics::of_nan_sample` and the two-shape special case it existed for
+are gone; `new` reads its order statistics through the private `_of_sorted`
+helpers, because `std::sort`'s own output is not ascending when a NaN is in it.
+
+The evidence is the permutation itself, not the statistic.
+`the_introsort_threshold_decides_where_a_nan_lands` pins the whole array for
+`{NaN, 2..16}`, `{NaN, 2..17}` and `{NaN, 2..20}`, whose NaN lands at index 0, 8
+and 10 — the three positions section 5.2 of
+[STATISTIC_FUNCTIONS_SUPPORT](STATISTIC_FUNCTIONS_SUPPORT.md) measured against
+the reference compiler, and the reason `{NaN, 2..20}` prints `minimum: 2` and
+`median: -nan`. The port reproduces all three, and the 16/17 boundary is
+`_S_threshold` (`bits/stl_algo.h:1806`, `:1880`, `:1899-1910`) doing exactly
+what the doc says it does. `{3, NaN, 2}` sorting to `{2, 3, NaN}` — the block
+move that carries a NaN without any comparison involving it being true — is
+pinned too.
+
+**The five frozen A7 oracle cases, which are the acceptance test.** All five are
+now compared line for line against the retained Release reports, and every one
+differs *only* in native difference 5's `nan` / `-nan` spelling:
+
+| oracle case | before | after |
+| --- | --- | --- |
+| `c_nan_one_s` | compared, 9 NaN-spelling lines | unchanged, still 9 |
+| `c_nan_two_s` | compared, 10 NaN-spelling lines | unchanged, still 10 |
+| `c_nan_then_finite_s` | **refused**; retained as evidence, not compared | compared, 7 NaN-spelling lines, nothing else differs |
+| `c_finite_then_nan_s` | **refused**; retained as evidence, not compared | compared, 7 NaN-spelling lines, nothing else differs |
+| `c_zero_swapped_s` | compared, 9 NaN-spelling lines **plus 4 order-statistic lines** (native difference 6) | compared, 9 NaN-spelling lines, **0 order-statistic lines** |
+
+`consensus_a_signed_zero_sample_is_ordered_by_the_total_order` asserted a
+divergence and is renamed to
+`consensus_a_signed_zero_sample_keeps_the_release_builds_order`, which asserts
+equality with **both** members of the measured pair — the port reproduces the
+swapped file's report and the unswapped file's report rather than collapsing
+them onto one. `assert_report_but_the_nan_spelling` is a stronger comparison
+than a line count: it fails if any line outside the NaN class differs at all, if
+the number of NaN-spelled lines changes, if a `-nan` appears where the reference
+has a number, or if the crate starts or stops writing the sign. **Native
+difference 6 is closed.**
+
+Byte-for-byte equality including the sign is not reachable from this wave and
+was not attempted: `src/format/file_info/text_format.rs` was not touched, and
+its `nonfinite` rule is part 3 of the promotion bullet, which still needs A2's
+oracle row re-captured against the Linux Release build.
+
+**One cost, measured rather than assumed.** `sort_ascending` builds a
+permutation with an interpreted introsort and a closure per comparison where it
+used to call `slice::sort_by`, and that is 2.3x slower at 1,000 values rising to
+5.0x at 1,000,000 (macOS arm64, release; the table is in section "The cost of
+the faithful sort" of [STATISTIC_FUNCTIONS_SUPPORT](STATISTIC_FUNCTIONS_SUPPORT.md)).
+The blast radius is narrow — the only consumers of the sorting entry points are
+`FileInfo`'s `summarize` and `fasta.rs`'s length summary, both on bounded
+samples, and the picked feature finder already called `source_sort` directly —
+but it is a real regression on a shared-math path and the lead should see the
+number rather than discover it.
+
+**What this wave did not close, and says so at the item.**
+
+- `compute_rank` and `rank_correlation_coefficient` still refuse a NaN. Their
+  `std::sort` (`:829-830`) is a lambda comparing `std::pair::second`, not the
+  default `operator<`, and a NaN additionally defeats their *relative tie test*,
+  whose two comparisons are both false against a NaN and which would therefore
+  merge every block the NaN touches. That is a second, independent behaviour
+  that no oracle row measures. For a NaN-free range the two sorts agree on the
+  ranks anyway, because `operator<` and `total_cmp` differ only on `±0.0`, which
+  the tie test makes one block either way.
+- The public `_sorted` entry points (`median_sorted`, `quantile1st_sorted`,
+  `quantile3rd_sorted`, `quantile`) still return `UnsortedData` for a NaN. They
+  do not sort; they verify a *caller's* claim to have sorted, and there is no
+  way to know which permutation a caller who asserts "already sorted" about a
+  NaN-bearing range meant.
+- `src/format/file_info/consensus.rs` still generates a NaN in plain Rust
+  arithmetic: `it_aad += it_ratio` is `(-inf) + (+inf)` for the
+  `a7_cons_nan_one` fixture. Every value `statistic_functions` produces is now
+  host-independent; this one is not, and the spelling step has to take it with
+  it. Part 2's brief scoped the rewrite to `statistic_functions.rs`, so this is
+  reported rather than changed.
+- `pearson_correlation_coefficient` and `matthews_correlation_coefficient` were
+  left on plain arithmetic on purpose. Both substitute an explicit `f64::NAN`
+  for a division the source actually performs — a divergence that predates this
+  work and is documented at each item — so making only their *other* operations
+  bit-faithful would leave that substituted NaN as the single host-shaped value
+  in the result. The crate's bit-faithful Pearson is
+  `analysis::feature_finder_picked::scoring::source_pearson`, which the picked
+  feature finder measured against the Release build; that the two exist side by
+  side is worth a reviewer's attention and converging them needs an oracle row.
+
+**CPP-347** is rewritten as closed-by-reproduction: the port now reproduces the
+defect rather than refusing it, and the underlying C++ defect —
+`Math::SummaryStatistics` reading order statistics positionally out of a range
+whose order the comparison did not determine — still stands and is still worth
+raising with maintainers.
+
 ## Wave 8: the reader's round trip, the featureXML writer, the picker consumers, A7 and the citation checker (2026-09-19)
 
 `integrate/wave8` merges `fix/reader-round-trip` (`42064c6`),
@@ -85,14 +254,20 @@ refusal in `sort_ascending` — which every `SummaryStatistics` caller in the
 crate consumes — to an input the Release build handles in bounds, stably, and
 with its own precondition satisfied, and that is the lead's decision rather than
 an integrator's. `consensus_a_signed_zero_sample_is_ordered_by_the_total_order`
-now asserts the two bare reports byte for byte, the four lines on which the two
+asserted the two bare reports byte for byte, the four lines on which the two
 Release reports disagree, and that each of the port's four lines is the Release
-build's own line for the unswapped file — so both spellings are measured and
-none is derived from Rust output. The lead's open question about reproducing an
-unspecified `std::sort` permutation now has **both** instances in front of it,
-and `CPP-347` is rewritten around the general defect: order statistics read
+build's own line for the unswapped file — so both spellings were measured and
+none was derived from Rust output. The lead's open question about reproducing an
+unspecified `std::sort` permutation then had **both** instances in front of it,
+and `CPP-347` was rewritten around the general defect: order statistics read
 positionally out of a range whose order the comparison did not determine. A fix
 that only filters non-finite values leaves half of it in place.
+
+**Closed the next day** by lead decision D16 and the shared-math wave: the four
+lines are no longer a divergence, the test is renamed
+`consensus_a_signed_zero_sample_keeps_the_release_builds_order` and asserts
+equality with both retained Release reports, and native difference 6 is gone.
+The wave section at the top of this document records the measurement.
 
 A7's five minors were applied too. The one that matters beyond wording: the
 claim "libstdc++ compares every pair involving a NaN false and therefore moves
@@ -212,28 +387,33 @@ needs a decision:
 - *a deferral that is explicitly NOT a D1 refusal*, for a NaN next to **at most
   one distinct number**. The precondition holds there, every element is
   equivalent, and only the permutation is unspecified; the Release build exits 0
-  and prints a stable report, so D1 would have the port reproduce it. It does
+  and prints a stable report, so D1 would have the port reproduce it. It did
   not, because the `minimum`, quartile and `maximum` lines are positional reads
   of a range `std::sort` was free to leave in any order: `c_nan_then_finite_s`
   and `c_finite_then_nan_s` hold the same two consensus features in opposite
   file order and disagree on exactly those four lines. Reproducing them means
   porting libstdc++'s `std::sort` permutation into `sort_ascending` in shared
-  math, which every `SummaryStatistics` caller consumes. **This is the one the
-  lead has to decide.** See `CPP-347`.
+  math, which every `SummaryStatistics` caller consumes. **The lead decided it:
+  D16, in the shared-math wave of 2026-09-19 — reproducing the permutation is in
+  scope, and both cases are now reproduced.** See `CPP-347`.
 
-Both are refused by the same message today, which is why the distinction is
-recorded here rather than left to be read off the code.
+Both were refused by the same message, which is why the distinction is recorded
+here rather than left to be read off the code. **Neither is refused any more**:
+the first class was never a D1 refusal in the sense D1 means — `std::sort` runs
+deterministically on such a range, it is only the *standard's guarantee* that is
+void — and D16 says to reproduce the executed, measured behaviour and to refuse
+only where libstdc++ reads outside the vector. The refusal that remains is that
+one.
 
-That deferral and **native difference 6** are the two halves of one question,
-and they are scoped differently on purpose. Both are samples whose elements
-`std::sort` calls equivalent, in both the precondition holds, and in both the
-order statistics are positional reads — but the NaN half is refused and the
-signed-zero half is accepted with its divergence pinned. The difference is what
-refusing would cost: refusing a NaN sample turns away an input no caller has a
-use for, while refusing a signed-zero sample would turn away ordinary finite
-data the Release build summarises without complaint. The shared-math wave has to
-close both, and `CPP-347` is written around what they share rather than around
-the NaN.
+That deferral and **native difference 6** were the two halves of one question,
+scoped differently on purpose. Both are samples whose elements `std::sort` calls
+equivalent, in both the precondition holds, and in both the order statistics are
+positional reads — but the NaN half was refused and the signed-zero half was
+accepted with its divergence pinned. The difference was what refusing would
+cost: refusing a NaN sample turns away an input no caller has a use for, while
+refusing a signed-zero sample would turn away ordinary finite data the Release
+build summarises without complaint. **The shared-math wave closed both**, and
+`CPP-347` is written around what they share rather than around the NaN.
 
 ### The featureXML round trip, and one divergence in each direction
 
@@ -524,12 +704,15 @@ recomputed in this pass rather than copied from a report.
 
 ### Still open, and deliberately not closed here
 
-- **Two shared-math waves now point at the same file.** The x86_64-faithful
-  `variance_with_mean` (the lead's decision 1 above) and a libstdc++-faithful
-  `sort_ascending` both land in `src/math/statistic_functions.rs` and are both
-  consumed by landed ports. Scheduled separately they will conflict; scheduled
-  together, one wave can re-capture A2's oracle row once instead of twice. The
-  A7 lane recommends running them as one wave and this pass agrees.
+- ~~**Two shared-math waves now point at the same file.**~~ **Closed** in the
+  shared-math wave of 2026-09-19, run as one wave exactly as this pass
+  recommended: the x86_64-faithful `variance_with_mean` and a
+  libstdc++-faithful `sort_ascending` landed together in
+  `src/math/statistic_functions.rs`, under lead decision D16. What A2's oracle
+  row still owes — a re-capture against the Linux Release build rather than the
+  macOS SDK — is the one part of the promotion bullet left, and
+  `src/format/file_info/text_format.rs` was deliberately not touched until it
+  arrives. See the shared-math wave section at the top of this document.
 - **The whole-document mzML writer still deduplicates by content.**
   `mzml::write` declares one `dataProcessing` and writes no record reference
   where the C++ `MzMLFile::store` declares one and dangles two. Reproducing it

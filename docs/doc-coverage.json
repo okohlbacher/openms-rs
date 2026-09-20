@@ -69,7 +69,7 @@
    "items": 27,
    "documented": 27
   },
-  "src/analysis/feature_finder_picked/source_sort.rs": {
+  "src/math/source_sort.rs": {
    "items": 5,
    "documented": 5
   },

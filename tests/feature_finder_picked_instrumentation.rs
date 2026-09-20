@@ -49,7 +49,6 @@ use openms::analysis::feature_finder_picked::debug::{
     TerminationKind, TerminationPoint, write_feature_debug_info,
 };
 use openms::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
-use openms::analysis::feature_finder_picked::source_sort::source_sort_permutation;
 use openms::concept::parallel::Threads;
 use openms::concept::progress_logger::{
     CommandProgressLogger, ProgressBackend, ProgressLogType, ProgressLogger, ProgressNesting,
@@ -57,6 +56,7 @@ use openms::concept::progress_logger::{
 };
 use openms::format::{FileHandler, FileType, PeakFileOptions, featurexml, paramxml};
 use openms::kernel::{ConvexHull2D, Feature, FeatureMap, MSExperiment, NumericRange, Point2D};
+use openms::math::source_sort::source_sort_permutation;
 use openms::metadata::{MetaValue, MetaValueData};
 use openms::param::{Param, ParamValue};
 

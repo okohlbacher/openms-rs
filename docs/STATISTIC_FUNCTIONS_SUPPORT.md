@@ -120,11 +120,12 @@ whole content is a length question and the class test calls one of them on
 | The `sorted` boolean becomes two functions | The `false` case mutates the caller's range. `&mut [f64]` states that in the signature; `&[f64]` proves the other does not. |
 | The `mean = DBL_MAX` sentinel becomes two functions | A caller that genuinely wants the deviation about `DBL_MAX` cannot express it in the source. |
 | Sortedness is always checked | `median_sorted`, `quantile1st_sorted`, `quantile3rd_sorted` and `quantile` return `Error::UnsortedData` for a non-ascending input. The source states the precondition as `@pre` and checks it only through `OPENMS_PRECONDITION`, compiled out of a release build. A NaN also fails this check, including in a one-element range, which has no adjacent pair to disagree and which `std::is_sorted` accepts. |
-| A NaN is refused wherever ordering it would decide the answer | See "NaN policy" below. The four functions above report `Error::UnsortedData`, because a NaN makes the caller's sortedness claim false; the six that sort or stage a buffer themselves — `median`, `quantile1st`, `quantile3rd`, `mad`, `compute_rank`, `rank_correlation_coefficient` — report `Error::InvalidValue`. `SummaryStatistics::new` reports it too, except for the two sample shapes in which the permutation cannot be observed. |
+| A NaN is **reproduced** wherever the source's own `std::sort` decides the answer | Lead decision D16; see "NaN policy" below. `median`, `quantile1st`, `quantile3rd`, `mad` and `SummaryStatistics::new` sort with the Release build's own permutation and read their order statistics positionally out of it. The four `_sorted` functions above still report `Error::UnsortedData`, because a NaN makes the *caller's* sortedness claim false; `compute_rank` and `rank_correlation_coefficient` still report `Error::InvalidValue`, for the two reasons in 5.2. |
 | `variance`, `sd` and `covariance` refuse `n < 2` | The `n - 1` divisor is zero there and the source returns NaN. A NaN variance is exactly what this layer would propagate into everything built on it. `SummaryStatistics` keeps the source's `0.0` for `n <= 1`, because the source's own comment fixes that value. |
 | A zero correlation denominator returns NaN explicitly instead of dividing | For both Matthews and Pearson a zero denominator forces a zero numerator (proved below), so `0 / 0 = NaN` is the source's value in every reachable case. The one divergence is a denominator that *underflows* to zero from non-zero deviations, where the source yields an infinity and the port yields NaN. |
 | `adaptive_quantile` rejects non-finite `k`, `r_sparse`, `r_dense` | The source accepts a NaN threshold and lets it decide the blend weight through comparisons that are all false. |
-| Sorting uses `f64::total_cmp` | Every sorting entry point has already refused a NaN, so the total order and `std::sort`'s `<` agree on everything that reaches the sort; `total_cmp` is kept because it also orders `-0.0` before `0.0` deterministically. |
+| Sorting is the Release build's own `std::sort` | `sort_ascending` is `source_sort_by(&mut values, \|a, b\| a < b)`, the libstdc++ introsort of `crate::math::source_sort` under the default `operator<` — the call at `:140`, `:244`, `:281`, `:189` and `:948`. It replaced an `f64::total_cmp` sort, which differed from `operator<` exactly on a NaN and on a signed zero, and both differences are now closed. `compute_rank` is the one sort in this file still on `total_cmp`; 5.2 says why. |
+| A generated NaN carries the Release build's bits | IEEE 754 does not fix which NaN an operation produces from non-NaN operands. Every function whose arithmetic can generate one is built on `crate::math::x86_64`, so `inf - inf` is `0xfff8000000000000` on every host and not the arm64 default `0x7ff8000000000000`. No finite value changes; see "NaN bit patterns" below. |
 | `compute_rank` on an empty slice is a no-op | The source computes `w.size() - 1` in unsigned arithmetic, which wraps to `SIZE_MAX`. |
 | `MAX_ITEMS` / `MAX_BYTES` preflight | Every function that stages an owned buffer (`mad`, `tukey_upper_fence`, `winsorized_quantile`, `adaptive_quantile`, `compute_rank`, `rank_correlation_coefficient`) checks the ceiling before allocating, so a refusal leaves the input unchanged. The source has no ceiling. Each preflight is stated per buffer, not per call: `rank_correlation_coefficient` checks one `f64` buffer and then copies two, and `compute_rank` runs its own, wider preflight for the `(usize, f64)` pairs it stages, so the widest single buffer is what `MAX_BYTES` actually bounds. |
 | Lengths are compared up front | `covariance` checks its second range only by re-testing the two *begin* iterators inside the loop — a test whose value never changes — and by comparing the second iterator to its end afterwards, so a short second range is dereferenced out of bounds before the mismatch is noticed. |
@@ -138,85 +139,208 @@ every value, itself included, so `std::sort` is free to return any permutation
 of the elements it cannot tell apart; and once the range holds two or more
 distinct numbers as well, transitivity of incomparability fails (`1 ~ NaN` and
 `NaN ~ 3` while `1 < 3`) and the strict-weak-ordering precondition is violated
-outright. Either way a C++ call that sorts a NaN-bearing range has no single
-answer to reproduce — the permutation, and therefore the statistic, is whatever
-the library's introsort happens to do. The port draws the line at *ordering*:
+outright.
+
+**Unspecified is not unknowable.** The Release build runs one particular
+algorithm — the conda-forge GCC 14.4.0 libstdc++ introsort — and it runs it
+deterministically, so the permutation it leaves is a measurable fact about that
+build. Lead decision **D16** (shared-math wave, 2026-09-19;
+`docs/EARLY_TOPP_WORK_PACKAGES.md`) puts reproducing it in scope, and
+`src/math/source_sort.rs` is the comparison-by-comparison port of it, validated
+tier 1 against two oracle drivers over 2,272 inputs. This module's private
+`sort_ascending` is therefore `std::sort(begin, end)` itself:
+`source_sort_by(&mut values, |a, b| a < b)`.
 
 | Group | Functions | NaN input |
 | --- | --- | --- |
-| Sorts or stages a buffer it then sorts | `median`, `quantile1st`, `quantile3rd`, `mad`, `compute_rank`, `rank_correlation_coefficient` | `Error::InvalidValue`, raised before the sort, so the caller's range is left in its original order |
-| Sorts, but answers the shapes whose permutation is unobservable | `SummaryStatistics::new` | `Error::InvalidValue` as above, **except** for a one-value sample and an all-NaN sample; see below |
-| Requires the caller to have sorted | `median_sorted`, `quantile1st_sorted`, `quantile3rd_sorted`, `quantile` | `Error::UnsortedData`, the same error any other order violation gets |
+| Sorts, or stages a buffer it then sorts | `median`, `quantile1st`, `quantile3rd`, `mad`, `SummaryStatistics::new` | **reproduced**: the range is sorted into the permutation the Release build's `std::sort` leaves, and the order statistics are read positionally out of it, exactly as `StatisticFunctions.h:952-956` reads them |
+| Sorts with a *different* `std::sort` | `compute_rank`, `rank_correlation_coefficient` | `Error::InvalidValue`, raised before the sort, so the caller's range is left in its original order; see 5.2 below for why this one was not moved |
+| Requires the caller to have sorted | `median_sorted`, `quantile1st_sorted`, `quantile3rd_sorted`, `quantile` | `Error::UnsortedData`, the same error any other order violation gets. These do not sort; they verify a claim, and a NaN makes that claim false |
 | Drops non-finite values first | `tukey_upper_fence`, `tail_fraction_above`, `winsorized_quantile`, `adaptive_quantile` | filtered out, exactly as the source's `std::isfinite` filter does; never reaches an ordering |
 | Neither sorts nor buffers | `sum`, `mean`, `variance`, `sd`, `covariance`, `mean_square_error`, `root_mean_square_error`, `absdev`, `mean_absolute_deviation`, `pearson_correlation_coefficient` | propagates to a NaN result, as in the source |
 | Classifies by comparison | `classification_rate`, `matthews_correlation_coefficient` | every comparison against a NaN is false, so the pair counts as agreeing (`classification_rate`) or increments none of the four confusion counts (`matthews`). Well defined in C++ and identical there, so it is reproduced rather than refused, and documented at both items |
 
-`mad` additionally refuses a NaN `median_of_numbers`, and refuses the staged
-differences when they contain a NaN neither input had — `inf - inf` is the only
-way that happens.
+**The one refusal `sort_ascending` still has** is decision D1's, and it is
+unreachable in practice: `Error::InvalidValue` at the step where the introsort's
+unbounded partition or final-insertion loop would read *outside* the vector,
+which is undefined behaviour with no reproducible result. Only a comparison that
+is not asymmetric can provoke it, and `<` on `f64` keys is asymmetric with NaN
+keys too. `src/math/source_sort.rs`'s module documentation carries the proof,
+and none of the 2,272 oracle inputs reached the guard.
 
-`SummaryStatistics::new` is the one exception, and it is a narrow one. The test
-it applies is whether the set of outputs the source may produce has exactly one
-member. Two sample shapes pass it, and in both cases that is a proof rather than
-an observation that the permutation happened not to matter:
+`SummaryStatistics::new` no longer has a NaN special case at all. It used to
+answer two shapes — a one-value sample and an all-NaN sample — whose set of
+possible outputs has exactly one member, and refuse everything else; both are
+now just ordinary sorts, and `SummaryStatistics::of_nan_sample` is gone.
 
-- **one value.** A one-element range has exactly one permutation, so there is
-  nothing for `std::sort` to choose. Every positional field is that value, and
-  `variance` is the `0.0` the source substitutes for `n <= 1`;
-- **every value a NaN.** `std::sort` may permute freely, but every permutation
-  of an all-NaN range produces the same eight fields, because every field is
-  read from, or computed out of, values that are all NaN.
+An infinity is refused nowhere: `operator<` orders it consistently, so the
+source's answer is well defined and is the port's answer.
 
-`SummaryStatistics::of_nan_sample` computes both without sorting, since there is
-nothing to order, and a NaN next to a number is still refused. Both shapes are
-reached from real input and both are pinned against the Release C++ build:
-`FileInfo`'s consensusXML `-s` blocks divide, and a pair of sub-features of
-intensity `-0.0` and `0.0` under one centroid contributes `(-inf) + (+inf)` to
-the per-consensus-feature sample (`../oracle/a7-fileinfo`, cases `c_nan_one_s`
-and `c_nan_two_s`).
+#### 5.2 Where a NaN lands, and the two refusals that remain
 
-The refusal that remains is a **deferral, not a decision-D1 refusal**, and is
-raised for the lead. Nothing is out of bounds and the Release build's values are
-stable per input, so D1 would have the port reproduce them; it does not, because
-in the two-element samples measured here libstdc++ compares every pair
-involving the NaN false and therefore moves nothing, which makes the `minimum`,
-quartile and `maximum` lines positional reads of a range whose elements
-`std::sort` was free to leave in any order. That "moves nothing" is a property
-of this sample's **size and arrangement** rather than of the NaN, and the libstdc++
-headers the reference build was compiled with say exactly when it holds.
 `std::sort` is `__introsort_loop` followed by `__final_insertion_sort`
 (`stl_algo.h:1899-1910`), and `__introsort_loop` runs only
 `while (__last - __first > int(_S_threshold))` with `_S_threshold` enumerated as
-16 (`stl_algo.h:1806`, `stl_algo.h:1880`). So at **16 elements or fewer** the
+16 (`stl_algo.h:1806`, `stl_algo.h:1880`). `__final_insertion_sort`
+(`:1812-1823`) is one `__insertion_sort` pass (`:1770-1788`) below the
+threshold, and above it one over the first 16 elements plus an
+`__unguarded_insertion_sort` over the rest. So at **16 elements or fewer** the
 whole sort is a single `__insertion_sort` pass, and at **17 or more** the
-partitioning is free to move it, which for the `{NaN, 2..n}` family measured
-here it does. Neither bound says the NaN stands still below the threshold: a
-block move carries it without any comparison involving it ever being true. Measured with that compiler, three
-byte-stable runs: `{NaN, 2}` and `{2, NaN}` come back unchanged and
-`{NaN, 2..16}` keeps the NaN at index 0, while `{NaN, 2..17}` moves it to index
-8 and `{NaN, 2..20}` to index 10 — which is why that sample prints
-`minimum: 2` and `median: -nan`. Below the threshold the NaN is still not
-*pinned*: no comparison involving it is ever true, but `__insertion_sort`
-relocates a whole block when a later element belongs before `*__first`, and
-that carries the NaN with it — `{3, NaN, 2}` sorts to `{2, 3, NaN}` at three
-elements. What none of it changes is the one thing the refusal rests on: the
-order statistics are a property of the input order. Measured: the oracle's
-`c_nan_then_finite_s`
-and `c_finite_then_nan_s` hold the same two consensus features in opposite file
-order and disagree on exactly those four lines. Reproducing them means porting
-libstdc++'s `std::sort` permutation into `sort_ascending`, which every
-`SummaryStatistics` caller consumes — its own wave. See CPP-347 and section 5.2
-of `docs/FILE_INFO_A7_SUPPORT.md`.
+partitioning is free to move a NaN, which for the `{NaN, 2..n}` family it does.
+Neither bound says the NaN stands still below the threshold: a block move
+carries it without any comparison involving it ever being true.
 
-An infinity is refused nowhere. Both `std::sort` and `f64::total_cmp` order it
-consistently, so the source's answer is well defined and is the port's answer.
+Measured with the reference compiler, three byte-stable runs: `{NaN, 2}` and
+`{2, NaN}` come back unchanged; `{NaN, 2..16}` keeps the NaN at index 0, while
+`{NaN, 2..17}` moves it to index 8 and `{NaN, 2..20}` to index 10 — which is why
+that sample prints `minimum: 2` and `median: -nan`. `{3, NaN, 2}` sorts to
+`{2, 3, NaN}` at three elements, because `__insertion_sort` relocates a whole
+block when a later element belongs before `*__first`.
 
-This policy is what makes the resource-ceiling and sortedness claims above
-total rather than partial. Before it, five entry points accepted a NaN, sorted
-it to one end by `total_cmp` and returned a plausible finite number:
-`median(&mut [1.0, NaN, 3.0])` answered `3.0` where the median of the real
-values is `2.0`, and `quantile1st(&mut [1.0, NaN, 3.0, 4.0, 5.0])` answered
-`2.0`. `tests/statistic_functions.rs` pins every group in the table.
+**The port reproduces all five**, and pins the whole permutation rather than the
+index alone: `the_introsort_threshold_decides_where_a_nan_lands` and
+`the_sorting_entry_points_reproduce_the_release_builds_permutation` in
+`tests/statistic_functions.rs`. The 17-element case is worth spelling out
+because it is the one the algorithm decides rather than leaves alone:
+`__unguarded_partition_pivot` takes the median of `*(first+1)`, `*mid` and
+`*(last-1)` — 2, 9 and 17 — and `__move_median_to_first` swaps the middle one to
+the front, which is what carries the NaN to index 8; the partition then stops on
+both sides at that NaN, and `__final_insertion_sort` bubbles the displaced 9
+back into place without touching it again.
+
+**The open question this section used to carry is answered.** It asked whether
+reproducing an unspecified `std::sort` permutation is in scope at all. Decision
+D16 says yes, on four grounds set out in `docs/EARLY_TOPP_WORK_PACKAGES.md`. The
+five frozen oracle cases the question rested on — `c_nan_one_s`, `c_nan_two_s`,
+`c_nan_then_finite_s`, `c_finite_then_nan_s` and `c_zero_swapped_s` of
+`../oracle/a7-fileinfo` — are now reproduced and compared line for line by
+`tests/file_info_a7.rs`; each differs from its retained Release report only in
+native difference 5's `nan` / `-nan` spelling, which belongs to the FileInfo
+text layer and not to this module. `CPP-347` is rewritten accordingly: the port
+reproduces the defect, and the defect stands.
+
+**Two refusals remain, deliberately.**
+
+1. `compute_rank` and `rank_correlation_coefficient`. Their `std::sort`
+   (`StatisticFunctions.h:829-830`) is a lambda comparing `std::pair::second`,
+   not the default `operator<`, so it is a different call from the five
+   `sort_ascending` covers; and a NaN additionally defeats their **relative tie
+   test**, whose two comparisons are both false against a NaN and which would
+   therefore merge every block the NaN touches. That is a second, independent
+   behaviour that no oracle row measures, so the refusal stands rather than
+   being guessed at. For a NaN-free range nothing is lost: `operator<` and
+   `total_cmp` differ only on `±0.0`, which the tie test makes one block either
+   way, and the ranks are written back by origin index, so the two sorts give
+   the same result.
+2. The `_sorted` entry points. They do not sort; they verify a *caller's* claim
+   to have sorted, and there is no way to know which permutation a caller who
+   asserts "already sorted" about a NaN-bearing range meant.
+   `SummaryStatistics::new` does its own sorting and so reads through the
+   private `_of_sorted` helpers, which do not re-check.
+
+#### The cost of the faithful sort
+
+`sort_ascending` is no longer a library sort. It builds a permutation of
+`0..n` with the libstdc++ introsort reproduced in Rust, calling a closure for
+every comparison and applying the permutation through an owned buffer, where it
+used to call `slice::sort_by`. That is measurably slower, and the figure is
+recorded here rather than left for a reviewer to find, measured on macOS arm64
+in a release build over a deterministic pseudo-random sample:
+
+| n | `sort_by(f64::total_cmp)` | `source_sort_by` | ratio |
+| --- | --- | --- | --- |
+| 1,000 | 35 µs | 81 µs | 2.3x |
+| 10,000 | 197 µs | 843 µs | 4.3x |
+| 100,000 | 2.1 ms | 9.7 ms | 4.6x |
+| 1,000,000 | 15.9 ms | 79.6 ms | 5.0x |
+
+Whether that matters depends on who calls it, and in this crate the answer is
+narrow: the only consumers of the sorting entry points are `FileInfo`'s
+`summarize` (`src/format/file_info/report.rs`), whose samples are bounded by
+`FileInfo::MAX_STATISTICS_VALUES` and are in practice one value per feature, and
+`fasta.rs`'s sequence-length summary. `mass_trace_detection.rs` has a `median`
+of its own and does not reach this one. No hot inner loop of the crate sorts
+through `statistic_functions`: the picked feature finder already called
+`crate::math::source_sort` directly and is unchanged by this.
+
+The ratio is the price of the permutation being the source's rather than the
+library's, and D16 accepts it. If a future caller needs the speed on a large
+sample, the place to fix it is `source_sort`, not a second sort here — two
+sorting rules in one module is exactly the divergence this wave removed.
+
+### Signed zeros
+
+`-0.0` and `0.0` are the other pair `operator<` calls *equivalent*: both
+`-0.0 < 0.0` and `0.0 < -0.0` are false. Unlike a NaN they do not break
+`std::sort`'s precondition, so the call is well formed — but every permutation
+is a conforming result, and libstdc++ leaves a short range as it found it.
+
+`sort_ascending` used to order them by `f64::total_cmp`, which puts `-0.0` first
+regardless of input order, so a caller reading order statistics positionally out
+of such a sample disagreed with the source in the sign of a printed zero. One
+did: `FileInfo`'s consensusXML `-s` `Intensity ratios` block, recorded as
+**native difference 6** of `docs/FILE_INFO_A7_SUPPORT.md` and measured in both
+orders (oracle cases `c_nan_one_s` and `c_zero_swapped_s`, the same consensus
+feature with its two sub-feature intensities exchanged).
+
+Running libstdc++'s own permutation closes that difference. The port keeps the
+input order the Release build keeps, reproduces **both** members of the measured
+pair rather than collapsing them onto one, and
+`consensus_a_signed_zero_sample_keeps_the_release_builds_order` asserts equality
+with both retained reports.
+`a_signed_zero_keeps_the_order_the_release_build_keeps` pins the same thing at
+the `SummaryStatistics` level. Native difference 6 is closed.
+
+### NaN bit patterns
+
+IEEE 754 fixes every finite result of `+`, `-`, `*`, `/` and `sqrt`, but not
+which NaN bit pattern an operation *generates* out of non-NaN operands.
+`inf - inf`, `0 * inf`, `0 / 0`, `inf / inf` and the square root of a negative
+number all yield "some" NaN, and the answer is the instruction set's: the Linux
+x86_64 Release build's SSE2 produces the "real indefinite" QNaN
+`0xfff8000000000000`, which glibc spells `-nan`, while an arm64 host produces
+the positive default NaN `0x7ff8000000000000`.
+
+That difference is observable. `FileInfo`'s consensusXML `-s` block prints the
+variance of `{1, +inf}`, which is `(1 - inf)^2 + (inf - inf)^2` over one — a
+generated NaN — and native difference 5 of `docs/FILE_INFO_SUPPORT.md` is the
+spelling of exactly that value. The *value* had to become host-independent
+before the spelling could be fixed.
+
+Every function here whose own arithmetic can generate a NaN is therefore built
+on `crate::math::x86_64`'s `add`, `sub`, `mul`, `div`, `sqrt` and `abs`:
+
+| | Functions | Why |
+| --- | --- | --- |
+| **Rebuilt** | `sum`, `mean`, `variance`, `variance_with_mean`, `sd`, `sd_with_mean`, `covariance`, `mean_square_error`, `root_mean_square_error`, `mean_absolute_deviation`, `mad`'s `fabs`, `median_of_sorted`'s even-size average, `quantile`'s linear blend | the source's own `double` arithmetic can produce a NaN from operands that are not NaN |
+| **Not rebuilt** | `classification_rate`, `matthews_correlation_coefficient` (their counting), `compute_rank`, `tukey_upper_fence`, `tail_fraction_above`, `winsorized_quantile`, `adaptive_quantile` | no NaN can be generated: the first two count with comparisons, `compute_rank` averages small integers, and the Tukey family drops every non-finite value before it computes anything, as the source's `std::isfinite` filter does |
+| **Not rebuilt, a known gap** | `pearson_correlation_coefficient`, `matthews_correlation_coefficient` | both substitute an explicit `f64::NAN` for a division the source actually performs — a divergence that predates this work and is documented at each item — so making only their *other* operations bit-faithful would leave that substituted NaN as the single host-shaped value in the result. The crate's bit-faithful Pearson is `analysis::feature_finder_picked::scoring::source_pearson`; converging the two needs an oracle row of its own |
+
+The helpers return the IEEE result whenever it is not a NaN, so **no finite
+value changes**. That is asserted directly rather than assumed:
+`the_x86_64_helpers_change_no_finite_result` compares bit for bit against the
+plain-Rust arithmetic the module used before, over a battery reaching
+subnormals, both zeros, `DBL_MAX` and ranges whose squared deviations overflow
+to an infinity, across every function and every equally long pair. No frozen
+expectation in `tests/statistic_functions.rs` moved.
+`a_generated_nan_carries_the_release_builds_bits` then pins fourteen bit
+patterns derived from the SSE2 rules of Intel SDM vol. 1 rather than from this
+crate's output — including the *positive* NaN `andpd` leaves behind in
+`mean_absolute_deviation`, because the absolute-value mask clears the sign bit
+of a NaN like any other value, and the quieted payload a signalling NaN input
+keeps.
+
+One shape worth naming because it reads the other way round:
+`variance_with_mean(&[+inf, -inf], 0.0)` generates no NaN at all. Both squared
+deviations are `+inf` and they add, so the result is `+inf`. The indefinite NaN
+appears where a *subtraction* cancels two infinities — `variance(&[1.0, +inf])`,
+which is the `FileInfo` path, and `variance_with_mean(&[+inf, -inf], +inf)`.
+
+The *spelling* is a separate layer and is not decided here:
+`format::file_info::text_format` writes every NaN as `nan` where glibc writes
+`-nan` for one whose sign bit is set. That is native difference 5, and the
+shared-math wave deliberately did not touch it; it also needs A2's oracle row
+re-captured against the Linux Release build.
 
 ### Why a zero denominator implies a zero numerator
 
@@ -238,10 +362,12 @@ allocation. `usize` arithmetic in the preflight is `checked_mul`.
 
 Numeric boundaries: empty and single-element ranges; mismatched lengths;
 `q` outside `[0, 1]` and NaN `q`; a NaN input at every entry point that orders
-values, in both of the groups of the NaN-policy table, and the one-element
-`[NaN]` range that has no adjacent pair; infinities, which are ordered rather
-than refused, including the `inf - inf` NaN that `mad` can manufacture from two
-non-NaN inputs; non-finite values, which `tukey_upper_fence`,
+values, in every group of the NaN-policy table, and the one-element `[NaN]`
+range that has no adjacent pair; the `_S_threshold` boundary at 16, 17 and 20
+elements; both signed zeros, in both input orders; infinities, which are ordered
+rather than refused, including the `inf - inf` NaN that `mad` can manufacture
+from two non-NaN inputs; the bit pattern of every NaN this module can generate;
+non-finite values, which `tukey_upper_fence`,
 `tail_fraction_above`, `winsorized_quantile` and `adaptive_quantile` drop as the
 source does; constant ranges in all three correlation coefficients.
 
@@ -263,17 +389,37 @@ Evidence, per `docs/DIFFERENTIAL_VALIDATION.md`:
   interpolated quantiles `0.6*9 + 0.4*1000` and `0.6*9 + 0.4*14.5`; the
   Matthews values `1`, `-1` and `2/sqrt(12)`; and the zero-denominator
   equivalence above.
-- **Tier 4 (Rust-only)** for the resource ceilings, the sortedness and NaN
-  refusals, and the `n < 2` variance refusal. The NaN refusals are three tests —
-  `the_sorting_entry_points_refuse_a_nan`,
-  `the_buffering_entry_points_refuse_a_nan` and
-  `the_sorted_entry_points_reject_a_lone_nan` — which together cover every
-  function in the first two rows of the NaN-policy table, assert that a refused
-  call leaves the caller's range unmodified, and assert that an infinity is
-  still ordered.
+- **Tier 4 (Rust-only)** for the resource ceilings, the sortedness refusals,
+  the two NaN refusals 5.2 keeps, and the `n < 2` variance refusal:
+  `the_sorted_entry_points_reject_a_lone_nan` and
+  `mad_reproduces_a_nan_and_the_ranking_still_refuses_one`, which also assert
+  that a refused call leaves the caller's range unmodified.
+- **Tier 4 (independently derived, from the algorithm rather than a run)** for
+  the `std::sort` permutation itself, which is the shared-math wave's own
+  evidence. `the_sorting_entry_points_reproduce_the_release_builds_permutation`,
+  `the_introsort_threshold_decides_where_a_nan_lands` and
+  `a_signed_zero_keeps_the_order_the_release_build_keeps` derive every expected
+  array from the libstdc++ algorithm — `__insertion_sort`'s two branches,
+  `__move_median_to_first`'s swap and `_S_threshold` — and not from this crate's
+  output. The three NaN positions they pin (index 0, 8 and 10 for
+  `{NaN, 2..16}`, `{NaN, 2..17}` and `{NaN, 2..20}`) are the ones 5.2 measured
+  against the reference compiler, so the derivation and the measurement agree.
+- **Tier 4 (independently derived)** for the NaN bit patterns:
+  `a_generated_nan_carries_the_release_builds_bits` applies the SSE2 rules of
+  Intel SDM vol. 1 to the instruction the Release build emits, and
+  `the_x86_64_helpers_change_no_finite_result` asserts the invariant those
+  helpers rest on — that no non-NaN result moves — bit for bit against the
+  plain-Rust arithmetic.
 
-No tier 1 or tier 2 evidence exists for this group: no retained C++ output
-corresponds to these free functions, and no oracle driver was built.
+No tier 1 or tier 2 evidence exists for this group *as free functions*: no
+retained C++ output corresponds to them and no oracle driver was built for this
+header. The sorting behaviour is the exception and has tier 1 evidence at one
+remove, through two consumers: `../oracle/ffap-complete-fix1` and
+`../oracle/ffap-instr-completion` validate `crate::math::source_sort` itself
+over 2,272 inputs, and `../oracle/a7-fileinfo`'s five frozen `-s` reports
+(`c_nan_one_s`, `c_nan_two_s`, `c_nan_then_finite_s`, `c_finite_then_nan_s`,
+`c_zero_swapped_s`) are what `tests/file_info_a7.rs` compares these functions'
+output against, line for line.
 
 A separate reading of one class-test line: `Math::MAD(x2, x2 + 6, true)` at
 `StatisticFunctions_test.cpp:88` passes the literal `true`, which converts to

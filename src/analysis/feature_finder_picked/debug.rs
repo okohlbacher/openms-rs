@@ -97,10 +97,11 @@
 use std::collections::BTreeMap;
 
 use crate::analysis::feature_finder_picked::helper_structs::{MassTraces, Seed};
-use crate::analysis::feature_finder_picked::scoring::{ScoreArrays, x86_64};
+use crate::analysis::feature_finder_picked::scoring::ScoreArrays;
 use crate::analysis::feature_finder_picked::trace_fitter::{TraceFitter, stream_number};
 use crate::format::file_info::text_format::{fixed_truncated, to_str, to_str_f32};
 use crate::kernel::{DataArray, Feature, FeatureMap, MSExperiment};
+use crate::math::x86_64;
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
 

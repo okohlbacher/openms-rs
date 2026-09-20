@@ -1523,6 +1523,32 @@ defensible. They are also recorded in [VALIDATION](VALIDATION.md).
   assertion dropped; the charge counts `-2` and `-3` stay refused
   unconditionally; `atan` off x86_64 with glibc keeps the `libm` crate; and the
   step-3.3.5 termination was searched for once more and found.
+- **D16** (shared-math wave, 2026-09-19). **Reproducing an unspecified
+  `std::sort` permutation is in scope.** The question the
+  `sort_ascending` bullet of this document and the "Still open" section of
+  [VALIDATION](VALIDATION.md) carried, and which section 5.2 of
+  [STATISTIC_FUNCTIONS_SUPPORT](STATISTIC_FUNCTIONS_SUPPORT.md) and of
+  [FILE_INFO_A7_SUPPORT](FILE_INFO_A7_SUPPORT.md) left open — whether the port
+  should reproduce a permutation the C++ standard leaves unspecified — is
+  decided yes, on four grounds:
+  1. **The port already does it.** `src/math/source_sort.rs` is a
+     comparison-by-comparison, move-by-move port of the GCC 14.4.0 libstdc++
+     introsort and `stable_sort`, validated tier 1 against two oracle drivers
+     (`../oracle/ffap-instr-completion`, `../oracle/ffap-complete-fix1`) over
+     2,272 inputs carrying ties, signed zeros, infinities and four NaN bit
+     patterns. Using it in `sort_ascending` promotes executed evidence; it does
+     not gamble on new behaviour.
+  2. It is **D1-compliant by construction**: it reproduces the in-bounds,
+     deterministic, measured behaviour and refuses exactly where the introsort's
+     unbounded partition and final-insertion loops read outside the vector.
+  3. **Refusing is worse.** The signed-zero half (native difference 6) is
+     ordinary finite data the Release build summarises without complaint; a
+     blanket refusal in `sort_ascending` would turn it away, and
+     `sort_ascending` is what every `SummaryStatistics` caller in the crate
+     consumes.
+  4. The **pin risk is already managed**: `source_sort` names the sha256 of
+     every libstdc++ header whose algorithm it reproduces, so a toolchain change
+     is detectable rather than silent.
 
 ### What remains
 
@@ -1857,44 +1883,69 @@ one worktree that has the pinned checkouts.
   mzXML, mzData, MGF, MS2, sqMass, XMass and MSP peak files, and the schema
   validation A8 was scoped for. A6 closed `-i`, `-d` and `-c`; A7 closed
   consensusXML, idXML/mzIdentML and FASTA.
-- **The x86_64-emulation promotion, carried forward with its three parts.**
+- **The x86_64-emulation promotion, two of its three parts done.**
   This is the lead's route-(b) decision of this round made concrete: the port
   spells every NaN the FileInfo text layer prints `nan` where glibc spells a
   sign-bit NaN `-nan` (native difference 5), and spelling the sign honestly
   requires the *value* to stop depending on the host first. Three parts, all
   prerequisites, in this order:
-  1. promote the x86_64 emulation out of
+  1. ~~promote the x86_64 emulation out of
      `analysis::feature_finder_picked::scoring` into shared math, where it can
-     be reused;
-  2. give `src/math/statistic_functions.rs` an x86_64-faithful
+     be reused;~~ **Done** (shared-math wave, 2026-09-19). `scoring::x86_64`,
+     `scoring::libstdcxx` and `feature_finder_picked::source_sort` are
+     `src/math/x86_64.rs`, `src/math/libstdcxx.rs` and
+     `src/math/source_sort.rs`; visibility is unchanged and the move was
+     behaviour-preserving (the extracted `x86_64` body is token-identical to the
+     block it came from). `glibc_libm` is deliberately **not** promoted and is
+     the obvious candidate for the next one.
+  2. ~~give `src/math/statistic_functions.rs` an x86_64-faithful
      `variance_with_mean` built on it, so the NaN a variance produces carries a
-     host-independent sign;
+     host-independent sign;~~ **Done**, and wider than the bullet asked:
+     `variance_with_mean` plus every other function in that file whose own
+     arithmetic can *generate* a NaN — `sum`, `mean`, `variance`, `sd`,
+     `sd_with_mean`, `covariance`, `mean_square_error`,
+     `root_mean_square_error`, `mean_absolute_deviation`, `mad`'s `fabs`, and
+     the two interpolating order statistics. No finite value moved
+     (`the_x86_64_helpers_change_no_finite_result` asserts it bit for bit) and
+     fourteen generated-NaN bit patterns are pinned.
   3. re-capture A2's oracle row against the **Linux Release build** rather than
      the macOS SDK — `../oracle/file-info-text-format/results/driver.tsv:92` is
      `D fff8000000000000 nan nan nan nan nan NaN`, measured with Apple libc, and
-     `tests/file_info_text_format.rs:145` asserts it verbatim.
+     `tests/file_info_text_format.rs:145` asserts it verbatim. **Still open, and
+     it is what part 3 of this bullet now blocks on.**
 
   Only after all three can `text_format`'s `nonfinite` rule change; until then
   changing it would contradict an executed oracle row and make every frozen
-  expectation architecture-dependent. **Owner: shared math
+  expectation architecture-dependent. The shared-math wave did **not** touch
+  `src/format/file_info/text_format.rs` for that reason. One thing that wave
+  found and did not fix, which the spelling step has to take with it:
+  `src/format/file_info/consensus.rs` generates a NaN of its own in plain Rust
+  arithmetic — `it_aad += it_ratio` is `(-inf) + (+inf)` for the
+  `a7_cons_nan_one` fixture — so that value is still host-shaped even though
+  every value `statistic_functions` produces no longer is. **Owner: shared math
   (`src/math/statistic_functions.rs`), with A2 as second party.**
-- **A libstdc++-faithful `sort_ascending`, the other half of the same file.**
-  `SummaryStatistics::new` reproduces the two NaN shapes whose set of outputs
-  has one member and refuses a NaN next to a number — a **deferral**, not a D1
-  refusal, because nothing is out of bounds and the values are stable. The same
-  `std::sort` equivalence without a NaN is *accepted* and its divergence pinned
-  (native difference 6, signed zeros). Closing either means porting libstdc++'s
-  permutation into `sort_ascending`, which every `SummaryStatistics` caller
-  consumes, and pinning it against a build that is free to change it. Evidence
-  is already on disk: oracle cases `c_nan_one_s`, `c_nan_two_s`,
-  `c_nan_then_finite_s`, `c_finite_then_nan_s` and `c_zero_swapped_s`, all
-  frozen. **What the lead has to decide is whether reproducing an unspecified
-  `std::sort` permutation is in scope at all**; refusing is what the port does
-  today for the NaN half, and the signed-zero half shows that refusing
-  everything would mean refusing inputs the Release build handles in bounds.
-  **Owner: shared math.** Run this as one wave with the promotion above: both
-  land in the same file, both are consumed by landed ports, and one wave can
-  re-capture A2's oracle row once instead of twice.
+- ~~**A libstdc++-faithful `sort_ascending`, the other half of the same file.**~~
+  **Closed in the shared-math wave under decision D16.** `sort_ascending` is
+  `source_sort_by(&mut values, |a, b| a < b)` — `std::sort(begin, end)` with the
+  default `operator<`, the call at `MATH/StatisticFunctions.h:140`, `:244`,
+  `:281`, `:189` and `:948`. Both halves are closed at once: the NaN deferral is
+  gone (`median`, `quantile1st`, `quantile3rd`, `mad` and
+  `SummaryStatistics::new` reproduce a NaN-bearing sample, and the only refusal
+  left is D1's out-of-bounds one, which an asymmetric comparison cannot reach),
+  and native difference 6 is gone with it (a two-element range of equivalent
+  signed zeros keeps its input order, as libstdc++ leaves it). All five frozen
+  oracle cases — `c_nan_one_s`, `c_nan_two_s`, `c_nan_then_finite_s`,
+  `c_finite_then_nan_s` and `c_zero_swapped_s` — are now compared line for line
+  against the retained Release reports and differ only in native difference 5's
+  `nan` / `-nan` spelling. Two things this did **not** close, both recorded in
+  section 5.2 of [STATISTIC_FUNCTIONS_SUPPORT](STATISTIC_FUNCTIONS_SUPPORT.md):
+  `compute_rank` and `rank_correlation_coefficient` still refuse a NaN, because
+  their `std::sort` is a lambda on `std::pair::second` rather than the default
+  `operator<` and a NaN defeats their relative tie test in a second,
+  independent way that no oracle row measures; and the public `_sorted` entry
+  points still return `UnsortedData` for a NaN, because they verify a
+  *caller's* sortedness claim rather than sorting anything. **Owner: shared
+  math.**
 - **The whole-document mzML writer still deduplicates by content**, where
   `MzMLFile::store` dangles. Reproducing it would emit references mzML forbids
   by default from every write path, with nothing to opt into, so it is the

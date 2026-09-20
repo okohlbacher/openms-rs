@@ -773,58 +773,6 @@ fn invalid_value(error: &Error) -> bool {
     matches!(error, Error::InvalidValue(_))
 }
 
-// Native: every entry point that sorts refuses a NaN instead of answering from
-// an arbitrary permutation. The source's `std::sort` has a strict-weak-ordering
-// precondition that a NaN violates, so there is no C++ answer to reproduce.
-// Each case below returned a plausible *finite* number before this check:
-// `median([1, NaN, 3])` gave 3.0 where the median of the real values is 2.0,
-// and `quantile1st([1, NaN, 3, 4, 5])` gave 2.0.
-#[test]
-fn the_sorting_entry_points_refuse_a_nan() {
-    let mut m = [1.0, f64::NAN, 3.0];
-    assert!(invalid_value(&median(&mut m).unwrap_err()));
-    // Refused before the sort, so the caller's range is untouched.
-    assert_eq!(m[0], 1.0);
-    assert!(m[1].is_nan());
-    assert_eq!(m[2], 3.0);
-
-    let mut q1 = [1.0, f64::NAN, 3.0, 4.0, 5.0];
-    assert!(invalid_value(&quantile1st(&mut q1).unwrap_err()));
-    assert_eq!(q1[0], 1.0);
-    assert!(q1[1].is_nan());
-
-    let mut q3 = [1.0, 2.0, 3.0, f64::NAN, 5.0, 6.0, 7.0];
-    assert!(invalid_value(&quantile3rd(&mut q3).unwrap_err()));
-    assert!(q3[3].is_nan());
-
-    let mut s = [1.0, f64::NAN, 3.0];
-    assert!(invalid_value(&SummaryStatistics::new(&mut s).unwrap_err()));
-    assert!(s[1].is_nan());
-    // Refused before any sort, so the caller's sample is untouched.
-    assert_eq!(s[0], 1.0);
-    assert_eq!(s[2], 3.0);
-    // Two values, one of them a number: refused for the same reason, and the
-    // mirror image is refused too. The reference build prints DIFFERENT
-    // minimum, quartile and maximum lines for these two orders of the same
-    // multiset (oracle cases c_nan_then_finite_s and c_finite_then_nan_s),
-    // which is why neither has an answer to reproduce.
-    let mut nan_first = [f64::NAN, 2.0];
-    assert!(invalid_value(
-        &SummaryStatistics::new(&mut nan_first).unwrap_err()
-    ));
-    let mut nan_last = [2.0, f64::NAN];
-    assert!(invalid_value(
-        &SummaryStatistics::new(&mut nan_last).unwrap_err()
-    ));
-
-    // An infinity is *not* refused: both `std::sort` and `total_cmp` order it,
-    // so the source's answer is well defined and is reproduced.
-    let mut inf = [1.0, f64::INFINITY, 3.0];
-    close(median(&mut inf).unwrap(), 3.0);
-    let mut inf2 = [1.0, f64::NEG_INFINITY, 3.0];
-    close(median(&mut inf2).unwrap(), 1.0);
-}
-
 // `SummaryStatistics` is the one sorting entry point that does NOT refuse every
 // NaN, because two sample shapes make the unspecified permutation unobservable.
 // Both values come from the Release C++ build, not from this crate:
@@ -878,43 +826,6 @@ fn summary_statistics_summarises_the_two_unobservable_nan_samples() {
     close(stats.variance, 1.0);
 }
 
-// Native: the staged-buffer entry points refuse a NaN for the same reason —
-// they sort the buffer they build.
-#[test]
-fn the_buffering_entry_points_refuse_a_nan() {
-    // MAD sorts the absolute differences.
-    assert!(invalid_value(&mad(&[1.0, f64::NAN, 3.0], 2.0).unwrap_err()));
-    // A NaN median poisons every difference, so it is refused as well.
-    assert!(invalid_value(&mad(&[1.0, 2.0, 3.0], f64::NAN).unwrap_err()));
-    // `inf - inf` is a NaN neither input had; the differences are checked too.
-    assert!(invalid_value(
-        &mad(&[f64::INFINITY, 1.0, 2.0], f64::INFINITY).unwrap_err()
-    ));
-    // Two infinities of the same sign subtract to a NaN only against each
-    // other; a finite median leaves them as `inf`, which sorts.
-    close(mad(&[f64::INFINITY, 1.0, 2.0], 1.0).unwrap(), 1.0);
-
-    // computeRank sorts values with their origins, and its tie test is two
-    // comparisons that are both false against a NaN.
-    let mut w = [3.0, f64::NAN, 1.0];
-    assert!(invalid_value(&compute_rank(&mut w).unwrap_err()));
-    // Refused before anything is written back.
-    assert_eq!(w[0], 3.0);
-    assert!(w[1].is_nan());
-    assert_eq!(w[2], 1.0);
-
-    // Spearman ranks both ranges, so a NaN in either is refused, and the
-    // refusal happens before either range is copied.
-    let clean = [1.0, 2.0, 3.0];
-    let dirty = [1.0, f64::NAN, 3.0];
-    assert!(invalid_value(
-        &rank_correlation_coefficient(&dirty, &clean).unwrap_err()
-    ));
-    assert!(invalid_value(
-        &rank_correlation_coefficient(&clean, &dirty).unwrap_err()
-    ));
-}
-
 // Native: the four functions that require a sorted input already rejected a NaN
 // through the ordering test, except in the one range too short to have an
 // adjacent pair. `[NaN]` is "sorted" to `std::is_sorted` and was accepted here
@@ -944,4 +855,596 @@ fn the_sorted_entry_points_reject_a_lone_nan() {
     ));
     // An ascending range that ends at an infinity is still sorted.
     close(median_sorted(&[1.0, 2.0, f64::INFINITY]).unwrap(), 2.0);
+}
+
+// Native, and the precondition of native difference 5 of
+// `docs/FILE_INFO_SUPPORT.md`: the arithmetic of this module is built on
+// `crate::math::x86_64`'s SSE2 helpers so that a NaN it *generates* has the
+// Linux x86_64 Release build's bits on every host. Those helpers return the
+// IEEE result whenever it is not a NaN, so no finite value may move. This test
+// asserts that directly, bit for bit, against the plain-Rust arithmetic the
+// module used before — the same operations in the same order — over a battery
+// that reaches subnormals, the exponent extremes, both zeros and ranges whose
+// squared deviations overflow to an infinity.
+//
+// Every expectation elsewhere in this file is a transcribed or derived literal
+// and is unchanged; this one is an invariant, so it is computed on both sides.
+#[test]
+fn the_x86_64_helpers_change_no_finite_result() {
+    // No entry may make an operation generate a NaN (no `inf - inf`, `0 * inf`,
+    // `0 / 0`): a generated NaN is exactly what the helpers are allowed to
+    // change, and the bits of one are pinned by the next test instead.
+    let battery: &[&[f64]] = &[
+        &[-1.0, 0.0, 1.0, 2.0, 3.0],
+        &[-1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0],
+        &[1.0, 1.0, 1.0, 1.0],
+        &[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+        &[-0.0, 0.0, -0.0, 0.0],
+        &[f64::MIN_POSITIVE, -f64::MIN_POSITIVE, 5e-324, -5e-324],
+        &[1e300, 2e300, -3e300],
+        &[f64::MAX, -f64::MAX],
+        &[123_456.789, -987_654.321, 0.5, 1e-8, 42.0],
+        &[3.0, 1.0, 4.0, 1.0, 5.0, 9.0, 2.0, 6.0, 5.0, 3.0, 5.0],
+        &[f64::INFINITY, 1.0, 2.0, 3.0],
+        &[f64::NEG_INFINITY, -3.0, -2.0, -1.0],
+    ];
+
+    fn bits(label: &str, actual: f64, expected: f64) {
+        assert_eq!(
+            actual.to_bits(),
+            expected.to_bits(),
+            "{label}: {actual:.17e} ({:#018x}) != {expected:.17e} ({:#018x})",
+            actual.to_bits(),
+            expected.to_bits()
+        );
+    }
+
+    for (index, values) in battery.iter().enumerate() {
+        // `sum`: std::accumulate's left fold from 0.0.
+        let plain_sum = values.iter().fold(0.0, |total, value| total + value);
+        bits(&format!("sum[{index}]"), sum(values), plain_sum);
+
+        // `mean`: that sum divided by the count.
+        let plain_mean = plain_sum / values.len() as f64;
+        bits(&format!("mean[{index}]"), mean(values).unwrap(), plain_mean);
+
+        // `variance_with_mean`, about the range's own mean and about supplied
+        // ones, and the deviations `sd` and `absdev` are built on.
+        for &centre in &[plain_mean, 0.0, 1.0, -2.5] {
+            let mut plain = 0.0;
+            for value in values.iter() {
+                let diff = value - centre;
+                plain += diff * diff;
+            }
+            let plain_variance = plain / (values.len() - 1) as f64;
+            if !plain_variance.is_nan() {
+                bits(
+                    &format!("variance_with_mean[{index}] about {centre}"),
+                    variance_with_mean(values, centre).unwrap(),
+                    plain_variance,
+                );
+                bits(
+                    &format!("sd_with_mean[{index}] about {centre}"),
+                    sd_with_mean(values, centre).unwrap(),
+                    plain_variance.sqrt(),
+                );
+            }
+
+            // `mean_absolute_deviation`: fabs of the same differences.
+            let mut plain_abs = 0.0;
+            for value in values.iter() {
+                plain_abs += (value - centre).abs();
+            }
+            let plain_abs = plain_abs / values.len() as f64;
+            if !plain_abs.is_nan() {
+                bits(
+                    &format!("mean_absolute_deviation[{index}] about {centre}"),
+                    mean_absolute_deviation(values, centre),
+                    plain_abs,
+                );
+            }
+        }
+        let mut plain = 0.0;
+        for value in values.iter() {
+            let diff = value - plain_mean;
+            plain += diff * diff;
+        }
+        let plain_variance = plain / (values.len() - 1) as f64;
+        if !plain_variance.is_nan() {
+            bits(
+                &format!("variance[{index}]"),
+                variance(values).unwrap(),
+                plain_variance,
+            );
+            bits(
+                &format!("sd[{index}]"),
+                sd(values).unwrap(),
+                plain_variance.sqrt(),
+            );
+        }
+        let plain_absdev = {
+            let mut total = 0.0;
+            for value in values.iter() {
+                total += (value - plain_mean).abs();
+            }
+            total / values.len() as f64
+        };
+        if !plain_absdev.is_nan() {
+            bits(
+                &format!("absdev[{index}]"),
+                absdev(values).unwrap(),
+                plain_absdev,
+            );
+        }
+
+        // `median_sorted` and `quantile`: the two interpolating reads.
+        let mut sorted = values.to_vec();
+        sorted.sort_by(f64::total_cmp);
+        let size = sorted.len();
+        let plain_median = if size % 2 == 0 {
+            (sorted[size / 2 - 1] + sorted[size / 2]) / 2.0
+        } else {
+            sorted[(size - 1) / 2]
+        };
+        if !plain_median.is_nan() {
+            bits(
+                &format!("median_sorted[{index}]"),
+                median_sorted(&sorted).unwrap(),
+                plain_median,
+            );
+        }
+        for &q in &[0.1_f64, 0.25, 0.5, 0.75, 0.9] {
+            let pos = q * (size - 1) as f64;
+            let floor = pos.floor();
+            let i = floor as usize;
+            let frac = pos - floor;
+            let plain = if frac == 0.0 {
+                sorted[i]
+            } else {
+                (1.0 - frac) * sorted[i] + frac * sorted[i + 1]
+            };
+            if plain.is_nan() {
+                continue;
+            }
+            bits(
+                &format!("quantile[{index}] at {q}"),
+                quantile(&sorted, q).unwrap(),
+                plain,
+            );
+        }
+    }
+
+    // The two-range functions, over every equally long pair of the battery.
+    for (i, a) in battery.iter().enumerate() {
+        for (j, b) in battery.iter().enumerate() {
+            if a.len() != b.len() {
+                continue;
+            }
+            let mean_a = a.iter().fold(0.0, |t, v| t + v) / a.len() as f64;
+            let mean_b = b.iter().fold(0.0, |t, v| t + v) / b.len() as f64;
+            let mut plain_cov = 0.0;
+            for (va, vb) in a.iter().zip(b.iter()) {
+                plain_cov += (va - mean_a) * (vb - mean_b);
+            }
+            let plain_cov = plain_cov / (a.len() - 1) as f64;
+            let mut plain_mse = 0.0;
+            for (va, vb) in a.iter().zip(b.iter()) {
+                let tmp = va - vb;
+                plain_mse += tmp * tmp;
+            }
+            let plain_mse = plain_mse / a.len() as f64;
+            if !plain_cov.is_nan() {
+                bits(
+                    &format!("covariance[{i},{j}]"),
+                    covariance(a, b).unwrap(),
+                    plain_cov,
+                );
+            }
+            if !plain_mse.is_nan() {
+                bits(
+                    &format!("mean_square_error[{i},{j}]"),
+                    mean_square_error(a, b).unwrap(),
+                    plain_mse,
+                );
+                bits(
+                    &format!("root_mean_square_error[{i},{j}]"),
+                    root_mean_square_error(a, b).unwrap(),
+                    plain_mse.sqrt(),
+                );
+            }
+        }
+    }
+}
+
+// Native: the bits of a NaN this module *generates*. Expected values are the
+// SSE2 rules of Intel SDM vol. 1 ("Rules for handling NaNs") applied to the
+// instruction the Release build emits, not observations of this crate: an
+// operation whose operands are not NaN and whose result is invalid yields the
+// "real indefinite" QNaN `0xfff8000000000000`, which is what glibc spells
+// `-nan`; an operation with a NaN operand yields that operand quieted, so its
+// payload and sign survive; and `andpd` with the absolute-value mask clears the
+// sign bit of a NaN like any other value.
+//
+// On an arm64 host plain Rust arithmetic answers `0x7ff8000000000000` for every
+// one of the generated cases below, so each assertion here would have failed
+// before this module moved onto `crate::math::x86_64`.
+#[test]
+fn a_generated_nan_carries_the_release_builds_bits() {
+    const INDEFINITE: u64 = 0xfff8_0000_0000_0000;
+    const POSITIVE_QUIET: u64 = 0x7ff8_0000_0000_0000;
+
+    fn nan_bits(label: &str, actual: f64, expected: u64) {
+        assert!(actual.is_nan(), "{label}: {actual} is not a NaN");
+        assert_eq!(
+            actual.to_bits(),
+            expected,
+            "{label}: {:#018x} != {expected:#018x}",
+            actual.to_bits()
+        );
+    }
+
+    // `inf + (-inf)` in std::accumulate's addsd, and the divsd that follows it.
+    nan_bits(
+        "sum(inf, -inf)",
+        sum(&[f64::INFINITY, f64::NEG_INFINITY]),
+        INDEFINITE,
+    );
+    nan_bits(
+        "mean(inf, -inf)",
+        mean(&[f64::INFINITY, f64::NEG_INFINITY]).unwrap(),
+        INDEFINITE,
+    );
+
+    // The FileInfo path itself: Math::variance over {1, +inf} adds
+    // `(1 - inf)^2 = +inf` to `(inf - inf)^2 = NaN`.
+    nan_bits(
+        "variance(1, inf)",
+        variance(&[1.0, f64::INFINITY]).unwrap(),
+        INDEFINITE,
+    );
+    nan_bits("sd(1, inf)", sd(&[1.0, f64::INFINITY]).unwrap(), INDEFINITE);
+    nan_bits(
+        "variance_with_mean(inf, -inf; inf)",
+        variance_with_mean(&[f64::INFINITY, f64::NEG_INFINITY], f64::INFINITY).unwrap(),
+        INDEFINITE,
+    );
+    // About a mean of zero the same sample generates no NaN at all: both
+    // squared deviations are `+inf` and they add, so the variance is `+inf`.
+    assert_eq!(
+        variance_with_mean(&[f64::INFINITY, f64::NEG_INFINITY], 0.0).unwrap(),
+        f64::INFINITY
+    );
+
+    nan_bits(
+        "covariance(1, inf; 1, inf)",
+        covariance(&[1.0, f64::INFINITY], &[1.0, f64::INFINITY]).unwrap(),
+        INDEFINITE,
+    );
+    nan_bits(
+        "mean_square_error(inf; inf)",
+        mean_square_error(&[f64::INFINITY], &[f64::INFINITY]).unwrap(),
+        INDEFINITE,
+    );
+    nan_bits(
+        "root_mean_square_error(inf; inf)",
+        root_mean_square_error(&[f64::INFINITY], &[f64::INFINITY]).unwrap(),
+        INDEFINITE,
+    );
+
+    // The two interpolating order statistics.
+    nan_bits(
+        "median_sorted(-inf, inf)",
+        median_sorted(&[f64::NEG_INFINITY, f64::INFINITY]).unwrap(),
+        INDEFINITE,
+    );
+    nan_bits(
+        "quantile(-inf, inf; 0.5)",
+        quantile(&[f64::NEG_INFINITY, f64::INFINITY], 0.5).unwrap(),
+        INDEFINITE,
+    );
+
+    // `fabs` is `andpd` with the absolute-value mask, which clears the sign bit
+    // of the indefinite NaN too, so this one is positive.
+    nan_bits(
+        "mean_absolute_deviation(inf; inf)",
+        mean_absolute_deviation(&[f64::INFINITY], f64::INFINITY),
+        POSITIVE_QUIET,
+    );
+
+    // A NaN that was given rather than generated keeps its payload and sign and
+    // is quieted, whichever operand carries it. This is the mechanism behind
+    // oracle case `c_nan_two_s`, whose seven `-nan` lines are the input's own
+    // NaN travelling through mean, variance and the order statistics.
+    let signalling = f64::from_bits(0x7ff4_0000_0000_0001);
+    nan_bits(
+        "sum(sNaN, 1)",
+        sum(&[signalling, 1.0]),
+        0x7ffc_0000_0000_0001,
+    );
+    let negative = f64::from_bits(INDEFINITE);
+    nan_bits("sum(-nan, 1)", sum(&[negative, 1.0]), INDEFINITE);
+    nan_bits(
+        "mean(-nan, -nan)",
+        mean(&[negative, negative]).unwrap(),
+        INDEFINITE,
+    );
+    nan_bits(
+        "variance(-nan, -nan)",
+        variance(&[negative, negative]).unwrap(),
+        INDEFINITE,
+    );
+}
+
+// Native, decision D16: every entry point that sorts now runs the Release
+// build's own `std::sort` (`crate::math::source_sort`) instead of an
+// `f64::total_cmp` sort, so a NaN-bearing sample is *reproduced* rather than
+// refused. Each expectation below is derived from the libstdc++ algorithm the
+// reference build was compiled with, not from this crate's output.
+//
+// The relevant piece of `__insertion_sort` (`bits/stl_algo.h:1770-1788`), which
+// is the whole of `std::sort` for a range of at most `_S_threshold == 16`:
+// for every element after the first, if it is `< *first` the block in front of
+// it is shifted up and it moves to the front; otherwise
+// `__unguarded_linear_insert` walks left while `val < *next`. Every comparison
+// involving a NaN is false, so a NaN neither moves itself nor lets any later
+// element past it, and a range whose numbers are already ascending comes back
+// untouched.
+#[test]
+fn the_sorting_entry_points_reproduce_the_release_builds_permutation() {
+    // `[1, NaN, 3]` is left exactly as it is: `NaN < 1` is false, and `3 < NaN`
+    // is false, so neither of the two insertions moves anything. `median` then
+    // reads the middle position, which holds the NaN.
+    let mut m = [1.0, f64::NAN, 3.0];
+    assert!(median(&mut m).unwrap().is_nan());
+    assert_eq!(m[0], 1.0);
+    assert!(m[1].is_nan());
+    assert_eq!(m[2], 3.0);
+
+    // `[1, NaN, 3, 4, 5]` likewise comes back untouched, and `quantile1st` of
+    // an odd size takes the median of `[..size/2]` — here `[1, NaN]`, whose
+    // even-size average is `(1 + NaN) / 2`.
+    let mut q1 = [1.0, f64::NAN, 3.0, 4.0, 5.0];
+    assert!(quantile1st(&mut q1).unwrap().is_nan());
+    assert_eq!(q1[0], 1.0);
+    assert!(q1[1].is_nan());
+    assert_eq!(&q1[2..], &[3.0, 4.0, 5.0]);
+
+    // `[1, 2, 3, NaN, 5, 6, 7]`: untouched again, and `quantile3rd` takes the
+    // median of `[size/2 + 1..]` — `[5, 6, 7]` — which is a plain number.
+    let mut q3 = [1.0, 2.0, 3.0, f64::NAN, 5.0, 6.0, 7.0];
+    assert_eq!(quantile3rd(&mut q3).unwrap(), 6.0);
+    assert!(q3[3].is_nan());
+
+    // The same range through `SummaryStatistics`: the four positional reads
+    // land where the sort left them.
+    let mut s = [1.0, f64::NAN, 3.0];
+    let stats = SummaryStatistics::new(&mut s).unwrap();
+    assert!(s[1].is_nan(), "the sort leaves the NaN in the middle");
+    assert_eq!(stats.count, 3);
+    assert!(stats.mean.is_nan());
+    assert!(stats.variance.is_nan());
+    assert_eq!(stats.min, 1.0);
+    assert_eq!(stats.lowerq, 1.0);
+    assert!(stats.median.is_nan());
+    assert_eq!(stats.upperq, 3.0);
+    assert_eq!(stats.max, 3.0);
+
+    // The two-element pair the oracle measured in both orders. `c_nan_then_
+    // finite_s` and `c_finite_then_nan_s` of ../oracle/a7-fileinfo hold the
+    // same multiset in opposite file order and the Release build prints
+    // different `minimum`, quartile and `maximum` lines for them; those four
+    // lines are exactly the four fields below, and they are what
+    // tests/file_info_a7.rs now compares against the retained reports.
+    let mut nan_first = [f64::NAN, 2.0];
+    let first = SummaryStatistics::new(&mut nan_first).unwrap();
+    assert!(first.min.is_nan(), "reference: minimum: -nan");
+    assert!(first.lowerq.is_nan(), "reference: lower quartile: -nan");
+    assert_eq!(first.upperq, 2.0, "reference: upper quartile: 2");
+    assert_eq!(first.max, 2.0, "reference: maximum: 2");
+    assert!(first.median.is_nan());
+
+    let mut nan_last = [2.0, f64::NAN];
+    let last = SummaryStatistics::new(&mut nan_last).unwrap();
+    assert_eq!(last.min, 2.0, "reference: minimum: 2");
+    assert_eq!(last.lowerq, 2.0, "reference: lower quartile: 2");
+    assert!(last.upperq.is_nan(), "reference: upper quartile: -nan");
+    assert!(last.max.is_nan(), "reference: maximum: -nan");
+    assert!(last.median.is_nan());
+
+    // An infinity is ordered by `operator<` like any other value.
+    let mut inf = [1.0, f64::INFINITY, 3.0];
+    close(median(&mut inf).unwrap(), 3.0);
+    let mut inf2 = [1.0, f64::NEG_INFINITY, 3.0];
+    close(median(&mut inf2).unwrap(), 1.0);
+
+    // A NaN-free range is sorted exactly as before, ties and all.
+    let mut ordinary = [3.0, 1.0, 2.0, 1.0];
+    close(median(&mut ordinary).unwrap(), 1.5);
+    assert_eq!(ordinary, [1.0, 1.0, 2.0, 3.0]);
+}
+
+// Native, decision D16 and the `_S_threshold` boundary of
+// `docs/STATISTIC_FUNCTIONS_SUPPORT.md` section 5.2: where the NaN of a
+// `{NaN, 2..n}` sample ends up is decided by whether `__introsort_loop` runs at
+// all. It runs `while (__last - __first > int(_S_threshold))` with
+// `_S_threshold` enumerated as 16 (`bits/stl_algo.h:1806`, `:1880`,
+// `:1899-1910`), so:
+//
+// - 16 elements: no partition at all, one `__insertion_sort` pass, and since
+//   every comparison against the NaN is false nothing moves — the NaN stays at
+//   index 0;
+// - 17 elements: `__unguarded_partition_pivot` (`:1851-1858`) takes the median
+//   of `*(first+1)`, `*mid` and `*(last-1)` — 2, 9 and 17 — and
+//   `__move_median_to_first` swaps the middle one to the front, which puts the
+//   NaN at index 8. The partition then stops on both sides at that NaN, and
+//   `__final_insertion_sort` (`:1812-1823`, which below the threshold is one
+//   `__insertion_sort` pass and above it one over the first 16 elements plus an
+//   `__unguarded_insertion_sort` over the rest) bubbles the displaced 9 back
+//   into place, leaving the NaN at index 8;
+// - 20 elements: the same swap against `*mid == 11` leaves it at index 10.
+//
+// The three positions are the ones measured against the reference compiler and
+// recorded in section 5.2; this test pins the whole permutation, which is
+// stronger.
+#[test]
+fn the_introsort_threshold_decides_where_a_nan_lands() {
+    fn sample(top: u32) -> Vec<f64> {
+        let mut values = vec![f64::NAN];
+        values.extend((2..=top).map(f64::from));
+        values
+    }
+
+    // 16 elements: untouched.
+    let mut at_threshold = sample(16);
+    assert_eq!(at_threshold.len(), 16);
+    let stats = SummaryStatistics::new(&mut at_threshold).unwrap();
+    assert!(at_threshold[0].is_nan(), "the NaN stays at index 0");
+    assert_eq!(&at_threshold[1..], &sample(16)[1..]);
+    assert!(stats.min.is_nan(), "minimum is the NaN at index 0");
+    // Even size: the median averages indices 7 and 8, which hold 8 and 9.
+    close(stats.median, 8.5);
+    assert_eq!(stats.max, 16.0);
+
+    // 17 elements: the NaN is carried to index 8 and everything else ends
+    // ascending around it.
+    let mut above = sample(17);
+    assert_eq!(above.len(), 17);
+    let stats = SummaryStatistics::new(&mut above).unwrap();
+    assert!(above[8].is_nan(), "the NaN moves to index 8: {above:?}");
+    let expected: Vec<f64> = (2..=9).chain(10..=17).map(f64::from).collect::<Vec<f64>>();
+    let actual: Vec<f64> = above
+        .iter()
+        .enumerate()
+        .filter(|(i, _)| *i != 8)
+        .map(|(_, &v)| v)
+        .collect();
+    assert_eq!(actual, expected);
+    assert_eq!(stats.min, 2.0);
+    // Odd size: the median is index 8, which is the NaN.
+    assert!(stats.median.is_nan());
+    assert_eq!(stats.max, 17.0);
+
+    // 20 elements: index 10, which is why this sample prints `minimum: 2` and
+    // `median: -nan`.
+    let mut twenty = sample(20);
+    assert_eq!(twenty.len(), 20);
+    let stats = SummaryStatistics::new(&mut twenty).unwrap();
+    assert!(twenty[10].is_nan(), "the NaN moves to index 10: {twenty:?}");
+    let expected: Vec<f64> = (2..=11).chain(12..=20).map(f64::from).collect();
+    let actual: Vec<f64> = twenty
+        .iter()
+        .enumerate()
+        .filter(|(i, _)| *i != 10)
+        .map(|(_, &v)| v)
+        .collect();
+    assert_eq!(actual, expected);
+    assert_eq!(stats.min, 2.0, "the documented `minimum: 2`");
+    // Even size: indices 9 and 10 hold 11 and the NaN.
+    assert!(stats.median.is_nan(), "the documented `median: -nan`");
+    assert_eq!(stats.max, 20.0);
+
+    // The other measured fact of section 5.2: below the threshold the NaN is
+    // not *pinned* either. `__insertion_sort` relocates a whole block when a
+    // later element belongs before `*first`, and that carries the NaN with it:
+    // in `[3, NaN, 2]` the third element is `< *first`, so `move_backward`
+    // shifts both `3` and the `NaN` up one place and `[2, 3, NaN]` is the
+    // result — the median is the `3`, not the NaN.
+    let mut carried = [3.0, f64::NAN, 2.0];
+    assert_eq!(median(&mut carried).unwrap(), 3.0);
+    assert_eq!(carried[0], 2.0);
+    assert_eq!(carried[1], 3.0);
+    assert!(carried[2].is_nan(), "{carried:?} should be [2, 3, NaN]");
+}
+
+// Native, decision D16: `mad` stages `fabs(*it - median_of_numbers)` and hands
+// the buffer to the same `std::sort`, so a NaN in the input, in the median, or
+// generated by an `inf - inf` difference is reproduced too. `compute_rank` and
+// `rank_correlation_coefficient` are the two that still refuse, and this test
+// says why they are different rather than simply asserting that they do.
+#[test]
+fn mad_reproduces_a_nan_and_the_ranking_still_refuses_one() {
+    // `[1, NaN, 3]` about 2 stages `[1, NaN, 1]`. `NaN < 1` and `1 < NaN` are
+    // both false, so the insertion sort moves nothing and the median is the
+    // middle element.
+    assert!(mad(&[1.0, f64::NAN, 3.0], 2.0).unwrap().is_nan());
+
+    // A NaN median poisons every difference, and the median of three NaNs is a
+    // NaN whatever the permutation. `fabs` is `andpd`, which clears the sign
+    // bit, so the result is the positive quiet NaN.
+    let all_nan = mad(&[1.0, 2.0, 3.0], f64::NAN).unwrap();
+    assert_eq!(all_nan.to_bits(), 0x7ff8_0000_0000_0000);
+
+    // `inf - inf` is a NaN neither input had. The staged buffer is
+    // `[|inf - inf|, |1 - inf|, |2 - inf|] = [NaN, inf, inf]`, which the
+    // insertion sort again leaves alone, so the median is the middle `inf`.
+    assert_eq!(
+        mad(&[f64::INFINITY, 1.0, 2.0], f64::INFINITY).unwrap(),
+        f64::INFINITY
+    );
+
+    // A finite median leaves the infinity as `inf`, which sorts: `[inf, 0, 1]`
+    // becomes `[0, 1, inf]`.
+    close(mad(&[f64::INFINITY, 1.0, 2.0], 1.0).unwrap(), 1.0);
+
+    // `computeRank` sorts `std::pair<Size, Value>` with a lambda on `.second`
+    // (`MATH/StatisticFunctions.h:829-830`), not with the default `operator<`,
+    // and a NaN additionally defeats its relative tie test, whose two
+    // comparisons are both false against a NaN and which would therefore merge
+    // every block the NaN touches. That is a second, independent behaviour and
+    // no oracle row measures it, so the refusal stands; section 5.2 of
+    // `docs/STATISTIC_FUNCTIONS_SUPPORT.md` records it as the one `std::sort`
+    // of this header the shared-math wave did not move.
+    let mut w = [3.0, f64::NAN, 1.0];
+    assert!(invalid_value(&compute_rank(&mut w).unwrap_err()));
+    assert_eq!(w[0], 3.0);
+    assert!(w[1].is_nan());
+    assert_eq!(w[2], 1.0);
+
+    let clean = [1.0, 2.0, 3.0];
+    let dirty = [1.0, f64::NAN, 3.0];
+    assert!(invalid_value(
+        &rank_correlation_coefficient(&dirty, &clean).unwrap_err()
+    ));
+    assert!(invalid_value(
+        &rank_correlation_coefficient(&clean, &dirty).unwrap_err()
+    ));
+}
+
+// Native, decision D16 and the "Signed zeros" section: `operator<` calls `-0.0`
+// and `0.0` *equivalent*, so libstdc++ leaves a short range in the order it
+// found it, and the port now does the same. Under the `f64::total_cmp` sort
+// this module used before, both arrangements collapsed to `-0.0` first, which
+// is native difference 6 of `docs/FILE_INFO_A7_SUPPORT.md` and is now closed.
+#[test]
+fn a_signed_zero_keeps_the_order_the_release_build_keeps() {
+    // Two elements: `__insertion_sort` compares `0.0 < -0.0`, which is false,
+    // so nothing moves — in either arrangement.
+    let mut negative_first = [-0.0_f64, 0.0];
+    let stats = SummaryStatistics::new(&mut negative_first).unwrap();
+    assert!(stats.min.is_sign_negative(), "reference: minimum: -0");
+    assert!(stats.lowerq.is_sign_negative(), "reference: -0");
+    assert!(
+        !stats.upperq.is_sign_negative(),
+        "reference: upper quartile: 0"
+    );
+    assert!(!stats.max.is_sign_negative(), "reference: maximum: 0");
+
+    let mut positive_first = [0.0_f64, -0.0];
+    let stats = SummaryStatistics::new(&mut positive_first).unwrap();
+    assert!(!stats.min.is_sign_negative(), "reference: minimum: 0");
+    assert!(!stats.lowerq.is_sign_negative(), "reference: 0");
+    assert!(
+        stats.upperq.is_sign_negative(),
+        "reference: upper quartile: -0"
+    );
+    assert!(stats.max.is_sign_negative(), "reference: maximum: -0");
+
+    // The zeros still compare equal, so a number on either side sorts past
+    // them normally and the pair stays adjacent in its own order.
+    let mut mixed = [1.0, 0.0, -0.0, -1.0];
+    let stats = SummaryStatistics::new(&mut mixed).unwrap();
+    assert_eq!(stats.min, -1.0);
+    assert_eq!(stats.max, 1.0);
+    assert!(!mixed[1].is_sign_negative(), "{mixed:?}: 0.0 stays first");
+    assert!(mixed[2].is_sign_negative(), "{mixed:?}: -0.0 stays second");
 }

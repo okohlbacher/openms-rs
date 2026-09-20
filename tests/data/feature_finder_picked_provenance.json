@@ -130,7 +130,7 @@
    "revision": "deps/lib/gcc/x86_64-conda-linux-gnu/14.4.0/include/c++",
    "path": "bits/stl_algobase.h",
    "sha256": "0ec2358cc592e8397f13fb77260f208ea922796d7bba7f202400e88ac511b332",
-   "role": "std::__lower_bound, used by the merges and emulated by scoring::libstdcxx"
+   "role": "std::__lower_bound, used by the merges and emulated by math::libstdcxx"
   },
   {
    "package": "libstdc++ (conda-forge gcc 14.4.0, in the Release install)",
@@ -183,7 +183,7 @@
   "src/analysis/feature_finder_picked/fitting.rs",
   "src/analysis/feature_finder_picked/resolution.rs",
   "src/analysis/feature_finder_picked/defs.rs",
-  "src/analysis/feature_finder_picked/source_sort.rs",
+  "src/math/source_sort.rs",
   "src/analysis/feature_finder_picked/glibc_powf.rs",
   "src/analysis/feature_finder_picked/instance.rs",
   "src/analysis/feature_finder_picked/debug.rs",

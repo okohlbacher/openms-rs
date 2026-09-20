@@ -2507,10 +2507,10 @@ fn check_nonfinite_features<'a>(
 #[test]
 fn every_source_sort_matches_the_executed_library() {
     use openms::analysis::feature_finder_picked::algorithm::validate_input;
-    use openms::analysis::feature_finder_picked::source_sort::{
+    use openms::kernel::{ChromatogramPeak, DataArray, MSChromatogram, MSSpectrum, Peak1D};
+    use openms::math::source_sort::{
         TemporaryBuffer, source_sort_by, source_stable_sort_permutation,
     };
-    use openms::kernel::{ChromatogramPeak, DataArray, MSChromatogram, MSSpectrum, Peak1D};
     let rows = stage_rows("sort_probe.tsv.gz");
     let palette: Vec<f64> = rows[0][1..].iter().map(|bits| f64_hex(bits)).collect();
     assert_eq!(rows[0][0], "palette");

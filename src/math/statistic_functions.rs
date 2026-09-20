@@ -19,53 +19,128 @@
 //! can be zero the port either refuses or returns the source's value
 //! explicitly; each such place is documented at the item.
 //!
+//! # NaN bit patterns
+//!
+//! IEEE 754 fixes every finite result of `+`, `-`, `*`, `/` and `sqrt`, but not
+//! which NaN bit pattern an operation *generates* out of non-NaN operands.
+//! `inf - inf`, `0 * inf`, `0 / 0`, `inf / inf` and the square root of a
+//! negative number all yield "some" NaN, and the answer is the instruction
+//! set's: the Linux x86_64 Release build's SSE2 produces
+//! `0xfff8000000000000`, which glibc spells `-nan`, while an arm64 host
+//! produces the positive default NaN `0x7ff8000000000000`. That difference is
+//! observable: `FileInfo`'s consensusXML `-s` `Intensity ratios` block prints
+//! the variance of `{1, +inf}`, which is `(1 - inf)^2 + (inf - inf)^2` divided
+//! by one — a generated NaN.
+//!
+//! Every function here whose own arithmetic can generate a NaN is therefore
+//! built on `crate::math::x86_64`'s `add`, `sub`, `mul`, `div`, `sqrt` and
+//! `abs` rather than on plain Rust operators. Those helpers return the IEEE
+//! result whenever it is not a NaN, so **no finite value changes** — that is
+//! asserted directly in `tests/statistic_functions.rs`
+//! (`the_x86_64_helpers_change_no_finite_result`), and every frozen expectation
+//! in that file is unchanged.
+//!
+//! Which functions, and why:
+//!
+//! - **Rebuilt**, because the source's own `double` arithmetic can produce a
+//!   NaN from operands that are not NaN: [`sum`](crate::math::statistic_functions::sum) (`std::accumulate`'s `addsd`),
+//!   [`mean`](crate::math::statistic_functions::mean) (its `divsd`), [`variance`](crate::math::statistic_functions::variance), [`variance_with_mean`](crate::math::statistic_functions::variance_with_mean), [`sd`](crate::math::statistic_functions::sd),
+//!   [`sd_with_mean`](crate::math::statistic_functions::sd_with_mean), [`covariance`](crate::math::statistic_functions::covariance), [`mean_square_error`](crate::math::statistic_functions::mean_square_error),
+//!   [`root_mean_square_error`](crate::math::statistic_functions::root_mean_square_error), [`mean_absolute_deviation`](crate::math::statistic_functions::mean_absolute_deviation) and the `fabs` of
+//!   [`mad`](crate::math::statistic_functions::mad)'s staged differences, plus the two places an order statistic is
+//!   *interpolated* rather than read: the even-size average in
+//!   `median_of_sorted` (and so [`median`](crate::math::statistic_functions::median), [`median_sorted`](crate::math::statistic_functions::median_sorted),
+//!   [`quantile1st`](crate::math::statistic_functions::quantile1st), [`quantile3rd`](crate::math::statistic_functions::quantile3rd) and their `_sorted` forms, which reduce
+//!   to it) and the linear blend in [`quantile`](crate::math::statistic_functions::quantile).
+//! - **Not rebuilt**, because no NaN can be generated:
+//!   [`classification_rate`](crate::math::statistic_functions::classification_rate) and [`matthews_correlation_coefficient`](crate::math::statistic_functions::matthews_correlation_coefficient) count
+//!   with comparisons; `compute_rank` averages small integers; and
+//!   [`tukey_upper_fence`](crate::math::statistic_functions::tukey_upper_fence), [`tail_fraction_above`](crate::math::statistic_functions::tail_fraction_above), [`winsorized_quantile`](crate::math::statistic_functions::winsorized_quantile)
+//!   and [`adaptive_quantile`](crate::math::statistic_functions::adaptive_quantile) drop every non-finite value before they compute
+//!   anything, as the source's `std::isfinite` filter does, so no infinity
+//!   reaches their arithmetic at all.
+//! - **Not rebuilt, and a known gap**: [`pearson_correlation_coefficient`](crate::math::statistic_functions::pearson_correlation_coefficient) and
+//!   [`matthews_correlation_coefficient`](crate::math::statistic_functions::matthews_correlation_coefficient) substitute an explicit `f64::NAN` for
+//!   a division the source actually performs — a divergence that predates this
+//!   work and is documented at each item. Making only their *other* operations
+//!   bit-faithful would leave that substituted NaN as the single host-shaped
+//!   value in the result and would be more misleading than the present state.
+//!   The crate's bit-faithful Pearson is
+//!   `analysis::feature_finder_picked::scoring::source_pearson`, which the
+//!   picked feature finder measured against the Release build; converging the
+//!   two needs an oracle row of its own.
+//!
+//! The *spelling* of a NaN is a separate layer and is not decided here:
+//! `format::file_info::text_format` writes every NaN as `nan`, where glibc
+//! writes `-nan` for one whose sign bit is set. That is native difference 5 of
+//! `docs/FILE_INFO_SUPPORT.md`; making the value host-independent, which is
+//! what this section is about, is its precondition and not its fix.
+//!
 //! # NaN
 //!
 //! A NaN has no place in a total order. Under `operator<` it is incomparable
-//! with every value, itself included, and what that costs the source's
-//! `std::sort` depends on what else the range holds:
+//! with every value, itself included, so `std::sort`'s strict-weak-ordering
+//! precondition fails as soon as the range holds two distinct numbers as well
+//! (`1 ~ NaN` and `NaN ~ 3` while `1 < 3`), and the standard leaves the result
+//! unspecified.
 //!
-//! - **two or more distinct numbers.** Transitivity of incomparability fails —
-//!   `1 ~ NaN` and `NaN ~ 3` while `1 < 3` — so the strict-weak-ordering
-//!   precondition is violated and the call is undefined.
-//! - **at most one distinct number.** Every element is incomparable with every
-//!   other, so `operator<` is still a strict weak ordering, but it makes them
-//!   all *equivalent*, and `std::sort` may return any permutation of
-//!   equivalent elements.
+//! Unspecified is not unknowable. The Release build runs one particular
+//! algorithm — the conda-forge GCC 14.4.0 libstdc++ introsort — and it runs it
+//! deterministically, so the permutation it leaves is a measurable fact about
+//! that build rather than a coin toss. Decision **D16** of
+//! `docs/EARLY_TOPP_WORK_PACKAGES.md` puts reproducing it in scope, and
+//! [`crate::math::source_sort`] is the comparison-by-comparison port of it,
+//! validated tier 1 against two oracle drivers over 2,272 inputs carrying ties,
+//! signed zeros, infinities and four NaN bit patterns.
 //!
-//! Either way a C++ call that sorts a NaN-bearing range has no single answer to
-//! reproduce, unless the set of permutations it may return happens to have only
-//! one possible output. Every function here that **orders** values therefore
-//! refuses a NaN input rather than producing a plausible number from an
-//! arbitrary permutation:
+//! So this module's private `sort_ascending` **is** `std::sort(begin, end)`:
+//! `source_sort_by(&mut values, |a, b| a < b)`. Every entry point that orders
+//! values therefore *reproduces* a NaN-bearing sample instead of refusing it:
 //!
 //! - [`median`](crate::math::statistic_functions::median),
 //!   [`quantile1st`](crate::math::statistic_functions::quantile1st),
 //!   [`quantile3rd`](crate::math::statistic_functions::quantile3rd),
-//!   [`mad`](crate::math::statistic_functions::mad),
-//!   [`compute_rank`](crate::math::statistic_functions::compute_rank) and
-//!   [`rank_correlation_coefficient`](crate::math::statistic_functions::rank_correlation_coefficient)
-//!   sort or stage a buffer themselves and return
-//!   [`Error::InvalidValue`](crate::Error::InvalidValue).
-//! - [`SummaryStatistics::new`](crate::math::statistic_functions::SummaryStatistics::new)
-//!   also sorts, and refuses the same way — **except** for the two shapes whose
-//!   set of possible outputs has exactly one member: a sample of one value,
-//!   which has only one permutation at all, and a sample whose values are all
-//!   NaN, every permutation of which produces the same eight fields. Both are
-//!   reached from real input: `FileInfo`'s consensusXML `-s` blocks divide, and
-//!   a pair of sub-features of intensity `-0.0` and `0.0` under one centroid
-//!   contributes `(-inf) + (+inf) = NaN` to the per-consensus-feature sample. A
-//!   NaN next to a number is still refused; section 5.2 of
-//!   `docs/FILE_INFO_A7_SUPPORT.md` has the measurement and CPP-347 the source
-//!   defect.
+//!   [`mad`](crate::math::statistic_functions::mad) and
+//!   [`SummaryStatistics::new`](crate::math::statistic_functions::SummaryStatistics::new)
+//!   sort the range and read their order statistics positionally out of it, as
+//!   `StatisticFunctions.h:140`, `:244`, `:281`, `:189` and `:948-956` do. The
+//!   positions the NaN lands in are libstdc++'s: `{NaN, 2..16}` leaves it at
+//!   index 0, `{NaN, 2..17}` moves it to index 8 and `{NaN, 2..20}` to index
+//!   10, because `__introsort_loop` only runs while the range is longer than
+//!   `_S_threshold == 16` (`stl_algo.h:1806`, `:1880`, `:1899-1910`, with
+//!   `__insertion_sort` at `:1770-1788` and `__final_insertion_sort` at
+//!   `:1812-1823`). That is why `{NaN, 2..20}` prints `minimum: 2` and
+//!   `median: -nan`.
+//! - The only refusal left is
+//!   [`Error::InvalidValue`](crate::Error::InvalidValue) at the step where the
+//!   introsort's unbounded partition or final-insertion loop would read
+//!   *outside* the vector — decision D1, undefined behaviour with no
+//!   reproducible result. No asymmetric comparison can reach it, and `<` on
+//!   `f64` keys is asymmetric with NaN keys too, so in practice no NaN input is
+//!   turned away. [`crate::math::source_sort`]'s module documentation carries
+//!   the proof.
 //! - [`median_sorted`](crate::math::statistic_functions::median_sorted),
 //!   [`quantile1st_sorted`](crate::math::statistic_functions::quantile1st_sorted),
 //!   [`quantile3rd_sorted`](crate::math::statistic_functions::quantile3rd_sorted)
-//!   and [`quantile`](crate::math::statistic_functions::quantile) require the
-//!   caller to have sorted already, and a NaN makes that claim false; they
-//!   return [`Error::UnsortedData`](crate::Error::UnsortedData), as they do for
-//!   any other order violation. The check is explicit, so a one-element `[NaN]`
-//!   range — which has no adjacent pair to compare — is refused too.
+//!   and [`quantile`](crate::math::statistic_functions::quantile) are the
+//!   exception, and deliberately so. They do not sort; they require the
+//!   *caller* to have sorted, and a NaN makes that claim false. They keep
+//!   returning [`Error::UnsortedData`](crate::Error::UnsortedData), as they do
+//!   for any other order violation, because there is no way to know which
+//!   permutation a caller who asserts "already sorted" about a NaN-bearing
+//!   range meant. `SummaryStatistics::new` does its own sorting and so reads
+//!   through the private `_of_sorted` helpers, which do not re-check.
+//! - [`compute_rank`](crate::math::statistic_functions::compute_rank) and
+//!   [`rank_correlation_coefficient`](crate::math::statistic_functions::rank_correlation_coefficient)
+//!   still refuse. Their `std::sort` (`:829-830`) is a different call — a
+//!   lambda comparing `std::pair::second`, not the default `operator<` — and a
+//!   NaN additionally defeats their *tie test*, whose two comparisons are both
+//!   false against a NaN, so every block it touches would be merged. That is a
+//!   second, independent behaviour that no oracle row measures, so this wave
+//!   left the refusal standing rather than guess at it; see section 5.2 of
+//!   `docs/STATISTIC_FUNCTIONS_SUPPORT.md`. For a NaN-free range the two sorts
+//!   agree on the ranks anyway: `operator<` and `total_cmp` differ only on
+//!   `±0.0`, which the tie test makes one block either way.
 //! - [`tukey_upper_fence`](crate::math::statistic_functions::tukey_upper_fence),
 //!   [`tail_fraction_above`](crate::math::statistic_functions::tail_fraction_above),
 //!   [`winsorized_quantile`](crate::math::statistic_functions::winsorized_quantile)
@@ -73,27 +148,36 @@
 //!   **drop** non-finite values before ordering anything, exactly as the
 //!   source's `std::isfinite` filter does, and so never see a NaN at all.
 //!
+//! What this does **not** make defensible is the source's own behaviour.
+//! `Math::SummaryStatistics` reads `front()`, three quantiles and `back()`
+//! positionally out of a range whose order the comparison did not determine, so
+//! the same multiset in a different input order gives different printed lines —
+//! `../oracle/a7-fileinfo`'s `c_nan_then_finite_s` and `c_finite_then_nan_s`
+//! measure exactly that. The port now reproduces the defect rather than
+//! refusing it; **CPP-347** of `docs/OpenMS_CPP_ISSUES.md` keeps the defect
+//! itself on the record for upstream.
+//!
 //! # Signed zeros
 //!
 //! `-0.0` and `0.0` are the other pair `operator<` calls *equivalent*: both
 //! `-0.0 < 0.0` and `0.0 < -0.0` are false. Unlike a NaN they do not break
 //! `std::sort`'s precondition, so the call is well formed — but every
-//! permutation is a conforming result, and libstdc++ leaves a small range as it
-//! found it. This module's private `sort_ascending` orders them by the
-//! IEEE-754 total order instead, which puts `-0.0` first deterministically. A caller that reads
-//! order statistics *positionally* out of such a sample and then prints them
-//! can therefore disagree with the source in the sign of a printed zero, and
-//! one does: `FileInfo`'s consensusXML `-s` `Intensity ratios` block. That is
-//! native difference 6 of `docs/FILE_INFO_A7_SUPPORT.md`, measured in both
-//! orders and pinned by
-//! `consensus_a_signed_zero_sample_is_ordered_by_the_total_order`. Nothing is
-//! refused here: the values compare equal, the source's own precondition holds,
-//! and the shared-math wave CPP-347 names — a libstdc++-faithful
-//! `sort_ascending` — has to cover this shape as well as the NaN one.
+//! permutation is a conforming result, and libstdc++ leaves a short range as it
+//! found it.
 //!
-//! An infinity is *not* refused anywhere: it is ordered consistently by both
-//! `std::sort` and `f64::total_cmp`, so the source's answer is well defined and
-//! is reproduced. The functions that neither sort nor buffer — `sum`, `mean`,
+//! `sort_ascending` used to order them by the IEEE-754 total order, which puts
+//! `-0.0` first regardless of input order, and a caller reading order
+//! statistics positionally out of such a sample then disagreed with the source
+//! in the sign of a printed zero. One did: `FileInfo`'s consensusXML `-s`
+//! `Intensity ratios` block, native difference 6 of
+//! `docs/FILE_INFO_A7_SUPPORT.md`. Running libstdc++'s own permutation closes
+//! that difference — the port now keeps the input order the Release build keeps
+//! — and `tests/file_info_a7.rs` asserts the two retained Release reports byte
+//! for byte rather than recording a divergence.
+//!
+//! An infinity is *not* refused anywhere: `operator<` orders it consistently,
+//! so the source's answer is well defined and is reproduced. The functions that
+//! neither sort nor buffer — `sum`, `mean`,
 //! `variance`, `covariance`, `mean_square_error`, `mean_absolute_deviation`,
 //! `pearson_correlation_coefficient` — let a NaN propagate into the result,
 //! which is what the source does and is honest about the input. The two label
@@ -104,6 +188,8 @@
 //! classify by comparison, and every comparison against a NaN is false, so a
 //! NaN pair silently falls through — source behaviour, reproduced.
 
+use crate::math::source_sort::source_sort_by;
+use crate::math::x86_64;
 use crate::{Error, Result};
 
 /// Maximum number of values a single call may stage into an owned buffer.
@@ -167,13 +253,17 @@ fn is_ascending(values: &[f64]) -> bool {
     is_free_of_nan(values) && values.windows(2).all(|pair| pair[0] <= pair[1])
 }
 
-/// Fail when any value is NaN, for a function that orders values itself.
+/// Fail when any value is NaN.
 ///
-/// See the module's NaN section: the source sorts such a range with
-/// `std::sort`, whose strict-weak-ordering precondition a NaN violates, so
-/// there is no source answer to reproduce. Returning a statistic computed from
-/// an arbitrary permutation would be a plausible wrong number, which is worse
-/// than a refusal.
+/// Since decision D16 the functions that *sort* no longer use this: they
+/// reproduce the Release build's own permutation instead. Its two remaining
+/// callers are [`compute_rank`](crate::math::statistic_functions::compute_rank)
+/// and
+/// [`rank_correlation_coefficient`](crate::math::statistic_functions::rank_correlation_coefficient),
+/// whose `std::sort` is a different call — a lambda on `std::pair::second`
+/// rather than the default `operator<` — and whose relative tie test a NaN
+/// defeats in a second, independent way that no oracle row measures. See the
+/// module's NaN section.
 fn check_no_nan(values: &[f64]) -> Result<()> {
     if !is_free_of_nan(values) {
         return Err(bad("statistics input must not contain NaN"));
@@ -181,19 +271,54 @@ fn check_no_nan(values: &[f64]) -> Result<()> {
     Ok(())
 }
 
-/// Sort in place by the IEEE-754 total order.
+/// Sort in place into the order the C++ Release build's `std::sort` leaves.
 ///
-/// The source calls `std::sort`, whose strict-weak-ordering precondition a NaN
-/// violates. Every caller here has already refused a NaN input, so the total
-/// order and `std::sort`'s comparison agree on everything that reaches this
-/// function **except a signed zero**: `operator<` calls `-0.0` and `0.0`
-/// equivalent and libstdc++ leaves them in input order, while `total_cmp` puts
-/// `-0.0` first. That is deterministic rather than arbitrary, and it is what
-/// this port prints; see the module's "Signed zeros" section and native
-/// difference 6 of `docs/FILE_INFO_A7_SUPPORT.md` for the one caller whose
-/// output it reaches.
-fn sort_ascending(values: &mut [f64]) {
-    values.sort_by(f64::total_cmp);
+/// Every sorting entry point of this header calls `std::sort(begin, end)` with
+/// the default `operator<` and no comparator — `median` at
+/// `MATH/StatisticFunctions.h:140`, `quantile1st` at `:244`, `quantile3rd` at
+/// `:281`, `MAD` through its own `median` call at `:189`, and
+/// `SummaryStatistics`'s unqualified `sort(data.begin(), data.end())` at `:948`
+/// (core `bc9cc12`). This function is that call:
+/// [`source_sort_by`] with
+/// `|a, b| a < b`, which reproduces the libstdc++ introsort comparison by
+/// comparison and move by move.
+///
+/// It replaces an `f64::total_cmp` sort, and the difference is visible in
+/// exactly the two places `operator<` is not a total order:
+///
+/// - **a NaN**, which `operator<` makes incomparable with everything. The
+///   permutation is then unspecified rather than undefined *as an operation* —
+///   libstdc++ still runs, deterministically, and decision D16 of
+///   `docs/EARLY_TOPP_WORK_PACKAGES.md` puts reproducing it in scope;
+/// - **a signed zero**, which `operator<` makes *equivalent* to a plain zero.
+///   `total_cmp` put `-0.0` first; libstdc++ leaves a short range as it found
+///   it, and that is what the Release build prints.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] when the introsort's unbounded partition or
+/// final-insertion loop would read outside the vector, which is the one thing
+/// [`source_sort_by`] refuses, and
+/// which no asymmetric comparison — `<` on `f64` keys, NaN keys included — can
+/// provoke; when the owned copy the permutation is applied through cannot be
+/// allocated; and — unreachably, but checked rather than left to panic — when
+/// the sort returns something that is not a permutation of the input. `values`
+/// is left in its original order in every case.
+fn sort_ascending(values: &mut [f64]) -> Result<()> {
+    let mut owned: Vec<f64> = Vec::new();
+    owned
+        .try_reserve_exact(values.len())
+        .map_err(|_| bad("cannot allocate the sort buffer"))?;
+    owned.extend_from_slice(values);
+    source_sort_by(&mut owned, |a, b| a < b)?;
+    // `source_sort_by` applies a permutation of `0..len`, so the length cannot
+    // change; `copy_from_slice` would panic rather than refuse if it ever did,
+    // and this module may not panic on an input.
+    if owned.len() != values.len() {
+        return Err(bad("the sort did not return a permutation"));
+    }
+    values.copy_from_slice(&owned);
+    Ok(())
 }
 
 /// Fail when a range is empty.
@@ -248,8 +373,14 @@ pub fn check_ranges_end_together<T, U>(b: &[T], a: &[U]) -> Result<()> {
 ///
 /// `std::accumulate(begin, end, 0.0)`: a left fold from `0.0`, in slice order.
 /// An empty range sums to `0.0`, as in the source, which does not check.
+///
+/// Each addition is `x86_64::add`, so `(+inf) + (-inf)` is the Release
+/// build's `0xfff8000000000000` rather than the host's default NaN; see the
+/// module's "NaN bit patterns" section. No finite sum changes.
 pub fn sum(values: &[f64]) -> f64 {
-    values.iter().fold(0.0, |total, value| total + value)
+    values
+        .iter()
+        .fold(0.0, |total, value| x86_64::add(total, *value))
 }
 
 /// Arithmetic mean of a range of values.
@@ -262,7 +393,7 @@ pub fn sum(values: &[f64]) -> f64 {
 /// `checkIteratorsNotNULL` throws `Exception::InvalidRange`.
 pub fn mean(values: &[f64]) -> Result<f64> {
     check_not_empty(values)?;
-    Ok(sum(values) / values.len() as f64)
+    Ok(x86_64::div(sum(values), values.len() as f64))
 }
 
 /// Median of an already ascending range.
@@ -289,10 +420,15 @@ pub fn median_sorted(values: &[f64]) -> Result<f64> {
 }
 
 /// Median of an ascending, non-empty slice. Callers have already checked both.
+///
+/// The even case averages the two middle values, `(*it1 + *it2) / 2.0` in the
+/// source. That is `addsd` then `divsd`, so it is built on
+/// [`x86_64::add`]/[`x86_64::div`]: `{-inf, +inf}` generates a NaN here, and
+/// its bits are the Release build's.
 fn median_of_sorted(values: &[f64]) -> f64 {
     let size = values.len();
     if size % 2 == 0 {
-        (values[size / 2 - 1] + values[size / 2]) / 2.0
+        x86_64::div(x86_64::add(values[size / 2 - 1], values[size / 2]), 2.0)
     } else {
         values[(size - 1) / 2]
     }
@@ -305,14 +441,18 @@ fn median_of_sorted(values: &[f64]) -> f64 {
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidRange`] for an empty range and
-/// [`Error::InvalidValue`] when any value is NaN; see the module's NaN section.
-/// The refusal happens before the sort, so a rejected call leaves the caller's
-/// range in its original order.
+/// Returns [`Error::InvalidRange`] for an empty range. A NaN is **not**
+/// refused: the range is sorted into the permutation the Release build's
+/// `std::sort` leaves and the statistic is read positionally out of it, as the
+/// source does; see the module's NaN section and decision D16. The only
+/// [`Error::InvalidValue`] left is the one
+/// [`source_sort_by`] raises when the
+/// introsort would read outside the vector, which `<` on `f64` keys cannot
+/// provoke, and it is raised before anything is written back, so a rejected
+/// call leaves the caller's range in its original order.
 pub fn median(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
-    check_no_nan(values)?;
-    sort_ascending(values);
+    sort_ascending(values)?;
     Ok(median_of_sorted(values))
 }
 
@@ -332,23 +472,21 @@ pub fn median(values: &mut [f64]) -> Result<f64> {
 /// exceeds [`MAX_ITEMS`] or [`MAX_BYTES`]; the ceiling is checked before the
 /// buffer is allocated, and the source has no such ceiling.
 ///
-/// Returns [`Error::InvalidValue`] when any value, or `median_of_numbers`
-/// itself, is NaN, and also when the staged differences contain a NaN that
-/// neither input had — `inf - inf` is the only way that happens. The buffer is
-/// sorted, so the module's NaN section applies to it.
+/// Returns [`Error::InvalidValue`] only where
+/// [`sort_ascending`](crate::math::statistic_functions) does: an introsort read
+/// outside the vector, which `<` on `f64` keys cannot provoke. A NaN — in the
+/// input, in `median_of_numbers`, or produced by an `inf - inf` difference that
+/// neither input had — is **reproduced**, not refused: the source stages the
+/// same differences and hands them to the same `std::sort`, and under decision
+/// D16 that permutation is what this port reproduces.
 pub fn mad(values: &[f64], median_of_numbers: f64) -> Result<f64> {
     check_not_empty(values)?;
-    check_no_nan(values)?;
-    if median_of_numbers.is_nan() {
-        return Err(bad("median absolute deviation median must not be NaN"));
-    }
     preflight(values.len(), size_of::<f64>())?;
     let mut diffs = Vec::with_capacity(values.len());
     for value in values {
-        diffs.push((value - median_of_numbers).abs());
+        diffs.push(x86_64::abs(x86_64::sub(*value, median_of_numbers)));
     }
-    check_no_nan(&diffs)?;
-    sort_ascending(&mut diffs);
+    sort_ascending(&mut diffs)?;
     Ok(median_of_sorted(&diffs))
 }
 
@@ -364,9 +502,9 @@ pub fn mad(values: &[f64], median_of_numbers: f64) -> Result<f64> {
 pub fn mean_absolute_deviation(values: &[f64], mean_of_numbers: f64) -> f64 {
     let mut total = 0.0;
     for value in values {
-        total += (value - mean_of_numbers).abs();
+        total = x86_64::add(total, x86_64::abs(x86_64::sub(*value, mean_of_numbers)));
     }
-    total / values.len() as f64
+    x86_64::div(total, values.len() as f64)
 }
 
 /// Mean absolute deviation about the range's own mean.
@@ -440,14 +578,18 @@ fn quantile1st_of_sorted(values: &[f64]) -> f64 {
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidRange`] for an empty range and
-/// [`Error::InvalidValue`] when any value is NaN; see the module's NaN section.
-/// The refusal happens before the sort, so a rejected call leaves the caller's
-/// range in its original order.
+/// Returns [`Error::InvalidRange`] for an empty range. A NaN is **not**
+/// refused: the range is sorted into the permutation the Release build's
+/// `std::sort` leaves and the statistic is read positionally out of it, as the
+/// source does; see the module's NaN section and decision D16. The only
+/// [`Error::InvalidValue`] left is the one
+/// [`source_sort_by`] raises when the
+/// introsort would read outside the vector, which `<` on `f64` keys cannot
+/// provoke, and it is raised before anything is written back, so a rejected
+/// call leaves the caller's range in its original order.
 pub fn quantile1st(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
-    check_no_nan(values)?;
-    sort_ascending(values);
+    sort_ascending(values)?;
     Ok(quantile1st_of_sorted(values))
 }
 
@@ -488,14 +630,18 @@ fn quantile3rd_of_sorted(values: &[f64]) -> f64 {
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidRange`] for an empty range and
-/// [`Error::InvalidValue`] when any value is NaN; see the module's NaN section.
-/// The refusal happens before the sort, so a rejected call leaves the caller's
-/// range in its original order.
+/// Returns [`Error::InvalidRange`] for an empty range. A NaN is **not**
+/// refused: the range is sorted into the permutation the Release build's
+/// `std::sort` leaves and the statistic is read positionally out of it, as the
+/// source does; see the module's NaN section and decision D16. The only
+/// [`Error::InvalidValue`] left is the one
+/// [`source_sort_by`] raises when the
+/// introsort would read outside the vector, which `<` on `f64` keys cannot
+/// provoke, and it is raised before anything is written back, so a rejected
+/// call leaves the caller's range in its original order.
 pub fn quantile3rd(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
-    check_no_nan(values)?;
-    sort_ascending(values);
+    sort_ascending(values)?;
     Ok(quantile3rd_of_sorted(values))
 }
 
@@ -551,7 +697,10 @@ pub fn quantile(values: &[f64], q: f64) -> Result<f64> {
     if frac == 0.0 {
         return Ok(values[i]);
     }
-    Ok((1.0 - frac) * values[i] + frac * values[i + 1])
+    Ok(x86_64::add(
+        x86_64::mul(x86_64::sub(1.0, frac), values[i]),
+        x86_64::mul(frac, values[i + 1]),
+    ))
 }
 
 /// Tukey upper fence `Q3 + k * IQR` over the finite values of a range.
@@ -651,7 +800,7 @@ pub fn winsorized_quantile(values: &[f64], q: f64, upper_fence: f64) -> Result<f
             }
         }
     }
-    sort_ascending(&mut kept);
+    sort_ascending(&mut kept)?;
     quantile(&kept, q)
 }
 
@@ -779,7 +928,7 @@ fn finite_sorted_copy(values: &[f64]) -> Result<Vec<f64>> {
             kept.push(value);
         }
     }
-    sort_ascending(&mut kept);
+    sort_ascending(&mut kept)?;
     Ok(kept)
 }
 
@@ -820,10 +969,10 @@ pub fn variance_with_mean(values: &[f64], mean_of_numbers: f64) -> Result<f64> {
     }
     let mut sum_value = 0.0;
     for value in values {
-        let diff = value - mean_of_numbers;
-        sum_value += diff * diff;
+        let diff = x86_64::sub(*value, mean_of_numbers);
+        sum_value = x86_64::add(sum_value, x86_64::mul(diff, diff));
     }
-    Ok(sum_value / (values.len() - 1) as f64)
+    Ok(x86_64::div(sum_value, (values.len() - 1) as f64))
 }
 
 /// Sample standard deviation about the range's own mean.
@@ -835,7 +984,7 @@ pub fn variance_with_mean(values: &[f64], mean_of_numbers: f64) -> Result<f64> {
 ///
 /// As [`variance`].
 pub fn sd(values: &[f64]) -> Result<f64> {
-    Ok(variance(values)?.sqrt())
+    Ok(x86_64::sqrt(variance(values)?))
 }
 
 /// Sample standard deviation about an explicitly supplied mean.
@@ -844,7 +993,7 @@ pub fn sd(values: &[f64]) -> Result<f64> {
 ///
 /// As [`variance_with_mean`].
 pub fn sd_with_mean(values: &[f64], mean_of_numbers: f64) -> Result<f64> {
-    Ok(variance_with_mean(values, mean_of_numbers)?.sqrt())
+    Ok(x86_64::sqrt(variance_with_mean(values, mean_of_numbers)?))
 }
 
 /// Sample covariance of two equally long ranges, `n - 1` degrees of freedom.
@@ -873,9 +1022,10 @@ pub fn covariance(a: &[f64], b: &[f64]) -> Result<f64> {
     let mean_b = mean(b)?;
     let mut sum_value = 0.0;
     for (value_a, value_b) in a.iter().zip(b.iter()) {
-        sum_value += (value_a - mean_a) * (value_b - mean_b);
+        let product = x86_64::mul(x86_64::sub(*value_a, mean_a), x86_64::sub(*value_b, mean_b));
+        sum_value = x86_64::add(sum_value, product);
     }
-    Ok(sum_value / (a.len() - 1) as f64)
+    Ok(x86_64::div(sum_value, (a.len() - 1) as f64))
 }
 
 /// Mean square error between two equally long ranges.
@@ -894,10 +1044,10 @@ pub fn mean_square_error(a: &[f64], b: &[f64]) -> Result<f64> {
     }
     let mut error = 0.0;
     for (value_a, value_b) in a.iter().zip(b.iter()) {
-        let tmp = value_a - value_b;
-        error += tmp * tmp;
+        let tmp = x86_64::sub(*value_a, *value_b);
+        error = x86_64::add(error, x86_64::mul(tmp, tmp));
     }
-    Ok(error / a.len() as f64)
+    Ok(x86_64::div(error, a.len() as f64))
 }
 
 /// Root mean square error, the square root of [`mean_square_error`].
@@ -906,7 +1056,7 @@ pub fn mean_square_error(a: &[f64], b: &[f64]) -> Result<f64> {
 ///
 /// As [`mean_square_error`].
 pub fn root_mean_square_error(a: &[f64], b: &[f64]) -> Result<f64> {
-    Ok(mean_square_error(a, b)?.sqrt())
+    Ok(x86_64::sqrt(mean_square_error(a, b)?))
 }
 
 /// Fraction of positions where two label ranges agree in sign.
@@ -1201,91 +1351,50 @@ impl SummaryStatistics {
     /// the source substitutes the empty case's value rather than propagating
     /// NaN.
     ///
-    /// A sample holding a NaN is summarised only when the permutation
-    /// `std::sort` leaves behind cannot be observed: a sample of one value, and
-    /// a sample whose values are all NaN. See the module's NaN section and
-    /// section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md`.
+    /// A sample holding a NaN is summarised like any other, since decision
+    /// D16: the sort is the Release build's own, so the permutation it leaves
+    /// is reproduced rather than guessed at, and `min`, the three quantiles and
+    /// `max` are read out of it positionally exactly as
+    /// `StatisticFunctions.h:952-956` reads them. That the source reads order
+    /// statistics out of a range whose order the comparison did not determine
+    /// is a C++ defect and is recorded as `CPP-347`; reproducing it is a
+    /// decision about this port, not a defence of the source. See the module's
+    /// NaN section and section 5.2 of `docs/FILE_INFO_A7_SUPPORT.md`.
+    ///
+    /// The order statistics are taken through the private `_of_sorted` helpers
+    /// rather than the public `_sorted` entry points, because those verify a
+    /// caller's sortedness claim and `std::sort`'s own output is not ascending
+    /// when a NaN is in it.
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the sample holds a NaN next to a
-    /// number, which the summary would otherwise report quartiles around
-    /// without having ordered anything; see the module's NaN section. The
-    /// refusal happens before the sort, so a rejected call leaves the caller's
-    /// sample in its original order.
+    /// Returns [`Error::InvalidValue`] only where
+    /// [`source_sort_by`] does: an
+    /// introsort read outside the vector, which `<` on `f64` keys — NaN keys
+    /// included — cannot provoke, and which is raised before anything is
+    /// written back, so a rejected call leaves the caller's sample in its
+    /// original order.
     ///
-    /// Returns [`Error::InvalidRange`] only when an internal quantile refuses,
-    /// which the sort makes unreachable for a non-empty, NaN-free sample; the
-    /// signature keeps the error path rather than asserting the impossibility.
+    /// Returns [`Error::InvalidRange`] only when the internal mean refuses,
+    /// which the emptiness check above makes unreachable; the signature keeps
+    /// the error path rather than asserting the impossibility.
     pub fn new(data: &mut [f64]) -> Result<Self> {
         let count = data.len();
         if data.is_empty() {
             return Ok(Self::default());
         }
-        if !is_free_of_nan(data) {
-            return Self::of_nan_sample(data);
-        }
-        sort_ascending(data);
+        sort_ascending(data)?;
         let mean_value = mean(data)?;
         let variance_value = if count > 1 {
             variance_with_mean(data, mean_value)?
         } else {
             0.0
         };
-        Ok(Self {
-            count,
-            mean: mean_value,
-            variance: variance_value,
-            min: data[0],
-            lowerq: quantile1st_sorted(data)?,
-            median: median_sorted(data)?,
-            upperq: quantile3rd_sorted(data)?,
-            max: data[count - 1],
-        })
-    }
-
-    /// Summarise a non-empty sample that holds at least one NaN.
-    ///
-    /// The module's NaN section refuses a NaN wherever ordering it would decide
-    /// the answer, because `std::sort` may then return any of several
-    /// permutations — or, with two or more distinct numbers present, has its
-    /// precondition violated outright. The test applied here is what that
-    /// leaves over: **is the set of possible outputs a singleton?** Two shapes
-    /// pass it, and for both the answer is a proof rather than an observation
-    /// that it happened not to matter:
-    ///
-    /// - **One value.** A one-element range has exactly one permutation, so
-    ///   there is nothing for `std::sort` to choose. Every positional field is
-    ///   that value.
-    /// - **Every value a NaN.** `std::sort` may return any permutation, but all
-    ///   of them produce the same eight fields, because every field is read
-    ///   from, or computed out of, values that are all NaN.
-    ///
-    /// Anything else — a NaN next to a number — is refused. The order
-    /// statistics the source prints there are positional reads of a range whose
-    /// elements `std::sort` was free to leave in any order, and the same
-    /// multiset in a different input order does give different lines:
-    /// `../oracle/a7-fileinfo` measures exactly that with `c_nan_then_finite_s`
-    /// and `c_finite_then_nan_s`.
-    ///
-    /// The sample is *not* sorted in this arm — there is nothing to order — so
-    /// a caller's slice comes back in its original order either way.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Error::InvalidValue`] when the sample holds a NaN next to a
-    /// number.
-    fn of_nan_sample(data: &[f64]) -> Result<Self> {
-        let count = data.len();
-        if count > 1 && !data.iter().all(|value| value.is_nan()) {
-            return Err(bad("statistics input must not contain NaN"));
-        }
-        let mean_value = mean(data)?;
-        let variance_value = if count > 1 {
-            variance_with_mean(data, mean_value)?
-        } else {
-            0.0
-        };
+        // The order statistics are read out of the sorted range positionally,
+        // as `StatisticFunctions.h:952-956` reads them, through the private
+        // `_of_sorted` helpers rather than the public `_sorted` entry points:
+        // those verify the caller's sortedness claim, and `std::sort`'s own
+        // output is not ascending when a NaN is in it.
         Ok(Self {
             count,
             mean: mean_value,

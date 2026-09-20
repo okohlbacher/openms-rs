@@ -190,7 +190,7 @@
  "native_implementation": [
   "src/analysis/feature_finder_picked/instance.rs",
   "src/analysis/feature_finder_picked/debug.rs",
-  "src/analysis/feature_finder_picked/source_sort.rs",
+  "src/math/source_sort.rs",
   "src/analysis/feature_finder_picked/algorithm.rs",
   "src/analysis/feature_finder_picked/resolution.rs",
   "src/cli/tools/feature_finder_centroided.rs",

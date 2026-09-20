@@ -65,14 +65,13 @@ use crate::analysis::feature_finder_picked::instance::{
 use crate::analysis::feature_finder_picked::resolution::{
     annotate_apex, invalid_apex_warning, resolve_overlaps,
 };
-use crate::analysis::feature_finder_picked::scoring::{libstdcxx, source_is_sorted, x86_64};
+use crate::analysis::feature_finder_picked::scoring::source_is_sorted;
 use crate::analysis::feature_finder_picked::seeds::SeedStage;
-use crate::analysis::feature_finder_picked::source_sort::{
-    TemporaryBuffer, source_sort_by, source_stable_sort_permutation,
-};
 use crate::analysis::feature_finder_picked::trace_fitter::TraceFitterParams;
 use crate::concept::parallel::Threads;
 use crate::kernel::{DataArray, Feature, FeatureMap, MSChromatogram, MSExperiment};
+use crate::math::source_sort::{TemporaryBuffer, source_sort_by, source_stable_sort_permutation};
+use crate::math::{libstdcxx, x86_64};
 use crate::param::{DefaultParamHandler, Param, ParamValue, ParamValueType};
 use crate::{Error, Result};
 
@@ -1283,7 +1282,7 @@ pub const UNSORTED_WARNING: &str =
 /// retention time and of the chromatograms by product m/z as libstdc++'s
 /// introsort, then `std::stable_sort` of each unsorted spectrum's and
 /// chromatogram's peaks as libstdc++'s merge sort
-/// ([`crate::analysis::feature_finder_picked::source_sort`]), NaN keys and
+/// ([`crate::math::source_sort`]), NaN keys and
 /// equal keys included.
 ///
 /// # Errors
@@ -1296,7 +1295,7 @@ pub const UNSORTED_WARNING: &str =
 /// (`FloatDataArray[0] size (25) does not match spectrum size (24)`). The
 /// sorts of check 4 compare with `<` on `f64` keys, for which the introsort's
 /// out-of-bounds guard is unreachable, NaN keys included (module documentation
-/// of [`crate::analysis::feature_finder_picked::source_sort`]).
+/// of [`crate::math::source_sort`]).
 pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> Result<bool> {
     if experiment.spectra.is_empty() {
         return Ok(false);
@@ -1505,7 +1504,7 @@ pub fn run_with_options(
 /// map is sorted by descending intensity and each feature is annotated with its
 /// apex scan ([`annotate_apex`]). Both sorts put equal elements where the C++
 /// Release build's `std::sort` does
-/// ([`crate::analysis::feature_finder_picked::source_sort`]).
+/// ([`crate::math::source_sort`]).
 ///
 /// The log receives, in the source's order, the seed counts the stage already
 /// collected, each charge's `Found N feature candidates for charge c.` directly

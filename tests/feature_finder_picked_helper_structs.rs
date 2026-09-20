@@ -1016,7 +1016,7 @@ fn update_baseline_keeps_its_value_when_no_trace_has_peaks() {
 /// peak - once for the first assignment, once for the `<` - so every peak
 /// intensity passes the Release build's `cvtss2sd`, which
 /// [`MassTraces::update_baseline`] reproduces with
-/// `scoring::x86_64::widen`. The rustdoc there, the module documentation and
+/// `x86_64::widen`. The rustdoc there, the module documentation and
 /// the manifest all claim the resulting baseline carries the executed sign and
 /// payload; before this test the only NaN case in the repository recorded
 /// `is_nan()`, a bool, so the claim rested on reasoning about the instruction

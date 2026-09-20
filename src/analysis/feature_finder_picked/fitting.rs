@@ -35,12 +35,13 @@ use crate::analysis::feature_finder_picked::gauss_trace_fitter::GaussTraceFitter
 use crate::analysis::feature_finder_picked::helper_structs::{
     IsotopePattern, MassTrace, MassTraces,
 };
-use crate::analysis::feature_finder_picked::scoring::{source_pearson, x86_64};
+use crate::analysis::feature_finder_picked::scoring::source_pearson;
 use crate::analysis::feature_finder_picked::seeds::IsotopeWindows;
 use crate::analysis::feature_finder_picked::trace_fitter::{TraceFitter, TraceFitterParams};
 use crate::concept::constants::PROTON_MASS_U;
 use crate::concept::constants::user_param::NUM_OF_DATAPOINTS;
 use crate::kernel::Feature;
+use crate::math::x86_64;
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
 
