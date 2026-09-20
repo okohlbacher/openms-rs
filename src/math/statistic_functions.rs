@@ -103,7 +103,9 @@
 //!   [`mad`](crate::math::statistic_functions::mad) and
 //!   [`SummaryStatistics::new`](crate::math::statistic_functions::SummaryStatistics::new)
 //!   sort the range and read their order statistics positionally out of it, as
-//!   `StatisticFunctions.h:140`, `:244`, `:281`, `:189` and `:948-956` do. The
+//!   `StatisticFunctions.h:140`, `:244`, `:281` and `:948-956` do — `mad`
+//!   through its own `median` call at `:189`, which is a call and not a sort.
+//!   The
 //!   positions the NaN lands in are libstdc++'s: `{NaN, 2..16}` leaves it at
 //!   index 0, `{NaN, 2..17}` moves it to index 8 and `{NaN, 2..20}` to index
 //!   10, because `__introsort_loop` only runs while the range is longer than
@@ -137,8 +139,8 @@
 //!   NaN additionally defeats their *tie test*, whose two comparisons are both
 //!   false against a NaN, so every block it touches would be merged. That is a
 //!   second, independent behaviour that no oracle row measures, so this wave
-//!   left the refusal standing rather than guess at it; see section 5.2 of
-//!   `docs/STATISTIC_FUNCTIONS_SUPPORT.md`. For a NaN-free range the two sorts
+//!   left the refusal standing rather than guess at it; see the "Where a NaN
+//!   lands" section of `docs/STATISTIC_FUNCTIONS_SUPPORT.md`. For a NaN-free range the two sorts
 //!   agree on the ranks anyway: `operator<` and `total_cmp` differ only on
 //!   `±0.0`, which the tie test makes one block either way.
 //! - [`tukey_upper_fence`](crate::math::statistic_functions::tukey_upper_fence),
@@ -510,6 +512,20 @@ pub fn median_sorted(values: &[f64]) -> Result<f64> {
 /// source. That is `addsd` then `divsd`, so it is built on
 /// [`x86_64::add`]/[`x86_64::div`]: `{-inf, +inf}` generates a NaN here, and
 /// its bits are the Release build's.
+///
+/// # The `addsd` operand order here is **not measured**
+///
+/// The even-size case averages two distinct elements —
+/// `(*(it + n/2 - 1) + *(it + n/2)) / 2.0` — and addition is commutative, so
+/// nothing in the source fixes which one GCC leaves in the `addsd`
+/// **destination** register. As at [`covariance`], that decides the answer only
+/// when both are NaN, and since decision D16 that is reachable:
+/// `median(&mut [nan_a, nan_b])` with two distinct payloads sorts to
+/// `[nan_a, nan_b]` (neither comparison is true) and this port then returns
+/// `nan_a`'s payload, because it calls `add(values[k - 1], values[k])`.
+/// `../oracle/a7-fileinfo`'s `c_nan_two_s` does not discriminate: both its NaNs
+/// are the same value. The same two things would settle it as at
+/// [`covariance`].
 fn median_of_sorted(values: &[f64]) -> f64 {
     let size = values.len();
     if size % 2 == 0 {
@@ -1096,6 +1112,34 @@ pub fn sd_with_mean(values: &[f64], mean_of_numbers: f64) -> Result<f64> {
 ///
 /// Each range's mean is computed over that range, then the cross products
 /// accumulate in slice order.
+///
+/// # The `mulsd` operand order here is **not measured**
+///
+/// The source multiplies two distinct temporaries —
+/// `(*iter_a - mean_a) * (*iter_b - mean_b)` (`StatisticFunctions.h:619`,
+/// core `bc9cc12`) — and multiplication is commutative, so nothing in the
+/// source fixes which of the two GCC leaves in the `mulsd` **destination**
+/// register. That matters only when **both** are NaN, because SSE2 then
+/// returns the destination operand quieted:
+/// `x86_64::mul` is called as
+/// `mul(sub(a, mean_a), sub(b, mean_b))`, so this port answers with the
+/// `a`-derived NaN's payload. It is reachable — `a[i]` a payload NaN (which
+/// makes `mean_a` a NaN, so `sub` returns `a[i]` quieted) while
+/// `b[i] == mean_b == +inf` (so `sub` returns the indefinite NaN) — and the
+/// two answers differ in every payload bit.
+///
+/// **No oracle row measures it**, and none is invented here. What would settle
+/// it: one `Math::covariance` call on exactly that pair, run on the Linux
+/// x86_64 Release build and its result read back as bits; or, without running
+/// anything, disassembling this loop in the reference `libOpenMS.so` and
+/// reading which operand the emitted `mulsd` writes to. Until one of those is
+/// done, the left-operand choice is an assumption, not a measurement.
+///
+/// The same hazard exists in exactly one other place in this module, the
+/// even-size average of `median_of_sorted`; everywhere else the order is
+/// forced — `subsd` and `divsd` are not commutative, `mul(diff, diff)` has one
+/// operand twice, and an accumulating `sum += x` makes the accumulator the
+/// destination.
 ///
 /// # Errors
 ///

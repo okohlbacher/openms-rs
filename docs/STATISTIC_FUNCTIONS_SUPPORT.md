@@ -120,11 +120,11 @@ whole content is a length question and the class test calls one of them on
 | The `sorted` boolean becomes two functions | The `false` case mutates the caller's range. `&mut [f64]` states that in the signature; `&[f64]` proves the other does not. |
 | The `mean = DBL_MAX` sentinel becomes two functions | A caller that genuinely wants the deviation about `DBL_MAX` cannot express it in the source. |
 | Sortedness is always checked | `median_sorted`, `quantile1st_sorted`, `quantile3rd_sorted` and `quantile` return `Error::UnsortedData` for a non-ascending input. The source states the precondition as `@pre` and checks it only through `OPENMS_PRECONDITION`, compiled out of a release build. A NaN also fails this check, including in a one-element range, which has no adjacent pair to disagree and which `std::is_sorted` accepts. |
-| A NaN is **reproduced** wherever the source's own `std::sort` decides the answer | Lead decision D16; see "NaN policy" below. `median`, `quantile1st`, `quantile3rd`, `mad` and `SummaryStatistics::new` sort with the Release build's own permutation and read their order statistics positionally out of it. The four `_sorted` functions above still report `Error::UnsortedData`, because a NaN makes the *caller's* sortedness claim false; `compute_rank` and `rank_correlation_coefficient` still report `Error::InvalidValue`, for the two reasons in 5.2. |
+| A NaN is **reproduced** wherever the source's own `std::sort` decides the answer | Lead decision D16; see "NaN policy" below. `median`, `quantile1st`, `quantile3rd`, `mad` and `SummaryStatistics::new` sort with the Release build's own permutation and read their order statistics positionally out of it. The four `_sorted` functions above still report `Error::UnsortedData`, because a NaN makes the *caller's* sortedness claim false; `compute_rank` and `rank_correlation_coefficient` still report `Error::InvalidValue`, for the two reasons under "Where a NaN lands". |
 | `variance`, `sd` and `covariance` refuse `n < 2` | The `n - 1` divisor is zero there and the source returns NaN. A NaN variance is exactly what this layer would propagate into everything built on it. `SummaryStatistics` keeps the source's `0.0` for `n <= 1`, because the source's own comment fixes that value. |
 | A zero correlation denominator returns NaN explicitly instead of dividing | For both Matthews and Pearson a zero denominator forces a zero numerator (proved below), so `0 / 0 = NaN` is the source's value in every reachable case. The one divergence is a denominator that *underflows* to zero from non-zero deviations, where the source yields an infinity and the port yields NaN. |
 | `adaptive_quantile` rejects non-finite `k`, `r_sparse`, `r_dense` | The source accepts a NaN threshold and lets it decide the blend weight through comparisons that are all false. |
-| Sorting is the Release build's own `std::sort` | `sort_ascending` is `source_sort_by(&mut values, \|a, b\| a < b)`, the libstdc++ introsort of `crate::math::source_sort` under the default `operator<` — the call at `:140`, `:244`, `:281`, `:189` and `:948`. It replaced an `f64::total_cmp` sort, which differed from `operator<` exactly on a NaN and on a signed zero, and both differences are now closed. `compute_rank` is the one sort in this file still on `total_cmp`; 5.2 says why. |
+| Sorting is the Release build's own `std::sort` | `sort_ascending` is `source_sort_by(&mut values, \|a, b\| a < b)`, the libstdc++ introsort of `crate::math::source_sort` under the default `operator<` — the call at `:140`, `:244`, `:281` and `:948`, which `MAD` reaches through its own `median` call at `:189`. It replaced an `f64::total_cmp` sort, which differed from `operator<` exactly on a NaN and on a signed zero, and both differences are now closed. `compute_rank` is the one sort in this file still on `total_cmp`; "Where a NaN lands" says why. |
 | A generated NaN carries the Release build's bits | IEEE 754 does not fix which NaN an operation produces from non-NaN operands. Every function whose arithmetic can generate one is built on `crate::math::x86_64`, so `inf - inf` is `0xfff8000000000000` on every host and not the arm64 default `0x7ff8000000000000`. No finite value changes; see "NaN bit patterns" below. |
 | `compute_rank` on an empty slice is a no-op | The source computes `w.size() - 1` in unsigned arithmetic, which wraps to `SIZE_MAX`. |
 | `MAX_ITEMS` / `MAX_BYTES` preflight | Every function that stages an owned buffer (`mad`, `tukey_upper_fence`, `winsorized_quantile`, `adaptive_quantile`, `compute_rank`, `rank_correlation_coefficient`) checks the ceiling before allocating, so a refusal leaves the input unchanged. The source has no ceiling. Each preflight is stated per buffer, not per call: `rank_correlation_coefficient` checks one `f64` buffer and then copies two, and `compute_rank` runs its own, wider preflight for the `(usize, f64)` pairs it stages, so the widest single buffer is what `MAX_BYTES` actually bounds. |
@@ -176,7 +176,7 @@ now just ordinary sorts, and `SummaryStatistics::of_nan_sample` is gone.
 An infinity is refused nowhere: `operator<` orders it consistently, so the
 source's answer is well defined and is the port's answer.
 
-#### 5.2 Where a NaN lands, and the two refusals that remain
+#### Where a NaN lands, and the two refusals that remain
 
 `std::sort` is `__introsort_loop` followed by `__final_insertion_sort`
 (`stl_algo.h:1899-1910`), and `__introsort_loop` runs only
@@ -330,11 +330,42 @@ before the spelling could be fixed.
 Every function here whose own arithmetic can generate a NaN is therefore built
 on `crate::math::x86_64`'s `add`, `sub`, `mul`, `div`, `sqrt` and `abs`:
 
+The table below is meant to be read as exhaustive over the module's public
+surface, so what it leaves out is named here rather than left to be noticed.
+`check_not_empty`, `check_exhausted` and `check_ranges_end_together` do no
+arithmetic. `median`, `median_sorted`, `quantile1st`, `quantile1st_sorted`,
+`quantile3rd`, `quantile3rd_sorted` and `SummaryStatistics::new` do none of
+their own either: they order a range and read out of it, and the only
+arithmetic under them is `median_of_sorted`'s even-size average and, for
+`SummaryStatistics`, `mean` and `variance` — all three of which are listed.
+
 | | Functions | Why |
 | --- | --- | --- |
-| **Rebuilt** | `sum`, `mean`, `variance`, `variance_with_mean`, `sd`, `sd_with_mean`, `covariance`, `mean_square_error`, `root_mean_square_error`, `mean_absolute_deviation`, `mad`'s `fabs`, `median_of_sorted`'s even-size average, `quantile`'s linear blend | the source's own `double` arithmetic can produce a NaN from operands that are not NaN |
-| **Not rebuilt** | `classification_rate`, `matthews_correlation_coefficient` (their counting), `compute_rank`, `tukey_upper_fence`, `tail_fraction_above`, `winsorized_quantile`, `adaptive_quantile` | no NaN can be generated: the first two count with comparisons, `compute_rank` averages small integers, and the Tukey family drops every non-finite value before it computes anything, as the source's `std::isfinite` filter does |
+| **Rebuilt** | `sum`, `mean`, `variance`, `variance_with_mean`, `sd`, `sd_with_mean`, `covariance`, `mean_square_error`, `root_mean_square_error`, `mean_absolute_deviation`, `absdev`, `absdev_with_mean`, `mad`'s `fabs`, `median_of_sorted`'s even-size average, `quantile`'s linear blend | the source's own `double` arithmetic can produce a NaN from operands that are not NaN. `absdev` and `absdev_with_mean` inherit it: both are `mean_absolute_deviation` behind an emptiness check, and `absdev`'s centre is the rebuilt `mean` |
+| **Not rebuilt** | `classification_rate`, `matthews_correlation_coefficient` (their counting), `compute_rank`, `rank_correlation_coefficient`, `tukey_upper_fence`, `tail_fraction_above`, `winsorized_quantile`, `adaptive_quantile` | no NaN can be generated: the first two count with comparisons, `compute_rank` averages small integers and `rank_correlation_coefficient` hands those ranks to `pearson_correlation_coefficient`, and the Tukey family drops every non-finite value before it computes anything, as the source's `std::isfinite` filter does |
 | **Not rebuilt, a known gap** | `pearson_correlation_coefficient`, `matthews_correlation_coefficient` | both substitute an explicit `f64::NAN` for a division the source actually performs — a divergence that predates this work and is documented at each item — so making only their *other* operations bit-faithful would leave that substituted NaN as the single host-shaped value in the result. The crate's bit-faithful Pearson is `analysis::feature_finder_picked::scoring::source_pearson`; converging the two needs an oracle row of its own |
+
+**Two operand orders in this module are not measured, and are named rather than
+glossed.** SSE2's two-operand instructions return the **destination** operand
+quieted when both operands are NaN, so where the source writes a *commutative*
+operation on two *distinct* temporaries, which one GCC leaves in the destination
+register decides the answer's payload — and that is a register-allocation fact,
+not something the source fixes.
+
+| item | the source expression | reachable when | what the port answers |
+| --- | --- | --- | --- |
+| `covariance` | `(*iter_a - mean_a) * (*iter_b - mean_b)` (`:619`) | `a[i]` a payload NaN (so `mean_a` is one too) while `b[i] == mean_b == +inf` | the `a`-derived NaN's payload |
+| `median_of_sorted`, even size | `(*(it + n/2 - 1) + *(it + n/2)) / 2.0` | `median(&mut [nan_a, nan_b])` with two distinct payloads, which since D16 is summarised rather than refused | `nan_a`'s payload |
+
+No oracle row measures either, and none is invented. What would settle them:
+one call each on exactly those inputs, run on the Linux x86_64 Release build
+with the result read back as bits; or, without running anything, disassembling
+the two loops in the reference `libOpenMS.so` and reading which operand the
+emitted `mulsd` and `addsd` write to. Everywhere else in the module the order is
+forced: `subsd` and `divsd` are not commutative, `mul(diff, diff)` has one
+operand twice, an accumulating `sum += x` makes the accumulator the destination,
+and `quantile`'s blend cannot have both operands NaN because it refuses a NaN
+range.
 
 The helpers return the IEEE result whenever it is not a NaN, so **no finite
 value changes**. That is asserted directly rather than assumed:
@@ -343,7 +374,7 @@ plain-Rust arithmetic the module used before, over a battery reaching
 subnormals, both zeros, `DBL_MAX` and ranges whose squared deviations overflow
 to an infinity, across every function and every equally long pair. No frozen
 expectation in `tests/statistic_functions.rs` moved.
-`a_generated_nan_carries_the_release_builds_bits` then pins fourteen bit
+`a_generated_nan_carries_the_release_builds_bits` then pins fifteen bit
 patterns derived from the SSE2 rules of Intel SDM vol. 1 rather than from this
 crate's output — including the *positive* NaN `andpd` leaves behind in
 `mean_absolute_deviation`, because the absolute-value mask clears the sign bit

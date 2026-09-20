@@ -167,13 +167,16 @@ pub fn source_sort_permutation(
 ///
 /// `items` is left unchanged when an error is returned. Every reachable error
 /// is raised by [`source_sort_permutation`], before a single element has been
-/// moved; the unreachable one [`apply_permutation`] can raise is documented
-/// there.
+/// moved.
 ///
 /// # Errors
 ///
-/// As [`source_sort_permutation`], and — unreachably, but refused rather than
-/// left to panic or to spin — as [`apply_permutation`].
+/// As [`source_sort_permutation`]; and — unreachably, but refused rather than
+/// left to panic or to spin — [`Error::InvalidValue`] if the permutation the
+/// sort returned is not one, in which case `items` may hold a partially
+/// applied permutation. `source_sort_permutation` starts from `0..len` and
+/// only ever swaps within it, so that second error cannot be provoked from
+/// here.
 pub fn source_sort_by<T>(items: &mut [T], mut less: impl FnMut(&T, &T) -> bool) -> Result<()> {
     let mut order = source_sort_permutation(items.len(), |a, b| less(&items[a], &items[b]))?;
     apply_permutation(items, &mut order)

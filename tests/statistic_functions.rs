@@ -945,6 +945,14 @@ fn the_x86_64_helpers_change_no_finite_result() {
                     mean_absolute_deviation(values, centre),
                     plain_abs,
                 );
+                // `absdev_with_mean` is the same arithmetic behind an
+                // emptiness check; asserted rather than assumed, so that
+                // "across every function" holds literally.
+                bits(
+                    &format!("absdev_with_mean[{index}] about {centre}"),
+                    absdev_with_mean(values, centre).unwrap(),
+                    plain_abs,
+                );
             }
         }
         let mut plain = 0.0;
@@ -1292,7 +1300,8 @@ fn the_sorting_entry_points_reproduce_the_release_builds_permutation() {
 }
 
 // Native, decision D16 and the `_S_threshold` boundary of
-// `docs/STATISTIC_FUNCTIONS_SUPPORT.md` section 5.2: where the NaN of a
+// the "Where a NaN lands" section of `docs/STATISTIC_FUNCTIONS_SUPPORT.md`:
+// where the NaN of a
 // `{NaN, 2..n}` sample ends up is decided by whether `__introsort_loop` runs at
 // all. It runs `while (__last - __first > int(_S_threshold))` with
 // `_S_threshold` enumerated as 16 (`bits/stl_algo.h:1806`, `:1880`,
@@ -1312,7 +1321,7 @@ fn the_sorting_entry_points_reproduce_the_release_builds_permutation() {
 // - 20 elements: the same swap against `*mid == 11` leaves it at index 10.
 //
 // The three positions are the ones measured against the reference compiler and
-// recorded in section 5.2; this test pins the whole permutation, which is
+// recorded in that section; this test pins the whole permutation, which is
 // stronger.
 #[test]
 fn the_introsort_threshold_decides_where_a_nan_lands() {
@@ -1371,7 +1380,7 @@ fn the_introsort_threshold_decides_where_a_nan_lands() {
     assert!(stats.median.is_nan(), "the documented `median: -nan`");
     assert_eq!(stats.max, 20.0);
 
-    // The other measured fact of section 5.2: below the threshold the NaN is
+    // The other measured fact of that section: below the threshold the NaN is
     // not *pinned* either. `__insertion_sort` relocates a whole block when a
     // later element belongs before `*first`, and that carries the NaN with it:
     // in `[3, NaN, 2]` the third element is `< *first`, so `move_backward`
@@ -1419,8 +1428,9 @@ fn mad_reproduces_a_nan_and_the_ranking_still_refuses_one() {
     // and a NaN additionally defeats its relative tie test, whose two
     // comparisons are both false against a NaN and which would therefore merge
     // every block the NaN touches. That is a second, independent behaviour and
-    // no oracle row measures it, so the refusal stands; section 5.2 of
-    // `docs/STATISTIC_FUNCTIONS_SUPPORT.md` records it as the one `std::sort`
+    // no oracle row measures it, so the refusal stands; the "Where a NaN
+    // lands" section of `docs/STATISTIC_FUNCTIONS_SUPPORT.md` records it as the
+    // one `std::sort`
     // of this header the shared-math wave did not move.
     let mut w = [3.0, f64::NAN, 1.0];
     assert!(invalid_value(&compute_rank(&mut w).unwrap_err()));
