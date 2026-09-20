@@ -2,6 +2,44 @@
 
 ## Unreleased
 
+- **A NaN whose sign bit is set is now spelled `-nan` in the FileInfo report,
+  as the reference build's glibc spells it.** This was **native difference 5**,
+  and closing it needed the NaN *value* to stop depending on the host first —
+  the shared-math entry below — and then an oracle row measured on the right
+  platform. `../oracle/a2-textfmt-linux` re-ran the A2 driver, `cases.h` and pin
+  probe byte for byte against the Linux x86_64 Release install: of 1018 rows
+  exactly one differs from the macOS capture, the sign-bit NaN
+  `fff8000000000000`, and it differs in its five `printf` columns and not in its
+  `toStr` column — glibc's `__printf_fp` keeps the sign, while OpenMS's own
+  `NumericFormatting::appendNumeric` returns `NaN` before reading it. A
+  companion sweep `../oracle/a2-textfmt-nan-sweep` turns the rule from a
+  generalisation into a measurement over six NaN shapes by both signs by
+  `double` and `float` at 22 digit counts and 16 precisions: 912 `printf` rows,
+  none printing a sign that disagrees with the argument's sign bit, and 24
+  `toStr` rows all printing `NaN`, every one asserted row for row. The
+  consensus accumulator that generates the NaN (`(-inf) + (+inf)`) is rebuilt on
+  `math::x86_64`, so the sign is the Release build's and not the host's.
+- **`FileInfo -c` no longer refuses a NaN retention time or peak m/z**
+  (decision **D18**). The refusal rested on the source's `std::sort` leaving the
+  order undefined, which is the argument D16 overturned: `FileInfo.cpp:1927` and
+  `:1956` are the same unqualified `sort(v.begin(), v.end())` on a
+  `std::vector<double>` that shared math now reproduces, so the port follows it
+  instead of refusing. It is observable — for `{5.0, NaN, 5.0}` libstdc++ leaves
+  the range untouched, so the duplicate check prints nothing where a `total_cmp`
+  sort would print a duplicate line.
+- **`sort_ascending` costs what it used to on ordinary data** (decision
+  **D17**). Reproducing libstdc++'s permutation is 6.7x slower and ~3.3x the
+  peak memory at ten million values, and `FileInfo -s` hands it every MS1 peak
+  intensity in the file. It now sorts in place with `f64::total_cmp` wherever
+  the permutation cannot be observed — no NaN, and not both zero spellings, so
+  every set of elements `operator<` calls equivalent is a set of bit-identical
+  values and the output sequence is a function of the multiset alone — and runs
+  the faithful permutation only otherwise. A differential test drives both paths
+  over the same adversarial inputs and asserts bit-identical output. The
+  permutation is also applied in place now, by following cycles, so the
+  16-bytes-per-element buffer that could abort the process on an allocation
+  failure is gone.
+
 - **Shared math carries the Release build's NaN bits and its `std::sort`
   permutation.** The source-ABI emulation the picked feature finder had grown
   is promoted out of `analysis::feature_finder_picked` into
