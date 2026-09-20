@@ -144,8 +144,8 @@ outright.
 **Unspecified is not unknowable.** The Release build runs one particular
 algorithm — the conda-forge GCC 14.4.0 libstdc++ introsort — and it runs it
 deterministically, so the permutation it leaves is a measurable fact about that
-build. Lead decision **D16** (shared-math wave, 2026-09-19;
-`docs/EARLY_TOPP_WORK_PACKAGES.md`) puts reproducing it in scope, and
+build. Lead decision **D16** (shared-math wave, 2026-09-19; `docs/VALIDATION.md`)
+puts reproducing it in scope, and
 `src/math/source_sort.rs` is the comparison-by-comparison port of it, validated
 tier 1 against two oracle drivers over 2,272 inputs. This module's private
 `sort_ascending` is therefore `std::sort(begin, end)` itself:
@@ -210,7 +210,7 @@ back into place without touching it again.
 
 **The open question this section used to carry is answered.** It asked whether
 reproducing an unspecified `std::sort` permutation is in scope at all. Decision
-D16 says yes, on four grounds set out in `docs/EARLY_TOPP_WORK_PACKAGES.md`. The
+D16 says yes, on four grounds set out in `docs/VALIDATION.md`. The
 five frozen oracle cases the question rested on — `c_nan_one_s`, `c_nan_two_s`,
 `c_nan_then_finite_s`, `c_finite_then_nan_s` and `c_zero_swapped_s` of
 `../oracle/a7-fileinfo` — are now reproduced and compared line for line by

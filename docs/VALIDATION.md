@@ -2,8 +2,8 @@
 
 ## Shared-math wave: the source's own arithmetic and its own `std::sort` (2026-09-19)
 
-Decision **D16** was taken for this wave and is recorded in full in
-[the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-5-status): **reproducing an
+Decision **D16** was taken for this wave and is recorded in full, with its
+provenance, in [the decision list below](#lead-decisions-d1-d17): **reproducing an
 unspecified `std::sort` permutation is in scope**, because the port already does
 it (`src/math/source_sort.rs`, tier 1 against two oracle drivers over 2,272
 inputs), because doing so is D1-compliant by construction (it reproduces the
@@ -277,10 +277,11 @@ NaN — a 20-element sample `{NaN, 2..20}` prints `minimum: 2` and `median: -nan
 Scoped in all eight, including the oracle driver and its manifest, which was
 re-emitted.
 
-### Lead decisions D1-D15
+### Lead decisions D1-D17
 
 The full text of D1-D13 is in
-[the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-5-status). Two are new this
+[the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-5-status), which is wave 5's
+own list; every decision after it is recorded here in full. Two are new this
 wave, and they collided: **both** `fix/reader-round-trip` and
 `fix/picker-noise-consumers` numbered their decision D14. The reader lane's
 number is cited in nine committed files — `MZML_HEADER_SUPPORT.md`, native
@@ -306,6 +307,80 @@ picker lane becomes **D15**. Nothing in the tree had to change.
   `PickingCompatibility` flag that the port cannot yet honour faithfully leaves
   its refusal in place in both profiles rather than returning different results
   under a flag that claims source behaviour.
+
+**D16 and D17 postdate this wave** and are kept here rather than in a section of
+their own, because this list is where the full text of every decision after
+wave 5 lives. D16 belongs to the shared-math wave of the next day; D17 to the
+repair round that followed it.
+
+- **D16** (shared-math wave; taken by the lead on **2026-09-19**, in the session
+  that briefed that wave). **Reproducing an unspecified `std::sort` permutation
+  is in scope.** The question the `sort_ascending` bullet of
+  [the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-5-status) and the "Still
+  open" section of this document carried, and which the "Where a NaN lands"
+  section of
+  [STATISTIC_FUNCTIONS_SUPPORT](STATISTIC_FUNCTIONS_SUPPORT.md) and section 5.2
+  of [FILE_INFO_A7_SUPPORT](FILE_INFO_A7_SUPPORT.md) left open — whether the
+  port should reproduce a permutation the C++ standard leaves unspecified — is
+  decided **yes**, on four grounds:
+  1. **The port already does it.** `src/math/source_sort.rs` is a
+     comparison-by-comparison, move-by-move port of the GCC 14.4.0 libstdc++
+     introsort and `stable_sort`, validated tier 1 against two oracle drivers
+     (`../oracle/ffap-instr-completion`, `../oracle/ffap-complete-fix1`) over
+     2,272 inputs carrying ties, signed zeros, infinities and four NaN bit
+     patterns. Using it in `sort_ascending` promotes executed evidence; it does
+     not gamble on new behaviour.
+  2. It is **D1-compliant by construction**: it reproduces the in-bounds,
+     deterministic, measured behaviour and refuses exactly where the introsort's
+     unbounded partition and final-insertion loops read outside the vector.
+  3. **Refusing is worse.** The signed-zero half (native difference 6) is
+     ordinary finite data the Release build summarises without complaint; a
+     blanket refusal in `sort_ascending` would turn it away, and
+     `sort_ascending` is what every `SummaryStatistics` caller in the crate
+     consumes.
+  4. The **pin risk is already managed**: `source_sort` names the sha256 of
+     every libstdc++ header whose algorithm it reproduces, so a toolchain change
+     is detectable rather than silent.
+
+  Filed here rather than in the work packages, where the shared-math wave
+  mistakenly appended it to wave 5's `D1-D13` list; that list is wave 5's own
+  and now says so.
+
+- **D17** (shared-math repair round, **2026-09-20**). **`sort_ascending` may
+  take a proved-equivalent fast path.** D16's faithful sort measured **16.5x**
+  wall clock and **2.9x** peak memory at n = 10,000,000 against the library sort
+  it replaced ([BENCHMARKS](BENCHMARKS.md) §8), and
+  `src/format/file_info/peaks.rs:706` and `:714` hand `summarize` **every MS1
+  peak intensity in the file**, bounded only by
+  `FileInfo::MAX_STATISTICS_VALUES = 1 << 27`. That is a real regression on
+  `FileInfo -s` over a routine LC-MS run.
+
+  The decision: `sort_ascending` sorts **in place with `f64::total_cmp` and no
+  allocation at all** when the sample contains **no NaN** and **not both zero
+  spellings**, and runs the libstdc++ permutation otherwise.
+
+  This is not a fidelity compromise, and the reason is a theorem rather than a
+  preference. Without a NaN, `operator<` on `f64` is a strict weak ordering
+  whose incomparability relation is numeric equality; two numerically equal
+  non-NaN doubles have the **same bits**, with `-0.0 == +0.0` the one exception
+  in the format. So unless the sample holds both spellings of zero, every
+  equivalence class is a set of bit-identical values, the sorted *sequence* is a
+  function of the multiset alone, and `std::sort`'s choice among equivalents is
+  unobservable — any correct sort writes what the Release build writes. The
+  guard is therefore exactly one O(n) pass testing `is_nan()` and whether both a
+  negative and a non-negative zero occur.
+
+  The argument is not what the port rests on.
+  `both_paths_agree_bit_for_bit_wherever_the_fast_one_is_taken` runs **both**
+  paths over the same adversarial samples — both zeros, both infinities,
+  subnormals, `DBL_MAX`, signalling and negative NaNs, heavy duplication,
+  ascending, descending, organ-pipe and sawtooth shapes, and raw random bit
+  patterns, at 21 lengths spanning libstdc++'s 16-element `_S_threshold` and its
+  heapsort fallback — and compares the results bit for bit, NaN payloads
+  included. Deleting either half of the guard makes it fail. Over every mzML
+  fixture in `tests/data`, 809 of 809 statistics samples take the fast path
+  (§8.4), so the cost D16 accepted was being paid on every sample and bought
+  nothing on any of them.
 
 **The lead's two decisions of this round**, both taken inside the A7 lane and
 both recorded here because they shaped what landed:
@@ -1580,10 +1655,11 @@ fixed by the lead in `f89d5d4`.
 
 Every round-6 recommendation was to promote. This pass applied all three.
 
-### Lead decisions D1-D15
+### Lead decisions D1-D17
 
-The full text is in [the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-5-status). In
-one line each:
+The full text of D1-D13 is in
+[the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-5-status); of D14-D17, in
+[wave 8's own list](#lead-decisions-d1-d17) above. In one line each:
 
 - **D1** reproduce a measured, repeatable, instruction-explained, **in-bounds** Release
   outcome; refuse out-of-bounds, races, termination and endless loops.
@@ -1617,6 +1693,16 @@ one line each:
 - **D15** a picker's internal noise estimate reproduces the source unconditionally where
   the signal it reads is picker-generated or already validated, and follows the picker's
   own profile where the estimator reads the caller's data (wave 8).
+- **D16** reproducing an unspecified `std::sort` permutation is in scope, because the
+  port already does it under tier-1 validation, because doing so is D1-compliant by
+  construction, because refusing would turn away ordinary finite data, and because the
+  libstdc++ header sha256s make a toolchain change detectable (shared-math wave,
+  2026-09-19).
+- **D17** `sort_ascending` may take a proved-equivalent fast path — an in-place
+  `f64::total_cmp` sort that allocates nothing — where the sample holds no NaN and not
+  both spellings of zero, because there every class `operator<` calls equivalent is a
+  set of bit-identical values and the permutation is therefore unobservable (shared-math
+  repair round, 2026-09-20).
 
 ### This pass's gates
 

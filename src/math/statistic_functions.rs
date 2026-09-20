@@ -88,7 +88,7 @@
 //! algorithm — the conda-forge GCC 14.4.0 libstdc++ introsort — and it runs it
 //! deterministically, so the permutation it leaves is a measurable fact about
 //! that build rather than a coin toss. Decision **D16** of
-//! `docs/EARLY_TOPP_WORK_PACKAGES.md` puts reproducing it in scope, and
+//! `docs/VALIDATION.md` puts reproducing it in scope, and
 //! [`crate::math::source_sort`] is the comparison-by-comparison port of it,
 //! validated tier 1 against two oracle drivers over 2,272 inputs carrying ties,
 //! signed zeros, infinities and four NaN bit patterns.

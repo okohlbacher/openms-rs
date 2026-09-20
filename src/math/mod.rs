@@ -43,8 +43,10 @@
 //!
 //! All three were promoted out of `analysis::feature_finder_picked`, which
 //! measured them first; the move changed paths and module documentation only.
-//! Decision D16 of `docs/EARLY_TOPP_WORK_PACKAGES.md` records why reproducing
-//! an unspecified `std::sort` permutation is in scope at all.
+//! Decision D16 of `docs/VALIDATION.md` records why reproducing an unspecified
+//! `std::sort` permutation is in scope at all, and decision D17 why
+//! `statistic_functions::sort_ascending` may skip it where the permutation
+//! cannot be observed.
 //!
 //! Everything here computes in `f64`, as the source does — the fitter headers
 //! use `double` throughout and never `float` — and reproduces the source's
