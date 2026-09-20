@@ -125,21 +125,51 @@ Each is documented at the item in `checks.rs` as well.
    `FileInfo::run`: the mzML reader gives every chromatogram its points and
    `ChromatogramTools::convert_spectra_to_chromatograms` builds one point per
    source spectrum.
-3. **A NaN the source would sort is refused by `-c`.** Such a value enters a
-   `std::sort` whose comparator is then not a strict weak ordering, leaving the
-   source undefined. The port refuses with `Error::InvalidValue` before the
-   header is written, so the report is untouched. The refusal covers exactly
-   what the source sorts and no more: every spectrum's m/z (`:1956`), but only
-   an **MS-level-1** spectrum's retention time, because `:1921-1924` pushes a
-   retention time into `ms1_rts` only at that level and `:1927` sorts that
-   vector alone. A NaN retention time on any other spectrum is reported as it
-   is: the only other thing the source does with it is `exp.isSorted(false)`'s
-   `>`, for which a NaN is never greater, so the C++ report is fully defined
-   there. Unreachable through `FileInfo::run` either way: every loader on this
-   path validates its coordinates.
-   Infinities are *not* refused — `<`, `>` and `==` are defined on them and the
-   port orders with `f64::total_cmp`, which agrees with `<` for every non-NaN
-   pair.
+3. ~~**A NaN the source would sort is refused by `-c`.**~~ **CLOSED** under
+   lead decision **D18**, which applies decision D16's machinery here. The
+   entry is kept with its reasoning, because that is what makes the closure
+   checkable.
+
+   *What it said.* Such a value enters a `std::sort` whose comparator is then
+   not a strict weak ordering, so the source is undefined; the port refused with
+   `Error::InvalidValue` before the header was written.
+
+   *Why that no longer follows.* Both calls are the unqualified
+   `sort(v.begin(), v.end())` on a `std::vector<double>` — `ms1_rts` declared at
+   `:1863` and sorted at `:1927`, `mzs` declared at `:1942` and sorted at
+   `:1956`, with `using namespace std;` at `:47` and no comparator on either —
+   which is exactly the call `crate::math::source_sort` reproduces comparison by
+   comparison, tier 1 over 2,272 oracle inputs. D16 puts reproducing a
+   permutation the standard leaves unspecified in scope, so `-c` now computes
+   the answer the Release build computes instead of declining to.
+
+   *That it is observable.* For MS1 retention times `{5.0, NaN, 5.0}` a
+   three-element range is below `_S_threshold`, libstdc++ runs one
+   `__insertion_sort` pass, every comparison involving the NaN is false and
+   nothing moves — so the duplicate scan finds no equal neighbours and the
+   Release build prints no duplicate line. A `f64::total_cmp` sort leaves
+   `{5.0, 5.0, NaN}` and prints one. `a_nan_retention_time_keeps_the_release_builds_order`
+   and `a_nan_mz_keeps_the_release_builds_order` pin both sorts.
+
+   *What the port pays for it.* Nothing on ordinary data. The faithful sort
+   allocates a permutation and an owned copy, and `-c` sorts every spectrum's
+   m/z values, so `sort_as_the_source_does` takes it only where the permutation
+   can be observed. Without a NaN, `operator<` on `f64` is a strict weak
+   ordering, and two elements it calls equivalent are numerically equal and so
+   bit-identical — with the single exception of `-0.0` against `+0.0`. Where
+   every equivalence class is a set of bit-identical values the output
+   *sequence* is a function of the multiset alone, so the permutation is
+   unobservable and any correct sort writes the same bytes. The guard is
+   therefore one O(n) pass for a NaN and for both zero spellings; everything
+   else sorts in place with `f64::total_cmp` and allocates nothing.
+   `both_paths_agree_wherever_the_fast_path_is_taken` runs both paths over the
+   same inputs and asserts bit-identical output, rather than leaving the
+   argument as an assertion.
+
+   Infinities were never refused — `<`, `>` and `==` are defined on them.
+   Unreachable through `FileInfo::run` either way: every loader on this path
+   validates its coordinates, so the shapes above are built by hand in the unit
+   tests.
 4. **The chromatogram comment is always empty.**
    `ChromatogramSettings::getComment()` has no counterpart in
    `MSChromatogram`, and nothing in the pinned source calls `setComment` on a
@@ -183,9 +213,11 @@ Each is documented at the item in `checks.rs` as well.
     non-finite coordinate and therefore report a container holding an infinity
     as unsorted. The source compares neighbours with `>` alone, for which an
     infinity is ordinary, so `checks::nondescending` applies the source's
-    comparison and the port writes no line the C++ would not. Every other caller
-    in the crate keeps the kernel predicates; NaN is refused first, so the two
-    agree everywhere else. Caught by the unit test
+    comparison and the port writes no line the C++ would not. A NaN needs the
+    same treatment for the same reason, and since item 3 closed it needs it in
+    earnest: a NaN is never greater under `>`, so it never makes a container
+    unsorted, while the kernel predicates would report one. Every other caller
+    in the crate keeps the kernel predicates. Caught by the unit test
     `an_infinite_mz_is_checked_like_any_other`, which asserted only the
     duplicate line until it was strengthened to assert the absence of the
     unsorted one.

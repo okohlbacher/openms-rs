@@ -7,17 +7,36 @@
 //! Evidence, strongest first:
 //!
 //! 1. Oracle-generated (tier 1 executed differential). [`ORACLE_DRIVER_TSV`] is
-//!    `../oracle/file-info-text-format/results/driver.tsv` verbatim, sha256
-//!    `1f00c34677af82248bba69fdccf25843f519edd0eaad6b46d5d7239e14fc12a9`,
-//!    written by `driver.cpp` linking the product-SDK `libOpenMS` (core 4fdec46,
-//!    Debug, AppleClang 21, macOS arm64). Manifest:
-//!    `../oracle/file-info-text-format/manifest.json`, sha256
-//!    `a959541af4859bfa5b84f7471ebef31a3cdf417ad362f563b6245b7bfc4a7334`.
+//!    `../oracle/a2-textfmt-linux/results/driver.tsv` verbatim, 69975 bytes,
+//!    sha256
+//!    `ad79a01eec96c640aedd30d26b16b1e32ffcaa57e7ff6991450f0899410c1082`,
+//!    written by `driver.cpp` linking the Linux x86_64 **Release** install
+//!    `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
+//!    ibminode06 (conda-forge GCC 14.4.0, libstdc++ 6.0.36, glibc 2.39, core
+//!    flags `-O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off`). Manifest:
+//!    `../oracle/a2-textfmt-linux/manifest.json`, sha256
+//!    `2bfca88e8f9bf1412939e3acde00c51e0202d88da6ee0ac5122471b8e8dcf72a`.
 //!    The same run compiles the pinned
 //!    `NumericFormatting.h` (core bc9cc12, sha256
 //!    `09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a`) as an
 //!    executed probe (tier 2); its `D`, `S` and `F` sections are byte-identical
-//!    to the SDK's, so every row below also holds at the pin.
+//!    to the install's, so every row below also holds at the pin. Both runs are
+//!    reproduced, and the Release core flags and an `-O0` control produce
+//!    byte-identical output.
+//!
+//!    This capture **supersedes** the macOS one,
+//!    `../oracle/file-info-text-format/results/driver.tsv` (69970 bytes, sha256
+//!    `1f00c34677af82248bba69fdccf25843f519edd0eaad6b46d5d7239e14fc12a9`;
+//!    manifest sha256
+//!    `a959541af4859bfa5b84f7471ebef31a3cdf417ad362f563b6245b7bfc4a7334`),
+//!    which linked the product-SDK `libOpenMS` (core 4fdec46, Debug,
+//!    AppleClang 21, macOS arm64). It re-runs that oracle's `driver.cpp`,
+//!    `cases.h` and `pin_probe.cpp` byte for byte — the manifest records all
+//!    three hashes as identical — against the reference build instead. Of 1018
+//!    rows exactly one differs, line 92, the sign-bit NaN
+//!    `fff8000000000000`: glibc writes `-nan` in the five `printf` columns
+//!    where Apple libc writes `nan`, and the `toStr` column is `NaN` on both.
+//!    The macOS capture therefore still stands behind all 1017 other rows.
 //! 2. Tie rule, oracle-generated (tier 1) with executed probes (tier 2).
 //!    [`SWEEP_ORACLE_TSV`] holds rows selected from `../oracle/text-format`
 //!    (manifest sha256
@@ -142,7 +161,7 @@ D	ffefffffffffffff	-179769313486231570814527423731704356798070567525844996598917
 D	7ff0000000000000	inf	inf	inf	inf	inf	inf
 D	fff0000000000000	-inf	-inf	-inf	-inf	-inf	-inf
 D	7ff8000000000000	nan	nan	nan	nan	nan	NaN
-D	fff8000000000000	nan	nan	nan	nan	nan	NaN
+D	fff8000000000000	-nan	-nan	-nan	-nan	-nan	NaN
 D	40acb3cccccccccd	3674	3673.9	3673.90	3673.9	3673.9	3673.900000000000091
 D	40e1f06000000000	36739	36739.0	36739.00	36739	36739	3.6739e04
 D	40b6ac8000000000	5804	5804.5	5804.50	5804.5	5804.5	5804.5
@@ -2743,13 +2762,39 @@ fn negative_zero_keeps_its_sign_on_every_path() {
     assert_eq!(fixed(-1e-5, 2).ok().as_deref(), Some("-0.00"));
 }
 
+/// The `printf` paths carry a NaN's sign bit and the `toStr` path discards it.
+///
+/// The two bit patterns are the oracle's own: rows 91 and 92 of
+/// [`ORACLE_DRIVER_TSV`] are `7ff8000000000000` and `fff8000000000000`, and row
+/// 92 is the only sign-bit NaN anywhere in that corpus. The loop above already
+/// compares both rows column for column; these assertions name the rule the
+/// rows measure, at digit counts and precisions the corpus does not reach, and
+/// fail if either half of it is ever dropped. The split is attributed in
+/// `../oracle/a2-textfmt-linux/results/column_attribution.txt`: columns 3-5 are
+/// `StringUtils::number` (`StringUtils.cpp:526-531`, whose body is one
+/// `snprintf("%.*f")`) and columns 6-7 `std::ostringstream`, both glibc
+/// `__printf_fp`; column 8 is `StringUtils::toStr`, whose
+/// `NumericFormatting::appendNumeric` returns `NaN` at its first statement
+/// (`NumericFormatting.h:29`) without reading the sign bit.
 #[test]
 fn nonfinite_values_use_the_c_and_to_str_spellings() {
-    for nan in [f64::NAN, -f64::NAN] {
-        assert_eq!(ostream_g(nan, 6), "nan");
-        assert_eq!(fixed(nan, 2).ok().as_deref(), Some("nan"));
-        assert_eq!(fixed_truncated(nan, u32::MAX), "nan");
+    let positive = f64::from_bits(0x7ff8_0000_0000_0000);
+    let negative = f64::from_bits(0xfff8_0000_0000_0000);
+    assert!(positive.is_nan() && !positive.is_sign_negative());
+    assert!(negative.is_nan() && negative.is_sign_negative());
+
+    assert_eq!(ostream_g(positive, 6), "nan");
+    assert_eq!(fixed(positive, 2).ok().as_deref(), Some("nan"));
+    assert_eq!(fixed_truncated(positive, u32::MAX), "nan");
+
+    assert_eq!(ostream_g(negative, 6), "-nan");
+    assert_eq!(fixed(negative, 2).ok().as_deref(), Some("-nan"));
+    assert_eq!(fixed_truncated(negative, u32::MAX), "-nan");
+
+    // `toStr` never looks at the sign bit, on either platform.
+    for nan in [positive, negative] {
         assert_eq!(to_str(nan), "NaN");
+        assert_eq!(to_str_f32(nan as f32), "NaN");
     }
     assert_eq!(ostream_g(f64::INFINITY, 15), "inf");
     assert_eq!(ostream_g(f64::NEG_INFINITY, 15), "-inf");

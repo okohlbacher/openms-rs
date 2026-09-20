@@ -23,11 +23,15 @@ A4 had to leave as refusals, and `tests/topp_file_info.rs` reproduces
 TOPP_FileInfo_7, _10, _13, _17, _18 and _20 through FuzzyDiff against the
 retained upstream outputs instead of listing them as not ported. Each keeps a
 tripwire that fails if a branch goes back to refusing.
-Oracle: `../oracle/a7-fileinfo`, 72 cases against the Release C++ FileInfo of
+Oracle: `../oracle/a7-fileinfo`, **75** cases against the Release C++ FileInfo of
 `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
-ibminode06, run twice and reproduced. 50 of them have both reports compared
-byte for byte in the test; two more are retained as evidence for section 5.2
-rather than compared.
+ibminode06, run twice and reproduced. **55** of them have both their `-out` and
+`-out_tsv` reports compared byte for byte in the test, and none carries an
+exemption of any kind. The count was 46 before the NaN-spelling step of
+2026-09-20 closed native difference 5; the nine reports that were compared line
+for line under the `nan` / `-nan` exception are now compared like the rest, and
+the two of them that section 5.2 once called "retained as evidence rather than
+compared" are among them.
 
 ---
 
@@ -266,22 +270,65 @@ crashes the reference FileInfo.
    the tool exits 3; the port returns
    `Error::InvalidValue("idXML is not an allowed input format")`, which is how
    `FileHandler` maps that refusal throughout this crate.
-5. **Every NaN the FileInfo text layer prints is spelled `nan`, where glibc
-   spells a NaN whose sign bit is set `-nan`.** This is a class of line, not one
-   line: any of the seven value lines a `SummaryStatistics` block prints — the
-   mean, the five order statistics and the variance — can carry one, and the
-   consensusXML `-s` blocks are the first FileInfo path whose own arithmetic can
-   produce one at all.
+5. ~~**Every NaN the FileInfo text layer prints is spelled `nan`, where glibc
+   spells a NaN whose sign bit is set `-nan`.**~~ **CLOSED** on 2026-09-20. It
+   is kept here with its measurement, because the measurement is what makes the
+   closure checkable. It was a class of line, not one line: any of the seven
+   value lines a `SummaryStatistics` block prints — the mean, the five order
+   statistics and the variance — can carry one, and the consensusXML `-s`
+   blocks are the first FileInfo path whose own arithmetic can produce one at
+   all.
 
-   *Scope of the claim, as measured.* Since the shared-math wave closed native
-   difference 6 this is the **only** class of line on which any compared oracle
-   report disagrees with the Release build. Nine reports carry it, and how many
-   lines of it each one holds depends on the input: `c_zero_intensity_s` has
-   one, `c_nan_then_finite_s` and `c_finite_then_nan_s` seven each,
-   `c_nan_one_s`, `c_nan_one_all`, `c_zero_swapped_s` and `c_zero_swapped_all`
-   nine, and `c_nan_two_s` ten. The tests pin those counts and check each line
-   against the class rather than against a single expected line, so a line
-   outside the class cannot slip through.
+   *Scope of the claim, as measured.* When native difference 6 closed, this was
+   the **only** class of line on which any compared oracle report disagreed with
+   the Release build. Nine reports carry a sign-bit NaN, and how many lines of it
+   each holds depends on the input: `c_zero_intensity_s` and
+   `c_zero_intensity_all` one each, `c_nan_then_finite_s` and
+   `c_finite_then_nan_s` seven each, `c_nan_one_s`, `c_nan_one_all`,
+   `c_zero_swapped_s` and `c_zero_swapped_all` nine each, and `c_nan_two_s` ten.
+   (The earlier text of this paragraph said "nine reports" and then named eight,
+   dropping `c_zero_intensity_all`; the provenance manifest had it right.) All
+   nine are now compared byte for byte, and `assert_report_with_signed_nans`
+   keeps the counts above as a tripwire: byte equality alone would still hold if
+   both the port and a regenerated expectation stopped writing the sign, so the
+   assertion additionally reads the counts out of the Release build's own frozen
+   report, and asserts that neither report spells a NaN without its sign
+   anywhere.
+
+   *What closed it.* Two steps, in this order, because the spelling is only
+   honest once the value is.
+
+   - *The value.* `src/format/file_info/consensus.rs`'s `it_aad += it_ratio` —
+     the `(-inf) + (+inf)` of section 5.2 — was plain Rust arithmetic, so the
+     NaN it generated carried the host's sign bit, positive on arm64. It now
+     goes through `crate::math::x86_64::add`, which answers an invalid
+     operation with SSE2's default NaN `0xfff8000000000000`. A sweep of
+     `src/format/file_info/` found no second instance: the consensusXML
+     reader's `map.validate()` refuses a non-finite rt, m/z, intensity or
+     width, so `rt_diff`, `mz_diff` and `it_ratio` are all operations on finite
+     values, the `rt_aad`/`mz_aad` sums accumulate values already made
+     non-negative and cannot cancel to a NaN, and the featureXML branch's
+     `tic += intensity` runs after `RangeBase::extend_value` has already
+     refused a non-finite intensity.
+   - *The spelling.* `text_format::nonfinite` writes `-nan` for a NaN whose
+     sign bit is set. All three of its call sites reach C `printf`;
+     `StringUtils::toStr` does not come through it and still writes `NaN` for
+     either sign, which is `NumericFormatting.h:29`.
+
+   *What the spelling is measured on, and what is generalised.*
+   `../oracle/a2-textfmt-linux` re-ran A2's `driver.cpp`, `cases.h` and
+   `pin_probe.cpp` — byte-identical to the macOS oracle's — against the Linux
+   x86_64 Release install on ibminode06. Of 1018 rows exactly one differs from
+   the macOS capture, `fff8000000000000`, and it differs in the five `printf`
+   columns and not in the `toStr` column. That corpus holds exactly three NaN
+   bit patterns and exactly one sign-bit NaN row, so what is **measured** is
+   `number(-NaN, n)` at `n` in `{0, 1, 2}` and `ostream(-NaN, p)` at `p` in
+   `{6, 15}`; no sign-bit NaN `float` is pinned at all. Every other digit count,
+   precision and the `float` overload are **generalised** from glibc writing the
+   sign before `__printf_fp` dispatches on the class. A wider negative-NaN
+   sweep, `../oracle/a2-textfmt-nan-sweep`, was captured by another lane while
+   this one ran; it is named rather than cited, because it is not registered in
+   this repository's manifests and is the lead's to fold in.
 
    *Where it comes from.* `:2310` computes
    `it_ratio = element_intensity / (centroid_intensity > 0 ? centroid_intensity : 1)`
@@ -316,45 +363,35 @@ crashes the reference FileInfo.
    optimised and unoptimised, `sign_negative=true`). The port computes the
    identical bits.
 
-   *Why the text layer writes `nan` anyway.* `text_format`'s `nonfinite`
-   ignores the sign of a NaN by design, and that design is not this package's:
-   the sign of a *generated* NaN belongs to the hardware — AArch64's default
-   NaN is the positive one, and this crate's `cross-platform` CI job runs the
-   full suite on `macos-latest`, on tags and on `workflow_dispatch`
-   (`.github/workflows/rust.yml:127`, `:134`) — and Apple libc writes `nan` for
-   `0xfff8000000000000` regardless. `../oracle/file-info-text-format` measured
-   exactly that bit pattern (`results/driver.tsv`, the `D fff8000000000000`
-   row) and `tests/file_info_text_format.rs` asserts the `nan` it produced.
-   Spelling the sign here would contradict that executed row and make every
-   frozen expectation architecture-dependent. The A2 module note at
-   `src/format/file_info/text_format.rs` states the rule.
+   *Why the text layer used to write `nan` anyway, and what changed.*
+   `text_format`'s `nonfinite` ignored the sign of a NaN, on two grounds. The
+   first was that the sign of a *generated* NaN belonged to the hardware —
+   AArch64's default NaN is the positive one, and this crate's `cross-platform`
+   CI job runs the full suite on `macos-latest`, on tags and on
+   `workflow_dispatch` (`.github/workflows/rust.yml:127`, `:134`). The
+   shared-math wave of 2026-09-19 and the value step above removed it: every
+   NaN these branches can generate now carries the Release build's bits on any
+   host. The second was that the pinned oracle row said `nan` — but it said so
+   because it was captured with **Apple libc**, on the macOS product SDK, which
+   is not the reference platform. `../oracle/a2-textfmt-linux` re-ran the same
+   driver against the Linux Release install and row 92 reads
+   `D fff8000000000000 -nan -nan -nan -nan -nan NaN`. That is the row
+   `tests/file_info_text_format.rs` now embeds, and with both grounds gone
+   `nonfinite` carries the sign.
 
-   *Making the sign printable is its own wave, not this package's; two thirds
-   of it is now done.* Spelling it honestly first has to make the value
-   host-independent, and the shared-math wave of 2026-09-19 did that: the
-   x86_64 emulation is promoted to `crate::math::x86_64`, and every operation of
-   `src/math/statistic_functions.rs` that can *generate* a NaN is built on it,
-   so `inf - inf` is `0xfff8000000000000` on an arm64 host too and not only on
-   x86_64. Two things are still outstanding before `text_format`'s `nonfinite`
-   rule may change, and neither belongs to this package. A2's oracle row has to
-   be re-captured against the Linux Release build instead of the macOS SDK —
-   `../oracle/file-info-text-format/results/driver.tsv:92` is
-   `D fff8000000000000 nan nan nan nan nan NaN`, measured with Apple libc, and
-   `tests/file_info_text_format.rs` asserts it verbatim. And
-   `src/format/file_info/consensus.rs` still computes its own NaN in plain Rust
-   arithmetic: `it_aad += it_ratio` is the `(-inf) + (+inf)` of section 5.2, so
-   that one value is still host-shaped. Both are carried forward for the lead.
-
-   *How it is pinned.* Every Release report is frozen whole. The bare ones match
-   byte for byte through `check`; for the `-s` ones,
-   `assert_report_but_the_nan_spelling` takes the number of lines of this class
-   the report has and, for each differing line, asserts that the reference ends
-   in `-nan`, that ours ends in `nan` and not `-nan`, and that putting the sign
-   back reproduces the reference line character for character. A divergence
-   outside the class, a change in how many lines carry a NaN, a `-nan` where the
-   reference has a number, or a change of either spelling fails the test.
+   *How it is pinned.* Every Release report is frozen whole and every one of
+   them — bare, `-s` and `-all` alike — is compared byte for byte through
+   `check` or `assert_report_with_signed_nans`; nothing is exempted.
+   `assert_report_with_signed_nans` is `assert_report` plus two tripwires that
+   byte equality alone would not give: the number of lines of this class the
+   *reference* report carries, and that neither report spells a NaN without its
+   sign anywhere. So a regeneration that quietly dropped the sign on both sides,
+   or a change that removed the NaN-bearing lines, still fails.
    `consensus_zero_intensity_sub_feature_makes_the_variance_a_nan` pins one such
-   line and `consensus_nan_in_the_statistics_sample` pins nine, nine and ten.
+   line in each of two reports, and `consensus_nan_in_the_statistics_sample`
+   pins nine, nine, ten, seven and seven;
+   `consensus_a_signed_zero_sample_keeps_the_release_builds_order` pins nine
+   twice more.
 6. ~~**A sample holding both a negative and a positive zero is ordered by the
    IEEE-754 total order, where `std::sort` leaves it as it found it.**~~
    **CLOSED** in the shared-math wave of 2026-09-19, under lead decision D16.
@@ -406,8 +443,10 @@ crashes the reference FileInfo.
    disagree on exactly those four lines plus the `Ranges` line, and then — the
    part that changed — that **both** the port's swapped report and its unswapped
    report match their own references through
-   `assert_report_but_the_nan_spelling` with nine differing lines each, all nine
-   of the native-difference-5 class. Zero order-statistic lines differ.
+   `assert_report_with_signed_nans`. Since native difference 5 closed that is
+   byte-for-byte equality, with the nine sign-bit NaN lines of each report
+   asserted as a tripwire rather than exempted. Zero order-statistic lines
+   differ.
    `a_signed_zero_keeps_the_order_the_release_build_keeps` in
    `tests/statistic_functions.rs` pins the same behaviour at the
    `SummaryStatistics` level, in both input orders.
@@ -421,7 +460,11 @@ crashes the reference FileInfo.
 
 ---
 
-## 5. Known gaps outside this package
+## 5. Known gaps outside this package, and one that closed
+
+Section 5.1 is a gap. Section 5.2 is kept in place with its measurement because
+the measurement is what makes its closure checkable, as native difference 6 is
+kept in section 4.
 
 ### 5.1 The identification-XML reader's modified-hit budget
 
@@ -439,7 +482,13 @@ here; the oracle records what the C++ prints for both. This is a limit of that
 reader and of the sequence parsing budget, not of these branches, and it is
 raised for the lead rather than worked around here.
 
-### 5.2 A NaN next to a number in a `SummaryStatistics` sample
+### 5.2 A NaN next to a number in a `SummaryStatistics` sample — **CLOSED**
+
+Closed in two steps: decision **D16** (shared-math wave, 2026-09-19) made the
+shape *reproducible*, and the NaN-spelling step of 2026-09-20 made its text
+byte-identical to the reference build's. The provenance manifest marks it
+`RESOLVED`. Everything below is the record of how it was settled, not an open
+item.
 
 `:2310` divides and `:2312-2315` inverts, so a consensus feature with one
 sub-feature of intensity `-0.0` and one of `0.0` under a positive centroid
@@ -527,13 +576,36 @@ round it was the one instance of this boundary that was *silent* — recorded in
 prose in `docs/FILE_INFO_SUPPORT.md` item 6, but with no oracle case, no frozen
 report and no test, so neither a regression nor a fix would have been noticed.
 
-**What is left.** The five frozen reports are not byte-identical to the
-reference, and cannot be from this wave: the `nan` / `-nan` spelling is native
-difference 5, it belongs to `src/format/file_info/text_format.rs`, and changing
-it needs A2's oracle row re-captured against the Linux Release build rather than
-the macOS SDK. That file was deliberately not touched. One thing the wave found
-on the way: `src/format/file_info/consensus.rs` still generates its NaN in plain
-Rust arithmetic — `it_aad += it_ratio` is the `(-inf) + (+inf)` of this very
-section — so that value is still host-shaped even though every value
-`statistic_functions` produces no longer is. The spelling step has to take it
-with it.
+**What was left, and is now done.** At the end of the shared-math wave the five
+frozen reports were still not byte-identical to the reference, for two reasons
+outside that wave's scope. Both are closed:
+
+- `src/format/file_info/consensus.rs` generated its NaN in plain Rust
+  arithmetic — `it_aad += it_ratio` is the `(-inf) + (+inf)` of this very
+  section — so that value was host-shaped even though every value
+  `statistic_functions` produces was not. It goes through
+  `crate::math::x86_64::add` now, and a sweep of the module found no second
+  instance.
+- A2's oracle row had to be re-captured against the Linux Release build rather
+  than the macOS SDK. `../oracle/a2-textfmt-linux` did that, and
+  `text_format`'s `nonfinite` now spells a sign-bit NaN `-nan` as glibc does.
+
+All nine reports that carried native difference 5 are compared byte for byte,
+with no exemption: the four `-s` reports of the shapes tabulated above
+(`c_nan_one_s`, `c_nan_two_s`, `c_nan_then_finite_s`, `c_finite_then_nan_s`),
+the signed-zero pair `c_zero_swapped_s` and `c_zero_intensity_s`, and the three
+`-all` reports `c_nan_one_all`, `c_zero_swapped_all` and
+`c_zero_intensity_all`. The `assert_report_but_the_nan_spelling` helper that
+existed only for this difference is gone.
+
+**The same closure for `FileInfo -c`, decision D18.** `-c` refused a NaN MS1
+retention time or peak m/z on the same grounds this section once used: the
+source's `std::sort` leaves the order undefined. `FileInfo.cpp:1927` and `:1956`
+are the same unqualified `sort(v.begin(), v.end())` on a `std::vector<double>`
+that D16 now reproduces — the vectors are declared at `:1863` and `:1942`,
+neither call carries a comparator, and `:47` is `using namespace std;` — so the
+refusal is closed with the same machinery. It is observable: for MS1 retention
+times `{5.0, NaN, 5.0}` libstdc++ moves nothing and the Release build prints no
+duplicate line, where a `f64::total_cmp` sort prints one. Item 3 of
+*Native differences* in `docs/FILE_INFO_CHECKS_SUPPORT.md` carries the full
+record.

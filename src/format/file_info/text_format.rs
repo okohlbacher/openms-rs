@@ -72,8 +72,9 @@
 //!   `-135169.706298828125` prints as `-1.3516970629882812e05`. Trailing zeros
 //!   are removed but one fraction digit stays, and the exponent has no `+` and at
 //!   least two digits (`1.0e-05`, `3.6739e04`).
-//! - Spellings: `nan`, `inf` and `-inf` from `snprintf` and streams; `NaN`,
-//!   `inf` and `-inf` from `toStr`.
+//! - Spellings: `nan` — `-nan` when the sign bit is set — plus `inf` and `-inf`
+//!   from `snprintf` and streams; `NaN` whatever the sign bit, plus `inf` and
+//!   `-inf`, from `toStr`.
 //! - A digit count or stream precision above `INT_MAX` reaches `printf` as a
 //!   negative `int`, which counts as omitted: six digits.
 //!
@@ -108,9 +109,30 @@
 //!   `-7.7233e+06`). A macOS C++ report therefore differs from the port on
 //!   such values, for example a total ion current of `1463805` at precision 6,
 //!   and macOS comparisons must not count them as port defects.
-//! - NaN always prints as `nan`. glibc writes `-nan` for a NaN whose sign bit is
-//!   set, while Apple libc, the oracle platform, writes `nan`. Ignoring the sign
-//!   keeps the text independent of how the hardware signs a generated NaN.
+//! - The `printf` spelling of a NaN follows **glibc**, the reference build's C
+//!   library: a NaN whose sign bit is set prints as `-nan` out of [`fixed`],
+//!   [`fixed_truncated`] and [`ostream_g`]. Apple libc writes `nan` for the same
+//!   bits, so a macOS C++ report differs from the port on such a value and a
+//!   macOS comparison must not count that as a port defect — the same caveat the
+//!   `%g` tie bullet above carries. `toStr` is not affected on either platform:
+//!   `NumericFormatting.h:29` returns `NaN` before the sign bit is ever read.
+//!
+//!   *What is measured and what is generalised.* `../oracle/a2-textfmt-linux`
+//!   re-ran the same driver, `cases.h` and pin probe, byte for byte, against the
+//!   Linux x86_64 Release install on ibminode06 (conda-forge GCC 14.4.0,
+//!   libstdc++ 6.0.36, glibc 2.39). Of 1018 rows exactly one differs from the
+//!   macOS capture: `fff8000000000000`, in its five `printf` columns and not in
+//!   its `toStr` column. The corpus holds exactly three NaN bit patterns
+//!   (`7ff8000000000000`, `fff8000000000000`, and the `float` `7fc00000`) and
+//!   that row is the only sign-bit NaN in it, so what is **measured** is
+//!   `number(-NaN, n)` at `n` in `{0, 1, 2}` and `ostream(-NaN, p)` at `p` in
+//!   `{6, 15}`. No sign-bit NaN `float` is pinned at all. Every other digit
+//!   count, precision and the `float` overload are **generalised** from glibc
+//!   writing the sign before `__printf_fp` dispatches on the class, which makes
+//!   the spelling independent of both. A wider negative-NaN sweep,
+//!   `../oracle/a2-textfmt-nan-sweep`, was captured by another lane while this
+//!   one ran; it is named rather than cited, because it is not registered in
+//!   this repository's manifests and is the lead's to fold in.
 //! - Only the classic `"C"` locale is modelled; FileInfo never imbues another.
 //! - Work is bounded: `%g` precisions above 800 and `%f` digit counts above 1100
 //!   are clamped internally. A double's exact decimal expansion has at most 767
@@ -121,11 +143,18 @@
 //! # Evidence
 //!
 //! - Oracle-generated, tier 1 executed differential:
-//!   `../oracle/file-info-text-format/results/driver.tsv`, produced by linking
-//!   the product-SDK `libOpenMS` (core `4fdec46`, Debug, AppleClang 21, macOS
-//!   arm64), holds 386 doubles, 100 floats, 249 digit counts, 268 stream
-//!   precisions and 10 vectors. `tests/file_info_text_format.rs` embeds it and
-//!   compares every row.
+//!   `../oracle/a2-textfmt-linux/results/driver.tsv`, produced by linking the
+//!   Linux x86_64 **Release** install
+//!   `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
+//!   ibminode06 (conda-forge GCC 14.4.0, libstdc++ 6.0.36, glibc 2.39), holds
+//!   386 doubles, 100 floats, 249 digit counts, 268 stream precisions and 10
+//!   vectors. `tests/file_info_text_format.rs` embeds it and compares every row.
+//!   It re-runs `../oracle/file-info-text-format`'s `driver.cpp`, `cases.h` and
+//!   `pin_probe.cpp` byte for byte against the reference build rather than the
+//!   macOS product SDK (core `4fdec46`, Debug, AppleClang 21, macOS arm64). Of
+//!   the 1018 rows exactly one differs between the two captures, the sign-bit
+//!   NaN of the native-difference note above; the macOS capture stands behind
+//!   every other row unchanged.
 //! - Executed probe, tier 2: the same oracle run compiles the pinned
 //!   `NumericFormatting.h` unchanged. Its `toStr` and `number` rows are
 //!   byte-identical to the SDK's, so commit `74526a8` between the oracle build
@@ -269,10 +298,12 @@ const INTEGER_TO_STR_MAX_BYTES: usize = 20;
 /// `StringUtils::number(d, n)`: `value` with exactly `digits` fraction digits,
 /// as C `snprintf("%.*f")` writes it.
 ///
-/// Rounding uses the exact binary value with ties to even, the sign of zero is
-/// kept (`-0.00`), and NaN and the infinities print as `nan`, `inf` and `-inf`
-/// whatever `digits` is. The source parameter is a `double`, so a `float`
-/// argument is promoted first; pass `f64::from(x)`.
+/// Rounding uses the exact binary value with ties to even, and the sign of zero
+/// is kept (`-0.00`). NaN and the infinities ignore `digits` and print as
+/// `printf` writes them: `nan`, `-nan` for a NaN whose sign bit is set, `inf`
+/// and `-inf`, as the module's native-difference note records. The source
+/// parameter is a `double`, so a `float` argument is promoted first; pass
+/// `f64::from(x)`.
 ///
 /// # Errors
 ///
@@ -365,9 +396,10 @@ pub fn fixed_truncated(value: f64, digits: u32) -> String {
 /// (`0.277777777777778`). A C++ `float` is promoted to `double` before it is
 /// formatted, so pass `f64::from(x)`.
 ///
-/// Negative zero prints as `-0`, NaN as `nan` whatever its sign bit, and the
-/// infinities as `inf` and `-inf`. A precision above `i32::MAX` reaches
-/// `printf` as a negative `int` in both libc++ and libstdc++ and counts as six.
+/// Negative zero prints as `-0`, a NaN as `nan` or, with its sign bit set, as
+/// `-nan`, as the module's native-difference note records, and the infinities
+/// as `inf` and `-inf`. A precision above `i32::MAX` reaches `printf` as a
+/// negative `int` in both libc++ and libstdc++ and counts as six.
 ///
 /// Exact decimal ties follow the C standard, rounding half to even and then
 /// stripping zeros, as glibc does. Apple libc keeps the zeros of an integer below
@@ -612,10 +644,41 @@ fn source_precision(requested: u32) -> usize {
     }
 }
 
-/// `snprintf` and stream spellings of a non-finite value.
+/// `snprintf` and stream spellings of a non-finite value, as the Linux x86_64
+/// Release build's glibc writes them.
+///
+/// Every caller of this function reaches C `printf`: [`fixed`] and
+/// [`fixed_truncated`] are `StringUtils::number(double, UInt)`, whose whole body
+/// is `std::snprintf(buf, sizeof(buf), "%.*f", (int)n, d)`
+/// (`StringUtils.cpp:526-531` at core `bc9cc12`), and [`ostream_g`] is
+/// `std::ostringstream`, whose `num_put<char>::_M_insert_float` writes through
+/// `std::__convert_from_v` — `__builtin_vsnprintf` under the C locale in
+/// libstdc++ 14.4.0's `x86_64-conda-linux-gnu/bits/c++locale.h:74`. glibc's
+/// `__printf_fp` writes a NaN whose **sign bit is set** as `-nan`, so this
+/// function does.
+///
+/// The `StringUtils::toStr` path does **not** come here and must not: its first
+/// statement is `if (std::isnan(value)) { target += "NaN"; return; }`
+/// (`NumericFormatting.h:29`), which never reads the sign bit. That is
+/// [`append_numeric_f64`] and [`append_numeric_f32`], which write `NaN` for
+/// either sign.
+///
+/// Measured by `../oracle/a2-textfmt-linux` on ibminode06 against the Release
+/// install: of its 1018 rows exactly one differs from the macOS capture, the
+/// `fff8000000000000` row, and it differs in the five `printf` columns and not
+/// in the `toStr` column. That row pins `number(-NaN, n)` for `n` in `{0, 1, 2}`
+/// and `ostream(-NaN, p)` for `p` in `{6, 15}`; no other sign-bit NaN, and no
+/// sign-bit NaN `float`, is in the corpus. Every other precision and the `float`
+/// overload follow from glibc writing the sign before it dispatches on the
+/// class, which the module's native-difference note states as the
+/// generalisation it is.
 fn nonfinite(value: f64) -> &'static str {
     if value.is_nan() {
-        "nan"
+        if value.is_sign_negative() {
+            "-nan"
+        } else {
+            "nan"
+        }
     } else if value < 0.0 {
         "-inf"
     } else {
