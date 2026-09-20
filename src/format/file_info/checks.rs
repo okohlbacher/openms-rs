@@ -810,38 +810,47 @@ mod tests {
     /// (`FileInfo.cpp:1921-1924`, `:1927`), so a NaN on any other spectrum
     /// never reaches one at all: `exp.isSorted(false)` compares with `>`, for
     /// which a NaN is never greater, and the value is otherwise only printed.
-    /// The spelling of the printed NaN is `text_format::ostream_g`'s, which now
-    /// carries the sign bit; `f64::NAN` has it clear, so this line reads `nan`.
-    /// No loader on this path produces a NaN, so no differential case can reach
+    ///
+    /// The printed spelling is `text_format::ostream_g`'s, which carries the
+    /// sign bit as glibc does, so both patterns are run: `7ff8000000000000`
+    /// prints `nan` and `fff8000000000000` prints `-nan`. They are spelled out
+    /// as bits rather than written `f64::NAN`, because Rust does not guarantee
+    /// that constant's bit pattern and this assertion now depends on it. No
+    /// loader on this path produces a NaN, so no differential case can reach
     /// the line.
     #[test]
     fn a_nan_retention_time_outside_ms_level_one_is_checked() {
-        let mut experiment = MSExperiment::default();
-        experiment.spectra.push(MSSpectrum {
-            rt: 10.0,
-            peaks: vec![Peak1D::new(100.0, 1.0)],
-            ..MSSpectrum::default()
-        });
-        experiment.spectra.push(MSSpectrum {
-            rt: f64::NAN,
-            ms_level: 2,
-            ..MSSpectrum::default()
-        });
-        let mut os = ReportStream::new();
-        write_corruption_check(&experiment, &mut os).unwrap();
-        let text = os.into_string();
-        assert!(
-            text.contains("Warning: No peaks in spectrum (RT: nan)\n"),
-            "{text}"
-        );
-        assert!(
-            !text.contains("Error: Spectrum retention times are not sorted"),
-            "a NaN is never greater than its neighbour: {text}"
-        );
-        assert!(
-            !text.contains("Error: Duplicate spectrum retention time"),
-            "the NaN is not an MS1 retention time: {text}"
-        );
+        for (bits, spelled) in [
+            (0x7ff8_0000_0000_0000_u64, "nan"),
+            (0xfff8_0000_0000_0000, "-nan"),
+        ] {
+            let mut experiment = MSExperiment::default();
+            experiment.spectra.push(MSSpectrum {
+                rt: 10.0,
+                peaks: vec![Peak1D::new(100.0, 1.0)],
+                ..MSSpectrum::default()
+            });
+            experiment.spectra.push(MSSpectrum {
+                rt: f64::from_bits(bits),
+                ms_level: 2,
+                ..MSSpectrum::default()
+            });
+            let mut os = ReportStream::new();
+            write_corruption_check(&experiment, &mut os).unwrap();
+            let text = os.into_string();
+            assert!(
+                text.contains(&format!("Warning: No peaks in spectrum (RT: {spelled})\n")),
+                "{text}"
+            );
+            assert!(
+                !text.contains("Error: Spectrum retention times are not sorted"),
+                "a NaN is never greater than its neighbour: {text}"
+            );
+            assert!(
+                !text.contains("Error: Duplicate spectrum retention time"),
+                "the NaN is not an MS1 retention time: {text}"
+            );
+        }
     }
 
     /// An infinity is not NaN: the source's `<` and `==` are defined on it, so
