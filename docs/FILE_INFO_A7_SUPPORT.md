@@ -604,5 +604,6 @@ that D16 now reproduces — the vectors are declared at `:1863` and `:1942`,
 neither call carries a comparator, and `:47` is `using namespace std;` — so the
 refusal is closed with the same machinery. It is observable: for MS1 retention
 times `{5.0, NaN, 5.0}` libstdc++ moves nothing and the Release build prints no
-duplicate line, where a `f64::total_cmp` sort prints one. Section 3 of
-`docs/FILE_INFO_CHECKS_SUPPORT.md` carries the full record.
+duplicate line, where a `f64::total_cmp` sort prints one. Item 3 of
+*Native differences* in `docs/FILE_INFO_CHECKS_SUPPORT.md` carries the full
+record.
