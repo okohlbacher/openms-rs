@@ -586,10 +586,13 @@ outside that wave's scope. Both are closed:
   than the macOS SDK. `../oracle/a2-textfmt-linux` did that, and
   `text_format`'s `nonfinite` now spells a sign-bit NaN `-nan` as glibc does.
 
-All nine reports that carried native difference 5 — the five of this section
-and `c_zero_intensity_s`, `c_zero_intensity_all`, `c_nan_one_all` and
-`c_zero_swapped_all` — are compared byte for byte, with no exemption. The
-`assert_report_but_the_nan_spelling` helper that existed only for this is gone.
+All nine reports that carried native difference 5 are compared byte for byte,
+with no exemption: the four `-s` reports of the shapes tabulated above
+(`c_nan_one_s`, `c_nan_two_s`, `c_nan_then_finite_s`, `c_finite_then_nan_s`),
+the signed-zero pair `c_zero_swapped_s` and `c_zero_intensity_s`, and the three
+`-all` reports `c_nan_one_all`, `c_zero_swapped_all` and
+`c_zero_intensity_all`. The `assert_report_but_the_nan_spelling` helper that
+existed only for this difference is gone.
 
 **The same closure for `FileInfo -c`, decision D18.** `-c` refused a NaN MS1
 retention time or peak m/z on the same grounds this section once used: the
