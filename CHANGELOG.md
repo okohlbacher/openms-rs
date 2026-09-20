@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+- **Shared math carries the Release build's NaN bits and its `std::sort`
+  permutation.** The source-ABI emulation the picked feature finder had grown
+  is promoted out of `analysis::feature_finder_picked` into
+  `math::{x86_64, libstdcxx, source_sort}`: SSE2's NaN propagation rules, the
+  two libstdc++ binary searches, and the introsort and stable-sort permutations
+  of the GCC 14.4.0 `libstdc++` the reference build was compiled with. The move
+  is behaviour-preserving and gated as such; it is also a **breaking path
+  change** for anything outside the crate, because
+  `openms::analysis::feature_finder_picked::source_sort` is now
+  `openms::math::source_sort`.
+  `MATH/StatisticFunctions.h` is rebuilt on it, so a NaN a variance, covariance
+  or mean-square error generates carries `0xfff8000000000000` — the value the
+  Linux x86_64 Release build computes — on any host instead of the host's own
+  default NaN, and no finite result changes (the emulation returns the IEEE
+  result whenever it is not NaN, asserted bit for bit across the file).
+  `sort_ascending` is now the Release build's own permutation rather than
+  `f64::total_cmp`, under lead decision **D16**: reproducing an unspecified
+  `std::sort` permutation is in scope, because the port already reproduces it
+  comparison by comparison with tier-1 evidence, refuses exactly where the
+  introsort reads out of bounds, and refusing instead would turn away ordinary
+  finite data the Release build summarises. That closes both halves of
+  `CPP-347`: the two consensusXML files holding the same features in opposite
+  order now print the Release build's own order statistics, and a statistics
+  sample holding both a negative and a positive zero is no longer ordered by the
+  IEEE-754 total order where `std::sort` leaves file order (**native difference
+  6 is closed**). Two oracle cases that were refused and retained as evidence,
+  `c_nan_then_finite_s` and `c_finite_then_nan_s`, are reproduced. The C++
+  defect `CPP-347` describes — `Math::SummaryStatistics` reading order
+  statistics positionally out of a range whose order the comparison did not
+  determine — still stands upstream; the port reproduces it rather than
+  refusing it.
+
 - **`FileInfo` gained its consensusXML, identification and FASTA branches.** The
   three content branches A4 left open are ported from
   `FORMAT/FileInfo.cpp:853-1076`, `:1146-1311` and `:1312-1470` with their `-m`,
