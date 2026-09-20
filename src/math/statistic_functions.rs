@@ -88,7 +88,7 @@
 //! algorithm — the conda-forge GCC 14.4.0 libstdc++ introsort — and it runs it
 //! deterministically, so the permutation it leaves is a measurable fact about
 //! that build rather than a coin toss. Decision **D16** of
-//! `docs/EARLY_TOPP_WORK_PACKAGES.md` puts reproducing it in scope, and
+//! `docs/VALIDATION.md` puts reproducing it in scope, and
 //! [`crate::math::source_sort`] is the comparison-by-comparison port of it,
 //! validated tier 1 against two oracle drivers over 2,272 inputs carrying ties,
 //! signed zeros, infinities and four NaN bit patterns.
@@ -103,7 +103,9 @@
 //!   [`mad`](crate::math::statistic_functions::mad) and
 //!   [`SummaryStatistics::new`](crate::math::statistic_functions::SummaryStatistics::new)
 //!   sort the range and read their order statistics positionally out of it, as
-//!   `StatisticFunctions.h:140`, `:244`, `:281`, `:189` and `:948-956` do. The
+//!   `StatisticFunctions.h:140`, `:244`, `:281` and `:948-956` do — `mad`
+//!   through its own `median` call at `:189`, which is a call and not a sort.
+//!   The
 //!   positions the NaN lands in are libstdc++'s: `{NaN, 2..16}` leaves it at
 //!   index 0, `{NaN, 2..17}` moves it to index 8 and `{NaN, 2..20}` to index
 //!   10, because `__introsort_loop` only runs while the range is longer than
@@ -137,8 +139,8 @@
 //!   NaN additionally defeats their *tie test*, whose two comparisons are both
 //!   false against a NaN, so every block it touches would be merged. That is a
 //!   second, independent behaviour that no oracle row measures, so this wave
-//!   left the refusal standing rather than guess at it; see section 5.2 of
-//!   `docs/STATISTIC_FUNCTIONS_SUPPORT.md`. For a NaN-free range the two sorts
+//!   left the refusal standing rather than guess at it; see the "Where a NaN
+//!   lands" section of `docs/STATISTIC_FUNCTIONS_SUPPORT.md`. For a NaN-free range the two sorts
 //!   agree on the ranks anyway: `operator<` and `total_cmp` differ only on
 //!   `±0.0`, which the tie test makes one block either way.
 //! - [`tukey_upper_fence`](crate::math::statistic_functions::tukey_upper_fence),
@@ -271,54 +273,151 @@ fn check_no_nan(values: &[f64]) -> Result<()> {
     Ok(())
 }
 
+/// Whether the libstdc++ permutation is observable in a sample, and therefore
+/// whether [`sort_ascending`] has to run it.
+///
+/// One O(n) pass, no allocation. See [`sort_ascending`] for the argument this
+/// encodes.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum Observability {
+    /// No NaN, and not both spellings of zero: every class `operator<` calls
+    /// equivalent is a set of bit-identical values, so the permutation cannot
+    /// be seen in the output bytes.
+    Unobservable,
+    /// A NaN, or both `-0.0` and `+0.0`: the permutation decides the output.
+    Observable,
+}
+
+/// Classify a sample by whether `std::sort`'s choice among equivalent elements
+/// can be seen in the result.
+fn observability(values: &[f64]) -> Observability {
+    let mut negative_zero = false;
+    let mut positive_zero = false;
+    for &value in values {
+        if value.is_nan() {
+            return Observability::Observable;
+        }
+        if value == 0.0 {
+            // `value == 0.0` is true for both spellings and for neither
+            // infinity, so the sign bit is the only thing left to read.
+            if value.is_sign_negative() {
+                negative_zero = true;
+            } else {
+                positive_zero = true;
+            }
+            if negative_zero && positive_zero {
+                return Observability::Observable;
+            }
+        }
+    }
+    Observability::Unobservable
+}
+
 /// Sort in place into the order the C++ Release build's `std::sort` leaves.
 ///
 /// Every sorting entry point of this header calls `std::sort(begin, end)` with
 /// the default `operator<` and no comparator — `median` at
 /// `MATH/StatisticFunctions.h:140`, `quantile1st` at `:244`, `quantile3rd` at
-/// `:281`, `MAD` through its own `median` call at `:189`, and
-/// `SummaryStatistics`'s unqualified `sort(data.begin(), data.end())` at `:948`
-/// (core `bc9cc12`). This function is that call:
-/// [`source_sort_by`] with
-/// `|a, b| a < b`, which reproduces the libstdc++ introsort comparison by
-/// comparison and move by move.
+/// `:281`, `MAD` through its own `median` call (`:189` is that call, not a
+/// sort), and `SummaryStatistics`'s unqualified `sort(data.begin(), data.end())`
+/// at `:948` (core `bc9cc12`). This function is that call, reproduced by
+/// [`source_sort_by`] with `|a, b| a < b` — the libstdc++ introsort comparison
+/// by comparison and move by move — wherever the choice it makes is visible.
 ///
 /// It replaces an `f64::total_cmp` sort, and the difference is visible in
 /// exactly the two places `operator<` is not a total order:
 ///
 /// - **a NaN**, which `operator<` makes incomparable with everything. The
 ///   permutation is then unspecified rather than undefined *as an operation* —
-///   libstdc++ still runs, deterministically, and decision D16 of
-///   `docs/EARLY_TOPP_WORK_PACKAGES.md` puts reproducing it in scope;
+///   libstdc++ still runs, deterministically, and decision D16
+///   (`docs/VALIDATION.md`) puts reproducing it in scope;
 /// - **a signed zero**, which `operator<` makes *equivalent* to a plain zero.
 ///   `total_cmp` put `-0.0` first; libstdc++ leaves a short range as it found
 ///   it, and that is what the Release build prints.
 ///
+/// # The fast path, and why it is not a fidelity compromise
+///
+/// Those two are the *whole* list, and that is a theorem rather than an
+/// observation. Take a sample with **no NaN**. Then `operator<` on `f64` is a
+/// strict weak ordering: it is irreflexive and transitive, and the
+/// incomparability relation it induces is numeric equality, which is an
+/// equivalence relation on the non-NaN doubles. Two elements it calls
+/// equivalent are therefore numerically equal — and two numerically equal
+/// non-NaN doubles have **the same bits**, with exactly one exception in the
+/// whole format: `-0.0 == +0.0`.
+///
+/// So if the sample additionally does not hold *both* spellings of zero, every
+/// equivalence class is a set of bit-identical values. A sorted output sequence
+/// is then a function of the input *multiset* alone: the class boundaries are
+/// fixed by the ordering, and within a class every arrangement writes the same
+/// bytes. `std::sort`'s choice among equivalent elements is unobservable, and
+/// **any** correct sort produces the Release build's result.
+///
+/// The guard is therefore exactly that: one O(n) pass ([`observability`])
+/// testing `is_nan()` and whether both a negative and a non-negative zero
+/// occur. Where it says unobservable, this function sorts in place with
+/// `f64::total_cmp` — which refines `operator<` and agrees with it on every
+/// pair the sample contains — through `slice::sort_unstable_by`, which
+/// allocates nothing. Where it says observable, it runs the libstdc++
+/// permutation, unchanged.
+///
+/// `both_paths_agree_bit_for_bit_wherever_the_fast_one_is_taken`, at the foot
+/// of this module, is what proves this, rather than the argument above: it
+/// calls *both* this function and [`faithful_sort_ascending`] over adversarial
+/// samples — both zeros, `±inf`,
+/// subnormals, heavy duplicates, sorted, reverse and organ-pipe shapes, at
+/// lengths spanning libstdc++'s 16-element `_S_threshold` and its heapsort
+/// fallback — and asserts the outputs are bit-identical wherever the guard
+/// allows the fast one. Lead decision **D17** (`docs/VALIDATION.md`) took this
+/// path because the faithful sort measured **19.1x** wall clock and **2.9x**
+/// peak memory at n = 10,000,000 against the library sort it replaced, and
+/// `FileInfo -s` hands `summarize` every MS1 peak intensity in the file;
+/// `docs/BENCHMARKS.md` §8 carries the measurement, the host and the load.
+///
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] when the introsort's unbounded partition or
-/// final-insertion loop would read outside the vector, which is the one thing
-/// [`source_sort_by`] refuses, and
-/// which no asymmetric comparison — `<` on `f64` keys, NaN keys included — can
-/// provoke; when the owned copy the permutation is applied through cannot be
-/// allocated; and — unreachably, but checked rather than left to panic — when
-/// the sort returns something that is not a permutation of the input. `values`
-/// is left in its original order in every case.
-fn sort_ascending(values: &mut [f64]) -> Result<()> {
-    let mut owned: Vec<f64> = Vec::new();
-    owned
-        .try_reserve_exact(values.len())
-        .map_err(|_| bad("cannot allocate the sort buffer"))?;
-    owned.extend_from_slice(values);
-    source_sort_by(&mut owned, |a, b| a < b)?;
-    // `source_sort_by` applies a permutation of `0..len`, so the length cannot
-    // change; `copy_from_slice` would panic rather than refuse if it ever did,
-    // and this module may not panic on an input.
-    if owned.len() != values.len() {
-        return Err(bad("the sort did not return a permutation"));
+/// final-insertion loop would read outside the vector, which no asymmetric
+/// comparison — `<` on `f64` keys, NaN keys included — can provoke; and when
+/// the permutation vector itself cannot be allocated, which is a fallible
+/// `try_reserve_exact` rather than an abort. Both are on the faithful path
+/// only: the fast path allocates nothing and cannot fail at all. `values` is
+/// left in its original order in every case, because both errors are raised
+/// before a single element has been moved.
+///
+/// # Callers outside this module
+///
+/// `pub(crate)` rather than private because this is not a statistics detail: it
+/// is `std::sort(begin, end)` on a `std::vector<double>`, and the source makes
+/// that call in more than one file. `FORMAT/FileInfo.cpp:1927` and `:1956` are
+/// the same unqualified `sort(v.begin(), v.end())` on a `std::vector<double>`
+/// (core `bc9cc12`), so `format::file_info::checks` can reach the Release
+/// build's permutation through this function instead of sorting by
+/// `f64::total_cmp` and refusing a NaN. Any caller porting such a call should
+/// use this rather than reimplement the guard.
+pub(crate) fn sort_ascending(values: &mut [f64]) -> Result<()> {
+    if observability(values) == Observability::Unobservable {
+        // Proved above to be the Release build's own output, byte for byte.
+        // In place, and `sort_unstable_by` allocates nothing.
+        values.sort_unstable_by(f64::total_cmp);
+        return Ok(());
     }
-    values.copy_from_slice(&owned);
-    Ok(())
+    faithful_sort_ascending(values)
+}
+
+/// The libstdc++ permutation itself, with no fast path: what
+/// [`sort_ascending`] runs whenever the choice `std::sort` makes among
+/// equivalent elements is visible in the output.
+///
+/// Separate from [`sort_ascending`] so that the differential test can call
+/// both over one sample and compare the bytes, and so that the slow path is
+/// named where the profiler and the reader both look for it.
+///
+/// # Errors
+///
+/// As [`sort_ascending`]'s faithful path.
+fn faithful_sort_ascending(values: &mut [f64]) -> Result<()> {
+    source_sort_by(values, |a, b| a < b)
 }
 
 /// Fail when a range is empty.
@@ -425,6 +524,20 @@ pub fn median_sorted(values: &[f64]) -> Result<f64> {
 /// source. That is `addsd` then `divsd`, so it is built on
 /// [`x86_64::add`]/[`x86_64::div`]: `{-inf, +inf}` generates a NaN here, and
 /// its bits are the Release build's.
+///
+/// # The `addsd` operand order here is **not measured**
+///
+/// The even-size case averages two distinct elements —
+/// `(*(it + n/2 - 1) + *(it + n/2)) / 2.0` — and addition is commutative, so
+/// nothing in the source fixes which one GCC leaves in the `addsd`
+/// **destination** register. As at [`covariance`], that decides the answer only
+/// when both are NaN, and since decision D16 that is reachable:
+/// `median(&mut [nan_a, nan_b])` with two distinct payloads sorts to
+/// `[nan_a, nan_b]` (neither comparison is true) and this port then returns
+/// `nan_a`'s payload, because it calls `add(values[k - 1], values[k])`.
+/// `../oracle/a7-fileinfo`'s `c_nan_two_s` does not discriminate: both its NaNs
+/// are the same value. The same two things would settle it as at
+/// [`covariance`].
 fn median_of_sorted(values: &[f64]) -> f64 {
     let size = values.len();
     if size % 2 == 0 {
@@ -448,8 +561,11 @@ fn median_of_sorted(values: &[f64]) -> f64 {
 /// [`Error::InvalidValue`] left is the one
 /// [`source_sort_by`] raises when the
 /// introsort would read outside the vector, which `<` on `f64` keys cannot
-/// provoke, and it is raised before anything is written back, so a rejected
-/// call leaves the caller's range in its original order.
+/// provoke, together with the one the permutation's own fallible
+/// `try_reserve_exact` raises when it cannot be allocated. Both are raised
+/// before anything is written back, so a rejected call leaves the caller's
+/// range in its original order, and neither is reachable on the fast path of
+/// decision D17, which allocates nothing.
 pub fn median(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
     sort_ascending(values)?;
@@ -474,7 +590,9 @@ pub fn median(values: &mut [f64]) -> Result<f64> {
 ///
 /// Returns [`Error::InvalidValue`] only where
 /// [`sort_ascending`](crate::math::statistic_functions) does: an introsort read
-/// outside the vector, which `<` on `f64` keys cannot provoke. A NaN — in the
+/// outside the vector, which `<` on `f64` keys cannot provoke, or a permutation
+/// that cannot be allocated, which is a fallible `try_reserve_exact` and not an
+/// abort. A NaN — in the
 /// input, in `median_of_numbers`, or produced by an `inf - inf` difference that
 /// neither input had — is **reproduced**, not refused: the source stages the
 /// same differences and hands them to the same `std::sort`, and under decision
@@ -585,8 +703,11 @@ fn quantile1st_of_sorted(values: &[f64]) -> f64 {
 /// [`Error::InvalidValue`] left is the one
 /// [`source_sort_by`] raises when the
 /// introsort would read outside the vector, which `<` on `f64` keys cannot
-/// provoke, and it is raised before anything is written back, so a rejected
-/// call leaves the caller's range in its original order.
+/// provoke, together with the one the permutation's own fallible
+/// `try_reserve_exact` raises when it cannot be allocated. Both are raised
+/// before anything is written back, so a rejected call leaves the caller's
+/// range in its original order, and neither is reachable on the fast path of
+/// decision D17, which allocates nothing.
 pub fn quantile1st(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
     sort_ascending(values)?;
@@ -637,8 +758,11 @@ fn quantile3rd_of_sorted(values: &[f64]) -> f64 {
 /// [`Error::InvalidValue`] left is the one
 /// [`source_sort_by`] raises when the
 /// introsort would read outside the vector, which `<` on `f64` keys cannot
-/// provoke, and it is raised before anything is written back, so a rejected
-/// call leaves the caller's range in its original order.
+/// provoke, together with the one the permutation's own fallible
+/// `try_reserve_exact` raises when it cannot be allocated. Both are raised
+/// before anything is written back, so a rejected call leaves the caller's
+/// range in its original order, and neither is reachable on the fast path of
+/// decision D17, which allocates nothing.
 pub fn quantile3rd(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
     sort_ascending(values)?;
@@ -1000,6 +1124,34 @@ pub fn sd_with_mean(values: &[f64], mean_of_numbers: f64) -> Result<f64> {
 ///
 /// Each range's mean is computed over that range, then the cross products
 /// accumulate in slice order.
+///
+/// # The `mulsd` operand order here is **not measured**
+///
+/// The source multiplies two distinct temporaries —
+/// `(*iter_a - mean_a) * (*iter_b - mean_b)` (`StatisticFunctions.h:619`,
+/// core `bc9cc12`) — and multiplication is commutative, so nothing in the
+/// source fixes which of the two GCC leaves in the `mulsd` **destination**
+/// register. That matters only when **both** are NaN, because SSE2 then
+/// returns the destination operand quieted:
+/// `x86_64::mul` is called as
+/// `mul(sub(a, mean_a), sub(b, mean_b))`, so this port answers with the
+/// `a`-derived NaN's payload. It is reachable — `a[i]` a payload NaN (which
+/// makes `mean_a` a NaN, so `sub` returns `a[i]` quieted) while
+/// `b[i] == mean_b == +inf` (so `sub` returns the indefinite NaN) — and the
+/// two answers differ in every payload bit.
+///
+/// **No oracle row measures it**, and none is invented here. What would settle
+/// it: one `Math::covariance` call on exactly that pair, run on the Linux
+/// x86_64 Release build and its result read back as bits; or, without running
+/// anything, disassembling this loop in the reference `libOpenMS.so` and
+/// reading which operand the emitted `mulsd` writes to. Until one of those is
+/// done, the left-operand choice is an assumption, not a measurement.
+///
+/// The same hazard exists in exactly one other place in this module, the
+/// even-size average of `median_of_sorted`; everywhere else the order is
+/// forced — `subsd` and `divsd` are not commutative, `mul(diff, diff)` has one
+/// operand twice, and an accumulating `sum += x` makes the accumulator the
+/// destination.
 ///
 /// # Errors
 ///
@@ -1371,9 +1523,11 @@ impl SummaryStatistics {
     /// Returns [`Error::InvalidValue`] only where
     /// [`source_sort_by`] does: an
     /// introsort read outside the vector, which `<` on `f64` keys — NaN keys
-    /// included — cannot provoke, and which is raised before anything is
-    /// written back, so a rejected call leaves the caller's sample in its
-    /// original order.
+    /// included — cannot provoke, or a permutation that cannot be allocated,
+    /// which is a fallible `try_reserve_exact` and not an abort. Both are
+    /// raised before anything is written back, so a rejected call leaves the
+    /// caller's sample in its original order, and neither is reachable on the
+    /// fast path of decision D17, which allocates nothing.
     ///
     /// Returns [`Error::InvalidRange`] only when the internal mean refuses,
     /// which the emptiness check above makes unreachable; the signature keeps
@@ -1405,5 +1559,205 @@ impl SummaryStatistics {
             upperq: quantile3rd_of_sorted(data),
             max: data[count - 1],
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Observability, faithful_sort_ascending, observability, sort_ascending};
+
+    /// A deterministic 64-bit xorshift, so the battery is the same sequence on
+    /// every host and in every run.
+    fn xorshift(state: &mut u64) -> u64 {
+        *state ^= *state << 13;
+        *state ^= *state >> 7;
+        *state ^= *state << 17;
+        *state
+    }
+
+    /// The adversarial battery both sort paths are run over.
+    ///
+    /// Every shape that can separate `f64::total_cmp` from `operator<`, at
+    /// every length that can separate libstdc++'s three regimes: at most 16
+    /// elements is one `__insertion_sort` pass (`_S_threshold`,
+    /// `bits/stl_algo.h:1806`), above it `__introsort_loop` partitions, and a
+    /// recursion budget of `2 * floor(log2(n))` hands the range to
+    /// `__heap_select`/`__sort_heap`. The organ-pipe and sawtooth shapes are
+    /// the classic quicksort adversaries and are what reaches the last of the
+    /// three.
+    fn battery() -> Vec<Vec<f64>> {
+        let mut samples: Vec<Vec<f64>> = Vec::new();
+        let lengths = [
+            0usize, 1, 2, 3, 7, 8, 15, 16, 17, 18, 31, 32, 33, 63, 64, 100, 127, 128, 257, 1000,
+            4096,
+        ];
+        let specials = [
+            0.0_f64,
+            -0.0,
+            1.0,
+            -1.0,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            f64::MIN_POSITIVE,
+            -f64::MIN_POSITIVE,
+            5e-324,
+            -5e-324,
+            f64::MAX,
+            -f64::MAX,
+            f64::NAN,
+            -f64::NAN,
+            f64::from_bits(0x7ff4_0000_0000_0001),
+        ];
+        let mut state = 0x9E37_79B9_7F4A_7C15_u64;
+        for &len in &lengths {
+            // Ascending, descending, all equal, two values, organ pipe,
+            // sawtooth.
+            samples.push((0..len).map(|k| k as f64).collect());
+            samples.push((0..len).map(|k| (len - k) as f64).collect());
+            samples.push(vec![42.0; len]);
+            samples.push((0..len).map(|k| (k % 2) as f64).collect());
+            samples.push(
+                (0..len)
+                    .map(|k| {
+                        let half = len / 2;
+                        (if k < half { k } else { len - k }) as f64
+                    })
+                    .collect(),
+            );
+            samples.push((0..len).map(|k| (k % 7) as f64 - 3.0).collect());
+            // Both zero spellings, in both orders, padded to length.
+            if len >= 2 {
+                let mut both: Vec<f64> = (0..len).map(|k| k as f64 - len as f64).collect();
+                both[0] = -0.0;
+                both[len - 1] = 0.0;
+                samples.push(both.clone());
+                both.reverse();
+                samples.push(both);
+                // Only one spelling: the fast path must be taken here.
+                samples.push(vec![-0.0; len]);
+                let mut lone = vec![1.0; len];
+                lone[len / 2] = -0.0;
+                samples.push(lone);
+            }
+            // Random draws from the special values, and random finite draws
+            // with heavy duplication.
+            for _ in 0..4 {
+                samples.push(
+                    (0..len)
+                        .map(|_| specials[(xorshift(&mut state) as usize) % specials.len()])
+                        .collect(),
+                );
+                samples.push(
+                    (0..len)
+                        .map(|_| ((xorshift(&mut state) % 11) as f64) - 5.0)
+                        .collect(),
+                );
+                samples.push(
+                    (0..len)
+                        .map(|_| f64::from_bits(xorshift(&mut state)))
+                        .collect(),
+                );
+            }
+        }
+        samples
+    }
+
+    // Native, lead decision D17: `sort_ascending` takes a proved-equivalent
+    // fast path where `std::sort`'s choice among equivalent elements cannot be
+    // seen in the output bytes. The proof is in the rustdoc; this is the
+    // execution of it. Both paths are run over the same sample and the results
+    // are compared bit for bit -- including the NaN bits, which `==` would not
+    // compare -- so the test fails if the guard ever lets a sample through
+    // whose permutation is observable.
+    //
+    // Nothing here is derived from Rust output: the expectation is that the two
+    // implementations agree, and the faithful one is the tier-1 validated
+    // `crate::math::source_sort`.
+    #[test]
+    fn both_paths_agree_bit_for_bit_wherever_the_fast_one_is_taken() {
+        let mut fast_taken = 0usize;
+        let mut faithful_taken = 0usize;
+        for sample in battery() {
+            let mut through_entry_point = sample.clone();
+            sort_ascending(&mut through_entry_point).unwrap();
+
+            let mut through_libstdcxx = sample.clone();
+            faithful_sort_ascending(&mut through_libstdcxx).unwrap();
+
+            let left: Vec<u64> = through_entry_point.iter().map(|v| v.to_bits()).collect();
+            let right: Vec<u64> = through_libstdcxx.iter().map(|v| v.to_bits()).collect();
+            assert_eq!(
+                left,
+                right,
+                "sample of {} values classified {:?}",
+                sample.len(),
+                observability(&sample)
+            );
+
+            match observability(&sample) {
+                Observability::Unobservable => fast_taken += 1,
+                Observability::Observable => faithful_taken += 1,
+            }
+        }
+        // The test would pass vacuously if every sample took the faithful path,
+        // so both regimes are required to be exercised.
+        assert!(fast_taken > 100, "fast path taken {fast_taken} times");
+        assert!(
+            faithful_taken > 100,
+            "faithful path taken {faithful_taken} times"
+        );
+    }
+
+    // Native, lead decision D17: the guard is exactly "no NaN, and not both
+    // spellings of zero". These are the boundary cases of that sentence.
+    #[test]
+    fn the_guard_is_exactly_a_nan_or_both_zero_spellings() {
+        let unobservable: &[&[f64]] = &[
+            &[],
+            &[1.0],
+            &[-0.0],
+            &[0.0],
+            &[-0.0, -0.0, -0.0],
+            &[0.0, 0.0, 0.0],
+            &[-0.0, 1.0, -2.0, f64::INFINITY, f64::NEG_INFINITY],
+            &[0.0, f64::MIN_POSITIVE, -f64::MIN_POSITIVE, 5e-324],
+            &[f64::MAX, -f64::MAX, f64::INFINITY],
+        ];
+        for sample in unobservable {
+            assert_eq!(
+                observability(sample),
+                Observability::Unobservable,
+                "{sample:?}"
+            );
+        }
+
+        let observable: &[&[f64]] = &[
+            &[f64::NAN],
+            &[-f64::NAN],
+            &[1.0, f64::NAN],
+            &[f64::NAN, 1.0],
+            &[f64::from_bits(0x7ff4_0000_0000_0001)],
+            &[-0.0, 0.0],
+            &[0.0, -0.0],
+            &[1.0, 0.0, 2.0, -0.0, 3.0],
+            &[-0.0, 1.0, 0.0],
+        ];
+        for sample in observable {
+            assert_eq!(
+                observability(sample),
+                Observability::Observable,
+                "{sample:?}"
+            );
+        }
+
+        // A negative value that is not a zero must not be mistaken for one.
+        assert_eq!(
+            observability(&[-1.0, 1.0, -0.0]),
+            Observability::Unobservable
+        );
+        assert_eq!(
+            observability(&[-f64::MIN_POSITIVE, f64::MIN_POSITIVE, 0.0]),
+            Observability::Unobservable
+        );
     }
 }

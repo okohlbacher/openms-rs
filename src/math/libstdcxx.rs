@@ -20,9 +20,22 @@
 //! [`crate::math::x86_64`] and [`crate::math::source_sort`], and was promoted
 //! out of `analysis::feature_finder_picked::scoring` when shared math needed
 //! it; not one line of the algorithms changed in the move.
+//!
+//! **Which citations here are resolvable.** `bits/stl_algo.h` is retained at
+//! `../oracle/sne-completion/libstdcxx/stl_algo.h` (sha256 `0598c5b1…`), so
+//! [`upper_bound`]'s line range can be checked against it.
+//! `bits/stl_algobase.h` is **not** retained: its sha256 is pinned
+//! (`0ec2358c…`, `tests/data/feature_finder_picked_provenance.json`), which is
+//! what makes a toolchain change detectable, but no copy of the file is kept,
+//! so [`lower_bound`]'s line range cannot be resolved from any artefact in this
+//! repository and is given below as the header's own numbering rather than as a
+//! checked citation. When the header is retained — at
+//! `../oracle/sne-completion/libstdcxx/stl_algobase.h`, beside the two that
+//! already are — that line range becomes checkable and this paragraph goes.
 
-/// `std::__lower_bound` (`bits/stl_algobase.h:1491-1514`): the first
-/// position whose element does not satisfy `less_than_value`, found by
+/// `std::__lower_bound` (`bits/stl_algobase.h:1491-1514`, the header's own
+/// numbering; the header is not retained, see the module documentation): the
+/// first position whose element does not satisfy `less_than_value`, found by
 /// halving.
 pub(crate) fn lower_bound<T>(items: &[T], mut less_than_value: impl FnMut(&T) -> bool) -> usize {
     let mut first = 0usize;
@@ -42,7 +55,8 @@ pub(crate) fn lower_bound<T>(items: &[T], mut less_than_value: impl FnMut(&T) ->
     first
 }
 
-/// `std::__upper_bound` (`bits/stl_algo.h:1980-2003`): the first position
+/// `std::__upper_bound` (`bits/stl_algo.h:1980-2003`, checkable against the
+/// retained header): the first position
 /// whose element satisfies `value_less_than`, found by halving.
 pub(crate) fn upper_bound<T>(items: &[T], mut value_less_than: impl FnMut(&T) -> bool) -> usize {
     let mut first = 0usize;

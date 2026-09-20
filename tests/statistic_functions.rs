@@ -7,6 +7,7 @@
 //! at the assertion, and the native guard tests are tier 4.
 
 use openms::Error;
+use openms::math::source_sort::source_sort_by;
 use openms::math::statistic_functions::{
     AdaptiveQuantileResult, DEFAULT_R_DENSE, DEFAULT_R_SPARSE, DEFAULT_TUKEY_FACTOR,
     SummaryStatistics, absdev, absdev_with_mean, check_exhausted, check_not_empty,
@@ -773,18 +774,21 @@ fn invalid_value(error: &Error) -> bool {
     matches!(error, Error::InvalidValue(_))
 }
 
-// `SummaryStatistics` is the one sorting entry point that does NOT refuse every
-// NaN, because two sample shapes make the unspecified permutation unobservable.
-// Both values come from the Release C++ build, not from this crate:
-// ../oracle/a7-fileinfo cases `c_nan_one_s` and `c_nan_two_s`, whose "Average
-// relative intensity error within consensus features" blocks the tool printed
-// on ibminode06 and which tests/data/file_info_a7/expected holds verbatim.
+// Since decision D16 every sorting entry point of this header reproduces a
+// NaN-bearing sample rather than refusing it, `SummaryStatistics` included: the
+// permutation is libstdc++'s own and is pinned by
+// `the_introsort_threshold_decides_where_a_nan_lands`. These two shapes are
+// kept as a separate test because they are the two the Release build's own
+// output was retained for. Both values come from the Release C++ build, not
+// from this crate: ../oracle/a7-fileinfo cases `c_nan_one_s` and `c_nan_two_s`,
+// whose "Average relative intensity error within consensus features" blocks the
+// tool printed on ibminode06 and which tests/data/file_info_a7/expected holds
+// verbatim.
 #[test]
-fn summary_statistics_summarises_the_two_unobservable_nan_samples() {
-    // One value. A one-element range has exactly one permutation, so there is
-    // nothing for `std::sort` to choose. Reference: num. of
-    // values 1, mean/minimum/lower quartile/median/upper quartile/maximum all
-    // `-nan`, variance `0`.
+fn summary_statistics_matches_the_release_build_on_the_two_retained_nan_samples() {
+    // One value. Reference: num. of values 1,
+    // mean/minimum/lower quartile/median/upper quartile/maximum all `-nan`,
+    // variance `0`.
     let mut lone = [f64::NAN];
     let stats = SummaryStatistics::new(&mut lone).unwrap();
     assert_eq!(stats.count, 1);
@@ -799,9 +803,8 @@ fn summary_statistics_summarises_the_two_unobservable_nan_samples() {
     // The sample is left alone, as a refused one would be.
     assert!(lone[0].is_nan());
 
-    // Every value a NaN. The permutation is unspecified but unobservable.
-    // Reference: num. of values 2 and all seven value lines `-nan`, the
-    // variance included, because n > 1 lets Math::variance run.
+    // Every value a NaN. Reference: num. of values 2 and all seven value lines
+    // `-nan`, the variance included, because n > 1 lets Math::variance run.
     let mut all = [f64::NAN, f64::NAN];
     let stats = SummaryStatistics::new(&mut all).unwrap();
     assert_eq!(stats.count, 2);
@@ -942,6 +945,14 @@ fn the_x86_64_helpers_change_no_finite_result() {
                     mean_absolute_deviation(values, centre),
                     plain_abs,
                 );
+                // `absdev_with_mean` is the same arithmetic behind an
+                // emptiness check; asserted rather than assumed, so that
+                // "across every function" holds literally.
+                bits(
+                    &format!("absdev_with_mean[{index}] about {centre}"),
+                    absdev_with_mean(values, centre).unwrap(),
+                    plain_abs,
+                );
             }
         }
         let mut plain = 0.0;
@@ -975,6 +986,31 @@ fn the_x86_64_helpers_change_no_finite_result() {
                 absdev(values).unwrap(),
                 plain_absdev,
             );
+        }
+
+        // `mad`: `fabs` of the same differences (`andpd`), sorted, then the
+        // same interpolating read `median_sorted` makes. Covering it is what
+        // makes the "across every function" claim of
+        // `docs/STATISTIC_FUNCTIONS_SUPPORT.md` true: `mad` is a rebuilt entry
+        // point and was the one whose finite-result invariance no assertion
+        // reached.
+        for &centre in &[plain_mean, 0.0, 1.0, -2.5] {
+            let mut plain_diffs: Vec<f64> =
+                values.iter().map(|value| (value - centre).abs()).collect();
+            plain_diffs.sort_by(f64::total_cmp);
+            let diffs = plain_diffs.len();
+            let plain_mad = if diffs % 2 == 0 {
+                (plain_diffs[diffs / 2 - 1] + plain_diffs[diffs / 2]) / 2.0
+            } else {
+                plain_diffs[(diffs - 1) / 2]
+            };
+            if !plain_mad.is_nan() {
+                bits(
+                    &format!("mad[{index}] about {centre}"),
+                    mad(values, centre).unwrap(),
+                    plain_mad,
+                );
+            }
         }
 
         // `median_sorted` and `quantile`: the two interpolating reads.
@@ -1264,7 +1300,8 @@ fn the_sorting_entry_points_reproduce_the_release_builds_permutation() {
 }
 
 // Native, decision D16 and the `_S_threshold` boundary of
-// `docs/STATISTIC_FUNCTIONS_SUPPORT.md` section 5.2: where the NaN of a
+// the "Where a NaN lands" section of `docs/STATISTIC_FUNCTIONS_SUPPORT.md`:
+// where the NaN of a
 // `{NaN, 2..n}` sample ends up is decided by whether `__introsort_loop` runs at
 // all. It runs `while (__last - __first > int(_S_threshold))` with
 // `_S_threshold` enumerated as 16 (`bits/stl_algo.h:1806`, `:1880`,
@@ -1284,7 +1321,7 @@ fn the_sorting_entry_points_reproduce_the_release_builds_permutation() {
 // - 20 elements: the same swap against `*mid == 11` leaves it at index 10.
 //
 // The three positions are the ones measured against the reference compiler and
-// recorded in section 5.2; this test pins the whole permutation, which is
+// recorded in that section; this test pins the whole permutation, which is
 // stronger.
 #[test]
 fn the_introsort_threshold_decides_where_a_nan_lands() {
@@ -1343,7 +1380,7 @@ fn the_introsort_threshold_decides_where_a_nan_lands() {
     assert!(stats.median.is_nan(), "the documented `median: -nan`");
     assert_eq!(stats.max, 20.0);
 
-    // The other measured fact of section 5.2: below the threshold the NaN is
+    // The other measured fact of that section: below the threshold the NaN is
     // not *pinned* either. `__insertion_sort` relocates a whole block when a
     // later element belongs before `*first`, and that carries the NaN with it:
     // in `[3, NaN, 2]` the third element is `< *first`, so `move_backward`
@@ -1391,8 +1428,9 @@ fn mad_reproduces_a_nan_and_the_ranking_still_refuses_one() {
     // and a NaN additionally defeats its relative tie test, whose two
     // comparisons are both false against a NaN and which would therefore merge
     // every block the NaN touches. That is a second, independent behaviour and
-    // no oracle row measures it, so the refusal stands; section 5.2 of
-    // `docs/STATISTIC_FUNCTIONS_SUPPORT.md` records it as the one `std::sort`
+    // no oracle row measures it, so the refusal stands; the "Where a NaN
+    // lands" section of `docs/STATISTIC_FUNCTIONS_SUPPORT.md` records it as the
+    // one `std::sort`
     // of this header the shared-math wave did not move.
     let mut w = [3.0, f64::NAN, 1.0];
     assert!(invalid_value(&compute_rank(&mut w).unwrap_err()));
@@ -1447,4 +1485,338 @@ fn a_signed_zero_keeps_the_order_the_release_build_keeps() {
     assert_eq!(stats.max, 1.0);
     assert!(!mixed[1].is_sign_negative(), "{mixed:?}: 0.0 stays first");
     assert!(mixed[2].is_sign_negative(), "{mixed:?}: -0.0 stays second");
+}
+
+// Native, lead decision D17: the public entry points route through
+// `sort_ascending`, which takes a proved-equivalent fast path where
+// `std::sort`'s choice among equivalent elements cannot be seen in the output
+// bytes. `median` sorts the caller's own range, so its side effect is
+// `sort_ascending`'s output, and `openms::math::source_sort::source_sort_by` is
+// the libstdc++ introsort itself. This asserts the two agree bit for bit
+// through the public surface -- the module's own
+// `both_paths_agree_bit_for_bit_wherever_the_fast_one_is_taken` calls the two
+// paths directly and is the wider battery; this one proves the entry points
+// reach them.
+#[test]
+fn the_public_entry_points_agree_with_the_release_builds_permutation() {
+    let samples: &[&[f64]] = &[
+        // Fast path: no NaN, one zero spelling.
+        &[3.0, 1.0, 2.0],
+        &[1.0; 20],
+        &[5.0, 4.0, 3.0, 2.0, 1.0, 0.0, -1.0, -2.0],
+        &[
+            0.0,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            f64::MIN_POSITIVE,
+            5e-324,
+        ],
+        &[-0.0, -0.0, 1.0, -1.0],
+        // Faithful path: both zero spellings.
+        &[-0.0, 0.0],
+        &[0.0, -0.0],
+        &[1.0, 0.0, -1.0, -0.0, 2.0],
+        // Faithful path: a NaN, on both sides of `_S_threshold`.
+        &[f64::NAN, 2.0, 3.0],
+        &[3.0, f64::NAN, 2.0],
+        &[
+            f64::NAN,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0,
+            7.0,
+            8.0,
+            9.0,
+            10.0,
+            11.0,
+            12.0,
+            13.0,
+            14.0,
+            15.0,
+            16.0,
+        ],
+        &[
+            f64::NAN,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0,
+            7.0,
+            8.0,
+            9.0,
+            10.0,
+            11.0,
+            12.0,
+            13.0,
+            14.0,
+            15.0,
+            16.0,
+            17.0,
+        ],
+    ];
+    for sample in samples {
+        let mut through_median = sample.to_vec();
+        median(&mut through_median).unwrap();
+
+        let mut through_libstdcxx = sample.to_vec();
+        source_sort_by(&mut through_libstdcxx, |a, b| a < b).unwrap();
+
+        let left: Vec<u64> = through_median.iter().map(|v| v.to_bits()).collect();
+        let right: Vec<u64> = through_libstdcxx.iter().map(|v| v.to_bits()).collect();
+        assert_eq!(left, right, "{sample:?}");
+    }
+}
+
+// The committed benchmark behind §8 of `docs/BENCHMARKS.md`, driven by
+// `tools/bench_sort_ascending.sh`.
+//
+// It is a real test in the normal suite rather than an `#[ignore]`d one: with
+// no environment set it builds a 10,000-value sample, runs all three
+// implementations once and asserts they agree bit for bit, which costs a few
+// milliseconds. `tools/bench_sort_ascending.sh` sets `OPENMS_BENCH_N`,
+// `OPENMS_BENCH_IMPL` and `OPENMS_BENCH_REPS` and runs this binary once per
+// cell under `/usr/bin/time`, so the peak RSS it records is one
+// implementation's at one size and not the harness's.
+//
+// No assertion in this file depends on a timing, and no expected value is
+// derived from one. The timings are printed; the correctness check is what is
+// asserted.
+#[test]
+fn sort_ascending_benchmark() {
+    let n = env_usize("OPENMS_BENCH_N").unwrap_or(10_000);
+    let reps = env_usize("OPENMS_BENCH_REPS").unwrap_or(1);
+    let implementation =
+        std::env::var("OPENMS_BENCH_IMPL").unwrap_or_else(|_| "correctness".to_string());
+
+    let sample = benchmark_sample(n);
+
+    if implementation == "correctness" {
+        // The normal-suite path: all three, once, compared bit for bit.
+        let mut through_entry_point = sample.clone();
+        median(&mut through_entry_point).unwrap();
+
+        let mut through_libstdcxx = sample.clone();
+        source_sort_by(&mut through_libstdcxx, |a, b| a < b).unwrap();
+
+        let mut through_library = sample.clone();
+        through_library.sort_unstable_by(f64::total_cmp);
+
+        let entry: Vec<u64> = through_entry_point.iter().map(|v| v.to_bits()).collect();
+        let faithful: Vec<u64> = through_libstdcxx.iter().map(|v| v.to_bits()).collect();
+        let library: Vec<u64> = through_library.iter().map(|v| v.to_bits()).collect();
+        assert_eq!(entry, faithful, "the entry point disagrees with libstdc++");
+        assert_eq!(
+            library, faithful,
+            "the library sort disagrees with libstdc++"
+        );
+        return;
+    }
+
+    // One untimed warm-up, so the first timed repetition does not pay for the
+    // allocator's first touch of a buffer this size.
+    {
+        let mut warm = sample.clone();
+        warm.sort_unstable_by(f64::total_cmp);
+        assert!(warm.windows(2).all(|pair| pair[0] <= pair[1]));
+    }
+
+    let mut nanos: Vec<u128> = Vec::with_capacity(reps);
+    for _ in 0..reps {
+        let mut working = sample.clone();
+        let start = std::time::Instant::now();
+        match implementation.as_str() {
+            // What the fast path of decision D17 runs.
+            "library" => working.sort_unstable_by(f64::total_cmp),
+            // The libstdc++ permutation itself, which is exactly what
+            // `sort_ascending`'s faithful path calls.
+            "faithful" => source_sort_by(&mut working, |a, b| a < b).unwrap(),
+            // The public entry point, which picks the path.
+            "entry_point" => {
+                median(&mut working).unwrap();
+            }
+            other => panic!("unknown OPENMS_BENCH_IMPL {other}"),
+        }
+        nanos.push(start.elapsed().as_nanos());
+        // Keep the sorted buffer alive past the timer so the sort is not
+        // optimised away, and check it really is sorted.
+        assert!(working.windows(2).all(|pair| pair[0] <= pair[1]));
+    }
+    nanos.sort_unstable();
+    let median_ns = nanos[nanos.len() / 2];
+    // One tab-separated line per cell, which the driver script collects.
+    println!("BENCH\t{n}\t{implementation}\t{reps}\t{median_ns}");
+}
+
+fn env_usize(name: &str) -> Option<usize> {
+    std::env::var(name).ok().and_then(|v| v.parse().ok())
+}
+
+/// The benchmark sample: `n` positive finite doubles spanning six decades with
+/// heavy duplication, which is the shape `FileInfo -s` hands `summarize` — one
+/// MS1 peak intensity per peak, quantised by the instrument, so ties are the
+/// rule rather than the exception.
+///
+/// No NaN and one spelling of zero, so the fast path of decision D17 is taken
+/// and the two implementations are timed on identical bytes.
+fn benchmark_sample(n: usize) -> Vec<f64> {
+    let mut state = 0x243F_6A88_85A3_08D3_u64;
+    let mut values = Vec::with_capacity(n);
+    for _ in 0..n {
+        state ^= state << 13;
+        state ^= state >> 7;
+        state ^= state << 17;
+        // Six decades, quantised to five significant digits.
+        let mantissa = (state >> 11) % 100_000;
+        let exponent = (state % 6) as i32;
+        values.push(mantissa as f64 * 10f64.powi(exponent - 2));
+    }
+    values
+}
+
+// How often the fast path of lead decision D17 is actually taken, over the
+// repository's own mzML corpus rather than over a guess.
+//
+// Three sample shapes are counted, all of them ones the C++ `FileInfo` builds
+// and hands to an unqualified `sort(v.begin(), v.end())` on a
+// `std::vector<double>`:
+//
+//   - the MS1 peak-intensity sample of `-s` (`FileInfo.cpp:2400` through
+//     `write_statistics`), which is the whole file's MS1 peaks and is the
+//     sample the D17 regression was about;
+//   - the MS1 retention-time sample of `-c` (`FileInfo.cpp:1927`);
+//   - the per-spectrum peak m/z sample of `-c` (`FileInfo.cpp:1956`).
+//
+// A sample misses the fast path only if it holds a NaN or both spellings of
+// zero. Run with `OPENMS_BENCH_IMPL=corpus`; the normal suite skips it, and
+// `tools/bench_sort_ascending.sh --corpus` is the recorded command.
+#[test]
+fn how_often_the_fast_path_is_taken_over_the_mzml_corpus() {
+    if std::env::var("OPENMS_BENCH_IMPL").as_deref() != Ok("corpus") {
+        return;
+    }
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data");
+    let mut files: Vec<std::path::PathBuf> = Vec::new();
+    collect_mzml(&root, &mut files);
+    files.sort();
+
+    let mut samples = 0usize;
+    let mut fast = 0usize;
+    let mut values_total = 0usize;
+    let mut values_fast = 0usize;
+    let mut read_failures = 0usize;
+    let mut observable: Vec<String> = Vec::new();
+
+    for file in &files {
+        let handle = match std::fs::File::open(file) {
+            Ok(handle) => handle,
+            Err(_) => {
+                read_failures += 1;
+                continue;
+            }
+        };
+        let experiment = match openms::format::mzml::read(std::io::BufReader::new(handle)) {
+            Ok(experiment) => experiment,
+            // Several fixtures are deliberately broken inputs; they are not
+            // samples and are counted separately rather than silently dropped.
+            Err(_) => {
+                read_failures += 1;
+                continue;
+            }
+        };
+
+        let name = file
+            .strip_prefix(&root)
+            .unwrap_or(file)
+            .display()
+            .to_string();
+
+        let intensities: Vec<f64> = experiment
+            .spectra
+            .iter()
+            .filter(|spectrum| spectrum.ms_level == 1)
+            .flat_map(|spectrum| spectrum.peaks.iter().map(|peak| f64::from(peak.intensity)))
+            .collect();
+        let retention_times: Vec<f64> = experiment
+            .spectra
+            .iter()
+            .filter(|spectrum| spectrum.ms_level == 1)
+            .map(|spectrum| spectrum.rt)
+            .collect();
+        let mut batches: Vec<(String, Vec<f64>)> = vec![
+            (format!("{name}: MS1 intensities"), intensities),
+            (format!("{name}: MS1 retention times"), retention_times),
+        ];
+        for (index, spectrum) in experiment.spectra.iter().enumerate() {
+            batches.push((
+                format!("{name}: spectrum {index} m/z"),
+                spectrum.peaks.iter().map(|peak| peak.mz).collect(),
+            ));
+        }
+
+        for (label, sample) in batches {
+            if sample.is_empty() {
+                continue;
+            }
+            samples += 1;
+            values_total += sample.len();
+            if takes_the_fast_path(&sample) {
+                fast += 1;
+                values_fast += sample.len();
+            } else if observable.len() < 20 {
+                observable.push(label);
+            }
+        }
+    }
+
+    println!(
+        "CORPUS\tfiles={}\tunreadable={}\tsamples={samples}\tfast={fast}\tvalues={values_total}\tvalues_fast={values_fast}",
+        files.len(),
+        read_failures
+    );
+    for label in &observable {
+        println!("CORPUS-OBSERVABLE\t{label}");
+    }
+    assert!(samples > 0, "the corpus produced no samples");
+}
+
+/// The guard of `math::statistic_functions::observability`, restated here
+/// because it is private. Kept deliberately naive so that it is obviously the
+/// same sentence: no NaN, and not both spellings of zero.
+fn takes_the_fast_path(values: &[f64]) -> bool {
+    let mut negative_zero = false;
+    let mut positive_zero = false;
+    for &value in values {
+        if value.is_nan() {
+            return false;
+        }
+        if value == 0.0 {
+            if value.is_sign_negative() {
+                negative_zero = true;
+            } else {
+                positive_zero = true;
+            }
+            if negative_zero && positive_zero {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+fn collect_mzml(directory: &std::path::Path, into: &mut Vec<std::path::PathBuf>) {
+    let entries = match std::fs::read_dir(directory) {
+        Ok(entries) => entries,
+        Err(_) => return,
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_mzml(&path, into);
+        } else if path.extension().and_then(|e| e.to_str()) == Some("mzML") {
+            into.push(path);
+        }
+    }
 }

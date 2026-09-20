@@ -1523,32 +1523,12 @@ defensible. They are also recorded in [VALIDATION](VALIDATION.md).
   assertion dropped; the charge counts `-2` and `-3` stay refused
   unconditionally; `atan` off x86_64 with glibc keeps the `libm` crate; and the
   step-3.3.5 termination was searched for once more and found.
-- **D16** (shared-math wave, 2026-09-19). **Reproducing an unspecified
-  `std::sort` permutation is in scope.** The question the
-  `sort_ascending` bullet of this document and the "Still open" section of
-  [VALIDATION](VALIDATION.md) carried, and which section 5.2 of
-  [STATISTIC_FUNCTIONS_SUPPORT](STATISTIC_FUNCTIONS_SUPPORT.md) and of
-  [FILE_INFO_A7_SUPPORT](FILE_INFO_A7_SUPPORT.md) left open — whether the port
-  should reproduce a permutation the C++ standard leaves unspecified — is
-  decided yes, on four grounds:
-  1. **The port already does it.** `src/math/source_sort.rs` is a
-     comparison-by-comparison, move-by-move port of the GCC 14.4.0 libstdc++
-     introsort and `stable_sort`, validated tier 1 against two oracle drivers
-     (`../oracle/ffap-instr-completion`, `../oracle/ffap-complete-fix1`) over
-     2,272 inputs carrying ties, signed zeros, infinities and four NaN bit
-     patterns. Using it in `sort_ascending` promotes executed evidence; it does
-     not gamble on new behaviour.
-  2. It is **D1-compliant by construction**: it reproduces the in-bounds,
-     deterministic, measured behaviour and refuses exactly where the introsort's
-     unbounded partition and final-insertion loops read outside the vector.
-  3. **Refusing is worse.** The signed-zero half (native difference 6) is
-     ordinary finite data the Release build summarises without complaint; a
-     blanket refusal in `sort_ascending` would turn it away, and
-     `sort_ascending` is what every `SummaryStatistics` caller in the crate
-     consumes.
-  4. The **pin risk is already managed**: `source_sort` names the sha256 of
-     every libstdc++ header whose algorithm it reproduces, so a toolchain change
-     is detectable rather than silent.
+
+**D16 was filed in this list in error and has moved.** This list is wave 5's
+own, D1-D13, and D16 belongs to the shared-math wave of 2026-09-19. Its full
+text, with the provenance of when and on what grounds the lead took it, is now
+in [VALIDATION](VALIDATION.md#lead-decisions-d1-d17), beside D14, D15 and D17.
+Nothing about the decision changed in the move.
 
 ### What remains
 
@@ -1907,7 +1887,7 @@ one worktree that has the pinned checkouts.
      `root_mean_square_error`, `mean_absolute_deviation`, `mad`'s `fabs`, and
      the two interpolating order statistics. No finite value moved
      (`the_x86_64_helpers_change_no_finite_result` asserts it bit for bit) and
-     fourteen generated-NaN bit patterns are pinned.
+     fifteen generated-NaN bit patterns are pinned.
   3. re-capture A2's oracle row against the **Linux Release build** rather than
      the macOS SDK — `../oracle/file-info-text-format/results/driver.tsv:92` is
      `D fff8000000000000 nan nan nan nan nan NaN`, measured with Apple libc, and
@@ -1928,7 +1908,8 @@ one worktree that has the pinned checkouts.
   **Closed in the shared-math wave under decision D16.** `sort_ascending` is
   `source_sort_by(&mut values, |a, b| a < b)` — `std::sort(begin, end)` with the
   default `operator<`, the call at `MATH/StatisticFunctions.h:140`, `:244`,
-  `:281`, `:189` and `:948`. Both halves are closed at once: the NaN deferral is
+  `:281` and `:948`, which `MAD` reaches through its own `median` call at
+  `:189`. Both halves are closed at once: the NaN deferral is
   gone (`median`, `quantile1st`, `quantile3rd`, `mad` and
   `SummaryStatistics::new` reproduce a NaN-bearing sample, and the only refusal
   left is D1's out-of-bounds one, which an asymmetric comparison cannot reach),
@@ -1938,7 +1919,8 @@ one worktree that has the pinned checkouts.
   `c_finite_then_nan_s` and `c_zero_swapped_s` — are now compared line for line
   against the retained Release reports and differ only in native difference 5's
   `nan` / `-nan` spelling. Two things this did **not** close, both recorded in
-  section 5.2 of [STATISTIC_FUNCTIONS_SUPPORT](STATISTIC_FUNCTIONS_SUPPORT.md):
+  the "Where a NaN lands" section of
+  [STATISTIC_FUNCTIONS_SUPPORT](STATISTIC_FUNCTIONS_SUPPORT.md):
   `compute_rank` and `rank_correlation_coefficient` still refuse a NaN, because
   their `std::sort` is a lambda on `std::pair::second` rather than the default
   `operator<` and a NaN defeats their relative tie test in a second,
