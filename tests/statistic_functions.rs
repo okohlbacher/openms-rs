@@ -1559,3 +1559,254 @@ fn the_public_entry_points_agree_with_the_release_builds_permutation() {
         assert_eq!(left, right, "{sample:?}");
     }
 }
+
+// The committed benchmark behind §8 of `docs/BENCHMARKS.md`, driven by
+// `tools/bench_sort_ascending.sh`.
+//
+// It is a real test in the normal suite rather than an `#[ignore]`d one: with
+// no environment set it builds a 10,000-value sample, runs all three
+// implementations once and asserts they agree bit for bit, which costs a few
+// milliseconds. `tools/bench_sort_ascending.sh` sets `OPENMS_BENCH_N`,
+// `OPENMS_BENCH_IMPL` and `OPENMS_BENCH_REPS` and runs this binary once per
+// cell under `/usr/bin/time`, so the peak RSS it records is one
+// implementation's at one size and not the harness's.
+//
+// No assertion in this file depends on a timing, and no expected value is
+// derived from one. The timings are printed; the correctness check is what is
+// asserted.
+#[test]
+fn sort_ascending_benchmark() {
+    let n = env_usize("OPENMS_BENCH_N").unwrap_or(10_000);
+    let reps = env_usize("OPENMS_BENCH_REPS").unwrap_or(1);
+    let implementation =
+        std::env::var("OPENMS_BENCH_IMPL").unwrap_or_else(|_| "correctness".to_string());
+
+    let sample = benchmark_sample(n);
+
+    if implementation == "correctness" {
+        // The normal-suite path: all three, once, compared bit for bit.
+        let mut through_entry_point = sample.clone();
+        median(&mut through_entry_point).unwrap();
+
+        let mut through_libstdcxx = sample.clone();
+        source_sort_by(&mut through_libstdcxx, |a, b| a < b).unwrap();
+
+        let mut through_library = sample.clone();
+        through_library.sort_unstable_by(f64::total_cmp);
+
+        let entry: Vec<u64> = through_entry_point.iter().map(|v| v.to_bits()).collect();
+        let faithful: Vec<u64> = through_libstdcxx.iter().map(|v| v.to_bits()).collect();
+        let library: Vec<u64> = through_library.iter().map(|v| v.to_bits()).collect();
+        assert_eq!(entry, faithful, "the entry point disagrees with libstdc++");
+        assert_eq!(
+            library, faithful,
+            "the library sort disagrees with libstdc++"
+        );
+        return;
+    }
+
+    // One untimed warm-up, so the first timed repetition does not pay for the
+    // allocator's first touch of a buffer this size.
+    {
+        let mut warm = sample.clone();
+        warm.sort_unstable_by(f64::total_cmp);
+        assert!(warm.windows(2).all(|pair| pair[0] <= pair[1]));
+    }
+
+    let mut nanos: Vec<u128> = Vec::with_capacity(reps);
+    for _ in 0..reps {
+        let mut working = sample.clone();
+        let start = std::time::Instant::now();
+        match implementation.as_str() {
+            // What the fast path of decision D17 runs.
+            "library" => working.sort_unstable_by(f64::total_cmp),
+            // The libstdc++ permutation itself, which is exactly what
+            // `sort_ascending`'s faithful path calls.
+            "faithful" => source_sort_by(&mut working, |a, b| a < b).unwrap(),
+            // The public entry point, which picks the path.
+            "entry_point" => {
+                median(&mut working).unwrap();
+            }
+            other => panic!("unknown OPENMS_BENCH_IMPL {other}"),
+        }
+        nanos.push(start.elapsed().as_nanos());
+        // Keep the sorted buffer alive past the timer so the sort is not
+        // optimised away, and check it really is sorted.
+        assert!(working.windows(2).all(|pair| pair[0] <= pair[1]));
+    }
+    nanos.sort_unstable();
+    let median_ns = nanos[nanos.len() / 2];
+    // One tab-separated line per cell, which the driver script collects.
+    println!("BENCH\t{n}\t{implementation}\t{reps}\t{median_ns}");
+}
+
+fn env_usize(name: &str) -> Option<usize> {
+    std::env::var(name).ok().and_then(|v| v.parse().ok())
+}
+
+/// The benchmark sample: `n` positive finite doubles spanning six decades with
+/// heavy duplication, which is the shape `FileInfo -s` hands `summarize` — one
+/// MS1 peak intensity per peak, quantised by the instrument, so ties are the
+/// rule rather than the exception.
+///
+/// No NaN and one spelling of zero, so the fast path of decision D17 is taken
+/// and the two implementations are timed on identical bytes.
+fn benchmark_sample(n: usize) -> Vec<f64> {
+    let mut state = 0x243F_6A88_85A3_08D3_u64;
+    let mut values = Vec::with_capacity(n);
+    for _ in 0..n {
+        state ^= state << 13;
+        state ^= state >> 7;
+        state ^= state << 17;
+        // Six decades, quantised to five significant digits.
+        let mantissa = (state >> 11) % 100_000;
+        let exponent = (state % 6) as i32;
+        values.push(mantissa as f64 * 10f64.powi(exponent - 2));
+    }
+    values
+}
+
+// How often the fast path of lead decision D17 is actually taken, over the
+// repository's own mzML corpus rather than over a guess.
+//
+// Three sample shapes are counted, all of them ones the C++ `FileInfo` builds
+// and hands to an unqualified `sort(v.begin(), v.end())` on a
+// `std::vector<double>`:
+//
+//   - the MS1 peak-intensity sample of `-s` (`FileInfo.cpp:2400` through
+//     `write_statistics`), which is the whole file's MS1 peaks and is the
+//     sample the D17 regression was about;
+//   - the MS1 retention-time sample of `-c` (`FileInfo.cpp:1927`);
+//   - the per-spectrum peak m/z sample of `-c` (`FileInfo.cpp:1956`).
+//
+// A sample misses the fast path only if it holds a NaN or both spellings of
+// zero. Run with `OPENMS_BENCH_IMPL=corpus`; the normal suite skips it, and
+// `tools/bench_sort_ascending.sh --corpus` is the recorded command.
+#[test]
+fn how_often_the_fast_path_is_taken_over_the_mzml_corpus() {
+    if std::env::var("OPENMS_BENCH_IMPL").as_deref() != Ok("corpus") {
+        return;
+    }
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data");
+    let mut files: Vec<std::path::PathBuf> = Vec::new();
+    collect_mzml(&root, &mut files);
+    files.sort();
+
+    let mut samples = 0usize;
+    let mut fast = 0usize;
+    let mut values_total = 0usize;
+    let mut values_fast = 0usize;
+    let mut read_failures = 0usize;
+    let mut observable: Vec<String> = Vec::new();
+
+    for file in &files {
+        let handle = match std::fs::File::open(file) {
+            Ok(handle) => handle,
+            Err(_) => {
+                read_failures += 1;
+                continue;
+            }
+        };
+        let experiment = match openms::format::mzml::read(std::io::BufReader::new(handle)) {
+            Ok(experiment) => experiment,
+            // Several fixtures are deliberately broken inputs; they are not
+            // samples and are counted separately rather than silently dropped.
+            Err(_) => {
+                read_failures += 1;
+                continue;
+            }
+        };
+
+        let name = file
+            .strip_prefix(&root)
+            .unwrap_or(file)
+            .display()
+            .to_string();
+
+        let intensities: Vec<f64> = experiment
+            .spectra
+            .iter()
+            .filter(|spectrum| spectrum.ms_level == 1)
+            .flat_map(|spectrum| spectrum.peaks.iter().map(|peak| f64::from(peak.intensity)))
+            .collect();
+        let retention_times: Vec<f64> = experiment
+            .spectra
+            .iter()
+            .filter(|spectrum| spectrum.ms_level == 1)
+            .map(|spectrum| spectrum.rt)
+            .collect();
+        let mut batches: Vec<(String, Vec<f64>)> = vec![
+            (format!("{name}: MS1 intensities"), intensities),
+            (format!("{name}: MS1 retention times"), retention_times),
+        ];
+        for (index, spectrum) in experiment.spectra.iter().enumerate() {
+            batches.push((
+                format!("{name}: spectrum {index} m/z"),
+                spectrum.peaks.iter().map(|peak| peak.mz).collect(),
+            ));
+        }
+
+        for (label, sample) in batches {
+            if sample.is_empty() {
+                continue;
+            }
+            samples += 1;
+            values_total += sample.len();
+            if takes_the_fast_path(&sample) {
+                fast += 1;
+                values_fast += sample.len();
+            } else if observable.len() < 20 {
+                observable.push(label);
+            }
+        }
+    }
+
+    println!(
+        "CORPUS\tfiles={}\tunreadable={}\tsamples={samples}\tfast={fast}\tvalues={values_total}\tvalues_fast={values_fast}",
+        files.len(),
+        read_failures
+    );
+    for label in &observable {
+        println!("CORPUS-OBSERVABLE\t{label}");
+    }
+    assert!(samples > 0, "the corpus produced no samples");
+}
+
+/// The guard of `math::statistic_functions::observability`, restated here
+/// because it is private. Kept deliberately naive so that it is obviously the
+/// same sentence: no NaN, and not both spellings of zero.
+fn takes_the_fast_path(values: &[f64]) -> bool {
+    let mut negative_zero = false;
+    let mut positive_zero = false;
+    for &value in values {
+        if value.is_nan() {
+            return false;
+        }
+        if value == 0.0 {
+            if value.is_sign_negative() {
+                negative_zero = true;
+            } else {
+                positive_zero = true;
+            }
+            if negative_zero && positive_zero {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+fn collect_mzml(directory: &std::path::Path, into: &mut Vec<std::path::PathBuf>) {
+    let entries = match std::fs::read_dir(directory) {
+        Ok(entries) => entries,
+        Err(_) => return,
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_mzml(&path, into);
+        } else if path.extension().and_then(|e| e.to_str()) == Some("mzML") {
+            into.push(path);
+        }
+    }
+}

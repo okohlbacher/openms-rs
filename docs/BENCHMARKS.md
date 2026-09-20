@@ -18,7 +18,10 @@ is carried through eight of the nine cases so that the flag's effect is measured
 within this session rather than inferred across two (§3.7).
 
 Section 6 lists what the run does **not** establish, and section 5 the caveats
-that qualify every figure in it. Section 4 is the earlier, narrower wave-5 run
+that qualify every figure in it. Section 8 is a different kind of measurement
+and is kept apart from all of it: an in-repo micro-benchmark of one function,
+`math::statistic_functions::sort_ascending`, on a workstation rather than a
+reserved node, behind lead decision D17. Section 4 is the earlier, narrower wave-5 run
 that framed the build-flag question on a different node; it is **not** comparable
 with the wave-6 tables in absolute terms and is kept for how the decision was
 reached.
@@ -941,3 +944,137 @@ Results live under `/ceph/ibmi/abi/oliver/bench/openms4/results/`, indexed by
 and `w6_consolidated.json` carries the merged statistics the tables above print.
 The oracle artifacts cited here are registered with their sha256 in
 `SOURCE_PROVENANCE.json`.
+
+## 8. The shared-math sort after lead decision D17 (2026-09-20)
+
+A different kind of measurement from everything above: an **in-repo
+micro-benchmark** of one function, not a tool against the C++ reference build,
+and on a developer workstation rather than a reserved node. It is here because
+`docs/STATISTIC_FUNCTIONS_SUPPORT.md` used to carry a four-row timing table with
+no committed harness and no retained data, which is the one place in these
+documents a figure was not reproducible. The harness is now committed, this
+section is the record, and that document points here instead of repeating
+numbers.
+
+### 8.1 What is measured
+
+`math::statistic_functions::sort_ascending` is `std::sort(begin, end)` with the
+default `operator<` — the call at `MATH/StatisticFunctions.h:140`, `:244`,
+`:281` and `:948` — and the shared-math wave made it the libstdc++ introsort
+reproduced comparison by comparison (`crate::math::source_sort`, lead decision
+D16). Three implementations of the same sort are timed on the same bytes:
+
+| row | what it is |
+| --- | --- |
+| **library** | `slice::sort_unstable_by(f64::total_cmp)`: what the fast path of lead decision **D17** runs. In place, allocates nothing. |
+| **faithful** | `source_sort_by(\|a, b\| a < b)`: the libstdc++ permutation itself, which `sort_ascending` runs whenever `std::sort`'s choice among equivalent elements is visible in the output. |
+| **entry point** | `median(&mut sample)`: the public entry point, which picks the path. |
+
+The sample is `n` positive finite doubles over six decades, quantised to five
+significant digits so ties are the rule — the shape `FileInfo -s` hands
+`summarize`, which is one MS1 peak intensity per peak of the whole file, bounded
+only by `FileInfo::MAX_STATISTICS_VALUES = 1 << 27`. It holds no NaN and one
+spelling of zero, so the entry point takes the fast path on it and the three
+rows are comparable.
+
+### 8.2 Host, load and command
+
+- **Host**: Apple M4 Max, 16 cores, 128 GiB, macOS (Darwin 25.6.0, arm64). A
+  workstation, not a reserved node — §5's caveats about shared hosts all apply,
+  and §3's reserved-node figures are not comparable with these.
+- **Build**: `--release`, the checkout's own profile; `.cargo/config.toml`'s
+  `+fma` is an x86_64 setting and does not apply here.
+- **Load**: load average 12.7 before and 11.2 after, on 16 cores — elevated
+  because the harness's own `cargo` build runs inside the window. Instantaneous
+  CPU-busy sampled at the start of the session was 13.7 % across the 16 cores.
+  §2's note applies: load average alone is a poor gate. The check that the
+  numbers are not load artefacts is the **repeat**: an earlier run of the same
+  harness on the same tree, at load average 4.4, agrees within 4 % at
+  n ≥ 100,000. Below n = 10,000 the two runs differ by up to 2.5x in both
+  directions and **those two rows should not be read as measurements**; they are
+  microseconds of work against a process launch.
+- **Command**:
+
+```sh
+tools/bench_sort_ascending.sh --reps 7 --out bench.tsv   # the table below
+tools/bench_sort_ascending.sh --corpus                   # §8.4
+```
+
+Each cell is one fresh process running one implementation at one size under
+`/usr/bin/time`, so the peak RSS is that implementation's own and not the
+harness's; seven repetitions after one untimed warm-up, median reported. The
+benchmark itself is `sort_ascending_benchmark` in `tests/statistic_functions.rs`,
+which is a real test in the normal suite — with no environment set it runs all
+three implementations once at n = 10,000 and asserts they agree bit for bit.
+Nothing in it is `#[ignore]`d and no assertion anywhere depends on a timing.
+
+### 8.3 The result
+
+| n | library (fast path) | faithful (libstdc++) | entry point | faithful / library | peak RSS library | peak RSS faithful |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1,000 | 6 µs | 13 µs | 7 µs | 2.1x | 6 MiB | 6 MiB |
+| 10,000 | 78 µs | 337 µs | 80 µs | 4.3x | 7 MiB | 7 MiB |
+| 100,000 | 1.0 ms | 6.8 ms | 1.1 ms | 6.7x | 8 MiB | 9 MiB |
+| 1,000,000 | 12.4 ms | 90.1 ms | 12.9 ms | 7.2x | 22 MiB | 29 MiB |
+| **10,000,000** | **115.9 ms** | **1.91 s** | **118.4 ms** | **16.5x** | **159 MiB** | **235 MiB** |
+
+The **entry point** column is the one that answers the question D17 was taken
+about, and it now tracks the library sort: 118.4 ms against 115.9 ms at ten
+million values, 2 % apart, with identical peak RSS. The **faithful** column is
+what a sample still pays when the permutation is observable — a NaN, or both
+`-0.0` and `+0.0` — and it is unchanged behaviour, deliberately.
+
+The same harness on `8455793`, the commit before this repair, over the same
+sample and the same seven repetitions:
+
+| n | entry point before | entry point after | peak RSS before | peak RSS after |
+| --- | --- | --- | --- | --- |
+| 1,000,000 | 80.1 ms | 12.9 ms | 52 MiB | 22 MiB |
+| 10,000,000 | 2.23 s | 118.4 ms | 464 MiB | 159 MiB |
+
+**18.9x** in wall clock and **2.9x** in peak memory at ten million values. Two
+separate changes produce that, and they are worth keeping apart:
+
+- **D17's fast path** removes the permutation entirely where it cannot be
+  observed, which is the whole of the entry point's gain.
+- **Applying the permutation in place** (finding F2: `apply_permutation` staged
+  a `Vec<Option<T>>`, 16 bytes per `f64`, through an infallible `collect`)
+  improves the *faithful* path on its own, where no fast path is available:
+  2.43 s and 388 MiB before, 1.91 s and 235 MiB after — **1.27x** in wall clock
+  and **1.65x** in peak memory. The remaining 235 MiB over a 159 MiB baseline is
+  the permutation vector, 8 bytes per element, which is inherent to reproducing
+  a permutation and is reserved fallibly rather than infallibly.
+
+### 8.4 How often the fast path is actually taken
+
+The fast path is missed only by a sample holding a NaN or both spellings of
+zero. Over every mzML fixture in `tests/data` — 121 files, of which 19 are
+deliberately malformed and do not parse — counting one sample per file for the
+MS1 intensities of `FileInfo -s` and the MS1 retention times of `-c`, and one
+per spectrum for the peak m/z of `-c`:
+
+| samples | take the fast path | values | values on the fast path |
+| --- | --- | --- | --- |
+| 809 | **809** | 489,448 | **489,448** |
+
+All of them. That is a corpus of small fixtures rather than a corpus of
+production runs, and several of its files exist precisely because they are
+awkward, so it is evidence and not a proof — but it is the evidence available in
+this repository, it is reproducible with one command, and it says the regression
+D17 removes was being paid on every sample and bought nothing on any of them.
+The samples that *do* take the faithful path are the ones the port has oracle
+rows for: `../oracle/a7-fileinfo`'s `c_nan_one_s`, `c_nan_two_s`,
+`c_zero_swapped_s` and their siblings, which are constructed.
+
+### 8.5 What this does not establish
+
+- Nothing about the C++ Release build. No C++ was run; the "faithful" row is the
+  port's reproduction of libstdc++'s algorithm, not libstdc++.
+- Nothing about arm64 versus x86_64. One host, one architecture. The introsort is
+  branch- and comparison-bound and the library sort is not, so the ratio is a
+  property of the pair of algorithms more than of the chip, but that is an
+  argument and not a measurement here.
+- Nothing about `FileInfo` end to end. This is one function. What `FileInfo -s`
+  costs over a real run is a §3-class measurement and has not been repeated since
+  the wave-6 tables.
+- The n = 1,000 and n = 10,000 rows are not measurements; see §8.2.

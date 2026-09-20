@@ -238,35 +238,55 @@ reproduces the defect, and the defect stands.
    `SummaryStatistics::new` does its own sorting and so reads through the
    private `_of_sorted` helpers, which do not re-check.
 
-#### The cost of the faithful sort
+#### The cost of the faithful sort, and the fast path that removes it
 
 `sort_ascending` is no longer a library sort. It builds a permutation of
 `0..n` with the libstdc++ introsort reproduced in Rust, calling a closure for
-every comparison and applying the permutation through an owned buffer, where it
-used to call `slice::sort_by`. That is measurably slower, and the figure is
-recorded here rather than left for a reviewer to find, measured on macOS arm64
-in a release build over a deterministic pseudo-random sample:
+every comparison, where it used to call `slice::sort_by`. That is **16.5x**
+slower at ten million values, and the samples it is handed are not small:
+`src/format/file_info/peaks.rs:706` and `:714` give `summarize` every MS1 peak
+intensity in the file, bounded only by
+`FileInfo::MAX_STATISTICS_VALUES = 1 << 27`. On a routine LC-MS run that was a
+real regression on `FileInfo -s`, not a theoretical one.
 
-| n | `sort_by(f64::total_cmp)` | `source_sort_by` | ratio |
-| --- | --- | --- | --- |
-| 1,000 | 35 µs | 81 µs | 2.3x |
-| 10,000 | 197 µs | 843 µs | 4.3x |
-| 100,000 | 2.1 ms | 9.7 ms | 4.6x |
-| 1,000,000 | 15.9 ms | 79.6 ms | 5.0x |
+Lead decision **D17** (`docs/VALIDATION.md`) closes it without giving anything
+up. Where the sample holds **no NaN** and **not both spellings of zero**,
+`sort_ascending` sorts in place with `f64::total_cmp` and allocates nothing;
+otherwise it runs the libstdc++ permutation, unchanged. That is not a
+compromise, because in exactly that case the permutation cannot be observed:
+without a NaN, `operator<` is a strict weak ordering whose equivalence relation
+is numeric equality, and two numerically equal non-NaN doubles are
+bit-identical — with `-0.0 == +0.0` the one exception in the whole format. Every
+equivalence class is then a set of identical bytes, the sorted sequence is a
+function of the multiset alone, and any correct sort writes what the Release
+build writes. The guard is one O(n) pass testing those two things and nothing
+else.
 
-Whether that matters depends on who calls it, and in this crate the answer is
-narrow: the only consumers of the sorting entry points are `FileInfo`'s
-`summarize` (`src/format/file_info/report.rs`), whose samples are bounded by
-`FileInfo::MAX_STATISTICS_VALUES` and are in practice one value per feature, and
-`fasta.rs`'s sequence-length summary. `mass_trace_detection.rs` has a `median`
-of its own and does not reach this one. No hot inner loop of the crate sorts
-through `statistic_functions`: the picked feature finder already called
-`crate::math::source_sort` directly and is unchanged by this.
+The argument is not what the port rests on.
+`both_paths_agree_bit_for_bit_wherever_the_fast_one_is_taken` runs **both**
+paths over the same adversarial samples — both zeros, both infinities,
+subnormals, `DBL_MAX`, signalling and negative NaNs, heavy duplication,
+ascending, descending, organ-pipe and sawtooth shapes, and raw random bit
+patterns, at 21 lengths spanning libstdc++'s 16-element `_S_threshold` and its
+heapsort fallback — and compares the results bit for bit, NaN payloads included.
+Deleting either half of the guard makes it fail.
+`the_public_entry_points_agree_with_the_release_builds_permutation` shows
+`median`'s public surface reaching both paths, and
+`the_guard_is_exactly_a_nan_or_both_zero_spellings` pins the boundary.
 
-The ratio is the price of the permutation being the source's rather than the
-library's, and D16 accepts it. If a future caller needs the speed on a large
-sample, the place to fix it is `source_sort`, not a second sort here — two
-sorting rules in one module is exactly the divergence this wave removed.
+**The measurement is in [BENCHMARKS](BENCHMARKS.md) §8**, with the host, the
+load, the command and the committed harness
+(`tools/bench_sort_ascending.sh`, driving `sort_ascending_benchmark` in
+`tests/statistic_functions.rs`); the numbers are not repeated here. In one
+line: at ten million values the public entry point went from **2.23 s and
+464 MiB** to **118 ms and 159 MiB**, and over every mzML fixture in
+`tests/data` **809 of 809** statistics samples take the fast path.
+
+Who calls this at all is still narrow. The consumers of the sorting entry points
+are `FileInfo`'s `summarize` (`src/format/file_info/report.rs`) and `fasta.rs`'s
+sequence-length summary. `mass_trace_detection.rs` has a `median` of its own and
+does not reach this one, and the picked feature finder already called
+`crate::math::source_sort` directly and is unchanged by all of this.
 
 ### Signed zeros
 
