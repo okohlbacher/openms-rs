@@ -384,7 +384,18 @@ fn observability(values: &[f64]) -> Observability {
 /// only: the fast path allocates nothing and cannot fail at all. `values` is
 /// left in its original order in every case, because both errors are raised
 /// before a single element has been moved.
-fn sort_ascending(values: &mut [f64]) -> Result<()> {
+///
+/// # Callers outside this module
+///
+/// `pub(crate)` rather than private because this is not a statistics detail: it
+/// is `std::sort(begin, end)` on a `std::vector<double>`, and the source makes
+/// that call in more than one file. `FORMAT/FileInfo.cpp:1927` and `:1956` are
+/// the same unqualified `sort(v.begin(), v.end())` on a `std::vector<double>`
+/// (core `bc9cc12`), so `format::file_info::checks` can reach the Release
+/// build's permutation through this function instead of sorting by
+/// `f64::total_cmp` and refusing a NaN. Any caller porting such a call should
+/// use this rather than reimplement the guard.
+pub(crate) fn sort_ascending(values: &mut [f64]) -> Result<()> {
     if observability(values) == Observability::Unobservable {
         // Proved above to be the Release build's own output, byte for byte.
         // In place, and `sort_unstable_by` allocates nothing.
