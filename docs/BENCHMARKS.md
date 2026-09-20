@@ -990,9 +990,9 @@ rows are comparable.
   §2's note applies: load average alone is a poor gate. The check that the
   numbers are not load artefacts is the **repeat**: an earlier run of the same
   harness on the same tree, at load average 4.4, agrees within 4 % at
-  n ≥ 100,000. Below n = 10,000 the two runs differ by up to 2.5x in both
-  directions and **those two rows should not be read as measurements**; they are
-  microseconds of work against a process launch.
+  n ≥ 100,000. At n = 10,000 they differ by up to 17 % and at n = 1,000 by up to
+  **2.6x**, in both directions, so **those two rows should not be read as
+  measurements**; they are microseconds of work against a process launch.
 - **Command**:
 
 ```sh
@@ -1032,18 +1032,41 @@ sample and the same seven repetitions:
 | 1,000,000 | 80.1 ms | 12.9 ms | 52 MiB | 22 MiB |
 | 10,000,000 | 2.23 s | 118.4 ms | 464 MiB | 159 MiB |
 
-**18.9x** in wall clock and **2.9x** in peak memory at ten million values. Two
-separate changes produce that, and they are worth keeping apart:
+**18.8x** in wall clock and **2.9x** in peak memory at ten million values, and
+**6.2x** and **2.4x** at one million. Measured against the same run's library
+sort, the regression D17 was taken about was **19.1x** and **2.9x**.
+
+Two separate changes produce that, and they are worth keeping apart because
+only one of them is an unambiguous gain:
 
 - **D17's fast path** removes the permutation entirely where it cannot be
-  observed, which is the whole of the entry point's gain.
+  observed. That is the whole of the entry point's improvement.
 - **Applying the permutation in place** (finding F2: `apply_permutation` staged
   a `Vec<Option<T>>`, 16 bytes per `f64`, through an infallible `collect`)
-  improves the *faithful* path on its own, where no fast path is available:
-  2.43 s and 388 MiB before, 1.91 s and 235 MiB after — **1.27x** in wall clock
-  and **1.65x** in peak memory. The remaining 235 MiB over a 159 MiB baseline is
-  the permutation vector, 8 bytes per element, which is inherent to reproducing
-  a permutation and is reserved fallibly rather than infallibly.
+  changes the *faithful* path, where no fast path is available, and it **cuts
+  peak memory at both sizes but costs wall clock at the smaller one**:
+
+  | n | faithful wall before | after | faithful peak before | after |
+  | --- | --- | --- | --- | --- |
+  | 1,000,000 | 80.7 ms | 90.1 ms | 45 MiB | 29 MiB |
+  | 10,000,000 | 2.43 s | 1.91 s | 388 MiB | 235 MiB |
+
+  **1.65x** less peak memory at ten million and **1.51x** at one million, and
+  **1.27x** faster at ten million but **1.12x slower at one million**. The
+  slowdown is outside this session's run-to-run spread (2.3 % at that cell
+  across the two repeats) and is reported rather than smoothed. The likely
+  reason — not measured, so not claimed — is that following cycles with `swap`
+  is random access where the buffered version drained and pushed sequentially,
+  and that only pays for itself once the 16n buffer stops fitting comfortably.
+  The change is kept regardless, because what it removes is not a cost but an
+  **infallible ~2 GiB allocation at `MAX_STATISTICS_VALUES`** whose failure
+  aborts the process, which lead decision D1 refuses to reproduce; a tenth of a
+  faithful-path sort is the price of that, and the faithful path is taken by
+  none of the 809 corpus samples in §8.4.
+
+  The 235 MiB that remains over a 159 MiB baseline is the permutation vector,
+  8 bytes per element, which is inherent to reproducing a permutation and is
+  now reserved fallibly rather than infallibly.
 
 ### 8.4 How often the fast path is actually taken
 

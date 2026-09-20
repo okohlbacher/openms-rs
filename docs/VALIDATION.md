@@ -349,7 +349,7 @@ repair round that followed it.
   and now says so.
 
 - **D17** (shared-math repair round, **2026-09-20**). **`sort_ascending` may
-  take a proved-equivalent fast path.** D16's faithful sort measured **16.5x**
+  take a proved-equivalent fast path.** D16's faithful sort measured **19.1x**
   wall clock and **2.9x** peak memory at n = 10,000,000 against the library sort
   it replaced ([BENCHMARKS](BENCHMARKS.md) §8), and
   `src/format/file_info/peaks.rs:706` and `:714` hand `summarize` **every MS1

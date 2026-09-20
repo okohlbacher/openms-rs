@@ -369,9 +369,10 @@ fn observability(values: &[f64]) -> Observability {
 /// lengths spanning libstdc++'s 16-element `_S_threshold` and its heapsort
 /// fallback — and asserts the outputs are bit-identical wherever the guard
 /// allows the fast one. Lead decision **D17** (`docs/VALIDATION.md`) took this
-/// path because the faithful sort measured 6.7x wall clock and ~3.3x peak
-/// memory at n = 10,000,000, and `FileInfo -s` hands `summarize` every MS1 peak
-/// intensity in the file; `docs/BENCHMARKS.md` carries the measurement.
+/// path because the faithful sort measured **19.1x** wall clock and **2.9x**
+/// peak memory at n = 10,000,000 against the library sort it replaced, and
+/// `FileInfo -s` hands `summarize` every MS1 peak intensity in the file;
+/// `docs/BENCHMARKS.md` §8 carries the measurement, the host and the load.
 ///
 /// # Errors
 ///

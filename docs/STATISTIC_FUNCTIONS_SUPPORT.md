@@ -243,7 +243,9 @@ reproduces the defect, and the defect stands.
 `sort_ascending` is no longer a library sort. It builds a permutation of
 `0..n` with the libstdc++ introsort reproduced in Rust, calling a closure for
 every comparison, where it used to call `slice::sort_by`. That is **16.5x**
-slower at ten million values, and the samples it is handed are not small:
+slower than a library sort of the same ten million values, and it cost the
+public entry point **19.1x** wall clock and **2.9x** peak memory before this
+repair. The samples it is handed are not small:
 `src/format/file_info/peaks.rs:706` and `:714` give `summarize` every MS1 peak
 intensity in the file, bounded only by
 `FileInfo::MAX_STATISTICS_VALUES = 1 << 27`. On a routine LC-MS run that was a
