@@ -252,9 +252,9 @@ Every public member of `FileInfo.h`, and the file-local helpers of
    dispatches on the class. A wider negative-NaN sweep,
    `../oracle/a2-textfmt-nan-sweep`, was captured by another lane while this
    one ran; it is named rather than cited, because it is not registered in this
-   repository's manifests and is the lead's to fold in. A macOS C++ build writes `nan` for the same bits, so a macOS
-   comparison must not count the difference as a port defect — the same caveat
-   the `%g` tie class carries.
+   repository's manifests and is the lead's to fold in. A macOS C++ build
+   writes `nan` for the same bits, so a macOS comparison must not count the
+   difference as a port defect — the same caveat the `%g` tie class carries.
 
    `SummaryStatistics::new` no longer refuses any NaN. It used to summarise only
    the two shapes in which the permutation `std::sort` leaves behind cannot be
