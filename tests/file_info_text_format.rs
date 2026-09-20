@@ -3760,7 +3760,9 @@ fn the_negative_nan_sweep_is_reproduced_row_for_row() {
         // `NF`/`PF`/`TF` carry a 32-bit pattern; C++ promotes it before
         // formatting, which is what `f64::from` does here.
         let value = if section.ends_with('F') {
-            f64::from(f32::from_bits(u32::from_str_radix(bits, 16).expect("f32 bits")))
+            f64::from(f32::from_bits(
+                u32::from_str_radix(bits, 16).expect("f32 bits"),
+            ))
         } else {
             f64::from_bits(u64::from_str_radix(bits, 16).expect("f64 bits"))
         };

@@ -57,7 +57,7 @@
 //! undefined. Lead decision **D16** settles that differently: the Release build
 //! runs one particular algorithm deterministically, the port reproduces it, and
 //! refusing would turn away data the reference build summarises. So both sorts
-//! now go through `sort_as_the_source_does`, which is that algorithm, and the
+//! now go through `sort_ascending`, which is that algorithm, and the
 //! refusal is gone.
 //!
 //! It is an observable difference, not a formality. For MS1 retention times
@@ -92,7 +92,7 @@ use super::report::ReportStream;
 use crate::Error;
 use crate::Result;
 use crate::kernel::MSExperiment;
-use crate::math::source_sort::source_sort_by;
+use crate::math::statistic_functions::sort_ascending;
 use crate::metadata::{ChromatogramType, DriftTimeUnit};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -424,12 +424,12 @@ pub(crate) fn write_detailed_spectra(experiment: &MSExperiment, os: &mut ReportS
 ///
 /// A NaN retention time or m/z is **not** refused: both sorts reproduce the
 /// permutation libstdc++ leaves, under lead decision D16. See the module
-/// documentation and `sort_as_the_source_does`.
+/// documentation and `sort_ascending`.
 ///
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] when the retention-time or m/z buffer cannot
-/// be allocated, and as `sort_as_the_source_does` — which for `f64` keys can
+/// be allocated, and as `sort_ascending` — which for `f64` keys can
 /// only fail on an allocation, never on the comparison. The header is written
 /// first, so unlike the refusal this replaces, such a failure leaves a partial
 /// report behind; it is an out-of-memory condition, not an input the port
@@ -478,7 +478,7 @@ pub(crate) fn write_corruption_check(
         }
     }
 
-    sort_as_the_source_does(&mut ms1_rts)?;
+    sort_ascending(&mut ms1_rts)?;
     for pair in ms1_rts.windows(2) {
         if pair[0] == pair[1] {
             os.text("Error: Duplicate spectrum retention time: ")
@@ -512,7 +512,7 @@ pub(crate) fn write_corruption_check(
             }
             mzs.push(peak.mz);
         }
-        sort_as_the_source_does(&mut mzs)?;
+        sort_ascending(&mut mzs)?;
         for pair in mzs.windows(2) {
             if pair[0] == pair[1] {
                 os.text("Error: Duplicate peak m/z ")
@@ -547,71 +547,6 @@ fn nondescending(values: impl IntoIterator<Item = f64>) -> bool {
     true
 }
 
-/// `sort(v.begin(), v.end())` on a `std::vector<double>`, which is literally
-/// what `FileInfo.cpp:1927` and `:1956` call (`using namespace std;` at `:47`,
-/// both vectors declared at `:1863` and `:1942`, neither call carrying a
-/// comparator).
-///
-/// Under lead decision **D16** reproducing the permutation libstdc++'s
-/// `std::sort` happens to leave is in scope, so this is
-/// [`source_sort_by`](crate::math::source_sort::source_sort_by) with the
-/// source's own `operator<`. That is what closes the NaN refusal this function
-/// replaces: a NaN in either vector is no longer an answer the port has to
-/// decline, it is an answer it computes.
-///
-/// # The fast path, and why it changes no byte
-///
-/// The faithful sort builds a permutation vector and applies it through an
-/// owned copy, which costs both time and memory that `-c` cannot afford on a
-/// routine run — it sorts every spectrum's m/z values. It is only needed where
-/// the permutation is *observable*, and that is decidable in one pass:
-///
-/// - Without a NaN, `operator<` on `f64` is a strict weak ordering, so
-///   `std::sort`'s precondition holds and every correct sort produces some
-///   correct output.
-/// - Two elements that `operator<` calls equivalent — `!(a < b) && !(b < a)` —
-///   are then numerically equal, and two equal doubles are bit-identical with
-///   exactly one exception: `-0.0` and `+0.0`.
-/// - So unless the sample holds both zero spellings, every equivalence class is
-///   a set of bit-identical values, the output *sequence* is a function of the
-///   multiset alone, and which permutation produced it cannot be observed —
-///   not by the `==` scan below, and not by the value it prints.
-///
-/// The guard is therefore exactly "no NaN, and not both zero spellings", and
-/// where it holds this sorts in place with `f64::total_cmp` and allocates
-/// nothing. `both_paths_agree_wherever_the_fast_path_is_taken` runs both paths
-/// over the same inputs and asserts bit-identical output; that is the proof,
-/// not this paragraph.
-///
-/// # Errors
-///
-/// As [`source_sort_by`](crate::math::source_sort::source_sort_by): only when
-/// the introsort would read outside the vector, which `<` on `f64` keys — NaN
-/// keys included — cannot provoke, or when its owned copy cannot be allocated.
-fn sort_as_the_source_does(values: &mut Vec<f64>) -> Result<()> {
-    let mut any_nan = false;
-    let mut negative_zero = false;
-    let mut positive_zero = false;
-    for &value in values.iter() {
-        if value.is_nan() {
-            any_nan = true;
-            break;
-        }
-        if value == 0.0 {
-            if value.is_sign_negative() {
-                negative_zero = true;
-            } else {
-                positive_zero = true;
-            }
-        }
-    }
-    if any_nan || (negative_zero && positive_zero) {
-        return source_sort_by(values, |a, b| a < b);
-    }
-    values.sort_unstable_by(f64::total_cmp);
-    Ok(())
-}
-
 fn allocation(what: &str) -> Error {
     Error::InvalidValue(format!("FileInfo -c: cannot allocate the {what} buffer"))
 }
@@ -620,6 +555,7 @@ fn allocation(what: &str) -> Error {
 mod tests {
     use super::*;
     use crate::kernel::{MSChromatogram, MSSpectrum, Peak1D};
+    use crate::math::source_sort::source_sort_by;
 
     /// The source reads `ms.front()` and `ms.back()` of every selected-reaction
     /// monitoring chromatogram unchecked, which is undefined on an empty one.
@@ -690,10 +626,10 @@ mod tests {
         // relocates a whole block, so "a short range never moves" would be the
         // wrong rule to read out of the line above.
         let mut sample = vec![5.0_f64, f64::NAN, 5.0];
-        sort_as_the_source_does(&mut sample).unwrap();
+        sort_ascending(&mut sample).unwrap();
         assert!(sample[0] == 5.0 && sample[1].is_nan() && sample[2] == 5.0);
         let mut block_move = vec![3.0_f64, f64::NAN, 2.0];
-        sort_as_the_source_does(&mut block_move).unwrap();
+        sort_ascending(&mut block_move).unwrap();
         assert!(block_move[0] == 2.0 && block_move[1] == 3.0 && block_move[2].is_nan());
 
         // The same three retention times under the IEEE-754 total order would
@@ -734,7 +670,7 @@ mod tests {
         );
     }
 
-    /// Both paths of `sort_as_the_source_does` on the same inputs, which is the
+    /// Both paths of `sort_ascending` on the same inputs, which is the
     /// proof behind its fast path: where the guard sends a sample down the
     /// `f64::total_cmp` path, the faithful `std::sort` produces the same bytes.
     ///
@@ -773,7 +709,7 @@ mod tests {
         }
         for sample in samples {
             let mut fast = sample.clone();
-            sort_as_the_source_does(&mut fast).unwrap();
+            sort_ascending(&mut fast).unwrap();
             let mut faithful = sample.clone();
             source_sort_by(&mut faithful, |a, b| a < b).unwrap();
             assert_eq!(
