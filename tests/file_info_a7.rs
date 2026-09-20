@@ -542,60 +542,46 @@ fn consensus_degenerate_maps() {
     assert_eq!(feature.map_columns.len(), 2);
 }
 
-/// Compare a report with the Release build's, allowing `expected` lines to
-/// differ and only in the way native difference 5 of
-/// `docs/FILE_INFO_A7_SUPPORT.md` describes: the reference spells a NaN whose
-/// sign bit is set `-nan`, this crate spells every NaN `nan`.
+/// Compare a report with the Release build's byte for byte, and additionally
+/// assert that `expected` of its lines end in `-nan`.
 ///
-/// Native difference 5 is a **class of line**, not one line, so the count is
-/// passed in and every differing line is checked against the class: the
-/// reference line must end in `-nan`, ours must end in `nan` and not in
-/// `-nan`, and putting the sign back must reproduce the reference line
-/// character for character. The assertion therefore fails if a line outside the
-/// class differs, if the number of NaN-spelled lines changes, if a `-nan`
-/// appears where the reference has a number, or if this crate starts or stops
-/// writing the sign.
+/// This replaces `assert_report_but_the_nan_spelling`, which existed because
+/// the port spelled every NaN `nan` where glibc spells a sign-bit NaN `-nan`
+/// — native difference 5 of `docs/FILE_INFO_A7_SUPPORT.md`, now **closed**.
+/// The reports it guarded are byte-identical to the reference, so the
+/// comparison is [`assert_report`] and nothing is exempted.
+///
+/// The `-nan` count is kept as a tripwire rather than dropped. Byte equality
+/// alone would still hold if both this crate and a regenerated expectation
+/// stopped writing the sign, or if the NaN-bearing lines disappeared; asserting
+/// how many lines of the class the Release build's own frozen report carries
+/// fails in both cases, and it is the number the support document quotes.
 #[cfg(feature = "consensusxml")]
-fn assert_report_but_the_nan_spelling(
+fn assert_report_with_signed_nans(
     actual: &str,
     expected_file: &Path,
     label: &str,
     expected: usize,
 ) {
+    assert_report(actual, expected_file, label);
     let reference_text = normalise_file_name(&read_text(expected_file));
+    let signed = reference_text
+        .lines()
+        .filter(|line| line.ends_with("-nan"))
+        .count();
+    assert_eq!(
+        signed, expected,
+        "{label}: the reference report carries {signed} sign-bit NaN lines, not {expected}"
+    );
+    // Nothing anywhere in either report spells a NaN without the sign: the only
+    // NaN these branches can compute is the SSE2 default NaN, whose sign bit is
+    // set, and `StringUtils::toStr` writes `NaN` rather than `nan`.
     let actual = normalise_file_name(actual);
-    let reference: Vec<&str> = reference_text.split_inclusive('\n').collect();
-    let ours: Vec<&str> = actual.split_inclusive('\n').collect();
-    assert_eq!(
-        ours.len(),
-        reference.len(),
-        "{label}: line count, {}",
-        first_difference(&actual, &reference_text)
-    );
-    let differing: Vec<usize> = (0..ours.len())
-        .filter(|&i| ours[i] != reference[i])
-        .collect();
-    assert_eq!(
-        differing.len(),
-        expected,
-        "{label}: expected exactly the NaN spellings to differ, differing lines {differing:?}"
-    );
-    for &line in &differing {
-        let theirs = reference[line].trim_end_matches('\n');
-        let mine = ours[line].trim_end_matches('\n');
-        let at = line + 1;
-        assert!(
-            theirs.ends_with("-nan"),
-            "{label}: the reference line at {at} is {theirs:?}, not a signed NaN"
-        );
-        assert!(
-            mine.ends_with("nan") && !mine.ends_with("-nan"),
-            "{label}: our line at {at} is {mine:?}, not an unsigned NaN"
-        );
+    for (which, text) in [("reference", &reference_text), ("ours", &actual)] {
         assert_eq!(
-            theirs,
-            mine.replacen("nan", "-nan", 1),
-            "{label}: our line at {at} differs by more than the NaN's sign"
+            text.matches("nan").count(),
+            text.matches("-nan").count(),
+            "{label}: the {which} report spells a NaN without its sign"
         );
     }
 }
@@ -656,7 +642,7 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
         let result = FileInfo::new()
             .run(input("a7_cons_zero_intensity.consensusXML"), &options)
             .unwrap_or_else(|e| panic!("{case}: {e}"));
-        assert_report_but_the_nan_spelling(
+        assert_report_with_signed_nans(
             &result.text,
             &data(&format!("file_info_a7/expected/{case}.txt")),
             &format!("{case} text"),
@@ -669,13 +655,15 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
             &data(&format!("file_info_a7/expected/{case}.tsv")),
             &format!("{case} tsv"),
         );
-        // The one line of the class here is the variance, and the infinities
-        // around it are spelled the same on both sides, so only that one needs
-        // the exception above.
-        assert!(result.text.contains("  variance:       nan\n"), "{case}");
+        // The one NaN-bearing line here is the variance, and it carries the
+        // sign: `Math::variance` reaches it through `(inf - inf)`, which
+        // `subsd` answers with SSE2's default NaN `0xfff8000000000000`, and
+        // glibc spells that `-nan`. The infinities around it are ordinary.
+        assert!(result.text.contains("  variance:       -nan\n"), "{case}");
         assert!(result.text.contains("  mean:           inf\n"), "{case}");
         assert!(result.text.contains("  maximum:        inf\n"), "{case}");
         assert_eq!(result.text.matches("nan").count(), 1, "{case}");
+        assert_eq!(result.text.matches("-nan").count(), 1, "{case}");
     }
 }
 
@@ -781,7 +769,7 @@ fn consensus_nan_in_the_statistics_sample() {
         let result = FileInfo::new()
             .run(input(name), options)
             .unwrap_or_else(|e| panic!("{case}: {e}"));
-        assert_report_but_the_nan_spelling(
+        assert_report_with_signed_nans(
             &result.text,
             &data(&format!("file_info_a7/expected/{case}.txt")),
             &format!("{case} text"),
@@ -805,12 +793,12 @@ fn consensus_nan_in_the_statistics_sample() {
         "Average relative intensity error within consensus features \
          (\"max{(element / center), (center / element)}\", weight 1 per consensus features):\n  \
          num. of values: 1\n  \
-         mean:           nan\n  \
-         minimum:        nan\n  \
-         lower quartile: nan\n  \
-         median:         nan\n  \
-         upper quartile: nan\n  \
-         maximum:        nan\n  \
+         mean:           -nan\n  \
+         minimum:        -nan\n  \
+         lower quartile: -nan\n  \
+         median:         -nan\n  \
+         upper quartile: -nan\n  \
+         maximum:        -nan\n  \
          variance:       0\n"
     ));
     // The all-NaN sample: the same six lines, and a NaN variance because n > 1.
@@ -819,13 +807,13 @@ fn consensus_nan_in_the_statistics_sample() {
         .expect("c_nan_two_s");
     assert!(two_s.text.contains(
         "  num. of values: 2\n  \
-         mean:           nan\n  \
-         minimum:        nan\n  \
-         lower quartile: nan\n  \
-         median:         nan\n  \
-         upper quartile: nan\n  \
-         maximum:        nan\n  \
-         variance:       nan\n"
+         mean:           -nan\n  \
+         minimum:        -nan\n  \
+         lower quartile: -nan\n  \
+         median:         -nan\n  \
+         upper quartile: -nan\n  \
+         maximum:        -nan\n  \
+         variance:       -nan\n"
     ));
 
     // The Release build's `-s` TSV for those two files is byte-identical to its
@@ -966,7 +954,7 @@ fn consensus_a_signed_zero_sample_keeps_the_release_builds_order() {
         let swapped = FileInfo::new()
             .run(input("a7_cons_zero_swapped.consensusXML"), options)
             .unwrap_or_else(|e| panic!("{pos_case}: {e}"));
-        assert_report_but_the_nan_spelling(
+        assert_report_with_signed_nans(
             &swapped.text,
             &data(&format!("file_info_a7/expected/{pos_case}.txt")),
             &format!("{pos_case} text"),
@@ -979,7 +967,7 @@ fn consensus_a_signed_zero_sample_keeps_the_release_builds_order() {
         let unswapped = FileInfo::new()
             .run(input("a7_cons_nan_one.consensusXML"), options)
             .unwrap_or_else(|e| panic!("{neg_case}: {e}"));
-        assert_report_but_the_nan_spelling(
+        assert_report_with_signed_nans(
             &unswapped.text,
             &data(&format!("file_info_a7/expected/{neg_case}.txt")),
             &format!("{neg_case} text"),

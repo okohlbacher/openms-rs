@@ -62,6 +62,7 @@ use crate::format::FileHandler;
 use crate::format::file_types::FileType;
 use crate::kernel::ranges::RangeBase;
 use crate::kernel::{ConsensusFeature, ConsensusMap};
+use crate::math::x86_64;
 use crate::metadata::DataProcessing;
 use crate::{Error, Result};
 use std::collections::BTreeMap;
@@ -429,12 +430,10 @@ fn collect(map: &ConsensusMap) -> Result<Samples> {
             // variance; one of intensity -0.0 gives 1 / -0.0 = -inf, so the
             // `it_aad` below can be (-inf) + (+inf) = NaN and the NaN reaches
             // the per-consensus-feature sample itself. All of that is in bounds
-            // and reproducible, so D1 keeps it; `nan` against the reference
-            // build's `-nan` is native difference 5 of
-            // docs/FILE_INFO_A7_SUPPORT.md, pinned by
+            // and reproducible, so D1 keeps it, and it is pinned by
             // `consensus_zero_intensity_sub_feature_makes_the_variance_a_nan`
-            // and `consensus_nan_in_the_statistics_sample`. Section 5.2 of that
-            // document covers the one shape `SummaryStatistics` cannot answer.
+            // and `consensus_nan_in_the_statistics_sample`. Section 5.2 of
+            // docs/FILE_INFO_A7_SUPPORT.md records the measurement.
             let it_ratio = f64::from(handle.intensity) / denominator;
             samples.it_delta_by_elems.push(it_ratio);
             let it_ratio = if it_ratio < 1.0 {
@@ -443,7 +442,25 @@ fn collect(map: &ConsensusMap) -> Result<Samples> {
                 it_ratio
             };
             samples.it_aad_by_elems.push(it_ratio);
-            it_aad += it_ratio;
+            // The one place in this module where plain Rust arithmetic can
+            // *generate* a NaN, so the one place whose NaN bits would otherwise
+            // be the host's: `addsd` answers an invalid (-inf) + (+inf) with
+            // SSE2's default NaN `0xfff8000000000000`, whose sign bit is set,
+            // while an AArch64 host produces the positive default NaN. The text
+            // layer spells those two differently (`-nan` against `nan`), so the
+            // spelling is only honest once the value is.
+            //
+            // Nothing else here needs it. `map.validate()` in the consensusXML
+            // reader refuses a non-finite rt, m/z, intensity or width
+            // (`ConsensusFeature::validate` -> `validate_values`,
+            // `src/kernel/features.rs:954-964`), so `rt_diff` and `mz_diff` are
+            // differences of finite values and `it_ratio` a quotient of one by a
+            // non-zero one; the `rt_aad`/`mz_aad` sums accumulate values already
+            // made non-negative, which cannot cancel to a NaN; and the three
+            // `/= handles` divisors are finite counts of at least one. An
+            // overflow to an infinity is IEEE-determined and so host-independent
+            // either way.
+            it_aad = x86_64::add(it_aad, it_ratio);
         }
         if !feature.handles().is_empty() {
             let handles = as_double(count(feature.handles().len())?);

@@ -725,11 +725,35 @@
    "label": "oracle-generated (tier 1 executed differential)"
   },
   {
+   "path": "../oracle/a2-textfmt-linux/manifest.json",
+   "sha256": "1ae828addd8b66f355a57b4a968972b80e92b99b1c1f0eca3dcca63ab7788541",
+   "origin_key": "tests/data/file_info_text_format_provenance.json",
+   "package": "A2-TEXTFMT",
+   "role": "the same StringUtils, stream and list formatting rows (D, S, F, G, L) re-captured against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, with the pinned NumericFormatting.h as its probe; driver.cpp, cases.h and pin_probe.cpp are byte-identical to ../oracle/file-info-text-format's, so this supersedes that capture for the numerics while it stands behind the other 1017 of its 1018 rows unchanged. The one differing row is the sign-bit NaN fff8000000000000, where glibc writes -nan in the five printf columns and Apple libc writes nan",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a2-textfmt-linux/results/column_attribution.txt",
+   "sha256": "816c2c52b23706d2b68d282004c49462aa36d170267a62c5a7fdc4641452fb3d",
+   "origin_key": "tests/data/file_info_text_format_provenance.json",
+   "package": "A2-TEXTFMT",
+   "role": "which driver.tsv column is glibc printf (number, ostream: the sign of a NaN survives) and which is OpenMS NumericFormatting (toStr: the sign is discarded), with the pin citations, and the corpus's NaN coverage",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a2-textfmt-linux/results/macos_vs_linux.txt",
+   "sha256": "8525924e52043bf8f2bcec4b4a2f6879e7fb502d461b79fc4f1dda00fb4cb06b",
+   "origin_key": "tests/data/file_info_text_format_provenance.json",
+   "package": "A2-TEXTFMT",
+   "role": "the row-by-row comparison of the two captures: 1 of 1018 driver.tsv rows differs, and the same single row in pin_probe.tsv and driver.shared.tsv",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
    "path": "../oracle/file-info-text-format/manifest.json",
    "sha256": "a959541af4859bfa5b84f7471ebef31a3cdf417ad362f563b6245b7bfc4a7334",
    "origin_key": "tests/data/file_info_text_format_provenance.json",
    "package": "A2-TEXTFMT",
-   "role": "StringUtils, stream and list formatting rows (D, S, F, G, L) from product-SDK libOpenMS and the pinned NumericFormatting.h; bundle/A2-TEXTFMT 6cec951",
+   "role": "StringUtils, stream and list formatting rows (D, S, F, G, L) from product-SDK libOpenMS and the pinned NumericFormatting.h; bundle/A2-TEXTFMT 6cec951. Superseded for the numerics by ../oracle/a2-textfmt-linux above, and retained: it is the macOS side of the platform measurement and the source of the driver this repository's tie-rule evidence was selected from",
    "label": "oracle-generated (tier 1 executed differential)"
   },
   {
