@@ -839,8 +839,9 @@ fn consensus_nan_in_the_statistics_sample() {
     // two files are the same length and disagree on exactly the four order
     // statistics, so those values are a property of the *file order* rather
     // than of the sample — and the port now gets both of them right, which is
-    // what the two `assert_report_but_the_nan_spelling` calls above proved.
-    // Before decision D16 this pair was the reason `-s` was refused outright.
+    // what the two `assert_report_with_signed_nans` calls above proved, byte
+    // for byte. Before decision D16 this pair was the reason `-s` was refused
+    // outright.
     let nan_first = read_text(&data("file_info_a7/expected/c_nan_then_finite_s.txt"));
     let nan_last = read_text(&data("file_info_a7/expected/c_finite_then_nan_s.txt"));
     let first: Vec<&str> = nan_first.split_inclusive('\n').collect();
@@ -954,11 +955,11 @@ fn consensus_a_signed_zero_sample_keeps_the_release_builds_order() {
         );
 
         // What this port prints for the swapped file: the Release build's own
-        // report for *that* file, line for line, with only the nine NaN
-        // spellings of native difference 5 left over. The four order
-        // statistics — the whole of native difference 6 — now agree, which is
-        // what `assert_report_but_the_nan_spelling` proves: it fails if a line
-        // outside the NaN class differs at all.
+        // report for *that* file, byte for byte, the nine sign-bit NaN lines
+        // included — native difference 5 closed those too. The four order
+        // statistics, the whole of native difference 6, agree, which is what
+        // `assert_report_with_signed_nans` proves: it fails if any line
+        // differs at all.
         let swapped = FileInfo::new()
             .run(input("a7_cons_zero_swapped.consensusXML"), options)
             .unwrap_or_else(|e| panic!("{pos_case}: {e}"));

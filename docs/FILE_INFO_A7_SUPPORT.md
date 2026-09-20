@@ -443,8 +443,10 @@ crashes the reference FileInfo.
    disagree on exactly those four lines plus the `Ranges` line, and then — the
    part that changed — that **both** the port's swapped report and its unswapped
    report match their own references through
-   `assert_report_but_the_nan_spelling` with nine differing lines each, all nine
-   of the native-difference-5 class. Zero order-statistic lines differ.
+   `assert_report_with_signed_nans`. Since native difference 5 closed that is
+   byte-for-byte equality, with the nine sign-bit NaN lines of each report
+   asserted as a tripwire rather than exempted. Zero order-statistic lines
+   differ.
    `a_signed_zero_keeps_the_order_the_release_build_keeps` in
    `tests/statistic_functions.rs` pins the same behaviour at the
    `SummaryStatistics` level, in both input orders.
