@@ -749,6 +749,30 @@
    "label": "oracle-generated (tier 1 executed differential)"
   },
   {
+   "path": "../oracle/a2-textfmt-nan-sweep/manifest.json",
+   "sha256": "52097ea83ea7ec5c55913fb1c520856ec22bd320d1d9e3b6bf857be2b2e4824c",
+   "origin_key": "tests/data/file_info_text_format_provenance.json",
+   "package": "A2-TEXTFMT",
+   "role": "the negative-NaN sweep against the same Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, capturing what A2-TEXTFMT's own corpus does not: six NaN shapes (quiet, smallest signalling, signalling with the payload's top bit set, an arbitrary quiet payload, the largest payload, and canonical-payload-plus-one) x both signs x double and float, swept over 22 digit counts and 16 precisions through number, ostream, toStr and the ListUtilsIO vector operator. Same discipline as that capture: two byte-identical runs, an -O0 control, pin-probe equivalence, every file hashed on the node",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a2-textfmt-nan-sweep/results/driver.tsv",
+   "sha256": "6cbcad812093f26fc29bbaa8e7d5f7473f435759cc60eb95943fc0a9fc016441",
+   "origin_key": "tests/data/file_info_text_format_provenance.json",
+   "package": "A2-TEXTFMT",
+   "role": "the sweep's rows. 912 glibc-path rows (number and ostream, both widths) and 24 toStr rows",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a2-textfmt-nan-sweep/results/sign_sweep_answer.txt",
+   "sha256": "534b6ac245946f51e6289c462483f2d17f46ad467b13e243b37accda3cdf25cf",
+   "origin_key": "tests/data/file_info_text_format_provenance.json",
+   "package": "A2-TEXTFMT",
+   "role": "the measured answer the port's NaN spelling rests on: of 912 sign-bearing glibc rows, 0 print a sign that disagrees with the argument's sign bit, at every digit count, at every precision, for every NaN shape, in both widths; and all 24 toStr rows print NaN, so OpenMS's own NumericFormatting discards the sign uniformly. This replaces the generalisation A2-TEXTFMT's single sign-bit-NaN row would otherwise have had to carry",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
    "path": "../oracle/file-info-text-format/manifest.json",
    "sha256": "a959541af4859bfa5b84f7471ebef31a3cdf417ad362f563b6245b7bfc4a7334",
    "origin_key": "tests/data/file_info_text_format_provenance.json",

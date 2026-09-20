@@ -117,22 +117,27 @@
 //!   `%g` tie bullet above carries. `toStr` is not affected on either platform:
 //!   `NumericFormatting.h:29` returns `NaN` before the sign bit is ever read.
 //!
-//!   *What is measured and what is generalised.* `../oracle/a2-textfmt-linux`
-//!   re-ran the same driver, `cases.h` and pin probe, byte for byte, against the
-//!   Linux x86_64 Release install on ibminode06 (conda-forge GCC 14.4.0,
-//!   libstdc++ 6.0.36, glibc 2.39). Of 1018 rows exactly one differs from the
-//!   macOS capture: `fff8000000000000`, in its five `printf` columns and not in
-//!   its `toStr` column. The corpus holds exactly three NaN bit patterns
-//!   (`7ff8000000000000`, `fff8000000000000`, and the `float` `7fc00000`) and
-//!   that row is the only sign-bit NaN in it, so what is **measured** is
-//!   `number(-NaN, n)` at `n` in `{0, 1, 2}` and `ostream(-NaN, p)` at `p` in
-//!   `{6, 15}`. No sign-bit NaN `float` is pinned at all. Every other digit
-//!   count, precision and the `float` overload are **generalised** from glibc
-//!   writing the sign before `__printf_fp` dispatches on the class, which makes
-//!   the spelling independent of both. A wider negative-NaN sweep,
-//!   `../oracle/a2-textfmt-nan-sweep`, was captured by another lane while this
-//!   one ran; it is named rather than cited, because it is not registered in
-//!   this repository's manifests and is the lead's to fold in.
+//!   *What is measured.* `../oracle/a2-textfmt-linux` re-ran the same driver,
+//!   `cases.h` and pin probe, byte for byte, against the Linux x86_64 Release
+//!   install on ibminode06 (conda-forge GCC 14.4.0, libstdc++ 6.0.36, glibc
+//!   2.39). Of 1018 rows exactly one differs from the macOS capture:
+//!   `fff8000000000000`, in its five `printf` columns and not in its `toStr`
+//!   column. That corpus holds only three NaN bit patterns and that row is its
+//!   only sign-bit NaN, so on its own it would pin `number(-NaN, n)` at `n` in
+//!   `{0, 1, 2}` and `ostream(-NaN, p)` at `p` in `{6, 15}`, and no sign-bit
+//!   NaN `float` at all. The companion sweep `../oracle/a2-textfmt-nan-sweep`
+//!   closes that gap against the same install: six NaN shapes (quiet, smallest
+//!   signalling, signalling with the payload's top bit set, an arbitrary quiet
+//!   payload, the largest payload, and canonical-payload-plus-one) by both
+//!   signs by `double` and `float`, over 22 digit counts and 16 precisions.
+//!   **912 sign-bearing `printf` rows, of which 0 print a sign that disagrees
+//!   with the argument's sign bit**, and 24 `toStr` rows that all print `NaN`.
+//!   So both halves of the rule are measured rather than generalised: glibc
+//!   keeps the sign everywhere it was swept, and `appendNumeric` discards it
+//!   everywhere. One thing the sweep also shows, which the port does not depend
+//!   on: `number` takes a `double`, so a `float` argument is promoted first, and
+//!   the promotion keeps the sign but quiets a signalling NaN and shifts the
+//!   payload.
 //! - Only the classic `"C"` locale is modelled; FileInfo never imbues another.
 //! - Work is bounded: `%g` precisions above 800 and `%f` digit counts above 1100
 //!   are clamped internally. A double's exact decimal expansion has at most 767

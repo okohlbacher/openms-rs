@@ -37,6 +37,19 @@
 //!    `fff8000000000000`: glibc writes `-nan` in the five `printf` columns
 //!    where Apple libc writes `nan`, and the `toStr` column is `NaN` on both.
 //!    The macOS capture therefore still stands behind all 1017 other rows.
+//!    [`ORACLE_NAN_SWEEP`] holds the formatter rows of the companion capture
+//!    `../oracle/a2-textfmt-nan-sweep` (manifest sha256
+//!    `52097ea83ea7ec5c55913fb1c520856ec22bd320d1d9e3b6bf857be2b2e4824c`),
+//!    taken from the same Release install by the same machinery and under the
+//!    same discipline: two byte-identical runs, an `-O0` control and pin-probe
+//!    equivalence. It exists because the corpus above holds a single sign-bit
+//!    NaN, which on its own would pin the sign only at `number(-NaN, n)` for
+//!    `n` in `{0, 1, 2}` and `ostream(-NaN, p)` for `p` in `{6, 15}`. The
+//!    sweep covers six NaN shapes by both signs by `double` and `float` over
+//!    22 digit counts and 16 precisions: 912 `printf` rows, none of which
+//!    prints a sign that disagrees with the argument's sign bit, and 24
+//!    `toStr` rows that all print `NaN`. Every one is asserted individually by
+//!    [`the_negative_nan_sweep_is_reproduced_row_for_row`].
 //! 2. Tie rule, oracle-generated (tier 1) with executed probes (tier 2).
 //!    [`SWEEP_ORACLE_TSV`] holds rows selected from `../oracle/text-format`
 //!    (manifest sha256
@@ -2762,14 +2775,1052 @@ fn negative_zero_keeps_its_sign_on_every_path() {
     assert_eq!(fixed(-1e-5, 2).ok().as_deref(), Some("-0.00"));
 }
 
+/// The negative-NaN sweep's formatter rows, selected from
+/// `../oracle/a2-textfmt-nan-sweep/results/driver.tsv` (manifest sha256
+/// `52097ea83ea7ec5c55913fb1c520856ec22bd320d1d9e3b6bf857be2b2e4824c`): the
+/// `ND`, `PD`, `NF`, `PF`, `TD` and `TF` sections with their header lines,
+/// 936 rows, sha256
+/// `2a88921cdb658993d136545ca194bc9fad216dcea432a732e3bafb9b0ae23d3f`.
+///
+/// Six NaN shapes by both signs by `double` and `float`, over 22 digit counts
+/// and 16 precisions. `ND`/`NF` are `StringUtils::number` at a digit count,
+/// `PD`/`PF` a `std::ostringstream` at a precision, `TD`/`TF`
+/// `StringUtils::toStr`. `NF` and `PF` hold `float` bit patterns that C++
+/// promotes to `double` before formatting, so the port is driven with
+/// `f64::from`.
+const ORACLE_NAN_SWEEP: &str = r##"# ND	bits	shape	digits	number(x,digits)
+# PD	bits	shape	precision	ostream(x,precision)
+# NF	bits32	shape	digits	number((double)x,digits)
+# PF	bits32	shape	precision	ostream(x,precision)
+# TD	bits	shape	toStr(x)
+# TF	bits32	shape	toStr(x)
+ND	7ff8000000000000	quiet	0	nan
+ND	7ff8000000000000	quiet	1	nan
+ND	7ff8000000000000	quiet	2	nan
+ND	7ff8000000000000	quiet	3	nan
+ND	7ff8000000000000	quiet	10	nan
+ND	7ff8000000000000	quiet	17	nan
+ND	7ff8000000000000	quiet	20	nan
+ND	7ff8000000000000	quiet	30	nan
+ND	7ff8000000000000	quiet	55	nan
+ND	7ff8000000000000	quiet	59	nan
+ND	7ff8000000000000	quiet	60	nan
+ND	7ff8000000000000	quiet	61	nan
+ND	7ff8000000000000	quiet	62	nan
+ND	7ff8000000000000	quiet	63	nan
+ND	7ff8000000000000	quiet	64	nan
+ND	7ff8000000000000	quiet	100	nan
+ND	7ff8000000000000	quiet	1074	nan
+ND	7ff8000000000000	quiet	1075	nan
+ND	7ff8000000000000	quiet	2000	nan
+ND	7ff8000000000000	quiet	2147483647	nan
+ND	7ff8000000000000	quiet	2147483648	nan
+ND	7ff8000000000000	quiet	4294967295	nan
+ND	fff8000000000000	quiet	0	-nan
+ND	fff8000000000000	quiet	1	-nan
+ND	fff8000000000000	quiet	2	-nan
+ND	fff8000000000000	quiet	3	-nan
+ND	fff8000000000000	quiet	10	-nan
+ND	fff8000000000000	quiet	17	-nan
+ND	fff8000000000000	quiet	20	-nan
+ND	fff8000000000000	quiet	30	-nan
+ND	fff8000000000000	quiet	55	-nan
+ND	fff8000000000000	quiet	59	-nan
+ND	fff8000000000000	quiet	60	-nan
+ND	fff8000000000000	quiet	61	-nan
+ND	fff8000000000000	quiet	62	-nan
+ND	fff8000000000000	quiet	63	-nan
+ND	fff8000000000000	quiet	64	-nan
+ND	fff8000000000000	quiet	100	-nan
+ND	fff8000000000000	quiet	1074	-nan
+ND	fff8000000000000	quiet	1075	-nan
+ND	fff8000000000000	quiet	2000	-nan
+ND	fff8000000000000	quiet	2147483647	-nan
+ND	fff8000000000000	quiet	2147483648	-nan
+ND	fff8000000000000	quiet	4294967295	-nan
+ND	7ff0000000000001	signalling-min	0	nan
+ND	7ff0000000000001	signalling-min	1	nan
+ND	7ff0000000000001	signalling-min	2	nan
+ND	7ff0000000000001	signalling-min	3	nan
+ND	7ff0000000000001	signalling-min	10	nan
+ND	7ff0000000000001	signalling-min	17	nan
+ND	7ff0000000000001	signalling-min	20	nan
+ND	7ff0000000000001	signalling-min	30	nan
+ND	7ff0000000000001	signalling-min	55	nan
+ND	7ff0000000000001	signalling-min	59	nan
+ND	7ff0000000000001	signalling-min	60	nan
+ND	7ff0000000000001	signalling-min	61	nan
+ND	7ff0000000000001	signalling-min	62	nan
+ND	7ff0000000000001	signalling-min	63	nan
+ND	7ff0000000000001	signalling-min	64	nan
+ND	7ff0000000000001	signalling-min	100	nan
+ND	7ff0000000000001	signalling-min	1074	nan
+ND	7ff0000000000001	signalling-min	1075	nan
+ND	7ff0000000000001	signalling-min	2000	nan
+ND	7ff0000000000001	signalling-min	2147483647	nan
+ND	7ff0000000000001	signalling-min	2147483648	nan
+ND	7ff0000000000001	signalling-min	4294967295	nan
+ND	fff0000000000001	signalling-min	0	-nan
+ND	fff0000000000001	signalling-min	1	-nan
+ND	fff0000000000001	signalling-min	2	-nan
+ND	fff0000000000001	signalling-min	3	-nan
+ND	fff0000000000001	signalling-min	10	-nan
+ND	fff0000000000001	signalling-min	17	-nan
+ND	fff0000000000001	signalling-min	20	-nan
+ND	fff0000000000001	signalling-min	30	-nan
+ND	fff0000000000001	signalling-min	55	-nan
+ND	fff0000000000001	signalling-min	59	-nan
+ND	fff0000000000001	signalling-min	60	-nan
+ND	fff0000000000001	signalling-min	61	-nan
+ND	fff0000000000001	signalling-min	62	-nan
+ND	fff0000000000001	signalling-min	63	-nan
+ND	fff0000000000001	signalling-min	64	-nan
+ND	fff0000000000001	signalling-min	100	-nan
+ND	fff0000000000001	signalling-min	1074	-nan
+ND	fff0000000000001	signalling-min	1075	-nan
+ND	fff0000000000001	signalling-min	2000	-nan
+ND	fff0000000000001	signalling-min	2147483647	-nan
+ND	fff0000000000001	signalling-min	2147483648	-nan
+ND	fff0000000000001	signalling-min	4294967295	-nan
+ND	7ff4000000000000	signalling	0	nan
+ND	7ff4000000000000	signalling	1	nan
+ND	7ff4000000000000	signalling	2	nan
+ND	7ff4000000000000	signalling	3	nan
+ND	7ff4000000000000	signalling	10	nan
+ND	7ff4000000000000	signalling	17	nan
+ND	7ff4000000000000	signalling	20	nan
+ND	7ff4000000000000	signalling	30	nan
+ND	7ff4000000000000	signalling	55	nan
+ND	7ff4000000000000	signalling	59	nan
+ND	7ff4000000000000	signalling	60	nan
+ND	7ff4000000000000	signalling	61	nan
+ND	7ff4000000000000	signalling	62	nan
+ND	7ff4000000000000	signalling	63	nan
+ND	7ff4000000000000	signalling	64	nan
+ND	7ff4000000000000	signalling	100	nan
+ND	7ff4000000000000	signalling	1074	nan
+ND	7ff4000000000000	signalling	1075	nan
+ND	7ff4000000000000	signalling	2000	nan
+ND	7ff4000000000000	signalling	2147483647	nan
+ND	7ff4000000000000	signalling	2147483648	nan
+ND	7ff4000000000000	signalling	4294967295	nan
+ND	fff4000000000000	signalling	0	-nan
+ND	fff4000000000000	signalling	1	-nan
+ND	fff4000000000000	signalling	2	-nan
+ND	fff4000000000000	signalling	3	-nan
+ND	fff4000000000000	signalling	10	-nan
+ND	fff4000000000000	signalling	17	-nan
+ND	fff4000000000000	signalling	20	-nan
+ND	fff4000000000000	signalling	30	-nan
+ND	fff4000000000000	signalling	55	-nan
+ND	fff4000000000000	signalling	59	-nan
+ND	fff4000000000000	signalling	60	-nan
+ND	fff4000000000000	signalling	61	-nan
+ND	fff4000000000000	signalling	62	-nan
+ND	fff4000000000000	signalling	63	-nan
+ND	fff4000000000000	signalling	64	-nan
+ND	fff4000000000000	signalling	100	-nan
+ND	fff4000000000000	signalling	1074	-nan
+ND	fff4000000000000	signalling	1075	-nan
+ND	fff4000000000000	signalling	2000	-nan
+ND	fff4000000000000	signalling	2147483647	-nan
+ND	fff4000000000000	signalling	2147483648	-nan
+ND	fff4000000000000	signalling	4294967295	-nan
+ND	7ffabcdef0123456	quiet-payload	0	nan
+ND	7ffabcdef0123456	quiet-payload	1	nan
+ND	7ffabcdef0123456	quiet-payload	2	nan
+ND	7ffabcdef0123456	quiet-payload	3	nan
+ND	7ffabcdef0123456	quiet-payload	10	nan
+ND	7ffabcdef0123456	quiet-payload	17	nan
+ND	7ffabcdef0123456	quiet-payload	20	nan
+ND	7ffabcdef0123456	quiet-payload	30	nan
+ND	7ffabcdef0123456	quiet-payload	55	nan
+ND	7ffabcdef0123456	quiet-payload	59	nan
+ND	7ffabcdef0123456	quiet-payload	60	nan
+ND	7ffabcdef0123456	quiet-payload	61	nan
+ND	7ffabcdef0123456	quiet-payload	62	nan
+ND	7ffabcdef0123456	quiet-payload	63	nan
+ND	7ffabcdef0123456	quiet-payload	64	nan
+ND	7ffabcdef0123456	quiet-payload	100	nan
+ND	7ffabcdef0123456	quiet-payload	1074	nan
+ND	7ffabcdef0123456	quiet-payload	1075	nan
+ND	7ffabcdef0123456	quiet-payload	2000	nan
+ND	7ffabcdef0123456	quiet-payload	2147483647	nan
+ND	7ffabcdef0123456	quiet-payload	2147483648	nan
+ND	7ffabcdef0123456	quiet-payload	4294967295	nan
+ND	fffabcdef0123456	quiet-payload	0	-nan
+ND	fffabcdef0123456	quiet-payload	1	-nan
+ND	fffabcdef0123456	quiet-payload	2	-nan
+ND	fffabcdef0123456	quiet-payload	3	-nan
+ND	fffabcdef0123456	quiet-payload	10	-nan
+ND	fffabcdef0123456	quiet-payload	17	-nan
+ND	fffabcdef0123456	quiet-payload	20	-nan
+ND	fffabcdef0123456	quiet-payload	30	-nan
+ND	fffabcdef0123456	quiet-payload	55	-nan
+ND	fffabcdef0123456	quiet-payload	59	-nan
+ND	fffabcdef0123456	quiet-payload	60	-nan
+ND	fffabcdef0123456	quiet-payload	61	-nan
+ND	fffabcdef0123456	quiet-payload	62	-nan
+ND	fffabcdef0123456	quiet-payload	63	-nan
+ND	fffabcdef0123456	quiet-payload	64	-nan
+ND	fffabcdef0123456	quiet-payload	100	-nan
+ND	fffabcdef0123456	quiet-payload	1074	-nan
+ND	fffabcdef0123456	quiet-payload	1075	-nan
+ND	fffabcdef0123456	quiet-payload	2000	-nan
+ND	fffabcdef0123456	quiet-payload	2147483647	-nan
+ND	fffabcdef0123456	quiet-payload	2147483648	-nan
+ND	fffabcdef0123456	quiet-payload	4294967295	-nan
+ND	7fffffffffffffff	quiet-payload-max	0	nan
+ND	7fffffffffffffff	quiet-payload-max	1	nan
+ND	7fffffffffffffff	quiet-payload-max	2	nan
+ND	7fffffffffffffff	quiet-payload-max	3	nan
+ND	7fffffffffffffff	quiet-payload-max	10	nan
+ND	7fffffffffffffff	quiet-payload-max	17	nan
+ND	7fffffffffffffff	quiet-payload-max	20	nan
+ND	7fffffffffffffff	quiet-payload-max	30	nan
+ND	7fffffffffffffff	quiet-payload-max	55	nan
+ND	7fffffffffffffff	quiet-payload-max	59	nan
+ND	7fffffffffffffff	quiet-payload-max	60	nan
+ND	7fffffffffffffff	quiet-payload-max	61	nan
+ND	7fffffffffffffff	quiet-payload-max	62	nan
+ND	7fffffffffffffff	quiet-payload-max	63	nan
+ND	7fffffffffffffff	quiet-payload-max	64	nan
+ND	7fffffffffffffff	quiet-payload-max	100	nan
+ND	7fffffffffffffff	quiet-payload-max	1074	nan
+ND	7fffffffffffffff	quiet-payload-max	1075	nan
+ND	7fffffffffffffff	quiet-payload-max	2000	nan
+ND	7fffffffffffffff	quiet-payload-max	2147483647	nan
+ND	7fffffffffffffff	quiet-payload-max	2147483648	nan
+ND	7fffffffffffffff	quiet-payload-max	4294967295	nan
+ND	ffffffffffffffff	quiet-payload-max	0	-nan
+ND	ffffffffffffffff	quiet-payload-max	1	-nan
+ND	ffffffffffffffff	quiet-payload-max	2	-nan
+ND	ffffffffffffffff	quiet-payload-max	3	-nan
+ND	ffffffffffffffff	quiet-payload-max	10	-nan
+ND	ffffffffffffffff	quiet-payload-max	17	-nan
+ND	ffffffffffffffff	quiet-payload-max	20	-nan
+ND	ffffffffffffffff	quiet-payload-max	30	-nan
+ND	ffffffffffffffff	quiet-payload-max	55	-nan
+ND	ffffffffffffffff	quiet-payload-max	59	-nan
+ND	ffffffffffffffff	quiet-payload-max	60	-nan
+ND	ffffffffffffffff	quiet-payload-max	61	-nan
+ND	ffffffffffffffff	quiet-payload-max	62	-nan
+ND	ffffffffffffffff	quiet-payload-max	63	-nan
+ND	ffffffffffffffff	quiet-payload-max	64	-nan
+ND	ffffffffffffffff	quiet-payload-max	100	-nan
+ND	ffffffffffffffff	quiet-payload-max	1074	-nan
+ND	ffffffffffffffff	quiet-payload-max	1075	-nan
+ND	ffffffffffffffff	quiet-payload-max	2000	-nan
+ND	ffffffffffffffff	quiet-payload-max	2147483647	-nan
+ND	ffffffffffffffff	quiet-payload-max	2147483648	-nan
+ND	ffffffffffffffff	quiet-payload-max	4294967295	-nan
+ND	7ff8000000000001	quiet-payload-1	0	nan
+ND	7ff8000000000001	quiet-payload-1	1	nan
+ND	7ff8000000000001	quiet-payload-1	2	nan
+ND	7ff8000000000001	quiet-payload-1	3	nan
+ND	7ff8000000000001	quiet-payload-1	10	nan
+ND	7ff8000000000001	quiet-payload-1	17	nan
+ND	7ff8000000000001	quiet-payload-1	20	nan
+ND	7ff8000000000001	quiet-payload-1	30	nan
+ND	7ff8000000000001	quiet-payload-1	55	nan
+ND	7ff8000000000001	quiet-payload-1	59	nan
+ND	7ff8000000000001	quiet-payload-1	60	nan
+ND	7ff8000000000001	quiet-payload-1	61	nan
+ND	7ff8000000000001	quiet-payload-1	62	nan
+ND	7ff8000000000001	quiet-payload-1	63	nan
+ND	7ff8000000000001	quiet-payload-1	64	nan
+ND	7ff8000000000001	quiet-payload-1	100	nan
+ND	7ff8000000000001	quiet-payload-1	1074	nan
+ND	7ff8000000000001	quiet-payload-1	1075	nan
+ND	7ff8000000000001	quiet-payload-1	2000	nan
+ND	7ff8000000000001	quiet-payload-1	2147483647	nan
+ND	7ff8000000000001	quiet-payload-1	2147483648	nan
+ND	7ff8000000000001	quiet-payload-1	4294967295	nan
+ND	fff8000000000001	quiet-payload-1	0	-nan
+ND	fff8000000000001	quiet-payload-1	1	-nan
+ND	fff8000000000001	quiet-payload-1	2	-nan
+ND	fff8000000000001	quiet-payload-1	3	-nan
+ND	fff8000000000001	quiet-payload-1	10	-nan
+ND	fff8000000000001	quiet-payload-1	17	-nan
+ND	fff8000000000001	quiet-payload-1	20	-nan
+ND	fff8000000000001	quiet-payload-1	30	-nan
+ND	fff8000000000001	quiet-payload-1	55	-nan
+ND	fff8000000000001	quiet-payload-1	59	-nan
+ND	fff8000000000001	quiet-payload-1	60	-nan
+ND	fff8000000000001	quiet-payload-1	61	-nan
+ND	fff8000000000001	quiet-payload-1	62	-nan
+ND	fff8000000000001	quiet-payload-1	63	-nan
+ND	fff8000000000001	quiet-payload-1	64	-nan
+ND	fff8000000000001	quiet-payload-1	100	-nan
+ND	fff8000000000001	quiet-payload-1	1074	-nan
+ND	fff8000000000001	quiet-payload-1	1075	-nan
+ND	fff8000000000001	quiet-payload-1	2000	-nan
+ND	fff8000000000001	quiet-payload-1	2147483647	-nan
+ND	fff8000000000001	quiet-payload-1	2147483648	-nan
+ND	fff8000000000001	quiet-payload-1	4294967295	-nan
+PD	7ff8000000000000	quiet	0	nan
+PD	7ff8000000000000	quiet	1	nan
+PD	7ff8000000000000	quiet	2	nan
+PD	7ff8000000000000	quiet	3	nan
+PD	7ff8000000000000	quiet	5	nan
+PD	7ff8000000000000	quiet	6	nan
+PD	7ff8000000000000	quiet	7	nan
+PD	7ff8000000000000	quiet	10	nan
+PD	7ff8000000000000	quiet	15	nan
+PD	7ff8000000000000	quiet	16	nan
+PD	7ff8000000000000	quiet	17	nan
+PD	7ff8000000000000	quiet	20	nan
+PD	7ff8000000000000	quiet	30	nan
+PD	7ff8000000000000	quiet	40	nan
+PD	7ff8000000000000	quiet	2147483648	nan
+PD	7ff8000000000000	quiet	4294967295	nan
+PD	fff8000000000000	quiet	0	-nan
+PD	fff8000000000000	quiet	1	-nan
+PD	fff8000000000000	quiet	2	-nan
+PD	fff8000000000000	quiet	3	-nan
+PD	fff8000000000000	quiet	5	-nan
+PD	fff8000000000000	quiet	6	-nan
+PD	fff8000000000000	quiet	7	-nan
+PD	fff8000000000000	quiet	10	-nan
+PD	fff8000000000000	quiet	15	-nan
+PD	fff8000000000000	quiet	16	-nan
+PD	fff8000000000000	quiet	17	-nan
+PD	fff8000000000000	quiet	20	-nan
+PD	fff8000000000000	quiet	30	-nan
+PD	fff8000000000000	quiet	40	-nan
+PD	fff8000000000000	quiet	2147483648	-nan
+PD	fff8000000000000	quiet	4294967295	-nan
+PD	7ff0000000000001	signalling-min	0	nan
+PD	7ff0000000000001	signalling-min	1	nan
+PD	7ff0000000000001	signalling-min	2	nan
+PD	7ff0000000000001	signalling-min	3	nan
+PD	7ff0000000000001	signalling-min	5	nan
+PD	7ff0000000000001	signalling-min	6	nan
+PD	7ff0000000000001	signalling-min	7	nan
+PD	7ff0000000000001	signalling-min	10	nan
+PD	7ff0000000000001	signalling-min	15	nan
+PD	7ff0000000000001	signalling-min	16	nan
+PD	7ff0000000000001	signalling-min	17	nan
+PD	7ff0000000000001	signalling-min	20	nan
+PD	7ff0000000000001	signalling-min	30	nan
+PD	7ff0000000000001	signalling-min	40	nan
+PD	7ff0000000000001	signalling-min	2147483648	nan
+PD	7ff0000000000001	signalling-min	4294967295	nan
+PD	fff0000000000001	signalling-min	0	-nan
+PD	fff0000000000001	signalling-min	1	-nan
+PD	fff0000000000001	signalling-min	2	-nan
+PD	fff0000000000001	signalling-min	3	-nan
+PD	fff0000000000001	signalling-min	5	-nan
+PD	fff0000000000001	signalling-min	6	-nan
+PD	fff0000000000001	signalling-min	7	-nan
+PD	fff0000000000001	signalling-min	10	-nan
+PD	fff0000000000001	signalling-min	15	-nan
+PD	fff0000000000001	signalling-min	16	-nan
+PD	fff0000000000001	signalling-min	17	-nan
+PD	fff0000000000001	signalling-min	20	-nan
+PD	fff0000000000001	signalling-min	30	-nan
+PD	fff0000000000001	signalling-min	40	-nan
+PD	fff0000000000001	signalling-min	2147483648	-nan
+PD	fff0000000000001	signalling-min	4294967295	-nan
+PD	7ff4000000000000	signalling	0	nan
+PD	7ff4000000000000	signalling	1	nan
+PD	7ff4000000000000	signalling	2	nan
+PD	7ff4000000000000	signalling	3	nan
+PD	7ff4000000000000	signalling	5	nan
+PD	7ff4000000000000	signalling	6	nan
+PD	7ff4000000000000	signalling	7	nan
+PD	7ff4000000000000	signalling	10	nan
+PD	7ff4000000000000	signalling	15	nan
+PD	7ff4000000000000	signalling	16	nan
+PD	7ff4000000000000	signalling	17	nan
+PD	7ff4000000000000	signalling	20	nan
+PD	7ff4000000000000	signalling	30	nan
+PD	7ff4000000000000	signalling	40	nan
+PD	7ff4000000000000	signalling	2147483648	nan
+PD	7ff4000000000000	signalling	4294967295	nan
+PD	fff4000000000000	signalling	0	-nan
+PD	fff4000000000000	signalling	1	-nan
+PD	fff4000000000000	signalling	2	-nan
+PD	fff4000000000000	signalling	3	-nan
+PD	fff4000000000000	signalling	5	-nan
+PD	fff4000000000000	signalling	6	-nan
+PD	fff4000000000000	signalling	7	-nan
+PD	fff4000000000000	signalling	10	-nan
+PD	fff4000000000000	signalling	15	-nan
+PD	fff4000000000000	signalling	16	-nan
+PD	fff4000000000000	signalling	17	-nan
+PD	fff4000000000000	signalling	20	-nan
+PD	fff4000000000000	signalling	30	-nan
+PD	fff4000000000000	signalling	40	-nan
+PD	fff4000000000000	signalling	2147483648	-nan
+PD	fff4000000000000	signalling	4294967295	-nan
+PD	7ffabcdef0123456	quiet-payload	0	nan
+PD	7ffabcdef0123456	quiet-payload	1	nan
+PD	7ffabcdef0123456	quiet-payload	2	nan
+PD	7ffabcdef0123456	quiet-payload	3	nan
+PD	7ffabcdef0123456	quiet-payload	5	nan
+PD	7ffabcdef0123456	quiet-payload	6	nan
+PD	7ffabcdef0123456	quiet-payload	7	nan
+PD	7ffabcdef0123456	quiet-payload	10	nan
+PD	7ffabcdef0123456	quiet-payload	15	nan
+PD	7ffabcdef0123456	quiet-payload	16	nan
+PD	7ffabcdef0123456	quiet-payload	17	nan
+PD	7ffabcdef0123456	quiet-payload	20	nan
+PD	7ffabcdef0123456	quiet-payload	30	nan
+PD	7ffabcdef0123456	quiet-payload	40	nan
+PD	7ffabcdef0123456	quiet-payload	2147483648	nan
+PD	7ffabcdef0123456	quiet-payload	4294967295	nan
+PD	fffabcdef0123456	quiet-payload	0	-nan
+PD	fffabcdef0123456	quiet-payload	1	-nan
+PD	fffabcdef0123456	quiet-payload	2	-nan
+PD	fffabcdef0123456	quiet-payload	3	-nan
+PD	fffabcdef0123456	quiet-payload	5	-nan
+PD	fffabcdef0123456	quiet-payload	6	-nan
+PD	fffabcdef0123456	quiet-payload	7	-nan
+PD	fffabcdef0123456	quiet-payload	10	-nan
+PD	fffabcdef0123456	quiet-payload	15	-nan
+PD	fffabcdef0123456	quiet-payload	16	-nan
+PD	fffabcdef0123456	quiet-payload	17	-nan
+PD	fffabcdef0123456	quiet-payload	20	-nan
+PD	fffabcdef0123456	quiet-payload	30	-nan
+PD	fffabcdef0123456	quiet-payload	40	-nan
+PD	fffabcdef0123456	quiet-payload	2147483648	-nan
+PD	fffabcdef0123456	quiet-payload	4294967295	-nan
+PD	7fffffffffffffff	quiet-payload-max	0	nan
+PD	7fffffffffffffff	quiet-payload-max	1	nan
+PD	7fffffffffffffff	quiet-payload-max	2	nan
+PD	7fffffffffffffff	quiet-payload-max	3	nan
+PD	7fffffffffffffff	quiet-payload-max	5	nan
+PD	7fffffffffffffff	quiet-payload-max	6	nan
+PD	7fffffffffffffff	quiet-payload-max	7	nan
+PD	7fffffffffffffff	quiet-payload-max	10	nan
+PD	7fffffffffffffff	quiet-payload-max	15	nan
+PD	7fffffffffffffff	quiet-payload-max	16	nan
+PD	7fffffffffffffff	quiet-payload-max	17	nan
+PD	7fffffffffffffff	quiet-payload-max	20	nan
+PD	7fffffffffffffff	quiet-payload-max	30	nan
+PD	7fffffffffffffff	quiet-payload-max	40	nan
+PD	7fffffffffffffff	quiet-payload-max	2147483648	nan
+PD	7fffffffffffffff	quiet-payload-max	4294967295	nan
+PD	ffffffffffffffff	quiet-payload-max	0	-nan
+PD	ffffffffffffffff	quiet-payload-max	1	-nan
+PD	ffffffffffffffff	quiet-payload-max	2	-nan
+PD	ffffffffffffffff	quiet-payload-max	3	-nan
+PD	ffffffffffffffff	quiet-payload-max	5	-nan
+PD	ffffffffffffffff	quiet-payload-max	6	-nan
+PD	ffffffffffffffff	quiet-payload-max	7	-nan
+PD	ffffffffffffffff	quiet-payload-max	10	-nan
+PD	ffffffffffffffff	quiet-payload-max	15	-nan
+PD	ffffffffffffffff	quiet-payload-max	16	-nan
+PD	ffffffffffffffff	quiet-payload-max	17	-nan
+PD	ffffffffffffffff	quiet-payload-max	20	-nan
+PD	ffffffffffffffff	quiet-payload-max	30	-nan
+PD	ffffffffffffffff	quiet-payload-max	40	-nan
+PD	ffffffffffffffff	quiet-payload-max	2147483648	-nan
+PD	ffffffffffffffff	quiet-payload-max	4294967295	-nan
+PD	7ff8000000000001	quiet-payload-1	0	nan
+PD	7ff8000000000001	quiet-payload-1	1	nan
+PD	7ff8000000000001	quiet-payload-1	2	nan
+PD	7ff8000000000001	quiet-payload-1	3	nan
+PD	7ff8000000000001	quiet-payload-1	5	nan
+PD	7ff8000000000001	quiet-payload-1	6	nan
+PD	7ff8000000000001	quiet-payload-1	7	nan
+PD	7ff8000000000001	quiet-payload-1	10	nan
+PD	7ff8000000000001	quiet-payload-1	15	nan
+PD	7ff8000000000001	quiet-payload-1	16	nan
+PD	7ff8000000000001	quiet-payload-1	17	nan
+PD	7ff8000000000001	quiet-payload-1	20	nan
+PD	7ff8000000000001	quiet-payload-1	30	nan
+PD	7ff8000000000001	quiet-payload-1	40	nan
+PD	7ff8000000000001	quiet-payload-1	2147483648	nan
+PD	7ff8000000000001	quiet-payload-1	4294967295	nan
+PD	fff8000000000001	quiet-payload-1	0	-nan
+PD	fff8000000000001	quiet-payload-1	1	-nan
+PD	fff8000000000001	quiet-payload-1	2	-nan
+PD	fff8000000000001	quiet-payload-1	3	-nan
+PD	fff8000000000001	quiet-payload-1	5	-nan
+PD	fff8000000000001	quiet-payload-1	6	-nan
+PD	fff8000000000001	quiet-payload-1	7	-nan
+PD	fff8000000000001	quiet-payload-1	10	-nan
+PD	fff8000000000001	quiet-payload-1	15	-nan
+PD	fff8000000000001	quiet-payload-1	16	-nan
+PD	fff8000000000001	quiet-payload-1	17	-nan
+PD	fff8000000000001	quiet-payload-1	20	-nan
+PD	fff8000000000001	quiet-payload-1	30	-nan
+PD	fff8000000000001	quiet-payload-1	40	-nan
+PD	fff8000000000001	quiet-payload-1	2147483648	-nan
+PD	fff8000000000001	quiet-payload-1	4294967295	-nan
+TD	7ff8000000000000	quiet	NaN
+TD	fff8000000000000	quiet	NaN
+TD	7ff0000000000001	signalling-min	NaN
+TD	fff0000000000001	signalling-min	NaN
+TD	7ff4000000000000	signalling	NaN
+TD	fff4000000000000	signalling	NaN
+TD	7ffabcdef0123456	quiet-payload	NaN
+TD	fffabcdef0123456	quiet-payload	NaN
+TD	7fffffffffffffff	quiet-payload-max	NaN
+TD	ffffffffffffffff	quiet-payload-max	NaN
+TD	7ff8000000000001	quiet-payload-1	NaN
+TD	fff8000000000001	quiet-payload-1	NaN
+NF	7fc00000	quiet	0	nan
+NF	7fc00000	quiet	1	nan
+NF	7fc00000	quiet	2	nan
+NF	7fc00000	quiet	3	nan
+NF	7fc00000	quiet	10	nan
+NF	7fc00000	quiet	17	nan
+NF	7fc00000	quiet	20	nan
+NF	7fc00000	quiet	30	nan
+NF	7fc00000	quiet	55	nan
+NF	7fc00000	quiet	59	nan
+NF	7fc00000	quiet	60	nan
+NF	7fc00000	quiet	61	nan
+NF	7fc00000	quiet	62	nan
+NF	7fc00000	quiet	63	nan
+NF	7fc00000	quiet	64	nan
+NF	7fc00000	quiet	100	nan
+NF	7fc00000	quiet	1074	nan
+NF	7fc00000	quiet	1075	nan
+NF	7fc00000	quiet	2000	nan
+NF	7fc00000	quiet	2147483647	nan
+NF	7fc00000	quiet	2147483648	nan
+NF	7fc00000	quiet	4294967295	nan
+NF	ffc00000	quiet	0	-nan
+NF	ffc00000	quiet	1	-nan
+NF	ffc00000	quiet	2	-nan
+NF	ffc00000	quiet	3	-nan
+NF	ffc00000	quiet	10	-nan
+NF	ffc00000	quiet	17	-nan
+NF	ffc00000	quiet	20	-nan
+NF	ffc00000	quiet	30	-nan
+NF	ffc00000	quiet	55	-nan
+NF	ffc00000	quiet	59	-nan
+NF	ffc00000	quiet	60	-nan
+NF	ffc00000	quiet	61	-nan
+NF	ffc00000	quiet	62	-nan
+NF	ffc00000	quiet	63	-nan
+NF	ffc00000	quiet	64	-nan
+NF	ffc00000	quiet	100	-nan
+NF	ffc00000	quiet	1074	-nan
+NF	ffc00000	quiet	1075	-nan
+NF	ffc00000	quiet	2000	-nan
+NF	ffc00000	quiet	2147483647	-nan
+NF	ffc00000	quiet	2147483648	-nan
+NF	ffc00000	quiet	4294967295	-nan
+NF	7f800001	signalling-min	0	nan
+NF	7f800001	signalling-min	1	nan
+NF	7f800001	signalling-min	2	nan
+NF	7f800001	signalling-min	3	nan
+NF	7f800001	signalling-min	10	nan
+NF	7f800001	signalling-min	17	nan
+NF	7f800001	signalling-min	20	nan
+NF	7f800001	signalling-min	30	nan
+NF	7f800001	signalling-min	55	nan
+NF	7f800001	signalling-min	59	nan
+NF	7f800001	signalling-min	60	nan
+NF	7f800001	signalling-min	61	nan
+NF	7f800001	signalling-min	62	nan
+NF	7f800001	signalling-min	63	nan
+NF	7f800001	signalling-min	64	nan
+NF	7f800001	signalling-min	100	nan
+NF	7f800001	signalling-min	1074	nan
+NF	7f800001	signalling-min	1075	nan
+NF	7f800001	signalling-min	2000	nan
+NF	7f800001	signalling-min	2147483647	nan
+NF	7f800001	signalling-min	2147483648	nan
+NF	7f800001	signalling-min	4294967295	nan
+NF	ff800001	signalling-min	0	-nan
+NF	ff800001	signalling-min	1	-nan
+NF	ff800001	signalling-min	2	-nan
+NF	ff800001	signalling-min	3	-nan
+NF	ff800001	signalling-min	10	-nan
+NF	ff800001	signalling-min	17	-nan
+NF	ff800001	signalling-min	20	-nan
+NF	ff800001	signalling-min	30	-nan
+NF	ff800001	signalling-min	55	-nan
+NF	ff800001	signalling-min	59	-nan
+NF	ff800001	signalling-min	60	-nan
+NF	ff800001	signalling-min	61	-nan
+NF	ff800001	signalling-min	62	-nan
+NF	ff800001	signalling-min	63	-nan
+NF	ff800001	signalling-min	64	-nan
+NF	ff800001	signalling-min	100	-nan
+NF	ff800001	signalling-min	1074	-nan
+NF	ff800001	signalling-min	1075	-nan
+NF	ff800001	signalling-min	2000	-nan
+NF	ff800001	signalling-min	2147483647	-nan
+NF	ff800001	signalling-min	2147483648	-nan
+NF	ff800001	signalling-min	4294967295	-nan
+NF	7fa00000	signalling	0	nan
+NF	7fa00000	signalling	1	nan
+NF	7fa00000	signalling	2	nan
+NF	7fa00000	signalling	3	nan
+NF	7fa00000	signalling	10	nan
+NF	7fa00000	signalling	17	nan
+NF	7fa00000	signalling	20	nan
+NF	7fa00000	signalling	30	nan
+NF	7fa00000	signalling	55	nan
+NF	7fa00000	signalling	59	nan
+NF	7fa00000	signalling	60	nan
+NF	7fa00000	signalling	61	nan
+NF	7fa00000	signalling	62	nan
+NF	7fa00000	signalling	63	nan
+NF	7fa00000	signalling	64	nan
+NF	7fa00000	signalling	100	nan
+NF	7fa00000	signalling	1074	nan
+NF	7fa00000	signalling	1075	nan
+NF	7fa00000	signalling	2000	nan
+NF	7fa00000	signalling	2147483647	nan
+NF	7fa00000	signalling	2147483648	nan
+NF	7fa00000	signalling	4294967295	nan
+NF	ffa00000	signalling	0	-nan
+NF	ffa00000	signalling	1	-nan
+NF	ffa00000	signalling	2	-nan
+NF	ffa00000	signalling	3	-nan
+NF	ffa00000	signalling	10	-nan
+NF	ffa00000	signalling	17	-nan
+NF	ffa00000	signalling	20	-nan
+NF	ffa00000	signalling	30	-nan
+NF	ffa00000	signalling	55	-nan
+NF	ffa00000	signalling	59	-nan
+NF	ffa00000	signalling	60	-nan
+NF	ffa00000	signalling	61	-nan
+NF	ffa00000	signalling	62	-nan
+NF	ffa00000	signalling	63	-nan
+NF	ffa00000	signalling	64	-nan
+NF	ffa00000	signalling	100	-nan
+NF	ffa00000	signalling	1074	-nan
+NF	ffa00000	signalling	1075	-nan
+NF	ffa00000	signalling	2000	-nan
+NF	ffa00000	signalling	2147483647	-nan
+NF	ffa00000	signalling	2147483648	-nan
+NF	ffa00000	signalling	4294967295	-nan
+NF	7fd5abcd	quiet-payload	0	nan
+NF	7fd5abcd	quiet-payload	1	nan
+NF	7fd5abcd	quiet-payload	2	nan
+NF	7fd5abcd	quiet-payload	3	nan
+NF	7fd5abcd	quiet-payload	10	nan
+NF	7fd5abcd	quiet-payload	17	nan
+NF	7fd5abcd	quiet-payload	20	nan
+NF	7fd5abcd	quiet-payload	30	nan
+NF	7fd5abcd	quiet-payload	55	nan
+NF	7fd5abcd	quiet-payload	59	nan
+NF	7fd5abcd	quiet-payload	60	nan
+NF	7fd5abcd	quiet-payload	61	nan
+NF	7fd5abcd	quiet-payload	62	nan
+NF	7fd5abcd	quiet-payload	63	nan
+NF	7fd5abcd	quiet-payload	64	nan
+NF	7fd5abcd	quiet-payload	100	nan
+NF	7fd5abcd	quiet-payload	1074	nan
+NF	7fd5abcd	quiet-payload	1075	nan
+NF	7fd5abcd	quiet-payload	2000	nan
+NF	7fd5abcd	quiet-payload	2147483647	nan
+NF	7fd5abcd	quiet-payload	2147483648	nan
+NF	7fd5abcd	quiet-payload	4294967295	nan
+NF	ffd5abcd	quiet-payload	0	-nan
+NF	ffd5abcd	quiet-payload	1	-nan
+NF	ffd5abcd	quiet-payload	2	-nan
+NF	ffd5abcd	quiet-payload	3	-nan
+NF	ffd5abcd	quiet-payload	10	-nan
+NF	ffd5abcd	quiet-payload	17	-nan
+NF	ffd5abcd	quiet-payload	20	-nan
+NF	ffd5abcd	quiet-payload	30	-nan
+NF	ffd5abcd	quiet-payload	55	-nan
+NF	ffd5abcd	quiet-payload	59	-nan
+NF	ffd5abcd	quiet-payload	60	-nan
+NF	ffd5abcd	quiet-payload	61	-nan
+NF	ffd5abcd	quiet-payload	62	-nan
+NF	ffd5abcd	quiet-payload	63	-nan
+NF	ffd5abcd	quiet-payload	64	-nan
+NF	ffd5abcd	quiet-payload	100	-nan
+NF	ffd5abcd	quiet-payload	1074	-nan
+NF	ffd5abcd	quiet-payload	1075	-nan
+NF	ffd5abcd	quiet-payload	2000	-nan
+NF	ffd5abcd	quiet-payload	2147483647	-nan
+NF	ffd5abcd	quiet-payload	2147483648	-nan
+NF	ffd5abcd	quiet-payload	4294967295	-nan
+NF	7fffffff	quiet-payload-max	0	nan
+NF	7fffffff	quiet-payload-max	1	nan
+NF	7fffffff	quiet-payload-max	2	nan
+NF	7fffffff	quiet-payload-max	3	nan
+NF	7fffffff	quiet-payload-max	10	nan
+NF	7fffffff	quiet-payload-max	17	nan
+NF	7fffffff	quiet-payload-max	20	nan
+NF	7fffffff	quiet-payload-max	30	nan
+NF	7fffffff	quiet-payload-max	55	nan
+NF	7fffffff	quiet-payload-max	59	nan
+NF	7fffffff	quiet-payload-max	60	nan
+NF	7fffffff	quiet-payload-max	61	nan
+NF	7fffffff	quiet-payload-max	62	nan
+NF	7fffffff	quiet-payload-max	63	nan
+NF	7fffffff	quiet-payload-max	64	nan
+NF	7fffffff	quiet-payload-max	100	nan
+NF	7fffffff	quiet-payload-max	1074	nan
+NF	7fffffff	quiet-payload-max	1075	nan
+NF	7fffffff	quiet-payload-max	2000	nan
+NF	7fffffff	quiet-payload-max	2147483647	nan
+NF	7fffffff	quiet-payload-max	2147483648	nan
+NF	7fffffff	quiet-payload-max	4294967295	nan
+NF	ffffffff	quiet-payload-max	0	-nan
+NF	ffffffff	quiet-payload-max	1	-nan
+NF	ffffffff	quiet-payload-max	2	-nan
+NF	ffffffff	quiet-payload-max	3	-nan
+NF	ffffffff	quiet-payload-max	10	-nan
+NF	ffffffff	quiet-payload-max	17	-nan
+NF	ffffffff	quiet-payload-max	20	-nan
+NF	ffffffff	quiet-payload-max	30	-nan
+NF	ffffffff	quiet-payload-max	55	-nan
+NF	ffffffff	quiet-payload-max	59	-nan
+NF	ffffffff	quiet-payload-max	60	-nan
+NF	ffffffff	quiet-payload-max	61	-nan
+NF	ffffffff	quiet-payload-max	62	-nan
+NF	ffffffff	quiet-payload-max	63	-nan
+NF	ffffffff	quiet-payload-max	64	-nan
+NF	ffffffff	quiet-payload-max	100	-nan
+NF	ffffffff	quiet-payload-max	1074	-nan
+NF	ffffffff	quiet-payload-max	1075	-nan
+NF	ffffffff	quiet-payload-max	2000	-nan
+NF	ffffffff	quiet-payload-max	2147483647	-nan
+NF	ffffffff	quiet-payload-max	2147483648	-nan
+NF	ffffffff	quiet-payload-max	4294967295	-nan
+NF	7fc00001	quiet-payload-1	0	nan
+NF	7fc00001	quiet-payload-1	1	nan
+NF	7fc00001	quiet-payload-1	2	nan
+NF	7fc00001	quiet-payload-1	3	nan
+NF	7fc00001	quiet-payload-1	10	nan
+NF	7fc00001	quiet-payload-1	17	nan
+NF	7fc00001	quiet-payload-1	20	nan
+NF	7fc00001	quiet-payload-1	30	nan
+NF	7fc00001	quiet-payload-1	55	nan
+NF	7fc00001	quiet-payload-1	59	nan
+NF	7fc00001	quiet-payload-1	60	nan
+NF	7fc00001	quiet-payload-1	61	nan
+NF	7fc00001	quiet-payload-1	62	nan
+NF	7fc00001	quiet-payload-1	63	nan
+NF	7fc00001	quiet-payload-1	64	nan
+NF	7fc00001	quiet-payload-1	100	nan
+NF	7fc00001	quiet-payload-1	1074	nan
+NF	7fc00001	quiet-payload-1	1075	nan
+NF	7fc00001	quiet-payload-1	2000	nan
+NF	7fc00001	quiet-payload-1	2147483647	nan
+NF	7fc00001	quiet-payload-1	2147483648	nan
+NF	7fc00001	quiet-payload-1	4294967295	nan
+NF	ffc00001	quiet-payload-1	0	-nan
+NF	ffc00001	quiet-payload-1	1	-nan
+NF	ffc00001	quiet-payload-1	2	-nan
+NF	ffc00001	quiet-payload-1	3	-nan
+NF	ffc00001	quiet-payload-1	10	-nan
+NF	ffc00001	quiet-payload-1	17	-nan
+NF	ffc00001	quiet-payload-1	20	-nan
+NF	ffc00001	quiet-payload-1	30	-nan
+NF	ffc00001	quiet-payload-1	55	-nan
+NF	ffc00001	quiet-payload-1	59	-nan
+NF	ffc00001	quiet-payload-1	60	-nan
+NF	ffc00001	quiet-payload-1	61	-nan
+NF	ffc00001	quiet-payload-1	62	-nan
+NF	ffc00001	quiet-payload-1	63	-nan
+NF	ffc00001	quiet-payload-1	64	-nan
+NF	ffc00001	quiet-payload-1	100	-nan
+NF	ffc00001	quiet-payload-1	1074	-nan
+NF	ffc00001	quiet-payload-1	1075	-nan
+NF	ffc00001	quiet-payload-1	2000	-nan
+NF	ffc00001	quiet-payload-1	2147483647	-nan
+NF	ffc00001	quiet-payload-1	2147483648	-nan
+NF	ffc00001	quiet-payload-1	4294967295	-nan
+PF	7fc00000	quiet	0	nan
+PF	7fc00000	quiet	1	nan
+PF	7fc00000	quiet	2	nan
+PF	7fc00000	quiet	3	nan
+PF	7fc00000	quiet	5	nan
+PF	7fc00000	quiet	6	nan
+PF	7fc00000	quiet	7	nan
+PF	7fc00000	quiet	10	nan
+PF	7fc00000	quiet	15	nan
+PF	7fc00000	quiet	16	nan
+PF	7fc00000	quiet	17	nan
+PF	7fc00000	quiet	20	nan
+PF	7fc00000	quiet	30	nan
+PF	7fc00000	quiet	40	nan
+PF	7fc00000	quiet	2147483648	nan
+PF	7fc00000	quiet	4294967295	nan
+PF	ffc00000	quiet	0	-nan
+PF	ffc00000	quiet	1	-nan
+PF	ffc00000	quiet	2	-nan
+PF	ffc00000	quiet	3	-nan
+PF	ffc00000	quiet	5	-nan
+PF	ffc00000	quiet	6	-nan
+PF	ffc00000	quiet	7	-nan
+PF	ffc00000	quiet	10	-nan
+PF	ffc00000	quiet	15	-nan
+PF	ffc00000	quiet	16	-nan
+PF	ffc00000	quiet	17	-nan
+PF	ffc00000	quiet	20	-nan
+PF	ffc00000	quiet	30	-nan
+PF	ffc00000	quiet	40	-nan
+PF	ffc00000	quiet	2147483648	-nan
+PF	ffc00000	quiet	4294967295	-nan
+PF	7f800001	signalling-min	0	nan
+PF	7f800001	signalling-min	1	nan
+PF	7f800001	signalling-min	2	nan
+PF	7f800001	signalling-min	3	nan
+PF	7f800001	signalling-min	5	nan
+PF	7f800001	signalling-min	6	nan
+PF	7f800001	signalling-min	7	nan
+PF	7f800001	signalling-min	10	nan
+PF	7f800001	signalling-min	15	nan
+PF	7f800001	signalling-min	16	nan
+PF	7f800001	signalling-min	17	nan
+PF	7f800001	signalling-min	20	nan
+PF	7f800001	signalling-min	30	nan
+PF	7f800001	signalling-min	40	nan
+PF	7f800001	signalling-min	2147483648	nan
+PF	7f800001	signalling-min	4294967295	nan
+PF	ff800001	signalling-min	0	-nan
+PF	ff800001	signalling-min	1	-nan
+PF	ff800001	signalling-min	2	-nan
+PF	ff800001	signalling-min	3	-nan
+PF	ff800001	signalling-min	5	-nan
+PF	ff800001	signalling-min	6	-nan
+PF	ff800001	signalling-min	7	-nan
+PF	ff800001	signalling-min	10	-nan
+PF	ff800001	signalling-min	15	-nan
+PF	ff800001	signalling-min	16	-nan
+PF	ff800001	signalling-min	17	-nan
+PF	ff800001	signalling-min	20	-nan
+PF	ff800001	signalling-min	30	-nan
+PF	ff800001	signalling-min	40	-nan
+PF	ff800001	signalling-min	2147483648	-nan
+PF	ff800001	signalling-min	4294967295	-nan
+PF	7fa00000	signalling	0	nan
+PF	7fa00000	signalling	1	nan
+PF	7fa00000	signalling	2	nan
+PF	7fa00000	signalling	3	nan
+PF	7fa00000	signalling	5	nan
+PF	7fa00000	signalling	6	nan
+PF	7fa00000	signalling	7	nan
+PF	7fa00000	signalling	10	nan
+PF	7fa00000	signalling	15	nan
+PF	7fa00000	signalling	16	nan
+PF	7fa00000	signalling	17	nan
+PF	7fa00000	signalling	20	nan
+PF	7fa00000	signalling	30	nan
+PF	7fa00000	signalling	40	nan
+PF	7fa00000	signalling	2147483648	nan
+PF	7fa00000	signalling	4294967295	nan
+PF	ffa00000	signalling	0	-nan
+PF	ffa00000	signalling	1	-nan
+PF	ffa00000	signalling	2	-nan
+PF	ffa00000	signalling	3	-nan
+PF	ffa00000	signalling	5	-nan
+PF	ffa00000	signalling	6	-nan
+PF	ffa00000	signalling	7	-nan
+PF	ffa00000	signalling	10	-nan
+PF	ffa00000	signalling	15	-nan
+PF	ffa00000	signalling	16	-nan
+PF	ffa00000	signalling	17	-nan
+PF	ffa00000	signalling	20	-nan
+PF	ffa00000	signalling	30	-nan
+PF	ffa00000	signalling	40	-nan
+PF	ffa00000	signalling	2147483648	-nan
+PF	ffa00000	signalling	4294967295	-nan
+PF	7fd5abcd	quiet-payload	0	nan
+PF	7fd5abcd	quiet-payload	1	nan
+PF	7fd5abcd	quiet-payload	2	nan
+PF	7fd5abcd	quiet-payload	3	nan
+PF	7fd5abcd	quiet-payload	5	nan
+PF	7fd5abcd	quiet-payload	6	nan
+PF	7fd5abcd	quiet-payload	7	nan
+PF	7fd5abcd	quiet-payload	10	nan
+PF	7fd5abcd	quiet-payload	15	nan
+PF	7fd5abcd	quiet-payload	16	nan
+PF	7fd5abcd	quiet-payload	17	nan
+PF	7fd5abcd	quiet-payload	20	nan
+PF	7fd5abcd	quiet-payload	30	nan
+PF	7fd5abcd	quiet-payload	40	nan
+PF	7fd5abcd	quiet-payload	2147483648	nan
+PF	7fd5abcd	quiet-payload	4294967295	nan
+PF	ffd5abcd	quiet-payload	0	-nan
+PF	ffd5abcd	quiet-payload	1	-nan
+PF	ffd5abcd	quiet-payload	2	-nan
+PF	ffd5abcd	quiet-payload	3	-nan
+PF	ffd5abcd	quiet-payload	5	-nan
+PF	ffd5abcd	quiet-payload	6	-nan
+PF	ffd5abcd	quiet-payload	7	-nan
+PF	ffd5abcd	quiet-payload	10	-nan
+PF	ffd5abcd	quiet-payload	15	-nan
+PF	ffd5abcd	quiet-payload	16	-nan
+PF	ffd5abcd	quiet-payload	17	-nan
+PF	ffd5abcd	quiet-payload	20	-nan
+PF	ffd5abcd	quiet-payload	30	-nan
+PF	ffd5abcd	quiet-payload	40	-nan
+PF	ffd5abcd	quiet-payload	2147483648	-nan
+PF	ffd5abcd	quiet-payload	4294967295	-nan
+PF	7fffffff	quiet-payload-max	0	nan
+PF	7fffffff	quiet-payload-max	1	nan
+PF	7fffffff	quiet-payload-max	2	nan
+PF	7fffffff	quiet-payload-max	3	nan
+PF	7fffffff	quiet-payload-max	5	nan
+PF	7fffffff	quiet-payload-max	6	nan
+PF	7fffffff	quiet-payload-max	7	nan
+PF	7fffffff	quiet-payload-max	10	nan
+PF	7fffffff	quiet-payload-max	15	nan
+PF	7fffffff	quiet-payload-max	16	nan
+PF	7fffffff	quiet-payload-max	17	nan
+PF	7fffffff	quiet-payload-max	20	nan
+PF	7fffffff	quiet-payload-max	30	nan
+PF	7fffffff	quiet-payload-max	40	nan
+PF	7fffffff	quiet-payload-max	2147483648	nan
+PF	7fffffff	quiet-payload-max	4294967295	nan
+PF	ffffffff	quiet-payload-max	0	-nan
+PF	ffffffff	quiet-payload-max	1	-nan
+PF	ffffffff	quiet-payload-max	2	-nan
+PF	ffffffff	quiet-payload-max	3	-nan
+PF	ffffffff	quiet-payload-max	5	-nan
+PF	ffffffff	quiet-payload-max	6	-nan
+PF	ffffffff	quiet-payload-max	7	-nan
+PF	ffffffff	quiet-payload-max	10	-nan
+PF	ffffffff	quiet-payload-max	15	-nan
+PF	ffffffff	quiet-payload-max	16	-nan
+PF	ffffffff	quiet-payload-max	17	-nan
+PF	ffffffff	quiet-payload-max	20	-nan
+PF	ffffffff	quiet-payload-max	30	-nan
+PF	ffffffff	quiet-payload-max	40	-nan
+PF	ffffffff	quiet-payload-max	2147483648	-nan
+PF	ffffffff	quiet-payload-max	4294967295	-nan
+PF	7fc00001	quiet-payload-1	0	nan
+PF	7fc00001	quiet-payload-1	1	nan
+PF	7fc00001	quiet-payload-1	2	nan
+PF	7fc00001	quiet-payload-1	3	nan
+PF	7fc00001	quiet-payload-1	5	nan
+PF	7fc00001	quiet-payload-1	6	nan
+PF	7fc00001	quiet-payload-1	7	nan
+PF	7fc00001	quiet-payload-1	10	nan
+PF	7fc00001	quiet-payload-1	15	nan
+PF	7fc00001	quiet-payload-1	16	nan
+PF	7fc00001	quiet-payload-1	17	nan
+PF	7fc00001	quiet-payload-1	20	nan
+PF	7fc00001	quiet-payload-1	30	nan
+PF	7fc00001	quiet-payload-1	40	nan
+PF	7fc00001	quiet-payload-1	2147483648	nan
+PF	7fc00001	quiet-payload-1	4294967295	nan
+PF	ffc00001	quiet-payload-1	0	-nan
+PF	ffc00001	quiet-payload-1	1	-nan
+PF	ffc00001	quiet-payload-1	2	-nan
+PF	ffc00001	quiet-payload-1	3	-nan
+PF	ffc00001	quiet-payload-1	5	-nan
+PF	ffc00001	quiet-payload-1	6	-nan
+PF	ffc00001	quiet-payload-1	7	-nan
+PF	ffc00001	quiet-payload-1	10	-nan
+PF	ffc00001	quiet-payload-1	15	-nan
+PF	ffc00001	quiet-payload-1	16	-nan
+PF	ffc00001	quiet-payload-1	17	-nan
+PF	ffc00001	quiet-payload-1	20	-nan
+PF	ffc00001	quiet-payload-1	30	-nan
+PF	ffc00001	quiet-payload-1	40	-nan
+PF	ffc00001	quiet-payload-1	2147483648	-nan
+PF	ffc00001	quiet-payload-1	4294967295	-nan
+TF	7fc00000	quiet	NaN
+TF	ffc00000	quiet	NaN
+TF	7f800001	signalling-min	NaN
+TF	ff800001	signalling-min	NaN
+TF	7fa00000	signalling	NaN
+TF	ffa00000	signalling	NaN
+TF	7fd5abcd	quiet-payload	NaN
+TF	ffd5abcd	quiet-payload	NaN
+TF	7fffffff	quiet-payload-max	NaN
+TF	ffffffff	quiet-payload-max	NaN
+TF	7fc00001	quiet-payload-1	NaN
+TF	ffc00001	quiet-payload-1	NaN
+"##;
+
+/// Every formatter row of the negative-NaN sweep, reproduced.
+///
+/// [`ORACLE_NAN_SWEEP`] is what closes the one-row coverage of
+/// [`ORACLE_DRIVER_TSV`], whose corpus holds a single sign-bit NaN. The sweep
+/// ran the same driver against the same Release install over six NaN shapes by
+/// both signs by both widths, at 22 digit counts and 16 precisions. Of its 912
+/// `printf` rows none prints a sign that disagrees with the argument's sign
+/// bit, and all 24 `toStr` rows print `NaN`; this asserts every one of them
+/// individually rather than restating the summary, so a regression in either
+/// half names the row it broke.
+#[test]
+fn the_negative_nan_sweep_is_reproduced_row_for_row() {
+    let mut printf_rows = 0usize;
+    let mut to_str_rows = 0usize;
+
+    for line in ORACLE_NAN_SWEEP.lines() {
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let cell: Vec<&str> = line.split('\t').collect();
+        let section = cell[0];
+        let bits = cell[1];
+        let shape = cell[2];
+        let context = format!("{section} {bits} {shape}");
+
+        // `NF`/`PF`/`TF` carry a 32-bit pattern; C++ promotes it before
+        // formatting, which is what `f64::from` does here.
+        let value = if section.ends_with('F') {
+            f64::from(f32::from_bits(u32::from_str_radix(bits, 16).expect("f32 bits")))
+        } else {
+            f64::from_bits(u64::from_str_radix(bits, 16).expect("f64 bits"))
+        };
+        assert!(value.is_nan(), "{context}: the sweep row is not a NaN");
+
+        match section {
+            "ND" | "NF" => {
+                let digits: u32 = cell[3].parse().expect("digit count");
+                let expected = cell[4];
+                assert_eq!(
+                    fixed(value, digits).ok().as_deref(),
+                    Some(expected),
+                    "{context}: number(x, {digits})"
+                );
+                assert_eq!(
+                    fixed_truncated(value, digits),
+                    expected,
+                    "{context}: number(x, {digits}) through the truncating form"
+                );
+                printf_rows += 1;
+            }
+            "PD" | "PF" => {
+                let precision: u32 = cell[3].parse().expect("precision");
+                let expected = cell[4];
+                assert_eq!(
+                    ostream_g(value, precision),
+                    expected,
+                    "{context}: ostream at precision {precision}"
+                );
+                printf_rows += 1;
+            }
+            "TD" => {
+                assert_eq!(to_str(value), cell[3], "{context}: toStr");
+                to_str_rows += 1;
+            }
+            "TF" => {
+                let narrow = f32::from_bits(u32::from_str_radix(bits, 16).expect("f32 bits"));
+                assert_eq!(to_str_f32(narrow), cell[3], "{context}: toStr");
+                to_str_rows += 1;
+            }
+            other => panic!("unexpected sweep section {other}"),
+        }
+    }
+
+    // The counts the sweep's own summary reports, so a silently shortened
+    // constant fails here rather than passing vacuously.
+    assert_eq!(printf_rows, 912, "printf rows compared");
+    assert_eq!(to_str_rows, 24, "toStr rows compared");
+}
+
 /// The `printf` paths carry a NaN's sign bit and the `toStr` path discards it.
 ///
 /// The two bit patterns are the oracle's own: rows 91 and 92 of
 /// [`ORACLE_DRIVER_TSV`] are `7ff8000000000000` and `fff8000000000000`, and row
 /// 92 is the only sign-bit NaN anywhere in that corpus. The loop above already
 /// compares both rows column for column; these assertions name the rule the
-/// rows measure, at digit counts and precisions the corpus does not reach, and
-/// fail if either half of it is ever dropped. The split is attributed in
+/// rows measure and fail if either half of it is ever dropped.
+/// [`the_negative_nan_sweep_is_reproduced_row_for_row`] is what actually
+/// measures the digit counts, precisions, NaN shapes and the `float` width
+/// this corpus does not reach. The split is attributed in
 /// `../oracle/a2-textfmt-linux/results/column_attribution.txt`: columns 3-5 are
 /// `StringUtils::number` (`StringUtils.cpp:526-531`, whose body is one
 /// `snprintf("%.*f")`) and columns 6-7 `std::ostringstream`, both glibc
