@@ -23,6 +23,12 @@
 //! the writer, which owns the Mascot search parameters that become the MGF
 //! parameter header.
 //!
+//! The source class derives from `ProgressLogger`; [`load_with_progress`](crate::format::mascot_generic::load_with_progress),
+//! [`MascotGenericFile::store_with_progress`](crate::format::mascot_generic::MascotGenericFile::store_with_progress)
+//! and [`MascotGenericFile::store_to_with_progress`](crate::format::mascot_generic::MascotGenericFile::store_to_with_progress)
+//! make the progress calls of its `load` and `store` on a caller's logger;
+//! every other entry point reports nothing.
+//!
 //! This module is independent of [`crate::format::mgf`], a stricter native MGF
 //! interchange adapter that rejects much of the malformed input the Mascot
 //! reader tolerates. Use this module when source fidelity matters.
@@ -36,6 +42,7 @@ use crate::chemistry::ModificationsDB;
 use crate::concept::constants::user_param::{
     MSM_INCHI_STRING, MSM_METABOLITE_NAME, MSM_SMILES_STRING,
 };
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
 use crate::interfaces::MSDataConsumer;
 use crate::kernel::SpectrumType;
 use crate::metadata::MetaValue;
@@ -778,9 +785,25 @@ pub fn read(reader: impl BufRead) -> Result<MSExperiment> {
 /// returned experiment before the whole file has been read, so a failed read
 /// yields no partial result.
 pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<MSExperiment> {
+    read_reporting(reader, options, &mut ProgressReporter::silent())
+}
+
+/// The reader, with the source's `setProgress(is.tellg())` after each block
+/// is added (`MascotGenericFile.h:96-101`). A block outside
+/// [`ReadOptions::rt_range`], a native filter, is not returned and makes no
+/// call.
+fn read_reporting(
+    reader: impl BufRead,
+    options: &ReadOptions,
+    progress: &mut ProgressReporter<'_>,
+) -> Result<MSExperiment> {
     let mut result = MSExperiment::default();
-    for spectrum in MascotGenericReader::new(reader, options)? {
+    let mut blocks = MascotGenericReader::new(reader, options)?;
+    while let Some(spectrum) = blocks.next() {
         push_spectrum(&mut result, spectrum?)?;
+        if progress.is_reporting() {
+            progress.set(blocks.input.source_position(&blocks.line)?)?;
+        }
     }
     Ok(result)
 }
@@ -825,7 +848,59 @@ pub fn load(path: impl AsRef<Path>) -> Result<MSExperiment> {
 ///
 /// See [`load`].
 pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Result<MSExperiment> {
-    read_with_options(BufReader::new(File::open(path)?), options)
+    load_reporting(path, options, &mut ProgressReporter::silent())
+}
+
+/// Read a file, reporting progress to `logger` as source
+/// `MascotGenericFile::load` does (`MascotGenericFile.h:74-104`).
+///
+/// The calls are the source's: once the file is open,
+/// `startProgress(0, file size in bytes, "loading MGF")`; after each block is
+/// added, `setProgress` with the source's `is.tellg()`, the bytes consumed so
+/// far, which is **-1** after a last `END IONS` line with no newline, because
+/// `std::getline` then set `eofbit` and `tellg` fails (the command backend
+/// prints its `Invalid progress value '-1'` diagnostic there, as the Release
+/// build does); and `endProgress()` after the last block. The result is the
+/// one [`load_with_options`] returns, and so is every error: both run the same
+/// code, whose calls go nowhere for [`load_with_options`].
+///
+/// A file that cannot be opened makes no call, as the source's
+/// `FileNotFound` makes none. (The source opens an existing but unreadable
+/// file as an empty map, with a range ending at -1; this refuses it, as
+/// [`load`] does.) A failure after the start, including invalid `options`, a
+/// native check, leaves the section open, as in the source, where the
+/// exception bypasses `endProgress`: no `-- done` line is printed, the nesting
+/// depth stays one level deeper, and a command backend of `logger` refuses its
+/// next start.
+///
+/// # Errors
+///
+/// As [`load`], plus [`InvalidValue`](crate::Error::InvalidValue) for a file
+/// larger than `i64::MAX` bytes, and the errors of the progress calls
+/// ([`ProgressLogger::start_progress`] and its siblings).
+pub fn load_with_progress(
+    path: impl AsRef<Path>,
+    options: &ReadOptions,
+    logger: &mut ProgressLogger,
+) -> Result<MSExperiment> {
+    load_reporting(path, options, &mut ProgressReporter::new(Some(logger)))
+}
+
+/// The source's `load`: its section, sized by the file, around the reader.
+fn load_reporting(
+    path: impl AsRef<Path>,
+    options: &ReadOptions,
+    progress: &mut ProgressReporter<'_>,
+) -> Result<MSExperiment> {
+    let file = File::open(path)?;
+    if progress.is_reporting() {
+        let size = i64::try_from(file.metadata()?.len())
+            .map_err(|_| invalid("MGF file size exceeds the progress range"))?;
+        progress.start(0, size, "loading MGF")?;
+    }
+    let experiment = read_reporting(BufReader::new(file), options, progress)?;
+    progress.end()?;
+    Ok(experiment)
 }
 
 /// Stream blocks into a consumer, with default options.
@@ -1347,6 +1422,20 @@ impl MascotGenericFile {
         load(path)
     }
 
+    /// [`Self::load`], reporting progress to `logger` as the source's `load`
+    /// does; see the free [`load_with_progress`].
+    ///
+    /// # Errors
+    ///
+    /// See [`load_with_progress`].
+    pub fn load_with_progress(
+        &self,
+        path: impl AsRef<Path>,
+        logger: &mut ProgressLogger,
+    ) -> Result<MSExperiment> {
+        load_with_progress(path, &ReadOptions::default(), logger)
+    }
+
     /// Write `experiment` to `path`.
     ///
     /// # Errors
@@ -1379,7 +1468,61 @@ impl MascotGenericFile {
         compact: bool,
         options: &WriteOptions,
     ) -> Result<WriteReport> {
-        let path = path.as_ref();
+        self.store_reporting(
+            path.as_ref(),
+            experiment,
+            compact,
+            options,
+            &mut ProgressReporter::silent(),
+        )
+    }
+
+    /// [`Self::store_with_options`], reporting progress to `logger` as the
+    /// source's `store` does (`MascotGenericFile.cpp:458-476`).
+    ///
+    /// The calls are the source's: after the parameter header, the HTTP
+    /// opening and the native-ID accession are written or determined,
+    /// `startProgress(0, spectra, "storing mascot generic file")`;
+    /// `setProgress(i)` before spectrum `i`, whether or not it is written; and
+    /// `endProgress()` after the HTTP closing, before the file is flushed. The
+    /// written bytes, the report and every error are those of
+    /// [`Self::store_with_options`], which runs the same code with the calls
+    /// going nowhere; its checks, including the measured dry run, precede the
+    /// file and every call. With `internal:content` set to `header_only` the
+    /// source writes no peak list and makes no call, and neither does this. A
+    /// failure after the start leaves the section open, as described at
+    /// [`load_with_progress`].
+    ///
+    /// # Errors
+    ///
+    /// See [`Self::store`], plus the errors of the progress calls.
+    pub fn store_with_progress(
+        &mut self,
+        path: impl AsRef<Path>,
+        experiment: &MSExperiment,
+        compact: bool,
+        options: &WriteOptions,
+        logger: &mut ProgressLogger,
+    ) -> Result<WriteReport> {
+        self.store_reporting(
+            path.as_ref(),
+            experiment,
+            compact,
+            options,
+            &mut ProgressReporter::new(Some(logger)),
+        )
+    }
+
+    /// The path `store`: checks, a measured dry run that reports nothing, then
+    /// the file, whose peak lists report to `progress`.
+    fn store_reporting(
+        &mut self,
+        path: &Path,
+        experiment: &MSExperiment,
+        compact: bool,
+        options: &WriteOptions,
+        progress: &mut ProgressReporter<'_>,
+    ) -> Result<WriteReport> {
         let name = path.to_string_lossy().into_owned();
         if !super::file_types::has_valid_extension(&name, super::FileType::Mgf) {
             return Err(invalid(
@@ -1388,9 +1531,15 @@ impl MascotGenericFile {
         }
         options.validate()?;
         let mut counter = Counter(options.max_output_bytes);
-        self.render(&mut counter, &name, experiment, compact)?;
+        self.render(
+            &mut counter,
+            &name,
+            experiment,
+            compact,
+            &mut ProgressReporter::silent(),
+        )?;
         let mut writer = BufWriter::new(File::create(path)?);
-        let report = self.render(&mut writer, &name, experiment, compact)?;
+        let report = self.render(&mut writer, &name, experiment, compact, progress)?;
         writer.flush()?;
         Ok(report)
     }
@@ -1414,7 +1563,38 @@ impl MascotGenericFile {
         compact: bool,
     ) -> Result<WriteReport> {
         let mut writer = writer;
-        self.render(&mut writer, filename, experiment, compact)
+        self.render(
+            &mut writer,
+            filename,
+            experiment,
+            compact,
+            &mut ProgressReporter::silent(),
+        )
+    }
+
+    /// [`Self::store_to`], reporting progress to `logger` with the calls
+    /// [`Self::store_with_progress`] describes; the source's stream `store`
+    /// makes them too.
+    ///
+    /// # Errors
+    ///
+    /// See [`Self::store_to`], plus the errors of the progress calls.
+    pub fn store_to_with_progress(
+        &mut self,
+        writer: impl Write,
+        filename: &str,
+        experiment: &MSExperiment,
+        compact: bool,
+        logger: &mut ProgressLogger,
+    ) -> Result<WriteReport> {
+        let mut writer = writer;
+        self.render(
+            &mut writer,
+            filename,
+            experiment,
+            compact,
+            &mut ProgressReporter::new(Some(logger)),
+        )
     }
 
     fn render(
@@ -1423,6 +1603,7 @@ impl MascotGenericFile {
         filename: &str,
         experiment: &MSExperiment,
         compact: bool,
+        progress: &mut ProgressReporter<'_>,
     ) -> Result<WriteReport> {
         self.store_compact = compact;
         let content = self.string_parameter("internal:content")?;
@@ -1431,17 +1612,20 @@ impl MascotGenericFile {
             self.write_header_to(writer)?;
         }
         if content != "header_only" {
-            self.write_experiment(writer, filename, experiment, &mut report)?;
+            self.write_experiment(writer, filename, experiment, &mut report, progress)?;
         }
         Ok(report)
     }
 
+    /// The peak lists, with the source's progress section around them
+    /// (`MascotGenericFile.cpp:458-476`).
     fn write_experiment(
         &self,
         writer: &mut impl Write,
         filename: &str,
         experiment: &MSExperiment,
         report: &mut WriteReport,
+        progress: &mut ProgressReporter<'_>,
     ) -> Result<()> {
         let enclosure = self.http_peak_list_enclosure(filename)?;
         let http = self.string_parameter("internal:HTTP_format")? == "true";
@@ -1454,7 +1638,13 @@ impl MascotGenericFile {
         // The `fixed` flag the compact writer sets lives in the C++ ostream, so
         // it is sticky for the rest of the file once any spectrum has set it.
         let mut fixed = false;
-        for spectrum in &experiment.spectra {
+        progress.start(
+            0,
+            progress_value(experiment.spectra.len())?,
+            "storing mascot generic file",
+        )?;
+        for (index, spectrum) in experiment.spectra.iter().enumerate() {
+            progress.set_count(index)?;
             match spectrum.ms_level {
                 2 => {
                     let outcome =
@@ -1480,7 +1670,7 @@ impl MascotGenericFile {
         if http {
             write!(writer, "{}", enclosure.1)?;
         }
-        Ok(())
+        progress.end()
     }
 
     /// Strings that enclose the peak-list body for an HTTP submission.

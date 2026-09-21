@@ -306,6 +306,16 @@ impl<R: BufRead> TextInput<R> {
         self.bytes += read;
         Ok(true)
     }
+    /// What the source's `std::istream::tellg()` reports after the last line
+    /// was read with `std::getline`: the bytes consumed, or -1 once that line
+    /// ended at the end of input without a newline, because `getline` then
+    /// set `eofbit` and `tellg` fails (`MascotGenericFile.h:99` passes it on).
+    pub fn source_position(&self, last_line: &str) -> Result<i64> {
+        if !last_line.ends_with('\n') {
+            return Ok(-1);
+        }
+        crate::concept::progress_logger::progress_value(self.bytes)
+    }
 }
 pub(super) struct Counter(pub usize);
 impl Write for Counter {
