@@ -3981,6 +3981,70 @@
    "label": "oracle-generated (tier 1 executed differential)"
   },
   {
+   "path": "../oracle/a8-truncated/oracle.py",
+   "sha256": "1bf55681e9e8e971318e9c31306aec9c09eef8638e0a813c1689eebddcf28cc0",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-TRUNCATED (repair F2)",
+   "role": "Release-build runner of the truncation cases: 42 FileInfo tool cases, 13 class-driver cases and 8 MzXMLFile::load cases, per-case scratch runs, reproduction check, manifest writer",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a8-truncated/run.sh",
+   "sha256": "9f0939f1ed5e9062890748fef58558b02c737638acf945a896f272c0601d7e11",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-TRUNCATED (repair F2)",
+   "role": "node-side entry point with the exact environment; compiles both drivers with the Release install's own toolchain and libOpenMS's core flags",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a8-truncated/remote.sh",
+   "sha256": "741728aff1335836fb41581af0d085b1cebc2d932836541b254e7e28c47dc6c3",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-TRUNCATED (repair F2)",
+   "role": "Mac-side staging to ibminode06, detached launch with a DONE marker, poll, fetch",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a8-truncated/driver/fileinfo_driver.cpp",
+   "sha256": "ae24c4e41916332ff2e21278ddd0af59f752f830443626a4491f262eb873997f",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-TRUNCATED (repair F2)",
+   "role": "class-level driver, a verbatim copy of ../oracle/a8-fileinfo/driver/fileinfo_driver.cpp",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a8-truncated/driver/mzxml_driver.cpp",
+   "sha256": "5b9dabfdaf981b15d9fd59fd18bce53b20eb01fedbf609a9553b6ce482ec8924",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-TRUNCATED (repair F2)",
+   "role": "MzXMLFile::load driver, full and metadata-only",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a8-truncated/scripts/make_truncated_fixtures.py",
+   "sha256": "774e9cf4938b5100450dbc90d7ed34692c5967e5413bb482aa809a552581d4b7",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-TRUNCATED (repair F2)",
+   "role": "generator of the 25 truncated inputs, byte prefixes of five A8 inputs, which regenerate byte for byte",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a8-truncated/scripts/export_truncated.py",
+   "sha256": "524ed3920bd635b0b1d72467bbc3e382f15cb81a0137430da4719372352c820c",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-TRUNCATED (repair F2)",
+   "role": "exporter of the fixtures, the completed cases' reports and release_outcomes.tsv into tests/data/file_info_a8/truncated, refusing any text that does not hash back to the manifest",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a8-truncated/manifest.json",
+   "sha256": "be8aeeb3cf9b217d6164fd9a5261c5ec19eafdf6d20572dcf75b56f91775dcea",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-TRUNCATED (repair F2)",
+   "role": "tool, driver and libOpenMS hashes, environment, fixture hashes, per-case argv, exit codes and output hashes, and the reproduction verdict",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
    "path": "../oracle/reader-roundtrip/probe_source_refs.cpp",
    "sha256": "bdb4ca438350d7e273f2dc210e79ac7afd9acd753fe762e395166ec8b48f1a34",
    "origin_key": "tests/data/mzml_source_file_round_trip_provenance.json",

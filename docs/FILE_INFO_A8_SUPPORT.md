@@ -25,7 +25,7 @@ ported`: sqMass, XMass (`fid`) and MSP, which have no reader here that fills an
 and the pepXML, mzTab, trafoXML and PQP branches — is the other half.
 
 Evidence and hashes: `tests/data/file_info_a8_provenance.json`.
-Tests: `tests/file_info_a8.rs` (19), and three older files that change with the
+Tests: `tests/file_info_a8.rs` (25, six of them for truncated input, section 6), and three older files that change with the
 scope: `tests/topp_file_info.rs` reproduces TOPP_FileInfo_4, _5 and _6 through
 FuzzyDiff against the retained upstream outputs instead of listing them as not
 ported; `tests/file_info.rs` drops the four types from its refusal table and
@@ -225,3 +225,73 @@ the eight other `m_*` tool cases that take the same path) and `-i` on mzXML
 _6 (`:896-898`, `-d -s`) pass FuzzyDiff with the whitelist `File name` against
 their retained outputs, which the Release build's `-out` also equals apart from
 the file name line; none of the three passed before, all three refused.
+
+## 6. Truncated input (repair F2)
+
+The verifier of Phase 3 wave 1 found (finding F2) that FileInfo reported a
+truncated mzXML as valid: `tests/data/progress_format_readers/truncated.mzXML`,
+which is `MzXMLFile_1.mzXML` cut after scan 11's `</scan>`, gave a full report
+and exit 0, where the Release build throws `ParseError` and exits 3. A8's
+oracle had no truncated input. The cause was the mzXML reader, not this
+branch: at the end of input it did not check that every element was closed. It
+does now (`docs/MZXML_SUPPORT.md`, *A document must be closed*).
+
+`../oracle/a8-truncated` pins what the Release build does with a document cut
+at every structurally different place, for all four readers. It uses the A7
+and A8 machinery on ibminode06, runs every case twice, and both runs agree. It
+has 42 tool cases: 21 fixtures, each bare and with `-m -p -s -d -c -out
+-out_tsv`. It also has 13 cases of the A8 class driver and 8 of
+`driver/mzxml_driver.cpp`, which runs `MzXMLFile::load` in full and
+metadata-only. The fixtures are byte prefixes of five A8 inputs, written by
+`scripts/make_truncated_fixtures.py`. `scripts/export_truncated.py` copies them,
+the reports of every case that completed, and one row per case
+(`release_outcomes.tsv`) into `tests/data/file_info_a8/truncated`, refusing any
+text that does not hash back to the manifest.
+
+| Reader | Where the cuts fall | Release build | Port before | Port now |
+| --- | --- | --- | --- | --- |
+| mzXML | after a scan, inside a nested scan, inside a payload, inside a start tag, before the first scan, after `</msRun>`, without and inside the closing root tag, inside `<index>`, a gzip member holding a cut document | exit 3 on all 10, `ParseError` | exit 0 and a full report on 7 of the 10 | exit 3 on all 10; the 8 that end with an element open name it in the Xerces clause |
+| mzXML | a gzip member itself cut in half | exit 3, `ParseError` from Xerces | exit 8 | exit 8, the known gap below |
+| mzData | after a spectrum, inside a payload, inside a start tag, inside `<description>`, after `</spectrumList>` | exit 3 on all 5 | exit 3 on all 5 | unchanged |
+| MGF | between blocks; in a block's header before its first peak | exit 0, the blocks before the cut | the same reports, byte for byte | unchanged |
+| MGF | inside a peak line; inside `END IONS`; `END` alone | exit 3 | exit 3, on the line the Release build names | unchanged |
+| MS2 (class) | on a line boundary; inside a number that leaves two values | loads what is there | the same reports, byte for byte | unchanged |
+| MS2 (class) | an `S` line with three values; a peak line with one | `ParseError` | a parse error on the line the Release build names | unchanged |
+
+Only mzXML had the defect. mzData already checked its element stack at the end
+of input. MGF and MS2 have no closing element to miss, and both readers follow
+the source's line loops, so a cut is an error exactly where the source's loop
+finds a malformed line or `BEGIN IONS` without `END IONS`
+(`FORMAT/MascotGenericFile.h:205-214`), and a clean end of file elsewhere
+(`:399`, `FORMAT/MS2File.h:159-164`).
+
+A refused file leaves `-out` and `-out_tsv` empty and prints nothing on the
+output stream in both builds. The error stream starts with `Error: Unable to
+read file (` in both. For an mzXML document that ends with an element open, the
+port's message is the Xerces clause the Release build prints, `input ended
+before all started tags were ended; last tag started is '<tag>'`, without its
+line and column. The other messages are this crate's (section 3, item 3).
+`tests/file_info_a8.rs` checks all of this for every case in
+`release_outcomes.tsv`, through the tool (`run_with`) and through the class,
+with the MGF and MS2 line numbers read from the Release messages. It also
+checks that a metadata-only mzXML load stops at the first `<scan>` before
+reaching the truncation, as the source's `EndParsingSoftly` does: the document
+cut after a scan or inside a payload loads with no spectrum in both builds, and
+the one cut before the first scan is refused in both. Three of these tests
+fail on the reader as it was.
+
+**Known gap: a gzip member cut short.** The Release build's type sniffing
+reads at most 8191 decompressed bytes of a gzip file and takes what the stream
+gives (`FORMAT/FileHandler.cpp:356-362`). Xerces then parses the decompressed
+prefix and throws `ParseError`, so the tool exits 3 (`t_mzxml_gz_cut`,
+`lib_t_mzxml_gz_cut`). Here `DocumentIdentifier::set_loaded_file_type`
+(`src/metadata/document_identifier.rs`) reads a 64 KiB preview with
+`read_to_end`, and the gzip decoder fails it with an I/O error before any
+reader runs. The class returns `Error::Io` and the tool exits 8, `Unexpected
+internal error (unexpected end of file)`. Both builds refuse the file and write
+no report; only the exit code differs. The same preview runs before every
+XML reader, so every gzip-compressed XML input cut inside its gzip member is
+affected. The fix belongs to the preview, which is outside this package: it
+should keep the bytes decoded before the error and let the reader meet the
+truncation. `a_cut_gzip_member_is_refused` asserts the refusal, and the tool
+test exempts only this case's exit code.

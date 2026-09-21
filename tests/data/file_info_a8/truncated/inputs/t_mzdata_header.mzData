@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzData version="1.05" accessionNumber="lsid" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://psidev.sourceforge.net/ms/xml/mzdata/mzdata.xsd">
+	<description>
+		<admin>
+			<sampleName>MS-Sample</sampleName>
+			<sampleDescription>
+				<cvParam cvLabel="psi" accession="PSI:1000001" name="SampleNumber" value="0-815"/>
+				<cvParam cvLabel="psi" accession="PSI:1000003" name="SampleState" value="Gas"/>
+				<cvParam cvLabel="psi" accession="PSI:1000004" name="SampleMass" value="1.01"/>
+				<cvParam cvLabel="psi" accession="PSI:1000005" name="SampleVolume" value="2.02"/>
+				<cvParam cvLabel="psi" accession="PSI:1000006" name="SampleConcentration" value="3.03"/>
+				<userParam name="URL" value="www.open-ms.de"/>
+				<userParam name="SampleComment" value="Sample"/>
+			</sampleDescription>
+			<sourceFile>
+				<nameOfFile>MzDataFile_test_1.raw</nameOfFile>
+				<pathToFile>/share/data/</pathToFile>
+				<fileType>MS</fileType>
+			</sourceFile>
+			<contact>
+				<name>John Doe</name>
+				<institution>department 1</institution>
+				<contactInfo>www.john.doe</contactInfo>
+			</contact>
+			<contact>
+				<name>Jane Doe</name>
+				<institution>department 2</institution>
+				<contactInfo>www.jane.doe</contactInfo>
+			</contact>
+		</admin>
+		<instrument>
+			<instrumentName>MS-Instrument</instrumentName>
+			<source>
+				<cvParam cvLabel="psi" accession="PSI:1000007" name="InletType" value="Direct"/>
+				<cvParam cvLabel="psi" accession="PSI:1000008" name="IonizationType" value="ESI"/>
+				<cvParam cvLabel="psi" accession="PSI:1000009" name="IonizationMode" value="NegativeIonMode"/>
+				<userParam name="URL" value="www.open-ms.de"/>
+				<userParam name="SourceComment" value="Source"/>
+			</source>
+			<analyzerList count="2">
+				<analyzer>
+					<cvParam cvLabel="psi" accession="PSI:1000010" name="AnalyzerType" value="PaulIonTrap"/>
+					<cvParam cvLabel="psi" accession="PSI:1000011" name="Resolution" value="22.33"/>
+					<cvParam cvLabel="psi" accession="PSI:1000012" name="ResolutionMethod" value="FWHM"/>
+					<cvParam cvLabel="psi" accession="PSI:1000013" name="ResolutionType" value="Constant"/>
+					<cvParam cvLabel="psi" accession="PSI:1000014" name="Accuracy" value="33.44"/>
+					<cvParam cvLabel="psi" accession="PSI:1000015" name="ScanRate" value="44.55"/>
+					<cvParam cvLabel="psi" accession="PSI:1000016" name="ScanTime" value="55.66"/>
+					<cvParam cvLabel="psi" accession="PSI:1000017" name="ScanFunction" value="MassScan"/>
+					<cvParam cvLabel="psi" accession="PSI:1000018" name="ScanDirection" value="Up"/>

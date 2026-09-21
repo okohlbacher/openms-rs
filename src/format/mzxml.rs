@@ -1250,15 +1250,18 @@ impl<'a> Run<'a> {
         }
         if !self.stop {
             // A document that ends with an element still open is not
-            // well-formed. The source's Xerces parser raises its fatal error
-            // `EndedWithTagsOnStack` at the end of input, which `XMLHandler`
-            // throws as `ParseError`, whatever the handler has stored so far
-            // (Release oracle `../oracle/a8-truncated`). quick-xml reports a
-            // plain end of input instead, so the open element is checked here,
-            // with the Xerces message. The scans already read are dropped, as
-            // the source's `load` returns nothing but the exception. A
-            // metadata-only load or a consumer stop ends on purpose before the
-            // closing tags and is not truncated.
+            // well-formed. At the end of input the source's Xerces parser
+            // reports a fatal error naming the innermost open element, which
+            // `XMLHandler::fatalError` throws as `ParseError`
+            // (`XMLHandler.cpp:41-68`), whatever the handler stored before;
+            // FileInfo then exits 3 (Release oracle `../oracle/a8-truncated`).
+            // quick-xml reports a plain end of input instead, so the open
+            // element is checked here and named in the Xerces wording. The
+            // scans read so far are dropped: the source's `load` delivers only
+            // the exception. A metadata-only load and a consumer stop end
+            // before the closing tags on purpose, as the source's
+            // `EndParsingSoftly` does (`XMLFile.cpp:104-108`), and are not
+            // truncated.
             if let Some(tag) = self.tags.last() {
                 return Err(invalid(format!(
                     "input ended before all started tags were ended; last tag started is '{tag}'"
