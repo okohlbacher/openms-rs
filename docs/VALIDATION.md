@@ -1,5 +1,43 @@
 # Validation of the ongoing Rust port
 
+## Repair F2: FileInfo on truncated input (2026-09-21)
+
+The verifier of Phase 3 wave 1 found that FileInfo reported a truncated mzXML
+as valid, with exit 0, where the Release build exits 3. The cause was the mzXML
+reader, which did not check at the end of input that every element was closed.
+It does now, with the Xerces clause naming the element left open
+([MZXML_SUPPORT](MZXML_SUPPORT.md), *A document must be closed*;
+[FILE_INFO_A8_SUPPORT](FILE_INFO_A8_SUPPORT.md), section 6). Executed for this
+checkpoint:
+
+- `../oracle/a8-truncated`: 42 cases of the Release FileInfo tool, 13 of the A8
+  class driver and 8 of an `MzXMLFile::load` driver, full and metadata-only,
+  against `openms4-release-bc9cc12-c19e494-174b576` on ibminode06, each run
+  twice and reproduced. The inputs are 25 byte prefixes of five A8 inputs, cut
+  at every structurally different place in mzXML, mzData, MGF and MS2.
+- `tests/file_info_a8.rs`: 25 passed with `--all-features` and with
+  `--no-default-features --features "mzml paramxml featurexml"`, on stable and
+  on 1.85.0; 24 with `--features mzml`; 13 with `--no-default-features`. The 61
+  A8 reports are unchanged. Three of the six new tests fail on the reader as it
+  was.
+- `tests/mzxml.rs` 61 passed, with `--all-features` and with `--features mzml`.
+  `tests/progress_format_readers.rs` 10 passed: `mzxml_load_truncated` lost its
+  divergence and now matches every Release call, the depth and the error class.
+- `tools/check_core_sdk.py`, `check_doc_coverage.py`, `check_module_cycles.py`
+  and `check_source_citations.py` pass. `core_sdk_coverage.py` is left for the
+  lead to regenerate after the merges.
+- The CI sweep (`openms-ci-sweep.sh`, 52 lines, minimum-rust on 1.85.0) ran on
+  dax: kim lost its Kerberos ticket mid-sweep and could no longer read `/ceph`.
+  50 lines passed. The two `--all-features --all-targets` lines, on stable and
+  on 1.85.0, fail only in `topp_fuzzy_diff`, 11 of 15, the merge defect F1
+  that this repair does not touch. A `--no-fail-fast` run of the stable line
+  ran all 373 test binaries; `topp_fuzzy_diff` was the only one that failed.
+
+Found and not changed: a gzip member cut short is refused with exit 8, where
+the Release build exits 3. `DocumentIdentifier::set_loaded_file_type` fails its
+64 KiB preview before any reader runs. The preview is shared by every XML
+reader and belongs to another package.
+
 ## Phase 3a: FuzzyDiff, the ninth validated TOPP workflow (2026-09-21)
 
 `FuzzyDiff` (topp `174b576` `src/FuzzyDiff.cpp`) is ported on the TOPP
