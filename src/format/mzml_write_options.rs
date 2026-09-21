@@ -395,6 +395,7 @@ fn prepare(
         &mut Some(payload.arrays.iter()),
         &payload.header,
         options.force_tpp_compatibility,
+        &mut ProgressReporter::silent(),
     )?;
     let length = sink.position;
     layout.xml_bytes = length;
@@ -419,6 +420,7 @@ fn emit(writer: impl Write, experiment: &MSExperiment, p: &Prepared) -> Result<P
         &mut Some(p.payload.arrays.iter()),
         &p.payload.header,
         p.tpp,
+        &mut ProgressReporter::silent(),
     )?;
     if output.position != p.layout.xml_bytes {
         return Err(invalid("prepared mzML output length changed"));
