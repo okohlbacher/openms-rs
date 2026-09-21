@@ -34,7 +34,7 @@ pub type ToolResult = std::result::Result<ExitCode, ToolError>;
 ///
 /// * [`Error`](Self::Error): an error of this crate, which the lifecycle maps
 ///   to the run-phase catch block of the source exception it stands for
-///   (`TOPPBase.cpp:428-499`; [`run_with`](crate::cli::run_with) lists the
+///   (`TOPPBase.cpp:430-499`; [`run_with`](crate::cli::run_with) lists the
 ///   arms). `?` on a [`crate::Error`] produces this variant.
 /// * [`Caught`](Self::Caught): a source exception whose catch-block text the
 ///   tool knows exactly, such as the `BaseException` arm's `Error: Unexpected

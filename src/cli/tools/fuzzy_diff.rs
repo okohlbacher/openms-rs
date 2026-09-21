@@ -195,7 +195,7 @@ impl Tool for FuzzyDiff {
         let do_sort = ctx.flag("sort")?;
 
         // The source's check of the list parsing, in the -log file from debug
-        // level 1 (`FuzzyDiff.cpp:103-105`); `ListUtils::concatenate` joins with
+        // level 1 (`FuzzyDiff.cpp:107-108`); `ListUtils::concatenate` joins with
         // `, `, so an empty list leaves two spaces.
         ctx.write_debug(
             &format!(

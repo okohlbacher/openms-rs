@@ -677,7 +677,7 @@ impl Tool for PeakPickerHiRes {
         let process_option = ctx.string("processOption")?;
 
         // `writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3)`
-        // (`PeakPickerHiRes.cpp:200-201`): the -log file, from debug level 3.
+        // (`PeakPickerHiRes.cpp:198-199`): the -log file, from debug level 3.
         let algorithm = ctx.subsection("algorithm")?;
         ctx.write_debug_param("Parameters passed to PeakPickerHiRes", &algorithm, 3);
         let mut picker = Picker::from_param(&algorithm)?;

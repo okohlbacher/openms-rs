@@ -772,7 +772,7 @@ fn release_refusals_end_and_log_as_in_the_release_build() {
 /// Oracle `pphr_debug3_log`: workflow 1 at debug level 3 with `-log`. The
 /// report and the closing line are the Release build's; the log file holds the
 /// framework's lines and the tool's dump of the `algorithm` section,
-/// `Parameters passed to PeakPickerHiRes` (`PeakPickerHiRes.cpp:200-201`), line
+/// `Parameters passed to PeakPickerHiRes` (`PeakPickerHiRes.cpp:198-199`), line
 /// for line.
 #[test]
 fn release_debug_lines_reach_the_log() {

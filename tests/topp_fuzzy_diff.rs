@@ -615,7 +615,7 @@ fn release_refusals_end_and_log_as_in_the_release_build() {
 /// Oracle `fd_debug1_log`: a comparison at debug level 1 with `-log`. The
 /// report and the closing line are the Release build's; the log file holds the
 /// framework's lines and the tool's two `writeDebug_` lines about its lists
-/// (`FuzzyDiff.cpp:103-105`), `whitelist: <?xml-stylesheet (size: 1)` and
+/// (`FuzzyDiff.cpp:107-108`), `whitelist: <?xml-stylesheet (size: 1)` and
 /// `matched_whitelist:  (size: 0)`.
 #[test]
 fn release_debug_lines_reach_the_log() {

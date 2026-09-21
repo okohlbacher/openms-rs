@@ -89,7 +89,7 @@ impl Tool for MzMLSplitter {
     /// Source `main_`, run on the worker pool that `-threads` sizes, as
     /// `TOPPBase::main` applies the setting before `main_`
     /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`]. The
-    /// body's console lines are written once the pool returns ([`PoolLines`]).
+    /// body's console lines are written once the pool returns.
     fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> ToolResult {
         let mut lines = PoolLines::default();
         let result = ctx.in_thread_pool(|| Self::run_in_pool(ctx, &mut lines))?;
