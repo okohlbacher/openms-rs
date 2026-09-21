@@ -1,0 +1,5 @@
+header	value	name
+row1	1.0	alpha
+row2	2.0	beta
+row3	3.0	gamma
+	tabbed	5.5	x

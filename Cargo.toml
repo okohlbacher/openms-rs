@@ -50,6 +50,11 @@ name = "FeatureFinderCentroided"
 path = "src/bin/FeatureFinderCentroided.rs"
 required-features = ["mzml", "paramxml", "featurexml"]
 
+[[bin]]
+name = "FuzzyDiff"
+path = "src/bin/FuzzyDiff.rs"
+required-features = ["paramxml"]
+
 [features]
 default = ["mzml", "idxml", "rna-json", "paramxml", "featurexml", "consensusxml", "cv-mapping", "parallel"]
 mzml = ["dep:quick-xml", "dep:sha1", "file-compression", "numpress"]

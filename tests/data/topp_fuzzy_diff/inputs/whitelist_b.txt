@@ -1,0 +1,4 @@
+keep 1
+skip-me 20
+also-skip 30
+keep 4.01

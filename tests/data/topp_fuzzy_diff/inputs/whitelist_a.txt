@@ -1,0 +1,4 @@
+keep 1
+skip-me 2
+also-skip 3
+keep 4

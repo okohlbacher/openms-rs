@@ -7,6 +7,9 @@
 /// Boost.Regex-compatible regular expressions over `fancy-regex`.
 pub mod boost_regex;
 pub mod constants;
+/// Fuzzy comparison of text that tolerates numeric differences, from
+/// `CONCEPT/FuzzyStringComparator.h`: the comparator behind `FuzzyDiff`.
+pub mod fuzzy_string_comparator;
 pub mod log_stream;
 /// General numeric helpers: ppm and Dalton tolerances, rounding, binning,
 /// interval transforms and binomial statistics, from `MATH/MathFunctions.h`.

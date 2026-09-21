@@ -18,6 +18,7 @@ mod dta_extractor;
 mod feature_finder_centroided;
 #[cfg(all(feature = "mzml", feature = "featurexml"))]
 mod file_info;
+mod fuzzy_diff;
 mod map_normalizer;
 mod mzml_splitter;
 #[cfg(feature = "mzml")]
@@ -30,6 +31,7 @@ pub use dta_extractor::DTAExtractor;
 pub use feature_finder_centroided::FeatureFinderCentroided;
 #[cfg(all(feature = "mzml", feature = "featurexml"))]
 pub use file_info::FileInfo;
+pub use fuzzy_diff::FuzzyDiff;
 pub use map_normalizer::MapNormalizer;
 pub use mzml_splitter::MzMLSplitter;
 #[cfg(feature = "mzml")]

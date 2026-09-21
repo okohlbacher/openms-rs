@@ -32,6 +32,24 @@
   100 cases executed on the Release build (`tests/topp_cli_console.rs`) and 15
   in a pseudo-terminal. `cli::log_error` and `cli::log_warning` are new.
 
+- **`FuzzyDiff` is the ninth executable TOPP tool and the ninth validated
+  workflow.** `src/cli/tools/fuzzy_diff.rs` ports topp `174b576`
+  `src/FuzzyDiff.cpp` on the TOPP lifecycle; the `FuzzyDiff` binary needs
+  `paramxml` only. Its comparator, `FuzzyStringComparator`, moved from test
+  support into the library as `concept::fuzzy_string_comparator`, unchanged:
+  the test support re-exports it and its 137-case C++ corpus still matches
+  byte for byte. The tool was run against the pinned C++ Release build on
+  ibminode06 for 80 invocations, TOPP_FuzzyDiff_1..4 among them: 77 match on
+  the exit code and both streams byte for byte (usage text and `-write_ini`
+  included), after the framework's documented differences. Three diverge on
+  purpose and are asserted as such: libstdc++'s `std::from_chars` rejects a
+  number that rounds to zero, which the source's own comment and its libc++
+  build accept and the comparator keeps accepting, and a `-sort` input that
+  cannot be read is refused (12) where the source compares an empty text.
+  Without `-sort` an unreadable input exits 12 with the Release build's own
+  message, and an input beyond the comparator's 1 GiB bound exits 11 rather
+  than 10, which would claim a difference.
+
 - **XSD validation for every ported XML format, behind the new `xml-schema`
   feature.** `format::xml_schema` ports `XMLValidator::isValid` (for a
   self-contained caller schema) and the `isValid` each `XMLFile` inherits:
