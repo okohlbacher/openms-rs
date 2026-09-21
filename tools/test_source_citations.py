@@ -87,6 +87,17 @@ class CitationReadingTests(unittest.TestCase):
         )
         self.assertEqual(bare, [])
 
+    def test_a_name_with_a_plus_in_it_is_read_whole(self):
+        # `bits/c++locale.h` is a real libstdc++ header. Matching from the
+        # second `+` reported it as `locale.h` - a file the citation does not
+        # name and no pin has - under "cited files that no reachable pin
+        # contains", which is the one place the report must not be wrong.
+        named, _ = citations_in("stripped at `bits/c++locale.h:74`", True)
+        self.assertEqual(
+            [(item[1], item[2], item[3]) for item in named], [("bits/", "c++locale.h", 74)]
+        )
+        self.assertEqual(named_file("see `bits/c++locale.h`"), ("bits/", "c++locale.h"))
+
     def test_a_bare_range_continues_a_file_only_where_it_is_quoted(self):
         quoted = "`Decoder.cpp:3`, `:5-8`"
         self.assertEqual([item[1:] for item in citations_in(quoted, True)[1]], [(5, 8, ":5-8")])

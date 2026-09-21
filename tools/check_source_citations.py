@@ -136,14 +136,20 @@ SOURCE_EXTENSIONS = ("h", "hpp", "cpp", "cxx")
 EXTENSIONS = "|".join(SOURCE_EXTENSIONS)
 
 # A citation names a C++ file - optionally by its full path - and a line or range.
+# ``+`` is in the name class because libstdc++ ships ``bits/c++locale.h``, and
+# without it the name matched from the second ``+`` on: the file was reported as
+# an unreachable ``locale.h``, which is not what the citation says and not a
+# file anything has. It resolves to nothing either way - that header is not
+# retained - but a tool that names the wrong file in its own report is the thing
+# this one exists to catch.
 CITATION = re.compile(
-    r"(?P<path>(?:[A-Za-z0-9_.-]+/)*)(?P<file>[A-Za-z_][A-Za-z0-9_]*\.(?:" + EXTENSIONS + r"))"
+    r"(?P<path>(?:[A-Za-z0-9_.-]+/)*)(?P<file>[A-Za-z_][A-Za-z0-9_+]*\.(?:" + EXTENSIONS + r"))"
     r":(?P<first>\d+)(?:[-\u2013\u2014](?P<last>\d+))?\b"
 )
 # A C++ file named on its own, with no line number: how an entry introduces the
 # file whose code it goes on to transcribe.
 FILE_NAMED = re.compile(
-    r"(?P<path>(?:[A-Za-z0-9_.-]+/)*)(?P<file>[A-Za-z_][A-Za-z0-9_]*\.(?:" + EXTENSIONS + r"))\b"
+    r"(?P<path>(?:[A-Za-z0-9_.-]+/)*)(?P<file>[A-Za-z_][A-Za-z0-9_+]*\.(?:" + EXTENSIONS + r"))\b"
 )
 # A cheap test for whether a span could hold either of those at all. Both open
 # with a long character class, which costs time quadratic in a run of word
