@@ -1,0 +1,187 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/ProgressLogger.h",
+      "sha256": "e06ba1466a0ed9c2f509281b2938f60c62510c9ab3c98323e8f0b54885e8cf1f",
+      "lines": "76-107 the public API and the protected type_/last_invoke_/recursion_depth_/current_logger_"
+    },
+    {
+      "path": "src/openms/source/CONCEPT/ProgressLogger.cpp",
+      "sha256": "cab7e28a3b62516ccb0d498cacf969a2c18975ece6c97da2aff51c5f25733baf",
+      "lines": "36-81 CMD backend; 233-271 startProgress/setProgress/nextProgress/endProgress, 244 and 255 whole-second throttle"
+    },
+    {
+      "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+      "sha256": "c928fab2492d7be3e530ee639245f675ff7d799e069e2a5836e03d471cf4441b",
+      "lines": "39-49 start throws when running, so an unended section poisons the object's next CMD start"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp",
+      "sha256": "160f5cae6edfa02acb664daec881f41c26ce349b5ac0bc76d125ebcc30dd3fca",
+      "lines": "497 startProgress(0, spectra + chromatograms, \"picking peaks\"); 543 and 555 setProgress(++progress); 557 endProgress; 534 IllegalArgument inside the section"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h",
+      "sha256": "3fcb1c5347d13c0a6c72fe14f853afcca2d08bedb3709eeb8bfb96630690220c",
+      "lines": "384 startProgress(0, input.size(), \"picking peaks\"); 396 setProgress(progress++); 398 endProgress"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h",
+      "sha256": "e56ee678f5b984b0f4ed81a7e24521e7e5c3607a5a92e07472539f4a7743e536",
+      "lines": "368-377 rasterExperiment: startProgress(0, exp.size(), \"resampling of data\"), setProgress(i), endProgress"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/SMOOTHING/GaussFilter.cpp",
+      "sha256": "8d6ddcd32c7825f6f1157580f92be0ceb9214017e28ece00d54aa8f667d8f3df",
+      "lines": "195-211 filterExperiment: startProgress(0, spectra + chromatograms, \"smoothing data\"), setProgress(++progress), endProgress; 97-101 ppm on a chromatogram throws inside the section"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h",
+      "sha256": "65964ce9690052ed33cd7e2769eae1cb6c099b5579ffdb8b219f44ced75525c8",
+      "lines": "202-217 filterExperiment, the same calls as GaussFilter"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h",
+      "sha256": "73fc950a2d01f7bdfed846ad15c1a6e44bece2318fbb69a27c839beca17fb241",
+      "lines": "304-313 filterExperiment: startProgress(0, exp.size(), \"filtering baseline\"), setProgress(i), endProgress"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/ID/PeptideIndexing.cpp",
+      "sha256": "ccf2f8ec617c2272ca779d619bb3a29d4de936284d0c8e4820ad37430034d4a5",
+      "lines": "251-255 vector overload; 369 PROTEIN_CACHE_SIZE; 371-373 \"Load first DB chunk\"; 375-394 and 433-437 early returns; 453 \"Aho-Corasick\" range; 490-496 setProgress from OpenMP thread 0; 576 endProgress"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/ID/PeptideIndexing.h",
+      "sha256": "a19380af0b9881edafe021966b576f07f5712b247fc77a7b87c83049dea418c0",
+      "lines": "96-103 ExitCodes"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/FASTAContainer.h",
+      "sha256": "de96e7716fa9c155b9c164b55bec6e0ff478350f8be041d0483e651064024d50",
+      "lines": "218-298 TFI_Vector: one chunk, size() is the vector's size"
+    }
+  ],
+  "evidence": "Executed Release differential: every backend call (arguments and nesting depth), the command backend's stdout bytes (timing texts masked), the outcome and the static depth afterwards, for the progress sections of PeakPickerHiRes::pickExperiment, PeakPickerIterative::pickExperiment, LinearResamplerAlign::rasterExperiment, GaussFilter::filterExperiment, SavitzkyGolayFilter::filterExperiment, MorphologicalFilter::filterExperiment and PeptideIndexing::run, including two source failures inside a section and PeptideIndexing's early returns.",
+  "evidence_tier": "executed differential (tier 1) against the OpenMS4 Release C++ build",
+  "fixtures": [
+    {
+      "path": "tests/data/progress_consumers_release.tsv",
+      "sha256": "992da71b5686c8afadbccb0161ef5928834fe1a4b5b29379154c00ec8f9c0dad"
+    }
+  ],
+  "native_implementation": [
+    "src/concept/progress_logger.rs (ProgressReporter, progress_value)",
+    "src/processing/peak_picking.rs",
+    "src/processing/iterative.rs",
+    "src/processing.rs (LinearResamplerAlign)",
+    "src/processing/smoothing.rs",
+    "src/processing/baseline.rs",
+    "src/analysis/peptide_indexing.rs"
+  ],
+  "native_tests": [
+    "tests/progress_consumers.rs"
+  ],
+  "support_document": "docs/PROGRESS_LOGGER_SUPPORT.md",
+  "release_oracle": {
+    "reference_build": "Linux x86_64 Release (user decision): the reference behaviour of the port",
+    "install_prefix": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+    "install_manifest_sha256": "2efe7501c5c7e3f6dd3feef78628ae6f1158e762b7fc04154de21cfd095b293a",
+    "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+    "installed_config_h_sha256": "13c7a065862db9f20eaf89140b8aeefcf68df80beb71dc80ac42c039ca4e8729",
+    "pins": {
+      "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+      "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+      "rust_base_revision": "ab9eb55"
+    },
+    "debug_checks_absent": "The installed config.h reads `#  if (0)` around `#define OPENMS_ASSERTIONS`; the driver's op log records 'OPENMS_ASSERTIONS not defined'.",
+    "host": "kim (Ubuntu 24.04.4 LTS), work dir /scratch/kohlbach/progress-consumers-oracle; ibminode06 refused connections on 2026-09-21 and nothing here is timing-sensitive",
+    "compiler": "conda-forge x86_64-conda-linux-gnu-g++ 14.4.0 from the install's deps/, -O2 -std=c++20 -rdynamic, -lOpenMS with rpath to the install",
+    "driver_sha256": "54ce011aa1ef64cc744371ebf6550cb4d1626c78afab24e37af1231b732dccae",
+    "driver_binary_sha256": "9c1b87701318618c9780e91fed965d12458a8508570ead7ceb4aa1a176594bb2",
+    "method": "Each case builds its input in driver.cpp (41-sample triangle profiles and chromatograms, 5-peak centroided spectra, a 3-protein database; tests/progress_consumers.rs builds the same inputs) and runs the algorithm twice on a fresh object: once after setLogger(new Recorder), which records every start/set/next/end call that reaches the backend with its arguments and the depth the wrapper passes, and once after setLogType(CMD), whose stdout bytes are cut out by file offset. PeptideIndexing also writes 'Merge took' to std::cout and is recorded in the first mode only. After each run the op log records the return value or exception and ProgressLogger's static recursion depth (read and then reset to 0 through a derived class). OPENMS_LOG_* output goes to a separate log file.",
+    "throttle": "ProgressLogger::setProgress/nextProgress return early while last_invoke_ == time(nullptr) (ProgressLogger.cpp:244, :255). The driver defines time() itself and is linked with -rdynamic, so libOpenMS.so's calls bind to it (build_info.txt: the driver exports `time`, libOpenMS.so imports `time@GLIBC_2.2.5`); every call returns a new second, so no set can be suppressed. The Rust replay uses a clock with the same property.",
+    "masking": "Only the two timing texts of each '-- done [took X (CPU), Y (Wall)' line are replaced by <TIME> (extract.py).",
+    "repetitions": 3,
+    "repetition_result": "all three runs exit 0 with empty stderr; op logs, stdout and the fixture rows are byte-identical across the runs",
+    "raw_outputs": [
+      {
+        "name": "oplog_1.tsv (identical for runs 2 and 3)",
+        "sha256": "ca9179563cb5f3b79a77edbdbc42abdfcaff6d4bf91553559d8b5d19d5cf524a"
+      },
+      {
+        "name": "stdout_1.raw (identical for runs 2 and 3)",
+        "sha256": "9b1eeddfbad4f832b7239ebffbacb53e0188e4ec6bf111cedab5eb6fb140c602"
+      },
+      {
+        "name": "stderr_1.raw, stderr_2.raw, stderr_3.raw (empty)",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "findings": [
+      "Every call sequence is the one read from the source: ranges, labels, the ++progress / progress++ / i value conventions, and depth 1 for every set.",
+      "When the algorithm throws inside its section (PeakPickerHiRes manual mode on a centroided spectrum, GaussFilter with ppm on a chromatogram) the Release build makes no endProgress call: the command output stops mid-line after the last percentage and the static depth stays at 1. The port ends the section (documented divergence, asserted by the replay).",
+      "PeptideIndexing makes its 'Load first DB chunk' section even for an empty database or an empty peptide list, and skips the 'Aho-Corasick' section when there is no peptide hit (exit codes DATABASE_EMPTY 1, PEPTIDE_IDS_EMPTY 2)."
+    ]
+  },
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/progress-consumers/driver.cpp",
+      "sha256": "54ce011aa1ef64cc744371ebf6550cb4d1626c78afab24e37af1231b732dccae",
+      "location": "outside this repository",
+      "origin_key": "release_oracle"
+    },
+    {
+      "path": "../oracle/progress-consumers/remote_run.sh",
+      "sha256": "b9e47be8ff940fb9573b9b02a4d665274ec4c378ebf82bad27181f17704630e9",
+      "location": "outside this repository",
+      "origin_key": "release_oracle"
+    },
+    {
+      "path": "../oracle/progress-consumers/run.sh",
+      "sha256": "ebc1cbe7f206caea0a346f94f54db5a840a224fb481dda0a7f1538638efef608",
+      "location": "outside this repository",
+      "origin_key": "release_oracle"
+    },
+    {
+      "path": "../oracle/progress-consumers/extract.py",
+      "sha256": "b764d9731ec4a525f8f40fcbeff871af8dcad82759dbc72a2ef599cea92b9b9d",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/progress-consumers/results/build_info.txt",
+      "sha256": "719c11e78eaf8c6786c3328a4eed1214c18cfc5d8be8865197457afdf6a82fc5",
+      "location": "outside this repository",
+      "origin_key": "release_oracle"
+    },
+    {
+      "path": "../oracle/progress-consumers/results/summary.txt",
+      "sha256": "b4d1327592c1e4463cc939b776da06fd7ab23cfae7cb4a0142e8990299705fae",
+      "location": "outside this repository",
+      "origin_key": "release_oracle"
+    },
+    {
+      "path": "../oracle/progress-consumers/results/oplog_1.tsv",
+      "sha256": "ca9179563cb5f3b79a77edbdbc42abdfcaff6d4bf91553559d8b5d19d5cf524a",
+      "location": "outside this repository",
+      "origin_key": "release_oracle"
+    },
+    {
+      "path": "../oracle/progress-consumers/results/stdout_1.raw",
+      "sha256": "9b1eeddfbad4f832b7239ebffbacb53e0188e4ec6bf111cedab5eb6fb140c602",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/progress-consumers/results/log_1.txt",
+      "sha256": "c81faff5a7b88674b47bfc475525031b643f0cce904c6912a799b0526d38378d",
+      "location": "outside this repository",
+      "origin_key": "release_oracle"
+    }
+  ],
+  "external_reference_note": "The Release oracle driver, its node and Mac scripts, the extractor and the raw captures live under ../oracle/progress-consumers/ so that no C++ is committed here. Only the masked per-run table is a fixture; these sha256 values are the evidence chain from the Release install to it. They are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate."
+}

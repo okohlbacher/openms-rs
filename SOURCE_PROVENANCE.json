@@ -661,7 +661,8 @@
   "tests/data/egh_trace_fitter_provenance.json",
   "tests/data/fuzzy_string_comparator_provenance.json",
   "tests/data/file_info_a7_provenance.json",
-  "tests/data/picker_consumers_provenance.json"
+  "tests/data/picker_consumers_provenance.json",
+  "tests/data/progress_consumers_provenance.json"
  ],
  "external_reference_artifacts": [
   {
@@ -4118,6 +4119,78 @@
    "origin_key": "tests/data/featurexml_provenance.json",
    "package": "W8-FEATUREXML-NONFINITE",
    "role": "second repetition, byte-identical to the first",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-consumers/driver.cpp",
+   "sha256": "54ce011aa1ef64cc744371ebf6550cb4d1626c78afab24e37af1231b732dccae",
+   "origin_key": "tests/data/progress_consumers_provenance.json",
+   "package": "P2.5B-PROGRESS-CONSUMERS",
+   "role": "executed driver source driver.cpp; progress calls of seven ProgressLogger consumers, Release differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-consumers/remote_run.sh",
+   "sha256": "b9e47be8ff940fb9573b9b02a4d665274ec4c378ebf82bad27181f17704630e9",
+   "origin_key": "tests/data/progress_consumers_provenance.json",
+   "package": "P2.5B-PROGRESS-CONSUMERS",
+   "role": "node build/run script remote_run.sh; progress calls of seven ProgressLogger consumers, Release differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-consumers/run.sh",
+   "sha256": "ebc1cbe7f206caea0a346f94f54db5a840a224fb481dda0a7f1538638efef608",
+   "origin_key": "tests/data/progress_consumers_provenance.json",
+   "package": "P2.5B-PROGRESS-CONSUMERS",
+   "role": "Mac launcher run.sh; progress calls of seven ProgressLogger consumers, Release differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-consumers/extract.py",
+   "sha256": "b764d9731ec4a525f8f40fcbeff871af8dcad82759dbc72a2ef599cea92b9b9d",
+   "origin_key": "tests/data/progress_consumers_provenance.json",
+   "package": "P2.5B-PROGRESS-CONSUMERS",
+   "role": "fixture extractor extract.py; progress calls of seven ProgressLogger consumers, Release differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-consumers/results/build_info.txt",
+   "sha256": "719c11e78eaf8c6786c3328a4eed1214c18cfc5d8be8865197457afdf6a82fc5",
+   "origin_key": "tests/data/progress_consumers_provenance.json",
+   "package": "P2.5B-PROGRESS-CONSUMERS",
+   "role": "run record results/build_info.txt; progress calls of seven ProgressLogger consumers, Release differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-consumers/results/summary.txt",
+   "sha256": "b4d1327592c1e4463cc939b776da06fd7ab23cfae7cb4a0142e8990299705fae",
+   "origin_key": "tests/data/progress_consumers_provenance.json",
+   "package": "P2.5B-PROGRESS-CONSUMERS",
+   "role": "run record results/summary.txt; progress calls of seven ProgressLogger consumers, Release differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-consumers/results/oplog_1.tsv",
+   "sha256": "ca9179563cb5f3b79a77edbdbc42abdfcaff6d4bf91553559d8b5d19d5cf524a",
+   "origin_key": "tests/data/progress_consumers_provenance.json",
+   "package": "P2.5B-PROGRESS-CONSUMERS",
+   "role": "raw op log results/oplog_1.tsv (runs 2 and 3 identical); progress calls of seven ProgressLogger consumers, Release differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-consumers/results/stdout_1.raw",
+   "sha256": "9b1eeddfbad4f832b7239ebffbacb53e0188e4ec6bf111cedab5eb6fb140c602",
+   "origin_key": "tests/data/progress_consumers_provenance.json",
+   "package": "P2.5B-PROGRESS-CONSUMERS",
+   "role": "raw stdout results/stdout_1.raw (runs 2 and 3 identical); progress calls of seven ProgressLogger consumers, Release differential",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/progress-consumers/results/log_1.txt",
+   "sha256": "c81faff5a7b88674b47bfc475525031b643f0cce904c6912a799b0526d38378d",
+   "origin_key": "tests/data/progress_consumers_provenance.json",
+   "package": "P2.5B-PROGRESS-CONSUMERS",
+   "role": "OpenMS log results/log_1.txt; progress calls of seven ProgressLogger consumers, Release differential",
    "label": "oracle-generated (tier 1 executed differential)"
   }
  ],
