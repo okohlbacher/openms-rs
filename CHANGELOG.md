@@ -32,9 +32,10 @@
   `_S_threshold` rather than beside the loop at `:1880`, and
   `docs/FILE_INFO_A7_SUPPORT.md` quoted the guard
   `if (!id_data.peptides[i].empty())` (`FORMAT/FileInfo.cpp:1347`) beside
-  `:1354`, which is the hit read it guards rather than the guard itself. Six bare ranges in the SDK manifests, `noise.rs` and a fixture
-  manifest were written under `SignalToNoiseEstimator.h` for lines that are in
-  the 442-line `SignalToNoiseEstimatorMedian.h`.
+  `:1354`, which is the hit read it guards rather than the guard itself. Six
+  bare ranges in the SDK manifests, `noise.rs` and a fixture manifest were
+  written under `SignalToNoiseEstimator.h` for lines that are in the 442-line
+  `SignalToNoiseEstimatorMedian.h`.
 
 - **A NaN whose sign bit is set is now spelled `-nan` in the FileInfo report,
   as the reference build's glibc spells it.** This was **native difference 5**,
