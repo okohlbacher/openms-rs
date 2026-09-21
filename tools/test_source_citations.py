@@ -54,6 +54,16 @@ class Pinned:
     def paths_named(_revision, name):
         return ["HANDLERS/" + name] if name == "Decoder.cpp" else []
 
+    # `resolvable` asks these two after the offered revisions; this stand-in has
+    # neither a package pin nor a retained directory, so both answer nothing.
+    @staticmethod
+    def packaged(_inside, _name, _besides):
+        return []
+
+    @staticmethod
+    def retained(_inside, _name):
+        return []
+
     @staticmethod
     def where(_revision, path):
         return "pinned:" + path
@@ -241,6 +251,9 @@ class TwoPins:
             if path.endswith(inside + name)
         ]
 
+    def retained(self, _inside, _name):
+        return []  # Nothing retained here; `RetainedSourceTests` covers that limb.
+
     def lines(self, _revision, path):
         return self.text[path]
 
@@ -278,6 +291,9 @@ class OnePinTwoPaths:
         return self.paths[revision] if name == "Macros.h" else []
 
     def packaged(self, inside, name, besides):
+        return []
+
+    def retained(self, _inside, _name):
         return []
 
     def lines(self, _revision, path):
