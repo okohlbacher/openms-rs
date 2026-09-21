@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="1.2.3" name="Probe" docurl="http://example.org/doc?a=1&b=2" category="Cat & "Dog" <x>" >
+<description><![CDATA[Desc with <b>markup</b> & ]]> end]]></description>
+<manual><![CDATA[Desc with <b>markup</b> & ]]> end]]></manual>
+<citations>
+  <citation doi="10.1/abc" url="" />
+  <citation doi="https://doi.org/x?y=1&z=2" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+</PARAMETERS>
+</tool>

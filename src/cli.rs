@@ -28,9 +28,12 @@
 //! [`crate::system::cpu_features`] and `docs/FMA_BUILD_FLAG.md`.
 
 mod context;
+mod param_ctd;
 mod parameter;
 mod processing;
 mod spec;
+mod tool_description_file;
+mod tool_handler;
 /// The ported TOPP tools, one library type per executable.
 pub mod tools;
 mod usage;
@@ -38,12 +41,20 @@ mod usage;
 pub use context::{
     TEST_MODE_UNIQUE_ID_SEED, ToolContext, input_file_readable, output_file_writable, parse_range,
 };
+pub use param_ctd::{MAX_CTD_BYTES, ParamCtdFile};
 pub use parameter::{ExitCode, ParameterInformation, ParameterType};
 pub use processing::{
     AddDataProcessing, TEST_MODE_COMPLETION_TIME, TEST_MODE_PARAMETER_KEY,
     TEST_MODE_PARAMETER_VALUE, TEST_MODE_VERSION,
 };
 pub use spec::ToolSpec;
+pub use tool_description_file::{
+    LoadedToolDescriptions, MAX_TTD_BYTES, MAX_TTD_DEPTH, MAX_TTD_ELEMENTS, ToolDescriptionFile,
+};
+pub use tool_handler::{
+    BUILTIN_MANIFEST, BUILTIN_MANIFEST_NAME, MAX_MANIFEST_BYTES, MAX_MANIFEST_ROWS, PackageTool,
+    ToolHandler, ToolListType, ToolRegistrySources,
+};
 
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::{FileType, type_by_file_name};
