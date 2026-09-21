@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
+use crate::data_structures::list::{ListFormat, check_bytes, concatenate};
 use crate::param::{MAX_PARAM_BYTES, ParamBudget, ParamValue, ParameterMetaSink};
 use crate::{Error, Result};
+use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::fmt;
 use std::hash::{Hash, Hasher};
@@ -337,6 +339,33 @@ pub fn validate_meta(metadata: &MetaInfo) -> Result<()> {
         value.validate()?;
     }
     Ok(())
+}
+
+/// Source StringUtils list formatting, for `ListUtils` conversions.
+///
+/// This lives beside `MetaValue` rather than beside the other `ListFormat`
+/// implementations in `data_structures::list`, because `data_structures` is
+/// the lower module and this one impl was the whole of a dependency cycle
+/// between the two.
+impl ListFormat for MetaValue {
+    fn to_list_text(&self) -> Result<Cow<'_, str>> {
+        let content = match self.data() {
+            MetaValueData::Empty => return Ok(Cow::Borrowed("")),
+            MetaValueData::String(value) => return Ok(Cow::Borrowed(value)),
+            MetaValueData::Integer(value) => return value.to_list_text(),
+            MetaValueData::Float(value) => return value.to_list_text(),
+            MetaValueData::StringList(values) => concatenate(values, ", ")?,
+            MetaValueData::IntegerList(values) => concatenate(values, ", ")?,
+            MetaValueData::FloatList(values) => concatenate(values, ", ")?,
+        };
+        check_bytes(
+            content
+                .len()
+                .checked_add(2)
+                .ok_or_else(|| Error::InvalidValue("list size overflow".into()))?,
+        )?;
+        Ok(Cow::Owned(format!("[{content}]")))
+    }
 }
 
 /// Receive a parameter tree as metadata, for

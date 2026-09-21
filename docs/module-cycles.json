@@ -31,7 +31,6 @@
    "system"
   ],
   "data_structures": [
-   "metadata",
    "param"
   ],
   "format": [
@@ -56,8 +55,6 @@
    "param"
   ],
   "kernel": [
-   "analysis",
-   "chemistry",
    "concept",
    "format",
    "identification",
@@ -65,7 +62,6 @@
    "param"
   ],
   "metadata": [
-   "chemistry",
    "concept",
    "data_structures",
    "format",
@@ -92,24 +88,8 @@
    "format"
   ],
   [
-   "analysis",
-   "kernel"
-  ],
-  [
    "chemistry",
    "identification"
-  ],
-  [
-   "chemistry",
-   "kernel"
-  ],
-  [
-   "chemistry",
-   "metadata"
-  ],
-  [
-   "data_structures",
-   "metadata"
   ],
   [
    "format",

@@ -16,7 +16,7 @@ fn invalid(message: &str) -> Error {
 pub(crate) fn trim(text: &str) -> &str {
     text.trim_matches([' ', '\t', '\n', '\r'])
 }
-fn check_bytes(bytes: usize) -> Result<()> {
+pub(crate) fn check_bytes(bytes: usize) -> Result<()> {
     if bytes > MAX_BYTES {
         Err(invalid("list byte limit exceeded"))
     } else {
@@ -244,27 +244,10 @@ impl ListFormat for crate::param::ParamValue {
         self.to_text(true).map(Cow::Owned)
     }
 }
-impl ListFormat for crate::metadata::MetaValue {
-    fn to_list_text(&self) -> Result<Cow<'_, str>> {
-        use crate::metadata::MetaValueData;
-        let content = match self.data() {
-            MetaValueData::Empty => return Ok(Cow::Borrowed("")),
-            MetaValueData::String(value) => return Ok(Cow::Borrowed(value)),
-            MetaValueData::Integer(value) => return value.to_list_text(),
-            MetaValueData::Float(value) => return value.to_list_text(),
-            MetaValueData::StringList(values) => concatenate(values, ", ")?,
-            MetaValueData::IntegerList(values) => concatenate(values, ", ")?,
-            MetaValueData::FloatList(values) => concatenate(values, ", ")?,
-        };
-        check_bytes(
-            content
-                .len()
-                .checked_add(2)
-                .ok_or_else(|| invalid("list size overflow"))?,
-        )?;
-        Ok(Cow::Owned(format!("[{content}]")))
-    }
-}
+// `ListFormat for MetaValue` is implemented beside `MetaValue`, in
+// `metadata::value`, and not here: `data_structures` is the lower module and
+// reaching up to `metadata` for one impl was the whole of a dependency cycle
+// between them. The trait is public, so the impl is equally at home there.
 
 /// Any finite iterator can replace the source vector/container overloads.
 /// Output size and item count are checked incrementally before retained copies.

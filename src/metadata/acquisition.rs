@@ -263,7 +263,7 @@ impl Precursor {
     pub fn uncharged_mass(&self) -> Result<f64> {
         self.validate()?;
         let charge = f64::from(if self.charge == 0 { 2 } else { self.charge });
-        let mass = self.mz * charge - charge * crate::chemistry::PROTON_MASS_U;
+        let mass = self.mz * charge - charge * crate::constants::PROTON_MASS_U;
         finite(mass, "uncharged mass")?;
         Ok(mass)
     }
