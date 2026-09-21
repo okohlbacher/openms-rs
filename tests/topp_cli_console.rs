@@ -13,7 +13,9 @@
 //! `OPENMS_HOME_PATH` and working directory, standard input `/dev/null`). The
 //! 115 case directories are retained under `tests/data/topp_cli_console` with
 //! their hashes in `fixtures.sha256.json`. The executables here run the same
-//! way and are compared byte for byte on both streams and in their exit code;
+//! way (with none of the variables a tool reads but the case's own, their
+//! own `HOME` and working directory, standard input `/dev/null`) and are
+//! compared byte for byte on both streams and in their exit code;
 //! only the Release run's paths are mapped to this run's, the closing
 //! `<tool> took …` line is compared by shape, and the line `stty size` prints
 //! when standard input is not a terminal is the local `stty`'s own (GNU's on
@@ -110,11 +112,16 @@ fn run_case(case: &str) -> Option<(Run, TempDir)> {
         .iter()
         .map(|argument| map_paths(case, argument, &dir))
         .collect();
+    // The oracle's `env -i` stands for "none of the variables a tool reads";
+    // the rest of the environment stays, because the executable may need it
+    // to start (a library path, for one).
     let mut command = Command::new(binary);
     command
         .args(&arguments)
-        .env_clear()
-        .env("PATH", "/usr/bin:/bin")
+        .env_remove("COLUMNS")
+        .env_remove("OPENMS_TOOL_PREFIX_PATH")
+        .env_remove("OPENMS_TTD_INTERNAL_PATH")
+        .env_remove("OPENMS_DATA_PATH")
         .env("HOME", &home)
         .env("OPENMS_HOME_PATH", &home)
         .current_dir(&cwd)
