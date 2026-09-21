@@ -74,26 +74,32 @@ fn read(path: impl AsRef<Path>) -> String {
 
 struct Outcome {
     code: ExitCode,
+    /// The output stream without the closing `FileInfo took …` line.
     out: String,
     err: String,
+    /// The closing line: present when the source's `main_` returns, absent
+    /// when it throws.
+    took: Option<String>,
 }
 
 /// Run the tool as `FileInfo args...` through `run_with`. The closing
-/// `FileInfo took …` line of a completed run is checked and taken off the
-/// output stream (`support/took_line.rs`).
+/// `FileInfo took …` line of a completed run is checked and kept apart from
+/// the output stream (`support/took_line.rs`).
 fn run(args: &[&str]) -> Outcome {
     let arguments: Vec<String> = std::iter::once(FileInfo::NAME.to_owned())
         .chain(args.iter().map(|a| (*a).to_owned()))
         .collect();
     let (mut out, mut err) = (Vec::new(), Vec::new());
     let code = run_with::<FileInfo>(&arguments, &mut out, &mut err);
+    let (out, took) = took_line::split_took_line(
+        "FileInfo",
+        &String::from_utf8(out).expect("UTF-8 output stream"),
+    );
     Outcome {
         code,
-        out: took_line::strip_took_line(
-            "FileInfo",
-            &String::from_utf8(out).expect("UTF-8 output stream"),
-        ),
+        out,
         err: String::from_utf8(err).expect("UTF-8 error stream"),
+        took,
     }
 }
 
@@ -442,6 +448,7 @@ fn the_index_check_on_mzxml_exits_6_with_usage() {
     let outcome = run(&["-test", "-in", &input, "-i", "-no_progress"]);
     assert_code(&outcome, ExitCode::IllegalParameters);
     assert!(outcome.out.is_empty(), "{}", outcome.out);
+    assert!(outcome.took.is_some(), "main_ returned 6");
     assert!(
         outcome
             .err
@@ -751,7 +758,10 @@ fn an_existing_out_is_truncated_by_a_failing_run() {
 }
 
 /// C1 `FileInfo_index_on_dta`: `-i` on a DTA file prints the error line, then
-/// the usage text, and exits 6 with nothing on the output stream.
+/// the usage text, and exits 6 with nothing on the output stream but the
+/// closing line: `outputTo_` returns `ILLEGAL_PARAMETERS`, so `TOPPBase`
+/// prints `FileInfo took …` (the C1 stdout,
+/// `../oracle/topp-early-bundle/results/run1/FileInfo_index_on_dta/stdout.txt`).
 #[test]
 fn c1_index_check_on_a_non_mzml_file_exits_6_with_usage() {
     let input = library("inputs/FileInfo_1_input.dta");
@@ -766,6 +776,7 @@ fn c1_index_check_on_a_non_mzml_file_exits_6_with_usage() {
     ]);
     assert_code(&outcome, ExitCode::IllegalParameters);
     assert!(outcome.out.is_empty(), "{}", outcome.out);
+    assert!(outcome.took.is_some(), "main_ returned 6");
     assert_eq!(
         outcome.err,
         cpp_usage_stream(&tool("expected/FileInfo_index_on_dta.stderr.txt"))
@@ -1050,7 +1061,9 @@ fn detailed_and_corrupt_flags_on_featurexml() {
 
 /// Oracle `out_is_directory`: `-out` naming an existing directory passes the
 /// writability check, and the open fails as the source's `FileNotWritable`,
-/// exit 8.
+/// exit 8. The exception unwinds past `TOPPBase`'s closing line, so the
+/// output stream is empty, as the Release build's is
+/// (`../oracle/topp-file-info-tool/results/run1/out_is_directory/stdout.txt`).
 #[test]
 fn out_naming_a_directory_exits_8() {
     let dir = Workdir::new();
@@ -1074,9 +1087,13 @@ fn out_naming_a_directory_exits_8() {
             "Error: Unexpected internal error (the file '{out}' is not writable for the current user)\n"
         )
     );
+    assert_eq!(outcome.out, "");
+    assert_eq!(outcome.took, None);
 }
 
-/// Oracle `in_is_directory`: a directory as `-in` has no type; exit 10.
+/// Oracle `in_is_directory`: a directory as `-in` has no type; exit 10, an
+/// exit code `outputTo_` returns, so the closing line follows, as in the
+/// Release build's output stream, which holds nothing else.
 #[test]
 fn in_naming_a_directory_exits_10() {
     let dir = Workdir::new();
@@ -1090,6 +1107,8 @@ fn in_naming_a_directory_exits_10() {
             "Warning: Could not determine format of input file '{input}'!\nError: Could not determine input file type!\n"
         )
     );
+    assert_eq!(outcome.out, "");
+    assert!(outcome.took.is_some(), "main_ returned 10");
 }
 
 /// Oracle `zero_byte_input`: exit 4, from the framework's input check. The

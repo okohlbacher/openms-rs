@@ -94,8 +94,12 @@ fn load(path: impl AsRef<Path>) -> MSExperiment {
 /// The outcome of one in-process run.
 struct Run {
     code: ExitCode,
+    /// Standard output without the closing `PeakPickerHiRes took …` line.
     out: String,
     err: String,
+    /// The closing line, which follows a `main_` that returned and not one
+    /// that threw.
+    took: Option<String>,
 }
 
 fn run(args: &[&str]) -> Run {
@@ -104,12 +108,14 @@ fn run(args: &[&str]) -> Run {
         .collect();
     let (mut out, mut err) = (Vec::new(), Vec::new());
     let code = run_with::<PeakPickerHiRes>(&arguments, &mut out, &mut err);
+    // The closing `PeakPickerHiRes took …` line of a completed run is checked
+    // and kept apart (`support/took_line.rs`).
+    let (out, took) = took_line::split_took_line("PeakPickerHiRes", &String::from_utf8_lossy(&out));
     Run {
         code,
-        // The closing `PeakPickerHiRes took …` line of a completed run is
-        // checked and taken off (`support/took_line.rs`).
-        out: took_line::strip_took_line("PeakPickerHiRes", &String::from_utf8_lossy(&out)),
+        out,
         err: String::from_utf8_lossy(&err).into_owned(),
+        took,
     }
 }
 
@@ -699,7 +705,10 @@ fn threads_do_not_change_the_workflow_1_output() {
 
 /// C1 oracle `PPHR_6_noforce`: workflow 6 with `force` false refuses the
 /// centroided spectrum in manual mode with the source's message and
-/// `UNKNOWN_ERROR`, and writes nothing.
+/// `UNKNOWN_ERROR`, and writes nothing. The refusal is the source's thrown
+/// `IllegalArgument`, which unwinds past `TOPPBase`'s closing line: the C++
+/// standard output (`../oracle/topp-early-bundle/results/run1/PPHR_6_noforce/stdout.txt`)
+/// holds the INI-version warning and nothing after it.
 #[test]
 fn a_centroided_spectrum_without_force_exits_8_with_the_source_message() {
     let temp = workdir();
@@ -718,6 +727,11 @@ fn a_centroided_spectrum_without_force_exits_8_with_the_source_message() {
         outcome.err,
         "Error: Unexpected internal error (Error: Centroided data provided but profile spectra expected.)\n"
     );
+    assert_eq!(
+        outcome.out,
+        "Warning: Parameters file version (3.6.0-pre-HiRes-PR-2025-12-30) does not match the version of this tool (1.0.0).\nYour current parameters are still valid, but there might be new valid values or even new parameters. Upgrading the INI might be useful.\n"
+    );
+    assert_eq!(outcome.took, None);
     assert!(!out.exists());
     // The same refusal through a command-line subsection value.
     let outcome = run(&[
@@ -730,6 +744,8 @@ fn a_centroided_spectrum_without_force_exits_8_with_the_source_message() {
         "1",
     ]);
     assert_eq!(outcome.code, ExitCode::UnknownError, "{}", outcome.err);
+    assert_eq!(outcome.out, "");
+    assert_eq!(outcome.took, None);
     assert!(!out.exists());
 }
 
@@ -1070,6 +1086,7 @@ fn low_memory_never_refuses_centroided_data_and_force_is_inert() {
         refusal.err,
         "Error: Unexpected internal error (Error: Centroided data provided but profile spectra expected.)\n"
     );
+    assert_eq!((refusal.out.as_str(), refusal.took.as_deref()), ("", None));
 
     let (outcome, without_force, without_force_at) =
         low_memory(None, &workflow_input(6), &["-algorithm:ms_levels", "1"]);
@@ -1117,7 +1134,9 @@ fn low_memory_runs_none_of_the_in_memory_input_checks() {
         &load(fixture("oracle_lowmem_im_peak.mzML")),
     );
 
-    // An input without spectra and chromatograms: the in-memory mode exits 11.
+    // An input without spectra and chromatograms: the in-memory mode exits 11,
+    // an exit code `main_` returns, so the closing line follows, as in the
+    // Release build (`../oracle/topp-peak-picker-tool/results/run1/empty`).
     let empty = run(&[
         "-test",
         "-in",
@@ -1126,6 +1145,7 @@ fn low_memory_runs_none_of_the_in_memory_input_checks() {
         &text(&workdir().path().join("empty.mzML")),
     ]);
     assert_eq!(empty.code, ExitCode::IncompatibleInputData);
+    assert!(empty.took.is_some(), "{}", empty.out);
     let (outcome, bytes, _produced_at) = low_memory(None, &fixture("empty.mzML"), &[]);
     assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
     assert_eq!(outcome.err, "");
@@ -1302,6 +1322,7 @@ fn a_low_memory_run_reports_a_lying_list_count_over_a_closed_document() {
         "Error: Unexpected internal error (invalid value: mzML list counts announce (9, 0) \
          records but (5, 0) were written)\n"
     );
+    assert_eq!((outcome.out.as_str(), outcome.took.as_deref()), ("", None));
     // Closed, indexed, complete - and announcing the count the source announces.
     let written = String::from_utf8(bytes).unwrap();
     assert!(
@@ -2110,6 +2131,7 @@ fn an_out_that_names_a_directory_is_reported_in_both_modes() {
             "{extra:?}: {}",
             outcome.err
         );
+        assert_eq!(outcome.took, None, "{extra:?}");
         // Nothing was written into the directory either way.
         assert_eq!(std::fs::read_dir(&out).unwrap().count(), 0, "{extra:?}");
     }
