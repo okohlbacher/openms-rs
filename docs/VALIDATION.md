@@ -152,12 +152,12 @@ cannot be observed — which is all 809 of the repository's own corpus samples.
   do not sort; they verify a *caller's* claim to have sorted, and there is no
   way to know which permutation a caller who asserts "already sorted" about a
   NaN-bearing range meant.
-- `src/format/file_info/consensus.rs` still generates a NaN in plain Rust
-  arithmetic: `it_aad += it_ratio` is `(-inf) + (+inf)` for the
-  `a7_cons_nan_one` fixture. Every value `statistic_functions` produces is now
-  host-independent; this one is not, and the spelling step has to take it with
-  it. Part 2's brief scoped the rewrite to `statistic_functions.rs`, so this is
-  reported rather than changed.
+- ~~`src/format/file_info/consensus.rs` still generates a NaN in plain Rust
+  arithmetic.~~ **Closed 2026-09-20.** `it_aad += it_ratio` is `(-inf) + (+inf)`
+  for the `a7_cons_nan_one` fixture; it is routed through `math::x86_64::add`,
+  so the sign the report spells is the Release build's on any host. The feature
+  TIC accumulator and the retention-time span were routed with it, although both
+  are unreachable while `FeatureMap::ranges` refuses a non-finite value.
 - `pearson_correlation_coefficient` and `matthews_correlation_coefficient` were
   left on plain arithmetic on purpose. Both substitute an explicit `f64::NAN`
   for a division the source actually performs — a divergence that predates this
@@ -392,9 +392,10 @@ repair round that followed it.
 **The lead's two decisions of this round**, both taken inside the A7 lane and
 both recorded here because they shaped what landed:
 
-1. **Native difference 5 takes route (b): document and pin the NaN spelling.**
-   The FileInfo text layer spells every NaN `nan` where glibc spells a sign-bit
-   NaN `-nan`. Spelling the sign honestly would first have to make the *value*
+1. **Native difference 5 took route (b): document and pin the NaN spelling —
+   and the difference has since been _closed_ (2026-09-20).** What follows is
+   the decision as taken at the time. The FileInfo text layer then spelled every
+   NaN `nan` where glibc spells a sign-bit NaN `-nan`. Spelling the sign honestly would first have to make the *value*
    host-independent, which needs the x86_64 emulation promoted out of
    `analysis::feature_finder_picked::scoring` into shared math, an
    x86_64-faithful `variance_with_mean` built on it, and A2's oracle row
@@ -790,11 +791,12 @@ recomputed in this pass rather than copied from a report.
   shared-math wave of 2026-09-19, run as one wave exactly as this pass
   recommended: the x86_64-faithful `variance_with_mean` and a
   libstdc++-faithful `sort_ascending` landed together in
-  `src/math/statistic_functions.rs`, under lead decision D16. What A2's oracle
-  row still owes — a re-capture against the Linux Release build rather than the
-  macOS SDK — is the one part of the promotion bullet left, and
-  `src/format/file_info/text_format.rs` was deliberately not touched until it
-  arrives. See the shared-math wave section at the top of this document.
+  `src/math/statistic_functions.rs`, under lead decision D16. A2's oracle row
+  has since been re-captured against the Linux Release build
+  (`../oracle/a2-textfmt-linux`, one differing row of 1018), so
+  `src/format/file_info/text_format.rs` now spells a sign-bit NaN `-nan` and
+  **native difference 5 is closed**. See the shared-math wave section at the top
+  of this document.
 - **The whole-document mzML writer still deduplicates by content.**
   `mzml::write` declares one `dataProcessing` and writes no record reference
   where the C++ `MzMLFile::store` declares one and dangles two. Reproducing it

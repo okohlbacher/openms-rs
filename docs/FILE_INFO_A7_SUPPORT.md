@@ -323,12 +323,14 @@ crashes the reference FileInfo.
    columns and not in the `toStr` column. That corpus holds exactly three NaN
    bit patterns and exactly one sign-bit NaN row, so what is **measured** is
    `number(-NaN, n)` at `n` in `{0, 1, 2}` and `ostream(-NaN, p)` at `p` in
-   `{6, 15}`; no sign-bit NaN `float` is pinned at all. Every other digit count,
-   precision and the `float` overload are **generalised** from glibc writing the
-   sign before `__printf_fp` dispatches on the class. A wider negative-NaN
-   sweep, `../oracle/a2-textfmt-nan-sweep`, was captured by another lane while
-   this one ran; it is named rather than cited, because it is not registered in
-   this repository's manifests and is the lead's to fold in.
+   `{6, 15}`; no sign-bit NaN `float` is pinned by *that* corpus. The companion
+   sweep `../oracle/a2-textfmt-nan-sweep` closes it by **measurement** rather
+   than generalisation: six NaN shapes by both signs by `double` and `float`
+   over 22 digit counts and 16 precisions — **912 sign-bearing rows, none
+   printing a sign that disagrees with the argument's sign bit**, and 24
+   `toStr` rows all printing `NaN`. It is registered in
+   `SOURCE_PROVENANCE.json` with a sha256 and a tier-1 label, and asserted row
+   for row by `the_negative_nan_sweep_is_reproduced_row_for_row`.
 
    *Where it comes from.* `:2310` computes
    `it_ratio = element_intensity / (centroid_intensity > 0 ? centroid_intensity : 1)`

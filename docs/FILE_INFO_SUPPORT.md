@@ -247,12 +247,14 @@ Every public member of `FileInfo.h`, and the file-local helpers of
    *What is measured and what is generalised.* That corpus holds exactly three
    NaN bit patterns and one sign-bit NaN row, so it pins `number(-NaN, n)` at
    `n` in `{0, 1, 2}` and `ostream(-NaN, p)` at `p` in `{6, 15}`, and no
-   sign-bit NaN `float` at all. Every other digit count, precision and the
-   `float` overload follow from glibc writing the sign before `__printf_fp`
-   dispatches on the class. A wider negative-NaN sweep,
-   `../oracle/a2-textfmt-nan-sweep`, was captured by another lane while this
-   one ran; it is named rather than cited, because it is not registered in this
-   repository's manifests and is the lead's to fold in. A macOS C++ build
+   sign-bit NaN `float` at all. That gap is **closed by measurement**, not by
+   the argument that glibc writes the sign before `__printf_fp` dispatches on
+   the class: the companion sweep `../oracle/a2-textfmt-nan-sweep` covers six
+   NaN shapes by both signs by `double` and `float` over 22 digit counts and 16
+   precisions — **912 sign-bearing rows, none printing a sign that disagrees
+   with the argument's sign bit**, and 24 `toStr` rows all printing `NaN`. It is
+   registered in `SOURCE_PROVENANCE.json` with a sha256 and a tier-1 label, and
+   asserted row for row by `the_negative_nan_sweep_is_reproduced_row_for_row`. A macOS C++ build
    writes `nan` for the same bits, so a macOS comparison must not count the
    difference as a port defect — the same caveat the `%g` tie class carries.
 
