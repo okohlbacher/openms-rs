@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- **XSD validation for every ported XML format, behind the new `xml-schema`
+  feature.** `format::xml_schema` ports `XMLValidator::isValid` (for a
+  self-contained caller schema) and the `isValid` each `XMLFile` inherits:
+  featureXML, consensusXML, idXML, paramXML, trafoXML, mzData, mzXML,
+  mzIdentML (1.0.0-1.3.0, the version detected as the source detects it) and
+  pepXML each gain `is_valid`, against the upstream schema at `bc9cc12`, byte
+  for byte. The verdicts are the class tests' own and the retained
+  TOPP_FileInfo_14/15 outputs; the empty-idXML one is not ported, because the
+  idXML writer refuses a document the source writes a placeholder run for.
+  The two schemas that `xs:include` others are composed in memory, checked
+  against libxml2's own include processing, so the engine still loads nothing
+  and installs no process-wide handler. The mzML engine moved into the shared
+  module unchanged; `mzml-schema` implies `xml-schema`, and every engine call
+  now holds one lock, since libxml2's schema contexts are not thread-safe.
+
 - **Every C++ citation whose file name reached two pins now writes the
   directory, and 21 of them were being read in the wrong file.**
   `tools/check_source_citations.py` counted 211 citations "answered by a file
