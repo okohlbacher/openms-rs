@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- **TOPPBase against the C++ Release build: tool descriptions, the tool
+  registry, `-log`, per-user defaults.** `-write_ctd` writes the Common Tool
+  Description byte for byte as the Release build does for the seven ported
+  tools that declare their citations, through a port of `ParamCTDFile` that
+  keeps the source's three escaping defects (CPP-349); the CWL and JSON writers
+  are refused with the Release build's own TDL message and exit 12, without
+  emptying the target as it does (CPP-350). `ToolHandler` reads the package
+  manifests of `OPENMS_TOOL_PREFIX_PATH` and the executable's prefix, with the
+  Release build's `topp.tools.tsv` compiled in for an executable installed
+  without one; the product version, the `Common UTIL options:` heading, the
+  CTD category and `-type` come from it, and a manifest it refuses stops every
+  run with the source's message. `-log` and `-debug` write the source's log
+  file, `<home>/<Tool>.ini` updates the defaults, `-instance` selects its INI
+  section, `checkParam_` warns, tools declare citations, and the run ends with
+  the `<tool> took …` line. Evidence: 124 cases executed on the Release build,
+  93 retained (`tests/topp_cli_completion.rs`), the upstream `ToolHandler`,
+  `ToolManifest`, `ParameterInformation`, `ParamCTDFile`, `ToolDescription`
+  and `ToolDescriptionFile` class tests. A missing input file now reads
+  `could not be found`, as the source says.
+
 - **XSD validation for every ported XML format, behind the new `xml-schema`
   feature.** `format::xml_schema` ports `XMLValidator::isValid` (for a
   self-contained caller schema) and the `isValid` each `XMLFile` inherits:

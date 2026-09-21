@@ -6465,3 +6465,75 @@ Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and ski
 **Evidence:** `oracle/picker-consumers/` — `probe_snt.cpp` and `probe_pickers.cpp` built against that install, `gen_cases.py` for the inputs, `run.sh` for the two identical repeats. The throwing cases are `ppi_winsmall`, `ppi_bins1`, `ppi_bins2`, `ppi_snneg`, `ppc_winsmall`, `ppc_bins1` and the rejected `ppi_winneginf`/`ppc_winneginf`; the silently-suppressed cases are `ppi_winnan` against `ppi_clean` and `ppc_winnan_pick` against `ppc_gauss_clean`, all in `results/run1.tsv`. The same rows are in the repository fixtures `tests/data/picker_consumers/{snt_oracle.tsv,pick_oracle.tsv}`.
 
 **Rust handling:** Reproduced, not fixed. `SignalToNoiseEstimatorMedian::validate` already accepted a NaN or infinite `window_length` under `NoiseCompatibility::source_value_domain` and refused it natively; this wave wired both pickers to it, so a NaN window picks in the source profile with the Release build's bits and is refused in the native one (`tests/picker_noise_consumers.rs`). The port has no separate `sn_win_len` parameter to restrict: the estimator is a public field of each picker. A negative `signal_to_noise` is already refused by `PeakPickerIterative`'s own option check, in both profiles, naming the picker rather than another class (`every_release_exception_case_stays_refused_in_both_profiles`, case `ppi_snneg`).
+
+## CPP-349 — The CTD writer escapes only the first of two adjacent special characters, and escapes a tab twice, so `-write_ctd` can write malformed XML
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`, `libOpenMS.so` sha256 `abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/ParamCTDFile.cpp:358-368` (`ParamCTDFile::replace`), `:341-356` (`escapeXML`), `:142-147` and `:298-302` (tabs), `:52-60` (the `<tool>` element).
+
+**Trigger:** Any parameter name, value, description or section description holding two adjacent characters of `& > " < '`, two adjacent line breaks or a tab; any tool name, category, documentation URL, description or citation DOI holding one of them.
+
+**Issue:** `replace` advances its index past the inserted text (`i += replace_with.size()`) and the loop then increments it once more, so the character right after each replacement is never examined. `escapeXML` runs `replace` once per character, so `a&&b` is written `a&amp;&b` and `&&&` as `&amp;&&amp;` — a bare `&` in an attribute, which no XML parser accepts. The description `line1\n\nline3` is written `line1#br#` followed by a raw line break. A tab is replaced by `&#x9;` *before* the value is escaped, so it is written `&amp;#x9;`, which reads back as the six characters `&#x9;`; two tabs leave the second one raw. The `<tool>` attributes, `<description>`, `<manual>` and `<citation doi>` are written unescaped, so a category or DOI with `&` or `"` (a DOI URL with a query, for one) breaks the document, and a description holding `]]>` ends its CDATA section early.
+
+**Proposed C++ fix:** Continue after the inserted text without the extra increment (`i += replace_with.size() - 1`), escape `&` last-first or with a single pass, escape tabs as `&#x9;` *after* escaping `&`, and escape the `<tool>` attributes and citations; split `]]>` inside CDATA.
+
+**Evidence:** `oracle/toppbase-completion/ctd_driver.cpp` writes documents through the Release `ParamCTDFile::writeCTDToStream` (two identical runs, `ctd_results/`); the `escaping` document shows every case above. Retained as `tests/data/param_ctd/oracle/escaping.ctd`.
+
+**Rust handling:** Reproduced, because the CTD is the product a workflow system consumes: `ParamCtdFile` writes the same bytes (`tests/param_ctd.rs::escaping_matches_the_release_build_byte_for_byte`). No ported tool's parameters reach the defects.
+
+## CPP-350 — `-write_cwl` and `-write_json` empty the target file before discovering they cannot write it
+
+**Source revision:** as CPP-349; `cli` `c19e494`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/ParamCWLFile.cpp:41-62` and `:331`, `src/openms/source/FORMAT/ParamJSONFile.cpp:174-191` and `:326`, reached from `TOPPBase::handleWriteCommands_` (`TOPPBase.cpp:2601`).
+
+**Trigger:** `-write_cwl`, `-write_nested_cwl`, `-write_json` or `-write_nested_json` on a build without TDL (the default, `ENABLE_TDL=OFF`, and the Release build).
+
+**Issue:** `store` opens the target for writing, which creates or truncates it, and only then calls the writer, which throws `std::runtime_error("TDL support is not available. …")`. The tool exits 12, and `<dir>/<tool>.cwl` or `.json` is left behind empty; a file that existed is emptied (case `write_cwl_existing`: `old content` becomes zero bytes).
+
+**Proposed C++ fix:** Check TDL support before opening the file, or let `handleWriteCommands_` refuse the four options up front.
+
+**Evidence:** `oracle/toppbase-completion/results/write_cwl*`, `write_json*`, `write_nested_*`; retained under `tests/data/topp_cli_completion/`.
+
+**Rust handling:** The exit code and the message are the Release build's; the target is not touched (`tests/topp_cli_lifecycle.rs::cwl_and_json_writers_are_refused_as_the_release_build_refuses_them`), a documented deliberate difference.
+
+## CPP-351 — Every `.ttd` tool is registered by name, so two external tools (which have none) collide, and the duplicate message lacks its closing quote
+
+**Source revision:** `cli` `c19e494`; core as CPP-349.
+
+**Status:** Executed.
+
+**Affected file/function:** `source/APPLICATIONS/ToolHandler.cpp:164-175` (`ToolHandler::getTOPPToolList`), with `FORMAT/HANDLERS/ToolDescriptionHandler.cpp:97-109` in core.
+
+**Trigger:** Two `.ttd` files with `status="external"` tools under `OPENMS_TTD_INTERNAL_PATH` or the shared data's `TOOLS/INTERNAL`.
+
+**Issue:** An external tool has no `<name>` (the handler accepts `<name>` for internal tools only), so every external tool is keyed by the empty string, and the second one throws `InvalidValue("Duplicate tool name error: Trying to add internal tool '" + name, name)`. Every TOPP tool of the installation then refuses to start, `--help` included: `Unable to initialize or run BaselineFilter: the value '' was used but is not valid; Duplicate tool name error: Trying to add internal tool '`. The upstream class test directory holds exactly two such files (`ToolDescriptionFile_test_1.ttd`, `_2.ttd`).
+
+**Proposed C++ fix:** Register only internal tools in the tool list, or key external ones by their type; close the quote in the message.
+
+**Evidence:** `oracle/toppbase-completion/results/ttd_two_external`, `ttd_internal_dup`; retained under `tests/data/topp_cli_completion/`.
+
+**Rust handling:** Reproduced (`tests/topp_cli_completion.rs::the_internal_tool_registry_behaves_as_in_the_release_build`).
+
+## CPP-352 — `checkParam_`'s exemption for the tool's own section never applies, so every `common:<tool>:` subsection value draws an "Unknown subsection" warning
+
+**Source revision:** `cli` `c19e494`.
+
+**Status:** Executed (the product SDK oracle and the Release build agree).
+
+**Affected file/function:** `source/APPLICATIONS/TOPPBase.cpp:350-353` and `:1879-1888` (`TOPPBase::main`, `checkParam_`).
+
+**Trigger:** An INI file with a subsection value under `common:<tool>:`, for example `common:SpectraFilterWindowMower:algorithm:peakcount`.
+
+**Issue:** `checkParam_` skips the warning when `location == "common::"` and the subsection is the tool's name, but `main` passes `"common:" + tool_name_ + "::"` (doubled colon) and `"common:"`, never `"common::"`. The `common:` copy of the value keeps the nested `<tool>:algorithm:…` key, so the run prints `Warning: Unknown subsection 'SpectraFilterWindowMower:algorithm' in '<ini>' (location 'common:')!` for a value it then applies.
+
+**Proposed C++ fix:** Compare with `"common:"`, or strip the tool's own section from the `common:` copy before checking it.
+
+**Evidence:** `oracle/topp-cli-lifecycle/results/ini_common_tool_section`, `ini_instance_and_common`.
+
+**Rust handling:** Reproduced (`tests/topp_cli_completion.rs::check_param_warns_about_the_common_copy_of_a_tool_section`).

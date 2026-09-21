@@ -1,0 +1,3125 @@
+{
+ "package_revisions": {
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+  "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+ },
+ "scope": "Completion of TOPPBase against the Release build: the tool registry (ToolHandler) and its built-in product manifest, the product version and the TOPP/UTIL heading, -write_ctd and the refused CWL/JSON writers, -instance, -log and -debug, getToolUserDefaults_, checkParam_, citations, is_executable inputs, getOutputDirOption, the integer parseRange_, the closing run-time line and the order of Param::update's diagnostics; ParameterInformation_test.cpp.",
+ "method": "TOPPBase.cpp, ToolHandler.cpp and their class tests read at the cli pin with git show; 124 cases executed against the C++ Release build by ../oracle/toppbase-completion/cases.sh on ibminode06 (env -i, per-case HOME, OPENMS_HOME_PATH and cwd, OPENMS_DISABLE_UPDATE_CHECK=ON, OPENMS_DATA_PATH pinned); 93 retained case directories are compared with this port's runs after mapping the Release run's paths, dropping the stty probe line and masking log timestamps.",
+ "evidence_tier": "oracle-generated (tier 1 executed differential) for the Release-build cases; tier 1 retained C++ output for ParamCTDFile_test_writeCTDToStream.ctd; source review (tier 3) for the transcribed class tests; tier 4 (derived) for is_executable, getOutputDirOption and the integer parseRange_.",
+ "oracle": {
+  "install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "host": "ibminode06\nLinux ibminode06 6.8.0-124-generic #124-Ubuntu SMP PREEMPT_DYNAMIC Tue May 26 13:00:45 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux",
+  "build_type": "Release",
+  "hashes": [
+   "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/lib/libOpenMS.so",
+   "9e9d5475f5b313d76abee7b882972578ff9f3185f4a015af2d383356c416b656  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/lib/libOpenMS_CLI.so.1.0.0",
+   "5a90f7c13c8ecf7b82adb0a4518fc1c0b3c50c2c26f058795141bab6200da149  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/share/openms4/tools/topp.tools.tsv",
+   "f28bf172f8a2ea5ae5582625f5104c3f35884060971c5375f79b5755760edf16  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/BaselineFilter",
+   "e59408bd8fea036390e9af13d9cffb786b7901a9b2b68580c93c964e8d751916  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/DTAExtractor",
+   "2781dd7cab48f482118375754038644251705c8bafab1958e310e4063dffb323  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/FeatureFinderCentroided",
+   "5d82c8a7248c9ccb37c6f4e64a0ed2202f375418befd095261590935de1172dc  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/FileInfo",
+   "bcd0250e9cc67aba1eba786041059c0e03f77ce7562181b558e52e62438b67f5  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/MapNormalizer",
+   "8fc821a3c8e6046a43c41c228eaef6c7fbd74c070cec3b47fe06cc1cde4b8453  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/MzMLSplitter",
+   "d92e1fe3093292eeef15ab647701cc726c6b7275414e579b7f6526e1580e3a4b  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/PeakPickerHiRes",
+   "0c03d6a46a643c1dd0e654e09986e805d44200ca09048411cfd87955c07c9cb6  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/SpectraFilterWindowMower"
+  ]
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/toppbase-completion/cases.sh",
+   "sha256": "defa015a8d20bcef4860c268c795c6938d8430d37aff7a885f7f0ddac06ff0df",
+   "origin_key": "oracle",
+   "role": "driver"
+  },
+  {
+   "path": "../oracle/toppbase-completion/results/summary.tsv",
+   "sha256": "2d499f3e073a36a37769d6c86062c61113e9ee030009be7be3988672ed34c84c",
+   "origin_key": "oracle",
+   "role": "case list with exit codes"
+  }
+ ],
+ "external_reference_note": "The oracle driver and the full results tree live under ../oracle/toppbase-completion; the case directories the tests compare with are retained under tests/data/topp_cli_completion.",
+ "sources": [
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/TOPPBase.h",
+   "revision": "cli c19e494",
+   "sha256": "576cea45f0a5eea7827c44f8080c98759aea16d34c854f8867132e6f54d102b3"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/TOPPBase.cpp",
+   "revision": "cli c19e494",
+   "sha256": "326b96f85b4041febec49e18252d7be2ad0a5450abe5249adecc28ca315fdc05"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/TOPPBase_defs.h",
+   "revision": "cli c19e494",
+   "sha256": "ee8bfe722d663132e0449d6813a7eeffc124ea06a03bd1131298fd6efc651ded"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/ToolHandler.h",
+   "revision": "cli c19e494",
+   "sha256": "12855eb8306ef7dcd4fb3d626213a3306b7af3a35144d712c4e3b6be69c2633b"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/ToolHandler.cpp",
+   "revision": "cli c19e494",
+   "sha256": "f6bbe3aacb2d4adcb97d8315a9eb42c0cf0372024339a8ee52fcf783c0d4c968"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/ParameterInformation.h",
+   "revision": "cli c19e494",
+   "sha256": "0c30e363a6d4481a3362094898409ef6ff297430b4fd3aecfbdfef44784be303"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/ParameterInformation.cpp",
+   "revision": "cli c19e494",
+   "sha256": "cddf8e2e1eb0112c10a71a016aaed2ef2a023dea230cba3ee9078f049fb0463c"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/tests/source/TOPPBase_test.cpp",
+   "revision": "cli c19e494",
+   "sha256": "01e7de9f30281c3afa9dee1b920a1cf36b46b72fc57c72824cd2852e506fa29f"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/tests/source/ToolHandler_test.cpp",
+   "revision": "cli c19e494",
+   "sha256": "5653304ae7f688ed354b7ebdd77f52c3dfc2a648f061a872d03992c994f061c6"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/tests/source/ToolManifest_test.cpp",
+   "revision": "cli c19e494",
+   "sha256": "213acec5883b8f3ce55e34eec2fea0b570da2d1b1551ccfaeecf47a5252c3f9d"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/tests/source/ParameterInformation_test.cpp",
+   "revision": "cli c19e494",
+   "sha256": "20a2ac3c9fa99cfbe6049f5aeb7a5c2c7c70c6b56af056c91c568e97c0b0ed5d"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/tests/registry/share/openms4/tools/test.tools.tsv",
+   "revision": "cli c19e494",
+   "sha256": "6dff9108ff15940b4306b9c5943571713c762cd56497c32493ed7e50c87703ab"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/tools.json",
+   "revision": "topp 174b576",
+   "sha256": "08a9fd943a63bc79658bd3fab30ffb8af47ff419bff25d72ae7f875bd34fb450"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/cmake/OpenMS4Tools.cmake",
+   "revision": "topp 174b576",
+   "sha256": "ab5ad297b3d207478023dab9901d0a9aba35eb7ba550bc8b20276dd03c078fbb"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/cmake/CheckToolMetadata.py",
+   "revision": "topp 174b576",
+   "sha256": "f38235dff2d442b0d23c47c04db7885a260033caf7a39fc3f725f4d388f82a70"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/FeatureFinderCentroided.cpp",
+   "revision": "topp 174b576",
+   "sha256": "3456f7a563352ae33a08b0872915970342c46229cce6a2bdbe2313b3ece89f68"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/topp_cli_completion/fixtures.sha256.json",
+   "sha256": "3440694353914fa1ada34d09a32f8ab721fbec80405039d331310c2e398f2a54",
+   "origin": "hash list of the retained case directories"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_in_ini.ini",
+   "sha256": "ecb52eff443d4f2da695e385ea381d56b96731df36fc4d22c10aac9f55ad826c",
+   "origin": "oracle input, ../oracle/toppbase-completion/inputs (written for the oracle)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/method_erosion.ini",
+   "sha256": "835ed14c78ef238525bb63c666c106aa334af26e48f0c20e7f91aee3aa9fcffe",
+   "origin": "oracle input, ../oracle/toppbase-completion/inputs (written for the oracle)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_dup.ttd",
+   "sha256": "14096ec76804a346f8ee6da2e1052f574d508bc4835c7eb7f412157af54c6a36",
+   "origin": "oracle input, ../oracle/toppbase-completion/inputs (written for the oracle)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_new.ttd",
+   "sha256": "ac0a0d6f1be6c83649be52d7ea39fe4ebdaf4543c37539db43f534582776aced",
+   "origin": "oracle input, ../oracle/toppbase-completion/inputs (written for the oracle)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_malformed.ttd",
+   "sha256": "1a9ade3905c2163aef2f705a4fa9f88f3dd7e22f518c45b4ef6bba885ddeaaeb",
+   "origin": "oracle input, ../oracle/toppbase-completion/inputs (written for the oracle)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_unknown_status.ttd",
+   "sha256": "d2edacc5119846ea77ebfda3cdbf7a13ff662916fcef8913c779de7a10044fda",
+   "origin": "oracle input, ../oracle/toppbase-completion/inputs (written for the oracle)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/user_defaults.ini",
+   "sha256": "35628d04d64222231dfd4869668c0755b13a2e0c7af7790d392d81e6de957bf7",
+   "origin": "oracle input, ../oracle/toppbase-completion/inputs (written for the oracle)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/user_defaults_invalid.ini",
+   "sha256": "b8ba9f028887992d0ecff5648370c53fe53770863525b3aadd7a614faec43432",
+   "origin": "oracle input, ../oracle/toppbase-completion/inputs (written for the oracle)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/user_defaults_malformed.ini",
+   "sha256": "5992c8f4b58856e493a7dc7450bdd7a947b23f0c0256e38201f8c43f40accce0",
+   "origin": "oracle input, ../oracle/toppbase-completion/inputs (written for the oracle)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/user_defaults_unknown.ini",
+   "sha256": "c773c02a8828a5f6e5a230e6636152f32960c9dfa29d1fcbae699f24d9218421",
+   "origin": "oracle input, ../oracle/toppbase-completion/inputs (written for the oracle)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_and_cwl/argv.txt",
+   "sha256": "d69a97439e4dfad9177d502a337dc1a5188be8340ba6e2cef0561beda0318ebf",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_and_cwl/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_and_cwl/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_and_cwl/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_and_cwl/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_and_cwl/tree.txt",
+   "sha256": "24c6971bfc6debc4e6ecc347b4a2665632d9cf38a02cf94a81ac0ae1d5570a0d",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_and_write_ini/argv.txt",
+   "sha256": "848b20a9742c10a51ccf393165d190b2a5e4a27d6399a68135843a214eae6cc0",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_and_write_ini/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_and_write_ini/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_and_write_ini/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_and_write_ini/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_and_write_ini/tree.txt",
+   "sha256": "2a9fc7769587d4ee8d4aa7a31484effe578944f608aead76b7c67546983b6ef6",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_and_write_ini/x.ini",
+   "sha256": "355fed6a0714f4d7a63a956c163d6cdfe82b6394e671303401a39cd8e03ecbe2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_cwd_BaselineFilter/argv.txt",
+   "sha256": "e24f977229ec5e20350517e3f220c8b5ebe6c6ee1626564a7e5e95bd4f2af6b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_cwd_BaselineFilter/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_cwd_BaselineFilter/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_cwd_BaselineFilter/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_cwd_BaselineFilter/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_cwd_BaselineFilter/tree.txt",
+   "sha256": "94ed6da66814170ef075b6d911dbce2ba67d40c1597e797e15c1764b32a2c41d",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_existing/argv.txt",
+   "sha256": "e5404629ac5f7922a5df25c69cf37e3b0e2e43b03edcd1135620fa5257c1edfa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_existing/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_existing/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_existing/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_existing/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_existing/tree.txt",
+   "sha256": "5ecb5a7ae55a0dea4ae42814c958ba9527841082088306dbf74fb6144dbce2ec",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_missing_dir/argv.txt",
+   "sha256": "7cecf68cacf0f0f52d07654267cb6cb496ee798f97afd9e210346b2accaa1451",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_missing_dir/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_missing_dir/exit_code.txt",
+   "sha256": "f0b5c2c2211c8d67ed15e75e656c7862d086e9245420892a7de62cd9ec582a06",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_missing_dir/stderr.txt",
+   "sha256": "19be12b41fdd145bcc8c2c10589ac918c364e5346d7835131d393b6cd333cd27",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_missing_dir/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_missing_dir/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_notest_BaselineFilter/argv.txt",
+   "sha256": "e740d105e44c0056bf1db598ffdd76d9137d0f70cae7da2face235292fb7c0fe",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_notest_BaselineFilter/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_notest_BaselineFilter/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_notest_BaselineFilter/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_notest_BaselineFilter/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_notest_BaselineFilter/tree.txt",
+   "sha256": "5ecb5a7ae55a0dea4ae42814c958ba9527841082088306dbf74fb6144dbce2ec",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_relative_BaselineFilter/argv.txt",
+   "sha256": "e2da9704d7275c77463d3fa8a4ca238280e173de3050a3cb862dedd0e0b95cb2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_relative_BaselineFilter/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_relative_BaselineFilter/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_relative_BaselineFilter/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_relative_BaselineFilter/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_relative_BaselineFilter/tree.txt",
+   "sha256": "94ed6da66814170ef075b6d911dbce2ba67d40c1597e797e15c1764b32a2c41d",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_ro_dir/argv.txt",
+   "sha256": "8e8ad2e9933ea7003523586007320802340543e5a4497579e939380aa797b764",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_ro_dir/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_ro_dir/exit_code.txt",
+   "sha256": "f0b5c2c2211c8d67ed15e75e656c7862d086e9245420892a7de62cd9ec582a06",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_ro_dir/stderr.txt",
+   "sha256": "a0ad2adaf3b6663d91da8631523972c604d77f6b166be7088373aadc1fb92e5d",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_ro_dir/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_ro_dir/tree.txt",
+   "sha256": "3f412ca3cedef60928390fcaa870207922bb63ee698dd878636913a30e3fd29f",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_target_is_directory/argv.txt",
+   "sha256": "d59da49efe6f5e1534cac94e00184a255f0ba14f0ed097ff175d4c449640f003",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_target_is_directory/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_target_is_directory/exit_code.txt",
+   "sha256": "a1fb50e6c86fae1679ef3351296fd6713411a08cf8dd1790a4fd05fae8688164",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_target_is_directory/stderr.txt",
+   "sha256": "27f7ac9cc6ee5762492cfed4a50e1f3debb0352d5211d00f73505d4f9832bf86",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_target_is_directory/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_target_is_directory/tree.txt",
+   "sha256": "5ecb5a7ae55a0dea4ae42814c958ba9527841082088306dbf74fb6144dbce2ec",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_trailing_slash/argv.txt",
+   "sha256": "a22e031ba5b6212812fcfc4517f2f562c43a4896c1d8bcb62a6761048ee1631e",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_trailing_slash/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_trailing_slash/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_trailing_slash/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_trailing_slash/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_trailing_slash/tree.txt",
+   "sha256": "5ecb5a7ae55a0dea4ae42814c958ba9527841082088306dbf74fb6144dbce2ec",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_with_cli/argv.txt",
+   "sha256": "7cf19c1e546b958a978e0141cee9623fae508d81c429b20f056d7a81d39d3849",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_with_cli/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_with_cli/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_with_cli/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_with_cli/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_with_cli/tree.txt",
+   "sha256": "5ecb5a7ae55a0dea4ae42814c958ba9527841082088306dbf74fb6144dbce2ec",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_with_ini/argv.txt",
+   "sha256": "e5e5b387e6735d2367bde34c72d72c3b3639bb5072f50291a1c51e53491e71f1",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_with_ini/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_with_ini/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_with_ini/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_with_ini/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ctd_with_ini/tree.txt",
+   "sha256": "5ecb5a7ae55a0dea4ae42814c958ba9527841082088306dbf74fb6144dbce2ec",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_help/argv.txt",
+   "sha256": "a38f301b65d4da1291c88a11e153f24372885d82fdd5c8629d5efd2cfe4c1aa2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_help/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_help/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_help/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_help/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_help/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_run/argv.txt",
+   "sha256": "d166728c0166618044c49f11c9ca7d55e78d56659664bc7dce6aca39d7829856",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_run/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_run/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_run/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_run/stdout.txt",
+   "sha256": "5bb30828b4a26233990df2437c8a2b76af010db7789e46bda37f27a27b969e14",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_run/tree.txt",
+   "sha256": "8a7cb5198e08ae93ef2e581434f6a1f6df2a3ababc19a1bc26a447b37c131c27",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_write_ini/argv.txt",
+   "sha256": "a8183679b4103089c5335125a3b5040d945a84c35941ff6e426c65587983c978",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_write_ini/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_write_ini/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_write_ini/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_write_ini/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_write_ini/tree.txt",
+   "sha256": "7568374462d381671562adc5e2e045b8064bf6e8560e9a8ae2950535bd2f94d0",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug1_write_ini/x.ini",
+   "sha256": "355fed6a0714f4d7a63a956c163d6cdfe82b6394e671303401a39cd8e03ecbe2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug2_run/argv.txt",
+   "sha256": "781e3a53f69d624996d96c2a3dc130a423bcdfb5cd287b3adeaead768f6fe471",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug2_run/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug2_run/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug2_run/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug2_run/stdout.txt",
+   "sha256": "0a455ca90c0c5549d035a10e947af663870fe0cc35390879c8eb9c382da2ff90",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/debug2_run/tree.txt",
+   "sha256": "8a7cb5198e08ae93ef2e581434f6a1f6df2a3ababc19a1bc26a447b37c131c27",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ffc_help_cite/argv.txt",
+   "sha256": "e50bf7b4ab7c792e5523e687bcf466e0658966aead4653e6cd69b34c5c634977",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ffc_help_cite/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ffc_help_cite/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ffc_help_cite/stderr.txt",
+   "sha256": "cd935c611c8a8d19c54db38cdf4960bdb4414cbfa73712c8101dd5d1e2ede0a7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ffc_help_cite/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ffc_help_cite/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_BaselineFilter/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_BaselineFilter/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_BaselineFilter/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_BaselineFilter/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_BaselineFilter/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_BaselineFilter/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_DTAExtractor/argv.txt",
+   "sha256": "100a3ec50b9d525aa058fc23bb076f95a66720e582ea523858325aea597f9932",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_DTAExtractor/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_DTAExtractor/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_DTAExtractor/stderr.txt",
+   "sha256": "3a5134eb0b533d4cdf9c66c2683cdff91f123b6a1652fd11e4946f5f080ebc3c",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_DTAExtractor/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_DTAExtractor/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_FeatureFinderCentroided/argv.txt",
+   "sha256": "e50bf7b4ab7c792e5523e687bcf466e0658966aead4653e6cd69b34c5c634977",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_FeatureFinderCentroided/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_FeatureFinderCentroided/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_FeatureFinderCentroided/stderr.txt",
+   "sha256": "cd935c611c8a8d19c54db38cdf4960bdb4414cbfa73712c8101dd5d1e2ede0a7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_FeatureFinderCentroided/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_FeatureFinderCentroided/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_FileInfo/argv.txt",
+   "sha256": "0a6b3ef0f671b384cd753f42c35323273d5a19bb9a366f1124272fe6a572ed34",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_FileInfo/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_FileInfo/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_FileInfo/stderr.txt",
+   "sha256": "9c9b6315b665a92a0407749143e3688bfc6993465d01e8879e0b098655c7eb95",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_FileInfo/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_FileInfo/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_MapNormalizer/argv.txt",
+   "sha256": "589703bfb5c69df5cbb8998294a111d0797dedaa3eb0d6945cdb22b9df0a6b5d",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_MapNormalizer/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_MapNormalizer/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_MapNormalizer/stderr.txt",
+   "sha256": "59a1e14276a19f986572fc009f11c326a59ea3d3bd3526dad5cbcbcb55067d06",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_MapNormalizer/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_MapNormalizer/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_MzMLSplitter/argv.txt",
+   "sha256": "7d39ff8c9670e2bad570cf4c292e0428fc9ef5e4dd96cc0a5de3df9ad2eea40e",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_MzMLSplitter/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_MzMLSplitter/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_MzMLSplitter/stderr.txt",
+   "sha256": "08c56e55c6c845a98019fef28de2142e78a71d0cdaaef1ec0ef47ed2b4b64115",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_MzMLSplitter/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_MzMLSplitter/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_PeakPickerHiRes/argv.txt",
+   "sha256": "7c390a6af048637b989427d99fbeacd2dc7321e341ca85bb1e76b505289b4158",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_PeakPickerHiRes/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_PeakPickerHiRes/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_PeakPickerHiRes/stderr.txt",
+   "sha256": "50709c7554d1d3995b5d884d3cd7d29c92d0cf3dc8b0fc1da58b657cf6fa13b6",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_PeakPickerHiRes/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_PeakPickerHiRes/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_SpectraFilterWindowMower/argv.txt",
+   "sha256": "1d756c2b22f66294f26e5b885d452f4685630b33079193809032e1af6a352edc",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_SpectraFilterWindowMower/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_SpectraFilterWindowMower/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_SpectraFilterWindowMower/stderr.txt",
+   "sha256": "3a317d05e2d520c71cdc55c1ab25d28bbda679c09d91b834e96fc04c793fcc2f",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_SpectraFilterWindowMower/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/help_SpectraFilterWindowMower/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_BaselineFilter/argv.txt",
+   "sha256": "fdff6e4b19fae0e8ecf82ca6683016a5fc0629d9acf771ed806fa7a8074f470d",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_BaselineFilter/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_BaselineFilter/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_BaselineFilter/stderr.txt",
+   "sha256": "48d1e1266e7508c5ec4c7aa28ea1acbde73ff2fe166a25cd9c4b77d28de3d864",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_BaselineFilter/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_BaselineFilter/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_DTAExtractor/argv.txt",
+   "sha256": "3dcd871eaf0998aabacc2873e3a699c65ae4c808542275567748a1a9f7bc53bd",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_DTAExtractor/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_DTAExtractor/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_DTAExtractor/stderr.txt",
+   "sha256": "2bf7deebfb54272d68bc7b9a53af9877576db92c2307be05971bd7dfd4f87f1c",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_DTAExtractor/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_DTAExtractor/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_FeatureFinderCentroided/argv.txt",
+   "sha256": "f545879ba5feae432f8938d3499807100fd0068b2d98ba6047233bc2e0e8d1ba",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_FeatureFinderCentroided/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_FeatureFinderCentroided/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_FeatureFinderCentroided/stderr.txt",
+   "sha256": "ff014c9a121b4d6e69a7ff88381b451bedaa1e01762d71ae3e39f0c3f395cf8a",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_FeatureFinderCentroided/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_FeatureFinderCentroided/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_FileInfo/argv.txt",
+   "sha256": "e6065d8bf192d8b2a1dc8df362b02a458b6b2788bed1ce67b0c3db551f775972",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_FileInfo/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_FileInfo/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_FileInfo/stderr.txt",
+   "sha256": "fbf6d08a25cc1dba77ca0ef069d6aea9e7710c9edc470da3fe7038d2a7243192",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_FileInfo/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_FileInfo/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_MapNormalizer/argv.txt",
+   "sha256": "62e916aa24c94197cec19746456f39b74a433700f3ffe0d4dd82cd475b2b24b1",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_MapNormalizer/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_MapNormalizer/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_MapNormalizer/stderr.txt",
+   "sha256": "bd6e3f53c4d95691a410dfa9c40b4401e272cb77c2fa47b74326cdf77c06382f",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_MapNormalizer/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_MapNormalizer/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_MzMLSplitter/argv.txt",
+   "sha256": "3231c51138b4047d941b8d6dccfd99b8ca7fc58739498c2cf3958f67fa2e83b3",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_MzMLSplitter/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_MzMLSplitter/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_MzMLSplitter/stderr.txt",
+   "sha256": "63b611f93b270aca8d214cfc1cf5dfb18c9512e0fd4e20ec4cfc7d725ec49b41",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_MzMLSplitter/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_MzMLSplitter/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_PeakPickerHiRes/argv.txt",
+   "sha256": "17e0f167bca81287a7593fa80f168dc456a6fdeb2b8a0db46c8068e1531fc908",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_PeakPickerHiRes/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_PeakPickerHiRes/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_PeakPickerHiRes/stderr.txt",
+   "sha256": "6187ada8f404f70dd69fa419d29d3b8a2f8af4d763dab743e01b6e5ff9d20664",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_PeakPickerHiRes/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_PeakPickerHiRes/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_SpectraFilterWindowMower/argv.txt",
+   "sha256": "ffa15153c944e172b5d39cb3fb8d464f84cca0c404d67acc9df302af09c7f75f",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_SpectraFilterWindowMower/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_SpectraFilterWindowMower/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_SpectraFilterWindowMower/stderr.txt",
+   "sha256": "81289a7f6370cc8d9baf35ede38e3a124f2c66cfca0108e8c85cdd369a2dd6df",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_SpectraFilterWindowMower/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/helphelp_SpectraFilterWindowMower/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/instance2/argv.txt",
+   "sha256": "bd13f1a1a32f006b6540f307729f980ad759f80427dfad43e27327a8c116f081",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/instance2/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/instance2/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/instance2/stderr.txt",
+   "sha256": "7f074abc02d3eeb0b8bcf98f4e7a02f48fc0576dbd64d08b1d3561088232c799",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/instance2/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/instance2/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/instance5_ini/argv.txt",
+   "sha256": "7d23655112b872956977aac7da95e3c3624897746c53a1d6eaa9d61ab5df7b91",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/instance5_ini/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/instance5_ini/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/instance5_ini/stderr.txt",
+   "sha256": "e9b23f637517adc7fa5ff401a37f156155078078bb09528e1af51324e7e8576f",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/instance5_ini/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/instance5_ini/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_duplicate_option/argv.txt",
+   "sha256": "16e61c783e23b5f3fdfe0d1334cddb06701419526b541d2bc7a0c4b26aab1328",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_duplicate_option/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_duplicate_option/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_duplicate_option/stderr.txt",
+   "sha256": "cb25fa6a72aa9d4ca8a6f5137a01d60cd987289adfccdb3c09c3109ae6388260",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_duplicate_option/stdout.txt",
+   "sha256": "20930914ee58aa1b0f4b93057346da95dc054056c04117abbde4ef25b7d13cbb",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_duplicate_option/tree.txt",
+   "sha256": "8a7cb5198e08ae93ef2e581434f6a1f6df2a3ababc19a1bc26a447b37c131c27",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_help_debug1/argv.txt",
+   "sha256": "2e8794672bf4859e416c84e89d83ad884438b74e0a708645959217af4ceb4a74",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_help_debug1/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_help_debug1/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_help_debug1/log.txt",
+   "sha256": "1f6afd6fc6a504bc6e73d7ed395a0fa651b5d08183726bc11a608d491c342b80",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_help_debug1/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_help_debug1/stdout.txt",
+   "sha256": "a3a9f2f3f0d0a37e5e98e519044bcc7d7ee4da1fb907fd9db9f5c210c9354cb3",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_help_debug1/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_in_ini/argv.txt",
+   "sha256": "2b7799aeaebfc61008d32b99d9d30f512e49b9acbe4babb0629b622834a2c7c1",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_in_ini/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_in_ini/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_in_ini/log.txt",
+   "sha256": "df90ab66b33e05472354f1193b183a15c225713a4dd722bc331f646e204c8f29",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_in_ini/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_in_ini/stdout.txt",
+   "sha256": "39a9ff3e37ae6d7e8f70fd363f04527a012746166f0069d3d9e93969dad7b7d8",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_in_ini/tree.txt",
+   "sha256": "a75f5068dd0de9bb6b619de2073026fc53ae0286eeb173c9dcc3f979e8162af5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_missing_input/argv.txt",
+   "sha256": "4a29cb8cf2ba039e144284a35d01f09b1acdb33e2e24bf7a05816abe90f493aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_missing_input/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_missing_input/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_missing_input/log.txt",
+   "sha256": "38ce7cd86448dea9889e99b645127ddaaec3b2d34060b4e39a5775363a89a8f6",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_missing_input/stderr.txt",
+   "sha256": "b551f5f8e9a6ef05d6e87ee8f9c268bc083d689cd6292bdc25bed87491fc78b2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_missing_input/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_missing_input/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run/argv.txt",
+   "sha256": "474a53a0a190dc462a94e952c65e6f5231982d408139d2d6535af718157d20d7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run/stdout.txt",
+   "sha256": "ea7a4f74b04e4596a26ceed6e194b4426fdb566b777dc63065c9c7341ae80ad4",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run/tree.txt",
+   "sha256": "8a7cb5198e08ae93ef2e581434f6a1f6df2a3ababc19a1bc26a447b37c131c27",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug1/argv.txt",
+   "sha256": "e88398f400fc2245973f34d35b243a4a4893997ab4f42235744935a7379bb3f7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug1/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug1/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug1/log.txt",
+   "sha256": "23ed9033257c78fb229124a2e7b0236f6133052712a67eafc4b15330edcfed8d",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug1/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug1/stdout.txt",
+   "sha256": "af31a5ace6bf596a00aa2834d1cdde5e58312ebed169519525a0608b984c6c31",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug1/tree.txt",
+   "sha256": "b54d5ef4fbcbe4e498015b29fcef17a1a873941557a45543a8ff40ebe480f6d0",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug2/argv.txt",
+   "sha256": "e313b496decdec1981882e441e96fdb622bb357b1be091864e9e3dcaad807b65",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug2/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug2/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug2/log.txt",
+   "sha256": "30d974a5c6bf02a5fb17813db02f2a376ad9ba59cba14e5cf6f4322e0ad481ba",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug2/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug2/stdout.txt",
+   "sha256": "a4c679ae3a74c524f93237dd2b75239031fb229eda4d5e9ecfb3f2ee69d5a9ee",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_run_debug2/tree.txt",
+   "sha256": "b54d5ef4fbcbe4e498015b29fcef17a1a873941557a45543a8ff40ebe480f6d0",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option/argv.txt",
+   "sha256": "9b88b546e2c9ef46379062c980fcba55ee534e1aaabed35a0a07536a463188d3",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option/log.txt",
+   "sha256": "23e986cb1a28b56bc7f226c084f13532c7781127ae42164a269305f3970bec35",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option/stderr.txt",
+   "sha256": "69b87bfb90f604ad3851682177c1ec56ca53e7aba3283323e9106c296a0ae8d6",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option_debug1/argv.txt",
+   "sha256": "b4e81bcc7fe80333b36bb9de6a8e13cc29fe9b7b508dbc42b2468eca3b19a2e6",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option_debug1/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option_debug1/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option_debug1/log.txt",
+   "sha256": "2b6a9826a7b8f29a20c717a7a613471ac11a85527835784fddca959d365cd027",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option_debug1/stderr.txt",
+   "sha256": "69b87bfb90f604ad3851682177c1ec56ca53e7aba3283323e9106c296a0ae8d6",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option_debug1/stdout.txt",
+   "sha256": "8adc4760c6b77d5ea21f2b35043693cba156bb61096daf784a3b96f818f4b6d0",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unknown_option_debug1/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unwritable/argv.txt",
+   "sha256": "402f0b517ad043d29022b9ce4aaa86105097fbd5d59427602e9c4dcbff7aa73b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unwritable/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unwritable/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unwritable/stderr.txt",
+   "sha256": "bed02971b198f628241352e9cada7c64da0d7e3e722e7130d6cd0622a02bd62f",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unwritable/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_unwritable/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_write_ini_debug1/argv.txt",
+   "sha256": "1845d66af5576992cb09e06ea6606cf9bda6de857b947b659bc6d59f43382a2b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_write_ini_debug1/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_write_ini_debug1/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_write_ini_debug1/log.txt",
+   "sha256": "0e9539b94272fdaead063e047a7e173e35edb260f43f3b6791f3bfa633cbcc1c",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_write_ini_debug1/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_write_ini_debug1/stdout.txt",
+   "sha256": "f43ce4d029cf790b3734867b4b6d7996303bb7042ecc9ee4765a726605525663",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_write_ini_debug1/tree.txt",
+   "sha256": "dd794e0cb590b53493cbfc32647e9a3e31bddb20675bed5e3c1fd4ac4c70535a",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/log_write_ini_debug1/x.ini",
+   "sha256": "355fed6a0714f4d7a63a956c163d6cdfe82b6394e671303401a39cd8e03ecbe2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/plain_run/argv.txt",
+   "sha256": "1003b3ef9d923bf6a99738d5072a2beb23658fc0e6ade2514a261a2bab2e25bd",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/plain_run/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/plain_run/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/plain_run/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/plain_run/stdout.txt",
+   "sha256": "0783f5cd5e6b77e78337037cf78f6104be747a2809a4b02dbc1f64ce698934cc",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/plain_run/tree.txt",
+   "sha256": "8a7cb5198e08ae93ef2e581434f6a1f6df2a3ababc19a1bc26a447b37c131c27",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/plain_run_no_progress/argv.txt",
+   "sha256": "a913d4afd93f83fcd91a7e5eb24c1e532655bd0e9cc55f51eebebd6011418c10",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/plain_run_no_progress/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/plain_run_no_progress/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/plain_run_no_progress/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/plain_run_no_progress/stdout.txt",
+   "sha256": "04ad92b2a269f4094cb5fc08a14dc5bd872db93dea975984420f62d5043571a3",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/plain_run_no_progress/tree.txt",
+   "sha256": "8a7cb5198e08ae93ef2e581434f6a1f6df2a3ababc19a1bc26a447b37c131c27",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_absolute_path/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_absolute_path/env.txt",
+   "sha256": "2893ab111dd7924343a2b6f0a4d637837fe6e8f3119f8ae1d9c18ed5cda11bbb",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_absolute_path/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_absolute_path/stderr.txt",
+   "sha256": "d45e87f482da82c2bff69ff6bc5d98236275c7df0e03d58850bbc23434cfbb87",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_absolute_path/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_absolute_path/tree.txt",
+   "sha256": "30ff62350ac58a19a6d563ce07a059664c7d65bcdcb6904b273ae904a96cb742",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_help/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_help/env.txt",
+   "sha256": "d916475bb2f2d35a1b172192ded3c68c5d337975146549af7a0427b959769a0c",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_help/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_help/stderr.txt",
+   "sha256": "5eb9a67713355bb8fa6132584925cdebed4ad6c8acd13a8041f8ad4e717094bc",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_help/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_help/tree.txt",
+   "sha256": "30ff62350ac58a19a6d563ce07a059664c7d65bcdcb6904b273ae904a96cb742",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_run/argv.txt",
+   "sha256": "46360c524ca9c150dae6a91d8c4e16c4669222b36b057b124bb92ea464a661a7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_run/env.txt",
+   "sha256": "97ad715490cee5e64ad777e20b7dbb88f67fba5076764b9d873eaddd14792cb1",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_run/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_run/stderr.txt",
+   "sha256": "5eb9a67713355bb8fa6132584925cdebed4ad6c8acd13a8041f8ad4e717094bc",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_run/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_run/tree.txt",
+   "sha256": "30ff62350ac58a19a6d563ce07a059664c7d65bcdcb6904b273ae904a96cb742",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_write_ini/argv.txt",
+   "sha256": "b4bb511a81bd1f841fbbf4aeccbff4b191ee1578e0dffb6f026383269ea72e4f",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_write_ini/env.txt",
+   "sha256": "8796b3f5a53bcf4be780af0f728518b78df84a3a7130f0de2b2c3fb56807eea4",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_write_ini/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_write_ini/stderr.txt",
+   "sha256": "5eb9a67713355bb8fa6132584925cdebed4ad6c8acd13a8041f8ad4e717094bc",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_write_ini/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_dup_write_ini/tree.txt",
+   "sha256": "30ff62350ac58a19a6d563ce07a059664c7d65bcdcb6904b273ae904a96cb742",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_empty_category/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_empty_category/env.txt",
+   "sha256": "70820aa6bd86bd1c29c0a3d821b49c3f84a8be972e6a5b6df2db7c4ac8b7a6fc",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_empty_category/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_empty_category/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_empty_category/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_empty_category/tree.txt",
+   "sha256": "30ff62350ac58a19a6d563ce07a059664c7d65bcdcb6904b273ae904a96cb742",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_empty_items/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_empty_items/env.txt",
+   "sha256": "aeb92a6941cef82bf62b6463de09a97548a31e2d2f5b8aaa0ac6d3bb98eacdf4",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_empty_items/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_empty_items/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_empty_items/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_empty_items/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_extra_tab/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_extra_tab/env.txt",
+   "sha256": "10c5574e22edd2eeec5f84670bf6a73136eeebada702d0ecfe5496d01208cf29",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_extra_tab/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_extra_tab/stderr.txt",
+   "sha256": "2cbc565675495a4b7015f0f5910cc4af53a31702995db725e90a9d0cc1aa5f47",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_extra_tab/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_extra_tab/tree.txt",
+   "sha256": "30ff62350ac58a19a6d563ce07a059664c7d65bcdcb6904b273ae904a96cb742",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_extra_tool/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_extra_tool/env.txt",
+   "sha256": "ae0e79c7f448fed2efae7f2442a52eaaa74fadbb8ebc5856b2753a3edfbcb12c",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_extra_tool/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_extra_tool/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_extra_tool/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_extra_tool/tree.txt",
+   "sha256": "30ff62350ac58a19a6d563ce07a059664c7d65bcdcb6904b273ae904a96cb742",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_install_prefix_twice/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_install_prefix_twice/env.txt",
+   "sha256": "95d2a6d2b053e8e7b7e9156d5160256dd6f3295f6b5512744359b1cfda593f06",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_install_prefix_twice/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_install_prefix_twice/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_install_prefix_twice/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_install_prefix_twice/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_malformed/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_malformed/env.txt",
+   "sha256": "d08b7a1d2d7ba3e4cc75a9df66f19fb3b141cf2288343e4c647f8f1e5ca3b6ee",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_malformed/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_malformed/stderr.txt",
+   "sha256": "97f0e90b3c6c368919ab1f8be9b722457daa3673b0a6a28b133ba71d9fba1b67",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_malformed/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_malformed/tree.txt",
+   "sha256": "30ff62350ac58a19a6d563ce07a059664c7d65bcdcb6904b273ae904a96cb742",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_missing_prefix/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_missing_prefix/env.txt",
+   "sha256": "ed375eb5cbaa95d237b1f93186c63c701c796c30d391fc1305d58ac553fa4124",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_missing_prefix/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_missing_prefix/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_missing_prefix/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_missing_prefix/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_other_extension/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_other_extension/env.txt",
+   "sha256": "eab0e24e3f0a885a44c1807f6238fd748c5ac3c62c8f598d444cc3b5af41f460",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_other_extension/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_other_extension/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_other_extension/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_other_extension/tree.txt",
+   "sha256": "77950c4983c54e044b8ce853af9506055969c856c87208a0a2b4f1ebe66b3f1c",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_slash_name/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_slash_name/env.txt",
+   "sha256": "36d11695e66dd5f0966392a9b8c2efd56d7e54b2e9aee95e707ff26ec5325c2c",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_slash_name/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_slash_name/stderr.txt",
+   "sha256": "9ed3bdea0cfdd124f0b3e857a30e357fb799afdd311cf831e4a4cf27dc9731e4",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_slash_name/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_slash_name/tree.txt",
+   "sha256": "30ff62350ac58a19a6d563ce07a059664c7d65bcdcb6904b273ae904a96cb742",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_tsv_directory/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_tsv_directory/env.txt",
+   "sha256": "4847b26f66e0b0f896713fa4d7ea94720ef21d64fe9b9b9755968893de21d35f",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_tsv_directory/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_tsv_directory/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_tsv_directory/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_tsv_directory/tree.txt",
+   "sha256": "0ca0b29cb1e658bc85a09d1df4e99a86d1fe499f5b85638c507fbf054580d2cc",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unreadable_dir/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unreadable_dir/env.txt",
+   "sha256": "69bbacf6cd1fd5cedc9929f3483f4dbdb8b26e1e36113409ba73fadf3c5383a3",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unreadable_dir/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unreadable_dir/stderr.txt",
+   "sha256": "a61b983087d731e7fab9c2b26a3b62c9a337a95f21a88a34d44263dc86e8d095",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unreadable_dir/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unreadable_dir/tree.txt",
+   "sha256": "30ff62350ac58a19a6d563ce07a059664c7d65bcdcb6904b273ae904a96cb742",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unreadable_manifest/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unreadable_manifest/env.txt",
+   "sha256": "d37ed9255d43afb479130ddb4e060730e05c7019c79014f3413d619918bf19d4",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unreadable_manifest/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unreadable_manifest/stderr.txt",
+   "sha256": "89b95503a735f9582e2901b8aff8bb645855838ecedb8707695268cf524e8803",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unreadable_manifest/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unreadable_manifest/tree.txt",
+   "sha256": "30ff62350ac58a19a6d563ce07a059664c7d65bcdcb6904b273ae904a96cb742",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unsafe_path/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unsafe_path/env.txt",
+   "sha256": "ce7ac1ccb5fd13b5edbbb1ba7b29ea7852d56cb0fa4fab8e8dc8223ae9491619",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unsafe_path/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unsafe_path/stderr.txt",
+   "sha256": "8aaff9074bd0d84d8c55ce57e789187d422fcc9549385725e3a7f4bd191ba25a",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unsafe_path/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/reg_unsafe_path/tree.txt",
+   "sha256": "30ff62350ac58a19a6d563ce07a059664c7d65bcdcb6904b273ae904a96cb742",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_dup/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_dup/env.txt",
+   "sha256": "65ea11f23f73435dfc122f714932957e9e562f056040df44a352444aa3dcdcf0",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_dup/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_dup/stderr.txt",
+   "sha256": "a7b63beb4a0728c916127ee212fbcb8a6291f9a91ff02a9f1841bc89f44fba67",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_dup/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_dup/tree.txt",
+   "sha256": "4527c9e21bca8636c4826e0a38c52ca23966ee701efd094a72aaa18f041a61b6",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_new/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_new/env.txt",
+   "sha256": "ba6d239d22d4413b4cb88e7eb03d2a82a2f52eb72d0b5ad75b111c39f930e16c",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_new/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_new/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_new/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_new/tree.txt",
+   "sha256": "00847da76923f3e9a5a88972ae1ab4f0e7c5fcc4734adb78418bf41baf4d5491",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_new_ctd/argv.txt",
+   "sha256": "4b0e30d44eb430542bc99be4678277c2c2643fcf66487e7023aa0ea2d288e8a0",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_new_ctd/env.txt",
+   "sha256": "a61c8c53bf92e92d2f11bc5263e2fabccf84abc608e533debbea26c09dc5c646",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_new_ctd/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_new_ctd/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_new_ctd/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_internal_new_ctd/tree.txt",
+   "sha256": "88fb4eeb5fd704f06007e789b9e8d17fa3dc4927ac3f826e86a49c69f5fbaf91",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_malformed/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_malformed/env.txt",
+   "sha256": "da7046c35500a40ff2c0366e96af4f25a4cea246bde145f2492f8e85e70254da",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_malformed/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_malformed/stderr.txt",
+   "sha256": "e102397ac88544d18862a741aa22e91aa5be7c54fe87130ea1c33dc7d254de07",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_malformed/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_malformed/tree.txt",
+   "sha256": "3d1cff543bbbb4371d9c25fafe769c20e14cb2a9f30a72fd8cc04766b104a57c",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_nested/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_nested/env.txt",
+   "sha256": "7a74b173d8c070b85562313becc7e6e60bae222e345a9f1e5cd638ab0c8fc3ac",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_nested/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_nested/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_nested/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_nested/tree.txt",
+   "sha256": "fb256cb55fb5d908fe251761a46de927d610b3971dac0a2483ee5fc7f881015b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_one_external/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_one_external/env.txt",
+   "sha256": "6a51bda1f1e47414738fe2323f92a4c795551e42545bf8d0701f089359a43d63",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_one_external/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_one_external/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_one_external/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_one_external/tree.txt",
+   "sha256": "03e94da4e43ef428c4b27c009cfc6b9afd4a1515c255b4c687aa0724a86baba0",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_two_external/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_two_external/env.txt",
+   "sha256": "d41467dc88511f7c1a12960ace3db84fd360bbadbf1ff24969c84d4a0a7b8929",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_two_external/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_two_external/stderr.txt",
+   "sha256": "c9cbfa7c37d38c1909546a9aeb4b41746505b5e56cfa8290fbbb1268b1d4c2b6",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_two_external/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_two_external/tree.txt",
+   "sha256": "f7dbfa39dde548efc5a0b3ae963329831ec0fd311f16de3ae5da2b98c1e531d4",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_unknown_status/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_unknown_status/env.txt",
+   "sha256": "bfb1e766644b04ee701b0f93e92b219528a8a18bb05087dfc149577a9d14d038",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_unknown_status/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_unknown_status/stderr.txt",
+   "sha256": "d9d7ca66adc1d36586418bf4863426ef74f5f56e282ea771e2cb0ecf548dcffe",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_unknown_status/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ttd_unknown_status/tree.txt",
+   "sha256": "e637d1f6ad0ba4b15a11deca7025fbdb1f856e3f560b61739d67617552011b2a",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_ctd/argv.txt",
+   "sha256": "e1059de232bd96d5b72fb2f0f4b0572defda8562be36e21dff006d791bdf5773",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_ctd/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_ctd/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_ctd/stderr.txt",
+   "sha256": "ce1bc5725007348c1d73dbd5b4ce473609f794ec01f02441a09f13ba35c5a5aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_ctd/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_ctd/tree.txt",
+   "sha256": "9f8d1d92e7e77556c80524b68afe2179ac0174e38498932e1f489a75ca62b202",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_directory/argv.txt",
+   "sha256": "29c3375b7c1a83e505ad9bfa43f2650e96801a998d2e8892b35f3d7c91c2953e",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_directory/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_directory/exit_code.txt",
+   "sha256": "a1fb50e6c86fae1679ef3351296fd6713411a08cf8dd1790a4fd05fae8688164",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_directory/stderr.txt",
+   "sha256": "e947842e0d74936e12721d5f46122630fcba9668cc5fef1c570e50691b38ec63",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_directory/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_directory/tree.txt",
+   "sha256": "6bf7f50316e5c800c6ace67977c14036047940c9c6d66d97cd72534e2ddf8de9",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_help/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_help/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_help/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_help/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_help/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_help/tree.txt",
+   "sha256": "6bf7f50316e5c800c6ace67977c14036047940c9c6d66d97cd72534e2ddf8de9",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_invalid/argv.txt",
+   "sha256": "f3f7fe31678e76f4bb89a7dac97ba4654d89a01e0f83918beff19f3ddb0ddba1",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_invalid/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_invalid/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_invalid/stderr.txt",
+   "sha256": "53fa22fe6bd7e6a9cd7b289e2effd1b1eb5a00d1baa15e31915e50387205adeb",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_invalid/stdout.txt",
+   "sha256": "c6bac86c969116e1c15011d5220aba71a4f5278b80e665c6f69cfdcd55486e30",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_invalid/tree.txt",
+   "sha256": "5698c72db9de3224e90f6973a97c32873a3f5622e954493a108e5527a7feb0f2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_invalid_write_ini/argv.txt",
+   "sha256": "7288c7fcd4070ea58709ae270dd47072b86c78ce3e036ca6aadd066980e97694",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_invalid_write_ini/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_invalid_write_ini/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_invalid_write_ini/out.ini",
+   "sha256": "355fed6a0714f4d7a63a956c163d6cdfe82b6394e671303401a39cd8e03ecbe2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_invalid_write_ini/stderr.txt",
+   "sha256": "53fa22fe6bd7e6a9cd7b289e2effd1b1eb5a00d1baa15e31915e50387205adeb",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_invalid_write_ini/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_invalid_write_ini/tree.txt",
+   "sha256": "6dec7b442b8cbe7eff5c3535298106731f34e1bfd1a6e668dae322963f28ac1c",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_malformed/argv.txt",
+   "sha256": "90b376f7dce5093012fdaded29bd2dd121e24297bbca1b1263fb7e2d230bcd66",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_malformed/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_malformed/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_malformed/stderr.txt",
+   "sha256": "1210bb94b88408bf36203487daab3ed85e206d9ae90a04f1f765f7689a7cad94",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_malformed/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_malformed/tree.txt",
+   "sha256": "6bf7f50316e5c800c6ace67977c14036047940c9c6d66d97cd72534e2ddf8de9",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_malformed_help/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_malformed_help/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_malformed_help/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_malformed_help/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_malformed_help/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_malformed_help/tree.txt",
+   "sha256": "6bf7f50316e5c800c6ace67977c14036047940c9c6d66d97cd72534e2ddf8de9",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_run/argv.txt",
+   "sha256": "e75e52f9d7471e37bdf646f51875c1384ec2e002106ec763151abe95aad4a0df",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_run/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_run/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_run/stderr.txt",
+   "sha256": "ce1bc5725007348c1d73dbd5b4ce473609f794ec01f02441a09f13ba35c5a5aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_run/stdout.txt",
+   "sha256": "a4c0262204e93c0e4e6c6902a17063ef2ea9c0f75028d060814761db9641a43b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_run/tree.txt",
+   "sha256": "5698c72db9de3224e90f6973a97c32873a3f5622e954493a108e5527a7feb0f2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_unknown/argv.txt",
+   "sha256": "34fc52e50a9463debaa3a5dae5a239fe8c9e2c3eb5a4fa9f9a9ce6ecddcf4bb2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_unknown/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_unknown/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_unknown/stderr.txt",
+   "sha256": "f62dbe9d66a005391ff361d553711e1e701f0b05b0b29f404567e81963dc4c34",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_unknown/stdout.txt",
+   "sha256": "206283a0dc23f8df15434765864f815cd420dcb432c6079fdd4e12c2e3dd4a94",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_unknown/tree.txt",
+   "sha256": "5698c72db9de3224e90f6973a97c32873a3f5622e954493a108e5527a7feb0f2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_unreadable/argv.txt",
+   "sha256": "0179519e1b48cc521aa31b664d9b1124caddeef2c36e89d623707ee0fdc7dff5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_unreadable/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_unreadable/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_unreadable/out.ini",
+   "sha256": "355fed6a0714f4d7a63a956c163d6cdfe82b6394e671303401a39cd8e03ecbe2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_unreadable/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_unreadable/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_unreadable/tree.txt",
+   "sha256": "6dec7b442b8cbe7eff5c3535298106731f34e1bfd1a6e668dae322963f28ac1c",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_with_ini/argv.txt",
+   "sha256": "5f1b60d8337959cd3bb70aba765fc578ae9d4df709a9b180fde3a3f15ed282a7",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_with_ini/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_with_ini/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_with_ini/stderr.txt",
+   "sha256": "ce1bc5725007348c1d73dbd5b4ce473609f794ec01f02441a09f13ba35c5a5aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_with_ini/stdout.txt",
+   "sha256": "c918983c50cf8fba83fc151cdaf33ec0dffd5045f9a623cca15c27fef74a94c8",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_with_ini/tree.txt",
+   "sha256": "5698c72db9de3224e90f6973a97c32873a3f5622e954493a108e5527a7feb0f2",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_write_ini/argv.txt",
+   "sha256": "4117f8fe62deab1c26aae33e506c9127fa20a6a87b7d1159c96b676597f7d504",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_write_ini/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_write_ini/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_write_ini/out.ini",
+   "sha256": "a643e3f9c552568f59fdb66ec47c06f9b51c1185cad6d9268a05f9f5d8cc7749",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_write_ini/stderr.txt",
+   "sha256": "ce1bc5725007348c1d73dbd5b4ce473609f794ec01f02441a09f13ba35c5a5aa",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_write_ini/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/ud_write_ini/tree.txt",
+   "sha256": "6dec7b442b8cbe7eff5c3535298106731f34e1bfd1a6e668dae322963f28ac1c",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl/argv.txt",
+   "sha256": "514c7833444c2268117c84df5a1e10bb18dc324a02315bf02a9841a44256fced",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl/exit_code.txt",
+   "sha256": "a1fb50e6c86fae1679ef3351296fd6713411a08cf8dd1790a4fd05fae8688164",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl/stderr.txt",
+   "sha256": "32f284982292546cda1c7beb6b67b06b4fdc5fe182c45331f7ca3e678ded7d03",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl/tree.txt",
+   "sha256": "578eebadaf908cde2c21dcff4b55bd2a276ddbacf6da9444dd4b1722a4a99ba8",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl_cwd/argv.txt",
+   "sha256": "577d4b4d68362dddea0adee487e420cfa8fac20e878f5757be5617344cb5a22e",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl_cwd/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl_cwd/exit_code.txt",
+   "sha256": "a1fb50e6c86fae1679ef3351296fd6713411a08cf8dd1790a4fd05fae8688164",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl_cwd/stderr.txt",
+   "sha256": "32f284982292546cda1c7beb6b67b06b4fdc5fe182c45331f7ca3e678ded7d03",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl_cwd/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl_cwd/tree.txt",
+   "sha256": "0d646ff1dfa11cb2ceebc2f2c77f59249dad3c87189ec43bdc821a1274fda0cc",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl_existing/argv.txt",
+   "sha256": "c133b4e81b06c76b0dd658e72b40ec21690967b89a9af2e71912112f1675d954",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl_existing/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl_existing/exit_code.txt",
+   "sha256": "a1fb50e6c86fae1679ef3351296fd6713411a08cf8dd1790a4fd05fae8688164",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl_existing/stderr.txt",
+   "sha256": "32f284982292546cda1c7beb6b67b06b4fdc5fe182c45331f7ca3e678ded7d03",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl_existing/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_cwl_existing/tree.txt",
+   "sha256": "578eebadaf908cde2c21dcff4b55bd2a276ddbacf6da9444dd4b1722a4a99ba8",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_json/argv.txt",
+   "sha256": "0e8c8ceab8fd38d8ace99b046c42ba85d9ca8838aba434c148beb18ab98808ef",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_json/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_json/exit_code.txt",
+   "sha256": "a1fb50e6c86fae1679ef3351296fd6713411a08cf8dd1790a4fd05fae8688164",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_json/stderr.txt",
+   "sha256": "32f284982292546cda1c7beb6b67b06b4fdc5fe182c45331f7ca3e678ded7d03",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_json/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_json/tree.txt",
+   "sha256": "901296e29a1bf2e39e318fc592aa4418362ee911798c47a6c2c6d0735eb34ee6",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_json_missing_dir/argv.txt",
+   "sha256": "87ef68bbd9c1ff094f1f8117e90e44de21894120b94c9de822547b60b487764b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_json_missing_dir/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_json_missing_dir/exit_code.txt",
+   "sha256": "f0b5c2c2211c8d67ed15e75e656c7862d086e9245420892a7de62cd9ec582a06",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_json_missing_dir/stderr.txt",
+   "sha256": "5e309378c2e8218f70d730623ee9220c4d4467ff0527896524d6f6a57f000c24",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_json_missing_dir/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_json_missing_dir/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_cwl/argv.txt",
+   "sha256": "a231842f5e452e189db2b4d645af5715f0b86c22ccc954ad641e854f5ad825e4",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_cwl/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_cwl/exit_code.txt",
+   "sha256": "a1fb50e6c86fae1679ef3351296fd6713411a08cf8dd1790a4fd05fae8688164",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_cwl/stderr.txt",
+   "sha256": "32f284982292546cda1c7beb6b67b06b4fdc5fe182c45331f7ca3e678ded7d03",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_cwl/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_cwl/tree.txt",
+   "sha256": "578eebadaf908cde2c21dcff4b55bd2a276ddbacf6da9444dd4b1722a4a99ba8",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_cwl_and_json/argv.txt",
+   "sha256": "2d6b860dbfb45af5f32f8852e45aca3bb84d5c0c7d0fd10c0a834826e3257c08",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_cwl_and_json/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_cwl_and_json/exit_code.txt",
+   "sha256": "a1fb50e6c86fae1679ef3351296fd6713411a08cf8dd1790a4fd05fae8688164",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_cwl_and_json/stderr.txt",
+   "sha256": "32f284982292546cda1c7beb6b67b06b4fdc5fe182c45331f7ca3e678ded7d03",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_cwl_and_json/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_cwl_and_json/tree.txt",
+   "sha256": "578eebadaf908cde2c21dcff4b55bd2a276ddbacf6da9444dd4b1722a4a99ba8",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_json/argv.txt",
+   "sha256": "0fd3fd909c074fdd6c8fa36e74140a29f739d60534a88cf661633bd299c95ded",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_json/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_json/exit_code.txt",
+   "sha256": "a1fb50e6c86fae1679ef3351296fd6713411a08cf8dd1790a4fd05fae8688164",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_json/stderr.txt",
+   "sha256": "32f284982292546cda1c7beb6b67b06b4fdc5fe182c45331f7ca3e678ded7d03",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_json/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_completion/write_nested_json/tree.txt",
+   "sha256": "901296e29a1bf2e39e318fc592aa4418362ee911798c47a6c2c6d0735eb34ee6",
+   "origin": "executed: ../oracle/toppbase-completion/cases.sh on the Release build (case directory)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/release/BaselineFilter.ctd",
+   "sha256": "8e8d4d43eed813d52e46b2400d851d4bdae6a5981814634cdc2d47d9cd7fa15e",
+   "origin": "executed: -write_ctd of the Release build (cases ctd_<tool>, ud_ctd)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/release/BaselineFilter_user_defaults.ctd",
+   "sha256": "15532744a4389ecd64522eb02e92c03fc3cf68067fe69b74c0565d76724b94e1",
+   "origin": "executed: -write_ctd of the Release build (cases ctd_<tool>, ud_ctd)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/release/DTAExtractor.ctd",
+   "sha256": "15251428cf7419367ef24f17b0156b016384f29a7045762a331e977610b86437",
+   "origin": "executed: -write_ctd of the Release build (cases ctd_<tool>, ud_ctd)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/release/FeatureFinderCentroided.ctd",
+   "sha256": "379ce856a8d441c24afe61f35e36cb661dbe50b30178cdbace0aa1a9075fbb53",
+   "origin": "executed: -write_ctd of the Release build (cases ctd_<tool>, ud_ctd)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/release/FileInfo.ctd",
+   "sha256": "02e23cc08f083edfd67783bb317c4f5cb37af6dbc1816dd16ac0758210dfe1f5",
+   "origin": "executed: -write_ctd of the Release build (cases ctd_<tool>, ud_ctd)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/release/MapNormalizer.ctd",
+   "sha256": "861791e85ef6918aff3351d26c7c4e49d689a8c4711f73db97f08def21fccae6",
+   "origin": "executed: -write_ctd of the Release build (cases ctd_<tool>, ud_ctd)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/release/MzMLSplitter.ctd",
+   "sha256": "6a0d89e8570ad87ebf0728424c27402d61b514ac9cb80deedc961b7380ff8b0f",
+   "origin": "executed: -write_ctd of the Release build (cases ctd_<tool>, ud_ctd)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/release/PeakPickerHiRes.ctd",
+   "sha256": "97fbc814240107c17243185148ca9790f2ef70bb48dc1d1d8d85cb04db7cf6d5",
+   "origin": "executed: -write_ctd of the Release build (cases ctd_<tool>, ud_ctd)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/release/SpectraFilterWindowMower.ctd",
+   "sha256": "9f818c6b03548711e86b3a932449493b8c68de1158d04cf20cb13f16c8f3e7db",
+   "origin": "executed: -write_ctd of the Release build (cases ctd_<tool>, ud_ctd)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/release/user_defaults.ini",
+   "sha256": "35628d04d64222231dfd4869668c0755b13a2e0c7af7790d392d81e6de957bf7",
+   "origin": "oracle input (user defaults)"
+  },
+  {
+   "path": "tests/data/tool_handler/registry/share/openms4/tools/test.tools.tsv",
+   "sha256": "6dff9108ff15940b4306b9c5943571713c762cd56497c32493ed7e50c87703ab",
+   "origin": "OpenMS4-tests/packages/cli/tests/registry at c19e494, unchanged"
+  },
+  {
+   "path": "resources/tools/topp.tools.tsv",
+   "sha256": "5a90f7c13c8ecf7b82adb0a4518fc1c0b3c50c2c26f058795141bab6200da149",
+   "origin": "the Release build's installed share/openms4/tools/topp.tools.tsv, generated by topp 174b576 cmake/OpenMS4Tools.cmake from tools.json; byte-identical"
+  }
+ ],
+ "native_implementation": [
+  "src/cli.rs",
+  "src/cli/context.rs",
+  "src/cli/defs.rs",
+  "src/cli/logging.rs",
+  "src/cli/parameter.rs",
+  "src/cli/spec.rs",
+  "src/cli/usage.rs",
+  "src/cli/tool_handler.rs",
+  "src/cli/tool_description_file.rs",
+  "src/cli/param_ctd.rs"
+ ],
+ "native_tests": [
+  "tests/topp_cli_completion.rs",
+  "tests/topp_cli_lifecycle.rs",
+  "tests/parameter_information.rs",
+  "tests/param_ctd.rs",
+  "tests/tool_description.rs",
+  "tests/support/took_line.rs"
+ ],
+ "support": "docs/TOPP_CLI_SUPPORT.md",
+ "upstream_test_definition": "OpenMS4-tests/packages/cli/tests/source/{TOPPBase_test,ToolHandler_test,ToolManifest_test,ParameterInformation_test}.cpp at c19e494; topp 174b576 cmake/CheckToolMetadata.py (<tool>_write_ctd)"
+}

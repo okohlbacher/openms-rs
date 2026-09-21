@@ -18,7 +18,7 @@
 //!    `&#x9;`.
 //! 3. The `<tool>` attributes and the description are not escaped at all.
 //!
-//! Each is logged in `OpenMS_CPP_ISSUES.md`. The writer is
+//! Each is logged in `OpenMS_CPP_ISSUES.md` (CPP-349). The writer is
 //! byte-identical to the Release build for the eight ported tools and to the
 //! retained class-test file `ParamCTDFile_test_writeCTDToStream.ctd`; see
 //! `docs/TOPP_CLI_SUPPORT.md` (*Tool descriptions*).
