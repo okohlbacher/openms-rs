@@ -23,6 +23,13 @@ IdentificationDataConverter::import_sequences(
 # Ok::<(), openms::Error>(())
 ```
 
+`import_sequences` takes any slice of `identification::graph::SequenceRecord`,
+not `FASTAEntry` specifically, so that `identification` names nothing in
+`format` - `format` already reads and writes `identification`'s types, and the
+pair would otherwise be a module cycle. `FASTAEntry` implements the trait, so
+the call above is unchanged; only an *empty* slice literal has to name its
+element type, as in `&[] as &[FASTAEntry]`.
+
 `import_sequences` preserves identifier, description and sequence text exactly;
 it does not parse peptide/RNA syntax or normalize case. The explicit Rust
 arguments correspond to source defaults `Protein` and an empty decoy pattern.

@@ -480,7 +480,7 @@ impl ConsensusFeature {
                         .map_err(|_| Error::InvalidValue("invalid dc_charge_adduct_mass".into()))?,
                     Err(_) => value.as_f64()?,
                 },
-                None => f64::from(handle.charge) * crate::chemistry::PROTON_MASS_U,
+                None => f64::from(handle.charge) * crate::constants::PROTON_MASS_U,
             };
             finite(adduct, "adduct mass")?;
             let weight = if intensity_weighted {

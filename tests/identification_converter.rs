@@ -170,8 +170,15 @@ fn late_import_conflicts_and_limits_roll_back_every_new_parent() {
         ..GraphLimits::default()
     })
     .unwrap();
-    IdentificationDataConverter::import_sequences(&mut zero, &[], MoleculeType::Protein, "unused")
-        .unwrap();
+    // The element type is named because the slice is empty and `import_sequences`
+    // is generic over the record type; the input is still no records at all.
+    IdentificationDataConverter::import_sequences(
+        &mut zero,
+        &[] as &[FASTAEntry],
+        MoleculeType::Protein,
+        "unused",
+    )
+    .unwrap();
     assert!(zero.is_empty());
 }
 

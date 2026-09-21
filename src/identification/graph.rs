@@ -26,7 +26,7 @@ pub use matches::*;
 mod groups;
 pub use groups::*;
 mod converter;
-pub use converter::IdentificationDataConverter;
+pub use converter::{IdentificationDataConverter, SequenceRecord};
 mod cleanup;
 pub use cleanup::{CleanupOptions, CleanupReport};
 

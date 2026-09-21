@@ -31,7 +31,6 @@
    "system"
   ],
   "data_structures": [
-   "metadata",
    "param"
   ],
   "format": [
@@ -50,14 +49,11 @@
    "chemistry",
    "concept",
    "data_structures",
-   "format",
    "kernel",
    "metadata",
    "param"
   ],
   "kernel": [
-   "analysis",
-   "chemistry",
    "concept",
    "format",
    "identification",
@@ -65,12 +61,12 @@
    "param"
   ],
   "metadata": [
-   "chemistry",
    "concept",
    "data_structures",
    "format",
    "identification",
    "kernel",
+   "param",
    "system"
   ],
   "processing": [
@@ -91,27 +87,7 @@
    "format"
   ],
   [
-   "analysis",
-   "kernel"
-  ],
-  [
    "chemistry",
-   "identification"
-  ],
-  [
-   "chemistry",
-   "kernel"
-  ],
-  [
-   "chemistry",
-   "metadata"
-  ],
-  [
-   "data_structures",
-   "metadata"
-  ],
-  [
-   "format",
    "identification"
   ],
   [

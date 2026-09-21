@@ -9,10 +9,26 @@
 use super::{
     GraphWork, IdentificationData, MoleculeType, ParentMatch, ParentMatches, ParentSequence,
 };
-use crate::format::fasta::FASTAEntry;
 use crate::identification::{FlankingResidue, PeptideEvidence, PeptideHit};
 use crate::{Error, Result};
 use std::mem::size_of;
+
+/// A sequence record [`IdentificationDataConverter::import_sequences`] can
+/// register as a parent sequence.
+///
+/// The parameter is this trait rather than `format::fasta::FASTAEntry` because
+/// `format` reads and writes `identification`'s own types: an `identification`
+/// that named a `format` type would close a module cycle and block the
+/// workspace split. `FASTAEntry` implements it, so a call passing FASTA records
+/// is unchanged; only an empty slice literal now has to name its element type.
+pub trait SequenceRecord {
+    /// The accession, used verbatim as the parent's identifier.
+    fn identifier(&self) -> &str;
+    /// The free-text description, retained verbatim.
+    fn description(&self) -> &str;
+    /// The residue sequence, retained verbatim.
+    fn sequence(&self) -> &str;
+}
 
 /// Stateless bridges between sequence files, graph parents and legacy evidence.
 pub struct IdentificationDataConverter;
@@ -22,9 +38,9 @@ impl IdentificationDataConverter {
     /// pattern matches any case-sensitive substring of the accession.
     /// Existing parents use normal registration merge and current-step rules.
     /// The entire import is atomic and shares the graph's operation limits.
-    pub fn import_sequences(
+    pub fn import_sequences<E: SequenceRecord>(
         graph: &mut IdentificationData,
-        entries: &[FASTAEntry],
+        entries: &[E],
         molecule_type: MoleculeType,
         decoy_pattern: &str,
     ) -> Result<()> {
@@ -38,8 +54,8 @@ impl IdentificationDataConverter {
                     let bytes = add(
                         size_of::<ParentSequence>(),
                         add(
-                            entry.identifier.len(),
-                            add(entry.sequence.len(), entry.description.len())?,
+                            entry.identifier().len(),
+                            add(entry.sequence().len(), entry.description().len())?,
                         )?,
                     )?;
                     // Charge owned text before cloning and substring comparisons before search.
@@ -47,14 +63,14 @@ impl IdentificationDataConverter {
                     if decoy_pattern.is_empty() {
                         Ok(false)
                     } else {
-                        work.consume(mul(entry.identifier.len(), decoy_pattern.len())?)?;
-                        Ok(entry.identifier.contains(decoy_pattern))
+                        work.consume(mul(entry.identifier().len(), decoy_pattern.len())?)?;
+                        Ok(entry.identifier().contains(decoy_pattern))
                     }
                 })?;
-                let mut parent = ParentSequence::new(entry.identifier.clone());
+                let mut parent = ParentSequence::new(entry.identifier().to_owned());
                 parent.molecule_type = molecule_type;
-                parent.sequence.clone_from(&entry.sequence);
-                parent.description.clone_from(&entry.description);
+                parent.sequence = entry.sequence().to_owned();
+                parent.description = entry.description().to_owned();
                 parent.is_decoy = is_decoy;
                 staged.register_parent_sequence(parent)?;
             }

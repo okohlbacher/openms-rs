@@ -66,8 +66,10 @@ pub fn merge_rt_key(rt: f64) -> f64 {
 /// returns `getProduct().getMZ()`, so this is a plain comparison of the public
 /// [`MSChromatogram::product`](crate::kernel::MSChromatogram) m/z. It is a free
 /// function rather than a unit struct for the same reason
-/// [`mass_trace_mz_less`](crate::analysis::feature_hypothesis::mass_trace_mz_less)
-/// is: Rust sorts take a closure, not a comparator type.
+/// `analysis::feature_hypothesis::mass_trace_mz_less` is: Rust sorts take a
+/// closure, not a comparator type. That name is deliberately not linked -
+/// `kernel` reaches nothing in `analysis`, and a rustdoc link would be the
+/// only thing holding the two in a dependency cycle.
 ///
 /// A NaN product m/z makes every comparison false, which is not a strict weak
 /// ordering. The source comparator has the identical defect; sort a slice with

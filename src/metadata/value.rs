@@ -2,10 +2,14 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
+use crate::data_structures::list::{ListFormat, check_bytes, concatenate};
+use crate::param::{MAX_PARAM_BYTES, ParamBudget, ParamValue, ParameterMetaSink};
 use crate::{Error, Result};
+use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::fmt;
 use std::hash::{Hash, Hasher};
+use std::mem::size_of;
 
 /// Full controlled-vocabulary unit identity. No ontology lookup is performed.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -335,6 +339,123 @@ pub fn validate_meta(metadata: &MetaInfo) -> Result<()> {
         value.validate()?;
     }
     Ok(())
+}
+
+/// Source StringUtils list formatting, for `ListUtils` conversions.
+///
+/// This lives beside `MetaValue` rather than beside the other `ListFormat`
+/// implementations in `data_structures::list`, because `data_structures` is
+/// the lower module and this one impl was the whole of a dependency cycle
+/// between the two.
+impl ListFormat for MetaValue {
+    fn to_list_text(&self) -> Result<Cow<'_, str>> {
+        let content = match self.data() {
+            MetaValueData::Empty => return Ok(Cow::Borrowed("")),
+            MetaValueData::String(value) => return Ok(Cow::Borrowed(value)),
+            MetaValueData::Integer(value) => return value.to_list_text(),
+            MetaValueData::Float(value) => return value.to_list_text(),
+            MetaValueData::StringList(values) => concatenate(values, ", ")?,
+            MetaValueData::IntegerList(values) => concatenate(values, ", ")?,
+            MetaValueData::FloatList(values) => concatenate(values, ", ")?,
+        };
+        check_bytes(
+            content
+                .len()
+                .checked_add(2)
+                .ok_or_else(|| Error::InvalidValue("list size overflow".into()))?,
+        )?;
+        Ok(Cow::Owned(format!("[{content}]")))
+    }
+}
+
+/// Receive a parameter tree as metadata, for
+/// `DefaultParamHandler::write_parameters_to_meta_values`.
+///
+/// The conversion is written here rather than in `param` because `param` is
+/// the lower module, and this impl is what makes `metadata` name it at all. A
+/// `param` that named `MetaInfo` instead would close the cycle between the two;
+/// before `metadata -> chemistry` was cut it closed the longer
+/// `param -> metadata -> chemistry -> param`. `param` states what it needs as
+/// [`ParameterMetaSink`] and this supplies it, which leaves the public path on
+/// `DefaultParamHandler` where the source class puts it.
+impl ParameterMetaSink for MetaInfo {
+    type Value = MetaValue;
+
+    fn measure_existing(&self, budget: &mut ParamBudget<'_>) -> Result<usize> {
+        budget.consume(self.len())?;
+        let mut total = ParamBudget::mul(self.len(), 128)?;
+        for (key, value) in self {
+            let mut bytes = ParamBudget::add(key.len(), size_of::<MetaValue>())?;
+            budget.consume(bytes)?;
+            match value.data() {
+                MetaValueData::String(s) => {
+                    budget.consume(s.len())?;
+                    bytes = ParamBudget::add(bytes, s.len())?;
+                }
+                MetaValueData::StringList(values) => {
+                    let slots = ParamBudget::mul(values.len(), size_of::<String>())?;
+                    budget.consume(slots)?;
+                    bytes = ParamBudget::add(bytes, slots)?;
+                    for s in values {
+                        budget.consume(s.len())?;
+                        bytes = ParamBudget::add(bytes, s.len())?;
+                    }
+                }
+                MetaValueData::IntegerList(values) => {
+                    let slots = ParamBudget::mul(values.len(), size_of::<i64>())?;
+                    budget.consume(slots)?;
+                    bytes = ParamBudget::add(bytes, slots)?;
+                }
+                MetaValueData::FloatList(values) => {
+                    let slots = ParamBudget::mul(values.len(), size_of::<f64>())?;
+                    budget.consume(slots)?;
+                    bytes = ParamBudget::add(bytes, slots)?;
+                }
+                _ => {}
+            }
+            if let Some(unit) = value.unit() {
+                for s in [unit.accession(), unit.name(), unit.cv_ref()] {
+                    budget.consume(s.len())?;
+                    bytes = ParamBudget::add(bytes, s.len())?;
+                }
+            }
+            total = ParamBudget::add(total, bytes)?;
+            if total > MAX_PARAM_BYTES {
+                return Err(Error::InvalidValue(
+                    "metadata payload limit exceeded".into(),
+                ));
+            }
+        }
+        Ok(total)
+    }
+
+    fn value_of(value: &ParamValue, budget: &mut ParamBudget<'_>) -> Result<MetaValue> {
+        let data = match value {
+            ParamValue::Empty => MetaValueData::Empty,
+            ParamValue::String(value) => MetaValueData::String(value.clone()),
+            ParamValue::Integer(value) => MetaValueData::Integer(*value),
+            ParamValue::Float(value) => MetaValueData::Float(*value),
+            ParamValue::StringList(value) => MetaValueData::StringList(value.clone()),
+            ParamValue::IntegerList(value) => {
+                budget.copy(ParamBudget::mul(value.len(), size_of::<i64>())?)?;
+                MetaValueData::IntegerList(value.iter().copied().map(i64::from).collect())
+            }
+            ParamValue::FloatList(value) => MetaValueData::FloatList(value.clone()),
+        };
+        MetaValue::new(data)
+    }
+
+    fn stage(&mut self, key: String, value: MetaValue) {
+        self.insert(key, value);
+    }
+
+    fn staged(&self) -> usize {
+        self.len()
+    }
+
+    fn absorb(&mut self, staged: &mut Self) {
+        self.append(staged);
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

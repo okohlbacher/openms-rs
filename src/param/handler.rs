@@ -5,14 +5,47 @@
 //! DefaultParamHandler lifecycle without inheritance or stored callbacks.
 
 use super::{
-    MAX_PARAM_BYTES, MAX_PARAM_NODES, Param, ParamIterator, ParamValue, ParamWork, add, invalid,
-    mul,
+    MAX_PARAM_BYTES, MAX_PARAM_NODES, Param, ParamBudget, ParamIterator, ParamValue, ParamWork,
+    add, invalid, mul,
 };
-use crate::{
-    Result,
-    metadata::{MetaInfo, MetaValue, MetaValueData},
-};
+use crate::Result;
 use std::mem::size_of;
+
+/// A metadata container [`DefaultParamHandler::write_parameters_to_meta_values`]
+/// can copy a parameter tree into.
+///
+/// The destination is a trait rather than a named type because `param` is the
+/// lower module and `metadata` is the one that names it, to implement this. A
+/// `param` that named `MetaInfo` would close the cycle between the two.
+///
+/// Written the other way round it closed a longer one, `param -> metadata ->
+/// chemistry -> param`, which is the cycle the module gate first refused;
+/// `metadata -> chemistry` has since been cut as well. The dependency is the
+/// same one inverted, and the public path stays on the class the source puts
+/// it on.
+pub trait ParameterMetaSink: Default {
+    /// The value this container stores under a key.
+    type Value;
+
+    /// Bytes the container already holds, charging `budget` for the walk.
+    fn measure_existing(&self, budget: &mut ParamBudget<'_>) -> Result<usize>;
+
+    /// This container's value for one parameter leaf.
+    ///
+    /// A value the container cannot represent - a nonfinite float, for native
+    /// metadata - is refused here, before anything is staged, so that a refusal
+    /// leaves the destination untouched.
+    fn value_of(value: &ParamValue, budget: &mut ParamBudget<'_>) -> Result<Self::Value>;
+
+    /// Stage `value` under `key`, replacing an equal key.
+    fn stage(&mut self, key: String, value: Self::Value);
+
+    /// How many entries are staged.
+    fn staged(&self) -> usize;
+
+    /// Move every entry of `staged` into `self`, leaving `staged` empty.
+    fn absorb(&mut self, staged: &mut Self);
+}
 
 /// Current/default parameter trees and validation policy. For derived typed
 /// settings, use a `_with` update that returns newly constructed member state.
@@ -193,43 +226,43 @@ impl DefaultParamHandler {
     /// Copy parameter values to metadata using LEAF names, not full paths.
     /// Equal leaf keys are overwritten in source iteration order. Nonfinite
     /// parameter floats cannot enter native MetaInfo and fail atomically.
-    pub fn write_parameters_to_meta_values(
+    pub fn write_parameters_to_meta_values<S: ParameterMetaSink>(
         parameters: &Param,
-        metadata: &mut MetaInfo,
+        metadata: &mut S,
         prefix: &str,
     ) -> Result<()> {
         let mut work = ParamWork::default();
-        let existing = measure_metadata(metadata, &mut work)?;
+        let existing = metadata.measure_existing(&mut ParamBudget::new(&mut work))?;
         work.allocation(existing)?;
         let mut prefix = work.text(prefix)?;
         if !prefix.is_empty() && !prefix.ends_with(':') {
             work.copy(1)?;
             prefix.push(':');
         }
-        let mut replacements = MetaInfo::new();
+        let mut replacements = S::default();
         let mut replacement_key_bytes = 0usize;
         for item in ParamIterator::with_work(&parameters.root, &mut work)? {
             let bytes = item.entry.value.measure(&mut work)?;
             work.copy(add(bytes, 128)?)?;
-            let value = metadata_value(&item.entry.value, &mut work)?;
+            let value = S::value_of(&item.entry.value, &mut ParamBudget::new(&mut work))?;
             work.copy(add(prefix.len(), item.entry.name.len())?)?;
             let key = format!("{prefix}{}", item.entry.name);
             replacement_key_bytes = add(replacement_key_bytes, key.len())?;
             // A BTree node compares at most eleven keys. Bound comparison work
             // using its minimum branching factor, including long common prefixes.
-            let mut nodes = replacements.len();
+            let mut nodes = replacements.staged();
             let mut levels = 1;
             while nodes >= 6 {
                 nodes /= 6;
                 levels += 1;
             }
             work.consume(mul(add(key.len(), 1)?, mul(12, levels)?)?)?;
-            replacements.insert(key, value);
+            replacements.stage(key, value);
         }
         work.consume(mul(add(existing, replacement_key_bytes)?, 2)?)?;
         // All fallible work is complete. Moving entries preserves unrelated
         // existing metadata and avoids cloning the entire destination map.
-        metadata.append(&mut replacements);
+        metadata.absorb(&mut replacements);
         Ok(())
     }
     fn measure(&self, work: &mut ParamWork) -> Result<usize> {
@@ -269,64 +302,4 @@ fn warning(
     };
     messages.push(text);
     Ok(())
-}
-fn metadata_value(value: &ParamValue, work: &mut ParamWork) -> Result<MetaValue> {
-    let data = match value {
-        ParamValue::Empty => MetaValueData::Empty,
-        ParamValue::String(value) => MetaValueData::String(value.clone()),
-        ParamValue::Integer(value) => MetaValueData::Integer(*value),
-        ParamValue::Float(value) => MetaValueData::Float(*value),
-        ParamValue::StringList(value) => MetaValueData::StringList(value.clone()),
-        ParamValue::IntegerList(value) => {
-            work.copy(mul(value.len(), size_of::<i64>())?)?;
-            MetaValueData::IntegerList(value.iter().copied().map(i64::from).collect())
-        }
-        ParamValue::FloatList(value) => MetaValueData::FloatList(value.clone()),
-    };
-    MetaValue::new(data)
-}
-fn measure_metadata(metadata: &MetaInfo, work: &mut ParamWork) -> Result<usize> {
-    work.consume(metadata.len())?;
-    let mut total = mul(metadata.len(), 128)?;
-    for (key, value) in metadata {
-        let mut bytes = add(key.len(), size_of::<MetaValue>())?;
-        work.consume(bytes)?;
-        match value.data() {
-            MetaValueData::String(s) => {
-                work.consume(s.len())?;
-                bytes = add(bytes, s.len())?;
-            }
-            MetaValueData::StringList(values) => {
-                let slots = mul(values.len(), size_of::<String>())?;
-                work.consume(slots)?;
-                bytes = add(bytes, slots)?;
-                for s in values {
-                    work.consume(s.len())?;
-                    bytes = add(bytes, s.len())?;
-                }
-            }
-            MetaValueData::IntegerList(values) => {
-                let slots = mul(values.len(), size_of::<i64>())?;
-                work.consume(slots)?;
-                bytes = add(bytes, slots)?;
-            }
-            MetaValueData::FloatList(values) => {
-                let slots = mul(values.len(), size_of::<f64>())?;
-                work.consume(slots)?;
-                bytes = add(bytes, slots)?;
-            }
-            _ => {}
-        }
-        if let Some(unit) = value.unit() {
-            for s in [unit.accession(), unit.name(), unit.cv_ref()] {
-                work.consume(s.len())?;
-                bytes = add(bytes, s.len())?;
-            }
-        }
-        total = add(total, bytes)?;
-        if total > MAX_PARAM_BYTES {
-            return Err(invalid("metadata payload limit exceeded"));
-        }
-    }
-    Ok(total)
 }
