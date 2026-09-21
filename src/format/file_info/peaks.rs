@@ -144,7 +144,7 @@ pub(crate) fn report(
 /// [`Options::source_dangling_references`].
 ///
 /// mzXML, mzData, MGF and MS2 go to the reader the source's `switch` names for
-/// them (`FileHandler.cpp:886-937`) rather than through
+/// them (`FORMAT/FileHandler.cpp:886-937`) rather than through
 /// [`FileHandler`](crate::format::FileHandler), see [`load_source_reader`].
 fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<MSExperiment> {
     match in_type {
@@ -156,7 +156,7 @@ fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<
 }
 
 /// mzXML, mzData, MGF and MS2, each through the reader the source's
-/// `FileHandler::loadExperiment` calls for it (`FileHandler.cpp:886-937`).
+/// `FileHandler::loadExperiment` calls for it (`FORMAT/FileHandler.cpp:886-937`).
 ///
 /// The loader first detects the type itself (`getType(filename)`, `:856`) and
 /// refuses one other than `in_type`, the single allowed type FileInfo passes
@@ -172,7 +172,7 @@ fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<
 ///   [`crate::format::mascot_generic`], not the stricter native
 ///   [`crate::format::mgf`] adapter. The source reader keeps one spectrum
 ///   object across blocks and clears only its peaks, native ID, `TITLE` and
-///   `SEQ` (`MascotGenericFile.h:89-104`, `:141-157`), so the load runs with
+///   `SEQ` (`FORMAT/MascotGenericFile.h:89-104`, `:141-157`), so the load runs with
 ///   [`CarryOver::Source`](crate::format::mascot_generic::CarryOver::Source):
 ///   an omitted `CHARGE=`, `PEPMASS=`, `RTINSECONDS=` or `MSLEVEL=` inherits
 ///   the previous block's value, as the report then counts it. It also sets
@@ -205,7 +205,7 @@ fn load_source_reader(path: &Path, in_type: FileType) -> Result<MSExperiment> {
 }
 
 /// `MzXMLFile` and `MzDataFile` with the handler's default `PeakFileOptions`
-/// (`FileHandler.cpp:886-902`).
+/// (`FORMAT/FileHandler.cpp:886-902`).
 #[cfg(feature = "mzml")]
 fn load_xml_peak_file(path: &Path, in_type: FileType) -> Result<MSExperiment> {
     if in_type == FileType::MzXml {

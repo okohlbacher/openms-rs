@@ -108,7 +108,7 @@ pub struct ReadOptions {
     /// Whether unset fields inherit the previous block's values.
     pub carry_over: CarryOver,
     /// Store the MS level of an `MSLEVEL=` line as the source's
-    /// `spectrum.setMSLevel(std::stoi(value))` does (`MascotGenericFile.h:325-343`):
+    /// `spectrum.setMSLevel(std::stoi(value))` does (`FORMAT/MascotGenericFile.h:325-343`):
     /// `0` stays `0` and a negative value wraps into the source's `UInt`, so
     /// `-1` becomes `4294967295`. Off by default, where a non-positive MS
     /// level is a parse error, because such a record is invalid for every

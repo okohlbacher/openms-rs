@@ -423,6 +423,30 @@ fn topp_file_info_4_on_the_output_stream() {
     assert_report_text(&outcome.out, &cpp_stdout_report(&expected), &expected);
 }
 
+/// Oracle `x4_i`: `-i` on an mzXML file is refused by the tool before the
+/// class runs (`OpenMS4-topp/src/FileInfo.cpp:118-121`), exit 6, with the same
+/// error line and usage text as on DTA; the Release build's stderr starts with
+/// that line too. The class itself runs the check (`tests/file_info_a8.rs`,
+/// driver case `lib_x4_i`).
+#[test]
+fn the_index_check_on_mzxml_exits_6_with_usage() {
+    let input = tool("inputs/FileInfo_4_input.mzXML");
+    let outcome = run(&["-test", "-in", &input, "-i", "-no_progress"]);
+    assert_code(&outcome, ExitCode::IllegalParameters);
+    assert!(outcome.out.is_empty(), "{}", outcome.out);
+    assert!(
+        outcome
+            .err
+            .starts_with("Error: Can only validate indices for mzML files\n"),
+        "{}",
+        outcome.err
+    );
+    assert_eq!(
+        outcome.err,
+        cpp_usage_stream(&tool("expected/FileInfo_index_on_dta.stderr.txt"))
+    );
+}
+
 /// Oracle `m_test`: the tool's `-in` lists the formats it accepts, and `ms2`
 /// is not among them, so an MS2 file is refused before the library runs, in
 /// the Release build as here: exit 6 and the same message. The library's MS2

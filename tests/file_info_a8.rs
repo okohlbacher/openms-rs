@@ -5,7 +5,7 @@
 //! A8-FILEINFO, the cheap half: the FileInfo peak-file branch on mzXML, mzData,
 //! MGF and MS2 (`FORMAT/FileInfo.cpp:1532-1965` and its `-m`, `-p`, `-s`, `-d`
 //! and `-c` arms, core `bc9cc12`), loaded through the reader the source's
-//! `FileHandler::loadExperiment` names for each type (`FileHandler.cpp:886-937`).
+//! `FileHandler::loadExperiment` names for each type (`FORMAT/FileHandler.cpp:886-937`).
 //!
 //! Evidence (see `tests/data/file_info_a8_provenance.json` and
 //! `docs/FILE_INFO_A8_SUPPORT.md`):
@@ -282,7 +282,7 @@ fn mzxml_upstream_4_structured_result() {
 
 /// The generated mzXML: `activationMethod` short names are looked up, an
 /// unknown one (`FOO`) is dropped, a scan with `msLevel="0"` is read as MS1
-/// with a warning (`MzXMLHandler.cpp:247-252`), and every precursor of a scan
+/// with a warning (`FORMAT/HANDLERS/MzXMLHandler.cpp:247-252`), and every precursor of a scan
 /// counts its activation methods while only the first counts its charge.
 #[cfg(feature = "mzml")]
 #[test]
@@ -427,7 +427,7 @@ fn mzdata_upstream_5_and_6_structured_result() {
 }
 
 /// The generated mzData: a doubled `ChargeState` resets the charge to zero
-/// (`MzDataHandler.cpp:1194-1205`), an activation method outside the handler's
+/// (`FORMAT/HANDLERS/MzDataHandler.cpp:1194-1204`), an activation method outside the handler's
 /// vocabulary (`ETD`) is read as the first entry, CID, and an invalid
 /// `spectrumType` leaves the type unknown, which peak picking in the data
 /// processing then reports as centroid.
@@ -449,7 +449,7 @@ fn mzdata_charge_activation_and_spectrum_type() {
 
 /// Refused, and recorded: `MzDataFile_1.mzData` holds a spectrum with
 /// `mzRangeStart="110"` and no `mzRangeStop`. The mzData reader keeps the
-/// source's scan window `[110, 0]` (`MzDataHandler.cpp:392-396`), and the
+/// source's scan window `[110, 0]` (`FORMAT/HANDLERS/MzDataHandler.cpp:392-395`), and the
 /// kernel's `MSSpectrum::range_manager` validates the whole spectrum, scan
 /// windows included, before it reads the peaks, so the range computation
 /// refuses it. The Release build, whose `updateRanges` looks at the peaks only,
@@ -539,7 +539,7 @@ fn mgf_reports_match_the_release_build() {
 }
 
 /// The source reader keeps one spectrum across blocks
-/// (`MascotGenericFile.h:89-104`, `:141-157`): a block without `CHARGE=`,
+/// (`FORMAT/MascotGenericFile.h:89-104`, `:141-157`): a block without `CHARGE=`,
 /// `PEPMASS=`, `RTINSECONDS=` or `MSLEVEL=` inherits the previous block's, so
 /// the four blocks count charges 2, 2, 3, 3 and MS levels 2, 2, 1, 1. Read
 /// with the native default, a fresh record per block, the charges would be
@@ -553,7 +553,7 @@ fn mgf_blocks_inherit_the_previous_blocks_values() {
     assert_eq!(peak.precursor_charges.get(&0), None);
     assert_eq!(peak.spectra_per_ms_level[&1], 2);
     assert_eq!(peak.spectra_per_ms_level[&2], 2);
-    // MGF is centroided by definition (MascotGenericFile.h:95).
+    // MGF is centroided by definition (FORMAT/MascotGenericFile.h:95).
     assert_eq!(peak.peak_type_per_ms_level[&2], "Centroid (Centroid)");
 }
 
@@ -578,7 +578,7 @@ fn mgf_negative_ms_level_wraps_as_in_the_source() {
 /// `mascot_generic::ReadOptions::source_ms_level`, the switch this group added
 /// to the MGF reader: off, the default, `MSLEVEL=0` and `MSLEVEL=-1` are parse
 /// errors; on, each is stored as the source's `setMSLevel(std::stoi(...))`
-/// stores it (`MascotGenericFile.h:325-331`), `0` and `4294967295`, which are
+/// stores it (`FORMAT/MascotGenericFile.h:325-331`), `0` and `4294967295`, which are
 /// the MS levels the Release build's reports print.
 #[test]
 fn mgf_source_ms_level_stores_what_std_stoi_returns() {
@@ -704,7 +704,7 @@ fn malformed_mgf_and_ms2_are_parse_errors() {
 }
 
 /// A forced type the loader's own detection contradicts: the source throws
-/// `ParseError` (`FileHandler.cpp:858-864`; oracle `g_forced_on_mzxml` and
+/// `ParseError` (`FORMAT/FileHandler.cpp:858-864`; oracle `g_forced_on_mzxml` and
 /// driver `lib_m_forced_mgf`, exit 3). This port refuses with
 /// [`Error::InvalidValue`], as for every other peak type
 /// (`docs/TOPP_FILE_INFO_SUPPORT.md`, native difference 3).

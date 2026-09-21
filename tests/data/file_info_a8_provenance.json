@@ -1,0 +1,1446 @@
+{
+    "group": "file_info_a8",
+    "package": "A8-FILEINFO, the cheap half (mzXML, mzData, MGF, MS2)",
+    "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+    "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "rust_base_revision": "fb3167a",
+    "license": "BSD-3-Clause",
+    "sources": [
+        {
+            "path": "src/openms/include/OpenMS/FORMAT/FileInfo.h",
+            "sha256": "43e35cc67dcd798a349ded37fbb8240087c9748c0c65df5debe797f92097bbc9"
+        },
+        {
+            "path": "src/openms/source/FORMAT/FileInfo.cpp",
+            "sha256": "7e8b7e8eee41baf5136dd70e66c0928b93426d95ae763a0539aa7c118f0231e7"
+        }
+    ],
+    "context_sources": [
+        {
+            "path": "FORMAT/FileHandler.cpp",
+            "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e",
+            "operation": "loadExperiment (849-937): getType (856), the allowed-type ParseError (858-864), MzXMLFile and MzDataFile with the handler's PeakFileOptions (886-902), MascotGenericFile (923-929) and MS2File (931-937) without them"
+        },
+        {
+            "path": "FORMAT/MascotGenericFile.h",
+            "sha256": "1760bddee993898af23866a5a5558b19f8e658180adcae568584cbfc77001256",
+            "operation": "load (74-104) keeps one spectrum across blocks, getNextSpectrum_ (141-157) clears only peaks, native ID, TITLE and SEQ, and MSLEVEL= (325-343) stores what std::stoi returns"
+        },
+        {
+            "path": "FORMAT/MS2File.h",
+            "sha256": "eb3a6823b981c32661f6a5cf80ad3b8162384b7a7a34ff59cf4fd68116b612b2",
+            "operation": "the header-inline load: S records, skipped H/I/Z/D lines, RT never set"
+        },
+        {
+            "path": "FORMAT/HANDLERS/MzXMLHandler.cpp",
+            "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393",
+            "operation": "msLevel 0 read as 1 (247-252), activationMethod lookup (224-235)"
+        },
+        {
+            "path": "FORMAT/HANDLERS/MzDataHandler.cpp",
+            "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d",
+            "operation": "the scan window kept when one bound is non-zero (392-395), a second ChargeState resetting the charge (1194-1204)"
+        },
+        {
+            "path": "KERNEL/MSSpectrum.cpp",
+            "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913",
+            "operation": "updateRanges (573-621) reads the peaks and the ion mobility only, which is why the Release build reports the two inputs the kernel's validating range computation refuses here"
+        }
+    ],
+    "context_sources_note": "Read for context and not ported by this group; each is already ported or owned elsewhere. The paths are spelled below the core checkout's include or source directory at source_revision, where the sha256 was checked, so tools/core_sdk_coverage.py does not count them as evidence for those headers.",
+    "package_revisions": {
+        "cli": "c19e494",
+        "topp": "174b576",
+        "test-data": "0cb15f2"
+    },
+    "topp_tool_source": {
+        "path": "src/FileInfo.cpp",
+        "revision": "topp 174b576",
+        "sha256": "3f02bbc6aaaa358596a56c54bcad6f597c982a1b5a5ada58e2df322f107f03e3",
+        "operation": "the -in and -in_type format lists (83-87), which hold mzData, mzXML and mgf and not ms2, and the refusal of -i on anything but mzML (118-121); both already ported and compared here with the Release build"
+    },
+    "upstream_test_definition": {
+        "path": "topp/CMakeLists.txt",
+        "revision": "test-data 0cb15f2",
+        "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb",
+        "registrations": [
+            {
+                "name": "TOPP_FileInfo_4",
+                "lines": "890-892",
+                "note": "-m on mzXML"
+            },
+            {
+                "name": "TOPP_FileInfo_5",
+                "lines": "893-895",
+                "note": "-in_type mzData -m -s on a .mzDat file"
+            },
+            {
+                "name": "TOPP_FileInfo_6",
+                "lines": "896-898",
+                "note": "-d -s on mzData"
+            }
+        ]
+    },
+    "reference_build": {
+        "prefix": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+        "build_type": "Release",
+        "pins": {
+            "core": "bc9cc12",
+            "cli": "c19e494",
+            "topp": "174b576"
+        },
+        "host": "ibminode06 (AMD EPYC 7763, Ubuntu 24.04.4, glibc 2.39)",
+        "tool_sha256": "5d82c8a7248c9ccb37c6f4e64a0ed2202f375418befd095261590935de1172dc",
+        "driver_sha256": "b96de59707c09c12aa652b61b28ea4fd7bc9d6eab17a596ef0899be953afeaa7",
+        "libopenms_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+        "driver_compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+        "driver_flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp"
+    },
+    "method": "Library-level: FileInfo::run on each input with the flags the oracle passed the tool or the class driver; text and TSV compared byte for byte with the retained Release C++ reports after spelling the input path as the oracle did and replacing the 'File name: ' text line and the 'general: file name' TSV line. Tool-level (tests/topp_file_info.rs): TOPP_FileInfo_4, _5 and _6 through FuzzyDiff against the retained upstream outputs and byte for byte against the Release -out, the x4_bare report on the output stream, and the tool's refusals of the ms2 extension and of -i on mzXML.",
+    "evidence_tier": 1,
+    "evidence": "Tier 1 (executed differential): the Release C++ FileInfo of openms4-release-bc9cc12-c19e494-174b576 ran 68 tool cases on ibminode06 and a driver over OpenMS::FileInfo::run 14 class cases, each twice, all reproduced (../oracle/a8-fileinfo/manifest.json, sha256 4f8689d97d1cc69c008b97527817e3b8f308a2a5268bcf4a10c8c4ef7362bb72). 60 reports are compared here byte for byte, text and TSV, with no exemption beyond the input path; the x4_bare report on stdout in tests/topp_file_info.rs. Tier 1 (retained upstream definition): TOPP_FileInfo_4, _5 and _6 against their retained outputs through FuzzyDiff.",
+    "known_gaps": [
+        {
+            "what": "an mzData spectrum whose scan window begins after it ends (MzDataFile_1.mzData: mzRangeStart=110, no mzRangeStop) is refused, where the Release build reports",
+            "why": "the reader keeps the source's window [110, 0] (FORMAT/HANDLERS/MzDataHandler.cpp:392-395) and the kernel's MSSpectrum::range_manager validates the whole spectrum, where the source's updateRanges reads only the peaks and the ion mobility (KERNEL/MSSpectrum.cpp:573-621). Owned by the kernel; the three Release reports are kept as expected/d_mzdata1*.",
+            "cases": [
+                "d_mzdata1",
+                "d_mzdata1_all",
+                "d_mzdata1_dc"
+            ]
+        },
+        {
+            "what": "an MGF spectrum of MS level 0 is refused, where the Release build reports",
+            "why": "MSLEVEL=0 loads as level 0 under source_ms_level, and MSSpectrum::validate refuses level 0 outside the optical scan modes (src/kernel.rs:809-824). Owned by the kernel; the Release report is kept as expected/g_mslevel_zero_all.",
+            "cases": [
+                "g_mslevel_zero_all"
+            ]
+        },
+        {
+            "what": "a forced type the loader's detection contradicts exits 6, where the Release build exits 3",
+            "why": "the port answers Error::InvalidValue for every peak type, as docs/TOPP_FILE_INFO_SUPPORT.md native difference 3 records; neither build writes a report",
+            "cases": [
+                "g_forced_on_mzxml",
+                "lib_m_forced_mgf"
+            ]
+        },
+        {
+            "what": "CHARGE=2- exits 3, where the Release build exits 8",
+            "why": "the source's StringUtils::toInt32 throws ConversionError, which the tool reports as an unexpected internal error; the port's reader answers Error::Parse. Neither build writes a report",
+            "cases": [
+                "g_charge_minus"
+            ]
+        },
+        {
+            "what": "sqMass, XMass (fid) and MSP peak files stay refused",
+            "why": "no reader here fills an MSExperiment from them; not part of this half of A8",
+            "cases": []
+        }
+    ],
+    "native_implementation": [
+        "src/format/file_info/peaks.rs",
+        "src/format/file_info/report.rs",
+        "src/format/mascot_generic.rs"
+    ],
+    "native_tests": [
+        "tests/file_info_a8.rs",
+        "tests/topp_file_info.rs",
+        "tests/file_info.rs"
+    ],
+    "support_document": "docs/FILE_INFO_A8_SUPPORT.md",
+    "related_manifests": [
+        "tests/data/file_info_provenance.json",
+        "tests/data/file_info_checks_provenance.json",
+        "tests/data/file_info_a7_provenance.json",
+        "tests/data/topp_file_info_provenance.json"
+    ],
+    "external_reference_artifacts": [
+        {
+            "path": "../oracle/a8-fileinfo/oracle.py",
+            "sha256": "d9027ae65ed30e9cb701b208819be11e24a32cd89bcd62605b1dd4bcfbb21df7",
+            "origin_key": "fixtures",
+            "role": "Release-build FileInfo runner: 68 tool cases and 14 class-driver cases, per-case scratch runs, reproduction check, manifest writer"
+        },
+        {
+            "path": "../oracle/a8-fileinfo/run.sh",
+            "sha256": "f3475279b1c0ebb5bf1f719c4b94ac81ae372992b137c80ddd43a8793fa0d312",
+            "origin_key": "fixtures",
+            "role": "entry point with the exact environment; compiles the class driver with the Release install's own toolchain and libOpenMS's core flags"
+        },
+        {
+            "path": "../oracle/a8-fileinfo/driver/fileinfo_driver.cpp",
+            "sha256": "ae24c4e41916332ff2e21278ddd0af59f752f830443626a4491f262eb873997f",
+            "origin_key": "fixtures",
+            "role": "class-level driver: OpenMS::FileInfo::run and toText/toTSV, for the MS2 inputs the tool's -in refuses and four cross-checks"
+        },
+        {
+            "path": "../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "sha256": "6522cc42f79c153eb737def7b56669edef313f1e8b32da733c23fb489efa9c99",
+            "origin_key": "fixtures",
+            "role": "generator of the 19 degenerate mzXML, mzData, MGF and MS2 inputs, all of which regenerate byte for byte"
+        },
+        {
+            "path": "../oracle/a8-fileinfo/scripts/export_expected.py",
+            "sha256": "36da4f57c92575630a703ea27b23ab5998838e63852e363bfd246af13dbf5190",
+            "origin_key": "fixtures",
+            "role": "exporter of the retained reports into tests/data/file_info_a8, refusing any whose normalised text does not hash back to the manifest"
+        },
+        {
+            "path": "../oracle/a8-fileinfo/manifest.json",
+            "sha256": "4f8689d97d1cc69c008b97527817e3b8f308a2a5268bcf4a10c8c4ef7362bb72",
+            "origin_key": "fixtures",
+            "role": "tool, driver and libOpenMS hashes, environment, fixture hashes, per-case argv, exit codes and output hashes, and the reproduction verdict"
+        }
+    ],
+    "external_reference_note": "No C++ and no oracle driver is committed to this repository. The oracle directory lives next to it at ../oracle/a8-fileinfo; its runner, its class driver, its fixture generator, its exporter and its manifest are recorded here by sha256, and every fixture they produced is hashed in fixtures. The same six artifacts are registered in SOURCE_PROVENANCE.json under this manifest's origin_key.",
+    "fixtures": [
+        {
+            "path": "tests/data/topp_file_info/inputs/FileInfo_4_input.mzXML",
+            "sha256": "44c32fe2d282769633ff34c884cbbe37f52b9c993f5c9f982275d2dd02954499",
+            "bytes": 78655,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/FileInfo_4_input.mzXML; already in this repository, reused in place",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/mzml_mobility/FileInfo_5_input.mzDat",
+            "sha256": "2fc37f2443aa31ce887d82ed912d54ae45deb516d3ee06d39777b01cb68c495e",
+            "bytes": 45809,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/FileInfo_5_input.mzDat; already in this repository, reused in place",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/topp_file_info/inputs/FileInfo_6_input.mzData",
+            "sha256": "6baaab620047c598ab35a3bb55a8dca7c38192325bd62450d7d6187ce2fcc80d",
+            "bytes": 4607,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/FileInfo_6_input.mzData; already in this repository, reused in place",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/MzXMLFile_1.mzXML",
+            "sha256": "fc6a96d8b35c05ee3d9b62996b09cddfb52c19fa3c6c1eb0f6550a9e7d6c08e7",
+            "bytes": 3177,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/MzXMLFile_1.mzXML; already in this repository, reused in place",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/MzXMLFile_1_compressed.mzXML",
+            "sha256": "68344eaf9093d7e6c5ad506e8c0a1ff18dd200d9b60fd51b703a19345c47c767",
+            "bytes": 3262,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/MzXMLFile_1_compressed.mzXML; already in this repository, reused in place",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/MzXMLFile_2_minimal.mzXML",
+            "sha256": "53caef66a653301f65e8667f0a6a0de5b2d9de14477129cb07687efc5977500e",
+            "bytes": 596,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/MzXMLFile_2_minimal.mzXML; already in this repository, reused in place",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/MzXMLFile_3_64bit.mzXML",
+            "sha256": "ca281bbe9b1dc8260a0ad87b548af663de6fe53d07372fe56b2abfbd3758f34a",
+            "bytes": 2072,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/MzXMLFile_3_64bit.mzXML; already in this repository, reused in place",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/MzDataFile_1.mzData",
+            "sha256": "2a50f4bc28c5bcd3f3625e67b5860dfbdddb011febcd10253776b6dc4a0de64f",
+            "bytes": 18259,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/MzDataFile_1.mzData; already in this repository, reused in place",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/MzDataFile_3_minimal.mzData",
+            "sha256": "68e635bfb16fa50b87672454d88db422e8da4f5e53fe5578c7ffb99cc92f3c54",
+            "bytes": 1158,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/MzDataFile_3_minimal.mzData; already in this repository, reused in place",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/MzDataFile_4_64bit.mzData",
+            "sha256": "0c598515f77f9027b3c3124cd0a1d8b8c72670ecce474207d00f527a7fdc184f",
+            "bytes": 2633,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/MzDataFile_4_64bit.mzData; already in this repository, reused in place",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/MascotGenericFile_GNPS.mgf",
+            "sha256": "f4501242e6ef27dca90e11fde93bc76b7a2dfdff6530ec76dcb83fbb5f0ff2b3",
+            "bytes": 1153,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/MascotGenericFile_GNPS.mgf; already in this repository, reused in place",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/text_peak_lists/MS2File_test_spectra.ms2",
+            "sha256": "c609e857d09d9758846b9f436f36ac627e1ecd11f7464687643bb7a5c7ef458c",
+            "bytes": 292,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/MS2File_test_spectra.ms2; already in this repository, reused in place",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/FileConverter_26_output.mzXML",
+            "sha256": "c67496251ed13c5366ff702fb7ae3312e76ac113f6178f4f00de62095610a86d",
+            "bytes": 39518,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/FileConverter_26_output.mzXML",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/FileConverter_4_input.mzXML",
+            "sha256": "6788e5b9b79169d15e27eb8ceeb3e81598a2db76fd9fcc0351d9fb4542d3371d",
+            "bytes": 78709,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/FileConverter_4_input.mzXML",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/FileConverter_6_output.mzXML",
+            "sha256": "353338283421ebdbd991497dcd6137452d513f20cc3ba9f99a0ac8689c3ed59b",
+            "bytes": 15596,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/FileConverter_6_output.mzXML",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/FileConverter_8_output.mzData",
+            "sha256": "f1516577af7986e028e9aa635dc736f10cfa9cd3fcfebcdc58dbc898170beefd",
+            "bytes": 27917,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/FileConverter_8_output.mzData",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/FileHandler_MGFbyContent1.mgf",
+            "sha256": "01bf379b1010707e2539966c334d984277563010a6b893df70c7bcc9a2f45f1e",
+            "bytes": 470,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/FileHandler_MGFbyContent1.mgf",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/FileHandler_MGFbyContent2.mgf",
+            "sha256": "50ee2d9a87d51de778478f251aa0cf60a12eebe387a42485ab86e07301cf22a9",
+            "bytes": 268,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/FileHandler_MGFbyContent2.mgf",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/GNPSExport_1_out.mgf",
+            "sha256": "50c2fd6aab54cf5ba5f59a838e2be24ff414f31c416cf27ae3b93865ee4e30cd",
+            "bytes": 372856,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/GNPSExport_1_out.mgf",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/IDFileConverter_32_output.mgf",
+            "sha256": "2eadea892bb281ffd3d6802660bc1b2ff55c78d552cc2d6ff10ccccd799fb5a8",
+            "bytes": 77160,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/IDFileConverter_32_output.mgf",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/InspectOutfile_test_1.mzXML",
+            "sha256": "556f2dd832e971bcbc69fa86ab59a7aca0410bbb519e0f5e42ef744465a09b86",
+            "bytes": 2522,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/InspectOutfile_test_1.mzXML",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/OpenSwathWorkflow_2_input.mzXML",
+            "sha256": "2b6af29bb74254cd52f6d2f4d32c693c19782d2b8534a806ed684f0ee78f371d",
+            "bytes": 34915,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/OpenSwathWorkflow_2_input.mzXML",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/PepNovo.mzData",
+            "sha256": "3a7ea34706b039b8b05402daefb1aced623056a6d6d36ca677c4445ef2b41254",
+            "bytes": 89165,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/PepNovo.mzData",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/PickedPeakTestData.mzData",
+            "sha256": "a3f73baafc3c3fdefe672562b75449e1955fde6c0ecc7550a9212dc727c1415b",
+            "bytes": 70331,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/PickedPeakTestData.mzData",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/SimpleExtender_test.mzData",
+            "sha256": "a5cc33e4944cf2f0231c5e3fe0ef51971032bb781456ed458e6e8ae08fc0a497",
+            "bytes": 24297,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/core bc9cc12, path src/tests/class_tests/openms/data/SimpleExtender_test.mzData",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mgf_carry.mgf",
+            "sha256": "ce76b94ef7398cb00322c853513420bc93031a5f39c3e78077fbdca2ad5780a2",
+            "bytes": 438,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mgf_charge_minus.mgf",
+            "sha256": "d688423f8a7b00ee8ec7717123e19a120de927a9caaf89ecf117f82c1aad919c",
+            "bytes": 48,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mgf_columns.mgf",
+            "sha256": "153408ed173808974bc9329b0628e2fdd20a50b5ae9970da8da2d261f74cc3b3",
+            "bytes": 97,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mgf_merged.mgf",
+            "sha256": "1e373f87c5efb11010e938c0130a38f0cd9cf32faea1030df87ce6e2aa758f8b",
+            "bytes": 156,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mgf_mslevel.mgf",
+            "sha256": "79a742dbba203c297eaf4096a53f8d947660d144dd6c33d5757bd0bfe6b5bb9c",
+            "bytes": 168,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mgf_mslevel_negative.mgf",
+            "sha256": "cbd17e7a1d9ed5903d1403407cd3c5b7ac242cd12a4f71de94f7c74c424c89bc",
+            "bytes": 49,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mgf_mslevel_zero.mgf",
+            "sha256": "de456fc92abb7905ed6de88cf6d2c4f84040adbe1258ba433e76428b725cb389",
+            "bytes": 48,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mgf_no_ions.mgf",
+            "sha256": "187637b80479f1d7f352b2b3941c97e4e49ad77a6e1cf7455f16f9b8fba779e5",
+            "bytes": 39,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mgf_one_value.mgf",
+            "sha256": "6e0d721cba58dff5009e6af10f6aa43c09c8c57b0798d2209cef48426ab759ee",
+            "bytes": 36,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mgf_title_min.mgf",
+            "sha256": "a3a587c227371ca6a1d3ca42766782541f5ae24299497f713e6c1be895c9cca6",
+            "bytes": 178,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mgf_truncated.mgf",
+            "sha256": "10b0977844ef4efadb82bb82b87332e5ae783edfc0649eae9884de1561c76e6a",
+            "bytes": 35,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_ms2_bad_peak.ms2",
+            "sha256": "a730d4c735bc5672dc8918526822365144cd7f85949789569782675f5fe3475d",
+            "bytes": 16,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_ms2_bad_s.ms2",
+            "sha256": "cca4fd3b8bbe79b8fb584668a4513e26d66c033fb970cf70b368ff875b4adb64",
+            "bytes": 16,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_ms2_edges.ms2",
+            "sha256": "e6a053608afbd46636dd62ef433eede9613b31d86eed738d380a0932aa6e433e",
+            "bytes": 285,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_ms2_no_scans.ms2",
+            "sha256": "45b98796d49528273a455f9b5e25586a7ac24ddf721d6d9b63f5af0b92514b17",
+            "bytes": 30,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mzdata_edges.mzData",
+            "sha256": "c1afe2440b5f647208d0325a8845c37de4cc60e1af04ef0afaa54173cfc3d224",
+            "bytes": 4914,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mzdata_no_spectra.mzData",
+            "sha256": "6b7db9923fd5a68b7dfe49b0f48304a320387ebe47e05e951df6da4ead79797c",
+            "bytes": 487,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mzxml_edges.mzXML",
+            "sha256": "7f0cde8a5efa550937a024ba57d27ffa1fdde1ac0f3bd7c79e970139532e2185",
+            "bytes": 2578,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/a8_mzxml_no_scans.mzXML",
+            "sha256": "ba4060fc59c6c2ce8b759c19409e17034af50b1fe907e8e575537ffedc601456",
+            "bytes": 261,
+            "kind": "generated by ../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/inputs/spectra_spectrast.mzXML",
+            "sha256": "f73cf4c23ecf76fd50392cf690735332abc73f4cf1c6b5c46694a9300d049bf7",
+            "bytes": 14449,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/THIRDPARTY/spectra_spectrast.mzXML",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info/retained/FileInfo_4_output.txt",
+            "sha256": "78ae13ca4ac3f9a28bb0d7f6b4968f50d18d9f180eba7b5fbc494c541eff7f59",
+            "bytes": 1796,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/FileInfo_4_output.txt; the retained output of TOPP_FileInfo_4",
+            "evidence_label": "retained upstream output (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info/retained/FileInfo_5_output.txt",
+            "sha256": "2d0126d1ea4c6483d0db46bde4f89e62fd99709eca572929a89d2d446b701478",
+            "bytes": 2185,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/FileInfo_5_output.txt; the retained output of TOPP_FileInfo_5",
+            "evidence_label": "retained upstream output (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info/retained/FileInfo_6_output.txt",
+            "sha256": "9f915a999bcfbdbc632b68039cc2d06054a98158aecc87e3e0d3a6bbd9af048d",
+            "bytes": 3378,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/FileInfo_6_output.txt; the retained output of TOPP_FileInfo_6",
+            "evidence_label": "retained upstream output (tier 1)"
+        }
+    ],
+    "expected_outputs": [
+        {
+            "path": "tests/data/file_info_a8/expected/SHA256SUMS",
+            "sha256": "ac769b239732f44bc2c0c63986c1a43e8654a3c9a62afc9f2a5c33a499b8788b",
+            "bytes": 10609,
+            "kind": "sha256 list of the files beside it",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d5.tsv",
+            "sha256": "06cabc1ed803e97de4c7d3cb1a9e7211253e7e23d44b6c09d7c58f2f87e3e6f2",
+            "bytes": 1968,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d5.txt",
+            "sha256": "badc4f5a5bcef2d83768d0146ebbed9bea2492e30724fa9922a5edb6f779e188",
+            "bytes": 2142,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d5_all.tsv",
+            "sha256": "e1ed15f4dd7bd3730b9c7c392cde568866bb4e6612ed51f421a34d3c753f9758",
+            "bytes": 2166,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d5_all.txt",
+            "sha256": "3ec42277e8dd1235ce53c14fee41931f476012b0d98a052ae0e6491122c538b1",
+            "bytes": 3888,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d5_detected.tsv",
+            "sha256": "65587f9cacd17cd0e6a18556db7db9c5a06ba13937c9e39a77fd26857cf71b7c",
+            "bytes": 1788,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d5_detected.txt",
+            "sha256": "dc097696a658e24c53abccaca983f777992c5db0823e503ace0afed49f20dac7",
+            "bytes": 1333,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d6.tsv",
+            "sha256": "d014ab25a9dfad7a6134f75e7df1f498b799f61abdab03f3e022a4c5f86d1f9d",
+            "bytes": 1437,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d6.txt",
+            "sha256": "ddc66a598930b565f654910ebeee1f41b8201565254d2229b7f4d3ca57e8271a",
+            "bytes": 3335,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d6_all.tsv",
+            "sha256": "21f0f2463ba534717808d264840fc1fdd0f2d6903f093eca72f13cc78686919f",
+            "bytes": 1780,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d6_all.txt",
+            "sha256": "a4224e494f25ac7280347d27d29a7b85a58c04032e4ce35777baca1164ed05bd",
+            "bytes": 4013,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_edges.tsv",
+            "sha256": "e705696a8ede18a631a6c912756b711331320eda160f414cf0dccae184f8b35a",
+            "bytes": 1955,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_edges.txt",
+            "sha256": "1a911eabbbe7d8bf70a10380c26298cd63f7183cc2ec2277e2c7fb755ccc4919",
+            "bytes": 1446,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_edges_all.tsv",
+            "sha256": "e4089c35caef987639dcc053091acc4161ae6ec9757223a63408a91e488cd753",
+            "bytes": 2304,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_edges_all.txt",
+            "sha256": "32371395af93d8c217ad4d654e434c0b2b6afc86686ad287c819bee4e8555cdf",
+            "bytes": 2705,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_edges_dc.tsv",
+            "sha256": "e705696a8ede18a631a6c912756b711331320eda160f414cf0dccae184f8b35a",
+            "bytes": 1955,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_edges_dc.txt",
+            "sha256": "5eb42999ab5698e0668df2952a2e78d059375a5cb3c4274524d9cefcae7c7b09",
+            "bytes": 2282,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_extender_all.tsv",
+            "sha256": "2415f23818f5804b6c0bc9c909246d091c250477f87516cefa588ccb227f784a",
+            "bytes": 1747,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_extender_all.txt",
+            "sha256": "7044cb7621b6b5082e01660331688bc3c8c849a1e2c2e18b28524fb9e80e6ce8",
+            "bytes": 5544,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_fc8_all.tsv",
+            "sha256": "f12c9dca492bcf366e46a340394fd44ecb365f6e0ca99f52a1c4c8df3afe4668",
+            "bytes": 2277,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_fc8_all.txt",
+            "sha256": "3b1ae0e963817e7a65c0d19dfe4f8f2d8da8fbdeb79d2c7f973f74c85859b75e",
+            "bytes": 8279,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_mzdata1.tsv",
+            "sha256": "6eb3e4b6d0efddb0e2556fbee0a40b0204a2c828d792f2add0efff76ae6796fb",
+            "bytes": 1926,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_mzdata1.txt",
+            "sha256": "d5ce594e77532b5fbf947ad8ecc59150f0bec00173854eba3dec229fe01ec22e",
+            "bytes": 1686,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_mzdata1_all.tsv",
+            "sha256": "ff0065215a849d4beabccf4d386698726926fed9b7949678b97012231ead2cfb",
+            "bytes": 2301,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_mzdata1_all.txt",
+            "sha256": "2b61aca4e7d1d90fd7733697187a4723944348ed8022be5e025e913001960376",
+            "bytes": 4330,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_mzdata1_dc.tsv",
+            "sha256": "6eb3e4b6d0efddb0e2556fbee0a40b0204a2c828d792f2add0efff76ae6796fb",
+            "bytes": 1926,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_mzdata1_dc.txt",
+            "sha256": "b7def21461041e287aa5d08f9674709510b5734d5e7294aefb32bd03b7bd4699",
+            "bytes": 2357,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_mzdata3_all.tsv",
+            "sha256": "7ba21d765559ac3854717273d0acb22a7636cb9b2d2ccd34bbfdca58a63d13fa",
+            "bytes": 1721,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_mzdata3_all.txt",
+            "sha256": "72dd694e6d6cfa020c4e13b2241891a94063b63a67c611c2a70f8406846ccdee",
+            "bytes": 2037,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_mzdata4_all.tsv",
+            "sha256": "8b7a94f05307fe8d76a0abbc3a11f860be98137cfff443bf2001e3dd9be79c65",
+            "bytes": 1725,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_mzdata4_all.txt",
+            "sha256": "910e195188879895fa8efc820a2762ab498279cc2e892603f449455d079af3a9",
+            "bytes": 3905,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_no_spectra_all.tsv",
+            "sha256": "ae781edc347f8550d9474a8742d9b2f95bf85e855f521b7ba45b00ea48b24631",
+            "bytes": 1209,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_no_spectra_all.txt",
+            "sha256": "44c891ac5feb499d2d5aeb7b96023955e964016db6289196e04e7d163bf9f163",
+            "bytes": 1516,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_pepnovo_all.tsv",
+            "sha256": "a47e445ba769067fbef87cbe3606ab7b47ac533ed508396c6cc2941e7d59773c",
+            "bytes": 2172,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_pepnovo_all.txt",
+            "sha256": "ce5f596f0a0366a3eb566d7dbd3df628bfe38b1987656b50bff484be2a46f497",
+            "bytes": 5519,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_picked_all.tsv",
+            "sha256": "96272dc234773352e53860684cefcc1d023fa046134735cc4efab6767aeb54b3",
+            "bytes": 1750,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/d_picked_all.txt",
+            "sha256": "8c14964830a32c3cba5126c6f7c80a74675f71d322f3fe8d201478b4fa970da8",
+            "bytes": 21575,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_carry.tsv",
+            "sha256": "da214e3e00494e86d2c520c99e0bc6c97396f1c72b972164ba5b123fab498466",
+            "bytes": 1845,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_carry.txt",
+            "sha256": "1d8ea7c49b01e0c6d3f8c1134abab0e1160effa69dee15d2142a93f81dd88b27",
+            "bytes": 1219,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_carry_all.tsv",
+            "sha256": "68cfe83c2ca4fb7b9612b50b329d95e7f90d94f5ff91ce42f1c15f014a619c63",
+            "bytes": 1983,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_carry_all.txt",
+            "sha256": "5c3f931350746a75df5cde5cb32cc78bc85fc5dd80c4803bcfae1560a2d5d085",
+            "bytes": 1845,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_carry_dc.tsv",
+            "sha256": "da214e3e00494e86d2c520c99e0bc6c97396f1c72b972164ba5b123fab498466",
+            "bytes": 1845,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_carry_dc.txt",
+            "sha256": "e1d9fc2e1cfc3a0b6122e225bd24b823603a61def4e95dd951ef41407896d90b",
+            "bytes": 2101,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_columns_all.tsv",
+            "sha256": "7100417d8a787a86724cdfca36a883e264815e1bd6b20270c19475c84b8eb701",
+            "bytes": 1588,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_columns_all.txt",
+            "sha256": "a990a550a52bf7a14f2716b36c74e6bc80fc939c94c40e3df20fdfe56189e28c",
+            "bytes": 1884,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_content1_all.tsv",
+            "sha256": "c21e12aa9a7db197439aad010cb6d62ed4a2aecaaecf4292e8c647ea7c26aa6b",
+            "bytes": 1608,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_content1_all.txt",
+            "sha256": "2b631f0b118871d7f183fc523e43c967ab93c88cec942935087ef68d38b26669",
+            "bytes": 1916,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_content2_all.tsv",
+            "sha256": "1a5da93ed9785f0c0814e39e58adcea40e73c7e23bf50a16bd6cd48a8cc32f8a",
+            "bytes": 1608,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_content2_all.txt",
+            "sha256": "c436211ae766b5896683d1b475960983473dbdb94331308b12cbede9469489c0",
+            "bytes": 1916,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_gnps.tsv",
+            "sha256": "8a33bbbcab7ca3d0988c13a5bedbd5408cd37c67683b3be77cd553f0c3ed2c8a",
+            "bytes": 1478,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_gnps.txt",
+            "sha256": "dcdb9b8ec564b66f04c042b6907912c1ef5dcd9baa20e22570a816a5ee237e23",
+            "bytes": 1027,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_gnps_all.tsv",
+            "sha256": "233868798b3a639d6cf26d2953642e362b0619f02f3ddfb8c55e5fd53b9a16d4",
+            "bytes": 1616,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_gnps_all.txt",
+            "sha256": "04f8ecb5d295df7d0bb00ad20ea026f903bb5ae0a6ad011f9169876211714435",
+            "bytes": 1653,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_gnps_dc.tsv",
+            "sha256": "8a33bbbcab7ca3d0988c13a5bedbd5408cd37c67683b3be77cd553f0c3ed2c8a",
+            "bytes": 1478,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_gnps_dc.txt",
+            "sha256": "f1cea322301667cb9c2655881ce9989c2601b3890c2851db86d0c7012466dfa0",
+            "bytes": 1293,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_gnpsexport1_all.tsv",
+            "sha256": "f7432f4e26515a0a35eb27c10098a7742a740567652505ab8eda35c7b3df0569",
+            "bytes": 1715,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_gnpsexport1_all.txt",
+            "sha256": "562ff358df9f7bf6508bddbf7c8e80e083b31f1a526119da548d539ef3cd4b12",
+            "bytes": 42919,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_idfc32_all.tsv",
+            "sha256": "670afc445782e08f241bed481661f09e6da7dead4821b621e0b9d8e5bc97059c",
+            "bytes": 1606,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_idfc32_all.txt",
+            "sha256": "ce4054649ffd361c2adf98e8064afc223671e4a3de7f3c3d4e4c3f4e04c701cf",
+            "bytes": 28387,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_merged_all.tsv",
+            "sha256": "02977a16f73e6e4cfb893732a6b78242d2df152fd601c70e43e9948ba2b337ef",
+            "bytes": 1623,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_merged_all.txt",
+            "sha256": "818a79e9778b0f43e64f683e8ef9d827f2fc7ab112b20cbf5c6a695a1109169b",
+            "bytes": 2074,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_mslevel_all.tsv",
+            "sha256": "00706ab75218723d04918ede9b66361dad3709037bc41ecad41bef22d9125e68",
+            "bytes": 2282,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_mslevel_all.txt",
+            "sha256": "9a20c3c23b6aa0fa6418a5a1c84cfd84510579489c9e95325cda2d084af407af",
+            "bytes": 2648,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_mslevel_negative_all.tsv",
+            "sha256": "fd268ddaf72cfff5c558b1ba2bbb37a89f62d467a874d68611239f4a5f0cf69c",
+            "bytes": 1654,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_mslevel_negative_all.txt",
+            "sha256": "9464d5bf22b1802689384ddcf571287698b59a9913565ea977dbfc9ca22fa217",
+            "bytes": 1927,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_mslevel_zero_all.tsv",
+            "sha256": "1dc25abef53544241cfe68c484b3a44543186f209fdefb9c7766ee8cab2951de",
+            "bytes": 1315,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_mslevel_zero_all.txt",
+            "sha256": "a3a649693042b6a7934a6a0f565196d12c733e795356836cd50e672c9e01a896",
+            "bytes": 1756,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_no_ions_all.tsv",
+            "sha256": "a693c005157b3e112b104c17f478fd1d7ab1e4e44d9c8007dfd19970ed2775ca",
+            "bytes": 1197,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_no_ions_all.txt",
+            "sha256": "502205d0e8b7a89917473a4d4dde16bf17cba158cfa342eaf12dc6e1a0d9a854",
+            "bytes": 1368,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_title_min_all.tsv",
+            "sha256": "d3c423c0faa30bcfa92b1d4900ee90cd6bad6ceb42a3bdd9970b225312d144d0",
+            "bytes": 1632,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/g_title_min_all.txt",
+            "sha256": "2e1c7013b0bb3c679e6dd47a72a49f245c417cdade91e81d5feac980fef53532",
+            "bytes": 2089,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_d5_all.tsv",
+            "sha256": "e1ed15f4dd7bd3730b9c7c392cde568866bb4e6612ed51f421a34d3c753f9758",
+            "bytes": 2166,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_d5_all.txt",
+            "sha256": "3ec42277e8dd1235ce53c14fee41931f476012b0d98a052ae0e6491122c538b1",
+            "bytes": 3888,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_g_carry_all.tsv",
+            "sha256": "68cfe83c2ca4fb7b9612b50b329d95e7f90d94f5ff91ce42f1c15f014a619c63",
+            "bytes": 1983,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_g_carry_all.txt",
+            "sha256": "5c3f931350746a75df5cde5cb32cc78bc85fc5dd80c4803bcfae1560a2d5d085",
+            "bytes": 1845,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_edges.tsv",
+            "sha256": "c38e4afedf6ce5af1678157937bac99720e91db9a20f88dac86e64d47e33d595",
+            "bytes": 1446,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_edges.txt",
+            "sha256": "f26a0d7544a2e9521b556eb3451896946eb06252fababa9c72d19cfd17a5307c",
+            "bytes": 995,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_edges_all.tsv",
+            "sha256": "3874890c54c80388472a4f2107d20aa541656cdcdeee559638238076a6c4e2a9",
+            "bytes": 1584,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_edges_all.txt",
+            "sha256": "3e3087dcb54ca30593a8dab87601fd630c5e1623bbe5850a85c89e265f599cb0",
+            "bytes": 1621,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_edges_dc.tsv",
+            "sha256": "c38e4afedf6ce5af1678157937bac99720e91db9a20f88dac86e64d47e33d595",
+            "bytes": 1446,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_edges_dc.txt",
+            "sha256": "9ec865053804bbc675fe80d064153cc10ed2db4a6287afbf280140970a120103",
+            "bytes": 1664,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_no_scans_all.tsv",
+            "sha256": "7039031bf6bb4a3858454b3b50296ca4c786f6e6594f30ae87c12dd78135c3e5",
+            "bytes": 1198,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_no_scans_all.txt",
+            "sha256": "7144e418c06f3a2f28cf9179ec7352acc534284d9390c116be62673546b93d85",
+            "bytes": 1369,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_test.tsv",
+            "sha256": "2e30120be9db704a837a387c131d7161298b8ad0f3345c5984a0a925760bca2f",
+            "bytes": 1437,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_test.txt",
+            "sha256": "a82c3705792676607443d2a7e6ba6de0fa4b15e2ce38b3b8a2dfab34ae375f97",
+            "bytes": 986,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_test_all.tsv",
+            "sha256": "d1b04c69459c344979b7cbef62d29f52bbedb58b3665c5bd80165ba5b631225c",
+            "bytes": 1575,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_test_all.txt",
+            "sha256": "0a8806095c252b65399daa2d32bc785b6f153d31d603124f66b0593aaf126192",
+            "bytes": 1612,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_test_dc.tsv",
+            "sha256": "2e30120be9db704a837a387c131d7161298b8ad0f3345c5984a0a925760bca2f",
+            "bytes": 1437,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_m_test_dc.txt",
+            "sha256": "b2c7886da167abdab3609971eccafde155cd868433c2ed2095cb04e040c652bc",
+            "bytes": 1426,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_x4_all.tsv",
+            "sha256": "f30450f0380c0a7ce29fd6f8fdbb7d5df3feaee5a38690696026c996231835f3",
+            "bytes": 2195,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_x4_all.txt",
+            "sha256": "e6b2914a744999421590a322888eb5ea3731cb27747a051fea2c1798526e5e43",
+            "bytes": 5554,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_x4_i.tsv",
+            "sha256": "b7677636d782c86e40e249fcdcca89a9776092d8f399174d8419dd0c90a3fd5c",
+            "bytes": 73,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/lib_x4_i.txt",
+            "sha256": "c1ae1d2c547beb2a78b3b06efcafb041b347216c7d6278ca16c002b7ad3e37a6",
+            "bytes": 256,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x4.tsv",
+            "sha256": "d06ec03967de880b9c0308242f45a1973c039df678df0edc1e75ff821825b53f",
+            "bytes": 1983,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x4.txt",
+            "sha256": "e7b3918e681f1f92f08de17c5e6d000f6d1f72249c11e4fa4335d11d69158b28",
+            "bytes": 1753,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x4_all.tsv",
+            "sha256": "f30450f0380c0a7ce29fd6f8fdbb7d5df3feaee5a38690696026c996231835f3",
+            "bytes": 2195,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x4_all.txt",
+            "sha256": "e6b2914a744999421590a322888eb5ea3731cb27747a051fea2c1798526e5e43",
+            "bytes": 5554,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x4_bare.stdout.txt",
+            "sha256": "aa8fce84dffd3e5d16cc550ef2287f67b594ed4e74e4e0973d0f7add89e1d96e",
+            "bytes": 1776,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_edges.tsv",
+            "sha256": "fd20c2f46051563ef13a8835ba36753cc3ddf07ed986434df45a44e9dab8c0dd",
+            "bytes": 2415,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_edges.txt",
+            "sha256": "de1adc10b6fd73687ab826edee41a9b7b3560ea248af5b4251c048cc7fd6123a",
+            "bytes": 1684,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_edges_all.tsv",
+            "sha256": "7538f1000770b53516da530105d9cad5ab4b4c3b1bc156006c80983a83e6be78",
+            "bytes": 2582,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_edges_all.txt",
+            "sha256": "cbeb148d97d8171387efd7c692ec8b975f27eb11bd53b5b02de97ee7e26ee242",
+            "bytes": 2406,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_edges_dc.tsv",
+            "sha256": "fd20c2f46051563ef13a8835ba36753cc3ddf07ed986434df45a44e9dab8c0dd",
+            "bytes": 2415,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_edges_dc.txt",
+            "sha256": "97ce04998ab7f8772146a90ac2652e2612da4faf414ef763ce1d3e5916bca3de",
+            "bytes": 3184,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_fc26_all.tsv",
+            "sha256": "b9ccf67410c256cb13a44a240f2185f22793a77cc9284d5b273231ce7a5b9bbd",
+            "bytes": 2477,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_fc26_all.txt",
+            "sha256": "ef69bf779ecf0c8d93346ab1624f8ff12229f79de7e62c36df02e8df146cd505",
+            "bytes": 3955,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_fc4_all.tsv",
+            "sha256": "0ff42ff6f392601a03e986041f5d9140680286f5da4d435e47853c8829b4bd6b",
+            "bytes": 2200,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_fc4_all.txt",
+            "sha256": "31387ed98d7750cb80b08e7bb2cbbeb841c4befb24820133967fce96a488dccb",
+            "bytes": 5559,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_fc6_all.tsv",
+            "sha256": "394e53309793ecdb67f7cbd84b93d62efb48b6663434a1d459f680858d7db16c",
+            "bytes": 2656,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_fc6_all.txt",
+            "sha256": "aee8012e7b5375d5a06c97551e3fa1cf8182eff782772f0499edce82168ab87c",
+            "bytes": 8014,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_inspect1_all.tsv",
+            "sha256": "b66c57e627bc5906e83e5bc2e8ecd9e2b8da52c0e5b45171fcf1e4cd4b839f4c",
+            "bytes": 2141,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_inspect1_all.txt",
+            "sha256": "cf9cb2dedaae6422890a559172ed2cbd014b3593e7e77bc606388cdd4e4cb545",
+            "bytes": 2880,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_mzxml1.tsv",
+            "sha256": "f620ef9b81de076be2a3dfa9cac2caf9dc8baf0854ae96a634738d9ef2c730dd",
+            "bytes": 1816,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_mzxml1.txt",
+            "sha256": "5d8eeb14f82f87709031e620bb8787d8a6b7fb1b7495a02d5b70d6304a49d30e",
+            "bytes": 1270,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_mzxml1_all.tsv",
+            "sha256": "f724d9199147671a29a99a7ade4b52db0d7bca2b7f1025a21c5244e966a1d0c1",
+            "bytes": 2344,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_mzxml1_all.txt",
+            "sha256": "2a3083600a4d953f46b181267e0016de66329d97a4bbc414932a02016c62a202",
+            "bytes": 2329,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_mzxml1_dc.tsv",
+            "sha256": "f620ef9b81de076be2a3dfa9cac2caf9dc8baf0854ae96a634738d9ef2c730dd",
+            "bytes": 1816,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_mzxml1_dc.txt",
+            "sha256": "5c2f55ea6848eeebe0d55bcb6340dfcb0c14beff53bcaf5cac26a698afc214f6",
+            "bytes": 2089,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_mzxml1c_all.tsv",
+            "sha256": "81fd41e4674461dd4a3eec07c2b14c6a6993b812216bb37306576f7ff561a4b5",
+            "bytes": 2355,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_mzxml1c_all.txt",
+            "sha256": "5487ca4fc0b99fdf1fe9747ec90e7fa56130e3729a7f645181ff21d7cf8422a0",
+            "bytes": 3159,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_mzxml2_all.tsv",
+            "sha256": "565bc9573d267ab8305d510340074eb1c464d409f34e93cfd8858a59347657a6",
+            "bytes": 1712,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_mzxml2_all.txt",
+            "sha256": "256891ad54413c7e831a78c38626be1860d303868be27a8bbd20a42fa88ff693",
+            "bytes": 1889,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_mzxml3_all.tsv",
+            "sha256": "09d0c8701fdc13d1a0c0f6c3836db715855f11b5b1d13d69e8a806b65bef102d",
+            "bytes": 1787,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_mzxml3_all.txt",
+            "sha256": "a78b25685948a9753b0b31c5149ec2afd68323436207c89bc33694b0d8d06976",
+            "bytes": 2452,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_no_scans_all.tsv",
+            "sha256": "c62fc5114b799cbb26e44687dd450143d73090810bff5f8e5a6566c7647f7d34",
+            "bytes": 1204,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_no_scans_all.txt",
+            "sha256": "bebf39afc97b0812400c0cb115719d6f83f13697d68964cfb5dcccc14274a2e1",
+            "bytes": 1375,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_osw2_all.tsv",
+            "sha256": "c2c04c7146534acdd65f8eed8754b03a39bd8c09708db9d635a325111a0c44c0",
+            "bytes": 2528,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_osw2_all.txt",
+            "sha256": "311c6fa82c7f782158c13a263bb372bcff707da5c1aa3ffd54be6f5043ab5367",
+            "bytes": 24177,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_spectrast_all.tsv",
+            "sha256": "16c0ae4cbd51ece5f8ca21d43ee8231cffc45f4ed3bb6ccf9fdac4c0b49a00c9",
+            "bytes": 1878,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/expected/x_spectrast_all.txt",
+            "sha256": "61f7cd7f2a59fd6dee7b5f430aaa77d54cf226dbc61dc536444ccc38a74fef0b",
+            "bytes": 2786,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        }
+    ]
+}
