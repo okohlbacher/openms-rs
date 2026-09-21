@@ -86,6 +86,10 @@ class Spec(unittest.TestCase):
         with self.assertRaises(SpecError):
             self.resolve([Slice("x", "m p", "a"), Slice("y", "p m", "b")])
 
+    def test_a_slice_a_bare_line_already_runs_is_refused(self):
+        with self.assertRaises(SpecError):
+            self.resolve([Bare("x", "m"), Slice("y", "m", "a")])
+
     def test_an_unknown_test_is_refused(self):
         with self.assertRaises(SpecError):
             self.resolve([Slice("x", "m", "nope"), Bare("y")])

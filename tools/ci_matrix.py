@@ -163,6 +163,9 @@ def resolve(job, table, tests):
             unknown = set(getattr(line, "tests", ())) - known
             if unknown:
                 raise SpecError(f"{job.name}: no integration test named {sorted(unknown)}")
+    shadowed = sorted(k for kind, k in keyed if kind == "Slice" and ("Bare", k) in keyed)
+    if shadowed:
+        raise SpecError(f"{job.name}: a bare line already runs every test under {shadowed}; drop the slice")
     added = collections.defaultdict(set)
     extra = []
     if job.derive:
