@@ -194,7 +194,7 @@ the handler.
   set, and `MzXMLFile_test.cpp:313` asserts the resulting intensity
   100.0000991821289. The module therefore decodes `<peaks>` with a
   trailing-bits-permissive, padding-indifferent engine. Whitespace inside the
-  payload is stripped as at `:1158-1160`.
+  payload is stripped as at `HANDLERS/MzXMLHandler.cpp:1158-1160`.
 
 ## Native differences
 

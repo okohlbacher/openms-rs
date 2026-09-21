@@ -244,7 +244,7 @@ becomes the owned `AreaOptions` value and the end iterator becomes exhaustion.
   sorted" as a `@note` and does not check it; `im_begin`/`im_end` return
   `Error::UnsortedData`, and `rasterize_rt_mz` checks both the RT order of the
   run and the m/z order of every contributing spectrum. `OPENMS_PRECONDITION`
-  compiles to nothing in a release build (`Macros.h:91`), so the source's
+  compiles to nothing in a release build (`CONCEPT/Macros.h:91`), so the source's
   `areaBegin` swapped-bound and sortedness guards on the RT and m/z boundaries
   do not exist in shipped builds; the port's are always on.
 
@@ -412,7 +412,7 @@ the `(0, 7, 505, 520)` window and then `506.0`.
 of them appears in exactly one of the three tables that follow. Macro counts
 are `TEST_*`/`ABORT_IF` calls inside the section, excluding
 `TEST_PRECONDITION_VIOLATED`, which `OPENMS_PRECONDITION` compiles away in a
-release build (`Macros.h:91`).
+release build (`CONCEPT/Macros.h:91`).
 
 An earlier revision of this document accounted for 54 of these sections with a
 bare list of nine Rust test *files* and no test function or asserted value for

@@ -158,7 +158,7 @@ fn corrupt_only() -> Options {
 }
 
 // ---------------------------------------------------------------------------
-// -i, the indexed-mzML check (FileInfo.cpp:827-846)
+// -i, the indexed-mzML check (FORMAT/FileInfo.cpp:827-846)
 // ---------------------------------------------------------------------------
 
 /// A valid index, then the content of the file.
@@ -455,7 +455,7 @@ fn index_check_precedes_an_unported_branch() {
 }
 
 // ---------------------------------------------------------------------------
-// -d, the detailed listing (FileInfo.cpp:1779-1795 and :1799-1848)
+// -d, the detailed listing (FORMAT/FileInfo.cpp:1779-1795 and :1799-1848)
 // ---------------------------------------------------------------------------
 
 /// TOPP_FileInfo_19 verbatim.
@@ -587,7 +587,7 @@ fn detailed_leaves_an_empty_spectrum_line_open() {
 }
 
 // ---------------------------------------------------------------------------
-// -c, the corrupt-data check (FileInfo.cpp:1851-1964)
+// -c, the corrupt-data check (FORMAT/FileInfo.cpp:1851-1964)
 // ---------------------------------------------------------------------------
 
 /// A duplicate m/z and a negative intensity. The mzML reader sorts a spectrum's

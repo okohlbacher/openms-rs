@@ -18,7 +18,7 @@ uses only module edges `kernel` already has (`concept`, `identification`,
 `metadata`), so `tools/check_module_cycles.py` records no new edge.
 
 Consumers in the pinned core: FileInfo calls `getCompensationVoltages`
-unconditionally on every peak file, twice (`FileInfo.cpp:1673`, `:1742`);
+unconditionally on every peak file, twice (`FORMAT/FileInfo.cpp:1673`, `:1742`);
 `IMDataConverter::splitByFAIMSCV` groups spectra by it (`IMDataConverter.cpp:31`),
 which FeatureFinderCentroided uses; `Biosaur2Algorithm.cpp:266` and
 `SpectrumMetaDataLookup.cpp:240` call it too; and

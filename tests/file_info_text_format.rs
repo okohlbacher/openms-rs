@@ -2314,7 +2314,7 @@ fn median(sorted: &[f64]) -> f64 {
     }
 }
 
-/// A `SummaryStatistics` block as `FileInfo.cpp:86-96` streams it at
+/// A `SummaryStatistics` block as `FORMAT/FileInfo.cpp:86-96` streams it at
 /// `precision`. The statistics follow `StatisticFunctions.h` at bc9cc12:
 /// `SummaryStatistics` (933-963) sorts first, `sum` (103-106) accumulates from
 /// 0.0, `variance` (541-556) divides by n - 1, `median` (134-158), and
@@ -2511,7 +2511,7 @@ fn vector_stream_operator_matches_the_oracle() {
         text(list_to_string(&[0.1f32, 1e5, -65.0])),
         expected["float:mixed"]
     );
-    // FileInfo.cpp:1746-1751 converts each CV with toStr before streaming.
+    // FORMAT/FileInfo.cpp:1746-1751 converts each CV with toStr before streaming.
     let cvs: Vec<String> = [-65.0].into_iter().map(to_str).collect();
     assert_eq!(text(list_to_string(&cvs)), expected["string:faims"]);
     assert_eq!(
@@ -4270,7 +4270,7 @@ fn file_info_7_precision_15_statistics_match_the_retained_report() {
         assert_eq!(occurrences(FILE_INFO_7_OUTPUT, line), 1, "{line}");
     }
 
-    // FileInfo.cpp:2261-2328, including the pre-sized quality vector (five zeros).
+    // FORMAT/FileInfo.cpp:2261-2328, including the pre-sized quality vector (five zeros).
     let mut intensities = Vec::new();
     let mut qualities = vec![0.0; FILE_INFO_7_CONSENSUS.len()];
     let (mut rt_delta, mut rt_abs, mut rt_avg) = (Vec::new(), Vec::new(), Vec::new());

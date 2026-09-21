@@ -86,7 +86,7 @@ pub(crate) fn report(
     let mut assigned = 0_u64;
     for feature in &map.features {
         *charges.entry(feature.charge).or_insert(0) += 1;
-        // `FileInfo.cpp:1098,1103`: `double tic = 0.0; tic += feat[i].getIntensity()`,
+        // `FORMAT/FileInfo.cpp:1098,1103`: `double tic = 0.0; tic += feat[i].getIntensity()`,
         // where `getIntensity()` is a `float` — a `cvtss2sd` and an `addsd`.
         // Both can produce a NaN, and plain Rust would leave its bits to the
         // host, which the report's spelling now reads.

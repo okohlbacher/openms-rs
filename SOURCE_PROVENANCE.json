@@ -403,6 +403,42 @@
   "cpp_built": false,
   "cpp_runtime_differential_tests": false
  },
+ "retained_sources": {
+  "note": "Source the port reproduces that is not in any pin and cannot be: the libstdc++ headers whose std::sort, std::stable_sort and binary searches the Linux x86_64 Release build actually ran belong to the toolchain, not to OpenMS. They are retained beside the oracle drivers so that a cited line can be read back. tools/check_source_citations.py resolves a citation of one of these only while the retained file still hashes to the sha256 below; a file that is missing, replaced or simply not retained on a given machine is refused by name and its citations go on being counted unreachable. A retained file is consulted last, after every pin, so it can add an answer but never take one from a pin.",
+  "directories": [
+   {
+    "path": "../oracle/sne-completion/libstdcxx",
+    "cited_under": "bits/",
+    "origin": "conda-forge gcc 14.4.0, <install>/deps/lib/gcc/x86_64-conda-linux-gnu/14.4.0/include/c++/bits/ of ibminode06:/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 -- the compiler the reference install was built with and the one every oracle driver under ../oracle/ is compiled with",
+    "named_by": [
+     "src/math/source_sort.rs",
+     "src/math/libstdcxx.rs",
+     "src/processing/noise_estimation.rs",
+     "tests/data/feature_finder_picked_provenance.json",
+     "tests/data/signal_to_noise_provenance.json"
+    ],
+    "files": {
+     "stl_algo.h": "0598c5b12d038b2e5b1c7d5e7b4982f8e8689a42d01af75cd919a76557a2dfcf",
+     "stl_algobase.h": "0ec2358cc592e8397f13fb77260f208ea922796d7bba7f202400e88ac511b332",
+     "stl_heap.h": "f18f83b2feddf54c7ea289625628b34a2f6d758b697240b3b5d9abaeee6700ce",
+     "stl_tempbuf.h": "f92e0ecf86e4cae8a707e483f4fc8bf5ddf5ea9fbc52bf407080392ca79edc7c",
+     "predefined_ops.h": "25478342b5d993b09ebfcc1ee1e372e7391ea160e9222e704cd0b1835558d404"
+    }
+   },
+   {
+    "path": "../oracle/a2-textfmt-linux/libstdcxx",
+    "cited_under": "x86_64-conda-linux-gnu/bits/",
+    "origin": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/deps/lib/gcc/x86_64-conda-linux-gnu/14.4.0/include/c++/x86_64-conda-linux-gnu/bits/c++locale.h",
+    "named_by": [
+     "src/format/file_info/text_format.rs",
+     "../oracle/a2-textfmt-linux/manifest.json, registered above at 2bfca88e, which names this digest"
+    ],
+    "files": {
+     "c++locale.h": "f9912c4e4fb277360df473e1680748db07c28ea79e1537af2365a6b3beed8a7b"
+    }
+   }
+  ]
+ },
  "target_sdk": {
   "version": "4.0.0",
   "repository": "https://github.com/okohlbacher/OpenMS4-core.git",

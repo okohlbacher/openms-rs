@@ -52,19 +52,19 @@ use crate::{Error, Result};
 use std::collections::BTreeMap;
 use std::path::Path;
 
-/// `AA_AMBIGUOUS_BXZJ` (`FileInfo.cpp:890`): B = Asx, Z = Glx, X = unknown,
+/// `AA_AMBIGUOUS_BXZJ` (`FORMAT/FileInfo.cpp:890`): B = Asx, Z = Glx, X = unknown,
 /// J = Leu/Ile, in both cases.
 const AA_AMBIGUOUS_BXZJ: &[u8] = b"BZXbzxJj";
 
-/// `AA_AMBIGUOUS_BXZ` (`FileInfo.cpp:891`), the same without J.
+/// `AA_AMBIGUOUS_BXZ` (`FORMAT/FileInfo.cpp:891`), the same without J.
 const AA_AMBIGUOUS_BXZ: &[u8] = b"BZXbzx";
 
-/// `NUCLEOTIDE_CHARS` (`FileInfo.cpp:895`): the standard codes A, C, G, T and
+/// `NUCLEOTIDE_CHARS` (`FORMAT/FileInfo.cpp:895`): the standard codes A, C, G, T and
 /// U and the ambiguity codes, in both cases. A sequence byte outside this set
 /// makes the whole file amino acid.
 const NUCLEOTIDE_CHARS: &[u8] = b"ACGTUNacgtunRYSWKMBDHVryswkmbdhv";
 
-/// `NA_AMBIGUOUS` (`FileInfo.cpp:896`): every IUPAC nucleotide ambiguity code,
+/// `NA_AMBIGUOUS` (`FORMAT/FileInfo.cpp:896`): every IUPAC nucleotide ambiguity code,
 /// in both cases.
 const NA_AMBIGUOUS: &[u8] = b"NRYSWKMBDHVnryswkmbdhv";
 
@@ -283,23 +283,23 @@ pub(crate) fn report(
     });
 
     if options.meta {
-        // FileInfo.cpp:2001-2004: the FASTA arm of the -m block is empty.
+        // FORMAT/FileInfo.cpp:2001-2004: the FASTA arm of the -m block is empty.
         write_meta_title(os);
     }
     if options.processing {
-        // FileInfo.cpp:2112-2114: the FASTA arm leaves `dp` empty, so only the
+        // FORMAT/FileInfo.cpp:2112-2114: the FASTA arm leaves `dp` empty, so only the
         // no-information line follows the title.
         write_processing_title(os);
         write_processing(os, os_tsv, &[], result);
     }
     if options.statistics {
-        // FileInfo.cpp:2377-2379: the FASTA arm of the -s block is empty.
+        // FORMAT/FileInfo.cpp:2377-2379: the FASTA arm of the -s block is empty.
         write_statistics_title(os);
     }
     Ok(())
 }
 
-/// `is_nucleic_acid` (`FileInfo.cpp:900-912`): true until one sequence byte
+/// `is_nucleic_acid` (`FORMAT/FileInfo.cpp:900-912`): true until one sequence byte
 /// falls outside [`NUCLEOTIDE_CHARS`]. An empty entry list leaves it true, as
 /// the source's initial value does.
 fn is_nucleic_acid(entries: &[FASTAEntry]) -> bool {
@@ -311,7 +311,7 @@ fn is_nucleic_acid(entries: &[FASTAEntry]) -> bool {
     })
 }
 
-/// `count_residues` (`FileInfo.cpp:877-885`): the counts of `which`'s bytes
+/// `count_residues` (`FORMAT/FileInfo.cpp:877-885`): the counts of `which`'s bytes
 /// that the table holds, absent keys contributing nothing. The source looks
 /// the keys up with `find`, so this never inserts.
 fn count_residues(residue_counts: &BTreeMap<u8, u64>, which: &[u8]) -> u64 {
@@ -361,7 +361,7 @@ fn reject_non_ascii(entries: &[FASTAEntry]) -> Result<()> {
     Ok(())
 }
 
-/// The structured length statistics (`FileInfo.cpp:1046-1065`): three or more
+/// The structured length statistics (`FORMAT/FileInfo.cpp:1046-1065`): three or more
 /// sequences go through the full [`SummaryStatistics`], one or two are filled
 /// field by field with the quartiles falling back to the extremes, and none
 /// leaves the default.
@@ -398,7 +398,7 @@ fn length_stats(lengths: &[u64]) -> Result<SummaryStatistics> {
 /// `libstdc++-v3/libsupc++/hash_bytes.cc`.
 ///
 /// The hash is observable. FileInfo's duplicate detection ASSIGNS each bucket
-/// a one-element vector instead of appending to it (`FileInfo.cpp:931` and
+/// a one-element vector instead of appending to it (`FORMAT/FileInfo.cpp:931` and
 /// `:949`), so a bucket only ever remembers the last index with that hash. Two
 /// different strings that collide therefore hide a duplicate that a
 /// collision-free hash would have reported, and reproducing the reference

@@ -18,7 +18,7 @@ The estimator algorithm was already transcribed line by line in
 only as a crate-private function. The only public classifier was
 `processing::peak_picking::estimate_spectrum_type`, which validates the whole
 spectrum and refuses negative intensities and unsorted or duplicate m/z values
-where the source classifies them. FileInfo (`FileInfo.cpp:1599`) and
+where the source classifies them. FileInfo (`FORMAT/FileInfo.cpp:1599`) and
 PeakPickerHiRes call the source estimator on raw spectrum peaks, so they need a
 public entry point with source semantics. This work package adds that entry
 point and delegates to the existing transcription; it does not add a second
@@ -36,7 +36,7 @@ copy of the algorithm.
 | commented-out `estimateType` (quartile-of-distances variant, `PeakTypeEstimator.h:158-242`) | not ported: it is inside a comment and never compiled; the header says it "does not work reliably" |
 
 The template accepts any peak type with `getMZ`/`getIntensity`/`setIntensity`.
-Every caller in the pinned core (`MSSpectrum.cpp:162`, `FileInfo.cpp:1599`)
+Every caller in the pinned core (`MSSpectrum.cpp:162`, `FORMAT/FileInfo.cpp:1599`)
 passes `MSSpectrum` iterators, that is `Peak1D`, so the Rust entry point takes a
 `Peak1D` slice. No other instantiation exists to port.
 

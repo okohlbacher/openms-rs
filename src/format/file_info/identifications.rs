@@ -42,7 +42,7 @@
 //!
 //! `-m`, `-p` and `-s` each have an `IDXML` arm but none for `MZIDENTML`, so an
 //! mzIdentML input falls into their trailing `else //peaks` arm
-//! (`FileInfo.cpp:2005`, `:2115`, `:2384`) and is reported off the
+//! (`FORMAT/FileInfo.cpp:2005`, `:2115`, `:2384`) and is reported off the
 //! `MSExperiment` that this branch never filled. The result is the peak-file
 //! metadata layout with every field empty, the peak-file data-processing arm
 //! finding an empty experiment, and a peak-file `Intensities:` statistics block
@@ -55,7 +55,7 @@
 //! answers with a segmentation fault. Lead decision D1 refuses exactly there,
 //! before any of the report is written:
 //!
-//! - `FileInfo.cpp:1336-1341` reads `id_data.proteins[0]` unconditionally,
+//! - `FORMAT/FileInfo.cpp:1336-1341` reads `id_data.proteins[0]` unconditionally,
 //!   while the structured block at `:1451` guards the very same access with
 //!   `if (!id_data.proteins.empty())`. A file with no identification run at all
 //!   reaches the unguarded read. This crate refuses such a file, but one layer
@@ -64,7 +64,7 @@
 //!   mzIdentML with `mzIdentML has no SpectrumIdentification element`
 //!   (`mzidentml.rs:1596-1598`) — so the guard below is a defence with no
 //!   reachable input rather than the refusal that is measured;
-//! - `FileInfo.cpp:1354` reads `temp_hits[0]`, the first element of the
+//! - `FORMAT/FileInfo.cpp:1354` reads `temp_hits[0]`, the first element of the
 //!   `getHits()` reference taken at `:1352`, behind the `:1347` guard
 //!   `if (!id_data.peptides[i].empty())`. But `PeptideIdentification::empty()`
 //!   (`PeptideIdentification.cpp:210-217`) tests for a default-constructed
@@ -115,15 +115,15 @@ pub(crate) fn report(
     result: &mut FileInfoResult,
 ) -> Result<()> {
     let data = load(path, in_type)?;
-    // FileInfo.cpp:1336-1341 reads proteins[0] before any emptiness test. No
+    // FORMAT/FileInfo.cpp:1336-1341 reads proteins[0] before any emptiness test. No
     // input reaches this arm of the guard: `load` above refuses a run-less
     // idXML and a run-less mzIdentML in the readers themselves, so the tool
     // exits 3 on such a file, never 6. It stays as the branch's own defence.
     let first_run = data.proteins.first().ok_or_else(|| {
         Error::InvalidValue(
             "FileInfo identification branch: the file holds no protein identification run, and \
-             the source reads id_data.proteins[0] unguarded (FileInfo.cpp:1336-1341) while its \
-             own structured block guards the same access (FileInfo.cpp:1451)"
+             the source reads id_data.proteins[0] unguarded (FORMAT/FileInfo.cpp:1336-1341) while its \
+             own structured block guards the same access (FORMAT/FileInfo.cpp:1451)"
                 .into(),
         )
     })?;
@@ -158,13 +158,13 @@ pub(crate) fn report(
         peptide_hit_count = peptide_hit_count
             .checked_add(hits)
             .ok_or_else(|| overflow("FileInfo peptide hit count overflows 64 bits"))?;
-        // FileInfo.cpp:1354 reads temp_hits[0] behind a guard that does not
+        // FORMAT/FileInfo.cpp:1354 reads temp_hits[0] behind a guard that does not
         // test the hit list.
         let top = identification.hits.first().ok_or_else(|| {
             Error::InvalidValue(format!(
                 "FileInfo identification branch: peptide identification #{index} carries no hit \
                  while PeptideIdentification::empty() is false, and the source reads \
-                 getHits()[0] unguarded (FileInfo.cpp:1347-1354)"
+                 getHits()[0] unguarded (FORMAT/FileInfo.cpp:1347-1354)"
             ))
         })?;
         if top.sequence.is_modified() {
@@ -196,7 +196,7 @@ pub(crate) fn report(
         ));
     }
 
-    // FileInfo.cpp:1396-1399: a single zero keeps Math::mean off an empty range.
+    // FORMAT/FileInfo.cpp:1396-1399: a single zero keeps Math::mean off an empty range.
     if peptide_length.is_empty() {
         peptide_length.push(0.0);
     }
@@ -336,10 +336,10 @@ fn write_trailing_sections(
         if is_idxml {
             write_meta_title(os);
             os.text("Document ID: ").text(&data.identifier).text("\n\n");
-            // FileInfo.cpp:1994-1995 streams the value with no trailing newline.
+            // FORMAT/FileInfo.cpp:1994-1995 streams the value with no trailing newline.
             os_tsv.text("meta: document ID\t").text(&data.identifier);
         } else {
-            // FileInfo.cpp:2005-2081: the peak-file arm, over the MSExperiment
+            // FORMAT/FileInfo.cpp:2005-2081: the peak-file arm, over the MSExperiment
             // this branch never loaded.
             super::peaks::write_meta(&MSExperiment::default(), os, os_tsv);
         }
@@ -353,7 +353,7 @@ fn write_trailing_sections(
     if options.statistics {
         write_statistics_title(os);
         if !is_idxml {
-            // FileInfo.cpp:2384-2434 over an empty experiment: no MS-level-1
+            // FORMAT/FileInfo.cpp:2384-2434 over an empty experiment: no MS-level-1
             // peak contributes an intensity and `meta_names` is empty, so the
             // arm writes one all-zero block at writtenDigits<float>() and
             // nothing to the TSV report.
@@ -404,7 +404,7 @@ fn source_is_empty(identification: &PeptideIdentification) -> bool {
         && identification.higher_score_better
 }
 
-/// `FileInfo.cpp:1353-1372`: the C-terminal modification, then the N-terminal
+/// `FORMAT/FileInfo.cpp:1353-1372`: the C-terminal modification, then the N-terminal
 /// one, then every modified residue in order.
 ///
 /// A terminal modification is counted under `getId()`, which

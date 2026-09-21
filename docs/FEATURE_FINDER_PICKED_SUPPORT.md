@@ -270,7 +270,8 @@ this way. `Options::pseudo_rt_shift` chooses the port's behaviour:
 
 A fit that throws `UnableToFit` (`TraceFitter.cpp:111`, `:129`) inside the
 same parallel loop would end the source process at `.cpp:670`, before the
-debug write at `:714`, but no input reaches either throw (see the
+debug write at `FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:714`, but no input reaches
+either throw (see the
 `Exception::UnableToFit` row of *Native differences*). The refused NaN profile
 merge, where the source never returns, records a `NeverReturns` termination
 after the seed's lines, like the out-of-bounds refusal above, with the plot
@@ -821,8 +822,9 @@ its seed loop is empty: its result is fixed by its length, not by its zero
 extent. `FileConverter_31_output.mzML` (four spectra at 5 to 8 s, a non-zero
 extent) behaves the same. The Debug oracle's exit 8 for both is
 `OPENMS_PRECONDITION(begin <= end)` in `ProgressLogger::startProgress`
-(`ProgressLogger.cpp:235`), reached from `startProgress(5, 0)` at `:298`, and
-fires for every input shorter than `2 * min_spectra_` scans.
+(`ProgressLogger.cpp:235`), reached from `startProgress(5, 0)` at
+`FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:298`. It fires for every
+input shorter than `2 * min_spectra_` scans.
 
 ## Non-finite input
 
@@ -1509,10 +1511,11 @@ output.
    OpenMS::FeatureFinderDefs'` (executed with the Release install's compiler,
    `../oracle/ffap-sem-completion/drivers/defs_both_headers.cpp`). Nothing
    includes `FeatureFinderDefs.h` today, so the duplicate is latent.
-7. **Short inputs pass an inverted range to `startProgress`.** For an input
-   with fewer than `2 * min_spectra_` scans, steps 2 and 3.2 call
-   `startProgress(min_spectra_, n - min(min_spectra_, n))` (`.cpp:297-298`,
-   `:493-494`) with `begin > end`. The Debug build stops there with
+7. **Short inputs pass an inverted range to `startProgress`.** The threshold
+   is `2 * min_spectra_` scans. Below it, steps 2 and 3.2 call
+   `startProgress(min_spectra_, n - min(min_spectra_, n))`
+   (`FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:297-298`, `:493-494`) with
+   `begin > end`. The Debug build stops there with
    `OPENMS_PRECONDITION(begin <= end)` (`ProgressLogger.cpp:235`, exit 8 for
    `FileFilter_44_input.mzML` with `-force` and for
    `FileConverter_31_output.mzML`); the Release build runs on and returns an

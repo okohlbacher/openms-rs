@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+- **Every C++ citation whose file name reached two pins now writes the
+  directory, and 21 of them were being read in the wrong file.**
+  `tools/check_source_citations.py` counted 211 citations "answered by a file
+  that may be the wrong one"; it counts 0. 206 were one collision - core
+  `FORMAT/FileInfo.cpp` against the TOPP tool `src/FileInfo.cpp`, and the same
+  for `PeakPickerHiRes.cpp` and `XMLValidator.cpp` - and both halves of each
+  pair are among the eight ported TOPP tools, so the tools' own ports were
+  having their citations read in the core algorithm.
+  `src/cli/tools/file_info.rs` cites `registerOptionsAndFlags_` at `:83-100`,
+  which in the file that answered is `operator<<(ostream&, SummaryStatistics)`.
+  Each of the 211 was resolved by hand against the pins: 176 can only be the
+  core file because the tool of that name is too short to hold the line, and
+  the other 35 were read in both. Tool citations now write
+  `OpenMS4-topp/src/`, core ones the directory that tells them apart.
+- **The checker reads a cited line back against a retained source**, so a
+  citation of `bits/stl_algo.h:1806` is no longer unreachable. The `libstdc++`
+  headers the Release build's `std::sort` and binary searches were compiled
+  from belong to the toolchain and can never be in a pin;
+  `SOURCE_PROVENANCE.json` now declares where the port retains them and the
+  sha256 of each, and a file is admitted only while its bytes still hash to
+  that value - missing, replaced or unretained, it is refused by name on the
+  run's first line and its citations go on counting as unreachable. The limb is
+  consulted after every pin, so it can add an answer and never take one.
+  Unreachable citations 48 to 31; bare ranges left unresolved 66 to 3, closing
+  the checker's own item 7. Resolving them read four quotations back that
+  nothing had read before, and three were defects: two documents quoted
+  `__introsort_loop`'s condition beside `stl_algo.h`'s `__sort` and
+  `_S_threshold` rather than beside the loop at `:1880`, and
+  `docs/FILE_INFO_A7_SUPPORT.md` quoted the guard
+  `if (!id_data.peptides[i].empty())` (`FORMAT/FileInfo.cpp:1347`) beside
+  `:1354`, which is the hit read it guards rather than the guard itself. Six
+  bare ranges in the SDK manifests, `noise.rs` and a fixture manifest were
+  written under `SignalToNoiseEstimator.h` for lines that are in the 442-line
+  `SignalToNoiseEstimatorMedian.h`.
+
 - **A NaN whose sign bit is set is now spelled `-nan` in the FileInfo report,
   as the reference build's glibc spells it.** This was **native difference 5**,
   and closing it needed the NaN *value* to stop depending on the host first —
@@ -21,7 +56,7 @@
   `math::x86_64`, so the sign is the Release build's and not the host's.
 - **`FileInfo -c` no longer refuses a NaN retention time or peak m/z**
   (decision **D18**). The refusal rested on the source's `std::sort` leaving the
-  order undefined, which is the argument D16 overturned: `FileInfo.cpp:1927` and
+  order undefined, which is the argument D16 overturned: `FORMAT/FileInfo.cpp:1927` and
   `:1956` are the same unqualified `sort(v.begin(), v.end())` on a
   `std::vector<double>` that shared math now reproduces, so the port follows it
   instead of refusing. It is observable — for `{5.0, NaN, 5.0}` libstdc++ leaves

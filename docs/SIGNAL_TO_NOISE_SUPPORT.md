@@ -565,7 +565,7 @@ No class test calls `estimateNoiseFromRandomScans`.
   `100`; 19 picker cases run the estimator indirectly (`signal_to_noise > 0`),
   among them 6 chromatogram records (5 in `extra_topp2_parameters`, 1 in
   `extra_topp2_chromatogram0_check`); the remaining 62 cases never run it,
-  because `signal_to_noise` defaults to `0` (`PeakPickerHiRes.cpp:31`).
+  because `signal_to_noise` defaults to `0` (`CENTROIDING/PeakPickerHiRes.cpp:31`).
   The unchanged P1 driver (sha256 `2d06db2f…`) re-run against the Linux
   x86-64 Release build printed byte-identical records (sha256 `9eb8f249…`)
   and parameter files; its standard error is identical except for six lines

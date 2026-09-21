@@ -934,7 +934,7 @@ Recorded here for the integrator; none is worked around silently.
    line 195) and `gf.getGnuplotFormula()` on a `Math::GaussFitter` (lines 319,
    321 and 328), all inside `#ifdef IDDECOYPROBABILITY_DEBUG`. Defining that
    macro breaks the build of `ANALYSIS/ID`. The only unconditional survivor is
-   a commented-out block at `IDDecoyProbability.cpp:311-317`. So the members
+   a commented-out block at `ID/IDDecoyProbability.cpp:311-317`. So the members
    were removed and their callers were disabled rather than updated; the
    getters named `getGnuplotFormula` that still exist in the SDK belong to the
    unrelated `TraceFitter` hierarchy and take four arguments.

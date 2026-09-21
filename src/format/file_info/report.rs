@@ -62,7 +62,7 @@
 //!
 //! The source writes into two `std::ostringstream`s. Their precision starts at
 //! [`DEFAULT_STREAM_PRECISION`] and a statistics block changes it, after which
-//! it stays in force (`FileInfo.cpp:2224-2255` and `:2404`). The port tracks
+//! it stays in force (`FORMAT/FileInfo.cpp:2224-2255` and `:2404`). The port tracks
 //! the precision of each report explicitly; every `double` the source streams
 //! is formatted with [`ostream_g`] at the tracked precision, every range bound
 //! with [`fixed_truncated`], as `StringUtils::number` cuts rather than refuses.
@@ -205,7 +205,7 @@ impl FileInfo {
             .text(in_type.name())
             .text("\n");
 
-        // FileInfo.cpp:827-846: the index check sits after the general header and
+        // FORMAT/FileInfo.cpp:827-846: the index check sits after the general header and
         // before the content, for every type, and its failure ends the report
         // there. Only then is a branch this port does not run refused, so an
         // invalid index is reported in full even on such a branch.
@@ -591,7 +591,7 @@ pub(crate) fn write_ranges_text(os: &mut ReportStream, ranges: &RangeSet, mobili
                 .text(" .. ")
                 .text(&number2(rt.max))
                 .text(" sec (")
-                // `FileInfo.cpp:109`: `(map.getMaxRT() - map.getMinRT()) / 60`,
+                // `FORMAT/FileInfo.cpp:109`: `(map.getMaxRT() - map.getMinRT()) / 60`,
                 // a `subsd` and a `divsd`. `inf - inf` is invalid and answers a
                 // NaN whose bits plain Rust leaves to the host.
                 //
@@ -699,7 +699,7 @@ pub(crate) fn write_statistics_title(os: &mut ReportStream) {
 }
 
 /// The body of the `-p` section after the branch-specific preamble, and its
-/// structured steps (`FileInfo.cpp:2129-2188`).
+/// structured steps (`FORMAT/FileInfo.cpp:2129-2188`).
 pub(crate) fn write_processing(
     os: &mut ReportStream,
     os_tsv: &mut ReportStream,

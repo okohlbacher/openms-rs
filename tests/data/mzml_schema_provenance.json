@@ -89,7 +89,7 @@
  "source_anchors": {
   "public": "MzMLFile.h:132-143",
   "schema_selection": "MzMLFile.cpp:58-79",
-  "warning_policy": "XMLValidator.cpp:31-33,107-111",
+  "warning_policy": "VALIDATORS/XMLValidator.cpp:31-33,107-111",
   "source_test": "MzMLFile_test.cpp:1181-1201",
   "indexed_identity_defect": "mzML_idx_1_10.xsd:1194-1203"
  },

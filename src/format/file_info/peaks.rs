@@ -81,7 +81,7 @@ use std::collections::btree_map::Entry;
 use std::path::Path;
 
 /// Minimum peak count, exclusive, of the spectrum whose peak type FileInfo
-/// estimates for its MS level (`spectrum.size() > 10`, `FileInfo.cpp:1597`).
+/// estimates for its MS level (`spectrum.size() > 10`, `FORMAT/FileInfo.cpp:1597`).
 ///
 /// The estimator itself classifies from five peaks on; FileInfo asks for more
 /// for a stable estimate.
@@ -112,7 +112,7 @@ pub(crate) fn report(
     let summary = Summary::compute(&experiment)?;
 
     write_content(&experiment, &summary, options, os, os_tsv, result)?;
-    // FileInfo.cpp:1799-1848 and :1851-1964: the per-spectrum listing and the
+    // FORMAT/FileInfo.cpp:1799-1848 and :1851-1964: the per-spectrum listing and the
     // corrupt-data check close the peak-file content, before -m, -p and -s.
     if options.detailed {
         super::checks::write_detailed_spectra(&experiment, os);
@@ -483,7 +483,7 @@ fn write_content(
                 .value(count)
                 .text("\n");
         }
-        // FileInfo.cpp:1779-1795: still inside the source's
+        // FORMAT/FileInfo.cpp:1779-1795: still inside the source's
         // `if (!exp.getChromatograms().empty())`.
         if options.detailed {
             super::checks::write_detailed_chromatograms(
@@ -578,7 +578,7 @@ fn peak_info(experiment: &MSExperiment, summary: &Summary) -> Result<PeakInfo> {
     Ok(info)
 }
 
-/// The `-m` block of the peak-file arm (`FileInfo.cpp:2005-2081`), title
+/// The `-m` block of the peak-file arm (`FORMAT/FileInfo.cpp:2005-2081`), title
 /// included: the document id and date, the `Sample:` and `Instrument:` blocks,
 /// and the contact-person loop at `:2072-2080`.
 ///
@@ -718,7 +718,7 @@ fn write_statistics(
     os.text("\n");
 
     // The source gathers, per name, the float arrays and then the integer
-    // arrays of each spectrum in order (`FileInfo.cpp:2412-2437`), and builds
+    // arrays of each spectrum in order (`FORMAT/FileInfo.cpp:2412-2437`), and builds
     // and drops one name's values at a time. One pass indexes every name's
     // arrays in that order and checks each block against the ceiling before
     // any values are copied; each block is then collected, summarised and

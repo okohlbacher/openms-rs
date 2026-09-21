@@ -1567,7 +1567,7 @@ fn chromatogram_time_switch_only_moves_the_converted_32_bit_array() {
 /// The empty and single-point chromatograms the source leaves alone.
 ///
 /// `pick_` returns before the loop for fewer than five points
-/// (`PeakPickerHiRes.cpp:147-150`), so both produce an empty picked
+/// (`CENTROIDING/PeakPickerHiRes.cpp:147-150`), so both produce an empty picked
 /// chromatogram while keeping the chromatogram's own settings.
 #[test]
 fn chromatogram_time_short_inputs_pick_nothing_and_keep_their_settings() {

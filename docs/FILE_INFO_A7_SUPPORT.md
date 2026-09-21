@@ -106,7 +106,8 @@ Two numbers are deliberately coarse and are reproduced as they are:
   (`:1418`) goes the other way and is built as a `std::string`, so
   `StringUtils::appendToStr(double)` renders it — `80.0%`, not `80%`.
 
-Modification counting uses **two different identities** (`:1353-1372`): a
+Modification counting uses **two different identities**
+(`FORMAT/FileInfo.cpp:1353-1372`): a
 terminal modification is counted under `ResidueModification::getId()`, a residue
 modification under `getFullId()`. So an oxidised methionine is
 `Oxidation (M)` while an N-terminal dimethylation is `Dimethyl`, with no origin
@@ -231,8 +232,9 @@ message.
 
 ### 3.3 A peptide identification with no hit
 
-`:1354` reads `getHits()[0]` behind the guard `!id_data.peptides[i].empty()`,
-but `PeptideIdentification::empty()` (`PeptideIdentification.cpp:210-217`) tests
+`FORMAT/FileInfo.cpp:1354` reads `getHits()[0]` behind the guard
+`if (!id_data.peptides[i].empty())` (`:1347`), but
+`PeptideIdentification::empty()` (`PeptideIdentification.cpp:210-217`) tests
 for a *default-constructed object*, not for an empty hit list: an identifier, a
 score type, a non-zero significance threshold or `higher_score_better == false`
 each make it false on their own.
@@ -332,7 +334,7 @@ crashes the reference FileInfo.
    `SOURCE_PROVENANCE.json` with a sha256 and a tier-1 label, and asserted row
    for row by `the_negative_nan_sweep_is_reproduced_row_for_row`.
 
-   *Where it comes from.* `:2310` computes
+   *Where it comes from.* `FORMAT/FileInfo.cpp:2310` computes
    `it_ratio = element_intensity / (centroid_intensity > 0 ? centroid_intensity : 1)`
    and `:2312-2315` replaces every ratio below 1 by its reciprocal, so a
    sub-feature of intensity 0 under a centroid of positive intensity
@@ -400,7 +402,8 @@ crashes the reference FileInfo.
    It is kept here with its measurement, because the measurement is what makes
    the closure checkable.
 
-   *Where it came from.* `:2310-2311` pushes every intensity ratio into
+   *Where it came from.* `FORMAT/FileInfo.cpp:2310-2311` pushes every intensity
+   ratio into
    `it_delta_by_elems` **before** `:2312-2315` inverts the ones below 1, so a
    consensus feature with a sub-feature of intensity `-0.0` and one of `0.0`
    under a positive centroid contributes `-0.0` and `0.0` to the
@@ -457,7 +460,7 @@ crashes the reference FileInfo.
    `intensity: -0.00 .. 100.00` against `intensity: 0.00 .. 100.00`, which the
    same equivalence produces through `std::min` in `updateRanges`; the bare and
    `-out_tsv` reports of both files, byte for byte.
-   `FileInfo.cpp:2257-2372` writes nothing to `os_tsv`, so only the text report
+   `FORMAT/FileInfo.cpp:2257-2372` writes nothing to `os_tsv`, so only the text report
    carries the statistics at all.
 
 ---
@@ -602,7 +605,7 @@ existed only for this difference is gone.
 
 **The same closure for `FileInfo -c`, decision D18.** `-c` refused a NaN MS1
 retention time or peak m/z on the same grounds this section once used: the
-source's `std::sort` leaves the order undefined. `FileInfo.cpp:1927` and `:1956`
+source's `std::sort` leaves the order undefined. `FORMAT/FileInfo.cpp:1927` and `:1956`
 are the same unqualified `sort(v.begin(), v.end())` on a `std::vector<double>`
 that D16 now reproduces — the vectors are declared at `:1863` and `:1942`,
 neither call carries a comparator, and `:47` is `using namespace std;` — so the

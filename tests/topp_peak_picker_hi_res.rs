@@ -1011,7 +1011,7 @@ fn the_low_memory_output_is_indexed_and_its_offsets_land_on_the_records() {
 /// the *stored* spectrum type only - `s.getType()`, the `SpectrumSettings`
 /// accessor `MSSpectrum` re-exposes (`MSSpectrum.h:655`) - where `pickExperiment`
 /// tests `getType(true)`, which falls through to the data-processing history and
-/// then to `PeakTypeEstimator` (`PeakPickerHiRes.cpp:119-124` against `510`).
+/// then to `PeakTypeEstimator` (`OpenMS4-topp/src/PeakPickerHiRes.cpp:119-124` against `510`).
 ///
 /// Workflow 6's input carries `MS:1000525` and neither `MS:1000127` nor
 /// `MS:1000128`, so its stored type is unknown while the estimator calls its 33
@@ -1204,7 +1204,7 @@ fn derived(name: &str, from: &Path, rule: impl FnOnce(&str) -> String) -> (PathB
 
 /// A corrupt input is a corrupt input in **both** process options.
 ///
-/// `doLowMemAlgorithm` catches nothing (`PeakPickerHiRes.cpp:170-186`), so a
+/// `doLowMemAlgorithm` catches nothing (`OpenMS4-topp/src/PeakPickerHiRes.cpp:170-186`), so a
 /// reader failure leaves `MzMLFile::transform` and reaches `TOPPBase::main`,
 /// whose `ParseError` arm writes `Error: Unable to read file (…)` and returns
 /// `INPUT_FILE_CORRUPT` (`TOPPBase.cpp:460-465`) — the same arm the in-memory
@@ -1439,7 +1439,7 @@ fn per_peak_ion_mobility_warns_and_reports_the_weighted_mobility() {
 
 /// A diagnostic the input checks write survives a refusal raised later in the
 /// run, because it reaches the real stream where the source writes it
-/// (`PeakPickerHiRes.cpp:222-226`, before picking) rather than being collected
+/// (`OpenMS4-topp/src/PeakPickerHiRes.cpp:222-226`, before picking) rather than being collected
 /// and written at the end.
 ///
 /// The per-peak ion mobility input of `im_peak` with the `auto_mode 1` refusal
@@ -1484,7 +1484,7 @@ fn a_refusal_after_the_input_checks_keeps_the_ion_mobility_warning() {
 }
 
 /// The per-MS-level summary is written where the source writes it — after
-/// picking and **before** the output is stored (`PeakPickerHiRes.cpp:559-563`,
+/// picking and **before** the output is stored (`CENTROIDING/PeakPickerHiRes.cpp:559-563`,
 /// then `:571`) — so a run whose store fails still reports what it picked.
 ///
 /// The store is made to fail with an `-out` that is an existing directory: the

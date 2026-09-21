@@ -1282,7 +1282,7 @@ fn extend_seed<L: LogSink>(
         Ok(feature) => feature,
         Err(what) => {
             // The source has written this seed's log lines and debug files
-            // (`:717`) before `:790` throws.
+            // (`FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:717`) before `:790` throws.
             return Ok(SeedOutcome {
                 plot_nr_used: true,
                 result: Err(String::new()),
