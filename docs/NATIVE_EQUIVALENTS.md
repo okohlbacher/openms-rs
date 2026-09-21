@@ -6,7 +6,44 @@ sections were re-reviewed member by member at
 `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (see
 [kernel_gap_closures_provenance.json](../tests/data/kernel_gap_closures_provenance.json)). A `native_equivalent` ledger entry
 means that Rust's existing types and standard library provide the header's data
-and container operations. It does not promise C++ symbol names, binary layout,
+and container operations.
+
+## What the tier means, decided 2026-09-21
+
+The tier drifted: it was defined here for seven alias-and-container headers, and
+grew to carry **90** ledger entries, **89 of which have Rust files** — although
+the definition means Rust's own types already do the job. Because
+`tools/core_sdk_coverage.py` filters `native_equivalent` out of open work
+*identically to* `complete`, that drift inflated the apparent completion of the
+port. The lead's decision, in one sentence:
+
+> **`native_equivalent` means the Rust language and its standard library
+> discharge the header, with no port owed and no third-party crate required.**
+
+Consequences, and why this line and not another:
+
+- **A crate is not the standard library.** Where a crate discharges a header, a
+  port exists and its implementation happens to be a dependency; it takes
+  `complete` or `partial` on member coverage, and the crate is recorded in
+  [THIRD_PARTY_CRATE_DECISIONS](THIRD_PARTY_CRATE_DECISIONS.md) under the
+  crates-first policy. The distinction that matters to a planner is whether
+  work is owed, and a dependency is a decision and a maintenance surface in a
+  way `Vec<T>` replacing a container alias is not. `native_equivalent` bypasses
+  the recorded-decision requirement, which is reason enough not to stretch it.
+- **A header with any unported member is not `native_equivalent`**, whatever
+  discharges the rest; it is `partial` with the member named.
+- Applied on the day of the decision: `FORMAT/Base64.h` → `partial` (the
+  `base64` crate, and the private SIMD encoder/decoder pair has no port),
+  `FORMAT/ZlibCompression.h` → `complete` (the `flate2` crate, all four members
+  covered), `CONCEPT/Macros.h` → `partial` (it flagged itself as outside this
+  document's seven and concedes `OPENMS_THREAD_CRITICAL` is unported).
+  `DATASTRUCTURES/MapUtilities.h` stays `native_equivalent`: a CRTP mixin of
+  four pure traversal templates, no state, no crate.
+
+**The 90 entries that predate this decision have not been re-audited against
+it.** That audit is open work, not a claim this document makes; until it is
+done, the `native_equivalent` count should be read as an upper bound on how
+much is genuinely owed nothing. It does not promise C++ symbol names, binary layout,
 allocator behavior, template inheritance, invalid iterator behavior, or identical
 observability of moved-from objects. It also does not certify the complete APIs
 of the domain classes stored in those containers.

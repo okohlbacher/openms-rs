@@ -7,8 +7,8 @@
     "by_status": {
       "complete": 125,
       "evidence_requires_review": 23,
-      "native_equivalent": 94,
-      "partial": 135,
+      "native_equivalent": 91,
+      "partial": 138,
       "unmapped": 409
     },
     "topp_sources": 124,
@@ -1794,9 +1794,9 @@
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h",
       "sha256": "835e9bb87beaaba121abf96e92fdbaf73642180f14c8c453ceb59466ee436056",
       "domain": "ANALYSIS",
-      "status": "complete",
+      "status": "partial",
       "review": {
-        "status": "complete",
+        "status": "partial",
         "rust": [
           "src/processing/chromatogram.rs"
         ],
@@ -1805,7 +1805,7 @@
           "tests/chromatogram_processing_reference.rs"
         ],
         "documentation": "docs/CHROMATOGRAM_PICKING_SUPPORT.md",
-        "scope": "Complete: one pick_chromatogram returns what both source overloads produce - the picked chromatogram and the smoothed trace - and its picked record carries the five FLOATINDICES arrays in source order and under the source names (FWHM, IntegratedIntensity, leftWidth, rightWidth, SN), with SN filled with -1 unless report_sn is set or signal_to_noise exceeds zero. Both native methods are ported: legacy finds boundaries on the raw signal, corrected on the smoothed one while integrating raw intensities. Gaussian and Savitzky-Golay smoothing (including the source's increment of an even frame length), PeakPickerHiRes seeding at its own fixed S/N 1 and 200 s noise window independent of the boundary settings, peak_width boundary extension, the median noise estimator at the source's 1000 s window, and overlapping-peak removal all follow the pinned implementation. The Crawdad path is deliberately absent: it is a WITH_CRAWDAD-conditional wrapper around an external library, and neither native method is presented as reproducing it. Native: a PickingCompatibility switch names the exact source behaviours (duplicate retention times, negative intensities) the default refuses, boundary indices into the original sampling replace the f32-rounded leftWidth/rightWidth metadata for callers that need full precision, and the picker never modifies its input."
+        "scope": "Complete: one pick_chromatogram returns what both source overloads produce - the picked chromatogram and the smoothed trace - and its picked record carries the five FLOATINDICES arrays in source order and under the source names (FWHM, IntegratedIntensity, leftWidth, rightWidth, SN), with SN filled with -1 unless report_sn is set or signal_to_noise exceeds zero. Both native methods are ported: legacy finds boundaries on the raw signal, corrected on the smoothed one while integrating raw intensities. Gaussian and Savitzky-Golay smoothing (including the source's increment of an even frame length), PeakPickerHiRes seeding at its own fixed S/N 1 and 200 s noise window independent of the boundary settings, peak_width boundary extension, the median noise estimator at the source's 1000 s window, and overlapping-peak removal all follow the pinned implementation. The Crawdad path is deliberately absent: it is a WITH_CRAWDAD-conditional wrapper around an external library, and neither native method is presented as reproducing it. Native: a PickingCompatibility switch names the exact source behaviours (duplicate retention times, negative intensities) the default refuses, boundary indices into the original sampling replace the f32-rounded leftWidth/rightWidth metadata for callers that need full precision, and the picker never modifies its input. Lead decision 2026-09-21: downgraded from complete by adversarial verification. Not ported and not previously named: updateMembers_ (declared at PeakPickerChromatogram.h:114), the inherited DefaultParamHandler surface (getDefaults/getParameters/setParameters and the eleven parameter names, defaults and descriptions - no ported TOPP tool re-declares them), the write_sn_log_messages_ field, and the protected copy assignment operator. This is the same crate-wide absence of a DefaultParamHandler trait for which NLargest.h, Normalizer.h and three CHEMISTRY headers are partial."
       },
       "candidate_rust_files": [
         "src/processing/chromatogram.rs"
@@ -4786,9 +4786,9 @@
       "header": "src/openms/include/OpenMS/CONCEPT/Macros.h",
       "sha256": "90d8f9cd59f9248df8df8b60d2c2f71e415f0688a31b6fd7f5d3fd9b9590ed82",
       "domain": "CONCEPT",
-      "status": "native_equivalent",
+      "status": "partial",
       "review": {
-        "status": "native_equivalent",
+        "status": "partial",
         "rust": [
           "src/concept/parallel.rs"
         ],
@@ -4796,7 +4796,7 @@
           "tests/topp_threads.rs"
         ],
         "documentation": "docs/BENCHMARKS.md",
-        "scope": "Flagged for the lead: this header is NOT one of the seven that docs/NATIVE_EQUIVALENTS.md defines the tier for, and it is claimed here on a narrow argument. The header declares no type and no function -- only four preprocessor macros, and Rust's own facilities answer each with no port owed. STRINGIFY(a) is std::stringify!, used in the crate. OPENMS_PRECONDITION and OPENMS_POSTCONDITION expand to a throw only under OPENMS_ASSERTIONS; the pinned Release build this port is differentially compared against sets `#if (0) #define OPENMS_ASSERTIONS` (docs/BENCHMARKS.md:42), so both expand to nothing in every measured configuration, and the port's standing rule is that a Debug-only precondition never becomes a Rust expectation (docs/EARLY_TOPP_WORK_PACKAGES.md:30; the ProgressLogger row 087ebd6 removed a refusal that had been derived from one). Rust's debug_assert!/debug_assert_eq! is the exact counterpart for the internal-invariant use and is used where the port wants one. OPENMS_THREAD_CRITICAL(name) wraps `#pragma omp critical`; the port has no OpenMP, and src/concept/parallel.rs states the design that replaces the source's ~90 critical sections and 11 atomic updates -- rayon behind the `parallel` feature with per-worker state and an ordered merge, whose results must be bit-identical to the serial ones (tests/topp_threads.rs checks that at 1, 2, 4, 8 and 32 workers). That is a different construction rather than an equivalent macro, and it is the one part of this header a reviewer could reasonably call unported. Nothing else in the header is left unrepresented, and there is no Rust file that 'ports Macros.h'."
+        "scope": "Flagged for the lead: this header is NOT one of the seven that docs/NATIVE_EQUIVALENTS.md defines the tier for, and it is claimed here on a narrow argument. The header declares no type and no function -- only four preprocessor macros, and Rust's own facilities answer each with no port owed. STRINGIFY(a) is std::stringify!, used in the crate. OPENMS_PRECONDITION and OPENMS_POSTCONDITION expand to a throw only under OPENMS_ASSERTIONS; the pinned Release build this port is differentially compared against sets `#if (0) #define OPENMS_ASSERTIONS` (docs/BENCHMARKS.md:42), so both expand to nothing in every measured configuration, and the port's standing rule is that a Debug-only precondition never becomes a Rust expectation (docs/EARLY_TOPP_WORK_PACKAGES.md:30; the ProgressLogger row 087ebd6 removed a refusal that had been derived from one). Rust's debug_assert!/debug_assert_eq! is the exact counterpart for the internal-invariant use and is used where the port wants one. OPENMS_THREAD_CRITICAL(name) wraps `#pragma omp critical`; the port has no OpenMP, and src/concept/parallel.rs states the design that replaces the source's ~90 critical sections and 11 atomic updates -- rayon behind the `parallel` feature with per-worker state and an ordered merge, whose results must be bit-identical to the serial ones (tests/topp_threads.rs checks that at 1, 2, 4, 8 and 32 workers). That is a different construction rather than an equivalent macro, and it is the one part of this header a reviewer could reasonably call unported. Nothing else in the header is left unrepresented, and there is no Rust file that 'ports Macros.h'. Lead decision 2026-09-21: recorded partial rather than native_equivalent. The entry flagged itself as outside the seven headers docs/NATIVE_EQUIVALENTS.md defines the tier for, and it concedes OPENMS_THREAD_CRITICAL is unported, so work is owed."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -6747,9 +6747,9 @@
       "header": "src/openms/include/OpenMS/FORMAT/Base64.h",
       "sha256": "d125c893282cf9822635e4e2e676163b20e7e70f28d9966567ca8232b4f84cc4",
       "domain": "FORMAT",
-      "status": "native_equivalent",
+      "status": "partial",
       "review": {
-        "status": "native_equivalent",
+        "status": "partial",
         "rust": [
           "src/format/mzml.rs",
           "src/format/mzxml.rs",
@@ -6764,7 +6764,7 @@
           "tests/numpress_coder.rs"
         ],
         "documentation": "docs/MZML_SUPPORT.md",
-        "scope": "The `base64 =0.22` crate's GeneralPurpose engine plus `flate2` discharge the whole class; there is no `Base64` type here and none is wanted. Every declared member has its caller-side counterpart: `encode`/`decode` are the f32/f64 peak-array paths of `mzml.rs` (little endian) and `mzxml.rs` (`byteOrder=\"network\"`, big endian), so the `ByteOrder` enum, `endianize32/64` and the `invertEndianess` specialisations are `f64::from_le_bytes`/`from_be_bytes` and their f32/i32/i64 siblings, chosen at the call site with no runtime swap; `mzdata.rs` carries the source's own `endian` attribute classification, where every spelling other than \"big\" reads as little (`Endian::parse`). `encodeIntegers`/`decodeIntegers` are the signed i32/i64 auxiliary arrays of `mzml.rs`; `encodeStrings`/`decodeStrings`/`decodeSingleString` are the `MS:1001479` NUL-terminated ASCII string arrays, which keep an empty element aligned with its peak where the source decoder drops an empty token. `zlib_compression` is `flate2` on the same paths, in bounded 8 KiB chunks with overrun detection and full-input consumption required. The private SIMD encoder/decoder pair has no port: `stringSimdDecoder_` is the measured 2.03x gap in docs/THIRD_PARTY_CRATE_DECISIONS.md, where `base64-simd` is recorded as measured but not adopted, since the crate is `#![forbid(unsafe_code)]` and the benchmark build is `--locked --offline`. NOT CLAIMED: a free `Base64` facade a caller could reach for an arbitrary buffer, and byte-identical compressed output across zlib implementations."
+        "scope": "The `base64 =0.22` crate's GeneralPurpose engine plus `flate2` discharge the whole class; there is no `Base64` type here and none is wanted. Every declared member has its caller-side counterpart: `encode`/`decode` are the f32/f64 peak-array paths of `mzml.rs` (little endian) and `mzxml.rs` (`byteOrder=\"network\"`, big endian), so the `ByteOrder` enum, `endianize32/64` and the `invertEndianess` specialisations are `f64::from_le_bytes`/`from_be_bytes` and their f32/i32/i64 siblings, chosen at the call site with no runtime swap; `mzdata.rs` carries the source's own `endian` attribute classification, where every spelling other than \"big\" reads as little (`Endian::parse`). `encodeIntegers`/`decodeIntegers` are the signed i32/i64 auxiliary arrays of `mzml.rs`; `encodeStrings`/`decodeStrings`/`decodeSingleString` are the `MS:1001479` NUL-terminated ASCII string arrays, which keep an empty element aligned with its peak where the source decoder drops an empty token. `zlib_compression` is `flate2` on the same paths, in bounded 8 KiB chunks with overrun detection and full-input consumption required. The private SIMD encoder/decoder pair has no port: `stringSimdDecoder_` is the measured 2.03x gap in docs/THIRD_PARTY_CRATE_DECISIONS.md, where `base64-simd` is recorded as measured but not adopted, since the crate is `#![forbid(unsafe_code)]` and the benchmark build is `--locked --offline`. NOT CLAIMED: a free `Base64` facade a caller could reach for an arbitrary buffer, and byte-identical compressed output across zlib implementations. Lead decision 2026-09-21: native_equivalent means the Rust language and its standard library discharge the header, with no port owed and no third-party crate required. This header is discharged by a crate, which is a port whose implementation is a dependency, so it is recorded on member coverage instead. Partial rather than complete because the private SIMD encoder/decoder pair has no port."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -9972,9 +9972,9 @@
       "header": "src/openms/include/OpenMS/FORMAT/ZlibCompression.h",
       "sha256": "6092b3e699de1f0a89ba08513008f71a13e8f4a781ef17ed8f1a367243446883",
       "domain": "FORMAT",
-      "status": "native_equivalent",
+      "status": "complete",
       "review": {
-        "status": "native_equivalent",
+        "status": "complete",
         "rust": [
           "src/format/mzml.rs",
           "src/format/numpress_coder.rs",
@@ -9985,7 +9985,7 @@
           "tests/numpress_coder.rs"
         ],
         "documentation": "docs/MZML_SUPPORT.md",
-        "scope": "`flate2 =1.1` discharges the static utility class outright, so no `ZlibCompression` type exists. `compressString`/`compressData` are the `ZlibEncoder` writes of the mzML and Numpress encoders; `uncompressData`/`uncompressString` are their `Decompress`/`FlushDecompress` reads. The source's two decompression paths (iterative when `output_size == 0`, single preallocated buffer when it is known) collapse into one bounded 8 KiB chunked loop that requires a complete stream with a matching checksum and full input consumption, so trailing or concatenated compressed data is rejected rather than silently accepted; the source's gzip-framing refusal is kept, and `path_io::open` separately sniffs gzip/bzip2 magic for whole-file input. NATIVE, deliberate: the source's OutOfMemory / InvalidValue / ConversionError / InternalToolError quartet becomes checked `Error` values against a declared ceiling rather than worst-case `compressBound` allocation, and the informational log line the source writes when the actual size is below `output_size` has no counterpart. NOT CLAIMED: byte-identical compressed output \u2014 the compressed bytes may differ from the source's zlib while decompressing identically."
+        "scope": "`flate2 =1.1` discharges the static utility class outright, so no `ZlibCompression` type exists. `compressString`/`compressData` are the `ZlibEncoder` writes of the mzML and Numpress encoders; `uncompressData`/`uncompressString` are their `Decompress`/`FlushDecompress` reads. The source's two decompression paths (iterative when `output_size == 0`, single preallocated buffer when it is known) collapse into one bounded 8 KiB chunked loop that requires a complete stream with a matching checksum and full input consumption, so trailing or concatenated compressed data is rejected rather than silently accepted; the source's gzip-framing refusal is kept, and `path_io::open` separately sniffs gzip/bzip2 magic for whole-file input. NATIVE, deliberate: the source's OutOfMemory / InvalidValue / ConversionError / InternalToolError quartet becomes checked `Error` values against a declared ceiling rather than worst-case `compressBound` allocation, and the informational log line the source writes when the actual size is below `output_size` has no counterpart. NOT CLAIMED: byte-identical compressed output \u2014 the compressed bytes may differ from the source's zlib while decompressing identically. Lead decision 2026-09-21: native_equivalent means the Rust language and its standard library discharge the header, with no port owed and no third-party crate required. This header is discharged by a crate, which is a port whose implementation is a dependency, so it is recorded on member coverage instead. Complete: all four declared members have a caller-side counterpart."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -17896,6 +17896,7 @@
       ],
       "open_sdk_headers": [
         "OpenMS/DATASTRUCTURES/StringUtils.h",
+        "OpenMS/FORMAT/Base64.h",
         "OpenMS/FORMAT/QcMLFile.h"
       ],
       "workflow_validated": false
