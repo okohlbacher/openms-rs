@@ -19,7 +19,7 @@
 use crate::cli::{ExitCode, PoolLines, Tool, ToolContext, ToolResult, ToolSpec};
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
-use crate::kernel::SpectrumType;
+use crate::kernel::{MSSpectrum, SpectrumType, SpectrumTypeQueryLimits};
 use crate::metadata::ProcessingAction;
 use crate::processing::SpectrumFilter;
 use crate::processing::baseline::{MorphologicalFilter, MorphologicalMethod, StructuringElement};
@@ -126,6 +126,34 @@ impl Tool for BaselineFilter {
     }
 }
 
+/// Source `ms_exp[0].getType(true)` (`BaselineFilter.cpp:112`): the stored
+/// type, else a `PEAK_PICKING` record in the processing history, else the peak
+/// type estimation.
+///
+/// It only decides whether the source warns, so it never ends the run. The
+/// query's ceilings are the spectrum's own size: the spectrum is in memory
+/// already, and the estimation copies its two value arrays once, so no ceiling
+/// refuses a spectrum the reader admitted (the library default stops at a
+/// million points). A spectrum holding a non-finite value, which the native
+/// estimator declines to classify, is not warned about; the source classifies
+/// it by whatever its arithmetic on the value gives.
+fn first_spectrum_type(spectrum: &MSSpectrum) -> SpectrumType {
+    let points = spectrum.peaks.len();
+    let records = spectrum.data_processing.len();
+    let limits = SpectrumTypeQueryLimits {
+        max_points: points,
+        // 32 units per point for the estimation, and at most 1 + 12 * 64 per
+        // history record (`MSSpectrum::get_type_with_limits`).
+        max_work: points
+            .saturating_mul(32)
+            .saturating_add(records.saturating_mul(1 + 12 * 64)),
+        max_bytes: points.saturating_mul(2 * std::mem::size_of::<f64>()),
+    };
+    spectrum
+        .get_type_with_limits(true, limits)
+        .unwrap_or(SpectrumType::Unknown)
+}
+
 /// Source warning for an input without spectra (`BaselineFilter.cpp:107-108`);
 /// the warning log stream ends the line.
 const EMPTY_INPUT_WARNING: &str = "The given file does not contain any conventional peak data, but might contain chromatograms. This tool currently cannot handle them, sorry.";
@@ -141,9 +169,7 @@ impl BaselineFilter {
             lines.console_warning(EMPTY_INPUT_WARNING);
             return Ok(ExitCode::IncompatibleInputData);
         }
-        // `ms_exp[0].getType(true)`: the stored type, else the processing
-        // history, else the peak type estimation.
-        if experiment.spectra[0].get_type(true)? == SpectrumType::Centroid {
+        if first_spectrum_type(&experiment.spectra[0]) == SpectrumType::Centroid {
             lines.warn(
                 ctx,
                 "Warning: OpenMS peak type estimation indicates that this is not raw data!",
