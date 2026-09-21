@@ -1,0 +1,1 @@
+Unable to initialize or run BaselineFilter: the value '/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/share/openms4/tools/topp.tools.tsv: BaselineFilter	Spectrum Processing: Peak Smoothing and Normalization	1.0.0	bin/BaselineFilter' was used but is not valid; Invalid or duplicate tool package manifest entry

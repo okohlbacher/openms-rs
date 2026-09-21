@@ -1,0 +1,44 @@
+
+[7mPeakPickerHiRes[27m -- Finds mass spectrometric peaks in profile mass 
+spectra.
+[1mFull documentation: [22m[4mhttp://www.openms.de/doxygen/release/4.0.0/html/T
+OPP_PeakPickerHiRes.html[24m
+[1mVersion: [22m1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
+[1mTo cite OpenMS:
+[22m + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reprod
+   ucible analysis of large-scale mass spectrometry data. Nat Methods
+    (2024). doi:10.1038/s41592-024-02197-7.
+
+[7mUsage:[27m
+  [1mPeakPickerHiRes[22m <options>
+
+This tool has algorithm parameters that are not shown here! Please 
+check the ini file for a detailed description or use the --helphelp 
+option
+
+[1mOptions[22m ([92mmandatory options marked with '*'[39m):
+[92m  -in <file>*        [39mInput profile data file [96m[39m[95m (valid formats: 'mzML')[39m
+
+[92m  -out <file>*       [39mOutput peak file [96m[39m[95m (valid formats: 'mzML')[39m
+                     [96m[39m[95m[39m
+Common TOPP options:
+  -ini <file>        Use the given TOPP INI file[96m[39m[95m[39m
+  -threads <n>       Sets the number of threads allowed to be used 
+                     by the TOPP tool (0 = all available cores)[96m (defa
+                     ult: '1')[39m[95m[39m
+  -write_ini <file>  Writes the default configuration file[96m[39m[95m[39m
+  --help             Shows options[96m[39m[95m[39m
+  --helphelp         Shows all options (including advanced)[96m[39m[95m[39m
+
+The following configuration subsections are valid:
+ - algorithm   Algorithm parameters section
+
+You can write an example INI file using the '-write_ini' option.
+Documentation of subsection parameters can be found in the doxygen 
+documentation or the INIFileEditor.
+For more information, please consult the online documentation for 
+this tool:
+  - [4mhttp://www.openms.de/doxygen/release/4.0.0/html/TOPP_PeakPickerHi
+Res.html[24m
+
+[0m

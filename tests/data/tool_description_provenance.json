@@ -1,0 +1,141 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/ToolDescription.h",
+   "sha256": "2d4683eed289fd04e91a14293c7a716e08856dcbbc6ff7bb0c697beabf68c894"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/ToolDescription.cpp",
+   "sha256": "b1d16093c2eb687e538440f0d2f73d0509a67caf1fa781f49dbe0732bea16d1e"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/ToolInfo.h",
+   "sha256": "3e35e3c89d1f96deb91ee8873b090fef29ff6c1e5c5705fc2d4e64cd4b508058"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ParamCTDFile.h",
+   "sha256": "daea37a67214e91fe19c96f5eb3f7d886016d12159a7e9ccd782de462da1908d"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ParamCTDFile.cpp",
+   "sha256": "64e157caf2647a018a9e5f6a2484b53556d8a2b86184bfdb03cff686e29a2b13"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ToolDescriptionFile.h",
+   "sha256": "fd1024f8d18915056fb5818c5494440f2f506b682949a910134dbffe369b1528"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ToolDescriptionFile.cpp",
+   "sha256": "9f3343e69cdf928fe845ed7c1df7dca42821c0e2ea958102fae2d7cfd7663514"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/ToolDescriptionHandler.h",
+   "sha256": "ff381f91e846ff26dee36554a3156033651ac77d070df98df2167d3b98ca045b"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ToolDescriptionHandler.cpp",
+   "sha256": "9180c41d3fdac589dfd1c89392254988a1b2d0cead2bcb40091f219366bb4499"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ToolDescription_test.cpp",
+   "sha256": "cf7fbfb0ee85ca8bf8ca722f7a22c800f15cd51115fc3686149986f845ebe26b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ToolDescriptionFile_test.cpp",
+   "sha256": "48685df44a8fd9c690e593b448bd5dae1b0afe234f3df900c5c8b01ea94a3612"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ParamCTDFile_test.cpp",
+   "sha256": "872ffe43edb9306e7e20242113141d7d2aadcba14e2c6614491734511e2548c7"
+  }
+ ],
+ "native_implementation": [
+  "src/data_structures/tool_description.rs",
+  "src/data_structures/tool_info.rs",
+  "src/cli/param_ctd.rs",
+  "src/cli/tool_description_file.rs"
+ ],
+ "native_tests": [
+  "tests/tool_description.rs",
+  "tests/param_ctd.rs",
+  "tests/topp_cli_completion.rs"
+ ],
+ "support_document": "docs/TOPP_CLI_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/param_ctd/ParamCTDFile_test_writeCTDToStream.ctd",
+   "sha256": "6d2c20fad7ca9459a4dbf52ab9b31926169f5658722955bfd21c52124b106175",
+   "kind": "retained C++ output, src/tests/class_tests/openms/data at core bc9cc12, unchanged"
+  },
+  {
+   "path": "tests/data/tool_handler/ToolDescriptionFile_test_1.ttd",
+   "sha256": "259248542b24a6a2335a78562c59b4406c23a1d33459e6407297aaa3aeb6fb7f",
+   "kind": "upstream class-test input, core bc9cc12, unchanged"
+  },
+  {
+   "path": "tests/data/tool_handler/ToolDescriptionFile_test_2.ttd",
+   "sha256": "df3f0699b9edd8edce519025095f13c10f07868386782cbb7539c3ca60dec866",
+   "kind": "upstream class-test input, core bc9cc12, unchanged"
+  },
+  {
+   "path": "tests/data/param_ctd/oracle/empty.ctd",
+   "sha256": "982e2092b1b4c8d6f5f9f62ad322889534898f5174c65c7e242ff184854c5855",
+   "kind": "executed: written by the Release libOpenMS through ../oracle/toppbase-completion/ctd_driver.cpp"
+  },
+  {
+   "path": "tests/data/param_ctd/oracle/escaping.ctd",
+   "sha256": "8f61d73014578c992eda57fc2cc41e2cbfb4a4f2a0823e2045b30ba399dc7906",
+   "kind": "executed: written by the Release libOpenMS through ../oracle/toppbase-completion/ctd_driver.cpp"
+  },
+  {
+   "path": "tests/data/param_ctd/oracle/nested_only.ctd",
+   "sha256": "a4abec8aa2975eac544e12a339ab5eaa8d3fd0fd0b7450de916b19635c3c4a44",
+   "kind": "executed: written by the Release libOpenMS through ../oracle/toppbase-completion/ctd_driver.cpp"
+  },
+  {
+   "path": "tests/data/param_ctd/oracle/numbers.ctd",
+   "sha256": "29e4747732001b5d35959d0970889b0381bfb764bd2817246563c2e3a470416a",
+   "kind": "executed: written by the Release libOpenMS through ../oracle/toppbase-completion/ctd_driver.cpp"
+  },
+  {
+   "path": "tests/data/param_ctd/oracle/types.ctd",
+   "sha256": "53257317d25ae8a0624f9044ef881efd10d49ad09089e6a2a588d03d001ed0f7",
+   "kind": "executed: written by the Release libOpenMS through ../oracle/toppbase-completion/ctd_driver.cpp"
+  }
+ ],
+ "cpp_probe": {
+  "execution": true,
+  "scientific_source_modified": false,
+  "host": "ibminode06 (Ubuntu 24.04.4, AMD EPYC 7763)",
+  "install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "libOpenMS_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+  "flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+  "runs": 2,
+  "runs_identical": true,
+  "cases": 5
+ },
+ "class_test_review": {
+  "ToolDescription_test.cpp": "the constructor/destructor section transcribed; its two remaining sections are // TODO upstream, covered by tier-4 cases derived from ToolDescription.cpp",
+  "ToolDescriptionFile_test.cpp": "load section transcribed; store expects NotImplemented and store is not ported",
+  "ParamCTDFile_test.cpp": "all five sections transcribed; writeCTDToStream against the retained file (TEST_FILE_EQUAL, compared exactly after removing the file's CRLF line ends)"
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/toppbase-completion/ctd_driver.cpp",
+   "sha256": "548b16d88928c5db2ca801d66b26b2fa6e034585d6d10f05eac9d566ede50668",
+   "origin_key": "cpp_probe",
+   "role": "oracle driver"
+  },
+  {
+   "path": "../oracle/toppbase-completion/ctd_driver.sh",
+   "sha256": "d1db963258276a73379ca231e93804ed6d459d1ca3f62aaa84995a893be69650",
+   "origin_key": "cpp_probe",
+   "role": "build and run script"
+  }
+ ],
+ "external_reference_note": "The CTD oracle driver and its build script live under ../oracle/toppbase-completion (no C++ in this repository); only the documents it wrote are retained here.",
+ "target_verification": "cargo test --features paramxml --test tool_description --test param_ctd; cargo test --features mzml,paramxml,featurexml --test topp_cli_completion"
+}

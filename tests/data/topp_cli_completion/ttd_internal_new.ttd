@@ -1,0 +1,8 @@
+<ttd>
+  <tool status="internal">
+    <name>__TTDProbe</name>
+    <category>Probe Category</category>
+    <type>first</type>
+    <type>second</type>
+  </tool>
+</ttd>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="1.2.3" name="Probe" docurl="http://example.org/doc?a=1&b=2" category="Cat & "Dog" <x>" >
+<description><![CDATA[Desc with <b>markup</b> & ]]> end]]></description>
+<manual><![CDATA[Desc with <b>markup</b> & ]]> end]]></manual>
+<citations>
+  <citation doi="10.1/abc" url="" />
+  <citation doi="https://doi.org/x?y=1&z=2" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ITEM name="amp" value="a&amp;b" type="string" description="one &amp; two" required="false" advanced="false" />
+  <ITEM name="amp2" value="a&amp;&b" type="string" description="two &amp;& adjacent" required="false" advanced="false" />
+  <ITEM name="amp3" value="&amp;&&amp;" type="string" description="three &amp;&&amp;" required="false" advanced="false" />
+  <ITEM name="mixed" value="&lt;&gt;&quot;&apos;&amp;" type="string" description="all &lt;&gt;&quot;&apos;&amp; five" required="false" advanced="false" />
+  <ITEM name="gtgt" value="&gt;>" type="string" description="&gt;>" required="false" advanced="false" />
+  <ITEM name="quotes" value="&quot;"" type="string" description="&apos;'" required="false" advanced="false" />
+  <ITEM name="tab" value="a&amp;#x9;b" type="string" description="tab in value" required="false" advanced="false" />
+  <ITEM name="tab2" value="a&amp;#x9;	b" type="string" description="two tabs" required="false" advanced="false" />
+  <ITEM name="newline" value="x" type="string" description="line1#br#line2" required="false" advanced="false" />
+  <ITEM name="newline2" value="x" type="string" description="line1#br#
+line3" required="false" advanced="false" />
+  <ITEM name="newline3" value="x" type="string" description="#br#
+#br#" required="false" advanced="false" />
+  <ITEM name="utf8" value="äöü" type="string" description="€ &amp; ß" required="false" advanced="false" />
+  <NODE name="list" description="section &lt;desc&gt;#br#
+with &amp; newlines">
+    <ITEMLIST name="tabs" type="string" description="list desc" required="false" advanced="false" >
+      <LISTITEM value="a&amp;#x9;b"/>
+      <LISTITEM value="c&amp;#x9;	d"/>
+      <LISTITEM value="e&amp;f"/>
+      <LISTITEM value="g&amp;&h"/>
+    </ITEMLIST>
+  </NODE>
+  <NODE name="names" description="">
+    <ITEM name="a&amp;b" value="1" type="int" description="name with amp" required="false" advanced="false" />
+  </NODE>
+</PARAMETERS>
+</tool>

@@ -1,0 +1,42 @@
+stty: 'standard input': Inappropriate ioctl for device
+
+FileInfo -- Shows basic information about the file, such as data ranges and file type.
+Full documentation: http://www.openms.de/doxygen/release/4.0.0/html/TOPP_FileInfo.html
+Version: 1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data. Nat Methods (2024). doi:10.1038/s41592-024-02197-7.
+
+Usage:
+  FileInfo <options>
+
+Options (mandatory options marked with '*'):
+  -in <file>*                   Input file (valid formats: 'mzData', 'mzXML', 'mzML', 'sqMass', 'dta', 'dta2d', 'mgf', 'featureXML', 'consensusXML', 'idXML', 'pepXML', 'mzTab', 'fid', 'mzid', 'trafoXML', 'fasta', 'pqp')
+  -in_type <type>               Input file type -- default: determined from file extension or content (valid: 'mzData', 'mzXML', 'mzML', 'sqMass', 'dta', 'dta2d', 'mgf', 'featureXML', 'consensusXML', 'idXML', 'pepXML', 'mzTab', 'fid', 'mzid', 'trafoXML', 'fasta', 'pqp')
+  -out <file>                   Optional output file. If left out, the output is written to the command line. (valid formats: 'txt')
+  -out_tsv <file>               Second optional output file. Tab separated flat text file. (valid formats: 'tsv')
+  -m                            Show meta information about the whole experiment
+  -p                            Shows data processing information
+  -s                            Computes a five-number statistics of intensities, qualities, and widths
+  -d                            Show detailed listing of all spectra and chromatograms (peak files only)
+  -c                            Check for corrupt data in the file (peak files only)
+  -v                            Validate the file only (for mzML, mzData, mzXML, featureXML, idXML, consensusXML, pepXML)
+  -i                            Check whether a given mzML file contains valid indices (conforming to the indexedmzML standard)
+                                
+Common TOPP options:
+  -ini <file>                   Use the given TOPP INI file
+  -log <file>                   Name of log file (created only when specified)
+  -instance <n>                 Instance number for the TOPP INI file (default: '1')
+  -debug <n>                    Sets the debug level (default: '0')
+  -threads <n>                  Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores) (default: '1')
+  -write_ini <file>             Writes the default configuration file
+  -write_ctd <out_dir>          Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>
+  -write_nested_cwl <out_dir>   Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>
+  -write_cwl <out_dir>          Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>, but enforce a flat parameter hierarchy
+  -write_nested_json <out_dir>  Writes the default configuration file
+  -write_json <out_dir>         Writes the default configuration file, but compatible to the flat hierarchy
+  -no_progress                  Disables progress logging to command line
+  -force                        Overrides tool-specific checks
+  -test                         Enables the test mode (needed for internal use only)
+  --help                        Shows options
+  --helphelp                    Shows all options (including advanced)
+

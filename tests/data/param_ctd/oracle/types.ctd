@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="" name="" docurl="" category="" >
+<description><![CDATA[]]></description>
+<manual><![CDATA[]]></manual>
+<citations>
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ITEM name="in" value="" type="input-file" description="in" required="true" advanced="false" supported_formats="*.mzML,*.mzXML" />
+  <ITEM name="exe" value="java" type="input-file" description="exe" required="false" advanced="false" tags="is_executable" />
+  <ITEM name="out" value="x.mzML" type="output-file" description="out" required="false" advanced="true" supported_formats="*.mzML" />
+  <ITEM name="prefix" value="p" type="output-prefix" description="prefix" required="false" advanced="false" supported_formats="*.mgf" />
+  <ITEM name="dir" value="d" type="output-dir" description="dir" required="false" advanced="false" />
+  <ITEMLIST name="ins" type="input-file" description="ins" required="false" advanced="false" supported_formats="*.mzML" >
+    <LISTITEM value="a.mzML"/>
+    <LISTITEM value="b.mzML"/>
+  </ITEMLIST>
+  <ITEMLIST name="outs" type="output-file" description="outs" required="true" advanced="false" >
+  </ITEMLIST>
+  <ITEMLIST name="plain_list" type="string" description="plain" required="false" advanced="true" tags="alpha,zeta" restrictions="x,y" >
+    <LISTITEM value="x"/>
+  </ITEMLIST>
+  <ITEM name="flag" value="false" type="bool" description="flag" required="false" advanced="false" />
+  <ITEM name="flag_true" value="true" type="string" description="not a flag" required="false" advanced="false" restrictions="true,false" />
+  <ITEM name="flag_order" value="false" type="string" description="reversed order" required="false" advanced="false" restrictions="false,true" />
+  <ITEM name="tagged" value="v" type="string" description="tagged" required="true" advanced="true" tags="a,b" />
+  <ITEM name="z_last" value="4" type="int" description="last" required="false" advanced="false" />
+  <NODE name="a" description="A">
+    <ITEM name="after" value="3" type="int" description="after" required="false" advanced="false" />
+    <NODE name="b" description="B">
+      <ITEM name="sibling" value="2" type="int" description="sibling" required="false" advanced="false" />
+      <NODE name="c" description="">
+        <ITEM name="deep" value="1" type="int" description="deep" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

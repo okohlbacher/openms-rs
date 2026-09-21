@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="" name="" docurl="" category="" >
+<description><![CDATA[]]></description>
+<manual><![CDATA[]]></manual>
+<citations>
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ITEM name="i" value="5" type="int" description="" required="false" advanced="false" />
+  <ITEM name="i_min" value="5" type="int" description="" required="false" advanced="false" restrictions="-3:" />
+  <ITEM name="i_max" value="5" type="int" description="" required="false" advanced="false" restrictions=":7" />
+  <ITEM name="i_both" value="5" type="int" description="" required="false" advanced="false" restrictions="0:10" />
+  <ITEM name="i_neg" value="-2147483647" type="int" description="" required="false" advanced="false" />
+  <ITEM name="d" value="3.0" type="double" description="" required="false" advanced="false" />
+  <ITEM name="d_small" value="1.0e-05" type="double" description="" required="false" advanced="false" />
+  <ITEM name="d_big" value="1.23456789e05" type="double" description="" required="false" advanced="false" />
+  <ITEM name="d_huge" value="1.0e300" type="double" description="" required="false" advanced="false" />
+  <ITEM name="d_third" value="0.333333333333333" type="double" description="" required="false" advanced="false" />
+  <ITEM name="d_nan" value="NaN" type="double" description="" required="false" advanced="false" />
+  <ITEM name="d_inf" value="inf" type="double" description="" required="false" advanced="false" />
+  <ITEM name="d_ninf" value="-inf" type="double" description="" required="false" advanced="false" />
+  <ITEM name="d_negzero" value="-0.0" type="double" description="" required="false" advanced="false" />
+  <ITEM name="d_min" value="5.1" type="double" description="" required="false" advanced="false" restrictions="4.100000:" />
+  <ITEM name="d_max" value="5.1" type="double" description="" required="false" advanced="false" restrictions=":100000000000000000000.000000" />
+  <ITEM name="d_both" value="5.1" type="double" description="" required="false" advanced="false" restrictions="-0.500000:0.123457" />
+  <ITEM name="d_tiny_min" value="5.1" type="double" description="" required="false" advanced="false" restrictions="0.000000:" />
+  <ITEMLIST name="il" type="int" description="" required="false" advanced="false" >
+    <LISTITEM value="1"/>
+    <LISTITEM value="-22"/>
+    <LISTITEM value="333"/>
+  </ITEMLIST>
+  <ITEMLIST name="il_r" type="int" description="" required="false" advanced="false" restrictions="1:2" >
+    <LISTITEM value="1"/>
+    <LISTITEM value="2"/>
+  </ITEMLIST>
+  <ITEMLIST name="dl" type="double" description="" required="false" advanced="false" >
+    <LISTITEM value="1.22"/>
+    <LISTITEM value="2.33"/>
+    <LISTITEM value="4.55"/>
+  </ITEMLIST>
+  <ITEMLIST name="dl_g" type="double" description="" required="false" advanced="false" >
+    <LISTITEM value="0.3"/>
+    <LISTITEM value="1e-05"/>
+    <LISTITEM value="1e+20"/>
+    <LISTITEM value="1.23456789012346e+17"/>
+    <LISTITEM value="0.333333333333333"/>
+    <LISTITEM value="100"/>
+    <LISTITEM value="1e+15"/>
+    <LISTITEM value="1e+16"/>
+    <LISTITEM value="-0"/>
+    <LISTITEM value="nan"/>
+    <LISTITEM value="inf"/>
+  </ITEMLIST>
+  <ITEMLIST name="dl_r" type="double" description="" required="false" advanced="false" restrictions="0.250000:" >
+    <LISTITEM value="1.5"/>
+  </ITEMLIST>
+  <ITEMLIST name="empty_dl" type="double" description="" required="false" advanced="false" >
+  </ITEMLIST>
+  <ITEMLIST name="empty_il" type="int" description="" required="false" advanced="false" >
+  </ITEMLIST>
+  <ITEMLIST name="empty_sl" type="string" description="" required="false" advanced="false" >
+  </ITEMLIST>
+</PARAMETERS>
+</tool>

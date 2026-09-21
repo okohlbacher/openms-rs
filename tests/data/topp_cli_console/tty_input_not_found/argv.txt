@@ -1,0 +1,6 @@
+BaselineFilter
+-test
+-in
+/scratch/kohlbach/toppbase-oracle/run1/console_results/tty_input_not_found/cwd/nope.mzML
+-out
+/scratch/kohlbach/toppbase-oracle/run1/console_results/tty_input_not_found/cwd/o.mzML

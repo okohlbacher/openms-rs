@@ -30,3 +30,15 @@ pub use dinterval::{DIntervalBase, DIntervalBase1, DIntervalBase2};
 /// Half-open `D`-dimensional ranges (source `DATASTRUCTURES/DRange.h`).
 pub mod drange;
 pub use drange::{DRange, DRange1, DRange2, DRangeIntersection};
+
+/// Tool descriptions for the TOPP tool registry (source
+/// `DATASTRUCTURES/ToolDescription.h`).
+pub mod tool_description;
+pub use tool_description::{
+    FileMapping, MappingParam, ToolDescription, ToolDescriptionInternal, ToolExternalDetails,
+};
+
+/// Tool metadata for the tool-description writers (source
+/// `DATASTRUCTURES/ToolInfo.h`).
+pub mod tool_info;
+pub use tool_info::ToolInfo;

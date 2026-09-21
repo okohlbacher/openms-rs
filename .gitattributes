@@ -12,3 +12,6 @@ resources/cv/ms-mapping.xml -text -whitespace
 
 # Byte-pinned historical XSDs include Windows-1252 comments.
 resources/schemas/*.xsd -text -whitespace
+
+# The pinned product tool manifest is embedded byte for byte (src/cli/tool_handler.rs).
+resources/tools/*.tsv -text -whitespace

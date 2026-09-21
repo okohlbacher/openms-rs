@@ -1,0 +1,138 @@
+
+FeatureFinderCentro
+ided -- Detects 
+two-dimensional 
+features in LC-MS 
+data.
+Full documentation:
+ http://www.openms.
+de/doxygen/release/
+4.0.0/html/TOPP_Fea
+tureFinderCentroide
+d.html
+Version: 1.0.0 (Ope
+nMS core 4.0.0, 
+revision bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., 
+   Bielow, C., Wein
+   , S. et al.. 
+   OpenMS 3 enables
+    reproducible 
+   analysis of larg
+   e-scale mass 
+   spectrometry 
+   ...
+   -02197-7.
+To cite FeatureFind
+erCentroided:
+ + Sturm M. A novel
+    feature detecti
+   on algorithm 
+   for centroided 
+   data. Dissertati
+   on, 2010-09-15, 
+   p.37 ff. doi:htt
+   ps://publikation
+   ...
+   rm.pdf.
+ + Weisser H. An 
+   automated pipeli
+   ne for high-thro
+   ughput label-fre
+   e quantitative 
+   proteomics. J. 
+   Proteome Res., 
+   2013, PMID: 2339
+   ...
+   1/pr300992u.
+
+Usage:
+  FeatureFinderCent
+roided <options>
+
+This tool has algor
+ithm parameters 
+that are not shown 
+here! Please check 
+the ini file for a 
+detailed descriptio
+n or use the --help
+help option
+
+Options (mandatory 
+options marked with
+ '*'):
+  -in <file>*      
+                                                         Input file (valid 
+                                      formats: 'mzML')
+  -out <file>*     
+                                                         Output file (valid 
+                                      formats: 'featureXML')
+  -seeds <file>    
+                                                         User specified seed
+                                       list (valid format
+                                      s: 'featureXML')
+                   
+                                                         
+  -faims_merge_feat
+                                      ures <true/false>  For FAIMS data with
+                                       multiple compensation voltages: Merge features representing the same analyte detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values are merged (same CV = different analytes). Has no effect on non-FAIMS data. (default: 
+                                      'true') (valid: 
+                                      'true', 'false')
+                   
+                                                         
+                   
+                                                         
+Common TOPP options
+:
+  -ini <file>      
+                                                         Use the given TOPP 
+                                      INI file
+  -threads <n>     
+                                                         Sets the number of 
+                                      threads allowed to be used by the TOPP tool (0 = all available cores) (defau
+                                      lt: '1')
+  -write_ini <file>
+                                                         Writes the default 
+                                      configuration file
+  --help           
+                                                         Shows options
+  --helphelp       
+                                                         Shows all options 
+                                      (including advanced)
+
+The following confi
+guration subsection
+s are valid:
+ - algorithm   Algo
+
+               rith
+
+               m 
+se
+               ctio
+
+               n
+
+You can write an 
+example INI file 
+using the '-write_i
+ni' option.
+Documentation of 
+subsection paramete
+rs can be found in 
+the doxygen documen
+tation or the INIFi
+leEditor.
+For more informatio
+n, please consult 
+the online document
+ation for this tool
+:
+  - http://www.open
+ms.de/doxygen/relea
+se/4.0.0/html/TOPP_
+FeatureFinderCentro
+ided.html
+

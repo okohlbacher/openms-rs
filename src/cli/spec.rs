@@ -612,6 +612,17 @@ impl ToolSpec {
     ///
     /// Propagates parameter-tree failures, for example an invalid key.
     pub fn to_param(&self, tool_name: &str) -> Result<Param> {
+        self.to_param_at(tool_name, 1)
+    }
+
+    /// [`to_param`](Self::to_param) under the INI section of instance
+    /// `instance`, `<tool_name>:<instance>:`, as the source's
+    /// `getDefaultParameters_` builds it from `getToolPrefix()`.
+    ///
+    /// # Errors
+    ///
+    /// As [`to_param`](Self::to_param).
+    pub fn to_param_at(&self, tool_name: &str, instance: i64) -> Result<Param> {
         let mut param = Param::new();
         for entry in &self.parameters {
             if entry.kind.is_layout()
@@ -620,7 +631,7 @@ impl ToolSpec {
             {
                 continue;
             }
-            let key = format!("{tool_name}:1:{}", entry.name);
+            let key = format!("{tool_name}:{instance}:{}", entry.name);
             let default_value = if entry.kind == ParameterType::Flag {
                 ParamValue::String("false".into())
             } else {
@@ -675,7 +686,10 @@ impl ToolSpec {
             }
         }
         for (section, description) in &self.topp_subsections {
-            param.set_section_description(&format!("{tool_name}:1:{section}"), description)?;
+            param.set_section_description(
+                &format!("{tool_name}:{instance}:{section}"),
+                description,
+            )?;
         }
         // Algorithm subsection descriptions are applied by the caller after the
         // subsection's own defaults are inserted: a section description cannot

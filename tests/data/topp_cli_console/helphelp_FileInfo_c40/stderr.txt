@@ -1,0 +1,257 @@
+
+FileInfo -- Shows basic information 
+about the file, such as data ranges 
+and file type.
+Full documentation: http://www.openms.d
+e/doxygen/release/4.0.0/html/TOPP_FileI
+nfo.html
+Version: 1.0.0 (OpenMS core 4.0.0, revi
+sion bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. 
+   et al.. OpenMS 3 enables reproducibl
+   e analysis of large-scale mass spect
+   rometry data. Nat Methods (2024). 
+   doi:10.1038/s41592-024-02197-7.
+
+Usage:
+  FileInfo <options>
+
+Options (mandatory options marked with 
+'*'):
+  -in <file>*                   Input f
+                                ile (va
+                                lid for
+                                mats: '
+                                mzData'
+                                , 'mzXM
+                                L', 'mz
+                                ML', 's
+                                qMass',
+                                ...
+                                pqp')
+  -in_type <type>               Input f
+                                ile typ
+                                e -- de
+                                fault: 
+                                determi
+                                ned fro
+                                m file 
+                                extensi
+                                on or c
+                                ontent 
+                                (valid:
+                                 'mzDat
+                                a', 'mz
+                                XML', '
+                                mzML', 
+                                'sqMass
+                                ', 'dta
+                                ...
+                                 'pqp')
+
+  -out <file>                   Optiona
+                                l outpu
+                                t file.
+                                 If lef
+                                t out, 
+                                the out
+                                put is 
+                                written
+                                ...
+                                d line.
+                                 (valid
+                                 format
+                                s: 'txt
+                                ')
+  -out_tsv <file>               Second 
+                                optiona
+                                l outpu
+                                t file.
+                                 Tab se
+                                parated
+                                 flat t
+                                ext fil
+                                e. (val
+                                id form
+                                ats: 't
+                                sv')
+  -m                            Show me
+                                ta info
+                                rmation
+                                 about 
+                                the who
+                                le expe
+                                riment
+  -p                            Shows d
+                                ata pro
+                                cessing
+                                 inform
+                                ation
+  -s                            Compute
+                                s a fiv
+                                e-numbe
+                                r stati
+                                stics o
+                                f inten
+                                sities,
+                                 qualit
+                                ...
+                                s
+  -d                            Show de
+                                tailed 
+                                listing
+                                 of all
+                                 spectr
+                                a and c
+                                hromato
+                                grams (
+                                ...
+                                y)
+  -c                            Check f
+                                or corr
+                                upt dat
+                                a in th
+                                e file 
+                                (peak f
+                                iles on
+                                ly)
+  -v                            Validat
+                                e the f
+                                ile onl
+                                y (for 
+                                mzML, m
+                                zData, 
+                                mzXML, 
+                                feature
+                                ...
+                                pXML)
+  -i                            Check w
+                                hether 
+                                a given
+                                 mzML f
+                                ile con
+                                tains v
+                                alid in
+                                dices (
+                                ...
+                                ard)
+                                
+Common TOPP options:
+  -ini <file>                   Use the
+                                 given 
+                                TOPP IN
+                                I file
+  -log <file>                   Name of
+                                 log fi
+                                le (cre
+                                ated on
+                                ly when
+                                 specif
+                                ied)
+  -instance <n>                 Instanc
+                                e numbe
+                                r for t
+                                he TOPP
+                                 INI fi
+                                le (def
+                                ault: '
+                                1')
+  -debug <n>                    Sets th
+                                e debug
+                                 level 
+                                (defaul
+                                t: '0')
+
+  -threads <n>                  Sets th
+                                e numbe
+                                r of th
+                                reads a
+                                llowed 
+                                to be u
+                                sed by 
+                                the TOP
+                                ...
+                                res) (d
+                                efault:
+                                 '1')
+  -write_ini <file>             Writes 
+                                the def
+                                ault co
+                                nfigura
+                                tion fi
+                                le
+  -write_ctd <out_dir>          Writes 
+                                the com
+                                mon too
+                                l descr
+                                iption 
+                                file(s)
+                                 (Tooln
+                                ame(s).
+                                ...
+                                ir>
+  -write_nested_cwl <out_dir>   Writes 
+                                the Com
+                                mon Wor
+                                kflow L
+                                anguage
+                                 file(s
+                                ) (Tool
+                                name(s)
+                                ...
+                                dir>
+  -write_cwl <out_dir>          Writes 
+                                the Com
+                                mon Wor
+                                kflow L
+                                anguage
+                                 file(s
+                                ) (Tool
+                                name(s)
+                                ...
+                                hy
+  -write_nested_json <out_dir>  Writes 
+                                the def
+                                ault co
+                                nfigura
+                                tion fi
+                                le
+  -write_json <out_dir>         Writes 
+                                the def
+                                ault co
+                                nfigura
+                                tion fi
+                                le, but
+                                 compat
+                                ible to
+                                ...
+                                archy
+  -no_progress                  Disable
+                                s progr
+                                ess log
+                                ging to
+                                 comman
+                                d line
+  -force                        Overrid
+                                es tool
+                                -specif
+                                ic chec
+                                ks
+  -test                         Enables
+                                 the te
+                                st mode
+                                 (neede
+                                d for i
+                                nternal
+                                 use on
+                                ly)
+  --help                        Shows o
+                                ptions
+  --helphelp                    Shows a
+                                ll opti
+                                ons (in
+                                cluding
+                                 advanc
+                                ed)
+

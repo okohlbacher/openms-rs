@@ -1,0 +1,250 @@
+
+FeatureFinderCentroided -- Detects two-
+dimensional features in LC-MS data.
+Full documentation: http://www.openms.d
+e/doxygen/release/4.0.0/html/TOPP_Featu
+reFinderCentroided.html
+Version: 1.0.0 (OpenMS core 4.0.0, revi
+sion bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. 
+   et al.. OpenMS 3 enables reproducibl
+   e analysis of large-scale mass spect
+   rometry data. Nat Methods (2024). 
+   doi:10.1038/s41592-024-02197-7.
+To cite FeatureFinderCentroided:
+ + Sturm M. A novel feature detection 
+   algorithm for centroided data. Disse
+   rtation, 2010-09-15, p.37 ff. doi:ht
+   tps://publikationen.uni-tuebingen.de
+   /xmlui/bitstream/handle/10900/49453/
+   pdf/Dissertation_Marc_Sturm.pdf.
+ + Weisser H. An automated pipeline 
+   for high-throughput label-free quant
+   itative proteomics. J. Proteome Res.
+   , 2013, PMID: 23391308. doi:https://
+   doi.org/10.1021/pr300992u.
+
+Usage:
+  FeatureFinderCentroided <options>
+
+Options (mandatory options marked with 
+'*'):
+  -in <file>*                          
+                                                                                                   Input file (valid 
+                                                                     formats: 'mzML')
+  -out <file>*                         
+                                                                                                   Output file (valid
+                                                                      formats: 'featureXML')
+  -seeds <file>                        
+                                                                                                   User specified 
+                                                                     seed list (valid formats: 'featureXML')
+                                       
+                                                                                                   
+  -faims_merge_features <true/false>   
+                                                                                                   For FAIMS data 
+                                                                     with multiple compensation voltages: Merge features representing the same analyte detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values are merged (same CV = different analytes). Has no effect on non-FAIMS data. (default: 'true') (valid
+                                                                     : 'true', 'false')
+                                       
+                                                                                                   
+                                       
+                                                                                                   
+Common TOPP options:
+  -ini <file>                          
+                                                                                                   Use the given TOPP
+                                                                      INI file
+  -log <file>                          
+                                                                                                   Name of log file 
+                                                                     (created only when specified)
+  -instance <n>                        
+                                                                                                   Instance number 
+                                                                     for the TOPP INI file (default: '1')
+  -debug <n>                           
+                                                                                                   Sets the debug 
+                                                                     level 
+                                                                     (default: '0')
+  -threads <n>                         
+                                                                                                   Sets the number 
+                                                                     of threads allowed to be used by the TOPP tool (0 = all available cores) (default: '1')
+  -write_ini <file>                    
+                                                                                                   Writes the default
+                                                                      configuration file
+  -write_ctd <out_dir>                 
+                                                                                                   Writes the common 
+                                                                     tool description file(s) (Toolname(s).ctd) to <out_dir>
+  -write_nested_cwl <out_dir>          
+                                                                                                   Writes the Common 
+                                                                     Workflow Language file(s) (Toolname(s).cwl) to <out_dir>
+  -write_cwl <out_dir>                 
+                                                                                                   Writes the Common 
+                                                                     Workflow Language file(s) (Toolname(s).cwl) to <out_dir>, but enforce a flat parameter hierarchy
+  -write_nested_json <out_dir>         
+                                                                                                   Writes the default
+                                                                      configuration file
+  -write_json <out_dir>                
+                                                                                                   Writes the default
+                                                                      configuration file, but compatible to the flat hierarchy
+  -no_progress                         
+                                                                                                   Disables progress 
+                                                                     logging to command line
+  -force                               
+                                                                                                   Overrides tool-spe
+                                                                     cific checks
+  -test                                
+                                                                                                   Enables the test 
+                                                                     mode (needed for internal use only)
+  --help                               
+                                                                                                   Shows options
+  --helphelp                           
+                                                                                                   Shows all options 
+                                                                     (including advanced)
+
+Algorithm section:
+  -algorithm:write_debug               
+                                                                                                   When debug mode 
+                                                                     is activated, several files with intermediate results are written to the folder 'debug' (do not use in parallel mode).
+
+Settings for the calculation of a score
+ indicating if a peak's intensity is 
+significant in the local environment 
+(between 0 and 1):
+  -algorithm:intensity:bins <number>   
+                                                                                                   Number of bins 
+                                                                     per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.
+                                                                     This parameter should be decreased, if the algorithm is used on small regions of a map. (default: '10') (min: '1')
+
+Settings for the calculation of a score
+ indicating if a peak is part of a mass
+ trace (between 0 and 1).:
+  -algorithm:mass_trace:mz_tolerance 
+                                                                     <value>                         Tolerated m/z 
+                                                                     deviation of peaks belonging to the same mass trace.
+                                                                     It should be larger than the m/z resolution of the instrument.
+                                                                     This value must be smaller than that 1/charge_high! (default: '0.03') (min: '0.0')
+  -algorithm:mass_trace:min_spectra 
+                                                                     <number>                         Number of spect
+                                                                     ra that have to show a similar peak mass in a mass trace. (default: '10') (min: '1')
+  -algorithm:mass_trace:max_missing 
+                                                                     <number>                         Number of conse
+                                                                     cutive spectra where a high mass deviation or missing peak is acceptable.
+                                                                     This parameter should be well below 'min_spectra'! (default: '1') (min: '0')
+  -algorithm:mass_trace:slope_bound 
+                                                                     <value>                          The maximum 
+                                                                     slope of mass trace intensities when extending from the highest peak.
+                                                                     This parameter is important to separate overlapping elution peaks.
+                                                                     It should be increased if feature elution profiles fluctuate a lot. (default: '0.1') 
+                                                                     (min: '0.0')
+
+Settings for the calculation of a score
+ indicating if a peak is part of a isot
+opic pattern (between 0 and 1).:
+  -algorithm:isotopic_pattern:charge_lo
+                                                                     w <number>                    Lowest charge to 
+                                                                     search for. (default: '1') (min: '1')
+  -algorithm:isotopic_pattern:charge_hi
+                                                                     gh <number>                   Highest charge to 
+                                                                     search for. (default: '4') (min: '1')
+  -algorithm:isotopic_pattern:mz_tolera
+                                                                     nce <value>                   Tolerated m/z devi
+                                                                     ation from the theoretical isotopic pattern.
+                                                                     It should be larger than the m/z resolution of the instrument.
+                                                                     This value must be smaller than that 1/charge_high! (default: '0.03') (min: '0.0')
+  -algorithm:isotopic_pattern:intensity
+                                                                     _percentage <value>           Isotopic peaks 
+                                                                     that contribute more than this percentage to the overall isotope pattern intensity must be present. (default: '10.0') (min: 
+                                                                     '0.0' max: '100.0')
+  -algorithm:isotopic_pattern:intensity
+                                                                     _percentage_optional <value>  Isotopic peaks 
+                                                                     that contribute more than this percentage to the overall isotope pattern intensity can be missing. (default: '0.1') (min: '0.0
+                                                                     ' max: '100.0')
+  -algorithm:isotopic_pattern:optional_
+                                                                     fit_improvement <value>       Minimal percental 
+                                                                     improvement of isotope fit to allow leaving out an optional peak. (default: '2.0') (min
+                                                                     : '0.0' max: '100.0')
+  -algorithm:isotopic_pattern:mass_wind
+                                                                     ow_width <value>              Window width in 
+                                                                     Dalton for precalculation of estimated isotope distributions. (default: '25.0') (min: 
+                                                                     '1.0' max: '200.0')
+  -algorithm:isotopic_pattern:abundance
+                                                                     _12C <value>                  Rel. abundance of 
+                                                                     the light carbon. Modify if labeled. (default: 
+                                                                     '98.930000000000007') (min: '0.0' max: '100.0')
+  -algorithm:isotopic_pattern:abundance
+                                                                     _14N <value>                  Rel. abundance of 
+                                                                     the light nitrogen. Modify if labeled. (default:
+                                                                      '99.632000000000005') (min: '0.0' max: '100.0')
+
+Settings that determine which peaks 
+are considered a seed:
+  -algorithm:seed:min_score <value>    
+                                                                                                   Minimum seed score
+                                                                      a peak has to reach to be used as seed.
+                                                                     The seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.
+                                                                     If your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score. (default: '0.8') (min: '0.0' 
+                                                                     max: '1.0')
+
+Settings for the model fitting:
+  -algorithm:fit:max_iterations <number
+                                                                     >                             Maximum number of 
+                                                                     iterations of the fit. (default: '500') (min: 
+                                                                     '1')
+
+Settings for the features (intensity, 
+quality assessment, ...):
+  -algorithm:feature:min_score <value> 
+                                                                                                   Feature score thre
+                                                                     shold for a feature to be reported.
+                                                                     The feature score is the geometric mean of the average relative deviation and the correlation between the model and the observed peaks. (default: '0.7') (min: '0.0' 
+                                                                     max: '1.0')
+  -algorithm:feature:min_isotope_fit 
+                                                                     <value>                         Minimum isotope 
+                                                                     fit of the feature before model fitting. (defaul
+                                                                     t: '0.8') (min: '0.0' max: '1.0')
+  -algorithm:feature:min_trace_score 
+                                                                     <value>                         Trace score thre
+                                                                     shold.
+                                                                     Traces below this threshold are removed after the model fitting.
+                                                                     This parameter is important for features that overlap in m/z dimension. (default: '0.5'
+                                                                     ) (min: 
+                                                                     '0.0' max: '1.0')
+  -algorithm:feature:min_rt_span <value
+                                                                     >                             Minimum RT span 
+                                                                     in relation to extended area that has to remain after model fitting. (default: '0.333') (min: '0.0' max: '1.0')
+  -algorithm:feature:max_rt_span <value
+                                                                     >                             Maximum RT span 
+                                                                     in relation to extended area that the model is allowed to have. (default: '2.5') (min: 
+                                                                     '0.5')
+  -algorithm:feature:rt_shape <choice> 
+                                                                                                   Choose model used 
+                                                                     for RT profile fitting. If set to symmetric a gauss shape is used, in case of asymmetric an EGH shape is used. (default: 'symm
+                                                                     etric') 
+                                                                     (valid: 'symmetric', 'asymmetric')
+  -algorithm:feature:max_intersection 
+                                                                     <value>                        Maximum allowed 
+                                                                     intersection of features. (default: '0.35') (min
+                                                                     : '0.0' max: '1.0')
+  -algorithm:feature:reported_mz <choic
+                                                                     e>                            The mass type that
+                                                                      is reported for features.
+                                                                     'maximum' returns the m/z value of the highest mass trace.
+                                                                     'average' returns the intensity-weighted average m/z value of all contained peaks.
+                                                                     'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model. (default: 'monoisotopic') (valid: 
+                                                                     'maximum', 'average', 'monoisotopic')
+
+Settings for user-specified seeds.:
+  -algorithm:user-seed:rt_tolerance 
+                                                                     <value>                          Allowed RT devi
+                                                                     ation of seeds from the user-specified seed position. (default: '5.0') (min: '0.0')
+  -algorithm:user-seed:mz_tolerance 
+                                                                     <value>                          Allowed m/z 
+                                                                     deviation of seeds from the user-specified seed position. (default: '1.1') (min: '0.0')
+  -algorithm:user-seed:min_score <value
+                                                                     >                             Overwrites 'seed:m
+                                                                     in_score' for user-specified seeds. The cutoff is typically a bit lower in this case. 
+                                                                     (default: '0.5') (min: '0.0' max: '1.0')
+
+algorithm:advanced:
+  -algorithm:advanced:pseudo_rt_shift 
+                                                                     <value>                        Pseudo RT shift 
+                                                                     used when . (default: '500.0') (min: '1.0')
+

@@ -1,0 +1,12 @@
+BaselineFilter
+-test
+-in
+/scratch/kohlbach/toppbase-oracle/run1/inputs/baseline_filter_tool_input.mzML
+-out
+/scratch/kohlbach/toppbase-oracle/run1/results/log_duplicate_option/cwd/out.mzML
+-log
+/scratch/kohlbach/toppbase-oracle/run1/results/log_duplicate_option/cwd/log.txt
+-method
+erosion
+-method
+tophat

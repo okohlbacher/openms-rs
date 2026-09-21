@@ -1,0 +1,154 @@
+{
+ "entries": {
+  "packages/cli/include/OpenMS/APPLICATIONS/TOPPBase.h": {
+   "status": "partial",
+   "rust": [
+    "src/cli.rs",
+    "src/cli/context.rs",
+    "src/cli/defs.rs",
+    "src/cli/logging.rs",
+    "src/cli/processing.rs",
+    "src/cli/spec.rs",
+    "src/cli/usage.rs",
+    "src/cli/param_ctd.rs",
+    "src/cli/tool_handler.rs",
+    "src/cli/console.rs"
+   ],
+   "tests": [
+    "tests/paramxml.rs",
+    "tests/topp_baseline_filter.rs",
+    "tests/topp_cli_completion.rs",
+    "tests/topp_cli_lifecycle.rs",
+    "tests/topp_dta_extractor.rs",
+    "tests/topp_map_normalizer.rs",
+    "tests/topp_mzml_splitter.rs",
+    "tests/topp_spectra_filter_window_mower.rs",
+    "tests/topp_threads.rs",
+    "tests/topp_cli_console.rs"
+   ],
+   "documentation": "docs/TOPP_CLI_SUPPORT.md",
+   "scope": "Lifecycle closure CLI-1 and CLI-2 (registration, the command-line parse closure, INI merge and strict update, -write_ini parity, file and format checks, usage text, exit codes, processing records; 87 executed cases of the product SDK in ../oracle/topp-cli-lifecycle) and, in the TOPPBase completion lane (2026-09-21), every remaining member against the C++ Release build at the pins (124 cases executed by ../oracle/toppbase-completion/cases.sh, 93 retained in tests/data/topp_cli_completion and compared in tests/topp_cli_completion.rs): the product version from the tool registry (ToolHandler) with the core-version fallback and the 'Common UTIL options:' heading of an unregistered tool; -write_ctd through ParamCtdFile, byte-identical to the Release build's CTD for the seven ported tools that declare their citations; -write_cwl/-write_nested_cwl/-write_json/-write_nested_json refused with the Release build's TDL message and exit 12 (the Release build also empties the target, CPP-350; the port does not); the writers' target checks (exit 5) and a directory target (exit 12); -instance selecting <tool>:<n>: for the INI copy, the defaults and -write_ini; -log and -debug (writeLogInfo_/Warn_/Error_, writeDebug_ at levels, the 'Writing to' notice, the accessors' 'Value of ... option' lines, removal of an empty log file) against the Release log files; getToolUserDefaults_ (<user dir>/<Tool>.ini, lenient update, exit 3 for a malformed file and 12 for a directory); checkParam_'s warnings; an INI 'type' item; citations (Tool::CITATIONS, the 'To cite <tool>:' block and the CTD DOIs); is_executable inputs resolved on PATH (exit 14 otherwise); getOutputDirOption (ToolContext::output_dir); the integer parseRange_ (parse_range_int); the closing '<tool> took ...' line after the body, none after write_failure; Param::update's diagnostics at the end of standard error as the Release build prints them; the source's 'could not be found' wording. The executables on a console (src/cli/console.rs, ../oracle/toppbase-completion/console.sh, 100 cases compared in tests/topp_cli_console.rs and 15 in a pseudo-terminal): printUsage_ shaped to COLUMNS or 'stty size' item by item as IndentedStream and ConsoleUtils::breakString_ shape it, including the source's wrap-around (CPP-353), Colorizer's codes on a terminal, the lifecycle's writeLogError_/OPENMS_LOG_ERROR lines red and writeLogWarn_/Param::update lines yellow, and the exit-time terminal reset; run_with (explicit streams) stays unshaped and uncoloured. Upstream tests transcribed: all TOPPBase_test.cpp sections except the four getStringOption_ INI cases, which read what the source's non-atomic strict update leaves behind after it fails and have no observable counterpart (the command-line getIniLocation_ case is transcribed through the log file); ToolManifest_test.cpp's TOPPBase sections. PARTIAL, remaining (ranked by the tools they affect): (1) JSON INI files, ParamJSONFile::load, which the Release build applies without TDL (all 108 tools; needs serde_json behind the paramxml feature, a Cargo.toml change); (2) the exit code of a tool body's own InvalidValue/InvalidRange (source 8, port 6): the crate-wide arm cannot move until the tools that use Error::InvalidValue for an explicit ILLEGAL_PARAMETERS return that code themselves (tried: MzMLSplitter, MapNormalizer, FileInfo, SpectraFilterWindowMower and the lifecycle case then disagree); (3) UnregisteredParameter/WrongParameterType escaping a body exit 6 where the source exits 12 (programming errors only); (4) FeatureFinderCentroided does not declare its two citations (src/cli/tools, another lane), so its usage and CTD lack them; (5) on a terminal, the error and warning lines a tool body writes itself are uncoloured (FileInfo's 'Error: Can only validate indices for mzML files', PeakPickerHiRes' and FeatureFinderCentroided's messages; src/cli/tools, other lanes; cli::log_error/log_warning colour them), and on Windows the console width comes only from COLUMNS (the standard library cannot read the console buffer). Carried from the earlier waves: a single-writer FIFO -ini is read once where C++ blocks (deliberate); -in /dev/null exits 2 where C++ exits 4; an input of unknown name and content exits 6 and a directory -in exits 8 where C++ exits 3 (FileHandler follow-ups); ToolContext::in_thread_pool builds a pool for one worker; five tools build the -threads pool and leave it idle."
+  },
+  "packages/cli/include/OpenMS/APPLICATIONS/ParameterInformation.h": {
+   "status": "complete",
+   "rust": [
+    "src/cli/parameter.rs"
+   ],
+   "tests": [
+    "tests/parameter_information.rs",
+    "tests/topp_cli_lifecycle.rs"
+   ],
+   "documentation": "docs/TOPP_CLI_SUPPORT.md",
+   "scope": "ParameterInformation and ParameterTypes become ParameterInformation and ParameterType in src/cli/parameter.rs: all 16 types with the source's discriminants and all 13 data members; the source's default constructor (required=true) is Default, the detailed constructor is new plus with_tags (tag_values), operator= is Clone. The restriction members are Option where the source holds +-numeric_limits::max() sentinels, and a native valid_formats keeps file formats apart from valid_strings (the source packs them into valid_strings); ParameterInformation::accepted_formats reads either. paramEntryToParameterInformation_, getParamArgument_ and paramToParameterInformation_ are folded into ParameterInformation::from_param_entry. ParameterInformation_test.cpp (cli c19e494) is transcribed with its literals, the sentinel comparisons as the Option and as the value consumers read."
+  },
+  "packages/cli/include/OpenMS/APPLICATIONS/TOPPBase_defs.h": {
+   "status": "complete",
+   "rust": [
+    "src/cli/defs.rs",
+    "src/cli.rs"
+   ],
+   "tests": [
+    "tests/topp_cli_completion.rs",
+    "tests/topp_cli_lifecycle.rs"
+   ],
+   "documentation": "docs/TOPP_CLI_SUPPORT.md",
+   "scope": "Citation (authors, title, when_where, doi and toString, as Citation::to_source_string and Display) and TOPPBase::cite_openms (CITE_OPENMS) in src/cli/defs.rs; tools declare citations as Tool::CITATIONS, printed by --help and written to the CTD, checked against the Release build (ffc_help_cite, ctd_FeatureFinderCentroided) and TOPPBase_test.cpp's Citation::toString section. The three exception classes are not types: RequiredParameterNotGiven is the lifecycle's required-value check with the source's message and exit 7; UnregisteredParameter and WrongParameterType are Error::InvalidValue from the ToolContext accessors, which a body that lets them escape ends with exit 6 where the source exits 12 (programming errors, documented)."
+  },
+  "packages/cli/include/OpenMS/APPLICATIONS/ToolHandler.h": {
+   "status": "complete",
+   "rust": [
+    "src/cli/tool_handler.rs",
+    "src/cli/tool_description_file.rs"
+   ],
+   "tests": [
+    "tests/topp_cli_completion.rs"
+   ],
+   "documentation": "docs/TOPP_CLI_SUPPORT.md",
+   "scope": "ToolHandler with getTOPPToolList, getToolVersion, findExecutable, getTypes, getCategory and getInternalToolsPath (get_topp_tool_list, get_tool_version, find_executable, get_types, get_category, get_internal_tools_path), ToolListType, and the private packageTools, prefixes, getInternalTools_ and getInternalToolConfigFiles_ (package_tools, internal_tool_config_files, ToolRegistrySources): OPENMS_TOOL_PREFIX_PATH with the platform separator, the executable's prefix and the macOS bundle prefix, the manifest rules (four tab-separated fields, no empty name/version/executable, no path separator in a name, no absolute or climbing executable path, no duplicate) with the source's InvalidValue/FileNotReadable/filesystem_error texts, the DesktopViewer/DesktopWorkflow exclusion, the .ttd registry cached after its first successful read, and findExecutable's package, sibling and PATH resolution. ToolHandler_test.cpp and ToolManifest_test.cpp (cli c19e494) are transcribed with the package's fixture registry; 25 registry and .ttd cases are compared with the Release build (reg_*, ttd_*). Native differences, documented: the Release build's topp.tools.tsv (resources/tools, byte-identical) is compiled in and read in place of an executable prefix without share/openms4/tools; the dladdr library prefix is the executable's; manifests are read ordered by name; a missing shared-data directory means no internal tools rather than FileNotFound; a malformed .ttd is exit 6 with this reader's wording."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/ToolDescription.h": {
+   "status": "complete",
+   "rust": [
+    "src/data_structures/tool_description.rs"
+   ],
+   "tests": [
+    "tests/tool_description.rs",
+    "tests/topp_cli_completion.rs"
+   ],
+   "documentation": "docs/TOPP_CLI_SUPPORT.md",
+   "scope": "Internal::FileMapping, MappingParam, ToolDescriptionInternal (both constructors as new and with_types, operator== as PartialEq, operator< as source_less/sort_key because it is not consistent with operator==), ToolExternalDetails and ToolDescription (the tool constructor as new, the base class as the internal field). ToolDescription_test.cpp is transcribed; its constructor and assignment sections are TODO upstream, so tier-4 cases derived from ToolDescription.cpp cover them."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/ToolInfo.h": {
+   "status": "complete",
+   "rust": [
+    "src/data_structures/tool_info.rs"
+   ],
+   "tests": [
+    "tests/tool_description.rs",
+    "tests/param_ctd.rs"
+   ],
+   "documentation": "docs/TOPP_CLI_SUPPORT.md",
+   "scope": "The six-field tool metadata struct (version_, name_, docurl_, category_, description_, citations_ as fields without the trailing underscore) that TOPPBase fills for the tool-description writers."
+  },
+  "src/openms/include/OpenMS/FORMAT/ParamCTDFile.h": {
+   "status": "complete",
+   "rust": [
+    "src/cli/param_ctd.rs"
+   ],
+   "tests": [
+    "tests/param_ctd.rs",
+    "tests/topp_cli_completion.rs"
+   ],
+   "documentation": "docs/TOPP_CLI_SUPPORT.md",
+   "scope": "ParamCtdFile::store (with '-' for standard output and the source's 'Unable to create file: <name>'), write_ctd_to_stream, to_ctd_string, escape_xml and replace, schema version and location. Byte-identical to the Release build: the retained ParamCTDFile_test_writeCTDToStream.ctd, five documents written by ../oracle/toppbase-completion/ctd_driver.cpp through the Release libOpenMS covering every branch (types, tags, flags, restrictions, list items at %.15g, std::to_string bounds, NaN/inf, nesting, an empty tree), and the CTDs of seven ported tools. The source's escaping defects (the skip after each replacement, the doubly escaped tab, the unescaped <tool> attributes) are reproduced and logged as CPP-349. ParamCTDFile_test.cpp is transcribed; its round trips read the <PARAMETERS> element, because this port's paramxml reader does not accept the <tool> wrapper the source's handler reads through (a paramxml follow-up). Lives in src/cli, its only consumer."
+  },
+  "src/openms/include/OpenMS/FORMAT/ToolDescriptionFile.h": {
+   "status": "complete",
+   "rust": [
+    "src/cli/tool_description_file.rs"
+   ],
+   "tests": [
+    "tests/topp_cli_completion.rs"
+   ],
+   "documentation": "docs/TOPP_CLI_SUPPORT.md",
+   "scope": "ToolDescriptionFile::load with the handler's semantics and bounds (MAX_TTD_BYTES/ELEMENTS/DEPTH); the non-fatal handler messages are returned as LoadedToolDescriptions::diagnostics in the source's wording. store is not ported: the source's store throws NotImplemented, which ToolDescriptionFile_test.cpp asserts. ToolDescriptionFile_test.cpp's load section is transcribed with the retained .ttd files, and the .ttd registry cases are compared with the Release build (ttd_*). Malformed XML is Error::Parse with quick-xml's reason where the source prints Xerces's. Lives in src/cli, its only consumer."
+  },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/ToolDescriptionHandler.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/cli/tool_description_file.rs"
+   ],
+   "tests": [
+    "tests/topp_cli_completion.rs"
+   ],
+   "documentation": "docs/TOPP_CLI_SUPPORT.md",
+   "scope": "The SAX handler's onStartElement, onCharacters and onEndElement are the private Handler of ToolDescriptionFile::load, with the source's element and status rules and its non-fatal messages; the <ini_param> block goes through the paramxml reader as the source's ParamXMLHandler base does. getToolDescriptions is load's result; setToolDescriptions and writeTo serve only the NotImplemented store. Text split by an entity reference is joined, where Xerces may deliver it in parts."
+  },
+  "src/openms/include/OpenMS/APPLICATIONS/ConsoleUtils.h": {
+   "status": "partial",
+   "rust": [
+    "src/cli/console.rs"
+   ],
+   "tests": [
+    "src/cli/console.rs",
+    "tests/topp_cli_console.rs"
+   ],
+   "documentation": "docs/TOPP_CLI_SUPPORT.md",
+   "scope": "readConsoleSize_ (COLUMNS read as StringUtils::toInt32, else 'stty size' through /bin/sh with the process's standard input and standard error, less one, no shaping below 10, measured once per process) and breakString_ (byte-exact, with the source's size_t wrap-around, CPP-353) are reproduced crate-internally for the TOPP usage text and executed against the Release build (100 COLUMNS cases, 15 pseudo-terminal cases, ../oracle/toppbase-completion/console.sh). PARTIAL: the public API -- getInstance, getConsoleWidth, breakString, breakStringList -- is not exposed (its only consumers are TOPPBase and IndentedStream, both ported), and the Windows GetConsoleScreenBufferInfo width is not read (no std API; COLUMNS still applies)."
+  },
+  "src/openms/include/OpenMS/FORMAT/IndentedStream.h": {
+   "status": "partial",
+   "rust": [
+    "src/cli/usage.rs"
+   ],
+   "tests": [
+    "src/cli/usage.rs",
+    "tests/topp_cli_console.rs",
+    "tests/topp_cli_lifecycle.rs"
+   ],
+   "documentation": "docs/TOPP_CLI_SUPPORT.md",
+   "scope": "The class's behaviour is reproduced crate-internally as the writer of TOPPBase::printUsage_ (src/cli/usage.rs, Indented): each inserted item broken by breakString_ from the current column at the current indentation with max_lines 10, the column tracked as the source tracks it, Colorizer insertions broken the same way and wrapped in their codes (also when empty), indent() and the endl manipulator; byte-identical to the Release build at every width tested and on a terminal. PARTIAL: no public IndentedStream type; its other consumer, the OpenMSInfo TOPP tool, is not ported."
+  }
+ },
+ "notes": "TOPPBase lane (Phase 3 critical path), worktree wf_35d3df64-7aa-1, branch worktree-wf_35d3df64-7aa-1. TOPPBase.h stays partial; its remaining gaps are ranked in its scope. New core modules: src/data_structures/{tool_description,tool_info}.rs; ParamCTDFile and ToolDescriptionFile/Handler live in src/cli (src/format was out of this lane's ownership) and may be moved at integration. New provenance manifests: tests/data/tool_description_provenance.json (core shape; add to SOURCE_PROVENANCE.json current_sdk_reference_manifests if wanted) and tests/data/topp_cli_completion_provenance.json (TOPP shape). ParamCWLFile.h and ParamJSONFile.h stay unmapped: the Release build has no TDL, so their writers are the refusal TOPPBase reproduces, and ParamJSONFile::load (JSON INI) needs serde_json under the paramxml feature. Console lane addition: src/cli/console.rs reproduces ConsoleUtils::readConsoleSize_/breakString_ and the Colorizer behaviour of the usage text and the log streams (entries ConsoleUtils.h and IndentedStream.h added as partial). The Colorizer.h entry (src/concept/log_stream.rs, another lane) is left as it is; this lane made LogColor::enable/disable pub(crate) and now emits the class's undoAll reset at exit and the IndentedStream colouring for the usage text, which that entry lists as gaps (3) and (4)."
+}

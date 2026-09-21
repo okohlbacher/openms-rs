@@ -1,0 +1,1 @@
+Unable to initialize or run BaselineFilter: Unable to create file: /scratch/kohlbach/toppbase-oracle/run1/results/ctd_target_is_directory/cwd/ctd/BaselineFilter.ctd: iostream error

@@ -8,6 +8,7 @@
 //!
 //! See `docs/TOPP_CLI_SUPPORT.md` for the supported source subset.
 
+use super::logging::ToolLog;
 use super::parameter::ExitCode;
 use super::processing::{self, AddDataProcessing};
 use crate::concept::UniqueIdGenerator;
@@ -18,6 +19,7 @@ use crate::param::{Param, ParamValue};
 use crate::system::file;
 use crate::{Error, Result};
 use std::io::Write;
+use std::sync::Arc;
 
 /// Seed of the unique-id generator under `-test`, as `TOPPBase::main` sets it
 /// (`TOPPBase.cpp:369-376`). Its first two raw draws are
@@ -48,11 +50,19 @@ pub struct ToolContext {
     no_progress: bool,
     force: bool,
     threads: i64,
+    log: Arc<ToolLog>,
 }
 
 impl ToolContext {
-    /// A context over `param`, the resolved tree without the `<tool>:1:` prefix.
-    pub(crate) fn new(tool_name: &str, version: &str, param: Param) -> Self {
+    /// A context over `param`, the resolved tree without the `<tool>:<n>:`
+    /// prefix, reading and writing the run's log.
+    pub(crate) fn new(
+        tool_name: &str,
+        version: &str,
+        ini_location: &str,
+        param: Param,
+        log: Arc<ToolLog>,
+    ) -> Self {
         let int = |key: &str, fallback: i64| match param.value(key) {
             Ok(ParamValue::Integer(value)) => *value,
             _ => fallback,
@@ -67,13 +77,14 @@ impl ToolContext {
         Self {
             tool_name: tool_name.to_owned(),
             version: version.to_owned(),
-            ini_location: format!("{tool_name}:1:"),
+            ini_location: ini_location.to_owned(),
             param,
             debug_level,
             test_mode,
             no_progress,
             force,
             threads,
+            log,
         }
     }
 
@@ -85,8 +96,9 @@ impl ToolContext {
     pub fn version(&self) -> &str {
         &self.version
     }
-    /// The INI section this run reads, as `getIniLocation_`: always
-    /// `<tool>:1:`, because `-instance` is rejected like in the source.
+    /// The INI section this run reads, as `getIniLocation_`: `<tool>:1:` for
+    /// every run that reaches the tool body, because `-instance` is rejected
+    /// like in the source, which leaves it out of the defaults.
     pub fn ini_location(&self) -> &str {
         &self.ini_location
     }
@@ -338,7 +350,36 @@ impl ToolContext {
     /// `WrongParameterType`.
     pub fn string(&self, name: &str) -> Result<&str> {
         match self.value(name)? {
-            ParamValue::String(text) => Ok(text),
+            ParamValue::String(text) => {
+                self.write_debug(&format!("Value of string option '{name}': {text}"), 1);
+                Ok(text)
+            }
+            _ => Err(bad(format!("parameter '{name}' is not a string"))),
+        }
+    }
+    /// An output-directory option, as `getOutputDirOption`: the directory,
+    /// created with its missing parents when it does not exist yet
+    /// (`TOPPBase.cpp:1419-1439`). An empty value is returned as is, and
+    /// nothing is created for it.
+    ///
+    /// # Errors
+    ///
+    /// As [`string`](Self::string), and [`Error::Io`] when the directory
+    /// cannot be created. The source ignores `File::makeDir`'s result; the
+    /// port reports the failure rather than hand the tool a directory that is
+    /// not there.
+    pub fn output_dir(&self, name: &str) -> Result<&str> {
+        match self.value(name)? {
+            ParamValue::String(text) => {
+                self.write_debug(
+                    &format!("Value of string(outdir) option '{name}': {text}"),
+                    1,
+                );
+                if !text.is_empty() {
+                    file::make_dir(text)?;
+                }
+                Ok(text)
+            }
             _ => Err(bad(format!("parameter '{name}' is not a string"))),
         }
     }
@@ -350,7 +391,10 @@ impl ToolContext {
     /// not hold an integer.
     pub fn int(&self, name: &str) -> Result<i64> {
         match self.value(name)? {
-            ParamValue::Integer(value) => Ok(*value),
+            ParamValue::Integer(value) => {
+                self.write_debug(&format!("Value of int option '{name}': {value}"), 1);
+                Ok(*value)
+            }
             _ => Err(bad(format!("parameter '{name}' is not an integer"))),
         }
     }
@@ -364,7 +408,13 @@ impl ToolContext {
     /// already refuses an INI value whose type differs from the registered one.
     pub fn double(&self, name: &str) -> Result<f64> {
         match self.value(name)? {
-            ParamValue::Float(value) => Ok(*value),
+            ParamValue::Float(value) => {
+                self.write_debug(
+                    &format!("Value of double option '{name}': {}", double_text(*value)),
+                    1,
+                );
+                Ok(*value)
+            }
             _ => Err(bad(format!(
                 "parameter '{name}' is not a floating-point number"
             ))),
@@ -378,7 +428,12 @@ impl ToolContext {
     /// not hold a string list.
     pub fn string_list(&self, name: &str) -> Result<&[String]> {
         match self.value(name)? {
-            ParamValue::StringList(values) => Ok(values),
+            ParamValue::StringList(values) => {
+                for value in values {
+                    self.write_debug(&format!("Value of string option '{name}': {value}"), 1);
+                }
+                Ok(values)
+            }
             _ => Err(bad(format!("parameter '{name}' is not a string list"))),
         }
     }
@@ -390,7 +445,12 @@ impl ToolContext {
     /// not hold an integer list.
     pub fn int_list(&self, name: &str) -> Result<&[i32]> {
         match self.value(name)? {
-            ParamValue::IntegerList(values) => Ok(values),
+            ParamValue::IntegerList(values) => {
+                for value in values {
+                    self.write_debug(&format!("Value of string option '{name}': {value}"), 1);
+                }
+                Ok(values)
+            }
             _ => Err(bad(format!("parameter '{name}' is not an integer list"))),
         }
     }
@@ -402,7 +462,15 @@ impl ToolContext {
     /// not hold a floating-point list.
     pub fn double_list(&self, name: &str) -> Result<&[f64]> {
         match self.value(name)? {
-            ParamValue::FloatList(values) => Ok(values),
+            ParamValue::FloatList(values) => {
+                for value in values {
+                    self.write_debug(
+                        &format!("Value of string option '{name}': {}", double_text(*value)),
+                        1,
+                    );
+                }
+                Ok(values)
+            }
             _ => Err(bad(format!("parameter '{name}' is not a float list"))),
         }
     }
@@ -415,8 +483,14 @@ impl ToolContext {
     /// throws `WrongParameterType` and `InvalidParameter` respectively.
     pub fn flag(&self, name: &str) -> Result<bool> {
         match self.value(name)? {
-            ParamValue::String(text) if text == "true" => Ok(true),
-            ParamValue::String(text) if text == "false" => Ok(false),
+            ParamValue::String(text) if text == "true" => {
+                self.write_debug(&format!("Value of string option '{name}': 1"), 1);
+                Ok(true)
+            }
+            ParamValue::String(text) if text == "false" => {
+                self.write_debug(&format!("Value of string option '{name}': 0"), 1);
+                Ok(false)
+            }
             ParamValue::String(text) => Err(bad(format!(
                 "Invalid value '{text}' for flag parameter '{name}'. Valid values are 'true' and 'false' only."
             ))),
@@ -433,6 +507,58 @@ impl ToolContext {
     pub fn subsection(&self, name: &str) -> Result<Param> {
         self.param.copy(&format!("{name}:"), true)
     }
+
+    /// Source `writeLogInfo_`: `text` on `out` (the source's
+    /// `OPENMS_LOG_INFO`) and a line in the `-log` file.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Io`] when `out` fails; the log file is best effort, as the
+    /// source's unchecked stream is.
+    pub fn write_log_info(&self, out: &mut dyn Write, text: &str) -> Result<()> {
+        writeln!(out, "{text}")?;
+        self.log.line(text);
+        Ok(())
+    }
+    /// Source `writeLogWarn_`: `text` on `err`, yellow on a terminal
+    /// ([`log_warning`](crate::cli::log_warning)), and a line in the `-log`
+    /// file.
+    ///
+    /// # Errors
+    ///
+    /// As [`write_log_info`](Self::write_log_info).
+    pub fn write_log_warn(&self, err: &mut dyn Write, text: &str) -> Result<()> {
+        super::console::log_warning(err, text)?;
+        self.log.line(text);
+        Ok(())
+    }
+    /// Source `writeLogError_`: `text` on `err`, red on a terminal
+    /// ([`log_error`](crate::cli::log_error)), and a line in the `-log` file.
+    ///
+    /// # Errors
+    ///
+    /// As [`write_log_info`](Self::write_log_info).
+    pub fn write_log_error(&self, err: &mut dyn Write, text: &str) -> Result<()> {
+        super::console::log_error(err, text)?;
+        self.log.line(text);
+        Ok(())
+    }
+    /// Source `writeDebug_(text, min_level)`: a line in the `-log` file when
+    /// the debug level is at least `min_level`. As in the Release build,
+    /// nothing reaches the console.
+    pub fn write_debug(&self, text: &str, min_level: u32) {
+        self.log.debug(text, min_level);
+    }
+    /// Source `writeDebug_(text, param, min_level)`: `text` and `param`
+    /// between separator lines in the `-log` file.
+    pub fn write_debug_param(&self, text: &str, param: &Param, min_level: u32) {
+        self.log.debug_param(text, param, min_level);
+    }
+}
+
+/// `StringUtils::toStr(double)`, as the source's debug lines print a value.
+fn double_text(value: f64) -> String {
+    ParamValue::Float(value).to_text(true).unwrap_or_default()
 }
 
 /// Source `parseRange_` for floating-point bounds (`TOPPBase.cpp:2016-2052`).
@@ -487,6 +613,50 @@ pub fn parse_range(text: &str, low: &mut f64, high: &mut f64) -> Result<bool> {
     Ok(new_low.is_some() || new_high.is_some())
 }
 
+/// Source `parseRange_` for integer bounds (`TOPPBase.cpp:2054-2090`).
+///
+/// The integer overload of [`parse_range`]: the same `[min]:[max]` grammar,
+/// each bound converted like `StringUtils::toInt32`. Returns whether any bound
+/// was set.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] when the colon is missing, with the
+/// source's message, or when a bound is not a 32-bit integer
+/// (`Could not convert string '<text>' to a range of integer values`).
+/// Neither bound is modified on error.
+pub fn parse_range_int(text: &str, low: &mut i32, high: &mut i32) -> Result<bool> {
+    if !text.contains(':') {
+        return Err(bad(format!(
+            "Invalid range '{text}': expected format '[min]:[max]' (the ':' separator is missing)"
+        )));
+    }
+    let conversion = || {
+        bad(format!(
+            "Could not convert string '{text}' to a range of integer values"
+        ))
+    };
+    let start = text.split(':').next().unwrap_or("");
+    let end = text.rsplit(':').next().unwrap_or("");
+    let new_low = if start.is_empty() {
+        None
+    } else {
+        Some(to_int32(start).map_err(|_| conversion())?)
+    };
+    let new_high = if end.is_empty() {
+        None
+    } else {
+        Some(to_int32(end).map_err(|_| conversion())?)
+    };
+    if let Some(value) = new_low {
+        *low = value;
+    }
+    if let Some(value) = new_high {
+        *high = value;
+    }
+    Ok(new_low.is_some() || new_high.is_some())
+}
+
 /// Check that `filename` can be read, as `inputFileReadable_`
 /// (`TOPPBase.cpp:1968-1995`).
 ///
@@ -503,10 +673,23 @@ pub fn input_file_readable(
     param_name: &str,
     err: &mut dyn Write,
 ) -> Option<ExitCode> {
+    let (code, heading, detail) = input_file_problem(filename, param_name)?;
+    let _ = super::console::log_error(err, &heading);
+    let _ = super::console::log_error(err, &detail);
+    Some(code)
+}
+
+/// What [`input_file_readable`] reports, without writing it: the exit code,
+/// the heading the source writes to its error log only and the `Error: …`
+/// line its catch block writes to the error log and the `-log` file.
+pub(crate) fn input_file_problem(
+    filename: &str,
+    param_name: &str,
+) -> Option<(ExitCode, String, String)> {
     let (code, detail) = if !file::exists(filename) {
         (
             ExitCode::InputFileNotFound,
-            format!("Error: File not found (the file '{filename}' does not exist)"),
+            format!("Error: File not found (the file '{filename}' could not be found)"),
         )
     } else if !file::readable(filename) {
         (
@@ -528,9 +711,7 @@ pub fn input_file_readable(
     } else {
         format!("Cannot read input file given from parameter '-{param_name}'!")
     };
-    let _ = writeln!(err, "{heading}");
-    let _ = writeln!(err, "{detail}");
-    Some(code)
+    Some((code, heading, detail))
 }
 
 /// Check that `filename` can be written, as `outputFileWritable_`
@@ -545,6 +726,18 @@ pub fn output_file_writable(
     param_name: &str,
     err: &mut dyn Write,
 ) -> Option<ExitCode> {
+    let (code, heading, detail) = output_file_problem(filename, param_name)?;
+    let _ = super::console::log_error(err, &heading);
+    let _ = super::console::log_error(err, &detail);
+    Some(code)
+}
+
+/// What [`output_file_writable`] reports, without writing it, split as
+/// [`input_file_problem`] splits it.
+pub(crate) fn output_file_problem(
+    filename: &str,
+    param_name: &str,
+) -> Option<(ExitCode, String, String)> {
     if file::writable(filename) {
         return None;
     }
@@ -553,12 +746,11 @@ pub fn output_file_writable(
     } else {
         format!("Cannot write output file given from parameter '-{param_name}'!")
     };
-    let _ = writeln!(err, "{heading}");
-    let _ = writeln!(
-        err,
-        "Error: Unable to write file (the file '{filename}' could not be created. )"
-    );
-    Some(ExitCode::CannotWriteOutputFile)
+    Some((
+        ExitCode::CannotWriteOutputFile,
+        heading,
+        format!("Error: Unable to write file (the file '{filename}' could not be created. )"),
+    ))
 }
 
 /// The source's four whitespace characters, skipped from `index` on.

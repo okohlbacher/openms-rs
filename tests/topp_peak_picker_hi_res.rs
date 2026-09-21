@@ -32,6 +32,9 @@ mod fuzzy;
 #[path = "support/decoded_compare.rs"]
 mod decoded;
 
+#[path = "support/took_line.rs"]
+mod took_line;
+
 use base64::{Engine, engine::general_purpose::STANDARD};
 use decoded::{DecodedOptions, Tolerance, compare_experiments};
 use openms::cli::tools::PeakPickerHiRes;
@@ -103,7 +106,9 @@ fn run(args: &[&str]) -> Run {
     let code = run_with::<PeakPickerHiRes>(&arguments, &mut out, &mut err);
     Run {
         code,
-        out: String::from_utf8_lossy(&out).into_owned(),
+        // The closing `PeakPickerHiRes took …` line of a completed run is
+        // checked and taken off (`support/took_line.rs`).
+        out: took_line::strip_took_line("PeakPickerHiRes", &String::from_utf8_lossy(&out)),
         err: String::from_utf8_lossy(&err).into_owned(),
     }
 }

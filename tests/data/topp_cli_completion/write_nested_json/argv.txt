@@ -1,0 +1,4 @@
+BaselineFilter
+-test
+-write_nested_json
+/scratch/kohlbach/toppbase-oracle/run1/results/write_nested_json/cwd/out

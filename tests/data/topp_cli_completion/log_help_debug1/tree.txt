@@ -1,0 +1,3 @@
+cwd
+cwd/log.txt
+home

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="" name="" docurl="" category="" >
+<description><![CDATA[]]></description>
+<manual><![CDATA[]]></manual>
+<citations>
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="x" description="">
+    <NODE name="y" description="">
+      <ITEM name="z" value="1" type="int" description="deep only" required="false" advanced="false" />
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

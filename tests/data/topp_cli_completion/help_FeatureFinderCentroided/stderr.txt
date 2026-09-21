@@ -1,0 +1,39 @@
+stty: 'standard input': Inappropriate ioctl for device
+
+FeatureFinderCentroided -- Detects two-dimensional features in LC-MS data.
+Full documentation: http://www.openms.de/doxygen/release/4.0.0/html/TOPP_FeatureFinderCentroided.html
+Version: 1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data. Nat Methods (2024). doi:10.1038/s41592-024-02197-7.
+To cite FeatureFinderCentroided:
+ + Sturm M. A novel feature detection algorithm for centroided data. Dissertation, 2010-09-15, p.37 ff. doi:https://publikationen.uni-tuebingen.de/xmlui/bitstream/handle/10900/49453/pdf/Dissertation_Marc_Sturm.pdf.
+ + Weisser H. An automated pipeline for high-throughput label-free quantitative proteomics. J. Proteome Res., 2013, PMID: 23391308. doi:https://doi.org/10.1021/pr300992u.
+
+Usage:
+  FeatureFinderCentroided <options>
+
+This tool has algorithm parameters that are not shown here! Please check the ini file for a detailed description or use the --helphelp option
+
+Options (mandatory options marked with '*'):
+  -in <file>*                         Input file (valid formats: 'mzML')
+  -out <file>*                        Output file (valid formats: 'featureXML')
+  -seeds <file>                       User specified seed list (valid formats: 'featureXML')
+                                      
+  -faims_merge_features <true/false>  For FAIMS data with multiple compensation voltages: Merge features representing the same analyte detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values are merged (same CV = different analytes). Has no effect on non-FAIMS data. (default: 'true') (valid: 'true', 'false')
+                                      
+                                      
+Common TOPP options:
+  -ini <file>                         Use the given TOPP INI file
+  -threads <n>                        Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores) (default: '1')
+  -write_ini <file>                   Writes the default configuration file
+  --help                              Shows options
+  --helphelp                          Shows all options (including advanced)
+
+The following configuration subsections are valid:
+ - algorithm   Algorithm section
+
+You can write an example INI file using the '-write_ini' option.
+Documentation of subsection parameters can be found in the doxygen documentation or the INIFileEditor.
+For more information, please consult the online documentation for this tool:
+  - http://www.openms.de/doxygen/release/4.0.0/html/TOPP_FeatureFinderCentroided.html
+

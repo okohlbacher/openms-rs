@@ -1,0 +1,6 @@
+BaselineFilter
+-test
+-write_ctd
+/scratch/kohlbach/toppbase-oracle/run1/results/ctd_and_write_ini/cwd/ctd
+-write_ini
+/scratch/kohlbach/toppbase-oracle/run1/results/ctd_and_write_ini/cwd/x.ini

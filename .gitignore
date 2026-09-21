@@ -4,3 +4,8 @@ __pycache__/
 
 # Transient git worktrees used by parallel port agents
 .claude/worktrees/
+
+# The -log file the upstream TOPP INIs name (log=TOPP.log); tools run in
+# process by the test suites write it into the working directory, as the
+# C++ tools do. Ignored as upstream ignores it.
+TOPP.log

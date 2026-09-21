@@ -1,0 +1,8 @@
+BaselineFilter
+-test
+-in
+/scratch/kohlbach/toppbase-oracle/run1/inputs/baseline_filter_tool_input.mzML
+-out
+/scratch/kohlbach/toppbase-oracle/run1/results/debug1_run/cwd/out.mzML
+-debug
+1

@@ -1,0 +1,104 @@
+
+BaselineFilter -- Removes the baseline 
+from profile spectra using a top-hat 
+filter.
+Full documentation: http://www.openms.d
+e/doxygen/release/4.0.0/html/TOPP_Basel
+ineFilter.html
+Version: 1.0.0 (OpenMS core 4.0.0, revi
+sion bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. 
+   et al.. OpenMS 3 enables reproducibl
+   e analysis of large-scale mass spect
+   rometry data. Nat Methods (2024). 
+   doi:10.1038/s41592-024-02197-7.
+
+Usage:
+  BaselineFilter <options>
+
+Options (mandatory options marked with 
+'*'):
+  -in <file>*                Input raw 
+                             data file 
+                              (valid 
+                             formats: 
+                             'mzML')
+  -out <file>*               Output 
+                             raw data 
+                             file  (val
+                             id formats
+                             : 'mzML')
+  -struc_elem_length <size>  Length of 
+                             the struct
+                             uring elem
+                             ent (shoul
+                             d be wider
+                              than maxi
+                             mal peak 
+                             width - 
+                             see docume
+                             ntation). 
+                             (default: 
+                             '3.0')
+  -struc_elem_unit <unit>    Unit of 
+                             'struc_ele
+                             m_length' 
+                             parameter.
+                              (default:
+                              'Thomson'
+                             ) (valid: 
+                             'Thomson',
+                              'DataPoin
+                             ts')
+  -method <string>           The name 
+                             of the 
+                             morphologi
+                             cal filter
+                              to be 
+                             applied. 
+                             If you 
+                             are unsure
+                             , use the 
+                             default. 
+                             (default: 
+                             'tophat') 
+                             (valid: 
+                             'identity'
+                             , 'erosion
+                             ', 'dilati
+                             on', 'open
+                             ing', 'clo
+                             sing', 
+                             ...
+                             simple')
+                             
+Common TOPP options:
+  -ini <file>                Use the 
+                             given TOPP
+                              INI file
+  -threads <n>               Sets the 
+                             number of 
+                             threads 
+                             allowed 
+                             to be used
+                              by the 
+                             TOPP tool 
+                             (0 = all 
+                             available 
+                             cores) 
+                             (default: 
+                             '1')
+  -write_ini <file>          Writes 
+                             the defaul
+                             t configur
+                             ation file
+
+  --help                     Shows opti
+                             ons
+  --helphelp                 Shows all 
+                             options 
+                             (including
+                              advanced)
+
+

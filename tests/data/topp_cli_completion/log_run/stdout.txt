@@ -1,0 +1,9 @@
+Progress of 'loading mzML':
+  Progress of 'loading spectra list':
+  -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+-- done [took 0.00 s (CPU), 0.00 s (Wall) @ 13.18 MiB/s] -- 
+Progress of 'filtering baseline':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'storing mzML file':
+-- done [took 0.39 s (CPU), 0.00 s (Wall) @ 4.97 MiB/s] -- 
+BaselineFilter took 0.07 s (wall), 9.27 s (CPU), 0.02 s (system), 9.25 s (user); Peak Memory Usage: 67 MB.

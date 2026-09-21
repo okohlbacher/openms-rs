@@ -25,6 +25,8 @@
 
 #[path = "support/fuzzy_string_comparator.rs"]
 mod fuzzy;
+#[path = "support/took_line.rs"]
+mod took_line;
 
 use openms::cli::tools::FileInfo;
 use openms::cli::{ExitCode, Tool, run_with, verbose_version};
@@ -74,7 +76,9 @@ struct Outcome {
     err: String,
 }
 
-/// Run the tool as `FileInfo args...` through `run_with`.
+/// Run the tool as `FileInfo args...` through `run_with`. The closing
+/// `FileInfo took …` line of a completed run is checked and taken off the
+/// output stream (`support/took_line.rs`).
 fn run(args: &[&str]) -> Outcome {
     let arguments: Vec<String> = std::iter::once(FileInfo::NAME.to_owned())
         .chain(args.iter().map(|a| (*a).to_owned()))
@@ -83,7 +87,10 @@ fn run(args: &[&str]) -> Outcome {
     let code = run_with::<FileInfo>(&arguments, &mut out, &mut err);
     Outcome {
         code,
-        out: String::from_utf8(out).expect("UTF-8 output stream"),
+        out: took_line::strip_took_line(
+            "FileInfo",
+            &String::from_utf8(out).expect("UTF-8 output stream"),
+        ),
         err: String::from_utf8(err).expect("UTF-8 error stream"),
     }
 }
@@ -148,7 +155,8 @@ fn assert_report_text(actual: &str, expected: &str, label: &str) {
 }
 
 /// The C++ stdout of a report run without `-out`: the report, then the
-/// `FileInfo took ...` timing line this port does not write.
+/// `FileInfo took ...` timing line, which is taken off here as the port's is
+/// taken off its own output.
 fn cpp_stdout_report(file: &str) -> String {
     let stdout = read(file);
     stdout
@@ -1168,7 +1176,9 @@ fn the_executable_writes_the_report_to_standard_output() {
         .output()
         .unwrap();
     assert_eq!(output.status.code(), Some(0), "{output:?}");
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let (stdout, took) =
+        took_line::split_took_line("FileInfo", &String::from_utf8(output.stdout).unwrap());
+    assert!(took.is_some(), "the closing line ends the output: {stdout}");
     let expected = tool("expected/stdout_dta.stdout.txt");
     assert_report_text(&stdout, &cpp_stdout_report(&expected), &expected);
 

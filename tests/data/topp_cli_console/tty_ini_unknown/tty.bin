@@ -1,0 +1,3 @@
+[91mParameters passed to 'BaselineFilter' are invalid. To prevent usage of wrong defaults, please update/fix the parameters![39m
+[93mUnknown (or deprecated) Parameter 'bogus_item' given in outdated parameter file![39m
+[0m

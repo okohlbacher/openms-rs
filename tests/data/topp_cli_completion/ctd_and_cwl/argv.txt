@@ -1,0 +1,6 @@
+BaselineFilter
+-test
+-write_ctd
+/scratch/kohlbach/toppbase-oracle/run1/results/ctd_and_cwl/cwd/d1
+-write_cwl
+/scratch/kohlbach/toppbase-oracle/run1/results/ctd_and_cwl/cwd/d2

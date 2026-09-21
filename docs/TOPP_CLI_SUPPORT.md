@@ -17,23 +17,34 @@ The framework needs the `paramxml` feature, because every TOPP tool supports
 | `getProcessingInfo_`, `addDataProcessing_` | `src/cli/processing.rs` |
 | `printUsage_` | `src/cli/usage.rs` |
 | `APPLICATIONS/ParameterInformation.h`, `.cpp`; `TOPPBase::ExitCodes` | `src/cli/parameter.rs` |
+| `APPLICATIONS/TOPPBase_defs.h` (`Citation`, `cite_openms`) | `src/cli/defs.rs` |
+| `enableLogging_`, `writeLog*_`, `writeDebug_`, the destructor | `src/cli/logging.rs` |
+| `APPLICATIONS/ToolHandler.h`, `.cpp` | `src/cli/tool_handler.rs` |
+| core `FORMAT/ParamCTDFile.h`, `.cpp` | `src/cli/param_ctd.rs` |
+| core `FORMAT/ToolDescriptionFile.h`, `HANDLERS/ToolDescriptionHandler.h` (read side) | `src/cli/tool_description_file.rs` |
+| core `DATASTRUCTURES/ToolDescription.h`, `ToolInfo.h` | `src/data_structures/tool_description.rs`, `tool_info.rs` |
+
+The pinned product manifest the Release build installs,
+`share/openms4/tools/topp.tools.tsv`, is `resources/tools/topp.tools.tsv`
+(sha256 `5a90f7c1…`, byte-identical to the Release install).
 
 ## API mapping
 
 | Source | Native |
 | --- | --- |
-| `TOPPBase(name, description, official, citations, toolhandler_test)` | `trait Tool` with `NAME`, `DESCRIPTION`, `VERSION`; `official`, `citations` and `toolhandler_test` not ported |
+| `TOPPBase(name, description, official, citations, toolhandler_test)` | `trait Tool` with `NAME`, `DESCRIPTION`, `CITATIONS`; `official` and `toolhandler_test` are stored and never read by the source, so they are not ported |
+| `~TOPPBase` (removes an empty log file) | `ToolLog::finish`, at the end of `run_with` |
 | `main(argc, argv)` | `cli::run::<T>()`, or `run_with::<T>(args, out, err)` |
 | `registerOptionsAndFlags_` | `Tool::register(&mut ToolSpec)` |
 | `main_` | `Tool::run(&ToolContext)`, or `Tool::run_io(&ToolContext, out, err)` for tools that write to the streams |
 | `getSubsectionDefaults_(section)` | `Tool::subsection_defaults` |
 | `getSubsectionDefaults_()`, `getDefaultParameters_` | internal; `ToolSpec::to_param` is the parameter part |
-| `getToolUserDefaults_` | not ported (reads `~/<Tool>.ini`, which would make runs depend on the account) |
+| `getToolUserDefaults_` | internal: `<user directory>/<Tool>.ini` updates the defaults leniently, with the source's messages; see *Per-user defaults* |
 | `parseCommandLine_` | internal |
-| `handleWriteCommands_` | internal; `-write_ini` ported with the source's ISO-8859-1 declaration (`paramxml::WriteOptions::source`), CTD/CWL/JSON refused |
+| `handleWriteCommands_` | internal; `-write_ini` with the source's ISO-8859-1 declaration (`paramxml::WriteOptions::source`), `-write_ctd` through `ParamCtdFile`, CWL and JSON refused as the Release build refuses them; see *Tool descriptions* |
 | `fileParamValidityCheck_` (both overloads) | internal; input formats through `FileHandler::get_type`, output formats through `type_by_file_name` |
 | `checkIfIniParametersAreApplicable_` | internal |
-| `checkParam_` | not ported (warnings only; see native differences) |
+| `checkParam_` | internal; its three calls after the strict update, with the source's warnings |
 | `TOPPBase::ExitCodes` | `ExitCode`, same 15 variants and discriminants |
 | `ParameterInformation`, `ParameterTypes` | `ParameterInformation`, `ParameterType` |
 | `paramEntryToParameterInformation_`, `getParamArgument_`, `paramToParameterInformation_` | `ParameterInformation::from_param_entry` |
@@ -45,7 +56,7 @@ The framework needs the `paramxml` feature, because every TOPP tool supports
 | `registerSubsection_`, `addText_`, `addEmptyLine_` | `ToolSpec::register_subsection`, `add_text`, `add_empty_line` |
 | `findEntry_`, `getParameterByName_` | `ToolSpec::find` |
 | `get{String,Int,Double}Option_`, `get{String,Int,Double}List_`, `getFlag_`, `getParam_` | `ToolContext::{string,int,double,string_list,int_list,double_list,flag,param}` |
-| `getOutputDirOption` | not ported; no ported tool registers an output directory |
+| `getOutputDirOption` | `ToolContext::output_dir`, which creates the directory |
 | `getParamAs*_`, `getSubsection_` | internal |
 | `getIniLocation_`, `toolName_` | `ToolContext::ini_location`, `tool_name` |
 | `test_mode_`, `debug_level_`, `log_type_` | `ToolContext::test_mode`, `debug_level`, `progress_log_type` |
@@ -55,12 +66,18 @@ The framework needs the `paramxml` feature, because every TOPP tool supports
 | `addDataProcessing_` (`ConsensusMap`, `FeatureMap`, `PeakMap`) | `ToolContext::add_data_processing`, trait `AddDataProcessing` |
 | `inputFileReadable_`, `outputFileWritable_` | `cli::input_file_readable`, `cli::output_file_writable` |
 | `parseRange_(text, double&, double&)` | `parse_range` |
-| `parseRange_(text, Int&, Int&)` | not ported; no ported tool uses it |
-| `version_`, `verboseVersion_` | `Tool::VERSION`, `TOPP_PRODUCT_VERSION`; `cli::verbose_version` |
-| `printUsage_` | internal (`src/cli/usage.rs`), reached by `--help` / `--helphelp` and command-line errors; writes to the error stream |
-| `writeLogInfo_`, `writeLogWarn_`, `writeLogError_`, `writeDebug_`, `enableLogging_` | not ported; diagnostics go to the `out`/`err` streams, and `-log` is inert |
-| `getDocumentationURL` | internal; the release URL of the core version, used by the usage text |
-| `Citation`, `cite_openms` | `cite_openms` as its rendered text inside the usage text; `Citation` and tool citations not ported (no ported tool has one) |
+| `parseRange_(text, Int&, Int&)` | `parse_range_int` |
+| `version_`, `verboseVersion_` | `product_versions(registry, name)`, `cli::verbose_version`; the registry's product version, else the core version |
+| `getToolPrefix`, `getIniLocation_` with `-instance` | internal; the instance number selects `<tool>:<n>:` |
+| `printUsage_` | internal (`src/cli/usage.rs`), reached by `--help` / `--helphelp` and command-line errors; writes to the error stream, shaped and coloured for a console by an executable (*On a console*); `cli::print_usage` for a tool body that prints its own |
+| `writeLogInfo_`, `writeLogWarn_`, `writeLogError_`, `writeDebug_` (both), `enableLogging_` | `ToolContext::write_log_info`, `write_log_warn`, `write_log_error`, `write_debug`, `write_debug_param`; `ToolLog`; see *Log file and debug levels*. `cli::log_error` and `cli::log_warning` write one record of the error and warning log streams, red and yellow on a terminal |
+| `getDocumentationURL` | internal; the release URL of the core version, used by the usage text and the CTD |
+| `Citation`, `Citation::toString`, `cite_openms` | `Citation`, `Citation::to_source_string` (also `Display`), `CITE_OPENMS`; tool citations as `Tool::CITATIONS` |
+| `TOPPBase_defs.h` exceptions `UnregisteredParameter`, `WrongParameterType`, `RequiredParameterNotGiven` | not types: the required-value check reports `RequiredParameterNotGiven`'s message and exit 7; the accessors return `Error::InvalidValue` for the other two (see *Native differences*) |
+| `ToolHandler::getTOPPToolList`, `getToolVersion`, `findExecutable`, `getTypes`, `getCategory`, `getInternalToolsPath` | `ToolHandler::get_topp_tool_list`, `get_tool_version`, `find_executable`, `get_types`, `get_category`, `get_internal_tools_path`; `ToolListType` |
+| `ToolHandler` private `getInternalTools_`, `getInternalToolConfigFiles_`, anonymous `prefixes`, `packageTools` | internal; `ToolHandler::internal_tool_config_files`, `package_tools`; the environment as `ToolRegistrySources` |
+| `ParamCTDFile::store`, `writeCTDToStream`, private `escapeXML`, `replace` | `ParamCtdFile::store`, `write_ctd_to_stream`, `to_ctd_string`, `escape_xml`, `replace` |
+| `ToolDescriptionFile::load` | `ToolDescriptionFile::load`, with the handler's non-fatal messages in `LoadedToolDescriptions::diagnostics`; `store` throws `NotImplemented` in the source and is not ported |
 
 Registration is a builder rather than protected methods on the tool, so the
 registered set is inspectable without running the tool, and a tool cannot mutate
@@ -103,7 +120,13 @@ requirement* below says why.
 | parse | trailing text after several options, listed in command-line order | 6 | 2436-2444 | `a_command_line_at_the_argument_bound_is_parsed` | tier 4, derived |
 | write | `-write_ini` target not writable | 5 | 2609 | `write_ini_to_an_unwritable_path_is_refused` | tier 1: `write_ini_unwritable` |
 | write | `-write_ini` | 0 | 2606-2641, 2097-2256 | `write_ini_ignores_command_line_values`, `write_ini_with_an_invalid_ini_value_keeps_the_default`, `write_ini_matches_the_cpp_file_for_every_ported_tool`, `upstream_write_ini_matches_the_retained_files` | tier 1: `write_ini_with_cli_value`, `write_ini_with_ini`, `write_ini_<tool>`‡ for the five tools; the retained `TOPPBase_test_write_ini_out.ini` and `TOPPBase_test_write_ini_subsec_out.ini` |
-| write | `-write_ctd`, `-write_cwl`, `-write_nested_cwl`, `-write_json`, `-write_nested_json` | 12 | 2643-2683 | `tool_description_writers_are_refused_explicitly` | tier 1: `write_cwl`, `write_nested_cwl`, `write_json`, `write_nested_json` exit 12 without TDL; `write_ctd` exits 0 there, see *Refused writers* |
+| startup | a tool manifest the registry refuses (a row without four fields, an unsafe path, a duplicate name) or cannot read; a `.ttd` registry that collides or does not parse | 6 | 141-163, 505-508 | `a_manifest_the_registry_refuses_ends_the_run_as_in_the_release_build`, `an_unreadable_manifest_or_directory_ends_the_run_as_in_the_release_build`, `the_internal_tool_registry_behaves_as_in_the_release_build`, `a_malformed_ttd_file_ends_the_run` in `tests/topp_cli_completion.rs` | tier 1 (Release build): `reg_*`, `ttd_*` in `../oracle/toppbase-completion` |
+| write | `-write_ctd <dir>` | 0 | 2643-2649, 2551-2603 | `write_ctd_matches_the_release_build_for_the_ported_tools` and the other `write_ctd_*` cases in `tests/topp_cli_completion.rs` | tier 1 (Release build): `ctd_<tool>` byte for byte, `ctd_notest_*`, `ctd_with_ini`, `ctd_with_cli`, `ctd_existing`, `ctd_trailing_slash`, `ctd_cwd_*`, `ctd_relative_*` |
+| write | a tool-description target that is not writable | 5 | 2566 | `write_ctd_target_failures_exit_as_in_the_release_build` | tier 1 (Release build): `ctd_missing_dir`, `ctd_ro_dir`, `write_json_missing_dir` |
+| write | a `-write_ctd` target that is a directory | 12 | 2601, 510-514 | `write_ctd_target_failures_exit_as_in_the_release_build` | tier 1 (Release build): `ctd_target_is_directory` |
+| write | `-write_cwl`, `-write_nested_cwl`, `-write_json`, `-write_nested_json` | 12 | 2651-2683; `ParamCWLFile.cpp:331`, `ParamJSONFile.cpp:326` | `cwl_and_json_writers_are_refused_as_the_release_build_refuses_them` | tier 1 (Release build): `write_cwl`, `write_nested_cwl`, `write_json`, `write_nested_json`, `write_cwl_cwd`, `write_nested_cwl_and_json`; the Release build is built without TDL, see *Tool descriptions* |
+| INI | a per-user `<Tool>.ini` that does not parse / is a directory | 3 / 12 | 2276-2286 | `unusable_user_defaults_end_the_run_as_in_the_release_build` | tier 1 (Release build): `ud_malformed`, `ud_directory` |
+| run | an `is_executable` input found neither as given nor on `PATH` | 14 | 1534-1549, 442-447 | `an_is_executable_input_is_resolved_on_path` | tier 4, derived |
 | INI | `-ini` file missing | 1 | 296, 436-441 | `a_missing_ini_is_input_file_not_found` | tier 1: `ini_missing` |
 | INI | `-ini` file not readable, before a run or with `-write_ini` | 2 | 296, 2630, 448-453 | `an_unreadable_ini_is_input_file_not_readable`, `a_fifo_ini_this_user_cannot_open_is_input_file_not_readable` | tier 1: `ini_unreadable`†, `write_ini_ini_unreadable`† (a regular file); `ini_fifo_denied`†, `write_ini_ini_fifo_denied`† (a FIFO with mode 000: not queried for readability before the load, whose open is refused) |
 | INI | `-ini` file malformed | 3 | 296, 460-465 | `a_malformed_ini_is_input_file_corrupt` | tier 1: `ini_malformed` |
@@ -257,6 +280,47 @@ parameter under its section description (`--helphelp`). Descriptions start with
 an upper-case letter, and a line break in a description continues at the
 description column (`IndentedStream`, `ConsoleUtils::breakString_`).
 
+**On a console** (`src/cli/console.rs`). A tool executable (`cli::run`) lays
+its usage text out for the console as the source does. The width is `COLUMNS`
+read as `StringUtils::toInt32` reads it, or, when `COLUMNS` is unset, the
+second field of `stty size` run through `/bin/sh` with the process's standard
+input, whose complaint about a standard input that is not a terminal reaches
+standard error as the source's does; the width is that number less one, and
+anything unreadable or below 10 turns shaping off (`readConsoleSize_`). Each
+item the source inserts into its `IndentedStream` is broken as
+`breakString_` breaks it: from the current column, continuation lines at the
+current indentation, a line that fills the width and ends in a word shorter
+than four bytes gives that word to the next line, an item of more than ten
+lines keeps eight, an indented `...` and its last line, and the source's
+unsigned arithmetic is kept, so an option column wider than the console
+stops shortening continuation lines and a line that ends exactly at the edge
+is followed by an empty one (CPP-353). On a terminal standard error the usage
+text carries the source's `Colorizer` codes (the tool name and `Usage:`
+inverted, headings bright, the documentation URL underlined, required options
+and the mandatory note green, defaults cyan, restrictions magenta, empty
+addons included), every `writeLogError_`/`OPENMS_LOG_ERROR` line of the
+lifecycle is red and every `writeLogWarn_`/`Param::update` line yellow
+(`LogStreamBuf::distribute_`), and the run ends with `\x1b[0m` on every
+terminal among standard output and error (`InitConsole`). A tool driven in
+process through `run_with` writes to explicit streams, which are not a
+console: no probing, no shaping, no colours, which is the text the source
+writes when standard error is not a terminal and `COLUMNS` is unset. Evidence:
+100 cases (every tool's `--help` and `--helphelp` at `COLUMNS` 20 to 120, 16
+`COLUMNS` values, 4 failures), byte-identical to the Release build apart from
+`FeatureFinderCentroided`'s missing citations (`tests/topp_cli_console.rs`),
+and 15 cases in a
+pseudo-terminal (`tests/data/topp_cli_console/tty_*`), whose usage text and
+log lines are compared in the unit tests of `src/cli/usage.rs` and
+`src/cli/console.rs`; the executables in a pseudo-terminal match 12 of them
+byte for byte (`../oracle/toppbase-completion/compare_tty.py`), and the other
+three are tool bodies: `FileInfo`'s own `Error: Can only validate indices for
+mzML files` is written uncoloured (`src/cli/tools/file_info.rs` writes it
+directly; `cli::log_error` colours it), `FeatureFinderCentroided` lacks its
+citations, and `BaselineFilter` prints no progress lines. Not ported: the
+Windows console-buffer width (`GetConsoleScreenBufferInfo`) and virtual
+terminal mode, which the standard library cannot reach; there `COLUMNS` still
+applies.
+
 **Processing records (decision D4).** BaselineFilter, MapNormalizer and
 SpectraFilterWindowMower attach `getProcessingInfo_` with `BASELINE_REDUCTION`,
 `NORMALIZATION` (`Intensity normalization`) and `FILTERING` (`Data filtering`)
@@ -369,17 +433,22 @@ copy. A build without the flag compiles both away. See `docs/FMA_BUILD_FLAG.md`
 section 8 for what this does and does not guarantee, and
 `src/system/cpu_features.rs`; the flag changes no result, only speed.
 
-**Usage text.** The layout is the one the source writes when standard error is
-not a terminal and `COLUMNS` is unset, as in the oracle, and for the five ported
-tools it matches the product SDK's text byte for byte, apart from the revision.
-Not ported: colours for a terminal, shaping lines to the console width that
-`COLUMNS` or `stty size` report (the source's probe prints `stty: stdin isn't a
-terminal` when there is no terminal), tool citations and the
-`Common UTIL options:` heading, because every ported tool is a TOPP tool. The
-version line names this crate's pinned core revision (`bc9cc12`) where the
-product SDK names the revision it was built from (`4fdec46`). An earlier version
-of this port printed `--help` usage on the output stream; the oracle's `help`
-case writes nothing there.
+**Usage text.** Driven in process, the layout is the one the source writes
+when standard error is not a terminal and `COLUMNS` is unset, as in the
+oracles; the executables shape and colour it for a console (above). For the
+seven ported tools that declare their citations, `--help` and `--helphelp`
+match the Release
+build byte for byte (`help_<tool>`, `helphelp_<tool>` in
+`../oracle/toppbase-completion`; the Release build's revision is the port's,
+`bc9cc12`), apart from the line its console-width probe prints first when
+standard input is not a terminal (`stty: 'standard input': Inappropriate ioctl
+for device` from GNU `stty`), which only an executable prints. Tool citations
+follow the OpenMS citation under
+`To cite <tool>:`, and a tool no manifest lists gets `Common UTIL options:`.
+`FeatureFinderCentroided` does not yet
+declare its two citations (`FeatureFinderCentroided.cpp:124-136`), so its usage
+and its CTD lack them. An earlier version of this port printed `--help` usage
+on the output stream; the oracle's `help` case writes nothing there.
 
 **Validation order.** The source checks each option lazily when `main_` reads it;
 this port checks every registered option after the update, in registration
@@ -403,17 +472,99 @@ copies UTF-8 bytes under that declaration, so its non-ASCII text reads back as
 different characters, while this writer writes ISO-8859-1 bytes and character
 references. The five ported tools' files are ASCII.
 
-**Refused writers.** The CTD, CWL and JSON tool-description writers are not
-ported. Each request exits 12 with an explicit message, which is what the oracle
-build without TDL reports for the four CWL and JSON writers; its `-write_ctd`
-succeeds.
+**Tool descriptions.** `-write_ctd <dir>` writes `<dir>/<tool><type>.ctd`
+for each `-type` the registry lists, once without a type for every ported tool:
+the defaults — with the per-user defaults, never `-ini` or command-line values,
+and the same with or without `-test` — and the tool's product version, name,
+documentation URL, registry category, description and citation DOIs, the
+OpenMS DOI first. The writer is byte-identical to the Release build for the
+seven ported tools that declare their citations and to the retained
+`ParamCTDFile_test_writeCTDToStream.ctd`. It reproduces three source defects a
+CTD consumer sees, each executed through the Release library by
+`../oracle/toppbase-completion/ctd_driver.cpp`: the replacement loop skips the
+character after each replacement, so `&&` is written `&amp;&` and a second
+consecutive line break stays raw; a tab is written `&amp;#x9;`; the `<tool>`
+attributes, description and citations are not escaped (C++ issue candidates).
+An empty directory is the current directory.
 
-**Not ported:** JSON INI files (a `.json` `-ini` is read as XML and fails with 3),
-`getToolUserDefaults_`, `checkParam_` warnings (unknown subsection, wrong type,
-unknown parameter), the `-type` INI item, the run timing and peak-memory line,
-`-log`, debug output helpers, `ToolHandler` and the `.tools.tsv` manifest
-discovery, `INIUpdater`, `SearchEngineBase`, `MapAlignerBase` and
-`TOPPExternalToolBase`.
+The four CWL and JSON writers need TDL, which the Release build (and the
+source's default `ENABLE_TDL=OFF`) does not have: each checks its target, then
+ends with the Release build's line `Unable to initialize or run <tool>: TDL
+support is not available. Rebuild with -DENABLE_TDL=ON to enable this
+feature.` and exit 12. The Release build opens the target before it fails and
+so leaves an empty file behind, emptying one that existed (oracle
+`write_cwl_existing`); this port leaves the target untouched, a deliberate
+difference, because emptying a user's file is a loss.
+
+**Tool registry.** The product version, the `TOPP`/`UTIL` heading of the
+common options, the CTD category and the `-type` values come from
+`ToolHandler`, which reads the package manifests of every
+`OPENMS_TOOL_PREFIX_PATH` entry and of the executable's prefix, with the
+source's validation and messages. A Rust tool is not installed by the source's
+CMake rules, so the pinned product manifest is compiled in and read **in
+place of the executable's own prefix when that prefix has no
+`share/openms4/tools`**; a prefix in `OPENMS_TOOL_PREFIX_PATH` that lists a
+product tool again is a duplicate there, exactly as for two C++ installations
+(oracle `reg_dup_help`). Manifests are read ordered by file name, where the
+source takes the file system's order; which of two duplicate rows is reported
+can differ. The source also consults the prefix of the loaded `libOpenMS_CLI`
+through `dladdr`; the crate is linked into the executable, so that adds
+nothing. The internal-tool (`.ttd`) directory is the shared-data directory's
+`TOOLS/INTERNAL` when a shared-data directory resolves; the source's
+`getOpenMSDataPath` throws when none does, which would stop every tool, while
+this port's tools need no shared-data tree, so a missing one only means no
+internal tools. `OPENMS_TTD_INTERNAL_PATH` is read as in the source. A `.ttd`
+file that is not well formed ends the run with exit 6 as in the source, with
+this reader's wording of the reason where the source prints Xerces's.
+
+A tool no manifest lists reports the core version (as `ToolManifest_test.cpp`
+asserts) and `Common UTIL options:`. Its verbose version line is the core
+version and `, Revision: <short revision>`; the source puts the library's
+build time between them, which this crate does not record.
+
+**Per-user defaults.** `<user directory>/<Tool>.ini` — `OPENMS_HOME_PATH`, the
+`home_dir` of `OpenMS.ini`, or the home directory — updates the defaults
+leniently whenever they are built (a run, `-write_ini`, `-write_ctd`; not
+usage), with `Param::update`'s verbose messages. An unreadable file is
+skipped; one that does not parse ends the run with 3; a directory by that name
+with 12 and libstdc++'s message, as on the Linux Release build. A run therefore
+depends on the account, as in the source.
+
+**Log file and debug levels.** `-log <file>` (from the command line, or from
+the INI once it is merged) receives the source's lines: every info, warning and
+error line the lifecycle writes through `writeLog*_`, and from debug level 1
+the source's `writeDebug_` lines, including the accessors' `Value of … option`
+lines and, from level 2, the parameter dumps and file checks. A line is
+`<local time> <tool>:<instance>:: <text>`. At debug level 1 or more, opening
+the file prints `Writing to '<file>'` on standard output. As in the Release
+build, debug text never reaches the console (`OPENMS_LOG_DEBUG` is compiled
+out there), and an empty log file named by `-log` is removed at the end. Two
+orders differ from the source: the file checks run before the tool body, where
+the source checks each file when the tool first reads it, so at level 2 the
+`Checking … file` lines come before the body's `Value of` lines; and the
+`Value of` lines follow the order the ported tool reads its options, which
+for BaselineFilter is not the source's. A source debug line that carries a C++
+source file and line (`Error occurred in line …`) has no counterpart.
+
+**Run time.** After the tool body returns, whatever its exit code, the source's
+closing line `<tool> took <wall> (wall), <cpu> (CPU), <system> (system), <user>
+(user); Peak Memory Usage: <n> MB.` goes to standard output. A component this
+port's `StopWatch` cannot read on the platform prints as `n/a`, and the memory
+part appears only where the platform reports a peak (Linux). A body that ends
+through an error, or through `write_failure`, prints no closing line, as the
+source's exception unwinds past it.
+
+**Update diagnostics** of the strict update, the lenient `-write_ini` update and
+the per-user defaults reach standard error at the end of the run: the source
+writes them to its warning log stream without flushing it, so the Release build
+prints them after everything else, after `Parameters passed to '<tool>' are
+invalid. …` on a failed strict update.
+
+**Not ported:** JSON INI files (`ParamJSONFile::load`, which the Release
+build reads without TDL: a `.json` `-ini` is read as XML here and fails with 3,
+where the Release build applies it, oracle `json_ini_*`; it needs `serde_json`
+behind the `paramxml` feature), `INIUpdater`, `SearchEngineBase`,
+`MapAlignerBase` and `TOPPExternalToolBase`.
 
 **UpdateCheck** is ported in `src/system/update_check.rs`, behind the
 non-default `network` feature, and is not called by the lifecycle. The source
@@ -448,7 +599,18 @@ same entries. A missing file's parenthetical reads `does not exist`, where the
 source says `could not be found`, because an existing assertion fixes the phrase.
 
 **Errors** are typed `Result` values mapped at the boundary. A registration
-error is exit 6 (the source's initialisation catch) rather than 12.
+error is exit 6 (the source's initialisation catch) rather than 12. A tool that
+reads a parameter it did not register, or with the wrong accessor, gets
+`Error::InvalidValue`, which a body that lets it escape ends with exit 6 where
+the source's `UnregisteredParameter` and `WrongParameterType` reach
+`INTERNAL_ERROR` (12); both are programming errors, not reachable from a
+command line. `Error::InvalidValue` and `InvalidRange` from a tool body exit 6
+where the source's own `InvalidValue`/`InvalidRange` exceptions exit 8: the
+ported tools also return `InvalidValue` for the source's explicit
+`return ILLEGAL_PARAMETERS` (MzMLSplitter's option checks, for one), so the
+crate-wide arm cannot move to 8 until those tools return
+`ExitCode::IllegalParameters` themselves (tried: five suites then disagree,
+two of them with the Release build).
 `parse_range` leaves both bounds unchanged on error. A command line is bounded
 by `MAX_ARGUMENTS` and `MAX_ARGUMENT_BYTES` before parsing, and parsed in time
 linear in its length: the text left after each option is gathered in reverse and
@@ -460,7 +622,33 @@ independent generator per call instead of seeding a process-wide singleton.
 
 ## Checked boundaries and evidence
 
-`tests/topp_cli_lifecycle.rs` holds 73 cases, none ignored.
+`tests/topp_cli_lifecycle.rs` holds 73 cases, `tests/topp_cli_completion.rs`
+43, `tests/param_ctd.rs` 10, `tests/tool_description.rs` 7 and
+`tests/parameter_information.rs` 3, none ignored.
+
+* **Release build (tier 1 executed differential).**
+  `../oracle/toppbase-completion/cases.sh` ran 124 cases of the C++ Release
+  build at the port's pins (core `bc9cc12`, cli `c19e494`, topp `174b576`) on
+  ibminode06, each in a clean environment with its own `HOME`,
+  `OPENMS_HOME_PATH` and working directory; 93 of them are retained under
+  `tests/data/topp_cli_completion/<case>/` (argv, environment, exit code,
+  streams, log file, file tree) with `fixtures.sha256.json`, and the CTDs under
+  `tests/data/topp_cli_lifecycle/release/`. `ctd_driver.cpp` wrote five CTDs
+  through the Release `libOpenMS` (two identical runs), retained under
+  `tests/data/param_ctd/oracle/`.
+* **Upstream class tests (tier 3).** `ToolHandler_test.cpp`,
+  `ToolManifest_test.cpp`, `ParameterInformation_test.cpp` and the `-log` and
+  `Citation::toString` sections of `TOPPBase_test.cpp` (cli `c19e494`);
+  `ParamCTDFile_test.cpp` (with its retained output, tier 1),
+  `ToolDescriptionFile_test.cpp` and `ToolDescription_test.cpp` (core
+  `bc9cc12`). The command-line part of `getIniLocation_` (`-instance 5`) is
+  transcribed through the log file, whose lines carry the location. The
+  `getStringOption_` INI cases (`instance1`, `instance5`, `toolcommon`,
+  `common`) read what the source's non-atomic strict update left behind
+  after it failed; this port's update is atomic and the run ends before any
+  tool reads a value, so they have no observable counterpart. The runs' exit
+  codes and messages are covered by the oracle's `instance_on_command_line`
+  and `ini_common_top_level`.
 
 * **Oracle cases (tier 1 executed differential).** `../oracle/topp-cli-lifecycle/run.sh`
   runs 38 cases of the C++ product SDK (core 4fdec46, Debug, AppleClang 21) in a

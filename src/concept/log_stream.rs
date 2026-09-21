@@ -165,7 +165,7 @@ pub enum LogColor {
     Invert,
 }
 impl LogColor {
-    fn enable(self) -> &'static [u8] {
+    pub(crate) fn enable(self) -> &'static [u8] {
         match self {
             Self::Red => b"\x1b[91m",
             Self::Green => b"\x1b[92m",
@@ -178,7 +178,7 @@ impl LogColor {
             Self::Invert => b"\x1b[7m",
         }
     }
-    fn disable(self) -> &'static [u8] {
+    pub(crate) fn disable(self) -> &'static [u8] {
         match self {
             Self::Underline => b"\x1b[24m",
             Self::Bright => b"\x1b[22m",

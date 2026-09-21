@@ -1,0 +1,4 @@
+BaselineFilter
+-test
+-write_ini
+/scratch/kohlbach/toppbase-oracle/run1/results/ud_invalid_write_ini/cwd/out.ini

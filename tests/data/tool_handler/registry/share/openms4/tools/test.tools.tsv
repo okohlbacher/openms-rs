@@ -1,0 +1,7 @@
+# name	category	version	executable
+DecoyDatabase	File Filtering, Extraction and Merging	1.0.0	bin/DecoyDatabase
+IndependentTool	Experimental	7.2.1	bin/IndependentTool
+IDFilter	File Filtering, Extraction and Merging	1.0.0	bin/IDFilter
+IsobaricAnalyzer	Quantitation	1.0.0	bin/IsobaricAnalyzer
+IDMapper	Identification Processing	1.0.0	bin/IDMapper
+FileInfo	File Filtering, Extraction and Merging	1.0.0	bin/FileInfo

@@ -1,0 +1,4 @@
+BaselineFilter
+-test
+-write_ctd
+/scratch/kohlbach/toppbase-oracle/run1/results/ctd_existing/cwd/ctd

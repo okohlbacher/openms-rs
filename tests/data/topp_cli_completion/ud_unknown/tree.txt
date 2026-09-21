@@ -1,0 +1,4 @@
+cwd
+cwd/out.mzML
+home
+home/BaselineFilter.ini

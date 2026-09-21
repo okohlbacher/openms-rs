@@ -1,0 +1,38 @@
+stty: 'standard input': Inappropriate ioctl for device
+
+MzMLSplitter -- Splits an mzML file into multiple parts
+Full documentation: http://www.openms.de/doxygen/release/4.0.0/html/TOPP_MzMLSplitter.html
+Version: 1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data. Nat Methods (2024). doi:10.1038/s41592-024-02197-7.
+
+Usage:
+  MzMLSplitter <options>
+
+Options (mandatory options marked with '*'):
+  -in <file>*                   Input file (valid formats: 'mzML')
+  -out <prefix>                 Prefix for output files ('_part1of2.mzML' etc. will be appended; default: same as 'in' without the file extension)
+  -parts <num>                  Number of parts to split into (takes precedence over 'size' if set) (default: '1') (min: '1')
+  -size <num>                   Approximate upper limit for resulting file sizes (in 'unit') (default: '0') (min: '0')
+  -unit <choice>                Unit for 'size' (base 1024) (default: 'MB') (valid: 'KB', 'MB', 'GB')
+  -no_chrom                     Remove chromatograms, keep only spectra.
+  -no_spec                      Remove spectra, keep only chromatograms.
+                                
+Common TOPP options:
+  -ini <file>                   Use the given TOPP INI file
+  -log <file>                   Name of log file (created only when specified)
+  -instance <n>                 Instance number for the TOPP INI file (default: '1')
+  -debug <n>                    Sets the debug level (default: '0')
+  -threads <n>                  Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores) (default: '1')
+  -write_ini <file>             Writes the default configuration file
+  -write_ctd <out_dir>          Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>
+  -write_nested_cwl <out_dir>   Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>
+  -write_cwl <out_dir>          Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>, but enforce a flat parameter hierarchy
+  -write_nested_json <out_dir>  Writes the default configuration file
+  -write_json <out_dir>         Writes the default configuration file, but compatible to the flat hierarchy
+  -no_progress                  Disables progress logging to command line
+  -force                        Overrides tool-specific checks
+  -test                         Enables the test mode (needed for internal use only)
+  --help                        Shows options
+  --helphelp                    Shows all options (including advanced)
+

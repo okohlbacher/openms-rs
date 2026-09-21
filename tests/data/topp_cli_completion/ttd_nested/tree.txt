@@ -1,0 +1,5 @@
+cwd
+home
+home/ttd
+home/ttd/deeper
+home/ttd/deeper/ttd_internal_dup.ttd

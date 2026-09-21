@@ -1,0 +1,8 @@
+BaselineFilter
+-test
+-ini
+/scratch/kohlbach/toppbase-oracle/run1/inputs/user_defaults_unknown.ini
+-in
+/scratch/kohlbach/toppbase-oracle/run1/inputs/baseline_filter_tool_input.mzML
+-out
+/scratch/kohlbach/toppbase-oracle/run1/console_results/tty_ini_unknown/cwd/o.mzML

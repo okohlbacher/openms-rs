@@ -1,0 +1,3 @@
+cwd
+home
+home/BaselineFilter.ini

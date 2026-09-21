@@ -1,0 +1,65 @@
+
+[7mBaselineFilter[27m -- Removes the baseline from profi
+le spectra using a top-hat filter.
+[1mFull documentation: [22m[4mhttp://www.openms.de/doxygen/
+release/4.0.0/html/TOPP_BaselineFilter.html[24m
+[1mVersion: [22m1.0.0 (OpenMS core 4.0.0, revision bc9cc
+12)
+[1mTo cite OpenMS:
+[22m + Pfeuffer, J., Bielow, C., Wein, S. et al.. 
+   OpenMS 3 enables reproducible analysis of larg
+   e-scale mass spectrometry data. Nat Methods 
+   (2024). doi:10.1038/s41592-024-02197-7.
+
+[7mUsage:[27m
+  [1mBaselineFilter[22m <options>
+
+[1mOptions[22m ([92mmandatory options marked with '*'[39m):
+[92m  -in <file>*                [39mInput raw data file [96m[39m[95m
+                              (valid formats: 
+                             'mzML')[39m
+[92m  -out <file>*               [39mOutput raw data file
+                              [96m[39m[95m (valid formats: 
+                             'mzML')[39m
+  -struc_elem_length <size>  Length of the struct
+                             uring element (shoul
+                             d be wider than maxi
+                             mal peak width - 
+                             see documentation).[96m 
+                             (default: '3.0')[39m[95m[39m
+  -struc_elem_unit <unit>    Unit of 'struc_elem_
+                             length' parameter.[96m 
+                             (default: 'Thomson')[39m[95m
+                              (valid: 'Thomson', 
+                             'DataPoints')[39m
+  -method <string>           The name of the morp
+                             hological filter to 
+                             be applied. If you 
+                             are unsure, use the 
+                             default.[96m (default: 
+                             'tophat')[39m[95m (valid: 
+                             'identity', 'erosion
+                             ', 'dilation', 'open
+                             ing', 'closing', 
+                             'gradient', 'tophat'
+                             , 'bothat', 'erosion
+                             _simple', 'dilation_
+                             simple')[39m
+                             [96m[39m[95m[39m
+Common TOPP options:
+  -ini <file>                Use the given TOPP 
+                             INI file[96m[39m[95m[39m
+  -threads <n>               Sets the number of 
+                             threads allowed to 
+                             be used by the TOPP 
+                             tool (0 = all availa
+                             ble cores)[96m (default:
+                              '1')[39m[95m[39m
+  -write_ini <file>          Writes the default 
+                             configuration file[96m[39m[95m[39m
+  --help                     Shows options[96m[39m[95m[39m
+  --helphelp                 Shows all options 
+                             (including advanced)[96m[39m[95m[39m
+
+
+[0m

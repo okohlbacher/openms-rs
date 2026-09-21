@@ -1,0 +1,123 @@
+# name	category	version	executable
+AccurateMassSearch	Metabolite Identification	1.0.0	bin/AccurateMassSearch
+AssayGeneratorMetabo	Targeted Experiments and OpenSWATH	1.0.0	bin/AssayGeneratorMetabo
+AssayGeneratorMetaboSirius	Targeted Experiments and OpenSWATH	1.0.0	bin/AssayGeneratorMetaboSirius
+BaselineFilter	Spectrum Processing: Peak Smoothing and Normalization	1.0.0	bin/BaselineFilter
+CVInspector	[for Developers]	1.0.0	bin/CVInspector
+ClusterMassTraces	Misc	1.0.0	bin/ClusterMassTraces
+ClusterMassTracesByPrecursor	Targeted Experiments and OpenSWATH	1.0.0	bin/ClusterMassTracesByPrecursor
+ConsensusID	Identification Processing	1.0.0	bin/ConsensusID
+ConsensusMapNormalizer	Quantitation	1.0.0	bin/ConsensusMapNormalizer
+DTAExtractor	File Filtering, Extraction and Merging	1.0.0	bin/DTAExtractor
+DatabaseFilter	File Filtering, Extraction and Merging	1.0.0	bin/DatabaseFilter
+DeMeanderize	Misc	1.0.0	bin/DeMeanderize
+Decharger	Quantitation	1.0.0	bin/Decharger
+DecoyDatabase	File Filtering, Extraction and Merging	1.0.0	bin/DecoyDatabase
+Digestor	Identification Processing	1.0.0	bin/Digestor
+DigestorMotif	Identification Processing	1.0.0	bin/DigestorMotif
+EICExtractor	Quantitation	1.0.0	bin/EICExtractor
+Epifany	Identification Processing	1.0.0	bin/Epifany
+ExternalCalibration	Mass Correction and Calibration	1.0.0	bin/ExternalCalibration
+FalseDiscoveryRate	Identification Processing	1.0.0	bin/FalseDiscoveryRate
+FeatureFinderCentroided	Quantitation	1.0.0	bin/FeatureFinderCentroided
+FeatureFinderIdentification	Quantitation	1.0.0	bin/FeatureFinderIdentification
+FeatureFinderLFQ	Quantitation	1.0.0	bin/FeatureFinderLFQ
+FeatureFinderMetabo	Quantitation	1.0.0	bin/FeatureFinderMetabo
+FeatureFinderMetaboIdent	Quantitation	1.0.0	bin/FeatureFinderMetaboIdent
+FeatureFinderMultiplex	Quantitation	1.0.0	bin/FeatureFinderMultiplex
+FeatureLinkerLabeled	Feature Linking	1.0.0	bin/FeatureLinkerLabeled
+FeatureLinkerUnlabeled	Feature Linking	1.0.0	bin/FeatureLinkerUnlabeled
+FeatureLinkerUnlabeledKD	Feature Linking	1.0.0	bin/FeatureLinkerUnlabeledKD
+FeatureLinkerUnlabeledQT	Feature Linking	1.0.0	bin/FeatureLinkerUnlabeledQT
+FileConverter	File Converter	1.0.0	bin/FileConverter
+FileFilter	File Filtering, Extraction and Merging	1.0.0	bin/FileFilter
+FileInfo	File Filtering, Extraction and Merging	1.0.0	bin/FileInfo
+FileMerger	File Filtering, Extraction and Merging	1.0.0	bin/FileMerger
+FuzzyDiff	[for Developers]	1.0.0	bin/FuzzyDiff
+GNPSExport	File Converter	1.0.0	bin/GNPSExport
+HighResPrecursorMassCorrector	Mass Correction and Calibration	1.0.0	bin/HighResPrecursorMassCorrector
+IDConflictResolver	Identification Processing	1.0.0	bin/IDConflictResolver
+IDDecoyProbability	Identification Processing	1.0.0	bin/IDDecoyProbability
+IDExtractor	Identification Processing	1.0.0	bin/IDExtractor
+IDFileConverter	File Converter	1.0.0	bin/IDFileConverter
+IDFilter	File Filtering, Extraction and Merging	1.0.0	bin/IDFilter
+IDMapper	Identification Processing	1.0.0	bin/IDMapper
+IDMerger	File Filtering, Extraction and Merging	1.0.0	bin/IDMerger
+IDPosteriorErrorProbability	Identification Processing	1.0.0	bin/IDPosteriorErrorProbability
+IDRTCalibration	Mass Correction and Calibration	1.0.0	bin/IDRTCalibration
+IDRipper	File Filtering, Extraction and Merging	1.0.0	bin/IDRipper
+IDScoreSwitcher	Identification Processing	1.0.0	bin/IDScoreSwitcher
+IDSplitter	File Filtering, Extraction and Merging	1.0.0	bin/IDSplitter
+INIUpdater	Misc	1.0.0	bin/INIUpdater
+InternalCalibration	Mass Correction and Calibration	1.0.0	bin/InternalCalibration
+IonMobilityBinning	File Filtering, Extraction and Merging	1.0.0	bin/IonMobilityBinning
+IsobaricAnalyzer	Quantitation	1.0.0	bin/IsobaricAnalyzer
+IsobaricWorkflow	Quantitation	1.0.0	bin/IsobaricWorkflow
+JSONExporter	[for Developers]	1.0.0	bin/JSONExporter
+LuciphorAdapter	Identification of Proteins and Peptides (SearchEngines)	1.0.0	bin/LuciphorAdapter
+MRMMapper	Targeted Experiments and OpenSWATH	1.0.0	bin/MRMMapper
+MRMPairFinder	Targeted Experiments and OpenSWATH	1.0.0	bin/MRMPairFinder
+MSFraggerAdapter	Identification of Proteins and Peptides (SearchEngines)	1.0.0	bin/MSFraggerAdapter
+MSGFPlusAdapter	Identification of Proteins and Peptides (SearchEngines)	1.0.0	bin/MSGFPlusAdapter
+MSstatsConverter	File Converter	1.0.0	bin/MSstatsConverter
+MaRaClusterAdapter	Spectrum processing: Misc	1.0.0	bin/MaRaClusterAdapter
+MapAlignerIdentification	Map Alignment	1.0.0	bin/MapAlignerIdentification
+MapAlignerPoseClustering	Map Alignment	1.0.0	bin/MapAlignerPoseClustering
+MapAlignerTreeGuided	Map Alignment	1.0.0	bin/MapAlignerTreeGuided
+MapNormalizer	Spectrum Processing: Peak Smoothing and Normalization	1.0.0	bin/MapNormalizer
+MapRTTransformer	Map Alignment	1.0.0	bin/MapRTTransformer
+MapStatistics	File Filtering, Extraction and Merging	1.0.0	bin/MapStatistics
+MassCalculator	Misc	1.0.0	bin/MassCalculator
+MassTraceExtractor	Quantitation	1.0.0	bin/MassTraceExtractor
+MetaProSIP	Quantitation	1.0.0	bin/MetaProSIP
+MetaboliteAdductDecharger	Quantitation	1.0.0	bin/MetaboliteAdductDecharger
+MetaboliteSpectralMatcher	Metabolite Identification	1.0.0	bin/MetaboliteSpectralMatcher
+MultiplexResolver	Quantitation	1.0.0	bin/MultiplexResolver
+MzMLSplitter	File Filtering, Extraction and Merging	1.0.0	bin/MzMLSplitter
+MzTabExporter	File Converter	1.0.0	bin/MzTabExporter
+NoiseFilterGaussian	Spectrum Processing: Peak Smoothing and Normalization	1.0.0	bin/NoiseFilterGaussian
+NoiseFilterSGolay	Spectrum Processing: Peak Smoothing and Normalization	1.0.0	bin/NoiseFilterSGolay
+NovorAdapter	Identification of Proteins and Peptides (SearchEngines)	1.0.0	bin/NovorAdapter
+OpenMSDatabasesInfo	[for Developers]	1.0.0	bin/OpenMSDatabasesInfo
+OpenMSInfo	Misc	1.0.0	bin/OpenMSInfo
+OpenPepXL	Cross-Linking	1.0.0	bin/OpenPepXL
+PSMFeatureExtractor	Identification Processing	1.0.0	bin/PSMFeatureExtractor
+ParquetConverter	File Converter	1.0.0	bin/ParquetConverter
+PeakPickerHiRes	Spectrum processing: Centroiding	1.0.0	bin/PeakPickerHiRes
+PeakPickerIM	Spectrum processing: Centroiding	1.0.0	bin/PeakPickerIM
+PeakPickerIterative	Spectrum processing: Centroiding	1.0.0	bin/PeakPickerIterative
+PeptideIndexer	Identification Processing	1.0.0	bin/PeptideIndexer
+PercolatorAdapter	Identification Processing	1.0.0	bin/PercolatorAdapter
+PhosphoScoring	Identification Processing	1.0.0	bin/PhosphoScoring
+ProteinInference	Identification Processing	1.0.0	bin/ProteinInference
+ProteinQuantifier	Quantitation	1.0.0	bin/ProteinQuantifier
+QCCalculator	Quality Control	1.0.0	bin/QCCalculator
+QCEmbedder	Quality Control	1.0.0	bin/QCEmbedder
+QCExporter	Quality Control	1.0.0	bin/QCExporter
+QCExtractor	Quality Control	1.0.0	bin/QCExtractor
+QCImporter	Quality Control	1.0.0	bin/QCImporter
+QCMerger	Quality Control	1.0.0	bin/QCMerger
+QCShrinker	Quality Control	1.0.0	bin/QCShrinker
+QualityControl	Quality Control	1.0.0	bin/QualityControl
+RNADigestor	RNA	1.0.0	bin/RNADigestor
+RNAMassCalculator	RNA	1.0.0	bin/RNAMassCalculator
+RNPxlXICFilter	Cross-Linking	1.0.0	bin/RNPxlXICFilter
+Resampler	Spectrum processing: Misc	1.0.0	bin/Resampler
+SageAdapter	Identification of Proteins and Peptides (SearchEngines)	1.0.0	bin/SageAdapter
+SeedListGenerator	Quantitation	1.0.0	bin/SeedListGenerator
+SemanticValidator	[for Developers]	1.0.0	bin/SemanticValidator
+SequenceCoverageCalculator	Identification Processing	1.0.0	bin/SequenceCoverageCalculator
+SimpleSearchEngine	Identification of Proteins and Peptides (SearchEngines)	1.0.0	bin/SimpleSearchEngine
+SiriusExport	Metabolite Identification	1.0.0	bin/SiriusExport
+SpectraFilterNLargest	Spectrum Processing: Peak Smoothing and Normalization	1.0.0	bin/SpectraFilterNLargest
+SpectraFilterNormalizer	Spectrum Processing: Peak Smoothing and Normalization	1.0.0	bin/SpectraFilterNormalizer
+SpectraFilterThresholdMower	Spectrum Processing: Peak Smoothing and Normalization	1.0.0	bin/SpectraFilterThresholdMower
+SpectraFilterWindowMower	Spectrum Processing: Peak Smoothing and Normalization	1.0.0	bin/SpectraFilterWindowMower
+SpectraMerger	Spectrum processing: Misc	1.0.0	bin/SpectraMerger
+SpectraSTSearchAdapter	Identification of Proteins and Peptides (SearchEngines)	1.0.0	bin/SpectraSTSearchAdapter
+StaticModification	Identification Processing	1.0.0	bin/StaticModification
+TICCalculator	Misc	1.0.0	bin/TICCalculator
+TextExporter	File Converter	1.0.0	bin/TextExporter
+UniPEFF	File Converter	1.0.0	bin/UniPEFF
+XFDR	Cross-Linking	1.0.0	bin/XFDR
+XMLValidator	[for Developers]	1.0.0	bin/XMLValidator

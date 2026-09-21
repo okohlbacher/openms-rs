@@ -1,0 +1,7 @@
+<ttd>
+  <tool status="internal">
+    <name>BaselineFilter</name>
+    <category>Probe Category</category>
+    <type>first</type>
+  </tool>
+</ttd>
