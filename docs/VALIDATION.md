@@ -1,5 +1,75 @@
 # Validation of the ongoing Rust port
 
+## Phase 3a: FuzzyDiff, the ninth validated TOPP workflow (2026-09-21)
+
+`FuzzyDiff` (topp `174b576` `src/FuzzyDiff.cpp`) is ported on the TOPP
+lifecycle as `src/cli/tools/fuzzy_diff.rs`, with `src/bin/FuzzyDiff.rs` and a
+`[[bin]]` that requires `paramxml`. Its comparator moved from
+`tests/support/fuzzy_string_comparator.rs` into the library as
+`concept::fuzzy_string_comparator`; the test support now re-exports it and
+keeps the `FuzzyDiff` contract emulation and the INI subset reader.
+`python3 tools/core_sdk_coverage.py` counts **9** validated TOPP workflows
+(was 8), through `tests/data/topp_fuzzy_diff_provenance.json`.
+
+**The move changed no behaviour, and that was checked rather than asserted.**
+The library module is the test-support class code; the only additions are
+native accessors (`input_names`, `set_input_names`, `input_failure`,
+`log_without_input_failure`) and the two transforms of `FuzzyDiff::main_`
+(`sorted_lines`, which was already test-support API, and
+`parse_matched_whitelist`). Every test binary that includes the support was
+run with `--all-features`: `fuzzy_string_comparator` 33 passed (1 ignored, as
+before; its 137-case C++ corpus still matches every verdict and log byte, and
+its 39 product-SDK exit codes still match), `topp_feature_finder_centroided`
+46, `topp_cli_lifecycle` 73, `file_info` 60 (5 ignored, as before),
+`feature_finder_picked_instrumentation` 39, `topp_file_info` 39,
+`topp_peak_picker_hi_res` 34. Under `--no-default-features --features
+paramxml` on Rust 1.85.0: `fuzzy_string_comparator` 31 (1 ignored),
+`topp_fuzzy_diff` 15, library unit tests 317.
+
+**Tier 1, executed on the Release build.** `../oracle/fuzzy-diff-tool` ran the
+pinned `openms4-release-bc9cc12-c19e494-174b576` `FuzzyDiff` (sha256
+`ee789a71…`) on ibminode06 for 80 invocations, twice, with identical exit codes
+and streams after normalisation: TOPP_FuzzyDiff_1..4 (test-data `0cb15f2`,
+`topp/CMakeLists.txt:138-144`) on their pinned inputs, the 35 invocations the
+product-SDK oracle had judged by exit code only (all 35 exit codes equal on
+the Release build), and 41 more. `tests/topp_fuzzy_diff.rs` (15 tests) runs
+75 of them in process and 2 through the executable and matches the exit code,
+stdout and stderr byte for byte, after exactly the framework's documented
+differences; `-write_ini` equals the C++ file. The upstream registrations,
+which retain no output file, reproduce their `WILL_FAIL` expectations and the
+Release build's streams: `_1` 10 (cheating), `_2` 10 (ratio), `_3` 0, `_4` 1.
+
+**Three deliberate divergences, each asserted on its own.** libstdc++'s
+`std::from_chars` rejects a number that rounds to zero (`1e-400`), where the
+source comment and its libc++ build accept it; the comparator keeps accepting
+it (`token_underflow`, `token_underflow_absdiff`: C++ 10, port 0), and a
+subnormal, the smallest normal and an overflow agree. With `-sort` the source
+compares an unreadable directory as an empty text (10); the port refuses with
+12, the code the source gives the same directory without `-sort`.
+
+**Findings.** Without `-sort` a directory makes the Release build exit 12 with
+`Unable to initialize or run FuzzyDiff: basic_filebuf::underflow error reading
+the file: Is a directory`, which the port now reproduces instead of reporting
+a difference (10); the comparator records the read failure through the new
+`InputFailure` without changing its log line. On a failed strict parameter
+update the C++ error stream shows `Parameters passed to 'FuzzyDiff' are
+invalid...` before the diagnostic (two log streams), where `src/cli.rs` writes
+the diagnostic first (10 cases); the framework also writes no timing line,
+which the Release build writes exactly when `main_` returns (80 cases). Both
+are the framework's, reported to its lane rather than changed here. A `-sort`
+input is bounded to 2^26 lines (`FuzzyDiff::MAX_SORT_LINES`), because sorting
+holds a slice reference per line and an input of only newlines within the
+1 GiB bound would otherwise cost 16 GiB.
+
+**Gates.** `cargo fmt --check`, `cargo clippy --all-features --all-targets -D
+warnings`, `RUSTDOCFLAGS=-D warnings cargo doc --all-features`,
+`check_core_sdk`, `test_core_sdk`, `core_sdk_coverage`,
+`test_core_sdk_coverage`, `check_schema_feature_graph`, `check_doc_coverage`
+(floor recorded), `check_module_cycles` and `check_source_citations` pass.
+`ci_matrix.py --check`, `test_ci_matrix` and `ci_coverage.py --check` fail
+until the lead regenerates the matrix for the new `tests/topp_fuzzy_diff.rs`;
+this lane does not edit `rust.yml`.
+
 ## Shared-math wave: the source's own arithmetic and its own `std::sort` (2026-09-19)
 
 Decision **D16** was taken for this wave and is recorded in full, with its
