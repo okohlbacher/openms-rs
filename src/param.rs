@@ -6,7 +6,7 @@
 //! Public drafts retain independent restrictions; checked operations are atomic.
 
 pub mod handler;
-pub use handler::DefaultParamHandler;
+pub use handler::{DefaultParamHandler, ParameterMetaSink};
 mod iteration;
 mod operations;
 mod tree;
@@ -61,6 +61,45 @@ impl ParamWork {
     }
     fn slots<T>(&mut self, count: usize) -> Result<()> {
         self.allocation(mul(size_of::<T>(), count)?)
+    }
+}
+
+/// The work and allocation budget a [`handler::ParameterMetaSink`] charges its
+/// own inspection against.
+///
+/// Every parameter operation is bounded by the work it may do and the bytes it
+/// may allocate ([`MAX_PARAM_WORK`], [`MAX_PARAM_BYTES`]), and a sink lives
+/// inside one of those bounds rather than beside it: it walks what the
+/// destination already holds and builds the values that replace it. This hands
+/// a sink the two charges and the two checked sizes it needs, and keeps the
+/// accounting itself private to this module.
+pub struct ParamBudget<'a> {
+    work: &'a mut ParamWork,
+}
+
+impl<'a> ParamBudget<'a> {
+    pub(crate) fn new(work: &'a mut ParamWork) -> Self {
+        Self { work }
+    }
+
+    /// Charge `bytes` of comparison or inspection work.
+    pub fn consume(&mut self, bytes: usize) -> Result<()> {
+        self.work.consume(bytes)
+    }
+
+    /// Charge `bytes` of work and of the allocation that retains them.
+    pub fn copy(&mut self, bytes: usize) -> Result<()> {
+        self.work.copy(bytes)
+    }
+
+    /// `a + b`, refused as an invalid size rather than wrapped.
+    pub fn add(a: usize, b: usize) -> Result<usize> {
+        add(a, b)
+    }
+
+    /// `a * b`, refused as an invalid size rather than wrapped.
+    pub fn mul(a: usize, b: usize) -> Result<usize> {
+        mul(a, b)
     }
 }
 fn invalid(message: impl Into<String>) -> Error {

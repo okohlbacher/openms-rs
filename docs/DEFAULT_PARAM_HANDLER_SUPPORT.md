@@ -54,6 +54,8 @@ The callback must not mutate existing external state: arbitrary callback side ef
 
 Native [MetaValue](METADATA_SUPPORT.md) excludes nonfinite floating-point values. Exporting NaN or infinity therefore returns an error even though parameter storage itself permits them. Metadata conversion, all updates, and checked copies complete fallible work before committing; errors preserve the original destination.
 
+The destination is the `ParameterMetaSink` trait rather than the `MetaInfo` type, and `MetaInfo` implements it, so that `param` names nothing in `metadata`: `metadata` reaches `chemistry`, which reaches `param`, and a `param` that named `MetaInfo` would close a module cycle that blocks the workspace split. The conversion and the walk of the existing destination are therefore written in `metadata`, charged against the handler's own work and allocation limits through `ParamBudget`. Calls are unchanged — the destination type is inferred — and the behaviour above is the sink's contract, not an implementation detail of one destination.
+
 Operations share `Param`'s 50-million-unit work and 64-MiB logical allocation ceilings across tree scans, default completion, validation, copies, warnings, subsection exclusion and metadata preparation. Subsection configuration additionally permits at most 100,000 strings. Parameter-tree depth/node and value-list limits also apply. Existing metadata contributes to the export payload budget; key comparison work includes long common prefixes. Logical accounting is conservative and includes transient copies, so these bounds do not promise that every object individually below 64 MiB can be processed. Borrowed accessors, Boolean setters, and ordinary Rust `Clone` retain their normal behavior.
 
 ## Evidence

@@ -38,6 +38,61 @@ def modules():
     return {p.name for p in (ROOT / "src").iterdir() if p.is_dir()}
 
 
+def brace_group_end(text, opening):
+    """Index of the `}` matching the `{` at `opening`, or the end of `text`."""
+    depth = 0
+    for index in range(opening, len(text)):
+        if text[index] == "{":
+            depth += 1
+        elif text[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return index
+    return len(text)
+
+
+def group_items(body):
+    """Split a brace group's body on the commas that no nested group encloses."""
+    items, depth, start = [], 0, 0
+    for index, char in enumerate(body):
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+        elif char == "," and depth == 0:
+            items.append(body[start:index])
+            start = index + 1
+    items.append(body[start:])
+    return items
+
+
+def named_after_crate(text):
+    """Yield the first path segment of every `crate::` reference in `text`.
+
+    Only that first segment can name a top-level module, so this is the whole
+    edge and nothing deeper: `crate::metadata::MetaValue` names `metadata`.
+
+    A braced group used to hide every module it names, because nothing follows
+    `crate::` but the `{` and a bare `crate::(\\w+)` match therefore found
+    nothing. Two real edges were invisible that way - `param -> metadata`,
+    which closed a cycle, and `interfaces -> metadata`, which did not - and an
+    edge the gate cannot see is a cycle the gate cannot refuse. Each item of a
+    group starts its own path, so `use crate::{Result, metadata::MetaValue}`
+    names `Result` and `metadata`, and a group may nest to any depth.
+    """
+    for match in re.finditer(r"\bcrate::", text):
+        rest = text[match.end() :]
+        if rest.startswith("{"):
+            end = brace_group_end(text, match.end())
+            items = group_items(text[match.end() + 1 : end])
+        else:
+            items = [rest]
+        for item in items:
+            leading = re.match(r"\s*(\w+)", item)
+            if leading:
+                yield leading.group(1)
+
+
 def edges():
     """Map each top-level module to the other top-level modules it names."""
     tops = modules()
@@ -47,7 +102,7 @@ def edges():
         owner = parts[0] if parts[0] in tops else path.stem
         if owner not in tops:
             continue
-        for target in re.findall(r"\bcrate::(\w+)", path.read_text(errors="ignore")):
+        for target in named_after_crate(path.read_text(errors="ignore")):
             if target in tops and target != owner:
                 found[owner].add(target)
     return {k: sorted(v) for k, v in sorted(found.items())}
