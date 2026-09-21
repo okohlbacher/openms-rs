@@ -16,16 +16,25 @@ use std::io::{BufRead, Write};
 use std::ops::Range;
 use std::path::Path;
 
+/// The three range options the source handler consumes, plus native resource
+/// ceilings the source does not have.
 #[derive(Clone, Debug)]
 pub struct ReadOptions {
     /// Source filters include the lower endpoint and exclude the upper endpoint.
     pub rt_range: Option<Range<f64>>,
+    /// Half-open m/z filter on the consensus centroid.
     pub mz_range: Option<Range<f64>>,
+    /// Half-open intensity filter on the consensus centroid.
     pub intensity_range: Option<Range<f64>>,
+    /// Maximum encoded input bytes.
     pub max_xml_bytes: u64,
+    /// Maximum number of records.
     pub max_records: usize,
+    /// Maximum number of items in one list.
     pub max_list_items: usize,
+    /// Maximum decoded payload bytes.
     pub max_payload_bytes: usize,
+    /// Maximum parse and conversion work.
     pub max_work: usize,
     /// Opt into source behavior: discard stale quantities and expose a warning
     /// through `read_report`. The default rejects this loss transactionally.
@@ -80,11 +89,16 @@ impl ReadOptions {
             .all(|(range, value)| range.as_ref().is_none_or(|r| r.contains(&value)))
     }
 }
+/// Native output ceilings; the source writer has none.
 #[derive(Clone, Copy, Debug)]
 pub struct WriteOptions {
+    /// Maximum encoded output bytes.
     pub max_xml_bytes: usize,
+    /// Maximum number of records.
     pub max_records: usize,
+    /// Maximum payload bytes charged while building the output.
     pub max_payload_bytes: usize,
+    /// Maximum serialisation work.
     pub max_work: usize,
 }
 impl Default for WriteOptions {
@@ -98,9 +112,14 @@ impl Default for WriteOptions {
     }
 }
 
+/// A loaded map and the warnings its read produced: reference
+/// inconsistencies the source retains, and the quantities
+/// [`ReadOptions::discard_mismatched_quantities`] discarded.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ReadReport {
+    /// The map that was read.
     pub map: ConsensusMap,
+    /// One line per retained inconsistency or discarded quantity.
     pub warnings: Vec<String>,
 }
 fn bad(message: impl Into<String>) -> Error {
@@ -128,12 +147,18 @@ fn f32_value(value: &str) -> Result<f32> {
     }
 }
 
+/// Read consensusXML with the default options and the global modification
+/// registry. See [`read_report`].
 pub fn read(reader: impl BufRead) -> Result<ConsensusMap> {
     read_with_options(reader, &ReadOptions::default())
 }
+/// Read with explicit options and the global modification registry. See
+/// [`read_report`].
 pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<ConsensusMap> {
     read_with_registry(reader, options, ModificationsDB::global())
 }
+/// Read with caller-supplied modification definitions, dropping the
+/// warnings. See [`read_report`].
 pub fn read_with_registry(
     reader: impl BufRead,
     options: &ReadOptions,
@@ -141,6 +166,7 @@ pub fn read_with_registry(
 ) -> Result<ConsensusMap> {
     Ok(read_report(reader, options, registry)?.map)
 }
+/// Read into `map`, replacing it only on success.
 pub fn read_into(
     reader: impl BufRead,
     map: &mut ConsensusMap,
@@ -151,6 +177,13 @@ pub fn read_into(
     Ok(())
 }
 
+/// Read a bounded consensusXML document and return the map with its warnings.
+///
+/// # Errors
+///
+/// Malformed or unrepresentable input, a quantity ownership mismatch unless
+/// [`ReadOptions::discard_mismatched_quantities`] is set, and any exceeded
+/// limit in `options`.
 pub fn read_report(
     reader: impl BufRead,
     options: &ReadOptions,
@@ -368,9 +401,12 @@ fn read_element(
     Ok(feature)
 }
 
+/// Load a plain, gzip or bzip2 consensusXML file with the default options,
+/// recording its path and type on the returned map.
 pub fn load(path: impl AsRef<Path>) -> Result<ConsensusMap> {
     load_with_options(path, &ReadOptions::default())
 }
+/// Load with explicit options. See [`load`].
 pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Result<ConsensusMap> {
     let path = path.as_ref();
     let mut map = read_with_options(super::path_io::open(path)?, options)?;
@@ -381,6 +417,7 @@ pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Resul
     map.loaded_file_type = FileType::ConsensusXml;
     Ok(map)
 }
+/// Load into `map`, replacing it only on success.
 pub fn load_into(
     path: impl AsRef<Path>,
     map: &mut ConsensusMap,
@@ -390,10 +427,33 @@ pub fn load_into(
     *map = replacement;
     Ok(())
 }
+/// Validate a consensusXML file against the bundled `ConsensusXML_1_7.xsd`.
+///
+/// Source `ConsensusXMLFile::isValid(filename, os)`, inherited from
+/// `Internal::XMLFile`: the messages the source writes to `os` are the
+/// report's diagnostics, and the source's `bool` is
+/// [`is_valid`](crate::format::xml_schema::SchemaValidationReport::is_valid).
+/// Available with the `xml-schema` feature, which brings in the libxml2
+/// validator; the source always has Xerces.
+///
+/// # Errors
+///
+/// As [`xml_schema::validate`](crate::format::xml_schema::validate): an I/O
+/// failure, where the source throws `Exception::FileNotFound`, and input that
+/// is not well-formed XML, where the source returns `false`.
+#[cfg(feature = "xml-schema")]
+pub fn is_valid(
+    path: impl AsRef<Path>,
+) -> Result<crate::format::xml_schema::SchemaValidationReport> {
+    crate::format::xml_schema::validate(crate::format::xml_schema::SchemaKind::ConsensusXML, path)
+}
 
+/// Write consensusXML 1.7 with the default ceilings and the global
+/// modification registry.
 pub fn write(writer: impl Write, map: &ConsensusMap) -> Result<()> {
     write_with_options(writer, map, &WriteOptions::default())
 }
+/// Write with explicit ceilings and the global modification registry.
 pub fn write_with_options(
     writer: impl Write,
     map: &ConsensusMap,
@@ -401,6 +461,9 @@ pub fn write_with_options(
 ) -> Result<()> {
     write_with_registry(writer, map, options, ModificationsDB::global())
 }
+/// Build and check the complete document against caller-supplied
+/// modification definitions, then write it; an I/O failure can still leave
+/// partial bytes in `writer`.
 pub fn write_with_registry(
     mut writer: impl Write,
     map: &ConsensusMap,
@@ -652,9 +715,12 @@ fn measure_map(map: &ConsensusMap, work: &mut usize, bytes: &mut usize) -> Resul
     }
     Ok(())
 }
+/// Store `map` at `path` with the default ceilings, replacing the destination
+/// atomically; `.gz` and `.bz2` suffixes select output compression.
 pub fn store(path: impl AsRef<Path>, map: &ConsensusMap) -> Result<()> {
     store_with_options(path, map, &WriteOptions::default())
 }
+/// Store with explicit ceilings. See [`store`].
 pub fn store_with_options(
     path: impl AsRef<Path>,
     map: &ConsensusMap,

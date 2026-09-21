@@ -76,8 +76,9 @@ use std::sync::Arc;
 pub const SCHEMA_VERSION: &str = "1.05";
 
 /// Schema resource the source `MzDataFile` constructor names
-/// (`MzDataFile.cpp:18`). No schema validation is implemented here; see
-/// [`MzDataFile::is_semantically_valid`].
+/// (`MzDataFile.cpp:18`). The crate carries that schema unchanged and
+/// validates against it with the `xml-schema` feature (`MzDataFile::is_valid`);
+/// semantic validation is not ported, see [`MzDataFile::is_semantically_valid`].
 pub const SCHEMA_FILE: &str = "/SCHEMAS/mzData_1_05.xsd";
 
 /// `xsi:noNamespaceSchemaLocation` the writer emits, verbatim from
@@ -628,6 +629,30 @@ impl MzDataFile {
             "mzData semantic validation needs the unshipped mzdata-mapping.xml and psi-mzdata.obo"
                 .into(),
         ))
+    }
+
+    /// Validate a file against the bundled `mzData_1_05.xsd`, the
+    /// [`SCHEMA_FILE`] the source constructor registers.
+    ///
+    /// Source `MzDataFile::isValid(filename, os)`, inherited from
+    /// `Internal::XMLFile`: the messages the source writes to `os` are the
+    /// report's diagnostics, and the source's `bool` is
+    /// [`is_valid`](crate::format::xml_schema::SchemaValidationReport::is_valid).
+    /// Available with the `xml-schema` feature, which brings in the libxml2
+    /// validator; the source always has Xerces. The adapter's options and
+    /// ceilings play no part, as the source's play none in `isValid`.
+    ///
+    /// # Errors
+    ///
+    /// As [`xml_schema::validate`](crate::format::xml_schema::validate): an
+    /// I/O failure, where the source throws `Exception::FileNotFound`, and
+    /// input that is not well-formed XML, where the source returns `false`.
+    #[cfg(feature = "xml-schema")]
+    pub fn is_valid(
+        &self,
+        path: impl AsRef<Path>,
+    ) -> Result<crate::format::xml_schema::SchemaValidationReport> {
+        crate::format::xml_schema::validate(crate::format::xml_schema::SchemaKind::MzData, path)
     }
 }
 

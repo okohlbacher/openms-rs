@@ -14,7 +14,7 @@ pub mod csv;
 /// Controlled-vocabulary mapping records and mapping XML input.
 #[cfg(feature = "cv-mapping")]
 pub mod cv_mapping;
-#[cfg(any(feature = "cv-mapping", feature = "mzml-schema"))]
+#[cfg(any(feature = "cv-mapping", feature = "xml-schema"))]
 mod cv_xml;
 /// Raw MS-Numpress numeric codecs.
 pub mod numpress;
@@ -146,6 +146,10 @@ pub mod mzxml;
 /// pepXML search results: load, store and modification resolution (`PepXMLFile.h`).
 #[cfg(feature = "idxml")]
 pub mod pepxml;
+/// XSD validation against every bundled source schema, or a caller's own
+/// self-contained schema (`XMLValidator.h`, `XMLFile::isValid`).
+#[cfg(feature = "xml-schema")]
+pub mod xml_schema;
 
 /// qcML quality-control reports: runs, sets, quality parameters, attachments
 /// and their XML and table serialisations (`QcMLFile.h`).
