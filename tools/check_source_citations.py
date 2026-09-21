@@ -82,8 +82,11 @@ How much the confirmed fraction is worth was measured by mutation: record every
 confirmation, then shift each unique confirmed citation by +40 lines in its own
 document and re-scan. 113 unique citation texts, 108 caught, 5 missed. That
 figure bounds *one shift*, not the checker - shifting by +13 instead misses 8
-and by +77 misses 6 partly different ones - because a miss happens for either
-of two reasons. One is structural and will not go away: a quotation confirmed through
+and by +77 misses 6 partly different ones. A +3 shift, the size an ordinary
+edit moves a line, misses 19, which sounds worse than it is: 11 of those are
+ranges at least three lines wide, where the quotation is still inside the range
+after the shift, so the citation is still true and there is nothing to report.
+The other 8 are real. A miss happens for either of two reasons. One is structural and will not go away: a quotation confirmed through
 an enclosing span the same unit cites stays inside that span for any small
 shift, which is two of the five (``docs/SPECTRUM_ALIGNMENT_SUPPORT.md``
 ``:112`` and ``:119``, both inside the ``SpectrumAlignment.h:79-176`` the unit
