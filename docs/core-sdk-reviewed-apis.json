@@ -1,6 +1,44 @@
 {
-  "target_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "target_revisions": {
+    "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c"
+  },
   "headers": {
+    "packages/cli/include/OpenMS/APPLICATIONS/ParameterInformation.h": {
+      "status": "partial",
+      "rust": [
+        "src/cli/parameter.rs"
+      ],
+      "tests": [
+        "tests/topp_cli_lifecycle.rs"
+      ],
+      "documentation": "docs/TOPP_CLI_SUPPORT.md",
+      "scope": "ParameterInformation and ParameterTypes become ParameterInformation and ParameterType in src/cli/parameter.rs, with paramEntryToParameterInformation_, getParamArgument_ and paramToParameterInformation_ folded into ParameterInformation::from_param_entry; TOPPBase::ExitCodes live in the same file. CLI-2 (f886d90) adds ParameterInformation::accepted_formats, which reads a file parameter's formats wherever they are kept, for the format checks and the *.<format> valid strings of -write_ini. Exercised through the TOPPBase lifecycle tests and the tool suites only. PARTIAL because ParameterInformation has no class test of its own and no member-by-member review of ParameterInformation.cpp is recorded beyond this mapping.",
+      "note": "Recorded for the CLI-1 lifecycle closure (bundle/CLI-1 5ae7826) and updated for CLI-2 (bundle/CLI-2 f886d90)."
+    },
+    "packages/cli/include/OpenMS/APPLICATIONS/TOPPBase.h": {
+      "status": "partial",
+      "rust": [
+        "src/cli.rs",
+        "src/cli/context.rs",
+        "src/cli/processing.rs",
+        "src/cli/spec.rs",
+        "src/cli/usage.rs"
+      ],
+      "tests": [
+        "tests/paramxml.rs",
+        "tests/topp_baseline_filter.rs",
+        "tests/topp_cli_lifecycle.rs",
+        "tests/topp_dta_extractor.rs",
+        "tests/topp_map_normalizer.rs",
+        "tests/topp_mzml_splitter.rs",
+        "tests/topp_spectra_filter_window_mower.rs",
+        "tests/topp_threads.rs"
+      ],
+      "documentation": "docs/TOPP_CLI_SUPPORT.md",
+      "scope": "Lifecycle closure parts 1 (CLI-1, 5ae7826 and 86d2733) and 2 (CLI-2, f886d90): registration, command-line parsing in source chunk order within MAX_ARGUMENTS, INI resolution with the instance and common: sections merged in source order and the strict Param update, the bare invocation (6), unreadable (2) and directory (3) INI files, an INI that exists but cannot be opened (8), file checks, parseRange_, the phase-aware exit codes of decision D3, and from part 2: -write_ini parity (the Tool::VERSION item, section descriptions, flags typed through valid strings, supported formats as *.<format>, defaults plus -ini only, the ISO-8859-1 declaration through paramxml::WriteOptions::source), input formats through FileHandler::get_type (an undetermined type warns, a known type outside the list exits 6 with the source message) and output formats by file name (an unknown extension passes), usage on stderr with the product version line, and the DataProcessing retrofit of decision D4 in BaselineFilter, MapNormalizer, SpectraFilterWindowMower and MzMLSplitter. Tier 1: ../oracle/topp-cli-lifecycle (38 lifecycle cases, 15 INI read-failure cases, 34 CLI-2 cases run twice): exit codes and diagnostics, all five tools' -write_ini files line by line and as trees, all 10 help texts byte for byte apart from the revision, and the processing records of the retained tool outputs as decoded mzML. Tier 3: 17 of the 23 TOPPBase_test sections are transcribed (the -instance and INI cases of getIniLocation_ and getStringOption_ excepted; the earlier count of 18 was one too high), including the -write_ini part of getStringOption_ (TOPPBase_test.cpp:483-536) with both TEST_FILE_SIMILAR comparisons; the constructor, destructor, main, setMaxNumberOfThreads, -log and Citation::toString sections are not. The run-phase mappings of Io, InvalidValue, InvalidRange, MissingInformation and Unsupported/UnsortedData are tier-4 native mappings. PARTIAL: JSON INI files, -log, checkParam_ warnings, getToolUserDefaults_, getOutputDirOption and the integer parseRange_ are not ported; a single-writer FIFO -ini is read once where C++ blocks (deliberate); -in /dev/null exits 2 where C++ exits 4; an input whose name and content are both unknown exits 6 and a directory -in exits 8 where C++ exits 3 (FileHandler follow-ups); the D4 comparisons normalise the port's mzML software name, processingMethod order and completion-time seconds to the C++ writer's form; a NaN BaselineFilter struc_elem_length exits 6 where C++ exits 0; usage text does not escape quotes and backslashes as StringUtils::quote does (latent). WAVE 4, four tools moved from 'runs the retained fixtures' to 'executed against the pinned C++ Release build on full-size instrument data'. MapNormalizer normalised against the SPECTRUM maximum where the source uses the combined maximum including chromatograms; on the 1.2 GB benchmark run that made 7,302 of 87,492 intensity arrays differ by about 13.24x. It now derives the same combined maximum and all 87,492 arrays are bitwise equal to the C++ tool's; the empty-combined-range refusal is restored and was EXECUTED against the C++, which also refuses (the lane's earlier reasoning that it was a no-op is withdrawn). Two degenerate C++ behaviours were executed rather than reasoned and are logged as CPP-308. MzMLSplitter and SpectraFilterWindowMower accept full-size input for the first time: the writer refused precursor references that do not resolve inside a split part - which the source emits and mzML 1.1's KEYREF_PRECURSOR_SPECTRUMREF forbids (CPP-311) - and the window mower applied its 1,000,000-point cap to the whole map (88.4 M peaks, 88x over) instead of per spectrum. Both now match the C++ Release tool bitwise on every decoded array of the 1.2 GB run. DTAExtractor writes the source's numeric text and its 36,443-file output is byte-equal. PeakPickerHiRes is the first tool whose -threads pool does real work, and tests/topp_threads.rs covers it as the sixth tool with a profile input, holding it to no worker at -threads 1 and to byte-identical output at every count. OPEN, carried: ToolContext::in_thread_pool still builds a pool for one worker so the body runs on a pool thread, which bounds a stray par_iter but cost 0.68 s on a 2.3 GB run through glibc's per-thread arenas; the picker deliberately does not use it, and the framework question - a documented one-worker fast path against an unbounded stray par_iter - is not decided. concept::parallel::map_collect still builds a ThreadPoolBuilder unconditionally with no ambient-pool check, which is why the picker could not call it and carries its own BatchWorkers. src/cli.rs::run_failure maps InvalidValue and InvalidRange to 6 where TOPPBase reaches 8; MapNormalizer is now a case where both refuse the same input for the same reason and disagree only on the exit code. Five of the eight tools build the -threads pool and leave it idle (docs/BENCHMARKS.md 3.5).",
+      "note": "Recorded for the CLI-1 lifecycle closure (bundle/CLI-1 5ae7826) and updated for CLI-2 (bundle/CLI-2 f886d90)."
+    },
     "src/openms/include/OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h": {
       "status": "complete",
       "rust": [
@@ -4470,42 +4508,7 @@
       ],
       "documentation": "docs/ON_DISC_IMZML_SUPPORT.md",
       "scope": "The header-only shared kernel Internal::extractIonImage is ported as the private OnDiscImzMLExperiment::extract. With the in-memory caller unported there is one caller, so the generic form is not reproduced; restore it when MSImagingExperiment is ported.",
-      "note": "Ported alongside the imzML family but NOT a registered public header: docs/core-sdk-update.json records it as not_in_scientific_registration_union, so it is outside the 786-header denominator and cannot appear in `headers`. Same category as APPLICATIONS/TOPPBase.h."
-    },
-    "include/OpenMS/APPLICATIONS/TOPPBase.h": {
-      "status": "partial",
-      "rust": [
-        "src/cli.rs",
-        "src/cli/context.rs",
-        "src/cli/processing.rs",
-        "src/cli/spec.rs",
-        "src/cli/usage.rs"
-      ],
-      "tests": [
-        "tests/paramxml.rs",
-        "tests/topp_baseline_filter.rs",
-        "tests/topp_cli_lifecycle.rs",
-        "tests/topp_dta_extractor.rs",
-        "tests/topp_map_normalizer.rs",
-        "tests/topp_mzml_splitter.rs",
-        "tests/topp_spectra_filter_window_mower.rs",
-        "tests/topp_threads.rs"
-      ],
-      "documentation": "docs/TOPP_CLI_SUPPORT.md",
-      "scope": "Lifecycle closure parts 1 (CLI-1, 5ae7826 and 86d2733) and 2 (CLI-2, f886d90): registration, command-line parsing in source chunk order within MAX_ARGUMENTS, INI resolution with the instance and common: sections merged in source order and the strict Param update, the bare invocation (6), unreadable (2) and directory (3) INI files, an INI that exists but cannot be opened (8), file checks, parseRange_, the phase-aware exit codes of decision D3, and from part 2: -write_ini parity (the Tool::VERSION item, section descriptions, flags typed through valid strings, supported formats as *.<format>, defaults plus -ini only, the ISO-8859-1 declaration through paramxml::WriteOptions::source), input formats through FileHandler::get_type (an undetermined type warns, a known type outside the list exits 6 with the source message) and output formats by file name (an unknown extension passes), usage on stderr with the product version line, and the DataProcessing retrofit of decision D4 in BaselineFilter, MapNormalizer, SpectraFilterWindowMower and MzMLSplitter. Tier 1: ../oracle/topp-cli-lifecycle (38 lifecycle cases, 15 INI read-failure cases, 34 CLI-2 cases run twice): exit codes and diagnostics, all five tools' -write_ini files line by line and as trees, all 10 help texts byte for byte apart from the revision, and the processing records of the retained tool outputs as decoded mzML. Tier 3: 17 of the 23 TOPPBase_test sections are transcribed (the -instance and INI cases of getIniLocation_ and getStringOption_ excepted; the earlier count of 18 was one too high), including the -write_ini part of getStringOption_ (TOPPBase_test.cpp:483-536) with both TEST_FILE_SIMILAR comparisons; the constructor, destructor, main, setMaxNumberOfThreads, -log and Citation::toString sections are not. The run-phase mappings of Io, InvalidValue, InvalidRange, MissingInformation and Unsupported/UnsortedData are tier-4 native mappings. PARTIAL: JSON INI files, -log, checkParam_ warnings, getToolUserDefaults_, getOutputDirOption and the integer parseRange_ are not ported; a single-writer FIFO -ini is read once where C++ blocks (deliberate); -in /dev/null exits 2 where C++ exits 4; an input whose name and content are both unknown exits 6 and a directory -in exits 8 where C++ exits 3 (FileHandler follow-ups); the D4 comparisons normalise the port's mzML software name, processingMethod order and completion-time seconds to the C++ writer's form; a NaN BaselineFilter struc_elem_length exits 6 where C++ exits 0; usage text does not escape quotes and backslashes as StringUtils::quote does (latent). WAVE 4, four tools moved from 'runs the retained fixtures' to 'executed against the pinned C++ Release build on full-size instrument data'. MapNormalizer normalised against the SPECTRUM maximum where the source uses the combined maximum including chromatograms; on the 1.2 GB benchmark run that made 7,302 of 87,492 intensity arrays differ by about 13.24x. It now derives the same combined maximum and all 87,492 arrays are bitwise equal to the C++ tool's; the empty-combined-range refusal is restored and was EXECUTED against the C++, which also refuses (the lane's earlier reasoning that it was a no-op is withdrawn). Two degenerate C++ behaviours were executed rather than reasoned and are logged as CPP-308. MzMLSplitter and SpectraFilterWindowMower accept full-size input for the first time: the writer refused precursor references that do not resolve inside a split part - which the source emits and mzML 1.1's KEYREF_PRECURSOR_SPECTRUMREF forbids (CPP-311) - and the window mower applied its 1,000,000-point cap to the whole map (88.4 M peaks, 88x over) instead of per spectrum. Both now match the C++ Release tool bitwise on every decoded array of the 1.2 GB run. DTAExtractor writes the source's numeric text and its 36,443-file output is byte-equal. PeakPickerHiRes is the first tool whose -threads pool does real work, and tests/topp_threads.rs covers it as the sixth tool with a profile input, holding it to no worker at -threads 1 and to byte-identical output at every count. OPEN, carried: ToolContext::in_thread_pool still builds a pool for one worker so the body runs on a pool thread, which bounds a stray par_iter but cost 0.68 s on a 2.3 GB run through glibc's per-thread arenas; the picker deliberately does not use it, and the framework question - a documented one-worker fast path against an unbounded stray par_iter - is not decided. concept::parallel::map_collect still builds a ThreadPoolBuilder unconditionally with no ambient-pool check, which is why the picker could not call it and carries its own BatchWorkers. src/cli.rs::run_failure maps InvalidValue and InvalidRange to 6 where TOPPBase reaches 8; MapNormalizer is now a case where both refuse the same input for the same reason and disagree only on the exit code. Five of the eight tools build the -threads pool and leave it idle (docs/BENCHMARKS.md 3.5).",
-      "note": "Not a registered public SDK header: it belongs to the OpenMS4-cli package (read at c19e49414bcd9ebdea42f89b3f74d2823205892c), outside the core registration union, so it cannot appear in `headers` and the coverage generator does not read this entry. Recorded for the CLI-1 lifecycle closure (bundle/CLI-1 5ae7826) and updated for CLI-2 (bundle/CLI-2 f886d90)."
-    },
-    "include/OpenMS/APPLICATIONS/ParameterInformation.h": {
-      "status": "partial",
-      "rust": [
-        "src/cli/parameter.rs"
-      ],
-      "tests": [
-        "tests/topp_cli_lifecycle.rs"
-      ],
-      "documentation": "docs/TOPP_CLI_SUPPORT.md",
-      "scope": "ParameterInformation and ParameterTypes become ParameterInformation and ParameterType in src/cli/parameter.rs, with paramEntryToParameterInformation_, getParamArgument_ and paramToParameterInformation_ folded into ParameterInformation::from_param_entry; TOPPBase::ExitCodes live in the same file. CLI-2 (f886d90) adds ParameterInformation::accepted_formats, which reads a file parameter's formats wherever they are kept, for the format checks and the *.<format> valid strings of -write_ini. Exercised through the TOPPBase lifecycle tests and the tool suites only. PARTIAL because ParameterInformation has no class test of its own and no member-by-member review of ParameterInformation.cpp is recorded beyond this mapping.",
-      "note": "Not a registered public SDK header: it belongs to the OpenMS4-cli package (read at c19e49414bcd9ebdea42f89b3f74d2823205892c), outside the core registration union, so it cannot appear in `headers` and the coverage generator does not read this entry. Recorded for the CLI-1 lifecycle closure (bundle/CLI-1 5ae7826) and updated for CLI-2 (bundle/CLI-2 f886d90)."
+      "note": "Ported alongside the imzML family but NOT a registered public header: docs/core-sdk-update.json records it as not_in_scientific_registration_union, so it is outside the 786-header denominator and cannot appear in `headers`."
     },
     "src/openms/extern/Quadtree/include/Quadtree.h": {
       "status": "complete",
