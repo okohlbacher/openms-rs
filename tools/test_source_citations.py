@@ -634,6 +634,18 @@ class RetainedSourceTests(unittest.TestCase):
             [(CORE, "src/openms/include/OpenMS/CONCEPT/Macros.h")],
         )
 
+    def test_two_retained_directories_of_one_name_are_told_apart(self):
+        # Both bundles retain a directory called `libstdcxx`. Labelling each by
+        # its last component alone put both under one name in the tally - a
+        # checker reporting about itself exactly the confusion it exists to
+        # report about the documents.
+        first = self.retained()
+        second = self.retained()
+        first.name = "sne-completion/libstdcxx"
+        second.name = "a2-textfmt-linux/libstdcxx"
+        self.assertNotEqual(str(first), str(second))
+        self.assertEqual(str(first), "retained sne-completion/libstdcxx")
+
     def test_a_retained_file_is_checked_like_any_other(self):
         # It resolves, so it is read back: a range past its end is a finding,
         # which is the point of resolving it rather than skipping it.

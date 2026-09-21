@@ -73,7 +73,7 @@ ports cited them bare. Writing a bare name again puts the count straight back
 up, which is what it is for.
 
 What this does not catch, stated plainly so that a green run is not read for
-more than it says. Of the 3,518 citations it resolves, 114 are confirmed against
+more than it says. Of the 3,519 citations it resolves, 114 are confirmed against
 code quoted beside them; the rest are checked only for existing, because most
 citations in this repository paraphrase the source instead of reproducing it,
 and a paraphrase cannot be read back.
@@ -280,9 +280,14 @@ class Retained:
     answer a name no pin carries at all, never take one away from a pin.
     """
 
-    def __init__(self, directory, declared, under=""):
+    def __init__(self, directory, declared, under="", name=None):
         self.directory = directory
         self.under = under  # The path the port cites these under: "bits/".
+        # What a tally calls it. Two bundles retain a directory called
+        # ``libstdcxx``, so the last component alone would put both under one
+        # label - which is the confusion this whole checker exists to report,
+        # and it would be reporting it about itself.
+        self.name = name or directory.name
         self.admitted, self.refused = {}, {}
         for name, digest in sorted(declared.items()):
             path = directory / name
@@ -302,7 +307,7 @@ class Retained:
         return self.admitted[path].read_text(errors="replace")
 
     def __str__(self):
-        return f"retained {self.directory.name}"
+        return f"retained {self.name}"
 
 
 def git(repository, *arguments):
@@ -373,7 +378,8 @@ class Pins:
             directory = first_directory([root / entry["path"] for root in self.roots])
             key = "retained:" + entry["path"]
             self.sources[key] = Retained(
-                directory, entry.get("files", {}), entry.get("cited_under", "")
+                directory, entry.get("files", {}), entry.get("cited_under", ""),
+                "/".join(entry["path"].strip("/").split("/")[-2:]),
             )
             self.retained_keys.append(key)
         for revision, source in self.sources.items():
@@ -427,7 +433,7 @@ class Pins:
     def refused_retained(self):
         """The declared retained files that were not admitted, and why."""
         return {
-            f"{self.sources[key].directory.name}/{name}": why
+            f"{self.sources[key].name}/{name}": why
             for key in self.retained_keys
             for name, why in sorted(self.sources[key].refused.items())
         }
@@ -458,7 +464,7 @@ class Pins:
                 [f"{len(source.admitted)} admitted"]
                 + [f"{name} {why}" for name, why in sorted(source.refused.items())]
             )
-            lines.append(f"{source.directory.name}: {state}")
+            lines.append(f"{source.name}: {state}")
         return lines
 
 

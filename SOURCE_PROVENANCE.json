@@ -424,6 +424,18 @@
      "stl_tempbuf.h": "f92e0ecf86e4cae8a707e483f4fc8bf5ddf5ea9fbc52bf407080392ca79edc7c",
      "predefined_ops.h": "25478342b5d993b09ebfcc1ee1e372e7391ea160e9222e704cd0b1835558d404"
     }
+   },
+   {
+    "path": "../oracle/a2-textfmt-linux/libstdcxx",
+    "cited_under": "x86_64-conda-linux-gnu/bits/",
+    "origin": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/deps/lib/gcc/x86_64-conda-linux-gnu/14.4.0/include/c++/x86_64-conda-linux-gnu/bits/c++locale.h",
+    "named_by": [
+     "src/format/file_info/text_format.rs",
+     "../oracle/a2-textfmt-linux/manifest.json, registered above at 2bfca88e, which names this digest"
+    ],
+    "files": {
+     "c++locale.h": "f9912c4e4fb277360df473e1680748db07c28ea79e1537af2365a6b3beed8a7b"
+    }
    }
   ]
  },
