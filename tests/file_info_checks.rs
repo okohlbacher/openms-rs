@@ -859,7 +859,14 @@ fn validation_is_still_refused() {
 // The tool: the exit codes of -i (OpenMS4-topp/src/FileInfo.cpp:118-148)
 // ---------------------------------------------------------------------------
 
-/// Run the tool as `FileInfo args...`, as `tests/topp_file_info.rs` does.
+#[cfg(all(feature = "paramxml", feature = "featurexml"))]
+#[path = "support/took_line.rs"]
+mod took_line;
+
+/// Run the tool as `FileInfo args...`, as `tests/topp_file_info.rs` does, and
+/// return its standard output without the closing `FileInfo took …` line,
+/// which every one of these runs of the Release oracle ends with
+/// (`i_invalid_11_bare`, `i_valid_indexed1`, `i_on_dta`), so it is required.
 #[cfg(all(feature = "paramxml", feature = "featurexml"))]
 fn run_tool(args: &[&str]) -> (openms::cli::ExitCode, String, String) {
     use openms::cli::{Tool, run_with};
@@ -868,9 +875,12 @@ fn run_tool(args: &[&str]) -> (openms::cli::ExitCode, String, String) {
         .collect();
     let (mut out, mut err) = (Vec::new(), Vec::new());
     let code = run_with::<openms::cli::tools::FileInfo>(&arguments, &mut out, &mut err);
+    let out = String::from_utf8(out).expect("UTF-8 output stream");
+    let (out, took) = took_line::split_took_line("FileInfo", &out);
+    assert!(took.is_some(), "no closing line: {out}");
     (
         code,
-        String::from_utf8(out).expect("UTF-8 output stream"),
+        out,
         String::from_utf8(err).expect("UTF-8 error stream"),
     )
 }
