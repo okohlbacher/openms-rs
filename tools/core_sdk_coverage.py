@@ -252,7 +252,9 @@ def build(snapshot):
     by_package = {package: {'registered_public_headers': sum(1 for r in rows if r['package'] == package),
                             'by_status': dict(sorted(Counter(r['status'] for r in rows if r['package'] == package).items()))}
                   for package in PACKAGES}
-    return {'schema_version': 1, 'target_revisions': reviewed['target_revisions'],
+    # Version 2: `target_revision` became per-package `target_revisions`, and
+    # every header row and the counts name their package.
+    return {'schema_version': 2, 'target_revisions': reviewed['target_revisions'],
             'methodology': 'Every registered public SDK header of the core and cli packages is accounted for. Direct include dependencies and candidate Rust declarations guide review; neither source hashes nor names demonstrate method coverage. Transitive dependencies, conditional configurations, runtime data and tool workflows need separate validation; in particular a TOPP source that textually includes a sibling source (the FeatureLinker tools include FeatureLinkerBase.cpp) is credited only with its own OpenMS/ includes. External/product-owned headers are not added to SDK scope.',
             'counts': {'registered_public_headers': len(rows), 'by_status': dict(sorted(Counter(r['status'] for r in rows).items())),
                        'by_package': by_package,

@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "target_revisions": {
     "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
     "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c"
