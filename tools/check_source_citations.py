@@ -73,14 +73,14 @@ ports cited them bare. Writing a bare name again puts the count straight back
 up, which is what it is for.
 
 What this does not catch, stated plainly so that a green run is not read for
-more than it says. Of the 3,523 citations it resolves, 114 are confirmed against
+more than it says. Of the 3,523 citations it resolves, 115 are confirmed against
 code quoted beside them; the rest are checked only for existing, because most
 citations in this repository paraphrase the source instead of reproducing it,
 and a paraphrase cannot be read back.
 
 How much the confirmed fraction is worth was measured by mutation: record every
 confirmation, then shift each unique confirmed citation by +40 lines in its own
-document and re-scan. 112 unique citation texts, 107 caught, 5 missed. That
+document and re-scan. 113 unique citation texts, 108 caught, 5 missed. That
 figure bounds *one shift*, not the checker - shifting by +13 instead misses 8
 and by +77 misses 6 partly different ones - because a miss happens for either
 of two reasons. One is structural and will not go away: a quotation confirmed through

@@ -30,9 +30,9 @@
   nothing had read before, and three were defects: two documents quoted
   `__introsort_loop`'s condition beside `stl_algo.h`'s `__sort` and
   `_S_threshold` rather than beside the loop at `:1880`, and
-  `docs/FILE_INFO_A7_SUPPORT.md` quoted the `!id_data.peptides[i].empty()`
-  guard beside `:1354`, which is the hit read it guards, not the guard at
-  `:1347`. Six bare ranges in the SDK manifests, `noise.rs` and a fixture
+  `docs/FILE_INFO_A7_SUPPORT.md` quoted the guard
+  `if (!id_data.peptides[i].empty())` (`FORMAT/FileInfo.cpp:1347`) beside
+  `:1354`, which is the hit read it guards rather than the guard itself. Six bare ranges in the SDK manifests, `noise.rs` and a fixture
   manifest were written under `SignalToNoiseEstimator.h` for lines that are in
   the 442-line `SignalToNoiseEstimatorMedian.h`.
 
