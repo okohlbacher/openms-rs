@@ -396,7 +396,8 @@ enum Branch {
     Identifications,
     /// The FASTA branch.
     Fasta,
-    /// The peak-file branch with a native loader: DTA, DTA2D and mzML.
+    /// The peak-file branch with a native loader: DTA, DTA2D, mzML, mzXML,
+    /// mzData, MGF and MS2.
     Peaks,
     /// A non-peak branch of the source that is not ported.
     Unported,
@@ -411,21 +412,24 @@ enum Branch {
 fn branch(in_type: FileType) -> Branch {
     match in_type {
         FileType::FeatureXml => Branch::Features,
-        FileType::Dta | FileType::Dta2d | FileType::MzMl => Branch::Peaks,
+        FileType::Dta
+        | FileType::Dta2d
+        | FileType::MzMl
+        | FileType::MzXml
+        | FileType::MzData
+        | FileType::Mgf
+        | FileType::Ms2 => Branch::Peaks,
         FileType::ConsensusXml => Branch::Consensus,
         FileType::IdXml | FileType::MzIdentMl => Branch::Identifications,
         FileType::Fasta => Branch::Fasta,
         FileType::PepXml | FileType::MzTab | FileType::TransformationXml | FileType::Pqp => {
             Branch::Unported
         }
-        // Thermo RAW and Bruker TDF load in the source built with its default
-        // WITH_THERMO_RAW and WITH_OPENTIMS options; without them the source
-        // loader throws ParseError. Neither has a native reader here.
-        FileType::MzXml
-        | FileType::MzData
-        | FileType::Mgf
-        | FileType::Ms2
-        | FileType::SqMass
+        // sqMass, XMass and MSP have no native reader that fills an
+        // MSExperiment. Thermo RAW and Bruker TDF load in the source built with
+        // its default WITH_THERMO_RAW and WITH_OPENTIMS options; without them
+        // the source loader throws ParseError. Neither has a native reader here.
+        FileType::SqMass
         | FileType::Xmass
         | FileType::Msp
         | FileType::Raw

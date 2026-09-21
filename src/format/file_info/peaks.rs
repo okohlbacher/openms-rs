@@ -139,8 +139,94 @@ pub(crate) fn report(
 /// false)`: default `PeakFileOptions`, `in_type` as the only allowed type, and
 /// the mzML reader's dangling-reference handling from
 /// [`Options::source_dangling_references`].
-#[cfg(feature = "mzml")]
+///
+/// mzXML, mzData, MGF and MS2 go to the reader the source's `switch` names for
+/// them (`FileHandler.cpp:886-937`) rather than through
+/// [`FileHandler`](crate::format::FileHandler), see [`load_source_reader`].
 fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<MSExperiment> {
+    match in_type {
+        FileType::MzXml | FileType::MzData | FileType::Mgf | FileType::Ms2 => {
+            load_source_reader(path, in_type)
+        }
+        _ => load_through_handler(path, in_type, options),
+    }
+}
+
+/// mzXML, mzData, MGF and MS2, each through the reader the source's
+/// `FileHandler::loadExperiment` calls for it (`FileHandler.cpp:886-937`).
+///
+/// The loader first detects the type itself (`getType(filename)`, `:856`) and
+/// refuses one other than `in_type`, the single allowed type FileInfo passes
+/// (`:858-864`); the refusal is [`Error::InvalidValue`], as
+/// [`FileHandler`](crate::format::FileHandler) maps the source's `ParseError`
+/// there. Then:
+///
+/// - mzXML and mzData: `MzXMLFile` and `MzDataFile` with `f.getOptions() =
+///   options_`, the handler's default `PeakFileOptions`, which is what
+///   FileInfo's handler holds. Both are gated on the `mzml` feature, as the
+///   two readers are.
+/// - MGF: `MascotGenericFile::load` (`:923-929`), which this crate ports as
+///   [`crate::format::mascot_generic`], not the stricter native
+///   [`crate::format::mgf`] adapter. The source reader keeps one spectrum
+///   object across blocks and clears only its peaks, native ID, `TITLE` and
+///   `SEQ` (`MascotGenericFile.h:89-104`, `:141-157`), so the load runs with
+///   [`CarryOver::Source`](crate::format::mascot_generic::CarryOver::Source):
+///   an omitted `CHARGE=`, `PEPMASS=` or `RTINSECONDS=` inherits the previous
+///   block's value, as the report then counts it. Its `PeakFileOptions` are
+///   not consulted, as the source does not hand them to this reader.
+/// - MS2: `MS2File::load` (`:931-937`), [`crate::format::ms2`], which likewise
+///   takes no `PeakFileOptions`.
+fn load_source_reader(path: &Path, in_type: FileType) -> Result<MSExperiment> {
+    let detected = FileHandler::get_type(path)?;
+    if detected != in_type {
+        return Err(Error::InvalidValue(format!(
+            "{} is not an allowed input format",
+            detected.name()
+        )));
+    }
+    match in_type {
+        FileType::Mgf => crate::format::mascot_generic::load_with_options(
+            path,
+            &crate::format::mascot_generic::ReadOptions {
+                carry_over: crate::format::mascot_generic::CarryOver::Source,
+                ..crate::format::mascot_generic::ReadOptions::default()
+            },
+        ),
+        FileType::Ms2 => crate::format::ms2::load(path),
+        _ => load_xml_peak_file(path, in_type),
+    }
+}
+
+/// `MzXMLFile` and `MzDataFile` with the handler's default `PeakFileOptions`
+/// (`FileHandler.cpp:886-902`).
+#[cfg(feature = "mzml")]
+fn load_xml_peak_file(path: &Path, in_type: FileType) -> Result<MSExperiment> {
+    if in_type == FileType::MzXml {
+        return crate::format::mzxml::load_with_options(
+            path,
+            &crate::format::mzxml::ReadOptions::default(),
+        );
+    }
+    Ok(crate::format::mzdata::load_with_options(
+        path,
+        &PeakFileOptions::default(),
+        &crate::format::mzdata::ReadLimits::default(),
+    )?
+    .experiment)
+}
+
+/// Without the `mzml` feature neither XML reader is compiled in.
+#[cfg(not(feature = "mzml"))]
+fn load_xml_peak_file(_path: &Path, in_type: FileType) -> Result<MSExperiment> {
+    Err(Error::Unsupported(format!(
+        "FileInfo peak-file branch for {} input: this build lacks the mzml feature",
+        in_type.name()
+    )))
+}
+
+/// DTA, DTA2D and mzML through [`FileHandler`](crate::format::FileHandler).
+#[cfg(feature = "mzml")]
+fn load_through_handler(path: &Path, in_type: FileType, options: &Options) -> Result<MSExperiment> {
     let read = crate::format::mzml::ReadOptions {
         source_dangling_references: options.source_dangling_references,
         ..crate::format::mzml::ReadOptions::default()
@@ -156,7 +242,7 @@ fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<
 /// As the `mzml` build, without an mzML reader to pass
 /// [`Options::source_dangling_references`] to.
 #[cfg(not(feature = "mzml"))]
-fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<MSExperiment> {
+fn load_through_handler(path: &Path, in_type: FileType, options: &Options) -> Result<MSExperiment> {
     let _ = options.source_dangling_references;
     FileHandler::load_experiment_with_options(path, &[in_type], &PeakFileOptions::default())
 }
