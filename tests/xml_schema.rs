@@ -219,6 +219,7 @@ fn every_bundled_kind_carries_its_source_location_and_version() {
             "/SCHEMAS/mzIdentML1.3.0.xsd",
             "1.3.0",
         ),
+        (SchemaKind::PepXML, "/SCHEMAS/pepXML_v114.xsd", "1.14"),
     ] {
         assert_eq!(kind.location(), Some(location));
         assert_eq!(kind.version(), Some(version));
@@ -364,6 +365,7 @@ fn every_bundled_schema_compiles_and_its_violations_are_reports() {
         SchemaKind::MzIdentML1_1_0,
         SchemaKind::MzIdentML1_2_0,
         SchemaKind::MzIdentML1_3_0,
+        SchemaKind::PepXML,
     ] {
         let r = report(kind, "<notDeclaredAnywhere/>");
         assert!(!r.is_valid(), "{kind:?}");

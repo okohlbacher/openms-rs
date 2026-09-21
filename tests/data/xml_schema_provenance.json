@@ -4,7 +4,7 @@
  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
  "license": "BSD-3-Clause",
- "scope": "Internal::XMLFile::isValid for FeatureXMLFile, ConsensusXMLFile, IdXMLFile, ParamXMLFile, TransformationXMLFile, MzDataFile, MzXMLFile and MzIdentMLFile (version-detecting), and VALIDATORS/XMLValidator::isValid for a caller's self-contained schema, behind the optional xml-schema feature. The mzML engine of tests/data/mzml_schema_provenance.json is shared and unchanged in behaviour. No C++ was executed for this group.",
+ "scope": "Internal::XMLFile::isValid for FeatureXMLFile, ConsensusXMLFile, IdXMLFile, ParamXMLFile, TransformationXMLFile, MzDataFile, MzXMLFile, MzIdentMLFile (version-detecting) and PepXMLFile, and VALIDATORS/XMLValidator::isValid for a caller's self-contained schema, behind the optional xml-schema feature. The mzML engine of tests/data/mzml_schema_provenance.json is shared and unchanged in behaviour. No C++ was executed for this group.",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/XMLValidator.h",
@@ -75,6 +75,11 @@
    "path": "src/openms/source/FORMAT/MzIdentMLFile.cpp",
    "bytes": 4672,
    "sha256": "b24ed5b9e238eebea944336fdf8e7aaa90a5ec0f08b1d12e6a2312d3e0550fa6"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "bytes": 90186,
+   "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
   },
   {
    "path": "src/openms/source/FORMAT/FileInfo.cpp",
@@ -210,6 +215,11 @@
    "path": "share/OpenMS/SCHEMAS/mzIdentML1.3.0.xsd",
    "bytes": 90770,
    "sha256": "abac61f57e5dcd2eed76a547a3bbd71a47e241d378ac6963fee1f0c0390a6204"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/pepXML_v114.xsd",
+   "bytes": 64657,
+   "sha256": "64a81531831ae268c1fc421fd788d8de2c0ac6cf300362723b01239e3579e2fb"
   }
  ],
  "files": [
@@ -316,6 +326,13 @@
    "bytes": 90770,
    "sha256": "abac61f57e5dcd2eed76a547a3bbd71a47e241d378ac6963fee1f0c0390a6204",
    "source_path": "share/OpenMS/SCHEMAS/mzIdentML1.3.0.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/pepXML_v114.xsd",
+   "bytes": 64657,
+   "sha256": "64a81531831ae268c1fc421fd788d8de2c0ac6cf300362723b01239e3579e2fb",
+   "source_path": "share/OpenMS/SCHEMAS/pepXML_v114.xsd",
    "unchanged": true
   }
  ],
@@ -453,7 +470,8 @@
   "mzIdentML1.3.0.xsd": "FORMAT/MzIdentMLFile.cpp:26",
   "mzIdentML<version>.xsd": "FORMAT/MzIdentMLFile.cpp:89-100",
   "mzML_1_10.xsd": "FORMAT/MzMLFile.cpp:29",
-  "mzML_idx_1_10.xsd": "FORMAT/MzMLFile.cpp:30"
+  "mzML_idx_1_10.xsd": "FORMAT/MzMLFile.cpp:30",
+  "pepXML_v114.xsd": "FORMAT/PepXMLFile.cpp:333"
  },
  "source_anchors": {
   "xml_file_is_valid": "FORMAT/XMLFile.cpp:393-401",
@@ -626,6 +644,12 @@
    "expected": "valid"
   },
   {
+   "source": "PepXMLFile_test.cpp",
+   "fixture": "none",
+   "schema": "pepXML_v114.xsd",
+   "expected": "no pepXML verdict is asserted by any source test; only the schema registration (PepXMLFile.cpp:333) is ported and checked"
+  },
+  {
    "source": "test-data topp/CMakeLists.txt:913-915 (TOPP_FileInfo_14), retained output topp/FileInfo_14_output.txt",
    "fixture": "tests/data/file_info/inputs/FileInfo_14_input.mzid",
    "schema": "mzIdentML1.1.0.xsd (detected)",
@@ -689,7 +713,8 @@
   "src/format/transformation_xml.rs",
   "src/format/mzdata.rs",
   "src/format/mzxml.rs",
-  "src/format/mzidentml.rs"
+  "src/format/mzidentml.rs",
+  "src/format/pepxml.rs"
  ],
  "native_tests": [
   "tests/xml_schema.rs",

@@ -413,6 +413,25 @@ fn mzidentml_is_valid_detects_the_version_as_fileinfo_reports_it() {
     );
 }
 
+/// `PepXMLFile::isValid` validates against `pepXML_v114.xsd`
+/// (`PepXMLFile.cpp:333`). The class test asserts no verdict for any pepXML
+/// file, so only the wiring is checked: the entry point uses that schema and
+/// answers with a report.
+#[cfg(feature = "idxml")]
+#[test]
+fn pepxml_is_valid_uses_the_registered_schema() {
+    use openms::format::pepxml;
+    let r = pepxml::is_valid(data("PepXMLFile_test.pepxml")).unwrap();
+    assert_eq!(r.schema, SchemaKind::PepXML);
+    assert_eq!(r.schema.version(), Some("1.14"));
+    // Another format's document has no global declaration in it.
+    assert!(
+        !pepxml::is_valid(data("transformation_xml_1.trafoXML"))
+            .unwrap()
+            .is_valid()
+    );
+}
+
 /// The mzML path shares the engine: `ImzMLFile::isValid` and
 /// `MzMLFile::isValid` keep their own tests; this only checks that the
 /// re-exported report types are the shared ones.

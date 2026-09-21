@@ -25,6 +25,7 @@ unchanged.
 | mzIdentML1.1.0.xsd | share/OpenMS/SCHEMAS/mzIdentML1.1.0.xsd | 8d12337d8d5abd50a30a68ee540a8180b62a177ee0d8d99d2d0ba30932f6f513 | `MzIdentMLFile` (detected 1.1.0) |
 | mzIdentML1.2.0.xsd | share/OpenMS/SCHEMAS/mzIdentML1.2.0.xsd | beca6afe670394bc5edb810632712ea4fd434d08f62491dacc7da83c32ff7f7f | `MzIdentMLFile` (detected 1.2.0) |
 | mzIdentML1.3.0.xsd | share/OpenMS/SCHEMAS/mzIdentML1.3.0.xsd | abac61f57e5dcd2eed76a547a3bbd71a47e241d378ac6963fee1f0c0390a6204 | `MzIdentMLFile` (default) |
+| pepXML_v114.xsd | share/OpenMS/SCHEMAS/pepXML_v114.xsd | 64a81531831ae268c1fc421fd788d8de2c0ac6cf300362723b01239e3579e2fb | `PepXMLFile` |
 
 Original PSI/OpenMS creator comments, declarations, byte-order marks and
 encoding bytes are retained. `mzXML_3.1_mod.xsd` is the source's own locally

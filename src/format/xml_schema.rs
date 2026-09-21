@@ -66,6 +66,8 @@ pub enum SchemaKind {
     MzIdentML1_2_0,
     /// `mzIdentML1.3.0.xsd`, the schema `MzIdentMLFile` registers by default.
     MzIdentML1_3_0,
+    /// `pepXML_v114.xsd`, registered by `PepXMLFile`.
+    PepXML,
     /// A caller's schema, as the source `XMLValidator::isValid(filename, schema, os)`
     /// takes one; see [`validate_against`].
     External,
@@ -105,6 +107,7 @@ impl SchemaKind {
             Self::MzIdentML1_1_0 => ("/SCHEMAS/mzIdentML1.1.0.xsd", "1.1.0", false),
             Self::MzIdentML1_2_0 => ("/SCHEMAS/mzIdentML1.2.0.xsd", "1.2.0", false),
             Self::MzIdentML1_3_0 => ("/SCHEMAS/mzIdentML1.3.0.xsd", "1.3.0", false),
+            Self::PepXML => ("/SCHEMAS/pepXML_v114.xsd", "1.14", false),
             Self::External => return None,
         };
         Some(Bundle {
@@ -148,7 +151,7 @@ impl SchemaKind {
 
 /// Every bundled schema file, by its upstream name. Static buffers stay alive
 /// for the process, which the libxml2 memory parser needs.
-const FILES: [(&str, &[u8]); 17] = [
+const FILES: [(&str, &[u8]); 18] = [
     (
         "mzML_1_10.xsd",
         include_bytes!("../../resources/schemas/mzML_1_10.xsd"),
@@ -216,6 +219,10 @@ const FILES: [(&str, &[u8]); 17] = [
     (
         "mzIdentML1.3.0.xsd",
         include_bytes!("../../resources/schemas/mzIdentML1.3.0.xsd"),
+    ),
+    (
+        "pepXML_v114.xsd",
+        include_bytes!("../../resources/schemas/pepXML_v114.xsd"),
     ),
 ];
 
@@ -1362,6 +1369,7 @@ mod tests {
             SchemaKind::MzIdentML1_1_0,
             SchemaKind::MzIdentML1_2_0,
             SchemaKind::MzIdentML1_3_0,
+            SchemaKind::PepXML,
         ];
         let mut reached = std::collections::BTreeSet::new();
         for kind in kinds {
