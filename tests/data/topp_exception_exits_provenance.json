@@ -1,0 +1,1101 @@
+{
+ "package_revisions": {
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+ },
+ "scope": "How the Release build ends a tool run whose main_ returns an exit code and one whose main_ throws (the closing '<tool> took ...' line after the first, none after the second; the run-phase and initialisation catch texts), what reaches the -log file (writeLogInfo_, writeLogWarn_, writeLogError_ and writeDebug_ lines of the tool bodies; OPENMS_LOG_WARN/ERROR lines do not), and ToolHandler's reading of an installed manifest reached through OPENMS_TOOL_PREFIX_PATH. Tools: FileInfo, FuzzyDiff, PeakPickerHiRes, FeatureFinderCentroided, MzMLSplitter, DTAExtractor, BaselineFilter, SpectraFilterWindowMower.",
+ "method": "TOPPBase.cpp and ToolHandler.cpp read at the cli pin, the tool sources at the topp pin, with git show. 28 cases executed against the C++ Release build by ../oracle/topp-exception-exits/cases.sh on ibminode06 in a clean environment per case (env -i, per-case HOME, OPENMS_HOME_PATH and cwd, OPENMS_DISABLE_UPDATE_CHECK=ON, OPENMS_DATA_PATH pinned), twice (run1 with 25 cases, run2 with all 28); the 25 common cases are identical between the runs after masking paths, time stamps and timing figures. run2 is retained under tests/data/topp_exception_exits and replayed through tests/support/release_runs.rs, which maps the Release run's paths to the replay's, drops the Linux stty probe line before a usage text, checks the closing line by shape and masks log time stamps; everything else is compared as recorded. The inputs are copies of files under tests/data (inputs.sha256 holds the oracle's hashes, equal to the repository files'); the profile FeatureFinderCentroided input is derived in the test and checked by its SHA-1.",
+ "evidence_tier": "oracle-generated (tier 1 executed differential) against the Release build; the recorded differences (a directory as -in on the Linux Release build; a copy of the installed manifest under another prefix) are asserted as such.",
+ "oracle": {
+  "install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "host": "ibminode06",
+  "build_type": "Release",
+  "installed_manifest_sha256": "5a90f7c13c8ecf7b82adb0a4518fc1c0b3c50c2c26f058795141bab6200da149"
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/topp-exception-exits/cases.sh",
+   "sha256": "05c8e6b4db9b1594a7e4f870a899c2785355f4143ddd01a5c8517c55dcf04501",
+   "origin_key": "oracle",
+   "role": "driver"
+  },
+  {
+   "path": "../oracle/topp-exception-exits/run2/results/summary.tsv",
+   "sha256": "9467c8ab153b360795b473b7c6c707882d39358ac8510f289d2e2ac9415d45c5",
+   "origin_key": "oracle",
+   "role": "result"
+  },
+  {
+   "path": "../oracle/topp-exception-exits/run2/results/inputs.sha256",
+   "sha256": "04cadde62b2de5bf4e2e76205dc91fd55673c1a89a4d8eb8ab63a818601b14c4",
+   "origin_key": "oracle",
+   "role": "result"
+  },
+  {
+   "path": "../oracle/topp-exception-exits/run2/results/install_manifest.sha256",
+   "sha256": "db6a9b8067425ec539910173e2067808b482b0a308cadd70c11596046e6c9cd4",
+   "origin_key": "oracle",
+   "role": "result"
+  },
+  {
+   "path": "../oracle/topp-exception-exits/run1/results/summary.tsv",
+   "sha256": "2ba80a1777fd2cc839423aeeb4225ade74692ebcbd74f3e4d6e548e2574fe0a4",
+   "origin_key": "oracle",
+   "role": "result"
+  }
+ ],
+ "external_reference_note": "The oracle driver, its inputs and both result trees live under ../oracle/topp-exception-exits; the run2 case directories the tests replay are retained under tests/data/topp_exception_exits, with their hashes in fixtures.sha256.json there.",
+ "sources": [
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/TOPPBase.cpp",
+   "revision": "cli c19e494",
+   "sha256": "326b96f85b4041febec49e18252d7be2ad0a5450abe5249adecc28ca315fdc05"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/ToolHandler.cpp",
+   "revision": "cli c19e494",
+   "sha256": "f6bbe3aacb2d4adcb97d8315a9eb42c0cf0372024339a8ee52fcf783c0d4c968"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/FileInfo.cpp",
+   "revision": "topp 174b576",
+   "sha256": "3f02bbc6aaaa358596a56c54bcad6f597c982a1b5a5ada58e2df322f107f03e3"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/FuzzyDiff.cpp",
+   "revision": "topp 174b576",
+   "sha256": "3809921f8e67d5b9491d6f58a45ae4c62bd7722d3b84e7dc085c3575c59c66ac"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/PeakPickerHiRes.cpp",
+   "revision": "topp 174b576",
+   "sha256": "e253bb0822fffbdd0839db649d2b548916bc227c2d306af5514dc445557f5184"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/FeatureFinderCentroided.cpp",
+   "revision": "topp 174b576",
+   "sha256": "3456f7a563352ae33a08b0872915970342c46229cce6a2bdbe2313b3ece89f68"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/MzMLSplitter.cpp",
+   "revision": "topp 174b576",
+   "sha256": "63c9599132be0479ebd48ca9f50046a0c73981b969e68413bde3e763d258d55d"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/DTAExtractor.cpp",
+   "revision": "topp 174b576",
+   "sha256": "0450b63576ec4916a0a0bdace902e43e40373a663ef5edb5b58e44480a1c8d3f"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/BaselineFilter.cpp",
+   "revision": "topp 174b576",
+   "sha256": "5742cc6e325e71f164e22c22c77bc171240006f9b1d506e46f6d1537e9e0f1d2"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/SpectraFilterWindowMower.cpp",
+   "revision": "topp 174b576",
+   "sha256": "70391f052226f5b365f5d1680a1ab0a0005f1cbe2c4234e43c4994959e23c683"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/topp_exception_exits/DONE",
+   "sha256": "3b425283a17da91075730acf3b39b1ee65a348f439b6d4e525ff96b59fdec790",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (run record, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/bf_centroided_log/argv.txt",
+   "sha256": "c63534451cbe81bca707ec02b5d1ab843c30f478938446a510f0206986a900fa",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/bf_centroided_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/bf_centroided_log/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/bf_centroided_log/log.txt",
+   "sha256": "0c085598671211855021eea0df14fee77dfc204d4e378cd646d10a8641122bc5",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/bf_centroided_log/stderr.txt",
+   "sha256": "2524aa2033b9784d9f44c0cb110638f7cfb93b13144433e50c629c3ee65b1b1d",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/bf_centroided_log/stdout.txt",
+   "sha256": "676309a3f7b3df9e356803da4dc19caed726ff0ce992152fcea1d69a4425ab51",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/bf_centroided_log/tree.txt",
+   "sha256": "b54d5ef4fbcbe4e498015b29fcef17a1a873941557a45543a8ff40ebe480f6d0",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/bf_empty_log/argv.txt",
+   "sha256": "d981a4c83949230259b330e1753495c1885e2750599238a11c7ad7e2581f5e4b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/bf_empty_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/bf_empty_log/exit_code.txt",
+   "sha256": "25d4f2a86deb5e2574bb3210b67bb24fcc4afb19f93a7b65a057daa874a9d18e",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/bf_empty_log/stderr.txt",
+   "sha256": "47777ae0d24cab2a53e95873a2c68d6b6145e80b51de3a1b9da7f01c237df1c7",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/bf_empty_log/stdout.txt",
+   "sha256": "f7bfd040d3b63143bf219bba7bdc3fc2ea31d57649fb65b7d134c7d30ec5e6ab",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/bf_empty_log/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_level_log/argv.txt",
+   "sha256": "c6263bb627b5a139783f7c6e4543cf46b50f8f9466c366f6d213e7fe6169de0c",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_level_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_level_log/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_level_log/log.txt",
+   "sha256": "badef30706cec259230237072212540590b358c603e840369487b31283263fc9",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_level_log/stderr.txt",
+   "sha256": "5c7a04a631aed688b1dd178847ba820dc181f05085a925d0daf475e20ee64f7c",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_level_log/stdout.txt",
+   "sha256": "09238396625b704d81c2d177ee2b3d5d7a7234be709929427b83c8da3f3ceda7",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_level_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_rt_log/argv.txt",
+   "sha256": "6b59d3aa5e84d2fa59b3e44e0385944f4566f5bccb5871e761d5e64152a70dbc",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_rt_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_rt_log/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_rt_log/log.txt",
+   "sha256": "0846b8e14c07c9344fc3b8a76db83fc8ab458e7dba2dc8458a2ff651be9c3977",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_rt_log/stderr.txt",
+   "sha256": "a37d3a224bdd7e93e35316fa290e4b7c740ec6e16df53d012e86d4f2552fb998",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_rt_log/stdout.txt",
+   "sha256": "78f57ecc286fbc998cdf68e6fd00ae4eb9549de763dfc0419959be8841908a73",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_bad_rt_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_debug1_log/argv.txt",
+   "sha256": "e88b158b7317336767086fedfc0d2420ba0cafbbaffbdcd8a6cb90fa1174f18f",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_debug1_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_debug1_log/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_debug1_log/log.txt",
+   "sha256": "3c75729be4d9f24b4bddecc5d6c26456e96aa99d70b4771f1c6440c013fe1edc",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_debug1_log/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_debug1_log/stdout.txt",
+   "sha256": "be336b426d43a9ddbd44e9cc1faa75082905e62945ec546e7883c58af6351896",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/dta_debug1_log/tree.txt",
+   "sha256": "14e48b601aff4ab32a1c47872a22a03669832caa6dbe252cdb41cd66e26a1b59",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_debug1_log/argv.txt",
+   "sha256": "d7cb86eefb2c1440f289a988a96e7dc43656159cc0254df29fa1ff84d774e225",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_debug1_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_debug1_log/exit_code.txt",
+   "sha256": "917df3320d778ddbaa5c5c7742bc4046bf803c36ed2b050f30844ed206783469",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_debug1_log/log.txt",
+   "sha256": "06669a04a4d69631de9d04940ca12b3522d6df0fca4df287c3e652f76ef52519",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_debug1_log/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_debug1_log/stdout.txt",
+   "sha256": "416f6729190c4053374c9c9eecaff9e1e5f0d52ecb6cc3f64f6644bb3564a271",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_debug1_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_directory_log/argv.txt",
+   "sha256": "24d3e2c44a713af5da4fc61d71a48c91b10b0fdf699c7d7b463bb09baf332b6e",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_directory_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_directory_log/exit_code.txt",
+   "sha256": "a1fb50e6c86fae1679ef3351296fd6713411a08cf8dd1790a4fd05fae8688164",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_directory_log/stderr.txt",
+   "sha256": "b3f43650d1dfa12bcd1653e1e639c6a99651f6fe699095fb5338b50cfbd7acc2",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_directory_log/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_directory_log/tree.txt",
+   "sha256": "efe141e79262bd323eba141841c9a0424d6fa6e7d3e4bed27afa75d12cc07c69",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_matched_whitelist_log/argv.txt",
+   "sha256": "1e462c1b1ef67500aa88c0dc1163429da71a9daa12fb3c24581bf5596b031ceb",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_matched_whitelist_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_matched_whitelist_log/exit_code.txt",
+   "sha256": "aa67a169b0bba217aa0aa88a65346920c84c42447c36ba5f7ea65f422c1fe5d8",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_matched_whitelist_log/log.txt",
+   "sha256": "0311a1d44269fe5407370daa3b1f7fa0246734d554500db78a4c27d1df5a4705",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_matched_whitelist_log/stderr.txt",
+   "sha256": "ddd3b23f17d7ba85a0f708ba7a2d79b619914d62c2b694ad80059f7407df7791",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_matched_whitelist_log/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fd_matched_whitelist_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_debug3_log/argv.txt",
+   "sha256": "966f16da85f694d0437f4f504bd434d6e637222642759675d809d7eee1ccb7c7",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_debug3_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_debug3_log/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_debug3_log/log.txt",
+   "sha256": "1162815d3effb1294cca1b93d4a9695b82084a9b3e19d031bbbdf7bf25103ff7",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_debug3_log/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_debug3_log/stdout.txt",
+   "sha256": "30d735f38ab69c82066d9e91fc91baaf38020696c93f4a2646e74a4f622c8315",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_debug3_log/tree.txt",
+   "sha256": "d5cd2af5b0cd8c2fef4e3030a9b38cca0e30ef852ab479dfa0d76e82d7ced88b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_ms2_only_log/argv.txt",
+   "sha256": "e709b2e626ba85d46cd1b5ca82e0c61a29d4ff79dcb49d99a2173747ff26d7de",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_ms2_only_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_ms2_only_log/exit_code.txt",
+   "sha256": "7de1555df0c2700329e815b93b32c571c3ea54dc967b89e81ab73b9972b72d1d",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_ms2_only_log/log.txt",
+   "sha256": "997e1e9566aed531a3254353e672e4992d4b34c908f2d2e8b03e184a459fdb74",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_ms2_only_log/stderr.txt",
+   "sha256": "1057345d8a837faa90ef3fe07e4a33fd95c7b561ff8967a2fe36730ee140b1a4",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_ms2_only_log/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_ms2_only_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_profile_noforce_log/argv.txt",
+   "sha256": "7092190444878733ad57dfcdfd4acb297a331be09f0654f984778c45967e64a4",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_profile_noforce_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_profile_noforce_log/exit_code.txt",
+   "sha256": "aa67a169b0bba217aa0aa88a65346920c84c42447c36ba5f7ea65f422c1fe5d8",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_profile_noforce_log/log.txt",
+   "sha256": "2116fab9fe40cb92f7fffaea5d0f2f6fd50d5081b32f265c4ad563a1ba099aa8",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_profile_noforce_log/stderr.txt",
+   "sha256": "3536be64afbb6478b6bd7cc607581fff22f2736991bec8595e23a3fe31851299",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_profile_noforce_log/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ffc_profile_noforce_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_debug2_log/argv.txt",
+   "sha256": "e2fb38d9cd8ff58fda43c89bf4a4b502f4c0498d374f15d85454df3fddc94b24",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_debug2_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_debug2_log/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_debug2_log/log.txt",
+   "sha256": "12dbd07bcbf5c610a249c2ebf1c3a730e1e3ba92944c0974209eec9ac789bcfd",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_debug2_log/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_debug2_log/stdout.txt",
+   "sha256": "24b497b2926d6d628fc6fad506813f5f2f4b6597c6b8c48f4fec8bfcf922f04f",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_debug2_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_index_on_dta_log/argv.txt",
+   "sha256": "30b063d790e98afb2cf0d89f5baee56200845e3ad3e9ec4c7deec1346ab4789a",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_index_on_dta_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_index_on_dta_log/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_index_on_dta_log/log.txt",
+   "sha256": "7f61ac64fd6eab11ae8ca82c5c47ae1ed713f6c984f054da458b81dd9fead70c",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_index_on_dta_log/stderr.txt",
+   "sha256": "572b0a971d89757fd3bf543f03e99e2ded075711775d82c7880fe105828953bf",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_index_on_dta_log/stdout.txt",
+   "sha256": "8de853c62916685ecc91c79a0b26ccd4a21e498029e698fbb9d26007834a317e",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_index_on_dta_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_notype_log/argv.txt",
+   "sha256": "76a3ec850d2e2ba405287e2d425363b7d83eeaeaa1471db22d4143c21b342f9b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_notype_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_notype_log/exit_code.txt",
+   "sha256": "917df3320d778ddbaa5c5c7742bc4046bf803c36ed2b050f30844ed206783469",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_notype_log/log.txt",
+   "sha256": "80575a10c55d93a5cb17fe071fde63b8912990145cc34525882f48a00e5a2614",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_notype_log/stderr.txt",
+   "sha256": "30977a2ecc47ad0c71b58f8da4521bd3fb60bc218615373de45bdecdef3af8c4",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_notype_log/stdout.txt",
+   "sha256": "d18162e11e4bfa022844d8d19275b2af230a7686e5aa36acaa0062527de2e443",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_notype_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_out_is_directory_log/argv.txt",
+   "sha256": "2924f86f67d994b6416f51e17d5146e71b0bee95242c8892fae9849b499ce960",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_out_is_directory_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_out_is_directory_log/exit_code.txt",
+   "sha256": "aa67a169b0bba217aa0aa88a65346920c84c42447c36ba5f7ea65f422c1fe5d8",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_out_is_directory_log/log.txt",
+   "sha256": "0cd7c7e8c1d662d2a6b2ade66aca27e5ca21a4890b211cbdacb326c86373b645",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_out_is_directory_log/stderr.txt",
+   "sha256": "291cbdebce0584ee737320347a226a3a58504506da6a5ef3c0cdd2b5635e2018",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_out_is_directory_log/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_out_is_directory_log/tree.txt",
+   "sha256": "4ac4dd97e36148009d4c97bd306565a6f628099961ee95216cac2d6a3298745f",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_undetermined_log/argv.txt",
+   "sha256": "620b973752b25d7164749c699709af5220efc5385f93bc996cd53bde63c7bb84",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_undetermined_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_undetermined_log/exit_code.txt",
+   "sha256": "a1fb50e6c86fae1679ef3351296fd6713411a08cf8dd1790a4fd05fae8688164",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_undetermined_log/stderr.txt",
+   "sha256": "57f8974ceb6b38029b97d22b62bae386aae125514a36fe17e6964cec8d9fafa6",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_undetermined_log/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fi_undetermined_log/tree.txt",
+   "sha256": "fe325b0f95383b938563a0333dc13db27c292d2867c2acb1ac7b02219cbb1c72",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/fixtures.sha256.json",
+   "sha256": "3dc086cb61e9ae046b151f88e36d6d5e0b861d1daeb2fa75b2a59ea257a486df",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (run record, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/host.txt",
+   "sha256": "97ff96ea8fc9744b2ed9136369b6bd2ae0f351f7694c1188ab12f8e769d850f0",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (run record, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/inputs.sha256",
+   "sha256": "04cadde62b2de5bf4e2e76205dc91fd55673c1a89a4d8eb8ab63a818601b14c4",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (run record, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/install_manifest.sha256",
+   "sha256": "db6a9b8067425ec539910173e2067808b482b0a308cadd70c11596046e6c9cd4",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (run record, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_no_chrom_no_spec_log/argv.txt",
+   "sha256": "c2ed347872dee34b221783d0bf070571c128c84cb0cf46f36357f289867e4bd6",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_no_chrom_no_spec_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_no_chrom_no_spec_log/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_no_chrom_no_spec_log/log.txt",
+   "sha256": "8eb0c96fa5ada1c433e45c6db7b15579296bb6628804aa22ddb93c147c0ec056",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_no_chrom_no_spec_log/stderr.txt",
+   "sha256": "f1cc70f54d167efb72a2ef8bd6d03e836677cd1f51d92a052e3abf86b1800c8f",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_no_chrom_no_spec_log/stdout.txt",
+   "sha256": "f1a20e1cd84de3751edcf309ba318e8559340046842f9c1d538f0547271a2423",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_no_chrom_no_spec_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_parts2_log/argv.txt",
+   "sha256": "6ea01c367ea9a245bac1f5943e4af87054976d8103055843444249730ab1e0ed",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_parts2_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_parts2_log/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_parts2_log/log.txt",
+   "sha256": "81f66ee19b7df63d5a5046ce9f7cdcaa26cacb3aaa27ff95509ec827c6640321",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_parts2_log/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_parts2_log/stdout.txt",
+   "sha256": "033b23ccf960e3072d817adf9f1f6fd0613dae38f6b8f2e4cf8f0f601ebbf607",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_parts2_log/tree.txt",
+   "sha256": "493b28ff1e9f2948a6989ef60bf70b6d09c009d2e8d3e376ac9bbf5bcd467e05",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_kb_log/argv.txt",
+   "sha256": "a777e2e7231bbf4486f03c46ba361c9f84dfccd78109fe81fc987e3025a44e49",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_kb_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_kb_log/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_kb_log/log.txt",
+   "sha256": "1c513ac10d5dcdde9903e016126c8039340c26c788eca0659bb37e79ab89512c",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_kb_log/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_kb_log/stdout.txt",
+   "sha256": "32ec5fde728895163f9ee1f6da8c345ca0d9238f0ee8337ff1f897069d8c4788",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_kb_log/tree.txt",
+   "sha256": "ebf35c3c2403a7c326b9863d5e7b7c2e0c0947e187f94a713802d184b6b8d104",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_zero_log/argv.txt",
+   "sha256": "9a4458aa3158bac6f033acee1a47afdf5ad58d61ca7cd9b25ad345a725e58f39",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_zero_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_zero_log/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_zero_log/log.txt",
+   "sha256": "f15096547f071580e1ebc5aa56de0ddb7f8d6522537fc46942341ae61254b0e1",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_zero_log/stderr.txt",
+   "sha256": "28652ed6a11087c27846542ae5078a4c5fb0b11b093273cd7e222811191ebe30",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_zero_log/stdout.txt",
+   "sha256": "aa795b5ae5aa803bcd424bc45b5e6a625127b0158bdf7effc7902be222ebf936",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/ms_size_zero_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_centroided_log/argv.txt",
+   "sha256": "24a51b7dc0094e5ff43a7dc927e955f2f4884751a9aaa50ff5fb28056459839f",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_centroided_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_centroided_log/exit_code.txt",
+   "sha256": "aa67a169b0bba217aa0aa88a65346920c84c42447c36ba5f7ea65f422c1fe5d8",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_centroided_log/log.txt",
+   "sha256": "ed156330017150a50c8d4017263eacdfd0237c098e77359a32096eefcb1d7cc1",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_centroided_log/stderr.txt",
+   "sha256": "14ebbfd20e0dff9f5a0b6d10a73ab8c24fd40e637475da84ab8740b030497296",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_centroided_log/stdout.txt",
+   "sha256": "ef17e4bbb7ed4050f10c33bc10d617f5b90a623f868b539d9a1c9827f663edb4",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_centroided_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_debug3_log/argv.txt",
+   "sha256": "8f162af3c4cfa84fed2e42675bf6eb16909e1585da30666b8ce0f5c5b2d4cd1e",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_debug3_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_debug3_log/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_debug3_log/log.txt",
+   "sha256": "efe71cd487a3d139ebf6b11cc8d416b76fbaf3b5162071f024b9d56157e4bea1",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_debug3_log/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_debug3_log/stdout.txt",
+   "sha256": "9675760e95739a229cb11581c67633bbd6f4bce5627fb11f1a2bd2105871c1dd",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_debug3_log/tree.txt",
+   "sha256": "b54d5ef4fbcbe4e498015b29fcef17a1a873941557a45543a8ff40ebe480f6d0",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_empty_log/argv.txt",
+   "sha256": "389ba019ae3be74a1712d841c79b6447c274a701a531be633caa047963ce73cc",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_empty_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_empty_log/exit_code.txt",
+   "sha256": "25d4f2a86deb5e2574bb3210b67bb24fcc4afb19f93a7b65a057daa874a9d18e",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_empty_log/stderr.txt",
+   "sha256": "47777ae0d24cab2a53e95873a2c68d6b6145e80b51de3a1b9da7f01c237df1c7",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_empty_log/stdout.txt",
+   "sha256": "5d6642fb9108f723f976a7a98e0c0133f86e9852a53731ca16cf90b1c8bf382d",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/pphr_empty_log/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_copy_of_install_manifest/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_copy_of_install_manifest/env.txt",
+   "sha256": "d0c2fb4c9fb255bdd43f371e4b15dac9675b03b4461f3906c3b82c914eb65e23",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_copy_of_install_manifest/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_copy_of_install_manifest/stderr.txt",
+   "sha256": "ffaaf290642e69cd5e4d363cd4b0143fffa257301229f442c060cbe5fc199937",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_copy_of_install_manifest/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_copy_of_install_manifest/tree.txt",
+   "sha256": "900e6d79e17fccb0f7f70b1bf82c341f21cb812a2663941258e4302c57df48bb",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_copy_of_install_manifest_run/argv.txt",
+   "sha256": "b3b3617a485eab0ce07368fbefb997a16f7e9101b85cd5daa72197d652b748c9",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_copy_of_install_manifest_run/env.txt",
+   "sha256": "731915400eab244307020a4ddd199ec9d9f7e841822399f771f7bbc601eb614e",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_copy_of_install_manifest_run/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_copy_of_install_manifest_run/stderr.txt",
+   "sha256": "ffaaf290642e69cd5e4d363cd4b0143fffa257301229f442c060cbe5fc199937",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_copy_of_install_manifest_run/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_copy_of_install_manifest_run/tree.txt",
+   "sha256": "900e6d79e17fccb0f7f70b1bf82c341f21cb812a2663941258e4302c57df48bb",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_install_prefix_once/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_install_prefix_once/env.txt",
+   "sha256": "705261bda74b16808198d5b094cd6ef32fd3979e38c254e4a22ac70ff0967800",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_install_prefix_once/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_install_prefix_once/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_install_prefix_once/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_install_prefix_once/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_symlink_to_install/argv.txt",
+   "sha256": "87888b0036d89f08a19a5786749bfa322a87810931228cccd6da9c6f6841d494",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_symlink_to_install/env.txt",
+   "sha256": "3dfd3680ec22f3649fd369ac4a28176498c0c047723518412afd16a6e10a16f1",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_symlink_to_install/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_symlink_to_install/stderr.txt",
+   "sha256": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_symlink_to_install/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/reg_symlink_to_install/tree.txt",
+   "sha256": "630a0d79912394daf04f643ae5c8c0096c02a64aba133a4f2a44c8a9ff4d5e39",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/sfwm_debug3_log/argv.txt",
+   "sha256": "74980414aeadb9dc6be71e8d5cb2bff25f31099de90a93d54a61724a46651f6b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/sfwm_debug3_log/env.txt",
+   "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/sfwm_debug3_log/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/sfwm_debug3_log/log.txt",
+   "sha256": "0c3b8543fa38a70ef643a8250f665db93253f66138f9db321c4bec3bb9aa2d0c",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/sfwm_debug3_log/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/sfwm_debug3_log/stdout.txt",
+   "sha256": "ed88ab3385859c4af9b5943682b910a551b8e4642f373340c0bbcdae6a5fc32d",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/sfwm_debug3_log/tree.txt",
+   "sha256": "b54d5ef4fbcbe4e498015b29fcef17a1a873941557a45543a8ff40ebe480f6d0",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (case directory, run2)"
+  },
+  {
+   "path": "tests/data/topp_exception_exits/summary.tsv",
+   "sha256": "9467c8ab153b360795b473b7c6c707882d39358ac8510f289d2e2ac9415d45c5",
+   "origin": "executed: ../oracle/topp-exception-exits/cases.sh on the Release build (run record, run2)"
+  }
+ ],
+ "native_implementation": [
+  "src/cli.rs",
+  "src/cli/outcome.rs",
+  "src/cli/context.rs",
+  "src/cli/tool_handler.rs",
+  "src/cli/tools/file_info.rs",
+  "src/cli/tools/fuzzy_diff.rs",
+  "src/cli/tools/peak_picker_hi_res.rs",
+  "src/cli/tools/feature_finder_centroided.rs",
+  "src/cli/tools/mzml_splitter.rs",
+  "src/cli/tools/dta_extractor.rs",
+  "src/cli/tools/baseline_filter.rs",
+  "src/cli/tools/spectra_filter_window_mower.rs"
+ ],
+ "native_tests": [
+  "tests/support/release_runs.rs",
+  "tests/topp_file_info.rs",
+  "tests/topp_fuzzy_diff.rs",
+  "tests/topp_peak_picker_hi_res.rs",
+  "tests/topp_feature_finder_centroided.rs",
+  "tests/topp_mzml_splitter.rs",
+  "tests/topp_dta_extractor.rs",
+  "tests/topp_baseline_filter.rs",
+  "tests/topp_spectra_filter_window_mower.rs",
+  "tests/topp_cli_completion.rs",
+  "tests/topp_cli_lifecycle.rs"
+ ],
+ "support": "docs/TOPP_CLI_SUPPORT.md"
+}

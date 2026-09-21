@@ -96,6 +96,14 @@
   "stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "tree.txt": "5ecb5a7ae55a0dea4ae42814c958ba9527841082088306dbf74fb6144dbce2ec"
  },
+ "debug10_run": {
+  "argv.txt": "d7adbe9f67936a932a4be4180bec4a924ce90d74d8788a9e54fd5c157f6fd77f",
+  "env.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+  "exit_code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+  "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout.txt": "35634e4021e52c0dbc51ffcb7918a820f193b05343f7f104ad6c3f0f9f2676d8",
+  "tree.txt": "8a7cb5198e08ae93ef2e581434f6a1f6df2a3ababc19a1bc26a447b37c131c27"
+ },
  "debug1_help": {
   "argv.txt": "a38f301b65d4da1291c88a11e153f24372885d82fdd5c8629d5efd2cfe4c1aa2",
   "env.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
@@ -103,6 +111,14 @@
   "stderr.txt": "c79958e1a7caf2cf5998a4acfabfd7bbc8b3424ead61def14facb222e7f73a62",
   "stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "tree.txt": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5"
+ },
+ "debug1_ini": {
+  "argv.txt": "1387731f64a5b6fc93cafd7508b489efbfc994b66f5771338755c798a8403905",
+  "env.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+  "exit_code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+  "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout.txt": "efd9d84432a2f2ae0c0e77145d577d18c96dbc5017cefc5ec2ed7c4ea98dc7a9",
+  "tree.txt": "8a7cb5198e08ae93ef2e581434f6a1f6df2a3ababc19a1bc26a447b37c131c27"
  },
  "debug1_run": {
   "argv.txt": "d166728c0166618044c49f11c9ca7d55e78d56659664bc7dce6aca39d7829856",
@@ -127,6 +143,14 @@
   "exit_code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
   "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "stdout.txt": "0a455ca90c0c5549d035a10e947af663870fe0cc35390879c8eb9c382da2ff90",
+  "tree.txt": "8a7cb5198e08ae93ef2e581434f6a1f6df2a3ababc19a1bc26a447b37c131c27"
+ },
+ "debug3_run": {
+  "argv.txt": "a35979fdbbdce5e6947dcbe3c02b9dae044f8a16072c9cda41caf4eadd8a347f",
+  "env.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+  "exit_code.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+  "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout.txt": "83970d324223ea64a52ad41d9db4212424afe02e379939dcd26516947a70e2e1",
   "tree.txt": "8a7cb5198e08ae93ef2e581434f6a1f6df2a3ababc19a1bc26a447b37c131c27"
  },
  "ffc_help_cite": {
@@ -341,6 +365,15 @@
   "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "stdout.txt": "a4c679ae3a74c524f93237dd2b75239031fb229eda4d5e9ecfb3f2ee69d5a9ee",
   "tree.txt": "b54d5ef4fbcbe4e498015b29fcef17a1a873941557a45543a8ff40ebe480f6d0"
+ },
+ "log_undetermined_format": {
+  "argv.txt": "5d8f9995277f87f5316104537c43b9e041ddee7d10bd693cf0ff8c6f1e3a236d",
+  "env.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+  "exit_code.txt": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+  "log.txt": "fd8fbc8c1d5c529b134882562744de729d576be204613be1f42e250e25b364b7",
+  "stderr.txt": "e066fcf4556124f57fa8cf7ea11341fc8c51faa72d4e8da61f07bd7d9ef9ef80",
+  "stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tree.txt": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528"
  },
  "log_unknown_option": {
   "argv.txt": "9b88b546e2c9ef46379062c980fcba55ee534e1aaabed35a0a07536a463188d3",

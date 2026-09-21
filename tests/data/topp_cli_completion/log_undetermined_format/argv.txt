@@ -1,0 +1,8 @@
+BaselineFilter
+-test
+-in
+/scratch/kohlbach/toppbase-oracle/run1/inputs/unknown_name_and_content
+-out
+/scratch/kohlbach/toppbase-oracle/run1/results/log_undetermined_format/cwd/out.mzML
+-log
+/scratch/kohlbach/toppbase-oracle/run1/results/log_undetermined_format/cwd/log.txt

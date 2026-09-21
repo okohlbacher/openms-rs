@@ -1,0 +1,2 @@
+2026-09-21 16:36:46 BaselineFilter:1:: Warning: Could not determine format of input file '/scratch/kohlbach/toppbase-oracle/run1/inputs/unknown_name_and_content'!
+2026-09-21 16:36:46 BaselineFilter:1:: Error: Unable to read file (type: unknown is not allowed for loading an experiment. Allowed types are: , mzML in: /scratch/kohlbach/toppbase-oracle/run1/inputs/unknown_name_and_content)

@@ -1816,6 +1816,125 @@ fn a_log_file_named_by_the_ini_file_takes_effect() {
     assert_eq!(log_lines(&case), oracle_log(&case, "log_in_ini"));
 }
 
+/// The progress lines the Release build's `BaselineFilter` prints without
+/// `-no_progress`, which this port's does not (see *On a console* in
+/// `docs/TOPP_CLI_SUPPORT.md`): `Progress of '<task>':` and `-- done [took
+/// …] --`, indented by nesting.
+fn is_progress_line(line: &str) -> bool {
+    let line = line.trim_start();
+    line.starts_with("Progress of '") || line.starts_with("-- done [took ")
+}
+
+/// Oracles `debug1_run`, `debug2_run`, `debug3_run`, `debug10_run` and
+/// `debug1_ini` (the last with `-ini method_erosion.ini -debug 2`): without
+/// `-log`, a debug level writes nothing anywhere, because the Release build
+/// compiles `OPENMS_LOG_DEBUG` out and `writeDebug_` reaches only the log file.
+/// The runs exit 0 with an empty error stream and leave no file but their
+/// output; the output stream is the closing line and the progress lines, which
+/// this port's `BaselineFilter` does not print (asserted to be nothing else),
+/// so the port's output stream is the closing line alone.
+#[test]
+fn a_debug_level_without_a_log_file_writes_nothing() {
+    for (name, extra) in [
+        ("debug1_run", &["-debug", "1"][..]),
+        ("debug2_run", &["-debug", "2"]),
+        ("debug3_run", &["-debug", "3"]),
+        ("debug10_run", &["-debug", "10"]),
+        (
+            "debug1_ini",
+            &["-ini", "@IN@/method_erosion.ini", "-debug", "2"],
+        ),
+    ] {
+        let case = Case::new();
+        let handler = registry(&case, |_| {});
+        let (input, out) = (baseline_input(), text(case.cwd().join("out.mzML")));
+        let ini = text(data("method_erosion.ini"));
+        let mut args = vec!["-test", "-in", &input, "-out", &out];
+        args.extend(extra.iter().map(|a| {
+            if *a == "@IN@/method_erosion.ini" {
+                ini.as_str()
+            } else {
+                a
+            }
+        }));
+        let outcome = run_in::<BaselineFilter>(&handler, &args);
+        assert_oracle_exit(name, &outcome);
+        assert_eq!(outcome.err, oracle(name, "stderr.txt"), "{name}");
+        let release = oracle(name, "stdout.txt");
+        let (release_body, release_took) = took_line::split_took_line("BaselineFilter", &release);
+        assert!(release_took.is_some(), "{name}");
+        assert!(
+            release_body.lines().all(is_progress_line),
+            "{name}: {release_body}"
+        );
+        let (body, took) = took_line::split_took_line("BaselineFilter", &outcome.out);
+        assert!(took.is_some(), "{name}: {}", outcome.out);
+        assert_eq!(body, "", "{name}");
+        assert_eq!(
+            oracle(name, "tree.txt"),
+            "cwd\ncwd/out.mzML\nhome\n",
+            "{name}: the Release run left no log file"
+        );
+        let mut left: Vec<String> = fs::read_dir(case.cwd())
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        left.sort();
+        assert_eq!(left, ["out.mzML"], "{name}");
+    }
+}
+
+/// Oracle `log_undetermined_format`: an input whose name and content no type
+/// claims, with `-log`. Compared, with one difference recorded: the framework's
+/// warning `Warning: Could not determine format of input file '<file>'!` is the
+/// Release build's on the error stream and as the log file's first line, and
+/// neither run prints a closing line; the load that follows fails in both,
+/// but the Release build's `FileHandler::loadExperiment` throws `ParseError`
+/// (exit 3, `Error: Unable to read file (type: unknown is not allowed for
+/// loading an experiment. Allowed types are: , mzML in: <file>)`), where this
+/// port's loader returns `Error::InvalidValue`, which the lifecycle maps to
+/// exit 6. That difference belongs to `src/format/file_handler.rs` and is
+/// recorded in `docs/TOPP_CLI_SUPPORT.md` (*Formats*); both runs log their
+/// error line as the second and last line.
+#[test]
+fn an_undetermined_format_logs_the_warning_and_fails_the_load() {
+    let name = "log_undetermined_format";
+    let case = Case::new();
+    let handler = registry(&case, |_| {});
+    let input = text(data("unknown_name_and_content"));
+    let (out, log) = (
+        text(case.cwd().join("out.mzML")),
+        text(case.cwd().join("log.txt")),
+    );
+    let outcome = run_in::<BaselineFilter>(
+        &handler,
+        &["-test", "-in", &input, "-out", &out, "-log", &log],
+    );
+    assert_eq!(oracle_exit(name), ExitCode::InputFileCorrupt.as_i32());
+    assert_ne!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.out, oracle(name, "stdout.txt"));
+    assert!(outcome.out.is_empty());
+    let release_err = case.map(name, &oracle(name, "stderr.txt"));
+    let release_lines: Vec<&str> = release_err.lines().collect();
+    assert_eq!(release_lines.len(), 2);
+    assert!(
+        release_lines[1].starts_with("Error: Unable to read file (type: unknown is not allowed")
+    );
+    let lines: Vec<&str> = outcome.err.lines().collect();
+    assert_eq!(lines.len(), 2, "{}", outcome.err);
+    assert_eq!(lines[0], release_lines[0]);
+    let expected_log = oracle_log(&case, name);
+    let actual_log = log_lines(&case);
+    assert_eq!(expected_log.len(), 2);
+    assert_eq!(actual_log.len(), 2, "{actual_log:?}");
+    assert_eq!(actual_log[0], expected_log[0]);
+    assert_eq!(
+        actual_log[1],
+        format!("<time> BaselineFilter:1:: {}\n", lines[1]),
+        "the port logs its own error line"
+    );
+}
+
 /// `START_SECTION(([EXTRA] -log writes a log file))` (`TOPPBase_test.cpp:870-890`):
 /// `TOPPBaseTest -log <file> -debug 1` writes a non-empty log whose lines carry
 /// the tool's INI location.
