@@ -1,15 +1,23 @@
-# FuzzyStringComparator, FuzzyDiff and decoded comparison (test support)
+# FuzzyStringComparator, FuzzyDiff and decoded comparison
 
 The upstream TOPP suite judges almost every tool output with
 `FuzzyDiff -test -ini FuzzyDiff.ini [-whitelist ...]`, which runs
-`OpenMS::FuzzyStringComparator`. This group ports that comparator and the
-`FuzzyDiff` tool contract as **shared test support**, plus a decoded-content
-comparator for XML outputs (decision D6). It is not library code: there is no
-module in `src/`, no ledger header and no module-graph edge.
+`OpenMS::FuzzyStringComparator`. This group ports that comparator, first as
+shared test support and, since the `FuzzyDiff` tool was ported, as the library
+module `concept::fuzzy_string_comparator`. The move changed no behaviour: the
+module is the test-support code, the test support re-exports it, and every
+verdict and log byte of the executed corpus below is reproduced as before. The
+test support keeps an emulation of the `FuzzyDiff` tool contract for tests
+built without `paramxml`, and a decoded-content comparator for XML outputs
+(decision D6). The tool itself is documented in
+[TOPP_FUZZY_DIFF_SUPPORT](TOPP_FUZZY_DIFF_SUPPORT.md). The source header is
+outside the registered SDK (it is installed by `src/testframework`), so it has
+no ledger key.
 
 | Rust file | Covers |
 |---|---|
-| `tests/support/fuzzy_string_comparator.rs` | `FuzzyStringComparator.h/.cpp` (core bc9cc12), the `FuzzyDiff` contract (topp 174b576 `src/FuzzyDiff.cpp` with the TOPPBase behaviour it relies on) and a bounded ParamXML reader for `FuzzyDiff.ini`; `std` only |
+| `src/concept/fuzzy_string_comparator.rs` | `FuzzyStringComparator.h/.cpp` (core bc9cc12), and the two input transforms of `FuzzyDiff::main_`, `sorted_lines` and `parse_matched_whitelist`; `std` only, built without any feature |
+| `tests/support/fuzzy_string_comparator.rs` | re-exports the module; the `FuzzyDiff` contract emulation (topp 174b576 `src/FuzzyDiff.cpp` with the TOPPBase behaviour it relies on) and a bounded ParamXML reader for `FuzzyDiff.ini` |
 | `tests/support/decoded_compare.rs` | Field-by-field comparison of `FeatureMap` and `MSExperiment` values with the comparator's number rule |
 | `tests/fuzzy_string_comparator.rs` | Class-test port, executed C++ differential, `FuzzyDiff` exit-code parity, retained-vs-current pairs, decoded comparator tests |
 | `tests/data/fuzzy_string_comparator/` | Pinned `FuzzyDiff.ini`, retained upstream fixtures, oracle outputs and synthetic inputs |
@@ -89,6 +97,8 @@ therefore use executed oracle outputs, not only retained expectations.
 | protected data members (`log_dest_` … `matched_whitelist_`) | private fields. `is_absdiff_small_` is not stored: it is only read on a fall-through that always continues. `use_prefix_` is kept and always false, since the source has no setter. |
 | friends `Internal::ClassTest::testStringSimilar`, `isFileSimilar` | not ported; they back the C++ `TEST_STRING_SIMILAR`/`TEST_FILE_SIMILAR` macros, and Rust tests call the comparator directly |
 | file-local `getLine`, `absolutePath`, `suffix`, `prefixOf`, `to_path` | `LineSource::get_line`, `absolute_display`, slicing |
+| protected `input_1_name_`, `input_2_name_` (set by `compareFiles` only) | `input_names`; native `set_input_names`, with which the tool names its in-memory `-sort` texts |
+| a stream exception escaping `compareFiles` (no source API) | native `InputFailure`, `input_failure` and `log_without_input_failure`: which comparison stopped on a read error or the input bound, and the log without its failure line; the log line itself is unchanged |
 | file-local `tryParseNaN`, `parseFloat`, `extractDouble` | `extract_double` (public), following the `std::from_chars` contract |
 | file-local `fromCharsFloat` (libc++ `strtod` fallback) | not ported; see native differences |
 | number branch of `compareLines_` (556-689) | `compare_numbers` (public; also used by the decoded comparator) |
@@ -101,7 +111,7 @@ therefore use executed oracle outputs, not only retained expectations.
 | `registerOptionsAndFlags_`: `in1`, `in2`, `ratio` (1, min 1), `absdiff` (0, min 0), `whitelist` (`<?xml-stylesheet`), `matched_whitelist` (empty), `verbose` (2, 0-3), `tab_width` (8, min 1), `first_column` (1, min 0), `sort` | `FuzzyDiffSettings::registered_defaults` and its fields; `in1`/`in2` are the arguments of `fuzzy_diff` |
 | `-ini <file>` | `FuzzyDiffSettings::load_ini` / `from_ini` (items of `FuzzyDiff:1:`; unknown items and unparsable values go to `ini_errors`) |
 | `-whitelist`, `-matched_whitelist` on the command line | `with_whitelist`, `with_matched_whitelist` (replace the lists) |
-| `main_`: matched-whitelist split (`IllegalArgument`), comparator setup, `-sort` temporary files, `compareFiles`, `EXECUTION_OK`/`PARSE_ERROR` | `fuzzy_diff`, `FuzzyDiffSettings::comparator`, `sorted_lines`, `FuzzyDiffOutcome` |
+| `main_`: matched-whitelist split (`IllegalArgument`), comparator setup, `-sort` temporary files, `compareFiles`, `EXECUTION_OK`/`PARSE_ERROR` | `fuzzy_diff`, `FuzzyDiffSettings::comparator`, the library's `parse_matched_whitelist` and `sorted_lines`, `FuzzyDiffOutcome` |
 | TOPPBase exit codes used by the tool | `FuzzyDiffExit` (0, 1, 2, 4, 6, 7, 8, 10) |
 | in-memory convenience without file checks | `FuzzyDiffSettings::compare_bytes` (native) |
 
@@ -161,7 +171,11 @@ Each of these decides verdicts or report text and is covered by an executed orac
   fallback. That fallback also accepts hexadecimal floats, so `"0x10"` equals `"16"` on
   macOS only. This single case (`tok_hex_vs_decimal`) is asserted as a known divergence.
   Whether libstdc++'s `std::from_chars` rejects underflow to zero, contrary to the source
-  comment, has not been executed here.
+  comment, is now executed: the Linux Release build rejects `1e-400` and
+  accepts `1e-310` (`token_underflow`, `token_subnormal` in
+  [TOPP_FUZZY_DIFF_SUPPORT](TOPP_FUZZY_DIFF_SUPPORT.md)), so the port, which
+  accepts underflow as the source comment says, matches the libc++ build there
+  and not the libstdc++ one.
 - **Value of a non-number in the report.** The source resets it to NaN. The libc++
   fallback then overwrites it with `strtod`'s result for the letter (usually 0), while
   this port keeps NaN. The differential masks only this field, and only for elements
@@ -182,9 +196,13 @@ Each of these decides verdicts or report text and is covered by an executed orac
   is the same, without quadratic copying on long lines.
 - **Whitelist entries** are UTF-8 `String`s; C++ uses byte strings. INI values are decoded
   as ISO-8859-1 when the file declares it, otherwise as UTF-8.
-- **FuzzyDiff.** The TOPPBase log messages (version warning, timing, "Cannot read input
-  file") are not reproduced, and `FuzzyDiffOutcome::log` carries the comparator log or a
-  one-line reason. `-sort` compares in memory: the verdict and exit code match, and the
+- **FuzzyDiff emulation.** The test-support `fuzzy_diff` does not reproduce the TOPPBase
+  log messages (version warning, timing, "Cannot read input file"), and
+  `FuzzyDiffOutcome::log` carries the comparator log or a one-line reason; the ported tool
+  (`openms::cli::tools::FuzzyDiff`) writes them. `tests/topp_fuzzy_diff.rs` holds the
+  emulation's exit code to the tool's and the Release build's on every oracle case it
+  models. It keeps one answer of its own: an unreadable input such as a directory is a
+  failed comparison (10), where the tool and the source exit 12. `-sort` compares in memory: the verdict and exit code match, and the
   log names the inputs instead of temporary files. The INI reader handles the ParamXML
   subset INI files use (`NODE`, `ITEM`, `ITEMLIST`, `LISTITEM`, quoted attributes, the
   five predefined entities and numeric character references). It is cross-checked

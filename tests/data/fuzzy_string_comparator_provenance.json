@@ -1,7 +1,7 @@
 {
  "group": "fuzzy_string_comparator",
  "package": "C3-FUZZY",
- "kind": "Shared test support, not library code: no src module, no ledger header, no module-graph edge.",
+ "kind": "Library module concept::fuzzy_string_comparator since the FuzzyDiff tool was ported (tests/data/topp_fuzzy_diff_provenance.json), first ported as shared test support and moved unchanged; tests/support re-exports it and keeps the FuzzyDiff contract emulation. The source header lives in src/testframework, outside the registered SDK, so it has no ledger key.",
  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
  "sources": [
@@ -61,6 +61,7 @@
   ]
  },
  "native_implementation": [
+  "src/concept/fuzzy_string_comparator.rs",
   "tests/support/fuzzy_string_comparator.rs",
   "tests/support/decoded_compare.rs"
  ],

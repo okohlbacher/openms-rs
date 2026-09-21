@@ -4,7 +4,7 @@ Targets: core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`, cli `c19e49414bcd9ebde
 
 This is a work inventory, not a completion percentage. Matching declarations and source references remain unverified until each API and its behavior are reviewed. A TOPP workflow counts as validated only when an executed differential comparison against retained C++ output is recorded in its provenance manifest. Physical unregistered headers and product backends are tracked separately by the SDK source inventory.
 
-Validated TOPP workflows: **8** of 124, each reproducing its upstream test against retained C++ output.
+Validated TOPP workflows: **9** of 124, each reproducing its upstream test against retained C++ output.
 
 | Review state | core | cli | Headers |
 | --- | ---: | ---: | ---: |

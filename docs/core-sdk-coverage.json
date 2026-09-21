@@ -34,7 +34,7 @@
       }
     },
     "topp_sources": 124,
-    "validated_topp_workflows": 8
+    "validated_topp_workflows": 9
   },
   "headers": [
     {
@@ -144,6 +144,7 @@
         "tests/data/topp_cli_provenance.json",
         "tests/data/topp_feature_finder_centroided_provenance.json",
         "tests/data/topp_file_info_provenance.json",
+        "tests/data/topp_fuzzy_diff_provenance.json",
         "tests/data/topp_threads_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -17374,7 +17375,8 @@
       "open_sdk_headers": [
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
-      "workflow_validated": false
+      "workflow_validated": true,
+      "workflow_evidence": "tests/data/topp_fuzzy_diff_provenance.json"
     },
     {
       "name": "GNPSExport",

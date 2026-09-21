@@ -1,0 +1,316 @@
+{
+ "group": "topp_fuzzy_diff",
+ "package": "Phase 3a: FuzzyDiff, the ninth validated TOPP workflow",
+ "package_revisions": {
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+  "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3"
+ },
+ "core_sdk_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "scope": "The FuzzyDiff TOPP tool and its executable. The comparator it drives is the library port of FuzzyStringComparator (tests/data/fuzzy_string_comparator_provenance.json); the lifecycle is TOPPBase's (tests/data/topp_cli_lifecycle_provenance.json). Sources come from the OpenMS4-topp, OpenMS4-cli and OpenMS4-test-data packages, which are versioned independently of the Core SDK and are deliberately not resolved against it.",
+ "sources": [
+  {
+   "path": "OpenMS4-tests/packages/topp/src/FuzzyDiff.cpp",
+   "revision": "topp 174b576",
+   "sha256": "3809921f8e67d5b9491d6f58a45ae4c62bd7722d3b84e7dc085c3575c59c66ac",
+   "operation": "the whole tool: registerOptionsAndFlags_ (54-86) and main_ (88-208)"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt",
+   "revision": "test-data 0cb15f2",
+   "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb",
+   "operation": "the four FuzzyDiff registrations, lines 138-144, and ${DIFF} at line 59"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/TOPPBase.cpp",
+   "revision": "cli c19e494",
+   "sha256": "326b96f85b4041febec49e18252d7be2ad0a5450abe5249adecc28ca315fdc05",
+   "operation": "read for context: the exception-to-exit-code mapping (430-499), the std::exception catch (510-513) and inputFileReadable_; the lifecycle is ported by CLI-1 and CLI-2"
+  }
+ ],
+ "upstream_test_definition": {
+  "path": "topp/CMakeLists.txt",
+  "revision": "test-data 0cb15f2",
+  "lines": "138-144",
+  "registrations": [
+   {
+    "name": "TOPP_FuzzyDiff_1",
+    "lines": "138, 142",
+    "will_fail": true,
+    "status": "reproduced: exit 10, 'That's cheating!' (the same file twice); streams equal to the Release build's"
+   },
+   {
+    "name": "TOPP_FuzzyDiff_2",
+    "lines": "139, 143",
+    "will_fail": true,
+    "status": "reproduced: exit 10, 'ratio of numbers is too large' at line 22; streams equal to the Release build's"
+   },
+   {
+    "name": "TOPP_FuzzyDiff_3",
+    "lines": "140",
+    "will_fail": false,
+    "status": "reproduced: exit 0; streams equal to the Release build's"
+   },
+   {
+    "name": "TOPP_FuzzyDiff_4",
+    "lines": "141, 144",
+    "will_fail": true,
+    "status": "reproduced: exit 1, lorem_ipsum.featureXML does not exist at the pin; streams equal to the Release build's after the framework's documented 'does not exist' wording"
+   }
+  ],
+  "note": "No FuzzyDiff registration retains an output file: WILL_FAIL is the registered expectation. The executed Release run supplies the exit code and both streams. The comments at 142-143 have the reasons of _1 and _2 swapped."
+ },
+ "method": "Each oracle case runs through openms::cli::run_with::<FuzzyDiff> in process (two through the built executable, with a working directory), and is compared with the Release build on the exit code, stdout byte for byte and stderr byte for byte. The C++ streams are normalised by the oracle (data directory, case directory, timing values, sort temporary names) and then by the test for the framework's documented differences only: the TOPPBase timing line is dropped (and held to exactly the runs whose main_ returned), the Linux stty probe line of the usage text is dropped, the framework's missing-file parenthetical reads 'does not exist', the strict-update diagnostic and its 'Parameters passed ... are invalid' line are put in code order, and a -sort temporary file is named by its input. -write_ini is compared as a file, line by line and as a decoded parameter tree.",
+ "evidence_tier": "tier 1 (executed differential): the pinned C++ Release build openms4-release-bc9cc12-c19e494-174b576 on ibminode06, 80 FuzzyDiff invocations run twice (../oracle/fuzzy-diff-tool), including the four upstream registrations TOPP_FuzzyDiff_1..4 on their pinned inputs; 77 match in full, 3 are deliberate divergences asserted on their own; tier 4 for the native refusals and the test-support emulation's agreement",
+ "oracle": {
+  "evidence_label": "oracle-generated (tier 1 executed differential)",
+  "cpp_build": "openms4-release-bc9cc12-c19e494-174b576 (CMAKE_BUILD_TYPE=Release, conda-forge x86_64-conda-linux-gnu-g++, libstdc++)",
+  "host": "ibminode06 (Linux 6.8, x86_64)",
+  "binaries_sha256": {
+   "bin/FuzzyDiff": "ee789a7107051dbde6291757ba547999ac62f3302f364cf2a714c51e856f6160",
+   "lib/libOpenMS.so": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+   "lib/libOpenMS_CLI.so.1.0.0": "9e9d5475f5b313d76abee7b882972578ff9f3185f4a015af2d383356c416b656"
+  },
+  "manifest": "../oracle/fuzzy-diff-tool/manifest.json",
+  "reproducibility": "two runs, identical exit codes and streams after normalisation (differ.txt empty)",
+  "cases": 80
+ },
+ "known_divergences": [
+  {
+   "cases": [
+    "token_underflow",
+    "token_underflow_absdiff"
+   ],
+   "cpp": "exit 10: libstdc++ std::from_chars reports a number that rounds to zero (1e-400) as out of range, so it reads as letters",
+   "rust": "exit 0: the comparator accepts underflow, as the source comment FuzzyStringComparator.cpp:205-208 states and the libc++ build does; unchanged by the promotion",
+   "scope": "only values that round to zero; a subnormal, the smallest normal and an overflow agree (token_subnormal, token_min_normal, token_overflow)"
+  },
+  {
+   "cases": [
+    "sort_directory"
+   ],
+   "cpp": "exit 10: with -sort the source's std::getline swallows the read error and compares an empty text",
+   "rust": "exit 12: the port does not compare a text it could not read, the code the source gives the same directory without -sort"
+  }
+ ],
+ "native_boundaries": [
+  "An input beyond the comparator's MAX_INPUT_BYTES (1 GiB) exits 11 (INCOMPATIBLE_INPUT_DATA), with and without -sort; the source has no limit",
+  "The comparator report is buffered up to MAX_LOG_BYTES (256 MiB) and a cut report is announced on stderr; the verdict is unaffected",
+  "-sort compares in memory; no temporary files are written",
+  "Integer parameters beyond i32 never reach the tool (the framework's readers refuse them); the tool's own conversion is defensive"
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/directory_a/.keep",
+   "sha256": "2f73349cfc4630255319c6c8dfc1b46a8996ace9d14d8e07563b165915918ec2",
+   "kind": "synthetic: keeps the input directory in git; the directory is the input"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/directory_b/.keep",
+   "sha256": "2f73349cfc4630255319c6c8dfc1b46a8996ace9d14d8e07563b165915918ec2",
+   "kind": "synthetic: keeps the input directory in git; the directory is the input"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/hex.txt",
+   "sha256": "f53e96dffbbcfd28514fb0a3f89ffe9b70c29bdbdc264925446c4894122a403d",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/infinity.txt",
+   "sha256": "63df28f98df4486d78f176df93f7bb07cb311ea536a628e351c27b266e9a838e",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/latin1_a.txt",
+   "sha256": "c8aded8d4b5117c52e8c6c9ae96eb26e824759158bd7ec57e9e81c71b0818dd6",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/latin1_b.txt",
+   "sha256": "dba6a2d133a086f1c2d5f571dadce922a7ccc1e0644a7ca865321d342415e09f",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/min_normal.txt",
+   "sha256": "86bb794a77f273c718e630f0dbf6a41cadfdcee15164fe3f4dca9cd3f31c557e",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/multi_a.txt",
+   "sha256": "bfc453bb4593c5cbeb93eb75993262a41f2cc8334ec212b51bb53634b56972ba",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/multi_b.txt",
+   "sha256": "9b26533245820849ff5d8fa22a67d1e12c91778276d3b27e0320849261d7b209",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/overflow.txt",
+   "sha256": "4f4126ff6b117948eaeb661991cf7aa3e72b944d2b358680907452bae9a25d9e",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/sixteen.txt",
+   "sha256": "79344cf5e92ab252a617a0c41be6d5a45d093a801f9ab4c2553d89d638c2ae5b",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/sort_a.tsv",
+   "sha256": "1f1c32166291bd8914a470a379c580f9be8ebd57dfbe57a53afc949ae91ee5cb",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/sort_b.tsv",
+   "sha256": "201d95985cb7dbf1bfaf5af322e33f23920eb3a7b0ef979cd9f7e3cd0d019967",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/subnormal.txt",
+   "sha256": "ce609fe52f35f44997f3b3479680257077772b0e820d0c2f4228a1697257234e",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/tabs_a.txt",
+   "sha256": "ef8ec04a9024d5dc9cb764630f841fc8caf37ff0d42794a1a444c58bc4be523a",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/tabs_b.txt",
+   "sha256": "f2579a5bb88aea7b5c2a542dfbc0657477ab8ca1132b47f13c7763425e426296",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/underflow.txt",
+   "sha256": "514b311a25a4b333547849c175305a32ca87767587397c99b89064905949611d",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/whitelist_a.txt",
+   "sha256": "6426cfd8279c54e5a5d61bc70041a0be626aadf6d6c714503a8490a38d9b92ff",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/whitelist_b.txt",
+   "sha256": "b87b66ed9cb87f5684ca81519f0217475ab2c97d032203241df4dc441e8d1e90",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/inputs/zero.txt",
+   "sha256": "7d6eb483d1732ee45b30a0d9a535484060efed6de79cfb607ec646f3bd4f460b",
+   "kind": "synthetic input for the oracle cases"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/oracle/cases.tsv",
+   "sha256": "e421e1d766dd8d1f3e031605ba87b32f93e61d7c0a38093c2e31e220ca16e8cd",
+   "kind": "oracle case list generated by ../oracle/fuzzy-diff-tool/gen_cases.py (name, working directory, arguments)"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/oracle/results.tsv",
+   "sha256": "6f9cfac7535982bbe8a21e79de374dbd67d8b899112588747bb0b0d6e642c6de",
+   "kind": "oracle-generated (tier 1 executed differential): exit code and hex-encoded stdout/stderr of run 1 on the Release build, normalised as the manifest's 'normalisation' says; run 2 identical"
+  },
+  {
+   "path": "tests/data/topp_fuzzy_diff/oracle/write_ini.ini",
+   "sha256": "60fd2b38bfb728733242e99d7d675061a11a7f27fb04741ed055eaf098f90b68",
+   "kind": "oracle-generated (tier 1 executed differential): the INI the Release FuzzyDiff writes for -write_ini, byte copy of results/raw/run1/write_ini.written.ini"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/fuzzy_string_comparator/FuzzyDiff.ini",
+   "sha256": "238d0598a366b3e9e6f5686a4b666b483317617d33ce36ea5ab9a03842a83dc2",
+   "kind": "retained upstream (test-data 0cb15f2 topp/FuzzyDiff.ini); byte-checked against git show by gen_cases.py"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/retained/FuzzyDiff_1_in1.featureXML",
+   "sha256": "2007bbd5f9df6c07fb68b12bf6b9c877080cd6619586207ccc615f7746374ca7",
+   "kind": "retained upstream (test-data 0cb15f2 topp/FuzzyDiff_1_in1.featureXML); byte-checked against git show by gen_cases.py"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/retained/FuzzyDiff_1_in2.featureXML",
+   "sha256": "16ed6079830280f79d778b523e35af7d6d95cbed26276b4b49e54c2b4864cd22",
+   "kind": "retained upstream (test-data 0cb15f2 topp/FuzzyDiff_1_in2.featureXML); byte-checked against git show by gen_cases.py"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/retained/FuzzyDiff_3_in1.featureXML",
+   "sha256": "2007bbd5f9df6c07fb68b12bf6b9c877080cd6619586207ccc615f7746374ca7",
+   "kind": "retained upstream (test-data 0cb15f2 topp/FuzzyDiff_3_in1.featureXML); byte-checked against git show by gen_cases.py"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/retained/FuzzyDiff_3_in2.featureXML",
+   "sha256": "2007bbd5f9df6c07fb68b12bf6b9c877080cd6619586207ccc615f7746374ca7",
+   "kind": "retained upstream (test-data 0cb15f2 topp/FuzzyDiff_3_in2.featureXML); byte-checked against git show by gen_cases.py"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/",
+   "kind": "the rest of the C3-FUZZY fixtures (retained FileInfo/FeatureFinderCentroided outputs, the product-SDK current outputs, the synthetic fuzzydiff/ inputs and INIs); hashed in tests/data/fuzzy_string_comparator_provenance.json"
+  }
+ ],
+ "native_implementation": [
+  "src/cli/tools/fuzzy_diff.rs",
+  "src/bin/FuzzyDiff.rs",
+  "src/concept/fuzzy_string_comparator.rs"
+ ],
+ "native_tests": [
+  "tests/topp_fuzzy_diff.rs"
+ ],
+ "support": "docs/TOPP_FUZZY_DIFF_SUPPORT.md",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/fuzzy-diff-tool/gen_cases.py",
+   "sha256": "9d7f39b1bc33b9d535b9481442db7a656a1904b13741238feb1d804e2f6b613e",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/fuzzy-diff-tool/remote_run.py",
+   "sha256": "e7df946d1efe9635c76ea3176622d90e7c6e622ab7e98e7e7970791152490eec",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/fuzzy-diff-tool/run.sh",
+   "sha256": "04d45b328f788de2791e5b765e468fb8634a7045987a5aa7f383f79e2060207d",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/fuzzy-diff-tool/fetch.sh",
+   "sha256": "dfa972733f0fa7b834289a74d0948e35650318de0dd3790e092e293aca8738d6",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/fuzzy-diff-tool/show.py",
+   "sha256": "ba14864d9f53e00ff7a593243f2a609672528e071033411f4450d374886f5524",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/fuzzy-diff-tool/write_manifest.py",
+   "sha256": "ecc68b9e705aaeaf8383ca56bfa04ecd6a85001da9bdeb520a6ec449fcd9110d",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/fuzzy-diff-tool/manifest.json",
+   "sha256": "3f550d95c6e4638ce4e4ee53f0bb90ee782eb5aa45f35dda3f505eab7293973a",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/fuzzy-diff-tool/data_hashes.txt",
+   "sha256": "3a3d54ee6910cac1031262285339fa79aa13621dd1d160dbb71c132ca049cda5",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/fuzzy-diff-tool/results/hashes.txt",
+   "sha256": "eb49789ba4ef4bb42e16065740a31ebf7fb5e21b31b18c8fd5834ad0de14755c",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  }
+ ],
+ "external_reference_note": "The case generator, the remote runner and its manifest live outside this repository under ../oracle/fuzzy-diff-tool/, so that no C++ build detail or remote path is committed here beyond the recorded hashes. manifest.json records the binaries, the inputs (data_hashes.txt), both runs and every exit code. They are recorded, not re-verified by the in-repo gate."
+}
