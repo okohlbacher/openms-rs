@@ -11,8 +11,8 @@
   initialisation catch reports. The tools that had stood in for thrown
   exceptions by writing the catch text and returning a code (PeakPickerHiRes,
   FeatureFinderCentroided, FileInfo, FuzzyDiff) printed the closing line after
-  them since the TOPPBase completion; the five earlier tools raised errors
-  where the source returns a code after its own message (MzMLSplitter's
+  them since the TOPPBase completion; three of the five earlier tools raised
+  errors where the source returns a code after its own message (MzMLSplitter's
   refusals, DTAExtractor's `Invalid boundary`, BaselineFilter's input checks).
   Both now match the Release build. The tools' own messages reach `-log`, and
   their `writeDebug_` lines too; MzMLSplitter prints its report and

@@ -628,8 +628,9 @@ initialisation catch handles (`Unable to initialize or run <tool>: <what>`,
 exit 12, on the error stream only). Before the framework printed the closing
 line, the tools stood in for thrown exceptions by writing the catch text and
 returning a code, which after it printed the line where the Release build
-prints none (finding F0 of `.planning/VERIFY-phase3w1.md`); the five earlier
-tools did the opposite and raised errors where the source returns a code.
+prints none (finding F0 of `.planning/VERIFY-phase3w1.md`); three of the five
+earlier tools (MzMLSplitter, DTAExtractor, BaselineFilter) did the opposite and
+raised errors where the source returns a code.
 
 **Update diagnostics** of the strict update, the lenient `-write_ini` update and
 the per-user defaults reach standard error at the end of the run: the source
