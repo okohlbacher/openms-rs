@@ -13,22 +13,22 @@
 //! - tier 1, executed differential: `../oracle/a8-fileinfo`, run twice on
 //!   ibminode06 and reproduced, against the **Release** build
 //!   `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576`. The
-//!   FileInfo tool ran 68 cases; `driver/fileinfo_driver.cpp` ran 14 more
+//!   FileInfo tool ran 70 cases; `driver/fileinfo_driver.cpp` ran 14 more
 //!   through `OpenMS::FileInfo::run` itself, because the tool's `-in` refuses
-//!   the `ms2` extension and so never reaches `MS2File::load`. Of the 65 that
-//!   wrote a report, 60 are compared here byte for byte, text and TSV, with
+//!   the `ms2` extension and so never reaches `MS2File::load`. Of the 67 that
+//!   wrote a report, 61 are compared here byte for byte, text and TSV, with
 //!   only the input path normalised (the `File name: ` and `general: file name`
-//!   lines, and the `-i` failure line). The other five: `x4_bare` wrote its
+//!   lines, and the `-i` failure line). The other six: `x4_bare` wrote its
 //!   report to standard output, which `tests/topp_file_info.rs` compares, and
-//!   four are the refusals below;
+//!   five are the refusals below;
 //! - tier 1, retained upstream definition: TOPP_FileInfo_4, _5 and _6
 //!   (`topp/CMakeLists.txt:890-898`, test-data `0cb15f2`), with the
 //!   registrations' own flags (cases `x4`, `d5`, `d6`); `tests/topp_file_info.rs`
 //!   runs the three through the tool against the retained outputs;
 //! - tier 4, explicit refusal where the port declines what the Release build
 //!   accepts: an mzData spectrum whose scan window the kernel's range validation
-//!   refuses, and an MGF `MSLEVEL=0`, both recorded with the Release build's
-//!   report in `tests/data/file_info_a8/expected`.
+//!   refuses, an MGF `MSLEVEL=0`, and a gzip-compressed MGF, each recorded with
+//!   the Release build's report in `tests/data/file_info_a8/expected`.
 //!
 //! mzXML and mzData need the `mzml` feature, as their readers do; MGF and MS2
 //! need none.
@@ -249,6 +249,8 @@ fn mzxml_cases() -> Vec<Case> {
             EVERYTHING,
             NONE,
         ),
+        // Compressed: the XML readers decompress, in the source as here.
+        ("x_edges_gz", a8("a8_mzxml_edges_gz.mzXML.gz"), "", NONE),
     ]
 }
 
@@ -627,6 +629,32 @@ fn mgf_ms_level_zero_is_refused_by_the_kernel_range_validation() {
         other => panic!("{other:?}"),
     }
     assert!(data("file_info_a8/expected/g_mslevel_zero_all.txt").is_file());
+}
+
+/// Refused, and recorded: a gzip-compressed MGF. `FileHandler::getType` strips
+/// the `.gz` and answers MGF in both builds, and `MascotGenericFile::load`
+/// reads with a plain `std::ifstream`, so the source sees the compressed bytes
+/// as text, finds no `BEGIN IONS` line and reports an empty map
+/// (`expected/g_gzipped_all.txt`: 0 spectra, exit 0). This reader does not
+/// decompress either, and refuses bytes that are not text instead of reporting
+/// a file it did not read. The XML readers decompress in both builds
+/// (`x_edges_gz`, compared above).
+#[test]
+fn a_compressed_mgf_is_refused_where_the_source_reports_an_empty_map() {
+    let case: Case = (
+        "g_gzipped_all",
+        a8("a8_mgf_gzipped.mgf.gz"),
+        EVERYTHING,
+        NONE,
+    );
+    match run(&case) {
+        Err(Error::Io(error)) => {
+            assert_eq!(error.kind(), std::io::ErrorKind::InvalidData, "{error}");
+        }
+        other => panic!("{other:?}"),
+    }
+    let expected = read_text(&data("file_info_a8/expected/g_gzipped_all.txt"));
+    assert!(expected.contains("\nNumber of spectra: 0\n"), "{expected}");
 }
 
 // ---------------------------------------------------------------------------

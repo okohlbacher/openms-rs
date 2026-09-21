@@ -3933,10 +3933,10 @@
   },
   {
    "path": "../oracle/a8-fileinfo/oracle.py",
-   "sha256": "d9027ae65ed30e9cb701b208819be11e24a32cd89bcd62605b1dd4bcfbb21df7",
+   "sha256": "840ff5d8d2865e5d67efd7fe60ba21f8032a50511e791d80fab84f6474410de2",
    "origin_key": "tests/data/file_info_a8_provenance.json",
    "package": "A8-FILEINFO",
-   "role": "Release-build FileInfo runner: 68 tool cases and 14 class-driver cases, per-case scratch runs, reproduction check, manifest writer",
+   "role": "Release-build FileInfo runner: 70 tool cases and 14 class-driver cases, per-case scratch runs, reproduction check, manifest writer",
    "label": "oracle-generated (tier 1 executed differential)"
   },
   {
@@ -3957,10 +3957,10 @@
   },
   {
    "path": "../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
-   "sha256": "6522cc42f79c153eb737def7b56669edef313f1e8b32da733c23fb489efa9c99",
+   "sha256": "3cbba6f0bd4f0656e4eb9e16ab92c49783af00f1e3f371276241f413c967189b",
    "origin_key": "tests/data/file_info_a8_provenance.json",
    "package": "A8-FILEINFO",
-   "role": "generator of the 19 degenerate mzXML, mzData, MGF and MS2 inputs, all of which regenerate byte for byte",
+   "role": "generator of the 21 degenerate mzXML, mzData, MGF and MS2 inputs, two of them gzip-compressed, all of which regenerate byte for byte",
    "label": "oracle-generated (tier 1 executed differential)"
   },
   {
@@ -3973,7 +3973,7 @@
   },
   {
    "path": "../oracle/a8-fileinfo/manifest.json",
-   "sha256": "4f8689d97d1cc69c008b97527817e3b8f308a2a5268bcf4a10c8c4ef7362bb72",
+   "sha256": "2376cdc4e92c7b4bbeddc4394aefbdf58940200fbe2d952406d3cfbff5fdb436",
    "origin_key": "tests/data/file_info_a8_provenance.json",
    "package": "A8-FILEINFO",
    "role": "tool, driver and libOpenMS hashes, environment, fixture hashes, per-case argv, exit codes and output hashes, and the reproduction verdict",
