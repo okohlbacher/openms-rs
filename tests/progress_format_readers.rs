@@ -1355,8 +1355,10 @@ fn failing_loads() -> Vec<FailingLoad> {
         FailingLoad {
             name: "consensusXML, list limit",
             run: |logger, _| {
-                let mut options = consensusxml::ReadOptions::default();
-                options.max_list_items = 1;
+                let options = consensusxml::ReadOptions {
+                    max_list_items: 1,
+                    ..Default::default()
+                };
                 consensusxml::load_with_progress(
                     data("ConsensusXMLFile_1.consensusXML"),
                     &options,
@@ -1374,8 +1376,10 @@ fn failing_loads() -> Vec<FailingLoad> {
         FailingLoad {
             name: "mzML, record limit",
             run: |logger, _| {
-                let mut read = mzml::ReadOptions::default();
-                read.max_records = 1;
+                let read = mzml::ReadOptions {
+                    max_records: 1,
+                    ..Default::default()
+                };
                 mzml::load_with_progress(
                     data("MzMLFile_1.mzML"),
                     &mzml::LoadOptions::default(),
@@ -1391,16 +1395,19 @@ fn failing_loads() -> Vec<FailingLoad> {
 
 /// F4 of the phase 3 wave 1 verification. The sections failed loads left
 /// open stayed in the process-wide depth after their loggers were gone, so
-/// after `MAX_PROGRESS_DEPTH` levels every load that reports progress failed
-/// with "progress nesting limit exceeded", valid ones included, and every
-/// later section was indented by the failures before it.
+/// every later section was indented by the failures before it, and after
+/// `MAX_PROGRESS_DEPTH` levels every load that reports progress failed with
+/// "progress nesting limit exceeded", valid ones included.
 ///
-/// Here each reader fails that many times more, each time through a fresh
-/// logger on one shared nesting context, as a long-running host's loggers
-/// share the process-wide one, while the logger of its first failure is kept
-/// alive. Every failure must refuse as the first did, and a later load by the
-/// same reader through a fresh logger must make the Release build's calls on
-/// a fresh file object, at its depths, and return its result.
+/// Here each reader fails again through fresh loggers on one shared nesting
+/// context, as a long-running host's loggers share the process-wide one,
+/// while the logger of its first failure is kept alive. Every failure must
+/// refuse as the first did, and a later load by the same reader through a
+/// fresh logger must make the Release build's calls on a fresh file object,
+/// at its depths, and return its result. A single level left behind would
+/// show in those depths, so the failures need not reach the bound;
+/// `failed_loads_on_the_process_wide_nesting_leave_a_valid_load_alone` and
+/// `a_reused_logger_still_loads_after_any_number_of_failed_loads` reach it.
 #[test]
 fn failed_loads_do_not_change_a_later_load_through_another_logger() {
     let _mzdata = mzdata_lock();
@@ -1410,7 +1417,7 @@ fn failed_loads_do_not_change_a_later_load_through_another_logger() {
         let nesting = ProgressNesting::default();
         let (mut kept, _) = recording_logger_on(&nesting);
         let first = (failing.run)(&mut kept, &out).unwrap_err().to_string();
-        for _ in 0..MAX_PROGRESS_DEPTH {
+        for _ in 0..3 {
             let (mut logger, _) = recording_logger_on(&nesting);
             let error = (failing.run)(&mut logger, &out).unwrap_err();
             assert_eq!(

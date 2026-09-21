@@ -13,7 +13,7 @@
 use crate::{Error, Result};
 use std::io::{self, Write};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Arc, OnceLock};
+use std::sync::{Arc, Mutex, MutexGuard, OnceLock, PoisonError};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 /// Possible log types (source `ProgressLogger::LogType`), with the source
@@ -91,9 +91,12 @@ pub trait ProgressBackend: Send {
     fn end_progress(&mut self, depth: usize, bytes_processed: u64) -> Result<()>;
 }
 
-/// Native bound on nesting depth, and so on indentation (two spaces per level).
-/// The source's `static int recursion_depth_` has no limit; this bound keeps
-/// caller-controlled indentation allocations finite. It is not a source check.
+/// Native bound on the sections open at once, and so on indentation (two
+/// spaces per level). The source's `static int recursion_depth_` has no
+/// limit; this bound keeps caller-controlled indentation allocations finite.
+/// It is not a source check. Sections abandoned by a finished call (see
+/// [`ProgressReporter`]) do not count against it, and no backend is ever
+/// handed a deeper depth.
 pub const MAX_PROGRESS_DEPTH: usize = 1024;
 /// Native bound on a label's length in bytes (1 MiB), limiting the
 /// caller-controlled header allocation. The source accepts any label; this
@@ -102,8 +105,32 @@ pub const MAX_PROGRESS_LABEL_BYTES: usize = 1024 * 1024;
 
 /// Shared source-style nesting. `Default` creates an isolated context; ordinary
 /// loggers use `global`, retaining nesting across separate logger instances.
+///
+/// The source's depth is one `static int` (`ProgressLogger.h:105`) that only
+/// `endProgress` decrements (`ProgressLogger.cpp:266-269`), so a section an
+/// exception leaves open stays in it for the rest of the process and indents
+/// every later section of every object. Here such a section, once the call
+/// that started it has finished (see [`ProgressReporter`]), is *abandoned*:
+/// it stays in [`depth`](Self::depth) and indents the later calls of the
+/// logger that started it, and of that logger's copies, as the source's
+/// static does, until the last of them is dropped. It does not indent the
+/// calls of any other logger and does not count against
+/// [`MAX_PROGRESS_DEPTH`], so a failed call cannot change what a later call
+/// through another logger does, and no number of them makes a later call fail.
 #[derive(Clone, Debug, Default)]
-pub struct ProgressNesting(Arc<AtomicUsize>);
+pub struct ProgressNesting(Arc<Mutex<Levels>>);
+
+/// The sections of one nesting context.
+#[derive(Clone, Copy, Debug, Default)]
+struct Levels {
+    /// Started and neither ended nor abandoned. Every logger on the context
+    /// sees them, as every source object sees the static depth.
+    open: usize,
+    /// Abandoned, summed over the loggers that abandoned them; each logger
+    /// sees only its own (see [`Owner::abandoned`]).
+    abandoned: usize,
+}
+
 impl ProgressNesting {
     /// The process-wide context, the counterpart of the source's static
     /// `ProgressLogger::recursion_depth_`.
@@ -111,28 +138,126 @@ impl ProgressNesting {
         static GLOBAL: OnceLock<ProgressNesting> = OnceLock::new();
         GLOBAL.get_or_init(Self::default).clone()
     }
-    /// The current nesting depth: successful starts minus ends, never below 0.
+    /// The current nesting depth: successful starts minus ends, never below 0,
+    /// counting the sections abandoned by loggers that are still alive.
     pub fn depth(&self) -> usize {
-        self.0.load(Ordering::Relaxed)
+        let levels = self.levels();
+        levels.open.saturating_add(levels.abandoned)
     }
-    fn increment(&self) -> Result<()> {
-        self.0
-            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
-                (value < MAX_PROGRESS_DEPTH).then(|| value + 1)
-            })
-            .map(|_| ())
-            .map_err(|_| invalid("progress nesting limit exceeded"))
+    /// Every count changes under this lock. No backend runs while it is held.
+    fn levels(&self) -> MutexGuard<'_, Levels> {
+        // Nothing panics while the lock is held, and the counts are valid at
+        // every step, so a poisoned lock still holds consistent counts.
+        self.0.lock().unwrap_or_else(PoisonError::into_inner)
     }
-    fn decrement(&self) -> usize {
-        // The closure never declines, so this is always `Ok`; both arms carry
-        // the previous depth, which avoids a panicking unwrap.
-        let (Ok(previous) | Err(previous)) =
-            self.0
-                .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
-                    Some(value.saturating_sub(1))
-                });
-        previous.saturating_sub(1)
+}
+
+/// What one logger and its copies share: the counterpart of one source file
+/// object, whose sections its handlers' copies of its logger also report
+/// (`MzMLHandler.cpp:135`, `FeatureXMLFile.cpp:54`). Its counts change only
+/// under the lock of its nesting context, which orders them, so relaxed
+/// atomics suffice.
+struct Owner {
+    nesting: ProgressNesting,
+    /// Of the context's open sections, those this owner's loggers started.
+    /// Counts, not identities: an end closes the innermost open section,
+    /// whoever started it, so this can exceed what is left, and is capped by
+    /// the context's count whenever it is used.
+    open: AtomicUsize,
+    /// The sections this owner abandoned, included in the context's
+    /// `abandoned` until the owner is dropped.
+    abandoned: AtomicUsize,
+    /// The live [`ProgressReporter`]s on this owner's loggers.
+    calls: AtomicUsize,
+}
+
+impl Owner {
+    fn new(nesting: ProgressNesting) -> Arc<Self> {
+        Arc::new(Self {
+            nesting,
+            open: AtomicUsize::new(0),
+            abandoned: AtomicUsize::new(0),
+            calls: AtomicUsize::new(0),
+        })
     }
+    /// The depth this owner's calls are dispatched at: every open section plus
+    /// its own abandoned ones, at most [`MAX_PROGRESS_DEPTH`].
+    fn view(&self, levels: &Levels) -> usize {
+        levels
+            .open
+            .saturating_add(self.abandoned.load(Ordering::Relaxed))
+            .min(MAX_PROGRESS_DEPTH)
+    }
+    /// The dispatch depth, and whether another section may open.
+    fn depth_and_room(&self) -> (usize, bool) {
+        let levels = self.nesting.levels();
+        (self.view(&levels), levels.open < MAX_PROGRESS_DEPTH)
+    }
+    fn depth(&self) -> usize {
+        self.view(&self.nesting.levels())
+    }
+    /// Counts a started section.
+    fn open_section(&self) -> Result<()> {
+        let mut levels = self.nesting.levels();
+        if levels.open >= MAX_PROGRESS_DEPTH {
+            return Err(invalid("progress nesting limit exceeded"));
+        }
+        levels.open += 1;
+        self.open.fetch_add(1, Ordering::Relaxed);
+        Ok(())
+    }
+    /// Counts an end, returning the depth after it. Like the source's, an end
+    /// with nothing open changes nothing; the innermost section is an open
+    /// one if any is, else one this owner abandoned.
+    fn close_section(&self) -> usize {
+        let mut levels = self.nesting.levels();
+        if levels.open > 0 {
+            levels.open -= 1;
+            decrement(&self.open);
+        } else if self.abandoned.load(Ordering::Relaxed) > 0 {
+            levels.abandoned = levels.abandoned.saturating_sub(1);
+            decrement(&self.abandoned);
+        }
+        self.view(&levels)
+    }
+    /// A reporter on one of this owner's loggers begins.
+    fn enter(&self) {
+        let _levels = self.nesting.levels();
+        self.calls.fetch_add(1, Ordering::Relaxed);
+    }
+    /// A reporter ends. When it was the last, the sections the owner still
+    /// has open were left open by a call that has finished, and are abandoned.
+    fn leave(&self) {
+        let mut levels = self.nesting.levels();
+        if self.calls.fetch_sub(1, Ordering::Relaxed) != 1 {
+            return;
+        }
+        let left = self.open.swap(0, Ordering::Relaxed).min(levels.open);
+        levels.open -= left;
+        levels.abandoned = levels.abandoned.saturating_add(left);
+        self.abandoned.fetch_add(left, Ordering::Relaxed);
+    }
+}
+
+impl Drop for Owner {
+    /// The last of a logger and its copies is gone: no call can end its
+    /// sections any more, so they leave the context. Their backends are not
+    /// called, so nothing is printed and no `-- done` line appears.
+    fn drop(&mut self) {
+        let mut levels = self.nesting.levels();
+        let open = self.open.load(Ordering::Relaxed).min(levels.open);
+        levels.open -= open;
+        let abandoned = self.abandoned.load(Ordering::Relaxed).min(levels.abandoned);
+        levels.abandoned -= abandoned;
+    }
+}
+
+/// Decrements a count that is not already zero.
+fn decrement(count: &AtomicUsize) {
+    // The closure never declines, so the result carries no information.
+    let _ = count.fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
+        Some(value.saturating_sub(1))
+    });
 }
 
 #[derive(Default)]
@@ -157,12 +282,21 @@ impl ProgressBackend for NoProgress {
 ///
 /// Clone and `clone_from` copy the type and throttle timestamp, but create a
 /// fresh backend using that type. They never clone an active/custom backend.
+/// A copy shares the original's sections, as a source handler's copy of its
+/// file object's logger reports that object's sections: sections abandoned by
+/// either indent the calls of both (see [`ProgressNesting`]).
+///
+/// Dropping a logger never calls its backend: no section is ended and no
+/// `-- done` line is printed, as the source's destructor ends nothing
+/// (`ProgressLogger.cpp:192-195`). Unlike the source's, dropping the last of
+/// a logger and its copies takes the sections it left open out of the
+/// nesting depth, since no call can end them any more.
 pub struct ProgressLogger {
     log_type: ProgressLogType,
     last_invoke: i64,
     backend: Box<dyn ProgressBackend>,
     clock: ProgressClock,
-    nesting: ProgressNesting,
+    owner: Arc<Owner>,
     gui_factory: ProgressBackendFactory,
 }
 impl Default for ProgressLogger {
@@ -177,7 +311,7 @@ impl Clone for ProgressLogger {
             last_invoke: self.last_invoke,
             backend: self.make_backend(self.log_type),
             clock: self.clock.clone(),
-            nesting: self.nesting.clone(),
+            owner: self.owner.clone(),
             gui_factory: self.gui_factory.clone(),
         }
     }
@@ -196,7 +330,7 @@ impl ProgressLogger {
             last_invoke: 0,
             backend: Box::new(NoProgress),
             clock,
-            nesting,
+            owner: Owner::new(nesting),
             gui_factory: Arc::new(|| Box::new(NoProgress)),
         }
     }
@@ -247,26 +381,28 @@ impl ProgressLogger {
     /// because no value lies inside it.
     ///
     /// Records the current wall-clock second for the throttle, dispatches at
-    /// the current nesting depth, then increments the depth.
+    /// the current nesting depth, then increments the depth. The depth
+    /// dispatched is this logger's (see [`ProgressNesting`]): every open
+    /// section, and the sections this logger or a copy of it abandoned.
     ///
     /// # Errors
     ///
     /// [`Error::InvalidValue`] when `label` is longer than
-    /// [`MAX_PROGRESS_LABEL_BYTES`] or the depth has reached
-    /// [`MAX_PROGRESS_DEPTH`]. These are native bounds, not source checks, and
-    /// are tested before any state changes. Clock and backend errors
-    /// propagate. After a backend error the depth is not incremented, as in the
-    /// source when its backend throws (the command backend's
-    /// `StopWatch is already started!` on a second start).
+    /// [`MAX_PROGRESS_LABEL_BYTES`] or [`MAX_PROGRESS_DEPTH`] sections are
+    /// open. These are native bounds, not source checks, and are tested
+    /// before any state changes. Clock and backend errors propagate. After a
+    /// backend error the depth is not incremented, as in the source when its
+    /// backend throws (the command backend's `StopWatch is already started!`
+    /// on a second start).
     pub fn start_progress(&mut self, begin: i64, end: i64, label: &str) -> Result<()> {
-        check_start(label, self.nesting.depth())?;
-        if self.nesting.depth() >= MAX_PROGRESS_DEPTH {
+        let (depth, room) = self.owner.depth_and_room();
+        check_start(label, depth)?;
+        if !room {
             return Err(invalid("progress nesting limit exceeded"));
         }
         self.last_invoke = (self.clock)()?.wall_second;
-        self.backend
-            .start_progress(begin, end, label, self.nesting.depth())?;
-        self.nesting.increment()
+        self.backend.start_progress(begin, end, label, depth)?;
+        self.owner.open_section()
     }
     /// Sets the current progress (source `setProgress`).
     ///
@@ -285,7 +421,7 @@ impl ProgressLogger {
             return Ok(());
         }
         self.last_invoke = (self.clock)()?.wall_second;
-        self.backend.set_progress(value, self.nesting.depth())
+        self.backend.set_progress(value, self.owner.depth())
     }
     /// Increments progress by one within the range (source `nextProgress`).
     ///
@@ -312,7 +448,7 @@ impl ProgressLogger {
     /// running timer, as the Release build's `StopWatch::stop` throws
     /// `StopWatch cannot be stopped if not running!`.
     pub fn end_progress(&mut self, bytes_processed: u64) -> Result<()> {
-        let depth = self.nesting.decrement();
+        let depth = self.owner.close_section();
         self.backend.end_progress(depth, bytes_processed)
     }
 }
@@ -334,21 +470,56 @@ impl ProgressLogger {
 /// not touched. A source object of type `NONE` still increments and decrements
 /// the static depth around each section, which no output can observe, because
 /// the no-op backend prints nothing and the section is balanced.
+///
+/// A reporter on a logger also marks one call of an entry point, which it
+/// lasts for. A call can finish with sections it never ended: a reader that
+/// fails inside its section returns without ending it, as the source's
+/// exception bypasses `endProgress`, and a metadata-only mzML load stops inside
+/// its document section. When the last reporter on a logger and its copies is
+/// dropped, the sections they still have open are *abandoned* (see
+/// [`ProgressNesting`]): they stay in the depth for that logger alone and no
+/// longer count against [`MAX_PROGRESS_DEPTH`]. No backend is called, so an
+/// abandoned section prints no `-- done` line, as in the source.
 pub struct ProgressReporter<'a> {
     logger: Option<&'a mut ProgressLogger>,
+    /// The call this reporter marks; `None` when silent.
+    _call: Option<Call>,
+}
+
+/// One live reporter on a logger. It holds the owner rather than the logger,
+/// so it needs no borrow: the reporter's borrow of the logger can end at its
+/// last use while the call lasts until the reporter is dropped.
+struct Call(Arc<Owner>);
+impl Call {
+    fn new(owner: &Arc<Owner>) -> Self {
+        owner.enter();
+        Self(owner.clone())
+    }
+}
+impl Drop for Call {
+    fn drop(&mut self) {
+        self.0.leave();
+    }
 }
 
 impl ProgressReporter<'static> {
     /// Calls that go nowhere, for the entry points that report no progress.
     pub fn silent() -> Self {
-        Self { logger: None }
+        Self {
+            logger: None,
+            _call: None,
+        }
     }
 }
 
 impl<'a> ProgressReporter<'a> {
     /// Calls that go to `logger`, if any.
     pub fn new(logger: Option<&'a mut ProgressLogger>) -> Self {
-        Self { logger }
+        let call = logger.as_deref().map(|logger| Call::new(&logger.owner));
+        Self {
+            logger,
+            _call: call,
+        }
     }
 
     /// Whether the calls reach a logger.
