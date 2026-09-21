@@ -67,7 +67,7 @@ source's line for line.
 | 7 | `in1` or `in2` not given or empty | framework |
 | 8 | a malformed `matched_whitelist` entry | `IllegalArgument` → `UNKNOWN_ERROR` |
 | 10 | a difference, or the same name twice ("That's cheating!") | `PARSE_ERROR` |
-| 11 | an input beyond the comparator's 1 GiB bound | native (difference 3) |
+| 11 | an input beyond the comparator's 1 GiB bound, or a `-sort` input beyond 2^26 lines | native (difference 3) |
 | 12 | an input that cannot be read, such as a directory | the source's `std::ios_base::failure` → `INTERNAL_ERROR` (difference 2) |
 
 ## Preserved source conventions
@@ -119,7 +119,10 @@ source's line for line.
 3. **Bounds.** An input beyond the comparator's `MAX_INPUT_BYTES` (1 GiB) is
    refused before it is read, with the comparator's message on the error
    stream and exit 11 (`INCOMPATIBLE_INPUT_DATA`), not the 10 that would claim
-   a difference; the source has no limit. The report is buffered up to
+   a difference; the source has no limit. A `-sort` input of more than
+   `FuzzyDiff::MAX_SORT_LINES` (2^26) lines is refused the same way before it
+   is sorted, because sorting holds a slice reference per line; each input is
+   sorted and its unsorted text dropped before the second is read. The report is buffered up to
    `MAX_LOG_BYTES` (256 MiB) and a cut report is announced on the error
    stream; only verbose level 3 can reach it, and the verdict is unaffected.
 4. **A number that rounds to zero.** The comparator accepts `1e-400` as 0, as
@@ -150,7 +153,7 @@ different C++ log streams; executed on the 10 invalid-parameter cases).
 | TOPP_FuzzyDiff_1..4 | 1 | The four registrations at `topp/CMakeLists.txt:138-144` on their pinned inputs: `_1` 10 (cheating), `_2` 10 (ratio at line 22), `_3` 0, `_4` 1 (missing input), each checked against its `WILL_FAIL` expectation and then against the Release build's streams. No registration retains an output file. |
 | the 35 product-SDK invocations | 1 | Re-run on the Release build with their streams; every exit code equals the product-SDK one recorded in `tests/data/fuzzy_string_comparator/oracle/tool_runs.tsv`. |
 | emulation agreement | 4 | `tests/support/fuzzy_string_comparator.rs::fuzzy_diff`, which tests without `paramxml` use, gives the tool's and the Release build's exit code on every oracle case it models, except that it keeps its own answer (10) for a directory. |
-| bounds | 4 | 1 GiB+1 sparse inputs with and without `-sort` exit 11 before reading; an INI integer beyond `i32` never reaches the tool. |
+| bounds | 4 | 1 GiB+1 sparse inputs with and without `-sort` exit 11 before reading; a `-sort` input of 2^26+1 lines exits 11 before sorting; an INI integer beyond `i32` never reaches the tool. |
 | library unit tests | 4 | `InputFailure` recording and its unchanged log line, reports kept before a failed read, input names, `sorted_lines`, `parse_matched_whitelist`. |
 
 ## C++ issue candidates

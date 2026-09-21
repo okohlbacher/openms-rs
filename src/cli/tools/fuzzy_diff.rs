@@ -37,8 +37,9 @@
 //! `-sort` compares in memory instead of through temporary files, so the report
 //! names the inputs rather than the deleted copies; an input that cannot be
 //! read exits `INTERNAL_ERROR` (12) in both modes, where the source does so only
-//! without `-sort`; and an input beyond the comparator's
-//! [`MAX_INPUT_BYTES`] is refused with `INCOMPATIBLE_INPUT_DATA` (11).
+//! without `-sort`; and an input beyond the comparator's [`MAX_INPUT_BYTES`],
+//! or a `-sort` input beyond [`FuzzyDiff::MAX_SORT_LINES`], is refused with
+//! `INCOMPATIBLE_INPUT_DATA` (11).
 
 use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
 use crate::concept::fuzzy_string_comparator::{
@@ -55,6 +56,18 @@ use std::path::Path;
 /// Registration and the comparison run; every comparison rule is the library
 /// comparator's.
 pub struct FuzzyDiff;
+
+impl FuzzyDiff {
+    /// Most lines one `-sort` input may hold, counted as its `\n` bytes plus
+    /// one.
+    ///
+    /// Native bound; the source sorts a `std::vector<std::string>` without a
+    /// limit. Sorting holds a 16-byte slice reference per line beside the
+    /// text, so this many lines cost 1 GiB on top of an input of at most
+    /// [`MAX_INPUT_BYTES`]; a longer input is refused with
+    /// `INCOMPATIBLE_INPUT_DATA` (11) before anything is sorted.
+    pub const MAX_SORT_LINES: usize = 1 << 26;
+}
 
 impl Tool for FuzzyDiff {
     const NAME: &'static str = "FuzzyDiff";
@@ -198,16 +211,16 @@ impl Tool for FuzzyDiff {
         fsc.set_first_column(first_column);
 
         let result = if do_sort {
-            let text_1 = match read_for_sort(&in1, err)? {
+            let text_1 = match sorted_input(&in1, err)? {
                 Ok(text) => text,
                 Err(code) => return Ok(code),
             };
-            let text_2 = match read_for_sort(&in2, err)? {
+            let text_2 = match sorted_input(&in2, err)? {
                 Ok(text) => text,
                 Err(code) => return Ok(code),
             };
             fsc.set_input_names(&in1, &in2);
-            fsc.compare_bytes(&sorted_lines(&text_1), &sorted_lines(&text_2))
+            fsc.compare_bytes(&text_1, &text_2)
         } else {
             fsc.compare_files(Path::new(&in1), Path::new(&in2))
         };
@@ -240,7 +253,9 @@ fn int_option(ctx: &ToolContext, name: &str) -> Result<i32> {
     })
 }
 
-/// Read one input for `-sort`, within the comparator's [`MAX_INPUT_BYTES`].
+/// Read one input for `-sort`, within the comparator's [`MAX_INPUT_BYTES`]
+/// and [`FuzzyDiff::MAX_SORT_LINES`], and return it sorted by [`sorted_lines`]. The text
+/// as read is dropped before the second input is read.
 ///
 /// Source `sortFile` opens the file with `std::ifstream` and throws
 /// `FileNotFound` when that fails, which `TOPPBase` reports as `Error: File
@@ -248,18 +263,16 @@ fn int_option(ctx: &ToolContext, name: &str) -> Result<i32> {
 /// `INPUT_FILE_NOT_FOUND` (1), whatever the reason; the framework's input
 /// check makes that a race here, as there.
 ///
-/// Native differences: a file larger than [`MAX_INPUT_BYTES`] is refused with
-/// `INCOMPATIBLE_INPUT_DATA` (11), because the text is held in memory to be
-/// sorted, where the source has no limit. A read that fails is refused with
-/// `INTERNAL_ERROR` (12), the code the source gives a failed read without
-/// `-sort`: the source's `std::getline` swallows the error and sorts what it
-/// read, so a directory compares as an empty text (executed on the Release
-/// build, `sort_directory`, exit 10), and so would a file cut short by an I/O
-/// error. This port does not compare a text it could not read in full.
-fn read_for_sort(
-    path: &str,
-    err: &mut dyn Write,
-) -> Result<std::result::Result<Vec<u8>, ExitCode>> {
+/// Native differences: a file larger than [`MAX_INPUT_BYTES`], or with more
+/// lines than [`FuzzyDiff::MAX_SORT_LINES`], is refused with `INCOMPATIBLE_INPUT_DATA`
+/// (11), because the text is held in memory to be sorted, where the source has
+/// no limit. A read that fails is refused with `INTERNAL_ERROR` (12), the code
+/// the source gives a failed read without `-sort`: the source's `std::getline`
+/// swallows the error and sorts what it read, so a directory compares as an
+/// empty text (executed on the Release build, `sort_directory`, exit 10), and
+/// so would a file cut short by an I/O error. This port does not compare a
+/// text it could not read in full.
+fn sorted_input(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Vec<u8>, ExitCode>> {
     let Ok(file) = File::open(path) else {
         writeln!(
             err,
@@ -292,7 +305,16 @@ fn read_for_sort(
         writeln!(err, "{}", too_large())?;
         return Ok(Err(ExitCode::IncompatibleInputData));
     }
-    Ok(Ok(text))
+    let lines = text.iter().filter(|&&byte| byte == b'\n').count() + 1;
+    if lines > FuzzyDiff::MAX_SORT_LINES {
+        writeln!(
+            err,
+            "Error: input file '{path}' has more than {} lines to sort.",
+            FuzzyDiff::MAX_SORT_LINES
+        )?;
+        return Ok(Err(ExitCode::IncompatibleInputData));
+    }
+    Ok(Ok(sorted_lines(&text)))
 }
 
 /// Report a comparison that stopped before it had read all of its input.

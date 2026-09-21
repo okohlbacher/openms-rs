@@ -705,6 +705,38 @@ fn a_sort_input_beyond_the_bound_is_refused_before_reading() {
     );
 }
 
+/// `-sort` holds a slice reference per line: an input of
+/// `FuzzyDiff::MAX_SORT_LINES + 1` lines (that many newlines) is refused with
+/// 11 before it is sorted. The first input is refused before the second is
+/// read, so the second can be any small file.
+#[test]
+fn a_sort_input_beyond_the_line_bound_is_refused_before_sorting() {
+    let dir = TempDir::new(false).unwrap();
+    let over = dir.path().join("over.tsv");
+    fs::write(&over, vec![b'\n'; FuzzyDiff::MAX_SORT_LINES]).unwrap();
+    let small = Path::new(&data_dir()).join("topp_fuzzy_diff/inputs/sort_a.tsv");
+    let arguments = vec![
+        FuzzyDiff::NAME.to_owned(),
+        "-sort".to_owned(),
+        "-in1".to_owned(),
+        over.to_string_lossy().into_owned(),
+        "-in2".to_owned(),
+        small.to_string_lossy().into_owned(),
+    ];
+    let (mut out, mut err) = (Vec::new(), Vec::new());
+    let code = run_with::<FuzzyDiff>(&arguments, &mut out, &mut err);
+    assert_eq!(code, ExitCode::IncompatibleInputData);
+    assert!(out.is_empty());
+    assert_eq!(
+        String::from_utf8(err).unwrap(),
+        format!(
+            "Error: input file '{}' has more than {} lines to sort.\n",
+            over.display(),
+            FuzzyDiff::MAX_SORT_LINES
+        )
+    );
+}
+
 /// Without `-sort` the comparator refuses the same file itself, and the tool
 /// reports the refusal as 11 rather than as a difference (10).
 #[test]

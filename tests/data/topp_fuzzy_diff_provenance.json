@@ -94,7 +94,7 @@
   }
  ],
  "native_boundaries": [
-  "An input beyond the comparator's MAX_INPUT_BYTES (1 GiB) exits 11 (INCOMPATIBLE_INPUT_DATA), with and without -sort; the source has no limit",
+  "An input beyond the comparator's MAX_INPUT_BYTES (1 GiB) exits 11 (INCOMPATIBLE_INPUT_DATA), with and without -sort, and so does a -sort input beyond FuzzyDiff::MAX_SORT_LINES (2^26) lines; the source has no limit",
   "The comparator report is buffered up to MAX_LOG_BYTES (256 MiB) and a cut report is announced on stderr; the verdict is unaffected",
   "-sort compares in memory; no temporary files are written",
   "Integer parameters beyond i32 never reach the tool (the framework's readers refuse them); the tool's own conversion is defensive"
