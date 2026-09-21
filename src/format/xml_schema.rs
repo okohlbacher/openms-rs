@@ -27,7 +27,7 @@ use std::{
     io::BufRead,
     panic::{AssertUnwindSafe, catch_unwind},
     path::Path,
-    sync::{Mutex, OnceLock, PoisonError},
+    sync::{Mutex, PoisonError},
 };
 
 /// The schema a document was validated against.
@@ -491,8 +491,7 @@ fn xml_limits(o: &SchemaValidationLimits) -> XmlLimits {
 }
 
 /// libxml2's schema parser and validation contexts are not safe to use from
-/// several threads at once (the binding says so for libxml2 2.12 and later),
-/// and registering an input callback races any parse in flight before 2.13.
+/// several threads at once (the binding says so for libxml2 2.12 and later).
 /// Every use of the engine in this crate holds this lock.
 static ENGINE: Mutex<()> = Mutex::new(());
 
@@ -729,57 +728,298 @@ fn canonical_declaration<'a>(text: &'a str, max: usize, m: &mut Meter) -> Result
     Ok(Cow::Owned(out))
 }
 
-/// The private URL scheme under which libxml2 reaches the bundled schemas
-/// that `xs:include` others. The included names resolve against the main
-/// schema's URL, so they arrive here as `openms-schema:///<file>`.
-const SCHEME: &str = "openms-schema:///";
-
-/// Install, once per process, the input handler that serves [`FILES`] under
-/// [`SCHEME`].
-///
-/// libxml2 has no per-context resource loader before 2.14, and this binding
-/// exposes none, so an `xs:include` can only be served through the process-wide
-/// input-callback table. The handler claims only [`SCHEME`] URLs and answers a
-/// name it does not carry with an empty document, so no load under that prefix
-/// falls through to libxml2's file, HTTP or FTP loaders. Registration happens
-/// under [`ENGINE`], so it never races a parse this crate runs.
-fn register_bundle_loader() {
-    static REGISTERED: OnceLock<()> = OnceLock::new();
-    REGISTERED.get_or_init(|| {
-        libxml::io::register_input_callback(
-            |url| url.starts_with(SCHEME),
-            |url| {
-                Some(
-                    url.strip_prefix(SCHEME)
-                        .and_then(resource)
-                        .unwrap_or_default()
-                        .to_vec(),
-                )
-            },
-        );
-    });
+/// A bundled schema's text: UTF-8, without a byte-order mark.
+fn bundled_text(file: &str) -> Result<&'static str> {
+    let bytes = resource(file).ok_or_else(|| composition_error(file, "is not bundled"))?;
+    let bytes = bytes.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(bytes);
+    std::str::from_utf8(bytes).map_err(|_| composition_error(file, "is not UTF-8"))
 }
 
-fn schema_parser(grammar: &Grammar<'_>) -> Result<(SchemaKind, SchemaParserContext)> {
+fn composition_error(file: &str, what: impl std::fmt::Display) -> Error {
+    Error::InvalidValue(format!("bundled schema {file}: {what}"))
+}
+
+/// The four schema-document defaults that govern the components a document
+/// declares, with the value XSD 1.0 gives each when it is absent.
+const DOCUMENT_DEFAULTS: [(&str, &str); 4] = [
+    ("elementFormDefault", "unqualified"),
+    ("attributeFormDefault", "unqualified"),
+    ("blockDefault", ""),
+    ("finalDefault", ""),
+];
+
+/// One schema document's root and top-level children, located in its text.
+struct Parts {
+    /// Namespace declarations on the root, `""` naming the default namespace.
+    declarations: Vec<(String, String)>,
+    /// The root's `targetNamespace`.
+    target: Option<String>,
+    /// [`DOCUMENT_DEFAULTS`], as this document states or implies them.
+    defaults: [String; 4],
+    /// From just after the root start tag to where the root end tag begins.
+    content: std::ops::Range<usize>,
+    /// Every top-level child element, in document order.
+    children: Vec<Child>,
+}
+
+/// One top-level child element of a schema document.
+struct Child {
+    /// Its bytes, from its `<` to the end of its end tag.
+    span: std::ops::Range<usize>,
+    /// Where the name in its start tag ends.
+    name_end: usize,
+    /// Namespace declarations it carries itself, `""` naming the default.
+    declared: Vec<(String, String)>,
+    /// `schemaLocation` when it is an `xs:include`.
+    include: Option<String>,
+}
+
+fn position(reader: &quick_xml::Reader<&[u8]>, file: &str) -> Result<usize> {
+    usize::try_from(reader.buffer_position()).map_err(|_| composition_error(file, "too large"))
+}
+
+/// Locate a bundled schema's root and top-level children.
+fn parts(file: &str, text: &str) -> Result<Parts> {
+    use quick_xml::events::Event;
+    let mut reader = quick_xml::Reader::from_str(text);
+    let mut depth = 0usize;
+    let mut root: Option<Parts> = None;
+    let mut open: Option<Child> = None;
+    loop {
+        let before = position(&reader, file)?;
+        let event = reader
+            .read_event()
+            .map_err(|e| composition_error(file, e))?;
+        let after = position(&reader, file)?;
+        let empty = matches!(event, Event::Empty(_));
+        match event {
+            Event::Start(e) | Event::Empty(e) => {
+                let name = std::str::from_utf8(e.name().0)
+                    .map_err(|_| composition_error(file, "element name is not UTF-8"))?;
+                let mut attributes = Vec::new();
+                for a in e.attributes() {
+                    let a = a.map_err(|e| composition_error(file, e))?;
+                    let key = std::str::from_utf8(a.key.0)
+                        .map_err(|_| composition_error(file, "attribute name is not UTF-8"))?
+                        .to_owned();
+                    let value = a
+                        .decode_and_unescape_value(reader.decoder())
+                        .map_err(|e| composition_error(file, e))?
+                        .into_owned();
+                    attributes.push((key, value));
+                }
+                let declarations: Vec<(String, String)> = attributes
+                    .iter()
+                    .filter_map(|(k, v)| {
+                        let prefix = if k == "xmlns" {
+                            ""
+                        } else {
+                            k.strip_prefix("xmlns:")?
+                        };
+                        Some((prefix.to_owned(), v.clone()))
+                    })
+                    .collect();
+                let value = |key: &str| {
+                    attributes
+                        .iter()
+                        .find(|(k, _)| k == key)
+                        .map(|(_, v)| v.clone())
+                };
+                if depth == 0 {
+                    if empty {
+                        return Err(composition_error(file, "has an empty root"));
+                    }
+                    root = Some(Parts {
+                        target: value("targetNamespace"),
+                        defaults: DOCUMENT_DEFAULTS
+                            .map(|(key, absent)| value(key).unwrap_or_else(|| absent.into())),
+                        declarations,
+                        content: after..after,
+                        children: Vec::new(),
+                    });
+                } else if depth == 1 {
+                    let parts = root
+                        .as_mut()
+                        .ok_or_else(|| composition_error(file, "has no root"))?;
+                    if !text[before..].starts_with('<') {
+                        return Err(composition_error(file, "child does not start at '<'"));
+                    }
+                    let (prefix, local) = name.split_once(':').unwrap_or(("", name));
+                    let namespace = declarations
+                        .iter()
+                        .chain(parts.declarations.iter())
+                        .find(|(p, _)| p == prefix)
+                        .map(|(_, uri)| uri.as_str());
+                    let mut include = None;
+                    if namespace == Some(XSD_NS) {
+                        match local {
+                            "include" => {
+                                include = Some(value("schemaLocation").ok_or_else(|| {
+                                    composition_error(file, "xs:include without schemaLocation")
+                                })?);
+                            }
+                            "import" | "redefine" | "override" => {
+                                return Err(composition_error(file, format!("uses xs:{local}")));
+                            }
+                            _ => {}
+                        }
+                    }
+                    let child = Child {
+                        span: before..after,
+                        name_end: before + 1 + name.len(),
+                        declared: declarations,
+                        include,
+                    };
+                    if empty {
+                        parts.children.push(child);
+                    } else {
+                        open = Some(child);
+                    }
+                }
+                if !empty {
+                    depth += 1;
+                }
+            }
+            Event::End(_) => {
+                depth = depth
+                    .checked_sub(1)
+                    .ok_or_else(|| composition_error(file, "unbalanced end tag"))?;
+                let parts = root
+                    .as_mut()
+                    .ok_or_else(|| composition_error(file, "has no root"))?;
+                if depth == 1 {
+                    if let Some(mut child) = open.take() {
+                        child.span.end = after;
+                        parts.children.push(child);
+                    }
+                } else if depth == 0 {
+                    parts.content.end = before;
+                }
+            }
+            Event::Eof => break,
+            _ => {}
+        }
+    }
+    root.ok_or_else(|| composition_error(file, "has no root"))
+}
+
+/// Compose a bundled schema and every schema it reaches through `xs:include`
+/// into one document, so that libxml2 compiles it from memory and loads
+/// nothing.
+///
+/// libxml2 resolves an `xs:include` only through its process-wide loaders:
+/// against a memory buffer the relative `schemaLocation` names a file in the
+/// working directory, and serving it from the crate would need a process-wide
+/// input callback, which the engine does not install. This does in text what
+/// XSD 1.0 section 4.2.1 says an include does: the included document's
+/// top-level components become the including schema's. Each one is copied
+/// with the namespace declarations of the document it came from, so every
+/// QName in it resolves as it did there, and a document without a default
+/// namespace gets `xmlns=""`, or, when it has no `targetNamespace` (a
+/// chameleon include), the including schema's target namespace, which is the
+/// rewrite section 4.2.1 prescribes for its unqualified references.
+///
+/// It refuses what it would not reproduce exactly: an included document with a
+/// different target namespace, or with a different `elementFormDefault`,
+/// `attributeFormDefault`, `blockDefault` or `finalDefault` from the main
+/// document, since those govern the local declarations that now sit in the
+/// main one; and `xs:import`, `xs:redefine` and `xs:override`. Each file is
+/// included once, as libxml2 and Xerces include it once.
+fn compose(file: &'static str) -> Result<String> {
+    let text = bundled_text(file)?;
+    let main = parts(file, text)?;
+    let mut seen = vec![file.to_owned()];
+    let mut out = String::with_capacity(text.len());
+    out.push_str(&text[..main.content.start]);
+    for child in &main.children {
+        match &child.include {
+            Some(location) => include(location, &main, &mut seen, &mut out)?,
+            None => {
+                out.push('\n');
+                out.push_str(&text[child.span.clone()]);
+            }
+        }
+    }
+    out.push('\n');
+    out.push_str(&text[main.content.end..]);
+    Ok(out)
+}
+
+/// Append the top-level components `location` contributes to `main`.
+fn include(location: &str, main: &Parts, seen: &mut Vec<String>, out: &mut String) -> Result<()> {
+    if seen.iter().any(|s| s == location) {
+        return Ok(());
+    }
+    seen.push(location.to_owned());
+    let text = bundled_text(location)?;
+    let parts = parts(location, text)?;
+    if parts.defaults != main.defaults {
+        return Err(composition_error(
+            location,
+            "document defaults differ from the including schema's",
+        ));
+    }
+    let chameleon = match (&parts.target, &main.target) {
+        (None, _) => true,
+        (Some(own), Some(target)) if own == target => false,
+        _ => {
+            return Err(composition_error(
+                location,
+                "target namespace differs from the including schema's",
+            ));
+        }
+    };
+    let mut declarations = parts.declarations.clone();
+    if !declarations.iter().any(|(p, _)| p.is_empty()) {
+        let default = match (&main.target, chameleon) {
+            (Some(target), true) => target.clone(),
+            _ => String::new(),
+        };
+        declarations.push((String::new(), default));
+    }
+    for child in &parts.children {
+        if let Some(nested) = &child.include {
+            include(nested, main, seen, out)?;
+            continue;
+        }
+        out.push('\n');
+        out.push_str(&text[child.span.start..child.name_end]);
+        for (prefix, uri) in &declarations {
+            if child.declared.iter().any(|(p, _)| p == prefix) {
+                continue;
+            }
+            out.push_str(if prefix.is_empty() {
+                " xmlns"
+            } else {
+                " xmlns:"
+            });
+            out.push_str(prefix);
+            out.push_str("=\"");
+            out.push_str(&quick_xml::escape::escape(uri.as_str()));
+            out.push('"');
+        }
+        out.push_str(&text[child.name_end..child.span.end]);
+    }
+    Ok(())
+}
+
+/// The text one validation compiles, and the schema it stands for.
+fn grammar_text<'a>(grammar: &Grammar<'a>) -> Result<(SchemaKind, Cow<'a, [u8]>)> {
     match grammar {
-        Grammar::Caller(text) => Ok((
-            SchemaKind::External,
-            SchemaParserContext::from_buffer(text.as_bytes()),
-        )),
+        Grammar::Caller(text) => Ok((SchemaKind::External, Cow::Borrowed(text.as_bytes()))),
         Grammar::Bundled(kind) => {
             let bundle = kind.bundle().ok_or_else(|| {
                 Error::InvalidValue("SchemaKind::External names no bundled schema".into())
             })?;
-            let parser = if bundle.includes {
-                register_bundle_loader();
-                SchemaParserContext::from_file(&format!("{SCHEME}{}", bundle.file()))
+            let text = if bundle.includes {
+                Cow::Owned(compose(bundle.file())?.into_bytes())
             } else {
-                let bytes = resource(bundle.file()).ok_or_else(|| {
-                    Error::InvalidValue(format!("{} is not bundled", bundle.file()))
-                })?;
-                SchemaParserContext::from_buffer(bytes)
+                Cow::Borrowed(
+                    resource(bundle.file())
+                        .ok_or_else(|| composition_error(bundle.file(), "is not bundled"))?,
+                )
             };
-            Ok((*kind, parser))
+            Ok((*kind, text))
         }
     }
 }
@@ -810,7 +1050,9 @@ fn engine(
             line: 0,
             message: format!("libxml2 rejected XML during {subject} schema parsing"),
         })?;
-    let (schema, mut schema_parser) = schema_parser(&grammar)?;
+    // The buffer outlives the compilation; the parser context only borrows it.
+    let (schema, raw) = grammar_text(&grammar)?;
+    let mut schema_parser = SchemaParserContext::from_buffer(raw.as_ref());
     let mut validator = match SchemaValidationContext::from_parser(&mut schema_parser) {
         Ok(validator) => validator,
         Err(errors) => {
@@ -1036,6 +1278,73 @@ mod tests {
             )
             .is_err()
         );
+    }
+    #[test]
+    fn composition_inlines_every_included_component_once() {
+        for (main, included) in [
+            (
+                "mzXML_idx_3.1.xsd",
+                &[
+                    "mzXML_3.1_mod.xsd",
+                    "separation_technique_1.0.xsd",
+                    "general_types_1.0.xsd",
+                ][..],
+            ),
+            ("mzIdentML1.0.0.xsd", &["FuGElightv1.0.0.xsd"][..]),
+        ] {
+            let components = |file: &str| {
+                parts(file, bundled_text(file).unwrap())
+                    .unwrap()
+                    .children
+                    .iter()
+                    .filter(|c| c.include.is_none())
+                    .count()
+            };
+            let composed = compose(main).unwrap();
+            let whole = parts(main, &composed).unwrap();
+            assert!(whole.children.iter().all(|c| c.include.is_none()), "{main}");
+            let expected = components(main) + included.iter().map(|f| components(f)).sum::<usize>();
+            assert_eq!(whole.children.len(), expected, "{main}");
+            // The main document's root and every one of its own components
+            // are carried unchanged.
+            let text = bundled_text(main).unwrap();
+            let own = parts(main, text).unwrap();
+            assert!(composed.starts_with(&text[..own.content.start]));
+            for child in own.children.iter().filter(|c| c.include.is_none()) {
+                assert!(composed.contains(&text[child.span.clone()]));
+            }
+        }
+    }
+    #[test]
+    fn composition_refuses_what_it_would_not_reproduce() {
+        let main = parts(
+            "mzXML_idx_3.1.xsd",
+            bundled_text("mzXML_idx_3.1.xsd").unwrap(),
+        )
+        .unwrap();
+        let mut out = String::new();
+        // FuGElight is chameleon but declares elementFormDefault only; its
+        // defaults equal mzIdentML 1.0.0's, not a foreign target namespace.
+        let mut seen = Vec::new();
+        assert!(include("FuGElightv1.0.0.xsd", &main, &mut seen, &mut out).is_ok());
+        let mut other = parts(
+            "mzXML_idx_3.1.xsd",
+            bundled_text("mzXML_idx_3.1.xsd").unwrap(),
+        )
+        .unwrap();
+        other.target = Some("urn:elsewhere".into());
+        let mut seen = Vec::new();
+        assert!(include("separation_technique_1.0.xsd", &other, &mut seen, &mut out).is_err());
+        let mut qualified = parts(
+            "mzXML_idx_3.1.xsd",
+            bundled_text("mzXML_idx_3.1.xsd").unwrap(),
+        )
+        .unwrap();
+        qualified.defaults[1] = "qualified".into();
+        let mut seen = Vec::new();
+        assert!(include("general_types_1.0.xsd", &qualified, &mut seen, &mut out).is_err());
+        assert!(parts("x.xsd", "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'><xs:import namespace='urn:x'/></xs:schema>").is_err());
+        assert!(bundled_text("not-bundled.xsd").is_err());
     }
     #[test]
     fn every_bundled_kind_names_a_bundled_file_and_every_file_is_reachable() {
