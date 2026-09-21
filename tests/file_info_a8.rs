@@ -1205,6 +1205,11 @@ fn the_tool_ends_every_truncated_input_as_the_release_build_does() {
                 assert_eq!(written, *bytes as u64, "{id}: {name}");
             }
         } else if id.ends_with("_all") {
+            // The reports go to the two files, and only the timing line to
+            // the output stream, which is all the Release build printed there.
+            assert!(release.stdout_bytes > 0, "{id}");
+            let (rest, took) = took_line::split_took_line("FileInfo", &stdout);
+            assert!(rest.is_empty() && took.is_some(), "{id}: {stdout}");
             assert_eq!(release.cwd_files.len(), 2, "{id}");
             for (path, suffix) in [(&out, "txt"), (&out_tsv, "tsv")] {
                 assert_report(
@@ -1220,7 +1225,8 @@ fn the_tool_ends_every_truncated_input_as_the_release_build_does() {
             let expected = expected
                 .strip_suffix("FileInfo took <masked>\n")
                 .unwrap_or_else(|| panic!("{id}: no timing line"));
-            let actual = took_line::strip_took_line("FileInfo", &stdout);
+            let (actual, took) = took_line::split_took_line("FileInfo", &stdout);
+            assert!(took.is_some(), "{id}: {stdout}");
             let (actual, expected) = (
                 normalise_file_name(&oracle_path(&actual, &input)),
                 normalise_file_name(expected),
