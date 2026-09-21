@@ -4197,7 +4197,7 @@
   },
   {
    "path": "../oracle/progress-format-readers/driver.cpp",
-   "sha256": "8d407748ef405341fa5b949eb0ac3cf2082499c0c02e1dd6299d8e87defbd2b9",
+   "sha256": "aeabb4db14f85c5b1f2476ead1778c52d1b962ca0ea7b9281bd79b5c10a76eae",
    "origin_key": "tests/data/progress_format_readers_provenance.json",
    "package": "P2.5B-PROGRESS-FORMAT-READERS",
    "role": "executed driver source; progress calls of the FORMAT readers deriving from ProgressLogger, Release differential",
@@ -4237,7 +4237,7 @@
   },
   {
    "path": "../oracle/progress-format-readers/results/build_info.txt",
-   "sha256": "4c265112f002eed558cbee50fc2dfae7a393d8ff4b2aa4236c232cc5b7c978cf",
+   "sha256": "6bb6c59099d36456353b02f4fc4508b1159962cf6fb1190f2f75b0464d11ae95",
    "origin_key": "tests/data/progress_format_readers_provenance.json",
    "package": "P2.5B-PROGRESS-FORMAT-READERS",
    "role": "host, compiler, hashes of the driver, libOpenMS.so, config.h, BUILD_MANIFEST.json and the inputs; progress calls of the FORMAT readers deriving from ProgressLogger, Release differential",
@@ -4245,7 +4245,7 @@
   },
   {
    "path": "../oracle/progress-format-readers/results/summary.txt",
-   "sha256": "81ace01dd4cfe841a9c51b332a3d74e919248a86895bfa26e8a92d6094ffedc0",
+   "sha256": "a122356f6531aad8ad1435255a25a05c24b9ae55761fa6ba74ac985af241d851",
    "origin_key": "tests/data/progress_format_readers_provenance.json",
    "package": "P2.5B-PROGRESS-FORMAT-READERS",
    "role": "raw capture hashes and the masked texts; progress calls of the FORMAT readers deriving from ProgressLogger, Release differential",
@@ -4253,7 +4253,7 @@
   },
   {
    "path": "../oracle/progress-format-readers/results/oplog_1.tsv",
-   "sha256": "11bd765c0eb00c80034e06d5ad1867fba4840b861fae25933c22cd563383b677",
+   "sha256": "b26dfaee1f4f2e90b3fd5bb5a2b50cb6dfc9cac581dfde360d0022f54de93dd0",
    "origin_key": "tests/data/progress_format_readers_provenance.json",
    "package": "P2.5B-PROGRESS-FORMAT-READERS",
    "role": "raw op log, repetition 1; progress calls of the FORMAT readers deriving from ProgressLogger, Release differential",
@@ -4261,7 +4261,7 @@
   },
   {
    "path": "../oracle/progress-format-readers/results/stdout_1.raw",
-   "sha256": "58ba3d7eef0ee99ceb17f194428a844c341b2623b9bec25679b4d63c9c17013d",
+   "sha256": "6bd05d540388a0877b9c0a5a7d8967b8551ef359044c5a9002894c24453db475",
    "origin_key": "tests/data/progress_format_readers_provenance.json",
    "package": "P2.5B-PROGRESS-FORMAT-READERS",
    "role": "raw stdout, repetition 1; progress calls of the FORMAT readers deriving from ProgressLogger, Release differential",
@@ -4285,7 +4285,7 @@
   },
   {
    "path": "../oracle/progress-format-readers/results/runs.txt",
-   "sha256": "3ec05faf662275041b0161c5510118d7f1e56102f801382c3d3a6e330bcef80b",
+   "sha256": "87ab96650af320ac5be06c3a95bc66503170d0dcecbf043ba3e27432135fa4d7",
    "origin_key": "tests/data/progress_format_readers_provenance.json",
    "package": "P2.5B-PROGRESS-FORMAT-READERS",
    "role": "exit codes of the three repetitions; progress calls of the FORMAT readers deriving from ProgressLogger, Release differential",

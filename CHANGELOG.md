@@ -15,11 +15,13 @@
   function-local static scan counter is reproduced process-wide. MS2 and
   mzIdentML owe nothing: the source makes no call. The silent entry points run
   the same code, so no result, written byte or error changes.
-  `tests/progress_format_readers.rs` replays 30 cases executed on the Release
+  `tests/progress_format_readers.rs` replays 31 cases executed on the Release
   build (`../oracle/progress-format-readers`) call for call, with the recorded
-  calls, depths and stdout bytes, and asserts the two cases where the port's
+  calls, depths and stdout bytes, and asserts the cases where the port's
   calls differ (consensusXML parses before it reports; the mzML store counts
-  its own document's bytes). The replay also found that the mzXML reader accepts a document
+  its own document's bytes; an mzML load that skips chromatograms follows the
+  corrected reader of CPP-017, which the oracle reproduces for the first time
+  at runtime). The replay also found that the mzXML reader accepts a document
   truncated after a complete scan, where the Release build refuses it; that is
   recorded, not changed here.
 

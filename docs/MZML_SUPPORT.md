@@ -189,7 +189,10 @@ binary array when the array closes, the source when its spectrum pool is
 flushed (by default at `</mzML>`), so an undecodable array fails after fewer
 calls; and the store's byte count is that of the port's own document, counted
 before any `.gz`/`.bz2` compression, where the source passes -1 for a
-compressed stream. `load_size`, the stream readers and writers, and the
+compressed stream. With `skip_chromatograms` the source starts no section at
+all and fails in command mode (CPP-017); the port, which skips only the
+chromatograms, makes the ordinary load's calls. `load_size`, the stream
+readers and writers, and the
 `transform` entry points report nothing, although the source's `loadSize`,
 `loadBuffer`, `storeBuffer` and `transform` do. See
 `docs/PROGRESS_LOGGER_SUPPORT.md#format-readers`.

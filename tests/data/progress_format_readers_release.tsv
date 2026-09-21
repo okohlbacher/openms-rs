@@ -336,6 +336,26 @@ mzml_reuse_after_failure	rec	D	2
 mzml_reuse_after_failure	cmd	X	Parse Error	- due to that error of type Precondition failed in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/SYSTEM/StopWatch.cpp@43-void OpenMS::StopWatch::start()
 mzml_reuse_after_failure	cmd	D	3
 mzml_reuse_after_failure	cmd	B	Progress of 'loading mzML':\n  Progress of 'loading spectra list':\n\r    25.00 %               \r    50.00 %                   Progress of 'loading mzML':\n      Progress of 'loading spectra list':\n
+mzml_load_skip_chromatograms	rec	N	1
+mzml_load_skip_chromatograms	rec	V	1	0
+mzml_load_skip_chromatograms	rec	N	2
+mzml_load_skip_chromatograms	rec	V	2	0
+mzml_load_skip_chromatograms	rec	N	3
+mzml_load_skip_chromatograms	rec	V	3	0
+mzml_load_skip_chromatograms	rec	N	4
+mzml_load_skip_chromatograms	rec	V	4	0
+mzml_load_skip_chromatograms	rec	E	0	0
+mzml_load_skip_chromatograms	rec	N	5
+mzml_load_skip_chromatograms	rec	V	5	0
+mzml_load_skip_chromatograms	rec	N	6
+mzml_load_skip_chromatograms	rec	V	6	0
+mzml_load_skip_chromatograms	rec	E	0	0
+mzml_load_skip_chromatograms	rec	E	0	37187
+mzml_load_skip_chromatograms	rec	R	4	0
+mzml_load_skip_chromatograms	rec	D	0
+mzml_load_skip_chromatograms	cmd	X	Parse Error	- due to that error of type Precondition failed in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/SYSTEM/StopWatch.cpp@55-void OpenMS::StopWatch::stop()
+mzml_load_skip_chromatograms	cmd	D	0
+mzml_load_skip_chromatograms	cmd	B	....
 mzml_store	rec	S	0	6	storing mzML file	0
 mzml_store	rec	V	0	1
 mzml_store	rec	V	1	1

@@ -340,6 +340,16 @@ fn run_case(case: &str, out: &Path, logger: &mut ProgressLogger) -> Result<Vec<S
             fields.extend(sizes(&map));
             Ok(fields)
         }
+        "mzml_load_skip_chromatograms" => {
+            let mut load = mzml::LoadOptions::default();
+            load.scientific.skip_chromatograms = true;
+            Ok(sizes(&mzml::load_with_progress(
+                data("MzMLFile_1.mzML"),
+                &load,
+                &mzml_read,
+                logger,
+            )?))
+        }
         "mzml_store" => {
             let map = mzml::load(data("MzMLFile_1.mzML"))?;
             let path = out.join("mzml_store.mzML");
@@ -554,12 +564,23 @@ enum Divergence {
     /// and neither ends the section, because `</mzXML>` never came. When the
     /// reader is fixed, this case joins [`Divergence::None`].
     AcceptsTruncated,
+    /// **A source defect the port corrects (CPP-017):** `setOptions` sets the
+    /// handler's `skip_chromatogram_` from `PeakFileOptions::getSkipChromatograms`
+    /// (`MzMLHandler.cpp:149`), and the start-element callback returns while it
+    /// is set (`:870-873`), so the Release build ignores every element until
+    /// `</chromatogramList>` resets it: no section is ever started, each
+    /// record end still advances, and each list end ends a section that never
+    /// began, which the command backend refuses (`StopWatch.cpp:55`), failing
+    /// the load. The port skips only the chromatograms, so it makes the calls of
+    /// the ordinary load (`mzml_load`) and loads the same four spectra.
+    CorrectsSkipChromatograms,
 }
 fn divergence(case: &str) -> Divergence {
     match case {
         "consensus_load_truncated" => Divergence::ParsesBeforeReporting,
         "mzml_store" => Divergence::OwnByteCount,
         "mzxml_load_truncated" => Divergence::AcceptsTruncated,
+        "mzml_load_skip_chromatograms" => Divergence::CorrectsSkipChromatograms,
         _ => Divergence::None,
     }
 }
@@ -593,6 +614,14 @@ fn check_outcome(
             assert_eq!(name, "Parse Error", "{case}");
             // The two scans before the truncation.
             assert_eq!(port, &["2", "0"], "{case}");
+        }
+        (Err((name, message)), Ok(port))
+            if matches!(divergence(case), Divergence::CorrectsSkipChromatograms) =>
+        {
+            // The command backend's refused end, wrapped by `safeParse_`.
+            assert_eq!(name, "Parse Error", "{case}");
+            assert!(message.contains("StopWatch.cpp@55"), "{case}: {message}");
+            assert_eq!(port, &["4", "0"], "{case}");
         }
         (source, port) => panic!("{case}: source {source:?}, port {port:?}"),
     }
@@ -645,7 +674,7 @@ fn check_error(case: &str, source: &(String, String), error: &Error) {
 #[test]
 fn fixture_covers_every_reader_in_both_modes() {
     let (order, runs) = fixture();
-    assert_eq!(order.len(), 30, "{order:?}");
+    assert_eq!(order.len(), 31, "{order:?}");
     for prefix in [
         "dta2d_",
         "ms2_",
@@ -693,6 +722,28 @@ fn every_backend_call_matches_the_release_build() {
                 expected_depth = 0;
             }
             Divergence::AcceptsTruncated => {}
+            Divergence::CorrectsSkipChromatograms => {
+                // No start at all, and one end more than there are sections.
+                assert!(
+                    expected_events.iter().all(|e| !e.starts_with('S')),
+                    "{case}"
+                );
+                assert_eq!(
+                    expected_events
+                        .iter()
+                        .filter(|e| e.starts_with('E'))
+                        .count(),
+                    3,
+                    "{case}"
+                );
+                assert_eq!(
+                    captured.outcome.as_ref().unwrap(),
+                    &Ok(vec!["4".into(), "0".into()])
+                );
+                expected_events = runs[&("mzml_load".to_string(), "rec".to_string())]
+                    .events
+                    .clone();
+            }
             Divergence::OwnByteCount => {
                 let last = expected_events.pop().unwrap();
                 let source_bytes = &captured.outcome.as_ref().unwrap().as_ref().unwrap()[2];
@@ -723,11 +774,22 @@ fn command_output_matches_the_release_build() {
         let outcome = run_case(case, &out, &mut logger);
         let mut expected = captured.output.clone().unwrap();
         let mut expected_depth = captured.depth.unwrap();
-        if let Divergence::ParsesBeforeReporting = divergence(case) {
-            assert!(expected.starts_with("Progress of '"), "{case}");
-            assert!(!expected.contains("-- done"), "{case}");
-            expected.clear();
-            expected_depth = 0;
+        match divergence(case) {
+            Divergence::ParsesBeforeReporting => {
+                assert!(expected.starts_with("Progress of '"), "{case}");
+                assert!(!expected.contains("-- done"), "{case}");
+                expected.clear();
+                expected_depth = 0;
+            }
+            Divergence::CorrectsSkipChromatograms => {
+                // One dot per record set on a backend that was never started,
+                // then the refused end.
+                assert_eq!(expected, "....", "{case}");
+                let ordinary = &runs[&("mzml_load".to_string(), "cmd".to_string())];
+                expected = ordinary.output.clone().unwrap();
+                expected_depth = ordinary.depth.unwrap();
+            }
+            _ => {}
         }
         assert_eq!(mask_timing(&output.text()), expected, "{case}: stdout");
         assert_eq!(

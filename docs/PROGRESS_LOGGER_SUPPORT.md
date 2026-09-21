@@ -306,6 +306,14 @@ captured calls:
 - **Native refusals come first where the port checks before it writes.** The
   source has no ceilings and refuses almost nothing; a refusal the port makes
   before a section starts makes no call.
+- **Skipping chromatograms follows the corrected reader (CPP-017).** With
+  `PeakFileOptions::setSkipChromatograms` the source handler ignores every
+  element until `</chromatogramList>` (`MzMLHandler.cpp:149`, `:870-873`): the
+  Release build starts no section, advances on every record end, ends two
+  sections it never began and, in command mode, fails the load when the
+  backend refuses that end (`StopWatch.cpp:55`). The port skips only the
+  chromatograms, and its calls are those of the ordinary load
+  (`mzml_load_skip_chromatograms`).
 
 The mzData handler's scan counter is a function-local `static UInt`
 (`MzDataHandler.cpp:436`) that only `</mzData>` resets, so after a load that
@@ -380,7 +388,7 @@ and `tests/progress_consumers.rs` replays all 18 cases in both modes. See
 `tests/data/progress_consumers_provenance.json`.
 
 **FORMAT reader calls (tier 1).** `../oracle/progress-format-readers/driver.cpp`
-links the same Release install and runs 30 cases over DTA2D, MS2, MGF,
+links the same Release install and runs 31 cases over DTA2D, MS2, MGF,
 mzIdentML, consensusXML, featureXML, mzData, mzXML and mzML on ibminode06, each
 twice on a fresh file object: once with `setLogType(GUI)` and
 `make_gui_progress_logger` replaced by a factory for a recording backend, so
