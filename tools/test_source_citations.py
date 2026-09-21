@@ -561,7 +561,11 @@ class RetainedSourceTests(unittest.TestCase):
     DIGEST = hashlib.sha256(BODY).hexdigest()
 
     def retained(self, body=BODY, digest=None, under="bits/", write=True):
-        directory = pathlib.Path(self.enterContext(tempfile.TemporaryDirectory()))
+        # `addCleanup`, not `enterContext`: the latter is Python 3.11 and up,
+        # and nothing else here asks for a floor that high.
+        holder = tempfile.TemporaryDirectory()
+        self.addCleanup(holder.cleanup)
+        directory = pathlib.Path(holder.name)
         if write:
             (directory / "stl_algo.h").write_bytes(body)
         return Retained(directory, {"stl_algo.h": digest or self.DIGEST}, under)
