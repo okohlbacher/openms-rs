@@ -185,7 +185,7 @@
     "src/format/mzml.rs and src/format/mzml_paths.rs (load_with_progress, store_with_progress)",
     "src/format/path_io.rs (store_reporting)",
     "src/format/identification_xml.rs (the detach hook passes its container)",
-    "src/concept/progress_logger.rs (ProgressReporter::next_progress, end_with_bytes)"
+    "src/concept/progress_logger.rs (ProgressReporter::start_count, next_progress, end_with_bytes)"
   ],
   "native_tests": [
     "tests/progress_format_readers.rs"

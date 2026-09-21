@@ -24,7 +24,7 @@ exists only in a Debug build is not source behavior for this port.
 | `make_gui_progress_logger` | per-logger `set_gui_factory`, retained by copies; GUI defaults to a no-op |
 | source process-static recursion depth | shared `ProgressNesting::global()` by default; `Default` creates an isolated nesting context |
 | the `ProgressLogger` *base* of an algorithm class (`class GaussFilter : public ProgressLogger`) | the algorithm's `*_with_progress` entry point, which borrows a caller's `ProgressLogger` for the call; see [Consumers](#consumers) |
-| — | `ProgressReporter`: one run's progress calls sent to an optional logger (`start`, `set`, `set_count`, `next_progress`, `end`, `end_with_bytes`), with `section`, which ends the section on failure too |
+| — | `ProgressReporter`: one run's progress calls sent to an optional logger (`start`, `start_count`, `set`, `set_count`, `next_progress`, `end`, `end_with_bytes`; the two `_count` forms convert a record count only when reporting, so a silent run cannot fail on one), with `section`, which ends the section on failure too |
 | — | `progress_value`: a `usize` count as the source's `SignedSize` value, refusing what would wrap |
 
 `CommandProgressLogger<W: std::io::Write>` is also directly usable as a backend.
