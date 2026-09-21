@@ -11,7 +11,7 @@
 //! Not ported: the warning the source writes when peak type estimation finds
 //! the first spectrum centroided.
 
-use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
+use crate::cli::{ExitCode, Tool, ToolContext, ToolResult, ToolSpec};
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
 use crate::metadata::ProcessingAction;
@@ -105,8 +105,8 @@ impl Tool for BaselineFilter {
     /// Source `main_`, run on the worker pool that `-threads` sizes, as
     /// `TOPPBase::main` applies the setting before `main_`
     /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`].
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
-        ctx.in_thread_pool(|| Self::run_in_pool(ctx))?
+    fn run(ctx: &ToolContext) -> ToolResult {
+        Ok(ctx.in_thread_pool(|| Self::run_in_pool(ctx))??)
     }
 }
 

@@ -172,7 +172,7 @@ use crate::analysis::feature_finder_picked::algorithm::{self, Options};
 use crate::analysis::feature_finder_picked::debug::{DebugOutput, ReportLine, TerminationKind};
 use crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
 use crate::analysis::feature_finder_picked::seeds;
-use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
+use crate::cli::{ExitCode, Tool, ToolContext, ToolError, ToolResult, ToolSpec};
 use crate::concept::constants::user_param::FAIMS_CV;
 use crate::concept::{HasUniqueId, UniqueIdGenerator};
 use crate::format::file_handler::FileHandler;
@@ -556,13 +556,20 @@ impl Tool for FeatureFinderCentroided {
     }
 
     /// Forwards to [`run_io`](Tool::run_io) with the process streams.
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         Self::run_io(ctx, &mut std::io::stdout(), &mut std::io::stderr())
     }
 
     /// Source `main_`; the module documentation lists the steps, messages and
     /// exit codes. Informational lines go to `out`, diagnostics to `err`.
-    fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> Result<ExitCode> {
+    ///
+    /// Only the per-peak ion mobility refusal is an exit code the source's
+    /// `main_` returns, after an `OPENMS_LOG_ERROR` line, so only it is
+    /// followed by the lifecycle's closing `FeatureFinderCentroided took … .`
+    /// line. Every other refusal stands for an exception the source throws
+    /// and `TOPPBase::main` catches, and is a [`ToolError`]: no closing line,
+    /// and the catch block's text reaches the `-log` file.
+    fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> ToolResult {
         let input = ctx.string("in")?.to_owned();
         let output = ctx.string("out")?.to_owned();
 
@@ -580,23 +587,29 @@ impl Tool for FeatureFinderCentroided {
             &read,
         )?;
 
-        // FileEmpty, which TOPPBase maps to INPUT_FILE_EMPTY (194-197).
+        // The thrown FileEmpty, which TOPPBase maps to INPUT_FILE_EMPTY
+        // (194-197).
         if experiment.spectra.is_empty() {
-            writeln!(err, "{}", Self::NO_MS1_SPECTRA_MESSAGE)?;
-            return Ok(ExitCode::InputFileEmpty);
+            return Err(ToolError::caught(
+                ExitCode::InputFileEmpty,
+                Self::NO_MS1_SPECTRA_MESSAGE,
+            ));
         }
 
-        // Per-peak ion mobility (200-211).
+        // Per-peak ion mobility (200-211): an OPENMS_LOG_ERROR line, which
+        // does not reach the log file, and an exit code main_ returns.
         if has_per_peak_mobility(&experiment) {
             writeln!(err, "{}", Self::im_peak_message())?;
             return Ok(ExitCode::IncompatibleInputData);
         }
 
         // Only the first spectrum's stored type is checked (214-222). The
-        // IllegalArgument reaches TOPPBase's catch-all, UNKNOWN_ERROR.
+        // thrown IllegalArgument reaches TOPPBase's catch-all, UNKNOWN_ERROR.
         if experiment.spectra[0].spectrum_type == SpectrumType::Profile && !ctx.force() {
-            writeln!(err, "{}", Self::PROFILE_DATA_MESSAGE)?;
-            return Ok(ExitCode::UnknownError);
+            return Err(ToolError::caught(
+                ExitCode::UnknownError,
+                Self::PROFILE_DATA_MESSAGE,
+            ));
         }
 
         // Seeds (224-229).
@@ -643,17 +656,12 @@ impl Tool for FeatureFinderCentroided {
                     &Self::processing_group_message(volts, group.experiment.spectra.len()),
                 )?;
             }
-            let group_seeds = match Self::seeds_of_group(&seeds, has_faims, volts) {
-                Ok(group_seeds) => group_seeds,
-                Err(error) => {
-                    // A non-numeric FAIMS_CV on a seed is a ConversionError in
-                    // the source, which reaches TOPPBase's catch-all.
-                    writeln!(err, "Error: Unexpected internal error ({error})")?;
-                    return Ok(ExitCode::UnknownError);
-                }
-            };
+            // A non-numeric FAIMS_CV on a seed is a ConversionError in the
+            // source, which reaches TOPPBase's catch-all.
+            let group_seeds =
+                Self::seeds_of_group(&seeds, has_faims, volts).map_err(ToolError::unexpected)?;
             let mut group_features = FeatureMap::new();
-            if let Some(code) = run_group(
+            run_group(
                 ctx,
                 group.experiment,
                 &mut group_features,
@@ -664,14 +672,13 @@ impl Tool for FeatureFinderCentroided {
                 &mut info,
                 &mut warn,
                 &mut generator,
-            )? {
-                return Ok(code);
-            }
+            )?;
             if features.features.len() + group_features.features.len() > FeatureMap::MAX_ITEMS {
                 return Err(Error::InvalidValue(format!(
                     "the FAIMS groups produced more than {} features",
                     FeatureMap::MAX_ITEMS
-                )));
+                ))
+                .into());
             }
             for mut feature in group_features.features {
                 if has_faims {
@@ -708,10 +715,7 @@ impl Tool for FeatureFinderCentroided {
                     Self::FAIMS_MERGE_MAX_MZ_DIFF,
                     Self::FAIMS_MERGE_FIDELITY,
                 );
-                if let Err(error) = merged {
-                    writeln!(err, "Error: Unexpected internal error ({error})")?;
-                    return Ok(ExitCode::UnknownError);
-                }
+                merged.map_err(ToolError::unexpected)?;
                 info.line(
                     out,
                     &Self::faims_merge_message(before, features.features.len()),
@@ -724,12 +728,10 @@ impl Tool for FeatureFinderCentroided {
         // A store that fails is the source's `UnableToCreateFile`
         // (`TOPPBase.cpp:430-435`), not a read failure; see
         // [`crate::cli::write_failure`].
-        if let Err(error) =
-            FileHandler::store_feature_map(&output, &features, Some(FileType::FeatureXml))
-        {
-            return Ok(crate::cli::write_failure(&output, &error, err));
-        }
-        // TOPPBase's closing info line and the log streams' caches at exit.
+        FileHandler::store_feature_map(&output, &features, Some(FileType::FeatureXml))
+            .map_err(|error| crate::cli::write_failure(&output, &error))?;
+        // The log streams' caches at exit; the lifecycle prints TOPPBase's
+        // closing info line after this returns.
         info.close(out)?;
         warn.close(err)?;
         Ok(ExitCode::ExecutionOk)
@@ -742,9 +744,9 @@ impl Tool for FeatureFinderCentroided {
 ///
 /// A fresh [`FeatureFinderAlgorithmPicked`] per group, as the source's loop
 /// body creates one, running into the empty `features` of that group. Returns
-/// `Some(code)` when the run failed in a way the source's `TOPPBase` reports
-/// with that exit code, and the tool must stop; the debug files the run had
-/// written are on disk either way, as they are in the executed process. The
+/// the [`ToolError`] of the source exception that ended the run, when it
+/// failed, and the tool must stop; the debug files the run had written are on
+/// disk either way, as they are in the executed process. The
 /// source's fixed debug file names mean a later group overwrites an earlier
 /// group's files, which this reproduces by writing them the same way per group.
 #[allow(clippy::too_many_arguments)]
@@ -759,7 +761,7 @@ fn run_group(
     info: &mut LogStreamLines,
     warn: &mut LogStreamLines,
     generator: &mut UniqueIdGenerator,
-) -> Result<Option<ExitCode>> {
+) -> std::result::Result<(), ToolError> {
     // The algorithm (283-291), on the worker count -threads asks for, as
     // TOPPBase applies the setting before main_ (TOPPBase.cpp:408-415).
     let options = Options {
@@ -815,7 +817,7 @@ fn run_group(
         }
     }
     match outcome {
-        Ok(()) => Ok(None),
+        Ok(()) => Ok(()),
         Err(error) => {
             if let Some(termination) = debug
                 .as_ref()
@@ -831,33 +833,21 @@ fn run_group(
                 // only what the executed process had flushed
                 // (`write_debug_log`).
                 let _ = error;
-                writeln!(
-                    err,
-                    "Error: Unexpected internal error ({})",
-                    termination.message
-                )?;
-                return Ok(Some(ExitCode::UnknownError));
+                return Err(ToolError::unexpected(&termination.message));
             }
             if seeds::is_length_error(&error) {
                 // `std::length_error` is no `BaseException`: TOPPBase's outer
                 // `catch (const std::exception&)` reports it
                 // (TOPPBase.cpp:510-514), after the stack unwinding has
                 // flushed and closed the debug log.
-                writeln!(
-                    err,
-                    "Unable to initialize or run {}: {}",
-                    FeatureFinderCentroided::NAME,
-                    seeds::LENGTH_ERROR_WHAT
-                )?;
-                return Ok(Some(ExitCode::InternalError));
+                return Err(ToolError::escaped(seeds::LENGTH_ERROR_WHAT));
             }
             if let Error::InvalidValue(message) = &error {
                 // The algorithm's IllegalArgument and InvalidValue exceptions
                 // reach TOPPBase's catch-all (TOPPBase.cpp:495-499).
-                writeln!(err, "Error: Unexpected internal error ({message})")?;
-                return Ok(Some(ExitCode::UnknownError));
+                return Err(ToolError::unexpected(message));
             }
-            Err(error)
+            Err(error.into())
         }
     }
 }
@@ -955,7 +945,17 @@ impl LogStreamLines {
     }
 
     /// The end of a successful run: TOPPBase's closing `<tool> took ...` info
-    /// line (not ported) enters the cache, then the stream's `clearCache`.
+    /// line enters the cache, which evicts the older cached line, then the
+    /// stream's `clearCache` at exit.
+    ///
+    /// The lifecycle prints the closing line itself once the body has returned
+    /// ([`run_with`](crate::cli::run_with)), after this. So the repeat count of
+    /// the evicted line comes before the closing line, as in the source, but
+    /// so does that of the line `clearCache` reports, which the source prints
+    /// after it. The two orders differ only when both lines the cache still
+    /// holds were repeated; no executed case has that (the console blocks
+    /// `tests/topp_feature_finder_centroided.rs` compares end at the closing
+    /// line and are equal).
     fn close(&mut self, out: &mut dyn Write) -> Result<()> {
         self.evict_oldest(out)?;
         self.entries.sort_by(|a, b| a.0.cmp(&b.0));

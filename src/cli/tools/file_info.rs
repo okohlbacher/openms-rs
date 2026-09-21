@@ -32,7 +32,7 @@
 //! written to the reports (decisions D3 and D5 of the early TOPP bundle). The
 //! source reports those branches and exits 0.
 
-use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
+use crate::cli::{ExitCode, Tool, ToolContext, ToolError, ToolResult, ToolSpec};
 use crate::format::file_info::model::Options;
 use crate::format::file_info::report::FileInfo as FileInfoLibrary;
 use crate::format::{FileHandler, FileType};
@@ -142,7 +142,7 @@ impl Tool for FileInfo {
     }
 
     /// Run against the process streams; see `run_io`.
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         Self::run_io(ctx, &mut std::io::stdout(), &mut std::io::stderr())
     }
 
@@ -151,26 +151,26 @@ impl Tool for FileInfo {
     /// `out` receives the report when `-out` is not given, as the source's
     /// info log does; `err` receives the diagnostics, the usage text of the
     /// `-i` refusal and the library's warnings, which the source writes with
-    /// `OPENMS_LOG_WARN`. The source's trailing timing line is not ported (see
-    /// `docs/TOPP_CLI_SUPPORT.md`), so nothing else is written to `out`.
+    /// `OPENMS_LOG_WARN`. The two refusals the source writes with
+    /// `writeLogError_` — an undetermined type and `-i` on anything but mzML —
+    /// also reach the `-log` file. Both are exit codes `outputTo_` returns, so
+    /// the lifecycle's closing `FileInfo took … .` line follows them, as in
+    /// the Release build (oracle `in_is_directory`).
     ///
     /// # Errors
     ///
-    /// The library's errors, which the framework maps to exit codes:
-    /// [`Error::Parse`] for a corrupt input (3), [`Error::Unsupported`] for an
-    /// unported branch or flag (11), [`Error::InvalidValue`] for a detected type
-    /// other than the forced one (6, where the source exits 3 or 8; see the
-    /// support document), and [`Error::Io`] when a report cannot be written.
-    fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> Result<ExitCode> {
+    /// A report file that cannot be opened is the source's `FileNotWritable`,
+    /// [`ToolError::unexpected`] (8), which ends the run without the closing
+    /// line (oracle `out_is_directory`). The library's errors, which the
+    /// framework maps to exit codes: [`Error::Parse`] for a corrupt input (3),
+    /// [`Error::Unsupported`] for an unported branch or flag (11),
+    /// [`Error::InvalidValue`] for a detected type other than the forced one
+    /// (6, where the source exits 3 or 8; see the support document), and
+    /// [`Error::Io`] when a report cannot be written.
+    fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> ToolResult {
         let input = ctx.string("in")?.to_owned();
-        let mut text_file = match open_output(ctx.string("out")?, err)? {
-            Opened::File(handle) => handle,
-            Opened::Failed(code) => return Ok(code),
-        };
-        let mut tsv_file = match open_output(ctx.string("out_tsv")?, err)? {
-            Opened::File(handle) => handle,
-            Opened::Failed(code) => return Ok(code),
-        };
+        let mut text_file = open_output(ctx.string("out")?)?;
+        let mut tsv_file = open_output(ctx.string("out_tsv")?)?;
 
         // Source `FileTypes::nameToType`: the empty default names no type.
         let mut in_type = FileType::from_name(ctx.string("in_type")?);
@@ -178,11 +178,11 @@ impl Tool for FileInfo {
             in_type = detect_type(&input)?;
         }
         if in_type == FileType::Unknown {
-            writeln!(err, "Error: Could not determine input file type!")?;
+            ctx.write_log_error(err, "Error: Could not determine input file type!")?;
             return Ok(ExitCode::ParseError);
         }
         if ctx.flag("i")? && in_type != FileType::MzMl {
-            writeln!(err, "Error: Can only validate indices for mzML files")?;
+            ctx.write_log_error(err, "Error: Can only validate indices for mzML files")?;
             let spec = crate::cli::tool_spec::<Self>()?;
             let subsections = crate::cli::subsection_defaults::<Self>(&spec)?;
             crate::cli::print_usage::<Self>(err, &spec, &subsections, false)?;
@@ -224,37 +224,24 @@ impl Tool for FileInfo {
     }
 }
 
-/// An opened report destination, or the exit code of a failed open.
-enum Opened {
-    /// The file, or `None` when the parameter is empty.
-    File(Option<File>),
-    /// The open failed; its diagnostic has been written.
-    Failed(ExitCode),
-}
-
 /// Open one report file as the source's `std::ofstream::open` does, creating
 /// or truncating it; an empty `path` opens nothing.
 ///
 /// The framework has already confirmed that the path is writable, as the
 /// source's `outputFileWritable_` has; an open that still fails, such as on an
-/// existing directory, is the source's `FileNotWritable`, which reaches the
-/// `BaseException` arm of `TOPPBase::main`: `UNKNOWN_ERROR` (8) with
-/// `Error: Unexpected internal error (the file '<path>' is not writable for
-/// the current user)` (oracle `out_is_directory`).
-fn open_output(path: &str, err: &mut dyn Write) -> Result<Opened> {
+/// existing directory, is the source's thrown `FileNotWritable`, which
+/// reaches the `BaseException` arm of `TOPPBase::main`: `UNKNOWN_ERROR` (8)
+/// with `Error: Unexpected internal error (the file '<path>' is not writable
+/// for the current user)`, and no closing line (oracle `out_is_directory`).
+fn open_output(path: &str) -> std::result::Result<Option<File>, ToolError> {
     if path.is_empty() {
-        return Ok(Opened::File(None));
+        return Ok(None);
     }
-    match File::create(path) {
-        Ok(handle) => Ok(Opened::File(Some(handle))),
-        Err(_) => {
-            writeln!(
-                err,
-                "Error: Unexpected internal error (the file '{path}' is not writable for the current user)"
-            )?;
-            Ok(Opened::Failed(ExitCode::UnknownError))
-        }
-    }
+    File::create(path).map(Some).map_err(|_| {
+        ToolError::unexpected(format!(
+            "the file '{path}' is not writable for the current user"
+        ))
+    })
 }
 
 /// Source `FileHandler::getType(in)`, by file name and then by content.

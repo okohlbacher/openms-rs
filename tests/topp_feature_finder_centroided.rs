@@ -64,7 +64,8 @@ use base64::Engine;
 use openms::cli::tools::FeatureFinderCentroided;
 use openms::cli::{
     ExitCode, TEST_MODE_COMPLETION_TIME, TEST_MODE_PARAMETER_KEY, TEST_MODE_PARAMETER_VALUE,
-    TEST_MODE_UNIQUE_ID_SEED, TEST_MODE_VERSION, Tool, ToolContext, ToolSpec, run_with, tool_spec,
+    TEST_MODE_UNIQUE_ID_SEED, TEST_MODE_VERSION, Tool, ToolContext, ToolResult, ToolSpec, run_with,
+    tool_spec,
 };
 use openms::concept::UniqueIdGenerator;
 use openms::format::file_handler::FileHandler;
@@ -2912,11 +2913,11 @@ impl Tool for FinishProbe {
         <FeatureFinderCentroided as Tool>::subsection_defaults(section)
     }
 
-    fn run(_ctx: &ToolContext) -> Result<ExitCode> {
-        Err(Error::Unsupported("the probe needs its streams".into()))
+    fn run(_ctx: &ToolContext) -> ToolResult {
+        Err(Error::Unsupported("the probe needs its streams".into()).into())
     }
 
-    fn run_io(ctx: &ToolContext, out: &mut dyn Write, _err: &mut dyn Write) -> Result<ExitCode> {
+    fn run_io(ctx: &ToolContext, out: &mut dyn Write, _err: &mut dyn Write) -> ToolResult {
         let features =
             FeatureFinderCentroided::finish_features(ctx, ctx.string("in")?, sample_map(), out)?;
         FINISHED.with(|cell| *cell.borrow_mut() = Some(features));
@@ -3134,14 +3135,10 @@ fn an_empty_feature_map_is_annotated() {
         fn subsection_defaults(section: &str) -> Result<Option<openms::param::Param>> {
             <FeatureFinderCentroided as Tool>::subsection_defaults(section)
         }
-        fn run(_ctx: &ToolContext) -> Result<ExitCode> {
-            Err(Error::Unsupported("the probe needs its streams".into()))
+        fn run(_ctx: &ToolContext) -> ToolResult {
+            Err(Error::Unsupported("the probe needs its streams".into()).into())
         }
-        fn run_io(
-            ctx: &ToolContext,
-            out: &mut dyn Write,
-            _err: &mut dyn Write,
-        ) -> Result<ExitCode> {
+        fn run_io(ctx: &ToolContext, out: &mut dyn Write, _err: &mut dyn Write) -> ToolResult {
             let map = FeatureFinderCentroided::finish_features(
                 ctx,
                 ctx.string("in")?,

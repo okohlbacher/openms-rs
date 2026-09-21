@@ -7,7 +7,7 @@
 //! `src/bin/` so that the shipped binary and its differential test share one
 //! definition; a copied tool body drifts from the binary it claims to test.
 
-use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec, parse_range};
+use crate::cli::{ExitCode, Tool, ToolContext, ToolResult, ToolSpec, parse_range};
 use crate::format::dta;
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
@@ -65,8 +65,8 @@ impl Tool for DTAExtractor {
     /// Source `main_`, run on the worker pool that `-threads` sizes, as
     /// `TOPPBase::main` applies the setting before `main_`
     /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`].
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
-        ctx.in_thread_pool(|| Self::run_in_pool(ctx))?
+    fn run(ctx: &ToolContext) -> ToolResult {
+        Ok(ctx.in_thread_pool(|| Self::run_in_pool(ctx))??)
     }
 }
 

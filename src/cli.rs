@@ -40,6 +40,7 @@ mod console;
 mod context;
 mod defs;
 mod logging;
+mod outcome;
 mod param_ctd;
 mod parameter;
 mod processing;
@@ -57,6 +58,7 @@ pub use context::{
 };
 pub use defs::{CITE_OPENMS, Citation};
 pub use logging::{LOG_SEPARATOR, ToolLog};
+pub use outcome::{ToolError, ToolResult};
 pub use param_ctd::{MAX_CTD_BYTES, ParamCtdFile};
 pub use parameter::{ExitCode, ParameterInformation, ParameterType};
 pub use processing::{
@@ -136,27 +138,40 @@ pub trait Tool {
 
     /// Run the tool, as `main_`.
     ///
+    /// `Ok` is the exit code `main_` returns, whatever it is: the lifecycle
+    /// then prints the closing `<tool> took … .` line, as `TOPPBase::main`
+    /// does after `main_` returns. Where the source's `main_` throws instead,
+    /// the body returns a [`ToolError`], and no closing line follows.
+    ///
     /// # Errors
     ///
-    /// An error is reported on the error stream and mapped to the exit code of
-    /// the source exception it corresponds to; see [`run_with`].
-    fn run(ctx: &ToolContext) -> Result<ExitCode>;
+    /// A [`ToolError`] is reported on the error stream and ends the run as the
+    /// source's catch block for that exception does; see [`run_with`].
+    fn run(ctx: &ToolContext) -> ToolResult;
 
     /// Run the tool with explicit output and error streams.
     ///
     /// [`run_with`] calls this; the default forwards to [`run`](Self::run), so
     /// a tool that writes nothing but files implements `run` only. A tool that
     /// reports on standard output — the source's `OPENMS_LOG_INFO` — or writes
-    /// its own diagnostics overrides this, writes to `out` and `err`, and
-    /// returns an exit code such as [`ExitCode::InputFileEmpty`] after writing
-    /// an `Error: …` line, so that `run_with` callers capture everything. Such
-    /// a tool implements `run` by forwarding to `run_io` with the process
-    /// streams.
+    /// its own diagnostics overrides this and writes to `out` and `err`, so
+    /// that `run_with` callers capture everything. Such a tool implements
+    /// `run` by forwarding to `run_io` with the process streams.
+    ///
+    /// A diagnostic the source writes with `writeLogError_`,
+    /// `writeLogWarn_` or `writeLogInfo_` goes through
+    /// [`ToolContext::write_log_error`], [`write_log_warn`](ToolContext::write_log_warn)
+    /// or [`write_log_info`](ToolContext::write_log_info), which also append
+    /// it to the `-log` file. A body that stops where the source *returns* an
+    /// exit code, such as [`ExitCode::IllegalParameters`] after an error line,
+    /// returns `Ok` with that code; one that stops where the source *throws*
+    /// returns the [`ToolError`] for the catch block that reports it, and
+    /// leaves the diagnostic to the lifecycle.
     ///
     /// # Errors
     ///
     /// As [`run`](Self::run).
-    fn run_io(ctx: &ToolContext, _out: &mut dyn Write, _err: &mut dyn Write) -> Result<ExitCode> {
+    fn run_io(ctx: &ToolContext, _out: &mut dyn Write, _err: &mut dyn Write) -> ToolResult {
         Self::run(ctx)
     }
 
@@ -2178,25 +2193,20 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
 /// reaches [`run_failure`].
 ///
 /// The source reaches its catch block by unwinding past the closing
-/// `<tool> took …` line, so a run ended here prints none: this marks the run
-/// as unwound for [`run_with`], on the calling thread.
+/// `<tool> took …` line, so this is a [`ToolError`]: the tool returns it, and
+/// the lifecycle writes the line through `writeLogError_` and prints no
+/// closing line.
 // Only `FeatureFinderCentroided` (mzml, featurexml) maps a store here so far.
 #[cfg_attr(not(all(feature = "mzml", feature = "featurexml")), allow(dead_code))]
-pub(crate) fn write_failure(path: &str, error: &Error, err: &mut dyn Write) -> ExitCode {
+pub(crate) fn write_failure(path: &str, error: &Error) -> ToolError {
     let detail = match error {
         Error::Io(_) => format!("the file '{path}' could not be created. "),
         other => other.to_string(),
     };
-    let _ = log_error(err, &format!("Error: Unable to write file ({detail})"));
-    UNWOUND.with(|unwound| unwound.set(true));
-    ExitCode::CannotWriteOutputFile
-}
-
-thread_local! {
-    /// Whether the tool body on this thread ended through
-    /// [`write_failure`], the stand-in for an exception the source's catch
-    /// block handles.
-    static UNWOUND: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+    ToolError::caught(
+        ExitCode::CannotWriteOutputFile,
+        format!("Error: Unable to write file ({detail})"),
+    )
 }
 
 /// Run a tool against explicit arguments and streams. `arguments[0]` is the
@@ -2212,7 +2222,9 @@ thread_local! {
 /// coloured, as the source writes it when standard error is not a terminal
 /// and `COLUMNS` is unset; [`run`] shapes and colours it. `out`
 /// receives what the source writes through its info log: the INI-version
-/// notice, a tool's report and the closing `<tool> took … .` line.
+/// notice, a tool's report and the closing `<tool> took … .` line, which
+/// follows a body that returned an exit code and not one that ended with a
+/// [`ToolError`].
 ///
 /// One phase precedes all of the source's: this build may require processor
 /// features the source's does not, and
@@ -2303,12 +2315,18 @@ pub fn run_with_registry<T: Tool>(
 }
 
 /// The tool body with the source's timing and failure mapping
-/// (`TOPPBase.cpp:413-500`): when the body returns, the closing line
-/// `<tool> took <wall> (wall), <cpu> (CPU), <system> (system), <user> (user);
-/// Peak Memory Usage: <n> MB.` on the output stream, the peak-memory part only
-/// where the platform reports it; when it fails — with an error, or through
-/// [`write_failure`] — no closing line, but the run-phase mapping, whose
-/// `Error` lines also reach the log file.
+/// (`TOPPBase.cpp:413-513`).
+///
+/// * `Ok(code)`: `main_` returned `code`, whatever it is, so the closing line
+///   `<tool> took <wall> (wall), <cpu> (CPU), <system> (system), <user>
+///   (user); Peak Memory Usage: <n> MB.` goes to the output stream, the
+///   peak-memory part only where the platform reports it.
+/// * A [`ToolError`]: `main_` threw, and the exception unwound past that line
+///   to a catch block, so there is no closing line. [`ToolError::Error`] takes
+///   the run-phase mapping ([`run_failure`]); [`ToolError::Caught`] is the
+///   tool's own catch-block text. Both are written as `writeLogError_` writes
+///   them, so they also reach the log file. [`ToolError::Escaped`] is the
+///   initialisation catch's line on the error stream only.
 fn run_body<T: Tool>(
     session: &Session<'_>,
     ctx: &ToolContext,
@@ -2316,12 +2334,10 @@ fn run_body<T: Tool>(
     err: &mut dyn Write,
 ) -> ExitCode {
     let mut watch = crate::system::stop_watch::StopWatch::new();
-    UNWOUND.with(|unwound| unwound.set(false));
     let _ = watch.start();
     let result = T::run_io(ctx, out, err);
     let _ = watch.stop();
     match result {
-        Ok(code) if UNWOUND.with(|unwound| unwound.replace(false)) => code,
         Ok(code) => {
             let memory = crate::system::sys_info::process_peak_memory_consumption()
                 .filter(|&kib| kib != 0)
@@ -2330,7 +2346,7 @@ fn run_body<T: Tool>(
             let _ = writeln!(out, "{} took {}{memory}.", T::NAME, watch.summary());
             code
         }
-        Err(error) => {
+        Err(ToolError::Error(error)) => {
             let mut text = Vec::new();
             let code = run_failure(&error, &mut text);
             let text = String::from_utf8_lossy(&text);
@@ -2338,6 +2354,19 @@ fn run_body<T: Tool>(
                 let _ = session.error(out, err, line);
             }
             code
+        }
+        Err(ToolError::Caught { code, message }) => {
+            for line in message.lines() {
+                let _ = session.error(out, err, line);
+            }
+            code
+        }
+        Err(ToolError::Escaped { what }) => {
+            let _ = log_error(
+                err,
+                &format!("Unable to initialize or run {}: {what}", T::NAME),
+            );
+            ExitCode::InternalError
         }
     }
 }

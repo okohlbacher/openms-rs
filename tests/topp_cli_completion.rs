@@ -40,7 +40,7 @@ use openms::cli::tools::{
 };
 use openms::cli::{
     CITE_OPENMS, Citation, ExitCode, ParamCtdFile, Tool, ToolContext, ToolDescriptionFile,
-    ToolHandler, ToolRegistrySources, ToolSpec, product_versions, run_with_registry,
+    ToolHandler, ToolRegistrySources, ToolResult, ToolSpec, product_versions, run_with_registry,
 };
 use openms::param::{Param, ParamValue};
 use openms::system::file::TempDir;
@@ -437,7 +437,7 @@ impl Tool for RegistryProbe {
     fn register(_spec: &mut ToolSpec) -> Result<()> {
         Ok(())
     }
-    fn run(_ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(_ctx: &ToolContext) -> ToolResult {
         Ok(ExitCode::ExecutionOk)
     }
 }
@@ -1169,7 +1169,7 @@ impl Tool for CitingTool {
     fn register(_spec: &mut ToolSpec) -> Result<()> {
         Ok(())
     }
-    fn run(_ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(_ctx: &ToolContext) -> ToolResult {
         Ok(ExitCode::ExecutionOk)
     }
 }
@@ -1629,7 +1629,7 @@ fn upstream_log_writes_a_log_file() {
                 false,
             )
         }
-        fn run(_ctx: &ToolContext) -> Result<ExitCode> {
+        fn run(_ctx: &ToolContext) -> ToolResult {
             Ok(ExitCode::ExecutionOk)
         }
     }
@@ -1658,7 +1658,7 @@ fn upstream_ini_location_follows_instance() {
         fn register(_spec: &mut ToolSpec) -> Result<()> {
             Ok(())
         }
-        fn run(_ctx: &ToolContext) -> Result<ExitCode> {
+        fn run(_ctx: &ToolContext) -> ToolResult {
             Ok(ExitCode::ExecutionOk)
         }
     }
@@ -1804,7 +1804,7 @@ impl Tool for ExecutableTool {
             &["is_executable"],
         )
     }
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         let resolved = ctx.string("exe")?.to_owned();
         RESOLVED.with(|slot| *slot.borrow_mut() = Some(resolved));
         Ok(ExitCode::ExecutionOk)
@@ -1857,7 +1857,7 @@ impl Tool for OutputDirTool {
     fn register(spec: &mut ToolSpec) -> Result<()> {
         spec.register_output_dir("out_dir", "<directory>", "", "a directory", false, false)
     }
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         let directory = ctx.output_dir("out_dir")?.to_owned();
         OUTPUT_DIR.with(|slot| *slot.borrow_mut() = Some(directory));
         Ok(ExitCode::ExecutionOk)
