@@ -7,7 +7,7 @@
 //! removed from sequences. Rust records require valid UTF-8. See FASTA_SUPPORT.
 
 use super::{parse_error, single_line};
-use crate::concept::progress_logger::ProgressLogger;
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::{Error, Result};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Seek, SeekFrom, Write};
@@ -573,10 +573,16 @@ impl FASTAFile {
         Ok(())
     }
     /// Uses a separate input stream, leaving a resident read/write session intact.
+    ///
+    /// Progress goes through a [`ProgressReporter`], so a failed load abandons
+    /// the section it started instead of leaking a level into the process-wide
+    /// nesting (`tests/fasta_progress_abandon.rs`).
     pub fn load(&mut self, path: impl AsRef<Path>) -> Result<Vec<FASTAEntry>> {
-        self.progress.start_progress(0, 1, "Loading FASTA file")?;
-        let entries = read_with_options(BufReader::new(File::open(path)?), self.options)?;
-        self.progress.end_progress(0)?;
+        let options = self.options;
+        let mut progress = ProgressReporter::new(Some(&mut self.progress));
+        progress.start(0, 1, "Loading FASTA file")?;
+        let entries = read_with_options(BufReader::new(File::open(path)?), options)?;
+        progress.end()?;
         Ok(entries)
     }
     /// Replaces the destination only after the complete file succeeds.
@@ -596,7 +602,10 @@ impl FASTAFile {
         for entry in entries {
             budget.entry(entry, self.options)?;
         }
-        self.progress.start_progress(
+        // Through a ProgressReporter, as in `load`: a failed store abandons its
+        // section rather than leaking a nesting level.
+        let mut progress = ProgressReporter::new(Some(&mut self.progress));
+        progress.start(
             0,
             i64::try_from(entries.len())
                 .map_err(|_| invalid("FASTA record count exceeds progress range"))?,
@@ -605,10 +614,10 @@ impl FASTAFile {
         let mut writer = BufWriter::new(File::create(path)?);
         for entry in entries {
             emit(&mut writer, entry)?;
-            self.progress.next_progress()?;
+            progress.next_progress()?;
         }
         writer.flush()?;
-        self.progress.end_progress(0)
+        progress.end()
     }
 }
 fn progress_position(position: Option<u64>) -> Result<i64> {
