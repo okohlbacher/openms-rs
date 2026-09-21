@@ -5428,6 +5428,7 @@
       "reference_manifests": [
         "tests/data/fasta_provenance.json",
         "tests/data/progress_consumers_provenance.json",
+        "tests/data/progress_format_readers_provenance.json",
         "tests/data/progress_logger_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -7601,6 +7602,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/consensusxml_provenance.json",
+        "tests/data/progress_format_readers_provenance.json",
         "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -7883,6 +7885,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/mzml_mobility_provenance.json",
+        "tests/data/progress_format_readers_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -8052,6 +8055,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/featurexml_provenance.json",
+        "tests/data/progress_format_readers_provenance.json",
         "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -8419,7 +8423,8 @@
       "reference_manifests": [
         "tests/data/consensusxml_provenance.json",
         "tests/data/data_array_xml_provenance.json",
-        "tests/data/modification_definition_io_provenance.json"
+        "tests/data/modification_definition_io_provenance.json",
+        "tests/data/progress_format_readers_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -8448,7 +8453,8 @@
         "tests/data/data_array_xml_provenance.json",
         "tests/data/feature_finding_metabo_provenance.json",
         "tests/data/featurexml_provenance.json",
-        "tests/data/modification_definition_io_provenance.json"
+        "tests/data/modification_definition_io_provenance.json",
+        "tests/data/progress_format_readers_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -8641,7 +8647,8 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/mzdata_provenance.json"
+        "tests/data/mzdata_provenance.json",
+        "tests/data/progress_format_readers_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -8665,7 +8672,8 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/boost_regex_provenance.json",
-        "tests/data/mzidentml_provenance.json"
+        "tests/data/mzidentml_provenance.json",
+        "tests/data/progress_format_readers_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -8722,6 +8730,7 @@
         "tests/data/mzml_source_file_round_trip_provenance.json",
         "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/mzml_writing_provenance.json",
+        "tests/data/progress_format_readers_provenance.json",
         "tests/data/topp_feature_finder_centroided_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -8856,7 +8865,8 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/mzxml_provenance.json"
+        "tests/data/mzxml_provenance.json",
+        "tests/data/progress_format_readers_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -9256,6 +9266,7 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/progress_format_readers_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -9403,7 +9414,8 @@
         "src/format/mascot_generic.rs"
       ],
       "reference_manifests": [
-        "tests/data/mascot_generic_provenance.json"
+        "tests/data/mascot_generic_provenance.json",
+        "tests/data/progress_format_readers_provenance.json"
       ],
       "direct_topp_consumers": [
         "FileConverter",
@@ -9526,6 +9538,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/mzidentml_provenance.json",
+        "tests/data/progress_format_readers_provenance.json",
         "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -9617,6 +9630,7 @@
         "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/mzml_validator_provenance.json",
         "tests/data/mzml_writing_provenance.json",
+        "tests/data/progress_format_readers_provenance.json",
         "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [

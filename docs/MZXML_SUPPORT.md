@@ -74,7 +74,7 @@ Every declared member, plus the surface it inherits.
 | inherited `XMLFile::parse_` / `parseBuffer_` / `save_` | the module's reader and writer | compression sniffing comes from `crate::format::path_io` |
 | inherited `XMLFile::schema_location_` / `schema_version_` | `SCHEMA`, `SCHEMA_VERSION` | |
 | inherited `XMLFile::enforceEncoding_` | reader's declaration handling | UTF-8, US-ASCII and ASCII-only ISO-8859-1 are accepted |
-| inherited `ProgressLogger` (`setLogType`, `startProgress`, `setProgress`, `endProgress`, `nextProgress`) | **not ported** | the source constructor takes a logger and reports per scan; this port has no log stream. Non-fatal observations come back in `ReadReport` instead |
+| inherited `ProgressLogger` (`setLogType`, `startProgress`, `setProgress`, `endProgress`, `nextProgress`) | the caller's `crate::concept::progress_logger::ProgressLogger`, passed to `load_with_progress`, `store_with_progress` and the `MzXMLFile` members of those names | the Release build's calls, call for call (tier 1, `tests/progress_format_readers.rs`; see `docs/PROGRESS_LOGGER_SUPPORT.md#format-readers`). The other entry points, including both `transform` overloads, run the same code and report nothing; non-fatal observations come back in `ReadReport` either way |
 
 ## API mapping — `FORMAT/HANDLERS/MzXMLHandler.h`
 
@@ -110,7 +110,7 @@ declared member is accounted for.
 | `protected UInt spec_write_counter_` | **not ported** | upstream initialises it to 1 and resets it to 1 at the end of `writeTo`; nothing reads it. `write_scans`'s local `written` counter is the renumbering counter that is actually used |
 | `protected IMSDataConsumer* consumer_` | `Sink::consumer` (private) | |
 | `protected UInt scan_count_` | `ReadReport::scan_count` | |
-| `protected const ProgressLogger& logger_` | **not ported** | see the `ProgressLogger` row above |
+| `protected const ProgressLogger& logger_` | the `Run`'s reporter and the writer's | see the `ProgressLogger` row above |
 | `protected writeAttributeIfExists_(os, meta, metakey, attname)` | `write_scan_statistics` (private) | |
 | `protected writeUserParam_(os, meta, indent, tag)` | `write_user_param` (private) | |
 | `protected doPopulateSpectraWithData_(SpectrumData&)` | `Run::decode` (private) | |
@@ -402,9 +402,14 @@ extension described above.
 
 ## Deferred
 
-- `ProgressLogger`: the source constructor threads a logger through and reports
-  progress per scan and per stored spectrum. `ReadReport` carries the non-fatal
-  observations; there is no progress callback.
+- Progress of the `transform` overloads: the source's handler reports there
+  too; the port's transform runs report nothing.
+- **A truncated document is accepted.** At the end of input the reader does not
+  check that every element was closed, so a document cut after a complete
+  `</scan>` loads the scans before the cut, where the Release build throws
+  `ParseError` ("input ended before all started tags were ended"). Found by the
+  progress replay (`mzxml_load_truncated`), recorded there, and not changed
+  with it, because the progress work changes no read result.
 - `FileHandler` dispatch: `crate::format::file_types::FileType::MzXml` already
   exists and content detection already recognises `<mzXML`, but
   `src/format/file_handler.rs` does not route to this module. That file is

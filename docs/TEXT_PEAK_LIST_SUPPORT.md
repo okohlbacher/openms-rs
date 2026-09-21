@@ -79,6 +79,22 @@ use stored chromatograms. Higher MS levels and unrelated metadata are
 unconsumed, as in `calculateTIC()` with source defaults. Duplicate-RT rows can
 be grouped if the resulting file is read as DTA2D spectra.
 
+## Progress
+
+`DTA2DFile` derives from `ProgressLogger`. `dta2d::load_with_progress`,
+`store_with_progress` and `store_tic_with_progress` make the calls of its
+`load`, `store` and `storeTIC` on a caller's logger:
+`startProgress(0, 0, "loading DTA2D file")` before the file opens and
+`setProgress(0)` as each spectrum begins; `startProgress(0, spectra, "storing
+DTA2D file")` before the output is created and `setProgress(i)` per spectrum,
+none for the TIC; `endProgress()` at the end (`DTA2DFile.h:72-248`, `:258-287`,
+`:297-320`). A failure after the start leaves the section open, as the source's
+exception does. They are the Release build's calls, call for call (tier 1,
+`tests/progress_format_readers.rs`; see `docs/PROGRESS_LOGGER_SUPPORT.md`). The
+other entry points run the same code and report nothing. `MS2File` owes no
+call: its only one is commented out (`MS2File.h:52`), and the Release build
+makes none.
+
 ## Validation and limits
 
 Finite signed coordinates/intensities are supported. Intensity tokens parse

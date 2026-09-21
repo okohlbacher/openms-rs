@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- **The FORMAT readers make the Release build's progress calls.** DTA2D,
+  MGF, consensusXML, featureXML, mzData, mzXML and mzML gain
+  `load_with_progress` / `store_with_progress` (and `store_tic_with_progress`,
+  `store_to_with_progress` and the file-adapter members): the calls of each
+  source file's `load` and `store`, on the caller's logger where the source
+  hands its handler the file object, and on a copy of it where the source
+  hands only its log type (featureXML, consensusXML) or keeps a copy
+  (`MzMLHandler`'s `pg_outer`). A failure leaves its section open, as the
+  source's exception does, and a store makes no call when its destination
+  cannot be created, as `XMLFile::save_` opens it first. The mzData handler's
+  function-local static scan counter is reproduced process-wide. MS2 and
+  mzIdentML owe nothing: the source makes no call. The silent entry points run
+  the same code, so no result, written byte or error changes.
+  `tests/progress_format_readers.rs` replays 30 cases executed on the Release
+  build (`../oracle/progress-format-readers`) call for call, with the recorded
+  calls, depths and stdout bytes, and asserts the two cases where the port's
+  calls differ (consensusXML parses before it reports; the mzML store counts
+  its own document's bytes). The replay also found that the mzXML reader accepts a document
+  truncated after a complete scan, where the Release build refuses it; that is
+  recorded, not changed here.
+
 - **XSD validation for every ported XML format, behind the new `xml-schema`
   feature.** `format::xml_schema` ports `XMLValidator::isValid` (for a
   self-contained caller schema) and the `isValid` each `XMLFile` inherits:

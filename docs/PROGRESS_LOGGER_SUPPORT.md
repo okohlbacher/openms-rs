@@ -24,7 +24,7 @@ exists only in a Debug build is not source behavior for this port.
 | `make_gui_progress_logger` | per-logger `set_gui_factory`, retained by copies; GUI defaults to a no-op |
 | source process-static recursion depth | shared `ProgressNesting::global()` by default; `Default` creates an isolated nesting context |
 | the `ProgressLogger` *base* of an algorithm class (`class GaussFilter : public ProgressLogger`) | the algorithm's `*_with_progress` entry point, which borrows a caller's `ProgressLogger` for the call; see [Consumers](#consumers) |
-| — | `ProgressReporter`: one run's progress calls sent to an optional logger, with `section`, which ends the section on failure too |
+| — | `ProgressReporter`: one run's progress calls sent to an optional logger (`start`, `set`, `set_count`, `next_progress`, `end`, `end_with_bytes`), with `section`, which ends the section on failure too |
 | — | `progress_value`: a `usize` count as the source's `SignedSize` value, refusing what would wrap |
 
 `CommandProgressLogger<W: std::io::Write>` is also directly usable as a backend.
@@ -222,12 +222,99 @@ takes, and the replay asserts it against the captured C++.
 turning a Debug-only `OPENMS_PRECONDITION` into a Rust refusal; it owes no
 progress call.
 
-The FORMAT readers and handlers that derive from `ProgressLogger`
-(`MzMLHandler`, `FeatureXMLHandler`, `MzIdentMLHandler`, `ConsensusXMLFile`,
-`FeatureXMLFile`, `DTA2DFile`, `MS2File`, `MascotGenericFile`, `MzDataFile`,
-`MzXMLFile`, `ImzMLFile`, `FileInfo`) are not wired by this change; the
-same pattern applies to each, and which calls each source member makes is
-recorded with the ledger fragment of phase 2.5b.
+## FORMAT readers
+
+The file adapters derive from `ProgressLogger` too, and their handlers make
+the calls. Each Rust reader gains `*_with_progress` entry points that take the
+caller's logger; they run the same code as the silent entry points, whose calls
+go to `ProgressReporter::silent()`,
+so a result, a written byte or an error cannot differ between the two
+(`progress_changes_no_result` and `progress_changes_no_error` in
+`tests/progress_format_readers.rs` check it on every reader). `ImzMLFile` was
+wired earlier (`docs/IMZML_FILE_SUPPORT.md`), and `FileInfo` reports once it
+passes its log type to these loaders.
+
+Three rules follow the Release build rather than `ProgressReporter::section`:
+
+1. **A failed section stays open.** When a reader fails after a start, the
+   source's exception bypasses `endProgress`: no `-- done` line, the static
+   depth stays one level deeper, and the object's command backend refuses its
+   next start with `StopWatch is already started!` (`StopWatch.cpp:43`). The
+   readers make their calls one by one and end a section only on success, so
+   all three hold here too; the replay's `mzml_reuse_after_failure` case loads
+   a truncated mzML and then a good one through one logger, and both builds
+   refuse the second load's list start in command mode.
+2. **The calls reach the logger the source uses.** `DTA2DFile`,
+   `MascotGenericFile`, `MzDataFile`, `MzXMLFile` and `MzMLFile` hand their
+   handler the file object itself, so the calls go to the caller's logger.
+   `ConsensusXMLFile` and `FeatureXMLFile` hand theirs only
+   `setLogType(getLogType())`, and `MzMLHandler` reports the whole document on
+   `pg_outer`, a thread-local copy of the file's logger; those calls go to a
+   copy of the caller's logger, made as `ProgressLogger::clone` makes one: a
+   fresh backend of its type (its GUI factory for `Gui`), its nesting shared. A
+   backend installed with `set_logger` therefore sees only the calls made on
+   the logger itself, as a source file's `setLogger` backend does.
+3. **A store opens its destination first.** `XMLFile::save_` opens the file
+   before its handler's `writeTo` makes a call, so a destination that cannot be
+   created makes none. The streaming writers already build inside the atomic
+   publication; the ones that build a whole document in memory first
+   (featureXML, consensusXML, mzData) build it inside the publication when
+   reporting (`path_io::store_reporting`), and if the destination cannot be
+   prepared they build it again without reporting, so a refusal still wins over
+   the destination's error as it does for the silent writer.
+
+| Source member | Rust entry point | Calls, as the Release build makes them | Logger |
+|---|---|---|---|
+| `DTA2DFile::load` | `dta2d::load_with_progress` | `startProgress(0, 0, "loading DTA2D file")` before the file opens, `setProgress(0)` as each spectrum begins, `endProgress()` (`DTA2DFile.h:72-248`) | the caller's |
+| `DTA2DFile::store`, `storeTIC` | `dta2d::store_with_progress`, `store_tic_with_progress` | `startProgress(0, spectra, "storing DTA2D file")` before the file is created, `setProgress(i)` per spectrum (not for the TIC), `endProgress()` (`:258-287`, `:297-320`) | the caller's |
+| `MS2File::load` | none needed | no call: the only one is commented out (`MS2File.h:52`) | — |
+| `MascotGenericFile::load` | `mascot_generic::load_with_progress`, `MascotGenericFile::load_with_progress` | `startProgress(0, file size, "loading MGF")`, `setProgress(is.tellg())` per block, which is -1 after a last `END IONS` without a newline, `endProgress()` (`MascotGenericFile.h:74-104`); none for a missing file | the caller's |
+| `MascotGenericFile::store` (both overloads) | `MascotGenericFile::store_with_progress`, `store_to_with_progress` | `startProgress(0, spectra, "storing mascot generic file")` after the header, `setProgress(i)`, `endProgress()` (`MascotGenericFile.cpp:458-476`) | the caller's |
+| `MzIdentMLFile::load`, `store` | none needed | no call: the handler makes none | — |
+| `ConsensusXMLFile::load` | `consensusxml::load_with_progress` | `startProgress(0, 0, "loading consensusXML file")`, then `setProgress(1)`, `setProgress(2)`, … for the root and every `map`, `consensusElement`, `IdentificationRun`, `ProteinHit`, `PeptideHit` and `dataProcessing` element, `endProgress()` (`ConsensusXMLHandler.cpp:130-133`, `:254-256`) | a copy |
+| `ConsensusXMLFile::store` | `consensusxml::store_with_progress` | `startProgress(0, 0, "storing consensusXML file")`, `setProgress(1)` … `setProgress(5 + runs + column headers + features)`, `endProgress()` (`:606-837`) | a copy |
+| `FeatureXMLFile::load` | `featurexml::load_with_progress` | `startProgress(0, count, "Loading featureXML file")`, `setProgress(features kept)` as each top-level feature begins, `endProgress()` (`FeatureXMLHandler.cpp:319`, `:1047`, `:838`) | a copy |
+| `FeatureXMLFile::loadSize` | `featurexml::load_size` | no call: the load stops before the section (`:306-316`) | — |
+| `FeatureXMLFile::store` | `featurexml::store_with_progress` | `startProgress(0, features, "Storing featureXML file")`, `setProgress(i)` after feature `i`, `endProgress()` (`:215-222`) | a copy |
+| `MzDataFile::load` | `mzdata::load_with_progress`, `MzDataFile::load_with_progress` | `startProgress(0, count, "loading mzData file")` at `<spectrumList>` (`MzDataHandler.cpp:347-356`), a set per spectrum with a process-wide counter, incremented first (`:436`, `:452`), `endProgress()` at `</mzData>`, which resets the counter (`:460-464`) | the caller's |
+| `MzDataFile::store` | `mzdata::store_with_progress`, `MzDataFile::store_with_progress` | `startProgress(0, spectra, "storing mzData file")`, `setProgress(s)`, `endProgress()` (`:579-1073`) | the caller's |
+| `MzXMLFile::load` | `mzxml::load_with_progress`, `MzXMLFile::load_with_progress` | `startProgress(0, scanCount, "loading mzXML file")` at `<msRun>`, `setProgress(n)` as each scan begins, nested or filtered, `endProgress()` at `</mzXML>` (`MzXMLHandler.cpp:130-136`, `:281-282`, `:524-531`) | the caller's |
+| `MzXMLFile::store` | `mzxml::store_with_progress`, `MzXMLFile::store_with_progress` | `startProgress(0, spectra, "storing mzXML file")`, `setProgress(s)`, `endProgress()` (`:636`, `:864`, `:1119`) | the caller's |
+| `MzMLFile::load` | `mzml::load_with_progress` | on a copy: `startProgress(0, 1, "loading mzML")` at `<mzML>` and `endProgress(file size)` at `</mzML>` (`MzMLHandler.cpp:1203`, `:1524`); on the caller's: `startProgress(0, count, "loading spectra list")` or `"loading chromatogram list"`, `nextProgress()` per record, `endProgress()` per list (`:966`, `:997`, `:1443`, `:1483`, `:1491`, `:1497`) | both |
+| `MzMLFile::store` | `mzml::store_with_progress` | `startProgress(0, spectra + chromatograms, "storing mzML file")`, `setProgress(n)` per record, `endProgress(bytes written)` (`:4763-4838`) | the caller's |
+
+Where the port's calls differ, the replay asserts the difference against the
+captured calls:
+
+- **consensusXML parses before it reports.** The reader parses the whole
+  document before it converts any of it, so it makes its calls after a
+  successful parse: a document that is not well-formed makes none, where the
+  Release build made those for the elements before the defect
+  (`consensus_load_truncated`), and one the conversion refuses has made every
+  set and no end. featureXML hands each feature over as it is parsed, so only a
+  failure inside a feature, or inside `<featureList>` before its first feature
+  is complete, shows: the port makes a feature's set when the feature ends.
+- **mzML decodes arrays as they close.** The source decodes a pool of spectra
+  when it is flushed, by default at `</mzML>` (`MzMLHandler.cpp:1425-1428`,
+  `:1522-1523`), so a document with an undecodable array fails after fewer
+  calls here.
+- **The mzML store counts its own bytes.** `endProgress(os.tellp())` reports
+  the size of the document written; the port's document is not the source's,
+  so the count is the port's file size. With a `.gz` or `.bz2` suffix it is the
+  count before compression, where the source's compressing stream has no
+  position and passes -1.
+- **Native refusals come first where the port checks before it writes.** The
+  source has no ceilings and refuses almost nothing; a refusal the port makes
+  before a section starts makes no call.
+
+The mzData handler's scan counter is a function-local `static UInt`
+(`MzDataHandler.cpp:436`) that only `</mzData>` resets, so after a load that
+failed inside the spectrum list the next load's values continue past the
+range. The port keeps the same process-wide counter, atomically, and every
+mzData load advances it, reporting or not (`mzdata_static_counter`). The
+source's other file entry points that report progress are not wired here and
+report nothing: `MzMLFile::loadSize`, `loadBuffer`, `storeBuffer` and both
+`transform` overloads, and `MzXMLFile`'s `transform` overloads.
 
 ## Evidence
 
@@ -291,5 +378,25 @@ whole-second throttle never suppresses a set. Three runs on kim are
 byte-identical; `tests/data/progress_consumers_release.tsv` is the masked table
 and `tests/progress_consumers.rs` replays all 18 cases in both modes. See
 `tests/data/progress_consumers_provenance.json`.
+
+**FORMAT reader calls (tier 1).** `../oracle/progress-format-readers/driver.cpp`
+links the same Release install and runs 30 cases over DTA2D, MS2, MGF,
+mzIdentML, consensusXML, featureXML, mzData, mzXML and mzML on ibminode06, each
+twice on a fresh file object: once with `setLogType(GUI)` and
+`make_gui_progress_logger` replaced by a factory for a recording backend, so
+the fresh backends the files make from their log type and `MzMLHandler`'s
+`pg_outer` copy are recorded as well as the file's own, and once with
+`setLogType(CMD)`. The inputs are the class-test files at `bc9cc12` and
+derived ones (`make_inputs.py`): truncated XML documents, a DTA2D line with a
+bad number, and an MGF whose last `END IONS` has no newline. Three runs are
+identical after masking the timing and throughput texts;
+`tests/data/progress_format_readers_release.tsv` is the masked table and
+`tests/progress_format_readers.rs` replays it with the port's GUI factory
+installing the same kinds of backend, matching every call, depth and stdout
+byte except the differences listed under [FORMAT readers](#format-readers).
+The replay also found a reader defect that is not a progress one: the mzXML
+reader accepts a document truncated after a complete `</scan>`, where the
+Release build throws `ParseError`; the case records it. See
+`tests/data/progress_format_readers_provenance.json`.
 
 The main-crate checks are recorded in [validation results](VALIDATION.md).
