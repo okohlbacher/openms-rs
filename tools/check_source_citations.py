@@ -831,6 +831,12 @@ def resolvable(pins, revisions, directory, name):
     a name with no usable path, or one whose path fits nothing anywhere,
     resolves everywhere it exists, and :func:`check_file` then has to tell those
     apart or count the citation ambiguous.
+
+    A name no pin carries at all gets one last chance, at the retained sources
+    (:meth:`Pins.retained`) - the ``libstdc++`` headers the Release build's
+    algorithms were compiled from, which belong to the toolchain and can never
+    be in a pin. That limb is last on purpose: retaining a file may add an
+    answer, never move one, so a name a pin does carry is still the pin's.
     """
     package, inside = split_package(directory)
     if package is not None:
