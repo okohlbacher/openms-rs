@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- **FileInfo reports mzXML, mzData, MGF and MS2 peak files (A8, the cheap
+  half).** The four types were refused before loading although their readers
+  existed; the peak-file branch now loads each through the reader the source's
+  `FileHandler::loadExperiment` names for it, MGF with the source's carry-over
+  from block to block. 60 reports equal the Release build's byte for byte, text
+  and TSV (`tests/file_info_a8.rs`, `../oracle/a8-fileinfo`: 68 tool cases and
+  14 through the class, because the tool's `-in` refuses the `ms2` extension),
+  and TOPP_FileInfo_4, _5 and _6 pass against their retained outputs. The MGF
+  reader gains `ReadOptions::source_ms_level`, so `MSLEVEL=-1` is the MS level
+  4294967295 the source prints. Two inputs stay refused where the kernel's
+  validating range computation is stricter than the source's `updateRanges`: an
+  mzData scan window that begins after it ends, and an MGF MS level 0. sqMass,
+  XMass and MSP have no reader and stay refused
+  ([FILE_INFO_A8_SUPPORT](docs/FILE_INFO_A8_SUPPORT.md)).
+
 - **XSD validation for every ported XML format, behind the new `xml-schema`
   feature.** `format::xml_schema` ports `XMLValidator::isValid` (for a
   self-contained caller schema) and the `isValid` each `XMLFile` inherits:
