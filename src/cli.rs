@@ -1228,6 +1228,14 @@ fn write_commands<T: Tool>(
                 )?;
                 return Ok(Some(ExitCode::InternalError));
             }
+            // The source sets `type` on its command-line parameters and
+            // recomputes `getDefaultParameters_()` for each type
+            // (`handleWriteCommands_`), so a subsection whose defaults depend
+            // on the type differs per CTD. The defaults here are computed once
+            // and only `<location>type` is set: equal for every tool ported so
+            // far, none of which has types; a ported tool with types must
+            // recompute them per type (`docs/TOPP_CLI_SUPPORT.md`, *Tool
+            // descriptions*).
             let mut described = defaults.checked_clone()?;
             if !kind.is_empty() {
                 described.set_value(

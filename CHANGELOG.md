@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+- **A thrown exception and a returned exit code end as the source ends them.**
+  `Tool::run` and `Tool::run_io` return `ToolResult`: `Ok(code)` is a `main_`
+  that returned, which the closing `<tool> took …` line follows, and a
+  `ToolError` is a `main_` that threw — `Error` for this crate's errors,
+  `Caught` for a catch block's own text (written through `writeLogError_`,
+  into the `-log` file too), `Escaped` for a `std::exception`, which only the
+  initialisation catch reports. The tools that had stood in for thrown
+  exceptions by writing the catch text and returning a code (PeakPickerHiRes,
+  FeatureFinderCentroided, FileInfo, FuzzyDiff) printed the closing line after
+  them since the TOPPBase completion; the five earlier tools raised errors
+  where the source returns a code after its own message (MzMLSplitter's
+  refusals, DTAExtractor's `Invalid boundary`, BaselineFilter's input checks).
+  Both now match the Release build. The tools' own messages reach `-log`, and
+  their `writeDebug_` lines too; MzMLSplitter prints its report and
+  BaselineFilter its centroided-data warning. With `OPENMS_TOOL_PREFIX_PATH`
+  naming an OpenMS4 installation the port tools run instead of exiting 6: the
+  installed `topp.tools.tsv` is the built-in manifest reached twice, read once
+  as the source reads it. The FuzzyDiff differential compares the Release
+  streams as recorded, its three normalisations of the old framework deleted.
+  Evidence: 28 new cases on the Release build (`../oracle/topp-exception-exits`,
+  retained in `tests/data/topp_exception_exits`), and the four executed
+  TOPPBase cases that were never compared, now compared.
+
 - **TOPPBase against the C++ Release build: tool descriptions, the tool
   registry, `-log`, per-user defaults.** `-write_ctd` writes the Common Tool
   Description byte for byte as the Release build does for the seven ported

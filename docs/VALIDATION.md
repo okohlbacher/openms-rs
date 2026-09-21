@@ -9,7 +9,11 @@ lifecycle as `src/cli/tools/fuzzy_diff.rs`, with `src/bin/FuzzyDiff.rs` and a
 `concept::fuzzy_string_comparator`; the test support now re-exports it and
 keeps the `FuzzyDiff` contract emulation and the INI subset reader.
 `python3 tools/core_sdk_coverage.py` counts **9** validated TOPP workflows
-(was 8), through `tests/data/topp_fuzzy_diff_provenance.json`.
+(was 8), through `tests/data/topp_fuzzy_diff_provenance.json`. (Corrected in
+the phase 3 wave 1 repair: the ledger's sentence says each validated workflow
+reproduces its upstream test against retained C++ output, which FuzzyDiff's
+registrations do not have — they retain no output and `WILL_FAIL` is their
+expectation. FuzzyDiff's evidence is 80 executed Release runs.)
 
 **The move changed no behaviour, and that was checked rather than asserted.**
 The library module is the test-support class code; the only additions are

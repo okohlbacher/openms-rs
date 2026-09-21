@@ -1,6 +1,6 @@
 {
  "group": "topp_fuzzy_diff",
- "package": "Phase 3a: FuzzyDiff, the ninth validated TOPP workflow",
+ "package": "Phase 3a: FuzzyDiff, the ninth TOPP workflow the SDK ledger counts as validated; its evidence is executed Release runs, not retained upstream output",
  "package_revisions": {
   "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
   "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
@@ -55,12 +55,12 @@
     "name": "TOPP_FuzzyDiff_4",
     "lines": "141, 144",
     "will_fail": true,
-    "status": "reproduced: exit 1, lorem_ipsum.featureXML does not exist at the pin; streams equal to the Release build's after the framework's documented 'does not exist' wording"
+    "status": "reproduced: exit 1, lorem_ipsum.featureXML does not exist at the pin; streams equal to the Release build's"
    }
   ],
-  "note": "No FuzzyDiff registration retains an output file: WILL_FAIL is the registered expectation. The executed Release run supplies the exit code and both streams. The comments at 142-143 have the reasons of _1 and _2 swapped."
+  "note": "No FuzzyDiff registration retains an output file: WILL_FAIL is the registered expectation. The executed Release run supplies the exit code and both streams. The comments at 142-143 have the reasons of _1 and _2 swapped. So the tier-1 evidence of this workflow is the executed Release runs, not retained upstream output."
  },
- "method": "Each oracle case runs through openms::cli::run_with::<FuzzyDiff> in process (two through the built executable, with a working directory), and is compared with the Release build on the exit code, stdout byte for byte and stderr byte for byte. The C++ streams are normalised by the oracle (data directory, case directory, timing values, sort temporary names) and then by the test for the framework's documented differences only: the TOPPBase timing line is dropped (and held to exactly the runs whose main_ returned), the Linux stty probe line of the usage text is dropped, the framework's missing-file parenthetical reads 'does not exist', the strict-update diagnostic and its 'Parameters passed ... are invalid' line are put in code order, and a -sort temporary file is named by its input. -write_ini is compared as a file, line by line and as a decoded parameter tree.",
+ "method": "Each oracle case runs through openms::cli::run_with::<FuzzyDiff> in process (two through the built executable, with a working directory), and is compared with the Release build on the exit code, stdout byte for byte and stderr byte for byte. The C++ streams carry the oracle's placeholders (data directory, case directory, timing values, sort temporary names); the port's streams get the same placeholders, its closing line checked for shape and masked as the oracle masks the Release build's. The test then applies only the two differences of the environment: the Linux stty probe line of the usage text is dropped, and a -sort temporary file is named by its input. The closing line, the missing-file text and the order of the strict-update lines are compared as the Release build wrote them (the normalisations of those three, which encoded the framework before the TOPPBase completion, were deleted). -write_ini is compared as a file, line by line and as a decoded parameter tree. Three -log cases of ../oracle/topp-exception-exits (fd_*_log) add the log file.",
  "evidence_tier": "tier 1 (executed differential): the pinned C++ Release build openms4-release-bc9cc12-c19e494-174b576 on ibminode06, 80 FuzzyDiff invocations run twice (../oracle/fuzzy-diff-tool), including the four upstream registrations TOPP_FuzzyDiff_1..4 on their pinned inputs; 77 match in full, 3 are deliberate divergences asserted on their own; tier 4 for the native refusals and the test-support emulation's agreement",
  "oracle": {
   "evidence_label": "oracle-generated (tier 1 executed differential)",

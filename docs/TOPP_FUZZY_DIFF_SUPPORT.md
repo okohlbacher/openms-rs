@@ -3,9 +3,14 @@
 `FuzzyDiff` compares two files and tolerates numeric differences. The upstream
 test suite judges almost every tool output with it (`${DIFF}` at
 `topp/CMakeLists.txt:59`, test-data `0cb15f2`). This port runs it on the TOPP
-lifecycle over the library comparator, and it is the ninth validated TOPP
-workflow: `python3 tools/core_sdk_coverage.py` counts it through
-`tests/data/topp_fuzzy_diff_provenance.json`.
+lifecycle over the library comparator. `python3 tools/core_sdk_coverage.py`
+counts it as the ninth validated TOPP workflow, through
+`tests/data/topp_fuzzy_diff_provenance.json`, whose tier-1 evidence is not
+retained upstream output: the four upstream registrations retain no output
+file, and `WILL_FAIL` on three of them is their whole expectation. The
+evidence is executed Release runs: the pinned Release build ran `FuzzyDiff`
+80 times (the four registrations among them), and each run's exit code and
+both streams are retained and compared (*Checked boundaries and evidence*).
 
 | Rust file | Covers |
 |---|---|
@@ -13,7 +18,7 @@ workflow: `python3 tools/core_sdk_coverage.py` counts it through
 | `src/bin/FuzzyDiff.rs` | the executable, `openms::cli::run::<FuzzyDiff>`; `[[bin]]` requires `paramxml` |
 | `src/concept/fuzzy_string_comparator.rs` | `CONCEPT/FuzzyStringComparator.h/.cpp` (core `bc9cc12`, `src/testframework`), plus the tool's two input transforms `sorted_lines` and `parse_matched_whitelist`; see [its support document](FUZZY_STRING_COMPARATOR_SUPPORT.md) |
 | `tests/topp_fuzzy_diff.rs` | the executed differential against the Release build, the four upstream registrations, the deliberate divergences and the native bounds |
-| `tests/data/topp_fuzzy_diff/` | synthetic inputs, the oracle case list, the Release build's normalised streams and its `-write_ini` file |
+| `tests/data/topp_fuzzy_diff/` | synthetic inputs, the oracle case list, the Release build's streams with the oracle's placeholders, and its `-write_ini` file |
 | `tests/data/topp_fuzzy_diff_provenance.json` | pins, hashes, evidence tiers |
 
 The tool needs `paramxml` only, as the TOPP framework does. The comparator and
@@ -69,6 +74,14 @@ source's line for line.
 | 10 | a difference, or the same name twice ("That's cheating!") | `PARSE_ERROR` |
 | 11 | an input beyond the comparator's 1 GiB bound, or a `-sort` input beyond 2^26 lines | native (difference 3) |
 | 12 | an input that cannot be read, such as a directory | the source's `std::ios_base::failure` → `INTERNAL_ERROR` (difference 2) |
+
+Only 0 and 10 are exit codes `main_` returns, and only they are followed by
+the closing line `FuzzyDiff took … .`, as in the Release build; every other
+code is a thrown exception (`ToolError`) or a refusal before `main_`, and ends
+without it. The `IllegalArgument` of 8 and the `FileNotFound` of an unopenable
+`-sort` input are written to the `-log` file as well; the 12 of an unreadable
+input reaches only the error stream, as the source's initialisation catch
+writes it (Release oracles `fd_*_log` of `../oracle/topp-exception-exits`).
 
 ## Preserved source conventions
 
@@ -137,19 +150,22 @@ source's line for line.
    source's `int`; both of the framework's readers already refuse a value
    beyond `i32`, so the conversion's refusal is defensive.
 
-The framework's own differences show in this tool's streams and are the
-framework's, not the tool's (`docs/TOPP_CLI_SUPPORT.md`): no timing line after
-`main_` returns, no `writeDebug_`, no `stty` probe in the usage text, `does not
-exist` where the source's missing-file message says `could not be found`, and
-a strict-update diagnostic written before `Parameters passed to 'FuzzyDiff'
-are invalid...` where the C++ error stream shows it after (the two go through
-different C++ log streams; executed on the 10 invalid-parameter cases).
+The framework's lines in this tool's streams are the Release build's: the
+closing line after `main_` returns, the missing-file diagnostic, and a failed
+strict update's `Parameters passed to 'FuzzyDiff' are invalid...` before its
+diagnostic. The source's two `writeDebug_` lines about the whitelists reach
+the `-log` file from debug level 1 (Release oracle `fd_debug1_log`). One
+framework difference is left, of the environment rather than the tool: a tool
+driven in process writes to explicit streams, which are not probed, so the
+`stty` line the Linux Release build prints before its usage text has no
+counterpart (`docs/TOPP_CLI_SUPPORT.md`, *On a console*).
 
 ## Checked boundaries and evidence
 
 | Evidence | Tier | What |
 |---|---|---|
-| `tests/data/topp_fuzzy_diff/oracle/` | 1, executed differential | The pinned Release build `openms4-release-bc9cc12-c19e494-174b576` ran `FuzzyDiff` for 80 invocations on ibminode06, twice, with identical exit codes and streams after normalisation (`../oracle/fuzzy-diff-tool`, binary sha256 `ee789a71…`). 75 run in process and match on exit code, output stream and error stream byte for byte after the framework normalisations named in `tests/topp_fuzzy_diff.rs::cpp_streams_for_port`; 2 run through the executable with a working directory and match the same way; 3 are the deliberate divergences above, asserted on their own; `-write_ini` matches the C++ file line by line and as a decoded tree. |
+| `tests/data/topp_fuzzy_diff/oracle/` | 1, executed differential | The pinned Release build `openms4-release-bc9cc12-c19e494-174b576` ran `FuzzyDiff` for 80 invocations on ibminode06, twice, with identical exit codes and streams after the oracle's own masking of paths, timing figures and temporary names (`../oracle/fuzzy-diff-tool`, binary sha256 `ee789a71…`). 75 run in process and match on exit code, output stream and error stream byte for byte, the Release streams as recorded apart from the Linux `stty` probe line and `-sort`'s temporary names (`tests/topp_fuzzy_diff.rs::release_streams`), the port's closing line masked as the oracle masks the Release build's; 2 run through the executable with a working directory and match the same way; 3 are the deliberate divergences above, asserted on their own; `-write_ini` matches the C++ file line by line and as a decoded tree. Until the TOPPBase completion, the comparison also dropped the closing line, rewrote the missing-file text and reordered the strict-update lines to the framework of the day; those normalisations are gone. |
+| `tests/data/topp_exception_exits/fd_*_log` | 1, executed differential | Three more Release runs with `-log` (`../oracle/topp-exception-exits`): the malformed whitelist (8, its line in the log, no closing line), a directory as `-in1` (12, the initialisation catch's line on the error stream only, no log file) and a comparison at debug level 1 (the whitelist lines in the log). |
 | TOPP_FuzzyDiff_1..4 | 1 | The four registrations at `topp/CMakeLists.txt:138-144` on their pinned inputs: `_1` 10 (cheating), `_2` 10 (ratio at line 22), `_3` 0, `_4` 1 (missing input), each checked against its `WILL_FAIL` expectation and then against the Release build's streams. No registration retains an output file. |
 | the 35 product-SDK invocations | 1 | Re-run on the Release build with their streams; every exit code equals the product-SDK one recorded in `tests/data/fuzzy_string_comparator/oracle/tool_runs.tsv`. |
 | emulation agreement | 4 | `tests/support/fuzzy_string_comparator.rs::fuzzy_diff`, which tests without `paramxml` use, gives the tool's and the Release build's exit code on every oracle case it models, except that it keeps its own answer (10) for a directory. |

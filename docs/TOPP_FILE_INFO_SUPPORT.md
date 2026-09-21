@@ -67,8 +67,9 @@ Every member of the source `TOPPFileInfo` and the behaviour it carries.
 | `getGlobalLogInfo()` as the default report sink | the `out` writer, so a `run_with` caller captures the report |
 | `FileTypes::nameToType(getStringOption_("in_type"))` | `FileType::from_name` |
 | `FileHandler::getType(in)` | `detect_type`, `FileHandler::get_type` with a directory reported as unknown |
-| `writeDebug_("Input file type: …", 2)` | not ported; `docs/TOPP_CLI_SUPPORT.md` records the debug helpers as unported |
-| `writeLogError_` | `writeln!(err, …)` |
+| `writeDebug_("Input file type: …", 2)` | `ToolContext::write_debug`, the `-log` file from debug level 2 (Release oracle `fi_debug2_log`) |
+| `writeLogError_` | `ToolContext::write_log_error`: the error stream, red on a terminal, and the `-log` file (Release oracles `fi_index_on_dta_log`, `fi_notype_log`) |
+| `throw FileNotWritable` (an `-out`/`-out_tsv` that cannot be opened) | `ToolError::unexpected`: the `BaseException` arm's line on the error stream and in the log, exit 8, no closing line (Release oracle `fi_out_is_directory_log`) |
 | `printUsage_()` | `cli::print_usage` with this tool's spec |
 | `FileInfo::Options` assignment (eight members plus `log_type_`) | the `Options` literal in `run_io`, plus the native `source_dangling_references` |
 | `FileInfo fi; fi.run(in, opt)` | `format::file_info::report::FileInfo::new().run(&input, &options)` |
@@ -106,8 +107,10 @@ Every member of the source `TOPPFileInfo` and the behaviour it carries.
   accepts only that type.
 - **`log_type`** is `CMD` unless `-no_progress`, as `TOPPBase::log_type_`; the
   native loaders report no progress, so it changes no output.
-- **The timing line** (`TOPPBase::main`) never reaches `-out`: it is not ported
-  at all, so the output stream carries the report alone.
+- **The closing line** `FileInfo took … .` (`TOPPBase::main`) goes to the
+  output stream after the report, never to `-out`, whenever `outputTo_`
+  returns, including its two refusals (exit 10 and 6); an `-out` that cannot
+  be opened is a thrown `FileNotWritable` and ends without it.
 - **Serial**: FileInfo has no parallel section in the source and none here.
   `-threads` is accepted and changes nothing (`threads_do_not_change_the_reports`).
 
@@ -157,7 +160,11 @@ Every member of the source `TOPPFileInfo` and the behaviour it carries.
    `BaseException` wording, matching the executed C++ for a directory; the
    source's own `FileNotWritable` throw is unreachable there because
    `outputFileWritable_` ran first.
-8. **`writeDebug_`** of the detected type at debug level 2 is not ported.
+8. **A directory as `-in`** exits 10 here, with the framework's warning and
+   the tool's own refusal, as on the macOS product SDK (oracle
+   `in_is_directory`); the Linux Release build ends in the framework's input
+   check with exit 12 (`fi_undetermined_log`, libstdc++ throws reading the
+   directory; `docs/TOPP_CLI_SUPPORT.md`, *Input checks on a directory*).
 9. **`-i` answers with this port's index decoder, which departs from the source
    in two measured places.** Whether a file has an index, and the spectrum and
    chromatogram counts printed on the line above the content, come from
@@ -244,5 +251,6 @@ numeric tolerance is applied outside the registered FuzzyDiff comparisons.
   takes the same `-v` refusal.
 - The three mzML reader gaps of native difference 2, and the forced-type
   refusal classes of native difference 3, both outside this package.
-- `-log`, `-instance` and the timing line stay as `docs/TOPP_CLI_SUPPORT.md`
-  records them for every tool.
+- `-instance` stays as `docs/TOPP_CLI_SUPPORT.md` records it for every tool;
+  `-log` and the closing line follow the source (Release oracles
+  `fi_*_log` of `../oracle/topp-exception-exits`).
