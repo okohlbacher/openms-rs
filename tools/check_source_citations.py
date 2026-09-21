@@ -107,11 +107,15 @@ The other population that ``not_done`` named - a bare range written under a file
 named without a line number, which is where the issue log puts most of its line
 numbers - has been measured and is down from 66 to 3. Every one of the 63 was
 resolved the same way: name the file once, at the first bare range of the
-paragraph, and the rest continue it. Six of them turned out to be written under
-the *wrong* file, ``SignalToNoiseEstimator.h`` for lines that are in the
-442-line ``SignalToNoiseEstimatorMedian.h``, which is what a bare range under a
-file too short to hold it looks like from here. Resolving them also made three
-quotations readable that nothing had read before, and one of those was a defect.
+paragraph, and the rest continue it. Six line numbers, in four documents at
+once, turned out to be written under the *wrong* file -
+``SignalToNoiseEstimator.h`` for lines that are in the 442-line
+``SignalToNoiseEstimatorMedian.h`` - which is what a bare range under a file
+too short to hold it looks like from here: :func:`owner_of` declined to answer
+them rather than answering wrongly, which is why they were unresolved and not
+quietly confirmed against the short file. Resolving the population also put
+four quotations in front of the checker that nothing had read before, and three
+of them were defects.
 The 3 that remain cannot be resolved by anything this reads: two are line
 numbers in a Rust file, written as a continuation of one (``features.rs:599``
 and ``:839``), and one continues Eigen's ``lmpar.h``, which no pin carries and
