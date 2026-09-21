@@ -1,0 +1,319 @@
+
+-- General information --
+
+File name: <FIX>/SimpleExtender_test.mzData
+File type: mzData
+
+Instrument: 
+
+MS levels: 1
+Total number of peaks: 952
+Number of spectra: 28
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 1235.92 .. 1253.71 sec (0.3 min)
+  mass-to-charge: 687.00 .. 693.60
+  ion mobility: <none> .. <none>
+  intensity: 0.00 .. 112623.00
+
+Spectrum Ranges:
+  retention time: 1235.92 .. 1253.71 sec (0.3 min)
+  mass-to-charge: 687.00 .. 693.60
+  ion mobility: <none> .. <none>
+  intensity: 0.00 .. 112623.00
+
+MS Level 1 Ranges:
+  retention time: 1235.92 .. 1253.71 sec (0.3 min)
+  mass-to-charge: 687.00 .. 693.60
+  ion mobility: <none> .. <none>
+  intensity: 0.00 .. 112623.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 28
+
+Peak type from metadata (or estimated from data)
+  level 1: Unknown (Centroid)
+
+Activation methods
+
+Precursor charge distribution:
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1235.92
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 2:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1236.61
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 3:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1237.27
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 4:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1237.93
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 5:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1238.58
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 6:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1239.26
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 7:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1239.9
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 8:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1240.54
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 9:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1241.18
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 10:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1241.81
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 11:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1242.5
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 12:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1243.14
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 13:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1243.78
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 14:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1244.42
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 15:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1245.07
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 16:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1245.77
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 17:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1246.43
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 18:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1247.09
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 19:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1247.75
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 20:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1248.41
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 21:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1249.12
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 22:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1249.76
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 23:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1250.41
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 24:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1251.07
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 25:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1251.73
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 26:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1252.39
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 27:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1253.05
+  m/z:        687 .. 693.6
+Precursors:  0
+
+Spectrum 28:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      34
+  RT:         1253.71
+  m/z:        687 .. 693.6
+Precursors:  0
+
+-- Checking for corrupt data --
+
+
+-- Meta information --
+
+Document ID:        OpenMS:
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    Unknown
+  mass analyzer(s): 
+  detector(s):      Unknown
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    
+  software version: 
+  completion time:  0000-00-00 00:00:00
+  actions:          
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 952
+  mean:           3690.12
+  minimum:        0
+  lower quartile: 0
+  median:         212
+  upper quartile: 1135
+  maximum:        112623
+  variance:       1.64471e+08
+
+
+

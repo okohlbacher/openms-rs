@@ -1,0 +1,199 @@
+
+-- General information --
+
+File name: <FIX>/MzDataFile_4_64bit.mzData
+File type: mzData
+
+Instrument: 
+  Mass Analyzer: Unknown (resolution: 0)
+
+MS levels: 1
+Total number of peaks: 3
+Number of spectra: 1
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 120.00 .. 120.00 sec (0.0 min)
+  mass-to-charge: 110.00 .. 130.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 200.00
+
+Spectrum Ranges:
+  retention time: 120.00 .. 120.00 sec (0.0 min)
+  mass-to-charge: 110.00 .. 130.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 200.00
+
+MS Level 1 Ranges:
+  retention time: 120.00 .. 120.00 sec (0.0 min)
+  mass-to-charge: 110.00 .. 130.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 200.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 1
+
+Peak type from metadata (or estimated from data)
+  level 1: Unknown (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+
+Meta data array:
+  area:          1 spectra
+  charge:        1 spectra
+  fwhm:          1 spectra
+  leftWidth:     1 spectra
+  peakShape:     1 spectra
+  rValue:        1 spectra
+  rightWidth:    1 spectra
+  signalToNoise: 1 spectra
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         120
+  m/z:        110 .. 130
+Precursors:  0
+
+-- Checking for corrupt data --
+
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    Unknown
+  mass analyzer(s): Unknown
+  detector(s):      Unknown
+
+Contact person:
+  first name:     
+  last name:      
+  email:          
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    
+  software version: 
+  completion time:  0000-00-00 00:00:00
+  actions:          
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 3
+  mean:           133.333
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        200
+  variance:       3333.33
+
+Meta data: area
+  num. of values: 3
+  mean:           133.333
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        200
+  variance:       3333.33
+
+Meta data: charge
+  num. of values: 3
+  mean:           133.333
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        200
+  variance:       3333.33
+
+Meta data: fwhm
+  num. of values: 3
+  mean:           133.333
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        200
+  variance:       3333.33
+
+Meta data: leftWidth
+  num. of values: 3
+  mean:           133.333
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        200
+  variance:       3333.33
+
+Meta data: peakShape
+  num. of values: 3
+  mean:           133.333
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        200
+  variance:       3333.33
+
+Meta data: rValue
+  num. of values: 3
+  mean:           133.333
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        200
+  variance:       3333.33
+
+Meta data: rightWidth
+  num. of values: 3
+  mean:           133.333
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        200
+  variance:       3333.33
+
+Meta data: signalToNoise
+  num. of values: 3
+  mean:           133.333
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        200
+  variance:       3333.33
+
+
+

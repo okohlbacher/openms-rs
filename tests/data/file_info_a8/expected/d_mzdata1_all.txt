@@ -1,0 +1,203 @@
+
+-- General information --
+
+File name: <FIX>/MzDataFile_1.mzData
+File type: mzData
+
+Instrument: MS-Instrument
+  Mass Analyzer: Quadrupole ion trap (resolution: 22.33)
+  Mass Analyzer: Quadrupole (resolution: 12.3)
+
+MS levels: 1, 2
+Total number of peaks: 9
+Number of spectra: 3
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 60.00 .. 180.00 sec (2.0 min)
+  mass-to-charge: 100.00 .. 140.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 300.00
+
+Spectrum Ranges:
+  retention time: 60.00 .. 180.00 sec (2.0 min)
+  mass-to-charge: 100.00 .. 140.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 300.00
+
+MS Level 1 Ranges:
+  retention time: 60.00 .. 180.00 sec (2.0 min)
+  mass-to-charge: 100.00 .. 140.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 300.00
+
+MS Level 2 Ranges:
+  retention time: 120.00 .. 120.00 sec (0.0 min)
+  mass-to-charge: 110.00 .. 130.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 200.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 2
+  level 2: 1
+
+Peak type from metadata (or estimated from data)
+  level 1: Unknown (Unknown)
+  level 2: Profile (Unknown)
+
+Activation methods
+    MS-Level 2 & CID (Collision-induced dissociation): 1
+    MS-Level 2 & SID (Surface-induced dissociation): 1
+
+Precursor charge distribution:
+  charge 2: 1x
+
+Meta data array:
+  area:          3 spectra
+  charge:        3 spectra
+  fwhm:          3 spectra
+  leftWidth:     3 spectra
+  peakShape:     3 spectra
+  rValue:        3 spectra
+  rightWidth:    3 spectra
+  signalToNoise: 3 spectra
+
+
+-- Meta information --
+
+Document ID:        lsid
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             MS-Sample
+  organism:         
+  comment:          
+
+Instrument:
+  name:             MS-Instrument
+  model:            MS 1
+  vendor:           MS-Vendor
+  ion source(s):    Electrospray ionisation
+  mass analyzer(s): Quadrupole ion trap, Quadrupole
+  detector(s):      Faraday cup
+
+Contact person:
+  first name:     John
+  last name:      Doe
+  email:          
+
+Contact person:
+  first name:     Jane
+  last name:      Doe
+  email:          
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    MS-X
+  software version: 1.0
+  completion time:  2001-02-03 04:05:06
+  actions:          Charge deconvolution, Deisotoping
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 6
+  mean:           166.667
+  minimum:        100
+  lower quartile: 100
+  median:         150
+  upper quartile: 250
+  maximum:        300
+  variance:       6666.67
+
+Meta data: area
+  num. of values: 9
+  mean:           155.556
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        300
+  variance:       5277.78
+
+Meta data: charge
+  num. of values: 9
+  mean:           155.556
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        300
+  variance:       5277.78
+
+Meta data: fwhm
+  num. of values: 9
+  mean:           155.556
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        300
+  variance:       5277.78
+
+Meta data: leftWidth
+  num. of values: 9
+  mean:           155.556
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        300
+  variance:       5277.78
+
+Meta data: peakShape
+  num. of values: 9
+  mean:           155.556
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        300
+  variance:       5277.78
+
+Meta data: rValue
+  num. of values: 9
+  mean:           155.556
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        300
+  variance:       5277.78
+
+Meta data: rightWidth
+  num. of values: 9
+  mean:           155.556
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        300
+  variance:       5277.78
+
+Meta data: signalToNoise
+  num. of values: 9
+  mean:           155.556
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        300
+  variance:       5277.78
+
+
+

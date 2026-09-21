@@ -1,0 +1,119 @@
+
+-- General information --
+
+File name: <FIX>/a8_mgf_merged.mgf
+File type: mgf
+
+Instrument: 
+
+MS levels: 2
+Total number of peaks: 3
+Number of spectra: 2
+
+Combined Ranges (spectra + chromatograms):
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 100.00 .. 102.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 3.00
+
+Spectrum Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 100.00 .. 102.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 3.00
+
+MS Level 2 Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 100.00 .. 102.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 3.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 2: 2
+
+Peak type from metadata (or estimated from data)
+  level 2: Centroid (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+  charge 1: 1x
+  charge 4: 1x
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      2
+  RT:         -1
+  m/z:        100 .. 101
+Precursors:  1
+Precursor[0]
+  charge: 4
+  mz:     450
+  activation methods: 
+
+
+Spectrum 2:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        102 .. 102
+Precursors:  1
+Precursor[0]
+  charge: 1
+  mz:     450
+  activation methods: 
+
+
+-- Checking for corrupt data --
+
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    
+  mass analyzer(s): 
+  detector(s):      
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+No information about data processing available!
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+
+

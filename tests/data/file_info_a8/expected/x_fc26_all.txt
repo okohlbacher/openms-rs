@@ -1,0 +1,202 @@
+
+-- General information --
+
+File name: <FIX>/FileConverter_26_output.mzXML
+File type: mzXML
+
+Instrument: 
+  Mass Analyzer: Unknown (resolution: 0)
+
+MS levels: 1, 2
+Total number of peaks: 3149
+Number of spectra: 10
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 20.87 .. 39.97 sec (0.3 min)
+  mass-to-charge: 500.07 .. 1497.28
+  ion mobility: <none> .. <none>
+  intensity: 16.30 .. 38920.12
+
+Spectrum Ranges:
+  retention time: 20.87 .. 39.97 sec (0.3 min)
+  mass-to-charge: 500.07 .. 1497.28
+  ion mobility: <none> .. <none>
+  intensity: 16.30 .. 38920.12
+
+MS Level 1 Ranges:
+  retention time: 20.87 .. 39.97 sec (0.3 min)
+  mass-to-charge: 500.07 .. 1497.28
+  ion mobility: <none> .. <none>
+  intensity: 16.30 .. 38920.12
+
+MS Level 2 Ranges:
+  retention time: 25.40 .. 39.11 sec (0.2 min)
+  mass-to-charge: 500.10 .. 850.08
+  ion mobility: <none> .. <none>
+  intensity: 23.68 .. 729.68
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 4
+  level 2: 6
+
+Peak type from metadata (or estimated from data)
+  level 1: Unknown (Centroid)
+  level 2: Unknown (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      787
+  RT:         20.8713
+  m/z:        500.146 .. 1497.28
+Precursors:  0
+
+Spectrum 2:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      683
+  RT:         22.4373
+  m/z:        500.068 .. 1456.08
+Precursors:  0
+
+Spectrum 3:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         30.2243
+  m/z:        550.07 .. 580.892
+Precursors:  0
+
+Spectrum 4:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      5
+  RT:         27.8168
+  m/z:        519 .. 781.873
+Precursors:  0
+
+Spectrum 5:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      8
+  RT:         25.3972
+  m/z:        501.651 .. 830.853
+Precursors:  0
+
+Spectrum 6:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      885
+  RT:         31.2627
+  m/z:        500.37 .. 1486.67
+Precursors:  0
+
+Spectrum 7:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      5
+  RT:         36.7164
+  m/z:        500.738 .. 815.24
+Precursors:  0
+
+Spectrum 8:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      7
+  RT:         34.2968
+  m/z:        500.1 .. 850.078
+Precursors:  0
+
+Spectrum 9:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         39.1126
+  m/z:        510.732 .. 564.874
+Precursors:  0
+
+Spectrum 10:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      763
+  RT:         39.9708
+  m/z:        500.12 .. 1484.45
+Precursors:  0
+
+-- Checking for corrupt data --
+
+Error: Spectrum retention times are not sorted in ascending order
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           Thermo Scientific
+  ion source(s):    Unknown
+  mass analyzer(s): Unknown
+  detector(s):      Unknown
+
+Contact person:
+  first name:     
+  last name:      
+  email:          
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    
+  software version: 
+  completion time:  0000-00-00 00:00:00
+  actions:          
+
+Processing 2:
+  software name:    FileConverter
+  software version: version_string
+  completion time:  1999-12-31 23:59:00
+  actions:          
+
+Processing 3:
+  software name:    FileConverter
+  software version: version_string
+  completion time:  1999-12-31 23:59:59
+  actions:          
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 3118
+  mean:           869.843
+  minimum:        16.2972
+  lower quartile: 209.449
+  median:         490.921
+  upper quartile: 1038.07
+  maximum:        38920.1
+  variance:       1.89153e+06
+
+
+

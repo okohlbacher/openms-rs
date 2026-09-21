@@ -1092,6 +1092,33 @@ fn the_branches_a7_implemented_are_no_longer_refused() {
     }
 }
 
+/// A8 wired mzXML, mzData, MGF and MS2 into the peak-file branch, so the four
+/// rows the table below used to hold for them are gone. What they do instead
+/// is compared with the Release C++ output in `tests/file_info_a8.rs`; pinned
+/// here is only that the run no longer answers them with a not-ported refusal.
+///
+/// As above, each name is a file that does not exist, so the branch reaches
+/// its loader and fails there; an `Error::Unsupported` is allowed only when it
+/// names the missing `mzml` feature that carries the mzXML and mzData readers.
+#[test]
+fn the_peak_types_a8_wired_are_no_longer_refused() {
+    for input in [
+        "missing.mzXML",
+        "missing.mzData",
+        "missing.mgf",
+        "missing.ms2",
+    ] {
+        match FileInfo::new().run(input, &Options::default()) {
+            Err(Error::Unsupported(message)) => assert!(
+                message.contains("lacks the mzml feature"),
+                "{input}: still refused: {message}"
+            ),
+            Err(Error::Io(_)) => {}
+            other => panic!("{input}: expected the loader to fail, got {other:?}"),
+        }
+    }
+}
+
 #[test]
 fn unported_branches_are_refused_by_name() {
     for (input, branch) in [
@@ -1099,10 +1126,6 @@ fn unported_branches_are_refused_by_name() {
         ("missing.mzTab", "mzTab branch"),
         ("missing.trafoXML", "trafoXML branch"),
         ("missing.pqp", "pqp branch"),
-        ("missing.mzXML", "peak-file branch for mzXML"),
-        ("missing.mzData", "peak-file branch for mzData"),
-        ("missing.mgf", "peak-file branch for mgf"),
-        ("missing.ms2", "peak-file branch for ms2"),
         ("missing.sqMass", "peak-file branch for sqMass"),
         ("missing.msp", "peak-file branch for msp"),
     ] {

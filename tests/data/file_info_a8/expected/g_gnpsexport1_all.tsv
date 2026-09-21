@@ -1,0 +1,41 @@
+general: file name	<FIX>/GNPSExport_1_out.mgf
+general: file type	mgf
+number of spectra	199
+total number of peaks	17176
+general: combined ranges: retention time: min	201.68
+general: combined ranges: retention time: max	299.18
+general: combined ranges: mass-to-charge: min	50.00
+general: combined ranges: mass-to-charge: max	1124.68
+general: combined ranges: intensity: min	661.38
+general: combined ranges: intensity: max	432362272.00
+general: spectrum ranges: retention time: min	201.68
+general: spectrum ranges: retention time: max	299.18
+general: spectrum ranges: mass-to-charge: min	50.00
+general: spectrum ranges: mass-to-charge: max	1124.68
+general: spectrum ranges: intensity: min	661.38
+general: spectrum ranges: intensity: max	432362272.00
+general: MS2 ranges: retention time: min	201.68
+general: MS2 ranges: retention time: max	299.18
+general: MS2 ranges: mass-to-charge: min	50.00
+general: MS2 ranges: mass-to-charge: max	1124.68
+general: MS2 ranges: intensity: min	661.38
+general: MS2 ranges: intensity: max	432362272.00
+general: chromatogram ranges: retention time: min	<none>
+general: chromatogram ranges: retention time: max	<none>
+general: chromatogram ranges: mass-to-charge: min	<none>
+general: chromatogram ranges: mass-to-charge: max	<none>
+general: chromatogram ranges: intensity: min	<none>
+general: chromatogram ranges: intensity: max	<none>
+number of MS2 spectra	199
+peak type metadata [annotation, estimate]	Centroid	Centroid
+general: charge distribution: charge: 1	197
+general: charge distribution: charge: 2	1
+general: charge distribution: charge: 3	1
+document id	
+date	0000-00-00 00:00:00
+sample name	
+sample organism	
+sample comment	
+instrument name	
+instrument model	
+instrument vendor	

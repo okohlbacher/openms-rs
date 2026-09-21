@@ -1,0 +1,40 @@
+general: file name	<FIX>/a8_mgf_carry.mgf
+general: file type	mgf
+number of spectra	4
+total number of peaks	17
+general: combined ranges: retention time: min	12.50
+general: combined ranges: retention time: max	40.00
+general: combined ranges: mass-to-charge: min	100.00
+general: combined ranges: mass-to-charge: max	179.75
+general: combined ranges: intensity: min	5.00
+general: combined ranges: intensity: max	43.00
+general: spectrum ranges: retention time: min	12.50
+general: spectrum ranges: retention time: max	40.00
+general: spectrum ranges: mass-to-charge: min	100.00
+general: spectrum ranges: mass-to-charge: max	179.75
+general: spectrum ranges: intensity: min	5.00
+general: spectrum ranges: intensity: max	43.00
+general: MS1 ranges: retention time: min	40.00
+general: MS1 ranges: retention time: max	40.00
+general: MS1 ranges: mass-to-charge: min	130.00
+general: MS1 ranges: mass-to-charge: max	150.00
+general: MS1 ranges: intensity: min	5.00
+general: MS1 ranges: intensity: max	9.00
+general: MS2 ranges: retention time: min	12.50
+general: MS2 ranges: retention time: max	12.50
+general: MS2 ranges: mass-to-charge: min	100.00
+general: MS2 ranges: mass-to-charge: max	179.75
+general: MS2 ranges: intensity: min	10.00
+general: MS2 ranges: intensity: max	43.00
+general: chromatogram ranges: retention time: min	<none>
+general: chromatogram ranges: retention time: max	<none>
+general: chromatogram ranges: mass-to-charge: min	<none>
+general: chromatogram ranges: mass-to-charge: max	<none>
+general: chromatogram ranges: intensity: min	<none>
+general: chromatogram ranges: intensity: max	<none>
+number of MS1 spectra	2
+number of MS2 spectra	2
+peak type metadata [annotation, estimate]	Centroid	Unknown
+peak type metadata [annotation, estimate]	Centroid	Centroid
+general: charge distribution: charge: 2	2
+general: charge distribution: charge: 3	2

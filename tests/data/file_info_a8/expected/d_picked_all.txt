@@ -1,0 +1,1183 @@
+
+-- General information --
+
+File name: <FIX>/PickedPeakTestData.mzData
+File type: mzData
+
+Instrument: 
+
+MS levels: 1
+Total number of peaks: 397
+Number of spectra: 136
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 2115.10 .. 2355.11 sec (4.0 min)
+  mass-to-charge: 701.02 .. 766.12
+  ion mobility: <none> .. <none>
+  intensity: 250.00 .. 16374.00
+
+Spectrum Ranges:
+  retention time: 2115.10 .. 2355.11 sec (4.0 min)
+  mass-to-charge: 701.02 .. 766.12
+  ion mobility: <none> .. <none>
+  intensity: 250.00 .. 16374.00
+
+MS Level 1 Ranges:
+  retention time: 2115.10 .. 2355.11 sec (4.0 min)
+  mass-to-charge: 701.02 .. 766.12
+  ion mobility: <none> .. <none>
+  intensity: 250.00 .. 16374.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 136
+
+Peak type from metadata (or estimated from data)
+  level 1: Unknown (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2115.1
+  m/z:        Precursors:  0
+
+Spectrum 2:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2116.21
+  m/z:        Precursors:  0
+
+Spectrum 3:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2117.31
+  m/z:        Precursors:  0
+
+Spectrum 4:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2119.52
+  m/z:        Precursors:  0
+
+Spectrum 5:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2123.95
+  m/z:        Precursors:  0
+
+Spectrum 6:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2125.05
+  m/z:        Precursors:  0
+
+Spectrum 7:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2126.16
+  m/z:        Precursors:  0
+
+Spectrum 8:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2127.27
+  m/z:        Precursors:  0
+
+Spectrum 9:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2128.37
+  m/z:        Precursors:  0
+
+Spectrum 10:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2129.48
+  m/z:        Precursors:  0
+
+Spectrum 11:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2165.98
+  m/z:        Precursors:  0
+
+Spectrum 12:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2167.08
+  m/z:        Precursors:  0
+
+Spectrum 13:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2168.19
+  m/z:        Precursors:  0
+
+Spectrum 14:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2169.29
+  m/z:        Precursors:  0
+
+Spectrum 15:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         2180.35
+  m/z:        743.233 .. 743.747
+Precursors:  0
+
+Spectrum 16:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      6
+  RT:         2181.46
+  m/z:        743.242 .. 744.505
+Precursors:  0
+
+Spectrum 17:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      6
+  RT:         2182.57
+  m/z:        743.249 .. 744.509
+Precursors:  0
+
+Spectrum 18:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      6
+  RT:         2183.68
+  m/z:        743.244 .. 744.516
+Precursors:  0
+
+Spectrum 19:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      7
+  RT:         2184.78
+  m/z:        743.256 .. 744.731
+Precursors:  0
+
+Spectrum 20:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      7
+  RT:         2185.89
+  m/z:        743.25 .. 744.727
+Precursors:  0
+
+Spectrum 21:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      7
+  RT:         2186.99
+  m/z:        743.243 .. 744.707
+Precursors:  0
+
+Spectrum 22:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      6
+  RT:         2188.1
+  m/z:        743.25 .. 744.493
+Precursors:  0
+
+Spectrum 23:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      6
+  RT:         2189.2
+  m/z:        743.243 .. 744.49
+Precursors:  0
+
+Spectrum 24:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      6
+  RT:         2190.31
+  m/z:        743.248 .. 744.505
+Precursors:  0
+
+Spectrum 25:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      6
+  RT:         2191.42
+  m/z:        743.235 .. 744.515
+Precursors:  0
+
+Spectrum 26:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      6
+  RT:         2192.52
+  m/z:        743.241 .. 744.49
+Precursors:  0
+
+Spectrum 27:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      5
+  RT:         2193.63
+  m/z:        743.234 .. 744.225
+Precursors:  0
+
+Spectrum 28:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      5
+  RT:         2194.74
+  m/z:        743.248 .. 744.231
+Precursors:  0
+
+Spectrum 29:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2195.84
+  m/z:        743.249 .. 743.968
+Precursors:  0
+
+Spectrum 30:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2196.95
+  m/z:        743.241 .. 744.246
+Precursors:  0
+
+Spectrum 31:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2198.05
+  m/z:        743.232 .. 743.999
+Precursors:  0
+
+Spectrum 32:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2199.16
+  m/z:        743.256 .. 744.004
+Precursors:  0
+
+Spectrum 33:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2200.26
+  m/z:        743.234 .. 743.234
+Precursors:  0
+
+Spectrum 34:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         2201.37
+  m/z:        743.257 .. 743.745
+Precursors:  0
+
+Spectrum 35:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         2202.48
+  m/z:        743.277 .. 743.716
+Precursors:  0
+
+Spectrum 36:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         2203.58
+  m/z:        743.494 .. 744.005
+Precursors:  0
+
+Spectrum 37:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      2
+  RT:         2204.69
+  m/z:        743.512 .. 744.021
+Precursors:  0
+
+Spectrum 38:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      2
+  RT:         2205.8
+  m/z:        743.494 .. 743.748
+Precursors:  0
+
+Spectrum 39:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2206.9
+  m/z:        743.728 .. 743.728
+Precursors:  0
+
+Spectrum 40:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      2
+  RT:         2208.01
+  m/z:        743.224 .. 743.492
+Precursors:  0
+
+Spectrum 41:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2209.11
+  m/z:        Precursors:  0
+
+Spectrum 42:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2210.22
+  m/z:        743.493 .. 743.493
+Precursors:  0
+
+Spectrum 43:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2211.33
+  m/z:        Precursors:  0
+
+Spectrum 44:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2212.43
+  m/z:        743.51 .. 743.51
+Precursors:  0
+
+Spectrum 45:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2213.54
+  m/z:        Precursors:  0
+
+Spectrum 46:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2214.64
+  m/z:        Precursors:  0
+
+Spectrum 47:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2215.75
+  m/z:        729.476 .. 730.475
+Precursors:  0
+
+Spectrum 48:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      5
+  RT:         2216.86
+  m/z:        729.475 .. 730.826
+Precursors:  0
+
+Spectrum 49:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      8
+  RT:         2217.96
+  m/z:        725.402 .. 737.548
+Precursors:  0
+
+Spectrum 50:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      8
+  RT:         2219.07
+  m/z:        725.459 .. 737.541
+Precursors:  0
+
+Spectrum 51:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      10
+  RT:         2220.17
+  m/z:        725.446 .. 737.546
+Precursors:  0
+
+Spectrum 52:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      9
+  RT:         2221.28
+  m/z:        725.443 .. 737.555
+Precursors:  0
+
+Spectrum 53:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      9
+  RT:         2222.39
+  m/z:        725.435 .. 737.58
+Precursors:  0
+
+Spectrum 54:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      9
+  RT:         2223.49
+  m/z:        725.441 .. 737.514
+Precursors:  0
+
+Spectrum 55:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      9
+  RT:         2224.6
+  m/z:        725.451 .. 747.419
+Precursors:  0
+
+Spectrum 56:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      8
+  RT:         2225.7
+  m/z:        725.444 .. 737.548
+Precursors:  0
+
+Spectrum 57:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      6
+  RT:         2226.81
+  m/z:        725.444 .. 730.81
+Precursors:  0
+
+Spectrum 58:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      8
+  RT:         2227.92
+  m/z:        725.445 .. 733.947
+Precursors:  0
+
+Spectrum 59:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      9
+  RT:         2229.02
+  m/z:        729.478 .. 734.27
+Precursors:  0
+
+Spectrum 60:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      8
+  RT:         2230.13
+  m/z:        729.478 .. 734.266
+Precursors:  0
+
+Spectrum 61:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      7
+  RT:         2231.23
+  m/z:        729.475 .. 734.415
+Precursors:  0
+
+Spectrum 62:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      5
+  RT:         2232.34
+  m/z:        729.475 .. 730.816
+Precursors:  0
+
+Spectrum 63:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2233.45
+  m/z:        729.485 .. 730.473
+Precursors:  0
+
+Spectrum 64:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         2234.55
+  m/z:        729.484 .. 730.146
+Precursors:  0
+
+Spectrum 65:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2235.66
+  m/z:        729.469 .. 730.482
+Precursors:  0
+
+Spectrum 66:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         2236.76
+  m/z:        729.485 .. 730.121
+Precursors:  0
+
+Spectrum 67:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         2237.87
+  m/z:        729.486 .. 730.49
+Precursors:  0
+
+Spectrum 68:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2238.98
+  m/z:        729.477 .. 730.48
+Precursors:  0
+
+Spectrum 69:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         2240.08
+  m/z:        729.491 .. 730.139
+Precursors:  0
+
+Spectrum 70:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         2241.19
+  m/z:        729.46 .. 730.14
+Precursors:  0
+
+Spectrum 71:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         2242.29
+  m/z:        729.483 .. 730.143
+Precursors:  0
+
+Spectrum 72:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      2
+  RT:         2243.4
+  m/z:        729.475 .. 729.819
+Precursors:  0
+
+Spectrum 73:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2244.51
+  m/z:        730.121 .. 730.121
+Precursors:  0
+
+Spectrum 74:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2245.61
+  m/z:        729.469 .. 730.171
+Precursors:  0
+
+Spectrum 75:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      6
+  RT:         2246.72
+  m/z:        729.46 .. 730.833
+Precursors:  0
+
+Spectrum 76:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      7
+  RT:         2247.82
+  m/z:        729.469 .. 730.851
+Precursors:  0
+
+Spectrum 77:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      7
+  RT:         2248.93
+  m/z:        729.47 .. 730.851
+Precursors:  0
+
+Spectrum 78:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      6
+  RT:         2250.04
+  m/z:        729.852 .. 731.074
+Precursors:  0
+
+Spectrum 79:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      6
+  RT:         2251.14
+  m/z:        729.847 .. 730.817
+Precursors:  0
+
+Spectrum 80:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      5
+  RT:         2252.25
+  m/z:        729.863 .. 730.651
+Precursors:  0
+
+Spectrum 81:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2253.35
+  m/z:        729.862 .. 730.439
+Precursors:  0
+
+Spectrum 82:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      6
+  RT:         2254.46
+  m/z:        729.876 .. 730.848
+Precursors:  0
+
+Spectrum 83:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      5
+  RT:         2255.57
+  m/z:        729.846 .. 730.663
+Precursors:  0
+
+Spectrum 84:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2256.67
+  m/z:        729.848 .. 730.432
+Precursors:  0
+
+Spectrum 85:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      2
+  RT:         2257.78
+  m/z:        729.843 .. 730.448
+Precursors:  0
+
+Spectrum 86:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2258.88
+  m/z:        729.836 .. 730.425
+Precursors:  0
+
+Spectrum 87:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      5
+  RT:         2259.99
+  m/z:        729.851 .. 746.337
+Precursors:  0
+
+Spectrum 88:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      7
+  RT:         2261.1
+  m/z:        729.802 .. 746.466
+Precursors:  0
+
+Spectrum 89:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      5
+  RT:         2262.2
+  m/z:        730.074 .. 746.62
+Precursors:  0
+
+Spectrum 90:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2263.31
+  m/z:        745.938 .. 746.498
+Precursors:  0
+
+Spectrum 91:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         2264.42
+  m/z:        716.265 .. 746.296
+Precursors:  0
+
+Spectrum 92:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2265.52
+  m/z:        746.036 .. 746.036
+Precursors:  0
+
+Spectrum 93:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      2
+  RT:         2266.63
+  m/z:        746.041 .. 746.209
+Precursors:  0
+
+Spectrum 94:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2267.73
+  m/z:        746.175 .. 746.175
+Precursors:  0
+
+Spectrum 95:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      2
+  RT:         2268.84
+  m/z:        729.816 .. 730.112
+Precursors:  0
+
+Spectrum 96:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2269.95
+  m/z:        Precursors:  0
+
+Spectrum 97:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2271.05
+  m/z:        730.106 .. 730.106
+Precursors:  0
+
+Spectrum 98:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2272.16
+  m/z:        730.172 .. 730.172
+Precursors:  0
+
+Spectrum 99:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2273.26
+  m/z:        730.158 .. 730.158
+Precursors:  0
+
+Spectrum 100:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2284.32
+  m/z:        Precursors:  0
+
+Spectrum 101:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2285.43
+  m/z:        Precursors:  0
+
+Spectrum 102:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2286.54
+  m/z:        Precursors:  0
+
+Spectrum 103:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2287.64
+  m/z:        755.476 .. 755.476
+Precursors:  0
+
+Spectrum 104:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2288.75
+  m/z:        755.317 .. 755.317
+Precursors:  0
+
+Spectrum 105:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2289.85
+  m/z:        Precursors:  0
+
+Spectrum 106:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2290.96
+  m/z:        Precursors:  0
+
+Spectrum 107:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2292.07
+  m/z:        Precursors:  0
+
+Spectrum 108:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2293.17
+  m/z:        Precursors:  0
+
+Spectrum 109:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2299.81
+  m/z:        766.115 .. 766.115
+Precursors:  0
+
+Spectrum 110:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2308.66
+  m/z:        Precursors:  0
+
+Spectrum 111:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2309.76
+  m/z:        Precursors:  0
+
+Spectrum 112:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2310.87
+  m/z:        Precursors:  0
+
+Spectrum 113:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2314.19
+  m/z:        701.025 .. 701.025
+Precursors:  0
+
+Spectrum 114:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2315.29
+  m/z:        Precursors:  0
+
+Spectrum 115:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2316.4
+  m/z:        Precursors:  0
+
+Spectrum 116:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2317.51
+  m/z:        Precursors:  0
+
+Spectrum 117:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2318.61
+  m/z:        Precursors:  0
+
+Spectrum 118:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2319.72
+  m/z:        Precursors:  0
+
+Spectrum 119:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2320.82
+  m/z:        Precursors:  0
+
+Spectrum 120:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      2
+  RT:         2321.93
+  m/z:        703.172 .. 703.466
+Precursors:  0
+
+Spectrum 121:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         2323.04
+  m/z:        703.163 .. 703.848
+Precursors:  0
+
+Spectrum 122:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2324.14
+  m/z:        703.506 .. 703.506
+Precursors:  0
+
+Spectrum 123:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2325.25
+  m/z:        703.504 .. 703.504
+Precursors:  0
+
+Spectrum 124:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2326.35
+  m/z:        703.508 .. 703.508
+Precursors:  0
+
+Spectrum 125:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2342.95
+  m/z:        Precursors:  0
+
+Spectrum 126:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2344.05
+  m/z:        Precursors:  0
+
+Spectrum 127:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2345.16
+  m/z:        705.292 .. 705.292
+Precursors:  0
+
+Spectrum 128:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      2
+  RT:         2346.26
+  m/z:        705.178 .. 705.423
+Precursors:  0
+
+Spectrum 129:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2347.37
+  m/z:        705.248 .. 705.248
+Precursors:  0
+
+Spectrum 130:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      2
+  RT:         2348.48
+  m/z:        705.199 .. 705.495
+Precursors:  0
+
+Spectrum 131:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         2349.58
+  m/z:        705.071 .. 705.399
+Precursors:  0
+
+Spectrum 132:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2350.69
+  m/z:        705.208 .. 705.208
+Precursors:  0
+
+Spectrum 133:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2351.79
+  m/z:        Precursors:  0
+
+Spectrum 134:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      0
+  RT:         2352.9
+  m/z:        Precursors:  0
+
+Spectrum 135:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         2354
+  m/z:        705.239 .. 705.239
+Precursors:  0
+
+Spectrum 136:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      2
+  RT:         2355.11
+  m/z:        705.233 .. 705.3
+Precursors:  0
+
+-- Checking for corrupt data --
+
+Warning: No peaks in spectrum (RT: 2115.1)
+Warning: No peaks in spectrum (RT: 2116.21)
+Warning: No peaks in spectrum (RT: 2117.31)
+Warning: No peaks in spectrum (RT: 2119.52)
+Warning: No peaks in spectrum (RT: 2123.95)
+Warning: No peaks in spectrum (RT: 2125.05)
+Warning: No peaks in spectrum (RT: 2126.16)
+Warning: No peaks in spectrum (RT: 2127.27)
+Warning: No peaks in spectrum (RT: 2128.37)
+Warning: No peaks in spectrum (RT: 2129.48)
+Warning: No peaks in spectrum (RT: 2165.98)
+Warning: No peaks in spectrum (RT: 2167.08)
+Warning: No peaks in spectrum (RT: 2168.19)
+Warning: No peaks in spectrum (RT: 2169.29)
+Warning: No peaks in spectrum (RT: 2209.11)
+Warning: No peaks in spectrum (RT: 2211.33)
+Warning: No peaks in spectrum (RT: 2213.54)
+Warning: No peaks in spectrum (RT: 2214.64)
+Warning: No peaks in spectrum (RT: 2269.95)
+Warning: No peaks in spectrum (RT: 2284.32)
+Warning: No peaks in spectrum (RT: 2285.43)
+Warning: No peaks in spectrum (RT: 2286.54)
+Warning: No peaks in spectrum (RT: 2289.85)
+Warning: No peaks in spectrum (RT: 2290.96)
+Warning: No peaks in spectrum (RT: 2292.07)
+Warning: No peaks in spectrum (RT: 2293.17)
+Warning: No peaks in spectrum (RT: 2308.66)
+Warning: No peaks in spectrum (RT: 2309.76)
+Warning: No peaks in spectrum (RT: 2310.87)
+Warning: No peaks in spectrum (RT: 2315.29)
+Warning: No peaks in spectrum (RT: 2316.4)
+Warning: No peaks in spectrum (RT: 2317.51)
+Warning: No peaks in spectrum (RT: 2318.61)
+Warning: No peaks in spectrum (RT: 2319.72)
+Warning: No peaks in spectrum (RT: 2320.82)
+Warning: No peaks in spectrum (RT: 2342.95)
+Warning: No peaks in spectrum (RT: 2344.05)
+Warning: No peaks in spectrum (RT: 2351.79)
+Warning: No peaks in spectrum (RT: 2352.9)
+
+-- Meta information --
+
+Document ID:        OpenMS:
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    Unknown
+  mass analyzer(s): 
+  detector(s):      Unknown
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    
+  software version: 
+  completion time:  0000-00-00 00:00:00
+  actions:          
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 397
+  mean:           2017.45
+  minimum:        250
+  lower quartile: 410.5
+  median:         773
+  upper quartile: 2021
+  maximum:        16374
+  variance:       8.29502e+06
+
+
+

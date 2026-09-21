@@ -1,0 +1,301 @@
+
+-- General information --
+
+File name: <FIX>/FileConverter_4_input.mzXML
+File type: mzXML
+
+Instrument: 
+  Mass Analyzer: Quadrupole ion trap (resolution: 0)
+
+MS levels: 1, 2
+Total number of peaks: 6864
+Number of spectra: 20
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 0.26 .. 37.64 sec (0.6 min)
+  mass-to-charge: 207.51 .. 1496.08
+  ion mobility: <none> .. <none>
+  intensity: 12.15 .. 25903.89
+
+Spectrum Ranges:
+  retention time: 0.26 .. 37.64 sec (0.6 min)
+  mass-to-charge: 207.51 .. 1496.08
+  ion mobility: <none> .. <none>
+  intensity: 12.15 .. 25903.89
+
+MS Level 1 Ranges:
+  retention time: 0.26 .. 32.24 sec (0.5 min)
+  mass-to-charge: 402.48 .. 1496.08
+  ion mobility: <none> .. <none>
+  intensity: 12.15 .. 25903.89
+
+MS Level 2 Ranges:
+  retention time: 21.95 .. 37.64 sec (0.3 min)
+  mass-to-charge: 207.51 .. 1035.83
+  ion mobility: <none> .. <none>
+  intensity: 13.39 .. 3633.01
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 14
+  level 2: 6
+
+Peak type from metadata (or estimated from data)
+  level 1: Centroid (Centroid)
+  level 2: Centroid (Centroid)
+
+Activation methods
+
+Precursor charge distribution:
+  charge 0: 6x
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      313
+  RT:         0.260352
+  m/z:        404.67 .. 1374.52
+Precursors:  0
+
+Spectrum 2:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      303
+  RT:         2.05613
+  m/z:        407.46 .. 1432.2
+Precursors:  0
+
+Spectrum 3:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      301
+  RT:         3.73274
+  m/z:        405.716 .. 1374.7
+Precursors:  0
+
+Spectrum 4:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      283
+  RT:         5.40896
+  m/z:        403.648 .. 1496.08
+Precursors:  0
+
+Spectrum 5:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      275
+  RT:         7.08115
+  m/z:        404.835 .. 1485.28
+Precursors:  0
+
+Spectrum 6:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      270
+  RT:         8.75309
+  m/z:        406.799 .. 1316.4
+Precursors:  0
+
+Spectrum 7:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      284
+  RT:         10.4232
+  m/z:        405.4 .. 1333.88
+Precursors:  0
+
+Spectrum 8:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      263
+  RT:         12.1069
+  m/z:        406.538 .. 1434.08
+Precursors:  0
+
+Spectrum 9:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      265
+  RT:         13.775
+  m/z:        407.176 .. 1326.4
+Precursors:  0
+
+Spectrum 10:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      292
+  RT:         15.4929
+  m/z:        404.678 .. 1381.84
+Precursors:  0
+
+Spectrum 11:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      631
+  RT:         17.1665
+  m/z:        404.229 .. 1451.48
+Precursors:  0
+
+Spectrum 12:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      948
+  RT:         18.9326
+  m/z:        402.481 .. 1448.11
+Precursors:  0
+
+Spectrum 13:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      68
+  RT:         21.9494
+  m/z:        214.637 .. 745.01
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     433.803
+  activation methods: 
+
+
+Spectrum 14:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1050
+  RT:         23.2291
+  m/z:        402.723 .. 1489.23
+Precursors:  0
+
+Spectrum 15:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      64
+  RT:         31.1325
+  m/z:        207.508 .. 681.249
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.168
+  activation methods: 
+
+
+Spectrum 16:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      80
+  RT:         26.3065
+  m/z:        208.702 .. 725.2
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     432.483
+  activation methods: 
+
+
+Spectrum 17:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      65
+  RT:         28.7128
+  m/z:        212.751 .. 1035.83
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     560.388
+  activation methods: 
+
+
+Spectrum 18:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      914
+  RT:         32.2354
+  m/z:        404.108 .. 1487.69
+Precursors:  0
+
+Spectrum 19:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      101
+  RT:         35.2327
+  m/z:        211.704 .. 839.029
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     432.782
+  activation methods: 
+
+
+Spectrum 20:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      94
+  RT:         37.6401
+  m/z:        208.704 .. 580.04
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     448.45
+  activation methods: 
+
+
+-- Checking for corrupt data --
+
+Error: Spectrum retention times are not sorted in ascending order
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            MS 1
+  vendor:           MS-Vendor
+  ion source(s):    Electrospray ionisation
+  mass analyzer(s): Quadrupole ion trap
+  detector(s):      Faraday cup
+
+Contact person:
+  first name:     FirstName
+  last name:      LastName
+  email:          admin@foo.de
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    MS-X
+  software version: 1.0
+  completion time:  2001-02-03 04:05:06
+  actions:          Charge deconvolution, Deisotoping, Peak picking
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 6392
+  mean:           500.582
+  minimum:        12.1487
+  lower quartile: 86.0977
+  median:         200.6
+  upper quartile: 518.13
+  maximum:        25903.9
+  variance:       977365
+
+
+

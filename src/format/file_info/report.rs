@@ -21,8 +21,8 @@
 //!
 //! # Scope
 //!
-//! This port runs the peak-file branch for DTA, DTA2D and mzML
-//! ([`crate::format::file_info::peaks`]), the featureXML branch
+//! This port runs the peak-file branch for DTA, DTA2D, mzML, mzXML, mzData, MGF
+//! and MS2 ([`crate::format::file_info::peaks`]), the featureXML branch
 //! ([`crate::format::file_info::features`]), the consensusXML branch
 //! ([`crate::format::file_info::consensus`]), the idXML and mzIdentML branch
 //! ([`crate::format::file_info::identifications`]) and the FASTA branch
@@ -43,10 +43,10 @@
 //!
 //! - `-v` (schema and semantic validation), for every type;
 //! - the pepXML, mzTab, trafoXML and PQP branches;
-//! - peak files of the types the source loads but no native loader serves on
-//!   this path: mzXML, mzData, MGF, MS2, sqMass, XMass (`fid`) and MSP, and
-//!   Thermo RAW and Bruker TDF, which the source loads when built with its
-//!   default `WITH_THERMO_RAW` and `WITH_OPENTIMS` options.
+//! - peak files of the types the source loads but no native reader loads into
+//!   an experiment here: sqMass, XMass (`fid`) and MSP, and Thermo RAW and
+//!   Bruker TDF, which the source loads when built with its default
+//!   `WITH_THERMO_RAW` and `WITH_OPENTIMS` options.
 //!
 //! Three inputs are refused where the source's behaviour is an out-of-bounds
 //! `std::vector` access, under lead decision D1: a consensus sub-feature whose
@@ -54,6 +54,12 @@
 //! with no protein identification run, and a peptide identification with no
 //! hit. `docs/FILE_INFO_A7_SUPPORT.md` records all three with the Release
 //! build's answer to each.
+//!
+//! Two further inputs are refused where the kernel's range computation is
+//! stricter than the source's `updateRanges`: a spectrum whose scan window
+//! begins after it ends, which the mzData reader keeps as the source does, and
+//! an MGF spectrum of MS level 0. `docs/FILE_INFO_A8_SUPPORT.md` records both
+//! with the Release build's report.
 //!
 //! `docs/FILE_INFO_SUPPORT.md` holds the API mapping, the preserved source
 //! conventions, the native differences and the evidence.

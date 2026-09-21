@@ -2,10 +2,13 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-//! The FileInfo summary of peak files: DTA, DTA2D and mzML
-//! (`FORMAT/FileInfo.cpp:1532-1965`, `:2005-2081`, `:2115-2127`, `:2384-2440`).
+//! The FileInfo summary of peak files: DTA, DTA2D, mzML, mzXML, mzData, MGF
+//! and MS2 (`FORMAT/FileInfo.cpp:1532-1965`, `:2005-2081`, `:2115-2127`,
+//! `:2384-2440`).
 //!
-//! The peak-file branch of the report: the experiment is loaded through
+//! The peak-file branch of the report: mzXML, mzData, MGF and MS2 are loaded by
+//! the reader the source's `FileHandler::loadExperiment` names for each (see
+//! `load_source_reader`); DTA, DTA2D and mzML through
 //! [`crate::format::FileHandler::load_experiment_with_options`] with default
 //! [`crate::format::PeakFileOptions`] and the forced or detected type as the
 //! only allowed type, as the source calls `FileHandler::loadExperiment(in, exp,
@@ -171,9 +174,12 @@ fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<
 ///   object across blocks and clears only its peaks, native ID, `TITLE` and
 ///   `SEQ` (`MascotGenericFile.h:89-104`, `:141-157`), so the load runs with
 ///   [`CarryOver::Source`](crate::format::mascot_generic::CarryOver::Source):
-///   an omitted `CHARGE=`, `PEPMASS=` or `RTINSECONDS=` inherits the previous
-///   block's value, as the report then counts it. Its `PeakFileOptions` are
-///   not consulted, as the source does not hand them to this reader.
+///   an omitted `CHARGE=`, `PEPMASS=`, `RTINSECONDS=` or `MSLEVEL=` inherits
+///   the previous block's value, as the report then counts it. It also sets
+///   [`source_ms_level`](crate::format::mascot_generic::ReadOptions::source_ms_level),
+///   so `MSLEVEL=-1` is the MS level `4294967295` the source prints rather
+///   than a parse error. Its `PeakFileOptions` are not consulted, as the
+///   source does not hand them to this reader.
 /// - MS2: `MS2File::load` (`:931-937`), [`crate::format::ms2`], which likewise
 ///   takes no `PeakFileOptions`.
 fn load_source_reader(path: &Path, in_type: FileType) -> Result<MSExperiment> {
@@ -189,6 +195,7 @@ fn load_source_reader(path: &Path, in_type: FileType) -> Result<MSExperiment> {
             path,
             &crate::format::mascot_generic::ReadOptions {
                 carry_over: crate::format::mascot_generic::CarryOver::Source,
+                source_ms_level: true,
                 ..crate::format::mascot_generic::ReadOptions::default()
             },
         ),
@@ -405,12 +412,12 @@ fn count_overflow() -> Error {
     Error::InvalidValue("FileInfo peak count overflows 64 bits".into())
 }
 
-fn to_int(level: u32) -> Result<i32> {
-    i32::try_from(level).map_err(|_| {
-        Error::InvalidValue(format!(
-            "MS level {level} does not fit the FileInfo result's Int key"
-        ))
-    })
+/// `static_cast<Int>(level)`, the key of the source result's per-level maps
+/// (`FORMAT/FileInfo.cpp:1645-1657`). The conversion is modular since C++20, so
+/// an MS level above `i32::MAX` keeps its bits: the `4294967295` an MGF
+/// `MSLEVEL=-1` loads as is the key `-1`, as in the source.
+fn to_int(level: u32) -> i32 {
+    i32::from_ne_bytes(level.to_ne_bytes())
 }
 
 fn write_content(
@@ -639,7 +646,7 @@ fn peak_info(experiment: &MSExperiment, summary: &Summary) -> Result<PeakInfo> {
         ..PeakInfo::default()
     };
     for &level in &summary.ms_levels {
-        let key = to_int(level)?;
+        let key = to_int(level);
         info.ms_levels.push(key);
         info.peak_type_per_ms_level.insert(
             key,
@@ -651,11 +658,11 @@ fn peak_info(experiment: &MSExperiment, summary: &Summary) -> Result<PeakInfo> {
         );
     }
     for (level, count) in &summary.spectra_per_level {
-        info.spectra_per_ms_level.insert(to_int(*level)?, *count);
+        info.spectra_per_ms_level.insert(to_int(*level), *count);
     }
     for ((level, method), count) in &summary.activation {
         info.activation_methods
-            .insert((to_int(*level)?, method.name().to_owned()), *count);
+            .insert((to_int(*level), method.name().to_owned()), *count);
     }
     for (kind, count) in &summary.chromatogram_types {
         info.chromatogram_types

@@ -1,0 +1,1509 @@
+
+-- General information --
+
+File name: <FIX>/OpenSwathWorkflow_2_input.mzXML
+File type: mzXML
+
+Instrument: 
+  Mass Analyzer: Unknown (resolution: 0)
+
+MS levels: 1, 2
+Total number of peaks: 323
+Number of spectra: 114
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 10.00 .. 195.00 sec (3.1 min)
+  mass-to-charge: 500.01 .. 510.05
+  ion mobility: <none> .. <none>
+  intensity: 2.43 .. 1436.19
+
+Spectrum Ranges:
+  retention time: 10.00 .. 195.00 sec (3.1 min)
+  mass-to-charge: 500.01 .. 510.05
+  ion mobility: <none> .. <none>
+  intensity: 2.43 .. 1436.19
+
+MS Level 1 Ranges:
+  retention time: 10.00 .. 190.00 sec (3.0 min)
+  mass-to-charge: 500.01 .. 510.05
+  ion mobility: <none> .. <none>
+  intensity: 95.22 .. 1196.83
+
+MS Level 2 Ranges:
+  retention time: 11.00 .. 195.00 sec (3.1 min)
+  mass-to-charge: 500.01 .. 504.25
+  ion mobility: <none> .. <none>
+  intensity: 2.43 .. 1436.19
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 19
+  level 2: 95
+
+Peak type from metadata (or estimated from data)
+  level 1: Unknown (Unknown)
+  level 2: Unknown (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+  charge 0: 95x
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         10
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 2:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         11
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 3:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         12
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 4:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         13
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 5:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         14
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 6:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         15
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 7:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         20
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 8:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         21
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 9:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         22
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 10:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         23
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 11:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         24
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 12:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         25
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 13:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         30
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 14:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         31
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 15:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         32
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 16:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         33
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 17:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         34
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 18:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         35
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 19:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         40
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 20:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         41
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 21:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         42
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 22:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         43
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 23:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         44
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 24:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         45
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 25:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         50
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 26:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         51
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 27:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         52
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 28:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         53
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 29:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         54
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 30:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         55
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 31:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         60
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 32:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         61
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 33:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         62
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 34:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         63
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 35:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         64
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 36:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         65
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 37:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         70
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 38:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         71
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 39:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         72
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 40:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         73
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 41:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         74
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 42:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         75
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 43:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         80
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 44:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         81
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 45:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         82
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 46:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         83
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 47:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         84
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 48:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         85
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 49:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         90
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 50:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         91
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 51:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         92
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 52:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         93
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 53:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         94
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 54:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         95
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 55:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         100
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 56:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         101
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 57:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         102
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 58:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         103
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 59:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         104
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 60:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         105
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 61:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         110
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 62:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         111
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 63:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         112
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 64:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         113
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 65:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         114
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 66:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         115
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 67:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         120
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 68:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         121
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 69:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         122
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 70:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         123
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 71:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         124
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 72:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         125
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 73:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         130
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 74:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         131
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 75:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         132
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 76:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         133
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 77:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         134
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 78:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         135
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 79:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         140
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 80:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         141
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 81:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         142
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 82:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         143
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 83:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         144
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 84:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         145
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 85:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         150
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 86:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         151
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 87:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         152
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 88:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         153
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 89:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         154
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 90:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         155
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 91:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         160
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 92:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         161
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 93:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         162
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 94:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         163
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 95:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         164
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 96:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         165
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 97:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         170
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 98:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         171
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 99:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         172
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 100:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         173
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 101:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         174
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 102:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         175
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 103:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         180
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 104:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         181
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 105:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         182
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 106:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         183
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 107:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         184
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 108:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         185
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+Spectrum 109:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      2
+  RT:         190
+  m/z:        500.01 .. 510.05
+Precursors:  0
+
+Spectrum 110:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         191
+  m/z:        500.01 .. 500.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     412.5
+  activation methods: 
+
+
+Spectrum 111:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         192
+  m/z:        501.01 .. 501.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     437.5
+  activation methods: 
+
+
+Spectrum 112:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         193
+  m/z:        502.01 .. 502.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     462.5
+  activation methods: 
+
+
+Spectrum 113:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         194
+  m/z:        503.01 .. 503.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     487.5
+  activation methods: 
+
+
+Spectrum 114:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      3
+  RT:         195
+  m/z:        504.01 .. 504.25
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     512.5
+  activation methods: 
+
+
+-- Checking for corrupt data --
+
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    Electrospray ionisation
+  mass analyzer(s): Unknown
+  detector(s):      Electron multiplier
+
+Contact person:
+  first name:     
+  last name:      Drek'Thar
+  email:          
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    Xcalibur
+  software version: 2.0.5
+  completion time:  2001-02-03 04:05:00
+  actions:          Charge deconvolution, Deisotoping
+
+Processing 2:
+  software name:    ProteoWizard
+  software version: 1.0
+  completion time:  2001-02-03 04:10:00
+  actions:          
+
+Processing 3:
+  software name:    FileConverter
+  software version: 1.12.0
+  completion time:  2014-02-18 23:13:56
+  actions:          
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 38
+  mean:           620.68
+  minimum:        95.219
+  lower quartile: 258.832
+  median:         547.947
+  upper quartile: 1056.2
+  maximum:        1196.83
+  variance:       152882
+
+
+

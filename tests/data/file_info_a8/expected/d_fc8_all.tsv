@@ -1,0 +1,53 @@
+general: file name	<FIX>/FileConverter_8_output.mzData
+general: file type	mzData
+number of spectra	29
+total number of peaks	65
+general: combined ranges: retention time: min	-1.00
+general: combined ranges: retention time: max	14.00
+general: combined ranges: mass-to-charge: min	0.00
+general: combined ranges: mass-to-charge: max	18.00
+general: combined ranges: intensity: min	1.00
+general: combined ranges: intensity: max	20.00
+general: spectrum ranges: retention time: min	-1.00
+general: spectrum ranges: retention time: max	14.00
+general: spectrum ranges: mass-to-charge: min	0.00
+general: spectrum ranges: mass-to-charge: max	18.00
+general: spectrum ranges: intensity: min	1.00
+general: spectrum ranges: intensity: max	20.00
+general: MS1 ranges: retention time: min	5.10
+general: MS1 ranges: retention time: max	5.40
+general: MS1 ranges: mass-to-charge: min	0.00
+general: MS1 ranges: mass-to-charge: max	14.00
+general: MS1 ranges: intensity: min	1.00
+general: MS1 ranges: intensity: max	15.00
+general: MS2 ranges: retention time: min	-1.00
+general: MS2 ranges: retention time: max	14.00
+general: MS2 ranges: mass-to-charge: min	0.00
+general: MS2 ranges: mass-to-charge: max	18.00
+general: MS2 ranges: intensity: min	1.00
+general: MS2 ranges: intensity: max	20.00
+general: chromatogram ranges: retention time: min	<none>
+general: chromatogram ranges: retention time: max	<none>
+general: chromatogram ranges: mass-to-charge: min	<none>
+general: chromatogram ranges: mass-to-charge: max	<none>
+general: chromatogram ranges: intensity: min	<none>
+general: chromatogram ranges: intensity: max	<none>
+number of MS1 spectra	3
+number of MS2 spectra	26
+peak type metadata [annotation, estimate]	Centroid	Centroid
+peak type metadata [annotation, estimate]	Centroid	Unknown
+activation methods (mslevel, method, count)	2	CID	1
+general: charge distribution: charge: 0	25
+general: charge distribution: charge: 2	1
+document id	document_accession
+date	0000-00-00 00:00:00
+sample name	Sample1
+sample organism	
+sample comment	
+instrument name	LCQ Deca
+instrument model	
+instrument vendor	
+data processing: 1: software name	Xcalibur
+data processing: 1: software version	2.0.5
+data processing: 1: completion time	2001-02-03 04:05:00
+data processing: 1: actions	Charge deconvolution, Deisotoping

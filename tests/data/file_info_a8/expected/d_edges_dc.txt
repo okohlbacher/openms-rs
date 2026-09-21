@@ -1,0 +1,114 @@
+
+-- General information --
+
+File name: <FIX>/a8_mzdata_edges.mzData
+File type: mzData
+
+Instrument: edge instrument
+  Mass Analyzer: Quadrupole (resolution: 1000.5)
+
+MS levels: 1, 2
+Total number of peaks: 29
+Number of spectra: 4
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 90.00 .. 93.00 sec (0.1 min)
+  mass-to-charge: 200.00 .. 743.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 50.00
+
+Spectrum Ranges:
+  retention time: 90.00 .. 93.00 sec (0.1 min)
+  mass-to-charge: 200.00 .. 743.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 50.00
+
+MS Level 1 Ranges:
+  retention time: 90.00 .. 91.00 sec (0.0 min)
+  mass-to-charge: 500.00 .. 743.00
+  ion mobility: <none> .. <none>
+  intensity: 5.00 .. 50.00
+
+MS Level 2 Ranges:
+  retention time: 92.00 .. 93.00 sec (0.0 min)
+  mass-to-charge: 200.00 .. 300.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 2.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 2
+  level 2: 2
+
+Peak type from metadata (or estimated from data)
+  level 1: Profile (Profile)
+  level 2: Centroid (Unknown)
+
+Activation methods
+    MS-Level 2 & CID (Collision-induced dissociation): 2
+    MS-Level 2 & PSD (Post-source decay): 1
+
+Precursor charge distribution:
+  charge 0: 1x
+  charge 1: 1x
+
+Meta data array:
+  noise: 2 spectra
+  width: 1 spectra
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      15
+  RT:         90
+  m/z:        500 .. 500.14
+Precursors:  0
+
+Spectrum 2:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      12
+  RT:         91
+  m/z:        600 .. 743
+Precursors:  0
+
+Spectrum 3:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      2
+  RT:         92
+  m/z:        200 .. 300
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     640.5
+  activation methods: 
+    CID (Collision-induced dissociation)
+
+
+Spectrum 4:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      0
+  RT:         93
+  m/z:        Precursors:  1
+Precursor[0]
+  charge: 1
+  mz:     650.5
+  activation methods: 
+    CID (Collision-induced dissociation)
+    PSD (Post-source decay)
+
+
+-- Checking for corrupt data --
+
+Warning: No peaks in spectrum (RT: 93)
+
+

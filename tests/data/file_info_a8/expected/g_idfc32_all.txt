@@ -1,0 +1,1821 @@
+
+-- General information --
+
+File name: <FIX>/IDFileConverter_32_output.mgf
+File type: mgf
+
+Instrument: 
+
+MS levels: 2
+Total number of peaks: 2103
+Number of spectra: 133
+
+Combined Ranges (spectra + chromatograms):
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 116.07 .. 4574.93
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 1.00
+
+Spectrum Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 116.07 .. 4574.93
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 1.00
+
+MS Level 2 Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 116.07 .. 4574.93
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 1.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 2: 133
+
+Peak type from metadata (or estimated from data)
+  level 2: Centroid (Centroid)
+
+Activation methods
+
+Precursor charge distribution:
+  charge 2: 133x
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      23
+  RT:         -1
+  m/z:        147.113 .. 1225.64
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     678.845
+  activation methods: 
+
+
+Spectrum 2:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      57
+  RT:         -1
+  m/z:        175.119 .. 3220.64
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1660.36
+  activation methods: 
+
+
+Spectrum 3:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      19
+  RT:         -1
+  m/z:        175.119 .. 1237.59
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     676.812
+  activation methods: 
+
+
+Spectrum 4:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      5
+  RT:         -1
+  m/z:        147.113 .. 373.208
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     230.624
+  activation methods: 
+
+
+Spectrum 5:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      17
+  RT:         -1
+  m/z:        147.113 .. 1022.43
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     547.236
+  activation methods: 
+
+
+Spectrum 6:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      11
+  RT:         -1
+  m/z:        175.119 .. 687.342
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     400.717
+  activation methods: 
+
+
+Spectrum 7:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      9
+  RT:         -1
+  m/z:        147.113 .. 662.351
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     381.213
+  activation methods: 
+
+
+Spectrum 8:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      5
+  RT:         -1
+  m/z:        175.119 .. 376.194
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     224.119
+  activation methods: 
+
+
+Spectrum 9:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      23
+  RT:         -1
+  m/z:        147.113 .. 1382.64
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     764.875
+  activation methods: 
+
+
+Spectrum 10:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      39
+  RT:         -1
+  m/z:        147.113 .. 2185.08
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1150.07
+  activation methods: 
+
+
+Spectrum 11:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      29
+  RT:         -1
+  m/z:        147.113 .. 1696.8
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     905.447
+  activation methods: 
+
+
+Spectrum 12:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      11
+  RT:         -1
+  m/z:        147.113 .. 693.309
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     420.211
+  activation methods: 
+
+
+Spectrum 13:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      19
+  RT:         -1
+  m/z:        147.113 .. 1239.62
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     670.835
+  activation methods: 
+
+
+Spectrum 14:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      5
+  RT:         -1
+  m/z:        175.119 .. 392.171
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     253.131
+  activation methods: 
+
+
+Spectrum 15:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      3
+  RT:         -1
+  m/z:        175.119 .. 338.182
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     226.137
+  activation methods: 
+
+
+Spectrum 16:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      3
+  RT:         -1
+  m/z:        147.113 .. 261.156
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     166.6
+  activation methods: 
+
+
+Spectrum 17:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      3
+  RT:         -1
+  m/z:        147.113 .. 234.145
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     161.092
+  activation methods: 
+
+
+Spectrum 18:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      9
+  RT:         -1
+  m/z:        175.119 .. 546.299
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     330.195
+  activation methods: 
+
+
+Spectrum 19:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        147.113 .. 466.23
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     290.16
+  activation methods: 
+
+
+Spectrum 20:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      35
+  RT:         -1
+  m/z:        147.113 .. 2091.03
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1089.53
+  activation methods: 
+
+
+Spectrum 21:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      11
+  RT:         -1
+  m/z:        147.113 .. 747.404
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     430.747
+  activation methods: 
+
+
+Spectrum 22:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      11
+  RT:         -1
+  m/z:        175.119 .. 704.332
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     417.191
+  activation methods: 
+
+
+Spectrum 23:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        143.082 .. 445.277
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     258.661
+  activation methods: 
+
+
+Spectrum 24:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        147.113 .. 487.23
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     317.171
+  activation methods: 
+
+
+Spectrum 25:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      5
+  RT:         -1
+  m/z:        175.119 .. 361.183
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     231.619
+  activation methods: 
+
+
+Spectrum 26:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      47
+  RT:         -1
+  m/z:        147.113 .. 2691.49
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1402.79
+  activation methods: 
+
+
+Spectrum 27:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      5
+  RT:         -1
+  m/z:        147.113 .. 446.276
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     252.152
+  activation methods: 
+
+
+Spectrum 28:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        147.113 .. 147.113
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     117.576
+  activation methods: 
+
+
+Spectrum 29:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      11
+  RT:         -1
+  m/z:        175.119 .. 703.337
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     425.706
+  activation methods: 
+
+
+Spectrum 30:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        147.113 .. 570.329
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     350.189
+  activation methods: 
+
+
+Spectrum 31:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      29
+  RT:         -1
+  m/z:        147.113 .. 1622.61
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     847.329
+  activation methods: 
+
+
+Spectrum 32:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        175.119 .. 175.119
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     161.597
+  activation methods: 
+
+
+Spectrum 33:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        175.119 .. 175.119
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     169.595
+  activation methods: 
+
+
+Spectrum 34:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      23
+  RT:         -1
+  m/z:        147.113 .. 1331.72
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     715.898
+  activation methods: 
+
+
+Spectrum 35:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      27
+  RT:         -1
+  m/z:        147.113 .. 1611.9
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     834.966
+  activation methods: 
+
+
+Spectrum 36:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      5
+  RT:         -1
+  m/z:        147.113 .. 331.234
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     209.637
+  activation methods: 
+
+
+Spectrum 37:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      3
+  RT:         -1
+  m/z:        147.113 .. 276.155
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     188.116
+  activation methods: 
+
+
+Spectrum 38:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      47
+  RT:         -1
+  m/z:        175.119 .. 2937.46
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1533.75
+  activation methods: 
+
+
+Spectrum 39:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        175.119 .. 175.119
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     161.597
+  activation methods: 
+
+
+Spectrum 40:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      13
+  RT:         -1
+  m/z:        147.113 .. 795.388
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     454.74
+  activation methods: 
+
+
+Spectrum 41:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      29
+  RT:         -1
+  m/z:        147.113 .. 1719.86
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     924.956
+  activation methods: 
+
+
+Spectrum 42:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        147.113 .. 147.113
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     117.576
+  activation methods: 
+
+
+Spectrum 43:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      15
+  RT:         -1
+  m/z:        175.119 .. 798.447
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     456.269
+  activation methods: 
+
+
+Spectrum 44:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      19
+  RT:         -1
+  m/z:        147.113 .. 1194.58
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     655.307
+  activation methods: 
+
+
+Spectrum 45:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      43
+  RT:         -1
+  m/z:        175.119 .. 2220.11
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1146.08
+  activation methods: 
+
+
+Spectrum 46:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      9
+  RT:         -1
+  m/z:        175.119 .. 613.342
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     350.69
+  activation methods: 
+
+
+Spectrum 47:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      5
+  RT:         -1
+  m/z:        147.113 .. 395.229
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     247.652
+  activation methods: 
+
+
+Spectrum 48:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      17
+  RT:         -1
+  m/z:        175.119 .. 1161.69
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     616.867
+  activation methods: 
+
+
+Spectrum 49:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      21
+  RT:         -1
+  m/z:        175.119 .. 1260.71
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     695.382
+  activation methods: 
+
+
+Spectrum 50:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      11
+  RT:         -1
+  m/z:        147.113 .. 631.323
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     365.699
+  activation methods: 
+
+
+Spectrum 51:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        175.119 .. 175.119
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     153.583
+  activation methods: 
+
+
+Spectrum 52:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      39
+  RT:         -1
+  m/z:        147.113 .. 1925.1
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1019.59
+  activation methods: 
+
+
+Spectrum 53:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      3
+  RT:         -1
+  m/z:        175.119 .. 274.187
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     188.121
+  activation methods: 
+
+
+Spectrum 54:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      19
+  RT:         -1
+  m/z:        147.113 .. 1114.46
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     630.788
+  activation methods: 
+
+
+Spectrum 55:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        175.119 .. 537.278
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     320.647
+  activation methods: 
+
+
+Spectrum 56:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      5
+  RT:         -1
+  m/z:        147.113 .. 415.212
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     265.623
+  activation methods: 
+
+
+Spectrum 57:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      25
+  RT:         -1
+  m/z:        147.113 .. 1271.67
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     679.853
+  activation methods: 
+
+
+Spectrum 58:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      13
+  RT:         -1
+  m/z:        159.076 .. 869.419
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     470.731
+  activation methods: 
+
+
+Spectrum 59:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      73
+  RT:         -1
+  m/z:        147.113 .. 3882.98
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1977.51
+  activation methods: 
+
+
+Spectrum 60:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      25
+  RT:         -1
+  m/z:        147.113 .. 1500.77
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     815.412
+  activation methods: 
+
+
+Spectrum 61:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      17
+  RT:         -1
+  m/z:        175.119 .. 1080.53
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     598.28
+  activation methods: 
+
+
+Spectrum 62:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        147.113 .. 147.113
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     102.571
+  activation methods: 
+
+
+Spectrum 63:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      13
+  RT:         -1
+  m/z:        175.119 .. 743.362
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     415.701
+  activation methods: 
+
+
+Spectrum 64:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      35
+  RT:         -1
+  m/z:        159.076 .. 2027.04
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1057.54
+  activation methods: 
+
+
+Spectrum 65:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        147.113 .. 486.292
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     307.697
+  activation methods: 
+
+
+Spectrum 66:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      87
+  RT:         -1
+  m/z:        147.113 .. 4574.93
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     2323.49
+  activation methods: 
+
+
+Spectrum 67:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      3
+  RT:         -1
+  m/z:        147.113 .. 260.197
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     182.107
+  activation methods: 
+
+
+Spectrum 68:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      17
+  RT:         -1
+  m/z:        147.113 .. 863.462
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     489.748
+  activation methods: 
+
+
+Spectrum 69:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      19
+  RT:         -1
+  m/z:        147.113 .. 1136.59
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     637.33
+  activation methods: 
+
+
+Spectrum 70:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      3
+  RT:         -1
+  m/z:        175.119 .. 290.146
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     181.095
+  activation methods: 
+
+
+Spectrum 71:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      21
+  RT:         -1
+  m/z:        175.119 .. 1367.66
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     741.848
+  activation methods: 
+
+
+Spectrum 72:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      11
+  RT:         -1
+  m/z:        147.113 .. 750.367
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     439.735
+  activation methods: 
+
+
+Spectrum 73:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      27
+  RT:         -1
+  m/z:        175.119 .. 1517.8
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     816.917
+  activation methods: 
+
+
+Spectrum 74:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        147.113 .. 392.196
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     240.118
+  activation methods: 
+
+
+Spectrum 75:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      31
+  RT:         -1
+  m/z:        147.113 .. 1940.99
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1035.52
+  activation methods: 
+
+
+Spectrum 76:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        147.113 .. 147.113
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     131.574
+  activation methods: 
+
+
+Spectrum 77:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        147.113 .. 147.113
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     117.576
+  activation methods: 
+
+
+Spectrum 78:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      19
+  RT:         -1
+  m/z:        147.113 .. 1147.59
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     638.82
+  activation methods: 
+
+
+Spectrum 79:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        147.113 .. 520.349
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     318.192
+  activation methods: 
+
+
+Spectrum 80:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      13
+  RT:         -1
+  m/z:        147.113 .. 759.415
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     437.725
+  activation methods: 
+
+
+Spectrum 81:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      5
+  RT:         -1
+  m/z:        175.119 .. 369.224
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     234.65
+  activation methods: 
+
+
+Spectrum 82:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      5
+  RT:         -1
+  m/z:        147.113 .. 333.177
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     232.612
+  activation methods: 
+
+
+Spectrum 83:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      21
+  RT:         -1
+  m/z:        175.119 .. 1347.69
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     739.871
+  activation methods: 
+
+
+Spectrum 84:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      3
+  RT:         -1
+  m/z:        175.119 .. 288.203
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     201.627
+  activation methods: 
+
+
+Spectrum 85:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      29
+  RT:         -1
+  m/z:        147.113 .. 1574.72
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     852.384
+  activation methods: 
+
+
+Spectrum 86:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      15
+  RT:         -1
+  m/z:        175.119 .. 964.409
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     569.764
+  activation methods: 
+
+
+Spectrum 87:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        147.113 .. 147.113
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     130.602
+  activation methods: 
+
+
+Spectrum 88:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      19
+  RT:         -1
+  m/z:        147.113 .. 1120.53
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     612.272
+  activation methods: 
+
+
+Spectrum 89:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      27
+  RT:         -1
+  m/z:        147.113 .. 1498.64
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     806.366
+  activation methods: 
+
+
+Spectrum 90:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      39
+  RT:         -1
+  m/z:        147.113 .. 2045.93
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1080.01
+  activation methods: 
+
+
+Spectrum 91:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      23
+  RT:         -1
+  m/z:        147.113 .. 1316.72
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     710.369
+  activation methods: 
+
+
+Spectrum 92:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      35
+  RT:         -1
+  m/z:        147.113 .. 1927.87
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1007.96
+  activation methods: 
+
+
+Spectrum 93:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      19
+  RT:         -1
+  m/z:        147.113 .. 1162.57
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     625.307
+  activation methods: 
+
+
+Spectrum 94:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        147.113 .. 147.113
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     102.571
+  activation methods: 
+
+
+Spectrum 95:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      13
+  RT:         -1
+  m/z:        175.119 .. 743.362
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     415.701
+  activation methods: 
+
+
+Spectrum 96:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      25
+  RT:         -1
+  m/z:        147.113 .. 1476.77
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     789.411
+  activation methods: 
+
+
+Spectrum 97:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        175.119 .. 529.23
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     321.661
+  activation methods: 
+
+
+Spectrum 98:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      25
+  RT:         -1
+  m/z:        147.113 .. 1374.53
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     760.822
+  activation methods: 
+
+
+Spectrum 99:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      9
+  RT:         -1
+  m/z:        147.113 .. 537.27
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     326.652
+  activation methods: 
+
+
+Spectrum 100:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      27
+  RT:         -1
+  m/z:        147.113 .. 1479.64
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     796.865
+  activation methods: 
+
+
+Spectrum 101:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      19
+  RT:         -1
+  m/z:        175.119 .. 1154.53
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     642.288
+  activation methods: 
+
+
+Spectrum 102:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        147.113 .. 488.308
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     296.162
+  activation methods: 
+
+
+Spectrum 103:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      11
+  RT:         -1
+  m/z:        147.113 .. 678.382
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     368.205
+  activation methods: 
+
+
+Spectrum 104:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      19
+  RT:         -1
+  m/z:        147.113 .. 1029.53
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     583.799
+  activation methods: 
+
+
+Spectrum 105:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      11
+  RT:         -1
+  m/z:        147.113 .. 713.362
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     414.206
+  activation methods: 
+
+
+Spectrum 106:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        147.113 .. 503.282
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     309.166
+  activation methods: 
+
+
+Spectrum 107:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      19
+  RT:         -1
+  m/z:        175.119 .. 1182.58
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     649.308
+  activation methods: 
+
+
+Spectrum 108:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      23
+  RT:         -1
+  m/z:        175.119 .. 1401.66
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     765.38
+  activation methods: 
+
+
+Spectrum 109:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      15
+  RT:         -1
+  m/z:        169.097 .. 893.495
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     482.77
+  activation methods: 
+
+
+Spectrum 110:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        147.113 .. 147.113
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     131.574
+  activation methods: 
+
+
+Spectrum 111:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      9
+  RT:         -1
+  m/z:        147.113 .. 557.286
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     343.668
+  activation methods: 
+
+
+Spectrum 112:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      3
+  RT:         -1
+  m/z:        175.119 .. 288.203
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     201.147
+  activation methods: 
+
+
+Spectrum 113:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      39
+  RT:         -1
+  m/z:        175.119 .. 2273.02
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1201.04
+  activation methods: 
+
+
+Spectrum 114:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      5
+  RT:         -1
+  m/z:        147.113 .. 377.203
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     232.621
+  activation methods: 
+
+
+Spectrum 115:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        175.119 .. 548.355
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     332.195
+  activation methods: 
+
+
+Spectrum 116:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      13
+  RT:         -1
+  m/z:        147.113 .. 749.386
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     432.71
+  activation methods: 
+
+
+Spectrum 117:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      5
+  RT:         -1
+  m/z:        175.119 .. 427.205
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     270.648
+  activation methods: 
+
+
+Spectrum 118:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        147.113 .. 540.266
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     327.658
+  activation methods: 
+
+
+Spectrum 119:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      13
+  RT:         -1
+  m/z:        147.113 .. 854.393
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     500.753
+  activation methods: 
+
+
+Spectrum 120:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      9
+  RT:         -1
+  m/z:        171.113 .. 558.336
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     315.19
+  activation methods: 
+
+
+Spectrum 121:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      23
+  RT:         -1
+  m/z:        175.119 .. 1314.64
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     709.326
+  activation methods: 
+
+
+Spectrum 122:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        116.071 .. 116.071
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     136.589
+  activation methods: 
+
+
+Spectrum 123:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      3
+  RT:         -1
+  m/z:        147.113 .. 246.181
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     189.114
+  activation methods: 
+
+
+Spectrum 124:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      7
+  RT:         -1
+  m/z:        147.113 .. 476.271
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     302.669
+  activation methods: 
+
+
+Spectrum 125:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      23
+  RT:         -1
+  m/z:        147.113 .. 1235.59
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     668.823
+  activation methods: 
+
+
+Spectrum 126:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      27
+  RT:         -1
+  m/z:        147.113 .. 1511.7
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     812.897
+  activation methods: 
+
+
+Spectrum 127:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      21
+  RT:         -1
+  m/z:        147.113 .. 1332.73
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     732.389
+  activation methods: 
+
+
+Spectrum 128:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      45
+  RT:         -1
+  m/z:        147.113 .. 2573.11
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     1360.11
+  activation methods: 
+
+
+Spectrum 129:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      15
+  RT:         -1
+  m/z:        147.113 .. 1045.52
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     574.767
+  activation methods: 
+
+
+Spectrum 130:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      3
+  RT:         -1
+  m/z:        147.113 .. 275.171
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     166.6
+  activation methods: 
+
+
+Spectrum 131:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      15
+  RT:         -1
+  m/z:        147.113 .. 809.379
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     454.727
+  activation methods: 
+
+
+Spectrum 132:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      1
+  RT:         -1
+  m/z:        147.113 .. 147.113
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     138.581
+  activation methods: 
+
+
+Spectrum 133:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      15
+  RT:         -1
+  m/z:        118.086 .. 888.467
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     501.279
+  activation methods: 
+
+
+-- Checking for corrupt data --
+
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    
+  mass analyzer(s): 
+  detector(s):      
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+No information about data processing available!
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+
+

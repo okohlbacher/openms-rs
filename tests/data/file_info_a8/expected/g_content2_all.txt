@@ -1,0 +1,105 @@
+
+-- General information --
+
+File name: <FIX>/FileHandler_MGFbyContent2.mgf
+File type: mgf
+
+Instrument: 
+
+MS levels: 2
+Total number of peaks: 2
+Number of spectra: 1
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 5000.09 .. 5000.09 sec (0.0 min)
+  mass-to-charge: 175.29 .. 1082.42
+  ion mobility: <none> .. <none>
+  intensity: 6.73 .. 7.30
+
+Spectrum Ranges:
+  retention time: 5000.09 .. 5000.09 sec (0.0 min)
+  mass-to-charge: 175.29 .. 1082.42
+  ion mobility: <none> .. <none>
+  intensity: 6.73 .. 7.30
+
+MS Level 2 Ranges:
+  retention time: 5000.09 .. 5000.09 sec (0.0 min)
+  mass-to-charge: 175.29 .. 1082.42
+  ion mobility: <none> .. <none>
+  intensity: 6.73 .. 7.30
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 2: 1
+
+Peak type from metadata (or estimated from data)
+  level 2: Centroid (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+  charge 2: 1x
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      2
+  RT:         5000.09
+  m/z:        175.288 .. 1082.42
+Precursors:  1
+Precursor[0]
+  charge: 2
+  mz:     617.319
+  activation methods: 
+
+
+-- Checking for corrupt data --
+
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    
+  mass analyzer(s): 
+  detector(s):      
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+No information about data processing available!
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+
+

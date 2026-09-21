@@ -1,0 +1,92 @@
+
+-- General information --
+
+File name: <FIX>/a8_ms2_edges.ms2
+File type: ms2
+
+Instrument: 
+
+MS levels: 2
+Total number of peaks: 14
+Number of spectra: 3
+
+Combined Ranges (spectra + chromatograms):
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 100.00 .. 201.00
+  ion mobility: <none> .. <none>
+  intensity: 5.00 .. 43.00
+
+Spectrum Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 100.00 .. 201.00
+  ion mobility: <none> .. <none>
+  intensity: 5.00 .. 43.00
+
+MS Level 2 Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 100.00 .. 201.00
+  ion mobility: <none> .. <none>
+  intensity: 5.00 .. 43.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 2: 3
+
+Peak type from metadata (or estimated from data)
+  level 2: Unknown (Centroid)
+
+Activation methods
+
+Precursor charge distribution:
+  charge 0: 3x
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      12
+  RT:         -1
+  m/z:        100 .. 179.75
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     400.5
+  activation methods: 
+
+
+Spectrum 2:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      0
+  RT:         -1
+  m/z:        Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     450.25
+  activation methods: 
+
+
+Spectrum 3:
+  mslevel:    2
+  scanMode:   Unknown
+  peaks:      2
+  RT:         -1
+  m/z:        200 .. 201
+Precursors:  1
+Precursor[0]
+  charge: 0
+  mz:     500.125
+  activation methods: 
+
+
+-- Checking for corrupt data --
+
+Warning: No peaks in spectrum (RT: -1)
+
+

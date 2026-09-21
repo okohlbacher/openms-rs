@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1">
+<msRun scanCount="7" startTime="PT1S" endTime="PT3602S">
+<parentFile fileName="edges.raw" fileType="RAWData" fileSha1="0000000000000000000000000000000000000000"/>
+<msInstrument>
+<msManufacturer category="msManufacturer" value="Thermo Scientific"/>
+<msModel category="msModel" value="LTQ Orbitrap"/>
+<msIonisation category="msIonisation" value="ESI"/>
+<msMassAnalyzer category="msMassAnalyzer" value="FTMS"/>
+<msDetector category="msDetector" value="unknown"/>
+<software type="acquisition" name="Xcalibur" version="2.0"/>
+</msInstrument>
+<scan num="1" msLevel="1" peaksCount="14" retentionTime="PT1M30.5S" polarity="+" scanType="Full">
+<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q5YAAELIAABDm8AAQtIAAEOhgABC3AAAQ6dAAELmAABDrQAAQvAAAEOywABC+gAAQ7iAAEMCAABDvkAAQwcAAEPEAABDDAAAQ8nAAEMRAABDz4AAQxYAAEPVQABDGwAAQ9sAAEMgAABD4MAAQyUAAA==</peaks>
+</scan>
+<scan num="2" msLevel="2" peaksCount="6" retentionTime="PT95S">
+<precursorMz precursorIntensity="50" precursorCharge="2" activationMethod="ETD">400.2</precursorMz>
+<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QxYAAEGgAABDHwAAQagAAEMoAABBsAAAQzEAAEG4AABDOgAAQcAAAENDAABByAAA</peaks>
+</scan>
+<scan num="3" msLevel="2" peaksCount="6" retentionTime="PT96S">
+<precursorMz precursorIntensity="60" activationMethod="CID">410.2</precursorMz>
+<precursorMz precursorIntensity="61" precursorCharge="3" activationMethod="HCD">411.2</precursorMz>
+<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QxYAAEGgAABDHwAAQagAAEMoAABBsAAAQzEAAEG4AABDOgAAQcAAAENDAABByAAA</peaks>
+</scan>
+<scan num="4" msLevel="2" peaksCount="6" retentionTime="PT97S">
+<precursorMz precursorIntensity="70" precursorCharge="-1" activationMethod="FOO">420.2</precursorMz>
+<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QxYAAEGgAABDHwAAQagAAEMoAABBsAAAQzEAAEG4AABDOgAAQcAAAENDAABByAAA</peaks>
+</scan>
+<scan num="5" msLevel="0" peaksCount="4" retentionTime="PT1H0M2S" polarity="-">
+<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q5YAAELIAABDm8AAQtIAAEOhgABC3AAAQ6dAAELmAAA=</peaks>
+</scan>
+<scan num="6" msLevel="1" peaksCount="0">
+<peaks precision="32" byteOrder="network" pairOrder="m/z-int"></peaks>
+</scan>
+<scan num="7" msLevel="3" peaksCount="3" retentionTime="PT98S">
+<precursorMz precursorIntensity="0" precursorCharge="2">430.2</precursorMz>
+<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QxYAAEGgAABDHwAAQagAAEMoAABBsAAA</peaks>
+</scan>
+</msRun>
+</mzXML>

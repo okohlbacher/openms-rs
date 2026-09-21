@@ -6,7 +6,9 @@
 //!
 //! Evidence, in order of strength (see `tests/data/topp_file_info_provenance.json`
 //! and `docs/TOPP_FILE_INFO_SUPPORT.md`):
-//! - tier 1, retained upstream outputs: TOPP_FileInfo_1, _2, _3 and _9
+//! - tier 1, retained upstream outputs: TOPP_FileInfo_1, _2, _3 and _9, and
+//!   since A8 _4, _5 and _6, which also match the Release build's `-out` byte
+//!   for byte (`../oracle/a8-fileinfo`)
 //!   (test-data `0cb15f2`, `topp/CMakeLists.txt:881-904`) run through the tool
 //!   and compared with FuzzyDiff (`FuzzyDiff.ini`, ratio 1.01, absdiff 0.01) and
 //!   the registered whitelist `File name`;
@@ -371,6 +373,74 @@ fn topp_file_info_17_18_and_20() {
         let out = registration(&dir, name, &["-test", "-in", &input, "-no_progress"]);
         fuzzy_diff_against_retained(&out, &library(&format!("retained/{name}_output.txt")));
     }
+}
+
+/// TOPP_FileInfo_4, _5 and _6 (`CMakeLists.txt:890-892`, `:893-895`,
+/// `:896-898`), reproduced by A8 with the registrations' own flags: mzXML with
+/// `-m`, a `.mzDat` file forced to mzData with `-m -s`, and mzData with
+/// `-d -s`. The retained outputs are compared through FuzzyDiff as the
+/// registrations do, and each `-out` byte for byte with the Release build's
+/// (`../oracle/a8-fileinfo`, cases `x4`, `d5` and `d6`, which
+/// `tests/file_info_a8.rs` runs through the library as well).
+#[test]
+fn topp_file_info_4_5_and_6() {
+    let fi4 = tool("inputs/FileInfo_4_input.mzXML");
+    let fi5 = data("mzml_mobility/FileInfo_5_input.mzDat");
+    let fi6 = tool("inputs/FileInfo_6_input.mzData");
+    let cases: [(&str, &str, Vec<&str>); 3] = [
+        ("FileInfo_4", "x4", vec!["-in", &fi4, "-m"]),
+        (
+            "FileInfo_5",
+            "d5",
+            vec!["-in", &fi5, "-in_type", "mzData", "-m", "-s"],
+        ),
+        ("FileInfo_6", "d6", vec!["-in", &fi6, "-d", "-s"]),
+    ];
+    for (name, case, flags) in cases {
+        let dir = Workdir::new();
+        let mut args = vec!["-test"];
+        args.extend(flags);
+        args.push("-no_progress");
+        let out = registration(&dir, name, &args);
+        fuzzy_diff_against_retained(&out, &library(&format!("retained/{name}_output.txt")));
+        assert_report(
+            &read(&out),
+            &data(&format!("file_info_a8/expected/{case}.txt")),
+        );
+    }
+}
+
+/// Oracle `x4_bare`: TOPP_FileInfo_4 without `-out`, so the report goes to the
+/// output stream; byte for byte with the Release build's standard output
+/// apart from its `FileInfo took` line.
+#[test]
+fn topp_file_info_4_on_the_output_stream() {
+    let fi4 = tool("inputs/FileInfo_4_input.mzXML");
+    let outcome = run(&["-test", "-in", &fi4, "-no_progress", "-m"]);
+    assert_code(&outcome, ExitCode::ExecutionOk);
+    assert!(outcome.err.is_empty(), "{}", outcome.err);
+    let expected = data("file_info_a8/expected/x4_bare.stdout.txt");
+    assert_report_text(&outcome.out, &cpp_stdout_report(&expected), &expected);
+}
+
+/// Oracle `m_test`: the tool's `-in` lists the formats it accepts, and `ms2`
+/// is not among them, so an MS2 file is refused before the library runs, in
+/// the Release build as here: exit 6 and the same message. The library's MS2
+/// branch is reached only through the class (`tests/file_info_a8.rs`).
+#[test]
+fn an_ms2_input_is_refused_by_the_input_format_check() {
+    let input = data("text_peak_lists/MS2File_test_spectra.ms2");
+    let outcome = run(&["-test", "-in", &input, "-no_progress"]);
+    assert_code(&outcome, ExitCode::IllegalParameters);
+    assert!(outcome.out.is_empty(), "{}", outcome.out);
+    assert_eq!(
+        outcome.err,
+        format!(
+            "Invalid parameter: Input file '{input}' has invalid format 'ms2'. Valid formats are: \
+             'mzData','mzXML','mzML','sqMass','dta','dta2d','mgf','featureXML','consensusXML',\
+             'idXML','pepXML','mzTab','fid','mzid','trafoXML','fasta','pqp'.\n"
+        )
+    );
 }
 
 /// A7 implemented the consensusXML, idXML, mzIdentML and FASTA branches, so the
@@ -1051,27 +1121,12 @@ fn a_forced_type_the_file_contradicts_is_refused() {
 
 /// Each unported registration exits `INCOMPATIBLE_INPUT_DATA` with a message
 /// naming the branch or flag, writes nothing to the output stream and leaves
-/// `-out` empty. The C++ tool exits 0 on all of them (C1 `TOPP_FileInfo_4`-`_7`,
-/// `_10`-`_14`, `_16`-`_20`, `FileInfo_mzDat_in_type_mzData`).
+/// `-out` empty. The C++ tool exits 0 on all of them (C1 `TOPP_FileInfo_14`
+/// and `_16`). A8 wired mzXML and mzData, so the three rows TOPP_FileInfo_4, _5
+/// and _6 held here are gone; `topp_file_info_4_5_and_6` reproduces them.
 #[test]
 fn unported_branches_are_refused_explicitly() {
-    let mzdat = data("mzml_mobility/FileInfo_5_input.mzDat");
     let cases: Vec<(&str, Vec<String>, &str)> = vec![
-        (
-            "TOPP_FileInfo_4",
-            args(&tool("inputs/FileInfo_4_input.mzXML"), &["-m"]),
-            "FileInfo peak-file branch for mzXML input is not ported",
-        ),
-        (
-            "TOPP_FileInfo_5",
-            args(&mzdat, &["-in_type", "mzData", "-m", "-s"]),
-            "FileInfo peak-file branch for mzData input is not ported",
-        ),
-        (
-            "TOPP_FileInfo_6",
-            args(&tool("inputs/FileInfo_6_input.mzData"), &["-d", "-s"]),
-            "FileInfo peak-file branch for mzData input is not ported",
-        ),
         (
             "TOPP_FileInfo_14",
             args(&tool("inputs/FileInfo_14_input.mzid"), &["-v"]),
