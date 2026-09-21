@@ -32,8 +32,8 @@
 ))]
 
 use openms::concept::progress_logger::{
-    CommandProgressLogger, ProgressBackend, ProgressClock, ProgressLogType, ProgressLogger,
-    ProgressNesting, ProgressReporter, ProgressTime,
+    CommandProgressLogger, MAX_PROGRESS_DEPTH, ProgressBackend, ProgressClock, ProgressLogType,
+    ProgressLogger, ProgressNesting, ProgressReporter, ProgressTime,
 };
 use openms::format::PeakFileOptions;
 use openms::format::{
@@ -432,6 +432,13 @@ impl Write for SharedOutput {
 /// driver's `make_gui_progress_logger`, with its own nesting context.
 fn recording_logger() -> (ProgressLogger, ProgressNesting, Arc<Mutex<Vec<String>>>) {
     let nesting = ProgressNesting::default();
+    let (logger, events) = recording_logger_on(&nesting);
+    (logger, nesting, events)
+}
+
+/// [`recording_logger`] on a given nesting context, which several loggers
+/// then share, as the source's file objects share its static depth.
+fn recording_logger_on(nesting: &ProgressNesting) -> (ProgressLogger, Arc<Mutex<Vec<String>>>) {
     let events = Arc::new(Mutex::new(Vec::new()));
     let mut logger = ProgressLogger::with_clock_and_nesting(new_second_clock(), nesting.clone());
     let sink = events.clone();
@@ -442,13 +449,19 @@ fn recording_logger() -> (ProgressLogger, ProgressNesting, Arc<Mutex<Vec<String>
         })
     }));
     logger.set_log_type(ProgressLogType::Gui);
-    (logger, nesting, events)
+    (logger, events)
 }
 
 /// A logger whose every backend is a command backend writing to one buffer,
 /// the counterpart of `setLogType(CMD)` with stdout captured.
 fn command_logger() -> (ProgressLogger, ProgressNesting, SharedOutput) {
     let nesting = ProgressNesting::default();
+    let (logger, output) = command_logger_on(&nesting);
+    (logger, nesting, output)
+}
+
+/// [`command_logger`] on a given nesting context.
+fn command_logger_on(nesting: &ProgressNesting) -> (ProgressLogger, SharedOutput) {
     let output = SharedOutput::default();
     let clock = new_second_clock();
     let mut logger = ProgressLogger::with_clock_and_nesting(clock.clone(), nesting.clone());
@@ -460,7 +473,7 @@ fn command_logger() -> (ProgressLogger, ProgressNesting, SharedOutput) {
         ))
     }));
     logger.set_log_type(ProgressLogType::Gui);
-    (logger, nesting, output)
+    (logger, output)
 }
 
 /// Masks the timing texts, and the throughput when there is one, of every
@@ -1257,5 +1270,256 @@ fn the_reporter_counts_advances_and_ends_with_a_byte_count() {
             "E\t0\t42"
         ]
     );
+    assert_eq!(nesting.depth(), 0);
+}
+
+// ---------------------------------------------------------------------------
+// Failed loads and the loads after them.
+//
+// The Release build's depth is one `static int` (`ProgressLogger.h:105`):
+// `startProgress` increments it after the backend call (`ProgressLogger.cpp:237-238`)
+// and only `endProgress` decrements it (`:266-269`). An exception thrown inside
+// a section skips the end, no catch on the way out ends it
+// (`MzMLFile.cpp:113-127`, `XMLFile.cpp:96-113`), and the destructor leaves the
+// depth alone (`:192-195`), so every section a failure leaves open stays in the
+// depth for the rest of the process. The fixture's `D` rows show it: 1 after a
+// failed DTA2D, featureXML or mzData load, 2 after a failed mzML load.
+
+/// A load that a reader refuses after its section has started, so that the
+/// section is left open, and the fixture case of a load by the same reader
+/// that succeeds.
+struct FailingLoad {
+    name: &'static str,
+    run: fn(&mut ProgressLogger, &Path) -> Result<()>,
+    good: &'static str,
+}
+
+/// One failing load per reader that reports progress. The DTA2D, featureXML,
+/// mzData and mzML failures are fixture cases whose `D` row shows the open
+/// section; the MGF, mzXML and consensusXML ones trip a native limit inside
+/// the section, which is where those readers can fail after their start.
+fn failing_loads() -> Vec<FailingLoad> {
+    vec![
+        FailingLoad {
+            name: "DTA2D, missing file",
+            run: |logger, out| run_case("dta2d_load_missing", out, logger).map(drop),
+            good: "dta2d_load",
+        },
+        FailingLoad {
+            name: "DTA2D, bad data line",
+            run: |logger, out| run_case("dta2d_load_bad_line", out, logger).map(drop),
+            good: "dta2d_load",
+        },
+        FailingLoad {
+            name: "DTA2D, destination that cannot be created",
+            run: |logger, out| run_case("dta2d_store_unwritable", out, logger).map(drop),
+            good: "dta2d_store",
+        },
+        FailingLoad {
+            name: "MGF, spectrum limit",
+            run: |logger, _| {
+                let mut options = mascot_generic::ReadOptions::default();
+                options.limits.max_spectra = 1;
+                mascot_generic::load_with_progress(data("mgf_two_blocks.mgf"), &options, logger)
+                    .map(drop)
+            },
+            good: "mgf_load_two_blocks",
+        },
+        FailingLoad {
+            name: "mzXML, peak limit",
+            run: |logger, _| {
+                let mut options = mzxml::ReadOptions::default();
+                options.limits.max_total_peaks = 2;
+                mzxml::load_with_progress(data("MzXMLFile_1.mzXML"), &options, logger).map(drop)
+            },
+            good: "mzxml_load",
+        },
+        FailingLoad {
+            name: "mzData, truncated",
+            run: |logger, _| {
+                mzdata::load_with_progress(
+                    data("truncated.mzData"),
+                    &PeakFileOptions::default(),
+                    &mzdata::ReadLimits::default(),
+                    logger,
+                )
+                .map(drop)
+            },
+            good: "mzdata_load",
+        },
+        FailingLoad {
+            name: "featureXML, truncated",
+            run: |logger, out| run_case("featurexml_load_truncated", out, logger).map(drop),
+            good: "featurexml_load",
+        },
+        FailingLoad {
+            name: "consensusXML, list limit",
+            run: |logger, _| {
+                let mut options = consensusxml::ReadOptions::default();
+                options.max_list_items = 1;
+                consensusxml::load_with_progress(
+                    data("ConsensusXMLFile_1.consensusXML"),
+                    &options,
+                    logger,
+                )
+                .map(drop)
+            },
+            good: "consensus_load",
+        },
+        FailingLoad {
+            name: "mzML, truncated",
+            run: |logger, out| run_case("mzml_load_truncated", out, logger).map(drop),
+            good: "mzml_load",
+        },
+        FailingLoad {
+            name: "mzML, record limit",
+            run: |logger, _| {
+                let mut read = mzml::ReadOptions::default();
+                read.max_records = 1;
+                mzml::load_with_progress(
+                    data("MzMLFile_1.mzML"),
+                    &mzml::LoadOptions::default(),
+                    &read,
+                    logger,
+                )
+                .map(drop)
+            },
+            good: "mzml_load",
+        },
+    ]
+}
+
+/// F4 of the phase 3 wave 1 verification. The sections failed loads left
+/// open stayed in the process-wide depth after their loggers were gone, so
+/// after `MAX_PROGRESS_DEPTH` levels every load that reports progress failed
+/// with "progress nesting limit exceeded", valid ones included, and every
+/// later section was indented by the failures before it.
+///
+/// Here each reader fails that many times more, each time through a fresh
+/// logger on one shared nesting context, as a long-running host's loggers
+/// share the process-wide one, while the logger of its first failure is kept
+/// alive. Every failure must refuse as the first did, and a later load by the
+/// same reader through a fresh logger must make the Release build's calls on
+/// a fresh file object, at its depths, and return its result.
+#[test]
+fn failed_loads_do_not_change_a_later_load_through_another_logger() {
+    let _mzdata = mzdata_lock();
+    let (_, runs) = fixture();
+    let out = output_dir("after_failures", "rec");
+    for failing in failing_loads() {
+        let nesting = ProgressNesting::default();
+        let (mut kept, _) = recording_logger_on(&nesting);
+        let first = (failing.run)(&mut kept, &out).unwrap_err().to_string();
+        for _ in 0..MAX_PROGRESS_DEPTH {
+            let (mut logger, _) = recording_logger_on(&nesting);
+            let error = (failing.run)(&mut logger, &out).unwrap_err();
+            assert_eq!(
+                error.to_string(),
+                first,
+                "{}: a later failure",
+                failing.name
+            );
+        }
+        if failing.good == "mzdata_load" {
+            // The mzData handler's own process-wide scan counter, which a
+            // failed load leaves raised as the source's static is (see
+            // `mzdata_static_counter`); a complete load resets it.
+            mzdata::load(data("MzDataFile_1.mzData")).unwrap();
+        }
+        let captured = &runs[&(failing.good.to_string(), "rec".to_string())];
+        let (mut logger, events) = recording_logger_on(&nesting);
+        let outcome = run_case(failing.good, &out, &mut logger);
+        check_outcome(failing.good, captured.outcome.as_ref().unwrap(), &outcome);
+        assert_eq!(
+            *events.lock().unwrap(),
+            captured.events,
+            "{}: the later load's calls",
+            failing.name
+        );
+        drop((logger, kept));
+        assert_eq!(nesting.depth(), captured.depth.unwrap(), "{}", failing.name);
+    }
+    std::fs::remove_dir_all(out).unwrap();
+}
+
+/// The verifier's probe for F4, on the process-wide nesting that
+/// `ProgressLogger::new()` uses: failed DTA2D loads through fresh loggers of
+/// the default type, which show nothing, and then a valid load, which must
+/// return what the silent entry point returns.
+#[test]
+fn failed_loads_on_the_process_wide_nesting_leave_a_valid_load_alone() {
+    let options = dta2d::ReadOptions::default();
+    for _ in 0..MAX_PROGRESS_DEPTH {
+        let error =
+            dta2d::load_with_progress(data("missing.dta2d"), &options, &mut ProgressLogger::new())
+                .unwrap_err();
+        assert!(
+            matches!(&error, Error::Io(e) if e.kind() == io::ErrorKind::NotFound),
+            "{error}"
+        );
+    }
+    let path = data("DTA2DFile_test_1.dta2d");
+    let silent = dta2d::load_with_options(&path, &options).unwrap();
+    let reported = dta2d::load_with_progress(&path, &options, &mut ProgressLogger::new()).unwrap();
+    assert_eq!(reported, silent);
+}
+
+/// While the logger of a failed load lives, its section stays open as the
+/// Release build's does: the command output stops after the header, with no
+/// `-- done` line, and the level stays in the depth (`dta2d_load_missing`).
+/// Dropping the logger and its copies never ends the section, so nothing more
+/// is printed, and it takes the level out of the depth.
+#[test]
+fn a_failed_section_prints_no_done_line_and_leaves_the_depth_with_its_logger() {
+    let (_, runs) = fixture();
+    let captured = &runs[&("dta2d_load_missing".to_string(), "cmd".to_string())];
+    let out = output_dir("no_done_line", "cmd");
+    let nesting = ProgressNesting::default();
+    let (mut logger, output) = command_logger_on(&nesting);
+    let outcome = run_case("dta2d_load_missing", &out, &mut logger);
+    check_outcome(
+        "dta2d_load_missing",
+        captured.outcome.as_ref().unwrap(),
+        &outcome,
+    );
+    assert_eq!(nesting.depth(), captured.depth.unwrap());
+    // A copy of the logger is another handle on the same file object, as the
+    // readers' own copies are, and keeps the level while it lives.
+    let copy = logger.clone();
+    drop(logger);
+    assert_eq!(nesting.depth(), captured.depth.unwrap());
+    drop(copy);
+    assert_eq!(nesting.depth(), 0);
+    assert_eq!(output.text(), *captured.output.as_ref().unwrap());
+    assert!(!output.text().contains("-- done"));
+    std::fs::remove_dir_all(out).unwrap();
+}
+
+/// One logger reused after failed loads, as a host that keeps one file object
+/// and retries: each failure leaves its level in the depth while the logger
+/// lives, one per failed DTA2D load as in `dta2d_load_missing`, and the
+/// source's static depth has no bound, so no number of failures makes a valid
+/// load through that logger fail.
+#[test]
+fn a_reused_logger_still_loads_after_any_number_of_failed_loads() {
+    let nesting = ProgressNesting::default();
+    let mut logger = ProgressLogger::with_clock_and_nesting(new_second_clock(), nesting.clone());
+    let options = dta2d::ReadOptions::default();
+    let failures = MAX_PROGRESS_DEPTH + 1;
+    for _ in 0..failures {
+        let error =
+            dta2d::load_with_progress(data("missing.dta2d"), &options, &mut logger).unwrap_err();
+        assert!(
+            matches!(&error, Error::Io(e) if e.kind() == io::ErrorKind::NotFound),
+            "{error}"
+        );
+    }
+    assert_eq!(nesting.depth(), failures);
+    let path = data("DTA2DFile_test_1.dta2d");
+    let silent = dta2d::load_with_options(&path, &options).unwrap();
+    let reported = dta2d::load_with_progress(&path, &options, &mut logger).unwrap();
+    assert_eq!(reported, silent);
+    assert_eq!(nesting.depth(), failures);
+    drop(logger);
     assert_eq!(nesting.depth(), 0);
 }
