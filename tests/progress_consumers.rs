@@ -565,19 +565,20 @@ fn command_output_matches_the_release_build() {
     }
 }
 
-/// The in-place picker makes the same calls as the borrowing one.
+/// The in-place picker makes the same calls as the borrowing one, and both make
+/// them at every worker count: spectra are counted as they are committed, in
+/// input order.
 #[test]
-fn in_place_picking_reports_as_the_release_build() {
+fn picking_reports_as_the_release_build_in_place_and_at_every_thread_count() {
     let (_, runs) = fixture();
     for case in ["hires_mixed", "hires_refused"] {
         let captured = &runs[&(case.to_string(), "rec".into())];
-        let events = Arc::new(Mutex::new(Vec::new()));
-        let (mut logger, _) = isolated_logger();
-        logger.set_logger(Box::new(Recorder {
-            events: events.clone(),
-            current: 0,
-        }));
-        let (picker, mut input) = if case == "hires_mixed" {
+        let failed = captured.outcome.as_ref().unwrap().is_err();
+        let mut expected = captured.events.clone();
+        if failed {
+            expected.push("E\t0\t0".into());
+        }
+        let (picker, input) = if case == "hires_mixed" {
             (PeakPickerHiRes::default(), mixed(2))
         } else {
             let picker = PeakPickerHiRes {
@@ -587,19 +588,41 @@ fn in_place_picking_reports_as_the_release_build() {
             };
             (picker, mixed(1))
         };
-        let outcome = picker.pick_experiment_in_place_with_progress(
-            &mut input,
+        for threads in [
             Threads::serial(),
-            &mut logger,
-        );
-        let mut expected = captured.events.clone();
-        if captured.outcome.as_ref().unwrap().is_err() {
-            assert!(outcome.is_err());
-            expected.push("E\t0\t0".into());
-        } else {
-            assert!(outcome.is_ok());
+            Threads::from_cli(2),
+            Threads::from_cli(8),
+        ] {
+            for in_place in [false, true] {
+                let events = Arc::new(Mutex::new(Vec::new()));
+                let (mut logger, _) = isolated_logger();
+                logger.set_logger(Box::new(Recorder {
+                    events: events.clone(),
+                    current: 0,
+                }));
+                let succeeded = if in_place {
+                    let mut experiment = input.clone();
+                    picker
+                        .pick_experiment_in_place_with_progress(
+                            &mut experiment,
+                            threads,
+                            &mut logger,
+                        )
+                        .is_ok()
+                } else {
+                    picker
+                        .pick_experiment_with_progress(&input, threads, &mut logger)
+                        .is_ok()
+                };
+                assert_eq!(succeeded, !failed, "{case}");
+                assert_eq!(
+                    *events.lock().unwrap(),
+                    expected,
+                    "{case}, {} threads, in place {in_place}",
+                    threads.get()
+                );
+            }
         }
-        assert_eq!(*events.lock().unwrap(), expected, "{case}");
     }
 }
 
