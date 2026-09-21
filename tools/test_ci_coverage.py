@@ -11,6 +11,8 @@ read - and the changes that must NOT count as a drop, such as moving a line to
 another leg or folding two lines with the same features into one.
 """
 
+import pathlib
+import tempfile
 import textwrap
 import unittest
 
@@ -124,6 +126,11 @@ class Drops(unittest.TestCase):
         after = covered(job(["cargo test --locked --test alpha"], extra=one).replace("ubuntu-latest", "${{ matrix.os }}"))
         self.assertEqual({u[2] for u in before - after}, {"windows-latest"})
 
+    def test_a_job_environment_is_part_of_what_a_line_runs(self):
+        before = covered(job(["cargo test --locked --test alpha"]))
+        after = covered(job(["cargo test --locked --test alpha"], extra="  env:\n    RUSTFLAGS: -C x\n"))
+        self.assertTrue(before - after)
+
     def test_an_environment_assignment_is_kept_apart_as_the_sweep_keeps_it(self):
         lines = cargo_lines(workflow(job(['RUSTFLAGS="-C x" cargo check --locked --all-features'])))
         self.assertEqual((lines[0].env, lines[0].text), ('RUSTFLAGS="-C x"', "cargo check --locked --all-features"))
@@ -175,6 +182,16 @@ class Sweep(unittest.TestCase):
         spec = workflow(job(["cargo test --locked"], name="cross-platform", extra="  if: startsWith(github.ref, 'refs/tags/')\n"))
         self.assertEqual(check_sweep_visibility(spec, cargo_lines(spec)), [])
 
+    def test_a_workflow_that_stops_running_on_push_is_reported(self):
+        spec = workflow(job(["cargo test --locked"]))
+        spec[True] = {"workflow_dispatch": None}
+        self.assertTrue(check_sweep_visibility(spec, cargo_lines(spec)))
+
+    def test_the_list_form_of_on_is_read(self):
+        spec = workflow(job(["cargo test --locked"]))
+        spec[True] = ["push", "pull_request"]
+        self.assertEqual(check_sweep_visibility(spec, cargo_lines(spec)), [])
+
     def test_the_swept_jobs_are_fine(self):
         spec = workflow(job(["cargo test --locked"], name="minimum-rust"))
         self.assertEqual(check_sweep_visibility(spec, cargo_lines(spec)), [])
@@ -213,6 +230,36 @@ class Gates(unittest.TestCase):
     def test_the_three_feature_gate_of_the_picked_finder(self):
         gate = 'all(feature = "mzml", feature = "paramxml", feature = "featurexml")'
         self.assertEqual(self.smallest(gate), [("featurexml", "mzml", "paramxml")])
+
+
+class CrateGate(unittest.TestCase):
+    def gates_of(self, source):
+        with tempfile.TemporaryDirectory() as root:
+            (pathlib.Path(root) / "tests").mkdir()
+            (pathlib.Path(root) / "tests" / "t.rs").write_text(source)
+            return TestGates("t", root=pathlib.Path(root))
+
+    def test_the_gate_at_the_top_is_the_crate_gate(self):
+        gates = self.gates_of(
+            '//! doc\n#![allow(x)]\n#![cfg(feature = "mzml")]\nuse a::b;\n#[cfg(feature = "idxml")]\nfn f() {}\n'
+        )
+        self.assertEqual((gates.gate, gates.item_features), (("feature", "mzml"), {"idxml"}))
+
+    def test_an_inner_cfg_below_an_item_is_refused(self):
+        with self.assertRaises(Unmodelled):
+            self.gates_of('use a::b;\nmod m {\n#![cfg(feature = "mzml")]\n}\n')
+
+    def test_two_crate_gates_are_refused(self):
+        with self.assertRaises(Unmodelled):
+            self.gates_of('#![cfg(feature = "a")]\n#![cfg(feature = "b")]\n')
+
+    def test_a_module_pulled_in_by_path_counts(self):
+        with tempfile.TemporaryDirectory() as root:
+            tests = pathlib.Path(root) / "tests"
+            (tests / "support").mkdir(parents=True)
+            (tests / "support" / "s.rs").write_text('#[cfg(feature = "network")]\nfn g() {}\n')
+            (tests / "t.rs").write_text('#[path = "support/s.rs"]\nmod s;\n')
+            self.assertEqual(TestGates("t", root=pathlib.Path(root)).item_features, {"network"})
 
 
 class Repository(unittest.TestCase):

@@ -239,8 +239,13 @@ class TestGates:
         for index, text in enumerate(module_sources(path)):
             text = without_comments(text)
             if index == 0:
-                match = re.search(r"#!\[cfg\(", text)
-                if match:
+                gates = list(re.finditer(r"#!\[cfg\(", text))
+                if len(gates) > 1:
+                    raise Unmodelled(f"tests/{name}: more than one #![cfg(...)]")
+                if gates:
+                    match = gates[0]
+                    if not re.fullmatch(r"(\s*#!\[[^\]]*\])*\s*", text[: match.start()]):
+                        raise Unmodelled(f"tests/{name}: #![cfg(...)] below the file's first item")
                     end = closing_paren(text, match.end() - 1)
                     self.gate = parse_predicate(text[match.end() : end])
                     text = text[: match.start()] + text[end + 1 :]
@@ -332,15 +337,23 @@ class CargoLine:
         self.text = text
 
 
+def environment(scope, mapping):
+    return [f"{scope}:{k}={v}" for k, v in sorted((mapping or {}).items())]
+
+
 def cargo_lines(spec):
     """Every cargo line of every job, once per matrix combination it runs in."""
     lines = []
     if not isinstance(spec.get("jobs"), dict):
         raise Unmodelled("the workflow has no jobs mapping")
+    if "defaults" in spec:
+        raise Unmodelled("workflow-level defaults are not modelled")
+    workflow_env = environment("workflow", spec.get("env"))
     for job_name, job in spec["jobs"].items():
         for key in ("continue-on-error", "defaults", "container", "services"):
             if key in job:
                 raise Unmodelled(f"{job_name}: job-level {key} is not modelled")
+        job_env = workflow_env + environment("job", job.get("env"))
         job_condition = str(job.get("if", "")).strip()
         steps = job.get("steps") or []
         toolchains = [s["uses"].split("@", 1)[1] for s in steps if str(s.get("uses", "")).startswith("dtolnay/rust-toolchain@")]
@@ -361,7 +374,7 @@ def cargo_lines(spec):
                     continue
                 ran_somewhere = True
                 runner = substitute(str(job.get("runs-on", "")), combination)
-                step_env = [f"{k}={v}" for k, v in sorted((step.get("env") or {}).items())]
+                step_env = job_env + [f"{k}={v}" for k, v in sorted((step.get("env") or {}).items())]
                 for raw in str(run).splitlines():
                     raw = substitute(raw.strip(), combination)
                     assignments, rest = strip_assignments(raw)
@@ -479,8 +492,11 @@ def check_sweep_visibility(spec, lines):
     for job in sorted({l.job for l in lines if not l.job_condition}):
         if job not in SWEPT_JOBS:
             problems.append(f"job {job!r} runs cargo on every push, but the pre-push sweep does not sweep it")
+    # PyYAML reads the bare key `on` as the boolean true.
     triggers = spec.get("on", spec.get(True))
-    if not isinstance(triggers, dict) or "push" not in triggers:
+    if isinstance(triggers, str):
+        triggers = [triggers]
+    if not isinstance(triggers, (dict, list)) or "push" not in triggers:
         problems.append("the workflow no longer runs on push")
     return problems
 
