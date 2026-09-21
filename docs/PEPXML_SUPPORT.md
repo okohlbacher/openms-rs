@@ -50,7 +50,7 @@ Every public member declared in `PepXMLFile.h`:
 | `void setParseUnknownScores(bool)` | `ReadOptions::parse_unknown_scores` |
 | `protected void onStartElement(const char16_t*, const Internal::XMLAttributes&)` | Not public API. Internal `ReaderState::start`, dispatching in the same order over the same element names |
 | `protected void onEndElement(const char16_t*)` | Not public API. Internal `ReaderState::end` |
-| Inherited from `public Internal::XMLFile`: `getVersion()`, `isValid(filename, os)` | Not ported. `getVersion` returns the handler's `"1.12"` and `isValid` validates against the bundled `pepXML_v114.xsd` through the Xerces schema validator. This port neither carries a schema version string nor validates against a schema; XML-schema validation lives in `format::mzml_schema` behind the `mzml-schema` feature and has no pepXML entry point |
+| Inherited from `public Internal::XMLFile`: `getVersion()`, `isValid(filename, os)` | `isValid` is `pepxml::is_valid`, with the optional `xml-schema` feature: XSD validation against the bundled, unchanged `pepXML_v114.xsd` the constructor registers (`PepXMLFile.cpp:333`) ([XML schema validation](XML_SCHEMA_SUPPORT.md)). No source test asserts a pepXML verdict. `getVersion()` is `XMLFile`'s, the `"1.14"` that constructor passes, because `XMLHandler` declares no `getVersion`; it is `SchemaKind::PepXML.version()` |
 
 The private nested class and the private helpers, because they define the
 behaviour the public surface exposes:
@@ -411,8 +411,9 @@ mapped. Macro counts are assertion macros inside the section, comments excluded.
 
 Sections 4, 5, 7 and 10 are above the five-macro threshold and are ported
 assertion by assertion. `VALIDATE_TMP_FILES` at the end of the upstream file
-validates the temporary outputs against the pepXML schema; this port carries no
-schema validator for pepXML and does not reproduce it.
+validates temporary outputs of the types `TestFileValidation.h` lists, and
+pepXML is not one of them: its switch skips the type, so the upstream test
+asserts no pepXML schema verdict.
 
 The remaining tests in `tests/pepxml.rs` cover the native boundaries no upstream
 section reaches: the resource ceilings, one-based indices of zero, malformed
@@ -429,7 +430,9 @@ follows the decoded input rather than the declared ceiling.
 
 ## Not covered
 
-- No schema validation, and no `pepXML_v114.xsd`/`pepXML_v117.xsd` handling.
+- Schema validation only with the optional `xml-schema` feature, against
+  `pepXML_v114.xsd`; `pepXML_v117.xsd` is not bundled, as the source bundles
+  only v114.
 - `PepXMLFileMascot.h`, a separate header with its own class test, is unported.
 - `analysis_summary` subtrees are skipped, as in the source.
 - `spectrum_query/@index`, `search_hit/@num_tot_proteins`,

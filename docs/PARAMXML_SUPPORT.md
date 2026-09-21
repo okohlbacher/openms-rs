@@ -17,7 +17,7 @@
 - NaN, infinities, signed zero and full finite f64 precision are preserved. NaN is written as `NaN`. Unlike the source's limited decimal stream precision, native numbers use a round-trip representation; byte-identical numeric formatting is not promised in general.
 - UTF-8, declared ISO-8859-1 and ASCII, and UTF-16 little/big endian input are supported. Output declares and emits UTF-8 by default; see *Writer options* for the source's ISO-8859-1 declaration. XML 1.0 literal line endings/attribute whitespace are normalized, while character references preserve tabs/newlines/carriage returns.
 
-The source's nonsemantic schema attributes `short_description`, `position`, and scalar `default` are accepted and ignored, as in ParamXMLHandler. No remote schema, external entity or DTD is fetched. Generic XMLFile schema-validation APIs are a separate SDK component; the tests validate generated documents independently against the original bundled XSD when `xmllint` is available.
+The source's nonsemantic schema attributes `short_description`, `position`, and scalar `default` are accepted and ignored, as in ParamXMLHandler. No remote schema, external entity or DTD is fetched. The inherited `XMLFile::isValid` is `paramxml::is_valid`, with the optional `xml-schema` feature: real XSD validation against the bundled, unchanged `Param_1_8_0.xsd`, with the four stored parameter sets of `ParamXMLFile_test.cpp:63-243` ported ([XML schema validation](XML_SCHEMA_SUPPORT.md)).
 
 ## Writer options
 

@@ -4,7 +4,10 @@ The optional, default-off `mzml-schema` feature implements the class-specific `M
 
 ## API and source policy
 
-Available through `format::mzml` and `format::mzml_schema`:
+Available through `format::mzml` and `format::mzml_schema`. The engine, the
+report types and the preflight are shared with every other bundled schema in
+`format::xml_schema` ([XML schema validation](XML_SCHEMA_SUPPORT.md)); the
+`mzml-schema` feature implies `xml-schema`.
 
 | Native operation | Behavior |
 | --- | --- |
@@ -12,7 +15,7 @@ Available through `format::mzml` and `format::mzml_schema`:
 | `validate_schema_with_options(path, &options)` | Explicit native input/preflight/report limits. |
 | `validate_schema_reader(reader, &options)` | Validate a caller-owned `BufRead`; the caller supplies uncompressed XML. |
 
-`SchemaValidationReport` owns the selected `SchemaKind`, structured diagnostic severity, message, optional filename/line/column, and engine domain/code. `is_valid()` requires successful validation with no Warning, Error or Fatal diagnostics. Information (`None` engine severity) does not invalidate. A schema violation returns `Ok(report)` with false validity. Malformed or unsupported XML, I/O, resource limits, setup and recoverable engine failures return the existing typed `Error`. No caller output is partially replaced. Contexts and temporary documents are local to each call.
+`SchemaValidationReport` owns the selected `SchemaKind`, structured diagnostic severity, message, optional filename/line/column, and engine domain/code. `is_valid()` requires successful validation with no Warning, Error or Fatal diagnostics. Information (`None` engine severity) does not invalidate. A schema violation returns `Ok(report)` with false validity. Malformed or unsupported XML, I/O, resource limits, setup and recoverable engine failures return the existing typed `Error`. No caller output is partially replaced. Contexts and temporary documents are local to each call, and the engine runs under one process-wide lock shared with every other schema, because libxml2's schema contexts are not safe to use from several threads at once.
 
 This preserves the warning policy of `VALIDATORS/XMLValidator.cpp:31–33,107–111`, which marks warning, error and fatal callbacks invalid. Diagnostic wording and codes come from the installed libxml2, not Xerces, and are not promised stable across C-library versions. The safe binding does not expose owned structured document-parser warnings. Schema compiler/validator warnings are drained even on successful calls, but incidental document-parser warnings cannot be reported through this API. The native lexical and namespace checks reject the tested malformed inputs before C; this is not a promise of identical arbitrary Xerces/libxml parser diagnostics.
 

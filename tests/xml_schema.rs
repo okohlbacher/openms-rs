@@ -370,6 +370,9 @@ fn every_bundled_schema_compiles_and_its_violations_are_reports() {
         let r = report(kind, "<notDeclaredAnywhere/>");
         assert!(!r.is_valid(), "{kind:?}");
         assert_eq!(r.schema, kind);
+        // Exactly the one validation error about the root: schema compilation
+        // contributed no warning, which would make every document invalid.
+        assert_eq!(r.diagnostics.len(), 1, "{kind:?}: {:?}", r.diagnostics);
         assert!(
             r.diagnostics
                 .iter()

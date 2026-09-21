@@ -1,8 +1,8 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 5918,
-  "documented": 4563
+  "items": 5945,
+  "documented": 4610
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {
@@ -69,17 +69,13 @@
    "items": 27,
    "documented": 27
   },
-  "src/math/source_sort.rs": {
-   "items": 5,
-   "documented": 5
-  },
   "src/analysis/feature_finder_picked/trace_fitter.rs": {
    "items": 20,
    "documented": 20
   },
   "src/analysis/feature_finder_picked.rs": {
-   "items": 14,
-   "documented": 14
+   "items": 13,
+   "documented": 13
   },
   "src/analysis/feature_finding_metabo.rs": {
    "items": 15,
@@ -474,8 +470,8 @@
    "documented": 2
   },
   "src/format/consensusxml.rs": {
-   "items": 16,
-   "documented": 0
+   "items": 17,
+   "documented": 17
   },
   "src/format/controlled_vocabulary.rs": {
    "items": 41,
@@ -510,8 +506,8 @@
    "documented": 13
   },
   "src/format/featurexml.rs": {
-   "items": 20,
-   "documented": 20
+   "items": 21,
+   "documented": 21
   },
   "src/format/featurexml_scaling.rs": {
    "items": 10,
@@ -550,8 +546,8 @@
    "documented": 2
   },
   "src/format/idxml.rs": {
-   "items": 14,
-   "documented": 10
+   "items": 15,
+   "documented": 15
   },
   "src/format/imzml_file.rs": {
    "items": 48,
@@ -590,8 +586,8 @@
    "documented": 4
   },
   "src/format/mod.rs": {
-   "items": 48,
-   "documented": 48
+   "items": 49,
+   "documented": 49
   },
   "src/format/modification_definitions.rs": {
    "items": 23,
@@ -610,12 +606,12 @@
    "documented": 22
   },
   "src/format/mzdata.rs": {
-   "items": 44,
-   "documented": 44
+   "items": 45,
+   "documented": 45
   },
   "src/format/mzidentml.rs": {
-   "items": 28,
-   "documented": 28
+   "items": 30,
+   "documented": 30
   },
   "src/format/mzml.rs": {
    "items": 11,
@@ -666,8 +662,8 @@
    "documented": 7
   },
   "src/format/mzml_schema.rs": {
-   "items": 10,
-   "documented": 10
+   "items": 3,
+   "documented": 3
   },
   "src/format/mzml_sqlite_handler.rs": {
    "items": 21,
@@ -698,8 +694,8 @@
    "documented": 54
   },
   "src/format/mzxml.rs": {
-   "items": 42,
-   "documented": 42
+   "items": 43,
+   "documented": 43
   },
   "src/format/numpress.rs": {
    "items": 23,
@@ -710,8 +706,8 @@
    "documented": 7
   },
   "src/format/paramxml.rs": {
-   "items": 17,
-   "documented": 17
+   "items": 18,
+   "documented": 18
   },
   "src/format/peak_options.rs": {
    "items": 36,
@@ -722,8 +718,8 @@
    "documented": 4
   },
   "src/format/pepxml.rs": {
-   "items": 29,
-   "documented": 29
+   "items": 30,
+   "documented": 30
   },
   "src/format/percolator_infile.rs": {
    "items": 28,
@@ -750,16 +746,20 @@
    "documented": 5
   },
   "src/format/transformation_xml.rs": {
-   "items": 20,
-   "documented": 20
+   "items": 21,
+   "documented": 21
+  },
+  "src/format/xml_schema.rs": {
+   "items": 16,
+   "documented": 16
   },
   "src/identification/graph/cleanup.rs": {
    "items": 7,
    "documented": 5
   },
   "src/identification/graph/converter.rs": {
-   "items": 3,
-   "documented": 3
+   "items": 4,
+   "documented": 4
   },
   "src/identification/graph/groups.rs": {
    "items": 9,
@@ -966,8 +966,8 @@
    "documented": 14
   },
   "src/math/mod.rs": {
-   "items": 9,
-   "documented": 9
+   "items": 10,
+   "documented": 10
   },
   "src/math/multiple_testing.rs": {
    "items": 19,
@@ -980,6 +980,10 @@
   "src/math/rank_data.rs": {
    "items": 8,
    "documented": 8
+  },
+  "src/math/source_sort.rs": {
+   "items": 5,
+   "documented": 5
   },
   "src/math/statistic_functions.rs": {
    "items": 41,
@@ -1018,8 +1022,8 @@
    "documented": 18
   },
   "src/param/handler.rs": {
-   "items": 20,
-   "documented": 8
+   "items": 21,
+   "documented": 9
   },
   "src/param/iteration.rs": {
    "items": 9,
@@ -1038,8 +1042,8 @@
    "documented": 13
   },
   "src/param.rs": {
-   "items": 44,
-   "documented": 5
+   "items": 49,
+   "documented": 10
   },
   "src/processing/baseline.rs": {
    "items": 7,

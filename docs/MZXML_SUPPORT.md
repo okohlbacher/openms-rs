@@ -70,7 +70,7 @@ Every declared member, plus the surface it inherits.
 | `private PeakFileOptions options_` | `MzXMLFile::options` | `ReadOptions` wraps it together with `ReadLimits` |
 | `private typedef PeakMap MapType` | `crate::kernel::MSExperiment` | |
 | inherited `XMLFile::getVersion()` | `MzXMLFile::version`, `SCHEMA_VERSION` | |
-| inherited `XMLFile::isValid(filename, ostream)` | **not ported** | needs `mzXML_idx_3.1.xsd` and a Xerces grammar pool; this crate embeds no mzXML schema. `crate::format::mzml_schema` covers mzML only |
+| inherited `XMLFile::isValid(filename, ostream)` | `MzXMLFile::is_valid` | optional `xml-schema` feature: XSD validation against the bundled, unchanged `mzXML_idx_3.1.xsd` and the three schemas it includes, composed in memory ([XML schema validation](XML_SCHEMA_SUPPORT.md)) |
 | inherited `XMLFile::parse_` / `parseBuffer_` / `save_` | the module's reader and writer | compression sniffing comes from `crate::format::path_io` |
 | inherited `XMLFile::schema_location_` / `schema_version_` | `SCHEMA`, `SCHEMA_VERSION` | |
 | inherited `XMLFile::enforceEncoding_` | reader's declaration handling | UTF-8, US-ASCII and ASCII-only ISO-8859-1 are accepted |
@@ -369,13 +369,12 @@ otherwise allocate gigabytes for a hostile level) and `max_metadata_entries`.
 and from the four unmodified upstream fixtures. No C++ was built or executed and
 no C++ output was retained, so this is **not** a tier 1 differential.
 
-Of 15 `START_SECTION`s of `MzXMLFile_test.cpp`, 14 are ported and one
-has only a weaker structural substitute:
-`[EXTRA] static bool isValid(...)` (1 assertion): Xerces XSD validation is
-unavailable here, so `the_stored_document_is_structurally_valid` asserts instead
-that the writer's output carries the 3.1 namespace and schema location, has
-balanced `<scan>` elements, and reloads to the same experiment. This does not
-implement or certify the source XSD-validation contract.
+Of 15 `START_SECTION`s of `MzXMLFile_test.cpp`, all 15 are ported.
+`[EXTRA] static bool isValid(...)` (1 assertion) is
+`tests/xml_schema_formats.rs::mzxml_stored_experiment_is_valid`, behind the
+optional `xml-schema` feature: the stored load of `MzXMLFile_1.mzXML` validates
+against `mzXML_idx_3.1.xsd`. `the_stored_document_is_structurally_valid` keeps
+its structural checks for builds without the feature.
 
 `MzXMLFile_4_long.mzXML` (10,641,595 bytes) is **not** copied into this
 repository; its sha256 is recorded in the manifest. An equivalent document with
@@ -403,8 +402,6 @@ extension described above.
 
 ## Deferred
 
-- `XMLFile::isValid` against `mzXML_idx_3.1.xsd`: no mzXML schema is embedded and
-  `crate::format::mzml_schema` is mzML-only.
 - `ProgressLogger`: the source constructor threads a logger through and reports
   progress per scan and per stored spectrum. `ReadReport` carries the non-fatal
   observations; there is no progress callback.

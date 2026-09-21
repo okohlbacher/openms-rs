@@ -12,22 +12,23 @@ It adds library adapters; it does not add a TOPP executable or complete the SDK.
 | `mztab_m` | none | [Metabolomics records/export/write](MZTAB_M_SUPPORT.md); original OMS-input exporter comparison remains open |
 | `ms_data_writing_consumer` | `mzml` | [Streaming consumer](MS_DATA_WRITING_CONSUMER_SUPPORT.md); indexed footer, semantic validation and progress remain open |
 | `sv_out_stream` | none | [Separated-value output](SV_OUT_STREAM_SUPPORT.md) |
-| `mzxml` | `mzml` | [mzXML](MZXML_SUPPORT.md); XSD validation, progress and FileHandler dispatch remain open |
-| `mzdata` | `mzml` | [mzData](MZDATA_SUPPORT.md); XSD/semantic validation, progress and FileHandler dispatch remain open |
+| `mzxml` | `mzml` | [mzXML](MZXML_SUPPORT.md); progress and FileHandler dispatch remain open; XSD validation is `MzXMLFile::is_valid` with `xml-schema` |
+| `mzdata` | `mzml` | [mzData](MZDATA_SUPPORT.md); semantic validation, progress and FileHandler dispatch remain open; XSD validation is `MzDataFile::is_valid` with `xml-schema` |
 | `pepxml` | `idxml` | [pepXML](PEPXML_SUPPORT.md); caller-built spectrum lookup replaces automatic source-file loading |
 | `qcml` | `paramxml` | [qcML records and files](QCML_SUPPORT.md); `collectQCData` metrics remain open |
 | `msstats` | none; tests use `consensusxml` | [MSstats exports](MSSTATS_SUPPORT.md); converter executable is separate work |
 | `percolator_infile` | none | [PIN load and feature preparation](PERCOLATOR_INFILE_SUPPORT.md) |
-| `transformation_xml` | `featurexml` or `consensusxml` | [Transformation XML](TRANSFORMATION_XML_SUPPORT.md); XSD validation and resolving b-spline models remain open |
+| `transformation_xml` | `featurexml` or `consensusxml` | [Transformation XML](TRANSFORMATION_XML_SUPPORT.md); resolving b-spline models remains open; XSD validation is `is_valid` with `xml-schema` |
 | `mascot_generic` | none | [Mascot generic files](MASCOT_GENERIC_SUPPORT.md); progress integration remains open |
 | `mascot_xml` | `idxml` | [Mascot XML](MASCOT_XML_SUPPORT.md); arbitrary title-lookup regex remains open |
-| `mzidentml` | `idxml` | [Linear and cross-link mzIdentML](MZIDENTML_SUPPORT.md); XSD/semantic validation and generic handler interface remain open |
+| `mzidentml` | `idxml` | [Linear and cross-link mzIdentML](MZIDENTML_SUPPORT.md); semantic validation and generic handler interface remain open; XSD validation is `is_valid` with `xml-schema` |
 
 The [public-header ledger](CORE_SDK_COMPLETION.md) records 21 header assessments
 for this wave: five native equivalents and sixteen partial implementations.
 The private `MzIdentMLDOMHandler` is mapped in its module's support document,
 not counted as an additional public header. Structural XML checks are useful
-regressions but do not implement the source XSD validators.
+regressions but do not implement the source XSD validators; those are
+[`xml_schema`](XML_SCHEMA_SUPPORT.md), behind the optional `xml-schema` feature.
 
 Each module has a `tests/data/*_provenance.json` manifest. Source literals,
 independent Rust tests and comparisons with retained C++ output have different

@@ -47,7 +47,7 @@ mix both byte orders. `tests/mzdata.rs::big_endian_arrays_are_honoured` and
 | `void store(const std::string&, const MapType&) const` | `MzDataFile::store`, `MzDataFile::store_report`. Free forms: `store`, `store_with_options`, `store_report_with_options`, `write`, `write_with_options` |
 | `bool isSemanticallyValid(const std::string&, StringList& errors, StringList& warnings)` | **not ported**: `MzDataFile::is_semantically_valid` returns `Error::Unsupported`. It needs `/MAPPING/mzdata-mapping.xml` and `/CV/psi-mzdata.obo`, the mapping is retained at `tests/data/cv_mapping/mzdata-mapping.xml`, but the vocabulary and mzData validator integration are not bundled, and `MzDataFile_test.cpp:849-854` marks its own section `NOT_TESTABLE` because "the mapping file was hand-crafted by Marc Sturm". The generic machinery is `crate::format::semantic_validator` behind the `semantic-validation` feature |
 | `PeakFileOptions options_` (private) | private `MzDataFile::options` field |
-| inherited `Internal::XMLFile::isValid(filename, os)` | **not ported**: XSD validation. `crate::format::mzml_schema` is mzML-specific and `mzData_1_05.xsd` is not shipped. `tests/mzdata.rs::stored_documents_are_wellformed` reproduces what can be reproduced — both documents are well-formed and reload |
+| inherited `Internal::XMLFile::isValid(filename, os)` | `MzDataFile::is_valid`, with the optional `xml-schema` feature: XSD validation against the bundled, unchanged `mzData_1_05.xsd` ([XML schema validation](XML_SCHEMA_SUPPORT.md)) |
 | inherited `Internal::XMLFile::getVersion()` | `MzDataFile::version`, and the `SCHEMA_VERSION` constant |
 | inherited `XMLFile::parse_` / `save_` / `schema_location_` / `schema_version_` (protected) | replaced by the free `read_*` / `write_*` functions and the `SCHEMA_*` constants. `store_with_options` publishes through `crate::format::path_io::write`, which is this crate's equivalent of `save_`: a sibling temporary renamed onto the destination, with `.gz`/`.bz2` suffix compression |
 | inherited `XMLFile::parseBuffer_` (protected) | `read` / `read_with_options`, which take any `BufRead` and so cover both the file and the in-memory case; `parse_` is the only one `MzDataFile` itself calls |
@@ -430,10 +430,10 @@ asserted value they reproduce.
 | 11 | `[EXTRA] load with intensity range` (616-648, 12) | ported | `load_intensity_range` | peak counts 0/1/3 with intensities 200; 200,300,200 |
 | 12 | `store(...)` (650-667, 3) | ported | `store_round_trip_equals_the_loaded_experiment` | `e2.getIdentifier() == "lsid"` and `e1 == e2` after restoring the software comment |
 | 13 | `[EXTRA] storing / loading of meta data arrays` (669-828, 69) | ported | `store_and_load_annotation_arrays` | array counts 1/0/2, names `MDA1`/`MDA2`, values 1.1…1.5 and −2.1…−2.5, and 1.3/1.4/1.5 after the [2.5, 7.0) filter |
-| 14 | `[EXTRA] static bool isValid(...)` (830-847, 2) | **mapped** | `stored_documents_are_wellformed` | The source asserts XSD validity. The native test only checks structural parsing, reload and the empty-experiment byte layout; this is weaker evidence and does not reproduce schema validation. The XSD remains unported |
+| 14 | `[EXTRA] static bool isValid(...)` (830-847, 2) | ported | `tests/xml_schema_formats.rs::mzdata_stored_experiments_are_valid` (`xml-schema`), and `stored_documents_are_wellformed` for the byte layout | a stored empty experiment and a stored loaded fixture both validate against `mzData_1_05.xsd` |
 | 15 | `bool isSemanticallyValid(...)` (849-854, 0) | **mapped** | `semantic_validation_is_unsupported` | `NOT_TESTABLE` — the section asserts nothing, and the method reports that mzData semantic validation is unavailable |
 
-**Sections ported: 13. Mapped with a cited asserted value: 2. Unaccounted: 0.**
+**Sections ported: 14. Mapped with a cited asserted value: 1. Unaccounted: 0.**
 
 ### Evidence tier
 
@@ -465,12 +465,10 @@ empty-experiment document, which is transcribed from
 
 ## Gaps
 
-* **XSD validation** (`XMLFile::isValid`, class-test section 14) is not ported:
-  `mzData_1_05.xsd` does not ship with this crate and
-  `crate::format::mzml_schema` is mzML-specific. A caller with the schema can
-  validate with any XML tool. The port checks the structural and entity
-  boundaries listed above; these checks are not an XML or XSD conformance
-  validator.
+* **XSD validation** (`XMLFile::isValid`, class-test section 14) is ported as
+  `MzDataFile::is_valid` behind the optional `xml-schema` feature; without it,
+  the reader's structural and entity boundaries listed above are not an XSD
+  conformance validator.
 * **Semantic validation** (`MzDataFile::isSemanticallyValid`) is not ported:
   `mzdata-mapping.xml` is retained as a mapping-parser fixture, but
   `psi-mzdata.obo` and the mzData semantic-validation integration do not ship.
