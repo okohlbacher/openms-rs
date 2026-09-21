@@ -1,0 +1,183 @@
+
+DTAExtractor -- Extracts spectra of an 
+MS run file to several files in DTA 
+format.
+Full documentation: http://www.openms.d
+e/doxygen/release/4.0.0/html/TOPP_DTAEx
+tractor.html
+Version: 1.0.0 (OpenMS core 4.0.0, revi
+sion bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. 
+   et al.. OpenMS 3 enables reproducibl
+   e analysis of large-scale mass spect
+   rometry data. Nat Methods (2024). 
+   doi:10.1038/s41592-024-02197-7.
+
+Usage:
+  DTAExtractor <options>
+
+Options (mandatory options marked with 
+'*'):
+  -in <file>*                   Input f
+                                ile  (v
+                                alid fo
+                                rmats: 
+                                'mzML')
+
+  -out <file>*                  Base na
+                                me of D
+                                TA outp
+                                ut file
+                                s (RT, 
+                                m/z and
+                                 extens
+                                ion are
+                                 append
+                                ed)
+  -mz [min]:[max]               M/z ran
+                                ge of p
+                                recurso
+                                r peaks
+                                 to ext
+                                ract.
+                                This op
+                                tion is
+                                ...
+                                 1 (def
+                                ault: '
+                                :')
+  -rt [min]:[max]               Retenti
+                                on time
+                                 range 
+                                of spec
+                                tra to 
+                                extract
+                                 [s] (d
+                                efault:
+                                 ':')
+  -level i[,j]...               MS leve
+                                ls to e
+                                xtract 
+                                (defaul
+                                t: '1,2
+                                ,3')
+                                
+Common TOPP options:
+  -ini <file>                   Use the
+                                 given 
+                                TOPP IN
+                                I file
+  -log <file>                   Name of
+                                 log fi
+                                le (cre
+                                ated on
+                                ly when
+                                 specif
+                                ied)
+  -instance <n>                 Instanc
+                                e numbe
+                                r for t
+                                he TOPP
+                                 INI fi
+                                le (def
+                                ault: '
+                                1')
+  -debug <n>                    Sets th
+                                e debug
+                                 level 
+                                (defaul
+                                t: '0')
+
+  -threads <n>                  Sets th
+                                e numbe
+                                r of th
+                                reads a
+                                llowed 
+                                to be u
+                                sed by 
+                                the TOP
+                                ...
+                                res) (d
+                                efault:
+                                 '1')
+  -write_ini <file>             Writes 
+                                the def
+                                ault co
+                                nfigura
+                                tion fi
+                                le
+  -write_ctd <out_dir>          Writes 
+                                the com
+                                mon too
+                                l descr
+                                iption 
+                                file(s)
+                                 (Tooln
+                                ame(s).
+                                ...
+                                ir>
+  -write_nested_cwl <out_dir>   Writes 
+                                the Com
+                                mon Wor
+                                kflow L
+                                anguage
+                                 file(s
+                                ) (Tool
+                                name(s)
+                                ...
+                                dir>
+  -write_cwl <out_dir>          Writes 
+                                the Com
+                                mon Wor
+                                kflow L
+                                anguage
+                                 file(s
+                                ) (Tool
+                                name(s)
+                                ...
+                                hy
+  -write_nested_json <out_dir>  Writes 
+                                the def
+                                ault co
+                                nfigura
+                                tion fi
+                                le
+  -write_json <out_dir>         Writes 
+                                the def
+                                ault co
+                                nfigura
+                                tion fi
+                                le, but
+                                 compat
+                                ible to
+                                ...
+                                archy
+  -no_progress                  Disable
+                                s progr
+                                ess log
+                                ging to
+                                 comman
+                                d line
+  -force                        Overrid
+                                es tool
+                                -specif
+                                ic chec
+                                ks
+  -test                         Enables
+                                 the te
+                                st mode
+                                 (neede
+                                d for i
+                                nternal
+                                 use on
+                                ly)
+  --help                        Shows o
+                                ptions
+  --helphelp                    Shows a
+                                ll opti
+                                ons (in
+                                cluding
+                                 advanc
+                                ed)
+

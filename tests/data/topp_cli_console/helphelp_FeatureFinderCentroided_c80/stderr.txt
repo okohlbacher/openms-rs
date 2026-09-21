@@ -1,0 +1,535 @@
+
+FeatureFinderCentroided -- Detects two-dimensional features in LC-MS data.
+Full documentation: http://www.openms.de/doxygen/release/4.0.0/html/TOPP_Featur
+eFinderCentroided.html
+Version: 1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reproducible 
+   analysis of large-scale mass spectrometry data. Nat Methods (2024). doi:10.1
+   038/s41592-024-02197-7.
+To cite FeatureFinderCentroided:
+ + Sturm M. A novel feature detection algorithm for centroided data. Dissertati
+   on, 2010-09-15, p.37 ff. doi:https://publikationen.uni-tuebingen.de/xmlui/bi
+   tstream/handle/10900/49453/pdf/Dissertation_Marc_Sturm.pdf.
+ + Weisser H. An automated pipeline for high-throughput label-free quantitative
+    proteomics. J. Proteome Res., 2013, PMID: 23391308. doi:https://doi.org/10.
+   1021/pr300992u.
+
+Usage:
+  FeatureFinderCentroided <options>
+
+Options (mandatory options marked with '*'):
+  -in <file>*                                                        Input file
+                                                                      (valid 
+                                                                     formats: 
+                                                                     'mzML')
+  -out <file>*                                                       Output 
+                                                                     file (vali
+                                                                     d formats:
+                                                                      'featureX
+                                                                     ML')
+  -seeds <file>                                                      User speci
+                                                                     fied seed 
+                                                                     list (vali
+                                                                     d formats:
+                                                                      'featureX
+                                                                     ML')
+                                                                     
+  -faims_merge_features <true/false>                                 For FAIMS 
+                                                                     data with 
+                                                                     multiple 
+                                                                     compensati
+                                                                     on voltage
+                                                                     s: Merge 
+                                                                     features 
+                                                                     representi
+                                                                     ...
+                                                                     data. (def
+                                                                     ault: 'tru
+                                                                     e') (valid
+                                                                     : 'true', 
+                                                                     'false')
+                                                                     
+                                                                     
+Common TOPP options:
+  -ini <file>                                                        Use the 
+                                                                     given TOPP
+                                                                      INI file
+  -log <file>                                                        Name of 
+                                                                     log file 
+                                                                     (created 
+                                                                     only when 
+                                                                     specified)
+
+  -instance <n>                                                      Instance 
+                                                                     number 
+                                                                     for the 
+                                                                     TOPP INI 
+                                                                     file (defa
+                                                                     ult: '1')
+  -debug <n>                                                         Sets the 
+                                                                     debug leve
+                                                                     l (default
+                                                                     : '0')
+  -threads <n>                                                       Sets the 
+                                                                     number of 
+                                                                     threads 
+                                                                     allowed 
+                                                                     to be used
+                                                                      by the 
+                                                                     TOPP tool 
+                                                                     (0 = all 
+                                                                     available 
+                                                                     cores) 
+                                                                     (default: 
+                                                                     '1')
+  -write_ini <file>                                                  Writes 
+                                                                     the defaul
+                                                                     t configur
+                                                                     ation file
+
+  -write_ctd <out_dir>                                               Writes 
+                                                                     the common
+                                                                      tool desc
+                                                                     ription 
+                                                                     file(s) 
+                                                                     (Toolname(
+                                                                     s).ctd) 
+                                                                     to <out_di
+                                                                     r>
+  -write_nested_cwl <out_dir>                                        Writes 
+                                                                     the Common
+                                                                      Workflow 
+                                                                     Language 
+                                                                     file(s) 
+                                                                     (Toolname(
+                                                                     s).cwl) 
+                                                                     to <out_di
+                                                                     r>
+  -write_cwl <out_dir>                                               Writes 
+                                                                     the Common
+                                                                      Workflow 
+                                                                     Language 
+                                                                     file(s) 
+                                                                     (Toolname(
+                                                                     s).cwl) 
+                                                                     to <out_di
+                                                                     ...
+                                                                     rchy
+  -write_nested_json <out_dir>                                       Writes 
+                                                                     the defaul
+                                                                     t configur
+                                                                     ation file
+
+  -write_json <out_dir>                                              Writes 
+                                                                     the defaul
+                                                                     t configur
+                                                                     ation file
+                                                                     , but comp
+                                                                     atible to 
+                                                                     the flat 
+                                                                     hierarchy
+  -no_progress                                                       Disables 
+                                                                     progress 
+                                                                     logging 
+                                                                     to command
+                                                                      line
+  -force                                                             Overrides 
+                                                                     tool-speci
+                                                                     fic checks
+
+  -test                                                              Enables 
+                                                                     the test 
+                                                                     mode (need
+                                                                     ed for 
+                                                                     internal 
+                                                                     use only)
+  --help                                                             Shows opti
+                                                                     ons
+  --helphelp                                                         Shows all 
+                                                                     options 
+                                                                     (including
+                                                                      advanced)
+
+
+Algorithm section:
+  -algorithm:write_debug                                             When debug
+                                                                      mode is 
+                                                                     activated,
+                                                                      several 
+                                                                     files with
+                                                                      intermedi
+                                                                     ate result
+                                                                     s are writ
+                                                                     ...
+                                                                     mode).
+
+Settings for the calculation of a score indicating if a peak's intensity is 
+significant in the local environment (between 0 and 1):
+  -algorithm:intensity:bins <number>                                 Number of 
+                                                                     bins per 
+                                                                     dimension 
+                                                                     (RT and 
+                                                                     m/z). The 
+                                                                     higher 
+                                                                     this value
+                                                                     , the more
+                                                                     ...
+                                                                     map. (defa
+                                                                     ult: '10')
+                                                                      (min: 
+                                                                     '1')
+
+Settings for the calculation of a score indicating if a peak is part of a mass 
+trace (between 0 and 1).:
+  -algorithm:mass_trace:mz_tolerance <value>                         Tolerated 
+                                                                     m/z deviat
+                                                                     ion of 
+                                                                     peaks belo
+                                                                     nging to 
+                                                                     the same 
+                                                                     mass trace
+                                                                     .
+                                                                     ...
+                                                                     igh! (defa
+                                                                     ult: '0.03
+                                                                     ') (min: 
+                                                                     '0.0')
+  -algorithm:mass_trace:min_spectra <number>                         Number of 
+                                                                     spectra 
+                                                                     that have 
+                                                                     to show a 
+                                                                     similar 
+                                                                     peak mass 
+                                                                     in a mass 
+                                                                     trace. 
+                                                                     (default: 
+                                                                     '10') (min
+                                                                     : '1')
+  -algorithm:mass_trace:max_missing <number>                         Number of 
+                                                                     consecutiv
+                                                                     e spectra 
+                                                                     where a 
+                                                                     high mass 
+                                                                     deviation 
+                                                                     or missing
+                                                                      peak is 
+                                                                     ...
+                                                                     _spectra'!
+                                                                      (default:
+                                                                      '1') (min
+                                                                     : '0')
+  -algorithm:mass_trace:slope_bound <value>                          The maximu
+                                                                     m slope 
+                                                                     of mass 
+                                                                     trace inte
+                                                                     nsities 
+                                                                     when exten
+                                                                     ding from 
+                                                                     the highes
+                                                                     ...
+                                                                      a lot. 
+                                                                     (default: 
+                                                                     '0.1') 
+                                                                     (min: '0.0
+                                                                     ')
+
+Settings for the calculation of a score indicating if a peak is part of a isoto
+pic pattern (between 0 and 1).:
+  -algorithm:isotopic_pattern:charge_low <number>                    Lowest 
+                                                                     charge to 
+                                                                     search 
+                                                                     for. (defa
+                                                                     ult: '1') 
+                                                                     (min: '1')
+
+  -algorithm:isotopic_pattern:charge_high <number>                   Highest 
+                                                                     charge to 
+                                                                     search 
+                                                                     for. (defa
+                                                                     ult: '4') 
+                                                                     (min: '1')
+
+  -algorithm:isotopic_pattern:mz_tolerance <value>                   Tolerated 
+                                                                     m/z deviat
+                                                                     ion from 
+                                                                     the theore
+                                                                     tical isot
+                                                                     opic patte
+                                                                     rn.
+                                                                     It should 
+                                                                     ...
+                                                                     igh! (defa
+                                                                     ult: '0.03
+                                                                     ') (min: 
+                                                                     '0.0')
+  -algorithm:isotopic_pattern:intensity_percentage <value>           Isotopic 
+                                                                     peaks that
+                                                                      contribut
+                                                                     e more 
+                                                                     than this 
+                                                                     percentage
+                                                                      to the 
+                                                                     overall 
+                                                                     ...
+                                                                     present. 
+                                                                     (default: 
+                                                                     '10.0') 
+                                                                     (min: '0.0
+                                                                     ' max: 
+                                                                     '100.0')
+  -algorithm:isotopic_pattern:intensity_percentage_optional <value>  Isotopic 
+                                                                     peaks that
+                                                                      contribut
+                                                                     e more 
+                                                                     than this 
+                                                                     percentage
+                                                                      to the 
+                                                                     overall 
+                                                                     ...
+                                                                     missing. 
+                                                                     (default: 
+                                                                     '0.1') 
+                                                                     (min: '0.0
+                                                                     ' max: 
+                                                                     '100.0')
+  -algorithm:isotopic_pattern:optional_fit_improvement <value>       Minimal 
+                                                                     percental 
+                                                                     improvemen
+                                                                     t of isoto
+                                                                     pe fit to 
+                                                                     allow leav
+                                                                     ing out 
+                                                                     an optiona
+                                                                     l peak. 
+                                                                     (default: 
+                                                                     '2.0') 
+                                                                     (min: '0.0
+                                                                     ' max: 
+                                                                     '100.0')
+  -algorithm:isotopic_pattern:mass_window_width <value>              Window 
+                                                                     width in 
+                                                                     Dalton 
+                                                                     for precal
+                                                                     culation 
+                                                                     of estimat
+                                                                     ed isotope
+                                                                      distribut
+                                                                     ions. (def
+                                                                     ault: '25.
+                                                                     0') (min: 
+                                                                     '1.0' max:
+                                                                      '200.0')
+  -algorithm:isotopic_pattern:abundance_12C <value>                  Rel. abund
+                                                                     ance of 
+                                                                     the light 
+                                                                     carbon. 
+                                                                     Modify if 
+                                                                     labeled. 
+                                                                     (default: 
+                                                                     '98.930000
+                                                                     000000007'
+                                                                     ) (min: 
+                                                                     '0.0' max:
+                                                                      '100.0')
+  -algorithm:isotopic_pattern:abundance_14N <value>                  Rel. abund
+                                                                     ance of 
+                                                                     the light 
+                                                                     nitrogen. 
+                                                                     Modify if 
+                                                                     labeled. 
+                                                                     (default: 
+                                                                     '99.632000
+                                                                     000000005'
+                                                                     ) (min: 
+                                                                     '0.0' max:
+                                                                      '100.0')
+
+Settings that determine which peaks are considered a seed:
+  -algorithm:seed:min_score <value>                                  Minimum 
+                                                                     seed score
+                                                                      a peak 
+                                                                     has to 
+                                                                     reach to 
+                                                                     be used 
+                                                                     as seed.
+                                                                     The seed 
+                                                                     ...
+                                                                      score. 
+                                                                     (default: 
+                                                                     '0.8') 
+                                                                     (min: '0.0
+                                                                     ' max: 
+                                                                     '1.0')
+
+Settings for the model fitting:
+  -algorithm:fit:max_iterations <number>                             Maximum 
+                                                                     number of 
+                                                                     iterations
+                                                                      of the 
+                                                                     fit. (defa
+                                                                     ult: '500'
+                                                                     ) (min: 
+                                                                     '1')
+
+Settings for the features (intensity, quality assessment, ...):
+  -algorithm:feature:min_score <value>                               Feature 
+                                                                     score thre
+                                                                     shold for 
+                                                                     a feature 
+                                                                     to be repo
+                                                                     rted.
+                                                                     The featur
+                                                                     e score 
+                                                                     ...
+                                                                     peaks. 
+                                                                     (default: 
+                                                                     '0.7') 
+                                                                     (min: '0.0
+                                                                     ' max: 
+                                                                     '1.0')
+  -algorithm:feature:min_isotope_fit <value>                         Minimum 
+                                                                     isotope 
+                                                                     fit of 
+                                                                     the featur
+                                                                     e before 
+                                                                     model fitt
+                                                                     ing. (defa
+                                                                     ult: '0.8'
+                                                                     ) (min: 
+                                                                     '0.0' max:
+                                                                      '1.0')
+  -algorithm:feature:min_trace_score <value>                         Trace scor
+                                                                     e threshol
+                                                                     d.
+                                                                     Traces 
+                                                                     below this
+                                                                      threshold
+                                                                      are remov
+                                                                     ed after 
+                                                                     ...
+                                                                     dimension.
+                                                                      (default:
+                                                                      '0.5') 
+                                                                     (min: '0.0
+                                                                     ' max: 
+                                                                     '1.0')
+  -algorithm:feature:min_rt_span <value>                             Minimum 
+                                                                     RT span 
+                                                                     in relatio
+                                                                     n to exten
+                                                                     ded area 
+                                                                     that has 
+                                                                     to remain 
+                                                                     after mode
+                                                                     l fitting.
+                                                                      (default:
+                                                                      '0.333') 
+                                                                     (min: '0.0
+                                                                     ' max: 
+                                                                     '1.0')
+  -algorithm:feature:max_rt_span <value>                             Maximum 
+                                                                     RT span 
+                                                                     in relatio
+                                                                     n to exten
+                                                                     ded area 
+                                                                     that the 
+                                                                     model is 
+                                                                     allowed 
+                                                                     to have. 
+                                                                     (default: 
+                                                                     '2.5') 
+                                                                     (min: '0.5
+                                                                     ')
+  -algorithm:feature:rt_shape <choice>                               Choose 
+                                                                     model used
+                                                                      for RT 
+                                                                     profile 
+                                                                     fitting. 
+                                                                     If set to 
+                                                                     symmetric 
+                                                                     a gauss 
+                                                                     ...
+                                                                     used. (def
+                                                                     ault: 'sym
+                                                                     metric') 
+                                                                     (valid: 
+                                                                     'symmetric
+                                                                     ', 'asymme
+                                                                     tric')
+  -algorithm:feature:max_intersection <value>                        Maximum 
+                                                                     allowed 
+                                                                     intersecti
+                                                                     on of feat
+                                                                     ures. (def
+                                                                     ault: '0.3
+                                                                     5') (min: 
+                                                                     '0.0' max:
+                                                                      '1.0')
+  -algorithm:feature:reported_mz <choice>                            The mass 
+                                                                     type that 
+                                                                     is reporte
+                                                                     d for feat
+                                                                     ures.
+                                                                     'maximum' 
+                                                                     returns 
+                                                                     the m/z 
+                                                                     ...
+                                                                     model. 
+                                                                     (default: 
+                                                                     'monoisoto
+                                                                     pic') (val
+                                                                     id: 'maxim
+                                                                     um', 'aver
+                                                                     age', 'mon
+                                                                     oisotopic'
+                                                                     )
+
+Settings for user-specified seeds.:
+  -algorithm:user-seed:rt_tolerance <value>                          Allowed 
+                                                                     RT deviati
+                                                                     on of seed
+                                                                     s from 
+                                                                     the user-s
+                                                                     pecified 
+                                                                     seed posit
+                                                                     ion. (defa
+                                                                     ult: '5.0'
+                                                                     ) (min: 
+                                                                     '0.0')
+  -algorithm:user-seed:mz_tolerance <value>                          Allowed 
+                                                                     m/z deviat
+                                                                     ion of 
+                                                                     seeds from
+                                                                      the user-
+                                                                     specified 
+                                                                     seed posit
+                                                                     ion. (defa
+                                                                     ult: '1.1'
+                                                                     ) (min: 
+                                                                     '0.0')
+  -algorithm:user-seed:min_score <value>                             Overwrites
+                                                                      'seed:min
+                                                                     _score' 
+                                                                     for user-s
+                                                                     pecified 
+                                                                     seeds. 
+                                                                     The cutoff
+                                                                      is typica
+                                                                     ...
+                                                                     this case.
+                                                                      (default:
+                                                                      '0.5') 
+                                                                     (min: '0.0
+                                                                     ' max: 
+                                                                     '1.0')
+
+algorithm:advanced:
+  -algorithm:advanced:pseudo_rt_shift <value>                        Pseudo RT 
+                                                                     shift used
+                                                                      when . 
+                                                                     (default: 
+                                                                     '500.0') 
+                                                                     (min: '1.0
+                                                                     ')
+

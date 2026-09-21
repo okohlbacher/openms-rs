@@ -1,0 +1,227 @@
+
+PeakPickerHiRes -- Finds mass spectrometric peaks in profile mass spectra.
+Full documentation: http://www.openms.de/doxygen/release/4.0.0/html/TOPP_PeakPi
+ckerHiRes.html
+Version: 1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reproducible 
+   analysis of large-scale mass spectrometry data. Nat Methods (2024). doi:10.1
+   038/s41592-024-02197-7.
+
+Usage:
+  PeakPickerHiRes <options>
+
+Options (mandatory options marked with '*'):
+  -in <file>*                                              Input profile data 
+                                                           file  (valid formats
+                                                           : 'mzML')
+  -out <file>*                                             Output peak file  
+                                                           (valid formats: 'mzM
+                                                           L')
+  -processOption <name>                                    Whether to load all 
+                                                           data and process 
+                                                           them in-memory or 
+                                                           whether to process 
+                                                           the data on the fly 
+                                                           (lowmemory) without 
+                                                           loading the whole 
+                                                           file into memory 
+                                                           first (default: 'inm
+                                                           emory') (valid: 'inm
+                                                           emory', 'lowmemory')
+
+                                                           
+Common TOPP options:
+  -ini <file>                                              Use the given TOPP 
+                                                           INI file
+  -log <file>                                              Name of log file 
+                                                           (created only when 
+                                                           specified)
+  -instance <n>                                            Instance number for 
+                                                           the TOPP INI file 
+                                                           (default: '1')
+  -debug <n>                                               Sets the debug level
+                                                            (default: '0')
+  -threads <n>                                             Sets the number of 
+                                                           threads allowed to 
+                                                           be used by the TOPP 
+                                                           tool (0 = all availa
+                                                           ble cores) (default:
+                                                            '1')
+  -write_ini <file>                                        Writes the default 
+                                                           configuration file
+  -write_ctd <out_dir>                                     Writes the common 
+                                                           tool description 
+                                                           file(s) (Toolname(s)
+                                                           .ctd) to <out_dir>
+  -write_nested_cwl <out_dir>                              Writes the Common 
+                                                           Workflow Language 
+                                                           file(s) (Toolname(s)
+                                                           .cwl) to <out_dir>
+  -write_cwl <out_dir>                                     Writes the Common 
+                                                           Workflow Language 
+                                                           file(s) (Toolname(s)
+                                                           .cwl) to <out_dir>, 
+                                                           but enforce a flat 
+                                                           parameter hierarchy
+  -write_nested_json <out_dir>                             Writes the default 
+                                                           configuration file
+  -write_json <out_dir>                                    Writes the default 
+                                                           configuration file, 
+                                                           but compatible to 
+                                                           the flat hierarchy
+  -no_progress                                             Disables progress 
+                                                           logging to command 
+                                                           line
+  -force                                                   Overrides tool-speci
+                                                           fic checks
+  -test                                                    Enables the test 
+                                                           mode (needed for 
+                                                           internal use only)
+  --help                                                   Shows options
+  --helphelp                                               Shows all options 
+                                                           (including advanced)
+
+
+Algorithm parameters section:
+  -algorithm:signal_to_noise <value>                       Minimal signal-to-no
+                                                           ise ratio for a peak
+                                                            to be picked (0.0 
+                                                           disables SNT estimat
+                                                           ion!) (default: '0.0
+                                                           ') (min: '0.0')
+  -algorithm:spacing_difference_gap <value>                The extension of a 
+                                                           peak is stopped if 
+                                                           the spacing between 
+                                                           two subsequent data 
+                                                           points exceeds 'spac
+                                                           ing_difference_gap 
+                                                           * min_spacing'. 'min
+                                                           _spacing' is the 
+                                                           ...
+                                                           tograms. (default: 
+                                                           '4.0') (min: '0.0')
+  -algorithm:spacing_difference <value>                    Maximum allowed diff
+                                                           erence between point
+                                                           s during peak extens
+                                                           ion, in multiples 
+                                                           of the minimal diffe
+                                                           rence between the 
+                                                           peak apex and its 
+                                                           two neighboring poin
+                                                           ...
+                                                           ams. (default: '1.5'
+                                                           ) (min: '0.0')
+  -algorithm:missing <number>                              Maximum number of 
+                                                           missing points allow
+                                                           ed when extending a 
+                                                           peak to the left or 
+                                                           to the right. A miss
+                                                           ing data point occur
+                                                           s if the spacing 
+                                                           between two subseque
+                                                           ...
+                                                           le to chromatograms.
+                                                            (default: '1') (min
+                                                           : '0')
+  -algorithm:ms_levels <numbers>                           List of MS levels 
+                                                           for which the peak 
+                                                           picking is applied. 
+                                                           If empty, auto mode 
+                                                           is enabled, all peak
+                                                           s which aren't picke
+                                                           d yet will get picke
+                                                           d. Other scans are 
+                                                           copied to the output
+                                                            without changes. 
+                                                           (min: '1')
+  -algorithm:report_FWHM                                   Add metadata for 
+                                                           FWHM (as floatDataAr
+                                                           ray named 'FWHM' or 
+                                                           'FWHM_ppm', dependin
+                                                           g on param 'report_F
+                                                           WHM_unit') for each 
+                                                           picked peak.
+  -algorithm:report_FWHM_unit <choice>                     Unit of FWHM. Either
+                                                            absolute in the 
+                                                           unit of input, e.g. 
+                                                           'm/z' for spectra, 
+                                                           or relative as ppm 
+                                                           (only sensible for 
+                                                           spectra, not chromat
+                                                           ograms). (default: 
+                                                           'relative') (valid: 
+                                                           'relative', 'absolut
+                                                           e')
+  -algorithm:allow_missing_flank                           Allow peaks without 
+                                                           flanking data points
+                                                            on both sides. This
+                                                            is useful for TimsT
+                                                           OF data where profil
+                                                           e peaks may be missi
+                                                           ng the leading or 
+                                                           trailing edge.
+
+algorithm:SignalToNoise:
+  -algorithm:SignalToNoise:max_intensity <number>          Maximal intensity 
+                                                           considered for histo
+                                                           gram construction. 
+                                                           By default, it will 
+                                                           be calculated automa
+                                                           tically (see auto_mo
+                                                           de). Only provide 
+                                                           this parameter if 
+                                                           ...
+                                                           ative-S/N. (default:
+                                                            '-1') (min: '-1')
+  -algorithm:SignalToNoise:auto_max_stdev_factor <value>   Parameter for 'max_i
+                                                           ntensity' estimation
+                                                            (if 'auto_mode' == 
+                                                           0): mean + 'auto_max
+                                                           _stdev_factor' * 
+                                                           stdev (default: '3.0
+                                                           ') (min: '0.0' max: 
+                                                           '999.0')
+  -algorithm:SignalToNoise:auto_max_percentile <number>    Parameter for 'max_i
+                                                           ntensity' estimation
+                                                            (if 'auto_mode' == 
+                                                           1): auto_max_percent
+                                                           ile th percentile 
+                                                           (default: '95') (min
+                                                           : '0' max: '100')
+  -algorithm:SignalToNoise:auto_mode <number>              Method to use to 
+                                                           determine maximal 
+                                                           intensity: -1 --> 
+                                                           use 'max_intensity';
+                                                            0 --> 'auto_max_std
+                                                           ev_factor' method 
+                                                           (default); 1 --> 
+                                                           'auto_max_percentile
+                                                           ' method (default: 
+                                                           '0') (min: '-1' max:
+                                                            '1')
+  -algorithm:SignalToNoise:win_len <value>                 Window length in 
+                                                           Thomson (default: 
+                                                           '200.0') (min: '1.0'
+                                                           )
+  -algorithm:SignalToNoise:bin_count <number>              Number of bins for 
+                                                           intensity values 
+                                                           (default: '30') (min
+                                                           : '3')
+  -algorithm:SignalToNoise:min_required_elements <number>  Minimum number of 
+                                                           elements required 
+                                                           in a window (otherwi
+                                                           se it is considered 
+                                                           sparse) (default: 
+                                                           '10') (min: '1')
+  -algorithm:SignalToNoise:noise_for_empty_window <value>  Noise value used 
+                                                           for sparse windows 
+                                                           (default: '1.0e20')
+  -algorithm:SignalToNoise:write_log_messages <choice>     Write out log messag
+                                                           es in case of sparse
+                                                            windows or median 
+                                                           in rightmost histogr
+                                                           am bin (default: 
+                                                           'true') (valid: 'tru
+                                                           e', 'false')
+

@@ -1,0 +1,50 @@
+
+BaselineFilter -- Removes the baseline from profile spectra
+ using a top-hat filter.
+Full documentation: http://www.openms.de/doxygen/release/4.
+0.0/html/TOPP_BaselineFilter.html
+Version: 1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enab
+   les reproducible analysis of large-scale mass spectromet
+   ry data. Nat Methods (2024). doi:10.1038/s41592-024-0219
+   7-7.
+
+Usage:
+  BaselineFilter <options>
+
+Options (mandatory options marked with '*'):
+  -in <file>*                Input raw data file  (valid 
+                             formats: 'mzML')
+  -out <file>*               Output raw data file  (valid 
+                             formats: 'mzML')
+  -struc_elem_length <size>  Length of the structuring elem
+                             ent (should be wider than maxi
+                             mal peak width - see documenta
+                             tion). (default: '3.0')
+  -struc_elem_unit <unit>    Unit of 'struc_elem_length' 
+                             parameter. (default: 'Thomson'
+                             ) (valid: 'Thomson', 'DataPoin
+                             ts')
+  -method <string>           The name of the morphological 
+                             filter to be applied. If you 
+                             are unsure, use the default. 
+                             (default: 'tophat') (valid: 
+                             'identity', 'erosion', 'dilati
+                             on', 'opening', 'closing', 
+                             'gradient', 'tophat', 'bothat'
+                             , 'erosion_simple', 'dilation_
+                             simple')
+                             
+Common TOPP options:
+  -ini <file>                Use the given TOPP INI file
+  -threads <n>               Sets the number of threads 
+                             allowed to be used by the TOPP
+                              tool (0 = all available cores
+                             ) (default: '1')
+  -write_ini <file>          Writes the default configurati
+                             on file
+  --help                     Shows options
+  --helphelp                 Shows all options (including 
+                             advanced)
+

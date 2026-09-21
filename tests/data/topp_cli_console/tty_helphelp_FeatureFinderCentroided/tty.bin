@@ -1,0 +1,118 @@
+
+[7mFeatureFinderCentroided[27m -- Detects two-dimensional features in LC-MS 
+data.
+[1mFull documentation: [22m[4mhttp://www.openms.de/doxygen/release/4.0.0/html/T
+OPP_FeatureFinderCentroided.html[24m
+[1mVersion: [22m1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
+[1mTo cite OpenMS:
+[22m + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reprod
+   ucible analysis of large-scale mass spectrometry data. Nat Methods
+    (2024). doi:10.1038/s41592-024-02197-7.
+[1mTo cite FeatureFinderCentroided:[22m
+ + Sturm M. A novel feature detection algorithm for centroided data. 
+   Dissertation, 2010-09-15, p.37 ff. doi:https://publikationen.uni-t
+   uebingen.de/xmlui/bitstream/handle/10900/49453/pdf/Dissertation_Ma
+   rc_Sturm.pdf.
+ + Weisser H. An automated pipeline for high-throughput label-free 
+   quantitative proteomics. J. Proteome Res., 2013, PMID: 23391308. 
+   doi:https://doi.org/10.1021/pr300992u.
+
+[7mUsage:[27m
+  [1mFeatureFinderCentroided[22m <options>
+
+[1mOptions[22m ([92mmandatory options marked with '*'[39m):
+[92m  -in <file>*                                                        [39mInput file[96m[39m[95m (valid formats: 'mzML')[39m
+[92m  -out <file>*                                                       [39mOutput file[96m[39m[95m (valid formats: 'featureXML')[39m
+  -seeds <file>                                                      User specified seed list[96m[39m[95m (valid formats: 'featureXML')[39m
+                                                                     [96m[39m[95m[39m
+
+  -faims_merge_features <true/false>                                 For FAIMS data with multiple compensation voltages: Merge features representing the same analyte detected at different CV values into a single feature. Only features with DIFFERENT FAIMS CV values are merged (same CV = different analytes). Has no effect on non-FAIMS data.[96m (default: 'true')[39m[95m (valid: 'true', 'false')[39m
+                                                                     [96m[39m[95m[39m
+
+                                                                     [96m[39m[95m[39m
+
+Common TOPP options:
+  -ini <file>                                                        Use the given TOPP INI file[96m[39m[95m[39m
+  -log <file>                                                        Name of log file (created only when specified)[96m[39m[95m[39m
+  -instance <n>                                                      Instance number for the TOPP INI file[96m (default: '1')[39m[95m[39m
+  -debug <n>                                                         Sets the debug level[96m (default: '0')[39m[95m[39m
+  -threads <n>                                                       Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores)[96m (default: '1')[39m[95m[39m
+  -write_ini <file>                                                  Writes the default configuration file[96m[39m[95m[39m
+  -write_ctd <out_dir>                                               Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>[96m[39m[95m[39m
+  -write_nested_cwl <out_dir>                                        Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>[96m[39m[95m[39m
+  -write_cwl <out_dir>                                               Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>, but enforce a flat parameter hierarchy[96m[39m[95m[39m
+  -write_nested_json <out_dir>                                       Writes the default configuration file[96m[39m[95m[39m
+  -write_json <out_dir>                                              Writes the default configuration file, but compatible to the flat hierarchy[96m[39m[95m[39m
+  -no_progress                                                       Disables progress logging to command line[96m[39m[95m[39m
+  -force                                                             Overrides tool-specific checks[96m[39m[95m[39m
+  -test                                                              Enables the test mode (needed for internal use only)[96m[39m[95m[39m
+  --help                                                             Shows options[96m[39m[95m[39m
+  --helphelp                                                         Shows all options (including advanced)[96m[39m[95m[39m
+
+Algorithm section:
+  -algorithm:write_debug                                             When debug mode is activated, several files with intermediate results are written to the folder 'debug' (do not use in parallel mode).[96m[39m[95m[39m
+
+Settings for the calculation of a score indicating if a peak's intens
+ity is significant in the local environment (between 0 and 1):
+  -algorithm:intensity:bins <number>                                 Number of bins per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.
+This parameter should be decreased, if the algorithm is used on small regions of a map.[96m (default: '10')[39m[95m (min: '1')[39m
+
+Settings for the calculation of a score indicating if a peak is part 
+of a mass trace (between 0 and 1).:
+  -algorithm:mass_trace:mz_tolerance <value>                         Tolerated m/z deviation of peaks belonging to the same mass trace.
+It should be larger than the m/z resolution of the instrument.
+This value must be smaller than that 1/charge_high![96m (default: '0.03')[39m[95m (min: '0.0')[39m
+  -algorithm:mass_trace:min_spectra <number>                         Number of spectra that have to show a similar peak mass in a mass trace.[96m (default: '10')[39m[95m (min: '1')[39m
+  -algorithm:mass_trace:max_missing <number>                         Number of consecutive spectra where a high mass deviation or missing peak is acceptable.
+This parameter should be well below 'min_spectra'![96m (default: '1')[39m[95m (min: '0')[39m
+  -algorithm:mass_trace:slope_bound <value>                          The maximum slope of mass trace intensities when extending from the highest peak.
+This parameter is important to separate overlapping elution peaks.
+It should be increased if feature elution profiles fluctuate a lot.[96m (default: '0.1')[39m[95m (min: '0.0')[39m
+
+Settings for the calculation of a score indicating if a peak is part 
+of a isotopic pattern (between 0 and 1).:
+  -algorithm:isotopic_pattern:charge_low <number>                    Lowest charge to search for.[96m (default: '1')[39m[95m (min: '1')[39m
+  -algorithm:isotopic_pattern:charge_high <number>                   Highest charge to search for.[96m (default: '4')[39m[95m (min: '1')[39m
+  -algorithm:isotopic_pattern:mz_tolerance <value>                   Tolerated m/z deviation from the theoretical isotopic pattern.
+It should be larger than the m/z resolution of the instrument.
+This value must be smaller than that 1/charge_high![96m (default: '0.03')[39m[95m (min: '0.0')[39m
+  -algorithm:isotopic_pattern:intensity_percentage <value>           Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.[96m (default: '10.0')[39m[95m (min: '0.0' max: '100.0')[39m
+  -algorithm:isotopic_pattern:intensity_percentage_optional <value>  Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.[96m (default: '0.1')[39m[95m (min: '0.0' max: '100.0')[39m
+  -algorithm:isotopic_pattern:optional_fit_improvement <value>       Minimal percental improvement of isotope fit to allow leaving out an optional peak.[96m (default: '2.0')[39m[95m (min: '0.0' max: '100.0')[39m
+  -algorithm:isotopic_pattern:mass_window_width <value>              Window width in Dalton for precalculation of estimated isotope distributions.[96m (default: '25.0')[39m[95m (min: '1.0' max: '200.0')[39m
+  -algorithm:isotopic_pattern:abundance_12C <value>                  Rel. abundance of the light carbon. Modify if labeled.[96m (default: '98.930000000000007')[39m[95m (min: '0.0' max: '100.0')[39m
+  -algorithm:isotopic_pattern:abundance_14N <value>                  Rel. abundance of the light nitrogen. Modify if labeled.[96m (default: '99.632000000000005')[39m[95m (min: '0.0' max: '100.0')[39m
+
+Settings that determine which peaks are considered a seed:
+  -algorithm:seed:min_score <value>                                  Minimum seed score a peak has to reach to be used as seed.
+The seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.
+If your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score.[96m (default: '0.8')[39m[95m (min: '0.0' max: '1.0')[39m
+
+Settings for the model fitting:
+  -algorithm:fit:max_iterations <number>                             Maximum number of iterations of the fit.[96m (default: '500')[39m[95m (min: '1')[39m
+
+Settings for the features (intensity, quality assessment, ...):
+  -algorithm:feature:min_score <value>                               Feature score threshold for a feature to be reported.
+The feature score is the geometric mean of the average relative deviation and the correlation between the model and the observed peaks.[96m (default: '0.7')[39m[95m (min: '0.0' max: '1.0')[39m
+  -algorithm:feature:min_isotope_fit <value>                         Minimum isotope fit of the feature before model fitting.[96m (default: '0.8')[39m[95m (min: '0.0' max: '1.0')[39m
+  -algorithm:feature:min_trace_score <value>                         Trace score threshold.
+Traces below this threshold are removed after the model fitting.
+This parameter is important for features that overlap in m/z dimension.[96m (default: '0.5')[39m[95m (min: '0.0' max: '1.0')[39m
+  -algorithm:feature:min_rt_span <value>                             Minimum RT span in relation to extended area that has to remain after model fitting.[96m (default: '0.333')[39m[95m (min: '0.0' max: '1.0')[39m
+  -algorithm:feature:max_rt_span <value>                             Maximum RT span in relation to extended area that the model is allowed to have.[96m (default: '2.5')[39m[95m (min: '0.5')[39m
+  -algorithm:feature:rt_shape <choice>                               Choose model used for RT profile fitting. If set to symmetric a gauss shape is used, in case of asymmetric an EGH shape is used.[96m (default: 'symmetric')[39m[95m (valid: 'symmetric', 'asymmetric')[39m
+  -algorithm:feature:max_intersection <value>                        Maximum allowed intersection of features.[96m (default: '0.35')[39m[95m (min: '0.0' max: '1.0')[39m
+  -algorithm:feature:reported_mz <choice>                            The mass type that is reported for features.
+'maximum' returns the m/z value of the highest mass trace.
+'average' returns the intensity-weighted average m/z value of all contained peaks.
+'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.[96m (default: 'monoisotopic')[39m[95m (valid: 'maximum', 'average', 'monoisotopic')[39m
+
+Settings for user-specified seeds.:
+  -algorithm:user-seed:rt_tolerance <value>                          Allowed RT deviation of seeds from the user-specified seed position.[96m (default: '5.0')[39m[95m (min: '0.0')[39m
+  -algorithm:user-seed:mz_tolerance <value>                          Allowed m/z deviation of seeds from the user-specified seed position.[96m (default: '1.1')[39m[95m (min: '0.0')[39m
+  -algorithm:user-seed:min_score <value>                             Overwrites 'seed:min_score' for user-specified seeds. The cutoff is typically a bit lower in this case.[96m (default: '0.5')[39m[95m (min: '0.0' max: '1.0')[39m
+
+algorithm:advanced:
+  -algorithm:advanced:pseudo_rt_shift <value>                        Pseudo RT shift used when .[96m (default: '500.0')[39m[95m (min: '1.0')[39m
+
+[0m

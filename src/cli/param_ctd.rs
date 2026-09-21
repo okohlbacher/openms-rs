@@ -380,13 +380,16 @@ fn to_string_double(value: f64) -> String {
 }
 
 impl ParamCtdFile {
-    /// Source `ParamCTDFile::escapeXML` (a private static there):
-    /// [`escape_xml`] as an associated function.
+    /// Source `ParamCTDFile::escapeXML` (a private static there): `&`, `>`,
+    /// `"`, `<` and `'` replaced in that order, each pass as
+    /// [`replace`](Self::replace) replaces, so a special character right
+    /// after another one is left as it is (CPP-349).
     pub fn escape_xml(text: &str) -> String {
         escape_xml(text)
     }
-    /// Source `ParamCTDFile::replace` (a private static there): [`replace`]
-    /// as an associated function.
+    /// Source `ParamCTDFile::replace` (a private static there): each byte
+    /// `from` replaced with `to`, except that the byte right after a
+    /// replacement is never examined (`ParamCTDFile.cpp:358-368`, CPP-349).
     pub fn replace(text: &str, from: u8, to: &str) -> String {
         replace(text, from, to)
     }

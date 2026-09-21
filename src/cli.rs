@@ -25,14 +25,18 @@
 //!    and peak-memory line.
 //!
 //! A failure maps to the exit code of the phase it occurs in, as the source's
-//! two catch blocks do. `-log` and `-debug` write the source's log file. See
-//! `docs/TOPP_CLI_SUPPORT.md` for the supported source subset and the
+//! two catch blocks do. `-log` and `-debug` write the source's log file. A
+//! tool executable ([`run`](crate::cli::run)) shapes its usage text to the
+//! console width and colours it, and its error and warning lines, on a
+//! terminal, as the source's `ConsoleUtils`, `IndentedStream` and `Colorizer`
+//! do. See `docs/TOPP_CLI_SUPPORT.md` for the supported source subset and the
 //! exit-code table.
 //!
 //! One phase has no source counterpart and precedes all of these: a check that
 //! this processor has the instructions this binary was built to use. See
 //! [`crate::system::cpu_features`] and `docs/FMA_BUILD_FLAG.md`.
 
+mod console;
 mod context;
 mod defs;
 mod logging;
@@ -46,6 +50,7 @@ mod tool_handler;
 pub mod tools;
 mod usage;
 
+pub use console::{log_error, log_warning};
 pub use context::{
     TEST_MODE_UNIQUE_ID_SEED, ToolContext, input_file_readable, output_file_writable, parse_range,
     parse_range_int,
@@ -404,10 +409,17 @@ impl Session<'_> {
         let notice = self.log.line(text);
         self.notice(notice, out)
     }
-    /// Source `writeLogWarn_` and `writeLogError_`: the error stream and the
-    /// log file.
+    /// Source `writeLogWarn_`: the warning log stream on the error stream,
+    /// yellow on a terminal ([`log_warning`]), and the log file.
     fn warn(&self, out: &mut dyn Write, err: &mut dyn Write, text: &str) -> Result<()> {
-        writeln!(err, "{text}")?;
+        log_warning(err, text)?;
+        let notice = self.log.line(text);
+        self.notice(notice, out)
+    }
+    /// Source `writeLogError_`: the error log stream on the error stream, red
+    /// on a terminal ([`log_error`]), and the log file.
+    fn error(&self, out: &mut dyn Write, err: &mut dyn Write, text: &str) -> Result<()> {
+        log_error(err, text)?;
         let notice = self.log.line(text);
         self.notice(notice, out)
     }
@@ -457,19 +469,23 @@ fn user_defaults(
         return Ok(Ok(None));
     }
     if file::is_directory(&real) {
-        writeln!(
+        log_error(
             err,
-            "Unable to initialize or run {}: basic_filebuf::underflow error reading the file: Is a directory",
-            session.name
+            &format!(
+                "Unable to initialize or run {}: basic_filebuf::underflow error reading the file: Is a directory",
+                session.name
+            ),
         )?;
         return Ok(Err(ExitCode::InternalError));
     }
     match paramxml::load(&real) {
         Ok(param) => Ok(Ok(Some(param))),
         Err(Error::Parse { message, .. }) => {
-            writeln!(
+            log_error(
                 err,
-                "Error: Unable to read file (While loading '{path}': {message} in: {path})"
+                &format!(
+                    "Error: Unable to read file (While loading '{path}': {message} in: {path})"
+                ),
             )?;
             Ok(Err(ExitCode::InputFileCorrupt))
         }
@@ -721,8 +737,14 @@ pub fn verbose_version<T: Tool>() -> String {
 
 /// Source `printUsage_` for a tool body that prints its own usage, as
 /// `FileInfo` does: the usage text on `stream`, with the version line from the
-/// process's tool registry ([`verbose_version`]).
-fn print_usage<T: Tool>(
+/// process's tool registry ([`verbose_version`]). `spec` is the tool's
+/// registration ([`tool_spec`]), `subsections` its subsection defaults and
+/// `verbose` the `--helphelp` form.
+///
+/// # Errors
+///
+/// [`Error::Io`] when `stream` fails.
+pub fn print_usage<T: Tool>(
     stream: &mut dyn Write,
     spec: &ToolSpec,
     subsections: &Param,
@@ -730,6 +752,7 @@ fn print_usage<T: Tool>(
 ) -> Result<()> {
     usage::print(
         stream,
+        console::Console::for_usage(),
         T::NAME,
         T::DESCRIPTION,
         &verbose_version::<T>(),
@@ -767,6 +790,7 @@ fn print_usage_logged<T: Tool>(
     )?;
     usage::print(
         err,
+        console::Console::for_usage(),
         T::NAME,
         T::DESCRIPTION,
         &session.verbose_version,
@@ -806,9 +830,11 @@ fn prepare<T: Tool>(
         .iter()
         .try_fold(0usize, |sum, argument| sum.checked_add(argument.len()));
     if arguments.len() > MAX_ARGUMENTS || !matches!(bytes, Some(b) if b <= MAX_ARGUMENT_BYTES) {
-        writeln!(
+        log_error(
             err,
-            "Invalid parameter values (InvalidParameter): the command line exceeds {MAX_ARGUMENTS} arguments or {MAX_ARGUMENT_BYTES} bytes. Aborting!"
+            &format!(
+                "Invalid parameter values (InvalidParameter): the command line exceeds {MAX_ARGUMENTS} arguments or {MAX_ARGUMENT_BYTES} bytes. Aborting!"
+            ),
         )?;
         return Ok(Prepared::Done(ExitCode::IllegalParameters));
     }
@@ -830,17 +856,19 @@ fn prepare<T: Tool>(
     let command_line = match parse_command_line(arguments, &definitions)? {
         Ok(parsed) => parsed,
         Err(failure) => {
-            writeln!(
+            log_error(
                 err,
-                "Invalid parameter values ({}): {}. Aborting!",
-                failure.kind, failure.message
+                &format!(
+                    "Invalid parameter values ({}): {}. Aborting!",
+                    failure.kind, failure.message
+                ),
             )?;
             print_usage_logged::<T>(session, &Param::new(), out, err, spec, &subsections, false)?;
             return Ok(Prepared::Done(ExitCode::IllegalParameters));
         }
     };
     for warning in &command_line.warnings {
-        writeln!(err, "{warning}")?;
+        log_warning(err, warning)?;
     }
     let mut cmd = command_line.values;
 
@@ -881,7 +909,7 @@ fn prepare<T: Tool>(
     //    argument list, argc 0, still runs, as in the source class test.
     if arguments.len() == 1 {
         print_usage_logged::<T>(session, &cmd, out, err, spec, &subsections, false)?;
-        session.warn(out, err, "No options given. Aborting!")?;
+        session.error(out, err, "No options given. Aborting!")?;
         return Ok(Prepared::Done(ExitCode::IllegalParameters));
     }
 
@@ -901,7 +929,7 @@ fn prepare<T: Tool>(
     }
     // 4. Unknown options and trailing text (241-255).
     if !command_line.unknown.is_empty() {
-        session.warn(
+        session.error(
             out,
             err,
             &format!(
@@ -913,7 +941,7 @@ fn prepare<T: Tool>(
         return Ok(Prepared::Done(ExitCode::IllegalParameters));
     }
     if !command_line.misc.is_empty() {
-        session.warn(
+        session.error(
             out,
             err,
             &format!(
@@ -1017,10 +1045,12 @@ fn prepare<T: Tool>(
         if diagnostics.is_empty() {
             session.defer(&report.messages);
         }
-        writeln!(
+        log_error(
             err,
-            "Parameters passed to '{}' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!",
-            T::NAME
+            &format!(
+                "Parameters passed to '{}' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!",
+                T::NAME
+            ),
         )?;
         return Ok(Prepared::Done(ExitCode::IllegalParameters));
     }
@@ -1176,10 +1206,9 @@ fn write_commands<T: Tool>(
                 return Ok(Some(code));
             }
             if name != "write_ctd" {
-                writeln!(
+                log_error(
                     err,
-                    "Unable to initialize or run {}: {TDL_UNAVAILABLE}",
-                    T::NAME
+                    &format!("Unable to initialize or run {}: {TDL_UNAVAILABLE}", T::NAME),
                 )?;
                 return Ok(Some(ExitCode::InternalError));
             }
@@ -1207,11 +1236,13 @@ fn write_commands<T: Tool>(
                 // The source's store throws std::ios::failure, a
                 // std::exception only the initialisation catch handles;
                 // libstdc++ appends its category text to the message.
-                writeln!(
+                log_error(
                     err,
-                    "Unable to initialize or run {}: {}: iostream error",
-                    T::NAME,
-                    error_text(&error)
+                    &format!(
+                        "Unable to initialize or run {}: {}: iostream error",
+                        T::NAME,
+                        error_text(&error)
+                    ),
                 )?;
                 return Ok(Some(ExitCode::InternalError));
             }
@@ -1277,7 +1308,7 @@ fn load_ini(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Param
         "Error: File not readable (the file '{path}' is not readable for the current user)"
     );
     if !file::exists(path) {
-        writeln!(err, "{not_found}")?;
+        log_error(err, &not_found)?;
         return Ok(Err(ExitCode::InputFileNotFound));
     }
     // `file::readable` refuses a device or a FIFO without opening it, which
@@ -1285,13 +1316,15 @@ fn load_ini(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Param
     // load, whose open failure is mapped below.
     let directory = file::is_directory(path);
     if (directory || std::path::Path::new(path).is_file()) && !file::readable(path) {
-        writeln!(err, "{not_readable}")?;
+        log_error(err, &not_readable)?;
         return Ok(Err(ExitCode::InputFileNotReadable));
     }
     if directory {
-        writeln!(
+        log_error(
             err,
-            "Error: Unable to read file (While loading '{path}': unable to read data from file)"
+            &format!(
+                "Error: Unable to read file (While loading '{path}': unable to read data from file)"
+            ),
         )?;
         return Ok(Err(ExitCode::InputFileCorrupt));
     }
@@ -1315,7 +1348,7 @@ fn load_ini(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Param
                     format!("Error: Unable to read file (While loading '{path}': {error})"),
                 ),
             };
-            writeln!(err, "{text}")?;
+            log_error(err, &text)?;
             Ok(Err(code))
         }
         Err(error) => Ok(Err(run_failure(&error, err))),
@@ -1658,8 +1691,8 @@ fn check_input(
     session.debug(out, &format!("Checking input file '{path}'"), 2)?;
     Ok(match context::input_file_problem(path, name) {
         Some((code, heading, detail)) => {
-            writeln!(err, "{heading}")?;
-            session.warn(out, err, &detail)?;
+            log_error(err, &heading)?;
+            session.error(out, err, &detail)?;
             Some(code)
         }
         None => None,
@@ -1678,8 +1711,8 @@ fn check_output(
     session.debug(out, &format!("Checking output file '{path}'"), 2)?;
     Ok(match context::output_file_problem(path, name) {
         Some((code, heading, detail)) => {
-            writeln!(err, "{heading}")?;
-            session.warn(out, err, &detail)?;
+            log_error(err, &heading)?;
+            session.error(out, err, &detail)?;
             Some(code)
         }
         None => None,
@@ -1734,7 +1767,7 @@ fn validate(
             } else {
                 format!("'{}' [valid: {}]", entry.name, restrictions.join(", "))
             };
-            session.warn(
+            session.error(
                 out,
                 err,
                 &format!("Error: The required parameter {name} was not given or is empty!"),
@@ -1748,7 +1781,7 @@ fn validate(
             (ParameterType::String, ParamValue::String(text))
                 if !entry.valid_strings.is_empty() && !entry.valid_strings.contains(text) =>
             {
-                session.warn(
+                session.error(
                     out,
                     err,
                     &format!(
@@ -1871,7 +1904,7 @@ fn executable_path(
                     entry.name
                 ),
             )?;
-            session.warn(
+            session.error(
                 out,
                 err,
                 &format!(
@@ -1894,7 +1927,7 @@ fn int_range(
     let min = i64::from(entry.min_int.unwrap_or(-i32::MAX));
     let max = i64::from(entry.max_int.unwrap_or(i32::MAX));
     if number < min || number > max {
-        session.warn(
+        session.error(
             out,
             err,
             &format!(
@@ -1918,7 +1951,7 @@ fn float_range(
     let min = entry.min_float.unwrap_or(-f64::MAX);
     let max = entry.max_float.unwrap_or(f64::MAX);
     if number < min || number > max {
-        session.warn(
+        session.error(
             out,
             err,
             &format!(
@@ -1976,7 +2009,7 @@ fn input_path(
             &format!("Warning: Could not determine format of input file '{path}'!"),
         )?;
     } else if !format_listed(&formats, kind) {
-        session.warn(
+        session.error(
             out,
             err,
             &format!(
@@ -2008,7 +2041,7 @@ fn output_extension(
     }
     let kind = type_by_file_name(path);
     if kind != FileType::Unknown && !format_listed(&formats, kind) {
-        session.warn(
+        session.error(
             out,
             err,
             &format!(
@@ -2045,11 +2078,13 @@ fn error_text(error: &Error) -> String {
 /// reports this way (`../oracle/toppbase-completion`, cases `reg_*` and
 /// `ttd_*`).
 fn initialisation_failure<T: Tool>(error: &Error, err: &mut dyn Write) -> ExitCode {
-    let _ = writeln!(
+    let _ = log_error(
         err,
-        "Unable to initialize or run {}: {}",
-        T::NAME,
-        error_text(error)
+        &format!(
+            "Unable to initialize or run {}: {}",
+            T::NAME,
+            error_text(error)
+        ),
     );
     ExitCode::IllegalParameters
 }
@@ -2103,7 +2138,7 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
         ),
         Error::MissingInformation(_) => (ExitCode::MissingParameters, format!("Error: {error}")),
     };
-    let _ = writeln!(err, "{text}");
+    let _ = log_error(err, &text);
     code
 }
 
@@ -2145,12 +2180,14 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
 /// The source reaches its catch block by unwinding past the closing
 /// `<tool> took …` line, so a run ended here prints none: this marks the run
 /// as unwound for [`run_with`], on the calling thread.
+// Only `FeatureFinderCentroided` (mzml, featurexml) maps a store here so far.
+#[cfg_attr(not(all(feature = "mzml", feature = "featurexml")), allow(dead_code))]
 pub(crate) fn write_failure(path: &str, error: &Error, err: &mut dyn Write) -> ExitCode {
     let detail = match error {
         Error::Io(_) => format!("the file '{path}' could not be created. "),
         other => other.to_string(),
     };
-    let _ = writeln!(err, "Error: Unable to write file ({detail})");
+    let _ = log_error(err, &format!("Error: Unable to write file ({detail})"));
     UNWOUND.with(|unwound| unwound.set(true));
     ExitCode::CannotWriteOutputFile
 }
@@ -2170,7 +2207,10 @@ thread_local! {
 /// [`run_with_registry`] to pass one. The phases and their exit codes follow
 /// `TOPPBase::main`; see the module documentation. Usage text goes to `err` in
 /// every case, for `--help` as after a command-line error, because the source's
-/// `printUsage_` writes to standard error; so does every diagnostic. `out`
+/// `printUsage_` writes to standard error; so does every diagnostic. Explicit
+/// streams are not a console: the usage text is neither shaped to a width nor
+/// coloured, as the source writes it when standard error is not a terminal
+/// and `COLUMNS` is unset; [`run`] shapes and colours it. `out`
 /// receives what the source writes through its info log: the INI-version
 /// notice, a tool's report and the closing `<tool> took … .` line.
 ///
@@ -2230,7 +2270,7 @@ pub fn run_with_registry<T: Tool>(
         .get_topp_tool_list()
         .map(|tools| tools.contains_key(T::NAME));
     for line in registry.take_diagnostics() {
-        let _ = writeln!(err, "{line}");
+        let _ = log_error(err, &line);
     }
     let registered = match registered {
         Ok(registered) => registered,
@@ -2256,7 +2296,7 @@ pub fn run_with_registry<T: Tool>(
         Err(error) => initialisation_failure::<T>(&error, err),
     };
     for line in session.deferred.borrow().iter() {
-        let _ = writeln!(err, "{line}");
+        let _ = log_warning(err, line);
     }
     session.log.finish();
     code
@@ -2295,7 +2335,7 @@ fn run_body<T: Tool>(
             let code = run_failure(&error, &mut text);
             let text = String::from_utf8_lossy(&text);
             for line in text.lines() {
-                let _ = session.warn(out, err, line);
+                let _ = session.error(out, err, line);
             }
             code
         }
@@ -2304,6 +2344,11 @@ fn run_body<T: Tool>(
 
 /// Run a tool against the process arguments and standard streams, returning the
 /// status the executable should exit with.
+///
+/// The standard streams are a console: the usage text is shaped to the width
+/// `COLUMNS` or `stty size` reports, and on a terminal it, the error lines
+/// and the warnings are coloured and the terminal is reset at the end, as the
+/// source's executables do (`docs/TOPP_CLI_SUPPORT.md`, *On a console*).
 ///
 /// This is what every ported tool executable calls. The processor check that
 /// [`run_with`] describes is the **first statement of this function** — ahead of
@@ -2347,5 +2392,5 @@ fn run_from_environment<T: Tool>() -> ExitCode {
     let arguments: Vec<String> = std::env::args().collect();
     let mut out = std::io::stdout();
     let mut err = std::io::stderr();
-    run_with::<T>(&arguments, &mut out, &mut err)
+    console::with_process_streams(|| run_with::<T>(&arguments, &mut out, &mut err))
 }

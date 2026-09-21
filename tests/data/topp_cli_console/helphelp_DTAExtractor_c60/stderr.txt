@@ -1,0 +1,73 @@
+
+DTAExtractor -- Extracts spectra of an MS run file to sever
+al files in DTA format.
+Full documentation: http://www.openms.de/doxygen/release/4.
+0.0/html/TOPP_DTAExtractor.html
+Version: 1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enab
+   les reproducible analysis of large-scale mass spectromet
+   ry data. Nat Methods (2024). doi:10.1038/s41592-024-0219
+   7-7.
+
+Usage:
+  DTAExtractor <options>
+
+Options (mandatory options marked with '*'):
+  -in <file>*                   Input file  (valid formats:
+                                 'mzML')
+  -out <file>*                  Base name of DTA output 
+                                files (RT, m/z and extensio
+                                n are appended)
+  -mz [min]:[max]               M/z range of precursor peak
+                                s to extract.
+                                This option is ignored for 
+                                MS level 1 (default: ':')
+  -rt [min]:[max]               Retention time range of 
+                                spectra to extract [s] (def
+                                ault: ':')
+  -level i[,j]...               MS levels to extract (defau
+                                lt: '1,2,3')
+                                
+Common TOPP options:
+  -ini <file>                   Use the given TOPP INI file
+
+  -log <file>                   Name of log file (created 
+                                only when specified)
+  -instance <n>                 Instance number for the 
+                                TOPP INI file (default: 
+                                '1')
+  -debug <n>                    Sets the debug level (defau
+                                lt: '0')
+  -threads <n>                  Sets the number of threads 
+                                allowed to be used by the 
+                                TOPP tool (0 = all availabl
+                                e cores) (default: '1')
+  -write_ini <file>             Writes the default configur
+                                ation file
+  -write_ctd <out_dir>          Writes the common tool desc
+                                ription file(s) (Toolname(s
+                                ).ctd) to <out_dir>
+  -write_nested_cwl <out_dir>   Writes the Common Workflow 
+                                Language file(s) (Toolname(
+                                s).cwl) to <out_dir>
+  -write_cwl <out_dir>          Writes the Common Workflow 
+                                Language file(s) (Toolname(
+                                s).cwl) to <out_dir>, but 
+                                enforce a flat parameter 
+                                hierarchy
+  -write_nested_json <out_dir>  Writes the default configur
+                                ation file
+  -write_json <out_dir>         Writes the default configur
+                                ation file, but compatible 
+                                to the flat hierarchy
+  -no_progress                  Disables progress logging 
+                                to command line
+  -force                        Overrides tool-specific 
+                                checks
+  -test                         Enables the test mode (need
+                                ed for internal use only)
+  --help                        Shows options
+  --helphelp                    Shows all options (includin
+                                g advanced)
+

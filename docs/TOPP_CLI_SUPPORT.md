@@ -69,8 +69,8 @@ The pinned product manifest the Release build installs,
 | `parseRange_(text, Int&, Int&)` | `parse_range_int` |
 | `version_`, `verboseVersion_` | `product_versions(registry, name)`, `cli::verbose_version`; the registry's product version, else the core version |
 | `getToolPrefix`, `getIniLocation_` with `-instance` | internal; the instance number selects `<tool>:<n>:` |
-| `printUsage_` | internal (`src/cli/usage.rs`), reached by `--help` / `--helphelp` and command-line errors; writes to the error stream |
-| `writeLogInfo_`, `writeLogWarn_`, `writeLogError_`, `writeDebug_` (both), `enableLogging_` | `ToolContext::write_log_info`, `write_log_warn`, `write_log_error`, `write_debug`, `write_debug_param`; `ToolLog`; see *Log file and debug levels* |
+| `printUsage_` | internal (`src/cli/usage.rs`), reached by `--help` / `--helphelp` and command-line errors; writes to the error stream, shaped and coloured for a console by an executable (*On a console*); `cli::print_usage` for a tool body that prints its own |
+| `writeLogInfo_`, `writeLogWarn_`, `writeLogError_`, `writeDebug_` (both), `enableLogging_` | `ToolContext::write_log_info`, `write_log_warn`, `write_log_error`, `write_debug`, `write_debug_param`; `ToolLog`; see *Log file and debug levels*. `cli::log_error` and `cli::log_warning` write one record of the error and warning log streams, red and yellow on a terminal |
 | `getDocumentationURL` | internal; the release URL of the core version, used by the usage text and the CTD |
 | `Citation`, `Citation::toString`, `cite_openms` | `Citation`, `Citation::to_source_string` (also `Display`), `CITE_OPENMS`; tool citations as `Tool::CITATIONS` |
 | `TOPPBase_defs.h` exceptions `UnregisteredParameter`, `WrongParameterType`, `RequiredParameterNotGiven` | not types: the required-value check reports `RequiredParameterNotGiven`'s message and exit 7; the accessors return `Error::InvalidValue` for the other two (see *Native differences*) |
@@ -280,6 +280,47 @@ parameter under its section description (`--helphelp`). Descriptions start with
 an upper-case letter, and a line break in a description continues at the
 description column (`IndentedStream`, `ConsoleUtils::breakString_`).
 
+**On a console** (`src/cli/console.rs`). A tool executable (`cli::run`) lays
+its usage text out for the console as the source does. The width is `COLUMNS`
+read as `StringUtils::toInt32` reads it, or, when `COLUMNS` is unset, the
+second field of `stty size` run through `/bin/sh` with the process's standard
+input, whose complaint about a standard input that is not a terminal reaches
+standard error as the source's does; the width is that number less one, and
+anything unreadable or below 10 turns shaping off (`readConsoleSize_`). Each
+item the source inserts into its `IndentedStream` is broken as
+`breakString_` breaks it: from the current column, continuation lines at the
+current indentation, a line that fills the width and ends in a word shorter
+than four bytes gives that word to the next line, an item of more than ten
+lines keeps eight, an indented `...` and its last line, and the source's
+unsigned arithmetic is kept, so an option column wider than the console
+stops shortening continuation lines and a line that ends exactly at the edge
+is followed by an empty one (CPP-353). On a terminal standard error the usage
+text carries the source's `Colorizer` codes (the tool name and `Usage:`
+inverted, headings bright, the documentation URL underlined, required options
+and the mandatory note green, defaults cyan, restrictions magenta, empty
+addons included), every `writeLogError_`/`OPENMS_LOG_ERROR` line of the
+lifecycle is red and every `writeLogWarn_`/`Param::update` line yellow
+(`LogStreamBuf::distribute_`), and the run ends with `\x1b[0m` on every
+terminal among standard output and error (`InitConsole`). A tool driven in
+process through `run_with` writes to explicit streams, which are not a
+console: no probing, no shaping, no colours, which is the text the source
+writes when standard error is not a terminal and `COLUMNS` is unset. Evidence:
+100 cases (every tool's `--help` and `--helphelp` at `COLUMNS` 20 to 120, 16
+`COLUMNS` values, 4 failures), byte-identical to the Release build apart from
+`FeatureFinderCentroided`'s missing citations (`tests/topp_cli_console.rs`),
+and 15 cases in a
+pseudo-terminal (`tests/data/topp_cli_console/tty_*`), whose usage text and
+log lines are compared in the unit tests of `src/cli/usage.rs` and
+`src/cli/console.rs`; the executables in a pseudo-terminal match 12 of them
+byte for byte (`../oracle/toppbase-completion/compare_tty.py`), and the other
+three are tool bodies: `FileInfo`'s own `Error: Can only validate indices for
+mzML files` is written uncoloured (`src/cli/tools/file_info.rs` writes it
+directly; `cli::log_error` colours it), `FeatureFinderCentroided` lacks its
+citations, and `BaselineFilter` prints no progress lines. Not ported: the
+Windows console-buffer width (`GetConsoleScreenBufferInfo`) and virtual
+terminal mode, which the standard library cannot reach; there `COLUMNS` still
+applies.
+
 **Processing records (decision D4).** BaselineFilter, MapNormalizer and
 SpectraFilterWindowMower attach `getProcessingInfo_` with `BASELINE_REDUCTION`,
 `NORMALIZATION` (`Intensity normalization`) and `FILTERING` (`Data filtering`)
@@ -392,18 +433,19 @@ copy. A build without the flag compiles both away. See `docs/FMA_BUILD_FLAG.md`
 section 8 for what this does and does not guarantee, and
 `src/system/cpu_features.rs`; the flag changes no result, only speed.
 
-**Usage text.** The layout is the one the source writes when standard error is
-not a terminal and `COLUMNS` is unset, as in the oracles. For the seven ported
-tools that declare their citations, `--help` and `--helphelp` match the Release
+**Usage text.** Driven in process, the layout is the one the source writes
+when standard error is not a terminal and `COLUMNS` is unset, as in the
+oracles; the executables shape and colour it for a console (above). For the
+seven ported tools that declare their citations, `--help` and `--helphelp`
+match the Release
 build byte for byte (`help_<tool>`, `helphelp_<tool>` in
 `../oracle/toppbase-completion`; the Release build's revision is the port's,
 `bc9cc12`), apart from the line its console-width probe prints first when
 standard input is not a terminal (`stty: 'standard input': Inappropriate ioctl
-for device` from GNU `stty`). Tool citations follow the OpenMS citation under
+for device` from GNU `stty`), which only an executable prints. Tool citations
+follow the OpenMS citation under
 `To cite <tool>:`, and a tool no manifest lists gets `Common UTIL options:`.
-Not ported: colours for a terminal and shaping lines to the console width that
-`COLUMNS` or `stty size` report (`ConsoleUtils::getConsoleWidth`), including
-running `stty` and the line it prints. `FeatureFinderCentroided` does not yet
+`FeatureFinderCentroided` does not yet
 declare its two citations (`FeatureFinderCentroided.cpp:124-136`), so its usage
 and its CTD lack them. An earlier version of this port printed `--help` usage
 on the output stream; the oracle's `help` case writes nothing there.
@@ -521,9 +563,8 @@ invalid. …` on a failed strict update.
 **Not ported:** JSON INI files (`ParamJSONFile::load`, which the Release
 build reads without TDL: a `.json` `-ini` is read as XML here and fails with 3,
 where the Release build applies it, oracle `json_ini_*`; it needs `serde_json`
-behind the `paramxml` feature), colours and console-width shaping of the usage
-text (below), `INIUpdater`, `SearchEngineBase`, `MapAlignerBase` and
-`TOPPExternalToolBase`.
+behind the `paramxml` feature), `INIUpdater`, `SearchEngineBase`,
+`MapAlignerBase` and `TOPPExternalToolBase`.
 
 **UpdateCheck** is ported in `src/system/update_check.rs`, behind the
 non-default `network` feature, and is not called by the lifecycle. The source

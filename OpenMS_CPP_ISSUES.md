@@ -6537,3 +6537,21 @@ Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and ski
 **Evidence:** `oracle/topp-cli-lifecycle/results/ini_common_tool_section`, `ini_instance_and_common`.
 
 **Rust handling:** Reproduced (`tests/topp_cli_completion.rs::check_param_warns_about_the_common_copy_of_a_tool_section`).
+
+## CPP-353 — Usage text on a console narrower than its option column is not broken, and a line that ends exactly at the console edge is followed by an empty line
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; `cli` `c19e494`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/APPLICATIONS/ConsoleUtils.cpp:129-145` (`ConsoleUtils::breakString_`), reached through `IndentedStream::operator<<` (`FORMAT/IndentedStream.h:58-88`) from `TOPPBase::printUsage_` (`TOPPBase.cpp:637-887`).
+
+**Trigger:** `--help` (or any usage text) on a console, or with `COLUMNS` set, narrower than the option column (six past the longest option name and argument), for example `COLUMNS=20`; or any item that follows a line ending exactly at the console's last column.
+
+**Issue:** `Size short_line_len = console_width_ - indentation;` subtracts in `size_t`. When the indentation exceeds the width the difference wraps to nearly 2^64, the guard `if (short_line_len < 1)` (meant to leave the text unbroken) does not fire, and every continuation line is as long as the rest of the item. At `COLUMNS=20` the option column of `BaselineFilter` is 29 wide: the option name is cut after 19 characters, its padding continues on a line of 39 spaces, and the description starts after them (`  -in <file>*      ` / 39 spaces + `Input raw data ` / `file  ` / `(valid formats: 'mzML')`). Separately, when the current column equals the width, the first line of the next item has `console_width_ - first_line_prefill == 0` characters: an empty line is emitted before the item's own text, so a `"\n"` there produces two line breaks. `FeatureFinderCentroided --helphelp` at `COLUMNS=28` prints two empty lines before `Usage:` because its last citation line is exactly 27 characters long.
+
+**Proposed C++ fix:** Compare before subtracting (`if (indentation >= console_width_)`), and treat a first line with no room left as the start of a new line instead of emitting an empty one.
+
+**Evidence:** `oracle/toppbase-completion/console.sh`, cases `help_<tool>_c20`, `helphelp_<tool>_c28` and `helphelp_FeatureFinderCentroided_c28` (`console_results/`); retained under `tests/data/topp_cli_console/`.
+
+**Rust handling:** Reproduced, because the usage text is what a user sees (`tests/topp_cli_console.rs::usage_is_shaped_to_columns_as_the_release_build_shapes_it`, `src/cli/console.rs::break_string`).

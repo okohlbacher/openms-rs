@@ -520,23 +520,28 @@ impl ToolContext {
         self.log.line(text);
         Ok(())
     }
-    /// Source `writeLogWarn_`: `text` on `err` and a line in the `-log` file.
+    /// Source `writeLogWarn_`: `text` on `err`, yellow on a terminal
+    /// ([`log_warning`](crate::cli::log_warning)), and a line in the `-log`
+    /// file.
     ///
     /// # Errors
     ///
     /// As [`write_log_info`](Self::write_log_info).
     pub fn write_log_warn(&self, err: &mut dyn Write, text: &str) -> Result<()> {
-        writeln!(err, "{text}")?;
+        super::console::log_warning(err, text)?;
         self.log.line(text);
         Ok(())
     }
-    /// Source `writeLogError_`: `text` on `err` and a line in the `-log` file.
+    /// Source `writeLogError_`: `text` on `err`, red on a terminal
+    /// ([`log_error`](crate::cli::log_error)), and a line in the `-log` file.
     ///
     /// # Errors
     ///
     /// As [`write_log_info`](Self::write_log_info).
     pub fn write_log_error(&self, err: &mut dyn Write, text: &str) -> Result<()> {
-        self.write_log_warn(err, text)
+        super::console::log_error(err, text)?;
+        self.log.line(text);
+        Ok(())
     }
     /// Source `writeDebug_(text, min_level)`: a line in the `-log` file when
     /// the debug level is at least `min_level`. As in the Release build,
@@ -669,8 +674,8 @@ pub fn input_file_readable(
     err: &mut dyn Write,
 ) -> Option<ExitCode> {
     let (code, heading, detail) = input_file_problem(filename, param_name)?;
-    let _ = writeln!(err, "{heading}");
-    let _ = writeln!(err, "{detail}");
+    let _ = super::console::log_error(err, &heading);
+    let _ = super::console::log_error(err, &detail);
     Some(code)
 }
 
@@ -722,8 +727,8 @@ pub fn output_file_writable(
     err: &mut dyn Write,
 ) -> Option<ExitCode> {
     let (code, heading, detail) = output_file_problem(filename, param_name)?;
-    let _ = writeln!(err, "{heading}");
-    let _ = writeln!(err, "{detail}");
+    let _ = super::console::log_error(err, &heading);
+    let _ = super::console::log_error(err, &detail);
     Some(code)
 }
 

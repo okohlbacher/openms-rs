@@ -1,0 +1,7 @@
+FileInfo
+-in
+/scratch/kohlbach/toppbase-oracle/run1/inputs/baseline_filter_tool_input.mzML
+-in_type
+dta
+-i
+--helphelp

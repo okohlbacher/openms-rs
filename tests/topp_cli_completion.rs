@@ -18,8 +18,10 @@
 //!   `fixtures.sha256.json`; the CTDs the Release build wrote are under
 //!   `tests/data/topp_cli_lifecycle/release/`. Paths of the Release run are
 //!   mapped to this run's before comparing, the terminal-width probe line
-//!   `stty: 'standard input': Inappropriate ioctl for device` is dropped, and
-//!   log timestamps are masked.
+//!   `stty: 'standard input': Inappropriate ioctl for device` is dropped (a
+//!   run in process writes to explicit streams, which are not probed; the
+//!   executables are, `tests/topp_cli_console.rs`), and log timestamps are
+//!   masked.
 //! * **Upstream class tests (tier 3).** `ToolHandler_test.cpp`,
 //!   `ToolManifest_test.cpp` and the `-log` and `Citation::toString` sections
 //!   of `TOPPBase_test.cpp` (cli `c19e494`), `ToolDescriptionFile_test.cpp`

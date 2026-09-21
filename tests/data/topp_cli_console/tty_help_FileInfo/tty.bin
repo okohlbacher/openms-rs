@@ -1,0 +1,52 @@
+
+[7mFileInfo[27m -- Shows basic information about the file, such as data rang
+es and file type.
+[1mFull documentation: [22m[4mhttp://www.openms.de/doxygen/release/4.0.0/html/T
+OPP_FileInfo.html[24m
+[1mVersion: [22m1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
+[1mTo cite OpenMS:
+[22m + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reprod
+   ucible analysis of large-scale mass spectrometry data. Nat Methods
+    (2024). doi:10.1038/s41592-024-02197-7.
+
+[7mUsage:[27m
+  [1mFileInfo[22m <options>
+
+[1mOptions[22m ([92mmandatory options marked with '*'[39m):
+[92m  -in <file>*        [39mInput file[96m[39m[95m (valid formats: 'mzData', 'mzXML', 
+                     'mzML', 'sqMass', 'dta', 'dta2d', 'mgf', 'featur
+                     eXML', 'consensusXML', 'idXML', 'pepXML', 'mzTab
+                     ', 'fid', 'mzid', 'trafoXML', 'fasta', 'pqp')[39m
+  -in_type <type>    Input file type -- default: determined from file
+                      extension or content[96m[39m[95m (valid: 'mzData', 'mzXML',
+                      'mzML', 'sqMass', 'dta', 'dta2d', 'mgf', 'featu
+                     reXML', 'consensusXML', 'idXML', 'pepXML', 'mzTa
+                     b', 'fid', 'mzid', 'trafoXML', 'fasta', 'pqp')[39m
+  -out <file>        Optional output file. If left out, the output 
+                     is written to the command line.[96m[39m[95m (valid formats: 
+                     'txt')[39m
+  -m                 Show meta information about the whole experiment[96m[39m[95m[39m
+
+  -p                 Shows data processing information[96m[39m[95m[39m
+  -s                 Computes a five-number statistics of intensities
+                     , qualities, and widths[96m[39m[95m[39m
+  -d                 Show detailed listing of all spectra and chromat
+                     ograms (peak files only)[96m[39m[95m[39m
+  -c                 Check for corrupt data in the file (peak files 
+                     only)[96m[39m[95m[39m
+  -v                 Validate the file only (for mzML, mzData, mzXML,
+                      featureXML, idXML, consensusXML, pepXML)[96m[39m[95m[39m
+  -i                 Check whether a given mzML file contains valid 
+                     indices (conforming to the indexedmzML standard)[96m[39m[95m[39m
+
+                     [96m[39m[95m[39m
+Common TOPP options:
+  -ini <file>        Use the given TOPP INI file[96m[39m[95m[39m
+  -threads <n>       Sets the number of threads allowed to be used 
+                     by the TOPP tool (0 = all available cores)[96m (defa
+                     ult: '1')[39m[95m[39m
+  -write_ini <file>  Writes the default configuration file[96m[39m[95m[39m
+  --help             Shows options[96m[39m[95m[39m
+  --helphelp         Shows all options (including advanced)[96m[39m[95m[39m
+
+[0m

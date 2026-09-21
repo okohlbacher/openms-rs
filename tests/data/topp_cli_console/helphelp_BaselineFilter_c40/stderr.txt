@@ -1,0 +1,203 @@
+
+BaselineFilter -- Removes the baseline 
+from profile spectra using a top-hat 
+filter.
+Full documentation: http://www.openms.d
+e/doxygen/release/4.0.0/html/TOPP_Basel
+ineFilter.html
+Version: 1.0.0 (OpenMS core 4.0.0, revi
+sion bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. 
+   et al.. OpenMS 3 enables reproducibl
+   e analysis of large-scale mass spect
+   rometry data. Nat Methods (2024). 
+   doi:10.1038/s41592-024-02197-7.
+
+Usage:
+  BaselineFilter <options>
+
+Options (mandatory options marked with 
+'*'):
+  -in <file>*                   Input r
+                                aw data
+                                 file  
+                                (valid 
+                                formats
+                                : 'mzML
+                                ')
+  -out <file>*                  Output 
+                                raw dat
+                                a file 
+                                 (valid
+                                 format
+                                s: 'mzM
+                                L')
+  -struc_elem_length <size>     Length 
+                                of the 
+                                structu
+                                ring el
+                                ement (
+                                should 
+                                be wide
+                                r than 
+                                ...
+                                ion). (
+                                default
+                                : '3.0'
+                                )
+  -struc_elem_unit <unit>       Unit of
+                                 'struc
+                                _elem_l
+                                ength' 
+                                paramet
+                                er. (de
+                                fault: 
+                                'Thomso
+                                n') (va
+                                lid: 'T
+                                homson'
+                                , 'Data
+                                Points'
+                                )
+  -method <string>              The nam
+                                e of th
+                                e morph
+                                ologica
+                                l filte
+                                r to be
+                                 applie
+                                d. If y
+                                ...
+                                lt. (de
+                                fault: 
+                                'tophat
+                                ') (val
+                                id: 'id
+                                entity'
+                                , 'eros
+                                ion', '
+                                dilatio
+                                n', 'op
+                                ening',
+                                ...
+                                e')
+                                
+Common TOPP options:
+  -ini <file>                   Use the
+                                 given 
+                                TOPP IN
+                                I file
+  -log <file>                   Name of
+                                 log fi
+                                le (cre
+                                ated on
+                                ly when
+                                 specif
+                                ied)
+  -instance <n>                 Instanc
+                                e numbe
+                                r for t
+                                he TOPP
+                                 INI fi
+                                le (def
+                                ault: '
+                                1')
+  -debug <n>                    Sets th
+                                e debug
+                                 level 
+                                (defaul
+                                t: '0')
+
+  -threads <n>                  Sets th
+                                e numbe
+                                r of th
+                                reads a
+                                llowed 
+                                to be u
+                                sed by 
+                                the TOP
+                                ...
+                                res) (d
+                                efault:
+                                 '1')
+  -write_ini <file>             Writes 
+                                the def
+                                ault co
+                                nfigura
+                                tion fi
+                                le
+  -write_ctd <out_dir>          Writes 
+                                the com
+                                mon too
+                                l descr
+                                iption 
+                                file(s)
+                                 (Tooln
+                                ame(s).
+                                ...
+                                ir>
+  -write_nested_cwl <out_dir>   Writes 
+                                the Com
+                                mon Wor
+                                kflow L
+                                anguage
+                                 file(s
+                                ) (Tool
+                                name(s)
+                                ...
+                                dir>
+  -write_cwl <out_dir>          Writes 
+                                the Com
+                                mon Wor
+                                kflow L
+                                anguage
+                                 file(s
+                                ) (Tool
+                                name(s)
+                                ...
+                                hy
+  -write_nested_json <out_dir>  Writes 
+                                the def
+                                ault co
+                                nfigura
+                                tion fi
+                                le
+  -write_json <out_dir>         Writes 
+                                the def
+                                ault co
+                                nfigura
+                                tion fi
+                                le, but
+                                 compat
+                                ible to
+                                ...
+                                archy
+  -no_progress                  Disable
+                                s progr
+                                ess log
+                                ging to
+                                 comman
+                                d line
+  -force                        Overrid
+                                es tool
+                                -specif
+                                ic chec
+                                ks
+  -test                         Enables
+                                 the te
+                                st mode
+                                 (neede
+                                d for i
+                                nternal
+                                 use on
+                                ly)
+  --help                        Shows o
+                                ptions
+  --helphelp                    Shows a
+                                ll opti
+                                ons (in
+                                cluding
+                                 advanc
+                                ed)
+

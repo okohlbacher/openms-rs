@@ -1,0 +1,3 @@
+BaselineFilter
+-write_cwl
+/scratch/kohlbach/toppbase-oracle/run1/console_results/tty_write_cwl/cwd

@@ -1,0 +1,116 @@
+case	tool	exit	env	args
+help_BaselineFilter_c40	BaselineFilter	0	COLUMNS=40 	--help
+helphelp_BaselineFilter_c40	BaselineFilter	0	COLUMNS=40 	--helphelp
+help_BaselineFilter_c60	BaselineFilter	0	COLUMNS=60 	--help
+helphelp_BaselineFilter_c60	BaselineFilter	0	COLUMNS=60 	--helphelp
+help_BaselineFilter_c80	BaselineFilter	0	COLUMNS=80 	--help
+helphelp_BaselineFilter_c80	BaselineFilter	0	COLUMNS=80 	--helphelp
+help_BaselineFilter_c120	BaselineFilter	0	COLUMNS=120 	--help
+helphelp_BaselineFilter_c120	BaselineFilter	0	COLUMNS=120 	--helphelp
+help_BaselineFilter_c20	BaselineFilter	0	COLUMNS=20 	--help
+helphelp_BaselineFilter_c28	BaselineFilter	0	COLUMNS=28 	--helphelp
+help_DTAExtractor_c40	DTAExtractor	0	COLUMNS=40 	--help
+helphelp_DTAExtractor_c40	DTAExtractor	0	COLUMNS=40 	--helphelp
+help_DTAExtractor_c60	DTAExtractor	0	COLUMNS=60 	--help
+helphelp_DTAExtractor_c60	DTAExtractor	0	COLUMNS=60 	--helphelp
+help_DTAExtractor_c80	DTAExtractor	0	COLUMNS=80 	--help
+helphelp_DTAExtractor_c80	DTAExtractor	0	COLUMNS=80 	--helphelp
+help_DTAExtractor_c120	DTAExtractor	0	COLUMNS=120 	--help
+helphelp_DTAExtractor_c120	DTAExtractor	0	COLUMNS=120 	--helphelp
+help_DTAExtractor_c20	DTAExtractor	0	COLUMNS=20 	--help
+helphelp_DTAExtractor_c28	DTAExtractor	0	COLUMNS=28 	--helphelp
+help_FeatureFinderCentroided_c40	FeatureFinderCentroided	0	COLUMNS=40 	--help
+helphelp_FeatureFinderCentroided_c40	FeatureFinderCentroided	0	COLUMNS=40 	--helphelp
+help_FeatureFinderCentroided_c60	FeatureFinderCentroided	0	COLUMNS=60 	--help
+helphelp_FeatureFinderCentroided_c60	FeatureFinderCentroided	0	COLUMNS=60 	--helphelp
+help_FeatureFinderCentroided_c80	FeatureFinderCentroided	0	COLUMNS=80 	--help
+helphelp_FeatureFinderCentroided_c80	FeatureFinderCentroided	0	COLUMNS=80 	--helphelp
+help_FeatureFinderCentroided_c120	FeatureFinderCentroided	0	COLUMNS=120 	--help
+helphelp_FeatureFinderCentroided_c120	FeatureFinderCentroided	0	COLUMNS=120 	--helphelp
+help_FeatureFinderCentroided_c20	FeatureFinderCentroided	0	COLUMNS=20 	--help
+helphelp_FeatureFinderCentroided_c28	FeatureFinderCentroided	0	COLUMNS=28 	--helphelp
+help_FileInfo_c40	FileInfo	0	COLUMNS=40 	--help
+helphelp_FileInfo_c40	FileInfo	0	COLUMNS=40 	--helphelp
+help_FileInfo_c60	FileInfo	0	COLUMNS=60 	--help
+helphelp_FileInfo_c60	FileInfo	0	COLUMNS=60 	--helphelp
+help_FileInfo_c80	FileInfo	0	COLUMNS=80 	--help
+helphelp_FileInfo_c80	FileInfo	0	COLUMNS=80 	--helphelp
+help_FileInfo_c120	FileInfo	0	COLUMNS=120 	--help
+helphelp_FileInfo_c120	FileInfo	0	COLUMNS=120 	--helphelp
+help_FileInfo_c20	FileInfo	0	COLUMNS=20 	--help
+helphelp_FileInfo_c28	FileInfo	0	COLUMNS=28 	--helphelp
+help_MapNormalizer_c40	MapNormalizer	0	COLUMNS=40 	--help
+helphelp_MapNormalizer_c40	MapNormalizer	0	COLUMNS=40 	--helphelp
+help_MapNormalizer_c60	MapNormalizer	0	COLUMNS=60 	--help
+helphelp_MapNormalizer_c60	MapNormalizer	0	COLUMNS=60 	--helphelp
+help_MapNormalizer_c80	MapNormalizer	0	COLUMNS=80 	--help
+helphelp_MapNormalizer_c80	MapNormalizer	0	COLUMNS=80 	--helphelp
+help_MapNormalizer_c120	MapNormalizer	0	COLUMNS=120 	--help
+helphelp_MapNormalizer_c120	MapNormalizer	0	COLUMNS=120 	--helphelp
+help_MapNormalizer_c20	MapNormalizer	0	COLUMNS=20 	--help
+helphelp_MapNormalizer_c28	MapNormalizer	0	COLUMNS=28 	--helphelp
+help_MzMLSplitter_c40	MzMLSplitter	0	COLUMNS=40 	--help
+helphelp_MzMLSplitter_c40	MzMLSplitter	0	COLUMNS=40 	--helphelp
+help_MzMLSplitter_c60	MzMLSplitter	0	COLUMNS=60 	--help
+helphelp_MzMLSplitter_c60	MzMLSplitter	0	COLUMNS=60 	--helphelp
+help_MzMLSplitter_c80	MzMLSplitter	0	COLUMNS=80 	--help
+helphelp_MzMLSplitter_c80	MzMLSplitter	0	COLUMNS=80 	--helphelp
+help_MzMLSplitter_c120	MzMLSplitter	0	COLUMNS=120 	--help
+helphelp_MzMLSplitter_c120	MzMLSplitter	0	COLUMNS=120 	--helphelp
+help_MzMLSplitter_c20	MzMLSplitter	0	COLUMNS=20 	--help
+helphelp_MzMLSplitter_c28	MzMLSplitter	0	COLUMNS=28 	--helphelp
+help_PeakPickerHiRes_c40	PeakPickerHiRes	0	COLUMNS=40 	--help
+helphelp_PeakPickerHiRes_c40	PeakPickerHiRes	0	COLUMNS=40 	--helphelp
+help_PeakPickerHiRes_c60	PeakPickerHiRes	0	COLUMNS=60 	--help
+helphelp_PeakPickerHiRes_c60	PeakPickerHiRes	0	COLUMNS=60 	--helphelp
+help_PeakPickerHiRes_c80	PeakPickerHiRes	0	COLUMNS=80 	--help
+helphelp_PeakPickerHiRes_c80	PeakPickerHiRes	0	COLUMNS=80 	--helphelp
+help_PeakPickerHiRes_c120	PeakPickerHiRes	0	COLUMNS=120 	--help
+helphelp_PeakPickerHiRes_c120	PeakPickerHiRes	0	COLUMNS=120 	--helphelp
+help_PeakPickerHiRes_c20	PeakPickerHiRes	0	COLUMNS=20 	--help
+helphelp_PeakPickerHiRes_c28	PeakPickerHiRes	0	COLUMNS=28 	--helphelp
+help_SpectraFilterWindowMower_c40	SpectraFilterWindowMower	0	COLUMNS=40 	--help
+helphelp_SpectraFilterWindowMower_c40	SpectraFilterWindowMower	0	COLUMNS=40 	--helphelp
+help_SpectraFilterWindowMower_c60	SpectraFilterWindowMower	0	COLUMNS=60 	--help
+helphelp_SpectraFilterWindowMower_c60	SpectraFilterWindowMower	0	COLUMNS=60 	--helphelp
+help_SpectraFilterWindowMower_c80	SpectraFilterWindowMower	0	COLUMNS=80 	--help
+helphelp_SpectraFilterWindowMower_c80	SpectraFilterWindowMower	0	COLUMNS=80 	--helphelp
+help_SpectraFilterWindowMower_c120	SpectraFilterWindowMower	0	COLUMNS=120 	--help
+helphelp_SpectraFilterWindowMower_c120	SpectraFilterWindowMower	0	COLUMNS=120 	--helphelp
+help_SpectraFilterWindowMower_c20	SpectraFilterWindowMower	0	COLUMNS=20 	--help
+helphelp_SpectraFilterWindowMower_c28	SpectraFilterWindowMower	0	COLUMNS=28 	--helphelp
+columns_abc	BaselineFilter	0	COLUMNS=abc 	--help
+columns_0	BaselineFilter	0	COLUMNS=0 	--help
+columns_9	BaselineFilter	0	COLUMNS=9 	--help
+columns_10	BaselineFilter	0	COLUMNS=10 	--help
+columns_11	BaselineFilter	0	COLUMNS=11 	--help
+columns_12	BaselineFilter	0	COLUMNS=12 	--help
+columns__45_	BaselineFilter	0	COLUMNS= 45  	--help
+columns_p45	BaselineFilter	0	COLUMNS=+45 	--help
+columns_45x	BaselineFilter	0	COLUMNS=45x 	--help
+columns_m5	BaselineFilter	0	COLUMNS=-5 	--help
+columns_2147483648	BaselineFilter	0	COLUMNS=2147483648 	--help
+columns_2147483647	BaselineFilter	0	COLUMNS=2147483647 	--help
+columns_m2147483648	BaselineFilter	0	COLUMNS=-2147483648 	--help
+columns_4_5	BaselineFilter	0	COLUMNS=4 5 	--help
+columns_empty	BaselineFilter	0	COLUMNS= 	--help
+columns_unset	BaselineFilter	0	 	--help
+missing_in_c50	BaselineFilter	7	COLUMNS=50 	-out /scratch/kohlbach/toppbase-oracle/run1/console_results/missing_in_c50/cwd/o.mzML
+unknown_opt_c50	BaselineFilter	6	COLUMNS=50 	-in /scratch/kohlbach/toppbase-oracle/run1/inputs/baseline_filter_tool_input.mzML -out /scratch/kohlbach/toppbase-oracle/run1/console_results/unknown_opt_c50/cwd/o.mzML -bogus
+fileinfo_i_dta_c50	FileInfo	6	COLUMNS=50 	-in /scratch/kohlbach/toppbase-oracle/run1/inputs/baseline_filter_tool_input.mzML -in_type dta -i
+fileinfo_i_dta_c50_helphelp	FileInfo	0	COLUMNS=50 	-in /scratch/kohlbach/toppbase-oracle/run1/inputs/baseline_filter_tool_input.mzML -in_type dta -i --helphelp
+tty_help_BaselineFilter	BaselineFilter	0	 	--help
+tty_helphelp_PeakPickerHiRes	PeakPickerHiRes	0	 	--helphelp
+tty_help_PeakPickerHiRes	PeakPickerHiRes	0	 	--help
+tty_help_FileInfo	FileInfo	0	 	--help
+tty_helphelp_FeatureFinderCentroided	FeatureFinderCentroided	0	 	--helphelp
+tty_help_nosize	BaselineFilter	0	 	--help
+tty_help_errfile	BaselineFilter	0	 	--help
+tty_help_columns	BaselineFilter	0	COLUMNS=50 	--help
+tty_run_outtty	BaselineFilter	0	 	-test -in /scratch/kohlbach/toppbase-oracle/run1/inputs/baseline_filter_tool_input.mzML -out /scratch/kohlbach/toppbase-oracle/run1/console_results/tty_run_outtty/cwd/o.mzML
+tty_run_both	BaselineFilter	0	 	-test -in /scratch/kohlbach/toppbase-oracle/run1/inputs/baseline_filter_tool_input.mzML -out /scratch/kohlbach/toppbase-oracle/run1/console_results/tty_run_both/cwd/o.mzML
+tty_missing_in	BaselineFilter	7	 	-out /scratch/kohlbach/toppbase-oracle/run1/console_results/tty_missing_in/cwd/o.mzML
+tty_input_not_found	BaselineFilter	1	 	-test -in /scratch/kohlbach/toppbase-oracle/run1/console_results/tty_input_not_found/cwd/nope.mzML -out /scratch/kohlbach/toppbase-oracle/run1/console_results/tty_input_not_found/cwd/o.mzML
+tty_fileinfo_i_dta	FileInfo	6	 	-in /scratch/kohlbach/toppbase-oracle/run1/inputs/baseline_filter_tool_input.mzML -in_type dta -i
+tty_ini_unknown	BaselineFilter	6	 	-test -ini /scratch/kohlbach/toppbase-oracle/run1/inputs/user_defaults_unknown.ini -in /scratch/kohlbach/toppbase-oracle/run1/inputs/baseline_filter_tool_input.mzML -out /scratch/kohlbach/toppbase-oracle/run1/console_results/tty_ini_unknown/cwd/o.mzML
+tty_write_cwl	BaselineFilter	12	 	-write_cwl /scratch/kohlbach/toppbase-oracle/run1/console_results/tty_write_cwl/cwd

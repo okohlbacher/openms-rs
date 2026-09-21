@@ -1,0 +1,112 @@
+
+PeakPickerHiRes -- Finds mass spectrometric peaks in profile mass spectra.
+Full documentation: http://www.openms.de/doxygen/release/4.0.0/html/TOPP_PeakPickerHiRes.html
+Version: 1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reproducible analysis of large-scale mass spectrometry 
+   data. Nat Methods (2024). doi:10.1038/s41592-024-02197-7.
+
+Usage:
+  PeakPickerHiRes <options>
+
+Options (mandatory options marked with '*'):
+  -in <file>*                                              Input profile data file  (valid formats: 'mzML')
+  -out <file>*                                             Output peak file  (valid formats: 'mzML')
+  -processOption <name>                                    Whether to load all data and process them in-memory or wheth
+                                                           er to process the data on the fly (lowmemory) without loadin
+                                                           g the whole file into memory first (default: 'inmemory') 
+                                                           (valid: 'inmemory', 'lowmemory')
+                                                           
+Common TOPP options:
+  -ini <file>                                              Use the given TOPP INI file
+  -log <file>                                              Name of log file (created only when specified)
+  -instance <n>                                            Instance number for the TOPP INI file (default: '1')
+  -debug <n>                                               Sets the debug level (default: '0')
+  -threads <n>                                             Sets the number of threads allowed to be used by the TOPP 
+                                                           tool (0 = all available cores) (default: '1')
+  -write_ini <file>                                        Writes the default configuration file
+  -write_ctd <out_dir>                                     Writes the common tool description file(s) (Toolname(s).ctd)
+                                                            to <out_dir>
+  -write_nested_cwl <out_dir>                              Writes the Common Workflow Language file(s) (Toolname(s).cwl
+                                                           ) to <out_dir>
+  -write_cwl <out_dir>                                     Writes the Common Workflow Language file(s) (Toolname(s).cwl
+                                                           ) to <out_dir>, but enforce a flat parameter hierarchy
+  -write_nested_json <out_dir>                             Writes the default configuration file
+  -write_json <out_dir>                                    Writes the default configuration file, but compatible to 
+                                                           the flat hierarchy
+  -no_progress                                             Disables progress logging to command line
+  -force                                                   Overrides tool-specific checks
+  -test                                                    Enables the test mode (needed for internal use only)
+  --help                                                   Shows options
+  --helphelp                                               Shows all options (including advanced)
+
+Algorithm parameters section:
+  -algorithm:signal_to_noise <value>                       Minimal signal-to-noise ratio for a peak to be picked (0.0 
+                                                           disables SNT estimation!) (default: '0.0') (min: '0.0')
+  -algorithm:spacing_difference_gap <value>                The extension of a peak is stopped if the spacing between 
+                                                           two subsequent data points exceeds 'spacing_difference_gap 
+                                                           * min_spacing'. 'min_spacing' is the smaller of the two spac
+                                                           ings from the peak apex to its two neighboring points. '0' 
+                                                           to disable the constraint. Not applicable to chromatograms. 
+                                                           (default: '4.0') (min: '0.0')
+  -algorithm:spacing_difference <value>                    Maximum allowed difference between points during peak extens
+                                                           ion, in multiples of the minimal difference between the peak
+                                                            apex and its two neighboring points. If this difference is 
+                                                           exceeded a missing point is assumed (see parameter 'missing'
+                                                           ). A higher value implies a less stringent peak definition, 
+                                                           since individual signals within the peak are allowed to be 
+                                                           further apart. '0' to disable the constraint. Not applicable
+                                                            to chromatograms. (default: '1.5') (min: '0.0')
+  -algorithm:missing <number>                              Maximum number of missing points allowed when extending a 
+                                                           peak to the left or to the right. A missing data point occur
+                                                           s if the spacing between two subsequent data points exceeds 
+                                                           'spacing_difference * min_spacing'. 'min_spacing' is the 
+                                                           smaller of the two spacings from the peak apex to its two 
+                                                           neighboring points. Not applicable to chromatograms. (defaul
+                                                           t: '1') (min: '0')
+  -algorithm:ms_levels <numbers>                           List of MS levels for which the peak picking is applied. If 
+                                                           empty, auto mode is enabled, all peaks which aren't picked 
+                                                           yet will get picked. Other scans are copied to the output 
+                                                           without changes. (min: '1')
+  -algorithm:report_FWHM                                   Add metadata for FWHM (as floatDataArray named 'FWHM' or 
+                                                           'FWHM_ppm', depending on param 'report_FWHM_unit') for each 
+                                                           picked peak.
+  -algorithm:report_FWHM_unit <choice>                     Unit of FWHM. Either absolute in the unit of input, e.g. 
+                                                           'm/z' for spectra, or relative as ppm (only sensible for 
+                                                           spectra, not chromatograms). (default: 'relative') (valid: 
+                                                           'relative', 'absolute')
+  -algorithm:allow_missing_flank                           Allow peaks without flanking data points on both sides. This
+                                                            is useful for TimsTOF data where profile peaks may be missi
+                                                           ng the leading or trailing edge.
+
+algorithm:SignalToNoise:
+  -algorithm:SignalToNoise:max_intensity <number>          Maximal intensity considered for histogram construction. By 
+                                                           default, it will be calculated automatically (see auto_mode)
+                                                           . Only provide this parameter if you know what you are doing
+                                                            (and change 'auto_mode' to '-1')! All intensities EQUAL/ABO
+                                                           VE 'max_intensity' will be added to the LAST histogram bin. 
+                                                           If you choose 'max_intensity' too small, the noise estimate 
+                                                           might be too small as well.  If chosen too big, the bins 
+                                                           become quite large (which you could counter by increasing 
+                                                           ...
+                                                           than the MeanIterative-S/N. (default: '-1') (min: '-1')
+  -algorithm:SignalToNoise:auto_max_stdev_factor <value>   Parameter for 'max_intensity' estimation (if 'auto_mode' == 
+                                                           0): mean + 'auto_max_stdev_factor' * stdev (default: '3.0') 
+                                                           (min: '0.0' max: '999.0')
+  -algorithm:SignalToNoise:auto_max_percentile <number>    Parameter for 'max_intensity' estimation (if 'auto_mode' == 
+                                                           1): auto_max_percentile th percentile (default: '95') (min: 
+                                                           '0' max: '100')
+  -algorithm:SignalToNoise:auto_mode <number>              Method to use to determine maximal intensity: -1 --> use 
+                                                           'max_intensity'; 0 --> 'auto_max_stdev_factor' method (defau
+                                                           lt); 1 --> 'auto_max_percentile' method (default: '0') (min:
+                                                            '-1' max: '1')
+  -algorithm:SignalToNoise:win_len <value>                 Window length in Thomson (default: '200.0') (min: '1.0')
+  -algorithm:SignalToNoise:bin_count <number>              Number of bins for intensity values (default: '30') (min: 
+                                                           '3')
+  -algorithm:SignalToNoise:min_required_elements <number>  Minimum number of elements required in a window (otherwise 
+                                                           it is considered sparse) (default: '10') (min: '1')
+  -algorithm:SignalToNoise:noise_for_empty_window <value>  Noise value used for sparse windows (default: '1.0e20')
+  -algorithm:SignalToNoise:write_log_messages <choice>     Write out log messages in case of sparse windows or median 
+                                                           in rightmost histogram bin (default: 'true') (valid: 'true',
+                                                            'false')
+

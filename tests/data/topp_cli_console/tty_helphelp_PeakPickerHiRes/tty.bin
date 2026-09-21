@@ -1,0 +1,352 @@
+
+[7mPeakPickerHiRes[27m -- Finds mass spectrometric peaks in profile mass 
+spectra.
+[1mFull documentation: [22m[4mhttp://www.openms.de/doxygen/release/4.0.0/html/T
+OPP_PeakPickerHiRes.html[24m
+[1mVersion: [22m1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
+[1mTo cite OpenMS:
+[22m + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reprod
+   ucible analysis of large-scale mass spectrometry data. Nat Methods
+    (2024). doi:10.1038/s41592-024-02197-7.
+
+[7mUsage:[27m
+  [1mPeakPickerHiRes[22m <options>
+
+[1mOptions[22m ([92mmandatory options marked with '*'[39m):
+[92m  -in <file>*                                              [39mInput prof
+                                                           ile data 
+                                                           file [96m[39m[95m (val
+                                                           id formats
+                                                           : 'mzML')[39m
+[92m  -out <file>*                                             [39mOutput 
+                                                           peak file [96m[39m[95m
+                                                            (valid 
+                                                           formats: 
+                                                           'mzML')[39m
+  -processOption <name>                                    Whether 
+                                                           to load 
+                                                           all data 
+                                                           and proces
+                                                           s them 
+                                                           in-memory 
+                                                           or whether
+                                                            to proces
+                                                           ...
+                                                           y first[96m 
+                                                           (default: 
+                                                           'inmemory'
+                                                           )[39m[95m (valid: 
+                                                           'inmemory'
+                                                           , 'lowmemo
+                                                           ry')[39m
+                                                           [96m[39m[95m[39m
+Common TOPP options:
+  -ini <file>                                              Use the 
+                                                           given TOPP
+                                                            INI file[96m[39m[95m[39m
+  -log <file>                                              Name of 
+                                                           log file 
+                                                           (created 
+                                                           only when 
+                                                           specified)[96m[39m[95m[39m
+
+  -instance <n>                                            Instance 
+                                                           number 
+                                                           for the 
+                                                           TOPP INI 
+                                                           file[96m (defa
+                                                           ult: '1')[39m[95m[39m
+  -debug <n>                                               Sets the 
+                                                           debug leve
+                                                           l[96m (default
+                                                           : '0')[39m[95m[39m
+  -threads <n>                                             Sets the 
+                                                           number of 
+                                                           threads 
+                                                           allowed 
+                                                           to be used
+                                                            by the 
+                                                           TOPP tool 
+                                                           (0 = all 
+                                                           available 
+                                                           cores)[96m 
+                                                           (default: 
+                                                           '1')[39m[95m[39m
+  -write_ini <file>                                        Writes 
+                                                           the defaul
+                                                           t configur
+                                                           ation file[96m[39m[95m[39m
+
+  -write_ctd <out_dir>                                     Writes 
+                                                           the common
+                                                            tool desc
+                                                           ription 
+                                                           file(s) 
+                                                           (Toolname(
+                                                           s).ctd) 
+                                                           to <out_di
+                                                           r>[96m[39m[95m[39m
+  -write_nested_cwl <out_dir>                              Writes 
+                                                           the Common
+                                                            Workflow 
+                                                           Language 
+                                                           file(s) 
+                                                           (Toolname(
+                                                           s).cwl) 
+                                                           to <out_di
+                                                           r>[96m[39m[95m[39m
+  -write_cwl <out_dir>                                     Writes 
+                                                           the Common
+                                                            Workflow 
+                                                           Language 
+                                                           file(s) 
+                                                           (Toolname(
+                                                           s).cwl) 
+                                                           to <out_di
+                                                           ...
+                                                           rchy[96m[39m[95m[39m
+  -write_nested_json <out_dir>                             Writes 
+                                                           the defaul
+                                                           t configur
+                                                           ation file[96m[39m[95m[39m
+
+  -write_json <out_dir>                                    Writes 
+                                                           the defaul
+                                                           t configur
+                                                           ation file
+                                                           , but comp
+                                                           atible to 
+                                                           the flat 
+                                                           hierarchy[96m[39m[95m[39m
+  -no_progress                                             Disables 
+                                                           progress 
+                                                           logging 
+                                                           to command
+                                                            line[96m[39m[95m[39m
+  -force                                                   Overrides 
+                                                           tool-speci
+                                                           fic checks[96m[39m[95m[39m
+
+  -test                                                    Enables 
+                                                           the test 
+                                                           mode (need
+                                                           ed for 
+                                                           internal 
+                                                           use only)[96m[39m[95m[39m
+  --help                                                   Shows opti
+                                                           ons[96m[39m[95m[39m
+  --helphelp                                               Shows all 
+                                                           options 
+                                                           (including
+                                                            advanced)[96m[39m[95m[39m
+
+
+Algorithm parameters section:
+  -algorithm:signal_to_noise <value>                       Minimal 
+                                                           signal-to-
+                                                           noise rati
+                                                           o for a 
+                                                           peak to 
+                                                           be picked 
+                                                           (0.0 disab
+                                                           les SNT 
+                                                           estimation
+                                                           !)[96m (defaul
+                                                           t: '0.0')[39m[95m 
+                                                           (min: '0.0
+                                                           ')[39m
+  -algorithm:spacing_difference_gap <value>                The extens
+                                                           ion of a 
+                                                           peak is 
+                                                           stopped 
+                                                           if the 
+                                                           spacing 
+                                                           between 
+                                                           two subseq
+                                                           ...
+                                                           tograms.[96m 
+                                                           (default: 
+                                                           '4.0')[39m[95m 
+                                                           (min: '0.0
+                                                           ')[39m
+  -algorithm:spacing_difference <value>                    Maximum 
+                                                           allowed 
+                                                           difference
+                                                            between 
+                                                           points 
+                                                           during 
+                                                           peak exten
+                                                           sion, in 
+                                                           ...
+                                                           tograms.[96m 
+                                                           (default: 
+                                                           '1.5')[39m[95m 
+                                                           (min: '0.0
+                                                           ')[39m
+  -algorithm:missing <number>                              Maximum 
+                                                           number of 
+                                                           missing 
+                                                           points 
+                                                           allowed 
+                                                           when exten
+                                                           ding a 
+                                                           peak to 
+                                                           ...
+                                                           ams.[96m (defa
+                                                           ult: '1')[39m[95m 
+                                                           (min: '0')[39m
+
+  -algorithm:ms_levels <numbers>                           List of 
+                                                           MS levels 
+                                                           for which 
+                                                           the peak 
+                                                           picking 
+                                                           is applied
+                                                           . If empty
+                                                           , auto 
+                                                           ...
+                                                           changes.[96m[39m[95m 
+                                                           (min: '1')[39m
+
+  -algorithm:report_FWHM                                   Add metada
+                                                           ta for 
+                                                           FWHM (as 
+                                                           floatDataA
+                                                           rray named
+                                                            'FWHM' 
+                                                           or 'FWHM_p
+                                                           pm', depen
+                                                           ...
+                                                           d peak.[96m[39m[95m[39m
+  -algorithm:report_FWHM_unit <choice>                     Unit of 
+                                                           FWHM. Eith
+                                                           er absolut
+                                                           e in the 
+                                                           unit of 
+                                                           input, 
+                                                           e.g. 'm/z'
+                                                            for spect
+                                                           ...
+                                                           tograms).[96m 
+                                                           (default: 
+                                                           'relative'
+                                                           )[39m[95m (valid: 
+                                                           'relative'
+                                                           , 'absolut
+                                                           e')[39m
+  -algorithm:allow_missing_flank                           Allow peak
+                                                           s without 
+                                                           flanking 
+                                                           data point
+                                                           s on both 
+                                                           sides. 
+                                                           This is 
+                                                           useful 
+                                                           ...
+                                                           ing edge.[96m[39m[95m[39m
+
+algorithm:SignalToNoise:
+  -algorithm:SignalToNoise:max_intensity <number>          Maximal 
+                                                           intensity 
+                                                           considered
+                                                            for histo
+                                                           gram const
+                                                           ruction. 
+                                                           By default
+                                                           , it will 
+                                                           ...
+                                                           N.[96m (defaul
+                                                           t: '-1')[39m[95m 
+                                                           (min: '-1'
+                                                           )[39m
+  -algorithm:SignalToNoise:auto_max_stdev_factor <value>   Parameter 
+                                                           for 'max_i
+                                                           ntensity' 
+                                                           estimation
+                                                            (if 'auto
+                                                           _mode' == 
+                                                           0): mean 
+                                                           + 'auto_ma
+                                                           ...
+                                                           stdev[96m (def
+                                                           ault: '3.0
+                                                           ')[39m[95m (min: 
+                                                           '0.0' max:
+                                                            '999.0')[39m
+  -algorithm:SignalToNoise:auto_max_percentile <number>    Parameter 
+                                                           for 'max_i
+                                                           ntensity' 
+                                                           estimation
+                                                            (if 'auto
+                                                           _mode' == 
+                                                           1): auto_m
+                                                           ax_percent
+                                                           ile th 
+                                                           percentile[96m
+                                                            (default:
+                                                            '95')[39m[95m 
+                                                           (min: '0' 
+                                                           max: '100'
+                                                           )[39m
+  -algorithm:SignalToNoise:auto_mode <number>              Method to 
+                                                           use to 
+                                                           determine 
+                                                           maximal 
+                                                           intensity:
+                                                            -1 --> 
+                                                           use 'max_i
+                                                           ntensity';
+                                                           ...
+                                                           ' method[96m 
+                                                           (default: 
+                                                           '0')[39m[95m (min:
+                                                            '-1' max:
+                                                            '1')[39m
+  -algorithm:SignalToNoise:win_len <value>                 Window 
+                                                           length in 
+                                                           Thomson[96m 
+                                                           (default: 
+                                                           '200.0')[39m[95m 
+                                                           (min: '1.0
+                                                           ')[39m
+  -algorithm:SignalToNoise:bin_count <number>              Number of 
+                                                           bins for 
+                                                           intensity 
+                                                           values[96m 
+                                                           (default: 
+                                                           '30')[39m[95m (min
+                                                           : '3')[39m
+  -algorithm:SignalToNoise:min_required_elements <number>  Minimum 
+                                                           number of 
+                                                           elements 
+                                                           required 
+                                                           in a windo
+                                                           w (otherwi
+                                                           se it is 
+                                                           considered
+                                                            sparse)[96m 
+                                                           (default: 
+                                                           '10')[39m[95m (min
+                                                           : '1')[39m
+  -algorithm:SignalToNoise:noise_for_empty_window <value>  Noise valu
+                                                           e used 
+                                                           for sparse
+                                                            windows[96m 
+                                                           (default: 
+                                                           '1.0e20')[39m[95m[39m
+  -algorithm:SignalToNoise:write_log_messages <choice>     Write out 
+                                                           log messag
+                                                           es in case
+                                                            of sparse
+                                                            windows 
+                                                           or median 
+                                                           in rightmo
+                                                           st histogr
+                                                           am bin[96m 
+                                                           (default: 
+                                                           'true')[39m[95m 
+                                                           (valid: 
+                                                           'true', 
+                                                           'false')[39m
+
+[0m

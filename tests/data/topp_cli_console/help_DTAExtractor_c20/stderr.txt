@@ -1,0 +1,71 @@
+
+DTAExtractor -- Ext
+racts spectra of 
+an MS run file to 
+several files in 
+DTA format.
+Full documentation:
+ http://www.openms.
+de/doxygen/release/
+4.0.0/html/TOPP_DTA
+Extractor.html
+Version: 1.0.0 (Ope
+nMS core 4.0.0, 
+revision bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., 
+   Bielow, C., Wein
+   , S. et al.. 
+   OpenMS 3 enables
+    reproducible 
+   analysis of larg
+   e-scale mass 
+   spectrometry 
+   ...
+   -02197-7.
+
+Usage:
+  DTAExtractor <opt
+ions>
+
+Options (mandatory 
+options marked with
+ '*'):
+  -in <file>*      
+                       Input file  
+                     (valid formats: 'mzML')
+  -out <file>*     
+                       Base name of 
+                     DTA output files (RT, m/z and extension are appended)
+  -mz [min]:[max]  
+                       M/z range of 
+                     precursor peaks to extract.
+                     This option is ignored for MS level 1 (default: ':')
+  -rt [min]:[max]  
+                       Retention time 
+                     range of spectra to extract [s] (def
+                     ault: ':')
+  -level i[,j]...  
+                       MS levels to 
+                     extract (default:
+                      '1,2,3')
+                   
+                       
+Common TOPP options
+:
+  -ini <file>      
+                       Use the given 
+                     TOPP INI file
+  -threads <n>     
+                       Sets the number
+                      of threads allowed to be used by the TOPP tool (0 = all available cores) 
+                     (default: '1')
+  -write_ini <file>
+                       Writes the defa
+                     ult configuration file
+  --help           
+                       Shows options
+  --helphelp       
+                       Shows all optio
+                     ns (including advanced)
+

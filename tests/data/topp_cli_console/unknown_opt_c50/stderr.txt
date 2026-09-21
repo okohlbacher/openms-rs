@@ -1,0 +1,65 @@
+Unknown option(s) '[-bogus]' given. Aborting!
+
+BaselineFilter -- Removes the baseline from profi
+le spectra using a top-hat filter.
+Full documentation: http://www.openms.de/doxygen/
+release/4.0.0/html/TOPP_BaselineFilter.html
+Version: 1.0.0 (OpenMS core 4.0.0, revision bc9cc
+12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. et al.. 
+   OpenMS 3 enables reproducible analysis of larg
+   e-scale mass spectrometry data. Nat Methods 
+   (2024). doi:10.1038/s41592-024-02197-7.
+
+Usage:
+  BaselineFilter <options>
+
+Options (mandatory options marked with '*'):
+  -in <file>*                Input raw data file 
+                              (valid formats: 
+                             'mzML')
+  -out <file>*               Output raw data file
+                               (valid formats: 
+                             'mzML')
+  -struc_elem_length <size>  Length of the struct
+                             uring element (shoul
+                             d be wider than maxi
+                             mal peak width - 
+                             see documentation). 
+                             (default: '3.0')
+  -struc_elem_unit <unit>    Unit of 'struc_elem_
+                             length' parameter. 
+                             (default: 'Thomson')
+                              (valid: 'Thomson', 
+                             'DataPoints')
+  -method <string>           The name of the morp
+                             hological filter to 
+                             be applied. If you 
+                             are unsure, use the 
+                             default. (default: 
+                             'tophat') (valid: 
+                             'identity', 'erosion
+                             ', 'dilation', 'open
+                             ing', 'closing', 
+                             'gradient', 'tophat'
+                             , 'bothat', 'erosion
+                             _simple', 'dilation_
+                             simple')
+                             
+Common TOPP options:
+  -ini <file>                Use the given TOPP 
+                             INI file
+  -threads <n>               Sets the number of 
+                             threads allowed to 
+                             be used by the TOPP 
+                             tool (0 = all availa
+                             ble cores) (default:
+                              '1')
+  -write_ini <file>          Writes the default 
+                             configuration file
+  --help                     Shows options
+  --helphelp                 Shows all options 
+                             (including advanced)
+
+

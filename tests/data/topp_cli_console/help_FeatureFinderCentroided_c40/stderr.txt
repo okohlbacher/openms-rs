@@ -1,0 +1,211 @@
+
+FeatureFinderCentroided -- Detects two-
+dimensional features in LC-MS data.
+Full documentation: http://www.openms.d
+e/doxygen/release/4.0.0/html/TOPP_Featu
+reFinderCentroided.html
+Version: 1.0.0 (OpenMS core 4.0.0, revi
+sion bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. 
+   et al.. OpenMS 3 enables reproducibl
+   e analysis of large-scale mass spect
+   rometry data. Nat Methods (2024). 
+   doi:10.1038/s41592-024-02197-7.
+To cite FeatureFinderCentroided:
+ + Sturm M. A novel feature detection 
+   algorithm for centroided data. Disse
+   rtation, 2010-09-15, p.37 ff. doi:ht
+   tps://publikationen.uni-tuebingen.de
+   /xmlui/bitstream/handle/10900/49453/
+   pdf/Dissertation_Marc_Sturm.pdf.
+ + Weisser H. An automated pipeline 
+   for high-throughput label-free quant
+   itative proteomics. J. Proteome Res.
+   , 2013, PMID: 23391308. doi:https://
+   doi.org/10.1021/pr300992u.
+
+Usage:
+  FeatureFinderCentroided <options>
+
+This tool has algorithm parameters that
+ are not shown here! Please check the 
+ini file for a detailed description or 
+use the --helphelp option
+
+Options (mandatory options marked with 
+'*'):
+  -in <file>*                         I
+                                      n
+                                      p
+                                      u
+                                      t
+                                       
+                                      f
+                                      i
+                                      l
+                                      e
+                                       
+                                      (
+                                      v
+                                      a
+                                      l
+                                      i
+                                      d
+                                      ...
+                                      )
+
+  -out <file>*                        O
+                                      u
+                                      t
+                                      p
+                                      u
+                                      t
+                                       
+                                      f
+                                      ...
+                                      e
+                                       
+                                      (
+                                      v
+                                      a
+                                      l
+                                      i
+                                      d
+                                      ...
+                                      )
+
+  -seeds <file>                       U
+                                      s
+                                      e
+                                      r
+                                       
+                                      s
+                                      p
+                                      e
+                                      ...
+                                      t
+                                       
+                                      (
+                                      v
+                                      a
+                                      l
+                                      i
+                                      d
+                                      ...
+                                      )
+
+                                      
+  -faims_merge_features <true/false>  F
+                                      o
+                                      r
+                                       
+                                      F
+                                      A
+                                      I
+                                      M
+                                      ...
+                                      .
+                                       
+                                      (
+                                      d
+                                      e
+                                      f
+                                      a
+                                      u
+                                      ...
+                                      )
+                                       
+                                      (
+                                      v
+                                      a
+                                      l
+                                      i
+                                      d
+                                      ...
+                                      )
+
+                                      
+                                      
+Common TOPP options:
+  -ini <file>                         U
+                                      s
+                                      e
+                                       
+                                      t
+                                      h
+                                      e
+                                       
+                                      ...
+                                      e
+
+  -threads <n>                        S
+                                      e
+                                      t
+                                      s
+                                       
+                                      t
+                                      h
+                                      e
+                                      ...
+                                      )
+                                       
+                                      (
+                                      d
+                                      e
+                                      f
+                                      a
+                                      u
+                                      ...
+                                      )
+
+  -write_ini <file>                   W
+                                      r
+                                      i
+                                      t
+                                      e
+                                      s
+                                       
+                                      t
+                                      ...
+                                      e
+
+  --help                              S
+                                      h
+                                      o
+                                      w
+                                      s
+                                       
+                                      o
+                                      p
+                                      ...
+                                      s
+
+  --helphelp                          S
+                                      h
+                                      o
+                                      w
+                                      s
+                                       
+                                      a
+                                      l
+                                      ...
+                                      )
+
+
+The following configuration subsections
+ are valid:
+ - algorithm   Algorithm section
+
+You can write an example INI file using
+ the '-write_ini' option.
+Documentation of subsection parameters 
+can be found in the doxygen documentati
+on or the INIFileEditor.
+For more information, please consult 
+the online documentation for this tool:
+
+  - http://www.openms.de/doxygen/releas
+e/4.0.0/html/TOPP_FeatureFinderCentroid
+ed.html
+

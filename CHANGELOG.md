@@ -22,6 +22,16 @@
   and `ToolDescriptionFile` class tests. A missing input file now reads
   `could not be found`, as the source says.
 
+- **The tool executables on a console.** Usage text is broken to the width
+  `COLUMNS` or `stty size` reports, item by item as the source's
+  `IndentedStream` and `ConsoleUtils::breakString_` break it (including their
+  wrap-around below the option column's width, CPP-353), and on a terminal it
+  carries the source's colours; the lifecycle's error lines are red, its
+  warnings yellow, and the run ends with the terminal reset, as in the Release
+  build. A tool driven in process through `run_with` is unchanged. Evidence:
+  100 cases executed on the Release build (`tests/topp_cli_console.rs`) and 15
+  in a pseudo-terminal. `cli::log_error` and `cli::log_warning` are new.
+
 - **XSD validation for every ported XML format, behind the new `xml-schema`
   feature.** `format::xml_schema` ports `XMLValidator::isValid` (for a
   self-contained caller schema) and the `isValid` each `XMLFile` inherits:
