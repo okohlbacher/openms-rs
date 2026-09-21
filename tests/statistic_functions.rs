@@ -1303,9 +1303,10 @@ fn the_sorting_entry_points_reproduce_the_release_builds_permutation() {
 // the "Where a NaN lands" section of `docs/STATISTIC_FUNCTIONS_SUPPORT.md`:
 // where the NaN of a
 // `{NaN, 2..n}` sample ends up is decided by whether `__introsort_loop` runs at
-// all. It runs `while (__last - __first > int(_S_threshold))` with
-// `_S_threshold` enumerated as 16 (`bits/stl_algo.h:1806`, `:1880`,
-// `:1899-1910`), so:
+// all. It runs `while (__last - __first > int(_S_threshold))`
+// (`bits/stl_algo.h:1880`), with `_S_threshold` enumerated as 16 (`:1806`), and
+// `__sort` is that loop followed by `__final_insertion_sort` (`:1899-1910`),
+// so:
 //
 // - 16 elements: no partition at all, one `__insertion_sort` pass, and since
 //   every comparison against the NaN is false nothing moves — the NaN stays at

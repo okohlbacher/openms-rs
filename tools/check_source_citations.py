@@ -15,7 +15,10 @@ them.
 This does. It resolves each citation against the pins the repository already
 declares - the core SDK checkouts under ``.reference/``, and the TOPP and CLI
 packages read out of their git objects at the pinned revisions, never out of a
-working tree - and then, at four levels of evidence:
+working tree - and, for a name no pin carries at all, against the retained
+sources ``SOURCE_PROVENANCE.json`` declares, each admitted only while its bytes
+still hash to the sha256 the port names (:class:`Retained`). Then, at four
+levels of evidence:
 
 * a cited range must exist: it may not run backwards or end past the end of
   its file;
@@ -46,21 +49,31 @@ paragraph cites *around* a line does answer for a quotation of that span.
   python3 tools/check_source_citations.py --verbose  # and what could not be checked
 
 Citations it cannot check are counted, never guessed at: a file no reachable
-pin contains, a bare ``:a-b`` that fits no file the same paragraph cites, and a
-manifest too malformed to parse. A name that reaches more than one file and
-nothing narrows is a fourth case, and a different one: it *is* checked, against
-the first candidate that agrees with it, so it is counted among the checked and
-counted again apart, and named under ``--verbose``. The separate count is the
-warning that the file which answered may not be the one the document meant.
-Two pins carrying one name is the common way in, but one pin carrying it at two
-paths counts the same - ``Macros.h`` is a ``CONCEPT`` header and an
-``OPENSWATHALGO`` one at a single revision.
+pin contains and no retained source either, a bare ``:a-b`` that fits no file
+the same paragraph cites, and a manifest too malformed to parse. A name that
+reaches more than one file and nothing narrows is a fourth case, and a
+different one: it *is* checked, against the first candidate that agrees with
+it, so it is counted among the checked and counted again apart, and named under
+``--verbose``. The separate count is the warning that the file which answered
+may not be the one the document meant. Two pins carrying one name is the common
+way in, but one pin carrying it at two paths counts the same - ``Macros.h`` is
+a ``CONCEPT`` header and an ``OPENSWATHALGO`` one at a single revision.
 ``--report`` says which pin answered how many citations and confirmed how many,
 for the same reason: a citation confirmed against the wrong file is worse than
 an unchecked one, so the split has to be readable and not only the total.
 
+That count is at zero here, and the way it got there is the convention this
+asks for rather than anything the tool does: a citation writes the directory
+that tells its file from the other of that name - ``FORMAT/FileInfo.cpp:2310``
+for the SDK source, ``OpenMS4-topp/src/FileInfo.cpp:83-100`` for the tool.
+It went to zero from 211, of which 21 were being read in the wrong file: the
+two names that collide, ``FileInfo.cpp`` and ``PeakPickerHiRes.cpp``, are each
+a core source *and* one of the eight ported TOPP tools, and the tools' own
+ports cited them bare. Writing a bare name again puts the count straight back
+up, which is what it is for.
+
 What this does not catch, stated plainly so that a green run is not read for
-more than it says. Of the 3,346 citations it resolves, 104 are confirmed against
+more than it says. Of the 3,461 citations it resolves, 110 are confirmed against
 code quoted beside them; the rest are checked only for existing, because most
 citations in this repository paraphrase the source instead of reproducing it,
 and a paraphrase cannot be read back.
@@ -96,6 +109,7 @@ own measurement pass over all the ranges that are currently left unresolved.
 
 import argparse
 import collections
+import hashlib
 import json
 import pathlib
 import re
@@ -226,6 +240,54 @@ class Objects:
         return f"{self.repository.name} {self.revision[:7]}"
 
 
+class Retained:
+    """Source kept beside this checkout, admitted only at the digest the port names.
+
+    Some of what the port reproduces is not in any pin and cannot be: the
+    ``libstdc++`` headers whose ``std::sort``, ``std::stable_sort`` and binary
+    searches the Linux x86_64 Release build actually ran belong to the
+    toolchain, not to OpenMS, so a citation of ``bits/stl_algo.h:1806`` had
+    nothing to be read against and was counted among the unreachable. The port
+    retains a copy of those files beside its oracle drivers and names the
+    sha256 of each one; ``SOURCE_PROVENANCE.json`` declares where they sit and
+    what those digests are, and this reads them from there.
+
+    The digest is the whole point, and it is checked on every run. A retained
+    file is admitted only while its bytes still hash to the value the port
+    measured - so a citation answered here is answered by the file the port
+    read, not by whatever a later toolchain happens to have left at that path.
+    A file that is missing, that has been replaced, or that is simply not
+    retained on this machine is not admitted, and its citations go on being
+    counted as unreachable exactly as they were before any of this. That is
+    also why :meth:`Pins.retained` is consulted last: a retained copy may only
+    answer a name no pin carries at all, never take one away from a pin.
+    """
+
+    def __init__(self, directory, declared, under=""):
+        self.directory = directory
+        self.under = under  # The path the port cites these under: "bits/".
+        self.admitted, self.refused = {}, {}
+        for name, digest in sorted(declared.items()):
+            path = directory / name
+            if not path.is_file():
+                self.refused[name] = "not retained here"
+                continue
+            found = hashlib.sha256(path.read_bytes()).hexdigest()
+            if found != digest:
+                self.refused[name] = f"sha256 {found[:8]}, and the port names {digest[:8]}"
+                continue
+            self.admitted[under + name] = path
+
+    def paths(self):
+        return sorted(self.admitted)
+
+    def text(self, path):
+        return self.admitted[path].read_text(errors="replace")
+
+    def __str__(self):
+        return f"retained {self.directory.name}"
+
+
 def git(repository, *arguments):
     """Run git in a repository, or return None when it is not there or fails."""
     if not repository.is_dir():
@@ -257,15 +319,18 @@ class Pins:
     """Every pinned revision the repository declares, and the files in each."""
 
     def __init__(self, reference=None, packages=None):
-        self.declared = {"core": json.loads(PROVENANCE.read_text())["target_sdk"]["commit"]}
+        provenance = json.loads(PROVENANCE.read_text())
+        self.declared = {"core": provenance["target_sdk"]["commit"]}
         self.declared.update(json.loads(PACKAGE_PINS.read_text())["package_revisions"])
-        roots = checkout_roots()
+        self.roots = checkout_roots()
         self.reference = pathlib.Path(reference) if reference else first_directory(
-            [root / ".reference" for root in roots]
+            [root / ".reference" for root in self.roots]
         )
         self.packages = pathlib.Path(packages) if packages else first_directory(
-            [root.parent / "OpenMS4-tests" / "packages" for root in roots]
+            [root.parent / "OpenMS4-tests" / "packages" for root in self.roots]
         )
+        self.declared_retained = provenance.get("retained_sources", {}).get("directories", [])
+        self.retained_keys = []
         self.sources = {}
         self.index = collections.defaultdict(list)
         self._lines = {}
@@ -284,6 +349,16 @@ class Pins:
             repository = self.packages / package.replace("_", "-")
             if revision and git(repository, "cat-file", "-e", f"{revision}^{{commit}}") is not None:
                 self.sources.setdefault(revision, Objects(repository, revision))
+        for entry in self.declared_retained:
+            # A retained directory is declared relative to the checkout, and a
+            # port lane works in a worktree, which does not carry it: the same
+            # two roots the pins are looked for under answer for it too.
+            directory = first_directory([root / entry["path"] for root in self.roots])
+            key = "retained:" + entry["path"]
+            self.sources[key] = Retained(
+                directory, entry.get("files", {}), entry.get("cited_under", "")
+            )
+            self.retained_keys.append(key)
         for revision, source in self.sources.items():
             for path in source.paths():
                 self.index[(revision, path.rsplit("/", 1)[-1])].append(path)
@@ -316,6 +391,30 @@ class Pins:
             if path.endswith(inside + name)
         ]
 
+    def retained(self, inside, name):
+        """Every retained file of this name whose own path the citation fits.
+
+        The last limb of resolution, reached only where no pin carries the name
+        at all, so that retaining a file can add an answer but never move one:
+        a name a pin does have is still answered by the pin. The path still has
+        to fit - ``bits/stl_algo.h`` is admitted under ``bits/``, and a citation
+        writing some other directory is not answered by it.
+        """
+        return [
+            (key, path)
+            for key in self.retained_keys
+            for path in self.paths_named(key, name)
+            if not inside or path.endswith(inside + name)
+        ]
+
+    def refused_retained(self):
+        """The declared retained files that were not admitted, and why."""
+        return {
+            f"{self.sources[key].directory.name}/{name}": why
+            for key in self.retained_keys
+            for name, why in sorted(self.sources[key].refused.items())
+        }
+
     def lines(self, revision, path):
         key = (revision, path)
         if key not in self._lines:
@@ -332,6 +431,18 @@ class Pins:
                 return f"{name} {revision[:7]}"
         source = self.sources[revision]
         return source.path.name if isinstance(source, Directory) else str(source)
+
+    def retained_report(self):
+        """One line per declared retained directory: how much of it was admitted."""
+        lines = []
+        for key in self.retained_keys:
+            source = self.sources[key]
+            state = ", ".join(
+                [f"{len(source.admitted)} admitted"]
+                + [f"{name} {why}" for name, why in sorted(source.refused.items())]
+            )
+            lines.append(f"{source.directory.name}: {state}")
+        return lines
 
 
 class Unreadable(Exception):
@@ -712,6 +823,9 @@ def resolvable(pins, revisions, directory, name):
                 narrowed.append((revision, path))
     if inside and not narrowed and package is None:
         narrowed = pins.packaged(inside, name, revisions)
+    if not narrowed and not anywhere and package is None:
+        # Nothing pinned carries this name. A retained file may, and only then.
+        return pins.retained(inside, name)
     return narrowed or anywhere
 
 
@@ -920,6 +1034,14 @@ def main():
     if missing:
         listed = ", ".join(f"{k} {v[:7]}" for k, v in sorted(missing.items()))
         print(f"Pinned sources not reachable, their citations are skipped: {listed}")
+    # A retained file that is not there, or no longer hashes to the digest the
+    # port names, is said out loud rather than quietly dropped: its citations
+    # go back to being counted unreachable, and the count would otherwise move
+    # between machines with nothing on the run to say why.
+    refused = pins.refused_retained()
+    if refused:
+        listed = ", ".join(f"{name} ({why})" for name, why in sorted(refused.items()))
+        print(f"Retained sources not admitted, their citations are skipped: {listed}")
     for line in unreadable:
         print(line)
     for name, where, problem in failures:
@@ -937,6 +1059,8 @@ def main():
             f"{name} {sha[:7]}" + ("" if sha in pins.sources else " (unreachable)")
             for name, sha in sorted(pins.declared.items())
         ))
+        for line in pins.retained_report():
+            print("Retained: " + line)
         # Which pin answered how much: a citation confirmed against the wrong
         # file of the right name is worse than one nothing was checked against,
         # so the split has to be visible and not only the total.

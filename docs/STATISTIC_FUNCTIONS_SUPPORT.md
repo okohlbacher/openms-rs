@@ -180,8 +180,8 @@ source's answer is well defined and is the port's answer.
 
 `std::sort` is `__introsort_loop` followed by `__final_insertion_sort`
 (`stl_algo.h:1899-1910`), and `__introsort_loop` runs only
-`while (__last - __first > int(_S_threshold))` with `_S_threshold` enumerated as
-16 (`stl_algo.h:1806`, `stl_algo.h:1880`). `__final_insertion_sort`
+`while (__last - __first > int(_S_threshold))` (`stl_algo.h:1880`), with
+`_S_threshold` enumerated as 16 (`stl_algo.h:1806`). `__final_insertion_sort`
 (`:1812-1823`) is one `__insertion_sort` pass (`:1770-1788`) below the
 threshold, and above it one over the first 16 elements plus an
 `__unguarded_insertion_sort` over the rest. So at **16 elements or fewer** the

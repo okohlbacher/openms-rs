@@ -12,15 +12,17 @@ machine with no pinned C++ checkout to hand - which is every CI runner.
 """
 
 import collections
+import hashlib
 import pathlib
+import tempfile
 import unittest
 from unittest import mock
 
 import check_source_citations as checker
 from check_source_citations import (
-    Directory, Objects, Pins, Unreadable, annotations_in, attach, check_file, check_unit,
-    citations_in, holding, named_file, pair_up, problems_with, quotations, resolvable,
-    split_package, tally, units,
+    Directory, Objects, Pins, Retained, Unreadable, annotations_in, attach, check_file,
+    check_unit, citations_in, holding, named_file, pair_up, problems_with, quotations,
+    resolvable, split_package, tally, units,
 )
 
 # A stand-in for one pinned file, with a blank line at 4 and a walk at 5-8.
@@ -512,6 +514,110 @@ class PackagedPinTests(unittest.TestCase):
 
     def test_a_name_the_package_pin_does_not_carry_is_not_claimed(self):
         self.assertEqual(self.pins().packaged("src/", "FileInfo.cpp", (CORE,)), [])
+
+
+class RetainedSourceTests(unittest.TestCase):
+    """`Retained` and `Pins.retained`: the digest is what admits a file.
+
+    A ``libstdc++`` header is not in any pin and cannot be, so a citation of
+    ``bits/stl_algo.h:1806`` was counted unreachable and nothing read it back.
+    Reading a retained copy instead is only worth anything if the copy is the
+    one the port measured, which is the whole content of these: a file whose
+    bytes do not hash to the declared digest, or that is not there, must go on
+    counting as unreachable rather than quietly answering a citation. The
+    failure this guards against is a later toolchain leaving a *different*
+    ``stl_algo.h`` at that path, whose line 1806 is something else entirely -
+    which would confirm a citation against a file the port never read.
+    """
+
+    BODY = b"enum { _S_threshold = 16 };\nwhile (__last - __first > 16)\n"
+    DIGEST = hashlib.sha256(BODY).hexdigest()
+
+    def retained(self, body=BODY, digest=None, under="bits/", write=True):
+        directory = pathlib.Path(self.enterContext(tempfile.TemporaryDirectory()))
+        if write:
+            (directory / "stl_algo.h").write_bytes(body)
+        return Retained(directory, {"stl_algo.h": digest or self.DIGEST}, under)
+
+    def test_a_file_at_the_declared_digest_is_admitted_under_its_cited_path(self):
+        source = self.retained()
+        self.assertEqual(source.paths(), ["bits/stl_algo.h"])
+        self.assertEqual(source.refused, {})
+        self.assertIn("_S_threshold", source.text("bits/stl_algo.h"))
+
+    def test_a_file_whose_bytes_changed_is_refused_and_stays_unreachable(self):
+        source = self.retained(body=b"something else entirely\n")
+        self.assertEqual(source.paths(), [])
+        self.assertIn("stl_algo.h", source.refused)
+        self.assertIn("sha256", source.refused["stl_algo.h"])
+
+    def test_a_file_that_is_not_retained_here_is_refused(self):
+        source = self.retained(write=False)
+        self.assertEqual(source.paths(), [])
+        self.assertEqual(source.refused, {"stl_algo.h": "not retained here"})
+
+    def test_a_declared_digest_no_file_matches_admits_nothing(self):
+        source = self.retained(digest="0" * 64)
+        self.assertEqual(source.paths(), [])
+
+    def pins(self, under="bits/", body=BODY):
+        """A `Pins` with one core pin and one retained directory."""
+        pins = object.__new__(Pins)
+        pins.declared = {"core": CORE}
+        pins.sources = {CORE: Directory(pathlib.Path("/nowhere/openms4-core-bc9cc12"))}
+        pins.index = collections.defaultdict(list)
+        pins.index[(CORE, "Macros.h")] = ["src/openms/include/OpenMS/CONCEPT/Macros.h"]
+        source = self.retained(body=body, under=under)
+        key = "retained:../oracle/libstdcxx"
+        pins.sources[key] = source
+        pins.retained_keys = [key]
+        for path in source.paths():
+            pins.index[(key, path.rsplit("/", 1)[-1])].append(path)
+        pins._lines = {}
+        return pins, key
+
+    def test_a_retained_file_answers_a_name_no_pin_carries(self):
+        pins, key = self.pins()
+        self.assertEqual(
+            resolvable(pins, (CORE,), "bits/", "stl_algo.h"), [(key, "bits/stl_algo.h")]
+        )
+        # And with no directory written at all, which is how half of them are cited.
+        self.assertEqual(
+            resolvable(pins, (CORE,), "", "stl_algo.h"), [(key, "bits/stl_algo.h")]
+        )
+
+    def test_a_refused_file_answers_nothing(self):
+        pins, _ = self.pins(body=b"a different header\n")
+        self.assertEqual(resolvable(pins, (CORE,), "bits/", "stl_algo.h"), [])
+
+    def test_a_citation_writing_another_directory_is_not_answered_by_it(self):
+        pins, _ = self.pins()
+        self.assertEqual(resolvable(pins, (CORE,), "ext/", "stl_algo.h"), [])
+
+    def test_a_retained_copy_never_takes_a_name_a_pin_carries(self):
+        # The limb is last for this reason: retaining a file may add an answer,
+        # never move one. A pin's `Macros.h` still answers `Macros.h`, even
+        # when a retained directory happens to carry that name too.
+        pins, _ = self.pins()
+        source = pins.sources["retained:../oracle/libstdcxx"]
+        source.admitted["bits/Macros.h"] = source.admitted["bits/stl_algo.h"]
+        pins.index[("retained:../oracle/libstdcxx", "Macros.h")] = ["bits/Macros.h"]
+        self.assertEqual(
+            resolvable(pins, (CORE,), "", "Macros.h"),
+            [(CORE, "src/openms/include/OpenMS/CONCEPT/Macros.h")],
+        )
+
+    def test_a_retained_file_is_checked_like_any_other(self):
+        # It resolves, so it is read back: a range past its end is a finding,
+        # which is the point of resolving it rather than skipping it.
+        pins, _ = self.pins()
+        report = tally()
+        found = check_file(
+            pins, (CORE,), ("bits/", "stl_algo.h"),
+            [(1, 99, "bits/stl_algo.h:1-99", True)], (), (), report,
+        )
+        self.assertIn("the file has 2 lines", "".join(p for _, ps in found for p in ps))
+        self.assertEqual(report["skipped"], 0)
 
 
 class UnitTests(unittest.TestCase):
