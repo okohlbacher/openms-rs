@@ -14,12 +14,15 @@ use std::mem::size_of;
 /// A metadata container [`DefaultParamHandler::write_parameters_to_meta_values`]
 /// can copy a parameter tree into.
 ///
-/// The destination is a trait rather than a named type because `param` sits
-/// below `metadata` in the module graph: `metadata` reaches `chemistry`, which
-/// reaches `param`, so naming a metadata type here would close a module cycle
-/// and block the workspace split. The dependency is the same one inverted -
-/// `metadata::MetaInfo` implements this, and the public path stays where the
-/// source class puts it.
+/// The destination is a trait rather than a named type because `param` is the
+/// lower module and `metadata` is the one that names it, to implement this. A
+/// `param` that named `MetaInfo` would close the cycle between the two.
+///
+/// Written the other way round it closed a longer one, `param -> metadata ->
+/// chemistry -> param`, which is the cycle the module gate first refused;
+/// `metadata -> chemistry` has since been cut as well. The dependency is the
+/// same one inverted, and the public path stays on the class the source puts
+/// it on.
 pub trait ParameterMetaSink: Default {
     /// The value this container stores under a key.
     type Value;

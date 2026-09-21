@@ -371,11 +371,13 @@ impl ListFormat for MetaValue {
 /// Receive a parameter tree as metadata, for
 /// `DefaultParamHandler::write_parameters_to_meta_values`.
 ///
-/// The conversion is written here rather than in `param` because `param` is the
-/// lower module: `metadata` reaches `chemistry`, which reaches `param`, so a
-/// `param` that named `MetaInfo` would close a module cycle. `param` states
-/// what it needs as [`ParameterMetaSink`] and this supplies it, which leaves
-/// the public path on `DefaultParamHandler` where the source class puts it.
+/// The conversion is written here rather than in `param` because `param` is
+/// the lower module, and this impl is what makes `metadata` name it at all. A
+/// `param` that named `MetaInfo` instead would close the cycle between the two;
+/// before `metadata -> chemistry` was cut it closed the longer
+/// `param -> metadata -> chemistry -> param`. `param` states what it needs as
+/// [`ParameterMetaSink`] and this supplies it, which leaves the public path on
+/// `DefaultParamHandler` where the source class puts it.
 impl ParameterMetaSink for MetaInfo {
     type Value = MetaValue;
 
