@@ -24,8 +24,12 @@ source's `FileHandler::loadExperiment` names for them
 - `tools/check_core_sdk.py`, `check_doc_coverage.py`, `check_module_cycles.py`
   and `check_source_citations.py` pass; `core_sdk_coverage.py --write`
   regenerated for the one added reference manifest.
-- The CI sweep (`openms-ci-sweep.sh`, 52 lines, minimum-rust on 1.85.0):
-  SWEEP_RESULT.
+- The CI sweep (`openms-ci-sweep.sh` on kim, 52 lines of the quality,
+  portable-feature-graph, test and minimum-rust jobs, minimum-rust on 1.85.0)
+  at `47c9662`: 52 passed, 0 failed. The later commits add the two gzip cases
+  and documentation; `file_info_a8`, `topp_file_info`, `file_info` and
+  `mascot_generic` were rerun on them with `--all-features` on dax (19, 43, 61
+  and 46 passed) and `file_info_a8` on 1.85.0 (19 and 11 above).
 
 Refused where the Release build reports, both in the kernel's validating range
 computation: an mzData scan window that begins after it ends
