@@ -395,6 +395,8 @@ pub struct MascotGenericReader<R> {
     template: MSSpectrum,
     finished: bool,
     line: String,
+    /// Bytes of input read so far, line terminators included.
+    consumed: usize,
 }
 
 impl<R: BufRead> MascotGenericReader<R> {
@@ -415,7 +417,28 @@ impl<R: BufRead> MascotGenericReader<R> {
             template: base_spectrum(),
             finished: false,
             line: String::new(),
+            consumed: 0,
         })
+    }
+
+    /// The next input line into `self.line`, counting its bytes.
+    fn next_line(&mut self) -> Result<bool> {
+        let read = self.input.next_line(&mut self.line)?;
+        if read {
+            self.consumed = self.consumed.saturating_add(self.line.len());
+        }
+        Ok(read)
+    }
+
+    /// What the source's `is.tellg()` reports after the last line was read
+    /// with `std::getline` (`MascotGenericFile.h:99`): the bytes consumed, or
+    /// -1 once that line ended at the end of input without a newline, because
+    /// `getline` then set `eofbit` and `tellg` fails.
+    fn source_position(&self) -> Result<i64> {
+        if !self.line.ends_with('\n') {
+            return Ok(-1);
+        }
+        progress_value(self.consumed)
     }
 
     fn next_block(&mut self) -> Result<Option<MSSpectrum>> {
@@ -435,7 +458,7 @@ impl<R: BufRead> MascotGenericReader<R> {
         // whole list back and forth on every line as the source does.
         let mut sequences: Vec<String> = Vec::new();
         loop {
-            if !self.input.next_line(&mut self.line)? {
+            if !self.next_line()? {
                 return Ok(None);
             }
             if trim(&self.line) != "BEGIN IONS" {
@@ -476,7 +499,7 @@ impl<R: BufRead> MascotGenericReader<R> {
         sequences: &mut Vec<String>,
     ) -> Result<Option<()>> {
         loop {
-            if !self.input.next_line(&mut self.line)? {
+            if !self.next_line()? {
                 return Ok(None);
             }
             let text = trim(&self.line);
@@ -545,7 +568,7 @@ impl<R: BufRead> MascotGenericReader<R> {
                     push_peak(spectrum, Peak1D::new(mz, intensity))?;
                 }
             }
-            if !self.input.next_line(&mut self.line)? {
+            if !self.next_line()? {
                 return Err(parse_error(
                     self.input.line,
                     "Reached end of file. Found \"BEGIN IONS\" but not the corresponding \"END IONS\"!",
@@ -802,7 +825,7 @@ fn read_reporting(
     while let Some(spectrum) = blocks.next() {
         push_spectrum(&mut result, spectrum?)?;
         if progress.is_reporting() {
-            progress.set(blocks.input.source_position(&blocks.line)?)?;
+            progress.set(blocks.source_position()?)?;
         }
     }
     Ok(result)

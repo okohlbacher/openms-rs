@@ -471,7 +471,7 @@ pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Resul
 /// `ConsensusXMLFile::load` does.
 ///
 /// The source file hands its handler only its log type
-/// (`ConsensusXMLFile.cpp:88-89`), so the calls go to a fresh backend of
+/// (`ConsensusXMLFile.cpp:90-92`), so the calls go to a fresh backend of
 /// `logger`'s type, as [`ProgressLogger::clone`] makes one: the command
 /// backend for [`Cmd`](crate::concept::progress_logger::ProgressLogType::Cmd),
 /// the logger's GUI factory for
@@ -885,7 +885,7 @@ pub fn store_with_options(
 /// `ConsensusXMLFile::store` does.
 ///
 /// As for [`load_with_progress`], the calls go to a fresh backend of
-/// `logger`'s type (`ConsensusXMLFile.cpp:74-75`). They are the handler's
+/// `logger`'s type (`ConsensusXMLFile.cpp:76-78`). They are the handler's
 /// `writeTo` calls: `startProgress(0, 0, "storing consensusXML file")`, then
 /// `setProgress(1)` … `setProgress(5 + identification runs + column headers +
 /// consensus features)`, and `endProgress()`. As in the source, the

@@ -566,8 +566,8 @@ fn divergence(case: &str) -> Divergence {
 
 /// The cases whose reader makes no progress call at all: the source reader
 /// has none (`MS2File.h:52`, the mzIdentML handler), the load stops before its
-/// section (`FeatureXMLHandler.cpp:311-315`), or the file is missing, which
-/// the source reports before the section (`MascotGenericFile.h:77-80`).
+/// section (`FeatureXMLHandler.cpp:306-316`), or the file is missing, which
+/// the source reports before the section (`MascotGenericFile.h:76-79`).
 const SILENT_CASES: [&str; 5] = [
     "ms2_load",
     "mzid_load",
@@ -1084,7 +1084,7 @@ fn an_uncreatable_destination_makes_no_call() {
 /// their log type, and `MzMLHandler` keeps a copy of the file's logger for its
 /// document section; a backend installed on the logger with `set_logger`
 /// therefore sees only the mzML list sections. Independent of Rust output:
-/// the expected calls follow from `ConsensusXMLFile.cpp:88-89`,
+/// the expected calls follow from `ConsensusXMLFile.cpp:90-92`,
 /// `FeatureXMLFile.cpp:54` and `MzMLHandler.cpp:135`.
 #[test]
 fn an_installed_backend_sees_only_the_calls_made_on_the_logger_itself() {

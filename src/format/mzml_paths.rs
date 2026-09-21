@@ -56,7 +56,7 @@ pub fn load_with_options(
 /// refuses a second load on the same `MzMLFile` after a failed one. This
 /// reader decodes each binary array when it closes, where the source decodes
 /// a batch of spectra when its data pool is flushed, by default at `</mzML>`
-/// (`:1409-1412`, `:1520-1523`), so a document with an undecodable array fails
+/// (`:1425-1428`, `:1522-1523`), so a document with an undecodable array fails
 /// after fewer calls here.
 ///
 /// # Errors

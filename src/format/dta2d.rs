@@ -73,7 +73,7 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
     read_reporting(reader, options, &mut ProgressReporter::silent())
 }
 /// The reader, with the source's `setProgress(0)` each time a new spectrum
-/// begins, after the previous one was added (`DTA2DFile.h:210-223`).
+/// begins, after the previous one was added (`DTA2DFile.h:209-217`).
 fn read_reporting(
     reader: impl BufRead,
     options: &ReadOptions,

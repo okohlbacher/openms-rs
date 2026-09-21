@@ -1816,10 +1816,10 @@ fn read_impl_reporting(
 ///
 /// `logger_`, the file object's own logger, reports the spectrum and
 /// chromatogram lists (`MzMLHandler.cpp:966`, `:997`, `:1443`, `:1483`,
-/// `:1491`, `:1497`). `pg_outer`, a thread-local copy made by
-/// `pg_outer = logger` in the handler's constructor (`:106`, `:135`), reports
-/// the whole document (`:1203`, `:1524`); the copy has the logger's type and a
-/// fresh backend, as [`ProgressLogger::clone`] makes one.
+/// `:1491`, `:1497`). `pg_outer`, a thread-local logger (`:106`) that the
+/// handler's constructor assigns from the file's (`:135`), reports the whole
+/// document (`:1203`, `:1524`); the copy has the logger's type and a fresh
+/// backend, as [`ProgressLogger::clone`] makes one.
 struct LoadProgress<'a> {
     /// `pg_outer`.
     outer: Option<ProgressLogger>,
