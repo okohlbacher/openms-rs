@@ -825,6 +825,8 @@ const TRUNCATED: &str = "file_info_a8/truncated";
 const TRUNCATED_EXPECTED: &str = "file_info_a8/truncated/expected";
 
 /// What the Release build did on one case of the truncation oracle.
+// Read only by the `mzml`-gated truncation test; unused on a build without it.
+#[cfg_attr(not(feature = "mzml"), allow(dead_code))]
 struct ReleaseOutcome {
     /// `tool` (the FileInfo executable), `driver` (`OpenMS::FileInfo::run`)
     /// or `mzxml_driver` (`MzXMLFile::load`).
@@ -902,6 +904,8 @@ fn truncated_fixture(id: &str) -> String {
 /// The clause Xerces reports for a document that ends with an element open,
 /// `input ended before all started tags were ended; last tag started is
 /// '<tag>'`, out of a Release message; `None` for another parse error.
+// Read only by the `mzml`-gated truncation test; unused on a build without it.
+#[cfg_attr(not(feature = "mzml"), allow(dead_code))]
 fn open_element_clause(message: &str) -> Option<&str> {
     const LEAD: &str = "input ended before all started tags were ended; last tag started is '";
     let start = message.find(LEAD)?;

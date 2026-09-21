@@ -4449,7 +4449,8 @@
   "tests/data/topp_peak_picker_hi_res_provenance.json",
   "tests/data/topp_file_info_provenance.json",
   "tests/data/topp_feature_finder_centroided_provenance.json",
-  "tests/data/topp_fuzzy_diff_provenance.json"
+  "tests/data/topp_fuzzy_diff_provenance.json",
+  "tests/data/topp_exception_exits_provenance.json"
  ],
  "kernel_wave1_reference_manifests": [
   "tests/data/ranges_provenance.json",

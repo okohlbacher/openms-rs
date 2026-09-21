@@ -82,12 +82,13 @@ JOBS = (
             Slice("slices", "sqmass rusqlite/extra_check", "mzml_sqlite_handler mzml_precursor_activation"),
             Bare("slices"),
             Bare("slices", "idxml"),
-            Slice("slices", "paramxml", "paramxml system_file"),
+            Slice("slices", "paramxml", "paramxml system_file param_ctd parameter_information"),
             Slice("slices", "mzml paramxml",
                   "topp_dta_extractor topp_mzml_splitter topp_map_normalizer topp_spectra_filter_window_mower "
                   "topp_baseline_filter topp_baseline_filter_edges topp_cli_lifecycle topp_peak_picker_hi_res "
-                  "topp_threads"),
-            Slice("slices", "mzml paramxml featurexml", "topp_file_info topp_feature_finder_centroided file_info_checks"),
+                  "topp_threads topp_cli_completion topp_cli_console"),
+            Slice("slices", "mzml paramxml featurexml",
+                  "topp_file_info topp_feature_finder_centroided file_info_checks file_info_a8 topp_cli_completion topp_cli_console"),
             Slice("slices", "mzml paramxml parallel", "topp_threads topp_peak_picker_hi_res peak_picking_experiment"),
             Slice("slices", "mzml", "mzml_source_file_round_trip"),
             Slice("slices", "featurexml", "featurexml file_handler"),
@@ -101,6 +102,10 @@ JOBS = (
             # xml_schema_formats gates items on the format features as well, so
             # `--features xml-schema` alone compiles it with zero tests in it.
             Slice("slices", "xml-schema mzml-schema consensusxml featurexml idxml paramxml", "xml_schema_formats"),
+            # Phase 3 wave 1. The CLI suites and file_info_a8 gate items on
+            # featurexml beyond their file-level gate, so each also gets the
+            # wider slice or its featurexml cases never run on a reduced build.
+            Slice("slices", "consensusxml featurexml idxml mzml", "progress_format_readers"),
         ],
     ),
     Job(
@@ -129,7 +134,8 @@ JOBS = (
             # Item-level format gates the deriver cannot see; see the test job.
             Slice("slices", "xml-schema mzml-schema consensusxml featurexml idxml paramxml", "xml_schema_formats"),
             Slice("mzml-paramxml", "mzml paramxml", "signal_to_noise"),
-            Slice("mzml-paramxml", "mzml paramxml featurexml", "feature_finder_picked_seeds file_info_checks"),
+            Slice("mzml-paramxml", "mzml paramxml featurexml",
+                  "feature_finder_picked_seeds file_info_checks file_info_a8 topp_cli_completion topp_cli_console"),
             Slice("mzml-paramxml", "mzml paramxml parallel", "peak_picking_experiment topp_peak_picker_hi_res topp_threads"),
         ],
         derive=True, derived_leg="slices",

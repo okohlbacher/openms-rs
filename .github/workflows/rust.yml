@@ -40,11 +40,11 @@ jobs:
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features idxml
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features paramxml --test paramxml --test system_file
+        run: cargo test --locked --no-default-features --features paramxml --test param_ctd --test parameter_information --test paramxml --test system_file
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features "mzml paramxml" --test topp_baseline_filter --test topp_baseline_filter_edges --test topp_cli_lifecycle --test topp_dta_extractor --test topp_map_normalizer --test topp_mzml_splitter --test topp_peak_picker_hi_res --test topp_spectra_filter_window_mower --test topp_threads
+        run: cargo test --locked --no-default-features --features "mzml paramxml" --test topp_baseline_filter --test topp_baseline_filter_edges --test topp_cli_completion --test topp_cli_console --test topp_cli_lifecycle --test topp_dta_extractor --test topp_map_normalizer --test topp_mzml_splitter --test topp_peak_picker_hi_res --test topp_spectra_filter_window_mower --test topp_threads
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features "mzml paramxml featurexml" --test file_info_checks --test topp_feature_finder_centroided --test topp_file_info
+        run: cargo test --locked --no-default-features --features "mzml paramxml featurexml" --test file_info_a8 --test file_info_checks --test topp_cli_completion --test topp_cli_console --test topp_feature_finder_centroided --test topp_file_info
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features "mzml paramxml parallel" --test peak_picking_experiment --test topp_peak_picker_hi_res --test topp_threads
       - if: matrix.leg == 'slices'
@@ -67,6 +67,8 @@ jobs:
         run: cargo test --locked --no-default-features --features xml-schema --test xml_schema --test xml_schema_includes --test xml_schema_offline
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features "xml-schema mzml-schema consensusxml featurexml idxml paramxml" --test xml_schema_formats
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "consensusxml featurexml idxml mzml" --test progress_format_readers
   minimum-rust:
     runs-on: ubuntu-latest
     strategy:
@@ -109,7 +111,7 @@ jobs:
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features numpress --test numpress --test numpress_coder
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features paramxml --test paramxml --test qcml --test system_file
+        run: cargo test --locked --no-default-features --features paramxml --test param_ctd --test parameter_information --test paramxml --test qcml --test system_file --test topp_fuzzy_diff
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features mzml --test data_array_xml --test faims_helper --test file_info_checks --test im_data_converter --test imzml_all_modes --test imzml_file --test imzml_handler --test imzml_writer --test indexed_mzml --test indexed_mzml_handler --test ms_data_writing_consumer --test mzdata --test mzml --test mzml_acquisition --test mzml_acquisition_guards --test mzml_auxiliary_review --test mzml_auxiliary_writer_review --test mzml_centroid --test mzml_consumer --test mzml_counts --test mzml_header --test mzml_header_leniency --test mzml_isolation --test mzml_list_counts --test mzml_load_options --test mzml_mobility --test mzml_normalization --test mzml_numpress --test mzml_param_groups --test mzml_paths --test mzml_precursor_activation --test mzml_product --test mzml_reader_scale --test mzml_review --test mzml_settings --test mzml_source_file_round_trip --test mzml_typed_transport --test mzml_write_options --test mzml_writer_scale --test mzxml --test numpress_coder --test on_disc_experiment --test on_disc_imzml_experiment --test peak_type_estimator --test record_metadata
       - if: matrix.leg == 'slices'
@@ -123,11 +125,13 @@ jobs:
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features "xml-schema mzml-schema consensusxml featurexml idxml paramxml" --test xml_schema_formats
       - if: matrix.leg == 'mzml-paramxml'
-        run: cargo test --locked --no-default-features --features "mzml paramxml" --test feature_finder_picked_seeds --test peak_picking_experiment --test signal_to_noise --test topp_baseline_filter --test topp_baseline_filter_edges --test topp_cli_lifecycle --test topp_dta_extractor --test topp_map_normalizer --test topp_mzml_splitter --test topp_peak_picker_hi_res --test topp_spectra_filter_window_mower --test topp_threads
+        run: cargo test --locked --no-default-features --features "mzml paramxml" --test feature_finder_picked_seeds --test peak_picking_experiment --test signal_to_noise --test topp_baseline_filter --test topp_baseline_filter_edges --test topp_cli_completion --test topp_cli_console --test topp_cli_lifecycle --test topp_dta_extractor --test topp_map_normalizer --test topp_mzml_splitter --test topp_peak_picker_hi_res --test topp_spectra_filter_window_mower --test topp_threads
       - if: matrix.leg == 'mzml-paramxml'
-        run: cargo test --locked --no-default-features --features "mzml paramxml featurexml" --test feature_finder_picked --test feature_finder_picked_instrumentation --test feature_finder_picked_seeds --test file_info_checks --test topp_feature_finder_centroided --test topp_file_info
+        run: cargo test --locked --no-default-features --features "mzml paramxml featurexml" --test feature_finder_picked --test feature_finder_picked_instrumentation --test feature_finder_picked_seeds --test file_info_a8 --test file_info_checks --test topp_cli_completion --test topp_cli_console --test topp_feature_finder_centroided --test topp_file_info
       - if: matrix.leg == 'mzml-paramxml'
         run: cargo test --locked --no-default-features --features "mzml paramxml parallel" --test peak_picking_experiment --test topp_peak_picker_hi_res --test topp_threads
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "consensusxml featurexml idxml mzml" --test progress_format_readers
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features network --test network --test network_get_request --test update_check
       - if: matrix.leg == 'slices'
