@@ -32,6 +32,10 @@
 //!
 //! The mapping to the C++ members, the preserved quirks and the native
 //! differences are listed in `docs/FUZZY_STRING_COMPARATOR_SUPPORT.md`.
+//!
+//! [`sorted_lines`]: crate::concept::fuzzy_string_comparator::sorted_lines
+//! [`parse_matched_whitelist`]: crate::concept::fuzzy_string_comparator::parse_matched_whitelist
+//! [`compare_numbers`]: crate::concept::fuzzy_string_comparator::compare_numbers
 
 use std::collections::BTreeMap;
 use std::fs::File;

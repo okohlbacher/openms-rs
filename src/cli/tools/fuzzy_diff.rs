@@ -175,7 +175,8 @@ impl Tool for FuzzyDiff {
     ///
     /// [`Error::Io`] when a stream cannot be written, and
     /// [`Error::InvalidValue`] for an integer parameter outside the `i32`
-    /// range the source's `getIntOption_` returns. Every other outcome is an
+    /// range the source's `getIntOption_` returns, which the framework's
+    /// readers already refuse before the body runs. Every other outcome is an
     /// exit code.
     fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> Result<ExitCode> {
         let in1 = ctx.string("in1")?.to_owned();
@@ -241,9 +242,11 @@ impl Tool for FuzzyDiff {
 
 /// An integer parameter as the source's `getIntOption_` returns it, an `Int`.
 ///
-/// The registered ranges bound `verbose`; `tab_width` and `first_column` have
-/// no upper bound, and an INI value can exceed what a command-line value
-/// can. Such a value is refused rather than wrapped.
+/// The registered ranges bound `verbose` only, but both of the framework's
+/// readers already refuse a value beyond `i32`: the command line's `to_int32`
+/// (exit 6) and the INI reader (exit 3, checked in `tests/topp_fuzzy_diff.rs`).
+/// This conversion is therefore defensive; a value it refused would be
+/// reported as an invalid parameter rather than wrapped.
 fn int_option(ctx: &ToolContext, name: &str) -> Result<i32> {
     let value = ctx.int(name)?;
     i32::try_from(value).map_err(|_| {
