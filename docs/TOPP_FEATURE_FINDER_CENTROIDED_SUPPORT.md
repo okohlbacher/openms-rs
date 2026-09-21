@@ -101,11 +101,11 @@ Every member of the source class, and every framework call it makes.
 | `IMTypes::determineIMFormat(spec) == IMFormat::IM_PEAK` | `ImTypes::determine_im_format` over every spectrum |
 | `imPeakTypeToString(spec.getIMPeakType())` | `im_peak_type_to_string(IonMobilityPeakType::Profile)` in `FeatureFinderCentroided::im_peak_message` (see the native differences) |
 | `return INCOMPATIBLE_INPUT_DATA` | `ExitCode::IncompatibleInputData` |
-| `exp[0].getType()` and `getFlag_("force")` | `experiment.spectra[0].spectrum_type` and `ToolContext::force` |
-| `throw IllegalArgument("Error: Profile data provided …")` | `FeatureFinderCentroided::PROFILE_DATA_MESSAGE` and `ExitCode::UnknownError`, the code `TOPPBase` gives that exception |
+| `exp[0].getType()` and `getFlag_("force")` | `experiment.spectra[0].spectrum_type` and `ToolContext::flag("force")`, read only for a profile first spectrum, as the source's `&&` does |
+| `throw IllegalArgument("Error: Profile data provided …")` | `ToolError::Caught` with `FeatureFinderCentroided::PROFILE_DATA_MESSAGE` and `ExitCode::UnknownError`, the code `TOPPBase` gives that exception; no closing line, and the line reaches the `-log` file (Release oracle `ffc_profile_noforce_log`) |
 | `FileHandler().loadFeatures(seeds, map, {FEATUREXML})` | `FileHandler::load_feature_map` |
 | `getParam_().copy("algorithm:", true)` | `ToolContext::subsection("algorithm")` |
-| `writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3)` | not ported: the framework ports no debug log or `-log` file |
+| `writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3)` | `ToolContext::write_debug_param`, the `-log` file from debug level 3, line for line the Release build's dump (oracle `ffc_debug3_log`) |
 | `IMDataConverter::splitByFAIMSCV(std::move(exp))` | `ImDataConverter::split_by_faims_cv` (B8), whose `FaimsSplit::messages` are written to the two log-stream caches by their level. The source's `std::pair<double, MSExperiment>` key is `FaimsGroupKey`, whose `NotFaims` variant names the source's NaN |
 | `const bool has_faims = faims_groups.size() > 1 \|\| !std::isnan(faims_groups[0].first)` | `FaimsSplit::has_faims`, the same predicate on the named key |
 | the per-group loop `for (auto& [group_cv, faims_group] : faims_groups)` | the loop over `FaimsSplit::groups`, ascending by voltage as the source's `std::map` is |
@@ -503,11 +503,18 @@ instance*).
    not keep `MS:1003441`, so the port always prints `im_profile` — the text both
    executed ion-mobility cases printed. A file with `MS:1003441` would print
    `im_centroided` in C++.
-6. **`-log`, `writeDebug_` and the timing line are not ported** by the
-   framework, so the C++ `TOPP.log` and the debug dump of the `algorithm:`
-   parameters at debug level 3 have no counterpart. The tests still run in a
-   temporary working directory, so a later `-log` implementation cannot write
-   into the repository.
+6. **`-log`, `writeDebug_` and the closing line** follow the framework, which
+   ports them: the `TOPP.log` the `FeatureFinderCentroided_1` INI names, the
+   dump of the `algorithm:` parameters at debug level 3, and the closing line
+   after a returned `main_` (the ion-mobility refusal, exit 11, is one) and
+   none after a thrown exception (`FileEmpty`, `IllegalArgument`, the
+   algorithm's errors, the store's `UnableToCreateFile`, and the
+   `std::length_error` that reaches the initialisation catch). The tests run in
+   a temporary working directory, so the log file never lands in the
+   repository. One order can differ: the log stream's repeat counts that
+   `clearCache` prints at exit come before the closing line here and after it
+   in the source, which shows only when both lines the cache still holds were
+   repeated; no executed case has that.
 7. **`updateRanges` is not called.** The source updates the experiment's ranges
    after loading (and logs `Update ranges was called but ranges were already
    up-to-date` on most inputs); native ranges are computed on demand.

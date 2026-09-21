@@ -9,13 +9,23 @@
 //! The source attaches its `data filtering` processing record to each part
 //! before moving the part's spectra and chromatograms in, so no part carries
 //! it; this port does the same.
+//!
+//! The source's messages are the tool's own: its two refusals are
+//! `writeLogError_` lines followed by `ILLEGAL_PARAMETERS`, an exit code
+//! `main_` returns, so `TOPPBase`'s closing line follows them; and a run
+//! reports the file size, the part count, the totals and each part with
+//! `writeLogInfo_` (`MzMLSplitter.cpp:83-172`). All of them reach standard
+//! output or the error stream and the `-log` file as there (Release oracle
+//! `ms_*` of `../oracle/topp-exception-exits`).
 
-use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
+use crate::cli::{ExitCode, PoolLines, Tool, ToolContext, ToolResult, ToolSpec};
 use crate::format::file_handler::FileHandler;
+use crate::format::file_info::text_format::to_str_f32;
 use crate::format::file_types::{FileType, strip_extension};
 use crate::kernel::MSExperiment;
 use crate::metadata::ProcessingAction;
 use crate::{Error, Result};
+use std::io::Write;
 
 /// The `MzMLSplitter` TOPP tool.
 pub struct MzMLSplitter;
@@ -71,17 +81,26 @@ impl Tool for MzMLSplitter {
         Ok(())
     }
 
+    /// Run against the process streams; see `run_io`.
+    fn run(ctx: &ToolContext) -> ToolResult {
+        Self::run_io(ctx, &mut std::io::stdout(), &mut std::io::stderr())
+    }
+
     /// Source `main_`, run on the worker pool that `-threads` sizes, as
     /// `TOPPBase::main` applies the setting before `main_`
-    /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`].
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
-        ctx.in_thread_pool(|| Self::run_in_pool(ctx))?
+    /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`]. The
+    /// body's console lines are written once the pool returns.
+    fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> ToolResult {
+        let mut lines = PoolLines::default();
+        let result = ctx.in_thread_pool(|| Self::run_in_pool(ctx, &mut lines))?;
+        lines.write(out, err)?;
+        result
     }
 }
 
 impl MzMLSplitter {
     /// The tool body, as the source `main_`.
-    fn run_in_pool(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run_in_pool(ctx: &ToolContext, lines: &mut PoolLines) -> ToolResult {
         let input = ctx.string("in")?.to_owned();
         let mut out = ctx.string("out")?.to_owned();
         if out.is_empty() {
@@ -89,9 +108,11 @@ impl MzMLSplitter {
         }
         let (no_chrom, no_spec) = (ctx.flag("no_chrom")?, ctx.flag("no_spec")?);
         if no_chrom && no_spec {
-            return Err(Error::InvalidValue(
-                "'no_chrom' and 'no_spec' cannot be used together".into(),
-            ));
+            lines.error(
+                ctx,
+                "Error: 'no_chrom' and 'no_spec' cannot be used together",
+            );
+            return Ok(ExitCode::IllegalParameters);
         }
 
         let mut parts = usize::try_from(ctx.int("parts")?)
@@ -99,19 +120,25 @@ impl MzMLSplitter {
         let size = ctx.int("size")?;
         if parts == 1 {
             if size == 0 {
-                return Err(Error::InvalidValue(
-                    "Higher value for parameter 'parts' or 'size' required".into(),
-                ));
+                lines.error(
+                    ctx,
+                    "Error: Higher value for parameter 'parts' or 'size' required",
+                );
+                return Ok(ExitCode::IllegalParameters);
             }
             // Source divides the byte count as f32 by the unit, then rounds up.
             let bytes = std::fs::metadata(&input)?.len() as f32;
-            let total = match ctx.string("unit")? {
+            let unit = ctx.string("unit")?;
+            let total = match unit {
                 "KB" => bytes / 1024.0,
                 "MB" => bytes / (1024.0 * 1024.0),
                 _ => bytes / (1024.0 * 1024.0 * 1024.0),
             };
+            // `StringUtils::toStr(float)`, as the source prints it.
+            lines.info(ctx, format!("File size: {} {unit}", to_str_f32(total)));
             parts = (total / size as f32).ceil() as usize;
         }
+        lines.info(ctx, format!("Splitting file into {parts} parts..."));
 
         let experiment = FileHandler::load_experiment(&input, &[FileType::MzMl])?;
         // Source moves the records out of the loaded run, so every part keeps
@@ -129,6 +156,8 @@ impl MzMLSplitter {
         } else {
             std::mem::take(&mut template.chromatograms)
         };
+        lines.info(ctx, format!("Total spectra: {}", spectra.len()));
+        lines.info(ctx, format!("Total chromatograms: {}", chromatograms.len()));
 
         // Part numbers are zero padded to the width of the part count.
         let width = parts.to_string().len();
@@ -156,6 +185,10 @@ impl MzMLSplitter {
             part.chromatograms
                 .extend_from_slice(&chromatograms[chrom_start..chrom_start + n_chrom]);
             chrom_start += n_chrom;
+            lines.info(
+                ctx,
+                format!("Part {counter}: {n_spec} spectra, {n_chrom} chromatograms"),
+            );
             FileHandler::store_experiment(&name, &part, Some(FileType::MzMl))?;
         }
         Ok(ExitCode::ExecutionOk)

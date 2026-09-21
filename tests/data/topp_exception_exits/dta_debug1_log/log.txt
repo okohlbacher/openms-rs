@@ -1,0 +1,14 @@
+2026-09-21 21:30:19 DTAExtractor:1:: Writing to '/scratch/kohlbach/topp-exception-exits/run2/results/dta_debug1_log/cwd/log.txt'
+2026-09-21 21:30:19 DTAExtractor:1:: Debug level: 1
+2026-09-21 21:30:19 DTAExtractor:1::  >> /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/DTAExtractor -test -no_progress -in /scratch/kohlbach/topp-exception-exits/inputs/baseline_filter_tool_input.mzML -out /scratch/kohlbach/topp-exception-exits/run2/results/dta_debug1_log/cwd/x -log /scratch/kohlbach/topp-exception-exits/run2/results/dta_debug1_log/cwd/log.txt -debug 1
+2026-09-21 21:30:19 DTAExtractor:1:: Value of string option 'test': 1
+2026-09-21 21:30:19 DTAExtractor:1:: Debug level (after ini file): 1
+2026-09-21 21:30:19 DTAExtractor:1:: Value of string option 'no_progress': 1
+2026-09-21 21:30:19 DTAExtractor:1:: Value of string option 'in': /scratch/kohlbach/topp-exception-exits/inputs/baseline_filter_tool_input.mzML
+2026-09-21 21:30:19 DTAExtractor:1:: Value of string option 'out': /scratch/kohlbach/topp-exception-exits/run2/results/dta_debug1_log/cwd/x
+2026-09-21 21:30:19 DTAExtractor:1:: Value of string option 'rt': :
+2026-09-21 21:30:19 DTAExtractor:1:: Value of string option 'mz': :
+2026-09-21 21:30:19 DTAExtractor:1:: Value of string option 'level': 1,2,3
+2026-09-21 21:30:19 DTAExtractor:1:: rt lower/upper bound: -1.7976931348623157e308 / 1.7976931348623157e308
+2026-09-21 21:30:19 DTAExtractor:1:: mz lower/upper bound: -1.7976931348623157e308 / 1.7976931348623157e308
+2026-09-21 21:30:19 DTAExtractor:1:: MS levels: 1, 2, 3

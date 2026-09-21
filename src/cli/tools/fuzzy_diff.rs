@@ -41,7 +41,7 @@
 //! or a `-sort` input beyond [`FuzzyDiff::MAX_SORT_LINES`], is refused with
 //! `INCOMPATIBLE_INPUT_DATA` (11).
 
-use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
+use crate::cli::{ExitCode, Tool, ToolContext, ToolError, ToolResult, ToolSpec};
 use crate::concept::fuzzy_string_comparator::{
     FuzzyStringComparator, InputFailure, LogDestination, MAX_INPUT_BYTES, parse_matched_whitelist,
     sorted_lines,
@@ -155,7 +155,7 @@ impl Tool for FuzzyDiff {
     }
 
     /// Run against the process streams; see `run_io`.
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         Self::run_io(ctx, &mut std::io::stdout(), &mut std::io::stderr())
     }
 
@@ -167,18 +167,22 @@ impl Tool for FuzzyDiff {
     /// `-threads` has nothing to size, and no worker pool is built for it
     /// (see [`ToolContext::in_thread_pool`]).
     ///
-    /// The source's two debug lines (`writeDebug_` of both whitelists at
-    /// `-debug 1`) are not written, because the framework does not port
-    /// `writeDebug_`, and neither is its trailing timing line.
+    /// The comparison's verdict is an exit code `main_` returns, 0 or 10, so
+    /// the lifecycle's closing `FuzzyDiff took … .` line follows it. Every
+    /// refusal stands for an exception, and ends without that line.
     ///
     /// # Errors
     ///
-    /// [`Error::Io`] when a stream cannot be written, and
+    /// A [`ToolError`] where the source throws: [`ToolError::unexpected`] for
+    /// a malformed `-matched_whitelist` entry (8), [`ToolError::file_not_found`]
+    /// for a `-sort` input that cannot be opened (1), and
+    /// [`ToolError::escaped`] for an input whose read fails (12). A native
+    /// input bound is [`ToolError::Caught`] with `INCOMPATIBLE_INPUT_DATA`
+    /// (11). [`Error::Io`] when a stream cannot be written, and
     /// [`Error::InvalidValue`] for an integer parameter outside the `i32`
     /// range the source's `getIntOption_` returns, which the framework's
-    /// readers already refuse before the body runs. Every other outcome is an
-    /// exit code.
-    fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> Result<ExitCode> {
+    /// readers already refuse before the body runs.
+    fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> ToolResult {
         let in1 = ctx.string("in1")?.to_owned();
         let in2 = ctx.string("in2")?.to_owned();
         let ratio = ctx.double("ratio")?;
@@ -190,15 +194,32 @@ impl Tool for FuzzyDiff {
         let first_column = int_option(ctx, "first_column")?;
         let do_sort = ctx.flag("sort")?;
 
+        // The source's check of the list parsing, in the -log file from debug
+        // level 1 (`FuzzyDiff.cpp:107-108`); `ListUtils::concatenate` joins with
+        // `, `, so an empty list leaves two spaces.
+        ctx.write_debug(
+            &format!(
+                "whitelist: {} (size: {})",
+                whitelist.join(", "),
+                whitelist.len()
+            ),
+            1,
+        );
+        ctx.write_debug(
+            &format!(
+                "matched_whitelist: {} (size: {})",
+                raw_matched_whitelist.join(", "),
+                raw_matched_whitelist.len()
+            ),
+            1,
+        );
+
         // The source throws IllegalArgument, which TOPPBase's BaseException
         // arm reports (TOPPBase.cpp:495-499 at cli c19e494).
         let matched_whitelist = match parse_matched_whitelist(&raw_matched_whitelist) {
             Ok(pairs) => pairs,
-            Err(Error::InvalidValue(message)) => {
-                writeln!(err, "Error: Unexpected internal error ({message})")?;
-                return Ok(ExitCode::UnknownError);
-            }
-            Err(other) => return Err(other),
+            Err(Error::InvalidValue(message)) => return Err(ToolError::unexpected(message)),
+            Err(other) => return Err(other.into()),
         };
 
         let mut fsc = FuzzyStringComparator::new();
@@ -212,14 +233,8 @@ impl Tool for FuzzyDiff {
         fsc.set_first_column(first_column);
 
         let result = if do_sort {
-            let text_1 = match sorted_input(&in1, err)? {
-                Ok(text) => text,
-                Err(code) => return Ok(code),
-            };
-            let text_2 = match sorted_input(&in2, err)? {
-                Ok(text) => text,
-                Err(code) => return Ok(code),
-            };
+            let text_1 = sorted_input(&in1)?;
+            let text_2 = sorted_input(&in2)?;
             fsc.set_input_names(&in1, &in2);
             fsc.compare_bytes(&text_1, &text_2)
         } else {
@@ -275,22 +290,26 @@ fn int_option(ctx: &ToolContext, name: &str) -> Result<i32> {
 /// empty text (executed on the Release build, `sort_directory`, exit 10), and
 /// so would a file cut short by an I/O error. This port does not compare a
 /// text it could not read in full.
-fn sorted_input(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Vec<u8>, ExitCode>> {
+///
+/// Every refusal ends the run as an exception does, without the closing
+/// `FuzzyDiff took … .` line: the source's own two are exceptions, and the
+/// native ones stand where the tool cannot go on.
+fn sorted_input(path: &str) -> std::result::Result<Vec<u8>, ToolError> {
     let Ok(file) = File::open(path) else {
-        writeln!(
-            err,
-            "Error: File not found (the file '{path}' could not be found)"
-        )?;
-        return Ok(Err(ExitCode::InputFileNotFound));
+        return Err(ToolError::file_not_found(format!(
+            "the file '{path}' could not be found"
+        )));
     };
     let too_large = || {
-        format!(
-            "Error: input file '{path}' exceeds the comparison limit of {MAX_INPUT_BYTES} bytes."
+        ToolError::caught(
+            ExitCode::IncompatibleInputData,
+            format!(
+                "Error: input file '{path}' exceeds the comparison limit of {MAX_INPUT_BYTES} bytes."
+            ),
         )
     };
     if file.metadata().map(|m| m.len()).unwrap_or(0) > MAX_INPUT_BYTES {
-        writeln!(err, "{}", too_large())?;
-        return Ok(Err(ExitCode::IncompatibleInputData));
+        return Err(too_large());
     }
     let mut text = Vec::new();
     if let Err(error) = file.take(MAX_INPUT_BYTES + 1).read_to_end(&mut text) {
@@ -298,26 +317,24 @@ fn sorted_input(path: &str, err: &mut dyn Write) -> Result<std::result::Result<V
             InputFailure::Read { description, .. } => description,
             InputFailure::TooLarge => error.to_string(),
         };
-        writeln!(
-            err,
-            "Unable to initialize or run FuzzyDiff: error reading the file '{path}': {description}"
-        )?;
-        return Ok(Err(ExitCode::InternalError));
+        return Err(ToolError::escaped(format!(
+            "error reading the file '{path}': {description}"
+        )));
     }
     if text.len() as u64 > MAX_INPUT_BYTES {
-        writeln!(err, "{}", too_large())?;
-        return Ok(Err(ExitCode::IncompatibleInputData));
+        return Err(too_large());
     }
     let lines = text.iter().filter(|&&byte| byte == b'\n').count() + 1;
     if lines > FuzzyDiff::MAX_SORT_LINES {
-        writeln!(
-            err,
-            "Error: input file '{path}' has more than {} lines to sort.",
-            FuzzyDiff::MAX_SORT_LINES
-        )?;
-        return Ok(Err(ExitCode::IncompatibleInputData));
+        return Err(ToolError::caught(
+            ExitCode::IncompatibleInputData,
+            format!(
+                "Error: input file '{path}' has more than {} lines to sort.",
+                FuzzyDiff::MAX_SORT_LINES
+            ),
+        ));
     }
-    Ok(Ok(sorted_lines(&text)))
+    Ok(sorted_lines(&text))
 }
 
 /// Report a comparison that stopped before it had read all of its input.
@@ -334,29 +351,31 @@ fn sorted_input(path: &str, err: &mut dyn Write) -> Result<std::result::Result<V
 ///   (executed: `directory_vs_file`, `file_vs_directory`,
 ///   `directory_vs_directory`); it is reproduced so the stream matches.
 /// * The comparator's [`MAX_INPUT_BYTES`]: native, the source reads without a
-///   limit. The comparator's own message goes to `err` and the tool exits
+///   limit. The comparator's own message is the diagnostic and the tool exits
 ///   `INCOMPATIBLE_INPUT_DATA` (11), not the 10 that would claim a difference.
+///
+/// Neither is a verdict `main_` returns, so neither is followed by the closing
+/// `FuzzyDiff took … .` line.
 fn report_input_failure(
     fsc: &FuzzyStringComparator,
     failure: &InputFailure,
     out: &mut dyn Write,
     err: &mut dyn Write,
-) -> Result<ExitCode> {
+) -> ToolResult {
     let kept = fsc.log_without_input_failure();
     out.write_all(kept)?;
     warn_if_truncated(fsc, err)?;
     match failure {
-        InputFailure::Read { description, .. } => {
-            writeln!(
-                err,
-                "Unable to initialize or run FuzzyDiff: basic_filebuf::underflow error reading the file: {description}"
-            )?;
-            Ok(ExitCode::InternalError)
-        }
+        InputFailure::Read { description, .. } => Err(ToolError::escaped(format!(
+            "basic_filebuf::underflow error reading the file: {description}"
+        ))),
         InputFailure::TooLarge => {
             let log = fsc.log();
-            err.write_all(log.get(kept.len()..).unwrap_or_default())?;
-            Ok(ExitCode::IncompatibleInputData)
+            let message = String::from_utf8_lossy(log.get(kept.len()..).unwrap_or_default());
+            Err(ToolError::caught(
+                ExitCode::IncompatibleInputData,
+                message.into_owned(),
+            ))
         }
     }
 }

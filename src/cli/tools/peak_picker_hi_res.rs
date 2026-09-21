@@ -27,13 +27,12 @@
 //! input. [`LowMemoryPicker`] and [`run_low_memory`](fn@run_low_memory) carry
 //! the list and the evidence.
 //!
-//! Not ported yet: the debug dump of the algorithm parameters at `-debug 3`,
-//! and progress logging.
+//! Not ported yet: progress logging.
 //!
 //! `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md` lists the source members, the
 //! preserved conventions, the native differences and the evidence.
 
-use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
+use crate::cli::{ExitCode, Tool, ToolContext, ToolError, ToolResult, ToolSpec};
 use crate::format::PeakFileOptions;
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
@@ -382,23 +381,30 @@ fn run_low_memory(
 /// does with default `PeakFileOptions` (`MzMLHandler.cpp:218-221`, `299-302`);
 /// they are kept because the source keeps them.
 ///
+/// The two sortedness errors are `writeLogError_` lines in the source, so
+/// they also reach the `-log` file ([`ToolContext::write_log_error`]); the
+/// ion mobility and empty-input warnings are `OPENMS_LOG_WARN` lines, which
+/// do not. Every refusal here is an exit code `main_` returns, so the
+/// lifecycle's closing `PeakPickerHiRes took … .` line follows it.
+///
 /// # Errors
 ///
 /// Returns [`Error::Io`] when a line cannot be written to `err`.
-fn check_input(experiment: &MSExperiment, err: &mut dyn Write) -> Result<Option<ExitCode>> {
+fn check_input(
+    ctx: &ToolContext,
+    experiment: &MSExperiment,
+    err: &mut dyn Write,
+) -> Result<Option<ExitCode>> {
     if experiment
         .spectra
         .iter()
         .any(|spectrum| ImTypes::determine_im_format(spectrum) == IonMobilityFormat::PerPeak)
     {
-        writeln!(
-            err,
-            "{}",
-            ion_mobility_warning(IonMobilityPeakType::Profile)
-        )?;
+        // `OPENMS_LOG_WARN`: the warning log stream, yellow on a terminal.
+        crate::cli::log_warning(err, &ion_mobility_warning(IonMobilityPeakType::Profile))?;
     }
     if experiment.spectra.is_empty() && experiment.chromatograms.is_empty() {
-        writeln!(err, "{EMPTY_INPUT_WARNING}")?;
+        crate::cli::log_warning(err, EMPTY_INPUT_WARNING)?;
         return Ok(Some(ExitCode::IncompatibleInputData));
     }
     if !experiment
@@ -406,7 +412,7 @@ fn check_input(experiment: &MSExperiment, err: &mut dyn Write) -> Result<Option<
         .iter()
         .all(|spectrum| spectrum.is_sorted())
     {
-        writeln!(err, "{UNSORTED_SPECTRA_ERROR}")?;
+        ctx.write_log_error(err, UNSORTED_SPECTRA_ERROR)?;
         return Ok(Some(ExitCode::IncompatibleInputData));
     }
     if !experiment
@@ -414,7 +420,7 @@ fn check_input(experiment: &MSExperiment, err: &mut dyn Write) -> Result<Option<
         .iter()
         .all(|chromatogram| chromatogram.is_sorted())
     {
-        writeln!(err, "{UNSORTED_CHROMATOGRAMS_ERROR}")?;
+        ctx.write_log_error(err, UNSORTED_CHROMATOGRAMS_ERROR)?;
         return Ok(Some(ExitCode::IncompatibleInputData));
     }
     Ok(None)
@@ -580,7 +586,7 @@ impl Tool for PeakPickerHiRes {
     }
 
     /// Run with the process's standard streams; see [`PeakPickerHiRes::run_io`].
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         Self::run_io(ctx, &mut std::io::stdout(), &mut std::io::stderr())
     }
 
@@ -604,7 +610,10 @@ impl Tool for PeakPickerHiRes {
     ///    mode without `-force` ends the run with
     ///    `Error: Unexpected internal error (Error: Centroided data provided but profile spectra expected.)`
     ///    and [`ExitCode::UnknownError`], as the source's `IllegalArgument`
-    ///    takes the `BaseException` arm of `TOPPBase::main`. Nothing is written.
+    ///    takes the `BaseException` arm of `TOPPBase::main`
+    ///    ([`ToolError::unexpected`]): the exception unwinds past the closing
+    ///    `PeakPickerHiRes took … .` line, so there is none, and the message
+    ///    reaches the `-log` file. Nothing is written.
     /// 5. The per-level summary goes to `out`, one shared `peak picking`
     ///    processing record is attached to every spectrum and chromatogram
     ///    (`addDataProcessing_`), and the experiment is stored as mzML.
@@ -631,8 +640,9 @@ impl Tool for PeakPickerHiRes {
     ///
     /// Loading, storing and processing-record failures propagate and are
     /// mapped by the framework. A picker failure other than the centroided
-    /// refusal is written as `Error: Unexpected internal error (<reason>)` and
-    /// returns [`ExitCode::UnknownError`]: those are native bounds (points and
+    /// refusal is reported as `Error: Unexpected internal error (<reason>)`
+    /// with [`ExitCode::UnknownError`] ([`ToolError::unexpected`], no closing
+    /// line): those are native bounds (points and
     /// work per record, metadata copies) and the FWHM search that never
     /// terminates in the source, not parameter errors. A refusal by the
     /// operating system to start the `-threads` workers is reported the same
@@ -658,14 +668,17 @@ impl Tool for PeakPickerHiRes {
     /// With
     /// `signal_to_noise` 0 the estimator never runs in either implementation
     /// and the run succeeds.
-    fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> Result<ExitCode> {
+    fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> ToolResult {
         let input = ctx.string("in")?;
         let output = ctx.string("out")?;
         let process_option = ctx.string("processOption")?;
 
-        let mut picker = Picker::from_param(&ctx.subsection("algorithm")?)?;
+        // `writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3)`
+        // (`PeakPickerHiRes.cpp:198-199`): the -log file, from debug level 3.
+        let algorithm = ctx.subsection("algorithm")?;
+        ctx.write_debug_param("Parameters passed to PeakPickerHiRes", &algorithm, 3);
+        let mut picker = Picker::from_param(&algorithm)?;
         picker.compatibility = PickingCompatibility::source();
-        picker.check_spectrum_type = !ctx.force();
 
         if process_option == "lowmemory" {
             return match run_low_memory(ctx, input, output, picker) {
@@ -683,11 +696,8 @@ impl Tool for PeakPickerHiRes {
                     error @ (Error::InvalidValue(_)
                     | Error::InvalidRange(_)
                     | Error::MissingInformation(_)),
-                ) => {
-                    writeln!(err, "Error: Unexpected internal error ({error})")?;
-                    Ok(ExitCode::UnknownError)
-                }
-                Err(error) => Err(error),
+                ) => Err(ToolError::unexpected(error)),
+                Err(error) => Err(error.into()),
             };
         }
 
@@ -697,23 +707,22 @@ impl Tool for PeakPickerHiRes {
             &PeakFileOptions::default(),
             &Self::read_options(),
         )?;
-        if let Some(code) = check_input(&experiment, err)? {
+        if let Some(code) = check_input(ctx, &experiment, err)? {
             return Ok(code);
         }
+        // `!getFlag_("force")` where the source reads it, before picking; the
+        // accessor writes its `Value of … option` line to the -log file.
+        picker.check_spectrum_type = !ctx.flag("force")?;
 
         let report = match pick_experiment(ctx, &picker, &mut experiment) {
             Ok(report) => report,
-            Err(error @ Error::Unsupported(_)) => return Err(error),
+            Err(error @ Error::Unsupported(_)) => return Err(error.into()),
             // The centroided refusal is reported with the source's bare
             // message, without this port's `invalid value: ` prefix.
             Err(Error::InvalidValue(reason)) if reason == CENTROIDED_INPUT_MESSAGE => {
-                writeln!(err, "Error: Unexpected internal error ({reason})")?;
-                return Ok(ExitCode::UnknownError);
+                return Err(ToolError::unexpected(reason));
             }
-            Err(error) => {
-                writeln!(err, "Error: Unexpected internal error ({error})")?;
-                return Ok(ExitCode::UnknownError);
-            }
+            Err(error) => return Err(ToolError::unexpected(error)),
         };
         for line in pick_summary(&experiment, &report) {
             writeln!(out, "{line}")?;
@@ -749,20 +758,42 @@ mod tests {
         }
     }
 
-    /// The exit code and the error-stream text of [`check_input`], captured
-    /// from the stream it writes to.
-    fn checked(experiment: &MSExperiment) -> (Option<ExitCode>, String) {
+    /// The exit code, the error-stream text and the `-log` file lines (their
+    /// time stamps taken off) of [`check_input`], run with a log file.
+    fn checked(experiment: &MSExperiment) -> (Option<ExitCode>, String, Vec<String>) {
+        let dir = crate::system::file::TempDir::new(false).expect("a temporary directory");
+        let path = dir.path().join("log.txt");
+        let log = std::sync::Arc::new(crate::cli::ToolLog::new());
+        log.set_location("PeakPickerHiRes:1:");
+        log.set_destination(path.to_str());
+        let ctx = ToolContext::new(
+            PeakPickerHiRes::NAME,
+            "1.0.0",
+            "PeakPickerHiRes:1:",
+            Param::new(),
+            log.clone(),
+        );
         let mut err = Vec::new();
-        let code = check_input(experiment, &mut err).expect("writing to a vector cannot fail");
+        let code =
+            check_input(&ctx, experiment, &mut err).expect("writing to a vector cannot fail");
+        log.finish();
+        let lines = std::fs::read_to_string(&path)
+            .unwrap_or_default()
+            .lines()
+            .map(|line| line.get(20..).unwrap_or(line).to_owned())
+            .collect();
         (
             code,
             String::from_utf8(err).expect("the source messages are text"),
+            lines,
         )
     }
 
     /// The unsorted branches cannot be reached through the tool's loader, which
     /// sorts; they are exercised here on constructed experiments, with the
-    /// source's messages and `INCOMPATIBLE_INPUT_DATA`.
+    /// source's messages and `INCOMPATIBLE_INPUT_DATA`. The source writes both
+    /// with `writeLogError_` (`PeakPickerHiRes.cpp:243`, `253`), so each is
+    /// also a line of the `-log` file, under the INI location.
     #[test]
     fn unsorted_records_are_refused_with_the_source_messages() {
         let mut experiment = MSExperiment::default();
@@ -773,7 +804,8 @@ mod tests {
             checked(&experiment),
             (
                 Some(ExitCode::IncompatibleInputData),
-                format!("{UNSORTED_SPECTRA_ERROR}\n")
+                format!("{UNSORTED_SPECTRA_ERROR}\n"),
+                vec![format!("PeakPickerHiRes:1:: {UNSORTED_SPECTRA_ERROR}")]
             )
         );
         experiment.spectra.pop();
@@ -781,15 +813,20 @@ mod tests {
             checked(&experiment),
             (
                 Some(ExitCode::IncompatibleInputData),
-                format!("{UNSORTED_CHROMATOGRAMS_ERROR}\n")
+                format!("{UNSORTED_CHROMATOGRAMS_ERROR}\n"),
+                vec![format!(
+                    "PeakPickerHiRes:1:: {UNSORTED_CHROMATOGRAMS_ERROR}"
+                )]
             )
         );
         experiment.chromatograms[0] = chromatogram(&[1.0, 1.0, 2.0]);
-        assert_eq!(checked(&experiment), (None, String::new()));
+        assert_eq!(checked(&experiment), (None, String::new(), Vec::new()));
     }
 
     /// The empty-input refusal needs no spectra and no chromatograms; one
-    /// chromatogram is enough to proceed, as in the source.
+    /// chromatogram is enough to proceed, as in the source. The source writes
+    /// it with `OPENMS_LOG_WARN` (`PeakPickerHiRes.cpp:233-234`), which does
+    /// not reach the `-log` file.
     #[test]
     fn only_an_input_without_spectra_and_chromatograms_is_empty() {
         let mut experiment = MSExperiment::default();
@@ -797,10 +834,11 @@ mod tests {
             checked(&experiment),
             (
                 Some(ExitCode::IncompatibleInputData),
-                format!("{EMPTY_INPUT_WARNING}\n")
+                format!("{EMPTY_INPUT_WARNING}\n"),
+                Vec::new()
             )
         );
         experiment.chromatograms.push(chromatogram(&[]));
-        assert_eq!(checked(&experiment), (None, String::new()));
+        assert_eq!(checked(&experiment), (None, String::new(), Vec::new()));
     }
 }

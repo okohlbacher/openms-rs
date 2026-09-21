@@ -57,7 +57,7 @@ use openms::cli::tools::{
     BaselineFilter, DTAExtractor, MapNormalizer, MzMLSplitter, PeakPickerHiRes,
     SpectraFilterWindowMower,
 };
-use openms::cli::{ExitCode, Tool, ToolContext, ToolSpec, run_with};
+use openms::cli::{ExitCode, Tool, ToolContext, ToolResult, ToolSpec, run_with};
 use openms::concept::parallel::Threads;
 use openms::format::file_handler::FileHandler;
 use openms::format::file_types::FileType;
@@ -302,7 +302,7 @@ impl Tool for ThreadProbe {
     fn register(_spec: &mut ToolSpec) -> Result<()> {
         Ok(())
     }
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         let caller = std::thread::current().id();
         let (workers, on_worker, thread_name, body_thread) = ctx.in_thread_pool(|| {
             #[cfg(feature = "parallel")]

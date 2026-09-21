@@ -37,7 +37,8 @@ use openms::cli::tools::{
 use openms::cli::{
     ExitCode, MAX_ARGUMENTS, TEST_MODE_COMPLETION_TIME, TEST_MODE_PARAMETER_KEY,
     TEST_MODE_PARAMETER_VALUE, TEST_MODE_UNIQUE_ID_SEED, TEST_MODE_VERSION, Tool, ToolContext,
-    ToolSpec, input_file_readable, output_file_writable, parse_range, run_with, verbose_version,
+    ToolError, ToolResult, ToolSpec, input_file_readable, output_file_writable, parse_range,
+    run_with, verbose_version,
 };
 use openms::concept::parallel::Threads;
 use openms::concept::progress_logger::ProgressLogType;
@@ -241,7 +242,7 @@ impl Tool for ToppBaseTest {
         spec.set_max_float("doublelist2", 5.4)?;
         Ok(())
     }
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         capture(ctx);
         Ok(ExitCode::ExecutionOk)
     }
@@ -298,7 +299,7 @@ impl Tool for ToppBaseTestNop {
         )?;
         Ok(())
     }
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         capture(ctx);
         Ok(ExitCode::ExecutionOk)
     }
@@ -375,7 +376,7 @@ impl Tool for ToppBaseTestParam {
     fn register(spec: &mut ToolSpec) -> Result<()> {
         spec.register_full_param(&full_param())
     }
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         capture(ctx);
         Ok(ExitCode::ExecutionOk)
     }
@@ -389,7 +390,7 @@ impl Tool for ToppBaseCmdParseTest {
     fn register(_spec: &mut ToolSpec) -> Result<()> {
         Ok(())
     }
-    fn run(_ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(_ctx: &ToolContext) -> ToolResult {
         Ok(ExitCode::ExecutionOk)
     }
 }
@@ -434,7 +435,7 @@ impl Tool for ToppBaseCmdParseSubsectionsTest {
         }
         Ok(Some(param))
     }
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         capture(ctx);
         Ok(ExitCode::ExecutionOk)
     }
@@ -1446,7 +1447,7 @@ fn cwl_and_json_writers_are_refused_as_the_release_build_refuses_them() {
 /// A tool whose body writes to both streams and fails in a chosen way.
 struct StreamTool;
 thread_local! {
-    static STREAM_RESULT: RefCell<Option<Result<ExitCode>>> = const { RefCell::new(None) };
+    static STREAM_RESULT: RefCell<Option<ToolResult>> = const { RefCell::new(None) };
 }
 impl Tool for StreamTool {
     const NAME: &'static str = "StreamTool";
@@ -1454,10 +1455,10 @@ impl Tool for StreamTool {
     fn register(_spec: &mut ToolSpec) -> Result<()> {
         Ok(())
     }
-    fn run(_ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(_ctx: &ToolContext) -> ToolResult {
         unreachable!("run_io is overridden")
     }
-    fn run_io(_ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> Result<ExitCode> {
+    fn run_io(_ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> ToolResult {
         writeln!(out, "report line")?;
         writeln!(err, "diagnostic line")?;
         STREAM_RESULT
@@ -1466,8 +1467,13 @@ impl Tool for StreamTool {
     }
 }
 fn stream_tool(result: Result<ExitCode>) -> Outcome {
+    ended_with(result.map_err(ToolError::from), &["-test"])
+}
+
+/// Run [`StreamTool`] with `args`, its body ending with `result`.
+fn ended_with(result: ToolResult, args: &[&str]) -> Outcome {
     STREAM_RESULT.with(|slot| *slot.borrow_mut() = Some(result));
-    run::<StreamTool>(&["-test"])
+    run::<StreamTool>(args)
 }
 
 /// The body's streams are the caller's. After the body returns, whatever its
@@ -1532,6 +1538,9 @@ fn assert_took_line(tool: &str, line: &str) {
     }
 }
 
+/// An error is the source's exception, which unwinds past the closing
+/// `<tool> took …` line to the run-phase catch (`TOPPBase.cpp:413-499`): the
+/// output stream holds the body's own line and nothing after it.
 #[test]
 fn run_phase_errors_map_like_the_source_inner_catch() {
     let parse = stream_tool(Err(Error::Parse {
@@ -1539,6 +1548,7 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
         message: "unexpected end".into(),
     }));
     assert_eq!(parse.code, ExitCode::InputFileCorrupt, "{}", parse.err);
+    assert_eq!(parse.out, "report line\n");
     assert!(
         parse.err.contains("Error: Unable to read file ("),
         "{}",
@@ -1607,6 +1617,101 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
         "{}",
         unsorted.err
     );
+    for outcome in [
+        &missing,
+        &invalid,
+        &unsupported,
+        &denied,
+        &other,
+        &range,
+        &information,
+        &unsorted,
+    ] {
+        assert_eq!(outcome.out, "report line\n", "{}", outcome.err);
+    }
+}
+
+/// A body that reports a source exception's catch-block text itself
+/// ([`ToolError::Caught`]) ends as that catch block does: the text through
+/// `writeLogError_` — the error stream and the `-log` file — the tool's exit
+/// code, and no closing `<tool> took …` line, because the source's exception
+/// unwinds past it (`TOPPBase.cpp:413-499`). A body that returns the same
+/// exit code after writing the same line itself is a returned `main_`, and
+/// the closing line follows (Release evidence for both: `FileInfo` oracles
+/// `out_is_directory`, exit 8 without the line, and `in_is_directory`, exit
+/// 10 with it, `tests/topp_file_info.rs`).
+#[test]
+fn a_caught_exception_prints_no_closing_line_and_reaches_the_log() {
+    let dir = Workdir::new("caught");
+    let log = dir.file("log.txt");
+    let outcome = ended_with(
+        Err(ToolError::unexpected("the file 'x' is not writable")),
+        &["-test", "-log", &log],
+    );
+    assert_eq!(outcome.code, ExitCode::UnknownError);
+    assert_eq!(outcome.out, "report line\n");
+    assert_eq!(
+        outcome.err,
+        "diagnostic line\nError: Unexpected internal error (the file 'x' is not writable)\n"
+    );
+    let logged = fs::read_to_string(&log).unwrap();
+    let lines: Vec<&str> = logged.lines().map(|line| &line[20..]).collect();
+    assert_eq!(
+        lines,
+        ["StreamTool:1:: Error: Unexpected internal error (the file 'x' is not writable)"]
+    );
+
+    // Each line of a multi-line text is one log record, as each
+    // `writeLogError_` call is.
+    let dir = Workdir::new("caught_two_lines");
+    let log = dir.file("log.txt");
+    let outcome = ended_with(
+        Err(ToolError::caught(
+            ExitCode::IncompatibleInputData,
+            "first line\nsecond line\n",
+        )),
+        &["-test", "-log", &log],
+    );
+    assert_eq!(outcome.code, ExitCode::IncompatibleInputData);
+    assert_eq!(outcome.out, "report line\n");
+    assert_eq!(outcome.err, "diagnostic line\nfirst line\nsecond line\n");
+    let logged = fs::read_to_string(&log).unwrap();
+    let lines: Vec<&str> = logged.lines().map(|line| &line[20..]).collect();
+    assert_eq!(
+        lines,
+        ["StreamTool:1:: first line", "StreamTool:1:: second line"]
+    );
+
+    let returned = ended_with(Ok(ExitCode::UnknownError), &["-test"]);
+    assert_eq!(returned.code, ExitCode::UnknownError);
+    let took = returned
+        .out
+        .strip_prefix("report line\n")
+        .unwrap_or_else(|| panic!("{}", returned.out));
+    assert_took_line("StreamTool", took);
+}
+
+/// A standard-library exception ([`ToolError::Escaped`]) passes every
+/// run-phase catch and reaches the initialisation catch
+/// (`TOPPBase.cpp:510-513`): `Unable to initialize or run <tool>: <what>` on
+/// the error stream through `OPENMS_LOG_ERROR`, which does not reach the log
+/// file, and `INTERNAL_ERROR`. No closing line (Release evidence: FuzzyDiff
+/// `directory_vs_file`, `tests/topp_fuzzy_diff.rs`).
+#[test]
+fn an_escaped_exception_prints_no_closing_line_and_stays_out_of_the_log() {
+    let dir = Workdir::new("escaped");
+    let log = dir.file("log.txt");
+    let outcome = ended_with(
+        Err(ToolError::escaped("vector::_M_default_append")),
+        &["-test", "-log", &log],
+    );
+    assert_eq!(outcome.code, ExitCode::InternalError);
+    assert_eq!(outcome.out, "report line\n");
+    assert_eq!(
+        outcome.err,
+        "diagnostic line\nUnable to initialize or run StreamTool: vector::_M_default_append\n"
+    );
+    assert!(!Path::new(&log).exists(), "nothing was logged");
 }
 
 struct FailingRegistration;
@@ -1617,7 +1722,7 @@ impl Tool for FailingRegistration {
         spec.register_flag("twice", "first", false)?;
         spec.register_flag("twice", "second", false)
     }
-    fn run(_ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(_ctx: &ToolContext) -> ToolResult {
         Ok(ExitCode::ExecutionOk)
     }
 }

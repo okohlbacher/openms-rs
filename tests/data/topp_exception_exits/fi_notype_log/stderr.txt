@@ -1,0 +1,2 @@
+Warning: Could not determine format of input file '/scratch/kohlbach/topp-exception-exits/inputs/FileInfo_8_input.notype'!
+Error: Could not determine input file type!

@@ -10,6 +10,11 @@
 // gate `cargo test --no-default-features` fails to compile.
 #![cfg(all(feature = "mzml", feature = "paramxml"))]
 
+#[path = "support/release_runs.rs"]
+mod release_runs;
+#[path = "support/took_line.rs"]
+mod took_line;
+
 use openms::cli::tools::SpectraFilterWindowMower;
 use openms::cli::{ExitCode, TEST_MODE_COMPLETION_TIME, TOPP_PRODUCT_VERSION, run_with};
 use openms::data_structures::DateTime;
@@ -372,4 +377,23 @@ fn an_invalid_subsection_value_is_rejected() {
         "{err}"
     );
     assert!(!out.exists(), "no output is written after a refused update");
+}
+
+/// Oracle `sfwm_debug3_log` of `../oracle/topp-exception-exits`: at debug level
+/// 3 the tool's dump of its `algorithm` section, `Used filter parameters`
+/// (`SpectraFilterWindowMower.cpp:106-107`), reaches the log file line for
+/// line, beside the framework's lines.
+#[test]
+fn release_debug_lines_reach_the_log() {
+    use release_runs::{ReleaseRun, assert_debug_log, dump_block};
+    let case = ReleaseRun::new("sfwm_debug3_log");
+    let replay = case.replay::<SpectraFilterWindowMower>(&[], |_| {});
+    let release = case.release("SpectraFilterWindowMower", &replay, &[]);
+    assert_eq!(replay.code.as_i32(), release.exit, "{}", replay.err);
+    assert_eq!(replay.out, release.out);
+    assert_eq!(replay.took.is_some(), release.took.is_some());
+    assert_eq!(replay.err, release.err);
+    let expected = release.log.unwrap();
+    let dump = dump_block(&expected, "Used filter parameters");
+    assert_debug_log(case.name, &replay.log.unwrap(), &expected, &[&dump]);
 }

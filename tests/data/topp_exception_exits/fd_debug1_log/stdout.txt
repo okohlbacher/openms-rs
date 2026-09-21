@@ -1,0 +1,37 @@
+Writing to '/scratch/kohlbach/topp-exception-exits/run2/results/fd_debug1_log/cwd/log.txt'
+FAILED: 'ratio of numbers is too large'
+
+  input:	in1	in2
+  line:	1	1
+  pos/col:	2/3	2/3
+ --------------------------------
+  is_number:	true	true
+  numbers:	1	1.001
+  is_space:	false	false
+  is_letter:	false	false
+  letters:	"1"	"1"
+  char_codes:	49	49
+ --------------------------------
+  relative_max:        1.001
+  relative_acceptable: 1
+ --------------------------------
+  absolute_max:        0.001
+  absolute_acceptable: 0
+
+Offending lines:			(tab_width = 8, first_column = 1)
+
+in1:  /scratch/kohlbach/topp-exception-exits/inputs/x_1.txt   (line: 1, position/column: 2/3)
+x !
+  1
+
+in2:  /scratch/kohlbach/topp-exception-exits/inputs/x_1001.txt   (line: 1, position/column: 2/3)
+x !
+  1.001
+
+
+Easy Access:
+/scratch/kohlbach/topp-exception-exits/inputs/x_1.txt:1:3:
+/scratch/kohlbach/topp-exception-exits/inputs/x_1001.txt:1:3:
+
+diff /scratch/kohlbach/topp-exception-exits/inputs/x_1.txt /scratch/kohlbach/topp-exception-exits/inputs/x_1001.txt
+FuzzyDiff took 0.00 s (wall), 0.13 s (CPU), 0.00 s (system), 0.13 s (user); Peak Memory Usage: 56 MB.

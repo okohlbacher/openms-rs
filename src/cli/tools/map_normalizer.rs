@@ -14,7 +14,7 @@
 //! whole spectrum, so it routinely outranks the most intense single peak and
 //! then sets the scale on its own. See [`MapNormalizer::run_maximum_intensity`].
 
-use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
+use crate::cli::{ExitCode, Tool, ToolContext, ToolResult, ToolSpec};
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
 use crate::kernel::{MSExperiment, SummaryLimits};
@@ -39,8 +39,8 @@ impl Tool for MapNormalizer {
     /// Source `main_`, run on the worker pool that `-threads` sizes, as
     /// `TOPPBase::main` applies the setting before `main_`
     /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`].
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
-        ctx.in_thread_pool(|| Self::run_in_pool(ctx))?
+    fn run(ctx: &ToolContext) -> ToolResult {
+        Ok(ctx.in_thread_pool(|| Self::run_in_pool(ctx))??)
     }
 }
 

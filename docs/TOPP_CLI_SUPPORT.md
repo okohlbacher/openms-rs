@@ -36,7 +36,7 @@ The pinned product manifest the Release build installs,
 | `~TOPPBase` (removes an empty log file) | `ToolLog::finish`, at the end of `run_with` |
 | `main(argc, argv)` | `cli::run::<T>()`, or `run_with::<T>(args, out, err)` |
 | `registerOptionsAndFlags_` | `Tool::register(&mut ToolSpec)` |
-| `main_` | `Tool::run(&ToolContext)`, or `Tool::run_io(&ToolContext, out, err)` for tools that write to the streams |
+| `main_` | `Tool::run(&ToolContext)`, or `Tool::run_io(&ToolContext, out, err)` for tools that write to the streams; both return `ToolResult`: `Ok` with the exit code `main_` returns, or a `ToolError` where `main_` throws (see *Run time*) |
 | `getSubsectionDefaults_(section)` | `Tool::subsection_defaults` |
 | `getSubsectionDefaults_()`, `getDefaultParameters_` | internal; `ToolSpec::to_param` is the parameter part |
 | `getToolUserDefaults_` | internal: `<user directory>/<Tool>.ini` updates the defaults leniently, with the source's messages; see *Per-user defaults* |
@@ -70,7 +70,8 @@ The pinned product manifest the Release build installs,
 | `version_`, `verboseVersion_` | `product_versions(registry, name)`, `cli::verbose_version`; the registry's product version, else the core version |
 | `getToolPrefix`, `getIniLocation_` with `-instance` | internal; the instance number selects `<tool>:<n>:` |
 | `printUsage_` | internal (`src/cli/usage.rs`), reached by `--help` / `--helphelp` and command-line errors; writes to the error stream, shaped and coloured for a console by an executable (*On a console*); `cli::print_usage` for a tool body that prints its own |
-| `writeLogInfo_`, `writeLogWarn_`, `writeLogError_`, `writeDebug_` (both), `enableLogging_` | `ToolContext::write_log_info`, `write_log_warn`, `write_log_error`, `write_debug`, `write_debug_param`; `ToolLog`; see *Log file and debug levels*. `cli::log_error` and `cli::log_warning` write one record of the error and warning log streams, red and yellow on a terminal |
+| `writeLogInfo_`, `writeLogWarn_`, `writeLogError_`, `writeDebug_` (both), `enableLogging_` | `ToolContext::write_log_info`, `write_log_warn`, `write_log_error`, `write_debug`, `write_debug_param`; `ToolLog`; see *Log file and debug levels*. A tool body on the `-threads` pool records its lines in the crate's `PoolLines`, which logs each at once and writes them to the console when the pool returns. `cli::log_error` and `cli::log_warning` write one record of the error and warning log streams, red and yellow on a terminal |
+| the run-phase and initialisation catch blocks (`TOPPBase.cpp:430-513`) as a tool body reaches them | `ToolError`: `Error` (mapped by the lifecycle), `Caught { code, message }` (a catch block's own text, `ToolError::unexpected` for the `BaseException` arm, `ToolError::file_not_found`), `Escaped { what }` (a `std::exception`, the initialisation catch) |
 | `getDocumentationURL` | internal; the release URL of the core version, used by the usage text and the CTD |
 | `Citation`, `Citation::toString`, `cite_openms` | `Citation`, `Citation::to_source_string` (also `Display`), `CITE_OPENMS`; tool citations as `Tool::CITATIONS` |
 | `TOPPBase_defs.h` exceptions `UnregisteredParameter`, `WrongParameterType`, `RequiredParameterNotGiven` | not types: the required-value check reports `RequiredParameterNotGiven`'s message and exit 7; the accessors return `Error::InvalidValue` for the other two (see *Native differences*) |
@@ -154,6 +155,9 @@ requirement* below says why.
 | run | `Error::InvalidValue`, `InvalidRange` | 6 | 475-480 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: as `InvalidParameter`; the source's own `InvalidValue` and `InvalidRange` exceptions reach its `BaseException` arm, exit 8 |
 | run | `Error::MissingInformation` | 7 | 466-474 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: as `RequiredParameterNotGiven`; the source's `MissingInformation` exception reaches its `BaseException` arm, exit 8 |
 | run | `Error::Unsupported`, `UnsortedData` | 11 | the tools' own `INCOMPATIBLE_INPUT_DATA` returns | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native |
+| run | `ToolError::Caught` from a tool body: a source exception whose catch-block text the tool knows | the tool's code | 430-499 | `a_caught_exception_prints_no_closing_line_and_reaches_the_log`; the tools' `release_*` tests | tier 1 (Release build): `fi_out_is_directory_log`, `fd_matched_whitelist_log`, `pphr_centroided_log`, `ffc_profile_noforce_log`, `ffc_ms2_only_log` in `../oracle/topp-exception-exits` |
+| run | `ToolError::Escaped` from a tool body: a `std::exception` | 12 | 510-513 | `an_escaped_exception_prints_no_closing_line_and_stays_out_of_the_log` | tier 1 (Release build): `fd_directory_log` in `../oracle/topp-exception-exits` |
+| run | a tool body returns an exit code after its own message | that code, closing line printed | 413-424 | the tools' `release_*` tests | tier 1 (Release build): `fi_index_on_dta_log`, `fi_notype_log`, `pphr_empty_log`, `ms_*`, `dta_bad_*`, `bf_empty_log` in `../oracle/topp-exception-exits` |
 
 A malformed INI file is exit 3, not 6: the source loads it inside the run-phase
 `try` (`TOPPBase.cpp:258`, `296`), so its `ParseError` is `INPUT_FILE_CORRUPT`.
@@ -311,12 +315,12 @@ writes when standard error is not a terminal and `COLUMNS` is unset. Evidence:
 and 15 cases in a
 pseudo-terminal (`tests/data/topp_cli_console/tty_*`), whose usage text and
 log lines are compared in the unit tests of `src/cli/usage.rs` and
-`src/cli/console.rs`; the executables in a pseudo-terminal match 12 of them
+`src/cli/console.rs`; the executables in a pseudo-terminal match 13 of them
 byte for byte (`../oracle/toppbase-completion/compare_tty.py`), and the other
-three are tool bodies: `FileInfo`'s own `Error: Can only validate indices for
-mzML files` is written uncoloured (`src/cli/tools/file_info.rs` writes it
-directly; `cli::log_error` colours it), `FeatureFinderCentroided` lacks its
-citations, and `BaselineFilter` prints no progress lines. Not ported: the
+two are tool bodies: `FeatureFinderCentroided` lacks its citations, and
+`BaselineFilter` prints no progress lines. (`FileInfo`'s own `Error: Can only
+validate indices for mzML files`, the third until the tools wrote their
+messages through the log streams, is red now, as in the Release build.) Not ported: the
 Windows console-buffer width (`GetConsoleScreenBufferInfo`) and virtual
 terminal mode, which the standard library cannot reach; there `COLUMNS` still
 applies.
@@ -460,9 +464,25 @@ an unknown name (for which the source reports an unknown type; an open
 `src/format/file_handler.rs` follow-up), the format counts as undetermined and
 only warns. After that warning the source's load of a file whose content no
 type claims throws `ParseError`, exit 3 ("type: unknown is not allowed for
-loading an experiment", oracle `in_unknown_name_and_content`); this port's
-`FileHandler::load_experiment` returns `Error::InvalidValue`, exit 6. That
-difference belongs to the loader, not to the check. `setValidFormats_`'s
+loading an experiment", oracle `in_unknown_name_and_content`, and with
+`-log` oracle `log_undetermined_format`, whose warning and error both reach the
+log in both builds); this port's `FileHandler::load_experiment` returns
+`Error::InvalidValue`, exit 6. That difference belongs to the loader, not to
+the check.
+
+**Input checks on a directory.** On the Linux Release build a directory given
+as an input file whose name no type claims does not warn: `FileHandler::getType`
+sniffs its content, libstdc++ throws `std::ios_base::failure` reading a
+directory, and the initialisation catch ends the run with `Unable to initialize
+or run <tool>: basic_filebuf::underflow error reading the file: Is a
+directory`, exit 12, before the tool body runs (oracle `fi_undetermined_log` of
+`../oracle/topp-exception-exits`). The macOS product SDK reads the directory as
+an empty file, warns, and lets the tool decide, which is what this port does
+(FileInfo exits 10). Recorded as an open difference
+(`a_directory_input_is_a_recorded_difference_from_the_linux_release_build`),
+not closed: the Release build's answer is a libstdc++ artefact, and FuzzyDiff's
+reproduction of the same message for its own read (`ToolError::escaped`) is a
+tool-level choice. `setValidFormats_`'s
 `force_OpenMS_format` check of registered format names is not ported.
 
 **`-write_ini`** is compared with the C++ files by number, not by text: this
@@ -487,6 +507,14 @@ consecutive line break stays raw; a tab is written `&amp;#x9;`; the `<tool>`
 attributes, description and citations are not escaped (C++ issue candidates).
 An empty directory is the current directory.
 
+One difference cannot be observed yet: for a tool with `-type` values, the
+source recomputes `getDefaultParameters_()` for each type after setting `type`
+on its command-line parameters (`handleWriteCommands_`), so a subsection whose
+defaults depend on the type differs per CTD; this writer computes the defaults
+once and sets only `<location>type`. No ported tool registers types, so every
+CTD written today is the Release build's; the first ported tool with types
+must recompute them per type.
+
 The four CWL and JSON writers need TDL, which the Release build (and the
 source's default `ENABLE_TDL=OFF`) does not have: each checks its target, then
 ends with the Release build's line `Unable to initialize or run <tool>: TDL
@@ -503,9 +531,23 @@ common options, the CTD category and the `-type` values come from
 source's validation and messages. A Rust tool is not installed by the source's
 CMake rules, so the pinned product manifest is compiled in and read **in
 place of the executable's own prefix when that prefix has no
-`share/openms4/tools`**; a prefix in `OPENMS_TOOL_PREFIX_PATH` that lists a
-product tool again is a duplicate there, exactly as for two C++ installations
-(oracle `reg_dup_help`). Manifests are read ordered by file name, where the
+`share/openms4/tools`**. The source reads a manifest reached twice once, and
+knows it by its canonical path (`ToolHandler.cpp:90-104`): the Release build
+runs with its own prefix in `OPENMS_TOOL_PREFIX_PATH`, once, twice, or through
+a symbolic link (oracles `reg_install_prefix_twice`, `reg_install_prefix_once`,
+`reg_symlink_to_install`). The built-in manifest has no path, so it is known by
+its name and bytes: a prefix supplying `share/openms4/tools/topp.tools.tsv`
+byte for byte is that manifest reached again, and the built-in copy is not
+read a second time. So a port tool runs with `OPENMS_TOOL_PREFIX_PATH` naming
+an OpenMS4 installation, which before this exited 6 for every tool, even
+`--help` (finding F6 of `.planning/VERIFY-phase3w1.md`). Any other manifest that
+lists a product tool again — another name, other bytes such as another product
+version — is a duplicate, exactly as for two C++ installations (oracle
+`reg_dup_help`). One recorded difference follows from the identity: the
+Release build refuses a byte-identical copy of its manifest under another
+prefix (oracle `reg_copy_of_install_manifest`, exit 6, because its own
+installation's file is a second path), where the port reads that copy as the
+built-in manifest. Manifests are read ordered by file name, where the
 source takes the file system's order; which of two duplicate rows is reported
 can differ. The source also consults the prefix of the loaded `libOpenMS_CLI`
 through `dladdr`; the crate is linked into the executable, so that adds
@@ -546,13 +588,49 @@ the source checks each file when the tool first reads it, so at level 2 the
 for BaselineFilter is not the source's. A source debug line that carries a C++
 source file and line (`Error occurred in line …`) has no counterpart.
 
+The tool bodies' own lines reach the log file as the source's do: every
+`writeLogError_`, `writeLogWarn_` and `writeLogInfo_` line of a ported tool
+(FileInfo's two refusals, PeakPickerHiRes's sortedness errors, MzMLSplitter's
+refusals and its report, DTAExtractor's `Invalid boundary`, BaselineFilter's
+warnings), the catch-block line of a `ToolError::Caught`, and the tools'
+`writeDebug_` lines (FuzzyDiff's two list lines at level 1, FileInfo's
+detected type at 2, DTAExtractor's ranges and levels at 1, the parameter dumps
+of PeakPickerHiRes, FeatureFinderCentroided and SpectraFilterWindowMower at 3).
+`OPENMS_LOG_WARN` and `OPENMS_LOG_ERROR` lines of a body (PeakPickerHiRes's and
+BaselineFilter's empty-input warnings, FeatureFinderCentroided's ion-mobility
+refusal) and the initialisation catch's `Unable to initialize or run` line do
+not, as in the source. Evidence: 28 Release runs, `../oracle/topp-exception-exits`,
+retained under `tests/data/topp_exception_exits` and replayed through
+`tests/support/release_runs.rs`. A tool body on the `-threads` pool
+(BaselineFilter, DTAExtractor, MzMLSplitter) logs each line at once and puts it
+on the console when the pool returns, before the closing line or the report of
+a failure: the pool's worker cannot write to `run_io`'s streams, and only the
+calling thread knows whether they are a terminal to colour.
+
 **Run time.** After the tool body returns, whatever its exit code, the source's
 closing line `<tool> took <wall> (wall), <cpu> (CPU), <system> (system), <user>
 (user); Peak Memory Usage: <n> MB.` goes to standard output. A component this
 port's `StopWatch` cannot read on the platform prints as `n/a`, and the memory
 part appears only where the platform reports a peak (Linux). A body that ends
-through an error, or through `write_failure`, prints no closing line, as the
-source's exception unwinds past it.
+where the source's `main_` throws prints no closing line, as the source's
+exception unwinds past it to a catch block. The distinction is in the type a
+body returns, `ToolResult`: `Ok(code)` is a `main_` that returned `code`, even
+an error code after the tool's own message (FileInfo's `-i` refusal, exit 6,
+closing line printed); a `ToolError` is a `main_` that threw — `Error` for this
+crate's errors, which the run-phase mapping reports, `Caught` for a catch
+block's text the tool knows exactly (the `BaseException` arm's `Error:
+Unexpected internal error (<what>)` for PeakPickerHiRes's centroided refusal,
+FileInfo's unwritable report file, FuzzyDiff's malformed whitelist and the
+FeatureFinderCentroided refusals; `FileNotFound`, `FileEmpty` and
+`UnableToCreateFile` texts where the source throws those), written through
+`writeLogError_`, and `Escaped` for a `std::exception`, which only the
+initialisation catch handles (`Unable to initialize or run <tool>: <what>`,
+exit 12, on the error stream only). Before the framework printed the closing
+line, the tools stood in for thrown exceptions by writing the catch text and
+returning a code, which after it printed the line where the Release build
+prints none (finding F0 of `.planning/VERIFY-phase3w1.md`); three of the five
+earlier tools (MzMLSplitter, DTAExtractor, BaselineFilter) did the opposite and
+raised errors where the source returns a code.
 
 **Update diagnostics** of the strict update, the lenient `-write_ini` update and
 the per-user defaults reach standard error at the end of the run: the source
@@ -605,12 +683,13 @@ reads a parameter it did not register, or with the wrong accessor, gets
 the source's `UnregisteredParameter` and `WrongParameterType` reach
 `INTERNAL_ERROR` (12); both are programming errors, not reachable from a
 command line. `Error::InvalidValue` and `InvalidRange` from a tool body exit 6
-where the source's own `InvalidValue`/`InvalidRange` exceptions exit 8: the
-ported tools also return `InvalidValue` for the source's explicit
-`return ILLEGAL_PARAMETERS` (MzMLSplitter's option checks, for one), so the
-crate-wide arm cannot move to 8 until those tools return
-`ExitCode::IllegalParameters` themselves (tried: five suites then disagree,
-two of them with the Release build).
+where the source's own `InvalidValue`/`InvalidRange` exceptions exit 8. The
+source's explicit `return ILLEGAL_PARAMETERS` after a message is now an exit
+code the tool returns (MzMLSplitter's option checks and DTAExtractor's caught
+`ConversionError` were the ones that raised `InvalidValue`); the crate-wide
+arm still maps `InvalidValue` to 6, because other callers, among them the
+parameter readers and MapNormalizer's non-positive scale, rely on that code,
+and moving it is a separate decision.
 `parse_range` leaves both bounds unchanged on error. A command line is bounded
 by `MAX_ARGUMENTS` and `MAX_ARGUMENT_BYTES` before parsing, and parsed in time
 linear in its length: the text left after each option is gathered in reverse and
@@ -622,20 +701,24 @@ independent generator per call instead of seeding a process-wide singleton.
 
 ## Checked boundaries and evidence
 
-`tests/topp_cli_lifecycle.rs` holds 73 cases, `tests/topp_cli_completion.rs`
-43, `tests/param_ctd.rs` 10, `tests/tool_description.rs` 7 and
+`tests/topp_cli_lifecycle.rs` holds 75 cases, `tests/topp_cli_completion.rs`
+49, `tests/param_ctd.rs` 10, `tests/tool_description.rs` 7 and
 `tests/parameter_information.rs` 3, none ignored.
 
 * **Release build (tier 1 executed differential).**
   `../oracle/toppbase-completion/cases.sh` ran 124 cases of the C++ Release
   build at the port's pins (core `bc9cc12`, cli `c19e494`, topp `174b576`) on
   ibminode06, each in a clean environment with its own `HOME`,
-  `OPENMS_HOME_PATH` and working directory; 93 of them are retained under
+  `OPENMS_HOME_PATH` and working directory; 97 of them are retained under
   `tests/data/topp_cli_completion/<case>/` (argv, environment, exit code,
   streams, log file, file tree) with `fixtures.sha256.json`, and the CTDs under
   `tests/data/topp_cli_lifecycle/release/`. `ctd_driver.cpp` wrote five CTDs
   through the Release `libOpenMS` (two identical runs), retained under
-  `tests/data/param_ctd/oracle/`.
+  `tests/data/param_ctd/oracle/`. `../oracle/topp-exception-exits/cases.sh`
+  ran 28 more on the same build, twice with identical results: how each ported
+  tool ends a returned and a thrown `main_`, and what reaches `-log`
+  (retained under `tests/data/topp_exception_exits/`, provenance
+  `tests/data/topp_exception_exits_provenance.json`).
 * **Upstream class tests (tier 3).** `ToolHandler_test.cpp`,
   `ToolManifest_test.cpp`, `ParameterInformation_test.cpp` and the `-log` and
   `Citation::toString` sections of `TOPPBase_test.cpp` (cli `c19e494`);
@@ -818,7 +901,8 @@ FuzzyDiff rather than a byte comparison, so byte equality is not the contract.
 Source conventions preserved: the part count derived from a file size in
 KB/MB/GB base 1024, the remainder spread over the parts still to come, zero
 padding to the width of the part count, and the refusal of `no_chrom` together
-with `no_spec`.
+with `no_spec`, which, like a `-parts 1` run without `-size`, is the source's
+`writeLogError_` line followed by exit 6 as a code `main_` returns.
 
 ## MapNormalizer and SpectraFilterWindowMower
 
@@ -929,15 +1013,23 @@ descriptions are applied after the subsection defaults are inserted.
 its retained output with zero difference across all 132 intensities. It takes
 the filter's three parameters as ordinary options rather than a subsection,
 exactly as the source does, and keeps the source's two refusals: a run holding
-only chromatograms, and spectra that are not sorted by m/z.
+only chromatograms, and spectra that are not sorted by m/z. Both are exit codes
+`main_` returns after its message (`INCOMPATIBLE_INPUT_DATA`), so the closing
+line follows them.
 
 BaselineFilter, MapNormalizer and SpectraFilterWindowMower add the processing
 record the source attaches to their outputs, and MzMLSplitter reproduces the
 source's attaching it to parts that hold nothing yet (decision D4; see
-*Processing records* under *Preserved source conventions*). Not ported:
-BaselineFilter's warning when peak type estimation finds the first spectrum
-centroided, and the log lines MzMLSplitter writes about the file size and each
-part.
+*Processing records* under *Preserved source conventions*). BaselineFilter's
+warning when peak type estimation finds the first spectrum centroided and the
+lines MzMLSplitter writes about the file size, the totals and each part are
+ported, on the console and in the log (Release oracles `bf_centroided_log`,
+`ms_parts2_log`, `ms_size_kb_log`). Not ported: SpectraFilterWindowMower's
+`clearMetaDataArrays` and its warning (the tool keeps the arrays aligned
+instead), and the source-compatible load options (decision D10) in the five
+earlier tools, whose loaders are still the strict library default: an input
+with a dangling mzML header reference, which the source reads, fails to load
+there (seen on the Release run `bf_empty_log`'s input).
 
 The second DTA finding above is the first concrete instance of the port's
 "checked boundaries" convention blocking C++ parity. The resolution pattern —

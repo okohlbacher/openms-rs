@@ -29,9 +29,25 @@
 //! and reads it **in place of the executable's own prefix** whenever that
 //! prefix has no `share/openms4/tools` directory. An executable installed into
 //! a prefix that does carry manifests reads those instead, exactly as the
-//! source. A prefix named in `OPENMS_TOOL_PREFIX_PATH` whose manifest lists a
-//! tool the built-in manifest also lists is a duplicate, as it is for two C++
-//! installations; the source reports that for every tool run.
+//! source.
+//!
+//! **The same manifest found twice is read once**, as in the source, whose
+//! `seen` set skips a manifest file it has already read
+//! (`ToolHandler.cpp:90-104`; the Release build with its own prefix named in
+//! `OPENMS_TOOL_PREFIX_PATH`, even twice, runs normally, oracle
+//! `reg_install_prefix_twice`). The source knows a manifest by its canonical
+//! path, which the built-in manifest does not have; it is known by what it is,
+//! the file `topp.tools.tsv` the pinned `topp` package installs. So when a
+//! prefix supplies `share/openms4/tools/topp.tools.tsv` byte for byte — an
+//! `OPENMS_TOOL_PREFIX_PATH` naming the C++ installation, which is what the
+//! variable is for — that manifest is the built-in one reached a second time,
+//! and the built-in copy is not read again. A manifest under another name, or
+//! with other bytes (another product version), that lists a product tool is
+//! a second manifest and a duplicate, as it is for two C++ installations
+//! (oracles `reg_dup_*`, and `reg_copy_of_install_manifest` of
+//! `../oracle/topp-exception-exits`, where a copy of the installed manifest
+//! under another prefix is a duplicate because the source's identity is the
+//! path); the source reports that for every tool run.
 //!
 //! Manifests are read on demand, on every lookup, as the source's are. The
 //! legacy internal-tool registry (`.ttd` files) is read once per
@@ -171,7 +187,8 @@ pub struct ToolRegistrySources {
     /// `File::getExecutablePath`). Its parent is the installation prefix.
     pub executable_directory: PathBuf,
     /// Read [`BUILTIN_MANIFEST`] for the executable's prefix when that prefix
-    /// has no `share/openms4/tools` directory. Default `true`.
+    /// has no `share/openms4/tools` directory, and no prefix installs the
+    /// same manifest byte for byte as `topp.tools.tsv`. Default `true`.
     pub builtin_manifest: bool,
     /// The internal-tool configuration directory (source
     /// `getInternalToolsPath`: the shared-data directory plus
@@ -383,6 +400,16 @@ impl ToolHandler {
                     result.push(Manifest::File(path));
                 }
             }
+        }
+        // The built-in manifest reached a second time, through a prefix that
+        // installs it: read once, as the `seen` set above reads a file once
+        // (see the module documentation).
+        let installed = result.iter().any(|manifest| match manifest {
+            Manifest::File(path) => is_builtin_manifest(path),
+            Manifest::Builtin(_) => false,
+        });
+        if installed {
+            result.retain(|manifest| matches!(manifest, Manifest::File(_)));
         }
         Ok(result)
     }
@@ -685,6 +712,30 @@ fn read_manifest(path: &Path) -> Result<String> {
         text.push_str(&String::from_utf8_lossy(&buffer));
     }
     Ok(text)
+}
+
+/// Whether `path` is the manifest [`BUILTIN_MANIFEST`] stands for: a file
+/// named [`BUILTIN_MANIFEST_NAME`] holding exactly its bytes. Any failure to
+/// read it answers `false`; reading it for the registry then reports the
+/// failure as the source does.
+fn is_builtin_manifest(path: &Path) -> bool {
+    if path
+        .file_name()
+        .is_none_or(|name| name != BUILTIN_MANIFEST_NAME)
+    {
+        return false;
+    }
+    let expected = BUILTIN_MANIFEST.as_bytes();
+    let Ok(file) = std::fs::File::open(path) else {
+        return false;
+    };
+    if file.metadata().map(|m| m.len()).ok() != Some(expected.len() as u64) {
+        return false;
+    }
+    let mut bytes = Vec::with_capacity(expected.len());
+    file.take(expected.len() as u64 + 1)
+        .read_to_end(&mut bytes)
+        .is_ok_and(|_| bytes == expected)
 }
 
 use std::io::Read as _;

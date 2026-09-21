@@ -25,12 +25,12 @@ c19e494 `source/APPLICATIONS/TOPPBase.cpp` (sha256
 
 ```rust,ignore
 impl Tool for MyTool {
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         ctx.in_thread_pool(|| Self::run_in_pool(ctx))?
     }
 }
 impl MyTool {
-    fn run_in_pool(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run_in_pool(ctx: &ToolContext) -> ToolResult {
         // the body; parallel algorithms take ctx.thread_policy()
     }
 }
@@ -38,7 +38,9 @@ impl MyTool {
 
 A tool that overrides `Tool::run_io` computes inside the closure and writes to
 `out` and `err` after `in_thread_pool` returns, because those streams are not
-`Send`.
+`Send`; BaselineFilter, DTAExtractor and MzMLSplitter record their messages in
+the crate's `PoolLines` inside the pool, which logs them at once and writes
+them to the console afterwards.
 
 ## Preserved source conventions
 

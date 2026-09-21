@@ -1,0 +1,9 @@
+FeatureFinderCentroided
+-test
+-no_progress
+-in
+/scratch/kohlbach/topp-exception-exits/inputs/profile/FeatureFinderCentroided_1_input.mzML
+-out
+/scratch/kohlbach/topp-exception-exits/run2/results/ffc_profile_noforce_log/cwd/out.featureXML
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/ffc_profile_noforce_log/cwd/log.txt

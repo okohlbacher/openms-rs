@@ -8,7 +8,7 @@
 //! `getSubsectionDefaults_` supplies them. The output carries the source's
 //! `data filtering` processing record.
 
-use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
+use crate::cli::{ExitCode, Tool, ToolContext, ToolResult, ToolSpec};
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
 use crate::metadata::ProcessingAction;
@@ -69,8 +69,8 @@ impl Tool for SpectraFilterWindowMower {
     /// Source `main_`, run on the worker pool that `-threads` sizes, as
     /// `TOPPBase::main` applies the setting before `main_`
     /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`].
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
-        ctx.in_thread_pool(|| Self::run_in_pool(ctx))?
+    fn run(ctx: &ToolContext) -> ToolResult {
+        Ok(ctx.in_thread_pool(|| Self::run_in_pool(ctx))??)
     }
 }
 
@@ -112,6 +112,10 @@ impl SpectraFilterWindowMower {
         };
 
         let mut experiment = FileHandler::load_experiment(ctx.string("in")?, &[FileType::MzMl])?;
+        // `writeDebug_("Used filter parameters", filter_param, 3)`
+        // (`SpectraFilterWindowMower.cpp:106-107`): the -log file, from debug
+        // level 3.
+        ctx.write_debug_param("Used filter parameters", &algorithm, 3);
         filter.filter_experiment(&mut experiment)?;
         // Source addDataProcessing_(exp, getProcessingInfo_(FILTERING)).
         let processing = ctx.processing_info(&[ProcessingAction::DataFiltering])?;

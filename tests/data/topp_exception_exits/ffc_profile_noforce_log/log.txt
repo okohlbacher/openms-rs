@@ -1,0 +1,1 @@
+2026-09-21 21:30:17 FeatureFinderCentroided:1:: Error: Unexpected internal error (Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.)

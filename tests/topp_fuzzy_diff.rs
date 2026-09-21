@@ -17,8 +17,12 @@
 //!   errors, every verbose level, tab width and first column, both whitelists,
 //!   `-sort`, number tokens, raw bytes, relative paths and directories. Each
 //!   case is run through the tool here and compared on the exit code, the
-//!   output stream byte for byte and the error stream byte for byte, after the
-//!   normalisations [`cpp_streams_for_port`] names;
+//!   output stream byte for byte and the error stream byte for byte. The
+//!   Release streams are compared as the oracle recorded them, with the two
+//!   environment differences [`release_streams`] names and nothing of the
+//!   framework's or the tool's; the port's streams get the oracle's own
+//!   placeholders ([`normalise_port`]), including its mask of the closing
+//!   line's figures;
 //! - tier 4, the native refusals (an unreadable `-sort` input, the input bound)
 //!   and the agreement of the test-support emulation with the tool.
 //!
@@ -33,6 +37,10 @@
 
 #[path = "support/fuzzy_string_comparator.rs"]
 mod fuzzy;
+#[path = "support/release_runs.rs"]
+mod release_runs;
+#[path = "support/took_line.rs"]
+mod took_line;
 
 use openms::cli::tools::FuzzyDiff;
 use openms::cli::{ExitCode, Tool, run_with};
@@ -50,8 +58,8 @@ use std::path::{Path, PathBuf};
 /// text*).
 const LINUX_STTY_LINE: &str = "stty: 'standard input': Inappropriate ioctl for device\n";
 
-/// The `TOPPBase` timing line after `main_` returns, as the oracle masks it.
-/// The port's framework does not write it (`docs/TOPP_CLI_SUPPORT.md`).
+/// The closing line `TOPPBase::main` writes after `main_` returns
+/// (`TOPPBase.cpp:413-424`), with its figures masked as the oracle masks them.
 const TIMING_LINE: &[u8] = b"FuzzyDiff took <T>.\n";
 
 /// One invocation of `../oracle/fuzzy-diff-tool/cases.tsv`.
@@ -195,52 +203,58 @@ fn run_case(case: &Case, out_dir: &Path) -> Run {
     }
 }
 
+/// The port's stream with the oracle's placeholders: `<D>` for the data
+/// directory, `<CASE>/out` for the case's directory, and the figures of the
+/// closing `FuzzyDiff took …` line masked as `<T>`.
 fn normalise_port(bytes: &[u8], out_dir: &Path) -> Vec<u8> {
     let bytes = replace(bytes, data_dir().as_bytes(), b"<D>");
-    replace(&bytes, out_dir.to_string_lossy().as_bytes(), b"<CASE>/out")
+    let bytes = replace(&bytes, out_dir.to_string_lossy().as_bytes(), b"<CASE>/out");
+    mask_timing_line(&bytes)
 }
 
-/// The Release build's streams as this port writes them, applying exactly
-/// the framework's documented differences and nothing of the tool's:
+/// The oracle's mask of the closing line, applied to the port's output
+/// stream: a last line `FuzzyDiff took …` whose shape
+/// `took_line::split_took_line` accepts becomes [`TIMING_LINE`]. Any other
+/// stream is returned unchanged, so a closing line that is missing, or that is
+/// not the last line, still differs from the Release build's.
+fn mask_timing_line(bytes: &[u8]) -> Vec<u8> {
+    let body = bytes.strip_suffix(b"\n").unwrap_or(bytes);
+    let start = body
+        .iter()
+        .rposition(|&b| b == b'\n')
+        .map_or(0, |at| at + 1);
+    let last = &bytes[start..];
+    if !last.starts_with(b"FuzzyDiff took ") {
+        return bytes.to_vec();
+    }
+    let line = std::str::from_utf8(last).expect("the closing line is ASCII");
+    let (_, took) = took_line::split_took_line(FuzzyDiff::NAME, line);
+    assert!(took.is_some(), "{line:?}");
+    [&bytes[..start], TIMING_LINE].concat()
+}
+
+/// Whether the Release build's output stream ends with its closing line.
+fn release_timed(cpp: &Executed) -> bool {
+    cpp.stdout.ends_with(TIMING_LINE)
+}
+
+/// The Release build's streams as the oracle recorded them, with the two
+/// differences of the environment the port runs in, and nothing of the
+/// framework's or the tool's:
 ///
-/// * the timing line `TOPPBase::main` writes after `main_` returns is dropped
-///   from the output stream; whether it was there is returned, so a caller can
-///   hold it to the cases where `main_` returned;
-/// * the `stty` probe line of the usage text is dropped;
-/// * the framework's missing-file parenthetical reads `does not exist` where
-///   the source says `could not be found` (`docs/TOPP_CLI_SUPPORT.md`,
-///   *Diagnostics*); only the framework's two-line input-check diagnostic is
-///   rewritten, not the tool's own `FileNotFound` text;
-/// * when the strict parameter update fails, the C++ error stream carries
-///   `Parameters passed to 'FuzzyDiff' are invalid...` *before* the diagnostic
-///   that caused it, although `TOPPBase` writes the diagnostic first: the two
-///   go through different log streams (`getGlobalLogWarn()` and
-///   `OPENMS_LOG_ERROR`, `TOPPBase.cpp:338-343` at cli c19e494) and the error
-///   stream is flushed first. The port's framework writes them in code order;
-///   the C++ order is restored to that here, the lines themselves unchanged;
+/// * the `stty` probe line of the usage text is dropped: the Linux Release
+///   build runs `stty size` without a terminal, and a tool driven in process
+///   writes to explicit streams, which are not probed
+///   (`docs/TOPP_CLI_SUPPORT.md`, *On a console*);
 /// * a `-sort` temporary file `<CASE>/tmp/<name>.sorted.<UNIQUE>.tmp` is named
 ///   by the input it copies, as the port compares in memory and names the
 ///   inputs (`docs/TOPP_FUZZY_DIFF_SUPPORT.md`, native difference 1).
-fn cpp_streams_for_port(case: &Case, cpp: &Executed) -> (Vec<u8>, Vec<u8>, bool) {
-    let (mut stdout, timed) = match cpp.stdout.strip_suffix(TIMING_LINE) {
-        Some(body) => (body.to_vec(), true),
-        None => (cpp.stdout.clone(), false),
-    };
-    assert!(
-        !stdout
-            .windows(b"FuzzyDiff took".len())
-            .any(|w| w == b"FuzzyDiff took"),
-        "{}: a timing line that is not the last one",
-        case.name
-    );
-    let mut stderr = replace(&cpp.stderr, LINUX_STTY_LINE.as_bytes(), b"");
-    if stderr.starts_with(b"Cannot read input file given from parameter '-") {
-        stderr = replace(&stderr, b"' could not be found)\n", b"' does not exist)\n");
-    }
-    const INVALID: &[u8] = b"Parameters passed to 'FuzzyDiff' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!\n";
-    if let Some(diagnostics) = stderr.strip_prefix(INVALID) {
-        stderr = [diagnostics, INVALID].concat();
-    }
+///
+/// The closing line, the framework's diagnostics and their order are compared
+/// as the Release build wrote them.
+fn release_streams(case: &Case, cpp: &Executed) -> (Vec<u8>, Vec<u8>) {
+    let mut stdout = cpp.stdout.clone();
+    let stderr = replace(&cpp.stderr, LINUX_STTY_LINE.as_bytes(), b"");
     if case.args.iter().any(|arg| arg == "-sort") {
         for input in input_arguments(case) {
             let name = Path::new(&input).file_name().unwrap().to_string_lossy();
@@ -248,7 +262,7 @@ fn cpp_streams_for_port(case: &Case, cpp: &Executed) -> (Vec<u8>, Vec<u8>, bool)
             stdout = replace(&stdout, temporary.as_bytes(), input.as_bytes());
         }
     }
-    (stdout, stderr, timed)
+    (stdout, stderr)
 }
 
 /// The `-in1` and `-in2` values of a case, placeholders kept.
@@ -301,7 +315,7 @@ fn first_difference(actual: &[u8], expected: &[u8]) -> String {
 fn compare_case(case: &Case, cpp: &Executed) -> Vec<String> {
     let dir = TempDir::new(false).unwrap();
     let run = run_case(case, dir.path());
-    let (stdout, stderr, _) = cpp_streams_for_port(case, cpp);
+    let (stdout, stderr) = release_streams(case, cpp);
     let mut problems = Vec::new();
     if run.code != cpp.exit {
         problems.push(format!(
@@ -398,9 +412,9 @@ fn topp_fuzzydiff_4_exits_1_for_a_missing_input() {
 // ---------------------------------------------------------------------------
 
 /// Every in-process oracle case against the Release build: exit code and both
-/// streams, byte for byte after [`cpp_streams_for_port`]. The deliberate
-/// divergences and the cases that need a working directory are checked in
-/// their own tests; the count pins the case list.
+/// streams, byte for byte, the Release streams as [`release_streams`] gives
+/// them. The deliberate divergences and the cases that need a working
+/// directory are checked in their own tests; the count pins the case list.
 #[test]
 fn every_executed_case_matches_the_release_build() {
     let executed = executed();
@@ -427,17 +441,26 @@ fn every_executed_case_matches_the_release_build() {
     );
 }
 
-/// The oracle's own consistency: the timing line is written exactly when
-/// `main_` returned, which is every exit 0 or 10 except usage and `-write_ini`,
-/// which end before `main_`. This is what licenses dropping it.
+/// The oracle's own consistency: the closing line is written exactly when
+/// `main_` returned, which is every exit 0 or 10 except usage and
+/// `-write_ini`, which end before `main_`; every other exit is an exception or
+/// a refusal before `main_`, and ends without it. The comparisons above hold
+/// the port to the same line in each case.
 #[test]
 fn the_timing_line_marks_exactly_the_runs_whose_main_returned() {
     for case in cases() {
         let cpp = &executed()[&case.name];
-        let (_, _, timed) = cpp_streams_for_port(&case, cpp);
         let before_main = ["help", "helphelp", "write_ini"].contains(&case.name.as_str());
         let returned = (cpp.exit == 0 || cpp.exit == 10) && !before_main;
-        assert_eq!(timed, returned, "{}", case.name);
+        assert_eq!(release_timed(cpp), returned, "{}", case.name);
+        let body = cpp.stdout.strip_suffix(TIMING_LINE).unwrap_or(&cpp.stdout);
+        assert!(
+            !body
+                .windows(b"FuzzyDiff took".len())
+                .any(|w| w == b"FuzzyDiff took"),
+            "{}: a timing line that is not the last one",
+            case.name
+        );
     }
 }
 
@@ -458,7 +481,7 @@ fn relative_names_resolve_against_the_working_directory() {
             .current_dir(Path::new(&data_dir()).join(&case.cwd))
             .output()
             .unwrap();
-        let (stdout, stderr, _) = cpp_streams_for_port(&case, &cpp);
+        let (stdout, stderr) = release_streams(&case, &cpp);
         assert_eq!(done.status.code(), Some(cpp.exit), "{name}");
         let out = normalise_port(&done.stdout, dir.path());
         let err = normalise_port(&done.stderr, dir.path());
@@ -532,7 +555,7 @@ fn an_underflowing_number_is_a_number_as_the_source_comment_says() {
         assert_eq!(
             String::from_utf8_lossy(&run.out),
             format!(
-                "PASSED.\n\n  relative_max:        1\n  relative_acceptable: 1\n\n  absolute_max:        0\n  absolute_acceptable: {absdiff}\n\nNo numeric differences were found.\n\n"
+                "PASSED.\n\n  relative_max:        1\n  relative_acceptable: 1\n\n  absolute_max:        0\n  absolute_acceptable: {absdiff}\n\nNo numeric differences were found.\n\nFuzzyDiff took <T>.\n"
             ),
             "{name}"
         );
@@ -565,6 +588,54 @@ fn a_sort_input_that_cannot_be_read_is_refused() {
         "Unable to initialize or run FuzzyDiff: error reading the file '<D>/topp_fuzzy_diff/inputs/directory_a': Is a directory\n"
     );
     assert_eq!(executed_case("directory_vs_file").exit, 12);
+}
+
+// ---------------------------------------------------------------------------
+// -log (Release build, tier 1)
+// ---------------------------------------------------------------------------
+
+/// `../oracle/topp-exception-exits` (retained in
+/// `tests/data/topp_exception_exits`), with `-log`:
+///
+/// * `fd_matched_whitelist_log`: the thrown `IllegalArgument` of a malformed
+///   `-matched_whitelist` entry. The `BaseException` arm writes its line to the
+///   error stream and the log file, exit 8, no closing line.
+/// * `fd_directory_log`: a directory as `-in1`. The `std::ios_base::failure`
+///   reaches the initialisation catch, whose line goes to the error stream
+///   only: exit 12, no closing line, and no log file.
+#[test]
+fn release_refusals_end_and_log_as_in_the_release_build() {
+    use release_runs::ReleaseRun;
+    ReleaseRun::new("fd_matched_whitelist_log").assert_replayed::<FuzzyDiff>(&[], |_| {});
+    ReleaseRun::new("fd_directory_log").assert_replayed::<FuzzyDiff>(&[], |cwd| {
+        fs::create_dir(cwd.join("adir")).unwrap();
+    });
+}
+
+/// Oracle `fd_debug1_log`: a comparison at debug level 1 with `-log`. The
+/// report and the closing line are the Release build's; the log file holds the
+/// framework's lines and the tool's two `writeDebug_` lines about its lists
+/// (`FuzzyDiff.cpp:107-108`), `whitelist: <?xml-stylesheet (size: 1)` and
+/// `matched_whitelist:  (size: 0)`.
+#[test]
+fn release_debug_lines_reach_the_log() {
+    use release_runs::{ReleaseRun, assert_debug_log};
+    let case = ReleaseRun::new("fd_debug1_log");
+    let replay = case.replay::<FuzzyDiff>(&[], |_| {});
+    let release = case.release(FuzzyDiff::NAME, &replay, &[]);
+    assert_eq!(replay.code.as_i32(), release.exit, "{}", replay.err);
+    assert_eq!(replay.out, release.out);
+    assert_eq!(replay.took.is_some(), release.took.is_some());
+    assert_eq!(replay.err, release.err);
+    let expected = release.log.unwrap();
+    let lists: Vec<String> = [
+        "<time> FuzzyDiff:1:: whitelist: <?xml-stylesheet (size: 1)\n",
+        "<time> FuzzyDiff:1:: matched_whitelist:  (size: 0)\n",
+    ]
+    .iter()
+    .map(|line| (*line).to_owned())
+    .collect();
+    assert_debug_log(case.name, &replay.log.unwrap(), &expected, &[&lists]);
 }
 
 // ---------------------------------------------------------------------------

@@ -35,13 +35,13 @@ Every member of `TOPPPeakPickerHiRes`, in source order.
 | `main_(int, const char**)` | `Tool::run_io` | `Tool::run` forwards with the process streams. |
 | members `in`, `out` | `ToolContext::string("in")`, `("out")` | Read where the source reads them. |
 | `getParam_().copy("algorithm:", true)` + `pp.setParameters` | `ToolContext::subsection("algorithm")` + `PeakPickerHiRes::from_param` | |
-| `writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3)` | not ported | No debug writer exists on `ToolContext`; no registered test compares debug output. |
+| `writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3)` | `ToolContext::write_debug_param` | The `-log` file from debug level 3, line for line the Release build's dump (oracle `pphr_debug3_log` of `../oracle/topp-exception-exits`). |
 | `pp.setLogType(log_type_)`, `mz_data_file.setLogType(log_type_)`, `FileHandler::loadExperiment(..., log_type_)` | not ported | The picker and the readers have no progress logging; `ToolContext::progress_log_type` exists for when they do. |
 | `FileHandler().loadExperiment(in, exp, {MZML}, log_type_)` | `FileHandler::load_experiment_with_read_options(in, &[FileType::MzMl], &PeakFileOptions::default(), &PeakPickerHiRes::read_options())` | `read_options` is `mzml::ReadOptions::source()`: decision D10's source-compatibility switches, which `TOPP_PeakPickerHiRes_5` needs for its dangling header references, over the library's size-derived ceilings, which an instrument-sized run needs. Library defaults stay strict. |
 | the `IMTypes::determineIMFormat` warning loop | `check_input` | Warns once, as the source `break` does. |
 | `ms_exp_raw.empty() && getChromatograms().empty()` → `INCOMPATIBLE_INPUT_DATA` | `check_input` | Same message and code. |
-| the two `isSorted()` loops → `INCOMPATIBLE_INPUT_DATA` | `check_input` | Same messages and code; unreachable through the loader in both implementations (see *Preserved source conventions*). |
-| `pp.pickExperiment(ms_exp_raw, ms_exp_peaks, !getFlag_("force"))` | `PeakPickerHiRes::pick_experiment` with `check_spectrum_type = !ctx.force()` | The per-level `OPENMS_LOG_INFO` summary is written by the tool, because the native picker does not log. |
+| the two `isSorted()` loops → `INCOMPATIBLE_INPUT_DATA` | `check_input` | Same messages and code, through `writeLogError_` into the `-log` file too; unreachable through the loader in both implementations (see *Preserved source conventions*). |
+| `pp.pickExperiment(ms_exp_raw, ms_exp_peaks, !getFlag_("force"))` | `PeakPickerHiRes::pick_experiment` with `check_spectrum_type = !ctx.flag("force")` | The per-level `OPENMS_LOG_INFO` summary is written by the tool, because the native picker does not log. Its centroided refusal, the source's thrown `IllegalArgument`, is `ToolError::unexpected`: exit 8, the line in the `-log` file, and no closing line (Release oracle `pphr_centroided_log`). |
 | `addDataProcessing_(ms_exp_peaks, getProcessingInfo_(DataProcessing::PEAK_PICKING))` | `ToolContext::processing_info(&[ProcessingAction::PeakPicking])` + `ToolContext::add_data_processing` | One shared record on every spectrum and chromatogram. |
 | `FileHandler().storeExperiment(out, ms_exp_peaks, {MZML})` | `FileHandler::store_experiment(out, exp, Some(FileType::MzMl))` | |
 | `return EXECUTION_OK` | `Ok(ExitCode::ExecutionOk)` | |
@@ -57,7 +57,8 @@ Every member of `TOPPPeakPickerHiRes`, in source order.
 | `-test` | ported (processing record and unique-id seed through the framework) |
 | `-write_ini`, `-ini`, `-threads`, `-debug`, `-no_progress` | through the framework; `-debug` prints nothing here, `-no_progress` has nothing to suppress |
 | `-write_ctd` and the CWL/JSON writers | refused by the framework |
-| `-log`, `-instance` | inert, as in the rest of the port |
+| `-log` | through the framework: the INI notice, the refusals' lines and the debug dump reach the file as in the Release build (`../oracle/topp-exception-exits`, `pphr_*_log`) |
+| `-instance` | refused by the strict update, as in the rest of the port |
 | ion mobility (`IM_PEAK`) | picked with the source's warning; the mean ion mobility array is reproduced |
 | input formats | mzML only, as the source registers |
 
@@ -413,7 +414,7 @@ added to the source's output, not a change to it. Pinned by
    mobility data without `MS:1003441` (`MzMLHandler.cpp:253-255`), which is the
    oracle's text; an input carrying that term would read `im_centroided` in the
    source.
-7. **No debug dump and no progress logging**, as listed in the API mapping.
+7. **No progress logging**, as listed in the API mapping.
 8. **Bounded work on the input.** The C++ tool has no resource ceilings; this
    port bounds every cumulative quantity, and an input beyond a ceiling is
    refused before anything is written.
@@ -816,7 +817,8 @@ is not the state of this branch.
 
 Both implementations print the same per-MS-level summary
 (`MS-level 1: 6911 / 6911`, `MS-level 2: 0 / 33945`); the C++ adds progress
-logging and a timing line, which this port does not write (native difference 7).
+logging, which this port does not write (native difference 7); both end with
+the closing `PeakPickerHiRes took … .` line.
 
 ### Instrument scale across thread counts (`perf/peak-picker`)
 

@@ -1,0 +1,9 @@
+FileInfo
+-test
+-in
+/scratch/kohlbach/topp-exception-exits/inputs/FileInfo_1_input.dta
+-no_progress
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/fi_debug2_log/cwd/log.txt
+-debug
+2

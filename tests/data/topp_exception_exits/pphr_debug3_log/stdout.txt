@@ -1,0 +1,5 @@
+Writing to '/scratch/kohlbach/topp-exception-exits/run2/results/pphr_debug3_log/cwd/log.txt'
+#Spectra that needed to and could be picked by MS-level:
+  MS-level 1: 2 / 2
+  MS-level 2: 0 / 3
+PeakPickerHiRes took 0.08 s (wall), 10.25 s (CPU), 0.02 s (system), 10.23 s (user); Peak Memory Usage: 68 MB.

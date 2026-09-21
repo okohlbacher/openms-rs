@@ -1,0 +1,6 @@
+cwd
+cwd/log.txt
+cwd/part_part1of3.mzML
+cwd/part_part2of3.mzML
+cwd/part_part3of3.mzML
+home

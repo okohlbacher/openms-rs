@@ -8,6 +8,11 @@
 // gate `cargo test --no-default-features` fails to compile.
 #![cfg(all(feature = "mzml", feature = "paramxml"))]
 
+#[path = "support/release_runs.rs"]
+mod release_runs;
+#[path = "support/took_line.rs"]
+mod took_line;
+
 use openms::cli::tools::BaselineFilter;
 use openms::cli::{ExitCode, TEST_MODE_COMPLETION_TIME, run_with};
 use openms::data_structures::DateTime;
@@ -146,4 +151,35 @@ fn unsorted_input_and_bad_parameters_are_refused() {
     );
     // A bare invocation is ILLEGAL_PARAMETERS (TOPPBase.cpp:227-232).
     assert_eq!(run(&[]).0, ExitCode::IllegalParameters);
+}
+
+/// The Release build (`../oracle/topp-exception-exits`, retained in
+/// `tests/data/topp_exception_exits`), with `-log`: a first spectrum that peak
+/// type estimation calls centroided is a `writeLogWarn_` warning on the error
+/// stream and in the log, and the run goes on (`bf_centroided_log`); an input
+/// without spectra is an `OPENMS_LOG_WARN` warning, which no log file
+/// receives, and `INCOMPATIBLE_INPUT_DATA` as an exit code `main_` returns, so
+/// the closing line follows (`bf_empty_log`).
+///
+/// The Release run's `empty.mzML` names `dp_sp_0`, which no `dataProcessing`
+/// defines, as the default processing of its empty spectrum list. The source's
+/// reader ignores a reference it cannot resolve; this tool's loader is still
+/// the strict library default, not the source-compatible one the later tools
+/// use (decision D10 of `docs/EARLY_TOPP_WORK_PACKAGES.md`), and refuses the
+/// file. The replay therefore reads the same file without that attribute,
+/// which changes nothing the source does with it — there is no spectrum to
+/// apply a default to — so the Release run stays the expectation of the
+/// refusal itself.
+#[test]
+fn release_input_checks_end_as_in_the_release_build() {
+    use release_runs::ReleaseRun;
+    ReleaseRun::new("bf_centroided_log").assert_replayed::<BaselineFilter>(&[], |_| {});
+    let dir = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let original = std::fs::read_to_string(release_runs::input("empty.mzML").unwrap()).unwrap();
+    let resolved = original.replace(" defaultDataProcessingRef=\"dp_sp_0\"", "");
+    assert_ne!(resolved, original, "the dangling reference is gone");
+    let empty = dir.path().join("empty.mzML");
+    std::fs::write(&empty, resolved).unwrap();
+    ReleaseRun::new("bf_empty_log")
+        .assert_replayed::<BaselineFilter>(&[("empty.mzML", empty.as_path())], |_| {});
 }

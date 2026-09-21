@@ -39,8 +39,9 @@ use openms::cli::tools::{
     BaselineFilter, DTAExtractor, MapNormalizer, MzMLSplitter, SpectraFilterWindowMower,
 };
 use openms::cli::{
-    CITE_OPENMS, Citation, ExitCode, ParamCtdFile, Tool, ToolContext, ToolDescriptionFile,
-    ToolHandler, ToolRegistrySources, ToolSpec, product_versions, run_with_registry,
+    BUILTIN_MANIFEST, BUILTIN_MANIFEST_NAME, CITE_OPENMS, Citation, ExitCode, ParamCtdFile,
+    TOPP_PRODUCT_VERSION, Tool, ToolContext, ToolDescriptionFile, ToolHandler, ToolRegistrySources,
+    ToolResult, ToolSpec, product_versions, run_with_registry,
 };
 use openms::param::{Param, ParamValue};
 use openms::system::file::TempDir;
@@ -437,7 +438,7 @@ impl Tool for RegistryProbe {
     fn register(_spec: &mut ToolSpec) -> Result<()> {
         Ok(())
     }
-    fn run(_ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(_ctx: &ToolContext) -> ToolResult {
         Ok(ExitCode::ExecutionOk)
     }
 }
@@ -736,6 +737,184 @@ fn registry_entries_that_do_not_concern_the_tool_leave_its_usage_unchanged() {
     );
 }
 
+/// Oracle `reg_install_prefix_twice`: the Release build with its own
+/// installation prefix in `OPENMS_TOOL_PREFIX_PATH`, twice, runs normally,
+/// because the source reads a manifest file once however many prefixes
+/// reach it (`ToolHandler.cpp:90-104`). A prefix installing the product
+/// manifest byte for byte, as `share/openms4/tools/topp.tools.tsv`, is that
+/// installation for this port: the built-in manifest standing in for the
+/// executable's prefix is the same manifest and is not read a second time,
+/// so the usage text is the Release build's, and the registered tools resolve
+/// to that prefix.
+#[test]
+fn a_prefix_that_installs_the_product_manifest_is_the_built_in_one_read_once() {
+    let case = Case::new();
+    let prefix = probe_prefix(&case, BUILTIN_MANIFEST_NAME, BUILTIN_MANIFEST);
+    let handler = registry(&case, |sources| {
+        sources.prefixes = vec![prefix.clone(), prefix.clone()];
+    });
+    let outcome = run_in::<BaselineFilter>(&handler, &["--help"]);
+    assert_oracle_exit("reg_install_prefix_twice", &outcome);
+    assert_eq!(
+        outcome.err,
+        case.map(
+            "reg_install_prefix_twice",
+            &oracle("reg_install_prefix_twice", "stderr.txt")
+        )
+    );
+    assert_eq!(
+        handler.get_tool_version("BaselineFilter").unwrap(),
+        TOPP_PRODUCT_VERSION
+    );
+    let tools = handler.package_tools().unwrap();
+    assert_eq!(
+        tools["BaselineFilter"].executable,
+        std::path::absolute(prefix.join("bin/BaselineFilter")).unwrap()
+    );
+    let once = registry(&case, |sources| sources.prefixes = vec![prefix.clone()]);
+    assert_eq!(once.package_tools().unwrap(), tools);
+}
+
+/// One retained file of `../oracle/topp-exception-exits`
+/// (`tests/data/topp_exception_exits`), the Release build's registry cases.
+fn exception_exits(case: &str, file: &str) -> String {
+    fs::read_to_string(
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/data/topp_exception_exits")
+            .join(case)
+            .join(file),
+    )
+    .unwrap_or_else(|e| panic!("{case}/{file}: {e}"))
+}
+
+/// Oracles `reg_install_prefix_once` and `reg_symlink_to_install` of
+/// `../oracle/topp-exception-exits`: the Release build with its installation
+/// prefix in `OPENMS_TOOL_PREFIX_PATH` once, and with a prefix whose
+/// `share/openms4/tools` is a symbolic link to the installation's, runs
+/// `--help` normally, because both reach the executable's own manifest file,
+/// which the source reads once (`weakly_canonical`, `ToolHandler.cpp:104`).
+/// Here the product manifest reached through a symbolic link is still the
+/// built-in one, and two prefixes that reach one file read it once.
+#[test]
+fn the_installed_manifest_reached_through_the_variable_is_read_once() {
+    for name in ["reg_install_prefix_once", "reg_symlink_to_install"] {
+        assert_eq!(exception_exits(name, "exit_code.txt").trim(), "0", "{name}");
+        let release = exception_exits(name, "stderr.txt").replace(STTY_LINE, "");
+        let case = Case::new();
+        let installed = probe_prefix(&case, BUILTIN_MANIFEST_NAME, BUILTIN_MANIFEST);
+        let prefixes = if name == "reg_symlink_to_install" {
+            let Some(linked) = linked_prefix(&case, &installed) else {
+                continue;
+            };
+            vec![linked, installed]
+        } else {
+            vec![installed]
+        };
+        let handler = registry(&case, |sources| sources.prefixes = prefixes);
+        let outcome = run_in::<BaselineFilter>(&handler, &["--help"]);
+        assert_eq!(
+            outcome.code,
+            ExitCode::ExecutionOk,
+            "{name}: {}",
+            outcome.err
+        );
+        assert_eq!(outcome.err, release, "{name}");
+    }
+}
+
+/// A prefix whose `share/openms4/tools` is a symbolic link to `installed`'s;
+/// `None` where the platform makes no symbolic links without privileges.
+fn linked_prefix(case: &Case, installed: &Path) -> Option<PathBuf> {
+    #[cfg(unix)]
+    {
+        let linked = case.home().join("linked");
+        fs::create_dir_all(linked.join("share/openms4")).unwrap();
+        std::os::unix::fs::symlink(
+            installed.join("share/openms4/tools"),
+            linked.join("share/openms4/tools"),
+        )
+        .unwrap();
+        Some(linked)
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = (case, installed);
+        None
+    }
+}
+
+/// Oracle `reg_copy_of_install_manifest` of `../oracle/topp-exception-exits`,
+/// a recorded difference: the Release build refuses a byte-identical copy of
+/// its own manifest under another prefix, even for `--help` (exit 6, the
+/// duplicate reported at its own installation's row), because the source
+/// knows a manifest by its path and its own prefix's manifest is a second
+/// file. The built-in manifest has no path; it is known by name and bytes, so
+/// the same copy is the built-in manifest reached again here, and the run
+/// goes on (see `src/cli/tool_handler.rs`, *The same manifest found twice*).
+#[test]
+fn a_copy_of_the_installed_manifest_is_a_recorded_difference() {
+    let name = "reg_copy_of_install_manifest";
+    assert_eq!(exception_exits(name, "exit_code.txt").trim(), "6");
+    assert_eq!(
+        exception_exits(name, "stderr.txt"),
+        format!(
+            "Unable to initialize or run BaselineFilter: the value '{RELEASE_PREFIX}/share/openms4/tools/topp.tools.tsv: AccurateMassSearch\tMetabolite Identification\t1.0.0\tbin/AccurateMassSearch' was used but is not valid; Invalid or duplicate tool package manifest entry\n"
+        )
+    );
+    assert_eq!(
+        exception_exits("reg_copy_of_install_manifest_run", "exit_code.txt").trim(),
+        "6"
+    );
+    let case = Case::new();
+    let copy = probe_prefix(&case, BUILTIN_MANIFEST_NAME, BUILTIN_MANIFEST);
+    let handler = registry(&case, |sources| sources.prefixes = vec![copy]);
+    let outcome = run_in::<BaselineFilter>(&handler, &["--help"]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+}
+
+/// A second manifest is a duplicate, whatever it holds, as for two C++
+/// installations (oracle `reg_dup_help`, and `reg_copy_of_install_manifest`
+/// of `../oracle/topp-exception-exits`, where the Release build refuses a
+/// byte-identical copy of its own manifest under another prefix: the source
+/// knows a manifest by its path). Only the product manifest itself, under its
+/// installed name, is the built-in one reached again: a copy under another
+/// name, and `topp.tools.tsv` one byte longer, are second manifests listing
+/// the product tools.
+#[test]
+fn a_manifest_that_is_not_the_product_manifest_is_still_a_duplicate() {
+    let longer = format!("{BUILTIN_MANIFEST}\n");
+    for (file, contents) in [
+        ("copy.tools.tsv", BUILTIN_MANIFEST),
+        (BUILTIN_MANIFEST_NAME, longer.as_str()),
+    ] {
+        let case = Case::new();
+        let prefix = probe_prefix(&case, file, contents);
+        let handler = registry(&case, |sources| sources.prefixes = vec![prefix]);
+        let outcome = run_in::<BaselineFilter>(&handler, &["--help"]);
+        assert_eq!(
+            outcome.code,
+            ExitCode::IllegalParameters,
+            "{file}: {}",
+            outcome.err
+        );
+        assert!(
+            outcome
+                .err
+                .starts_with("Unable to initialize or run BaselineFilter: ")
+                && outcome.err.ends_with(
+                    "was used but is not valid; Invalid or duplicate tool package manifest entry\n"
+                ),
+            "{file}: {}",
+            outcome.err
+        );
+        assert!(
+            outcome.err.contains(&builtin_manifest_path(&handler)),
+            "{file}: the duplicate is the built-in manifest's row: {}",
+            outcome.err
+        );
+    }
+}
+
 /// Oracles `ttd_*`: the internal-tool registry under `OPENMS_TTD_INTERNAL_PATH`.
 /// Every `.ttd` entry is an internal tool, keyed by name, so two external
 /// entries (which have none) collide on the empty name; a tool the product
@@ -853,6 +1032,33 @@ fn the_executable_reads_the_prefix_path_from_its_environment() {
             &text(own_prefix.join("share/openms4/tools/topp.tools.tsv")),
         );
     assert_eq!(String::from_utf8_lossy(&output.stderr), expected);
+
+    // `OPENMS_TOOL_PREFIX_PATH` naming an installation of the product
+    // manifest, which is what the variable is for: the executable runs, as
+    // the Release build does with its own prefix named there (oracle
+    // `reg_install_prefix_twice`).
+    let case = Case::new();
+    let prefix = probe_prefix(&case, BUILTIN_MANIFEST_NAME, BUILTIN_MANIFEST);
+    let output = Command::new(&binary)
+        .arg("--help")
+        .env("OPENMS_TOOL_PREFIX_PATH", &prefix)
+        .env("OPENMS_HOME_PATH", case.home())
+        .env("COLUMNS", "0")
+        .current_dir(case.cwd())
+        .output()
+        .unwrap();
+    assert_eq!(
+        output.status.code(),
+        Some(oracle_exit("reg_install_prefix_twice")),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let release = case.map(
+        "reg_install_prefix_twice",
+        &oracle("reg_install_prefix_twice", "stderr.txt"),
+    );
+    assert_eq!(stderr, release);
 }
 
 // ---------------------------------------------------------------------------
@@ -1169,7 +1375,7 @@ impl Tool for CitingTool {
     fn register(_spec: &mut ToolSpec) -> Result<()> {
         Ok(())
     }
-    fn run(_ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(_ctx: &ToolContext) -> ToolResult {
         Ok(ExitCode::ExecutionOk)
     }
 }
@@ -1610,6 +1816,125 @@ fn a_log_file_named_by_the_ini_file_takes_effect() {
     assert_eq!(log_lines(&case), oracle_log(&case, "log_in_ini"));
 }
 
+/// The progress lines the Release build's `BaselineFilter` prints without
+/// `-no_progress`, which this port's does not (see *On a console* in
+/// `docs/TOPP_CLI_SUPPORT.md`): `Progress of '<task>':` and `-- done [took
+/// …] --`, indented by nesting.
+fn is_progress_line(line: &str) -> bool {
+    let line = line.trim_start();
+    line.starts_with("Progress of '") || line.starts_with("-- done [took ")
+}
+
+/// Oracles `debug1_run`, `debug2_run`, `debug3_run`, `debug10_run` and
+/// `debug1_ini` (the last with `-ini method_erosion.ini -debug 2`): without
+/// `-log`, a debug level writes nothing anywhere, because the Release build
+/// compiles `OPENMS_LOG_DEBUG` out and `writeDebug_` reaches only the log file.
+/// The runs exit 0 with an empty error stream and leave no file but their
+/// output; the output stream is the closing line and the progress lines, which
+/// this port's `BaselineFilter` does not print (asserted to be nothing else),
+/// so the port's output stream is the closing line alone.
+#[test]
+fn a_debug_level_without_a_log_file_writes_nothing() {
+    for (name, extra) in [
+        ("debug1_run", &["-debug", "1"][..]),
+        ("debug2_run", &["-debug", "2"]),
+        ("debug3_run", &["-debug", "3"]),
+        ("debug10_run", &["-debug", "10"]),
+        (
+            "debug1_ini",
+            &["-ini", "@IN@/method_erosion.ini", "-debug", "2"],
+        ),
+    ] {
+        let case = Case::new();
+        let handler = registry(&case, |_| {});
+        let (input, out) = (baseline_input(), text(case.cwd().join("out.mzML")));
+        let ini = text(data("method_erosion.ini"));
+        let mut args = vec!["-test", "-in", &input, "-out", &out];
+        args.extend(extra.iter().map(|a| {
+            if *a == "@IN@/method_erosion.ini" {
+                ini.as_str()
+            } else {
+                a
+            }
+        }));
+        let outcome = run_in::<BaselineFilter>(&handler, &args);
+        assert_oracle_exit(name, &outcome);
+        assert_eq!(outcome.err, oracle(name, "stderr.txt"), "{name}");
+        let release = oracle(name, "stdout.txt");
+        let (release_body, release_took) = took_line::split_took_line("BaselineFilter", &release);
+        assert!(release_took.is_some(), "{name}");
+        assert!(
+            release_body.lines().all(is_progress_line),
+            "{name}: {release_body}"
+        );
+        let (body, took) = took_line::split_took_line("BaselineFilter", &outcome.out);
+        assert!(took.is_some(), "{name}: {}", outcome.out);
+        assert_eq!(body, "", "{name}");
+        assert_eq!(
+            oracle(name, "tree.txt"),
+            "cwd\ncwd/out.mzML\nhome\n",
+            "{name}: the Release run left no log file"
+        );
+        let mut left: Vec<String> = fs::read_dir(case.cwd())
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        left.sort();
+        assert_eq!(left, ["out.mzML"], "{name}");
+    }
+}
+
+/// Oracle `log_undetermined_format`: an input whose name and content no type
+/// claims, with `-log`. Compared, with one difference recorded: the framework's
+/// warning `Warning: Could not determine format of input file '<file>'!` is the
+/// Release build's on the error stream and as the log file's first line, and
+/// neither run prints a closing line; the load that follows fails in both,
+/// but the Release build's `FileHandler::loadExperiment` throws `ParseError`
+/// (exit 3, `Error: Unable to read file (type: unknown is not allowed for
+/// loading an experiment. Allowed types are: , mzML in: <file>)`), where this
+/// port's loader returns `Error::InvalidValue`, which the lifecycle maps to
+/// exit 6. That difference belongs to `src/format/file_handler.rs` and is
+/// recorded in `docs/TOPP_CLI_SUPPORT.md` (*Formats*); both runs log their
+/// error line as the second and last line.
+#[test]
+fn an_undetermined_format_logs_the_warning_and_fails_the_load() {
+    let name = "log_undetermined_format";
+    let case = Case::new();
+    let handler = registry(&case, |_| {});
+    let input = text(data("unknown_name_and_content"));
+    let (out, log) = (
+        text(case.cwd().join("out.mzML")),
+        text(case.cwd().join("log.txt")),
+    );
+    let outcome = run_in::<BaselineFilter>(
+        &handler,
+        &["-test", "-in", &input, "-out", &out, "-log", &log],
+    );
+    assert_eq!(oracle_exit(name), ExitCode::InputFileCorrupt.as_i32());
+    assert_ne!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.out, oracle(name, "stdout.txt"));
+    assert!(outcome.out.is_empty());
+    let release_err = case.map(name, &oracle(name, "stderr.txt"));
+    let release_lines: Vec<&str> = release_err.lines().collect();
+    assert_eq!(release_lines.len(), 2);
+    assert!(
+        release_lines[1].starts_with("Error: Unable to read file (type: unknown is not allowed")
+    );
+    let lines: Vec<&str> = outcome.err.lines().collect();
+    assert_eq!(lines.len(), 2, "{}", outcome.err);
+    assert_eq!(lines[0], release_lines[0]);
+    let expected_log = oracle_log(&case, name);
+    let actual_log = log_lines(&case);
+    assert_eq!(expected_log.len(), 2);
+    assert_eq!(actual_log.len(), 2, "{actual_log:?}");
+    assert_eq!(actual_log[0], expected_log[0]);
+    assert_eq!(
+        actual_log[1],
+        format!("<time> BaselineFilter:1:: {}\n", lines[1]),
+        "the port logs its own error line"
+    );
+}
+
 /// `START_SECTION(([EXTRA] -log writes a log file))` (`TOPPBase_test.cpp:870-890`):
 /// `TOPPBaseTest -log <file> -debug 1` writes a non-empty log whose lines carry
 /// the tool's INI location.
@@ -1629,7 +1954,7 @@ fn upstream_log_writes_a_log_file() {
                 false,
             )
         }
-        fn run(_ctx: &ToolContext) -> Result<ExitCode> {
+        fn run(_ctx: &ToolContext) -> ToolResult {
             Ok(ExitCode::ExecutionOk)
         }
     }
@@ -1658,7 +1983,7 @@ fn upstream_ini_location_follows_instance() {
         fn register(_spec: &mut ToolSpec) -> Result<()> {
             Ok(())
         }
-        fn run(_ctx: &ToolContext) -> Result<ExitCode> {
+        fn run(_ctx: &ToolContext) -> ToolResult {
             Ok(ExitCode::ExecutionOk)
         }
     }
@@ -1804,7 +2129,7 @@ impl Tool for ExecutableTool {
             &["is_executable"],
         )
     }
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         let resolved = ctx.string("exe")?.to_owned();
         RESOLVED.with(|slot| *slot.borrow_mut() = Some(resolved));
         Ok(ExitCode::ExecutionOk)
@@ -1857,7 +2182,7 @@ impl Tool for OutputDirTool {
     fn register(spec: &mut ToolSpec) -> Result<()> {
         spec.register_output_dir("out_dir", "<directory>", "", "a directory", false, false)
     }
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run(ctx: &ToolContext) -> ToolResult {
         let directory = ctx.output_dir("out_dir")?.to_owned();
         OUTPUT_DIR.with(|slot| *slot.borrow_mut() = Some(directory));
         Ok(ExitCode::ExecutionOk)

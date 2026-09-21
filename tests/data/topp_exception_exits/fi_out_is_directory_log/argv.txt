@@ -1,0 +1,11 @@
+FileInfo
+-test
+-in
+/scratch/kohlbach/topp-exception-exits/inputs/FileInfo_1_input.dta
+-in_type
+dta
+-no_progress
+-out
+/scratch/kohlbach/topp-exception-exits/run2/results/fi_out_is_directory_log/cwd/dir.txt
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/fi_out_is_directory_log/cwd/log.txt

@@ -1,0 +1,5 @@
+cwd
+cwd/log.txt
+cwd/x_RT474.557999999999993.dta
+cwd/x_RT475.321000000000026.dta
+home

@@ -8,16 +8,23 @@
 //! rather than a subsection, exactly as the source does. The output carries the
 //! source's `baseline reduction` processing record.
 //!
-//! Not ported: the warning the source writes when peak type estimation finds
-//! the first spectrum centroided.
+//! The source's input checks are `main_`'s own (`BaselineFilter.cpp:104-125`):
+//! an input without spectra is an `OPENMS_LOG_WARN` warning and
+//! `INCOMPATIBLE_INPUT_DATA`, a first spectrum that peak type estimation calls
+//! centroided a `writeLogWarn_` warning, and an unsorted spectrum a
+//! `writeLogError_` line and `INCOMPATIBLE_INPUT_DATA`. Each code is one
+//! `main_` returns, so `TOPPBase`'s closing line follows (Release oracles
+//! `bf_empty_log` and `bf_centroided_log` of `../oracle/topp-exception-exits`).
 
-use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
+use crate::cli::{ExitCode, PoolLines, Tool, ToolContext, ToolResult, ToolSpec};
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
+use crate::kernel::{MSSpectrum, SpectrumType, SpectrumTypeQueryLimits};
 use crate::metadata::ProcessingAction;
 use crate::processing::SpectrumFilter;
 use crate::processing::baseline::{MorphologicalFilter, MorphologicalMethod, StructuringElement};
 use crate::{Error, Result};
+use std::io::Write;
 
 /// The `BaselineFilter` TOPP tool.
 pub struct BaselineFilter;
@@ -102,33 +109,82 @@ impl Tool for BaselineFilter {
         Ok(())
     }
 
+    /// Run against the process streams; see `run_io`.
+    fn run(ctx: &ToolContext) -> ToolResult {
+        Self::run_io(ctx, &mut std::io::stdout(), &mut std::io::stderr())
+    }
+
     /// Source `main_`, run on the worker pool that `-threads` sizes, as
     /// `TOPPBase::main` applies the setting before `main_`
-    /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`].
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
-        ctx.in_thread_pool(|| Self::run_in_pool(ctx))?
+    /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`]. The
+    /// body's console lines are written once the pool returns.
+    fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> ToolResult {
+        let mut lines = PoolLines::default();
+        let result = ctx.in_thread_pool(|| Self::run_in_pool(ctx, &mut lines))?;
+        lines.write(out, err)?;
+        result
     }
 }
 
+/// Source `ms_exp[0].getType(true)` (`BaselineFilter.cpp:112`): the stored
+/// type, else a `PEAK_PICKING` record in the processing history, else the peak
+/// type estimation.
+///
+/// It only decides whether the source warns, so it never ends the run. The
+/// query's ceilings are the spectrum's own size: the spectrum is in memory
+/// already, and the estimation copies its two value arrays once, so no ceiling
+/// refuses a spectrum the reader admitted (the library default stops at a
+/// million points). A spectrum holding a non-finite value, which the native
+/// estimator declines to classify, is not warned about; the source classifies
+/// it by whatever its arithmetic on the value gives.
+fn first_spectrum_type(spectrum: &MSSpectrum) -> SpectrumType {
+    let points = spectrum.peaks.len();
+    let records = spectrum.data_processing.len();
+    let limits = SpectrumTypeQueryLimits {
+        max_points: points,
+        // 32 units per point for the estimation, and at most 1 + 12 * 64 per
+        // history record (`MSSpectrum::get_type_with_limits`).
+        max_work: points
+            .saturating_mul(32)
+            .saturating_add(records.saturating_mul(1 + 12 * 64)),
+        max_bytes: points.saturating_mul(2 * std::mem::size_of::<f64>()),
+    };
+    spectrum
+        .get_type_with_limits(true, limits)
+        .unwrap_or(SpectrumType::Unknown)
+}
+
+/// Source warning for an input without spectra (`BaselineFilter.cpp:107-108`);
+/// the warning log stream ends the line.
+const EMPTY_INPUT_WARNING: &str = "The given file does not contain any conventional peak data, but might contain chromatograms. This tool currently cannot handle them, sorry.";
+
 impl BaselineFilter {
     /// The tool body, as the source `main_`.
-    fn run_in_pool(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run_in_pool(ctx: &ToolContext, lines: &mut PoolLines) -> ToolResult {
         let mut experiment = FileHandler::load_experiment(ctx.string("in")?, &[FileType::MzMl])?;
 
         // Source refuses a run that carries only chromatograms, and refuses
         // unsorted spectra rather than producing a wrong baseline.
         if experiment.spectra.is_empty() {
-            return Err(Error::Unsupported(
-                "the given file contains no conventional peak data; chromatograms are not handled"
-                    .into(),
-            ));
+            lines.console_warning(EMPTY_INPUT_WARNING);
+            return Ok(ExitCode::IncompatibleInputData);
         }
-        for (index, spectrum) in experiment.spectra.iter().enumerate() {
-            if !spectrum.is_sorted() {
-                return Err(Error::Unsupported(format!(
-                    "spectrum {index} is not sorted by m/z; sort the input with FileFilter first"
-                )));
-            }
+        if first_spectrum_type(&experiment.spectra[0]) == SpectrumType::Centroid {
+            lines.warn(
+                ctx,
+                "Warning: OpenMS peak type estimation indicates that this is not raw data!",
+            );
+        }
+        if !experiment
+            .spectra
+            .iter()
+            .all(|spectrum| spectrum.is_sorted())
+        {
+            lines.error(
+                ctx,
+                "Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!",
+            );
+            return Ok(ExitCode::IncompatibleInputData);
         }
 
         let length = ctx.double("struc_elem_length")?;
@@ -144,7 +200,8 @@ impl BaselineFilter {
                 other => {
                     return Err(Error::InvalidValue(format!(
                         "unknown structuring element unit '{other}'"
-                    )));
+                    ))
+                    .into());
                 }
             },
         };

@@ -57,6 +57,8 @@
 mod decoded;
 #[path = "support/fuzzy_string_comparator.rs"]
 mod fuzzy;
+#[path = "support/release_runs.rs"]
+mod release_runs;
 #[path = "support/took_line.rs"]
 mod took_line;
 
@@ -64,7 +66,8 @@ use base64::Engine;
 use openms::cli::tools::FeatureFinderCentroided;
 use openms::cli::{
     ExitCode, TEST_MODE_COMPLETION_TIME, TEST_MODE_PARAMETER_KEY, TEST_MODE_PARAMETER_VALUE,
-    TEST_MODE_UNIQUE_ID_SEED, TEST_MODE_VERSION, Tool, ToolContext, ToolSpec, run_with, tool_spec,
+    TEST_MODE_UNIQUE_ID_SEED, TEST_MODE_VERSION, Tool, ToolContext, ToolResult, ToolSpec, run_with,
+    tool_spec,
 };
 use openms::concept::UniqueIdGenerator;
 use openms::format::file_handler::FileHandler;
@@ -206,6 +209,19 @@ fn run_in(dir: &Workdir, args: &[&str]) -> Outcome {
         err: String::from_utf8_lossy(&output.stderr).into_owned(),
         took: split.1,
     }
+}
+
+/// Assert that the run ended as the source's exception does: it unwinds past
+/// `TOPPBase`'s closing `FeatureFinderCentroided took …` line
+/// (`TOPPBase.cpp:413-426`), so standard output has none, at its end or
+/// anywhere else.
+fn assert_no_closing_line(outcome: &Outcome) {
+    assert!(
+        outcome.took.is_none() && !outcome.out.contains("FeatureFinderCentroided took"),
+        "a closing line after an exception:\n{}{:?}",
+        outcome.out,
+        outcome.took
+    );
 }
 
 /// Assert that the wrapper accepted the input and handed it to the algorithm.
@@ -849,7 +865,9 @@ fn the_load_options_are_the_executed_ones() {
 
 /// Oracle `FFC_ms2_only`: the MS-level filter leaves no spectrum, so the
 /// source throws `FileEmpty` and `TOPPBase` exits 4 with the message inside its
-/// `FileEmpty` wording; no output is written.
+/// `FileEmpty` wording; no output is written, and the exception unwinds past
+/// the closing `FeatureFinderCentroided took …` line, which the oracle's
+/// standard output does not have.
 #[test]
 fn an_input_without_ms1_spectra_is_input_file_empty() {
     let dir = Workdir::new();
@@ -866,6 +884,7 @@ fn an_input_without_ms1_spectra_is_input_file_empty() {
     );
     outcome.assert_exit(ExitCode::InputFileEmpty);
     outcome.assert_err_contains(FeatureFinderCentroided::NO_MS1_SPECTRA_MESSAGE);
+    assert_no_closing_line(&outcome);
     assert!(!Path::new(&out).exists());
 }
 
@@ -895,6 +914,7 @@ fn profile_data_is_refused_without_force() {
     let outcome = run_in(&dir, &arguments);
     outcome.assert_exit(ExitCode::UnknownError);
     outcome.assert_err_contains(FeatureFinderCentroided::PROFILE_DATA_MESSAGE);
+    assert_no_closing_line(&outcome);
     assert!(!Path::new(&out).exists());
 
     let mut forced: Vec<&str> = arguments.to_vec();
@@ -905,6 +925,49 @@ fn profile_data_is_refused_without_force() {
     assert_out_block(&outcome, FFC1_ALGORITHM_LINES);
     assert_ffc1_structure(&out, "FeatureFinderCentroided_1_input.mzML");
     assert_matches_ffc1_expectation(&out);
+}
+
+/// The Release build (`../oracle/topp-exception-exits`, retained in
+/// `tests/data/topp_exception_exits`), with `-log` and `-no_progress`:
+///
+/// * `ffc_profile_noforce_log`: profile input without `-force`, the thrown
+///   `IllegalArgument`: its `BaseException` line on the error stream and in
+///   the log, exit 8, no closing line.
+/// * `ffc_ms2_only_log`: no MS1 spectrum, the thrown `FileEmpty`: its
+///   `FileEmpty` line on the error stream and in the log, exit 4, no closing
+///   line.
+#[test]
+fn release_refusals_end_and_log_as_in_the_release_build() {
+    use release_runs::ReleaseRun;
+    let dir = Workdir::new();
+    let profile = dir.put(
+        "profile/FeatureFinderCentroided_1_input.mzML",
+        &derive_profile(&fs::read(ffc1_input()).unwrap()),
+    );
+    let derived = [(
+        "profile/FeatureFinderCentroided_1_input.mzML",
+        Path::new(&profile),
+    )];
+    ReleaseRun::new("ffc_profile_noforce_log")
+        .assert_replayed::<FeatureFinderCentroided>(&derived, |_| {});
+    ReleaseRun::new("ffc_ms2_only_log").assert_replayed::<FeatureFinderCentroided>(&[], |_| {});
+}
+
+/// Oracle `ffc_debug3_log`: `TOPP_FeatureFinderCentroided_1`'s input at debug
+/// level 3 with `-log`. The log file holds the framework's lines and the
+/// tool's dump of the `algorithm` section, `Parameters passed to
+/// FeatureFinder` (`FeatureFinderCentroided.cpp:232-233`), line for line.
+#[test]
+fn release_debug_lines_reach_the_log() {
+    use release_runs::{ReleaseRun, assert_debug_log, dump_block};
+    let case = ReleaseRun::new("ffc_debug3_log");
+    let replay = case.replay::<FeatureFinderCentroided>(&[], |_| {});
+    let release = case.release("FeatureFinderCentroided", &replay, &[]);
+    assert_eq!(replay.code.as_i32(), release.exit, "{}", replay.err);
+    assert_eq!(replay.took.is_some(), release.took.is_some());
+    let expected = release.log.unwrap();
+    let dump = dump_block(&expected, "Parameters passed to FeatureFinder");
+    assert_debug_log(case.name, &replay.log.unwrap(), &expected, &[&dump]);
 }
 
 /// Oracle `FFC_profile_then_spectrum_representation`: a profile term followed
@@ -971,6 +1034,7 @@ fn only_the_first_spectrum_decides_the_profile_check() {
     );
     outcome.assert_exit(ExitCode::UnknownError);
     outcome.assert_err_contains(FeatureFinderCentroided::PROFILE_DATA_MESSAGE);
+    assert_no_closing_line(&outcome);
     assert!(!Path::new(&out).exists());
 
     let later = with_profile_terms(&source, |index| index > 0);
@@ -1002,7 +1066,9 @@ fn only_the_first_spectrum_decides_the_profile_check() {
 
 /// Oracle `FFC_im_peak_with_units` and `FFC_im_peak_without_units`: a per-peak
 /// ion-mobility array on the MS1 spectra is refused with exit 11 and the
-/// source's message, whether or not the array carries a unit.
+/// source's message, whether or not the array carries a unit. The source's
+/// `main_` returns that code after an `OPENMS_LOG_ERROR` line, so `TOPPBase`
+/// prints its closing line, which the oracle's standard output ends with.
 #[test]
 fn per_peak_ion_mobility_is_incompatible_input_data() {
     let source = fs::read(ffc1_input()).unwrap();
@@ -1024,6 +1090,11 @@ fn per_peak_ion_mobility_is_incompatible_input_data() {
         );
         outcome.assert_exit(ExitCode::IncompatibleInputData);
         outcome.assert_err_contains(&FeatureFinderCentroided::im_peak_message());
+        assert!(
+            outcome.took.is_some(),
+            "main_ returned 11:\n{}",
+            outcome.out
+        );
         assert!(!Path::new(&out).exists());
     }
 }
@@ -1057,6 +1128,11 @@ fn the_ion_mobility_check_precedes_the_profile_check() {
     outcome.assert_exit(ExitCode::IncompatibleInputData);
     outcome.assert_err_contains(&FeatureFinderCentroided::im_peak_message());
     assert!(!outcome.err.contains("Profile data provided"));
+    assert!(
+        outcome.took.is_some(),
+        "main_ returned 11:\n{}",
+        outcome.out
+    );
 }
 
 /// Oracle `FFC_im_arrays_ms2_only`: ion-mobility arrays that exist only on MS2
@@ -1118,6 +1194,7 @@ fn the_numpress_profile_fixture_is_refused_without_force() {
     let outcome = run_in(&dir, &["-test", "-in", &input, "-out", &out]);
     outcome.assert_exit(ExitCode::UnknownError);
     outcome.assert_err_contains(FeatureFinderCentroided::PROFILE_DATA_MESSAGE);
+    assert_no_closing_line(&outcome);
     assert!(!Path::new(&out).exists());
 
     let outcome = run_in(&dir, &["-test", "-in", &input, "-out", &out, "-force"]);
@@ -1797,6 +1874,7 @@ fn an_input_whose_peaks_are_all_filtered_is_an_unexpected_internal_error() {
     outcome.assert_err_contains(
         "Error: Unexpected internal error (FeatureFinder needs updated ranges on input map. Aborting.)",
     );
+    assert_no_closing_line(&outcome);
     assert!(!Path::new(&out).exists());
 }
 
@@ -2592,6 +2670,7 @@ fn the_upstream_faims_fixtures_run_to_an_empty_map() {
     let outcome = run_in(&dir, &["-test", "-in", &interleaved, "-out", &out]);
     outcome.assert_exit(ExitCode::UnknownError);
     outcome.assert_err_contains(FeatureFinderCentroided::PROFILE_DATA_MESSAGE);
+    assert_no_closing_line(&outcome);
     assert!(!Path::new(&out).exists());
 
     let outcome = run_in(
@@ -2912,11 +2991,11 @@ impl Tool for FinishProbe {
         <FeatureFinderCentroided as Tool>::subsection_defaults(section)
     }
 
-    fn run(_ctx: &ToolContext) -> Result<ExitCode> {
-        Err(Error::Unsupported("the probe needs its streams".into()))
+    fn run(_ctx: &ToolContext) -> ToolResult {
+        Err(Error::Unsupported("the probe needs its streams".into()).into())
     }
 
-    fn run_io(ctx: &ToolContext, out: &mut dyn Write, _err: &mut dyn Write) -> Result<ExitCode> {
+    fn run_io(ctx: &ToolContext, out: &mut dyn Write, _err: &mut dyn Write) -> ToolResult {
         let features =
             FeatureFinderCentroided::finish_features(ctx, ctx.string("in")?, sample_map(), out)?;
         FINISHED.with(|cell| *cell.borrow_mut() = Some(features));
@@ -3134,14 +3213,10 @@ fn an_empty_feature_map_is_annotated() {
         fn subsection_defaults(section: &str) -> Result<Option<openms::param::Param>> {
             <FeatureFinderCentroided as Tool>::subsection_defaults(section)
         }
-        fn run(_ctx: &ToolContext) -> Result<ExitCode> {
-            Err(Error::Unsupported("the probe needs its streams".into()))
+        fn run(_ctx: &ToolContext) -> ToolResult {
+            Err(Error::Unsupported("the probe needs its streams".into()).into())
         }
-        fn run_io(
-            ctx: &ToolContext,
-            out: &mut dyn Write,
-            _err: &mut dyn Write,
-        ) -> Result<ExitCode> {
+        fn run_io(ctx: &ToolContext, out: &mut dyn Write, _err: &mut dyn Write) -> ToolResult {
             let map = FeatureFinderCentroided::finish_features(
                 ctx,
                 ctx.string("in")?,
@@ -3479,6 +3554,7 @@ fn a_debug_run_that_reaches_the_fit_ends_where_the_release_build_terminates() {
     outcome.assert_err_contains(
         "Error: Unexpected internal error (the element 'debug:pseudo_rt_shift' could not be found)",
     );
+    assert_no_closing_line(&outcome);
     let executed = fs::read_to_string(instrumentation("tool_b1_stdout.txt")).unwrap();
     assert!(executed.contains("FATAL: uncaught exception!"));
     assert!(
@@ -3540,6 +3616,7 @@ fn a_run_that_reaches_an_empty_best_pattern_is_refused_where_the_release_build_c
         "Error: Unexpected internal error (FeatureFinderAlgorithmPicked seed extension: the \
          isotope pattern matched no peak; the source reads its first entry here)",
     );
+    assert_no_closing_line(&outcome);
     let executed = executed_block("tool_avg0_stdout.txt");
     assert_eq!(
         executed,
@@ -3755,6 +3832,7 @@ fn a_debug_run_beyond_the_isotope_window_limit_exits_as_the_release_build() {
             length_error_tool(tag, "stdout_block"),
             "{tag}"
         );
+        assert_no_closing_line(&outcome);
         let debug = dir.path().join("debug");
         assert!(debug.join("features").is_dir());
         assert_eq!(fs::read_dir(debug.join("features")).unwrap().count(), 0);

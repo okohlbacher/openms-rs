@@ -1,0 +1,4 @@
+cwd
+cwd/dir.txt
+cwd/log.txt
+home

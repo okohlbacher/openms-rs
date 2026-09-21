@@ -14,6 +14,11 @@
 // gate `cargo test --no-default-features` fails to compile.
 #![cfg(all(feature = "mzml", feature = "paramxml"))]
 
+#[path = "support/release_runs.rs"]
+mod release_runs;
+#[path = "support/took_line.rs"]
+mod took_line;
+
 use openms::cli::tools::MzMLSplitter;
 use openms::cli::{ExitCode, run_with};
 use openms::data_structures::DateTime;
@@ -293,4 +298,26 @@ fn conflicting_and_missing_options_are_rejected() {
         run(&["-in", &input, "-parts", "0"]),
         ExitCode::IllegalParameters
     );
+}
+
+/// The Release build (`../oracle/topp-exception-exits`, retained in
+/// `tests/data/topp_exception_exits`), with `-log`: the two refusals are
+/// `writeLogError_` lines on the error stream and in the log, then an exit
+/// code `main_` returns, 6, so the closing line follows
+/// (`ms_no_chrom_no_spec_log`, and `ms_size_zero_log` with the default
+/// `-parts 1 -size 0`); a run reports the part count, the totals and every
+/// part with `writeLogInfo_` on standard output and in the log
+/// (`ms_parts2_log`), and first the file size in the unit asked for, as
+/// `StringUtils::toStr(float)` prints it (`ms_size_kb_log`, `9.032227 KB`).
+#[test]
+fn release_messages_reach_the_streams_and_the_log() {
+    use release_runs::ReleaseRun;
+    for name in [
+        "ms_no_chrom_no_spec_log",
+        "ms_size_zero_log",
+        "ms_parts2_log",
+        "ms_size_kb_log",
+    ] {
+        ReleaseRun::new(name).assert_replayed::<MzMLSplitter>(&[], |_| {});
+    }
 }

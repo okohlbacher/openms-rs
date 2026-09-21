@@ -1,0 +1,9 @@
+PeakPickerHiRes
+-test
+-no_progress
+-in
+/scratch/kohlbach/topp-exception-exits/inputs/empty.mzML
+-out
+/scratch/kohlbach/topp-exception-exits/run2/results/pphr_empty_log/cwd/out.mzML
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/pphr_empty_log/cwd/log.txt
