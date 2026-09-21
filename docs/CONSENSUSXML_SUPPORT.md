@@ -57,8 +57,11 @@ serialization and compression. A caller-owned writer can still contain partial
 bytes after an underlying I/O failure.
 
 The adapter's syntax/representation checks are not a generic XSD validator.
-Inherited `XMLFile::isValid` remains an SDK gap; the original schema is retained
-and exercised independently when `xmllint` is available. The handler implementation
+Inherited `XMLFile::isValid` is `consensusxml::is_valid`, with the optional
+`xml-schema` feature: real XSD validation against the bundled, unchanged
+`ConsensusXML_1_7.xsd`, with the class test's verdicts for both fixtures, a
+stored map and a stored map with protein-group quantities ported
+([XML schema validation](XML_SCHEMA_SUPPORT.md)). The handler implementation
 does not certify a TOPP tool or executed C++ differential parity.
 
 ## Evidence

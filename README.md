@@ -304,6 +304,11 @@ Stream writes preflight the complete output; path writes publish atomically.
 indexed schemas through libxml2 and requires its development library plus
 libclang at build time. Default builds do not enable this dependency. Schema,
 controlled-vocabulary, binary and index-integrity checks have separate contracts.
+[XSD validation for the other formats](docs/XML_SCHEMA_SUPPORT.md) is available
+with `features = ["xml-schema"]`, which `mzml-schema` implies: featureXML,
+consensusXML, idXML, paramXML, trafoXML, mzData, mzXML, mzIdentML and pepXML
+validate against their original bundled schemas, and `XMLValidator`'s
+arbitrary-schema check takes a self-contained caller schema.
 
 Spectrum and chromatogram metadata now uses typed values. See the
 [API migration guide](docs/RECORD_METADATA_MIGRATION.md) and

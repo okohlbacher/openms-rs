@@ -7595,7 +7595,8 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/consensusxml_provenance.json"
+        "tests/data/consensusxml_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
         "ConsensusMapNormalizer",
@@ -8042,7 +8043,8 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/featurexml_provenance.json"
+        "tests/data/featurexml_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
         "FeatureFinderLFQ",
@@ -8227,7 +8229,8 @@
       "reference_manifests": [
         "tests/data/file_info_a7_provenance.json",
         "tests/data/file_info_checks_provenance.json",
-        "tests/data/file_info_provenance.json"
+        "tests/data/file_info_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
         "FileInfo"
@@ -9073,7 +9076,8 @@
         "tests/data/data_array_xml_provenance.json",
         "tests/data/identification_paths_provenance.json",
         "tests/data/idxml_provenance.json",
-        "tests/data/modification_definition_io_provenance.json"
+        "tests/data/modification_definition_io_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
         "DigestorMotif",
@@ -9108,7 +9112,8 @@
       "reference_manifests": [
         "tests/data/imzml_file_provenance.json",
         "tests/data/imzml_handler_provenance.json",
-        "tests/data/on_disc_imzml_provenance.json"
+        "tests/data/on_disc_imzml_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -9478,7 +9483,8 @@
         "src/format/mzdata.rs"
       ],
       "reference_manifests": [
-        "tests/data/mzdata_provenance.json"
+        "tests/data/mzdata_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
         "XMLValidator"
@@ -9503,7 +9509,8 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/mzidentml_provenance.json"
+        "tests/data/mzidentml_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
         "IDFileConverter",
@@ -9593,7 +9600,8 @@
         "tests/data/mzml_schema_provenance.json",
         "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/mzml_validator_provenance.json",
-        "tests/data/mzml_writing_provenance.json"
+        "tests/data/mzml_writing_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
         "FileConverter",
@@ -9788,7 +9796,8 @@
         "src/format/mzxml.rs"
       ],
       "reference_manifests": [
-        "tests/data/mzxml_provenance.json"
+        "tests/data/mzxml_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
         "FileConverter",
@@ -10001,7 +10010,8 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/paramxml_provenance.json"
+        "tests/data/paramxml_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
         "INIUpdater",
@@ -10100,7 +10110,8 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/boost_regex_provenance.json",
-        "tests/data/pepxml_provenance.json"
+        "tests/data/pepxml_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
         "IDFileConverter",
@@ -10511,7 +10522,8 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/transformation_xml_provenance.json"
+        "tests/data/transformation_xml_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
         "ExternalCalibration"
@@ -10659,7 +10671,8 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/mzml_schema_provenance.json",
-        "tests/data/mzml_typed_transport_provenance.json"
+        "tests/data/mzml_typed_transport_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
         "XMLValidator"
@@ -10730,7 +10743,8 @@
         "tests/data/mzml_validator_provenance.json",
         "tests/data/mzxml_provenance.json",
         "tests/data/paramxml_provenance.json",
-        "tests/data/semantic_validator_provenance.json"
+        "tests/data/semantic_validator_provenance.json",
+        "tests/data/xml_schema_provenance.json"
       ],
       "direct_topp_consumers": [
         "XFDR"

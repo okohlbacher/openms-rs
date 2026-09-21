@@ -1243,6 +1243,26 @@ pub fn load_into(
 pub fn load_size(path: impl AsRef<Path>, options: &ReadOptions) -> Result<usize> {
     read_size(path_io::open(path.as_ref())?, options)
 }
+/// Validate a featureXML file against the bundled `FeatureXML_1_9.xsd`.
+///
+/// Source `FeatureXMLFile::isValid(filename, os)`, inherited from
+/// `Internal::XMLFile`: the messages the source writes to `os` are the
+/// report's diagnostics, and the source's `bool` is
+/// [`is_valid`](crate::format::xml_schema::SchemaValidationReport::is_valid).
+/// Available with the `xml-schema` feature, which brings in the libxml2
+/// validator; the source always has Xerces.
+///
+/// # Errors
+///
+/// As [`xml_schema::validate`](crate::format::xml_schema::validate): an I/O
+/// failure, where the source throws `Exception::FileNotFound`, and input that
+/// is not well-formed XML, where the source returns `false`.
+#[cfg(feature = "xml-schema")]
+pub fn is_valid(
+    path: impl AsRef<Path>,
+) -> Result<crate::format::xml_schema::SchemaValidationReport> {
+    crate::format::xml_schema::validate(crate::format::xml_schema::SchemaKind::FeatureXML, path)
+}
 /// Store `map` at `path`, replacing the destination atomically.
 ///
 /// The extension must be a featureXML one; `.gz` and `.bz2` suffixes select

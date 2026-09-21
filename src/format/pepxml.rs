@@ -13,10 +13,11 @@
 //! positions.
 //!
 //! A documented schema for the format ships with the TPP and is also mirrored in
-//! the OpenMS `share/OpenMS/SCHEMAS` directory. This port neither reads nor
-//! validates against that schema; see `docs/PEPXML_SUPPORT.md` for the API
-//! mapping, the preserved source conventions, the native differences and the
-//! checked boundaries.
+//! the OpenMS `share/OpenMS/SCHEMAS` directory. The reader does not consult it;
+//! `is_valid`, with the `xml-schema` feature, validates a file against the
+//! bundled `pepXML_v114.xsd` as the source's `isValid` does. See
+//! `docs/PEPXML_SUPPORT.md` for the API mapping, the preserved source
+//! conventions, the native differences and the checked boundaries.
 //!
 //! Reading returns
 //! [`PepXmlDocument`](crate::format::pepxml::PepXmlDocument), which carries the
@@ -3100,6 +3101,29 @@ pub fn load(path: impl AsRef<Path>) -> Result<PepXmlDocument> {
 /// See [`load`].
 pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Result<PepXmlDocument> {
     load_with_registry(path, options, ModificationsDB::global())
+}
+
+/// Validate a pepXML file against the bundled `pepXML_v114.xsd`.
+///
+/// Source `PepXMLFile::isValid(filename, os)`, inherited from
+/// `Internal::XMLFile`, with the schema the source constructor registers
+/// (`PepXMLFile.cpp:333`): the messages the source writes to `os` are the
+/// report's diagnostics, and the source's `bool` is
+/// [`is_valid`](crate::format::xml_schema::SchemaValidationReport::is_valid).
+/// Available with the `xml-schema` feature, which brings in the libxml2
+/// validator; the source always has Xerces. The source's class test asserts
+/// no pepXML verdict, so none is ported; see `docs/XML_SCHEMA_SUPPORT.md`.
+///
+/// # Errors
+///
+/// As [`xml_schema::validate`](crate::format::xml_schema::validate): an I/O
+/// failure, where the source throws `Exception::FileNotFound`, and input that
+/// is not well-formed XML, where the source returns `false`.
+#[cfg(feature = "xml-schema")]
+pub fn is_valid(
+    path: impl AsRef<Path>,
+) -> Result<crate::format::xml_schema::SchemaValidationReport> {
+    crate::format::xml_schema::validate(crate::format::xml_schema::SchemaKind::PepXML, path)
 }
 
 /// Read a pepXML file, resolving modifications against `registry`.

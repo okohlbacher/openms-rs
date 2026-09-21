@@ -80,7 +80,7 @@ The [modification-generation workflow](../tests/modification_generation_workflow
 also checks exact normal variant/search-definition round trips and verifies
 zero writer calls when source terminal placements cannot be represented.
 
-When `xmllint` is available, the Rust test independently validates generated XML against the exact copied `IdXML_1_5.xsd`. It passed on this development machine. The test explicitly reports a skip if the external validator is absent; ordinary parser/round-trip tests require only Rust. Source fixtures can also be checked without network access:
+`IdXMLFile::isValid` is `idxml::is_valid`, with the optional `xml-schema` feature: XSD validation against the bundled, unchanged `IdXML_1_5.xsd` ([XML schema validation](XML_SCHEMA_SUPPORT.md)). Its class-test section is ported except the stored empty document, which this writer refuses where the source writes a placeholder run (`IdXMLFile.cpp:416-418`). When `xmllint` is available, the Rust test independently validates generated XML against the exact copied `IdXML_1_5.xsd`. It passed on this development machine. The test explicitly reports a skip if the external validator is absent; ordinary parser/round-trip tests require only Rust. Source fixtures can also be checked without network access:
 
 ```sh
 xmllint --nonet --noout --schema tests/data/IdXML_1_5.xsd tests/data/idxml_upstream_whole.idXML

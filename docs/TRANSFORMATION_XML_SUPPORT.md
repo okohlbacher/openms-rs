@@ -26,7 +26,7 @@ the class test exercises.
 | `Param params_` | `TransformationRecord::parameters` | Protected state in the source, public here: the untyped `(name, value)` map is exactly what the file contains, and is the only way to see the parameters of a model this port cannot fit. Typed as `BTreeMap<String, ParamValue>`, so document order is replaced by name order — the source's `Param` is also name-ordered. |
 | `TransformationDescription::DataPoints data_` | `TransformationRecord::data` | `Vec<DataPoint>`, keeping the optional `note`. |
 | `std::string model_type_` | `TransformationRecord::model_type` | |
-| inherited `bool Internal::XMLFile::isValid(const std::string&, std::ostream&)` | not ported: XSD validation. The structural reader stands in; see "Native differences". |
+| inherited `bool Internal::XMLFile::isValid(const std::string&, std::ostream&)` | `is_valid`, with the optional `xml-schema` feature: XSD validation against the bundled, unchanged `TrafoXML_1_1.xsd`; see [XML schema validation](XML_SCHEMA_SUPPORT.md). |
 | inherited `const String& Internal::XMLFile::getVersion()` | `VERSION` | |
 | (none) | `TransformationRecord::model_config` | The typed `ModelConfig` a record names. The source resolves the name inside `TransformationDescription::fitModel`; splitting it out is what lets a caller read a `b_spline` file's parameters without being able to fit it. |
 | (none) | `TransformationRecord::description` | `fitModel` plus `setDataPoints`, as one call. |
@@ -90,12 +90,12 @@ Each of these is stated at the item in the rustdoc as well.
   `from`, `to` and float parameters with `attributeAsDouble_` and accepts
   whatever `strtod` returns, including infinities. This port requires finite
   values, because the fitted models require them.
-- **`isValid` is not ported.** It is XSD validation from the source's
-  `Internal::XMLFile` base; the crate's only XSD validator
-  (`src/format/mzml_schema.rs`) is mzML-specific and needs the `libxml`
-  feature. The structural reader stands in and reaches the same verdict on all
-  four upstream fixtures — file 3 is not even well-formed XML, carrying a
-  second `</Transformation>` close tag.
+- **`isValid` needs the `xml-schema` feature.** It is XSD validation from the
+  source's `Internal::XMLFile` base, ported as `is_valid` over libxml2. File 3
+  is not even well-formed XML, carrying a second `</Transformation>` close tag,
+  so it is `Error::Parse` where the source returns `false`. Without the
+  feature, the structural reader reaches the same verdict on all four upstream
+  fixtures.
 - **A different parameter set is written for a data-fitted linear model.** In
   C++ the base `TransformationModel` constructor copies the caller's `Param`
   and the data-fitted branch merges the eight weight and datum defaults into
@@ -152,8 +152,8 @@ is tested with `日本語 & <anchor>` and with `"quoted"` notes.
 compared with `TEST_REAL_SIMILAR`'s relative tolerance (the fixture stores them
 at six significant digits), the three pairs (1.2, 5.2) (2.2, 6.25) (3.2, 7.3),
 `extrapolation_type` `two-point-linear` appearing in a reloaded interpolated
-model, the `fit_model = false` path reporting `none`, structural accept/reject outcomes on
-the four fixtures (a weaker substitute for their source `isValid` checks), and `Exception::IllegalArgument` for the model name
+model, the `fit_model = false` path reporting `none`, the four fixtures' `isValid` verdicts (XSD
+validation with `xml-schema`, structural outcomes without it), and `Exception::IllegalArgument` for the model name
 `mumble_pfrwoarpfz`. Transcribed literals detect transcription drift but cannot
 falsify a misread algorithm. No C++ was built or executed and no C++ output was
 retained, so nothing here is tier 1 or 2. The escaping round trip, the
@@ -163,14 +163,15 @@ unknown-element refusals and the resource ceilings are independently derived
 
 ### Section accounting
 
-Three of four `START_SECTION`s of `TransformationXMLFile_test.cpp` are
-ported. The XSD `isValid` section has a structural substitute only; accepting
-three fixtures and rejecting malformed XML does not implement XSD validation.
+All four `START_SECTION`s of `TransformationXMLFile_test.cpp` are ported. The
+XSD `isValid` section is ported behind the optional `xml-schema` feature, in
+`tests/xml_schema.rs` and `tests/xml_schema_formats.rs`; the structural
+substitute below still runs without it.
 
 | Section | Assertion macros | Rust test | One reproduced value |
 |---|---|---|---|
 | `TransformationXMLFile()` | 1 | `the_constructor_state_is_version_1_1_and_its_schema` | the handler version `1.1` |
-| `[EXTRA] static bool isValid(const std::string&)` | 4 | `the_three_schema_valid_fixtures_read_and_the_invalid_one_does_not` | `TransformationXMLFile_3.trafoXML` → malformed XML; no XSD verdict |
+| `[EXTRA] static bool isValid(const std::string&)` | 4 | `tests/xml_schema_formats.rs::transformation_xml_fixtures_validate_as_the_class_test_asserts` (`xml-schema`); structurally, `the_three_schema_valid_fixtures_read_and_the_invalid_one_does_not` | fixtures 1, 2 and 4 validate against `TrafoXML_1_1.xsd`; 3 is malformed XML |
 | `void load(..., bool fit_model=true)` | 17 | `loading_fits_the_named_model_from_the_file` | `getModelType()` of file 4 is `interpolated`, and its second pair is (2.2, 6.25) |
 | `void store(...)` | 18 (its `#if 0` b_spline block is excluded, as the compiler excludes it) | `storing_and_reloading_preserves_the_model_and_its_parameters` | a reloaded stored interpolated model has `params.size() == 2` with `extrapolation_type == "two-point-linear"` |
 

@@ -208,9 +208,12 @@ The following native behavior is deliberate:
   Only the map's own metadata and a feature's carry the source's spellings.
 
 Modern IdentificationData graph attachments are not serialized by either source
-map XML handler and are outside this transport. A complete public inherited
-`XMLFile::isValid` schema-validation API is not claimed here. Schema checks of
-written fixtures are separate validation evidence.
+map XML handler and are outside this transport. The inherited
+`XMLFile::isValid` is `featurexml::is_valid`, with the optional `xml-schema`
+feature: real XSD validation against the bundled, unchanged
+`FeatureXML_1_9.xsd`, with `FeatureXMLFile_test.cpp:385-405` ported (both
+fixtures, a stored empty map and a stored loaded map); see
+[XML schema validation](XML_SCHEMA_SUPPORT.md).
 
 ## Bounds and verification
 

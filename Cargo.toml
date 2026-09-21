@@ -62,7 +62,11 @@ featurexml = ["dep:quick-xml", "file-compression"]
 consensusxml = ["dep:quick-xml", "file-compression"]
 semantic-validation = ["cv-mapping"]
 mzml-validation = ["mzml", "semantic-validation"]
-mzml-schema = ["mzml", "dep:libxml"]
+mzml-schema = ["mzml", "xml-schema"]
+# XSD validation against every schema the source bundles, and against a
+# caller's self-contained schema (XMLValidator). libxml2 through the exact
+# binding, so it stays out of `default` like `mzml-schema` always has.
+xml-schema = ["dep:libxml", "dep:quick-xml", "file-compression"]
 cv-mapping = ["dep:quick-xml", "file-compression"]
 file-compression = ["dep:flate2", "dep:bzip2"]
 sqlite = ["dep:rusqlite"]

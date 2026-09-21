@@ -1,0 +1,726 @@
+{
+ "group": "xml_schema",
+ "package": "Phase 2.5a: XSD validation for every ported XMLFile, and XMLValidator",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "scope": "Internal::XMLFile::isValid for FeatureXMLFile, ConsensusXMLFile, IdXMLFile, ParamXMLFile, TransformationXMLFile, MzDataFile, MzXMLFile, MzIdentMLFile (version-detecting) and PepXMLFile, and VALIDATORS/XMLValidator::isValid for a caller's self-contained schema, behind the optional xml-schema feature. The mzML engine of tests/data/mzml_schema_provenance.json is shared and unchanged in behaviour. No C++ was executed for this group.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/XMLValidator.h",
+   "bytes": 1978,
+   "sha256": "d1af4acfc0836b18a4a7969ff0c4a69dfe48845595a081a516071682de49556f"
+  },
+  {
+   "path": "src/openms/source/FORMAT/VALIDATORS/XMLValidator.cpp",
+   "bytes": 3946,
+   "sha256": "16193b35d7de8885d1061581d9e3eac717b0bfdd0aee41c6ba37a9a5f5bde7cc"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/XMLFile.h",
+   "bytes": 7029,
+   "sha256": "dbdf6d6a9f9b0de336bcc90d507dcdda86dace44fa583308f5ec39d908a2edf4"
+  },
+  {
+   "path": "src/openms/source/FORMAT/XMLFile.cpp",
+   "bytes": 12312,
+   "sha256": "61f51e245b4ccdc7367d949e1217ebd4906b6e03b4cd9653f7368b0d8da51ad4"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzMLFile.cpp",
+   "bytes": 8851,
+   "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "bytes": 24273,
+   "sha256": "5ae841d09aa6a815f2046fc56e47c1b339c6789f8b0b6b14f97ecfbd38c9eb5f"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FeatureXMLFile.cpp",
+   "bytes": 3711,
+   "sha256": "d8438be53a31a416e5630e375c2fc950fec129d9c75ba039a672265989072645"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ConsensusXMLFile.cpp",
+   "bytes": 4038,
+   "sha256": "94247197099fafb4dbee77148c44660fc50663a31ccddbb304ca871edfdb81c6"
+  },
+  {
+   "path": "src/openms/source/FORMAT/IdXMLFile.cpp",
+   "bytes": 39724,
+   "sha256": "b35a05d23918caf56ff752b9b32b36a84a132cbe0d08713be3b41cee7adfdaab"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ParamXMLFile.cpp",
+   "bytes": 12209,
+   "sha256": "d4a90be0706c3462bb4690f756dc0b34043dabb4d93b5fbe6453a13d545f0605"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "bytes": 5864,
+   "sha256": "51f9f722e32f83ad6bcfaf3938e370b839aeee0033eb3a881c3131247a2c11a8"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzDataFile.cpp",
+   "bytes": 2070,
+   "sha256": "b301edec0895f5d13e3536a98a3ae2c8826cd9a819c21036ac13c064bcb137ff"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzXMLFile.cpp",
+   "bytes": 3484,
+   "sha256": "34a3b2c400f1afa27f4bf41563d04c5de6faf47a73abda57df5c08e007643fba"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzIdentMLFile.cpp",
+   "bytes": 4672,
+   "sha256": "b24ed5b9e238eebea944336fdf8e7aaa90a5ec0f08b1d12e6a2312d3e0550fa6"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "bytes": 90186,
+   "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FileInfo.cpp",
+   "bytes": 96882,
+   "sha256": "7e8b7e8eee41baf5136dd70e66c0928b93426d95ae763a0539aa7c118f0231e7"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/README.md",
+   "bytes": 3482,
+   "sha256": "6b3154ff8e1103afaf8e0ae04f9cb36bfeafe0fdefe4e2a77a9558d22102861b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/XMLValidator_test.cpp",
+   "bytes": 2187,
+   "sha256": "7dc75e5601ee99090f92caf15c1a5c47b55950d7eb3f112e4460d72fb81a0532"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/XMLFile_test.cpp",
+   "bytes": 3944,
+   "sha256": "f1ee650601c6444d303a1821e56c7d2ff9e10c252c9260e799b7b52fab5d3e82"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureXMLFile_test.cpp",
+   "bytes": 22569,
+   "sha256": "19e15403bab12ed58f36c2e36db437438aba06a5cdb354502a7b10ecdfc7b6b2"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ConsensusXMLFile_test.cpp",
+   "bytes": 29165,
+   "sha256": "aef14709560cb5fb74f089148e3cc29d0acc829f3e12cf67fc7108b2a48fa08d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IdXMLFile_test.cpp",
+   "bytes": 23304,
+   "sha256": "875f620797e10a990df1c3c13e9a825c53bbf819c746c5f9b23e3783072f0e14"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ParamXMLFile_test.cpp",
+   "bytes": 20653,
+   "sha256": "da14d38f45788cad1d076a35c75dd494fff7404c8ca0446b6ace08abbcde71e1"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/TransformationXMLFile_test.cpp",
+   "bytes": 8171,
+   "sha256": "d64d22c910b3626ca1264d10290e08f7c46e0561ec42790cf3256c850fb4673b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzDataFile_test.cpp",
+   "bytes": 36744,
+   "sha256": "f5d0c7ba196a35b92861bfbb17a3c10c812c16ef93bb22b94a758f82bcfb63ff"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzXMLFile_test.cpp",
+   "bytes": 24618,
+   "sha256": "ee71786eced087d9f6ed5e929a5d28033c5830796c193b00f3c82b2a18057eda"
+  },
+  {
+   "path": "src/tests/class_tests/openms/include/OpenMS/TestFileValidation.h",
+   "bytes": 8317,
+   "sha256": "bfbafbb8d46908e0ac0ba7f04fbfd3ce918231cb9ed9113fb734faa81d5e11e3"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd",
+   "bytes": 23622,
+   "sha256": "9c66e9abeead72ad60296ff442a8029fd04ec76c3ab80c2c0ff46063743b99a3"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd",
+   "bytes": 24424,
+   "sha256": "37e0575633930869c39aa67aad2d8bef28d495df105c4fb474717e2597b370fb"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/IdXML_1_5.xsd",
+   "bytes": 14696,
+   "sha256": "105c9f0cbc4ec275df8c1689fe31e409557a6535824e13d96ecef138a6986379"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/Param_1_8_0.xsd",
+   "bytes": 5430,
+   "sha256": "d672b6b90b454ce9fad11524831e9d26ab52daba3f5b4d98beaed441aec2941a"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/TrafoXML_1_1.xsd",
+   "bytes": 4139,
+   "sha256": "07f16a75b039ea91a0c839c5ed15a3f09e4935ba4598b81b9651e5ff76138e6d"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzData_1_05.xsd",
+   "bytes": 32117,
+   "sha256": "c5c6ad6343d8f87cfd6a81017b30ca30defbed3f6b9a2e14eadc3ab15c084b7f"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzXML_idx_3.1.xsd",
+   "bytes": 2751,
+   "sha256": "03ead7c7798cb9f54ca27b8c056ee328093ab5ef94f0a03685cdf559820aa16b"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzXML_3.1_mod.xsd",
+   "bytes": 30461,
+   "sha256": "f993a2654a0820a05b99dce5f0f08ca52d11740c89a10ab1a7efb271b69b9376"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/separation_technique_1.0.xsd",
+   "bytes": 924,
+   "sha256": "d061c1dc60894c268ea9634ddcb671612a93c5f33b18ed036754cb928ec74132"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/general_types_1.0.xsd",
+   "bytes": 853,
+   "sha256": "c937229c77b517d5334b30cd4007a74600903e977238fec8bd480b7c2fabd8de"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzIdentML1.0.0.xsd",
+   "bytes": 67475,
+   "sha256": "eaf3cfd583834bb6940725bfeb63ffc8be779bb790c5f5f5bfdc68994494149e"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/FuGElightv1.0.0.xsd",
+   "bytes": 55699,
+   "sha256": "cba9529f8b9c76446114e28f30a04bef5f92e49c2b8fd1ea2a71a8da2f4f9d35"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzIdentML1.1.0.xsd",
+   "bytes": 89348,
+   "sha256": "8d12337d8d5abd50a30a68ee540a8180b62a177ee0d8d99d2d0ba30932f6f513"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzIdentML1.2.0.xsd",
+   "bytes": 90660,
+   "sha256": "beca6afe670394bc5edb810632712ea4fd434d08f62491dacc7da83c32ff7f7f"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzIdentML1.3.0.xsd",
+   "bytes": 90770,
+   "sha256": "abac61f57e5dcd2eed76a547a3bbd71a47e241d378ac6963fee1f0c0390a6204"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/pepXML_v114.xsd",
+   "bytes": 64657,
+   "sha256": "64a81531831ae268c1fc421fd788d8de2c0ac6cf300362723b01239e3579e2fb"
+  }
+ ],
+ "files": [
+  {
+   "path": "resources/schemas/FeatureXML_1_9.xsd",
+   "bytes": 23622,
+   "sha256": "9c66e9abeead72ad60296ff442a8029fd04ec76c3ab80c2c0ff46063743b99a3",
+   "source_path": "share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/ConsensusXML_1_7.xsd",
+   "bytes": 24424,
+   "sha256": "37e0575633930869c39aa67aad2d8bef28d495df105c4fb474717e2597b370fb",
+   "source_path": "share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/IdXML_1_5.xsd",
+   "bytes": 14696,
+   "sha256": "105c9f0cbc4ec275df8c1689fe31e409557a6535824e13d96ecef138a6986379",
+   "source_path": "share/OpenMS/SCHEMAS/IdXML_1_5.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/Param_1_8_0.xsd",
+   "bytes": 5430,
+   "sha256": "d672b6b90b454ce9fad11524831e9d26ab52daba3f5b4d98beaed441aec2941a",
+   "source_path": "share/OpenMS/SCHEMAS/Param_1_8_0.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/TrafoXML_1_1.xsd",
+   "bytes": 4139,
+   "sha256": "07f16a75b039ea91a0c839c5ed15a3f09e4935ba4598b81b9651e5ff76138e6d",
+   "source_path": "share/OpenMS/SCHEMAS/TrafoXML_1_1.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/mzData_1_05.xsd",
+   "bytes": 32117,
+   "sha256": "c5c6ad6343d8f87cfd6a81017b30ca30defbed3f6b9a2e14eadc3ab15c084b7f",
+   "source_path": "share/OpenMS/SCHEMAS/mzData_1_05.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/mzXML_idx_3.1.xsd",
+   "bytes": 2751,
+   "sha256": "03ead7c7798cb9f54ca27b8c056ee328093ab5ef94f0a03685cdf559820aa16b",
+   "source_path": "share/OpenMS/SCHEMAS/mzXML_idx_3.1.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/mzXML_3.1_mod.xsd",
+   "bytes": 30461,
+   "sha256": "f993a2654a0820a05b99dce5f0f08ca52d11740c89a10ab1a7efb271b69b9376",
+   "source_path": "share/OpenMS/SCHEMAS/mzXML_3.1_mod.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/separation_technique_1.0.xsd",
+   "bytes": 924,
+   "sha256": "d061c1dc60894c268ea9634ddcb671612a93c5f33b18ed036754cb928ec74132",
+   "source_path": "share/OpenMS/SCHEMAS/separation_technique_1.0.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/general_types_1.0.xsd",
+   "bytes": 853,
+   "sha256": "c937229c77b517d5334b30cd4007a74600903e977238fec8bd480b7c2fabd8de",
+   "source_path": "share/OpenMS/SCHEMAS/general_types_1.0.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/mzIdentML1.0.0.xsd",
+   "bytes": 67475,
+   "sha256": "eaf3cfd583834bb6940725bfeb63ffc8be779bb790c5f5f5bfdc68994494149e",
+   "source_path": "share/OpenMS/SCHEMAS/mzIdentML1.0.0.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/FuGElightv1.0.0.xsd",
+   "bytes": 55699,
+   "sha256": "cba9529f8b9c76446114e28f30a04bef5f92e49c2b8fd1ea2a71a8da2f4f9d35",
+   "source_path": "share/OpenMS/SCHEMAS/FuGElightv1.0.0.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/mzIdentML1.1.0.xsd",
+   "bytes": 89348,
+   "sha256": "8d12337d8d5abd50a30a68ee540a8180b62a177ee0d8d99d2d0ba30932f6f513",
+   "source_path": "share/OpenMS/SCHEMAS/mzIdentML1.1.0.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/mzIdentML1.2.0.xsd",
+   "bytes": 90660,
+   "sha256": "beca6afe670394bc5edb810632712ea4fd434d08f62491dacc7da83c32ff7f7f",
+   "source_path": "share/OpenMS/SCHEMAS/mzIdentML1.2.0.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/mzIdentML1.3.0.xsd",
+   "bytes": 90770,
+   "sha256": "abac61f57e5dcd2eed76a547a3bbd71a47e241d378ac6963fee1f0c0390a6204",
+   "source_path": "share/OpenMS/SCHEMAS/mzIdentML1.3.0.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/pepXML_v114.xsd",
+   "bytes": 64657,
+   "sha256": "64a81531831ae268c1fc421fd788d8de2c0ac6cf300362723b01239e3579e2fb",
+   "source_path": "share/OpenMS/SCHEMAS/pepXML_v114.xsd",
+   "unchanged": true
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/xml_schema/XMLValidator.xsd",
+   "bytes": 417,
+   "sha256": "61bc4edc8752ed09afd4b61ed098afd7025369ba34d758078599a53d014bc4bd",
+   "source_path": "src/tests/class_tests/openms/data/XMLValidator.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/xml_schema/XMLValidator_valid.xml",
+   "bytes": 167,
+   "sha256": "67a538dab706805b0b34a567d380eebb392ef566365a2e5199d5c56e388ae2cf",
+   "source_path": "src/tests/class_tests/openms/data/XMLValidator_valid.xml",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/xml_schema/XMLValidator_missing_element.xml",
+   "bytes": 146,
+   "sha256": "e7471796e9b369463961fef6ff038191bccf0aeb23422f55932796abcc014a33",
+   "source_path": "src/tests/class_tests/openms/data/XMLValidator_missing_element.xml",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/xml_schema/XMLValidator_missing_attribute.xml",
+   "bytes": 140,
+   "sha256": "3f0ba62090bf60eb2f338bcd88e814f749671b5d2fecd95b0b912d1577328505",
+   "source_path": "src/tests/class_tests/openms/data/XMLValidator_missing_attribute.xml",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/xml_schema/XMLValidator_syntax.xml",
+   "bytes": 166,
+   "sha256": "bf564486e6c688ce88d73add3e49d769e8b5e8fbca026b25f7021bdf86eb2ac2",
+   "source_path": "src/tests/class_tests/openms/data/XMLValidator_syntax.xml",
+   "unchanged": true
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/featurexml_source_1.featureXML",
+   "bytes": 6652,
+   "sha256": "f3e6a6c6fb14a22a457b94fd8465c1e3847f094555bd7798f11b446e5823993a",
+   "source_path": "src/tests/class_tests/openms/data/FeatureXMLFile_1.featureXML",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/featurexml_source_options.featureXML",
+   "bytes": 3500,
+   "sha256": "797bbaa8cd8f05d782563e94308db98c26250b437fb2a343144969a96b672193",
+   "source_path": "src/tests/class_tests/openms/data/FeatureXMLFile_2_options.featureXML",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/consensusxml/ConsensusXMLFile_1.consensusXML",
+   "bytes": 7904,
+   "sha256": "771a84b7b2c9ffdc484e84660c8cfedb902418257c68440d1bd35640eb60cd7d",
+   "source_path": "src/tests/class_tests/openms/data/ConsensusXMLFile_1.consensusXML",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/consensusxml/ConsensusXMLFile_2_options.consensusXML",
+   "bytes": 3325,
+   "sha256": "2a8a9a8e77cd632e64a467286774db5caba3bd1a37c41b0342b5be8ea3b2c965",
+   "source_path": "src/tests/class_tests/openms/data/ConsensusXMLFile_2_options.consensusXML",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/transformation_xml_1.trafoXML",
+   "bytes": 307,
+   "sha256": "a65978549222e8e23eead966660abeb8e211c5946cf8b8cef911acda92afe209",
+   "source_path": "src/tests/class_tests/openms/data/TransformationXMLFile_1.trafoXML",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/transformation_xml_2.trafoXML",
+   "bytes": 427,
+   "sha256": "108684af362700c5164e63a573f97800be28c1b35419de710ff6a3cf58268d94",
+   "source_path": "src/tests/class_tests/openms/data/TransformationXMLFile_2.trafoXML",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/transformation_xml_3.trafoXML",
+   "bytes": 324,
+   "sha256": "621759e0f30e94fa2733ecc6165989e975293f9735648b25742d9aea6d245912",
+   "source_path": "src/tests/class_tests/openms/data/TransformationXMLFile_3.trafoXML",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/transformation_xml_4.trafoXML",
+   "bytes": 521,
+   "sha256": "a30707d0eea3bd6458f65b89c0ed8bb4668c6dd92266601ed956d61c2e94d50d",
+   "source_path": "src/tests/class_tests/openms/data/TransformationXMLFile_4.trafoXML",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/idxml_upstream_whole.idXML",
+   "bytes": 3250,
+   "sha256": "3498db6d8efc2f74df09e09d500537c654fd3524c4253ce436aa8bab5efece95",
+   "source_path": "src/tests/class_tests/openms/data/IdXMLFile_whole.idXML",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/MzDataFile_1.mzData",
+   "bytes": 18259,
+   "sha256": "2a50f4bc28c5bcd3f3625e67b5860dfbdddb011febcd10253776b6dc4a0de64f",
+   "source_path": "src/tests/class_tests/openms/data/MzDataFile_1.mzData",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/MzXMLFile_1.mzXML",
+   "bytes": 3177,
+   "sha256": "fc6a96d8b35c05ee3d9b62996b09cddfb52c19fa3c6c1eb0f6550a9e7d6c08e7",
+   "source_path": "src/tests/class_tests/openms/data/MzXMLFile_1.mzXML",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/mzml_validator/MzMLFile_1.mzML",
+   "bytes": 37187,
+   "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
+   "source_path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+   "unchanged": true
+  }
+ ],
+ "schema_registrations": {
+  "FeatureXML_1_9.xsd": "FORMAT/FeatureXMLFile.cpp:27",
+  "ConsensusXML_1_7.xsd": "FORMAT/ConsensusXMLFile.cpp:24",
+  "IdXML_1_5.xsd": "FORMAT/IdXMLFile.cpp:34",
+  "Param_1_8_0.xsd": "FORMAT/ParamXMLFile.cpp:26",
+  "TrafoXML_1_1.xsd": "FORMAT/TransformationXMLFile.cpp:20",
+  "mzData_1_05.xsd": "FORMAT/MzDataFile.cpp:18",
+  "mzXML_idx_3.1.xsd": "FORMAT/MzXMLFile.cpp:18",
+  "mzIdentML1.3.0.xsd": "FORMAT/MzIdentMLFile.cpp:26",
+  "mzIdentML<version>.xsd": "FORMAT/MzIdentMLFile.cpp:89-100",
+  "mzML_1_10.xsd": "FORMAT/MzMLFile.cpp:29",
+  "mzML_idx_1_10.xsd": "FORMAT/MzMLFile.cpp:30",
+  "pepXML_v114.xsd": "FORMAT/PepXMLFile.cpp:333"
+ },
+ "source_anchors": {
+  "xml_file_is_valid": "FORMAT/XMLFile.cpp:393-401",
+  "validator": "VALIDATORS/XMLValidator.cpp:50-105",
+  "warning_policy": "VALIDATORS/XMLValidator.cpp:31-33",
+  "fileinfo_validation": "FORMAT/FileInfo.cpp:687-765",
+  "idxml_empty_placeholders": "FORMAT/IdXMLFile.cpp:186-193, FORMAT/IdXMLFile.cpp:416-418"
+ },
+ "expected_verdicts": [
+  {
+   "source": "XMLValidator_test.cpp:40",
+   "fixture": "tests/data/xml_schema/XMLValidator_valid.xml",
+   "schema": "tests/data/xml_schema/XMLValidator.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "XMLValidator_test.cpp:42",
+   "fixture": "tests/data/xml_schema/XMLValidator_missing_element.xml",
+   "schema": "tests/data/xml_schema/XMLValidator.xsd",
+   "expected": "invalid"
+  },
+  {
+   "source": "XMLValidator_test.cpp:44",
+   "fixture": "tests/data/xml_schema/XMLValidator_missing_attribute.xml",
+   "schema": "tests/data/xml_schema/XMLValidator.xsd",
+   "expected": "invalid"
+  },
+  {
+   "source": "XMLValidator_test.cpp:46",
+   "fixture": "tests/data/xml_schema/XMLValidator_syntax.xml",
+   "schema": "tests/data/xml_schema/XMLValidator.xsd",
+   "expected": "invalid (not well-formed; Error::Parse here)"
+  },
+  {
+   "source": "XMLValidator_test.cpp:52",
+   "fixture": "absent file",
+   "expected": "Exception::FileNotFound (Error::Io NotFound here)"
+  },
+  {
+   "source": "XMLFile_test.cpp:47",
+   "fixture": "no schema bound",
+   "expected": "Exception::NotImplemented (Error::InvalidValue for SchemaKind::External here)"
+  },
+  {
+   "source": "FeatureXMLFile_test.cpp:388",
+   "fixture": "tests/data/featurexml_source_1.featureXML",
+   "schema": "FeatureXML_1_9.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "FeatureXMLFile_test.cpp:389",
+   "fixture": "tests/data/featurexml_source_options.featureXML",
+   "schema": "FeatureXML_1_9.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "FeatureXMLFile_test.cpp:397",
+   "fixture": "stored empty FeatureMap",
+   "schema": "FeatureXML_1_9.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "FeatureXMLFile_test.cpp:403",
+   "fixture": "stored load of FeatureXMLFile_1",
+   "schema": "FeatureXML_1_9.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "ConsensusXMLFile_test.cpp:276",
+   "fixture": "tests/data/consensusxml/ConsensusXMLFile_1.consensusXML",
+   "schema": "ConsensusXML_1_7.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "ConsensusXMLFile_test.cpp:277",
+   "fixture": "tests/data/consensusxml/ConsensusXMLFile_2_options.consensusXML",
+   "schema": "ConsensusXML_1_7.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "ConsensusXMLFile_test.cpp:288",
+   "fixture": "stored load of ConsensusXMLFile_1",
+   "schema": "ConsensusXML_1_7.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "ConsensusXMLFile_test.cpp:412",
+   "fixture": "stored map with protein-group quantities",
+   "schema": "ConsensusXML_1_7.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "IdXMLFile_test.cpp:277",
+   "fixture": "stored empty document",
+   "schema": "IdXML_1_5.xsd",
+   "expected": "valid",
+   "ported": false,
+   "reason": "this port's idXML writer refuses a document with no protein run (src/format/idxml.rs write_with_registry); the source writes placeholder SearchParameters and IdentificationRun elements"
+  },
+  {
+   "source": "IdXMLFile_test.cpp:287",
+   "fixture": "stored load of IdXMLFile_whole with three meta values",
+   "schema": "IdXML_1_5.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "ParamXMLFile_test.cpp:99",
+   "fixture": "stored p2",
+   "schema": "Param_1_8_0.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "ParamXMLFile_test.cpp:108",
+   "fixture": "stored p7 (advanced tags)",
+   "schema": "Param_1_8_0.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "ParamXMLFile_test.cpp:170",
+   "fixture": "stored p5 (restrictions)",
+   "schema": "Param_1_8_0.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "ParamXMLFile_test.cpp:242",
+   "fixture": "stored empty Param",
+   "schema": "Param_1_8_0.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "TransformationXMLFile_test.cpp:41",
+   "fixture": "tests/data/transformation_xml_1.trafoXML",
+   "schema": "TrafoXML_1_1.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "TransformationXMLFile_test.cpp:42",
+   "fixture": "tests/data/transformation_xml_2.trafoXML",
+   "schema": "TrafoXML_1_1.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "TransformationXMLFile_test.cpp:43",
+   "fixture": "tests/data/transformation_xml_3.trafoXML",
+   "schema": "TrafoXML_1_1.xsd",
+   "expected": "invalid (not well-formed; Error::Parse here)"
+  },
+  {
+   "source": "TransformationXMLFile_test.cpp:44",
+   "fixture": "tests/data/transformation_xml_4.trafoXML",
+   "schema": "TrafoXML_1_1.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "MzDataFile_test.cpp:839",
+   "fixture": "stored empty experiment",
+   "schema": "mzData_1_05.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "MzDataFile_test.cpp:845",
+   "fixture": "stored load of MzDataFile_1",
+   "schema": "mzData_1_05.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "MzXMLFile_test.cpp:598",
+   "fixture": "stored load of MzXMLFile_1",
+   "schema": "mzXML_idx_3.1.xsd",
+   "expected": "valid"
+  },
+  {
+   "source": "PepXMLFile_test.cpp",
+   "fixture": "none",
+   "schema": "pepXML_v114.xsd",
+   "expected": "no pepXML verdict is asserted by any source test; only the schema registration (PepXMLFile.cpp:333) is ported and checked"
+  },
+  {
+   "source": "test-data topp/CMakeLists.txt:913-915 (TOPP_FileInfo_14), retained output topp/FileInfo_14_output.txt",
+   "fixture": "tests/data/file_info/inputs/FileInfo_14_input.mzid",
+   "schema": "mzIdentML1.1.0.xsd (detected)",
+   "expected": "valid",
+   "evidence_tier": 1
+  },
+  {
+   "source": "test-data topp/CMakeLists.txt:916-918 (TOPP_FileInfo_15), retained output topp/FileInfo_15_output.txt",
+   "fixture": "tests/data/file_info/inputs/FileInfo_15_input.mzid",
+   "schema": "mzIdentML1.1.0.xsd (detected)",
+   "expected": "invalid, a diagnostic at line 327",
+   "evidence_tier": 1
+  }
+ ],
+ "retained_cpp_outputs": {
+  "package": "OpenMS4-tests/packages/test-data",
+  "revision": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+  "inputs": [
+   {
+    "path": "tests/data/file_info/inputs/FileInfo_14_input.mzid",
+    "sha256": "58b447917f8f8e5be2eb393d361cbd74dfe22e5435b64e170e37dfceb18c8e5c",
+    "source_path": "topp/FileInfo_14_input.mzid"
+   },
+   {
+    "path": "tests/data/file_info/inputs/FileInfo_15_input.mzid",
+    "sha256": "c7e09e72f0b7d25befe5c2c640c0cb77aa78ef4e3e719e45f0c8cb52db41e108",
+    "source_path": "topp/FileInfo_15_input.mzid"
+   }
+  ],
+  "outputs": [
+   {
+    "path": "topp/FileInfo_14_output.txt",
+    "sha256": "4e73c4b1864374064b8753ffce6b4d254d9b1febbc62f7bd16ef9474f4b60ca2"
+   },
+   {
+    "path": "topp/FileInfo_15_output.txt",
+    "sha256": "208d7a4b4334c0d25976b5b8cdf0ad271f0a555e8c5a12f4c1ba39f457bab014"
+   },
+   {
+    "path": "topp/CMakeLists.txt",
+    "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb"
+   }
+  ],
+  "note": "The two FileInfo inputs were already retained for tests/data/file_info_a7_provenance.json; they are reused unchanged."
+ },
+ "composition": {
+  "schemas": [
+   "mzXML_idx_3.1.xsd",
+   "mzIdentML1.0.0.xsd"
+  ],
+  "method": "src/format/xml_schema.rs compose: each xs:include is replaced by the included document's top-level components, each carrying the included document's namespace declarations, with xmlns=\"\" for a document without a default namespace, or the including target namespace for a chameleon include (XSD 1.0 section 4.2.1). Refused when target namespaces or elementFormDefault/attributeFormDefault/blockDefault/finalDefault differ.",
+  "equivalence_evidence": "tests/xml_schema_includes.rs compares every verdict and diagnostic (message and line) with libxml2's own include processing of the same files from resources/schemas, over 11 mzXML and 10 mzIdentML documents."
+ },
+ "native_implementation": [
+  "src/format/xml_schema.rs",
+  "src/format/mzml_schema.rs",
+  "src/format/featurexml.rs",
+  "src/format/consensusxml.rs",
+  "src/format/idxml.rs",
+  "src/format/paramxml.rs",
+  "src/format/transformation_xml.rs",
+  "src/format/mzdata.rs",
+  "src/format/mzxml.rs",
+  "src/format/mzidentml.rs",
+  "src/format/pepxml.rs"
+ ],
+ "native_tests": [
+  "tests/xml_schema.rs",
+  "tests/xml_schema_formats.rs",
+  "tests/xml_schema_includes.rs",
+  "tests/xml_schema_offline.rs"
+ ],
+ "support_document": "docs/XML_SCHEMA_SUPPORT.md"
+}

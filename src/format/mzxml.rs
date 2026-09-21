@@ -52,8 +52,9 @@ use std::sync::Arc;
 // ---------------------------------------------------------------------------
 
 /// Schema resource the source `MzXMLFile` constructor registers
-/// (`MzXMLFile.cpp:18`). The XSD itself is not embedded in this crate, so no
-/// schema validation is performed; see `docs/MZXML_SUPPORT.md`.
+/// (`MzXMLFile.cpp:18`). The crate carries it, and the three schemas it
+/// includes, unchanged, and validates against them with the `xml-schema`
+/// feature (`MzXMLFile::is_valid`); see `docs/XML_SCHEMA_SUPPORT.md`.
 pub const SCHEMA: &str = "/SCHEMAS/mzXML_idx_3.1.xsd";
 /// Schema version the source `MzXMLFile` constructor registers
 /// (`MzXMLFile.cpp:18`), and the version the writer emits.
@@ -571,6 +572,32 @@ impl MzXMLFile {
     /// [`Error::UnsortedData`] when `force_mq_compatibility` needs sorted m/z.
     pub fn store(&self, path: impl AsRef<Path>, experiment: &MSExperiment) -> Result<()> {
         store_with_options(path, experiment, &self.write_options)
+    }
+    /// Validate a file against the bundled `mzXML_idx_3.1.xsd`, the
+    /// [`SCHEMA`] the source constructor registers, with the three schemas it
+    /// includes.
+    ///
+    /// Source `MzXMLFile::isValid(filename, os)`, inherited from
+    /// `Internal::XMLFile`: the messages the source writes to `os` are the
+    /// report's diagnostics, and the source's `bool` is
+    /// [`is_valid`](crate::format::xml_schema::SchemaValidationReport::is_valid).
+    /// Available with the `xml-schema` feature, which brings in the libxml2
+    /// validator; the source always has Xerces. The indexed schema is used for
+    /// every document, indexed or not, as in the source; its `index` element
+    /// is optional. An mzXML 2.1 document, whose namespace differs, is invalid
+    /// against it, as it is in the source.
+    ///
+    /// # Errors
+    ///
+    /// As [`xml_schema::validate`](crate::format::xml_schema::validate): an
+    /// I/O failure, where the source throws `Exception::FileNotFound`, and
+    /// input that is not well-formed XML, where the source returns `false`.
+    #[cfg(feature = "xml-schema")]
+    pub fn is_valid(
+        &self,
+        path: impl AsRef<Path>,
+    ) -> Result<crate::format::xml_schema::SchemaValidationReport> {
+        crate::format::xml_schema::validate(crate::format::xml_schema::SchemaKind::MzXML, path)
     }
     /// Transform a file while loading, handing every scan to `consumer` and
     /// storing nothing, the source `MzXMLFile::transform`

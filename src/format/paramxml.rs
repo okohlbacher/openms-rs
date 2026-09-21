@@ -95,6 +95,26 @@ pub fn load(path: impl AsRef<Path>) -> Result<Param> {
 pub fn load_with_limits(path: impl AsRef<Path>, limits: Limits) -> Result<Param> {
     read_with_limits(super::path_io::open(path.as_ref())?, limits)
 }
+/// Validate a file against the bundled `Param_1_8_0.xsd`.
+///
+/// Source `ParamXMLFile::isValid(filename, os)`, inherited from
+/// `Internal::XMLFile`: the messages the source writes to `os` are the
+/// report's diagnostics, and the source's `bool` is
+/// [`is_valid`](crate::format::xml_schema::SchemaValidationReport::is_valid).
+/// Available with the `xml-schema` feature, which brings in the libxml2
+/// validator; the source always has Xerces.
+///
+/// # Errors
+///
+/// As [`xml_schema::validate`](crate::format::xml_schema::validate): an I/O
+/// failure, where the source throws `Exception::FileNotFound`, and input that
+/// is not well-formed XML, where the source returns `false`.
+#[cfg(feature = "xml-schema")]
+pub fn is_valid(
+    path: impl AsRef<Path>,
+) -> Result<crate::format::xml_schema::SchemaValidationReport> {
+    crate::format::xml_schema::validate(crate::format::xml_schema::SchemaKind::ParamXML, path)
+}
 /// Load a file into `target` with the source's accumulation semantics; see
 /// [`read_into`].
 ///

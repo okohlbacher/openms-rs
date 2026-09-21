@@ -364,6 +364,57 @@ pub fn detect_version_from_reader(reader: impl BufRead) -> Result<String> {
     Ok(detect_version_in_header(&header))
 }
 
+/// Validate an mzIdentML file against the bundled schema for the version it
+/// declares, with the default native limits.
+///
+/// Source `MzIdentMLFile::isValid(filename, os, used_version)`:
+/// [`detect_version`] picks 1.0.0, 1.1.0, 1.2.0 or 1.3.0 and the matching
+/// `mzIdentML<version>.xsd` is used. The source's `used_version` out-parameter
+/// is the report's `schema.version()`. Every version [`detect_version`] can
+/// answer is bundled, so the source's fallback to the default 1.3.0 schema,
+/// for a detected version with no shipped schema, cannot arise. The messages
+/// the source writes to `os` are the report's diagnostics, and its `bool` is
+/// [`is_valid`](crate::format::xml_schema::SchemaValidationReport::is_valid).
+/// Available with the `xml-schema` feature, which brings in the libxml2
+/// validator; the source always has Xerces.
+///
+/// # Errors
+///
+/// As [`is_valid_with_options`].
+#[cfg(feature = "xml-schema")]
+pub fn is_valid(
+    path: impl AsRef<Path>,
+) -> Result<crate::format::xml_schema::SchemaValidationReport> {
+    is_valid_with_options(
+        path,
+        &crate::format::xml_schema::SchemaValidationOptions::default(),
+    )
+}
+
+/// [`is_valid`] with explicit native limits. The version header is read
+/// within `options.limits.max_xml_bytes` too, so a document with one
+/// enormous first line cannot make detection read past the validation limit.
+///
+/// # Errors
+///
+/// As [`detect_version`], then as
+/// [`xml_schema::validate_with_options`](crate::format::xml_schema::validate_with_options):
+/// an I/O failure, where the source throws `Exception::FileNotFound`, and
+/// input that is not well-formed XML, where the source returns `false`.
+#[cfg(feature = "xml-schema")]
+pub fn is_valid_with_options(
+    path: impl AsRef<Path>,
+    options: &crate::format::xml_schema::SchemaValidationOptions,
+) -> Result<crate::format::xml_schema::SchemaValidationReport> {
+    use crate::format::xml_schema::{SchemaKind, validate_with_options};
+    let path = path.as_ref();
+    let limit = u64::try_from(options.limits.max_xml_bytes).unwrap_or(u64::MAX);
+    let version = detect_version_from_reader(super::path_io::open(path)?.take(limit))?;
+    let schema = SchemaKind::mzidentml(&version)
+        .ok_or_else(|| Error::InvalidValue(format!("no bundled mzIdentML {version} schema")))?;
+    validate_with_options(schema, path, options)
+}
+
 fn detect_version_in_header(header: &str) -> String {
     for version in KNOWN_VERSIONS {
         if header.contains(&format!("version=\"{version}\"")) {

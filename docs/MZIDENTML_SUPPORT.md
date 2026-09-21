@@ -41,9 +41,9 @@ ledger entry. Section 5 has the whole cross-linking picture.
 | `void load(filename, poid, peid)` | [`load`], [`load_with_options`], [`load_with_registry`], [`load_into`] | Returns an owned [`MzIdentMLDocument`] instead of filling two out-parameters. `load_into` is the closest analogue and replaces the destination atomically; the source clears both containers first because its DOM handler only appends. |
 | `void store(filename, poid, peid) const` | [`store`], [`store_with_options`], [`store_with_registry`] | The `.mzid` extension check is kept and happens before any output. |
 | `bool isSemanticallyValid(filename, errors, warnings)` | **not ported**: needs `share/OpenMS/MAPPING/mzIdentML-mapping.xml`, which is not an embedded crate resource, and `FORMAT/VALIDATORS/MzIdentMLValidator.h`, a separate unowned header. | |
-| `bool isValid(filename, os, used_version)` | **partially ported**: the version-detection half is [`detect_version`]; XSD validation is not ported. | The crate's only schema validator is behind the optional `mzml-schema` feature (libxml) and is mzML-specific. |
+| `bool isValid(filename, os, used_version)` | `is_valid`, `is_valid_with_options`, with the optional `xml-schema` feature | [`detect_version`] picks the version and the matching bundled, unchanged `mzIdentML1.{0,1,2,3}.0.xsd` validates the file (1.0.0 with `FuGElightv1.0.0.xsd`, composed in memory). `used_version` is `report.schema.version()`. The retained TOPP_FileInfo_14/15 verdicts (1.1.0, valid and invalid at line 327) are ported; see [XML schema validation](XML_SCHEMA_SUPPORT.md). |
 | `std::string detectVersion(filename) const` | [`detect_version`], [`detect_version_from_reader`] | Full port, including the 15-line header window, the `version="x.y.z"` preference over the `mzIdentML/x.y` namespace, and the fallback to the adapter default. |
-| inherited `Internal::XMLFile::getVersion` / `isValid` | not ported here | `XMLFile` is a separate header. The version this adapter declares is [`SCHEMA_VERSION`]. |
+| inherited `Internal::XMLFile::getVersion` / `isValid` | [`SCHEMA_VERSION`]; `isValid` as above | `MzIdentMLFile` overrides the inherited `isValid` with the version-detecting one above. |
 | inherited `ProgressLogger` | **not ported**: the crate has no progress-logger plumbing in the format adapters, and the source only inherits it to hand a reference to the handler, which never logs progress in the mzIdentML path. | |
 
 ### `FORMAT/HANDLERS/MzIdentMLHandler.h` — `Internal::IdentificationHit`
@@ -544,4 +544,4 @@ source drops.
 The reader accepts UTF-8 bytes with an absent or UTF-8 encoding declaration;
 other declared encodings return `Error::Unsupported`, including ASCII-only
 documents declaring ISO-8859-1. Entity and structural checks in the reader are
-not a general XML/XSD validation service.
+not a general XML/XSD validation service; `is_valid` is.
