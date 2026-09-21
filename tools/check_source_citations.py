@@ -280,14 +280,14 @@ class Retained:
     answer a name no pin carries at all, never take one away from a pin.
     """
 
-    def __init__(self, directory, declared, under="", name=None):
+    def __init__(self, directory, declared, under="", label=None):
         self.directory = directory
         self.under = under  # The path the port cites these under: "bits/".
         # What a tally calls it. Two bundles retain a directory called
         # ``libstdcxx``, so the last component alone would put both under one
         # label - which is the confusion this whole checker exists to report,
         # and it would be reporting it about itself.
-        self.name = name or directory.name
+        self.name = label or directory.name
         self.admitted, self.refused = {}, {}
         for name, digest in sorted(declared.items()):
             path = directory / name
