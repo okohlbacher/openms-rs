@@ -400,14 +400,11 @@ fn check_input(
         .iter()
         .any(|spectrum| ImTypes::determine_im_format(spectrum) == IonMobilityFormat::PerPeak)
     {
-        writeln!(
-            err,
-            "{}",
-            ion_mobility_warning(IonMobilityPeakType::Profile)
-        )?;
+        // `OPENMS_LOG_WARN`: the warning log stream, yellow on a terminal.
+        crate::cli::log_warning(err, &ion_mobility_warning(IonMobilityPeakType::Profile))?;
     }
     if experiment.spectra.is_empty() && experiment.chromatograms.is_empty() {
-        writeln!(err, "{EMPTY_INPUT_WARNING}")?;
+        crate::cli::log_warning(err, EMPTY_INPUT_WARNING)?;
         return Ok(Some(ExitCode::IncompatibleInputData));
     }
     if !experiment

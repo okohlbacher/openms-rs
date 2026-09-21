@@ -205,8 +205,10 @@ impl Tool for FileInfo {
             source_dangling_references: true,
         };
         let result = FileInfoLibrary::new().run(&input, &options)?;
+        // The library's `OPENMS_LOG_WARN` lines: the warning log stream,
+        // yellow on a terminal, and not the -log file.
         for warning in &result.warnings {
-            writeln!(err, "{warning}")?;
+            crate::cli::log_warning(err, warning)?;
         }
 
         match text_file.as_mut() {

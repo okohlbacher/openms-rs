@@ -601,7 +601,7 @@ impl Tool for FeatureFinderCentroided {
         // Per-peak ion mobility (200-211): an OPENMS_LOG_ERROR line, which
         // does not reach the log file, and an exit code main_ returns.
         if has_per_peak_mobility(&experiment) {
-            writeln!(err, "{}", Self::im_peak_message())?;
+            crate::cli::log_error(err, &Self::im_peak_message())?;
             return Ok(ExitCode::IncompatibleInputData);
         }
 
