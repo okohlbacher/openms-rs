@@ -4,7 +4,7 @@
 //! Real XSD validation using fixed historical mzML schemas and optional libxml2:
 //! `MzMLFile::isValid`, which picks between the ordinary and the indexed mzML
 //! schema. The engine, the report types and the preflight are shared with
-//! every other bundled schema in [`xml_schema`](super::xml_schema).
+//! every other bundled schema in [`xml_schema`](crate::format::xml_schema).
 //! Native input/preflight limits and post-engine result limits do not bound the
 //! C engine's DOM, identity tables, runtime, or pre-return diagnostic allocations.
 
