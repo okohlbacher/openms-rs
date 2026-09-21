@@ -48,6 +48,15 @@ def physical_lines(data):
     return 0 if not data else data.count(b'\n') + (0 if data.endswith(b'\n') else 1)
 
 
+def cli_registration(path):
+    """The (kind, registration) CLI_RULES give a package-relative cli path, or None outside SDK scope."""
+    if path.startswith('include/'):
+        return 'cli_header', 'registered_public_header'
+    if re.fullmatch(r'source/APPLICATIONS/[^/]+\.cpp', path):
+        return 'cli_implementation', 'implementation'
+    return None
+
+
 def cli_inventory(checkout, revision):
     """Record the cli package at `revision`, read from its git objects, not its working tree.
 
@@ -69,12 +78,9 @@ def cli_inventory(checkout, revision):
     assert not any(path.endswith('/OpenMSCLIConfig.h') for path in tree), 'generated header committed'
     files = []
     for path in tree:
-        if path.startswith('include/'):
-            kind, registration = 'cli_header', 'registered_public_header'
-        elif re.fullmatch(r'source/APPLICATIONS/[^/]+\.cpp', path):
-            kind, registration = 'cli_implementation', 'implementation'
-        else:
+        if cli_registration(path) is None:
             continue
+        kind, registration = cli_registration(path)
         data = git('cat-file', 'blob', f'{revision}:{path}')
         files.append({'path': CLI_ROOT + path, 'kind': kind, 'domain': path.split('/')[-2],
                       'bytes': len(data), 'physical_lines': physical_lines(data),
@@ -112,9 +118,8 @@ def check_cli_inventory(inventory):
     for item in inventory['files']:
         path = item['path']
         assert path.startswith(CLI_ROOT), path
-        public = path.startswith(CLI_ROOT + 'include/OpenMS/')
-        assert item['registration'] == ('registered_public_header' if public else 'implementation'), \
-            f'{path} is not registered as the install rule says'
+        assert cli_registration(path.removeprefix(CLI_ROOT)) == (item['kind'], item['registration']), \
+            f'{path} is not registered as the CMakeLists.txt rules say'
         assert re.fullmatch(r'[0-9a-f]{64}', item['sha256']), path
     assert Counter(item['registration'] for item in inventory['files']) == inventory['summary']['registration']
 

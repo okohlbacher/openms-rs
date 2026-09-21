@@ -18,7 +18,8 @@ CORE, CLI = 'b' * 40, 'd' * 40
 
 
 def header(path, registration='registered_public_header'):
-    return {'path': path, 'sha256': 'a' * 64, 'domain': path.split('/')[-2], 'registration': registration}
+    kind = 'cli_header' if registration == 'registered_public_header' else 'cli_implementation'
+    return {'path': path, 'kind': kind, 'sha256': 'a' * 64, 'domain': path.split('/')[-2], 'registration': registration}
 
 
 def write_fixture(root, core_files, cli_files, provenance, revisions=None):
@@ -120,7 +121,7 @@ class CoverageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             write_fixture(root, [], [header('packages/cli/source/APPLICATIONS/TOPPBase.cpp')], {})
-            with patch.object(coverage, 'ROOT', root), self.assertRaisesRegex(AssertionError, 'install rule'):
+            with patch.object(coverage, 'ROOT', root), self.assertRaisesRegex(AssertionError, 'CMakeLists.txt rules'):
                 coverage.build(tool())
 
     def test_cli_inventory_reads_the_pinned_objects_by_the_install_rule(self):
