@@ -575,6 +575,38 @@ fn mgf_negative_ms_level_wraps_as_in_the_source() {
     assert_eq!(peak.spectra_per_ms_level[&-1], 1);
 }
 
+/// `mascot_generic::ReadOptions::source_ms_level`, the switch this group added
+/// to the MGF reader: off, the default, `MSLEVEL=0` and `MSLEVEL=-1` are parse
+/// errors; on, each is stored as the source's `setMSLevel(std::stoi(...))`
+/// stores it (`MascotGenericFile.h:325-331`), `0` and `4294967295`, which are
+/// the MS levels the Release build's reports print.
+#[test]
+fn mgf_source_ms_level_stores_what_std_stoi_returns() {
+    use openms::format::mascot_generic::{ReadOptions, read_with_options};
+    for (line, level, report) in [
+        ("MSLEVEL=0", 0, "g_mslevel_zero_all"),
+        ("MSLEVEL=-1", u32::MAX, "g_mslevel_negative_all"),
+    ] {
+        let block = format!("BEGIN IONS\n{line}\nPEPMASS=300\n100 1\nEND IONS\n");
+        let strict = read_with_options(block.as_bytes(), &ReadOptions::default());
+        assert!(
+            matches!(strict, Err(Error::Parse { .. })),
+            "{line}: {strict:?}"
+        );
+        let source = ReadOptions {
+            source_ms_level: true,
+            ..ReadOptions::default()
+        };
+        let experiment = read_with_options(block.as_bytes(), &source).expect(line);
+        assert_eq!(experiment.spectra[0].ms_level, level, "{line}");
+        let expected = read_text(&data(&format!("file_info_a8/expected/{report}.txt")));
+        assert!(
+            expected.contains(&format!("\nMS levels: {level}\n")),
+            "{report}"
+        );
+    }
+}
+
 /// Refused, and recorded: `MSLEVEL=0` loads as MS level 0, as in the source,
 /// but the kernel's range computation validates each spectrum and refuses an
 /// MS level of 0 outside the three optical scan modes. The Release build
