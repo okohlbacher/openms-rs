@@ -46,10 +46,15 @@
 //! `MzDataHandler::writeTo` writes such an array anyway and only logs, and its
 //! own `fillData_` then reads past the end of the decoded list.
 //!
-//! The source parallelises nothing here, and neither does this port; the
-//! `ProgressLogger` the source handler takes by reference is replaced by the
-//! counters in [`LoadReport`](crate::format::mzdata::LoadReport).
+//! The source parallelises nothing here, and neither does this port. The
+//! `ProgressLogger` the source handler takes by reference is the caller's
+//! logger of [`load_with_progress`](crate::format::mzdata::load_with_progress)
+//! and [`store_with_progress`](crate::format::mzdata::store_with_progress),
+//! which make the source's calls; the other entry points run the same code and
+//! report nothing, and the counters in
+//! [`LoadReport`](crate::format::mzdata::LoadReport) are kept either way.
 
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
 use crate::format::peak_options::PeakFileOptions;
 use crate::kernel::{
     DataArray, MSExperiment, MSSpectrum, NumericRange, Peak1D, Precursor, SpectrumType,
@@ -70,6 +75,17 @@ use std::collections::BTreeMap;
 use std::io::{BufRead, Read, Write};
 use std::path::Path;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
+
+/// The source handler's scan counter, a function-local `static UInt` in
+/// `MzDataHandler::onEndElement` (`MzDataHandler.cpp:436`): shared by every
+/// load in the process, advanced at each `</spectrum>` and reset only at
+/// `</mzData>` (`:452`, `:463`). A load that fails inside the spectrum list
+/// leaves it raised, so the next load's `setProgress` values continue from
+/// there, as the Release build's do. Every load advances it, reporting or
+/// not, because the source's does. Unlike the source's, it is atomic, so
+/// concurrent loads interleave their counts without a data race.
+static SCAN_COUNT: AtomicU32 = AtomicU32::new(0);
 
 /// Schema version the source `MzDataFile` constructor pins and the writer
 /// emits as the root element's `version` attribute (`MzDataFile.cpp:18`).
@@ -565,6 +581,20 @@ impl MzDataFile {
         load_with_options(path, &self.options, &self.limits)
     }
 
+    /// [`MzDataFile::load_report`], reporting progress to `logger` as the
+    /// source's `load` does; see the free [`load_with_progress`].
+    ///
+    /// # Errors
+    ///
+    /// As [`load_with_progress`].
+    pub fn load_with_progress(
+        &self,
+        path: impl AsRef<Path>,
+        logger: &mut ProgressLogger,
+    ) -> Result<Loaded> {
+        load_with_progress(path, &self.options, &self.limits, logger)
+    }
+
     /// Replace `destination` only after the whole document parsed.
     ///
     /// # Errors
@@ -606,6 +636,21 @@ impl MzDataFile {
         experiment: &MSExperiment,
     ) -> Result<StoreReport> {
         store_report_with_options(path, experiment, &self.write_options())
+    }
+
+    /// [`MzDataFile::store_report`], reporting progress to `logger` as the
+    /// source's `store` does; see the free [`store_with_progress`].
+    ///
+    /// # Errors
+    ///
+    /// As [`store_with_progress`].
+    pub fn store_with_progress(
+        &self,
+        path: impl AsRef<Path>,
+        experiment: &MSExperiment,
+        logger: &mut ProgressLogger,
+    ) -> Result<StoreReport> {
+        store_with_progress(path, experiment, &self.write_options(), logger)
     }
 
     /// Not ported: the source `isSemanticallyValid` validates a document
@@ -684,6 +729,52 @@ pub fn load_with_options(
     options: &PeakFileOptions,
     limits: &ReadLimits,
 ) -> Result<Loaded> {
+    load_reporting(path, options, limits, ProgressReporter::silent())
+}
+
+/// Load an mzData document, reporting progress to `logger` as source
+/// `MzDataFile::load` does through its handler (`MzDataHandler.cpp:347-356`,
+/// `:434-465`).
+///
+/// The calls are the source's: `startProgress(0, count, "loading mzData
+/// file")` at `<spectrumList count>`, `setProgress` with the process-wide scan
+/// counter after each `</spectrum>` (see below), and `endProgress()` at
+/// `</mzData>`. A metadata-only load stops before the spectrum list and makes
+/// no call. The result is the one [`load_with_options`] returns, and so is
+/// every error: both run the same code, whose calls go nowhere for
+/// [`load_with_options`].
+///
+/// The counter is the source's function-local `static`: shared by every
+/// mzData load in the process, advanced at each `</spectrum>` and reset only
+/// at `</mzData>`. After a load that failed inside the spectrum list, the next
+/// load's values continue from where it stopped, past the range the command
+/// backend accepts, as in the Release build. Loads without a logger advance
+/// it too.
+///
+/// A failure after the start leaves the section open, as in the source, where
+/// the exception bypasses `endProgress`: no `-- done` line is printed, the
+/// nesting depth stays one level deeper, and a command backend of `logger`
+/// refuses its next start.
+///
+/// # Errors
+///
+/// As [`MzDataFile::load`], plus the errors of the progress calls
+/// ([`ProgressLogger::start_progress`] and its siblings).
+pub fn load_with_progress(
+    path: impl AsRef<Path>,
+    options: &PeakFileOptions,
+    limits: &ReadLimits,
+    logger: &mut ProgressLogger,
+) -> Result<Loaded> {
+    load_reporting(path, options, limits, ProgressReporter::new(Some(logger)))
+}
+
+fn load_reporting(
+    path: impl AsRef<Path>,
+    options: &PeakFileOptions,
+    limits: &ReadLimits,
+    progress: ProgressReporter<'_>,
+) -> Result<Loaded> {
     let path = path.as_ref();
     let text = path
         .to_str()
@@ -691,7 +782,12 @@ pub fn load_with_options(
     let mut document = crate::metadata::DocumentIdentifier::new();
     document.set_loaded_file_path(text)?;
     document.set_loaded_file_type(path)?;
-    let mut loaded = read_with_options(crate::format::path_io::open(path)?, options, limits)?;
+    let mut loaded = read_reporting(
+        crate::format::path_io::open(path)?,
+        options,
+        limits,
+        progress,
+    )?;
     loaded.experiment.settings.document.loaded_file_path = document.loaded_file_path;
     loaded.experiment.settings.document.loaded_file_type = document.loaded_file_type;
     Ok(loaded)
@@ -729,9 +825,18 @@ pub fn read_with_options(
     options: &PeakFileOptions,
     limits: &ReadLimits,
 ) -> Result<Loaded> {
+    read_reporting(reader, options, limits, ProgressReporter::silent())
+}
+
+fn read_reporting(
+    reader: impl BufRead,
+    options: &PeakFileOptions,
+    limits: &ReadLimits,
+    progress: ProgressReporter<'_>,
+) -> Result<Loaded> {
     let bytes = slurp(reader, limits)?;
     let decoded = transcode(&bytes)?;
-    let mut parser = Parser::new(options, limits);
+    let mut parser = Parser::new(options, limits, progress);
     parser.run(&decoded)?;
     Ok(parser.finish())
 }
@@ -784,6 +889,42 @@ pub fn store_report_with_options(
     Ok(report)
 }
 
+/// Store an experiment as mzData, reporting progress to `logger` as source
+/// `MzDataFile::store` does through its handler's `writeTo`
+/// (`MzDataHandler.cpp:579-1073`).
+///
+/// The calls are the source's: `startProgress(0, spectra, "storing mzData
+/// file")` before the document's first byte, `setProgress(s)` before spectrum
+/// `s` is written (an empty experiment gets the source's placeholder spectrum
+/// and no call), and `endProgress()` after `</mzData>`. As in the source, the
+/// destination is opened first, so one that cannot be created makes no call.
+/// The bytes, the report and every error are those of
+/// [`store_report_with_options`]; its refusals of unrepresentable metadata
+/// precede the start.
+///
+/// A failure after the start leaves the section open, as described at
+/// [`load_with_progress`].
+///
+/// # Errors
+///
+/// As [`MzDataFile::store`], plus the errors of the progress calls.
+pub fn store_with_progress(
+    path: impl AsRef<Path>,
+    experiment: &MSExperiment,
+    options: &WriteOptions,
+    logger: &mut ProgressLogger,
+) -> Result<StoreReport> {
+    crate::format::path_io::store_reporting(
+        path.as_ref(),
+        |progress| {
+            let mut buffer = Vec::new();
+            let report = write_reporting(&mut buffer, experiment, options, progress)?;
+            Ok((buffer, report))
+        },
+        &mut ProgressReporter::new(Some(logger)),
+    )
+}
+
 /// Write an experiment as mzData to a stream, refusing to discard.
 ///
 /// # Errors
@@ -809,10 +950,19 @@ pub fn write_with_options(
     experiment: &MSExperiment,
     options: &WriteOptions,
 ) -> Result<StoreReport> {
+    write_reporting(writer, experiment, options, &mut ProgressReporter::silent())
+}
+
+fn write_reporting(
+    writer: impl Write,
+    experiment: &MSExperiment,
+    options: &WriteOptions,
+    progress: &mut ProgressReporter<'_>,
+) -> Result<StoreReport> {
     let mut report = StoreReport::default();
     preflight_store(experiment, options, &mut report)?;
     let mut sink = writer;
-    write_document(&mut sink, experiment, options, &mut report)?;
+    write_document(&mut sink, experiment, options, &mut report, progress)?;
     Ok(report)
 }
 
@@ -997,7 +1147,9 @@ struct Description {
     metadata: MetaInfo,
 }
 
-struct Parser<'a> {
+struct Parser<'a, 'p> {
+    /// The source handler's `logger_`.
+    progress: ProgressReporter<'p>,
     options: &'a PeakFileOptions,
     limits: &'a ReadLimits,
     report: LoadReport,
@@ -1026,9 +1178,14 @@ struct Parser<'a> {
     stop: bool,
 }
 
-impl<'a> Parser<'a> {
-    fn new(options: &'a PeakFileOptions, limits: &'a ReadLimits) -> Self {
+impl<'a, 'p> Parser<'a, 'p> {
+    fn new(
+        options: &'a PeakFileOptions,
+        limits: &'a ReadLimits,
+        progress: ProgressReporter<'p>,
+    ) -> Self {
         Self {
+            progress,
             options,
             limits,
             report: LoadReport::default(),
@@ -1342,6 +1499,13 @@ impl<'a> Parser<'a> {
                         "<spectrumList count> exceeds the configured spectrum ceiling",
                     ));
                 }
+                // `MzDataHandler.cpp:354`.
+                self.progress.start(
+                    0,
+                    i64::try_from(count)
+                        .map_err(|_| limit("<spectrumList count> exceeds the progress range"))?,
+                    "loading mzData file",
+                )?;
             }
             "acqSpecification" => {
                 let kind = required(element, "spectrumType")?;
@@ -1487,6 +1651,11 @@ impl<'a> Parser<'a> {
     // -- end elements -------------------------------------------------------
 
     fn end(&mut self, tag: &str, parent: &str) -> Result<()> {
+        if tag == "mzData" {
+            // `MzDataHandler.cpp:460-464`.
+            self.progress.end()?;
+            SCAN_COUNT.store(0, Ordering::Relaxed);
+        }
         if tag == "spectrum" {
             let skipped = self.skip;
             if skipped {
@@ -1500,7 +1669,10 @@ impl<'a> Parser<'a> {
                 self.experiment.spectra.push(spectrum);
             }
             self.reset_spectrum();
-            return Ok(());
+            // `MzDataHandler.cpp:452`: `setProgress(++scan_count)`, on the
+            // process-wide counter and whether or not the spectrum was kept.
+            let count = SCAN_COUNT.fetch_add(1, Ordering::Relaxed).wrapping_add(1);
+            return self.progress.set(i64::from(count));
         }
         if self.skip {
             return Ok(());
@@ -2969,7 +3141,14 @@ fn write_document(
     experiment: &MSExperiment,
     options: &WriteOptions,
     report: &mut StoreReport,
+    progress: &mut ProgressReporter<'_>,
 ) -> Result<()> {
+    // `MzDataHandler.cpp:581`.
+    progress.start(
+        0,
+        progress_value(experiment.spectra.len())?,
+        "storing mzData file",
+    )?;
     let mut out = Sink { writer };
     let settings = &experiment.settings;
     out.raw("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n")?;
@@ -2979,8 +3158,9 @@ fn write_document(
         "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"{SCHEMA_LOCATION}\">\n"
     ))?;
     write_description(&mut out, experiment, report)?;
-    write_spectra(&mut out, experiment, options, report)?;
-    Ok(())
+    write_spectra(&mut out, experiment, options, report, progress)?;
+    // `MzDataHandler.cpp:1072`.
+    progress.end()
 }
 
 fn write_description(
@@ -3273,6 +3453,7 @@ fn write_spectra(
     experiment: &MSExperiment,
     options: &WriteOptions,
     report: &mut StoreReport,
+    progress: &mut ProgressReporter<'_>,
 ) -> Result<()> {
     if experiment.spectra.is_empty() {
         // `MzDataHandler.cpp:1057-1072`: an empty experiment still needs one
@@ -3295,6 +3476,8 @@ fn write_spectra(
         experiment.spectra.len()
     ))?;
     for (index, spectrum) in experiment.spectra.iter().enumerate() {
+        // `MzDataHandler.cpp:803`.
+        progress.set_count(index)?;
         let position = i64::try_from(index)
             .ok()
             .and_then(|n| n.checked_add(1))

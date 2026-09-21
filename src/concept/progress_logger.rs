@@ -396,6 +396,18 @@ impl<'a> ProgressReporter<'a> {
         self.set(progress_value(value)?)
     }
 
+    /// Source `nextProgress()`; see [`ProgressLogger::next_progress`].
+    ///
+    /// # Errors
+    ///
+    /// The errors of [`ProgressLogger::next_progress`]; never when silent.
+    pub fn next(&mut self) -> Result<()> {
+        match self.logger.as_deref_mut() {
+            Some(logger) => logger.next_progress(),
+            None => Ok(()),
+        }
+    }
+
     /// Source `endProgress()`, without a byte count; see
     /// [`ProgressLogger::end_progress`].
     ///
@@ -403,8 +415,19 @@ impl<'a> ProgressReporter<'a> {
     ///
     /// The errors of [`ProgressLogger::end_progress`]; never when silent.
     pub fn end(&mut self) -> Result<()> {
+        self.end_with_bytes(0)
+    }
+
+    /// Source `endProgress(bytes_processed)`, whose nonzero byte count asks
+    /// the command backend for a throughput; see
+    /// [`ProgressLogger::end_progress`].
+    ///
+    /// # Errors
+    ///
+    /// The errors of [`ProgressLogger::end_progress`]; never when silent.
+    pub fn end_with_bytes(&mut self, bytes_processed: u64) -> Result<()> {
         match self.logger.as_deref_mut() {
-            Some(logger) => logger.end_progress(0),
+            Some(logger) => logger.end_progress(bytes_processed),
             None => Ok(()),
         }
     }

@@ -4,11 +4,17 @@
 
 //! Native consensusXML 1.7 interchange, including protein-group quantities.
 //! See `docs/CONSENSUSXML_SUPPORT.md` for source conventions and native corrections.
+//!
+//! The source `ConsensusXMLFile` and its handler derive from `ProgressLogger`;
+//! [`load_with_progress`] and [`store_with_progress`] make the handler's
+//! progress calls, and every other entry point runs the same code and reports
+//! nothing.
 
 mod groups;
 use super::identification_xml::{self as xml, Node};
 use super::{FileType, map_xml as common};
 use crate::chemistry::ModificationsDB;
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::identification::PeptideIdentification;
 use crate::kernel::{ColumnHeader, ConsensusFeature, ConsensusMap, FeatureHandle};
 use crate::{Error, Result};
@@ -189,6 +195,44 @@ pub fn read_report(
     options: &ReadOptions,
     registry: &ModificationsDB,
 ) -> Result<ReadReport> {
+    read_report_reporting(reader, options, registry, &mut ProgressReporter::silent())
+}
+
+/// The elements at whose start the source handler calls
+/// `setProgress(++progress_)` (`ConsensusXMLHandler.cpp:149`, `:173`, `:334`,
+/// `:424`, `:485`, `:582`), besides the root's own call.
+const LOAD_PROGRESS_ELEMENTS: [&str; 6] = [
+    "map",
+    "consensusElement",
+    "IdentificationRun",
+    "ProteinHit",
+    "PeptideHit",
+    "dataProcessing",
+];
+
+/// How many elements of `node`'s subtree, `node` excluded, are in
+/// [`LOAD_PROGRESS_ELEMENTS`].
+fn load_progress_calls(node: &Node) -> u64 {
+    let mut calls = 0;
+    let mut pending: Vec<&Node> = node.children.iter().collect();
+    while let Some(child) = pending.pop() {
+        if LOAD_PROGRESS_ELEMENTS.contains(&child.name.as_str()) {
+            calls += 1;
+        }
+        pending.extend(child.children.iter());
+    }
+    calls
+}
+
+/// [`read_report`], with the source handler's loading section. The document
+/// is parsed whole before any of it is converted, so the section's calls are
+/// made once the parse succeeded, before the conversion, and its end after.
+fn read_report_reporting(
+    reader: impl BufRead,
+    options: &ReadOptions,
+    registry: &ModificationsDB,
+    progress: &mut ProgressReporter<'_>,
+) -> Result<ReadReport> {
     options.validate()?;
     let mut work = options.max_work;
     let mut budget = options.max_payload_bytes;
@@ -197,6 +241,17 @@ pub fn read_report(
     xml::measure_node(&root, &mut work, &mut budget)?;
     if root.name != "consensusXML" {
         return Err(bad("expected consensusXML root"));
+    }
+    if progress.is_reporting() {
+        // `ConsensusXMLHandler.cpp:254-256`: a zero-width section, then one
+        // call for the root and one per counted element, in a running count.
+        progress.start(0, 0, "loading consensusXML file")?;
+        let calls = 1 + load_progress_calls(&root);
+        for value in 1..=calls {
+            progress.set(
+                i64::try_from(value).map_err(|_| bad("consensusXML progress count overflows"))?,
+            )?;
+        }
     }
     root.check(
         &[
@@ -330,6 +385,8 @@ pub fn read_report(
     if let Err(error) = map.validate_consistency() {
         warnings.push(format!("inconsistent consensus map: {error}"));
     }
+    // `ConsensusXMLHandler.cpp:130-133`, at `</consensusXML>`.
+    progress.end()?;
     Ok(ReadReport { map, warnings })
 }
 fn read_element(
@@ -408,8 +465,66 @@ pub fn load(path: impl AsRef<Path>) -> Result<ConsensusMap> {
 }
 /// Load with explicit options. See [`load`].
 pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Result<ConsensusMap> {
+    load_reporting(path, options, &mut ProgressReporter::silent())
+}
+/// Load a consensusXML file, reporting progress as source
+/// `ConsensusXMLFile::load` does.
+///
+/// The source file hands its handler only its log type
+/// (`ConsensusXMLFile.cpp:88-89`), so the calls go to a fresh backend of
+/// `logger`'s type, as [`ProgressLogger::clone`] makes one: the command
+/// backend for [`Cmd`](crate::concept::progress_logger::ProgressLogType::Cmd),
+/// the logger's GUI factory for
+/// [`Gui`](crate::concept::progress_logger::ProgressLogType::Gui), and none
+/// for the default type. A backend installed on `logger` with
+/// [`ProgressLogger::set_logger`] receives nothing, as a source file's
+/// `setLogger` backend receives nothing.
+///
+/// The calls are the handler's: `startProgress(0, 0, "loading consensusXML
+/// file")` at the root, then `setProgress(1)`, `setProgress(2)`, … — one for
+/// the root and one for every `map`, `consensusElement`, `IdentificationRun`,
+/// `ProteinHit`, `PeptideHit` and `dataProcessing` element — and
+/// `endProgress()` at `</consensusXML>`. With a zero-width range the command
+/// backend prints one dot per call. The result is the one
+/// [`load_with_options`] returns, and so is every error: both run the same
+/// code, whose calls go nowhere for [`load_with_options`].
+///
+/// This reader parses the whole document before converting any of it, where
+/// the source converts as it parses. A document that is not well-formed
+/// therefore makes no call, where the source has made the calls for the
+/// elements before the defect; one the conversion refuses has made every
+/// set, and no end. A failure after the start leaves the section open, as in
+/// the source, where the exception bypasses `endProgress`.
+///
+/// # Errors
+///
+/// As [`load`], plus the errors of the progress calls
+/// ([`ProgressLogger::start_progress`] and its siblings).
+pub fn load_with_progress(
+    path: impl AsRef<Path>,
+    options: &ReadOptions,
+    logger: &ProgressLogger,
+) -> Result<ConsensusMap> {
+    let mut handler = logger.clone();
+    load_reporting(
+        path,
+        options,
+        &mut ProgressReporter::new(Some(&mut handler)),
+    )
+}
+fn load_reporting(
+    path: impl AsRef<Path>,
+    options: &ReadOptions,
+    progress: &mut ProgressReporter<'_>,
+) -> Result<ConsensusMap> {
     let path = path.as_ref();
-    let mut map = read_with_options(super::path_io::open(path)?, options)?;
+    let mut map = read_report_reporting(
+        super::path_io::open(path)?,
+        options,
+        ModificationsDB::global(),
+        progress,
+    )?
+    .map;
     map.loaded_file_path = path
         .to_str()
         .ok_or_else(|| bad("loaded filename must be UTF-8"))?
@@ -470,7 +585,36 @@ pub fn write_with_registry(
     options: &WriteOptions,
     registry: &ModificationsDB,
 ) -> Result<()> {
+    let bytes = encode(map, options, registry, &mut ProgressReporter::silent())?;
+    writer.write_all(&bytes)?;
+    writer.flush()?;
+    Ok(())
+}
+/// The checked document, rendered, with the source handler's storing section
+/// (`ConsensusXMLHandler.cpp:606-837`) around the rendering.
+///
+/// The source counts `setProgress(++progress_)` three times before the
+/// header, once after the map's user parameters, once after the data
+/// processing, and once per identification run, column header and consensus
+/// feature. The port builds and checks the whole document first, so a map it
+/// refuses makes no call.
+fn encode(
+    map: &ConsensusMap,
+    options: &WriteOptions,
+    registry: &ModificationsDB,
+    progress: &mut ProgressReporter<'_>,
+) -> Result<Vec<u8>> {
     let root = write_node(map, options, registry)?;
+    if progress.is_reporting() {
+        progress.start(0, 0, "storing consensusXML file")?;
+        let calls = 5usize
+            .saturating_add(map.protein_identifications.len())
+            .saturating_add(map.column_headers.len())
+            .saturating_add(map.features.len());
+        for value in 1..=calls {
+            progress.set_count(value)?;
+        }
+    }
     let bytes = xml::render(
         &root,
         &xml::WriteOptions {
@@ -478,9 +622,8 @@ pub fn write_with_registry(
             max_records: options.max_records,
         },
     )?;
-    writer.write_all(&bytes)?;
-    writer.flush()?;
-    Ok(())
+    progress.end()?;
+    Ok(bytes)
 }
 fn peptides(map: &ConsensusMap) -> impl Iterator<Item = &PeptideIdentification> {
     map.unassigned_peptide_identifications.iter().chain(
@@ -737,4 +880,46 @@ pub fn store_with_options(
     let mut bytes = Vec::new();
     write_with_options(&mut bytes, map, options)?;
     super::path_io::store(path, &bytes)
+}
+/// Store `map` at `path`, reporting progress as source
+/// `ConsensusXMLFile::store` does.
+///
+/// As for [`load_with_progress`], the calls go to a fresh backend of
+/// `logger`'s type (`ConsensusXMLFile.cpp:74-75`). They are the handler's
+/// `writeTo` calls: `startProgress(0, 0, "storing consensusXML file")`, then
+/// `setProgress(1)` … `setProgress(5 + identification runs + column headers +
+/// consensus features)`, and `endProgress()`. As in the source, the
+/// destination is opened first (`XMLFile::save_`), so one that cannot be
+/// created makes no call. The bytes and every error are those of
+/// [`store_with_options`], which builds the same document without reporting;
+/// the port's checks precede the start.
+///
+/// # Errors
+///
+/// As [`store`], plus the errors of the progress calls.
+pub fn store_with_progress(
+    path: impl AsRef<Path>,
+    map: &ConsensusMap,
+    options: &WriteOptions,
+    logger: &ProgressLogger,
+) -> Result<()> {
+    let path = path.as_ref();
+    let kind = super::file_types::type_by_file_name(
+        path.to_str()
+            .ok_or_else(|| bad("output filename must be UTF-8"))?,
+    );
+    if kind != FileType::Unknown && kind != FileType::ConsensusXml {
+        return Err(bad("output extension is not consensusXML"));
+    }
+    let mut handler = logger.clone();
+    super::path_io::store_reporting(
+        path,
+        |progress| {
+            Ok((
+                encode(map, options, ModificationsDB::global(), progress)?,
+                (),
+            ))
+        },
+        &mut ProgressReporter::new(Some(&mut handler)),
+    )
 }
