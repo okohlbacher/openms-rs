@@ -3004,7 +3004,7 @@ fn read_engine(
                         }
                         // `MzMLHandler.cpp:1443`, `:1483`: every record,
                         // whether or not the load options keep it.
-                        progress.lists.next()?;
+                        progress.lists.next_progress()?;
                     }
                     // `MzMLHandler.cpp:1491`, `:1497`.
                     "spectrumList" | "chromatogramList" => progress.lists.end()?,

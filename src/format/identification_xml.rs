@@ -578,8 +578,12 @@ pub(crate) struct Detach<'a> {
     /// against the same ceilings. The root carries every child that closed
     /// before the container opened, which is all of a schema-valid featureMap's
     /// metadata and identification data.
-    pub(crate) take: &'a mut dyn FnMut(&Node, &Node, Node, &mut usize, &mut usize) -> Result<()>,
+    pub(crate) take: &'a mut DetachTake<'a>,
 }
+
+/// The callback of [`Detach::take`].
+pub(crate) type DetachTake<'a> =
+    dyn FnMut(&Node, &Node, Node, &mut usize, &mut usize) -> Result<()> + 'a;
 
 /// Decode a whole document, or only its prefix through the opening `stop_tag`,
 /// to text bounded by `limit` bytes.

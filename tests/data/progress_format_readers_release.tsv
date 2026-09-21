@@ -1,0 +1,351 @@
+# OpenMS4 Release (core bc9cc12) progress calls of the FORMAT readers deriving from ProgressLogger;
+# produced by ../oracle/progress-format-readers (driver.cpp, make_inputs.py, extract.py). Columns: case, mode, record, fields.
+dta2d_load	rec	S	0	0	loading DTA2D file	0
+dta2d_load	rec	V	0	1
+dta2d_load	rec	V	0	1
+dta2d_load	rec	V	0	1
+dta2d_load	rec	V	0	1
+dta2d_load	rec	V	0	1
+dta2d_load	rec	V	0	1
+dta2d_load	rec	V	0	1
+dta2d_load	rec	V	0	1
+dta2d_load	rec	V	0	1
+dta2d_load	rec	E	0	0
+dta2d_load	rec	R	9	0
+dta2d_load	rec	D	0
+dta2d_load	cmd	R	9	0
+dta2d_load	cmd	D	0
+dta2d_load	cmd	B	Progress of 'loading DTA2D file':\n.........\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+dta2d_load_missing	rec	S	0	0	loading DTA2D file	0
+dta2d_load_missing	rec	X	FileNotFound	the file '<W>/inputs/missing.dta2d' could not be found
+dta2d_load_missing	rec	D	1
+dta2d_load_missing	cmd	X	FileNotFound	the file '<W>/inputs/missing.dta2d' could not be found
+dta2d_load_missing	cmd	D	1
+dta2d_load_missing	cmd	B	Progress of 'loading DTA2D file':\n
+dta2d_load_bad_line	rec	S	0	0	loading DTA2D file	0
+dta2d_load_bad_line	rec	V	0	1
+dta2d_load_bad_line	rec	X	Parse Error	<W>/inputs/dta2d_bad_line.dta2d in: Bad data line (2): "4711.2 abc 89935.22"
+dta2d_load_bad_line	rec	D	1
+dta2d_load_bad_line	cmd	X	Parse Error	<W>/inputs/dta2d_bad_line.dta2d in: Bad data line (2): "4711.2 abc 89935.22"
+dta2d_load_bad_line	cmd	D	1
+dta2d_load_bad_line	cmd	B	Progress of 'loading DTA2D file':\n.
+dta2d_store	rec	S	0	9	storing DTA2D file	0
+dta2d_store	rec	V	0	1
+dta2d_store	rec	V	1	1
+dta2d_store	rec	V	2	1
+dta2d_store	rec	V	3	1
+dta2d_store	rec	V	4	1
+dta2d_store	rec	V	5	1
+dta2d_store	rec	V	6	1
+dta2d_store	rec	V	7	1
+dta2d_store	rec	V	8	1
+dta2d_store	rec	E	0	0
+dta2d_store	rec	R	579
+dta2d_store	rec	D	0
+dta2d_store	cmd	R	579
+dta2d_store	cmd	D	0
+dta2d_store	cmd	B	Progress of 'storing DTA2D file':\n\r  0.00 %               \r  11.11 %               \r  22.22 %               \r  33.33 %               \r  44.44 %               \r  55.56 %               \r  66.67 %               \r  77.78 %               \r  88.89 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+dta2d_store_tic	rec	S	0	9	storing DTA2D file	0
+dta2d_store_tic	rec	E	0	0
+dta2d_store_tic	rec	R	313
+dta2d_store_tic	rec	D	0
+dta2d_store_tic	cmd	R	313
+dta2d_store_tic	cmd	D	0
+dta2d_store_tic	cmd	B	Progress of 'storing DTA2D file':\n\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+dta2d_store_unwritable	rec	S	0	9	storing DTA2D file	0
+dta2d_store_unwritable	rec	X	UnableToCreateFile	the file '<W>/out/missing_directory/unwritable.dta2d' could not be created. 
+dta2d_store_unwritable	rec	D	1
+dta2d_store_unwritable	cmd	X	UnableToCreateFile	the file '<W>/out/missing_directory/unwritable.dta2d' could not be created. 
+dta2d_store_unwritable	cmd	D	1
+dta2d_store_unwritable	cmd	B	Progress of 'storing DTA2D file':\n
+ms2_load	rec	R	2	0
+ms2_load	rec	D	0
+ms2_load	cmd	R	2	0
+ms2_load	cmd	D	0
+ms2_load	cmd	B	
+mgf_load	rec	S	0	1153	loading MGF	0
+mgf_load	rec	V	1153	1
+mgf_load	rec	E	0	0
+mgf_load	rec	R	1	0
+mgf_load	rec	D	0
+mgf_load	cmd	R	1	0
+mgf_load	cmd	D	0
+mgf_load	cmd	B	Progress of 'loading MGF':\n\r  100.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+mgf_load_two_blocks	rec	S	0	131	loading MGF	0
+mgf_load_two_blocks	rec	V	76	1
+mgf_load_two_blocks	rec	V	-1	1
+mgf_load_two_blocks	rec	E	0	0
+mgf_load_two_blocks	rec	R	2	0	131
+mgf_load_two_blocks	rec	D	0
+mgf_load_two_blocks	cmd	R	2	0	131
+mgf_load_two_blocks	cmd	D	0
+mgf_load_two_blocks	cmd	B	Progress of 'loading MGF':\n\r  58.02 %               ProgressLogger: Invalid progress value '-1'. Should be between '0' and '131'!\n\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+mgf_load_missing	rec	X	FileNotFound	the file '<W>/inputs/missing.mgf' could not be found
+mgf_load_missing	rec	D	0
+mgf_load_missing	cmd	X	FileNotFound	the file '<W>/inputs/missing.mgf' could not be found
+mgf_load_missing	cmd	D	0
+mgf_load_missing	cmd	B	
+mgf_store	rec	S	0	2	storing mascot generic file	0
+mgf_store	rec	V	0	1
+mgf_store	rec	V	1	1
+mgf_store	rec	E	0	0
+mgf_store	rec	R	437
+mgf_store	rec	D	0
+mgf_store	cmd	R	437
+mgf_store	cmd	D	0
+mgf_store	cmd	B	Progress of 'storing mascot generic file':\n\r  0.00 %               \r  50.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+mzid_load	rec	R	1	3
+mzid_load	rec	D	0
+mzid_load	cmd	R	1	3
+mzid_load	cmd	D	0
+mzid_load	cmd	B	
+mzid_store	rec	R	<SIZE>
+mzid_store	rec	D	0
+mzid_store	cmd	R	<SIZE>
+mzid_store	cmd	D	0
+mzid_store	cmd	B	
+consensus_load	rec	S	0	0	loading consensusXML file	0
+consensus_load	rec	V	1	1
+consensus_load	rec	V	2	1
+consensus_load	rec	V	3	1
+consensus_load	rec	V	4	1
+consensus_load	rec	V	5	1
+consensus_load	rec	V	6	1
+consensus_load	rec	V	7	1
+consensus_load	rec	V	8	1
+consensus_load	rec	V	9	1
+consensus_load	rec	V	10	1
+consensus_load	rec	V	11	1
+consensus_load	rec	V	12	1
+consensus_load	rec	V	13	1
+consensus_load	rec	V	14	1
+consensus_load	rec	V	15	1
+consensus_load	rec	V	16	1
+consensus_load	rec	V	17	1
+consensus_load	rec	V	18	1
+consensus_load	rec	V	19	1
+consensus_load	rec	V	20	1
+consensus_load	rec	V	21	1
+consensus_load	rec	V	22	1
+consensus_load	rec	V	23	1
+consensus_load	rec	E	0	0
+consensus_load	rec	R	6	2
+consensus_load	rec	D	0
+consensus_load	cmd	R	6	2
+consensus_load	cmd	D	0
+consensus_load	cmd	B	Progress of 'loading consensusXML file':\n.......................\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+consensus_load_truncated	rec	S	0	0	loading consensusXML file	0
+consensus_load_truncated	rec	V	1	1
+consensus_load_truncated	rec	V	2	1
+consensus_load_truncated	rec	V	3	1
+consensus_load_truncated	rec	V	4	1
+consensus_load_truncated	rec	V	5	1
+consensus_load_truncated	rec	V	6	1
+consensus_load_truncated	rec	V	7	1
+consensus_load_truncated	rec	V	8	1
+consensus_load_truncated	rec	V	9	1
+consensus_load_truncated	rec	V	10	1
+consensus_load_truncated	rec	V	11	1
+consensus_load_truncated	rec	V	12	1
+consensus_load_truncated	rec	V	13	1
+consensus_load_truncated	rec	V	14	1
+consensus_load_truncated	rec	V	15	1
+consensus_load_truncated	rec	V	16	1
+consensus_load_truncated	rec	V	17	1
+consensus_load_truncated	rec	V	18	1
+consensus_load_truncated	rec	V	19	1
+consensus_load_truncated	rec	X	Parse Error	While loading '<W>/inputs/truncated.consensusXML': input ended before all started tags were ended; last tag started is 'consensusElementList'( in line 97 column 1) in: <W>/inputs/truncated.consensusXML
+consensus_load_truncated	rec	D	1
+consensus_load_truncated	cmd	X	Parse Error	While loading '<W>/inputs/truncated.consensusXML': input ended before all started tags were ended; last tag started is 'consensusElementList'( in line 97 column 1) in: <W>/inputs/truncated.consensusXML
+consensus_load_truncated	cmd	D	1
+consensus_load_truncated	cmd	B	Progress of 'loading consensusXML file':\n...................
+consensus_store	rec	S	0	0	storing consensusXML file	0
+consensus_store	rec	V	1	1
+consensus_store	rec	V	2	1
+consensus_store	rec	V	3	1
+consensus_store	rec	V	4	1
+consensus_store	rec	V	5	1
+consensus_store	rec	V	6	1
+consensus_store	rec	V	7	1
+consensus_store	rec	V	8	1
+consensus_store	rec	V	9	1
+consensus_store	rec	V	10	1
+consensus_store	rec	V	11	1
+consensus_store	rec	V	12	1
+consensus_store	rec	V	13	1
+consensus_store	rec	V	14	1
+consensus_store	rec	V	15	1
+consensus_store	rec	E	0	0
+consensus_store	rec	R	2	2	6
+consensus_store	rec	D	0
+consensus_store	cmd	R	2	2	6
+consensus_store	cmd	D	0
+consensus_store	cmd	B	Progress of 'storing consensusXML file':\n...............\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+featurexml_load	rec	S	0	2	Loading featureXML file	0
+featurexml_load	rec	V	0	1
+featurexml_load	rec	V	1	1
+featurexml_load	rec	E	0	0
+featurexml_load	rec	R	2
+featurexml_load	rec	D	0
+featurexml_load	cmd	R	2
+featurexml_load	cmd	D	0
+featurexml_load	cmd	B	Progress of 'Loading featureXML file':\n\r  0.00 %               \r  50.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+featurexml_load_size	rec	R	2
+featurexml_load_size	rec	D	0
+featurexml_load_size	cmd	R	2
+featurexml_load_size	cmd	D	0
+featurexml_load_size	cmd	B	
+featurexml_load_truncated	rec	S	0	2	Loading featureXML file	0
+featurexml_load_truncated	rec	V	0	1
+featurexml_load_truncated	rec	X	Parse Error	While loading '<W>/inputs/truncated.featureXML': input ended before all started tags were ended; last tag started is 'featureList'( in line 105 column 1) in: <W>/inputs/truncated.featureXML
+featurexml_load_truncated	rec	D	1
+featurexml_load_truncated	cmd	X	Parse Error	While loading '<W>/inputs/truncated.featureXML': input ended before all started tags were ended; last tag started is 'featureList'( in line 105 column 1) in: <W>/inputs/truncated.featureXML
+featurexml_load_truncated	cmd	D	1
+featurexml_load_truncated	cmd	B	Progress of 'Loading featureXML file':\n\r  0.00 %               
+featurexml_store	rec	S	0	2	Storing featureXML file	0
+featurexml_store	rec	V	0	1
+featurexml_store	rec	V	1	1
+featurexml_store	rec	E	0	0
+featurexml_store	rec	R	2
+featurexml_store	rec	D	0
+featurexml_store	cmd	R	2
+featurexml_store	cmd	D	0
+featurexml_store	cmd	B	Progress of 'Storing featureXML file':\n\r  0.00 %               \r  50.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+mzdata_load	rec	S	0	3	loading mzData file	0
+mzdata_load	rec	V	1	1
+mzdata_load	rec	V	2	1
+mzdata_load	rec	V	3	1
+mzdata_load	rec	E	0	0
+mzdata_load	rec	R	3	0
+mzdata_load	rec	D	0
+mzdata_load	cmd	R	3	0
+mzdata_load	cmd	D	0
+mzdata_load	cmd	B	Progress of 'loading mzData file':\n\r  33.33 %               \r  66.67 %               \r  100.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+mzdata_store	rec	S	0	3	storing mzData file	0
+mzdata_store	rec	V	0	1
+mzdata_store	rec	V	1	1
+mzdata_store	rec	V	2	1
+mzdata_store	rec	E	0	0
+mzdata_store	rec	R	3
+mzdata_store	rec	D	0
+mzdata_store	cmd	R	3
+mzdata_store	cmd	D	0
+mzdata_store	cmd	B	Progress of 'storing mzData file':\n\r  0.00 %               \r  33.33 %               \r  66.67 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+mzdata_static_counter	rec	S	0	3	loading mzData file	0
+mzdata_static_counter	rec	V	1	1
+mzdata_static_counter	rec	S	0	3	loading mzData file	1
+mzdata_static_counter	rec	V	2	2
+mzdata_static_counter	rec	V	3	2
+mzdata_static_counter	rec	V	4	2
+mzdata_static_counter	rec	E	1	0
+mzdata_static_counter	rec	R	Parse Error	3	0
+mzdata_static_counter	rec	D	1
+mzdata_static_counter	cmd	R	Parse Error	3	0
+mzdata_static_counter	cmd	D	1
+mzdata_static_counter	cmd	B	Progress of 'loading mzData file':\n\r  33.33 %                 Progress of 'loading mzData file':\n\r    66.67 %               \r    100.00 %               ProgressLogger: Invalid progress value '4'. Should be between '0' and '3'!\n\r  -- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+mzxml_load	rec	S	0	4	loading mzXML file	0
+mzxml_load	rec	V	0	1
+mzxml_load	rec	V	1	1
+mzxml_load	rec	V	2	1
+mzxml_load	rec	V	3	1
+mzxml_load	rec	E	0	0
+mzxml_load	rec	R	4	0
+mzxml_load	rec	D	0
+mzxml_load	cmd	R	4	0
+mzxml_load	cmd	D	0
+mzxml_load	cmd	B	Progress of 'loading mzXML file':\n\r  0.00 %               \r  25.00 %               \r  50.00 %               \r  75.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+mzxml_load_truncated	rec	S	0	4	loading mzXML file	0
+mzxml_load_truncated	rec	V	0	1
+mzxml_load_truncated	rec	V	1	1
+mzxml_load_truncated	rec	X	Parse Error	While loading '<W>/inputs/truncated.mzXML': input ended before all started tags were ended; last tag started is 'msRun'( in line 38 column 1) in: <W>/inputs/truncated.mzXML
+mzxml_load_truncated	rec	D	1
+mzxml_load_truncated	cmd	X	Parse Error	While loading '<W>/inputs/truncated.mzXML': input ended before all started tags were ended; last tag started is 'msRun'( in line 38 column 1) in: <W>/inputs/truncated.mzXML
+mzxml_load_truncated	cmd	D	1
+mzxml_load_truncated	cmd	B	Progress of 'loading mzXML file':\n\r  0.00 %               \r  25.00 %               
+mzxml_store	rec	S	0	4	storing mzXML file	0
+mzxml_store	rec	V	0	1
+mzxml_store	rec	V	1	1
+mzxml_store	rec	V	2	1
+mzxml_store	rec	V	3	1
+mzxml_store	rec	E	0	0
+mzxml_store	rec	R	4
+mzxml_store	rec	D	0
+mzxml_store	cmd	R	4
+mzxml_store	cmd	D	0
+mzxml_store	cmd	B	Progress of 'storing mzXML file':\n\r  0.00 %               \r  25.00 %               \r  50.00 %               \r  75.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+mzml_load	rec	S	0	1	loading mzML	0
+mzml_load	rec	S	0	4	loading spectra list	1
+mzml_load	rec	N	1
+mzml_load	rec	V	1	2
+mzml_load	rec	N	2
+mzml_load	rec	V	2	2
+mzml_load	rec	N	3
+mzml_load	rec	V	3	2
+mzml_load	rec	N	4
+mzml_load	rec	V	4	2
+mzml_load	rec	E	1	0
+mzml_load	rec	S	0	2	loading chromatogram list	1
+mzml_load	rec	N	1
+mzml_load	rec	V	1	2
+mzml_load	rec	N	2
+mzml_load	rec	V	2	2
+mzml_load	rec	E	1	0
+mzml_load	rec	E	0	37187
+mzml_load	rec	R	4	2	37187
+mzml_load	rec	D	0
+mzml_load	cmd	R	4	2	37187
+mzml_load	cmd	D	0
+mzml_load	cmd	B	Progress of 'loading mzML':\n  Progress of 'loading spectra list':\n\r    25.00 %               \r    50.00 %               \r    75.00 %               \r    100.00 %               \r  -- done [took <TIME> (CPU), <TIME> (Wall)] -- \n  Progress of 'loading chromatogram list':\n\r    50.00 %               \r    100.00 %               \r  -- done [took <TIME> (CPU), <TIME> (Wall)] -- \n\r-- done [took <TIME> (CPU), <TIME> (Wall) @ <RATE>/s] -- \n
+mzml_load_truncated	rec	S	0	1	loading mzML	0
+mzml_load_truncated	rec	S	0	4	loading spectra list	1
+mzml_load_truncated	rec	N	1
+mzml_load_truncated	rec	V	1	2
+mzml_load_truncated	rec	N	2
+mzml_load_truncated	rec	V	2	2
+mzml_load_truncated	rec	X	Parse Error	- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+mzml_load_truncated	rec	D	2
+mzml_load_truncated	cmd	X	Parse Error	- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+mzml_load_truncated	cmd	D	2
+mzml_load_truncated	cmd	B	Progress of 'loading mzML':\n  Progress of 'loading spectra list':\n\r    25.00 %               \r    50.00 %               
+mzml_reuse_after_failure	rec	S	0	1	loading mzML	0
+mzml_reuse_after_failure	rec	S	0	4	loading spectra list	1
+mzml_reuse_after_failure	rec	N	1
+mzml_reuse_after_failure	rec	V	1	2
+mzml_reuse_after_failure	rec	N	2
+mzml_reuse_after_failure	rec	V	2	2
+mzml_reuse_after_failure	rec	S	0	1	loading mzML	2
+mzml_reuse_after_failure	rec	S	0	4	loading spectra list	3
+mzml_reuse_after_failure	rec	N	1
+mzml_reuse_after_failure	rec	V	1	4
+mzml_reuse_after_failure	rec	N	2
+mzml_reuse_after_failure	rec	V	2	4
+mzml_reuse_after_failure	rec	N	3
+mzml_reuse_after_failure	rec	V	3	4
+mzml_reuse_after_failure	rec	N	4
+mzml_reuse_after_failure	rec	V	4	4
+mzml_reuse_after_failure	rec	E	3	0
+mzml_reuse_after_failure	rec	S	0	2	loading chromatogram list	3
+mzml_reuse_after_failure	rec	N	1
+mzml_reuse_after_failure	rec	V	1	4
+mzml_reuse_after_failure	rec	N	2
+mzml_reuse_after_failure	rec	V	2	4
+mzml_reuse_after_failure	rec	E	3	0
+mzml_reuse_after_failure	rec	E	2	37187
+mzml_reuse_after_failure	rec	R	Parse Error	4	2
+mzml_reuse_after_failure	rec	D	2
+mzml_reuse_after_failure	cmd	X	Parse Error	- due to that error of type Precondition failed in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/SYSTEM/StopWatch.cpp@43-void OpenMS::StopWatch::start()
+mzml_reuse_after_failure	cmd	D	3
+mzml_reuse_after_failure	cmd	B	Progress of 'loading mzML':\n  Progress of 'loading spectra list':\n\r    25.00 %               \r    50.00 %                   Progress of 'loading mzML':\n      Progress of 'loading spectra list':\n
+mzml_store	rec	S	0	6	storing mzML file	0
+mzml_store	rec	V	0	1
+mzml_store	rec	V	1	1
+mzml_store	rec	V	2	1
+mzml_store	rec	V	3	1
+mzml_store	rec	V	4	1
+mzml_store	rec	V	5	1
+mzml_store	rec	E	0	38180
+mzml_store	rec	R	4	2	38180
+mzml_store	rec	D	0
+mzml_store	cmd	R	4	2	38180
+mzml_store	cmd	D	0
+mzml_store	cmd	B	Progress of 'storing mzML file':\n\r  0.00 %               \r  16.67 %               \r  33.33 %               \r  50.00 %               \r  66.67 %               \r  83.33 %               \r-- done [took <TIME> (CPU), <TIME> (Wall) @ <RATE>/s] -- \n

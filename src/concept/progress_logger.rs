@@ -401,7 +401,7 @@ impl<'a> ProgressReporter<'a> {
     /// # Errors
     ///
     /// The errors of [`ProgressLogger::next_progress`]; never when silent.
-    pub fn next(&mut self) -> Result<()> {
+    pub fn next_progress(&mut self) -> Result<()> {
         match self.logger.as_deref_mut() {
             Some(logger) => logger.next_progress(),
             None => Ok(()),
