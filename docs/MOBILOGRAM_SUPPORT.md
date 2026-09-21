@@ -167,7 +167,7 @@ Existing public `DataArray { name, data }` literals must add
 
 Existing spectrum/chromatogram sort/select and theoretical generators preserve
 the fields. HiRes picking deliberately preserves them on its retained mobility
-array as a native retention correction: source `PeakPickerHiRes.cpp:134–136`
+array as a native retention correction: source `CENTROIDING/PeakPickerHiRes.cpp:134–136`
 constructs a fresh array and copies only its name, losing its description.
 Peak values and weighted mobility arithmetic are unchanged. Arrays reported as
 omitted remain omitted. Spectrum and chromatogram validation meters

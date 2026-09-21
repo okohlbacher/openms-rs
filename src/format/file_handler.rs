@@ -396,7 +396,7 @@ impl FileHandler {
     ///
     /// Source `FileHandler::loadFeatures` after `getFeatOptions()` is set
     /// (`FileHandler.cpp:1253-1280`); FileInfo turns convex hulls and
-    /// subordinates off this way (`FileInfo.cpp:1080-1084`). The type is
+    /// subordinates off this way (`FORMAT/FileInfo.cpp:1080-1084`). The type is
     /// detected as for [`FileHandler::load_feature_map`] and must be
     /// featureXML, the only native feature-map reader; the options then reach
     /// that reader unchanged, with its default resource limits. The source call

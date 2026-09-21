@@ -21,7 +21,7 @@
   `math::x86_64`, so the sign is the Release build's and not the host's.
 - **`FileInfo -c` no longer refuses a NaN retention time or peak m/z**
   (decision **D18**). The refusal rested on the source's `std::sort` leaving the
-  order undefined, which is the argument D16 overturned: `FileInfo.cpp:1927` and
+  order undefined, which is the argument D16 overturned: `FORMAT/FileInfo.cpp:1927` and
   `:1956` are the same unqualified `sort(v.begin(), v.end())` on a
   `std::vector<double>` that shared math now reproduces, so the port follows it
   instead of refusing. It is observable — for `{5.0, NaN, 5.0}` libstdc++ leaves

@@ -457,7 +457,7 @@ crashes the reference FileInfo.
    `intensity: -0.00 .. 100.00` against `intensity: 0.00 .. 100.00`, which the
    same equivalence produces through `std::min` in `updateRanges`; the bare and
    `-out_tsv` reports of both files, byte for byte.
-   `FileInfo.cpp:2257-2372` writes nothing to `os_tsv`, so only the text report
+   `FORMAT/FileInfo.cpp:2257-2372` writes nothing to `os_tsv`, so only the text report
    carries the statistics at all.
 
 ---
@@ -602,7 +602,7 @@ existed only for this difference is gone.
 
 **The same closure for `FileInfo -c`, decision D18.** `-c` refused a NaN MS1
 retention time or peak m/z on the same grounds this section once used: the
-source's `std::sort` leaves the order undefined. `FileInfo.cpp:1927` and `:1956`
+source's `std::sort` leaves the order undefined. `FORMAT/FileInfo.cpp:1927` and `:1956`
 are the same unqualified `sort(v.begin(), v.end())` on a `std::vector<double>`
 that D16 now reproduces — the vectors are declared at `:1863` and `:1942`,
 neither call carries a comparator, and `:47` is `using namespace std;` — so the

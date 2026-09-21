@@ -73,7 +73,7 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 
 ## Preserved source conventions
 
-- **Report order** (`FileInfo.cpp:662-2445`): header, `-v`, `-i`, content, `-m`,
+- **Report order** (`FORMAT/FileInfo.cpp:662-2445`): header, `-v`, `-i`, content, `-m`,
   `-p`, `-s`, then `"\n\n"`. The TSV has no section titles and no trailing
   newlines, and many text lines have no TSV twin (peak statistics, `-p`'s
   first-spectrum note, `-m` sample and instrument lists and contacts).
@@ -89,7 +89,7 @@ Every public member of `FileInfo.h`, and the file-local helpers of
   loader still detects the type by name and then content, so a featureXML map
   named `.tmp` loads when featureXML is forced (`FileInfo_test.cpp:120-145`).
 - **Loading**: peak files with default `PeakFileOptions`; featureXML with
-  convex hulls and subordinates off (`FileInfo.cpp:1080-1081`).
+  convex hulls and subordinates off (`FORMAT/FileInfo.cpp:1080-1081`).
 - **SRM spectra of mzML files** become chromatograms before anything is
   counted. The source mzML load step ends with
   `ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true)`
@@ -150,7 +150,7 @@ Every public member of `FileInfo.h`, and the file-local helpers of
   peak files the document identifier, `DateTime::get` date, sample, instrument
   and contacts.
 - **Label spacing**: the source at the pin writes one space after
-  `intensity:` (`FileInfo.cpp:140`, `:189`). The retained `FileInfo_3_output.txt`
+  `intensity:` (`FORMAT/FileInfo.cpp:140`, `:189`). The retained `FileInfo_3_output.txt`
   (and `FileInfo_7`) has six; only FuzzyDiff's whitespace rule accepts it, and
   the port follows the source (`retained_file_info_3_passes_fuzzy_diff`
   asserts both spellings).
@@ -181,7 +181,7 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 3. **Absent ranges** are `Option<Range>`, not `present` plus zeros.
 4. **Result shape.** `FileInfoResult` adds `warnings`: the source logs the
    FAIMS missing-voltage warning with `OPENMS_LOG_WARN`, twice, because it asks
-   for the voltages twice (`FileInfo.cpp:1673`, `:1742`); the library computes
+   for the voltages twice (`FORMAT/FileInfo.cpp:1673`, `:1742`); the library computes
    them once and returns the warning once.
    `to_text` and `to_tsv` borrow the cached reports instead of copying them.
    The file name must be UTF-8 (`Error::InvalidValue`).
@@ -211,7 +211,7 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 
    A statistics block can also compute a non-finite value from finite input, and
    that is a separate matter. The consensusXML `-s` relative intensity error
-   divides (`FileInfo.cpp:2310`) and inverts every ratio below 1
+   divides (`FORMAT/FileInfo.cpp:2310`) and inverts every ratio below 1
    (`:2312-2315`), so a sub-feature of intensity zero makes the sample
    `{1, +inf}`, whose mean is `+inf` and whose variance is a NaN; one of
    intensity `-0.0` next to one of `0.0` contributes `(-inf) + (+inf)`, which

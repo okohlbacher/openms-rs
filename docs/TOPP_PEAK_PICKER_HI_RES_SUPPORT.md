@@ -140,7 +140,7 @@ disagree.
 
 | | `-processOption inmemory` | `-processOption lowmemory` |
 | --- | --- | --- |
-| automatic-mode type test | `getType(true)`: stored type, then a `PEAK_PICKING` entry in the record's processing history, then `PeakTypeEstimator` over the samples (`PeakPickerHiRes.cpp:510`, `531`) | `s.getType()`, the `SpectrumSettings` accessor `MSSpectrum` re-exposes with `using` (`MSSpectrum.h:655`): the **stored type only** (`PeakPickerHiRes.cpp:124`) |
+| automatic-mode type test | `getType(true)`: stored type, then a `PEAK_PICKING` entry in the record's processing history, then `PeakTypeEstimator` over the samples (`CENTROIDING/PeakPickerHiRes.cpp:510`, `531`) | `s.getType()`, the `SpectrumSettings` accessor `MSSpectrum` re-exposes with `using` (`MSSpectrum.h:655`): the **stored type only** (`OpenMS4-topp/src/PeakPickerHiRes.cpp:124`) |
 | centroided data on a selected MS level | `IllegalArgument` unless `-force` | picked; **there is no check at all**, so `-force` is inert |
 | per-peak ion mobility | warns once | silent |
 | input with neither spectra nor chromatograms | `INCOMPATIBLE_INPUT_DATA` | exit 0; nothing is written, because no record ever reaches the consumer |
@@ -219,7 +219,7 @@ that is reproduced, not repaired.
 
 ### How a failure ends, and what it leaves behind
 
-`doLowMemAlgorithm` catches nothing (`PeakPickerHiRes.cpp:170-186`), so every
+`doLowMemAlgorithm` catches nothing (`OpenMS4-topp/src/PeakPickerHiRes.cpp:170-186`), so every
 failure of the mode is classified by `TOPPBase::main` on the exception type
 alone. A reader failure is therefore `Error: Unable to read file (…)` and
 `INPUT_FILE_CORRUPT`, exactly as in the in-memory mode, whose `loadExperiment`

@@ -33,7 +33,7 @@ exports no public item: the three writers are `pub(crate)`, as
 | `Options::check_index` (`-i`) | `Options::check_index` | runs for every type, before the content |
 | `Options::detailed` (`-d`) | `Options::detailed` | peak-file branch only |
 | `Options::check_corrupt` (`-c`) | `Options::check_corrupt` | peak-file branch only |
-| `report_` index block, `FileInfo.cpp:827-846` | `checks::write_index_check` | returns `false` for the source's early `return` |
+| `report_` index block, `FORMAT/FileInfo.cpp:827-846` | `checks::write_index_check` | returns `false` for the source's early `return` |
 | `report_` transition listing, `:1779-1795` | `checks::write_detailed_chromatograms` | |
 | `report_` spectrum listing, `:1799-1848` | `checks::write_detailed_spectra` | |
 | `report_` corrupt-data block, `:1851-1964` | `checks::write_corruption_check` | |
@@ -69,7 +69,7 @@ exports no public item: the three writers are `pub(crate)`, as
   spaces and their blank lines are the source's, including
   `" -- Detailed chromatogram listing -- "` with a space on each side and
   `"  activation methods: "` with a trailing one.
-- **The early return of a failed `-i`.** `FileInfo.cpp:844` returns from
+- **The early return of a failed `-i`.** `FORMAT/FileInfo.cpp:844` returns from
   `report_`, so the report ends with the failure text: no content, no `-m`,
   `-p` or `-s`, and not even the two trailing newlines of `:2443-2444`. Every
   other flag the caller set is skipped. The FileInfo tool turns that state

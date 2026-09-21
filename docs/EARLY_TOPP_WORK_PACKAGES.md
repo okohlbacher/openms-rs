@@ -380,7 +380,7 @@ follow-up in flight covers, each with its file and owner.
     `WRITTEN_DIGITS_F64` per statistics block, persisting as it does in
     `FileInfo.cpp` (lines 2224-2254, 2330-2362 and 2404).
   - Do not copy the six-space `intensity:` padding of the retained
-    `FileInfo_3` and `FileInfo_7` reports; `FileInfo.cpp:140` and `:189` at
+    `FileInfo_3` and `FileInfo_7` reports; `FORMAT/FileInfo.cpp:140` and `:189` at
     `bc9cc12` write one space.
 - **C1 and A4, macOS report comparisons (A2 platform note).** Default-stream
   `%g` text differs between Apple libc and glibc on one class of exact ties: an

@@ -58,7 +58,7 @@ use std::io::Write;
 /// The `PeakPickerHiRes` TOPP tool: centroids profile spectra and chromatograms
 /// with the high-resolution peak picker.
 ///
-/// Registration follows `registerOptionsAndFlags_` (`PeakPickerHiRes.cpp:152-163`):
+/// Registration follows `registerOptionsAndFlags_` (`OpenMS4-topp/src/PeakPickerHiRes.cpp:152-163`):
 /// `-in` and `-out` restricted to mzML, the advanced `-processOption` with the
 /// valid strings `inmemory` (the default) and `lowmemory`, and the `algorithm`
 /// subsection filled from
@@ -103,7 +103,7 @@ impl PeakPickerHiRes {
     }
 }
 
-/// Source warning for per-peak ion mobility (`PeakPickerHiRes.cpp:222-226`),
+/// Source warning for per-peak ion mobility (`OpenMS4-topp/src/PeakPickerHiRes.cpp:222-226`),
 /// around the name of the spectrum's ion mobility peak type.
 fn ion_mobility_warning(peak_type: IonMobilityPeakType) -> String {
     format!(
@@ -113,18 +113,18 @@ fn ion_mobility_warning(peak_type: IonMobilityPeakType) -> String {
 }
 
 /// Source warning for an input without spectra and chromatograms
-/// (`PeakPickerHiRes.cpp:233-234`). The log stream ends the line.
+/// (`OpenMS4-topp/src/PeakPickerHiRes.cpp:233-234`). The log stream ends the line.
 const EMPTY_INPUT_WARNING: &str = "The given file does not contain any conventional peak data, but might contain chromatograms. This tool currently cannot handle them, sorry.";
 
-/// Source error for an unsorted spectrum (`PeakPickerHiRes.cpp:243`).
+/// Source error for an unsorted spectrum (`OpenMS4-topp/src/PeakPickerHiRes.cpp:243`).
 const UNSORTED_SPECTRA_ERROR: &str = "Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!";
 
-/// Source error for an unsorted chromatogram (`PeakPickerHiRes.cpp:253`),
+/// Source error for an unsorted chromatogram (`OpenMS4-topp/src/PeakPickerHiRes.cpp:253`),
 /// which also says m/z.
 const UNSORTED_CHROMATOGRAMS_ERROR: &str = "Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!";
 
 /// The per-record hook of `-processOption lowmemory`: source nested class
-/// `PPHiResMzMLConsumer` (`PeakPickerHiRes.cpp:107-150`).
+/// `PPHiResMzMLConsumer` (`OpenMS4-topp/src/PeakPickerHiRes.cpp:107-150`).
 ///
 /// The source class derives from `MSDataWritingConsumer` and overrides its two
 /// template-method hooks; this port is the hook pair alone
@@ -141,7 +141,7 @@ const UNSORTED_CHROMATOGRAMS_ERROR: &str = "Error: Not all chromatograms are sor
 /// `using SpectrumSettings::getType` (`MSSpectrum.h:655`), and the no-argument
 /// overload is that base one, which returns the `type_` member and nothing
 /// else. `pickExperiment`, the in-memory path, spells the same test
-/// `getType(true)` (`PeakPickerHiRes.cpp:510` and `531`) - stored type, then a
+/// `getType(true)` (`CENTROIDING/PeakPickerHiRes.cpp:510` and `531`) - stored type, then a
 /// scan of the record's data-processing history for a `PEAK_PICKING` action,
 /// then `PeakTypeEstimator` over the samples.
 ///
@@ -165,7 +165,7 @@ struct LowMemoryPicker {
 }
 
 impl MSDataWritingProcessor for LowMemoryPicker {
-    /// Source `processSpectrum_` (`PeakPickerHiRes.cpp:120-137`).
+    /// Source `processSpectrum_` (`OpenMS4-topp/src/PeakPickerHiRes.cpp:120-137`).
     ///
     /// Automatic mode (no `ms_levels`) leaves a spectrum whose **stored** type
     /// is centroided untouched; manual mode leaves every spectrum whose MS level
@@ -192,7 +192,7 @@ impl MSDataWritingProcessor for LowMemoryPicker {
         Ok(())
     }
 
-    /// Source `processChromatogram_` (`PeakPickerHiRes.cpp:139-144`): every
+    /// Source `processChromatogram_` (`OpenMS4-topp/src/PeakPickerHiRes.cpp:139-144`): every
     /// chromatogram is picked, unconditionally, exactly as `pickExperiment`
     /// picks every chromatogram in the in-memory mode. `ms_levels` does not
     /// apply to chromatograms in either mode.
@@ -206,7 +206,7 @@ impl MSDataWritingProcessor for LowMemoryPicker {
     }
 }
 
-/// Source `doLowMemAlgorithm` (`PeakPickerHiRes.cpp:170-186`).
+/// Source `doLowMemAlgorithm` (`OpenMS4-topp/src/PeakPickerHiRes.cpp:170-186`).
 ///
 /// Builds the writing consumer on `output`, gives it the `peak picking`
 /// processing record, and streams `input` past it with
@@ -305,7 +305,7 @@ impl MSDataWritingProcessor for LowMemoryPicker {
 ///
 /// `run_io` classifies the error as `TOPPBase::main` classifies the exceptions
 /// this path lets through uncaught - `doLowMemAlgorithm` catches nothing
-/// (`PeakPickerHiRes.cpp:170-186`). A reader failure is
+/// (`OpenMS4-topp/src/PeakPickerHiRes.cpp:170-186`). A reader failure is
 /// `Error: Unable to read file (<reason>)` with
 /// [`ExitCode::InputFileCorrupt`], as the source's `ParseError` arm
 /// (`TOPPBase.cpp:460-465`) and as in the in-memory mode, whose loader errors
@@ -357,7 +357,7 @@ fn run_low_memory(
 }
 
 /// The in-memory input checks of `main_` before picking
-/// (`PeakPickerHiRes.cpp:216-256`), in source order.
+/// (`OpenMS4-topp/src/PeakPickerHiRes.cpp:216-256`), in source order.
 ///
 /// Writes the ion mobility warning once, for the first spectrum whose format
 /// is per-peak, then returns the terminal exit code, if any, after writing its
@@ -489,7 +489,7 @@ fn pick_experiment(
     ctx.in_thread_pool(|| picker.pick_experiment_in_place_with_threads(experiment, threads))?
 }
 
-/// The per-level summary `pickExperiment` logs (`PeakPickerHiRes.cpp:559-563`):
+/// The per-level summary `pickExperiment` logs (`CENTROIDING/PeakPickerHiRes.cpp:559-563`):
 /// for each MS level in ascending order, the spectra picked and the spectra
 /// seen. The header is written even without spectra.
 ///
@@ -584,7 +584,7 @@ impl Tool for PeakPickerHiRes {
         Self::run_io(ctx, &mut std::io::stdout(), &mut std::io::stderr())
     }
 
-    /// Source `main_` (`PeakPickerHiRes.cpp:188-273`).
+    /// Source `main_` (`OpenMS4-topp/src/PeakPickerHiRes.cpp:188-273`).
     ///
     /// 1. The `algorithm` subsection configures the picker, as
     ///    `setParameters`, with every source behaviour of

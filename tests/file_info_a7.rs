@@ -173,11 +173,11 @@ fn fasta_upstream_17() {
     assert_eq!(fasta.seq_with_ambiguous, 0);
     assert_eq!(fasta.ambiguity_counts["BZX"], 0);
     assert_eq!(fasta.ambiguity_counts["BZXJ"], 0);
-    // FileInfo.cpp:1055-1057: three or more sequences use SummaryStatistics.
+    // FORMAT/FileInfo.cpp:1055-1057: three or more sequences use SummaryStatistics.
     assert_eq!(fasta.length_stats.count, 11);
     assert_eq!(fasta.length_stats.min, 174.0);
     assert_eq!(fasta.length_stats.max, 177.0);
-    // FileInfo.cpp:1045: the print loop's operator[] inserts no zero-count key
+    // FORMAT/FileInfo.cpp:1045: the print loop's operator[] inserts no zero-count key
     // for an amino-acid file, and the structured map skips zero counts anyway.
     assert!(fasta.residue_counts.values().all(|&count| count != 0));
     assert_eq!(fasta.residue_counts[&b'*'], 2);
@@ -204,7 +204,7 @@ fn fasta_duplicate_warnings_match_the_source_log() {
 }
 
 /// Three identical entries. The source assigns each hash bucket a one-element
-/// vector instead of appending to it (`FileInfo.cpp:931`, `:949`), so entry #1
+/// vector instead of appending to it (`FORMAT/FileInfo.cpp:931`, `:949`), so entry #1
 /// is compared with #0 and entry #2 with #1, and both count.
 #[test]
 fn fasta_three_identical_entries_count_two_duplicates() {
@@ -246,7 +246,7 @@ fn fasta_upstream_18_and_20() {
     check("FileInfo_20_input.fasta", &bare(), "f20");
 }
 
-/// One and two sequences: below three, `FileInfo.cpp:986-1006` never asks for
+/// One and two sequences: below three, `FORMAT/FileInfo.cpp:986-1006` never asks for
 /// quartiles and prints the minimum and the maximum in their place, and
 /// `:1051-1064` fills the structured statistics field by field.
 #[test]
@@ -287,7 +287,7 @@ fn fasta_three_sequences_use_the_quantiles() {
 }
 
 /// Every sequence byte inside the IUPAC nucleotide alphabet selects the
-/// nucleotide labels and the `N` / IUPAC totals (`FileInfo.cpp:900-912`).
+/// nucleotide labels and the `N` / IUPAC totals (`FORMAT/FileInfo.cpp:900-912`).
 #[test]
 fn fasta_nucleic_acid_detection_and_ambiguity_buckets() {
     let clean = check("a7_fasta_nucleic.fasta", &bare(), "f_nucleic")
@@ -306,7 +306,7 @@ fn fasta_nucleic_acid_detection_and_ambiguity_buckets() {
     assert_eq!(ambiguous.seq_with_ambiguous, 2);
     assert_eq!(ambiguous.ambiguity_counts["N"], 4);
     assert_eq!(ambiguous.ambiguity_counts["IUPAC"], 24);
-    // FileInfo.cpp:1040-1041 skips the zero-count keys that the verbatim print
+    // FORMAT/FileInfo.cpp:1040-1041 skips the zero-count keys that the verbatim print
     // code may have operator[]-inserted for 'N' and 'n'.
     assert!(ambiguous.residue_counts.values().all(|&count| count != 0));
 }
@@ -337,7 +337,7 @@ fn fasta_residue_table_separates_case() {
     assert_eq!(fasta.residue_counts[&b'l'], 2);
 }
 
-/// `-m`, `-p` and `-s` have empty FASTA arms (`FileInfo.cpp:2001-2004`,
+/// `-m`, `-p` and `-s` have empty FASTA arms (`FORMAT/FileInfo.cpp:2001-2004`,
 /// `:2112-2114`, `:2377-2379`), so `-m` and `-s` add only their titles and `-p`
 /// the no-information line.
 #[test]
@@ -363,7 +363,7 @@ fn fasta_flag_sections_are_titles_only() {
 ///
 /// The upstream reference output records the source defect this reproduces:
 /// five consensus features, `Intensities ... num. of values: 5` and
-/// `Qualities ... num. of values: 10`, because `FileInfo.cpp:2263-2266`
+/// `Qualities ... num. of values: 10`, because `FORMAT/FileInfo.cpp:2263-2266`
 /// declares `vector<double> qualities(size)` and then appends to it.
 #[cfg(feature = "consensusxml")]
 #[test]
@@ -407,7 +407,7 @@ fn consensus_upstream_7_with_all_flags() {
             .text
             .contains("Qualities of consensus features:\n  num. of values: 10\n")
     );
-    // FileInfo.cpp:2257-2372 writes none of the -s block to the TSV report.
+    // FORMAT/FileInfo.cpp:2257-2372 writes none of the -s block to the TSV report.
     assert!(!result.tsv.contains("statistics: "));
 }
 
@@ -476,7 +476,7 @@ fn consensus_empty_map() {
 }
 
 /// Consensus features with peptide identifications: the with-at-least-one-ID
-/// columns and the aggregated peptide rows of `FileInfo.cpp:1193-1209`.
+/// columns and the aggregated peptide rows of `FORMAT/FileInfo.cpp:1193-1209`.
 #[cfg(feature = "consensusxml")]
 #[test]
 fn consensus_identification_columns_and_peptide_rows() {
@@ -596,7 +596,7 @@ fn assert_report_with_signed_nans(
 /// and the simplest case of the one class of line on which the two builds
 /// disagree: a NaN this crate spells `nan` and glibc spells `-nan`.
 ///
-/// `FileInfo.cpp:2310` divides each sub-feature's intensity by the consensus
+/// `FORMAT/FileInfo.cpp:2310` divides each sub-feature's intensity by the consensus
 /// centroid's, and `:2312-2315` inverts every ratio below 1, so a sub-feature
 /// of intensity 0 under a centroid of intensity 100 contributes `1 / 0`, which
 /// is `+inf`. `Math::SummaryStatistics` (`StatisticFunctions.h:933-958`) then
@@ -654,7 +654,7 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
             &format!("{case} text"),
             1,
         );
-        // FileInfo.cpp:2257-2372 writes nothing to os_tsv, so the TSV of a -s
+        // FORMAT/FileInfo.cpp:2257-2372 writes nothing to os_tsv, so the TSV of a -s
         // run is the bare TSV and matches exactly.
         assert_report(
             &result.tsv,
@@ -676,7 +676,7 @@ fn consensus_zero_intensity_sub_feature_makes_the_variance_a_nan() {
 /// A NaN in the statistics **sample**, not only in a statistic summarised out
 /// of one, and the boundary of what `Math::SummaryStatistics` can answer.
 ///
-/// `FileInfo.cpp:2310` divides and `:2312-2315` inverts every ratio below 1, so
+/// `FORMAT/FileInfo.cpp:2310` divides and `:2312-2315` inverts every ratio below 1, so
 /// a sub-feature of intensity `-0.0` under a positive centroid contributes
 /// `1 / -0.0 = -inf` and one of intensity `0.0` contributes `1 / 0.0 = +inf`.
 /// `:2317` accumulates `(-inf) + (+inf) = NaN`, `:2323` divides it by
@@ -783,7 +783,7 @@ fn consensus_nan_in_the_statistics_sample() {
             &format!("{case} text"),
             nan_lines,
         );
-        // FileInfo.cpp:2257-2372 writes nothing to os_tsv, so the TSV of a -s
+        // FORMAT/FileInfo.cpp:2257-2372 writes nothing to os_tsv, so the TSV of a -s
         // run is the bare TSV and matches exactly.
         assert_report(
             &result.tsv,
@@ -825,7 +825,7 @@ fn consensus_nan_in_the_statistics_sample() {
     ));
 
     // The Release build's `-s` TSV for those two files is byte-identical to its
-    // bare one, because FileInfo.cpp:2257-2372 writes nothing to os_tsv; the
+    // bare one, because FORMAT/FileInfo.cpp:2257-2372 writes nothing to os_tsv; the
     // loop above already compared both.
     for case in ["c_nan_then_finite", "c_finite_then_nan"] {
         assert_eq!(
@@ -868,7 +868,7 @@ fn consensus_nan_in_the_statistics_sample() {
 /// NaN, where this port used to print four lines the Release build does not and
 /// now prints the Release build's own.
 ///
-/// `FileInfo.cpp:2310-2311` pushes every intensity ratio into
+/// `FORMAT/FileInfo.cpp:2310-2311` pushes every intensity ratio into
 /// `it_delta_by_elems` *before* `:2312-2315` inverts the ones below 1, so a
 /// consensus feature holding a sub-feature of intensity `-0.0` and one of `0.0`
 /// under a positive centroid contributes `-0.0` and `0.0` to the
@@ -1015,7 +1015,7 @@ fn consensus_out_of_range_map_index_without_an_identification_is_reported() {
     );
 }
 
-/// D1: `FileInfo.cpp:1176-1183` sizes the occurrence vector from the number of
+/// D1: `FORMAT/FileInfo.cpp:1176-1183` sizes the occurrence vector from the number of
 /// column headers and then indexes it with `FeatureHandle::getMapIndex()`,
 /// which is the file's `map=` id rather than a position. Every file below puts
 /// that index outside the vector, and the port refuses instead of reproducing
@@ -1067,7 +1067,7 @@ fn identifications_upstream_10() {
         ident.search_engines,
         vec!["Unknown (version: 0)".to_owned()]
     );
-    // FileInfo.cpp:1396-1399 pushes a single zero so that the mean is defined.
+    // FORMAT/FileInfo.cpp:1396-1399 pushes a single zero so that the mean is defined.
     assert_eq!(ident.avg_peptide_length, 0.0);
     assert_eq!(ident.psms_per_spectrum, 0.0);
     assert!(ident.modification_counts.is_empty());
@@ -1076,7 +1076,7 @@ fn identifications_upstream_10() {
 }
 
 /// `-m` on idXML prints the document identifier and writes a TSV line that,
-/// uniquely, has no trailing newline (`FileInfo.cpp:1994-1995`). `-p` and `-s`
+/// uniquely, has no trailing newline (`FORMAT/FileInfo.cpp:1994-1995`). `-p` and `-s`
 /// have an idXML arm that contributes nothing beyond their titles.
 #[cfg(feature = "idxml")]
 #[test]
@@ -1094,7 +1094,7 @@ fn identifications_flag_sections() {
 }
 
 /// `PSMs / spectrum` is an integer division in the text while the structured
-/// field carries the real ratio (`FileInfo.cpp:1416`, `:1464`).
+/// field carries the real ratio (`FORMAT/FileInfo.cpp:1416`, `:1464`).
 #[cfg(feature = "idxml")]
 #[test]
 fn identifications_psms_per_spectrum_is_truncated_in_the_text_only() {
@@ -1114,7 +1114,7 @@ fn identifications_psms_per_spectrum_is_truncated_in_the_text_only() {
 }
 
 /// A terminal modification is counted under `getId()` and a residue
-/// modification under `getFullId()` (`FileInfo.cpp:1353-1372`), and the
+/// modification under `getFullId()` (`FORMAT/FileInfo.cpp:1353-1372`), and the
 /// modification line ends without a newline.
 #[cfg(feature = "idxml")]
 #[test]
@@ -1132,7 +1132,7 @@ fn identifications_modification_counts_use_two_identities() {
         "  Modification count (top-hits only): Amidated 1, Carbamidomethyl (C) 1, \
          Dimethyl 1, Oxidation (M) 2\n-- Meta information --"
     ));
-    // FileInfo.cpp:1418: the percentage goes through StringUtils::toStr.
+    // FORMAT/FileInfo.cpp:1418: the percentage goes through StringUtils::toStr.
     assert!(
         result
             .text
@@ -1198,7 +1198,7 @@ fn identifications_mzidentml_and_its_peak_file_fall_through() {
     check("FileInfo_15_input.mzid", &all_flags(), "mzid15_all");
 }
 
-/// D1: `FileInfo.cpp:1336-1341` reads `id_data.proteins[0]` before it has
+/// D1: `FORMAT/FileInfo.cpp:1336-1341` reads `id_data.proteins[0]` before it has
 /// established that a run exists, while the structured block at `:1451` guards
 /// the same access. The Release build segmentation-faults.
 ///
@@ -1224,7 +1224,7 @@ fn identifications_without_a_run_are_refused() {
     assert_eq!(message, "idXML needs at least one IdentificationRun");
 }
 
-/// D1: `FileInfo.cpp:1354` reads `getHits()[0]` behind a guard that tests for a
+/// D1: `FORMAT/FileInfo.cpp:1354` reads `getHits()[0]` behind a guard that tests for a
 /// default-constructed `PeptideIdentification` rather than for an empty hit
 /// list. `IdXMLFile::load` always fills the identifier, so the guard never
 /// protects the read for a loaded file, whatever the score type is; the Release
@@ -1240,7 +1240,7 @@ fn identifications_with_a_hitless_identification_are_refused() {
             panic!("{name}: expected InvalidValue, got {error}");
         };
         assert!(
-            message.contains("carries no hit") && message.contains("FileInfo.cpp:1347-1354"),
+            message.contains("carries no hit") && message.contains("FORMAT/FileInfo.cpp:1347-1354"),
             "{name}: {message}"
         );
     }

@@ -1683,11 +1683,11 @@ fn benchmark_sample(n: usize) -> Vec<f64> {
 // and hands to an unqualified `sort(v.begin(), v.end())` on a
 // `std::vector<double>`:
 //
-//   - the MS1 peak-intensity sample of `-s` (`FileInfo.cpp:2400` through
+//   - the MS1 peak-intensity sample of `-s` (`FORMAT/FileInfo.cpp:2400` through
 //     `write_statistics`), which is the whole file's MS1 peaks and is the
 //     sample the D17 regression was about;
-//   - the MS1 retention-time sample of `-c` (`FileInfo.cpp:1927`);
-//   - the per-spectrum peak m/z sample of `-c` (`FileInfo.cpp:1956`).
+//   - the MS1 retention-time sample of `-c` (`FORMAT/FileInfo.cpp:1927`);
+//   - the per-spectrum peak m/z sample of `-c` (`FORMAT/FileInfo.cpp:1956`).
 //
 // A sample misses the fast path only if it holds a NaN or both spellings of
 // zero. Run with `OPENMS_BENCH_IMPL=corpus`; the normal suite skips it, and

@@ -221,7 +221,7 @@ A7 close round escalated to the lead a sample its own arithmetic can put a NaN
 into, and told the lead the boundary was "pinned by
 `consensus_nan_in_the_statistics_sample`, so either decision is a visible change
 rather than a silent one". The verifier measured one fixture further out and
-found a second instance that was *not* visible. `FileInfo.cpp:2310-2311` fills
+found a second instance that was *not* visible. `FORMAT/FileInfo.cpp:2310-2311` fills
 the `Intensity ratios` sample **before** the inversion at `:2312-2315`, so one
 consensus feature with sub-features of intensity `-0.0` and `0.0` puts both
 zeros into that sample. `operator<` calls them equivalent — `-0.0 < 0.0` and
@@ -542,7 +542,7 @@ prose is exactly the defect this checker exists to catch.
 
 **It earned its place on the way in.** Run against the merged tree it found a
 citation defect A7 shipped and three review rounds missed:
-`src/format/file_info/identifications.rs` cited `FileInfo.cpp:1354` for a
+`src/format/file_info/identifications.rs` cited `FORMAT/FileInfo.cpp:1354` for a
 quotation that sits at `:1347`. Fixed by naming the three lines the sentence
 means — `:1347` the guard, `:1352` the reference, `:1354` the read.
 

@@ -77,7 +77,7 @@ Every member of the source `TOPPFileInfo` and the behaviour it carries.
 
 ## Preserved source conventions
 
-- **Registration** (`FileInfo.cpp:83-100`): `-in` required with the seventeen
+- **Registration** (`OpenMS4-topp/src/FileInfo.cpp:83-100`): `-in` required with the seventeen
   valid formats; `-in_type` a free string restricted to the same seventeen
   names; `-out` optional with format `txt`; `-out_tsv` optional, advanced, with
   format `tsv`; the flags `m`, `p`, `s`, `d`, `c`, `v`, `i` with their verbatim

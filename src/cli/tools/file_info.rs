@@ -49,7 +49,7 @@ use std::path::Path;
 pub struct FileInfo;
 
 /// The input formats `-in` accepts and the types `-in_type` names, in source
-/// order (`FileInfo.cpp:85`).
+/// order (`OpenMS4-topp/src/FileInfo.cpp:85`).
 const INPUT_TYPES: [&str; 17] = [
     "mzData",
     "mzXML",
@@ -75,7 +75,7 @@ impl Tool for FileInfo {
     const DESCRIPTION: &'static str =
         "Shows basic information about the file, such as data ranges and file type.";
 
-    /// Source `registerOptionsAndFlags_` (`FileInfo.cpp:83-100`), with the
+    /// Source `registerOptionsAndFlags_` (`OpenMS4-topp/src/FileInfo.cpp:83-100`), with the
     /// descriptions verbatim; the usage text capitalises their first letter.
     fn register(spec: &mut ToolSpec) -> Result<()> {
         spec.register_input_file("in", "<file>", "", "input file", true, false, &[])?;
@@ -146,7 +146,7 @@ impl Tool for FileInfo {
         Self::run_io(ctx, &mut std::io::stdout(), &mut std::io::stderr())
     }
 
-    /// Source `main_` and `outputTo_` (`FileInfo.cpp:102-199`).
+    /// Source `main_` and `outputTo_` (`OpenMS4-topp/src/FileInfo.cpp:102-199`).
     ///
     /// `out` receives the report when `-out` is not given, as the source's
     /// info log does; `err` receives the diagnostics, the usage text of the

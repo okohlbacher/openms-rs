@@ -1110,7 +1110,7 @@ const EXCEPTIONS: &[(&str, &str)] = &[
     // `signal_to_noise_` carries no restriction of its own
     // (`PeakPickerIterative.h:92`) and is copied into `PeakPickerHiRes`'s
     // `signal_to_noise`, which carries `setMinFloat(0.0)`
-    // (`PeakPickerHiRes.cpp:31-32`), so the Release build aborts naming a class
+    // (`CENTROIDING/PeakPickerHiRes.cpp:31-32`), so the Release build aborts naming a class
     // the caller never mentioned. This port refuses the option itself. CPP-348.
     ("ppi_snneg", "invalid iterative picker options"),
 ];

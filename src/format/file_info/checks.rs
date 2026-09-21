@@ -15,7 +15,7 @@
 //!   [`ValidationInfo::index_checked`], [`ValidationInfo::index_valid`] and,
 //!   when the index parsed, the two record counts. A file whose index does not
 //!   parse ends the whole report there, as the source `return`s
-//!   (`FileInfo.cpp:844`): no content, no `-m`, no `-p`, no `-s`, and not even
+//!   (`FORMAT/FileInfo.cpp:844`): no content, no `-m`, no `-p`, no `-s`, and not even
 //!   the two trailing newlines that `report_` writes at `:2443`. The FileInfo
 //!   tool turns that state into its `ILLEGAL_PARAMETERS` exit code.
 //! - **`-d`, the detailed listing**, is two blocks:
@@ -45,7 +45,7 @@
 //!
 //! # Non-finite coordinates
 //!
-//! `-c` sorts the MS1 retention times (`FileInfo.cpp:1927`) and each spectrum's
+//! `-c` sorts the MS1 retention times (`FORMAT/FileInfo.cpp:1927`) and each spectrum's
 //! m/z values (`:1956`) with `std::sort`, and both calls are the unqualified
 //! `sort(v.begin(), v.end())` on a `std::vector<double>` that
 //! [`crate::math::source_sort`] reproduces comparison by comparison — the
@@ -109,7 +109,7 @@ use std::path::Path;
 const CHROMATOGRAM_COMMENT: &str = "";
 
 /// Run the `-i` indexed-mzML check and report it, the source
-/// `FileInfo.cpp:827-846`.
+/// `FORMAT/FileInfo.cpp:827-846`.
 ///
 /// `name` is the file name as the caller was given it, which the failure line
 /// repeats verbatim; `path` is the same name as a path. Returns whether the
@@ -260,7 +260,7 @@ fn parse_index(_path: &Path) -> Result<Option<(u64, u64)>> {
 }
 
 /// Write the `-d` listing of selected-reaction-monitoring transitions, the
-/// source `FileInfo.cpp:1779-1795`.
+/// source `FORMAT/FileInfo.cpp:1779-1795`.
 ///
 /// The caller has already written the chromatogram counts and is inside the
 /// source's `if (!exp.getChromatograms().empty())`. `chromatogram_types` is the
@@ -322,7 +322,7 @@ pub(crate) fn write_detailed_chromatograms(
     Ok(())
 }
 
-/// Write the `-d` per-spectrum listing, the source `FileInfo.cpp:1799-1848`.
+/// Write the `-d` per-spectrum listing, the source `FORMAT/FileInfo.cpp:1799-1848`.
 ///
 /// Nothing is written for an experiment with no spectrum, as the source's
 /// `!exp.empty()` requires; `empty()` asks about the spectra alone, so a file of
@@ -398,7 +398,7 @@ pub(crate) fn write_detailed_spectra(experiment: &MSExperiment, os: &mut ReportS
     }
 }
 
-/// Write the `-c` corrupt-data check, the source `FileInfo.cpp:1851-1964`.
+/// Write the `-c` corrupt-data check, the source `FORMAT/FileInfo.cpp:1851-1964`.
 ///
 /// The header is written whatever the outcome, so a clean file produces the
 /// header and nothing else. The source's order is kept exactly, because the
@@ -590,7 +590,7 @@ mod tests {
     /// Decision D16 closing the NaN refusal, on the shape that makes the
     /// permutation observable.
     ///
-    /// Three MS1 retention times `{5.0, NaN, 5.0}` reach `FileInfo.cpp:1927`.
+    /// Three MS1 retention times `{5.0, NaN, 5.0}` reach `FORMAT/FileInfo.cpp:1927`.
     /// A three-element range is below `_S_threshold`, so libstdc++ runs one
     /// `__insertion_sort` pass: for the NaN, `NaN < 5.0` is false, so it is not
     /// rotated to the front and `__unguarded_linear_insert`'s `val < *next`
@@ -640,7 +640,7 @@ mod tests {
         assert_eq!(total_order[0], total_order[1]);
     }
 
-    /// The same closure on the m/z sort at `FileInfo.cpp:1956`, which unlike
+    /// The same closure on the m/z sort at `FORMAT/FileInfo.cpp:1956`, which unlike
     /// the retention-time sort runs over every spectrum.
     #[test]
     fn a_nan_mz_keeps_the_release_builds_order() {
@@ -743,7 +743,7 @@ mod tests {
     }
 
     /// Only an MS-level-1 retention time reaches the source's `std::sort`
-    /// (`FileInfo.cpp:1921-1924`, `:1927`), so a NaN on any other spectrum
+    /// (`FORMAT/FileInfo.cpp:1921-1924`, `:1927`), so a NaN on any other spectrum
     /// never reaches one at all: `exp.isSorted(false)` compares with `>`, for
     /// which a NaN is never greater, and the value is otherwise only printed.
     ///

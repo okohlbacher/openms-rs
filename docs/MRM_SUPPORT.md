@@ -198,7 +198,7 @@ the library-intensity clamp is carried as prose.
 - **Unknown keys are errors, not silent first elements.** The source guards
   `getTransition`, `getChromatogram` and `getPrecursorChromatogram` with
   `OPENMS_PRECONDITION`, which expands to nothing unless `OPENMS_ASSERTIONS` is
-  defined (`Macros.h:91`). In an ordinary release build those lookups then index
+  defined (`CONCEPT/Macros.h:91`). In an ordinary release build those lookups then index
   `map[key]`, which default-inserts `0`, and return the first element or read out
   of bounds on an empty list. The port returns `Error::MissingInformation`.
   `MRMFeature::getFeature` and `getPrecursorFeature` have the same shape in their
