@@ -1399,33 +1399,42 @@ fn write_ini_to_an_unwritable_path_is_refused() {
     );
 }
 
-/// Oracle `write_cwl`, `write_nested_cwl`, `write_json` and `write_nested_json`
-/// exit 12 in a build without TDL support; `write_ctd` exits 0 there. The
-/// writers are not ported, so all five are refused explicitly with the same
-/// INTERNAL_ERROR rather than silently doing nothing.
+/// Release build, `../oracle/toppbase-completion` cases `write_cwl`,
+/// `write_nested_cwl`, `write_json` and `write_nested_json`: the four CWL and
+/// JSON writers end with INTERNAL_ERROR and, on standard error, exactly the
+/// line the Release build prints, because it is built without TDL
+/// (`ParamCWLFile.cpp:331`, `ParamJSONFile.cpp:326`). `-write_ctd` writes the
+/// CTD; `tests/topp_cli_completion.rs` compares it with the Release build's.
+///
+/// The Release build opens the target before it fails and so leaves an empty
+/// `<dir>/<tool>.cwl` or `.json` behind, emptying one that existed; this port
+/// leaves the target alone (a documented native difference).
 #[test]
-fn tool_description_writers_are_refused_explicitly() {
+fn cwl_and_json_writers_are_refused_as_the_release_build_refuses_them() {
     let dir = Workdir::new("description-writers");
-    for writer in [
-        "-write_ctd",
-        "-write_cwl",
-        "-write_nested_cwl",
-        "-write_json",
-        "-write_nested_json",
+    for (writer, extension) in [
+        ("-write_cwl", "cwl"),
+        ("-write_nested_cwl", "cwl"),
+        ("-write_json", "json"),
+        ("-write_nested_json", "json"),
     ] {
-        let outcome = run::<DTAExtractor>(&[writer, &text(dir.path())]);
+        let outcome = run::<DTAExtractor>(&["-test", writer, &text(dir.path())]);
         assert_eq!(
             outcome.code,
             ExitCode::InternalError,
             "{writer}: {}",
             outcome.err
         );
+        assert_eq!(
+            outcome.err,
+            "Unable to initialize or run DTAExtractor: TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature.\n",
+            "{writer}"
+        );
+        assert!(outcome.out.is_empty(), "{writer}: {}", outcome.out);
         assert!(
-            outcome
-                .err
-                .contains(&format!("'{writer}' is not supported")),
-            "{writer}: {}",
-            outcome.err
+            !dir.path()
+                .join(format!("DTAExtractor.{extension}"))
+                .exists()
         );
     }
 }
@@ -1461,12 +1470,66 @@ fn stream_tool(result: Result<ExitCode>) -> Outcome {
     run::<StreamTool>(&["-test"])
 }
 
+/// The body's streams are the caller's. After the body returns, whatever its
+/// exit code, the source prints its run-time line on the info log, standard
+/// output (`TOPPBase.cpp:413-424`; oracle `plain_run` in
+/// `../oracle/toppbase-completion` shows its shape).
 #[test]
 fn run_io_output_reaches_the_callers_streams() {
     let outcome = stream_tool(Ok(ExitCode::InputFileEmpty));
     assert_eq!(outcome.code, ExitCode::InputFileEmpty);
-    assert_eq!(outcome.out, "report line\n");
+    let took = outcome
+        .out
+        .strip_prefix("report line\n")
+        .unwrap_or_else(|| panic!("{}", outcome.out));
+    assert_took_line("StreamTool", took);
     assert_eq!(outcome.err, "diagnostic line\n");
+}
+
+/// The run-time line `<tool> took <t> (wall), <t> (CPU), <t> (system), <t>
+/// (user); Peak Memory Usage: <n> MB.` and its newline, with each `<t>` in
+/// `StopWatch::toString`'s seconds form and the memory part only where the
+/// platform reports it.
+fn assert_took_line(tool: &str, line: &str) {
+    let rest = line
+        .strip_prefix(&format!("{tool} took "))
+        .unwrap_or_else(|| panic!("{line:?}"));
+    let rest = rest
+        .strip_suffix(".\n")
+        .unwrap_or_else(|| panic!("{line:?}"));
+    let (times, memory) = match rest.split_once("; Peak Memory Usage: ") {
+        Some((times, memory)) => (times, Some(memory)),
+        None => (rest, None),
+    };
+    let parts: Vec<&str> = times.split(", ").collect();
+    assert_eq!(parts.len(), 4, "{line:?}");
+    for (part, label) in parts.iter().zip(["(wall)", "(CPU)", "(system)", "(user)"]) {
+        // `StopWatch::summary` renders a component the platform cannot report
+        // as `n/a` (src/system/stop_watch.rs); the source always has a value.
+        if *part == format!("n/a {label}") {
+            continue;
+        }
+        let seconds = part
+            .strip_suffix(&format!(" s {label}"))
+            .unwrap_or_else(|| panic!("{line:?}"));
+        let (whole, fraction) = seconds
+            .split_once('.')
+            .unwrap_or_else(|| panic!("{line:?}"));
+        assert!(
+            !whole.is_empty() && whole.bytes().all(|b| b.is_ascii_digit()),
+            "{line:?}"
+        );
+        assert!(
+            fraction.len() == 2 && fraction.bytes().all(|b| b.is_ascii_digit()),
+            "{line:?}"
+        );
+    }
+    if let Some(memory) = memory {
+        let megabytes = memory
+            .strip_suffix(" MB")
+            .unwrap_or_else(|| panic!("{line:?}"));
+        assert!(megabytes.bytes().all(|b| b.is_ascii_digit()), "{line:?}");
+    }
 }
 
 #[test]
@@ -1642,7 +1705,10 @@ fn common_options_become_context_services() {
     assert!(!ctx.force());
     assert_eq!(ctx.ini_location(), "TOPPBaseTest:1:");
     assert_eq!(ctx.tool_name(), "TOPPBaseTest");
-    assert_eq!(ctx.version(), "1.0.0");
+    // A tool in no tool manifest reports the core version (TOPPBase.cpp:119,
+    // 144-150), as ToolManifest_test.cpp's "product version is written to INI
+    // with a core-version fallback" section asserts.
+    assert_eq!(ctx.version(), openms::CORE_SDK_VERSION);
 
     let outcome = run::<ToppBaseTest>(&["-no_progress", "-threads", "0", "-debug", "3", "-force"]);
     assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
@@ -1697,7 +1763,9 @@ fn processing_info_records_the_version_time_and_parameters() {
     let processing = ctx
         .processing_info(&[ProcessingAction::PeakPicking])
         .unwrap();
-    assert_eq!(processing.software.version, "1.0.0");
+    // The version of a tool in no manifest: the core version (TOPPBase.cpp:119,
+    // 559).
+    assert_eq!(processing.software.version, openms::CORE_SDK_VERSION);
     let completion = processing.completion_time.expect("completion time is set");
     assert_ne!(completion, DateTime::default());
     assert_eq!(
@@ -2249,11 +2317,10 @@ fn assert_similar(produced: &Path, expected: &Path, ratio: f64, absdiff: f64, wh
 /// `[EXTRA] getStringOption_`, option `write_ini` (TOPPBase_test.cpp:483-536).
 ///
 /// `TEST_EQUAL(p1, p2)` is transcribed with the class test's keys and values
-/// and `Param::operator==` semantics (names and values). One value differs by
-/// construction: the source expects `VersionInfo::getVersion()` for
-/// `TOPPBaseTest:version`, because the class-test tool has no installed
-/// manifest and so reports the core version (TOPPBase.cpp:119, 144-150); the
-/// ported test tool reports its `Tool::VERSION`. The file comparisons run the
+/// and `Param::operator==` semantics (names and values), including the
+/// source's `VersionInfo::getVersion()` for `TOPPBaseTest:version`: the
+/// class-test tool is in no tool manifest, so it reports the core version
+/// (TOPPBase.cpp:119, 144-150), `openms::CORE_SDK_VERSION`. The file comparisons run the
 /// retained C++ files `TOPPBase_test_write_ini_out.ini` and
 /// `TOPPBase_test_write_ini_subsec_out.ini` (cli c19e494) through the upstream
 /// comparator with `TEST_FILE_SIMILAR`'s default tolerances (absolute 1e-5,
@@ -2273,7 +2340,7 @@ fn upstream_write_ini_matches_the_retained_files() {
     let expected = [
         (
             "TOPPBaseTest:version",
-            ParamValue::String(ToppBaseTest::VERSION.to_owned()),
+            ParamValue::String(openms::CORE_SDK_VERSION.to_owned()),
         ),
         (
             "TOPPBaseTest:1:stringoption",

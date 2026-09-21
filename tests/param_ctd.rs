@@ -66,7 +66,7 @@ fn load_ctd(path: &Path) -> Param {
     let written = std::fs::read_to_string(path).unwrap();
     let start = written.find("<PARAMETERS").unwrap();
     let end = written.find("</PARAMETERS>").unwrap() + "</PARAMETERS>".len();
-    paramxml::read(written[start..end].as_bytes()).unwrap()
+    paramxml::read(&written.as_bytes()[start..end]).unwrap()
 }
 
 /// The shared fixture of the class test (`ParamCTDFile_test.cpp:46-54`).

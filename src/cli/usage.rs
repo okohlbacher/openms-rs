@@ -10,15 +10,13 @@
 //! `helphelp_<tool>`): no colours and no line shaping to a console width.
 //! See `docs/TOPP_CLI_SUPPORT.md` for the remaining differences.
 
+use super::defs::{CITE_OPENMS, Citation};
 use super::parameter::{ParameterInformation, ParameterType};
 use super::spec::ToolSpec;
 use crate::data_structures::list::ListFormat;
 use crate::param::{Param, ParamValue};
 use std::collections::BTreeMap;
 use std::io::{Result as IoResult, Write};
-
-/// `TOPPBase::cite_openms`, as its `Citation::toString` renders it.
-const CITE_OPENMS: &str = "Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data. Nat Methods (2024). doi:10.1038/s41592-024-02197-7.";
 
 /// Most lines one written item keeps, as the source `IndentedStream(cerr, 0, 10)`.
 const MAX_LINES: usize = 10;
@@ -188,15 +186,19 @@ pub(crate) fn documentation_url(name: &str) -> String {
 
 /// Print the usage block, as `printUsage_`.
 ///
-/// `version` is the verbose version line, `subsection_defaults` the tool's
-/// subsection parameters as `getSubsectionDefaults_` returns them, and
-/// `verbose` the `--helphelp` request, which lists advanced parameters and
-/// every subsection parameter instead of the subsection summary.
+/// `version` is the verbose version line, `citations` the tool's own
+/// citations, printed as `To cite <tool>:` after the OpenMS citation,
+/// `subsection_defaults` the tool's subsection parameters as
+/// `getSubsectionDefaults_` returns them, and `verbose` the `--helphelp`
+/// request, which lists advanced parameters and every subsection parameter
+/// instead of the subsection summary.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn print(
     out: &mut dyn Write,
     name: &str,
     description: &str,
     version: &str,
+    citations: &[Citation],
     spec: &ToolSpec,
     subsection_defaults: &Param,
     verbose: bool,
@@ -210,9 +212,23 @@ pub(crate) fn print(
         "\n{name} -- {description}\nFull documentation: {url}\nVersion: {version}\nTo cite OpenMS:\n + "
     ))?;
     stream.indentation = 3;
-    stream.put(CITE_OPENMS)?;
+    stream.put(&CITE_OPENMS.to_source_string())?;
     stream.indentation = 0;
-    stream.put("\n\nUsage:\n")?;
+    stream.put("\n")?;
+    // The tool's own citations (TOPPBase.cpp:646-651).
+    if !citations.is_empty() {
+        stream.put(&format!("To cite {name}:"))?;
+        stream.put("\n")?;
+        for citation in citations {
+            stream.put(" + ")?;
+            stream.indentation = 3;
+            stream.put(&citation.to_source_string())?;
+            stream.indentation = 0;
+            stream.put("\n")?;
+        }
+    }
+    stream.put("\n")?;
+    stream.put("Usage:\n")?;
     stream.put(&format!("  {name} <options>\n\n"))?;
 
     if !spec.subsections().is_empty() && !verbose {

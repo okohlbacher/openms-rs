@@ -57,6 +57,8 @@
 mod decoded;
 #[path = "support/fuzzy_string_comparator.rs"]
 mod fuzzy;
+#[path = "support/took_line.rs"]
+mod took_line;
 
 use base64::Engine;
 use openms::cli::tools::FeatureFinderCentroided;
@@ -146,8 +148,12 @@ impl Workdir {
 /// What one executable run produced.
 struct Outcome {
     code: i32,
+    /// Standard output without the closing `FeatureFinderCentroided took …`
+    /// line, which is checked and kept in `took`.
     out: String,
     err: String,
+    /// The closing line, present when the tool body returned.
+    took: Option<String>,
 }
 
 impl Outcome {
@@ -187,13 +193,18 @@ fn run_in(dir: &Workdir, args: &[&str]) -> Outcome {
         .current_dir(dir.path())
         .output()
         .expect("the FeatureFinderCentroided executable runs");
+    let split = took_line::split_took_line(
+        "FeatureFinderCentroided",
+        &String::from_utf8_lossy(&output.stdout),
+    );
     Outcome {
         code: output
             .status
             .code()
             .expect("the tool exits, it is not signalled"),
-        out: String::from_utf8_lossy(&output.stdout).into_owned(),
+        out: split.0,
         err: String::from_utf8_lossy(&output.stderr).into_owned(),
+        took: split.1,
     }
 }
 
@@ -1529,9 +1540,10 @@ fn a_store_that_fails_is_the_sources_write_failure() {
     );
     assert_out_block(&outcome, RT_E39_ALGORITHM_LINES);
     assert!(
-        !outcome.out.contains("FeatureFinderCentroided took"),
-        "the closing line follows a failed store:\n{}",
-        outcome.out
+        outcome.took.is_none() && !outcome.out.contains("FeatureFinderCentroided took"),
+        "the closing line follows a failed store:\n{}{:?}",
+        outcome.out,
+        outcome.took
     );
 
     let missing = dir.file("nosuch/out.featureXML");
@@ -2984,7 +2996,10 @@ fn finish(extra: &[&str]) -> (FeatureMap, String) {
         String::from_utf8_lossy(&err)
     );
     let map = FINISHED.with(|cell| cell.borrow_mut().take()).unwrap();
-    (map, String::from_utf8(out).unwrap())
+    let (out, took) =
+        took_line::split_took_line("FeatureFinderCentroided", &String::from_utf8(out).unwrap());
+    assert!(took.is_some(), "the closing line ends the output: {out}");
+    (map, out)
 }
 
 /// Source steps 10 to 13 under `-test` (`FeatureFinderCentroided.cpp:318-373`):

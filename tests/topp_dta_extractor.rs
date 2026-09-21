@@ -235,10 +235,16 @@ fn usage_and_exit_codes_follow_the_source_contract() {
     // no_arguments in ../oracle/topp-cli-lifecycle).
     assert_eq!(run(&[]).0, ExitCode::IllegalParameters);
 
-    // A missing input file is INPUT_FILE_NOT_FOUND.
+    // A missing input file is INPUT_FILE_NOT_FOUND, with the source's
+    // `FileNotFound` text (oracle missing_input in ../oracle/topp-cli-lifecycle
+    // and log_missing_input in ../oracle/toppbase-completion: "the file '<path>'
+    // could not be found").
     let (code, _, err) = run(&["-in", "absent.mzML", "-out", "x"]);
     assert_eq!(code, ExitCode::InputFileNotFound);
-    assert!(err.contains("does not exist"), "{err}");
+    assert!(
+        err.contains("Error: File not found (the file 'absent.mzML' could not be found)"),
+        "{err}"
+    );
 
     // A registered format is enforced on the input path, with the source's
     // InvalidParameter wording (TOPPBase.cpp:1584-1591; the same message for a
