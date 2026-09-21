@@ -1,5 +1,54 @@
 # Validation of the ongoing Rust port
 
+## Phase 2.5b, second half: the FORMAT readers' progress calls (2026-09-21)
+
+The FORMAT readers that derive from `ProgressLogger` make the Release build's
+calls through new `*_with_progress` entry points (DTA2D, MGF, consensusXML,
+featureXML, mzData, mzXML, mzML); MS2 and mzIdentML owe none, because the
+Release build makes none. `docs/PROGRESS_LOGGER_SUPPORT.md#format-readers` maps
+every source member, the logger each call reaches and every difference.
+
+**Executed evidence (tier 1).** `../oracle/progress-format-readers` built a
+driver against the Release install `openms4-release-bc9cc12-c19e494-174b576` on
+ibminode06 and ran 31 cases three times, each with a recording GUI backend (so
+the fresh backends the files make from their log type, and `pg_outer`, are
+recorded) and with command output. The three masked tables are identical, and a
+first 30-case run's rows are reproduced unchanged by the 31-case run.
+`tests/progress_format_readers.rs` replays the table: every call, depth and
+stdout byte matches except the cases it asserts as divergences, which are
+consensusXML's parse-before-report on a truncated document, the mzML store's
+own byte count, the mzXML reader's acceptance of a truncated document (a reader
+defect the replay found, recorded in `docs/MZXML_SUPPORT.md` and left
+unchanged), and CPP-017, which the oracle reproduces at runtime for the first
+time: with `setSkipChromatograms(true)` the Release build starts no section at
+all and fails in command mode.
+
+**Additivity.** Every silent entry point now runs the same code as its
+reporting counterpart with calls that go nowhere; the diff against `fb3167a`
+removes only call sites that now thread a reporter and bodies moved into a
+shared `*_reporting` function. `progress_changes_no_result` loads and stores
+every reader both ways and compares the results and the written bytes;
+`progress_changes_no_error` compares the errors on bad inputs, including a
+refused featureXML store to an uncreatable destination, where the refusal still
+wins and no file or temporary file is left. A silent reporter converts no count
+(`ProgressReporter::start_count`) and reads no file size, so no new error can
+reach a silent load.
+
+**Gates.** `openms-ci-sweep.sh` on kim at `715f6b4`: all 52 lines of the
+quality, portable-feature-graph, test and minimum-rust jobs pass, the
+minimum-rust ones on `+1.85.0` (lines 1-22 in the sweep, 23-52 in a detached
+resume of the same slot after the SSH session dropped); `--all-features
+--all-targets` 5,540 passed, 0 failed, 21 ignored over 365 result lines on both
+stable and 1.85. Locally: `cargo fmt --check`, clippy `--all-features
+--all-targets -D warnings`, rustdoc `-D warnings`, the new test under
+`--no-default-features --features "consensusxml featurexml idxml mzml"` on
+stable and on `+1.85.0` (10 passed each), the full `--all-features` suite
+(5,605 passed, 1 failed, 20 ignored: the known
+`system_process::a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes`
+flake, which passes alone), and the Python gates of the quality job, of which
+`ci_matrix.py --check`, `test_ci_matrix.py` and `ci_coverage.py --check` fail
+only because the generated matrix does not yet list the new test.
+
 ## Shared-math wave: the source's own arithmetic and its own `std::sort` (2026-09-19)
 
 Decision **D16** was taken for this wave and is recorded in full, with its
