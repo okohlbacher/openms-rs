@@ -575,7 +575,8 @@
         "src/analysis/peptide_indexing.rs"
       ],
       "reference_manifests": [
-        "tests/data/peptide_indexing_matcher_reference_provenance.json"
+        "tests/data/peptide_indexing_matcher_reference_provenance.json",
+        "tests/data/progress_consumers_provenance.json"
       ],
       "direct_topp_consumers": [
         "MSFraggerAdapter",
@@ -4853,6 +4854,7 @@
       ],
       "reference_manifests": [
         "tests/data/fasta_provenance.json",
+        "tests/data/progress_consumers_provenance.json",
         "tests/data/progress_logger_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -5515,7 +5517,8 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/boost_regex_provenance.json",
-        "tests/data/peptide_indexing_matcher_reference_provenance.json"
+        "tests/data/peptide_indexing_matcher_reference_provenance.json",
+        "tests/data/progress_consumers_provenance.json"
       ],
       "direct_topp_consumers": [
         "DecoyDatabase"
@@ -13839,7 +13842,8 @@
         "src/processing/baseline.rs"
       ],
       "reference_manifests": [
-        "tests/data/baseline_filter_edges_provenance.json"
+        "tests/data/baseline_filter_edges_provenance.json",
+        "tests/data/progress_consumers_provenance.json"
       ],
       "direct_topp_consumers": [
         "BaselineFilter"
@@ -13912,6 +13916,7 @@
         "tests/data/iterative_provenance.json",
         "tests/data/mobilogram_provenance.json",
         "tests/data/peak_picking_provenance.json",
+        "tests/data/progress_consumers_provenance.json",
         "tests/data/topp_peak_picker_hi_res_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -13962,7 +13967,8 @@
       ],
       "reference_manifests": [
         "tests/data/iterative_provenance.json",
-        "tests/data/picker_consumers_provenance.json"
+        "tests/data/picker_consumers_provenance.json",
+        "tests/data/progress_consumers_provenance.json"
       ],
       "direct_topp_consumers": [
         "PeakPickerIterative"
@@ -14300,7 +14306,8 @@
         "src/processing.rs"
       ],
       "reference_manifests": [
-        "tests/data/experiment_summary_provenance.json"
+        "tests/data/experiment_summary_provenance.json",
+        "tests/data/progress_consumers_provenance.json"
       ],
       "direct_topp_consumers": [
         "Resampler"
@@ -14413,7 +14420,8 @@
       ],
       "reference_manifests": [
         "tests/data/chromatogram_processing_provenance.json",
-        "tests/data/picker_consumers_provenance.json"
+        "tests/data/picker_consumers_provenance.json",
+        "tests/data/progress_consumers_provenance.json"
       ],
       "direct_topp_consumers": [
         "EICExtractor",
@@ -14494,7 +14502,8 @@
       "reference_manifests": [
         "tests/data/chromatogram_processing_provenance.json",
         "tests/data/elution_peak_detection_provenance.json",
-        "tests/data/picker_consumers_provenance.json"
+        "tests/data/picker_consumers_provenance.json",
+        "tests/data/progress_consumers_provenance.json"
       ],
       "direct_topp_consumers": [
         "NoiseFilterSGolay"
@@ -15045,6 +15054,7 @@
         "src/system/stop_watch.rs"
       ],
       "reference_manifests": [
+        "tests/data/progress_consumers_provenance.json",
         "tests/data/progress_logger_provenance.json",
         "tests/data/stop_watch_provenance.json"
       ],
