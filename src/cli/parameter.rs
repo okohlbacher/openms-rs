@@ -194,7 +194,31 @@ pub struct ParameterInformation {
     pub valid_formats: Vec<String>,
 }
 
+/// Source default constructor (`ParameterInformation.cpp:31-46`): no name, type
+/// [`ParameterType::None`], an empty default, **required** and not advanced,
+/// with no tags and no restrictions.
+impl Default for ParameterInformation {
+    fn default() -> Self {
+        Self::new(
+            "",
+            ParameterType::None,
+            "",
+            ParamValue::Empty,
+            "",
+            true,
+            false,
+        )
+    }
+}
+
 impl ParameterInformation {
+    /// The same parameter with `tags`, the source constructor's last argument
+    /// `tag_values` (`ParameterInformation.cpp:13-29`), in the given order.
+    pub fn with_tags(mut self, tags: &[&str]) -> Self {
+        self.tags = tags.iter().map(|tag| (*tag).to_owned()).collect();
+        self
+    }
+
     /// A parameter with no restrictions and no tags, as the source constructor.
     pub fn new(
         name: impl Into<String>,
