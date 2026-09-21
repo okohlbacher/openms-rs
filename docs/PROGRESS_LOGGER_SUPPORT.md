@@ -471,8 +471,10 @@ identical after masking the timing and throughput texts;
 installing the same kinds of backend, matching every call, depth and stdout
 byte except the differences listed under [FORMAT readers](#format-readers).
 The replay also found a reader defect that is not a progress one: the mzXML
-reader accepts a document truncated after a complete `</scan>`, where the
-Release build throws `ParseError`; the case records it. See
+reader accepted a document truncated after a complete `</scan>`, where the
+Release build throws `ParseError`. The reader now refuses it (FileInfo repair
+F2, `docs/MZXML_SUPPORT.md`), so `mzxml_load_truncated` is an ordinary case
+and matches every call, the depth and the error class. See
 `tests/data/progress_format_readers_provenance.json`.
 
 **Sections a finished call left open (F4).** Five tests in

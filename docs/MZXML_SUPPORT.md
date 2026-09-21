@@ -195,6 +195,20 @@ the handler.
   100.0000991821289. The module therefore decodes `<peaks>` with a
   trailing-bits-permissive, padding-indifferent engine. Whitespace inside the
   payload is stripped as at `HANDLERS/MzXMLHandler.cpp:1158-1160`.
+- **A document must be closed.** At the end of input Xerces reports a fatal
+  error when an element is still open, and `XMLHandler::fatalError` throws it
+  as `ParseError` (`HANDLERS/XMLHandler.cpp:41-68`), whatever the handler had
+  stored. So a document cut after a complete `</scan>`, after `</msRun>` or
+  inside `<index>` loads nothing, and FileInfo exits 3. quick-xml reports only
+  the end of input, so the reader checks for an open element there and refuses
+  the document with the Xerces clause: `input ended before all started tags
+  were ended; last tag started is '<tag>'`, the innermost open element,
+  without the line and column Xerces adds. A metadata-only load stops at the
+  first `<scan>` with `EndParsingSoftly` (`HANDLERS/MzXMLHandler.cpp:242-245`),
+  which `XMLFile::parse_` swallows (`XMLFile.cpp:104-108`). A document cut
+  after that point therefore loads its metadata, and one cut before it is
+  refused, as here. A consumer that stops a `transform` ends early the same
+  way.
 
 ## Native differences
 
@@ -383,6 +397,19 @@ the same 997530 peaks is generated in
 wrapped at 76 characters so the payload arrives as thousands of text events. The
 peak count is the upstream literal; the coordinates are independently derived.
 
+**Tier 1, executed differential: truncated documents.** `../oracle/a8-truncated`
+ran the Release build `openms4-release-bc9cc12-c19e494-174b576` on ibminode06,
+twice, reproduced. Its inputs are ten byte prefixes of `MzXMLFile_1.mzXML` and
+`spectra_spectrast.mzXML`: after a complete scan, inside a nested scan, inside a
+payload, inside a start tag, before the first scan, after `</msRun>`, without
+and inside the closing root tag, inside `<index>`, and one gzip-compressed. It
+also has one gzip member cut in half. FileInfo exits 3 on every one. A driver
+over `MzXMLFile::load` pins the full and the metadata-only load on four of them.
+`tests/file_info_a8.rs` compares the port with every case, the Xerces clause
+included (`docs/FILE_INFO_A8_SUPPORT.md`, *Truncated input*).
+`tests/progress_format_readers.rs` replays the progress calls of the truncated
+load: the calls, the nesting depth and the error class are the Release build's.
+
 Everything else — the resource ceilings, the attribute rejections, the writer's
 lossless defaults, the nesting attribution, the retention-time sign, the
 non-ASCII inputs and the malformed documents — is tier 4, independently derived,
@@ -404,12 +431,6 @@ extension described above.
 
 - Progress of the `transform` overloads: the source's handler reports there
   too; the port's transform runs report nothing.
-- **A truncated document is accepted.** At the end of input the reader does not
-  check that every element was closed, so a document cut after a complete
-  `</scan>` loads the scans before the cut, where the Release build throws
-  `ParseError` ("input ended before all started tags were ended"). Found by the
-  progress replay (`mzxml_load_truncated`), recorded there, and not changed
-  with it, because the progress work changes no read result.
 - `FileHandler` dispatch: `crate::format::file_types::FileType::MzXml` already
   exists and content detection already recognises `<mzXML`, but
   `src/format/file_handler.rs` does not route to this module. That file is
@@ -420,3 +441,8 @@ extension described above.
   format, not by the port. A `store` of an mzML-derived experiment drops it, as
   upstream does.
 - Parallel batch decoding, deliberately: see native difference 21.
+- A gzip member cut short fails before this reader runs, with an I/O error
+  from `DocumentIdentifier::set_loaded_file_type`'s preview, where the Release
+  build reaches Xerces and throws `ParseError`. The file is refused either
+  way; FileInfo exits 8 here and 3 there. The preview is outside this package
+  (`docs/FILE_INFO_A8_SUPPORT.md`, section 6).

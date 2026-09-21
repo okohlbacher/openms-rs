@@ -569,14 +569,6 @@ enum Divergence {
     /// The port's store writes a different document than the source's, so the
     /// byte count of its `endProgress` is the size of the port's own file.
     OwnByteCount,
-    /// **A defect of the port's mzXML reader, not of its progress:** at the
-    /// end of input it does not check that every element was closed, so it
-    /// accepts a document truncated after a complete `</scan>`, where the
-    /// Release build's parser throws `ParseError` ("input ended before all
-    /// started tags were ended"). The calls are the same up to that point,
-    /// and neither ends the section, because `</mzXML>` never came. When the
-    /// reader is fixed, this case joins [`Divergence::None`].
-    AcceptsTruncated,
     /// **A source defect the port corrects (CPP-017):** `setOptions` sets the
     /// handler's `skip_chromatogram_` from `PeakFileOptions::getSkipChromatograms`
     /// (`MzMLHandler.cpp:149`), and the start-element callback returns while it
@@ -592,7 +584,6 @@ fn divergence(case: &str) -> Divergence {
     match case {
         "consensus_load_truncated" => Divergence::ParsesBeforeReporting,
         "mzml_store" => Divergence::OwnByteCount,
-        "mzxml_load_truncated" => Divergence::AcceptsTruncated,
         "mzml_load_skip_chromatograms" => Divergence::CorrectsSkipChromatograms,
         _ => Divergence::None,
     }
@@ -623,11 +614,6 @@ fn check_outcome(
             }
         }
         (Err(source), Err(error)) => check_error(case, source, error),
-        (Err((name, _)), Ok(port)) if matches!(divergence(case), Divergence::AcceptsTruncated) => {
-            assert_eq!(name, "Parse Error", "{case}");
-            // The two scans before the truncation.
-            assert_eq!(port, &["2", "0"], "{case}");
-        }
         (Err((name, message)), Ok(port))
             if matches!(divergence(case), Divergence::CorrectsSkipChromatograms) =>
         {
@@ -734,7 +720,6 @@ fn every_backend_call_matches_the_release_build() {
                 expected_events.clear();
                 expected_depth = 0;
             }
-            Divergence::AcceptsTruncated => {}
             Divergence::CorrectsSkipChromatograms => {
                 // No start at all, and one end more than there are sections.
                 assert!(
@@ -1046,12 +1031,10 @@ fn progress_changes_no_error() {
     // Both loads left the process-wide scan counter raised, as the source's
     // static is; a complete load resets it for the tests after this one.
     mzdata::load(data("MzDataFile_1.mzData")).unwrap();
-    // The mzXML reader accepts this document (see `Divergence::AcceptsTruncated`);
-    // both entry points accept it alike.
-    assert_eq!(
+    same(
+        mzxml::load_with_options(data("truncated.mzXML"), &Default::default()).unwrap_err(),
         mzxml::load_with_progress(data("truncated.mzXML"), &Default::default(), &mut command())
-            .unwrap(),
-        mzxml::load_with_options(data("truncated.mzXML"), &Default::default()).unwrap(),
+            .unwrap_err(),
     );
     let (load, read) = (mzml::LoadOptions::default(), mzml::ReadOptions::default());
     same(

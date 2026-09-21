@@ -42,6 +42,19 @@
   Release build. No result, written byte or error of any reader changes
   ([PROGRESS_LOGGER_SUPPORT](docs/PROGRESS_LOGGER_SUPPORT.md#sections-a-finished-call-left-open)).
 
+- **FileInfo no longer reports a truncated mzXML as valid.** The mzXML reader
+  stopped at the end of input without checking that every element was closed,
+  so a document cut after a complete scan loaded the scans before the cut and
+  FileInfo printed a full report with exit 0. The Release build throws
+  `ParseError` and exits 3. The reader now refuses a document that ends with an
+  element open, with the Xerces message naming that element; a metadata-only
+  load, which stops at the first scan, is unchanged, as in the source.
+  Evidence: `../oracle/a8-truncated`, 63 cases on the Release build covering
+  cuts at every structurally different place in mzXML, mzData, MGF and MS2
+  (`tests/file_info_a8.rs`). mzData, MGF and MS2 already matched it. A gzip
+  member cut short is still refused with exit 8 where the Release build exits
+  3 (`docs/FILE_INFO_A8_SUPPORT.md`, section 6).
+
 - **TOPPBase against the C++ Release build: tool descriptions, the tool
   registry, `-log`, per-user defaults.** `-write_ctd` writes the Common Tool
   Description byte for byte as the Release build does for the seven ported

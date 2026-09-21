@@ -1248,10 +1248,25 @@ impl<'a> Run<'a> {
         if !seen_root {
             return Err(invalid("document has no mzXML root element"));
         }
-        if self.peaks.is_some() {
-            return Err(invalid("truncated mzXML peaks element"));
-        }
         if !self.stop {
+            // A document that ends with an element still open is not
+            // well-formed. At the end of input the source's Xerces parser
+            // reports a fatal error naming the innermost open element, which
+            // `XMLHandler::fatalError` throws as `ParseError`
+            // (`XMLHandler.cpp:41-68`), whatever the handler stored before;
+            // FileInfo then exits 3 (Release oracle `../oracle/a8-truncated`).
+            // quick-xml reports a plain end of input instead, so the open
+            // element is checked here and named in the Xerces wording. The
+            // scans read so far are dropped: the source's `load` delivers only
+            // the exception. A metadata-only load and a consumer stop end
+            // before the closing tags on purpose, as the source's
+            // `EndParsingSoftly` does (`XMLFile.cpp:104-108`), and are not
+            // truncated.
+            if let Some(tag) = self.tags.last() {
+                return Err(invalid(format!(
+                    "input ended before all started tags were ended; last tag started is '{tag}'"
+                )));
+            }
             self.flush(sink)?;
         } else {
             // MetadataOnly and a consumer stop both end the document early; a

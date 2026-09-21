@@ -28,10 +28,19 @@
 //! - tier 4, explicit refusal where the port declines what the Release build
 //!   accepts: an mzData spectrum whose scan window the kernel's range validation
 //!   refuses, an MGF `MSLEVEL=0`, and a gzip-compressed MGF, each recorded with
-//!   the Release build's report in `tests/data/file_info_a8/expected`.
+//!   the Release build's report in `tests/data/file_info_a8/expected`;
+//! - tier 1, executed differential, truncated input (the repair of verifier
+//!   finding F2): `../oracle/a8-truncated`, 42 tool cases, 13 class-driver
+//!   cases and 8 `MzXMLFile::load` cases on the same Release install, twice,
+//!   reproduced, every one checked in the last section against
+//!   `tests/data/file_info_a8/truncated`.
 //!
 //! mzXML and mzData need the `mzml` feature, as their readers do; MGF and MS2
 //! need none.
+
+#[cfg(all(feature = "mzml", feature = "paramxml", feature = "featurexml"))]
+#[path = "support/took_line.rs"]
+mod took_line;
 
 use openms::Error;
 use openms::format::FileType;
@@ -142,17 +151,22 @@ fn oracle_path(report: &str, input: &Path) -> String {
 
 /// Run `case` and compare both reports with the Release build's.
 fn check(case: &Case) -> FileInfoResult {
+    check_in(case, "file_info_a8/expected")
+}
+
+/// As [`check`], with the Release reports in `expected`, below `tests/data`.
+fn check_in(case: &Case, expected: &str) -> FileInfoResult {
     let id = case.0;
     let result = run(case).unwrap_or_else(|e| panic!("{id}: {e}"));
     let input = data(&case.1);
     assert_report(
         &oracle_path(&result.text, &input),
-        &data(&format!("file_info_a8/expected/{id}.txt")),
+        &data(&format!("{expected}/{id}.txt")),
         &format!("{id} text"),
     );
     assert_report(
         &oracle_path(&result.tsv, &input),
-        &data(&format!("file_info_a8/expected/{id}.tsv")),
+        &data(&format!("{expected}/{id}.tsv")),
         &format!("{id} tsv"),
     );
     assert_eq!(FileInfo::to_text(&result), result.text);
@@ -796,4 +810,433 @@ fn peak_types_without_a_reader_stay_refused() {
             "{forced:?}: {outcome:?}"
         );
     }
+}
+
+// ---------------------------------------------------------------------------
+// Truncated input: the repair of verifier finding F2
+// (../oracle/a8-truncated, tests/data/file_info_a8/truncated)
+// ---------------------------------------------------------------------------
+
+/// The truncation oracle's evidence, below `tests/data`: the fixtures under
+/// `inputs`, byte prefixes of five A8 inputs, and under `expected` the
+/// Release build's reports of every case that completed and one row per case
+/// in `release_outcomes.tsv`.
+const TRUNCATED: &str = "file_info_a8/truncated";
+const TRUNCATED_EXPECTED: &str = "file_info_a8/truncated/expected";
+
+/// What the Release build did on one case of the truncation oracle.
+struct ReleaseOutcome {
+    /// `tool` (the FileInfo executable), `driver` (`OpenMS::FileInfo::run`)
+    /// or `mzxml_driver` (`MzXMLFile::load`).
+    program: String,
+    exit_code: i32,
+    stdout_bytes: usize,
+    /// The files the case left in its working directory, with their sizes.
+    cwd_files: Vec<(String, usize)>,
+    /// The last line on stderr, or on stdout for a load `mzxml_driver`
+    /// completed, with the fixture directory spelled `<FIX>`.
+    last_line: String,
+}
+
+/// Every row of `release_outcomes.tsv`, in the oracle's order.
+fn release_outcomes() -> Vec<(String, ReleaseOutcome)> {
+    let text = read_text(&data(&format!("{TRUNCATED_EXPECTED}/release_outcomes.tsv")));
+    let mut lines = text.lines();
+    assert_eq!(
+        lines.next(),
+        Some("id\tprogram\texit_code\tstdout_bytes\tcwd_files\tlast_line")
+    );
+    lines
+        .map(|line| {
+            let fields: Vec<&str> = line.split('\t').collect();
+            assert_eq!(fields.len(), 6, "{line}");
+            let cwd_files = if fields[4] == "-" {
+                Vec::new()
+            } else {
+                fields[4]
+                    .split(';')
+                    .map(|entry| {
+                        let (name, bytes) = entry.rsplit_once(':').expect(entry);
+                        (name.to_owned(), bytes.parse().expect(entry))
+                    })
+                    .collect()
+            };
+            let outcome = ReleaseOutcome {
+                program: fields[1].to_owned(),
+                exit_code: fields[2].parse().expect(line),
+                stdout_bytes: fields[3].parse().expect(line),
+                cwd_files,
+                last_line: fields[5].to_owned(),
+            };
+            (fields[0].to_owned(), outcome)
+        })
+        .collect()
+}
+
+fn release_outcome(id: &str) -> ReleaseOutcome {
+    release_outcomes()
+        .into_iter()
+        .find(|(case, _)| case == id)
+        .map(|(_, outcome)| outcome)
+        .unwrap_or_else(|| panic!("no Release outcome for {id}"))
+}
+
+/// The fixture a case ran on: the oracle names each case after its fixture's
+/// stem, with `_all` for the run with every flag and `lib_` for the class
+/// driver.
+fn truncated_fixture(id: &str) -> String {
+    let stem = id.strip_prefix("lib_").unwrap_or(id);
+    let stem = stem.strip_suffix("_all").unwrap_or(stem);
+    let inputs = data(&format!("{TRUNCATED}/inputs"));
+    let mut names = std::fs::read_dir(&inputs)
+        .unwrap_or_else(|e| panic!("{}: {e}", inputs.display()))
+        .map(|entry| entry.unwrap().file_name().into_string().unwrap())
+        .filter(|name| name.split_once('.').map(|(s, _)| s) == Some(stem));
+    let name = names
+        .next()
+        .unwrap_or_else(|| panic!("no fixture for {id}"));
+    assert!(names.next().is_none(), "{id}");
+    format!("{TRUNCATED}/inputs/{name}")
+}
+
+/// The clause Xerces reports for a document that ends with an element open,
+/// `input ended before all started tags were ended; last tag started is
+/// '<tag>'`, out of a Release message; `None` for another parse error.
+fn open_element_clause(message: &str) -> Option<&str> {
+    const LEAD: &str = "input ended before all started tags were ended; last tag started is '";
+    let start = message.find(LEAD)?;
+    let tag_start = start + LEAD.len();
+    let tag_end = tag_start + message[tag_start..].find('\'')?;
+    Some(&message[start..=tag_end])
+}
+
+/// The input line a Release parse error names: `line (<n>)` in `MS2File`'s
+/// messages (`FORMAT/MS2File.h:113`, `:144`), `line #<n>` in `MascotGenericFile`'s.
+fn release_line(message: &str) -> usize {
+    let digits = |rest: &str| -> usize {
+        let end = rest
+            .find(|c: char| !c.is_ascii_digit())
+            .unwrap_or(rest.len());
+        rest[..end].parse().expect(message)
+    };
+    if let Some((_, rest)) = message.split_once("line (") {
+        return digits(rest);
+    }
+    let (_, rest) = message
+        .split_once("line #")
+        .unwrap_or_else(|| panic!("no line number in {message:?}"));
+    digits(rest)
+}
+
+/// Every truncated mzXML and mzData document is a parse error of the class,
+/// as `MzXMLFile::load` and `MzDataFile::load` throw `ParseError` for each in
+/// the Release build (FileInfo exit 3 on every `t_mzxml_*` and `t_mzdata_*`
+/// tool case, `Parse Error` from the class driver on three). The truncations: after a complete record, inside a nested scan, in a
+/// base64 payload, inside a start tag, before the first record, after the
+/// record list, without the closing root tag, inside it, inside an mzXML scan
+/// index, and a complete gzip member holding a cut document.
+///
+/// Before this repair, seven of the ten mzXML documents loaded, and FileInfo
+/// printed a full report with exit 0. Where Xerces reports the element left
+/// open, the port's message is its clause verbatim, without the line and
+/// column Xerces adds. The mzData reader already refused every one of them.
+#[cfg(feature = "mzml")]
+#[test]
+fn truncated_xml_peak_files_are_parse_errors_as_in_the_release_build() {
+    let (mut refused, mut clauses) = (0, 0);
+    for (id, release) in release_outcomes() {
+        let stem = id.strip_prefix("lib_").unwrap_or(&id);
+        let mzxml = stem.starts_with("t_mzxml_");
+        if !mzxml && !stem.starts_with("t_mzdata_") {
+            continue;
+        }
+        // The tool's bare runs and the class driver's (the `_all` runs repeat
+        // the bare ones with flags the refusal never reaches).
+        let lead = match release.program.as_str() {
+            "tool" if !id.ends_with("_all") => "Error: Unable to read file (While loading '",
+            "driver" => "Parse Error: While loading '",
+            _ => continue,
+        };
+        assert_eq!(release.exit_code, 3, "{id}");
+        assert!(
+            release.last_line.starts_with(lead),
+            "{id}: {}",
+            release.last_line
+        );
+        if stem == "t_mzxml_gz_cut" {
+            // A known gap outside the reader: see a_cut_gzip_member_is_refused.
+            continue;
+        }
+        let input = data(&truncated_fixture(&id));
+        match FileInfo::new().run(&input, &options("", NONE)) {
+            Err(Error::Parse { message, .. }) => {
+                let clause = open_element_clause(&release.last_line);
+                if let Some(clause) = clause.filter(|_| mzxml) {
+                    assert_eq!(message, clause, "{id}");
+                    clauses += 1;
+                }
+            }
+            other => panic!("{id}: {other:?}"),
+        }
+        refused += 1;
+    }
+    assert_eq!((refused, clauses), (18, 10));
+}
+
+/// `MzXMLFile::load` itself (driver `mzxml_driver.cpp`): a full load of a
+/// document that ends with an element open throws `ParseError`; a
+/// metadata-only load throws `EndParsingSoftly` at the first `<scan>`
+/// (`FORMAT/HANDLERS/MzXMLHandler.cpp:242-245`), which `XMLFile::parse_` swallows
+/// (`FORMAT/XMLFile.cpp:104-108`), so a document cut after that point loads with no
+/// spectrum, and one cut before it (`t_mzxml_header`) throws.
+#[cfg(feature = "mzml")]
+#[test]
+fn a_metadata_only_load_ends_before_the_truncation_as_in_the_release_build() {
+    use openms::format::PeakFileOptions;
+    use openms::format::mzxml;
+    let mut seen = 0;
+    for (id, release) in release_outcomes() {
+        if release.program != "mzxml_driver" {
+            continue;
+        }
+        seen += 1;
+        let (mode, stem) = id
+            .strip_prefix("mzxml_")
+            .and_then(|rest| rest.split_once('_'))
+            .expect(&id);
+        let input = if stem == "MzXMLFile_1" {
+            data("MzXMLFile_1.mzXML")
+        } else {
+            data(&truncated_fixture(stem))
+        };
+        let mut peaks = PeakFileOptions::default();
+        peaks.metadata_only = mode == "meta";
+        let options = mzxml::ReadOptions {
+            peaks,
+            ..mzxml::ReadOptions::default()
+        };
+        match (
+            mzxml::load_with_options(&input, &options),
+            release.exit_code,
+        ) {
+            (Ok(map), 0) => assert_eq!(
+                format!(
+                    "spectra {} instrument_name {}",
+                    map.spectra.len(),
+                    map.settings.instrument.name
+                ),
+                release.last_line,
+                "{id}"
+            ),
+            (Err(Error::Parse { message, .. }), 3) => assert_eq!(
+                Some(message.as_str()),
+                open_element_clause(&release.last_line),
+                "{id}"
+            ),
+            (other, code) => panic!("{id}: Release exit {code}, port {other:?}"),
+        }
+    }
+    assert_eq!(seen, 8);
+}
+
+/// **Known gap, outside the readers:** a gzip member cut short. The Release
+/// build's type sniffing reads at most 8191 decompressed bytes and takes what
+/// the stream gives (`FORMAT/FileHandler.cpp:356-362`), and Xerces then parses the
+/// decompressed prefix and throws `ParseError` (tool exit 3, class driver
+/// `Parse Error`). Here `DocumentIdentifier::set_loaded_file_type` reads its
+/// 64 KiB preview with `read_to_end`, which the gzip decoder fails with an
+/// I/O error before the reader runs, so the class returns [`Error::Io`] and
+/// the tool exits 8. The file is refused either way; only the exit code
+/// differs. It is recorded in `docs/FILE_INFO_A8_SUPPORT.md` and in the
+/// provenance manifest's `known_gaps`.
+#[cfg(feature = "mzml")]
+#[test]
+fn a_cut_gzip_member_is_refused() {
+    assert_eq!(release_outcome("t_mzxml_gz_cut").exit_code, 3);
+    let class = release_outcome("lib_t_mzxml_gz_cut");
+    assert_eq!(class.exit_code, 3);
+    assert!(
+        class.last_line.starts_with("Parse Error: "),
+        "{}",
+        class.last_line
+    );
+    let input = data(&truncated_fixture("t_mzxml_gz_cut"));
+    let outcome = FileInfo::new().run(&input, &options("", NONE));
+    assert!(outcome.is_err(), "{outcome:?}");
+}
+
+/// MGF has no closing element to miss, and what a cut does depends on where
+/// it falls, in the Release build as here. Between two blocks, or in a
+/// block's header before its first peak line, the file loads with the blocks
+/// before the cut: the header loop runs to the end of the file, the outer
+/// loop's `getline` fails too, and `getNextSpectrum_` returns false
+/// (`FORMAT/MascotGenericFile.h:159-168`, `:399`). Both reports are the Release
+/// build's byte for byte. Inside the peak list or its `END IONS` line, the cut
+/// is a parse error on the line the Release build names (tool exit 3, and
+/// `Parse Error` from the class driver on one).
+#[test]
+fn truncated_mgf_ends_as_in_the_release_build() {
+    for id in ["t_mgf_between_blocks_all", "t_mgf_in_header_all"] {
+        assert_eq!(release_outcome(id).exit_code, 0, "{id}");
+        check_in(
+            &(id, truncated_fixture(id), EVERYTHING, NONE),
+            TRUNCATED_EXPECTED,
+        );
+    }
+    for id in [
+        "t_mgf_mid_peak",
+        "t_mgf_end_cut",
+        "t_mgf_end_word",
+        "lib_t_mgf_end_cut",
+    ] {
+        let release = release_outcome(id);
+        assert_eq!(release.exit_code, 3, "{id}");
+        let input = data(&truncated_fixture(id));
+        match FileInfo::new().run(&input, &options("", NONE)) {
+            Err(Error::Parse { line, .. }) => {
+                assert_eq!(line, release_line(&release.last_line), "{id}");
+            }
+            other => panic!("{id}: {other:?}"),
+        }
+    }
+}
+
+/// MS2 has no closing record either (driver cases, as the tool's `-in`
+/// refuses the extension). A cut on a line boundary, or inside a number that
+/// leaves both of a peak line's values, loads what is there, and both class
+/// reports are the Release build's byte for byte; a cut that leaves an `S` line
+/// three values or a peak line one is a parse error on the line the Release
+/// build names (`FORMAT/MS2File.h:113`, `:144`).
+#[test]
+fn truncated_ms2_ends_as_in_the_release_build_class() {
+    for (id, flags) in [
+        ("lib_t_ms2_line_boundary", ""),
+        ("lib_t_ms2_line_boundary_all", EVERYTHING),
+        ("lib_t_ms2_mid_number", ""),
+        ("lib_t_ms2_mid_number_all", EVERYTHING),
+    ] {
+        assert_eq!(release_outcome(id).exit_code, 0, "{id}");
+        check_in(
+            &(id, truncated_fixture(id), flags, NONE),
+            TRUNCATED_EXPECTED,
+        );
+    }
+    for id in ["lib_t_ms2_mid_s", "lib_t_ms2_mid_peak"] {
+        let release = release_outcome(id);
+        assert_eq!(release.exit_code, 3, "{id}");
+        let input = data(&truncated_fixture(id));
+        match FileInfo::new().run(&input, &options("", NONE)) {
+            Err(Error::Parse { line, .. }) => {
+                assert_eq!(line, release_line(&release.last_line), "{id}");
+            }
+            other => panic!("{id}: {other:?}"),
+        }
+    }
+}
+
+/// The FileInfo executable on every truncated mzXML, mzData and MGF input, as
+/// the Release build ran it: bare, and with `-m -p -s -d -c -out -out_tsv`.
+/// The exit code is the Release build's (except the known gap of
+/// [`a_cut_gzip_member_is_refused`], which is refused all the same). A refused
+/// file prints nothing on the output stream and `Error: Unable to read file
+/// (` on the error stream, naming the element Xerces names for mzXML, and
+/// leaves `-out` and `-out_tsv` as empty as the Release build does. A completed
+/// run's reports, on the output stream or in the two files, are the Release
+/// build's byte for byte.
+#[cfg(all(feature = "mzml", feature = "paramxml", feature = "featurexml"))]
+#[test]
+fn the_tool_ends_every_truncated_input_as_the_release_build_does() {
+    use openms::cli::tools::FileInfo as FileInfoTool;
+    use openms::cli::{ExitCode, run_with};
+    let dir = openms::system::file::TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let mut seen = 0;
+    for (id, release) in release_outcomes() {
+        if release.program != "tool" {
+            continue;
+        }
+        seen += 1;
+        let input = data(&truncated_fixture(&id));
+        let input_text = input.to_str().unwrap().to_owned();
+        let out = dir.path().join(format!("{id}.tmp.txt"));
+        let out_tsv = dir.path().join(format!("{id}.tmp.tsv"));
+        let mut args: Vec<String> = ["FileInfo", "-test", "-in", &input_text, "-no_progress"]
+            .map(str::to_owned)
+            .to_vec();
+        if id.ends_with("_all") {
+            args.extend(["-m", "-p", "-s", "-d", "-c"].map(str::to_owned));
+            args.extend(["-out".to_owned(), out.to_str().unwrap().to_owned()]);
+            args.extend(["-out_tsv".to_owned(), out_tsv.to_str().unwrap().to_owned()]);
+        }
+        let (mut stdout, mut stderr) = (Vec::new(), Vec::new());
+        let code = run_with::<FileInfoTool>(&args, &mut stdout, &mut stderr);
+        let (stdout, stderr) = (
+            String::from_utf8(stdout).unwrap(),
+            String::from_utf8(stderr).unwrap(),
+        );
+        let gap = id.starts_with("t_mzxml_gz_cut");
+        if gap {
+            assert_ne!(code, ExitCode::ExecutionOk, "{id}");
+        } else {
+            assert_eq!(code.as_i32(), release.exit_code, "{id}: {stderr}");
+        }
+        if release.exit_code != 0 {
+            assert_eq!(release.stdout_bytes, 0, "{id}");
+            assert!(stdout.is_empty(), "{id}: {stdout}");
+            assert!(
+                release
+                    .last_line
+                    .starts_with("Error: Unable to read file ("),
+                "{id}"
+            );
+            if !gap {
+                assert!(
+                    stderr.starts_with("Error: Unable to read file ("),
+                    "{id}: {stderr}"
+                );
+            }
+            let clause = open_element_clause(&release.last_line);
+            if let Some(clause) = clause.filter(|_| id.starts_with("t_mzxml_")) {
+                assert!(stderr.contains(clause), "{id}: {stderr}");
+            }
+            for (name, bytes) in &release.cwd_files {
+                let written = std::fs::metadata(dir.path().join(name))
+                    .unwrap_or_else(|e| panic!("{id}: {name}: {e}"))
+                    .len();
+                assert_eq!(written, *bytes as u64, "{id}: {name}");
+            }
+        } else if id.ends_with("_all") {
+            // The reports go to the two files, and only the timing line to
+            // the output stream, which is all the Release build printed there.
+            assert!(release.stdout_bytes > 0, "{id}");
+            let (rest, took) = took_line::split_took_line("FileInfo", &stdout);
+            assert!(rest.is_empty() && took.is_some(), "{id}: {stdout}");
+            assert_eq!(release.cwd_files.len(), 2, "{id}");
+            for (path, suffix) in [(&out, "txt"), (&out_tsv, "tsv")] {
+                assert_report(
+                    &oracle_path(&read_text(path), &input),
+                    &data(&format!("{TRUNCATED_EXPECTED}/{id}.{suffix}")),
+                    &format!("{id} {suffix}"),
+                );
+            }
+        } else {
+            // The report on the output stream, then the timing line, which
+            // differs from run to run and is taken off both.
+            let expected = read_text(&data(&format!("{TRUNCATED_EXPECTED}/{id}.stdout.txt")));
+            let expected = expected
+                .strip_suffix("FileInfo took <masked>\n")
+                .unwrap_or_else(|| panic!("{id}: no timing line"));
+            let (actual, took) = took_line::split_took_line("FileInfo", &stdout);
+            assert!(took.is_some(), "{id}: {stdout}");
+            let (actual, expected) = (
+                normalise_file_name(&oracle_path(&actual, &input)),
+                normalise_file_name(expected),
+            );
+            assert!(
+                actual == expected,
+                "{id} stdout: {}",
+                first_difference(&actual, &expected)
+            );
+        }
+    }
+    assert_eq!(seen, 42);
 }

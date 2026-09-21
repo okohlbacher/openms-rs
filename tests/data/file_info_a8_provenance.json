@@ -98,7 +98,7 @@
     },
     "method": "Library-level: FileInfo::run on each input with the flags the oracle passed the tool or the class driver; text and TSV compared byte for byte with the retained Release C++ reports after spelling the input path as the oracle did and replacing the 'File name: ' text line and the 'general: file name' TSV line. Tool-level (tests/topp_file_info.rs): TOPP_FileInfo_4, _5 and _6 through FuzzyDiff against the retained upstream outputs and byte for byte against the Release -out, the x4_bare report on the output stream, and the tool's refusals of the ms2 extension and of -i on mzXML.",
     "evidence_tier": 1,
-    "evidence": "Tier 1 (executed differential): the Release C++ FileInfo of openms4-release-bc9cc12-c19e494-174b576 ran 70 tool cases on ibminode06 and a driver over OpenMS::FileInfo::run 14 class cases, each twice, all reproduced (../oracle/a8-fileinfo/manifest.json, sha256 2376cdc4e92c7b4bbeddc4394aefbdf58940200fbe2d952406d3cfbff5fdb436). 61 reports are compared here byte for byte, text and TSV, with no exemption beyond the input path; the x4_bare report on stdout in tests/topp_file_info.rs. Tier 1 (retained upstream definition): TOPP_FileInfo_4, _5 and _6 against their retained outputs through FuzzyDiff.",
+    "evidence": "Tier 1 (executed differential): the Release C++ FileInfo of openms4-release-bc9cc12-c19e494-174b576 ran 70 tool cases on ibminode06 and a driver over OpenMS::FileInfo::run 14 class cases, each twice, all reproduced (../oracle/a8-fileinfo/manifest.json, sha256 2376cdc4e92c7b4bbeddc4394aefbdf58940200fbe2d952406d3cfbff5fdb436). 61 reports are compared here byte for byte, text and TSV, with no exemption beyond the input path; the x4_bare report on stdout in tests/topp_file_info.rs. Tier 1 (retained upstream definition): TOPP_FileInfo_4, _5 and _6 against their retained outputs through FuzzyDiff. Tier 1 (executed differential), truncated input (repair F2): ../oracle/a8-truncated ran 42 tool cases, 13 class-driver cases and 8 MzXMLFile::load cases on the same Release install, each twice, all reproduced (../oracle/a8-truncated/manifest.json, sha256 be8aeeb3cf9b217d6164fd9a5261c5ec19eafdf6d20572dcf75b56f91775dcea). tests/file_info_a8.rs checks every one: the exit code, the empty -out and -out_tsv of a refusal, the Xerces clause of an mzXML document that ends with an element open, the MGF and MS2 line numbers, and the reports of all 8 completed MGF and MS2 cases byte for byte; the one exemption is the exit code of the cut gzip member (known_gaps).",
     "known_gaps": [
         {
             "what": "an mzData spectrum whose scan window begins after it ends (MzDataFile_1.mzData: mzRangeStart=110, no mzRangeStop) is refused, where the Release build reports",
@@ -142,17 +142,28 @@
             "what": "sqMass, XMass (fid) and MSP peak files stay refused",
             "why": "no reader here fills an MSExperiment from them; not part of this half of A8",
             "cases": []
+        },
+        {
+            "what": "a gzip member cut short is refused with exit 8 (Error::Io, unexpected end of file), where the Release build exits 3 (ParseError)",
+            "why": "the Release build's type sniffing reads at most 8191 decompressed bytes and takes what the stream gives (FORMAT/FileHandler.cpp:356-362), and Xerces then throws ParseError on the decompressed prefix; here DocumentIdentifier::set_loaded_file_type (src/metadata/document_identifier.rs) reads its 64 KiB preview with read_to_end, which the gzip decoder fails before any reader runs. Both builds refuse the file and write no report. The preview is shared by every XML reader and is outside this package; docs/FILE_INFO_A8_SUPPORT.md section 6.",
+            "cases": [
+                "t_mzxml_gz_cut",
+                "t_mzxml_gz_cut_all",
+                "lib_t_mzxml_gz_cut"
+            ]
         }
     ],
     "native_implementation": [
         "src/format/file_info/peaks.rs",
         "src/format/file_info/report.rs",
-        "src/format/mascot_generic.rs"
+        "src/format/mascot_generic.rs",
+        "src/format/mzxml.rs"
     ],
     "native_tests": [
         "tests/file_info_a8.rs",
         "tests/topp_file_info.rs",
-        "tests/file_info.rs"
+        "tests/file_info.rs",
+        "tests/progress_format_readers.rs"
     ],
     "support_document": "docs/FILE_INFO_A8_SUPPORT.md",
     "related_manifests": [
@@ -195,6 +206,54 @@
         {
             "path": "../oracle/a8-fileinfo/manifest.json",
             "sha256": "2376cdc4e92c7b4bbeddc4394aefbdf58940200fbe2d952406d3cfbff5fdb436",
+            "origin_key": "fixtures",
+            "role": "tool, driver and libOpenMS hashes, environment, fixture hashes, per-case argv, exit codes and output hashes, and the reproduction verdict"
+        },
+        {
+            "path": "../oracle/a8-truncated/oracle.py",
+            "sha256": "1bf55681e9e8e971318e9c31306aec9c09eef8638e0a813c1689eebddcf28cc0",
+            "origin_key": "fixtures",
+            "role": "Release-build runner of the truncation cases: 42 FileInfo tool cases, 13 class-driver cases and 8 MzXMLFile::load cases, per-case scratch runs, reproduction check, manifest writer"
+        },
+        {
+            "path": "../oracle/a8-truncated/run.sh",
+            "sha256": "9f0939f1ed5e9062890748fef58558b02c737638acf945a896f272c0601d7e11",
+            "origin_key": "fixtures",
+            "role": "node-side entry point with the exact environment; compiles both drivers with the Release install's own toolchain and libOpenMS's core flags"
+        },
+        {
+            "path": "../oracle/a8-truncated/remote.sh",
+            "sha256": "741728aff1335836fb41581af0d085b1cebc2d932836541b254e7e28c47dc6c3",
+            "origin_key": "fixtures",
+            "role": "Mac-side staging to ibminode06, detached launch with a DONE marker, poll, fetch"
+        },
+        {
+            "path": "../oracle/a8-truncated/driver/fileinfo_driver.cpp",
+            "sha256": "ae24c4e41916332ff2e21278ddd0af59f752f830443626a4491f262eb873997f",
+            "origin_key": "fixtures",
+            "role": "class-level driver, a verbatim copy of ../oracle/a8-fileinfo/driver/fileinfo_driver.cpp"
+        },
+        {
+            "path": "../oracle/a8-truncated/driver/mzxml_driver.cpp",
+            "sha256": "5b9dabfdaf981b15d9fd59fd18bce53b20eb01fedbf609a9553b6ce482ec8924",
+            "origin_key": "fixtures",
+            "role": "MzXMLFile::load driver, full and metadata-only"
+        },
+        {
+            "path": "../oracle/a8-truncated/scripts/make_truncated_fixtures.py",
+            "sha256": "774e9cf4938b5100450dbc90d7ed34692c5967e5413bb482aa809a552581d4b7",
+            "origin_key": "fixtures",
+            "role": "generator of the 25 truncated inputs, byte prefixes of five A8 inputs, which regenerate byte for byte"
+        },
+        {
+            "path": "../oracle/a8-truncated/scripts/export_truncated.py",
+            "sha256": "524ed3920bd635b0b1d72467bbc3e382f15cb81a0137430da4719372352c820c",
+            "origin_key": "fixtures",
+            "role": "exporter of the fixtures, the completed cases' reports and release_outcomes.tsv into tests/data/file_info_a8/truncated, refusing any text that does not hash back to the manifest"
+        },
+        {
+            "path": "../oracle/a8-truncated/manifest.json",
+            "sha256": "be8aeeb3cf9b217d6164fd9a5261c5ec19eafdf6d20572dcf75b56f91775dcea",
             "origin_key": "fixtures",
             "role": "tool, driver and libOpenMS hashes, environment, fixture hashes, per-case argv, exit codes and output hashes, and the reproduction verdict"
         }
@@ -550,6 +609,181 @@
             "bytes": 3378,
             "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/FileInfo_6_output.txt; the retained output of TOPP_FileInfo_6",
             "evidence_label": "retained upstream output (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzxml_after_scan.mzXML",
+            "sha256": "98796279d1634c0845925b9d78ea7c805eee89032cca4229b72b483dadcdf811",
+            "bytes": 2369,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MzXMLFile_1.mzXML (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzxml_nested_scan.mzXML",
+            "sha256": "7e1c8551d0b42c781127848fb898fdff339d653ed45531c9950019af4ef640c7",
+            "bytes": 3118,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MzXMLFile_1.mzXML (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzxml_mid_peaks.mzXML",
+            "sha256": "743948f5d71a47cced6a9c46794b8993ec37789edcccabc7c68b7a9a8fc59b6a",
+            "bytes": 2326,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MzXMLFile_1.mzXML (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzxml_mid_tag.mzXML",
+            "sha256": "9867173ac02db5d32568e38c2fe29a61ca58235763b33ba902e1f3a876eaaaf4",
+            "bytes": 2390,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MzXMLFile_1.mzXML (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzxml_header.mzXML",
+            "sha256": "4ba689c70ef39d66fba96893a340711c4af0098afc77965db8d5840671c36f06",
+            "bytes": 709,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MzXMLFile_1.mzXML (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzxml_after_msrun.mzXML",
+            "sha256": "efb4a5e98e8fa41a73cef6a5334bbcd8966d665609398743001ac92843c89de6",
+            "bytes": 3138,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MzXMLFile_1.mzXML (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzxml_no_root_end.mzXML",
+            "sha256": "6201f00dff48a46fa28991de5e51848856e938acbad239bdabdee7a48c6005e2",
+            "bytes": 3168,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MzXMLFile_1.mzXML (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzxml_mid_root_end.mzXML",
+            "sha256": "e69bc5b80dfa72529e497805addab7286e1e0b5991842bf21c603333b54b2090",
+            "bytes": 3173,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MzXMLFile_1.mzXML (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzxml_in_index.mzXML",
+            "sha256": "447f0a0aac67d2e6c14dcee3e826d1bad8ba9636efba42c85249f35d0efb8201",
+            "bytes": 14365,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of spectra_spectrast.mzXML (test-data 0cb15f2, topp/THIRDPARTY/)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzxml_after_scan_gz.mzXML.gz",
+            "sha256": "a53183c8fed9165a26c539682af3b6bef0690046b303d4157633bb09f5e0b7f9",
+            "bytes": 896,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a gzip member (mtime 0) of MzXMLFile_1.mzXML (core bc9cc12), cut as t_mzxml_after_scan.mzXML",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzxml_gz_cut.mzXML.gz",
+            "sha256": "ed0a7b287b472096f349a70782b7c836701e28d665ebd1869ba035825d64b6c5",
+            "bytes": 527,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: the first half of a gzip member (mtime 0) of the whole of MzXMLFile_1.mzXML (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzdata_after_spectrum.mzData",
+            "sha256": "7893312e9beeeb7bca82566fc492958a518607b5f64e4baf45eab74c71e5acaa",
+            "bytes": 11370,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MzDataFile_1.mzData (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzdata_mid_data.mzData",
+            "sha256": "a94eb1a5c208876992044208ec5326cc8072f238da8ab2773b383df0f39e3a06",
+            "bytes": 14356,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MzDataFile_1.mzData (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzdata_mid_tag.mzData",
+            "sha256": "2867266dbe3d335eeb8e03f83e49026a9d984a403f7eaa762fdb63ed0cbe0ea0",
+            "bytes": 15885,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MzDataFile_1.mzData (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzdata_header.mzData",
+            "sha256": "f9c20612096d7b67540414b752baed106a8386976ddab65c316d94941923ec8b",
+            "bytes": 2628,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MzDataFile_1.mzData (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mzdata_after_list.mzData",
+            "sha256": "6ed34554b2b232ac69c267a74a16764b5a8c6edf58b4fc4edcd812221a019bb9",
+            "bytes": 18249,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MzDataFile_1.mzData (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mgf_between_blocks.mgf",
+            "sha256": "b567f7cb41182adfc75a180dd977dc823e24abe2520e516e9d4e2f6ea5156977",
+            "bytes": 299,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of a8_mgf_carry.mgf (../oracle/a8-fileinfo/scripts/make_a8_fixtures.py)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mgf_in_header.mgf",
+            "sha256": "d2487d72488fd3200e4d8a55dfab57a5542ffeacef276ed97e1b093edbc790f6",
+            "bytes": 371,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of a8_mgf_carry.mgf (../oracle/a8-fileinfo/scripts/make_a8_fixtures.py)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mgf_mid_peak.mgf",
+            "sha256": "9eacef64266878221144ea621039bf1cc0a237882b18b0bcf5db16c5e4139c22",
+            "bytes": 375,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of a8_mgf_carry.mgf (../oracle/a8-fileinfo/scripts/make_a8_fixtures.py)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mgf_end_cut.mgf",
+            "sha256": "9058f4bd1b1a9291c1b0f1d32b8f78f2e5348c3ffaf4b444d5067b2200b3dab8",
+            "bytes": 385,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of a8_mgf_carry.mgf (../oracle/a8-fileinfo/scripts/make_a8_fixtures.py)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_mgf_end_word.mgf",
+            "sha256": "5b47943bf17db4a9c9f05f218a445c625dea99dc16b4093889dab540859a3d95",
+            "bytes": 382,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of a8_mgf_carry.mgf (../oracle/a8-fileinfo/scripts/make_a8_fixtures.py)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_ms2_line_boundary.ms2",
+            "sha256": "a4c358f376be6d13812d9282f898a2101570d3b48c88753588c44527c0653b65",
+            "bytes": 275,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MS2File_test_spectra.ms2 (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_ms2_mid_s.ms2",
+            "sha256": "86a044be810f34a3f4b59ebef2a568308b94363515f5b864422f977e8be903cd",
+            "bytes": 223,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MS2File_test_spectra.ms2 (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_ms2_mid_peak.ms2",
+            "sha256": "12a85da1cd279942f327f76b380ad788e99c16f2808a1a2de0683d7b7b7976a9",
+            "bytes": 278,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MS2File_test_spectra.ms2 (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/inputs/t_ms2_mid_number.ms2",
+            "sha256": "cc947b59a5e22243362e3266d4706df5dff7eba33fe246f9e1c4ba9a7c767d49",
+            "bytes": 281,
+            "kind": "generated by ../oracle/a8-truncated/scripts/make_truncated_fixtures.py: a byte prefix of MS2File_test_spectra.ms2 (core bc9cc12)",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
         }
     ],
     "expected_outputs": [
@@ -1489,6 +1723,118 @@
             "sha256": "61f7cd7f2a59fd6dee7b5f430aaa77d54cf226dbc61dc536444ccc38a74fef0b",
             "bytes": 2786,
             "kind": "Release C++ FileInfo output retained by ../oracle/a8-fileinfo (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/SHA256SUMS",
+            "sha256": "d107f5a699fc2501303e85430b75eb553279ec9d8492a23eec75f0f82ebf50c2",
+            "bytes": 1404,
+            "kind": "sha256 list of the files beside it",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/lib_t_ms2_line_boundary.tsv",
+            "sha256": "18a3a02ca82fbb7aabb93b0653a22d3f453797054d1595385897f13f722a0a1e",
+            "bytes": 1436,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-truncated (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/lib_t_ms2_line_boundary.txt",
+            "sha256": "dfc1662cace2fa775911b9d234d4064da3d079a86a0c8238a332bb9db6837a6c",
+            "bytes": 985,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-truncated (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/lib_t_ms2_line_boundary_all.tsv",
+            "sha256": "ac337d36597e260581be79e48e32cb8b45851c78d34d5758900bfd308b87d0e4",
+            "bytes": 1574,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-truncated (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/lib_t_ms2_line_boundary_all.txt",
+            "sha256": "bc174afa4c4d41af45575289289607b516162cbb4bc2231c9dfde98f6cfcf6c9",
+            "bytes": 2051,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-truncated (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/lib_t_ms2_mid_number.tsv",
+            "sha256": "a77957af117b2fb4deefba4eb4c433937aac2697bf8dea58b17c45c58caf241c",
+            "bytes": 1433,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-truncated (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/lib_t_ms2_mid_number.txt",
+            "sha256": "45ff260d7b29d19977f6cfd85ec0a8e8cfcae4aabda708a05b57241edce0bd45",
+            "bytes": 982,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-truncated (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/lib_t_ms2_mid_number_all.tsv",
+            "sha256": "80317efe111a89d36397a685657c3e4cf126bcfd7804e98b84190d496ea0f7ae",
+            "bytes": 1571,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-truncated (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/lib_t_ms2_mid_number_all.txt",
+            "sha256": "5365c691fc3146b54b1ece4a77dbc43ff9247d3078e920735315a2c3687d1b9a",
+            "bytes": 2048,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-truncated (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/release_outcomes.tsv",
+            "sha256": "0220dcdf3b334340ebeba3bf36629f2ad67254dfdf08ee6fbc4ec8f5a0a30b1e",
+            "bytes": 13277,
+            "kind": "one row per case of ../oracle/a8-truncated: exit code, stdout byte count, the files left in the case's cwd with their sizes, and the last line of stderr (or of stdout for a completed mzxml_driver load), fixture directory spelled <FIX>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/t_mgf_between_blocks.stdout.txt",
+            "sha256": "061831743d887e13bb460803b4ba87251acd03d407ad63a09ff79c0cef4438ad",
+            "bytes": 1030,
+            "kind": "Release C++ FileInfo stdout retained by ../oracle/a8-truncated, the report then the 'FileInfo took' line masked, input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/t_mgf_between_blocks_all.tsv",
+            "sha256": "1dadb6906de2bfc6326d68c9dd7cf78b9253114f27e9227e41c710caf863d2e8",
+            "bytes": 1596,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-truncated (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/t_mgf_between_blocks_all.txt",
+            "sha256": "43c9e28912a8c05e00ef65ce2a7c6989929fa18783d3f8d7e395099a04711885",
+            "bytes": 2092,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-truncated (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/t_mgf_in_header.stdout.txt",
+            "sha256": "8968da229ace63bfc7778c9b3db1004707b89eb4b7492a2596fa2c34ed6cbc81",
+            "bytes": 1025,
+            "kind": "Release C++ FileInfo stdout retained by ../oracle/a8-truncated, the report then the 'FileInfo took' line masked, input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/t_mgf_in_header_all.tsv",
+            "sha256": "e1701c8ba12365a335fd86fd2e1be49dfa3aa3755ec562de3ae7dd90aee060cd",
+            "bytes": 1591,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-truncated (tool or class driver), input path spelled <FIX>/<name>",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a8/truncated/expected/t_mgf_in_header_all.txt",
+            "sha256": "44c97c8d5e6225742f1d935c9ca23b90feef1b38259245c317ea0c24eb9932b3",
+            "bytes": 2087,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a8-truncated (tool or class driver), input path spelled <FIX>/<name>",
             "evidence_label": "oracle-generated (tier 1 executed differential)"
         }
     ]
