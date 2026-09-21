@@ -194,6 +194,26 @@ impl Tool for FuzzyDiff {
         let first_column = int_option(ctx, "first_column")?;
         let do_sort = ctx.flag("sort")?;
 
+        // The source's check of the list parsing, in the -log file from debug
+        // level 1 (`FuzzyDiff.cpp:103-105`); `ListUtils::concatenate` joins with
+        // `, `, so an empty list leaves two spaces.
+        ctx.write_debug(
+            &format!(
+                "whitelist: {} (size: {})",
+                whitelist.join(", "),
+                whitelist.len()
+            ),
+            1,
+        );
+        ctx.write_debug(
+            &format!(
+                "matched_whitelist: {} (size: {})",
+                raw_matched_whitelist.join(", "),
+                raw_matched_whitelist.len()
+            ),
+            1,
+        );
+
         // The source throws IllegalArgument, which TOPPBase's BaseException
         // arm reports (TOPPBase.cpp:495-499 at cli c19e494).
         let matched_whitelist = match parse_matched_whitelist(&raw_matched_whitelist) {

@@ -27,8 +27,7 @@
 //! input. [`LowMemoryPicker`] and [`run_low_memory`](fn@run_low_memory) carry
 //! the list and the evidence.
 //!
-//! Not ported yet: the debug dump of the algorithm parameters at `-debug 3`,
-//! and progress logging.
+//! Not ported yet: progress logging.
 //!
 //! `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md` lists the source members, the
 //! preserved conventions, the native differences and the evidence.
@@ -677,7 +676,11 @@ impl Tool for PeakPickerHiRes {
         let output = ctx.string("out")?;
         let process_option = ctx.string("processOption")?;
 
-        let mut picker = Picker::from_param(&ctx.subsection("algorithm")?)?;
+        // `writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3)`
+        // (`PeakPickerHiRes.cpp:200-201`): the -log file, from debug level 3.
+        let algorithm = ctx.subsection("algorithm")?;
+        ctx.write_debug_param("Parameters passed to PeakPickerHiRes", &algorithm, 3);
+        let mut picker = Picker::from_param(&algorithm)?;
         picker.compatibility = PickingCompatibility::source();
         picker.check_spectrum_type = !ctx.force();
 

@@ -620,9 +620,10 @@ impl Tool for FeatureFinderCentroided {
             FileHandler::load_feature_map(seeds_path, &[FileType::FeatureXml])?
         };
 
-        // Parameters of the feature finder (232). The source's dump of them at
-        // debug level 3 (writeDebug_) is not ported by the TOPP framework.
+        // Parameters of the feature finder (232-233), and the source's dump of
+        // them to the -log file from debug level 3.
         let parameters = ctx.subsection("algorithm")?;
+        ctx.write_debug_param("Parameters passed to FeatureFinder", &parameters, 3);
 
         // The two log-stream caches of the process: OPENMS_LOG_INFO on stdout
         // and OPENMS_LOG_WARN on stderr.

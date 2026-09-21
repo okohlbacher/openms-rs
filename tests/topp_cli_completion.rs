@@ -39,8 +39,9 @@ use openms::cli::tools::{
     BaselineFilter, DTAExtractor, MapNormalizer, MzMLSplitter, SpectraFilterWindowMower,
 };
 use openms::cli::{
-    CITE_OPENMS, Citation, ExitCode, ParamCtdFile, Tool, ToolContext, ToolDescriptionFile,
-    ToolHandler, ToolRegistrySources, ToolResult, ToolSpec, product_versions, run_with_registry,
+    BUILTIN_MANIFEST, BUILTIN_MANIFEST_NAME, CITE_OPENMS, Citation, ExitCode, ParamCtdFile,
+    TOPP_PRODUCT_VERSION, Tool, ToolContext, ToolDescriptionFile, ToolHandler, ToolRegistrySources,
+    ToolResult, ToolSpec, product_versions, run_with_registry,
 };
 use openms::param::{Param, ParamValue};
 use openms::system::file::TempDir;
@@ -736,6 +737,87 @@ fn registry_entries_that_do_not_concern_the_tool_leave_its_usage_unchanged() {
     );
 }
 
+/// Oracle `reg_install_prefix_twice`: the Release build with its own
+/// installation prefix in `OPENMS_TOOL_PREFIX_PATH`, twice, runs normally,
+/// because the source reads a manifest file once however many prefixes
+/// reach it (`ToolHandler.cpp:90-104`). A prefix installing the product
+/// manifest byte for byte, as `share/openms4/tools/topp.tools.tsv`, is that
+/// installation for this port: the built-in manifest standing in for the
+/// executable's prefix is the same manifest and is not read a second time,
+/// so the usage text is the Release build's, and the registered tools resolve
+/// to that prefix.
+#[test]
+fn a_prefix_that_installs_the_product_manifest_is_the_built_in_one_read_once() {
+    let case = Case::new();
+    let prefix = probe_prefix(&case, BUILTIN_MANIFEST_NAME, BUILTIN_MANIFEST);
+    let handler = registry(&case, |sources| {
+        sources.prefixes = vec![prefix.clone(), prefix.clone()];
+    });
+    let outcome = run_in::<BaselineFilter>(&handler, &["--help"]);
+    assert_oracle_exit("reg_install_prefix_twice", &outcome);
+    assert_eq!(
+        outcome.err,
+        case.map(
+            "reg_install_prefix_twice",
+            &oracle("reg_install_prefix_twice", "stderr.txt")
+        )
+    );
+    assert_eq!(
+        handler.get_tool_version("BaselineFilter").unwrap(),
+        TOPP_PRODUCT_VERSION
+    );
+    let tools = handler.package_tools().unwrap();
+    assert_eq!(
+        tools["BaselineFilter"].executable,
+        std::path::absolute(prefix.join("bin/BaselineFilter")).unwrap()
+    );
+    let once = registry(&case, |sources| sources.prefixes = vec![prefix.clone()]);
+    assert_eq!(once.package_tools().unwrap(), tools);
+}
+
+/// A second manifest is a duplicate, whatever it holds, as for two C++
+/// installations (oracle `reg_dup_help`, and `reg_copy_of_install_manifest`
+/// of `../oracle/topp-exception-exits`, where the Release build refuses a
+/// byte-identical copy of its own manifest under another prefix: the source
+/// knows a manifest by its path). Only the product manifest itself, under its
+/// installed name, is the built-in one reached again: a copy under another
+/// name, and `topp.tools.tsv` one byte longer, are second manifests listing
+/// the product tools.
+#[test]
+fn a_manifest_that_is_not_the_product_manifest_is_still_a_duplicate() {
+    let longer = format!("{BUILTIN_MANIFEST}\n");
+    for (file, contents) in [
+        ("copy.tools.tsv", BUILTIN_MANIFEST),
+        (BUILTIN_MANIFEST_NAME, longer.as_str()),
+    ] {
+        let case = Case::new();
+        let prefix = probe_prefix(&case, file, contents);
+        let handler = registry(&case, |sources| sources.prefixes = vec![prefix]);
+        let outcome = run_in::<BaselineFilter>(&handler, &["--help"]);
+        assert_eq!(
+            outcome.code,
+            ExitCode::IllegalParameters,
+            "{file}: {}",
+            outcome.err
+        );
+        assert!(
+            outcome
+                .err
+                .starts_with("Unable to initialize or run BaselineFilter: ")
+                && outcome.err.ends_with(
+                    "was used but is not valid; Invalid or duplicate tool package manifest entry\n"
+                ),
+            "{file}: {}",
+            outcome.err
+        );
+        assert!(
+            outcome.err.contains(&builtin_manifest_path(&handler)),
+            "{file}: the duplicate is the built-in manifest's row: {}",
+            outcome.err
+        );
+    }
+}
+
 /// Oracles `ttd_*`: the internal-tool registry under `OPENMS_TTD_INTERNAL_PATH`.
 /// Every `.ttd` entry is an internal tool, keyed by name, so two external
 /// entries (which have none) collide on the empty name; a tool the product
@@ -853,6 +935,33 @@ fn the_executable_reads_the_prefix_path_from_its_environment() {
             &text(own_prefix.join("share/openms4/tools/topp.tools.tsv")),
         );
     assert_eq!(String::from_utf8_lossy(&output.stderr), expected);
+
+    // `OPENMS_TOOL_PREFIX_PATH` naming an installation of the product
+    // manifest, which is what the variable is for: the executable runs, as
+    // the Release build does with its own prefix named there (oracle
+    // `reg_install_prefix_twice`).
+    let case = Case::new();
+    let prefix = probe_prefix(&case, BUILTIN_MANIFEST_NAME, BUILTIN_MANIFEST);
+    let output = Command::new(&binary)
+        .arg("--help")
+        .env("OPENMS_TOOL_PREFIX_PATH", &prefix)
+        .env("OPENMS_HOME_PATH", case.home())
+        .env("COLUMNS", "0")
+        .current_dir(case.cwd())
+        .output()
+        .unwrap();
+    assert_eq!(
+        output.status.code(),
+        Some(oracle_exit("reg_install_prefix_twice")),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let release = case.map(
+        "reg_install_prefix_twice",
+        &oracle("reg_install_prefix_twice", "stderr.txt"),
+    );
+    assert_eq!(stderr, release);
 }
 
 // ---------------------------------------------------------------------------

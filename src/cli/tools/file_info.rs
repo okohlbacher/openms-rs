@@ -176,6 +176,7 @@ impl Tool for FileInfo {
         let mut in_type = FileType::from_name(ctx.string("in_type")?);
         if in_type == FileType::Unknown {
             in_type = detect_type(&input)?;
+            ctx.write_debug(&format!("Input file type: {}", in_type.name()), 2);
         }
         if in_type == FileType::Unknown {
             ctx.write_log_error(err, "Error: Could not determine input file type!")?;
