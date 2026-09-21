@@ -13,8 +13,8 @@ exists only in a Debug build is not source behavior for this port.
 
 | Source API | Native API |
 | --- | --- |
-| `ProgressLogger()`, destruction | `ProgressLogger::new()` / `Default`; ordinary drop, with no implicit end |
-| copy constructor, assignment | `Clone`, `clone_from`; fresh backend, copied type and throttle timestamp |
+| `ProgressLogger()`, destruction | `ProgressLogger::new()` / `Default`; ordinary drop, with no implicit end; dropping the last copy takes the logger's unended sections out of the depth ([Sections a finished call left open](#sections-a-finished-call-left-open)) |
+| copy constructor, assignment | `Clone`, `clone_from`; fresh backend, copied type and throttle timestamp; the copy shares the original's sections |
 | `LogType::{CMD,GUI,NONE}` | `ProgressLogType::{Cmd,Gui,None}`, with the same discriminants 0/1/2 |
 | `setLogType`, `getLogType` | `set_log_type`, `log_type` |
 | `setLogger` | `set_logger(Box<dyn ProgressBackend>)`, transferring ownership |
@@ -22,9 +22,9 @@ exists only in a Debug build is not source behavior for this port.
 | `startProgress`'s Debug-only `OPENMS_PRECONDITION(begin <= end)` | not ported: absent from the Release reference build, so any range is accepted |
 | four virtual `ProgressLoggerImpl` operations | four corresponding methods of `ProgressBackend`, returning `Result` |
 | `make_gui_progress_logger` | per-logger `set_gui_factory`, retained by copies; GUI defaults to a no-op |
-| source process-static recursion depth | shared `ProgressNesting::global()` by default; `Default` creates an isolated nesting context |
+| source process-static recursion depth | shared `ProgressNesting::global()` by default; `Default` creates an isolated nesting context; a section a finished call left open counts only for the logger that left it ([below](#sections-a-finished-call-left-open)) |
 | the `ProgressLogger` *base* of an algorithm class (`class GaussFilter : public ProgressLogger`) | the algorithm's `*_with_progress` entry point, which borrows a caller's `ProgressLogger` for the call; see [Consumers](#consumers) |
-| — | `ProgressReporter`: one run's progress calls sent to an optional logger (`start`, `start_count`, `set`, `set_count`, `next_progress`, `end`, `end_with_bytes`; the two `_count` forms convert a record count only when reporting, so a silent run cannot fail on one), with `section`, which ends the section on failure too |
+| — | `ProgressReporter`: one run's progress calls sent to an optional logger (`start`, `start_count`, `set`, `set_count`, `next_progress`, `end`, `end_with_bytes`; the two `_count` forms convert a record count only when reporting, so a silent run cannot fail on one), with `section`, which ends the section on failure too; a reporter on a logger lasts for one call, and sections that call leaves open are abandoned when the last reporter on the logger is dropped |
 | — | `progress_value`: a `usize` count as the source's `SignedSize` value, refusing what would wrap |
 
 `CommandProgressLogger<W: std::io::Write>` is also directly usable as a backend.
@@ -71,7 +71,11 @@ factory ignore the range. This is the executed Release behavior (see
 Every successful start dispatches at the current nesting depth and increments
 that depth afterward, including starts with logging disabled. Every end first
 decrements the depth if nonzero, then dispatches, even without a matching start.
-Dropping a logger does not end progress or unwind nesting. A second start on an active command backend prints its new header, replaces
+Dropping a logger never ends progress: no backend is called and nothing is
+printed. Unlike the source's, dropping the last of a logger and its copies
+takes the sections it left open out of the depth; see
+[Sections a finished call left open](#sections-a-finished-call-left-open).
+A second start on an active command backend prints its new header, replaces
 the range/counter and resets the timer, then errors: the current source
 `StopWatch::reset()` restarts a running timer, so the following `start()` throws
 `Exception::Precondition` ("StopWatch is already started!", `StopWatch.cpp:43`).
@@ -121,9 +125,10 @@ The GUI factory is owned per logger instead of being a mutable global function
 pointer. Standard clock, factory, and nesting handles are shared by clones.
 Backends are `Send`, permitting `Arc<Mutex<ProgressLogger>>` for shared
 parallel progress. Methods take mutable Rust references instead of mutating
-through C++ const methods. Shared nesting uses checked atomic operations, avoiding source data
-races; related operations should still be serialized when exact cross-logger
-ordering matters. Isolated contexts avoid coupling independent jobs.
+through C++ const methods. Shared nesting is counted under a lock that no
+backend call runs inside, avoiding source data races; related operations should
+still be serialized when exact cross-logger ordering matters. Isolated contexts
+avoid coupling independent jobs.
 
 Labels are bounded by `MAX_PROGRESS_LABEL_BYTES` (1 MiB) and nesting/indentation
 by `MAX_PROGRESS_DEPTH` (1024). These checks apply before output allocation or
@@ -163,7 +168,7 @@ native bound or a check the Release build also executes:
 | Refusal | Where | Status |
 | --- | --- | --- |
 | label longer than `MAX_PROGRESS_LABEL_BYTES` | wrapper and command start | native bound: the source accepts any label |
-| depth at `MAX_PROGRESS_DEPTH` on start, above it on a backend call | wrapper start; command start/set/end | native bound: source `static int recursion_depth_` is unbounded and overflows at `INT_MAX` |
+| `MAX_PROGRESS_DEPTH` sections open on start (abandoned ones do not count), a depth above it on a backend call | wrapper start; command start/set/end | native bound: source `static int recursion_depth_` is unbounded and overflows at `INT_MAX` |
 | second start on a running command backend | command start | source, Release: `StopWatch::start` throws (`StopWatch.cpp:43`); captured |
 | end without a running command timer | command end | source, Release: `StopWatch::stop` throws (`StopWatch.cpp:55`); captured |
 | next-counter overflow | command next | native: source `++current_` is undefined signed overflow |
@@ -173,6 +178,66 @@ native bound or a check the Release build also executes:
 | nonfinite or out-of-`u64` throughput, including a byte count over zero elapsed time | command end | native: undefined floating-to-integer conversion in the source (`:78`) |
 | clock, writer and custom-backend errors | all | native: `Result` propagation where the source reports no failure |
 | system clock before the epoch or beyond `i64` seconds | `system_progress_clock` | native |
+
+## Sections a finished call left open
+
+**The source.** The depth is one `static int` (`ProgressLogger.h:105`).
+`startProgress` increments it after the backend call
+(`ProgressLogger.cpp:237-238`), and only `endProgress` decrements it
+(`:266-269`). When an exception leaves a section, nothing ends it. The
+readers' catches rethrow (`MzMLFile.cpp:113-127`, `XMLFile.cpp:96-113`), and
+the destructor deletes only the backend (`:192-195`). The level therefore
+stays in the depth for the rest of the process:
+
+- Every later section of every object is indented two spaces deeper per
+  failure, and a GUI backend receives the deeper depth. The captures show
+  this: `D` is 1 after a failed DTA2D, featureXML or mzData load and 2 after a
+  failed mzML load. In `mzdata_static_counter` a second `MzDataFile` starts
+  its section at depth 1.
+- The failing object's command backend keeps its timer running, so that
+  object's next start throws `StopWatch is already started!`
+  (`mzml_reuse_after_failure`).
+
+This is CPP-354.
+
+**The port before F4.** It kept one process-wide counter, and the native
+`MAX_PROGRESS_DEPTH` refused a start once the counter reached the bound. After
+1,024 failed loads, even through fresh loggers of type `None` that show
+nothing, every load that reported progress failed with "progress nesting limit
+exceeded", valid ones included (F4 of the phase 3 wave 1 verification).
+
+**The port now.** A non-silent `ProgressReporter` marks one call of an entry
+point. The call lasts while any reporter on the logger or its copies lives:
+the mzML reader's short-lived reporters for its document section do not end
+it. When the last is dropped, the sections the call started and did not end
+are *abandoned*. This covers a reader that fails inside its section, and a
+metadata-only mzML load that stops inside its document section. Sections the
+caller started on the logger before the call are not the call's, and stay
+open. An abandoned section:
+
+- stays in `ProgressNesting::depth` and indents the later calls of the logger
+  that left it, and of its copies, as the source's static does. The captures'
+  `D` rows and `mzml_reuse_after_failure` still match call for call.
+  `mzdata_static_counter` matches as well, because the replay's second file
+  object is a copy of the first.
+- does not indent any other logger's calls. A fresh logger is not indented by
+  another logger's failed load: its calls are the captured ones one level
+  shallower (`a_fresh_file_object_is_not_indented_by_another_ones_failed_load`).
+- does not count against `MAX_PROGRESS_DEPTH`. The bound limits only the
+  sections open at once, and no backend is handed a depth beyond it. No
+  number of failed calls makes a later call fail.
+- leaves the depth when the last copy of its logger is dropped. So does any
+  section a logger started directly, without a reporter, and never ended.
+
+No backend is called when a section is abandoned or its logger dropped. An
+abandoned command section therefore prints no `-- done` line, exactly as in
+the Release build. The failing logger's command backend still refuses its next
+start, as the source's does. Nothing else changes: every call, depth and byte
+the replays capture is unchanged, and so is every result, written byte and
+error of the readers.
+
+The rule is counts, not identities. An end closes the innermost section:
+an open one if any is, else one its own logger abandoned.
 
 ## Consumers
 
@@ -241,9 +306,12 @@ Three rules follow the Release build rather than `ProgressReporter::section`:
    depth stays one level deeper, and the object's command backend refuses its
    next start with `StopWatch is already started!` (`StopWatch.cpp:43`). The
    readers make their calls one by one and end a section only on success, so
-   all three hold here too; the replay's `mzml_reuse_after_failure` case loads
-   a truncated mzML and then a good one through one logger, and both builds
-   refuse the second load's list start in command mode.
+   all three hold here too for the logger that failed and its copies; the
+   replay's `mzml_reuse_after_failure` case loads a truncated mzML and then a
+   good one through one logger, and both builds refuse the second load's list
+   start in command mode. The level the failure left does not reach other
+   loggers, the nesting bound or the time after the logger is dropped; see
+   [Sections a finished call left open](#sections-a-finished-call-left-open).
 2. **The calls reach the logger the source uses.** `DTA2DFile`,
    `MascotGenericFile`, `MzDataFile`, `MzXMLFile` and `MzMLFile` hand their
    handler the file object itself, so the calls go to the caller's logger.
@@ -406,5 +474,37 @@ The replay also found a reader defect that is not a progress one: the mzXML
 reader accepts a document truncated after a complete `</scan>`, where the
 Release build throws `ParseError`; the case records it. See
 `tests/data/progress_format_readers_provenance.json`.
+
+**Sections a finished call left open (F4).** Five tests in
+`tests/progress_format_readers.rs` take their expected calls, depths, bytes
+and outcomes from that capture. Before the fix, the first four failed with the
+verifier's symptoms:
+
+- `failed_loads_on_the_process_wide_nesting_leave_a_valid_load_alone` is the
+  verifier's probe. It makes 1,024 failed DTA2D loads through fresh
+  `ProgressLogger::new()` loggers, then a valid load, which returned
+  "progress nesting limit exceeded".
+- `failed_loads_do_not_change_a_later_load_through_another_logger` makes
+  failing loads of each reader that reports progress: DTA2D (three),
+  MGF, mzXML, mzData, featureXML, consensusXML and mzML (two). Each is followed
+  by the captured good case through a fresh logger.
+- `a_failed_section_prints_no_done_line_and_leaves_the_depth_with_its_logger`
+- `a_reused_logger_still_loads_after_any_number_of_failed_loads` makes 1,025
+  failed loads through one logger.
+- `a_fresh_file_object_is_not_indented_by_another_ones_failed_load` asserts
+  the intended difference in `mzdata_static_counter` against the capture.
+
+In `tests/progress_logger.rs`, five more tests check the abandonment,
+bound, reporter-lifetime, per-call and drop rules against the documented
+contract:
+`an_abandoned_section_indents_only_its_own_logger_until_it_is_dropped`,
+`abandoned_sections_never_reach_the_nesting_bound`,
+`a_section_stays_open_while_any_reporter_on_its_logger_lives`,
+`a_call_abandons_only_the_sections_it_started` and
+`dropping_the_last_copy_of_a_logger_takes_its_open_sections_out_of_the_depth`.
+
+The verifier's 19 limit and malformed-input probes compare each silent entry
+point with its progress entry point. They report the same errors before and
+after the fix, byte for byte.
 
 The main-crate checks are recorded in [validation results](VALIDATION.md).

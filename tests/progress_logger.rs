@@ -4,7 +4,8 @@
 
 use openms::concept::progress_logger::{
     CommandProgressLogger, MAX_PROGRESS_DEPTH, MAX_PROGRESS_LABEL_BYTES, ProgressBackend,
-    ProgressClock, ProgressLogType, ProgressLogger, ProgressNesting, ProgressTime,
+    ProgressClock, ProgressLogType, ProgressLogger, ProgressNesting, ProgressReporter,
+    ProgressTime,
 };
 use openms::{Error, Result};
 use std::collections::{BTreeMap, VecDeque};
@@ -808,5 +809,179 @@ fn gui_and_none_accept_an_inverted_range() {
             Event::Set(3, 2),
             Event::End(1, 0),
         ]
+    );
+}
+
+// Sections a finished call left open. The source keeps them in its static
+// depth for the rest of the process (`ProgressLogger.h:105`, `.cpp:266-269`);
+// the expectations below follow from the documented contract of
+// `ProgressNesting` and `ProgressReporter`, which bounds that to the logger
+// that left them, not from Rust output.
+
+/// A logger whose calls go to a recording backend.
+fn recording(
+    clock: &ProgressClock,
+    nesting: &ProgressNesting,
+    events: &Arc<Mutex<Vec<Event>>>,
+) -> ProgressLogger {
+    let mut logger = ProgressLogger::with_clock_and_nesting(clock.clone(), nesting.clone());
+    logger.set_logger(recorder(events));
+    logger
+}
+
+#[test]
+fn an_abandoned_section_indents_only_its_own_logger_until_it_is_dropped() {
+    let (clock, _) = manual_clock(sample(1, 0.0, None));
+    let nesting = ProgressNesting::default();
+    let events = Arc::new(Mutex::new(Vec::new()));
+    let mut failed = recording(&clock, &nesting, &events);
+    let mut other = recording(&clock, &nesting, &events);
+    // A call that returns inside its section, as a reader that fails does.
+    ProgressReporter::new(Some(&mut failed))
+        .start(0, 2, "left open")
+        .unwrap();
+    assert_eq!(nesting.depth(), 1);
+    other.start_progress(0, 2, "other").unwrap();
+    other.end_progress(0).unwrap();
+    failed.start_progress(0, 2, "again").unwrap();
+    failed.end_progress(0).unwrap();
+    assert_eq!(nesting.depth(), 1);
+    let length = events.lock().unwrap().len();
+    drop(failed);
+    assert_eq!(nesting.depth(), 0);
+    // Dropping the logger ended nothing.
+    assert_eq!(events.lock().unwrap().len(), length);
+    assert_eq!(
+        *events.lock().unwrap(),
+        vec![
+            Event::Start(0, 2, "left open".into(), 0),
+            Event::Start(0, 2, "other".into(), 0),
+            Event::End(0, 0),
+            Event::Start(0, 2, "again".into(), 1),
+            Event::End(1, 0),
+        ]
+    );
+}
+
+#[test]
+fn abandoned_sections_never_reach_the_nesting_bound() {
+    let (clock, _) = manual_clock(sample(1, 0.0, None));
+    let nesting = ProgressNesting::default();
+    let events = Arc::new(Mutex::new(Vec::new()));
+    let mut logger = recording(&clock, &nesting, &events);
+    for _ in 0..=MAX_PROGRESS_DEPTH {
+        ProgressReporter::new(Some(&mut logger))
+            .start(0, 0, "left open")
+            .unwrap();
+    }
+    assert_eq!(nesting.depth(), MAX_PROGRESS_DEPTH + 1);
+    events.lock().unwrap().clear();
+    // No section is open, so one may start; its backend is never handed a
+    // depth beyond the bound, which only limits indentation.
+    logger.start_progress(0, 0, "after").unwrap();
+    logger.end_progress(0).unwrap();
+    assert_eq!(
+        *events.lock().unwrap(),
+        vec![
+            Event::Start(0, 0, "after".into(), MAX_PROGRESS_DEPTH),
+            Event::End(MAX_PROGRESS_DEPTH, 0),
+        ]
+    );
+    // The bound still limits the sections open at once.
+    for _ in 0..MAX_PROGRESS_DEPTH {
+        logger.start_progress(0, 0, "open").unwrap();
+    }
+    assert!(logger.start_progress(0, 0, "one too many").is_err());
+    drop(logger);
+    assert_eq!(nesting.depth(), 0);
+}
+
+/// The mzML reader reports its document section through short-lived
+/// reporters on a copy of the caller's logger while the reporter of its lists
+/// lives for the whole load. While any reporter on a logger or its copies
+/// lives, the call is not over and nothing is abandoned: the document section
+/// stays open for every logger.
+#[test]
+fn a_section_stays_open_while_any_reporter_on_its_logger_lives() {
+    let (clock, _) = manual_clock(sample(1, 0.0, None));
+    let nesting = ProgressNesting::default();
+    let events = Arc::new(Mutex::new(Vec::new()));
+    let mut logger = recording(&clock, &nesting, &events);
+    let mut other = recording(&clock, &nesting, &events);
+    let mut copy = logger.clone();
+    let mut lists = ProgressReporter::new(Some(&mut logger));
+    ProgressReporter::new(Some(&mut copy))
+        .start(0, 1, "document")
+        .unwrap();
+    other.start_progress(0, 0, "another logger").unwrap();
+    other.end_progress(0).unwrap();
+    lists.start(0, 2, "list").unwrap();
+    lists.end().unwrap();
+    ProgressReporter::new(Some(&mut copy)).end().unwrap();
+    drop(lists);
+    assert_eq!(nesting.depth(), 0);
+    assert_eq!(
+        *events.lock().unwrap(),
+        vec![
+            Event::Start(0, 0, "another logger".into(), 1),
+            Event::End(1, 0),
+            Event::Start(0, 2, "list".into(), 1),
+            Event::End(1, 0),
+        ]
+    );
+}
+
+/// A section the caller started on a logger before handing it to a call is
+/// not the call's: when the call finishes with its own section open, only
+/// that one is abandoned, and the caller's stays open for every logger.
+#[test]
+fn a_call_abandons_only_the_sections_it_started() {
+    let (clock, _) = manual_clock(sample(1, 0.0, None));
+    let nesting = ProgressNesting::default();
+    let events = Arc::new(Mutex::new(Vec::new()));
+    let mut logger = recording(&clock, &nesting, &events);
+    let mut other = recording(&clock, &nesting, &events);
+    logger.start_progress(0, 1, "caller").unwrap();
+    ProgressReporter::new(Some(&mut logger))
+        .start(0, 1, "call")
+        .unwrap();
+    assert_eq!(nesting.depth(), 2);
+    other.start_progress(0, 0, "other").unwrap();
+    other.end_progress(0).unwrap();
+    // The caller's section ends below the level its call left behind.
+    logger.end_progress(0).unwrap();
+    assert_eq!(nesting.depth(), 1);
+    drop(logger);
+    assert_eq!(nesting.depth(), 0);
+    assert_eq!(
+        *events.lock().unwrap(),
+        vec![
+            Event::Start(0, 1, "caller".into(), 0),
+            Event::Start(0, 1, "call".into(), 1),
+            Event::Start(0, 0, "other".into(), 1),
+            Event::End(1, 0),
+            Event::End(1, 0),
+        ]
+    );
+}
+
+/// A section started directly on a logger, with no reporter, is not
+/// abandoned when a call ends, but it leaves the depth when the last of the
+/// logger and its copies is dropped, without an end.
+#[test]
+fn dropping_the_last_copy_of_a_logger_takes_its_open_sections_out_of_the_depth() {
+    let (clock, _) = manual_clock(sample(1, 0.0, None));
+    let nesting = ProgressNesting::default();
+    let events = Arc::new(Mutex::new(Vec::new()));
+    let mut logger = recording(&clock, &nesting, &events);
+    logger.start_progress(0, 1, "direct").unwrap();
+    let copy = logger.clone();
+    drop(logger);
+    assert_eq!(nesting.depth(), 1);
+    drop(copy);
+    assert_eq!(nesting.depth(), 0);
+    assert_eq!(
+        *events.lock().unwrap(),
+        vec![Event::Start(0, 1, "direct".into(), 0)]
     );
 }
