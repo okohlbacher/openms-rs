@@ -92,6 +92,14 @@ impl Default for GaussFilterAlgorithm {
     }
 }
 impl GaussFilterAlgorithm {
+    /// An algorithm with the given `width` and kernel lookup `kernel_spacing`
+    /// (source `initialize(gaussian_width, spacing, ppm_tolerance,
+    /// use_ppm_tolerance)`), and the default coefficient limit.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] unless the width and the spacing are finite and
+    /// positive.
     pub fn new(width: GaussianWidth, kernel_spacing: f64) -> Result<Self> {
         let algorithm = Self {
             width,
@@ -257,6 +265,13 @@ impl Default for GaussFilter {
     }
 }
 impl GaussFilter {
+    /// A wrapper with the given `width` over the algorithm's `0.01` lookup
+    /// spacing (source parameters `gaussian_width`, or `ppm_tolerance` with
+    /// `use_ppm_tolerance`).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] unless the width is finite and positive.
     pub fn new(width: GaussianWidth) -> Result<Self> {
         Ok(Self {
             algorithm: GaussFilterAlgorithm::new(width, 0.01)?,
@@ -267,10 +282,10 @@ impl GaussFilter {
     /// as the source's `ProgressLogger` base does in `filterExperiment`
     /// (`GaussFilter.cpp:195-211`).
     ///
-    /// The section is `startProgress(0, spectra + chromatograms, "smoothing
-    /// data")`, `setProgress(++progress)` after each spectrum and then each
-    /// chromatogram, and `endProgress()`; the smoothed experiment is the one
-    /// the silent entry point produces. The metadata-copy preflight happens
+    /// The section runs over the spectrum and chromatogram count with the
+    /// label [`SMOOTHING_PROGRESS_LABEL`], with one set after each spectrum and
+    /// then each chromatogram, counting from `1`; the smoothed experiment is the
+    /// one the silent entry point produces. The metadata-copy preflight happens
     /// before the section starts, so an experiment refused there prints
     /// nothing.
     ///
@@ -453,9 +468,11 @@ impl SavitzkyGolayFilter {
         })
     }
 
+    /// The odd frame length in samples (source `frame_length`).
     pub fn frame_length(&self) -> usize {
         self.frame_length
     }
+    /// The polynomial degree (source `polynomial_order`).
     pub fn polynomial_order(&self) -> usize {
         self.polynomial_order
     }
@@ -507,10 +524,10 @@ impl SavitzkyGolayFilter {
     /// as the source's `ProgressLogger` base does in `filterExperiment`
     /// (`SavitzkyGolayFilter.h:202-217`).
     ///
-    /// The section is `startProgress(0, spectra + chromatograms, "smoothing
-    /// data")`, `setProgress(++progress)` after each spectrum and then each
-    /// chromatogram, and `endProgress()`; the smoothed experiment is the one
-    /// the silent entry point produces. The metadata-copy preflight happens
+    /// The section runs over the spectrum and chromatogram count with the
+    /// label [`SMOOTHING_PROGRESS_LABEL`], with one set after each spectrum and
+    /// then each chromatogram, counting from `1`; the smoothed experiment is the
+    /// one the silent entry point produces. The metadata-copy preflight happens
     /// before the section starts, so an experiment refused there prints
     /// nothing.
     ///
@@ -533,6 +550,14 @@ impl SavitzkyGolayFilter {
         )
     }
 
+    /// Smooth a chromatogram's intensities over its sample indices (source
+    /// `filter(MSChromatogram&)`); retention times are unchanged.
+    ///
+    /// # Errors
+    ///
+    /// The chromatogram's own validation errors and those of
+    /// [`SavitzkyGolayFilter::filter`], or [`Error::InvalidValue`] for a
+    /// smoothed intensity outside `f32`; the chromatogram is unchanged then.
     pub fn filter_chromatogram(&self, chromatogram: &mut MSChromatogram) -> Result<()> {
         chromatogram.validate()?;
         let positions: Vec<_> = chromatogram.peaks.iter().map(|p| p.rt).collect();

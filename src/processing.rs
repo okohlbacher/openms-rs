@@ -13,20 +13,31 @@ use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress
 use crate::kernel::{ChromatogramPeak, MSChromatogram, MSExperiment, MSSpectrum, Peak1D};
 use crate::{Error, Result};
 
+/// Baseline removal by mathematical morphology (`MorphologicalFilter.h`).
 pub mod baseline;
+/// OpenSWATH chromatogram peak picking (`PeakPickerChromatogram.h`).
 pub mod chromatogram;
+/// Isotope-cluster detection and charge deconvolution (`Deisotoper.h`).
 pub mod deisotoping;
 /// Removing and merging overlapping features (`FeatureOverlapFilter.h`).
 pub mod feature_overlap_filter;
+/// Iterative high-resolution peak picking (`PeakPickerIterative.h`).
 pub mod iterative;
+/// Mean-based iterative noise estimation
+/// (`SignalToNoiseEstimatorMeanIterative.h`).
 pub mod mean_noise;
 /// The signal-to-noise estimator base and the random-scan noise estimate
 /// (`SignalToNoiseEstimator.h`).
 pub mod noise_estimation;
+/// High-resolution centroiding (`PeakPickerHiRes.h`) and median noise
+/// estimation (`SignalToNoiseEstimatorMedian.h`).
 pub mod peak_picking;
+/// Gaussian and Savitzky-Golay smoothing (`GaussFilter.h`,
+/// `SavitzkyGolayFilter.h`).
 pub mod smoothing;
 /// Spline interpolation and smoothing ported from OpenMS `MATH/MISC`.
 pub mod spline;
+/// Sliding- and jumping-window peak filtering (`WindowMower.h`).
 pub mod window_mower;
 
 /// A spectrum transformation with an atomic experiment convenience method.

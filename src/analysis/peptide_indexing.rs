@@ -14,7 +14,7 @@ use crate::identification::{
     ProteinIdentification, TargetDecoyType,
 };
 use crate::{Error, Result};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, btree_map};
 
 /// The progress label of the source's first-chunk load
 /// (`PeptideIndexing.cpp:371`).
@@ -26,11 +26,19 @@ pub const SCAN_PROGRESS_LABEL: &str = "Aho-Corasick";
 /// its scan range is `i64::MAX` (`:453`).
 pub const SOURCE_PROTEIN_CACHE_SIZE: usize = 400_000;
 
+/// What to do when a peptide hit matches no protein (source `Unmatched` and
+/// its `unmatched_action` parameter, `PeptideIndexing.h:106`).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum UnmatchedAction {
+    /// Refuse the run (source `IS_ERROR`, `"error"`, the default).
     #[default]
     Error,
+    /// Keep the hit and report a warning (source `WARN`, `"warn"`); the source
+    /// notes that such hits miss their target/decoy annotation, with problems
+    /// downstream.
     Warn,
+    /// Remove the hit, keeping its identification record (source `REMOVE`,
+    /// `"remove"`).
     Remove,
 }
 impl UnmatchedAction {
@@ -42,11 +50,17 @@ impl UnmatchedAction {
         }
     }
 }
+/// What to do when no peptide hit maps to a decoy protein, which the source
+/// takes to indicate a wrong database or decoy string (source `MissingDecoy`
+/// and its `missing_decoy_action` parameter).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum MissingDecoyAction {
+    /// Refuse the run, producing no output (source `"error"`, the default).
     #[default]
     Error,
+    /// Succeed with a warning (source `"warn"`).
     Warn,
+    /// Take no action, not even a warning (source `"silent"`).
     Silent,
 }
 impl MissingDecoyAction {
@@ -58,16 +72,29 @@ impl MissingDecoyAction {
         }
     }
 }
+/// How decoy proteins are named (source parameters `decoy_string` and
+/// `decoy_string_position`).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub enum DecoyRule {
+    /// Infer the affix from the database, checking common terms as prefix and
+    /// suffix (source: an empty `decoy_string`, the default); see
+    /// [`PeptideIndexing::resolve_decoy_rule`].
     #[default]
     Auto,
+    /// Accessions starting with this string are decoys (`decoy_string_position`
+    /// `prefix`). Must not be empty.
     Prefix(String),
+    /// Accessions ending with this string are decoys (`decoy_string_position`
+    /// `suffix`). Must not be empty.
     Suffix(String),
 }
+/// The decoy naming a run actually used (source `getDecoyString` and
+/// `isPrefix`).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResolvedDecoyRule {
+    /// The decoy string.
     pub affix: String,
+    /// Whether [`affix`](Self::affix) is a prefix rather than a suffix.
     pub is_prefix: bool,
     /// False for an explicit rule or the source's DECOY_ fallback.
     pub inferred: bool,
@@ -82,28 +109,54 @@ impl ResolvedDecoyRule {
         }
     }
 }
+/// The settings one protein identification run was indexed with, after
+/// automatic resolution from its search parameters.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResolvedIndexingRun {
+    /// The run's identifier.
     pub identifier: String,
+    /// The enzyme, after the source's MS-GF+ correction of Trypsin to
+    /// Trypsin/P.
     pub enzyme: Protease,
+    /// The terminal specificity.
     pub specificity: DigestionSpecificity,
+    /// Whether D|P termini are accepted, as the source allows for X!Tandem
+    /// results.
     pub allow_random_asp_pro_cleavage: bool,
 }
+/// What a [`PeptideIndexing::run`] did, replacing the statistics the source
+/// logs.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct IndexingReport {
+    /// The decoy naming used for every run.
     pub decoy_rule: ResolvedDecoyRule,
+    /// The effective settings of each protein identification run, in input
+    /// order.
     pub runs: Vec<ResolvedIndexingRun>,
+    /// Peptide hits indexed, before any [`UnmatchedAction::Remove`].
     pub peptide_hits: usize,
+    /// Hits that map to target proteins only.
     pub target_hits: usize,
+    /// Hits that map to decoy proteins only.
     pub decoy_hits: usize,
+    /// Hits that map to both target and decoy proteins.
     pub target_and_decoy_hits: usize,
+    /// Hits that map to no protein.
     pub unmatched_hits: usize,
+    /// Hits whose evidence names exactly one protein.
     pub unique_hits: usize,
+    /// Hits whose evidence names more than one protein.
     pub non_unique_hits: usize,
+    /// Peptide evidences written.
     pub evidence_count: usize,
+    /// Protein hits written, over all runs.
     pub protein_hits: usize,
     /// Normalization, search comparisons and enzyme-validation residue work.
     pub work: u64,
+    /// The warnings the source would log: unknown enzyme or specificity, a
+    /// failed decoy inference, unmatched hits under
+    /// [`UnmatchedAction::Warn`], missing decoys under
+    /// [`MissingDecoyAction::Warn`].
     pub warnings: Vec<String>,
 }
 
@@ -176,6 +229,13 @@ fn work_add(work: &mut u64, amount: usize, limit: u64) -> Result<()> {
     Ok(())
 }
 impl PeptideIndexing {
+    /// Checks the options: ambiguity and mismatch budgets within `0..=10` (the
+    /// source's `aaa_max` and `mismatches_max` restrictions), positive
+    /// resource limits, and a nonempty explicit decoy affix.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the first option that fails.
     pub fn validate(&self) -> Result<()> {
         if self.max_ambiguities > 10 || self.max_mismatches > 10 {
             return Err(bad("ambiguity and mismatch budgets must each be in 0..=10"));
@@ -390,11 +450,12 @@ impl PeptideIndexing {
     /// * `startProgress(0, 1, "Load first DB chunk")` and `endProgress()`
     ///   around loading the first FASTA chunk, which an in-memory database
     ///   does not need; the section is made anyway, as the source makes it.
-    /// * `startProgress(0, n, "Aho-Corasick")`, where `n` is the number of
-    ///   database entries, or `i64::MAX` when there are exactly
-    ///   [`SOURCE_PROTEIN_CACHE_SIZE`] of them (`:453`); then
-    ///   `setProgress(k)` once the `k`-th protein has been scanned, so `k`
-    ///   runs from `1` to `n` (`:490-496`); then `endProgress()` (`:576`).
+    /// * a section labelled [`SCAN_PROGRESS_LABEL`] over `0` to `n`, where
+    ///   `n` is the number of database entries, or `i64::MAX` when there are
+    ///   exactly [`SOURCE_PROTEIN_CACHE_SIZE`] of them (`:453`); in it the
+    ///   source increments `progress_prots` per protein and passes it to
+    ///   `setProgress`, so the values run from `1` to `n` (`:490-496`); then
+    ///   `this->endProgress();` (`:576`).
     ///   The source skips this section when there is no peptide hit to search
     ///   for (`:381-394`, `:433-437`), and so does this.
     ///
@@ -546,9 +607,9 @@ impl PeptideIndexing {
         for (identification, &run_index) in new_peptides.iter().zip(&peptide_runs) {
             for hit in &identification.hits {
                 let key = (run_index, hit.sequence.as_str().to_owned());
-                if !needle_index.contains_key(&key) {
-                    let needle = self.normalize(&key.1, false, &mut work)?;
-                    needle_index.insert(key, needles.len());
+                if let btree_map::Entry::Vacant(slot) = needle_index.entry(key) {
+                    let needle = self.normalize(&slot.key().1, false, &mut work)?;
+                    slot.insert(needles.len());
                     needles.push((run_index, needle));
                 }
             }
@@ -604,7 +665,7 @@ impl PeptideIndexing {
                             }
                         }
                     }
-                    // :490-496, `setProgress(++progress_prots)`.
+                    // :490-496: `++progress_prots`, then `setProgress(progress_prots)`.
                     reporter.set_count(protein_index + 1)?;
                 }
                 Ok(())

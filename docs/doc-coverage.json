@@ -114,8 +114,8 @@
    "documented": 6
   },
   "src/analysis/peptide_indexing.rs": {
-   "items": 12,
-   "documented": 5
+   "items": 16,
+   "documented": 16
   },
   "src/analysis/precursor_purity.rs": {
    "items": 8,
@@ -430,8 +430,8 @@
    "documented": 7
   },
   "src/concept/progress_logger.rs": {
-   "items": 26,
-   "documented": 26
+   "items": 36,
+   "documented": 36
   },
   "src/concept/unique_id.rs": {
    "items": 11,
@@ -1042,8 +1042,8 @@
    "documented": 5
   },
   "src/processing/baseline.rs": {
-   "items": 7,
-   "documented": 7
+   "items": 9,
+   "documented": 9
   },
   "src/processing/chromatogram.rs": {
    "items": 7,
@@ -1062,8 +1062,8 @@
    "documented": 25
   },
   "src/processing/iterative.rs": {
-   "items": 6,
-   "documented": 4
+   "items": 8,
+   "documented": 8
   },
   "src/processing/mean_noise.rs": {
    "items": 7,
@@ -1078,12 +1078,12 @@
    "documented": 22
   },
   "src/processing/peak_picking.rs": {
-   "items": 27,
-   "documented": 27
+   "items": 30,
+   "documented": 30
   },
   "src/processing/smoothing.rs": {
-   "items": 14,
-   "documented": 9
+   "items": 17,
+   "documented": 17
   },
   "src/processing/spline/b_spline.rs": {
    "items": 19,
@@ -1110,8 +1110,8 @@
    "documented": 6
   },
   "src/processing.rs": {
-   "items": 24,
-   "documented": 16
+   "items": 27,
+   "documented": 27
   },
   "src/system/build_info.rs": {
    "items": 13,

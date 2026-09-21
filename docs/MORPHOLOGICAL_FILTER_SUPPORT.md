@@ -21,7 +21,8 @@ Evidence and fixtures: `tests/data/baseline_filter_edges_provenance.json`.
 | `applyErosionSimple_` / `applyDilationSimple_` | `MorphologicalMethod::ErosionSimple` / `DilationSimple`, and `clipped_extrema` (private) | |
 | `struct_size_in_datapoints_`, its `= 0` reset in `filterRange` | `MorphologicalFilter::effective_window` | a computed value instead of a cached member |
 | `Internal::IntensityIteratorWrapper`, `intensityIteratorWrapper` | — | slices replace the iterator adapter |
-| `ProgressLogger` base (`startProgress`/`setProgress`/`endProgress`) | — | no progress output |
+| `ProgressLogger` base, as `filterExperiment` uses it (`startProgress`/`setProgress`/`endProgress`) | `MorphologicalFilter::filter_experiment_with_progress` | the caller passes the logger for the call; the same calls, values (`0` to `n - 1`) and command output as the Release build, replayed in `tests/progress_consumers.rs`; the trait's `filter_experiment` reports nothing |
+| — | `BASELINE_PROGRESS_LABEL` | the source label `filtering baseline` |
 | — | `MorphologicalFilter::filter_chromatogram`, `StructuringElement::Seconds` | native extension with no source counterpart |
 
 ## Preserved source conventions
@@ -83,7 +84,7 @@ Evidence and fixtures: `tests/data/baseline_filter_edges_provenance.json`.
 | Non-finite intensity, overflowing subtraction | computed, storing an infinity or a NaN | `Error::InvalidValue`, record unchanged |
 | `filterRange` with a method outside the valid strings | silently writes nothing (`@exception Exception::IllegalArgument` is documented but not thrown) | unrepresentable: `MorphologicalMethod` is an enum |
 | van Herk's three comparisons per sample | prefix and suffix blocks plus a `static` scratch buffer of the element length | a monotonic deque of indices, also linear, with the same results |
-| Progress logging | `ProgressLogger` | none |
+| Progress logging | `ProgressLogger` base, type `NONE` by default | a caller-owned logger passed to `filter_experiment_with_progress`; the metadata-copy preflight runs before the section, so an experiment refused there prints nothing, and a failure inside the section still ends it (the source cannot fail there) |
 
 `BaselineFilter`'s `method` parameter maps each of the ten source names onto its
 own `MorphologicalMethod` in `src/cli/tools/baseline_filter.rs`, `erosion_simple`

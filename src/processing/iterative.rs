@@ -13,6 +13,9 @@
 //! native default refuses, and is handed to both the seed [`PeakPickerHiRes`]
 //! and the refinement noise estimator, as the source's own `pp` and `snt` are
 //! plain source objects.
+//!
+//! [`PeakPickerIterative::compatibility`]: crate::processing::iterative::PeakPickerIterative::compatibility
+//! [`PeakPickerHiRes`]: crate::processing::peak_picking::PeakPickerHiRes
 
 use super::SpectrumFilter;
 use super::peak_picking::{
@@ -40,18 +43,27 @@ pub struct IterativePeakRegion {
     pub right_index: usize,
 }
 
+/// One picked spectrum (source `pick`'s output) with the raw regions each
+/// centroid was integrated over.
 #[derive(Clone, Debug, PartialEq)]
 pub struct IterativePickingResult {
     /// Full-f64 final integration boundaries and omitted input array names.
     pub picked: PickedSpectrum,
+    /// One region per output centroid, in output order.
     pub regions: Vec<IterativePeakRegion>,
 }
 
+/// A picked experiment (source `pickExperiment`'s output) with the per-spectrum
+/// regions and omitted arrays.
 #[derive(Clone, Debug, PartialEq)]
 pub struct IterativeExperimentResult {
+    /// The input experiment with every selected spectrum replaced by its
+    /// centroids; chromatograms and metadata are kept.
     pub experiment: MSExperiment,
     /// None means copied without picking because ms1_only excluded the spectrum.
     pub spectrum_regions: Vec<Option<Vec<IterativePeakRegion>>>,
+    /// Per input spectrum, the names of the input arrays not carried into the
+    /// output; empty for a copied spectrum.
     pub omitted_spectrum_arrays: Vec<Vec<String>>,
 }
 
@@ -268,12 +280,13 @@ impl PeakPickerIterative {
     /// [`PeakPickerIterative::pick_experiment`], reporting progress to
     /// `progress` as the source's `ProgressLogger` base does.
     ///
-    /// Source `pickExperiment` calls `startProgress(0, input.size(), "picking
-    /// peaks")` before its spectrum loop (`PeakPickerIterative.h:384`),
-    /// `setProgress(progress++)` after each spectrum, picked or copied (`:396`),
-    /// and `endProgress()` after the last (`:398`). The post-increment makes
-    /// the values `0` to `n - 1`, not `1` to `n` as `PeakPickerHiRes` reports;
-    /// both are reproduced. Chromatograms, which this port keeps and the source
+    /// Source `pickExperiment` starts its section over the spectrum count,
+    /// labelled [`ITERATIVE_PICKING_PROGRESS_LABEL`], before its spectrum loop
+    /// (`PeakPickerIterative.h:384`); it calls `setProgress(progress++)` after
+    /// each spectrum, picked or copied (`PeakPickerIterative.h:396`); it ends
+    /// the section after the last (`:398`). The post-increment makes the values
+    /// `0` to `n - 1`, not `1` to `n` as `PeakPickerHiRes` reports; both are
+    /// reproduced. Chromatograms, which this port keeps and the source
     /// drops, are not counted, as the source's range does not count them.
     ///
     /// Validation and the point-limit preflight happen before the section

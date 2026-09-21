@@ -78,6 +78,13 @@
 //!
 //! Without the `parallel` feature, and at one worker, the same code runs the
 //! same loop on the calling thread.
+//!
+//! [`Error::UnsortedData`]: crate::Error::UnsortedData
+//! [`PeakPickerHiRes::pick_experiment_with_threads`]: crate::processing::peak_picking::PeakPickerHiRes::pick_experiment_with_threads
+//! [`PeakPickerHiRes::pick_experiment_in_place_with_threads`]: crate::processing::peak_picking::PeakPickerHiRes::pick_experiment_in_place_with_threads
+//! [`PeakPickerHiRes::max_metadata_per_record`]: crate::processing::peak_picking::PeakPickerHiRes::max_metadata_per_record
+//! [`PARALLEL_BATCH_RECORDS`]: crate::processing::peak_picking::PARALLEL_BATCH_RECORDS
+//! [`PARALLEL_BATCH_POINTS`]: crate::processing::peak_picking::PARALLEL_BATCH_POINTS
 
 mod noise;
 pub use noise::{
@@ -115,7 +122,7 @@ pub const PEAK_PICKER_HI_RES_NAME: &str = "PeakPickerHiRes";
 pub const CENTROIDED_INPUT_MESSAGE: &str =
     "Error: Centroided data provided but profile spectra expected.";
 
-/// The progress label of source `pickExperiment` (`PeakPickerHiRes.cpp:497`).
+/// The progress label of source `pickExperiment` (`CENTROIDING/PeakPickerHiRes.cpp:497`).
 pub const PICKING_PROGRESS_LABEL: &str = "picking peaks";
 
 /// A profile sample the picker reads: a position and a float intensity.
@@ -1484,8 +1491,9 @@ impl PeakPickerHiRes {
     /// [`PeakPickerHiRes::pick_experiment_with_threads`], reporting progress to
     /// `progress` as the source's `ProgressLogger` base does.
     ///
-    /// Source `pickExperiment` calls `startProgress(0, spectra + chromatograms,
-    /// "picking peaks")` before its loops (`PeakPickerHiRes.cpp:497`),
+    /// Source `pickExperiment` calls `startProgress(0, input.size() +
+    /// input.getChromatograms().size(), "picking peaks")` before its loops
+    /// (`CENTROIDING/PeakPickerHiRes.cpp:497`),
     /// `setProgress(++progress)` after each spectrum, picked or copied (`:543`),
     /// and after each chromatogram (`:555`), and `endProgress()` after the last
     /// (`:557`). This makes the same calls in the same order with the same
