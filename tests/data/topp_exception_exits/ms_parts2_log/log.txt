@@ -1,0 +1,5 @@
+2026-09-21 21:30:18 MzMLSplitter:1:: Splitting file into 2 parts...
+2026-09-21 21:30:18 MzMLSplitter:1:: Total spectra: 2
+2026-09-21 21:30:18 MzMLSplitter:1:: Total chromatograms: 0
+2026-09-21 21:30:18 MzMLSplitter:1:: Part 1: 1 spectra, 0 chromatograms
+2026-09-21 21:30:18 MzMLSplitter:1:: Part 2: 1 spectra, 0 chromatograms

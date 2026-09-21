@@ -1,0 +1,11 @@
+MzMLSplitter
+-test
+-no_progress
+-in
+/scratch/kohlbach/topp-exception-exits/inputs/baseline_filter_tool_input.mzML
+-out
+/scratch/kohlbach/topp-exception-exits/run2/results/ms_parts2_log/cwd/part
+-parts
+2
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/ms_parts2_log/cwd/log.txt

@@ -1,0 +1,17 @@
+2026-09-21 21:30:16 FuzzyDiff:1:: Writing to '/scratch/kohlbach/topp-exception-exits/run2/results/fd_debug1_log/cwd/log.txt'
+2026-09-21 21:30:16 FuzzyDiff:1:: Debug level: 1
+2026-09-21 21:30:16 FuzzyDiff:1::  >> /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/FuzzyDiff -test -in1 /scratch/kohlbach/topp-exception-exits/inputs/x_1.txt -in2 /scratch/kohlbach/topp-exception-exits/inputs/x_1001.txt -log /scratch/kohlbach/topp-exception-exits/run2/results/fd_debug1_log/cwd/log.txt -debug 1
+2026-09-21 21:30:16 FuzzyDiff:1:: Value of string option 'test': 1
+2026-09-21 21:30:16 FuzzyDiff:1:: Debug level (after ini file): 1
+2026-09-21 21:30:16 FuzzyDiff:1:: Value of string option 'no_progress': 0
+2026-09-21 21:30:16 FuzzyDiff:1:: Value of string option 'in1': /scratch/kohlbach/topp-exception-exits/inputs/x_1.txt
+2026-09-21 21:30:16 FuzzyDiff:1:: Value of string option 'in2': /scratch/kohlbach/topp-exception-exits/inputs/x_1001.txt
+2026-09-21 21:30:16 FuzzyDiff:1:: Value of double option 'ratio': 1.0
+2026-09-21 21:30:16 FuzzyDiff:1:: Value of double option 'absdiff': 0.0
+2026-09-21 21:30:16 FuzzyDiff:1:: Value of string option 'whitelist': <?xml-stylesheet
+2026-09-21 21:30:16 FuzzyDiff:1:: Value of int option 'verbose': 2
+2026-09-21 21:30:16 FuzzyDiff:1:: Value of int option 'tab_width': 8
+2026-09-21 21:30:16 FuzzyDiff:1:: Value of int option 'first_column': 1
+2026-09-21 21:30:16 FuzzyDiff:1:: Value of string option 'sort': 0
+2026-09-21 21:30:16 FuzzyDiff:1:: whitelist: <?xml-stylesheet (size: 1)
+2026-09-21 21:30:16 FuzzyDiff:1:: matched_whitelist:  (size: 0)

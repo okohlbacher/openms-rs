@@ -37,6 +37,8 @@
 
 #[path = "support/fuzzy_string_comparator.rs"]
 mod fuzzy;
+#[path = "support/release_runs.rs"]
+mod release_runs;
 #[path = "support/took_line.rs"]
 mod took_line;
 
@@ -586,6 +588,54 @@ fn a_sort_input_that_cannot_be_read_is_refused() {
         "Unable to initialize or run FuzzyDiff: error reading the file '<D>/topp_fuzzy_diff/inputs/directory_a': Is a directory\n"
     );
     assert_eq!(executed_case("directory_vs_file").exit, 12);
+}
+
+// ---------------------------------------------------------------------------
+// -log (Release build, tier 1)
+// ---------------------------------------------------------------------------
+
+/// `../oracle/topp-exception-exits` (retained in
+/// `tests/data/topp_exception_exits`), with `-log`:
+///
+/// * `fd_matched_whitelist_log`: the thrown `IllegalArgument` of a malformed
+///   `-matched_whitelist` entry. The `BaseException` arm writes its line to the
+///   error stream and the log file, exit 8, no closing line.
+/// * `fd_directory_log`: a directory as `-in1`. The `std::ios_base::failure`
+///   reaches the initialisation catch, whose line goes to the error stream
+///   only: exit 12, no closing line, and no log file.
+#[test]
+fn release_refusals_end_and_log_as_in_the_release_build() {
+    use release_runs::ReleaseRun;
+    ReleaseRun::new("fd_matched_whitelist_log").assert_replayed::<FuzzyDiff>(&[], |_| {});
+    ReleaseRun::new("fd_directory_log").assert_replayed::<FuzzyDiff>(&[], |cwd| {
+        fs::create_dir(cwd.join("adir")).unwrap();
+    });
+}
+
+/// Oracle `fd_debug1_log`: a comparison at debug level 1 with `-log`. The
+/// report and the closing line are the Release build's; the log file holds the
+/// framework's lines and the tool's two `writeDebug_` lines about its lists
+/// (`FuzzyDiff.cpp:103-105`), `whitelist: <?xml-stylesheet (size: 1)` and
+/// `matched_whitelist:  (size: 0)`.
+#[test]
+fn release_debug_lines_reach_the_log() {
+    use release_runs::{ReleaseRun, assert_debug_log};
+    let case = ReleaseRun::new("fd_debug1_log");
+    let replay = case.replay::<FuzzyDiff>(&[], |_| {});
+    let release = case.release(FuzzyDiff::NAME, &replay, &[]);
+    assert_eq!(replay.code.as_i32(), release.exit, "{}", replay.err);
+    assert_eq!(replay.out, release.out);
+    assert_eq!(replay.took.is_some(), release.took.is_some());
+    assert_eq!(replay.err, release.err);
+    let expected = release.log.unwrap();
+    let lists: Vec<String> = [
+        "<time> FuzzyDiff:1:: whitelist: <?xml-stylesheet (size: 1)\n",
+        "<time> FuzzyDiff:1:: matched_whitelist:  (size: 0)\n",
+    ]
+    .iter()
+    .map(|line| (*line).to_owned())
+    .collect();
+    assert_debug_log(case.name, &replay.log.unwrap(), &expected, &[&lists]);
 }
 
 // ---------------------------------------------------------------------------

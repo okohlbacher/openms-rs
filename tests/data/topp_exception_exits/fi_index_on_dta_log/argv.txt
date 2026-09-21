@@ -1,0 +1,10 @@
+FileInfo
+-test
+-in
+/scratch/kohlbach/topp-exception-exits/inputs/FileInfo_1_input.dta
+-in_type
+dta
+-i
+-no_progress
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/fi_index_on_dta_log/cwd/log.txt

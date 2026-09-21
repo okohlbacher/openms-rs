@@ -1,0 +1,2 @@
+Warning: Parameters file version (3.6.0-pre-HiRes-PR-2025-12-30) does not match the version of this tool (1.0.0).
+Your current parameters are still valid, but there might be new valid values or even new parameters. Upgrading the INI might be useful.

@@ -1,0 +1,34 @@
+2026-09-21 21:30:19 SpectraFilterWindowMower:1:: Writing to '/scratch/kohlbach/topp-exception-exits/run2/results/sfwm_debug3_log/cwd/log.txt'
+2026-09-21 21:30:19 SpectraFilterWindowMower:1:: Debug level: 3
+2026-09-21 21:30:19 SpectraFilterWindowMower:1::  >> /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/SpectraFilterWindowMower -test -no_progress -in /scratch/kohlbach/topp-exception-exits/inputs/baseline_filter_tool_input.mzML -out /scratch/kohlbach/topp-exception-exits/run2/results/sfwm_debug3_log/cwd/out.mzML -log /scratch/kohlbach/topp-exception-exits/run2/results/sfwm_debug3_log/cwd/log.txt -debug 3
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:19 SpectraFilterWindowMower:1: Initialize final param with cmd line:
+"debug" -> "3"
+"log" -> "/scratch/kohlbach/topp-exception-exits/run2/results/sfwm_debug3_log/cwd/log.txt"
+"out" -> "/scratch/kohlbach/topp-exception-exits/run2/results/sfwm_debug3_log/cwd/out.mzML"
+"in" -> "/scratch/kohlbach/topp-exception-exits/inputs/baseline_filter_tool_input.mzML"
+"no_progress" -> "true"
+"test" -> "true"
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:19 SpectraFilterWindowMower:1: Merging instance section into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:19 SpectraFilterWindowMower:1: Merging common section with tool name into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:19 SpectraFilterWindowMower:1: Merging common section without tool name into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:19 SpectraFilterWindowMower:1:: Value of string option 'test': 1
+2026-09-21 21:30:19 SpectraFilterWindowMower:1:: Debug level (after ini file): 3
+2026-09-21 21:30:19 SpectraFilterWindowMower:1:: Value of string option 'no_progress': 1
+2026-09-21 21:30:19 SpectraFilterWindowMower:1:: Value of string option 'in': /scratch/kohlbach/topp-exception-exits/inputs/baseline_filter_tool_input.mzML
+2026-09-21 21:30:19 SpectraFilterWindowMower:1:: Checking input file '/scratch/kohlbach/topp-exception-exits/inputs/baseline_filter_tool_input.mzML'
+2026-09-21 21:30:19 SpectraFilterWindowMower:1:: Value of string option 'out': /scratch/kohlbach/topp-exception-exits/run2/results/sfwm_debug3_log/cwd/out.mzML
+2026-09-21 21:30:19 SpectraFilterWindowMower:1:: Checking output file '/scratch/kohlbach/topp-exception-exits/run2/results/sfwm_debug3_log/cwd/out.mzML'
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:19 SpectraFilterWindowMower:1: Used filter parameters
+"windowsize" -> "50" (The size of the sliding window along the m/z axis.)
+"peakcount" -> "2" (The number of peaks that should be kept.)
+"movetype" -> "slide" (Whether sliding window (one peak steps) or jumping window (window size steps) should be used.)
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

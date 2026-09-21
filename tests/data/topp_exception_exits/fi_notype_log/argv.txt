@@ -1,0 +1,7 @@
+FileInfo
+-test
+-in
+/scratch/kohlbach/topp-exception-exits/inputs/FileInfo_8_input.notype
+-no_progress
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/fi_notype_log/cwd/log.txt

@@ -1,0 +1,9 @@
+FeatureFinderCentroided
+-test
+-no_progress
+-in
+/scratch/kohlbach/topp-exception-exits/inputs/SimpleSearchEngine_1.mzML
+-out
+/scratch/kohlbach/topp-exception-exits/run2/results/ffc_ms2_only_log/cwd/out.featureXML
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/ffc_ms2_only_log/cwd/log.txt

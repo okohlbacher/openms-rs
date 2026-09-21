@@ -1,0 +1,11 @@
+DTAExtractor
+-test
+-no_progress
+-in
+/scratch/kohlbach/topp-exception-exits/inputs/baseline_filter_tool_input.mzML
+-out
+/scratch/kohlbach/topp-exception-exits/run2/results/dta_debug1_log/cwd/x
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/dta_debug1_log/cwd/log.txt
+-debug
+1

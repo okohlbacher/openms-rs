@@ -1,0 +1,78 @@
+2026-09-21 21:30:17 FeatureFinderCentroided:1:: Writing to '/scratch/kohlbach/topp-exception-exits/run2/results/ffc_debug3_log/cwd/log.txt'
+2026-09-21 21:30:17 FeatureFinderCentroided:1:: Debug level: 3
+2026-09-21 21:30:17 FeatureFinderCentroided:1::  >> /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/FeatureFinderCentroided -test -no_progress -in /scratch/kohlbach/topp-exception-exits/inputs/FeatureFinderCentroided_1_input.mzML -out /scratch/kohlbach/topp-exception-exits/run2/results/ffc_debug3_log/cwd/out.featureXML -log /scratch/kohlbach/topp-exception-exits/run2/results/ffc_debug3_log/cwd/log.txt -debug 3
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 FeatureFinderCentroided:1: Initialize final param with cmd line:
+"debug" -> "3"
+"log" -> "/scratch/kohlbach/topp-exception-exits/run2/results/ffc_debug3_log/cwd/log.txt"
+"out" -> "/scratch/kohlbach/topp-exception-exits/run2/results/ffc_debug3_log/cwd/out.featureXML"
+"in" -> "/scratch/kohlbach/topp-exception-exits/inputs/FeatureFinderCentroided_1_input.mzML"
+"no_progress" -> "true"
+"test" -> "true"
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 FeatureFinderCentroided:1: Merging instance section into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 FeatureFinderCentroided:1: Merging common section with tool name into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 FeatureFinderCentroided:1: Merging common section without tool name into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 FeatureFinderCentroided:1:: Value of string option 'test': 1
+2026-09-21 21:30:17 FeatureFinderCentroided:1:: Debug level (after ini file): 3
+2026-09-21 21:30:17 FeatureFinderCentroided:1:: Value of string option 'no_progress': 1
+2026-09-21 21:30:17 FeatureFinderCentroided:1:: Value of string option 'in': /scratch/kohlbach/topp-exception-exits/inputs/FeatureFinderCentroided_1_input.mzML
+2026-09-21 21:30:17 FeatureFinderCentroided:1:: Checking input file '/scratch/kohlbach/topp-exception-exits/inputs/FeatureFinderCentroided_1_input.mzML'
+2026-09-21 21:30:17 FeatureFinderCentroided:1:: Value of string option 'out': /scratch/kohlbach/topp-exception-exits/run2/results/ffc_debug3_log/cwd/out.featureXML
+2026-09-21 21:30:17 FeatureFinderCentroided:1:: Checking output file '/scratch/kohlbach/topp-exception-exits/run2/results/ffc_debug3_log/cwd/out.featureXML'
+2026-09-21 21:30:17 FeatureFinderCentroided:1:: Value of string option 'seeds': 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 FeatureFinderCentroided:1: Parameters passed to FeatureFinder
+"write_debug" -> "false" (When debug mode is activated, several files with intermediate results are written to the folder 'debug' (do not use in parallel mode).)
+"intensity|bins" -> "10" (Number of bins per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.
+This parameter should be decreased, if the algorithm is used on small regions of a map.)
+"mass_trace|mz_tolerance" -> "0.03" (Tolerated m/z deviation of peaks belonging to the same mass trace.
+It should be larger than the m/z resolution of the instrument.
+This value must be smaller than that 1/charge_high!)
+"mass_trace|min_spectra" -> "10" (Number of spectra that have to show a similar peak mass in a mass trace.)
+"mass_trace|max_missing" -> "1" (Number of consecutive spectra where a high mass deviation or missing peak is acceptable.
+This parameter should be well below 'min_spectra'!)
+"mass_trace|slope_bound" -> "0.1" (The maximum slope of mass trace intensities when extending from the highest peak.
+This parameter is important to separate overlapping elution peaks.
+It should be increased if feature elution profiles fluctuate a lot.)
+"isotopic_pattern|charge_low" -> "1" (Lowest charge to search for.)
+"isotopic_pattern|charge_high" -> "4" (Highest charge to search for.)
+"isotopic_pattern|mz_tolerance" -> "0.03" (Tolerated m/z deviation from the theoretical isotopic pattern.
+It should be larger than the m/z resolution of the instrument.
+This value must be smaller than that 1/charge_high!)
+"isotopic_pattern|intensity_percentage" -> "10" (Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.)
+"isotopic_pattern|intensity_percentage_optional" -> "0.1" (Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.)
+"isotopic_pattern|optional_fit_improvement" -> "2" (Minimal percental improvement of isotope fit to allow leaving out an optional peak.)
+"isotopic_pattern|mass_window_width" -> "25" (Window width in Dalton for precalculation of estimated isotope distributions.)
+"isotopic_pattern|abundance_12C" -> "98.93" (Rel. abundance of the light carbon. Modify if labeled.)
+"isotopic_pattern|abundance_14N" -> "99.632" (Rel. abundance of the light nitrogen. Modify if labeled.)
+"seed|min_score" -> "0.8" (Minimum seed score a peak has to reach to be used as seed.
+The seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.
+If your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score.)
+"fit|max_iterations" -> "500" (Maximum number of iterations of the fit.)
+"feature|min_score" -> "0.7" (Feature score threshold for a feature to be reported.
+The feature score is the geometric mean of the average relative deviation and the correlation between the model and the observed peaks.)
+"feature|min_isotope_fit" -> "0.8" (Minimum isotope fit of the feature before model fitting.)
+"feature|min_trace_score" -> "0.5" (Trace score threshold.
+Traces below this threshold are removed after the model fitting.
+This parameter is important for features that overlap in m/z dimension.)
+"feature|min_rt_span" -> "0.333" (Minimum RT span in relation to extended area that has to remain after model fitting.)
+"feature|max_rt_span" -> "2.5" (Maximum RT span in relation to extended area that the model is allowed to have.)
+"feature|rt_shape" -> "symmetric" (Choose model used for RT profile fitting. If set to symmetric a gauss shape is used, in case of asymmetric an EGH shape is used.)
+"feature|max_intersection" -> "0.35" (Maximum allowed intersection of features.)
+"feature|reported_mz" -> "monoisotopic" (The mass type that is reported for features.
+'maximum' returns the m/z value of the highest mass trace.
+'average' returns the intensity-weighted average m/z value of all contained peaks.
+'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.)
+"user-seed|rt_tolerance" -> "5" (Allowed RT deviation of seeds from the user-specified seed position.)
+"user-seed|mz_tolerance" -> "1.1" (Allowed m/z deviation of seeds from the user-specified seed position.)
+"user-seed|min_score" -> "0.5" (Overwrites 'seed:min_score' for user-specified seeds. The cutoff is typically a bit lower in this case.)
+"advanced|pseudo_rt_shift" -> "500" (Pseudo RT shift used when .)
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 FeatureFinderCentroided:1:: Value of string option 'test': 1

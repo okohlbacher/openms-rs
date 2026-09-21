@@ -112,6 +112,10 @@ impl SpectraFilterWindowMower {
         };
 
         let mut experiment = FileHandler::load_experiment(ctx.string("in")?, &[FileType::MzMl])?;
+        // `writeDebug_("Used filter parameters", filter_param, 3)`
+        // (`SpectraFilterWindowMower.cpp:106-107`): the -log file, from debug
+        // level 3.
+        ctx.write_debug_param("Used filter parameters", &algorithm, 3);
         filter.filter_experiment(&mut experiment)?;
         // Source addDataProcessing_(exp, getProcessingInfo_(FILTERING)).
         let processing = ctx.processing_info(&[ProcessingAction::DataFiltering])?;

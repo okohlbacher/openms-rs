@@ -57,6 +57,8 @@
 mod decoded;
 #[path = "support/fuzzy_string_comparator.rs"]
 mod fuzzy;
+#[path = "support/release_runs.rs"]
+mod release_runs;
 #[path = "support/took_line.rs"]
 mod took_line;
 
@@ -923,6 +925,49 @@ fn profile_data_is_refused_without_force() {
     assert_out_block(&outcome, FFC1_ALGORITHM_LINES);
     assert_ffc1_structure(&out, "FeatureFinderCentroided_1_input.mzML");
     assert_matches_ffc1_expectation(&out);
+}
+
+/// The Release build (`../oracle/topp-exception-exits`, retained in
+/// `tests/data/topp_exception_exits`), with `-log` and `-no_progress`:
+///
+/// * `ffc_profile_noforce_log`: profile input without `-force`, the thrown
+///   `IllegalArgument`: its `BaseException` line on the error stream and in
+///   the log, exit 8, no closing line.
+/// * `ffc_ms2_only_log`: no MS1 spectrum, the thrown `FileEmpty`: its
+///   `FileEmpty` line on the error stream and in the log, exit 4, no closing
+///   line.
+#[test]
+fn release_refusals_end_and_log_as_in_the_release_build() {
+    use release_runs::ReleaseRun;
+    let dir = Workdir::new();
+    let profile = dir.put(
+        "profile/FeatureFinderCentroided_1_input.mzML",
+        &derive_profile(&fs::read(ffc1_input()).unwrap()),
+    );
+    let derived = [(
+        "profile/FeatureFinderCentroided_1_input.mzML",
+        Path::new(&profile),
+    )];
+    ReleaseRun::new("ffc_profile_noforce_log")
+        .assert_replayed::<FeatureFinderCentroided>(&derived, |_| {});
+    ReleaseRun::new("ffc_ms2_only_log").assert_replayed::<FeatureFinderCentroided>(&[], |_| {});
+}
+
+/// Oracle `ffc_debug3_log`: `TOPP_FeatureFinderCentroided_1`'s input at debug
+/// level 3 with `-log`. The log file holds the framework's lines and the
+/// tool's dump of the `algorithm` section, `Parameters passed to
+/// FeatureFinder` (`FeatureFinderCentroided.cpp:232-233`), line for line.
+#[test]
+fn release_debug_lines_reach_the_log() {
+    use release_runs::{ReleaseRun, assert_debug_log, dump_block};
+    let case = ReleaseRun::new("ffc_debug3_log");
+    let replay = case.replay::<FeatureFinderCentroided>(&[], |_| {});
+    let release = case.release("FeatureFinderCentroided", &replay, &[]);
+    assert_eq!(replay.code.as_i32(), release.exit, "{}", replay.err);
+    assert_eq!(replay.took.is_some(), release.took.is_some());
+    let expected = release.log.unwrap();
+    let dump = dump_block(&expected, "Parameters passed to FeatureFinder");
+    assert_debug_log(case.name, &replay.log.unwrap(), &expected, &[&dump]);
 }
 
 /// Oracle `FFC_profile_then_spectrum_representation`: a profile term followed

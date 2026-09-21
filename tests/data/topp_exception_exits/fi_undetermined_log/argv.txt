@@ -1,0 +1,7 @@
+FileInfo
+-test
+-in
+/scratch/kohlbach/topp-exception-exits/run2/results/fi_undetermined_log/cwd/somedir
+-no_progress
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/fi_undetermined_log/cwd/log.txt

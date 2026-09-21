@@ -1,0 +1,10 @@
+FuzzyDiff
+-test
+-in1
+/scratch/kohlbach/topp-exception-exits/inputs/x_1.txt
+-in2
+/scratch/kohlbach/topp-exception-exits/inputs/x_1001.txt
+-matched_whitelist
+abc
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/fd_matched_whitelist_log/cwd/log.txt

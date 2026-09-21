@@ -1,0 +1,11 @@
+PeakPickerHiRes
+-test
+-no_progress
+-in
+/scratch/kohlbach/topp-exception-exits/inputs/PeakPickerHiRes_input.mzML
+-out
+/scratch/kohlbach/topp-exception-exits/run2/results/pphr_debug3_log/cwd/out.mzML
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/pphr_debug3_log/cwd/log.txt
+-debug
+3

@@ -1,0 +1,8 @@
+FuzzyDiff
+-test
+-in1
+/scratch/kohlbach/topp-exception-exits/run2/results/fd_directory_log/cwd/adir
+-in2
+/scratch/kohlbach/topp-exception-exits/inputs/x_1.txt
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/fd_directory_log/cwd/log.txt

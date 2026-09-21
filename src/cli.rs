@@ -52,6 +52,7 @@ pub mod tools;
 mod usage;
 
 pub use console::{log_error, log_warning};
+pub(crate) use context::PoolLines;
 pub use context::{
     TEST_MODE_UNIQUE_ID_SEED, ToolContext, input_file_readable, output_file_writable, parse_range,
     parse_range_int,

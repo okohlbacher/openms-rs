@@ -27,6 +27,8 @@
 
 #[path = "support/fuzzy_string_comparator.rs"]
 mod fuzzy;
+#[path = "support/release_runs.rs"]
+mod release_runs;
 #[path = "support/took_line.rs"]
 mod took_line;
 
@@ -760,8 +762,8 @@ fn an_existing_out_is_truncated_by_a_failing_run() {
 /// C1 `FileInfo_index_on_dta`: `-i` on a DTA file prints the error line, then
 /// the usage text, and exits 6 with nothing on the output stream but the
 /// closing line: `outputTo_` returns `ILLEGAL_PARAMETERS`, so `TOPPBase`
-/// prints `FileInfo took …` (the C1 stdout,
-/// `../oracle/topp-early-bundle/results/run1/FileInfo_index_on_dta/stdout.txt`).
+/// prints `FileInfo took …`, in the C1 product-SDK run as in the Release
+/// build (`release_fileinfo_refusals_end_as_in_the_release_build`).
 #[test]
 fn c1_index_check_on_a_non_mzml_file_exits_6_with_usage() {
     let input = library("inputs/FileInfo_1_input.dta");
@@ -1062,8 +1064,8 @@ fn detailed_and_corrupt_flags_on_featurexml() {
 /// Oracle `out_is_directory`: `-out` naming an existing directory passes the
 /// writability check, and the open fails as the source's `FileNotWritable`,
 /// exit 8. The exception unwinds past `TOPPBase`'s closing line, so the
-/// output stream is empty, as the Release build's is
-/// (`../oracle/topp-file-info-tool/results/run1/out_is_directory/stdout.txt`).
+/// output stream is empty, in the product-SDK oracle as in the Release build
+/// (`release_fileinfo_refusals_end_as_in_the_release_build`).
 #[test]
 fn out_naming_a_directory_exits_8() {
     let dir = Workdir::new();
@@ -1092,8 +1094,11 @@ fn out_naming_a_directory_exits_8() {
 }
 
 /// Oracle `in_is_directory`: a directory as `-in` has no type; exit 10, an
-/// exit code `outputTo_` returns, so the closing line follows, as in the
-/// Release build's output stream, which holds nothing else.
+/// exit code `outputTo_` returns, so the closing line follows, and the
+/// output stream holds nothing else. That oracle ran the macOS product SDK,
+/// whose libc++ reads a directory as an empty file; the Linux Release build's
+/// libstdc++ throws instead (see
+/// `a_directory_input_is_a_recorded_difference_from_the_linux_release_build`).
 #[test]
 fn in_naming_a_directory_exits_10() {
     let dir = Workdir::new();
@@ -1109,6 +1114,93 @@ fn in_naming_a_directory_exits_10() {
     );
     assert_eq!(outcome.out, "");
     assert!(outcome.took.is_some(), "main_ returned 10");
+}
+
+/// The Release build (`../oracle/topp-exception-exits`, retained in
+/// `tests/data/topp_exception_exits`) on the tool's refusals, with `-log`:
+///
+/// * `fi_index_on_dta_log`: `-i` on a DTA file. `outputTo_` writes the error
+///   with `writeLogError_` (`FileInfo.cpp:118-121`) and returns 6, so the log
+///   file holds the line, the usage text follows on standard error, and the
+///   closing line on standard output.
+/// * `fi_notype_log`: a file of no type. The framework's warning and the
+///   tool's `writeLogError_` line reach the log, and `outputTo_` returns 10:
+///   the closing line follows.
+/// * `fi_out_is_directory_log`: `-out` an existing directory. The source
+///   throws `FileNotWritable`: the `BaseException` arm writes its line to the
+///   error stream and the log, exit 8, and no closing line.
+#[test]
+fn release_fileinfo_refusals_end_as_in_the_release_build() {
+    use release_runs::ReleaseRun;
+    ReleaseRun::new("fi_index_on_dta_log").assert_replayed::<FileInfo>(&[], |_| {});
+    ReleaseRun::new("fi_notype_log").assert_replayed::<FileInfo>(&[], |_| {});
+    ReleaseRun::new("fi_out_is_directory_log").assert_replayed::<FileInfo>(&[], |cwd| {
+        fs::create_dir(cwd.join("dir.txt")).unwrap();
+    });
+}
+
+/// Oracle `fi_debug2_log`: at debug level 2 the tool's own `writeDebug_` line
+/// `Input file type: dta` (`FileInfo.cpp:111`) reaches the log file, where
+/// the Release build writes it, right after the `in_type` read that decides
+/// the type is detected. The framework's lines up to the tool body are
+/// compared in order; the body's `Value of … option` lines follow the order
+/// in which the port reads its options, and the input check runs before the
+/// body (`docs/TOPP_CLI_SUPPORT.md`, *Log file and debug levels*), so the
+/// rest is compared as a collection. The report on standard output is the
+/// Release build's, and so is the closing line.
+#[test]
+fn release_fileinfo_debug_lines_reach_the_log() {
+    use release_runs::ReleaseRun;
+    let case = ReleaseRun::new("fi_debug2_log");
+    let replay = case.replay::<FileInfo>(&[], |_| {});
+    let release = case.release("FileInfo", &replay, &[]);
+    assert_eq!(replay.code.as_i32(), release.exit, "{}", replay.err);
+    assert_eq!(replay.out, release.out);
+    assert_eq!(replay.took.is_some(), release.took.is_some());
+    assert_eq!(replay.err, release.err);
+    let (actual, expected) = (replay.log.unwrap(), release.log.unwrap());
+    let framework = 1 + expected
+        .iter()
+        .position(|line| line.contains("Value of string option 'no_progress'"))
+        .unwrap();
+    assert_eq!(actual[..framework], expected[..framework]);
+    let line = "<time> FileInfo:1:: Input file type: dta\n";
+    assert!(expected.iter().any(|l| l == line));
+    let (mut rest_actual, mut rest_expected) =
+        (actual[framework..].to_vec(), expected[framework..].to_vec());
+    rest_actual.sort();
+    rest_expected.sort();
+    assert_eq!(rest_actual, rest_expected);
+}
+
+/// Oracle `fi_undetermined_log`: a directory as `-in` on the Linux Release
+/// build. `TOPPBase`'s input check asks `FileHandler::getType`, whose content
+/// sniffing reads the directory; libstdc++ throws `std::ios_base::failure`,
+/// which only the initialisation catch handles: `Unable to initialize or run
+/// FileInfo: basic_filebuf::underflow error reading the file: Is a
+/// directory`, exit 12, nothing logged. The macOS product SDK (libc++) reads
+/// the directory as an empty file instead and ends with the tool's own
+/// refusal, exit 10 (`in_naming_a_directory_exits_10`), which is what this
+/// port does. Recorded here, and in `docs/TOPP_CLI_SUPPORT.md` (*Input
+/// checks on a directory*), as a difference the port has not closed.
+#[test]
+fn a_directory_input_is_a_recorded_difference_from_the_linux_release_build() {
+    use release_runs::ReleaseRun;
+    let case = ReleaseRun::new("fi_undetermined_log");
+    let replay = case.replay::<FileInfo>(&[], |cwd| {
+        fs::create_dir(cwd.join("somedir")).unwrap();
+    });
+    let release = case.release("FileInfo", &replay, &[]);
+    assert_eq!(release.exit, ExitCode::InternalError.as_i32());
+    assert_eq!(
+        release.err,
+        "Unable to initialize or run FileInfo: basic_filebuf::underflow error reading the file: Is a directory\n"
+    );
+    assert_eq!((release.out.as_str(), release.took.is_some()), ("", false));
+    assert_eq!(release.log, None);
+    // The port follows the product SDK: the framework warns, the tool refuses.
+    assert_eq!(replay.code, ExitCode::ParseError);
+    assert!(replay.took.is_some());
 }
 
 /// Oracle `zero_byte_input`: exit 4, from the framework's input check. The

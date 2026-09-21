@@ -1,0 +1,11 @@
+MzMLSplitter
+-test
+-no_progress
+-in
+/scratch/kohlbach/topp-exception-exits/inputs/baseline_filter_tool_input.mzML
+-out
+/scratch/kohlbach/topp-exception-exits/run2/results/ms_no_chrom_no_spec_log/cwd/part
+-no_chrom
+-no_spec
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/ms_no_chrom_no_spec_log/cwd/log.txt

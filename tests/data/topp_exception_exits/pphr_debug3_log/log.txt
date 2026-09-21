@@ -1,0 +1,50 @@
+2026-09-21 21:30:17 PeakPickerHiRes:1:: Writing to '/scratch/kohlbach/topp-exception-exits/run2/results/pphr_debug3_log/cwd/log.txt'
+2026-09-21 21:30:17 PeakPickerHiRes:1:: Debug level: 3
+2026-09-21 21:30:17 PeakPickerHiRes:1::  >> /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/PeakPickerHiRes -test -no_progress -in /scratch/kohlbach/topp-exception-exits/inputs/PeakPickerHiRes_input.mzML -out /scratch/kohlbach/topp-exception-exits/run2/results/pphr_debug3_log/cwd/out.mzML -log /scratch/kohlbach/topp-exception-exits/run2/results/pphr_debug3_log/cwd/log.txt -debug 3
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 PeakPickerHiRes:1: Initialize final param with cmd line:
+"debug" -> "3"
+"log" -> "/scratch/kohlbach/topp-exception-exits/run2/results/pphr_debug3_log/cwd/log.txt"
+"out" -> "/scratch/kohlbach/topp-exception-exits/run2/results/pphr_debug3_log/cwd/out.mzML"
+"in" -> "/scratch/kohlbach/topp-exception-exits/inputs/PeakPickerHiRes_input.mzML"
+"no_progress" -> "true"
+"test" -> "true"
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 PeakPickerHiRes:1: Merging instance section into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 PeakPickerHiRes:1: Merging common section with tool name into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 PeakPickerHiRes:1: Merging common section without tool name into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 PeakPickerHiRes:1:: Value of string option 'test': 1
+2026-09-21 21:30:17 PeakPickerHiRes:1:: Debug level (after ini file): 3
+2026-09-21 21:30:17 PeakPickerHiRes:1:: Value of string option 'no_progress': 1
+2026-09-21 21:30:17 PeakPickerHiRes:1:: Value of string option 'in': /scratch/kohlbach/topp-exception-exits/inputs/PeakPickerHiRes_input.mzML
+2026-09-21 21:30:17 PeakPickerHiRes:1:: Checking input file '/scratch/kohlbach/topp-exception-exits/inputs/PeakPickerHiRes_input.mzML'
+2026-09-21 21:30:17 PeakPickerHiRes:1:: Value of string option 'out': /scratch/kohlbach/topp-exception-exits/run2/results/pphr_debug3_log/cwd/out.mzML
+2026-09-21 21:30:17 PeakPickerHiRes:1:: Checking output file '/scratch/kohlbach/topp-exception-exits/run2/results/pphr_debug3_log/cwd/out.mzML'
+2026-09-21 21:30:17 PeakPickerHiRes:1:: Value of string option 'processOption': inmemory
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 PeakPickerHiRes:1: Parameters passed to PeakPickerHiRes
+"signal_to_noise" -> "0" (Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!))
+"spacing_difference_gap" -> "4" (The extension of a peak is stopped if the spacing between two subsequent data points exceeds 'spacing_difference_gap * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. '0' to disable the constraint. Not applicable to chromatograms.)
+"spacing_difference" -> "1.5" (Maximum allowed difference between points during peak extension, in multiples of the minimal difference between the peak apex and its two neighboring points. If this difference is exceeded a missing point is assumed (see parameter 'missing'). A higher value implies a less stringent peak definition, since individual signals within the peak are allowed to be further apart. '0' to disable the constraint. Not applicable to chromatograms.)
+"missing" -> "1" (Maximum number of missing points allowed when extending a peak to the left or to the right. A missing data point occurs if the spacing between two subsequent data points exceeds 'spacing_difference * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. Not applicable to chromatograms.)
+"ms_levels" -> "[]" (List of MS levels for which the peak picking is applied. If empty, auto mode is enabled, all peaks which aren't picked yet will get picked. Other scans are copied to the output without changes.)
+"report_FWHM" -> "false" (Add metadata for FWHM (as floatDataArray named 'FWHM' or 'FWHM_ppm', depending on param 'report_FWHM_unit') for each picked peak.)
+"report_FWHM_unit" -> "relative" (Unit of FWHM. Either absolute in the unit of input, e.g. 'm/z' for spectra, or relative as ppm (only sensible for spectra, not chromatograms).)
+"allow_missing_flank" -> "false" (Allow peaks without flanking data points on both sides. This is useful for TimsTOF data where profile peaks may be missing the leading or trailing edge.)
+"SignalToNoise|max_intensity" -> "-1" (maximal intensity considered for histogram construction. By default, it will be calculated automatically (see auto_mode). Only provide this parameter if you know what you are doing (and change 'auto_mode' to '-1')! All intensities EQUAL/ABOVE 'max_intensity' will be added to the LAST histogram bin. If you choose 'max_intensity' too small, the noise estimate might be too small as well.  If chosen too big, the bins become quite large (which you could counter by increasing 'bin_count', which increases runtime). In general, the Median-S/N estimator is more robust to a manual max_intensity than the MeanIterative-S/N.)
+"SignalToNoise|auto_max_stdev_factor" -> "3" (parameter for 'max_intensity' estimation (if 'auto_mode' == 0): mean + 'auto_max_stdev_factor' * stdev)
+"SignalToNoise|auto_max_percentile" -> "95" (parameter for 'max_intensity' estimation (if 'auto_mode' == 1): auto_max_percentile th percentile)
+"SignalToNoise|auto_mode" -> "0" (method to use to determine maximal intensity: -1 --> use 'max_intensity'; 0 --> 'auto_max_stdev_factor' method (default); 1 --> 'auto_max_percentile' method)
+"SignalToNoise|win_len" -> "200" (window length in Thomson)
+"SignalToNoise|bin_count" -> "30" (number of bins for intensity values)
+"SignalToNoise|min_required_elements" -> "10" (minimum number of elements required in a window (otherwise it is considered sparse))
+"SignalToNoise|noise_for_empty_window" -> "1e+20" (noise value used for sparse windows)
+"SignalToNoise|write_log_messages" -> "true" (Write out log messages in case of sparse windows or median in rightmost histogram bin)
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:17 PeakPickerHiRes:1:: Value of string option 'force': 0

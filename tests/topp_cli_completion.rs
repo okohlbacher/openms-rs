@@ -775,6 +775,103 @@ fn a_prefix_that_installs_the_product_manifest_is_the_built_in_one_read_once() {
     assert_eq!(once.package_tools().unwrap(), tools);
 }
 
+/// One retained file of `../oracle/topp-exception-exits`
+/// (`tests/data/topp_exception_exits`), the Release build's registry cases.
+fn exception_exits(case: &str, file: &str) -> String {
+    fs::read_to_string(
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/data/topp_exception_exits")
+            .join(case)
+            .join(file),
+    )
+    .unwrap_or_else(|e| panic!("{case}/{file}: {e}"))
+}
+
+/// Oracles `reg_install_prefix_once` and `reg_symlink_to_install` of
+/// `../oracle/topp-exception-exits`: the Release build with its installation
+/// prefix in `OPENMS_TOOL_PREFIX_PATH` once, and with a prefix whose
+/// `share/openms4/tools` is a symbolic link to the installation's, runs
+/// `--help` normally, because both reach the executable's own manifest file,
+/// which the source reads once (`weakly_canonical`, `ToolHandler.cpp:104`).
+/// Here the product manifest reached through a symbolic link is still the
+/// built-in one, and two prefixes that reach one file read it once.
+#[test]
+fn the_installed_manifest_reached_through_the_variable_is_read_once() {
+    for name in ["reg_install_prefix_once", "reg_symlink_to_install"] {
+        assert_eq!(exception_exits(name, "exit_code.txt").trim(), "0", "{name}");
+        let release = exception_exits(name, "stderr.txt").replace(STTY_LINE, "");
+        let case = Case::new();
+        let installed = probe_prefix(&case, BUILTIN_MANIFEST_NAME, BUILTIN_MANIFEST);
+        let prefixes = if name == "reg_symlink_to_install" {
+            let Some(linked) = linked_prefix(&case, &installed) else {
+                continue;
+            };
+            vec![linked, installed]
+        } else {
+            vec![installed]
+        };
+        let handler = registry(&case, |sources| sources.prefixes = prefixes);
+        let outcome = run_in::<BaselineFilter>(&handler, &["--help"]);
+        assert_eq!(
+            outcome.code,
+            ExitCode::ExecutionOk,
+            "{name}: {}",
+            outcome.err
+        );
+        assert_eq!(outcome.err, release, "{name}");
+    }
+}
+
+/// A prefix whose `share/openms4/tools` is a symbolic link to `installed`'s;
+/// `None` where the platform makes no symbolic links without privileges.
+fn linked_prefix(case: &Case, installed: &Path) -> Option<PathBuf> {
+    #[cfg(unix)]
+    {
+        let linked = case.home().join("linked");
+        fs::create_dir_all(linked.join("share/openms4")).unwrap();
+        std::os::unix::fs::symlink(
+            installed.join("share/openms4/tools"),
+            linked.join("share/openms4/tools"),
+        )
+        .unwrap();
+        Some(linked)
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = (case, installed);
+        None
+    }
+}
+
+/// Oracle `reg_copy_of_install_manifest` of `../oracle/topp-exception-exits`,
+/// a recorded difference: the Release build refuses a byte-identical copy of
+/// its own manifest under another prefix, even for `--help` (exit 6, the
+/// duplicate reported at its own installation's row), because the source
+/// knows a manifest by its path and its own prefix's manifest is a second
+/// file. The built-in manifest has no path; it is known by name and bytes, so
+/// the same copy is the built-in manifest reached again here, and the run
+/// goes on (see `src/cli/tool_handler.rs`, *The same manifest found twice*).
+#[test]
+fn a_copy_of_the_installed_manifest_is_a_recorded_difference() {
+    let name = "reg_copy_of_install_manifest";
+    assert_eq!(exception_exits(name, "exit_code.txt").trim(), "6");
+    assert_eq!(
+        exception_exits(name, "stderr.txt"),
+        format!(
+            "Unable to initialize or run BaselineFilter: the value '{RELEASE_PREFIX}/share/openms4/tools/topp.tools.tsv: AccurateMassSearch\tMetabolite Identification\t1.0.0\tbin/AccurateMassSearch' was used but is not valid; Invalid or duplicate tool package manifest entry\n"
+        )
+    );
+    assert_eq!(
+        exception_exits("reg_copy_of_install_manifest_run", "exit_code.txt").trim(),
+        "6"
+    );
+    let case = Case::new();
+    let copy = probe_prefix(&case, BUILTIN_MANIFEST_NAME, BUILTIN_MANIFEST);
+    let handler = registry(&case, |sources| sources.prefixes = vec![copy]);
+    let outcome = run_in::<BaselineFilter>(&handler, &["--help"]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+}
+
 /// A second manifest is a duplicate, whatever it holds, as for two C++
 /// installations (oracle `reg_dup_help`, and `reg_copy_of_install_manifest`
 /// of `../oracle/topp-exception-exits`, where the Release build refuses a

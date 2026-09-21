@@ -1,0 +1,7 @@
+BaselineFilter
+-test
+-no_progress
+-in
+/scratch/kohlbach/topp-exception-exits/inputs/baseline_filter_tool_input.mzML
+-out
+/scratch/kohlbach/topp-exception-exits/run2/results/reg_copy_of_install_manifest_run/cwd/out.mzML

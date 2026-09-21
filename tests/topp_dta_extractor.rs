@@ -36,6 +36,11 @@
 // gate `cargo test --no-default-features` fails to compile.
 #![cfg(all(feature = "mzml", feature = "paramxml"))]
 
+#[path = "support/release_runs.rs"]
+mod release_runs;
+#[path = "support/took_line.rs"]
+mod took_line;
+
 use openms::cli::tools::DTAExtractor;
 use openms::cli::{ExitCode, run_with};
 use openms::system::file::TempDir;
@@ -317,4 +322,45 @@ fn write_ini_round_trips_through_the_parameter_file() {
         String::from_utf8_lossy(&err)
     );
     assert!(dir.join("out_RT60.0.dta").exists());
+}
+
+/// The Release build (`../oracle/topp-exception-exits`, retained in
+/// `tests/data/topp_exception_exits`), with `-log`: a range or level list that
+/// does not convert is the `ConversionError` `main_` catches itself
+/// (`DTAExtractor.cpp:130-136`): `Invalid boundary '<tmp>' given. Aborting!`
+/// on the error stream and in the log, the usage text, and 6 as an exit code
+/// `main_` returns, so the closing line follows. The source's `tmp` holds the
+/// level list only once that is being converted, so a bad `-rt` names `''`
+/// (`dta_bad_rt_log`) and a bad `-level` names itself (`dta_bad_level_log`).
+#[test]
+fn release_conversion_failures_end_as_in_the_release_build() {
+    use release_runs::ReleaseRun;
+    for name in ["dta_bad_rt_log", "dta_bad_level_log"] {
+        ReleaseRun::new(name).assert_replayed::<DTAExtractor>(&[], |_| {});
+    }
+}
+
+/// Oracle `dta_debug1_log`: at debug level 1 the tool's own `writeDebug_`
+/// lines reach the log file: both ranges as `StringUtils::toStr(double)` prints
+/// the unbounded sides, and the MS level list.
+#[test]
+fn release_debug_lines_reach_the_log() {
+    use release_runs::{ReleaseRun, assert_debug_log};
+    let case = ReleaseRun::new("dta_debug1_log");
+    let replay = case.replay::<DTAExtractor>(&[], |_| {});
+    let release = case.release("DTAExtractor", &replay, &[]);
+    assert_eq!(replay.code.as_i32(), release.exit, "{}", replay.err);
+    assert_eq!(replay.out, release.out);
+    assert_eq!(replay.took.is_some(), release.took.is_some());
+    assert_eq!(replay.err, release.err);
+    let expected = release.log.unwrap();
+    let bounds: Vec<String> = [
+        "<time> DTAExtractor:1:: rt lower/upper bound: -1.7976931348623157e308 / 1.7976931348623157e308\n",
+        "<time> DTAExtractor:1:: mz lower/upper bound: -1.7976931348623157e308 / 1.7976931348623157e308\n",
+        "<time> DTAExtractor:1:: MS levels: 1, 2, 3\n",
+    ]
+    .iter()
+    .map(|line| (*line).to_owned())
+    .collect();
+    assert_debug_log(case.name, &replay.log.unwrap(), &expected, &[&bounds]);
 }

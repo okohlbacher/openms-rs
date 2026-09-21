@@ -1,0 +1,2 @@
+Writing to '/scratch/kohlbach/topp-exception-exits/run2/results/sfwm_debug3_log/cwd/log.txt'
+SpectraFilterWindowMower took 0.10 s (wall), 9.55 s (CPU), 0.01 s (system), 9.54 s (user); Peak Memory Usage: 65 MB.

@@ -1,0 +1,21 @@
+Writing to '/scratch/kohlbach/topp-exception-exits/run2/results/ffc_debug3_log/cwd/log.txt'
+Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
+Found 42 seeds for charge 1.
+Found 21 feature candidates for charge 1.
+Found 44 seeds for charge 2.
+Found 16 feature candidates for charge 2.
+Found 0 seeds for charge 3.
+Found 0 feature candidates for charge 3.
+Found 0 seeds for charge 4.
+Found 0 feature candidates for charge 4.
+Removed 20 overlapping features.
+
+Info: reasons for not finalizing a feature during its construction:
+ - Could not extend seed: 1 times
+ - Could not find good enough isotope pattern containing the seed: 1 times
+ - Feature quality too low after fit: 2 times
+ - Invalid feature after fit - too few traces or peaks left: 9 times
+ - Invalid fit: Fitted model is bigger than 'max_rt_span': 4 times
+
+17 features found.
+FeatureFinderCentroided took 0.17 s (wall), 11.00 s (CPU), 0.01 s (system), 10.99 s (user); Peak Memory Usage: 74 MB.

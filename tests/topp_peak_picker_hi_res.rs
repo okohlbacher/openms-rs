@@ -32,6 +32,8 @@ mod fuzzy;
 #[path = "support/decoded_compare.rs"]
 mod decoded;
 
+#[path = "support/release_runs.rs"]
+mod release_runs;
 #[path = "support/took_line.rs"]
 mod took_line;
 
@@ -747,6 +749,44 @@ fn a_centroided_spectrum_without_force_exits_8_with_the_source_message() {
     assert_eq!(outcome.out, "");
     assert_eq!(outcome.took, None);
     assert!(!out.exists());
+}
+
+/// The Release build (`../oracle/topp-exception-exits`, retained in
+/// `tests/data/topp_exception_exits`), with `-log`:
+///
+/// * `pphr_centroided_log`: the centroided refusal of workflow 6 without
+///   `force`. The INI-version notice (`writeLogInfo_`) reaches standard output
+///   and the log; the thrown `IllegalArgument` takes the `BaseException` arm,
+///   whose line reaches the error stream and the log; exit 8 and no closing
+///   line.
+/// * `pphr_empty_log`: an input without spectra and chromatograms. The
+///   warning is `OPENMS_LOG_WARN`, which no log file receives, and `main_`
+///   returns 11, so the closing line follows and no log file is left.
+#[test]
+fn release_refusals_end_and_log_as_in_the_release_build() {
+    use release_runs::ReleaseRun;
+    ReleaseRun::new("pphr_centroided_log").assert_replayed::<PeakPickerHiRes>(&[], |_| {});
+    ReleaseRun::new("pphr_empty_log").assert_replayed::<PeakPickerHiRes>(&[], |_| {});
+}
+
+/// Oracle `pphr_debug3_log`: workflow 1 at debug level 3 with `-log`. The
+/// report and the closing line are the Release build's; the log file holds the
+/// framework's lines and the tool's dump of the `algorithm` section,
+/// `Parameters passed to PeakPickerHiRes` (`PeakPickerHiRes.cpp:200-201`), line
+/// for line.
+#[test]
+fn release_debug_lines_reach_the_log() {
+    use release_runs::{ReleaseRun, assert_debug_log, dump_block};
+    let case = ReleaseRun::new("pphr_debug3_log");
+    let replay = case.replay::<PeakPickerHiRes>(&[], |_| {});
+    let release = case.release("PeakPickerHiRes", &replay, &[]);
+    assert_eq!(replay.code.as_i32(), release.exit, "{}", replay.err);
+    assert_eq!(replay.out, release.out);
+    assert_eq!(replay.took.is_some(), release.took.is_some());
+    assert_eq!(replay.err, release.err);
+    let expected = release.log.unwrap();
+    let dump = dump_block(&expected, "Parameters passed to PeakPickerHiRes");
+    assert_debug_log(case.name, &replay.log.unwrap(), &expected, &[&dump]);
 }
 
 /// C1 oracle `PPHR_auto_mode_1`: with noise estimation enabled the C++ tool

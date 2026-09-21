@@ -1,0 +1,8 @@
+File size: 9.032227 KB
+Splitting file into 3 parts...
+Total spectra: 2
+Total chromatograms: 0
+Part 1: 1 spectra, 0 chromatograms
+Part 2: 1 spectra, 0 chromatograms
+Part 3: 0 spectra, 0 chromatograms
+MzMLSplitter took 0.11 s (wall), 10.76 s (CPU), 0.01 s (system), 10.75 s (user); Peak Memory Usage: 67 MB.

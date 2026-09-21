@@ -6,15 +6,25 @@
 //! Ports `OpenMS4-topp/src/DTAExtractor.cpp`. The tool lives here rather than in
 //! `src/bin/` so that the shipped binary and its differential test share one
 //! definition; a copied tool body drifts from the binary it claims to test.
+//!
+//! A range or MS level list that does not convert is the source's
+//! `ConversionError`, which `main_` catches itself (`DTAExtractor.cpp:130-136`):
+//! `Invalid boundary '<level>' given. Aborting!` with `writeLogError_`, the
+//! usage text, and `ILLEGAL_PARAMETERS` as an exit code `main_` returns, so
+//! `TOPPBase`'s closing line follows. `<level>` is the `-level` value once the
+//! level list is being converted and empty before that, which is what the
+//! source's variable holds (Release oracles `dta_bad_rt_log` and
+//! `dta_bad_level_log` of `../oracle/topp-exception-exits`).
 
-use crate::cli::{ExitCode, Tool, ToolContext, ToolResult, ToolSpec, parse_range};
+use crate::Result;
+use crate::cli::context::to_int32;
+use crate::cli::{ExitCode, PoolLines, Tool, ToolContext, ToolResult, ToolSpec, parse_range};
 use crate::format::dta;
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
 use crate::kernel::MSSpectrum;
-use crate::{Error, Result};
 use std::fs::File;
-use std::io::BufWriter;
+use std::io::{BufWriter, Write};
 
 /// The `DTAExtractor` TOPP tool.
 pub struct DTAExtractor;
@@ -62,36 +72,79 @@ impl Tool for DTAExtractor {
         Ok(())
     }
 
+    /// Run against the process streams; see `run_io`.
+    fn run(ctx: &ToolContext) -> ToolResult {
+        Self::run_io(ctx, &mut std::io::stdout(), &mut std::io::stderr())
+    }
+
     /// Source `main_`, run on the worker pool that `-threads` sizes, as
     /// `TOPPBase::main` applies the setting before `main_`
-    /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`].
-    fn run(ctx: &ToolContext) -> ToolResult {
-        Ok(ctx.in_thread_pool(|| Self::run_in_pool(ctx))??)
+    /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`]. The
+    /// body's console lines and the usage text of a refusal are written once
+    /// the pool returns ([`PoolLines`]).
+    fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> ToolResult {
+        let mut lines = PoolLines::default();
+        let result = ctx.in_thread_pool(|| Self::run_in_pool(ctx, &mut lines))?;
+        if lines.write(out, err)? {
+            let spec = crate::cli::tool_spec::<Self>()?;
+            let subsections = crate::cli::subsection_defaults::<Self>(&spec)?;
+            crate::cli::print_usage::<Self>(err, &spec, &subsections, false)?;
+        }
+        result
     }
 }
 
 impl DTAExtractor {
     /// The tool body, as the source `main_`.
-    fn run_in_pool(ctx: &ToolContext) -> Result<ExitCode> {
+    fn run_in_pool(ctx: &ToolContext, lines: &mut PoolLines) -> ToolResult {
         let input = ctx.string("in")?;
         let out = ctx.string("out")?.to_owned();
+        let (rt, mz, level) = (ctx.string("rt")?, ctx.string("mz")?, ctx.string("level")?);
 
         // Source initialises both bounds to +/- the largest double, so an
         // omitted side of a range keeps every spectrum on that side.
         let (mut rt_low, mut rt_high) = (-f64::MAX, f64::MAX);
         let (mut mz_low, mut mz_high) = (-f64::MAX, f64::MAX);
-        parse_range(ctx.string("rt")?, &mut rt_low, &mut rt_high)?;
-        parse_range(ctx.string("mz")?, &mut mz_low, &mut mz_high)?;
-
-        let levels: Vec<u32> = ctx
-            .string("level")?
-            .split(',')
-            .map(|part| {
-                part.trim()
-                    .parse::<u32>()
-                    .map_err(|_| Error::InvalidValue(format!("invalid MS level '{part}'")))
-            })
-            .collect::<Result<_>>()?;
+        let mut converting = "";
+        let converted = (|| -> std::result::Result<Vec<u32>, ()> {
+            parse_range(rt, &mut rt_low, &mut rt_high).map_err(|_| ())?;
+            ctx.write_debug(
+                &format!(
+                    "rt lower/upper bound: {} / {}",
+                    number(rt_low),
+                    number(rt_high)
+                ),
+                1,
+            );
+            parse_range(mz, &mut mz_low, &mut mz_high).map_err(|_| ())?;
+            ctx.write_debug(
+                &format!(
+                    "mz lower/upper bound: {} / {}",
+                    number(mz_low),
+                    number(mz_high)
+                ),
+                1,
+            );
+            // Source `tmp = level`, the text its catch block names.
+            converting = level;
+            // `StringUtils::toInt32` into a `vector<UInt>`: a negative level
+            // wraps, as the source's conversion does.
+            let levels = level
+                .split(',')
+                .map(|part| to_int32(part).map(|value| value as u32).map_err(|_| ()))
+                .collect::<std::result::Result<Vec<u32>, ()>>()?;
+            let listed: Vec<String> = levels.iter().map(u32::to_string).collect();
+            ctx.write_debug(&format!("MS levels: {}", listed.join(", ")), 1);
+            Ok(levels)
+        })();
+        let Ok(levels) = converted else {
+            lines.error(
+                ctx,
+                format!("Invalid boundary '{converting}' given. Aborting!"),
+            );
+            lines.request_usage();
+            return Ok(ExitCode::IllegalParameters);
+        };
 
         let experiment = FileHandler::load_experiment(input, &[FileType::MzMl])?;
 

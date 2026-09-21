@@ -682,7 +682,6 @@ impl Tool for PeakPickerHiRes {
         ctx.write_debug_param("Parameters passed to PeakPickerHiRes", &algorithm, 3);
         let mut picker = Picker::from_param(&algorithm)?;
         picker.compatibility = PickingCompatibility::source();
-        picker.check_spectrum_type = !ctx.force();
 
         if process_option == "lowmemory" {
             return match run_low_memory(ctx, input, output, picker) {
@@ -714,6 +713,9 @@ impl Tool for PeakPickerHiRes {
         if let Some(code) = check_input(ctx, &experiment, err)? {
             return Ok(code);
         }
+        // `!getFlag_("force")` where the source reads it, before picking; the
+        // accessor writes its `Value of … option` line to the -log file.
+        picker.check_spectrum_type = !ctx.flag("force")?;
 
         let report = match pick_experiment(ctx, &picker, &mut experiment) {
             Ok(report) => report,

@@ -1,0 +1,10 @@
+PeakPickerHiRes
+-test
+-ini
+/scratch/kohlbach/topp-exception-exits/inputs/PeakPickerHiRes_6_noforce.ini
+-in
+/scratch/kohlbach/topp-exception-exits/inputs/PeakPickerHiRes_6_input.mzML
+-out
+/scratch/kohlbach/topp-exception-exits/run2/results/pphr_centroided_log/cwd/out.mzML
+-log
+/scratch/kohlbach/topp-exception-exits/run2/results/pphr_centroided_log/cwd/log.txt

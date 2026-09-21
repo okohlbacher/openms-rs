@@ -1,0 +1,37 @@
+2026-09-21 21:30:16 FileInfo:1:: Writing to '/scratch/kohlbach/topp-exception-exits/run2/results/fi_debug2_log/cwd/log.txt'
+2026-09-21 21:30:16 FileInfo:1:: Debug level: 2
+2026-09-21 21:30:16 FileInfo:1::  >> /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/FileInfo -test -in /scratch/kohlbach/topp-exception-exits/inputs/FileInfo_1_input.dta -no_progress -log /scratch/kohlbach/topp-exception-exits/run2/results/fi_debug2_log/cwd/log.txt -debug 2
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:16 FileInfo:1: Initialize final param with cmd line:
+"debug" -> "2"
+"log" -> "/scratch/kohlbach/topp-exception-exits/run2/results/fi_debug2_log/cwd/log.txt"
+"no_progress" -> "true"
+"in" -> "/scratch/kohlbach/topp-exception-exits/inputs/FileInfo_1_input.dta"
+"test" -> "true"
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:16 FileInfo:1: Merging instance section into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:16 FileInfo:1: Merging common section with tool name into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:16 FileInfo:1: Merging common section without tool name into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 'test': 1
+2026-09-21 21:30:16 FileInfo:1:: Debug level (after ini file): 2
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 'no_progress': 1
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 'out': 
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 'out_tsv': 
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 'in': /scratch/kohlbach/topp-exception-exits/inputs/FileInfo_1_input.dta
+2026-09-21 21:30:16 FileInfo:1:: Checking input file '/scratch/kohlbach/topp-exception-exits/inputs/FileInfo_1_input.dta'
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 'in_type': 
+2026-09-21 21:30:16 FileInfo:1:: Input file type: dta
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 'i': 0
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 'm': 0
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 'p': 0
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 's': 0
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 'd': 0
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 'c': 0
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 'v': 0
+2026-09-21 21:30:16 FileInfo:1:: Value of string option 'i': 0

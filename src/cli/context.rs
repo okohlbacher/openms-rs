@@ -556,6 +556,81 @@ impl ToolContext {
     }
 }
 
+/// Where a line of [`PoolLines`] goes on the console.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PoolStream {
+    /// Standard output, as `OPENMS_LOG_INFO`.
+    Info,
+    /// The error stream in yellow on a terminal, as `OPENMS_LOG_WARN`.
+    Warning,
+    /// The error stream in red on a terminal, as `OPENMS_LOG_ERROR`.
+    Error,
+}
+
+/// The console lines of a tool body that runs on the `-threads` pool
+/// ([`ToolContext::in_thread_pool`]).
+///
+/// The pool's worker cannot write to the streams of
+/// [`Tool::run_io`](crate::cli::Tool::run_io), which are not [`Send`], and a
+/// line written there would not be coloured on a terminal, because only the
+/// calling thread knows that its streams are the process's. So a body on the
+/// pool records its lines here, the `-log` file receives each at once, in the
+/// order the source writes them, and [`write`](Self::write) puts them on the
+/// console, in the same order, once the pool has returned — before the
+/// lifecycle's closing line or its report of a failure, which is where the
+/// source's lines stand too.
+#[derive(Debug, Default)]
+pub(crate) struct PoolLines {
+    lines: Vec<(PoolStream, String)>,
+    usage: bool,
+}
+
+impl PoolLines {
+    /// Source `writeLogInfo_`: the log file now, standard output later.
+    pub(crate) fn info(&mut self, ctx: &ToolContext, text: impl Into<String>) {
+        let text = text.into();
+        ctx.log.line(&text);
+        self.lines.push((PoolStream::Info, text));
+    }
+    /// Source `writeLogWarn_`: the log file now, the error stream later.
+    pub(crate) fn warn(&mut self, ctx: &ToolContext, text: impl Into<String>) {
+        let text = text.into();
+        ctx.log.line(&text);
+        self.lines.push((PoolStream::Warning, text));
+    }
+    /// Source `writeLogError_`: the log file now, the error stream later.
+    pub(crate) fn error(&mut self, ctx: &ToolContext, text: impl Into<String>) {
+        let text = text.into();
+        ctx.log.line(&text);
+        self.lines.push((PoolStream::Error, text));
+    }
+    /// Source `OPENMS_LOG_WARN` from a tool body: the error stream only, as
+    /// the warning log stream is not the log file.
+    pub(crate) fn console_warning(&mut self, text: impl Into<String>) {
+        self.lines.push((PoolStream::Warning, text.into()));
+    }
+    /// Source `printUsage_` after the lines so far.
+    pub(crate) fn request_usage(&mut self) {
+        self.usage = true;
+    }
+    /// Write the recorded lines on the calling thread, in order. Returns
+    /// whether the body asked for the usage text after them.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Io`] when a stream cannot be written.
+    pub(crate) fn write(self, out: &mut dyn Write, err: &mut dyn Write) -> Result<bool> {
+        for (stream, text) in &self.lines {
+            match stream {
+                PoolStream::Info => writeln!(out, "{text}")?,
+                PoolStream::Warning => super::console::log_warning(err, text)?,
+                PoolStream::Error => super::console::log_error(err, text)?,
+            }
+        }
+        Ok(self.usage)
+    }
+}
+
 /// `StringUtils::toStr(double)`, as the source's debug lines print a value.
 fn double_text(value: f64) -> String {
     ParamValue::Float(value).to_text(true).unwrap_or_default()

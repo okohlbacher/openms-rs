@@ -455,7 +455,9 @@ impl FeatureFinderCentroided {
         out: &mut dyn Write,
         generator: &mut UniqueIdGenerator,
     ) -> Result<FeatureMap> {
-        let run_path = if ctx.test_mode() {
+        // `getFlag_("test")`, whose `Value of … option` line reaches the -log
+        // file at debug level 1.
+        let run_path = if ctx.flag("test")? {
             format!("file://{}", file::basename(input))
         } else {
             input.to_owned()
@@ -605,7 +607,7 @@ impl Tool for FeatureFinderCentroided {
 
         // Only the first spectrum's stored type is checked (214-222). The
         // thrown IllegalArgument reaches TOPPBase's catch-all, UNKNOWN_ERROR.
-        if experiment.spectra[0].spectrum_type == SpectrumType::Profile && !ctx.force() {
+        if experiment.spectra[0].spectrum_type == SpectrumType::Profile && !ctx.flag("force")? {
             return Err(ToolError::caught(
                 ExitCode::UnknownError,
                 Self::PROFILE_DATA_MESSAGE,
