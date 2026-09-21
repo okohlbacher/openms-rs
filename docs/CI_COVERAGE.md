@@ -16,9 +16,9 @@ every run. It does, by design - and there is nothing to gain by stopping it.
 **The dependency cache is already a complete hit.** In run 35565954724
 (`1712a03`, all jobs green) the 67 cargo steps of `test`, `minimum-rust` and
 `quality` compiled one crate between them, `openms`, once per feature set; no
-dependency was rebuilt in any of them. Restoring took 5-9 s per job. The repository holds 12
-cache entries of 126-379 MiB, 2.6 GiB of the 10 GiB quota, so nothing is being
-evicted.
+dependency was rebuilt in any of them. Restoring took 5-9 s per job. The
+repository holds 12 cache entries of 126-379 MiB, 2.6 GiB of the 10 GiB quota,
+so nothing is being evicted.
 
 **The workspace's artifacts are invalid on nine pushes in ten.** Of the 63
 pushes to `main` between 2026-09-10 and 2026-09-21, 56 changed `src/`,
@@ -348,3 +348,12 @@ only line with no measured 1.85 counterpart on GitHub, and is estimated at
   pairs), `check_source_citations.py` (3523 citations; 31 unreachable and 3 bare
   ranges, both unchanged) and `check_doc_coverage.py --report`: unchanged, since
   nothing under `src/` changed.
+- The pre-push sweep of the new workflow,
+  `OPENMS_GATE_HOST=kim OPENMS_GATE_JOBS=64 openms-ci-sweep.sh p2e-sweep`, at
+  `5c4a44a` (the workflow and baseline have not changed since): 48 lines -
+  20 `test`, 24 `minimum-rust`, 4 `quality` - swept, 0 failed. On rustc
+  1.96.0, per section 5.
+- What the sweep does not do, done by hand on kim: `cargo +1.85.0 check
+  --locked --all-features --all-targets`, then the 24 cargo lines of the
+  generated `minimum-rust` job verbatim with `cargo +1.85.0`: 25 lines, rc 0 on
+  each, 11457 tests passed, none failed.
