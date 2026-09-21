@@ -44,7 +44,7 @@ ledger entry. Section 5 has the whole cross-linking picture.
 | `bool isValid(filename, os, used_version)` | `is_valid`, `is_valid_with_options`, with the optional `xml-schema` feature | [`detect_version`] picks the version and the matching bundled, unchanged `mzIdentML1.{0,1,2,3}.0.xsd` validates the file (1.0.0 with `FuGElightv1.0.0.xsd`, composed in memory). `used_version` is `report.schema.version()`. The retained TOPP_FileInfo_14/15 verdicts (1.1.0, valid and invalid at line 327) are ported; see [XML schema validation](XML_SCHEMA_SUPPORT.md). |
 | `std::string detectVersion(filename) const` | [`detect_version`], [`detect_version_from_reader`] | Full port, including the 15-line header window, the `version="x.y.z"` preference over the `mzIdentML/x.y` namespace, and the fallback to the adapter default. |
 | inherited `Internal::XMLFile::getVersion` / `isValid` | [`SCHEMA_VERSION`]; `isValid` as above | `MzIdentMLFile` overrides the inherited `isValid` with the version-detecting one above. |
-| inherited `ProgressLogger` | **not ported**: the crate has no progress-logger plumbing in the format adapters, and the source only inherits it to hand a reference to the handler, which never logs progress in the mzIdentML path. | |
+| inherited `ProgressLogger` | nothing to port: the source only inherits it to hand a reference to the handler, which makes no progress call on load or store; the Release build makes none (`mzid_load`, `mzid_store` in `tests/progress_format_readers.rs`). A caller's logger type is `crate::concept::progress_logger::ProgressLogType` | |
 
 ### `FORMAT/HANDLERS/MzIdentMLHandler.h` — `Internal::IdentificationHit`
 
@@ -114,7 +114,7 @@ here too.
 
 | C++ member | Rust counterpart | Notes |
 |---|---|---|
-| `logger_` | not ported | See `ProgressLogger` above. |
+| `logger_` | nothing to port | The handler never calls it; see `ProgressLogger` above. |
 | `cv_` | [`ControlledVocabulary::psi_ms`] | Loaded once from the embedded `psi-ms.obo` rather than `File::find("/CV/psi-ms.obo")`. |
 | `unimod_` | not ported | The crate has no UniMod OBO; UniMod accessions and names come from the `ModificationsDB` record itself, which carries the same pair. |
 | `tag_`, `open_tags_` | not ported | Parser state of the dead stream path. |

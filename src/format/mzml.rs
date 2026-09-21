@@ -5,6 +5,12 @@
 //! Bounded mzML 1.1 subset I/O. See `docs/MZML_SUPPORT.md` for metadata limitations.
 //! Numeric peak arrays are little-endian f32/f64, optionally zlib compressed.
 //! This is an event parser, but the returned experiment is held in memory.
+//!
+//! The source `MzMLFile` derives from `ProgressLogger` and hands itself to its
+//! handler; [`load_with_progress`](crate::format::mzml::load_with_progress) and
+//! [`store_with_progress`](crate::format::mzml::store_with_progress) make the
+//! handler's calls on a caller's logger, and every other entry point runs the
+//! same code and reports nothing.
 
 pub use super::indexed_mzml::has_index;
 #[cfg(feature = "mzml-schema")]
@@ -49,6 +55,7 @@ pub use consumer::{
 mod load;
 #[cfg(feature = "mzml-validation")]
 pub use super::mzml_validator::{validate_semantics, validate_semantics_with_options};
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D, Precursor,
     SpectrumType,
@@ -67,7 +74,8 @@ pub use numpress_transport::{NumpressWriteOptions, NumpressWriteReport, write_wi
 #[path = "mzml_paths.rs"]
 mod paths;
 pub use paths::{
-    load, load_into, load_into_with_options, load_with_options, store, store_with_options,
+    load, load_into, load_into_with_options, load_with_options, load_with_progress, store,
+    store_with_options, store_with_progress,
 };
 #[path = "mzml_precursor.rs"]
 mod precursor_metadata;
@@ -1776,6 +1784,23 @@ fn read_impl(
     load: Option<&LoadOptions>,
     metadata_only: bool,
 ) -> Result<MSExperiment> {
+    read_impl_reporting(
+        reader,
+        options,
+        load,
+        metadata_only,
+        &mut LoadProgress::silent(),
+    )
+}
+
+/// [`read_impl`], with the progress calls of source `MzMLHandler`.
+fn read_impl_reporting(
+    reader: impl BufRead,
+    options: &ReadOptions,
+    load: Option<&LoadOptions>,
+    metadata_only: bool,
+    progress: &mut LoadProgress<'_>,
+) -> Result<MSExperiment> {
     read_engine(
         reader,
         options,
@@ -1783,7 +1808,52 @@ fn read_impl(
         metadata_only,
         MSExperiment::new(),
         None,
+        progress,
     )
+}
+
+/// The two loggers of source `MzMLHandler` on a load.
+///
+/// `logger_`, the file object's own logger, reports the spectrum and
+/// chromatogram lists (`MzMLHandler.cpp:966`, `:997`, `:1443`, `:1483`,
+/// `:1491`, `:1497`). `pg_outer`, a thread-local logger (`:106`) that the
+/// handler's constructor assigns from the file's (`:135`), reports the whole
+/// document (`:1203`, `:1524`); the copy has the logger's type and a fresh
+/// backend, as [`ProgressLogger::clone`] makes one.
+struct LoadProgress<'a> {
+    /// `pg_outer`.
+    outer: Option<ProgressLogger>,
+    /// `logger_`.
+    lists: ProgressReporter<'a>,
+    /// `File::fileSize(file_)`, the byte count of the document's section.
+    file_size: u64,
+}
+
+impl LoadProgress<'static> {
+    /// Calls that go nowhere, for the entry points that report no progress.
+    fn silent() -> Self {
+        Self {
+            outer: None,
+            lists: ProgressReporter::silent(),
+            file_size: 0,
+        }
+    }
+}
+
+impl<'a> LoadProgress<'a> {
+    /// The calls of a load of a `file_size`-byte file reporting to `logger`.
+    fn new(logger: &'a mut ProgressLogger, file_size: u64) -> Self {
+        Self {
+            outer: Some(logger.clone()),
+            lists: ProgressReporter::new(Some(logger)),
+            file_size,
+        }
+    }
+
+    /// The calls of `pg_outer`.
+    fn outer(&mut self) -> ProgressReporter<'_> {
+        ProgressReporter::new(self.outer.as_mut())
+    }
 }
 
 fn read_engine(
@@ -1793,6 +1863,7 @@ fn read_engine(
     metadata_only: bool,
     mut experiment: MSExperiment,
     mut consumer: Option<&mut consumer::Sink<'_>>,
+    progress: &mut LoadProgress<'_>,
 ) -> Result<MSExperiment> {
     let fill_data = load.is_none_or(|o| o.scientific.fill_data);
     // The source option bypasses only the helper's four-character whitespace
@@ -2213,6 +2284,8 @@ fn read_engine(
                                 .insert("mzml_id".into(), header_work.copy(id)?.into());
                         }
                         seen_mzml = true;
+                        // `MzMLHandler.cpp:1203`.
+                        progress.outer().start(0, 1, "loading mzML")?;
                     }
                     "fileDescription"
                     | "sourceFileList"
@@ -2316,7 +2389,16 @@ fn read_engine(
                         // Advisory declared count; records are bounded by
                         // `options.max_records` and `scaling.records` as each
                         // one opens.
-                        let _declared: usize = number(required(&attrs, "count")?, "record count")?;
+                        let declared: usize = number(required(&attrs, "count")?, "record count")?;
+                        // `MzMLHandler.cpp:966`, `:997`.
+                        progress.lists.start_count(
+                            declared,
+                            if tag == "spectrumList" {
+                                "loading spectra list"
+                            } else {
+                                "loading chromatogram list"
+                            },
+                        )?;
                         default_processing = attrs
                             .get("defaultDataProcessingRef")
                             .map(|id| header_registry.processing(id, &mut header_work))
@@ -2919,13 +3001,21 @@ fn read_engine(
                                 }
                             }
                         }
+                        // `MzMLHandler.cpp:1443`, `:1483`: every record,
+                        // whether or not the load options keep it.
+                        progress.lists.next_progress()?;
                     }
+                    // `MzMLHandler.cpp:1491`, `:1497`.
+                    "spectrumList" | "chromatogramList" => progress.lists.end()?,
                     "mzML" => {
                         if let Some(sink) = consumer.as_deref_mut() {
                             if !sink.finish()? {
                                 return Ok(experiment);
                             }
                         }
+                        // `MzMLHandler.cpp:1524`.
+                        let file_size = progress.file_size;
+                        progress.outer().end_with_bytes(file_size)?;
                     }
                     _ => {}
                 }
@@ -3620,6 +3710,7 @@ fn write_indexed(
         &mut None,
         &header,
         false,
+        &mut ProgressReporter::silent(),
     )
 }
 
@@ -3630,13 +3721,23 @@ fn write_indexed(
 /// streaming `MSDataWritingConsumer` splits this layout per record, which is
 /// why it stays unindexed; [`write()`] is the indexed default.
 pub fn write_with_options(
-    mut w: impl Write,
+    w: impl Write,
     experiment: &MSExperiment,
     options: &WriteOptions,
 ) -> Result<()> {
+    write_with_options_reporting(w, experiment, options, &mut ProgressReporter::silent())
+}
+/// [`write_with_options`], with the progress calls of source
+/// `MzMLHandler::writeTo`.
+fn write_with_options_reporting(
+    mut w: impl Write,
+    experiment: &MSExperiment,
+    options: &WriteOptions,
+    progress: &mut ProgressReporter<'_>,
+) -> Result<()> {
     let header = header::prepare(experiment)?;
     validate_write(experiment)?;
-    write_impl(&mut w, experiment, options, &mut None, &header)
+    write_impl(&mut w, experiment, options, &mut None, &header, progress)
 }
 fn experiment_header_guard(experiment: &MSExperiment) -> Result<()> {
     header::guard(experiment)
@@ -3851,10 +3952,15 @@ fn write_impl(
     options: &WriteOptions,
     prepared: &mut Option<std::slice::Iter<'_, numpress_transport::PreparedArray>>,
     header: &header::Plan,
+    progress: &mut ProgressReporter<'_>,
 ) -> Result<()> {
     let mut w = peak_writer::Output::legacy(w);
-    write_document(&mut w, experiment, options, prepared, header, false)
+    write_document(
+        &mut w, experiment, options, prepared, header, false, progress,
+    )
 }
+/// The document, with the progress calls of source `MzMLHandler::writeTo`
+/// (`MzMLHandler.cpp:4763`, `:4806`, `:4826`, `:4838`).
 fn write_document<W: Write>(
     mut w: &mut peak_writer::Output<'_, W>,
     experiment: &MSExperiment,
@@ -3862,7 +3968,15 @@ fn write_document<W: Write>(
     prepared: &mut Option<std::slice::Iter<'_, numpress_transport::PreparedArray>>,
     header: &header::Plan,
     tpp: bool,
+    progress: &mut ProgressReporter<'_>,
 ) -> Result<()> {
+    progress.start_count(
+        experiment
+            .spectra
+            .len()
+            .saturating_add(experiment.chromatograms.len()),
+        "storing mzML file",
+    )?;
     w.header(&header.prefix)?;
     let mut array_headers = header.arrays.iter();
     if !experiment.spectra.is_empty() {
@@ -3872,6 +3986,7 @@ fn write_document<W: Write>(
             experiment.spectra.len()
         )?;
         for (i, spectrum) in experiment.spectra.iter().enumerate() {
+            progress.set_count(i)?;
             let id = peak_writer::native_id(&spectrum.native_id, i, false);
             w.record(false)?;
             writeln!(
@@ -3987,6 +4102,7 @@ fn write_document<W: Write>(
             experiment.chromatograms.len()
         )?;
         for (i, chromatogram) in experiment.chromatograms.iter().enumerate() {
+            progress.set_count(experiment.spectra.len().saturating_add(i))?;
             let id = peak_writer::native_id(&chromatogram.native_id, i, true);
             w.record(true)?;
             writeln!(
@@ -4057,5 +4173,6 @@ fn write_document<W: Write>(
     writeln!(w, "</run></mzML>")?;
     w.footer(experiment)?;
     w.flush()?;
-    Ok(())
+    // `MzMLHandler.cpp:4838`: the bytes written, `os.tellp()`.
+    progress.end_with_bytes(w.position())
 }

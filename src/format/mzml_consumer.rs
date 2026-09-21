@@ -206,6 +206,7 @@ fn run<R: BufRead>(
             ..Default::default()
         },
         Some(&mut sink),
+        &mut super::LoadProgress::silent(),
     )?;
     let retained = sink.retained.take();
     drop(sink);

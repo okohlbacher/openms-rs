@@ -215,6 +215,28 @@ feature: real XSD validation against the bundled, unchanged
 fixtures, a stored empty map and a stored loaded map); see
 [XML schema validation](XML_SCHEMA_SUPPORT.md).
 
+## Progress
+
+`FeatureXMLFile` and its handler derive from `ProgressLogger`, and the file
+hands the handler only its log type (`FeatureXMLFile.cpp:39`, `:54`, `:104`).
+`featurexml::load_with_progress` and `store_with_progress` therefore make the
+handler's calls on a copy of the caller's logger, made as
+`ProgressLogger::clone` makes one; a backend installed with `set_logger`
+receives nothing, as a source file's does. Loading: `startProgress(0, count,
+"Loading featureXML file")` at `<featureList count>` (`FeatureXMLHandler.cpp:319`),
+`setProgress` with the number of features kept so far as each top-level feature
+begins (`:1047`), `endProgress()` at `</featureList>` (`:838`); `load_size` and a
+metadata-only load stop before the section (`:306-316`) and make no call.
+Storing: `startProgress(0, features, "Storing featureXML file")`, `setProgress(i)`
+after feature `i`, `endProgress()` (`:215-222`), with the destination opened
+before the first call as `XMLFile::save_` opens it. These are the Release
+build's calls, call for call (tier 1, `tests/progress_format_readers.rs`,
+including a document truncated after its first feature). The reader hands each
+feature over when its element closes, so it makes that feature's call then,
+rather than when the feature begins: a document that fails inside a feature, or
+inside `<featureList>` before its first feature is complete, shows one call
+fewer than the source. See `docs/PROGRESS_LOGGER_SUPPORT.md#format-readers`.
+
 ## Bounds and verification
 
 `ReadOptions` contains `feature_options`, `Limits` and `InputScaling`;

@@ -461,7 +461,14 @@ is true. Header and spectrum callbacks are consequently suppressed even outside
 a chromatogram. A chromatogram-only filter should leave those records readable.
 
 **Evidence:** Source review of option assignment and the unconditional shared
-guard. No C++ runtime reproduction is claimed.
+guard, and since phase 2.5b a runtime reproduction on the Release build
+(`../oracle/progress-format-readers`, case `mzml_load_skip_chromatograms`,
+replayed by `tests/progress_format_readers.rs`): loading `MzMLFile_1.mzML`
+with `setSkipChromatograms(true)` makes no `startProgress` call at all, not
+even the document's at `<mzML>` or the spectrum list's, because every start
+element is ignored; it still advances on each record end and ends both lists,
+and with a command logger the unmatched end makes `StopWatch::stop` throw
+(`StopWatch.cpp:55`), so the load fails.
 
 **Proposed fix:** Keep the option separate from the active-record skip state;
 activate the latter only upon entering a chromatogram and reset it at that

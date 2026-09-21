@@ -1,8 +1,8 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 6036,
-  "documented": 4723
+  "items": 5996,
+  "documented": 4697
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {
@@ -377,10 +377,6 @@
    "items": 1,
    "documented": 1
   },
-  "src/cli/tools/fuzzy_diff.rs": {
-   "items": 2,
-   "documented": 2
-  },
   "src/cli/tools/map_normalizer.rs": {
    "items": 1,
    "documented": 1
@@ -413,10 +409,6 @@
    "items": 132,
    "documented": 4
   },
-  "src/concept/fuzzy_string_comparator.rs": {
-   "items": 61,
-   "documented": 61
-  },
   "src/concept/log_stream.rs": {
    "items": 41,
    "documented": 17
@@ -426,16 +418,16 @@
    "documented": 33
   },
   "src/concept/mod.rs": {
-   "items": 8,
-   "documented": 4
+   "items": 7,
+   "documented": 3
   },
   "src/concept/parallel.rs": {
    "items": 7,
    "documented": 7
   },
   "src/concept/progress_logger.rs": {
-   "items": 36,
-   "documented": 36
+   "items": 39,
+   "documented": 39
   },
   "src/concept/unique_id.rs": {
    "items": 11,
@@ -478,8 +470,8 @@
    "documented": 2
   },
   "src/format/consensusxml.rs": {
-   "items": 17,
-   "documented": 17
+   "items": 19,
+   "documented": 19
   },
   "src/format/controlled_vocabulary.rs": {
    "items": 41,
@@ -502,8 +494,8 @@
    "documented": 7
   },
   "src/format/dta2d.rs": {
-   "items": 16,
-   "documented": 2
+   "items": 19,
+   "documented": 19
   },
   "src/format/experimental_design_file.rs": {
    "items": 4,
@@ -514,8 +506,8 @@
    "documented": 13
   },
   "src/format/featurexml.rs": {
-   "items": 21,
-   "documented": 21
+   "items": 23,
+   "documented": 23
   },
   "src/format/featurexml_scaling.rs": {
    "items": 10,
@@ -582,8 +574,8 @@
    "documented": 1
   },
   "src/format/mascot_generic.rs": {
-   "items": 41,
-   "documented": 41
+   "items": 45,
+   "documented": 45
   },
   "src/format/mascot_xml.rs": {
    "items": 28,
@@ -614,8 +606,8 @@
    "documented": 22
   },
   "src/format/mzdata.rs": {
-   "items": 45,
-   "documented": 45
+   "items": 49,
+   "documented": 49
   },
   "src/format/mzidentml.rs": {
    "items": 30,
@@ -662,8 +654,8 @@
    "documented": 3
   },
   "src/format/mzml_paths.rs": {
-   "items": 6,
-   "documented": 6
+   "items": 8,
+   "documented": 8
   },
   "src/format/mzml_scaling.rs": {
    "items": 7,
@@ -702,8 +694,8 @@
    "documented": 54
   },
   "src/format/mzxml.rs": {
-   "items": 43,
-   "documented": 43
+   "items": 47,
+   "documented": 47
   },
   "src/format/numpress.rs": {
    "items": 23,

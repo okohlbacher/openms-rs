@@ -52,7 +52,7 @@ mix both byte orders. `tests/mzdata.rs::big_endian_arrays_are_honoured` and
 | inherited `XMLFile::parse_` / `save_` / `schema_location_` / `schema_version_` (protected) | replaced by the free `read_*` / `write_*` functions and the `SCHEMA_*` constants. `store_with_options` publishes through `crate::format::path_io::write`, which is this crate's equivalent of `save_`: a sibling temporary renamed onto the destination, with `.gz`/`.bz2` suffix compression |
 | inherited `XMLFile::parseBuffer_` (protected) | `read` / `read_with_options`, which take any `BufRead` and so cover both the file and the in-memory case; `parse_` is the only one `MzDataFile` itself calls |
 | inherited `XMLFile::enforceEncoding_` / `enforced_encoding_` (protected) | **not ported**: the override exists for X!Tandem output whose declaration the Xerces parser stumbles on, and no `MzData*` code path sets it. The declared encoding is honoured instead — ISO-8859-1, UTF-8 and US-ASCII are read and anything else is refused rather than misread |
-| inherited `ProgressLogger` (`setLogType`, `getLogType`, `startProgress`, `setProgress`, `endProgress`, `nextProgress`) | **not ported here**: `crate::concept::progress_logger` exists but is not threaded through this module. The counters the handler spends on progress are returned instead, in `LoadReport` and `StoreReport` |
+| inherited `ProgressLogger` (`setLogType`, `getLogType`, `startProgress`, `setProgress`, `endProgress`, `nextProgress`) | the caller's `crate::concept::progress_logger::ProgressLogger`, passed to `load_with_progress`, `store_with_progress` and the `MzDataFile` members of those names, which make the Release build's calls, call for call (tier 1, `tests/progress_format_readers.rs`; see `docs/PROGRESS_LOGGER_SUPPORT.md#format-readers`). The other entry points run the same code and report nothing; `LoadReport` and `StoreReport` are returned either way |
 
 ### `FORMAT/HANDLERS/MzDataHandler.h`
 
@@ -92,7 +92,7 @@ the table like any other member.
 | `std::vector<std::string> precisions_` (protected) | `Encoded::precision`, typed as `Precision` |
 | `std::vector<std::string> endians_` (protected) | `Encoded::endian`, typed as `Endian` |
 | `bool skip_spectrum_` (protected) | `Parser::skip` |
-| `const ProgressLogger& logger_` (protected) | not ported; see the `ProgressLogger` row above |
+| `const ProgressLogger& logger_` (protected) | the `Parser`'s reporter and the writer's; see the `ProgressLogger` row above |
 | `void fillData_()` (protected) | private `Parser::fill_data` |
 | `writeCVS_(os, double value, acc, name, indent=4) const` | private `Sink::cv_number`. Nothing is written when the value is exactly zero, as upstream |
 | `writeCVS_(os, const std::string& value, acc, name, indent=4) const` | private `Sink::cv_string`. Nothing is written for an empty value, as upstream |
@@ -296,12 +296,17 @@ Each is documented at the Rust item as well.
     `SpectrumSettings`, which `MSSpectrum` does not embed, so the value is kept
     as a `comment` metadata entry. The source writer never emits the element,
     so it is read-only either way.
-13. **No progress logging and no OpenMP.** The source handler takes a
-    `ProgressLogger&` and keeps its scan counter in a **function-local
-    `static UInt`** (`:436`), shared by every handler instance and thread, so
-    concurrent or successive loads interleave the count. Neither the logger nor
-    any threading is ported; the source parallelises nothing in this file, so
-    there is no OpenMP gap to record beyond that.
+13. **The scan counter is process-wide, as the source's; no OpenMP.** The
+    source handler keeps the counter it passes to `setProgress` in a
+    **function-local `static UInt`** (`:436`), shared by every handler instance
+    and thread and reset only at `</mzData>` (`:460-464`), so a load that failed
+    inside the spectrum list leaves it raised and the next load's values
+    continue from there. The port keeps one process-wide atomic counter with
+    the same rule, advanced by every load whether it reports or not; the
+    Release build's continued count is reproduced (`mzdata_static_counter` in
+    `tests/progress_format_readers.rs`). Concurrent loads interleave their
+    counts, without the source's data race. The source parallelises nothing in
+    this file, so there is no OpenMP gap to record.
 14. **Nothing mzData cannot represent is discarded silently.** The default
     `WriteOptions` refuses; `WriteOptions::source` discards, warning where the
     source warns. The refusals are enumerated below.
@@ -473,9 +478,6 @@ empty-experiment document, which is transcribed from
   `mzdata-mapping.xml` is retained as a mapping-parser fixture, but
   `psi-mzdata.obo` and the mzData semantic-validation integration do not ship.
   The upstream section is `NOT_TESTABLE` by its own admission.
-* **`ProgressLogger`** is a base class of `MzDataFile` and a constructor
-  parameter of the handler; it is not threaded through this module.
-  `LoadReport` and `StoreReport` carry the counters instead.
 * **`MzDataFile_2_long.mzData`** (10.6 MB, 997530 peaks) is not copied into
   `tests/data`: the original work package omitted it to limit fixture size. Its sha256 is
   recorded in the manifest and `load_special_cases` writes and reads an

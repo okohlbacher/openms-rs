@@ -21,9 +21,16 @@
 //! [`write`](crate::format::mzxml::write) for streams, and
 //! [`MzXMLFile`](crate::format::mzxml::MzXMLFile) for the source class's
 //! options-carrying adapter shape.
+//!
+//! The source file derives from `ProgressLogger` and hands itself to its
+//! handler; [`load_with_progress`](crate::format::mzxml::load_with_progress)
+//! and [`store_with_progress`](crate::format::mzxml::store_with_progress) make
+//! the handler's calls on a caller's logger, and every other entry point runs
+//! the same code and reports nothing.
 
 use super::PeakFileOptions;
 use super::path_io;
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::interfaces::MSDataConsumer;
 use crate::kernel::{MSExperiment, MSSpectrum, NumericRange, Peak1D, Precursor};
 use crate::metadata::{
@@ -554,6 +561,19 @@ impl MzXMLFile {
     pub fn load(&self, path: impl AsRef<Path>) -> Result<MSExperiment> {
         load_with_options(path, &self.options)
     }
+    /// [`MzXMLFile::load`], reporting progress to `logger` as the source's
+    /// `load` does; see the free [`load_with_progress`].
+    ///
+    /// # Errors
+    ///
+    /// As [`load_with_progress`].
+    pub fn load_with_progress(
+        &self,
+        path: impl AsRef<Path>,
+        logger: &mut ProgressLogger,
+    ) -> Result<MSExperiment> {
+        load_with_progress(path, &self.options, logger)
+    }
     /// Load into an existing map, replacing it only on success.
     ///
     /// # Errors
@@ -572,6 +592,20 @@ impl MzXMLFile {
     /// [`Error::UnsortedData`] when `force_mq_compatibility` needs sorted m/z.
     pub fn store(&self, path: impl AsRef<Path>, experiment: &MSExperiment) -> Result<()> {
         store_with_options(path, experiment, &self.write_options)
+    }
+    /// [`MzXMLFile::store`], reporting progress to `logger` as the source's
+    /// `store` does; see the free [`store_with_progress`].
+    ///
+    /// # Errors
+    ///
+    /// As [`store_with_progress`].
+    pub fn store_with_progress(
+        &self,
+        path: impl AsRef<Path>,
+        experiment: &MSExperiment,
+        logger: &mut ProgressLogger,
+    ) -> Result<()> {
+        store_with_progress(path, experiment, &self.write_options, logger)
     }
     /// Validate a file against the bundled `mzXML_idx_3.1.xsd`, the
     /// [`SCHEMA`] the source constructor registers, with the three schemas it
@@ -688,12 +722,22 @@ pub fn read_with_report(
     options: &ReadOptions,
     report: &mut ReadReport,
 ) -> Result<MSExperiment> {
+    read_reporting(input, options, report, ProgressReporter::silent())
+}
+
+fn read_reporting(
+    input: impl BufRead,
+    options: &ReadOptions,
+    report: &mut ReadReport,
+    progress: ProgressReporter<'_>,
+) -> Result<MSExperiment> {
     let detail = if options.peaks.metadata_only {
         Detail::MetadataOnly
     } else {
         Detail::Full
     };
     let mut run = Run::new(options, detail, report);
+    run.progress = progress;
     run.parse(input, None)
 }
 
@@ -746,6 +790,43 @@ pub fn load(path: impl AsRef<Path>) -> Result<MSExperiment> {
 ///
 /// As [`MzXMLFile::load`].
 pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Result<MSExperiment> {
+    load_reporting(path, options, ProgressReporter::silent())
+}
+
+/// Load a map from a path, reporting progress to `logger` as source
+/// `MzXMLFile::load` does through its handler.
+///
+/// The calls are the handler's: `startProgress(0, scanCount, "loading mzXML
+/// file")` at `<msRun>` (`MzXMLHandler.cpp:130-136`, with 0 when the attribute
+/// is absent), `setProgress(n)` as the `n`-th `<scan>` begins, nested or not
+/// and whether or not a filter drops it (`:281-282`), and `endProgress()` at
+/// `</mzXML>`, once the spectra are complete (`:524-531`). A metadata-only load
+/// stops at the first `<scan>` and makes no set there. The result is the one
+/// [`load_with_options`] returns, and so is every error: both run the same
+/// code, whose calls go nowhere for [`load_with_options`].
+///
+/// A failure after the start leaves the section open, as in the source, where
+/// the exception bypasses `endProgress`: no `-- done` line is printed, the
+/// nesting depth stays one level deeper, and a command backend of `logger`
+/// refuses its next start.
+///
+/// # Errors
+///
+/// As [`MzXMLFile::load`], plus the errors of the progress calls
+/// ([`ProgressLogger::start_progress`] and its siblings).
+pub fn load_with_progress(
+    path: impl AsRef<Path>,
+    options: &ReadOptions,
+    logger: &mut ProgressLogger,
+) -> Result<MSExperiment> {
+    load_reporting(path, options, ProgressReporter::new(Some(logger)))
+}
+
+fn load_reporting(
+    path: impl AsRef<Path>,
+    options: &ReadOptions,
+    progress: ProgressReporter<'_>,
+) -> Result<MSExperiment> {
     let path = path.as_ref();
     let mut document = crate::metadata::DocumentIdentifier::new();
     let text = path
@@ -753,7 +834,8 @@ pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Resul
         .ok_or_else(|| Error::InvalidValue("mzXML filename is not UTF-8".into()))?;
     document.set_loaded_file_path(text)?;
     document.set_loaded_file_type(path)?;
-    let mut result = read_with_options(path_io::open(path)?, options)?;
+    let mut report = ReadReport::default();
+    let mut result = read_reporting(path_io::open(path)?, options, &mut report, progress)?;
     result.settings.document.loaded_file_path = document.loaded_file_path;
     result.settings.document.loaded_file_type = document.loaded_file_type;
     Ok(result)
@@ -804,7 +886,7 @@ pub fn write_with_options(
     experiment: &MSExperiment,
     options: &WriteOptions,
 ) -> Result<()> {
-    write_engine(output, experiment, options)
+    write_engine(output, experiment, options, &mut ProgressReporter::silent())
 }
 
 /// Store a map at a path, publishing the file atomically. `.gz` and `.bz2`
@@ -827,8 +909,49 @@ pub fn store_with_options(
     experiment: &MSExperiment,
     options: &WriteOptions,
 ) -> Result<()> {
+    store_reporting(path, experiment, options, &mut ProgressReporter::silent())
+}
+
+/// Store a map at a path, reporting progress to `logger` as source
+/// `MzXMLFile::store` does through its handler's `writeTo`.
+///
+/// The calls are the handler's: `startProgress(0, spectra, "storing mzXML
+/// file")` before the document's first byte (`MzXMLHandler.cpp:636`),
+/// `setProgress(s)` as spectrum `s` is reached, including an empty one that
+/// MaxQuant compatibility skips (`:864`), and `endProgress()` after `</mzXML>`
+/// (`:1119`). The destination is opened before the checks and the first
+/// call, as the source's `XMLFile::save_` opens it before `writeTo`. The bytes
+/// and every error are those of [`store_with_options`], which runs the same
+/// code with the calls going nowhere; its checks precede the start.
+///
+/// A failure after the start leaves the section open, as described at
+/// [`load_with_progress`].
+///
+/// # Errors
+///
+/// As [`MzXMLFile::store`], plus the errors of the progress calls.
+pub fn store_with_progress(
+    path: impl AsRef<Path>,
+    experiment: &MSExperiment,
+    options: &WriteOptions,
+    logger: &mut ProgressLogger,
+) -> Result<()> {
+    store_reporting(
+        path,
+        experiment,
+        options,
+        &mut ProgressReporter::new(Some(logger)),
+    )
+}
+
+fn store_reporting(
+    path: impl AsRef<Path>,
+    experiment: &MSExperiment,
+    options: &WriteOptions,
+    progress: &mut ProgressReporter<'_>,
+) -> Result<()> {
     path_io::write(path.as_ref(), |writer| {
-        write_engine(writer, experiment, options)
+        write_engine(writer, experiment, options, progress)
     })
 }
 
@@ -939,6 +1062,8 @@ struct Frame {
 }
 
 struct Run<'a> {
+    /// The source handler's `logger_`.
+    progress: ProgressReporter<'a>,
     options: &'a ReadOptions,
     detail: Detail,
     report: &'a mut ReadReport,
@@ -957,6 +1082,7 @@ struct Run<'a> {
 impl<'a> Run<'a> {
     fn new(options: &'a ReadOptions, detail: Detail, report: &'a mut ReadReport) -> Self {
         Self {
+            progress: ProgressReporter::silent(),
             options,
             detail,
             report,
@@ -1279,16 +1405,20 @@ impl<'a> Run<'a> {
     fn start_ms_run(&mut self, element: &BytesStart<'_>) -> Result<()> {
         // scanCount is a reservation hint upstream; here it is only validated
         // against the scan ceiling so a hostile value allocates nothing.
+        let mut declared = 0;
         if let Some(text) = attribute(element, "scanCount")? {
             match text.trim().parse::<i64>() {
                 Ok(count) if count >= 0 => {
                     if usize::try_from(count).is_ok_and(|n| n > self.options.limits.max_scans) {
                         return Err(budget("declared scan count"));
                     }
+                    declared = count;
                 }
                 _ => self.note(format!("invalid msRun scanCount '{text}'")),
             }
         }
+        // `MzXMLHandler.cpp:135`: the declared count, 0 when absent.
+        self.progress.start(0, declared, "loading mzXML file")?;
         self.data_processing.clear();
         self.report.scan_count = 0;
         Ok(())
@@ -1543,6 +1673,9 @@ impl<'a> Run<'a> {
             }
             None => 0.0,
         };
+        // `MzXMLHandler.cpp:281-282`: the scans begun before this one, before
+        // any filter decides whether it is kept.
+        self.progress.set_count(self.report.scan_count - 1)?;
         let filtered = (self.options.peaks.has_rt_range()
             && !encloses(self.options.peaks.rt_range(), retention_time))
             || (self.options.peaks.has_ms_levels()
@@ -1831,7 +1964,11 @@ impl<'a> Run<'a> {
                 }
                 Ok(())
             }
-            "mzXML" => self.flush(sink),
+            "mzXML" => {
+                self.flush(sink)?;
+                // `MzXMLHandler.cpp:530`.
+                self.progress.end()
+            }
             _ => {
                 if !self.text.trim().is_empty() && !matches!(tag, "offset" | "indexOffset" | "sha1")
                 {
@@ -2329,8 +2466,11 @@ fn write_engine(
     output: &mut dyn Write,
     experiment: &MSExperiment,
     options: &WriteOptions,
+    progress: &mut ProgressReporter<'_>,
 ) -> Result<()> {
     preflight(experiment, options)?;
+    // `MzXMLHandler.cpp:636`.
+    progress.start_count(experiment.spectra.len(), "storing mzXML file")?;
     let mut out = Counting {
         inner: output,
         written: 0,
@@ -2338,7 +2478,7 @@ fn write_engine(
     write_header(&mut out, experiment, options)?;
     write_instrument(&mut out, experiment, options)?;
     write_data_processing(&mut out, experiment, options)?;
-    let index = write_scans(&mut out, experiment, options)?;
+    let index = write_scans(&mut out, experiment, options, progress)?;
     out.text("\t</msRun>\n")?;
     if options.write_index || options.force_mq_compatibility {
         let offset = out.written;
@@ -2351,7 +2491,8 @@ fn write_engine(
     }
     out.text("</mzXML>\n")?;
     out.flush()?;
-    Ok(())
+    // `MzXMLHandler.cpp:1119`.
+    progress.end()
 }
 
 fn write_header(
@@ -2641,6 +2782,7 @@ fn write_scans(
     out: &mut Counting<'_>,
     experiment: &MSExperiment,
     options: &WriteOptions,
+    progress: &mut ProgressReporter<'_>,
 ) -> Result<Vec<(i64, u64)>> {
     let ids = classify_native_ids(experiment);
     let mut index = Vec::new();
@@ -2648,6 +2790,8 @@ fn write_scans(
     let mut written = 0i64;
     let spectra = &experiment.spectra;
     for (position, spectrum) in spectra.iter().enumerate() {
+        // `MzXMLHandler.cpp:864`, before the MaxQuant skip.
+        progress.set_count(position)?;
         if spectrum.peaks.is_empty() && options.force_mq_compatibility {
             // MaxQuant's XML parser cannot deal with empty spectra.
             continue;

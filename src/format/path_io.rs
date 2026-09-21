@@ -54,6 +54,45 @@ pub(crate) fn write(path: &Path, save: impl FnOnce(&mut dyn Write) -> Result<()>
     write_as(path, save, true)
 }
 
+/// Publish a document that `build` serializes to memory, reporting progress
+/// the way the source's `XMLFile::save_` does: the destination is opened
+/// first, and only then does the handler's `writeTo` make its calls. `build`
+/// therefore runs inside the publication with `progress`, and a destination
+/// that cannot be prepared makes no call.
+///
+/// The outcome is that of building the whole document and then publishing it,
+/// as the writers without progress do: when the destination cannot be
+/// prepared, the document is built again without reporting, and a refusal
+/// from that build wins over the preparation error. A refused document may
+/// leave a temporary file created and removed again, which the silent writers
+/// never create.
+#[cfg(any(feature = "featurexml", feature = "consensusxml", feature = "mzml"))]
+pub(crate) fn store_reporting<T>(
+    path: &Path,
+    mut build: impl FnMut(
+        &mut crate::concept::progress_logger::ProgressReporter<'_>,
+    ) -> Result<(Vec<u8>, T)>,
+    progress: &mut crate::concept::progress_logger::ProgressReporter<'_>,
+) -> Result<T> {
+    let mut entered = false;
+    let mut value = None;
+    let published = write(path, |writer| {
+        entered = true;
+        let (bytes, built) = build(progress)?;
+        writer.write_all(&bytes)?;
+        value = Some(built);
+        Ok(())
+    });
+    match published {
+        Ok(()) => value.ok_or_else(|| Error::InvalidValue("document was not built".into())),
+        Err(error) if !entered => {
+            build(&mut crate::concept::progress_logger::ProgressReporter::silent())?;
+            Err(error)
+        }
+        Err(error) => Err(error),
+    }
+}
+
 /// Source IdXMLFile writes plain bytes even when the filename ends in .gz/.bz2.
 #[cfg(feature = "idxml")]
 pub(crate) fn write_plain(

@@ -43,6 +43,7 @@ pub fn write_with_numpress(
         &options.binary,
         &mut Some(prepared.arrays.iter()),
         &prepared.header,
+        &mut ProgressReporter::silent(),
     )?;
     Ok(prepared.report)
 }

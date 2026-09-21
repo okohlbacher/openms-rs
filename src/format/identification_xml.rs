@@ -572,13 +572,18 @@ pub(crate) struct Detach<'a> {
     pub(crate) container: &'a str,
     /// Name of the child element handed to `take`, e.g. `feature`.
     pub(crate) element: &'a str,
-    /// Receives the root as parsed so far, the completed element, and the
+    /// Receives the root as parsed so far, the open container (its attributes,
+    /// without the detached children), the completed element, and the
     /// remaining work and payload budgets, so that the conversion is charged
     /// against the same ceilings. The root carries every child that closed
     /// before the container opened, which is all of a schema-valid featureMap's
     /// metadata and identification data.
-    pub(crate) take: &'a mut dyn FnMut(&Node, Node, &mut usize, &mut usize) -> Result<()>,
+    pub(crate) take: &'a mut DetachTake<'a>,
 }
+
+/// The callback of [`Detach::take`].
+pub(crate) type DetachTake<'a> =
+    dyn FnMut(&Node, &Node, Node, &mut usize, &mut usize) -> Result<()> + 'a;
 
 /// Decode a whole document, or only its prefix through the opening `stop_tag`,
 /// to text bounded by `limit` bytes.
@@ -742,7 +747,7 @@ pub(crate) fn parse_text_with_budget(
                     {
                         detached_from = None;
                         let before = *meter.bytes;
-                        (detach.take)(&stack[0], node, meter.work, meter.bytes)?;
+                        (detach.take)(&stack[0], &stack[1], node, meter.work, meter.bytes)?;
                         // Return the subtree's storage charge and keep only what
                         // `take` charged for what it retained.
                         let retained = before.saturating_sub(*meter.bytes);

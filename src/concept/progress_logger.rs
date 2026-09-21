@@ -369,6 +369,21 @@ impl<'a> ProgressReporter<'a> {
         }
     }
 
+    /// Source `startProgress(0, count, label)` for a record count, which the
+    /// source passes as its signed `SignedSize`. The count is converted only
+    /// when the calls reach a logger, so a silent reporter can never fail here.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when `count` exceeds `i64::MAX`, and the errors
+    /// of [`ProgressLogger::start_progress`]; never when silent.
+    pub fn start_count(&mut self, count: usize, label: &str) -> Result<()> {
+        if self.logger.is_none() {
+            return Ok(());
+        }
+        self.start(0, progress_value(count)?, label)
+    }
+
     /// Source `setProgress(value)`; see [`ProgressLogger::set_progress`].
     ///
     /// # Errors
@@ -396,6 +411,18 @@ impl<'a> ProgressReporter<'a> {
         self.set(progress_value(value)?)
     }
 
+    /// Source `nextProgress()`; see [`ProgressLogger::next_progress`].
+    ///
+    /// # Errors
+    ///
+    /// The errors of [`ProgressLogger::next_progress`]; never when silent.
+    pub fn next_progress(&mut self) -> Result<()> {
+        match self.logger.as_deref_mut() {
+            Some(logger) => logger.next_progress(),
+            None => Ok(()),
+        }
+    }
+
     /// Source `endProgress()`, without a byte count; see
     /// [`ProgressLogger::end_progress`].
     ///
@@ -403,8 +430,19 @@ impl<'a> ProgressReporter<'a> {
     ///
     /// The errors of [`ProgressLogger::end_progress`]; never when silent.
     pub fn end(&mut self) -> Result<()> {
+        self.end_with_bytes(0)
+    }
+
+    /// Source `endProgress(bytes_processed)`, whose nonzero byte count asks
+    /// the command backend for a throughput; see
+    /// [`ProgressLogger::end_progress`].
+    ///
+    /// # Errors
+    ///
+    /// The errors of [`ProgressLogger::end_progress`]; never when silent.
+    pub fn end_with_bytes(&mut self, bytes_processed: u64) -> Result<()> {
         match self.logger.as_deref_mut() {
-            Some(logger) => logger.end_progress(0),
+            Some(logger) => logger.end_progress(bytes_processed),
             None => Ok(()),
         }
     }

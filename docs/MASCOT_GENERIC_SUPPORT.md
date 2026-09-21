@@ -37,7 +37,7 @@ Every member the header declares, public and protected.
 | C++ member | Rust counterpart |
 |---|---|
 | `class MascotGenericFile` | `MascotGenericFile` |
-| base `ProgressLogger` | **not ported**: progress reporting is not threaded through this port. `src/concept/progress_logger.rs` exists; wiring it into file I/O is a separate decision, as for `ImzMLHandler` |
+| base `ProgressLogger`, as `load` and `store` use it | `load_with_progress`, `MascotGenericFile::load_with_progress`, `MascotGenericFile::store_with_progress`, `MascotGenericFile::store_to_with_progress`: the caller's logger receives the Release build's calls, call for call (tier 1, `tests/progress_format_readers.rs`; see `docs/PROGRESS_LOGGER_SUPPORT.md#format-readers`). The load's range is the file size, and its value after each block is the source's `is.tellg()`, -1 after a last `END IONS` with no newline. The other entry points run the same code and report nothing |
 | base `DefaultParamHandler` | `crate::param::DefaultParamHandler`, held as a private field and surfaced through `parameters`, `defaults` and `set_parameters` |
 | `MascotGenericFile()` | `MascotGenericFile::new` (uses the shared `ModificationsDB`) and `MascotGenericFile::with_modifications` (caller-owned registry). Fallible, because the parameter tree is resource-checked |
 | `~MascotGenericFile()` | `Drop`, implicit |
@@ -328,7 +328,6 @@ writer's 15-significant-digit form preserves.
 
 ## Deferred
 
-- `ProgressLogger` is not threaded through, so a large file reports no progress.
 - `SpectrumLookup` / `SpectrumNativeIDParser` remain unported; see the subset
   note above.
 - `MascotRemoteQuery.h` and `MascotInfile.h` are separate headers and are not

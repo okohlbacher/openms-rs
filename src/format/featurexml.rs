@@ -4,6 +4,12 @@
 
 //! Native featureXML 1.9 transport, including legacy hulls and nested features.
 //! Read filters are half-open and never affect writing. See FEATUREXML_SUPPORT.md.
+//!
+//! The source `FeatureXMLFile` and its handler derive from `ProgressLogger`;
+//! [`load_with_progress`](crate::format::featurexml::load_with_progress) and
+//! [`store_with_progress`](crate::format::featurexml::store_with_progress) make the handler's
+//! progress calls, and every other entry point runs the same code and reports
+//! nothing.
 
 #[path = "featurexml_scaling.rs"]
 mod scaling;
@@ -12,6 +18,7 @@ pub use scaling::{Allowance, InputScaling, OutputScaling};
 use super::identification_xml::{self as xml, Detach, Node};
 use super::{FileType, map_xml, path_io};
 use crate::chemistry::ModificationsDB;
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::kernel::{ConvexHull2D, Feature, FeatureMap, Point2D};
 use crate::metadata::{MetaInfo, MetaValue, MetaValueData};
 use crate::{Error, Result};
@@ -391,7 +398,7 @@ pub fn read_with_registry(
     options: &ReadOptions,
     registry: &ModificationsDB,
 ) -> Result<FeatureMap> {
-    Ok(read_document(input, options, registry, false)?.0)
+    Ok(read_document(input, options, registry, false, ProgressReporter::silent())?.0)
 }
 /// Read into `target`, replacing it only on success.
 ///
@@ -418,7 +425,14 @@ pub fn read_into(
 ///
 /// As [`read`], for the prefix that is read.
 pub fn read_size(input: impl BufRead, options: &ReadOptions) -> Result<usize> {
-    Ok(read_document(input, options, ModificationsDB::global(), true)?.1)
+    Ok(read_document(
+        input,
+        options,
+        ModificationsDB::global(),
+        true,
+        ProgressReporter::silent(),
+    )?
+    .1)
 }
 
 /// Attributes and children source accepts on the `featureMap` root.
@@ -535,7 +549,7 @@ fn push_feature(
 
 /// Converts `feature` elements as the parser hands them over, so that the tree
 /// in memory is one feature rather than the whole `featureList`.
-struct Streamer<'a> {
+struct Streamer<'a, 'p> {
     options: &'a ReadOptions,
     xml: &'a xml::ReadOptions,
     source: &'a ModificationsDB,
@@ -543,12 +557,17 @@ struct Streamer<'a> {
     records: usize,
     map: FeatureMap,
     header: Option<Header>,
+    /// The source handler's own `ProgressLogger`.
+    progress: ProgressReporter<'p>,
+    /// Whether the `featureList` section was started.
+    started: bool,
 }
-impl Streamer<'_> {
+impl Streamer<'_, '_> {
     /// Charge one detached element against the shared budgets the parser holds.
     fn take(
         &mut self,
         root: &Node,
+        container: &Node,
         node: Node,
         remaining: &mut usize,
         bytes: &mut usize,
@@ -559,13 +578,19 @@ impl Streamer<'_> {
             records: self.records,
             ceilings: self.ceilings,
         };
-        let outcome = self.convert(root, &node, &mut work);
+        let outcome = self.convert(root, container, &node, &mut work);
         *remaining = work.remaining;
         *bytes = work.bytes;
         self.records = work.records;
         outcome
     }
-    fn convert(&mut self, root: &Node, node: &Node, work: &mut Work) -> Result<()> {
+    fn convert(
+        &mut self,
+        root: &Node,
+        container: &Node,
+        node: &Node,
+        work: &mut Work,
+    ) -> Result<()> {
         if self.header.is_none() {
             self.header = Some(read_header(
                 root,
@@ -574,6 +599,20 @@ impl Streamer<'_> {
                 self.source,
                 work,
             )?);
+        }
+        if self.progress.is_reporting() && !self.started {
+            // `FeatureXMLHandler.cpp:319`, at `<featureList count>`. An
+            // unreadable count is left to the check after the parse, which
+            // reports it exactly as the silent reader does.
+            if let Ok(count) = container.get("count").and_then(xml::number::<usize>) {
+                self.progress.start_count(count, LOADING_LABEL)?;
+                self.started = true;
+            }
+        }
+        if self.started {
+            // `FeatureXMLHandler.cpp:1047`: the features kept so far, as a new
+            // top-level feature begins.
+            self.progress.set_count(self.map.features.len())?;
         }
         let Self {
             options,
@@ -599,11 +638,15 @@ impl Streamer<'_> {
     }
 }
 
+/// The label of the source handler's loading section.
+const LOADING_LABEL: &str = "Loading featureXML file";
+
 fn read_document(
     input: impl BufRead,
     options: &ReadOptions,
     registry: &ModificationsDB,
     size_only: bool,
+    progress: ProgressReporter<'_>,
 ) -> Result<(FeatureMap, usize)> {
     let limits = options.limits;
     // Ceilings that can admit nothing are refused before the input is touched.
@@ -638,6 +681,8 @@ fn read_document(
         records: 0,
         map: FeatureMap::default(),
         header: None,
+        progress,
+        started: false,
     };
     let root = if prefix_only {
         xml::parse_text_with_budget(
@@ -650,9 +695,10 @@ fn read_document(
             None,
         )?
     } else {
-        let mut take = |root: &Node, node: Node, work: &mut usize, payload: &mut usize| {
-            sink.take(root, node, work, payload)
-        };
+        let mut take =
+            |root: &Node, container: &Node, node: Node, work: &mut usize, payload: &mut usize| {
+                sink.take(root, container, node, work, payload)
+            };
         xml::parse_text_with_budget(
             &text,
             &opts,
@@ -672,6 +718,8 @@ fn read_document(
         records,
         mut map,
         header,
+        mut progress,
+        started,
         ..
     } = sink;
     let mut work = Work {
@@ -710,6 +758,14 @@ fn read_document(
     }
     if !seen_list {
         return Err(bad("featureMap requires featureList"));
+    }
+    if !prefix_only {
+        // `FeatureXMLHandler.cpp:319` for a list without features, and `:838`
+        // at `</featureList>`.
+        if !started {
+            progress.start_count(count, LOADING_LABEL)?;
+        }
+        progress.end()?;
     }
     Ok((map, count))
 }
@@ -958,6 +1014,16 @@ fn map_units(map: &FeatureMap) -> usize {
 }
 
 fn encode(map: &FeatureMap, options: &WriteOptions, registry: &ModificationsDB) -> Result<Vec<u8>> {
+    encode_reporting(map, options, registry, &mut ProgressReporter::silent())
+}
+/// The document, with the source handler's store section around the feature
+/// list (`FeatureXMLHandler.cpp:215-222`).
+fn encode_reporting(
+    map: &FeatureMap,
+    options: &WriteOptions,
+    registry: &ModificationsDB,
+    progress: &mut ProgressReporter<'_>,
+) -> Result<Vec<u8>> {
     let ceilings = Ceilings::write(options.limits, options.scaling, map_units(map));
     let mut work = Work::new(ceilings);
     work.slots::<Feature>(map.features.len())?;
@@ -1074,21 +1140,25 @@ fn encode(map: &FeatureMap, options: &WriteOptions, registry: &ModificationsDB) 
     }
     let mut list = Node::new("featureList");
     list.attr("count", map.len());
-    for feature in &map.features {
+    progress.start_count(map.features.len(), "Storing featureXML file")?;
+    for (index, feature) in map.features.iter().enumerate() {
         list.children.push(write_feature(
             feature, "f_", &context, &registry, &mut work,
         )?);
+        progress.set_count(index)?;
     }
     root.children.push(list);
     work.node(&root, 0)?;
-    xml::render(
+    let bytes = xml::render(
         &root,
         &xml::WriteOptions {
             // A ceiling wider than the address space is the address space.
             max_xml_bytes: usize::try_from(options.limits.max_xml_bytes).unwrap_or(usize::MAX),
             max_records: ceilings.records,
         },
-    )
+    )?;
+    progress.end()?;
+    Ok(bytes)
 }
 fn text_node(name: &str, value: impl ToString) -> Node {
     let mut n = Node::new(name);
@@ -1212,8 +1282,64 @@ pub fn load(path: impl AsRef<Path>) -> Result<FeatureMap> {
 ///
 /// As [`load`].
 pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Result<FeatureMap> {
+    load_reporting(path, options, ProgressReporter::silent())
+}
+/// Load a featureXML file, reporting progress as source
+/// `FeatureXMLFile::load` does.
+///
+/// The source file hands its handler only its log type
+/// (`FeatureXMLFile.cpp:54`), so the calls go to a fresh backend of `logger`'s
+/// type, as [`ProgressLogger::clone`] makes one: the command backend for
+/// [`Cmd`](crate::concept::progress_logger::ProgressLogType::Cmd), the
+/// logger's GUI factory for
+/// [`Gui`](crate::concept::progress_logger::ProgressLogType::Gui), and none
+/// for the default type. A backend installed on `logger` with
+/// [`ProgressLogger::set_logger`] receives nothing, as a source file's
+/// `setLogger` backend receives nothing.
+///
+/// The calls are the handler's: `startProgress(0, count, "Loading featureXML
+/// file")` at `<featureList count>` (`FeatureXMLHandler.cpp:319`),
+/// `setProgress` with the number of features kept so far as each top-level
+/// feature begins (`:1047`), and `endProgress()` at `</featureList>`
+/// (`:838`). A metadata-only load stops at `<featureList>` and makes no call.
+/// The result is the one [`load_with_options`] returns, and so is every error:
+/// both run the same code, whose calls go nowhere for [`load_with_options`].
+///
+/// This reader converts each feature once the parser has handed over the
+/// whole element, so it makes a feature's call when the feature ends rather
+/// than when it begins: a document that fails inside a feature misses that
+/// feature's call, and one that fails in `<featureList>` before its first
+/// feature is complete misses the start. The header is converted before the
+/// start, so a refused header makes no call, as in the source. A failure
+/// after the start leaves the section open, as in the source, where the
+/// exception bypasses `endProgress`.
+///
+/// # Errors
+///
+/// As [`load`], plus the errors of the progress calls
+/// ([`ProgressLogger::start_progress`] and its siblings).
+pub fn load_with_progress(
+    path: impl AsRef<Path>,
+    options: &ReadOptions,
+    logger: &ProgressLogger,
+) -> Result<FeatureMap> {
+    let mut handler = logger.clone();
+    load_reporting(path, options, ProgressReporter::new(Some(&mut handler)))
+}
+fn load_reporting(
+    path: impl AsRef<Path>,
+    options: &ReadOptions,
+    progress: ProgressReporter<'_>,
+) -> Result<FeatureMap> {
     let path = path.as_ref();
-    let mut map = read_with_options(path_io::open(path)?, options)?;
+    let mut map = read_document(
+        path_io::open(path)?,
+        options,
+        ModificationsDB::global(),
+        false,
+        progress,
+    )?
+    .0;
     map.loaded_file_path = path
         .to_str()
         .ok_or_else(|| bad("loaded filename must be UTF-8"))?
@@ -1294,4 +1420,46 @@ pub fn store_with_options(
     }
     let bytes = encode(map, options, ModificationsDB::global())?;
     path_io::store(path, &bytes)
+}
+/// Store `map` at `path`, reporting progress as source
+/// `FeatureXMLFile::store` does.
+///
+/// As for [`load_with_progress`], the calls go to a fresh backend of
+/// `logger`'s type (`FeatureXMLFile.cpp:104`). They are the handler's
+/// `writeTo` calls (`FeatureXMLHandler.cpp:215-222`): `startProgress(0,
+/// features, "Storing featureXML file")` once the header, identification runs
+/// and unassigned peptides are written, `setProgress(i)` after feature `i`,
+/// and `endProgress()` after the last one. As in the source, the destination
+/// is opened first (`XMLFile::save_`), so one that cannot be created makes no
+/// call. The bytes and every error are those of [`store_with_options`], which
+/// builds the same document without reporting; the port's refusals precede
+/// the start.
+///
+/// # Errors
+///
+/// As [`store`], plus the errors of the progress calls.
+pub fn store_with_progress(
+    path: impl AsRef<Path>,
+    map: &FeatureMap,
+    options: &WriteOptions,
+    logger: &ProgressLogger,
+) -> Result<()> {
+    let path = path.as_ref();
+    if !super::file_types::has_valid_extension(
+        path.to_string_lossy().as_ref(),
+        FileType::FeatureXml,
+    ) {
+        return Err(bad("expected featureXML file extension"));
+    }
+    let mut handler = logger.clone();
+    path_io::store_reporting(
+        path,
+        |progress| {
+            Ok((
+                encode_reporting(map, options, ModificationsDB::global(), progress)?,
+                (),
+            ))
+        },
+        &mut ProgressReporter::new(Some(&mut handler)),
+    )
 }

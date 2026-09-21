@@ -64,6 +64,31 @@ stored map and a stored map with protein-group quantities ported
 ([XML schema validation](XML_SCHEMA_SUPPORT.md)). The handler implementation
 does not certify a TOPP tool or executed C++ differential parity.
 
+## Progress
+
+`ConsensusXMLFile` and its handler derive from `ProgressLogger`, and the file
+hands the handler only its log type (`ConsensusXMLFile.cpp:76-78`, `:90-92`).
+`consensusxml::load_with_progress` and `store_with_progress` therefore make the
+handler's calls on a copy of the caller's logger, made as
+`ProgressLogger::clone` makes one; a backend installed with `set_logger`
+receives nothing, as a source file's does. Both sections are zero-width, so the
+command backend prints one dot per call. Loading: `startProgress(0, 0, "loading
+consensusXML file")`, then `setProgress(1)`, `setProgress(2)`, … for the root
+and for every `map`, `consensusElement`, `IdentificationRun`, `ProteinHit`,
+`PeptideHit` and `dataProcessing` element (`ConsensusXMLHandler.cpp:149`,
+`:173`, `:254-256`, `:334`, `:424`, `:485`, `:582`), and `endProgress()` at
+`</consensusXML>` (`:130-133`). Storing: `startProgress(0, 0, "storing
+consensusXML file")`, `setProgress(1)` … `setProgress(5 + identification runs
++ column headers + consensus features)`, `endProgress()` (`:606-837`), with the
+destination opened before the first call as `XMLFile::save_` opens it. These are
+the Release build's calls, call for call (tier 1,
+`tests/progress_format_readers.rs`). This reader parses the whole document
+before converting any of it, so it makes the loading calls once the parse
+succeeded: a document that is not well-formed makes none, where the Release
+build has made the calls for the elements before the defect (the replay asserts
+this against a truncated document), and one the conversion refuses has made
+every set and no end. See `docs/PROGRESS_LOGGER_SUPPORT.md#format-readers`.
+
 ## Evidence
 
 [The source/fixture manifest](../tests/data/consensusxml_provenance.json) pins the

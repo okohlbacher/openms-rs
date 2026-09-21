@@ -168,6 +168,35 @@ Spectrum and chromatogram metadata use the shared typed `MetaInfo` model; scalar
 
 Use the documented peak/metadata subset for analysis and interchange. Preserve the original source file when its acquisition metadata is needed.
 
+## Progress
+
+`MzMLFile` derives from `ProgressLogger` and hands itself to its handler.
+`mzml::load_with_progress` and `store_with_progress` make the handler's calls:
+on loading, the whole document's section on a copy of the caller's logger, as
+the handler's thread-local `pg_outer` is one (`MzMLHandler.cpp:106`, `:135`,
+`:1203`, `:1524`), ended with the file's size so the command backend reports a
+throughput; and the spectrum and chromatogram lists on the caller's logger,
+advanced with `nextProgress()` after every record, kept or not (`:966`, `:997`,
+`:1443`, `:1483`, `:1491`, `:1497`). On storing, one section over spectra and
+chromatograms on the caller's logger, ended with the bytes written
+(`:4763-4838`). These are the Release build's calls, call for call (tier 1,
+`tests/progress_format_readers.rs`), including a truncated document and a
+second load through the same logger after it, which both builds refuse at the
+list's start in command mode because the failed load left that section open. A
+metadata-only load leaves the document's section open, as the source's
+`EndParsingSoftly` leaves `pg_outer`'s. Where the port differs: it decodes a
+binary array when the array closes, the source when its spectrum pool is
+flushed (by default at `</mzML>`), so an undecodable array fails after fewer
+calls; and the store's byte count is that of the port's own document, counted
+before any `.gz`/`.bz2` compression, where the source passes -1 for a
+compressed stream. With `skip_chromatograms` the source starts no section at
+all and fails in command mode (CPP-017); the port, which skips only the
+chromatograms, makes the ordinary load's calls. `load_size`, the stream
+readers and writers, and the
+`transform` entry points report nothing, although the source's `loadSize`,
+`loadBuffer`, `storeBuffer` and `transform` do. See
+`docs/PROGRESS_LOGGER_SUPPORT.md#format-readers`.
+
 ## Verification and provenance
 
 The mzML tests cover independent mixed-precision input, both compression modes, spectra and chromatograms, minute-to-second conversion, precursor fields, UTF-8 and escaped attributes, empty records, malformed XML, missing and non-numeric list counts, truncated/corrupt/trailing zlib bytes, nonfinite/overflowing values, resource limits, and writer preflight errors. Independent review added regression tests for conflicting scientific CV fields, the reserved metadata key, and forbidden XML characters.

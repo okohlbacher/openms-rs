@@ -1,0 +1,327 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/ProgressLogger.h",
+      "sha256": "e06ba1466a0ed9c2f509281b2938f60c62510c9ab3c98323e8f0b54885e8cf1f",
+      "lines": "76-107 the public API; the static recursion_depth_"
+    },
+    {
+      "path": "src/openms/source/CONCEPT/ProgressLogger.cpp",
+      "sha256": "cab7e28a3b62516ccb0d498cacf969a2c18975ece6c97da2aff51c5f25733baf",
+      "lines": "36-81 CMD backend; 122-123 make_gui_progress_logger; 233-271 startProgress/setProgress/nextProgress/endProgress, 244 and 255 whole-second throttle"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/DTA2DFile.h",
+      "sha256": "2bb5d1ce9785fcd4b476a503dcc9e29a9f2b127d2d7f63b7b61d59c2aa8e3802",
+      "lines": "72-248 load: 74 startProgress(0, 0, \"loading DTA2D file\") before the file opens, 217 setProgress(0) per new spectrum, 247 endProgress; 258-287 store; 297-320 storeTIC"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MS2File.h",
+      "sha256": "eb3a6823b981c32661f6a5cf80ad3b8162384b7a7a34ff59cf4fd68116b612b2",
+      "lines": "52 the only progress call, commented out"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+      "sha256": "1760bddee993898af23866a5a5558b19f8e658180adcae568584cbfc77001256",
+      "lines": "74-104 load: 76-79 FileNotFound before the section, 86 startProgress(0, is.tellg(), \"loading MGF\"), 99 setProgress(is.tellg()), 103 endProgress"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+      "sha256": "ba8d16b22034f0a7f0f257469f7437e0e3e4589b48bb9ecb80caf2fe8df5c67e",
+      "lines": "116-130 store(filename); 458-476 the storing section"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ConsensusXMLFile.cpp",
+      "sha256": "94247197099fafb4dbee77148c44660fc50663a31ccddbb304ca871edfdb81c6",
+      "lines": "76-78 store and 90-92 load hand the handler only setLogType(getLogType())"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/ConsensusXMLHandler.cpp",
+      "sha256": "644fc07a41fb609c1672c8eb0edac89c040a778f5c3ea68cc18a01c106771c7a",
+      "lines": "130-133 endProgress at </consensusXML>; 149, 173, 334, 424, 485, 582 setProgress(++progress_); 254-256 start at the root; 606-837 writeTo"
+    },
+    {
+      "path": "src/openms/source/FORMAT/FeatureXMLFile.cpp",
+      "sha256": "d8438be53a31a416e5630e375c2fc950fec129d9c75ba039a672265989072645",
+      "lines": "39, 54, 104 setLogType(getLogType())"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/FeatureXMLHandler.cpp",
+      "sha256": "1430b1286eeaf0f8c40f8ddd882d6f680e3932149ed743fb6e0f7dbc909e58fc",
+      "lines": "215-222 store section; 306-316 featureList stops metadata-only and loadSize before 319 startProgress(0, count, \"Loading featureXML file\"); 838 endProgress; 1047 setProgress(map_->size())"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+      "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d",
+      "lines": "347-356 spectrumList start; 436 static UInt scan_count; 452 setProgress(++scan_count); 460-464 end and reset at </mzData>; 579-1073 writeTo: 581, 803, 1072"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+      "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393",
+      "lines": "130-136 msRun start; 281-282 setProgress(scan_count_) per scan; 524-531 end at </mzXML>; 636, 864, 1119 writeTo"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a",
+      "lines": "106 thread_local pg_outer; 135 pg_outer = logger; 149 setOptions sets skip_chromatogram_ and 870-873 the start-element guard it trips (CPP-017); 966, 997 list starts; 1203 pg_outer start; 1425-1428 pool flush; 1443, 1483 nextProgress; 1491, 1497 list ends; 1522-1524 flush and pg_outer.endProgress(File::fileSize(file_)); 4763-4838 writeTo"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzMLFile.cpp",
+      "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e",
+      "lines": "113-129 safeParse_ wraps every exception as ParseError; 141-153 load"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzIdentMLFile.cpp",
+      "sha256": "b24ed5b9e238eebea944336fdf8e7aaa90a5ec0f08b1d12e6a2312d3e0550fa6",
+      "lines": "no progress call"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+      "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6",
+      "lines": "no progress call"
+    }
+  ],
+  "evidence": "Executed Release differential: every backend call (arguments and nesting depth) that reaches any backend of the reader, the command backends' stdout bytes (timing and throughput texts masked), the outcome and the static depth afterwards, for DTA2DFile load/store/storeTIC, MS2File load, MascotGenericFile load/store, MzIdentMLFile load/store, ConsensusXMLFile load/store, FeatureXMLFile load/loadSize/store, MzDataFile load/store, MzXMLFile load/store and MzMLFile load/store, including missing, unwritable, malformed and truncated inputs, the mzData handler's process-wide scan counter after a failed load, and a second load on an mzML file object after a failed one, and an mzML load with PeakFileOptions::setSkipChromatograms (CPP-017).",
+  "evidence_tier": "executed differential (tier 1) against the OpenMS4 Release C++ build",
+  "fixtures": [
+    {
+      "path": "tests/data/progress_format_readers_release.tsv",
+      "sha256": "9c39e6250c1dbf02d6ee03587612391070216ef28463a18bce39273e82d8649e",
+      "origin": "masked per-run table written by ../oracle/progress-format-readers/extract.py from three identical Release runs"
+    },
+    {
+      "path": "tests/data/progress_format_readers/DTA2DFile_test_1.dta2d",
+      "sha256": "2ae3ae9d954da10e8b83eb39bf2fd53eec08f7aa5d2e76aaba69da4daf346447",
+      "origin": "src/tests/class_tests/openms/data/DTA2DFile_test_1.dta2d at bc9cc12, verbatim"
+    },
+    {
+      "path": "tests/data/progress_format_readers/MS2File_test_spectra.ms2",
+      "sha256": "c609e857d09d9758846b9f436f36ac627e1ecd11f7464687643bb7a5c7ef458c",
+      "origin": "src/tests/class_tests/openms/data/MS2File_test_spectra.ms2 at bc9cc12, verbatim"
+    },
+    {
+      "path": "tests/data/progress_format_readers/dta2d_bad_line.dta2d",
+      "sha256": "c123274afcec8715168a0caa1faa937d7409cedf4634b0f9d9ebd20fd4130705",
+      "origin": "authored by make_inputs.py: one good line, then a line whose m/z is not a number"
+    },
+    {
+      "path": "tests/data/progress_format_readers/mgf_two_blocks.mgf",
+      "sha256": "a8286dafe33800ea2661a91820f3168869171246c6d1be55e2d9964a1e177130",
+      "origin": "authored by make_inputs.py: two blocks, the last END IONS without a newline"
+    },
+    {
+      "path": "tests/data/progress_format_readers/truncated.consensusXML",
+      "sha256": "0da711a673acc3de7d81a7019e196b6907c195bdc33241bccc558dd7b8798ba0",
+      "origin": "first 96 lines of ConsensusXMLFile_1.consensusXML (make_inputs.py)"
+    },
+    {
+      "path": "tests/data/progress_format_readers/truncated.featureXML",
+      "sha256": "e4a383cbfe3c2c28d5de2f890d8ed1be7def270b1b45cf63d3b98d3333919dc2",
+      "origin": "first 104 lines of FeatureXMLFile_1.featureXML (make_inputs.py)"
+    },
+    {
+      "path": "tests/data/progress_format_readers/truncated.mzData",
+      "sha256": "7893312e9beeeb7bca82566fc492958a518607b5f64e4baf45eab74c71e5acaa",
+      "origin": "first 251 lines of MzDataFile_1.mzData (make_inputs.py)"
+    },
+    {
+      "path": "tests/data/progress_format_readers/truncated.mzXML",
+      "sha256": "98796279d1634c0845925b9d78ea7c805eee89032cca4229b72b483dadcdf811",
+      "origin": "first 37 lines of MzXMLFile_1.mzXML (make_inputs.py)"
+    },
+    {
+      "path": "tests/data/progress_format_readers/truncated.mzML",
+      "sha256": "67986d063a631252071e8accb3e6ffd1183f271172d777c932d4439e5f998b19",
+      "origin": "first 385 lines of MzMLFile_1.mzML (make_inputs.py)"
+    }
+  ],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/MascotGenericFile_GNPS.mgf",
+      "sha256": "f4501242e6ef27dca90e11fde93bc76b7a2dfdff6530ec76dcb83fbb5f0ff2b3",
+      "origin": "src/tests/class_tests/openms/data/MascotGenericFile_GNPS.mgf at bc9cc12, byte-identical; the driver read it under that name"
+    },
+    {
+      "path": "tests/data/mzidentml_whole.mzid",
+      "sha256": "883efa27ea3c795cc2569b41d933951d2d6316a11d42651a0f197b4472a6b96e",
+      "origin": "src/tests/class_tests/openms/data/MzIdentMLFile_whole.mzid at bc9cc12, byte-identical; the driver read it under that name"
+    },
+    {
+      "path": "tests/data/consensusxml/ConsensusXMLFile_1.consensusXML",
+      "sha256": "771a84b7b2c9ffdc484e84660c8cfedb902418257c68440d1bd35640eb60cd7d",
+      "origin": "src/tests/class_tests/openms/data/ConsensusXMLFile_1.consensusXML at bc9cc12, byte-identical; the driver read it under that name"
+    },
+    {
+      "path": "tests/data/featurexml_source_1.featureXML",
+      "sha256": "f3e6a6c6fb14a22a457b94fd8465c1e3847f094555bd7798f11b446e5823993a",
+      "origin": "src/tests/class_tests/openms/data/FeatureXMLFile_1.featureXML at bc9cc12, byte-identical; the driver read it under that name"
+    },
+    {
+      "path": "tests/data/MzDataFile_1.mzData",
+      "sha256": "2a50f4bc28c5bcd3f3625e67b5860dfbdddb011febcd10253776b6dc4a0de64f",
+      "origin": "src/tests/class_tests/openms/data/MzDataFile_1.mzData at bc9cc12, byte-identical; the driver read it under that name"
+    },
+    {
+      "path": "tests/data/MzXMLFile_1.mzXML",
+      "sha256": "fc6a96d8b35c05ee3d9b62996b09cddfb52c19fa3c6c1eb0f6550a9e7d6c08e7",
+      "origin": "src/tests/class_tests/openms/data/MzXMLFile_1.mzXML at bc9cc12, byte-identical; the driver read it under that name"
+    },
+    {
+      "path": "tests/data/mzml_load_source_original.mzML",
+      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
+      "origin": "src/tests/class_tests/openms/data/MzMLFile_1.mzML at bc9cc12, byte-identical; the driver read it under that name"
+    }
+  ],
+  "native_implementation": [
+    "src/format/dta2d.rs (load_with_progress, store_with_progress, store_tic_with_progress)",
+    "src/format/mascot_generic.rs (load_with_progress, MascotGenericFile::load_with_progress, store_with_progress, store_to_with_progress)",
+    "src/format/consensusxml.rs (load_with_progress, store_with_progress)",
+    "src/format/featurexml.rs (load_with_progress, store_with_progress)",
+    "src/format/mzdata.rs (load_with_progress, store_with_progress, MzDataFile members, the process-wide scan counter)",
+    "src/format/mzxml.rs (load_with_progress, store_with_progress, MzXMLFile members)",
+    "src/format/mzml.rs and src/format/mzml_paths.rs (load_with_progress, store_with_progress)",
+    "src/format/path_io.rs (store_reporting)",
+    "src/format/identification_xml.rs (the detach hook passes its container)",
+    "src/concept/progress_logger.rs (ProgressReporter::next_progress, end_with_bytes)"
+  ],
+  "native_tests": [
+    "tests/progress_format_readers.rs"
+  ],
+  "support_document": "docs/PROGRESS_LOGGER_SUPPORT.md",
+  "release_oracle": {
+    "reference_build": "Linux x86_64 Release (user decision): the reference behaviour of the port",
+    "install_prefix": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+    "install_manifest_sha256": "2efe7501c5c7e3f6dd3feef78628ae6f1158e762b7fc04154de21cfd095b293a",
+    "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+    "installed_config_h_sha256": "13c7a065862db9f20eaf89140b8aeefcf68df80beb71dc80ac42c039ca4e8729",
+    "pins": {
+      "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+      "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+      "rust_base_revision": "fb3167a"
+    },
+    "debug_checks_absent": "The installed config.h reads `#  if (0)` around `#define OPENMS_ASSERTIONS`; the driver's op log records 'OPENMS_ASSERTIONS not defined'.",
+    "host": "ibminode06 (Ubuntu 24.04.4 LTS, AMD EPYC 7763), work dir /scratch/kohlbach/progress-format-readers-oracle",
+    "compiler": "conda-forge x86_64-conda-linux-gnu-g++ 14.4.0 from the install's deps/, -O2 -std=c++20 -rdynamic, -lOpenMS with rpath to the install",
+    "driver_sha256": "aeabb4db14f85c5b1f2476ead1778c52d1b962ca0ea7b9281bd79b5c10a76eae",
+    "driver_binary_sha256": "40d2625c6c252e9a50a3791f38288e085e7f0fc327d1544fc3e73e32f07a4fa6",
+    "method": "Each case runs a reader twice on a fresh file object reading the inputs listed under fixtures and reused_fixtures: once with setLogType(GUI) and make_gui_progress_logger replaced by a factory for a recording backend, so every backend the reader reaches is recorded - the file's own, the fresh ones ConsensusXMLFile and FeatureXMLFile make for their handlers with setLogType(getLogType()), and MzMLHandler's thread_local pg_outer copy - with its arguments and the depth the wrapper passes; and once with setLogType(CMD), whose stdout bytes are cut out by file offset. Store cases load their input first with a separate reader of type NONE. After each run the op log records the return fields or the exception and ProgressLogger's static recursion depth (read and reset to 0 through a derived class). OPENMS_LOG_* output goes to a separate log file; the fatal-error stream still reaches stderr, which is recorded but not part of the fixture.",
+    "throttle": "ProgressLogger::setProgress/nextProgress return early while last_invoke_ == time(nullptr) (ProgressLogger.cpp:244, :255). The driver defines time() itself and is linked with -rdynamic (build_info.txt: the driver exports `time`, libOpenMS.so imports `time@GLIBC_2.2.5`); every call returns a new second, so no set can be suppressed. The Rust replay uses a clock with the same property.",
+    "masking": "The two timing texts of each '-- done [took X (CPU), Y (Wall)' line, and the ' @ <rate>/s' throughput when present, are replaced (extract.py). The node's work directory in exception messages becomes <W>, each repetition's output directory <W>/out. The size of the stored mzIdentML file, which embeds its creation time, is masked.",
+    "repetitions": 3,
+    "repetition_result": "all three runs exit 0; the masked tables are identical; raw op logs and stdout differ only in the masked texts. The 31-case run added mzml_load_skip_chromatograms to a 30-case run whose rows it reproduces unchanged.",
+    "raw_outputs": [
+      {
+        "name": "oplog_1.tsv",
+        "sha256": "b26dfaee1f4f2e90b3fd5bb5a2b50cb6dfc9cac581dfde360d0022f54de93dd0"
+      },
+      {
+        "name": "stdout_1.raw",
+        "sha256": "6bd05d540388a0877b9c0a5a7d8967b8551ef359044c5a9002894c24453db475"
+      },
+      {
+        "name": "stderr_1.raw (identical for runs 2 and 3)",
+        "sha256": "452d1ffad7dc2a3fbce81467cd2644ac28d3923b6c4f985812db8e0fdd119cf8"
+      }
+    ],
+    "findings": [
+      "MS2File::load, MzIdentMLFile::load and ::store make no progress call; FeatureXMLFile::loadSize and a missing MGF file stop before the section.",
+      "An exception inside a section bypasses endProgress: no done line, the static depth stays raised; in the mzML case the file object's own command backend then refuses the next list start (StopWatch.cpp:43), which MzMLFile::safeParse_ reports as ParseError.",
+      "MzDataHandler's function-local static scan counter survives a failed load: a second file object's setProgress values continue from 2 and exceed the range.",
+      "MascotGenericFile::load reports is.tellg() = -1 after a last END IONS without a newline, which the command backend prints as an invalid progress value.",
+      "ConsensusXMLHandler resets progress_ to 0 at each section start, so its values are deterministic.",
+      "A metadata-only mzML load leaves pg_outer's section open (EndParsingSoftly at <spectrumList>).",
+      "CPP-017 reproduced: with setSkipChromatograms(true) the handler ignores every start element until </chromatogramList>, so it starts no section, advances on every record end, ends two sections it never began, and fails the load in command mode when the backend refuses the end (StopWatch.cpp:55); the port skips only the chromatograms and makes the ordinary load's calls."
+    ]
+  },
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/progress-format-readers/driver.cpp",
+      "sha256": "aeabb4db14f85c5b1f2476ead1778c52d1b962ca0ea7b9281bd79b5c10a76eae",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "executed driver source"
+    },
+    {
+      "path": "../oracle/progress-format-readers/make_inputs.py",
+      "sha256": "67dad72341fa5de3a7edf344284ff6f8ee698926d7d4810eba8773d79b392774",
+      "location": "outside this repository",
+      "origin_key": "fixtures",
+      "role": "derives the authored and truncated inputs"
+    },
+    {
+      "path": "../oracle/progress-format-readers/remote_run.sh",
+      "sha256": "a5f15d6a3279273ac9d1858e9f3c3ef3259e97d19479ebc07e4d451aa8d75c92",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "node build/run script"
+    },
+    {
+      "path": "../oracle/progress-format-readers/run.sh",
+      "sha256": "7848bcb2734fe283cb03893f60fe4b14eb8b7a2f5df49ffb49e9d1d04d96b348",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "Mac-side stage/launch/fetch script"
+    },
+    {
+      "path": "../oracle/progress-format-readers/extract.py",
+      "sha256": "0e8f41f622e402f755fa7f4eccf9f232d754fcfd05d6713ebc2672c508817b2a",
+      "location": "outside this repository",
+      "origin_key": "fixtures",
+      "role": "masks and writes the fixture"
+    },
+    {
+      "path": "../oracle/progress-format-readers/results/build_info.txt",
+      "sha256": "6bb6c59099d36456353b02f4fc4508b1159962cf6fb1190f2f75b0464d11ae95",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "host, compiler, hashes of the driver, libOpenMS.so, config.h, BUILD_MANIFEST.json and the inputs"
+    },
+    {
+      "path": "../oracle/progress-format-readers/results/summary.txt",
+      "sha256": "a122356f6531aad8ad1435255a25a05c24b9ae55761fa6ba74ac985af241d851",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "raw capture hashes and the masked texts"
+    },
+    {
+      "path": "../oracle/progress-format-readers/results/oplog_1.tsv",
+      "sha256": "b26dfaee1f4f2e90b3fd5bb5a2b50cb6dfc9cac581dfde360d0022f54de93dd0",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "raw op log, repetition 1"
+    },
+    {
+      "path": "../oracle/progress-format-readers/results/stdout_1.raw",
+      "sha256": "6bd05d540388a0877b9c0a5a7d8967b8551ef359044c5a9002894c24453db475",
+      "location": "outside this repository",
+      "origin_key": "fixtures",
+      "role": "raw stdout, repetition 1"
+    },
+    {
+      "path": "../oracle/progress-format-readers/results/stderr_1.raw",
+      "sha256": "452d1ffad7dc2a3fbce81467cd2644ac28d3923b6c4f985812db8e0fdd119cf8",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "raw stderr, repetition 1 (OpenMS's fatal-error log)"
+    },
+    {
+      "path": "../oracle/progress-format-readers/results/log_1.txt",
+      "sha256": "365f01a15e0d798226462b61736f3afe4565129aaf655a5ddea5f5209f434fb0",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "OpenMS log, repetition 1"
+    },
+    {
+      "path": "../oracle/progress-format-readers/results/runs.txt",
+      "sha256": "87ab96650af320ac5be06c3a95bc66503170d0dcecbf043ba3e27432135fa4d7",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "exit codes of the three repetitions"
+    }
+  ],
+  "external_reference_note": "The Release oracle driver, its node and Mac scripts, the input generator, the extractor and the raw captures live under ../oracle/progress-format-readers/ so that no C++ is committed here. Only the masked per-run table and the inputs are fixtures; these sha256 values are the evidence chain from the Release install to them. They are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate."
+}
