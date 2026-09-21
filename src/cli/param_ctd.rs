@@ -379,6 +379,19 @@ fn to_string_double(value: f64) -> String {
     format!("{value:.6}")
 }
 
+impl ParamCtdFile {
+    /// Source `ParamCTDFile::escapeXML` (a private static there):
+    /// [`escape_xml`] as an associated function.
+    pub fn escape_xml(text: &str) -> String {
+        escape_xml(text)
+    }
+    /// Source `ParamCTDFile::replace` (a private static there): [`replace`]
+    /// as an associated function.
+    pub fn replace(text: &str, from: u8, to: &str) -> String {
+        replace(text, from, to)
+    }
+}
+
 /// Source `ParamCTDFile::escapeXML`: `&`, `>`, `"`, `<` and `'` in that
 /// order, each through [`replace`], so the source's skip after a replacement
 /// applies to each pass.

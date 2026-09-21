@@ -1,0 +1,4 @@
+BaselineFilter
+-test
+-write_cwl
+/scratch/kohlbach/toppbase-oracle/run1/results/write_cwl/cwd/out

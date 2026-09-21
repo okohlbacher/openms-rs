@@ -1,0 +1,2 @@
+2026-09-21 16:36:47 BaselineFilter:1:: Warning: Parameters file version (0.0.1) does not match the version of this tool (1.0.0).
+Your current parameters are still valid, but there might be new valid values or even new parameters. Upgrading the INI might be useful.

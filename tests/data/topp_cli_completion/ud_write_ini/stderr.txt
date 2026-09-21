@@ -1,0 +1,2 @@
+Default-Parameter 'BaselineFilter:1:method' overridden: 'tophat' --> 'erosion'!
+Default-Parameter 'BaselineFilter:1:struc_elem_length' overridden: '3' --> '5.5'!

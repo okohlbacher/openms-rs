@@ -1,0 +1,3 @@
+2026-09-21 16:36:47 BaselineFilter:1:: Writing to '/scratch/kohlbach/toppbase-oracle/run1/results/log_write_ini_debug1/cwd/log.txt'
+2026-09-21 16:36:47 BaselineFilter:1:: Debug level: 1
+2026-09-21 16:36:47 BaselineFilter:1::  >> /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/BaselineFilter -test -write_ini /scratch/kohlbach/toppbase-oracle/run1/results/log_write_ini_debug1/cwd/x.ini -log /scratch/kohlbach/toppbase-oracle/run1/results/log_write_ini_debug1/cwd/log.txt -debug 1

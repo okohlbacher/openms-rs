@@ -1,0 +1,5 @@
+cwd
+cwd/log.txt
+cwd/out.mzML
+home
+home/log.ini

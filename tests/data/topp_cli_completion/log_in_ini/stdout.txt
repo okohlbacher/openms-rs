@@ -1,0 +1,11 @@
+Warning: Parameters file version (0.0.1) does not match the version of this tool (1.0.0).
+Your current parameters are still valid, but there might be new valid values or even new parameters. Upgrading the INI might be useful.
+Progress of 'loading mzML':
+  Progress of 'loading spectra list':
+  -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+-- done [took 0.00 s (CPU), 0.00 s (Wall) @ 15.67 MiB/s] -- 
+Progress of 'filtering baseline':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'storing mzML file':
+-- done [took 0.00 s (CPU), 0.00 s (Wall) @ 6.255 MiB/s] -- 
+BaselineFilter took 0.10 s (wall), 10.94 s (CPU), 0.02 s (system), 10.92 s (user); Peak Memory Usage: 66 MB.

@@ -1,0 +1,22 @@
+stty: 'standard input': Inappropriate ioctl for device
+
+MapNormalizer -- Normalizes peak intensities in an MS run.
+Full documentation: http://www.openms.de/doxygen/release/4.0.0/html/TOPP_MapNormalizer.html
+Version: 1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data. Nat Methods (2024). doi:10.1038/s41592-024-02197-7.
+
+Usage:
+  MapNormalizer <options>
+
+Options (mandatory options marked with '*'):
+  -in <file>*        Input file  (valid formats: 'mzML')
+  -out <file>*       Output file  (valid formats: 'mzML')
+                     
+Common TOPP options:
+  -ini <file>        Use the given TOPP INI file
+  -threads <n>       Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores) (default: '1')
+  -write_ini <file>  Writes the default configuration file
+  --help             Shows options
+  --helphelp         Shows all options (including advanced)
+

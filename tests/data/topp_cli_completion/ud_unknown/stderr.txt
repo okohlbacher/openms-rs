@@ -1,0 +1,2 @@
+Unknown (or deprecated) Parameter 'BaselineFilter:1:bogus_item' given in outdated parameter file! Ignoring parameter. 
+Default-Parameter 'BaselineFilter:1:method' overridden: 'tophat' --> 'erosion'!

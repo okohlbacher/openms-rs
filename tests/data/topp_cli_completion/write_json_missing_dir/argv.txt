@@ -1,0 +1,4 @@
+BaselineFilter
+-test
+-write_json
+/scratch/kohlbach/toppbase-oracle/run1/results/write_json_missing_dir/cwd/nodir

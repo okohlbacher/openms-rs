@@ -1,0 +1,6 @@
+BaselineFilter
+-log
+/scratch/kohlbach/toppbase-oracle/run1/results/log_unknown_option_debug1/cwd/log.txt
+-debug
+1
+-bogus

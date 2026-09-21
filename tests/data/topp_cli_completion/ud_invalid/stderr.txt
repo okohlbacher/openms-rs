@@ -1,0 +1,4 @@
+Warning: for ':version' entry, augmented and Default Ini-File differ in value. Default value will not be altered!
+Invalid string parameter value 'bogus' for parameter 'method' given! Valid values are: 'identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple'. Ignoring invalid value (using new default 'tophat')!
+Parameter 'BaselineFilter:1:struc_elem_length' has changed value type!
+ Ignoring invalid value (using new default)!

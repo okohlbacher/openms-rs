@@ -1,0 +1,11 @@
+2026-09-21 16:36:45 BaselineFilter:1:: Writing to '/scratch/kohlbach/toppbase-oracle/run1/results/log_run_debug1/cwd/log.txt'
+2026-09-21 16:36:45 BaselineFilter:1:: Debug level: 1
+2026-09-21 16:36:45 BaselineFilter:1::  >> /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/BaselineFilter -test -in /scratch/kohlbach/toppbase-oracle/run1/inputs/baseline_filter_tool_input.mzML -out /scratch/kohlbach/toppbase-oracle/run1/results/log_run_debug1/cwd/out.mzML -log /scratch/kohlbach/toppbase-oracle/run1/results/log_run_debug1/cwd/log.txt -debug 1
+2026-09-21 16:36:45 BaselineFilter:1:: Value of string option 'test': 1
+2026-09-21 16:36:45 BaselineFilter:1:: Debug level (after ini file): 1
+2026-09-21 16:36:45 BaselineFilter:1:: Value of string option 'no_progress': 0
+2026-09-21 16:36:45 BaselineFilter:1:: Value of string option 'in': /scratch/kohlbach/toppbase-oracle/run1/inputs/baseline_filter_tool_input.mzML
+2026-09-21 16:36:45 BaselineFilter:1:: Value of string option 'out': /scratch/kohlbach/toppbase-oracle/run1/results/log_run_debug1/cwd/out.mzML
+2026-09-21 16:36:45 BaselineFilter:1:: Value of double option 'struc_elem_length': 3.0
+2026-09-21 16:36:45 BaselineFilter:1:: Value of string option 'struc_elem_unit': Thomson
+2026-09-21 16:36:45 BaselineFilter:1:: Value of string option 'method': tophat

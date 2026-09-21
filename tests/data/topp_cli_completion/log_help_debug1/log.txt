@@ -1,0 +1,5 @@
+2026-09-21 16:36:47 BaselineFilter:1:: Writing to '/scratch/kohlbach/toppbase-oracle/run1/results/log_help_debug1/cwd/log.txt'
+2026-09-21 16:36:47 BaselineFilter:1:: Debug level: 1
+2026-09-21 16:36:47 BaselineFilter:1::  >> /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/BaselineFilter --help -log /scratch/kohlbach/toppbase-oracle/run1/results/log_help_debug1/cwd/log.txt -debug 1
+2026-09-21 16:36:47 BaselineFilter:1:: Parameter '-helphelp' not found.
+2026-09-21 16:36:47 BaselineFilter:1:: Value of string option '-helphelp': 0

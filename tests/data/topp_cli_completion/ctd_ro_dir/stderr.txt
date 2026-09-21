@@ -1,0 +1,2 @@
+Cannot write output file given from parameter '-write_ctd'!
+Error: Unable to write file (the file '/scratch/kohlbach/toppbase-oracle/run1/results/ctd_ro_dir/cwd/ro/BaselineFilter.ctd' could not be created. )

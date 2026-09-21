@@ -1,0 +1,8 @@
+cwd
+home
+home/prefix
+home/prefix/bin
+home/prefix/share
+home/prefix/share/openms4
+home/prefix/share/openms4/tools
+home/prefix/share/openms4/tools/probe.tools.tsv

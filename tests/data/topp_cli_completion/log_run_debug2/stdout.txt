@@ -1,0 +1,10 @@
+Writing to '/scratch/kohlbach/toppbase-oracle/run1/results/log_run_debug2/cwd/log.txt'
+Progress of 'loading mzML':
+  Progress of 'loading spectra list':
+  -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+-- done [took 0.13 s (CPU), 0.00 s (Wall) @ 12.46 MiB/s] -- 
+Progress of 'filtering baseline':
+-- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+Progress of 'storing mzML file':
+-- done [took 0.26 s (CPU), 0.00 s (Wall) @ 4.891 MiB/s] -- 
+BaselineFilter took 0.08 s (wall), 9.53 s (CPU), 0.02 s (system), 9.51 s (user); Peak Memory Usage: 66 MB.

@@ -1,0 +1,6 @@
+BaselineFilter
+-test
+-write_ctd
+/scratch/kohlbach/toppbase-oracle/run1/results/ctd_with_ini/cwd/ctd
+-ini
+/scratch/kohlbach/toppbase-oracle/run1/inputs/method_erosion.ini

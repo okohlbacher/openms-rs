@@ -372,9 +372,24 @@ struct Session<'a> {
     instance: i64,
     location: String,
     log: Arc<ToolLog>,
+    /// Update diagnostics, written at the end of the run.
+    deferred: std::cell::RefCell<Vec<String>>,
 }
 
 impl Session<'_> {
+    /// Keep the diagnostics of a `Param::update` for the end of the run.
+    ///
+    /// The source's update writes them to the global warning log stream
+    /// without flushing it, so the Release build prints them after everything
+    /// else on standard error: after `Parameters passed to '<tool>' are
+    /// invalid. …` when the strict update fails (oracle `instance5_ini`, and
+    /// `instance_on_command_line`, `ini_unknown_item` and
+    /// `algorithm_movetype_sideways` of `../oracle/topp-cli-lifecycle`), and
+    /// after the tool's own messages when it succeeds
+    /// (`ini_instance_and_common` there).
+    fn defer(&self, lines: &[String]) {
+        self.deferred.borrow_mut().extend(lines.iter().cloned());
+    }
     /// Write the log's `Writing to` notice to standard output, where the
     /// source's `enableLogging_` prints it.
     fn notice(&self, notice: Option<String>, out: &mut dyn Write) -> Result<()> {
@@ -503,9 +518,7 @@ fn default_parameters<T: Tool>(
         Ok(Some(user)) => {
             let diagnostics = update_diagnostics(&defaults, &user, UpdateMode::Lenient)?;
             defaults.update(&user, false)?;
-            for line in &diagnostics {
-                writeln!(err, "{line}")?;
-            }
+            session.defer(&diagnostics);
         }
         Ok(None) => {}
         Err(code) => return Ok(Err(code)),
@@ -999,14 +1012,10 @@ fn prepare<T: Tool>(
             fail_on_unknown_parameters: true,
         },
     )?;
-    for line in &diagnostics {
-        writeln!(err, "{line}")?;
-    }
+    session.defer(&diagnostics);
     if !report.success {
         if diagnostics.is_empty() {
-            for message in &report.messages {
-                writeln!(err, "{message}")?;
-            }
+            session.defer(&report.messages);
         }
         writeln!(
             err,
@@ -1139,9 +1148,7 @@ fn write_commands<T: Tool>(
             warn_if_not_applicable(session, &loaded, out, err)?;
             let diagnostics = update_diagnostics(&written, &loaded, UpdateMode::Lenient)?;
             written.update(&loaded, false)?;
-            for line in &diagnostics {
-                writeln!(err, "{line}")?;
-            }
+            session.defer(&diagnostics);
         }
         return Ok(Some(
             match paramxml::store_with_options(&path, &written, paramxml::WriteOptions::source()) {
@@ -2241,12 +2248,16 @@ pub fn run_with_registry<T: Tool>(
         instance: 1,
         location: location_of(T::NAME, 1),
         log: Arc::new(ToolLog::new()),
+        deferred: std::cell::RefCell::new(Vec::new()),
     };
     let code = match prepare::<T>(&mut session, &spec, arguments, out, err) {
         Ok(Prepared::Run(ctx)) => run_body::<T>(&session, &ctx, out, err),
         Ok(Prepared::Done(code)) => code,
         Err(error) => initialisation_failure::<T>(&error, err),
     };
+    for line in session.deferred.borrow().iter() {
+        let _ = writeln!(err, "{line}");
+    }
     session.log.finish();
     code
 }

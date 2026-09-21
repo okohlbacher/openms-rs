@@ -1,0 +1,8 @@
+BaselineFilter
+-test
+-write_ini
+/scratch/kohlbach/toppbase-oracle/run1/results/log_write_ini_debug1/cwd/x.ini
+-log
+/scratch/kohlbach/toppbase-oracle/run1/results/log_write_ini_debug1/cwd/log.txt
+-debug
+1
