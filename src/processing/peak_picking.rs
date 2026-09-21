@@ -94,6 +94,7 @@ use super::spline::bisection::{DEFAULT_BISECTION_THRESHOLD, MAX_BISECTION_STEPS}
 use super::spline::spline_bisection;
 use super::{SpectrumFilter, checked_intensity};
 use crate::concept::parallel::Threads;
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
 use crate::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D, SpectrumType,
     SpectrumTypeQueryLimits,
@@ -113,6 +114,9 @@ pub const PEAK_PICKER_HI_RES_NAME: &str = "PeakPickerHiRes";
 /// centroided and the spectrum type is checked.
 pub const CENTROIDED_INPUT_MESSAGE: &str =
     "Error: Centroided data provided but profile spectra expected.";
+
+/// The progress label of source `pickExperiment` (`PeakPickerHiRes.cpp:497`).
+pub const PICKING_PROGRESS_LABEL: &str = "picking peaks";
 
 /// A profile sample the picker reads: a position and a float intensity.
 trait SignalPoint {
@@ -532,6 +536,16 @@ fn spectrum_batch_end(spectra: &[MSSpectrum], start: usize) -> usize {
         points = points.saturating_add(spectrum.len());
     }
     spectra.len()
+}
+
+/// The records of an experiment, spectra plus chromatograms: the acquisition
+/// ledger's record count and source `pickExperiment`'s progress range.
+fn experiment_records(input: &MSExperiment) -> Result<usize> {
+    input
+        .spectra
+        .len()
+        .checked_add(input.chromatograms.len())
+        .ok_or_else(|| bad("the experiment record count overflows"))
 }
 
 /// The workers one experiment call maps its batches on, opened once for the
@@ -1464,8 +1478,48 @@ impl PeakPickerHiRes {
         input: &MSExperiment,
         threads: Threads,
     ) -> Result<PickedExperiment> {
+        self.pick_experiment_reporting(input, threads, &mut ProgressReporter::silent())
+    }
+
+    /// [`PeakPickerHiRes::pick_experiment_with_threads`], reporting progress to
+    /// `progress` as the source's `ProgressLogger` base does.
+    ///
+    /// Source `pickExperiment` calls `startProgress(0, spectra + chromatograms,
+    /// "picking peaks")` before its loops (`PeakPickerHiRes.cpp:497`),
+    /// `setProgress(++progress)` after each spectrum, picked or copied (`:543`),
+    /// and after each chromatogram (`:555`), and `endProgress()` after the last
+    /// (`:557`). This makes the same calls in the same order with the same
+    /// values; with the command log type, the output is the source's.
+    ///
+    /// Spectra are counted in input order as they are committed, so the values
+    /// do not depend on `threads`, and neither do the centroids: they are
+    /// bit-identical to [`PeakPickerHiRes::pick_experiment_with_threads`]'s.
+    /// Validation happens before the section starts, so an input the port
+    /// refuses up front prints nothing; the source has no such check to fail.
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakPickerHiRes::pick_experiment_with_threads`], and the errors of
+    /// `progress`. An error inside the section still ends it, which the source
+    /// does not do; see [`ProgressReporter::section`].
+    pub fn pick_experiment_with_progress(
+        &self,
+        input: &MSExperiment,
+        threads: Threads,
+        progress: &mut ProgressLogger,
+    ) -> Result<PickedExperiment> {
+        self.pick_experiment_reporting(input, threads, &mut ProgressReporter::new(Some(progress)))
+    }
+
+    fn pick_experiment_reporting(
+        &self,
+        input: &MSExperiment,
+        threads: Threads,
+        reporter: &mut ProgressReporter<'_>,
+    ) -> Result<PickedExperiment> {
         let limits = self.type_query_limits();
         let mut copies = self.start_experiment(input)?;
+        let records = progress_value(experiment_records(input)?)?;
         let mut result = PickedExperiment {
             // Source `pickExperiment` copies the experimental settings, resizes
             // the output to the input and then fills record by record; it never
@@ -1484,42 +1538,52 @@ impl PeakPickerHiRes {
             omitted_spectrum_arrays: Vec::with_capacity(input.spectra.len()),
             omitted_chromatogram_arrays: Vec::with_capacity(input.chromatograms.len()),
         };
-        let workers = BatchWorkers::new(threads, input.spectra.len());
-        let mut start = 0;
-        while start < input.spectra.len() {
-            let end = spectrum_batch_end(&input.spectra, start);
-            let batch = &input.spectra[start..end];
-            let prepared = workers.map_records(batch, |spectrum| {
-                self.prepare_selected_spectrum(spectrum, limits)
-            });
-            for (spectrum, item) in batch.iter().zip(prepared) {
-                match item? {
-                    // Source `output[scan_idx] = input[scan_idx]` for a record
-                    // that is not picked.
-                    PreparedSpectrum::Copied => {
-                        result.experiment.spectra.push(spectrum.clone());
-                        result.spectrum_boundaries.push(None);
-                        result.omitted_spectrum_arrays.push(Vec::new());
+        reporter.section(0, records, PICKING_PROGRESS_LABEL, |reporter| {
+            let workers = BatchWorkers::new(threads, input.spectra.len());
+            let mut done = 0;
+            let mut start = 0;
+            while start < input.spectra.len() {
+                let end = spectrum_batch_end(&input.spectra, start);
+                let batch = &input.spectra[start..end];
+                let prepared = workers.map_records(batch, |spectrum| {
+                    self.prepare_selected_spectrum(spectrum, limits)
+                });
+                for (spectrum, item) in batch.iter().zip(prepared) {
+                    match item? {
+                        // Source `output[scan_idx] = input[scan_idx]` for a
+                        // record that is not picked.
+                        PreparedSpectrum::Copied => {
+                            result.experiment.spectra.push(spectrum.clone());
+                            result.spectrum_boundaries.push(None);
+                            result.omitted_spectrum_arrays.push(Vec::new());
+                        }
+                        PreparedSpectrum::Picked(parts) => {
+                            let picked = self.finish_spectrum(spectrum, parts, &mut copies)?;
+                            result.experiment.spectra.push(picked.spectrum);
+                            result.spectrum_boundaries.push(Some(picked.boundaries));
+                            result.omitted_spectrum_arrays.push(picked.omitted_arrays);
+                        }
                     }
-                    PreparedSpectrum::Picked(parts) => {
-                        let picked = self.finish_spectrum(spectrum, parts, &mut copies)?;
-                        result.experiment.spectra.push(picked.spectrum);
-                        result.spectrum_boundaries.push(Some(picked.boundaries));
-                        result.omitted_spectrum_arrays.push(picked.omitted_arrays);
-                    }
+                    // :543, `setProgress(++progress)`.
+                    done += 1;
+                    reporter.set_count(done)?;
                 }
+                start = end;
             }
-            start = end;
-        }
-        for chromatogram in &input.chromatograms {
-            let picked =
-                self.pick_chromatogram_with_acquisition(chromatogram, false, &mut copies)?;
-            result.experiment.chromatograms.push(picked.chromatogram);
-            result.chromatogram_boundaries.push(picked.boundaries);
-            result
-                .omitted_chromatogram_arrays
-                .push(picked.omitted_arrays);
-        }
+            for chromatogram in &input.chromatograms {
+                let picked =
+                    self.pick_chromatogram_with_acquisition(chromatogram, false, &mut copies)?;
+                result.experiment.chromatograms.push(picked.chromatogram);
+                result.chromatogram_boundaries.push(picked.boundaries);
+                result
+                    .omitted_chromatogram_arrays
+                    .push(picked.omitted_arrays);
+                // :555, `setProgress(++progress)`.
+                done += 1;
+                reporter.set_count(done)?;
+            }
+            Ok(())
+        })?;
         Ok(result)
     }
 
@@ -1577,50 +1641,101 @@ impl PeakPickerHiRes {
         experiment: &mut MSExperiment,
         threads: Threads,
     ) -> Result<PickedExperimentReport> {
+        self.pick_experiment_in_place_reporting(
+            experiment,
+            threads,
+            &mut ProgressReporter::silent(),
+        )
+    }
+
+    /// [`PeakPickerHiRes::pick_experiment_in_place_with_threads`], reporting
+    /// progress to `progress` with the calls and values of source
+    /// `pickExperiment`, as
+    /// [`PeakPickerHiRes::pick_experiment_with_progress`] describes.
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakPickerHiRes::pick_experiment_in_place_with_threads`], and the
+    /// errors of `progress`. An error inside the section still ends it, which
+    /// the source does not do; see [`ProgressReporter::section`].
+    pub fn pick_experiment_in_place_with_progress(
+        &self,
+        experiment: &mut MSExperiment,
+        threads: Threads,
+        progress: &mut ProgressLogger,
+    ) -> Result<PickedExperimentReport> {
+        self.pick_experiment_in_place_reporting(
+            experiment,
+            threads,
+            &mut ProgressReporter::new(Some(progress)),
+        )
+    }
+
+    fn pick_experiment_in_place_reporting(
+        &self,
+        experiment: &mut MSExperiment,
+        threads: Threads,
+        reporter: &mut ProgressReporter<'_>,
+    ) -> Result<PickedExperimentReport> {
         let limits = self.type_query_limits();
         let mut copies = self.start_experiment(experiment)?;
+        let records = progress_value(experiment_records(experiment)?)?;
         let mut report = PickedExperimentReport {
             spectrum_boundaries: Vec::with_capacity(experiment.spectra.len()),
             chromatogram_boundaries: Vec::with_capacity(experiment.chromatograms.len()),
             omitted_spectrum_arrays: Vec::with_capacity(experiment.spectra.len()),
             omitted_chromatogram_arrays: Vec::with_capacity(experiment.chromatograms.len()),
         };
-        let workers = BatchWorkers::new(threads, experiment.spectra.len());
-        let mut start = 0;
-        while start < experiment.spectra.len() {
-            let end = spectrum_batch_end(&experiment.spectra, start);
-            // The parallel pass borrows the batch; its results own everything
-            // they carry, so the borrow ends before the commit writes back.
-            let prepared = workers.map_records(&experiment.spectra[start..end], |spectrum| {
-                self.prepare_selected_spectrum(spectrum, limits)
-            });
-            for (offset, item) in prepared.into_iter().enumerate() {
-                let index = start + offset;
-                match item? {
-                    PreparedSpectrum::Copied => {
-                        report.spectrum_boundaries.push(None);
-                        report.omitted_spectrum_arrays.push(Vec::new());
+        reporter.section(0, records, PICKING_PROGRESS_LABEL, |reporter| {
+            let workers = BatchWorkers::new(threads, experiment.spectra.len());
+            let mut done = 0;
+            let mut start = 0;
+            while start < experiment.spectra.len() {
+                let end = spectrum_batch_end(&experiment.spectra, start);
+                // The parallel pass borrows the batch; its results own
+                // everything they carry, so the borrow ends before the commit
+                // writes back.
+                let prepared = workers.map_records(&experiment.spectra[start..end], |spectrum| {
+                    self.prepare_selected_spectrum(spectrum, limits)
+                });
+                for (offset, item) in prepared.into_iter().enumerate() {
+                    let index = start + offset;
+                    match item? {
+                        PreparedSpectrum::Copied => {
+                            report.spectrum_boundaries.push(None);
+                            report.omitted_spectrum_arrays.push(Vec::new());
+                        }
+                        PreparedSpectrum::Picked(parts) => {
+                            let picked = self.finish_spectrum(
+                                &experiment.spectra[index],
+                                parts,
+                                &mut copies,
+                            )?;
+                            experiment.spectra[index] = picked.spectrum;
+                            report.spectrum_boundaries.push(Some(picked.boundaries));
+                            report.omitted_spectrum_arrays.push(picked.omitted_arrays);
+                        }
                     }
-                    PreparedSpectrum::Picked(parts) => {
-                        let picked =
-                            self.finish_spectrum(&experiment.spectra[index], parts, &mut copies)?;
-                        experiment.spectra[index] = picked.spectrum;
-                        report.spectrum_boundaries.push(Some(picked.boundaries));
-                        report.omitted_spectrum_arrays.push(picked.omitted_arrays);
-                    }
+                    // :543, `setProgress(++progress)`.
+                    done += 1;
+                    reporter.set_count(done)?;
                 }
+                start = end;
             }
-            start = end;
-        }
-        for chromatogram in &mut experiment.chromatograms {
-            let picked =
-                self.pick_chromatogram_with_acquisition(chromatogram, false, &mut copies)?;
-            *chromatogram = picked.chromatogram;
-            report.chromatogram_boundaries.push(picked.boundaries);
-            report
-                .omitted_chromatogram_arrays
-                .push(picked.omitted_arrays);
-        }
+            for chromatogram in &mut experiment.chromatograms {
+                let picked =
+                    self.pick_chromatogram_with_acquisition(chromatogram, false, &mut copies)?;
+                *chromatogram = picked.chromatogram;
+                report.chromatogram_boundaries.push(picked.boundaries);
+                report
+                    .omitted_chromatogram_arrays
+                    .push(picked.omitted_arrays);
+                // :555, `setProgress(++progress)`.
+                done += 1;
+                reporter.set_count(done)?;
+            }
+            Ok(())
+        })?;
         Ok(report)
     }
 
@@ -1636,12 +1751,7 @@ impl PeakPickerHiRes {
     fn start_experiment(&self, input: &MSExperiment) -> Result<super::AcquisitionCopies> {
         self.validate()?;
         input.validate()?;
-        let records = input
-            .spectra
-            .len()
-            .checked_add(input.chromatograms.len())
-            .ok_or_else(|| bad("the experiment record count overflows"))?;
-        let mut copies = self.acquisition_ledger(records)?;
+        let mut copies = self.acquisition_ledger(experiment_records(input)?)?;
         copies.experiment(input)?;
         Ok(copies)
     }

@@ -19,8 +19,12 @@ use super::peak_picking::{
     PeakBoundary, PeakPickerHiRes, PickedSpectrum, PickingCompatibility,
     SignalToNoiseEstimatorMedian,
 };
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
 use crate::kernel::{DataArray, MSExperiment, MSSpectrum, Peak1D, SpectrumType};
 use crate::{Error, Result};
+
+/// The progress label of source `pickExperiment` (`PeakPickerIterative.h:384`).
+pub const ITERATIVE_PICKING_PROGRESS_LABEL: &str = "picking peaks";
 
 /// Indices into the original profile, aligned with output centroid order.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -258,6 +262,42 @@ impl PeakPickerIterative {
     /// Pick selected spectra and preserve chromatograms and experiment metadata.
     /// All selected-spectrum errors leave the original experiment unchanged.
     pub fn pick_experiment(&self, input: &MSExperiment) -> Result<IterativeExperimentResult> {
+        self.pick_experiment_reporting(input, &mut ProgressReporter::silent())
+    }
+
+    /// [`PeakPickerIterative::pick_experiment`], reporting progress to
+    /// `progress` as the source's `ProgressLogger` base does.
+    ///
+    /// Source `pickExperiment` calls `startProgress(0, input.size(), "picking
+    /// peaks")` before its spectrum loop (`PeakPickerIterative.h:384`),
+    /// `setProgress(progress++)` after each spectrum, picked or copied (`:396`),
+    /// and `endProgress()` after the last (`:398`). The post-increment makes
+    /// the values `0` to `n - 1`, not `1` to `n` as `PeakPickerHiRes` reports;
+    /// both are reproduced. Chromatograms, which this port keeps and the source
+    /// drops, are not counted, as the source's range does not count them.
+    ///
+    /// Validation and the point-limit preflight happen before the section
+    /// starts, so an input the port refuses up front prints nothing. The picked
+    /// experiment is the one [`PeakPickerIterative::pick_experiment`] returns.
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakPickerIterative::pick_experiment`], and the errors of
+    /// `progress`. An error inside the section still ends it, which the source
+    /// does not do; see [`ProgressReporter::section`].
+    pub fn pick_experiment_with_progress(
+        &self,
+        input: &MSExperiment,
+        progress: &mut ProgressLogger,
+    ) -> Result<IterativeExperimentResult> {
+        self.pick_experiment_reporting(input, &mut ProgressReporter::new(Some(progress)))
+    }
+
+    fn pick_experiment_reporting(
+        &self,
+        input: &MSExperiment,
+        reporter: &mut ProgressReporter<'_>,
+    ) -> Result<IterativeExperimentResult> {
         self.validate()?;
         // Preflight selected records before validating or cloning the experiment.
         for spectrum in &input.spectra {
@@ -273,22 +313,29 @@ impl PeakPickerIterative {
             spectrum_regions: Vec::with_capacity(input.spectra.len()),
             omitted_spectrum_arrays: Vec::with_capacity(input.spectra.len()),
         };
-        for (index, spectrum) in input.spectra.iter().enumerate() {
-            if self.ms1_only && spectrum.ms_level != 1 {
-                result.spectrum_regions.push(None);
-                result.omitted_spectrum_arrays.push(Vec::new());
-                continue;
+        let records = progress_value(input.spectra.len())?;
+        reporter.section(0, records, ITERATIVE_PICKING_PROGRESS_LABEL, |reporter| {
+            for (index, spectrum) in input.spectra.iter().enumerate() {
+                if self.ms1_only && spectrum.ms_level != 1 {
+                    result.spectrum_regions.push(None);
+                    result.omitted_spectrum_arrays.push(Vec::new());
+                } else {
+                    let mut picked = self.pick_spectrum_with_acquisition(spectrum, &mut copies)?;
+                    if self.clear_meta_data {
+                        picked.picked.spectrum.float_data_arrays.clear();
+                    }
+                    result.experiment.spectra[index] = picked.picked.spectrum;
+                    result.spectrum_regions.push(Some(picked.regions));
+                    result
+                        .omitted_spectrum_arrays
+                        .push(picked.picked.omitted_arrays);
+                }
+                // :396, `setProgress(progress++)`: the value before the
+                // increment, so the first spectrum reports 0.
+                reporter.set_count(index)?;
             }
-            let mut picked = self.pick_spectrum_with_acquisition(spectrum, &mut copies)?;
-            if self.clear_meta_data {
-                picked.picked.spectrum.float_data_arrays.clear();
-            }
-            result.experiment.spectra[index] = picked.picked.spectrum;
-            result.spectrum_regions.push(Some(picked.regions));
-            result
-                .omitted_spectrum_arrays
-                .push(picked.picked.omitted_arrays);
-        }
+            Ok(())
+        })?;
         Ok(result)
     }
 
