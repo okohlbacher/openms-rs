@@ -1530,3 +1530,59 @@ fn a_reused_logger_still_loads_after_any_number_of_failed_loads() {
     drop(logger);
     assert_eq!(nesting.depth(), 0);
 }
+
+/// Where the port differs from the Release build on purpose. In
+/// `mzdata_static_counter` the driver's second file object is a separate
+/// `MzDataFile` (`driver.cpp:411-412`), and the Release build starts its
+/// section one level deep, below the section the first object's failed load
+/// left in the static depth. The replay's second object is a copy of the
+/// first, which shares its sections and so matches the capture. A fresh
+/// logger does not share them: its calls are the captured ones one level
+/// shallower, while the process-wide depth still counts the first object's
+/// level, as the capture's `D` row does.
+#[test]
+fn a_fresh_file_object_is_not_indented_by_another_ones_failed_load() {
+    let _mzdata = mzdata_lock();
+    let (_, runs) = fixture();
+    let captured = &runs[&("mzdata_static_counter".to_string(), "rec".to_string())];
+    let nesting = ProgressNesting::default();
+    let (mut first, first_events) = recording_logger_on(&nesting);
+    let (mut second, second_events) = recording_logger_on(&nesting);
+    let (peaks, limits) = (PeakFileOptions::default(), mzdata::ReadLimits::default());
+    assert!(
+        mzdata::load_with_progress(data("truncated.mzData"), &peaks, &limits, &mut first).is_err()
+    );
+    let loaded =
+        mzdata::load_with_progress(data("MzDataFile_1.mzData"), &peaks, &limits, &mut second)
+            .unwrap();
+    // The first object's start and its one set, then the second object's.
+    let (expected_first, expected_second) = captured.events.split_at(2);
+    assert_eq!(*first_events.lock().unwrap(), expected_first);
+    let shallower: Vec<String> = expected_second
+        .iter()
+        .map(|event| {
+            let mut fields: Vec<String> = event.split('\t').map(str::to_string).collect();
+            // The depth field of `S begin end label depth`, `V value depth`
+            // and `E depth bytes`.
+            let depth = match fields[0].as_str() {
+                "S" => 4,
+                "V" => 2,
+                "E" => 1,
+                other => panic!("unexpected call {other}"),
+            };
+            let released: usize = fields[depth].parse().unwrap();
+            fields[depth] = (released - 1).to_string();
+            fields.join("\t")
+        })
+        .collect();
+    assert_eq!(*second_events.lock().unwrap(), shallower);
+    assert_eq!(
+        captured.outcome.as_ref().unwrap(),
+        &Ok(vec![
+            "Parse Error".to_string(),
+            loaded.experiment.spectra.len().to_string(),
+            loaded.experiment.chromatograms.len().to_string(),
+        ])
+    );
+    assert_eq!(nesting.depth(), captured.depth.unwrap());
+}

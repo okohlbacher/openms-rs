@@ -6562,3 +6562,40 @@ Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and ski
 **Evidence:** `oracle/toppbase-completion/console.sh`, cases `help_<tool>_c20`, `helphelp_<tool>_c28` and `helphelp_FeatureFinderCentroided_c28` (`console_results/`); retained under `tests/data/topp_cli_console/`.
 
 **Rust handling:** Reproduced, because the usage text is what a user sees (`tests/topp_cli_console.rs::usage_is_shaped_to_columns_as_the_release_build_shapes_it`, `src/cli/console.rs::break_string`).
+
+## CPP-354 — A progress section an exception leaves open stays in `ProgressLogger`'s static depth for the rest of the process, indenting every later section of every object
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/include/OpenMS/CONCEPT/ProgressLogger.h:105` (`static int recursion_depth_`), `src/openms/source/CONCEPT/ProgressLogger.cpp:233-239` (`startProgress`), `:264-271` (`endProgress`), `:192-195` (the destructor). It is reached from every reader whose section can throw, for example `DTA2DFile::load` (`DTA2DFile.h:74`, `:82`, `:247`) and `MzMLFile::safeParse_` (`MzMLFile.cpp:113-127`).
+
+**Trigger:** Any load that fails after its `startProgress`, for example a missing DTA2D file, or a truncated featureXML, mzData or mzML document.
+
+**Issue:**
+
+- `startProgress` increments the static depth after the backend call, and only `endProgress` decrements it.
+- An exception inside the section skips `endProgress`. No catch on the way out ends the section: `safeParse_` rethrows as `ParseError`, and `XMLFile::parse_`'s catches (`XMLFile.cpp:96-113`) rethrow. The destructor deletes only the backend.
+- The depth therefore stays one level deeper per failed load for the rest of the process: two levels after an mzML load, whose document and list sections are both open. Every later section of every `ProgressLogger` object, fresh ones included, is indented two more spaces per failure, and a GUI backend receives the larger depth.
+- A long-running process that retries bad files (pyOpenMS, a GUI) drifts without bound, and at `INT_MAX` the signed increment overflows.
+
+CPP-133 is the same defect at one site, `ImzMLWriter::store`. The failing object's command backend also keeps its `StopWatch` running, so that object's next `startProgress` throws `StopWatch is already started!` (`StopWatch.cpp:43`). That part is object-local.
+
+**Proposed C++ fix:** End or unwind the section on the exception path. A scope object around each section can decrement `recursion_depth_` without printing the summary line when the section is left by an exception, and stop the backend's timer.
+
+**Evidence:** `oracle/progress-format-readers/driver.cpp`, in `tests/data/progress_format_readers_release.tsv`:
+
+- The depth after the call is 1 in `dta2d_load_missing`, `dta2d_load_bad_line`, `featurexml_load_truncated` and `mzxml_load_truncated`, and 2 in `mzml_load_truncated`.
+- In `mzdata_static_counter`, a second, separate `MzDataFile` (`driver.cpp:411-412`) starts its section at depth 1 after the first one's failed load.
+- In `mzml_reuse_after_failure`, the same object's second load starts at depth 2, and in command mode fails on the running `StopWatch`.
+
+**Rust handling:** Reproduced while the failing logger lives; corrected beyond it (F4 of the phase 3 wave 1 verification). The port's native nesting bound turned the drift into a refusal: after 1,024 failed loads, every load that reported progress failed. Now a section left open when its call finishes is abandoned:
+
+- It stays in `ProgressNesting::depth` and indents the later calls of the same logger and its copies, as the Release build does. The captures above still replay call for call.
+- It does not indent another logger's calls.
+- It does not count against `MAX_PROGRESS_DEPTH`.
+- It leaves the depth when the last copy of its logger is dropped, without printing anything.
+- The failing logger's command backend still refuses its next start.
+
+Tests: `tests/progress_format_readers.rs` (`failed_loads_on_the_process_wide_nesting_leave_a_valid_load_alone`, `failed_loads_do_not_change_a_later_load_through_another_logger`, `a_failed_section_prints_no_done_line_and_leaves_the_depth_with_its_logger`, `a_reused_logger_still_loads_after_any_number_of_failed_loads`, `a_fresh_file_object_is_not_indented_by_another_ones_failed_load`) and `tests/progress_logger.rs`. See `docs/PROGRESS_LOGGER_SUPPORT.md#sections-a-finished-call-left-open`.

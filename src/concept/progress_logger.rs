@@ -169,6 +169,9 @@ struct Owner {
     abandoned: AtomicUsize,
     /// The live [`ProgressReporter`]s on this owner's loggers.
     calls: AtomicUsize,
+    /// `open` when the first of them began: sections the caller started on
+    /// the logger before its call, which the call does not abandon.
+    before_call: AtomicUsize,
 }
 
 impl Owner {
@@ -178,6 +181,7 @@ impl Owner {
             open: AtomicUsize::new(0),
             abandoned: AtomicUsize::new(0),
             calls: AtomicUsize::new(0),
+            before_call: AtomicUsize::new(0),
         })
     }
     /// The depth this owner's calls are dispatched at: every open section plus
@@ -223,16 +227,23 @@ impl Owner {
     /// A reporter on one of this owner's loggers begins.
     fn enter(&self) {
         let _levels = self.nesting.levels();
-        self.calls.fetch_add(1, Ordering::Relaxed);
+        if self.calls.fetch_add(1, Ordering::Relaxed) == 0 {
+            self.before_call
+                .store(self.open.load(Ordering::Relaxed), Ordering::Relaxed);
+        }
     }
-    /// A reporter ends. When it was the last, the sections the owner still
-    /// has open were left open by a call that has finished, and are abandoned.
+    /// A reporter ends. When it was the last, the call is over, and the
+    /// sections it started and left open are abandoned.
     fn leave(&self) {
         let mut levels = self.nesting.levels();
         if self.calls.fetch_sub(1, Ordering::Relaxed) != 1 {
             return;
         }
-        let left = self.open.swap(0, Ordering::Relaxed).min(levels.open);
+        let open = self.open.load(Ordering::Relaxed);
+        let left = open
+            .saturating_sub(self.before_call.load(Ordering::Relaxed))
+            .min(levels.open);
+        self.open.store(open - left, Ordering::Relaxed);
         levels.open -= left;
         levels.abandoned = levels.abandoned.saturating_add(left);
         self.abandoned.fetch_add(left, Ordering::Relaxed);
@@ -475,10 +486,12 @@ impl ProgressLogger {
 /// lasts for. A call can finish with sections it never ended: a reader that
 /// fails inside its section returns without ending it, as the source's
 /// exception bypasses `endProgress`, and a metadata-only mzML load stops inside
-/// its document section. When the last reporter on a logger and its copies is
-/// dropped, the sections they still have open are *abandoned* (see
-/// [`ProgressNesting`]): they stay in the depth for that logger alone and no
-/// longer count against [`MAX_PROGRESS_DEPTH`]. No backend is called, so an
+/// its document section. The call lasts while any reporter on the logger or
+/// its copies lives. When the last is dropped, the sections the call started
+/// and did not end are *abandoned* (see [`ProgressNesting`]): they stay in the
+/// depth for that logger alone and no longer count against
+/// [`MAX_PROGRESS_DEPTH`]. Sections the caller had started on the logger before
+/// the call are not the call's and stay open. No backend is called, so an
 /// abandoned section prints no `-- done` line, as in the source.
 pub struct ProgressReporter<'a> {
     logger: Option<&'a mut ProgressLogger>,

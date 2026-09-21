@@ -931,6 +931,40 @@ fn a_section_stays_open_while_any_reporter_on_its_logger_lives() {
     );
 }
 
+/// A section the caller started on a logger before handing it to a call is
+/// not the call's: when the call finishes with its own section open, only
+/// that one is abandoned, and the caller's stays open for every logger.
+#[test]
+fn a_call_abandons_only_the_sections_it_started() {
+    let (clock, _) = manual_clock(sample(1, 0.0, None));
+    let nesting = ProgressNesting::default();
+    let events = Arc::new(Mutex::new(Vec::new()));
+    let mut logger = recording(&clock, &nesting, &events);
+    let mut other = recording(&clock, &nesting, &events);
+    logger.start_progress(0, 1, "caller").unwrap();
+    ProgressReporter::new(Some(&mut logger))
+        .start(0, 1, "call")
+        .unwrap();
+    assert_eq!(nesting.depth(), 2);
+    other.start_progress(0, 0, "other").unwrap();
+    other.end_progress(0).unwrap();
+    // The caller's section ends below the level its call left behind.
+    logger.end_progress(0).unwrap();
+    assert_eq!(nesting.depth(), 1);
+    drop(logger);
+    assert_eq!(nesting.depth(), 0);
+    assert_eq!(
+        *events.lock().unwrap(),
+        vec![
+            Event::Start(0, 1, "caller".into(), 0),
+            Event::Start(0, 1, "call".into(), 1),
+            Event::Start(0, 0, "other".into(), 1),
+            Event::End(1, 0),
+            Event::End(1, 0),
+        ]
+    );
+}
+
 /// A section started directly on a logger, with no reporter, is not
 /// abandoned when a call ends, but it leaves the depth when the last of the
 /// logger and its copies is dropped, without an end.

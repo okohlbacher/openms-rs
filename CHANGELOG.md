@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- **A failed load no longer affects other loads (F4).** A progress section
+  that a failed load left open used to stay in the process-wide nesting depth.
+  After 1,024 such failures, every load that reported progress failed with
+  "progress nesting limit exceeded", valid ones included, even when the
+  failed loads' loggers printed nothing. Now, when the call finishes, such a
+  section is *abandoned*:
+  - It still counts in `ProgressNesting::depth` and indents the later calls of
+    the logger that left it, and of that logger's copies, as the source's
+    static depth does (CPP-354). The Release replays still match call for call.
+  - It does not indent another logger's calls.
+  - It does not count against `MAX_PROGRESS_DEPTH`.
+  - It leaves the depth when the last copy of its logger is dropped.
+
+  No backend is called, so no `-- done` line appears for it, as in the
+  Release build. No result, written byte or error of any reader changes
+  ([PROGRESS_LOGGER_SUPPORT](docs/PROGRESS_LOGGER_SUPPORT.md#sections-a-finished-call-left-open)).
+
 - **TOPPBase against the C++ Release build: tool descriptions, the tool
   registry, `-log`, per-user defaults.** `-write_ctd` writes the Common Tool
   Description byte for byte as the Release build does for the seven ported
