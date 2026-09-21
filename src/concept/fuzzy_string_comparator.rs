@@ -583,7 +583,8 @@ pub enum InputFailure {
 }
 
 impl InputFailure {
-    fn read(error: &std::io::Error) -> Self {
+    /// The [`Read`](Self::Read) failure an I/O error stands for.
+    pub fn from_io_error(error: &std::io::Error) -> Self {
         let text = error.to_string();
         let description = match error.raw_os_error() {
             Some(code) => text
@@ -635,7 +636,7 @@ impl<'a, R: BufRead> LineSource<'a, R> {
                 Err(error) => {
                     self.error = Some((
                         format!("Error: reading input failed: {error}"),
-                        InputFailure::read(&error),
+                        InputFailure::from_io_error(&error),
                     ));
                     return None;
                 }
@@ -646,7 +647,7 @@ impl<'a, R: BufRead> LineSource<'a, R> {
             Err(error) => {
                 self.error = Some((
                     format!("Error: reading input failed: {error}"),
-                    InputFailure::read(&error),
+                    InputFailure::from_io_error(&error),
                 ));
                 None
             }
@@ -1512,4 +1513,181 @@ pub fn parse_matched_whitelist(entries: &[String]) -> crate::Result<Vec<(String,
         }
     }
     Ok(pairs)
+}
+
+#[cfg(test)]
+mod tests {
+    //! The native additions of the promotion. The comparator itself is held to
+    //! the executed C++ corpus by `tests/fuzzy_string_comparator.rs` and the
+    //! tool by `tests/topp_fuzzy_diff.rs`.
+
+    use super::*;
+    use std::io::{BufReader, Read};
+
+    /// A reader that yields `data` and then fails with `error`.
+    struct FailsAfter {
+        data: Vec<u8>,
+        error: Option<std::io::Error>,
+    }
+
+    impl Read for FailsAfter {
+        fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+            if !self.data.is_empty() {
+                let n = self.data.len().min(buf.len());
+                buf[..n].copy_from_slice(&self.data[..n]);
+                self.data.drain(..n);
+                return Ok(n);
+            }
+            match self.error.take() {
+                Some(error) => Err(error),
+                None => Ok(0),
+            }
+        }
+    }
+
+    fn failing(data: &[u8], error: std::io::Error) -> BufReader<FailsAfter> {
+        BufReader::new(FailsAfter {
+            data: data.to_vec(),
+            error: Some(error),
+        })
+    }
+
+    fn buffered() -> FuzzyStringComparator {
+        let mut comparator = FuzzyStringComparator::new();
+        comparator.set_log_destination(LogDestination::Buffer);
+        comparator
+    }
+
+    #[test]
+    fn a_failed_read_is_recorded_and_logged_as_before() {
+        let mut comparator = buffered();
+        let error = std::io::Error::other("the disk went away");
+        let passed = comparator.compare_streams(
+            &mut Cursor::new(b"a 1\n".to_vec()),
+            &mut failing(b"", error),
+        );
+        assert!(!passed);
+        assert_eq!(
+            comparator.log(),
+            b"Error: reading input failed: the disk went away\n"
+        );
+        assert_eq!(
+            comparator.input_failure(),
+            Some(&InputFailure::Read {
+                kind: ErrorKind::Other,
+                description: "the disk went away".to_owned(),
+            })
+        );
+        assert!(comparator.log_without_input_failure().is_empty());
+    }
+
+    #[test]
+    fn an_operating_system_error_is_described_as_strerror_does() {
+        let error = std::io::Error::from_raw_os_error(21);
+        assert!(error.to_string().ends_with(" (os error 21)"), "{error}");
+        let InputFailure::Read { description, .. } = InputFailure::from_io_error(&error) else {
+            panic!("a read failure");
+        };
+        assert!(!description.contains("os error"), "{description}");
+        assert!(error.to_string().starts_with(&description));
+    }
+
+    #[test]
+    fn reports_written_before_a_failed_read_are_kept() {
+        let mut comparator = buffered();
+        comparator.set_verbose_level(3);
+        let error = std::io::Error::other("cut");
+        let passed = comparator.compare_streams(
+            &mut Cursor::new(b"a\nb\n".to_vec()),
+            &mut failing(b"x\n", error),
+        );
+        assert!(!passed);
+        let log = comparator.log().to_vec();
+        let kept = comparator.log_without_input_failure();
+        assert!(kept.starts_with(b"FAILED: 'different letters'"));
+        assert_eq!(&log[kept.len()..], b"Error: reading input failed: cut\n");
+    }
+
+    #[test]
+    fn every_comparison_clears_the_failure() {
+        let mut comparator = buffered();
+        comparator.compare_streams(
+            &mut Cursor::new(b"a\n".to_vec()),
+            &mut failing(b"", std::io::Error::other("x")),
+        );
+        assert!(comparator.input_failure().is_some());
+        assert!(comparator.compare_bytes(b"a\n", b"a\n"));
+        assert_eq!(comparator.input_failure(), None);
+        assert_eq!(
+            comparator.log_without_input_failure(),
+            comparator.log(),
+            "without a failure the whole log is returned"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_directory_is_a_failed_read() {
+        let directory = std::env::temp_dir();
+        let file = directory.join(format!("openms-fuzzy-{}.txt", std::process::id()));
+        std::fs::write(&file, b"a 1\n").unwrap();
+        let mut comparator = buffered();
+        let passed = comparator.compare_files(&file, &directory);
+        std::fs::remove_file(&file).unwrap();
+        assert!(!passed);
+        match comparator.input_failure() {
+            Some(InputFailure::Read { kind, description }) => {
+                assert_eq!(*kind, ErrorKind::IsADirectory);
+                assert_eq!(description, "Is a directory");
+            }
+            other => panic!("{other:?}"),
+        }
+    }
+
+    #[test]
+    fn input_names_default_and_can_be_set() {
+        let mut comparator = buffered();
+        assert_eq!(comparator.input_names(), ("input_1", "input_2"));
+        comparator.set_input_names("left.tsv", "right.tsv");
+        assert_eq!(comparator.input_names(), ("left.tsv", "right.tsv"));
+        comparator.set_acceptable_relative(1.01);
+        assert!(comparator.compare_bytes(b"x 1\n", b"x 1.001\n"));
+        let log = String::from_utf8(comparator.take_log()).unwrap();
+        assert!(
+            log.contains("\nleft.tsv:1:\n\"x 1\"\n\nright.tsv:1:\n\"x 1.001\"\n"),
+            "{log}"
+        );
+    }
+
+    #[test]
+    fn sorted_lines_keep_the_header_and_sort_bytewise() {
+        assert_eq!(sorted_lines(b"h\nz\n\xe9\na"), b"h\na\nz\n\xe9\n");
+        assert_eq!(sorted_lines(b"h\r\nb\r\na\r\n"), b"h\r\na\r\nb\r\n");
+        assert_eq!(sorted_lines(b"h\n\nb\n\n"), b"h\n\n\nb\n");
+        assert_eq!(sorted_lines(b""), b"\n");
+        assert_eq!(sorted_lines(b"only"), b"only\n");
+    }
+
+    #[test]
+    fn matched_whitelist_entries_split_into_exactly_two_parts() {
+        let entries = |list: &[&str]| list.iter().map(|s| (*s).to_owned()).collect::<Vec<_>>();
+        assert_eq!(
+            parse_matched_whitelist(&entries(&["a:b", "a:", ":"])).unwrap(),
+            [
+                ("a".to_owned(), "b".to_owned()),
+                ("a".to_owned(), String::new()),
+                (String::new(), String::new()),
+            ]
+        );
+        assert!(parse_matched_whitelist(&[]).unwrap().is_empty());
+        for bad in ["", "abc", "a:b:c"] {
+            match parse_matched_whitelist(&entries(&["x:y", bad, "also:bad:too"])) {
+                Err(Error::InvalidValue(message)) => assert_eq!(
+                    message,
+                    format!("{bad} does not have the format String1:String2")
+                ),
+                other => panic!("{bad:?}: {other:?}"),
+            }
+        }
+    }
 }

@@ -1,0 +1,81 @@
+#name	cwd	args...
+TOPP_FuzzyDiff_1	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/retained/FuzzyDiff_1_in1.featureXML	-in2	<D>/fuzzy_string_comparator/retained/FuzzyDiff_1_in1.featureXML
+TOPP_FuzzyDiff_2	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/retained/FuzzyDiff_1_in1.featureXML	-in2	<D>/fuzzy_string_comparator/retained/FuzzyDiff_1_in2.featureXML
+TOPP_FuzzyDiff_3	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/retained/FuzzyDiff_3_in1.featureXML	-in2	<D>/fuzzy_string_comparator/retained/FuzzyDiff_3_in2.featureXML
+TOPP_FuzzyDiff_4	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/retained/lorem_ipsum.featureXML	-in2	<D>/fuzzy_string_comparator/retained/FuzzyDiff_3_in2.featureXML
+fileinfo_3_current_vs_retained	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-whitelist	File name	-in1	<D>/fuzzy_string_comparator/oracle/FileInfo_3.current.txt	-in2	<D>/fuzzy_string_comparator/retained/FileInfo_3_output.txt
+fileinfo_17_current_vs_retained	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-whitelist	File name	-in1	<D>/fuzzy_string_comparator/oracle/FileInfo_17.current.txt	-in2	<D>/fuzzy_string_comparator/retained/FileInfo_17_output.txt
+ffc_1_current_vs_retained	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-whitelist	id=	-in1	<D>/fuzzy_string_comparator/oracle/FeatureFinderCentroided_1.current.featureXML	-in2	<D>/fuzzy_string_comparator/retained/FeatureFinderCentroided_1_1_output.featureXML
+fileinfo_3_without_whitelist	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/oracle/FileInfo_3.current.txt	-in2	<D>/fuzzy_string_comparator/retained/FileInfo_3_output.txt
+ffc_1_without_whitelist	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/oracle/FeatureFinderCentroided_1.current.featureXML	-in2	<D>/fuzzy_string_comparator/retained/FeatureFinderCentroided_1_1_output.featureXML
+fileinfo_3_beyond	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-whitelist	File name	-in1	<D>/fuzzy_string_comparator/oracle/FileInfo_3.current.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/FileInfo_3_output.beyond.txt
+fileinfo_3_within	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-whitelist	File name	-in1	<D>/fuzzy_string_comparator/oracle/FileInfo_3.current.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/FileInfo_3_output.within.txt
+fileinfo_17_beyond	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-whitelist	File name	-in1	<D>/fuzzy_string_comparator/oracle/FileInfo_17.current.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/FileInfo_17_output.beyond.txt
+ffc_1_beyond	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-whitelist	id=	-in1	<D>/fuzzy_string_comparator/oracle/FeatureFinderCentroided_1.current.featureXML	-in2	<D>/fuzzy_string_comparator/fuzzydiff/FeatureFinderCentroided_1_1_output.beyond.featureXML
+ffc_1_within	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-whitelist	id=	-in1	<D>/fuzzy_string_comparator/oracle/FeatureFinderCentroided_1.current.featureXML	-in2	<D>/fuzzy_string_comparator/fuzzydiff/FeatureFinderCentroided_1_1_output.within.featureXML
+ffc_1_id_change	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-whitelist	id=	-in1	<D>/fuzzy_string_comparator/oracle/FeatureFinderCentroided_1.current.featureXML	-in2	<D>/fuzzy_string_comparator/fuzzydiff/FeatureFinderCentroided_1_1_output.id_change.featureXML
+defaults_without_ini	-	-test	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+ini_tolerance	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+empty_in1	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/fuzzydiff/empty.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt
+empty_in2	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/empty.txt
+missing_in1	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/fuzzydiff/missing.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt
+missing_in1_empty_in2	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/fuzzydiff/missing.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/empty.txt
+matched_single_token	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-matched_whitelist	abc	-in1	<D>/fuzzy_string_comparator/fuzzydiff/alpha.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/beta.txt
+matched_three_tokens	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-matched_whitelist	a:b:c	-in1	<D>/fuzzy_string_comparator/fuzzydiff/alpha.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/beta.txt
+matched_pair	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-matched_whitelist	alpha:beta	-in1	<D>/fuzzy_string_comparator/fuzzydiff/alpha.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/beta.txt
+matched_trailing_colon	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-matched_whitelist	a:	-in1	<D>/fuzzy_string_comparator/fuzzydiff/a_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/z_2.txt
+ratio_below_min	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-ratio	0.5	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+verbose_above_max	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-verbose	4	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+tab_width_zero	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-tab_width	0	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+ini_ratio_below_min	-	-test	-ini	<D>/fuzzy_string_comparator/fuzzydiff/FuzzyDiff_ratio_below_min.ini	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+ini_absdiff_negative	-	-test	-ini	<D>/fuzzy_string_comparator/fuzzydiff/FuzzyDiff_absdiff_negative.ini	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+ini_first_column_negative	-	-test	-ini	<D>/fuzzy_string_comparator/fuzzydiff/FuzzyDiff_first_column_negative.ini	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+ini_unknown_item	-	-test	-ini	<D>/fuzzy_string_comparator/fuzzydiff/FuzzyDiff_unknown_item.ini	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+ini_verbose_3	-	-test	-ini	<D>/fuzzy_string_comparator/fuzzydiff/FuzzyDiff_verbose_3.ini	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/a_1.txt
+sort_reordered_rows	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-sort	-in1	<D>/fuzzy_string_comparator/fuzzydiff/table_a.tsv	-in2	<D>/fuzzy_string_comparator/fuzzydiff/table_b.tsv
+unsorted_reordered_rows	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/fuzzydiff/table_a.tsv	-in2	<D>/fuzzy_string_comparator/fuzzydiff/table_b.tsv
+sort_same_file	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-sort	-in1	<D>/fuzzy_string_comparator/fuzzydiff/table_a.tsv	-in2	<D>/fuzzy_string_comparator/fuzzydiff/table_a.tsv
+ini_whitelist_stylesheet	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/fuzzydiff/stylesheet_a.xml	-in2	<D>/fuzzy_string_comparator/fuzzydiff/stylesheet_b.xml
+cli_whitelist_replaces_ini	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-whitelist	id=	-in1	<D>/fuzzy_string_comparator/fuzzydiff/stylesheet_a.xml	-in2	<D>/fuzzy_string_comparator/fuzzydiff/stylesheet_b.xml
+trailing_space	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-in1	<D>/fuzzy_string_comparator/fuzzydiff/trailing_space.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/no_trailing_space.txt
+help	-	--help
+helphelp	-	--helphelp
+no_args	-
+write_ini	-	-write_ini	<OUT>/written.ini
+unknown_option	-	-test	-bogus	1	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+ratio_not_a_number	-	-test	-ratio	abc	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+absdiff_negative_cli	-	-test	-absdiff	-0.5	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+first_column_negative_cli	-	-test	-first_column	-1	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+verbose_negative_cli	-	-test	-verbose	-1	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+in2_not_given	-	-test	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt
+in1_empty	-	-test	-in1	<EMPTY>	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt
+pass_report_numeric	-	-test	-ratio	1.01	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+verbose_0_fail	-	-test	-verbose	0	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+verbose_1_fail	-	-test	-verbose	1	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+verbose_2_multi	-	-test	-in1	<D>/topp_fuzzy_diff/inputs/multi_a.txt	-in2	<D>/topp_fuzzy_diff/inputs/multi_b.txt
+verbose_3_multi	-	-test	-verbose	3	-in1	<D>/topp_fuzzy_diff/inputs/multi_a.txt	-in2	<D>/topp_fuzzy_diff/inputs/multi_b.txt
+cli_overrides_ini_ratio	-	-test	-ini	<D>/fuzzy_string_comparator/FuzzyDiff.ini	-ratio	1.0005	-absdiff	0	-verbose	2	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1001.txt
+tabs_default	-	-test	-in1	<D>/topp_fuzzy_diff/inputs/tabs_a.txt	-in2	<D>/topp_fuzzy_diff/inputs/tabs_b.txt
+tabs_width_4_first_0	-	-test	-tab_width	4	-first_column	0	-in1	<D>/topp_fuzzy_diff/inputs/tabs_a.txt	-in2	<D>/topp_fuzzy_diff/inputs/tabs_b.txt
+tabs_width_1_first_7	-	-test	-tab_width	1	-first_column	7	-in1	<D>/topp_fuzzy_diff/inputs/tabs_a.txt	-in2	<D>/topp_fuzzy_diff/inputs/tabs_b.txt
+whitelist_pass	-	-test	-ratio	1.01	-whitelist	skip-me	also-skip	-in1	<D>/topp_fuzzy_diff/inputs/whitelist_a.txt	-in2	<D>/topp_fuzzy_diff/inputs/whitelist_b.txt
+whitelist_fail	-	-test	-ratio	1.01	-whitelist	skip-me	-in1	<D>/topp_fuzzy_diff/inputs/whitelist_a.txt	-in2	<D>/topp_fuzzy_diff/inputs/whitelist_b.txt
+whitelist_empty_entry	-	-test	-whitelist	<EMPTY>	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/a_1.txt
+matched_pair_verbose_2	-	-test	-matched_whitelist	alpha:beta	-in1	<D>/fuzzy_string_comparator/fuzzydiff/alpha.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/beta.txt
+matched_pair_reversed	-	-test	-matched_whitelist	beta:alpha	-in1	<D>/fuzzy_string_comparator/fuzzydiff/alpha.txt	-in2	<D>/fuzzy_string_comparator/fuzzydiff/beta.txt
+sort_fail	-	-test	-sort	-in1	<D>/topp_fuzzy_diff/inputs/sort_a.tsv	-in2	<D>/topp_fuzzy_diff/inputs/sort_b.tsv
+sort_pass_verbose_2	-	-test	-sort	-in1	<D>/fuzzy_string_comparator/fuzzydiff/table_a.tsv	-in2	<D>/fuzzy_string_comparator/fuzzydiff/table_b.tsv
+sort_directory	-	-test	-sort	-in1	<D>/topp_fuzzy_diff/inputs/directory_a	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt
+token_underflow	-	-test	-in1	<D>/topp_fuzzy_diff/inputs/underflow.txt	-in2	<D>/topp_fuzzy_diff/inputs/zero.txt
+token_hex	-	-test	-in1	<D>/topp_fuzzy_diff/inputs/hex.txt	-in2	<D>/topp_fuzzy_diff/inputs/sixteen.txt
+token_subnormal	-	-test	-absdiff	1	-in1	<D>/topp_fuzzy_diff/inputs/subnormal.txt	-in2	<D>/topp_fuzzy_diff/inputs/zero.txt
+token_min_normal	-	-test	-absdiff	1	-in1	<D>/topp_fuzzy_diff/inputs/min_normal.txt	-in2	<D>/topp_fuzzy_diff/inputs/zero.txt
+token_underflow_absdiff	-	-test	-absdiff	1	-in1	<D>/topp_fuzzy_diff/inputs/underflow.txt	-in2	<D>/topp_fuzzy_diff/inputs/zero.txt
+token_overflow	-	-test	-in1	<D>/topp_fuzzy_diff/inputs/overflow.txt	-in2	<D>/topp_fuzzy_diff/inputs/infinity.txt
+latin1_bytes	-	-test	-in1	<D>/topp_fuzzy_diff/inputs/latin1_a.txt	-in2	<D>/topp_fuzzy_diff/inputs/latin1_b.txt
+same_file_other_spelling	-	-test	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/topp_fuzzy_diff/inputs/../../fuzzy_string_comparator/fuzzydiff/x_1.txt
+relative_paths	fuzzy_string_comparator/fuzzydiff	-test	-in1	x_1.txt	-in2	x_1001.txt
+relative_same_name	fuzzy_string_comparator/fuzzydiff	-test	-in1	x_1.txt	-in2	x_1.txt
+directory_vs_file	-	-test	-in1	<D>/topp_fuzzy_diff/inputs/directory_a	-in2	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt
+file_vs_directory	-	-test	-in1	<D>/fuzzy_string_comparator/fuzzydiff/x_1.txt	-in2	<D>/topp_fuzzy_diff/inputs/directory_a
+directory_vs_directory	-	-test	-in1	<D>/topp_fuzzy_diff/inputs/directory_a	-in2	<D>/topp_fuzzy_diff/inputs/directory_b
