@@ -284,7 +284,7 @@ NaN — a 20-element sample `{NaN, 2..20}` prints `minimum: 2` and `median: -nan
 Scoped in all eight, including the oracle driver and its manifest, which was
 re-emitted.
 
-### Lead decisions D1-D17
+### Lead decisions D1-D18
 
 The full text of D1-D13 is in
 [the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-5-status), which is wave 5's
@@ -1662,7 +1662,7 @@ fixed by the lead in `f89d5d4`.
 
 Every round-6 recommendation was to promote. This pass applied all three.
 
-### Lead decisions D1-D17
+### Lead decisions D1-D18
 
 The full text of D1-D13 is in
 [the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-5-status); of D14-D17, in
@@ -1710,6 +1710,20 @@ The full text of D1-D13 is in
   both spellings of zero, because there every class `operator<` calls equivalent is a
   set of bit-identical values and the permutation is therefore unobservable (shared-math
   repair round, 2026-09-20).
+- **D18** `FileInfo -c`'s NaN refusal is closed by D16. It rested on the source's
+  `std::sort` leaving the order undefined, which is the argument D16 overturned:
+  `FORMAT/FileInfo.cpp:1927` and `:1956` are the same unqualified
+  `sort(v.begin(), v.end())` on a `std::vector<double>` that shared math now
+  reproduces, so the port follows it instead of refusing. Observable: for
+  `{5.0, NaN, 5.0}` libstdc++ leaves the range untouched, so the duplicate check
+  prints nothing where a `total_cmp` sort would print a duplicate line
+  (shared-math repair round, 2026-09-20).
+
+**Two numbering namespaces, so read the prefix.** These D-numbers are the
+lead's cross-wave decisions. Wave 5 keeps its own D1-D13 list in
+[the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-5-status), and some
+package documents carry package-local `D<n>` labels — the mzML reader's "D10"
+below is one — that are not these decisions at all.
 
 ### This pass's gates
 
