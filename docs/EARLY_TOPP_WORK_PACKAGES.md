@@ -1938,10 +1938,21 @@ one worktree that has the pinned checkouts.
   50-million budget. Two A7 oracle cases have no differential because of it, and
   the oracle already records what the C++ prints for both, so closing it needs
   no reference-build run. **Identification-XML reader owner.**
-- **The citation checker's item 7** — a bare range under a bare file name — is
+- ~~**The citation checker's item 7** — a bare range under a bare file name — is
   the largest unchecked population left and the largest false-positive surface
   in the tool. It needs its own measurement pass over the unresolved ranges
-  before a line of it is written. **Tooling owner.**
+  before a line of it is written.~~ **Closed in the citation-disambiguation
+  wave.** The measurement was made: 66 unresolved ranges, now 3. The
+  false-positive surface never opened, because `owner_of` was not touched and
+  nothing was guessed — each range was resolved *in the document*, by naming
+  its file once at the first bare range of the paragraph so the rest continue
+  it, and every line was read at the pin first. Six of them were written under
+  the **wrong** file, `SignalToNoiseEstimator.h` for lines that are in the
+  442-line `SignalToNoiseEstimatorMedian.h`, which is what a bare range under a
+  file too short to hold it looks like from here. The 3 left cannot be resolved
+  by anything that reads C++ pins: two are line numbers in a Rust file written
+  as a continuation of one, and one continues Eigen's `lmpar.h`, which nothing
+  retains. **Tooling owner.**
 - **One gate-slot rule, learned twice this wave.** `openms-kim-gate.sh` rsyncs
   with `--delete-excluded`, which deletes the remote `target/`, so two batteries
   sharing one slot produce failures that look like code failures — "extern
