@@ -663,7 +663,7 @@ fn the_test_support_emulation_agrees_with_the_tool() {
         }
         checked += 1;
     }
-    assert!(checked >= 60, "{checked}");
+    assert_eq!(checked, 68);
 }
 
 // ---------------------------------------------------------------------------
