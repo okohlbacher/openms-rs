@@ -114,6 +114,7 @@ fn a_caller_schema_must_be_self_contained_and_is_preflighted_like_a_document() {
         r#"<xs:redefine schemaLocation="file:///etc/passwd"/>"#,
         r#"<xs:override schemaLocation="other.xsd"/>"#,
         r#"<q:include xmlns:q="http://www.w3.org/2001/XMLSchema" schemaLocation="other.xsd"/>"#,
+        r#"<include xmlns="http://www.w3.org/2001/XMLSchema" schemaLocation="other.xsd"/>"#,
     ] {
         let composed = schema.replacen(
             "<xs:element name=\"Root\">",
@@ -129,6 +130,17 @@ fn a_caller_schema_must_be_self_contained_and_is_preflighted_like_a_document() {
             "{composition}"
         );
     }
+    let foreign = schema.replacen(
+        "<xs:element name=\"Root\">",
+        "<xs:annotation><xs:appinfo><p:include xmlns:p=\"urn:not-xsd\" schemaLocation=\"other.xsd\"/></xs:appinfo></xs:annotation><xs:element name=\"Root\">",
+        1,
+    );
+    assert_ne!(foreign, schema);
+    assert!(
+        validate_reader_against(valid.as_bytes(), foreign.as_bytes(), &o)
+            .unwrap()
+            .is_valid()
+    );
     // A DTD in the schema is refused as it is in a document.
     let dtd = schema.replacen(
         "<xs:schema",

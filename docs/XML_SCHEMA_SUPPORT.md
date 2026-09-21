@@ -114,7 +114,8 @@ format's own feature are enabled. `xml_schema::validate` needs only
 - **One validation at a time.** libxml2's schema contexts are not safe to use
   from several threads at once (the binding says so for libxml2 2.12 and
   later), so every engine call in the crate, mzML's included, holds one
-  process-wide lock. Preflight and report building run outside it.
+  process-wide lock. The Rust preflight runs outside it; compilation,
+  validation and the collection of diagnostics run inside.
 - **Limits.** `SchemaValidationLimits` bound the Rust-side decoding, lexical and
   namespace preflight and the returned diagnostics, for the document and, with
   `validate_against`, the caller's schema on the same budget. They do not bound
