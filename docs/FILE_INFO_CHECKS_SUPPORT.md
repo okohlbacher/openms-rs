@@ -364,8 +364,9 @@ Native differences 11 and 12 are in both lists too, because their owner is
   the C++ reports; the loadable cases use the core `IndexedmzMLFile_1` fixture,
   whose `-i` run exits 0 in both implementations.
 - **`TOPP_FileInfo_6`** runs `-d` on mzData, a peak format with no native
-  reader on this path. The branch is refused as before this package; it belongs
-  to A8.
+  reader on this path when this package landed. A8 has since wired the mzData
+  reader, and TOPP_FileInfo_6's `-d` listing is reproduced
+  ([FILE_INFO_A8_SUPPORT](FILE_INFO_A8_SUPPORT.md)).
 
 ### Fixtures
 

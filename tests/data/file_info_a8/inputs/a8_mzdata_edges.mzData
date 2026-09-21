@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzData version="1.05" accessionNumber="a8-edges">
+<description>
+<admin>
+<sampleName>edge sample</sampleName>
+<contact><name>A. Person</name><institution>lab</institution><contactInfo>a@lab</contactInfo></contact>
+</admin>
+<instrument>
+<instrumentName>edge instrument</instrumentName>
+<source/>
+<analyzerList count="1"><analyzer>
+<cvParam cvLabel="psi" accession="PSI:1000010" name="AnalyzerType" value="Quadrupole"/>
+<cvParam cvLabel="psi" accession="PSI:1000011" name="Resolution" value="1000.5"/>
+</analyzer></analyzerList>
+<detector/>
+</instrument>
+<dataProcessing>
+<software completionTime="2020-01-02T03:04:05"><name>picker</name><version>7</version></software>
+<processingMethod>
+<cvParam cvLabel="psi" accession="PSI:1000127" name="Centroid Mass Spectrum" value=""/>
+</processingMethod>
+</dataProcessing>
+</description>
+<spectrumList count="4">
+<spectrum id="1">
+<spectrumDesc>
+<spectrumSettings>
+<acqSpecification spectrumType="continuous" methodOfCombination="sum" count="1"><acquisition acqNumber="1"/></acqSpecification>
+<spectrumInstrument msLevel="1">
+<cvParam cvLabel="psi" accession="PSI:1000038" name="TimeInMinutes" value="1.5"/>
+</spectrumInstrument>
+</spectrumSettings>
+</spectrumDesc>
+<supDesc supDataArrayRef="1"/>
+<mzArrayBinary><data precision="32" endian="little" length="15">AAD6Q0gB+kOPAvpD1wP6Qx8F+kNmBvpDrgf6Q/YI+kM9CvpDhQv6Q80M+kMUDvpDXA/6Q6QQ+kPsEfpD</data></mzArrayBinary>
+<intenArrayBinary><data precision="32" endian="little" length="15">AAAgQbdte0G3batBkiTZQbdtA0IlSRpCkiQxQgAASEKSJDFCJUkaQrdtA0KSJNlBt22rQbdte0EAACBB</data></intenArrayBinary>
+<supDataArrayBinary id="1"><arrayName>noise</arrayName><data precision="32" endian="little" length="15">AACAPwAAAEAAAEBAAACAQAAAoEAAAMBAAADgQAAAAEEAABBBAAAgQQAAMEEAAEBBAABQQQAAYEEAAHBB</data></supDataArrayBinary>
+</spectrum>
+<spectrum id="2">
+<spectrumDesc>
+<spectrumSettings>
+<acqSpecification spectrumType="discrete" methodOfCombination="sum" count="1"><acquisition acqNumber="2"/></acqSpecification>
+<spectrumInstrument msLevel="1">
+<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="91"/>
+</spectrumInstrument>
+</spectrumSettings>
+</spectrumDesc>
+<supDesc supDataArrayRef="1"/>
+<supDesc supDataArrayRef="2"/>
+<mzArrayBinary><data precision="32" endian="little" length="12">AAAWRABAGUQAgBxEAMAfRAAAI0QAQCZEAIApRADALEQAADBEAEAzRACANkQAwDlE</data></mzArrayBinary>
+<intenArrayBinary><data precision="32" endian="little" length="12">AACgQAAAwEAAAOBAAAAAQQAAEEEAACBBAAAwQQAAQEEAAFBBAABgQQAAcEEAAIBB</data></intenArrayBinary>
+<supDataArrayBinary id="1"><arrayName>noise</arrayName><data precision="32" endian="little" length="12">AAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABA</data></supDataArrayBinary>
+<supDataArrayBinary id="2"><arrayName>width</arrayName><data precision="32" endian="little" length="12">AAAAPwAAAD8AAAA/AAAAPwAAAD8AAAA/AAAAPwAAAD8AAAA/AAAAPwAAAD8AAAA/</data></supDataArrayBinary>
+</spectrum>
+<spectrum id="3">
+<spectrumDesc>
+<spectrumSettings>
+<acqSpecification spectrumType="bogus" methodOfCombination="sum" count="1"><acquisition acqNumber="3"/></acqSpecification>
+<spectrumInstrument msLevel="2">
+<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="92"/>
+</spectrumInstrument>
+</spectrumSettings>
+<precursorList count="1"><precursor msLevel="1" spectrumRef="2"><ionSelection>
+<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="640.5"/>
+<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="2"/>
+<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>
+</ionSelection><activation>
+<cvParam cvLabel="psi" accession="PSI:1000044" name="Method" value="ETD"/>
+</activation></precursor></precursorList>
+</spectrumDesc>
+<mzArrayBinary><data precision="32" endian="little" length="2">AABIQwAAlkM=</data></mzArrayBinary>
+<intenArrayBinary><data precision="32" endian="little" length="2">AACAPwAAAEA=</data></intenArrayBinary>
+</spectrum>
+<spectrum id="4">
+<spectrumDesc>
+<spectrumSettings>
+<spectrumInstrument msLevel="2">
+<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="93"/>
+</spectrumInstrument>
+</spectrumSettings>
+<precursorList count="1"><precursor msLevel="1" spectrumRef="2"><ionSelection>
+<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="650.5"/>
+<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="1"/>
+</ionSelection><activation>
+<cvParam cvLabel="psi" accession="PSI:1000044" name="Method" value="CID"/>
+<cvParam cvLabel="psi" accession="PSI:1000044" name="Method" value="PSD"/>
+</activation></precursor></precursorList>
+</spectrumDesc>
+<mzArrayBinary><data precision="32" endian="little" length="0"></data></mzArrayBinary>
+<intenArrayBinary><data precision="32" endian="little" length="0"></data></intenArrayBinary>
+</spectrum>
+</spectrumList>
+</mzData>

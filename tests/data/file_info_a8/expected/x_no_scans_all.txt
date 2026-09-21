@@ -1,0 +1,77 @@
+
+-- General information --
+
+File name: <FIX>/a8_mzxml_no_scans.mzXML
+File type: mzXML
+
+Instrument: 
+
+MS levels: 
+Total number of peaks: 0
+Number of spectra: 0
+
+Combined Ranges (spectra + chromatograms):
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  ion mobility: <none> .. <none>
+  intensity: <none> .. <none>
+
+Spectrum Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  ion mobility: <none> .. <none>
+  intensity: <none> .. <none>
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Peak type from metadata (or estimated from data)
+
+Activation methods
+
+Precursor charge distribution:
+
+
+-- Checking for corrupt data --
+
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    
+  mass analyzer(s): 
+  detector(s):      
+
+
+-- Data processing information --
+
+No information about data processing available!
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+
+

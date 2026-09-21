@@ -662,6 +662,7 @@
   "tests/data/egh_trace_fitter_provenance.json",
   "tests/data/fuzzy_string_comparator_provenance.json",
   "tests/data/file_info_a7_provenance.json",
+  "tests/data/file_info_a8_provenance.json",
   "tests/data/picker_consumers_provenance.json",
   "tests/data/progress_consumers_provenance.json"
  ],
@@ -3928,6 +3929,54 @@
    "origin_key": "tests/data/file_info_a7_provenance.json",
    "package": "A7-FILEINFO",
    "role": "tool hash, environment, fixture hashes, per-case argv, exit codes and output hashes, reproduction verdict, and the out_of_bounds, unspecified_order and signed_zero_order records",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a8-fileinfo/oracle.py",
+   "sha256": "840ff5d8d2865e5d67efd7fe60ba21f8032a50511e791d80fab84f6474410de2",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-FILEINFO",
+   "role": "Release-build FileInfo runner: 70 tool cases and 14 class-driver cases, per-case scratch runs, reproduction check, manifest writer",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a8-fileinfo/run.sh",
+   "sha256": "f3475279b1c0ebb5bf1f719c4b94ac81ae372992b137c80ddd43a8793fa0d312",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-FILEINFO",
+   "role": "entry point with the exact environment; compiles the class driver with the Release install's own toolchain and libOpenMS's core flags",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a8-fileinfo/driver/fileinfo_driver.cpp",
+   "sha256": "ae24c4e41916332ff2e21278ddd0af59f752f830443626a4491f262eb873997f",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-FILEINFO",
+   "role": "class-level driver: OpenMS::FileInfo::run and toText/toTSV, for the MS2 inputs the tool's -in refuses and four cross-checks",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a8-fileinfo/scripts/make_a8_fixtures.py",
+   "sha256": "3cbba6f0bd4f0656e4eb9e16ab92c49783af00f1e3f371276241f413c967189b",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-FILEINFO",
+   "role": "generator of the 21 degenerate mzXML, mzData, MGF and MS2 inputs, two of them gzip-compressed, all of which regenerate byte for byte",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a8-fileinfo/scripts/export_expected.py",
+   "sha256": "36da4f57c92575630a703ea27b23ab5998838e63852e363bfd246af13dbf5190",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-FILEINFO",
+   "role": "exporter of the retained reports into tests/data/file_info_a8, refusing any whose normalised text does not hash back to the manifest",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a8-fileinfo/manifest.json",
+   "sha256": "2376cdc4e92c7b4bbeddc4394aefbdf58940200fbe2d952406d3cfbff5fdb436",
+   "origin_key": "tests/data/file_info_a8_provenance.json",
+   "package": "A8-FILEINFO",
+   "role": "tool, driver and libOpenMS hashes, environment, fixture hashes, per-case argv, exit codes and output hashes, and the reproduction verdict",
    "label": "oracle-generated (tier 1 executed differential)"
   },
   {

@@ -1,0 +1,125 @@
+
+-- General information --
+
+File name: <FIX>/MzXMLFile_3_64bit.mzXML
+File type: mzXML
+
+Instrument: 
+  Mass Analyzer: Quadrupole ion trap (resolution: 0)
+
+MS levels: 1
+Total number of peaks: 9
+Number of spectra: 3
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 1.00 .. 3661.00 sec (61.0 min)
+  mass-to-charge: 100.00 .. 140.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 300.00
+
+Spectrum Ranges:
+  retention time: 1.00 .. 3661.00 sec (61.0 min)
+  mass-to-charge: 100.00 .. 140.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 300.00
+
+MS Level 1 Ranges:
+  retention time: 1.00 .. 3661.00 sec (61.0 min)
+  mass-to-charge: 100.00 .. 140.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 300.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 3
+
+Peak type from metadata (or estimated from data)
+  level 1: Centroid (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      1
+  RT:         1
+  m/z:        120 .. 120
+Precursors:  0
+
+Spectrum 2:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      3
+  RT:         121
+  m/z:        110 .. 130
+Precursors:  0
+
+Spectrum 3:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      5
+  RT:         3661
+  m/z:        100 .. 140
+Precursors:  0
+
+-- Checking for corrupt data --
+
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            MS 1
+  vendor:           MS-Vendor
+  ion source(s):    Electrospray ionisation
+  mass analyzer(s): Quadrupole ion trap
+  detector(s):      Faraday cup
+
+Contact person:
+  first name:     FirstName
+  last name:      LastName
+  email:          admin@foo.de
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    MS-X
+  software version: 1.0
+  completion time:  2001-02-03 04:05:06
+  actions:          Charge deconvolution, Deisotoping, Peak picking
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 9
+  mean:           155.556
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 200
+  maximum:        300
+  variance:       5277.78
+
+
+

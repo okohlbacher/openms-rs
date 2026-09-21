@@ -1,0 +1,58 @@
+general: file name	<FIX>/FileConverter_26_output.mzXML
+general: file type	mzXML
+number of spectra	10
+total number of peaks	3149
+general: combined ranges: retention time: min	20.87
+general: combined ranges: retention time: max	39.97
+general: combined ranges: mass-to-charge: min	500.07
+general: combined ranges: mass-to-charge: max	1497.28
+general: combined ranges: intensity: min	16.30
+general: combined ranges: intensity: max	38920.12
+general: spectrum ranges: retention time: min	20.87
+general: spectrum ranges: retention time: max	39.97
+general: spectrum ranges: mass-to-charge: min	500.07
+general: spectrum ranges: mass-to-charge: max	1497.28
+general: spectrum ranges: intensity: min	16.30
+general: spectrum ranges: intensity: max	38920.12
+general: MS1 ranges: retention time: min	20.87
+general: MS1 ranges: retention time: max	39.97
+general: MS1 ranges: mass-to-charge: min	500.07
+general: MS1 ranges: mass-to-charge: max	1497.28
+general: MS1 ranges: intensity: min	16.30
+general: MS1 ranges: intensity: max	38920.12
+general: MS2 ranges: retention time: min	25.40
+general: MS2 ranges: retention time: max	39.11
+general: MS2 ranges: mass-to-charge: min	500.10
+general: MS2 ranges: mass-to-charge: max	850.08
+general: MS2 ranges: intensity: min	23.68
+general: MS2 ranges: intensity: max	729.68
+general: chromatogram ranges: retention time: min	<none>
+general: chromatogram ranges: retention time: max	<none>
+general: chromatogram ranges: mass-to-charge: min	<none>
+general: chromatogram ranges: mass-to-charge: max	<none>
+general: chromatogram ranges: intensity: min	<none>
+general: chromatogram ranges: intensity: max	<none>
+number of MS1 spectra	4
+number of MS2 spectra	6
+peak type metadata [annotation, estimate]	Unknown	Centroid
+peak type metadata [annotation, estimate]	Unknown	Unknown
+document id	
+date	0000-00-00 00:00:00
+sample name	
+sample organism	
+sample comment	
+instrument name	
+instrument model	
+instrument vendor	Thermo Scientific
+data processing: 1: software name	
+data processing: 1: software version	
+data processing: 1: completion time	0000-00-00 00:00:00
+data processing: 1: actions	
+data processing: 2: software name	FileConverter
+data processing: 2: software version	version_string
+data processing: 2: completion time	1999-12-31 23:59:00
+data processing: 2: actions	
+data processing: 3: software name	FileConverter
+data processing: 3: software version	version_string
+data processing: 3: completion time	1999-12-31 23:59:59
+data processing: 3: actions	

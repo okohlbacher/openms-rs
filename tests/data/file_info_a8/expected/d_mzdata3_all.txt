@@ -1,0 +1,109 @@
+
+-- General information --
+
+File name: <FIX>/MzDataFile_3_minimal.mzData
+File type: mzData
+
+Instrument: 
+  Mass Analyzer: Unknown (resolution: 0)
+
+MS levels: 1
+Total number of peaks: 3
+Number of spectra: 1
+
+Combined Ranges (spectra + chromatograms):
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 110.00 .. 130.00
+  ion mobility: <none> .. <none>
+  intensity: 110.00 .. 130.00
+
+Spectrum Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 110.00 .. 130.00
+  ion mobility: <none> .. <none>
+  intensity: 110.00 .. 130.00
+
+MS Level 1 Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 110.00 .. 130.00
+  ion mobility: <none> .. <none>
+  intensity: 110.00 .. 130.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 1
+
+Peak type from metadata (or estimated from data)
+  level 1: Unknown (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      3
+  RT:         -1
+  m/z:        110 .. 130
+Precursors:  0
+
+-- Checking for corrupt data --
+
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    Unknown
+  mass analyzer(s): Unknown
+  detector(s):      Unknown
+
+Contact person:
+  first name:     
+  last name:      
+  email:          
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    
+  software version: 
+  completion time:  0000-00-00 00:00:00
+  actions:          
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 3
+  mean:           120
+  minimum:        110
+  lower quartile: 110
+  median:         120
+  upper quartile: 130
+  maximum:        130
+  variance:       100
+
+
+

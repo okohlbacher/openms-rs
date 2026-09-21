@@ -1,0 +1,132 @@
+
+-- General information --
+
+File name: <FIX>/a8_mzdata_edges.mzData
+File type: mzData
+
+Instrument: edge instrument
+  Mass Analyzer: Quadrupole (resolution: 1000.5)
+
+MS levels: 1, 2
+Total number of peaks: 29
+Number of spectra: 4
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 90.00 .. 93.00 sec (0.1 min)
+  mass-to-charge: 200.00 .. 743.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 50.00
+
+Spectrum Ranges:
+  retention time: 90.00 .. 93.00 sec (0.1 min)
+  mass-to-charge: 200.00 .. 743.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 50.00
+
+MS Level 1 Ranges:
+  retention time: 90.00 .. 91.00 sec (0.0 min)
+  mass-to-charge: 500.00 .. 743.00
+  ion mobility: <none> .. <none>
+  intensity: 5.00 .. 50.00
+
+MS Level 2 Ranges:
+  retention time: 92.00 .. 93.00 sec (0.0 min)
+  mass-to-charge: 200.00 .. 300.00
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 2.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 2
+  level 2: 2
+
+Peak type from metadata (or estimated from data)
+  level 1: Profile (Profile)
+  level 2: Centroid (Unknown)
+
+Activation methods
+    MS-Level 2 & CID (Collision-induced dissociation): 2
+    MS-Level 2 & PSD (Post-source decay): 1
+
+Precursor charge distribution:
+  charge 0: 1x
+  charge 1: 1x
+
+Meta data array:
+  noise: 2 spectra
+  width: 1 spectra
+
+
+-- Meta information --
+
+Document ID:        a8-edges
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             edge sample
+  organism:         
+  comment:          
+
+Instrument:
+  name:             edge instrument
+  model:            
+  vendor:           
+  ion source(s):    Unknown
+  mass analyzer(s): Quadrupole
+  detector(s):      Unknown
+
+Contact person:
+  first name:     A.
+  last name:      Person
+  email:          
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    picker
+  software version: 7
+  completion time:  2020-01-02 03:04:05
+  actions:          Peak picking
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 27
+  mean:           20.5926
+  minimum:        5
+  lower quartile: 10
+  median:         15.7143
+  upper quartile: 32.8571
+  maximum:        50
+  variance:       179.207
+
+Meta data: noise
+  num. of values: 27
+  mean:           5.33333
+  minimum:        1
+  lower quartile: 2
+  median:         2
+  upper quartile: 9
+  maximum:        15
+  variance:       20
+
+Meta data: width
+  num. of values: 12
+  mean:           0.5
+  minimum:        0.5
+  lower quartile: 0.5
+  median:         0.5
+  upper quartile: 0.5
+  maximum:        0.5
+  variance:       0
+
+
+

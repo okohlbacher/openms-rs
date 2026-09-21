@@ -2,10 +2,13 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-//! The FileInfo summary of peak files: DTA, DTA2D and mzML
-//! (`FORMAT/FileInfo.cpp:1532-1965`, `:2005-2081`, `:2115-2127`, `:2384-2440`).
+//! The FileInfo summary of peak files: DTA, DTA2D, mzML, mzXML, mzData, MGF
+//! and MS2 (`FORMAT/FileInfo.cpp:1532-1965`, `:2005-2081`, `:2115-2127`,
+//! `:2384-2440`).
 //!
-//! The peak-file branch of the report: the experiment is loaded through
+//! The peak-file branch of the report: mzXML, mzData, MGF and MS2 are loaded by
+//! the reader the source's `FileHandler::loadExperiment` names for each (see
+//! `load_source_reader`); DTA, DTA2D and mzML through
 //! [`crate::format::FileHandler::load_experiment_with_options`] with default
 //! [`crate::format::PeakFileOptions`] and the forced or detected type as the
 //! only allowed type, as the source calls `FileHandler::loadExperiment(in, exp,
@@ -139,8 +142,98 @@ pub(crate) fn report(
 /// false)`: default `PeakFileOptions`, `in_type` as the only allowed type, and
 /// the mzML reader's dangling-reference handling from
 /// [`Options::source_dangling_references`].
-#[cfg(feature = "mzml")]
+///
+/// mzXML, mzData, MGF and MS2 go to the reader the source's `switch` names for
+/// them (`FORMAT/FileHandler.cpp:886-937`) rather than through
+/// [`FileHandler`](crate::format::FileHandler), see [`load_source_reader`].
 fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<MSExperiment> {
+    match in_type {
+        FileType::MzXml | FileType::MzData | FileType::Mgf | FileType::Ms2 => {
+            load_source_reader(path, in_type)
+        }
+        _ => load_through_handler(path, in_type, options),
+    }
+}
+
+/// mzXML, mzData, MGF and MS2, each through the reader the source's
+/// `FileHandler::loadExperiment` calls for it (`FORMAT/FileHandler.cpp:886-937`).
+///
+/// The loader first detects the type itself (`getType(filename)`, `:856`) and
+/// refuses one other than `in_type`, the single allowed type FileInfo passes
+/// (`:858-864`); the refusal is [`Error::InvalidValue`], as
+/// [`FileHandler`](crate::format::FileHandler) maps the source's `ParseError`
+/// there. Then:
+///
+/// - mzXML and mzData: `MzXMLFile` and `MzDataFile` with `f.getOptions() =
+///   options_`, the handler's default `PeakFileOptions`, which is what
+///   FileInfo's handler holds. Both are gated on the `mzml` feature, as the
+///   two readers are.
+/// - MGF: `MascotGenericFile::load` (`:923-929`), which this crate ports as
+///   [`crate::format::mascot_generic`], not the stricter native
+///   [`crate::format::mgf`] adapter. The source reader keeps one spectrum
+///   object across blocks and clears only its peaks, native ID, `TITLE` and
+///   `SEQ` (`FORMAT/MascotGenericFile.h:89-104`, `:141-157`), so the load runs with
+///   [`CarryOver::Source`](crate::format::mascot_generic::CarryOver::Source):
+///   an omitted `CHARGE=`, `PEPMASS=`, `RTINSECONDS=` or `MSLEVEL=` inherits
+///   the previous block's value, as the report then counts it. It also sets
+///   [`source_ms_level`](crate::format::mascot_generic::ReadOptions::source_ms_level),
+///   so `MSLEVEL=-1` is the MS level `4294967295` the source prints rather
+///   than a parse error. Its `PeakFileOptions` are not consulted, as the
+///   source does not hand them to this reader.
+/// - MS2: `MS2File::load` (`:931-937`), [`crate::format::ms2`], which likewise
+///   takes no `PeakFileOptions`.
+fn load_source_reader(path: &Path, in_type: FileType) -> Result<MSExperiment> {
+    let detected = FileHandler::get_type(path)?;
+    if detected != in_type {
+        return Err(Error::InvalidValue(format!(
+            "{} is not an allowed input format",
+            detected.name()
+        )));
+    }
+    match in_type {
+        FileType::Mgf => crate::format::mascot_generic::load_with_options(
+            path,
+            &crate::format::mascot_generic::ReadOptions {
+                carry_over: crate::format::mascot_generic::CarryOver::Source,
+                source_ms_level: true,
+                ..crate::format::mascot_generic::ReadOptions::default()
+            },
+        ),
+        FileType::Ms2 => crate::format::ms2::load(path),
+        _ => load_xml_peak_file(path, in_type),
+    }
+}
+
+/// `MzXMLFile` and `MzDataFile` with the handler's default `PeakFileOptions`
+/// (`FORMAT/FileHandler.cpp:886-902`).
+#[cfg(feature = "mzml")]
+fn load_xml_peak_file(path: &Path, in_type: FileType) -> Result<MSExperiment> {
+    if in_type == FileType::MzXml {
+        return crate::format::mzxml::load_with_options(
+            path,
+            &crate::format::mzxml::ReadOptions::default(),
+        );
+    }
+    Ok(crate::format::mzdata::load_with_options(
+        path,
+        &PeakFileOptions::default(),
+        &crate::format::mzdata::ReadLimits::default(),
+    )?
+    .experiment)
+}
+
+/// Without the `mzml` feature neither XML reader is compiled in.
+#[cfg(not(feature = "mzml"))]
+fn load_xml_peak_file(_path: &Path, in_type: FileType) -> Result<MSExperiment> {
+    Err(Error::Unsupported(format!(
+        "FileInfo peak-file branch for {} input: this build lacks the mzml feature",
+        in_type.name()
+    )))
+}
+
+/// DTA, DTA2D and mzML through [`FileHandler`](crate::format::FileHandler).
+#[cfg(feature = "mzml")]
+fn load_through_handler(path: &Path, in_type: FileType, options: &Options) -> Result<MSExperiment> {
     let read = crate::format::mzml::ReadOptions {
         source_dangling_references: options.source_dangling_references,
         ..crate::format::mzml::ReadOptions::default()
@@ -156,7 +249,7 @@ fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<
 /// As the `mzml` build, without an mzML reader to pass
 /// [`Options::source_dangling_references`] to.
 #[cfg(not(feature = "mzml"))]
-fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<MSExperiment> {
+fn load_through_handler(path: &Path, in_type: FileType, options: &Options) -> Result<MSExperiment> {
     let _ = options.source_dangling_references;
     FileHandler::load_experiment_with_options(path, &[in_type], &PeakFileOptions::default())
 }
@@ -319,12 +412,12 @@ fn count_overflow() -> Error {
     Error::InvalidValue("FileInfo peak count overflows 64 bits".into())
 }
 
-fn to_int(level: u32) -> Result<i32> {
-    i32::try_from(level).map_err(|_| {
-        Error::InvalidValue(format!(
-            "MS level {level} does not fit the FileInfo result's Int key"
-        ))
-    })
+/// `static_cast<Int>(level)`, the key of the source result's per-level maps
+/// (`FORMAT/FileInfo.cpp:1645-1657`). The conversion is modular since C++20, so
+/// an MS level above `i32::MAX` keeps its bits: the `4294967295` an MGF
+/// `MSLEVEL=-1` loads as is the key `-1`, as in the source.
+fn to_int(level: u32) -> i32 {
+    i32::from_ne_bytes(level.to_ne_bytes())
 }
 
 fn write_content(
@@ -553,7 +646,7 @@ fn peak_info(experiment: &MSExperiment, summary: &Summary) -> Result<PeakInfo> {
         ..PeakInfo::default()
     };
     for &level in &summary.ms_levels {
-        let key = to_int(level)?;
+        let key = to_int(level);
         info.ms_levels.push(key);
         info.peak_type_per_ms_level.insert(
             key,
@@ -565,11 +658,11 @@ fn peak_info(experiment: &MSExperiment, summary: &Summary) -> Result<PeakInfo> {
         );
     }
     for (level, count) in &summary.spectra_per_level {
-        info.spectra_per_ms_level.insert(to_int(*level)?, *count);
+        info.spectra_per_ms_level.insert(to_int(*level), *count);
     }
     for ((level, method), count) in &summary.activation {
         info.activation_methods
-            .insert((to_int(*level)?, method.name().to_owned()), *count);
+            .insert((to_int(*level), method.name().to_owned()), *count);
     }
     for (kind, count) in &summary.chromatogram_types {
         info.chromatogram_types

@@ -107,6 +107,13 @@ pub struct ReadOptions {
     pub intensity_range: Option<Range<f64>>,
     /// Whether unset fields inherit the previous block's values.
     pub carry_over: CarryOver,
+    /// Store the MS level of an `MSLEVEL=` line as the source's
+    /// `spectrum.setMSLevel(std::stoi(value))` does (`FORMAT/MascotGenericFile.h:325-343`):
+    /// `0` stays `0` and a negative value wraps into the source's `UInt`, so
+    /// `-1` becomes `4294967295`. Off by default, where a non-positive MS
+    /// level is a parse error, because such a record is invalid for every
+    /// consumer. The FileInfo report sets it to reproduce the source.
+    pub source_ms_level: bool,
     /// Byte, line, spectrum and peak ceilings, shared with the other text
     /// adapters. Counts include filtered and discarded input.
     pub limits: Limits,
@@ -636,6 +643,10 @@ impl<R: BufRead> MascotGenericReader<R> {
                 // The source assigns whatever `std::stoi` returned. A
                 // non-positive MS level makes the record invalid for every
                 // consumer, so it is refused here instead of stored.
+                // `int` to `UInt` is modular since C++20.
+                Some(Ok(level)) if self.options.source_ms_level => {
+                    spectrum.ms_level = level as u32;
+                }
                 Some(Ok(level)) => {
                     spectrum.ms_level =
                         u32::try_from(level)

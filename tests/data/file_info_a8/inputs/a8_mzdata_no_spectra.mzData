@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzData version="1.05" accessionNumber="">
+<description>
+<admin>
+<sampleName></sampleName>
+<contact><name></name><institution></institution></contact>
+</admin>
+<instrument>
+<instrumentName/>
+<source/>
+<analyzerList count="1"><analyzer></analyzer></analyzerList>
+<detector/>
+</instrument>
+<dataProcessing>
+<software><name></name><version></version></software>
+</dataProcessing>
+</description>
+<spectrumList count="0">
+</spectrumList>
+</mzData>

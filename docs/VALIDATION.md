@@ -70,6 +70,43 @@ warnings`, `RUSTDOCFLAGS=-D warnings cargo doc --all-features`,
 until the lead regenerates the matrix for the new `tests/topp_fuzzy_diff.rs`;
 this lane does not edit `rust.yml`.
 
+## A8-FILEINFO, the cheap half: mzXML, mzData, MGF and MS2 (2026-09-21)
+
+FileInfo's peak-file branch loads the four types through the readers the
+source's `FileHandler::loadExperiment` names for them
+([FILE_INFO_A8_SUPPORT](FILE_INFO_A8_SUPPORT.md)). Executed for this checkpoint:
+
+- `../oracle/a8-fileinfo`: 70 cases of the Release FileInfo tool and 14 cases of
+  a driver over `OpenMS::FileInfo::run`, against
+  `openms4-release-bc9cc12-c19e494-174b576` on ibminode06, each run twice and
+  reproduced; manifest sha256
+  `2376cdc4e92c7b4bbeddc4394aefbdf58940200fbe2d952406d3cfbff5fdb436`.
+- `tests/file_info_a8.rs`: 19 passed with `--no-default-features --features
+  mzml` on stable and on 1.85.0, 11 with `--no-default-features` on both
+  (the eight mzXML and mzData tests are gated on `mzml`); 61 reports byte for
+  byte.
+- `tests/topp_file_info.rs`: 43 passed with the default features, 40 with
+  `--no-default-features --features "mzml paramxml featurexml"`;
+  TOPP_FileInfo_4, _5 and _6 pass FuzzyDiff against their retained outputs.
+- `tests/file_info.rs`: 61 passed with the default features and 60
+  with `--no-default-features --features "mzml featurexml"` (5 ignored,
+  unchanged), 25 with `--no-default-features`.
+- `tools/check_core_sdk.py`, `check_doc_coverage.py`, `check_module_cycles.py`
+  and `check_source_citations.py` pass; `core_sdk_coverage.py --write`
+  regenerated for the one added reference manifest.
+- The CI sweep (`openms-ci-sweep.sh` on kim, 52 lines of the quality,
+  portable-feature-graph, test and minimum-rust jobs, minimum-rust on 1.85.0)
+  at `47c9662`: 52 passed, 0 failed. The later commits add the two gzip cases
+  and documentation; `file_info_a8`, `topp_file_info`, `file_info` and
+  `mascot_generic` were rerun on them with `--all-features` on dax (19, 43, 61
+  and 46 passed) and `file_info_a8` on 1.85.0 (19 and 11 above).
+
+Refused where the Release build reports, both in the kernel's validating range
+computation: an mzData scan window that begins after it ends
+(`MzDataFile_1.mzData`) and an MGF MS level 0. Refused as well: a
+gzip-compressed MGF, which the source reads undecompressed and reports as an
+empty map.
+
 ## Shared-math wave: the source's own arithmetic and its own `std::sort` (2026-09-19)
 
 Decision **D16** was taken for this wave and is recorded in full, with its

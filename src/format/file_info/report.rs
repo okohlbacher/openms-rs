@@ -21,8 +21,8 @@
 //!
 //! # Scope
 //!
-//! This port runs the peak-file branch for DTA, DTA2D and mzML
-//! ([`crate::format::file_info::peaks`]), the featureXML branch
+//! This port runs the peak-file branch for DTA, DTA2D, mzML, mzXML, mzData, MGF
+//! and MS2 ([`crate::format::file_info::peaks`]), the featureXML branch
 //! ([`crate::format::file_info::features`]), the consensusXML branch
 //! ([`crate::format::file_info::consensus`]), the idXML and mzIdentML branch
 //! ([`crate::format::file_info::identifications`]) and the FASTA branch
@@ -43,10 +43,10 @@
 //!
 //! - `-v` (schema and semantic validation), for every type;
 //! - the pepXML, mzTab, trafoXML and PQP branches;
-//! - peak files of the types the source loads but no native loader serves on
-//!   this path: mzXML, mzData, MGF, MS2, sqMass, XMass (`fid`) and MSP, and
-//!   Thermo RAW and Bruker TDF, which the source loads when built with its
-//!   default `WITH_THERMO_RAW` and `WITH_OPENTIMS` options.
+//! - peak files of the types the source loads but no native reader loads into
+//!   an experiment here: sqMass, XMass (`fid`) and MSP, and Thermo RAW and
+//!   Bruker TDF, which the source loads when built with its default
+//!   `WITH_THERMO_RAW` and `WITH_OPENTIMS` options.
 //!
 //! Three inputs are refused where the source's behaviour is an out-of-bounds
 //! `std::vector` access, under lead decision D1: a consensus sub-feature whose
@@ -54,6 +54,15 @@
 //! with no protein identification run, and a peptide identification with no
 //! hit. `docs/FILE_INFO_A7_SUPPORT.md` records all three with the Release
 //! build's answer to each.
+//!
+//! Two further inputs are refused where the kernel's range computation is
+//! stricter than the source's `updateRanges`: a spectrum whose scan window
+//! begins after it ends, which the mzData reader keeps as the source does, and
+//! an MGF spectrum of MS level 0. A gzip-compressed MGF is refused as well: the
+//! MGF reader, like the source's, does not decompress, and refuses the bytes
+//! as not being text where the source reports an empty map.
+//! `docs/FILE_INFO_A8_SUPPORT.md` records all three with the Release build's
+//! report.
 //!
 //! `docs/FILE_INFO_SUPPORT.md` holds the API mapping, the preserved source
 //! conventions, the native differences and the evidence.
@@ -396,7 +405,8 @@ enum Branch {
     Identifications,
     /// The FASTA branch.
     Fasta,
-    /// The peak-file branch with a native loader: DTA, DTA2D and mzML.
+    /// The peak-file branch with a native loader: DTA, DTA2D, mzML, mzXML,
+    /// mzData, MGF and MS2.
     Peaks,
     /// A non-peak branch of the source that is not ported.
     Unported,
@@ -411,21 +421,24 @@ enum Branch {
 fn branch(in_type: FileType) -> Branch {
     match in_type {
         FileType::FeatureXml => Branch::Features,
-        FileType::Dta | FileType::Dta2d | FileType::MzMl => Branch::Peaks,
+        FileType::Dta
+        | FileType::Dta2d
+        | FileType::MzMl
+        | FileType::MzXml
+        | FileType::MzData
+        | FileType::Mgf
+        | FileType::Ms2 => Branch::Peaks,
         FileType::ConsensusXml => Branch::Consensus,
         FileType::IdXml | FileType::MzIdentMl => Branch::Identifications,
         FileType::Fasta => Branch::Fasta,
         FileType::PepXml | FileType::MzTab | FileType::TransformationXml | FileType::Pqp => {
             Branch::Unported
         }
-        // Thermo RAW and Bruker TDF load in the source built with its default
-        // WITH_THERMO_RAW and WITH_OPENTIMS options; without them the source
-        // loader throws ParseError. Neither has a native reader here.
-        FileType::MzXml
-        | FileType::MzData
-        | FileType::Mgf
-        | FileType::Ms2
-        | FileType::SqMass
+        // sqMass, XMass and MSP have no native reader that fills an
+        // MSExperiment. Thermo RAW and Bruker TDF load in the source built with
+        // its default WITH_THERMO_RAW and WITH_OPENTIMS options; without them
+        // the source loader throws ParseError. Neither has a native reader here.
+        FileType::SqMass
         | FileType::Xmass
         | FileType::Msp
         | FileType::Raw

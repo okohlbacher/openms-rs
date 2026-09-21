@@ -1,0 +1,103 @@
+
+-- General information --
+
+File name: <FIX>/MzXMLFile_2_minimal.mzXML
+File type: mzXML
+
+Instrument: 
+
+MS levels: 1
+Total number of peaks: 1
+Number of spectra: 1
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 0.00 .. 0.00 sec (0.0 min)
+  mass-to-charge: 120.00 .. 120.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 100.00
+
+Spectrum Ranges:
+  retention time: 0.00 .. 0.00 sec (0.0 min)
+  mass-to-charge: 120.00 .. 120.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 100.00
+
+MS Level 1 Ranges:
+  retention time: 0.00 .. 0.00 sec (0.0 min)
+  mass-to-charge: 120.00 .. 120.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 100.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 1
+
+Peak type from metadata (or estimated from data)
+  level 1: Unknown (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      1
+  RT:         0
+  m/z:        120 .. 120
+Precursors:  0
+
+-- Checking for corrupt data --
+
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    
+  mass analyzer(s): 
+  detector(s):      
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    
+  software version: 
+  completion time:  0000-00-00 00:00:00
+  actions:          
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 1
+  mean:           100
+  minimum:        100
+  lower quartile: 100
+  median:         100
+  upper quartile: 100
+  maximum:        100
+  variance:       0
+
+
+

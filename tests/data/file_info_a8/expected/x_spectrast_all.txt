@@ -1,0 +1,140 @@
+
+-- General information --
+
+File name: <FIX>/spectra_spectrast.mzXML
+File type: mzXML
+
+Instrument: 
+  Mass Analyzer: Orbitrap (resolution: 0)
+
+MS levels: 2
+Total number of peaks: 908
+Number of spectra: 3
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 2655.10 .. 4923.78 sec (37.8 min)
+  mass-to-charge: 100.75 .. 1950.10
+  ion mobility: <none> .. <none>
+  intensity: 37.00 .. 28222.08
+
+Spectrum Ranges:
+  retention time: 2655.10 .. 4923.78 sec (37.8 min)
+  mass-to-charge: 100.75 .. 1950.10
+  ion mobility: <none> .. <none>
+  intensity: 37.00 .. 28222.08
+
+MS Level 2 Ranges:
+  retention time: 2655.10 .. 4923.78 sec (37.8 min)
+  mass-to-charge: 100.75 .. 1950.10
+  ion mobility: <none> .. <none>
+  intensity: 37.00 .. 28222.08
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 2: 3
+
+Peak type from metadata (or estimated from data)
+  level 2: Unknown (Centroid)
+
+Activation methods
+    MS-Level 2 & HCID (High-energy collision-induced dissociation): 3
+
+Precursor charge distribution:
+  charge 3: 3x
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      309
+  RT:         2655.1
+  m/z:        100.753 .. 1225.66
+Precursors:  1
+Precursor[0]
+  charge: 3
+  mz:     520.263
+  activation methods: 
+    HCID (High-energy collision-induced dissociation)
+
+
+Spectrum 2:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      440
+  RT:         4587.67
+  m/z:        116.07 .. 1950.1
+Precursors:  1
+Precursor[0]
+  charge: 3
+  mz:     1063.21
+  activation methods: 
+    HCID (High-energy collision-induced dissociation)
+
+
+Spectrum 3:
+  mslevel:    2
+  scanMode:   MSnSpectrum
+  peaks:      159
+  RT:         4923.78
+  m/z:        112.05 .. 1908.09
+Precursors:  1
+Precursor[0]
+  charge: 3
+  mz:     775.387
+  activation methods: 
+    HCID (High-energy collision-induced dissociation)
+
+
+-- Checking for corrupt data --
+
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           Thermo Scientific
+  ion source(s):    Nano electrospray ionization
+  mass analyzer(s): Orbitrap
+  detector(s):      Unknown
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    ProteoWizard software
+  software version: 2.1.2464
+  completion time:  0000-00-00 00:00:00
+  actions:          
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+
+

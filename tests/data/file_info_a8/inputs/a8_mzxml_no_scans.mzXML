@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1">
+<msRun scanCount="0">
+<dataProcessing centroided="1">
+<software type="conversion" name="conv" version="9"/>
+</dataProcessing>
+</msRun>
+</mzXML>

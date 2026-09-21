@@ -1,0 +1,111 @@
+
+-- General information --
+
+File name: <FIX>/MzDataFile_1.mzData
+File type: mzData
+
+Instrument: MS-Instrument
+  Mass Analyzer: Quadrupole ion trap (resolution: 22.33)
+  Mass Analyzer: Quadrupole (resolution: 12.3)
+
+MS levels: 1, 2
+Total number of peaks: 9
+Number of spectra: 3
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 60.00 .. 180.00 sec (2.0 min)
+  mass-to-charge: 100.00 .. 140.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 300.00
+
+Spectrum Ranges:
+  retention time: 60.00 .. 180.00 sec (2.0 min)
+  mass-to-charge: 100.00 .. 140.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 300.00
+
+MS Level 1 Ranges:
+  retention time: 60.00 .. 180.00 sec (2.0 min)
+  mass-to-charge: 100.00 .. 140.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 300.00
+
+MS Level 2 Ranges:
+  retention time: 120.00 .. 120.00 sec (0.0 min)
+  mass-to-charge: 110.00 .. 130.00
+  ion mobility: <none> .. <none>
+  intensity: 100.00 .. 200.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 2
+  level 2: 1
+
+Peak type from metadata (or estimated from data)
+  level 1: Unknown (Unknown)
+  level 2: Profile (Unknown)
+
+Activation methods
+    MS-Level 2 & CID (Collision-induced dissociation): 1
+    MS-Level 2 & SID (Surface-induced dissociation): 1
+
+Precursor charge distribution:
+  charge 2: 1x
+
+Meta data array:
+  area:          3 spectra
+  charge:        3 spectra
+  fwhm:          3 spectra
+  leftWidth:     3 spectra
+  peakShape:     3 spectra
+  rValue:        3 spectra
+  rightWidth:    3 spectra
+  signalToNoise: 3 spectra
+
+
+-- Detailed spectrum listing --
+
+Spectrum 1:
+  mslevel:    1
+  scanMode:   MassSpectrum
+  peaks:      1
+  RT:         60
+  m/z:        120 .. 120
+Precursors:  0
+
+Spectrum 2:
+  mslevel:    2
+  scanMode:   MassSpectrum
+  peaks:      3
+  RT:         120
+  m/z:        110 .. 130
+Precursors:  2
+Precursor[0]
+  charge: 2
+  mz:     1.2
+  activation methods: 
+    CID (Collision-induced dissociation)
+
+Precursor[1]
+  charge: 3
+  mz:     2.2
+  activation methods: 
+    SID (Surface-induced dissociation)
+
+
+Spectrum 3:
+  mslevel:    1
+  scanMode:   SelectedIonMonitoring
+  peaks:      5
+  RT:         180
+  m/z:        100 .. 140
+Precursors:  0
+
+-- Checking for corrupt data --
+
+
+

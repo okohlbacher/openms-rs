@@ -8,8 +8,10 @@ FileInfo tool (`topp/src/FileInfo.cpp`) is package A5; `-i`, `-d` and `-c` are
 A6, which has landed — see
 [FILE_INFO_CHECKS_SUPPORT](FILE_INFO_CHECKS_SUPPORT.md) and
 `src/format/file_info/checks.rs`; the consensusXML, identification and FASTA
-branches A7; `-v`, mzXML, mzData and trafoXML A8. The ledger row for
-`FileInfo.h` stays partial until those land.
+branches A7; mzXML, mzData, MGF and MS2 peak files the first half of A8,
+which has landed too — see [FILE_INFO_A8_SUPPORT](FILE_INFO_A8_SUPPORT.md) —
+and `-v` and the pepXML, mzTab, trafoXML and PQP branches its second half. The
+ledger row for `FileInfo.h` stays partial until those land.
 
 | Artifact | Path |
 | --- | --- |
@@ -161,12 +163,13 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 ## Native differences
 
 1. **Refusals instead of partial support.** `-v` for every type, the
-   pepXML, mzTab, trafoXML and PQP branches, and peak files of mzXML, mzData, MGF, MS2,
-   sqMass, XMass, MSP, Thermo RAW and Bruker TDF return `Error::Unsupported`
-   naming the branch. The source reports them; it loads RAW and TDF when built
-   with its default `WITH_THERMO_RAW` and `WITH_OPENTIMS` options (the
-   product-SDK oracle is built without both). MGF and MS2 have native loaders
-   but no FileInfo oracle yet. The refusal comes once the type is known and
+   pepXML, mzTab, trafoXML and PQP branches, and peak files of sqMass, XMass,
+   MSP, Thermo RAW and Bruker TDF return `Error::Unsupported` naming the
+   branch. The source reports them; it loads RAW and TDF when built with its
+   default `WITH_THERMO_RAW` and `WITH_OPENTIMS` options (the product-SDK
+   oracle is built without both). mzXML, mzData, MGF and MS2 were refused here
+   too until A8 wired their readers ([FILE_INFO_A8_SUPPORT](FILE_INFO_A8_SUPPORT.md)).
+   The refusal comes once the type is known and
    before the file is loaded. The type is known without file access when it is
    forced or recognised from the name (every refusal test uses such names);
    otherwise type detection reads the start of the file first, so a missing
@@ -371,8 +374,10 @@ sections.
 
 ## Deferrals
 
-- `-v`, mzXML, mzData, trafoXML (A8); pepXML, mzTab, PQP, sqMass, XMass, MSP,
-  MGF and MS2 have no package yet. `-i`, `-d` and `-c` are no longer deferred:
+- `-v`, trafoXML (A8); pepXML, mzTab, PQP, sqMass, XMass and MSP have no
+  package yet. mzXML, mzData, MGF and MS2 are no longer deferred: the first
+  half of A8 wired their readers
+  ([FILE_INFO_A8_SUPPORT](FILE_INFO_A8_SUPPORT.md)). `-i`, `-d` and `-c` are no longer deferred:
   A6 ported them ([FILE_INFO_CHECKS_SUPPORT](FILE_INFO_CHECKS_SUPPORT.md)), and
   its two open items are the mzML reader and kernel refusals that keep two `-c`
   lines out of reach. The consensusXML, idXML/mzIdentML and FASTA branches are

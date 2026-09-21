@@ -8237,6 +8237,7 @@
       ],
       "reference_manifests": [
         "tests/data/file_info_a7_provenance.json",
+        "tests/data/file_info_a8_provenance.json",
         "tests/data/file_info_checks_provenance.json",
         "tests/data/file_info_provenance.json",
         "tests/data/xml_schema_provenance.json"
