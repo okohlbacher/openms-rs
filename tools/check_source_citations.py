@@ -73,7 +73,7 @@ ports cited them bare. Writing a bare name again puts the count straight back
 up, which is what it is for.
 
 What this does not catch, stated plainly so that a green run is not read for
-more than it says. Of the 3,461 citations it resolves, 110 are confirmed against
+more than it says. Of the 3,518 citations it resolves, 114 are confirmed against
 code quoted beside them; the rest are checked only for existing, because most
 citations in this repository paraphrase the source instead of reproducing it,
 and a paraphrase cannot be read back.
@@ -101,10 +101,21 @@ transcribes the same code is read line by line, and shifting it fires.
 So the lever that would raise the confirmed fraction is a convention rather than
 a cleverer checker - quote the source verbatim in the code span beside the
 citation, and this reads it back against the pinned file. Whoever picks this up
-next should spend the effort there, and on the population named in the lane's
-``not_done``: a bare range written under a file named without a line number,
-which is where the issue log puts most of its line numbers, and which needs its
-own measurement pass over all the ranges that are currently left unresolved.
+next should spend the effort there.
+
+The other population that ``not_done`` named - a bare range written under a file
+named without a line number, which is where the issue log puts most of its line
+numbers - has been measured and is down from 66 to 3. Every one of the 63 was
+resolved the same way: name the file once, at the first bare range of the
+paragraph, and the rest continue it. Six of them turned out to be written under
+the *wrong* file, ``SignalToNoiseEstimator.h`` for lines that are in the
+442-line ``SignalToNoiseEstimatorMedian.h``, which is what a bare range under a
+file too short to hold it looks like from here. Resolving them also made three
+quotations readable that nothing had read before, and one of those was a defect.
+The 3 that remain cannot be resolved by anything this reads: two are line
+numbers in a Rust file, written as a continuation of one (``features.rs:599``
+and ``:839``), and one continues Eigen's ``lmpar.h``, which no pin carries and
+nothing retains. Both kinds are correctly counted rather than guessed at.
 """
 
 import argparse

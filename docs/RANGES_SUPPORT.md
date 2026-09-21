@@ -181,13 +181,15 @@ The class adds nothing beyond the alias; no separate Rust type is warranted.
   The unit is not needed for a range and is not derived.
 - **Experiment roles** (`MSExperiment.cpp:670-720`):
   - *spectrum-only*: every spectrum's m/z, intensity and mobility plus its RT
-    extend the global ranges and its MS level's ranges (`:693-699`); a spectrum
+    extend the global ranges and its MS level's ranges
+    (`KERNEL/MSExperiment.cpp:693-699`); a spectrum
     without peaks still contributes its RT (`:696`); a level-0 spectrum extends
     the global ranges twice and registers no level, because level 0 addresses
     the global ranges (`SpectrumRangeManager.h:84,126,137,148`).
   - *chromatogram-only*: every chromatogram's RT and intensity from its points,
     and its `getMZ()` — the **product** m/z (`MSChromatogram.cpp:81-84`) — even
-    when it has no points (`:713`), so a chromatogram without a product
+    when it has no points (`KERNEL/MSExperiment.cpp:713`), so a chromatogram
+    without a product
     contributes m/z `0`.
   - *combined*: the global spectrum ranges merged first, then the chromatogram
     ranges (`:718-719`), so combined RT and intensity include chromatogram

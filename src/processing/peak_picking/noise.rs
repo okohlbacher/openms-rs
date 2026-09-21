@@ -185,7 +185,8 @@ pub struct NoiseCompatibility {
     /// build produces.
     pub source_value_domain: bool,
     /// For an empty input return NaN percentages, from the source's
-    /// `0 * 100 / 0` (`:373-374`), and in the standard-deviation range a NaN
+    /// `0 * 100 / 0` (`SignalToNoiseEstimatorMedian.h:373-374`), and in the
+    /// standard-deviation range a NaN
     /// `max_intensity`, from `0 / 0` in `SignalToNoiseEstimator::estimate_`
     /// (`SignalToNoiseEstimator.h:127`); both are the x86-64 default NaN
     /// (`0xfff8000000000000`). The native profile returns zero for all three.
@@ -354,7 +355,8 @@ const MAX_INTENSITY_DESCRIPTION: &str = "maximal intensity considered for histog
 
 /// The largest count the source's `int` counters hold. Beyond this many
 /// points, `estimate_` (`size`, `SignalToNoiseEstimator.h:123`) and the main
-/// loop of `computeSTN_` (`window_count` at `:365`) overflow; AUTOMAXBYPERCENT's
+/// loop of `computeSTN_` (`window_count` at `SignalToNoiseEstimatorMedian.h:365`)
+/// overflow; AUTOMAXBYPERCENT's
 /// counters (`:216`, `:228`) overflow only when a pre-histogram bin or the
 /// walk's running count exceeds it, and a negative range returns before the
 /// main loop. Each refusal is placed where its counter overflows.

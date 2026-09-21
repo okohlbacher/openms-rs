@@ -320,7 +320,8 @@ reachable without them.
 
 16. **Blank lines are restored without being doubled.** The source walks the
     generated lines and *inserts* a blank whenever the current position was
-    blank in the original file (`:3328`), even though the generated lines already
+    blank in the original file (`FORMAT/MzTabFile.cpp:3328`), even though the
+    generated lines already
     carry a blank before every section, so every separator is emitted twice. Its
     own round-trip test cannot see this, because
     `FuzzyStringComparator::readNextLine_` skips blank lines outright
