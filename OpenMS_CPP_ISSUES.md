@@ -3078,7 +3078,7 @@ change or a claim that the Rust behavior was corrected.
 
 **Trigger:** Two independent ones.
 
-1. **The ordinary whole-document writer,** `MzMLFile::store`, on any experiment whose records carry `DataProcessing` vectors that are equal in content but held in distinct objects. **Every `FileMerger` output is such a file** — `FileMerger` writes with `FileHandler().storeExperiment` (`FileMerger.cpp:538` at the TOPP pin `174b576`), and each merged part contributes its own history object.
+1. **The ordinary whole-document writer,** `MzMLFile::store`, on any experiment whose records carry `DataProcessing` vectors that are equal in content but held in distinct objects. **Every `FileMerger` output is such a file** — `FileMerger` writes with `FileHandler().storeExperiment` (`OpenMS4-topp/src/FileMerger.cpp:538` at the TOPP pin `174b576`), and each merged part contributes its own history object.
 2. **The streaming consumer,** `MSDataWritingConsumer`, on any mzML whose records do not all share the first record's `sourceFile` and `dataProcessing`. Reached from every TOPP tool that uses it — `PeakPickerHiRes`, `PeakPickerIM`, `NoiseFilterGaussian`, `NoiseFilterSGolay` and `FileConverter` in their low-memory modes, plus `CometAdapter`, `OpenSwathMzMLFileCacher`, `OpenSwathWorkflow`, `SageAdapter` and `TICCalculator`.
 
 **Issue:** The two halves of the writer disagree about what makes two processing histories the same.
@@ -4942,11 +4942,12 @@ tool runs to the end, and on any input where at least one cross-voltage merge
 actually fires -- the ordinary multi-voltage case under the default
 `-faims_merge_features true` -- it then writes an **empty** feature map,
 because `mergeFAIMSFeatures` erases every feature that still carries unique
-id 0 (CPP-282), and by `FeatureFinderCentroided.cpp:294-299` every feature of
+id 0 (CPP-282), and by `OpenMS4-topp/src/FeatureFinderCentroided.cpp:294-299` every feature of
 a FAIMS run carries `FAIMS_CV`, so none is held back in the untouched
 non-FAIMS group. It does **not** write an empty map when no merge fires: with
 `-faims_merge_features false` the merge is never called
-(`FeatureFinderCentroided.cpp:309`), and on single-voltage FAIMS input the
+(`OpenMS4-topp/src/FeatureFinderCentroided.cpp:309`), and on single-voltage FAIMS
+input the
 callback returns `false` for every pair (`FeatureOverlapFilter.cpp:445-448`),
 so `removed_uids` stays empty and the `erase` at
 `FeatureOverlapFilter.cpp:277-281` removes nothing. With CPP-282 also applied
@@ -4958,7 +4959,8 @@ Rust port applies all three:
 *Basis of the composite claim.* The three-fix chain is read from the pinned
 source (`FeatureOverlapFilter.cpp:263-271` inserts into `removed_uids` only
 when the callback returns `true`; `:277-281` erases exactly those ids;
-`FeatureFinderCentroided.cpp:328-329` assigns the unique ids only *after* the
+`OpenMS4-topp/src/FeatureFinderCentroided.cpp:328-329` assigns the unique ids only
+*after* the
 merge) and confirmed on the Rust port, whose source-faithful merge
 (`FeatureOverlapFilter::merge_faims_features`) is call-for-call the source's.
 Two executed tests of package B11 pin the two non-merging cases:
