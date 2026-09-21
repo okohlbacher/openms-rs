@@ -73,7 +73,7 @@ ports cited them bare. Writing a bare name again puts the count straight back
 up, which is what it is for.
 
 What this does not catch, stated plainly so that a green run is not read for
-more than it says. Of the 3,519 citations it resolves, 114 are confirmed against
+more than it says. Of the 3,523 citations it resolves, 114 are confirmed against
 code quoted beside them; the rest are checked only for existing, because most
 citations in this repository paraphrase the source instead of reproducing it,
 and a paraphrase cannot be read back.
