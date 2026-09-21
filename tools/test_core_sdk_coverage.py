@@ -145,9 +145,11 @@ class CoverageTests(unittest.TestCase):
             git('add', '-A')
             git('commit', '-q', '-m', 'pin')
             pin = git('rev-parse', 'HEAD')
-            # The working tree moves on; the record must still describe the pin.
-            (checkout / 'include/OpenMS/APPLICATIONS/Base.h').write_text('changed\n')
+            # The package moves on, committed and not; the record must still describe the pin.
             (checkout / 'include/OpenMS/APPLICATIONS/Later.h').write_text('')
+            git('add', '-A')
+            git('commit', '-q', '-m', 'after the pin')
+            (checkout / 'include/OpenMS/APPLICATIONS/Base.h').write_text('changed\n')
             record = coverage.cli_inventory(checkout, pin[:7])
             self.assertEqual(record['identity']['current_package_revision'], pin)
             self.assertEqual([(f['path'], f['registration'], f['physical_lines']) for f in record['files']],
