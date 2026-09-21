@@ -58,8 +58,11 @@
 //! Two further inputs are refused where the kernel's range computation is
 //! stricter than the source's `updateRanges`: a spectrum whose scan window
 //! begins after it ends, which the mzData reader keeps as the source does, and
-//! an MGF spectrum of MS level 0. `docs/FILE_INFO_A8_SUPPORT.md` records both
-//! with the Release build's report.
+//! an MGF spectrum of MS level 0. A gzip-compressed MGF is refused as well: the
+//! MGF reader, like the source's, does not decompress, and refuses the bytes
+//! as not being text where the source reports an empty map.
+//! `docs/FILE_INFO_A8_SUPPORT.md` records all three with the Release build's
+//! report.
 //!
 //! `docs/FILE_INFO_SUPPORT.md` holds the API mapping, the preserved source
 //! conventions, the native differences and the evidence.
