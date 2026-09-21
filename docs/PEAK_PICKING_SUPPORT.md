@@ -72,9 +72,38 @@ afterwards; it gives up that atomicity in exchange.
 | `DefaultParamHandler::getDefaults` | `PeakPickerHiRes::defaults` | |
 | `DefaultParamHandler::setParameters` | `PeakPickerHiRes::from_param`, `from_param_with_warnings` | Type and restriction violations are `Error::InvalidValue`; unknown names are warnings. |
 | `DefaultParamHandler::getParameters` | `PeakPickerHiRes::to_param` | |
-| `ProgressLogger` base | not ported | No progress output. |
+| `ProgressLogger` base, as `pickExperiment` uses it | `pick_experiment_with_progress`, `pick_experiment_in_place_with_progress` | The caller passes a `ProgressLogger` for the call and selects its type on it (`set_log_type`, `set_logger`), as a source caller does on the picker object; the silent entry points are the source's default type `NONE`. Same calls, values and command output as the Release build (`tests/progress_consumers.rs`); see [Progress](#progress). |
+| — | `PICKING_PROGRESS_LABEL` | The source label `picking peaks`. |
 | — | `PickingCompatibility`, `ion_mobility_array`, `max_points`, `max_work`, `max_metadata_per_record`, `omitted_arrays` | Native. |
 | — | `PEAK_PICKER_HI_RES_NAME`, `CENTROIDED_INPUT_MESSAGE` | The handler name and the source exception text, for tools. |
+
+### Progress
+
+Source `pickExperiment` reports one progress section
+(`CENTROIDING/PeakPickerHiRes.cpp:497-557`): the range is spectra plus
+chromatograms, and the value is advanced after every spectrum, picked or
+copied, and then after every chromatogram, so it runs from `1` to that total.
+`pick_experiment_with_progress` and `pick_experiment_in_place_with_progress`
+make the same calls at every `threads` count, because the spectra are counted
+as they are committed in input order; their centroids are the silent entry
+points' (`progress_changes_no_result`). The Release build's calls, depths and
+command output for a mixed experiment, an empty one and a refused one are
+replayed in `tests/progress_consumers.rs` (tier 1, `../oracle/progress-consumers`).
+
+Two differences, both on paths where the port stops earlier or cleans up:
+
+- The port validates the experiment before the section starts, so an input it
+  refuses up front prints nothing. The source has no such check.
+- When a record fails inside the section (the manual-mode refusal of a
+  centroided spectrum is the source's own case), the port ends the section
+  before returning the error, so the command output gains its `-- done` line and
+  the logger's nesting is restored. The Release build throws without
+  `endProgress`: its output stops after the last percentage and its static depth
+  stays raised for the rest of the process. `ProgressReporter::section`
+  documents this for every consumer.
+
+The source's per-MS-level `OPENMS_LOG_INFO` summary after the section is not
+progress output and is still not logged (see the `pickExperiment` rows).
 
 ### `SignalToNoiseEstimatorMedian` and its base
 

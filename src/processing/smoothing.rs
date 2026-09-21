@@ -7,8 +7,54 @@
 //! integrates intervals; Savitzky–Golay fits equally spaced *sample indices*.
 
 use super::{SpectrumFilter, checked_intensity};
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
 use crate::kernel::{MSChromatogram, MSExperiment, MSSpectrum, SpectrumType};
 use crate::{Error, Result};
+
+/// The progress label of source `filterExperiment` in both `GaussFilter`
+/// (`GaussFilter.cpp:198`) and `SavitzkyGolayFilter`
+/// (`SavitzkyGolayFilter.h:205`).
+pub const SMOOTHING_PROGRESS_LABEL: &str = "smoothing data";
+
+/// Source `filterExperiment` of `GaussFilter` and `SavitzkyGolayFilter`: every
+/// spectrum, then every chromatogram, of a copy that replaces `experiment` only
+/// when all records succeeded, inside one progress section.
+///
+/// Both sources call `startProgress(0, map.size() +
+/// map.getChromatograms().size(), "smoothing data")`, `setProgress(++progress)`
+/// after each spectrum and each chromatogram, and `endProgress()` after the
+/// last (`GaussFilter.cpp:197-210`, `SavitzkyGolayFilter.h:204-216`).
+fn smooth_experiment(
+    experiment: &mut MSExperiment,
+    reporter: &mut ProgressReporter<'_>,
+    mut spectrum: impl FnMut(&mut MSSpectrum) -> Result<()>,
+    mut chromatogram: impl FnMut(&mut MSChromatogram) -> Result<()>,
+) -> Result<()> {
+    super::AcquisitionCopies::default().experiment(experiment)?;
+    let records = experiment
+        .spectra
+        .len()
+        .checked_add(experiment.chromatograms.len())
+        .ok_or_else(|| Error::InvalidValue("the experiment record count overflows".into()))?;
+    let records = progress_value(records)?;
+    let mut output = experiment.clone();
+    reporter.section(0, records, SMOOTHING_PROGRESS_LABEL, |reporter| {
+        let mut done = 0;
+        for record in &mut output.spectra {
+            spectrum(record)?;
+            done += 1;
+            reporter.set_count(done)?;
+        }
+        for record in &mut output.chromatograms {
+            chromatogram(record)?;
+            done += 1;
+            reporter.set_count(done)?;
+        }
+        Ok(())
+    })?;
+    *experiment = output;
+    Ok(())
+}
 
 /// Gaussian width is eight standard deviations, as in OpenMS's implementation.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -46,6 +92,14 @@ impl Default for GaussFilterAlgorithm {
     }
 }
 impl GaussFilterAlgorithm {
+    /// An algorithm with the given `width` and kernel lookup `kernel_spacing`
+    /// (source `initialize(gaussian_width, spacing, ppm_tolerance,
+    /// use_ppm_tolerance)`), and the default coefficient limit.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] unless the width and the spacing are finite and
+    /// positive.
     pub fn new(width: GaussianWidth, kernel_spacing: f64) -> Result<Self> {
         let algorithm = Self {
             width,
@@ -211,10 +265,49 @@ impl Default for GaussFilter {
     }
 }
 impl GaussFilter {
+    /// A wrapper with the given `width` over the algorithm's `0.01` lookup
+    /// spacing (source parameters `gaussian_width`, or `ppm_tolerance` with
+    /// `use_ppm_tolerance`).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] unless the width is finite and positive.
     pub fn new(width: GaussianWidth) -> Result<Self> {
         Ok(Self {
             algorithm: GaussFilterAlgorithm::new(width, 0.01)?,
         })
+    }
+
+    /// [`SpectrumFilter::filter_experiment`], reporting progress to `progress`
+    /// as the source's `ProgressLogger` base does in `filterExperiment`
+    /// (`GaussFilter.cpp:195-211`).
+    ///
+    /// The section runs over the spectrum and chromatogram count with the
+    /// label [`SMOOTHING_PROGRESS_LABEL`], with one set after each spectrum and
+    /// then each chromatogram, counting from `1`; the smoothed experiment is the
+    /// one the silent entry point produces. The metadata-copy preflight happens
+    /// before the section starts, so an experiment refused there prints
+    /// nothing.
+    ///
+    /// # Errors
+    ///
+    /// As [`SpectrumFilter::filter_experiment`], and the errors of `progress`.
+    /// A ppm width fails at the first chromatogram, after the spectra have
+    /// reported progress, as the source throws there
+    /// (`GaussFilter.cpp:97-101`); unlike the source, the section is still
+    /// ended (see [`ProgressReporter::section`]). The experiment is unchanged
+    /// on error.
+    pub fn filter_experiment_with_progress(
+        &self,
+        experiment: &mut MSExperiment,
+        progress: &mut ProgressLogger,
+    ) -> Result<()> {
+        smooth_experiment(
+            experiment,
+            &mut ProgressReporter::new(Some(progress)),
+            |spectrum| self.filter_spectrum(spectrum),
+            |chromatogram| self.filter_chromatogram(chromatogram),
+        )
     }
 
     /// Chromatograms support absolute widths in seconds; ppm is an error.
@@ -266,17 +359,14 @@ impl SpectrumFilter for GaussFilter {
     }
 
     /// Like OpenMS, smooth spectra AND chromatograms; any error is atomic.
+    /// Reports no progress; see `filter_experiment_with_progress`.
     fn filter_experiment(&self, experiment: &mut MSExperiment) -> Result<()> {
-        super::AcquisitionCopies::default().experiment(experiment)?;
-        let mut output = experiment.clone();
-        for spectrum in &mut output.spectra {
-            self.filter_spectrum(spectrum)?;
-        }
-        for chromatogram in &mut output.chromatograms {
-            self.filter_chromatogram(chromatogram)?;
-        }
-        *experiment = output;
-        Ok(())
+        smooth_experiment(
+            experiment,
+            &mut ProgressReporter::silent(),
+            |spectrum| self.filter_spectrum(spectrum),
+            |chromatogram| self.filter_chromatogram(chromatogram),
+        )
     }
 }
 
@@ -378,9 +468,11 @@ impl SavitzkyGolayFilter {
         })
     }
 
+    /// The odd frame length in samples (source `frame_length`).
     pub fn frame_length(&self) -> usize {
         self.frame_length
     }
+    /// The polynomial degree (source `polynomial_order`).
     pub fn polynomial_order(&self) -> usize {
         self.polynomial_order
     }
@@ -428,6 +520,44 @@ impl SavitzkyGolayFilter {
         Ok(output)
     }
 
+    /// [`SpectrumFilter::filter_experiment`], reporting progress to `progress`
+    /// as the source's `ProgressLogger` base does in `filterExperiment`
+    /// (`SavitzkyGolayFilter.h:202-217`).
+    ///
+    /// The section runs over the spectrum and chromatogram count with the
+    /// label [`SMOOTHING_PROGRESS_LABEL`], with one set after each spectrum and
+    /// then each chromatogram, counting from `1`; the smoothed experiment is the
+    /// one the silent entry point produces. The metadata-copy preflight happens
+    /// before the section starts, so an experiment refused there prints
+    /// nothing.
+    ///
+    /// # Errors
+    ///
+    /// As [`SpectrumFilter::filter_experiment`], and the errors of `progress`.
+    /// An error inside the section still ends it, which the source does not
+    /// do; see [`ProgressReporter::section`]. The experiment is unchanged on
+    /// error.
+    pub fn filter_experiment_with_progress(
+        &self,
+        experiment: &mut MSExperiment,
+        progress: &mut ProgressLogger,
+    ) -> Result<()> {
+        smooth_experiment(
+            experiment,
+            &mut ProgressReporter::new(Some(progress)),
+            |spectrum| self.filter_spectrum(spectrum),
+            |chromatogram| self.filter_chromatogram(chromatogram),
+        )
+    }
+
+    /// Smooth a chromatogram's intensities over its sample indices (source
+    /// `filter(MSChromatogram&)`); retention times are unchanged.
+    ///
+    /// # Errors
+    ///
+    /// The chromatogram's own validation errors and those of
+    /// [`SavitzkyGolayFilter::filter`], or [`Error::InvalidValue`] for a
+    /// smoothed intensity outside `f32`; the chromatogram is unchanged then.
     pub fn filter_chromatogram(&self, chromatogram: &mut MSChromatogram) -> Result<()> {
         chromatogram.validate()?;
         let positions: Vec<_> = chromatogram.peaks.iter().map(|p| p.rt).collect();
@@ -460,16 +590,13 @@ impl SpectrumFilter for SavitzkyGolayFilter {
     }
 
     /// Like OpenMS, smooth spectra AND chromatograms; any error is atomic.
+    /// Reports no progress; see `filter_experiment_with_progress`.
     fn filter_experiment(&self, experiment: &mut MSExperiment) -> Result<()> {
-        super::AcquisitionCopies::default().experiment(experiment)?;
-        let mut output = experiment.clone();
-        for spectrum in &mut output.spectra {
-            self.filter_spectrum(spectrum)?;
-        }
-        for chromatogram in &mut output.chromatograms {
-            self.filter_chromatogram(chromatogram)?;
-        }
-        *experiment = output;
-        Ok(())
+        smooth_experiment(
+            experiment,
+            &mut ProgressReporter::silent(),
+            |spectrum| self.filter_spectrum(spectrum),
+            |chromatogram| self.filter_chromatogram(chromatogram),
+        )
     }
 }

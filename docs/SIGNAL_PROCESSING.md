@@ -86,7 +86,22 @@ All methods validate finite input, coordinate ordering, and existing data-array 
 
 The `SpectrumFilter::filter_experiment` implementations are atomic: failure leaves the original experiment unchanged. Gaussian and Savitzky–Golay process **both spectra and chromatograms**, matching their C++ wrappers. Morphology processes **spectra only**, matching its source wrapper, and leaves stored chromatograms unchanged. Invoke its chromatogram method explicitly when needed.
 
-The Rust APIs replace cached string parameters, iterator output arguments, mutable global scratch buffers, progress loggers, and C++ exception behavior with typed configuration, returned values, and `Result`. They do not implement mobilogram-specific wrappers because this initial kernel does not yet expose that type.
+The Rust APIs replace cached string parameters, iterator output arguments, mutable global scratch buffers and C++ exception behavior with typed configuration, returned values, and `Result`. They do not implement mobilogram-specific wrappers because this initial kernel does not yet expose that type.
+
+## Progress reporting
+
+The source classes derive from `ProgressLogger`, and their experiment members report progress on the object's logger. Here the caller passes a `ProgressLogger` for the call and selects its type on it; the `SpectrumFilter` entry points report nothing, as a source object of the default type `NONE`. The calls, values and command output are those of the Release build, replayed in `tests/progress_consumers.rs` (tier 1, `../oracle/progress-consumers`):
+
+| Source member | Rust | Section |
+|---|---|---|
+| `GaussFilter::filterExperiment` (`GaussFilter.cpp:195-211`) | `GaussFilter::filter_experiment_with_progress` | `smoothing data` (`SMOOTHING_PROGRESS_LABEL`) over spectra plus chromatograms, values `1` to that total |
+| `SavitzkyGolayFilter::filterExperiment` (`SavitzkyGolayFilter.h:202-217`) | `SavitzkyGolayFilter::filter_experiment_with_progress` | the same |
+| `LinearResamplerAlign::rasterExperiment` (`LinearResamplerAlign.h:368-377`) | `LinearResamplerAlign::raster_experiment_with_progress` | `resampling of data` (`RESAMPLING_PROGRESS_LABEL`) over the spectra, values `0` to `n - 1` |
+| `MorphologicalFilter::filterExperiment` | see [MORPHOLOGICAL_FILTER_SUPPORT.md](MORPHOLOGICAL_FILTER_SUPPORT.md) | `filtering baseline`, values `0` to `n - 1` |
+
+Each `*_with_progress` call returns what its silent counterpart returns (`progress_changes_no_result`). The metadata-copy preflight runs before the section starts, so an experiment refused there prints nothing. A failure inside the section still ends it; the source does not, and for `GaussFilter` with a ppm width it does fail there, at the first chromatogram: the Release output stops after the spectra's percentages and the static nesting depth stays raised, where the port prints the `-- done` line and restores the logger's depth (see `ProgressReporter::section`).
+
+`LinearResamplerAlign` had no experiment entry point before this; `raster_experiment` now ports `rasterExperiment` itself, and `SpectrumFilter` is implemented for the type (`filter_spectrum` is `raster`, `filter_experiment` is `raster_experiment`). As in the source, each spectrum gets its own grid and chromatograms are left alone. Unlike the source, which rasters in place and cannot fail, the spectra are resampled in a copy that replaces them only when every spectrum succeeded, metered by the same metadata-copy ledger as the trait's default.
 
 ## Verification and sources
 

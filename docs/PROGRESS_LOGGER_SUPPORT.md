@@ -23,6 +23,9 @@ exists only in a Debug build is not source behavior for this port.
 | four virtual `ProgressLoggerImpl` operations | four corresponding methods of `ProgressBackend`, returning `Result` |
 | `make_gui_progress_logger` | per-logger `set_gui_factory`, retained by copies; GUI defaults to a no-op |
 | source process-static recursion depth | shared `ProgressNesting::global()` by default; `Default` creates an isolated nesting context |
+| the `ProgressLogger` *base* of an algorithm class (`class GaussFilter : public ProgressLogger`) | the algorithm's `*_with_progress` entry point, which borrows a caller's `ProgressLogger` for the call; see [Consumers](#consumers) |
+| — | `ProgressReporter`: one run's progress calls sent to an optional logger, with `section`, which ends the section on failure too |
+| — | `progress_value`: a `usize` count as the source's `SignedSize` value, refusing what would wrap |
 
 `CommandProgressLogger<W: std::io::Write>` is also directly usable as a backend.
 `new(writer)` uses the system clock. `with_clock(writer, clock)` permits supplied
@@ -171,6 +174,61 @@ native bound or a check the Release build also executes:
 | clock, writer and custom-backend errors | all | native: `Result` propagation where the source reports no failure |
 | system clock before the epoch or beyond `i64` seconds | `system_progress_clock` | native |
 
+## Consumers
+
+The header's own public surface is complete (the table above, with the
+executed Release evidence below). What the ledger entries of its consumers
+recorded as "the `ProgressLogger` base is not ported" was, for each of them,
+the missing *use* of it: the source's algorithm calls `startProgress`,
+`setProgress` and `endProgress` on itself, and the Rust algorithm made no call.
+
+The source class inherits the logger, and its `const` members mutate it through
+`mutable` fields. A Rust algorithm keeps its methods `&self` and borrows the
+logger from its caller for the one call instead: a `*_with_progress` entry
+point takes `&mut ProgressLogger`, and the caller chooses the type with
+`set_log_type` (a TOPP tool passes `ToolContext::progress_log_type`, which is
+`Cmd` unless `-no_progress`, `TOPPBase.cpp:400-403`) or a backend with
+`set_logger`, exactly as a source caller does on the algorithm object. The
+entry points without a logger report nothing, which is the source's default
+type `NONE` without its cost. Every consumer below builds its calls with
+`ProgressReporter`, so the silent and the reporting entry point share one body,
+and a test (`progress_changes_no_result`) checks that they return the same
+result.
+
+`ProgressReporter::section` ends a section whether its body succeeds or fails.
+The source does not: when an algorithm throws inside its section, `endProgress`
+is never reached, the command output stops after the last percentage, the
+process-static depth stays one level deeper for every later section, and the
+object's next command `startProgress` throws `StopWatch is already started!`.
+The executed Release run shows the first two for `PeakPickerHiRes` in manual
+mode on a centroided spectrum and for `GaussFilter` with a ppm width on a
+chromatogram. The port prints the `-- done` line instead and leaves the
+logger reusable; that is the one difference in output on a path the source also
+takes, and the replay asserts it against the captured C++.
+
+| Consumer (ledger entry) | Rust entry point | Section |
+|---|---|---|
+| `PeakPickerHiRes::pickExperiment` | `PeakPickerHiRes::pick_experiment_with_progress`, `pick_experiment_in_place_with_progress` | `picking peaks`, spectra + chromatograms, `1..=n` |
+| `PeakPickerIterative::pickExperiment` | `PeakPickerIterative::pick_experiment_with_progress` | `picking peaks`, spectra, `0..n` |
+| `LinearResamplerAlign::rasterExperiment` | `LinearResamplerAlign::raster_experiment_with_progress` (and the newly ported `raster_experiment`) | `resampling of data`, spectra, `0..n` |
+| `GaussFilter::filterExperiment` | `GaussFilter::filter_experiment_with_progress` | `smoothing data`, spectra + chromatograms, `1..=n` |
+| `SavitzkyGolayFilter::filterExperiment` | `SavitzkyGolayFilter::filter_experiment_with_progress` | `smoothing data`, spectra + chromatograms, `1..=n` |
+| `MorphologicalFilter::filterExperiment` | `MorphologicalFilter::filter_experiment_with_progress` | `filtering baseline`, spectra, `0..n` |
+| `PeptideIndexing::run` | `PeptideIndexing::run_with_progress` | `Load first DB chunk` `0..1`, then `Aho-Corasick` over the proteins, `1..=n` |
+| `SignalToNoiseEstimatorMedian::init` (earlier) | `SignalToNoiseEstimatorMedian::estimate_with_progress` | `noise estimation of data` |
+| `FeatureFinderAlgorithmPicked::run` (earlier) | its `set_log_type` / `set_progress_logger` | as in `docs/FEATURE_FINDER_PICKED_SUPPORT.md` |
+
+`CONCEPT/Macros.h` also names this row, but only as the precedent for never
+turning a Debug-only `OPENMS_PRECONDITION` into a Rust refusal; it owes no
+progress call.
+
+The FORMAT readers and handlers that derive from `ProgressLogger`
+(`MzMLHandler`, `FeatureXMLHandler`, `MzIdentMLHandler`, `ConsensusXMLFile`,
+`FeatureXMLFile`, `DTA2DFile`, `MS2File`, `MascotGenericFile`, `MzDataFile`,
+`MzXMLFile`, `ImzMLFile`, `FileInfo`) are not wired by this change; the
+same pattern applies to each, and which calls each source member makes is
+recorded with the ledger fragment of phase 2.5b.
+
 ## Evidence
 
 **Executed Release differential (tier 1).** An oracle driver,
@@ -222,4 +280,16 @@ capture hashes. `external_reference_artifacts` holds the driver and scripts,
 which stay outside this repository. A live-clock sanity test checks finite
 nondecreasing total process CPU samples without requiring a minimum elapsed
 time or workload.
+**Consumer calls (tier 1).** `../oracle/progress-consumers/driver.cpp` links
+the same Release install and runs the seven consumers above twice per case on a
+fresh object: once with a recording backend installed through `setLogger`,
+which captures every call that reaches it with its arguments and the depth the
+wrapper passes, and once with `setLogType(CMD)`, whose stdout bytes are cut out
+by file offset. The driver defines `time()` itself (linked with `-rdynamic`, so
+`libOpenMS.so` binds to it) and returns a new second on every call, so the
+whole-second throttle never suppresses a set. Three runs on kim are
+byte-identical; `tests/data/progress_consumers_release.tsv` is the masked table
+and `tests/progress_consumers.rs` replays all 18 cases in both modes. See
+`tests/data/progress_consumers_provenance.json`.
+
 The main-crate checks are recorded in [validation results](VALIDATION.md).

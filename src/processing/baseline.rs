@@ -35,9 +35,14 @@
 //! document.
 
 use super::{AcquisitionCopies, SpectrumFilter};
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
 use crate::kernel::{MSChromatogram, MSExperiment, MSSpectrum, SpectrumType};
 use crate::{Error, Result};
 use std::collections::VecDeque;
+
+/// The progress label of source `filterExperiment`
+/// (`MorphologicalFilter.h:306`).
+pub const BASELINE_PROGRESS_LABEL: &str = "filtering baseline";
 
 /// Morphological operation, the source `method` parameter.
 ///
@@ -112,7 +117,9 @@ pub enum StructuringElement {
 /// ranges (source `MorphologicalFilter`).
 ///
 /// The source class is a `DefaultParamHandler` and `ProgressLogger`; here the
-/// three parameters are typed public fields and there is no progress output.
+/// three parameters are typed public fields, and the progress of
+/// `filterExperiment` goes to a caller's logger through
+/// [`MorphologicalFilter::filter_experiment_with_progress`].
 /// The source declares, but never defines, a copy constructor, so it cannot
 /// be copied; this filter has no state between calls and is `Copy`.
 ///
@@ -176,6 +183,56 @@ impl RangeBuffer {
 }
 
 impl MorphologicalFilter {
+    /// [`SpectrumFilter::filter_experiment`], reporting progress to `progress`
+    /// as the source's `ProgressLogger` base does.
+    ///
+    /// Source `filterExperiment` calls `startProgress(0, exp.size(),
+    /// "filtering baseline")` (`MorphologicalFilter.h:306`), `setProgress(i)`
+    /// after filtering spectrum `i` (`:310`), so the values run from `0` to
+    /// `n - 1`, and `endProgress()` after the last (`:312`). This makes the
+    /// same calls; the filtered experiment is the one
+    /// [`SpectrumFilter::filter_experiment`] produces. The metadata-copy
+    /// preflight happens before the section starts, so an experiment refused
+    /// there prints nothing.
+    ///
+    /// # Errors
+    ///
+    /// As [`SpectrumFilter::filter_experiment`], and the errors of `progress`.
+    /// An error inside the section still ends it, which the source does not
+    /// do; see [`ProgressReporter::section`]. The experiment is unchanged on
+    /// error.
+    pub fn filter_experiment_with_progress(
+        &self,
+        experiment: &mut MSExperiment,
+        progress: &mut ProgressLogger,
+    ) -> Result<()> {
+        self.filter_experiment_reporting(experiment, &mut ProgressReporter::new(Some(progress)))
+    }
+
+    /// Source `filterExperiment` into a copy, inside one progress section.
+    fn filter_experiment_reporting(
+        &self,
+        experiment: &mut MSExperiment,
+        reporter: &mut ProgressReporter<'_>,
+    ) -> Result<()> {
+        for spectrum in &experiment.spectra {
+            AcquisitionCopies::default().spectrum(spectrum)?;
+        }
+        let records = progress_value(experiment.spectra.len())?;
+        let mut spectra = experiment.spectra.clone();
+        let mut buffer = RangeBuffer::default();
+        reporter.section(0, records, BASELINE_PROGRESS_LABEL, |reporter| {
+            for (index, spectrum) in spectra.iter_mut().enumerate() {
+                self.filter_spectrum_with(spectrum, &mut buffer)?;
+                // :310, `setProgress(i)`.
+                reporter.set_count(index)?;
+            }
+            Ok(())
+        })?;
+        experiment.spectra = spectra;
+        Ok(())
+    }
+
     /// A filter with checked options.
     ///
     /// # Errors
@@ -451,17 +508,11 @@ impl SpectrumFilter for MorphologicalFilter {
     /// [`SpectrumFilter::filter_spectrum`], or [`Error::InvalidValue`] when one
     /// spectrum's metadata exceeds the processing copy budget. The experiment
     /// is unchanged on error.
+    ///
+    /// Reports no progress; see
+    /// [`MorphologicalFilter::filter_experiment_with_progress`].
     fn filter_experiment(&self, experiment: &mut MSExperiment) -> Result<()> {
-        for spectrum in &experiment.spectra {
-            AcquisitionCopies::default().spectrum(spectrum)?;
-        }
-        let mut spectra = experiment.spectra.clone();
-        let mut buffer = RangeBuffer::default();
-        for spectrum in &mut spectra {
-            self.filter_spectrum_with(spectrum, &mut buffer)?;
-        }
-        experiment.spectra = spectra;
-        Ok(())
+        self.filter_experiment_reporting(experiment, &mut ProgressReporter::silent())
     }
 }
 

@@ -1,0 +1,143 @@
+# OpenMS4 Release (core bc9cc12) progress calls of ProgressLogger consumers;
+# produced by ../oracle/progress-consumers (driver.cpp, extract.py). Columns: case, mode, record, fields.
+hires_mixed	rec	S	0	5	picking peaks	0
+hires_mixed	rec	V	1	1
+hires_mixed	rec	V	2	1
+hires_mixed	rec	V	3	1
+hires_mixed	rec	V	4	1
+hires_mixed	rec	V	5	1
+hires_mixed	rec	E	0	0
+hires_mixed	rec	R	3	2
+hires_mixed	rec	D	0
+hires_mixed	cmd	R	3	2
+hires_mixed	cmd	D	0
+hires_mixed	cmd	B	Progress of 'picking peaks':\n\r  20.00 %               \r  40.00 %               \r  60.00 %               \r  80.00 %               \r  100.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+hires_empty	rec	S	0	0	picking peaks	0
+hires_empty	rec	E	0	0
+hires_empty	rec	R	0	0
+hires_empty	rec	D	0
+hires_empty	cmd	R	0	0
+hires_empty	cmd	D	0
+hires_empty	cmd	B	Progress of 'picking peaks':\n\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+hires_refused	rec	S	0	4	picking peaks	0
+hires_refused	rec	V	1	1
+hires_refused	rec	X	IllegalArgument	Error: Centroided data provided but profile spectra expected.
+hires_refused	rec	D	1
+hires_refused	cmd	X	IllegalArgument	Error: Centroided data provided but profile spectra expected.
+hires_refused	cmd	D	1
+hires_refused	cmd	B	Progress of 'picking peaks':\n\r  25.00 %               
+iterative	rec	S	0	3	picking peaks	0
+iterative	rec	V	0	1
+iterative	rec	V	1	1
+iterative	rec	V	2	1
+iterative	rec	E	0	0
+iterative	rec	R	3	0
+iterative	rec	D	0
+iterative	cmd	R	3	0
+iterative	cmd	D	0
+iterative	cmd	B	Progress of 'picking peaks':\n\r  0.00 %               \r  33.33 %               \r  66.67 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+iterative_empty	rec	S	0	0	picking peaks	0
+iterative_empty	rec	E	0	0
+iterative_empty	rec	R	0	0
+iterative_empty	rec	D	0
+iterative_empty	cmd	R	0	0
+iterative_empty	cmd	D	0
+iterative_empty	cmd	B	Progress of 'picking peaks':\n\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+resampler	rec	S	0	2	resampling of data	0
+resampler	rec	V	0	1
+resampler	rec	V	1	1
+resampler	rec	E	0	0
+resampler	rec	R	2	1
+resampler	rec	D	0
+resampler	cmd	R	2	1
+resampler	cmd	D	0
+resampler	cmd	B	Progress of 'resampling of data':\n\r  0.00 %               \r  50.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+resampler_empty	rec	S	0	0	resampling of data	0
+resampler_empty	rec	E	0	0
+resampler_empty	rec	R	0	0
+resampler_empty	rec	D	0
+resampler_empty	cmd	R	0	0
+resampler_empty	cmd	D	0
+resampler_empty	cmd	B	Progress of 'resampling of data':\n\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+gauss	rec	S	0	4	smoothing data	0
+gauss	rec	V	1	1
+gauss	rec	V	2	1
+gauss	rec	V	3	1
+gauss	rec	V	4	1
+gauss	rec	E	0	0
+gauss	rec	R	2	2
+gauss	rec	D	0
+gauss	cmd	R	2	2
+gauss	cmd	D	0
+gauss	cmd	B	Progress of 'smoothing data':\n\r  25.00 %               \r  50.00 %               \r  75.00 %               \r  100.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+gauss_empty	rec	S	0	0	smoothing data	0
+gauss_empty	rec	E	0	0
+gauss_empty	rec	R	0	0
+gauss_empty	rec	D	0
+gauss_empty	cmd	R	0	0
+gauss_empty	cmd	D	0
+gauss_empty	cmd	B	Progress of 'smoothing data':\n\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+gauss_ppm_chromatogram	rec	S	0	3	smoothing data	0
+gauss_ppm_chromatogram	rec	V	1	1
+gauss_ppm_chromatogram	rec	V	2	1
+gauss_ppm_chromatogram	rec	X	IllegalArgument	GaussFilter: Cannot use ppm tolerance on chromatograms
+gauss_ppm_chromatogram	rec	D	1
+gauss_ppm_chromatogram	cmd	X	IllegalArgument	GaussFilter: Cannot use ppm tolerance on chromatograms
+gauss_ppm_chromatogram	cmd	D	1
+gauss_ppm_chromatogram	cmd	B	Progress of 'smoothing data':\n\r  33.33 %               \r  66.67 %               
+sgolay	rec	S	0	4	smoothing data	0
+sgolay	rec	V	1	1
+sgolay	rec	V	2	1
+sgolay	rec	V	3	1
+sgolay	rec	V	4	1
+sgolay	rec	E	0	0
+sgolay	rec	R	2	2
+sgolay	rec	D	0
+sgolay	cmd	R	2	2
+sgolay	cmd	D	0
+sgolay	cmd	B	Progress of 'smoothing data':\n\r  25.00 %               \r  50.00 %               \r  75.00 %               \r  100.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+sgolay_empty	rec	S	0	0	smoothing data	0
+sgolay_empty	rec	E	0	0
+sgolay_empty	rec	R	0	0
+sgolay_empty	rec	D	0
+sgolay_empty	cmd	R	0	0
+sgolay_empty	cmd	D	0
+sgolay_empty	cmd	B	Progress of 'smoothing data':\n\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+morph	rec	S	0	3	filtering baseline	0
+morph	rec	V	0	1
+morph	rec	V	1	1
+morph	rec	V	2	1
+morph	rec	E	0	0
+morph	rec	R	3	1
+morph	rec	D	0
+morph	cmd	R	3	1
+morph	cmd	D	0
+morph	cmd	B	Progress of 'filtering baseline':\n\r  0.00 %               \r  33.33 %               \r  66.67 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+morph_empty	rec	S	0	0	filtering baseline	0
+morph_empty	rec	E	0	0
+morph_empty	rec	R	0	0
+morph_empty	rec	D	0
+morph_empty	cmd	R	0	0
+morph_empty	cmd	D	0
+morph_empty	cmd	B	Progress of 'filtering baseline':\n\r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+indexing	rec	S	0	1	Load first DB chunk	0
+indexing	rec	E	0	0
+indexing	rec	S	0	3	Aho-Corasick	0
+indexing	rec	V	1	1
+indexing	rec	V	2	1
+indexing	rec	V	3	1
+indexing	rec	E	0	0
+indexing	rec	R	0
+indexing	rec	D	0
+indexing_no_identifications	rec	S	0	1	Load first DB chunk	0
+indexing_no_identifications	rec	E	0	0
+indexing_no_identifications	rec	R	2
+indexing_no_identifications	rec	D	0
+indexing_no_hits	rec	S	0	1	Load first DB chunk	0
+indexing_no_hits	rec	E	0	0
+indexing_no_hits	rec	R	2
+indexing_no_hits	rec	D	0
+indexing_empty_database	rec	S	0	1	Load first DB chunk	0
+indexing_empty_database	rec	E	0	0
+indexing_empty_database	rec	R	1
+indexing_empty_database	rec	D	0

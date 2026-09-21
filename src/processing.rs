@@ -9,23 +9,35 @@
 //! producing NaN as the C++ implementation does. Sorting and filtering preserve
 //! the association between peaks and their auxiliary data arrays.
 
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
 use crate::kernel::{ChromatogramPeak, MSChromatogram, MSExperiment, MSSpectrum, Peak1D};
 use crate::{Error, Result};
 
+/// Baseline removal by mathematical morphology (`MorphologicalFilter.h`).
 pub mod baseline;
+/// OpenSWATH chromatogram peak picking (`PeakPickerChromatogram.h`).
 pub mod chromatogram;
+/// Isotope-cluster detection and charge deconvolution (`Deisotoper.h`).
 pub mod deisotoping;
 /// Removing and merging overlapping features (`FeatureOverlapFilter.h`).
 pub mod feature_overlap_filter;
+/// Iterative high-resolution peak picking (`PeakPickerIterative.h`).
 pub mod iterative;
+/// Mean-based iterative noise estimation
+/// (`SignalToNoiseEstimatorMeanIterative.h`).
 pub mod mean_noise;
 /// The signal-to-noise estimator base and the random-scan noise estimate
 /// (`SignalToNoiseEstimator.h`).
 pub mod noise_estimation;
+/// High-resolution centroiding (`PeakPickerHiRes.h`) and median noise
+/// estimation (`SignalToNoiseEstimatorMedian.h`).
 pub mod peak_picking;
+/// Gaussian and Savitzky-Golay smoothing (`GaussFilter.h`,
+/// `SavitzkyGolayFilter.h`).
 pub mod smoothing;
 /// Spline interpolation and smoothing ported from OpenMS `MATH/MISC`.
 pub mod spline;
+/// Sliding- and jumping-window peak filtering (`WindowMower.h`).
 pub mod window_mower;
 
 /// A spectrum transformation with an atomic experiment convenience method.
@@ -246,11 +258,18 @@ impl SpectrumFilter for RankScaler {
     }
 }
 
+/// The progress label of source `LinearResamplerAlign::rasterExperiment`
+/// (`LinearResamplerAlign.h:370`).
+pub const RESAMPLING_PROGRESS_LABEL: &str = "resampling of data";
+
 /// Intensity-conserving redistribution onto a uniformly spaced grid.
 ///
 /// Port of the absolute-spacing paths of OpenMS `LinearResamplerAlign`.
 /// Per-peak auxiliary arrays cannot be meaningfully resampled and are rejected
 /// when nonempty. Metadata and precursor information are preserved.
+///
+/// The source class is also a `ProgressLogger`; its one reporting member,
+/// `rasterExperiment`, is [`LinearResamplerAlign::raster_experiment_with_progress`].
 #[derive(Clone, Copy, Debug)]
 pub struct LinearResamplerAlign {
     /// Absolute spacing in Th for spectra or seconds for chromatograms.
@@ -340,6 +359,71 @@ impl LinearResamplerAlign {
         Ok(())
     }
 
+    /// Resample every spectrum of an experiment with
+    /// [`LinearResamplerAlign::raster`] (source `rasterExperiment(PeakMap&)`).
+    ///
+    /// As in the source, chromatograms are not resampled, and each spectrum
+    /// gets its own grid from its first to its last m/z. Unlike the source,
+    /// which rasters in place and cannot fail, the spectra are resampled in a
+    /// copy that replaces them only when every spectrum succeeded, as
+    /// [`SpectrumFilter::filter_experiment`] does; that copy is metered by the
+    /// same metadata-copy ledger. Reports no progress; see
+    /// [`LinearResamplerAlign::raster_experiment_with_progress`].
+    ///
+    /// # Errors
+    ///
+    /// Invalid options, the metadata-copy ledger, and the first spectrum's
+    /// error from [`LinearResamplerAlign::raster`]. The experiment is unchanged
+    /// on error.
+    pub fn raster_experiment(&self, experiment: &mut MSExperiment) -> Result<()> {
+        self.raster_experiment_reporting(experiment, &mut ProgressReporter::silent())
+    }
+
+    /// [`LinearResamplerAlign::raster_experiment`], reporting progress to
+    /// `progress` as the source's `ProgressLogger` base does.
+    ///
+    /// Source `rasterExperiment` calls `startProgress(0, exp.size(),
+    /// "resampling of data")` (`LinearResamplerAlign.h:370`), `setProgress(i)`
+    /// after resampling spectrum `i` (`:374`), so the values run from `0` to
+    /// `n - 1`, and `endProgress()` after the last (`:376`). This makes the
+    /// same calls. Option validation and the metadata-copy preflight happen
+    /// before the section starts, so an experiment refused there prints
+    /// nothing.
+    ///
+    /// # Errors
+    ///
+    /// As [`LinearResamplerAlign::raster_experiment`], and the errors of
+    /// `progress`. An error inside the section still ends it, which the source
+    /// cannot need to do; see [`ProgressReporter::section`].
+    pub fn raster_experiment_with_progress(
+        &self,
+        experiment: &mut MSExperiment,
+        progress: &mut ProgressLogger,
+    ) -> Result<()> {
+        self.raster_experiment_reporting(experiment, &mut ProgressReporter::new(Some(progress)))
+    }
+
+    fn raster_experiment_reporting(
+        &self,
+        experiment: &mut MSExperiment,
+        reporter: &mut ProgressReporter<'_>,
+    ) -> Result<()> {
+        self.validate_options()?;
+        AcquisitionCopies::default().spectra(&experiment.spectra)?;
+        let records = progress_value(experiment.spectra.len())?;
+        let mut spectra = experiment.spectra.clone();
+        reporter.section(0, records, RESAMPLING_PROGRESS_LABEL, |reporter| {
+            for (index, spectrum) in spectra.iter_mut().enumerate() {
+                self.raster(spectrum)?;
+                // :374, `setProgress(i)`.
+                reporter.set_count(index)?;
+            }
+            Ok(())
+        })?;
+        experiment.spectra = spectra;
+        Ok(())
+    }
+
     /// Resample a chromatogram using spacing measured in seconds.
     pub fn raster_chromatogram(&self, chromatogram: &mut MSChromatogram) -> Result<()> {
         self.validate_options()?;
@@ -375,6 +459,19 @@ impl LinearResamplerAlign {
             .map(|p| ChromatogramPeak::new(p.mz, p.intensity))
             .collect();
         Ok(())
+    }
+}
+
+impl SpectrumFilter for LinearResamplerAlign {
+    /// [`LinearResamplerAlign::raster`], the source's `raster(MSSpectrum&)`.
+    fn filter_spectrum(&self, spectrum: &mut MSSpectrum) -> Result<()> {
+        self.raster(spectrum)
+    }
+
+    /// [`LinearResamplerAlign::raster_experiment`], the source's
+    /// `rasterExperiment`: spectra only, chromatograms unchanged.
+    fn filter_experiment(&self, experiment: &mut MSExperiment) -> Result<()> {
+        self.raster_experiment(experiment)
     }
 }
 

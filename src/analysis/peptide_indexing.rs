@@ -7,19 +7,38 @@
 //! `docs/PEPTIDE_INDEXING_SUPPORT.md` for source conventions and checked changes.
 
 use crate::chemistry::{DigestionSpecificity, ProductValidation, Protease, ProteaseDigestion};
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
 use crate::format::fasta::FASTAEntry;
 use crate::identification::{
     EnzymeTermSpecificity, FlankingResidue, PeptideEvidence, PeptideIdentification, ProteinHit,
     ProteinIdentification, TargetDecoyType,
 };
 use crate::{Error, Result};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, btree_map};
 
+/// The progress label of the source's first-chunk load
+/// (`PeptideIndexing.cpp:371`).
+pub const LOAD_PROGRESS_LABEL: &str = "Load first DB chunk";
+/// The progress label of the source's protein scan (`PeptideIndexing.cpp:453`).
+pub const SCAN_PROGRESS_LABEL: &str = "Aho-Corasick";
+/// Source `PROTEIN_CACHE_SIZE` (`PeptideIndexing.cpp:369`): a database of
+/// exactly this many entries is taken for a first chunk of unknown total, so
+/// its scan range is `i64::MAX` (`:453`).
+pub const SOURCE_PROTEIN_CACHE_SIZE: usize = 400_000;
+
+/// What to do when a peptide hit matches no protein (source `Unmatched` and
+/// its `unmatched_action` parameter, `PeptideIndexing.h:106`).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum UnmatchedAction {
+    /// Refuse the run (source `IS_ERROR`, `"error"`, the default).
     #[default]
     Error,
+    /// Keep the hit and report a warning (source `WARN`, `"warn"`); the source
+    /// notes that such hits miss their target/decoy annotation, with problems
+    /// downstream.
     Warn,
+    /// Remove the hit, keeping its identification record (source `REMOVE`,
+    /// `"remove"`).
     Remove,
 }
 impl UnmatchedAction {
@@ -31,11 +50,17 @@ impl UnmatchedAction {
         }
     }
 }
+/// What to do when no peptide hit maps to a decoy protein, which the source
+/// takes to indicate a wrong database or decoy string (source `MissingDecoy`
+/// and its `missing_decoy_action` parameter).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum MissingDecoyAction {
+    /// Refuse the run, producing no output (source `"error"`, the default).
     #[default]
     Error,
+    /// Succeed with a warning (source `"warn"`).
     Warn,
+    /// Take no action, not even a warning (source `"silent"`).
     Silent,
 }
 impl MissingDecoyAction {
@@ -47,16 +72,29 @@ impl MissingDecoyAction {
         }
     }
 }
+/// How decoy proteins are named (source parameters `decoy_string` and
+/// `decoy_string_position`).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub enum DecoyRule {
+    /// Infer the affix from the database, checking common terms as prefix and
+    /// suffix (source: an empty `decoy_string`, the default); see
+    /// [`PeptideIndexing::resolve_decoy_rule`].
     #[default]
     Auto,
+    /// Accessions starting with this string are decoys (`decoy_string_position`
+    /// `prefix`). Must not be empty.
     Prefix(String),
+    /// Accessions ending with this string are decoys (`decoy_string_position`
+    /// `suffix`). Must not be empty.
     Suffix(String),
 }
+/// The decoy naming a run actually used (source `getDecoyString` and
+/// `isPrefix`).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResolvedDecoyRule {
+    /// The decoy string.
     pub affix: String,
+    /// Whether [`affix`](Self::affix) is a prefix rather than a suffix.
     pub is_prefix: bool,
     /// False for an explicit rule or the source's DECOY_ fallback.
     pub inferred: bool,
@@ -71,28 +109,54 @@ impl ResolvedDecoyRule {
         }
     }
 }
+/// The settings one protein identification run was indexed with, after
+/// automatic resolution from its search parameters.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResolvedIndexingRun {
+    /// The run's identifier.
     pub identifier: String,
+    /// The enzyme, after the source's MS-GF+ correction of Trypsin to
+    /// Trypsin/P.
     pub enzyme: Protease,
+    /// The terminal specificity.
     pub specificity: DigestionSpecificity,
+    /// Whether D|P termini are accepted, as the source allows for X!Tandem
+    /// results.
     pub allow_random_asp_pro_cleavage: bool,
 }
+/// What a [`PeptideIndexing::run`] did, replacing the statistics the source
+/// logs.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct IndexingReport {
+    /// The decoy naming used for every run.
     pub decoy_rule: ResolvedDecoyRule,
+    /// The effective settings of each protein identification run, in input
+    /// order.
     pub runs: Vec<ResolvedIndexingRun>,
+    /// Peptide hits indexed, before any [`UnmatchedAction::Remove`].
     pub peptide_hits: usize,
+    /// Hits that map to target proteins only.
     pub target_hits: usize,
+    /// Hits that map to decoy proteins only.
     pub decoy_hits: usize,
+    /// Hits that map to both target and decoy proteins.
     pub target_and_decoy_hits: usize,
+    /// Hits that map to no protein.
     pub unmatched_hits: usize,
+    /// Hits whose evidence names exactly one protein.
     pub unique_hits: usize,
+    /// Hits whose evidence names more than one protein.
     pub non_unique_hits: usize,
+    /// Peptide evidences written.
     pub evidence_count: usize,
+    /// Protein hits written, over all runs.
     pub protein_hits: usize,
     /// Normalization, search comparisons and enzyme-validation residue work.
     pub work: u64,
+    /// The warnings the source would log: unknown enzyme or specificity, a
+    /// failed decoy inference, unmatched hits under
+    /// [`UnmatchedAction::Warn`], missing decoys under
+    /// [`MissingDecoyAction::Warn`].
     pub warnings: Vec<String>,
 }
 
@@ -165,6 +229,13 @@ fn work_add(work: &mut u64, amount: usize, limit: u64) -> Result<()> {
     Ok(())
 }
 impl PeptideIndexing {
+    /// Checks the options: ambiguity and mismatch budgets within `0..=10` (the
+    /// source's `aaa_max` and `mismatches_max` restrictions), positive
+    /// resource limits, and a nonempty explicit decoy affix.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the first option that fails.
     pub fn validate(&self) -> Result<()> {
         if self.max_ambiguities > 10 || self.max_mismatches > 10 {
             return Err(bad("ambiguity and mismatch budgets must each be in 0..=10"));
@@ -355,11 +426,75 @@ impl PeptideIndexing {
     /// records are changed. Existing peptide scores, modifications, ordering and
     /// unrelated metadata survive; source-style newly matched protein hits reset
     /// previous protein scores/metadata. Protein groups are retained unchanged.
+    /// Reports no progress; see [`PeptideIndexing::run_with_progress`].
     pub fn run(
         &self,
         database: &[FASTAEntry],
         proteins: &mut [ProteinIdentification],
         peptides: &mut [PeptideIdentification],
+    ) -> Result<IndexingReport> {
+        self.run_reporting(
+            database,
+            proteins,
+            peptides,
+            &mut ProgressReporter::silent(),
+        )
+    }
+
+    /// [`PeptideIndexing::run`], reporting progress to `progress` as the
+    /// source's `ProgressLogger` base does in its in-memory `run` overload.
+    ///
+    /// The source makes two sections (`PeptideIndexing.cpp:371-373`,
+    /// `:453-576`):
+    ///
+    /// * `startProgress(0, 1, "Load first DB chunk")` and `endProgress()`
+    ///   around loading the first FASTA chunk, which an in-memory database
+    ///   does not need; the section is made anyway, as the source makes it.
+    /// * a section labelled [`SCAN_PROGRESS_LABEL`] over `0` to `n`, where
+    ///   `n` is the number of database entries, or `i64::MAX` when there are
+    ///   exactly [`SOURCE_PROTEIN_CACHE_SIZE`] of them (`:453`); in it the
+    ///   source increments `progress_prots` per protein and passes it to
+    ///   `setProgress`, so the values run from `1` to `n` (`:490-496`); then
+    ///   `this->endProgress();` (`:576`).
+    ///   The source skips this section when there is no peptide hit to search
+    ///   for (`:381-394`, `:433-437`), and so does this.
+    ///
+    /// The source sets progress only from OpenMP thread 0 (`:491-496`); the
+    /// values above are those of a single-threaded source run, where thread 0
+    /// scans every protein. The scan here is serial, so every protein reports.
+    ///
+    /// The source makes the first section before it checks for an empty
+    /// database (`:375-379`); this port refuses an empty database before any
+    /// progress, together with the rest of its up-front validation, so that
+    /// case prints nothing here. The indexing result is the one
+    /// [`PeptideIndexing::run`] returns.
+    ///
+    /// # Errors
+    ///
+    /// As [`PeptideIndexing::run`], and the errors of `progress`. An error
+    /// inside a section still ends it, which the source does not do; see
+    /// [`ProgressReporter::section`].
+    pub fn run_with_progress(
+        &self,
+        database: &[FASTAEntry],
+        proteins: &mut [ProteinIdentification],
+        peptides: &mut [PeptideIdentification],
+        progress: &mut ProgressLogger,
+    ) -> Result<IndexingReport> {
+        self.run_reporting(
+            database,
+            proteins,
+            peptides,
+            &mut ProgressReporter::new(Some(progress)),
+        )
+    }
+
+    fn run_reporting(
+        &self,
+        database: &[FASTAEntry],
+        proteins: &mut [ProteinIdentification],
+        peptides: &mut [PeptideIdentification],
+        reporter: &mut ProgressReporter<'_>,
     ) -> Result<IndexingReport> {
         self.validate()?;
         if database.is_empty() {
@@ -461,45 +596,89 @@ impl PeptideIndexing {
         };
         let mut new_peptides = peptides.to_vec();
         let mut matched_proteins = vec![BTreeSet::new(); proteins.len()];
-        let mut cache: BTreeMap<(usize, String), Vec<(usize, usize)>> = BTreeMap::new();
-        let mut cache_size = 0;
-        for (identification, &run_index) in new_peptides.iter_mut().zip(&peptide_runs) {
-            for hit in &mut identification.hits {
-                report.peptide_hits += 1;
+        // :371-373. The source loads its first FASTA chunk here; an in-memory
+        // database is already loaded, but the section is still made.
+        reporter.section(0, 1, LOAD_PROGRESS_LABEL, |_| Ok(()))?;
+        // Every distinct unmodified peptide of a run is one needle, normalized
+        // once in first-occurrence order, as the source's trie holds each
+        // needle once (:413-430).
+        let mut needle_index: BTreeMap<(usize, String), usize> = BTreeMap::new();
+        let mut needles: Vec<(usize, String)> = Vec::new();
+        for (identification, &run_index) in new_peptides.iter().zip(&peptide_runs) {
+            for hit in &identification.hits {
                 let key = (run_index, hit.sequence.as_str().to_owned());
-                if !cache.contains_key(&key) {
-                    let needle = self.normalize(&key.1, false, &mut work)?;
-                    let settings = &report.runs[run_index];
-                    let digestion = ProteaseDigestion {
-                        enzyme: settings.enzyme,
-                        specificity: settings.specificity,
-                        ..Default::default()
-                    };
-                    let validation = ProductValidation {
-                        ignore_missed_cleavages: true,
-                        allow_nterm_protein_cleavage: self.allow_nterm_protein_cleavage,
-                        allow_random_asp_pro_cleavage: settings.allow_random_asp_pro_cleavage,
-                    };
-                    let mut mappings = Vec::new();
-                    for (protein_index, sequence) in sequences.iter().enumerate() {
+                if let btree_map::Entry::Vacant(slot) = needle_index.entry(key) {
+                    let needle = self.normalize(&slot.key().1, false, &mut work)?;
+                    slot.insert(needles.len());
+                    needles.push((run_index, needle));
+                }
+            }
+        }
+        let mut found = vec![Vec::new(); needles.len()];
+        // :381-394 and :433-437: without a needle the source returns before
+        // its scan section.
+        if !needles.is_empty() {
+            let checks: Vec<(ProteaseDigestion, ProductValidation)> = report
+                .runs
+                .iter()
+                .map(|settings| {
+                    (
+                        ProteaseDigestion {
+                            enzyme: settings.enzyme,
+                            specificity: settings.specificity,
+                            ..Default::default()
+                        },
+                        ProductValidation {
+                            ignore_missed_cleavages: true,
+                            allow_nterm_protein_cleavage: self.allow_nterm_protein_cleavage,
+                            allow_random_asp_pro_cleavage: settings.allow_random_asp_pro_cleavage,
+                        },
+                    )
+                })
+                .collect();
+            // :453, including its range for a first chunk of unknown total.
+            let range = if database.len() == SOURCE_PROTEIN_CACHE_SIZE {
+                i64::MAX
+            } else {
+                progress_value(database.len())?
+            };
+            reporter.section(0, range, SCAN_PROGRESS_LABEL, |reporter| {
+                // Protein-major, as the source scans: every needle against one
+                // protein, then the next. Each needle's mappings still come out
+                // in protein order, then position order.
+                let mut cache_size = 0;
+                for (protein_index, sequence) in sequences.iter().enumerate() {
+                    for ((run_index, needle), mappings) in needles.iter().zip(&mut found) {
+                        let (digestion, validation) = &checks[*run_index];
                         work_add(&mut work, 1, self.max_work)?;
-                        for position in self.positions(&needle, sequence, &mut work)? {
+                        for position in self.positions(needle, sequence, &mut work)? {
                             // The shared digestion validator scans the protein.
                             // Charge this work as well as the raw matcher work.
                             work_add(&mut work, sequence.len(), self.max_work)?;
                             if digestion.is_valid_product_unmodified(
                                 sequence,
                                 position..position + needle.len(),
-                                validation,
+                                *validation,
                             )? {
                                 bounded_add(&mut cache_size, 1, self.max_matches, "cached match")?;
                                 mappings.push((protein_index, position));
                             }
                         }
                     }
-                    cache.insert(key.clone(), mappings);
+                    // :490-496: `++progress_prots`, then `setProgress(progress_prots)`.
+                    reporter.set_count(protein_index + 1)?;
                 }
-                let mappings = &cache[&key];
+                Ok(())
+            })?;
+        }
+        for (identification, &run_index) in new_peptides.iter_mut().zip(&peptide_runs) {
+            for hit in &mut identification.hits {
+                report.peptide_hits += 1;
+                let key = (run_index, hit.sequence.as_str().to_owned());
+                let mappings = needle_index
+                    .get(&key)
+                    .and_then(|&index| found.get(index))
+                    .ok_or_else(|| bad("peptide indexing lost a needle"))?;
                 bounded_add(
                     &mut report.evidence_count,
                     mappings.len(),

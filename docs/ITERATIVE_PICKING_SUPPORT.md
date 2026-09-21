@@ -67,6 +67,22 @@ method, leaving exact regions in the result. These two options do not affect
 direct `pick_spectrum` calls. `SpectrumFilter` provides atomic spectrum and
 experiment mutation wrappers.
 
+The source's `ProgressLogger` base, as `pickExperiment` uses it, is
+`pick_experiment_with_progress(input, &mut ProgressLogger)`: the caller passes
+the logger for the call and selects its type on it. It makes the source's calls
+(`PeakPickerIterative.h:384-398`): one section over the spectrum count labelled
+`picking peaks` (`ITERATIVE_PICKING_PROGRESS_LABEL`), advanced after every
+spectrum, picked or copied, with the value *before* the source's
+post-increment, so the values run from `0` to `n - 1` where `PeakPickerHiRes`
+reports `1` to `n`. Chromatograms, which the port keeps, are not counted,
+because the source's range does not count them. The picked result is the one
+`pick_experiment` returns. `tests/progress_consumers.rs` replays the Release
+build's calls and command output for three spectra and for an empty experiment
+(tier 1). Validation and the point-limit preflight run before the section, so
+an input refused there prints nothing; a failure inside the section still ends
+it, which the source, whose loop cannot fail there, never needs to do.
+`pick_experiment` itself reports nothing, as a source object of type `NONE`.
+
 ## Preserved refinement behavior
 
 Seed association scans raw samples in increasing m/z and assigns each seed to

@@ -317,6 +317,145 @@ impl ProgressLogger {
     }
 }
 
+/// The progress calls of one algorithm run, sent to an optional logger.
+///
+/// Source algorithms such as `PeakPickerHiRes` or `GaussFilter` *derive* from
+/// `ProgressLogger`, so every one of their objects carries a logger, and their
+/// `const` methods mutate it through the source's `mutable` members. A Rust
+/// algorithm keeps its methods `&self` and takes the logger from its caller
+/// instead: its `*_with_progress` entry point borrows a [`ProgressLogger`] for
+/// the call, and the caller selects its type with
+/// [`ProgressLogger::set_log_type`] or replaces its backend with
+/// [`ProgressLogger::set_logger`], as a source caller does on the algorithm
+/// object. Its other entry points report nothing, which is the source's default
+/// type `NONE` (`ProgressLogger.cpp:127-128`) without its cost.
+///
+/// `None` makes every call a no-op: no clock is read and the nesting depth is
+/// not touched. A source object of type `NONE` still increments and decrements
+/// the static depth around each section, which no output can observe, because
+/// the no-op backend prints nothing and the section is balanced.
+pub struct ProgressReporter<'a> {
+    logger: Option<&'a mut ProgressLogger>,
+}
+
+impl ProgressReporter<'static> {
+    /// Calls that go nowhere, for the entry points that report no progress.
+    pub fn silent() -> Self {
+        Self { logger: None }
+    }
+}
+
+impl<'a> ProgressReporter<'a> {
+    /// Calls that go to `logger`, if any.
+    pub fn new(logger: Option<&'a mut ProgressLogger>) -> Self {
+        Self { logger }
+    }
+
+    /// Whether the calls reach a logger.
+    pub fn is_reporting(&self) -> bool {
+        self.logger.is_some()
+    }
+
+    /// Source `startProgress(begin, end, label)`; see
+    /// [`ProgressLogger::start_progress`].
+    ///
+    /// # Errors
+    ///
+    /// The errors of [`ProgressLogger::start_progress`]; never when silent.
+    pub fn start(&mut self, begin: i64, end: i64, label: &str) -> Result<()> {
+        match self.logger.as_deref_mut() {
+            Some(logger) => logger.start_progress(begin, end, label),
+            None => Ok(()),
+        }
+    }
+
+    /// Source `setProgress(value)`; see [`ProgressLogger::set_progress`].
+    ///
+    /// # Errors
+    ///
+    /// The errors of [`ProgressLogger::set_progress`]; never when silent.
+    pub fn set(&mut self, value: i64) -> Result<()> {
+        match self.logger.as_deref_mut() {
+            Some(logger) => logger.set_progress(value),
+            None => Ok(()),
+        }
+    }
+
+    /// Source `setProgress(value)` for a record count or index, which the
+    /// source passes as its signed `SignedSize`.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when `value` exceeds `i64::MAX`, which no
+    /// in-memory record count reaches, and the errors of
+    /// [`ProgressReporter::set`]; never when silent.
+    pub fn set_count(&mut self, value: usize) -> Result<()> {
+        if self.logger.is_none() {
+            return Ok(());
+        }
+        self.set(progress_value(value)?)
+    }
+
+    /// Source `endProgress()`, without a byte count; see
+    /// [`ProgressLogger::end_progress`].
+    ///
+    /// # Errors
+    ///
+    /// The errors of [`ProgressLogger::end_progress`]; never when silent.
+    pub fn end(&mut self) -> Result<()> {
+        match self.logger.as_deref_mut() {
+            Some(logger) => logger.end_progress(0),
+            None => Ok(()),
+        }
+    }
+
+    /// One source `startProgress(begin, end, label)` ... `endProgress()`
+    /// section around `body`, which makes the section's `setProgress` calls
+    /// through the reporter it is handed.
+    ///
+    /// The section is ended whether `body` succeeds or fails, so a failed run
+    /// leaves the logger's nesting depth where it found it and its command
+    /// timer stopped, and the logger can report the next run. **This differs
+    /// from the source on its failure paths:** when an algorithm throws inside
+    /// its section, the source never reaches `endProgress`, so the command
+    /// backend prints no `-- done` line, the static depth stays one level
+    /// deeper for the rest of the process, and the object's next
+    /// `startProgress` throws `StopWatch is already started!`
+    /// (`StopWatch.cpp:43`). Here the `-- done` line is printed and the error
+    /// is returned.
+    ///
+    /// # Errors
+    ///
+    /// The error of `start`, in which case `body` does not run; otherwise the
+    /// error of `body`, or, when `body` succeeded, the error of ending the
+    /// section. When both `body` and the end fail, the body's error wins.
+    pub fn section<T>(
+        &mut self,
+        begin: i64,
+        end: i64,
+        label: &str,
+        body: impl FnOnce(&mut Self) -> Result<T>,
+    ) -> Result<T> {
+        self.start(begin, end, label)?;
+        let outcome = body(self);
+        let ended = self.end();
+        let value = outcome?;
+        ended?;
+        Ok(value)
+    }
+}
+
+/// A record count or index as the source's signed progress value
+/// (`SignedSize`), which the source converts implicitly from `Size`.
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] when `count` exceeds `i64::MAX`, where the source's
+/// implicit conversion would wrap.
+pub fn progress_value(count: usize) -> Result<i64> {
+    i64::try_from(count).map_err(|_| invalid("progress value exceeds signed range"))
+}
+
 /// Command backend writing through `std::io::Write` (source
 /// `CMDProgressLoggerImpl`). It preserves source f32 percentage arithmetic,
 /// labels, indentation, diagnostics, and timer formatting. Missing native

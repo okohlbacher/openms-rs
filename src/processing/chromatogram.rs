@@ -9,6 +9,8 @@
 //! native default refuses; the internal noise estimate always reproduces the
 //! source, because the signal it reads is this picker's own smoothed trace or a
 //! chromatogram the picker has already validated.
+//!
+//! [`PeakPickerChromatogram::compatibility`]: crate::processing::chromatogram::PeakPickerChromatogram::compatibility
 
 use super::checked_intensity;
 use super::peak_picking::{
