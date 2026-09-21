@@ -369,6 +369,21 @@ impl<'a> ProgressReporter<'a> {
         }
     }
 
+    /// Source `startProgress(0, count, label)` for a record count, which the
+    /// source passes as its signed `SignedSize`. The count is converted only
+    /// when the calls reach a logger, so a silent reporter can never fail here.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when `count` exceeds `i64::MAX`, and the errors
+    /// of [`ProgressLogger::start_progress`]; never when silent.
+    pub fn start_count(&mut self, count: usize, label: &str) -> Result<()> {
+        if self.logger.is_none() {
+            return Ok(());
+        }
+        self.start(0, progress_value(count)?, label)
+    }
+
     /// Source `setProgress(value)`; see [`ProgressLogger::set_progress`].
     ///
     /// # Errors

@@ -54,7 +54,7 @@
 //! report nothing, and the counters in
 //! [`LoadReport`](crate::format::mzdata::LoadReport) are kept either way.
 
-use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::format::peak_options::PeakFileOptions;
 use crate::kernel::{
     DataArray, MSExperiment, MSSpectrum, NumericRange, Peak1D, Precursor, SpectrumType,
@@ -1499,13 +1499,12 @@ impl<'a, 'p> Parser<'a, 'p> {
                         "<spectrumList count> exceeds the configured spectrum ceiling",
                     ));
                 }
-                // `MzDataHandler.cpp:354`.
-                self.progress.start(
-                    0,
-                    i64::try_from(count)
-                        .map_err(|_| limit("<spectrumList count> exceeds the progress range"))?,
-                    "loading mzData file",
-                )?;
+                // `MzDataHandler.cpp:354`. The count is within the spectrum
+                // ceiling, a `usize`, so the conversion cannot fail.
+                let count = usize::try_from(count).map_err(|_| {
+                    limit("<spectrumList count> exceeds the configured spectrum ceiling")
+                })?;
+                self.progress.start_count(count, "loading mzData file")?;
             }
             "acqSpecification" => {
                 let kind = required(element, "spectrumType")?;
@@ -3144,11 +3143,7 @@ fn write_document(
     progress: &mut ProgressReporter<'_>,
 ) -> Result<()> {
     // `MzDataHandler.cpp:581`.
-    progress.start(
-        0,
-        progress_value(experiment.spectra.len())?,
-        "storing mzData file",
-    )?;
+    progress.start_count(experiment.spectra.len(), "storing mzData file")?;
     let mut out = Sink { writer };
     let settings = &experiment.settings;
     out.raw("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n")?;

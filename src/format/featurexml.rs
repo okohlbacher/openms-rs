@@ -18,7 +18,7 @@ pub use scaling::{Allowance, InputScaling, OutputScaling};
 use super::identification_xml::{self as xml, Detach, Node};
 use super::{FileType, map_xml, path_io};
 use crate::chemistry::ModificationsDB;
-use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::kernel::{ConvexHull2D, Feature, FeatureMap, Point2D};
 use crate::metadata::{MetaInfo, MetaValue, MetaValueData};
 use crate::{Error, Result};
@@ -605,8 +605,7 @@ impl Streamer<'_, '_> {
             // unreadable count is left to the check after the parse, which
             // reports it exactly as the silent reader does.
             if let Ok(count) = container.get("count").and_then(xml::number::<usize>) {
-                self.progress
-                    .start(0, progress_value(count)?, LOADING_LABEL)?;
+                self.progress.start_count(count, LOADING_LABEL)?;
                 self.started = true;
             }
         }
@@ -764,7 +763,7 @@ fn read_document(
         // `FeatureXMLHandler.cpp:319` for a list without features, and `:838`
         // at `</featureList>`.
         if !started {
-            progress.start(0, progress_value(count)?, LOADING_LABEL)?;
+            progress.start_count(count, LOADING_LABEL)?;
         }
         progress.end()?;
     }
@@ -1141,11 +1140,7 @@ fn encode_reporting(
     }
     let mut list = Node::new("featureList");
     list.attr("count", map.len());
-    progress.start(
-        0,
-        progress_value(map.features.len())?,
-        "Storing featureXML file",
-    )?;
+    progress.start_count(map.features.len(), "Storing featureXML file")?;
     for (index, feature) in map.features.iter().enumerate() {
         list.children.push(write_feature(
             feature, "f_", &context, &registry, &mut work,

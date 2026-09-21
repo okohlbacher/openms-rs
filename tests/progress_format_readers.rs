@@ -33,7 +33,7 @@
 
 use openms::concept::progress_logger::{
     CommandProgressLogger, ProgressBackend, ProgressClock, ProgressLogType, ProgressLogger,
-    ProgressNesting, ProgressTime,
+    ProgressNesting, ProgressReporter, ProgressTime,
 };
 use openms::format::PeakFileOptions;
 use openms::format::{
@@ -1157,4 +1157,43 @@ fn a_metadata_only_mzml_load_leaves_the_document_section_open() {
     .unwrap();
     assert_eq!(*events.lock().unwrap(), ["S\t0\t1\tloading mzML\t0"]);
     assert_eq!(nesting.depth(), 1);
+}
+
+/// The three reporter calls the readers added. Independent: the expectations
+/// follow from the documented contract of `ProgressReporter` and
+/// `ProgressLogger`, not from Rust output.
+#[test]
+fn the_reporter_counts_advances_and_ends_with_a_byte_count() {
+    let mut silent = ProgressReporter::silent();
+    silent.start_count(usize::MAX, "never shown").unwrap();
+    silent.next_progress().unwrap();
+    silent.end_with_bytes(u64::MAX).unwrap();
+
+    let (mut logger, nesting, events) = recording_logger();
+    let mut reporter = ProgressReporter::new(Some(&mut logger));
+    reporter.start_count(3, "label").unwrap();
+    reporter.next_progress().unwrap();
+    reporter.next_progress().unwrap();
+    reporter.end_with_bytes(42).unwrap();
+    if let Some(over) = usize::try_from(i64::MAX)
+        .ok()
+        .and_then(|max| max.checked_add(1))
+    {
+        assert!(matches!(
+            reporter.start_count(over, "too many"),
+            Err(Error::InvalidValue(_))
+        ));
+    }
+    assert_eq!(
+        *events.lock().unwrap(),
+        [
+            "S\t0\t3\tlabel\t0",
+            "N\t1",
+            "V\t1\t1",
+            "N\t2",
+            "V\t2\t1",
+            "E\t0\t42"
+        ]
+    );
+    assert_eq!(nesting.depth(), 0);
 }

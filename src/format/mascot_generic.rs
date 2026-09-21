@@ -1661,11 +1661,7 @@ impl MascotGenericFile {
         // The `fixed` flag the compact writer sets lives in the C++ ostream, so
         // it is sticky for the rest of the file once any spectrum has set it.
         let mut fixed = false;
-        progress.start(
-            0,
-            progress_value(experiment.spectra.len())?,
-            "storing mascot generic file",
-        )?;
+        progress.start_count(experiment.spectra.len(), "storing mascot generic file")?;
         for (index, spectrum) in experiment.spectra.iter().enumerate() {
             progress.set_count(index)?;
             match spectrum.ms_level {

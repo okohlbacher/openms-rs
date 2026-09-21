@@ -55,7 +55,7 @@ pub use consumer::{
 mod load;
 #[cfg(feature = "mzml-validation")]
 pub use super::mzml_validator::{validate_semantics, validate_semantics_with_options};
-use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D, Precursor,
     SpectrumType,
@@ -2391,9 +2391,8 @@ fn read_engine(
                         // one opens.
                         let declared: usize = number(required(&attrs, "count")?, "record count")?;
                         // `MzMLHandler.cpp:966`, `:997`.
-                        progress.lists.start(
-                            0,
-                            progress_value(declared)?,
+                        progress.lists.start_count(
+                            declared,
                             if tag == "spectrumList" {
                                 "loading spectra list"
                             } else {
@@ -3971,14 +3970,11 @@ fn write_document<W: Write>(
     tpp: bool,
     progress: &mut ProgressReporter<'_>,
 ) -> Result<()> {
-    progress.start(
-        0,
-        progress_value(
-            experiment
-                .spectra
-                .len()
-                .saturating_add(experiment.chromatograms.len()),
-        )?,
+    progress.start_count(
+        experiment
+            .spectra
+            .len()
+            .saturating_add(experiment.chromatograms.len()),
         "storing mzML file",
     )?;
     w.header(&header.prefix)?;

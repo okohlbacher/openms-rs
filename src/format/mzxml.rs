@@ -30,7 +30,7 @@
 
 use super::PeakFileOptions;
 use super::path_io;
-use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::interfaces::MSDataConsumer;
 use crate::kernel::{MSExperiment, MSSpectrum, NumericRange, Peak1D, Precursor};
 use crate::metadata::{
@@ -2470,11 +2470,7 @@ fn write_engine(
 ) -> Result<()> {
     preflight(experiment, options)?;
     // `MzXMLHandler.cpp:636`.
-    progress.start(
-        0,
-        progress_value(experiment.spectra.len())?,
-        "storing mzXML file",
-    )?;
+    progress.start_count(experiment.spectra.len(), "storing mzXML file")?;
     let mut out = Counting {
         inner: output,
         written: 0,

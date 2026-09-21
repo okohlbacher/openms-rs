@@ -18,7 +18,7 @@ use super::ms2::{
     invalid, parse_intensity, parse_number, push_peak, push_spectrum, trim, unsupported,
 };
 use super::parse_error;
-use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::{MSExperiment, MSSpectrum, Peak1D, Result};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
@@ -347,11 +347,7 @@ fn store_reporting(
     progress: &mut ProgressReporter<'_>,
 ) -> Result<()> {
     preflight(experiment, options)?;
-    progress.start(
-        0,
-        progress_value(experiment.spectra.len())?,
-        "storing DTA2D file",
-    )?;
+    progress.start_count(experiment.spectra.len(), "storing DTA2D file")?;
     let mut writer = BufWriter::new(File::create(path)?);
     render(&mut writer, experiment, progress)?;
     writer.flush()?;
@@ -483,11 +479,7 @@ fn store_tic_reporting(
 ) -> Result<()> {
     let points = tic_points(experiment, options)?;
     render_tic(&mut Counter(options.max_output_bytes), &points)?;
-    progress.start(
-        0,
-        progress_value(experiment.spectra.len())?,
-        "storing DTA2D file",
-    )?;
+    progress.start_count(experiment.spectra.len(), "storing DTA2D file")?;
     let mut writer = BufWriter::new(File::create(path)?);
     render_tic(&mut writer, &points)?;
     writer.flush()?;
