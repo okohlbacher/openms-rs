@@ -49,7 +49,6 @@
    "chemistry",
    "concept",
    "data_structures",
-   "format",
    "kernel",
    "metadata",
    "param"
@@ -89,10 +88,6 @@
   ],
   [
    "chemistry",
-   "identification"
-  ],
-  [
-   "format",
    "identification"
   ],
   [

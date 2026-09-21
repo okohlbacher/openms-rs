@@ -13,6 +13,23 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Seek, SeekFrom, Write};
 use std::path::Path;
 
+/// Supply FASTA records to `IdentificationDataConverter::import_sequences`.
+///
+/// The trait is declared in `identification` and implemented here, rather than
+/// `identification` naming this type, so that the dependency runs only from
+/// `format` to `identification` and closes no module cycle.
+impl crate::identification::graph::SequenceRecord for FASTAEntry {
+    fn identifier(&self) -> &str {
+        &self.identifier
+    }
+    fn description(&self) -> &str {
+        &self.description
+    }
+    fn sequence(&self) -> &str {
+        &self.sequence
+    }
+}
+
 /// Identifier, description and sequence in one FASTA record.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct FASTAEntry {
