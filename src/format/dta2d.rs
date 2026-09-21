@@ -4,8 +4,11 @@
 //! Three-column DTA2D spectra and explicit MS1 TIC projection.
 //!
 //! Port of `FORMAT/DTA2DFile.h`; see `docs/TEXT_PEAK_LIST_SUPPORT.md`. The
-//! source class derives from `ProgressLogger`: [`load_with_progress`],
-//! [`store_with_progress`] and [`store_tic_with_progress`] make the progress
+//! source class derives from `ProgressLogger`:
+//! [`load_with_progress`](crate::format::dta2d::load_with_progress),
+//! [`store_with_progress`](crate::format::dta2d::store_with_progress) and
+//! [`store_tic_with_progress`](crate::format::dta2d::store_tic_with_progress)
+//! make the progress
 //! calls of its `load`, `store` and `storeTIC` on a caller's logger; every
 //! other entry point runs the same code and reports nothing.
 

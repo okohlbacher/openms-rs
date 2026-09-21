@@ -6,7 +6,8 @@
 //! Read filters are half-open and never affect writing. See FEATUREXML_SUPPORT.md.
 //!
 //! The source `FeatureXMLFile` and its handler derive from `ProgressLogger`;
-//! [`load_with_progress`] and [`store_with_progress`] make the handler's
+//! [`load_with_progress`](crate::format::featurexml::load_with_progress) and
+//! [`store_with_progress`](crate::format::featurexml::store_with_progress) make the handler's
 //! progress calls, and every other entry point runs the same code and reports
 //! nothing.
 

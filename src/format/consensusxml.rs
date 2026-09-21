@@ -6,7 +6,8 @@
 //! See `docs/CONSENSUSXML_SUPPORT.md` for source conventions and native corrections.
 //!
 //! The source `ConsensusXMLFile` and its handler derive from `ProgressLogger`;
-//! [`load_with_progress`] and [`store_with_progress`] make the handler's
+//! [`load_with_progress`](crate::format::consensusxml::load_with_progress) and
+//! [`store_with_progress`](crate::format::consensusxml::store_with_progress) make the handler's
 //! progress calls, and every other entry point runs the same code and reports
 //! nothing.
 
