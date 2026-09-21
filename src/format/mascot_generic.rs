@@ -898,9 +898,11 @@ pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Resul
 ///
 /// # Errors
 ///
-/// As [`load`], plus [`InvalidValue`](crate::Error::InvalidValue) for a file
-/// larger than `i64::MAX` bytes, and the errors of the progress calls
+/// As [`load`], plus the errors of the progress calls
 /// ([`ProgressLogger::start_progress`] and its siblings).
+///
+/// A file whose size cannot be read once it is open starts a section ending
+/// at -1, as the source's failing `is.tellg()` does; it is not an error.
 pub fn load_with_progress(
     path: impl AsRef<Path>,
     options: &ReadOptions,
@@ -917,8 +919,11 @@ fn load_reporting(
 ) -> Result<MSExperiment> {
     let file = File::open(path)?;
     if progress.is_reporting() {
-        let size = i64::try_from(file.metadata()?.len())
-            .map_err(|_| invalid("MGF file size exceeds the progress range"))?;
+        let size = file
+            .metadata()
+            .ok()
+            .and_then(|metadata| i64::try_from(metadata.len()).ok())
+            .unwrap_or(-1);
         progress.start(0, size, "loading MGF")?;
     }
     let experiment = read_reporting(BufReader::new(file), options, progress)?;

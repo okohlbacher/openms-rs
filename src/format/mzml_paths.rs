@@ -87,8 +87,14 @@ fn load_reporting(
     document.set_loaded_file_type(path)?;
     let input = crate::format::path_io::open(path)?;
     let mut progress = match logger {
-        // `File::fileSize(file_)`, the size of the file as stored.
-        Some(logger) => LoadProgress::new(logger, std::fs::metadata(path)?.len()),
+        // `File::fileSize(file_)`, the size of the file as stored. The source
+        // reports -1 for a file it cannot stat, which an opened file only is
+        // when it is removed during the load; the command backend cannot form
+        // a rate from that, so no byte count is reported there instead.
+        Some(logger) => LoadProgress::new(
+            logger,
+            std::fs::metadata(path).map_or(0, |metadata| metadata.len()),
+        ),
         None => LoadProgress::silent(),
     };
     let mut result = super::read_impl_reporting(
