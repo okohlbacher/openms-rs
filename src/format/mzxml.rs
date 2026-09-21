@@ -1248,10 +1248,22 @@ impl<'a> Run<'a> {
         if !seen_root {
             return Err(invalid("document has no mzXML root element"));
         }
-        if self.peaks.is_some() {
-            return Err(invalid("truncated mzXML peaks element"));
-        }
         if !self.stop {
+            // A document that ends with an element still open is not
+            // well-formed. The source's Xerces parser raises its fatal error
+            // `EndedWithTagsOnStack` at the end of input, which `XMLHandler`
+            // throws as `ParseError`, whatever the handler has stored so far
+            // (Release oracle `../oracle/a8-truncated`). quick-xml reports a
+            // plain end of input instead, so the open element is checked here,
+            // with the Xerces message. The scans already read are dropped, as
+            // the source's `load` returns nothing but the exception. A
+            // metadata-only load or a consumer stop ends on purpose before the
+            // closing tags and is not truncated.
+            if let Some(tag) = self.tags.last() {
+                return Err(invalid(format!(
+                    "input ended before all started tags were ended; last tag started is '{tag}'"
+                )));
+            }
             self.flush(sink)?;
         } else {
             // MetadataOnly and a consumer stop both end the document early; a
