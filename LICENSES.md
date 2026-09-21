@@ -474,14 +474,19 @@ Its versioned notices and transitive package versions are recorded in
 [the dependency reference](docs/MZML_WRITER_DEPENDENCY.md). SHA-1 implements
 the mzML checksum convention; the OpenMS license does not relicense this dependency.
 
-## Optional mzML XSD backend and schemas
+## Optional XSD backend and schemas
 
 The optional registry dependency `libxml 0.3.14` is MIT-licensed; its unchanged
 [license notice](docs/mzml_schema/libxml-MIT.txt) is retained. Installed libxml2 is
-a separate C library with its own distribution notices. The two unchanged mzML
-schemas retain their original creator comments and source attribution; see
-[the schema resource notices](resources/schemas/NOTICE.md) and
-[dependency provenance](tests/data/mzml_schema_provenance.json).
+a separate C library with its own distribution notices. It is selected by the
+`mzml-schema` and `xml-schema` features. The unchanged schemas under
+`resources/schemas` retain their original creator comments and source
+attribution. The four mzIdentML schemas and `FuGElightv1.0.0.xsd` are PSI
+standards content distributed under the Creative Commons Attribution 2.0
+license, as each file states; the OpenMS license does not relicense them. See
+[the schema resource notices](resources/schemas/NOTICE.md),
+[the mzML dependency provenance](tests/data/mzml_schema_provenance.json) and
+[the schema provenance](tests/data/xml_schema_provenance.json).
 
 ## Optional SQLite backend
 

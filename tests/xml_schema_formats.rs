@@ -5,7 +5,7 @@
 //! the `isValid` sections of the class tests that validate what the writer
 //! stored. Each test needs its format's feature as well as `xml-schema`.
 //!
-//! A source section such as `FeatureXMLFile_test.cpp:393-403` stores with the
+//! A source section such as `FeatureXMLFile_test.cpp:394-403` stores with the
 //! C++ writer and asserts that the file validates; here the same content is
 //! stored with this port's writer, and the same assertion is made of it. That
 //! is the contract the class test states for a writer, not a comparison with
@@ -72,7 +72,7 @@ fn featurexml_fixtures_and_stored_maps_are_valid() {
 }
 
 // ===========================================================================
-// ConsensusXMLFile_test.cpp:274-289 and 339-412
+// ConsensusXMLFile_test.cpp:274-289 and 331-422
 // ===========================================================================
 
 #[cfg(feature = "consensusxml")]
@@ -158,7 +158,7 @@ fn consensusxml_with_protein_group_quantities_is_valid() {
 }
 
 // ===========================================================================
-// IdXMLFile_test.cpp:268-290
+// IdXMLFile_test.cpp:268-291
 // ===========================================================================
 
 #[cfg(feature = "idxml")]
@@ -195,7 +195,7 @@ fn idxml_stored_documents_are_valid() {
 }
 
 // ===========================================================================
-// ParamXMLFile_test.cpp:57-110, 124-170 and 237-242
+// ParamXMLFile_test.cpp:53-61 and 63-243
 // ===========================================================================
 
 #[cfg(feature = "paramxml")]

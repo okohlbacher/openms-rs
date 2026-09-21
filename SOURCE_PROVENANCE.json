@@ -588,6 +588,7 @@
   "tests/data/mzml_writing_provenance.json",
   "tests/data/mzml_normalization_provenance.json",
   "tests/data/mzml_schema_provenance.json",
+  "tests/data/xml_schema_provenance.json",
   "tests/data/mzml_typed_transport_provenance.json",
   "tests/data/experimental_design_provenance.json",
   "tests/data/ranges_provenance.json",
