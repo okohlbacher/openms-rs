@@ -268,6 +268,7 @@
    "test:proforma_resolution",
    "test:proforma_spectra",
    "test:proforma_writer_probe",
+   "test:progress_consumers",
    "test:progress_logger",
    "test:protein_cross_link",
    "test:protein_inference",
@@ -344,7 +345,11 @@
    "test:unique_id",
    "test:update_check",
    "test:window_mower",
-   "test:workflows"
+   "test:workflows",
+   "test:xml_schema",
+   "test:xml_schema_formats",
+   "test:xml_schema_includes",
+   "test:xml_schema_offline"
   ]
  },
  {
@@ -667,6 +672,7 @@
    "test:proforma_resolution",
    "test:proforma_spectra",
    "test:proforma_writer_probe",
+   "test:progress_consumers",
    "test:progress_logger",
    "test:protein_cross_link",
    "test:protein_inference",
@@ -743,7 +749,11 @@
    "test:unique_id",
    "test:update_check",
    "test:window_mower",
-   "test:workflows"
+   "test:workflows",
+   "test:xml_schema",
+   "test:xml_schema_formats",
+   "test:xml_schema_includes",
+   "test:xml_schema_offline"
   ]
  },
  {
@@ -1015,6 +1025,7 @@
    "test:proforma_resolution",
    "test:proforma_spectra",
    "test:proforma_writer_probe",
+   "test:progress_consumers",
    "test:progress_logger",
    "test:protein_cross_link",
    "test:protein_inference",
@@ -1091,7 +1102,11 @@
    "test:unique_id",
    "test:update_check",
    "test:window_mower",
-   "test:workflows"
+   "test:workflows",
+   "test:xml_schema",
+   "test:xml_schema_formats",
+   "test:xml_schema_includes",
+   "test:xml_schema_offline"
   ]
  },
  {
@@ -1414,6 +1429,7 @@
    "test:proforma_resolution",
    "test:proforma_spectra",
    "test:proforma_writer_probe",
+   "test:progress_consumers",
    "test:progress_logger",
    "test:protein_cross_link",
    "test:protein_inference",
@@ -1490,7 +1506,11 @@
    "test:unique_id",
    "test:update_check",
    "test:window_mower",
-   "test:workflows"
+   "test:workflows",
+   "test:xml_schema",
+   "test:xml_schema_formats",
+   "test:xml_schema_includes",
+   "test:xml_schema_offline"
   ]
  },
  {
@@ -1762,6 +1782,7 @@
    "test:proforma_resolution",
    "test:proforma_spectra",
    "test:proforma_writer_probe",
+   "test:progress_consumers",
    "test:progress_logger",
    "test:protein_cross_link",
    "test:protein_inference",
@@ -1838,7 +1859,11 @@
    "test:unique_id",
    "test:update_check",
    "test:window_mower",
-   "test:workflows"
+   "test:workflows",
+   "test:xml_schema",
+   "test:xml_schema_formats",
+   "test:xml_schema_includes",
+   "test:xml_schema_offline"
   ]
  },
  {
@@ -1855,6 +1880,18 @@
    "test:file_handler",
    "test:msstats",
    "test:transformation_xml"
+  ]
+ },
+ {
+  "job": "minimum-rust",
+  "when": "",
+  "runner": "ubuntu-latest",
+  "toolchain": "1.85.0",
+  "env": "",
+  "command": "test --locked",
+  "features": "consensusxml featurexml idxml mzml-schema paramxml xml-schema",
+  "targets": [
+   "test:xml_schema_formats"
   ]
  },
  {
@@ -2193,6 +2230,21 @@
   "toolchain": "1.85.0",
   "env": "",
   "command": "test --locked",
+  "features": "xml-schema",
+  "targets": [
+   "test:xml_schema",
+   "test:xml_schema_formats",
+   "test:xml_schema_includes",
+   "test:xml_schema_offline"
+  ]
+ },
+ {
+  "job": "minimum-rust",
+  "when": "",
+  "runner": "ubuntu-latest",
+  "toolchain": "1.85.0",
+  "env": "",
+  "command": "test --locked",
   "features": "{}",
   "targets": [
    "bins",
@@ -2454,6 +2506,7 @@
    "test:proforma_resolution",
    "test:proforma_spectra",
    "test:proforma_writer_probe",
+   "test:progress_consumers",
    "test:progress_logger",
    "test:protein_cross_link",
    "test:protein_inference",
@@ -2530,7 +2583,11 @@
    "test:unique_id",
    "test:update_check",
    "test:window_mower",
-   "test:workflows"
+   "test:workflows",
+   "test:xml_schema",
+   "test:xml_schema_formats",
+   "test:xml_schema_includes",
+   "test:xml_schema_offline"
   ]
  },
  {
@@ -2801,6 +2858,7 @@
    "test:proforma_resolution",
    "test:proforma_spectra",
    "test:proforma_writer_probe",
+   "test:progress_consumers",
    "test:progress_logger",
    "test:protein_cross_link",
    "test:protein_inference",
@@ -2877,7 +2935,11 @@
    "test:unique_id",
    "test:update_check",
    "test:window_mower",
-   "test:workflows"
+   "test:workflows",
+   "test:xml_schema",
+   "test:xml_schema_formats",
+   "test:xml_schema_includes",
+   "test:xml_schema_offline"
   ]
  },
  {
@@ -3172,6 +3234,7 @@
    "test:proforma_resolution",
    "test:proforma_spectra",
    "test:proforma_writer_probe",
+   "test:progress_consumers",
    "test:progress_logger",
    "test:protein_cross_link",
    "test:protein_inference",
@@ -3248,7 +3311,11 @@
    "test:unique_id",
    "test:update_check",
    "test:window_mower",
-   "test:workflows"
+   "test:workflows",
+   "test:xml_schema",
+   "test:xml_schema_formats",
+   "test:xml_schema_includes",
+   "test:xml_schema_offline"
   ]
  },
  {
@@ -3546,6 +3613,7 @@
    "test:proforma_resolution",
    "test:proforma_spectra",
    "test:proforma_writer_probe",
+   "test:progress_consumers",
    "test:progress_logger",
    "test:protein_cross_link",
    "test:protein_inference",
@@ -3622,7 +3690,11 @@
    "test:unique_id",
    "test:update_check",
    "test:window_mower",
-   "test:workflows"
+   "test:workflows",
+   "test:xml_schema",
+   "test:xml_schema_formats",
+   "test:xml_schema_includes",
+   "test:xml_schema_offline"
   ]
  },
  {
@@ -3636,6 +3708,18 @@
   "targets": [
    "test:consensusxml",
    "test:file_handler"
+  ]
+ },
+ {
+  "job": "test",
+  "when": "",
+  "runner": "ubuntu-latest",
+  "toolchain": "stable",
+  "env": "",
+  "command": "test --locked",
+  "features": "consensusxml featurexml idxml mzml-schema paramxml xml-schema",
+  "targets": [
+   "test:xml_schema_formats"
   ]
  },
  {
@@ -3958,6 +4042,7 @@
    "test:proforma_resolution",
    "test:proforma_spectra",
    "test:proforma_writer_probe",
+   "test:progress_consumers",
    "test:progress_logger",
    "test:protein_cross_link",
    "test:protein_inference",
@@ -4034,7 +4119,11 @@
    "test:unique_id",
    "test:update_check",
    "test:window_mower",
-   "test:workflows"
+   "test:workflows",
+   "test:xml_schema",
+   "test:xml_schema_formats",
+   "test:xml_schema_includes",
+   "test:xml_schema_offline"
   ]
  },
  {
@@ -4187,6 +4276,20 @@
   "targets": [
    "test:mzml_precursor_activation",
    "test:mzml_sqlite_handler"
+  ]
+ },
+ {
+  "job": "test",
+  "when": "",
+  "runner": "ubuntu-latest",
+  "toolchain": "stable",
+  "env": "",
+  "command": "test --locked",
+  "features": "xml-schema",
+  "targets": [
+   "test:xml_schema",
+   "test:xml_schema_includes",
+   "test:xml_schema_offline"
   ]
  },
  {
@@ -4457,6 +4560,7 @@
    "test:proforma_resolution",
    "test:proforma_spectra",
    "test:proforma_writer_probe",
+   "test:progress_consumers",
    "test:progress_logger",
    "test:protein_cross_link",
    "test:protein_inference",
@@ -4533,7 +4637,11 @@
    "test:unique_id",
    "test:update_check",
    "test:window_mower",
-   "test:workflows"
+   "test:workflows",
+   "test:xml_schema",
+   "test:xml_schema_formats",
+   "test:xml_schema_includes",
+   "test:xml_schema_offline"
   ]
  }
 ]

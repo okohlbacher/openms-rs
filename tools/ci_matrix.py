@@ -97,6 +97,10 @@ JOBS = (
             Slice("slices", "mzml-schema", "mzml_schema mzml_schema_offline"),
             Slice("slices", "consensusxml", "consensusxml file_handler"),
             Slice("slices", "consensusxml idxml", "file_info_a7"),
+            Slice("slices", "xml-schema", "xml_schema xml_schema_includes xml_schema_offline"),
+            # xml_schema_formats gates items on the format features as well, so
+            # `--features xml-schema` alone compiles it with zero tests in it.
+            Slice("slices", "xml-schema mzml-schema consensusxml featurexml idxml paramxml", "xml_schema_formats"),
         ],
     ),
     Job(
@@ -122,6 +126,8 @@ JOBS = (
             Slice("slices", "idxml"),
             Slice("slices", "mzml featurexml", "file_handler_type_detection file_info"),
             Slice("slices", "consensusxml idxml", "file_info_a7"),
+            # Item-level format gates the deriver cannot see; see the test job.
+            Slice("slices", "xml-schema mzml-schema consensusxml featurexml idxml paramxml", "xml_schema_formats"),
             Slice("mzml-paramxml", "mzml paramxml", "signal_to_noise"),
             Slice("mzml-paramxml", "mzml paramxml featurexml", "feature_finder_picked_seeds file_info_checks"),
             Slice("mzml-paramxml", "mzml paramxml parallel", "peak_picking_experiment topp_peak_picker_hi_res topp_threads"),

@@ -1,8 +1,8 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 5945,
-  "documented": 4610
+  "items": 5972,
+  "documented": 4659
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {

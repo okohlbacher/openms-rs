@@ -63,6 +63,10 @@ jobs:
         run: cargo test --locked --no-default-features --features consensusxml --test consensusxml --test file_handler
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features "consensusxml idxml" --test file_info_a7
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features xml-schema --test xml_schema --test xml_schema_includes --test xml_schema_offline
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "xml-schema mzml-schema consensusxml featurexml idxml paramxml" --test xml_schema_formats
   minimum-rust:
     runs-on: ubuntu-latest
     strategy:
@@ -116,6 +120,8 @@ jobs:
         run: cargo test --locked --no-default-features --features "mzml featurexml" --test file_handler_type_detection --test file_info
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features "consensusxml idxml" --test file_info_a7
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "xml-schema mzml-schema consensusxml featurexml idxml paramxml" --test xml_schema_formats
       - if: matrix.leg == 'mzml-paramxml'
         run: cargo test --locked --no-default-features --features "mzml paramxml" --test feature_finder_picked_seeds --test peak_picking_experiment --test signal_to_noise --test topp_baseline_filter --test topp_baseline_filter_edges --test topp_cli_lifecycle --test topp_dta_extractor --test topp_map_normalizer --test topp_mzml_splitter --test topp_peak_picker_hi_res --test topp_spectra_filter_window_mower --test topp_threads
       - if: matrix.leg == 'mzml-paramxml'
@@ -124,6 +130,8 @@ jobs:
         run: cargo test --locked --no-default-features --features "mzml paramxml parallel" --test peak_picking_experiment --test topp_peak_picker_hi_res --test topp_threads
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features network --test network --test network_get_request --test update_check
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features xml-schema --test xml_schema --test xml_schema_formats --test xml_schema_includes --test xml_schema_offline
   # <<< end of generated jobs
   quality:
     runs-on: ubuntu-latest
@@ -155,7 +163,9 @@ jobs:
       - run: python3 tools/test_source_citations.py
       # The coverage gate reads this file with PyYAML, as the pre-push sweep
       # does; the image does not promise it to the system Python.
-      - run: sudo apt-get install -y python3-yaml
+      # Refresh the package index first: installing from a runner image's
+      # cached index fails whenever the image predates a mirror change.
+      - run: sudo apt-get update && sudo apt-get install -y python3-yaml
       - run: python3 tools/ci_matrix.py --check
       - run: python3 tools/test_ci_matrix.py
       - run: python3 tools/ci_coverage.py --check
