@@ -65,7 +65,12 @@
   ../oracle/progress-format-readers. SRM inputs: tests/data/file_info/inputs/srm_spectra{,_mixed}.mzML
   (mixed has SRM w/ 0 and 2 precursors -> warnings).
 
+## Oracle
+- ../oracle/file-handler-load written + launched on ibminode06 (bash run.sh poll / fetch; results/ has
+  oplog_1.tsv, log_1.txt, out_1/*.mzML). Driver cases: mzml_plain/rewrite/rewrite_hash/hash_only/gz, dta2d_*, mzdata_*,
+  mzxml_*, srm, srm_mixed, mgf/ms2/dta rewrite_hash, missing_dta2d, mzml_relative, mzml_dot_relative, hash rows.
+
 ## Next step
-1. Write oracle, run on ibminode06 (run.sh start/poll/fetch).
+1. poll/fetch oracle; write tests/data/file_handler_load_release.tsv (+ provenance json) from results/oplog_1.tsv.
 2. Tests: tests/file_handler_load.rs (upstream values + oracle fixture).
 2. Implement in file_handler.rs; tests in tests/file_handler_source_file.rs; oracle on ibminode06.
