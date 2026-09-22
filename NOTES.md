@@ -42,7 +42,17 @@ Plan:
   precedes the \033[0m reset as in C++: thread_local dtors before statics).
 - Tests: self re-exec child process per exit path (return, process::exit, panic, error exit code).
 
+Windows VT crate decision (explored):
+- anstyle-query 1.1.5 enable_virtual_terminal_processing: stdout then stderr with `?` -> skips stderr when
+  stdout is redirected (C++ does each handle independently) -> REJECT.
+- winapi-util 0.1.11 (BurntSushi, Unlicense/MIT, edition 2021, windows-sys >=0.48,<=0.61, cached in
+  ~/.cargo/registry): Console::stdout()/stderr() + set_virtual_terminal_processing(true); also pub
+  console::mode(HandleRef::stderr()) == exact isattyWin. -> USE (cfg(windows) target dep).
+- Local target x86_64-pc-windows-msvc installed: `cargo check --target x86_64-pc-windows-msvc
+  --no-default-features` can compile-check. CI windows job (cross-platform) runs only on tags/dispatch,
+  and GH runners have pipes, not a console -> VT mode not observable in CI.
+
 Next step:
-1. Read Colorizer.cpp @ pin for Windows VT code.
+1. (done) Read Colorizer.cpp @ pin for Windows VT code.
 2. Read src/concept/log_stream.rs (970 lines): find global streams, "finish", buffering.
 3. Find the TOPP lifecycle's explicit global finish in src/cli (read only) and all exit paths.
