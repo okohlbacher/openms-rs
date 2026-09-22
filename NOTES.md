@@ -23,9 +23,17 @@ Gaps (ranked):
   bool (valid_strings exactly true/false) get<bool>; input file: is_executable -> object?path:string, else node["path"]; int get<int64_t> (no bool);
   double get<double> (no bool); string list (input file -> ["path"]); int list vector<int> (bool accepted, 32-bit cast); double list; EMPTY -> OPENMS_LOG_WARN; setValue(key,value).
   nlohmann what(): '[json.exception.type_error.302] type must be X, but is Y', 305 'cannot use operator[] with a string argument with Y'.
+- nlohmann vendored 3.11.2 (core src/openms/extern/nlohmann_json/single_include/nlohmann/json.hpp), JSON_DIAGNOSTICS 0.
+  get<int64_t>/get<double> -> get_arithmetic_value (4610-4640): bool REJECTED 'type must be number, but is boolean';
+  vector<int> elements -> generic arithmetic from_json (~4919): bool ACCEPTED. Empty input msg: 'syntax error while parsing value - unexpected end of input; expected '[', '{', or a literal' (no 'empty input' text in 3.11.2).
+  ParseError what() = message + ' in: ' + expression (Exception.cpp:160-161) -> '<msg> in: '.
+  serde divergences to record: '-0' -> f64 -0.0 (nlohmann int 0); '1e400' refused (nlohmann inf); syntax-error text differs; BOM: strip it (nlohmann skips).
+- Rust Param: src/param.rs (entry, exists, set_value, valid_strings, tags; iter() items with trace), ParamValue in src/param/value.rs (IntegerList Vec<i32>).
+  file_types::type_by_file_name (src/format/file_types.rs:238). Error::Parse Display 'parse error on line N: msg' -> cli must print message itself.
+  Module goes in src/format/param_json.rs under #[cfg(feature="paramxml")] (src/format/mod.rs:35).
+- Upstream test ParamJSONFile_test.cpp: FileNotFound, 'not a json' ParseError, all-types doc (bool1-4, int 5, double 6.1, string, int_list 10,11,12, double_list 13.25,15.125, string_list, file_output, is_executable_v1/v2).
 - Rust: src/cli.rs load_ini (line ~1329) used at ~992 (-ini) and ~1190 (-write_ini); only paramxml::load today.
 
 ## Next step
-1. Check Rust Param API (entry, tags, valid strings, value types, set_value) + FileHandler get_type_by_file_name; Exception ParseError what() format at core pin.
 2. Write src/format/param_json.rs (load) behind paramxml (+dep:serde_json); wire into load_ini.
 3. Oracle: Release runs with JSON INIs on ibminode06 (nlohmann messages, instance quirk, bool-in-int-list).
