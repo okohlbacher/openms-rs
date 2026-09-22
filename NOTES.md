@@ -45,6 +45,18 @@
 - New API: FileHandler::load_experiment_with_progress? -> one "ExperimentLoadOptions {peaks, mzml read, rewrite_source_file, compute_hash}" + &ProgressLogger (cloned).
 - Warnings go to openms_log_warn! (same route as source OPENMS_LOG_WARN).
 
+## Upstream expected values (FileHandler_test.cpp @bc9cc12 :229-320)
+- :234-255 mzData/mzXML through loadExperiment (+ setMZRange(115,1000)) -> exp[1][0..2]=110,120,130 / 120,130; mzXML exp[2]=100,110,120 / 120,130,140
+- :258-261 MzMLFile_1.mzML {MZML}, NONE, rewrite, hash -> size 4, checksum 36007593dbca0ba59a1f4fc32fb970f0e8991fa6, SHA1
+- :264-279 DTA2DFile_test_1.dta2d -> 230.02,430.02,630.02; mz 300-1000 + rewrite+hash -> 430.02,630.02, d50d5144cc3805749b9e8d16f3bc8994979d8142;
+  rewrite w/o hash -> checksum "" + UNKNOWN; {SIZE_OF_TYPE} -> ParseError
+- :293-319 computeFileHash on non-ASCII path nonempty.
+- Repo fixtures byte-identical (shasum checked): tests/data/mzml_load_source_original.mzML (=MzMLFile_1.mzML),
+  tests/data/text_peak_lists/DTA2DFile_test_1.dta2d, tests/data/MzDataFile_1.mzData, tests/data/MzXMLFile_1.mzXML
+- MS2File.cpp makes no progress calls -> MS2 without progress is exact.
+- mzxml/mzdata load_reporting use path_io::open (compressed ok). mzdata::load_with_progress(path,&PeakFileOptions,&ReadLimits,&mut logger)->Loaded{experiment,..}
+- Precondition rewrite||!hash is OPENMS_PRECONDITION (debug only); Release: hash w/o rewrite = no-op.
+
 ## Next step
-1. Check C++ MS2File::load progress calls; mzxml/mzdata open compressed?
+1. (done) C++ MS2File::load progress calls; mzxml/mzdata open compressed.
 2. Implement in file_handler.rs; tests in tests/file_handler_source_file.rs; oracle on ibminode06.
