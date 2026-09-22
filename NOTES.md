@@ -34,6 +34,10 @@ Gaps (ranked):
 - Upstream test ParamJSONFile_test.cpp: FileNotFound, 'not a json' ParseError, all-types doc (bool1-4, int 5, double 6.1, string, int_list 10,11,12, double_list 13.25,15.125, string_list, file_output, is_executable_v1/v2).
 - Rust: src/cli.rs load_ini (line ~1329) used at ~992 (-ini) and ~1190 (-write_ini); only paramxml::load today.
 
+- DONE (c3cc1b9, builds): src/format/param_json.rs, cli.rs load_any_ini/load_json_ini + 'Assuming INI is a cwl file' debug; Cargo paramxml += dep:serde_json.
+- Oracle: remote dir /ceph/ibmi/abi/oliver/oracle-runs/json-ini (ibminode06); local ../oracle/json-ini; retain in tests/data/topp_json_ini/<case>/{argv,exit_code,stdout,stderr,out.ini}.
+  Replay pattern: tests/support/release_runs.rs (run_with_registry in-process; map oracle paths).
+
 ## Next step
 2. Write src/format/param_json.rs (load) behind paramxml (+dep:serde_json); wire into load_ini.
 3. Oracle: Release runs with JSON INIs on ibminode06 (nlohmann messages, instance quirk, bool-in-int-list).
