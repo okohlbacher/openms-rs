@@ -81,8 +81,12 @@
   (release_loads_agree..., relative names, hash rows, divergences, every_release_case_is_exercised). gz input committed
   at tests/data/file_handler_load/MzMLFile_1.mzML.gz.
 
+- tests/file_handler_load.rs GREEN (11 pass). LOCAL DISK FULL (7.3T volume, ~1.7G free): full local
+  `cargo test` failed with ENOSPC; do NOT build all tests locally. Use dax sweep; run single test binaries only,
+  deleting target/debug/deps executables afterwards. Bash may need dangerouslyDisableSandbox when /tmp is full.
+
 ## Next step
-1. Get tests/file_handler_load.rs green (log: scratchpad/logs/t2.log).
+1. (done) Get tests/file_handler_load.rs green.
 2. Run tests/file_handler.rs, file_handler_type_detection, file_info*, topp_* affected by SRM conversion.
 3. Store side (P2): storeExperiment log type (mzML/DTA2D/mzXML/mzData + chrom->spectra for mzXML/mzData). Optional.
 4. Docs: docs/FILE_HANDLING_SUPPORT.md section; ledger fragment .planning/ledger-fragments/<lane>.json; gates.
