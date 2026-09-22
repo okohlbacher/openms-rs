@@ -15,9 +15,7 @@
 use super::file_types::{consistent_output_type, type_by_file_name};
 use super::{FileType, PeakFileOptions, dta, mgf};
 use crate::concept::progress_logger::ProgressLogger;
-use crate::kernel::{
-    ChromatogramConversionLimits, ChromatogramTools, MSChromatogram, MSSpectrum,
-};
+use crate::kernel::{ChromatogramConversionLimits, ChromatogramTools, MSChromatogram, MSSpectrum};
 use crate::metadata::{ChecksumType, ScanMode, SourceFile};
 use crate::{Error, MSExperiment, Result};
 use std::io::{BufRead, BufReader, Read, Write};
@@ -1054,9 +1052,9 @@ fn rewrite_source_file(
     let normalized = file.trim_end_matches(['/', '\\']);
     source.name = crate::system::file::basename(normalized).to_owned();
     let absolute = crate::system::file::absolute_path(normalized)?;
-    let absolute = absolute
-        .to_str()
-        .ok_or_else(|| Error::InvalidValue("absolute path of the loaded file is not UTF-8".into()))?;
+    let absolute = absolute.to_str().ok_or_else(|| {
+        Error::InvalidValue("absolute path of the loaded file is not UTF-8".into())
+    })?;
     // `std::filesystem::path::generic_string` writes `/` on every platform.
     let absolute = if cfg!(windows) {
         absolute.replace('\\', "/")

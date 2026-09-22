@@ -71,7 +71,10 @@ fn assert_similar(actual: &[f64], expected: &[f64]) {
     assert_eq!(actual.len(), expected.len(), "{actual:?} vs {expected:?}");
     for (a, e) in actual.iter().zip(expected) {
         // TEST_REAL_SIMILAR's default relative tolerance, 1e-5.
-        assert!((a - e).abs() <= 1e-5 * e.abs().max(1.0), "{actual:?} vs {expected:?}");
+        assert!(
+            (a - e).abs() <= 1e-5 * e.abs().max(1.0),
+            "{actual:?} vs {expected:?}"
+        );
     }
 }
 
@@ -88,19 +91,19 @@ fn upstream_mzml_load_rewrites_the_source_file_with_its_sha1() {
     assert_eq!(experiment.spectra.len(), 4);
     let sources = &experiment.settings.source_files;
     assert_eq!(sources.len(), 1);
-    assert_eq!(sources[0].checksum, "36007593dbca0ba59a1f4fc32fb970f0e8991fa6");
+    assert_eq!(
+        sources[0].checksum,
+        "36007593dbca0ba59a1f4fc32fb970f0e8991fa6"
+    );
     assert_eq!(sources[0].checksum_type, ChecksumType::Sha1);
 }
 
 #[test]
 fn upstream_dta2d_load_applies_the_mz_range_and_rewrites_with_or_without_hash() {
     // FileHandler_test.cpp:263-279.
-    let plain = FileHandler::load_experiment_with_options(
-        dta2d_test_1(),
-        &[],
-        &PeakFileOptions::default(),
-    )
-    .unwrap();
+    let plain =
+        FileHandler::load_experiment_with_options(dta2d_test_1(), &[], &PeakFileOptions::default())
+            .unwrap();
     assert_similar(&first_mz(&plain, 0, 3), &[230.02, 430.02, 630.02]);
 
     let options = ExperimentLoadOptions {
@@ -203,7 +206,10 @@ fn compute_file_hash_follows_rfc_3174_and_the_upstream_non_ascii_case() {
     // FileHandler_test.cpp:293-319: a non-ASCII path hashes.
     assert!(!FileHandler::compute_file_hash(write("test.txt", b"hello")).is_empty());
     // FileHandler.cpp:771-774: a file that cannot be opened hashes to "".
-    assert_eq!(FileHandler::compute_file_hash(directory.join("missing.txt")), "");
+    assert_eq!(
+        FileHandler::compute_file_hash(directory.join("missing.txt")),
+        ""
+    );
     std::fs::remove_dir_all(&directory).unwrap();
 }
 
@@ -326,9 +332,11 @@ fn dump(experiment: &MSExperiment) -> Vec<(&'static str, Vec<Field>)> {
             text(c.peaks.len()),
         ];
         // Each point is `%.17g:%.17g`.
-        row.extend(c.peaks.iter().map(|p| {
-            Field::Text(format!("{}:{}", p.rt, f64::from(p.intensity)))
-        }));
+        row.extend(
+            c.peaks
+                .iter()
+                .map(|p| Field::Text(format!("{}:{}", p.rt, f64::from(p.intensity)))),
+        );
         rows.push(("chrom", row));
     }
     rows
@@ -386,13 +394,25 @@ impl Inputs {
         for (name, source) in [
             ("MzMLFile_1.mzML", "mzml_load_source_original.mzML"),
             ("MzMLFile_1.mzML.gz", "file_handler_load/MzMLFile_1.mzML.gz"),
-            ("DTA2DFile_test_1.dta2d", "text_peak_lists/DTA2DFile_test_1.dta2d"),
+            (
+                "DTA2DFile_test_1.dta2d",
+                "text_peak_lists/DTA2DFile_test_1.dta2d",
+            ),
             ("MzXMLFile_1.mzXML", "MzXMLFile_1.mzXML"),
             ("MzDataFile_1.mzData", "MzDataFile_1.mzData"),
             ("srm_spectra.mzML", "file_info/inputs/srm_spectra.mzML"),
-            ("srm_spectra_mixed.mzML", "file_info/inputs/srm_spectra_mixed.mzML"),
-            ("mgf_two_blocks.mgf", "progress_format_readers/mgf_two_blocks.mgf"),
-            ("MS2File_test_spectra.ms2", "text_peak_lists/MS2File_test_spectra.ms2"),
+            (
+                "srm_spectra_mixed.mzML",
+                "file_info/inputs/srm_spectra_mixed.mzML",
+            ),
+            (
+                "mgf_two_blocks.mgf",
+                "progress_format_readers/mgf_two_blocks.mgf",
+            ),
+            (
+                "MS2File_test_spectra.ms2",
+                "text_peak_lists/MS2File_test_spectra.ms2",
+            ),
             ("dta_extractor_1_output.dta", "dta_extractor_1_output.dta"),
         ] {
             std::fs::copy(data(source), inputs.join(name)).unwrap();
@@ -548,14 +568,44 @@ const fn case(
 /// Every case the port reproduces completely: the loaded experiment, the
 /// progress calls and the warnings.
 const CASES: &[Case] = &[
-    case("mzml_plain", "MzMLFile_1.mzML", &[FileType::MzMl], false, false),
-    case("mzml_rewrite", "MzMLFile_1.mzML", &[FileType::MzMl], true, false),
-    case("mzml_rewrite_hash", "MzMLFile_1.mzML", &[FileType::MzMl], true, true),
-    case("mzml_gz_rewrite_hash", "MzMLFile_1.mzML.gz", &[], true, true),
+    case(
+        "mzml_plain",
+        "MzMLFile_1.mzML",
+        &[FileType::MzMl],
+        false,
+        false,
+    ),
+    case(
+        "mzml_rewrite",
+        "MzMLFile_1.mzML",
+        &[FileType::MzMl],
+        true,
+        false,
+    ),
+    case(
+        "mzml_rewrite_hash",
+        "MzMLFile_1.mzML",
+        &[FileType::MzMl],
+        true,
+        true,
+    ),
+    case(
+        "mzml_gz_rewrite_hash",
+        "MzMLFile_1.mzML.gz",
+        &[],
+        true,
+        true,
+    ),
     case("dta2d_plain", "DTA2DFile_test_1.dta2d", &[], false, false),
     Case {
         mz: Some((300.0, 1000.0)),
-        ..case("dta2d_mz_rewrite_hash", "DTA2DFile_test_1.dta2d", &[FileType::Dta2d], true, true)
+        ..case(
+            "dta2d_mz_rewrite_hash",
+            "DTA2DFile_test_1.dta2d",
+            &[FileType::Dta2d],
+            true,
+            true,
+        )
     },
     case("dta2d_rewrite", "DTA2DFile_test_1.dta2d", &[], true, false),
     case("mzdata_plain", "MzDataFile_1.mzData", &[], false, false),
@@ -569,11 +619,29 @@ const CASES: &[Case] = &[
     },
     case("mzxml_plain", "MzXMLFile_1.mzXML", &[], false, false),
     case("mzxml_rewrite_hash", "MzXMLFile_1.mzXML", &[], true, true),
-    case("mzdata_rewrite_hash", "MzDataFile_1.mzData", &[], true, true),
+    case(
+        "mzdata_rewrite_hash",
+        "MzDataFile_1.mzData",
+        &[],
+        true,
+        true,
+    ),
     case("srm", "srm_spectra.mzML", &[], false, false),
     case("srm_mixed", "srm_spectra_mixed.mzML", &[], true, true),
-    case("ms2_rewrite_hash", "MS2File_test_spectra.ms2", &[], true, true),
-    case("dta_rewrite_hash", "dta_extractor_1_output.dta", &[], true, true),
+    case(
+        "ms2_rewrite_hash",
+        "MS2File_test_spectra.ms2",
+        &[],
+        true,
+        true,
+    ),
+    case(
+        "dta_rewrite_hash",
+        "dta_extractor_1_output.dta",
+        &[],
+        true,
+        true,
+    ),
 ];
 
 fn load(inputs: &Inputs, case: &Case, events: &Events) -> openms::Result<MSExperiment> {
@@ -691,7 +759,12 @@ fn release_divergences_are_the_documented_ones() {
     .unwrap();
     assert_eq!(
         release_kind("mgf_rewrite_hash", "P"),
-        ["S\t0\t131\tloading MGF\t0", "V\t76\t1", "V\t-1\t1", "E\t0\t0"]
+        [
+            "S\t0\t131\tloading MGF\t0",
+            "V\t76\t1",
+            "V\t-1\t1",
+            "E\t0\t0"
+        ]
     );
     assert!(events.lock().unwrap().is_empty());
     assert_experiment("mgf_rewrite_hash", &inputs.dir(), &mgf, &["size", "sf"]);
@@ -718,10 +791,19 @@ fn release_divergences_are_the_documented_ones() {
     let events = Events::default();
     let refused = load(
         &inputs,
-        &case("dta2d_bogus_allowed", "DTA2DFile_test_1.dta2d", &[FileType::Unknown], true, false),
+        &case(
+            "dta2d_bogus_allowed",
+            "DTA2DFile_test_1.dta2d",
+            &[FileType::Unknown],
+            true,
+            false,
+        ),
         &events,
     );
-    assert!(matches!(refused, Err(Error::InvalidValue(_))), "{refused:?}");
+    assert!(
+        matches!(refused, Err(Error::InvalidValue(_))),
+        "{refused:?}"
+    );
     assert!(release_kind("dta2d_bogus_allowed", "X")[0].starts_with("Parse Error\t"));
     assert!(release_kind("dta2d_bogus_allowed", "P").is_empty());
     assert!(events.lock().unwrap().is_empty());
