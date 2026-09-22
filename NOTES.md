@@ -70,3 +70,4 @@ Gaps (ranked):
 - Slices measured: paramxml/param_json 10; mzml paramxml/topp_json_ini 6 (+lifecycle 76); mzml paramxml featurexml/topp_json_ini 8 (completion 49, console 4, topp_file_info 43).
 - Sweep toppbase-finish-1 on dax started at 0e504dd (log scratchpad/sweep1.out). Commits after: dedupe refusals + cli module doc (re-run lifecycle locally).
 - file_info_a8 failed in sweep1 (old InvalidValue assertion) -> fixed (commit above); re-run failing lines after sweep ends.
+- file_info_a8 failed in sweep1 (old InvalidValue assertion) -> fixed; re-run failing lines after sweep ends.
