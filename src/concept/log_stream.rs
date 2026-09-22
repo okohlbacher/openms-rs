@@ -17,12 +17,20 @@ use std::io::{self, Write};
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex, OnceLock, RwLock};
 
+/// Source `LogStreamBuf::UNKNOWN_LOG_LEVEL`: the level an unbound stream reports.
 pub const UNKNOWN_LOG_LEVEL: &str = "UNKNOWN_LOG_LEVEL";
+/// Source `BUFFER_LENGTH` (`LogStream.cpp:33`): the put buffer; a full one is synchronised.
 pub const LOG_BUFFER_BYTES: usize = 32_768;
+/// Native ceiling on one logical line, partial text included.
 pub const MAX_LOG_LINE_BYTES: usize = 1_048_576;
+/// Native ceiling on a level name or an unexpanded prefix.
 pub const MAX_LOG_TEXT_BYTES: usize = 65_536;
+/// Native ceiling on the destinations of one stream.
 pub const MAX_LOG_SINKS: usize = 1024;
+/// Native allocation and input budget of one write, flush or finish, and ceiling on the
+/// prefixes a stream stores.
 pub const MAX_LOG_OPERATION_BYTES: usize = 16 * 1024 * 1024;
+/// Native work budget of one write, flush or finish.
 pub const MAX_LOG_OPERATION_WORK: usize = 50_000_000;
 
 fn invalid(message: &'static str) -> io::Error {
@@ -137,9 +145,9 @@ fn is_console(stream: &impl winapi_util::AsHandleRef) -> bool {
 /// Source `InitConsole` (`Colorizer.cpp:26-81`), whose constructor runs when libOpenMS is
 /// loaded: on Windows, `ENABLE_VIRTUAL_TERMINAL_PROCESSING` is added to the console mode of
 /// standard output and, independently, of standard error, so that ANSI colour codes render
-/// on a console. A stream that is not a console, or whose mode cannot be changed, is left as it is
-/// and nothing is reported, as in the source; the mode is not restored at exit, as in the
-/// source. On other platforms this does nothing.
+/// on a console. A stream that is not a console, or whose mode cannot be changed, is left
+/// as it is and nothing is reported, as in the source; the mode is not restored at exit, as
+/// in the source. On other platforms this does nothing.
 ///
 /// Rust has no load-time constructors, so this runs the first time a record is coloured for
 /// standard output or standard error, and when a tool executable starts. It acts once per
@@ -169,11 +177,17 @@ pub type LogNotification = Arc<dyn Fn(&[u8]) -> io::Result<()> + Send + Sync>;
 /// Calendar fields used by the source's local-time prefix tokens.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct LogTime {
+    /// Year, 0 to 9999.
     pub year: u16,
+    /// Month, 1 to 12.
     pub month: u8,
+    /// Day of the month, only days the month has.
     pub day: u8,
+    /// Hour, 0 to 23.
     pub hour: u8,
+    /// Minute, 0 to 59.
     pub minute: u8,
+    /// Second, 0 to 60 (a leap second).
     pub second: u8,
 }
 impl LogTime {
@@ -200,16 +214,27 @@ impl LogTime {
 /// Supplies local calendar fields. No implicit UTC substitution is made for local time.
 pub type LogClock = Arc<dyn Fn() -> io::Result<LogTime> + Send + Sync>;
 
+/// Source `ConsoleColor` (`Colorizer.h`), in source order, with the codes of the source's
+/// `colors_` table: each style's enable code before a record and its disable code after it.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LogColor {
+    /// `\x1b[91m` ... `\x1b[39m`; the fatal and error streams.
     Red,
+    /// `\x1b[92m` ... `\x1b[39m`.
     Green,
+    /// `\x1b[93m` ... `\x1b[39m`; the warning stream.
     Yellow,
+    /// `\x1b[94m` ... `\x1b[39m`.
     Blue,
+    /// `\x1b[95m` ... `\x1b[39m`; the debug stream.
     Magenta,
+    /// `\x1b[96m` ... `\x1b[39m`.
     Cyan,
+    /// `\x1b[4m` ... `\x1b[24m`.
     Underline,
+    /// `\x1b[1m` ... `\x1b[22m`.
     Bright,
+    /// `\x1b[7m` ... `\x1b[27m`.
     Invert,
 }
 impl LogColor {
@@ -287,6 +312,8 @@ impl Default for LogStream {
     }
 }
 impl LogStream {
+    /// Source `LogStream(new LogStreamBuf(level), true)`: a bound stream with no
+    /// destinations. A level over [`MAX_LOG_TEXT_BYTES`] is refused.
     pub fn new(level: impl AsRef<str>) -> io::Result<Self> {
         let level = level.as_ref();
         check_text(level)?;
@@ -295,6 +322,7 @@ impl LogStream {
         logger.level = level.to_owned();
         Ok(logger)
     }
+    /// Source `getLevel`: the level, or [`UNKNOWN_LOG_LEVEL`] for an unbound stream.
     pub fn level(&self) -> &str {
         if self.bound {
             &self.level
@@ -302,6 +330,7 @@ impl LogStream {
             UNKNOWN_LOG_LEVEL
         }
     }
+    /// Source `setLevel`; an unbound stream ignores it.
     pub fn set_level(&mut self, level: impl AsRef<str>) -> io::Result<()> {
         if self.bound {
             check_text(level.as_ref())?;
@@ -309,9 +338,13 @@ impl LogStream {
         }
         Ok(())
     }
+    /// The source's `Colorizer*` argument of `LogStreamBuf`: the style every record gets
+    /// on a destination that accepts colour, or none.
     pub fn set_color(&mut self, color: Option<LogColor>) {
         self.color = color;
     }
+    /// Native: the clock the time prefix tokens read (local time by default); with `None`
+    /// a record whose prefix needs the time fails.
     pub fn set_clock(&mut self, clock: Option<LogClock>) {
         self.clock = clock;
     }
@@ -329,9 +362,12 @@ impl LogStream {
             failed: false,
         }
     }
+    /// Source `hasStream`: whether `sink` is a destination.
     pub fn has_stream(&self, sink: &LogSink) -> bool {
         self.routes.iter().any(|route| route.sink == *sink)
     }
+    /// Source `insert`: add `sink` as the last destination, without a prefix; an unbound
+    /// stream, or a destination already present, is left as it is.
     pub fn insert(&mut self, sink: &LogSink) -> io::Result<()> {
         if !self.bound || self.has_stream(sink) {
             return Ok(());
@@ -346,6 +382,8 @@ impl LogStream {
         });
         Ok(())
     }
+    /// Source `insertNotification` and `LogStreamNotifier::registerAt`: insert `sink` and
+    /// call `callback` with every record it receives, after the output lock is released.
     pub fn insert_notification(
         &mut self,
         sink: &LogSink,
@@ -357,6 +395,8 @@ impl LogStream {
         }
         Ok(())
     }
+    /// Source `remove`: synchronise complete lines, then drop the destination; partial
+    /// text and the cache stay.
     pub fn remove(&mut self, sink: &LogSink) -> io::Result<()> {
         if let Some(index) = self.routes.iter().position(|r| r.sink == *sink) {
             self.flush()?; // Source keeps incomplete text and duplicate cache across removal.
@@ -364,6 +404,8 @@ impl LogStream {
         }
         Ok(())
     }
+    /// Source `removeAllStreams`: deliver complete and partial text, flush every
+    /// destination, then drop them all; the cache stays.
     pub fn remove_all_streams(&mut self) -> io::Result<()> {
         let result = (|| {
             self.flush_incomplete()?;
@@ -375,6 +417,8 @@ impl LogStream {
         })();
         self.finish_operation(result)
     }
+    /// Source `setPrefix(stream, prefix)`: the prefix of one destination, with the tokens
+    /// `%y %T %t %D %d %S %s %%`.
     pub fn set_prefix(&mut self, sink: &LogSink, prefix: impl AsRef<str>) -> io::Result<()> {
         let Some(index) = self.routes.iter().position(|r| r.sink == *sink) else {
             return Ok(());
@@ -405,11 +449,15 @@ impl LogStream {
         }
         Ok(())
     }
+    /// Source `LogStreamBuf::clearCache`: report every repeated cached line as
+    /// `<line> occurred N times`, in lexical order, and empty the cache.
     pub fn clear_cache(&mut self) -> io::Result<()> {
         self.ready()?;
         let result = self.clear_cache_inner(&mut Budget::default());
         self.finish_operation(result)
     }
+    /// Source `flushIncomplete`: deliver complete lines and then the unterminated one,
+    /// which bypasses the cache.
     pub fn flush_incomplete(&mut self) -> io::Result<()> {
         self.ready()?;
         let mut budget = Budget::default();
@@ -752,6 +800,8 @@ pub struct LogSinkGuard<'a> {
     removed: bool,
 }
 impl<'a> LogSinkGuard<'a> {
+    /// Source `LogSinkGuard(log_stream, stream)`: when `sink` is a destination, deliver
+    /// pending text and detach it until the guard ends.
     pub fn new(logger: &'a mut LogStream, sink: &LogSink) -> io::Result<Self> {
         let removed = logger.has_stream(sink);
         if removed {
@@ -764,6 +814,8 @@ impl<'a> LogSinkGuard<'a> {
             removed,
         })
     }
+    /// Source `~LogSinkGuard`, returning its errors: deliver pending text and insert the
+    /// sink again, last and without its old prefix or notification.
     pub fn restore(mut self) -> io::Result<()> {
         self.restore_inner()
     }
@@ -797,16 +849,22 @@ impl Drop for LogSinkGuard<'_> {
 /// Five independently routed levels; their labels are not numeric filtering priorities.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LogLevel {
+    /// `FATAL_ERROR`, red, to standard error (`OPENMS_LOG_FATAL_ERROR`).
     Fatal,
+    /// `ERROR`, red, to standard error (`OPENMS_LOG_ERROR`).
     Error,
+    /// `WARNING`, yellow, to standard error (`OPENMS_LOG_WARN`).
     Warn,
+    /// `INFO`, uncoloured, to standard output (`OPENMS_LOG_INFO`).
     Info,
+    /// `DEBUG`, magenta, no destination until one is inserted (`OPENMS_LOG_DEBUG`).
     Debug,
 }
 impl LogLevel {
     fn index(self) -> usize {
         self as usize
     }
+    /// The level name the source's stream carries, which `%y` prints.
     pub fn label(self) -> &'static str {
         match self {
             Self::Fatal => "FATAL_ERROR",
