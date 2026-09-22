@@ -1006,6 +1006,7 @@ pub struct ProcessLogs {
     finished: bool,
 }
 impl ProcessLogs {
+    /// A guard that finishes the log streams when it is dropped.
     pub fn new() -> Self {
         Self { finished: false }
     }

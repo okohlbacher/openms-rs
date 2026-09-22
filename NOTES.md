@@ -98,4 +98,10 @@ DONE: A (c80f5ef), B test passes 18/18 (--no-default-features --test log_stream)
  with windows-sys 0.52.0), enable_console_colors + is_console (cfg windows), cargo check --target
  x86_64-pc-windows-msvc --no-default-features ok (only pre-existing src/system/file.rs:1493 unused mut warning).
  MSRV 1.85 on windows NOT measured (1.85 toolchain lacks windows target; not downloading).
-Next step: E docs/LOG_STREAM_SUPPORT.md + docs/THIRD_PARTY_CRATE_DECISIONS.md row; then F gates.
+E done: docs/LOG_STREAM_SUPPORT.md Process exit + Windows sections, THIRD_PARTY row; citations fixed
+ (LogStream.cpp:111-128, 667-672, 694-722; Colorizer.cpp:26-81, 87-110, 139-153, 155-170).
+ Python gates pass (core_sdk, citations, cycles; doc coverage improved, floor not yet written).
+Next step (for complete): 1 rustdoc 100% for log_stream.rs (was 47.8%, 22/46) + check_doc_coverage --write;
+ 2 API mapping table (every LogStream.h member) in LOG_STREAM_SUPPORT.md; 3 tests/data/log_stream_provenance.json
+ add oracle hashes (../oracle/logstream-exit/results/hashes.txt); 4 CHANGELOG/VALIDATION if convention;
+ 5 clippy all-features + sweep on dax; 6 fragment .planning/ledger-fragments/<lane>.json.
