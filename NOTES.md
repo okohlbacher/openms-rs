@@ -78,4 +78,10 @@ D. VT: Cargo.toml [target.'cfg(windows)'.dependencies] winapi-util =0.1.11; Carg
    cargo check --target x86_64-pc-windows-msvc --no-default-features.
 E. docs/LOG_STREAM_SUPPORT.md. F. gates, fragment .planning/ledger-fragments/<lane>.json, sweep.
 
+Oracle: ../oracle/logstream-exit/{driver.cpp,remote_run.sh,run.sh} (written; run.sh launched in bg,
+  results -> ../oracle/logstream-exit/results/<case>/{stdout,stderr,combined}.bin + exit, FETCHED marker).
+  Cases: tls_return tls_exit tls_order global_return global_exit both thread. If not fetched, rerun run.sh.
+- FYI (other lane): src/cli/tools/feature_finder_centroided.rs LogStreamLines duplicates the LogStream
+  cache incl. an admitted exit-order divergence -> report as follow-up, do not touch.
+
 Next step: A.
