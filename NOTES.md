@@ -108,4 +108,4 @@ PROBE: main-thread Rust TLS Drop runs at return AND process::exit on macOS and L
 DONE 954ee2c: owns_globals (thread that used with_global_log finishes globals at its end); test 18/18.
 Fragment written: .planning/ledger-fragments/logstream-exit.json (LogStream.h complete, Colorizer.h partial).
 Sweep #1 killed (stale tree). Sweep #2 running: slot lane-logstream-w2b on dax, tree 2951dfb; poll remote /scratch/kohlbach/agents/lane-logstream-w2b/.ci-line.N.log (grep buffers local log). CPP-355 added to OpenMS_CPP_ISSUES.md.
-Next: wait sweep #1 / launch sweep #2 (slot lane-logstream-w2b), VALIDATION.md checkpoint, delete NOTES.md.
+Sweep #2 line 1 (all-features all-targets, stable): 374 bins, 5701 passed, 0 failed; log_stream 18. Validation draft in scratchpad/validation.md (fill SWEEP_RESULT). Next: wait sweep end, VALIDATION.md, delete NOTES.md.
