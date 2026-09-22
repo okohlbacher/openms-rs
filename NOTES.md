@@ -52,7 +52,30 @@ Windows VT crate decision (explored):
   --no-default-features` can compile-check. CI windows job (cross-platform) runs only on tags/dispatch,
   and GH runners have pipes, not a console -> VT mode not observable in CI.
 
-Next step:
-1. (done) Read Colorizer.cpp @ pin for Windows VT code.
-2. Read src/concept/log_stream.rs (970 lines): find global streams, "finish", buffering.
-3. Find the TOPP lifecycle's explicit global finish in src/cli (read only) and all exit paths.
+More source facts:
+- g_log_debug is built with delete_buf=false (LogStream.cpp l.672 "should be 'true', but segfaults") ->
+  its buffer is leaked, never flushed at exit. Port flushes it anyway (deliberate divergence, document).
+- C++ exit order: main-thread thread_locals first (reverse construction = reverse first access), then
+  statics in reverse definition order: debug(leaked), info, warn, error, fatal.
+- clearCache prints "<line> occurred N times" in std::map key order (Rust already sorts; ok).
+- Rust LOCAL is an array -> drops Fatal..Debug in index order, NOT reverse first-access -> fix.
+- Macros (C++) do not flush; Rust log_message flushes per line (pending empty); summaries remain.
+
+Decisions:
+- No automatic main-thread hook (thread-name heuristic rejected). Explicit finish_process_logs() +
+  #[must_use] guard (Drop = best effort, covers unwinding) + lifecycle call in src/cli.rs
+  run_from_environment (not src/cli/**). Library main without guard: TLS finished by TLS dtor where the
+  platform runs it; direct global writes need the guard -> document.
+- VT: pub fn in log_stream.rs, OnceLock-once, called lazily from LogSink colour path for Stdout/Stderr
+  and at start of run_from_environment. isTTY mintty divergence (IsTerminal vs GetConsoleMode) is a
+  Colorizer.h member -> note only.
+
+Work order (commit after each):
+A. log_stream.rs: TLS container w/ order + Drop; finish_process_logs; guard.
+B. tests/log_stream.rs: order + child re-exec per exit path (return, process::exit, panic, error code).
+C. src/cli.rs run_from_environment: guard.
+D. VT: Cargo.toml [target.'cfg(windows)'.dependencies] winapi-util =0.1.11; Cargo.lock; decisions doc;
+   cargo check --target x86_64-pc-windows-msvc --no-default-features.
+E. docs/LOG_STREAM_SUPPORT.md. F. gates, fragment .planning/ledger-fragments/<lane>.json, sweep.
+
+Next step: A.
