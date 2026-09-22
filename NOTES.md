@@ -77,8 +77,14 @@
   missing .dta2d: C++ S then FileNotFound, depth 1 -> port errors before start (documented);
   hash_only (false,true) Release = no-op (port: InvalidValue, documented).
 
+- DONE: compute_file_hash read error -> break. tests/file_handler_load.rs has upstream tests (6) + oracle tests
+  (release_loads_agree..., relative names, hash rows, divergences, every_release_case_is_exercised). gz input committed
+  at tests/data/file_handler_load/MzMLFile_1.mzML.gz.
+
 ## Next step
-1. Fix compute_file_hash read-error -> break (prefix digest) to match dir.d case.
-2. Oracle-driven tests in tests/file_handler_load.rs: parse fixture; per case compare sf rows, size, spec (first 3 mz), chrom rows, P rows, W rows.
+1. Get tests/file_handler_load.rs green (log: scratchpad/logs/t2.log).
+2. Run tests/file_handler.rs, file_handler_type_detection, file_info*, topp_* affected by SRM conversion.
+3. Store side (P2): storeExperiment log type (mzML/DTA2D/mzXML/mzData + chrom->spectra for mzXML/mzData). Optional.
+4. Docs: docs/FILE_HANDLING_SUPPORT.md section; ledger fragment .planning/ledger-fragments/<lane>.json; gates.
 2. Tests: tests/file_handler_load.rs (upstream values + oracle fixture).
 2. Implement in file_handler.rs; tests in tests/file_handler_source_file.rs; oracle on ibminode06.
