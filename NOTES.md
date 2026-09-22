@@ -59,7 +59,16 @@ Upstream test: core bc9cc12 src/tests/class_tests/openms/source/MSExperiment_tes
 - Code done & committed: first_product_spectrum_index (kernel.rs), Display MSSpectrum/MSExperiment + `{:#}` stream text
   (kernel.rs, chromatogram_merge.rs), set_2d_data_mass_traces(_with_limits) (experiment_2d.rs). cargo check --lib OK.
 
+- Session 2 later: tests added (experiment_mobility.rs 5 new, experiment_2d.rs 5 new, experiment_summary.rs 1 new); all pass
+  under --no-default-features. Docs EXPERIMENT_MOBILITY_SUPPORT.md (accounting 60/21/0 + "The last three members"),
+  SPECTRUM_MOBILITY_SUPPORT.md row, provenance json updated. ALSO fixed ledger open item: SummaryLimits::for_experiment
+  (experiment_summary.rs) used by 6 linear default entry points. MapNormalizer workaround (src/cli) -> report, not mine.
+  WARNING: scratch dir shared with sibling lanes (prov.py got overwritten) -> prefix scratch files msexp_.
+
 ## Next step
+0. Remaining: gates (sweep on dax, check_core_sdk, check_doc_coverage --report, check_module_cycles, check_source_citations),
+   ledger fragment .planning/ledger-fragments/<lane>.json, delete NOTES.md in final commit, report.
+
 1. Read C++ MSSpectrum operator<< + SpectrumSettings operator<< + ExperimentalSettings operator<< at pin; chromatogram Display style.
 2. first_product_spectrum_index in src/kernel.rs + tests.
 3. MSSpectrum Display + MSExperiment Display; Release oracle on ibminode06 for exact text.

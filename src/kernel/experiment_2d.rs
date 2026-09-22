@@ -225,7 +225,11 @@ fn import_mass_traces<F: Deref<Target = BaseFeature>>(
         match mass_trace_count(&feature.metadata)? {
             None => push_peak(&mut peaks, feature.mz, feature.intensity, limits, &mut work)?,
             Some(count) => {
-                let charge = if feature.charge == 0 { 1 } else { feature.charge };
+                let charge = if feature.charge == 0 {
+                    1
+                } else {
+                    feature.charge
+                };
                 let spacing = C13C12_MASSDIFF_U / f64::from(charge);
                 // Bounded without trusting `count`: every iteration pushes a
                 // peak under `max_points`, and at most `metadata.len() + 1`
@@ -244,7 +248,11 @@ fn import_mass_traces<F: Deref<Target = BaseFeature>>(
                         // The source's DataValue conversion to float.
                         MetaValueData::Integer(value) => *value as f32,
                         MetaValueData::Float(value) => *value as f32,
-                        _ => return Err(invalid(&format!("mass trace intensity '{name}' is not numeric"))),
+                        _ => {
+                            return Err(invalid(&format!(
+                                "mass trace intensity '{name}' is not numeric"
+                            )));
+                        }
                     };
                     let mz = feature.mz + spacing * i as f64;
                     push_peak(&mut peaks, mz, intensity, limits, &mut work)?;

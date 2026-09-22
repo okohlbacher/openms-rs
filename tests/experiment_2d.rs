@@ -367,7 +367,10 @@ fn peak_bits(exp: &MSExperiment) -> Vec<(f64, Vec<(u64, u32)>)> {
         .map(|s| {
             assert_eq!(s.ms_level, 1);
             assert!(s.float_data_arrays.is_empty());
-            let peaks = s.peaks.iter().map(|p| (p.mz.to_bits(), p.intensity.to_bits()));
+            let peaks = s
+                .peaks
+                .iter()
+                .map(|p| (p.mz.to_bits(), p.intensity.to_bits()));
             (s.rt, peaks.collect())
         })
         .collect()

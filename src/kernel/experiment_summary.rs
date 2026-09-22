@@ -28,6 +28,45 @@ impl Default for SummaryLimits {
         }
     }
 }
+impl SummaryLimits {
+    /// The default ceilings with `max_work` raised by three units for every
+    /// spectrum, spectrum peak, chromatogram and chromatogram point that
+    /// `experiment` holds.
+    ///
+    /// A fixed work ceiling fits no real LC-MS run once a query charges per
+    /// peak: the 1.2 GB benchmark run holds 88,521,983 such elements, far over
+    /// the default 50,000,000, so `combined_ranges()` refused a map the port's
+    /// own mzML reader had admitted under its size-derived ceilings
+    /// (`src/format/mzml_scaling.rs`). A query over a map already in memory is
+    /// bounded by that map, so the entry points without explicit limits —
+    /// [`MSExperiment::combined_ranges`], [`MSExperiment::chromatogram_ranges`],
+    /// [`MSExperiment::total_peak_count`], [`MSExperiment::contains_scan_of_level`],
+    /// [`MSExperiment::has_zero_intensities`] and
+    /// [`MSExperiment::calculate_tic_binned`] — use these ceilings. Each charges
+    /// at most three units per element, so none refuses a map for its size;
+    /// the fixed default stays the floor for TIC resampling bins, which depend
+    /// on the bin size rather than the map. `sort_chromatograms` and
+    /// `clear_meta_data_arrays` keep the fixed default: their charge grows with
+    /// a chromatogram's length times its merge passes, or with annotation
+    /// arrays, not with the element count alone.
+    pub fn for_experiment(experiment: &MSExperiment) -> Self {
+        let default = Self::default();
+        let mut elements = experiment
+            .spectra
+            .len()
+            .saturating_add(experiment.chromatograms.len());
+        for spectrum in &experiment.spectra {
+            elements = elements.saturating_add(spectrum.peaks.len());
+        }
+        for chromatogram in &experiment.chromatograms {
+            elements = elements.saturating_add(chromatogram.peaks.len());
+        }
+        Self {
+            max_work: default.max_work.saturating_add(elements.saturating_mul(3)),
+            ..default
+        }
+    }
+}
 
 impl MSExperiment {
     /// Recalculate TIC, optionally redistributing it onto an absolute RT grid.
@@ -41,7 +80,11 @@ impl MSExperiment {
         rt_bin_size: f32,
         ms_level: u32,
     ) -> Result<super::MSChromatogram> {
-        self.calculate_tic_binned_with_limits(rt_bin_size, ms_level, SummaryLimits::default())
+        self.calculate_tic_binned_with_limits(
+            rt_bin_size,
+            ms_level,
+            SummaryLimits::for_experiment(self),
+        )
     }
 
     /// As [`Self::calculate_tic_binned`], with explicit resource ceilings.
@@ -83,7 +126,7 @@ impl MSExperiment {
     /// that chromatogram has no points. RT/intensity use actual points only.
     /// Results are computed on demand and do not require sorted input.
     pub fn chromatogram_ranges(&self) -> Result<ExperimentRanges> {
-        self.chromatogram_ranges_with_limits(SummaryLimits::default())
+        self.chromatogram_ranges_with_limits(SummaryLimits::for_experiment(self))
     }
     /// As [`Self::chromatogram_ranges`], with explicit resource ceilings.
     pub fn chromatogram_ranges_with_limits(
@@ -97,7 +140,7 @@ impl MSExperiment {
     /// Includes empty-scan RT and empty-chromatogram Product m/z. Mobility is not
     /// represented by this three-dimensional result or the current containers.
     pub fn combined_ranges(&self) -> Result<ExperimentRanges> {
-        self.combined_ranges_with_limits(SummaryLimits::default())
+        self.combined_ranges_with_limits(SummaryLimits::for_experiment(self))
     }
     /// As [`Self::combined_ranges`], with explicit resource ceilings.
     pub fn combined_ranges_with_limits(&self, limits: SummaryLimits) -> Result<ExperimentRanges> {
@@ -157,7 +200,7 @@ impl MSExperiment {
     /// Total number of spectrum peaks and chromatogram points, as source getSize.
     /// This differs from `len()`, which counts spectra.
     pub fn total_peak_count(&self) -> Result<u64> {
-        self.total_peak_count_with_limits(SummaryLimits::default())
+        self.total_peak_count_with_limits(SummaryLimits::for_experiment(self))
     }
     /// As [`Self::total_peak_count`], with explicit resource ceilings.
     pub fn total_peak_count_with_limits(&self, limits: SummaryLimits) -> Result<u64> {
@@ -176,7 +219,7 @@ impl MSExperiment {
 
     /// Exact source MS-level membership; zero is not a wildcard here.
     pub fn contains_scan_of_level(&self, ms_level: usize) -> Result<bool> {
-        self.contains_scan_of_level_with_limits(ms_level, SummaryLimits::default())
+        self.contains_scan_of_level_with_limits(ms_level, SummaryLimits::for_experiment(self))
     }
     /// As [`Self::contains_scan_of_level`], with explicit resource ceilings.
     pub fn contains_scan_of_level_with_limits(
@@ -197,7 +240,7 @@ impl MSExperiment {
     /// Whether any peak at exactly this level has intensity +0 or -0. Empty scans
     /// do not qualify. Finite nonzero signed intensities are accepted.
     pub fn has_zero_intensities(&self, ms_level: usize) -> Result<bool> {
-        self.has_zero_intensities_with_limits(ms_level, SummaryLimits::default())
+        self.has_zero_intensities_with_limits(ms_level, SummaryLimits::for_experiment(self))
     }
     /// As [`Self::has_zero_intensities`], with explicit resource ceilings.
     pub fn has_zero_intensities_with_limits(
