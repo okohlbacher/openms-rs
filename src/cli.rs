@@ -2301,8 +2301,8 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
             (ExitCode::IncompatibleInputData, format!("Error: {error}"))
         }
         Error::InvalidValue(_) | Error::InvalidRange(_) => (
-            ExitCode::IllegalParameters,
-            format!("Invalid parameter: {error}"),
+            ExitCode::UnknownError,
+            format!("Error: Unexpected internal error ({})", error_text(error)),
         ),
         Error::MissingInformation(_) => (ExitCode::MissingParameters, format!("Error: {error}")),
     };

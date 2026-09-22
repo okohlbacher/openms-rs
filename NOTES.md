@@ -58,3 +58,5 @@ Gaps (ranked):
 2. Write src/format/param_json.rs (load) behind paramxml (+dep:serde_json); wire into load_ini.
 4. tests/topp_json_ini.rs replaying run2 (retain in tests/data/topp_json_ini); unit tests in tests/param_json.rs (ParamJSONFile_test.cpp).
 5. Gaps (b),(d),(e); docs; THIRD_PARTY entry; ledger fragment; sweep.
+- Gap (b) trial (arm flipped to 8 in run_failure, uncommitted at first): failing = lifecycle run_phase_errors (asserts native 6), file_info a_forced_type_the_file_contradicts_is_refused,
+  map_normalizer an_empty_combined_intensity_range_is_refused (Release: 8 + RangeManager.h:142 text), sfwm a_non_finite_window_size_is_refused_before_the_processing_record. Splitter passes.
