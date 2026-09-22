@@ -71,6 +71,11 @@ Upstream test: core bc9cc12 src/tests/class_tests/openms/source/MSExperiment_tes
   doc coverage improved (not --write). Sweep started on dax slot msexp-close at commit 30376cf
   (log: scratch msexp-sweep.out / msexp-sweep/); later commits only add a test + doc.
 
+- Sweep #1 killed (stale tree). Sweep #2 slot msexp-close2 started on 98a18aa; output scratch msexp-sweep2.out,
+  msexp-sweep2/sweep.log. Code is final unless the sweep finds something; then delete NOTES.md and report.
+- Local: clippy -D warnings on touched test targets clean after literal fix; rustdoc --no-default-features fails only
+  in format/file_info links (feature-gated, not mine; CI uses --all-features).
+
 ## Next step
 0. Remaining: gates (sweep on dax, check_core_sdk, check_doc_coverage --report, check_module_cycles, check_source_citations),
    ledger fragment .planning/ledger-fragments/<lane>.json, delete NOTES.md in final commit, report.
