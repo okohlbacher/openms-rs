@@ -93,4 +93,9 @@ ORACLE DONE (ibminode06, Linux Release build at pins; run1==run2, differ.txt emp
  -> confirms: TLS reverse-creation order, then globals info,warn,error,fatal; per stream sync,cache,partial.
  Decision: port flushes the global debug stream too = deliberate divergence, provisional CPP-355.
 
-Next step: B running: cargo test --no-default-features --test log_stream (test process_exit_paths_deliver_what_the_release_build_delivers, self re-exec). Then C.
+DONE: A (c80f5ef), B test passes 18/18 (--no-default-features --test log_stream), mutation (forward
+ order) fails it; C src/cli.rs run_from_environment guard; D Cargo.toml winapi-util =0.1.11 (lock unified
+ with windows-sys 0.52.0), enable_console_colors + is_console (cfg windows), cargo check --target
+ x86_64-pc-windows-msvc --no-default-features ok (only pre-existing src/system/file.rs:1493 unused mut warning).
+ MSRV 1.85 on windows NOT measured (1.85 toolchain lacks windows target; not downloading).
+Next step: E docs/LOG_STREAM_SUPPORT.md + docs/THIRD_PARTY_CRATE_DECISIONS.md row; then F gates.
