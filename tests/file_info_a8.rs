@@ -763,7 +763,11 @@ fn a_forced_type_the_loader_detects_otherwise_is_refused() {
             "text_peak_lists/MS2File_test_spectra.ms2".to_owned(),
         ),
     ] {
-        let detected = if id == "g_forced_on_mzxml" { "mzXML" } else { "ms2" };
+        let detected = if id == "g_forced_on_mzxml" {
+            "mzXML"
+        } else {
+            "ms2"
+        };
         let path = data(&input);
         let case: Case = (id, input, "", FileType::Mgf);
         match run(&case) {
