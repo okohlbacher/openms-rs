@@ -406,10 +406,11 @@ impl FileHandler {
     ///
     /// Source `FileHandler::computeFileHash` (`FileHandler.cpp:768-778`),
     /// which hashes the file as stored, so a compressed file's digest is that
-    /// of its compressed bytes. The source returns the empty string when the
-    /// file cannot be opened, and so does this; it also returns the empty
-    /// string when a read fails part way, where the source returns the digest
-    /// of the bytes read so far.
+    /// of its compressed bytes. As in the source, a file that cannot be opened
+    /// yields the empty string, and a read that fails ends the input: the
+    /// result is the digest of the bytes read before it. A directory opens and
+    /// then fails its first read, so its digest is that of no input, as the
+    /// Release build reports (`tests/file_handler_load.rs`).
     #[cfg(feature = "mzml")]
     pub fn compute_file_hash(path: impl AsRef<Path>) -> String {
         use sha1::{Digest, Sha1};
@@ -423,7 +424,8 @@ impl FileHandler {
                 Ok(0) => break,
                 Ok(read) => hasher.update(&buffer[..read]),
                 Err(error) if error.kind() == std::io::ErrorKind::Interrupted => {}
-                Err(_) => return String::new(),
+                // FileHandler.cpp:182-185: the loop ends when a read fails.
+                Err(_) => break,
             }
         }
         hasher
