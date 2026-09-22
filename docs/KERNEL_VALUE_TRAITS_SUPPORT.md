@@ -25,6 +25,14 @@ emulated. Other numeric formats remain available directly through the fields.
 NaN/infinity and the sign of zero follow Rust formatting; constructing or
 formatting a standalone peak does not validate its scientific suitability.
 
+The alternate form `{:#}` writes the source text instead: each number as a
+default C++ stream writes it (`%g`, six significant digits, the `float`
+intensity widened to `double`, glibc's `nan`/`-nan`/`inf`), so
+`format!("{:#}", Peak1D::new(500.123456789, 1234.5678))` gives
+`POS: 500.123 INT: 1234.57`, byte for byte the Linux Release build's
+`operator<<` (`../oracle/msexperiment-close`, case `stream_numbers`). The
+spectrum, chromatogram and experiment dumps pass the flag to every point line.
+
 Hashing normalizes each zero-valued field to positive zero, because -0 and +0
 compare equal. Other floating-point bit patterns are passed to the caller's
 Rust `Hasher` in position-then-intensity order. No stable numeric digest,

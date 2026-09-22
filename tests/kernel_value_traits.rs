@@ -40,6 +40,36 @@ fn source_labels_and_native_numeric_formatting() {
 }
 
 #[test]
+fn release_alternate_form_is_the_default_stream_text() {
+    // Release oracle (Linux x86_64 Release build, `../oracle/msexperiment-close`,
+    // case stream_numbers): the lines of `operator<<(ostream&, const Peak1D&)`
+    // and of `ChromatogramPeak`'s, as `MSSpectrum` and `MSChromatogram` print them.
+    for (peak, text) in [
+        (
+            Peak1D::new(500.123456789, 1234.5678),
+            "POS: 500.123 INT: 1234.57",
+        ),
+        (Peak1D::new(1234567.0, 0.1), "POS: 1.23457e+06 INT: 0.1"),
+        (Peak1D::new(0.000012345, 1e-7), "POS: 1.2345e-05 INT: 1e-07"),
+        (Peak1D::new(-0.0, -0.0), "POS: -0 INT: -0"),
+        (Peak1D::new(100.0, f32::NAN), "POS: 100 INT: nan"),
+        (Peak1D::new(200.0, -f32::NAN), "POS: 200 INT: -nan"),
+        (Peak1D::new(300.0, f32::INFINITY), "POS: 300 INT: inf"),
+        (Peak1D::new(1e21, 3.0), "POS: 1e+21 INT: 3"),
+    ] {
+        assert_eq!(format!("{peak:#}"), text);
+    }
+    assert_eq!(
+        format!("{:#}", ChromatogramPeak::new(3600.5, 98765.4321)),
+        "POS: 3600.5 INT: 98765.4"
+    );
+    assert_eq!(
+        format!("{:#}", ChromatogramPeak::new(0.1 + 0.2, 16777217.0)),
+        "POS: 0.3 INT: 1.67772e+07"
+    );
+}
+
+#[test]
 fn equal_signed_zeros_have_equal_hashes() {
     let peak = Peak1D::new(0.0, 0.0);
     let chromatogram_peak = ChromatogramPeak::new(0.0, 0.0);
