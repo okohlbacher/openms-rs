@@ -90,8 +90,14 @@
   Checks: citations/cycles/core_sdk/doc_coverage all exit 0. Sweep launched: slot fh-lane-w2, logs
   scratchpad/sweep1 + scratchpad/logs/sweep1.log (bg task).
 
+- Sweep 1 (dax, slot fh-lane-w2): 53/54 PASS; only clippy clone_on_copy (file_handler.rs:464) -> fixed.
+  Line 1 (all-features all-targets) 375 binaries ok, file_handler_load 11 passed.
+  Sweep 2 (quality only) launched -> scratchpad/sweep2, logs/sweep2.log.
+
 ## Next step
-0. Wait for sweep; inspect failures (SRM conversion may change cli/file_info expectations).
+0. After sweep2: ssh dax, cd /scratch/kohlbach/agents/fh-lane-w2, source /scratch/kohlbach/openms-rs-env.sh,
+   cargo test --locked --no-default-features --features mzml --test file_handler_load  (slice pass count).
+   Then final commit deleting NOTES.md.
 1. (done) Get tests/file_handler_load.rs green.
 2. Run tests/file_handler.rs, file_handler_type_detection, file_info*, topp_* affected by SRM conversion.
 3. Store side (P2): storeExperiment log type (mzML/DTA2D/mzXML/mzData + chrom->spectra for mzXML/mzData). Optional.
