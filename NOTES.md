@@ -71,3 +71,4 @@ Gaps (ranked):
 - Sweep toppbase-finish-1 on dax started at 0e504dd (log scratchpad/sweep1.out). Commits after: dedupe refusals + cli module doc (re-run lifecycle locally).
 - file_info_a8 failed in sweep1 (old InvalidValue assertion) -> fixed (commit above); re-run failing lines after sweep ends.
 - file_info_a8 failed in sweep1 (old InvalidValue assertion) -> fixed; re-run failing lines after sweep ends.
+- sweep1 (at 0e504dd): 45/54 pass; 7 fails = file_info_a8 (fixed 57409b0), clippy (3 lints + complex type, fixed), doc (links, fixed). sweep2 next.
