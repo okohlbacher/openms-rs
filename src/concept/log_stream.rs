@@ -13,7 +13,7 @@
 use chrono::{Datelike, NaiveDate, Timelike};
 use std::cell::RefCell;
 use std::fmt;
-use std::io::{self, IsTerminal, Write};
+use std::io::{self, Write};
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex, OnceLock, RwLock};
 
@@ -80,12 +80,18 @@ impl PartialEq for LogSink {
 }
 impl Eq for LogSink {}
 impl LogSink {
+    /// Source `Colorizer::colorStream_`: codes go to any stream but the process's standard
+    /// output and error, and to those only when they are a console.
     fn color_allowed(&self) -> bool {
-        match self.kind {
-            SinkKind::Other => true,
-            SinkKind::Stdout => io::stdout().is_terminal(),
-            SinkKind::Stderr => io::stderr().is_terminal(),
+        let console = match self.kind {
+            SinkKind::Other => return true,
+            SinkKind::Stdout => is_console(&io::stdout()),
+            SinkKind::Stderr => is_console(&io::stderr()),
+        };
+        if console {
+            enable_console_colors();
         }
+        console
     }
     /// Arbitrary writers receive ANSI colors when a colored logger uses them, as in C++.
     pub fn new(writer: impl Write + Send + 'static) -> Self {
@@ -111,6 +117,46 @@ impl LogSink {
             kind: SinkKind::Stderr,
         })
         .clone()
+    }
+}
+
+/// Source `Colorizer::isTTY` (`Colorizer.cpp`): `isatty` on the stream's descriptor, and on
+/// Windows (`isattyWin`) whether `GetConsoleMode` succeeds for its handle, which is false for
+/// the pipe a MSYS or Cygwin terminal provides.
+#[cfg(not(windows))]
+fn is_console(stream: &impl io::IsTerminal) -> bool {
+    stream.is_terminal()
+}
+#[cfg(windows)]
+fn is_console(stream: &impl winapi_util::AsHandleRef) -> bool {
+    winapi_util::console::mode(stream).is_ok()
+}
+
+/// Source `InitConsole::InitConsole` (`Colorizer.cpp`), which runs when libOpenMS is loaded:
+/// on Windows, `ENABLE_VIRTUAL_TERMINAL_PROCESSING` is added to the console mode of standard
+/// output and, independently, of standard error, so that ANSI colour codes render on a
+/// console. A stream that is not a console, or whose mode cannot be changed, is left as it is
+/// and nothing is reported, as in the source; the mode is not restored at exit, as in the
+/// source. On other platforms this does nothing.
+///
+/// Rust has no load-time constructors, so this runs the first time a record is coloured for
+/// standard output or standard error, and when a tool executable starts. It acts once per
+/// process; later calls return at once.
+pub fn enable_console_colors() {
+    #[cfg(windows)]
+    {
+        static ENABLED: std::sync::Once = std::sync::Once::new();
+        ENABLED.call_once(|| {
+            use winapi_util::console::{mode, set_mode};
+            /// `wincon.h`.
+            const ENABLE_VIRTUAL_TERMINAL_PROCESSING: u32 = 0x0004;
+            if let Ok(current) = mode(io::stdout()) {
+                let _ = set_mode(io::stdout(), current | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+            }
+            if let Ok(current) = mode(io::stderr()) {
+                let _ = set_mode(io::stderr(), current | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+            }
+        });
     }
 }
 
