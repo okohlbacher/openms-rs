@@ -10,7 +10,11 @@
 //! source's name-then-content type detection, and the `*_with_options` loaders
 //! hand the source's `PeakFileOptions` and `FeatureFileOptions` to the native
 //! readers. `docs/MZML_MOBILITY_SUPPORT.md` records the API mapping and the
-//! executed C++ comparison.
+//! executed C++ comparison. [`FileHandler::load_experiment_with_progress`]
+//! takes the rest of source `loadExperiment`'s arguments (the log type,
+//! `rewrite_source_file`, `compute_hash`); every mzML load ends with the
+//! source's SRM conversion. `docs/FILE_HANDLER_SUPPORT.md` has the member
+//! ledger, the Release-build evidence and the remaining gaps.
 
 use super::file_types::{consistent_output_type, type_by_file_name};
 use super::{FileType, PeakFileOptions, dta, mgf};
