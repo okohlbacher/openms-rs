@@ -171,7 +171,8 @@ Every tool executable holds a `ProcessLogs` for the whole run
 and also when it panics, the streams are finished after the tool's own output
 and before the terminal reset. The crate has no `std::process::exit` call.
 
-A program of its own needs neither. When a thread ends, its streams are
+A program of its own does not need the guard on those platforms. When a
+thread ends, its streams are
 finished, most recently created first, and then, if the thread used
 `with_global_log`, the global streams: the thread that configured or wrote to
 them owns their exit-time flush. For the main thread that happens at process
@@ -210,9 +211,9 @@ that the ANSI colour codes render; it does not restore the mode at exit.
 (`console::mode`/`console::set_mode`), once per process: the first time a record
 is coloured for standard output or standard error, and when a tool executable
 starts. On other platforms it does nothing. The console test behind colouring,
-the source's `Colorizer::isTTY` (`Colorizer.cpp:155-170`), is `isatty` on Unix and, on Windows, whether
-`GetConsoleMode` succeeds, which is false for the pipe a MSYS or Cygwin terminal
-provides; the port asks the same questions.
+the source's `Colorizer::isTTY` (`Colorizer.cpp:155-170`), is `isatty` on Unix
+and, on Windows, whether `GetConsoleMode` succeeds, which is false for the pipe
+a MSYS or Cygwin terminal provides; the port asks the same questions.
 
 No test executes the Windows branch. The GitHub Windows runners give a test
 process pipes, not a console, so `GetConsoleMode` fails there and neither the
