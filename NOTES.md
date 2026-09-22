@@ -57,6 +57,15 @@
 - mzxml/mzdata load_reporting use path_io::open (compressed ok). mzdata::load_with_progress(path,&PeakFileOptions,&ReadLimits,&mut logger)->Loaded{experiment,..}
 - Precondition rewrite||!hash is OPENMS_PRECONDITION (debug only); Release: hash w/o rewrite = no-op.
 
+## Code status (commit "[WIP] FileHandler: log type, ...")
+- file_handler.rs: ExperimentLoadOptions, load_experiment_with_progress, compute_file_hash (cfg mzml),
+  convert_srm_spectra (also in load_experiment via load_stream, and with_options), rewrite_source_file,
+  mzXML/mzData read dispatch. dta2d.rs: read_with_progress. cargo check --lib OK.
+- Oracle dir: ../oracle/file-handler-load (driver.cpp, make_inputs.py, remote_run.sh, run.sh), modeled on
+  ../oracle/progress-format-readers. SRM inputs: tests/data/file_info/inputs/srm_spectra{,_mixed}.mzML
+  (mixed has SRM w/ 0 and 2 precursors -> warnings).
+
 ## Next step
-1. (done) C++ MS2File::load progress calls; mzxml/mzdata open compressed.
+1. Write oracle, run on ibminode06 (run.sh start/poll/fetch).
+2. Tests: tests/file_handler_load.rs (upstream values + oracle fixture).
 2. Implement in file_handler.rs; tests in tests/file_handler_source_file.rs; oracle on ibminode06.
