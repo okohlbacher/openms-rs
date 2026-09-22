@@ -84,4 +84,13 @@ Oracle: ../oracle/logstream-exit/{driver.cpp,remote_run.sh,run.sh} (written; run
 - FYI (other lane): src/cli/tools/feature_finder_centroided.rs LogStreamLines duplicates the LogStream
   cache incl. an admitted exit-order divergence -> report as follow-up, do not touch.
 
+ORACLE DONE (ibminode06, Linux Release build at pins; run1==run2, differ.txt empty). Combined (2>&1):
+ tls_return/tls_exit(exit 3): 'same\nerr\ninfo partial\n<err> occurred 2 times\n<same> occurred 3 times\n'
+ tls_order: 'e\nw\n<w> occurred 2 times\n<e> occurred 2 times\n'
+ global_return/global_exit: 'global line\nglobal partial\ngw\n<gw> occurred 2 times\nge\ngf\n' (debug 'gd' LOST)
+ both: 'w\ninfo partial\n<w> occurred 2 times\ngw\n<gw> occurred 2 times\n'
+ thread: 'te\ntw\n<tw> occurred 2 times\ntw partial\n<te> occurred 2 times\nafter join\n'
+ -> confirms: TLS reverse-creation order, then globals info,warn,error,fatal; per stream sync,cache,partial.
+ Decision: port flushes the global debug stream too = deliberate divergence, provisional CPP-355.
+
 Next step: A.
