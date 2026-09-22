@@ -992,7 +992,7 @@ fn prepare<T: Tool>(
         if is_json_ini(&ini_path) {
             session.debug(out, "Assuming INI is a cwl file", 1)?;
         }
-        let loaded = match load_any_ini(T::NAME, &ini_path, &defaults, err)? {
+        let loaded = match load_any_ini(session, T::NAME, &ini_path, &defaults, out, err)? {
             Ok(loaded) => loaded,
             Err(code) => return Ok(Prepared::Done(code)),
         };
@@ -1190,7 +1190,7 @@ fn write_commands<T: Tool>(
         let mut written = defaults.checked_clone()?;
         if cmd.exists("ini")? {
             let ini_path = text_value(cmd, "ini")?;
-            let loaded = match load_any_ini(T::NAME, &ini_path, defaults, err)? {
+            let loaded = match load_any_ini(session, T::NAME, &ini_path, defaults, out, err)? {
                 Ok(loaded) => loaded,
                 Err(code) => return Ok(Some(code)),
             };
@@ -1289,16 +1289,23 @@ fn is_json_ini(path: &str) -> bool {
 /// The `-ini` file as the INI merge and `-write_ini` read it: a JSON document
 /// through [`load_json_ini`], anything else as parameter XML through
 /// [`load_ini`]. `tool` is the tool's name, for the initialisation catch.
+///
+/// A failure the source's run-phase catch takes is written as its
+/// `writeLogError_` writes it, to the error stream and the `-log` file
+/// (oracle `r_pphr_unknown_log` of `../oracle/json-ini`); one the
+/// initialisation catch takes reaches the error stream only.
 fn load_any_ini(
+    session: &Session<'_>,
     tool: &str,
     path: &str,
     defaults: &Param,
+    out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<std::result::Result<Param, ExitCode>> {
     if is_json_ini(path) {
-        load_json_ini(tool, path, defaults, err)
+        load_json_ini(session, tool, path, defaults, out, err)
     } else {
-        load_ini(path, err)
+        load_ini(session, path, out, err)
     }
 }
 
@@ -1329,9 +1336,11 @@ fn load_any_ini(
 /// The warning lines of the load go to standard error as the source's
 /// `OPENMS_LOG_WARN` does.
 fn load_json_ini(
+    session: &Session<'_>,
     tool: &str,
     path: &str,
     defaults: &Param,
+    out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<std::result::Result<Param, ExitCode>> {
     let not_found = format!("Error: File not found (the file '{path}' could not be found)");
@@ -1339,12 +1348,12 @@ fn load_json_ini(
         "Error: File not readable (the file '{path}' is not readable for the current user)"
     );
     if !file::exists(path) {
-        log_error(err, &not_found)?;
+        session.error(out, err, &not_found)?;
         return Ok(Err(ExitCode::InputFileNotFound));
     }
     if (file::is_directory(path) || std::path::Path::new(path).is_file()) && !file::readable(path)
     {
-        log_error(err, &not_readable)?;
+        session.error(out, err, &not_readable)?;
         return Ok(Err(ExitCode::InputFileNotReadable));
     }
     let mut loaded = defaults.checked_clone()?;
@@ -1356,7 +1365,11 @@ fn load_json_ini(
             Ok(Ok(loaded))
         }
         Err(Error::Parse { message, .. }) => {
-            log_error(err, &format!("Error: Unable to read file ({message} in: )"))?;
+            session.error(
+                out,
+                err,
+                &format!("Error: Unable to read file ({message} in: )"),
+            )?;
             Ok(Err(ExitCode::InputFileCorrupt))
         }
         Err(Error::Io(error)) => {
@@ -1368,15 +1381,18 @@ fn load_json_ini(
                     ExitCode::UnknownError,
                     format!("Error: Unexpected internal error (IO error for file '{path}')"),
                 ),
-                _ => (
-                    ExitCode::InternalError,
-                    format!(
-                        "Unable to initialize or run {tool}: basic_filebuf::underflow error reading the file: {}",
-                        os_error_text(&error)
-                    ),
-                ),
+                _ => {
+                    log_error(
+                        err,
+                        &format!(
+                            "Unable to initialize or run {tool}: basic_filebuf::underflow error reading the file: {}",
+                            os_error_text(&error)
+                        ),
+                    )?;
+                    return Ok(Err(ExitCode::InternalError));
+                }
             };
-            log_error(err, &text)?;
+            session.error(out, err, &text)?;
             Ok(Err(code))
         }
         Err(error) => Ok(Err(run_failure(&error, err))),
@@ -1400,7 +1416,12 @@ fn os_error_text(error: &std::io::Error) -> String {
 /// a failure takes the inner catch:
 ///
 /// * A missing file is [`ExitCode::InputFileNotFound`]: `XMLFile::parse_`
-///   checks `File::exists` (caught at `436-441`).
+///   checks `File::exists` (`XMLFile.cpp:124-127`) and throws `FileNotFound`,
+///   whose text is `the file '<path>' could not be found`
+///   (`Exception.cpp:166-167`; caught at `436-441`).
+///
+/// Each diagnostic is written as the source's `writeLogError_` writes it, to
+/// the error stream and the `-log` file.
 /// * An existing file this process cannot read is
 ///   [`ExitCode::InputFileNotReadable`], with the source's `FileNotReadable`
 ///   wording (`448-453`). In the source, xerces cannot open the file, and
@@ -1443,13 +1464,18 @@ fn os_error_text(error: &std::io::Error) -> String {
 /// The same mapping applies when the file changes between these checks and the
 /// load. Failures other than I/O and parsing, such as a document beyond the
 /// reader's limits, map as in `run_failure`.
-fn load_ini(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Param, ExitCode>> {
-    let not_found = format!("Error: File not found (the file '{path}' does not exist)");
+fn load_ini(
+    session: &Session<'_>,
+    path: &str,
+    out: &mut dyn Write,
+    err: &mut dyn Write,
+) -> Result<std::result::Result<Param, ExitCode>> {
+    let not_found = format!("Error: File not found (the file '{path}' could not be found)");
     let not_readable = format!(
         "Error: File not readable (the file '{path}' is not readable for the current user)"
     );
     if !file::exists(path) {
-        log_error(err, &not_found)?;
+        session.error(out, err, &not_found)?;
         return Ok(Err(ExitCode::InputFileNotFound));
     }
     // `file::readable` refuses a device or a FIFO without opening it, which
@@ -1457,11 +1483,12 @@ fn load_ini(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Param
     // load, whose open failure is mapped below.
     let directory = file::is_directory(path);
     if (directory || std::path::Path::new(path).is_file()) && !file::readable(path) {
-        log_error(err, &not_readable)?;
+        session.error(out, err, &not_readable)?;
         return Ok(Err(ExitCode::InputFileNotReadable));
     }
     if directory {
-        log_error(
+        session.error(
+            out,
             err,
             &format!(
                 "Error: Unable to read file (While loading '{path}': unable to read data from file)"
@@ -1489,7 +1516,7 @@ fn load_ini(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Param
                     format!("Error: Unable to read file (While loading '{path}': {error})"),
                 ),
             };
-            log_error(err, &text)?;
+            session.error(out, err, &text)?;
             Ok(Err(code))
         }
         Err(error) => Ok(Err(run_failure(&error, err))),

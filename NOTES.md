@@ -46,8 +46,15 @@ Gaps (ranked):
   1e30 int -> -9223372036854775808 confirmed; lenient AND strict update accept it for min 0 (int cast quirk). -debug 1 without -log prints nothing.
 - FFC citations DONE (c4a693b), completion 49 + console 4 tests pass (default features).
 
+- run2 retained in tests/data/topp_json_ini (62 cases). tests/topp_json_ini.rs replays; tests/param_json.rs unit (9 pass).
+  INI load errors now via session.error (log file) for XML + JSON; XML missing wording -> 'could not be found' (needs run3 XML evidence).
+- FOUND, NOT MINE (report): paramxml writer float text '4' vs Release '4.0'/'1.0e20'/'0.0:' (all -write_ini!); paramxml writer + Param::validation_error
+  refuse i64 outside i32 (src/param.rs:251 to_i32) where C++ truncates -> OPEN cases w_pphr_int_huge, r_pphr_huge.
+- debug2 order difference documented in docs/TOPP_CLI_SUPPORT.md ~585 (checks before body).
+- Gap (e) plan: ToolContext accessors -> record programming error in context (Cell), lifecycle maps escaping one to 12 'Internal error: Request for unregistered parameter '<name>'' / 'wrong type'. what() = name (TOPPBase_defs.h:53-75). catch TOPPBase.cpp:482-493.
+- scratch helpers: scratchpad/dbgall.sh (replays cases with target/debug bins).
+
 ## Next step
 2. Write src/format/param_json.rs (load) behind paramxml (+dep:serde_json); wire into load_ini.
-3. Fix loader per oracle: 'could not be found' (JSON + XML), read failure -> 12 underflow msg (needs tool name), 1e400 -> out_of_range.406 msg.
 4. tests/topp_json_ini.rs replaying run2 (retain in tests/data/topp_json_ini); unit tests in tests/param_json.rs (ParamJSONFile_test.cpp).
 5. Gaps (b),(d),(e); docs; THIRD_PARTY entry; ledger fragment; sweep.
