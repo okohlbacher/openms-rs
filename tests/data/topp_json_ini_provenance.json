@@ -1,0 +1,2262 @@
+{
+ "package_revisions": {
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df"
+ },
+ "scope": "JSON -ini files (ParamJSONFile::load through TOPPBase, before a run and for -write_ini), the parameter-XML -ini failures as the run-phase catch writes them (error stream and -log file), and FileInfo's forced type that the file contradicts. Tools: PeakPickerHiRes, FuzzyDiff, FileInfo.",
+ "method": "ParamJSONFile.cpp, the vendored nlohmann::json 3.11.2 and TOPPBase.cpp read at the pins with git show. 62 cases executed against the C++ Release build by ../oracle/json-ini/cases.sh on ibminode06 in a clean environment per case (env -i, per-case HOME, OPENMS_HOME_PATH and cwd, OPENMS_DISABLE_UPDATE_CHECK=ON, OPENMS_DATA_PATH pinned), twice (run1 with 59 cases, run2 with all 62); the 59 common cases are identical between the runs after masking paths, log time stamps and timing figures. Seven more cases by cases3.sh (batch 3). run2 and batch 3 are retained under tests/data/topp_json_ini and replayed in process by tests/topp_json_ini.rs, which maps the Release run's paths to the replay's; what it does not compare as recorded is named in its module documentation.",
+ "evidence_tier": "oracle-generated (tier 1 executed differential) against the Release build; the recorded differences (the wording of JSON syntax errors, the INI writer's floating-point text, two cases with an integer beyond 32 bits) are documented in docs/TOPP_CLI_SUPPORT.md, JSON INI files.",
+ "oracle": {
+  "install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "host": "ibminode06",
+  "build_type": "Release",
+  "libOpenMS_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c"
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/json-ini/make_inputs.py",
+   "sha256": "cafcbe1028b3562014d6d4ebc128792358b3247f0b6283306472d80becee8438",
+   "origin_key": "oracle",
+   "role": "driver"
+  },
+  {
+   "path": "../oracle/json-ini/cases.sh",
+   "sha256": "9158e7d779f8ae1b868b8e6f6f9be95b700282d6f514aa18036abc81b656d3c9",
+   "origin_key": "oracle",
+   "role": "driver"
+  },
+  {
+   "path": "../oracle/json-ini/cases3.sh",
+   "sha256": "d210d99acb78da7eeb86e5f1820ffb0d0e4b36aaf78113365f9d1a255d3386c9",
+   "origin_key": "oracle",
+   "role": "driver"
+  },
+  {
+   "path": "../oracle/json-ini/run1/results/summary.tsv",
+   "sha256": "1a08d67b3a1323d9da64f467686519e2fa6e003b7d865591c9e61ae4c456380b",
+   "origin_key": "oracle",
+   "role": "result"
+  },
+  {
+   "path": "../oracle/json-ini/run2/results/summary.tsv",
+   "sha256": "cf73c86e0ac9e04344bdd6a8a177de805b8b61b3a79088f29a1b36fa072192e9",
+   "origin_key": "oracle",
+   "role": "result"
+  },
+  {
+   "path": "../oracle/json-ini/run3/results/summary.tsv",
+   "sha256": "8c4f7e8972c85ac231189f61e3fbe1868acd96ea00cca4f0319b6c33f31a9ae7",
+   "origin_key": "oracle",
+   "role": "result"
+  },
+  {
+   "path": "../oracle/json-ini/run2/results/host.txt",
+   "sha256": "53c35b6962fbb18cbd22812b84de156bd3dc9293d613ce8cde9984bf1555a7c5",
+   "origin_key": "oracle",
+   "role": "result"
+  },
+  {
+   "path": "../oracle/json-ini/run3/results/host.txt",
+   "sha256": "87093ce868c72feb5d41496e31be3a9c6d34537cf304eab9123fda28088864d0",
+   "origin_key": "oracle",
+   "role": "result"
+  }
+ ],
+ "external_reference_note": "The oracle drivers, inputs and result trees live under ../oracle/json-ini (run1, run2, run3); the remote copies ran under /ceph/ibmi/abi/oliver/oracle-runs/json-ini (results2 and results3 are the paths the retained files name).",
+ "sources": [
+  {
+   "path": "OpenMS4-tests/packages/core/src/openms/source/FORMAT/ParamJSONFile.cpp",
+   "revision": "bc9cc12",
+   "sha256": "4a49692c2cf279c634c4c007f07198f0501a17282a67b7bffa16e125dc1cd507"
+  },
+  {
+   "path": "OpenMS4-tests/packages/core/src/openms/include/OpenMS/FORMAT/ParamJSONFile.h",
+   "revision": "bc9cc12",
+   "sha256": "feb642ff97c7a8ac28941349bb7757af1638a4ecbaa9060039fef688f2d291e5"
+  },
+  {
+   "path": "OpenMS4-tests/packages/core/src/tests/class_tests/openms/source/ParamJSONFile_test.cpp",
+   "revision": "bc9cc12",
+   "sha256": "aade8e23b3a8be4567f256125bff177c721a1dae2e6d63361b6359cfd7f9db06"
+  },
+  {
+   "path": "OpenMS4-tests/packages/core/src/openms/extern/nlohmann_json/single_include/nlohmann/json.hpp",
+   "revision": "bc9cc12",
+   "sha256": "22bec195e5fc4564d9c4fb7ed86a16502dfdbeccaec45ee2dfda326be3ba1b89"
+  },
+  {
+   "path": "OpenMS4-tests/packages/core/src/openms/source/CONCEPT/Exception.cpp",
+   "revision": "bc9cc12",
+   "sha256": "94ad947c904a286f7fe64d84b53cf639a93bca76f1245a7e5d6e2a2e3cf96cbe"
+  },
+  {
+   "path": "OpenMS4-tests/packages/core/src/openms/source/FORMAT/FileHandler.cpp",
+   "revision": "bc9cc12",
+   "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e"
+  },
+  {
+   "path": "OpenMS4-tests/packages/core/src/openms/source/DATASTRUCTURES/Param.cpp",
+   "revision": "bc9cc12",
+   "sha256": "5bfd393df12f6cc6d3238f3a31cdf33e72aeead1ec6831666ac8306889aec407"
+  },
+  {
+   "path": "OpenMS4-tests/packages/core/src/openms/include/OpenMS/KERNEL/RangeManager.h",
+   "revision": "bc9cc12",
+   "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/TOPPBase.cpp",
+   "revision": "c19e494",
+   "sha256": "326b96f85b4041febec49e18252d7be2ad0a5450abe5249adecc28ca315fdc05"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/TOPPBase_defs.h",
+   "revision": "c19e494",
+   "sha256": "ee8bfe722d663132e0449d6813a7eeffc124ea06a03bd1131298fd6efc651ded"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/FeatureFinderCentroided.cpp",
+   "revision": "174b576",
+   "sha256": "3456f7a563352ae33a08b0872915970342c46229cce6a2bdbe2313b3ece89f68"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/topp_json_ini/host.txt",
+   "sha256": "53c35b6962fbb18cbd22812b84de156bd3dc9293d613ce8cde9984bf1555a7c5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs.sha256",
+   "sha256": "60ed86b4881a5909f7aafd3b6cc1e348b0c9b76b4ec698f20bdd099a0359af74",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/summary.tsv",
+   "sha256": "cf73c86e0ac9e04344bdd6a8a177de805b8b61b3a79088f29a1b36fa072192e9",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/host.txt",
+   "sha256": "87093ce868c72feb5d41496e31be3a9c6d34537cf304eab9123fda28088864d0",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/inputs.sha256",
+   "sha256": "e726f9df9bcd1ab1d8a0a5bc2ae0411dc0397b0463a56107b3d0e90c4185f35e",
+   "origin": "input: ../oracle/json-ini/inputs3"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/summary.tsv",
+   "sha256": "8c4f7e8972c85ac231189f61e3fbe1868acd96ea00cca4f0319b6c33f31a9ae7",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_dta_on_featurexml/argv.txt",
+   "sha256": "c525314d07c9a3427d0e0cb36055fac37898010e535f4648782b9dfbb22986ca",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_dta_on_featurexml/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_dta_on_featurexml/stderr.txt",
+   "sha256": "71614108309ee09f89e992a459a6fea2ba0263b27cf16aeaff0467ca356e746f",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_dta_on_featurexml/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_dta_on_featurexml/tree.txt",
+   "sha256": "7e3f192825a80678581699abbf6f8ef73e0468ff10650bf4912f24e166eb8379",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_featurexml_on_dta/argv.txt",
+   "sha256": "b6672eacd2bc2a4b908a95f4a3141c5fc76135b2b37e9c93c171abfe6e66e618",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_featurexml_on_dta/exit_code.txt",
+   "sha256": "aa67a169b0bba217aa0aa88a65346920c84c42447c36ba5f7ea65f422c1fe5d8",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_featurexml_on_dta/stderr.txt",
+   "sha256": "14a3f45d787729bd75436baf10b8cabdc96267848f030356fdc852cf803c3348",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_featurexml_on_dta/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_featurexml_on_dta/tree.txt",
+   "sha256": "7e3f192825a80678581699abbf6f8ef73e0468ff10650bf4912f24e166eb8379",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_mzml_on_featurexml/argv.txt",
+   "sha256": "e348f7b0e354848f34385f87ed484397049fdd60b24cb59fe50f33a626b9a244",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_mzml_on_featurexml/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_mzml_on_featurexml/stderr.txt",
+   "sha256": "119004cdd49d28fcf16a05d0124b0e3ce5ccdc1403e494d7bfcfc247c80347b2",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_mzml_on_featurexml/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/fi_forced_mzml_on_featurexml/tree.txt",
+   "sha256": "7e3f192825a80678581699abbf6f8ef73e0468ff10650bf4912f24e166eb8379",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/inputs3/malformed.ini",
+   "sha256": "f7b29488d75f77c44bb95e6e318823578ab01bed860130408915bfc1c44fdb3f",
+   "origin": "input: ../oracle/json-ini/inputs3"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/j_missing_log/argv.txt",
+   "sha256": "c86ac5cd946bc4013e38d49083fdfa2309f3fa361cbf2fd587aa26eb7353d027",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/j_missing_log/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/j_missing_log/log.txt",
+   "sha256": "9e458c29d52cafd2930fd6933f319031e54b81a9a8b932ec719e82ee2654da36",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/j_missing_log/stderr.txt",
+   "sha256": "a7613c01ff8eed462349ec5fbabbe8462db6efcbde144442bc29f1aca010f09d",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/j_missing_log/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/j_missing_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_malformed_log/argv.txt",
+   "sha256": "931cf4515548b781a1fbba34f9a4c02276527b4cd9aba72a066c5ca7b8c40ba3",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_malformed_log/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_malformed_log/log.txt",
+   "sha256": "aa6126e513d5278b3f63dba98bd5e8f68408bb7babbda7f8fb2478284f5f5300",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_malformed_log/stderr.txt",
+   "sha256": "249d907d8292e83c235e9f45d2be3be17063c2a8f88a717db57b6e84e133a8e1",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_malformed_log/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_malformed_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_missing_log/argv.txt",
+   "sha256": "3293f3e927ce370ed5df07ace294d1510e1f28fbe73aa44f1e12d90b8ce7b558",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_missing_log/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_missing_log/log.txt",
+   "sha256": "33ea122865f7d28ddf79cd1e6e7b0a85536a342afd1c6bea947f287cabdb7c90",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_missing_log/stderr.txt",
+   "sha256": "acbc1500c56b7426710285c67091536c17fc6d0fcb50619bfcf15dff89dc78a1",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_missing_log/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_missing_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_missing_write_ini/argv.txt",
+   "sha256": "ccfb03da8a5eaa1855a1b8cfd2a365d8e9babd9de57274f79d59096a0e59efe1",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_missing_write_ini/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_missing_write_ini/stderr.txt",
+   "sha256": "acbc1500c56b7426710285c67091536c17fc6d0fcb50619bfcf15dff89dc78a1",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_missing_write_ini/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/batch3/x_missing_write_ini/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (batch 3, ../oracle/json-ini/cases3.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/fd_list_number.json",
+   "sha256": "84016916d9bf859cb3151e1a329163c35a1b37f1d543d700546a14a78b2e6f93",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/fd_list_string.json",
+   "sha256": "f94eae11bcef6d9ab9fd54ae25d8f06e117d0f2316dced8e493be186856c2bc5",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/fd_lists.json",
+   "sha256": "80e93cbe21f65146a5343da0d419366e4901fa014451b8133f0ece5e8d9af3fc",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/fi_run.json.in",
+   "sha256": "e66b2d06267df52de6a4d12dac8c5b85c542b6b2f21f8489fc89b1111d481f3d",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/fi_run_mzml_type.json.in",
+   "sha256": "b377e42730942db880bfd10330a8ae1f8b4bbd726cab6bfae6cc11e1c3a51050",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_all.json",
+   "sha256": "edd5397d66757d88cd32c037adb925813f487481508ebd49a9b7afc1e0c26779",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_array_root.json",
+   "sha256": "1fb3ffcf3df89e31f56932d4a64a23eede8a2f6707898bf14d1fc42a78286868",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_bom.json",
+   "sha256": "bc462c6df0498750648dbcd62f2e09fdd0154113ab1899f746a7ff5c8739725a",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_bool_number.json",
+   "sha256": "5494effa68058d06b9da0c9962e9d51e39cb2d15ed30f2489cbde2ce8fae956e",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_bool_string.json",
+   "sha256": "0a24cb67e369118ab8a415602987056f2b5dbc0d652371756456469940b5eb13",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_double_bool.json",
+   "sha256": "a191b8670a4c18192de3b9897ef9f4f0f85cdb54165069c4df215ba6d22cdc5c",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_double_int.json",
+   "sha256": "fa70d5ccb9d1ec15eecd6b61454fffd2516c5909cd3ac5a86f5d40340d7a12e3",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_dup.json",
+   "sha256": "355ff59704a82a26cedf9ddd12a4611534c0c3858da99c42e011728eb1a02169",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_empty.json",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_empty_obj.json",
+   "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_empty_section.json",
+   "sha256": "cbd5735d37ff0cd7fb5195945ef6b307b0abfaf5cdfcea4a1cac7a74cdc59660",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_flat.json",
+   "sha256": "38ee46bc8b7b3f303dc9b7301ceaeb18db57314364cd0a95d3d0789b2c937532",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_in_classnum.json",
+   "sha256": "b4a2e083bb3bafd8b35f1ae80f839c51c3397c503e7699184537fd8c7b6dedaf",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_in_noclass.json",
+   "sha256": "b1fdfd4ee52ca1f808e4ea2acf414375b12e56a79cce9a1341962b50db52366f",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_in_nopath.json",
+   "sha256": "03dcfbee18f7cd4a0568d144e6f51a0b5ec3bfbd3dac6deebb8693496a3fa82f",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_in_string.json",
+   "sha256": "6fc3ddb45d628b702366453b7c4fcff3a9063553314afdb73bad25f17f7c9ff8",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_inf.json",
+   "sha256": "d2efe4b77c508bfaabb91854945c07058208da9c20a86bba7f61d514f5023d6f",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_int_bool.json",
+   "sha256": "f5b99aba13791654ac482704d9674374382a14f44e3b128cb16e5a364a783c10",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_int_float.json",
+   "sha256": "45035a0e39f766f22e0636d1d73ea41d6286aa154aa7b9038e8ff9469f790e95",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_int_huge.json",
+   "sha256": "7ea6d5fdcb09ad7ae136bae9e78c77138e0e089e8c177d92135297617c47a4a2",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_int_string.json",
+   "sha256": "537c0b3ec2643faca223481743bb246a119a5dd94b60294186d2b2d53941e4fc",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_int_u64.json",
+   "sha256": "9fb8ea0894a81001a207ea0abfb8b6f9277c1063729c96bf7f03179d62599c83",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_intlist.json",
+   "sha256": "46f827144d96227a24eb71451b38f1a9d616e8da993395c38b421f4287280be4",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_intlist_huge.json",
+   "sha256": "b193c39c8c781511ff13e307d64179e6b9a2f70a037037616c637f61313c74a8",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_intlist_scalar.json",
+   "sha256": "e7e4a4989087553dd3751fb7b33bcb8e3fc2d3f43c0aa5415f1872b8c09e245c",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_intlist_string.json",
+   "sha256": "54b5969420a8525dee814bccaa249edee4fb3cb176dbb857154757167a70b08b",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_key_colon.json",
+   "sha256": "c8faa78c994d4a72b747257dbe2c502f13f7a32fbb3373c77c87775c1d663069",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_neg_zero.json",
+   "sha256": "99563e471aeb1acb92171a8975ad52d9a8efaf738cd5b05d2c6a7a1357e9212e",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_null.json",
+   "sha256": "51101705379b93f1b245a7072051dd91fdf8a5150cfbb314b52f40b54c5bdd4f",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_out_object.json",
+   "sha256": "7edc44500bfd9eba02f283841ed5ddf48cc109be5f575b105666cb252fbb8a74",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_plain.json.gz",
+   "sha256": "6c9084345245620093311ea84b4d21bc37ee01cda07c931b19b990efc16f7264",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_string_file_object.json",
+   "sha256": "fc3e21db3c97d90ffa5ab9844e9c7f5530cd1d3bac35c1bf5692b4f8600df4c7",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_string_number.json",
+   "sha256": "eeaa4625816033f25051a7a8639834512e5cf4c1641c11cfebf23425010d520f",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_string_root.json",
+   "sha256": "dac9dd2e99a85b7f6a955288a0863b81f38fab9efd9011816937ff5b00742fd1",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_syntax.json",
+   "sha256": "80858a2561ad177f6563c3f87b4943ca296c9ba4e6da14fe7400638568d8ccd5",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_threads.json",
+   "sha256": "eb475a0299608b674c24e7a57579c2e56d053b1cad8ccf50903eb7d88b785f48",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_trailing_comma.json",
+   "sha256": "f6bdb8e55e8d9225daca179734b9dfb65bc76798d38a995f881362a0b46c392f",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_trailing_garbage.json",
+   "sha256": "bd5977816b6f95fc19224a391a0485e41126a04d7cb2a4f648af1aa99834d44c",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_unknown.json",
+   "sha256": "305b404becdfa9bc22741448d75c2200c10d9c5db9b2fc00056aa5b1e04291bb",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_upper.JSON",
+   "sha256": "2837a70ab82cec9d3af132449b4d0dfcf575981acf5fae4e9028494f6c69f920",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_version.json",
+   "sha256": "a42edb43fbf594bec8506e022372e02d7597e37d70ed4ba0c709b14993770c28",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/inputs/pphr_ws.json",
+   "sha256": "8855c6119660c614d285554e51769066e94fcb75ff215ccc2fa6b4838b18756b",
+   "origin": "input: written by ../oracle/json-ini/make_inputs.py"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_debug2_log/argv.txt",
+   "sha256": "d607dfc7fa9f366060a638376a1d622e5d4ec524a8b947fc86da79ac153c2c29",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_debug2_log/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_debug2_log/log.txt",
+   "sha256": "38353d2d5e75cf61307b6e6755d292c967e4bb8688f795c4afcf6a6f52cb910a",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_debug2_log/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_debug2_log/stdout.txt",
+   "sha256": "a43f31b1fff2e07bff49330311cabad5fbdca272e78780a651a94e777b224d7b",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_debug2_log/tree.txt",
+   "sha256": "d265e009362e16552d2864b3761fd191f358d2a24324417147bb2a6c839a4945",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run/argv.txt",
+   "sha256": "5e61155d86489a1587b672cfae929f2e97a6a8a4cbce4db32ffbf6b8da7cd33b",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run/stdout.txt",
+   "sha256": "d2a0ee8f602fd2e09a23320e34a389082d18b4abe60eed3a2569bcdb923dadb2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run/tree.txt",
+   "sha256": "f18ab0088ddd04922a67e21d28fc55a2eb8bf997331ac9d89e30be3daac0ad7b",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_debug/argv.txt",
+   "sha256": "d47b95c863ef73c8c6f0288d7c532feb25dd2b55fad33d211c15cc6387f921f1",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_debug/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_debug/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_debug/stdout.txt",
+   "sha256": "30fa0a905cd7d29b1d0301272a962c60afc52e9e8a0c5ff6fe270c65b09f5808",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_debug/tree.txt",
+   "sha256": "f18ab0088ddd04922a67e21d28fc55a2eb8bf997331ac9d89e30be3daac0ad7b",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_log/argv.txt",
+   "sha256": "b1b94e1dc1d5255f45225b3f97114239e85a3628e1ed7b3222b74ba436b34460",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_log/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_log/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_log/stdout.txt",
+   "sha256": "d84af1e5ec3774817b194d5a91b61abe5da247483d27fc377b421c1bb10cd434",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_log/tree.txt",
+   "sha256": "f18ab0088ddd04922a67e21d28fc55a2eb8bf997331ac9d89e30be3daac0ad7b",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_override/argv.txt",
+   "sha256": "f93d0b5bfbc001ed973066832ccd84ed9edc00f697b07775e74ab42c6c4ae07d",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_override/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_override/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_override/stdout.txt",
+   "sha256": "6c2de5dfdfbd4d30928140f59b1ee1bf9aa4f373987b8e5fa53e167bb64cfd69",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_fi_run_override/tree.txt",
+   "sha256": "f18ab0088ddd04922a67e21d28fc55a2eb8bf997331ac9d89e30be3daac0ad7b",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug/argv.txt",
+   "sha256": "40adcf477a333821542e9afece5aeb4db21968d230a352657eec3677a1e09606",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug/stderr.txt",
+   "sha256": "e0b36716f5a6ea0e96b96ba666beb6d8ed101c16934aca050de9e501dd8367de",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug2_log/argv.txt",
+   "sha256": "006cb1563547bcffe8fec74e6b461e7de0bca52909f2debcf4bcfc767b888ba7",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug2_log/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug2_log/log.txt",
+   "sha256": "1d8cd5d9e308361fcfcb0d59654c33bd7c0e71e11888ca72aea998f06d54e30c",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug2_log/stderr.txt",
+   "sha256": "6237d3a5a2de1c03f3586dd6e63aaacd7659fce5744faa82bf85a4b5d918dd62",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug2_log/stdout.txt",
+   "sha256": "5dcf8112836d02f9804564e23cc4c6334e760c28aeef3ac58dd5792d55d47ce9",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug2_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug_log/argv.txt",
+   "sha256": "c5905f71526f332df22b673d9dc34598b0c3daecaf9033339afc5794019b7ee2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug_log/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug_log/log.txt",
+   "sha256": "32f632e6a0cb236665714ca67f98a3b2d2d99b990f935ce5d7be75a6b319b60d",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug_log/stderr.txt",
+   "sha256": "e0b36716f5a6ea0e96b96ba666beb6d8ed101c16934aca050de9e501dd8367de",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug_log/stdout.txt",
+   "sha256": "3257122a9aedf4a199079bfa0ec1e705b8809feb4aedd3275f6c11942f8e9517",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_debug_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_huge/argv.txt",
+   "sha256": "1d5869b62320486cbb392a5c3ddc565ff535fcd816be4cb978757cd8cf06da2f",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_huge/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_huge/stderr.txt",
+   "sha256": "6237d3a5a2de1c03f3586dd6e63aaacd7659fce5744faa82bf85a4b5d918dd62",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_huge/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_huge/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_instance2/argv.txt",
+   "sha256": "add2bf013f50a7ad23446fb69b1ae2fc709a248b6ca7a4c4ee9a7191a5b95640",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_instance2/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_instance2/stderr.txt",
+   "sha256": "ad94798a8e67e9a5345c9c448b5585fae367c8da899eb9eb56a3458e4db1bd78",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_instance2/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_instance2/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_missing/argv.txt",
+   "sha256": "30e88a125c10b59a58d4cd23ed27c4b35759b2b187ac6b4f034d43f3120297a9",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_missing/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_missing/stderr.txt",
+   "sha256": "20e4c24c9acbdb79159b8960ec0fb577e5f20fb11e481c74ffb5e06896023718",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_missing/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_missing/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_syntax/argv.txt",
+   "sha256": "8bed5b225e97a4e18019d87562f09fa43f3774f63fb40e7f156f4e2de621ecde",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_syntax/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_syntax/stderr.txt",
+   "sha256": "b54a269b10015c9e39baaf86547d3601264dd1b8531c2b666d4c240202a2df02",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_syntax/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_syntax/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_unknown/argv.txt",
+   "sha256": "1e29b36987aa3138150132ce07035b613ddcca5da43d211cbe86845a0603c397",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_unknown/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_unknown/stderr.txt",
+   "sha256": "e0b36716f5a6ea0e96b96ba666beb6d8ed101c16934aca050de9e501dd8367de",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_unknown/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_unknown/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_unknown_log/argv.txt",
+   "sha256": "990f39a97d585486c8385fa0815c2616a5df400a80809f08e5b99916453c6d2a",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_unknown_log/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_unknown_log/log.txt",
+   "sha256": "1b7bf377d139d5dacf60016987e25bb992ec04d9797a642a87bc6da895b16d11",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_unknown_log/stderr.txt",
+   "sha256": "e0b36716f5a6ea0e96b96ba666beb6d8ed101c16934aca050de9e501dd8367de",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_unknown_log/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/r_pphr_unknown_log/tree.txt",
+   "sha256": "7426373c696f051c19e93498348a1952a732cfe5028ee68f7bbb26400990e528",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_directory/argv.txt",
+   "sha256": "96342422182bd068837e4d5b0b1f698f7c542761c09211c4ad41e445f38e3263",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_directory/exit_code.txt",
+   "sha256": "a1fb50e6c86fae1679ef3351296fd6713411a08cf8dd1790a4fd05fae8688164",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_directory/stderr.txt",
+   "sha256": "b9227f49a378198816f096662e8d412aaa7f0ce89600e390e3d6f33d07b20c3a",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_directory/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_directory/tree.txt",
+   "sha256": "02deccc65c028dadaf97893f4852ce858e5ccb1e27524bac895d3a7be4b6dd97",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_list_number/argv.txt",
+   "sha256": "6611f1496bf05892d69a81ae94d610c126288e915fa1e2433acc4541bdf5dc23",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_list_number/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_list_number/stderr.txt",
+   "sha256": "22c67b0dfd44c50aecbbf60be74298730492294dda7a7bef0badcdbdab81b254",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_list_number/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_list_number/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_list_string/argv.txt",
+   "sha256": "979439d4550f87bb8dd018288a893ec8e29366cbca5dd844e222041d42aede88",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_list_string/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_list_string/stderr.txt",
+   "sha256": "f5fdb7689058312aee03e3b383eb2adeac12784abcea8dbfef199206bef27423",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_list_string/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_list_string/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_lists/argv.txt",
+   "sha256": "52c36af9b47d69d365f92f8d03162bdcc91a4a669cbf6850d6bafa4e84a0b9bb",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_lists/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_lists/out.ini",
+   "sha256": "846acc714470cda91207a16db39dd12415da684f50301d560003f433abd3460b",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_lists/stderr.txt",
+   "sha256": "d06c019070785c5e9c20ebce0b54f3108312dc5c989f78550def15b9c0f79a48",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_lists/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_fd_lists/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_missing/argv.txt",
+   "sha256": "65aaa75a5ccbca05bccf671238714d2f2b2e2964076bc5917c861f264fc189b7",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_missing/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_missing/stderr.txt",
+   "sha256": "20e4c24c9acbdb79159b8960ec0fb577e5f20fb11e481c74ffb5e06896023718",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_missing/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_missing/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_all/argv.txt",
+   "sha256": "86ccbdee3866aedcb52a5e3501b8d2c50ce151a87482033f348421e7b506ad15",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_all/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_all/out.ini",
+   "sha256": "56fadf1709b636527dac22ca8ef15b2be2b17a420cb925896f1a31d21179d04a",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_all/stderr.txt",
+   "sha256": "ed0cc867ee75a27c221a37d05108cb41e8c6ecd2725c2b9ba6364921235b6550",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_all/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_all/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_array_root/argv.txt",
+   "sha256": "2e149a30181bb4db2215cfc9f74158ecccbd4467f6a19c82d910f7772d342986",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_array_root/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_array_root/stderr.txt",
+   "sha256": "c74c6b3add2cf48248b115ad72fca7815c8e4c2c9ea1a6efaf8e243c9d1fc2a0",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_array_root/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_array_root/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bom/argv.txt",
+   "sha256": "5cb2df82f5e78a5253282a43caf32bcb928ad11b2fd8ce092ab7d66484305e1b",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bom/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bom/out.ini",
+   "sha256": "4d14b8b0c383440343dfe4e58a54fbc4f658bc1647cdc12f7963846dbddc0327",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bom/stderr.txt",
+   "sha256": "3034fe26797766e0b7da346d8215acbb3c45658770262a00e26198dfa045bd98",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bom/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bom/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bool_number/argv.txt",
+   "sha256": "2fa2087a229d9b4301ee81dacf6ac713cfce2eb523983ee2eaa1cf4011f2eea0",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bool_number/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bool_number/stderr.txt",
+   "sha256": "c693b450f10344d778e55164736ed6efd32b33634b4be419bd9f5a81ede7e3d7",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bool_number/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bool_number/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bool_string/argv.txt",
+   "sha256": "1708bd5880821940d9c209da2a6dc113bb7316404f8e9afffc7a3194d19097ee",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bool_string/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bool_string/stderr.txt",
+   "sha256": "0a925104cd0d61f3357fed7555a727615997c1ede60e1fb875a4748d8db15791",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bool_string/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_bool_string/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_double_bool/argv.txt",
+   "sha256": "80f496f5515fc4542f35035bf9c8ac57cefebe46162b6a4c7a04c38328a303ae",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_double_bool/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_double_bool/stderr.txt",
+   "sha256": "c8c07a623d9697759bd7f1668c751484634c99e650e2b5ce13e9de35c0ea36cb",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_double_bool/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_double_bool/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_double_int/argv.txt",
+   "sha256": "8169f8e3ecdbfde68d4bcb13a0a1e76f5bd1c6e82bdfd86fca02f0f4c5b27063",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_double_int/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_double_int/out.ini",
+   "sha256": "a0659fc7f6b6b123488142ff8a6dd49cd02068af3fa1bc770d9d246e4abf43d1",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_double_int/stderr.txt",
+   "sha256": "04237080ecf626748904f4310af29570542375072434b92dea516a5c43af8b87",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_double_int/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_double_int/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_dup/argv.txt",
+   "sha256": "f084bc49dc02a4664cd9a7604a1bc23e6e3109430ba102981677331f14e466ec",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_dup/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_dup/out.ini",
+   "sha256": "4d14b8b0c383440343dfe4e58a54fbc4f658bc1647cdc12f7963846dbddc0327",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_dup/stderr.txt",
+   "sha256": "3034fe26797766e0b7da346d8215acbb3c45658770262a00e26198dfa045bd98",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_dup/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_dup/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty/argv.txt",
+   "sha256": "a30320a226fe1d03b9666c0d99258698f18f9feee4da4d8f4438db5e62386cab",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty/stderr.txt",
+   "sha256": "fcecd4339b8e779082c2edee0ff0d76e292dd8de70aeb9f7263be87292c73f75",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty_obj/argv.txt",
+   "sha256": "42f43fca1db7f269151d404f0d632c2953ede3dca446279546d3e9d5483a22eb",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty_obj/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty_obj/out.ini",
+   "sha256": "dc0f7b60f89f7ba2b151d8e14bf9ff4bc5d8027f3a060bff102a6c9d149983ff",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty_obj/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty_obj/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty_obj/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty_section/argv.txt",
+   "sha256": "953591425d4c69e9637b228e88409701799e3041383bea432ed3ad019eb8a7e3",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty_section/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty_section/out.ini",
+   "sha256": "dc0f7b60f89f7ba2b151d8e14bf9ff4bc5d8027f3a060bff102a6c9d149983ff",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty_section/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty_section/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_empty_section/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_flat/argv.txt",
+   "sha256": "90f7db1d349157ca240f3a76eab6a26a01835c2fda261a93e4433871c86427fa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_flat/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_flat/out.ini",
+   "sha256": "d39ff70e5fcf2a2bc5d145675d88af04691a60e3270526fe9794a51c739cc5b9",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_flat/stderr.txt",
+   "sha256": "3d93a2ef48daa16474b1ec7c21223dc251e770c1ee89e103bdb812c48b9f5357",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_flat/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_flat/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_classnum/argv.txt",
+   "sha256": "70266d640e40a33724509a0ec0de0aa825bf1dc6929aeacc6805f0117bd3961f",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_classnum/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_classnum/stderr.txt",
+   "sha256": "7789d6415f4477267697677551e86f0e51b8b212dbffc6f3e981ecc146ef2fb1",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_classnum/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_classnum/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_noclass/argv.txt",
+   "sha256": "5d7e4c2990474f85fba0eed1d3a3ed6a4a01d57e83e082532561e31e741865b7",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_noclass/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_noclass/stderr.txt",
+   "sha256": "d51773668912d0ff03fefc1b55c7c8c3d7a94464cdff197f9ac88ccf932dc526",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_noclass/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_noclass/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_nopath/argv.txt",
+   "sha256": "a5a0ae439dff5679186a6af98622b664a3cc2d9fb2465e2ee722f2c7bc3ab4a1",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_nopath/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_nopath/stderr.txt",
+   "sha256": "4aad84c7af30cf8484ffb3c9427428a5dfb8badcb3c730528c22f982500cfa0b",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_nopath/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_nopath/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_string/argv.txt",
+   "sha256": "48d15a9d5ac4bd29d308ef9ef2f06c29ca00ba83f47f99051f2fbbeb0e31eeb9",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_string/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_string/stderr.txt",
+   "sha256": "c0917bc228623dd8868a03336ce29b290092b48868cadfe500543f492f34084a",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_string/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_in_string/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_inf/argv.txt",
+   "sha256": "70f3838ff6c9605256b6005c5cb9e6671ff14b6237607c43148d34d335d0ba4c",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_inf/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_inf/stderr.txt",
+   "sha256": "78b530c30b16cbf0a67fe780ed873db6f1ca6c13d0884fe2f7c99a968cc8da77",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_inf/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_inf/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_instance2/argv.txt",
+   "sha256": "4b6fa6ccb6bbc9d1fad52df58058748c4b35d42ed3a4acd6a80b03ad5f08e110",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_instance2/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_instance2/stderr.txt",
+   "sha256": "ad94798a8e67e9a5345c9c448b5585fae367c8da899eb9eb56a3458e4db1bd78",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_instance2/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_instance2/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_instance2_empty/argv.txt",
+   "sha256": "0567e09b7d50b1910d3a71d8f907d44469c400e9986e4dfb6c95d9b5a1ee7baf",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_instance2_empty/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_instance2_empty/out.ini",
+   "sha256": "02345119aa8a27733c266435815823a72e52663ac354f13b7d3aec1a76a4898f",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_instance2_empty/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_instance2_empty/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_instance2_empty/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_bool/argv.txt",
+   "sha256": "38fe8bc51db68dacf999f2554b8aedb4ae78db67889d9d57ee242fbc851ff7f2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_bool/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_bool/stderr.txt",
+   "sha256": "c8c07a623d9697759bd7f1668c751484634c99e650e2b5ce13e9de35c0ea36cb",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_bool/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_bool/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_float/argv.txt",
+   "sha256": "401db0574d888d7cdedc2297dcdd71d96a836e818eb466ffeb4e7dbcef32a584",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_float/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_float/out.ini",
+   "sha256": "399a692abfc9df16cca73028ca4b8595c33e8ac5ca3359e34cb6e24a4b7dbe4c",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_float/stderr.txt",
+   "sha256": "730b31cb02b7bce9d29ee0ecabc71350ba8fa79d1aaddcc3da66fbcbca61282c",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_float/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_float/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_huge/argv.txt",
+   "sha256": "aa6fd17d001b6015d58a68ca186c0cf2e1120587844504e8b0286a2db6521740",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_huge/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_huge/out.ini",
+   "sha256": "b2e3fef086e4ad3edde66d0ef6df06423269bfbf3d74dddb25c51045a2588e4a",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_huge/stderr.txt",
+   "sha256": "b761faaf66e5f3dba65c54e6df9c7a566a112e7a62d6cfdfa36c2bea29bcfe3d",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_huge/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_huge/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_string/argv.txt",
+   "sha256": "8cd807028f5c0de0c73c6dfb2337662e183ce42d7d382d6aec051df65f0dc424",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_string/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_string/stderr.txt",
+   "sha256": "aa0def68a5ff6820e52e7cf9fc2577123a13b298d93a2be5cd68230e914b9182",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_string/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_string/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_u64/argv.txt",
+   "sha256": "0a7df04832167afb1780e9038ff546504b364af1f5ae9f82902651d75b0c6242",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_u64/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_u64/out.ini",
+   "sha256": "dc0f7b60f89f7ba2b151d8e14bf9ff4bc5d8027f3a060bff102a6c9d149983ff",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_u64/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_u64/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_int_u64/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist/argv.txt",
+   "sha256": "e64b12c0b76429ab8205e46358cd233008c22920b2e77d873f5bbcc4baa18d66",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist/out.ini",
+   "sha256": "dc0f7b60f89f7ba2b151d8e14bf9ff4bc5d8027f3a060bff102a6c9d149983ff",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist/stderr.txt",
+   "sha256": "0439321137c1c385cb1d5ac1f76640d7c85e0634f355622db34db92a31d67946",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_huge/argv.txt",
+   "sha256": "e7b524142f49f1922ab1cee97dc9e8a3b53f153be7db578b91ca48800df7561d",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_huge/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_huge/out.ini",
+   "sha256": "dc0f7b60f89f7ba2b151d8e14bf9ff4bc5d8027f3a060bff102a6c9d149983ff",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_huge/stderr.txt",
+   "sha256": "6d58ece8a96495e774e9829c84fb43987ce5b89abceb8f1f9479df3b13ebac1e",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_huge/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_huge/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_scalar/argv.txt",
+   "sha256": "ac591058af00fed1a4360bb5ed9ad539eb6a0a0aa4beed2027935c14e108231d",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_scalar/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_scalar/stderr.txt",
+   "sha256": "957ae51edc4b7590df408f06f7ef250c28e7bb4af0fd0ff2bb850d41019df7fd",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_scalar/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_scalar/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_string/argv.txt",
+   "sha256": "4e79f29bc5f5366a8eeeeb08562cdfc39a53a2f8702d3153b16aa829588ed195",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_string/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_string/stderr.txt",
+   "sha256": "aa0def68a5ff6820e52e7cf9fc2577123a13b298d93a2be5cd68230e914b9182",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_string/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_intlist_string/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_key_colon/argv.txt",
+   "sha256": "4e63b76b570ceab4d17e870e59c89fe854196e32765ca12846956ae46e416bfe",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_key_colon/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_key_colon/stderr.txt",
+   "sha256": "ea54f253938e59ad6bca6434d0b1a358996e24d3d6ed96dbf69e4e3575e143c3",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_key_colon/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_key_colon/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_neg_zero/argv.txt",
+   "sha256": "4682223e88547672a9087534b14054a00dc2ebae521961eb329bea277749eb8a",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_neg_zero/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_neg_zero/out.ini",
+   "sha256": "dc0f7b60f89f7ba2b151d8e14bf9ff4bc5d8027f3a060bff102a6c9d149983ff",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_neg_zero/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_neg_zero/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_neg_zero/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_null/argv.txt",
+   "sha256": "5e2badc807e538f2f915245124d6c8de71741f2d3c5acdb8cdb36b163102ef8d",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_null/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_null/out.ini",
+   "sha256": "dc0f7b60f89f7ba2b151d8e14bf9ff4bc5d8027f3a060bff102a6c9d149983ff",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_null/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_null/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_null/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_out_object/argv.txt",
+   "sha256": "ca610ac41c3fbfc46afc1721022d28646f9d4eda8db45f391ebc12bfbfb5c865",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_out_object/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_out_object/stderr.txt",
+   "sha256": "a19056d0ef4b2d7a86269d354e18458d79b1f1cac51148ac0448ad4b6b6222e7",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_out_object/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_out_object/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_plain_gz/argv.txt",
+   "sha256": "f7bc8af38f9c4093df45c02df17c16ba8de6fa810e0d494e79d4d1ac936eb727",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_plain_gz/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_plain_gz/out.ini",
+   "sha256": "07b3dda654298b6e58ff625998dcde9f37a276e8c2e993b171af02c7e7fc0c5b",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_plain_gz/stderr.txt",
+   "sha256": "6bfb975b5da6e3daeba6a86277ea5accf8e2aff3ea3607f262c2305054f6e819",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_plain_gz/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_plain_gz/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_file_object/argv.txt",
+   "sha256": "8e70fd5c3f4342f0cd03f22d89710bd61e2b4afa4ff9bc81bc45717d9f168566",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_file_object/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_file_object/stderr.txt",
+   "sha256": "a19056d0ef4b2d7a86269d354e18458d79b1f1cac51148ac0448ad4b6b6222e7",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_file_object/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_file_object/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_number/argv.txt",
+   "sha256": "b5875cb9406f735e6e1286a0278672f4eafb44bc287c8631bfea0244526dd3e4",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_number/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_number/stderr.txt",
+   "sha256": "22c67b0dfd44c50aecbbf60be74298730492294dda7a7bef0badcdbdab81b254",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_number/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_number/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_root/argv.txt",
+   "sha256": "77a5c1bff06fd70505d3e5a612e7f580dd03df3b5c5802225fa66c8ddd1d22b1",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_root/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_root/stderr.txt",
+   "sha256": "85f473d1ec005f865354aef934289119b4d2cfcdee08bc2f548ed00657b01a5e",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_root/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_string_root/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_syntax/argv.txt",
+   "sha256": "5ea67b5f67b6f258ef17cab07aa77688ae42a828021db9512161e47022dbc65b",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_syntax/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_syntax/stderr.txt",
+   "sha256": "b54a269b10015c9e39baaf86547d3601264dd1b8531c2b666d4c240202a2df02",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_syntax/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_syntax/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_trailing_comma/argv.txt",
+   "sha256": "6069ecfccd12acd7a7e65acbcaa3a34f2ef0bad6d4fd2fa28dbbb50085c05dfd",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_trailing_comma/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_trailing_comma/stderr.txt",
+   "sha256": "6fb07fba25701fda0b94f9db8138d13166e0ba93c2690219caf89dfba7786251",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_trailing_comma/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_trailing_comma/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_trailing_garbage/argv.txt",
+   "sha256": "8c14103a39e0fb70882eb62378fe82504eabf13a3d8af3f945b209a0750c12a1",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_trailing_garbage/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_trailing_garbage/stderr.txt",
+   "sha256": "d60b9860535cda4bdd3fb246406aa2bd602c21d71d920a49b172060a82a8abc9",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_trailing_garbage/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_trailing_garbage/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_unknown/argv.txt",
+   "sha256": "e512b1a9c50c39b3936670b2b8df73db9b76b707bdd4f8d4e4d087ac0cc00d52",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_unknown/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_unknown/stderr.txt",
+   "sha256": "e0b36716f5a6ea0e96b96ba666beb6d8ed101c16934aca050de9e501dd8367de",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_unknown/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_unknown/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_upper/argv.txt",
+   "sha256": "e2fc9b8d4b54b724c2574f58a196a818e3602c901d9f3ef6165f373e6f7db576",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_upper/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_upper/out.ini",
+   "sha256": "1331bdaac6ff319a2e179894926ce866a73382bd05893d5afed5f29eccd64333",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_upper/stderr.txt",
+   "sha256": "b22143e65c511194a5c4696d11a320e81b98191b89a3e0183ca2a56f6dc2d094",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_upper/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_upper/tree.txt",
+   "sha256": "67d0fc8f83750ef877e97e80ac1b3655d76cbbc99f12623d0a343867ca6f3561",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_version/argv.txt",
+   "sha256": "f7502acd58c8e78708dca7ed83ab6d1f830cf71c6ac23f1ab1c14f5c977b2c7a",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_version/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_version/stderr.txt",
+   "sha256": "86bc23b74ce44011bff389546873a408dcfe8beba2e066b112b5a5620bb26791",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_version/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_version/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_ws/argv.txt",
+   "sha256": "a003f21b8eaa66aa7c9bdc39aa81692127844be566b003ad721652148f00f3b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_ws/exit_code.txt",
+   "sha256": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_ws/stderr.txt",
+   "sha256": "7596cad77445f6ead2584664f0fa4ec15fe03012960a847088669b12a2d4cb55",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_ws/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  },
+  {
+   "path": "tests/data/topp_json_ini/w_pphr_ws/tree.txt",
+   "sha256": "526487df9f5695053cee40d617f3746ac447f78369849c1b8e7bcd23b2e255b5",
+   "origin": "executed on the Release build (run2, ../oracle/json-ini/cases.sh)"
+  }
+ ],
+ "native_implementation": [
+  "src/format/param_json.rs",
+  "src/cli.rs",
+  "src/cli/context.rs",
+  "src/cli/outcome.rs",
+  "src/format/file_info/report.rs",
+  "src/format/file_info/peaks.rs"
+ ],
+ "native_tests": [
+  "tests/topp_json_ini.rs",
+  "tests/param_json.rs",
+  "tests/topp_cli_lifecycle.rs",
+  "tests/file_info.rs",
+  "tests/topp_file_info.rs"
+ ],
+ "support": "docs/TOPP_CLI_SUPPORT.md"
+}
