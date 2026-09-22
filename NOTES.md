@@ -65,6 +65,12 @@ Upstream test: core bc9cc12 src/tests/class_tests/openms/source/MSExperiment_tes
   (experiment_summary.rs) used by 6 linear default entry points. MapNormalizer workaround (src/cli) -> report, not mine.
   WARNING: scratch dir shared with sibling lanes (prov.py got overwritten) -> prefix scratch files msexp_.
 
+- Fragment written: .planning/ledger-fragments/msexperiment.json (ignored; generator script scratch msexp_fragment.py).
+  MSExperiment.h -> complete; MSSpectrum.h, Peak1D.h, ChromatogramPeak.h scope notes.
+- Gates so far: check_module_cycles OK, check_source_citations only NOTES.md (deleted at end), check_core_sdk OK,
+  doc coverage improved (not --write). Sweep started on dax slot msexp-close at commit 30376cf
+  (log: scratch msexp-sweep.out / msexp-sweep/); later commits only add a test + doc.
+
 ## Next step
 0. Remaining: gates (sweep on dax, check_core_sdk, check_doc_coverage --report, check_module_cycles, check_source_citations),
    ledger fragment .planning/ledger-fragments/<lane>.json, delete NOTES.md in final commit, report.
