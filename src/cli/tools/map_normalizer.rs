@@ -241,7 +241,7 @@ mod tests {
     /// An empty combined intensity range is refused, as the source refuses it:
     /// `getMaxIntensity()` is asked for before the peak loop and throws on an
     /// empty range. The pinned C++ Release build exits 8 and writes nothing on
-    /// both shapes; this port exits 6 and writes nothing. See
+    /// both shapes, and so does this port. See
     /// `an_empty_combined_intensity_range_is_refused` in
     /// `tests/topp_map_normalizer.rs` for the end-to-end case.
     #[test]
