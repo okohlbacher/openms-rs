@@ -64,3 +64,6 @@ Gaps (ranked):
   (c) FFC citations. (e) 0b6a73a context.rs refusals -> run_body escaped_refusal. (d) was already done on main by 436878b; FuzzyDiff truncation warning now log_warning.
 - run3 oracle fetched: ../oracle/json-ini/run3/results (x_missing_log, x_missing_write_ini, x_malformed_log, j_missing_log, fi_forced_*). Not yet retained in tests.
 - NEXT: retain run3 + test; docs (TOPP_CLI_SUPPORT JSON section, exit table rows 133-160, FILE_INFO item 3, THIRD_PARTY serde_json); provenance json; ledger fragment; gates.
+- DONE (6e88010): batch3 retained+tests, docs, provenance, ledger fragment (.planning/ledger-fragments/toppbase-finish.json, untracked/ignored), store side, fmt.
+  Local checks (core_sdk, doc_coverage --report, module_cycles, source_citations) rc=0.
+- NEXT: sweep on dax: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64 ~/.local/bin/openms-ci-sweep.sh toppbase-finish-1 <logdir> (background); slices for new tests; final commit deleting NOTES.md.
