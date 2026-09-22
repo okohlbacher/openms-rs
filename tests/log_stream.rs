@@ -643,7 +643,7 @@ fn exit_child(case: &str, path: &str, out: &str) -> io::Result<()> {
             finish_process_logs()?;
             std::process::exit(3);
         }
-        // No guard: only the thread's own streams are finished, when the thread ends.
+        // No guard: the thread finishes its streams, and the global ones, when it ends.
         "thread_end" => case_body(case),
         _ => unreachable!("unknown exit path {path}"),
     }
@@ -700,17 +700,15 @@ fn process_exit_paths_deliver_what_the_release_build_delivers() -> io::Result<()
         assert_eq!(run(case, "error"), (Some(101), port(case)), "{case} error");
         assert_eq!(run(case, "panic"), (Some(101), port(case)), "{case} panic");
     }
-    // Without a guard, a thread's own streams are still finished when the thread ends,
-    // as the source's `thread_local` destructors are. The global streams are statics,
-    // which Rust never drops: what they hold unflushed is not delivered. This is what
-    // `ProcessLogs` and `finish_process_logs` are for.
-    for case in ["tls", "tls_order", "thread"] {
+    // Without a guard, a thread's own streams are finished when the thread ends, as the
+    // source's `thread_local` destructors are, and then the global streams, because this
+    // thread used them (`with_global_log`), as the source's static destructors follow.
+    for case in ["tls", "tls_order", "global", "both", "thread"] {
         assert_eq!(
             run(case, "thread_end"),
             (Some(0), port(case)),
             "{case} thread end"
         );
     }
-    assert_eq!(run("global", "thread_end"), (Some(0), String::new()));
     std::fs::remove_dir_all(&directory)
 }

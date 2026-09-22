@@ -9,7 +9,9 @@
   calls it when dropped. Every tool executable holds one for the whole run,
   so repetition summaries and unterminated lines reach their streams on every
   exit code and on a panic. A thread's streams now end in reverse creation
-  order when the thread ends, as the source's `thread_local` streams do. The
+  order when the thread ends, as the source's `thread_local` streams do, and
+  a thread that used `with_global_log` then finishes the global streams, so a
+  program's `main` loses nothing at exit without the guard either. The
   global debug stream is delivered too, where the Release build loses it
   (CPP-355). On Windows the console is switched to virtual-terminal
   processing as the source's `InitConsole` does, through `winapi-util`, and

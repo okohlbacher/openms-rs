@@ -11,7 +11,7 @@
 //! to observe final flush errors; destruction can only make a best-effort flush.
 
 use chrono::{Datelike, NaiveDate, Timelike};
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::fmt;
 use std::io::{self, Write};
 use std::ops::{Deref, DerefMut};
@@ -901,10 +901,15 @@ fn global(level: LogLevel) -> &'static RwLock<LogStream> {
 }
 /// Configure a global route before threads first access it. Existing TLS streams retain
 /// their earlier snapshot. Recursive access to the same stream returns `WouldBlock`.
+///
+/// The calling thread becomes responsible for the global streams: when it ends, after its
+/// own streams, they are finished as by [`finish_process_logs`]. For the main thread that is
+/// process exit, where the platform runs its thread-local destructors.
 pub fn with_global_log<T>(
     level: LogLevel,
     action: impl FnOnce(&mut LogStream) -> io::Result<T>,
 ) -> io::Result<T> {
+    let _ = LOCAL.try_with(|logs| logs.owns_globals.set(true));
     let mut logger = global(level).try_write().map_err(|error| match error {
         std::sync::TryLockError::WouldBlock => {
             io::Error::new(io::ErrorKind::WouldBlock, "global logger is in use")
@@ -918,6 +923,8 @@ pub fn with_global_log<T>(
 struct LocalLogs {
     slots: [RefCell<Option<LogStream>>; 5],
     created: RefCell<Vec<LogLevel>>,
+    /// Whether this thread used [`with_global_log`], and so finishes the global streams.
+    owns_globals: Cell<bool>,
 }
 impl LocalLogs {
     /// Finish every stream, most recently created first, keeping it for further use.
@@ -936,11 +943,16 @@ impl LocalLogs {
     }
 }
 /// The source's function-local `thread_local` streams are destroyed in reverse order of
-/// construction when the thread ends, each flushing as `~LogStreamBuf` does.
+/// construction when the thread ends, each flushing as `~LogStreamBuf` does. A thread that
+/// used the global streams then finishes them, as the source's static destructors run after
+/// the exiting thread's `thread_local` ones.
 impl Drop for LocalLogs {
     fn drop(&mut self) {
         for level in std::mem::take(self.created.get_mut()).into_iter().rev() {
             drop(self.slots[level.index()].get_mut().take());
+        }
+        if self.owns_globals.get() {
+            finish_globals(&mut None);
         }
     }
 }
@@ -948,6 +960,7 @@ thread_local! {
     static LOCAL: LocalLogs = LocalLogs {
         slots: std::array::from_fn(|_| RefCell::new(None)),
         created: RefCell::new(Vec::new()),
+        owns_globals: Cell::new(false),
     };
 }
 fn local_in_use() -> io::Error {
@@ -999,10 +1012,12 @@ pub fn with_thread_local_log<T>(
 /// skipped; every other stream is finished even when one fails, and the first error is
 /// returned. Streams of other threads are finished when those threads end.
 ///
-/// Rust runs no destructor for a static, so without this call text written directly to a
-/// global stream (via [`with_global_log`]) and not yet flushed is never delivered. Tool
-/// executables call it through [`ProcessLogs`] on every way out of the process; a program of
-/// its own holds a [`ProcessLogs`] in `main` or calls this before `std::process::exit`.
+/// Rust runs no destructor for a static. The thread that used [`with_global_log`] finishes
+/// the global streams when it ends; for the main thread that is process exit only where the
+/// platform runs the main thread's thread-local destructors (Linux with glibc and macOS do,
+/// for a return from `main` and for `std::process::exit`). This call makes the moment and
+/// the order explicit and returns errors: tool executables make it through [`ProcessLogs`]
+/// on every way out of the process, and a program of its own can hold a [`ProcessLogs`].
 ///
 /// The global debug stream is flushed too. The source constructs it with `delete_buf =
 /// false` (`LogStream.cpp:672`, "should be 'true', but segfaults"), so its buffer is never
@@ -1011,6 +1026,11 @@ pub fn finish_process_logs() -> io::Result<()> {
     let mut first_error = None;
     // A thread whose streams are being destroyed has them finished by that destruction.
     let _ = LOCAL.try_with(|logs| logs.finish(&mut first_error));
+    finish_globals(&mut first_error);
+    first_error.map_or(Ok(()), Err)
+}
+/// The global streams, in the order the source's static destructors run.
+fn finish_globals(first_error: &mut Option<io::Error>) {
     for level in [
         LogLevel::Debug,
         LogLevel::Info,
@@ -1024,22 +1044,21 @@ pub fn finish_process_logs() -> io::Result<()> {
         match lock.try_write() {
             Ok(mut logger) => {
                 if !logger.failed {
-                    keep_first(&mut first_error, logger.finish());
+                    keep_first(first_error, logger.finish());
                 }
             }
             Err(std::sync::TryLockError::WouldBlock) => keep_first(
-                &mut first_error,
+                first_error,
                 Err(io::Error::new(
                     io::ErrorKind::WouldBlock,
                     "global logger is in use",
                 )),
             ),
             Err(std::sync::TryLockError::Poisoned(_)) => {
-                keep_first(&mut first_error, Err(poisoned()));
+                keep_first(first_error, Err(poisoned()));
             }
         }
     }
-    first_error.map_or(Ok(()), Err)
 }
 
 /// Runs [`finish_process_logs`] when dropped: at the end of the scope that holds it, on an

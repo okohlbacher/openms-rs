@@ -171,13 +171,19 @@ Every tool executable holds a `ProcessLogs` for the whole run
 and also when it panics, the streams are finished after the tool's own output
 and before the terminal reset. The crate has no `std::process::exit` call.
 
-A program of its own holds a `ProcessLogs` in `main`, or calls
-`finish_process_logs` before `std::process::exit`, which runs no destructor on
-the stack. Without either, the thread-local streams are still finished when
-their thread ends, as in the source; text written directly to a global stream
-through `with_global_log` and never flushed is not delivered. The logging
-macros write and flush each line, so what such a program can lose there is the
-summary of a line repeated just before exit and a line left unterminated.
+A program of its own needs neither. When a thread ends, its streams are
+finished, most recently created first, and then, if the thread used
+`with_global_log`, the global streams: the thread that configured or wrote to
+them owns their exit-time flush. For the main thread that happens at process
+exit, because Rust runs the main thread's thread-local destructors there, for a
+return from `main` and for `std::process::exit` alike; measured on macOS and on
+Linux with glibc (dax). A platform that does not run them (the Rust
+documentation names Unix targets whose thread-local storage uses pthread keys)
+loses what the main thread's and the global streams still hold unless the
+program holds a `ProcessLogs` or calls `finish_process_logs`. A worker thread
+that uses `with_global_log`, which the source documents as configuration to do
+before threads start, finishes the global streams when it ends, earlier than
+the source would.
 
 The expected bytes of `process_exit_paths_deliver_what_the_release_build_delivers`
 come from the C++ Release build at the pins (`../oracle/logstream-exit`,
@@ -186,7 +192,8 @@ state, pending global state, both at once, the order of two thread-local
 streams, and a thread that ends before `main` logs again, each ended by a
 return from `main` and by `std::exit`, which print the same bytes. The test runs
 each case in a child process that ends by a return, an error return, a panic and
-`std::process::exit`, and once without the guard.
+`std::process::exit`, and once without the guard, where the ending thread
+finishes the streams.
 
 One divergence: the source constructs its global debug stream with `delete_buf =
 false` (`LogStream.cpp:672`, with the comment that `true` "segfaults"), so the
