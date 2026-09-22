@@ -119,32 +119,26 @@ impl ChromatogramPeak {
     }
 }
 
-/// A number as a default `std::ostream` writes it: `%g` at precision 6, glibc
-/// spelling for the nonfinite values (`inf`, `-inf`, `nan`, `-nan`). This is
-/// what the alternate form (`{:#}`) of the peak and container `Display`
-/// implementations writes, byte for byte the Linux Release build's
-/// `operator<<` text (`../oracle/msexperiment-close`).
-pub(crate) fn stream_number(value: f64) -> String {
-    crate::format::file_info::text_format::ostream_g(value, 6)
-}
-
 // The source's comparator overloads map directly to scalar comparisons on the
 // public fields. Formatting and hashing are the remaining value operations.
 //
 // `{}` prints Rust's shortest round-trip numbers and `{:.N}` fixed decimals;
 // `{:#}` prints the source `operator<<` text, `POS: <%g> INT: <%g>`
-// (`Peak1D.cpp:13-17`, `ChromatogramPeak.cpp:14-18`), where the intensity `float`
-// is widened to `double` first as the stream does.
+// (`Peak1D.cpp:13-17`, `ChromatogramPeak.cpp:14-18`): each number as a default
+// `std::ostream` writes it, `ostream_g` at precision 6 with glibc's `nan`/`-nan`,
+// the `float` intensity widened to `double` first. Byte for byte the Linux
+// Release build's text (`../oracle/msexperiment-close`).
 macro_rules! peak_value_traits {
     ($peak:ty, $position:ident) => {
         impl fmt::Display for $peak {
             fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 if formatter.alternate() {
+                    use crate::format::file_info::text_format::ostream_g;
                     return write!(
                         formatter,
                         "POS: {} INT: {}",
-                        stream_number(self.$position),
-                        stream_number(f64::from(self.intensity))
+                        ostream_g(self.$position, 6),
+                        ostream_g(f64::from(self.intensity), 6)
                     );
                 }
                 match formatter.precision() {
