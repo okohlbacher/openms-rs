@@ -10,8 +10,10 @@
 //! document carries no tree of its own: the caller hands in the tool's default
 //! parameters, and the document only sets values of entries that already
 //! exist. The source's store side needs the TDL library, which the Release
-//! build is compiled without; the command line refuses `-write_json` for that
-//! reason (see `src/cli.rs`), so this module has no writer.
+//! build is compiled without: there `ParamJSONFile::store` and
+//! `writeToStream` throw, and so do [`ParamJsonFile::store`] and
+//! [`ParamJsonFile::write_to_stream`] here. The command line refuses
+//! `-write_json` for the same reason (see `src/cli.rs`).
 //!
 //! The document is parsed by `serde_json`, and every rule after the parse is
 //! the source's (`ParamJSONFile.cpp:38-167` at core pin `bc9cc12`), including
@@ -20,11 +22,64 @@
 //! See `docs/TOPP_CLI_SUPPORT.md` ("JSON INI files") for the one difference
 //! that remains, the wording of most syntax errors.
 
+use crate::data_structures::ToolInfo;
 use crate::param::{MAX_PARAM_BYTES, Param, ParamValue};
 use crate::{Error, Result};
 use serde_json::Value;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::Path;
+
+/// The message of the `std::runtime_error` the Release build's
+/// `ParamJSONFile::writeToStream` throws, built without TDL
+/// (`ParamJSONFile.cpp:323-327` at core `bc9cc12`).
+pub const TDL_UNAVAILABLE: &str =
+    "TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature.";
+
+/// Source class `ParamJSONFile`: [`load`] reads, and the store side is the
+/// Release build's, which has no TDL.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ParamJsonFile {
+    /// Source `flatHierarchy`: with TDL, names would be written with their
+    /// sections joined by `__` instead of nested. Kept for the API; the
+    /// Release build writes nothing either way.
+    pub flat_hierarchy: bool,
+}
+
+impl ParamJsonFile {
+    /// Source `load` ([`load`]), a static member there.
+    ///
+    /// # Errors
+    ///
+    /// As [`load`].
+    pub fn load(path: impl AsRef<Path>, param: &mut Param) -> Result<Vec<String>> {
+        load(path, param)
+    }
+
+    /// Source `store` (`ParamJSONFile.cpp:170-189`): in the Release build the
+    /// writer throws [`TDL_UNAVAILABLE`] after the target was opened, which
+    /// leaves an empty file behind; this port refuses before it touches
+    /// `filename` (CPP-350, as the command line's `-write_json`).
+    /// `tool_info` is unused, as in the source.
+    ///
+    /// # Errors
+    ///
+    /// Always [`Error::Unsupported`] with [`TDL_UNAVAILABLE`].
+    pub fn store(&self, filename: &str, param: &Param, tool_info: &ToolInfo) -> Result<()> {
+        let _ = (filename, tool_info);
+        self.write_to_stream(&mut std::io::sink(), param)
+    }
+
+    /// Source `writeToStream`, which the Release build compiles to the throw of
+    /// [`TDL_UNAVAILABLE`] (`ParamJSONFile.cpp:323-327`). Nothing is written.
+    ///
+    /// # Errors
+    ///
+    /// Always [`Error::Unsupported`] with [`TDL_UNAVAILABLE`].
+    pub fn write_to_stream(&self, output: &mut dyn Write, param: &Param) -> Result<()> {
+        let _ = (output, param, self.flat_hierarchy);
+        Err(Error::Unsupported(TDL_UNAVAILABLE.into()))
+    }
+}
 
 /// The largest JSON document [`load`] reads, in bytes: the bound every
 /// parameter tree of this crate already has ([`MAX_PARAM_BYTES`]).
@@ -70,7 +125,11 @@ pub fn load_from_slice(bytes: &[u8], filename: &str, param: &mut Param) -> Resul
             "JSON parameter file '{filename}' exceeds {MAX_JSON_BYTES} bytes"
         )));
     }
-    let tool = match param.iter()?.next().and_then(|item| item.trace.first().cloned()) {
+    let tool = match param
+        .iter()?
+        .next()
+        .and_then(|item| item.trace.first().cloned())
+    {
         Some(trace) => trace.name,
         None => {
             return Err(Error::InvalidValue(
@@ -105,7 +164,8 @@ fn read_bounded(path: &Path) -> Result<Vec<u8>> {
     let mut bytes = Vec::new();
     // One byte past the bound, so a stream that is too long is refused rather
     // than cut.
-    file.take(MAX_JSON_BYTES as u64 + 1).read_to_end(&mut bytes)?;
+    file.take(MAX_JSON_BYTES as u64 + 1)
+        .read_to_end(&mut bytes)?;
     Ok(bytes)
 }
 

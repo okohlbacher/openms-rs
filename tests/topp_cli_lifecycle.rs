@@ -1515,7 +1515,12 @@ fn accessor_misuse_ends_as_the_source_catch_blocks_end_it() {
         ctx.string("nope")?;
         Ok(ExitCode::ExecutionOk)
     });
-    assert_eq!(unregistered.code, ExitCode::InternalError, "{}", unregistered.err);
+    assert_eq!(
+        unregistered.code,
+        ExitCode::InternalError,
+        "{}",
+        unregistered.err
+    );
     assert_eq!(
         unregistered.err,
         "Internal error: Request for unregistered parameter 'nope'\n"
@@ -1526,26 +1531,60 @@ fn accessor_misuse_ends_as_the_source_catch_blocks_end_it() {
         ctx.string("count")?;
         Ok(ExitCode::ExecutionOk)
     });
-    assert_eq!(wrong_type.code, ExitCode::InternalError, "{}", wrong_type.err);
+    assert_eq!(
+        wrong_type.code,
+        ExitCode::InternalError,
+        "{}",
+        wrong_type.err
+    );
     assert_eq!(
         wrong_type.err,
         "Internal error: Request for parameter with wrong type 'count'\n"
     );
 
     for call in [
-        (|ctx: &ToolContext| ctx.int("name").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from))
-            as fn(&ToolContext) -> ToolResult,
-        |ctx| ctx.double("count").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from),
-        |ctx| ctx.flag("count").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from),
-        |ctx| ctx.string_list("name").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from),
-        |ctx| ctx.int_list("name").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from),
-        |ctx| ctx.double_list("name").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from),
-        |ctx| ctx.output_dir("count").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from),
+        (|ctx: &ToolContext| {
+            ctx.int("name")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        }) as fn(&ToolContext) -> ToolResult,
+        |ctx| {
+            ctx.double("count")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        },
+        |ctx| {
+            ctx.flag("count")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        },
+        |ctx| {
+            ctx.string_list("name")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        },
+        |ctx| {
+            ctx.int_list("name")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        },
+        |ctx| {
+            ctx.double_list("name")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        },
+        |ctx| {
+            ctx.output_dir("count")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        },
     ] {
         let outcome = with_accessor(call);
         assert_eq!(outcome.code, ExitCode::InternalError, "{}", outcome.err);
         assert!(
-            outcome.err.starts_with("Internal error: Request for parameter with wrong type '"),
+            outcome
+                .err
+                .starts_with("Internal error: Request for parameter with wrong type '"),
             "{}",
             outcome.err
         );
@@ -1649,7 +1688,9 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
     let invalid = stream_tool(Err(Error::InvalidValue("bad".into())));
     assert_eq!(invalid.code, ExitCode::UnknownError, "{}", invalid.err);
     assert!(
-        invalid.err.contains("Error: Unexpected internal error (bad)"),
+        invalid
+            .err
+            .contains("Error: Unexpected internal error (bad)"),
         "{}",
         invalid.err
     );
@@ -1693,7 +1734,9 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
     let range = stream_tool(Err(Error::InvalidRange("inverted".into())));
     assert_eq!(range.code, ExitCode::UnknownError, "{}", range.err);
     assert!(
-        range.err.contains("Error: Unexpected internal error (inverted)"),
+        range
+            .err
+            .contains("Error: Unexpected internal error (inverted)"),
         "{}",
         range.err
     );

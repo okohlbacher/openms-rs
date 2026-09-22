@@ -1153,8 +1153,7 @@ const TDL_WRITERS: [(&str, &str); 4] = [
 /// The message of the Release build's `std::runtime_error` from
 /// `ParamCWLFile` and `ParamJSONFile` when TDL is not compiled in
 /// (`ParamCWLFile.cpp:331`, `ParamJSONFile.cpp:326`).
-pub const TDL_UNAVAILABLE: &str =
-    "TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature.";
+pub const TDL_UNAVAILABLE: &str = param_json::TDL_UNAVAILABLE;
 
 /// Source `handleWriteCommands_` (`TOPPBase.cpp:2546-2686`).
 ///
@@ -1351,8 +1350,7 @@ fn load_json_ini(
         session.error(out, err, &not_found)?;
         return Ok(Err(ExitCode::InputFileNotFound));
     }
-    if (file::is_directory(path) || std::path::Path::new(path).is_file()) && !file::readable(path)
-    {
+    if (file::is_directory(path) || std::path::Path::new(path).is_file()) && !file::readable(path) {
         session.error(out, err, &not_readable)?;
         return Ok(Err(ExitCode::InputFileNotReadable));
     }
@@ -1544,7 +1542,9 @@ fn load_ini(
             session.error(
                 out,
                 err,
-                &format!("Error: Unable to read file (While loading '{path}': {message} in: {path})"),
+                &format!(
+                    "Error: Unable to read file (While loading '{path}': {message} in: {path})"
+                ),
             )?;
             Ok(Err(ExitCode::InputFileCorrupt))
         }

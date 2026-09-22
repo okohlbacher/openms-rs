@@ -145,7 +145,11 @@ fn replay<T: Tool>(case: &str) -> Replay {
     };
     if let Some(template) = template {
         let document = fs::read_to_string(inputs.join(template)).unwrap();
-        fs::write(cwd.join("run.json"), document.replace("@IN@", &text(&inputs))).unwrap();
+        fs::write(
+            cwd.join("run.json"),
+            document.replace("@IN@", &text(&inputs)),
+        )
+        .unwrap();
     }
     if case == "w_directory" {
         fs::create_dir_all(cwd.join("dir.json")).unwrap();
@@ -245,16 +249,24 @@ fn assert_log(case: &str, port: Option<Vec<String>>, release: Option<Vec<String>
         .iter()
         .position(|line| line.contains(":: Value of string option 'no_progress'"))
         .unwrap_or_else(|| panic!("{case}: no -no_progress line"));
-    assert_eq!(port[..framework], release[..framework], "{case}: the log file");
+    assert_eq!(
+        port[..framework],
+        release[..framework],
+        "{case}: the log file"
+    );
     if case == "r_pphr_debug2_log" {
         let before = release.len();
         release.retain(|line| !line.ends_with(":: Value of string option 'in': /x/in.mzML\n"));
         assert_eq!(release.len(), before - 1, "{case}");
     }
-    let (mut port_rest, mut release_rest) = (port[framework..].to_vec(), release[framework..].to_vec());
+    let (mut port_rest, mut release_rest) =
+        (port[framework..].to_vec(), release[framework..].to_vec());
     port_rest.sort();
     release_rest.sort();
-    assert_eq!(port_rest, release_rest, "{case}: the log file after the parameters");
+    assert_eq!(
+        port_rest, release_rest,
+        "{case}: the log file after the parameters"
+    );
 }
 
 /// Compares a replay with the Release run; `err` maps the Release standard
@@ -272,13 +284,21 @@ fn assert_case<T: Tool>(case: &str, err: impl Fn(String) -> String) {
     let stdout = replay.release(case, "stdout.txt").unwrap();
     let (out, took) = took_line::split_took_line(T::NAME, &stdout);
     assert_eq!(replay.out, out, "{case}: stdout");
-    assert_eq!(replay.took.is_some(), took.is_some(), "{case}: the closing line");
+    assert_eq!(
+        replay.took.is_some(),
+        took.is_some(),
+        "{case}: the closing line"
+    );
     assert_eq!(
         replay.err,
         err(replay.release(case, "stderr.txt").unwrap()),
         "{case}: stderr"
     );
-    assert_ini(case, replay.ini.as_deref(), replay.release(case, "out.ini").as_deref());
+    assert_ini(
+        case,
+        replay.ini.as_deref(),
+        replay.release(case, "out.ini").as_deref(),
+    );
     assert_log(case, replay.log.clone(), release_log(&replay, case));
 }
 
@@ -288,9 +308,7 @@ fn cases(prefix: &str, tool: &str) -> Vec<String> {
         .unwrap()
         .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
         .filter(|name| name.starts_with(prefix))
-        .filter(|name| {
-            read(name, "argv.txt").is_some_and(|argv| argv.lines().next() == Some(tool))
-        })
+        .filter(|name| read(name, "argv.txt").is_some_and(|argv| argv.lines().next() == Some(tool)))
         .collect();
     names.sort();
     names
@@ -314,13 +332,17 @@ const SYNTAX_ERRORS: [&str; 5] = [
 fn with_serde_wording(port_err: &str) -> impl Fn(String) -> String + '_ {
     move |release: String| {
         let frame = |text: &str| -> (usize, usize) {
-            let start = text.find("Error: Unable to read file (").expect("the frame") + 28;
+            let start = text
+                .find("Error: Unable to read file (")
+                .expect("the frame")
+                + 28;
             let end = text.rfind(" in: )\n").expect("the frame's end");
             (start, end)
         };
         let (start, end) = frame(&release);
         assert!(
-            release[start..end].starts_with("[json.exception.parse_error.101] parse error at line "),
+            release[start..end]
+                .starts_with("[json.exception.parse_error.101] parse error at line "),
             "{release}"
         );
         let (port_start, port_end) = frame(port_err);
@@ -366,7 +388,10 @@ fn write_ini_from_a_json_ini_is_the_release_builds() {
 #[test]
 fn write_ini_with_lists_is_the_release_builds() {
     let names = cases("w_", "FuzzyDiff");
-    assert_eq!(names, ["w_fd_list_number", "w_fd_list_string", "w_fd_lists"]);
+    assert_eq!(
+        names,
+        ["w_fd_list_number", "w_fd_list_string", "w_fd_lists"]
+    );
     for case in &names {
         assert_case::<FuzzyDiff>(case, |text| text);
     }
@@ -429,9 +454,17 @@ fn the_retained_runs_are_the_oracles() {
     for line in summary.lines().skip(1) {
         let fields: Vec<&str> = line.split('\t').collect();
         let case = format!("batch3/{}", fields[0]);
-        assert_eq!(read(&case, "exit_code.txt").unwrap().trim(), fields[2], "{line}");
+        assert_eq!(
+            read(&case, "exit_code.txt").unwrap().trim(),
+            fields[2],
+            "{line}"
+        );
     }
-    assert!(read("batch3", "host.txt").unwrap().starts_with("ibminode06\n"));
+    assert!(
+        read("batch3", "host.txt")
+            .unwrap()
+            .starts_with("ibminode06\n")
+    );
 }
 
 /// Batch 3: a parameter-XML `-ini` that is missing, before a run and with
@@ -475,7 +508,10 @@ fn a_malformed_ini_reaches_the_log_as_in_the_release_build() {
     assert_eq!(release_log.len(), 1, "{release_log:?}");
     assert_eq!(port_log.len(), 1, "{port_log:?}");
     assert!(release_log[0].starts_with(&format!("<time> PeakPickerHiRes:1:: {prefix}")));
-    assert_eq!(port_log[0], format!("<time> PeakPickerHiRes:1:: {}", replay.err));
+    assert_eq!(
+        port_log[0],
+        format!("<time> PeakPickerHiRes:1:: {}", replay.err)
+    );
     assert_eq!(replay.out, "");
 }
 

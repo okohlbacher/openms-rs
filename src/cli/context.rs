@@ -403,9 +403,7 @@ impl ToolContext {
     }
 
     fn value(&self, name: &str) -> Result<&ParamValue> {
-        self.param
-            .value(name)
-            .map_err(|_| self.unregistered(name))
+        self.param.value(name).map_err(|_| self.unregistered(name))
     }
 
     /// A string, input-file, output-file or output-prefix option, as
@@ -422,10 +420,7 @@ impl ToolContext {
                 self.write_debug(&format!("Value of string option '{name}': {text}"), 1);
                 Ok(text)
             }
-            _ => Err(self.wrong_type(
-                name,
-                format!("parameter '{name}' is not a string"),
-            )),
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not a string"))),
         }
     }
     /// An output-directory option, as `getOutputDirOption`: the directory,
@@ -451,10 +446,7 @@ impl ToolContext {
                 }
                 Ok(text)
             }
-            _ => Err(self.wrong_type(
-                name,
-                format!("parameter '{name}' is not a string"),
-            )),
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not a string"))),
         }
     }
     /// An integer option, as `getIntOption_`.
@@ -469,10 +461,7 @@ impl ToolContext {
                 self.write_debug(&format!("Value of int option '{name}': {value}"), 1);
                 Ok(*value)
             }
-            _ => Err(self.wrong_type(
-                name,
-                format!("parameter '{name}' is not an integer"),
-            )),
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not an integer"))),
         }
     }
     /// A floating-point option, as `getDoubleOption_`.
@@ -512,10 +501,7 @@ impl ToolContext {
                 }
                 Ok(values)
             }
-            _ => Err(self.wrong_type(
-                name,
-                format!("parameter '{name}' is not a string list"),
-            )),
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not a string list"))),
         }
     }
     /// An integer list, as `getIntList_`.
@@ -532,10 +518,7 @@ impl ToolContext {
                 }
                 Ok(values)
             }
-            _ => Err(self.wrong_type(
-                name,
-                format!("parameter '{name}' is not an integer list"),
-            )),
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not an integer list"))),
         }
     }
     /// A floating-point list, as `getDoubleList_`.
@@ -555,10 +538,7 @@ impl ToolContext {
                 }
                 Ok(values)
             }
-            _ => Err(self.wrong_type(
-                name,
-                format!("parameter '{name}' is not a float list"),
-            )),
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not a float list"))),
         }
     }
     /// Source `getFlag_`: a registered flag is true only when it was given.
@@ -590,10 +570,7 @@ impl ToolContext {
                     format!("Invalid parameter: {message}"),
                 ))
             }
-            _ => Err(self.wrong_type(
-                name,
-                format!("parameter '{name}' is not a flag"),
-            )),
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not a flag"))),
         }
     }
     /// Values of a registered subsection with the subsection prefix removed,

@@ -27,7 +27,8 @@ pub struct MapNormalizer;
 /// The text of the `Exception::InvalidRange` that `RangeBase::getMax()`
 /// throws for an empty range (`RangeManager.h:139-146` at core `bc9cc12`),
 /// which the Release build prints for a run without intensities.
-const EMPTY_RANGE: &str = "Empty or uninitialized range object. Did you forget to call updateRanges()?";
+const EMPTY_RANGE: &str =
+    "Empty or uninitialized range object. Did you forget to call updateRanges()?";
 
 impl Tool for MapNormalizer {
     const NAME: &'static str = "MapNormalizer";

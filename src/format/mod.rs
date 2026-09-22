@@ -31,12 +31,12 @@ pub mod text;
 pub use csv::CsvFile;
 pub use text::TextFile;
 
-/// OpenMS parameter trees in INI XML format.
-#[cfg(feature = "paramxml")]
-pub mod paramxml;
 /// Parameter values from a JSON document onto a known tree (`ParamJSONFile`).
 #[cfg(feature = "paramxml")]
 pub mod param_json;
+/// OpenMS parameter trees in INI XML format.
+#[cfg(feature = "paramxml")]
+pub mod paramxml;
 
 /// Single-spectrum DTA peak-list input and output.
 pub mod dta;

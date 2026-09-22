@@ -95,10 +95,9 @@ impl SpectraFilterWindowMower {
             ParamValue::Float(v) => *v,
             ParamValue::Integer(v) => *v as f64,
             _ => {
-                return Err(Error::InvalidValue(
-                    "algorithm:windowsize must be a number".into(),
-                )
-                .into());
+                return Err(
+                    Error::InvalidValue("algorithm:windowsize must be a number".into()).into(),
+                );
             }
         };
         let peak_count = match value("peakcount")? {
@@ -106,10 +105,9 @@ impl SpectraFilterWindowMower {
                 Error::InvalidValue("algorithm:peakcount must not be negative".into())
             })?,
             _ => {
-                return Err(Error::InvalidValue(
-                    "algorithm:peakcount must be an integer".into(),
-                )
-                .into());
+                return Err(
+                    Error::InvalidValue("algorithm:peakcount must be an integer".into()).into(),
+                );
             }
         };
         let method = WindowMowerMethod::from_str(value("movetype")?.as_str()?)?;
