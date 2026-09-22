@@ -1,5 +1,41 @@
 # Validation of the ongoing Rust port
 
+## LogStream.h closure: process exit and the Windows console (2026-09-22)
+
+The two gaps the ledger named for `CONCEPT/LogStream.h` are closed
+([LOG_STREAM_SUPPORT](LOG_STREAM_SUPPORT.md), *Process exit* and *Console
+colours on Windows*). Executed for this checkpoint:
+
+- `../oracle/logstream-exit`: 7 cases of a driver built against the Release
+  install `openms4-release-bc9cc12-c19e494-174b576` on ibminode06 (Linux
+  x86_64, the install's own g++ 14.4.0), each run twice with identical bytes,
+  standard output and error captured apart and together. They fix the order in
+  which the source's exit-time destructors deliver pending text: the exiting
+  thread's streams, most recently created first, then the global streams debug,
+  info, warning, error, fatal; the global debug stream's text is lost (CPP-355).
+- `tests/log_stream.rs`: 18 passed with `--no-default-features`, on stable and
+  on 1.85.0. The new test runs every case in a child process and ends it by a
+  return, an error return, a panic, `std::process::exit` and a thread end
+  without the guard, and compares the bytes with the Release build. It fails
+  when the thread's streams are finished in creation order instead.
+- Main-thread thread-local destructors run at a return from `main` and at
+  `std::process::exit`: measured with a probe on macOS and on dax (glibc 2.39).
+- `topp_cli_console` (3) and `topp_cli_lifecycle` (75) pass with
+  `--features "mzml paramxml"`: the tool executables' output is unchanged.
+- The Windows branch compiles for `x86_64-pc-windows-msvc` (rustc 1.96, no
+  default features, all targets); no runner gives a test process a console, so
+  it is not executed, and its 1.85 build is left to the `schema-minimum-platforms`
+  job.
+- `tools/check_core_sdk.py`, `check_doc_coverage.py` (`log_stream.rs` 46/46,
+  floor recorded), `check_module_cycles.py` and `check_source_citations.py`
+  pass. `core_sdk_coverage.py` is left for the lead.
+- The CI sweep (`openms-ci-sweep.sh`, 54 lines, minimum-rust on 1.85.0) ran
+  on dax: 54 passed, 0 failed. `tests/log_stream.rs` ran 18 tests in each of
+  its five lines: `--all-features --all-targets` and `--no-default-features`
+  on stable and on 1.85.0, and `--no-default-features --features idxml`. The
+  stable `--all-features --all-targets` line ran 374 test binaries, 5,701
+  tests, none failed.
+
 ## Repair F2: FileInfo on truncated input (2026-09-21)
 
 The verifier of Phase 3 wave 1 found that FileInfo reported a truncated mzXML
