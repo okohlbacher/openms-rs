@@ -992,7 +992,7 @@ fn prepare<T: Tool>(
         if is_json_ini(&ini_path) {
             session.debug(out, "Assuming INI is a cwl file", 1)?;
         }
-        let loaded = match load_any_ini(&ini_path, &defaults, err)? {
+        let loaded = match load_any_ini(T::NAME, &ini_path, &defaults, err)? {
             Ok(loaded) => loaded,
             Err(code) => return Ok(Prepared::Done(code)),
         };
@@ -1190,7 +1190,7 @@ fn write_commands<T: Tool>(
         let mut written = defaults.checked_clone()?;
         if cmd.exists("ini")? {
             let ini_path = text_value(cmd, "ini")?;
-            let loaded = match load_any_ini(&ini_path, defaults, err)? {
+            let loaded = match load_any_ini(T::NAME, &ini_path, defaults, err)? {
                 Ok(loaded) => loaded,
                 Err(code) => return Ok(Some(code)),
             };
@@ -1288,14 +1288,15 @@ fn is_json_ini(path: &str) -> bool {
 
 /// The `-ini` file as the INI merge and `-write_ini` read it: a JSON document
 /// through [`load_json_ini`], anything else as parameter XML through
-/// [`load_ini`].
+/// [`load_ini`]. `tool` is the tool's name, for the initialisation catch.
 fn load_any_ini(
+    tool: &str,
     path: &str,
     defaults: &Param,
     err: &mut dyn Write,
 ) -> Result<std::result::Result<Param, ExitCode>> {
     if is_json_ini(path) {
-        load_json_ini(path, defaults, err)
+        load_json_ini(tool, path, defaults, err)
     } else {
         load_ini(path, err)
     }
@@ -1306,49 +1307,48 @@ fn load_any_ini(
 /// ([`param_json::load`]).
 ///
 /// The source's `load` returns `true` or throws, so its `ILLEGAL_PARAMETERS`
-/// return is never reached; every failure takes the run-phase catch:
+/// return is never reached. Its failures (oracle `../oracle/json-ini`):
 ///
 /// * A missing file is [`ExitCode::InputFileNotFound`] and an unreadable one
-///   [`ExitCode::InputFileNotReadable`], with the wording [`load_ini`] writes
-///   (`ParamJSONFile.cpp:46-56`; caught at `TOPPBase.cpp:436-441` and
-///   `448-453`).
+///   [`ExitCode::InputFileNotReadable`], the `FileNotFound` and
+///   `FileNotReadable` of `ParamJSONFile.cpp:46-56`, caught at
+///   `TOPPBase.cpp:436-441` and `448-453` (oracle `w_missing`).
 /// * A document that is no JSON or no object, a name the tool does not have,
 ///   and a value of the wrong JSON type are the source's `ParseError`:
 ///   `Error: Unable to read file (<message> in: )` and
-///   [`ExitCode::InputFileCorrupt`] (`460-465`). A directory opens and reads
-///   nothing on the reference build, so it is the parse error of an empty
-///   document.
+///   [`ExitCode::InputFileCorrupt`] (`460-465`).
+/// * A file that opens and then fails to read, such as a directory, throws
+///   the `std::ios_base::failure` of libstdc++'s `basic_filebuf::underflow`
+///   out of `json::parse`. No OpenMS catch takes it, so the initialisation
+///   catch writes `Unable to initialize or run <tool>: basic_filebuf::underflow
+///   error reading the file: <strerror>` and the tool exits with
+///   [`ExitCode::InternalError`] (`510-514`; oracle `w_directory`).
 /// * Any other failure to open is [`ExitCode::UnknownError`] with the
 ///   `IOException` wording, as in [`load_ini`] (`ParamJSONFile.cpp:57-60`).
 ///
 /// The warning lines of the load go to standard error as the source's
 /// `OPENMS_LOG_WARN` does.
 fn load_json_ini(
+    tool: &str,
     path: &str,
     defaults: &Param,
     err: &mut dyn Write,
 ) -> Result<std::result::Result<Param, ExitCode>> {
-    let not_found = format!("Error: File not found (the file '{path}' does not exist)");
+    let not_found = format!("Error: File not found (the file '{path}' could not be found)");
     let not_readable = format!(
         "Error: File not readable (the file '{path}' is not readable for the current user)"
     );
-    let corrupt = |message: &str| format!("Error: Unable to read file ({message} in: )");
     if !file::exists(path) {
         log_error(err, &not_found)?;
         return Ok(Err(ExitCode::InputFileNotFound));
     }
-    let directory = file::is_directory(path);
-    if (directory || std::path::Path::new(path).is_file()) && !file::readable(path) {
+    if (file::is_directory(path) || std::path::Path::new(path).is_file()) && !file::readable(path)
+    {
         log_error(err, &not_readable)?;
         return Ok(Err(ExitCode::InputFileNotReadable));
     }
     let mut loaded = defaults.checked_clone()?;
-    let result = if directory {
-        param_json::load_from_slice(&[], path, &mut loaded)
-    } else {
-        param_json::load(path, &mut loaded)
-    };
-    match result {
+    match param_json::load(path, &mut loaded) {
         Ok(warnings) => {
             for warning in &warnings {
                 log_warning(err, warning)?;
@@ -1356,7 +1356,7 @@ fn load_json_ini(
             Ok(Ok(loaded))
         }
         Err(Error::Parse { message, .. }) => {
-            log_error(err, &corrupt(&message))?;
+            log_error(err, &format!("Error: Unable to read file ({message} in: )"))?;
             Ok(Err(ExitCode::InputFileCorrupt))
         }
         Err(Error::Io(error)) => {
@@ -1368,12 +1368,28 @@ fn load_json_ini(
                     ExitCode::UnknownError,
                     format!("Error: Unexpected internal error (IO error for file '{path}')"),
                 ),
-                _ => (ExitCode::InputFileCorrupt, corrupt(&error.to_string())),
+                _ => (
+                    ExitCode::InternalError,
+                    format!(
+                        "Unable to initialize or run {tool}: basic_filebuf::underflow error reading the file: {}",
+                        os_error_text(&error)
+                    ),
+                ),
             };
             log_error(err, &text)?;
             Ok(Err(code))
         }
         Err(error) => Ok(Err(run_failure(&error, err))),
+    }
+}
+
+/// The C library's text for an operating-system error, as `strerror` gives
+/// it: the standard library's rendering without its ` (os error <n>)`.
+fn os_error_text(error: &std::io::Error) -> String {
+    let text = error.to_string();
+    match (error.raw_os_error(), text.rfind(" (os error ")) {
+        (Some(_), Some(at)) if text.ends_with(')') => text[..at].to_owned(),
+        _ => text,
     }
 }
 
