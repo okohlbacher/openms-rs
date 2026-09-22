@@ -251,6 +251,30 @@ pub fn load_with_progress(
 ) -> Result<MSExperiment> {
     load_reporting(path, options, &mut ProgressReporter::new(Some(logger)))
 }
+/// Read an already opened DTA2D stream, reporting progress to `logger` with
+/// the calls [`load_with_progress`] makes.
+///
+/// For a caller that owns the transport, such as
+/// [`FileHandler`](crate::format::file_handler::FileHandler), which opens
+/// gzip and bzip2 input before it dispatches. The section starts once the
+/// stream exists, so a file that cannot be opened makes no call here, where
+/// [`load_with_progress`] starts the section first as the source does.
+///
+/// # Errors
+///
+/// As [`read_with_options`], plus the errors of the progress calls
+/// ([`ProgressLogger::start_progress`] and its siblings).
+pub fn read_with_progress(
+    reader: impl BufRead,
+    options: &ReadOptions,
+    logger: &mut ProgressLogger,
+) -> Result<MSExperiment> {
+    let mut progress = ProgressReporter::new(Some(logger));
+    progress.start(0, 0, "loading DTA2D file")?;
+    let experiment = read_reporting(reader, options, &mut progress)?;
+    progress.end()?;
+    Ok(experiment)
+}
 /// The source's `load`: its section around the reader.
 fn load_reporting(
     path: impl AsRef<Path>,
