@@ -11,8 +11,10 @@
 //! parameters, and the document only sets values of entries that already
 //! exist. The source's store side needs the TDL library, which the Release
 //! build is compiled without: there `ParamJSONFile::store` and
-//! `writeToStream` throw, and so do [`ParamJsonFile::store`] and
-//! [`ParamJsonFile::write_to_stream`] here. The command line refuses
+//! `writeToStream` throw, and so do
+//! [`ParamJsonFile::store`](crate::format::param_json::ParamJsonFile::store) and
+//! [`ParamJsonFile::write_to_stream`](crate::format::param_json::ParamJsonFile::write_to_stream)
+//! here. The command line refuses
 //! `-write_json` for the same reason (see `src/cli.rs`).
 //!
 //! The document is parsed by `serde_json`, and every rule after the parse is
@@ -451,7 +453,7 @@ fn int(node: &Value) -> Result<i32> {
 fn float_to_i64(value: f64) -> i64 {
     // 2^63 is exact in f64; the range is [-2^63, 2^63).
     const LIMIT: f64 = 9_223_372_036_854_775_808.0;
-    if value.is_finite() && value >= -LIMIT && value < LIMIT {
+    if (-LIMIT..LIMIT).contains(&value) {
         value.trunc() as i64
     } else {
         i64::MIN

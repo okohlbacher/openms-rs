@@ -1478,8 +1478,10 @@ fn ended_with(result: ToolResult, args: &[&str]) -> Outcome {
 
 /// A tool whose body reads its parameters with a chosen accessor.
 struct AccessorTool;
+/// The body [`AccessorTool`] runs.
+type AccessorCall = fn(&ToolContext) -> ToolResult;
 thread_local! {
-    static ACCESSOR_CALL: RefCell<Option<fn(&ToolContext) -> ToolResult>> = const { RefCell::new(None) };
+    static ACCESSOR_CALL: RefCell<Option<AccessorCall>> = const { RefCell::new(None) };
 }
 impl Tool for AccessorTool {
     const NAME: &'static str = "AccessorTool";
@@ -1494,7 +1496,7 @@ impl Tool for AccessorTool {
         call(ctx)
     }
 }
-fn with_accessor(call: fn(&ToolContext) -> ToolResult) -> Outcome {
+fn with_accessor(call: AccessorCall) -> Outcome {
     ACCESSOR_CALL.with(|slot| *slot.borrow_mut() = Some(call));
     run::<AccessorTool>(&["-test"])
 }

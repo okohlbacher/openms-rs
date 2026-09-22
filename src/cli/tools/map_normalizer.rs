@@ -46,7 +46,7 @@ impl Tool for MapNormalizer {
     /// `TOPPBase::main` applies the setting before `main_`
     /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`].
     fn run(ctx: &ToolContext) -> ToolResult {
-        Ok(ctx.in_thread_pool(|| Self::run_in_pool(ctx))??)
+        ctx.in_thread_pool(|| Self::run_in_pool(ctx))?
     }
 }
 
