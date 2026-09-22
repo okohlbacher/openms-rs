@@ -38,6 +38,16 @@ Gaps (ranked):
 - Oracle: remote dir /ceph/ibmi/abi/oliver/oracle-runs/json-ini (ibminode06); local ../oracle/json-ini; retain in tests/data/topp_json_ini/<case>/{argv,exit_code,stdout,stderr,out.ini}.
   Replay pattern: tests/support/release_runs.rs (run_with_registry in-process; map oracle paths).
 
+- ORACLE run1 fetched: ../oracle/json-ini/run1/results (ibminode06, Release). run2 (adds 3 debug-log cases) -> remote results2.
+  Exit codes: ParseError -> 3 (INPUT_FILE_CORRUPT=3! enum: 0 OK,1 NOT_FOUND,2 NOT_READABLE,3 CORRUPT,4 EMPTY,5 CANNOT_WRITE,6 ILLEGAL,7 MISSING,8 UNKNOWN,...,12 INTERNAL).
+  missing .json -> 1 'Error: File not found (the file '<p>' could not be found)'  (XML path in Rust says 'does not exist' = latent bug, FileNotFound ctor Exception.cpp:166-167 says 'could not be found').
+  directory .json -> 12 'Unable to initialize or run PeakPickerHiRes: basic_filebuf::underflow error reading the file: Is a directory' (std::exception outer catch).
+  1e400 -> '[json.exception.out_of_range.406] number overflow parsing '1e400'' exit 3 (reproducible!). -0 -> 0.0 (Rust gives -0.0: divergence).
+  1e30 int -> -9223372036854775808 confirmed; lenient AND strict update accept it for min 0 (int cast quirk). -debug 1 without -log prints nothing.
+- FFC citations DONE (c4a693b), completion 49 + console 4 tests pass (default features).
+
 ## Next step
 2. Write src/format/param_json.rs (load) behind paramxml (+dep:serde_json); wire into load_ini.
-3. Oracle: Release runs with JSON INIs on ibminode06 (nlohmann messages, instance quirk, bool-in-int-list).
+3. Fix loader per oracle: 'could not be found' (JSON + XML), read failure -> 12 underflow msg (needs tool name), 1e400 -> out_of_range.406 msg.
+4. tests/topp_json_ini.rs replaying run2 (retain in tests/data/topp_json_ini); unit tests in tests/param_json.rs (ParamJSONFile_test.cpp).
+5. Gaps (b),(d),(e); docs; THIRD_PARTY entry; ledger fragment; sweep.
