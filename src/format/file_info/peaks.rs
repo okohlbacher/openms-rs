@@ -193,14 +193,10 @@ fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<
 ///   source does not hand them to this reader.
 /// - MS2: `MS2File::load` (`:931-937`), [`crate::format::ms2`], which likewise
 ///   takes no `PeakFileOptions`.
+///
+/// [`load_experiment`] has refused a file whose detected type is not
+/// `in_type` before this is reached.
 fn load_source_reader(path: &Path, in_type: FileType) -> Result<MSExperiment> {
-    let detected = FileHandler::get_type(path)?;
-    if detected != in_type {
-        return Err(Error::InvalidValue(format!(
-            "{} is not an allowed input format",
-            detected.name()
-        )));
-    }
     match in_type {
         FileType::Mgf => crate::format::mascot_generic::load_with_options(
             path,
