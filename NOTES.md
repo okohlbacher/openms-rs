@@ -17,5 +17,24 @@ Upstream test: core bc9cc12 src/tests/class_tests/openms/source/MSExperiment_tes
 4. "missing-value NaNs": check gap vs divergence (store_metadata_names path, h:1355-1364 NaN when meta missing)
 5. Ledger also notes SummaryLimits max_work fixed 50M (open, larger than one tool) - report, not necessarily this lane
 
+## Findings (session 2)
+- Scratch: /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad
+  (use literal paths; sandbox refuses $VAR in sed/git and python heredocs mentioning git; use Edit tool + plain git cmds)
+- Item 4 NaNs: NOT a gap. experiment_2d.rs import() writes f32::NAN for a missing key. Represented.
+- Sec 11 (test.cpp:308-395): fm f1(int 7.5,rt 8.5,mz 9.5), f2(17.5,18.5,19.5; NUM_OF_MASSTRACES=2, masstrace_intensity_0=11f, _1=12f, charge 2)
+  -> get2DData(FeatureMap) == [f1, f2{int 11}, f2{int 12, mz + C13C12/2}], same charge? (f2_x copies f2 which has charge 0! fm2 copied BEFORE setCharge)
+- Sec 42/43 (test.cpp:1211-1340): levels 1,2,1,2,2; native ids scan=1..5; precursor spectrum_ref scan=1/scan=3/scan=3.
+  expect 0->1, 1->end, 2->3, 3->end, 4->end, end->end; all MS1 -> all end.
+  Rust Precursor has typed `spectrum_reference: Option<String>` (kernel.rs:182) == C++ meta "spectrum_ref".
+  One Rust fn first_product_spectrum_index(usize)->Option<usize> covers both overloads (len == end).
+  >1 precursors -> OPENMS_LOG_WARN "Spectrum at index N has multiple precursors. Only the first precursor will be considered." (cpp:1029-1031)
+- Sec 54 (test.cpp:1641-1667): substrings MSEXPERIMENT BEGIN, MSSPECTRUM BEGIN, MSCHROMATOGRAM BEGIN, 47.11, 10.77.
+  MSChromatogram Display exists (src/kernel/chromatogram_merge.rs:585); ExperimentalSettings Display exists
+  (src/metadata/experimental_settings.rs:200, only BEGIN/END lines -- verify vs C++);
+  MSSpectrum Display MISSING (docs/SPECTRUM_MOBILITY_SUPPORT.md:125) -> add in src/kernel.
+
 ## Next step
-1. Read MSExperiment_test.cpp sections 11, 42, 43, 54 at pin
+1. Read C++ MSSpectrum operator<< + SpectrumSettings operator<< + ExperimentalSettings operator<< at pin; chromatogram Display style.
+2. first_product_spectrum_index in src/kernel.rs + tests.
+3. MSSpectrum Display + MSExperiment Display; Release oracle on ibminode06 for exact text.
+4. set_2d_data mass traces from FeatureMap.
