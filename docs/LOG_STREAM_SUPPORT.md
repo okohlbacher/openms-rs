@@ -36,6 +36,41 @@ the supplied source path and line but do not terminate the process. Debug locati
 use a basename. Debug has no destination by default; info uses stdout, and fatal,
 error and warning use stderr.
 
+## API mapping
+
+Every public member of `LogStream.h` at core `bc9cc12`, and the process-level
+behaviour of `LogStream.cpp` and `Colorizer.cpp` it relies on.
+
+| Source | Rust |
+|---|---|
+| `LogStreamBuf::MAX_TIME` | Not ported: nothing in the source reads it. |
+| `LogStreamBuf::UNKNOWN_LOG_LEVEL` | `UNKNOWN_LOG_LEVEL` |
+| `LogStreamBuf(log_level, Colorizer*)` | `LogStream::new(level)` and `LogStream::set_color` |
+| `LogStreamBuf(source_buf, Colorizer*)` (the thread-local copy) | `LogStream::clone_configuration` |
+| `~LogStreamBuf` | `Drop for LogStream`; `LogStream::finish` returns its errors |
+| `sync` | `Write::flush` |
+| `overflow` | The put buffer of `LOG_BUFFER_BYTES` synchronises when full, inside `Write::write` |
+| `LogStreamBuf::setLevel`, `getLevel` | Declared without a definition in the source; `LogStream::set_level`, `level` |
+| `LogStreamBuf::StreamStruct` (`stream`, `prefix`, `target`) | Private route: a `LogSink`, its prefix, an optional `LogNotification` |
+| `clearCache` | `LogStream::clear_cache` |
+| Protected `distribute_`, `expandPrefix_`, `getStreamList_`, `syncLF_`, `isInCache_`, `addToCache_`, `getNextLogCounter_`, `LogCacheStruct`, the buffer, level, stream list, incomplete line, colorizer and cache fields | Private implementation; no subclass hook |
+| `LogStreamNotifier` (`logNotify`, `registerAt`, `unregister`, `stream_`, `registered_at_`) | A `LogNotification` callback given to `insert_notification`; `remove` unregisters it; a captured writer keeps the text `stream_` accumulates |
+| `LogStream(buf, delete_buf, stream)` | `LogStream::new` then `insert`; `LogStream::default()` is the unbound stream |
+| `~LogStream` | `Drop for LogStream` |
+| `rdbuf`, `operator->` | Not ported: the buffer is not a separate object; its operations are methods of `LogStream` |
+| `setLevel`, `getLevel` | `LogStream::set_level`, `LogStream::level` |
+| `insert`, `remove`, `removeAllStreams`, `hasStream` | `insert`, `remove`, `remove_all_streams`, `has_stream` |
+| `insertNotification` | `insert_notification` |
+| `setPrefix(stream, prefix)`, `setPrefix(prefix)` | `set_prefix`, `set_all_prefixes` |
+| `flush`, `flushIncomplete` | `Write::flush`, `flush_incomplete` |
+| Private `findStream_`, `hasStream_`, `bound_`, `delete_buffer_` | Private implementation |
+| `LogSinkGuard` (constructor, destructor; copy and move deleted) | `LogSinkGuard::new`, `Drop`, `restore`; it borrows the stream, so it cannot be copied or moved away from it |
+| `getThreadLocalLogFatal` ... `getThreadLocalLogDebug` | `with_thread_local_log(LogLevel::Fatal ... Debug, ...)` |
+| `getGlobalLogFatal` ... `getGlobalLogDebug` | `with_global_log(LogLevel::Fatal ... Debug, ...)` |
+| `OPENMS_LOG_FATAL_ERROR`, `OPENMS_LOG_ERROR`, `OPENMS_LOG_WARN`, `OPENMS_LOG_INFO`, `OPENMS_LOG_DEBUG`, `OPENMS_LOG_DEBUG_NOFILE` | `openms_log_fatal_error!`, `openms_log_error!`, `openms_log_warn!`, `openms_log_info!`, `openms_log_debug!`, `openms_log_debug_nofile!` (`log_message`, `log_message_at`) |
+| Destructors of the thread-local streams at thread end, and of the global streams at process exit (`LogStream.cpp:667-672`, `:694-722`) | `Drop` of the thread's streams at thread end; `finish_process_logs` and `ProcessLogs` for the process (*Process exit* below) |
+| `InitConsole` and `Colorizer::isTTY` (`Colorizer.cpp:26-81`, `:155-170`), which the coloured streams rely on | `enable_console_colors`; the console test inside `LogSink` (*Console colours on Windows* below) |
+
 ## Preserved behavior
 
 - The put buffer is 32,768 bytes. Writing an LF does not itself flush a smaller
