@@ -34,6 +34,9 @@ pub use text::TextFile;
 /// OpenMS parameter trees in INI XML format.
 #[cfg(feature = "paramxml")]
 pub mod paramxml;
+/// Parameter values from a JSON document onto a known tree (`ParamJSONFile`).
+#[cfg(feature = "paramxml")]
+pub mod param_json;
 
 /// Single-spectrum DTA peak-list input and output.
 pub mod dta;

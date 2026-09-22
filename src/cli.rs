@@ -78,7 +78,7 @@ pub use tool_handler::{
 use crate::data_structures::ToolInfo;
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::{FileType, type_by_file_name};
-use crate::format::paramxml;
+use crate::format::{param_json, paramxml};
 use crate::param::{Param, ParamEntry, ParamUpdateOptions, ParamValue};
 use crate::system::file;
 use crate::{Error, Result};
@@ -989,7 +989,10 @@ fn prepare<T: Tool>(
         ini_path = text_value(&cmd, "ini")?;
         session.debug(out, &format!("INI file: {ini_path}"), 1)?;
         session.debug(out, &format!("INI location: {location}"), 1)?;
-        let loaded = match load_ini(&ini_path, err)? {
+        if is_json_ini(&ini_path) {
+            session.debug(out, "Assuming INI is a cwl file", 1)?;
+        }
+        let loaded = match load_any_ini(&ini_path, &defaults, err)? {
             Ok(loaded) => loaded,
             Err(code) => return Ok(Prepared::Done(code)),
         };
@@ -1187,7 +1190,7 @@ fn write_commands<T: Tool>(
         let mut written = defaults.checked_clone()?;
         if cmd.exists("ini")? {
             let ini_path = text_value(cmd, "ini")?;
-            let loaded = match load_ini(&ini_path, err)? {
+            let loaded = match load_any_ini(&ini_path, defaults, err)? {
                 Ok(loaded) => loaded,
                 Err(code) => return Ok(Some(code)),
             };
@@ -1274,6 +1277,104 @@ fn write_commands<T: Tool>(
         return Ok(Some(ExitCode::ExecutionOk));
     }
     Ok(None)
+}
+
+/// Whether an `-ini` file is read as JSON: the source asks
+/// `FileHandler::getTypeByFileName` for `FileTypes::JSON`
+/// (`TOPPBase.cpp:283` and `2619`), a lexical test of the name.
+fn is_json_ini(path: &str) -> bool {
+    type_by_file_name(path) == FileType::Json
+}
+
+/// The `-ini` file as the INI merge and `-write_ini` read it: a JSON document
+/// through [`load_json_ini`], anything else as parameter XML through
+/// [`load_ini`].
+fn load_any_ini(
+    path: &str,
+    defaults: &Param,
+    err: &mut dyn Write,
+) -> Result<std::result::Result<Param, ExitCode>> {
+    if is_json_ini(path) {
+        load_json_ini(path, defaults, err)
+    } else {
+        load_ini(path, err)
+    }
+}
+
+/// A JSON `-ini` file, source `TOPPBase.cpp:283-296` and `2619-2629`: the
+/// tool's defaults with the values of `ParamJSONFile::load`
+/// ([`param_json::load`]).
+///
+/// The source's `load` returns `true` or throws, so its `ILLEGAL_PARAMETERS`
+/// return is never reached; every failure takes the run-phase catch:
+///
+/// * A missing file is [`ExitCode::InputFileNotFound`] and an unreadable one
+///   [`ExitCode::InputFileNotReadable`], with the wording [`load_ini`] writes
+///   (`ParamJSONFile.cpp:46-56`; caught at `TOPPBase.cpp:436-441` and
+///   `448-453`).
+/// * A document that is no JSON or no object, a name the tool does not have,
+///   and a value of the wrong JSON type are the source's `ParseError`:
+///   `Error: Unable to read file (<message> in: )` and
+///   [`ExitCode::InputFileCorrupt`] (`460-465`). A directory opens and reads
+///   nothing on the reference build, so it is the parse error of an empty
+///   document.
+/// * Any other failure to open is [`ExitCode::UnknownError`] with the
+///   `IOException` wording, as in [`load_ini`] (`ParamJSONFile.cpp:57-60`).
+///
+/// The warning lines of the load go to standard error as the source's
+/// `OPENMS_LOG_WARN` does.
+fn load_json_ini(
+    path: &str,
+    defaults: &Param,
+    err: &mut dyn Write,
+) -> Result<std::result::Result<Param, ExitCode>> {
+    let not_found = format!("Error: File not found (the file '{path}' does not exist)");
+    let not_readable = format!(
+        "Error: File not readable (the file '{path}' is not readable for the current user)"
+    );
+    let corrupt = |message: &str| format!("Error: Unable to read file ({message} in: )");
+    if !file::exists(path) {
+        log_error(err, &not_found)?;
+        return Ok(Err(ExitCode::InputFileNotFound));
+    }
+    let directory = file::is_directory(path);
+    if (directory || std::path::Path::new(path).is_file()) && !file::readable(path) {
+        log_error(err, &not_readable)?;
+        return Ok(Err(ExitCode::InputFileNotReadable));
+    }
+    let mut loaded = defaults.checked_clone()?;
+    let result = if directory {
+        param_json::load_from_slice(&[], path, &mut loaded)
+    } else {
+        param_json::load(path, &mut loaded)
+    };
+    match result {
+        Ok(warnings) => {
+            for warning in &warnings {
+                log_warning(err, warning)?;
+            }
+            Ok(Ok(loaded))
+        }
+        Err(Error::Parse { message, .. }) => {
+            log_error(err, &corrupt(&message))?;
+            Ok(Err(ExitCode::InputFileCorrupt))
+        }
+        Err(Error::Io(error)) => {
+            use std::io::ErrorKind;
+            let (code, text) = match error.kind() {
+                ErrorKind::NotFound => (ExitCode::InputFileNotFound, not_found),
+                ErrorKind::PermissionDenied => (ExitCode::InputFileNotReadable, not_readable),
+                _ if reopen_failure(path).is_some() => (
+                    ExitCode::UnknownError,
+                    format!("Error: Unexpected internal error (IO error for file '{path}')"),
+                ),
+                _ => (ExitCode::InputFileCorrupt, corrupt(&error.to_string())),
+            };
+            log_error(err, &text)?;
+            Ok(Err(code))
+        }
+        Err(error) => Ok(Err(run_failure(&error, err))),
+    }
 }
 
 /// Load an INI file with the exit codes the source's run-phase catch assigns.
