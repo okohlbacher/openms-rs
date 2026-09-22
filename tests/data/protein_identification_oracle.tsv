@@ -1,0 +1,219 @@
+engine_fresh	keys	[SE:XTandem|SE:Comet]
+engine_fresh	original	XTandem
+engine_fresh	exit	0
+engine_fresh	stderr_bytes	0
+engine_global	keys	[SE:Zeta|SE:Alpha]
+engine_global	original	Zeta
+engine_global	exit	0
+engine_global	stderr_bytes	0
+engine_consensus	keys	[SE:percolator_x|SE:Mascot|SE:MS-GF+]
+engine_consensus	original	Mascot
+engine_consensus	exit	0
+engine_consensus	stderr_bytes	0
+settings_order	pair0	zeta=1
+settings_order	pair1	alpha=2.5
+settings_order	pair2	mid=s
+settings_order	exit	0
+settings_order	stderr_bytes	0
+idxml_msgf_first	runs	1
+idxml_msgf_first	keys	[SE:MSGFPlus|SE:Comet]
+idxml_msgf_first	original	MSGFPlus
+idxml_msgf_first	exit	0
+idxml_msgf_first	stderr_bytes	0
+idxml_comet_first	runs	1
+idxml_comet_first	keys	[SE:Comet|SE:MSGFPlus]
+idxml_comet_first	original	Comet
+idxml_comet_first	exit	0
+idxml_comet_first	stderr_bytes	0
+sp_equality	sp_meta_only_eq	true
+sp_equality	sp_meta_only_ne	false
+sp_equality	sp_meta_only_hash_equal	false
+sp_equality	sp_mass_type_eq	false
+sp_equality	sp_missed_cleavages_eq	false
+sp_equality	pi_search_meta_only_eq	true
+sp_equality	p1_inference	
+sp_equality	p2_inference	Epifany
+sp_equality	pi_search_meta_only_hash_equal	false
+sp_equality	pi_run_meta_eq	false
+sp_equality	pi_run_path_eq	false
+sp_equality	exit	0
+sp_equality	stderr_bytes	0
+charge_range	charges<>	0,0
+charge_range	charges<2>	2,2
+charge_range	charges<+2>	2,2
+charge_range	charges<2+>	0,0
+charge_range	charges<-2>	-2,-2
+charge_range	charges<2->	throws ConversionError
+charge_range	charges<0>	0,0
+charge_range	charges<1,2,3>	1,3
+charge_range	charges<3,1,2>	1,3
+charge_range	charges<1,,3>	throws ConversionError
+charge_range	charges<1, 2>	1,2
+charge_range	charges<1+,3+>	throws ConversionError
+charge_range	charges<-1,-2,-3>	-3,-1
+charge_range	charges<+2-+5>	2,5
+charge_range	charges<+1-+3>	1,3
+charge_range	charges<2-5>	2,5
+charge_range	charges<5-2>	5,2
+charge_range	charges<1-3>	1,3
+charge_range	charges<-2--5>	-2,-5
+charge_range	charges<-5--2>	-5,-2
+charge_range	charges<1-2-3>	-12,3
+charge_range	charges<1-2-3-4>	-12,-34
+charge_range	charges<2+-5+>	2,5
+charge_range	charges<2-4->	throws ConversionError
+charge_range	charges<2:5>	2,5
+charge_range	charges<5:2>	5,2
+charge_range	charges<-5:-2>	-5,-2
+charge_range	charges<1:2:3>	throws MissingInformation
+charge_range	charges<2:>	throws ConversionError
+charge_range	charges<:2>	throws ConversionError
+charge_range	charges<abc>	0,0
+charge_range	charges< 2>	2,2
+charge_range	charges<2 >	2,2
+charge_range	charges<+>	0,0
+charge_range	charges<2147483648>	0,0
+charge_range	charges<-2147483648>	-2147483648,-2147483648
+charge_range	exit	0
+charge_range	stderr_bytes	0
+names	peak_mass_type_names	[Monoisotopic|Average]
+names	spec_name0	none
+names	spec_name1	semi
+names	spec_name2	full
+names	spec_name3	unknown
+names	spec_name4	unknown
+names	spec_name5	unknown
+names	spec_name6	unknown
+names	spec_name7	unknown
+names	spec_name8	no-cterm
+names	spec_name9	no-nterm
+names	spec_by_name<none>	0
+names	spec_by_name<semi>	1
+names	spec_by_name<full>	2
+names	spec_by_name<unknown>	3
+names	spec_by_name<no-cterm>	8
+names	spec_by_name<no-nterm>	9
+names	spec_by_name<bogus>	3
+names	spec_by_name<>	3
+names	settings_specificity0	none
+names	settings_specificity1	semi
+names	settings_specificity2	full
+names	settings_specificity3	unknown
+names	settings_specificity8	no-cterm
+names	settings_specificity9	no-nterm
+names	exit	0
+names	stderr_bytes	0
+run_paths	get_missing_keeps_output	[stale]
+run_paths	exists_initial	false
+run_paths	nr_initial	0
+run_paths	exists_after_empty_set	true
+run_paths	get_after_empty_set	[]
+run_paths	get_after_set	[a.mzML|b.raw]
+run_paths	get_after_add	[a.mzML|b.raw|c.mzML|a.mzML]
+run_paths	nr_after_add	4
+run_paths	raw_exists_before	false
+run_paths	get_raw_after_add	[d|e]
+run_paths	nr_raw	2
+run_paths	get_raw_after_set	[x.raw]
+run_paths	get_after_raw_set	[a.mzML|b.raw|c.mzML|a.mzML]
+run_paths	int_value_get	throws ConversionError
+run_paths	int_value_nr	throws ConversionError
+run_paths	int_value_add	throws ConversionError
+run_paths	string_value_get	throws ConversionError
+run_paths	string_value_nr	throws ConversionError
+run_paths	string_value_add	throws ConversionError
+run_paths	exit	0
+run_paths	stderr_bytes	146
+run_paths_experiment	existing_mzML.spectra_data	[<dir>/exists.mzML]
+run_paths_experiment	existing_mzML.spectra_data_raw	absent
+run_paths_experiment	missing_mzML.spectra_data	[fallback.mzML]
+run_paths_experiment	missing_mzML.spectra_data_raw	absent
+run_paths_experiment	existing_lower_mzml.spectra_data	[<dir>/exists.mzml]
+run_paths_experiment	existing_lower_mzml.spectra_data_raw	absent
+run_paths_experiment	existing_upper_MZML.spectra_data	[<dir>/UPPER.MZML]
+run_paths_experiment	existing_upper_MZML.spectra_data_raw	absent
+run_paths_experiment	existing_mzML_gz.spectra_data	[<dir>/exists.mzML.gz]
+run_paths_experiment	existing_mzML_gz.spectra_data_raw	absent
+run_paths_experiment	directory_named_mzML.spectra_data	[<dir>/folder.mzML]
+run_paths_experiment	directory_named_mzML.spectra_data_raw	absent
+run_paths_experiment	existing_raw.spectra_data	[fallback.mzML]
+run_paths_experiment	existing_raw.spectra_data_raw	[<dir>/exists.raw]
+run_paths_experiment	upper_RAW.spectra_data	[fallback.mzML]
+run_paths_experiment	upper_RAW.spectra_data_raw	[<dir>/RUN.RAW]
+run_paths_experiment	missing_raw.spectra_data	[fallback.mzML]
+run_paths_experiment	missing_raw.spectra_data_raw	[<dir>/missing.raw]
+run_paths_experiment	two_files.spectra_data	[fallback.mzML]
+run_paths_experiment	two_files.spectra_data_raw	absent
+run_paths_experiment	empty_name.spectra_data	[fallback.mzML]
+run_paths_experiment	empty_name.spectra_data_raw	absent
+run_paths_experiment	file_uri.spectra_data	[fallback.mzML]
+run_paths_experiment	file_uri.spectra_data_raw	absent
+run_paths_experiment	no_files.spectra_data	[fallback.mzML]
+run_paths_experiment	no_files.spectra_data_raw	absent
+run_paths_experiment	missing_mzML_empty_fallback.spectra_data	[]
+run_paths_experiment	missing_mzML_empty_fallback.spectra_data_raw	absent
+run_paths_experiment	raw_empty_fallback.spectra_data	[]
+run_paths_experiment	raw_empty_fallback.spectra_data_raw	[<dir>/exists.raw]
+run_paths_experiment	other_type.spectra_data	[fallback.mzML]
+run_paths_experiment	other_type.spectra_data_raw	absent
+run_paths_experiment	exit	0
+run_paths_experiment	stderr_bytes	309
+coverage	unrelated_unknown_positions	[P1:30]
+coverage	unrelated_reversed_positions	[P1:30]
+coverage	own_unknown_positions	throws MissingInformation
+coverage	own_reversed_positions	throws MissingInformation
+coverage	empty_sequence_without_evidence	throws MissingInformation
+coverage	last_residue	[P1:10]
+coverage	nan_protein_score	[P1:30]
+coverage	exit	0
+coverage	stderr_bytes	0
+singletons	nan_score_groups	1
+singletons	nan_score_probability_isnan	true
+singletons	exit	0
+singletons	stderr_bytes	0
+charge_range2	charges< -3--1 >	-3,-1
+charge_range2	charges<2+:5+>	2,5
+charge_range2	charges<3-:1->	-3,-1
+charge_range2	charges<-2147483648:2147483647>	throws ConversionError
+charge_range2	charges<2147483648->	throws ConversionError
+charge_range2	charges<1,>	throws ConversionError
+charge_range2	charges<a>	0,0
+charge_range2	charges<3:1>	3,1
+charge_range2	charges<1,2:3>	throws ConversionError
+charge_range2	charges<--1>	throws ConversionError
+charge_range2	charges<2--3>	-2,3
+charge_range2	charges<+-2>	-2,-2
+charge_range2	charges<+1, +2>	1,2
+charge_range2	charges<+0, +0>	0,0
+charge_range2	charges<-14, -13, -12>	-14,-12
+charge_range2	charges<0:0>	0,0
+charge_range2	charges<+ 2>	0,0
+charge_range2	charges<4>	4,4
+charge_range2	charges<+1+3>	0,0
+charge_range2	charges<1-4>	1,4
+charge_range2	charges<+1,+2,+3>	1,3
+charge_range2	charges<2+ and 3+>	0,0
+charge_range2	charges<1+, 2+, 3+>	throws ConversionError
+charge_range2	charges<-2147483647-2>	-2147483647,2
+charge_range2	charges<2147483647>	2147483647,2147483647
+charge_range2	charges<+2147483647>	2147483647,2147483647
+charge_range2	charges<-0>	0,0
+charge_range2	charges<+->	throws ConversionError
+charge_range2	charges<1:->	throws ConversionError
+charge_range2	charges<-:1>	throws ConversionError
+charge_range2	charges< , >	throws ConversionError
+charge_range2	charges<+1-+3->	throws ConversionError
+charge_range2	charges<1-2->	throws ConversionError
+charge_range2	charges<-1-2-3>	-1,-23
+charge_range2	charges<1--2--3>	0,0
+charge_range2	exit	0
+charge_range2	stderr_bytes	0
+mergeable_invalid_charges	sp_mergeable	false
+mergeable_invalid_charges	pi_mergeable	false
+mergeable_invalid_charges	pi_mergeable_same_invalid	true
+mergeable_invalid_charges	exit	0
+mergeable_invalid_charges	stderr_bytes	270
+validation_free_helpers	modifications	[5:Oxidation (M)]
+validation_free_helpers	coverage	55.555555555555557
+validation_free_helpers	exit	0
+validation_free_helpers	stderr_bytes	0

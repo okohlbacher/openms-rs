@@ -1,0 +1,48 @@
+{
+ "oracle": "protein-identification-closure",
+ "purpose": "Release-build expected values for METADATA/ProteinIdentification.h members the class test does not pin: engine-name key order, settings equality, getChargeRange, name tables, primary MS run paths (including the filesystem-aware MSExperiment overload), coverage/modification validation and Release PeptideIndexer output on two runs that differ only in SE: key order.",
+ "build": {
+  "label": "Linux x86_64 Release",
+  "install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "host": "ibminode06",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+  "flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+  "libOpenMS_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "PeptideIndexer_sha256": "1f7a9da611f9b3aa30ab9e5ddbc2d0bf26af0b0c749adef2c1da8c06f41a22bc"
+ },
+ "source_revisions": {
+  "core": "bc9cc12",
+  "cli": "c19e494",
+  "topp": "174b576"
+ },
+ "driver": {
+  "location": "OpenMS4-Exploration/oracle/protein-identification-closure/driver.cpp (outside this repository)",
+  "sha256": "2ce0ec0b855f77cf1e70983935c69c62c87bd44d58228af4028125e1b0d86d96",
+  "runs": "every case twice, each in a fresh process with a clean environment; records, stderr and exit codes identical (results/differ.txt empty)"
+ },
+ "records": {
+  "path": "tests/data/protein_identification_oracle.tsv",
+  "sha256": "bb07a8215bee0bb38677adf918dd471f716e54e8985a26d4d217db57307daab8",
+  "format": "case<TAB>key<TAB>value; run directories are reported as <dir>"
+ },
+ "inputs": [
+  {
+   "path": "tests/data/protein_identification_order_msgf_first.idXML",
+   "sha256": "bdf90b65f04b85b751dc6cba0cfb311ff6011f08334e6b245d55e9b4e4f786a6"
+  },
+  {
+   "path": "tests/data/protein_identification_order_comet_first.idXML",
+   "sha256": "1b6c32f1b8364a8c1e7dbd006c9d6197bbae589698f8ce78d1a1479485ac8fb1"
+  }
+ ],
+ "peptide_indexer": {
+  "command": "PeptideIndexer -in order_<which>.idXML -fasta order.fasta -out out.idXML -threads 1 -missing_decoy_action warn -unmatched_action warn",
+  "fasta": ">P1 MKAAAKLLLRPSTEKGGG (sha256 55ac71107f9b3f9c900c8acaba888cc0d39ea3f07352137326ba17178b6653e3)",
+  "msgf_first": "exit 0; 'Peptide identification engine: MSGFPLUS'; 'Enzyme: Trypsin/P'; PSTEK matched to P1 10-14 (aa_before R), unmatched 0",
+  "comet_first": "exit 0; 'Peptide identification engine: COMET'; 'Enzyme: Trypsin'; PSTEK unmatched, unmatched 1",
+  "output_sha256": {
+   "msgf_first": "f6c4d55bb33f14611573ebaa6c4168bcbee08d2ef8dc8ffab886eea7d9579de4",
+   "comet_first": "0c015f9d0777cbe1f73c181b05108c186855737554ed79e1a0567c1897eb572f"
+  }
+ }
+}
