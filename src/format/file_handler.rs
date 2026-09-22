@@ -461,7 +461,7 @@ impl FileHandler {
     ) -> Result<MSExperiment> {
         let options = ExperimentLoadOptions {
             peaks: options.clone(),
-            mzml: read.clone(),
+            mzml: *read,
             ..Default::default()
         };
         load_experiment_from(path.as_ref(), allowed, &options, None)
