@@ -49,6 +49,18 @@ const OPEN: [&str; 2] = ["r_pphr_huge", "w_pphr_int_huge"];
 const ORACLE_RESULTS: &str = "/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2";
 /// Where the Release run read its inputs.
 const ORACLE_INPUTS: &str = "/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs";
+/// The same for the oracle's third batch (`cases3.sh`), retained under
+/// `batch3/`: its cases are named `batch3/<case>` here.
+const ORACLE3_RESULTS: &str = "/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results3";
+const ORACLE3_INPUTS: &str = "/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3";
+
+/// The Release run's case directory, input directory and case name.
+fn oracle(case: &str) -> (&'static str, &'static str, &str) {
+    match case.strip_prefix("batch3/") {
+        Some(name) => (ORACLE3_RESULTS, ORACLE3_INPUTS, name),
+        None => (ORACLE_RESULTS, ORACLE_INPUTS, case),
+    }
+}
 
 fn repository(relative: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join(relative)
@@ -82,10 +94,11 @@ struct Replay {
 impl Replay {
     /// The Release run's `file`, with its paths mapped to this replay's.
     fn release(&self, case: &str, file: &str) -> Option<String> {
+        let (results, inputs, name) = oracle(case);
         Some(
             read(case, file)?
-                .replace(&format!("{ORACLE_RESULTS}/{case}/cwd"), &text(&self.cwd))
-                .replace(ORACLE_INPUTS, &text(&self.inputs))
+                .replace(&format!("{results}/{name}/cwd"), &text(&self.cwd))
+                .replace(inputs, &text(&self.inputs))
                 .replace(&format!("{RELEASE_PREFIX}/bin/"), ""),
         )
     }
@@ -105,15 +118,26 @@ fn replay<T: Tool>(case: &str) -> Replay {
     for dir in [&home, &cwd, &inputs] {
         fs::create_dir_all(dir).unwrap();
     }
-    for entry in fs::read_dir(data("inputs")).unwrap() {
+    let (retained, file_info_inputs): (&str, &[&str]) = if case.starts_with("batch3/") {
+        (
+            "batch3/inputs3",
+            &["FileInfo_1_input.dta", "FileInfo_3_input.featureXML"],
+        )
+    } else {
+        ("inputs", &["FileInfo_1_input.dta"])
+    };
+    for entry in fs::read_dir(data(retained)).unwrap() {
         let entry = entry.unwrap();
         fs::copy(entry.path(), inputs.join(entry.file_name())).unwrap();
     }
-    fs::copy(
-        repository("tests/data/file_info/inputs/FileInfo_1_input.dta"),
-        inputs.join("FileInfo_1_input.dta"),
-    )
-    .unwrap();
+    // The oracle's copies of these are the repository's (`inputs.sha256`).
+    for name in file_info_inputs {
+        fs::copy(
+            repository(&format!("tests/data/file_info/inputs/{name}")),
+            inputs.join(name),
+        )
+        .unwrap();
+    }
     let template = match case {
         "r_fi_run_override" => Some("fi_run_mzml_type.json.in"),
         _ if case.starts_with("r_fi_") => Some("fi_run.json.in"),
@@ -400,4 +424,78 @@ fn the_retained_runs_are_the_oracles() {
     assert_eq!(count, 62);
     let host = read("", "host.txt").unwrap();
     assert!(host.starts_with("ibminode06\n"), "{host}");
+    let summary = read("batch3", "summary.tsv").unwrap();
+    assert_eq!(summary.lines().count(), 8);
+    for line in summary.lines().skip(1) {
+        let fields: Vec<&str> = line.split('\t').collect();
+        let case = format!("batch3/{}", fields[0]);
+        assert_eq!(read(&case, "exit_code.txt").unwrap().trim(), fields[2], "{line}");
+    }
+    assert!(read("batch3", "host.txt").unwrap().starts_with("ibminode06\n"));
+}
+
+/// Batch 3: a parameter-XML `-ini` that is missing, before a run and with
+/// `-write_ini`, and a JSON one, each written as the run-phase catch writes it
+/// (`TOPPBase.cpp:436-441`): `could not be found`, the text of `FileNotFound`
+/// (`Exception.cpp:166-167`), on the error stream and in the `-log` file.
+#[test]
+fn a_missing_ini_is_reported_as_the_release_build_reports_it() {
+    for case in [
+        "batch3/x_missing_log",
+        "batch3/x_missing_write_ini",
+        "batch3/j_missing_log",
+    ] {
+        assert_case::<PeakPickerHiRes>(case, |text| text);
+    }
+}
+
+/// Batch 3: a malformed parameter-XML `-ini` is `INPUT_FILE_CORRUPT` with one
+/// `Error: Unable to read file (While loading '<file>': …)` line on the error
+/// stream and in the `-log` file. What follows the file name is the XML
+/// parser's own report, which xerces and this port's reader word differently
+/// (`docs/TOPP_CLI_SUPPORT.md`), and the Release build's handler also prints
+/// its source location on the error stream first.
+#[test]
+fn a_malformed_ini_reaches_the_log_as_in_the_release_build() {
+    let case = "batch3/x_malformed_log";
+    let replay = replay::<PeakPickerHiRes>(case);
+    let exit: i32 = read(case, "exit_code.txt").unwrap().trim().parse().unwrap();
+    assert_eq!(replay.code.as_i32(), exit, "{}", replay.err);
+    let prefix = format!(
+        "Error: Unable to read file (While loading '{}/malformed.ini': ",
+        text(&replay.inputs)
+    );
+    let release_err = replay.release(case, "stderr.txt").unwrap();
+    let release_line = release_err.lines().last().unwrap();
+    assert!(release_line.starts_with(&prefix), "{release_line}");
+    assert_eq!(replay.err.lines().count(), 1, "{}", replay.err);
+    assert!(replay.err.starts_with(&prefix), "{}", replay.err);
+    let release_log = release_log(&replay, case).unwrap();
+    let port_log = replay.log.clone().unwrap();
+    assert_eq!(release_log.len(), 1, "{release_log:?}");
+    assert_eq!(port_log.len(), 1, "{port_log:?}");
+    assert!(release_log[0].starts_with(&format!("<time> PeakPickerHiRes:1:: {prefix}")));
+    assert_eq!(port_log[0], format!("<time> PeakPickerHiRes:1:: {}", replay.err));
+    assert_eq!(replay.out, "");
+}
+
+/// Batch 3: FileInfo with an `-in_type` the file contradicts. The experiment
+/// loader throws `ParseError` (`FileHandler.cpp:859-863`): exit 3 and the
+/// source's text, which this port prints after the `parse error on line 0: `
+/// with which the lifecycle renders every `Error::Parse` (`run_failure`).
+#[cfg(feature = "featurexml")]
+#[test]
+fn a_forced_type_the_file_contradicts_is_the_release_builds_parse_error() {
+    for case in [
+        "batch3/fi_forced_dta_on_featurexml",
+        "batch3/fi_forced_mzml_on_featurexml",
+    ] {
+        assert_case::<openms::cli::tools::FileInfo>(case, |text| {
+            text.replacen(
+                "Error: Unable to read file (",
+                "Error: Unable to read file (parse error on line 0: ",
+                1,
+            )
+        });
+    }
 }

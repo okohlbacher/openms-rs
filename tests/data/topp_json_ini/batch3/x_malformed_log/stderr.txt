@@ -1,0 +1,2 @@
+/scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp(67): While loading '/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/malformed.ini': unexpected end of input( in line 4 column 1)
+Error: Unable to read file (While loading '/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/malformed.ini': unexpected end of input( in line 4 column 1) in: /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/malformed.ini)

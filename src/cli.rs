@@ -1395,8 +1395,25 @@ fn load_json_ini(
             session.error(out, err, &text)?;
             Ok(Err(code))
         }
-        Err(error) => Ok(Err(run_failure(&error, err))),
+        Err(error) => Ok(Err(run_failure_logged(session, &error, out, err))),
     }
+}
+
+/// [`run_failure`] for a failure the source's run-phase catch takes, each line
+/// written as its `writeLogError_` writes it: to the error stream and the
+/// `-log` file.
+fn run_failure_logged(
+    session: &Session<'_>,
+    error: &Error,
+    out: &mut dyn Write,
+    err: &mut dyn Write,
+) -> ExitCode {
+    let mut text = Vec::new();
+    let code = run_failure(error, &mut text);
+    for line in String::from_utf8_lossy(&text).lines() {
+        let _ = session.error(out, err, line);
+    }
+    code
 }
 
 /// The C library's text for an operating-system error, as `strerror` gives
@@ -1448,7 +1465,11 @@ fn os_error_text(error: &std::io::Error) -> String {
 /// * A readable directory, malformed XML and any other read failure of an
 ///   existing file are [`ExitCode::InputFileCorrupt`], the source's
 ///   `ParseError` (`460-465`). For a directory the diagnostic is the source's
-///   without the file-type hint that `XMLHandler::fatalError` appends. The
+///   without the file-type hint that `XMLHandler::fatalError` appends. For
+///   malformed XML it is `Error: Unable to read file (While loading '<path>':
+///   <reason> in: <path>)` as the Release build frames it (oracle
+///   `x_malformed_log` of `../oracle/json-ini`, batch 3), with this port's
+///   reader's `<reason>` where the source gives xerces'. The
 ///   character device `/dev/null` is readable and reads as an empty document,
 ///   so it is a `ParseError` here as in the source (oracle `ini_dev_null` and
 ///   `write_ini_ini_dev_null`).
@@ -1519,7 +1540,15 @@ fn load_ini(
             session.error(out, err, &text)?;
             Ok(Err(code))
         }
-        Err(error) => Ok(Err(run_failure(&error, err))),
+        Err(Error::Parse { message, .. }) => {
+            session.error(
+                out,
+                err,
+                &format!("Error: Unable to read file (While loading '{path}': {message} in: {path})"),
+            )?;
+            Ok(Err(ExitCode::InputFileCorrupt))
+        }
+        Err(error) => Ok(Err(run_failure_logged(session, &error, out, err))),
     }
 }
 

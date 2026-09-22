@@ -1,0 +1,9 @@
+PeakPickerHiRes
+-ini
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/does_not_exist.json
+-in
+/x/in.mzML
+-out
+/x/out.mzML
+-log
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results3/j_missing_log/cwd/log.txt
