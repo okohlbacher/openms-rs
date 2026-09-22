@@ -33,6 +33,19 @@ Upstream test: core bc9cc12 src/tests/class_tests/openms/source/MSExperiment_tes
   (src/metadata/experimental_settings.rs:200, only BEGIN/END lines -- verify vs C++);
   MSSpectrum Display MISSING (docs/SPECTRUM_MOBILITY_SUPPORT.md:125) -> add in src/kernel.
 
+## Design decisions (session 2)
+- Mass traces: only caller topp FileConverter.cpp:590 (`exp.set2DData<true>(fm)`); Rust cli has no counterpart (not mine).
+  C++ h:1374-1391: `Size mts = getMetaValue` -> DataValue::operator unsigned long (INT only, >=0, else ConversionError; DataValue.cpp:554-567);
+  intensity via operator float (EMPTY->error, INT->float, else data_.dou_ (union garbage for string: record as divergence), DataValue.cpp:480-491).
+  Spectrum created on RT change BEFORE addData_ -> a feature with num_of_masstraces=0 still opens an (empty) spectrum. Keep that!
+  Error order per item: sort check, then meta. Missing name -> Error::InvalidValue("Meta value 'masstrace_intensity_i' expected but not found in container.").
+  Implement as separate import_mass_traces in experiment_2d.rs (groups (rt,count) + flat points), public set_2d_data_mass_traces(_with_limits)(&[Feature]).
+- getFirstProductSpectrum: warn via `let _ = crate::concept::log_stream::log_message(LogLevel::Warn, format_args!(..))` (precedent src/format/mzml_header/read.rs:102).
+  Test capture pattern: tests/mzml_header_leniency.rs:571-596 (Capture sink on thread-local Warn log).
+- operator<<: Peak1D/ChromatogramPeak Display use Rust number formatting (ledger: recorded divergence, native_equivalent); C++ uses %g prec 6.
+  %g helpers: crate::format::file_info::text_format::ostream_g(v,6) (kernel->format edge already recorded in docs/module-cycles.json, so no new edge).
+  Plan: Display layout exact; decide whether `{:#}` gives byte-exact %g. Release oracle for both.
+
 ## Next step
 1. Read C++ MSSpectrum operator<< + SpectrumSettings operator<< + ExperimentalSettings operator<< at pin; chromatogram Display style.
 2. first_product_spectrum_index in src/kernel.rs + tests.
