@@ -1,0 +1,7 @@
+FileInfo
+-ini
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_debug2_log/cwd/run.json
+-debug
+2
+-log
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_debug2_log/cwd/log.txt

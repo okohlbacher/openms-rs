@@ -143,22 +143,30 @@ fn upstream_load() {
 /// object (`ParamJSONFile.cpp:135-138`), and nothing else.
 #[test]
 fn an_input_file_list_comes_from_a_file_object() {
-    let mut param = Param::new();
-    param
-        .set_value(
-            "t:1:in",
-            ParamValue::StringList(vec![]),
-            "",
-            &tags(&["input file"]),
-        )
-        .unwrap();
+    let files = || {
+        let mut param = Param::new();
+        param
+            .set_value(
+                "t:1:in",
+                ParamValue::StringList(vec![]),
+                "",
+                &tags(&["input file"]),
+            )
+            .unwrap();
+        param
+    };
+    let mut param = files();
     load(r#"{"in": {"class": "File", "path": ["a", "b"]}}"#, &mut param).unwrap();
     assert_eq!(
         param.value("t:1:in").unwrap(),
         &ParamValue::StringList(vec!["a".into(), "b".into()])
     );
+    // `Param::setValue` replaces the tags with its empty ones
+    // (`Param.cpp:466-469`, `408-411`), so the loaded entry is no longer an
+    // input file.
+    assert!(param.tags("t:1:in").unwrap().is_empty());
     assert_eq!(
-        parse_message(load(r#"{"in": ["a"]}"#, &mut param)),
+        parse_message(load(r#"{"in": ["a"]}"#, &mut files())),
         "[json.exception.type_error.305] cannot use operator[] with a string argument with array"
     );
 }
