@@ -51,6 +51,14 @@ Upstream test: core bc9cc12 src/tests/class_tests/openms/source/MSExperiment_tes
   `bash .../run.sh start` (done once, session 2) ; `bash .../run.sh fetch` -> results/{stdout,stderr}.txt, host.txt
   remote dir /scratch/kohlbach/msexperiment-close on ibminode06
 
+- ORACLE DONE (session 2): ran on ibminode06, gcc 14.4.0 conda, run1==run2, exit 0. results/stdout.txt + stderr.txt fetched.
+  Key: stream text %g (500.123 / 1234.57 / 1.23457e+06 / -0 / nan / -nan / inf / 1e+21); warnings exact
+  "Spectrum at index 1 has multiple precursors. Only the first precursor will be considered."; LogStream cache summary at exit.
+  mass: section11 peak mz 20.001677418900002 (0x1.4006dee6b5134p+4); intensity 1e40 -> C++ inf (Rust refuses: divergence);
+  C++ leaves partial exp on throw (Rust atomic: divergence); exception texts recorded.
+- Code done & committed: first_product_spectrum_index (kernel.rs), Display MSSpectrum/MSExperiment + `{:#}` stream text
+  (kernel.rs, chromatogram_merge.rs), set_2d_data_mass_traces(_with_limits) (experiment_2d.rs). cargo check --lib OK.
+
 ## Next step
 1. Read C++ MSSpectrum operator<< + SpectrumSettings operator<< + ExperimentalSettings operator<< at pin; chromatogram Display style.
 2. first_product_spectrum_index in src/kernel.rs + tests.
