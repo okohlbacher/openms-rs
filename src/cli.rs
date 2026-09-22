@@ -20,7 +20,9 @@
 //!    as the Release build refuses them without TDL;
 //! 4. the INI merge of the instance, `common:<tool>:` and `common:` sections
 //!    and a strict update of the defaults, which rejects unknown parameters and
-//!    invalid values, then the source's `checkParam_` warnings;
+//!    invalid values, then the source's `checkParam_` warnings; an `-ini`
+//!    whose name is of type JSON is read onto the defaults by
+//!    [`param_json`](crate::format::param_json), as `ParamJSONFile::load`;
 //! 5. parameter and file validation, then the tool body, then the run-time
 //!    and peak-memory line.
 //!

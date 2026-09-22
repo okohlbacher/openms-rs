@@ -105,13 +105,16 @@ impl ToolContext {
 
     /// `error`, recorded as the source's exception that ends a run with
     /// `code` and `text` when it escapes the tool body.
+    ///
+    /// A refusal is kept once however often it recurs: its text names the
+    /// parameter, so the record is bounded by the names the tool's code asks
+    /// for, not by how often it asks.
     fn refuse(&self, error: Error, code: ExitCode, text: String) -> Error {
         if let Ok(mut refusals) = self.refusals.lock() {
-            refusals.push(Refusal {
-                error: error.to_string(),
-                code,
-                text,
-            });
+            let error = error.to_string();
+            if !refusals.iter().any(|refusal| refusal.error == error) {
+                refusals.push(Refusal { error, code, text });
+            }
         }
         error
     }
