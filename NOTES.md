@@ -93,4 +93,4 @@ ORACLE DONE (ibminode06, Linux Release build at pins; run1==run2, differ.txt emp
  -> confirms: TLS reverse-creation order, then globals info,warn,error,fatal; per stream sync,cache,partial.
  Decision: port flushes the global debug stream too = deliberate divergence, provisional CPP-355.
 
-Next step: A.
+Next step: B (A committed: LocalLogs order+Drop, GLOBAL_LOGS, finish_process_logs, ProcessLogs).

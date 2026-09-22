@@ -787,9 +787,11 @@ impl LogLevel {
         logger
     }
 }
+/// The five global streams (source `g_log_fatal` ... `g_log_debug`, `LogStream.cpp:666-672`).
+/// Statics are never dropped in Rust, so [`finish_process_logs`] does what their destructors do.
+static GLOBAL_LOGS: [OnceLock<RwLock<LogStream>>; 5] = [const { OnceLock::new() }; 5];
 fn global(level: LogLevel) -> &'static RwLock<LogStream> {
-    static LOGS: [OnceLock<RwLock<LogStream>>; 5] = [const { OnceLock::new() }; 5];
-    LOGS[level.index()].get_or_init(|| RwLock::new(level.configured()))
+    GLOBAL_LOGS[level.index()].get_or_init(|| RwLock::new(level.configured()))
 }
 /// Configure a global route before threads first access it. Existing TLS streams retain
 /// their earlier snapshot. Recursive access to the same stream returns `WouldBlock`.
@@ -805,8 +807,50 @@ pub fn with_global_log<T>(
     })?;
     action(&mut logger)
 }
+/// One thread's five streams (source `getThreadLocalLog*`, `LogStream.cpp:690-718`) and the
+/// order the thread first used them in.
+struct LocalLogs {
+    slots: [RefCell<Option<LogStream>>; 5],
+    created: RefCell<Vec<LogLevel>>,
+}
+impl LocalLogs {
+    /// Finish every stream, most recently created first, keeping it for further use.
+    fn finish(&self, first_error: &mut Option<io::Error>) {
+        let created = self.created.borrow().clone();
+        for level in created.into_iter().rev() {
+            match self.slots[level.index()].try_borrow_mut() {
+                Ok(mut slot) => {
+                    if let Some(logger) = slot.as_mut().filter(|logger| !logger.failed) {
+                        keep_first(first_error, logger.finish());
+                    }
+                }
+                Err(_) => keep_first(first_error, Err(local_in_use())),
+            }
+        }
+    }
+}
+/// The source's function-local `thread_local` streams are destroyed in reverse order of
+/// construction when the thread ends, each flushing as `~LogStreamBuf` does.
+impl Drop for LocalLogs {
+    fn drop(&mut self) {
+        for level in std::mem::take(self.created.get_mut()).into_iter().rev() {
+            drop(self.slots[level.index()].get_mut().take());
+        }
+    }
+}
 thread_local! {
-    static LOCAL: [RefCell<Option<LogStream>>; 5] = std::array::from_fn(|_| RefCell::new(None));
+    static LOCAL: LocalLogs = LocalLogs {
+        slots: std::array::from_fn(|_| RefCell::new(None)),
+        created: RefCell::new(Vec::new()),
+    };
+}
+fn local_in_use() -> io::Error {
+    io::Error::new(io::ErrorKind::WouldBlock, "thread-local logger is in use")
+}
+fn keep_first(first_error: &mut Option<io::Error>, result: io::Result<()>) {
+    if let Err(error) = result {
+        first_error.get_or_insert(error);
+    }
 }
 /// Access the current thread's independently buffered and cached global-route snapshot.
 pub fn with_thread_local_log<T>(
@@ -815,9 +859,9 @@ pub fn with_thread_local_log<T>(
 ) -> io::Result<T> {
     LOCAL
         .try_with(|logs| {
-            let mut slot = logs[level.index()].try_borrow_mut().map_err(|_| {
-                io::Error::new(io::ErrorKind::WouldBlock, "thread-local logger is in use")
-            })?;
+            let mut slot = logs.slots[level.index()]
+                .try_borrow_mut()
+                .map_err(|_| local_in_use())?;
             if slot.is_none() {
                 let configuration = global(level).try_read().map_err(|error| match error {
                     std::sync::TryLockError::WouldBlock => io::Error::new(
@@ -827,6 +871,7 @@ pub fn with_thread_local_log<T>(
                     std::sync::TryLockError::Poisoned(_) => poisoned(),
                 })?;
                 *slot = Some(configuration.clone_configuration());
+                logs.created.borrow_mut().push(level);
             }
             action(slot.as_mut().expect("initialized thread-local logger"))
         })
@@ -837,6 +882,104 @@ pub fn with_thread_local_log<T>(
             )
         })?
 }
+/// Deliver what the log streams still hold, as the source's destructors do at process exit
+/// (`~LogStreamBuf`, `LogStream.cpp:111-127`): complete buffered lines, then the repetition
+/// summaries of the duplicate cache, then an unterminated line.
+///
+/// The order is the source's: first the calling thread's streams, most recently created
+/// first (its `thread_local` streams, destroyed before any static), then the global streams
+/// debug, info, warning, error, fatal (the reverse of their definition order). Every stream
+/// stays usable afterwards, with an empty cache. A stream whose output failed earlier is
+/// skipped; every other stream is finished even when one fails, and the first error is
+/// returned. Streams of other threads are finished when those threads end.
+///
+/// Rust runs no destructor for a static, so without this call text written directly to a
+/// global stream (via [`with_global_log`]) and not yet flushed is never delivered. Tool
+/// executables call it through [`ProcessLogs`] on every way out of the process; a program of
+/// its own holds a [`ProcessLogs`] in `main` or calls this before `std::process::exit`.
+///
+/// The global debug stream is flushed too. The source constructs it with `delete_buf =
+/// false` (`LogStream.cpp:672`, "should be 'true', but segfaults"), so its buffer is never
+/// destroyed and whatever it holds is lost at exit; the port delivers it (CPP-355).
+pub fn finish_process_logs() -> io::Result<()> {
+    let mut first_error = None;
+    // A thread whose streams are being destroyed has them finished by that destruction.
+    let _ = LOCAL.try_with(|logs| logs.finish(&mut first_error));
+    for level in [
+        LogLevel::Debug,
+        LogLevel::Info,
+        LogLevel::Warn,
+        LogLevel::Error,
+        LogLevel::Fatal,
+    ] {
+        let Some(lock) = GLOBAL_LOGS[level.index()].get() else {
+            continue;
+        };
+        match lock.try_write() {
+            Ok(mut logger) => {
+                if !logger.failed {
+                    keep_first(&mut first_error, logger.finish());
+                }
+            }
+            Err(std::sync::TryLockError::WouldBlock) => keep_first(
+                &mut first_error,
+                Err(io::Error::new(
+                    io::ErrorKind::WouldBlock,
+                    "global logger is in use",
+                )),
+            ),
+            Err(std::sync::TryLockError::Poisoned(_)) => {
+                keep_first(&mut first_error, Err(poisoned()));
+            }
+        }
+    }
+    first_error.map_or(Ok(()), Err)
+}
+
+/// Runs [`finish_process_logs`] when dropped: at the end of the scope that holds it, on an
+/// early return and while a panic unwinds. Hold one in `main` for the rest of the process.
+///
+/// Dropping it ignores errors, as the source's destructors do; [`ProcessLogs::finish`]
+/// returns them.
+///
+/// ```
+/// use openms::concept::log_stream::{with_global_log, LogLevel, ProcessLogs};
+/// use std::io::Write;
+///
+/// fn main() -> std::io::Result<()> {
+///     let logs = ProcessLogs::new();
+///     with_global_log(LogLevel::Info, |log| write!(log, "delivered when `logs` goes"))?;
+///     logs.finish()
+/// }
+/// ```
+#[must_use = "the log streams are finished when this value is dropped"]
+#[derive(Debug)]
+pub struct ProcessLogs {
+    finished: bool,
+}
+impl ProcessLogs {
+    pub fn new() -> Self {
+        Self { finished: false }
+    }
+    /// Finish now and return the first error.
+    pub fn finish(mut self) -> io::Result<()> {
+        self.finished = true;
+        finish_process_logs()
+    }
+}
+impl Default for ProcessLogs {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+impl Drop for ProcessLogs {
+    fn drop(&mut self) {
+        if !self.finished {
+            let _ = finish_process_logs();
+        }
+    }
+}
+
 /// Write and flush one formatted line. Fatal logging does not exit the process.
 pub fn log_message(level: LogLevel, message: fmt::Arguments<'_>) -> io::Result<()> {
     with_thread_local_log(level, |logger| {
