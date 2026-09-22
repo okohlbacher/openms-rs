@@ -1207,14 +1207,19 @@ fn a_type_the_source_cannot_load_is_a_parse_error() {
         matches!(&error, Error::Parse { message, .. } if message.ends_with("type is not supported for loading experiments")),
         "{error}"
     );
-    // A forced type the detected type contradicts is refused as not allowed.
+    // A forced type the detected type contradicts is the loader's ParseError
+    // (FileHandler.cpp:859-863; Release oracle fi_forced_dta_on_featurexml of
+    // ../oracle/json-ini batch 3).
     let forced = Options {
         forced_type: FileType::Tsv,
         ..Options::default()
     };
     let error = FileInfo::new().run(&text, &forced).unwrap_err();
     assert!(
-        matches!(&error, Error::InvalidValue(message) if message.contains("not allowed")),
+        matches!(&error, Error::Parse { message, .. } if message == &format!(
+            "type: txt is not allowed for loading an experiment. Allowed types are: , tsv in: {}",
+            text.display()
+        )),
         "{error}"
     );
     // imzML is refused as an imaging format.
@@ -1266,10 +1271,18 @@ fn a_detected_type_other_than_the_forced_one_is_refused() {
         forced_type: FileType::Dta,
         ..Options::default()
     };
-    let error = FileInfo::new()
-        .run(data("file_info/inputs/FileInfo_9_input.mzML"), &options)
-        .unwrap_err();
-    assert!(matches!(error, Error::InvalidValue(_)), "{error}");
+    let input = data("file_info/inputs/FileInfo_9_input.mzML");
+    let error = FileInfo::new().run(&input, &options).unwrap_err();
+    // The loader's ParseError, as the Release build raises it for a forced
+    // type the file contradicts (FileHandler.cpp:859-863; oracle
+    // fi_forced_dta_on_featurexml of ../oracle/json-ini batch 3).
+    assert!(
+        matches!(&error, Error::Parse { message, .. } if message == &format!(
+            "type: mzML is not allowed for loading an experiment. Allowed types are: , dta in: {}",
+            input.display()
+        )),
+        "{error}"
+    );
 }
 
 #[test]
