@@ -80,8 +80,9 @@ impl PartialEq for LogSink {
 }
 impl Eq for LogSink {}
 impl LogSink {
-    /// Source `Colorizer::colorStream_`: codes go to any stream but the process's standard
-    /// output and error, and to those only when they are a console.
+    /// Source `Colorizer::colorStream_` (`Colorizer.cpp:139-153`): codes go to any stream
+    /// but the process's standard output and error, and to those only when they are a
+    /// console.
     fn color_allowed(&self) -> bool {
         let console = match self.kind {
             SinkKind::Other => return true,
@@ -120,9 +121,10 @@ impl LogSink {
     }
 }
 
-/// Source `Colorizer::isTTY` (`Colorizer.cpp`): `isatty` on the stream's descriptor, and on
-/// Windows (`isattyWin`) whether `GetConsoleMode` succeeds for its handle, which is false for
-/// the pipe a MSYS or Cygwin terminal provides.
+/// Source `Colorizer::isTTY` (`Colorizer.cpp:155-170`): `isatty` on the stream's
+/// descriptor, and on Windows (`isattyWin`, `Colorizer.cpp:87-110`) whether
+/// `GetConsoleMode` succeeds for its handle, which is false for the pipe a MSYS or Cygwin
+/// terminal provides.
 #[cfg(not(windows))]
 fn is_console(stream: &impl io::IsTerminal) -> bool {
     stream.is_terminal()
@@ -132,10 +134,10 @@ fn is_console(stream: &impl winapi_util::AsHandleRef) -> bool {
     winapi_util::console::mode(stream).is_ok()
 }
 
-/// Source `InitConsole::InitConsole` (`Colorizer.cpp`), which runs when libOpenMS is loaded:
-/// on Windows, `ENABLE_VIRTUAL_TERMINAL_PROCESSING` is added to the console mode of standard
-/// output and, independently, of standard error, so that ANSI colour codes render on a
-/// console. A stream that is not a console, or whose mode cannot be changed, is left as it is
+/// Source `InitConsole` (`Colorizer.cpp:26-81`), whose constructor runs when libOpenMS is
+/// loaded: on Windows, `ENABLE_VIRTUAL_TERMINAL_PROCESSING` is added to the console mode of
+/// standard output and, independently, of standard error, so that ANSI colour codes render
+/// on a console. A stream that is not a console, or whose mode cannot be changed, is left as it is
 /// and nothing is reported, as in the source; the mode is not restored at exit, as in the
 /// source. On other platforms this does nothing.
 ///
@@ -833,7 +835,7 @@ impl LogLevel {
         logger
     }
 }
-/// The five global streams (source `g_log_fatal` ... `g_log_debug`, `LogStream.cpp:666-672`).
+/// The five global streams (source `g_log_fatal` ... `g_log_debug`, `LogStream.cpp:667-672`).
 /// Statics are never dropped in Rust, so [`finish_process_logs`] does what their destructors do.
 static GLOBAL_LOGS: [OnceLock<RwLock<LogStream>>; 5] = [const { OnceLock::new() }; 5];
 fn global(level: LogLevel) -> &'static RwLock<LogStream> {
@@ -853,7 +855,7 @@ pub fn with_global_log<T>(
     })?;
     action(&mut logger)
 }
-/// One thread's five streams (source `getThreadLocalLog*`, `LogStream.cpp:690-718`) and the
+/// One thread's five streams (source `getThreadLocalLog*`, `LogStream.cpp:694-722`) and the
 /// order the thread first used them in.
 struct LocalLogs {
     slots: [RefCell<Option<LogStream>>; 5],
@@ -929,7 +931,7 @@ pub fn with_thread_local_log<T>(
         })?
 }
 /// Deliver what the log streams still hold, as the source's destructors do at process exit
-/// (`~LogStreamBuf`, `LogStream.cpp:111-127`): complete buffered lines, then the repetition
+/// (`~LogStreamBuf`, `LogStream.cpp:111-128`): complete buffered lines, then the repetition
 /// summaries of the duplicate cache, then an unterminated line.
 ///
 /// The order is the source's: first the calling thread's streams, most recently created

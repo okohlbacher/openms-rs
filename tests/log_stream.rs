@@ -511,7 +511,10 @@ const RELEASE_EXIT: [(&str, &str); 5] = [
         "tls",
         "same\nerr\ninfo partial\n<err> occurred 2 times\n<same> occurred 3 times\n",
     ),
-    ("tls_order", "e\nw\n<w> occurred 2 times\n<e> occurred 2 times\n"),
+    (
+        "tls_order",
+        "e\nw\n<w> occurred 2 times\n<e> occurred 2 times\n",
+    ),
     (
         "global",
         "global line\nglobal partial\ngw\n<gw> occurred 2 times\nge\ngf\n",
@@ -648,7 +651,7 @@ fn exit_child(case: &str, path: &str, out: &str) -> io::Result<()> {
 
 /// Every way out of a process delivers what the source's exit-time destructors deliver,
 /// in their order: the thread's streams, most recently created first, then the global
-/// streams (`LogStream.cpp:111-127`, `:666-672`, `:690-718`). Each case runs in a child
+/// streams (`LogStream.cpp:111-128`, `:667-672`, `:694-722`). Each case runs in a child
 /// process, this test binary run again, so that the global streams start fresh.
 #[test]
 fn process_exit_paths_deliver_what_the_release_build_delivers() -> io::Result<()> {

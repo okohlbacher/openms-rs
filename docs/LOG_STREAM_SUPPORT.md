@@ -4,8 +4,9 @@ The native `concept::log_stream` module implements the retained OpenMS `LogStrea
 `LogStreamBuf`, sink guard and notifier behavior through owned writers and callbacks.
 The [reference tests](../tests/log_stream.rs) use four unchanged source output files
 and independent boundary cases. [Provenance](../tests/data/log_stream_provenance.json)
-records the exact source revision, hashes and adaptations. No C++ program was built
-or executed to generate expectations.
+records the exact source revision, hashes and adaptations. One C++ program was built
+and executed, for the process-exit behaviour only (see *Process exit* below); every
+other expectation comes from the source files or from independent boundary cases.
 
 ## Public use
 
@@ -107,11 +108,73 @@ February and 30/31-day boundaries of every year through 10000. It passed before
 and after the change. The check is integer arithmetic, so results are the same
 on every machine.
 
-The Windows C++ Colorizer also enables virtual-terminal console mode and resets
-console state at process exit. This module emits the same per-record ANSI bytes
-but does not alter host console mode; a Windows terminal must already support
-those sequences. General mutable Colorizer composition and its separate insertion
-API are outside this logging module. Local-time zone interpretation follows the
-host's chrono-supported zone facilities. The process's global route objects live
-for its lifetime; call `finish` explicitly for any directly buffered global text.
-Thread-local and ordinary owned logger destruction flush their buffers normally.
+General mutable Colorizer composition and its separate insertion API are outside
+this logging module. Local-time zone interpretation follows the host's
+chrono-supported zone facilities.
+
+## Process exit
+
+At process exit the source's destructors deliver what the streams still hold
+(`~LogStreamBuf`, `LogStream.cpp:111-128`): complete buffered lines, then the
+repetition summaries of the cache, then an unterminated line. `exit()` first
+destroys the calling thread's `thread_local` streams (`LogStream.cpp:694-722`),
+most recently created first, and then the static global streams in reverse
+order of definition (`LogStream.cpp:667-672`): debug, info, warning, error,
+fatal. Another thread's streams are destroyed when that thread ends.
+
+Rust drops thread-local values when their thread ends, in the same order here,
+but never drops a static. `finish_process_logs` therefore does what the
+destructors do, in the source's order: the calling thread's streams, most
+recently created first, then the five global streams. Each stays usable
+afterwards. A stream whose output failed earlier is skipped; the others are
+finished even when one fails, and the first error is returned. `ProcessLogs` is
+a guard that calls it when dropped, at the end of a scope, on an early return,
+and while a panic unwinds; `ProcessLogs::finish` returns the error instead.
+
+Every tool executable holds a `ProcessLogs` for the whole run
+(`run_from_environment` in `src/cli.rs`): whatever exit code the tool returns,
+and also when it panics, the streams are finished after the tool's own output
+and before the terminal reset. The crate has no `std::process::exit` call.
+
+A program of its own holds a `ProcessLogs` in `main`, or calls
+`finish_process_logs` before `std::process::exit`, which runs no destructor on
+the stack. Without either, the thread-local streams are still finished when
+their thread ends, as in the source; text written directly to a global stream
+through `with_global_log` and never flushed is not delivered. The logging
+macros write and flush each line, so what such a program can lose there is the
+summary of a line repeated just before exit and a line left unterminated.
+
+The expected bytes of `process_exit_paths_deliver_what_the_release_build_delivers`
+come from the C++ Release build at the pins (`../oracle/logstream-exit`,
+`driver.cpp`, run twice on ibminode06, Linux x86_64): pending thread-local
+state, pending global state, both at once, the order of two thread-local
+streams, and a thread that ends before `main` logs again, each ended by a
+return from `main` and by `std::exit`, which print the same bytes. The test runs
+each case in a child process that ends by a return, an error return, a panic and
+`std::process::exit`, and once without the guard.
+
+One divergence: the source constructs its global debug stream with `delete_buf =
+false` (`LogStream.cpp:672`, with the comment that `true` "segfaults"), so the
+stream's buffer is never destroyed and what it holds is lost at exit. The port
+delivers it, first among the global streams (CPP-355).
+
+## Console colours on Windows
+
+When libOpenMS is loaded, the source's `InitConsole` (`Colorizer.cpp:26-81`) adds
+`ENABLE_VIRTUAL_TERMINAL_PROCESSING` to the console mode of standard output and,
+independently, of standard error, ignoring a stream that is not a console, so
+that the ANSI colour codes render; it does not restore the mode at exit.
+`enable_console_colors` does the same through `winapi-util`
+(`console::mode`/`console::set_mode`), once per process: the first time a record
+is coloured for standard output or standard error, and when a tool executable
+starts. On other platforms it does nothing. The console test behind colouring,
+the source's `Colorizer::isTTY` (`Colorizer.cpp:155-170`), is `isatty` on Unix and, on Windows, whether
+`GetConsoleMode` succeeds, which is false for the pipe a MSYS or Cygwin terminal
+provides; the port asks the same questions.
+
+No test executes the Windows branch. The GitHub Windows runners give a test
+process pipes, not a console, so `GetConsoleMode` fails there and neither the
+mode change nor colouring can be observed; this machine has no Windows console
+either. The branch is compile-checked for `x86_64-pc-windows-msvc` (Rust 1.96);
+the `schema-minimum-platforms` workflow job builds it with Rust 1.85 on
+`windows-latest` when it runs.
