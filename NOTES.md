@@ -85,7 +85,13 @@
   `cargo test` failed with ENOSPC; do NOT build all tests locally. Use dax sweep; run single test binaries only,
   deleting target/debug/deps executables afterwards. Bash may need dangerouslyDisableSandbox when /tmp is full.
 
+- DONE: docs/FILE_HANDLER_SUPPORT.md (member ledger, evidence, ranked gaps); FILE_HANDLING_SUPPORT.md and
+  MZML_MOBILITY_SUPPORT.md stale lines updated; fragment .planning/ledger-fragments/file-handler.json (untracked).
+  Checks: citations/cycles/core_sdk/doc_coverage all exit 0. Sweep launched: slot fh-lane-w2, logs
+  scratchpad/sweep1 + scratchpad/logs/sweep1.log (bg task).
+
 ## Next step
+0. Wait for sweep; inspect failures (SRM conversion may change cli/file_info expectations).
 1. (done) Get tests/file_handler_load.rs green.
 2. Run tests/file_handler.rs, file_handler_type_detection, file_info*, topp_* affected by SRM conversion.
 3. Store side (P2): storeExperiment log type (mzML/DTA2D/mzXML/mzData + chrom->spectra for mzXML/mzData). Optional.
