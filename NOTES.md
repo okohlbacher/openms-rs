@@ -107,5 +107,5 @@ Sweep #1 launched on dax (slot lane-logstream-w2, log scratchpad/sweep*), tree a
 PROBE: main-thread Rust TLS Drop runs at return AND process::exit on macOS and Linux glibc (dax).
 DONE 954ee2c: owns_globals (thread that used with_global_log finishes globals at its end); test 18/18.
 Fragment written: .planning/ledger-fragments/logstream-exit.json (LogStream.h complete, Colorizer.h partial).
-Sweep #1 (dax) is on the pre-954ee2c tree -> need sweep #2 on final tree.
+Sweep #1 killed (stale tree). Sweep #2 running: slot lane-logstream-w2b on dax, tree 2951dfb; poll remote /scratch/kohlbach/agents/lane-logstream-w2b/.ci-line.N.log (grep buffers local log). CPP-355 added to OpenMS_CPP_ISSUES.md.
 Next: wait sweep #1 / launch sweep #2 (slot lane-logstream-w2b), VALIDATION.md checkpoint, delete NOTES.md.
