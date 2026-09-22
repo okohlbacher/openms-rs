@@ -135,13 +135,16 @@ Every member of the source `TOPPFileInfo` and the behaviour it carries.
    and the loadable `-i` cases use the core `IndexedmzMLFile_1` fixture.
 3. **A forced type the file contradicts.** The source's loaders detect the type
    themselves and throw when it is not the forced one: `ParseError`, exit 3, from
-   `loadExperiment` (oracle `forced_dta_on_featurexml`,
+   `loadExperiment` (`FileHandler.cpp:859-863`; oracle `forced_dta_on_featurexml`,
    `forced_mzml_on_featurexml`) and `InvalidFileType`, exit 8, from `loadFeatures`
-   (oracle `forced_featurexml_on_dta`). The library maps the first to
-   `Error::InvalidValue`, exit 6, and the featureXML branch, which does not pass
-   the forced type to the feature loader, reaches the loader's own refusal,
-   exit 11. Both are recorded in `a_forced_type_the_file_contradicts_is_refused`;
-   closing them belongs to the library (integrator request 2).
+   (oracle `forced_featurexml_on_dta`). The library raises the first as the
+   source does, `type: <detected> is not allowed for loading an experiment.
+   Allowed types are: , <forced> in: <file>`, exit 3, compared with the Release
+   build in `tests/topp_json_ini.rs` (batch 3 of `../oracle/json-ini`; the
+   lifecycle prints it after its `parse error on line 0: `). The featureXML
+   branch, which does not pass the forced type to the feature loader, reaches
+   the loader's own refusal, exit 11 where the source exits 8; that one stays
+   open (integrator request 2).
 4. **Validation order.** The framework checks every option before the tool body,
    where the source reads `-in` inside `outputTo_`, after `-out` was opened. A
    run with a missing or empty `-in` therefore leaves no `-out` file here, while
