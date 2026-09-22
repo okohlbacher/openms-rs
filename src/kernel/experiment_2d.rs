@@ -197,33 +197,58 @@ impl MSExperiment {
     }
 }
 /// The source `set2DData<true>` loop: sort check and spectrum opening per new
-/// retention time, then the feature's points, one feature at a time.
+/// retention time, then the feature's peaks, one feature at a time, into a
+/// staged map that replaces the caller's only once every feature is in.
 fn import_mass_traces<F: Deref<Target = BaseFeature>>(
     input: &[F],
     limits: Data2DLimits,
 ) -> Result<MSExperiment> {
     let mut work = Work::new(limits);
     work.consume(input.len())?;
-    // (retention time, peak count) per spectrum, and the peaks in order.
-    let mut groups = Vec::<(f64, usize)>::new();
-    let mut peaks = Vec::<Peak1D>::new();
+    let mut staged = MSExperiment::default();
+    // One exact allocation for the spectra: the retention-time changes bound
+    // the spectra the loop can open, and the loop still checks every ceiling
+    // in source order.
+    let opened = input
+        .iter()
+        .zip(input.iter().skip(1))
+        .filter(|(a, b)| a.rt != b.rt)
+        .count()
+        .saturating_add(usize::from(!input.is_empty()));
+    work.consume(input.len())?;
+    staged.spectra = reserved(opened.min(limits.max_spectra), &mut work)?;
+    let mut points = 0usize;
     let mut name = String::new();
     for feature in input {
         let rt = feature.rt;
         if !rt.is_finite() {
             return Err(invalid("2D point coordinates and intensity must be finite"));
         }
-        let previous = groups.last().map(|&(previous, _)| previous);
+        let previous = staged.spectra.last().map(|spectrum| spectrum.rt);
         if previous != Some(rt) {
             if previous.is_some_and(|previous| previous > rt) {
                 return Err(Error::UnsortedData);
             }
-            cap(add(groups.len(), 1)?, limits.max_spectra)?;
-            grow_push(&mut groups, (rt, 0), &mut work)?;
+            cap(add(staged.spectra.len(), 1)?, limits.max_spectra)?;
+            let spectrum = MSSpectrum {
+                rt,
+                ms_level: 1,
+                ..Default::default()
+            };
+            grow_push(&mut staged.spectra, spectrum, &mut work)?;
         }
-        let before = peaks.len();
+        let peaks = &mut staged
+            .spectra
+            .last_mut()
+            .ok_or_else(|| invalid("missing 2D import group"))?
+            .peaks;
+        let mut sink = PeakSink {
+            peaks,
+            points: &mut points,
+            limits,
+        };
         match mass_trace_count(&feature.metadata)? {
-            None => push_peak(&mut peaks, feature.mz, feature.intensity, limits, &mut work)?,
+            None => sink.push(feature.mz, feature.intensity, &mut work)?,
             Some(count) => {
                 let charge = if feature.charge == 0 {
                     1
@@ -255,33 +280,28 @@ fn import_mass_traces<F: Deref<Target = BaseFeature>>(
                         }
                     };
                     let mz = feature.mz + spacing * i as f64;
-                    push_peak(&mut peaks, mz, intensity, limits, &mut work)?;
+                    sink.push(mz, intensity, &mut work)?;
                 }
             }
         }
-        let added = peaks.len() - before;
-        let last = groups
-            .last_mut()
-            .ok_or_else(|| invalid("missing 2D import group"))?;
-        last.1 = add(last.1, added)?;
-    }
-    let mut staged = MSExperiment::default();
-    work.consume(add(groups.len(), peaks.len())?)?;
-    staged.spectra = reserved(groups.len(), &mut work)?;
-    let mut start = 0usize;
-    for (rt, count) in groups {
-        let end = add(start, count)?;
-        let mut spectrum = MSSpectrum {
-            rt,
-            ms_level: 1,
-            ..Default::default()
-        };
-        spectrum.peaks = reserved(count, &mut work)?;
-        spectrum.peaks.extend_from_slice(&peaks[start..end]);
-        staged.spectra.push(spectrum);
-        start = end;
     }
     Ok(staged)
+}
+/// The peaks of the spectrum being filled, and the run's cumulative point count.
+struct PeakSink<'a> {
+    peaks: &'a mut Vec<Peak1D>,
+    points: &'a mut usize,
+    limits: Data2DLimits,
+}
+impl PeakSink<'_> {
+    fn push(&mut self, mz: f64, intensity: f32, work: &mut Work) -> Result<()> {
+        if !mz.is_finite() || !intensity.is_finite() {
+            return Err(invalid("2D point coordinates and intensity must be finite"));
+        }
+        *self.points = add(*self.points, 1)?;
+        cap(*self.points, self.limits.max_points)?;
+        grow_push(self.peaks, Peak1D::new(mz, intensity), work)
+    }
 }
 /// The feature's `num_of_masstraces`, converted as the source's `DataValue`
 /// conversion to `Size` does: only a nonnegative integer converts.
@@ -295,19 +315,6 @@ fn mass_trace_count(meta: &MetaInfo) -> Result<Option<usize>> {
             .map_err(|_| invalid("num_of_masstraces is a negative integer")),
         _ => Err(invalid("num_of_masstraces is not an integer")),
     }
-}
-fn push_peak(
-    peaks: &mut Vec<Peak1D>,
-    mz: f64,
-    intensity: f32,
-    limits: Data2DLimits,
-    work: &mut Work,
-) -> Result<()> {
-    if !mz.is_finite() || !intensity.is_finite() {
-        return Err(invalid("2D point coordinates and intensity must be finite"));
-    }
-    cap(add(peaks.len(), 1)?, limits.max_points)?;
-    grow_push(peaks, Peak1D::new(mz, intensity), work)
 }
 trait PointSource {
     fn point(&self) -> Peak2D;
