@@ -627,6 +627,9 @@ fn release_relative_names_resolve_lexically_against_the_working_directory() {
     let warnings = Warnings::capture();
     let previous = std::env::current_dir().unwrap();
     std::env::set_current_dir(inputs.dir()).unwrap();
+    // The working directory as the system reports it (on macOS the temporary
+    // directory's /var is /private/var), which is what both sides join.
+    let cwd = std::env::current_dir().unwrap();
     let cases = [
         case("mzml_relative", "MzMLFile_1.mzML", &[], true, true),
         case("mzml_dot_relative", "./MzMLFile_1.mzML", &[], true, false),
@@ -648,8 +651,6 @@ fn release_relative_names_resolve_lexically_against_the_working_directory() {
         results.push((result, events, warnings.take()));
     }
     std::env::set_current_dir(previous).unwrap();
-    // Relative to the directory the loads ran in, as the driver's are.
-    let cwd = inputs.dir();
     for (case, (result, events, lines)) in cases.iter().zip(results) {
         let experiment = result.unwrap_or_else(|error| panic!("{}: {error}", case.name));
         assert_eq!(*events.lock().unwrap(), release_kind(case.name, "P"));
