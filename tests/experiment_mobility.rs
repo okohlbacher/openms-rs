@@ -1660,8 +1660,10 @@ fn release_stream_output_numbers_are_the_default_stream_text() {
     exp.spectra.push(MSSpectrum::default());
     let mut chromatogram = MSChromatogram::new();
     chromatogram.native_id = "chrom=1".into();
+    // `98765.43` is the `float` of the driver's `98765.4321f`, and `16777217.0`
+    // rounds to the same `16777216.0f` as the driver's literal.
     chromatogram.peaks = vec![
-        ChromatogramPeak::new(3600.5, 98765.4321),
+        ChromatogramPeak::new(3600.5, 98765.43),
         ChromatogramPeak::new(0.1 + 0.2, 16777217.0),
     ];
     exp.chromatograms.push(chromatogram);

@@ -59,8 +59,10 @@ fn release_alternate_form_is_the_default_stream_text() {
     ] {
         assert_eq!(format!("{peak:#}"), text);
     }
+    // The driver's `98765.4321f`; `98765.43` is the same `float`.
+    assert_eq!(98765.43_f32.to_bits(), (98765.4321_f64 as f32).to_bits());
     assert_eq!(
-        format!("{:#}", ChromatogramPeak::new(3600.5, 98765.4321)),
+        format!("{:#}", ChromatogramPeak::new(3600.5, 98765.43)),
         "POS: 3600.5 INT: 98765.4"
     );
     assert_eq!(
