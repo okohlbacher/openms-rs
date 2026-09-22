@@ -105,7 +105,7 @@ Completion steps done: rustdoc 100% (b7e2e14, doc-coverage.json floor written), 
  provenance (38a1f18).
 Sweep #1 launched on dax (slot lane-logstream-w2, log scratchpad/sweep*), tree at 45cfa74-ish.
 PROBE: main-thread Rust TLS Drop runs at return AND process::exit on macOS and Linux glibc (dax).
-Now implementing: LocalLogs.globals flag set by with_global_log; LocalLogs Drop finishes globals after own
- streams -> library main without guard loses nothing on mainstream platforms. Test 'global thread_end'
- expectation becomes gd+oracle. Then rerun log_stream test, docs, sweep #2 (or targeted), VALIDATION,
- fragment, delete NOTES.md.
+DONE 954ee2c: owns_globals (thread that used with_global_log finishes globals at its end); test 18/18.
+Fragment written: .planning/ledger-fragments/logstream-exit.json (LogStream.h complete, Colorizer.h partial).
+Sweep #1 (dax) is on the pre-954ee2c tree -> need sweep #2 on final tree.
+Next: wait sweep #1 / launch sweep #2 (slot lane-logstream-w2b), VALIDATION.md checkpoint, delete NOTES.md.
