@@ -103,5 +103,9 @@ E done: docs/LOG_STREAM_SUPPORT.md Process exit + Windows sections, THIRD_PARTY 
  Python gates pass (core_sdk, citations, cycles; doc coverage improved, floor not yet written).
 Completion steps done: rustdoc 100% (b7e2e14, doc-coverage.json floor written), API mapping table,
  provenance (38a1f18).
-Next step: F sweep on dax (log in scratchpad/sweep), clippy; then CHANGELOG + VALIDATION checkpoint;
- fragment .planning/ledger-fragments/logstream.json; final commit deleting NOTES.md.
+Sweep #1 launched on dax (slot lane-logstream-w2, log scratchpad/sweep*), tree at 45cfa74-ish.
+PROBE: main-thread Rust TLS Drop runs at return AND process::exit on macOS and Linux glibc (dax).
+Now implementing: LocalLogs.globals flag set by with_global_log; LocalLogs Drop finishes globals after own
+ streams -> library main without guard loses nothing on mainstream platforms. Test 'global thread_end'
+ expectation becomes gd+oracle. Then rerun log_stream test, docs, sweep #2 (or targeted), VALIDATION,
+ fragment, delete NOTES.md.
