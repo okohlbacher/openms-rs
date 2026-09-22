@@ -138,7 +138,7 @@ impl MSExperiment {
     /// owns all replaced data unchanged.
     ///
     /// Ports `set2DData<true>` (`MSExperiment.h:265-289`) and its
-    /// `ContainerAdd_<T, true>::addData_` (`MSExperiment.h:1368-1392`), which
+    /// `ContainerAdd_<T, true>::addData_` (`MSExperiment.h:1368-1393`), which
     /// `FileConverter` uses to turn a feature map into peaks. A feature with a
     /// `num_of_masstraces` meta value `n` becomes `n` peaks, the `i`-th at
     /// `mz + C13C12_MASSDIFF_U / charge * i` with the intensity of its
