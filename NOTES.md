@@ -67,3 +67,5 @@ Gaps (ranked):
 - DONE (6e88010): batch3 retained+tests, docs, provenance, ledger fragment (.planning/ledger-fragments/toppbase-finish.json, untracked/ignored), store side, fmt.
   Local checks (core_sdk, doc_coverage --report, module_cycles, source_citations) rc=0.
 - NEXT: sweep on dax: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64 ~/.local/bin/openms-ci-sweep.sh toppbase-finish-1 <logdir> (background); slices for new tests; final commit deleting NOTES.md.
+- Slices measured: paramxml/param_json 10; mzml paramxml/topp_json_ini 6 (+lifecycle 76); mzml paramxml featurexml/topp_json_ini 8 (completion 49, console 4, topp_file_info 43).
+- Sweep toppbase-finish-1 on dax started at 0e504dd (log scratchpad/sweep1.out). Commits after: dedupe refusals + cli module doc (re-run lifecycle locally).
