@@ -1476,6 +1476,89 @@ fn ended_with(result: ToolResult, args: &[&str]) -> Outcome {
     run::<StreamTool>(args)
 }
 
+/// A tool whose body reads its parameters with a chosen accessor.
+struct AccessorTool;
+thread_local! {
+    static ACCESSOR_CALL: RefCell<Option<fn(&ToolContext) -> ToolResult>> = const { RefCell::new(None) };
+}
+impl Tool for AccessorTool {
+    const NAME: &'static str = "AccessorTool";
+    const DESCRIPTION: &'static str = "Reads its parameters";
+    fn register(spec: &mut ToolSpec) -> Result<()> {
+        spec.register_int_option("count", "<n>", 3, "a number", false, false)?;
+        spec.register_string_option("name", "<text>", "x", "a text", false, false)?;
+        Ok(())
+    }
+    fn run(ctx: &ToolContext) -> ToolResult {
+        let call = ACCESSOR_CALL.with(|slot| slot.borrow_mut().take()).unwrap();
+        call(ctx)
+    }
+}
+fn with_accessor(call: fn(&ToolContext) -> ToolResult) -> Outcome {
+    ACCESSOR_CALL.with(|slot| *slot.borrow_mut() = Some(call));
+    run::<AccessorTool>(&["-test"])
+}
+
+/// A body that reads a parameter it did not register, or reads one with the
+/// wrong accessor, is a programming error the source raises as
+/// `UnregisteredParameter` or `WrongParameterType` (`TOPPBase_defs.h:53-75`;
+/// thrown by `findEntry_` and the typed accessors, `TOPPBase.cpp:1058-1066`
+/// and `1390-1400`). Its catch blocks (`482-493`) write `Internal error:
+/// Request for unregistered parameter '<name>'` and `Internal error: Request
+/// for parameter with wrong type '<name>'` through `writeLogError_` and
+/// return `INTERNAL_ERROR` (12); the exception unwinds past the closing line.
+/// A refusal the body handles itself changes nothing: an error it returns
+/// later takes its own arm.
+#[test]
+fn accessor_misuse_ends_as_the_source_catch_blocks_end_it() {
+    let unregistered = with_accessor(|ctx| {
+        ctx.string("nope")?;
+        Ok(ExitCode::ExecutionOk)
+    });
+    assert_eq!(unregistered.code, ExitCode::InternalError, "{}", unregistered.err);
+    assert_eq!(
+        unregistered.err,
+        "Internal error: Request for unregistered parameter 'nope'\n"
+    );
+    assert!(!unregistered.out.contains(" took "), "{}", unregistered.out);
+
+    let wrong_type = with_accessor(|ctx| {
+        ctx.string("count")?;
+        Ok(ExitCode::ExecutionOk)
+    });
+    assert_eq!(wrong_type.code, ExitCode::InternalError, "{}", wrong_type.err);
+    assert_eq!(
+        wrong_type.err,
+        "Internal error: Request for parameter with wrong type 'count'\n"
+    );
+
+    for call in [
+        (|ctx: &ToolContext| ctx.int("name").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from))
+            as fn(&ToolContext) -> ToolResult,
+        |ctx| ctx.double("count").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from),
+        |ctx| ctx.flag("count").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from),
+        |ctx| ctx.string_list("name").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from),
+        |ctx| ctx.int_list("name").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from),
+        |ctx| ctx.double_list("name").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from),
+        |ctx| ctx.output_dir("count").map(|_| ExitCode::ExecutionOk).map_err(ToolError::from),
+    ] {
+        let outcome = with_accessor(call);
+        assert_eq!(outcome.code, ExitCode::InternalError, "{}", outcome.err);
+        assert!(
+            outcome.err.starts_with("Internal error: Request for parameter with wrong type '"),
+            "{}",
+            outcome.err
+        );
+    }
+
+    let handled = with_accessor(|ctx| {
+        assert!(ctx.string("nope").is_err());
+        Err(openms::Error::InvalidValue("later".into()).into())
+    });
+    assert_eq!(handled.code, ExitCode::UnknownError, "{}", handled.err);
+    assert_eq!(handled.err, "Error: Unexpected internal error (later)\n");
+}
+
 /// The body's streams are the caller's. After the body returns, whatever its
 /// exit code, the source prints its run-time line on the info log, standard
 /// output (`TOPPBase.cpp:413-424`; oracle `plain_run` in

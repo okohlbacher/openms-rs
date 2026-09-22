@@ -2481,7 +2481,11 @@ pub fn run_with_registry<T: Tool>(
 ///   peak-memory part only where the platform reports it.
 /// * A [`ToolError`]: `main_` threw, and the exception unwound past that line
 ///   to a catch block, so there is no closing line. [`ToolError::Error`] takes
-///   the run-phase mapping ([`run_failure`]); [`ToolError::Caught`] is the
+///   the run-phase mapping ([`run_failure`]), unless it is an accessor's
+///   refusal the source raises as an exception of its own
+///   ([`ToolContext::escaped_refusal`]: an unregistered parameter or one read
+///   with the wrong accessor, exit 12, and an invalid flag value, exit 6);
+///   [`ToolError::Caught`] is the
 ///   tool's own catch-block text. Both are written as `writeLogError_` writes
 ///   them, so they also reach the log file. [`ToolError::Escaped`] is the
 ///   initialisation catch's line on the error stream only.
@@ -2505,6 +2509,10 @@ fn run_body<T: Tool>(
             code
         }
         Err(ToolError::Error(error)) => {
+            if let Some((code, text)) = ctx.escaped_refusal(&error) {
+                let _ = session.error(out, err, &text);
+                return code;
+            }
             let mut text = Vec::new();
             let code = run_failure(&error, &mut text);
             let text = String::from_utf8_lossy(&text);
