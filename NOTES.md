@@ -60,3 +60,7 @@ Gaps (ranked):
 5. Gaps (b),(d),(e); docs; THIRD_PARTY entry; ledger fragment; sweep.
 - Gap (b) trial (arm flipped to 8 in run_failure, uncommitted at first): failing = lifecycle run_phase_errors (asserts native 6), file_info a_forced_type_the_file_contradicts_is_refused,
   map_normalizer an_empty_combined_intensity_range_is_refused (Release: 8 + RangeManager.h:142 text), sfwm a_non_finite_window_size_is_refused_before_the_processing_record. Splitter passes.
+- DONE: (b) arm -> 8 (fe1ce53, 924aea0: MapNormalizer InvalidRange+source text, SFWM/MapNormalizer native refusals via ToolError::invalid_parameter, FileInfo forced type -> ParseError 3 (report.rs forced_type_refused + peaks.rs precheck; FileHandler check_allowed still InvalidValue = FileHandler lane!)).
+  (c) FFC citations. (e) 0b6a73a context.rs refusals -> run_body escaped_refusal. (d) was already done on main by 436878b; FuzzyDiff truncation warning now log_warning.
+- run3 oracle fetched: ../oracle/json-ini/run3/results (x_missing_log, x_missing_write_ini, x_malformed_log, j_missing_log, fi_forced_*). Not yet retained in tests.
+- NEXT: retain run3 + test; docs (TOPP_CLI_SUPPORT JSON section, exit table rows 133-160, FILE_INFO item 3, THIRD_PARTY serde_json); provenance json; ledger fragment; gates.
