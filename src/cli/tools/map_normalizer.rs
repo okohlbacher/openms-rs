@@ -14,7 +14,7 @@
 //! whole spectrum, so it routinely outranks the most intense single peak and
 //! then sets the scale on its own. See [`MapNormalizer::run_maximum_intensity`].
 
-use crate::cli::{ExitCode, Tool, ToolContext, ToolResult, ToolSpec};
+use crate::cli::{ExitCode, Tool, ToolContext, ToolError, ToolResult, ToolSpec};
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
 use crate::kernel::{MSExperiment, SummaryLimits};
@@ -23,6 +23,11 @@ use crate::{Error, Result};
 
 /// The `MapNormalizer` TOPP tool.
 pub struct MapNormalizer;
+
+/// The text of the `Exception::InvalidRange` that `RangeBase::getMax()`
+/// throws for an empty range (`RangeManager.h:139-146` at core `bc9cc12`),
+/// which the Release build prints for a run without intensities.
+const EMPTY_RANGE: &str = "Empty or uninitialized range object. Did you forget to call updateRanges()?";
 
 impl Tool for MapNormalizer {
     const NAME: &'static str = "MapNormalizer";
@@ -89,8 +94,8 @@ impl MapNormalizer {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the combined intensity range is
-    /// empty — no spectrum peak and no chromatogram point anywhere — because
+    /// Returns [`Error::InvalidRange`] with the source's text when the
+    /// combined intensity range is empty — no spectrum peak and no chromatogram point anywhere — because
     /// the source refuses such a run rather than writing it through. `main_`
     /// asks for `getMaxIntensity()` unconditionally, one line before its peak
     /// loop, and `RangeBase::getMax()` (`RangeManager.h:139-146`) throws
@@ -102,11 +107,10 @@ impl MapNormalizer {
     /// uninitialized range object. Did you forget to call updateRanges()?* and
     /// writes no output file.
     ///
-    /// The port refuses the same runs and likewise writes nothing, but exits 6
-    /// rather than 8: `Error::InvalidValue` and [`Error::InvalidRange`] map to
-    /// `ILLEGAL_PARAMETERS` crate-wide, where the source's exceptions of those
-    /// names derive from `BaseException` and reach its `UNKNOWN_ERROR` arm. See
-    /// the mapping documented at `run_failure` in `src/cli.rs`, and
+    /// The port refuses the same runs, writes nothing, and exits 8 with the
+    /// same diagnostic: [`Error::InvalidRange`] escaping the tool body takes
+    /// the lifecycle's `BaseException` arm, as the source's exception does
+    /// (`run_failure` in `src/cli.rs`). See
     /// `tests/data/topp_map_normalizer_provenance.json` for the executed
     /// commands and digests.
     ///
@@ -117,11 +121,19 @@ impl MapNormalizer {
             .combined_ranges_with_limits(Self::range_limits(experiment))?
             .intensity
             .map(|range| range.max)
-            .ok_or_else(|| Error::InvalidValue("run has no intensities to normalize".into()))
+            .ok_or_else(|| Error::InvalidRange(EMPTY_RANGE.into()))
     }
 
     /// The tool body, as the source `main_`.
-    fn run_in_pool(ctx: &ToolContext) -> Result<ExitCode> {
+    ///
+    /// # Errors
+    ///
+    /// An empty combined intensity range as [`Self::run_maximum_intensity`].
+    /// A maximum that is zero, negative or not finite ends the run with
+    /// [`ToolError::invalid_parameter`], exit 6, where the source writes NaN or
+    /// flipped intensities and exits 0 (the deliberate deviation recorded in
+    /// `docs/TOPP_CLI_SUPPORT.md`).
+    fn run_in_pool(ctx: &ToolContext) -> ToolResult {
         let mut experiment = FileHandler::load_experiment(ctx.string("in")?, &[FileType::MzMl])?;
 
         // Source takes the combined maximum over every MS level and every
@@ -135,9 +147,9 @@ impl MapNormalizer {
         // deliberate deviation recorded in docs/TOPP_CLI_SUPPORT.md.
         let scale = maximum / 100.0;
         if !(scale.is_finite() && scale > 0.0) {
-            return Err(Error::InvalidValue(
+            return Err(ToolError::invalid_parameter(Error::InvalidValue(
                 "run maximum intensity must be finite and positive".into(),
-            ));
+            )));
         }
 
         // Only MS1 is scaled; the source leaves higher levels untouched and

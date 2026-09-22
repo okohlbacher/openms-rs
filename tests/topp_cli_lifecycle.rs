@@ -1560,8 +1560,16 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
     ))));
     assert_eq!(missing.code, ExitCode::InputFileNotFound, "{}", missing.err);
 
+    // The source's InvalidValue and InvalidRange derive from BaseException
+    // (Exception.h) and take its arm (TOPPBase.cpp:495-499); a tool that
+    // refuses a parameter says so with ToolError::invalid_parameter.
     let invalid = stream_tool(Err(Error::InvalidValue("bad".into())));
-    assert_eq!(invalid.code, ExitCode::IllegalParameters, "{}", invalid.err);
+    assert_eq!(invalid.code, ExitCode::UnknownError, "{}", invalid.err);
+    assert!(
+        invalid.err.contains("Error: Unexpected internal error (bad)"),
+        "{}",
+        invalid.err
+    );
 
     let unsupported = stream_tool(Err(Error::Unsupported("not here".into())));
     assert_eq!(
@@ -1573,9 +1581,9 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
 
     // Native mappings (tier 4). A std::io::Error does not say whether it read
     // or wrote, and inputs are checked before the body runs, so a denied
-    // permission is taken as a failed write. The source's own InvalidRange and
-    // MissingInformation exceptions would reach its BaseException arm (exit 8);
-    // these follow InvalidParameter and RequiredParameterNotGiven instead.
+    // permission is taken as a failed write. The source's own
+    // MissingInformation exception would reach its BaseException arm (exit
+    // 8); it follows RequiredParameterNotGiven instead.
     let denied = stream_tool(Err(Error::Io(std::io::Error::from(
         std::io::ErrorKind::PermissionDenied,
     ))));
@@ -1600,7 +1608,12 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
     );
 
     let range = stream_tool(Err(Error::InvalidRange("inverted".into())));
-    assert_eq!(range.code, ExitCode::IllegalParameters, "{}", range.err);
+    assert_eq!(range.code, ExitCode::UnknownError, "{}", range.err);
+    assert!(
+        range.err.contains("Error: Unexpected internal error (inverted)"),
+        "{}",
+        range.err
+    );
 
     let information = stream_tool(Err(Error::MissingInformation("no charge".into())));
     assert_eq!(

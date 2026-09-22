@@ -2272,11 +2272,16 @@ fn initialisation_failure<T: Tool>(error: &Error, err: &mut dyn Write) -> ExitCo
 ///   this arm: `load_ini` maps their read failures itself.
 /// * Any other I/O failure is `UNKNOWN_ERROR`, the `BaseException` arm
 ///   (495-499).
-/// * An invalid value or range is `ILLEGAL_PARAMETERS`, as `InvalidParameter`
-///   (475-480), and missing information is `MISSING_PARAMETERS`, as
-///   `RequiredParameterNotGiven` (466-474). The source's own `InvalidValue`,
-///   `InvalidRange` and `MissingInformation` exceptions derive directly from
-///   `BaseException` and would exit `UNKNOWN_ERROR` there.
+/// * An invalid value or range is the source's `InvalidValue` or
+///   `InvalidRange` exception, which derives from `BaseException` and takes
+///   its arm (495-499): `Error: Unexpected internal error (<what>)` and
+///   `UNKNOWN_ERROR` (Release oracle: MapNormalizer's empty intensity range).
+///   A tool that refuses a parameter where the source returns
+///   `ILLEGAL_PARAMETERS` says so itself ([`ToolError::invalid_parameter`]).
+/// * Missing information is `MISSING_PARAMETERS`, as
+///   `RequiredParameterNotGiven` (466-474). The source's own
+///   `MissingInformation` exception derives directly from `BaseException` and
+///   would exit `UNKNOWN_ERROR` there.
 /// * `Unsupported` and `UnsortedData` are `INCOMPATIBLE_INPUT_DATA`, the code
 ///   the source tools return explicitly for those conditions.
 fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {

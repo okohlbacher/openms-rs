@@ -8,7 +8,7 @@
 //! `getSubsectionDefaults_` supplies them. The output carries the source's
 //! `data filtering` processing record.
 
-use crate::cli::{ExitCode, Tool, ToolContext, ToolResult, ToolSpec};
+use crate::cli::{ExitCode, Tool, ToolContext, ToolError, ToolResult, ToolSpec};
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
 use crate::metadata::ProcessingAction;
@@ -76,7 +76,15 @@ impl Tool for SpectraFilterWindowMower {
 
 impl SpectraFilterWindowMower {
     /// The tool body, as the source `main_`.
-    fn run_in_pool(ctx: &ToolContext) -> Result<ExitCode> {
+    ///
+    /// # Errors
+    ///
+    /// A window size the window mower refuses, which only a non-finite value
+    /// reaches past the registered restriction, ends the run with
+    /// [`ToolError::invalid_parameter`], exit 6. The source has no such
+    /// refusal: its tool records `inf` and exits 0 (a native difference,
+    /// `docs/TOPP_CLI_SUPPORT.md`, *Non-finite values in processing records*).
+    fn run_in_pool(ctx: &ToolContext) -> ToolResult {
         let algorithm = ctx.subsection("algorithm")?;
         let value = |key: &str| -> Result<&ParamValue> {
             algorithm
@@ -89,7 +97,8 @@ impl SpectraFilterWindowMower {
             _ => {
                 return Err(Error::InvalidValue(
                     "algorithm:windowsize must be a number".into(),
-                ));
+                )
+                .into());
             }
         };
         let peak_count = match value("peakcount")? {
@@ -99,7 +108,8 @@ impl SpectraFilterWindowMower {
             _ => {
                 return Err(Error::InvalidValue(
                     "algorithm:peakcount must be an integer".into(),
-                ));
+                )
+                .into());
             }
         };
         let method = WindowMowerMethod::from_str(value("movetype")?.as_str()?)?;
@@ -116,7 +126,14 @@ impl SpectraFilterWindowMower {
         // (`SpectraFilterWindowMower.cpp:106-107`): the -log file, from debug
         // level 3.
         ctx.write_debug_param("Used filter parameters", &algorithm, 3);
-        filter.filter_experiment(&mut experiment)?;
+        filter
+            .filter_experiment(&mut experiment)
+            .map_err(|error| match error {
+                Error::InvalidValue(_) | Error::InvalidRange(_) => {
+                    ToolError::invalid_parameter(error)
+                }
+                other => other.into(),
+            })?;
         // Source addDataProcessing_(exp, getProcessingInfo_(FILTERING)).
         let processing = ctx.processing_info(&[ProcessingAction::DataFiltering])?;
         ctx.add_data_processing(&mut experiment, &processing);
