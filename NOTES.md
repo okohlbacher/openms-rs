@@ -46,6 +46,11 @@ Upstream test: core bc9cc12 src/tests/class_tests/openms/source/MSExperiment_tes
   %g helpers: crate::format::file_info::text_format::ostream_g(v,6) (kernel->format edge already recorded in docs/module-cycles.json, so no new edge).
   Plan: Display layout exact; decide whether `{:#}` gives byte-exact %g. Release oracle for both.
 
+## Oracle
+- /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/msexperiment-close/{driver.cpp,remote_run.sh,run.sh}
+  `bash .../run.sh start` (done once, session 2) ; `bash .../run.sh fetch` -> results/{stdout,stderr}.txt, host.txt
+  remote dir /scratch/kohlbach/msexperiment-close on ibminode06
+
 ## Next step
 1. Read C++ MSSpectrum operator<< + SpectrumSettings operator<< + ExperimentalSettings operator<< at pin; chromatogram Display style.
 2. first_product_spectrum_index in src/kernel.rs + tests.
