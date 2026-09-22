@@ -101,7 +101,7 @@ DONE: A (c80f5ef), B test passes 18/18 (--no-default-features --test log_stream)
 E done: docs/LOG_STREAM_SUPPORT.md Process exit + Windows sections, THIRD_PARTY row; citations fixed
  (LogStream.cpp:111-128, 667-672, 694-722; Colorizer.cpp:26-81, 87-110, 139-153, 155-170).
  Python gates pass (core_sdk, citations, cycles; doc coverage improved, floor not yet written).
-Next step (for complete): 1 rustdoc 100% for log_stream.rs (was 47.8%, 22/46) + check_doc_coverage --write;
- 2 API mapping table (every LogStream.h member) in LOG_STREAM_SUPPORT.md; 3 tests/data/log_stream_provenance.json
- add oracle hashes (../oracle/logstream-exit/results/hashes.txt); 4 CHANGELOG/VALIDATION if convention;
- 5 clippy all-features + sweep on dax; 6 fragment .planning/ledger-fragments/<lane>.json.
+Completion steps done: rustdoc 100% (b7e2e14, doc-coverage.json floor written), API mapping table,
+ provenance (38a1f18).
+Next step: F sweep on dax (log in scratchpad/sweep), clippy; then CHANGELOG + VALIDATION checkpoint;
+ fragment .planning/ledger-fragments/logstream.json; final commit deleting NOTES.md.
