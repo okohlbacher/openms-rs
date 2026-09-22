@@ -70,7 +70,15 @@
   oplog_1.tsv, log_1.txt, out_1/*.mzML). Driver cases: mzml_plain/rewrite/rewrite_hash/hash_only/gz, dta2d_*, mzdata_*,
   mzxml_*, srm, srm_mixed, mgf/ms2/dta rewrite_hash, missing_dta2d, mzml_relative, mzml_dot_relative, hash rows.
 
+- DONE: fixture tests/data/file_handler_load_release.tsv (+ _provenance.json). Release, 2 reps identical.
+  Findings: C++ keeps first source file (MzMLFile_1 has 5, order tiny1.RAW, ac.dta, parameters.par, pr.dta, tiny1.dta);
+  dir hash = da39.. (empty digest; source hashes prefix on read error -> port must break, not "");
+  MGF: C++ 4 calls (S 0 131 "loading MGF", V 76, V -1, E) -> port none (documented gap);
+  missing .dta2d: C++ S then FileNotFound, depth 1 -> port errors before start (documented);
+  hash_only (false,true) Release = no-op (port: InvalidValue, documented).
+
 ## Next step
-1. poll/fetch oracle; write tests/data/file_handler_load_release.tsv (+ provenance json) from results/oplog_1.tsv.
+1. Fix compute_file_hash read-error -> break (prefix digest) to match dir.d case.
+2. Oracle-driven tests in tests/file_handler_load.rs: parse fixture; per case compare sf rows, size, spec (first 3 mz), chrom rows, P rows, W rows.
 2. Tests: tests/file_handler_load.rs (upstream values + oracle fixture).
 2. Implement in file_handler.rs; tests in tests/file_handler_source_file.rs; oracle on ibminode06.
