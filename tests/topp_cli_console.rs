@@ -268,37 +268,20 @@ fn usage_after_a_failure_is_shaped_as_the_release_build_shapes_it() {
     assert_eq!(compared, if cfg!(feature = "featurexml") { 4 } else { 2 });
 }
 
-/// `FeatureFinderCentroided` does not yet declare the two citations the
-/// source's tool registers (`FeatureFinderCentroided.cpp:124-136`; its tool
-/// lives in `src/cli/tools`), so its usage lacks the `To cite
-/// FeatureFinderCentroided:` block. Everything else is shaped as the Release
-/// build shapes it: the Release text from that heading to `Usage:` is
-/// replaced by what the source writes there without citations, and the
-/// heading is required, so that this test fails once the citations are
-/// declared.
+/// `FeatureFinderCentroided`'s usage at every width, byte for byte, with the
+/// `To cite FeatureFinderCentroided:` block of the two publications its
+/// source cites (`FeatureFinderCentroided.cpp:124-136`) between the OpenMS
+/// citation and `Usage:`, including what a last citation line that fills the
+/// width exactly leaves behind: an extra empty line (`helphelp_…_c28`).
 #[cfg(feature = "featurexml")]
 #[test]
-fn feature_finder_centroided_differs_only_by_its_undeclared_citations() {
+fn feature_finder_centroided_usage_is_the_release_builds_with_its_citations() {
     let names: Vec<String> = cases("help")
         .into_iter()
         .filter(|case| case.contains("FeatureFinderCentroided"))
         .collect();
     assert_eq!(names.len(), 10);
     for case in &names {
-        // Without citations the source writes the one empty line
-        // (`is << is.indent(0) << "\n"`) between the OpenMS citation and
-        // `Usage:`. With them, the block and what its last line leaves behind:
-        // a last line that fills the width exactly makes the next line break
-        // an extra empty line (`helphelp_…_c28`).
-        let without_citations = |text: String| {
-            // The narrowest widths break the heading itself.
-            let start = text
-                .find("To cite Feature")
-                .unwrap_or_else(|| panic!("{case}: the Release text cites the tool"));
-            let usage = text.find("Usage:").expect("the usage heading");
-            assert!(start < usage, "{case}");
-            format!("{}\n{}", &text[..start], &text[usage..])
-        };
-        assert!(assert_case(case, without_citations), "{case}");
+        assert!(assert_case(case, |text| text), "{case}");
     }
 }
