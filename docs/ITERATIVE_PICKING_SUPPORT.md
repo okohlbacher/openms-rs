@@ -119,10 +119,22 @@ use this constrained center. No symmetric nearest-point replacement is made.
 After all iterations, each surviving candidate suppresses lower-priority
 candidates whose rounded centroids lie inclusively inside its full-precision
 boundaries. Original seed priority remains unchanged. Surviving peaks, regions
-and arrays are sorted together by their rounded output m/z. Equal seed
-priorities retain original seed order; this deterministic choice replaces
-the C++ `std::sort` unspecified ordering of equivalent elements. Equal rounded
-output coordinates retain that candidate-priority order.
+and arrays are sorted together by their rounded output m/z. The seeds are
+ordered by the Release build's own `std::sort(..., sort_peaks_by_intensity)`
+(`PeakPickerIterative.h:311`, comparator `a.peak_apex_intensity >
+b.peak_apex_intensity` at `:36-39`), run by `crate::math::source_sort` in both
+profiles: libstdc++'s introsort, which above 16 candidates does not keep equal
+seed priorities in seed order, and that order decides which of two overlapping
+candidates survives. (Until DEBT-04 the port kept equal priorities in seed
+order, on the argument that the C++ order is unspecified; lead decision D16
+put the executed order in scope.) The final `output.sortByPosition()` (`:366`)
+is reproduced as `MSSpectrum::sortByPosition` runs it with the three float
+arrays present: nothing when `std::is_sorted` under `<` on the m/z holds, else
+libstdc++'s `std::stable_sort` of an index vector. Equal rounded output
+coordinates therefore retain the candidate order, and a NaN centroid lands
+where the Release build puts it. Tier 1: `../oracle/A3a-source-order`, cases
+`ppi_*` (20 rows, the `ppi_tie_*` grids with more than 16 equal seeds among
+them), compared bit for bit by `tests/a3a_source_order.rs`.
 
 ## Which profile the noise estimate uses
 
@@ -139,7 +151,7 @@ caller's, so `PeakPickerIterative::compatibility` is handed to both, exactly as
 
 | Flag | Source behaviour |
 |---|---|
-| `allow_negative_intensities` | No intensity check exists in the source. Negative samples reach `snt.init`, and a candidate whose support sums to a negative intensity divides by that sum (`PeakPickerIterative.h:228`) to a finite recentred m/z and is stored with that negative intensity (`:231-234`). Measured as `ppi_neg_sn0`, `ppi_negbase_sn0` and `ppi_allneg_sn0`, which reach the negative sum because `signal_to_noise_ = 0.0` turns the S/N gate off (`:92`, honoured at `:185`, `:205` and `:315`). A zero sum stays refused in both profiles: it divides to an infinite or NaN centroid, and no case pins the order `std::stable_sort` then produces. |
+| `allow_negative_intensities` | No intensity check exists in the source. Negative samples reach `snt.init`, and a candidate whose support sums to a negative intensity divides by that sum (`PeakPickerIterative.h:228`) to a finite recentred m/z and is stored with that negative intensity (`:231-234`). Measured as `ppi_neg_sn0`, `ppi_negbase_sn0` and `ppi_allneg_sn0`, which reach the negative sum because `signal_to_noise_ = 0.0` turns the S/N gate off (`:92`, honoured at `:185`, `:205` and `:315`). A zero sum is reproduced too (DEBT-04): it divides to an infinite or NaN centroid, which the final `sortByPosition` orders as the Release build's `std::stable_sort` does (`ppi_zero_*` rows of `../oracle/A3a-source-order`). |
 
 The `noise` sub-profile carries the estimator's own source behaviours, including
 the `win_len` values the source's `setMinFloat("win_len", 1.0)` restriction lets
@@ -181,9 +193,13 @@ so both stay refused. Porting them is tracked as remaining scope below.
   settings, missing center neighbors and nonfinite arithmetic return errors. A
   nonpositive integrated intensity returns an error in the native profile; under
   `allow_negative_intensities` a negative sum divides as the source divides by
-  it (`PeakPickerIterative.h:228`) and only a zero sum still fails, through the
-  infinite or NaN centroid it produces. Values not representable as finite output `f32`
-  values also return errors. A finite rounded output centroid can lie outside
+  it (`PeakPickerIterative.h:228`), and since DEBT-04 so does a zero sum: the
+  infinite or NaN centroid (x86_64's default NaN for `0 / 0`) is stored in the
+  `float` m/z as the source stores it and carried through the merge test and
+  the final sort as the Release build carries it (`ppi_zero_*` rows). A
+  *finite* quotient beyond the `f32` range still returns an error: that
+  `double`-to-`float` conversion is undefined behaviour ([conv.double]), not an
+  ordering question. A finite rounded output centroid can lie outside
   its exact integration boundaries; the source rounding behavior is retained.
 - Empty and short profiles return empty centroid spectra with preserved record
   metadata and the three empty output arrays. C++ returns without assigning

@@ -386,27 +386,27 @@ impl<V> SourceMap<V> {
         w: &mut Work,
         make: impl FnOnce(&mut Work) -> Result<V>,
     ) -> Result<&mut V> {
-        if let Some((_, value)) = self.nan.as_mut() {
-            // `lower_bound` of any key is the NaN entry, and `key < NaN` is
-            // false: nothing is inserted.
-            return Ok(value);
+        if self.nan.is_none() {
+            if !key.is_nan() {
+                return Ok(match self.entries.entry(Key(key)) {
+                    Entry::Occupied(entry) => entry.into_mut(),
+                    Entry::Vacant(entry) => entry.insert(make(w)?),
+                });
+            }
+            // A NaN into a non-empty map: `lower_bound` is the least entry,
+            // and `NaN < key` is false, so nothing is inserted.
+            if let Some(least) = self.entries.values_mut().next() {
+                return Ok(least);
+            }
+            // A NaN into the empty map is inserted.
+            self.nan = Some((key, make(w)?));
         }
-        if key.is_nan() && self.entries.is_empty() {
-            let value = make(w)?;
-            return Ok(&mut self.nan.insert((key, value)).1);
-        }
-        if key.is_nan() {
-            // Non-empty here: the empty case was inserted above.
-            return self
-                .entries
-                .values_mut()
-                .next()
-                .ok_or_else(|| Error::InvalidValue("empty source map".into()));
-        }
-        Ok(match self.entries.entry(Key(key)) {
-            Entry::Occupied(entry) => entry.into_mut(),
-            Entry::Vacant(entry) => entry.insert(make(w)?),
-        })
+        // Any key against the map `{NaN}`: `lower_bound` is the NaN entry, and
+        // `key < NaN` is false, so nothing is inserted.
+        self.nan
+            .as_mut()
+            .map(|(_, value)| value)
+            .ok_or_else(|| Error::InvalidValue("empty source map".into()))
     }
     /// The entries in the map's order, with the key each was created with.
     fn into_entries(self) -> impl Iterator<Item = (f64, V)> {
