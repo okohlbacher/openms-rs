@@ -240,7 +240,7 @@ impl PoseClusteringAffineSuperimposer {
             ));
         }
         let positive = |value: f64| value.is_finite() && value > 0.0;
-        if !(self.mz_pair_max_distance >= 0.0)
+        if self.mz_pair_max_distance < 0.0
             || !self.mz_pair_max_distance.is_finite()
             || !self.rt_pair_distance_fraction.is_finite()
             || !positive(self.scaling_bucket_size)
@@ -413,7 +413,8 @@ impl PoseClusteringAffineSuperimposer {
         let rt_half =
             4.0 + 2.0 * (self.max_shift * self.max_scaling / self.shift_bucket_size).ceil();
         let cap = (self.max_buckets / 2) as f64;
-        if !(scaling_half <= cap) || !(rt_half <= cap) || scaling_half < 0.0 {
+        // Both counts are finite: the validated sizes are positive and finite.
+        if scaling_half > cap || rt_half > cap || scaling_half < 0.0 || !rt_half.is_finite() {
             return Err(Error::InvalidValue(
                 "pose clustering histogram exceeds its bucket limit".into(),
             ));

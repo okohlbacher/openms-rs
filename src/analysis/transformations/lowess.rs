@@ -235,11 +235,12 @@ pub fn build_span_grid(
     };
     let lower = low.max(neighbors.min(0.9));
     for value in &mut grid {
-        if *value < lower {
-            *value = lower;
-        }
-        if *value > high {
-            *value = high;
+        // Raise, then lower, in that order: when `lower` exceeds `high` (a
+        // neighbour bound above the maximum) the source ends on `high`, which
+        // `f64::clamp` would refuse by panicking.
+        #[allow(clippy::manual_clamp)]
+        {
+            *value = value.max(lower).min(high);
         }
     }
     grid.sort_by(f64::total_cmp);

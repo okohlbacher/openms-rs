@@ -180,12 +180,12 @@ impl PoseClusteringShiftSuperimposer {
                 "the [DEBUG] dump_buckets and dump_pairs outputs are not ported".into(),
             ));
         }
-        if !(self.mz_pair_max_distance >= 0.0) || !self.mz_pair_max_distance.is_finite() {
+        if self.mz_pair_max_distance < 0.0 || !self.mz_pair_max_distance.is_finite() {
             return Err(Error::InvalidValue(
                 "mz_pair_max_distance must be finite and not negative".into(),
             ));
         }
-        if !(self.shift_bucket_size > 0.0) || !self.shift_bucket_size.is_finite() {
+        if self.shift_bucket_size <= 0.0 || !self.shift_bucket_size.is_finite() {
             // The source divides by it and converts the quotient to Int,
             // which is undefined for a zero bucket size.
             return Err(Error::InvalidValue(
@@ -278,7 +278,8 @@ impl BaseSuperimposer for PoseClusteringShiftSuperimposer {
                 max_shift = diff;
             }
             let half = (max_shift / self.shift_bucket_size).ceil() + 4.0;
-            if !(half <= (self.max_buckets / 2) as f64) {
+            // `half` is finite: the validated bucket size is positive.
+            if half > (self.max_buckets / 2) as f64 || !half.is_finite() {
                 return Err(Error::InvalidValue(
                     "pose clustering histogram exceeds its bucket limit".into(),
                 ));
@@ -333,16 +334,15 @@ impl BaseSuperimposer for PoseClusteringShiftSuperimposer {
                 while k_high < m && scene_map[k_high].mz <= mz + distance {
                     k_high += 1;
                 }
-                for k in k_low..k_high {
+                for partner in &scene_map[k_low..k_high] {
                     let k_weight = 1.0 / (k_high - k_low) as f64 - WINDOW_LENGTH_BASELINE;
                     if k_weight <= 0.0 {
                         continue;
                     }
-                    let mut weight =
-                        similarity(model_map[i].intensity, scene_map[k].intensity, ratio)?;
+                    let mut weight = similarity(model_map[i].intensity, partner.intensity, ratio)?;
                     weight *= i_weight;
                     weight *= k_weight;
-                    hash.add_value(model_map[i].rt - scene_map[k].rt, weight);
+                    hash.add_value(model_map[i].rt - partner.rt, weight);
                 }
             }
             actual = 30;
