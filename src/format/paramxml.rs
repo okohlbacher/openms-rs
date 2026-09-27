@@ -756,23 +756,59 @@ pub enum OutputEncoding {
     Latin1,
 }
 
+/// How a written parameter file spells its numbers.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum NumberText {
+    /// The native text: every floating-point value (item, list item and
+    /// restriction) as the shortest decimal that reads back to the same `f64`
+    /// (`4`, `100000000000000000000`, `0.1`), infinities as `INF` and `-INF`,
+    /// and an integer item beyond 32 bits refused, because the source's reader
+    /// cannot read it back. Lossless; the native default.
+    #[default]
+    RoundTrip,
+    /// The source `ParamXMLFile::writeXMLToStream`'s text (`ParamXMLFile.cpp`
+    /// at core `bc9cc12`), which `-write_ini` writes:
+    ///
+    /// * an item's value is `ParamValue::toString()` (lines 106 and 110): a
+    ///   floating-point value through `StringUtils::toStr(double)`, 15 digits
+    ///   after the point in `[1e-2, 1e4)` and the shortest round trip in
+    ///   scientific notation outside it, trailing zeros trimmed to one (`4.0`,
+    ///   `1.0e20`, `NaN`, `inf`); an integer as `std::to_string` of the 64-bit
+    ///   value, so one beyond 32 bits is written, although the source's reader
+    ///   (`XMLHandler::asInt_`, `StringUtils::toInt32`) refuses it;
+    /// * a floating-point restriction is `StringUtils::toStr(double)` too
+    ///   (lines 251 and 256: `0.0:`);
+    /// * a floating-point list item is `os << list[i]` on a stream whose
+    ///   precision is `writtenDigits<double>()`, 15 (lines 64 and 328), which
+    ///   is `printf`'s `%.15g` with glibc's `nan`, `-nan`, `inf` and `-inf`
+    ///   (`4`, `1e+20`, `0.1`).
+    ///
+    /// A value with more than 15 significant digits loses them, as in the
+    /// source.
+    Source,
+}
+
 /// Options of [`write_with_options`] and [`store_with_options`].
 ///
-/// The default is the native writer, with a UTF-8 declaration.
-/// [`WriteOptions::source`] selects the source's ISO-8859-1 declaration, which
-/// the TOPP `-write_ini` option uses.
+/// The default is the native writer, with a UTF-8 declaration and lossless
+/// numbers. [`WriteOptions::source`] selects the source's ISO-8859-1
+/// declaration and number text, which the TOPP `-write_ini` option uses.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct WriteOptions {
     /// The declared and used character encoding.
     pub encoding: OutputEncoding,
+    /// The text of numbers.
+    pub numbers: NumberText,
 }
 
 impl WriteOptions {
     /// The source writer's declaration, `encoding="ISO-8859-1"`, with bytes that
-    /// agree with it; see [`OutputEncoding::Latin1`].
+    /// agree with it (see [`OutputEncoding::Latin1`]), and the source's text
+    /// of numbers ([`NumberText::Source`]).
     pub fn source() -> Self {
         Self {
             encoding: OutputEncoding::Latin1,
+            numbers: NumberText::Source,
         }
     }
 }
@@ -818,6 +854,7 @@ pub fn write_with_options(
         limits,
         elements: 0,
         latin1,
+        numbers: options.numbers,
     };
     xml.add(if latin1 {
         "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
@@ -873,6 +910,8 @@ struct Output {
     elements: usize,
     /// Encode as ISO-8859-1, with character references above U+00FF.
     latin1: bool,
+    /// The text of numbers.
+    numbers: NumberText,
 }
 impl Output {
     fn add(&mut self, text: &str) -> Result<()> {
@@ -1045,16 +1084,20 @@ impl Output {
         self.indent(depth)?;
         self.add(if list { "<ITEMLIST" } else { "<ITEM" })?;
         self.attr("name", &entry.name)?;
+        let source = self.numbers == NumberText::Source;
+        let float = if source { item_text } else { float_text };
         if !list {
             match &entry.value {
                 ParamValue::String(v) => self.attr("value", v)?,
                 ParamValue::Integer(v) => {
-                    i32::try_from(*v).map_err(|_| {
-                        unsupported("parameter XML source reader uses 32-bit integers")
-                    })?;
+                    if !source {
+                        i32::try_from(*v).map_err(|_| {
+                            unsupported("parameter XML source reader uses 32-bit integers")
+                        })?;
+                    }
                     self.attr("value", &v.to_string())?;
                 }
-                ParamValue::Float(v) => self.attr("value", &float_text(*v))?,
+                ParamValue::Float(v) => self.attr("value", &float(*v))?,
                 _ => unreachable!(),
             }
         }
@@ -1095,13 +1138,9 @@ impl Output {
                         v.to_string()
                     })
                 }
-                ParamValue::Float(_) | ParamValue::FloatList(_) => bounds(
-                    entry.min_float,
-                    entry.max_float,
-                    -f64::MAX,
-                    f64::MAX,
-                    float_text,
-                ),
+                ParamValue::Float(_) | ParamValue::FloatList(_) => {
+                    bounds(entry.min_float, entry.max_float, -f64::MAX, f64::MAX, float)
+                }
                 _ => {
                     if entry.valid_strings.iter().any(|v| v.contains(',')) {
                         return Err(unsupported(
@@ -1162,8 +1201,9 @@ impl Output {
                 if values.len() > self.limits.max_list_items {
                     return Err(bad("parameter list output limit exceeded"));
                 }
+                let list_float = if source { list_item_text } else { float_text };
                 for value in values {
-                    self.list_item(&float_text(*value), depth + 1)?;
+                    self.list_item(&list_float(*value), depth + 1)?;
                 }
             }
             _ => unreachable!(),
@@ -1201,6 +1241,7 @@ fn bounds<T: PartialEq>(
     };
     format!("{low}:{high}")
 }
+/// [`NumberText::RoundTrip`]'s floating-point text.
 fn float_text(value: f64) -> String {
     if value.is_nan() {
         "NaN".into()
@@ -1211,4 +1252,63 @@ fn float_text(value: f64) -> String {
     } else {
         value.to_string()
     }
+}
+
+/// [`NumberText::Source`]'s text of a floating-point item or restriction:
+/// `StringUtils::toStr(double)`, which is `ParamValue::toString()`'s
+/// ([`ParamValue::to_text`]).
+fn item_text(value: f64) -> String {
+    crate::param::value::format_float(value, true)
+}
+
+/// Significant digits of the source writer's stream,
+/// `os.precision(writtenDigits<double>(0.0))` (`ParamXMLFile.cpp:64`):
+/// `std::numeric_limits<double>::digits10`.
+const STREAM_DIGITS: usize = 15;
+
+/// [`NumberText::Source`]'s text of a floating-point list item,
+/// `os << list[i]` (`ParamXMLFile.cpp:328`) on a stream of precision
+/// [`STREAM_DIGITS`] with the default format flags: `%.15g`.
+///
+/// The value is rounded to 15 significant digits; with `X` the decimal
+/// exponent after that rounding, it is written in scientific notation when
+/// `X < -4` or `X >= 15`, and otherwise in fixed notation, and in either case
+/// trailing zeros and a trailing point are removed. The exponent keeps its
+/// sign and at least two digits (`1e+20`, `1e-05`). Zero is `0` or `-0`; a NaN
+/// is `nan` or, with its sign bit set, `-nan`, and an infinity `inf` or
+/// `-inf`, as glibc prints them for the Linux Release build.
+fn list_item_text(value: f64) -> String {
+    if value.is_nan() {
+        return if value.is_sign_negative() {
+            "-nan"
+        } else {
+            "nan"
+        }
+        .into();
+    }
+    if value.is_infinite() {
+        return if value < 0.0 { "-inf" } else { "inf" }.into();
+    }
+    if value == 0.0 {
+        return if value.is_sign_negative() { "-0" } else { "0" }.into();
+    }
+    let scientific = format!("{:.*e}", STREAM_DIGITS - 1, value);
+    let Some((mantissa, exponent)) = scientific.split_once('e') else {
+        // `{:e}` always writes an exponent.
+        return scientific;
+    };
+    let exponent: i32 = exponent.parse().unwrap_or(0);
+    let trim = |text: &str| -> String {
+        if text.contains('.') {
+            text.trim_end_matches('0').trim_end_matches('.').to_owned()
+        } else {
+            text.to_owned()
+        }
+    };
+    if exponent < -4 || exponent >= STREAM_DIGITS as i32 {
+        let sign = if exponent < 0 { '-' } else { '+' };
+        return format!("{}e{sign}{:02}", trim(mantissa), exponent.unsigned_abs());
+    }
+    let decimals = usize::try_from(STREAM_DIGITS as i32 - 1 - exponent).unwrap_or(0);
+    trim(&format!("{value:.decimals$}"))
 }

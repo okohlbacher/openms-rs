@@ -48,15 +48,29 @@ fn source_entry_restrictions_and_file_tag_asymmetry() {
     assert!(p.set_min_int("str", 1).is_err());
     assert!(p.valid_strings("int").is_err());
 }
+/// A 64-bit integer is checked as the source's `int tmp = value`
+/// (`Param.cpp:122`, core `bc9cc12`) checks it: `ParamValue::operator int`
+/// keeps the low 32 bits (`ParamValue.cpp:445-451`). `i64::MAX` is `-1` there
+/// and fails a minimum of 0; `i64::MIN` is `0` and passes it, which is what the
+/// C++ Release build does with a JSON `-ini` value of `1e30` on
+/// PeakPickerHiRes' `missing` (restriction `0:`): the run proceeds past the
+/// strict update to the input check (`tests/data/topp_json_ini/r_pphr_huge`).
 #[test]
-fn sentinel_bounds_nan_and_checked_integer_narrowing() {
+fn sentinel_bounds_nan_and_source_integer_narrowing() {
     let mut e = entry("i", i32::MIN);
     assert_eq!(e.min_int, -i32::MAX);
     assert!(e.is_valid().unwrap());
     e.min_int = 0;
     assert!(!e.is_valid().unwrap());
     e.value = V::Integer(i64::MAX);
-    assert!(e.is_valid().is_err());
+    assert!(!e.is_valid().unwrap());
+    e.value = V::Integer(i64::MIN);
+    assert!(e.is_valid().unwrap());
+    e.value = V::Integer((1_i64 << 32) + 7);
+    e.max_int = 6;
+    assert!(!e.is_valid().unwrap());
+    e.max_int = 7;
+    assert!(e.is_valid().unwrap());
     let mut e = entry("f", f64::INFINITY);
     assert!(e.is_valid().unwrap());
     e.max_float = 4.0;

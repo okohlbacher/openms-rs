@@ -893,7 +893,7 @@ fn prepare<T: Tool>(
     // The command line is the parameter set in force (param_ = param_cmdline_):
     // its -instance, -debug and -log apply from here (TOPPBase.cpp:193-223).
     let cmd_int = |cmd: &Param, key: &str, fallback: i64| match cmd.value(key) {
-        Ok(ParamValue::Integer(value)) => *value,
+        Ok(ParamValue::Integer(value)) => context::source_int(*value),
         _ => fallback,
     };
     session.instance = cmd_int(&cmd, "instance", 1);
@@ -1760,8 +1760,8 @@ fn source_validity_message(entry: &ParamEntry) -> Option<String> {
             entry.name, entry.min_float, entry.max_float
         )
     };
-    let narrow =
-        |value: i64| i32::try_from(value).unwrap_or(if value < 0 { i32::MIN } else { i32::MAX });
+    // `int tmp = value` (Param.cpp:122): the low 32 bits.
+    let narrow = |value: i64| context::source_int(value) as i32;
     match &entry.value {
         ParamValue::String(value)
             if !entry.valid_strings.is_empty()
@@ -1992,7 +1992,7 @@ fn validate(
                 Some(ExitCode::IllegalParameters)
             }
             (ParameterType::Int, ParamValue::Integer(number)) => {
-                int_range(session, entry, *number, out, err)?
+                int_range(session, entry, context::source_int(*number), out, err)?
             }
             (ParameterType::IntList, ParamValue::IntegerList(numbers)) => {
                 let mut code = None;
@@ -2309,10 +2309,12 @@ fn initialisation_failure<T: Tool>(error: &Error, err: &mut dyn Write) -> ExitCo
 ///   `UNKNOWN_ERROR` (Release oracle: MapNormalizer's empty intensity range).
 ///   A tool that refuses a parameter where the source returns
 ///   `ILLEGAL_PARAMETERS` says so itself ([`ToolError::invalid_parameter`]).
-/// * Missing information is `MISSING_PARAMETERS`, as
-///   `RequiredParameterNotGiven` (466-474). The source's own
-///   `MissingInformation` exception derives directly from `BaseException` and
-///   would exit `UNKNOWN_ERROR` there.
+/// * Missing information is the source's `MissingInformation` exception,
+///   which derives directly from `BaseException` (`Exception.h:154` at core
+///   `bc9cc12`) and so takes the same arm: `Error: Unexpected internal error
+///   (<what>)` and `UNKNOWN_ERROR`. A missing required parameter never
+///   reaches this function: the lifecycle reports it before the body runs, as
+///   the source's `RequiredParameterNotGiven` arm (466-474) does.
 /// * `Unsupported` and `UnsortedData` are `INCOMPATIBLE_INPUT_DATA`, the code
 ///   the source tools return explicitly for those conditions.
 fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
@@ -2336,11 +2338,10 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
         Error::Unsupported(_) | Error::UnsortedData => {
             (ExitCode::IncompatibleInputData, format!("Error: {error}"))
         }
-        Error::InvalidValue(_) | Error::InvalidRange(_) => (
+        Error::InvalidValue(_) | Error::InvalidRange(_) | Error::MissingInformation(_) => (
             ExitCode::UnknownError,
             format!("Error: Unexpected internal error ({})", error_text(error)),
         ),
-        Error::MissingInformation(_) => (ExitCode::MissingParameters, format!("Error: {error}")),
     };
     let _ = log_error(err, &text);
     code
