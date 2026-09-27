@@ -26,6 +26,24 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
 5. PepXMLFileMascot.
 6. Gaps in partials if time.
 
+## Findings (incarnation 2)
+- Budget fix WIP verified by reading: named lookups only touch by_name candidates (find/find_handles/
+  get_modification); resolve paths <= 9 find-shaped calls (charged 16). Oracle expected id_ff25/id_fdr5
+  == ../oracle/a7-fileinfo/results/run1 (run1==run2), literals match. Registered 6 fixtures in
+  tests/data/file_info_a7_provenance.json. Still to do: evidence text 55->57, known_gaps entry ->
+  RESOLVED, docs/FILE_INFO_A7_SUPPORT.md; note for lead (VALIDATION.md).
+- Regex: src/concept/boost_regex.rs BoostRegex (fancy-regex, always on). CsvFile complete (src/format/csv.rs).
+  ModificationDefinitionsSet complete (src/chemistry/modification_definitions.rs infer_from_peptides).
+  SpectrumMetaDataLookup partial: mascot_xml::SpectrumTitleLookup (hand-coded formats) + pepxml::SpectrumIndex.
+- Retained TOPP outputs: IDFileConverter_3 (protXML->idXML, topp/IDFileConverter_3_input.protXML ->
+  IDFileConverter_3_output.idXML); IDFileConverter_12/13/14 (psms -> idXML, -score_type qvalue/PEP/score).
+  FileHandler PROTXML: push one ProteinIdentification + one PeptideIdentification.
+- Class test data in core src/tests/class_tests/openms/data: PercolatorOutfile_test.psms,
+  ProtXMLFile_input_{1,2,3}.protXML, PepXMLFileMascot_test.pepXML, XQuestResultXMLFile_test_data.xquest.xml (661K).
+- XQuest load needs OPXLHelper::combineTopRanksFromPairs (unported) + helpers private in mzidentml.rs. Do last.
+- Isolation checker: avoid `cd x && git`, heredocs mentioning git, the word `source`; use `git -C <abs> show` alone.
+
 ## Next step
-1. Check oracle provenance of id_ff25/id_fdr5 expected (../oracle/a7-fileinfo), check test literals,
-   gate `cargo test --features idxml,... --test file_info_a7` on dax.
+1. Wait gate g1 (scratchpad/gate/g1.log): idxml lib + file_info_a7. Then commit budget milestone.
+2. PercolatorOutfile -> src/format/percolator_outfile.rs + tests (class test + IDFileConverter_12/13/14).
+3. ProtXMLFile -> src/format/protxml.rs; PepXMLFileMascot -> src/format/pepxml_mascot.rs.
