@@ -4,7 +4,8 @@
 
 //! Bounded streaming line reader with the line-end rules of the source's
 //! `TextFile::getLine` (`FORMAT/TextFile.cpp`): a line ends at LF, at CR, or at
-//! CRLF, and the terminator is removed.
+//! CRLF, and the terminator is removed. `LineReader::lf_only` instead follows
+//! `std::getline`, which ends a line at LF only and keeps a CR before it.
 //!
 //! [`crate::format::text::TextFile`] holds a whole file under a hard ceiling of
 //! one million lines, which spectral libraries and long chromatograms exceed.
@@ -39,15 +40,26 @@ pub(crate) struct LineReader<R> {
     limits: LineLimits,
     consumed: u64,
     line_number: usize,
+    carriage_return_ends_line: bool,
 }
 
 impl<R: BufRead> LineReader<R> {
+    /// Lines end at LF, CR or CRLF (`TextFile::getLine`).
     pub(crate) fn new(reader: R, limits: LineLimits) -> Self {
         Self {
             reader,
             limits,
             consumed: 0,
             line_number: 0,
+            carriage_return_ends_line: true,
+        }
+    }
+
+    /// Lines end at LF only and keep any CR (`std::getline`).
+    pub(crate) fn lf_only(reader: R, limits: LineLimits) -> Self {
+        Self {
+            carriage_return_ends_line: false,
+            ..Self::new(reader, limits)
         }
     }
 
@@ -84,7 +96,10 @@ impl<R: BufRead> LineReader<R> {
             if buffer.is_empty() {
                 return Ok(true);
             }
-            let end = buffer.iter().position(|&b| b == b'\r' || b == b'\n');
+            let cr = self.carriage_return_ends_line;
+            let end = buffer
+                .iter()
+                .position(|&b| b == b'\n' || (cr && b == b'\r'));
             let content = end.unwrap_or(buffer.len());
             if content > self.limits.max_line_bytes.saturating_sub(line.len()) {
                 return Err(Error::InvalidValue(format!(
@@ -146,9 +161,20 @@ mod tests {
             lines(b"a\r\nb\rc\nd"),
             vec![b"a".to_vec(), b"b".to_vec(), b"c".to_vec(), b"d".to_vec()]
         );
-        assert_eq!(lines(b"a\n\n"), vec![b"a".to_vec(), Vec::new()]);
+        assert_eq!(lines(b"a\n\n"), vec![b"a".to_vec(), Vec::<u8>::new()]);
         assert!(lines(b"").is_empty());
-        assert_eq!(lines(b"\r\r\n"), vec![Vec::new(), Vec::new()]);
+        assert_eq!(lines(b"\r\r\n"), vec![Vec::<u8>::new(), Vec::new()]);
+    }
+
+    #[test]
+    fn lf_only_keeps_carriage_returns() {
+        let mut reader = LineReader::lf_only(&b"a\r\nb\rc\nd"[..], LineLimits::default());
+        let mut line = Vec::new();
+        let mut out = Vec::new();
+        while reader.next_bytes(&mut line).unwrap() {
+            out.push(line.clone());
+        }
+        assert_eq!(out, vec![b"a\r".to_vec(), b"b\rc".to_vec(), b"d".to_vec()]);
     }
 
     #[test]

@@ -198,5 +198,7 @@ pub mod gnps_quantification;
 pub mod ibspectra;
 /// Bounded streaming line reading with the source's `TextFile::getLine` line ends.
 pub mod line_reader;
+/// Metabolite MSP spectral libraries: reader and writer (`MSPGenericFile.h`).
+pub mod msp_generic;
 /// Source `StringUtils::toDouble` / `toInt32` text conversion, shared with the CLI.
 pub(crate) mod string_utils;
