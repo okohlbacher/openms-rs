@@ -856,3 +856,6 @@ impl ProteinIdentification {
         Ok(())
     }
 }
+/// Comparators, hashes and stream output of peptide and protein hits
+/// (`METADATA/PeptideHit.h`, `METADATA/ProteinHit.h`).
+pub mod hits;

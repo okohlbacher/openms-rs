@@ -13,7 +13,7 @@ macro_rules! named_enum {
     ($(#[$enum_attr:meta])* $name:ident { $($(#[$variant_attr:meta])* $variant:ident => $label:literal),+ $(,)? }) => {
         $(#[$enum_attr])*
         /// Enumeration with one OpenMS string label per variant, in source order.
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+        #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
         pub enum $name { $($(#[$variant_attr])* $variant),+ }
         impl $name {
             /// Every variant, in the source's declaration order.
@@ -67,7 +67,7 @@ named_enum!(ProcessingAction {
 });
 
 /// The 19 activation methods in pinned OpenMS order. No invalid size sentinel.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ActivationMethod {
     Cid,
     Psd,
@@ -266,6 +266,82 @@ impl Precursor {
         let mass = self.mz * charge - charge * crate::constants::PROTON_MASS_U;
         finite(mass, "uncharged mass")?;
         Ok(mass)
+    }
+
+    /// The full names of the stored activation methods, in the set's order
+    /// (`getActivationMethodsAsString`), for example
+    /// `Collision-induced dissociation`.
+    pub fn activation_methods_as_names(&self) -> Vec<&'static str> {
+        self.activation_methods
+            .iter()
+            .map(|method| method.name())
+            .collect()
+    }
+
+    /// The abbreviations of the stored activation methods, in the set's order
+    /// (`getActivationMethodsAsShortString`), for example `CID`.
+    pub fn activation_methods_as_short_names(&self) -> Vec<&'static str> {
+        self.activation_methods
+            .iter()
+            .map(|method| method.short_name())
+            .collect()
+    }
+
+    /// The full names of all 19 activation methods, in declaration order
+    /// (`getAllNamesOfActivationMethods`).
+    pub fn all_names_of_activation_methods() -> Vec<&'static str> {
+        ActivationMethod::ALL
+            .iter()
+            .map(|method| method.name())
+            .collect()
+    }
+
+    /// The abbreviations of all 19 activation methods, in declaration order
+    /// (`getAllShortNamesOfActivationMethods`).
+    pub fn all_short_names_of_activation_methods() -> Vec<&'static str> {
+        ActivationMethod::ALL
+            .iter()
+            .map(|method| method.short_name())
+            .collect()
+    }
+}
+
+/// Consistent with the derived equality: every field is hashed, floating
+/// values with both zero signs identified as `==` identifies them. The source's
+/// `std::hash<Precursor>` covers the same state (its `Peak1D` and `CVTermList`
+/// bases, activation methods, energy, both window pairs, drift time and unit,
+/// charge and possible charge states); the native `isolation_target_mz` and
+/// `spectrum_reference` are hashed as well because equality compares them. Hash
+/// values are not the source's bits.
+impl Hash for Precursor {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let hash_f64 = |value: f64, state: &mut H| super::value::hash_float(value, state);
+        hash_f64(self.mz, state);
+        (if self.intensity == 0.0 {
+            0
+        } else {
+            self.intensity.to_bits()
+        })
+        .hash(state);
+        self.charge.hash(state);
+        self.activation_methods.hash(state);
+        hash_f64(self.activation_energy, state);
+        hash_f64(self.isolation_window_lower_offset, state);
+        hash_f64(self.isolation_window_upper_offset, state);
+        self.isolation_target_mz.is_some().hash(state);
+        if let Some(target) = self.isolation_target_mz {
+            hash_f64(target, state);
+        }
+        self.drift_time.is_some().hash(state);
+        if let Some(drift) = self.drift_time {
+            hash_f64(drift, state);
+        }
+        self.drift_time_unit.hash(state);
+        hash_f64(self.drift_window_lower_offset, state);
+        hash_f64(self.drift_window_upper_offset, state);
+        self.possible_charge_states.hash(state);
+        self.cv_terms.hash(state);
+        self.spectrum_reference.hash(state);
     }
 }
 
@@ -476,14 +552,49 @@ impl AcquisitionInfo {
     }
 }
 
-/// Name, version and CV terms of a piece of software.
-#[derive(Clone, Debug, Default, PartialEq)]
+/// Name, version and CV terms of a piece of software, the source `Software`
+/// (`METADATA/Software.h`; see `docs/METADATA_SUPPORT.md`).
+///
+/// Equality compares all three fields, as the source's `operator==` compares
+/// the inherited `CVTermList` and both strings. `Hash` is consistent with that
+/// equality and covers the CV terms too; the source's `std::hash<Software>`
+/// hashes name and version only, which is also consistent with its equality but
+/// collides more. Hash values are not the source's FNV-1a bits.
+///
+/// The source's `operator<` orders by name, then version, and ignores the CV
+/// terms, so it cannot be `PartialOrd` without contradicting equality; it is
+/// [`Software::cmp_name_version`]. `Eq` and `Ord` are not implemented, because
+/// the CV terms may carry floating values.
+#[derive(Clone, Debug, Default, PartialEq, Hash)]
 pub struct Software {
+    /// Name of the software (`getName`/`setName`).
     pub name: String,
+    /// Version of the software (`getVersion`/`setVersion`).
     pub version: String,
+    /// The inherited `CVTermList`.
     pub cv_terms: CVTermList,
 }
 impl Software {
+    /// The source's two-argument constructor, `Software(name = "", version =
+    /// "")`, with no CV terms.
+    pub fn new(name: impl Into<String>, version: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            version: version.into(),
+            cv_terms: CVTermList::default(),
+        }
+    }
+
+    /// The source's `operator<`: order by name, then by version, byte-wise;
+    /// the CV terms are not compared. Use with `sort_by`.
+    ///
+    /// Two records that differ only in their CV terms compare `Equal` here but
+    /// are not `==`, exactly as in the source.
+    pub fn cmp_name_version(&self, other: &Self) -> std::cmp::Ordering {
+        (self.name.as_str(), self.version.as_str())
+            .cmp(&(other.name.as_str(), other.version.as_str()))
+    }
+
     /// Check the attached CV terms.
     ///
     /// # Errors

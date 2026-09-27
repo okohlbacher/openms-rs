@@ -46,6 +46,35 @@ No run-reference graph is inferred or repaired: an empty or nonmatching run iden
 
 DTA, MGF and the current mzML writer reject spectra with attached peptide identifications before emitting any bytes. The supported peak-file representations cannot round-trip those structured records. Existing acquisition and annotation limitations in each format remain documented separately. The optional [idXML adapter](IDXML_SUPPORT.md) reads/writes the supported identification model and explicitly rejects fields that cannot be retained. JSON, mzIdentML/pepXML, sequence database search, probabilistic protein inference, USI/UID construction and reference-graph merging remain unimplemented.
 
+## Comparators, hashes and stream output
+
+`src/identification/hits.rs` completes `PeptideHit.h` and `ProteinHit.h`
+beyond the record fields (tests: `tests/hit_functors.rs`).
+
+| C++ member | Rust counterpart |
+|---|---|
+| `using SpectrumMatch = PeptideHit` | `identification::hits::SpectrumMatch` |
+| `PeptideHit::ScoreMore`, `ScoreLess`, `RankLess` | `PeptideHit::score_more`, `score_less`, `rank_less` (the same strict predicates) |
+| `PeptideHit::SequenceLessComparator` | `PeptideHit::sequence_less`. The source declares its `operator()` private (no access specifier in a `class`), so no caller can use it; this is its evident intent |
+| `PeptideHit::SequenceChargeHash` + `SequenceChargeEqual` | `SequenceChargeKey<'_>`, a key whose `Hash` and `Eq` look at the modified sequence and the charge only; `std::unordered_set<PeptideHit, SequenceChargeHash, SequenceChargeEqual>` is `HashSet<SequenceChargeKey>` |
+| `PeakAnnotation::operator<` | `PeakAnnotation::cmp_source_order` (`total_cmp` on the finite values `validate` admits) |
+| `PeakAnnotation::writePeakAnnotationsString_` | `PeakAnnotation::write_peak_annotations_string`, returning the text instead of appending to an out-parameter; `StringUtils::toStr(double)` numbers, backslash-escaped quoting, stable sort |
+| `std::hash<PeakAnnotation>`, `std::hash<PeptideHit>`, `std::hash<ProteinHit>` | `Hash` impls consistent with equality; see below |
+| `operator<<(ostream&, const PeptideHit&)` / `(…, const ProteinHit&)` | `Display`, with the score through `StringUtils::toStr(double)` |
+| `ProteinHit::ScoreMore`, `ScoreLess` | `ProteinHit::score_more`, `score_less`, comparing `(score, accession)` tuples as the source does |
+| `ProteinHit::ProteinHitAccessionHash`, `ProteinHitPtrAccessionHash` | `ProteinHit::accession_hash`, the same on a reference |
+| `ProteinHit::operator=(const MetaInfoInterface&)` | `ProteinHit::assign_meta_info(&MetaInfo)` |
+
+Hashes are consistent with the derived equality (both zero signs alike) but are
+not the source's FNV-1a bits. `PeptideHit` hashes its sequence through the
+canonical modified text, since `AASequence` has no `Hash`, and hashes the rank
+and analysis results, which this crate's equality compares. `ProteinHit` hashes
+each modification's position but not its identity (the source hashes the full
+ID), which keeps equal hits hashing equally. The records hold floating values and
+are not `Eq`, so a hash container of whole hits needs a key; the class tests'
+`unordered_set` checks are reproduced by bucketing on the hash and comparing with
+`==`.
+
 ## Verification
 
 `tests/identification.rs` exercises source defaults, stable score directions/ties, marker ordering, modified-sequence identity, accession references, typed metadata, target/decoy categories, annotation/group order, source charge-range cases and mergeability. Coverage is checked against an independent bit-array oracle over small overlapping intervals. Additional tests cover terminal/residue modification placement, duplicate and skipped observations, atomic malformed-evidence errors, nested kernel validation, attachment preservation and writer preflight rejection.
