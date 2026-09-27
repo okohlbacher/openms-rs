@@ -25,8 +25,16 @@ Prereq merge: worktree-wf_ee239125-5be-1 fast-forwarded f0990c0 -> 9fcb962 (no m
 - cargo only via: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64 ~/.local/bin/openms-kim-gate.sh B8b <args> (background!)
 - C++ pins: git -C ../OpenMS4-tests/packages/core show bc9cc12:<path>
 
+## Done
+- MathFunctions COMPLETE (commit 2d26489): RandomShuffler promoted, tier-1 oracle ../oracle/B8b-random-shuffler.
+  Ledger fragment written at .planning/ledger-fragments/wave4/B8b.json (built from scratchpad/entries.json).
+  Doc-coverage floor (docs/doc-coverage.json) is lead's: report "run check_doc_coverage --write".
+
 ## Next step
-1. MathFunctions RandomShuffler (promote DecoyRandom).
+1. (running) oracle ../oracle/B8b-peptide-id: buildUIDs on MQEvidence_2.consensusXML (copy to tests/data), uid errors,
+   empty(), labels, sort, buildUSI, USI class. Port USI into src/metadata/usi.rs (uses concept::boost_regex),
+   PeptideIdentification: SpectrumIdentification alias, score_comparator, Hash, build_uid(s), source_empty,
+   set_experiment_label("") must be a NO-OP (source), build_usi x2.
 2. PeptideIdentification missing members.
 3. ProteaseDB writeTSV; ModificationsDB members.
 4. IDFilter: countHits, getBestHit, filterGroupsByScore, regex, keepBestPerPeptide*, digestion filter.
