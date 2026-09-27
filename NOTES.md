@@ -39,6 +39,21 @@ splice.py, declare_retained.py = the SOURCE_PROVENANCE block for the lead).
 - Plan: trace hashlib in each CI gate (scratch A4/trace_digests.py), intersect
   computed digests with recorded ones -> "recomputed by CI" figure.
 - Plan: add git-history lookup for in_repo mismatches (older blob of same path).
+- DONE 12e1f3b: measure tool has content index (tree/history/pinned) + --ci.
+  Lab: 16860 occ / 10167 distinct; bound 82.7%/78.5%, content-only 4.0%,
+  lab-only 8.5%, none 4.9%; CI recomputes 1902 occ (11.3%) / 1534 distinct.
+- DONE 6a14273: citation checker reads core from packages/core git objects
+  (third party had 158 false problems at f0990c0); dedupes identical files.
+- THIRD PARTY on spock (/scratch/kohlbach/agents/A4-3p, scripts in scratch A4/
+  third_party*.sh, runs run1/run2 at f0990c0, brun1/brun2 at 6a14273 bundle):
+  public GitHub clones only; check_core_sdk.py --source PASSES (2107 files);
+  measure tiers identical to lab; citations 4112 checked/47 skipped/17 unres
+  (lab 4139/34/3; diff = retained libstdc++ under ../oracle). generate_enzymes
+  needs rustfmt on PATH (passes with ~/.cargo/bin).
+- WARNING: tools/check_schema_feature_graph.py runs cargo -- never run locally
+  (I did once by accident, deleted the 694M target/).
+- In progress: measure binding fixes (prefixed keys, log family, prose adopts
+  manifest binding) -> rerun, then write docs/REPRODUCIBILITY.md.
 
 ## Next step
 1. docs/REPRODUCIBILITY.md: measure sha256 assertions (all 64-hex in repo JSON/
