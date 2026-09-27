@@ -1,24 +1,35 @@
 # F1a NOTES (lane scratch, delete in final commit)
 
-Lane: F1a — Arrow/Parquet core. Branch now: worktree-wf_ee239125-5be-10 (fast-forwarded onto the
-earlier incarnation worktree-wf_bcdd783d-f3f-10 at 27d502a).
+Lane: F1a — Arrow/Parquet core. Branch: worktree-wf_ee239125-5be-10 (fast-forwarded onto the earlier
+incarnation worktree-wf_bcdd783d-f3f-10 at 27d502a; no merge commit was needed).
 
-## Done so far
-- Cargo.toml: optional `arrow` feature + arrow-array/schema/buffer/select + parquet pinned =59.3.0
-  (claimed last release with rust-version 1.85; VERIFY on dax with +1.85.0). No THIRD_PARTY entry yet.
+## Done
+- 52953b5: Cargo.toml `arrow` feature, arrow-array/schema/buffer/select + parquet =59.3.0 (MSRV verified on
+  dax with +1.85.0; 60.0.0 needs 1.88), Cargo.lock fetched back from dax (144 -> 180 packages),
+  THIRD_PARTY_CRATE_DECISIONS row (fidelity/determinism sentences promise tests in tests/arrow_parquet.rs
+  and docs/ARROW_PARQUET_SUPPORT.md -- keep that promise or edit the row).
 
-## State at start
-- No arrow/parquet dependency in Cargo.toml; no mention in docs/THIRD_PARTY_CRATE_DECISIONS.md.
-- MSRV 1.85, edition 2024.
-- Upstream C++ at core bc9cc12 (repo /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-tests/packages/core):
-  include/OpenMS/FORMAT/{ArrowIOHelpers,ArrowSchemaRegistry,ParquetFile,ParquetFilter,PSMArrowIO,
-  ProteinIdentificationArrowIO,FeatureMapArrowIO,ConsensusMapArrowIO}.h + source/FORMAT/*.cpp
-  Class tests: src/tests/class_tests/openms/source/<Name>_test.cpp (all 8 exist, plus Arrow_test.cpp).
-- Tooling gotcha: the worktree guard refuses `git -C <other repo>` and commands whose text contains
-  "source" next to git. Use `cd <core> && git show bc9cc12:<path>` one file per command, redirect to scratchpad.
+## Facts found (expensive)
+- C++ dumps in scratchpad F1a-w4/ (headers at src/openms/include/OpenMS/FORMAT/, sources at
+  src/openms/source/FORMAT/). Use a script file run with `bash script.sh` for git show in other repos
+  (the worktree guard refuses inline `git show` in other dirs).
+- Gate: Cargo.lock is NOT synced back; fetch it with
+  `ssh -J kohlbach@sshgw.cs.uni-tuebingen.de kohlbach@dax cat /scratch/kohlbach/agents/F1a/Cargo.lock`.
+- ParquetWriteConfig lives in MSExperimentArrowExport.h (not my header); row_group_size is documented
+  as BYTES but passed as ROWS to WriteTable; C++ caps chunk_size at max_row_group_length (1Mi rows).
+- Retained C++-written fixtures (tier 1 for READ): test-data 0cb15f2 topp/FileConverter_9_output.featureparquet/,
+  FileConverter_14_output.consensusparquet/, IDMerger_idparquet_input{1,2}.idparquet/ (5/4 files each).
+- PSMArrowIO + the PSM tables of FeatureMap/ConsensusMapArrowIO depend on QPXFile::exportToArrow /
+  importFromArrow (not in scope) and ModificationDefinitionIO::encodeByRun/collect (check Rust).
+- writeTableToParquet validates QPX tables via QPXValueValidation (not ported) -> refuse with Unsupported.
+- DataValue::toString for doubles == crate::param::value::format_float(v, true).
+- Rust: MetaInfo = BTreeMap<String, MetaValue>; MetaValue::source_float for non-finite; stem_name in
+  src/system/file.rs; UniqueIdGenerator get_uuid in src/concept/unique_id.rs; DateTime::now_utc.
+- Table type decision: arrow_array::RecordBatch (one chunk per column).
 
 ## Next step
-1. Dump the 8 headers/cpps/tests into scratchpad, read them.
-2. Pick arrow/parquet crate versions with MSRV <= 1.85 (check crates.io rust-version); add optional `arrow` feature.
-3. Port in dependency order: ArrowSchemaRegistry -> ArrowIOHelpers -> ParquetFile/ParquetFilter -> PSMArrowIO ->
-   ProteinIdentificationArrowIO -> FeatureMapArrowIO -> ConsensusMapArrowIO.
+1. src/format/parquet_filter.rs (ungated, complete) + tests.
+2. src/format/arrow_schema_registry.rs (complete) + tests; ParquetFile (complete).
+3. ArrowIOHelpers (partial: QPX validation, isobaric labels depend on unported pieces).
+4. FeatureMapArrowIO / ConsensusMapArrowIO features tables; read C++ fixtures.
+5. docs/ARROW_PARQUET_SUPPORT.md, tests/data/arrow_parquet_provenance.json, report + ledger fragment.
