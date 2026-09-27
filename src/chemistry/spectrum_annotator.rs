@@ -14,6 +14,8 @@ use crate::metadata::{MetaInfo, MetaValue};
 use crate::{Error, Result};
 use std::mem::size_of;
 
+#[path = "spectrum_annotator_parameters.rs"]
+mod parameters;
 #[path = "spectrum_annotation_statistics.rs"]
 mod statistics;
 

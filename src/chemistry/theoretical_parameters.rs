@@ -11,7 +11,7 @@ use super::{
     TheoreticalIonSeries, TheoreticalIsotopeModel, TheoreticalIsotopeParameters,
     TheoreticalSpectrumGenerator,
 };
-use crate::param::handler::{flag_parameter, int_parameter, set_flag};
+use crate::param::handler::{int_parameter, set_flag};
 use crate::param::{DefaultParamHandling, Param, ParamValue};
 use crate::{Error, Result};
 
@@ -357,11 +357,4 @@ impl DefaultParamHandling for TheoreticalSpectrumGenerator {
         i.precursor_ammonia_loss = float("precursor_NH3_intensity")?;
         Ok(generator)
     }
-}
-
-/// `true` or `false` as the source writes a flag; used by the annotator and
-/// the nucleic-acid generator's contracts too.
-#[allow(dead_code)]
-pub(crate) fn flag(value: bool) -> ParamValue {
-    flag_parameter(value)
 }

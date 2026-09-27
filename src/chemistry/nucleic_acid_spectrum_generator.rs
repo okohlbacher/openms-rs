@@ -11,6 +11,9 @@ use crate::{Error, Result};
 use std::collections::{BTreeMap, BTreeSet};
 use std::mem::size_of;
 
+#[path = "nucleic_acid_spectrum_generator_parameters.rs"]
+mod parameters;
+
 pub const MAX_RNA_SPECTRUM_RESIDUES: usize = 1_000_000;
 /// Combined old/new single-spectrum peaks, or sum across all returned spectra.
 pub const MAX_RNA_SPECTRUM_PEAKS: usize = 100_000;

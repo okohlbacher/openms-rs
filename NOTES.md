@@ -42,8 +42,18 @@ Branch: worktree-wf_ee239125-5be-2 (merged prior incarnation worktree-wf_bcdd783
   set_flag in param::handler. GaussFilter gained inactive_width + write_log_messages; MeanIterative
   gained range_parameters; SavitzkyGolay keeps frame_parameter.
 
+- Chemistry (incarnation 3): TSG impl in src/chemistry/theoretical_parameters.rs (intensities now f64,
+  matching the source's double members TheoreticalSpectrumGenerator.h:141-153); SpectrumAnnotator in
+  src/chemistry/spectrum_annotator_parameters.rs; NASG in src/chemistry/nucleic_acid_spectrum_generator_parameters.rs.
+  f64 change breaks 2 tests in tests/theoretical_fine_reference.rs whose expectation used f64::from(0.7_f32)
+  (the old f32 field) -> oracle ../oracle/B6-tsg-intensity (ibminode06, Release) dumps the C++ peaks with
+  b_intensity 0.7 / relative_loss_intensity 0.9 to settle it (started; fetch results with scp/ssh, the
+  sandbox refuses `bash run.sh` outside the worktree -- run its steps as plain ssh commands).
+- Gate: always pass --no-fail-fast; cargo stops at the first failing test binary otherwise.
+
 ## Next step
-1. Chemistry: TheoreticalSpectrumGenerator (Rust intensities are f32! source double -> to_param
-   precision problem; decide), SpectrumAnnotator, NucleicAcidSpectrumGenerator.
+1. Fetch ../oracle/B6-tsg-intensity results (ssh ibminode06 test -f /scratch/kohlbach/B6-tsg-intensity/ALLDONE),
+   copy fixtures to tests/data/param_defaults/tsg_*.tsv, fix the two fine tests to the source's double
+   arithmetic, add chemistry contract tests to tests/default_param_handling.rs.
 2. Docs: docs/DEFAULT_PARAM_HANDLING_SUPPORT.md, provenance json, doc coverage 100% for touched
-   modules (param.rs 22%, handler.rs 54%, mean_noise now better), CI slice, ledger, report.
+   modules, CI slice, ledger, report.
