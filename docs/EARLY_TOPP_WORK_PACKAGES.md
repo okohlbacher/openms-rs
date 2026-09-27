@@ -1904,8 +1904,9 @@ one worktree that has the pinned checkouts.
   found and did not fix, which the spelling step has to take with it:
   `src/format/file_info/consensus.rs` generates a NaN of its own in plain Rust
   arithmetic — `it_aad += it_ratio` is `(-inf) + (+inf)` for the
-  `a7_cons_nan_one` fixture — so that value is still host-shaped even though
-  every value `statistic_functions` produces no longer is. **Owner: shared math
+  `a7_cons_nan_one` fixture — so that value was still host-shaped even though
+  every value `statistic_functions` produces no longer was; `6aed3c3` routed it
+  through `math::x86_64::add`, which closed it. **Owner: shared math
   (`src/math/statistic_functions.rs`), with A2 as second party.**
 - ~~**A libstdc++-faithful `sort_ascending`, the other half of the same file.**~~
   **Closed in the shared-math wave under decision D16.** `sort_ascending` is
