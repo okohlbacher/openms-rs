@@ -1,6 +1,12 @@
 # Lane F4 notes (delete in the final commit)
 
-Branch: worktree-wf_bcdd783d-f3f-14, base f0990c0.
+Branch: worktree-wf_ee239125-5be-14 (second incarnation; merged worktree-wf_bcdd783d-f3f-14 ff), base f0990c0.
+
+Scratchpad (session-shared): /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad/F4/
+- cpp/<Name>.{h,cpp,test} : dumped C++ at core bc9cc12
+- data/ : test-data files at 0cb15f2
+- g.py : `python3 g.py <pkg> show|ls|grep|fetch|sha ...` wrapper for pinned git show
+- git commands: run plain `git add`/`git commit` from the worktree root, not inside heredocs.
 
 ## Scope and state at start
 All unmapped except MzMLSqliteHandler (partial: src/format/mzml_sqlite_handler.rs,
