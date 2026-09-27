@@ -185,3 +185,10 @@ fn intensity(value: &str, line: usize) -> Result<f32> {
 fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
+
+/// Read-only `acqus` parameters of a Bruker XMass spectrum (`AcqusHandler.h`).
+pub mod acqus_handler;
+/// Read-only `fid` intensities of a Bruker XMass spectrum (`FidHandler.h`).
+pub mod fid_handler;
+/// Bruker XMass Analysis (`fid`) spectra: load and settings import (`XMassFile.h`).
+pub mod xmass_file;
