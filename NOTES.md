@@ -29,6 +29,17 @@ Outputs also: .planning/lane-reports/A3b.md, .planning/ledger-fragments/wave4/A3
   b0c9765 (XSD validation -> OI-30?), 2ec5beb mzXML.
 - Verdicts accumulate below in "## Verdicts" (restart-safe; commit often).
 
+## Incarnation 3 (merged f3f-6 FF at 22273d0)
+Wave-4 sibling lanes (branch worktree-wf_ee239125-5be-N; their NOTES.md in .claude/worktrees/wf_ee239125-5be-N/):
+1 B0 integrate Phase-B branches (FileHandler/LogStream/MSExperiment/TOPPBase/ProteinId) BLOCK-01..05;
+2 B6 DefaultParamHandler trait SHARED-01; 3 A2a / 4 A2b EVID-02 native_equivalent re-audit;
+5 A3a DEBT-04: range_utils(OI-07,B1), spectrum_mobility(B2), iterative(B3), faims(B5), ffp debug(B6),
+  chromatogram_tools(B7), compute_rank(OI-01,B4), feature_overlap_filter stable_sort (OI-08) + oracle A3a-source-order;
+7 A4 DEBT-05/EVID-03/EVID-04 (CPP index, citation tail -> OI-60?); 8 A5a / 9 A5b DEBT-01 partial re-read;
+10 F1a Arrow/Parquet; 11 F2 MzTab/MzTab-M/mzQC/OMS (OI-28, OI-29); 12 F3a IdXML + modified-hit budget (OI-20);
+13 F3b search-engine files; 14 F4 sqMass/CachedMzML/SwathFile/MSP/EDTA... (CORE-01).
+Items worked by an in-flight lane = "scheduled" (Phase + REQ + lane name), not resolved.
+
 ## Verdicts
 Header->req map: MzMLFile.h/StringUtils/MathFunctions -> B BLOCK-06; FileHandler B BLOCK-01; LogStream B BLOCK-02; MSExperiment B BLOCK-03 (branch 673154fa-1e1-2 closes OI-40); TOPPBase B BLOCK-05; FORMAT/* incl FileInfo.h, MzMLHandler.h -> C CORE-01; IMAGING -> E CORE-18.
 Unmerged Phase B branches: 673154fa-1e1-{1 TOPPBase,2 MSExperiment,3 LogStream,4 FileHandler,5 ProteinIdentification}.
