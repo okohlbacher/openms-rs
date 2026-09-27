@@ -14,7 +14,11 @@ use openms::Error;
 use openms::analysis::mapmatching::alignment_identification::{
     MapAlignmentAlgorithmIdentification, ScoreFilter,
 };
+use openms::chemistry::AASequence;
 use openms::format::idxml;
+use openms::identification::graph::{
+    IdentificationData, IdentifiedPeptide, InputFile, Observation, ObservationMatch, ScoreType,
+};
 use openms::identification::{PeptideHit, PeptideIdentification};
 use openms::kernel::{Feature, FeatureMap};
 use openms::param::{Param, ParamValue};
@@ -216,4 +220,70 @@ fn feature_maps_use_the_closest_identification_and_set_the_score_filter() {
     assert_eq!(notes, ["", "ANOTHERK", "PEPTIDE", "SAMPLER"]);
     let first = &result.transformations[0].data_points()[2];
     assert_eq!((first.x, first.y), (10.0, 11.0));
+}
+
+/// A graph with one observation per `(rt, [(sequence, score)])`, each match
+/// scored with a single higher-is-better score type named "score".
+fn graph(observations: &[(f64, &[(&str, f64)])]) -> IdentificationData {
+    let mut g = IdentificationData::new().unwrap();
+    let score = g
+        .register_score_type(ScoreType::new("score", true))
+        .unwrap();
+    let file = g.register_input_file(InputFile::new("run")).unwrap();
+    for (index, (rt, hits)) in observations.iter().enumerate() {
+        let mut observation = Observation::new(format!("spectrum={index}"), file);
+        observation.rt = Some(*rt);
+        let observation = g.register_observation(observation).unwrap();
+        for &(sequence, value) in hits.iter() {
+            let peptide = g
+                .register_identified_peptide(IdentifiedPeptide::new(
+                    AASequence::parse(sequence).unwrap(),
+                ))
+                .unwrap();
+            let mut hit = ObservationMatch::new(peptide, observation);
+            hit.result.add_score(score, value, None).unwrap();
+            g.register_observation_match(hit).unwrap();
+        }
+    }
+    g
+}
+
+#[test]
+fn identification_data_uses_the_best_match_per_observation() {
+    // Independently derived from the source's IdentificationData path: the
+    // score type is picked from the first scored match and logged, the best
+    // match per observation is kept (PEPTIDE over ELVISK at RT 10), and the
+    // molecules are keyed by their sequence.
+    let run = |shift: f64| {
+        graph(&[
+            (10.0 + shift, &[("PEPTIDE", 5.0), ("ELVISK", 1.0)]),
+            (20.0 + shift, &[("ELVISK", 3.0)]),
+            (30.0 + shift, &[("SAMPLER", 2.0)]),
+        ])
+    };
+    let mut aligner = MapAlignmentAlgorithmIdentification::default();
+    let result = aligner.align(&[run(0.0), run(2.0)], None).unwrap();
+    assert_eq!(result.info[0], "Using score type: score");
+    assert_eq!(result.info[2], "Alignment based on:");
+    let points: Vec<_> = result.transformations[0]
+        .data_points()
+        .iter()
+        .map(|p| (p.note.as_str(), p.x, p.y))
+        .collect();
+    assert_eq!(
+        points,
+        [
+            ("ELVISK", 20.0, 21.0),
+            ("PEPTIDE", 10.0, 11.0),
+            ("SAMPLER", 30.0, 31.0)
+        ]
+    );
+    // A named score type that does not exist is refused.
+    let mut named = MapAlignmentAlgorithmIdentification::default();
+    named.score_type = "missing".into();
+    named.score_cutoff = true;
+    assert!(matches!(
+        named.align(&[run(0.0), run(2.0)], None),
+        Err(Error::MissingInformation(_))
+    ));
 }

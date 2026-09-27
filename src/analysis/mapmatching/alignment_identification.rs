@@ -67,9 +67,11 @@ pub struct IdentificationAlignment {
     /// sequence) with no model fitted yet, or `identity` when no reference
     /// RT information is left.
     pub transformations: Vec<TransformationDescription>,
-    /// The lines the source writes to `OPENMS_LOG_INFO` ("Alignment based on:"
-    /// and one line per input), without line ends; the source's leading and
-    /// trailing blank lines are empty strings.
+    /// The lines the source writes to `OPENMS_LOG_INFO`, without line ends:
+    /// any `Using score type` line of an automatically picked score type, then
+    /// "Alignment based on:" and one line per input, framed by the source's
+    /// leading and trailing blank lines as empty strings. `OPENMS_LOG_DEBUG`
+    /// lines are not reproduced.
     pub info: Vec<String>,
     /// The lines the source writes to `OPENMS_LOG_WARN`.
     pub warnings: Vec<String>,
@@ -151,6 +153,8 @@ struct State {
     score_cutoff: bool,
     score_type: String,
     better: ScoreFilter,
+    /// Info lines logged while collecting retention times.
+    log: Vec<String>,
 }
 
 impl Default for MapAlignmentAlgorithmIdentification {
@@ -315,13 +319,26 @@ impl MapAlignmentAlgorithmIdentification {
     /// source compares scores with 0 when collecting the reference, and so
     /// does this.
     ///
+    /// Returns the lines the source writes to `OPENMS_LOG_INFO` meanwhile: for
+    /// identification data whose score type is picked automatically,
+    /// `Using score type: <name>`.
+    ///
     /// # Errors
     ///
     /// Returns [`Error::MissingInformation`] when no retention time can be
     /// extracted from `data` (the source's `Exception::MissingInformation`),
     /// and the collection errors of [`AlignmentData`]. On error the
     /// reference is left empty, as in the source, which clears it first.
-    pub fn set_reference<D: AlignmentData + ?Sized>(&mut self, data: &D) -> Result<()> {
+    pub fn set_reference<D: AlignmentData + ?Sized>(&mut self, data: &D) -> Result<Vec<String>> {
+        self.state.log.clear();
+        let loaded = self.load_reference(data);
+        let log = std::mem::take(&mut self.state.log);
+        loaded?;
+        Ok(log)
+    }
+
+    /// `setReference` without draining the info lines.
+    fn load_reference<D: AlignmentData + ?Sized>(&mut self, data: &D) -> Result<()> {
         self.state.reference.clear();
         if data.is_empty() {
             return Ok(());
@@ -395,6 +412,7 @@ impl MapAlignmentAlgorithmIdentification {
             self.state.reference.clear();
         }
         let mut warnings = Vec::new();
+        self.state.log.clear();
         self.check_parameters(data.len(), &mut warnings)?;
         progress.section(0, 3, "aligning maps", |progress| {
             self.state.reference_index = reference_index;
@@ -405,7 +423,7 @@ impl MapAlignmentAlgorithmIdentification {
                         data.len()
                     )));
                 }
-                self.set_reference(&data[index])?;
+                self.load_reference(&data[index])?;
             }
             let mut rt_data = Vec::with_capacity(data.len());
             let mut all_sorted = true;
@@ -418,8 +436,10 @@ impl MapAlignmentAlgorithmIdentification {
                 rt_data.push(run);
             }
             progress.set(1)?;
-            let (transformations, info) =
+            let (transformations, summary) =
                 self.compute_transformations(&mut rt_data, all_sorted, &mut warnings)?;
+            let mut info = std::mem::take(&mut self.state.log);
+            info.extend(summary);
             progress.set(2)?;
             progress.set(3)?;
             Ok(IdentificationAlignment {
@@ -706,6 +726,9 @@ impl MapAlignmentAlgorithmIdentification {
                 })?;
                 if let Some((score, _)) = picked {
                     self.state.score_type = data.score_type(score)?.cv_term.name.clone();
+                    self.state
+                        .log
+                        .push(format!("Using score type: {}", self.state.score_type));
                     return Ok(score);
                 }
             }
