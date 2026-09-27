@@ -17,7 +17,7 @@ No earlier incarnation notes.
    Source = the above). WriteOptions::source() selects Source (used by -write_ini, cli.rs:1204).
    Native test tests/paramxml.rs precision_nan... asserts lossless round trip -> keep native default.
    Integer width: C++ ParamValue::operator int() is a modular truncation (ParamValue.cpp:445-451);
-   ParamEntry::isValid `int tmp = value` (Param.cpp:56+). Rust: src/param.rs:251 uses checked
+   ParamEntry::isValid `int tmp = value` (Param.cpp:122). Rust: src/param.rs:251 uses checked
    to_i32 -> change to `as i32` (minimal B6-file change, report it). cli.rs source_validity_message
    `narrow` saturates -> truncate. getIntOption_ in src/cli/context.rs:455 check too.
    C++ reader asInt_ = toInt32 -> refuses its own -9223372036854775808 (ParseError) -> the test's

@@ -16,10 +16,10 @@
 //! not compared as recorded is named where it is applied, each a difference
 //! `docs/TOPP_CLI_SUPPORT.md` records: the source's debug line that carries a
 //! C++ file and line; at debug level 2, the order of the lifecycle's file
-//! checks and the tool body's `Value of` lines; the text `serde_json` gives a
-//! malformed document, where `nlohmann::json` words the same failure
-//! differently. The written INI is compared byte for byte, including the
-//! integer the Release build keeps beyond 32 bits (`w_pphr_int_huge`).
+//! checks and the tool body's `Value of` lines. A malformed document's
+//! message is `nlohmann::json`'s, line, column and last bytes read included,
+//! and the written INI is compared byte for byte, including the integer the
+//! Release build keeps beyond 32 bits (`w_pphr_int_huge`).
 #![cfg(all(feature = "mzml", feature = "paramxml"))]
 
 #[path = "support/release_runs.rs"]
@@ -295,10 +295,9 @@ fn cases(prefix: &str, tool: &str) -> Vec<String> {
     names
 }
 
-/// The cases whose document `serde_json` refuses with its own words: the
-/// source's `nlohmann::json` names the same failure as
+/// The cases whose document is no JSON: `nlohmann::json`'s
 /// `[json.exception.parse_error.101] parse error at line <l>, column <c>:
-/// syntax error while parsing <context> - <reason>`.
+/// syntax error while parsing <context> - <reason>`, byte for byte.
 const SYNTAX_ERRORS: [&str; 5] = [
     "w_pphr_syntax",
     "w_pphr_trailing_comma",
@@ -306,35 +305,6 @@ const SYNTAX_ERRORS: [&str; 5] = [
     "w_pphr_trailing_garbage",
     "r_pphr_syntax",
 ];
-
-/// Standard error with the text of a syntax error replaced by the port's:
-/// the line keeps the source's frame, `Error: Unable to read file (… in: )`,
-/// and the Release text must be `nlohmann::json`'s parse error 101.
-fn with_serde_wording(port_err: &str) -> impl Fn(String) -> String + '_ {
-    move |release: String| {
-        let frame = |text: &str| -> (usize, usize) {
-            let start = text
-                .find("Error: Unable to read file (")
-                .expect("the frame")
-                + 28;
-            let end = text.rfind(" in: )\n").expect("the frame's end");
-            (start, end)
-        };
-        let (start, end) = frame(&release);
-        assert!(
-            release[start..end]
-                .starts_with("[json.exception.parse_error.101] parse error at line "),
-            "{release}"
-        );
-        let (port_start, port_end) = frame(port_err);
-        format!(
-            "{}{}{}",
-            &release[..start],
-            &port_err[port_start..port_end],
-            &release[end..]
-        )
-    }
-}
 
 /// Every `-write_ini` case of PeakPickerHiRes: the written INI shows each
 /// value the load set, and each failure is the Release build's, exit code,
@@ -351,12 +321,16 @@ fn write_ini_from_a_json_ini_is_the_release_builds() {
     let mut syntax = 0;
     for case in &names {
         if SYNTAX_ERRORS.contains(&case.as_str()) {
-            let replay = replay::<PeakPickerHiRes>(case);
-            assert_case::<PeakPickerHiRes>(case, with_serde_wording(&replay.err));
+            let release = read(case, "stderr.txt").unwrap();
+            assert!(
+                release.contains(
+                    "Error: Unable to read file ([json.exception.parse_error.101] parse error at line "
+                ),
+                "{case}: {release}"
+            );
             syntax += 1;
-        } else {
-            assert_case::<PeakPickerHiRes>(case, |text| text);
         }
+        assert_case::<PeakPickerHiRes>(case, |text| text);
     }
     assert_eq!(syntax, 4);
 }
@@ -384,13 +358,13 @@ fn a_run_with_a_json_ini_is_the_release_builds() {
     let names = cases("r_", "PeakPickerHiRes");
     assert_eq!(names.len(), 9);
     for case in &names {
-        if SYNTAX_ERRORS.contains(&case.as_str()) {
-            let replay = replay::<PeakPickerHiRes>(case);
-            assert_case::<PeakPickerHiRes>(case, with_serde_wording(&replay.err));
-        } else {
-            assert_case::<PeakPickerHiRes>(case, |text| text);
-        }
+        assert_case::<PeakPickerHiRes>(case, |text| text);
     }
+    assert!(
+        names
+            .iter()
+            .any(|case| SYNTAX_ERRORS.contains(&case.as_str()))
+    );
 }
 
 /// FileInfo run from a JSON `-ini` that names its input as a file object:

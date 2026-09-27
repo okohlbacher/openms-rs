@@ -1,0 +1,1 @@
+[json.exception.parse_error.101] parse error at line 1, column 12: syntax error while parsing value - invalid string: '\u' must be followed by 4 hex digits; last read: '"\u00' in: 

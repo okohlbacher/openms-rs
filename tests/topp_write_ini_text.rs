@@ -145,59 +145,149 @@ fn write_ini_is_the_retained_text_for_file_info_and_feature_finder_centroided() 
     assert_written::<FeatureFinderCentroided>(defaults, true);
 }
 
-/// The text of each kind of number, on one parameter tree: the source's
-/// (`WriteOptions::source()`) against the lossless native text.
-#[test]
-fn source_number_text_against_the_native_text() {
-    use openms::format::paramxml::{Limits, NumberText, WriteOptions};
+/// The trees of the B8c lane's oracle (`../oracle/B8c-numbers`, `driver.cpp`,
+/// mode `numbers`): `ParamXMLFile::store` on the C++ Release build at the pins
+/// (ibminode06, gcc 14.4.0, two identical runs; `tests/data/b8c_release/ini`,
+/// provenance `tests/data/b8c_release_provenance.json`) wrote them.
+fn oracle_trees() -> [(&'static str, openms::param::Param); 2] {
     use openms::param::{Param, ParamValue};
-    let mut param = Param::new();
-    let mut set = |key: &str, value: ParamValue| param.set_value(key, value, "", &[]).unwrap();
-    set("four", ParamValue::Float(4.0));
-    set("big", ParamValue::Float(1e20));
-    set("small", ParamValue::Float(1.5e-5));
-    set("binary", ParamValue::Float(99.632));
-    set("negative_zero", ParamValue::Float(-0.0));
-    set("infinite", ParamValue::Float(f64::NEG_INFINITY));
-    set("huge", ParamValue::Integer(i64::MIN));
+    let set = |param: &mut Param, key: &str, value: ParamValue| {
+        param.set_value(key, value, "", &[]).unwrap();
+    };
+    let mut numbers = Param::new();
+    set(&mut numbers, "four", ParamValue::Float(4.0));
+    set(&mut numbers, "big", ParamValue::Float(1e20));
+    set(&mut numbers, "small", ParamValue::Float(1.5e-5));
+    set(&mut numbers, "binary", ParamValue::Float(99.632));
+    set(&mut numbers, "negative_zero", ParamValue::Float(-0.0));
     set(
+        &mut numbers,
+        "infinite",
+        ParamValue::Float(f64::NEG_INFINITY),
+    );
+    set(&mut numbers, "huge", ParamValue::Integer(i64::MIN));
+    set(
+        &mut numbers,
         "list",
         ParamValue::FloatList(vec![4.0, 1e20, 1.5e-5, 0.1, 99.632, 123_456.789, -0.0]),
     );
-    param.set_min_float("four", 0.0).unwrap();
-    param.set_max_float("four", 1e20).unwrap();
-    let text = |param: &Param, options: WriteOptions| {
+    numbers.set_min_float("four", 0.0).unwrap();
+    numbers.set_max_float("four", 1e20).unwrap();
+
+    let mut specials = Param::new();
+    set(&mut specials, "nan", ParamValue::Float(f64::NAN));
+    set(&mut specials, "minus_nan", ParamValue::Float(-f64::NAN));
+    set(&mut specials, "plus_inf", ParamValue::Float(f64::INFINITY));
+    set(&mut specials, "tiny", ParamValue::Float(5e-324));
+    set(&mut specials, "largest", ParamValue::Float(f64::MAX));
+    set(&mut specials, "third", ParamValue::Float(1.0 / 3.0));
+    set(&mut specials, "ten_thousand", ParamValue::Float(1e4));
+    set(
+        &mut specials,
+        "below_ten_thousand",
+        ParamValue::Float(9999.999999999999),
+    );
+    set(&mut specials, "hundredth", ParamValue::Float(0.01));
+    set(
+        &mut specials,
+        "below_hundredth",
+        ParamValue::Float(0.009999999999999998),
+    );
+    set(&mut specials, "half_ulp", ParamValue::Float(0.1 + 0.2));
+    set(&mut specials, "int_max", ParamValue::Integer(i64::MAX));
+    set(&mut specials, "int_2_32", ParamValue::Integer(1 << 32));
+    set(
+        &mut specials,
+        "specials",
+        ParamValue::FloatList(vec![
+            f64::NAN,
+            -f64::NAN,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            5e-324,
+            f64::MAX,
+            1.0 / 3.0,
+            1e15,
+            1e14,
+            123_456_789_012_345.6,
+            1e-4,
+            1e-5,
+            0.30000000000000004,
+            1e100,
+            -2.5e-300,
+        ]),
+    );
+    set(
+        &mut specials,
+        "ints",
+        ParamValue::IntegerList(vec![i32::MIN, -1, 0, i32::MAX]),
+    );
+    set(
+        &mut specials,
+        "restricted_list",
+        ParamValue::FloatList(vec![0.5]),
+    );
+    specials.set_min_float("restricted_list", -1e-5).unwrap();
+    specials
+        .set_max_float("restricted_list", 12345.678)
+        .unwrap();
+    set(&mut specials, "restricted_int", ParamValue::Integer(3));
+    specials.set_min_int("restricted_int", -7).unwrap();
+    specials.set_max_int("restricted_int", 9).unwrap();
+    set(&mut specials, "open_max", ParamValue::Float(2.0));
+    specials.set_max_float("open_max", 1e-3).unwrap();
+    [("numbers.ini", numbers), ("specials.ini", specials)]
+}
+
+/// Every kind of number the writer spells, byte for byte against the Release
+/// build's `ParamXMLFile::store`: fixed items with 15 fractional digits
+/// (`99.632000000000005`, `9999.999999999998181`, `0.333333333333333`) and
+/// the scientific ones outside `[1e-2, 1e4)` (`1.0e04`, `9.999999999999998e-03`,
+/// `5.0e-324`, `1.7976931348623157e308`), `NaN` for either sign, `inf` and
+/// `-inf`; list items as `%.15g` (`1e+20`, `4.94065645841247e-324`,
+/// `100000000000000`, `123456789012346`, `nan`, `-nan`); restrictions in the
+/// item's text (`0.0:1.0e20`, `-1.0e-05:1.2345678e04`, `:1.0e-03`); and
+/// 64-bit integers written whole.
+#[test]
+fn source_number_text_is_the_release_builds() {
+    use openms::format::paramxml::{Limits, NumberText, WriteOptions};
+    for (file, param) in oracle_trees() {
+        let release =
+            fs::read_to_string(repository(&format!("tests/data/b8c_release/ini/{file}"))).unwrap();
         let mut bytes = Vec::new();
-        paramxml::write_with_options(&mut bytes, param, Limits::default(), options)
-            .map(|()| String::from_utf8(bytes).unwrap())
-    };
-    let source = text(&param, WriteOptions::source()).unwrap();
-    for expected in [
-        "<ITEM name=\"four\" value=\"4.0\" type=\"double\" description=\"\" required=\"false\" advanced=\"false\" restrictions=\"0.0:1.0e20\" />",
-        "<ITEM name=\"big\" value=\"1.0e20\" type=\"double\"",
-        "<ITEM name=\"small\" value=\"1.5e-05\" type=\"double\"",
-        "<ITEM name=\"binary\" value=\"99.632000000000005\" type=\"double\"",
-        "<ITEM name=\"negative_zero\" value=\"-0.0\" type=\"double\"",
-        "<ITEM name=\"infinite\" value=\"-inf\" type=\"double\"",
-        "<ITEM name=\"huge\" value=\"-9223372036854775808\" type=\"int\"",
-        "<LISTITEM value=\"4\"/>\n",
-        "<LISTITEM value=\"1e+20\"/>\n",
-        "<LISTITEM value=\"1.5e-05\"/>\n",
-        "<LISTITEM value=\"0.1\"/>\n",
-        "<LISTITEM value=\"99.632\"/>\n",
-        "<LISTITEM value=\"123456.789\"/>\n",
-        "<LISTITEM value=\"-0\"/>\n",
-    ] {
-        assert!(source.contains(expected), "{expected}\n{source}");
+        paramxml::write_with_options(
+            &mut bytes,
+            &param,
+            Limits::default(),
+            WriteOptions::source(),
+        )
+        .unwrap();
+        assert_eq!(String::from_utf8(bytes).unwrap(), release, "{file}");
+        // The native text keeps every value, and refuses the integer beyond
+        // 32 bits that the source's reader cannot read back.
+        let native = WriteOptions {
+            numbers: NumberText::RoundTrip,
+            ..WriteOptions::source()
+        };
+        let mut native_bytes = Vec::new();
+        assert!(
+            paramxml::write_with_options(&mut native_bytes, &param, Limits::default(), native)
+                .is_err(),
+            "{file}"
+        );
     }
-    // The native text keeps every value, and refuses the integer the source's
-    // reader cannot read back.
-    let native = WriteOptions {
-        numbers: NumberText::RoundTrip,
-        ..WriteOptions::source()
-    };
-    assert!(text(&param, native).is_err());
-    param.remove("huge").unwrap();
-    let native = text(&param, native).unwrap();
-    assert_eq!(paramxml::read(native.as_bytes()).unwrap(), param);
+    let [(_, mut numbers), _] = oracle_trees();
+    numbers.remove("huge").unwrap();
+    let mut bytes = Vec::new();
+    paramxml::write_with_options(
+        &mut bytes,
+        &numbers,
+        Limits::default(),
+        WriteOptions {
+            numbers: NumberText::RoundTrip,
+            ..WriteOptions::source()
+        },
+    )
+    .unwrap();
+    assert_eq!(paramxml::read(bytes.as_slice()).unwrap(), numbers);
 }

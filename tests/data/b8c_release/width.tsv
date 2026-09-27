@@ -1,0 +1,12 @@
+isValid	int_min_unrestricted	-2147483648	-2147483647	2147483647	1	
+isValid	int_min_min0	-2147483648	0	2147483647	0	Invalid integer parameter value '-2147483648' for parameter 'i' given! The valid range is: [0:2147483647].
+isValid	i64_max_min0	9223372036854775807	0	2147483647	0	Invalid integer parameter value '-1' for parameter 'i' given! The valid range is: [0:2147483647].
+isValid	i64_min_min0	-9223372036854775808	0	2147483647	1	
+isValid	2_32_plus_7_max6	4294967303	-2147483647	6	0	Invalid integer parameter value '7' for parameter 'i' given! The valid range is: [-2147483647:6].
+isValid	2_32_plus_7_max7	4294967303	-2147483647	7	1	
+isValid	2_31_max0	2147483648	-2147483647	0	1	
+isValid	minus_2_31_minus_1_min0	-2147483649	0	2147483647	1	
+update	equal_invalid	1	9	
+update	i64_max_lenient	1	9223372036854775807	Default-Parameter 'same' overridden: '9' --> '9223372036854775807'!|
+update	2_32_plus_1_lenient	1	9	Invalid integer parameter value '1' for parameter 'same' given! The valid range is: [-2147483647:0]. Ignoring invalid value (using new default '9')!|
+update	2_32_plus_1_strict	0	9	Invalid integer parameter value '1' for parameter 'same' given! The valid range is: [-2147483647:0]. Updating failed!|
