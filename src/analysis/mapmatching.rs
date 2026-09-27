@@ -6,3 +6,8 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+
+pub mod alignment_evaluation;
+pub mod pose_clustering_affine;
+pub mod pose_clustering_shift;
+pub mod superimposer;
