@@ -15,6 +15,7 @@ use openms::Error;
 use openms::chemistry::{AASequence, ModificationDefinitionsSet};
 use openms::data_structures::DateTime;
 use openms::format::xtandem_xml_file::XTandemXMLFile;
+use openms::metadata::MetaValueData;
 use std::io::Cursor;
 use std::path::PathBuf;
 
@@ -60,33 +61,50 @@ fn xtandem_load_matches_the_class_test() {
 
 #[test]
 fn xtandem_first_domain_of_the_second_fixture() {
-    // Derived from XTandemXMLFile.cpp and the fixture: model group 39 has
-    // charge 2, its first domain "39.1.1" (start 270, end 277, pre "YRNK",
-    // post "TNAE", seq YEDEINKR, hyperscore 27.9) lies in protein uid 4003,
-    // and the X! Tandem id 39 names the identification.
+    // Derived from XTandemXMLFile.cpp and the fixture. The fixture holds the
+    // model groups 39 (20 proteins) and 2 (one protein), every domain with the
+    // sequence YEDEINKR. The source's std::map orders the identifications by
+    // X! Tandem id, so group 2 comes first. In group 39 (charge 2) the first
+    // domain "39.1.1" (start 270, end 277, pre "YRNK", post "TNAE",
+    // hyperscore 27.9) lies in protein uid 4003, and the 19 domains that
+    // repeat its sequence add evidences to the same hit.
     let mods = ModificationDefinitionsSet::from_comma_separated("", "").unwrap();
     let result = reader()
         .load(data("XTandemXMLFile_test_2.xml"), &mods)
         .unwrap();
-    let id = result
-        .peptide_identifications
-        .iter()
-        .find(|id| {
-            id.hits
-                .iter()
-                .any(|hit| hit.sequence == AASequence::parse("YEDEINKR").unwrap())
-        })
-        .expect("an identification holds YEDEINKR");
-    let hit = id
-        .hits
-        .iter()
-        .find(|hit| hit.sequence == AASequence::parse("YEDEINKR").unwrap())
-        .unwrap();
+    let ids = &result.peptide_identifications;
+    assert_eq!(ids.len(), 2);
+    assert_eq!(
+        ids[0].spectrum_reference(),
+        "2013-01-18_093003_proteo227_3148_1_tandem_input_file.mzData scan 2 (charge 2)"
+    );
+    assert_eq!(
+        ids[1].spectrum_reference(),
+        "2013-01-18_093003_proteo227_3148_1_tandem_input_file.mzData scan 39 (charge 2)"
+    );
+    assert_eq!(ids[0].hits.len(), 1);
+    assert_eq!(ids[0].hits[0].evidences.len(), 1);
+    let id = &ids[1];
+    assert_eq!(id.hits.len(), 1);
+    let hit = &id.hits[0];
+    assert_eq!(hit.sequence, AASequence::parse("YEDEINKR").unwrap());
+    assert_eq!(hit.evidences.len(), 20);
     assert_eq!(id.score_type, "XTandem");
     assert!(id.higher_score_better);
     assert_eq!(id.identifier, "XTandem_2026-09-27");
     assert_eq!(hit.charge, 2);
     assert_eq!(hit.score, 27.9);
+    let meta = |name: &str| hit.metadata.get(name).map(|value| value.data().clone());
+    assert_eq!(meta("nextscore"), Some(MetaValueData::Float(22.6)));
+    assert_eq!(meta("delta"), Some(MetaValueData::Float(0.0029)));
+    assert_eq!(meta("mass"), Some(MetaValueData::Float(1066.5164)));
+    assert_eq!(meta("E-Value"), Some(MetaValueData::Float(0.12)));
+    assert_eq!(meta("hyperscore"), Some(MetaValueData::Float(27.9)));
+    assert_eq!(meta("y_score"), Some(MetaValueData::Float(12.8)));
+    assert_eq!(meta("y_ions"), Some(MetaValueData::Integer(7)));
+    assert_eq!(meta("b_score"), Some(MetaValueData::Float(10.0)));
+    assert_eq!(meta("b_ions"), Some(MetaValueData::Integer(1)));
+    assert_eq!(meta("a_score"), None);
     let first = &hit.evidences[0];
     assert_eq!(
         first.protein_accession,

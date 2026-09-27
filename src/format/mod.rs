@@ -192,6 +192,9 @@ pub mod kroenik_file;
 pub mod ms_inspect_file;
 /// OMSSA comma-separated result files (`OMSSACSVFile.h`).
 pub mod omssa_csv_file;
+/// OMSSA XML result files (`OMSSAXMLFile.h`).
+#[cfg(feature = "idxml")]
+pub mod omssa_xml_file;
 /// Permissive sequence parsing shared by the search-engine adapters.
 pub mod search_engine_text;
 /// Bounded SAX-style driver shared by the X! Tandem and OMSSA XML readers.
