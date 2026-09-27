@@ -34,3 +34,7 @@ pub mod usi;
 
 /// Unique integer indices for metadata names (`METADATA/MetaInfoRegistry.h`).
 pub mod meta_info_registry;
+
+/// The index-keyed `MetaInfo`/`MetaInfoInterface` members over a caller-owned
+/// registry (`METADATA/MetaInfo.h`, `METADATA/MetaInfoInterface.h`).
+pub mod meta_info_indexed;

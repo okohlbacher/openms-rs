@@ -1,4 +1,4 @@
-# MetaInfoRegistry
+# MetaInfoRegistry and the index-keyed MetaInfo
 
 `metadata::meta_info_registry` covers `METADATA/MetaInfoRegistry.h` and
 `METADATA/MetaInfoRegistry.cpp` at SDK `bc9cc12`.
@@ -57,6 +57,43 @@ the source spells it — for the two getters by name.
   `UINT_MAX`, handing out the sentinel, then 0 and the reserved indices again.
   `register_name` refuses with `Error::InvalidRange` once the next index would
   be `UNREGISTERED_INDEX`, leaving the registry unchanged.
+
+## The index-keyed MetaInfo and MetaInfoInterface members
+
+`metadata::meta_info_indexed::IndexedMetaInfo`, implemented for `MetaInfo`,
+closes the `UInt` half of `METADATA/MetaInfo.h` and `METADATA/MetaInfoInterface.h`
+(tests: `tests/meta_info_indexed.rs`). The source keys its meta values by
+registry index in a `std::map<UInt, DataValue>`; this crate's `MetaInfo` is a
+`BTreeMap<String, MetaValue>`, so every index member resolves the index through
+a caller-owned registry.
+
+| C++ member | Rust counterpart |
+|---|---|
+| `MetaInfo::registry()`, `MetaInfoInterface::metaRegistry()` (static) | the caller's `MetaInfoRegistry`, passed to each call |
+| `setValue(const std::string&, ...)`, `setMetaValue(name, ...)` (registers the name) | `set_value_registered(&mut registry, name, value) -> Result<u32>`; the map's `insert` stores without registering |
+| `setValue(UInt, ...)`, `setMetaValue(UInt, ...)` | `set_value_at(&registry, index, value) -> Result<()>` |
+| `getValue(UInt, default)`, `getMetaValue(UInt, default)` | `value_at(&registry, index) -> Option<&MetaValue>`, `.unwrap_or(&default)` for the default |
+| `exists(UInt)`, `metaValueExists(UInt)` | `exists_at(&registry, index)` |
+| `removeValue(UInt)`, `removeMetaValue(UInt)` | `remove_value_at(&registry, index)` |
+| `getKeys(std::vector<UInt>&)` | `keys_as_indices(&registry) -> Result<Vec<u32>>`, ascending |
+| `getKeys(std::vector<std::string>&)` | `keys_in_index_order(&registry) -> Result<Vec<String>>` — the source's order; the map's own `keys()` is name order |
+
+`MetaInfoInterface` is composition in this crate (each record's `metadata`
+field), so its overloads are these methods on that field.
+
+Differences, each forced by name-keyed storage: `set_value_at` refuses an index
+the registry does not hold (`Error::InvalidValue`), where the source stores a
+value under the bare index and only a later name listing throws on it; and the
+two key listings fail for a name stored through the map without registration,
+which the source's always-registering setter cannot produce. The map iterates in
+name order where the source's `begin()`/`end()` iterate in index order; code
+that needs the source's order uses `keys_in_index_order`.
+
+The order-dependent `std::hash<MetaInfo>` (over `(index, value)` in index order)
+and the order-independent `std::hash<MetaInfoInterface>` both exist to be
+consistent with equality. `MetaInfo`'s `Hash` is the `BTreeMap`'s, over entries in
+canonical name order, which is consistent with equality independent of insertion
+order; the bits differ from the source's.
 
 ## Source defect candidate
 
