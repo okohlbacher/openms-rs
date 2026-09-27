@@ -31,6 +31,18 @@ list_utils_io.rs:81,92,138,144,161 (excessive_precision, inconsistent_digit_grou
 concept_basics.rs:112-113 (assertions_on_constants), concept_macros.rs:76 (const_is_empty).
 Scratch: $S=/private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad/A5a (cpp/i/t symlinks to C++ pin, logs/).
 
+## Incarnation 3 plan (cheap closes, in order; commit each)
+- EmpiricalFormula: from_element, hydrogen, water, is_charged, has_element, to_map, elements() iter, lightest_isotope_mass,
+  theoretical_isotopes_number, add_charge_adduct, to_source_string(toString), source_stream_text(operator<<: omits count<=1,
+  charge -2 prints "--2" = C++ defect candidate), Ord via graph_cmp, derive Hash, source_hash64. Tests: EmpiricalFormula_test.cpp
+  lines 115-122 (<), 203-207, 243-290 (addChargeAdduct), 375-399, 639-691.
+- Ribonucleotide: Display ("Ribonucleotide '<code>' (<name>, <formula operator<<>)"), Hash, source_hash64 (Ribonucleotide.h:191-215).
+- IsotopeDistribution: merge (cpp: sortByMass, trimLeft, trimRight, bins; IllegalArgument if more points), Ord (size then (mz,int)), Hash, Sorted enum.
+- Element/ElementDB: by atomic number, has_element, name/symbol/number maps; Element Ord/Display/Hash. C++ ElementDB also holds
+  isotope elements "(13)C" (name "(13)Carbon") + D/T symbol aliases (ElementDB.cpp:570-660) -> Rust gap unless added.
+- EnzymaticDigestion filterByMissedCleavages + Specificity values; DigestionEnzymeDB hasEnzyme(ptr); Coarse generator setters.
+- Then: support docs, provenance, ledger fragment (all 36), report.
+
 ## Next step
 1. Add ToStr for char/bool (ListUtilsIO completeness). Check clippy2.
 2. Re-read remaining scopes vs C++/Rust: DataValue, ConstRefVector, FASTAContainer, Exception, all CHEMISTRY, XLMS -> record remainders.
