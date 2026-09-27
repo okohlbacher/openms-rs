@@ -15,7 +15,12 @@ Scratchpad (session-shared): /private/tmp/claude-501/-Users-kohlbach-Claude-Open
 - ChromeleonFile -> src/format/chromeleon.rs, tests/chromeleon_file.rs (11 pass)
 - shared: src/format/string_utils.rs (moved from cli/context.rs), src/format/line_reader.rs
 - GNPSQuantificationFile, GNPSMetaValueFile -> gnps_quantification.rs, gnps_meta_value.rs, tests/gnps_tables.rs (8 pass)
-- IBSpectraFile -> src/format/ibspectra.rs, tests/ibspectra_file.rs (gate5 pending)
+- IBSpectraFile -> src/format/ibspectra.rs, tests/ibspectra_file.rs (7 pass)
+- MSPGenericFile -> src/format/msp_generic.rs, tests/msp_generic_file.rs (9 pass); stod/stoul in string_utils; LineReader::lf_only
+- CachedMzMLHandler + CachedMzML -> cached_mzml_handler.rs, cached_mzml.rs, tests/cached_mzml.rs (14 pass)
+- SqMassFile -> sqmass_file.rs, tests/sqmass_file.rs (7 pass, --features sqmass); FIX numpress_coder zlib state release
+  (gap: convertToXICParquet needs Arrow/Parquet + MSChromatogramParquetConsumer + LightTargetedExperiment)
+- Gate commands: filter args like `format::` apply to ALL test targets -> run integration tests without filters.
 
 ## Findings for the report
 - Rust mzML writer refuses a non-CV instrument name; C++ writes generic MS:1000031 and drops it
