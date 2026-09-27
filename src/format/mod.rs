@@ -136,6 +136,8 @@ pub mod mzml;
 pub mod mzml_schema;
 /// MzTab data model: cell vocabulary, record structs and document (`MzTabBase.h`, `MzTab.h`).
 pub mod mztab;
+/// MzTab exporters: feature maps, consensus maps and identification runs (`MzTab.h` export surface).
+pub mod mztab_export;
 /// MzTab file adapter: reading and writing `.mzTab` documents (`MzTabFile.h`).
 pub mod mztab_file;
 /// MzTab-M metabolomics profile: data model, `FeatureMap` export and writer (`MzTabM.h`, `MzTabMFile.h`).
