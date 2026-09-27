@@ -25,6 +25,12 @@ Clippy fix pending (type_complexity in macros.rs) -> logs/clippy2.log.
 docs/doc-coverage.json is lead's: report "--write needed". module-cycles: new acyclic edges analysis->data_structures,
 data_structures->concept, kernel->data_structures, system->concept (report; lead --write).
 
+## Incarnation 3 (restarted; same worktree)
+Found uncommitted ToStr for char/bool + test (committed as WIP). clippy2.log (scratchpad A5a/logs) FAILED on tests:
+list_utils_io.rs:81,92,138,144,161 (excessive_precision, inconsistent_digit_grouping, approx_constant),
+concept_basics.rs:112-113 (assertions_on_constants), concept_macros.rs:76 (const_is_empty).
+Scratch: $S=/private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad/A5a (cpp/i/t symlinks to C++ pin, logs/).
+
 ## Next step
 1. Add ToStr for char/bool (ListUtilsIO completeness). Check clippy2.
 2. Re-read remaining scopes vs C++/Rust: DataValue, ConstRefVector, FASTAContainer, Exception, all CHEMISTRY, XLMS -> record remainders.

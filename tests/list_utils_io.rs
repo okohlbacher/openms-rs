@@ -312,3 +312,19 @@ fn append_numeric_falls_back_to_percent_f_when_the_buffer_overflows() {
     // static_cast<double>(0.1f) is 0.100000001490116...
     assert_eq!(text, "0.100000");
 }
+
+#[test]
+fn vector_operator_covers_char_bool_integer_and_string_elements() {
+    // operator<<(std::ostream&, const std::vector<T>&) with toStr(char), a bool
+    // promoted to int, integers and strings.
+    assert_eq!(list_to_string(&['a', 'b']).ok().as_deref(), Some("[a, b]"));
+    assert_eq!(
+        list_to_string(&[true, false]).ok().as_deref(),
+        Some("[1, 0]")
+    );
+    assert_eq!(list_to_string(&[-3i32, 4]).ok().as_deref(), Some("[-3, 4]"));
+    assert_eq!(
+        list_to_string(&["x", "y z"]).ok().as_deref(),
+        Some("[x, y z]")
+    );
+}

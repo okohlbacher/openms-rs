@@ -46,7 +46,7 @@
 //! | `StringUtils::toStr(float, true)`, `appendToStr(float, std::string&)` | [`to_str_f32`] | |
 //! | `toStr`/`appendToStr` for `int`, `unsigned int`, `short`, `unsigned short`, `long`, `unsigned long`, `long long`, `unsigned long long` | [`ToStr`] for `i16`, `u16`, `i32`, `u32`, `i64`, `u64`, `isize`, `usize` | decimal |
 //! | `toStr(const std::string&)`, `toStr(const char*)`, `toStr(std::string_view)` | [`ToStr`] for `str` and `String` | copied unchanged |
-//! | `toStr(char)` | not ported | FileInfo streams no `char` vector |
+//! | `toStr(char)` | [`ToStr`] for `char` | one character; a `bool` element is promoted to `int` (`1`/`0`) as in C++ |
 //! | `toStr(long double, bool)`, `appendToStr(long double, std::string&)`, `appendToStrLowP(long double, std::string&)` | not ported | Rust has no `long double`; FileInfo uses none |
 //! | `toStr(double, false)`, `appendToStrLowP(double, std::string&)` | [`to_str_low_precision`] | three fraction digits; not on the FileInfo path |
 //! | `toStr(float, false)`, `appendToStrLowP(float, std::string&)` | [`to_str_low_precision_f32`] | |
@@ -780,9 +780,9 @@ impl StringListPush for Vec<String> {
 /// overload set that the `ListUtilsIO.h` stream operator calls.
 ///
 /// Implemented for `f64` ([`to_str`]), `f32` ([`to_str_f32`]), the signed and
-/// unsigned 16-, 32- and 64-bit and pointer-sized integers (decimal), `str` and
-/// `String` (copied unchanged), and references to any of these. `bool` is not
-/// implemented: C++ would promote it to `int` and print `1` or `0`.
+/// unsigned 16-, 32- and 64-bit and pointer-sized integers (decimal), `char`
+/// (`toStr(char)`), `bool` (promoted to `int` as in C++, so `1` or `0`), `str`
+/// and `String` (copied unchanged), and references to any of these.
 pub trait ToStr {
     /// An upper bound of the bytes [`ToStr::append_to_str`] appends.
     ///
@@ -853,6 +853,29 @@ macro_rules! integer_to_str {
     )*};
 }
 integer_to_str!(i16, u16, i32, u32, i64, u64, isize, usize);
+
+impl ToStr for char {
+    /// Source `toStr(char c)`, `std::string(1, c)`. A Rust `char` is a Unicode
+    /// scalar value, written as its UTF-8 bytes (up to four); a C++ `char` is
+    /// one byte.
+    fn text_len_bound(&self) -> usize {
+        self.len_utf8()
+    }
+    fn append_to_str(&self, target: &mut String) {
+        target.push(*self);
+    }
+}
+
+impl ToStr for bool {
+    /// A `bool` element has no `toStr` overload of its own; C++ promotes it
+    /// to `int` and `toStr(int)` writes `1` or `0`.
+    fn text_len_bound(&self) -> usize {
+        1
+    }
+    fn append_to_str(&self, target: &mut String) {
+        target.push(if *self { '1' } else { '0' });
+    }
+}
 
 /// `operator<<(std::ostream&, const std::vector<T>&)` from `ListUtilsIO.h`:
 /// `[`, each element's `StringUtils::toStr` text separated by `, `, then `]`.
