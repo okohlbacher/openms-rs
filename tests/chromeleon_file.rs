@@ -41,7 +41,11 @@ fn meta(experiment: &MSExperiment, key: &str) -> String {
 fn assert_points(experiment: &MSExperiment, expected: &[(usize, f64, f64)]) {
     let c = &experiment.chromatograms[0];
     for &(index, rt, intensity) in expected {
-        assert!(similar(c.peaks[index].rt, rt), "rt[{index}] = {}", c.peaks[index].rt);
+        assert!(
+            similar(c.peaks[index].rt, rt),
+            "rt[{index}] = {}",
+            c.peaks[index].rt
+        );
         assert!(
             similar(f64::from(c.peaks[index].intensity), intensity),
             "intensity[{index}] = {}",
@@ -54,7 +58,16 @@ fn assert_points(experiment: &MSExperiment, expected: &[(usize, f64, f64)]) {
 fn assert_mzml_round_trip(experiment: &MSExperiment, indices: &[usize]) {
     let dir = openms::system::file::TempDir::new(false).unwrap();
     let path = dir.path().join("chromeleon.mzML");
-    openms::format::mzml::store(&path, experiment).unwrap();
+    // The source's mzML writer drops an instrument name that is no PSI-MS
+    // instrument-model term and writes the generic `MS:1000031` instead
+    // (`MzMLHandler.cpp:3961-3969`); this crate's writer refuses such a name
+    // rather than lose it. The source section asserts only the chromatogram,
+    // so the round trip stores the experiment without the name the source
+    // would have dropped.
+    let mut stored = experiment.clone();
+    assert!(openms::format::mzml::store(&path, &stored).is_err());
+    stored.settings.instrument.name.clear();
+    openms::format::mzml::store(&path, &stored).unwrap();
     let read_exp = openms::format::mzml::load(&path).unwrap();
     assert_eq!(read_exp.chromatograms.len(), 1);
     let c1 = &experiment.chromatograms[0];
@@ -89,7 +102,10 @@ fn load_matches_the_source_section() {
         experiment.settings.instrument.name,
         "HM_metode_ZorBax_0,02%_Acetic_acid_ver6"
     );
-    assert_eq!(experiment.settings.instrument.software.name, "New ProcMethod");
+    assert_eq!(
+        experiment.settings.instrument.software.name,
+        "New ProcMethod"
+    );
     assert_eq!(meta(&experiment, "injection_date"), "10/13/2017");
     assert_eq!(meta(&experiment, "injection_time"), "6:28:26 PM");
     assert_eq!(meta(&experiment, "detector"), "UV");
@@ -190,7 +206,10 @@ fn read(text: &str) -> openms::Result<MSExperiment> {
 fn remove_commas_and_parse_double_edits_its_argument() {
     let file = ChromeleonFile::new();
     let mut number = String::from("-1,234,567.89");
-    assert_eq!(file.remove_commas_and_parse_double(&mut number).unwrap(), -1_234_567.89);
+    assert_eq!(
+        file.remove_commas_and_parse_double(&mut number).unwrap(),
+        -1_234_567.89
+    );
     assert_eq!(number, "-1234567.89");
     let mut bad = String::from("1,2x");
     assert!(matches!(
@@ -236,7 +255,10 @@ fn malformed_data_lines_are_refused() {
     match read("Raw Data:\ncaption\n1\t2\n") {
         Err(Error::Parse { line, message }) => {
             assert_eq!(line, 3);
-            assert!(message.contains("Couldn't parse the raw data."), "{message}");
+            assert!(
+                message.contains("Couldn't parse the raw data."),
+                "{message}"
+            );
         }
         other => panic!("{other:?}"),
     }
@@ -257,7 +279,8 @@ fn point_limit_is_enforced() {
         ..ReadLimits::default()
     };
     assert!(matches!(
-        ChromeleonFile::new().read_with_limits("Raw Data:\nc\n1\t0\t1\n2\t0\t2\n".as_bytes(), limits),
+        ChromeleonFile::new()
+            .read_with_limits("Raw Data:\nc\n1\t0\t1\n2\t0\t2\n".as_bytes(), limits),
         Err(Error::InvalidValue(_))
     ));
 }

@@ -190,6 +190,10 @@ fn single_line(value: &str) -> bool {
 pub mod chromeleon;
 /// Enhanced DTA feature tables into consensus maps, and their writers (`EDTAFile.h`).
 pub mod edta;
+/// GNPS FBMN meta-value table writer (`GNPSMetaValueFile.h`).
+pub mod gnps_meta_value;
+/// GNPS FBMN feature-quantification table writer (`GNPSQuantificationFile.h`).
+pub mod gnps_quantification;
 /// Bounded streaming line reading with the source's `TextFile::getLine` line ends.
 pub mod line_reader;
 /// Source `StringUtils::toDouble` / `toInt32` text conversion, shared with the CLI.
