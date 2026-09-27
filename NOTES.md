@@ -92,3 +92,18 @@ Unmerged Phase B branches: 673154fa-1e1-{1 TOPPBase,2 MSExperiment,3 LogStream,4
 - OI-57: 5 "never added" manifests ARE registered (a80a370, 1b6c30a 2026-09-12) -> stale sentences CONSENSUS_DISPLAY:147-149, IM_TYPES:295-297, ON_DISC_EXPERIMENT:408-413, ON_DISC_IMZML:479-482 (fix). 6 target_verification manifests + ffc/text_format/baseline/mzml_mobility (OI-111) NOT in current_sdk_reference_manifests -> sched A EVID-03 (SOURCE_PROVENANCE is lead's)
 - OI-58 RESOLVED 1b6c30a (rust.yml --test imzml_writer/imzml_file/on_disc_imzml_experiment; now generated matrix 5c4a44a), doc-coverage 051f475, ledger entries present
 - OI-59 RESOLVED a80a370 (reviewed-apis says setSkipXMLChecks IS ported)
+- OI-60 PARTLY RESOLVED cf899a0 (item 7 measured 66 to 3); 3 bare ranges + Pins.packaged() -> sched A EVID-04 (lane A4)
+- OI-61/62 DEFERRED standing constraints. OI-63=DEC-9 owed (openms-ci-sweep.sh runs only cargo lines of portable-feature-graph)
+- OI-64 DEFERRED/partly done (gate scripts take OPENMS_GATE_HOST kim/dax/spock/ibminode05/06; sweep script) - outside repo
+- OI-65 DEFERRED (D taken). OI-66=DEC-3. OI-67 DEFERRED (with DEC-14)
+- OI-68 CHECKED NOW: test-data 0cb15f2 topp/DTAExtractor_{1,2,3}_output.dta say "120 100" (tool writes 120.0) -> RESOLVED as a check; CPP-log candidate to lead (VALIDATION:2404 stale "could not be checked")
+- OI-69 OPEN (check_module_cycles.py has no comment stripping). Doc links = real rustdoc deps for STRUCT-02 -> NEW DECISION (count doc links?)
+- OI-70 OPEN (format/system still mutual in docs/module-cycles.json) -> sched F STRUCT-01
+- OI-71 -> DEC-17 (decision owed)
+- OI-72 decided by follow-the-source (C++ writer renders list DataValue) -> sched C CORE-01 MzMLHandler.h writer
+- OI-73 OPEN (text_format.rs:216 Follow-up) decided by memory rule parallel-lanes-duplicate -> sched B BLOCK-06 StringUtils.h; param/value.rs format_float tie defect live
+- OI-74 DEFERRED (coordination rule; TraceFitter/Gauss/EGH complete)
+- OI-75 superseded by BLOCK-05 ranked remainder -> sched B BLOCK-05 (TOPPBase, branch 1e1-1)
+- OI-76 fixed on branch 673154fa-1e1-2 (30376cf size-derived SummaryLimits) -> sched B BLOCK-03 (B0 integrating); also DEC-17 family
+- OI-40 fixed on branch 673154fa-1e1-2 (6203012) -> sched B BLOCK-03
+- FileHandler branch 673154fa-1e1-4 ranked gaps: MGF via mascot_generic, log types, mzXML/mzData output, id/trafo dispatch, ZIP -> BLOCK-01
