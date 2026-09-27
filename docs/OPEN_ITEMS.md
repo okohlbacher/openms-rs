@@ -43,14 +43,15 @@ Series B.
 
 | | resolved | scheduled | deferred | decision owed | total |
 |---|---:|---:|---:|---:|---:|
-| Open items OI-01..OI-116 | 14 | 70 | 20 | 12 | 116 |
+| Open items OI-01..OI-116 | 10 | 60 | 23 | 23 | 116 |
 | Lead decisions DEC-1..DEC-18 | 2 | 1 | 0 | 15 | 18 |
 | New decisions found here (DEC-19..DEC-21) | | | | 3 | 3 |
 
-Eleven further items are **resolved in part**; each is counted under the
-verdict of what remains, and the part already done is cited. Twelve open items
-map onto a decision (for example OI-10 onto DEC-4); the decision is listed once
-in section 5 and the item row points to it.
+Ten further items are **resolved in part**; each is counted under the verdict
+of what remains, and the part already done is cited. The 23 items marked
+**decision owed** collapse onto 13 decisions (for example OI-10 onto DEC-4,
+six tool-level items onto DEC-21); each decision is stated once, in section 5,
+and the item row points to it.
 
 ---
 
@@ -95,7 +96,7 @@ in section 5 and the item row points to it.
 | OI-23 | Three mzML-reader strictnesses block a combined imzML load | **scheduled** B · BLOCK-06 (`MzMLFile.h`) | `src/format/mzml.rs:2010` (ISO-8859-1 "requires transcoding"), `:2270` (`version` must start `1.1.`), and the forward `softwareRef`. | Series-A D10 shape: source-compatibility options, then `ImzMLFile` (C · CORE-01) passes them. |
 | OI-24 | `ImzMLFile::preflight` does not see inline peaks | **scheduled** C · CORE-01 (`ImzMLFile.h`, `partial`) | `src/format/imzml_file.rs:1536`. | |
 | OI-25 | `OpenMS/IMAGING/` has no Rust owner | **decision owed** → DEC-8 | The ledger has moved: `MSImagingExperiment.h` is now `complete`, `MSImagingGeometry.h`, `MSImagingRegion.h` and `IonImage.h` `partial`, each "owned by a later IMAGING package"; the types still live in `src/kernel/on_disc_imzml_experiment.rs:25-30`. The work itself is E · CORE-18 (IMAGING 3). | |
-| OI-26 | `ImzMLFile::store`'s geometry overload is not ported | **scheduled** E · CORE-18 (IMAGING) + C · CORE-01 | `docs/IMZML_WRITER_SUPPORT.md:474-479`. Reachable once DEC-8 places `MSImagingGeometry`. | |
+| OI-26 | `ImzMLFile::store`'s geometry overload is not ported | **scheduled** E · CORE-18 (IMAGING) + C · CORE-01 | `docs/IMZML_WRITER_SUPPORT.md:475-481`. Reachable once DEC-8 places `MSImagingGeometry`. | |
 | OI-27 | `QcMLFile::collectQCData` (926 lines, ≥ 7 defects) | **scheduled** C · CORE-01 (`QcMLFile.h`, `partial`), metrics with D · CORE-10 | The ledger scope still says "explicitly unported". The per-defect question the inventory raised is answered by D1 and D16: reproduce every deterministic in-bounds behaviour, refuse exactly the UB. Bundling `qc-cv.obo` / `qc-cv-legacy.obo` is a data dependency, recorded like a crate. | |
 | OI-28 | The `MzTab.h` export surface | **scheduled** C · CORE-01, lane F2 | `docs/MZTAB_SUPPORT.md`; F2 is on MzTab, MzTab-M, mzQC and OMS. | |
 | OI-29 | `OMSFile.h` and `MzTabFile.h` | **scheduled** C · CORE-01, lane F2 | `OMSFile.h` `unmapped`, `MzTabFile.h` `partial`. `MzTabMFile.h` is `native_equivalent` and is re-audited under A · EVID-02. | |
@@ -135,7 +136,7 @@ in section 5 and the item row points to it.
 
 | # | Item | Verdict | Evidence in the tree today | Next |
 |---|---|---|---|---|
-| OI-56 | The decision register stops at D17 | **scheduled** A · DEBT-03 (the lead's file) — resolved in part | `9466368` retitled both lists "Lead decisions D1-D18" (`docs/VALIDATION.md:485`, `:1865`). Three links still point at the old anchor `#lead-decisions-d1-d17`: one fixed here (`docs/EARLY_TOPP_WORK_PACKAGES.md:1530`, `4754da8`); `docs/VALIDATION.md:204` and `:1869` are the lead's. | Change both to `#lead-decisions-d1-d18`. |
+| OI-56 | The decision register stops at D17 | **scheduled** A · DEBT-03 (the lead's file) — resolved in part | `9466368` retitled both lists "Lead decisions D1-D18" (`docs/VALIDATION.md:485`, `:1865`). Three links still point at the old anchor `#lead-decisions-d1-d17`: one fixed here (`docs/EARLY_TOPP_WORK_PACKAGES.md:1533`, `4754da8`); `docs/VALIDATION.md:204` and `:1869` are the lead's. | Change both to `#lead-decisions-d1-d18`. |
 | OI-57 | Provenance manifests not registered for hash verification | **scheduled** A · EVID-03 — resolved in part | The five "never added" (`consensus_display`, `im_types`, `on_disc_experiment` in `a80a370`; `imzml_handler`, `on_disc_imzml` in `051f475`) were registered before the inventory was compiled; their support documents were the stale part (fixed, `4754da8`). Still outside `current_sdk_reference_manifests`: the six with a foreign `target_verification` key (`feature_finder_picked`, `lm_eigen_path_differential`, `mzml_reader_scale`, `lm_budget_differential`, `mzml_header_leniency`, `isotopes_source_precision`). | Rename their key, then register (`SOURCE_PROVENANCE.json` is the lead's). |
 | OI-58 | Ledger, coverage and CI wiring for the three imzML packages | **resolved** `1b6c30a`, `051f475` | CI lines in `1b6c30a` (now generated by `tools/ci_matrix.py`, `5c4a44a`); `docs/doc-coverage.json` and the ledger entries in `051f475`. The three support documents were corrected (`4754da8`). | — |
 | OI-59 | Ledger says `setSkipXMLChecks` is not ported | **resolved** `a80a370` | `docs/core-sdk-reviewed-apis.json` now reads "setSkipXMLChecks IS ported". | — |
@@ -171,7 +172,7 @@ in section 5 and the item row points to it.
 | OI-84 | `ConvexHull2D::add_points` merges with `f64::min`/`max` | **scheduled** D · CORE-06 (`ConvexHull2D.h`, `partial`) | `src/kernel/geometry.rs:264-265` and the batch path from `:284`. | The source's keep-first rule for `-0.0` vs `+0.0`. |
 | OI-85 | DTAExtractor's reversed `-rt` range | **decision owed** → DEC-21 — resolved in part | BaselineFilter's centroided-input warning, the pair's other half, closed in `aaf32e8`. The range: `docs/TOPP_CLI_SUPPORT.md:883-891`, "no test covers it yet". | |
 | OI-86 | The generator cannot express "reviewed, not ported" | **resolved** `94715ce` | Reviewed ledger entries now carry each header's real port: `IsotopeCluster.h` `partial`, `ProcessingStep.h` `complete`, `KERNEL/MassTrace.h` `native_equivalent` (re-audited under A · EVID-02, lane A2b). None is left at `evidence_requires_review` by name match. | — |
-| OI-87 | Clippy lints under 1.85, invisible to CI | **scheduled** A · DEBT-03 follow-up (CI owner) | `.github/workflows/rust.yml` still runs clippy on `stable` only (`:146`, `:182`). The lane report records the measured `+1.85.0` count. | Either a 1.85 clippy line or a stated reason not to have one. |
+| OI-87 | Clippy lints under 1.85, invisible to CI | **scheduled** A · DEBT-03 follow-up (the lead's CI file) | `.github/workflows/rust.yml` still runs clippy on `stable` only (`:146`, `:182`). Measured here, `cargo +1.85.0 clippy --locked --all-features --all-targets` on dax, 2026-09-27: **12** distinct warnings, not 24 — 7 `format_collect`, 3 `comparison_chain`, 2 `excessive_precision`; 3 in the library (`src/analysis/feature_finder_picked/extension.rs:584`, `fitting.rs:315`, `src/concept/math_functions.rs:510`), 2 in `b_spline.rs`'s unit tests (`src/processing/spline/b_spline.rs:1031`, `:1087`), 7 in `tests/`. None of the inventory's `multiple_testing.rs` or `comparison.rs` sites remains. | Fix the 12, then either a 1.85 clippy line or a stated reason not to have one. |
 | OI-88 | A3 reader minors | **scheduled** B · BLOCK-01 + B · BLOCK-06 | Mobility `" -35"` still a parse error; `get_type` still reads at most 64 KiB (`docs/MZML_MOBILITY_SUPPORT.md:151`); the nine `getType` literals of `FileHandler_test.cpp` are unported. | The closing lanes re-check each sub-point; the list is in `docs/EARLY_TOPP_WORK_PACKAGES.md` (A3 minors). |
 | OI-89 | C3 / FuzzyDiff minors | **decision owed** → DEC-21 | Still divergent on the reference platform: the Linux Release build rejects `1e-400`, the port accepts it (`docs/FUZZY_STRING_COMPARATOR_SUPPORT.md:168-177`). FuzzyDiff is the ninth validated workflow; no core header owns it. | |
 | OI-90 | CLI-1 requests 7 and 8 | **scheduled** B · CLI-01 + B · BLOCK-06 | `update_diagnostics` still at `src/cli.rs:1629`; `to_int32` twice (`src/cli/context.rs:849`, `src/system/update_check.rs:219`). | |
@@ -183,7 +184,7 @@ in section 5 and the item row points to it.
 | OI-96 | CLI-2 minors | **decision owed** → DEC-21 | Tool-level divergences in validated tools (directory `-in` 8 vs 3, NaN `struc_elem_length` 6 vs 0). The directory case is also EVID-01's known divergence. | |
 | OI-97 | A5 minors | **decision owed** → DEC-21 | `detect_type` still duplicated (`src/cli/tools/file_info.rs:257`, `src/format/file_info/report.rs:390`); the duplicate itself is collapsed by the duplication rule wherever DEC-21 lands. | |
 | OI-98 | C5 minors | **decision owed** → DEC-21 | Tool-level (`FeatureFinderCentroided`). | |
-| OI-99 | B7 minors, incl. a panic in `extend_mass_traces` | **decision owed** → DEC-21 | **Live panic on public input**: `src/analysis/feature_finder_picked/extension.rs:364-366` indexes `pattern.peak[p]` then `pattern.spectrum[p]`; a public `IsotopePattern` with `spectrum` shorter than `peak` panics. `FeatureFinderAlgorithmPicked.h` is `complete`, so no requirement revisits it. | Fix first whatever DEC-21 decides: "no panics on untrusted input" is a standing constraint. |
+| OI-99 | B7 minors, incl. a panic in `extend_mass_traces` | **decision owed** → DEC-21 | **Live panic on public input**: `src/analysis/feature_finder_picked/extension.rs:364-367` indexes `pattern.peak[p]` then `pattern.spectrum[p]`; a public `IsotopePattern` with `spectrum` shorter than `peak` panics. `FeatureFinderAlgorithmPicked.h` is `complete`, so no requirement revisits it. | Fix first whatever DEC-21 decides: "no panics on untrusted input" is a standing constraint. |
 | OI-100 | B6/B8/B9/B11 minors | **decision owed** → DEC-21 | Unchanged; all in `complete` FFAP/FAIMS headers. | |
 | OI-101 | B10-FFC-ACCEPT's tight comparison and the LM budget sweep | **decision owed** → DEC-16 | Unchanged. | |
 | OI-102 | Neither implementation finishes the 43,745-spectrum run | **decision owed** → DEC-16 | Unchanged. | |
