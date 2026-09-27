@@ -3,16 +3,38 @@
 Merged prerequisite worktree-wf_ee239125-5be-1 (fast-forward to 9fcb962).
 No earlier incarnation notes.
 
-## Scope (from brief, ranked)
-1. -write_ini numeric formatting: Release writes `4.0`, `1.0e20`, `0.0:`; Rust writes `4`,
-   `100000000000000000000`, `0:`. Integer beyond 32 bits: C++ Param truncates, Rust refuses.
-   Oracle: ../oracle/json-ini/run1/results/{w_pphr_int_huge,r_pphr_huge}. Files:
-   src/format/paramxml.rs, src/param/** (integer width ONLY; B6 owns param otherwise).
-2. JSON INI syntax-error text: nlohmann wording vs serde_json -> src/format/param_json.rs
-3. parse error prints `parse error on line N: <msg>`; source prints `<msg> in: <file>`
-4. Error::MissingInformation exits 7; source 8
-5. FORMAT/ParamCWLFile.h
-Windows console width: recorded, not chased.
+## Scope (from brief, ranked) and findings
+1. -write_ini numbers. C++ ParamXMLFile.cpp (core bc9cc12) writeXMLToStream:
+   - ITEM int/double value: `it->value.toString()` = ParamValue::toString(true):
+     INT -> std::to_string(int64 ssize_); DOUBLE -> StringUtils::toStr(d,true) =
+     NumericFormatting::appendNumeric(d, 15, false). Rust port: `ParamValue::to_text(true)`
+     (src/param/value.rs format_float) already implements it.
+   - restrictions: StringUtils::toStr(min_float) (same 15-digit rule), ints StringUtils::toStr(int).
+   - double LISTITEM: `os << list[i]` with os.precision(writtenDigits<double>=15) -> `%.15g`
+     (evidence: tests/data/topp_cli_lifecycle/TOPPBase_test_write_ini_out.ini has `4`, `2.33`).
+   - int LISTITEM: IntList (32-bit) as is.
+   Plan: WriteOptions gets `numbers` (Native default = shortest round-trip & refuse >i32;
+   Source = the above). WriteOptions::source() selects Source (used by -write_ini, cli.rs:1204).
+   Native test tests/paramxml.rs precision_nan... asserts lossless round trip -> keep native default.
+   Integer width: C++ ParamValue::operator int() is a modular truncation (ParamValue.cpp:445-451);
+   ParamEntry::isValid `int tmp = value` (Param.cpp:56+). Rust: src/param.rs:251 uses checked
+   to_i32 -> change to `as i32` (minimal B6-file change, report it). cli.rs source_validity_message
+   `narrow` saturates -> truncate. getIntOption_ in src/cli/context.rs:455 check too.
+   C++ reader asInt_ = toInt32 -> refuses its own -9223372036854775808 (ParseError) -> the test's
+   assert_ini must compare text when both reads fail.
+   Oracle: tests/data/topp_json_ini/{w_pphr_int_huge,r_pphr_huge} retained; OPEN list in
+   tests/topp_json_ini.rs:46; assert_ini tolerance for double lines at :206-230 -> make exact.
+2. JSON syntax-error text (nlohmann parse_error.101) -> src/format/param_json.rs; SYNTAX_ERRORS
+   in tests/topp_json_ini.rs; needs a nlohmann-style lexer error reproduction + more oracle cases.
+3. run_failure (src/cli.rs ~2322) prints Error::Parse as `parse error on line N: msg`; source
+   ParseError::what() = `<msg> in: <file>`. Error::Parse has no file; Display in src/error.rs:32.
+4. run_failure maps MissingInformation -> 7; source BaseException arm -> 8 + `Error: Unexpected
+   internal error (<what>)` (TOPPBase.cpp:495-499 cli c19e494). No producer stands for
+   RequiredParameterNotGiven (lifecycle handles that). Test tests/topp_cli_lifecycle.rs:1746
+   asserts the native 7 -> change to source 8 (source-derived, comment at :1711 already says 8).
+5. ParamCWLFile.h (unmapped): Release build has no TDL -> store throws runtime_error
+   TDL_UNAVAILABLE (ParamCWLFile.cpp:331). Port as ParamJsonFile store refusal. TDL writer =
+   named backlog (extern/tool_description_lib convertToCWL.h + yaml).
 
 ## Next step
-1. Read oracle cases w_pphr_int_huge / r_pphr_huge and the C++ writer (ParamXMLFile.cpp, Param value toString).
+1. Implement item 1 (paramxml numbers + int width), then 4, 3, 5, 2.
