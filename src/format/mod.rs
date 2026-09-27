@@ -205,5 +205,8 @@ pub mod ibspectra;
 pub mod line_reader;
 /// Metabolite MSP spectral libraries: reader and writer (`MSPGenericFile.h`).
 pub mod msp_generic;
+/// sqMass (SQLite) experiment files over the SQLite handler (`SqMassFile.h`).
+#[cfg(feature = "sqmass")]
+pub mod sqmass_file;
 /// Source `StringUtils::toDouble` / `toInt32` text conversion, shared with the CLI.
 pub(crate) mod string_utils;
