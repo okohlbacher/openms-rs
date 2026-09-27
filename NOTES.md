@@ -62,3 +62,9 @@ Committed as WIP by incarnation 4. Unknown: whether it compiles / passes. So:
 1. Review the diff site by site, then gate on spock: cargo test --test a3a_source_order + the touched test files.
 2. Fix failures; commit per site; fmt; module cycles check; CI sweep.
 3. Report + ledger fragment; delete NOTES.md.
+
+Incarnation 4 review (19:30): all 8 site diffs reviewed against the pinned source, look correct. fmt clean,
+module cycles pass. Gate 1 (5 test targets) launched on spock, log scratchpad/gate1.log (shared scratchpad!
+use scratchpad/A3a/ for new logs). Follow-ups for report: CPP-244 "Rust handling" stale (now reproduced);
+im_data_converter split_by_faims_cv keeps NaN refusal (CPP-280, own std::map, not owned); spectrum_mobility
+sort_by_position_presorted finite(mz) refusal (inplace_merge) not in brief. Ledger draft in scratchpad/A3a/current.json.
