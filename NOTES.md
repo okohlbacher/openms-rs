@@ -23,5 +23,13 @@ Merged prerequisite worktree-wf_ee239125-5be-1 (fast-forward to 9fcb962).
 ## Order
 1. defs ToolError ctors  2. external_tool.rs  3. ini_updater.rs  4. search_engine.rs  5. map_aligner.rs  6. oracle B7-cli  7. docs/ledger/report
 
+## Progress
+- DONE (commit 70710a3, clippy all-features green on dax): src/cli/{external_tool,ini_updater,map_aligner,search_engine}.rs, defs.rs ToolError ctors, ToolSpec::register_topp_subsection.
+- Gaps: SearchEngineBase::reindex_ (native PeptideIndexing has no Param surface/ExitCodes); MapAlignerBase::getModelDefaults (lane 5be-30 transformation_model_defaults); transformSpectraFiles_ progress logging.
+- Oracle ../oracle/B7-cli (driver.cpp, cases.tsv, run.sh) shipped to ibminode06:/scratch/kohlbach/oracle/B7-cli, started detached; poll results/DONE:
+  ssh -J kohlbach@sshgw.cs.uni-tuebingen.de kohlbach@ibminode06 ls /scratch/kohlbach/oracle/B7-cli/results
+  then rsync results back to ../oracle/B7-cli/results and copy retained cases into tests/data/topp_cli_base_classes/.
+
 ## Next step
-1. Write src/cli/external_tool.rs (ToolContext::run_external_process*), then defs ctors in outcome.rs.
+1. Fetch oracle results; write tests/topp_cli_base_classes.rs replaying cases (template tests/topp_b0_release.rs) + INIUpdater/class-test transcriptions.
+2. Docs: TOPP_CLI_SUPPORT.md "Tool base classes" section; provenance json; doc coverage; ledger fragment; report.
