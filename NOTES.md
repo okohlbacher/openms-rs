@@ -1,39 +1,23 @@
 # Lane A4 notes (DEBT-05, EVID-03, EVID-04)
 
-Worktree wf_ee239125-5be-7 (branch worktree-wf_ee239125-5be-7), fast-forwarded
-onto worktree-wf_bcdd783d-f3f-7 (1165047, this file only). Scratch scripts live in
-the session scratchpad; regenerate them if lost.
+Branch worktree-wf_ee239125-5be-7 (fast-forwarded onto the earlier incarnation's
+notes commit). Scratch scripts in the session scratchpad (parse_cpp.py,
+class_*.tsv = the manual classification of all 354 entries, build_index.py,
+splice.py, declare_retained.py = the SOURCE_PROVENANCE block for the lead).
 
-## State found
-- OpenMS_CPP_ISSUES.md: 6601 lines, CPP-001..354, no duplicates, no gaps, but not
-  in file order (e.g. CPP-046 after "Maintaining this log"). Index table covers
-  001..058 only. Header pins core `82ce5b3`; that commit EXISTS in
-  ../OpenMS4-tests/packages/core, is an ancestor of bc9cc12 (8 commits back), and
-  76 blob links in entries 1-58ish do use it. Later entries cite bc9cc12 (core),
-  c19e494 (cli), 174b576 (topp) and "executed on product SDK at core 4fdec46".
-  So the brief's "none uses it" is wrong; the header is wrong because it claims
-  ALL entries were checked at 82ce5b3.
-- Entry formats vary: early "Affected file/Issue and reproduction/Evidence/Rust
-  handling"; later "Source revision/Status/Affected file/function/Trigger/Issue/
-  Proposed C++ fix/Evidence/Rust handling"; FORMAT wave "Status and source".
-- tools/check_source_citations.py --report --verbose: exit 0, 4136 checked,
-  35 unreachable (names only, no locations), 3 bare ranges (not listed).
-  Unreachable: Eigen (lmpar.h 7, Redux.h 3, InnerProduct.h 3,
-  GeneralMatrixVector.h 3, Dot.h 2, TriangularSolverVector.h 2,
-  ProductEvaluators.h 1), Boost (normal.hpp 8, erf_inv.hpp 1), libstdc++
-  bits/random.h 1, TOPPBase.cpp 2 (issue-log entries naming core only?),
-  driver.cpp 2 (../oracle/progress-format-readers/driver.cpp).
-  Retained-source mechanism: SOURCE_PROVENANCE.json retained_sources.directories
-  (lead's file) -> give lead the JSON block; retain headers under ../oracle/A4-*/.
-- CI runs only test_source_citations.py (no pins in CI), and check_core_sdk.py
-  without --source.
+## Done (commit 2c7278d-ish, "[DOC,TEST] Index every C++ issue entry ...")
+- OpenMS_CPP_ISSUES.md: header corrected (001-060 at 82ce5b3, rest at bc9cc12
+  + cli/topp/test-data; 38 name the 4fdec46 SDK); index of all 354 entries.
+- check_source_citations.py: --verbose locations; UNCHECKABLE record enforced
+  when every pin/retained file is reachable; tests added (69 pass).
+- ../oracle/A4-retained-third-party/{eigen,boost,libstdcxx} fetched from
+  ibminode06 Release install, sha256.txt, retain.sh, PROVENANCE.txt.
+  With the lead's SOURCE_PROVENANCE block: 0 unreachable, 2 bare (Rust lines).
 
 ## Next step
-1. Parse every CPP entry (scratch parse_cpp.py) -> classify -> index table.
-2. Fix header of OpenMS_CPP_ISSUES.md; replace index; commit.
-3. Checker: --verbose should list each unreachable citation and bare range with
-   document:line (strengthening). Resolve: retain Eigen/Boost/libstdc++ headers
-   from ibminode06 Release deps into ../oracle/A4-retained/ with sha256; check
-   TOPPBase.cpp/driver.cpp cases; record unresolvable ones with reasons.
-4. Measure sha256 recomputability for REPRODUCIBILITY.md (check_core_sdk.py).
-5. Lane report + ledger fragment; delete NOTES.md.
+1. docs/REPRODUCIBILITY.md: measure sha256 assertions (all 64-hex in repo JSON/
+   MD/TSV/RS), classify by what the digest names: in-repo file (recompute!),
+   pinned upstream source (needs public OpenMS4-core at bc9cc12), ../oracle or
+   /ceph or product-sdk (not reproducible). Read tools/check_core_sdk.py --source.
+2. Lane report .planning/lane-reports/A4.md + ledger-fragments/wave4/A4.json.
+3. Delete NOTES.md in the final commit.
