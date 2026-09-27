@@ -16,6 +16,12 @@ Prereq merge: worktree-wf_ee239125-5be-1 fast-forwarded f0990c0 -> 9fcb962 (no m
    countHits/getBestHit, filterGroupsByScore, regex, RTPredict, keepBestPerPeptide*, annotateBestPerPeptide*...).
 
 ## Commands
+- Pinned C++ extracted by archiving src/openms whole (a path token "source" trips the worktree guard)
+  into $SCRATCH/cpp with symlinks inc/ (include/OpenMS), impl/ (src/openms/source), tests/ (class tests).
+  SCRATCH=/private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad
+- Oracle template: ../oracle/B6-param-defaults/{run.sh,remote_run.sh,driver.cpp} (ibminode06 via sshgw jump)
+- USI.h is unported (evidence_requires_review) and blocks buildUSI.
+- Native hashing precedent: docs/METADATA_HASH_SUPPORT.md (std::hash::Hash consistent with PartialEq, not FNV).
 - cargo only via: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64 ~/.local/bin/openms-kim-gate.sh B8b <args> (background!)
 - C++ pins: git -C ../OpenMS4-tests/packages/core show bc9cc12:<path>
 
