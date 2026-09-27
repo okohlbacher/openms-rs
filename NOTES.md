@@ -12,8 +12,11 @@ Write files outside the worktree via scratch + `cp` (the Write tool refuses shar
   pose-clustering alignment (partial: StablePairFinder closure), MapAlignmentTransformer IdentificationData overload.
 - docs: TRANSFORMATIONS_SUPPORT.md, MAP_ALIGNMENT_SUPPORT.md, THIRD_PARTY_CRATE_DECISIONS row, 2 provenance manifests.
 - Report drafted at scratch M1/M1.md; ledger fragment copied to .planning/ledger-fragments/wave4/M1.json.
+- Tier-1 oracle committed (2749bfd): tests/map_alignment_oracle.rs, 6 tests, 3780/3780 bit-identical on dax;
+  C++ side in ../oracle/M1-mapalign (ibminode06). Report + ledger (scratch M1/M1.md, M1/M1.json) updated
+  for tier 1; re-cp M1.json to the ledger path.
 
 ## Next step
-1. Wait for the CI sweep (scratch M1/sweep.log, logs in M1/sweep/); fix any red line.
+1. Wait for the CI sweep (started 20:58 on the tree before the oracle commit; oracle slice + clippy re-run on the final tree already) (scratch M1/sweep.log, logs in M1/sweep/); fix any red line.
 2. Append sweep result to M1/M1.md, cp it to .planning/lane-reports/M1.md.
 3. Final commit deleting NOTES.md.
