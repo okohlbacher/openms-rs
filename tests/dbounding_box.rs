@@ -12,6 +12,23 @@ use openms::data_structures::{
     DBoundingBox, DBoundingBox1, DBoundingBox2, DIntervalBase2, DPosition, DPosition1, DPosition2,
 };
 use std::collections::{HashMap, HashSet};
+use std::hash::{Hash, Hasher};
+
+/// The source test puts boxes into `std::unordered_set` and `unordered_map`,
+/// which need only `==` and the hash. Rust's hash containers also require
+/// `Eq`, which a float-cornered box cannot promise in general (NaN); this key
+/// asserts it for the NaN-free boxes of the test and delegates to the box's
+/// `PartialEq` and `Hash`.
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct Key(BB2);
+
+impl Eq for Key {}
+
+impl Hash for Key {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.hash(state);
+    }
+}
 
 type BB1 = DBoundingBox1;
 type BB2 = DBoundingBox2;
@@ -194,11 +211,13 @@ fn intersects() {
     assert!(!r2.intersects(&r3));
     r3.set_min(*r2.min_position());
     r3.set_min_x(10.0);
-    r3.set_max(*r3.min_position() + one);
+    let min = *r3.min_position();
+    r3.set_max(min + one);
     assert!(!r2.intersects(&r3));
     r3.set_min_x(-10.0);
     r3.set_min_y(-10.0);
-    r3.set_max(*r3.min_position() + one);
+    let min = *r3.min_position();
+    r3.set_max(min + one);
     assert!(!r2.intersects(&r3));
 
     // From here the source sets all four coordinates, in the order setMinX,
@@ -215,7 +234,8 @@ fn intersects() {
     check(&mut r3, [-10.0, 0.0, -9.0, 1.0], false);
     r3.set_min_x(-10.0);
     r3.set_min_y(10.0);
-    r3.set_max(*r3.min_position() + one);
+    let min = *r3.min_position();
+    r3.set_max(min + one);
     assert!(!r2.intersects(&r3));
     check(&mut r3, [-10.0, 0.0, -9.0, 10.0], false);
     check(&mut r3, [9.0, 0.0, 10.0, 10.0], false);
@@ -265,20 +285,20 @@ fn std_hash_contract() {
     assert_ne!(a.source_hash64(), c.source_hash64());
 
     let mut set = HashSet::new();
-    set.insert(bb1);
-    set.insert(bb2);
-    set.insert(bb3);
+    set.insert(Key(bb1));
+    set.insert(Key(bb2));
+    set.insert(Key(bb3));
     assert_eq!(set.len(), 2);
-    assert!(set.contains(&bb1));
-    assert!(set.contains(&bb3));
+    assert!(set.contains(&Key(bb1)));
+    assert!(set.contains(&Key(bb3)));
 
     let mut map = HashMap::new();
-    map.insert(bb1, "first");
-    map.insert(bb2, "second");
-    map.insert(bb3, "third");
+    map.insert(Key(bb1), "first");
+    map.insert(Key(bb2), "second");
+    map.insert(Key(bb3), "third");
     assert_eq!(map.len(), 2);
-    assert_eq!(map[&bb1], "second");
-    assert_eq!(map[&bb3], "third");
+    assert_eq!(map[&Key(bb1)], "second");
+    assert_eq!(map[&Key(bb3)], "third");
 
     let default1 = BB2::default();
     let default2 = BB2::default();
