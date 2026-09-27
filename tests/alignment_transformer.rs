@@ -456,3 +456,60 @@ fn checked_limits_fail_without_changes_and_existing_original_keys_are_retained()
     );
     assert_eq!(experiment, before);
 }
+
+#[test]
+fn identification_data_observations_follow_the_peptide_overload() {
+    // Derived for transformRetentionTimes(IdentificationData&, ...), which
+    // the class test does not exercise: the same anchors and the same
+    // sequence as its peptide section, applied to observations; an
+    // observation without RT is left alone.
+    use openms::identification::graph::{IdentificationData, InputFile, Observation};
+    let mut data = IdentificationData::new().unwrap();
+    let file = data.register_input_file(InputFile::new("run")).unwrap();
+    let mut ids = Vec::new();
+    for (index, rt) in [Some(11.1), Some(11.5), None].into_iter().enumerate() {
+        let mut observation = Observation::new(format!("scan={index}"), file);
+        observation.rt = rt;
+        ids.push(data.register_observation(observation).unwrap());
+    }
+    let transformation = linear(2., 1.);
+    let rt = |data: &IdentificationData, index: usize| data.observation(ids[index]).unwrap().rt;
+    let original = |data: &IdentificationData, index: usize| {
+        data.observation(ids[index])
+            .unwrap()
+            .metadata
+            .get("original_RT")
+            .map(|value| value.as_f64().unwrap())
+    };
+    MapAlignmentTransformer::default()
+        .transform_identification_data(&mut data, &transformation)
+        .unwrap();
+    close(rt(&data, 0).unwrap(), 23.2);
+    close(rt(&data, 1).unwrap(), 24.);
+    assert_eq!(rt(&data, 2), None);
+    assert_eq!(original(&data, 0), None);
+    let storing = MapAlignmentTransformer {
+        store_original_rt: true,
+        ..Default::default()
+    };
+    for _ in 0..2 {
+        storing
+            .transform_identification_data(&mut data, &transformation)
+            .unwrap();
+        close(original(&data, 0).unwrap(), 23.2);
+        close(original(&data, 1).unwrap(), 24.);
+        assert_eq!(original(&data, 2), None);
+    }
+    close(rt(&data, 0).unwrap(), 4. * 23.2 + 3.);
+    // A limit that is too small refuses the call and leaves the data alone.
+    let limited = MapAlignmentTransformer {
+        max_records: 2,
+        ..Default::default()
+    };
+    assert!(
+        limited
+            .transform_identification_data(&mut data, &transformation)
+            .is_err()
+    );
+    close(rt(&data, 0).unwrap(), 4. * 23.2 + 3.);
+}

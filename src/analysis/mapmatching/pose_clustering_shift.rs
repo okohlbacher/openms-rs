@@ -8,9 +8,14 @@
 //! `.cpp`. See `docs/MAP_ALIGNMENT_SUPPORT.md`.
 
 use super::superimposer::{
-    BaseSuperimposer, Histogram, Superimposition, WINDOW_LENGTH_BASELINE, entry, float, int,
-    similarity, string, tree, used_points,
+    BaseSuperimposer, Dump, Histogram, Superimposition, WINDOW_LENGTH_BASELINE, entry, float, g,
+    int, similarity, string, tree, used_points,
 };
+use std::sync::atomic::{AtomicI32, Ordering};
+
+/// The source's function-local `static Int dump_buckets_serial` of `run`,
+/// incremented on every run and naming the debug dumps.
+static SHIFT_DUMP_SERIAL: AtomicI32 = AtomicI32::new(0);
 
 use crate::analysis::transformations::TransformationDescription;
 use crate::concept::progress_logger::ProgressReporter;
@@ -50,10 +55,19 @@ pub struct PoseClusteringShiftSuperimposer {
     /// (source `max_shift`, default 1000, minimum 0, advanced).
     pub max_shift: f64,
     /// `[DEBUG]` base file name for dumps of the histogram (source
-    /// `dump_buckets`, advanced). Not ported: a non-empty value is refused.
+    /// `dump_buckets`, advanced). When non-empty, each run writes
+    /// `<dump_buckets>_<serial>`: the histogram before and after the top-hat
+    /// filter and after the noise cut-off, and each cut-off round.
     pub dump_buckets: String,
     /// `[DEBUG]` base file name for dumps of the hashed pairs (source
-    /// `dump_pairs`, advanced). Not ported: a non-empty value is refused.
+    /// `dump_pairs`, advanced; large). When non-empty, each run writes
+    /// `<dump_pairs><serial>` (no separator, as in the source), one line per
+    /// pair.
+    ///
+    /// The serial numbers the invocations of this class's run in this
+    /// process, starting at 1, so that dumps are not overwritten: the source's
+    /// function-local `static` counter, which is a process-wide counter here
+    /// too.
     pub dump_pairs: String,
     /// Maximum number of histogram buckets (native limit).
     pub max_buckets: usize,
@@ -175,11 +189,6 @@ impl PoseClusteringShiftSuperimposer {
     }
 
     fn validate(&self) -> Result<()> {
-        if !self.dump_buckets.is_empty() || !self.dump_pairs.is_empty() {
-            return Err(Error::Unsupported(
-                "the [DEBUG] dump_buckets and dump_pairs outputs are not ported".into(),
-            ));
-        }
         if self.mz_pair_max_distance < 0.0 || !self.mz_pair_max_distance.is_finite() {
             return Err(Error::InvalidValue(
                 "mz_pair_max_distance must be finite and not negative".into(),
@@ -231,8 +240,9 @@ impl BaseSuperimposer for PoseClusteringShiftSuperimposer {
     /// histogram of more than [`max_buckets`](Self::max_buckets), a
     /// non-finite total intensity ratio or pair similarity, a histogram whose
     /// noise level the source cannot determine without reading past its
-    /// buffer, or non-finite statistics; [`Error::Unsupported`] for the debug
-    /// dumps. Progress errors are returned as well.
+    /// buffer, or non-finite statistics; [`Error::Io`] when a debug dump
+    /// cannot be written (the source's stream fails silently). Progress errors
+    /// are returned as well.
     fn superimpose(
         &self,
         model: &ConsensusMap,
@@ -302,14 +312,22 @@ impl BaseSuperimposer for PoseClusteringShiftSuperimposer {
             actual += 1;
             progress.set(actual)?;
             let ratio = total_model / total_scene;
+            actual = 20;
+            progress.set(actual)?;
+            // The source's function-local `static Int dump_buckets_serial`.
+            let serial = SHIFT_DUMP_SERIAL.fetch_add(1, Ordering::Relaxed) + 1;
             if !ratio.is_finite() {
                 return Err(Error::InvalidValue(
                     "the total intensity ratio of the maps is not finite".into(),
                 ));
             }
-            actual = 20;
-            progress.set(actual)?;
 
+            let mut pairs = if self.dump_pairs.is_empty() {
+                Dump::off()
+            } else {
+                Dump::create(&format!("{}{serial}", self.dump_pairs))?
+            };
+            pairs.write("# i k\n")?;
             actual += 1;
             progress.set(actual)?;
             let distance = self.mz_pair_max_distance;
@@ -334,7 +352,7 @@ impl BaseSuperimposer for PoseClusteringShiftSuperimposer {
                 while k_high < m && scene_map[k_high].mz <= mz + distance {
                     k_high += 1;
                 }
-                for partner in &scene_map[k_low..k_high] {
+                for (offset, partner) in scene_map[k_low..k_high].iter().enumerate() {
                     let k_weight = 1.0 / (k_high - k_low) as f64 - WINDOW_LENGTH_BASELINE;
                     if k_weight <= 0.0 {
                         continue;
@@ -343,24 +361,68 @@ impl BaseSuperimposer for PoseClusteringShiftSuperimposer {
                     weight *= i_weight;
                     weight *= k_weight;
                     hash.add_value(model_map[i].rt - partner.rt, weight);
+                    if pairs.is_open() {
+                        pairs.write(&format!(
+                            "{i} {} {} {} {} {} {} \n",
+                            g(model_map[i].rt),
+                            g(model_map[i].mz),
+                            k_low + offset,
+                            g(partner.rt),
+                            g(partner.mz),
+                            g(weight)
+                        ))?;
+                    }
                 }
             }
+            pairs.close()?;
             actual = 30;
             progress.set(actual)?;
 
+            let mut buckets = if self.dump_buckets.is_empty() {
+                Dump::off()
+            } else {
+                let name = format!("{}_{serial}", self.dump_buckets);
+                let mut dump = Dump::create(&name)?;
+                dump.write(&format!(
+                    "# shift hash table buckets dump ( scale, height ) : {name}\n# unfiltered hash data\n"
+                ))?;
+                dump
+            };
+            hash.dump_rows(&mut buckets, 0, false)?;
+            buckets.write("\n")?;
             actual += 1;
             progress.set(actual)?;
             hash.tophat();
+            buckets.write("# tophat filtered hash data\n")?;
+            hash.dump_rows(&mut buckets, 1, false)?;
+            buckets.write("\n")?;
             actual += 1;
             progress.set(actual)?;
-            hash.cut_noise()?;
+            let cutoff = hash.cut_noise()?;
+            buckets.write(&format!("# after freq_cutoff, which is: {}\n", g(cutoff)))?;
+            hash.dump_rows(&mut buckets, 2, false)?;
+            buckets.write("\n")?;
             // The source reports after computing the cut-off, after applying
             // it and after its optional dump.
             for _ in 0..3 {
                 actual += 1;
                 progress.set(actual)?;
             }
-            let (intercept, _) = hash.centroid(0.0, 1.0)?;
+            let steps = hash.centroid_steps(0.0, 1.0)?;
+            for (round, step) in steps.iter().enumerate() {
+                buckets.write(&format!(
+                    "# loop: {round}  mean: {}  stdev: {}  (mean-stdev): {}  (mean+stdev): {}  data_range_begin: {}  data_range_end: {}\n",
+                    g(step.mean),
+                    g(step.stdev),
+                    g(step.mean - step.stdev),
+                    g(step.mean + step.stdev),
+                    step.begin,
+                    step.end
+                ))?;
+            }
+            buckets.write("# EOF\n")?;
+            buckets.close()?;
+            let intercept = steps.last().map_or(0.0, |step| step.mean);
             actual += 1;
             progress.set(actual)?;
             progress.set(80)?;

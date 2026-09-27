@@ -5,8 +5,8 @@
 | Header | Rust | Status |
 |---|---|---|
 | `BaseSuperimposer.h` | `mapmatching/superimposer.rs` | complete |
-| `PoseClusteringShiftSuperimposer.h` | `mapmatching/pose_clustering_shift.rs` | partial: the `[DEBUG]` dump files |
-| `PoseClusteringAffineSuperimposer.h` | `mapmatching/pose_clustering_affine.rs` | partial: the `[DEBUG]` dump files |
+| `PoseClusteringShiftSuperimposer.h` | `mapmatching/pose_clustering_shift.rs` | complete |
+| `PoseClusteringAffineSuperimposer.h` | `mapmatching/pose_clustering_affine.rs` | complete |
 | `MapAlignmentEvaluationAlgorithm.h` | `mapmatching/alignment_evaluation.rs` | complete |
 | `MapAlignmentEvaluationAlgorithmPrecision.h` | `mapmatching/alignment_evaluation.rs` | complete |
 | `MapAlignmentEvaluationAlgorithmRecall.h` | `mapmatching/alignment_evaluation.rs` | complete |
@@ -105,7 +105,7 @@
 
 ## Native differences
 
-- **The debug dumps are refused.** A non-empty `dump_buckets` or `dump_pairs` returns `Error::Unsupported`. The source writes several text files per call, named with a process-global invocation counter; they are diagnostic output only and do not affect the result. This is the remaining gap of both superimposers.
+- **Debug dumps.** A non-empty `dump_buckets` or `dump_pairs` writes the source's text files with the source's names and lines (numbers at six significant digits): `<base>_<serial>` and `<base><serial>` for the shift superimposer; `<base>_scale_<serial>`, `_low_`, `_high_` and `<base>_phase_two_<serial>` for the affine one, whose first hashing round truncates the pairs file the second then fills, as in the source. The serial is the source's function-local `static` invocation counter, one per class, kept as a process-wide atomic; it is the one piece of global state in these modules. A file that cannot be created or written is an `Error::Io`, where the source's `std::ofstream` fails silently and the run continues.
 - **Undefined behaviour is refused.** An empty map (the source loops past the end of the model map in the shift superimposer), a zero bucket size (an infinite bucket count converted to `Int`), a histogram whose noise level the source can only find by reading past its buffer, a pair similarity or intensity ratio that is not finite (two zero intensities give `0/0`), a first feature without identification under `score_cutoff` (the source reads `features[0].getPeptideIdentifications()[0]` unchecked), and a consensus feature without handles in pose-clustering alignment (the source writes through an end iterator) are errors.
 - **Identifications without retention time are refused** in the identification alignment, where the source records NaN, which then decides medians and sorts arbitrarily. With `use_feature_rt` a missing RT never becomes the closest identification, as NaN never is in the source.
 - **Ranges are computed, not trusted.** The source states `updateRanges()` as a precondition of the superimposers "for performance reasons"; the ranges are computed from the maps here (with handles, as `ConsensusMap::updateRanges` does).
@@ -118,7 +118,7 @@
 
 All evidence is tier 3 (the pinned class tests' literals and data files) or tier 4 (derived); no C++ was executed.
 
-- `tests/pose_clustering.rs` (6 tests): the shift superimposer's slope 1 and intercept -20.4; the affine superimposer's slope 1 and intercept -0.4 through both overloads; its `num_used_points` 2 and 3 cases on the reversed five-point maps (the 3-point case, slope 0.977273 and intercept -0.368182, depends on the `nth_element` selection); the wrong-parameter case and its four warnings; the parameter layouts and restrictions; the refusals; and a derived check of the pose-clustering alignment with a positional pair finder.
+- `tests/pose_clustering.rs` (7 tests): the shift superimposer's slope 1 and intercept -20.4; the affine superimposer's slope 1 and intercept -0.4 through both overloads; its `num_used_points` 2 and 3 cases on the reversed five-point maps (the 3-point case, slope 0.977273 and intercept -0.368182, depends on the `nth_element` selection); the wrong-parameter case and its four warnings; the parameter layouts and restrictions; the refusals; the shift superimposer's two dump files, line by line, derived from the source's dump statements; and a derived check of the pose-clustering alignment with a positional pair finder.
 - `tests/map_alignment_evaluation.rs` (5 tests, feature `consensusxml`): precision 0.757143 and recall 0.5 on the upstream consensusXML pair, recall 0 for an empty tool map and the refusal of an empty ground truth, `isSameHandle` with and without charge, and the implementable interface. The precision NaN of an unusable ground truth is derived.
 - `tests/map_alignment_identification.rs` (5 tests, feature `idxml`): alignment of the two upstream idXML files without reference (10 points each, common scale), with internal reference (identity, 10 points on the reference scale), with external reference (1 transformation, 10 points), the repeated-align regression with `min_run_occur` 3; and derived cases for feature maps (`use_feature_rt`, the score filter and the empty-sequence record) and for identification data (the automatically picked score type and its `Using score type` line, the best match per observation, a missing named score type).
 

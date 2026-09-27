@@ -15,12 +15,15 @@
 //! `docs/MAP_ALIGNMENT_SUPPORT.md`.
 
 use crate::analysis::transformations::TransformationDescription;
+use crate::concept::fuzzy_string_comparator::format_g;
 use crate::concept::progress_logger::ProgressReporter;
 use crate::kernel::ConsensusMap;
 use crate::math::basic_statistics::BasicStatistics;
 use crate::param::{Param, ParamEntry, ParamNode, ParamValue};
 use crate::{Error, Result};
 use std::collections::VecDeque;
+use std::fs::File;
+use std::io::{BufWriter, Write};
 
 /// A superimposer: estimates the transformation that maps the elements of a
 /// scene map as near as possible onto those of a model map (source
@@ -213,8 +216,9 @@ impl Histogram {
     /// times, the weighted mean and standard deviation of the bucket indices
     /// within the current range are computed, and the range narrowed to
     /// `[floor(mean - 1.5 sd - low_pad), ceil(mean + 1.5 sd + high_pad))`,
-    /// clipped to the histogram. Returns the key and the standard deviation
-    /// in key units of the last mean.
+    /// clipped to the histogram. Returns every round, for the debug dumps; the
+    /// last round's key and standard deviation (in key units) are the
+    /// result.
     ///
     /// The shift superimposer and the affine superimposer's scaling and low
     /// end use pads of 0 and 1; the affine superimposer's high end uses 1 and
@@ -223,11 +227,11 @@ impl Histogram {
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] when the statistics are not finite.
-    pub(super) fn centroid(&self, low_pad: f64, high_pad: f64) -> Result<(f64, f64)> {
+    pub(super) fn centroid_steps(&self, low_pad: f64, high_pad: f64) -> Result<Vec<CentroidStep>> {
         let mut statistics = BasicStatistics::new();
         let size = self.data.len();
         let (mut begin, mut end) = (0usize, size);
-        let mut result = (0.0, 0.0);
+        let mut result = Vec::with_capacity(CUTOFF_LOOPS);
         for _ in 0..CUTOFF_LOOPS {
             statistics.update(&self.data[begin..end])?;
             let mean = statistics.mean() + begin as f64;
@@ -245,10 +249,101 @@ impl Histogram {
                 .ceil();
             begin = low as usize;
             end = (high as usize).max(begin).min(size);
-            result = (self.index_to_key(mean), stdev * self.scale);
+            result.push(CentroidStep {
+                mean: self.index_to_key(mean),
+                stdev: stdev * self.scale,
+                begin,
+                end,
+            });
         }
         Ok(result)
     }
+
+    /// Write the histogram to a debug dump, one row per bucket: `stage`,
+    /// index, key and height, tab-separated, in the shift superimposer's
+    /// layout, or key, height and `stage` in the affine superimposer's.
+    pub(super) fn dump_rows(&self, dump: &mut Dump, stage: u32, affine: bool) -> Result<()> {
+        if !dump.is_open() {
+            return Ok(());
+        }
+        let mut text = String::new();
+        for (index, height) in self.data.iter().enumerate() {
+            let key = format_g(self.index_to_key(index as f64));
+            let height = format_g(*height);
+            if affine {
+                text.push_str(&format!("{key}\t{height}\t{stage}\n"));
+            } else {
+                text.push_str(&format!("{stage}\t{index}\t{key}\t{height}\n"));
+            }
+        }
+        dump.write(&text)
+    }
+}
+
+/// One round of [`Histogram::centroid_steps`]: the mean's key, the standard
+/// deviation in key units, and the narrowed bucket range.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(super) struct CentroidStep {
+    pub(super) mean: f64,
+    pub(super) stdev: f64,
+    pub(super) begin: usize,
+    pub(super) end: usize,
+}
+
+/// A `[DEBUG]` dump file of the superimposers, or nothing when dumping is
+/// off. Numbers are written as `std::ostream` does by default (six
+/// significant digits).
+pub(super) struct Dump(Option<BufWriter<File>>);
+
+impl Dump {
+    /// No dump.
+    pub(super) fn off() -> Self {
+        Self(None)
+    }
+
+    /// Create (or truncate) the file, as `std::ofstream::open` does.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Io`] when the file cannot be created; the source's
+    /// stream fails silently and writes nothing.
+    pub(super) fn create(path: &str) -> Result<Self> {
+        Ok(Self(Some(BufWriter::new(File::create(path)?))))
+    }
+
+    /// Whether a file is open.
+    pub(super) fn is_open(&self) -> bool {
+        self.0.is_some()
+    }
+
+    /// Append text.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Io`] when the write fails.
+    pub(super) fn write(&mut self, text: &str) -> Result<()> {
+        if let Some(file) = &mut self.0 {
+            file.write_all(text.as_bytes())?;
+        }
+        Ok(())
+    }
+
+    /// Flush and close the file.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Io`] when the flush fails.
+    pub(super) fn close(&mut self) -> Result<()> {
+        if let Some(mut file) = self.0.take() {
+            file.flush()?;
+        }
+        Ok(())
+    }
+}
+
+/// `std::ostream << double` with the default settings.
+pub(super) fn g(value: f64) -> String {
+    format_g(value)
 }
 
 /// Top-hat filter of a `double` range with a structuring element of `length`

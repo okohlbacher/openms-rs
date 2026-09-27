@@ -11,6 +11,7 @@
 | `TransformationModelBSpline.h` | `src/analysis/transformations/b_spline.rs` | complete |
 | `TransformationModelLowess.h` | `src/analysis/transformations/lowess.rs` | complete |
 | `TransformationModelDefaults.h` | `src/analysis/transformations/params.rs` | complete |
+| `MapAlignmentTransformer.h` | `src/analysis/alignment_transformer.rs` | complete |
 
 ```rust
 use openms::analysis::transformations::{DataPoint, ModelConfig, TransformationDescription};
@@ -76,7 +77,7 @@ A model constructor in the source is not a `DefaultParamHandler`: it fills missi
 | `checkValidWeight` | `check_valid_weight` |
 | `checkDatumRange` | `check_datum_range` |
 | `weightDatum`, `unWeightDatum` (by name) | `weight_datum`, `unweight_datum`; typed `CoordinateWeight::transform` / `untransform` |
-| `getParameters` | `TransformationDescription::model_parameters`; `ModelConfig::to_param` |
+| `getParameters` | `TransformationDescription::model_parameters`; `ModelConfig::to_param`. A base model built from a `Param` reports that `Param` unchanged; `ModelWeights` does not keep a copy, the caller holds it |
 | `getValidXWeights`, `getValidYWeights` | `VALID_X_WEIGHTS`, `VALID_Y_WEIGHTS` |
 | static `getDefaultParameters` (clears) | `ModelConfig::default_parameters("none")` (empty) |
 | protected `x_weight_`, `x_datum_min_`.. `weighting_` | `ModelWeights { x, y }` of `CoordinateWeight`; `is_weighting()` |
@@ -211,6 +212,17 @@ For hulls, the source reads its ordered outline, transforms the RT coordinate of
 
 Transformer defaults limit each operation to one million transformed coordinates, one million spectra/chromatograms/features/hulls/peptide records, and subordinate depth 128. Hull vertices and consensus handles count as transformed coordinates. Missing-RT peptide records count toward the record limit. Limits are configurable, with depth capped by the kernel limit. Input validation also traverses peak arrays and identification contents; the limits do not cap their byte sizes, annotation strings, or the cost of that validation. Edit plans store transformed RTs and hulls rather than copying spectral peak data. Consensus features are copied during preparation. Existing hull outlines must be materialized before their coordinate count is checked. Allocation failure follows the allocator's normal behavior.
 
-The broader `IdentificationData` observation model and its transformer overload are outside the current port of `MapAlignmentTransformer`. These methods apply existing transformations; they do not calculate map correspondences — the alignment algorithms that do are in `analysis::mapmatching` ([MAP_ALIGNMENT_SUPPORT.md](MAP_ALIGNMENT_SUPPORT.md)).
+`transform_identification_data` is the `IdentificationData` overload: every observation with an RT is transformed, with `original_RT` stored under the same rule, in one graph transaction; an observation without RT is left alone, where the source's NaN RT would be transformed to NaN and stored as the original. Molecules, matches and scores are untouched. These methods apply existing transformations; they do not calculate map correspondences — the alignment algorithms that do are in `analysis::mapmatching` ([MAP_ALIGNMENT_SUPPORT.md](MAP_ALIGNMENT_SUPPORT.md)).
 
-`tests/alignment_transformer.rs` reuses the four container examples from the source transformer test and checks preservation of original RTs, chromatogram arrays, decreasing transforms, subordinate hulls, consensus handles, assigned/unassigned peptide RTs, the optional spectrum-ID extension, limits, and late-error atomicity.
+| `MapAlignmentTransformer` (source) | Rust |
+|---|---|
+| `transformRetentionTimes(PeakMap&, trafo, store_original_rt)` | `transform_experiment` |
+| `transformRetentionTimes(FeatureMap&, ...)` | `transform_feature_map` |
+| `transformRetentionTimes(ConsensusMap&, ...)` | `transform_consensus_map` |
+| `transformRetentionTimes(PeptideIdentificationList&, ...)` | `transform_peptide_identifications` |
+| `transformRetentionTimes(IdentificationData&, ...)` | `transform_identification_data` |
+| private `applyToFeature_`, `applyToConsensusFeature_` | `transform_feature`, `transform_consensus_feature` (public) |
+| private `applyToBaseFeature_`, `storeOriginalRT_` | private plans in `alignment_transformer.rs` |
+| the `store_original_rt` argument | the `store_original_rt` field |
+
+`tests/alignment_transformer.rs` reuses the four container examples from the source transformer test and checks preservation of original RTs, chromatogram arrays, decreasing transforms, subordinate hulls, consensus handles, assigned/unassigned peptide RTs, the optional spectrum-ID extension, limits, and late-error atomicity; the identification-data overload, which the class test does not exercise, is checked with the peptide section's anchors and sequence (derived).

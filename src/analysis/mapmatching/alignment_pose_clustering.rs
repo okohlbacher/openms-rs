@@ -140,6 +140,28 @@ impl MapAlignmentAlgorithmPoseClustering {
         Ok(warnings)
     }
 
+    /// A new algorithm with parameters (source construction followed by
+    /// `setParameters`).
+    ///
+    /// # Errors
+    ///
+    /// As [`MapAlignmentAlgorithmPoseClustering::set_parameters`].
+    pub fn from_param(parameters: &Param) -> Result<Self> {
+        Ok(Self::from_param_with_warnings(parameters)?.0)
+    }
+
+    /// As [`MapAlignmentAlgorithmPoseClustering::from_param`], also returning
+    /// the unknown-parameter warnings the source logs.
+    ///
+    /// # Errors
+    ///
+    /// As [`MapAlignmentAlgorithmPoseClustering::set_parameters`].
+    pub fn from_param_with_warnings(parameters: &Param) -> Result<(Self, Vec<String>)> {
+        let mut algorithm = Self::default();
+        let warnings = algorithm.set_parameters(parameters)?;
+        Ok((algorithm, warnings))
+    }
+
     fn limit(&self) -> Option<usize> {
         usize::try_from(self.max_num_peaks_considered).ok()
     }

@@ -72,6 +72,59 @@ fn shift_superimposer_finds_the_upstream_shift() {
     check_linear(&transformation, 1.0, -20.4);
 }
 
+/// The one file in `directory` whose name starts with `prefix` followed by a
+/// serial number.
+fn dump(directory: &std::path::Path, prefix: &str) -> String {
+    let names: Vec<_> = std::fs::read_dir(directory)
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name().into_string().unwrap())
+        .filter(|name| {
+            name.strip_prefix(prefix)
+                .is_some_and(|serial| serial.parse::<u32>().is_ok())
+        })
+        .collect();
+    assert_eq!(names.len(), 1, "{prefix}: {names:?}");
+    std::fs::read_to_string(directory.join(&names[0])).unwrap()
+}
+
+#[test]
+fn shift_superimposer_writes_the_source_debug_dumps() {
+    // Derived from the source's dump statements for the class-test maps:
+    // one pair (i = 0, k = 0) of similarity 0.9 * 0.9, a 21-bucket histogram
+    // offset to -30 in steps of 3, its only votes in buckets 3 and 4, and
+    // three identical cut-off rounds at index mean 3.2 (key -20.4) and
+    // standard deviation 0.4 (1.2 in key units) over buckets 2..5.
+    let directory = std::env::temp_dir().join(format!("m1-shift-dumps-{}", std::process::id()));
+    std::fs::create_dir_all(&directory).unwrap();
+    let superimposer = PoseClusteringShiftSuperimposer {
+        dump_buckets: directory.join("buckets").to_str().unwrap().to_owned(),
+        dump_pairs: directory.join("pairs").to_str().unwrap().to_owned(),
+        ..Default::default()
+    };
+    let model = consensus(&[(1.0, 1.0), (5.0, 5.0)]);
+    let scene = consensus(&[(21.4, 1.02), (25.4, 5.02)]);
+    let transformation = superimposer.run(&model, &scene).unwrap();
+    check_linear(&transformation, 1.0, -20.4);
+    let pairs = dump(&directory, "pairs");
+    assert_eq!(pairs, "# i k\n0 1 1 0 21.4 1.02 0.81 \n");
+    let buckets = dump(&directory, "buckets_");
+    let lines: Vec<_> = buckets.lines().collect();
+    assert!(lines[0].starts_with("# shift hash table buckets dump ( scale, height ) : "));
+    assert_eq!(lines[1], "# unfiltered hash data");
+    assert_eq!(lines[2], "0\t0\t-30\t0");
+    assert_eq!(lines[5], "0\t3\t-21\t0.648");
+    assert_eq!(lines[23], "");
+    assert_eq!(lines[24], "# tophat filtered hash data");
+    assert_eq!(lines[47], "# after freq_cutoff, which is: 0");
+    assert_eq!(
+        lines[70],
+        "# loop: 0  mean: -20.4  stdev: 1.2  (mean-stdev): -21.6  (mean+stdev): -19.2  data_range_begin: 2  data_range_end: 5"
+    );
+    assert_eq!(lines[73], "# EOF");
+    assert_eq!(lines.len(), 74);
+    std::fs::remove_dir_all(&directory).unwrap();
+}
+
 fn affine_parameters(extra: &[(&str, ParamValue)]) -> PoseClusteringAffineSuperimposer {
     let mut values = vec![
         ("scaling_bucket_size", ParamValue::Float(0.01)),
@@ -207,7 +260,7 @@ fn superimposer_parameters_round_trip_with_source_defaults() {
 }
 
 #[test]
-fn superimposers_refuse_empty_maps_debug_dumps_and_zero_buckets() {
+fn superimposers_refuse_empty_maps_unwritable_dumps_and_zero_buckets() {
     let model = consensus(&[(1.0, 1.0), (5.0, 5.0)]);
     let empty = ConsensusMap::new();
     assert!(matches!(
@@ -218,14 +271,13 @@ fn superimposers_refuse_empty_maps_debug_dumps_and_zero_buckets() {
         PoseClusteringShiftSuperimposer::default().run(&empty, &model),
         Err(Error::InvalidValue(_))
     ));
+    // A dump into a directory that does not exist is an I/O error, where the
+    // source's stream fails silently.
     let dumping = PoseClusteringShiftSuperimposer {
-        dump_buckets: "buckets".into(),
+        dump_buckets: "/nonexistent-directory-for-openms-tests/buckets".into(),
         ..Default::default()
     };
-    assert!(matches!(
-        dumping.run(&model, &model),
-        Err(Error::Unsupported(_))
-    ));
+    assert!(matches!(dumping.run(&model, &model), Err(Error::Io(_))));
     let zero = PoseClusteringAffineSuperimposer {
         shift_bucket_size: 0.0,
         ..Default::default()

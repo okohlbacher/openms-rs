@@ -295,9 +295,19 @@ impl MapAlignmentAlgorithmIdentification {
     ///
     /// As [`MapAlignmentAlgorithmIdentification::set_parameters`].
     pub fn from_param(parameters: &Param) -> Result<Self> {
+        Ok(Self::from_param_with_warnings(parameters)?.0)
+    }
+
+    /// As [`MapAlignmentAlgorithmIdentification::from_param`], also returning
+    /// the unknown-parameter warnings the source logs.
+    ///
+    /// # Errors
+    ///
+    /// As [`MapAlignmentAlgorithmIdentification::set_parameters`].
+    pub fn from_param_with_warnings(parameters: &Param) -> Result<(Self, Vec<String>)> {
         let mut algorithm = Self::default();
-        algorithm.set_parameters(parameters)?;
-        Ok(algorithm)
+        let warnings = algorithm.set_parameters(parameters)?;
+        Ok((algorithm, warnings))
     }
 
     /// The reference retention time per sequence, as currently stored.

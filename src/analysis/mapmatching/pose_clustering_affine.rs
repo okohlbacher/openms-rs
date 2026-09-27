@@ -10,9 +10,15 @@
 //! `computeIntensityRatio`. See `docs/MAP_ALIGNMENT_SUPPORT.md`.
 
 use super::superimposer::{
-    BaseSuperimposer, Histogram, Superimposition, WINDOW_LENGTH_BASELINE, entry, float, int,
-    nth_element_by, similarity, string, tree, used_points,
+    BaseSuperimposer, Dump, Histogram, Superimposition, WINDOW_LENGTH_BASELINE, entry, float, g,
+    int, nth_element_by, similarity, string, tree, used_points,
 };
+use std::sync::atomic::{AtomicI32, Ordering};
+
+/// The source's function-local `static Int dump_buckets_serial` of `run`,
+/// incremented on every run past the empty-map check and naming the debug
+/// dumps.
+static AFFINE_DUMP_SERIAL: AtomicI32 = AtomicI32::new(0);
 use crate::analysis::transformations::TransformationDescription;
 use crate::concept::fuzzy_string_comparator::format_g;
 use crate::concept::progress_logger::ProgressReporter;
@@ -70,10 +76,20 @@ pub struct PoseClusteringAffineSuperimposer {
     /// advanced).
     pub max_scaling: f64,
     /// `[DEBUG]` base file name for dumps of the histograms (source
-    /// `dump_buckets`, advanced). Not ported: a non-empty value is refused.
+    /// `dump_buckets`, advanced). When non-empty, each run writes
+    /// `<dump_buckets>_scale_<serial>`, `_low_<serial>` and `_high_<serial>`:
+    /// each histogram before and after the top-hat filter and after the
+    /// noise cut-off, and each cut-off round.
     pub dump_buckets: String,
     /// `[DEBUG]` base file name for dumps of the hashed quadruples (source
-    /// `dump_pairs`, advanced). Not ported: a non-empty value is refused.
+    /// `dump_pairs`, advanced; large). When non-empty, each run writes
+    /// `<dump_pairs>_phase_two_<serial>`, one line per quadruple of the second
+    /// round; the first round opens the same file and so leaves only its
+    /// header, as in the source.
+    ///
+    /// The serial numbers the runs of this class in this process, starting at
+    /// 1: the source's function-local `static` counter, which is a
+    /// process-wide counter here too.
     pub dump_pairs: String,
     /// Maximum number of buckets of each histogram (native limit).
     pub max_buckets: usize,
@@ -234,11 +250,6 @@ impl PoseClusteringAffineSuperimposer {
     }
 
     fn validate(&self) -> Result<()> {
-        if !self.dump_buckets.is_empty() || !self.dump_pairs.is_empty() {
-            return Err(Error::Unsupported(
-                "the [DEBUG] dump_buckets and dump_pairs outputs are not ported".into(),
-            ));
-        }
         let positive = |value: f64| value.is_finite() && value > 0.0;
         if self.mz_pair_max_distance < 0.0
             || !self.mz_pair_max_distance.is_finite()
@@ -301,9 +312,9 @@ impl PoseClusteringAffineSuperimposer {
     /// more than [`max_buckets`](Self::max_buckets) or more quadruples than
     /// [`max_quadruples`](Self::max_quadruples), a non-finite total intensity
     /// ratio or pair similarity, or a histogram whose noise level the source
-    /// cannot determine without reading past its buffer;
-    /// [`Error::Unsupported`] for the debug dumps. Progress errors are
-    /// returned as well.
+    /// cannot determine without reading past its buffer; [`Error::Io`] when a
+    /// debug dump cannot be written (the source's stream fails silently).
+    /// Progress errors are returned as well.
     pub fn superimpose_points(
         &self,
         model: &[Peak2D],
@@ -458,12 +469,21 @@ impl PoseClusteringAffineSuperimposer {
             sum
         };
         let ratio = total(&model) / total(&scene);
+        progress.set(20)?;
+        // The source's function-local `static Int dump_buckets_serial`.
+        let serial = AFFINE_DUMP_SERIAL.fetch_add(1, Ordering::Relaxed) + 1;
         if !ratio.is_finite() {
             return Err(Error::InvalidValue(
                 "the total intensity ratio of the maps is not finite".into(),
             ));
         }
-        progress.set(20)?;
+        let open = |base: &str, infix: &str| -> Result<Dump> {
+            if base.is_empty() {
+                Ok(Dump::off())
+            } else {
+                Dump::create(&format!("{base}{infix}{serial}"))
+            }
+        };
 
         // Step 4: two rounds of hashing.
         let context = Hashing {
@@ -476,27 +496,123 @@ impl PoseClusteringAffineSuperimposer {
             rt_high,
             max_quadruples: self.max_quadruples,
         };
-        context.hash(&mut hashes, None)?;
+        // Both rounds open (and so truncate) the same pairs file; only the
+        // second writes pairs.
+        let mut pairs = open(&self.dump_pairs, "_phase_two_")?;
+        pairs.write("# i j k l \n")?;
+        context.hash(&mut hashes, None, &mut pairs)?;
+        pairs.close()?;
         progress.set(30)?;
 
         // scalingEstimate
-        hashes.scaling_1.tophat();
-        hashes.scaling_1.cut_noise()?;
-        let (log_mean, log_stdev) = hashes.scaling_1.centroid(0.0, 1.0)?;
+        let mut scale_dump = open(&self.dump_buckets, "_scale_")?;
+        if scale_dump.is_open() {
+            scale_dump.write(&format!(
+                "# rt scale hash table buckets dump ( scale, height ) : {}_scale_{serial}\n# unfiltered hash data\n",
+                self.dump_buckets
+            ))?;
+        }
+        let histogram = &mut hashes.scaling_1;
+        histogram.dump_rows(&mut scale_dump, 0, true)?;
+        scale_dump.write("\n")?;
+        histogram.tophat();
+        scale_dump.write("# tophat filtered hash data\n")?;
+        histogram.dump_rows(&mut scale_dump, 1, true)?;
+        scale_dump.write("\n")?;
+        let cutoff = histogram.cut_noise()?;
+        scale_dump.write(&format!("# after freq_cutoff, which is: {}\n", g(cutoff)))?;
+        histogram.dump_rows(&mut scale_dump, 2, true)?;
+        scale_dump.write("\n")?;
+        let steps = histogram.centroid_steps(0.0, 1.0)?;
+        for (round, step) in steps.iter().enumerate() {
+            let (mean, sd) = (step.mean, step.stdev);
+            scale_dump.write(&format!(
+                "# loop: {round}  mean: {} [{}]  stdev: {} [{}]  (mean-stdev): {} [{}]  (mean+stdev): {} [{}]  data_range_begin: {}  data_range_end: {}\n",
+                g(mean),
+                g(mean.exp()),
+                g(sd),
+                g(mean.exp()),
+                g(mean - sd),
+                g((mean - sd).exp()),
+                g(mean + sd),
+                g((mean + sd).exp()),
+                step.begin,
+                step.end
+            ))?;
+        }
+        scale_dump.write("# EOF\n")?;
+        scale_dump.close()?;
+        let (log_mean, log_stdev) = steps.last().map_or((0.0, 0.0), |s| (s.mean, s.stdev));
         let scale_low = (log_mean - log_stdev).exp();
         let scale_high = (log_mean + log_stdev).exp();
         progress.set(40)?;
 
-        context.hash(&mut hashes, Some((scale_low, scale_high)))?;
+        let mut pairs = open(&self.dump_pairs, "_phase_two_")?;
+        pairs.write("# i j k l \n")?;
+        context.hash(&mut hashes, Some((scale_low, scale_high)), &mut pairs)?;
+        pairs.close()?;
         progress.set(50)?;
 
         // shiftEstimate
-        hashes.rt_low.tophat();
-        hashes.rt_high.tophat();
-        hashes.rt_low.cut_noise()?;
-        hashes.rt_high.cut_noise()?;
-        let (low_image, _) = hashes.rt_low.centroid(0.0, 1.0)?;
-        let (high_image, _) = hashes.rt_high.centroid(1.0, 2.0)?;
+        let mut ends = [
+            (
+                &mut hashes.rt_low,
+                open(&self.dump_buckets, "_low_")?,
+                "low",
+                0.0,
+                1.0,
+            ),
+            (
+                &mut hashes.rt_high,
+                open(&self.dump_buckets, "_high_")?,
+                "high",
+                1.0,
+                2.0,
+            ),
+        ];
+        for (histogram, dump, end, _, _) in ends.iter_mut() {
+            if dump.is_open() {
+                dump.write(&format!(
+                    "# rt {end} hash table buckets dump ( scale, height ) : {}_{end}_{serial}\n# unfiltered hash data\n",
+                    self.dump_buckets
+                ))?;
+            }
+            histogram.dump_rows(dump, 0, true)?;
+            dump.write("\n")?;
+        }
+        for (histogram, dump, _, _, _) in ends.iter_mut() {
+            histogram.tophat();
+            dump.write("# tophat filtered hash data\n")?;
+            histogram.dump_rows(dump, 1, true)?;
+            dump.write("\n")?;
+        }
+        for (histogram, dump, _, _, _) in ends.iter_mut() {
+            let cutoff = histogram.cut_noise()?;
+            dump.write(&format!("# after freq_cutoff, which is: {}\n", g(cutoff)))?;
+            histogram.dump_rows(dump, 2, true)?;
+            dump.write("\n")?;
+        }
+        let mut images = [0.0; 2];
+        for (index, (histogram, dump, _, low_pad, high_pad)) in ends.iter_mut().enumerate() {
+            let steps = histogram.centroid_steps(*low_pad, *high_pad)?;
+            for (round, step) in steps.iter().enumerate() {
+                dump.write(&format!(
+                    "# loop: {round}  mean: {}  stdev: {}  (mean-stdev): {}  (mean+stdev): {}  data_range_begin: {}  data_range_end: {}\n",
+                    g(step.mean),
+                    g(step.stdev),
+                    g(step.mean - step.stdev),
+                    g(step.mean + step.stdev),
+                    step.begin,
+                    step.end
+                ))?;
+            }
+            images[index] = steps.last().map_or(0.0, |s| s.mean);
+        }
+        for (_, dump, _, _, _) in ends.iter_mut() {
+            dump.write("# EOF\n")?;
+            dump.close()?;
+        }
+        let [low_image, high_image] = images;
         progress.set(80)?;
 
         // Step 5: the transformation.
@@ -577,7 +693,12 @@ impl Hashing<'_> {
     /// first round (hash `ln(scaling)` only) and the likely scaling range for
     /// the second (hash `ln(scaling)` and the images of both RT ends for
     /// quadruples within it).
-    fn hash(&self, hashes: &mut Hashes, bounds: Option<(f64, f64)>) -> Result<()> {
+    fn hash(
+        &self,
+        hashes: &mut Hashes,
+        bounds: Option<(f64, f64)>,
+        pairs: &mut Dump,
+    ) -> Result<()> {
         let (model, scene) = (self.model, self.scene);
         let (n, m) = (model.len(), scene.len());
         let d = self.mz_pair_max_distance;
@@ -673,6 +794,20 @@ impl Hashing<'_> {
                                     hashes
                                         .rt_high
                                         .add_value(shift + self.rt_high * scaling, weight);
+                                    if pairs.is_open() {
+                                        pairs.write(&format!(
+                                            "{i} {} {} {j} {} {} {k} {} {} {l} {} {} {} \n",
+                                            g(rt(&model[i])),
+                                            g(mz(&model[i])),
+                                            g(rt(&model[j])),
+                                            g(mz(&model[j])),
+                                            g(rt(&scene[k])),
+                                            g(mz(&scene[k])),
+                                            g(rt(&scene[l])),
+                                            g(mz(&scene[l])),
+                                            g(weight)
+                                        ))?;
+                                    }
                                 }
                             }
                         }

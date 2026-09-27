@@ -7,6 +7,7 @@
 
 use super::transformations::TransformationDescription;
 use crate::identification::PeptideIdentification;
+use crate::identification::graph::IdentificationData;
 use crate::kernel::MSExperiment;
 use crate::kernel::features::{BaseFeature, ConsensusFeature, ConsensusMap, Feature, FeatureMap};
 use crate::kernel::geometry::ConvexHull2D;
@@ -16,6 +17,9 @@ use crate::{Error, Result};
 /// Source `MapAlignmentTransformer` behavior with explicit resource limits.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct MapAlignmentTransformer {
+    /// Store each transformed record's original RT under `original_RT` (the
+    /// source's `store_original_rt` argument, default `false`); an existing
+    /// value is kept.
     pub store_original_rt: bool,
     /// Native extension. The source experiment overload leaves attached peptide
     /// RTs unchanged; feature/consensus peptide RTs are always transformed.
@@ -391,6 +395,58 @@ impl MapAlignmentTransformer {
         apply_peptides(&mut map.unassigned_peptide_identifications, ids);
         Ok(())
     }
+    /// Apply the transformation to every observation of identification data
+    /// (source `transformRetentionTimes(IdentificationData&, ...)`, which
+    /// updates each observation's RT in place through
+    /// `applyToObservations`), storing the original under `original_RT`
+    /// first when [`store_original_rt`](Self::store_original_rt) is set and
+    /// the key is absent.
+    ///
+    /// An observation without an RT is left unchanged; the source's missing
+    /// RT is NaN, which a transformation maps to NaN and would store as the
+    /// original. Identified molecules, matches and scores are untouched. The
+    /// update is one graph transaction: on error the data are unchanged.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the observation or coordinate
+    /// limits are exceeded, a transformed RT is not finite, or the graph
+    /// refuses an update (its own resource limits).
+    pub fn transform_identification_data(
+        &self,
+        data: &mut IdentificationData,
+        transformation: &TransformationDescription,
+    ) -> Result<()> {
+        let mut budget = Budget::new(*self)?;
+        budget.records(data.observation_count())?;
+        let mut plans = Vec::new();
+        for (id, observation) in data.observations() {
+            if let Some(rt) = observation.rt {
+                let original = if self.store_original_rt
+                    && !observation.metadata.contains_key("original_RT")
+                {
+                    Some(MetaValue::try_from(rt)?)
+                } else {
+                    None
+                };
+                plans.push((
+                    id,
+                    budget.value(rt, transformation)?,
+                    observation.mz,
+                    original,
+                ));
+            }
+        }
+        data.transaction(|staged| {
+            for (id, rt, mz, original) in plans {
+                if let Some(value) = original {
+                    staged.set_observation_meta_value(id, "original_RT".into(), value)?;
+                }
+                staged.set_observation_coordinates(id, Some(rt), mz)?;
+            }
+            Ok(())
+        })
+    }
     /// Peptides without an RT remain unchanged and do not gain original_RT.
     pub fn transform_peptide_identifications(
         &self,
@@ -402,6 +458,13 @@ impl MapAlignmentTransformer {
         apply_peptides(ids, plans);
         Ok(())
     }
+    /// Transform one feature, its hull outlines, subordinates and assigned
+    /// peptide RTs (the source's protected `applyToFeature_`).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for an invalid feature, an exceeded
+    /// limit or a non-finite transformed RT; the feature is unchanged then.
     pub fn transform_feature(
         &self,
         feature: &mut Feature,
@@ -413,6 +476,12 @@ impl MapAlignmentTransformer {
         plan.apply(feature);
         Ok(())
     }
+    /// Transform one consensus feature, its handles and assigned peptide RTs
+    /// (the source's protected `applyToConsensusFeature_`).
+    ///
+    /// # Errors
+    ///
+    /// As [`MapAlignmentTransformer::transform_feature`].
     pub fn transform_consensus_feature(
         &self,
         feature: &mut ConsensusFeature,
