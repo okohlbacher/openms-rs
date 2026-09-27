@@ -11,7 +11,7 @@
 //! `src/MzTabExporter.cpp`) calls it, and compared with the upstream `${DIFF}`
 //! contract: `FuzzyDiff -ini FuzzyDiff.ini` (ratio 1.01, absdiff 0.01) with
 //! each test's `-whitelist`. Tier 3: the two exporter sections of
-//! `MzTab_test.cpp` (core bc9cc12, lines 153-192 and 207-304) with their
+//! `MzTab_test.cpp` (core bc9cc12, lines 153-193 and 208-303) with their
 //! literals.
 
 #![cfg(all(feature = "idxml", feature = "consensusxml", feature = "featurexml"))]
@@ -298,7 +298,7 @@ fn in_memory_exports_match_the_streams_row_for_row() {
 }
 
 /// `[EXTRA] exportIdentificationsToMzTab terminates with export_all_psms on
-/// empty-hit PeptideIdentification` (MzTab_test.cpp:153-192).
+/// empty-hit PeptideIdentification` (MzTab_test.cpp:153-193).
 #[test]
 fn export_all_psms_terminates_on_an_identification_without_hits() {
     let mut protein = ProteinIdentification::new();
@@ -351,7 +351,7 @@ fn handle(map_index: u64, rt: f64, intensity: f32, unique_id: u64) -> FeatureHan
 }
 
 /// `[EXTRA] consensus-map assays use fraction-group/label grain and samples
-/// are study variables` (MzTab_test.cpp:207-304).
+/// are study variables` (MzTab_test.cpp:208-303).
 #[test]
 fn consensus_assays_use_fraction_group_label_grain_and_samples_are_study_variables() {
     let paths = ["sample_f1.mzML", "sample_f2.mzML", "sample_replicate.mzML"];

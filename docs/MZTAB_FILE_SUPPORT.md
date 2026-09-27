@@ -11,14 +11,16 @@ The data model this adapter reads into and writes out of — every cell type,
 every record struct and `MzTab` itself — is `src/format/mztab.rs`, documented in
 `docs/MZTAB_SUPPORT.md`. This document covers only the file layer.
 
-Status: **partial**. Both `MzTab`-shaped entry points, `load` and
+Status: **complete**. Both `MzTab`-shaped entry points, `load` and
 `store(filename, MzTab)`, are ported with every column family of all seven
 sections, and every public and protected member of the header is accounted for
-below. The two streaming `store` overloads are not ported: they consume
-`MzTab::IDMzTabStream` and `MzTab::CMMzTabStream`, the exporters that turn a
-`ConsensusMap` or a list of `ProteinIdentification`/`PeptideIdentification` into
-MzTab rows, and neither exporter is in the crate yet. Fifteen further protected
-members are declared in the header and defined nowhere in the pinned tree.
+below. The two streaming `store` overloads are `MzTabFile::store_identifications`
+and `MzTabFile::store_consensus_map`; they drain the exporters'
+`IdMzTabStream` and `ConsensusMapMzTabStream` (`src/format/mztab_export.rs`,
+[documented with `MzTab.h`](MZTAB_SUPPORT.md)) and reproduce the retained
+MzTabExporter outputs 4-8 (tier 1, `tests/mztab_export.rs`). Fifteen further
+protected members are declared in the header and defined nowhere in the pinned
+tree.
 
 ---
 
@@ -34,8 +36,8 @@ Every public and protected member the header declares, in header order.
 | `~MzTabFile()` | not ported: `= default`, and the Rust adapter is sixteen `bool`s with no owned resource, so `std::mem::needs_drop::<MzTabFile>()` is `false` |
 | `typedef … MapAccPepType` | not ported: only the fifteen undefined protected statics below use it |
 | `void store(const std::string&, const MzTab&) const` | `MzTabFile::store` |
-| `void store(const std::string&, const std::vector<ProteinIdentification>&, const PeptideIdentificationList&, bool, bool, bool, const std::string&)` | not ported: builds rows through `MzTab::IDMzTabStream`, which is not in the crate. See "Not ported" below |
-| `void store(const std::string&, const ConsensusMap&, const bool, const bool, const bool, const bool, const bool, const bool) const` | not ported: builds rows through `MzTab::CMMzTabStream`, which is not in the crate |
+| `void store(const std::string&, const std::vector<ProteinIdentification>&, const PeptideIdentificationList&, bool first_run_inference_only, bool export_empty_pep_ids, bool export_all_psms, const std::string& title)` | `MzTabFile::store_identifications(path, &[ProteinIdentification], &[PeptideIdentification], &IdentificationExportOptions)`; `MzTabFile::identifications_to_string` renders the same text without a file |
+| `void store(const std::string&, const ConsensusMap&, const bool first_run_inference_only, const bool export_unidentified_features, const bool export_unassigned_ids, const bool export_subfeatures, const bool export_empty_pep_ids, const bool export_all_psms) const` | `MzTabFile::store_consensus_map(path, &ConsensusMap, &ConsensusMapExportOptions)`; `MzTabFile::consensus_map_to_string` renders the same text. The options' `title` is a native extension; the source always writes the default |
 | `void storeProteinReliabilityColumn(bool)` | public field `MzTabFile::store_protein_reliability` |
 | `void storePeptideReliabilityColumn(bool)` | public field `MzTabFile::store_peptide_reliability` |
 | `void storePSMReliabilityColumn(bool)` | public field `MzTabFile::store_psm_reliability` |
@@ -141,6 +143,27 @@ issue **CPP-MZTABFILE-01** below.
 | `MzTabFile::load_reader`, `MzTabFile::load_str` | Reading from anything that is `BufRead`, and from a string. The source only reads files |
 | `MzTabFile::load_reporting` | Returns the mandatory-column diagnostics the source writes to `std::cout` |
 | `MzTabFile::write_to_string`, `MzTabFile::document_lines` | Rendering without a filesystem. The source only writes files |
+| `MzTabFile::identifications_to_string`, `MzTabFile::consensus_map_to_string` | The two streaming stores without a filesystem |
+
+### The streaming stores
+
+The two streaming overloads do not use `SectionLayout::for_*`: they reproduce
+the source's own header rule, which differs from `store(filename, MzTab)`.
+Each section header is derived from the stream's *first* row and the metadata
+(MzTabFile.cpp:2894-3125): `PRT` takes its `best_search_engine_score` count from
+`protein_search_engine_score` (capped at one for a consensus map), its per-run
+counts from the first row and its abundance columns from the metadata's assays
+and study variables; `PEP` takes every count from its first row; `PSM` takes its
+score count from `psm_search_engine_score` (exactly one for a consensus map).
+Each row is then rendered from its own index sets and checked against the
+header's column count — the source's `Exception::Postcondition` ("Protein header
+and content differs in columns …") is `Error::InvalidValue` with the same text.
+It fires, as in the source, when identification runs use more than one protein
+or PSM score type. `PSM` rows with a null sequence (the streams' placeholders
+for skipped identifications) are skipped. The file is rendered completely and
+written atomically; the source truncates the destination first and writes as
+rows arrive. The header numbering is the source's `1..=n`; for the single score
+the exporters produce, score-major and run-major column orders coincide.
 | `MzTabFile::MAX_LINES`, `MAX_BYTES`, `MAX_COLUMNS`, `MAX_INDEX` | Resource ceilings; the source has none |
 
 ---
@@ -340,10 +363,12 @@ reachable without them.
     the row; the source concatenates unconditionally and produces a file it
     cannot read back. Test: `a_failed_store_leaves_the_previous_file_intact`.
 
-18. **The `psm_search_engine_score` count is not capped at one.** The source
-    caps it with the comment "we currently only store one search engine score
-    per PSM" (`:3200`); that limit belongs to its `ConsensusMap` and
-    identification exporters, not to the file format.
+18. **The `psm_search_engine_score` count is not capped at one** in
+    `store(filename, MzTab)`. The source caps it with the comment "we currently
+    only store one search engine score per PSM" (`:3200`); that limit belongs
+    to its `ConsensusMap` and identification exporters, not to the file
+    format, and `MzTabFile::store_consensus_map` applies it (the streaming
+    identification store takes the metadata count, as the source does).
 
 19. **`store` renders and validates the whole document before creating
     anything**, then publishes the bytes by renaming a sibling temporary file.
@@ -470,8 +495,17 @@ space-stripped text comparison can see.
 
 **Tier 4, independently derived.** The resource ceilings, the hostile headers
 and metadata keys, every error-variant choice, the non-ASCII fixture and output
-paths, and every test of a divergence listed above. No C++ was built or executed
-and no C++ output was retained, so this is **not** a tier 1 differential.
+paths, and every test of a divergence listed above.
+
+**Tier 1, retained C++ output — the streaming stores and `store(MzTab)` for a
+feature map.** `tests/mztab_export.rs` reproduces `TOPP_MzTabExporter_3` to `_8`
+(test-data 0cb15f2 `topp/CMakeLists.txt:3391-3413`): the identification store
+against `MzTabExporter_6_output.mzTab` and `_8_output.mzTab`, the consensus-map
+store against `_4`, `_5` and `_7`, and `store(filename, MzTab)` of an exported
+feature map against `_3`, each under the upstream `${DIFF}` (FuzzyDiff ratio
+1.01, absdiff 0.01, the test's whitelist). The evidence and the reader fixes it
+required are recorded in [`MZTAB_SUPPORT.md`](MZTAB_SUPPORT.md#evidence-tier).
+The five `MzTabFile_test.cpp` documents above remain tier 3.
 
 ### Fixtures
 
