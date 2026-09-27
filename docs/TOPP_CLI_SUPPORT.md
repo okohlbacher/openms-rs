@@ -474,7 +474,7 @@ log in both builds), and so does this port: `FileHandler`'s refusal of a type
 outside the allowed list is the source's `ParseError` with the source's text
 (`FileHandler.cpp:859-863`), exit 3, for every ported tool that loads with an
 allowed list (`../oracle/B0-attacks`, cases `unknown_*`, seven tools;
-`tests/topp_cli_lifecycle.rs`,
+`tests/topp_b0_release.rs`,
 `an_undetermined_input_format_is_the_loaders_parse_error_in_every_tool`).
 FileInfo, which loads with the forced type alone, goes through the same check.
 The diagnostic still reads `Error: Unable to read file (parse error on line 0:
