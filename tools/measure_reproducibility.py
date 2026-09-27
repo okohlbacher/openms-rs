@@ -28,6 +28,8 @@ What the text names decides the *family* of an occurrence:
   says what the lab can recompute, not what a third party can.
 * ``build`` - a binary or an install (``libOpenMS.so``, a driver binary, a path
   under ``/ceph``): only an identical build would reproduce it.
+* ``log`` - the digest of a gate's or a probe's console log (``log_sha256``,
+  ``stderr_sha256``), which was never kept anywhere.
 * ``unbound`` - a digest with no artifact the text names that this could find:
   prose, a table cell, a key that names a quantity rather than a file. A digest
   literal in Rust source with no path beside it lands here too; no Rust code in
@@ -59,6 +61,8 @@ line has to say so.
 
     python3 tools/measure_reproducibility.py              # the summary
     python3 tools/measure_reproducibility.py --ci --json  # the numbers docs/REPRODUCIBILITY.md cites
+    python3 tools/measure_reproducibility.py --ci --source ../OpenMS4-tests/packages/core
+        # and what CI would recompute with check_core_sdk.py --source added (core clean at the pin)
     python3 tools/measure_reproducibility.py --list mismatch   # what did not recompute
 
 This measures; it never fails a build. It needs the package repositories under
@@ -86,8 +90,11 @@ DIGEST_KEY = re.compile(r"sha256|sha-256|digest|checksum|hash", re.I)
 DIGEST_TEXT = re.compile(r"sha-?256|digest|checksum|hash", re.I)
 PATH_KEYS = ("path", "file", "header", "fixture", "artifact", "input", "output", "source", "location", "name")
 PACKAGES = {"core": "core", "cli": "cli", "topp": "topp", "test_data": "test-data"}
-REVISION_KEYS = ("source_revision", "revision", "reference_revision", "commit", "upstream_revision",
-                 "sdk_revision", "core_revision")
+# A manifest names the revisions it read under keys that end in one of these:
+# ``source_revision``, ``old_package_revision``, ``commit``.
+REVISION_KEY = re.compile(r"(?:^|_)(?:revision|commit)$")
+EMPTY = hashlib.sha256(b"").hexdigest()
+LOG_KEY = re.compile(r"(?:^|_)(?:log|stdout|stderr)_sha256$")
 BUILD_WORDS = re.compile(r"libOpenMS|dylib|\.so\b|binary|executable|/ceph/|product-sdk|install", re.I)
 UPSTREAM_PREFIXES = (
     "src/openms/", "src/openswathalgo/", "src/tests/", "src/topp/", "src/utils/", "src/openms_gui/",
@@ -198,6 +205,8 @@ class Content:
                     self.pinned[digest].add(f"{PACKAGES[package]}@{revision[:7]}:{entries[blob]}")
 
     def where(self, digest):
+        if digest == EMPTY:
+            return None  # Every empty file hashes to it: finding one says nothing about which was meant.
         if digest in self.tree:
             return "tree"
         if digest in self.history:
@@ -252,7 +261,7 @@ class Upstream:
 def path_history(path, cache={}):
     """sha256 of every version of one tracked path in the history of HEAD."""
     if path not in cache:
-        raw = git(ROOT, "log", "--format=", "--raw", "--no-abbrev", "--no-renames", "HEAD", "--", path) or b""
+        raw = git(ROOT, "log", "--full-history", "--format=", "--raw", "--no-abbrev", "--no-renames", "HEAD", "--", path) or b""
         blobs = set()
         for line in raw.decode().splitlines():
             parts = line.split()
@@ -268,7 +277,7 @@ def manifest_revisions(tree):
     def walk(node):
         if isinstance(node, dict):
             for key, value in node.items():
-                if key in REVISION_KEYS and isinstance(value, str) and re.fullmatch(r"[0-9a-f]{40}", value):
+                if REVISION_KEY.search(key) and isinstance(value, str) and re.fullmatch(r"[0-9a-f]{40}", value):
                     found.append(value)
                 walk(value)
         elif isinstance(node, list):
@@ -301,16 +310,16 @@ def json_occurrences(document, tree):
                     return
                 path = None
                 if isinstance(parent, dict):
-                    for name in PATH_KEYS:
+                    stem = re.sub(r"_?sha256$", "", key)
+                    # A digest under a prefixed key - ``source_sha256``,
+                    # ``derived_from_sha256`` - names the artifact its prefix
+                    # names, not the entry's own ``path``: a fixture's
+                    # ``source_sha256`` is the upstream file it was derived from.
+                    names = (stem, stem + "_path", stem + "_file") if stem and stem != key else PATH_KEYS
+                    for name in names:
                         if isinstance(parent.get(name), str) and looks_like_path(parent[name]):
                             path = parent[name]
                             break
-                    stem = re.sub(r"_?sha256$", "", key)
-                    if path is None and stem != key:
-                        for name in (stem, stem + "_path", stem + "_file"):
-                            if isinstance(parent.get(name), str) and looks_like_path(parent[name]):
-                                path = parent[name]
-                                break
                 if looks_like_path(key):
                     path = "/".join(trail) if sums_file else key
                 if path is None and not (DIGEST_KEY.search(key) or sums_file):
@@ -357,6 +366,8 @@ def resolve(document, path, key, digest, revisions, tracked_set, upstream, roots
     if path is None:
         if key and BUILD_WORDS.search(key):
             return "build", "not recomputable"
+        if key and LOG_KEY.search(key):
+            return "log", "not retained"
         return "unbound", "not recomputable"
     raw = path.strip()
     if raw.startswith("/") or BUILD_WORDS.search(raw) and not raw.startswith(("../oracle", "oracle/")):
@@ -440,9 +451,8 @@ finally:
 '''
 
 
-def ci_digests():
-    """Every sha256 the hashing gates compute when run in place, and each gate's exit status."""
-    gates = hashing_gates()
+def ci_digests(gates):
+    """Every sha256 these gates compute when run in place, and each gate's exit status."""
     with tempfile.TemporaryDirectory() as scratch:
         tracer = pathlib.Path(scratch) / "tracer.py"
         tracer.write_text(TRACER)
@@ -456,14 +466,20 @@ def ci_digests():
         return set(log.read_text().split()), statuses
 
 
-def measure(with_ci=False):
+def measure(with_ci=False, source=None):
     packages, roots = package_root()
     upstream = Upstream(packages)
     files = tracked()
     tracked_set = set(files)
     content = Content(files, packages, upstream.pins)
-    computed, statuses = ci_digests() if with_ci else (None, {})
-    rows = []
+    computed, statuses = ci_digests(hashing_gates()) if with_ci else (None, {})
+    projected = None
+    if with_ci and source is not None:
+        # The one step CI does not take: the SDK check against a clean checkout of the pin.
+        extra, more = ci_digests([("tools/check_core_sdk.py", ["--source", str(source)])])
+        projected = computed | extra
+        statuses.update(more)
+    found = []
     for name in files:
         document = ROOT / name
         if document.suffix in (".png", ".gz", ".bz2", ".zip", ".mzML", ".idXML", ".featureXML", ".consensusXML"):
@@ -484,24 +500,39 @@ def measure(with_ci=False):
             occurrences = json_occurrences(document, tree)
         else:
             occurrences = text_occurrences(document, text)
-        for digest, path, key, structured in occurrences:
-            family, outcome = resolve(document, path, key, digest, revisions, tracked_set, upstream, roots)
-            bound = (family, outcome) in BOUND
-            where = content.where(digest)
-            if bound:
-                tier = "bound"
-            elif where:
-                tier = "content only"
-            elif family in ("oracle", "build"):
-                tier = "lab only"
-            else:
-                tier = "none"
-            rows.append({
-                "document": name, "digest": digest, "path": path, "key": key,
-                "structured": structured, "family": family, "outcome": outcome, "content": where,
-                "tier": tier,
-                "ci": None if computed is None else (family == "crate" or digest in computed),
-            })
+        found.extend((document, revisions, *occurrence) for occurrence in occurrences)
+    # Prose that repeats a digest a manifest records names what the manifest
+    # binds it to - the line's first path is often the manifest itself, or a
+    # neighbour. The first manifest to bind the digest to a path decides.
+    manifest = {}
+    for document, revisions, digest, path, key, structured in found:
+        if structured and path is not None:
+            manifest.setdefault(digest, (document, revisions, path))
+    rows = []
+    for document, revisions, digest, path, key, structured in found:
+        name = str(document.relative_to(ROOT))
+        where_bound = document
+        if not structured and digest in manifest:
+            where_bound, revisions, path = manifest[digest]
+        family, outcome = resolve(where_bound, path, key, digest, revisions, tracked_set, upstream, roots)
+        where = content.where(digest)
+        if (family, outcome) in BOUND:
+            tier = "bound"
+        elif where:
+            tier = "content only"
+        elif family in ("oracle", "build"):
+            tier = "lab only"
+        else:
+            tier = "none"
+        rows.append({
+            "document": name, "digest": digest, "path": path, "key": key,
+            "structured": structured, "family": family, "outcome": outcome, "content": where,
+            "tier": tier,
+            # A gate that hashes zero bytes anywhere computes EMPTY; that recomputes no particular file.
+            "ci": None if computed is None else (family == "crate" or (digest in computed and digest != EMPTY)),
+            "ci_with_source": None if projected is None else (
+                family == "crate" or (digest in projected and digest != EMPTY)),
+        })
     return rows, packages, statuses
 
 
@@ -526,10 +557,15 @@ def main():
     parser.add_argument("--json", action="store_true", help="Print the counts as JSON")
     parser.add_argument("--ci", action="store_true",
                         help="Also run the hashing Python gates of rust.yml in place and count what they recompute")
+    parser.add_argument("--source", type=pathlib.Path, metavar="CORE_CHECKOUT",
+                        help="With --ci, also count what CI would recompute if it ran check_core_sdk.py --source "
+                             "against this clean checkout of the pinned core (a clone of the public repository)")
     parser.add_argument("--list", metavar="VALUE",
                         help="List the occurrences whose family, outcome, content or tier is VALUE")
     arguments = parser.parse_args()
-    rows, packages, statuses = measure(arguments.ci)
+    if arguments.source and not arguments.ci:
+        parser.error("--source needs --ci")
+    rows, packages, statuses = measure(arguments.ci, arguments.source)
     for row in rows:
         row["family/outcome"] = f"{row['family']}/{row['outcome']}"
     if arguments.list:
@@ -546,6 +582,7 @@ def main():
         "occurrences": total,
         "distinct": total_distinct,
         "structured_occurrences": sum(1 for r in rows if r["structured"]),
+        "empty_digest": dict(collections.Counter(r["tier"] for r in rows if r["digest"] == EMPTY)),
         "by_family": {k: {"occurrences": families[k], "distinct": families_distinct[k]} for k in sorted(families)},
         "by_tier": {k: {"occurrences": tiers[k], "distinct": tiers_distinct[k]} for k in sorted(tiers)},
         "by_content": {str(k): {"occurrences": contents[k], "distinct": contents_distinct[k]} for k in contents},
@@ -556,6 +593,12 @@ def main():
             "gates": statuses,
             "recomputed": {"occurrences": len(ci_rows), "distinct": distinct_pairs(ci_rows)},
             "recomputed_by_family": dict(collections.Counter(r["family"] for r in ci_rows)),
+        }
+    projected_rows = [r for r in rows if r["ci_with_source"]]
+    if arguments.source:
+        summary["ci_with_source"] = {
+            "recomputed": {"occurrences": len(projected_rows), "distinct": distinct_pairs(projected_rows)},
+            "recomputed_by_family": dict(collections.Counter(r["family"] for r in projected_rows)),
         }
     if arguments.json:
         print(json.dumps(summary, indent=1))
@@ -573,6 +616,10 @@ def main():
         print(f"Recomputed by CI ({len(statuses)} hashing gates run{', FAILED: ' + ', '.join(failed) if failed else ''}"
               f", plus Cargo.lock): {len(ci_rows)} of {total} occurrences ({100 * len(ci_rows) / total:.1f}%), "
               f"{distinct_pairs(ci_rows)} of {total_distinct} distinct ({100 * distinct_pairs(ci_rows) / total_distinct:.1f}%).")
+    if arguments.source:
+        print(f"With check_core_sdk.py --source as well: {len(projected_rows)} occurrences "
+              f"({100 * len(projected_rows) / total:.1f}%), {distinct_pairs(projected_rows)} distinct "
+              f"({100 * distinct_pairs(projected_rows) / total_distinct:.1f}%).")
     if packages is None:
         print("The package repositories were not found: the upstream family and the pinned index are not recomputed.")
     return 0
