@@ -188,6 +188,10 @@ pub const DEFAULT_SPAN_GRID: [f64; 13] = [
     0.01, 0.05, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90,
 ];
 
+// The raise-then-lower in the body is deliberately not `f64::clamp`, which
+// panics when the neighbour bound exceeds the maximum; the source ends on the
+// maximum then.
+#[allow(clippy::manual_clamp)]
 /// The candidate span grid of the automatic selection (source private
 /// `buildSpanGrid`).
 ///
@@ -208,9 +212,6 @@ pub const DEFAULT_SPAN_GRID: [f64; 13] = [
 /// Returns [`crate::Error::InvalidValue`] when a candidate or bound is not
 /// finite. The source would carry a NaN through the clamps (every comparison
 /// with it is false) into `std::sort`, where it is not a strict weak order.
-// The raise-then-lower below is deliberately not `f64::clamp`, which panics
-// when the neighbour bound exceeds the maximum; the source ends on the maximum.
-#[allow(clippy::manual_clamp)]
 pub fn build_span_grid(
     n_points: usize,
     candidates: &[f64],
