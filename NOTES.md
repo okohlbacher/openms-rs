@@ -18,9 +18,22 @@ directory as `-in`: Linux Release exits 12, port exits 10.
 ## State
 - Merged worktree-wf_ee239125-5be-1 (fast-forward to 9fcb962). No earlier incarnation.
 
+## Oracle harness (built, running)
+- `../oracle/A1-release-rerun/`: `run.sh stage|fetch|compare`; `linux_release.py` imports
+  verbatim copies of the three drivers and rebinds only location constants (perl alarm
+  kept; perl exists on ibminode06); `remote_run.sh` = identity, run1, run2, reproduce, DONE.
+- Remote tree: ibminode06:/scratch/kohlbach/A1-release-rerun (started 2026-09-27).
+- `compare.py verify-stage` passes (6 drivers identical, 91 inputs hash-equal).
+- compare.py `compare` still needs writing (imports compare_runs, not yet written).
+- Tests that cite the 3 oracles: tests/{file_info,topp_file_info,topp_peak_picker_hi_res,
+  topp_feature_finder_centroided}.rs + tests/data/*provenance.json. The brief's other files
+  (dta_extractor, mzml_splitter, map_normalizer, swm, baseline_filter) cite
+  ../oracle/topp-cli-lifecycle and topp-exception-exits; the early bundle has DTAExtractor_* and
+  SWM_* cases, so check those tests against Release too.
+- Existing Linux Release replay helper: tests/support/release_runs.rs (topp-exception-exits);
+  its fi_undetermined_log case already shows the dir-as-in exit 12.
+
 ## Next step
-1. Read the three oracle.py drivers; port them into ../oracle/A1-release-rerun with a
-   Linux runner (timeout instead of perl alarm; tool dir = release install bin).
-2. rsync to ibminode06, run detached twice, pull results back.
-3. Diff exit codes/stdout/stderr hashes against the old manifests; list divergences.
-4. Grep tests for the three oracle names; re-check expectations; fix port.
+1. `bash ../oracle/A1-release-rerun/run.sh fetch` once DONE; write compare_runs.py.
+2. Diff Linux vs macOS per case; list divergences.
+3. Re-check test expectations; fix port.
