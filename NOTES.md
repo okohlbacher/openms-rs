@@ -26,6 +26,20 @@ splice.py, declare_retained.py = the SOURCE_PROVENANCE block for the lead).
 - 428 in_repo 'mismatch' are mostly baseline_/previous_/source_/base_ keys
   (older versions of in-repo files): add a git-history lookup family.
 
+## Incarnation 4 findings
+- Merge prerequisite already an ancestor (1165047). Re-measured: same numbers.
+- PUBLIC on GitHub (gh api): okohlbacher/openms-rs (this repo), OpenMS4-core
+  @bc9cc12, OpenMS4-cli @c19e494, OpenMS4-topp @174b576, OpenMS4-test-data
+  @0cb15f2 -- all four pins resolve. So the upstream family is third-party
+  recomputable (not checked by CI; CI runs check_core_sdk.py without --source).
+- No Rust code computes sha256 (no sha2 dep, no SHA IV constant): Rust digest
+  literals are prose. CI recompute = Python gates (rust.yml:150-176,223) +
+  cargo --locked crate checksums. CI gates read nothing outside the checkout,
+  so running them in place in this worktree is CI-faithful.
+- Plan: trace hashlib in each CI gate (scratch A4/trace_digests.py), intersect
+  computed digests with recorded ones -> "recomputed by CI" figure.
+- Plan: add git-history lookup for in_repo mismatches (older blob of same path).
+
 ## Next step
 1. docs/REPRODUCIBILITY.md: measure sha256 assertions (all 64-hex in repo JSON/
    MD/TSV/RS), classify by what the digest names: in-repo file (recompute!),
