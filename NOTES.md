@@ -15,11 +15,21 @@ ConvexHull2D, DBoundingBox, DataValue, FASTAContainer, IsotopeCluster, ListUtils
 Ledger dump: scratchpad a5a_ledger.txt (regenerate from docs/core-sdk-coverage.json `headers` list, key `header`).
 
 ## Status per header (fill in as re-read)
-- WIP inherited (NOT yet wired into src/concept/mod.rs, not gated): src/concept/common_enums.rs, hash_utils.rs, types.rs.
-  Next: review them against headers, wire `pub mod` lines, gate on dax.
+Done in code (gate g2 pending, then docs/ledger):
+- CommonEnums, Types, HashUtils -> src/concept/{common_enums,types,hash_utils}.rs, tests/concept_basics.rs (all members)
+- Macros -> src/concept/macros.rs (thread_critical, openms_precondition!/postcondition!), tests/concept_macros.rs
+- NumericFormatting (support) -> src/concept/numeric_formatting.rs; text_format.rs now delegates (behaviour identical)
+- PrecisionWrapper -> src/concept/precision_wrapper.rs; ListUtilsIO -> text_format.rs (VecLowPrecision, StringListPush,
+  to_str_low_precision*), tests/list_utils_io.rs
+- IsotopeCluster -> src/data_structures/isotope_cluster.rs (moved ChargedIndexSet etc. from ffp defs.rs, re-exported)
+- DBoundingBox -> src/data_structures/dbounding_box.rs generic, tests/dbounding_box.rs
+New acyclic module edges: data_structures->concept (report; lead may --write docs/module-cycles.json)
 - GumbelDistributionFitter / USI / MetaInfoRegistry / MultipleTesting etc. are A5b's list, not ours -> leave.
 
 ## Next step
-1. Re-read each scope vs C++ header at pin bc9cc12 (core). Small CONCEPT/DATASTRUCTURES first (cheap closes).
-2. Record true remainder in ledger fragment .planning/ledger-fragments/wave4/A5a.json (main checkout path).
-3. Close cheap gaps; commit per header group.
+1. Poll logs/g2.log (scratch A5a/logs). Fix failures. Commit milestone.
+2. Next headers: Ribonucleotide (<<, hash; needs EmpiricalFormula <<+hash, Element hash, IsotopeDistribution hash),
+   ConvexHull2D (getMapPoints via DBoundingBox1, hash), MatchedIterator, UniqueIdIndexer, Colorizer, ConsoleUtils API,
+   VersionInfo, DataValue gaps, then CHEMISTRY re-reads.
+3. Support docs: docs/CONCEPT_BASICS_SUPPORT.md, DBOUNDING_BOX_SUPPORT.md, ISOTOPE_CLUSTER_SUPPORT.md (referenced in rustdoc!).
+4. Ledger fragment + report at end.
