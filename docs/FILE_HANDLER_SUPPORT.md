@@ -92,8 +92,19 @@ through it (`can_write_experiment` stays false for both).
    `OPENMS_PRECONDITION` (`FileHandler.cpp:853`), which only a debug build
    checks; the Release build ignores the flag, which its `mzml_hash_only` case
    shows.
-4. A type outside the allowed list is `Error::InvalidValue` where the source
-   throws `ParseError`; neither makes a progress call.
+4. ~~A type outside the allowed list is `Error::InvalidValue` where the
+   source throws `ParseError`.~~ **Closed** by the B0 integration lane
+   (2026-09-27): the refusal is the source's exception with the source's text
+   (`check_allowed`, `FileHandler.cpp:191-202`, `:859-863`, `:1257-1262`,
+   `:1405-1410`, `:1518-1523`): `Error::Parse` carrying `type: <detected> is
+   not allowed for loading an experiment. Allowed types are: , <allowed> in:
+   <file>` for an experiment, and the consensus and identification wordings;
+   `Error::InvalidValue` carrying `InvalidFileType`'s text for features.
+   Neither build makes a progress call (`dta2d_bogus_allowed`). A TOPP tool
+   therefore exits 3 on an input whose detected type its load does not allow,
+   as the Release build does for all seven ported tools that load with an
+   allowed list (`../oracle/B0-attacks`, cases `unknown_*`). FileInfo's
+   forced-type refusals go through the same check.
 
 ### Evidence
 
@@ -112,8 +123,10 @@ through it (`can_write_experiment` stays false for both).
   source-file field, the first twelve spectra and every chromatogram agree;
   the two relative-path cases agree against the working directory; the seven
   `computeFileHash` rows agree, the directory and the missing file included;
-  the four divergences above are asserted as stated. A final test checks that
-  every case in the fixture is exercised.
+  the three open divergences above are asserted as stated, and the closed
+  fourth, the allowed-type refusal, as the Release build's `ParseError` text
+  (`dta2d_bogus_allowed`). A final test checks that every case in the fixture
+  is exercised.
 
 ## Member ledger
 

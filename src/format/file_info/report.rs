@@ -87,6 +87,7 @@
 
 use super::model::{FileInfoResult, Options, ProcessingStep, Range, RangeSet};
 use super::text_format::{DEFAULT_STREAM_PRECISION, fixed_truncated, ostream_g};
+use crate::format::file_handler::{LoadTarget, check_allowed};
 use crate::format::{FileHandler, FileType};
 use crate::kernel::ranges::{MSDim, RangeManager};
 use crate::math::statistic_functions::SummaryStatistics;
@@ -485,22 +486,6 @@ fn unported_branch(in_type: FileType) -> Error {
     }
 }
 
-/// The `ParseError` of `FileHandler::loadExperiment` for a file whose
-/// detected type is not the one type FileInfo allows, the forced `-in_type`
-/// (`FileHandler.cpp:859-863` at core `bc9cc12`): `type: <detected> is not
-/// allowed for loading an experiment. Allowed types are: , <forced>` in
-/// `<file>`, exit 3.
-pub(super) fn forced_type_refused(name: &str, detected: FileType, in_type: FileType) -> Error {
-    Error::Parse {
-        line: 0,
-        message: format!(
-            "type: {} is not allowed for loading an experiment. Allowed types are: , {} in: {name}",
-            detected.name(),
-            in_type.name()
-        ),
-    }
-}
-
 /// The error `FileHandler::loadExperiment` gives for a type it cannot load
 /// into an experiment (`FileHandler.cpp:855-1008`): it detects the type
 /// itself, refuses one outside the allowed forced type with `ParseError`
@@ -512,8 +497,10 @@ fn refused_by_source_loader(path: &Path, name: &str, in_type: FileType) -> Error
         Ok(detected) => detected,
         Err(error) => return error,
     };
-    if detected != in_type {
-        return forced_type_refused(name, detected, in_type);
+    // The source's `ParseError` for a type outside the one allowed type, the
+    // forced `-in_type` (`FileHandler.cpp:859-863`), exit 3.
+    if let Err(error) = check_allowed(detected, &[in_type], name, LoadTarget::Experiment) {
+        return error;
     }
     if in_type == FileType::ImzMl {
         return Error::InvalidValue(format!(

@@ -1894,14 +1894,13 @@ fn a_debug_level_without_a_log_file_writes_nothing() {
 /// claims, with `-log`. Compared, with one difference recorded: the framework's
 /// warning `Warning: Could not determine format of input file '<file>'!` is the
 /// Release build's on the error stream and as the log file's first line, and
-/// neither run prints a closing line; the load that follows fails in both,
-/// but the Release build's `FileHandler::loadExperiment` throws `ParseError`
-/// (exit 3, `Error: Unable to read file (type: unknown is not allowed for
-/// loading an experiment. Allowed types are: , mzML in: <file>)`), where this
-/// port's loader returns `Error::InvalidValue`, which the lifecycle maps to
-/// exit 6. That difference belongs to `src/format/file_handler.rs` and is
-/// recorded in `docs/TOPP_CLI_SUPPORT.md` (*Formats*); both runs log their
-/// error line as the second and last line.
+/// neither run prints a closing line; the load that follows fails in both
+/// with `FileHandler::loadExperiment`'s `ParseError` (exit 3, `Error: Unable to
+/// read file (type: unknown is not allowed for loading an experiment. Allowed
+/// types are: , mzML in: <file>)`, `FileHandler.cpp:859-863`), which this port
+/// prints inside the `parse error on line 0: ` with which the lifecycle
+/// renders every `Error::Parse` (`docs/TOPP_CLI_SUPPORT.md`, *Formats*); both
+/// runs log their error line as the second and last line.
 #[test]
 fn an_undetermined_format_logs_the_warning_and_fails_the_load() {
     let name = "log_undetermined_format";
@@ -1917,7 +1916,7 @@ fn an_undetermined_format_logs_the_warning_and_fails_the_load() {
         &["-test", "-in", &input, "-out", &out, "-log", &log],
     );
     assert_eq!(oracle_exit(name), ExitCode::InputFileCorrupt.as_i32());
-    assert_ne!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_eq!(outcome.code.as_i32(), oracle_exit(name), "{}", outcome.err);
     assert_eq!(outcome.out, oracle(name, "stdout.txt"));
     assert!(outcome.out.is_empty());
     let release_err = case.map(name, &oracle(name, "stderr.txt"));
@@ -1926,19 +1925,23 @@ fn an_undetermined_format_logs_the_warning_and_fails_the_load() {
     assert!(
         release_lines[1].starts_with("Error: Unable to read file (type: unknown is not allowed")
     );
+    let rendered = |line: &str| {
+        line.replacen(
+            "Error: Unable to read file (",
+            "Error: Unable to read file (parse error on line 0: ",
+            1,
+        )
+    };
     let lines: Vec<&str> = outcome.err.lines().collect();
     assert_eq!(lines.len(), 2, "{}", outcome.err);
     assert_eq!(lines[0], release_lines[0]);
+    assert_eq!(lines[1], rendered(release_lines[1]));
     let expected_log = oracle_log(&case, name);
     let actual_log = log_lines(&case);
     assert_eq!(expected_log.len(), 2);
     assert_eq!(actual_log.len(), 2, "{actual_log:?}");
     assert_eq!(actual_log[0], expected_log[0]);
-    assert_eq!(
-        actual_log[1],
-        format!("<time> BaselineFilter:1:: {}\n", lines[1]),
-        "the port logs its own error line"
-    );
+    assert_eq!(actual_log[1], rendered(&expected_log[1]));
 }
 
 /// `START_SECTION(([EXTRA] -log writes a log file))` (`TOPPBase_test.cpp:870-890`):

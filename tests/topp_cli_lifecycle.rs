@@ -2802,12 +2802,10 @@ fn the_input_format_is_detected_by_name_then_content() {
 
 /// Oracle `in_unknown_name_and_content`: a file whose name and content are both
 /// unknown only warns in the format check (TOPPBase.cpp:1580-1583), and the run
-/// continues to the load, which refuses it; nothing is written. The C++ load
-/// failure is a `ParseError`, exit 3 ("type: unknown is not allowed for loading
-/// an experiment"); this port's `FileHandler::load_experiment` reports
-/// `Error::InvalidValue`, exit 6. That difference belongs to the loader
-/// (`src/format/file_handler.rs`) and is recorded in `docs/TOPP_CLI_SUPPORT.md`;
-/// the exit code is therefore only asserted to be a failure.
+/// continues to the load, which refuses it; nothing is written. The load
+/// failure is the source's `ParseError`, exit 3 ("type: unknown is not allowed
+/// for loading an experiment", `FileHandler.cpp:859-863`), in both builds;
+/// `tests/topp_b0_release.rs` compares it for every ported tool.
 #[test]
 fn an_undetermined_input_format_only_warns() {
     let dir = Workdir::new("input-unknown");
@@ -2821,8 +2819,14 @@ fn an_undetermined_input_format_only_warns() {
         "{}",
         outcome.err
     );
-    assert_ne!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
-    assert_ne!(outcome.code, ExitCode::InputFileNotFound, "{}", outcome.err);
+    assert_eq!(outcome.code, ExitCode::InputFileCorrupt, "{}", outcome.err);
+    assert!(
+        outcome.err.contains(&format!(
+            "type: unknown is not allowed for loading an experiment. Allowed types are: , mzML in: {input})"
+        )),
+        "{}",
+        outcome.err
+    );
     assert!(!Path::new(&out).exists());
 }
 

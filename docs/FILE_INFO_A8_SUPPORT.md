@@ -47,7 +47,7 @@ Every source member A8 reaches, and its counterpart.
 | --- | --- | --- |
 | `FileInfo::run`, the `else // peaks` arm for `MZXML`, `MZDATA`, `MGF`, `MS2` (`FORMAT/FileInfo.cpp:1532-1534`) | `report::FileInfo::run` → `peaks::report` | the four types now map to `Branch::Peaks` |
 | `FileHandler::loadExperiment(in, exp, {in_type}, …)` for the four types (`FORMAT/FileHandler.cpp:849-937`) | `peaks::load_source_reader` (private) | not `FileHandler::load_experiment_with_options`: that loader has no mzXML or mzData case and reads MGF with the strict native `mgf` adapter, not `MascotGenericFile` |
-| `getType(filename)` and the allowed-type check (`:856`, `:858-864`) | `FileHandler::get_type`, then `Error::InvalidValue` for a type other than the forced or detected one | native difference 1 |
+| `getType(filename)` and the allowed-type check (`:856`, `:858-864`) | `FileHandler::get_type`, then `file_handler::check_allowed`, the source's `ParseError` | native difference 1, closed |
 | `MzXMLFile::load` with default `PeakFileOptions` | `mzxml::load_with_options(path, &ReadOptions::default())` | |
 | `MzDataFile::load` with default `PeakFileOptions` | `mzdata::load_with_options(path, &PeakFileOptions::default(), &ReadLimits::default())` | |
 | `MascotGenericFile::load` (`FORMAT/MascotGenericFile.h:74-104`) | `mascot_generic::load_with_options` with `carry_over: CarryOver::Source` and `source_ms_level: true` | section 2 |
@@ -141,13 +141,12 @@ class does the same.
 
 ## 3. Native differences
 
-1. **A forced type the loader's detection contradicts is `Error::InvalidValue`,
-   exit 6.** The source throws `ParseError` (`FORMAT/FileHandler.cpp:858-864`)
-   and the tool exits 3 (`g_forced_on_mzxml`, `lib_m_forced_mgf`). The port
-   answers as it already does for every other peak type, which
-   `docs/TOPP_FILE_INFO_SUPPORT.md` records as native difference 3; giving the
-   four new types the source's exit code alone would make the code depend on
-   which type was forced. Neither build writes a report.
+1. ~~**A forced type the loader's detection contradicts is
+   `Error::InvalidValue`, exit 6.**~~ **Closed.** The source throws
+   `ParseError` (`FORMAT/FileHandler.cpp:859-863`) and the tool exits 3
+   (`g_forced_on_mzxml`, `lib_m_forced_mgf`); so does the port, for every peak
+   type, through `FileHandler`'s own allowed-type check. Neither build writes
+   a report.
 2. **`CHARGE=2-` is a parse error, exit 3.** The source's `StringUtils::toInt32`
    throws `ConversionError`, which leaves `load` unconverted and which the tool
    reports as an unexpected internal error, exit 8 (`g_charge_minus`). Both

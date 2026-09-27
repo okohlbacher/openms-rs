@@ -1228,10 +1228,9 @@ fn a_zero_byte_input_exits_4() {
 /// `forced_featurexml_on_dta`: a forced type the loader's own detection
 /// contradicts. The source loader throws: `ParseError` for the experiment
 /// loader (exit 3, `FileHandler.cpp:859-863` at core `bc9cc12`) and
-/// `InvalidFileType` for the feature loader (exit 8). The library raises the
-/// first as the source does and lets the feature loader refuse the second
-/// itself (exit 11, a documented native difference,
-/// `docs/TOPP_FILE_INFO_SUPPORT.md`). No report is written.
+/// `InvalidFileType` for the feature loader (exit 8, `FileHandler.cpp:1257-1262`,
+/// `FORMAT/FileInfo.cpp:1084`). The library raises both as the source does.
+/// No report is written.
 #[test]
 fn a_forced_type_the_file_contradicts_is_refused() {
     let featurexml = library("inputs/FileInfo_3_input.featureXML");
@@ -1239,7 +1238,7 @@ fn a_forced_type_the_file_contradicts_is_refused() {
     for (input, forced, code) in [
         (&featurexml, "dta", ExitCode::InputFileCorrupt),
         (&featurexml, "mzML", ExitCode::InputFileCorrupt),
-        (&dta, "featureXML", ExitCode::IncompatibleInputData),
+        (&dta, "featureXML", ExitCode::UnknownError),
     ] {
         let dir = Workdir::new();
         let out = dir.file("mismatch.tmp.txt");

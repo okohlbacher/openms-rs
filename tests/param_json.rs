@@ -575,3 +575,76 @@ fn the_store_side_is_the_release_builds_without_tdl() {
         "TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature."
     );
 }
+
+/// Every number token as the Release build stores it, bit for bit: the B0
+/// integration lane's oracle (`../oracle/B0-attacks`, the Linux x86_64 C++
+/// Release build at core `bc9cc12` on ibminode06, gcc 14.4.0, two identical
+/// runs; `tests/data/b0_release/json_release.tsv`, provenance
+/// `tests/data/b0_release_provenance.json`). A driver loads each document of
+/// `tests/data/b0_release/json` with `ParamJSONFile::load` onto a tree with a
+/// floating-point, a 64-bit integer, a floating-point list and an integer
+/// list parameter and prints the stored values, doubles as their IEEE-754
+/// bits. The tokens probe what `serde_json` with `float_roundtrip` and the
+/// `nlohmann::json` 3.11.2 lexer (`strtod`, `strtoull`, `strtoll`) must agree
+/// on: correctly rounded halfway cases and long mantissas, subnormals and
+/// underflow, the largest double, integers beyond 2^53 and beyond 64 bits,
+/// `-0` against `-0.0`, and the integer accessors' casts of each.
+#[test]
+fn number_tokens_store_the_release_builds_bits() {
+    let root = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data/b0_release");
+    let records = fs::read_to_string(format!("{root}/json_release.tsv")).unwrap();
+    let float = |param: &Param, key: &str| match param.value(key).unwrap() {
+        ParamValue::Float(value) => format!("{:016x}", value.to_bits()),
+        other => panic!("{key}: {other:?}"),
+    };
+    let mut compared = 0;
+    for line in records.lines().filter(|line| *line != "DONE") {
+        let fields: Vec<&str> = line.split('\t').collect();
+        let case = fields[0];
+        let mut param = Param::new();
+        for (key, value) in [
+            ("T:1:d", ParamValue::Float(0.0)),
+            ("T:1:i", ParamValue::Integer(0)),
+            ("T:1:dl", ParamValue::FloatList(Vec::new())),
+            ("T:1:il", ParamValue::IntegerList(Vec::new())),
+        ] {
+            param.set_value(key, value, "", &[]).unwrap();
+        }
+        let result = param_json::load(format!("{root}/json/{case}.json"), &mut param);
+        match fields[1] {
+            "ok" => {
+                result.unwrap_or_else(|error| panic!("{case}: {error}"));
+                assert_eq!(float(&param, "T:1:d"), fields[2], "{case}: d");
+                let ParamValue::Integer(integer) = param.value("T:1:i").unwrap() else {
+                    panic!("{case}: i");
+                };
+                assert_eq!(integer.to_string(), fields[3], "{case}: i");
+                let ParamValue::FloatList(floats) = param.value("T:1:dl").unwrap() else {
+                    panic!("{case}: dl");
+                };
+                let floats: Vec<String> = floats
+                    .iter()
+                    .map(|value| format!("{:016x}", value.to_bits()))
+                    .collect();
+                assert_eq!(floats.join(","), fields[4], "{case}: dl");
+                let ParamValue::IntegerList(integers) = param.value("T:1:il").unwrap() else {
+                    panic!("{case}: il");
+                };
+                let integers: Vec<String> = integers.iter().map(i32::to_string).collect();
+                assert_eq!(integers.join(","), fields[5], "{case}: il");
+            }
+            "X" => {
+                // `ParseError` with an empty expression: `<message> in: `.
+                assert_eq!(fields[2], "Parse Error", "{case}");
+                assert_eq!(
+                    format!("{} in: ", parse_message(result)),
+                    fields[3],
+                    "{case}"
+                );
+            }
+            other => panic!("{case}: unexpected Release record {other}"),
+        }
+        compared += 1;
+    }
+    assert_eq!(compared, 51);
+}

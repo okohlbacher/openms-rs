@@ -137,14 +137,27 @@ fn upstream_dta2d_load_applies_the_mz_range_and_rewrites_with_or_without_hash() 
 #[test]
 fn upstream_a_type_outside_the_allowed_list_is_refused() {
     // FileHandler_test.cpp:280-281 restricts to SIZE_OF_TYPE, which no file
-    // has; the source throws ParseError, the port InvalidValue.
+    // has and which the source's allowedToString_ leaves out of the list
+    // (FileHandler.cpp:191-202). This port has no such type, so the list here
+    // is {Unknown}, which the list names. The source throws ParseError
+    // (FileHandler.cpp:859-863), and so does the port.
+    let path = dta2d_test_1();
     let result = FileHandler::load_experiment_with_progress(
-        dta2d_test_1(),
+        &path,
         &[FileType::Unknown],
         &rewrite(false),
         &ProgressLogger::new(),
     );
-    assert!(matches!(result, Err(Error::InvalidValue(_))), "{result:?}");
+    let Err(Error::Parse { message, .. }) = result else {
+        panic!("{result:?}");
+    };
+    assert_eq!(
+        message,
+        format!(
+            "type: dta2d is not allowed for loading an experiment. Allowed types are: , unknown in: {}",
+            path.display()
+        )
+    );
 }
 
 #[test]
@@ -786,8 +799,11 @@ fn release_divergences_are_the_documented_ones() {
     assert_eq!(release_kind("missing_dta2d", "D"), ["1"]);
     assert!(events.lock().unwrap().is_empty());
 
-    // A type outside the allowed list: ParseError there, InvalidValue here,
-    // with no call on either side.
+    // A type outside the allowed list: ParseError on both sides, with the
+    // Release build's text, and no call on either side. The Release driver
+    // allows SIZE_OF_TYPE, which the source's list leaves out
+    // (FileHandler.cpp:191-202); this port has no such type and allows
+    // {Unknown}, which its list names, so the text agrees up to the list.
     let events = Events::default();
     let refused = load(
         &inputs,
@@ -800,11 +816,26 @@ fn release_divergences_are_the_documented_ones() {
         ),
         &events,
     );
-    assert!(
-        matches!(refused, Err(Error::InvalidValue(_))),
-        "{refused:?}"
+    let Err(Error::Parse { message, .. }) = refused else {
+        panic!("{refused:?}");
+    };
+    let release = release_kind("dta2d_bogus_allowed", "X")[0]
+        .replace("{INPUTS}", inputs.dir().to_str().unwrap());
+    let input = inputs.path("DTA2DFile_test_1.dta2d");
+    assert_eq!(
+        release,
+        format!(
+            "Parse Error\ttype: dta2d is not allowed for loading an experiment. Allowed types are:  in: {}",
+            input.display()
+        )
     );
-    assert!(release_kind("dta2d_bogus_allowed", "X")[0].starts_with("Parse Error\t"));
+    assert_eq!(
+        message,
+        release.trim_start_matches("Parse Error\t").replace(
+            "Allowed types are:  in:",
+            "Allowed types are: , unknown in:"
+        )
+    );
     assert!(release_kind("dta2d_bogus_allowed", "P").is_empty());
     assert!(events.lock().unwrap().is_empty());
 }

@@ -260,8 +260,9 @@ impl Tool for FuzzyDiff {
 /// The registered ranges bound `verbose` only, but both of the framework's
 /// readers already refuse a value beyond `i32`: the command line's `to_int32`
 /// (exit 6) and the INI reader (exit 3, checked in `tests/topp_fuzzy_diff.rs`).
-/// This conversion is therefore defensive; a value it refused would be
-/// reported as an invalid parameter rather than wrapped.
+/// This conversion is therefore defensive; a value it refused would end the
+/// run as an escaping [`Error::InvalidValue`] does, exit 8, rather than be
+/// wrapped.
 fn int_option(ctx: &ToolContext, name: &str) -> Result<i32> {
     let value = ctx.int(name)?;
     i32::try_from(value).map_err(|_| {

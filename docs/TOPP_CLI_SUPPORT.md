@@ -146,7 +146,7 @@ requirement* below says why.
 | validation | input missing / unreadable / empty | 1 / 2 / 4 | 1968-1995 | `a_missing_input_is_input_file_not_found`, `an_unreadable_input_is_input_file_not_readable`, `a_zero_byte_input_is_input_file_empty` | tier 1: `missing_input`, `unreadable_input`, `zero_byte_input` |
 | validation | input format detected by name, then by content, and not accepted | 6 | 1575-1593 | `the_input_format_is_detected_by_name_then_content`; `usage_and_exit_codes_follow_the_source_contract` in `tests/topp_dta_extractor.rs` | tier 1: `in_txt_extension_mzml_content`‡, `in_dta_extension`‡ |
 | validation | input format detected and accepted (no extension, an unknown one, or another case) | runs | 1575-1593 | `the_input_format_is_detected_by_name_then_content` | tier 1: `in_no_extension_mzml_content`‡, `in_unknown_extension_mzml_content`‡, `in_uppercase_extension`‡ (exit 0) |
-| validation | input format undetermined | warning, then runs | 1580-1583 | `an_undetermined_input_format_only_warns` | tier 1: `in_unknown_name_and_content`‡ (the warning; the later load's exit code differs, see *Formats*) |
+| validation | input format undetermined | warning, then runs | 1580-1583 | `an_undetermined_input_format_only_warns` | tier 1: `in_unknown_name_and_content`‡ (the warning, and the later load's `ParseError`, exit 3, see *Formats*) |
 | validation | output not writable | 5 | 1997-2013 | `an_unwritable_output_is_cannot_write_output_file` | tier 1: `unwritable_output` |
 | validation | output name of a known type the parameter does not accept | 6 | 1595-1608 | `a_wrong_output_extension_is_refused`, `the_output_format_is_checked_by_name_only` | tier 1: `output_wrong_extension`, `out_txt_extension`‡ |
 | validation | output name of no known type, or of an accepted type in another case | runs | 1598-1601 | `the_output_format_is_checked_by_name_only` | tier 1: `out_unknown_extension`‡, `out_no_extension`‡, `out_uppercase_extension`‡ (exit 0) |
@@ -470,11 +470,16 @@ only warns. After that warning the source's load of a file whose content no
 type claims throws `ParseError`, exit 3 ("type: unknown is not allowed for
 loading an experiment", oracle `in_unknown_name_and_content`, and with
 `-log` oracle `log_undetermined_format`, whose warning and error both reach the
-log in both builds); this port's `FileHandler::load_experiment` returns
-`Error::InvalidValue`, which takes the `BaseException` arm, exit 8. That
-difference belongs to the loader, not to the check. (FileInfo, which loads
-with the forced type alone, checks the detected type itself and raises the
-source's `ParseError`, exit 3.)
+log in both builds), and so does this port: `FileHandler`'s refusal of a type
+outside the allowed list is the source's `ParseError` with the source's text
+(`FileHandler.cpp:859-863`), exit 3, for every ported tool that loads with an
+allowed list (`../oracle/B0-attacks`, cases `unknown_*`, seven tools;
+`tests/topp_cli_lifecycle.rs`,
+`an_undetermined_input_format_is_the_loaders_parse_error_in_every_tool`).
+FileInfo, which loads with the forced type alone, goes through the same check.
+The diagnostic still reads `Error: Unable to read file (parse error on line 0:
+<the source's text>)`, the rendering of every `Error::Parse` (open item 3 of
+the TOPPBase ledger entry).
 
 **Input checks on a directory.** On the Linux Release build a directory given
 as an input file whose name no type claims does not warn: `FileHandler::getType`
@@ -747,7 +752,12 @@ same-named exceptions and exit 8, `Error: Unexpected internal error (<what>)`
 after a message is an exit code the tool returns (MzMLSplitter's option checks,
 DTAExtractor's caught `ConversionError`), and a native refusal of a parameter
 value says so with `ToolError::invalid_parameter` (SpectraFilterWindowMower's
-non-finite window size, MapNormalizer's non-positive scale), exit 6.
+non-finite window size, MapNormalizer's non-positive scale, BaselineFilter's
+structuring element below one sample or of a width that is not finite and
+positive), exit 6. For BaselineFilter's element the Release build completes
+with a zero-sample element widened to one (`bf_dp_negative_fraction` of
+`../oracle/B0-attacks`, exit 0) and ends with SIGSEGV on a negative length
+(`bf_dp_negative`, exit 139).
 `Error::MissingInformation` still maps to 7, where the source's exception of
 that name would exit 8.
 `parse_range` leaves both bounds unchanged on error. A command line is bounded

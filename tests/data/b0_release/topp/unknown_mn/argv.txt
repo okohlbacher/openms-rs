@@ -1,0 +1,7 @@
+MapNormalizer
+-test
+-no_progress
+-in
+/scratch/kohlbach/b0-oracle/inputs/unknown_name_and_content
+-out
+/scratch/kohlbach/b0-oracle/run1/unknown_mn/cwd/out.mzML

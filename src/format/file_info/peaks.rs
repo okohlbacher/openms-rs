@@ -72,6 +72,7 @@ use super::report::{
     write_ranges_text, write_ranges_tsv, write_statistics_title, write_summary_text,
 };
 use super::text_format::{WRITTEN_DIGITS_F32, list_to_string, to_str};
+use crate::format::file_handler::{LoadTarget, check_allowed};
 use crate::format::peak_type_estimator::PeakTypeEstimator;
 use crate::format::{FileHandler, FileType, PeakFileOptions};
 use crate::kernel::faims_helper::FaimsHelper;
@@ -148,16 +149,15 @@ pub(crate) fn report(
 /// [`FileHandler`](crate::format::FileHandler), see [`load_source_reader`].
 ///
 /// A file whose detected type is not `in_type` is refused first with the
-/// source's `ParseError` ([`super::report::forced_type_refused`]).
+/// source's `ParseError`, [`FileHandler`]'s own refusal of a type outside the
+/// allowed list (`FileHandler.cpp:859-863`).
 fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<MSExperiment> {
-    let detected = FileHandler::get_type(path)?;
-    if detected != in_type {
-        return Err(super::report::forced_type_refused(
-            &path.display().to_string(),
-            detected,
-            in_type,
-        ));
-    }
+    check_allowed(
+        FileHandler::get_type(path)?,
+        &[in_type],
+        &path.display().to_string(),
+        LoadTarget::Experiment,
+    )?;
     match in_type {
         FileType::MzXml | FileType::MzData | FileType::Mgf | FileType::Ms2 => {
             load_source_reader(path, in_type)

@@ -106,6 +106,12 @@ impl FileHandler {
 
     /// Known extensions take precedence; unknown extensions use bounded content
     /// recognition. An empty allowed list accepts every compiled adapter.
+    ///
+    /// # Errors
+    ///
+    /// A detected type outside a nonempty `allowed` list is [`Error::Parse`]
+    /// with the text of the source's `ParseError` (`FileHandler.cpp:1518-1523`);
+    /// any type but idXML is [`Error::Unsupported`].
     #[cfg(feature = "idxml")]
     pub fn load_identifications(
         path: impl AsRef<Path>,
@@ -268,13 +274,18 @@ impl FileHandler {
     /// An mzML input then has its SRM spectra moved into chromatograms, as
     /// every source `loadExperiment` does (`FileHandler.cpp:910`); see
     /// [`FileHandler::load_experiment_with_progress`].
+    ///
+    /// # Errors
+    ///
+    /// A detected type outside a nonempty `allowed` list is the source's
+    /// `ParseError`, as for [`FileHandler::load_experiment_with_options`].
     pub fn load_experiment(path: impl AsRef<Path>, allowed: &[FileType]) -> Result<MSExperiment> {
         let path = path.as_ref();
         let kind = type_by_file_name(path.to_str().unwrap_or(""));
         let mut document = crate::metadata::DocumentIdentifier::new();
         document.set_loaded_file_path(filename(path)?)?;
         document.set_loaded_file_type(path)?;
-        let mut result = load_stream(super::path_io::open(path)?, kind, allowed)?;
+        let mut result = load_stream(super::path_io::open(path)?, kind, allowed, filename(path)?)?;
         result.settings.document.loaded_file_path = document.loaded_file_path;
         result.settings.document.loaded_file_type = document.loaded_file_type;
         Ok(result)
@@ -318,9 +329,10 @@ impl FileHandler {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the detected type is not in a
-    /// nonempty `allowed` list, where the source throws
-    /// `Exception::ParseError`; [`Error::Unsupported`] for a type without a
+    /// Returns [`Error::Parse`] with the source's `ParseError` text when the
+    /// detected type is not in a nonempty `allowed` list (`type: <detected> is
+    /// not allowed for loading an experiment. Allowed types are: , <allowed>
+    /// in: <file>`, `FileHandler.cpp:859-863`); [`Error::Unsupported`] for a type without a
     /// native adapter; and the reader's error for malformed input, options the
     /// reader cannot execute, DTA2D ranges without finite ordered endpoints, or
     /// exceeded limits.
@@ -534,9 +546,10 @@ impl FileHandler {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the type is not in a nonempty
-    /// `allowed` list, [`Error::Unsupported`] for any type but featureXML, and
-    /// the reader's error for malformed input.
+    /// Returns [`Error::InvalidValue`] with the text of the source's
+    /// `InvalidFileType` when the type is not in a nonempty `allowed` list
+    /// (`FileHandler.cpp:1257-1262`), [`Error::Unsupported`] for any type but
+    /// featureXML, and the reader's error for malformed input.
     pub fn load_feature_map(
         path: impl AsRef<Path>,
         allowed: &[FileType],
@@ -651,9 +664,10 @@ impl FileHandler {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the type is not in a nonempty
-    /// `allowed` list, [`Error::Unsupported`] for any type but consensusXML,
-    /// and the reader's error for malformed input.
+    /// Returns [`Error::Parse`] with the text of the source's `ParseError` when
+    /// the type is not in a nonempty `allowed` list (`FileHandler.cpp:1405-1410`),
+    /// [`Error::Unsupported`] for any type but consensusXML, and the reader's
+    /// error for malformed input.
     pub fn load_consensus_map(
         path: impl AsRef<Path>,
         allowed: &[FileType],
@@ -707,9 +721,10 @@ fn load_stream(
     mut reader: impl BufRead,
     kind: FileType,
     allowed: &[FileType],
+    file: &str,
 ) -> Result<MSExperiment> {
     let (kind, mut experiment) = if kind != FileType::Unknown {
-        check_allowed(kind, allowed)?;
+        check_allowed(kind, allowed, file, LoadTarget::Experiment)?;
         (kind, FileHandler::read_experiment(reader, kind)?)
     } else {
         let mut preview = Vec::new();
@@ -720,7 +735,7 @@ fn load_stream(
             .take(SNIFF_BYTES)
             .read_to_end(&mut preview)?;
         let kind = type_by_content(&preview);
-        check_allowed(kind, allowed)?;
+        check_allowed(kind, allowed, file, LoadTarget::Experiment)?;
         let experiment =
             FileHandler::read_experiment(BufReader::new(preview.as_slice().chain(reader)), kind)?;
         (kind, experiment)
@@ -731,14 +746,62 @@ fn load_stream(
     Ok(experiment)
 }
 
-fn check_allowed(kind: FileType, allowed: &[FileType]) -> Result<()> {
-    if !allowed.is_empty() && !allowed.contains(&kind) {
-        return Err(Error::InvalidValue(format!(
-            "{} is not an allowed input format",
-            kind.name()
-        )));
+/// What a load was asked for; it names the source's refusal of a detected
+/// type outside the allowed list.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum LoadTarget {
+    /// `loadExperiment`.
+    Experiment,
+    /// `loadFeatures`.
+    Features,
+    /// `loadConsensusFeatures`.
+    ConsensusFeatures,
+    /// `loadIdentifications`.
+    Identifications,
+}
+
+/// The source's refusal of a detected type outside a nonempty `allowed`
+/// list, raised before the file is read: `type: <detected> is not allowed for
+/// loading <what>. Allowed types are: , <a>, <b>`, the list as the source's
+/// `allowedToString_` writes it (`FileHandler.cpp:191-202`), each name the
+/// type's [`FileType::name`] and `file` the name the caller passed.
+///
+/// An experiment (`FileHandler.cpp:859-863`), a consensus map (`:1405-1410`,
+/// `loading consensus features, Allowed`) and identifications (`:1518-1523`,
+/// `loading identifications, Allowed`) are refused with `ParseError`, whose
+/// `what()` appends ` in: <file>`: [`Error::Parse`] with that text, which a
+/// TOPP tool reports as the source's `ParseError` arm does, exit 3. Features
+/// (`:1257-1262`) are refused with `InvalidFileType`, whose `what()` is `the
+/// file '<file>' could not be created because the type specified was not
+/// valid. <message>` (`Exception.cpp:241-243`): [`Error::InvalidValue`] with
+/// that text, which a tool reports as the source's `BaseException` arm does,
+/// exit 8.
+pub(crate) fn check_allowed(
+    kind: FileType,
+    allowed: &[FileType],
+    file: &str,
+    target: LoadTarget,
+) -> Result<()> {
+    if allowed.is_empty() || allowed.contains(&kind) {
+        return Ok(());
     }
-    Ok(())
+    let list: String = allowed
+        .iter()
+        .map(|allowed| format!(", {}", allowed.name()))
+        .collect();
+    let name = kind.name();
+    let parse = |what: &str| Error::Parse {
+        line: 0,
+        message: format!("type: {name} is not allowed for loading {what}{list} in: {file}"),
+    };
+    Err(match target {
+        LoadTarget::Experiment => parse("an experiment. Allowed types are: "),
+        LoadTarget::ConsensusFeatures => parse("consensus features, Allowed types are: "),
+        LoadTarget::Identifications => parse("identifications, Allowed types are: "),
+        LoadTarget::Features => Error::InvalidValue(format!(
+            "the file '{file}' could not be created because the type specified was not valid. type: {name} is not allowed for loading features. Allowed types are: {list}"
+        )),
+    })
 }
 
 /// Bounded content recognition for common SDK interchange types. This is a
@@ -904,7 +967,7 @@ fn load_experiment_from(
     document.set_loaded_file_path(text)?;
     document.set_loaded_file_type(path)?;
     let (kind, reader) = detect(path)?;
-    check_allowed(kind, allowed)?;
+    check_allowed(kind, allowed, text, LoadTarget::Experiment)?;
     // Source `f.setLogType(log)` on a fresh file object: the reader reports to
     // a copy of the caller's logger with a fresh backend of the same type.
     let mut file_logger = logger.cloned();
@@ -1102,7 +1165,12 @@ fn detect(path: &Path) -> Result<(FileType, Box<dyn BufRead>)> {
 
 fn typed_input(path: &Path, allowed: &[FileType], expected: FileType) -> Result<Box<dyn BufRead>> {
     let (kind, reader) = detect(path)?;
-    check_allowed(kind, allowed)?;
+    let target = match expected {
+        FileType::FeatureXml => LoadTarget::Features,
+        FileType::ConsensusXml => LoadTarget::ConsensusFeatures,
+        _ => LoadTarget::Identifications,
+    };
+    check_allowed(kind, allowed, filename(path)?, target)?;
     if kind != expected {
         return Err(Error::Unsupported(format!(
             "expected {} input, found {}",

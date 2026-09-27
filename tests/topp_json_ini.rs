@@ -535,3 +535,14 @@ fn a_forced_type_the_file_contradicts_is_the_release_builds_parse_error() {
         });
     }
 }
+
+/// Batch 3: FileInfo forcing featureXML onto a DTA file. The source's feature
+/// branch loads with `{FEATUREXML}` (`FORMAT/FileInfo.cpp:1084`) and the
+/// loader throws `InvalidFileType` (`FileHandler.cpp:1257-1262`), which
+/// takes the `BaseException` arm: exit 8 and the Release build's line byte
+/// for byte.
+#[cfg(feature = "featurexml")]
+#[test]
+fn a_dta_forced_to_featurexml_is_the_release_builds_invalid_file_type() {
+    assert_case::<openms::cli::tools::FileInfo>("batch3/fi_forced_featurexml_on_dta", |text| text);
+}
