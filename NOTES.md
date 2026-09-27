@@ -31,3 +31,17 @@ Branch: worktree-wf_ee239125-5be-34. Prereq worktree-wf_ee239125-5be-1 merged (f
 - StringUtils: many private duplicates (cli/context.rs:921/971 toInt32/toDouble, mascot_generic.rs, mascot_xml.rs,
   identification_xml.rs nan parsing). text_format.rs holds to_str/to_str_f32/fixed. Plan: new public
   src/data_structures/string_utils.rs porting the whole header; module cycle check needed (data_structures -> format?).
+
+## Session 1, later
+- ORACLES (outside repo): ../oracle/B8a-stringutils (DONE, 5068 records, ibminode06 Release, 2 runs identical)
+  and ../oracle/B8a-zip-input (launched; `./run.sh pull`). Fixtures: tests/data/zip_input/*.zip (python zipfile).
+- Release libzip links libbz2+libz+libcrypto: methods stored/deflate/bzip2 only (no lzma/zstd).
+- Underflow-to-zero is ConversionError on Linux (libstdc++ fast_float); subnormals parse.
+- Module graph: concept & param are sinks; data_structures -> param only; metadata -> data_structures.
+  => numeric core goes to NEW src/concept/numeric_formatting.rs (NumericFormatting.h is CONCEPT/Detail),
+     StringUtils to NEW src/data_structures/string_utils.rs, toStr(DataValue) as MetaValue::to_text in NEW
+     src/metadata/value_text.rs; text_format.rs re-exports moved items (paths stay valid).
+- zip crate: 7.2.0 is newest with MSRV<=1.85 (1.83); 8.x needs 1.88. Plan features deflate-flate2 + bzip2,
+  inside file-compression feature. Owned entry reader: central directory via zip crate, then seek data_start,
+  take(compressed_size), flate2 DeflateDecoder / bzip2 BzDecoder, CRC via flate2::Crc.
+- Next: write numeric_formatting.rs, string_utils.rs, move text_format core; then path_io ZIP; then mzML gaps.
