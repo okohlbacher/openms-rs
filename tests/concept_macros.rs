@@ -72,7 +72,8 @@ fn a_section_returns_its_body_value_and_survives_a_panic() {
 
 #[test]
 fn conditions_that_hold_do_nothing() {
-    let values = [1.0, 2.0];
+    // `black_box` keeps the condition a runtime check, as in the source macro.
+    let values = std::hint::black_box([1.0, 2.0]);
     openms::openms_precondition!(!values.is_empty(), "values must not be empty");
     openms::openms_postcondition!(values.len() == 2, "two values");
 }

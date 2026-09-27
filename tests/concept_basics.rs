@@ -109,8 +109,9 @@ fn type_aliases_have_the_source_widths() {
         std::mem::size_of::<isize>()
     );
     // Signedness: Int32/Int64/Int/Time/SignedSize are signed; the rest are not.
-    assert!(types::Int32::MIN < 0 && types::Int64::MIN < 0 && types::Int::MIN < 0);
-    assert!(types::Time::MIN < 0 && types::SignedSize::MIN < 0);
+    // Checked at compile time, so they cannot silently stop running.
+    const _: () = assert!(types::Int32::MIN < 0 && types::Int64::MIN < 0 && types::Int::MIN < 0);
+    const _: () = assert!(types::Time::MIN < 0 && types::SignedSize::MIN < 0);
     assert_eq!(types::UInt32::MIN, 0);
     assert_eq!(types::Byte::MIN, 0);
 }

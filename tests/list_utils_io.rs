@@ -19,6 +19,14 @@
 //!   `float` rows over the `float` value obtained with
 //!   `struct.unpack('<f', struct.pack('<f', x))`.
 
+// The source class-test literals are kept verbatim (digit for digit, including
+// the `-3.14159` probe), so clippy's literal-shape lints are silenced here.
+#![allow(
+    clippy::excessive_precision,
+    clippy::approx_constant,
+    clippy::inconsistent_digit_grouping
+)]
+
 use openms::concept::numeric_formatting::{append_numeric_f32, append_numeric_f64};
 use openms::concept::precision_wrapper::{PrecisionWrapper, precision_wrapper};
 use openms::format::file_info::text_format::{
