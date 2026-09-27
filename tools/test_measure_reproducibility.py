@@ -45,6 +45,17 @@ class BindingTests(unittest.TestCase):
         self.assertEqual(measure.manifest_revisions(tree), ["1" * 40, "2" * 40])
 
 
+class ProseTests(unittest.TestCase):
+    def test_prose_binds_the_path_written_nearest_before_the_digest(self):
+        line = f"Evidence: `../oracle/p/logs/probe.log`, input `../oracle/p/outputs/in.mzML`, sha256 `{A}`."
+        found = measure.text_occurrences(pathlib.Path("OpenMS_CPP_ISSUES.md"), line)
+        self.assertEqual([(d, p) for d, p, _, _ in found], [(A, "../oracle/p/outputs/in.mzML")])
+
+    def test_prose_with_no_path_before_takes_the_first_after(self):
+        found = measure.text_occurrences(pathlib.Path("x.md"), f"sha256 {A} of `tests/data/x.tsv`")
+        self.assertEqual([p for _, p, _, _ in found], ["tests/data/x.tsv"])
+
+
 class FamilyTests(unittest.TestCase):
     def resolve(self, path, key):
         return measure.resolve(measure.ROOT / MANIFEST, path, key, A, [], set(), None, [])

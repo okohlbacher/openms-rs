@@ -94,6 +94,7 @@ PACKAGES = {"core": "core", "cli": "cli", "topp": "topp", "test_data": "test-dat
 # ``source_revision``, ``old_package_revision``, ``commit``.
 REVISION_KEY = re.compile(r"(?:^|_)(?:revision|commit)$")
 EMPTY = hashlib.sha256(b"").hexdigest()
+PROSE_PATH = re.compile(r"[`\"']?([\w./-]+/[\w.-]+\.[A-Za-z0-9]{1,8})[`\"']?")
 LOG_KEY = re.compile(r"(?:^|_)(?:log|stdout|stderr)_sha256$")
 BUILD_WORDS = re.compile(r"libOpenMS|dylib|\.so\b|binary|executable|/ceph/|product-sdk|install", re.I)
 UPSTREAM_PREFIXES = (
@@ -351,10 +352,13 @@ def text_occurrences(document, text):
         for match in HEX.finditer(line):
             if not DIGEST_TEXT.search(line):
                 continue
-            path = None
-            for token in re.findall(r"[`\"']?([\w./-]+/[\w.-]+\.[A-Za-z0-9]{1,8})[`\"']?", line):
-                path = token
-                break
+            # The path written nearest before the digest names it ("`x.mzML`, 450,674
+            # bytes, sha256 ..."); failing that, the first one after it.
+            tokens = list(PROSE_PATH.finditer(line))
+            before = [t for t in tokens if t.end() <= match.start()]
+            after = [t for t in tokens if t.start() >= match.end()]
+            chosen = before[-1] if before else (after[0] if after else None)
+            path = chosen.group(1) if chosen else None
             found.append((match.group(0), path, "text", False))
     return found
 
