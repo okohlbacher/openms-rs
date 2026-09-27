@@ -29,14 +29,28 @@ F2 FileHandler check_allowed returns InvalidValue where FileHandler.cpp:859-863 
    tests/file_handler_load.rs:137-148 and 789-808 assert the divergence (update to source value from oracle row).
 F3 serde_json float_roundtrip is on (Cargo.toml:91); no float round-trip test exists for JSON INI -> need oracle.
 
+F4 Oracle ../oracle/B0-attacks DONE (ibminode06, Release, gcc 14.4.0, 2 runs): 51 JSON tokens bits; unknown_* 7 tools exit 3;
+   bf_dp_negative SIGSEGV 139; bf_dp_negative_fraction exit 0. Retained tests/data/b0_release (+ provenance json).
+F5 Verified OK (no change): compute_hash/rewrite_source_file vs file_handler_load_release.tsv (sf rows all fields);
+   MSExperiment operator<< whole-dump vs msexperiment-close stdout; PI engine-order claim (registry order, MetaInfo.cpp:162-170);
+   LogStream exit flush (ProcessLogs in run_from_environment, no process::exit, panic=unwind); LogStream.h members in doc.
+   MSExperiment complete: own members all in docs/EXPERIMENT_MOBILITY_SUPPORT.md; inherited MetaInfoInterface is partial (UInt/registry) -> note for lead.
+
+## Done (commit 5486102 WIP)
+- FileHandler check_allowed(kind, allowed, file, LoadTarget) -> source ParseError/InvalidFileType texts; FileInfo peaks/report/identifications/features use it
+- BaselineFilter: MorphologicalFilter::new + invalid_parameter (exit 6), after input checks
+- docs: TOPP_CLI_SUPPORT, FILE_HANDLER_SUPPORT (div 4 closed), FILE_INFO_A7 (diff 4 closed), A8 (diff 1 closed), TOPP_FILE_INFO (featureXML exit 8), PPHR doc 9, pphr/fuzzy rustdoc
+- tests: file_handler_load (2), file_info_a7, topp_cli_lifecycle, topp_cli_completion, topp_file_info (featureXML exit 8), topp_json_ini (+fi_forced_featurexml_on_dta), param_json (+51 bits), NEW tests/topp_b0_release.rs
+
 ## Status
 - [x] merges 1..5
-- [ ] sweep 1 of merged tree running (dax, slot B0-sweep)
-- [ ] attacks: exit codes (F1,F2), JSON float round-trip (F3), compute_hash/rewrite_source_file bytes, exit flush paths, MSExperiment operator<<, PI engine ordering
-- [ ] ledger fragment consolidation -> .planning/ledger-fragments/wave4/B0.json
+- [x] sweep 1 of merged tree: 46/54 lines green when last checked (remote /scratch/kohlbach/agents/B0-sweep/.ci-line.N.log)
+- [ ] targeted gate of fixes (slot B0) running -> scratchpad/gate1.log
+- [ ] sweep 2 after fixes; clippy; MSRV
+- [ ] ledger fragment -> .planning/ledger-fragments/wave4/B0.json (main repo path)
 - [ ] report -> main repo .planning/lane-reports/B0.md
 
 ## Next step
-1. Survey lane 2-5 evidence (tests vs oracle results) for the remaining attacks.
-2. Build ../oracle/B0-attacks (driver: JSON doubles %a; TOPP cases: BaselineFilter negative DataPoints) on ibminode06.
-3. Fix F1, F2.
+1. Read gate1.log; fix failures.
+2. Write ledger fragment (scratchpad/frag.py has lane fragment paths) and report.
+3. Sweep 2 (slot B0-sweep2), then final commit deleting NOTES.md.
