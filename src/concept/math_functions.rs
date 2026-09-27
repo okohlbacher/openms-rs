@@ -41,6 +41,11 @@
 
 use crate::{Error, Result};
 
+mod random_shuffler;
+/// Source `Math::RandomShuffler` (a seeded, platform-independent Fisher–Yates
+/// shuffle) and the MT19937-64 engine type behind its public `rng_` member.
+pub use random_shuffler::{Mt64, RandomShuffler};
+
 /// Largest bin count [`create_bins`] will allocate.
 ///
 /// The source has no ceiling: `createBins` sizes its vector directly from the

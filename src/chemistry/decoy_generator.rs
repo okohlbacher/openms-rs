@@ -15,17 +15,26 @@ use std::mem::size_of;
 use std::ops::Range;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-#[path = "decoy_random.rs"]
-mod decoy_random;
-pub(crate) use decoy_random::DecoyRandom;
+// The source member `Math::RandomShuffler shuffler_`, promoted from this module
+// into `concept::math_functions`.
+use crate::concept::math_functions::RandomShuffler as DecoyRandom;
 
+/// Longest parent protein, in residues, that any decoy operation accepts.
 pub const MAX_DECOY_INPUT_RESIDUES: usize = 1_000_000;
+/// Most residues one decoy operation may produce in total.
 pub const MAX_DECOY_OUTPUT_RESIDUES: usize = 1_000_000;
+/// Most digestion products one decoy operation may enumerate in total.
 pub const MAX_DECOY_PEPTIDES: usize = 100_000;
+/// Largest decoy factor (number of shuffled variants) `shuffle` accepts.
 pub const MAX_DECOY_VARIANTS: usize = 1_000;
+/// Cumulative work units (residue visits, comparisons and random draws) one
+/// decoy operation may spend.
 pub const MAX_DECOY_WORK: usize = 50_000_000;
+/// Cumulative bytes one decoy operation may allocate.
 pub const MAX_DECOY_BYTES: usize = 256 * 1024 * 1024;
+/// Most entries the persistent peptide cache of a [`DecoyGenerator`] may hold.
 pub const MAX_DECOY_CACHE_ENTRIES: usize = 100_000;
+/// Most bytes, conservatively charged, the persistent peptide cache may hold.
 pub const MAX_DECOY_CACHE_BYTES: usize = 16 * 1024 * 1024;
 // Includes a conservatively sparse B-tree node, not just the two String headers.
 const CACHE_ENTRY_BYTES: usize = 1024;
@@ -58,7 +67,7 @@ impl DecoyGenerator {
     /// Reproducible constructor; unlike `Default`, does not read the clock.
     pub fn with_seed(seed: u64) -> Self {
         Self {
-            random: DecoyRandom::seeded(seed),
+            random: DecoyRandom::with_seed(seed),
             cache: BTreeMap::new(),
             cache_bytes: 0,
         }
@@ -66,7 +75,7 @@ impl DecoyGenerator {
 
     /// Reset the random stream without clearing the source peptide cache.
     pub fn set_seed(&mut self, seed: u64) {
-        self.random.reseed(seed);
+        self.random.seed(seed);
     }
 
     /// Reverse every parent residue. Empty input stays empty; no state changes.
@@ -194,7 +203,7 @@ impl DecoyGenerator {
                     // Source intentionally resets seed/cache for every product.
                     work.consume(size_of::<DecoyRandom>() / size_of::<u64>())?;
                     work.allocate(size_of::<DecoyRandom>())?;
-                    let mut random = DecoyRandom::seeded(4711 + variant as u64);
+                    let mut random = DecoyRandom::with_seed(4711 + variant as u64);
                     let mut delta = CacheDelta::default();
                     let shuffled = shuffle_raw(
                         peptide,
@@ -388,7 +397,7 @@ fn shuffle_raw(
         let shuffle_end = target.len() - usize::from(!final_product);
         for _ in 0..max_attempts {
             work.consume(add(multiply(target.len(), 2)?, 1)?)?;
-            random.shuffle(&mut candidate[..shuffle_end], &mut work.remaining)?;
+            random.shuffle_limited(&mut candidate[..shuffle_end], &mut work.remaining)?;
             let identity = sequence_identity(&candidate, target.as_bytes());
             if identity < lowest {
                 lowest = identity;
