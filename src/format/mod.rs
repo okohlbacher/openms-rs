@@ -156,6 +156,9 @@ pub mod xml_schema;
 #[cfg(feature = "paramxml")]
 pub mod qcml;
 
+/// Typed filter expressions for Parquet-backed readers (`ParquetFilter.h`).
+pub mod parquet_filter;
+
 use crate::{Error, Result};
 
 fn parse_error(line: usize, message: impl Into<String>) -> Error {

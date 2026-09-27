@@ -33,3 +33,9 @@ incarnation worktree-wf_bcdd783d-f3f-10 at 27d502a; no merge commit was needed).
 3. ArrowIOHelpers (partial: QPX validation, isobaric labels depend on unported pieces).
 4. FeatureMapArrowIO / ConsensusMapArrowIO features tables; read C++ fixtures.
 5. docs/ARROW_PARQUET_SUPPORT.md, tests/data/arrow_parquet_provenance.json, report + ledger fragment.
+
+## Incarnation 3 (19:22) found uncommitted WIP from incarnation 2, committed as-is
+- src/format/parquet_filter.rs + tests/parquet_filter.rs (18:47-18:49, not yet gated)
+- src/format/arrow_schema_registry.rs (19:10; generated body from scratchpad F1a-w4/gen_registry.py ->
+  registry_gen.rs + hand-written registry_head.rs), not in mod.rs yet, not gated
+- src/format/parquet_file.rs (19:16, possibly unfinished), not in mod.rs yet
