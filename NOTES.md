@@ -40,3 +40,7 @@ Next step: 3. check tools/core_sdk_coverage.py rules for complete (rust [] allow
 - StatisticFunctions -> partial (own scope names NaN gap in computeRank/Spearman).
 - Git guard: use one plain `git -C <abs core> show bc9cc12:<path> > <scratch file>` per call; no loops/vars.
 Next step: 4. MATH headers (Emg, BasicStatistics, Histogram 'resize', RankData helpers) then write fragment+report.
+- DONE: ledger fragment written (.planning/ledger-fragments/wave4/A2b.json, 16 complete / 2 partial / 1 NE) by
+  scratchpad make_fragment.py. EmgGradientDescent -> partial (DefaultParamHandler Param surface gap, B6 trait closes it).
+- Gate run of all cited tests on dax started (log: scratchpad/gate_cited.log).
+Next step: 5. wait for gate pass counts, write .planning/lane-reports/A2b.md, delete NOTES.md in final commit.
