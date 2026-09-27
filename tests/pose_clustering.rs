@@ -8,6 +8,7 @@
 //! checks of the parameter surface and the refusals.
 
 use openms::Error;
+use openms::analysis::mapmatching::alignment_pose_clustering::MapAlignmentAlgorithmPoseClustering;
 use openms::analysis::mapmatching::pose_clustering_affine::PoseClusteringAffineSuperimposer;
 use openms::analysis::mapmatching::pose_clustering_shift::PoseClusteringShiftSuperimposer;
 use openms::analysis::mapmatching::superimposer::BaseSuperimposer;
@@ -239,5 +240,94 @@ fn superimposers_refuse_empty_maps_debug_dumps_and_zero_buckets() {
         PoseClusteringShiftSuperimposer::default()
             .run(&silent, &silent)
             .is_err()
+    );
+}
+
+/// A consensus map of single-handle features in map `index`, as
+/// `MapConversion::convert` produces them.
+fn converted(index: u64, points: &[(f64, f64)]) -> ConsensusMap {
+    ConsensusMap::from_features(
+        points
+            .iter()
+            .map(|&(rt, mz)| {
+                ConsensusFeature::from_feature(index, &BaseFeature::new(rt, mz, 100.0)).unwrap()
+            })
+            .collect(),
+    )
+}
+
+#[test]
+fn pose_clustering_alignment_inverts_the_superimposer_for_the_pairs() {
+    // Independently derived from the source's align(ConsensusMap): with the
+    // class test's two-point maps the superimposer finds x - 0.4; the scene
+    // handed to the pair finder is moved onto the reference, features and
+    // first handles alike; each pair's scene RT is taken back through the
+    // inverse (x + 0.4) before the final linear fit, which is therefore
+    // x - 0.4 again. The pair finder here pairs features by position, in
+    // place of StablePairFinder.
+    let mut aligner = MapAlignmentAlgorithmPoseClustering::default();
+    let mut params = MapAlignmentAlgorithmPoseClustering::defaults().unwrap();
+    params
+        .set_value(
+            "superimposer:scaling_bucket_size",
+            ParamValue::Float(0.01),
+            "",
+            &[],
+        )
+        .unwrap();
+    params
+        .set_value(
+            "superimposer:shift_bucket_size",
+            ParamValue::Float(0.1),
+            "",
+            &[],
+        )
+        .unwrap();
+    assert!(aligner.set_parameters(&params).unwrap().is_empty());
+    aligner.set_reference_consensus(&converted(0, &[(1.0, 1.0), (5.0, 5.0)]));
+    let scene = converted(1, &[(1.4, 1.02), (5.4, 5.02)]);
+    let mut seen = Vec::new();
+    let trafo = aligner
+        .align_consensus(
+            &scene,
+            |maps| {
+                let mut pairs = Vec::new();
+                for (reference, moved) in maps[0].features.iter().zip(&maps[1].features) {
+                    seen.push((moved.rt, moved.handles()[0].rt));
+                    let mut pair = reference.clone();
+                    pair.merge(moved)?;
+                    pairs.push(pair);
+                }
+                Ok(ConsensusMap::from_features(pairs))
+            },
+            &mut ProgressReporter::silent(),
+        )
+        .unwrap();
+    for ((feature, handle), expected) in seen.iter().zip([1.0, 5.0]) {
+        similar(*feature, expected);
+        similar(*handle, expected);
+    }
+    assert_eq!(trafo.model_type(), "linear");
+    assert_eq!(trafo.data_points().len(), 2);
+    for point in trafo.data_points() {
+        similar(point.x - point.y, 0.4);
+    }
+    similar(trafo.apply(10.0).unwrap(), 9.6);
+    // No pairs: the linear fit has no data, as in the source.
+    let unpaired = aligner.align_consensus(
+        &scene,
+        |_| Ok(ConsensusMap::new()),
+        &mut ProgressReporter::silent(),
+    );
+    assert!(matches!(unpaired, Err(Error::InvalidValue(_))));
+    // Parameter layout: the superimposer section and the peak count.
+    let defaults = MapAlignmentAlgorithmPoseClustering::defaults().unwrap();
+    assert_eq!(
+        defaults.value("max_num_peaks_considered").unwrap(),
+        &ParamValue::Integer(1000)
+    );
+    assert_eq!(
+        defaults.value("superimposer:mz_pair_max_distance").unwrap(),
+        &ParamValue::Float(0.5)
     );
 }

@@ -9,6 +9,7 @@
 
 pub mod alignment_evaluation;
 pub mod alignment_identification;
+pub mod alignment_pose_clustering;
 pub mod pose_clustering_affine;
 pub mod pose_clustering_shift;
 pub mod superimposer;
