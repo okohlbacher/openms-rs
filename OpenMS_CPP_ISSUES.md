@@ -6599,3 +6599,24 @@ CPP-133 is the same defect at one site, `ImzMLWriter::store`. The failing object
 - The failing logger's command backend still refuses its next start.
 
 Tests: `tests/progress_format_readers.rs` (`failed_loads_on_the_process_wide_nesting_leave_a_valid_load_alone`, `failed_loads_do_not_change_a_later_load_through_another_logger`, `a_failed_section_prints_no_done_line_and_leaves_the_depth_with_its_logger`, `a_reused_logger_still_loads_after_any_number_of_failed_loads`, `a_fresh_file_object_is_not_indented_by_another_ones_failed_load`) and `tests/progress_logger.rs`. See `docs/PROGRESS_LOGGER_SUPPORT.md#sections-a-finished-call-left-open`.
+
+## CPP-355 — Text buffered in the global debug log stream is lost at process exit
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/CONCEPT/LogStream.cpp:672` (`g_log_debug`), `:500-509` (`LogStream::~LogStream`), `:111-128` (`LogStreamBuf::~LogStreamBuf`).
+
+**Trigger:** Text written to `getGlobalLogDebug()` after a destination was inserted, and not flushed before the process ends, for example a line without `std::endl` or a repeated line whose summary is still cached.
+
+**Issue:**
+
+- The four other global streams are constructed with `delete_buf = true`, so at exit `~LogStream` deletes their buffer and `~LogStreamBuf` delivers complete lines, the cache's repetition summaries and an unterminated line.
+- `g_log_debug` is constructed with `delete_buf = false`, with the comment "last param should be 'true', but segfaults...". Its buffer is never deleted, so none of that happens and the text is silently dropped.
+
+**Proposed C++ fix:** Flush the buffer in `~LogStream` when it does not own it (`rdbuf()->pubsync()` plus the cache and incomplete-line handling of `~LogStreamBuf`), or find and fix the teardown-order fault that made `delete_buf = true` crash.
+
+**Evidence:** `oracle/logstream-exit/driver.cpp`, cases `global_return` and `global_exit`: `getGlobalLogDebug().insert(std::cout)` then `<< "gd\n"` without a flush; the other four global streams deliver their pending text at exit, `gd` never appears.
+
+**Rust handling:** Corrected. `finish_process_logs`, the `ProcessLogs` guard and the end of a thread that used `with_global_log` finish the global debug stream first among the global streams, as the four others are finished. Test: `tests/log_stream.rs` (`process_exit_paths_deliver_what_the_release_build_delivers`, the `global` case).

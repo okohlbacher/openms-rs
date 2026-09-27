@@ -2613,10 +2613,23 @@ fn report_unsupported_cpu(message: &'static str) -> ExitCode {
 ///
 /// Separate and `#[inline(never)]` only so that [`run`]'s processor check comes
 /// first in the emitted code as well as in the source.
+///
+/// First, on Windows, the console is switched to virtual-terminal processing as
+/// the source's `InitConsole` does when libOpenMS is loaded
+/// ([`enable_console_colors`](crate::concept::log_stream::enable_console_colors)).
+/// On every way out of the tool (a return with any exit code, or a panic
+/// unwinding) the log streams are finished as the source's destructors finish
+/// them at process exit ([`ProcessLogs`](crate::concept::log_stream::ProcessLogs)):
+/// repetition summaries and unterminated lines still held reach their streams,
+/// after the tool's own output and before the terminal reset.
 #[inline(never)]
 fn run_from_environment<T: Tool>() -> ExitCode {
+    crate::concept::log_stream::enable_console_colors();
     let arguments: Vec<String> = std::env::args().collect();
     let mut out = std::io::stdout();
     let mut err = std::io::stderr();
-    console::with_process_streams(|| run_with::<T>(&arguments, &mut out, &mut err))
+    console::with_process_streams(|| {
+        let _logs = crate::concept::log_stream::ProcessLogs::new();
+        run_with::<T>(&arguments, &mut out, &mut err)
+    })
 }

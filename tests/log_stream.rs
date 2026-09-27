@@ -497,3 +497,218 @@ fn removal_flush_failure_disables_output_and_destructor_retry() {
     assert!(capture.bytes().is_empty());
     assert_eq!(flushes.load(Ordering::Relaxed), 1);
 }
+
+/// What the source prints at process exit, from the C++ Release build at the pins
+/// (`../oracle/logstream-exit`, run on ibminode06, Linux x86_64 Release install
+/// `openms4-release-bc9cc12-c19e494-174b576`, two identical runs): standard output and
+/// standard error of each case in one file (`2>&1`; every record ends in `std::endl`, so
+/// the interleaving is exact). The case bodies are `driver.cpp`'s; the child below
+/// transcribes them through the Rust API. The Release build's `tls_return` and
+/// `tls_exit` print the same bytes, as do `global_return` and `global_exit`:
+/// `std::exit` runs the same destructors as a return from `main`.
+const RELEASE_EXIT: [(&str, &str); 5] = [
+    (
+        "tls",
+        "same\nerr\ninfo partial\n<err> occurred 2 times\n<same> occurred 3 times\n",
+    ),
+    (
+        "tls_order",
+        "e\nw\n<w> occurred 2 times\n<e> occurred 2 times\n",
+    ),
+    (
+        "global",
+        "global line\nglobal partial\ngw\n<gw> occurred 2 times\nge\ngf\n",
+    ),
+    (
+        "both",
+        "w\ninfo partial\n<w> occurred 2 times\ngw\n<gw> occurred 2 times\n",
+    ),
+    (
+        "thread",
+        "te\ntw\n<tw> occurred 2 times\ntw partial\n<te> occurred 2 times\nafter join\n",
+    ),
+];
+
+fn release_exit(case: &str) -> &'static str {
+    RELEASE_EXIT
+        .iter()
+        .find(|(name, _)| *name == case)
+        .map(|(_, text)| *text)
+        .unwrap()
+}
+
+const EXIT_CASE: &str = "OPENMS_LOG_STREAM_EXIT_CASE";
+const EXIT_PATH: &str = "OPENMS_LOG_STREAM_EXIT_PATH";
+const EXIT_OUT: &str = "OPENMS_LOG_STREAM_EXIT_OUT";
+
+/// The driver's `tls_pending`: three equal warnings, two equal errors, then info text
+/// without a line end and without a flush.
+fn tls_pending() -> io::Result<()> {
+    for _ in 0..3 {
+        openms::openms_log_warn!("same")?;
+    }
+    for _ in 0..2 {
+        openms::openms_log_error!("err")?;
+    }
+    with_thread_local_log(LogLevel::Info, |log| log.write_all(b"info partial"))
+}
+
+/// The driver's `global_pending`, written directly to the global streams, none flushed.
+fn global_pending() -> io::Result<()> {
+    with_global_log(LogLevel::Info, |log| {
+        log.write_all(b"global line\nglobal partial")
+    })?;
+    with_global_log(LogLevel::Warn, |log| log.write_all(b"gw\ngw\n"))?;
+    with_global_log(LogLevel::Error, |log| log.write_all(b"ge\n"))?;
+    with_global_log(LogLevel::Debug, |log| log.write_all(b"gd\n"))?;
+    with_global_log(LogLevel::Fatal, |log| log.write_all(b"gf"))
+}
+
+fn case_body(case: &str) -> io::Result<()> {
+    match case {
+        "tls" => tls_pending(),
+        "tls_order" => {
+            for _ in 0..2 {
+                openms::openms_log_error!("e")?;
+            }
+            for _ in 0..2 {
+                openms::openms_log_warn!("w")?;
+            }
+            Ok(())
+        }
+        "global" => global_pending(),
+        "both" => {
+            with_global_log(LogLevel::Warn, |log| log.write_all(b"gw\ngw\n"))?;
+            for _ in 0..2 {
+                openms::openms_log_warn!("w")?;
+            }
+            with_thread_local_log(LogLevel::Info, |log| log.write_all(b"info partial"))
+        }
+        "thread" => {
+            std::thread::spawn(|| -> io::Result<()> {
+                for _ in 0..2 {
+                    openms::openms_log_error!("te")?;
+                }
+                for _ in 0..2 {
+                    openms::openms_log_warn!("tw")?;
+                }
+                with_thread_local_log(LogLevel::Warn, |log| log.write_all(b"tw partial"))
+            })
+            .join()
+            .unwrap()?;
+            openms::openms_log_warn!("after join")
+        }
+        _ => unreachable!("unknown case {case}"),
+    }
+}
+
+/// The child process: every global stream writes, uncoloured, to one file (the oracle's
+/// `2>&1`), the case leaves text buffered, and the process ends through `path`.
+fn exit_child(case: &str, path: &str, out: &str) -> io::Result<()> {
+    let sink = LogSink::new(std::fs::File::create(out)?);
+    for level in [
+        LogLevel::Fatal,
+        LogLevel::Error,
+        LogLevel::Warn,
+        LogLevel::Info,
+        LogLevel::Debug,
+    ] {
+        with_global_log(level, |log| {
+            log.remove_all_streams()?;
+            log.set_color(None);
+            log.insert(&sink)
+        })?;
+    }
+    match path {
+        // The end of a scope that holds `ProcessLogs`: the test returns.
+        "return" => {
+            let _logs = ProcessLogs::new();
+            case_body(case)
+        }
+        // An error return: the guard is dropped on the way out, then libtest exits 101.
+        "error" => {
+            let _logs = ProcessLogs::new();
+            case_body(case)?;
+            Err(io::Error::other("the error exit path"))
+        }
+        // A panic: the guard is dropped while unwinding, then libtest exits 101.
+        "panic" => {
+            let _logs = ProcessLogs::new();
+            case_body(case)?;
+            panic!("the panic exit path");
+        }
+        // `std::process::exit` runs no destructor on the stack: finish first.
+        "exit" => {
+            case_body(case)?;
+            finish_process_logs()?;
+            std::process::exit(3);
+        }
+        // No guard: the thread finishes its streams, and the global ones, when it ends.
+        "thread_end" => case_body(case),
+        _ => unreachable!("unknown exit path {path}"),
+    }
+}
+
+/// Every way out of a process delivers what the source's exit-time destructors deliver,
+/// in their order: the thread's streams, most recently created first, then the global
+/// streams (`LogStream.cpp:111-128`, `:667-672`, `:694-722`). Each case runs in a child
+/// process, this test binary run again, so that the global streams start fresh.
+#[test]
+fn process_exit_paths_deliver_what_the_release_build_delivers() -> io::Result<()> {
+    if let (Ok(case), Ok(path), Ok(out)) = (
+        std::env::var(EXIT_CASE),
+        std::env::var(EXIT_PATH),
+        std::env::var(EXIT_OUT),
+    ) {
+        return exit_child(&case, &path, &out);
+    }
+    let directory = std::path::Path::new(env!("CARGO_TARGET_TMPDIR"))
+        .join(format!("log_stream_exit_{}", std::process::id()));
+    std::fs::create_dir_all(&directory)?;
+    let run = |case: &str, path: &str| -> (Option<i32>, String) {
+        let out = directory.join(format!("{case}_{path}.txt"));
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "process_exit_paths_deliver_what_the_release_build_delivers",
+                "--nocapture",
+                "--test-threads=1",
+            ])
+            .env(EXIT_CASE, case)
+            .env(EXIT_PATH, path)
+            .env(EXIT_OUT, &out)
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .status()
+            .unwrap();
+        (status.code(), std::fs::read_to_string(&out).unwrap())
+    };
+    // The global debug stream: the source never flushes it at exit (CPP-355); the port
+    // does, first among the global streams.
+    let port = |case: &str| {
+        if case == "global" {
+            format!("gd\n{}", release_exit(case))
+        } else {
+            release_exit(case).to_owned()
+        }
+    };
+    for case in ["tls", "tls_order", "global", "both", "thread"] {
+        assert_eq!(run(case, "return"), (Some(0), port(case)), "{case} return");
+    }
+    for case in ["tls", "global"] {
+        assert_eq!(run(case, "exit"), (Some(3), port(case)), "{case} exit");
+        assert_eq!(run(case, "error"), (Some(101), port(case)), "{case} error");
+        assert_eq!(run(case, "panic"), (Some(101), port(case)), "{case} panic");
+    }
+    // Without a guard, a thread's own streams are finished when the thread ends, as the
+    // source's `thread_local` destructors are, and then the global streams, because this
+    // thread used them (`with_global_log`), as the source's static destructors follow.
+    for case in ["tls", "tls_order", "global", "both", "thread"] {
+        assert_eq!(
+            run(case, "thread_end"),
+            (Some(0), port(case)),
+            "{case} thread end"
+        );
+    }
+    std::fs::remove_dir_all(&directory)
+}
