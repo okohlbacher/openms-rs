@@ -99,7 +99,9 @@ fn unknown_input() -> Vec<(&'static str, PathBuf)> {
 /// `Error::Parse` (open item 3 of the TOPPBase ledger entry).
 #[test]
 fn an_undetermined_input_format_is_the_loaders_parse_error_in_every_tool() {
-    let cases: [(&str, fn(&str) -> Replay); 7] = [
+    /// A retained case and the tool that replays it.
+    type Case = (&'static str, fn(&str) -> Replay);
+    let cases: [Case; 7] = [
         ("unknown_bf", |case| {
             replay::<BaselineFilter>(case, &unknown_input())
         }),
