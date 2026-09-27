@@ -11,6 +11,8 @@
 //! resource bounds and atomicity (tier 4).
 
 use openms::Error;
+use openms::concept::log_stream::{LogLevel, LogSink, with_thread_local_log};
+use openms::kernel::Precursor;
 use openms::kernel::experiment_mobility::{
     ExperimentMobilityLimits, FlatPeakDataIm, RtMzRaster, SpectrumPeakDataIm,
 };
@@ -21,6 +23,8 @@ use openms::kernel::{
     MzAggregation, MzRtRegion, Peak1D,
 };
 use openms::metadata::ContactPerson;
+use std::io::{self, Write};
+use std::sync::{Arc, Mutex};
 
 fn scan(rt: f64, drift_time: f64, level: u32, mzs: &[f64]) -> MSSpectrum {
     MSSpectrum {
@@ -1422,6 +1426,294 @@ fn source_precursor_spectrum_literals_for_both_overloads() {
         assert_eq!(exp.precursor_spectrum_index(index).unwrap(), None);
     }
     assert!(exp.precursor_spectrum_index(exp.len()).is_err());
+}
+
+/// A spectrum at `level` with `native_id` whose precursors name `references`
+/// (`None` is a precursor without a `spectrum_ref`).
+fn product_scan(level: u32, native_id: &str, references: &[Option<&str>]) -> MSSpectrum {
+    MSSpectrum {
+        ms_level: level,
+        native_id: native_id.into(),
+        precursors: references
+            .iter()
+            .map(|reference| Precursor {
+                spectrum_reference: reference.map(Into::into),
+                ..Default::default()
+            })
+            .collect(),
+        ..Default::default()
+    }
+}
+
+fn product_map(spectra: Vec<MSSpectrum>) -> MSExperiment {
+    MSExperiment {
+        spectra,
+        ..Default::default()
+    }
+}
+
+/// Every answer for the indices `0..=len`; `len` is the source's `end()`.
+fn product_answers(exp: &MSExperiment) -> Vec<Option<usize>> {
+    (0..=exp.len())
+        .map(|index| exp.first_product_spectrum_index(index))
+        .collect()
+}
+
+#[test]
+fn source_first_product_spectrum_literals_for_both_overloads() {
+    // START_SECTION((ConstIterator getFirstProductSpectrum(ConstIterator iterator) const))
+    // MSExperiment_test.cpp:1211-1276, and the `int` overload at :1278-1340,
+    // which builds the same map and expects the same answers with `-1` for
+    // `end()`. One Rust function serves both; `None` is `end()` and `-1`.
+    let mut exp = product_map(vec![
+        product_scan(1, "scan=1", &[]),
+        product_scan(2, "scan=2", &[Some("scan=1")]),
+        product_scan(1, "scan=3", &[]),
+        product_scan(2, "scan=4", &[Some("scan=3")]),
+        product_scan(2, "scan=5", &[Some("scan=3")]),
+    ]);
+    // From exp[0] exp[1]; from exp[1] end(); from exp[2] exp[3]; from exp[3]
+    // and exp[4] end(); and end() for end().
+    assert_eq!(
+        product_answers(&exp),
+        [Some(1), None, Some(3), None, None, None]
+    );
+    // The `int` overload's index outside the spectra, and past `end()`.
+    assert_eq!(exp.first_product_spectrum_index(exp.len() + 1), None);
+    assert_eq!(exp.first_product_spectrum_index(usize::MAX), None);
+
+    // "Now change the MS levels to only MS1 spectra".
+    for spectrum in &mut exp.spectra {
+        spectrum.ms_level = 1;
+    }
+    assert_eq!(product_answers(&exp), [None; 6]);
+}
+
+#[test]
+fn release_first_product_spectrum_skips_level_jumps_and_empty_references_and_stops_lower() {
+    // Release oracle (Linux x86_64 Release build, `../oracle/msexperiment-close`,
+    // cases product_edges, product_lower_level_stops and product_empty).
+    let exp = product_map(vec![
+        product_scan(1, "a", &[]),
+        // Two levels above the parent: passed over, not a stop.
+        product_scan(3, "b", &[Some("a")]),
+        // A precursor without `spectrum_ref` reads as the empty reference.
+        product_scan(2, "c", &[None]),
+        // The match, although this product has no native ID of its own.
+        product_scan(2, "", &[Some("a")]),
+        // A parent without a native ID…
+        product_scan(1, "", &[]),
+        // …is not matched by an empty reference.
+        product_scan(2, "e", &[Some("")]),
+        product_scan(3, "f", &[Some("e")]),
+    ]);
+    assert_eq!(
+        product_answers(&exp),
+        [Some(3), None, None, None, None, Some(6), None, None]
+    );
+
+    // An MS1 scan ends an MS2 parent's search, level 0 ends every search.
+    let exp = product_map(vec![
+        product_scan(2, "a", &[]),
+        product_scan(1, "b", &[]),
+        product_scan(3, "c", &[Some("a")]),
+        product_scan(0, "d", &[]),
+    ]);
+    assert_eq!(product_answers(&exp), [None; 5]);
+
+    assert_eq!(product_answers(&MSExperiment::default()), [None]);
+}
+
+#[derive(Clone, Default)]
+struct Capture(Arc<Mutex<Vec<u8>>>);
+impl Write for Capture {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        self.0.lock().unwrap().extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+#[test]
+fn release_first_product_spectrum_warns_once_per_visited_candidate_with_several_precursors() {
+    // Release oracle, case product_multiple_precursors: the source's
+    // OPENMS_LOG_WARN line (`MSExperiment.cpp:1029-1031`) for every visited
+    // candidate one level up with more than one precursor, before its first
+    // precursor is compared. Only this test thread's warning route is captured.
+    let capture = Capture::default();
+    let sink = LogSink::new(capture.clone());
+    with_thread_local_log(LogLevel::Warn, |log| {
+        log.remove_all_streams()?;
+        log.set_color(None);
+        log.insert(&sink)
+    })
+    .unwrap();
+    let take = || {
+        with_thread_local_log(LogLevel::Warn, |log| log.clear_cache()).unwrap();
+        String::from_utf8(std::mem::take(&mut *capture.0.lock().unwrap())).unwrap()
+    };
+
+    let exp = product_map(vec![
+        product_scan(1, "a", &[]),
+        // The first precursor names another scan; the second, ignored, names "a".
+        product_scan(2, "b", &[Some("x"), Some("a")]),
+        product_scan(2, "c", &[Some("a"), Some("b")]),
+        product_scan(2, "d", &[]),
+    ]);
+    assert_eq!(exp.first_product_spectrum_index(0), Some(2));
+    assert_eq!(
+        take(),
+        "Spectrum at index 1 has multiple precursors. Only the first precursor will be considered.\n\
+         Spectrum at index 2 has multiple precursors. Only the first precursor will be considered.\n"
+    );
+    // An MS2 parent visits only same-level scans: no candidate, no warning.
+    assert_eq!(exp.first_product_spectrum_index(1), None);
+    assert_eq!(take(), "");
+}
+
+/// MSExperiment_test.cpp:1641-1667's map: a contact, one spectrum with two
+/// zero-intensity peaks and one chromatogram point.
+fn stream_fixture() -> MSExperiment {
+    let mut exp = assignment_fixture();
+    exp.spectra[0].peaks = vec![Peak1D::new(5.0, 0.0), Peak1D::new(10.77, 0.0)];
+    let mut chromatogram = MSChromatogram::new();
+    chromatogram.peaks.push(ChromatogramPeak::new(47.11, 0.0));
+    exp.chromatograms.push(chromatogram);
+    exp
+}
+
+#[test]
+fn source_stream_output_section_and_release_text() {
+    // START_SECTION( std::ostream& operator<<(std::ostream& os, const MSExperiment& chrom))
+    // MSExperiment_test.cpp:1641-1667: the five substrings.
+    let exp = stream_fixture();
+    for text in [exp.to_string(), format!("{exp:#}")] {
+        for needle in [
+            "MSEXPERIMENT BEGIN",
+            "MSSPECTRUM BEGIN",
+            "MSCHROMATOGRAM BEGIN",
+            "47.11",
+            "10.77",
+        ] {
+            assert!(text.contains(needle), "{needle} missing from {text}");
+        }
+    }
+    // The whole text of the Release oracle's case stream_section54.
+    assert_eq!(
+        format!("{exp:#}"),
+        "-- MSEXPERIMENT BEGIN --\n\
+         -- EXPERIMENTALSETTINGS BEGIN --\n\
+         -- EXPERIMENTALSETTINGS END --\n\
+         -- MSSPECTRUM BEGIN --\n\
+         -- SPECTRUMSETTINGS BEGIN --\n\
+         -- SPECTRUMSETTINGS END --\n\
+         POS: 5 INT: 0\n\
+         POS: 10.77 INT: 0\n\
+         -- MSSPECTRUM END --\n\
+         -- MSCHROMATOGRAM BEGIN --\n\
+         -- CHROMATOGRAMSETTINGS BEGIN --\n\
+         -- CHROMATOGRAMSETTINGS END --\n\
+         POS: 47.11 INT: 0\n\
+         -- MSCHROMATOGRAM END --\n\
+         -- MSEXPERIMENT END --\n"
+    );
+    // Release case stream_empty.
+    assert_eq!(
+        format!("{:#}", MSExperiment::default()),
+        "-- MSEXPERIMENT BEGIN --\n\
+         -- EXPERIMENTALSETTINGS BEGIN --\n\
+         -- EXPERIMENTALSETTINGS END --\n\
+         -- MSEXPERIMENT END --\n"
+    );
+}
+
+#[test]
+fn release_stream_output_numbers_are_the_default_stream_text() {
+    // Release oracle, case stream_numbers: six significant digits in `%g`
+    // style, a widened `float` intensity, signed zero, glibc's `nan`/`-nan`,
+    // and settings, native IDs, precursors and comments that no settings
+    // operator prints.
+    let mut exp = MSExperiment::default();
+    exp.settings.comment = "not printed".into();
+    exp.spectra.push(MSSpectrum {
+        rt: 123.456789,
+        ms_level: 2,
+        native_id: "scan=7".into(),
+        precursors: vec![Precursor {
+            spectrum_reference: Some("scan=1".into()),
+            ..Default::default()
+        }],
+        peaks: vec![
+            Peak1D::new(500.123456789, 1234.5678),
+            Peak1D::new(1234567.0, 0.1),
+            Peak1D::new(0.000012345, 1e-7),
+            Peak1D::new(-0.0, -0.0),
+            Peak1D::new(100.0, f32::NAN),
+            Peak1D::new(200.0, -f32::NAN),
+            Peak1D::new(300.0, f32::INFINITY),
+            Peak1D::new(1e21, 3.0),
+        ],
+        ..Default::default()
+    });
+    exp.spectra.push(MSSpectrum::default());
+    let mut chromatogram = MSChromatogram::new();
+    chromatogram.native_id = "chrom=1".into();
+    // `98765.43` is the `float` of the driver's `98765.4321f`, and `16777217.0`
+    // rounds to the same `16777216.0f` as the driver's literal.
+    chromatogram.peaks = vec![
+        ChromatogramPeak::new(3600.5, 98765.43),
+        ChromatogramPeak::new(0.1 + 0.2, 16777217.0),
+    ];
+    exp.chromatograms.push(chromatogram);
+    exp.chromatograms.push(MSChromatogram::new());
+    assert_eq!(
+        format!("{exp:#}"),
+        "-- MSEXPERIMENT BEGIN --\n\
+         -- EXPERIMENTALSETTINGS BEGIN --\n\
+         -- EXPERIMENTALSETTINGS END --\n\
+         -- MSSPECTRUM BEGIN --\n\
+         -- SPECTRUMSETTINGS BEGIN --\n\
+         -- SPECTRUMSETTINGS END --\n\
+         POS: 500.123 INT: 1234.57\n\
+         POS: 1.23457e+06 INT: 0.1\n\
+         POS: 1.2345e-05 INT: 1e-07\n\
+         POS: -0 INT: -0\n\
+         POS: 100 INT: nan\n\
+         POS: 200 INT: -nan\n\
+         POS: 300 INT: inf\n\
+         POS: 1e+21 INT: 3\n\
+         -- MSSPECTRUM END --\n\
+         -- MSSPECTRUM BEGIN --\n\
+         -- SPECTRUMSETTINGS BEGIN --\n\
+         -- SPECTRUMSETTINGS END --\n\
+         -- MSSPECTRUM END --\n\
+         -- MSCHROMATOGRAM BEGIN --\n\
+         -- CHROMATOGRAMSETTINGS BEGIN --\n\
+         -- CHROMATOGRAMSETTINGS END --\n\
+         POS: 3600.5 INT: 98765.4\n\
+         POS: 0.3 INT: 1.67772e+07\n\
+         -- MSCHROMATOGRAM END --\n\
+         -- MSCHROMATOGRAM BEGIN --\n\
+         -- CHROMATOGRAMSETTINGS BEGIN --\n\
+         -- CHROMATOGRAMSETTINGS END --\n\
+         -- MSCHROMATOGRAM END --\n\
+         -- MSEXPERIMENT END --\n"
+    );
+    // The spectrum and chromatogram dumps are the experiment's own parts.
+    let text = format!("{exp:#}");
+    assert!(text.contains(&format!("{:#}", exp.spectra[0])));
+    assert!(text.contains(&format!("{:#}", exp.chromatograms[0])));
+    // Without `#` only the numbers change: as many lines, the banners equal.
+    let native = exp.to_string();
+    assert_eq!(native.lines().count(), text.lines().count());
+    for (native, source) in native.lines().zip(text.lines()) {
+        assert_eq!(native.starts_with("--"), source.starts_with("--"));
+        if source.starts_with("--") {
+            assert_eq!(native, source);
+        }
+    }
 }
 
 #[test]

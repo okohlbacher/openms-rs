@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-use openms::kernel::{Data2DLimits, Peak2D, RichPeak2D};
+use openms::concept::constants::C13C12_MASSDIFF_U;
+use openms::concept::constants::user_param::NUM_OF_MASSTRACES;
+use openms::kernel::{BaseFeature, ConsensusFeature, Data2DLimits, Feature, Peak2D, RichPeak2D};
 use openms::metadata::{MetaValue, Unit};
 use openms::{Error, MSChromatogram, MSExperiment, MSSpectrum, Peak1D};
 fn scan(rt: f64, level: u32, points: &[(f64, f32)]) -> MSSpectrum {
@@ -336,4 +338,241 @@ fn bounded_random_sorted_roundtrips_and_unsorted_export_oracle() {
         exp.set_2d_data(&[Peak2D::new(1., 1., 1.), Peak2D::new(0., 1., 1.)]),
         Err(Error::UnsortedData)
     ));
+}
+
+// --------------------------------------------------------------------------
+// set2DData<add_mass_traces = true>
+// --------------------------------------------------------------------------
+
+fn feature(rt: f64, mz: f64, intensity: f32) -> Feature {
+    Feature::from(BaseFeature::new(rt, mz, intensity))
+}
+fn float(value: f64) -> MetaValue {
+    MetaValue::try_from(value).unwrap()
+}
+fn traces(feature: &mut Feature, count: i64, intensities: &[MetaValue]) {
+    feature
+        .metadata
+        .insert(NUM_OF_MASSTRACES.into(), count.into());
+    for (i, value) in intensities.iter().enumerate() {
+        feature
+            .metadata
+            .insert(format!("masstrace_intensity_{i}"), value.clone());
+    }
+}
+/// Each spectrum as its retention time and its peaks' bit patterns.
+fn peak_bits(exp: &MSExperiment) -> Vec<(f64, Vec<(u64, u32)>)> {
+    exp.spectra
+        .iter()
+        .map(|s| {
+            assert_eq!(s.ms_level, 1);
+            assert!(s.float_data_arrays.is_empty());
+            let peaks = s
+                .peaks
+                .iter()
+                .map(|p| (p.mz.to_bits(), p.intensity.to_bits()));
+            (s.rt, peaks.collect())
+        })
+        .collect()
+}
+fn bits(mz: f64, intensity: f32) -> (u64, u32) {
+    (mz.to_bits(), intensity.to_bits())
+}
+#[test]
+fn source_set_2d_data_mass_traces_literals_and_precondition() {
+    // START_SECTION((template <bool add_mass_traces, class Container> void set2DData(const Container& cont, const StringList& store_metadata_names = StringList())))
+    // MSExperiment_test.cpp:359-393, the mass-trace half and the closing
+    // precondition. The plain and rich halves (:310-357) are
+    // `source_plain_roundtrip_replaces_all_current_data_and_returns_old_ownership`
+    // and `source_rich_metadata_literals_missing_nan_and_duplicate_names`.
+    let f1 = feature(8.5, 9.5, 7.5);
+    let mut f2 = feature(18.5, 19.5, 17.5);
+    traces(&mut f2, 2, &[float(11.0), float(12.0)]);
+    f2.charge = 2;
+    let mut exp = MSExperiment::new();
+    exp.set_2d_data_mass_traces(&[f1, f2]).unwrap();
+    // `get2DData(fm_out)` fills RT, m/z and intensity only, so those three are
+    // the whole comparison with `fm2`: f1, then f2 once per trace, the m/z
+    // advanced by `C13C12_MASSDIFF_U/2*i` and the intensity replaced.
+    let mz0 = 19.5 + C13C12_MASSDIFF_U / 2.0 * 0.0;
+    let mz1 = mz0 + C13C12_MASSDIFF_U / 2.0 * 1.0;
+    assert_eq!(
+        exp.get_2d_data().unwrap(),
+        [
+            Peak2D::new(8.5, 9.5, 7.5),
+            Peak2D::new(18.5, mz0, 11.0),
+            Peak2D::new(18.5, mz1, 12.0),
+        ]
+    );
+    // The Release oracle's value, `0x1.4006dee6b5134p+4` (case mass_section11).
+    assert_eq!(mz1.to_bits(), 0x4034_006d_ee6b_5134);
+    assert_eq!(exp.spectra.len(), 2);
+
+    // "test precondition (input sorted by RT)": `input.push_back(p1)`.
+    let input = [
+        Peak2D::new(2.0, 3.0, 1.0),
+        Peak2D::new(5.0, 6.0, 4.0),
+        Peak2D::new(8.5, 9.5, 7.5),
+        Peak2D::new(2.0, 3.0, 1.0),
+    ];
+    assert!(matches!(exp.set_2d_data(&input), Err(Error::UnsortedData)));
+}
+#[test]
+fn release_set_2d_data_mass_traces_empty_spectrum_negative_charge_and_integer_intensity() {
+    // Release oracle (Linux x86_64 Release build, `../oracle/msexperiment-close`),
+    // case mass_zero_negative_int_values. A retention time whose only feature
+    // records zero traces still opens a spectrum; charge -2 spaces the traces
+    // downward; an integer intensity converts; a -0.0 intensity keeps its sign.
+    let mut zero = feature(1.0, 100.0, 5.0);
+    traces(&mut zero, 0, &[]);
+    let plain = feature(2.0, 200.0, 6.0);
+    let mut negative = feature(2.0, 150.0, 7.0);
+    traces(&mut negative, 3, &[1i64.into(), float(2.5), float(-0.0)]);
+    negative.charge = -2;
+    let mut triple = feature(3.0, 300.0, 8.0);
+    traces(&mut triple, 2, &[float(4.0), float(0.0)]);
+    triple.charge = 3;
+    let mut exp = MSExperiment::new();
+    exp.set_2d_data_mass_traces(&[zero, plain, negative, triple])
+        .unwrap();
+    assert_eq!(
+        peak_bits(&exp),
+        [
+            (1.0, vec![]),
+            (
+                2.0,
+                vec![
+                    bits(200.0, 6.0),
+                    bits(150.0, 1.0),
+                    (0x4062_aff2_4232_95da, 2.5f32.to_bits()),
+                    (0x4062_9fe4_8465_2bb3, (-0.0f32).to_bits()),
+                ]
+            ),
+            (
+                3.0,
+                vec![bits(300.0, 4.0), (0x4072_c559_e9ef_2362, 0.0f32.to_bits())]
+            ),
+        ]
+    );
+}
+#[test]
+fn release_set_2d_data_mass_traces_errors_follow_source_order_and_replace_nothing() {
+    // Release oracle cases mass_missing_trace, mass_count_huge,
+    // mass_count_double, mass_count_negative, mass_count_string,
+    // mass_intensity_empty_value, mass_unsorted, mass_error_order and
+    // mass_intensity_overflow. The source has cleared the experiment and
+    // added the peaks before the failing one; the port replaces nothing.
+    let mut exp = old_map();
+    let before = exp.clone();
+    let mut run = |features: &[Feature]| exp.set_2d_data_mass_traces(features);
+    let message = |result: openms::Result<MSExperiment>| match result {
+        Err(Error::InvalidValue(message)) => message,
+        other => panic!("expected an invalid value, got {other:?}"),
+    };
+
+    let mut missing = feature(1.0, 100.0, 5.0);
+    traces(&mut missing, 2, &[float(1.0)]);
+    assert_eq!(
+        message(run(&[missing])),
+        "Meta value 'masstrace_intensity_1' expected but not found in container."
+    );
+    // A huge count fails at the first missing name, not by running long.
+    let mut huge = feature(1.0, 100.0, 5.0);
+    traces(&mut huge, 1_000_000_000_000, &[float(1.0)]);
+    assert_eq!(
+        message(run(&[huge])),
+        "Meta value 'masstrace_intensity_1' expected but not found in container."
+    );
+    // The source's DataValue conversions throw ConversionError here.
+    for count in [float(2.0), (-1i64).into(), "2".into()] {
+        let mut f = feature(1.0, 100.0, 5.0);
+        f.metadata.insert(NUM_OF_MASSTRACES.into(), count);
+        message(run(&[f]));
+    }
+    let mut empty = feature(1.0, 100.0, 5.0);
+    traces(&mut empty, 1, &[MetaValue::default()]);
+    message(run(&[empty]));
+
+    assert!(matches!(
+        run(&[feature(5.0, 100.0, 5.0), feature(3.0, 100.0, 5.0)]),
+        Err(Error::UnsortedData)
+    ));
+    // The second feature's missing trace comes before the third's RT regression.
+    let mut second = feature(7.0, 100.0, 5.0);
+    traces(&mut second, 1, &[]);
+    assert_eq!(
+        message(run(&[
+            feature(5.0, 100.0, 5.0),
+            second,
+            feature(1.0, 100.0, 5.0)
+        ])),
+        "Meta value 'masstrace_intensity_0' expected but not found in container."
+    );
+    // The source stores `float(1e40)`, infinity; the port's 2D import refuses
+    // a nonfinite intensity, as it does for plain and rich points.
+    let mut overflow = feature(1.0, 100.0, 5.0);
+    traces(&mut overflow, 1, &[float(1e40)]);
+    message(run(&[overflow]));
+
+    assert_eq!(exp, before);
+}
+#[test]
+fn release_set_2d_data_mass_traces_clears_settings_and_chromatograms() {
+    // Release oracle cases mass_clears and mass_empty; the old map comes back.
+    let mut exp = old_map();
+    exp.settings.comment = "old".into();
+    let old = exp
+        .set_2d_data_mass_traces(&[feature(1.0, 100.0, 5.0)])
+        .unwrap();
+    assert_eq!(old.settings.comment, "old");
+    assert_eq!(old.chromatograms.len(), 1);
+    assert!(exp.settings.comment.is_empty() && exp.settings.metadata.is_empty());
+    assert!(exp.chromatograms.is_empty());
+    assert_eq!(exp.get_2d_data().unwrap(), [Peak2D::new(1.0, 100.0, 5.0)]);
+    exp.set_2d_data_mass_traces::<Feature>(&[]).unwrap();
+    assert_eq!(exp, MSExperiment::new());
+}
+#[test]
+fn mass_trace_expansion_is_bounded_and_accepts_consensus_features() {
+    // Native bounds: the expanded peaks count against `max_points`, the
+    // retention times against `max_spectra`.
+    let mut three = feature(1.0, 100.0, 5.0);
+    traces(&mut three, 3, &[float(1.0), float(2.0), float(3.0)]);
+    let mut exp = MSExperiment::new();
+    let two_points = Data2DLimits {
+        max_points: 2,
+        ..Default::default()
+    };
+    assert!(matches!(
+        exp.set_2d_data_mass_traces_with_limits(&[three.clone()], two_points),
+        Err(Error::InvalidValue(_))
+    ));
+    let one_spectrum = Data2DLimits {
+        max_spectra: 1,
+        ..Default::default()
+    };
+    let two_rts = [feature(1.0, 1.0, 1.0), feature(2.0, 1.0, 1.0)];
+    assert!(matches!(
+        exp.set_2d_data_mass_traces_with_limits(&two_rts, one_spectrum),
+        Err(Error::InvalidValue(_))
+    ));
+    assert_eq!(exp, MSExperiment::new());
+    let three_points = Data2DLimits {
+        max_points: 3,
+        ..Default::default()
+    };
+    exp.set_2d_data_mass_traces_with_limits(&[three], three_points)
+        .unwrap();
+    assert_eq!(exp.spectra[0].peaks.len(), 3);
+
+    // The source template takes any container of feature-like values.
+    let mut consensus = ConsensusFeature::from(BaseFeature::new(4.0, 50.0, 2.0));
+    consensus
+        .metadata
+        .insert(NUM_OF_MASSTRACES.into(), 1i64.into());
+    consensus
+        .metadata
+        .insert("masstrace_intensity_0".into(), float(9.0));
+    exp.set_2d_data_mass_traces(&[consensus]).unwrap();
+    assert_eq!(exp.get_2d_data().unwrap(), [Peak2D::new(4.0, 50.0, 9.0)]);
 }
