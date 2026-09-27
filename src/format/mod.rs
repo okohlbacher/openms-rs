@@ -199,3 +199,6 @@ pub mod search_engine_text;
 pub mod search_engine_xml;
 /// SpecArray `.pepList` feature files (`SpecArrayFile.h`).
 pub mod spec_array_file;
+/// X! Tandem XML result files (`XTandemXMLFile.h`).
+#[cfg(feature = "idxml")]
+pub mod xtandem_xml_file;
