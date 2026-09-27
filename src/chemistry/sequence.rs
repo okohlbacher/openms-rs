@@ -1141,71 +1141,104 @@ impl FromStr for AASequence {
         Self::parse_with_registry(input, ModificationsDB::global())
     }
 }
+/// The work and byte counters a budgeted parse draws on.
+struct ParseMeter<'a> {
+    work: &'a mut usize,
+    bytes: &'a mut usize,
+}
+impl ParseMeter<'_> {
+    fn charge(&mut self, work: usize, bytes: usize) -> Result<()> {
+        *self.work = self
+            .work
+            .checked_sub(work)
+            .ok_or_else(|| invalid("peptide parent parsing resource limit exceeded"))?;
+        *self.bytes = self
+            .bytes
+            .checked_sub(bytes)
+            .ok_or_else(|| invalid("peptide parent parsing resource limit exceeded"))?;
+        Ok(())
+    }
+}
+
+/// Registry lookups one named annotation can make: at most nine `find`-shaped
+/// calls (one `Anywhere` probe, then two `resolve_terminal` passes of at most
+/// four each), charged as sixteen so that a later branch cannot silently exceed
+/// the bound.
+const NAMED_LOOKUP_CALLS: usize = 16;
+/// Registry passes one mass annotation can make: `best_by_mass_handle` scans the
+/// registry once and filters its matches once; `search_by_mass_handles` scans it
+/// once.
+const MASS_LOOKUP_PASSES: usize = 2;
+/// Work charged per registry record a mass scan visits: the specificity match,
+/// the zero-mass guard and the window test.
+const MASS_RECORD_WORK: usize = 16;
+
 impl AASequence {
-    /// Coverage parsing shares the graph's allowance. Preflight conservatively
-    /// bounds registry lookups, temporary candidates and cumulative formula copies.
+    /// Parse against `db`, drawing on the caller's cumulative work and byte
+    /// budgets, which a document reader shares across every sequence it holds.
+    ///
+    /// Each charge is made before the effort it pays for:
+    ///
+    /// - the scan of the text: `input.len() + 1` work, and 512 bytes per input
+    ///   byte for the retained residues and annotation slots;
+    /// - each named annotation, before it is resolved: the lookups it can make
+    ///   for *its own* name, bounded by `ModificationsDB::name_lookup_work` — an
+    ///   ordered-map descent plus the records filed under that name;
+    /// - each mass annotation, before it is resolved: two passes over the
+    ///   registry, because the source's mass lookup is a registry scan;
+    /// - the chemistry rebuild, once every annotation is resolved: one formula
+    ///   copy per residue whose size is the six base elements plus the atom
+    ///   types of the modifications *actually resolved*, at 64 work and 128
+    ///   bytes per formula entry.
+    ///
+    /// Temporary candidate lists of a lookup hold at most one handle per
+    /// registry record and are released before the next annotation; they are a
+    /// bounded peak, not a cumulative payload, so they are not charged against
+    /// the byte budget.
+    ///
+    /// An earlier version charged every modified sequence a preflight
+    /// proportional to the size of the whole registry — a scan of it, plus
+    /// `records * (longest full ID + 16) * 16` work and `records * 128` bytes
+    /// per annotation — against the document-wide 50-million work budget, so an
+    /// idXML with more than fourteen modified peptide hits could not be read.
+    /// Only a mass annotation still costs work proportional to the registry,
+    /// and only because that lookup really is a scan.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when a charge exceeds the remaining budget, in
+    /// which case the budgets keep what was charged before it; otherwise the
+    /// errors of [`parse_with_registry`](Self::parse_with_registry).
     pub(crate) fn parse_with_budget(
         input: &str,
         db: &ModificationsDB,
         remaining_work: &mut usize,
         remaining_bytes: &mut usize,
     ) -> Result<Self> {
-        let consume = |remaining: &mut usize, amount: usize| -> Result<()> {
-            *remaining = remaining
-                .checked_sub(amount)
-                .ok_or_else(|| invalid("peptide parent parsing resource limit exceeded"))?;
-            Ok(())
+        let mut meter = ParseMeter {
+            work: remaining_work,
+            bytes: remaining_bytes,
         };
-        consume(remaining_work, input.len().saturating_add(1))?;
-        let annotations = input.bytes().filter(|b| matches!(b, b'(' | b'[')).count();
-        let (mut max_id, mut max_atoms, mut keys) = (0usize, 0usize, db.len());
-        if annotations != 0 {
-            consume(remaining_work, db.len())?;
-            for record in db.entries() {
-                max_id = max_id.max(record.full_id().len());
-                max_atoms = max_atoms.max(
-                    record.diff_formula().stored_atom_types().saturating_add(
-                        record
-                            .absolute_formula()
-                            .map_or(0, |f| f.stored_atom_types()),
-                    ),
-                );
-                keys = keys.saturating_add(record.synonyms().len().saturating_add(8));
-            }
-        }
-        let nodes = 6usize.saturating_add(annotations.saturating_mul(max_atoms));
-        let copies = input.len().saturating_add(1).saturating_mul(nodes);
-        let lookup = db
-            .len()
-            .saturating_mul(max_id.saturating_add(16))
-            .saturating_mul(16)
-            .saturating_add(
-                input
-                    .len()
-                    .saturating_add(1)
-                    .saturating_mul(keys.max(1).ilog2() as usize + 1)
-                    .saturating_mul(288),
-            );
-        consume(
-            remaining_work,
-            copies
-                .saturating_mul(64)
-                .saturating_add(annotations.saturating_mul(lookup)),
-        )?;
-        consume(
-            remaining_bytes,
-            input
-                .len()
-                .saturating_mul(512)
-                .saturating_add(copies.saturating_mul(128))
-                .saturating_add(annotations.saturating_mul(db.len()).saturating_mul(128)),
-        )?;
-        Self::parse_with_registry(input, db)
+        Self::parse_metered(input, db, Some(&mut meter))
     }
 
     /// Parse using a supplied registry. Resolved records are shared owned handles,
     /// so neither the registry nor input text must outlive the returned peptide.
     pub fn parse_with_registry(input: &str, db: &ModificationsDB) -> Result<Self> {
+        Self::parse_metered(input, db, None)
+    }
+
+    fn parse_metered(
+        input: &str,
+        db: &ModificationsDB,
+        mut meter: Option<&mut ParseMeter<'_>>,
+    ) -> Result<Self> {
+        if let Some(meter) = meter.as_deref_mut() {
+            meter.charge(
+                input.len().saturating_add(1),
+                input.len().saturating_mul(512),
+            )?;
+        }
         let mut result = Self::default();
         let mut pending = Vec::new();
         let bytes = input.as_bytes();
@@ -1298,6 +1331,21 @@ impl AASequence {
             return Err(invalid("terminal notation requires a peptide"));
         }
         for (attachment, annotation) in pending {
+            if let Some(meter) = meter.as_deref_mut() {
+                let work = match annotation {
+                    Annotation::Named(name) => {
+                        meter.charge(db.name_descent_work(name), 0)?;
+                        db.name_lookup_work(name)
+                            .saturating_mul(NAMED_LOOKUP_CALLS)
+                    }
+                    Annotation::Mass(text) => db
+                        .len()
+                        .saturating_add(1)
+                        .saturating_mul(MASS_LOOKUP_PASSES * MASS_RECORD_WORK)
+                        .saturating_add(text.len()),
+                };
+                meter.charge(work, 0)?;
+            }
             let (destination, modification) = match attachment {
                 Attachment::NTerm | Attachment::CTerm => {
                     let n_terminal = matches!(attachment, Attachment::NTerm);
@@ -1369,6 +1417,26 @@ impl AASequence {
                 return Err(invalid("duplicate annotation at a residue or terminus"));
             }
             *slot = Some(modification);
+        }
+        if let Some(meter) = meter {
+            // One formula copy per residue plus the terminal pass, each at most
+            // the six base elements plus every resolved modification's atoms.
+            let nodes = [&result.n_terminal, &result.c_terminal]
+                .into_iter()
+                .chain(result.residue_modifications.iter())
+                .flatten()
+                .filter_map(SequenceModification::known)
+                .fold(6usize, |nodes, modification| {
+                    nodes
+                        .saturating_add(modification.diff_formula().stored_atom_types())
+                        .saturating_add(
+                            modification
+                                .absolute_formula()
+                                .map_or(0, |f| f.stored_atom_types()),
+                        )
+                });
+            let copies = input.len().saturating_add(1).saturating_mul(nodes);
+            meter.charge(copies.saturating_mul(64), copies.saturating_mul(128))?;
         }
         result.rebuild_chemistry()?;
         Ok(result)
