@@ -1,0 +1,129 @@
+{
+ "group": "percolator_outfile",
+ "package": "F3a (Identification XML, wave 4)",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "package_revisions": {
+  "cli": "c19e494",
+  "topp": "174b576",
+  "test-data": "0cb15f2"
+ },
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PercolatorOutfile.h",
+   "sha256": "48bd92515c46d8dad6c820ffe772b9a41be890450a2c95284d2ea3b8734cee59"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorOutfile.cpp",
+   "sha256": "d54f2ec80ea53386ca53c0ce28ccca8ec542af3d40a67296d6b6dfa490727971"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PercolatorOutfile_test.cpp",
+   "sha256": "f2307c2098f21b66c578515cf1ae9069826358e7782b8fc7f9645aaecc690b78",
+   "role": "The oracle. Its four START_SECTIONs are the constructor and destructor (existence only), getScoreType and load; every literal in load_follows_the_class_test and score_type_names_follow_the_class_test is transcribed from it."
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/SpectrumLookup.h",
+   "sha256": "ef733def587a9043ac2a368e8e9560499b193c1566b16c0dd24ce6897d524b2b",
+   "role": "Ported in part by src/format/spectrum_meta_data_lookup.rs: reference formats, readSpectra and the five find* look-ups."
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumLookup.cpp",
+   "sha256": "380dbdff4c92a2f1bcceda2cb23ae4143193b5f7ba00ecafcff2c474c9acfcff"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/SpectrumMetaDataLookup.h",
+   "sha256": "54fffc86be75095032e25e433a006c6f6c607557c6e7701e9e27157e3a4d5ccc",
+   "role": "Ported in part: MetaDataFlags, SpectrumMetaData, readSpectra with get_precursor_rt, and the index and spectrum-reference getSpectrumMetaData overloads."
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumMetaDataLookup.cpp",
+   "sha256": "e150427f8e76173fe4a3b2865121960625723943ce41a8010ece697e86c30b93"
+  }
+ ],
+ "topp_tool_source": {
+  "path": "src/IDFileConverter.cpp",
+  "revision": "topp 174b576",
+  "sha256": "c488e25d19f4b3298596622849a03ada90c8eda0e835db3aaeef4608044716e1",
+  "operation": "the PSMS branch at 540-556: -score_type through getScoreType (229-230, 542-544), an optional -mz_file read into the lookup (545-550), an optional -scan_regex registered as a reference format (551-552), then PercolatorOutfile().load into protein_identifications[0]."
+ },
+ "upstream_test_definition": {
+  "path": "topp/CMakeLists.txt",
+  "revision": "test-data 0cb15f2",
+  "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb",
+  "registrations": [
+   {
+    "name": "TOPP_IDFileConverter_12",
+    "lines": "1235-1237",
+    "note": "-score_type qvalue; FuzzyDiff whitelist 'IdentificationRun date'"
+   },
+   {
+    "name": "TOPP_IDFileConverter_13",
+    "lines": "1239-1241",
+    "note": "-score_type PEP"
+   },
+   {
+    "name": "TOPP_IDFileConverter_14",
+    "lines": "1243-1245",
+    "note": "-score_type score"
+   }
+  ],
+  "comparison": "the retained outputs are read back with crate::format::idxml and compared with the port's load record by record: search engine, identifier, every protein accession, and per PSM retention time, m/z, score type and orientation, charge, sequence, score, the three Percolator meta values and the evidence accessions; the run date is not compared, as the upstream whitelist excludes it."
+ },
+ "evidence_tier": 1,
+ "evidence": "Tier 1 (retained upstream output): TOPP_IDFileConverter_12, _13 and _14 reproduced from their own input. Tier 3 (class test): the getScoreType and load START_SECTIONs of PercolatorOutfile_test.cpp with their literals (the other two only construct and destroy). Tier 3/4: reference look-up, peptide rewriting (flanking residues, [unknown], [UNIMOD:n], misassigned X! Tandem N-terminal shifts, the missing '+') and refusal cases, derived from reading the source, with UniMod masses from the crate's registry.",
+ "fixtures": [
+  {
+   "path": "tests/data/percolator_outfile/PercolatorOutfile_test.psms",
+   "source_path": "src/tests/class_tests/openms/data/PercolatorOutfile_test.psms",
+   "source_revision": "core bc9cc12",
+   "sha256": "c7adae94c5babfef31deafe9b635aca910223f14d1d200ead2718baa8ef18274",
+   "bytes": 359,
+   "role": "Unmodified upstream. The class test's input."
+  },
+  {
+   "path": "tests/data/percolator_outfile/IDFileConverter_12_input.psms",
+   "source_path": "topp/IDFileConverter_12_input.psms",
+   "source_revision": "test-data 0cb15f2",
+   "sha256": "de47d2c998d03e8d19f9054ec5e256b39d69b631e254b8a556b114e46e92cc04",
+   "bytes": 63894,
+   "role": "Unmodified upstream. The input of TOPP_IDFileConverter_12, _13 and _14."
+  },
+  {
+   "path": "tests/data/percolator_outfile/IDFileConverter_12_output.idXML",
+   "source_path": "topp/IDFileConverter_12_output.idXML",
+   "source_revision": "test-data 0cb15f2",
+   "sha256": "1fbf56162fef1d70c4b6d0f2c2848d8360a2cd6d664674f430172900884f36b9",
+   "bytes": 198995,
+   "role": "Unmodified upstream. Retained C++ output, -score_type qvalue.",
+   "evidence_label": "retained upstream output (tier 1)"
+  },
+  {
+   "path": "tests/data/percolator_outfile/IDFileConverter_13_output.idXML",
+   "source_path": "topp/IDFileConverter_13_output.idXML",
+   "source_revision": "test-data 0cb15f2",
+   "sha256": "da4e9ddd9515080e5be1bad56ab482d558e47e0bde6e0c02c6dabf9ed2581a98",
+   "bytes": 201718,
+   "role": "Unmodified upstream. Retained C++ output, -score_type PEP.",
+   "evidence_label": "retained upstream output (tier 1)"
+  },
+  {
+   "path": "tests/data/percolator_outfile/IDFileConverter_14_output.idXML",
+   "source_path": "topp/IDFileConverter_14_output.idXML",
+   "source_revision": "test-data 0cb15f2",
+   "sha256": "c58333b0a151e28c402a8b45816f1da3d49a896a44e95abf08e8cb15d321f3cf",
+   "bytes": 199967,
+   "role": "Unmodified upstream. Retained C++ output, -score_type score.",
+   "evidence_label": "retained upstream output (tier 1)"
+  }
+ ],
+ "native_implementation": [
+  "src/format/percolator_outfile.rs",
+  "src/format/spectrum_meta_data_lookup.rs"
+ ],
+ "native_tests": [
+  "tests/percolator_outfile.rs"
+ ],
+ "support_document": "docs/PERCOLATOR_OUTFILE_SUPPORT.md"
+}
