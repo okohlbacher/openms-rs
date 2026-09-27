@@ -185,3 +185,18 @@ fn intensity(value: &str, line: usize) -> Result<f32> {
 fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
+
+/// Streaming SAX-style events for the knowledge-base XML readers.
+#[cfg(feature = "kb-xml")]
+pub(crate) mod sax_xml;
+/// PTMXML post-translational modification lists (`PTMXMLFile.h`, `PTMXMLHandler.h`).
+#[cfg(feature = "kb-xml")]
+pub mod ptm_xml;
+/// Unimod XML modification databases and their registry provider
+/// (`UnimodXMLFile.h`, `UnimodXMLHandler.h`, `UnimodXMLDataProvider.h`).
+#[cfg(feature = "kb-xml")]
+pub mod unimod_xml;
+/// UniProtKB XML protein entries for PEFF conversion
+/// (`UniProtXMLFile.h`, `UniProtXMLHandler.h`).
+#[cfg(feature = "kb-xml")]
+pub mod uniprot_xml;

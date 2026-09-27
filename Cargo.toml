@@ -78,6 +78,11 @@ sqlite = ["dep:rusqlite"]
 sqmass = ["sqlite", "mzml"]
 parallel = ["dep:rayon"]
 network = ["dep:ureq"]
+# Knowledge-base XML readers: PTMXML, Unimod XML (a runtime reader for the
+# modification data the default build flattens offline) and UniProtKB XML
+# (plain or gzip/bzip2). quick-xml is already a dependency of the default
+# formats; this only gathers the three dialects behind one switch.
+kb-xml = ["dep:quick-xml", "file-compression"]
 
 [dependencies]
 libxml = { version = "=0.3.14", optional = true }

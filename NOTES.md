@@ -20,6 +20,18 @@ scratchpad root is shared with other lanes, so only use the F6/ subdir).
 1. PTMXMLFile + handler (small, self-contained) 2. UnimodXMLFile + handler + DataProvider
 3. UniProtXMLFile + handler 4. PEFFFile (largest; UniPEFF consumer).
 
+## Done so far (uncompiled until the dax gate reports)
+- Cargo feature `kb-xml` = quick-xml + file-compression (Cargo.toml, report it).
+- src/format/sax_xml.rs: shared bounded SAX driver (qnames, attr normalisation, coalesced text).
+- src/format/ptm_xml.rs + tests/ptm_xml.rs (fixture tests/data/PTMXMLFile_PTMs.xml).
+- src/format/unimod_xml.rs (+ UnimodXMLDataProvider) + tests/unimod_xml.rs
+  (Retain default = matches ModificationsDB::global(); ReadOptions::source() = C++ classification rule).
+- src/format/uniprot_xml.rs + tests/uniprot_xml.rs (fixture tests/data/UniProtXMLFile_test.xml).
+- PEFF fixtures copied to tests/data/PEFFFile_*.peff (11 files, unchanged).
+- Gate: logs in $SCRATCH/F6/logs/*.log; slot F6 on dax.
+
 ## Next step
-1. Read existing Rust XML patterns (src/format/transformation_xml.rs, paramxml.rs) + skill.
-2. Port PTMXMLFile; commit.
+1. Get kb-xml slice green on dax (ptm_xml, unimod_xml, uniprot_xml, lib sax_xml).
+2. Docs: docs/{PTM_XML,UNIMOD_XML,UNIPROT_XML}_SUPPORT.md + provenance JSONs; commit.
+3. PEFF: read PEFFFile.cpp 1302-3464 (I/O) then 504-1300 (sequence methods); port to src/format/peff.rs.
+4. C++ oracle on ibminode06 (../oracle/F6-kbxml/): dump unimod/uniprot/ptm/peff results.
