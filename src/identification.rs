@@ -10,6 +10,9 @@ pub mod graph;
 mod protein_run;
 mod run_mapping;
 pub use run_mapping::IdentifierMSRunMapper;
+mod peptide_identification;
+pub use peptide_identification::{ConsensusIdLocation, ConsensusUidMap, MAX_UID_IDENTIFICATIONS};
+pub mod usi;
 
 use crate::chemistry::{AASequence, SequenceModification};
 use crate::comparison::Tolerance;
@@ -286,18 +289,60 @@ impl PeptideHit {
     }
 }
 
-/// Spectrum-level peptide candidates. Missing coordinates are None.
+/// The candidates (spectrum matches) identified for one precursor spectrum
+/// (source `METADATA/PeptideIdentification.h`).
+///
+/// Typically the result of searching one MS/MS spectrum against a sequence
+/// database or spectral library: a list of [`PeptideHit`]s, each a potential
+/// match. An identification belongs to a parent [`ProteinIdentification`]
+/// run, which holds the search parameters, database and identified proteins;
+/// the two are linked by the shared [`identifier`](Self::identifier) string,
+/// and many identifications (one per spectrum) can share one run.
+///
+/// The precursor's retention time and m/z map the identification back to
+/// experimental data - spectra, features or consensus features (the source's
+/// `IDMapper`). Missing coordinates are `None` where the source stores a quiet
+/// NaN, so `getRT`/`setRT`/`hasRT` and their m/z counterparts are the `rt` and
+/// `mz` fields with `is_some`. The score type, orientation and an optional
+/// significance threshold describe the hits' scores.
+///
+/// The source class is also available as [`SpectrumIdentification`], the name
+/// its header calls "better" and deprecates this one in favour of. Equality is
+/// field-wise; the source's NaN-equals-NaN rule for unset coordinates is
+/// `None == None` here. Hashing is consistent with equality (source
+/// `std::hash<PeptideIdentification>`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct PeptideIdentification {
+    /// Links this identification to its [`ProteinIdentification`] run (source
+    /// `getIdentifier`/`setIdentifier`).
     pub identifier: String,
+    /// The candidate hits (source `getHits`/`setHits`/`insertHit`).
     pub hits: Vec<PeptideHit>,
+    /// Name of the score in [`PeptideHit::score`], for example `Mascot`,
+    /// `e-value` or `q-value` (source `getScoreType`/`setScoreType`).
     pub score_type: String,
+    /// Score orientation (source `isHigherScoreBetter`/`setHigherScoreBetter`);
+    /// `true` by default.
     pub higher_score_better: bool,
+    /// Peptide significance threshold (source
+    /// `getSignificanceThreshold`/`setSignificanceThreshold`). The source keeps
+    /// it as the `significance_threshold` metadata value and removes that value
+    /// when set to 0; here it is a field, 0 by default, and the file formats
+    /// write the source attribute.
     pub significance_threshold: f64,
+    /// Retention time of the identified MS2 spectrum, if known.
     pub rt: Option<f64>,
+    /// Precursor m/z of the identified MS2 spectrum, if known.
     pub mz: Option<f64>,
+    /// The source `MetaInfoInterface` payload, including `spectrum_reference`
+    /// and `experiment_label`.
     pub metadata: MetaInfo,
 }
+
+/// Source `using SpectrumIdentification = PeptideIdentification`, the name the
+/// source header marks as the future default.
+pub type SpectrumIdentification = PeptideIdentification;
+
 impl Default for PeptideIdentification {
     fn default() -> Self {
         Self {
@@ -313,15 +358,27 @@ impl Default for PeptideIdentification {
     }
 }
 impl PeptideIdentification {
+    /// Source default constructor: no hits, no run, higher scores better,
+    /// threshold 0 and unknown RT and m/z.
     pub fn new() -> Self {
         Self::default()
     }
+    /// Number of candidate hits.
     pub fn len(&self) -> usize {
         self.hits.len()
     }
+    /// Whether there are no candidate hits. The source `empty()`, which also
+    /// requires the default run, score type, orientation and threshold, is
+    /// [`PeptideIdentification::source_empty`].
     pub fn is_empty(&self) -> bool {
         self.hits.is_empty()
     }
+    /// Check the invariants the source leaves unchecked: a finite threshold,
+    /// finite coordinates when present, valid metadata and valid hits.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the first violated invariant.
     pub fn validate(&self) -> Result<()> {
         finite(
             self.significance_threshold,
@@ -339,6 +396,18 @@ impl PeptideIdentification {
         }
         Ok(())
     }
+    /// Source `sort()`: order the hits so that the best-scoring hit comes
+    /// first, honouring [`Self::higher_score_better`].
+    ///
+    /// The sort is stable, as the source's `std::stable_sort` with
+    /// [`PeptideIdentification::score_comparator`]: equal scores keep their
+    /// input order.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] from [`PeptideIdentification::validate`], before
+    /// anything moves. The source sorts NaN scores with a comparator that is
+    /// then not a strict weak ordering; this refuses them.
     pub fn sort(&mut self) -> Result<()> {
         self.validate()?;
         self.hits
@@ -353,35 +422,60 @@ impl PeptideIdentification {
             .iter()
             .min_by(|a, b| score_order(a.score, b.score, self.higher_score_better)))
     }
+    /// Source static `getReferencingHits(getHits(), accessions)`: this
+    /// identification's hits with at least one peptide evidence whose protein
+    /// accession is in `accessions`, in hit order.
+    /// [`PeptideIdentification::hits_referencing`] takes any hit slice.
     pub fn referencing_hits<'a>(&'a self, accessions: &BTreeSet<String>) -> Vec<&'a PeptideHit> {
-        self.hits
-            .iter()
-            .filter(|hit| {
-                hit.evidences
-                    .iter()
-                    .any(|e| accessions.contains(&e.protein_accession))
-            })
-            .collect()
+        Self::hits_referencing(&self.hits, accessions)
     }
+    /// Source `getSpectrumReference()`: the `spectrum_reference` metadata value
+    /// as text, or `""` when absent. Currently this should almost always be the
+    /// full native vendor ID.
+    ///
+    /// Like the source, a non-string value is stringified leniently rather than
+    /// refused (an integer scan index from idparquet or mzIdentML reads as
+    /// `17`), in the source's text form (`1.5`, `1.23456789125e08`, `[a, b]`).
     pub fn spectrum_reference(&self) -> String {
-        text_value(&self.metadata, "spectrum_reference")
+        source_text_value(&self.metadata, "spectrum_reference")
     }
+    /// Source `setSpectrumReference`: store `spectrum_reference` as a string
+    /// value. An empty reference is stored too, as in the source.
     pub fn set_spectrum_reference(&mut self, value: impl Into<String>) {
         self.metadata
             .insert("spectrum_reference".into(), value.into().into());
     }
+    /// Source `getExperimentLabel()`: the `experiment_label` metadata value as
+    /// text (mostly written for pepXML, where every identification can belong
+    /// to a different experiment), or `""` when absent. Stringified leniently
+    /// as [`PeptideIdentification::spectrum_reference`] is.
     pub fn experiment_label(&self) -> String {
-        text_value(&self.metadata, "experiment_label")
+        source_text_value(&self.metadata, "experiment_label")
     }
+    /// Source `setExperimentLabel`: store a non-empty label.
+    ///
+    /// An empty label is **ignored**, exactly as in the source, which does not
+    /// store the empty default: a label set earlier stays in place (executed
+    /// Release oracle `B8b-peptide-id`, case `labels`). Remove the
+    /// `experiment_label` metadata entry to clear it.
     pub fn set_experiment_label(&mut self, value: impl Into<String>) {
         let value = value.into();
-        if value.is_empty() {
-            self.metadata.remove("experiment_label");
-        } else {
+        if !value.is_empty() {
             self.metadata
                 .insert("experiment_label".into(), value.into());
         }
     }
+}
+/// A metadata value as the source's lenient `StringUtils::toStr(DataValue)`
+/// writes it, or `""` when absent. The text form only fails beyond the list
+/// byte ceiling, where the plain display form is used instead.
+fn source_text_value(metadata: &MetaInfo, key: &str) -> String {
+    use crate::data_structures::list::ListFormat;
+    metadata.get(key).map_or_else(String::new, |value| {
+        value
+            .to_list_text()
+            .map_or_else(|_| value.to_string(), std::borrow::Cow::into_owned)
+    })
 }
 fn score_order(a: f64, b: f64, higher: bool) -> std::cmp::Ordering {
     if higher {

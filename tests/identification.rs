@@ -191,8 +191,13 @@ fn accessions_references_and_typed_metadata_remain_attached() {
     assert_eq!(id.spectrum_reference(), "scan=25");
     id.set_experiment_label("sample A");
     assert_eq!(id.experiment_label(), "sample A");
+    // Source setExperimentLabel stores only a non-empty label, so an empty one
+    // leaves the earlier label in place. This line used to assert removal, a
+    // Rust-side choice; the executed Release build keeps the label (oracle
+    // B8b-peptide-id, case labels: label_after_empty "[A]", entry present).
     id.set_experiment_label("");
-    assert!(!id.metadata.contains_key("experiment_label"));
+    assert_eq!(id.experiment_label(), "sample A");
+    assert!(id.metadata.contains_key("experiment_label"));
 }
 
 #[test]

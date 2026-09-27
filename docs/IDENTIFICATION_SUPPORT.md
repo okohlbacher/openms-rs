@@ -8,7 +8,7 @@
 | --- | --- |
 | `PeptideEvidence` | Protein accession, optional zero-based inclusive endpoints, typed flanking residue/terminal markers, validation, ordering and native hashing; [complete evidence API](PEPTIDE_EVIDENCE_SUPPORT.md) |
 | `PeptideHit` | Modified `AASequence`, score, rank, charge, evidence, peak annotations, analysis results, typed metadata, sequence/charge identity and target/decoy category |
-| `PeptideIdentification` | Run identifier, candidate hits, score direction/type/threshold, optional RT/m/z, stable sorting, best-hit and accession lookup, spectrum reference and experiment label |
+| `PeptideIdentification` | Run identifier, candidate hits, score direction/type/threshold, optional RT/m/z, stable sorting, best-hit and accession lookup, spectrum reference and experiment label; UIDs, USIs, the score comparator, `empty()` and hashing: [complete API](PEPTIDE_IDENTIFICATION_SUPPORT.md), with [USI](USI_SUPPORT.md) |
 | `ProteinHit` | Score/rank, accession, raw protein sequence, optional coverage percentage, observed modifications, typed metadata, description and target/decoy category |
 | `ProteinGroup` | Probability, ordered accessions and float/integer/string quantitative arrays; source comparison order |
 | `ProteinIdentification::SearchParameters` | Database/version/taxonomy, charge declaration, mass type, fixed/variable modifications, missed cleavages, absolute/ppm tolerances, enzyme name/regex/specificity, typed metadata and mergeability |

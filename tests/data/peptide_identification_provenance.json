@@ -1,0 +1,122 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "method": "Executed differential (evidence tier 1) for every member this increment adds: ../oracle/B8b-peptide-id/driver.cpp compiled with libOpenMS's Release flags against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 and run twice on ibminode06, each case in a fresh process, both runs byte-identical. Transcribed PeptideIdentification_test.cpp and USI_test.cpp literals are tier 3.",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/METADATA/PeptideIdentification.h",
+   "sha256": "c6d97de86b317ce8f4a49bf2369b7f39a1081cbfe08e6262c9214789ae60ff71",
+   "role": "The ported header, including the std::hash specialisation and the SpectrumIdentification alias."
+  },
+  {
+   "path": "src/openms/source/METADATA/PeptideIdentification.cpp",
+   "sha256": "7785010950d7a1c1d69c2fbbc56af0ab39078cac5103679f7a96a771df38137f",
+   "role": "empty(), getScoreComparator, the UID builders, both buildUSI overloads, setExperimentLabel's empty-label rule."
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/USI.h",
+   "sha256": "c5aa42cea0158fe190d2948a8afd180fa0e3046ef07cf39291c1dda996fe6a33",
+   "role": "The ported USI header."
+  },
+  {
+   "path": "src/openms/source/METADATA/USI.cpp",
+   "sha256": "67539b482aa05c3bbfd98f893d80ba6c68d9c7f4f41ada0adfef619c431a742d",
+   "role": "USI parsing, formatting, scan-number extraction and basenames."
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumNativeIDParser.cpp",
+   "sha256": "a27025952c9d2e8bbdc535f96abd409b1d9e6c37bcc197a125e10661b142e49b",
+   "role": "Not ported here as a type. Read for isNativeID, getRegExFromNativeID and the regex extractScanNumber overload that USI::extractScanNumberFromNativeID calls."
+  },
+  {
+   "path": "src/openms/source/METADATA/IdentifierMSRunMapper.cpp",
+   "sha256": "95a3228c79015a5e923a401096bfbaf2e25ac1cfa5783163f6d315d5ad2a2a19",
+   "role": "Already ported (src/identification/run_mapping.rs). Read for getMSRunPaths and getPrimaryMSRunPath, which the UID and USI builders call."
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
+   "role": "Read for StringUtilsHelper::toInt32 (blank skipping, one '+', std::from_chars)."
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/PeptideHit.h",
+   "sha256": "406d6ae3599524a43f8c86d2cbfbe3185dbae0c77da80a8e6eaa39244f4da747",
+   "role": "Read for PeptideHit::ScoreMore and ScoreLess, which getScoreComparator returns."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeptideIdentification_test.cpp",
+   "sha256": "1f438d71b4ce5dc0f290f7c14dc595a0d11285ed7d7568df9038fc1d8530113e",
+   "role": "36 START_SECTIONs; literals for buildUSI, getReferencingHits and std::hash transcribed."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/USI_test.cpp",
+   "sha256": "fdfe1678e40dd47585125b79ba3bb06ec00f84610402afed1f52c1aa59b9ecd4",
+   "role": "36 START_SECTIONs; literals transcribed in usi_class_test_literals."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/peptide_identification_oracle.tsv",
+   "sha256": "799c648f63199b05ec0d278c4de08cfbb2cd785a454747ce9a8405aef6aaad05",
+   "rows": 387,
+   "kind": "executed C++ output: stdout of the eight oracle cases, each line prefixed with its case name",
+   "derivation": "cases uids, uid_errors, empty, labels, sort, usi_build, usi_mapping, usi_class in that order, run 1; run 2 identical",
+   "evidence_tier": 1,
+   "host": "ibminode06 (Linux 6.8.0-124-generic x86_64)",
+   "build": "Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c; driver compiled with conda-forge g++ 14.4.0 and -O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp"
+  },
+  {
+   "path": "tests/data/MQEvidence_2.consensusXML",
+   "sha256": "16e031dc766533ab8c377bdd8be6bc01d6245d563198d9b78745bede8e4f9745",
+   "kind": "driver and test input, copied unchanged from src/tests/class_tests/openms/data/MQEvidence_2.consensusXML at bc9cc12 (the file PeptideIdentification_test.cpp's buildUIDsFromAllPepIDs section loads)",
+   "license": "BSD-3-Clause"
+  }
+ ],
+ "native_implementation": [
+  "src/identification.rs",
+  "src/identification/peptide_identification.rs",
+  "src/identification/usi.rs"
+ ],
+ "native_tests": [
+  "tests/peptide_identification.rs",
+  "tests/peptide_identification_consensus.rs",
+  "tests/identification.rs"
+ ],
+ "support_document": "docs/PEPTIDE_IDENTIFICATION_SUPPORT.md",
+ "support_documents": [
+  "docs/PEPTIDE_IDENTIFICATION_SUPPORT.md",
+  "docs/USI_SUPPORT.md"
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/B8b-peptide-id/driver.cpp",
+   "sha256": "827cb6ca9fff0df1f9828c6952a5306fa1c3c871ee4145b772c28c55ae16b24b",
+   "origin_key": "fixtures",
+   "note": "oracle driver; built binary sha256 f58d1663958fdfb28470dbf5d6e1700a97c37c7345cddb8754ed150835314c51"
+  },
+  {
+   "path": "../oracle/B8b-peptide-id/cases.txt",
+   "sha256": "1b5dc2f36d7132a242333d1313ef74ab2c224369c234c341963a12700b4b72a3",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8b-peptide-id/run.sh",
+   "sha256": "5fb21defa73b9a6e2bbddcdc346645a7201b407302cc83f11425fb2faf95dd30",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8b-peptide-id/remote_run.sh",
+   "sha256": "65acdfec34cae0c815b1a5e6c8a47c5fe75f30db360551672b298f9b8f10f0f5",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "No C++ is committed to this repository. The oracle driver and its scripts live in ../oracle/B8b-peptide-id/; they ran on ibminode06 against the Linux x86_64 Release install, and results/hashes.txt there records the driver, input, binary and libOpenMS.so hashes.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
