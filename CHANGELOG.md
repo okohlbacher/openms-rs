@@ -2,23 +2,6 @@
 
 ## Unreleased
 
-- **The log streams deliver at exit what the source's destructors deliver.**
-  `finish_process_logs` finishes the calling thread's streams, most recently
-  created first, then the global streams debug, info, warning, error and
-  fatal, as `exit()` destroys them in the source; the `ProcessLogs` guard
-  calls it when dropped. Every tool executable holds one for the whole run,
-  so repetition summaries and unterminated lines reach their streams on every
-  exit code and on a panic. A thread's streams now end in reverse creation
-  order when the thread ends, as the source's `thread_local` streams do, and
-  a thread that used `with_global_log` then finishes the global streams, so a
-  program's `main` loses nothing at exit without the guard either. The
-  global debug stream is delivered too, where the Release build loses it
-  (CPP-355). On Windows the console is switched to virtual-terminal
-  processing as the source's `InitConsole` does, through `winapi-util`, and
-  colour follows the source's console test. Evidence: 7 cases of the Release
-  build (`../oracle/logstream-exit`), compared in `tests/log_stream.rs` over
-  every way out of a process.
-
 - **A thrown exception and a returned exit code end as the source ends them.**
   `Tool::run` and `Tool::run_io` return `ToolResult`: `Ok(code)` is a `main_`
   that returned, which the closing `<tool> took …` line follows, and a
