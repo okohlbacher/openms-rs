@@ -238,7 +238,10 @@ fn parse_line(line: &[u8], params: &mut BTreeMap<String, String>) {
 /// `StringUtils::trim`: space, tab, LF and CR on both ends.
 fn trim(bytes: &[u8]) -> &[u8] {
     let is_space = |byte: &u8| matches!(byte, b' ' | b'\t' | b'\n' | b'\r');
-    let start = bytes.iter().position(|b| !is_space(b)).unwrap_or(bytes.len());
+    let start = bytes
+        .iter()
+        .position(|b| !is_space(b))
+        .unwrap_or(bytes.len());
     let end = bytes
         .iter()
         .rposition(|b| !is_space(b))
@@ -259,7 +262,9 @@ fn double_param(params: &BTreeMap<String, String>, name: &str) -> Result<f64> {
     let text = params.get(name).map(String::as_str).unwrap_or("");
     <f64 as ListParse>::from_list_item(text).map_err(|_| Error::Parse {
         line: 0,
-        message: format!("acqus parameter {name}: could not convert string '{text}' to a double value"),
+        message: format!(
+            "acqus parameter {name}: could not convert string '{text}' to a double value"
+        ),
     })
 }
 
@@ -268,7 +273,9 @@ fn size_param(params: &BTreeMap<String, String>, name: &str) -> Result<u64> {
     let text = params.get(name).map(String::as_str).unwrap_or("");
     let value = <i32 as ListParse>::from_list_item(text).map_err(|_| Error::Parse {
         line: 0,
-        message: format!("acqus parameter {name}: could not convert string '{text}' to an integer value"),
+        message: format!(
+            "acqus parameter {name}: could not convert string '{text}' to an integer value"
+        ),
     })?;
     Ok(i64::from(value) as u64)
 }
@@ -323,7 +330,9 @@ mod tests {
 
     #[test]
     fn negative_sizes_wrap_like_the_source_cast() {
-        let text = MINIMAL.replace("##$TD= 4", "##$TD= -1").replace("##$DELAY= 10", "##$DELAY= -2");
+        let text = MINIMAL
+            .replace("##$TD= 4", "##$TD= -1")
+            .replace("##$DELAY= 10", "##$DELAY= -2");
         let handler = AcqusHandler::from_reader(text.as_bytes()).unwrap();
         assert_eq!(handler.size(), u64::MAX);
         assert_eq!(handler.delay, u64::MAX - 1);
