@@ -12,7 +12,11 @@
 
 use openms::Error;
 use openms::chemistry::AASequence;
+use openms::comparison::Tolerance;
+use openms::data_structures::DateTime;
 use openms::format::omssa_csv_file::OMSSACSVFile;
+use openms::format::pepnovo_infile::PepNovoInfile;
+use openms::format::pepnovo_outfile::{IndexPosMapping, PepNovoOutfile};
 use openms::format::sequest_outfile::SequestOutfile;
 use openms::identification::{FlankingResidue, PeptideHit, ProteinIdentification};
 use openms::metadata::MetaValueData;
@@ -534,4 +538,186 @@ fn sequest_refuses_a_protein_count_past_the_end() {
         }
         other => panic!("expected a parse error, got {other:?}"),
     }
+}
+
+#[test]
+fn pepnovo_infile_matches_the_class_test() {
+    // PepNovoInfile_test.cpp: the key map (three keys) and the stored table,
+    // which must equal PepNovoInfile_test_template.txt byte for byte
+    // (TEST_FILE_EQUAL); the Release oracle writes the same bytes.
+    let mut infile = PepNovoInfile::new();
+    infile
+        .set_modifications(&["Phospho (C)"], &["Phospho (D)", "Ethanolamine (C-term)"])
+        .unwrap();
+    let keys: Vec<(&str, &str)> = infile
+        .modifications()
+        .iter()
+        .map(|(key, id)| (key.as_str(), id.as_str()))
+        .collect();
+    assert_eq!(
+        keys,
+        [
+            ("$+43", "Ethanolamine (C-term)"),
+            ("C+80", "Phospho (C)"),
+            ("D+80", "Phospho (D)")
+        ]
+    );
+    let mut written = Vec::new();
+    infile.write(&mut written).unwrap();
+    let expected = std::fs::read(data("PepNovoInfile_test_template.txt")).unwrap();
+    assert_eq!(
+        String::from_utf8(written).unwrap(),
+        String::from_utf8(expected).unwrap()
+    );
+
+    // operator== compares the modification definitions (the copy sections).
+    let copy = infile.clone();
+    assert_eq!(copy, infile);
+    assert_ne!(copy, PepNovoInfile::new());
+}
+
+fn pepnovo_keys() -> BTreeMap<String, String> {
+    [("K+42", "Acetyl (K)"), ("Y+42", "Acetyl (Y)")]
+        .into_iter()
+        .map(|(key, id)| (key.to_owned(), id.to_owned()))
+        .collect()
+}
+
+fn pepnovo_reader() -> PepNovoOutfile {
+    PepNovoOutfile {
+        run_date: Some("2026-09-27 12:00:00".parse::<DateTime>().unwrap()),
+    }
+}
+
+#[test]
+fn pepnovo_outfile_load_matches_the_class_test() {
+    // PepNovoOutfile_test.cpp, section load.
+    let file = pepnovo_reader();
+    let mut index = IndexPosMapping::new();
+    index.insert(0, (1510.5732421875, 747.761901855469));
+    index.insert(1, (1530.11535644531, 549.856262207031));
+    // "check missing index-key ( rt_and_index[2] )"
+    assert!(matches!(
+        file.load(data("PepNovoOutfile.out"), -2.0, &index, &pepnovo_keys()),
+        Err(Error::Parse { .. })
+    ));
+    index.insert(2, (1533.16589355469, 358.174530029297));
+    index.insert(3, (1111.0, 2222.0));
+
+    // Once with the explicit mapping, once reconstructing from the titles.
+    for mapping in [index.clone(), IndexPosMapping::new()] {
+        let ids = file
+            .load(data("PepNovoOutfile.out"), -2.0, &mapping, &pepnovo_keys())
+            .unwrap()
+            .peptide_identifications;
+        assert_eq!(ids.len(), 4);
+        assert_eq!(ids[0].hits.len(), 5);
+        assert!(real_similar(ids[0].significance_threshold, -2.0));
+        assert!(real_similar(ids[0].mz.unwrap(), 747.761901855469));
+        assert!(real_similar(ids[0].rt.unwrap(), 1510.5732421875));
+        assert_eq!(ids[1].hits.len(), 14);
+        assert!(real_similar(ids[1].significance_threshold, -2.0));
+        assert!(real_similar(ids[1].mz.unwrap(), 549.856262207031));
+        assert!(real_similar(ids[1].rt.unwrap(), 1530.11535644531));
+        assert_eq!(ids[2].hits.len(), 20);
+        assert_eq!(ids[3].hits.len(), 20);
+        let first = &ids[0].hits[0];
+        assert!(real_similar(first.score, -1.412));
+        assert_eq!(first.sequence, AASequence::parse("ADYGVTR").unwrap());
+        assert_eq!(first.charge, 2);
+        assert!(real_similar(float_meta(first, "PnvScr"), 21.144));
+        let second = &ids[0].hits[1];
+        assert!(real_similar(second.score, -1.483));
+        assert_eq!(second.sequence, AASequence::parse("SDYGVTR").unwrap());
+        assert_eq!(second.charge, 2);
+        assert!(real_similar(float_meta(second, "PnvScr"), 18.239));
+
+        let ids = file
+            .load(data("PepNovoOutfile.out"), -4.0, &mapping, &pepnovo_keys())
+            .unwrap()
+            .peptide_identifications;
+        assert_eq!(ids.len(), 4);
+        assert_eq!(ids[3].hits.len(), 20);
+        assert!(real_similar(ids[3].significance_threshold, -4.0));
+        assert!(real_similar(ids[3].hits[11].score, 8.045));
+        assert_eq!(
+            ids[3].hits[11].sequence,
+            AASequence::parse("GK(Acetyl)EAMAPK").unwrap()
+        );
+        assert_eq!(ids[3].hits[0].charge, 2);
+    }
+}
+
+#[test]
+fn pepnovo_outfile_malformed_input_follows_the_source() {
+    // PepNovoOutfile_test.cpp keeps its PepNovoOutfile.out1/.out2 exception
+    // checks commented out: those fixtures use an older `>> index file`
+    // layout, whose third field is a path. Derived from PepNovoOutfile.cpp,
+    // that path is not an index number.
+    let file = pepnovo_reader();
+    let keys = pepnovo_keys();
+    let mapping = IndexPosMapping::new();
+    match file.load(data("PepNovoOutfile.out1"), -2.0, &mapping, &keys) {
+        Err(Error::Parse { line, message }) => {
+            assert_eq!(line, 1);
+            assert_eq!(
+                message,
+                "Expected an index number in line 1 at position 2 (line was: \
+                 '>> 1 /home/shared/pepnovo/4611_raw_ms2_picked.mzXML.1001.2.dta')!"
+            );
+        }
+        other => panic!("expected a parse error, got {other:?}"),
+    }
+    // Derived from PepNovoOutfile.cpp: a table header without the eight
+    // columns, and a candidate line of another width.
+    let dir = std::env::temp_dir();
+    let header_path = dir.join(format!("pepnovo_header_{}.out", std::process::id()));
+    std::fs::write(&header_path, ">> 0 0 1.5_2.5\n#Index\tProb\tScore\n").unwrap();
+    let header = file.load(&header_path, -2.0, &mapping, &keys);
+    let row_path = dir.join(format!("pepnovo_row_{}.out", std::process::id()));
+    std::fs::write(
+        &row_path,
+        ">> 0 0 1.5_2.5\n#Index\tRnkScr\tPnvScr\tN-Gap\tC-Gap\t[M+H]\tCharge\tSequence\n\
+         0\t1.0\t2.0\t0.0\t0.0\t100.0\t2\n",
+    )
+    .unwrap();
+    let row = file.load(&row_path, -2.0, &mapping, &keys);
+    std::fs::remove_file(&header_path).unwrap();
+    std::fs::remove_file(&row_path).unwrap();
+    for (result, expected_line) in [(header, 2), (row, 3)] {
+        match result {
+            Err(Error::Parse { line, message }) => {
+                assert_eq!(line, expected_line);
+                assert_eq!(
+                    message,
+                    format!("Not enough columns in file in line {expected_line} (should be 8)!")
+                );
+            }
+            other => panic!("expected a parse error, got {other:?}"),
+        }
+    }
+}
+
+#[test]
+fn pepnovo_search_engine_and_version_match_the_class_test() {
+    // PepNovoOutfile_test.cpp, section getSearchEngineAndVersion.
+    let mut protein = ProteinIdentification::default();
+    pepnovo_reader()
+        .get_search_engine_and_version(data("PepNovoOutfile.out"), &mut protein)
+        .unwrap();
+    assert_eq!(protein.search_engine, "PepNovo+");
+    assert_eq!(protein.search_engine_version, "Build 20081230");
+    let parameters = &protein.search_parameters;
+    assert_eq!(parameters.fragment_tolerance, Tolerance::Absolute(0.5));
+    assert_eq!(parameters.precursor_tolerance, Tolerance::Absolute(2.5));
+    assert_eq!(parameters.variable_modifications, ["K+42", "Y+42"]);
+
+    // Derived from PepNovoOutfile.cpp: "PepNovo v2.00 - de Novo ..." is
+    // neither form, so nothing is set, and load then uses the defaults.
+    let mut protein = ProteinIdentification::default();
+    pepnovo_reader()
+        .get_search_engine_and_version(data("PepNovoOutfile_version_file.txt"), &mut protein)
+        .unwrap();
+    assert_eq!(protein.search_engine, "");
+    assert_eq!(protein.search_engine_version, "");
 }

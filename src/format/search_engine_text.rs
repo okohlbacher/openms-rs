@@ -156,6 +156,21 @@ mod tests {
     use super::*;
 
     #[test]
+    fn getline_splits_at_line_feeds_only() {
+        assert!(getline_lines("").is_empty());
+        assert_eq!(getline_lines("a\r\nb"), ["a\r", "b"]);
+        assert_eq!(getline_lines("a\n\n"), ["a", ""]);
+        assert_eq!(clean_line(" a b\x01"), "a b");
+        assert_eq!(clean_line("a\t\r"), "a");
+        assert_eq!(find_byte("a|b|c", b'|', 2), 3);
+        assert_eq!(find_byte("a|b", b'|', 9), NPOS);
+        assert_eq!(rfind_byte("a|b|c", b'|'), 3);
+        assert_eq!(substr("abcdef", 2, NPOS).unwrap(), "cdef");
+        assert_eq!(substr("abc", 7, 2).unwrap(), "");
+        assert!(substr("aé", 0, 2).is_err());
+    }
+
+    #[test]
     fn permissive_parse_maps_stop_codons_and_skips_spaces() {
         assert_eq!(
             parse_permissive_sequence("PEP TIDE*").unwrap(),

@@ -195,6 +195,10 @@ pub mod omssa_csv_file;
 /// OMSSA XML result files (`OMSSAXMLFile.h`).
 #[cfg(feature = "idxml")]
 pub mod omssa_xml_file;
+/// PepNovo PTM input tables (`PepNovoInfile.h`).
+pub mod pepnovo_infile;
+/// PepNovo de novo sequencing output (`PepNovoOutfile.h`).
+pub mod pepnovo_outfile;
 /// Permissive sequence parsing shared by the search-engine adapters.
 pub mod search_engine_text;
 /// Bounded SAX-style driver shared by the X! Tandem and OMSSA XML readers.
