@@ -50,7 +50,11 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
 - scratchpad/gate/test1.log + check1.log belong to lane F2, not us.
 
 ## Next step
-1. Review percolator WIP vs C++ header (members), provenance json for tests/data/percolator_outfile, docs.
-2. ProtXMLFile -> src/format/protxml.rs (class test ProtXMLFile_input_{1,2,3}; IDFileConverter_3).
+1. [done c7c2a42] Percolator milestone (docs + provenance; gate g4 15/15 + lib 2).
+2. ProtXMLFile -> src/format/protxml.rs (feature idxml). Fixtures in tests/data/protxml/ (fetched).
+   Oracle ../oracle/F3a-protxml (run.sh push/pull; ibminode06 /scratch/kohlbach/F3a-protxml;
+   IDFileConverter -test on 4 upstream + 13 generated inputs, twice). Retained IDFileConverter_3
+   output has float-widened protein scores (0.999000012874603); pin writes toStr(double).
+   Reuse pepxml internal_residue_mass (make pub(crate)). Helper: scratchpad/pin.py (sha/show/grep/ls/save).
 3. PepXMLFileMascot -> src/format/pepxml_mascot.rs.
 4. XQuest last.
