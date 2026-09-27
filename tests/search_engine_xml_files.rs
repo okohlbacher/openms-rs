@@ -14,6 +14,7 @@
 use openms::Error;
 use openms::chemistry::{AASequence, ModificationDefinitionsSet};
 use openms::data_structures::DateTime;
+use openms::format::omssa_xml_file::{OMSSALoadOptions, OMSSAXMLFile};
 use openms::format::xtandem_xml_file::XTandemXMLFile;
 use openms::metadata::MetaValueData;
 use std::io::Cursor;
@@ -155,4 +156,142 @@ fn xtandem_missing_required_attribute_is_fatal() {
         }
         other => panic!("expected a parse error, got {other:?}"),
     }
+}
+
+fn omssa() -> OMSSAXMLFile {
+    let mut reader = OMSSAXMLFile::new().unwrap();
+    reader.run_date = Some("2026-09-27 12:00:00".parse::<DateTime>().unwrap());
+    reader
+}
+
+#[test]
+fn omssa_load_matches_the_class_test() {
+    // OMSSAXMLFile_test.cpp, section load: "two spectra, first with some hits
+    // (mapping to 4 proteins), second is empty".
+    let result = omssa()
+        .load(data("OMSSAXMLFile_test_1.xml"), OMSSALoadOptions::default())
+        .unwrap();
+    assert_eq!(result.protein_identification.hits.len(), 4);
+    assert_eq!(result.peptide_identifications.len(), 2);
+
+    let options = OMSSALoadOptions {
+        load_proteins: false,
+        ..OMSSALoadOptions::default()
+    };
+    let result = omssa()
+        .load(data("OMSSAXMLFile_test_1.xml"), options)
+        .unwrap();
+    assert_eq!(result.protein_identification.hits.len(), 0);
+    assert_eq!(result.peptide_identifications.len(), 2);
+
+    let options = OMSSALoadOptions {
+        load_proteins: false,
+        load_empty_hits: false,
+    };
+    let result = omssa()
+        .load(data("OMSSAXMLFile_test_1.xml"), options)
+        .unwrap();
+    assert_eq!(result.protein_identification.hits.len(), 0);
+    assert_eq!(result.peptide_identifications.len(), 1);
+}
+
+#[test]
+fn omssa_hit_fields_follow_the_source() {
+    // Derived from OMSSAXMLFile.cpp and the fixture: the E-value is the
+    // score, MSHits_pepstop "H" is the first evidence's following residue,
+    // the empty MSHits_pepstart leaves it unknown, and the second hit set's
+    // MSHitSet_ids_E gives m/z and RT.
+    let result = omssa()
+        .load(data("OMSSAXMLFile_test_1.xml"), OMSSALoadOptions::default())
+        .unwrap();
+    let first = &result.peptide_identifications[0];
+    assert_eq!(first.score_type, "OMSSA");
+    assert!(!first.higher_score_better);
+    assert_eq!(first.identifier, "OMSSA_2026-09-27 12:00:00");
+    assert_eq!(first.hits.len(), 1);
+    let hit = &first.hits[0];
+    assert_eq!(hit.score, 0.000577565403218471);
+    assert_eq!(hit.charge, 1);
+    assert_eq!(hit.sequence, AASequence::parse("MSHHWGYGK").unwrap());
+    let accessions: Vec<&str> = hit
+        .evidences
+        .iter()
+        .map(|evidence| evidence.protein_accession.as_str())
+        .collect();
+    assert_eq!(accessions, ["CRHU2", "AAO85140", "AAH11949", "CAA27012"]);
+    assert_eq!(hit.evidences[0].aa_after.code(), 'H');
+    assert_eq!(hit.evidences[0].aa_before.code(), 'X');
+    assert_eq!(hit.evidences[1].aa_after.code(), 'X');
+    let proteins: Vec<&str> = result
+        .protein_identification
+        .hits
+        .iter()
+        .map(|hit| hit.accession.as_str())
+        .collect();
+    assert_eq!(proteins, ["AAH11949", "AAO85140", "CAA27012", "CRHU2"]);
+    let second = &result.peptide_identifications[1];
+    assert!(second.hits.is_empty());
+    assert_eq!(second.mz, Some(555.768493652344));
+    assert_eq!(second.rt, Some(4312.85629999998));
+}
+
+#[test]
+fn omssa_modifications_resolve_through_the_mapping() {
+    // Derived from OMSSAXMLFile.cpp and the bundled mapping: OMSSA number 1
+    // is Oxidation (M) at the site; a fixed modification applies to every
+    // residue of its origin; an unmapped number (4, blank in the mapping) is
+    // ignored with a warning; the white space inside MSHits_mods resets the
+    // site and type.
+    let text = "<MSResponse><MSResponse_hitsets><MSHitSet><MSHitSet_hits><MSHits>\n\
+        <MSHits_evalue>0.5</MSHits_evalue><MSHits_charge>2</MSHits_charge>\n\
+        <MSHits_pephits><MSPepHit><MSPepHit_accession>P1</MSPepHit_accession>\n\
+        <MSPepHit_oid>1</MSPepHit_oid></MSPepHit></MSHits_pephits>\n\
+        <MSHits_pepstring>MCMK</MSHits_pepstring>\n\
+        <MSHits_mods>\n\
+        <MSModHit><MSModHit_site>2</MSModHit_site><MSModHit_modtype><MSMod>1</MSMod>\
+        </MSModHit_modtype></MSModHit>\n\
+        <MSModHit><MSModHit_site>0</MSModHit_site><MSModHit_modtype><MSMod>4</MSMod>\
+        </MSModHit_modtype></MSModHit>\n\
+        </MSHits_mods>\n\
+        </MSHits></MSHitSet_hits></MSHitSet></MSResponse_hitsets></MSResponse>";
+    let mut reader = omssa();
+    reader
+        .set_modification_definitions(
+            &ModificationDefinitionsSet::from_comma_separated("Carbamidomethyl (C)", "").unwrap(),
+        )
+        .unwrap();
+    let result = reader
+        .load_reader(Cursor::new(text), OMSSALoadOptions::default())
+        .unwrap();
+    let hit = &result.peptide_identifications[0].hits[0];
+    assert_eq!(
+        hit.sequence,
+        AASequence::parse("MC(Carbamidomethyl)M(Oxidation)K").unwrap()
+    );
+    assert_eq!(
+        result.warnings,
+        ["Cannot find PSI-MOD mapping for mod - ignoring '4'"]
+    );
+    assert_eq!(
+        reader.mapped_modifications(3).unwrap()[0].full_id(),
+        "Carbamidomethyl (C)"
+    );
+}
+
+#[test]
+fn omssa_user_modifications_are_numbered_from_119() {
+    // Derived from OMSSAXMLFile::setModificationDefinitionsSet: a variable
+    // modification the mapping lacks gets the next number from 119 on.
+    let mut reader = omssa();
+    reader
+        .set_modification_definitions(
+            &ModificationDefinitionsSet::from_comma_separated("", "Oxidation (M),Phospho (H)")
+                .unwrap(),
+        )
+        .unwrap();
+    assert_eq!(
+        reader.mapped_modifications(119).unwrap()[0].full_id(),
+        "Phospho (H)"
+    );
+    assert!(reader.mapped_modifications(120).is_none());
 }

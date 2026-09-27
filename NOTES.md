@@ -33,7 +33,29 @@ fast-forwarded onto worktree-wf_bcdd783d-f3f-13 (first incarnation: 5a2b6b2).
 3. PepNovoInfile/Outfile, InspectInfile/Outfile, SequestInfile/Outfile
 4. XTandemInfile, XTandemXMLFile, OMSSAXMLFile (XML)
 
+## Done (gated on spock, slot F3b)
+- data_structures/string_utils.rs (moved from format/source_text.rs;
+  cli::context re-exports to_double/to_int32 instead of its copy).
+- Kroenik/MsInspect/SpecArray: tests/search_engine_feature_files.rs 16/16.
+- OMSSACSVFile (+ format/search_engine_text.rs permissive AASequence parse):
+  tests/search_engine_id_files.rs 5/5.
+- format/search_engine_xml.rs: SAX driver (text nodes whole, whitespace
+  delivered, Latin-1 for X!Tandem), cfg idxml.
+- XTandemXMLFile: class test passes (303/497/6/0, 2/21/3/0), tests in
+  tests/search_engine_xml_files.rs (cfg idxml).
+- OMSSAXMLFile + resources/search_engines/OMSSA_modification_mapping
+  (sha256 e7b8d091...): tests written, gate pending.
+
+## Defect candidates noted so far
+- XTandemXMLFile: protein_uids_ and group_type_stack_ never reset between
+  loads; `aa` outside group -> error() then top() of empty stack (UB); `aa`
+  before a domain -> back() on empty vector (UB).
+- OMSSACSVFile: first data line numbered -1 appends to caller's last id / UB.
+- OMSSAXMLFile: setModificationDefinitionsSet restarts at 119 each call while
+  keeping earlier entries (ambiguous numbers).
+
 ## Next step
-1. Verify the three WIP readers against their .h and class tests, add
-   `pub mod` lines, write tests/search_engine_feature_files.rs, gate on spock
-   (slot F3b, run_in_background), commit.
+1. Gate OMSSAXMLFile tests. 2. SequestOutfile (IDFileConverter consumer),
+   then PepNovo*, Inspect*, SequestInfile, XTandemInfile.
+3. docs/SEARCH_ENGINE_FILES_SUPPORT.md, tests/data/search_engine_files_provenance.json,
+   lane report + ledger fragment.
