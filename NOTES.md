@@ -10,6 +10,7 @@ Branch: worktree-wf_ee239125-5be-15, base f0990c0. C++ pin: `git -C /Users/kohlb
 - FORMAT/ImzMLFile partial: gap = mzML-level metadata (src/format/mzml.rs strictnesses)
 
 ## Findings (learned, keep)
+- Incarnation 2: lane sources extracted fresh to scratchpad/F5/src/... (session scratchpad c1467273...; shared with other lanes - only use F5/ subdir).
 - C++ lane sources extracted to scratchpad/cpp/ via ONE literal `git -C <core> archive -o <tar> bc9cc12 <paths>` (sandbox refuses git in loops/pipes/heredocs; also no `cd .../source` paths - use absolute paths).
 - opentims v1.2.0b4 source (exact tag OpenMS fetches): /Users/kohlbach/Claude/OpenMS-mzpeak-build/build/_deps/opentims-src/src/opentims++/ (opentims.cpp, tof2mz_converter.cpp, scan2inv_ion_mobility_converter.cpp).
 - Small TDF fixture (1 MB): "/Users/kohlbach/Claude/mzPeak OpenMS/hupo-mzpeak/test/data/diaPASEF.d" (origin/license to check). Upstream integration data = DDA/DIA_HeLa_50ng_5_6min.d.zip (archive.openms.de, whitelisted HTTP).
