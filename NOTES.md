@@ -22,6 +22,10 @@ Branch: worktree-wf_ee239125-5be-15, base f0990c0. C++ pin: `git -C /Users/kohlb
 ## Incarnation 3 (started)
 - HEAD had WIP drafts of xmass_file.rs, acqus_handler.rs, fid_handler.rs (not yet wired into src/format/mod.rs, not gated).
 
+## Incarnation 4 (started)
+- C++ sources already in scratchpad/F5/src/... (list with find, no shell vars in commands: sandbox refuses).
+- Drafts xmass/acqus/fid in HEAD~1 still unwired; incarnation 3 left no further notes -> it stalled while exploring.
+
 ## Next step
 1. Read the C++ headers/cpps/tests (sizes), decide per format.
 2. Port XMassFile + AcqusHandler + FidHandler first (pure Rust, class test data available).
