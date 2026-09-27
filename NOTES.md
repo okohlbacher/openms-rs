@@ -51,9 +51,13 @@ Branch: worktree-wf_ee239125-5be-2 (merged prior incarnation worktree-wf_bcdd783
   sandbox refuses `bash run.sh` outside the worktree -- run its steps as plain ssh commands).
 - Gate: always pass --no-fail-fast; cargo stops at the first failing test binary otherwise.
 
+- DONE (incarnation 3): chemistry impls + tests pass on spock (15 contract tests, 4 intensity tests, all theoretical/
+  annotator/NASG suites). Oracle ../oracle/B6-tsg-intensity fetched (results/, differ empty). Provenance
+  tests/data/param_defaults_provenance.json (generator: scratchpad B6/provenance.py). Docs
+  docs/DEFAULT_PARAM_HANDLING_SUPPORT.md. Ledger fragment written: .planning/ledger-fragments/wave4/B6.json
+  (generator scratchpad B6/ledger.py). m/z of TSG oracle peaks differ <=2 ulp (reported, 1e-9 tolerance).
+- ci_matrix --check wants --write (adds default_param_handling to the paramxml slice) -- lead's file, report it.
+
 ## Next step
-1. Fetch ../oracle/B6-tsg-intensity results (ssh ibminode06 test -f /scratch/kohlbach/B6-tsg-intensity/ALLDONE),
-   copy fixtures to tests/data/param_defaults/tsg_*.tsv, fix the two fine tests to the source's double
-   arithmetic, add chemistry contract tests to tests/default_param_handling.rs.
-2. Docs: docs/DEFAULT_PARAM_HANDLING_SUPPORT.md, provenance json, doc coverage 100% for touched
-   modules, CI slice, ledger, report.
+1. Wait for sweep (scratchpad B6/sweep1) and slices (B6/slices.log); fix anything red.
+2. Write .planning/lane-reports/B6.md; delete NOTES.md in the final commit.
