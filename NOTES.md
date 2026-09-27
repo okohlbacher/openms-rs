@@ -107,3 +107,38 @@ Unmerged Phase B branches: 673154fa-1e1-{1 TOPPBase,2 MSExperiment,3 LogStream,4
 - OI-76 fixed on branch 673154fa-1e1-2 (30376cf size-derived SummaryLimits) -> sched B BLOCK-03 (B0 integrating); also DEC-17 family
 - OI-40 fixed on branch 673154fa-1e1-2 (6203012) -> sched B BLOCK-03
 - FileHandler branch 673154fa-1e1-4 ranked gaps: MGF via mascot_generic, log types, mzXML/mzData output, id/trafo dispatch, ZIP -> BLOCK-01
+- OI-77 open (VALIDATION:3474) -> sched E CORE-18 IONMOBILITY/KERNEL (spectrum_mobility chunk merge test)
+- OI-78 open (VALIDATION:2781 open note) -> sched B BLOCK... PeakPickerHiRes.h partial -> E CORE-15
+- OI-79 DEFERRED (benchmark noise; CPP-338 -> G UPSTREAM)
+- OI-80 DEFERRED environmental (27 ignore attrs now: file_info 5, mzml_reader_scale 8, mzml_writer_scale 3, topp_threads 3, baseline 3, featurexml/fuzzy/gauss/lm_budget/lm_eigen 1 each)
+- OI-81 PARTLY RESOLVED: mascot_generic ba02d5a, mzXML 25b6342, imzML writer 3fc42af; remaining imzml_handler + on_disc_imzml -> C CORE-01/E CORE-18; LogStream->kernel B BLOCK-02
+- OI-82: DataProcessingUtils.h complete, private by ledger decision (94715ce) -> resolved; UniqueIdIndexer D CORE-11; MSExperiment helper B BLOCK-03
+- OI-83 DimMapper: M1 def (user 2026-09-22) overrides the exclusion -> sched E CORE-18; stale sentence IM_TYPES_SUPPORT.md:290-294
+- OI-84 open (geometry.rs add_points f64::min/max) -> sched D CORE-06 ConvexHull2D.h partial
+- OI-85 open (TOPP_CLI_SUPPORT:883-891; BaselineFilter half fixed aaf32e8) -> tool-level -> NEW DEC-19
+- OI-86 RESOLVED 94715ce (IsotopeCluster partial, MassTrace native_equivalent->EVID-02 A2b, ProcessingStep complete)
+- OI-87 measuring: clippy +1.85.0 on dax (scratchpad A3b/clippy185.log); CI runs clippy on stable only
+- OI-88 open (mzml.rs:1670 trim only for ids; get_type 64KiB) -> B BLOCK-01/BLOCK-06
+- OI-89 open (FUZZY_STRING_COMPARATOR:168-177 underflow: port matches libc++ not Linux Release) -> tool-level DEC-19
+- OI-90 open (cli.rs:1629 update_diagnostics; to_int32 twice context.rs:849, update_check.rs:219) -> B CLI-01 + BLOCK-06
+- OI-91 = DEC-13 (THIRD_PARTY:47 pending)
+- OI-92 grab-bag; EGH_TRACE_FITTER:35 "under investigation in lane B3b" stale; multiple_testing.rs:1121 2.5 million -> DEBT-01/owners
+- OI-93 open (processing.rs:73 256 MiB) -> DEC-17
+- OI-94 open (mzml.rs:2431 duplicate record id) -> decided by D16? no: D10 (source-compat load option) -> B BLOCK-06
+- OI-95 P2 minors -> C CORE-01 MzMLHandler/IndexedMzMLHandler
+- OI-96/97/98 tool minors -> DEC-19; detect_type dup file_info.rs:257/report.rs:390
+- OI-99 LIVE PANIC extension.rs:366 pattern.spectrum[p] (public extend_mass_traces) -> complete header -> DEC-19 (defects in complete headers)
+- OI-100 B6-B11 minors -> FFAP complete -> DEC-19
+- OI-101/102 = DEC-16
+- OI-103 open (parallel.rs:99,:128 ThreadPoolBuilder) -> D CORE-11 CONCEPT? (concept::parallel no header) + DEC-12
+- OI-104 open perf -> deferred (measure first)
+- OI-105 open (no MSExperiment::max_intensity; ranges.rs:761) -> B BLOCK-03
+- OI-106 RESOLVED 2f173d9 (size-derived work_per_point)
+- OI-107 open (no for_records) -> DEC-17
+- OI-108 PARTLY: PeakPickerHiRes 3b943e4 + FuzzyDiff; FileInfo & FFC not -> DEC-19
+- OI-109 open (mascot_generic.rs:1023 "nan") -> via OI-73 B BLOCK-06
+- DEC-2 RESOLVED 1c27421 (lead decision 2026-09-15; FFP_SUPPORT:1090; CPP_ISSUES:4822 stale - lead file)
+- DEC-7 RESOLVED 60d050b (glibc_powf.rs, D5 wave 5; CPP-272 Rust handling); WP:1062/:1088 stale -> fix :1062
+- DEC-10 -> sched G UPSTREAM-01..04 (user decision in REQUIREMENTS: prepare, do not file)
+- DEC-11 open (only peak_picker_hi_res uses ReadOptions::source)
+- ST-09 already fixed. ST-06/07 stale rustdoc (.rs, not editing: report). ST-05 VALIDATION:2461 lead
