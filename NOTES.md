@@ -54,8 +54,22 @@ fast-forwarded onto worktree-wf_bcdd783d-f3f-13 (first incarnation: 5a2b6b2).
 - OMSSAXMLFile: setModificationDefinitionsSet restarts at 119 each call while
   keeping earlier entries (ambiguous numbers).
 
+- SequestOutfile: all class-test sections pass (tests/search_engine_id_files.rs).
+- PepNovoInfile/PepNovoOutfile: written, tests written (gate6 pending).
+- C++ ORACLE DONE: ../oracle/F3b-search-engine/ (driver.cpp, remote_run.sh,
+  run.sh; ibminode06, Release bc9cc12). Outputs copied to
+  tests/data/search_engine_oracle/; tests/search_engine_oracle.rs compares
+  XTandemXML, OMSSAXML, SequestOutfile, PepNovoOutfile, PepNovoInfile dumps.
+  Oracle also holds xtandem_infile.out, inspect_infile.out, sequest_infile.out
+  for the writers still to port (pin writes "13.0" and 15-fraction-digit
+  masses via appendToStr = crate::param::value::format_float(v, true)).
+- Findings: SequestInfile setEnzyme("i_dont_exist_enzyme") returns 17 at the
+  pin while its class test expects 18; InspectInfile::store refuses a known
+  non-TSV extension (.txt) but accepts .tmp.
+
 ## Next step
-1. Gate OMSSAXMLFile tests. 2. SequestOutfile (IDFileConverter consumer),
-   then PepNovo*, Inspect*, SequestInfile, XTandemInfile.
+1. Check gate6 log. 2. XTandemInfile (writer), InspectInfile, SequestInfile
+   (need PTMXMLFile reading of Inspect_PTMs.xml/Sequest_PTMs.xml: unported
+   FORMAT/PTMXMLFile.h), InspectOutfile (large; partial ok).
 3. docs/SEARCH_ENGINE_FILES_SUPPORT.md, tests/data/search_engine_files_provenance.json,
-   lane report + ledger fragment.
+   lane report + ledger fragment, full CI sweep.
