@@ -30,3 +30,18 @@ Outputs also: .planning/lane-reports/A3b.md, .planning/ledger-fragments/wave4/A3
 - Verdicts accumulate below in "## Verdicts" (restart-safe; commit often).
 
 ## Verdicts
+Header->req map: MzMLFile.h/StringUtils/MathFunctions -> B BLOCK-06; FileHandler B BLOCK-01; LogStream B BLOCK-02; MSExperiment B BLOCK-03 (branch 673154fa-1e1-2 closes OI-40); TOPPBase B BLOCK-05; FORMAT/* incl FileInfo.h, MzMLHandler.h -> C CORE-01; IMAGING -> E CORE-18.
+Unmerged Phase B branches: 673154fa-1e1-{1 TOPPBase,2 MSExperiment,3 LogStream,4 FileHandler,5 ProteinIdentification}.
+- OI-01 open (:1378 refuse, :1388 total_cmp) -> sched A DEBT-04 (leg a) + oracle row for leg b
+- OI-02 open (UnsortedData :516/675/733/810) -> DECISION (C++ _sorted does not verify)
+- OI-03/04 open (unmeasured, doc :528, :1128) -> sched A DEBT-04? no: one ibminode06 oracle row; MATH StatisticFunctions.h is native_equivalent -> EVID-02 re-audit. sched A EVID-02
+- OI-05 open -> sched with OI-03 row
+- OI-06 RESOLVED 6aed3c3 (VALIDATION fixed by 3942b51); WP:1901-1906 stale sentence -> fix
+- OI-07 open range_utils.rs:721 total_cmp -> A DEBT-04 (B1)
+- OI-08 open feature_overlap_filter.rs:1105 sort_by -> ?
+- OI-09 PARTIAL: A8 first half landed (39fdeb6, eac9ac6: mzXML/mzData/MGF/MS2); left -v, pepXML/mzTab/trafoXML/PQP, sqMass/XMass/MSP/RAW/TDF -> C CORE-01
+- OI-10 open -> DEC-4
+- OI-11 open (ignores tests/file_info.rs:168,325,351; tripwire :1237) -> C CORE-01 MzMLHandler
+- OI-12 open (ignore :494) decision taken -> C CORE-01
+- OI-13 open: lib default strict is correct (Series-A D10); tool passes true (file_info.rs:205); test :210 uses default -> C CORE-01 (run case with option)
+- OI-19 RESOLVED: -log e64ade6, timing fb0ae8e, writeDebug_ 287c89f; -instance reproduces source (TOPP_CLI_SUPPORT:400)
