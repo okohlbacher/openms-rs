@@ -7,7 +7,7 @@ open-item inventory, re-checked against the tree and given exactly one verdict.
 - **Inventory checked:** `.planning/OPEN-ITEMS.md` (compiled 2026-09-21
   against `c3ac959`; planning notes, not tracked). Its numbering (`OI-nn`,
   `ST-nn`, `DEC-n`, `B1`-`B7`) is kept so the two can be read side by side.
-- **Tree checked:** `main` at `f0990c0` (2026-09-27), 130 commits after the
+- **Tree checked:** `main` at `f0990c0` (2026-09-27), 127 commits after the
   inventory. Where a wave-4 lane that has not merged yet is working on an item,
   the lane is named; its branch is evidence of intent, not of closure.
 - **What "checked" means:** every cited site was opened again in the current
@@ -18,7 +18,7 @@ open-item inventory, re-checked against the tree and given exactly one verdict.
 | Verdict | Meaning |
 |---|---|
 | **resolved** | Done in the tree; the commit is cited. Any document that still says otherwise is a stale record (section 2). |
-| **scheduled** | Real work, owned by an M1 requirement: phase letter and requirement ID from `.planning/REQUIREMENTS.md` (A = DEBT/EVID, B = BLOCK/SHARED/CLI, C = CORE-01..05, D = CORE-06..12, E = CORE-13..18, F = STRUCT, G = UPSTREAM). |
+| **scheduled** | Real work, owned by an M1 requirement: phase letter and requirement ID from `.planning/REQUIREMENTS.md` (the M1 plan; planning notes, not tracked) (A = DEBT/EVID, B = BLOCK/SHARED/CLI, C = CORE-01..05, D = CORE-06..12, E = CORE-13..18, F = STRUCT, G = UPSTREAM). |
 | **deferred** | Deliberately not done in M1, with the reason. Nothing is lost: the reason says what would reopen it. |
 | **decision owed** | Needs a ruling nobody below the lead may take. Each has a question, the options and what each costs, in section 5. |
 
