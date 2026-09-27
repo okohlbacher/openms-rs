@@ -1,0 +1,1 @@
+Error: All input files (parameter 'in') must have the same format!

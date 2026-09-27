@@ -1,0 +1,2 @@
+Writing to '/scratch/kohlbach/oracle/B7-cli/runs/run1/ext_broken_debug1_log/cwd/run.log'
+B7ExternalTool took <T>.

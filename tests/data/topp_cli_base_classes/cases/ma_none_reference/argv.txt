@@ -1,0 +1,7 @@
+ma_none
+-in
+/scratch/kohlbach/oracle/B7-cli/data/featurexml_source_1.featureXML
+-trafo_out
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ma_none_reference/cwd/a.trafoXML
+-reference:index
+1

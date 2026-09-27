@@ -1,0 +1,1 @@
+Error: Value of parameter 'reference:index' must not be higher than the number of input files

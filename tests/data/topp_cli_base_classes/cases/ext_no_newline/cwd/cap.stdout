@@ -1,0 +1,2 @@
+Running: sh -c printf abc; printf def >&2; exit 1
+abc

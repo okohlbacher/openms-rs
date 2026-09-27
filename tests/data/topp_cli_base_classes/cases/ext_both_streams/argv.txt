@@ -1,0 +1,8 @@
+ext
+-exe
+sh
+-args
+@-c
+echo out1; echo err1 >&2; echo out2; exit 3
+-captured
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ext_both_streams/cwd/cap

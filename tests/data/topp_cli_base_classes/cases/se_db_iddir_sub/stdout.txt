@@ -1,0 +1,4 @@
+Augmenting database name 'dbs/tiny.fasta' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '/scratch/kohlbach/oracle/B7-cli/data/dbs/tiny.fasta'
+in=/scratch/kohlbach/oracle/B7-cli/data/empty_spec.mzML
+db=/scratch/kohlbach/oracle/B7-cli/data/dbs/tiny.fasta
+B7SearchEngine took <T>.

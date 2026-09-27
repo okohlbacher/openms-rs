@@ -1,0 +1,9 @@
+ma_flexible
+-in
+/scratch/kohlbach/oracle/B7-cli/data/featurexml_source_1.featureXML
+/scratch/kohlbach/oracle/B7-cli/data/featurexml_source_1.featureXML
+-trafo_out
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ma_flexible_type/cwd/a.trafoXML
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ma_flexible_type/cwd/b.trafoXML
+-reference:file
+/scratch/kohlbach/oracle/B7-cli/data/ConsensusXMLFile_1.consensusXML

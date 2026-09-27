@@ -1,0 +1,15 @@
+Progress of 'transforming spectra files':
+  Progress of 'loading mzML':
+    Progress of 'loading spectra list':
+    -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+  -- done [took 0.00 s (CPU), 0.00 s (Wall) @ 18.68 MiB/s] -- 
+  Progress of 'storing mzML file':
+  -- done [took 0.00 s (CPU), 0.00 s (Wall) @ 7.766 MiB/s] -- 
+  Progress of 'loading mzML':
+    Progress of 'loading spectra list':
+    -- done [took 0.00 s (CPU), 0.00 s (Wall)] -- 
+  -- done [took 0.00 s (CPU), 0.00 s (Wall) @ 38.09 MiB/s] -- 
+  Progress of 'storing mzML file':
+  -- done [took 0.00 s (CPU), 0.00 s (Wall) @ 8.086 MiB/s] -- 
+-- done [took 5.33 s (CPU), 0.11 s (Wall)] -- 
+B7MapAlignerNone took <T>.

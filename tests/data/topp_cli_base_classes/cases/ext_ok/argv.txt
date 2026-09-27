@@ -1,0 +1,8 @@
+ext
+-exe
+ls
+-args
+@-ld
+.
+-captured
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ext_ok/cwd/cap

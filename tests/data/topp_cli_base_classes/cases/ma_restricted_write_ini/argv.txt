@@ -1,0 +1,3 @@
+ma_restricted
+-write_ini
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ma_restricted_write_ini/cwd/out.ini

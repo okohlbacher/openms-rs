@@ -1,0 +1,2 @@
+Warning: No centroided MS2 were found, but are required. Since '-force' flag is in effect, we will continue, but results might be bogus.
+Invalid parameter: Input file 'CHEMISTRY/../CHEMISTRY/Elements.xml' has invalid format 'xml'. Valid formats are: 'FASTA'.

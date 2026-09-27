@@ -1,0 +1,1 @@
+Error: The number of spectra input and output spectra files has to be equal (parameters 'in_spectra_files'/'out_spectra_files')

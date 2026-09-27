@@ -1,0 +1,3 @@
+in=/scratch/kohlbach/oracle/B7-cli/data/Single_MS2_profileMode.mzML
+db=/scratch/kohlbach/oracle/B7-cli/data/empty.fasta
+B7SearchEngine took <T>.

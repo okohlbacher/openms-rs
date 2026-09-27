@@ -1,0 +1,1 @@
+Running: sh -c echo same >&2; echo same >&2; exit 2

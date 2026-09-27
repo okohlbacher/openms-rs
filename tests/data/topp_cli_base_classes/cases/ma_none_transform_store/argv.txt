@@ -1,0 +1,15 @@
+ma_none
+-in
+/scratch/kohlbach/oracle/B7-cli/data/featurexml_source_1.featureXML
+/scratch/kohlbach/oracle/B7-cli/data/featurexml_source_1.featureXML
+-trafo_out
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ma_none_transform_store/cwd/a.trafoXML
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ma_none_transform_store/cwd/b.trafoXML
+-in_spectra_files
+/scratch/kohlbach/oracle/B7-cli/data/window_mower_tool_input.mzML
+/scratch/kohlbach/oracle/B7-cli/data/dta_extractor_input.mzML
+-out_spectra_files
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ma_none_transform_store/cwd/a.mzML
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ma_none_transform_store/cwd/b.mzML
+-test
+-store_original_rt

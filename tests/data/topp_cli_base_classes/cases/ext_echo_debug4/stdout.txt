@@ -1,0 +1,4 @@
+Running: echo hello world
+hello world
+Executed 'echo' successfully!
+B7ExternalTool took <T>.

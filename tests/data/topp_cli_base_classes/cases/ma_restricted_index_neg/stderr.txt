@@ -1,0 +1,2 @@
+Parameters passed to 'B7MapAlignerRestricted' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!
+Invalid integer parameter value '-1' for parameter 'index' given! The valid range is: [0:2147483647]. Updating failed!

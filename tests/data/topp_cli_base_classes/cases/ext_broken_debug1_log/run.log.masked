@@ -1,0 +1,17 @@
+<DATE> B7ExternalTool:1:: Writing to '/scratch/kohlbach/oracle/B7-cli/runs/run1/ext_broken_debug1_log/cwd/run.log'
+<DATE> B7ExternalTool:1:: Debug level: 1
+<DATE> B7ExternalTool:1::  >> ext -exe ls -args -0 -debug 1 -log /scratch/kohlbach/oracle/B7-cli/runs/run1/ext_broken_debug1_log/cwd/run.log -captured /scratch/kohlbach/oracle/B7-cli/runs/run1/ext_broken_debug1_log/cwd/cap
+<DATE> B7ExternalTool:1:: Value of string option 'test': 0
+<DATE> B7ExternalTool:1:: Debug level (after ini file): 1
+<DATE> B7ExternalTool:1:: Value of string option 'no_progress': 0
+<DATE> B7ExternalTool:1:: Value of string option 'args': -0
+<DATE> B7ExternalTool:1:: Value of string option 'first_overload': 0
+<DATE> B7ExternalTool:1:: Value of string option 'workdir': 
+<DATE> B7ExternalTool:1:: Value of string option 'exe': ls
+<DATE> B7ExternalTool:1:: Standard output: Running: ls -0
+
+<DATE> B7ExternalTool:1:: Standard error: /usr/bin/ls: invalid option -- '0'
+Try '/usr/bin/ls --help' for more information.
+Process 'ls' did not finish successfully (exit code: 2). Please check the log.
+
+<DATE> B7ExternalTool:1:: Value of string option 'captured': /scratch/kohlbach/oracle/B7-cli/runs/run1/ext_broken_debug1_log/cwd/cap
