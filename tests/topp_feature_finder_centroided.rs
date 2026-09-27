@@ -17,6 +17,15 @@
 //!   Two C1 cases exit through a Debug-only precondition
 //!   (`FFC_FileFilter_44_force`, `FFC_im_arrays_ms2_only`); their exit codes are
 //!   never asserted, only that this wrapper does not refuse the input.
+//!   Every C1 case was re-executed on the C++ Release build at the pins
+//!   (`../oracle/A1-release-rerun`, two repetitions): each asserted exit code
+//!   and `Error:` line is the Release run's too; the two Debug-only cases exit
+//!   0 there with `0 features found.` and an empty map, as asserted below; the
+//!   thread sweep `FFC_1_threads_0/1/2/4/8` writes byte-identical files there
+//!   as well; and every featureXML differs from the Debug SDK's only in the
+//!   last digits of `rt`, `score_fit` and `score_correlation` (the Debug
+//!   column of the table at
+//!   [`the_upstream_workflow_matches_the_retained_expectation`]).
 //! * **Source review.** Registration, the `-write_ini` defaults and the
 //!   annotation steps are transcribed from `FeatureFinderCentroided.cpp` at
 //!   topp `174b576` (tier 3), and checked against the executed `-write_ini`

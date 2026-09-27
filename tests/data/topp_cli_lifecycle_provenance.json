@@ -70,6 +70,34 @@
    "path": "../oracle/topp-cli-lifecycle/cli2_rerun_manifest.json",
    "sha256": "470717526247deb0dedc38d094f05d29ecb51a265df91fd7ec356d94894a388f",
    "role": "manifest of the second execution of cli2_cases.sh, kept for the reproducibility comparison"
+  },
+  {
+   "path": "../oracle/A1-release-rerun/manifest.json",
+   "sha256": "47564af6b2448612643ddf3bf38a5c57dcad2515f9baa5b417ea8a4f126eebb3",
+   "origin_key": "fixtures",
+   "role": "A1 / EVID-01 Release re-run manifest: host and build identity, driver and input hashes, every case's Release exit code and stream/output hashes, the run1/run2 reproduction, and the difference from the macOS Debug runs",
+   "label": "oracle-generated (tier 1 executed differential), Linux x86_64 Release"
+  },
+  {
+   "path": "../oracle/A1-release-rerun/linux_release.py",
+   "sha256": "c061bff32180d116cdc0af1e2306f284287be587661cd0bd4ba4a7cf3e4b1bb3",
+   "origin_key": "fixtures",
+   "role": "shim that imports the three original drivers verbatim and rebinds only their location constants to the Release install",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/A1-release-rerun/run.sh",
+   "sha256": "67c193edbb6a152941c1f15b199641ada8844038a87cea1173e14568d689c682",
+   "origin_key": "fixtures",
+   "role": "entry point: stage, fetch, compare",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/A1-release-rerun/divergences.json",
+   "sha256": "5552d1396dca5d3c54e379e15d2fa29bf428a96093a9f9f5df7dcadcea7134b3",
+   "origin_key": "fixtures",
+   "role": "per case, the Release run against the macOS product-SDK run, with diffs",
+   "label": "oracle-generated (tier 1 executed differential), Linux x86_64 Release"
   }
  ],
  "sources": [
@@ -448,5 +476,11 @@
   "tests/paramxml.rs (source_declaration_writer_option)"
  ],
  "support": "docs/TOPP_CLI_SUPPORT.md",
- "upstream_test_definition": "OpenMS4-tests/packages/cli/tests/source/TOPPBase_test.cpp at c19e494 (23 START_SECTIONs; accounting in docs/TOPP_CLI_SUPPORT.md)"
+ "upstream_test_definition": "OpenMS4-tests/packages/cli/tests/source/TOPPBase_test.cpp at c19e494 (23 START_SECTIONs; accounting in docs/TOPP_CLI_SUPPORT.md)",
+ "release_verification": {
+  "oracle": "../oracle/A1-release-rerun (lifecycle/)",
+  "build": "C++ Release build at the port's pins (core bc9cc12, cli c19e494, topp 174b576), Linux x86_64, GCC 14.4.0, CMAKE_BUILD_TYPE=Release, /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, run on ibminode06",
+  "why": "../oracle/topp-cli-lifecycle (run.sh, cli2_cases.sh) ran on the macOS arm64 product SDK, a Debug build of core 4fdec46",
+  "result": "all 72 cases (38 of run.sh, 34 of cli2_cases.sh) re-executed twice on the Release build with the scripts verbatim apart from the SDK prefix, and reproduced. Every exit code is the same; every output file (INIs, CTD/CWL/JSON, processing records) is the same apart from run paths, completion times and index offsets; standard error differs only in the terminal probe line, the Version line's revision, the Debug-only XMLHandler warnings and the __FILE__/__PRETTY_FUNCTION__ text inside parse errors. ../oracle/topp-cli-lifecycle/ini_read_failures.sh was not re-run"
+ }
 }

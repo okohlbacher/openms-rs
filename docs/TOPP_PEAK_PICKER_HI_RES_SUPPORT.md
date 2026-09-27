@@ -724,9 +724,16 @@ added to the source's output, not a change to it. Pinned by
 Evidence tier 1 (executed differential) throughout, except the load-option row
 of the table, which is tier 4 (Rust-only, on a synthetic document): every other
 expectation is a retained upstream output or a C++ output produced by the
-product SDK (Debug, core `4fdec46`, decision D7), and the instrument-scale
-measurement below is against the optimised C++ Release build. Hashes are in
-`tests/data/topp_peak_picker_hi_res_provenance.json`.
+product SDK (macOS arm64, Debug, core `4fdec46`, decision D7), and the
+instrument-scale measurement below is against the optimised C++ Release build.
+Every case of the two product-SDK oracles, C1 (`../oracle/topp-early-bundle`)
+and P3 (`../oracle/topp-peak-picker-tool`), was re-executed twice on the C++
+Release build at the pins (Linux x86_64, ibminode06;
+`../oracle/A1-release-rerun`): every retained output, INI and standard-error
+file is byte-identical to the Release run's (the non-`-test` output apart from
+completion time, run paths and index offsets), every exit code is the same,
+and `PPHR_auto_mode_1` crashes there too (SIGSEGV where the Debug SDK had
+SIGBUS). Hashes are in `tests/data/topp_peak_picker_hi_res_provenance.json`.
 
 | Case | Source of the expectation | What is compared |
 | --- | --- | --- |

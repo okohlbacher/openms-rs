@@ -64,5 +64,11 @@
     "cli_head": "1f32325d320918e16bdd8db7f7fc7da5e30fa988",
     "note": "Checkouts had moved past the pins; FileInfo, FeatureFinderCentroided and FuzzyDiff registration lines are unchanged at the pin, and the PeakPickerHiRes lines were verified at the pin itself."
   },
-  "ledger_refresh": "docs/topp-source-inventory.json regenerated from a detached topp worktree at 174b576 (the split package, 124 sources), replacing the pre-split monolith snapshot at d0234cca (146 sources)."
+  "ledger_refresh": "docs/topp-source-inventory.json regenerated from a detached topp worktree at 174b576 (the split package, 124 sources), replacing the pre-split monolith snapshot at d0234cca (146 sources).",
+  "release_verification": {
+    "oracle": "../oracle/A1-release-rerun",
+    "manifest_sha256": "47564af6b2448612643ddf3bf38a5c57dcad2515f9baa5b417ea8a4f126eebb3",
+    "build": "C++ Release build at the port's pins (core bc9cc12, cli c19e494, topp 174b576), Linux x86_64, GCC 14.4.0, CMAKE_BUILD_TYPE=Release, /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, run on ibminode06",
+    "note": "../oracle/topp-early-bundle (C1), ../oracle/topp-file-info-tool (A5) and ../oracle/topp-peak-picker-tool (P3) ran on the macOS arm64 product SDK, a Debug build of core 4fdec46; all their cases, and those of ../oracle/topp-cli-lifecycle (run.sh and cli2_cases.sh), were re-executed twice on the Release build by A1 / EVID-01. Exit codes differ only for FFC_FileFilter_44_force and FFC_im_arrays_ms2_only (Debug-only preconditions; 0 in Release), PPHR_auto_mode_1 (a crash in both) and in_is_directory (10 in Debug, 12 in Release)"
+  }
 }

@@ -305,7 +305,9 @@ instead where the C++ report on it is identical apart from the file name.
 
 ## Checked boundaries and evidence
 
-Tier 1, executed differential (product-SDK FileInfo, Debug, core `4fdec46`).
+Tier 1, executed differential (product-SDK FileInfo, Debug, core `4fdec46`;
+the C1 cases below also on the Release build, `../oracle/A1-release-rerun`;
+`../oracle/file-info-core` has not been re-run on Release).
 The installed `FileInfo.h` and `FileHandler.h` hash equal to the pin, and C1's
 manifest records that on the traced FileInfo call path only
 `FEATUREFINDER/MassTraceDetection.h` and `IONMOBILITY/IMTypesExperiment.cpp`
@@ -319,7 +321,11 @@ the `general: file name` TSV line normalised; 34 report pairs in all:
 - C1 (`../oracle/topp-early-bundle`, run1): FileInfo_1 (`-in_type dta`),
   FileInfo_2, FileInfo_3 (`-m -s -p`) and FileInfo_9 (`-m -p -s`) with
   `-out_tsv`; the empty featureXML and empty mzML with `-m -p -s`; the retained
-  FeatureFinderCentroided_1 output with `-m -p -s`.
+  FeatureFinderCentroided_1 output with `-m -p -s`. Every one of these C1
+  cases was re-executed twice on the C++ Release build at the pins (Linux
+  x86_64, ibminode06; `../oracle/A1-release-rerun`): the Release reports are
+  the retained bytes apart from the `File name` path
+  (`tests/data/file_info_provenance.json`, `release_verification`).
 - This package (`../oracle/file-info-core`, reproduced twice): the class-test
   featureXML with all flags, default flags and `-s` only, and forced under a
   `.tmp` name; the class-test minimal mzML; FileInfo_3 and FileInfo_9 with

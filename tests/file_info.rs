@@ -6,12 +6,17 @@
 //! featureXML branches with `-m`, `-p` and `-s`, text and TSV reports.
 //!
 //! Evidence, in order of strength (see `tests/data/file_info_provenance.json`):
-//! - tier 1, executed differential: the text and TSV reports of the product-SDK
-//!   FileInfo (Debug, core `4fdec46`) from the C1 oracle
-//!   (`../oracle/topp-early-bundle`: FileInfo_1/2/3/9 with `-out_tsv`, the
-//!   empty featureXML and mzML, the retained FeatureFinderCentroided_1 output)
-//!   and from this package's oracle (`../oracle/file-info-core`: 27 more cases),
-//!   compared byte for byte with only the `File name` lines normalised;
+//! - tier 1, executed differential: the text and TSV reports of the C++
+//!   FileInfo from the C1 oracle (`../oracle/topp-early-bundle`: FileInfo_1/2/3/9
+//!   with `-out_tsv`, the empty featureXML and mzML, the retained
+//!   FeatureFinderCentroided_1 output) and from this package's oracle
+//!   (`../oracle/file-info-core`: 27 more cases), compared byte for byte with
+//!   only the `File name` lines normalised. Both oracles ran on the macOS
+//!   product SDK, a Debug build of core `4fdec46`. Every C1 report retained
+//!   here was re-checked against the C++ Release build at the pins (Linux
+//!   x86_64, ibminode06; `../oracle/A1-release-rerun`, two repetitions): the
+//!   Release reports are the same bytes apart from the `File name` path;
+//!   `../oracle/file-info-core` has not been re-run on the Release build;
 //! - tier 1, retained upstream outputs: FileInfo_1, _2, _3 and _9 at test-data
 //!   `0cb15f2`, compared as registered, with FuzzyDiff (`FuzzyDiff.ini`, ratio
 //!   1.01, absdiff 0.01) and the whitelist `File name`;
@@ -120,7 +125,8 @@ fn dta_forced() -> Options {
 }
 
 // ---------------------------------------------------------------------------
-// Tier 1: C1 oracle (../oracle/topp-early-bundle, run1)
+// Tier 1: C1 oracle (../oracle/topp-early-bundle, run1; the same reports on
+// the Release build in ../oracle/A1-release-rerun)
 // ---------------------------------------------------------------------------
 
 #[test]

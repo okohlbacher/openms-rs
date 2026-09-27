@@ -33,7 +33,14 @@ directory as `-in`: Linux Release exits 12, port exits 10.
 - Existing Linux Release replay helper: tests/support/release_runs.rs (topp-exception-exits);
   its fi_undetermined_log case already shows the dir-as-in exit 12.
 
+## Results (done)
+- Reruns fetched; also topp-cli-lifecycle run.sh + cli2 rerun (lifecycle/). manifest.json
+  sha 47564af6...; divergences*.json; retained_in_repo.json.
+- Only real divergence: in_is_directory 10 -> 12 (framework, src/cli.rs input_path) -> REPORT,
+  not fixed (B8c). FFC debug-only cases already Release-asserted. Picker all byte-identical.
+- Committed: usage-text fixtures + FFC_1 input swapped for Release files; test/doc relabels;
+  provenance release_verification blocks. Gate: 4 test files green on dax.
+
 ## Next step
-1. `bash ../oracle/A1-release-rerun/run.sh fetch` once DONE; write compare_runs.py.
-2. Diff Linux vs macOS per case; list divergences.
-3. Re-check test expectations; fix port.
+1. Write .planning/lane-reports/A1.md and ledger-fragments/wave4/A1.json.
+2. Full CI sweep in background; delete NOTES.md in final commit.

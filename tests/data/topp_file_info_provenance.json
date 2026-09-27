@@ -162,9 +162,9 @@
  "fixtures": [
   {
    "path": "tests/data/topp_file_info/inputs/FeatureFinderCentroided_1_oracle_output.featureXML",
-   "sha256": "b36647f7d66d4032e8ac2465623bc941017339d0cc66700fd4fe8379cb54ff0f",
-   "bytes": 15234,
-   "kind": "C1 oracle output of TOPP_FeatureFinderCentroided_1 (run1), the input of C1 FileInfo_on_FFC_1_oracle_output"
+   "sha256": "df6659f13cf88ec74b155f7f79ff27f1322a9445f45cd52edb6e3d031098cc0a",
+   "bytes": 15232,
+   "kind": "C++ Release build output of TOPP_FeatureFinderCentroided_1 (../oracle/A1-release-rerun, topp-early-bundle run1; run2 byte-identical), the input of C1 FileInfo_on_FFC_1_oracle_output. Replaces the macOS Debug product-SDK output (sha256 b36647f7...), which differs in the last digits of rt, score_fit and score_correlation; the Release FileInfo report on this file is the retained expected report apart from the File name line"
   },
   {
    "path": "tests/data/topp_file_info/inputs/FileInfo_flags.ini",
@@ -234,15 +234,15 @@
   },
   {
    "path": "tests/data/topp_file_info/expected/FileInfo_index_on_dta.stderr.txt",
-   "sha256": "e2043413eafdb79aed0c302028337a051451ddafcfb5e0f6a114c047885ea629",
-   "bytes": 2149,
-   "kind": "product-SDK FileInfo output, C1 FileInfo_index_on_dta, stderr"
+   "sha256": "572b0a971d89757fd3bf543f03e99e2ded075711775d82c7880fe105828953bf",
+   "bytes": 2175,
+   "kind": "standard error of the C++ Release build, C1 case FileInfo_index_on_dta (../oracle/A1-release-rerun, run1; run2 identical). Replaces the macOS Debug product-SDK stream, which differed only in the terminal probe line and the Version line's revision"
   },
   {
    "path": "tests/data/topp_file_info/expected/FileInfo_no_args.stderr.txt",
-   "sha256": "be092ba0e18b15c0439f0b61adf4027626aa3e366007c2b3fa9708125284d202",
-   "bytes": 2129,
-   "kind": "product-SDK FileInfo output, C1 FileInfo_no_args, stderr"
+   "sha256": "97449c13daaa37ff5420338274046c498eb640655465687d9055f170f15c16ea",
+   "bytes": 2155,
+   "kind": "standard error of the C++ Release build, C1 case FileInfo_no_args (../oracle/A1-release-rerun, run1; run2 identical). Replaces the macOS Debug product-SDK stream, which differed only in the terminal probe line and the Version line's revision"
   },
   {
    "path": "tests/data/topp_file_info/expected/FileInfo_on_FFC_1_oracle_output.tsv",
@@ -288,15 +288,15 @@
   },
   {
    "path": "tests/data/topp_file_info/expected/help.stderr.txt",
-   "sha256": "3ac32813536d6455de005dbf21a954b7b5a1972078e65a70af23aad308c10dbc",
-   "bytes": 2101,
-   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case help, stderr"
+   "sha256": "9c9b6315b665a92a0407749143e3688bfc6993465d01e8879e0b098655c7eb95",
+   "bytes": 2127,
+   "kind": "standard error of the C++ Release build, topp-file-info-tool case help (../oracle/A1-release-rerun, run1; run2 identical). Replaces the macOS Debug product-SDK stream, which differed only in the terminal probe line and the Version line's revision"
   },
   {
    "path": "tests/data/topp_file_info/expected/helphelp.stderr.txt",
-   "sha256": "db6a57bcbe92d777cc86dc418d9581db15e97f9b8c3e1fb4940e181b683d81b4",
-   "bytes": 3383,
-   "kind": "product-SDK FileInfo output, ../oracle/topp-file-info-tool run1 case helphelp, stderr"
+   "sha256": "fbf6d08a25cc1dba77ca0ef069d6aea9e7710c9edc470da3fe7038d2a7243192",
+   "bytes": 3409,
+   "kind": "standard error of the C++ Release build, topp-file-info-tool case helphelp (../oracle/A1-release-rerun, run1; run2 identical). Replaces the macOS Debug product-SDK stream, which differed only in the terminal probe line and the Version line's revision"
   },
   {
    "path": "tests/data/topp_file_info/expected/ini_with_flags.tsv",
@@ -577,6 +577,34 @@
    "sha256": "fa7c0fd67fc963dd357f1ac3eeae279111ecce309c553e37983d0882b59d9cdb",
    "origin_key": "fixtures",
    "role": "tool hash, environment, per-case exit codes, stream and output hashes"
+  },
+  {
+   "path": "../oracle/A1-release-rerun/manifest.json",
+   "sha256": "47564af6b2448612643ddf3bf38a5c57dcad2515f9baa5b417ea8a4f126eebb3",
+   "origin_key": "fixtures",
+   "role": "A1 / EVID-01 Release re-run manifest: host and build identity, driver and input hashes, every case's Release exit code and stream/output hashes, the run1/run2 reproduction, and the difference from the macOS Debug runs",
+   "label": "oracle-generated (tier 1 executed differential), Linux x86_64 Release"
+  },
+  {
+   "path": "../oracle/A1-release-rerun/linux_release.py",
+   "sha256": "c061bff32180d116cdc0af1e2306f284287be587661cd0bd4ba4a7cf3e4b1bb3",
+   "origin_key": "fixtures",
+   "role": "shim that imports the three original drivers verbatim and rebinds only their location constants to the Release install",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/A1-release-rerun/run.sh",
+   "sha256": "67c193edbb6a152941c1f15b199641ada8844038a87cea1173e14568d689c682",
+   "origin_key": "fixtures",
+   "role": "entry point: stage, fetch, compare",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/A1-release-rerun/divergences.json",
+   "sha256": "5552d1396dca5d3c54e379e15d2fa29bf428a96093a9f9f5df7dcadcea7134b3",
+   "origin_key": "fixtures",
+   "role": "per case, the Release run against the macOS product-SDK run, with diffs",
+   "label": "oracle-generated (tier 1 executed differential), Linux x86_64 Release"
   }
  ],
  "external_reference_note": "No C++ and no oracle driver is committed to this repository. The two oracle directories live next to it under ../oracle/; their driver files and manifests are recorded here by sha256, and every fixture they produced is hashed in fixtures.",
@@ -589,5 +617,19 @@
   "The usage text carries no console-width probe line and names this crate's core revision; the run timing line is not ported."
  ],
  "module_edges_added": [],
- "determinism": "serial, as the source; -threads is accepted and changes no byte (threads_do_not_change_the_reports)."
+ "determinism": "serial, as the source; -threads is accepted and changes no byte (threads_do_not_change_the_reports).",
+ "release_verification": {
+  "oracle": "../oracle/A1-release-rerun",
+  "build": "C++ Release build at the port's pins (core bc9cc12, cli c19e494, topp 174b576), Linux x86_64, GCC 14.4.0, CMAKE_BUILD_TYPE=Release, /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, run on ibminode06",
+  "why": "../oracle/topp-early-bundle and ../oracle/topp-file-info-tool, the tier-1 oracles of this package, ran on the macOS arm64 product SDK, a Debug build of core 4fdec46 (AppleClang, libc++), not on a Release build",
+  "result": "every case of both re-executed twice on the Release build and reproduced. Every report, INI, TSV and diagnostic the tests quote is the Release run's (reports equal apart from the File name path); the Debug-only XMLHandler warnings of the product SDK are absent from Release, as from this port. One exit code differs: in_is_directory, Debug 10, Release 12 ('Unable to initialize or run FileInfo: basic_filebuf::underflow error reading the file: Is a directory'), the same as topp-exception-exits fi_undetermined_log. The port still exits 10: a framework gap in the input check (src/cli.rs input_path), reported to the framework lane, pinned by in_naming_a_directory_exits_10 and a_directory_input_is_a_recorded_difference_from_the_linux_release_build",
+  "fixtures_replaced_by_release_outputs": [
+   "tests/data/topp_file_info/expected/help.stderr.txt",
+   "tests/data/topp_file_info/expected/helphelp.stderr.txt",
+   "tests/data/topp_file_info/expected/FileInfo_no_args.stderr.txt",
+   "tests/data/topp_file_info/expected/FileInfo_index_on_dta.stderr.txt",
+   "tests/data/topp_file_info/inputs/FeatureFinderCentroided_1_oracle_output.featureXML"
+  ]
+ },
+ "oracle_revision_note": "oracle_revision 4fdec46 is the macOS Debug product SDK of the original runs; the Release re-run (release_verification) is at core bc9cc12"
 }

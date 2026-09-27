@@ -257,6 +257,34 @@
       "path": "../oracle/reader-roundtrip/manifest.json",
       "sha256": "fc83c381a0729ed18e876750e036f1af34ca5b34785c4a3760bf024400e5e594",
       "role": "wave-8 round-trip oracle: both implementations writing the refs, dupdp and 110-record FileMerger inputs in both modes on ibminode06, every written file read by BOTH implementations (FileInfo for the exit code, the in-memory tool for a read-and-write-back compared under D6), plus the C++ reader probe for a dangling sourceFileRef"
+    },
+    {
+      "path": "../oracle/A1-release-rerun/manifest.json",
+      "sha256": "47564af6b2448612643ddf3bf38a5c57dcad2515f9baa5b417ea8a4f126eebb3",
+      "origin_key": "fixtures",
+      "role": "A1 / EVID-01 Release re-run manifest: host and build identity, driver and input hashes, every case's Release exit code and stream/output hashes, the run1/run2 reproduction, and the difference from the macOS Debug runs",
+      "label": "oracle-generated (tier 1 executed differential), Linux x86_64 Release"
+    },
+    {
+      "path": "../oracle/A1-release-rerun/linux_release.py",
+      "sha256": "c061bff32180d116cdc0af1e2306f284287be587661cd0bd4ba4a7cf3e4b1bb3",
+      "origin_key": "fixtures",
+      "role": "shim that imports the three original drivers verbatim and rebinds only their location constants to the Release install",
+      "label": "oracle helper (tier 1 executed differential inputs)"
+    },
+    {
+      "path": "../oracle/A1-release-rerun/run.sh",
+      "sha256": "67c193edbb6a152941c1f15b199641ada8844038a87cea1173e14568d689c682",
+      "origin_key": "fixtures",
+      "role": "entry point: stage, fetch, compare",
+      "label": "oracle helper (tier 1 executed differential inputs)"
+    },
+    {
+      "path": "../oracle/A1-release-rerun/divergences.json",
+      "sha256": "5552d1396dca5d3c54e379e15d2fa29bf428a96093a9f9f5df7dcadcea7134b3",
+      "origin_key": "fixtures",
+      "role": "per case, the Release run against the macOS product-SDK run, with diffs",
+      "label": "oracle-generated (tier 1 executed differential), Linux x86_64 Release"
     }
   ],
   "native_implementation": [
@@ -402,5 +430,11 @@
       "used_by": "a_low_memory_failure_leaves_the_batches_already_written"
     }
   ],
-  "derived_inputs_note": "These six entries, eight files in all, are built inside the test from a retained input by the rule named, not committed as fixtures. The sha256 values are the bytes the C++ Release build was run on for the same cases on ibminode06 (../oracle/p4-lowmemory/fixdiff_06.sh derives the first four by the identical rules, and closediff2_06.sh the four batch-boundary files), so the two implementations are compared on the same bytes."
+  "derived_inputs_note": "These six entries, eight files in all, are built inside the test from a retained input by the rule named, not committed as fixtures. The sha256 values are the bytes the C++ Release build was run on for the same cases on ibminode06 (../oracle/p4-lowmemory/fixdiff_06.sh derives the first four by the identical rules, and closediff2_06.sh the four batch-boundary files), so the two implementations are compared on the same bytes.",
+  "release_verification": {
+    "oracle": "../oracle/A1-release-rerun",
+    "build": "C++ Release build at the port's pins (core bc9cc12, cli c19e494, topp 174b576), Linux x86_64, GCC 14.4.0, CMAKE_BUILD_TYPE=Release, /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, run on ibminode06",
+    "why": "the C1 regressions (../oracle/topp-early-bundle) and the P3 oracle (../oracle/topp-peak-picker-tool) ran on the macOS arm64 product SDK, a Debug build of core 4fdec46",
+    "result": "every case of both re-executed twice on the Release build and reproduced (cpp_ini_threads_16's stdout differs between repetitions only in a timing-dependent ProgressLogger percentage fragment). Every retained output mzML, INI and stderr file is byte-identical to the Release run's, except oracle_notest.mzML (completion time, run paths and index offsets only); every exit code is the same; PPHR_auto_mode_1 crashes in Release too (SIGSEGV 139 in five of five attempts, where the Debug SDK had SIGBUS 138)"
+  }
 }

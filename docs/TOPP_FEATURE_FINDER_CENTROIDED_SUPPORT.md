@@ -129,8 +129,14 @@ Every member of the source class, and every framework call it makes.
 
 ## Exit codes and diagnostics
 
-Every row was executed against the product SDK; the case name is the oracle
-case (C1 = `../oracle/topp-early-bundle`, C5 = `../oracle/ffc-wrapper-c5`). The
+Every row was executed against the product SDK (macOS arm64, Debug, core
+`4fdec46`); the case name is the oracle case (C1 = `../oracle/topp-early-bundle`,
+C5 = `../oracle/ffc-wrapper-c5`). Every C1 row was re-executed twice on the
+C++ Release build at the pins (Linux x86_64, ibminode06;
+`../oracle/A1-release-rerun`) with the same exit code and `Error:` line; the two
+C1 cases whose Debug exit 8 comes from an `OPENMS_PRECONDITION`
+(`FFC_FileFilter_44_force`, `FFC_im_arrays_ms2_only`) exit 0 there with an
+empty feature map. The C5 rows have not been re-run on Release. The
 two huge-m/z rows were executed against the Release build
 (F2 = `../oracle/ffap-complete-fix2`, two runs each, identical apart from the
 timing text), and the last three rows against the same build on `ibminode06`

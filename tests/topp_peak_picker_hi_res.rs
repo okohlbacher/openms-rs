@@ -20,8 +20,15 @@
 //!   executed run on the 2.3 GB benchmark input, which no test suite can carry,
 //!   is in `../oracle/topp-peak-picker-scale`.
 //!
-//! Every C++ output was produced by the product SDK (Debug, core `4fdec46`,
-//! decision D7). Hashes, command lines and derivation rules are in
+//! The C1 and P3 outputs retained here were produced by the macOS arm64
+//! product SDK, a Debug build of core `4fdec46` (decision D7). Every case of
+//! both oracles was re-executed on the C++ Release build at the pins (Linux
+//! x86_64, ibminode06, core `bc9cc12`; `../oracle/A1-release-rerun`, two
+//! repetitions): each retained output, standard error file and exit code
+//! quoted below is the Release run's too (mzML outputs equal apart from index
+//! offsets, completion times and run paths), and `PPHR_auto_mode_1` crashes
+//! there as well (SIGSEGV in all five attempts, where the Debug SDK had
+//! SIGBUS). Hashes, command lines and derivation rules are in
 //! `tests/data/topp_peak_picker_hi_res_provenance.json`.
 
 #![cfg(all(feature = "mzml", feature = "paramxml"))]
@@ -1176,7 +1183,9 @@ fn low_memory_runs_none_of_the_in_memory_input_checks() {
 
     // An input without spectra and chromatograms: the in-memory mode exits 11,
     // an exit code `main_` returns, so the closing line follows, as in the
-    // Release build (`../oracle/topp-peak-picker-tool/results/run1/empty`).
+    // Release build (`../oracle/A1-release-rerun/runs/topp-peak-picker-tool/
+    // results/run1/empty`; the P3 run in `../oracle/topp-peak-picker-tool`
+    // ended the same way on the macOS Debug product SDK).
     let empty = run(&[
         "-test",
         "-in",
