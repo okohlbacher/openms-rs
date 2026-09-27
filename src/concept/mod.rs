@@ -41,3 +41,6 @@ pub mod types;
 /// A cached unique id to index map for containers of elements with unique
 /// ids, from `CONCEPT/UniqueIdIndexer.h`.
 pub mod unique_id_indexer;
+/// Release version of the library and its parsed form, from
+/// `CONCEPT/VersionInfo.h`.
+pub mod version_info;
