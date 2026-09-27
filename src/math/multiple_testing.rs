@@ -27,7 +27,9 @@
 //! through [`crate::math::multiple_testing::Pi0Smoother`] — see that trait for
 //! why, and for why passing `None` there is a different answer rather than a
 //! safe one: it lowers `pi0`, and a lower `pi0` lowers every q-value and local
-//! FDR derived from it.
+//! FDR derived from it. The library supplies the source's spline one layer up,
+//! as `processing::spline::pi0_smoother::SplinePi0Smoother`, and the source's
+//! exact `pi0Est` signature as `processing::spline::pi0_smoother::pi0_est_smoothed`.
 //!
 //! # Non-finite p-values
 //!
@@ -288,9 +290,12 @@ impl Default for Pi0Result {
 /// duplicate a 1,800-line spline implementation, the requirement is stated as
 /// this trait and satisfied above the `math` layer.
 ///
-/// `tests/multiple_testing.rs` implements it with the ported
-/// `BSplineSmoothingSpline` and reproduces the class test's pi0 literals, so
-/// the seam is exercised rather than merely declared.
+/// The library implements it one layer up, as
+/// `processing::spline::pi0_smoother::SplinePi0Smoother` over the ported
+/// `BSplineSmoothingSpline`, and offers the source's exact `pi0Est` signature
+/// as `processing::spline::pi0_smoother::pi0_est_smoothed`.
+/// `tests/multiple_testing.rs` reproduces the class test's three pi0 literals
+/// through both, so the seam is exercised rather than merely declared.
 ///
 /// # Passing `None` is not a safe default
 ///
