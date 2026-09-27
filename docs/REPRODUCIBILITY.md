@@ -195,9 +195,17 @@ In order of gain for the effort:
 
 1. **Run `check_core_sdk.py --source` in CI** against a clone of the public core
    at the pin: CI's share goes from 8.2% to 51.2% of the occurrences (10.0% to
-   32.4% distinct). It costs one step and a 500 MB checkout; a shallow fetch of
-   the one commit is enough, since `--source` needs only a clean working tree at
-   the pin. (`rust.yml` is the lead's file.)
+   32.4% distinct). It costs one step. A shallow fetch of the one commit is
+   enough, since `--source` needs only a clean working tree at the pin; tried
+   as written here on spock, the fetch took 8 s and 213 MB and the check 9 s:
+
+   ```sh
+   git init -q ../core
+   git -C ../core fetch -q --depth 1 https://github.com/okohlbacher/OpenMS4-core.git \
+       bc9cc12514c768385ce121d6ca4bb710fe1983c4
+   git -C ../core checkout -q FETCH_HEAD
+   python3 tools/check_core_sdk.py --source ../core
+   ```
 2. **Run the citation checker in CI** the same way, with the four packages
    cloned beside the checkout. CI runs only `test_source_citations.py` today;
    the checker itself needs the pins.
@@ -207,8 +215,9 @@ In order of gain for the effort:
    That moves 1,365 occurrences, 8.1 points, from lab only to bound. The 80
    build digests stay: a build is not an artifact anyone can re-derive byte for
    byte.
-4. **Keep the logs, or stop recording their digests**: 566 occurrences, 3.4
-   points, are digests of text that was thrown away.
+4. **Keep the logs, or stop recording their digests**: 566 occurrences are
+   digests of text that was thrown away, and 552 of them (3.3 points) nothing
+   can recompute today.
 5. **Re-record the 12 uncommitted-state digests** at a commit, or mark them as
    working-tree snapshots.
 6. **Bind every digest to a path**: the 544 content-only and 239 unbound
