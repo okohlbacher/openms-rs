@@ -90,9 +90,9 @@ pub mod quadtree;
 use self::quadtree::{QuadBox, Quadtree};
 use crate::concept::constants::user_param::FAIMS_CV;
 use crate::kernel::{ConvexHull2D, Feature, FeatureMap};
+use crate::math::source_sort::{TemporaryBuffer, source_stable_sort_permutation};
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
-use std::cmp::Ordering;
 use std::collections::{BTreeMap, HashSet};
 
 /// Meta value key of the merged centroid retention times, in seconds.
@@ -367,12 +367,15 @@ impl FeatureOverlapFilter {
     ///
     /// # Arguments
     ///
-    /// * `comparator` — a "less" comparator, a strict weak ordering: when
-    ///   several features overlap, the one that sorts first is kept. The
-    ///   features are sorted stably with it. It is called once or twice per
-    ///   comparison, where the source's merge sort calls it once. As with
-    ///   `std::stable_sort`, a comparator that is not a strict weak ordering
-    ///   gives an unspecified order, and the standard sort may panic on it.
+    /// * `comparator` — a "less" comparator: when several features overlap,
+    ///   the one that sorts first is kept. The features are sorted with the
+    ///   source's `std::stable_sort` (`FeatureOverlapFilter.cpp:141`), run by
+    ///   [`source_stable_sort_permutation`](crate::math::source_sort::source_stable_sort_permutation):
+    ///   libstdc++'s merge sort, calling `comparator` once per comparison in
+    ///   the source's order. A comparator that is not a strict weak ordering —
+    ///   the default one on a NaN quality — gives the order the Release build
+    ///   gives (`../oracle/A3a-source-order`, cases `fof_*`), and never a
+    ///   panic.
     /// * `on_overlap` — called as `on_overlap(best, other)` when `other`
     ///   overlaps `best`, a feature that has not been removed. It may transfer
     ///   information to `best`. Returning `false` keeps `other` (as far as this
@@ -1099,18 +1102,16 @@ where
         }
     };
 
-    // std::stable_sort with the "less" comparator, as a permutation so that a
-    // failed run can put every feature back.
-    let mut order: Vec<usize> = (0..features.len()).collect();
-    order.sort_by(|&a, &b| {
-        if comparator(&features[a], &features[b]) {
-            Ordering::Less
-        } else if comparator(&features[b], &features[a]) {
-            Ordering::Greater
-        } else {
-            Ordering::Equal
-        }
-    });
+    // std::stable_sort with the "less" comparator (`FeatureOverlapFilter.cpp:141`),
+    // libstdc++'s own algorithm, as a permutation so that a failed run can put
+    // every feature back. It stays in bounds whatever the comparator returns,
+    // where a library `sort_by` may panic on a comparator that is not a total
+    // order (a NaN quality under the default one).
+    let order = source_stable_sort_permutation(
+        features.len(),
+        |a, b| comparator(&features[a], &features[b]),
+        TemporaryBuffer::Allocate,
+    )?;
     let mut sorted: Vec<Feature> = order
         .iter()
         .map(|&index| std::mem::take(&mut features[index]))

@@ -378,8 +378,8 @@ impl ImDataConverter {
     ///
     /// Returns an error, with `experiment` unchanged and nothing moved, when:
     ///
-    /// - [`FaimsHelper::get_compensation_voltages`] fails: more than
-    ///   [`MAX_SPECTRA`](Self::MAX_SPECTRA) spectra, or a FAIMS spectrum with a
+    /// - [`FaimsHelper::get_compensation_voltages`] fails (more than
+    ///   [`MAX_SPECTRA`](Self::MAX_SPECTRA) spectra), or a FAIMS spectrum has a
     ///   NaN drift time ([`Error::InvalidValue`] in both cases). The source puts
     ///   the NaN into its `std::set<double>` and `std::map<double, ...>`, whose
     ///   ordering it breaks: executed, a NaN first makes the input unsplit, and a
@@ -433,6 +433,17 @@ impl ImDataConverter {
     /// ```
     pub fn split_by_faims_cv(experiment: &mut MSExperiment) -> Result<FaimsSplit> {
         let detected = FaimsHelper::get_compensation_voltages(experiment)?;
+        // `get_compensation_voltages` reproduces a NaN voltage since DEBT-04;
+        // this split still refuses one, as documented above, because its own
+        // `std::map<double, ...>` grouping of a NaN is not ported yet.
+        if let Some(index) = experiment.spectra.iter().position(|spectrum| {
+            spectrum.drift_time_unit == DriftTimeUnit::FaimsCompensationVoltage
+                && spectrum.drift_time.is_nan()
+        }) {
+            return Err(Error::InvalidValue(format!(
+                "spectrum {index} carries a NaN FAIMS compensation voltage"
+            )));
+        }
         let mut messages = Vec::new();
         reserve(&mut messages, detected.warnings.len() + 1)?;
         messages.extend(
@@ -473,8 +484,8 @@ impl ImDataConverter {
         for (index, spectrum) in experiment.spectra.iter().enumerate() {
             let destination = if spectrum.drift_time_unit == DriftTimeUnit::FaimsCompensationVoltage
             {
-                // get_compensation_voltages refused NaN, so `new` succeeds; a
-                // failure could only mean an undetected voltage.
+                // A NaN was refused above, so `new` succeeds; a failure could
+                // only mean an undetected voltage.
                 let found = CompensationVoltage::new(spectrum.drift_time)
                     .ok()
                     .and_then(|voltage| voltages.binary_search(&voltage).ok());

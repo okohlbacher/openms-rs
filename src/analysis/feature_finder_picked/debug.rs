@@ -569,7 +569,8 @@ pub struct DebugOutput {
 
 /// A key of `std::map<Seed, std::string>`: `Seed::operator<` compares only
 /// the `float` intensities, so seeds of equal intensity, `-0.0` and `+0.0`
-/// included, are one key.
+/// included, are one key. A NaN never becomes one ([`AbortReasons`] keeps it
+/// apart).
 #[derive(Clone, Copy, Debug, PartialEq)]
 struct IntensityKey(f32);
 
@@ -583,8 +584,8 @@ impl PartialOrd for IntensityKey {
 
 impl Ord for IntensityKey {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        // Keys are not NaN (checked on insertion) and their zeros are
-        // normalised, so the total order is the `<` order.
+        // Keys are not NaN (a NaN seed is held apart by `AbortReasons`) and
+        // their zeros are normalised, so the total order is the `<` order.
         self.0.total_cmp(&other.0)
     }
 }
@@ -596,9 +597,22 @@ impl Ord for IntensityKey {
 /// later abort of an equally intense seed replaces the reason only. Entries
 /// iterate by ascending intensity. The source fills it only in debug runs and
 /// never clears it.
+///
+/// A seed with a NaN intensity is stored as the Release build stores it, with
+/// `operator[]`'s `lower_bound` (`FeatureFinderAlgorithmPicked.cpp:1138`).
+/// `Seed::operator<` is false both ways against a NaN, so a NaN is equivalent
+/// to every key: into an empty map it is inserted, and that entry then takes
+/// the reason of every later abort, whatever its intensity; into a non-empty
+/// map it is not inserted, and replaces the reason of the *least* intense
+/// entry, the `lower_bound` of a key that no entry is less than. Neither
+/// depends on the shape of the tree (`../oracle/A3a-source-order`, cases
+/// `abort_*`).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct AbortReasons {
     entries: BTreeMap<IntensityKey, (Seed, String)>,
+    /// The entry of a NaN seed inserted into the empty map, which then holds
+    /// nothing else; `entries` is empty while this is set.
+    nan: Option<(Seed, String)>,
 }
 
 impl AbortReasons {
@@ -609,20 +623,31 @@ impl AbortReasons {
 
     /// `abort_reasons_[seed] = reason`.
     ///
+    /// Every seed is accepted, a NaN intensity included (see the type
+    /// documentation); no run of the finder stores one, since a peak with a
+    /// NaN intensity has a NaN intensity score (`lower_bound` gives the first
+    /// quantile, and `0.05 * NaN / q0` is NaN,
+    /// `FeatureFinderAlgorithmPicked.cpp:1913-1937`), so its overall score is
+    /// NaN and never reaches a seed threshold (`:1886-1890`).
+    ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] for a NaN intensity, which the ordering
-    /// of the source map cannot hold (it is not a strict weak ordering there).
-    /// No run reaches it: a peak with a NaN intensity has a NaN intensity score
-    /// (`lower_bound` gives the first quantile, and `0.05 * NaN / q0` is NaN,
-    /// `FeatureFinderAlgorithmPicked.cpp:1913-1937`), so its overall score is
-    /// NaN and never reaches a seed threshold (`:1886-1890`); such a peak is
-    /// never a seed, and only seeds are aborted.
+    /// None; the `Result` is kept for the callers that propagate it.
     pub fn insert(&mut self, seed: Seed, reason: &str) -> Result<()> {
+        if let Some(entry) = self.nan.as_mut() {
+            entry.1.clear();
+            entry.1.push_str(reason);
+            return Ok(());
+        }
         if seed.intensity.is_nan() {
-            return Err(Error::InvalidValue(
-                "a seed with a NaN intensity cannot key the abort-reason map".into(),
-            ));
+            match self.entries.values_mut().next() {
+                Some(least) => {
+                    least.1.clear();
+                    least.1.push_str(reason);
+                }
+                None => self.nan = Some((seed, reason.to_owned())),
+            }
+            return Ok(());
         }
         // `-0.0 < 0.0` is false both ways: one key.
         let key = IntensityKey(if seed.intensity == 0.0 {
@@ -645,19 +670,20 @@ impl AbortReasons {
     /// The entries by ascending intensity: the stored seed and its last
     /// reason.
     pub fn iter(&self) -> impl Iterator<Item = (&Seed, &str)> {
-        self.entries
-            .values()
+        self.nan
+            .iter()
+            .chain(self.entries.values())
             .map(|(seed, reason)| (seed, reason.as_str()))
     }
 
     /// Number of entries.
     pub fn len(&self) -> usize {
-        self.entries.len()
+        self.entries.len() + usize::from(self.nan.is_some())
     }
 
     /// Whether the map is empty.
     pub fn is_empty(&self) -> bool {
-        self.entries.is_empty()
+        self.entries.is_empty() && self.nan.is_none()
     }
 }
 

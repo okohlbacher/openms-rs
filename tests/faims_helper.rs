@@ -16,10 +16,11 @@
 //!   `../oracle/pte-faims-helper/driver.cpp`. The upstream class tests do not
 //!   exercise `filterPeptidesByFAIMSCV` at all, so its only executed evidence
 //!   is this oracle.
-//! - The NaN refusal, the parameter refusals and the ceilings are native
-//!   (tier 4). Where the source gives a result for input this port refuses,
-//!   the test asserts the refusal *and* the recorded source result, so the
-//!   divergence stays visible.
+//! - The parameter refusals and the ceilings are native (tier 4). Where the
+//!   source gives a result for input this port refuses, the test asserts the
+//!   refusal *and* the recorded source result, so the divergence stays
+//!   visible. NaN voltages are no longer refused (DEBT-04): the three NaN
+//!   cases of the oracle are reproduced like every other case.
 
 use openms::concept::constants::user_param::FAIMS_CV;
 use openms::identification::PeptideIdentification;
@@ -227,11 +228,10 @@ fn get_compensation_voltages_returns_empty_for_non_faims_section() {
 }
 
 #[test]
-fn every_executed_voltage_case_matches_the_oracle_or_is_refused_for_nan() {
+fn every_executed_voltage_case_matches_the_oracle() {
     let rows = records("faims_cvs");
     assert_eq!(rows.len(), 16);
     let mut warned = Vec::new();
-    let mut refused = Vec::new();
     for row in &rows {
         let name = row[1];
         let inputs: Vec<(DriftTimeUnit, f64)> = if row[4] == "-" {
@@ -251,21 +251,8 @@ fn every_executed_voltage_case_matches_the_oracle_or_is_refused_for_nan() {
                 .map(|&(unit, value)| spectrum(unit, value))
                 .collect(),
         );
-        let first_faims_nan = inputs.iter().position(|&(unit, value)| {
-            unit == DriftTimeUnit::FaimsCompensationVoltage && value.is_nan()
-        });
-        let result = FaimsHelper::get_compensation_voltages(&experiment);
-        if let Some(index) = first_faims_nan {
-            match result {
-                Err(Error::InvalidValue(message)) => {
-                    assert!(message.contains(&format!("spectrum {index} ")), "{message}");
-                }
-                other => panic!("{name}: expected a NaN refusal, got {other:?}"),
-            }
-            refused.push((name, row[2], row[3]));
-            continue;
-        }
-        let cvs = result.unwrap();
+        let cvs = FaimsHelper::get_compensation_voltages(&experiment)
+            .unwrap_or_else(|e| panic!("{name}: the source returns a set here: {e:?}"));
         assert_eq!(cvs.voltages.len().to_string(), row[2], "{name}");
         assert_eq!(
             cvs.values().map(f64::to_bits).collect::<Vec<_>>(),
@@ -277,21 +264,19 @@ fn every_executed_voltage_case_matches_the_oracle_or_is_refused_for_nan() {
             warned.push(name);
         }
     }
-    assert_eq!(
-        warned,
-        ["class_section_beyond_first_and_sentinel", "only_sentinel"]
-    );
     // What the source does with a NaN voltage depends on where it is inserted:
     // as the first element it becomes the tree root, every later voltage
     // compares equal to it and is dropped, and erase(DRIFTTIME_NOT_SET) then
-    // removes the NaN itself (and logs the missing-voltage warning, the third
-    // occurrence the oracle stderr counts). Anywhere else the NaN is dropped.
+    // removes the NaN itself and logs the missing-voltage warning, the third
+    // occurrence the oracle stderr counts. Anywhere else the NaN is dropped.
+    // Since DEBT-04 the port reproduces all three NaN cases instead of
+    // refusing them (the Release build agrees: tests/a3a_source_order.rs).
     assert_eq!(
-        refused,
+        warned,
         [
-            ("nan_first", "0", "-"),
-            ("nan_middle", "2", "-0x1.9p+5,-0x1.4p+5"),
-            ("nan_last", "2", "-0x1.9p+5,-0x1.4p+5"),
+            "class_section_beyond_first_and_sentinel",
+            "only_sentinel",
+            "nan_first"
         ]
     );
 }

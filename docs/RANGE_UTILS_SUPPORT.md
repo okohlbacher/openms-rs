@@ -91,8 +91,12 @@ the source.
 - Range constructors validate: nonfinite bounds → `Error::InvalidValue`;
   `min > max` → `Error::InvalidRange`. The source stores any pair; an inverted
   pair then never matches (or, reversed, always matches), which is a silent
-  no-op filter. `IsInIsolationWindow::new` rejects nonfinite m/z values, which
-  the source would sort into an unspecified position.
+  no-op filter. `IsInIsolationWindow::new` accepts every m/z value, NaN and
+  infinities included: it sorts with the Release build's own introsort
+  (`crate::math::source_sort`, lead decision D16) and searches with its own
+  `std::lower_bound` halving (`crate::math::libstdcxx`), so a NaN lands and is
+  searched past exactly as the executed C++ does (tier 1,
+  `../oracle/A3a-source-order`, cases `iso_*`, `tests/a3a_source_order.rs`).
 - `HasActivationMethod::from_names` rejects unknown names with
   `Error::InvalidValue`; the source `StringList` keeps them and they never
   match. It also accepts the short names (`"CID"`), which the source does not.
@@ -123,7 +127,7 @@ the aligned-array consistency check of `retain_peaks`, which rejects a
 misaligned nonempty data array before selecting. Predicates are infallible
 `bool` functions, so removal cannot stop halfway and no half-filtered container
 can result. The predicates allocate nothing per call; `IsInIsolationWindow`
-does one `partition_point` per precursor over its sorted list.
+does one `std::lower_bound` halving per precursor over its sorted list.
 
 ### Class-test sections (tier 3)
 

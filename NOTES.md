@@ -56,6 +56,9 @@ outer teeth (no discrimination) -> added ppi_tie_* grid cases (20+ tied seeds in
 read via leftWidth). Invocations 3+4 running with the new cases (run3.log/run4.log, same34.txt marker).
 compute_rank sort ported (uncommitted at time of writing).
 
-## Next step
-1. Copy oracle cases.tsv + oracle.tsv into tests/data/a3a_source_order/, write tests/a3a_source_order.rs.
-2. Meanwhile port Rust changes site by site; commit each.
+## Next step (incarnation 4, 2026-09-27)
+Incarnation 3 left all 8 sites ported UNCOMMITTED + tests/a3a_source_order.rs (687 lines) + oracle data committed (5881e0b).
+Committed as WIP by incarnation 4. Unknown: whether it compiles / passes. So:
+1. Review the diff site by site, then gate on spock: cargo test --test a3a_source_order + the touched test files.
+2. Fix failures; commit per site; fmt; module cycles check; CI sweep.
+3. Report + ledger fragment; delete NOTES.md.

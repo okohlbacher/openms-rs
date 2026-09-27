@@ -105,10 +105,21 @@ warning side effects; ordinary unselected spectra are not counted as warnings.
 
 ## Checked boundaries and limits
 
-Only consumed coordinates and intensities must be finite. Negative finite values
-are allowed. Nonfinite map keys, RTs or emitted intensities produce a checked
-atomic error; source ordered maps cannot safely order NaN keys. Copied metadata
-is retained as stored, without speculative validation of unused values.
+Every coordinate and intensity is accepted, as the source accepts it (closed
+by DEBT-04; the port used to refuse non-finite values on the argument that an
+ordered map cannot order a NaN key). Retention times and intensities are only
+copied. Infinite keys order as numbers. A NaN key is handled exactly as the
+Release build's `std::map::operator[]` and `contains` handle it: `lower_bound`
+of a NaN is the least entry and nothing is inserted, unless the map is empty,
+in which case the NaN becomes its only key and every later key of that map
+lands in the NaN entry. So a NaN product m/z joins its precursor's smallest
+product, a NaN precursor the smallest precursor and a NaN XIC m/z the smallest
+XIC m/z, and a NaN that comes first absorbs the rest; an SRM chromatogram's
+precursor is the first contributing spectrum's own, NaN included, and a NaN XIC
+is described as `XIC @ NaN`. Tier 1: `../oracle/A3a-source-order`, cases
+`s2c_*` and `c2s_nonfinite`, compared bit for bit by
+`tests/a3a_source_order.rs`. Copied metadata is retained as stored, without
+speculative validation of unused values.
 
 Defaults allow one million input records, one million final destination records
 including an existing prefix, ten million generated points, 50 million weighted

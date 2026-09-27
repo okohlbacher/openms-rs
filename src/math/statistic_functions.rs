@@ -134,15 +134,18 @@
 //!   through the private `_of_sorted` helpers, which do not re-check.
 //! - [`compute_rank`](crate::math::statistic_functions::compute_rank) and
 //!   [`rank_correlation_coefficient`](crate::math::statistic_functions::rank_correlation_coefficient)
-//!   still refuse. Their `std::sort` (`:829-830`) is a different call — a
-//!   lambda comparing `std::pair::second`, not the default `operator<` — and a
-//!   NaN additionally defeats their *tie test*, whose two comparisons are both
-//!   false against a NaN, so every block it touches would be merged. That is a
-//!   second, independent behaviour that no oracle row measures, so this wave
-//!   left the refusal standing rather than guess at it; see the "Where a NaN
-//!   lands" section of `docs/STATISTIC_FUNCTIONS_SUPPORT.md`. For a NaN-free range the two sorts
-//!   agree on the ranks anyway: `operator<` and `total_cmp` differ only on
-//!   `±0.0`, which the tie test makes one block either way.
+//!   reproduce a NaN too. Their `std::sort` (`:829-830`) is a different call —
+//!   a lambda comparing `std::pair::second` — and it is run as
+//!   `source_sort_by(&mut pairs, |l, r| l.1 < r.1)`, the same introsort on the
+//!   same comparisons. Their relative tie test turned out not to need anything
+//!   of its own: against a NaN both of its comparisons are false, so the source
+//!   takes the *tie* branch, whose counting loop then stops at once
+//!   (`z == i + 1`) and assigns the rank `0.5 * (i + (i + 1) + 1) = i + 1`,
+//!   which is exactly the no-tie rank. The port's single `<=` test takes the
+//!   no-tie branch on the same input and writes the same value. Where the NaN
+//!   lands therefore decides the ranks, and the permutation is the only thing
+//!   to reproduce. `../oracle/A3a-source-order` measures both functions on NaN,
+//!   infinite and signed-zero keys.
 //! - [`tukey_upper_fence`](crate::math::statistic_functions::tukey_upper_fence),
 //!   [`tail_fraction_above`](crate::math::statistic_functions::tail_fraction_above),
 //!   [`winsorized_quantile`](crate::math::statistic_functions::winsorized_quantile)
@@ -253,24 +256,6 @@ fn is_free_of_nan(values: &[f64]) -> bool {
 /// for "sorted" the way `std::is_sorted` passes it.
 fn is_ascending(values: &[f64]) -> bool {
     is_free_of_nan(values) && values.windows(2).all(|pair| pair[0] <= pair[1])
-}
-
-/// Fail when any value is NaN.
-///
-/// Since decision D16 the functions that *sort* no longer use this: they
-/// reproduce the Release build's own permutation instead. Its two remaining
-/// callers are [`compute_rank`](crate::math::statistic_functions::compute_rank)
-/// and
-/// [`rank_correlation_coefficient`](crate::math::statistic_functions::rank_correlation_coefficient),
-/// whose `std::sort` is a different call — a lambda on `std::pair::second`
-/// rather than the default `operator<` — and whose relative tie test a NaN
-/// defeats in a second, independent way that no oracle row measures. See the
-/// module's NaN section.
-fn check_no_nan(values: &[f64]) -> Result<()> {
-    if !is_free_of_nan(values) {
-        return Err(bad("statistics input must not contain NaN"));
-    }
-    Ok(())
 }
 
 /// Whether the libstdc++ permutation is observable in a sample, and therefore
@@ -1370,22 +1355,27 @@ pub const COMPUTE_RANK_TIE_TOLERANCE: f64 = 0.000_000_1;
 /// arithmetic and wraps to `SIZE_MAX` on an empty vector, which this port
 /// cannot and does not reproduce.
 ///
-/// Returns [`Error::InvalidValue`] when any value is NaN. The ranking sorts,
-/// and a NaN would additionally make the tie test — whose two comparisons are
-/// both false against a NaN — split every block that touches it; see the
-/// module's NaN section. The refusal happens before anything is written, so a
-/// rejected call leaves `w` unchanged.
+/// A NaN is reproduced, not refused. The values are ordered by the source's
+/// `std::sort` with a lambda on `std::pair::second` (`StatisticFunctions.h:829-830`),
+/// run here as [`source_sort_by`] with `|l, r| l.1 < r.1`, so a NaN lands where
+/// the Release build's introsort leaves it and equal values keep the
+/// introsort's order; the tie test then gives a NaN, and each neighbour
+/// compared with it, the no-tie rank `i + 1` (the module's NaN section has the
+/// argument). `+-inf` rank as the largest and smallest values; `inf - inf` is a
+/// NaN and ranks the same way. The sort never refuses a `<` comparison on
+/// `f64`, NaN included ([`crate::math::source_sort`]).
 pub fn compute_rank(w: &mut [f64]) -> Result<()> {
     if w.is_empty() {
         return Ok(());
     }
-    check_no_nan(w)?;
     preflight(w.len(), size_of::<(usize, f64)>())?;
     let mut w_idx: Vec<(usize, f64)> = Vec::with_capacity(w.len());
     for (index, &value) in w.iter().enumerate() {
         w_idx.push((index, value));
     }
-    w_idx.sort_by(|left, right| left.1.total_cmp(&right.1));
+    // `std::sort(w_idx.begin(), w_idx.end(), [](p1, p2) { return p1.second <
+    // p2.second; })` (`:829-830`).
+    source_sort_by(&mut w_idx, |left, right| left.1 < right.1)?;
 
     let n = w.len() - 1;
     let mut i = 0usize;
@@ -1434,17 +1424,14 @@ pub fn compute_rank(w: &mut [f64]) -> Result<()> {
 /// # Errors
 ///
 /// Returns [`Error::InvalidRange`] for an empty range, for ranges of different
-/// length, and when a range exceeds [`MAX_ITEMS`] or [`MAX_BYTES`]; and
-/// [`Error::InvalidValue`] when either range contains a NaN, which
-/// [`compute_rank`] cannot order. Both ranges are checked before either is
-/// copied.
+/// length, and when a range exceeds [`MAX_ITEMS`] or [`MAX_BYTES`]; both
+/// ranges are checked before either is copied. A NaN in either range is
+/// ranked as [`compute_rank`] ranks it, as the source ranks it.
 pub fn rank_correlation_coefficient(a: &[f64], b: &[f64]) -> Result<f64> {
     check_not_empty(a)?;
     if a.len() != b.len() {
         return Err(empty("rank correlation ranges must have the same length"));
     }
-    check_no_nan(a)?;
-    check_no_nan(b)?;
     preflight(a.len(), size_of::<f64>())?;
     let mut ranks_model = a.to_vec();
     let mut ranks_data = b.to_vec();
