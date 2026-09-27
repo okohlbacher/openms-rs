@@ -156,6 +156,14 @@ pub mod xml_schema;
 #[cfg(feature = "paramxml")]
 pub mod qcml;
 
+/// Arrow schema definitions of the OpenMS Parquet tables and their
+/// validation (`ArrowSchemaRegistry.h`).
+#[cfg(feature = "arrow")]
+pub mod arrow_schema_registry;
+/// Shared Parquet read/write helpers and type-coercing column accessors
+/// (`ParquetFile.h`).
+#[cfg(feature = "arrow")]
+pub mod parquet_file;
 /// Typed filter expressions for Parquet-backed readers (`ParquetFilter.h`).
 pub mod parquet_filter;
 

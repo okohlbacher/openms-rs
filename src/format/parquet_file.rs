@@ -102,8 +102,13 @@ impl ParquetFile {
     /// # Errors
     ///
     /// [`Error::InvalidValue`] naming the column and Arrow's message.
-    pub fn append_or_error<T>(status: std::result::Result<T, ArrowError>, column: &str) -> Result<T> {
-        status.map_err(|error| Error::InvalidValue(format!("Failed to append value for {column}: {error}")))
+    pub fn append_or_error<T>(
+        status: std::result::Result<T, ArrowError>,
+        column: &str,
+    ) -> Result<T> {
+        status.map_err(|error| {
+            Error::InvalidValue(format!("Failed to append value for {column}: {error}"))
+        })
     }
 
     /// Finish an Arrow builder and return the resulting array.
@@ -123,10 +128,9 @@ impl ParquetFile {
     /// [`Error::InvalidValue`] when the finished array is not valid.
     pub fn finish_array<B: ArrayBuilder + ?Sized>(builder: &mut B, name: &str) -> Result<ArrayRef> {
         let array = builder.finish();
-        array
-            .to_data()
-            .validate_full()
-            .map_err(|error| Error::InvalidValue(format!("Failed to finish array for {name}: {error}")))?;
+        array.to_data().validate_full().map_err(|error| {
+            Error::InvalidValue(format!("Failed to finish array for {name}: {error}"))
+        })?;
         Ok(array)
     }
 
@@ -181,8 +185,9 @@ impl ParquetFile {
         let options = ArrowWriterOptions::new()
             .with_properties(properties)
             .with_skip_arrow_metadata(true);
-        let bytes = encode(table, options)
-            .map_err(|error| Error::InvalidValue(format!("Failed to write parquet table: {error}")))?;
+        let bytes = encode(table, options).map_err(|error| {
+            Error::InvalidValue(format!("Failed to write parquet table: {error}"))
+        })?;
         publish(filename.as_ref(), &bytes)
     }
 
@@ -210,10 +215,17 @@ impl ParquetFile {
     /// [`Error::InvalidValue`] when the file cannot be opened ("Failed to open
     /// parquet file", as the source), is not Parquet, cannot be decoded or
     /// exceeds `limits`.
-    pub fn read_table_with_limits(filename: impl AsRef<Path>, limits: &ReadLimits) -> Result<RecordBatch> {
+    pub fn read_table_with_limits(
+        filename: impl AsRef<Path>,
+        limits: &ReadLimits,
+    ) -> Result<RecordBatch> {
         let path = filename.as_ref();
-        let file = std::fs::File::open(path)
-            .map_err(|error| Error::InvalidValue(format!("Failed to open parquet file {}: {error}", path.display())))?;
+        let file = std::fs::File::open(path).map_err(|error| {
+            Error::InvalidValue(format!(
+                "Failed to open parquet file {}: {error}",
+                path.display()
+            ))
+        })?;
         Self::read_table_from_with_limits(file, limits)
     }
 
@@ -240,11 +252,16 @@ impl ParquetFile {
     /// # Errors
     ///
     /// As [`read_table_from`](Self::read_table_from).
-    pub fn read_table_from_with_limits<R: ChunkReader + 'static>(reader: R, limits: &ReadLimits) -> Result<RecordBatch> {
+    pub fn read_table_from_with_limits<R: ChunkReader + 'static>(
+        reader: R,
+        limits: &ReadLimits,
+    ) -> Result<RecordBatch> {
         // arrow-rs reports malformed input as errors; a panic that escapes it
         // anyway becomes a typed error rather than taking the process down.
         std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| read_all(reader, limits)))
-            .map_err(|_| Error::InvalidValue("Parquet reader panicked while decoding the file".into()))?
+            .map_err(|_| {
+                Error::InvalidValue("Parquet reader panicked while decoding the file".into())
+            })?
     }
 
     /// A required column by name.
@@ -269,7 +286,11 @@ impl ParquetFile {
     /// Ports `getOptionalColumn(table, name)`. Its "column has no chunks"
     /// error cannot occur for a [`RecordBatch`], so this cannot fail.
     pub fn get_optional_column(table: &RecordBatch, name: &str) -> Option<ArrayRef> {
-        table.schema().index_of(name).ok().map(|index| table.column(index).clone())
+        table
+            .schema()
+            .index_of(name)
+            .ok()
+            .map(|index| table.column(index).clone())
     }
 
     /// An integer value, coercing any signed or unsigned integer column.
@@ -286,7 +307,12 @@ impl ParquetFile {
     /// above `i64::MAX` ("Unsigned integer value too large to fit into
     /// int64_t"), for any non-integer column ("Unsupported integer column
     /// type") and for a row outside the array.
-    pub fn get_int64(array: Option<&dyn Array>, row: usize, default_value: i64, allow_null: bool) -> Result<i64> {
+    pub fn get_int64(
+        array: Option<&dyn Array>,
+        row: usize,
+        default_value: i64,
+        allow_null: bool,
+    ) -> Result<i64> {
         let Some(array) = array else {
             return Ok(default_value);
         };
@@ -294,10 +320,13 @@ impl ParquetFile {
             return if allow_null {
                 Ok(default_value)
             } else {
-                Err(Error::MissingInformation("Required integer value is null".into()))
+                Err(Error::MissingInformation(
+                    "Required integer value is null".into(),
+                ))
             };
         }
-        integer_value(array, row)?.ok_or_else(|| Error::InvalidValue("Unsupported integer column type".into()))
+        integer_value(array, row)?
+            .ok_or_else(|| Error::InvalidValue("Unsupported integer column type".into()))
     }
 
     /// A floating-point value, coercing `float` and every integer column.
@@ -314,7 +343,12 @@ impl ParquetFile {
     /// [`Error::InvalidValue`] for "Unsupported numeric column type", for the
     /// `uint64` overflow [`get_int64`](Self::get_int64) reports and for a row
     /// outside the array.
-    pub fn get_double(array: Option<&dyn Array>, row: usize, default_value: f64, allow_null: bool) -> Result<f64> {
+    pub fn get_double(
+        array: Option<&dyn Array>,
+        row: usize,
+        default_value: f64,
+        allow_null: bool,
+    ) -> Result<f64> {
         let Some(array) = array else {
             return Ok(default_value);
         };
@@ -322,15 +356,25 @@ impl ParquetFile {
             return if allow_null {
                 Ok(default_value)
             } else {
-                Err(Error::MissingInformation("Required numeric value is null".into()))
+                Err(Error::MissingInformation(
+                    "Required numeric value is null".into(),
+                ))
             };
         }
         match array.data_type() {
-            DataType::Float64 => Ok(array.as_primitive::<arrow_array::types::Float64Type>().value(row)),
-            DataType::Float32 => Ok(f64::from(array.as_primitive::<arrow_array::types::Float32Type>().value(row))),
+            DataType::Float64 => Ok(array
+                .as_primitive::<arrow_array::types::Float64Type>()
+                .value(row)),
+            DataType::Float32 => Ok(f64::from(
+                array
+                    .as_primitive::<arrow_array::types::Float32Type>()
+                    .value(row),
+            )),
             _ => match integer_value(array, row)? {
                 Some(value) => Ok(value as f64),
-                None => Err(Error::InvalidValue("Unsupported numeric column type".into())),
+                None => Err(Error::InvalidValue(
+                    "Unsupported numeric column type".into(),
+                )),
             },
         }
     }
@@ -344,7 +388,12 @@ impl ParquetFile {
     /// [`Error::MissingInformation`] "Required boolean value is null";
     /// [`Error::InvalidValue`] for "Unsupported boolean column type", for the
     /// `uint64` overflow and for a row outside the array.
-    pub fn get_bool(array: Option<&dyn Array>, row: usize, default_value: bool, allow_null: bool) -> Result<bool> {
+    pub fn get_bool(
+        array: Option<&dyn Array>,
+        row: usize,
+        default_value: bool,
+        allow_null: bool,
+    ) -> Result<bool> {
         let Some(array) = array else {
             return Ok(default_value);
         };
@@ -352,7 +401,9 @@ impl ParquetFile {
             return if allow_null {
                 Ok(default_value)
             } else {
-                Err(Error::MissingInformation("Required boolean value is null".into()))
+                Err(Error::MissingInformation(
+                    "Required boolean value is null".into(),
+                ))
             };
         }
         if let DataType::Boolean = array.data_type() {
@@ -360,7 +411,9 @@ impl ParquetFile {
         }
         match integer_value(array, row)? {
             Some(value) => Ok(value != 0),
-            None => Err(Error::InvalidValue("Unsupported boolean column type".into())),
+            None => Err(Error::InvalidValue(
+                "Unsupported boolean column type".into(),
+            )),
         }
     }
 
@@ -468,8 +521,12 @@ impl ParquetFile {
             return Ok(0);
         }
         let file = std::fs::File::open(path)?;
-        let reader = SerializedFileReader::new(file)
-            .map_err(|error| Error::InvalidValue(format!("Failed to read parquet footer of {}: {error}", path.display())))?;
+        let reader = SerializedFileReader::new(file).map_err(|error| {
+            Error::InvalidValue(format!(
+                "Failed to read parquet footer of {}: {error}",
+                path.display()
+            ))
+        })?;
         Ok(reader.metadata().file_metadata().num_rows())
     }
 }
@@ -491,11 +548,14 @@ pub(crate) fn writer_properties(
     }
     let rows = row_group_size.min(MAX_ROW_GROUP_LENGTH);
     // `rows` is in 1..=2^20, so it fits every usize.
-    Ok(builder.set_max_row_group_size(usize::try_from(rows).unwrap_or(1 << 20)))
+    Ok(builder.set_max_row_group_row_count(Some(usize::try_from(rows).unwrap_or(1 << 20))))
 }
 
 /// Encode one table as a complete Parquet file in memory.
-pub(crate) fn encode(table: &RecordBatch, options: ArrowWriterOptions) -> std::result::Result<Vec<u8>, parquet::errors::ParquetError> {
+pub(crate) fn encode(
+    table: &RecordBatch,
+    options: ArrowWriterOptions,
+) -> std::result::Result<Vec<u8>, parquet::errors::ParquetError> {
     let mut bytes = Vec::new();
     let mut writer = ArrowWriter::try_new_with_options(&mut bytes, table.schema(), options)?;
     writer.write(table)?;
@@ -513,8 +573,11 @@ pub(crate) fn publish(path: &Path, bytes: &[u8]) -> Result<()> {
 }
 
 fn read_all<R: ChunkReader + 'static>(reader: R, limits: &ReadLimits) -> Result<RecordBatch> {
-    let builder = ParquetRecordBatchReaderBuilder::try_new(reader)
-        .map_err(|error| Error::InvalidValue(format!("Failed to create parquet reader from RandomAccessFile: {error}")))?;
+    let builder = ParquetRecordBatchReaderBuilder::try_new(reader).map_err(|error| {
+        Error::InvalidValue(format!(
+            "Failed to create parquet reader from RandomAccessFile: {error}"
+        ))
+    })?;
     let metadata = builder.metadata().clone();
     let rows = u64::try_from(metadata.file_metadata().num_rows())
         .map_err(|_| Error::InvalidValue("Parquet footer declares a negative row count".into()))?;
@@ -526,8 +589,9 @@ fn read_all<R: ChunkReader + 'static>(reader: R, limits: &ReadLimits) -> Result<
     }
     let mut bytes: u64 = 0;
     for group in metadata.row_groups() {
-        let size = u64::try_from(group.total_byte_size())
-            .map_err(|_| Error::InvalidValue("Parquet footer declares a negative row group size".into()))?;
+        let size = u64::try_from(group.total_byte_size()).map_err(|_| {
+            Error::InvalidValue("Parquet footer declares a negative row group size".into())
+        })?;
         bytes = bytes.saturating_add(size);
     }
     if bytes > limits.max_uncompressed_bytes {
@@ -537,18 +601,34 @@ fn read_all<R: ChunkReader + 'static>(reader: R, limits: &ReadLimits) -> Result<
         )));
     }
     let schema = builder.schema().clone();
-    let batch_size = usize::try_from(rows).unwrap_or(usize::MAX).clamp(1, 1 << 20);
+    let batch_size = usize::try_from(rows)
+        .unwrap_or(usize::MAX)
+        .clamp(1, 1 << 20);
     let batches = builder
         .with_batch_size(batch_size)
         .build()
-        .map_err(|error| Error::InvalidValue(format!("Failed to read parquet table from RandomAccessFile: {error}")))?
+        .map_err(|error| {
+            Error::InvalidValue(format!(
+                "Failed to read parquet table from RandomAccessFile: {error}"
+            ))
+        })?
         .collect::<std::result::Result<Vec<_>, _>>()
-        .map_err(|error| Error::InvalidValue(format!("Failed to read parquet table from RandomAccessFile: {error}")))?;
+        .map_err(|error| {
+            Error::InvalidValue(format!(
+                "Failed to read parquet table from RandomAccessFile: {error}"
+            ))
+        })?;
     match batches.len() {
         0 => Ok(RecordBatch::new_empty(schema)),
-        1 => Ok(batches.into_iter().next().unwrap_or_else(|| RecordBatch::new_empty(schema))),
-        _ => arrow_select::concat::concat_batches(&schema, &batches)
-            .map_err(|error| Error::InvalidValue(format!("Failed to combine parquet chunks from RandomAccessFile: {error}"))),
+        1 => Ok(batches
+            .into_iter()
+            .next()
+            .unwrap_or_else(|| RecordBatch::new_empty(schema))),
+        _ => arrow_select::concat::concat_batches(&schema, &batches).map_err(|error| {
+            Error::InvalidValue(format!(
+                "Failed to combine parquet chunks from RandomAccessFile: {error}"
+            ))
+        }),
     }
 }
 
@@ -585,10 +665,15 @@ fn integer_value(array: &dyn Array, row: usize) -> Result<Option<i64>> {
     }))
 }
 
-fn list_strings<O: OffsetSizeTrait>(list: &arrow_array::GenericListArray<O>, row: usize) -> Result<Vec<String>> {
+fn list_strings<O: OffsetSizeTrait>(
+    list: &arrow_array::GenericListArray<O>,
+    row: usize,
+) -> Result<Vec<String>> {
     let offsets = list.value_offsets();
     let start = offsets[row].as_usize();
     let end = offsets[row + 1].as_usize();
     let values = list.values();
-    (start..end).map(|i| ParquetFile::get_string(Some(values.as_ref()), i)).collect()
+    (start..end)
+        .map(|i| ParquetFile::get_string(Some(values.as_ref()), i))
+        .collect()
 }

@@ -231,7 +231,11 @@ impl ParquetFilter {
     /// conditions the other side is returned unchanged and `connector` is not
     /// used. The source's default connector is `"AND"` ([`AND`]); it is not
     /// validated, so any text is stored, exactly as in the source.
-    pub fn merge(lhs: &FilterExpression, rhs: &FilterExpression, connector: &str) -> FilterExpression {
+    pub fn merge(
+        lhs: &FilterExpression,
+        rhs: &FilterExpression,
+        connector: &str,
+    ) -> FilterExpression {
         if lhs.conditions.is_empty() {
             return rhs.clone();
         }
@@ -252,7 +256,13 @@ impl ParquetFilter {
 
     /// The source's private `addCondition_`: push the pending connector when
     /// a condition already exists, append the condition, reset to AND.
-    fn add_condition(&mut self, column: &str, op: &str, column_type: ColumnType, values: Vec<String>) -> &mut Self {
+    fn add_condition(
+        &mut self,
+        column: &str,
+        op: &str,
+        column_type: ColumnType,
+        values: Vec<String>,
+    ) -> &mut Self {
         if !self.expr.conditions.is_empty() {
             self.expr.connectors.push(self.next_connector.clone());
         }

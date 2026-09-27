@@ -156,9 +156,16 @@ pub mod validation {
         match mode {
             Mode::Strict => {
                 if actual_n != expected_n {
-                    fail(format!("Field count mismatch: got {actual_n}, expected {expected_n}"));
+                    fail(format!(
+                        "Field count mismatch: got {actual_n}, expected {expected_n}"
+                    ));
                 }
-                for (position, (a, e)) in actual.fields().iter().zip(expected.fields().iter()).enumerate() {
+                for (position, (a, e)) in actual
+                    .fields()
+                    .iter()
+                    .zip(expected.fields().iter())
+                    .enumerate()
+                {
                     if a.name() != e.name() {
                         fail(format!(
                             "Field name mismatch at index {position}: got '{}', expected '{}'",
@@ -170,7 +177,10 @@ pub mod validation {
                     check_field(a, e, &mut fail);
                 }
                 for a in actual.fields().iter().skip(expected_n) {
-                    fail(format!("Unexpected field '{}' not in expected schema", a.name()));
+                    fail(format!(
+                        "Unexpected field '{}' not in expected schema",
+                        a.name()
+                    ));
                 }
                 for e in expected.fields().iter().skip(actual_n) {
                     fail(format!("Missing field '{}'", e.name()));
@@ -233,21 +243,29 @@ pub mod validation {
     /// gives the same column. Field metadata is never compared. arrow-rs's own
     /// `==` compares both, which is why this is not simply `a == b`.
     pub fn types_equal(a: &DataType, b: &DataType) -> bool {
-        let element = |x: &Field, y: &Field| x.is_nullable() == y.is_nullable() && types_equal(x.data_type(), y.data_type());
+        let element = |x: &Field, y: &Field| {
+            x.is_nullable() == y.is_nullable() && types_equal(x.data_type(), y.data_type())
+        };
         match (a, b) {
             (DataType::List(x), DataType::List(y))
             | (DataType::LargeList(x), DataType::LargeList(y))
             | (DataType::ListView(x), DataType::ListView(y))
             | (DataType::LargeListView(x), DataType::LargeListView(y)) => element(x, y),
-            (DataType::FixedSizeList(x, n), DataType::FixedSizeList(y, m)) => n == m && element(x, y),
+            (DataType::FixedSizeList(x, n), DataType::FixedSizeList(y, m)) => {
+                n == m && element(x, y)
+            }
             (DataType::Map(x, sx), DataType::Map(y, sy)) => sx == sy && element(x, y),
             (DataType::Struct(x), DataType::Struct(y)) => {
                 x.len() == y.len()
                     && x.iter().zip(y.iter()).all(|(p, q)| {
-                        p.name() == q.name() && p.is_nullable() == q.is_nullable() && types_equal(p.data_type(), q.data_type())
+                        p.name() == q.name()
+                            && p.is_nullable() == q.is_nullable()
+                            && types_equal(p.data_type(), q.data_type())
                     })
             }
-            (DataType::Dictionary(kx, vx), DataType::Dictionary(ky, vy)) => types_equal(kx, ky) && types_equal(vx, vy),
+            (DataType::Dictionary(kx, vx), DataType::Dictionary(ky, vy)) => {
+                types_equal(kx, ky) && types_equal(vx, vy)
+            }
             _ => a == b,
         }
     }
@@ -304,7 +322,9 @@ pub mod validation {
             DataType::LargeList(f) => format!("large_list<{}>", cpp_field_string(f)),
             DataType::ListView(f) => format!("list_view<{}>", cpp_field_string(f)),
             DataType::LargeListView(f) => format!("large_list_view<{}>", cpp_field_string(f)),
-            DataType::FixedSizeList(f, n) => format!("fixed_size_list<{}>[{n}]", cpp_field_string(f)),
+            DataType::FixedSizeList(f, n) => {
+                format!("fixed_size_list<{}>[{n}]", cpp_field_string(f))
+            }
             DataType::Struct(fields) => {
                 let children: Vec<String> = fields.iter().map(|f| cpp_field_string(f)).collect();
                 format!("struct<{}>", children.join(", "))
@@ -510,13 +530,20 @@ impl ProteinSchema {
     ///
     /// Source `ProteinSchema::modificationsType`, spelled as C++ `DataType::ToString` prints it.
     pub fn modifications_type() -> DataType {
-        list(struct_(vec![field("position", DataType::Int32, true), field("modification", DataType::Utf8, true)]))
+        list(struct_(vec![
+            field("position", DataType::Int32, true),
+            field("modification", DataType::Utf8, true),
+        ]))
     }
     /// The nested column type ``list<item: struct<name: string, value: string, value_type: string>>``.
     ///
     /// Source `ProteinSchema::metavaluesType`, spelled as C++ `DataType::ToString` prints it.
     pub fn metavalues_type() -> DataType {
-        list(struct_(vec![field("name", DataType::Utf8, true), field("value", DataType::Utf8, true), field("value_type", DataType::Utf8, true)]))
+        list(struct_(vec![
+            field("name", DataType::Utf8, true),
+            field("value", DataType::Utf8, true),
+            field("value_type", DataType::Utf8, true),
+        ]))
     }
     /// The complete Arrow schema, 10 fields.
     ///
@@ -571,19 +598,28 @@ impl ProteinGroupSchema {
     ///
     /// Source `ProteinGroupSchema::floatDataType`, spelled as C++ `DataType::ToString` prints it.
     pub fn float_data_type() -> DataType {
-        list(struct_(vec![field("name", DataType::Utf8, true), field("values", list(DataType::Float64), true)]))
+        list(struct_(vec![
+            field("name", DataType::Utf8, true),
+            field("values", list(DataType::Float64), true),
+        ]))
     }
     /// The nested column type ``list<item: struct<name: string, values: list<item: string>>>``.
     ///
     /// Source `ProteinGroupSchema::stringDataType`, spelled as C++ `DataType::ToString` prints it.
     pub fn string_data_type() -> DataType {
-        list(struct_(vec![field("name", DataType::Utf8, true), field("values", list(DataType::Utf8), true)]))
+        list(struct_(vec![
+            field("name", DataType::Utf8, true),
+            field("values", list(DataType::Utf8), true),
+        ]))
     }
     /// The nested column type ``list<item: struct<name: string, values: list<item: int64>>>``.
     ///
     /// Source `ProteinGroupSchema::integerDataType`, spelled as C++ `DataType::ToString` prints it.
     pub fn integer_data_type() -> DataType {
-        list(struct_(vec![field("name", DataType::Utf8, true), field("values", list(DataType::Int64), true)]))
+        list(struct_(vec![
+            field("name", DataType::Utf8, true),
+            field("values", list(DataType::Int64), true),
+        ]))
     }
     /// The complete Arrow schema, 8 fields.
     ///
@@ -670,7 +706,11 @@ impl SearchParamsSchema {
     ///
     /// Source `SearchParamsSchema::metavaluesType`, spelled as C++ `DataType::ToString` prints it.
     pub fn metavalues_type() -> DataType {
-        list(struct_(vec![field("name", DataType::Utf8, true), field("value", DataType::Utf8, true), field("value_type", DataType::Utf8, true)]))
+        list(struct_(vec![
+            field("name", DataType::Utf8, true),
+            field("value", DataType::Utf8, true),
+            field("value_type", DataType::Utf8, true),
+        ]))
     }
     /// The complete Arrow schema, 26 fields.
     ///
@@ -711,7 +751,11 @@ impl SearchParamsSchema {
             field(Self::SEARCH_ENGINE_VERSION, DataType::Utf8, true),
             field(Self::INFERENCE_ENGINE, DataType::Utf8, true),
             field(Self::INFERENCE_ENGINE_VERSION, DataType::Utf8, true),
-            field(Self::DATE, DataType::Timestamp(TimeUnit::Second, None), true),
+            field(
+                Self::DATE,
+                DataType::Timestamp(TimeUnit::Second, None),
+                true,
+            ),
             field(Self::SCORE_TYPE, DataType::Utf8, false),
             field(Self::HIGHER_SCORE_BETTER, DataType::Boolean, false),
             field(Self::SIGNIFICANCE_THRESHOLD, DataType::Float64, true),
@@ -775,13 +819,27 @@ impl FeatureSchema {
     ///
     /// Source `FeatureSchema::convexHullType`, spelled as C++ `DataType::ToString` prints it.
     pub fn convex_hull_type() -> DataType {
-        list(struct_(vec![field("hull_index", DataType::Int32, true), field("points", list(struct_(vec![field("x", DataType::Float64, true), field("y", DataType::Float64, true)])), true)]))
+        list(struct_(vec![
+            field("hull_index", DataType::Int32, true),
+            field(
+                "points",
+                list(struct_(vec![
+                    field("x", DataType::Float64, true),
+                    field("y", DataType::Float64, true),
+                ])),
+                true,
+            ),
+        ]))
     }
     /// The nested column type ``list<item: struct<name: string, value: string, value_type: string>>``.
     ///
     /// Source `FeatureSchema::metavaluesType`, spelled as C++ `DataType::ToString` prints it.
     pub fn metavalues_type() -> DataType {
-        list(struct_(vec![field("name", DataType::Utf8, true), field("value", DataType::Utf8, true), field("value_type", DataType::Utf8, true)]))
+        list(struct_(vec![
+            field("name", DataType::Utf8, true),
+            field("value", DataType::Utf8, true),
+            field("value_type", DataType::Utf8, true),
+        ]))
     }
     /// The complete Arrow schema, 17 fields.
     ///
@@ -852,13 +910,25 @@ impl ConsensusFeatureSchema {
     ///
     /// Source `ConsensusFeatureSchema::handlesType`, spelled as C++ `DataType::ToString` prints it.
     pub fn handles_type() -> DataType {
-        list(struct_(vec![field("map_index", DataType::Int64, true), field("unique_id", DataType::Int64, true), field("rt", DataType::Float64, true), field("mz", DataType::Float64, true), field("intensity", DataType::Float32, true), field("charge", DataType::Int32, true), field("width", DataType::Float32, true)]))
+        list(struct_(vec![
+            field("map_index", DataType::Int64, true),
+            field("unique_id", DataType::Int64, true),
+            field("rt", DataType::Float64, true),
+            field("mz", DataType::Float64, true),
+            field("intensity", DataType::Float32, true),
+            field("charge", DataType::Int32, true),
+            field("width", DataType::Float32, true),
+        ]))
     }
     /// The nested column type ``list<item: struct<name: string, value: string, value_type: string>>``.
     ///
     /// Source `ConsensusFeatureSchema::metavaluesType`, spelled as C++ `DataType::ToString` prints it.
     pub fn metavalues_type() -> DataType {
-        list(struct_(vec![field("name", DataType::Utf8, true), field("value", DataType::Utf8, true), field("value_type", DataType::Utf8, true)]))
+        list(struct_(vec![
+            field("name", DataType::Utf8, true),
+            field("value", DataType::Utf8, true),
+            field("value_type", DataType::Utf8, true),
+        ]))
     }
     /// The complete Arrow schema, 9 fields.
     ///
@@ -955,25 +1025,50 @@ impl PSMSchema {
     ///
     /// Source `PSMSchema::modificationsType`, spelled as C++ `DataType::ToString` prints it.
     pub fn modifications_type() -> DataType {
-        list(struct_(vec![field("name", DataType::Utf8, true), field("accession", DataType::Utf8, true), field("positions", list(struct_(vec![field("position", DataType::Utf8, true), field("scores", DataType::Float64, true)])), true)]))
+        list(struct_(vec![
+            field("name", DataType::Utf8, true),
+            field("accession", DataType::Utf8, true),
+            field(
+                "positions",
+                list(struct_(vec![
+                    field("position", DataType::Utf8, true),
+                    field("scores", DataType::Float64, true),
+                ])),
+                true,
+            ),
+        ]))
     }
     /// The nested column type ``list<item: struct<score_name: string, score_value: double, higher_better: bool>>``.
     ///
     /// Source `PSMSchema::additionalScoresType`, spelled as C++ `DataType::ToString` prints it.
     pub fn additional_scores_type() -> DataType {
-        list(struct_(vec![field("score_name", DataType::Utf8, true), field("score_value", DataType::Float64, true), field("higher_better", DataType::Boolean, true)]))
+        list(struct_(vec![
+            field("score_name", DataType::Utf8, true),
+            field("score_value", DataType::Float64, true),
+            field("higher_better", DataType::Boolean, true),
+        ]))
     }
     /// The nested column type ``list<item: struct<name: string, value: string, value_type: string>>``.
     ///
     /// Source `PSMSchema::metavaluesType`, spelled as C++ `DataType::ToString` prints it.
     pub fn metavalues_type() -> DataType {
-        list(struct_(vec![field("name", DataType::Utf8, true), field("value", DataType::Utf8, true), field("value_type", DataType::Utf8, true)]))
+        list(struct_(vec![
+            field("name", DataType::Utf8, true),
+            field("value", DataType::Utf8, true),
+            field("value_type", DataType::Utf8, true),
+        ]))
     }
     /// Arrow type for protein_accessions: `list<struct{accession, aa_before, aa_after, start, end}>`.
     ///
     /// Source `PSMSchema::proteinAccessionsType`, spelled as C++ `DataType::ToString` prints it.
     pub fn protein_accessions_type() -> DataType {
-        list(struct_(vec![field("accession", DataType::Utf8, false), field("aa_before", DataType::Utf8, true), field("aa_after", DataType::Utf8, true), field("start", DataType::Int32, true), field("end", DataType::Int32, true)]))
+        list(struct_(vec![
+            field("accession", DataType::Utf8, false),
+            field("aa_before", DataType::Utf8, true),
+            field("aa_after", DataType::Utf8, true),
+            field("start", DataType::Int32, true),
+            field("end", DataType::Int32, true),
+        ]))
     }
     /// The complete Arrow schema, 29 fields.
     ///
@@ -1020,8 +1115,16 @@ impl PSMSchema {
             field(Self::IS_DECOY, DataType::Boolean, true),
             field(Self::CALCULATED_MZ, DataType::Float64, true),
             field(Self::OBSERVED_MZ, DataType::Float64, true),
-            field(Self::ADDITIONAL_SCORES, Self::additional_scores_type(), true),
-            field(Self::PROTEIN_ACCESSIONS, Self::protein_accessions_type(), true),
+            field(
+                Self::ADDITIONAL_SCORES,
+                Self::additional_scores_type(),
+                true,
+            ),
+            field(
+                Self::PROTEIN_ACCESSIONS,
+                Self::protein_accessions_type(),
+                true,
+            ),
             field(Self::PREDICTED_RT, DataType::Float64, true),
             field(Self::REFERENCE_FILE_NAME, DataType::Utf8, true),
             field(Self::CV_PARAMS, DataType::Utf8, true),
@@ -1102,25 +1205,61 @@ impl QPXPSMSchema {
     ///
     /// Source `QPXPSMSchema::modificationsType`, spelled as C++ `DataType::ToString` prints it.
     pub fn modifications_type() -> DataType {
-        list(struct_(vec![field("name", DataType::Utf8, false), field("accession", DataType::Utf8, true), field("positions", list(struct_(vec![field("position", DataType::Int32, false), field("amino_acid", DataType::Utf8, true), field("scores", list(struct_(vec![field("score_name", DataType::Utf8, false), field("score_value", DataType::Float64, false), field("higher_better", DataType::Boolean, true)])), true)])), false)]))
+        list(struct_(vec![
+            field("name", DataType::Utf8, false),
+            field("accession", DataType::Utf8, true),
+            field(
+                "positions",
+                list(struct_(vec![
+                    field("position", DataType::Int32, false),
+                    field("amino_acid", DataType::Utf8, true),
+                    field(
+                        "scores",
+                        list(struct_(vec![
+                            field("score_name", DataType::Utf8, false),
+                            field("score_value", DataType::Float64, false),
+                            field("higher_better", DataType::Boolean, true),
+                        ])),
+                        true,
+                    ),
+                ])),
+                false,
+            ),
+        ]))
     }
     /// Arrow type for additional scores: `list<struct{score_name, score_value, higher_better}>`.
     ///
     /// Source `QPXPSMSchema::additionalScoresType`, spelled as C++ `DataType::ToString` prints it.
     pub fn additional_scores_type() -> DataType {
-        list(struct_(vec![field("score_name", DataType::Utf8, false), field("score_value", DataType::Float64, false), field("higher_better", DataType::Boolean, true)]))
+        list(struct_(vec![
+            field("score_name", DataType::Utf8, false),
+            field("score_value", DataType::Float64, false),
+            field("higher_better", DataType::Boolean, true),
+        ]))
     }
     /// Arrow type for CV params: `list<struct{cv_name, cv_value}>`.
     ///
     /// Source `QPXPSMSchema::cvParamsType`, spelled as C++ `DataType::ToString` prints it.
     pub fn cv_params_type() -> DataType {
-        list(struct_(vec![field("cv_name", DataType::Utf8, false), field("cv_value", DataType::Utf8, false)]))
+        list(struct_(vec![
+            field("cv_name", DataType::Utf8, false),
+            field("cv_value", DataType::Utf8, false),
+        ]))
     }
     /// Arrow type for cross-links: `list<struct{xl_type, partner_sequence, ...}>`.
     ///
     /// Source `QPXPSMSchema::crossLinksType`, spelled as C++ `DataType::ToString` prints it.
     pub fn cross_links_type() -> DataType {
-        list(struct_(vec![field("xl_type", DataType::Utf8, false), field("partner_sequence", DataType::Utf8, true), field("partner_peptidoform", DataType::Utf8, true), field("donor_position", DataType::Int32, false), field("acceptor_position", DataType::Int32, true), field("linker_name", DataType::Utf8, false), field("linker_accession", DataType::Utf8, true), field("linker_mass", DataType::Float64, false)]))
+        list(struct_(vec![
+            field("xl_type", DataType::Utf8, false),
+            field("partner_sequence", DataType::Utf8, true),
+            field("partner_peptidoform", DataType::Utf8, true),
+            field("donor_position", DataType::Int32, false),
+            field("acceptor_position", DataType::Int32, true),
+            field("linker_name", DataType::Utf8, false),
+            field("linker_accession", DataType::Utf8, true),
+            field("linker_mass", DataType::Float64, false),
+        ]))
     }
     /// Complete Arrow schema for QPX PSM table (26 fields).
     ///
@@ -1166,7 +1305,11 @@ impl QPXPSMSchema {
             field(Self::CALCULATED_MZ, DataType::Float32, false),
             field(Self::OBSERVED_MZ, DataType::Float32, false),
             field(Self::MASS_ERROR_PPM, DataType::Float32, true),
-            field(Self::ADDITIONAL_SCORES, Self::additional_scores_type(), true),
+            field(
+                Self::ADDITIONAL_SCORES,
+                Self::additional_scores_type(),
+                true,
+            ),
             field(Self::PREDICTED_RT, DataType::Float32, true),
             field(Self::RUN_FILE_NAME, DataType::Utf8, false),
             field(Self::CV_PARAMS, Self::cv_params_type(), true),
@@ -1275,25 +1418,48 @@ impl QPXFeatureSchema {
     ///
     /// Source `QPXFeatureSchema::intensitiesType`, spelled as C++ `DataType::ToString` prints it.
     pub fn intensities_type() -> DataType {
-        list(struct_(vec![field("label", DataType::Utf8, false), field("intensity", DataType::Float32, false)]))
+        list(struct_(vec![
+            field("label", DataType::Utf8, false),
+            field("intensity", DataType::Float32, false),
+        ]))
     }
     /// Arrow type for additional intensities: `list<struct{label, intensities: list<struct{...}>}>`.
     ///
     /// Source `QPXFeatureSchema::additionalIntensitiesType`, spelled as C++ `DataType::ToString` prints it.
     pub fn additional_intensities_type() -> DataType {
-        list(struct_(vec![field("label", DataType::Utf8, false), field("intensities", list(struct_(vec![field("intensity_name", DataType::Utf8, false), field("intensity_value", DataType::Float32, false)])), false)]))
+        list(struct_(vec![
+            field("label", DataType::Utf8, false),
+            field(
+                "intensities",
+                list(struct_(vec![
+                    field("intensity_name", DataType::Utf8, false),
+                    field("intensity_value", DataType::Float32, false),
+                ])),
+                false,
+            ),
+        ]))
     }
     /// Arrow type for protein group accessions: `list<struct{accession, start, end, pre, post}>`.
     ///
     /// Source `QPXFeatureSchema::pgAccessionsType`, spelled as C++ `DataType::ToString` prints it.
     pub fn pg_accessions_type() -> DataType {
-        list(struct_(vec![field("accession", DataType::Utf8, false), field("start", DataType::Int32, true), field("end", DataType::Int32, true), field("pre", DataType::Utf8, true), field("post", DataType::Utf8, true)]))
+        list(struct_(vec![
+            field("accession", DataType::Utf8, false),
+            field("start", DataType::Int32, true),
+            field("end", DataType::Int32, true),
+            field("pre", DataType::Utf8, true),
+            field("post", DataType::Utf8, true),
+        ]))
     }
     /// Arrow type for protein group positions: `list<struct{protein_accession, start, end}>`.
     ///
     /// Source `QPXFeatureSchema::pgPositionsType`, spelled as C++ `DataType::ToString` prints it.
     pub fn pg_positions_type() -> DataType {
-        list(struct_(vec![field("protein_accession", DataType::Utf8, false), field("start", DataType::Int32, false), field("end", DataType::Int32, false)]))
+        list(struct_(vec![
+            field("protein_accession", DataType::Utf8, false),
+            field("start", DataType::Int32, false),
+            field("end", DataType::Int32, false),
+        ]))
     }
     /// Complete Arrow schema for QPX feature table (33 fields).
     ///
@@ -1346,7 +1512,11 @@ impl QPXFeatureSchema {
             field(Self::CALCULATED_MZ, DataType::Float32, false),
             field(Self::OBSERVED_MZ, DataType::Float32, false),
             field(Self::MASS_ERROR_PPM, DataType::Float32, true),
-            field(Self::ADDITIONAL_SCORES, Self::additional_scores_type(), true),
+            field(
+                Self::ADDITIONAL_SCORES,
+                Self::additional_scores_type(),
+                true,
+            ),
             field(Self::PREDICTED_RT, DataType::Float32, true),
             field(Self::RUN_FILE_NAME, DataType::Utf8, false),
             field(Self::CV_PARAMS, Self::cv_params_type(), true),
@@ -1355,7 +1525,11 @@ impl QPXFeatureSchema {
             field(Self::ION_MOBILITY, DataType::Float32, true),
             field(Self::MISSED_CLEAVAGES, DataType::Int16, true),
             field(Self::INTENSITIES, Self::intensities_type(), true),
-            field(Self::ADDITIONAL_INTENSITIES, Self::additional_intensities_type(), true),
+            field(
+                Self::ADDITIONAL_INTENSITIES,
+                Self::additional_intensities_type(),
+                true,
+            ),
             field(Self::PG_ACCESSIONS, Self::pg_accessions_type(), true),
             field(Self::ANCHOR_PROTEIN, DataType::Utf8, true),
             field(Self::UNIQUE, DataType::Boolean, true),
@@ -1428,25 +1602,44 @@ impl QPXPgSchema {
     ///
     /// Source `QPXPgSchema::additionalIntensitiesType`, spelled as C++ `DataType::ToString` prints it.
     pub fn additional_intensities_type() -> DataType {
-        list(struct_(vec![field("label", DataType::Utf8, false), field("intensities", list(struct_(vec![field("intensity_name", DataType::Utf8, false), field("intensity_value", DataType::Float32, false)])), false)]))
+        list(struct_(vec![
+            field("label", DataType::Utf8, false),
+            field(
+                "intensities",
+                list(struct_(vec![
+                    field("intensity_name", DataType::Utf8, false),
+                    field("intensity_value", DataType::Float32, false),
+                ])),
+                false,
+            ),
+        ]))
     }
     /// Arrow type for peptides: `list<struct{protein_name, peptide_count}>`.
     ///
     /// Source `QPXPgSchema::peptidesType`, spelled as C++ `DataType::ToString` prints it.
     pub fn peptides_type() -> DataType {
-        list(struct_(vec![field("protein_name", DataType::Utf8, false), field("peptide_count", DataType::Int32, false)]))
+        list(struct_(vec![
+            field("protein_name", DataType::Utf8, false),
+            field("peptide_count", DataType::Int32, false),
+        ]))
     }
     /// Arrow type for peptide_counts: struct{unique_sequences, total_sequences}.
     ///
     /// Source `QPXPgSchema::peptideCountsType`, spelled as C++ `DataType::ToString` prints it.
     pub fn peptide_counts_type() -> DataType {
-        struct_(vec![field("unique_sequences", DataType::Int32, false), field("total_sequences", DataType::Int32, false)])
+        struct_(vec![
+            field("unique_sequences", DataType::Int32, false),
+            field("total_sequences", DataType::Int32, false),
+        ])
     }
     /// Arrow type for feature_counts: struct{unique_features, total_features}.
     ///
     /// Source `QPXPgSchema::featureCountsType`, spelled as C++ `DataType::ToString` prints it.
     pub fn feature_counts_type() -> DataType {
-        struct_(vec![field("unique_features", DataType::Int32, false), field("total_features", DataType::Int32, false)])
+        struct_(vec![
+            field("unique_features", DataType::Int32, false),
+            field("total_features", DataType::Int32, false),
+        ])
     }
     /// Arrow type for additional scores (delegates to `QPXPSMSchema::additionalScoresType`).
     ///
@@ -1502,7 +1695,11 @@ impl QPXPgSchema {
             field(Self::PG_QVALUE, DataType::Float64, true),
             field(Self::LABEL, DataType::Utf8, true),
             field(Self::INTENSITY, DataType::Float32, true),
-            field(Self::ADDITIONAL_INTENSITIES, Self::additional_intensities_type(), true),
+            field(
+                Self::ADDITIONAL_INTENSITIES,
+                Self::additional_intensities_type(),
+                true,
+            ),
             field(Self::IS_DECOY, DataType::Boolean, false),
             field(Self::CONTAMINANT, DataType::Boolean, true),
             field(Self::PEPTIDES, Self::peptides_type(), false),
@@ -1510,7 +1707,11 @@ impl QPXPgSchema {
             field(Self::FEATURE_COUNTS, Self::feature_counts_type(), true),
             field(Self::SEQUENCE_COVERAGE, DataType::Float32, true),
             field(Self::MOLECULAR_WEIGHT, DataType::Float32, true),
-            field(Self::ADDITIONAL_SCORES, Self::additional_scores_type(), true),
+            field(
+                Self::ADDITIONAL_SCORES,
+                Self::additional_scores_type(),
+                true,
+            ),
             field(Self::CV_PARAMS, Self::cv_params_type(), true),
         ])
     }
@@ -2108,11 +2309,23 @@ impl OSWFeatureSchema {
             field(Self::VAR_MS1_MI_SCORE, DataType::Float64, true),
             field(Self::VAR_MS1_MI_CONTRAST_SCORE, DataType::Float64, true),
             field(Self::VAR_MS1_MI_COMBINED_SCORE, DataType::Float64, true),
-            field(Self::VAR_MS1_ISOTOPE_CORRELATION_SCORE, DataType::Float64, true),
+            field(
+                Self::VAR_MS1_ISOTOPE_CORRELATION_SCORE,
+                DataType::Float64,
+                true,
+            ),
             field(Self::VAR_MS1_ISOTOPE_OVERLAP_SCORE, DataType::Float64, true),
             field(Self::VAR_MS1_XCORR_COELUTION, DataType::Float64, true),
-            field(Self::VAR_MS1_XCORR_COELUTION_CONTRAST, DataType::Float64, true),
-            field(Self::VAR_MS1_XCORR_COELUTION_COMBINED, DataType::Float64, true),
+            field(
+                Self::VAR_MS1_XCORR_COELUTION_CONTRAST,
+                DataType::Float64,
+                true,
+            ),
+            field(
+                Self::VAR_MS1_XCORR_COELUTION_COMBINED,
+                DataType::Float64,
+                true,
+            ),
             field(Self::VAR_MS1_XCORR_SHAPE, DataType::Float64, true),
             field(Self::VAR_MS1_XCORR_SHAPE_CONTRAST, DataType::Float64, true),
             field(Self::VAR_MS1_XCORR_SHAPE_COMBINED, DataType::Float64, true),
@@ -2127,28 +2340,48 @@ impl OSWFeatureSchema {
             field(Self::VAR_MS2_BSERIES_SCORE, DataType::Float64, true),
             field(Self::VAR_MS2_DOTPROD_SCORE, DataType::Float64, true),
             field(Self::VAR_MS2_INTENSITY_SCORE, DataType::Float64, true),
-            field(Self::VAR_MS2_ISOTOPE_CORRELATION_SCORE, DataType::Float64, true),
+            field(
+                Self::VAR_MS2_ISOTOPE_CORRELATION_SCORE,
+                DataType::Float64,
+                true,
+            ),
             field(Self::VAR_MS2_ISOTOPE_OVERLAP_SCORE, DataType::Float64, true),
             field(Self::VAR_MS2_LIBRARY_CORR, DataType::Float64, true),
             field(Self::VAR_MS2_LIBRARY_DOTPROD, DataType::Float64, true),
             field(Self::VAR_MS2_LIBRARY_MANHATTAN, DataType::Float64, true),
             field(Self::VAR_MS2_LIBRARY_RMSD, DataType::Float64, true),
-            field(Self::VAR_MS2_LIBRARY_ROOTMEANSQUARE, DataType::Float64, true),
+            field(
+                Self::VAR_MS2_LIBRARY_ROOTMEANSQUARE,
+                DataType::Float64,
+                true,
+            ),
             field(Self::VAR_MS2_LIBRARY_SANGLE, DataType::Float64, true),
             field(Self::VAR_MS2_LOG_SN_SCORE, DataType::Float64, true),
             field(Self::VAR_MS2_MANHATTAN_SCORE, DataType::Float64, true),
             field(Self::VAR_MS2_MASSDEV_SCORE, DataType::Float64, true),
-            field(Self::VAR_MS2_MASSDEV_SCORE_WEIGHTED, DataType::Float64, true),
+            field(
+                Self::VAR_MS2_MASSDEV_SCORE_WEIGHTED,
+                DataType::Float64,
+                true,
+            ),
             field(Self::VAR_MS2_MI_SCORE, DataType::Float64, true),
             field(Self::VAR_MS2_MI_WEIGHTED_SCORE, DataType::Float64, true),
             field(Self::VAR_MS2_MI_RATIO_SCORE, DataType::Float64, true),
             field(Self::VAR_MS2_NORM_RT_SCORE, DataType::Float64, true),
             field(Self::VAR_MS2_XCORR_COELUTION, DataType::Float64, true),
-            field(Self::VAR_MS2_XCORR_COELUTION_WEIGHTED, DataType::Float64, true),
+            field(
+                Self::VAR_MS2_XCORR_COELUTION_WEIGHTED,
+                DataType::Float64,
+                true,
+            ),
             field(Self::VAR_MS2_XCORR_SHAPE, DataType::Float64, true),
             field(Self::VAR_MS2_XCORR_SHAPE_WEIGHTED, DataType::Float64, true),
             field(Self::VAR_MS2_YSERIES_SCORE, DataType::Float64, true),
-            field(Self::VAR_MS2_ELUTION_MODEL_FIT_SCORE, DataType::Float64, true),
+            field(
+                Self::VAR_MS2_ELUTION_MODEL_FIT_SCORE,
+                DataType::Float64,
+                true,
+            ),
             field(Self::VAR_MS2_IM_XCORR_SHAPE, DataType::Float64, true),
             field(Self::VAR_MS2_IM_XCORR_COELUTION, DataType::Float64, true),
             field(Self::VAR_MS2_IM_DELTA_SCORE, DataType::Float64, true),
@@ -2325,9 +2558,17 @@ impl OSWFeatureTransitionSchema {
             field(Self::DELTA_IM, DataType::Float64, true),
             field(Self::VAR_IM_DELTA_SCORE, DataType::Float64, true),
             field(Self::VAR_IM_LOG_INTENSITY, DataType::Float64, true),
-            field(Self::VAR_IM_XCORR_COELUTION_CONTRAST, DataType::Float64, true),
+            field(
+                Self::VAR_IM_XCORR_COELUTION_CONTRAST,
+                DataType::Float64,
+                true,
+            ),
             field(Self::VAR_IM_XCORR_SHAPE_CONTRAST, DataType::Float64, true),
-            field(Self::VAR_IM_XCORR_COELUTION_COMBINED, DataType::Float64, true),
+            field(
+                Self::VAR_IM_XCORR_COELUTION_COMBINED,
+                DataType::Float64,
+                true,
+            ),
             field(Self::VAR_IM_XCORR_SHAPE_COMBINED, DataType::Float64, true),
             field(Self::START_POSITION_AT_5, DataType::Float64, true),
             field(Self::END_POSITION_AT_5, DataType::Float64, true),
@@ -2652,4 +2893,3 @@ impl XIPMSchema {
         ])
     }
 }
-

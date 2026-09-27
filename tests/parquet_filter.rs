@@ -62,7 +62,11 @@ fn integer_comparison_operators() {
         };
         assert_eq!(f.expression().conditions[0].op, expected, "{op}");
         assert_eq!(f.expression().conditions[0].values, ["10"], "{op}");
-        assert_eq!(f.expression().conditions[0].column_type, ColumnType::Int, "{op}");
+        assert_eq!(
+            f.expression().conditions[0].column_type,
+            ColumnType::Int,
+            "{op}"
+        );
     }
 }
 
@@ -106,7 +110,11 @@ fn string_comparison_operators() {
             _ => f.ge_str("NAME", "m"),
         };
         assert_eq!(f.expression().conditions[0].op, expected, "{op}");
-        assert_eq!(f.expression().conditions[0].column_type, ColumnType::String, "{op}");
+        assert_eq!(
+            f.expression().conditions[0].column_type,
+            ColumnType::String,
+            "{op}"
+        );
         assert_eq!(f.expression().conditions[0].values, ["m"], "{op}");
     }
 }
@@ -214,8 +222,14 @@ fn merge_with_an_empty_side_ignores_its_connectors() {
         conditions: Vec::new(),
         connectors: vec!["OR".to_owned()],
     };
-    assert_eq!(ParquetFilter::merge(&odd, b.expression(), "AND"), *b.expression());
-    assert_eq!(ParquetFilter::merge(b.expression(), &odd, "AND"), *b.expression());
+    assert_eq!(
+        ParquetFilter::merge(&odd, b.expression(), "AND"),
+        *b.expression()
+    );
+    assert_eq!(
+        ParquetFilter::merge(b.expression(), &odd, "AND"),
+        *b.expression()
+    );
     assert!(odd.is_empty());
 }
 
@@ -223,14 +237,19 @@ fn merge_with_an_empty_side_ignores_its_connectors() {
 #[test]
 fn builder_forwards_to_the_filter() {
     let mut fb = ParquetFilterBuilder::new();
-    fb.eq_int("PRECURSOR_ID", 1318).and_next().eq_str("ANNOTATION", "y3^1");
+    fb.eq_int("PRECURSOR_ID", 1318)
+        .and_next()
+        .eq_str("ANNOTATION", "y3^1");
     assert!(!fb.is_empty());
     let pf = fb.filter();
     assert_eq!(pf.expression().conditions.len(), 2);
     assert_eq!(pf.expression().conditions[0].column, "PRECURSOR_ID");
     assert_eq!(pf.expression().conditions[0].column_type, ColumnType::Int);
     assert_eq!(pf.expression().conditions[1].column, "ANNOTATION");
-    assert_eq!(pf.expression().conditions[1].column_type, ColumnType::String);
+    assert_eq!(
+        pf.expression().conditions[1].column_type,
+        ColumnType::String
+    );
     assert_eq!(pf.expression().connectors[0], "AND");
 }
 
@@ -242,11 +261,41 @@ fn builder_operators() {
         build(&mut fb);
         fb.filter().expression().conditions[0].clone()
     };
-    assert_eq!(op(&|fb| { fb.ne_int("ID", 5); }).op, "!=");
-    assert_eq!(op(&|fb| { fb.lt_int("ID", 5); }).op, "<");
-    assert_eq!(op(&|fb| { fb.le_int("ID", 5); }).op, "<=");
-    assert_eq!(op(&|fb| { fb.gt_int("ID", 5); }).op, ">");
-    assert_eq!(op(&|fb| { fb.ge_int("ID", 5); }).op, ">=");
+    assert_eq!(
+        op(&|fb| {
+            fb.ne_int("ID", 5);
+        })
+        .op,
+        "!="
+    );
+    assert_eq!(
+        op(&|fb| {
+            fb.lt_int("ID", 5);
+        })
+        .op,
+        "<"
+    );
+    assert_eq!(
+        op(&|fb| {
+            fb.le_int("ID", 5);
+        })
+        .op,
+        "<="
+    );
+    assert_eq!(
+        op(&|fb| {
+            fb.gt_int("ID", 5);
+        })
+        .op,
+        ">"
+    );
+    assert_eq!(
+        op(&|fb| {
+            fb.ge_int("ID", 5);
+        })
+        .op,
+        ">="
+    );
     let c = op(&|fb| {
         fb.in_int("ID", &[7, 8]);
     });
@@ -257,11 +306,41 @@ fn builder_operators() {
     });
     assert_eq!(c.column_type, ColumnType::String);
     assert_eq!(c.op, "=");
-    assert_eq!(op(&|fb| { fb.ne_str("NAME", "x"); }).op, "!=");
-    assert_eq!(op(&|fb| { fb.lt_str("NAME", "x"); }).op, "<");
-    assert_eq!(op(&|fb| { fb.le_str("NAME", "x"); }).op, "<=");
-    assert_eq!(op(&|fb| { fb.gt_str("NAME", "x"); }).op, ">");
-    assert_eq!(op(&|fb| { fb.ge_str("NAME", "x"); }).op, ">=");
+    assert_eq!(
+        op(&|fb| {
+            fb.ne_str("NAME", "x");
+        })
+        .op,
+        "!="
+    );
+    assert_eq!(
+        op(&|fb| {
+            fb.lt_str("NAME", "x");
+        })
+        .op,
+        "<"
+    );
+    assert_eq!(
+        op(&|fb| {
+            fb.le_str("NAME", "x");
+        })
+        .op,
+        "<="
+    );
+    assert_eq!(
+        op(&|fb| {
+            fb.gt_str("NAME", "x");
+        })
+        .op,
+        ">"
+    );
+    assert_eq!(
+        op(&|fb| {
+            fb.ge_str("NAME", "x");
+        })
+        .op,
+        ">="
+    );
     let c = op(&|fb| {
         fb.in_str("NAME", &["a", "b", "c"]);
     });
