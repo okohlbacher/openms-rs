@@ -36,3 +36,6 @@ pub mod numeric_formatting;
 pub mod precision_wrapper;
 /// Basic type aliases, ASCII codes and output precisions, from `CONCEPT/Types.h`.
 pub mod types;
+/// A cached unique id to index map for containers of elements with unique
+/// ids, from `CONCEPT/UniqueIdIndexer.h`.
+pub mod unique_id_indexer;

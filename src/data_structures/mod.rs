@@ -52,3 +52,7 @@ pub use isotope_cluster::IsotopeCluster;
 /// `DATASTRUCTURES/DBoundingBox.h`).
 pub mod dbounding_box;
 pub use dbounding_box::{DBoundingBox, DBoundingBox1, DBoundingBox2};
+
+/// Matching the elements of two sorted containers in one forward pass (source
+/// `DATASTRUCTURES/MatchedIterator.h`).
+pub mod matched_iterator;
