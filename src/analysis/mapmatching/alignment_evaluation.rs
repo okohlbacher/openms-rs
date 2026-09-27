@@ -7,10 +7,10 @@
 //! Ports `ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h`,
 //! `MapAlignmentEvaluationAlgorithmPrecision.h` and
 //! `MapAlignmentEvaluationAlgorithmRecall.h` with their `.cpp` files. The
-//! source's abstract base class becomes the [`MapAlignmentEvaluationAlgorithm`]
-//! trait, whose provided [`is_same_handle`](MapAlignmentEvaluationAlgorithm::is_same_handle)
+//! source's abstract base class becomes the [`MapAlignmentEvaluationAlgorithm`](crate::analysis::mapmatching::alignment_evaluation::MapAlignmentEvaluationAlgorithm)
+//! trait, whose provided [`is_same_handle`](crate::analysis::mapmatching::alignment_evaluation::MapAlignmentEvaluationAlgorithm::is_same_handle)
 //! is the base class's non-virtual `isSameHandle`; the two subclasses become
-//! [`MapAlignmentEvaluationPrecision`] and [`MapAlignmentEvaluationRecall`].
+//! [`MapAlignmentEvaluationPrecision`](crate::analysis::mapmatching::alignment_evaluation::MapAlignmentEvaluationPrecision) and [`MapAlignmentEvaluationRecall`](crate::analysis::mapmatching::alignment_evaluation::MapAlignmentEvaluationRecall).
 //! See `docs/MAP_ALIGNMENT_SUPPORT.md`.
 
 use crate::kernel::{ConsensusFeature, ConsensusMap, FeatureHandle};

@@ -14,6 +14,7 @@
 
 use openms::analysis::transformations::*;
 use openms::param::{Param, ParamValue};
+use std::cmp::Ordering;
 
 /// ClassTest `isRealSimilar` (`src/testframework/source/CONCEPT/ClassTest.cpp:364`
 /// at the pin): absolute difference at most 1e-5, or ratio at most 1 + 1e-5.
@@ -701,13 +702,13 @@ fn data_point_order_and_equality_follow_the_source_tie() {
     // Sections `DataPoint::operator<` and `operator==`.
     let mut p1 = DataPoint::with_note(1.0, 2.0, "abc");
     let mut p2 = DataPoint::from((1.0, 2.0));
-    assert!(!(p1 < p2));
+    assert_ne!(p1.partial_cmp(&p2), Some(Ordering::Less));
     assert!(p2 < p1);
     p2.note = "def".into();
     assert!(p1 < p2);
-    assert!(!(p2 < p1));
+    assert_ne!(p2.partial_cmp(&p1), Some(Ordering::Less));
     p1.x = 1.5;
-    assert!(!(p1 < p2));
+    assert_ne!(p1.partial_cmp(&p2), Some(Ordering::Less));
     assert!(p2 < p1);
     let p1 = DataPoint::with_note(1.0, 2.0, "abc");
     let mut p2 = DataPoint::from((1.0, 2.0));

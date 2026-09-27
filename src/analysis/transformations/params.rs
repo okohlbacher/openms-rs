@@ -261,7 +261,7 @@ pub fn unweight_datum(datum: f64, weight: &str) -> f64 {
 /// `lowess` and `interpolated`, with `default_model` prepended when it is not
 /// one of them (the tools use `none`). The sections `linear:`, `b_spline:`,
 /// `lowess:` and `interpolated:` hold each model's defaults and are described
-/// as "Parameters for '<model>' model".
+/// as `Parameters for '<model>' model`.
 ///
 /// # Errors
 ///

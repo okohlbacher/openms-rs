@@ -1,0 +1,167 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "evidence_tier": "3 (source review: transcribed class-test literals and upstream data files); 4 for the derived checks named in the tests",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h",
+   "sha256": "7ebae80961ce147e0e41978c7d4fe2000253aabc758ebcb275e81233ae975146"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/BaseSuperimposer.cpp",
+   "sha256": "f80a81e8be071a9ed9a2fc747eb50c485cd6333e9b8ac0f69929f92ec3174476"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h",
+   "sha256": "0d7f46759b0a463b80ac192a80188e9aa504d7b5e6359cb7a9ae6b4aca4d6764"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.cpp",
+   "sha256": "a5937f96d785b878e196b4685704f578f830b4c31ee90969ae0276a03f8066c4"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h",
+   "sha256": "c101c42056d032d64b501cf7c0d94369817ff6bdcce8ef23530bc6f4ebe52e27"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.cpp",
+   "sha256": "bb8469b1323b80813670b904b0216e27ad01fb6fb77f702d39ed8401751241e9"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h",
+   "sha256": "3281d7cb32d7063290004b677098bf7f49c83a3c71c909f62f63aedabfdea15c"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.cpp",
+   "sha256": "1b3a53d42903e38cfed8ceb9e22c4b193435605eb9d751b655e003d0557257b3"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.h",
+   "sha256": "f4b5d7ca8862c8a728af1dad592907c2bde31bc2bbd2d3bda57f3a48f7dc42e0"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.cpp",
+   "sha256": "72582c65382972d1406a07386ef21b83425a30f055f555479d7e8a634aa9774a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h",
+   "sha256": "63588d6e6ab4f475217edc4bfc44ea5322bab65a5e71997f59dfa2d0534cb740"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.cpp",
+   "sha256": "30ca9b8f306537a36cc46a298e1faa2b50ffd5ee2115033d36b19130d4d442ee"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h",
+   "sha256": "c46a94e7eb094d2aba3c646878e4fbe63a7c108281627ba8379f8578b7487f65"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.cpp",
+   "sha256": "6aec2f1f1a2d699d2ab207f5ced498e41534970f077b6286ebba909f5579b363"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h",
+   "sha256": "9a9a5f55b6ecc01a415744e4649d684ebf46e06087b751fb0900f608d9b4246c"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.cpp",
+   "sha256": "943bd0d84a10c824d9734163a8d6bac48b84fa22af7eef39b68373109d035d7a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/INTERPOLATION/LinearInterpolation.h",
+   "sha256": "6a31d8ce82a438a3ba7afce22f3a7f9a6f048353d72e63fa9ff6ed0591452a1e",
+   "role": "The voting histograms' addValue, key2index, index2key and setMapping, ported privately in src/analysis/mapmatching/superimposer.rs."
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h",
+   "sha256": "73fc950a2d01f7bdfed846ad15c1a6e44bece2318fbb69a27c839beca17fb241",
+   "role": "filterRange's tophat branch, which the superimposers instantiate on double; reproduced in double precision with clipped-window extrema."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/BaseSuperimposer_test.cpp",
+   "sha256": "3061c40e3ddf2e12124f712443cdca75e3c6ab836703e079c5c63f25d14a7a01",
+   "role": "Tests only a test subclass's construction; no literal to transcribe."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PoseClusteringShiftSuperimposer_test.cpp",
+   "sha256": "cf6130063dd47c00faab9ebc5d006e2c0e608496b11c7a7c7d36ccbff2864cd7",
+   "role": "Oracle: slope 1, intercept -20.4, two model parameters."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PoseClusteringAffineSuperimposer_test.cpp",
+   "sha256": "5165306944f522f780acda768e103468e16b111c6d9b6fa5c4129b4d8c10eb0c",
+   "role": "Oracle for both run overloads and the num_used_points 2/3 and wrong-parameter sections (0.977273 / -0.368182)."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MapAlignmentEvaluationAlgorithm_test.cpp",
+   "sha256": "3db288eb10512059fd6d7fc70eea607b81ba283d8c739ee38b997a5fce1892b1",
+   "role": "Oracle for isSameHandle and the implementable interface."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MapAlignmentEvaluationAlgorithmPrecision_test.cpp",
+   "sha256": "fcf533e2162c7c8803110a8cf6a7a7df7ff85a5a56d1d11a59c94ccc89a6eb00",
+   "role": "Oracle: precision 0.757143."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MapAlignmentEvaluationAlgorithmRecall_test.cpp",
+   "sha256": "2fe9f88a1bb7b45179ffda9362f49ae02490b6648465f8d6deb82f43f605f0f8",
+   "role": "Oracle: recall 0.5, empty tool map 0, empty ground truth refused."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MapAlignmentAlgorithmIdentification_test.cpp",
+   "sha256": "14a018277fa9c352134ed587e38bffe7abe24a1ce0fa09757416ce116ef23d0f",
+   "role": "Oracle for alignment without, with internal and with external reference, and the repeated-align regression."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MapAlignmentAlgorithmPoseClustering_test.cpp",
+   "sha256": "8a4dd1a16cbea2b1c4bc62a35f215ef7f7e01da1994f7b7bc4b55badecaedab6",
+   "role": "Not run: its one section (307 pairs, slope 1.01164, intercept -32.0912) needs StablePairFinder, which is not ported."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/map_alignment_evaluation_in.consensusXML",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentEvaluationAlgorithm_in.consensusXML",
+   "sha256": "fbe831a0ab059431ffa925831b7e56ca91392d286fecda73fdc378ec1ece43bb",
+   "bytes": 1856,
+   "role": "Unmodified upstream."
+  },
+  {
+   "path": "tests/data/map_alignment_evaluation_gt.consensusXML",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentEvaluationAlgorithm_gt.consensusXML",
+   "sha256": "4f42ed8dbdd7f9b67dc91f846f2181147cdff979dab4aa35f6dcd141f426a287",
+   "bytes": 1695,
+   "role": "Unmodified upstream."
+  },
+  {
+   "path": "tests/data/map_alignment_identification_1.idXML",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentAlgorithmIdentification_test_1.idXML",
+   "sha256": "a54ffade53abce4d0001a8f93a2cdf54c24cd597bbbad849a5367ddad8173167",
+   "bytes": 3367,
+   "role": "Unmodified upstream."
+  },
+  {
+   "path": "tests/data/map_alignment_identification_2.idXML",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentAlgorithmIdentification_test_2.idXML",
+   "sha256": "6d6cae630cefd50e5b57c489fc0212cba9b46a879a0f675d7136cc6d6440742e",
+   "bytes": 3255,
+   "role": "Unmodified upstream."
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/mapmatching/superimposer.rs",
+  "src/analysis/mapmatching/pose_clustering_shift.rs",
+  "src/analysis/mapmatching/pose_clustering_affine.rs",
+  "src/analysis/mapmatching/alignment_evaluation.rs",
+  "src/analysis/mapmatching/alignment_identification.rs",
+  "src/analysis/mapmatching/alignment_pose_clustering.rs"
+ ],
+ "native_tests": [
+  "tests/pose_clustering.rs",
+  "tests/map_alignment_evaluation.rs",
+  "tests/map_alignment_identification.rs"
+ ],
+ "support_document": "docs/MAP_ALIGNMENT_SUPPORT.md",
+ "notes": "No C++ was executed for this group. Tolerance follows ClassTest isRealSimilar (absolute 1e-5 or ratio 1 + 1e-5, src/testframework/source/CONCEPT/ClassTest.cpp:364)."
+}

@@ -457,6 +457,9 @@ impl MapAlignmentAlgorithmIdentification {
 
     /// Source `computeTransformations_`: returns the transformations and the
     /// info lines.
+    // The run loop goes one past the last run, for a reference at the end, as
+    // the source's `i < size + 1` does; an iterator would hide that slot.
+    #[allow(clippy::needless_range_loop)]
     fn compute_transformations(
         &mut self,
         rt_data: &mut [SeqToList],

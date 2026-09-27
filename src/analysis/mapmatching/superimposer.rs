@@ -6,7 +6,7 @@
 //! superimposers share.
 //!
 //! Ports `ANALYSIS/MAPMATCHING/BaseSuperimposer.h`: the abstract base class
-//! becomes the [`BaseSuperimposer`] trait. The helpers below are the parts of
+//! becomes the [`BaseSuperimposer`](crate::analysis::mapmatching::superimposer::BaseSuperimposer) trait. The helpers below are the parts of
 //! `Math::LinearInterpolation` (the voting histograms), of
 //! `MorphologicalFilter::filterRange` (the top-hat baseline removal on
 //! `double` values) and of the two superimposers' shared statistics that both

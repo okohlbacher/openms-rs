@@ -8,7 +8,7 @@
 //! `.cpp`, except for the pair finder: the source composes a
 //! `StablePairFinder`, whose port belongs to the feature-grouping headers and
 //! is not in this crate yet. The pair-finding step is therefore a parameter
-//! of [`MapAlignmentAlgorithmPoseClustering::align_consensus`], and the
+//! of [`MapAlignmentAlgorithmPoseClustering::align_consensus`](crate::analysis::mapmatching::alignment_pose_clustering::MapAlignmentAlgorithmPoseClustering::align_consensus), and the
 //! `pairfinder:` parameter section is carried through unread. See
 //! `docs/MAP_ALIGNMENT_SUPPORT.md`.
 

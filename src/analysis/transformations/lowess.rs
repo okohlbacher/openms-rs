@@ -208,6 +208,9 @@ pub const DEFAULT_SPAN_GRID: [f64; 13] = [
 /// Returns [`crate::Error::InvalidValue`] when a candidate or bound is not
 /// finite. The source would carry a NaN through the clamps (every comparison
 /// with it is false) into `std::sort`, where it is not a strict weak order.
+// The raise-then-lower below is deliberately not `f64::clamp`, which panics
+// when the neighbour bound exceeds the maximum; the source ends on the maximum.
+#[allow(clippy::manual_clamp)]
 pub fn build_span_grid(
     n_points: usize,
     candidates: &[f64],
@@ -238,10 +241,7 @@ pub fn build_span_grid(
         // Raise, then lower, in that order: when `lower` exceeds `high` (a
         // neighbour bound above the maximum) the source ends on `high`, which
         // `f64::clamp` would refuse by panicking.
-        #[allow(clippy::manual_clamp)]
-        {
-            *value = value.max(lower).min(high);
-        }
+        *value = value.max(lower).min(high);
     }
     grid.sort_by(f64::total_cmp);
     grid.dedup_by(|value, kept| (*value - *kept).abs() < 1e-9);
