@@ -19,3 +19,11 @@ Next step:
 1. For each header, check C++ header members (git -C ../OpenMS4-tests/packages/core show bc9cc12:src/openms/include/OpenMS/<path>)
    vs Rust file; decide complete/partial.
 2. Write ledger fragment + report; commit per group.
+
+## Incarnation 2 (2026-09-27)
+Merged worktree-wf_bcdd783d-f3f-4 (fast-forward, NOTES only). Current ledger entries dumped from
+docs/core-sdk-reviewed-apis.json 'headers' (19 NE at/after M confirmed).
+Plan: per header read C++ header at bc9cc12 + Rust file + existing *_SUPPORT.md API table;
+re-record complete/partial. Keep PeptideIdentificationList NE if header is a pure alias.
+StatisticFunctions: its own scope says a NaN gap in computeRank/Spearman -> partial (named gap).
+Next step: 3. check tools/core_sdk_coverage.py rules for complete (rust [] allowed?), then header-by-header.
