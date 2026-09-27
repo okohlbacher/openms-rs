@@ -1335,8 +1335,7 @@ impl AASequence {
                 let work = match annotation {
                     Annotation::Named(name) => {
                         meter.charge(db.name_descent_work(name), 0)?;
-                        db.name_lookup_work(name)
-                            .saturating_mul(NAMED_LOOKUP_CALLS)
+                        db.name_lookup_work(name).saturating_mul(NAMED_LOOKUP_CALLS)
                     }
                     Annotation::Mass(text) => db
                         .len()
@@ -1605,6 +1604,34 @@ mod parent_parse_budget_tests {
                 );
                 assert!(AASequence::parse_with_budget(text, db, &mut work, &mut bytes).is_err());
             }
+        }
+    }
+
+    /// Regression for the document-wide budget: every named annotation used to
+    /// be charged `records * (longest full ID + 16) * 16` work for the whole
+    /// registry, so a document reader sharing 50 million units could parse no
+    /// more than fourteen modified sequences. Each parse now costs the same
+    /// fixed amount however many came before, and 500 modified sequences fit
+    /// comfortably in one document's budget.
+    #[test]
+    fn a_document_budget_pays_for_hundreds_of_modified_sequences() {
+        let db = ModificationsDB::global();
+        const WORK: usize = 50_000_000;
+        const BYTES: usize = 256 * 1024 * 1024;
+        for text in ["M(Oxidation)PEPTIDE", "(Acetyl)PEPC(Carbamidomethyl)TIDEK"] {
+            let expected = AASequence::parse_with_registry(text, db).unwrap();
+            let (mut work, mut bytes) = (WORK, BYTES);
+            AASequence::parse_with_budget(text, db, &mut work, &mut bytes).unwrap();
+            let (one_work, one_bytes) = (WORK - work, BYTES - bytes);
+            let (mut work, mut bytes) = (WORK, BYTES);
+            for _ in 0..500 {
+                assert_eq!(
+                    AASequence::parse_with_budget(text, db, &mut work, &mut bytes).unwrap(),
+                    expected
+                );
+            }
+            assert_eq!(WORK - work, 500 * one_work);
+            assert_eq!(BYTES - bytes, 500 * one_bytes);
         }
     }
 }

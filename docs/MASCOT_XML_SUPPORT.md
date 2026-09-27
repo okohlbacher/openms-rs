@@ -229,15 +229,17 @@ port's own load of the same input:
   peptide evidence's accession and both flanking residues in order, and the
   `EValue` user parameter.
 
-The retained file is read with a line-oriented attribute extractor in the test
-rather than with `crate::format::idxml`, because that reader's fixed
-50,000,000-unit work budget (`XmlLimits::default`) is exhausted after roughly
-forty modified peptides: `AASequence::parse_with_budget` charges about 1.3
-million units per annotated sequence, so 586 of them need about 790 million.
+The retained file is read with a line-oriented attribute extractor in the test,
+so the differential does not depend on this crate's own idXML reader.
 `IdXMLFile::store` writes exactly one element per line with plain
-double-quoted attributes, so the extractor is exact for this fixture. Raising
-that budget belongs to the package that owns `src/format/identification_xml.rs`;
-it is listed under "Deferred".
+double-quoted attributes, so the extractor is exact for this fixture. The
+extractor was first chosen because `crate::format::idxml` could not read the
+file at all: `AASequence::parse_with_budget` charged every annotated sequence
+for the whole modification database against the reader's document-wide
+50,000,000-unit budget. That budget was fixed (lane F3a, 2026-09-27), and
+`the_idxml_reader_reads_the_retained_cpp_output_like_the_extractor` now checks
+that the reader agrees with the extractor on every protein accession and on
+every hit's sequence, charge and score — 436 of the 586 hits are modified.
 
 **Evidence tier 3 (source review) for `MascotXMLFile_test_1` and `_2`.** Their
 expectations are the class test's literals: for 1.0 the four fixed and three
@@ -292,13 +294,6 @@ flanking residues, sequences and every string.
 
 ## Deferred
 
-- `src/format/identification_xml.rs`'s fixed 50,000,000-unit work budget cannot
-  read an idXML with more than roughly forty modified peptides, so
-  `idxml::load("MascotXMLFile_test_out_3.idXML")` fails with "peptide parent
-  parsing resource limit exceeded". The per-sequence charge in
-  `AASequence::parse_with_budget` scales with the whole modification database
-  for every annotation. That file is outside this package's scope; until it is
-  raised, the differential uses its own extractor.
 - `METADATA/SpectrumLookup.h`, `METADATA/SpectrumMetaDataLookup.h` and
   `METADATA/SpectrumNativeIDParser.h` stay unported; only the subset above is
   reproduced, and a caller-supplied `scan_regex` cannot be honoured until a
