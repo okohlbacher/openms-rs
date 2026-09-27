@@ -1,0 +1,319 @@
+// Oracle driver for lane F3b (search-engine input/output files).
+// Dumps what the pinned C++ Release build reads from the upstream class-test
+// fixtures and writes for the class-test inputs, so the Rust port can be
+// compared field by field. Usage: sne_driver <case> <data dir> <tmp dir>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/InspectInfile.h>
+#include <OpenMS/FORMAT/OMSSAXMLFile.h>
+#include <OpenMS/FORMAT/PepNovoInfile.h>
+#include <OpenMS/FORMAT/PepNovoOutfile.h>
+#include <OpenMS/FORMAT/SequestInfile.h>
+#include <OpenMS/FORMAT/SequestOutfile.h>
+#include <OpenMS/FORMAT/XTandemInfile.h>
+#include <OpenMS/FORMAT/XTandemXMLFile.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+
+#include <algorithm>
+#include <cstdio>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <string>
+#include <vector>
+
+using namespace OpenMS;
+
+static std::string g17(double v)
+{
+  char buffer[64];
+  std::snprintf(buffer, sizeof(buffer), "%.17g", v);
+  return buffer;
+}
+
+static void dumpMeta(const MetaInfoInterface& m, const std::string& indent)
+{
+  std::vector<std::string> keys;
+  m.getKeys(keys);
+  std::sort(keys.begin(), keys.end());
+  for (const auto& k : keys)
+  {
+    const DataValue& v = m.getMetaValue(k);
+    std::cout << indent << "meta " << k << " type=" << int(v.valueType()) << " value=";
+    if (v.valueType() == DataValue::DOUBLE_VALUE)
+      std::cout << g17(double(v));
+    else
+      std::cout << v.toString();
+    std::cout << "\n";
+  }
+}
+
+static void dumpPeptides(const PeptideIdentificationList& ids)
+{
+  std::cout << "peptide_ids " << ids.size() << "\n";
+  for (const auto& id : ids)
+  {
+    std::cout << "id identifier=" << id.getIdentifier() << " score_type=" << id.getScoreType()
+              << " higher=" << id.isHigherScoreBetter() << " threshold=" << g17(id.getSignificanceThreshold())
+              << " rt=" << g17(id.getRT()) << " mz=" << g17(id.getMZ()) << "\n";
+    dumpMeta(id, "  ");
+    std::cout << "  hits " << id.getHits().size() << "\n";
+    for (const auto& h : id.getHits())
+    {
+      std::cout << "  hit seq=" << h.getSequence().toString() << " score=" << g17(h.getScore())
+                << " rank=" << h.getRank() << " charge=" << h.getCharge() << "\n";
+      dumpMeta(h, "    ");
+      for (const auto& e : h.getPeptideEvidences())
+      {
+        std::cout << "    evidence acc=" << e.getProteinAccession() << " start=" << e.getStart()
+                  << " end=" << e.getEnd() << " before=" << int(e.getAABefore())
+                  << " after=" << int(e.getAAAfter()) << "\n";
+      }
+    }
+  }
+}
+
+static void dumpProtein(const ProteinIdentification& p)
+{
+  std::cout << "protein identifier=" << p.getIdentifier() << " engine=" << p.getSearchEngine()
+            << " version=" << p.getSearchEngineVersion() << " score_type=" << p.getScoreType()
+            << " higher=" << p.isHigherScoreBetter() << "\n";
+  const auto& sp = p.getSearchParameters();
+  std::cout << "  params fragment_tol=" << g17(sp.fragment_mass_tolerance)
+            << " precursor_tol=" << g17(sp.precursor_mass_tolerance) << " variable=";
+  for (const auto& m : sp.variable_modifications) std::cout << "[" << m << "]";
+  std::cout << "\n";
+  std::cout << "  protein_hits " << p.getHits().size() << "\n";
+  for (const auto& h : p.getHits())
+  {
+    std::cout << "  protein_hit acc=" << h.getAccession() << " score=" << g17(h.getScore()) << "\n";
+  }
+}
+
+static void dumpFile(const std::string& path)
+{
+  std::ifstream in(path, std::ios::binary);
+  std::stringstream s;
+  s << in.rdbuf();
+  std::string text = s.str();
+  std::cout << "file_bytes " << text.size() << "\n";
+  for (unsigned char c : text)
+  {
+    if (c == '\n' || c == '\t' || (c >= 32 && c < 127))
+      std::cout << c;
+    else
+      std::cout << "\\x" << std::hex << int(c) << std::dec;
+  }
+  std::cout << "\n<<EOF\n";
+}
+
+int main(int argc, char** argv)
+{
+  if (argc != 4)
+  {
+    std::cerr << "usage: sne_driver <case> <data dir> <tmp dir>\n";
+    return 2;
+  }
+  std::string c = argv[1];
+  std::string data = std::string(argv[2]) + "/";
+  std::string tmp = std::string(argv[3]) + "/";
+  try
+  {
+    if (c == "pepnovo_infile")
+    {
+      StringList fixed = {"Phospho (C)"};
+      StringList variable = {"Phospho (D)", "Ethanolamine (C-term)"};
+      PepNovoInfile p;
+      p.setModifications(fixed, variable);
+      p.store(tmp + "pepnovo_infile.txt");
+      dumpFile(tmp + "pepnovo_infile.txt");
+      std::map<std::string, std::string> keys;
+      p.getModifications(keys);
+      for (const auto& kv : keys) std::cout << "key " << kv.first << " -> " << kv.second << "\n";
+    }
+    else if (c == "xtandem_infile")
+    {
+      XTandemInfile x;
+      x.setFragmentMassTolerance(13.0);
+      x.setPrecursorMassTolerancePlus(14.0);
+      x.setPrecursorMassToleranceMinus(15.0);
+      x.setPrecursorMassErrorUnit(XTandemInfile::PPM);
+      x.setNumberOfThreads(16);
+      x.setOutputFilename("blubb_new_outputfilename");
+      x.setInputFilename("blubb_new_inputfilename");
+      x.setTaxonomyFilename("blubb_new_taxonomy_file");
+      x.setDefaultParametersFilename("blubb_new_default_parameters_file");
+      x.setTaxon("blubb_taxon");
+      x.setMaxPrecursorCharge(17);
+      x.setNumberOfMissedCleavages(18);
+      x.setMaxValidEValue(19.0);
+      x.setPrecursorErrorType(XTandemInfile::AVERAGE);
+      x.setFragmentMassErrorUnit(XTandemInfile::PPM);
+      ModificationDefinitionsSet sets(ListUtils::create<std::string>("Oxidation (M),Dimethyl (N-term),Carboxymethyl (C)"),
+                                      ListUtils::create<std::string>("Ammonium (C-term),ICDID (C)"));
+      x.setModifications(sets);
+      x.setAllowIsotopeError(true);
+      x.setSemiCleavage(true);
+      x.setOutputResults("all");
+      x.write(tmp + "xtandem_infile.xml");
+      dumpFile(tmp + "xtandem_infile.xml");
+      x.write(tmp + "xtandem_infile_ignore.xml", true);
+      dumpFile(tmp + "xtandem_infile_ignore.xml");
+      x.write(tmp + "xtandem_infile_force.xml", false, true);
+      dumpFile(tmp + "xtandem_infile_force.xml");
+    }
+    else if (c == "xtandem_xml_1" || c == "xtandem_xml_2")
+    {
+      ModificationDefinitionsSet mods(ListUtils::create<std::string>(""),
+                                      ListUtils::create<std::string>("Carbamidomethyl (C),Oxidation (M),Carboxymethyl (C)"));
+      ProteinIdentification prot;
+      PeptideIdentificationList peps;
+      std::string file = c == "xtandem_xml_1" ? "XTandemXMLFile_test.xml" : "XTandemXMLFile_test_2.xml";
+      XTandemXMLFile().load(data + file, prot, peps, mods);
+      dumpProtein(prot);
+      dumpPeptides(peps);
+      std::cout << "fixed";
+      for (const auto& n : mods.getFixedModificationNames()) std::cout << " [" << n << "]";
+      std::cout << "\nvariable";
+      for (const auto& n : mods.getVariableModificationNames()) std::cout << " [" << n << "]";
+      std::cout << "\n";
+    }
+    else if (c == "omssa_xml")
+    {
+      ProteinIdentification prot;
+      PeptideIdentificationList peps;
+      OMSSAXMLFile o;
+      o.load(data + "OMSSAXMLFile_test_1.xml", prot, peps);
+      dumpProtein(prot);
+      dumpPeptides(peps);
+    }
+    else if (c == "sequest_out")
+    {
+      ProteinIdentification prot;
+      PeptideIdentificationList peps;
+      std::vector<double> pvalues;
+      SequestOutfile s;
+      s.load(data + "SequestOutfile.out", peps, prot, 1.0, pvalues);
+      dumpProtein(prot);
+      dumpPeptides(peps);
+    }
+    else if (c == "pepnovo_out_index" || c == "pepnovo_out_title")
+    {
+      std::map<std::string, std::string> key_to_mod;
+      key_to_mod["K+42"] = "Acetyl (K)";
+      key_to_mod["Y+42"] = "Acetyl (Y)";
+      PepNovoOutfile::IndexPosMappingType index;
+      if (c == "pepnovo_out_index")
+      {
+        index[0] = std::make_pair(1510.5732421875, 747.761901855469);
+        index[1] = std::make_pair(1530.11535644531, 549.856262207031);
+        index[2] = std::make_pair(1533.16589355469, 358.174530029297);
+        index[3] = std::make_pair(1111, 2222);
+      }
+      ProteinIdentification prot;
+      PeptideIdentificationList peps;
+      PepNovoOutfile p;
+      p.load(data + "PepNovoOutfile.out", peps, prot, -4.0, index, key_to_mod);
+      dumpProtein(prot);
+      dumpPeptides(peps);
+    }
+    else if (c == "inspect_infile")
+    {
+      // InspectInfile_test.cpp: the setters and the modification line of its
+      // sections, in their order (the last handlePTMs call is monoisotopic).
+      InspectInfile i;
+      i.setSpectra("dummy4712");
+      i.setDb("dummy4711");
+      i.setEnzyme("Trypsin");
+      i.handlePTMs("10.3+,KRLNH,fix:+16,C:16-,cterm:-16,nterm", data + "Inspect_PTMs.xml", false);
+      i.handlePTMs("10.3+,KRLNH,fix:+16,C:16-,cterm:-16,nterm", data + "Inspect_PTMs.xml", true);
+      i.handlePTMs("10.3+,KRLNH,fix:+16,C:16-,cterm:-16,nterm", data + "Inspect_PTMs.xml", false);
+      i.setModificationsPerPeptide(2);
+      i.setBlind(1);
+      i.setMaxPTMsize(250);
+      i.setPrecursorMassTolerance(1.3f);
+      i.setPeakMassTolerance(0.3f);
+      i.setMulticharge(1);
+      i.setInstrument("ESI-ION-TRAP");
+      i.setTagCount(1);
+      try
+      {
+        i.store(tmp + "inspect_infile.tmp");
+        std::cout << "store .tmp succeeded\n";
+      }
+      catch (const std::exception& e)
+      {
+        std::cout << "store .tmp EXCEPTION " << e.what() << "\n";
+      }
+      i.store(tmp + "inspect_infile.tsv");
+      dumpFile(tmp + "inspect_infile.tsv");
+      for (const auto& kv : i.getModifications())
+      {
+        std::cout << "mod " << kv.first;
+        for (const auto& v : kv.second) std::cout << " [" << v << "]";
+        std::cout << "\n";
+      }
+    }
+    else if (c == "sequest_infile")
+    {
+      // SequestInfile_test.cpp: the modification line and setters of its
+      // sections, in their order.
+      std::string line = "10.3+,KRLNH,fix:+16,C:16-,cterm,opt:-16,nterm,fix:17-,cterm_prot:-17,nterm_prot,fix";
+      SequestInfile s;
+      s.handlePTMs(line, data + "Sequest_PTMs.xml", false);
+      s.handlePTMs(line, data + "Sequest_PTMs.xml", true);
+      s.handlePTMs(line, data + "Sequest_PTMs.xml", false);
+      s.setDatabase(R"(\\bude\langwisc\sequest_test\Analysis.mzXML.fasta)");
+      s.setNeutralLossesForIons("0 1 1");
+      s.setIonSeriesWeights("0 1.0 0 0 0 0 0 1.0 0");
+      s.setPartialSequence("SEQVEST TEST");
+      s.setSequenceHeaderFilter("homo~sapiens !mus musculus");
+      s.setPrecursorMassTolerance(1.3f);
+      s.setPeakMassTolerance(0.3f);
+      s.setMatchPeakTolerance(1.2f);
+      s.setIonCutoffPercentage(0.3f);
+      s.setProteinMassFilter("30.2 0");
+      s.setPeptideMassUnit(0);
+      s.setOutputLines(10);
+      std::cout << "enzyme_bad " << s.setEnzyme("i_dont_exist_enzyme") << "\n";
+      std::cout << "enzyme_trypsin " << s.setEnzyme("Trypsin") << "\n";
+      s.setMaxAAPerModPerPeptide(4);
+      s.setMaxModsPerPeptide(3);
+      s.setNucleotideReadingFrame(0);
+      s.setMaxInternalCleavageSites(2);
+      s.setMatchPeakCount(5);
+      s.setMatchPeakAllowedError(4);
+      s.setShowFragmentIons(true);
+      s.setPrintDuplicateReferences(true);
+      s.setRemovePrecursorNearPeaks(true);
+      s.setMassTypeParent(true);
+      s.setMassTypeFragment(true);
+      s.setNormalizeXcorr(true);
+      s.setResiduesInUpperCase(true);
+      s.store(tmp + "sequest_infile.txt");
+      dumpFile(tmp + "sequest_infile.txt");
+      for (const auto& kv : s.getModifications())
+      {
+        std::cout << "mod " << kv.first;
+        for (const auto& v : kv.second) std::cout << " [" << v << "]";
+        std::cout << "\n";
+      }
+      std::cout << "enzyme_info\n" << s.getEnzymeInfoAsString() << "<<EOF\n";
+    }
+    else
+    {
+      std::cerr << "unknown case " << c << "\n";
+      return 2;
+    }
+  }
+  catch (const std::exception& e)
+  {
+    std::cout << "EXCEPTION " << e.what() << "\n";
+    return 1;
+  }
+  return 0;
+}

@@ -1,0 +1,75 @@
+protein identifier=TurboSEQUEST_2004-03-16 engine=TurboSEQUEST version=v.27 (rev. 12) score_type= higher=1
+  params fragment_tol=0 precursor_tol=0 variable=
+  protein_hits 14
+  protein_hit acc=P35574 score=0
+  protein_hit acc=2136928 score=0
+  protein_hit acc=L10605 score=0
+  protein_hit acc=P46029 score=0
+  protein_hit acc=U32507 score=0
+  protein_hit acc=e148876 score=0
+  protein_hit acc=P20647 score=0
+  protein_hit acc=P04192 score=0
+  protein_hit acc=67962 score=0
+  protein_hit acc=67961 score=0
+  protein_hit acc=109166 score=0
+  protein_hit acc=224621 score=0
+  protein_hit acc=X02814 score=0
+  protein_hit acc=J04703 score=0
+peptide_ids 1
+id identifier=TurboSEQUEST_2004-03-16 score_type=SEQUEST higher=1 threshold=1 rt=nan mz=1966.7911376953125
+  meta significance_threshold type=2 value=1
+  hits 4
+  hit seq=ETQAWSIATILETLYDL score=0.050000000000000003 rank=1 charge=3
+    meta DeltCn type=2 value=0
+    meta Ions type=0 value=18/64
+    meta MH type=2 value=1967.0012999999999
+    meta RankSp type=0 value=1/80
+    meta SequestId type=1 value=0
+    meta Sf type=2 value=0.050000000000000003
+    meta Sp type=2 value=310.30000000000001
+    meta XCorr type=2 value=1.5789
+    meta rank type=1 value=1
+    evidence acc=P35574 start=-1 end=-1 before=67 after=45
+    evidence acc=2136928 start=-1 end=-1 before=88 after=88
+    evidence acc=L10605 start=-1 end=-1 before=88 after=88
+  hit seq=QVLNPLLVLIFIPLFDL score=0.040000000000000001 rank=2 charge=3
+    meta DeltCn type=2 value=0.039
+    meta Ions type=0 value=19/64
+    meta MH type=2 value=1967.1985
+    meta RankSp type=0 value=2/85
+    meta SequestId type=1 value=0
+    meta Sf type=2 value=0.040000000000000001
+    meta Sp type=2 value=308.30000000000001
+    meta XCorr type=2 value=1.5173000000000001
+    meta rank type=1 value=2
+    evidence acc=P46029 start=-1 end=-1 before=77 after=86
+    evidence acc=U32507 start=-1 end=-1 before=88 after=88
+  hit seq=WVELGPSVLAGVGVMVLLI score=0.02 rank=3 charge=3
+    meta DeltCn type=2 value=0.050099999999999999
+    meta Ions type=0 value=17/72
+    meta MH type=2 value=1968.1243999999999
+    meta RankSp type=0 value=3/117
+    meta SequestId type=1 value=0
+    meta Sf type=2 value=0.02
+    meta Sp type=2 value=292.39999999999998
+    meta XCorr type=2 value=1.4998
+    meta rank type=1 value=3
+    evidence acc=e148876 start=-1 end=-1 before=76 after=80
+  hit seq=FDEITAMTGDGVNDAPALK score=0.14000000000000001 rank=4 charge=3
+    meta DeltCn type=2 value=0.062700000000000006
+    meta Ions type=0 value=24/72
+    meta MH type=2 value=1964.9275
+    meta RankSp type=0 value=4/1
+    meta SequestId type=1 value=0
+    meta Sf type=2 value=0.14000000000000001
+    meta Sp type=2 value=530.89999999999998
+    meta XCorr type=2 value=1.4799
+    meta rank type=1 value=4
+    evidence acc=P20647 start=-1 end=-1 before=83 after=75
+    evidence acc=P04192 start=-1 end=-1 before=88 after=88
+    evidence acc=67962 start=-1 end=-1 before=88 after=88
+    evidence acc=67961 start=-1 end=-1 before=88 after=88
+    evidence acc=109166 start=-1 end=-1 before=88 after=88
+    evidence acc=224621 start=-1 end=-1 before=88 after=88
+    evidence acc=X02814 start=-1 end=-1 before=88 after=88
+    evidence acc=J04703 start=-1 end=-1 before=88 after=88
