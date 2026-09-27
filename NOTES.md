@@ -14,22 +14,18 @@ ConvexHull2D, DBoundingBox, DataValue, FASTAContainer, IsotopeCluster, ListUtils
 
 Ledger dump: scratchpad a5a_ledger.txt (regenerate from docs/core-sdk-coverage.json `headers` list, key `header`).
 
-## Status per header (fill in as re-read)
-Done in code (gate g2 pending, then docs/ledger):
-- CommonEnums, Types, HashUtils -> src/concept/{common_enums,types,hash_utils}.rs, tests/concept_basics.rs (all members)
-- Macros -> src/concept/macros.rs (thread_critical, openms_precondition!/postcondition!), tests/concept_macros.rs
-- NumericFormatting (support) -> src/concept/numeric_formatting.rs; text_format.rs now delegates (behaviour identical)
-- PrecisionWrapper -> src/concept/precision_wrapper.rs; ListUtilsIO -> text_format.rs (VecLowPrecision, StringListPush,
-  to_str_low_precision*), tests/list_utils_io.rs
-- IsotopeCluster -> src/data_structures/isotope_cluster.rs (moved ChargedIndexSet etc. from ffp defs.rs, re-exported)
-- DBoundingBox -> src/data_structures/dbounding_box.rs generic, tests/dbounding_box.rs
-New acyclic module edges: data_structures->concept (report; lead may --write docs/module-cycles.json)
-- GumbelDistributionFitter / USI / MetaInfoRegistry / MultipleTesting etc. are A5b's list, not ours -> leave.
+## Status per header
+Code done + gated (tests pass on dax): CommonEnums, Types, HashUtils, Macros, NumericFormatting(support), PrecisionWrapper,
+ListUtilsIO, IsotopeCluster, DBoundingBox (data_structures/dbounding_box.rs), ConvexHull2D (map_points, source_hash64),
+MatchedIterator (data_structures/matched_iterator.rs; comparison::matched_alignment now uses it), UniqueIdIndexer
+(concept/unique_id_indexer.rs), Colorizer (concept/colorizer.rs), ConsoleUtils (cli::ConsoleUtils; Windows width = gap),
+VersionInfo (concept/version_info.rs; VersionDetails moved from system::update_check, alias kept; 6 build statics = gap).
+Planned statuses: complete for all above except ConsoleUtils, VersionInfo (partial).
+Clippy fix pending (type_complexity in macros.rs) -> logs/clippy2.log.
+docs/doc-coverage.json is lead's: report "--write needed". module-cycles: new acyclic edges analysis->data_structures,
+data_structures->concept, kernel->data_structures, system->concept (report; lead --write).
 
 ## Next step
-1. Poll logs/g2.log (scratch A5a/logs). Fix failures. Commit milestone.
-2. Next headers: Ribonucleotide (<<, hash; needs EmpiricalFormula <<+hash, Element hash, IsotopeDistribution hash),
-   ConvexHull2D (getMapPoints via DBoundingBox1, hash), MatchedIterator, UniqueIdIndexer, Colorizer, ConsoleUtils API,
-   VersionInfo, DataValue gaps, then CHEMISTRY re-reads.
-3. Support docs: docs/CONCEPT_BASICS_SUPPORT.md, DBOUNDING_BOX_SUPPORT.md, ISOTOPE_CLUSTER_SUPPORT.md (referenced in rustdoc!).
-4. Ledger fragment + report at end.
+1. Add ToStr for char/bool (ListUtilsIO completeness). Check clippy2.
+2. Re-read remaining scopes vs C++/Rust: DataValue, ConstRefVector, FASTAContainer, Exception, all CHEMISTRY, XLMS -> record remainders.
+3. Support docs (10) + provenance manifests (script) + ledger fragment + report.

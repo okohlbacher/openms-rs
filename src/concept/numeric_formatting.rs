@@ -131,18 +131,8 @@ fn widen_f32(value: f32) -> f64 {
 }
 
 macro_rules! append_numeric {
-    ($name:ident, $float:ty, $type_name:literal, $widen:ident) => {
-        #[doc = concat!(
-            "Appends `value` as decimal text: source `NumericFormatting::appendNumeric<",
-            $type_name,
-            ">(value, target, precision, fixed_format)` (`NumericFormatting.h:27-140`).\n\n",
-            "The magnitude thresholds `1e4` and `1e-2` are `",
-            $type_name,
-            "` values, and rounding is of the exact `",
-            $type_name,
-            "` value. See the module notes for the rules."
-        )]
-        pub fn $name(value: $float, target: &mut String, precision: usize, fixed_format: bool) {
+    ($name:ident, $float:ty, $widen:ident) => {
+        fn $name(value: $float, target: &mut String, precision: usize, fixed_format: bool) {
             if value.is_nan() {
                 target.push_str("NaN");
                 return;
@@ -188,5 +178,41 @@ macro_rules! append_numeric {
     };
 }
 
-append_numeric!(append_numeric_f64, f64, "double", widen_f64);
-append_numeric!(append_numeric_f32, f32, "float", widen_f32);
+append_numeric!(append_numeric_double, f64, widen_f64);
+append_numeric!(append_numeric_float, f32, widen_f32);
+
+/// Appends `value` as decimal text: source
+/// `NumericFormatting::appendNumeric<double>(value, target, precision,
+/// fixed_format)` (`NumericFormatting.h:27-140`).
+///
+/// See the module notes for the rules. `StringUtils::toStr(double, true)` is
+/// `precision` 15 (`writtenDigits<double>()`) without `fixed_format`, and
+/// `toStr(double, false)` is `precision` 3 with it.
+///
+/// # Examples
+///
+/// ```
+/// use openms::concept::numeric_formatting::append_numeric_f64;
+///
+/// let mut text = String::from("x = ");
+/// append_numeric_f64(17.012345, &mut text, 15, false);
+/// assert_eq!(text, "x = 17.012345");
+/// let mut text = String::new();
+/// append_numeric_f64(1.0e6, &mut text, 3, true);
+/// assert_eq!(text, "1.0e06");
+/// ```
+pub fn append_numeric_f64(value: f64, target: &mut String, precision: usize, fixed_format: bool) {
+    append_numeric_double(value, target, precision, fixed_format);
+}
+
+/// Appends `value` as decimal text: source
+/// `NumericFormatting::appendNumeric<float>(value, target, precision,
+/// fixed_format)`.
+///
+/// The magnitude thresholds `1e4f` and `1e-2f` are `float` values and rounding
+/// is of the exact `float` value, not of the promoted `double`.
+/// `StringUtils::toStr(float, true)` is `precision` 6 (`writtenDigits<float>()`)
+/// without `fixed_format`.
+pub fn append_numeric_f32(value: f32, target: &mut String, precision: usize, fixed_format: bool) {
+    append_numeric_float(value, target, precision, fixed_format);
+}

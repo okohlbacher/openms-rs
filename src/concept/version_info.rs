@@ -27,6 +27,16 @@
 //! `system::update_check::SemanticVersion` is this type under the name the
 //! update check has always used.
 
+/// A parsed semver-style version, `major.minor.patch` with an optional
+/// pre-release identifier: source `VersionInfo::VersionDetails`.
+///
+/// The result type of [`get_version_struct`] and [`VersionDetails::create`].
+/// A default value equals [`VersionDetails::EMPTY`], which the source uses both
+/// for the version `0.0.0` without a pre-release and for a failed parse;
+/// [`VersionDetails::parse`] tells the two apart with `Option`.
+///
+/// The type implements [`PartialEq`] but deliberately not [`PartialOrd`]: see
+/// [`VersionDetails::is_less_than`].
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct VersionDetails {
     /// Number ahead of the first `.`.

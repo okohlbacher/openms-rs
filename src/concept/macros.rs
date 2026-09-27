@@ -53,8 +53,11 @@
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex, OnceLock, PoisonError};
 
+/// The lock of every critical-section name used so far.
+type CriticalSectionLocks = BTreeMap<&'static str, Arc<Mutex<()>>>;
+
 /// One lock per critical-section name, created on first use.
-static CRITICAL_SECTIONS: OnceLock<Mutex<BTreeMap<&'static str, Arc<Mutex<()>>>>> = OnceLock::new();
+static CRITICAL_SECTIONS: OnceLock<Mutex<CriticalSectionLocks>> = OnceLock::new();
 
 /// The lock for `name`, created on first use.
 fn critical_section_lock(name: &'static str) -> Arc<Mutex<()>> {
