@@ -435,8 +435,16 @@ fn update_mapping_protected_values_partial_success_and_invalids() {
     assert_eq!(ambiguous.value("old:leaf").unwrap(), &V::Integer(4));
     assert_eq!(ambiguous.value("a:leaf").unwrap(), &V::Integer(1));
 }
+/// An equal value is not validated again, even when it breaks its
+/// restriction. A different 64-bit value is checked as the source's
+/// `ParamEntry::isValid` checks it, through `int tmp = value` (`Param.cpp:122`,
+/// core `bc9cc12`): its low 32 bits. `i64::MAX` is `-1` there, within the
+/// maximum 0, so it is taken whole; `2^32 + 1` is `1`, above it, so the lenient
+/// update ignores it with the restriction's message and keeps the current
+/// value (`Param.cpp:1321-1346`). An update that fails leaves the destination
+/// unchanged (`source_update_requeries_unresolvable_literal_colon_draft_names`).
 #[test]
-fn update_equal_invalid_value_is_not_revalidated_and_errors_are_atomic() {
+fn update_equal_invalid_value_is_not_revalidated_and_wide_integers_are_checked_as_int() {
     let mut current = Param::new();
     set(&mut current, "same", 9);
     current.set_max_int("same", 0).unwrap();
@@ -455,8 +463,13 @@ fn update_equal_invalid_value_is_not_revalidated_and_errors_are_atomic() {
     );
     let mut old = Param::new();
     set(&mut old, "same", i64::MAX);
+    assert!(current.update(&old, false).unwrap().success);
+    assert_eq!(current.value("same").unwrap(), &V::Integer(i64::MAX));
+    set(&mut old, "same", (1_i64 << 32) + 1);
     let before = current.clone();
-    assert!(current.update(&old, false).is_err());
+    let report = current.update(&old, false).unwrap();
+    assert!(report.success);
+    assert_eq!(report.messages.len(), 1, "{:?}", report.messages);
     assert_eq!(current, before);
 }
 #[test]

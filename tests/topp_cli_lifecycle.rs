@@ -1746,7 +1746,12 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
     // (TOPPBase.cpp:495-499, cli c19e494): exit 8 and its what(), which is the
     // message (Exception.cpp:257-260). Tier 2, source-derived.
     let information = stream_tool(Err(Error::MissingInformation("no charge".into())));
-    assert_eq!(information.code, ExitCode::UnknownError, "{}", information.err);
+    assert_eq!(
+        information.code,
+        ExitCode::UnknownError,
+        "{}",
+        information.err
+    );
     assert!(
         information
             .err

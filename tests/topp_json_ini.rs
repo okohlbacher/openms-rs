@@ -492,8 +492,7 @@ fn a_malformed_ini_reaches_the_log_as_in_the_release_build() {
 
 /// Batch 3: FileInfo with an `-in_type` the file contradicts. The experiment
 /// loader throws `ParseError` (`FileHandler.cpp:859-863`): exit 3 and the
-/// source's text, which this port prints after the `parse error on line 0: `
-/// with which the lifecycle renders every `Error::Parse` (`run_failure`).
+/// source's text, byte for byte.
 #[cfg(feature = "featurexml")]
 #[test]
 fn a_forced_type_the_file_contradicts_is_the_release_builds_parse_error() {
@@ -501,13 +500,7 @@ fn a_forced_type_the_file_contradicts_is_the_release_builds_parse_error() {
         "batch3/fi_forced_dta_on_featurexml",
         "batch3/fi_forced_mzml_on_featurexml",
     ] {
-        assert_case::<openms::cli::tools::FileInfo>(case, |text| {
-            text.replacen(
-                "Error: Unable to read file (",
-                "Error: Unable to read file (parse error on line 0: ",
-                1,
-            )
-        });
+        assert_case::<openms::cli::tools::FileInfo>(case, |text| text);
     }
 }
 

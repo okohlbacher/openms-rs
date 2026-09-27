@@ -2288,12 +2288,31 @@ fn initialisation_failure<T: Tool>(error: &Error, err: &mut dyn Write) -> ExitCo
     ExitCode::IllegalParameters
 }
 
+/// The text of an [`Error::Parse`] inside the lifecycle's `Error: Unable to
+/// read file (…)`, as the source's `ParseError::what()`, which is
+/// `<message> in: <expression>` (`Exception.cpp:160-164` at core `bc9cc12`)
+/// and carries no line prefix.
+///
+/// An error without a line (`line` 0) is written as its message alone: the
+/// loaders that reproduce a source `ParseError` put the source's whole
+/// `what()` there, `in: <file>` included (`FileHandler`'s refused type,
+/// `FileHandler.cpp:859-863`; the INI and JSON `-ini` loads), so the line is
+/// the Release build's byte for byte. An error with a line keeps this crate's
+/// `parse error on line <n>: <message>`, the line being the only place it is
+/// reported; no reader that sets one words its message as the source does.
+fn parse_what(error: &Error) -> String {
+    match error {
+        Error::Parse { line: 0, message } => message.clone(),
+        other => other.to_string(),
+    }
+}
+
 /// A failure while the tool runs, mapped as the source's run-phase catch
 /// (`TOPPBase.cpp:430-499`).
 ///
 /// A parse failure is `INPUT_FILE_CORRUPT`, as the source's `ParseError`
-/// (460-465). The other arms are native mappings, because [`Error`] is coarser
-/// than the source's exceptions:
+/// (460-465), with the text [`parse_what`] gives it. The other arms are native
+/// mappings, because [`Error`] is coarser than the source's exceptions:
 ///
 /// * A missing file is `INPUT_FILE_NOT_FOUND`, as `FileNotFound` (436-441).
 /// * A permission failure is `CANNOT_WRITE_OUTPUT_FILE`, as `UnableToCreateFile`
@@ -2321,7 +2340,7 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
     let (code, text) = match error {
         Error::Parse { .. } => (
             ExitCode::InputFileCorrupt,
-            format!("Error: Unable to read file ({error})"),
+            format!("Error: Unable to read file ({})", parse_what(error)),
         ),
         Error::Io(e) if e.kind() == std::io::ErrorKind::NotFound => (
             ExitCode::InputFileNotFound,
@@ -2356,7 +2375,7 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
 /// say which side raised it, and its `Error::Parse` arm is the source's
 /// `ParseError`, which is a *read* failure. A store that fails therefore has to
 /// be mapped where it is known to be a store; otherwise a writer's refusal is
-/// announced as `Error: Unable to read file (parse error on line 0: …)` with
+/// announced as `Error: Unable to read file (…)` with
 /// `INPUT_FILE_CORRUPT`, which is what the featureXML store did before native
 /// difference 16 was closed.
 ///

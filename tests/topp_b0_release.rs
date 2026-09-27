@@ -93,10 +93,8 @@ fn unknown_input() -> Vec<(&'static str, PathBuf)> {
 /// loads with an allowed list: the framework's format check only warns
 /// (`TOPPBase.cpp:1580-1583`), and the load refuses the type with
 /// `ParseError` (`FileHandler.cpp:859-863`), exit 3, before anything is
-/// written. The exit code, standard output and the warning line are the
-/// Release build's; the error line is the Release build's text inside the
-/// `parse error on line 0: ` with which the lifecycle renders every
-/// `Error::Parse` (open item 3 of the TOPPBase ledger entry).
+/// written. The exit code, standard output, the warning line and the error
+/// line are the Release build's, byte for byte.
 #[test]
 fn an_undetermined_input_format_is_the_loaders_parse_error_in_every_tool() {
     /// A retained case and the tool that replays it.
@@ -134,11 +132,7 @@ fn an_undetermined_input_format_is_the_loaders_parse_error_in_every_tool() {
             (replay.map)(&release(case, "stdout.txt")),
             "{case}"
         );
-        let expected = (replay.map)(&release(case, "stderr.txt")).replacen(
-            "Error: Unable to read file (",
-            "Error: Unable to read file (parse error on line 0: ",
-            1,
-        );
+        let expected = (replay.map)(&release(case, "stderr.txt"));
         assert_eq!(replay.err, expected, "{case}");
         assert!(
             !replay
