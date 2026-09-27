@@ -34,8 +34,14 @@ Outputs: report -> main repo .planning/lane-reports/A5b.md ; ledger -> main repo
   sregex_token_iterator); tests/spectrum_native_id_parser.rs; docs/SPECTRUM_NATIVE_ID_PARSER_SUPPORT.md.
 - USI: src/metadata/usi.rs; tests/usi.rs (all 36 sections); docs/USI_SUPPORT.md. (gate2-4 logs in scratch A5b/)
 
+- MetaInfoRegistry done (11 tests spock). Software/Precursor/PeptideHit/ProteinHit value ops (src/identification/hits.rs),
+  ChromatogramSettings/SpectrumSettings Hash+Display (tests/settings_hash.rs) - all tests + clippy green on spock.
+- Ledger builder: <scratchpad>/A5b/ledger.py (run from worktree root) -> writes main-repo fragment. ADD entries for:
+  Software, Precursor, PeptideHit, ProteinHit, ChromatogramSettings, SpectrumSettings (all now complete by audit).
+
 ## Next step
-1. Check gate2-4 (usi, parser, lib unit, doctests); fix; commit.
-2. Write ledger fragment entries so far (main repo .planning/ledger-fragments/wave4/A5b.json).
-3. MetaInfoRegistry.h port.
-4. Cheap metadata gaps (Software, Precursor, PeptideHit, ProteinHit); SpectrumLookup over the new parser.
+1. Add ledger entries for the six metadata headers above (complete), rerun ledger.py.
+2. IMDataArrayUtils setIMUnit; MetaInfo/MetaInfoInterface index overloads over MetaInfoRegistry.
+3. SpectrumLookup over spectrum_native_id_parser (2 TOPP consumers).
+4. Imaging types class tests; Matrix/SIMDe/SimpleSVM triage; PEP model; platform crates for SysInfo/StopWatch.
+5. Final: CI sweep (openms-ci-sweep.sh A5b-sweep <logdir>), report, delete NOTES.md.
