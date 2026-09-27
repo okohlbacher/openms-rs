@@ -36,5 +36,22 @@ No earlier incarnation notes.
    TDL_UNAVAILABLE (ParamCWLFile.cpp:331). Port as ParamJsonFile store refusal. TDL writer =
    named backlog (extern/tool_description_lib convertToCWL.h + yaml).
 
+## Progress (commits on this branch)
+- DONE item 1: paramxml NumberText::{RoundTrip,Source}; WriteOptions::source() -> Source.
+  Param validation truncates (src/param.rs:250). cli source_int() (context.rs) used by
+  ToolContext::int, new(), cmd_int, validate int_range, source_validity_message.
+  Tests: tests/topp_write_ini_text.rs (new, byte-for-byte vs 9 retained INIs), topp_json_ini
+  OPEN removed + exact INI, tests/param.rs 2 tests renamed to source semantics,
+  tests/trace_fitter.rs to_param_and_from_param_agree_beyond_i32 (oracle gauss-trace-fitter).
+  gate1+gate2 (full default nextest on spock): all green after fixes (5536 tests).
+- DONE item 4: MissingInformation -> exit 8 "Unexpected internal error"; lifecycle test updated.
+- DONE item 3: parse_what(): Parse{line:0} prints the message alone; 3 tests now exact.
+- DONE item 5: src/format/param_cwl.rs ParamCwlFile refusal; cli write_commands stores through
+  ParamCwlFile/ParamJsonFile; tests/param_cwl.rs.
 ## Next step
-1. Implement item 1 (paramxml numbers + int width), then 4, 3, 5, 2.
+1. Item 2: port nlohmann 3.11.2 lexer+parser error path (scratchpad b8c/lexer.hpp, parser.hpp)
+   as a syntax pre-check in src/format/param_json.rs (submodule), then a Release oracle
+   ../oracle/B8c-numbers on ibminode06 (driver: ParamXMLFile::store text, isValid/update of
+   wide ints, GaussTraceFitter probe, ParamJSONFile::load on many malformed JSON docs).
+2. Docs: TOPP_CLI_SUPPORT.md rows (exit table line ~160, text ~480, ~761), PARAMXML_SUPPORT.md,
+   FFC/FILE_INFO docs mention of 'parse error on line 0'. Then clippy/doc/MSRV/sweep, report, ledger.
