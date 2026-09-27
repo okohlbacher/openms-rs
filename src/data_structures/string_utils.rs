@@ -91,11 +91,16 @@ pub fn to_int32(text: &str) -> std::result::Result<i32, String> {
 /// Whitespace is skipped on both sides and `nan`, optionally followed by a
 /// parenthesised payload, is accepted before anything else. Then one `+` may
 /// precede a `std::from_chars` general-format number: an optional `-`, digits
-/// with an optional fraction and exponent, or `inf`/`infinity`. A finite
-/// literal that overflows is an error, as `result_out_of_range` is; underflow
-/// rounds, as the oracle's libc++ fallback accepts it. Hexadecimal floats are
-/// rejected, following `std::from_chars` rather than the `strtod` fallback the
-/// source uses on libc++.
+/// with an optional fraction and exponent, `inf`/`infinity`, or `nan`
+/// optionally followed by `(n-char-sequence)` of letters, digits and `_`
+/// (`-nan` keeps its sign bit). These are the rules of libstdc++'s
+/// `std::from_chars`, which the Linux Release build uses: a finite literal that
+/// overflows, and a nonzero literal that rounds to zero, are both
+/// `result_out_of_range` and so a conversion error, while a literal that
+/// rounds to a subnormal is accepted. Hexadecimal floats are rejected. (The
+/// source's `strtod` fallback, compiled only on libc++, accepts underflow; it
+/// is not the behaviour of the Linux build. Release records:
+/// `tests/data/string_utils_release/cpp_release_records.tsv`.)
 ///
 /// # Errors
 ///
@@ -121,6 +126,8 @@ pub fn to_float(text: &str) -> std::result::Result<f32, String> {
 trait SourceFloat: std::str::FromStr + Copy {
     const NAN: Self;
     fn infinite(self) -> bool;
+    fn zero(self) -> bool;
+    fn negated(self) -> Self;
 }
 
 impl SourceFloat for f64 {
@@ -128,12 +135,24 @@ impl SourceFloat for f64 {
     fn infinite(self) -> bool {
         self.is_infinite()
     }
+    fn zero(self) -> bool {
+        self == 0.0
+    }
+    fn negated(self) -> Self {
+        -self
+    }
 }
 
 impl SourceFloat for f32 {
     const NAN: Self = f32::NAN;
     fn infinite(self) -> bool {
         self.is_infinite()
+    }
+    fn zero(self) -> bool {
+        self == 0.0
+    }
+    fn negated(self) -> Self {
+        -self
     }
 }
 
@@ -164,10 +183,29 @@ fn to_floating<T: SourceFloat>(text: &str, kind: &str) -> std::result::Result<T,
     if bytes.get(cursor) == Some(&b'-') {
         cursor += 1;
     }
+    let negative = bytes.get(start) == Some(&b'-');
     let infinity = word_at(bytes, cursor, "infinity").or_else(|| word_at(bytes, cursor, "inf"));
     let nan = word_at(bytes, cursor, "nan");
-    if let Some(length) = infinity.or(nan) {
+    let mut nonzero_digit = false;
+    if let Some(length) = infinity {
         cursor += length;
+    } else if let Some(length) = nan {
+        cursor += length;
+        // `nan(n-char-sequence)`: consumed only when the parenthesis closes
+        // over letters, digits and underscores; otherwise `nan` alone is read.
+        if bytes.get(cursor) == Some(&b'(') {
+            let payload = cursor + 1;
+            let mut end = payload;
+            while bytes
+                .get(end)
+                .is_some_and(|b| b.is_ascii_alphanumeric() || *b == b'_')
+            {
+                end += 1;
+            }
+            if bytes.get(end) == Some(&b')') {
+                cursor = end + 1;
+            }
+        }
     } else {
         let integer_start = cursor;
         while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
@@ -185,6 +223,9 @@ fn to_floating<T: SourceFloat>(text: &str, kind: &str) -> std::result::Result<T,
                 cursor = fraction_end;
             }
         }
+        nonzero_digit = bytes[integer_start..cursor]
+            .iter()
+            .any(|b| matches!(b, b'1'..=b'9'));
         if digits == 0 {
             return Err(not_converted());
         }
@@ -204,11 +245,13 @@ fn to_floating<T: SourceFloat>(text: &str, kind: &str) -> std::result::Result<T,
     }
     let literal = text.get(start..cursor).ok_or_else(not_converted)?;
     let value: T = if nan.is_some() && infinity.is_none() {
-        T::NAN
+        if negative { T::NAN.negated() } else { T::NAN }
     } else {
         literal.parse().map_err(|_| not_converted())?
     };
-    if value.infinite() && infinity.is_none() {
+    // libstdc++ `from_chars`: out of range on overflow to infinity and on a
+    // nonzero literal that rounds to zero.
+    if (value.infinite() && infinity.is_none()) || (nonzero_digit && value.zero()) {
         return Err(not_converted());
     }
     let after = skip_whitespace(bytes, cursor);

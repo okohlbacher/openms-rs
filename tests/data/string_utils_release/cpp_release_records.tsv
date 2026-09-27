@@ -1,0 +1,248 @@
+toInt32		toInt32		ERR:Could not convert string '' to an integer value
+toDouble		toDouble		ERR:Could not convert string '' to a double value
+toFloat		toFloat		ERR:Could not convert string '' to a float value
+toInt32	 	toInt32	 	ERR:Could not convert string ' ' to an integer value
+toDouble	 	toDouble	 	ERR:Could not convert string ' ' to a double value
+toFloat	 	toFloat	 	ERR:Could not convert string ' ' to a float value
+toInt32	0	0
+toDouble	0	0
+toFloat	0	0
+toInt32	+0	0
+toDouble	+0	0
+toFloat	+0	0
+toInt32	-0	0
+toDouble	-0	-0
+toFloat	-0	-0
+toInt32	42	42
+toDouble	42	42
+toFloat	42	42
+toInt32	 +42\t	42
+toDouble	 +42\t	42
+toFloat	 +42\t	42
+toInt32	++4	toInt32	++4	ERR:Could not convert string '++4' to an integer value
+toDouble	++4	toDouble	++4	ERR:Could not convert string '++4' to a double value
+toFloat	++4	toFloat	++4	ERR:Could not convert string '++4' to a float value
+toInt32	+-1	-1
+toDouble	+-1	-1
+toFloat	+-1	-1
+toInt32	-+1	toInt32	-+1	ERR:Could not convert string '-+1' to an integer value
+toDouble	-+1	toDouble	-+1	ERR:Could not convert string '-+1' to a double value
+toFloat	-+1	toFloat	-+1	ERR:Could not convert string '-+1' to a float value
+toInt32	2147483647	2147483647
+toDouble	2147483647	2147483647
+toFloat	2147483647	2.14748365e+09
+toInt32	2147483648	toInt32	2147483648	ERR:Could not convert string '2147483648' to an integer value
+toDouble	2147483648	2147483648
+toFloat	2147483648	2.14748365e+09
+toInt32	-2147483648	-2147483648
+toDouble	-2147483648	-2147483648
+toFloat	-2147483648	-2.14748365e+09
+toInt32	-2147483649	toInt32	-2147483649	ERR:Could not convert string '-2147483649' to an integer value
+toDouble	-2147483649	-2147483649
+toFloat	-2147483649	-2.14748365e+09
+toInt32	5x	toInt32	5x	ERR:Prefix of string '5x' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	5x	toDouble	5x	ERR:Prefix of string '5x' successfully converted to a double value. Additional characters found at position 2
+toFloat	5x	toFloat	5x	ERR:Prefix of string '5x' successfully converted to a float value. Additional characters found at position 2
+toInt32	5 x	toInt32	5 x	ERR:Prefix of string '5 x' successfully converted to an int32 value. Additional characters found at position 3
+toDouble	5 x	toDouble	5 x	ERR:Prefix of string '5 x' successfully converted to a double value. Additional characters found at position 3
+toFloat	5 x	toFloat	5 x	ERR:Prefix of string '5 x' successfully converted to a float value. Additional characters found at position 3
+toInt32	 5 	5
+toDouble	 5 	5
+toFloat	 5 	5
+toInt32	0x10	toInt32	0x10	ERR:Prefix of string '0x10' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	0x10	toDouble	0x10	ERR:Prefix of string '0x10' successfully converted to a double value. Additional characters found at position 2
+toFloat	0x10	toFloat	0x10	ERR:Prefix of string '0x10' successfully converted to a float value. Additional characters found at position 2
+toInt32	1e3	toInt32	1e3	ERR:Prefix of string '1e3' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e3	1000
+toFloat	1e3	1000
+toInt32	1.5	toInt32	1.5	ERR:Prefix of string '1.5' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1.5	1.5
+toFloat	1.5	1.5
+toInt32	.5	toInt32	.5	ERR:Could not convert string '.5' to an integer value
+toDouble	.5	0.5
+toFloat	.5	0.5
+toInt32	5.	toInt32	5.	ERR:Prefix of string '5.' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	5.	5
+toFloat	5.	5
+toInt32	.	toInt32	.	ERR:Could not convert string '.' to an integer value
+toDouble	.	toDouble	.	ERR:Could not convert string '.' to a double value
+toFloat	.	toFloat	.	ERR:Could not convert string '.' to a float value
+toInt32	1e	toInt32	1e	ERR:Prefix of string '1e' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e	toDouble	1e	ERR:Prefix of string '1e' successfully converted to a double value. Additional characters found at position 2
+toFloat	1e	toFloat	1e	ERR:Prefix of string '1e' successfully converted to a float value. Additional characters found at position 2
+toInt32	1e+	toInt32	1e+	ERR:Prefix of string '1e+' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e+	toDouble	1e+	ERR:Prefix of string '1e+' successfully converted to a double value. Additional characters found at position 2
+toFloat	1e+	toFloat	1e+	ERR:Prefix of string '1e+' successfully converted to a float value. Additional characters found at position 2
+toInt32	1e-	toInt32	1e-	ERR:Prefix of string '1e-' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e-	toDouble	1e-	ERR:Prefix of string '1e-' successfully converted to a double value. Additional characters found at position 2
+toFloat	1e-	toFloat	1e-	ERR:Prefix of string '1e-' successfully converted to a float value. Additional characters found at position 2
+toInt32	1e5x	toInt32	1e5x	ERR:Prefix of string '1e5x' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e5x	toDouble	1e5x	ERR:Prefix of string '1e5x' successfully converted to a double value. Additional characters found at position 4
+toFloat	1e5x	toFloat	1e5x	ERR:Prefix of string '1e5x' successfully converted to a float value. Additional characters found at position 4
+toInt32	nan	toInt32	nan	ERR:Could not convert string 'nan' to an integer value
+toDouble	nan	nan
+toFloat	nan	nan
+toInt32	NaN	toInt32	NaN	ERR:Could not convert string 'NaN' to an integer value
+toDouble	NaN	nan
+toFloat	NaN	nan
+toInt32	-nan	toInt32	-nan	ERR:Could not convert string '-nan' to an integer value
+toDouble	-nan	-nan
+toFloat	-nan	-nan
+toInt32	+nan	toInt32	+nan	ERR:Could not convert string '+nan' to an integer value
+toDouble	+nan	nan
+toFloat	+nan	nan
+toInt32	 nan 	toInt32	 nan 	ERR:Could not convert string ' nan ' to an integer value
+toDouble	 nan 	nan
+toFloat	 nan 	nan
+toInt32	nan(	toInt32	nan(	ERR:Could not convert string 'nan(' to an integer value
+toDouble	nan(	toDouble	nan(	ERR:Prefix of string 'nan(' successfully converted to a double value. Additional characters found at position 4
+toFloat	nan(	toFloat	nan(	ERR:Prefix of string 'nan(' successfully converted to a float value. Additional characters found at position 4
+toInt32	nan()	toInt32	nan()	ERR:Could not convert string 'nan()' to an integer value
+toDouble	nan()	nan
+toFloat	nan()	nan
+toInt32	nan(0x1.2)	toInt32	nan(0x1.2)	ERR:Could not convert string 'nan(0x1.2)' to an integer value
+toDouble	nan(0x1.2)	nan
+toFloat	nan(0x1.2)	nan
+toInt32	nan(abc_1)	toInt32	nan(abc_1)	ERR:Could not convert string 'nan(abc_1)' to an integer value
+toDouble	nan(abc_1)	nan
+toFloat	nan(abc_1)	nan
+toInt32	-nan(abc_1)	toInt32	-nan(abc_1)	ERR:Could not convert string '-nan(abc_1)' to an integer value
+toDouble	-nan(abc_1)	-nan
+toFloat	-nan(abc_1)	-nan
+toInt32	-nan(a.b)	toInt32	-nan(a.b)	ERR:Could not convert string '-nan(a.b)' to an integer value
+toDouble	-nan(a.b)	toDouble	-nan(a.b)	ERR:Prefix of string '-nan(a.b)' successfully converted to a double value. Additional characters found at position 5
+toFloat	-nan(a.b)	toFloat	-nan(a.b)	ERR:Prefix of string '-nan(a.b)' successfully converted to a float value. Additional characters found at position 5
+toInt32	nanx	toInt32	nanx	ERR:Could not convert string 'nanx' to an integer value
+toDouble	nanx	toDouble	nanx	ERR:Prefix of string 'nanx' successfully converted to a double value. Additional characters found at position 4
+toFloat	nanx	toFloat	nanx	ERR:Prefix of string 'nanx' successfully converted to a float value. Additional characters found at position 4
+toInt32	nan x	toInt32	nan x	ERR:Could not convert string 'nan x' to an integer value
+toDouble	nan x	toDouble	nan x	ERR:Prefix of string 'nan x' successfully converted to a double value. Additional characters found at position 5
+toFloat	nan x	toFloat	nan x	ERR:Prefix of string 'nan x' successfully converted to a float value. Additional characters found at position 5
+toInt32	inf	toInt32	inf	ERR:Could not convert string 'inf' to an integer value
+toDouble	inf	inf
+toFloat	inf	inf
+toInt32	-inf	toInt32	-inf	ERR:Could not convert string '-inf' to an integer value
+toDouble	-inf	-inf
+toFloat	-inf	-inf
+toInt32	+inf	toInt32	+inf	ERR:Could not convert string '+inf' to an integer value
+toDouble	+inf	inf
+toFloat	+inf	inf
+toInt32	INF	toInt32	INF	ERR:Could not convert string 'INF' to an integer value
+toDouble	INF	inf
+toFloat	INF	inf
+toInt32	infinity	toInt32	infinity	ERR:Could not convert string 'infinity' to an integer value
+toDouble	infinity	inf
+toFloat	infinity	inf
+toInt32	-Infinity	toInt32	-Infinity	ERR:Could not convert string '-Infinity' to an integer value
+toDouble	-Infinity	-inf
+toFloat	-Infinity	-inf
+toInt32	infx	toInt32	infx	ERR:Could not convert string 'infx' to an integer value
+toDouble	infx	toDouble	infx	ERR:Prefix of string 'infx' successfully converted to a double value. Additional characters found at position 4
+toFloat	infx	toFloat	infx	ERR:Prefix of string 'infx' successfully converted to a float value. Additional characters found at position 4
+toInt32	infinit	toInt32	infinit	ERR:Could not convert string 'infinit' to an integer value
+toDouble	infinit	toDouble	infinit	ERR:Prefix of string 'infinit' successfully converted to a double value. Additional characters found at position 4
+toFloat	infinit	toFloat	infinit	ERR:Prefix of string 'infinit' successfully converted to a float value. Additional characters found at position 4
+toInt32	1e308	toInt32	1e308	ERR:Prefix of string '1e308' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e308	1e+308
+toFloat	1e308	toFloat	1e308	ERR:Could not convert string '1e308' to a float value
+toInt32	1e309	toInt32	1e309	ERR:Prefix of string '1e309' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e309	toDouble	1e309	ERR:Could not convert string '1e309' to a double value
+toFloat	1e309	toFloat	1e309	ERR:Could not convert string '1e309' to a float value
+toInt32	-1e309	toInt32	-1e309	ERR:Prefix of string '-1e309' successfully converted to an int32 value. Additional characters found at position 3
+toDouble	-1e309	toDouble	-1e309	ERR:Could not convert string '-1e309' to a double value
+toFloat	-1e309	toFloat	-1e309	ERR:Could not convert string '-1e309' to a float value
+toInt32	1.7976931348623157e308	toInt32	1.7976931348623157e308	ERR:Prefix of string '1.7976931348623157e308' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1.7976931348623157e308	1.7976931348623157e+308
+toFloat	1.7976931348623157e308	toFloat	1.7976931348623157e308	ERR:Could not convert string '1.7976931348623157e308' to a float value
+toInt32	1.7976931348623159e308	toInt32	1.7976931348623159e308	ERR:Prefix of string '1.7976931348623159e308' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1.7976931348623159e308	toDouble	1.7976931348623159e308	ERR:Could not convert string '1.7976931348623159e308' to a double value
+toFloat	1.7976931348623159e308	toFloat	1.7976931348623159e308	ERR:Could not convert string '1.7976931348623159e308' to a float value
+toInt32	1e-300	toInt32	1e-300	ERR:Prefix of string '1e-300' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e-300	1e-300
+toFloat	1e-300	toFloat	1e-300	ERR:Could not convert string '1e-300' to a float value
+toInt32	1e-310	toInt32	1e-310	ERR:Prefix of string '1e-310' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e-310	9.9999999999999694e-311
+toFloat	1e-310	toFloat	1e-310	ERR:Could not convert string '1e-310' to a float value
+toInt32	4.9406564584124654e-324	toInt32	4.9406564584124654e-324	ERR:Prefix of string '4.9406564584124654e-324' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	4.9406564584124654e-324	4.9406564584124654e-324
+toFloat	4.9406564584124654e-324	toFloat	4.9406564584124654e-324	ERR:Could not convert string '4.9406564584124654e-324' to a float value
+toInt32	5e-324	toInt32	5e-324	ERR:Prefix of string '5e-324' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	5e-324	4.9406564584124654e-324
+toFloat	5e-324	toFloat	5e-324	ERR:Could not convert string '5e-324' to a float value
+toInt32	2e-324	toInt32	2e-324	ERR:Prefix of string '2e-324' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	2e-324	toDouble	2e-324	ERR:Could not convert string '2e-324' to a double value
+toFloat	2e-324	toFloat	2e-324	ERR:Could not convert string '2e-324' to a float value
+toInt32	3e-324	toInt32	3e-324	ERR:Prefix of string '3e-324' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	3e-324	4.9406564584124654e-324
+toFloat	3e-324	toFloat	3e-324	ERR:Could not convert string '3e-324' to a float value
+toInt32	1e-324	toInt32	1e-324	ERR:Prefix of string '1e-324' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e-324	toDouble	1e-324	ERR:Could not convert string '1e-324' to a double value
+toFloat	1e-324	toFloat	1e-324	ERR:Could not convert string '1e-324' to a float value
+toInt32	1e-400	toInt32	1e-400	ERR:Prefix of string '1e-400' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e-400	toDouble	1e-400	ERR:Could not convert string '1e-400' to a double value
+toFloat	1e-400	toFloat	1e-400	ERR:Could not convert string '1e-400' to a float value
+toInt32	0e-400	toInt32	0e-400	ERR:Prefix of string '0e-400' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	0e-400	0
+toFloat	0e-400	0
+toInt32	-1e-400	toInt32	-1e-400	ERR:Prefix of string '-1e-400' successfully converted to an int32 value. Additional characters found at position 3
+toDouble	-1e-400	toDouble	-1e-400	ERR:Could not convert string '-1e-400' to a double value
+toFloat	-1e-400	toFloat	-1e-400	ERR:Could not convert string '-1e-400' to a float value
+toInt32	3.4028235e38	toInt32	3.4028235e38	ERR:Prefix of string '3.4028235e38' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	3.4028235e38	3.4028234999999999e+38
+toFloat	3.4028235e38	3.40282347e+38
+toInt32	3.4028236e38	toInt32	3.4028236e38	ERR:Prefix of string '3.4028236e38' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	3.4028236e38	3.4028235999999999e+38
+toFloat	3.4028236e38	toFloat	3.4028236e38	ERR:Could not convert string '3.4028236e38' to a float value
+toInt32	3.5e38	toInt32	3.5e38	ERR:Prefix of string '3.5e38' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	3.5e38	3.5e+38
+toFloat	3.5e38	toFloat	3.5e38	ERR:Could not convert string '3.5e38' to a float value
+toInt32	1e-38	toInt32	1e-38	ERR:Prefix of string '1e-38' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e-38	9.9999999999999996e-39
+toFloat	1e-38	9.99999935e-39
+toInt32	1e-45	toInt32	1e-45	ERR:Prefix of string '1e-45' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e-45	9.9999999999999998e-46
+toFloat	1e-45	1.40129846e-45
+toInt32	1e-46	toInt32	1e-46	ERR:Prefix of string '1e-46' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e-46	1e-46
+toFloat	1e-46	toFloat	1e-46	ERR:Could not convert string '1e-46' to a float value
+toInt32	1.4e-45	toInt32	1.4e-45	ERR:Prefix of string '1.4e-45' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1.4e-45	1.4000000000000001e-45
+toFloat	1.4e-45	1.40129846e-45
+toInt32	7e-46	toInt32	7e-46	ERR:Prefix of string '7e-46' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	7e-46	7.0000000000000004e-46
+toFloat	7e-46	toFloat	7e-46	ERR:Could not convert string '7e-46' to a float value
+toInt32	0x1p3	toInt32	0x1p3	ERR:Prefix of string '0x1p3' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	0x1p3	toDouble	0x1p3	ERR:Prefix of string '0x1p3' successfully converted to a double value. Additional characters found at position 2
+toFloat	0x1p3	toFloat	0x1p3	ERR:Prefix of string '0x1p3' successfully converted to a float value. Additional characters found at position 2
+toInt32	1,5	toInt32	1,5	ERR:Prefix of string '1,5' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1,5	toDouble	1,5	ERR:Prefix of string '1,5' successfully converted to a double value. Additional characters found at position 2
+toFloat	1,5	toFloat	1,5	ERR:Prefix of string '1,5' successfully converted to a float value. Additional characters found at position 2
+toInt32	1.48741e-12	toInt32	1.48741e-12	ERR:Prefix of string '1.48741e-12' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1.48741e-12	1.48741e-12
+toFloat	1.48741e-12	1.48741002e-12
+toInt32	\x0b1	toInt32	\x0b1	ERR:Could not convert string '1' to an integer value
+toDouble	\x0b1	toDouble	\x0b1	ERR:Could not convert string '1' to a double value
+toFloat	\x0b1	toFloat	\x0b1	ERR:Could not convert string '1' to a float value
+toInt32	\x0c1	toInt32	\x0c1	ERR:Could not convert string '1' to an integer value
+toDouble	\x0c1	toDouble	\x0c1	ERR:Could not convert string '1' to a double value
+toFloat	\x0c1	toFloat	\x0c1	ERR:Could not convert string '1' to a float value
+toInt32	1\x0b	toInt32	1\x0b	ERR:Prefix of string '1' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1\x0b	toDouble	1\x0b	ERR:Prefix of string '1' successfully converted to a double value. Additional characters found at position 2
+toFloat	1\x0b	toFloat	1\x0b	ERR:Prefix of string '1' successfully converted to a float value. Additional characters found at position 2
+toInt32	  -3e2  	toInt32	  -3e2  	ERR:Prefix of string '  -3e2  ' successfully converted to an int32 value. Additional characters found at position 5
+toDouble	  -3e2  	-300
+toFloat	  -3e2  	-300
+toInt32	--1	toInt32	--1	ERR:Could not convert string '--1' to an integer value
+toDouble	--1	toDouble	--1	ERR:Could not convert string '--1' to a double value
+toFloat	--1	toFloat	--1	ERR:Could not convert string '--1' to a float value
+toInt32	1e0001	toInt32	1e0001	ERR:Prefix of string '1e0001' successfully converted to an int32 value. Additional characters found at position 2
+toDouble	1e0001	10
+toFloat	1e0001	10
+toInt32	00012	12
+toDouble	00012	12
+toFloat	00012	12
+toInt32	-00012	-12
+toDouble	-00012	-12
+toFloat	-00012	-12
+ProteinIdentification::sort	higher_score_better=true	P3:2,A:2,p1:1,P2:1,P10:1,P1:1,Z:0.5
+ProteinIdentification::sort	higher_score_better=false	Z:0.5,P1:1,P10:1,P2:1,p1:1,A:2,P3:2
