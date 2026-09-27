@@ -180,7 +180,7 @@ impl FromStr for ActivationMethod {
 
 /// Compatibility wrapper for the precursor record now stored directly in spectra.
 /// Dereferencing accesses the same acquisition fields; there is no duplicate state.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Hash)]
 pub struct PrecursorInfo {
     pub peak: Precursor,
 }
@@ -398,6 +398,14 @@ pub struct ScanWindow {
     pub end: f64,
     pub metadata: MetaInfo,
 }
+/// Consistent with the derived equality; both zero signs hash alike.
+impl Hash for ScanWindow {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        super::value::hash_float(self.begin, state);
+        super::value::hash_float(self.end, state);
+        self.metadata.hash(state);
+    }
+}
 impl ScanWindow {
     /// A window from `begin` to `end`, with no metadata.
     ///
@@ -442,7 +450,7 @@ impl ScanWindow {
 }
 
 /// Instrument state for one scan: scan mode, polarity and acquisition windows.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Hash)]
 pub struct InstrumentSettings {
     pub scan_mode: ScanMode,
     pub zoom_scan: bool,
@@ -480,6 +488,26 @@ pub struct SourceFile {
     pub native_id_type_accession: String,
     pub cv_terms: CVTermList,
 }
+/// Consistent with the derived equality; both zero signs of the size hash
+/// alike.
+impl Hash for SourceFile {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
+        self.path.hash(state);
+        (if self.size_mb == 0.0 {
+            0
+        } else {
+            self.size_mb.to_bits()
+        })
+        .hash(state);
+        self.file_type.hash(state);
+        self.checksum.hash(state);
+        self.checksum_type.hash(state);
+        self.native_id_type.hash(state);
+        self.native_id_type_accession.hash(state);
+        self.cv_terms.hash(state);
+    }
+}
 impl SourceFile {
     /// Check the size, the checksum against its declared algorithm, and the CV
     /// terms.
@@ -512,7 +540,7 @@ impl SourceFile {
 }
 
 /// One acquisition that contributed to a combined spectrum.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Hash)]
 pub struct Acquisition {
     pub identifier: String,
     pub metadata: MetaInfo,
@@ -530,7 +558,7 @@ impl Acquisition {
 }
 
 /// The acquisitions behind one spectrum and how they were combined.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Hash)]
 pub struct AcquisitionInfo {
     pub acquisitions: Vec<Acquisition>,
     pub method_of_combination: String,
@@ -675,7 +703,7 @@ impl fmt::Display for CompletionTime {
 }
 
 /// One processing step: the software that ran, what it did and when.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Hash)]
 pub struct DataProcessing {
     pub software: Software,
     pub actions: BTreeSet<ProcessingAction>,
@@ -700,7 +728,13 @@ impl DataProcessing {
 
 /// Standalone acquisition settings; existing kernel scalar fields are not
 /// implicitly synchronized when this object is used separately.
-#[derive(Clone, Debug, Default, PartialEq)]
+///
+/// `Hash` is consistent with the derived equality and covers every field (the
+/// source's `std::hash<SpectrumSettings>` covers the same record, without the
+/// native peptide-identification attachment); hash values are not the source's
+/// bits. `Display` is the source's `operator<<`, which writes only the two
+/// banner lines `-- SPECTRUMSETTINGS BEGIN --` and `-- SPECTRUMSETTINGS END --`.
+#[derive(Clone, Debug, Default, PartialEq, Hash)]
 pub struct SpectrumSettings {
     pub spectrum_type: SpectrumType,
     /// Stored ion-mobility format, the source `im_type_`. Defaults to
@@ -888,7 +922,13 @@ impl SpectrumSettings {
 
 /// Acquisition settings of one chromatogram, with a single precursor and
 /// product rather than the spectrum's lists.
-#[derive(Clone, Debug, Default, PartialEq)]
+///
+/// `Hash` is consistent with the derived equality and covers every field, as
+/// the source's `std::hash<ChromatogramSettings>` folds the whole nested
+/// record; hash values are not the source's bits. `Display` is the source's
+/// `operator<<`, which writes only the two banner lines
+/// `-- CHROMATOGRAMSETTINGS BEGIN --` and `-- CHROMATOGRAMSETTINGS END --`.
+#[derive(Clone, Debug, Default, PartialEq, Hash)]
 pub struct ChromatogramSettings {
     pub chromatogram_type: ChromatogramType,
     pub native_id: String,
@@ -947,4 +987,22 @@ fn checked_window(center: f64, lower: f64, upper: f64) -> Result<NumericRange> {
     finite(min, "window lower bound")?;
     finite(max, "window upper bound")?;
     Ok(NumericRange { min, max })
+}
+
+impl fmt::Display for SpectrumSettings {
+    /// The source's `operator<<(std::ostream&, const SpectrumSettings&)`: two
+    /// banner lines and nothing of the record.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "-- SPECTRUMSETTINGS BEGIN --")?;
+        writeln!(f, "-- SPECTRUMSETTINGS END --")
+    }
+}
+
+impl fmt::Display for ChromatogramSettings {
+    /// The source's `operator<<(std::ostream&, const ChromatogramSettings&)`:
+    /// two banner lines and nothing of the record.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "-- CHROMATOGRAMSETTINGS BEGIN --")?;
+        writeln!(f, "-- CHROMATOGRAMSETTINGS END --")
+    }
 }

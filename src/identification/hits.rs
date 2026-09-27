@@ -28,7 +28,7 @@
 use std::fmt;
 use std::hash::{BuildHasher, BuildHasherDefault, DefaultHasher, Hash, Hasher};
 
-use super::{AnalysisResult, PeakAnnotation, PeptideHit, ProteinHit};
+use super::{AnalysisResult, PeakAnnotation, PeptideHit, PeptideIdentification, ProteinHit};
 use crate::Result;
 use crate::metadata::MetaInfo;
 use crate::param::value::format_float;
@@ -279,5 +279,26 @@ impl fmt::Display for ProteinHit {
             self.accession,
             format_float(self.score, true)
         )
+    }
+}
+
+impl Hash for PeptideIdentification {
+    /// Consistent with the derived equality: every field, floating values with
+    /// both zero signs alike. Lets a `SpectrumSettings`, which carries the
+    /// identifications as a native attachment, hash consistently with its
+    /// equality.
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.identifier.hash(state);
+        self.hits.hash(state);
+        self.score_type.hash(state);
+        self.higher_score_better.hash(state);
+        hash_f64(self.significance_threshold, state);
+        for coordinate in [self.rt, self.mz] {
+            coordinate.is_some().hash(state);
+            if let Some(value) = coordinate {
+                hash_f64(value, state);
+            }
+        }
+        self.metadata.hash(state);
     }
 }

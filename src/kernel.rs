@@ -253,7 +253,7 @@ pub struct ExperimentRanges {
 }
 
 /// Spectrum representation. No automatic profile/centroid inference is made.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub enum SpectrumType {
     #[default]
     Unknown,
