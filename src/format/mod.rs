@@ -185,3 +185,12 @@ fn intensity(value: &str, line: usize) -> Result<f32> {
 fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
+
+/// Chromeleon HPLC text exports into one chromatogram (`ChromeleonFile.h`).
+pub mod chromeleon;
+/// Enhanced DTA feature tables into consensus maps, and their writers (`EDTAFile.h`).
+pub mod edta;
+/// Bounded streaming line reading with the source's `TextFile::getLine` line ends.
+pub mod line_reader;
+/// Source `StringUtils::toDouble` / `toInt32` text conversion, shared with the CLI.
+pub(crate) mod string_utils;
