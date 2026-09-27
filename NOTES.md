@@ -49,3 +49,7 @@ incarnation worktree-wf_bcdd783d-f3f-10 at 27d502a; no merge commit was needed).
   qpxFileMetadata keys, writeTableToParquet codecs/levels/row groups (+ files/*.parquet written by C++),
   ParquetFile writeTable/readTable/rowCount errors. results/files/*.parquet = tier-1 C++-written fixtures.
   -> Rust tests should transcribe records.tsv lines (cite file + sha256 from results/hashes.txt).
+
+## Incarnation 4 (19:39) committed incarnation 3's uncommitted edits as 8ddbef2 (ungated)
+- mod.rs now declares arrow_schema_registry + parquet_file (cfg arrow). parquet_file.rs covers every
+  ParquetFile.h member. First dax compile gate running (scratchpad F1a-w4/gates/g1.log).
