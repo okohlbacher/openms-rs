@@ -19,3 +19,8 @@ Branch: worktree-wf_bcdd783d-f3f-11 off main f0990c0.
 
 ## Next step
 1. Read MzTab.cpp export functions + MzTab_test sections; map to existing Rust types.
+
+## Incarnation 2 (worktree-wf_ee239125-5be-11), merged prior NOTES
+- Extract C++ pins to scratch: `git -C <OpenMS4-tests>/packages/core archive -o X.tar bc9cc12 <paths>` then tar xf
+  (plain `git -C ... show` works; loops/pipes around git are refused by the worktree guard).
+- MzTab.cpp 3414 lines; MzTabFile.cpp 3352; OMSFileLoad 1179; OMSFileStore 1597; MzQCFile 281.
