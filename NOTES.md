@@ -1,6 +1,8 @@
 # F3a lane notes (Identification XML) — restart-safe scratch; delete in final commit
 
-Branch: worktree-wf_bcdd783d-f3f-12 (off main f0990c0). Never push/rebase.
+Branch: worktree-wf_ee239125-5be-12 (off main f0990c0, merged worktree-wf_bcdd783d-f3f-12 = FF).
+Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64 ~/.local/bin/openms-kim-gate.sh F3a ...
+(run_in_background, poll output).
 
 ## Current coverage status (docs/core-sdk-coverage.json)
 - PepXMLFile partial (src/format/pepxml.rs), PepXMLFileMascot UNMAPPED, ProtXMLFile UNMAPPED,
@@ -9,15 +11,15 @@ Branch: worktree-wf_bcdd783d-f3f-12 (off main f0990c0). Never push/rebase.
   evidence_requires_review (no rust), MzIdentMLHandler partial, MascotXMLHandler partial,
   XQuestResultXMLHandler UNMAPPED.
 
-## Known bug to fix first (priority 1)
-- AASequence::parse_with_budget (src/chemistry/sequence.rs:1147) charges per modified
-  sequence a preflight of annotations * db.len()*(max_id+16)*16 + ... against ONE
-  document-wide budget (identification_xml.rs:1276, 1599) -> >14 modified hits fail.
-  Fix: amortise the registry-dependent cost (db scan once per document / cache
-  max_id,max_atoms,keys) instead of per sequence. Two A7 oracle cases lack differential.
+## Budget fix (priority 1) — WIP code exists (commit 5bb4d01, by previous incarnation)
+- sequence.rs parse_with_budget -> parse_metered with ParseMeter; per-annotation charge now
+  name_lookup_work (modifications.rs) * 16 for named, registry scan for mass.
+- tests/file_info_a7.rs: new test identifications_many_modified_hits_upstream_files with
+  oracle expected id_ff25/id_fdr5 (tests/data/file_info_a7/expected). UNVERIFIED: not yet
+  gated on dax; literals must be checked against oracle output files.
 
 ## Plan / order
-1. Budget fix (unblocks idXML differentials, MascotXML fixture extractor workaround).
+1. Verify + gate budget fix (idxml feature; file_info_a7 test; sequence tests).
 2. PercolatorOutfile (small, IDFileConverter consumer).
 3. ProtXMLFile (IDFileConverter consumer).
 4. XQuestResultXMLFile + handler (IDFileConverter, OpenPepXL, XFDR).
@@ -25,4 +27,5 @@ Branch: worktree-wf_bcdd783d-f3f-12 (off main f0990c0). Never push/rebase.
 6. Gaps in partials if time.
 
 ## Next step
-1. Read identification_xml.rs budget use sites and the A7 oracle note; fix budget.
+1. Check oracle provenance of id_ff25/id_fdr5 expected (../oracle/a7-fileinfo), check test literals,
+   gate `cargo test --features idxml,... --test file_info_a7` on dax.
