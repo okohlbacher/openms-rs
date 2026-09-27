@@ -4,34 +4,28 @@ Branch: worktree-wf_ee239125-5be-14 (second incarnation; merged worktree-wf_bcdd
 
 Scratchpad (session-shared): /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad/F4/
 - cpp/<Name>.{h,cpp,test} : dumped C++ at core bc9cc12
-- data/ : test-data files at 0cb15f2
+- data/ : class-test data (they live in CORE src/tests/class_tests/openms/data at bc9cc12, not test-data)
 - g.py : `python3 g.py <pkg> show|ls|grep|fetch|sha ...` wrapper for pinned git show
-- git commands: run plain `git add`/`git commit` from the worktree root, not inside heredocs.
+- gate.sh <log> <cargo args> : runs the dax gate from this worktree, log in scratchpad/F4/<log>.log
+  (run with run_in_background; the worktree guard refuses complex bash with git/python+git)
+- Edits: write python edit scripts to scratchpad and run them; do not mix heredoc python with git/cargo.
 
-## Scope and state at start
-All unmapped except MzMLSqliteHandler (partial: src/format/mzml_sqlite_handler.rs,
-tests/mzml_sqlite_handler.rs, docs/MZML_SQLITE_HANDLER_SUPPORT.md) and
-ChromeleonFile / MSPGenericFile (evidence_requires_review, boost_regex manifest only).
-Existing sqlite pieces: src/format/sqlite_connector.rs, mzml_sqlite_swath_handler.rs,
-features `sqlite`, `sqmass = [sqlite, mzml]`.
+## Done (committed)
+- EDTAFile -> src/format/edta.rs, tests/edta_file.rs (16 pass)
+- ChromeleonFile -> src/format/chromeleon.rs, tests/chromeleon_file.rs (11 pass)
+- shared: src/format/string_utils.rs (moved from cli/context.rs), src/format/line_reader.rs
+- GNPSQuantificationFile, GNPSMetaValueFile -> gnps_quantification.rs, gnps_meta_value.rs, tests/gnps_tables.rs (8 pass)
+- IBSpectraFile -> src/format/ibspectra.rs, tests/ibspectra_file.rs (gate5 pending)
 
-C++ sizes (h/cpp/test lines) at core bc9cc12 - dumped into scratchpad/cpp via
-scratchpad/dump.py (plain `git -C <core> show` works; loops over git are refused
-by the worktree guard, so use the python script):
-- SqMassFile 211/112/466, CachedMzML 188/118/210, CachedMzMLHandler 202/569/401
-- SwathFile 177/542/388, SwathFileConsumer 646/14/593
-- MSPFile 90/491/159, MSPGenericFile 134/337/413
-- GNPSMGFFile 75/380/(no test), GNPSQuantificationFile 53/84/98, GNPSMetaValueFile 47/37/59
-- EDTAFile 108/334/135, IBSpectraFile 82/291/84, ChromeleonFile 53/130/193
-- FLASHDeconvSpectrumFile 115/613/333, FLASHDeconvFeatureFile 52/204/255
-- MzMLSqliteHandler 245/1505/677 (already partial)
-
-## Plan (order)
-1. Small text formats with class tests: EDTAFile, ChromeleonFile, GNPSMetaValueFile,
-   GNPSQuantificationFile, IBSpectraFile, MSPGenericFile, MSPFile.
-2. CachedMzMLHandler + CachedMzML (binary cache; TICCalculator consumer).
-3. SqMassFile (wrap mzml_sqlite_handler).
-4. FLASHDeconv files, GNPSMGFFile, SwathFile/SwathFileConsumer.
+## Findings for the report
+- Rust mzML writer refuses a non-CV instrument name; C++ writes generic MS:1000031 and drops it
+  (MzMLHandler.cpp:3961-3969). Chromeleon->mzML needs name cleared.
+- GNPSExport_1_out_quant.txt: 52 fields on 44 lines spelled non-exactly (old formatter); same doubles.
+- IBSpectra: hits[0] unchecked in C++ (UB on empty hits) -> refused here.
 
 ## Next step
-1. Read EDTAFile.h/.cpp/test and the existing text/csv helpers; port EDTAFile.
+1. MSPGenericFile, MSPFile (text readers; BoostRegex facade).
+2. CachedMzMLHandler + CachedMzML (TICCalculator).
+3. SqMassFile (wrap mzml_sqlite_handler).
+4. GNPSMGFFile, FLASHDeconv files, SwathFile/SwathFileConsumer.
+5. Support docs, provenance manifests, report F4.md, ledger wave4/F4.json.

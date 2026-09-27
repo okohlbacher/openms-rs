@@ -194,6 +194,8 @@ pub mod edta;
 pub mod gnps_meta_value;
 /// GNPS FBMN feature-quantification table writer (`GNPSQuantificationFile.h`).
 pub mod gnps_quantification;
+/// IBSpectra export of isobaric consensus maps for isobar (`IBSpectraFile.h`).
+pub mod ibspectra;
 /// Bounded streaming line reading with the source's `TextFile::getLine` line ends.
 pub mod line_reader;
 /// Source `StringUtils::toDouble` / `toInt32` text conversion, shared with the CLI.
