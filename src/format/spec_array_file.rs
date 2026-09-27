@@ -9,7 +9,7 @@
 //! line is one feature, entries separated by tabs. See
 //! `docs/SEARCH_ENGINE_FILES_SUPPORT.md` for the API mapping.
 
-use crate::format::source_text::{split, to_double, to_int32};
+use crate::data_structures::string_utils::{split, to_double, to_int32};
 use crate::format::text::{ReadOptions, TextFile};
 use crate::kernel::features::{Feature, FeatureMap};
 use crate::metadata::MetaValue;

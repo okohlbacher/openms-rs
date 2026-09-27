@@ -2,19 +2,20 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-//! Source `StringUtils` conversions shared by the search-engine file adapters.
+//! Source `StringUtils` conversions and splitting, as the file readers and the
+//! command line use them.
 //!
-//! The search-engine readers (`KroenikFile`, `MsInspectFile`, `SpecArrayFile`,
-//! `OMSSACSVFile`, `PepNovoOutfile`, `InspectOutfile`, `SequestOutfile` and the
-//! XML readers) convert every field with `StringUtils::toDouble`,
-//! `StringUtils::toInt32` and `StringUtils::split`
-//! (`DATASTRUCTURES/StringUtils.h`/`.cpp` at the core pin). Their exact
-//! acceptance rules are observable: a field that the source refuses raises
-//! `Exception::ConversionError`, which each reader turns into its own
-//! `ParseError`, so a port that accepted more or less would load different
-//! files. The rules are the same as `cli::context::to_double`/`to_int32`, which
-//! the format layer cannot import without closing a module cycle.
-
+//! Ports the parts of `DATASTRUCTURES/StringUtils.h`/`.cpp` whose exact
+//! acceptance rules are observable: `StringUtilsHelper::toInt32`
+//! (`StringUtils.cpp:136-166`), `StringUtilsHelper::toDouble`
+//! (`StringUtils.cpp:239-276`), the single-character `StringUtils::split`
+//! (`StringUtils.h:596-663`) and `StringUtils::trim` (`StringUtils.h:395-408`).
+//! A field the source refuses raises `Exception::ConversionError`, which the
+//! text readers (`KroenikFile`, `MsInspectFile`, `SpecArrayFile`,
+//! `OMSSACSVFile`, the Sequest, Inspect and PepNovo adapters) and the command
+//! line (`cli::context`) report in their own way, so a port that accepted more
+//! or less than the source would load different files. The rest of the header
+//! is not ported here.
 /// The source's four whitespace characters, skipped from `index` on
 /// (`StringUtils.cpp` `skipWS`).
 fn skip_whitespace(bytes: &[u8], mut index: usize) -> usize {
@@ -35,14 +36,19 @@ fn word_at(bytes: &[u8], index: usize, word: &str) -> Option<usize> {
         .then_some(word.len())
 }
 
-/// Source `StringUtilsHelper::toInt32`, returning the source's
-/// `ConversionError` message as the error.
+/// Source `StringUtils::toInt32` (`StringUtils.cpp:136-166`), returning the
+/// source's `ConversionError` message as the error.
 ///
 /// Leading and trailing space, tab, newline and carriage return are skipped,
 /// one `+` may precede the number, and the rest must be a complete decimal
 /// `i32`. Like `std::from_chars` after the source strips `+`, a `-` may still
 /// follow it. Overflow is a conversion error.
-pub(crate) fn to_int32(text: &str) -> std::result::Result<i32, String> {
+///
+/// # Errors
+///
+/// The source's `ConversionError` message when the text is not a complete
+/// `i32`.
+pub fn to_int32(text: &str) -> std::result::Result<i32, String> {
     let bytes = text.as_bytes();
     let not_converted = || format!("Could not convert string '{text}' to an integer value");
     let mut cursor = skip_whitespace(bytes, 0);
@@ -77,16 +83,23 @@ pub(crate) fn to_int32(text: &str) -> std::result::Result<i32, String> {
     Ok(value)
 }
 
-/// Source `StringUtilsHelper::toDouble`, returning the source's
-/// `ConversionError` message as the error.
+/// Source `StringUtils::toDouble` (`StringUtils.cpp:239-276`), returning the
+/// source's `ConversionError` message as the error.
 ///
 /// Whitespace is skipped on both sides and `nan`, optionally followed by a
 /// parenthesised payload, is accepted before anything else. Then one `+` may
 /// precede a `std::from_chars` general-format number: an optional `-`, digits
 /// with an optional fraction and exponent, or `inf`/`infinity`. A finite
 /// literal that overflows is an error, as `result_out_of_range` is; underflow
-/// rounds. Hexadecimal floats are rejected, following `std::from_chars`.
-pub(crate) fn to_double(text: &str) -> std::result::Result<f64, String> {
+/// rounds, as the oracle's libc++ fallback accepts it. Hexadecimal floats are
+/// rejected, following `std::from_chars` rather than the `strtod` fallback the
+/// source uses on libc++.
+///
+/// # Errors
+///
+/// The source's `ConversionError` message when the text is not a complete
+/// number.
+pub fn to_double(text: &str) -> std::result::Result<f64, String> {
     let bytes = text.as_bytes();
     let not_converted = || format!("Could not convert string '{text}' to a double value");
     let first = skip_whitespace(bytes, 0);
@@ -171,9 +184,9 @@ pub(crate) fn to_double(text: &str) -> std::result::Result<f64, String> {
 }
 
 /// Source `StringUtils::split(s, splitter, substrings)` without quote
-/// protection: an empty string yields no fields at all, anything else every
-/// field between separators, empty fields included.
-pub(crate) fn split(text: &str, separator: char) -> Vec<&str> {
+/// protection (`StringUtils.h:596-663`): an empty string yields no fields at
+/// all, anything else every field between separators, empty fields included.
+pub fn split(text: &str, separator: char) -> Vec<&str> {
     if text.is_empty() {
         Vec::new()
     } else {
@@ -181,9 +194,9 @@ pub(crate) fn split(text: &str, separator: char) -> Vec<&str> {
     }
 }
 
-/// Source `String::trim`: strips space, tab, newline and carriage return from
-/// both ends.
-pub(crate) fn trim(text: &str) -> &str {
+/// Source `StringUtils::trim` (`StringUtils.h:395-408`): strips space, tab,
+/// newline and carriage return from both ends.
+pub fn trim(text: &str) -> &str {
     text.trim_matches([' ', '\t', '\n', '\r'])
 }
 

@@ -185,3 +185,10 @@ fn intensity(value: &str, line: usize) -> Result<f32> {
 fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
+
+/// Kroenik (Hardklör sibling) feature files (`KroenikFile.h`).
+pub mod kroenik_file;
+/// msInspect feature files (`MsInspectFile.h`).
+pub mod ms_inspect_file;
+/// SpecArray `.pepList` feature files (`SpecArrayFile.h`).
+pub mod spec_array_file;

@@ -17,7 +17,7 @@
 //! for the API mapping, preserved conventions and native differences.
 
 use crate::concept::constants::PROTON_MASS_U;
-use crate::format::source_text::{split, to_double, to_int32};
+use crate::data_structures::string_utils::{split, to_double, to_int32};
 use crate::format::text::{ReadOptions, TextFile};
 use crate::kernel::features::{Feature, FeatureMap};
 use crate::kernel::geometry::{ConvexHull2D, Point2D};
