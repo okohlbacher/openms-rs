@@ -48,6 +48,14 @@ Incarnation 2 findings (2026-09-27):
 - Existing test tests/spectrum_mobility.rs:1598 asserts NaN refused -> replace by oracle rows (not a weakening).
 - IM array name "mean ion mobility array" works in both.
 
+Oracle ../oracle/A3a-source-order: driver+cases written, ran OK on ibminode06 (invocations byte-identical).
+Findings: map operator[] NaN -> MIN entry confirmed (abort_nan_later, s2c_nan_prec_later: chrom precursor printed is the
+FIRST SPECTRUM's precursor, product = inner KEY). XIC description "XIC @ NaN"/"inf"/"-inf"/"-0.0"/"100.0".
+FAIMS NaN-first -> {} + warning. PPI zero sums give -inf/+inf/NaN mz with intensity 0. Comb cases: HiRes picks only
+outer teeth (no discrimination) -> added ppi_tie_* grid cases (20+ tied seeds in one binade, all +-inf/NaN mz; order
+read via leftWidth). Invocations 3+4 running with the new cases (run3.log/run4.log, same34.txt marker).
+compute_rank sort ported (uncommitted at time of writing).
+
 ## Next step
-1. Write ../oracle/A3a-source-order/{gen_cases.py,a3a_driver.cpp,remote_run.sh,run.sh}; run detached (in progress).
+1. Copy oracle cases.tsv + oracle.tsv into tests/data/a3a_source_order/, write tests/a3a_source_order.rs.
 2. Meanwhile port Rust changes site by site; commit each.
