@@ -253,10 +253,10 @@ impl ChromatogramTools {
         let groups = xic
             .into_entries()
             .map(|(mz, group)| (GroupKey::Xic(mz), group))
-            .chain(srm.into_entries().flat_map(|(precursor, products)| {
+            .chain(srm.into_entries().flat_map(|(_, products)| {
                 products
                     .into_entries()
-                    .map(move |(product, group)| (GroupKey::Srm(precursor, product), group))
+                    .map(|(product, group)| (GroupKey::Srm(product), group))
             }));
         for (key, group) in groups {
             let s = &experiment.spectra[group.first];
@@ -265,7 +265,7 @@ impl ChromatogramTools {
             fields::acquisition(&mut meter, &s.acquisition_info)?;
             fields::source(&mut meter, &s.source_file)?;
             let (precursor, product, chromatogram_type, native_id) = match key {
-                GroupKey::Srm(_, product) => {
+                GroupKey::Srm(product) => {
                     fields::precursor(&mut meter, &s.precursors[0])?;
                     meter.text(&s.native_id)?;
                     meter.charge(13, 13)?;
@@ -415,10 +415,13 @@ impl<V> SourceMap<V> {
             .chain(self.entries.into_iter().map(|(key, value)| (key.0, value)))
     }
 }
+/// The key an output chromatogram is written from: the XIC m/z, or the SRM
+/// product m/z. An SRM chromatogram's precursor is not its map key but the
+/// first contributing spectrum's own precursor (`ChromatogramTools.h:188`).
 #[derive(Clone, Copy, Debug)]
 enum GroupKey {
     Xic(f64),
-    Srm(f64, f64),
+    Srm(f64),
 }
 struct Group {
     first: usize,

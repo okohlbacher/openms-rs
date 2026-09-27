@@ -22,11 +22,11 @@
 
 use openms::analysis::feature_finder_picked::debug::AbortReasons;
 use openms::analysis::feature_finder_picked::helper_structs::Seed;
-use openms::kernel::chromatogram_tools::ChromatogramTools;
 use openms::kernel::faims_helper::FaimsHelper;
 use openms::kernel::range_utils::{IsInIsolationWindow, SpectrumPredicate};
 use openms::kernel::{
-    ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D, Precursor,
+    ChromatogramPeak, ChromatogramTools, DataArray, MSChromatogram, MSExperiment, MSSpectrum,
+    Peak1D, Precursor,
 };
 use openms::kernel::{Feature, FeatureMap};
 use openms::math::statistic_functions::{compute_rank, rank_correlation_coefficient};
