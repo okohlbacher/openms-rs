@@ -27,3 +27,16 @@ Plan: per header read C++ header at bc9cc12 + Rust file + existing *_SUPPORT.md 
 re-record complete/partial. Keep PeptideIdentificationList NE if header is a pure alias.
 StatisticFunctions: its own scope says a NaN gap in computeRank/Spearman -> partial (named gap).
 Next step: 3. check tools/core_sdk_coverage.py rules for complete (rust [] allowed?), then header-by-header.
+- All 19 headers + cpp + class tests are byte-identical between audit pins (82ce5b3/6bfc0e4) and bc9cc12
+  (git log bc9cc12 -- paths: last change ea35651/70c8251, both ancestors of the audit pins).
+- Verdicts so far (member-by-member vs Rust): Sample/IonSource/IonDetector/MassAnalyzer/Instrument complete
+  (experiment_values.rs fields+enums+Hash field selection match); ContactPerson/HPLC/Gradient complete
+  (experiment_support.rs); DocumentIdentifier complete (setLoadedFileType delegate parity -> FileHandler.h);
+  ExperimentalSettings complete (fields, eq incl. DocId-id-only, Display = 2 marker lines);
+  IdentifierMSRunMapper complete (13 members); PeptideEvidence complete (derived Ord = source order, CPP-045 fix);
+  PeptideIdentificationList stays NE (pure ExposedVector alias + 3 ctor/3 assign conversions).
+  CurlInit -> complete (discharged by ureq crate choice, not std; THIRD_PARTY_CRATE_DECISIONS lacks a
+  libcurl->ureq transport row: report it).
+- StatisticFunctions -> partial (own scope names NaN gap in computeRank/Spearman).
+- Git guard: use one plain `git -C <abs core> show bc9cc12:<path> > <scratch file>` per call; no loops/vars.
+Next step: 4. MATH headers (Emg, BasicStatistics, Histogram 'resize', RankData helpers) then write fragment+report.
