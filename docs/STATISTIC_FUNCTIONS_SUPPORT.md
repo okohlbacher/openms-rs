@@ -176,7 +176,7 @@ now just ordinary sorts, and `SummaryStatistics::of_nan_sample` is gone.
 An infinity is refused nowhere: `operator<` orders it consistently, so the
 source's answer is well defined and is the port's answer.
 
-#### Where a NaN lands, and the two refusals that remain
+#### Where a NaN lands, and the refusal that remains
 
 `std::sort` is `__introsort_loop` followed by `__final_insertion_sort`
 (`stl_algo.h:1899-1910`), and `__introsort_loop` runs only
@@ -450,11 +450,16 @@ Evidence, per `docs/DIFFERENTIAL_VALIDATION.md`:
   interpolated quantiles `0.6*9 + 0.4*1000` and `0.6*9 + 0.4*14.5`; the
   Matthews values `1`, `-1` and `2/sqrt(12)`; and the zero-denominator
   equivalence above.
-- **Tier 4 (Rust-only)** for the resource ceilings, the sortedness refusals,
-  the two NaN refusals 5.2 keeps, and the `n < 2` variance refusal:
-  `the_sorted_entry_points_reject_a_lone_nan` and
-  `mad_reproduces_a_nan_and_the_ranking_still_refuses_one`, which also assert
-  that a refused call leaves the caller's range unmodified.
+- **Tier 4 (Rust-only)** for the resource ceilings, the sortedness refusals
+  (the one NaN refusal 5.2 keeps), and the `n < 2` variance refusal:
+  `the_sorted_entry_points_reject_a_lone_nan`, which also asserts that a
+  refused call leaves the caller's range unmodified.
+- **Tier 1 (executed) for `computeRank` and `rankCorrelationCoefficient` on
+  NaN keys** (DEBT-04): `tests/a3a_source_order.rs` against
+  `../oracle/A3a-source-order` (17 `rank_*` and 2 `rankcorr_*` rows, Linux
+  x86_64 Release build on ibminode06), and `mad_and_the_ranking_reproduce_a_nan`,
+  which repeats the `rank_nan_small` row and derives the `[1, NaN, 3]`
+  invariant from the tie-test argument of 5.2.
 - **Tier 4 (independently derived, from the algorithm rather than a run)** for
   the `std::sort` permutation itself, which is the shared-math wave's own
   evidence. `the_sorting_entry_points_reproduce_the_release_builds_permutation`,

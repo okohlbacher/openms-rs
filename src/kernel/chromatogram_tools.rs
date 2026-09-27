@@ -386,12 +386,14 @@ impl<V> SourceMap<V> {
         w: &mut Work,
         make: impl FnOnce(&mut Work) -> Result<V>,
     ) -> Result<&mut V> {
-        if self.nan.is_none() && key.is_nan() && self.entries.is_empty() {
-            let value = make(w)?;
-            self.nan = Some((key, value));
-        }
         if let Some((_, value)) = self.nan.as_mut() {
+            // `lower_bound` of any key is the NaN entry, and `key < NaN` is
+            // false: nothing is inserted.
             return Ok(value);
+        }
+        if key.is_nan() && self.entries.is_empty() {
+            let value = make(w)?;
+            return Ok(&mut self.nan.insert((key, value)).1);
         }
         if key.is_nan() {
             // Non-empty here: the empty case was inserted above.
