@@ -24,5 +24,27 @@ Lane: XML handlers + MS data consumers. Worktree branch: worktree-wf_ee239125-5b
 3. IndexedMzMLFileLoader type (join load_experiment + writing consumer).
 4. Re-read handler partial scopes; close small gaps.
 
+## Design decisions (made; do not re-derive)
+- Files (src/format/): noop_ms_data_consumer.rs, ms_data_storing_consumer.rs, ms_data_chaining_consumer.rs,
+  ms_data_transforming_consumer.rs, ms_data_aggregating_consumer.rs (all ungated), ms_data_sql_consumer.rs
+  (sqmass), indexed_mzml_file_loader.rs (mzml). Tests: tests/ms_data_consumers.rs (mzml gate, MzMLFile_1 at
+  tests/data/mzml_validator/), tests/ms_data_sql_consumer.rs (sqmass), tests/indexed_mzml_file_loader.rs
+  (mzml; tests/data/indexed_mzml/IndexedmzMLFile_1.mzML). Doc: docs/MS_DATA_CONSUMERS_SUPPORT.md,
+  docs/INDEXED_MZML_FILE_LOADER_SUPPORT.md.
+- Chaining: Vec<&'a mut dyn MSDataConsumer>; first Err/Break stops the chain for that record.
+- Transforming: Option<Box<dyn FnMut(..)->Result<()> + 'a>> x3, set_*/clear_*.
+- Aggregating: generic merge closure F: FnMut(&[MSSpectrum])->Result<MSSpectrum> (SpectrumAddition is an
+  O-lane header; format cannot depend on analysis) -> PARTIAL, named dep ANALYSIS/OPENSWATH/SpectrumAddition.h.
+  Source does NOT forward setExpectedSize/setExperimentalSettings. Explicit finish() flush.
+- Storing: set_experimental_settings replaces exp.settings only; reserve is a capped hint (no abort).
+- SQL consumer: handler Reject policy refuses rich metadata before RUN_EXTRA exists; plan: under full_meta
+  write batches with Source policy after own aux-array/pepID checks. Run-level info written at finish.
+  No class test exists -> tier 4 round-trip invariants.
+- Cached consumer: needs CachedMzMLHandler writeSpectrum_/writeChromatogram_ (unported, not F7a) -> leave.
+- IndexedMzMLFileLoader store(OnDisc): writer flags beyond zlib -> Unsupported (streaming consumer only has
+  zlib); store() sets options.write_index = true persistently (source does). path_io::write_plain is
+  idxml-gated; widen cfg to mzml.
+
 ## Next step
-1. Read src/format/ms_data_writing_consumer.rs for the consumer trait; read C++ headers of the 7 consumers at bc9cc12.
+1. Write the five ungated consumers + tests/ms_data_consumers.rs; append pub mod lines; commit.
+2. IndexedMzMLFileLoader; 3. SQL consumer; 4. docs + provenance; 5. gate on spock; 6. report + ledger.
