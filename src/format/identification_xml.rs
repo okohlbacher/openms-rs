@@ -219,6 +219,14 @@ pub(crate) fn xml_text(value: &str) -> Result<()> {
     }
 }
 pub(crate) fn date(value: &str) -> Result<()> {
+    // The source writes an unset run date as the all-zero `DateTime`, and reads
+    // it back as the null date: upstream fixtures such as
+    // `Epifany_2_out.consensusXML` and `MzTabExporter_5_in.consensusXML`
+    // (test-data 0cb15f2) carry it and the Release build's MzTabExporter tests
+    // read them. It is accepted verbatim, so it is also written back verbatim.
+    if value == "0000-00-00T00:00:00" {
+        return Ok(());
+    }
     // The native wall-clock validator checks calendar fields; preserve optional
     // xs:dateTime fractional seconds and explicit timezone without conversion.
     if value.len() < 19 || !value.is_ascii() || value.as_bytes()[10] != b'T' {

@@ -109,7 +109,15 @@ pub(crate) fn read_run(
                 &["UserParam"],
             )?;
             let reference = hit.get("id")?;
-            context.add_id(reference)?;
+            // The source's handler keeps `proteinid_to_accession_[id] = accession`
+            // without checking uniqueness, so a protein-hit ID reused in a later
+            // run replaces the earlier mapping, and every later `protein_refs`
+            // resolves through the last one. Upstream fixtures depend on it:
+            // `MzTabExporter_5_in.consensusXML` (test-data 0cb15f2) repeats
+            // `PH_0` in each of its runs and the Release build's
+            // MzTabExporter_5 test reads it. The ID syntax is still checked; the
+            // accession map below is last-wins, as in the source.
+            xml::xml_id(reference)?;
             let mut value = ProteinHit {
                 accession: hit.get("accession")?.into(),
                 score: xml::finite(hit.get("score")?)?,

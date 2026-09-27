@@ -20,6 +20,7 @@
 mod fuzzy;
 
 use openms::analysis::id_filter::remove_empty_consensus_identifications;
+use openms::chemistry::{ModificationsDB, ResidueModification};
 use openms::format::mztab::MzTab;
 use openms::format::mztab_export::{
     ConsensusMapExportOptions, ConsensusMapMzTabStream, IdMzTabStream, IdentificationExportOptions,
@@ -80,9 +81,35 @@ fn export_consensus(input: &str, first_run_inference_only: bool) -> String {
         .unwrap()
 }
 
+/// A registry holding only the global registry's records of `names`.
+///
+/// The idXML reader charges every named sequence annotation as if it scanned
+/// the whole registry (`AASequence::parse_with_budget`), so with the global
+/// registry its fixed 50 M work budget runs out after about a dozen
+/// modifications and `MzTabExporter_6_input.idXML` (17 annotations) is refused
+/// with "peptide parent parsing resource limit exceeded". Reading through the
+/// records the file names resolves every modification to the same record the
+/// global registry would, which is all the exporter reads. The reader defect is
+/// recorded in `docs/MZTAB_SUPPORT.md`.
+fn registry_of(names: &[&str]) -> ModificationsDB {
+    let records: Vec<ResidueModification> = ModificationsDB::global()
+        .entries()
+        .iter()
+        .filter(|record| names.contains(&record.name()))
+        .map(|record| ResidueModification::clone(record))
+        .collect();
+    ModificationsDB::from_records(records).unwrap()
+}
+
+fn read_ids(input: &str) -> idxml::IdXmlDocument {
+    let registry = registry_of(&["Phospho", "Oxidation", "Carbamidomethyl"]);
+    let file = std::io::BufReader::new(std::fs::File::open(data(input)).unwrap());
+    idxml::read_with_registry(file, &idxml::ReadOptions::default(), &registry).unwrap()
+}
+
 /// MzTabExporter's idXML branch: the streaming identification store.
 fn export_identifications(input: &str, export_all_psms: bool) -> String {
-    let document = idxml::load(data(input)).unwrap();
+    let document = read_ids(input);
     let options = IdentificationExportOptions {
         export_all_psms,
         ..IdentificationExportOptions::default()
@@ -167,7 +194,7 @@ fn retained_mztab_exporter_8_all_psms() {
 fn stores_write_what_the_string_renderers_return() {
     let dir = std::env::temp_dir().join(format!("openms-mztab-export-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
-    let document = idxml::load(data("MzTabExporter_6_input.idXML")).unwrap();
+    let document = read_ids("MzTabExporter_6_input.idXML");
     let options = IdentificationExportOptions::default();
     let path = dir.join("ids.mzTab");
     MzTabFile::new()
@@ -213,7 +240,7 @@ fn stores_write_what_the_string_renderers_return() {
 
 #[test]
 fn in_memory_exports_match_the_streams_row_for_row() {
-    let document = idxml::load(data("MzTabExporter_6_input.idXML")).unwrap();
+    let document = read_ids("MzTabExporter_6_input.idXML");
     let options = IdentificationExportOptions::default();
     let exported = MzTab::export_identifications(
         &document.protein_identifications,
