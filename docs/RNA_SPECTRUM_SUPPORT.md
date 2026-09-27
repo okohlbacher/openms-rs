@@ -32,6 +32,13 @@ default to 1.0. The a-B fields are `add_a_minus_b_ions` and
 Configurations are ordinary owned values supporting clone, debug and equality.
 There are no hidden parameter caches.
 
+## Parameters
+
+Every field of `NucleicAcidSpectrumGenerator` is one of the source's twenty-three
+parameters: the type implements `DefaultParamHandling` with the source names
+(`add_a-B_ions`, `a-B_intensity`, ...), defaults, descriptions and
+`updateMembers_`; see [DEFAULT_PARAM_HANDLING_SUPPORT.md](DEFAULT_PARAM_HANDLING_SUPPORT.md).
+
 ## Public operations
 
 - `generate(sequence, min_charge, max_charge)` creates one new spectrum.

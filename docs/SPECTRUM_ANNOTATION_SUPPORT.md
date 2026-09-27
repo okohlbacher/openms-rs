@@ -83,6 +83,12 @@ inputs unchanged. File writers still apply their own full validation.
 
 All boolean options default to true; `top_n_fragment_errors` defaults to seven.
 
+The options are the source's eight parameters: `SpectrumAnnotator` implements
+`DefaultParamHandling` with their source names (`S/N_statistics`,
+`topNmatch_fragmenterrors`, ...), descriptions and `updateMembers_`, and a negative
+`topNmatch_fragmenterrors` is refused as the source's `(unsigned)` conversion
+refuses it; see [DEFAULT_PARAM_HANDLING_SUPPORT.md](DEFAULT_PARAM_HANDLING_SUPPORT.md).
+
 | Option | Metadata or behavior |
 | --- | --- |
 | `basic_statistics` | `matched_ions`, `matched_intensity`, `matched_ion_number`, `peak_number`, `sum_intensity` |

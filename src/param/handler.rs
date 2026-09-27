@@ -125,10 +125,15 @@ pub trait ParameterMetaSink: Default {
 ///
 /// - `Self::default().to_param()` equals `Self::defaults()` when the type is
 ///   `Default`: the source constructor ends in `defaultsToParam_()`.
-/// - `Self::from_param(&p)?.to_param()` equals `p` merged with the defaults for
-///   every `p` that passes the check, in the defaults' order, with the defaults'
-///   descriptions and restrictions: the source's `getParameters()` after
-///   `setParameters(p)`.
+/// - `Self::from_param(&p)?.to_param()` holds the values of `p` merged with
+///   the defaults for every `p` that passes the check, in the defaults' order,
+///   with the defaults' descriptions and restrictions. The source's
+///   `getParameters()` after `setParameters(p)` differs in keeping each entry
+///   of `p` as given - its (often empty) description, no restriction - and any
+///   unknown key; the handler that
+///   [`from_param_with_handler`](Self::from_param_with_handler) returns holds
+///   exactly that tree (checked against the Release build in
+///   `tests/default_param_handling.rs`).
 ///
 /// # Native differences
 ///
@@ -371,6 +376,13 @@ pub struct DefaultParamHandler {
     warn_empty_defaults: bool,
 }
 impl DefaultParamHandler {
+    /// A handler with the name displayed in error messages, empty current and
+    /// default trees, no subsections and both checks enabled (source
+    /// `DefaultParamHandler(const String& name)`).
+    ///
+    /// # Errors
+    ///
+    /// A resource failure copying `name`.
     pub fn new(name: &str) -> Result<Self> {
         Ok(Self {
             parameters: Param::new(),
@@ -381,30 +393,48 @@ impl DefaultParamHandler {
             warn_empty_defaults: true,
         })
     }
+    /// The current parameters (source `getParameters()`).
     pub fn parameters(&self) -> &Param {
         &self.parameters
     }
+    /// The default parameters (source `getDefaults()`).
     pub fn defaults(&self) -> &Param {
         &self.defaults
     }
+    /// The name displayed in error messages (source `getName()`).
     pub fn name(&self) -> &str {
         &self.name
     }
+    /// The subsections excluded from the defaults check (source
+    /// `getSubsections()`).
     pub fn subsections(&self) -> &[String] {
         &self.subsections
     }
+    /// Whether parameters are checked against the defaults (source
+    /// `check_defaults_`).
     pub fn check_defaults(&self) -> bool {
         self.check_defaults
     }
+    /// Whether empty defaults produce a warning (source
+    /// `warn_empty_defaults_`).
     pub fn warn_empty_defaults(&self) -> bool {
         self.warn_empty_defaults
     }
+    /// Turn the defaults check on or off (the source's protected
+    /// `check_defaults_`, which derived classes assign).
     pub fn set_check_defaults(&mut self, enabled: bool) {
         self.check_defaults = enabled;
     }
+    /// Turn the empty-defaults warning on or off (the source's protected
+    /// `warn_empty_defaults_`).
     pub fn set_warn_empty_defaults(&mut self, enabled: bool) {
         self.warn_empty_defaults = enabled;
     }
+    /// Replace the name displayed in error messages (source `setName`).
+    ///
+    /// # Errors
+    ///
+    /// A resource failure copying `name`.
     pub fn set_name(&mut self, name: &str) -> Result<()> {
         self.name = ParamWork::default().text(name)?;
         Ok(())
@@ -434,6 +464,12 @@ impl DefaultParamHandler {
         self.subsections = replacement;
         Ok(())
     }
+    /// A copy made under the parameter resource limits (source copy
+    /// constructor).
+    ///
+    /// # Errors
+    ///
+    /// When the copy would exceed the work or allocation ceilings.
     pub fn checked_clone(&self) -> Result<Self> {
         let mut work = ParamWork::default();
         let bytes = self.measure(&mut work)?;
@@ -507,6 +543,14 @@ impl DefaultParamHandler {
         self.defaults_to_parameters_with(|_| Ok(()))
             .map(|(_, warnings)| warnings)
     }
+    /// As [`defaults_to_parameters`](Self::defaults_to_parameters), building
+    /// the typed members from the completed tree before committing it (source
+    /// `defaultsToParam_()`, which ends by calling `updateMembers_()`).
+    ///
+    /// # Errors
+    ///
+    /// A resource failure, or whatever `update_members` returns; either leaves
+    /// the handler unchanged.
     pub fn defaults_to_parameters_with<T>(
         &mut self,
         update_members: impl FnOnce(&Param) -> Result<T>,

@@ -29,7 +29,9 @@ mod presets;
 #[path = "theoretical_proforma_budget.rs"]
 mod proforma_budget;
 
+/// Ceiling on the peaks one generation call may produce.
 pub const MAX_THEORETICAL_PEAKS: usize = 100_000;
+/// Ceiling on the residues of a peptide a generation call accepts.
 pub const MAX_THEORETICAL_RESIDUES: usize = 4096;
 const MAX_RESIDUE_WORK: usize = 10_000_000;
 
@@ -108,6 +110,8 @@ pub enum TheoreticalIonSeries {
 }
 
 impl TheoreticalIonSeries {
+    /// The series letter used in ion names: `a` ... `z`, `z.` for z+1 and
+    /// `z'` for z+2.
     pub fn label(self) -> &'static str {
         match self {
             Self::A => "a",
@@ -120,6 +124,7 @@ impl TheoreticalIonSeries {
             Self::ZPlusTwo => "z'",
         }
     }
+    /// Whether the series is N-terminal (a, b, c).
     pub fn is_prefix(self) -> bool {
         matches!(self, Self::A | Self::B | Self::C)
     }
@@ -139,8 +144,12 @@ impl TheoreticalIonSeries {
     }
 }
 
+/// Source parameter `isotope_model` (`none`, `coarse`, `fine`) together with
+/// the value the selected model reads (`max_isotope` or
+/// `max_isotope_probability`).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum TheoreticalIsotopeModel {
+    /// `none`: no isotope peaks (the default).
     #[default]
     None,
     /// Number of low-mass isotope bins, normalized within each envelope.

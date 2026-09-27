@@ -61,3 +61,5 @@ Operations share `Param`'s 50-million-unit work and 64-MiB logical allocation ce
 ## Evidence
 
 [default_param_handler.rs](../tests/default_param_handler.rs) contains nine focused tests covering the source class-test literals, default and subsection behavior, warning switches, explicit source equality, typed callbacks, metadata collisions and all value alternatives, error atomicity, and resource rejection. [default_param_handler_provenance.json](../tests/data/default_param_handler_provenance.json) records six exact SDK source hashes and the source assertion/behavior locations. Additional native tests establish checked behavior without executing or building C++.
+
+The typed side, the `DefaultParamHandling` trait that a class deriving from `DefaultParamHandler` implements, is described in [DEFAULT_PARAM_HANDLING_SUPPORT.md](DEFAULT_PARAM_HANDLING_SUPPORT.md).
