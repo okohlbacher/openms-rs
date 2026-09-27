@@ -14,6 +14,7 @@ machine with no pinned C++ checkout to hand - which is every CI runner.
 import collections
 import hashlib
 import pathlib
+import subprocess
 import tempfile
 import unittest
 from unittest import mock
@@ -825,6 +826,136 @@ class UncheckableRecordTests(unittest.TestCase):
             self.assertIn("until_retained", group)
             seen.extend(group["citations"])
         self.assertEqual(len(seen), len(set(seen)))
+
+
+def commit_all(repository, files):
+    """Write ``files`` into a git repository, commit them, and return the commit."""
+    run = lambda *arguments: subprocess.run(  # noqa: E731
+        ["git", "-C", str(repository), "-c", "user.name=t", "-c", "user.email=t@t",
+         "-c", "commit.gpgsign=false", *arguments],
+        check=True, capture_output=True, text=True,
+    ).stdout.strip()
+    if not (repository / ".git").exists():
+        repository.mkdir(parents=True, exist_ok=True)
+        run("init", "-q")
+    for name, text in files.items():
+        (repository / name).parent.mkdir(parents=True, exist_ok=True)
+        (repository / name).write_text(text)
+    run("add", "-A")
+    run("commit", "-q", "-m", "c")
+    return run("rev-parse", "HEAD")
+
+
+class CorePackageTests(unittest.TestCase):
+    """A core revision is read from the public core package when no checkout holds it.
+
+    The unpacked core checkouts under ``.reference/`` are gitignored, so a third
+    party who has cloned the four public package repositories beside this one
+    used to find the core pin unreachable - and then answered core citations
+    with whatever TOPP file shared the name, which reported 158 false problems
+    on a clean machine. The core package's git objects carry the same bytes.
+    """
+
+    def setUp(self):
+        holder = tempfile.TemporaryDirectory()
+        self.addCleanup(holder.cleanup)
+        self.base = pathlib.Path(holder.name)
+        self.core = self.base / "packages" / "core"
+        self.old = commit_all(self.core, {"src/A.cpp": "old\n"})
+        self.pin = commit_all(self.core, {"src/A.cpp": "one\ntwo\n"})
+
+    def pins(self, spelled=(), reference=None):
+        pins = object.__new__(Pins)
+        pins.declared = {"core": self.pin}
+        pins.spelled = sorted(spelled)
+        pins.roots = [self.base]
+        pins.reference = reference or self.base / ".reference"
+        pins.packages = self.base / "packages"
+        pins.declared_retained = []
+        pins.retained_keys = []
+        pins.sources = {}
+        pins.index = collections.defaultdict(list)
+        pins._lines = {}
+        pins._collect()
+        return pins
+
+    def test_the_core_pin_is_read_from_the_core_package_objects(self):
+        pins = self.pins()
+        self.assertIsInstance(pins.sources[self.pin], Objects)
+        self.assertEqual(pins.missing(), {})
+        self.assertEqual(pins.paths_named(self.pin, "A.cpp"), ["src/A.cpp"])
+        self.assertEqual(pins.lines(self.pin, "src/A.cpp"), ["one", "two"])
+
+    def test_a_revision_a_document_spells_is_read_there_too_and_an_unknown_one_is_not(self):
+        pins = self.pins(spelled={self.old, "f" * 40})
+        self.assertEqual(pins.lines(self.old, "src/A.cpp"), ["old"])
+        self.assertNotIn("f" * 40, pins.sources)
+
+    def test_an_unpacked_checkout_still_answers_first(self):
+        reference = self.base / ".reference"
+        subprocess.run(["git", "clone", "-q", str(self.core), str(reference / "openms4-core")],
+                       check=True, capture_output=True)
+        pins = self.pins(reference=reference)
+        self.assertIsInstance(pins.sources[self.pin], Directory)
+
+    def test_without_the_core_package_the_pin_is_missing_as_before(self):
+        pins = object.__new__(Pins)
+        pins.declared = {"core": self.pin}
+        pins.spelled, pins.roots = [], [self.base]
+        pins.reference, pins.packages = self.base / ".reference", self.base / "nowhere"
+        pins.declared_retained, pins.retained_keys, pins.sources = [], [], {}
+        pins.index = collections.defaultdict(list)
+        pins._collect()
+        self.assertEqual(pins.missing(), {"core": self.pin})
+
+    def test_the_core_pin_is_never_claimed_as_a_package_pin_however_it_was_read(self):
+        # Were core claimable once it came from git objects, a third party and
+        # the lab would resolve the same citation differently.
+        pins = self.pins()
+        self.assertEqual(pins.packaged("src/", "A.cpp", ()), [])
+
+
+class DistinctFileTests(unittest.TestCase):
+    """One path at two revisions is one file where its bytes did not change."""
+
+    class TwoRevisions:
+        declared = {"core": CORE}
+        sources = {CORE: "core bc9cc12", TOPP: "core 4fdec46"}
+
+        def __init__(self, older):
+            self.text = {CORE: LINES, TOPP: older}
+
+        def paths_named(self, _revision, name):
+            return ["HANDLERS/Decoder.cpp"] if name == "Decoder.cpp" else []
+
+        def packaged(self, _inside, _name, _besides):
+            return []
+
+        def retained(self, _inside, _name):
+            return []
+
+        def lines(self, revision, _path):
+            return self.text[revision]
+
+        def label(self, revision):
+            return self.sources[revision]
+
+        def where(self, revision, path):
+            return f"{self.sources[revision]}:{path}"
+
+    def ambiguous(self, older):
+        report = tally()
+        found = check_file(self.TwoRevisions(older), (CORE, TOPP), ("", "Decoder.cpp"),
+                           [(5, 8, "Decoder.cpp:5-8", True)], (), (), report)
+        self.assertEqual(found, [])
+        self.assertEqual(report["checked"], 1)
+        return report["ambiguous"]
+
+    def test_identical_bytes_at_two_revisions_are_not_ambiguous(self):
+        self.assertEqual(self.ambiguous(list(LINES)), 0)
+
+    def test_bytes_that_changed_between_the_revisions_still_are(self):
+        self.assertEqual(self.ambiguous(LINES[:-1] + ["} // changed"]), 1)
 
 
 if __name__ == "__main__":

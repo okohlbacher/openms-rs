@@ -15,7 +15,10 @@ them.
 This does. It resolves each citation against the pins the repository already
 declares - the core SDK checkouts under ``.reference/``, and the TOPP and CLI
 packages read out of their git objects at the pinned revisions, never out of a
-working tree - and, for a name no pin carries at all, against the retained
+working tree; a core revision no checkout under ``.reference/`` holds is read
+out of the core package repository's git objects the same way, so a clone of
+the four public package repositories beside this one is all a third party needs
+- and, for a name no pin carries at all, against the retained
 sources ``SOURCE_PROVENANCE.json`` declares, each admitted only while its bytes
 still hash to the sha256 the port names (:class:`Retained`). Then, at four
 levels of evidence:
@@ -472,8 +475,11 @@ def checkout_roots():
 class Pins:
     """Every pinned revision the repository declares, and the files in each."""
 
-    def __init__(self, reference=None, packages=None):
+    def __init__(self, reference=None, packages=None, revisions=()):
         provenance = json.loads(PROVENANCE.read_text())
+        # Every revision the documents spell in full: the ones a core checkout
+        # under .reference/ does not hold are looked for in the core package.
+        self.spelled = sorted(set(revisions))
         self.declared = {"core": provenance["target_sdk"]["commit"]}
         self.declared.update(json.loads(PACKAGE_PINS.read_text())["package_revisions"])
         self.roots = checkout_roots()
@@ -503,6 +509,16 @@ class Pins:
             repository = self.packages / package.replace("_", "-")
             if revision and git(repository, "cat-file", "-e", f"{revision}^{{commit}}") is not None:
                 self.sources.setdefault(revision, Objects(repository, revision))
+        # The core package is public at every revision the documents name, so a
+        # third party who has cloned it - and nothing under .reference/, which
+        # git ignores - reads the same core bytes a checkout would give. An
+        # unpacked checkout, where there is one, still answers first.
+        core = self.packages / "core"
+        for revision in dict.fromkeys([self.declared.get("core"), *self.spelled]):
+            if revision and revision not in self.sources and git(
+                core, "cat-file", "-e", f"{revision}^{{commit}}"
+            ) is not None:
+                self.sources[revision] = Objects(core, revision)
         for entry in self.declared_retained:
             # A retained directory is declared relative to the checkout, and a
             # port lane works in a worktree, which does not carry it: the same
@@ -538,9 +554,14 @@ class Pins:
         ``src/PeakPickerHiRes.cpp:170-186`` is ``doLowMemAlgorithm`` in the TOPP
         tool, and nothing at all in the core algorithm of the same name.
         """
+        # Never the core pin, however it was read: core has older revisions to
+        # prefer, and a verdict that turned on whether core came from a checkout
+        # under .reference/ or from the package's git objects would differ
+        # between the lab and a third party reading the same bytes.
         return [
             (revision, path)
-            for revision in dict.fromkeys(self.declared.values())
+            for package, revision in self.declared.items()
+            if package != "core"
             if revision not in besides and isinstance(self.sources.get(revision), Objects)
             for path in self.paths_named(revision, name)
             if path.endswith(inside + name)
@@ -1033,6 +1054,24 @@ def owner_of(pins, revisions, bare, named):
     return None
 
 
+def distinct_files(pins, attempts):
+    """The candidates, less any that is byte for byte one already offered.
+
+    An entry that names two core revisions - the pin and the product SDK it was
+    executed on - offers the same path at both. Where the file did not change
+    between them every check reads the same bytes and returns the same verdict,
+    so the second is not another file the citation may have meant and does not
+    make it ambiguous. Where the bytes differ both stay, and it does.
+    """
+    kept, seen = [], set()
+    for revision, path in attempts:
+        key = (path, tuple(pins.lines(revision, path)))
+        if key not in seen:
+            seen.add(key)
+            kept.append((revision, path))
+    return kept
+
+
 def check_file(pins, revisions, key, cited, quoted, annotated, report):
     """Check one cited file against every revision and path it resolves to.
 
@@ -1059,6 +1098,7 @@ def check_file(pins, revisions, key, cited, quoted, annotated, report):
         return []
     if len(attempts) > 1:
         attempts = holding(pins, attempts, quoted) or attempts
+    attempts = distinct_files(pins, attempts)
     # More than one candidate still standing means nothing told them apart, and
     # that is as true of two paths inside one pin as of two pins: `Macros.h` is
     # a CONCEPT header and an OPENSWATHALGO one at the same revision, so a bare
@@ -1174,14 +1214,19 @@ def main():
     parser.add_argument("--report", action="store_true", help="Print the pins and what was checked")
     parser.add_argument("--verbose", action="store_true", help="Also print what could not be checked")
     parser.add_argument("--reference", help="The directory of pinned core checkouts (default .reference/)")
-    parser.add_argument("--packages", help="Where the pinned TOPP and CLI package repositories are")
+    parser.add_argument(
+        "--packages", help="Where the pinned core, TOPP, CLI and test-data package repositories are"
+    )
     parser.add_argument(
         "--require-pins", action="store_true",
         help="Fail if a declared pin is unreachable instead of skipping its citations",
     )
     arguments = parser.parse_args()
 
-    pins = Pins(arguments.reference, arguments.packages)
+    spelled = set()
+    for document in documents():
+        spelled.update(REVISION.findall(document.read_text(errors="replace")))
+    pins = Pins(arguments.reference, arguments.packages, spelled)
     default = tuple(pins.declared.values())
     report = tally()
     failures, unreadable = [], []
