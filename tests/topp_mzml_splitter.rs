@@ -40,8 +40,10 @@ fn fixture(name: &str) -> PathBuf {
 /// getProcessingInfo_(DataProcessing::FILTERING))` while each part still holds
 /// no spectra and no chromatograms (`MzMLSplitter.cpp`), so the retained
 /// `MzMLSplitter_output_part*.mzML` carry only the records the input already
-/// had, and so does the C++ product SDK's output (oracle `mzml_splitter_1` in
-/// `../oracle/topp-cli-lifecycle/cli2/manifest.json`). Completion times are
+/// had, and so does the C++ output of oracle `mzml_splitter_1`
+/// (`../oracle/topp-cli-lifecycle/cli2/manifest.json`, run on the macOS Debug
+/// product SDK, and re-run with the same result on the Linux Release build at
+/// the pins in `../oracle/A1-release-rerun`, `lifecycle/`). Completion times are
 /// compared to the minute, the precision the C++ mzML writer keeps
 /// (`MzMLHandler.cpp:3947` writes `yyyy-MM-dd+hh:mm`).
 fn assert_same_processing(produced: &MSExperiment, expected: &MSExperiment) {

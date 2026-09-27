@@ -171,10 +171,13 @@ fn topp_spectra_filter_window_mower_1_matches_the_retained_output() {
     }
 }
 
-/// The processing record outside `-test`, against the C++ product SDK's output
-/// for the same command (oracle `window_mower_notest` in
+/// The processing record outside `-test`, against the C++ output for the same
+/// command (oracle `window_mower_notest` in
 /// `../oracle/topp-cli-lifecycle/cli2/manifest.json`, retained as
-/// `tests/data/topp_cli_lifecycle/swm_notest_output.mzML`).
+/// `tests/data/topp_cli_lifecycle/swm_notest_output.mzML`). That oracle ran the
+/// macOS Debug product SDK; the Linux Release build at the pins writes the same
+/// file apart from the run paths, the completion time and the index offsets
+/// (`../oracle/A1-release-rerun`, `lifecycle/`, two repetitions).
 ///
 /// The source records the product version, the time of the run and every
 /// resolved parameter as `parameter: <name>` with its typed value
@@ -341,7 +344,8 @@ fn a_subsection_value_from_an_ini_changes_the_result() {
 /// (`TOPPBase.cpp:339-342`), and exits with ILLEGAL_PARAMETERS instead of
 /// falling back to the default. The C++ product SDK does exactly that for this
 /// INI value (`../oracle/topp-cli-lifecycle`, case
-/// `ini_invalid_subsection_value`).
+/// `ini_invalid_subsection_value`), and so does the Release build at the pins
+/// (the same case in `../oracle/A1-release-rerun`, `lifecycle/`).
 #[test]
 fn an_invalid_subsection_value_is_rejected() {
     let temp = workdir();
