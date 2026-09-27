@@ -39,3 +39,13 @@ incarnation worktree-wf_bcdd783d-f3f-10 at 27d502a; no merge commit was needed).
 - src/format/arrow_schema_registry.rs (19:10; generated body from scratchpad F1a-w4/gen_registry.py ->
   registry_gen.rs + hand-written registry_head.rs), not in mod.rs yet, not gated
 - src/format/parquet_file.rs (19:16, possibly unfinished), not in mod.rs yet
+- ORACLE ALREADY RAN (incarnation 2): ../oracle/F1a-arrow/{driver.cpp,node.sh,run.sh,results/}.
+  ibminode06, Linux x86_64 Release bc9cc12-c19e494-174b576, g++ 14.4 -O2 -DNDEBUG, Arrow C++ 23.0.1,
+  run twice, results/differ.txt EMPTY (identical records + parquet files). results/records.tsv
+  (889 lines, TSV kind<TAB>case<TAB>value) covers: all 22 schemas field-by-field (Field::ToString), the
+  nested *Type() helpers, DataType::Equals cases, validate() messages (strict/subset), ArrowIOHelpers
+  getters (getStringList/getInt64/getDouble/getBool/getString), jsonEscape, readMetaValues typing (82
+  cases), qpxRunFileName/ScanFormat/ScanComponents/IntensityLabel(s)/IsCanonical, isobaric channel lists,
+  qpxFileMetadata keys, writeTableToParquet codecs/levels/row groups (+ files/*.parquet written by C++),
+  ParquetFile writeTable/readTable/rowCount errors. results/files/*.parquet = tier-1 C++-written fixtures.
+  -> Rust tests should transcribe records.tsv lines (cite file + sha256 from results/hashes.txt).
