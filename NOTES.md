@@ -35,7 +35,15 @@ Branch: worktree-wf_ee239125-5be-2 (merged prior incarnation worktree-wf_bcdd783
 - C++ sources readable at OpenMS4-R/.reference/openms4-core-bc9cc12 (main checkout). The worktree
   sandbox refuses a git invocation against another repo; use Read/cat with literal paths.
 
+- 11 PROCESSING impls done (src/processing/parameters.rs, window_mower.rs, smoothing.rs,
+  mean_noise.rs, iterative.rs); tests/default_param_handling.rs 12/12 pass on spock (tier 1 vs
+  tests/data/param_defaults/*.ini copied from oracle results; hashes in scratchpad B6/fixture_hashes.txt).
+  Param::replace_value added (src/param.rs); helpers unsigned_parameter/int_parameter/flag_parameter/
+  set_flag in param::handler. GaussFilter gained inactive_width + write_log_messages; MeanIterative
+  gained range_parameters; SavitzkyGolay keeps frame_parameter.
+
 ## Next step
-1. Copy oracle defaults .ini into tests/data/param_defaults/ and write tests/default_param_handling.rs.
-2. Implement per header: NLargest, ThresholdMower, Normalizer, RankScaler, SqrtScaler, WindowMower,
-   SavitzkyGolay, Gauss, LinearResamplerAlign, MeanIterative, PeakPickerIterative, then chemistry 3.
+1. Chemistry: TheoreticalSpectrumGenerator (Rust intensities are f32! source double -> to_param
+   precision problem; decide), SpectrumAnnotator, NucleicAcidSpectrumGenerator.
+2. Docs: docs/DEFAULT_PARAM_HANDLING_SUPPORT.md, provenance json, doc coverage 100% for touched
+   modules (param.rs 22%, handler.rs 54%, mean_noise now better), CI slice, ledger, report.
