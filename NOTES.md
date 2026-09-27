@@ -68,3 +68,8 @@ module cycles pass. Gate 1 (5 test targets) launched on spock, log scratchpad/ga
 use scratchpad/A3a/ for new logs). Follow-ups for report: CPP-244 "Rust handling" stale (now reproduced);
 im_data_converter split_by_faims_cv keeps NaN refusal (CPP-280, own std::map, not owned); spectrum_mobility
 sort_by_position_presorted finite(mz) refusal (inplace_merge) not in brief. Ledger draft in scratchpad/A3a/current.json.
+
+19:55 gate5 (spock, default features): all 20 targets green, a3a_source_order 11/11 first try. Ledger fragment
+written (.planning/ledger-fragments/wave4/A3a.json via scratchpad/A3a/make_ledger.py). Next: CI sweep
+(slot A3a-sweep, logs scratchpad/A3a/sweep), then report, then final commit removing NOTES.md.
+Lead-file needs: core-sdk-coverage.json regen (adds a3a manifest to 7 headers), ci baseline records test:a3a_source_order.
