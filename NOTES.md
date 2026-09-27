@@ -26,10 +26,16 @@ Outputs: report -> main repo .planning/lane-reports/A5b.md ; ledger -> main repo
 - No Rust at all: Matrix.h, SIMDe.h, SimpleSVM.h, MetaInfoRegistry.h, USI.h.
 
 ## Done
-(none yet)
+- MultipleTesting: src/processing/spline/pi0_smoother.rs (SplinePi0Smoother, pi0_est_smoothed); tests/multiple_testing.rs
+  20 pass on spock (default features). New acyclic edge processing->math (tool exit 0; docs/module-cycles.json NOT written).
+- JavaInfo/PythonInfo/RWrapper confirmed member-by-member -> complete; tests/system_process.rs 34 pass on spock.
+- Gumbel: verified at bc9cc12 (h:51 eval, h:81 fitWeighted undefined; test :175 uses GumbelMaxLikelihoodFitter).
+- SpectrumNativeIDParser: src/metadata/spectrum_native_id_parser.rs over concept::boost_regex::BoostRegex (tokens =
+  sregex_token_iterator); tests/spectrum_native_id_parser.rs; docs/SPECTRUM_NATIVE_ID_PARSER_SUPPORT.md.
+- USI: src/metadata/usi.rs; tests/usi.rs (all 36 sections); docs/USI_SUPPORT.md. (gate2-4 logs in scratch A5b/)
 
 ## Next step
-1. Confirm JavaInfo/PythonInfo/RWrapper member-by-member; write ledger fragment entries.
-2. Gumbel entry; MultipleTesting adapter.
-3. USI.h port; MetaInfoRegistry.h port.
-4. Cheap metadata gaps (Software, Precursor, PeptideHit, ProteinHit).
+1. Check gate2-4 (usi, parser, lib unit, doctests); fix; commit.
+2. Write ledger fragment entries so far (main repo .planning/ledger-fragments/wave4/A5b.json).
+3. MetaInfoRegistry.h port.
+4. Cheap metadata gaps (Software, Precursor, PeptideHit, ProteinHit); SpectrumLookup over the new parser.

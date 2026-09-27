@@ -25,3 +25,9 @@ pub use experiment_values::*;
 
 mod experimental_settings;
 pub use experimental_settings::*;
+
+/// Scan numbers from spectrum native IDs (`METADATA/SpectrumNativeIDParser.h`).
+pub mod spectrum_native_id_parser;
+
+/// Universal Spectrum Identifiers (`METADATA/USI.h`).
+pub mod usi;
