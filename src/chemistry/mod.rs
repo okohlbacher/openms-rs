@@ -110,7 +110,7 @@ pub use monosaccharide_db::{Monosaccharide, MonosaccharideDB};
 pub use sequence::{AASequence, MassTag, PeptideFragmentType, SequenceModification};
 pub use theoretical::{
     TheoreticalIonIntensities, TheoreticalIonSeries, TheoreticalIsotopeModel,
-    TheoreticalSpectrumGenerator,
+    TheoreticalIsotopeParameters, TheoreticalSpectrumGenerator,
 };
 
 /// Existing chemistry names retain the source constants and exact values.

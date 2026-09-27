@@ -39,46 +39,30 @@ const FLAGS: [(&str, &str, FlagField); 13] = [
         "If set to true a1, b1, ..., z1 ions are added",
         |g| &mut g.add_first_prefix_ion,
     ),
-    (
-        "add_a_ions",
-        "Add peaks of a-ions to the spectrum",
-        |g| &mut g.add_a_ions,
-    ),
-    (
-        "add_b_ions",
-        "Add peaks of b-ions to the spectrum",
-        |g| &mut g.add_b_ions,
-    ),
-    (
-        "add_c_ions",
-        "Add peaks of c-ions to the spectrum",
-        |g| &mut g.add_c_ions,
-    ),
-    (
-        "add_d_ions",
-        "Add peaks of d-ions to the spectrum",
-        |g| &mut g.add_d_ions,
-    ),
-    (
-        "add_w_ions",
-        "Add peaks of w-ions to the spectrum",
-        |g| &mut g.add_w_ions,
-    ),
-    (
-        "add_x_ions",
-        "Add peaks of  x-ions to the spectrum",
-        |g| &mut g.add_x_ions,
-    ),
-    (
-        "add_y_ions",
-        "Add peaks of y-ions to the spectrum",
-        |g| &mut g.add_y_ions,
-    ),
-    (
-        "add_z_ions",
-        "Add peaks of z-ions to the spectrum",
-        |g| &mut g.add_z_ions,
-    ),
+    ("add_a_ions", "Add peaks of a-ions to the spectrum", |g| {
+        &mut g.add_a_ions
+    }),
+    ("add_b_ions", "Add peaks of b-ions to the spectrum", |g| {
+        &mut g.add_b_ions
+    }),
+    ("add_c_ions", "Add peaks of c-ions to the spectrum", |g| {
+        &mut g.add_c_ions
+    }),
+    ("add_d_ions", "Add peaks of d-ions to the spectrum", |g| {
+        &mut g.add_d_ions
+    }),
+    ("add_w_ions", "Add peaks of w-ions to the spectrum", |g| {
+        &mut g.add_w_ions
+    }),
+    ("add_x_ions", "Add peaks of  x-ions to the spectrum", |g| {
+        &mut g.add_x_ions
+    }),
+    ("add_y_ions", "Add peaks of y-ions to the spectrum", |g| {
+        &mut g.add_y_ions
+    }),
+    ("add_z_ions", "Add peaks of z-ions to the spectrum", |g| {
+        &mut g.add_z_ions
+    }),
     (
         "add_a-B_ions",
         "Add peaks of a-B-ions to the spectrum",

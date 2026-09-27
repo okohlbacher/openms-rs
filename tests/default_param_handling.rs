@@ -18,6 +18,10 @@
 #![cfg(feature = "paramxml")]
 
 use openms::Error;
+use openms::chemistry::{
+    NucleicAcidSpectrumGenerator, SpectrumAnnotator, TheoreticalIonSeries, TheoreticalIsotopeModel,
+    TheoreticalSpectrumGenerator,
+};
 use openms::format::paramxml;
 use openms::param::{DefaultParamHandling, Param, ParamValue};
 use openms::processing::iterative::PeakPickerIterative;
@@ -553,6 +557,184 @@ fn adopted_reference_types_meet_the_contract() {
     assert!(!picker.check_spectrum_type);
     assert_eq!(picker.max_points, 12);
     assert_eq!(picker.noise_estimator.max_bins, 77);
+}
+
+/// `../oracle/B6-tsg-intensity`'s stdout for a setParameters probe, and its
+/// `getParameters()` dump afterwards.
+fn probe(case: &str) -> (String, Param) {
+    let stdout = std::fs::read_to_string(data(&format!("tsg_intensity/{case}.stdout.txt")))
+        .unwrap_or_else(|e| panic!("{case}: {e}"));
+    (stdout, oracle(&format!("tsg_intensity/{case}.after.ini")))
+}
+
+fn flag(value: bool) -> ParamValue {
+    ParamValue::String(if value { "true" } else { "false" }.into())
+}
+
+#[test]
+fn theoretical_spectrum_generator_contract() {
+    contract::<TheoreticalSpectrumGenerator>("TheoreticalSpectrumGenerator");
+    // updateMembers_ lists the selected series in generation order.
+    let g = TheoreticalSpectrumGenerator::from_param(&param(&[
+        ("add_a_ions", flag(true)),
+        ("add_zp2_ions", flag(true)),
+        ("add_b_ions", flag(false)),
+        ("isotope_model", ParamValue::String("coarse".into())),
+        ("max_isotope", ParamValue::Integer(5)),
+    ]))
+    .unwrap();
+    assert_eq!(
+        g.ion_series,
+        [
+            TheoreticalIonSeries::Y,
+            TheoreticalIonSeries::A,
+            TheoreticalIonSeries::ZPlusTwo
+        ]
+    );
+    assert_eq!(
+        g.isotope_model,
+        TheoreticalIsotopeModel::Coarse { max_peaks: 5 }
+    );
+    assert_eq!(g.isotope_parameters.max_isotope, 5);
+    let fine = TheoreticalSpectrumGenerator::from_param(&param(&[
+        ("isotope_model", ParamValue::String("fine".into())),
+        ("max_isotope_probability", ParamValue::Float(0.01)),
+        ("max_isotope", ParamValue::Integer(9)),
+    ]))
+    .unwrap();
+    assert_eq!(
+        fine.isotope_model,
+        TheoreticalIsotopeModel::Fine {
+            unexplained_probability: 0.01
+        }
+    );
+    // Both isotope values survive, whichever model is selected.
+    let mut expected = TheoreticalSpectrumGenerator::defaults().unwrap();
+    for (key, value) in [
+        ("isotope_model", ParamValue::String("fine".into())),
+        ("max_isotope_probability", ParamValue::Float(0.01)),
+        ("max_isotope", ParamValue::Integer(9)),
+    ] {
+        expected.replace_value(key, value).unwrap();
+    }
+    assert_eq!(fine.to_param().unwrap(), expected);
+    // 'none' after 'coarse' resets the model (the source's isotope_model_ = 0).
+    let mut reset = g.clone();
+    reset
+        .set_parameters(&param(&[(
+            "isotope_model",
+            ParamValue::String("none".into()),
+        )]))
+        .unwrap();
+    assert_eq!(reset.isotope_model, TheoreticalIsotopeModel::None);
+
+    // Release: relative_loss_intensity 1.5 breaks its [0:1] restriction.
+    let loss = param(&[("relative_loss_intensity", ParamValue::Float(1.5))]);
+    assert!(matches!(
+        TheoreticalSpectrumGenerator::from_param(&loss),
+        Err(Error::InvalidValue(_))
+    ));
+    assert!(outcome("set_TheoreticalSpectrumGenerator_loss").stdout.contains(
+        "InvalidParameter\tTheoreticalSpectrumGenerator: Invalid double parameter value '1.500000' for parameter 'relative_loss_intensity'"
+    ));
+
+    // Release: a negative max_isotope with the coarse model passes
+    // setParameters (the parameter has no restriction and `(Int)` accepts it);
+    // generation would then turn it into a huge Size peak count. The port
+    // refuses it in update_members instead.
+    let negative = param(&[
+        ("isotope_model", ParamValue::String("coarse".into())),
+        ("max_isotope", ParamValue::Integer(-1)),
+    ]);
+    let (stdout, _) = probe("tsg_negative_max_isotope");
+    assert!(stdout.contains("END setParameters ok"), "{stdout}");
+    assert!(matches!(
+        TheoreticalSpectrumGenerator::from_param(&negative),
+        Err(Error::InvalidValue(_))
+    ));
+    // With any other model it is kept and reported back.
+    let kept = TheoreticalSpectrumGenerator::from_param(&param(&[(
+        "max_isotope",
+        ParamValue::Integer(-1),
+    )]))
+    .unwrap();
+    assert_eq!(
+        kept.to_param().unwrap().value("max_isotope").unwrap(),
+        &ParamValue::Integer(-1)
+    );
+}
+
+#[test]
+fn spectrum_annotator_contract() {
+    contract::<SpectrumAnnotator>("SpectrumAnnotator");
+    let annotator = SpectrumAnnotator::from_param(&param(&[
+        ("topNmatch_fragmenterrors", ParamValue::Integer(3)),
+        ("S/N_statistics", flag(false)),
+    ]))
+    .unwrap();
+    assert_eq!(annotator.top_n_fragment_errors, 3);
+    assert!(!annotator.sn_statistics);
+    let mut expected = SpectrumAnnotator::defaults().unwrap();
+    expected
+        .replace_value("topNmatch_fragmenterrors", ParamValue::Integer(3))
+        .unwrap();
+    expected
+        .replace_value("S/N_statistics", flag(false))
+        .unwrap();
+    assert_eq!(annotator.to_param().unwrap(), expected);
+    // Release: the unrestricted parameter passes the check, and
+    // updateMembers_'s `(unsigned)` conversion throws.
+    let (stdout, _) = probe("annotator_negative_topN");
+    assert!(
+        stdout.contains(
+            "END setParameters exception\tConversionError\tCould not convert negative integer ParamValue to unsigned int"
+        ),
+        "{stdout}"
+    );
+    let negative = param(&[("topNmatch_fragmenterrors", ParamValue::Integer(-1))]);
+    match SpectrumAnnotator::from_param(&negative) {
+        Err(Error::InvalidValue(message)) => assert!(
+            message.contains("Could not convert negative integer ParamValue to unsigned int"),
+            "{message}"
+        ),
+        other => panic!("{other:?}"),
+    }
+    #[cfg(target_pointer_width = "64")]
+    assert!(matches!(
+        SpectrumAnnotator {
+            top_n_fragment_errors: u32::MAX as usize + 1,
+            ..SpectrumAnnotator::default()
+        }
+        .to_param(),
+        Err(Error::InvalidValue(_))
+    ));
+}
+
+#[test]
+fn nucleic_acid_spectrum_generator_contract() {
+    contract::<NucleicAcidSpectrumGenerator>("NucleicAcidSpectrumGenerator");
+    // Release: the intensities carry no restriction.
+    let given = param(&[
+        ("a_intensity", ParamValue::Float(-2.5)),
+        ("add_a-B_ions", flag(true)),
+    ]);
+    let (stdout, after) = probe("nasg_unrestricted");
+    assert!(stdout.contains("END setParameters ok"), "{stdout}");
+    let (generator, handler, warnings) =
+        NucleicAcidSpectrumGenerator::from_param_with_handler(&given).unwrap();
+    assert!(warnings.is_empty(), "{warnings:?}");
+    assert_eq!(handler.parameters(), &after);
+    let expected = NucleicAcidSpectrumGenerator {
+        a_intensity: -2.5,
+        add_a_minus_b_ions: true,
+        ..NucleicAcidSpectrumGenerator::default()
+    };
+    assert_eq!(generator, expected);
+    let mut tree = NucleicAcidSpectrumGenerator::defaults().unwrap();
+    tree.replace_value("a_intensity", ParamValue::Float(-2.5))
+        .unwrap();
+    tree.replace_value("add_a-B_ions", flag(true)).unwrap();
+    assert_eq!(generator.to_param().unwrap(), tree);
 }
 
 /// The handler follows the source's atomicity only where it is safe: a
