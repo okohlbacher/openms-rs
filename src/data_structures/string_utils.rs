@@ -100,8 +100,44 @@ pub fn to_int32(text: &str) -> std::result::Result<i32, String> {
 /// The source's `ConversionError` message when the text is not a complete
 /// number.
 pub fn to_double(text: &str) -> std::result::Result<f64, String> {
+    to_floating::<f64>(text, "double")
+}
+
+/// Source `StringUtils::toFloat` (`StringUtils.cpp:200-237`): the rules of
+/// [`to_double`], with the literal rounded once, directly to `f32`, as
+/// `std::from_chars` into a `float` does.
+///
+/// # Errors
+///
+/// The source's `ConversionError` message when the text is not a complete
+/// number or a finite literal overflows `f32`.
+pub fn to_float(text: &str) -> std::result::Result<f32, String> {
+    to_floating::<f32>(text, "float")
+}
+
+/// The two floating-point targets of the source's conversions.
+trait SourceFloat: std::str::FromStr + Copy {
+    const NAN: Self;
+    fn infinite(self) -> bool;
+}
+
+impl SourceFloat for f64 {
+    const NAN: Self = f64::NAN;
+    fn infinite(self) -> bool {
+        self.is_infinite()
+    }
+}
+
+impl SourceFloat for f32 {
+    const NAN: Self = f32::NAN;
+    fn infinite(self) -> bool {
+        self.is_infinite()
+    }
+}
+
+fn to_floating<T: SourceFloat>(text: &str, kind: &str) -> std::result::Result<T, String> {
     let bytes = text.as_bytes();
-    let not_converted = || format!("Could not convert string '{text}' to a double value");
+    let not_converted = || format!("Could not convert string '{text}' to a {kind} value");
     let first = skip_whitespace(bytes, 0);
     if first == bytes.len() {
         return Err(not_converted());
@@ -115,7 +151,7 @@ pub fn to_double(text: &str) -> std::result::Result<f64, String> {
             }
         }
         if end != first && skip_whitespace(bytes, end) == bytes.len() {
-            return Ok(f64::NAN);
+            return Ok(T::NAN);
         }
     }
     let mut start = first;
@@ -165,18 +201,18 @@ pub fn to_double(text: &str) -> std::result::Result<f64, String> {
         }
     }
     let literal = text.get(start..cursor).ok_or_else(not_converted)?;
-    let value: f64 = if nan.is_some() && infinity.is_none() {
-        f64::NAN
+    let value: T = if nan.is_some() && infinity.is_none() {
+        T::NAN
     } else {
         literal.parse().map_err(|_| not_converted())?
     };
-    if value.is_infinite() && infinity.is_none() {
+    if value.infinite() && infinity.is_none() {
         return Err(not_converted());
     }
     let after = skip_whitespace(bytes, cursor);
     if after != bytes.len() {
         return Err(format!(
-            "Prefix of string '{text}' successfully converted to a double value. Additional characters found at position {}",
+            "Prefix of string '{text}' successfully converted to a {kind} value. Additional characters found at position {}",
             after + 1
         ));
     }
@@ -213,6 +249,9 @@ mod tests {
         assert!(to_double("").is_err());
         assert!(to_double("nan(x)").unwrap().is_nan());
         assert_eq!(to_double("-inf"), Ok(f64::NEG_INFINITY));
+        assert_eq!(to_float("866.606"), Ok(866.606_f32));
+        assert!(to_float("1e39").is_err());
+        assert!(to_float("1.5x").unwrap_err().contains("to a float value"));
         assert_eq!(to_int32(" +7\t"), Ok(7));
         assert_eq!(to_int32("-7"), Ok(-7));
         assert!(to_int32("7.0").is_err());

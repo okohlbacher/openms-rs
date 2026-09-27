@@ -200,6 +200,8 @@ pub mod search_engine_text;
 /// Bounded SAX-style driver shared by the X! Tandem and OMSSA XML readers.
 #[cfg(feature = "idxml")]
 pub mod search_engine_xml;
+/// Sequest `.out` result files (`SequestOutfile.h`).
+pub mod sequest_outfile;
 /// SpecArray `.pepList` feature files (`SpecArrayFile.h`).
 pub mod spec_array_file;
 /// X! Tandem XML result files (`XTandemXMLFile.h`).

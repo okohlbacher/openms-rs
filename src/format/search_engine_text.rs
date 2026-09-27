@@ -10,10 +10,103 @@
 //! outside a modification bracket, a stop-codon character `*`, `#` or `+`
 //! becomes the unknown residue `X` and a space is skipped. The crate's
 //! [`AASequence::parse`] is the strict parse, so this module rewrites those
-//! characters first. See `docs/SEARCH_ENGINE_FILES_SUPPORT.md`.
+//! characters first.
+//!
+//! The Sequest, Inspect and PepNovo adapters read their files with
+//! `std::getline` and index into the lines by byte, so this module also holds
+//! a bounded whole-file reader that splits exactly where `getline` does and
+//! the `std::string` search helpers they need with the source's `npos`
+//! arithmetic. See `docs/SEARCH_ENGINE_FILES_SUPPORT.md`.
 
 use crate::chemistry::AASequence;
 use crate::{Error, Result};
+use std::io::Read;
+
+/// The largest text file the search-engine text adapters read, in bytes.
+pub const MAX_TEXT_BYTES: usize = 256 * 1024 * 1024;
+
+/// `std::string::npos`.
+pub(crate) const NPOS: usize = usize::MAX;
+
+/// Read a whole text file of at most `max_bytes` bytes.
+///
+/// # Errors
+///
+/// [`Error::Io`] when reading fails, [`Error::InvalidValue`] when the input
+/// is longer than `max_bytes`, [`Error::Parse`] when it is not UTF-8.
+pub(crate) fn read_text(input: impl Read, max_bytes: usize) -> Result<String> {
+    let count = u64::try_from(max_bytes)
+        .ok()
+        .and_then(|value| value.checked_add(1))
+        .ok_or_else(|| Error::InvalidValue("text byte limit overflows".into()))?;
+    let mut bytes = Vec::new();
+    input.take(count).read_to_end(&mut bytes)?;
+    if bytes.len() > max_bytes {
+        return Err(Error::InvalidValue("text byte limit exceeded".into()));
+    }
+    String::from_utf8(bytes).map_err(|_| Error::Parse {
+        line: 0,
+        message: "text input is not valid UTF-8".into(),
+    })
+}
+
+/// The lines `std::getline` returns: split at LF only, so a CR stays in the
+/// line, and a final LF does not start another line.
+pub(crate) fn getline_lines(text: &str) -> Vec<&str> {
+    let mut lines: Vec<&str> = text.split('\n').collect();
+    if text.is_empty() || text.ends_with('\n') {
+        lines.pop();
+    }
+    lines
+}
+
+/// The adapters' line clean-up: drop one final byte below 33 (a CR, for
+/// instance), then trim space, tab, LF and CR.
+///
+/// The source tests `line[line.length() - 1] < 33` on a `char`, which is
+/// signed on x86, so there it also drops the final byte of a multi-byte UTF-8
+/// character. Only an ASCII byte is dropped here.
+pub(crate) fn clean_line(line: &str) -> &str {
+    let line = match line.as_bytes().last() {
+        Some(&byte) if byte < 33 => &line[..line.len() - 1],
+        _ => line,
+    };
+    line.trim_matches([' ', '\t', '\n', '\r'])
+}
+
+/// `std::string::find(c, from)`: the byte position of `c` at or after
+/// `from`, or [`NPOS`].
+pub(crate) fn find_byte(text: &str, byte: u8, from: usize) -> usize {
+    text.as_bytes()
+        .get(from..)
+        .and_then(|rest| rest.iter().position(|&b| b == byte))
+        .map_or(NPOS, |position| position + from)
+}
+
+/// `std::string::find_last_of(c)`: the last byte position of `c`, or
+/// [`NPOS`].
+pub(crate) fn rfind_byte(text: &str, byte: u8) -> usize {
+    text.as_bytes()
+        .iter()
+        .rposition(|&b| b == byte)
+        .unwrap_or(NPOS)
+}
+
+/// `StringUtils::substr(s, pos, n)`: `pos` clamped to the length, then at
+/// most `n` bytes.
+///
+/// # Errors
+///
+/// [`Error::Parse`] when the cut splits a multi-byte UTF-8 character, which
+/// the source would pass on as a broken byte sequence.
+pub(crate) fn substr(text: &str, pos: usize, n: usize) -> Result<&str> {
+    let begin = pos.min(text.len());
+    let end = begin.saturating_add(n).min(text.len());
+    text.get(begin..end).ok_or_else(|| Error::Parse {
+        line: 0,
+        message: format!("cutting '{text}' at bytes {begin}..{end} splits a character"),
+    })
+}
 
 /// Source `AASequence::fromString(text, permissive = true)`.
 ///
