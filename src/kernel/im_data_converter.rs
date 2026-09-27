@@ -7,12 +7,12 @@
 //! `IONMOBILITY/IMDataConverter.cpp`.
 //!
 //! The source class converts peak maps and spectra between ion-mobility and
-//! FAIMS storage models. Only `splitByFAIMSCV` is ported here, the operation
-//! FeatureFinderCentroided runs on FAIMS input (decision D5 of the early TOPP
-//! bundle). The other members, `reshapeIMFrameToMany`,
-//! `splitExperimentByIonMobility`, `reshapeIMFrameToSingle`, `setIMUnit` and
-//! `getIMUnit`, are not ported; `splitExperimentByIonMobility` needs the
-//! unported `SpectraMerger`.
+//! FAIMS storage models. `splitByFAIMSCV`, the operation FeatureFinderCentroided
+//! runs on FAIMS input (decision D5 of the early TOPP bundle), is ported, and so
+//! are `reshapeIMFrameToMany`, `reshapeIMFrameToSingle` and the two
+//! compatibility entry points `setIMUnit` and `getIMUnit`, which forward to
+//! `crate::kernel::im_data_array_utils`. `splitExperimentByIonMobility` is not
+//! ported: it needs the unported `SpectraMerger`.
 //!
 //! The split is `ImDataConverter::split_by_faims_cv`. It groups the spectra
 //! by the voltages `FaimsHelper::get_compensation_voltages` reports, keyed by
@@ -545,4 +545,262 @@ impl ImDataConverter {
             dropped_chromatograms: input.chromatograms,
         })
     }
+}
+
+/// Frame reshaping and the two array-name entry points (`IMDataConverter.cpp:95-161`
+/// and `:242-333`).
+impl ImDataConverter {
+    /// Spectra one [`reshape_im_frame_to_many`](Self::reshape_im_frame_to_many)
+    /// may produce, which is the number of distinct ion-mobility values in the
+    /// frame; also the number of input spectra
+    /// [`reshape_im_frame_to_single`](Self::reshape_im_frame_to_single) accepts.
+    ///
+    /// Native ceiling, checked before anything is allocated: every output
+    /// spectrum copies the frame's metadata. A timsTOF frame has on the order
+    /// of a thousand mobility scans.
+    pub const MAX_RESHAPED_SPECTRA: usize = 1 << 20;
+
+    /// Name `array` after the ion-mobility unit `unit`, the compatibility entry
+    /// point `IMDataConverter::setIMUnit`, which forwards to
+    /// `ImDataArrayUtils::set_im_unit`.
+    ///
+    /// # Errors
+    ///
+    /// As `ImDataArrayUtils::set_im_unit`: [`Error::InvalidValue`] for a unit
+    /// other than milliseconds or `1/K0`.
+    pub fn set_im_unit(array: &mut super::DataArray<f32>, unit: DriftTimeUnit) -> Result<()> {
+        super::im_data_array_utils::ImDataArrayUtils::set_im_unit(array, unit)
+    }
+
+    /// The ion-mobility unit `array`'s name denotes, or `None`, the
+    /// compatibility entry point `IMDataConverter::getIMUnit`, which forwards
+    /// to `ImDataArrayUtils::im_unit`.
+    pub fn im_unit(array: &super::DataArray<f32>) -> Option<DriftTimeUnit> {
+        super::im_data_array_utils::ImDataArrayUtils::im_unit(array)
+    }
+
+    /// Split an ion-mobility frame — one spectrum concatenated from spectra of
+    /// different ion-mobility values — into one spectrum per distinct value,
+    /// the source `reshapeIMFrameToMany(MSSpectrum im_frame)`.
+    ///
+    /// The frame must carry its ion-mobility values in a float data array (see
+    /// [`MSSpectrum::im_data`]). Each output spectrum carries its value once,
+    /// as its drift time with the array's unit; it has no ion-mobility array.
+    /// Output spectra are in ascending ion-mobility order, each sorted by m/z,
+    /// and copy the frame's metadata (retention time, MS level, native ID,
+    /// settings, precursors, ...). The reverse operation is
+    /// [`reshape_im_frame_to_single`](Self::reshape_im_frame_to_single).
+    ///
+    /// A frame without peaks gives an empty experiment without any check, as
+    /// in the source ("for robustness"). The frame is sorted by ion mobility
+    /// first when it is not sorted already, stably, so peaks sharing a value
+    /// keep their order until the per-spectrum m/z sort. The result is a new
+    /// experiment with default settings, as the source's is; ranges are
+    /// computed on demand, where the source calls `updateRanges`.
+    ///
+    /// # Notes
+    ///
+    /// The source takes the frame by value and drops every data array other
+    /// than the ion-mobility one: only peaks are copied into the output
+    /// spectra. This takes the frame by reference, so nothing is lost to the
+    /// caller, and otherwise reproduces that.
+    ///
+    /// The source starts its "new value" comparison from `FLT_MAX`, so a frame
+    /// whose smallest mobility is `FLT_MAX` dereferences a null spectrum
+    /// pointer; here the first value always opens a spectrum.
+    ///
+    /// # Errors
+    ///
+    /// - [`Error::MissingInformation`] when the frame has peaks but no
+    ///   ion-mobility float data array, as the source's
+    ///   `Exception::MissingInformation`;
+    /// - [`Error::InvalidValue`] when the ion-mobility array's length differs
+    ///   from the peak count or holds a non-finite value (the source reads past
+    ///   the peaks, or silently ignores the surplus, there), when another data
+    ///   array's length differs from the peak count, when the frame's metadata
+    ///   fails [`MSSpectrum::validate`], or when the frame holds more than
+    ///   [`MAX_RESHAPED_SPECTRA`](Self::MAX_RESHAPED_SPECTRA) distinct values or
+    ///   more than [`MSSpectrum::MAX_MOBILITY_ITEMS`] peaks.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use openms::kernel::DataArray;
+    /// use openms::kernel::im_data_converter::ImDataConverter;
+    /// use openms::metadata::DriftTimeUnit;
+    /// use openms::{MSSpectrum, Peak1D};
+    ///
+    /// let mut frame = MSSpectrum::default();
+    /// frame.rt = 12.5;
+    /// frame.peaks = vec![
+    ///     Peak1D { mz: 300.0, intensity: 1.0 },
+    ///     Peak1D { mz: 100.0, intensity: 2.0 },
+    ///     Peak1D { mz: 200.0, intensity: 3.0 },
+    /// ];
+    /// let mut mobility = DataArray::new("", vec![0.9f32, 0.7, 0.9]);
+    /// ImDataConverter::set_im_unit(&mut mobility, DriftTimeUnit::InverseReducedMobility)?;
+    /// frame.float_data_arrays.push(mobility);
+    ///
+    /// let many = ImDataConverter::reshape_im_frame_to_many(&frame)?;
+    /// assert_eq!(many.len(), 2);
+    /// assert_eq!(many.spectra[0].drift_time, f64::from(0.7f32));
+    /// assert_eq!(many.spectra[1].peaks[0].mz, 200.0); // m/z-sorted within 0.9
+    /// assert!(many.spectra.iter().all(|s| s.rt == 12.5 && s.float_data_arrays.is_empty()));
+    /// # Ok::<(), openms::Error>(())
+    /// ```
+    pub fn reshape_im_frame_to_many(im_frame: &MSSpectrum) -> Result<MSExperiment> {
+        let mut out = MSExperiment::default();
+        if im_frame.peaks.is_empty() {
+            return Ok(out);
+        }
+        let mut frame = im_frame.clone();
+        if !frame.is_sorted_by_im()? {
+            frame.sort_by_ion_mobility()?;
+        }
+        let (im_index, im_unit) = frame.im_data()?;
+        let values = &frame.float_data_arrays[im_index].data;
+        let distinct = 1 + values.windows(2).filter(|pair| pair[0] != pair[1]).count();
+        if distinct > Self::MAX_RESHAPED_SPECTRA {
+            return Err(Error::InvalidValue(format!(
+                "ion mobility frame holds {distinct} distinct values, more than {}",
+                Self::MAX_RESHAPED_SPECTRA
+            )));
+        }
+        // The frame's metadata without its raw data and without any array.
+        let mut prototype = frame.clone();
+        prototype.clear(false);
+        prototype.validate()?;
+        out.spectra
+            .try_reserve_exact(distinct)
+            .map_err(|_| Error::InvalidValue("ion mobility frame allocation failed".into()))?;
+        let mut last: Option<f32> = None;
+        for (peak, &im) in frame.peaks.iter().zip(values) {
+            if last != Some(im) {
+                last = Some(im);
+                let mut spectrum = prototype.clone();
+                spectrum.drift_time = f64::from(im);
+                spectrum.drift_time_unit = im_unit;
+                out.spectra.push(spectrum);
+            }
+            if let Some(spectrum) = out.spectra.last_mut() {
+                spectrum.peaks.push(*peak);
+            }
+        }
+        for spectrum in &mut out.spectra {
+            spectrum.sort_by_position()?;
+        }
+        Ok(out)
+    }
+
+    /// Collapse the spectra of one ion-mobility frame — consecutive spectra
+    /// with the same retention time, each with its own drift time — into one
+    /// spectrum with an ion-mobility float data array, the source
+    /// `reshapeIMFrameToSingle(const MSExperiment& in)`.
+    ///
+    /// The source documentation, carried across: frames are recognised by
+    /// having the same retention time for subsequent spectra, and the
+    /// ion-mobility information is taken from each input spectrum's drift time.
+    /// Multiple frames are allowed. A spectrum that is not a per-spectrum
+    /// ion-mobility spectrum (`ImTypes::determine_im_format` is not
+    /// `PerSpectrum`: it has no drift time, or it already is a frame with an
+    /// ion-mobility array) is copied unchanged, and ends the frame being
+    /// collected. The reverse operation is
+    /// [`reshape_im_frame_to_many`](Self::reshape_im_frame_to_many).
+    ///
+    /// Each collapsed spectrum copies the metadata of the frame's first
+    /// spectrum, appends every spectrum's peaks in input order (no m/z sort),
+    /// and gains one float data array named for the first spectrum's drift
+    /// time unit by [`set_im_unit`](Self::set_im_unit), holding each peak's
+    /// drift time converted to `f32`; its own drift time is unset and its unit
+    /// [`DriftTimeUnit::None`]. As in the source, the output is a new
+    /// experiment with default settings and no chromatograms, and data arrays
+    /// of the collapsed spectra are not carried; the input is borrowed, so
+    /// nothing is lost to the caller.
+    ///
+    /// # Notes
+    ///
+    /// The source's `@throws` for a spectrum with both a drift time and an
+    /// ion-mobility array does not happen: `determineIMFormat` classifies such
+    /// a spectrum as a frame, which is copied. `docs/IM_TYPES_SUPPORT.md`
+    /// records that header/implementation disagreement.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when a frame's first spectrum has a drift time
+    /// unit other than milliseconds or `1/K0` — FAIMS compensation voltage,
+    /// collision cross section or none — where the source's `setIMUnit` throws
+    /// `Exception::InvalidValue` from inside the collapse; when the input holds
+    /// more than [`MAX_RESHAPED_SPECTRA`](Self::MAX_RESHAPED_SPECTRA) spectra;
+    /// when a collapsed spectrum would exceed
+    /// [`MSSpectrum::MAX_MOBILITY_ITEMS`] peaks; or when an allocation fails.
+    /// The input is never modified.
+    pub fn reshape_im_frame_to_single(experiment: &MSExperiment) -> Result<MSExperiment> {
+        if experiment.spectra.len() > Self::MAX_RESHAPED_SPECTRA {
+            return Err(Error::InvalidValue(format!(
+                "{} spectra exceed the reshaping limit of {}",
+                experiment.spectra.len(),
+                Self::MAX_RESHAPED_SPECTRA
+            )));
+        }
+        let mut result = MSExperiment::default();
+        let mut stack: Vec<&MSSpectrum> = Vec::new();
+        let mut current_rt = f64::MAX;
+        for spectrum in &experiment.spectra {
+            if crate::metadata::ImTypes::determine_im_format(spectrum)
+                != crate::metadata::IonMobilityFormat::PerSpectrum
+            {
+                collapse_drift_time_stack(&mut stack, &mut result)?;
+                result.spectra.push(spectrum.clone());
+                continue;
+            }
+            if spectrum.rt != current_rt {
+                collapse_drift_time_stack(&mut stack, &mut result)?;
+                current_rt = spectrum.rt;
+            }
+            stack.push(spectrum);
+        }
+        collapse_drift_time_stack(&mut stack, &mut result)?;
+        Ok(result)
+    }
+}
+
+/// The source's file-static `processDriftTimeStack`: collapse the collected
+/// spectra of one frame into one spectrum and append it to `result`.
+fn collapse_drift_time_stack(
+    stack: &mut Vec<&MSSpectrum>,
+    result: &mut MSExperiment,
+) -> Result<()> {
+    let Some(first) = stack.first() else {
+        return Ok(());
+    };
+    let total: usize = stack.iter().map(|spectrum| spectrum.peaks.len()).sum();
+    if total > MSSpectrum::MAX_MOBILITY_ITEMS {
+        return Err(Error::InvalidValue(format!(
+            "collapsed ion mobility frame of {total} peaks exceeds MAX_MOBILITY_ITEMS"
+        )));
+    }
+    let mut collapsed = (*first).clone();
+    collapsed.clear(false);
+    let mut mobility = super::DataArray::new("", Vec::new());
+    ImDataConverter::set_im_unit(&mut mobility, collapsed.drift_time_unit)?;
+    let allocation = |_| Error::InvalidValue("ion mobility frame allocation failed".into());
+    collapsed
+        .peaks
+        .try_reserve_exact(total)
+        .map_err(allocation)?;
+    mobility.data.try_reserve_exact(total).map_err(allocation)?;
+    for spectrum in stack.iter() {
+        collapsed.peaks.extend_from_slice(&spectrum.peaks);
+        // The source's `FloatDataArray` holds `float`; the drift time narrows.
+        let value = spectrum.drift_time as f32;
+        mobility
+            .data
+            .extend(std::iter::repeat_n(value, spectrum.peaks.len()));
+    }
+    collapsed.float_data_arrays.push(mobility);
+    collapsed.drift_time = -1.0;
+    collapsed.drift_time_unit = DriftTimeUnit::None;
+    result.spectra.push(collapsed);
+    stack.clear();
+    Ok(())
 }

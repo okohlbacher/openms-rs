@@ -1250,3 +1250,5 @@ impl MSExperiment {
         }
     }
 }
+/// Ion-mobility float data array names and units (`IONMOBILITY/IMDataArrayUtils.h`).
+pub mod im_data_array_utils;
