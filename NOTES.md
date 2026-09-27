@@ -1,35 +1,35 @@
 # Lane A5b NOTES (restart checkpoint)
 
-Scope list: `/Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-R/.planning/a5-lists.json` key `A5b` (37 headers):
-DATASTRUCTURES/Matrix.h, IMAGING/IonImage.h, IMAGING/MSImagingGeometry.h, IMAGING/MSImagingRegion.h,
-IONMOBILITY/IMDataArrayUtils.h, IONMOBILITY/IMDataConverter.h, KERNEL/MSSpectrum.h, KERNEL/OnDiscImzMLExperiment.h,
-MATH/STATISTICS/GumbelDistributionFitter.h, MATH/STATISTICS/MultipleTesting.h, MATH/STATISTICS/PosteriorErrorProbabilityModel.h,
-METADATA/ChromatogramSettings.h, METADATA/DataArrays.h, METADATA/ID/IdentificationData.h, METADATA/ID/IdentificationDataConverter.h,
-METADATA/MetaInfo.h, METADATA/MetaInfoDescription.h, METADATA/MetaInfoInterface.h, METADATA/MetaInfoRegistry.h,
-METADATA/PeptideHit.h, METADATA/Precursor.h, METADATA/Product.h, METADATA/ProteinHit.h, METADATA/Software.h,
-METADATA/SpectrumLookup.h, METADATA/SpectrumMetaDataLookup.h, METADATA/SpectrumNativeIDParser.h, METADATA/SpectrumSettings.h,
-METADATA/USI.h, ML/SVM/SimpleSVM.h, SYSTEM/BuildInfo.h, SYSTEM/JavaInfo.h, SYSTEM/PythonInfo.h, SYSTEM/RWrapper.h,
-SYSTEM/SIMDe.h, SYSTEM/StopWatch.h, SYSTEM/SysInfo.h
-
+Scope list: `/Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-R/.planning/a5-lists.json` key `A5b` (37 headers).
 Outputs: report -> main repo .planning/lane-reports/A5b.md ; ledger -> main repo .planning/ledger-fragments/wave4/A5b.json
 
-## Findings so far
-- C++ sources dumped to scratchpad cpp/ via scratchpad/dump_cpp.sh (git -C with a LITERAL path works; shell variables
-  in git -C, or python heredocs mentioning git, are refused by the worktree guard).
-- Ledger statuses allowed: complete | partial | native_equivalent (tools/core_sdk_coverage.py:234).
-- JavaInfo/PythonInfo/RWrapper: every member mapped in docs/*_SUPPORT.md API tables; remaining 'partial' reasons are API
-  shape differences (verbose param, FileContext) -> mark COMPLETE.
-- Gumbel: git grep at bc9cc12 confirms GumbelDistributionFitter::fitWeighted (h:81) and GumbelDistributionFitResult::eval
-  (h:51) have NO definition (only GumbelMaxLikelihoodFitter::fitWeighted exists, cpp:74; its test :175 calls the
-  MaxLikelihood one). -> record 'complete' with the impossibility evidence (no 'impossible' status exists).
-- MultipleTesting: only gap = Pi0Smoother seam (math cannot import processing). Close by a library adapter in processing
-  (new file + pub mod line) implementing Pi0Smoother over processing::spline::smoothing::BSplineSmoothingSpline; switch
-  tests/multiple_testing.rs's local struct to the library one.
-- SysInfo/StopWatch/BuildInfo: partial for platform bindings (macOS/Windows); leave partial, name crates (rustix getrusage,
-  memory-stats, sysinfo). cpu-time 1.0.0 already a target dep.
-- fancy-regex =0.19.2 IS a dependency now -> SpectrumNativeIDParser/SpectrumLookup scopes saying 'no regex engine' are STALE.
+## Tooling (worktree guard quirks)
+- Scratch: `<scratchpad>/A5b/` (scratchpad is SHARED with other lanes; top-level files there are not ours except
+  dump_cpp.sh, ledger_a5b.*). C++ sources for all 37 headers: `<scratchpad>/cpp/<Name>.h|.cpp|_test.cpp`.
+- Print ledger scopes: `python3 <scratchpad>/A5b/scopes.py <filter...>` from the worktree root.
+- Shell variables as program paths, `cd x && ...` chains and heredocs are refused by the guard: use literal paths,
+  Write tool for scripts, one plain command per call.
+- Ledger statuses allowed: complete | partial | native_equivalent (tools/core_sdk_coverage.py:234). No 'impossible'.
+
+## Triage (second incarnation, from ledger scopes)
+- JavaInfo/PythonInfo/RWrapper: every member mapped; 'partial' reasons are API-shape differences -> COMPLETE after
+  member-by-member check.
+- Gumbel: fitWeighted (h:81) and GumbelDistributionFitResult::eval (h:51) have NO definition at bc9cc12 -> complete
+  with impossibility evidence (report: lead may want an 'impossible' status).
+- MultipleTesting: only gap = Pi0Smoother seam. Close with a library adapter in processing implementing Pi0Smoother over
+  processing::spline::smoothing::BSplineSmoothingSpline; switch tests/multiple_testing.rs to it.
+- SysInfo/StopWatch/BuildInfo: platform bindings (macOS/Windows) -> leave partial, name crates.
+- fancy-regex =0.19.2 IS a dependency -> SpectrumNativeIDParser/SpectrumLookup 'no regex engine' scopes are STALE.
+- Cheap metadata gaps: Software (Ord + Hash), Precursor (4 activation-method string helpers + Hash),
+  PeptideHit/ProteinHit (comparator functors, hash), ChromatogramSettings (hash, Display).
+- Genuine ports: USI.h (1 TOPP consumer), MetaInfoRegistry.h.
+- No Rust at all: Matrix.h, SIMDe.h, SimpleSVM.h, MetaInfoRegistry.h, USI.h.
+
+## Done
+(none yet)
 
 ## Next step
-1. Dump ledger entries (docs/core-sdk-coverage.json) for the 37 headers into scratchpad.
-2. Triage: cheap confirmations first (MultipleTesting, SysInfo, PythonInfo, RWrapper, JavaInfo, BuildInfo, StopWatch, SIMDe), Gumbel impossible.
-3. Then USI.h, MetaInfoRegistry.h ports.
+1. Confirm JavaInfo/PythonInfo/RWrapper member-by-member; write ledger fragment entries.
+2. Gumbel entry; MultipleTesting adapter.
+3. USI.h port; MetaInfoRegistry.h port.
+4. Cheap metadata gaps (Software, Precursor, PeptideHit, ProteinHit).
