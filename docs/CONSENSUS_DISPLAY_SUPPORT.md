@@ -144,9 +144,9 @@ unaccounted; 39 of 39 sections accounted for, all in the earlier package.
 
 * `src/kernel/map_operations.rs` keeps its private copy of the layout; see
   **Native differences**. Not a porting gap — the same output, twice.
-* `tests/data/consensus_display_provenance.json` is not yet listed in
-  `SOURCE_PROVENANCE.json`, so `tools/check_core_sdk.py` does not verify its
-  hashes. Registering it is the integrator's step.
+* `tests/data/consensus_display_provenance.json` is listed in
+  `SOURCE_PROVENANCE.json`'s `current_sdk_reference_manifests` (since
+  `a80a370`), so `tools/check_core_sdk.py` verifies its hashes.
 
 ## Validation
 

@@ -1059,7 +1059,9 @@ report):
 - `mass_trace:min_spectra = 1` follows the source (B6 (a), `CPP-271`) and a
   changed isotope abundance computes the intended override (B6 (b),
   `CPP-247`) — both landed in B7's branch, and the ledger and support documents
-  now say so. B6 (c), the overall score, is still open.
+  now say so. B6 (c), the overall score, was still open at this point; it
+  closed with `60d050b`, whose `glibc_powf.rs` computes the Release build's
+  `powf` (`CPP-272`, wave-5 decision D5).
 - The dangling-reference leniency is a tool-side option (P2 request 1, D10):
   the library default stays strict, `FileHandler` does not enable it, and A5's
   FileInfo tool passes it on its own load path.
@@ -1086,6 +1088,7 @@ report):
   `tests/file_info.rs::a4_mzml_file_1_all_flags` stays `#[ignore]`d until one
   is. **The lead.**
 - **B6 (c)**, the overall seed score against the platform `powf` (`CPP-272`).
+  Since closed by `60d050b` (`glibc_powf.rs`; see [OPEN_ITEMS](OPEN_ITEMS.md), DEC-7).
 - **A resource-refusal exit code.** A ceiling refusal surfaces as exit 8
   ("Unexpected internal error") or, on the reader, exit 3
   (INPUT_FILE_CORRUPT). Neither reads as "out of resources", and one
@@ -1527,7 +1530,7 @@ defensible. They are also recorded in [VALIDATION](VALIDATION.md).
 **D16 was filed in this list in error and has moved.** This list is wave 5's
 own, D1-D13, and D16 belongs to the shared-math wave of 2026-09-19. Its full
 text, with the provenance of when and on what grounds the lead took it, is now
-in [VALIDATION](VALIDATION.md#lead-decisions-d1-d17), beside D14, D15 and D17.
+in [VALIDATION](VALIDATION.md#lead-decisions-d1-d18), beside D14, D15 and D17.
 Nothing about the decision changed in the move.
 
 ### What remains

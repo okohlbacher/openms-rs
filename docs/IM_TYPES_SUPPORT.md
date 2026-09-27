@@ -290,11 +290,12 @@ array"`, which is what `IMDataArrayUtils::setIMUnit` writes for the fixture's
 * **`KERNEL/DimMapper.h` is deferred to the TOPPView package.** Basis: zero core
   includers; its six consumers are all `desktop/gui/source/VISUAL/*.cpp`
   (`PlotCanvas`, `LayerData*`). It is TOPPView code sitting in the `KERNEL`
-  directory, so this is a package boundary, not a kernel gap. This is the
-  KERNEL domain's one deliberate scope exclusion.
-* `tests/data/im_types_provenance.json` is not yet listed in
-  `SOURCE_PROVENANCE.json`, so `tools/check_core_sdk.py` does not verify its
-  hashes. Registering it is the integrator's step.
+  directory, so this is a package boundary, not a kernel gap. It was the
+  KERNEL domain's one deliberate scope exclusion until milestone M1
+  (2026-09-22) counted every core header, this one included, under CORE-18.
+* `tests/data/im_types_provenance.json` is listed in
+  `SOURCE_PROVENANCE.json`'s `current_sdk_reference_manifests` (since
+  `a80a370`), so `tools/check_core_sdk.py` verifies its hashes.
 
 ## Source defects observed
 

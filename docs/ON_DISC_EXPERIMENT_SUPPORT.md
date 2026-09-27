@@ -403,11 +403,11 @@ there.
 - `docs/core-sdk-reviewed-apis.json` records
   `FORMAT/HANDLERS/IndexedMzMLHandler.h` with "Not ported: … setSkipXMLChecks",
   which is wrong — that member maps to `options_mut().skip_xml_checks` and
-  reaches the decoder. Correcting that scope string belongs to the integrator,
-  who owns the ledger.
-- `tests/data/on_disc_experiment_provenance.json` is not listed in
-  `SOURCE_PROVENANCE.json`, so `tools/check_core_sdk.py` does not verify the
-  hashes it records — including the `MzMLFile_1.mzML` hash restored above, which
+  reaches the decoder. The integrator corrected that scope string in `a80a370`.
+- `tests/data/on_disc_experiment_provenance.json` is listed in
+  `SOURCE_PROVENANCE.json`'s `current_sdk_reference_manifests` (since
+  `a80a370`), so `tools/check_core_sdk.py` verifies the hashes it records;
+  before that, including the `MzMLFile_1.mzML` hash restored above, which
   was therefore checked by hand against the pinned copy and against the second
   in-tree copy at `tests/data/mzml_header/MzMLFile_1.original.mzML`. Registering
   the manifest is the integrator's step.

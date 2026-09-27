@@ -521,12 +521,13 @@ reader in this crate reads both fixtures correctly. Candidates for
   is recognised by extension and by content already. Routing `FileHandler`
   through `ImzMLFile` would change `src/format/file_handler.rs`, outside this
   package.
-- **`docs/doc-coverage.json` was not rewritten.** `src/format/imzml_file.rs`
+- **`docs/doc-coverage.json` was not rewritten here** (the integrator recorded
+  it in `051f475`). `src/format/imzml_file.rs`
   measures 100.0% (48/48); recording the new floor with
   `check_doc_coverage.py --write` is the integrator's step.
-- **CI wiring** is the integrator's step: append `--test imzml_file --test
-  imzml_all_modes` to a `--features mzml` line of the `minimum-rust` job in
-  `.github/workflows/rust.yml`. Both tests pass under `--no-default-features
+- **CI wiring** was the integrator's step, done in `1b6c30a` (`--test
+  imzml_file --test imzml_all_modes` on a `--features mzml` line of the `minimum-rust` job, generated
+  by `tools/ci_matrix.py` since `5c4a44a`). Both tests pass under `--no-default-features
   --features mzml` and under `cargo +1.85.0`; `is_valid` and its one test are
   gated on the existing `mzml-schema` feature, so they are simply absent there.
 - **`OpenMS_CPP_ISSUES.md`** was not edited; the two fixture defects above are
