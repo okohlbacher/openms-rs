@@ -19,12 +19,14 @@ SP=/private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-Ope
 - Scripts repointed to this worktree (wf_ee239125-5be-3) on restart.
 - The worktree guard refuses heredocs, `$VAR` programs and compound git: write scripts to $SP, call with literal paths.
 
-## Verdicts so far (.planning-A2a/v-*.json, format {rest: [status, clause]})
-- CHEMISTRY: all 15 done (13 complete, 2 partial: MassDecompositionAlgorithm and
-  TheoreticalSpectrumGeneratorXLMS lack the DefaultParamHandler defaults/from_param/to_param surface).
+## Verdicts (.planning-A2a/v-*.json, format {rest: [status, clause]}) -- ALL 72 DONE
+- 56 complete, 11 partial, 5 stay native_equivalent (ExposedVector, TypeAliases, MapUtilities, DPeak, StandardTypes).
+- Ledger keys are `src/openms/include/OpenMS/<X>.h` (NOT packages/core/...); all 72 header sha256 at
+  bc9cc12 match docs/core-sdk-coverage.json.
+- Fragment built by $SP/build.py -> .planning/ledger-fragments/wave4/A2a.json (main checkout, git-excluded).
+- Crate findings for the report: rusqlite (bundled C SQLite, fails "pure Rust") and flate2 have no
+  THIRD_PARTY_CRATE_DECISIONS.md entry; chrono, rand_mt, base64 do.
 
 ## Next step
-1. CONCEPT (4), DATASTRUCTURES (11), FEATUREFINDER (3), FORMAT (19), INTERFACES (1), KERNEL (19):
-   read header public members, check Rust file, record verdict in .planning-A2a/v-<group>.json; commit per group.
-2. Build fragment JSON (.planning/ledger-fragments/wave4/A2a.json in main checkout) + report
-   (.planning/lane-reports/A2a.md) from the verdicts; delete NOTES.md and .planning-A2a in the final commit.
+1. Write .planning/lane-reports/A2a.md (main checkout).
+2. Final commit: delete NOTES.md and .planning-A2a.
