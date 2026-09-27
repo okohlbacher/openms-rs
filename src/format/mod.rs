@@ -190,5 +190,12 @@ fn single_line(value: &str) -> bool {
 pub mod kroenik_file;
 /// msInspect feature files (`MsInspectFile.h`).
 pub mod ms_inspect_file;
+/// OMSSA comma-separated result files (`OMSSACSVFile.h`).
+pub mod omssa_csv_file;
+/// Permissive sequence parsing shared by the search-engine adapters.
+pub mod search_engine_text;
+/// Bounded SAX-style driver shared by the X! Tandem and OMSSA XML readers.
+#[cfg(feature = "idxml")]
+pub mod search_engine_xml;
 /// SpecArray `.pepList` feature files (`SpecArrayFile.h`).
 pub mod spec_array_file;
