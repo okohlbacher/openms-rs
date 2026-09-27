@@ -2,16 +2,26 @@
 
 Merged prerequisite worktree-wf_ee239125-5be-1 (fast-forward to 9fcb962).
 
-## Scope (cli pin c19e494, `git -C ../OpenMS4-tests/packages/cli show c19e494:<path>`)
-- include/OpenMS/APPLICATIONS/TOPPExternalToolBase.h + source/..cpp; test tests/source/TOPPExternalToolBase_test.cpp
+## Scope (cli pin c19e494, `git -C /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-tests/packages/cli show c19e494:<path>`)
+(The sandbox refuses `for` loops / `cd` around git: run one plain `git -C <abs> show` per call.)
+- TOPPExternalToolBase.h/.cpp; test tests/source/TOPPExternalToolBase_test.cpp (ls -ld . / ls -0 / missing exe)
 - MapAlignerBase.h/.cpp; tests MapAlignerBase_test.cpp, MapAlignerDefaults_test.cpp
-- SearchEngineBase.h/.cpp; test SearchEngineBase_test.cpp (fixtures tests/data/Single_MS2_profileMode.mzML, degenerate_cases/*)
-- INIUpdater.h/.cpp; test INIUpdater_test.cpp (needs ToolHandler = src/cli/tool_handler.rs)
-- TOPPBase_defs.h (Citation + 3 exceptions); ExitCode already in src/cli/parameter.rs
-- Plan doc: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-R/.planning/CLI-PACKAGE.md sec 2,3
+- SearchEngineBase.h/.cpp; test SearchEngineBase_test.cpp (fixtures tests/data/Single_MS2_profileMode.mzML, degenerate_cases/{empty.fasta,empty_spec.mzML})
+- INIUpdater.h/.cpp; test INIUpdater_test.cpp
+- TOPPBase_defs.h: Citation already in src/cli/defs.rs; B0 closed the accessor-misuse arms (ToolContext::escaped_refusal, test accessor_misuse_ends_as_the_source_catch_blocks_end_it in tests/topp_cli_lifecycle.rs). Ledger entry in docs/core-sdk-reviewed-apis.json is stale (still "partial").
+
+## Findings
+- TOPP tools THROW the three defs exceptions directly: IDSplitter.cpp:98, IsobaricWorkflow.cpp:508, LuciphorAdapter.cpp:447 (RequiredParameterNotGiven), MapAlignerIdentification.cpp:282,578 (WrongParameterType), ProteinQuantifier.cpp:1140. -> add ToolError::{required_parameter_not_given, unregistered_parameter, wrong_parameter_type} with the catch texts (TOPPBase.cpp:466-493; RequiredParameterNotGiven quotes what() unless it starts with ').
+- TOPPExternalToolBase: ep.run(..., verbose=true, READ_WRITE, env). callbacks append + OPENMS_LOG_INFO<<chunk at debug>=4; on failure with debug<4 writeLogError_("Standard output: "+out) and ("Standard error: "+err). Rust: src/system/external_process.rs ExternalProcess::with_callbacks/run(&Invocation, verbose)->Result<RunReport>.
+- ToolSpec lacks registerTOPPSubsection_ (map assign, overwrites) -> add ToolSpec::register_topp_subsection (needed by MapAlignerBase).
+- MapAlignerBase::getModelDefaults = TransformationModelDefaults::getDefaults, being ported by lane worktree-wf_ee239125-5be-30 as analysis::transformations::params::transformation_model_defaults. Do NOT duplicate: named gap.
+- MapAlignmentTransformer: src/analysis/alignment_transformer.rs transform_experiment.
+- SearchEngineBase deps: format::mzml::centroid_info(_with_options), system::file find_database (FileContext method), analysis::peptide_indexing::PeptideIndexing::run, FileHandler::get_type.
+- INIUpdater: std::map<TDI,TDI> ordered/looked-up by operator< == sort_key string equality. list::create("") -> empty. ToolHandler::get_topp_tool_list(&self).
+- Oracle: build like ../oracle/toppbase-completion/ctd_driver.sh (add -lOpenMS_CLI), run on ibminode06 via ssh -J kohlbach@sshgw.cs.uni-tuebingen.de kohlbach@ibminode06.
 
 ## Order
-1. TOPPBase_defs (Citation, exceptions)  2. TOPPExternalToolBase  3. SearchEngineBase  4. MapAlignerBase  5. INIUpdater
+1. defs ToolError ctors  2. external_tool.rs  3. ini_updater.rs  4. search_engine.rs  5. map_aligner.rs  6. oracle B7-cli  7. docs/ledger/report
 
 ## Next step
-1. Read the C++ headers/tests above and src/cli/{defs,tool_handler,context,spec}.rs, src/system/external_process.rs.
+1. Write src/cli/external_tool.rs (ToolContext::run_external_process*), then defs ctors in outcome.rs.
