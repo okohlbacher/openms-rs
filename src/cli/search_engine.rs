@@ -93,9 +93,11 @@ impl SearchEngineBase {
     ///
     /// The warnings go to `err` as the source's `OPENMS_LOG_WARN` writes them
     /// (yellow on a terminal, not in the `-log` file). The source writes the
-    /// last one without a line break, so its text stays in the log stream's
-    /// buffer and appears in front of the next warning line, or at the end of
-    /// the process; this writes it as a line of its own.
+    /// last one without a line break, so it stays in the log stream's buffer
+    /// and reaches standard error at the end of the process, after everything
+    /// else; it is kept with
+    /// [`write_log_warn_unterminated`](ToolContext::write_log_warn_unterminated)
+    /// for the same place.
     ///
     /// # Errors
     ///
@@ -124,12 +126,9 @@ impl SearchEngineBase {
             }
             FileType::Mgf | FileType::BrukerTdf => {}
             _ => {
-                log_warning(
-                    err,
-                    &format!(
-                        "Warning: make sure that MS{ms_level} spectra in '{inputfile_name}' are centroided. Otherwise the results may be undefined!"
-                    ),
-                )?;
+                ctx.write_log_warn_unterminated(&format!(
+                    "Warning: make sure that MS{ms_level} spectra in '{inputfile_name}' are centroided. Otherwise the results may be undefined!"
+                ));
             }
         }
         Ok(inputfile_name)

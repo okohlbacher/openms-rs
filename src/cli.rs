@@ -42,6 +42,7 @@ mod console;
 mod context;
 mod defs;
 mod external_tool;
+mod info_stream;
 mod ini_updater;
 mod logging;
 mod map_aligner;
@@ -2496,7 +2497,14 @@ pub fn run_with_registry<T: Tool>(
         deferred: std::cell::RefCell::new(Vec::new()),
     };
     let code = match prepare::<T>(&mut session, &spec, arguments, out, err) {
-        Ok(Prepared::Run(ctx)) => run_body::<T>(&session, &ctx, out, err),
+        Ok(Prepared::Run(ctx)) => {
+            let code = run_body::<T>(&session, &ctx, out, err);
+            let pending = ctx.take_unterminated_warning();
+            if !pending.is_empty() {
+                session.defer(&[pending]);
+            }
+            code
+        }
         Ok(Prepared::Done(code)) => code,
         Err(error) => initialisation_failure::<T>(&error, err),
     };
@@ -2534,27 +2542,31 @@ fn run_body<T: Tool>(
     let _ = watch.start();
     let result = T::run_io(ctx, out, err);
     let _ = watch.stop();
-    match result {
+    let code = match result {
         Ok(code) => {
             let memory = crate::system::sys_info::process_peak_memory_consumption()
                 .filter(|&kib| kib != 0)
                 .map(|kib| format!("; Peak Memory Usage: {} MB", kib / 1024))
                 .unwrap_or_default();
-            let _ = writeln!(out, "{} took {}{memory}.", T::NAME, watch.summary());
+            let closing = format!("{} took {}{memory}.", T::NAME, watch.summary());
+            if !ctx.finish_info_stream(out, Some(&closing)) {
+                let _ = writeln!(out, "{closing}");
+            }
             code
         }
         Err(ToolError::Error(error)) => {
             if let Some((code, text)) = ctx.escaped_refusal(&error) {
                 let _ = session.error(out, err, &text);
-                return code;
+                code
+            } else {
+                let mut text = Vec::new();
+                let code = run_failure(&error, &mut text);
+                let text = String::from_utf8_lossy(&text);
+                for line in text.lines() {
+                    let _ = session.error(out, err, line);
+                }
+                code
             }
-            let mut text = Vec::new();
-            let code = run_failure(&error, &mut text);
-            let text = String::from_utf8_lossy(&text);
-            for line in text.lines() {
-                let _ = session.error(out, err, line);
-            }
-            code
         }
         Err(ToolError::Caught { code, message }) => {
             for line in message.lines() {
@@ -2569,7 +2581,11 @@ fn run_body<T: Tool>(
             );
             ExitCode::InternalError
         }
-    }
+    };
+    // The info stream's end of process: repeated lines still cached and
+    // unfinished text, after the closing line when there is one.
+    ctx.finish_info_stream(out, None);
+    code
 }
 
 /// Run a tool against the process arguments and standard streams, returning the

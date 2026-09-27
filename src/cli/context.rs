@@ -8,6 +8,7 @@
 //!
 //! See `docs/TOPP_CLI_SUPPORT.md` for the supported source subset.
 
+use super::info_stream::InfoStream;
 use super::logging::ToolLog;
 use super::parameter::ExitCode;
 use super::processing::{self, AddDataProcessing};
@@ -52,6 +53,8 @@ pub struct ToolContext {
     threads: i64,
     log: Arc<ToolLog>,
     refusals: Arc<Mutex<Vec<Refusal>>>,
+    unterminated_warning: Arc<Mutex<String>>,
+    info_stream: Arc<Mutex<InfoStream>>,
 }
 
 /// An accessor refusal the source raises as an exception of its own, kept so
@@ -100,7 +103,80 @@ impl ToolContext {
             threads,
             log,
             refusals: Arc::default(),
+            unterminated_warning: Arc::default(),
+            info_stream: Arc::default(),
         }
+    }
+
+    /// Write `text` to the run's info log stream as the source's
+    /// `OPENMS_LOG_INFO << text` does, with no line break added.
+    ///
+    /// The source's stream prints a line once it is complete and passes it
+    /// through a two-line repetition cache: a line equal to one of the two
+    /// printed last is counted, not printed, and `<line> occurred N times`
+    /// follows once it leaves the cache. The lifecycle writes the closing
+    /// `<tool> took … .` line to the same stream at the end of the run, which
+    /// then reports the repeated lines still cached and prints unfinished
+    /// text, as the source's stream does at the end of the process
+    /// (`src/cli/info_stream.rs`). Nothing reaches the `-log` file.
+    ///
+    /// Text a tool writes to `out` directly bypasses this stream, and so its
+    /// cache; only [`run_external_process`](Self::run_external_process) writes
+    /// here so far.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Io`] when `out` fails.
+    pub fn write_info_stream(&self, out: &mut dyn Write, text: &str) -> Result<()> {
+        let mut stream = self
+            .info_stream
+            .lock()
+            .map_err(|_| bad("the info log stream is poisoned"))?;
+        stream.write(out, text)?;
+        Ok(())
+    }
+
+    /// End the run's info log stream with `closing` as its last line, when
+    /// anything was written to it; `false` when nothing was, so the caller
+    /// prints `closing` itself.
+    pub(crate) fn finish_info_stream(&self, out: &mut dyn Write, closing: Option<&str>) -> bool {
+        let Ok(mut stream) = self.info_stream.lock() else {
+            return false;
+        };
+        if !stream.used() {
+            return false;
+        }
+        let _ = stream.finish(out, closing);
+        true
+    }
+
+    /// Text the source writes to `OPENMS_LOG_WARN` without a line break.
+    ///
+    /// The source's log stream passes a line on only when it is flushed, so
+    /// such text stays in the warning stream's buffer and reaches standard
+    /// error when the process ends, after everything else the run printed
+    /// (Release build, oracle `se_mzxml_twice` of `../oracle/B7-cli`: the
+    /// warning follows the error lines of a failed run). The lifecycle
+    /// writes what was kept here as the last warning line of the run, once
+    /// the tool body has ended, as the source's stream does at exit; texts
+    /// kept twice are joined, as they are in the stream's buffer.
+    ///
+    /// The source would also put the text in front of the next warning line
+    /// that is flushed; a tool that writes such a line after calling this has
+    /// no counterpart of that joined line (no ported caller does).
+    pub fn write_log_warn_unterminated(&self, text: &str) {
+        if let Ok(mut pending) = self.unterminated_warning.lock() {
+            pending.push_str(text);
+        }
+    }
+
+    /// The text [`write_log_warn_unterminated`](Self::write_log_warn_unterminated)
+    /// kept, emptied.
+    pub(crate) fn take_unterminated_warning(&self) -> String {
+        self.unterminated_warning
+            .lock()
+            .map(|mut pending| std::mem::take(&mut *pending))
+            .unwrap_or_default()
     }
 
     /// `error`, recorded as the source's exception that ends a run with

@@ -112,9 +112,11 @@ impl ToolContext {
     /// message (see [`ExternalProcess::run`]).
     ///
     /// * At debug level [`EXTERNAL_OUTPUT_DEBUG_LEVEL`] or above, every chunk
-    ///   of either stream is written to `out` as it arrives, as the source's
-    ///   callbacks send it to `OPENMS_LOG_INFO` (with no line break added and
-    ///   nothing in the `-log` file).
+    ///   of either stream goes to the run's info log stream as it arrives
+    ///   ([`write_info_stream`](Self::write_info_stream)), as the source's
+    ///   callbacks send it to `OPENMS_LOG_INFO`: on `out`, with no line break
+    ///   added, a line repeated within the stream's two-line cache counted
+    ///   rather than printed, and nothing in the `-log` file.
     /// * Below that level, a failed run writes `Standard output: <stdout>`
     ///   and then `Standard error: <stderr>` through
     ///   [`write_log_error`](Self::write_log_error): on `err`, red on a
@@ -154,11 +156,12 @@ impl ToolContext {
         let stdout = RefCell::new(String::new());
         let stderr = RefCell::new(String::new());
         let console = RefCell::new(&mut *out);
-        let failure: RefCell<Option<std::io::Error>> = RefCell::new(None);
+        let failure: RefCell<Option<Error>> = RefCell::new(None);
         let forward = |target: &RefCell<String>, text: &str| {
             target.borrow_mut().push_str(text);
             if echo {
-                if let Err(error) = console.borrow_mut().write_all(text.as_bytes()) {
+                let mut console = console.borrow_mut();
+                if let Err(error) = self.write_info_stream(&mut **console, text) {
                     failure.borrow_mut().get_or_insert(error);
                 }
             }
@@ -171,7 +174,7 @@ impl ToolContext {
             process.run(&invocation, true)?
         };
         if let Some(error) = failure.into_inner() {
-            return Err(Error::Io(error));
+            return Err(error);
         }
         let stdout = stdout.into_inner();
         let stderr = stderr.into_inner();
