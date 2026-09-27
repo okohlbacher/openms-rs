@@ -3,15 +3,17 @@
 // $Maintainer: OpenMS Rust contributors $
 
 //! MzTab exporters: feature maps, consensus maps and identification runs to an
-//! [`MzTab`] document — the export surface of `FORMAT/MzTab.h`.
+//! [`MzTab`](crate::format::mztab::MzTab) document — the export surface of `FORMAT/MzTab.h`.
 //!
 //! The source keeps the data model and the exporters in one class. This port
 //! splits them: [`crate::format::mztab`] is the data model and this module is
-//! the export layer, adding four associated functions to [`MzTab`]
-//! ([`MzTab::export_feature_map`], [`MzTab::export_identifications`],
-//! [`MzTab::export_consensus_map`] and [`MzTab::extract_modification_list`])
+//! the export layer, adding four associated functions to
+//! [`MzTab`](crate::format::mztab::MzTab) (`export_feature_map`,
+//! `export_identifications`, `export_consensus_map` and
+//! `extract_modification_list`)
 //! plus the two row streams the source nests in the class,
-//! [`IdMzTabStream`] (`MzTab::IDMzTabStream`) and [`ConsensusMapMzTabStream`]
+//! [`IdMzTabStream`](crate::format::mztab_export::IdMzTabStream) (`MzTab::IDMzTabStream`) and
+//! [`ConsensusMapMzTabStream`](crate::format::mztab_export::ConsensusMapMzTabStream)
 //! (`MzTab::CMMzTabStream`). The streams are what
 //! [`MzTabFile::store_identifications`](crate::format::mztab_file::MzTabFile::store_identifications)
 //! and
@@ -609,8 +611,7 @@ fn named_float<'a>(group: &'a ProteinGroup, name: &str) -> Option<&'a [f32]> {
     group
         .float_data_arrays
         .iter()
-        .filter(|array| array.name == name)
-        .next_back()
+        .rfind(|array| array.name == name)
         .map(|array| array.data.as_slice())
 }
 
@@ -618,8 +619,7 @@ fn named_integer<'a>(group: &'a ProteinGroup, name: &str) -> Option<&'a [i32]> {
     group
         .integer_data_arrays
         .iter()
-        .filter(|array| array.name == name)
-        .next_back()
+        .rfind(|array| array.name == name)
         .map(|array| array.data.as_slice())
 }
 
@@ -711,8 +711,8 @@ fn add_search_meta_data(
             },
         );
     }
-    let mut software_index = meta.software.len() + 1;
-    for (name, version, _) in engines.to_runs.keys() {
+    let first_index = meta.software.len() + 1;
+    for (software_index, (name, version, _)) in (first_index..).zip(engines.to_runs.keys()) {
         let software = if name == "Comet" {
             parameter(&format!("[MS,MS:1002251,Comet,{version}]"))?
         } else if name == "Percolator" {
@@ -741,7 +741,6 @@ fn add_search_meta_data(
                 .insert(offset + 1, string(&format!("{key}:{value}")));
         }
         meta.software.insert(software_index, entry);
-        software_index += 1;
     }
     for (offset, (name, _, score)) in engines.to_runs.keys().enumerate() {
         let mut psm = parameter(&format!("[,,{name} {score},]"))?;
@@ -1145,6 +1144,9 @@ struct ProteinCursor {
     ind2prot: BTreeMap<usize, BTreeSet<usize>>,
 }
 
+/// `(assay keys, study variable to assays)` of the consensus stream.
+type AssayQuantification<'s> = (&'s [(u32, u32)], &'s [Vec<usize>]);
+
 /// Everything the `PRT` rows need from a stream.
 struct ProteinContext<'s, 'a> {
     prot_ids: &'s [&'a ProteinIdentification],
@@ -1154,7 +1156,7 @@ struct ProteinContext<'s, 'a> {
     db_version: &'s MzTabString,
     user_keys: &'s BTreeSet<String>,
     /// `(assay keys, study variable to assays)` for the consensus stream.
-    assay_quantification: Option<(&'s [(u32, u32)], &'s [Vec<usize>])>,
+    assay_quantification: Option<AssayQuantification<'s>>,
 }
 
 impl ProteinCursor {
@@ -1561,13 +1563,15 @@ impl<'a> IdMzTabStream<'a> {
 
         let quant_study_variables = prot_ids.first().map_or(0, |run| quant_study_variables(run));
 
-        let mut meta = MzTabMetaData::default();
-        meta.mz_tab_type = string("Identification");
-        meta.mz_tab_mode = string("Summary");
-        meta.description = string("OpenMS export from ID data");
-        meta.title = string(&options.title);
-        meta.variable_mod = modifications_metadata(&variable_mods)?;
-        meta.fixed_mod = modifications_metadata(&fixed_mods)?;
+        let mut meta = MzTabMetaData {
+            mz_tab_type: string("Identification"),
+            mz_tab_mode: string("Summary"),
+            description: string("OpenMS export from ID data"),
+            title: string(&options.title),
+            variable_mod: modifications_metadata(&variable_mods)?,
+            fixed_mod: modifications_metadata(&fixed_mods)?,
+            ..MzTabMetaData::default()
+        };
         let software_index = (meta.software.len() + 1).max(1);
         meta.software.insert(software_index, topp_software()?);
         let (mut db, mut db_version) = (MzTabString::null(), MzTabString::null());
@@ -1905,8 +1909,10 @@ impl MzTab {
         let protein_refs: Vec<&ProteinIdentification> = prot_ids.iter().collect();
         let peptide_refs: Vec<&PeptideIdentification> = peptide_ids.iter().collect();
         let mut stream = IdMzTabStream::new(&protein_refs, &peptide_refs, filename, options)?;
-        let mut document = MzTab::default();
-        document.meta_data = stream.meta_data().clone();
+        let mut document = MzTab {
+            meta_data: stream.meta_data().clone(),
+            ..MzTab::default()
+        };
         while let Some(row) = stream.next_prt_row()? {
             push_bounded(&mut document.protein_data, row)?;
         }
@@ -2422,12 +2428,14 @@ impl<'a> ConsensusMapMzTabStream<'a> {
 
         let quant_study_variables = prot_ids.first().map_or(0, |run| quant_study_variables(run));
 
-        let mut meta = MzTabMetaData::default();
-        meta.mz_tab_type = string("Quantification");
-        meta.mz_tab_mode = string("Summary");
-        meta.description = string("OpenMS export from consensusXML");
-        meta.variable_mod = modifications_metadata(&variable_mods)?;
-        meta.fixed_mod = modifications_metadata(&fixed_mods)?;
+        let mut meta = MzTabMetaData {
+            mz_tab_type: string("Quantification"),
+            mz_tab_mode: string("Summary"),
+            description: string("OpenMS export from consensusXML"),
+            variable_mod: modifications_metadata(&variable_mods)?,
+            fixed_mod: modifications_metadata(&fixed_mods)?,
+            ..MzTabMetaData::default()
+        };
         let software_index = (meta.software.len() + 1).max(1);
         meta.software.insert(software_index, topp_software()?);
 
@@ -2703,8 +2711,10 @@ impl MzTab {
         options: &ConsensusMapExportOptions,
     ) -> Result<MzTab> {
         let mut stream = ConsensusMapMzTabStream::new(consensus_map, filename, options)?;
-        let mut document = MzTab::default();
-        document.meta_data = stream.meta_data().clone();
+        let mut document = MzTab {
+            meta_data: stream.meta_data().clone(),
+            ..MzTab::default()
+        };
         while let Some(row) = stream.next_prt_row()? {
             push_bounded(&mut document.protein_data, row)?;
         }
