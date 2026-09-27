@@ -1,7 +1,7 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 6152,
+  "items": 6156,
   "documented": 4853
  },
  "modules": {
@@ -102,7 +102,7 @@
    "documented": 7
   },
   "src/analysis/mod.rs": {
-   "items": 18,
+   "items": 22,
    "documented": 0
   },
   "src/analysis/peak_integrator.rs": {

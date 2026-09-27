@@ -27,3 +27,8 @@ pub mod feature_hypothesis;
 pub mod feature_finder_picked;
 
 pub mod feature_finding_metabo;
+
+pub mod featurefinder;
+pub mod id;
+pub mod mapmatching;
+pub mod openswath;
