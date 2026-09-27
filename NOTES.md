@@ -43,7 +43,14 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
 - XQuest load needs OPXLHelper::combineTopRanksFromPairs (unported) + helpers private in mzidentml.rs. Do last.
 - Isolation checker: avoid `cd x && git`, heredocs mentioning git, the word `source`; use `git -C <abs> show` alone.
 
+## Done (incarnation 3 view)
+- Budget fix committed 3ce9df2 (gate g1 35 pass file_info_a7; g2 pepxml 8 pass).
+- PercolatorOutfile + SpectrumMetaDataLookup committed cbe9b27 as WIP; gate g3 (scratchpad/gate/g3.log,
+  features idxml?) 13 percolator_outfile tests + 26 lib tests pass. Provenance/docs not yet checked.
+- scratchpad/gate/test1.log + check1.log belong to lane F2, not us.
+
 ## Next step
-1. Wait gate g1 (scratchpad/gate/g1.log): idxml lib + file_info_a7. Then commit budget milestone.
-2. PercolatorOutfile -> src/format/percolator_outfile.rs + tests (class test + IDFileConverter_12/13/14).
-3. ProtXMLFile -> src/format/protxml.rs; PepXMLFileMascot -> src/format/pepxml_mascot.rs.
+1. Review percolator WIP vs C++ header (members), provenance json for tests/data/percolator_outfile, docs.
+2. ProtXMLFile -> src/format/protxml.rs (class test ProtXMLFile_input_{1,2,3}; IDFileConverter_3).
+3. PepXMLFileMascot -> src/format/pepxml_mascot.rs.
+4. XQuest last.
