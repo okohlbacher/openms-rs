@@ -8,74 +8,16 @@
 use super::PEFFCustomKeyDef;
 use crate::{Error, Result};
 
-/// Source `StringUtils::trim`: space, tab, line feed and carriage return.
-pub(super) fn trim(text: &str) -> &str {
-    text.trim_matches([' ', '\t', '\n', '\r'])
-}
+/// Source `StringUtils::trim` and the unquoted `StringUtils::split`, shared
+/// with the other text readers.
+pub(super) use crate::data_structures::string_utils::{split, trim};
 
-/// Source `StringUtils::split(s, c, parts)` without quote protection: an
-/// empty string gives no parts; otherwise every separator splits, and empty
-/// parts are kept.
-pub(super) fn split(text: &str, separator: char) -> Vec<&str> {
-    if text.is_empty() {
-        Vec::new()
-    } else {
-        text.split(separator).collect()
-    }
-}
-
-/// Source `StringUtils::toInt32` (`StringUtils.cpp:136-166`): optional
-/// surrounding space/tab/CR/LF, one optional `+`, then a decimal `int32`
-/// (with its own optional `-`) covering the rest. Anything else, including
-/// overflow, is the source's `Exception::ConversionError`, reported here as
-/// [`Error::Parse`] with the source's message.
+/// Source `StringUtils::toInt32` (`StringUtils.cpp:136-166`) through the shared
+/// [`crate::data_structures::string_utils::to_int32`]; the source's
+/// `Exception::ConversionError` is reported as [`Error::Parse`] with its message.
 pub(super) fn to_int32(text: &str) -> Result<i32> {
-    let not_converted = || Error::Parse {
-        line: 0,
-        message: format!("Could not convert string '{text}' to an integer value"),
-    };
-    let bytes = text.as_bytes();
-    let space = |b: u8| matches!(b, b' ' | b'\t' | b'\n' | b'\r');
-    let mut first = 0;
-    while first < bytes.len() && space(bytes[first]) {
-        first += 1;
-    }
-    if first == bytes.len() {
-        return Err(not_converted());
-    }
-    if bytes[first] == b'+' {
-        first += 1;
-    }
-    // std::from_chars for a signed integer: an optional '-', then digits.
-    let mut end = first;
-    if bytes.get(end) == Some(&b'-') {
-        end += 1;
-    }
-    let digits = end;
-    while bytes.get(end).is_some_and(u8::is_ascii_digit) {
-        end += 1;
-    }
-    if end == digits {
-        return Err(not_converted());
-    }
-    let value = text[first..end]
-        .parse::<i32>()
-        .map_err(|_| not_converted())?;
-    let mut after = end;
-    while after < bytes.len() && space(bytes[after]) {
-        after += 1;
-    }
-    if after != bytes.len() {
-        return Err(Error::Parse {
-            line: 0,
-            message: format!(
-                "Prefix of string '{text}' successfully converted to an int32 value. \
-                 Additional characters found at position {}",
-                after + 1
-            ),
-        });
-    }
-    Ok(value)
+    crate::data_structures::string_utils::to_int32(text)
+        .map_err(|message| Error::Parse { line: 0, message })
 }
 
 /// A `Size` field assigned from `StringUtils::toInt32`: a negative value is

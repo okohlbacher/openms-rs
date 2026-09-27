@@ -617,81 +617,18 @@ fn index_value(text: &str) -> Result<usize> {
         .map_err(|_| Error::InvalidRange(format!("spectrum with index {text} not found")))
 }
 
-/// The characters `StringUtils` skips around a number: space, tab, LF and CR.
-fn skip_whitespace(text: &str) -> &str {
-    text.trim_matches([' ', '\t', '\n', '\r'])
-}
-
-/// `StringUtils::toInt32`: surrounding whitespace, at most one leading `+`, a
-/// signed 32-bit integer and nothing else.
+/// Source `StringUtils::toInt32` through the shared
+/// [`crate::data_structures::string_utils::to_int32`]; the source's
+/// `ConversionError` is [`Error::InvalidValue`] with its message.
 pub(crate) fn to_int32(text: &str) -> Result<i32> {
-    let token = skip_whitespace(text);
-    let digits = token.strip_prefix('+').unwrap_or(token);
-    if digits.starts_with('+') {
-        return Err(conversion(text, "an integer"));
-    }
-    digits
-        .parse::<i32>()
-        .map_err(|_| conversion(text, "an integer"))
+    crate::data_structures::string_utils::to_int32(text).map_err(Error::InvalidValue)
 }
 
-/// `StringUtils::toDouble`: surrounding whitespace, a case-insensitive `nan`
-/// with an optional parenthesised payload, or at most one leading `+` and a
-/// general-format number (including `inf` and `infinity`). A finite literal
-/// that overflows is an error, as `std::from_chars` reports
-/// `result_out_of_range`.
+/// Source `StringUtils::toDouble` through the shared
+/// [`crate::data_structures::string_utils::to_double`]; the source's
+/// `ConversionError` is [`Error::InvalidValue`] with its message.
 pub(crate) fn to_double(text: &str) -> Result<f64> {
-    let token = skip_whitespace(text);
-    // `tryParseNaN`: any payload up to the first ')'.
-    if nan_spelling(token, |_| true) {
-        return Ok(f64::NAN);
-    }
-    let number = token.strip_prefix('+').unwrap_or(token);
-    if number.starts_with('+') || number.is_empty() {
-        return Err(conversion(text, "a double"));
-    }
-    // `std::from_chars` also reads a signed NaN, whose payload is an
-    // n-char-sequence of letters, digits and underscores.
-    if nan_spelling(number.strip_prefix('-').unwrap_or(number), |b| {
-        b.is_ascii_alphanumeric() || b == b'_'
-    }) {
-        return Ok(f64::NAN);
-    }
-    let value = number
-        .parse::<f64>()
-        .map_err(|_| conversion(text, "a double"))?;
-    if value.is_nan() {
-        // Every NaN spelling was handled above; Rust's parser accepts no other.
-        return Err(conversion(text, "a double"));
-    }
-    if value.is_infinite() {
-        let spelling = number.trim_start_matches('-');
-        if !(spelling.eq_ignore_ascii_case("inf") || spelling.eq_ignore_ascii_case("infinity")) {
-            return Err(conversion(text, "a double"));
-        }
-    }
-    Ok(value)
-}
-
-/// Whether `token` is `nan`, case-insensitively, optionally followed by one
-/// parenthesised payload whose bytes all satisfy `payload` and after which
-/// nothing follows.
-fn nan_spelling(token: &str, payload: impl Fn(u8) -> bool) -> bool {
-    let Some(head) = token.get(..3) else {
-        return false;
-    };
-    if !head.eq_ignore_ascii_case("nan") {
-        return false;
-    }
-    let rest = &token[3..];
-    rest.is_empty()
-        || (rest.starts_with('(')
-            && rest.find(')') == Some(rest.len() - 1)
-            && rest[1..rest.len() - 1].bytes().all(payload))
-}
-
-fn conversion(text: &str, kind: &str) -> Error {
-    Error::InvalidValue(format!("Could not convert string '{text}' to {kind} value"))
+    crate::data_structures::string_utils::to_double(text).map_err(Error::InvalidValue)
 }
 
 /// `SpectrumNativeIDParser::extractScanNumber(native_id, regex, no_error=true)`:
