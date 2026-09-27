@@ -2,7 +2,7 @@
  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
  "repository": "https://github.com/okohlbacher/OpenMS4-core",
  "license": "BSD-3-Clause",
- "evidence_tier": "3 (source review: transcribed class-test literals); 4 for the derived checks named in the tests",
+ "evidence_tier": "1 for the B-spline, interpolation (including Akima), LOWESS (including the automatic span) and description summaries via tests/map_alignment_oracle.rs (executed Release build; manifest tests/data/map_alignment_provenance.json); 3 (transcribed class-test literals); 4 for the derived checks named in the tests",
  "source_files": [
   {
    "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h",
@@ -135,8 +135,9 @@
  "native_tests": [
   "tests/transformation_models.rs",
   "tests/transformations.rs",
-  "tests/transformation_xml.rs"
+  "tests/transformation_xml.rs",
+  "tests/map_alignment_oracle.rs"
  ],
  "support_document": "docs/TRANSFORMATIONS_SUPPORT.md",
- "notes": "No C++ was executed for this group. Tolerance follows ClassTest isRealSimilar (absolute 1e-5 or ratio 1 + 1e-5, src/testframework/source/CONCEPT/ClassTest.cpp:364); printSummary and the parameter layouts are compared exactly."
+ "notes": "Class-test comparisons follow ClassTest isRealSimilar (absolute 1e-5 or ratio 1 + 1e-5, src/testframework/source/CONCEPT/ClassTest.cpp:364); printSummary and the parameter layouts are compared exactly. The executed-oracle comparison and its artifacts are recorded in tests/data/map_alignment_provenance.json."
 }

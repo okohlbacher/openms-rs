@@ -2,7 +2,7 @@
  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
  "repository": "https://github.com/okohlbacher/OpenMS4-core",
  "license": "BSD-3-Clause",
- "evidence_tier": "3 (source review: transcribed class-test literals and upstream data files); 4 for the derived checks named in the tests",
+ "evidence_tier": "1 (executed differential against the Linux x86_64 Release build: tests/map_alignment_oracle.rs, 3780 values, all bit-identical on dax) for the transformation models, superimposers, identification alignment and evaluation; 3 (transcribed class-test literals and upstream data files); 4 for the derived checks named in the tests",
  "source_files": [
   {
    "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h",
@@ -147,6 +147,57 @@
    "sha256": "6d6cae630cefd50e5b57c489fc0212cba9b46a879a0f675d7136cc6d6440742e",
    "bytes": 3255,
    "role": "Unmodified upstream."
+  },
+  {
+   "path": "tests/data/map_alignment_oracle_records.tsv",
+   "sha256": "330798c3f9dcd435ee5a909fa4d255b047c4998c9d798f6e23acf78d954b384c",
+   "bytes": 184745,
+   "kind": "executed C++ output",
+   "role": "results/records.tsv of ../oracle/M1-mapalign: 3780 values at %.17g (B-spline, interpolation, LOWESS and auto-span, description apply/invert, shift and affine superimposers, identification alignment, precision/recall). Run on ibminode06 against /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c), conda-forge gcc 14.4.0-4, two invocations of two fresh-process runs, all byte-identical."
+  },
+  {
+   "path": "tests/data/map_alignment_oracle_summaries.txt",
+   "sha256": "57ffd524e262a7fddbc81420653827524fc04e85eb889358c2e1664b2bf96af7",
+   "bytes": 3335,
+   "kind": "executed C++ output",
+   "role": "results/summaries.txt of the same runs: TransformationDescription::printSummary for linear, b_spline, interpolated and lowess on the sine anchors."
+  },
+  {
+   "path": "tests/data/map_alignment_oracle_maps.tsv",
+   "sha256": "a4664eefc2e013e26575cfefdd8f7dacbecbcee730e8645ad175200033c22493",
+   "bytes": 68307,
+   "kind": "synthetic input",
+   "role": "data/maps.tsv of the oracle, from its gen_cases.py (seed 20260927): affine (scaling 1.02, shift 15, tied intensities), shift (-37.5) and dense-m/z map pairs."
+  },
+  {
+   "path": "tests/data/map_alignment_oracle_lowess_noisy.tsv",
+   "sha256": "c9e4785e2c793009891b41196eec860b4c0e1221da7a45bfccee12ae43498ef4",
+   "bytes": 1120,
+   "kind": "synthetic input",
+   "role": "data/lowess_noisy.tsv of the oracle: 80 noisy points with repeated x (the k-fold path of the LOWESS span selection)."
+  }
+ ],
+ "external_reference_note": "The oracle driver and its scripts are C++ and shell kept outside this repository under ../oracle/M1-mapalign/, with the fetched results/ (host.txt: ibminode06; install.txt; compiler.txt; flags.txt; hashes.txt; differ.txt empty). run.sh documents the staging; its steps were executed one by one because the lane's worktree guard does not run scripts.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/M1-mapalign/driver.cpp",
+   "sha256": "33d4b680c3b456c611f449f3a6e53aeda7862ab4df81deb1a543117f34e5fefe",
+   "origin_key": "tests/data/map_alignment_oracle_records.tsv"
+  },
+  {
+   "path": "../oracle/M1-mapalign/gen_cases.py",
+   "sha256": "60309d4a7ba42384ccb36daa31fa4de7d22d4c67bf4271f9d626ac3381b0babb",
+   "origin_key": "tests/data/map_alignment_oracle_maps.tsv"
+  },
+  {
+   "path": "../oracle/M1-mapalign/remote_run.sh",
+   "sha256": "148cbadaf709cf398bf40b385cb5c0a952fc8894012472ba2f77a688966c301b",
+   "origin_key": "tests/data/map_alignment_oracle_records.tsv"
+  },
+  {
+   "path": "../oracle/M1-mapalign/results/hashes.txt",
+   "sha256": "54d14c9731a39dd131ad3cfa4ed7e07ad2d751f9a2b06828142b6746ac454d5d",
+   "origin_key": "tests/data/map_alignment_oracle_records.tsv"
   }
  ],
  "native_implementation": [
@@ -160,8 +211,9 @@
  "native_tests": [
   "tests/pose_clustering.rs",
   "tests/map_alignment_evaluation.rs",
-  "tests/map_alignment_identification.rs"
+  "tests/map_alignment_identification.rs",
+  "tests/map_alignment_oracle.rs"
  ],
  "support_document": "docs/MAP_ALIGNMENT_SUPPORT.md",
- "notes": "No C++ was executed for this group. Tolerance follows ClassTest isRealSimilar (absolute 1e-5 or ratio 1 + 1e-5, src/testframework/source/CONCEPT/ClassTest.cpp:364)."
+ "notes": "Class-test comparisons follow ClassTest isRealSimilar (absolute 1e-5 or ratio 1 + 1e-5, src/testframework/source/CONCEPT/ClassTest.cpp:364). tests/map_alignment_oracle.rs compares against the executed Release build bit for bit on Linux x86_64 (3780 of 3780 values identical on dax), at 1e-12 relative on other targets, whose libm ln/exp may round differently."
 }

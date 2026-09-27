@@ -1,0 +1,84 @@
+== summary:linear
+Number of data points (x/y pairs): 31
+Data range (x): -3.11535 to 3.11859
+Data range (y): -1.07619 to 1.12284
+Summary of x/y deviations before transformation:
+- 100% of data points within (+/-)3.32942
+-  99% of data points within (+/-)3.10649
+-  95% of data points within (+/-)3.06701
+-  90% of data points within (+/-)2.36734
+-  75% of data points within (+/-)1.0783
+-  50% of data points within (+/-)0.252119
+-  25% of data points within (+/-)0.078993
+Summary of x/y deviations after applying 'linear' transformation:
+- 100% of data points within (+/-)0.969213
+-  99% of data points within (+/-)0.861333
+-  95% of data points within (+/-)0.78215
+-  90% of data points within (+/-)0.683773
+-  75% of data points within (+/-)0.625094
+-  50% of data points within (+/-)0.397848
+-  25% of data points within (+/-)0.2042
+
+== summary:b_spline
+Number of data points (x/y pairs): 31
+Data range (x): -3.11535 to 3.11859
+Data range (y): -1.07619 to 1.12284
+Summary of x/y deviations before transformation:
+- 100% of data points within (+/-)3.32942
+-  99% of data points within (+/-)3.10649
+-  95% of data points within (+/-)3.06701
+-  90% of data points within (+/-)2.36734
+-  75% of data points within (+/-)1.0783
+-  50% of data points within (+/-)0.252119
+-  25% of data points within (+/-)0.078993
+Summary of x/y deviations after applying 'b_spline' transformation:
+- 100% of data points within (+/-)0.263581
+-  99% of data points within (+/-)0.218255
+-  95% of data points within (+/-)0.182709
+-  90% of data points within (+/-)0.169324
+-  75% of data points within (+/-)0.126459
+-  50% of data points within (+/-)0.0665646
+-  25% of data points within (+/-)0.0227357
+
+== summary:interpolated
+Number of data points (x/y pairs): 31
+Data range (x): -3.11535 to 3.11859
+Data range (y): -1.07619 to 1.12284
+Summary of x/y deviations before transformation:
+- 100% of data points within (+/-)3.32942
+-  99% of data points within (+/-)3.10649
+-  95% of data points within (+/-)3.06701
+-  90% of data points within (+/-)2.36734
+-  75% of data points within (+/-)1.0783
+-  50% of data points within (+/-)0.252119
+-  25% of data points within (+/-)0.078993
+Summary of x/y deviations after applying 'interpolated' transformation:
+- 100% of data points within (+/-)2.06606e-15
+-  99% of data points within (+/-)0
+-  95% of data points within (+/-)0
+-  90% of data points within (+/-)0
+-  75% of data points within (+/-)0
+-  50% of data points within (+/-)0
+-  25% of data points within (+/-)0
+
+== summary:lowess
+Number of data points (x/y pairs): 31
+Data range (x): -3.11535 to 3.11859
+Data range (y): -1.07619 to 1.12284
+Summary of x/y deviations before transformation:
+- 100% of data points within (+/-)3.32942
+-  99% of data points within (+/-)3.10649
+-  95% of data points within (+/-)3.06701
+-  90% of data points within (+/-)2.36734
+-  75% of data points within (+/-)1.0783
+-  50% of data points within (+/-)0.252119
+-  25% of data points within (+/-)0.078993
+Summary of x/y deviations after applying 'lowess' transformation:
+- 100% of data points within (+/-)1.46261
+-  99% of data points within (+/-)0.524745
+-  95% of data points within (+/-)0.375838
+-  90% of data points within (+/-)0.328062
+-  75% of data points within (+/-)0.236419
+-  50% of data points within (+/-)0.161579
+-  25% of data points within (+/-)0.088637
+
