@@ -6,7 +6,7 @@
 //! Public drafts retain independent restrictions; checked operations are atomic.
 
 pub mod handler;
-pub use handler::{DefaultParamHandler, ParameterMetaSink};
+pub use handler::{DefaultParamHandler, DefaultParamHandling, ParameterMetaSink};
 mod iteration;
 mod operations;
 mod tree;

@@ -22,7 +22,20 @@ Branch: worktree-wf_ee239125-5be-2 (merged prior incarnation worktree-wf_bcdd783
 - class tests: src/tests/class_tests/openms/source/<Name>_test.cpp
 - Oracle: ../oracle/B6-param-defaults/ on ibminode06, Release install, dump getDefaults via ParamXMLFile.
 
+## Done
+- Oracle ../oracle/B6-param-defaults RAN OK on ibminode06 Release install (results/, no DIFFER).
+  attempt1/ = first try, failed: SignalToNoiseEstimatorMeanIterative<MSChromatogram> does not compile
+  (getMZ on ChromatogramPeak, header :262,:279) -> C++ defect candidate; case dropped.
+  Unknown-param warning in C++: "Warning: X received the unknown parameter 'k'!" (Rust handler says
+  "X: unknown parameter 'k'" -- left as is, FeatureFinderPicked maps it itself).
+- Trait `DefaultParamHandling` in src/param/handler.rs (re-exported from param): NAME, SUBSECTIONS,
+  CHECK_DEFAULTS, WARN_EMPTY_DEFAULTS, defaults(), to_param(), update_members(), keep_native_members(),
+  provided handler/from_param/_with_warnings/_with_handler/set_parameters.
+  Adopted on PeakPickerHiRes and SignalToNoiseEstimatorMedian.
+- C++ sources readable at OpenMS4-R/.reference/openms4-core-bc9cc12 (main checkout). The worktree
+  sandbox refuses a git invocation against another repo; use Read/cat with literal paths.
+
 ## Next step
-1. Design trait in src/param/handler.rs (DefaultParameters? name TBD) -- write it, commit.
-2. Implement for PeakPickerHiRes (reference), then the 14 headers.
-3. Oracle for default Param dumps.
+1. Copy oracle defaults .ini into tests/data/param_defaults/ and write tests/default_param_handling.rs.
+2. Implement per header: NLargest, ThresholdMower, Normalizer, RankScaler, SqrtScaler, WindowMower,
+   SavitzkyGolay, Gauss, LinearResamplerAlign, MeanIterative, PeakPickerIterative, then chemistry 3.
