@@ -2,33 +2,52 @@
 # Copyright (c) 2002-present, OpenMS Inc.
 # SPDX-License-Identifier: BSD-3-Clause
 # $Maintainer: OpenMS Rust contributors $
-"""Measure which recorded sha256 digests a third party could recompute.
+"""Measure which recorded sha256 digests a third party could recompute, and which CI does.
 
 The repository records sha256 digests all over: manifests pin the C++ source a
 port was read from, the fixtures a test compares against and the oracle outputs
 it was derived from, and prose repeats them. A digest is only evidence to a
 reader who can recompute it. This counts every digest the tracked files record,
 works out what each one names, and tries to recompute it the way a third party
-who clones this repository could:
+who clones this repository could. ``docs/REPRODUCIBILITY.md`` reports the result
+and says what it means.
 
-* ``in_repo`` - the digest names a tracked file here. Recomputed now; the
-  result is ``match`` or ``mismatch``.
-* ``upstream`` - it names a file of the C++ packages (core, cli, topp,
-  test-data), whose repositories are public at the pinned revisions. Recomputed
-  here from the package repositories' git objects, at the revisions the
-  manifest itself names first and the declared pins after them. A third party
-  can do the same after cloning those repositories; nothing in CI does.
+What the text names decides the *family* of an occurrence:
+
+* ``in_repo`` - a tracked file here. Recomputed from the file as it is now
+  (``match``), else from every version of that path in the history of ``HEAD``
+  (``earlier revision``: the digest was right when it was written and the file
+  has moved on since), else ``mismatch``.
+* ``upstream`` - a file of the C++ packages (core, cli, topp, test-data), which
+  are public repositories at the pinned revisions. Recomputed from their git
+  objects, at the revisions the manifest itself names first and the declared
+  pins after them.
 * ``crate`` - a ``Cargo.lock`` checksum. Cargo recomputes it on every fetch.
-* ``rust_test`` - a digest literal in Rust source. Whether a test recomputes it
-  is not decided here; it is counted apart so that it is not claimed.
-* ``oracle`` - it names an artifact under ``../oracle/``, which is outside this
-  repository and published nowhere. Recomputed here when the file is on this
-  machine, which says what the lab can recompute, not what a third party can.
-* ``build`` - a binary or an install (``libOpenMS.so``, a driver binary, a
-  path under ``/ceph``): only an identical build would reproduce it.
+* ``oracle`` - an artifact under ``../oracle/``, which is outside this repository
+  and published nowhere. Recomputed here when the file is on this machine, which
+  says what the lab can recompute, not what a third party can.
+* ``build`` - a binary or an install (``libOpenMS.so``, a driver binary, a path
+  under ``/ceph``): only an identical build would reproduce it.
 * ``unbound`` - a digest with no artifact the text names that this could find:
-  prose, a table cell, a key that names a quantity rather than a file. It may
-  well be right; nobody can recompute it from what is written.
+  prose, a table cell, a key that names a quantity rather than a file. A digest
+  literal in Rust source with no path beside it lands here too; no Rust code in
+  this crate computes a sha256, so no Rust test recomputes one.
+
+Independently of what the text names, every digest is also looked up *by
+content*: is it the sha256 of a file a third party can get - a file tracked
+here now (``tree``), any blob in the history of ``HEAD`` (``history``), or any
+file of the four packages at their pins (``pinned``)? A digest the text does not
+bind (or binds to the wrong path) but that some public file hashes to is not
+lost; it is recomputable by whoever searches for it, and is reported apart from
+the ones the text binds.
+
+With ``--ci`` it also runs, in place, every Python gate
+``.github/workflows/rust.yml`` runs that can compute a sha256 at all (the gate or
+a ``tools/`` module it imports names ``hashlib``; a gate that does not, such as
+the one that shells out to cargo, cannot recompute a digest and is not run),
+with every sha256 they compute logged. A recorded digest one of them computes,
+or a ``Cargo.lock`` checksum, is one CI recomputes on every push. The gates read
+nothing outside the checkout, so this is what CI sees.
 
 An occurrence is one digest written in one place; the same pair of artifact and
 digest written in four manifests is four occurrences and one distinct pair.
@@ -38,13 +57,15 @@ manifest a digest has to sit under a key that says so (``sha256``, ``digest``,
 ``checksum``, ``hash``, or a key that is itself a file name), and in text the
 line has to say so.
 
-    python3 tools/measure_reproducibility.py            # the summary
-    python3 tools/measure_reproducibility.py --json     # the numbers, for docs/REPRODUCIBILITY.md
+    python3 tools/measure_reproducibility.py              # the summary
+    python3 tools/measure_reproducibility.py --ci --json  # the numbers docs/REPRODUCIBILITY.md cites
     python3 tools/measure_reproducibility.py --list mismatch   # what did not recompute
 
 This measures; it never fails a build. It needs the package repositories under
 ``../OpenMS4-tests/packages/`` (beside this checkout or the main one) for the
-``upstream`` family and says so when they are missing.
+``upstream`` family and the ``pinned`` index, and says so when they are missing:
+``git clone`` the four public repositories there (their URLs are in
+``SOURCE_PROVENANCE.json`` and ``tests/data/topp_cli_provenance.json``).
 """
 
 import argparse
@@ -55,13 +76,15 @@ import pathlib
 import re
 import subprocess
 import sys
+import tempfile
+import threading
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 HEX = re.compile(r"(?<![0-9A-Za-z])[0-9a-f]{64}(?![0-9A-Za-z])")
 WHOLE = re.compile(r"[0-9a-f]{64}")
 DIGEST_KEY = re.compile(r"sha256|sha-256|digest|checksum|hash", re.I)
 DIGEST_TEXT = re.compile(r"sha-?256|digest|checksum|hash", re.I)
-PATH_KEYS = ("path", "file", "fixture", "artifact", "input", "output", "source", "location", "name")
+PATH_KEYS = ("path", "file", "header", "fixture", "artifact", "input", "output", "source", "location", "name")
 PACKAGES = {"core": "core", "cli": "cli", "topp": "topp", "test_data": "test-data"}
 REVISION_KEYS = ("source_revision", "revision", "reference_revision", "commit", "upstream_revision",
                  "sdk_revision", "core_revision")
@@ -69,8 +92,11 @@ BUILD_WORDS = re.compile(r"libOpenMS|dylib|\.so\b|binary|executable|/ceph/|produ
 UPSTREAM_PREFIXES = (
     "src/openms/", "src/openswathalgo/", "src/tests/", "src/topp/", "src/utils/", "src/openms_gui/",
     "share/OpenMS/", "cmake/", "source/", "include/", "tests/topp/", "topp/", "contrib/",
-    "OpenMS4-core/", "OpenMS4-cli/", "OpenMS4-topp/", "OpenMS4-test-data/", "OpenMS4-tests/",
+    "OpenMS4-core/", "OpenMS4-cli/", "OpenMS4-topp/", "OpenMS4-test-data/", "OpenMS4-tests/", "packages/",
 )
+PACKAGE_PREFIX = re.compile(r"^(?:OpenMS4-tests/packages/|OpenMS4-|packages/)(core|cli|topp|test-data)/")
+WORKFLOW = ROOT / ".github/workflows/rust.yml"
+BOUND = {("in_repo", "match"), ("in_repo", "earlier revision"), ("upstream", "match"), ("crate", "cargo")}
 
 
 def git(repository, *arguments, stdin=None):
@@ -102,6 +128,85 @@ def package_root():
     return None, roots
 
 
+def blob_digests(repository, blobs):
+    """sha256 of each blob id, read in one ``git cat-file --batch`` stream."""
+    blobs = list(dict.fromkeys(blobs))
+    if not blobs:
+        return {}
+    process = subprocess.Popen(["git", "-C", str(repository), "cat-file", "--batch"],
+                               stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+    def feed():  # From a thread: git blocks on a full stdout pipe while we would block on stdin.
+        process.stdin.write("".join(f"{b}\n" for b in blobs).encode())
+        process.stdin.close()
+
+    writer = threading.Thread(target=feed)
+    writer.start()
+    result = {}
+    out = process.stdout
+    for blob in blobs:
+        header = out.readline().split()
+        if len(header) < 3 or header[1] != b"blob":
+            continue
+        size = int(header[2])
+        digest = hashlib.sha256()
+        remaining = size
+        while remaining:
+            chunk = out.read(min(remaining, 1 << 20))
+            digest.update(chunk)
+            remaining -= len(chunk)
+        out.read(1)
+        result[blob] = digest.hexdigest()
+    writer.join()
+    process.wait()
+    return result
+
+
+class Content:
+    """Which public bytes hash to a digest: the tree, the history of HEAD, the pinned packages."""
+
+    def __init__(self, files, packages, pins):
+        self.tree = collections.defaultdict(set)
+        for name in files:
+            path = ROOT / name
+            if path.is_file():
+                self.tree[hashlib.sha256(path.read_bytes()).hexdigest()].add(name)
+        self.history = collections.defaultdict(set)
+        listing = git(ROOT, "rev-list", "--objects", "HEAD") or b""
+        named = {}
+        for line in listing.decode().splitlines():
+            sha, _, path = line.partition(" ")
+            if path:
+                named.setdefault(sha, path)
+        kinds = git(ROOT, "cat-file", "--batch-check=%(objectname) %(objecttype)",
+                    stdin="".join(f"{s}\n" for s in named).encode()) or b""
+        blobs = [s for s, kind in (l.split() for l in kinds.decode().splitlines()) if kind == "blob"]
+        for blob, digest in blob_digests(ROOT, blobs).items():
+            self.history[digest].add(named[blob])
+        self.pinned = collections.defaultdict(set)
+        if packages is not None:
+            for package, revision in pins.items():
+                repository = packages / PACKAGES[package]
+                listing = git(repository, "ls-tree", "-r", "-z", revision) or b""
+                entries = {}
+                for entry in listing.decode().split("\0"):
+                    meta, _, path = entry.partition("\t")
+                    parts = meta.split()
+                    if len(parts) == 3 and parts[1] == "blob":
+                        entries.setdefault(parts[2], path)
+                for blob, digest in blob_digests(repository, entries).items():
+                    self.pinned[digest].add(f"{PACKAGES[package]}@{revision[:7]}:{entries[blob]}")
+
+    def where(self, digest):
+        if digest in self.tree:
+            return "tree"
+        if digest in self.history:
+            return "history"
+        if digest in self.pinned:
+            return "pinned"
+        return None
+
+
 class Upstream:
     """Blob digests of the package repositories, read from their git objects."""
 
@@ -125,9 +230,14 @@ class Upstream:
 
     def lookup(self, path, revisions, expected):
         """(found, matched): whether any package holds the path at a tried revision, and whether one matches."""
-        path = re.sub(r"^(?:OpenMS4-tests/packages/|OpenMS4-)(core|cli|topp|test-data)/", "", path)
+        prefix = PACKAGE_PREFIX.match(path)
+        order = ("core", "cli", "topp", "test_data")
+        if prefix:
+            named = prefix.group(1).replace("-", "_")
+            order = (named,) + tuple(p for p in order if p != named)
+            path = path[prefix.end():]
         found = False
-        for package in ("core", "cli", "topp", "test_data"):
+        for package in order:
             tried = [r for r in revisions if package == "core"] + [self.pins.get(package)]
             for revision in dict.fromkeys(r for r in tried if r):
                 digest = self.digest(package, revision, path)
@@ -137,6 +247,19 @@ class Upstream:
                 if digest == expected:
                     return True, True
         return found, False
+
+
+def path_history(path, cache={}):
+    """sha256 of every version of one tracked path in the history of HEAD."""
+    if path not in cache:
+        raw = git(ROOT, "log", "--format=", "--raw", "--no-abbrev", "--no-renames", "HEAD", "--", path) or b""
+        blobs = set()
+        for line in raw.decode().splitlines():
+            parts = line.split()
+            if line.startswith(":") and len(parts) >= 5:
+                blobs.update(p for p in parts[2:4] if set(p) != {"0"})
+        cache[path] = set(blob_digests(ROOT, blobs).values())
+    return cache[path]
 
 
 def manifest_revisions(tree):
@@ -189,9 +312,7 @@ def json_occurrences(document, tree):
                                 path = parent[name]
                                 break
                 if looks_like_path(key):
-                    path = "/".join(t for t in trail if looks_like_path(t) or t == key) if sums_file else key
-                    if sums_file:
-                        path = "/".join(trail)
+                    path = "/".join(trail) if sums_file else key
                 if path is None and not (DIGEST_KEY.search(key) or sums_file):
                     return  # A 64-hex string under a key that does not say it is a digest.
                 found.append((node, path, key, True))
@@ -233,8 +354,6 @@ def resolve(document, path, key, digest, revisions, tracked_set, upstream, roots
     """The family and the recompute outcome of one occurrence."""
     if key == "crate":
         return "crate", "cargo"
-    if document.suffix == ".rs" and path is None:
-        return "rust_test", "not decided"
     if path is None:
         if key and BUILD_WORDS.search(key):
             return "build", "not recomputable"
@@ -255,8 +374,11 @@ def resolve(document, path, key, digest, revisions, tracked_set, upstream, roots
     for candidate in (raw, str(here / raw), raw.lstrip("./")):
         norm = str(pathlib.PurePosixPath(candidate))
         if norm in tracked_set:
-            ok = hashlib.sha256((ROOT / norm).read_bytes()).hexdigest() == digest
-            return "in_repo", "match" if ok else "mismatch"
+            if hashlib.sha256((ROOT / norm).read_bytes()).hexdigest() == digest:
+                return "in_repo", "match"
+            if digest in path_history(norm):
+                return "in_repo", "earlier revision"
+            return "in_repo", "mismatch"
     if raw.startswith(UPSTREAM_PREFIXES) or not raw.startswith(("tests/", "docs/", "resources/")):
         if upstream.available():
             found, matched = upstream.lookup(raw, revisions, digest)
@@ -269,11 +391,78 @@ def resolve(document, path, key, digest, revisions, tracked_set, upstream, roots
     return "unbound", "path not found"
 
 
-def measure():
+def hashing_gates():
+    """The Python gates rust.yml runs that can compute a sha256: the gate or a tools module it imports names hashlib."""
+    gates = []
+    for line in WORKFLOW.read_text().splitlines():
+        match = re.match(r"\s*-\s*run:\s*python3\s+(tools/\S+\.py)(.*)$", line)
+        if not match:
+            continue
+        script, arguments = match.group(1), match.group(2).split()
+        seen, pending, hashing = set(), [ROOT / script], False
+        while pending:
+            source = pending.pop()
+            if source in seen or not source.is_file():
+                continue
+            seen.add(source)
+            text = source.read_text()
+            hashing = hashing or "hashlib" in text
+            for name in re.findall(r"^\s*(?:from\s+(\w+)\s+import|import\s+(\w+))", text, re.M):
+                pending.append(source.parent / f"{name[0] or name[1]}.py")
+        if hashing:
+            gates.append((script, arguments))
+    return gates
+
+
+TRACER = r'''
+import hashlib, os, runpy, sys
+log_path, script, *arguments = sys.argv[1:]
+log = open(log_path, "a")
+real_sha256, real_new = hashlib.sha256, hashlib.new
+class Traced:
+    def __init__(self, inner): self._inner = inner
+    def update(self, data): self._inner.update(data)
+    def hexdigest(self):
+        value = self._inner.hexdigest(); log.write(value + "\n"); return value
+    def digest(self):
+        log.write(self._inner.hexdigest() + "\n"); return self._inner.digest()
+    def copy(self): return Traced(self._inner.copy())
+    def __getattr__(self, name): return getattr(self._inner, name)
+hashlib.sha256 = lambda *a, **k: Traced(real_sha256(*a, **k))
+hashlib.new = lambda name, *a, **k: (Traced(real_new(name, *a, **k))
+                                     if name.lower().replace("-", "") == "sha256" else real_new(name, *a, **k))
+sys.argv = [script, *arguments]
+sys.path.insert(0, os.path.dirname(os.path.abspath(script)))
+try:
+    runpy.run_path(script, run_name="__main__")
+finally:
+    log.close()
+'''
+
+
+def ci_digests():
+    """Every sha256 the hashing gates compute when run in place, and each gate's exit status."""
+    gates = hashing_gates()
+    with tempfile.TemporaryDirectory() as scratch:
+        tracer = pathlib.Path(scratch) / "tracer.py"
+        tracer.write_text(TRACER)
+        log = pathlib.Path(scratch) / "digests.log"
+        log.touch()
+        statuses = {}
+        for script, arguments in gates:
+            done = subprocess.run([sys.executable, str(tracer), str(log), script, *arguments],
+                                  cwd=ROOT, capture_output=True, check=False)
+            statuses[" ".join([script, *arguments])] = done.returncode
+        return set(log.read_text().split()), statuses
+
+
+def measure(with_ci=False):
     packages, roots = package_root()
     upstream = Upstream(packages)
     files = tracked()
     tracked_set = set(files)
+    content = Content(files, packages, upstream.pins)
+    computed, statuses = ci_digests() if with_ci else (None, {})
     rows = []
     for name in files:
         document = ROOT / name
@@ -297,60 +486,95 @@ def measure():
             occurrences = text_occurrences(document, text)
         for digest, path, key, structured in occurrences:
             family, outcome = resolve(document, path, key, digest, revisions, tracked_set, upstream, roots)
+            bound = (family, outcome) in BOUND
+            where = content.where(digest)
+            if bound:
+                tier = "bound"
+            elif where:
+                tier = "content only"
+            elif family in ("oracle", "build"):
+                tier = "lab only"
+            else:
+                tier = "none"
             rows.append({
                 "document": name, "digest": digest, "path": path, "key": key,
-                "structured": structured, "family": family, "outcome": outcome,
+                "structured": structured, "family": family, "outcome": outcome, "content": where,
+                "tier": tier,
+                "ci": None if computed is None else (family == "crate" or digest in computed),
             })
-    return rows, packages
+    return rows, packages, statuses
 
 
-def summarise(rows):
-    families = collections.Counter((r["family"], r["outcome"]) for r in rows)
+def count(rows, field):
+    occurrences = collections.Counter(r[field] for r in rows)
     distinct = collections.Counter()
     seen = set()
     for r in rows:
-        pair = (r["family"], r["outcome"], r["path"] or r["document"], r["digest"])
+        pair = (r[field], r["path"] or r["document"], r["digest"])
         if pair not in seen:
             seen.add(pair)
-            distinct[(r["family"], r["outcome"])] += 1
-    return families, distinct
+            distinct[r[field]] += 1
+    return occurrences, distinct
+
+
+def distinct_pairs(rows):
+    return len({(r["path"] or r["document"], r["digest"]) for r in rows})
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--json", action="store_true", help="Print the counts as JSON")
-    parser.add_argument("--list", metavar="OUTCOME_OR_FAMILY", help="List the occurrences with this outcome or family")
+    parser.add_argument("--ci", action="store_true",
+                        help="Also run the hashing Python gates of rust.yml in place and count what they recompute")
+    parser.add_argument("--list", metavar="VALUE",
+                        help="List the occurrences whose family, outcome, content or tier is VALUE")
     arguments = parser.parse_args()
-    rows, packages = measure()
-    families, distinct = summarise(rows)
-    third_party = {("in_repo", "match"), ("upstream", "match"), ("crate", "cargo")}
-    total = len(rows)
-    recomputable = sum(v for k, v in families.items() if k in third_party)
-    distinct_total = sum(distinct.values())
-    distinct_recomputable = sum(v for k, v in distinct.items() if k in third_party)
+    rows, packages, statuses = measure(arguments.ci)
+    for row in rows:
+        row["family/outcome"] = f"{row['family']}/{row['outcome']}"
     if arguments.list:
         for r in rows:
-            if arguments.list in (r["outcome"], r["family"]):
-                print(f"{r['document']}\t{r['family']}\t{r['outcome']}\t{r['key']}\t{r['path']}\t{r['digest'][:12]}")
+            if arguments.list in (r["outcome"], r["family"], r["content"], r["tier"]):
+                print(f"{r['document']}\t{r['family']}\t{r['outcome']}\t{r['content']}\t{r['key']}\t{r['path']}\t{r['digest'][:12]}")
         return 0
+    total, total_distinct = len(rows), distinct_pairs(rows)
+    families, families_distinct = count(rows, "family/outcome")
+    tiers, tiers_distinct = count(rows, "tier")
+    contents, contents_distinct = count(rows, "content")
+    ci_rows = [r for r in rows if r["ci"]]
+    summary = {
+        "occurrences": total,
+        "distinct": total_distinct,
+        "structured_occurrences": sum(1 for r in rows if r["structured"]),
+        "by_family": {k: {"occurrences": families[k], "distinct": families_distinct[k]} for k in sorted(families)},
+        "by_tier": {k: {"occurrences": tiers[k], "distinct": tiers_distinct[k]} for k in sorted(tiers)},
+        "by_content": {str(k): {"occurrences": contents[k], "distinct": contents_distinct[k]} for k in contents},
+        "packages": str(packages) if packages else None,
+    }
+    if arguments.ci:
+        summary["ci"] = {
+            "gates": statuses,
+            "recomputed": {"occurrences": len(ci_rows), "distinct": distinct_pairs(ci_rows)},
+            "recomputed_by_family": dict(collections.Counter(r["family"] for r in ci_rows)),
+        }
     if arguments.json:
-        print(json.dumps({
-            "occurrences": total,
-            "distinct": distinct_total,
-            "recomputable_by_a_third_party": {"occurrences": recomputable, "distinct": distinct_recomputable},
-            "by_family": {f"{a}/{b}": {"occurrences": families[(a, b)], "distinct": distinct[(a, b)]}
-                          for a, b in sorted(families)},
-            "packages": str(packages) if packages else None,
-        }, indent=1))
+        print(json.dumps(summary, indent=1))
         return 0
-    print(f"{total} digest occurrences ({distinct_total} distinct artifact/digest pairs) in the tracked files.")
-    for (family, outcome), count in sorted(families.items(), key=lambda item: -item[1]):
-        print(f"  {family:10} {outcome:18} {count:6} occurrences {distinct[(family, outcome)]:6} distinct")
-    print(f"Recomputable by a third party (in_repo match, upstream match, crate): {recomputable} of {total} "
-          f"occurrences ({100 * recomputable / total:.1f}%), {distinct_recomputable} of {distinct_total} distinct "
-          f"({100 * distinct_recomputable / distinct_total:.1f}%).")
+    print(f"{total} digest occurrences ({total_distinct} distinct artifact/digest pairs) in the tracked files.")
+    for key, value in sorted(summary["by_family"].items(), key=lambda item: -item[1]["occurrences"]):
+        print(f"  {key:30} {value['occurrences']:6} occurrences {value['distinct']:6} distinct")
+    print("By tier (bound: the text names bytes a third party can get and they recompute; content only: it does "
+          "not, but some public file hashes to the digest; lab only: an oracle or a build, no public bytes):")
+    for key, value in sorted(summary["by_tier"].items(), key=lambda item: -item[1]["occurrences"]):
+        print(f"  {key:30} {value['occurrences']:6} ({100 * value['occurrences'] / total:5.1f}%)"
+              f" {value['distinct']:6} distinct ({100 * value['distinct'] / total_distinct:5.1f}%)")
+    if arguments.ci:
+        failed = [gate for gate, status in statuses.items() if status]
+        print(f"Recomputed by CI ({len(statuses)} hashing gates run{', FAILED: ' + ', '.join(failed) if failed else ''}"
+              f", plus Cargo.lock): {len(ci_rows)} of {total} occurrences ({100 * len(ci_rows) / total:.1f}%), "
+              f"{distinct_pairs(ci_rows)} of {total_distinct} distinct ({100 * distinct_pairs(ci_rows) / total_distinct:.1f}%).")
     if packages is None:
-        print("The package repositories were not found: the upstream family is not recomputed.")
+        print("The package repositories were not found: the upstream family and the pinned index are not recomputed.")
     return 0
 
 
