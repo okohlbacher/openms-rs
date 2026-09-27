@@ -49,7 +49,7 @@ Series B.
 
 Ten further items are **resolved in part**; each is counted under the verdict
 of what remains, and the part already done is cited. The 23 items marked
-**decision owed** collapse onto 13 decisions (for example OI-10 onto DEC-4,
+**decision owed** collapse onto 12 decisions (for example OI-10 onto DEC-4,
 six tool-level items onto DEC-21); each decision is stated once, in section 5,
 and the item row points to it.
 
@@ -95,7 +95,7 @@ and the item row points to it.
 | OI-22 | A `.pin` file written for a multi-accession PSM cannot be read back | **deferred** | `docs/PERCOLATOR_INFILE_SUPPORT.md:275`, `:335` (`OPENMS-PERCIN-007`). The source's own `store` then `load` is not a round trip either; the port is faithful to it, and relaxing the column check would admit misaligned rows. | An upstream fix, via G · UPSTREAM-01. |
 | OI-23 | Three mzML-reader strictnesses block a combined imzML load | **scheduled** B · BLOCK-06 (`MzMLFile.h`) | `src/format/mzml.rs:2010` (ISO-8859-1 "requires transcoding"), `:2270` (`version` must start `1.1.`), and the forward `softwareRef`. | Series-A D10 shape: source-compatibility options, then `ImzMLFile` (C · CORE-01) passes them. |
 | OI-24 | `ImzMLFile::preflight` does not see inline peaks | **scheduled** C · CORE-01 (`ImzMLFile.h`, `partial`) | `src/format/imzml_file.rs:1536`. | |
-| OI-25 | `OpenMS/IMAGING/` has no Rust owner | **decision owed** → DEC-8 | The ledger has moved: `MSImagingExperiment.h` is now `complete`, `MSImagingGeometry.h`, `MSImagingRegion.h` and `IonImage.h` `partial`, each "owned by a later IMAGING package"; the types still live in `src/kernel/on_disc_imzml_experiment.rs:25-30`. The work itself is E · CORE-18 (IMAGING 3). | |
+| OI-25 | `OpenMS/IMAGING/` has no Rust owner | **decision owed** → DEC-8 | The ledger has moved: `MSImagingExperiment.h` is now `complete`, `MSImagingGeometry.h`, `MSImagingRegion.h` and `IonImage.h` `partial`, each "owned by a later IMAGING package"; the types still live in `src/kernel/on_disc_imzml_experiment.rs` (`:27-30` says so). The work itself is E · CORE-18 (IMAGING 3). | |
 | OI-26 | `ImzMLFile::store`'s geometry overload is not ported | **scheduled** E · CORE-18 (IMAGING) + C · CORE-01 | `docs/IMZML_WRITER_SUPPORT.md:475-481`. Reachable once DEC-8 places `MSImagingGeometry`. | |
 | OI-27 | `QcMLFile::collectQCData` (926 lines, ≥ 7 defects) | **scheduled** C · CORE-01 (`QcMLFile.h`, `partial`), metrics with D · CORE-10 | The ledger scope still says "explicitly unported". The per-defect question the inventory raised is answered by D1 and D16: reproduce every deterministic in-bounds behaviour, refuse exactly the UB. Bundling `qc-cv.obo` / `qc-cv-legacy.obo` is a data dependency, recorded like a crate. | |
 | OI-28 | The `MzTab.h` export surface | **scheduled** C · CORE-01, lane F2 | `docs/MZTAB_SUPPORT.md`; F2 is on MzTab, MzTab-M, mzQC and OMS. | |
@@ -107,7 +107,7 @@ and the item row points to it.
 | OI-34 | `SpectrumLookup`, `SpectrumMetaDataLookup`, `SpectrumNativeIDParser`; a caller's `scan_regex` | **scheduled** D · CORE-08 (METADATA) | All three are now `partial` with consumer-local subsets. The stated reason for refusing `scan_regex` was stale: `crate::concept::boost_regex` landed in `854d996`, the day after `docs/MASCOT_XML_SUPPORT.md` was written (sentence corrected, `4754da8`). | |
 | OI-35 | `IndexedMzMLFileLoader` and the `Interfaces::` pointer overloads | **scheduled** C · CORE-01 (`IndexedMzMLFileLoader.h`, `partial`) + E · CORE-18 (`INTERFACES/*`) | Ledger scope: every operation exists elsewhere. The pointer overloads wait for the `Interfaces` layer. | |
 | OI-36 | `ReactionMonitoringTransition`, `MRMTransitionGroupPicker` | **scheduled** A · DEBT-02, then C · CORE-02 | `ReactionMonitoringTransition.h` is `evidence_requires_review` (DEBT-02 decides it); `MRMTransitionGroupPicker.h` `unmapped` in OpenSWATH. `src/kernel/mrm.rs:28`, `:103`. | |
-| OI-37 | `-write_ctd`, `-write_cwl`, `-write_json` refused on every tool | **resolved** `1a773e4`, `c36d087` | `-write_ctd` writes the CTD (`src/cli.rs:1163-1167`); the four CWL/JSON writers end with exit 8 and the Release build's own "TDL support is not available" message, as the Release build does without TDL (`src/cli.rs:1169-1174`). | — |
+| OI-37 | `-write_ctd`, `-write_cwl`, `-write_json` refused on every tool | **resolved** `1a773e4`, `c36d087` | `-write_ctd` writes the CTD (`src/cli.rs:1163-1167`); the four CWL/JSON writers end with exit 12 (`INTERNAL_ERROR`) and the Release build's own "TDL support is not available" message, as the Release build does without TDL (`src/cli.rs:1169-1174`). | — |
 | OI-38 | `get_type` fails on a directory where C++ reports an unknown type | **scheduled** B · BLOCK-01 (`FileHandler.h`) | `src/cli.rs:2008-2011`: the tool layer already treats the failure as an undetermined format; the library still fails. | |
 
 ### 1.4 Kernel, processing and feature finding
@@ -119,11 +119,11 @@ and the item row points to it.
 | OI-41 | The rest of `IMDataConverter.h` | **scheduled** E · CORE-18 (IONMOBILITY) | `src/kernel/im_data_converter.rs` has none of `reshapeIMFrameTo*`, `splitExperimentByIonMobility`, `set/getIMUnit`. Waits for `IonMobilityBinning`, `FeatureFinderMetabo`, `FeatureFinderMultiplex`, `SpectraMerger`, `IMDataArrayUtils`. | |
 | OI-42 | The cross-voltage FAIMS merge has no C++ oracle | **decision owed** → DEC-5 | Unchanged. | |
 | OI-43 | `Math::RandomShuffler` duplicates the `pub(crate)` `DecoyRandom` | **scheduled** B · BLOCK-06 (`MathFunctions.h`) | `src/chemistry/decoy_random.rs:33`. The duplication rule answers the inventory's question: promote `DecoyRandom` into `math` (a sink, so no cycle) and have both consumers use it. | |
-| OI-44 | `TraceFitterParams`' `Param` round trip is `i32`-bounded | **scheduled** B · SHARED-01, lane B6 | `tests/trace_fitter.rs:381-389` pins the disagreement. `crate::param`'s restriction check converts to `i32`; the `DefaultParamHandler` trait lane owns the `Param` contract. | |
+| OI-44 | `TraceFitterParams`' `Param` round trip is `i32`-bounded | **scheduled** B · SHARED-01, lane B6 | `tests/trace_fitter.rs:381-389` pins the disagreement. `crate::param`'s restriction check converts to `i32` although `Param.h` is `complete`; the fix is in `crate::param`, under the `DefaultParamHandler` trait lane's round-trip contract. | |
 | OI-45 | LM solver fidelity beyond the fixtures, macOS arm64 | **deferred** | The user's 2026-09-15 platform decision makes Linux x86_64 Release the reference on every target; there the solver is bit-exact on all 141 traced fits (`docs/TRACE_FITTER_SUPPORT.md`, *Known gap*). `tests/gauss_trace_fitter.rs:1593` is report-only by design. | Nothing, unless the platform decision is revisited. |
 | OI-46 | Is bitwise equality with Eigen required? | **decision owed** → DEC-6 | `docs/EGH_TRACE_FITTER_SUPPORT.md:369` "not yet recorded". | |
-| OI-47 | `atan` fallback off the reference node | **deferred** | `src/analysis/feature_finder_picked/glibc_libm.rs`: glibc's `__atan_fma` is LGPL with no licence-clean upstream; the measured departure is recorded. | A licence-clean source for `__atan_fma`. |
-| OI-48 | `2^32 - 5` score arrays never run uncapped | **deferred** | `docs/VALIDATION.md`: ~928 GiB, 93 % of the reference node. | A node with the memory. |
+| OI-47 | `atan` fallback off the reference node | **deferred** | `src/analysis/feature_finder_picked/glibc_libm.rs:93`: glibc's `__atan_fma` is LGPL with no licence-clean upstream; the measured departure is recorded. | A licence-clean source for `__atan_fma`. |
+| OI-48 | `2^32 - 5` score arrays never run uncapped | **deferred** | `docs/VALIDATION.md:2048`: ~928 GiB, 93 % of the reference node. | A node with the memory. |
 | OI-49 | `allow_duplicate_positions` / `allow_unsorted_positions` refused | **scheduled** E · CORE-15 (`PeakPickerIterative.h`, `partial`) | `src/processing/iterative.rs:105-107`, `:193-194`. D16 and D1 answer the inventory's question: a `std::map<double,double>` overwrite is deterministic and in bounds, so it is ported, not refused. | Port it after A3a's `iterative.rs` change (B3) lands. |
 | OI-50 | Chromatogram and iterative pickers call the strict S/N `estimate` | **scheduled** E · CORE-15 + C · CORE-02 | `docs/SIGNAL_TO_NOISE_SUPPORT.md:589-600`; `PeakPickerChromatogram.h` (OpenSWATH) and `PeakPickerIterative.h` are both `partial`. The doc names the exact call. | |
 | OI-51 | Signal-to-noise signed-overflow sites stay refused | **deferred** | D1: each site is UB and the refusal is as wide as the UB; emulating needs > 2^31 points and 64-90 GB per run. | Reopen only if a real input approaches 2^31 points. |
@@ -177,18 +177,18 @@ and the item row points to it.
 | OI-89 | C3 / FuzzyDiff minors | **decision owed** → DEC-21 | Still divergent on the reference platform: the Linux Release build rejects `1e-400`, the port accepts it (`docs/FUZZY_STRING_COMPARATOR_SUPPORT.md:168-177`). FuzzyDiff is the ninth validated workflow; no core header owns it. | |
 | OI-90 | CLI-1 requests 7 and 8 | **scheduled** B · CLI-01 + B · BLOCK-06 | `update_diagnostics` still at `src/cli.rs:1629`; `to_int32` twice (`src/cli/context.rs:849`, `src/system/update_check.rs:219`). | |
 | OI-91 | `-in /dev/null` exits 2 with a false message | **decision owed** → DEC-13 | `docs/THIRD_PARTY_CRATE_DECISIONS.md:47` still "Pending; candidate only". | |
-| OI-92 | Doc-accuracy debts | **scheduled** A · DEBT-01 (lanes A5a/A5b) — resolved in part | Fixed here: the B3b reference in `docs/EGH_TRACE_FITTER_SUPPORT.md` (`4754da8`). Still stale, in code and so outside this lane: `src/math/multiple_testing.rs:1121` ("2.5 million", measured 5 million). The rest are listed in `docs/EARLY_TOPP_WORK_PACKAGES.md` per lane. | Each partial header's re-read corrects its own; the rest go with their owners. |
+| OI-92 | Doc-accuracy debts | **scheduled** A · DEBT-01 (lanes A5a/A5b) — resolved in part | Fixed here: the B3b reference in `docs/EGH_TRACE_FITTER_SUPPORT.md` (`4754da8`). Still stale, in code and so outside this lane: `src/math/multiple_testing.rs:1117-1121` gives the 2.5-million-epsilon miss at `f64::MIN_POSITIVE` as the bound, where the largest measured miss was about 5 million, at `p = 1 - 1e-13`. The rest are listed in `docs/EARLY_TOPP_WORK_PACKAGES.md` per lane. | Each partial header's re-read corrects its own; the rest go with their owners. |
 | OI-93 | P1 picker minors, incl. the 256 MiB acquisition-copy ledger | **decision owed** → DEC-17 | `src/processing.rs:73` (`256 * 1024 * 1024`). The other sub-points are E · CORE-15 (`PeakPickerHiRes.h`). | |
 | OI-94 | The mzML reader refuses duplicate record ids (`CPP-261`) | **scheduled** B · BLOCK-06 (`MzMLFile.h`) | `src/format/mzml.rs:2431`, `:3903`, `:3925`. Series-A D10 answers the "D10 candidate" question: a source-compatibility read option, strict default. | |
 | OI-95 | P2 header minors | **scheduled** C · CORE-01 (`MzMLHandler.h`, `IndexedMzMLHandler.h`) | Unchanged; list in `docs/EARLY_TOPP_WORK_PACKAGES.md` (P2 minors). | |
-| OI-96 | CLI-2 minors | **decision owed** → DEC-21 | Tool-level divergences in validated tools (directory `-in` 8 vs 3, NaN `struc_elem_length` 6 vs 0). The directory case is also EVID-01's known divergence. | |
+| OI-96 | CLI-2 minors | **decision owed** → DEC-21 | Tool-level divergences in validated tools (a directory `-in` exits 8 where C++ exits 3, unknown content 6 vs 3, a NaN `struc_elem_length` 6 vs 0). | |
 | OI-97 | A5 minors | **decision owed** → DEC-21 | `detect_type` still duplicated (`src/cli/tools/file_info.rs:257`, `src/format/file_info/report.rs:390`); the duplicate itself is collapsed by the duplication rule wherever DEC-21 lands. | |
 | OI-98 | C5 minors | **decision owed** → DEC-21 | Tool-level (`FeatureFinderCentroided`). | |
 | OI-99 | B7 minors, incl. a panic in `extend_mass_traces` | **decision owed** → DEC-21 | **Live panic on public input**: `src/analysis/feature_finder_picked/extension.rs:364-367` indexes `pattern.peak[p]` then `pattern.spectrum[p]`; a public `IsotopePattern` with `spectrum` shorter than `peak` panics. `FeatureFinderAlgorithmPicked.h` is `complete`, so no requirement revisits it. | Fix first whatever DEC-21 decides: "no panics on untrusted input" is a standing constraint. |
 | OI-100 | B6/B8/B9/B11 minors | **decision owed** → DEC-21 | Unchanged; all in `complete` FFAP/FAIMS headers. | |
 | OI-101 | B10-FFC-ACCEPT's tight comparison and the LM budget sweep | **decision owed** → DEC-16 | Unchanged. | |
 | OI-102 | Neither implementation finishes the 43,745-spectrum run | **decision owed** → DEC-16 | Unchanged. | |
-| OI-103 | `map_collect` builds a pool unconditionally; `Threads::from_cli` on a negative count | **scheduled** D · CORE-11 (CONCEPT) | `src/concept/parallel.rs:99`, `:128`. Coupled to DEC-12. | |
+| OI-103 | `map_collect` builds a pool unconditionally; `Threads::from_cli` on a negative count | **scheduled** B · BLOCK-05 (`TOPPBase.h`'s `-threads`) | `src/concept/parallel.rs:59` (`from_cli`), `:99`, `:128` (`ThreadPoolBuilder` on every call). `concept::parallel` ports no header of its own; the negative-count mapping is TOPPBase's `-threads` contract, and the pool reuse waits on DEC-12. | |
 | OI-104 | Two full scans on the picker's path | **deferred** | Performance, not fidelity; the inventory's own record says a fusion must be measured first (one cost 1.0 s of wall). | A benchmark wave. |
 | OI-105 | `MSExperiment::max_intensity()` missing | **scheduled** B · BLOCK-03 | Only `src/kernel/ranges.rs:761` and `mass_trace.rs:426` define one; the `MSExperiment` branch does not add it. | Port `getMaxIntensity`'s combined semantics or cross-reference `ranges`. |
 | OI-106 | The window mower's input-point ceiling refuses real spectra | **resolved** `2f173d9` | `src/processing/window_mower.rs:62-75`: size-derived (`max_work + work_per_point * n`). | — |
@@ -242,7 +242,7 @@ and the item row points to it.
 | `docs/VALIDATION.md:2404-2409` | DTAExtractor references "could not be checked" | Checked (OI-68): stale `120` against the tool's `120.0` |
 | `OpenMS_CPP_ISSUES.md:4822` (`CPP-271`) | "whether the port follows the source is open for the lead" | Decided 2026-09-15, followed since `1c27421` (DEC-2) |
 | `src/analysis/feature_finder_picked/helper_structs.rs:10-11`, `src/kernel/map_operations.rs:1313` | ST-06, ST-07 | See 2.1 |
-| `src/math/multiple_testing.rs:1121` | "2.5 million epsilons" | 5 million (OI-92) |
+| `src/math/multiple_testing.rs:1117-1121` | the 2.5-million-epsilon miss as the bound | about 5 million, at `p = 1 - 1e-13` (OI-92) |
 
 ---
 
@@ -301,8 +301,9 @@ and B7 `chromatogram_tools.rs`. A3a also takes OI-08.
   included (`CPP-272`'s *Rust handling*, wave-5 decision D5). Nothing was left
   to rule on.
 - **DEC-10 — reporting the C++ defects upstream: scheduled** G · UPSTREAM-01..04.
-  The user's M1 definition settles it: the port prepares the reports, `CPP-341`
-  first, and the user decides what is filed.
+  The M1 requirements settle it (UPSTREAM-01..04, and "Filing upstream issues"
+  under *Out of scope*): the port prepares the reports, `CPP-341` first, and the
+  user decides what is filed.
 
 ### 5.2 Owed, carried from the inventory
 
@@ -321,8 +322,8 @@ strict default).*
 **DEC-3 — adopt `base64-simd` for the mzML decode path?**
 A: adopt, behind a feature — 2.03x on the hot path (≈ −0.9 s on 2.3 GB);
 internal `unsafe` in a dependency, and the crate must be in the nodes'
-`--offline` cache. B: decline — the headroom stays. Now also closes
-`Base64.h`, which `1712a03` made `partial` for exactly this pair.
+`--offline` cache. B: decline — the headroom stays. `Base64.h` waits on this: `1712a03` made it
+`partial` because the private SIMD decoder pair has no port.
 
 **DEC-4 — strictness where the source's answer is defined: may the reader and
 kernel refuse input the C++ loads?** Covers FileInfo `-c`'s two classes (a
@@ -395,8 +396,9 @@ both sides, plus the never-run `FFC_max_iterations_*` sweep. B: accept the
 4,000-spectrum subset and say so — the tool's acceptance stays qualified.
 
 **DEC-17 — may a resource ceiling refuse data the reference build completes?**
-One ruling settles OI-71, OI-93, OI-107 and A4's SRM conversion ceiling (about
-430,000 SRM points), and OI-76 is already being fixed the size-derived way.
+One ruling settles OI-71, OI-93, OI-107 and work package A4's SRM conversion
+ceiling (`ChromatogramConversionLimits`, about 430,000 SRM points the C++
+reports); OI-76 is already being fixed the size-derived way.
 A: no — every default ceiling is size-derived, as the mzML reader's and the
 window mower's (`2f173d9`) are; a ceiling then refuses only a pathological
 ratio, and OI-71's exit code means "pathological input". B: yes, with each
@@ -462,7 +464,7 @@ wait for it.*
 | B · BLOCK-01 | OI-18, OI-38, OI-88, OI-115 |
 | B · BLOCK-02 | OI-81 (LogStream) |
 | B · BLOCK-03 | OI-40, OI-76, OI-82, OI-105 |
-| B · BLOCK-05 | OI-75 |
+| B · BLOCK-05 | OI-75, OI-103 |
 | B · BLOCK-06 | OI-23, OI-43, OI-73, OI-88, OI-90, OI-94, OI-109 |
 | B · SHARED-01 (lane B6) | OI-44 |
 | B · SHARED-02 | OI-115 (ZIP) |
@@ -473,7 +475,7 @@ wait for it.*
 | D · CORE-06 | OI-84 |
 | D · CORE-08 | OI-34 |
 | D · CORE-10 | OI-27 (metrics) |
-| D · CORE-11 | OI-82, OI-103 |
+| D · CORE-11 | OI-82 |
 | E · CORE-15 | OI-49, OI-50, OI-78, section 3.2 (smoothing note) |
 | E · CORE-18 | OI-03, OI-04, OI-05, OI-26, OI-35, OI-39, OI-41, OI-77, OI-81, OI-83 |
 | F · STRUCT-01 | OI-70 |
