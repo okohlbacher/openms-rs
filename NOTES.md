@@ -53,3 +53,20 @@ incarnation worktree-wf_bcdd783d-f3f-10 at 27d502a; no merge commit was needed).
 ## Incarnation 4 (19:39) committed incarnation 3's uncommitted edits as 8ddbef2 (ungated)
 - mod.rs now declares arrow_schema_registry + parquet_file (cfg arrow). parquet_file.rs covers every
   ParquetFile.h member. First dax compile gate running (scratchpad F1a-w4/gates/g1.log).
+- g1/g2 on dax: lib + tests/parquet_filter compile with --features arrow; parquet_filter 19/19 pass.
+  ParquetFilter checked member-by-member -> complete.
+- Oracle part-1 caveats: (a) "exists=" suffixes in writeTableToParquet/concatenate records were evaluated
+  BEFORE the write (g++ evaluates operator+ args right-to-left) -> meaningless, do not transcribe;
+  (b) qpxPsmRunFileName records are all "fallback" because QPXRunFileNameKeys was built before the names
+  were registered (MetaInfoRegistry index -1). Part 2 (../oracle/F1a-arrow2, launched 19:58 on ibminode06,
+  pull with `bash ../oracle/F1a-arrow2/run.sh pull`) registers first + records a nested list round trip.
+- Reuse: format::percolator_infile::ScanNumberPattern == getRegExFromNativeID+extractScanNumber;
+  data_structures::list::create::<i32/f64/String> == ListUtils::create; system::file::stem_name;
+  param::value::format_float(v,true) == DataValue::toString double; kernel::features::ColumnHeader.
+  MetaValue::source_float_list cfg needs `feature = "arrow"` added (src/metadata/value.rs).
+- readMetaValues int = std::stoll prefix semantics; double = glibc strtod (hex floats, ERANGE on
+  inexact subnormal/zero and overflow). Write local parsers in arrow_io_helpers.rs.
+- Isobaric channel names: transcribe from records.tsv "isobaric" lines (tier 1); method names from
+  IsobaricQuantitationMethod.cpp METHOD_REGISTRY.
+- Next: write src/format/arrow_io_helpers.rs, then tests/arrow_parquet.rs reading
+  tests/data/arrow_parquet/cpp_release_records.tsv (copy of oracle records.tsv) + files/*.parquet.
