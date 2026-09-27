@@ -520,6 +520,31 @@ impl Param {
             Ok(())
         })
     }
+    /// Replace the value of the existing entry `key`, keeping its description,
+    /// tags and restrictions.
+    ///
+    /// This is how a [`DefaultParamHandling::to_param`] implementation writes
+    /// its current values into the layout of its defaults. Native: the source
+    /// has no such member, and its `setValue` would replace the tags as well.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when `key` names no entry, when `value` has a
+    /// different [`ParamValueType`] from the current value, or on a resource
+    /// failure; `self` is then unchanged.
+    pub fn replace_value(&mut self, key: &str, value: ParamValue) -> Result<()> {
+        self.edit(|p, w| {
+            value.measure(w)?;
+            let entry = p.entry_mut(key, w)?;
+            if entry.value.value_type() != value.value_type() {
+                return Err(invalid(format!(
+                    "parameter '{key}' cannot change its value type"
+                )));
+            }
+            entry.value = value;
+            Ok(())
+        })
+    }
     fn entry_mut(&mut self, key: &str, w: &mut ParamWork) -> Result<&mut ParamEntry> {
         key_check(key, w)?;
         let parent = self.root.parent_mut(key, w)?.ok_or_else(|| missing(key))?;

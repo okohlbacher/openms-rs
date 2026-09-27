@@ -4,24 +4,43 @@
 // $Authors: Chris Bielow, OpenMS Rust contributors $
 
 //! Iteratively clipped histogram-mean signal-to-noise estimation.
+//!
+//! Ports the header-only template
+//! `src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h`.
 //! See docs/MEAN_NOISE_SUPPORT.md for the source's fixed denominator and
-//! historical percentile conventions.
+//! historical percentile conventions. The source's `DefaultParamHandler`
+//! parameters map through [`DefaultParamHandling`], implemented on
+//! [`SignalToNoiseEstimatorMeanIterative`].
 
 use crate::kernel::{MSChromatogram, MSSpectrum};
+use crate::param::handler::int_parameter;
+use crate::param::{DefaultParamHandling, Param, ParamValue};
+use crate::processing::peak_picking::NoiseRangeParameters;
 use crate::{Error, Result};
 
+/// How the histogram's upper intensity bound is found (source enum
+/// `IntensityThresholdCalculation`, chosen by the parameter `auto_mode`).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum MeanNoiseHistogramRange {
+    /// Source `AUTOMAXBYSTDEV` (`auto_mode` 0): mean plus `factor` standard
+    /// deviations of the whole trace (`auto_max_stdev_factor`).
     StandardDeviation {
+        /// `auto_max_stdev_factor`, in `0..=999`.
         factor: f64,
     },
+    /// Source `MANUAL` (`auto_mode` -1): the fixed bound `max_intensity`,
+    /// which must be positive. Intensities at or above it are not counted.
     Manual {
+        /// `max_intensity`; the source parameter is an integer.
         max_intensity: f64,
     },
     /// Literal historical source heuristic, including its minimum-as-maximum
     /// and bounded histogram scan. Unsafe source indices return errors.
     /// This mode retains the source's f32 intensity arithmetic.
+    ///
+    /// Source `AUTOMAXBYPERCENT` (`auto_mode` 1).
     LegacyPercentile {
+        /// `auto_max_percentile`, in `0..=100`.
         percentile: u8,
     },
 }
@@ -32,16 +51,37 @@ impl Default for MeanNoiseHistogramRange {
 }
 
 /// Three histogram clipping passes with the original window count as denominator.
+///
+/// Every field but the three ceilings is a source parameter; see
+/// [`DefaultParamHandling`] for the names, defaults and restrictions.
 #[derive(Clone, Debug, PartialEq)]
 pub struct SignalToNoiseEstimatorMeanIterative {
+    /// The histogram's upper bound (source `auto_mode` with
+    /// `auto_max_stdev_factor`, `max_intensity` or `auto_max_percentile`).
     pub histogram_range: MeanNoiseHistogramRange,
+    /// The values of the three range parameters as configured. The mode in
+    /// [`histogram_range`](Self::histogram_range) takes its own value from
+    /// there; the other two are kept only so that
+    /// [`DefaultParamHandling::to_param`] returns the parameters the estimator
+    /// was built from.
+    pub range_parameters: NoiseRangeParameters,
     /// Full coordinate width, at least one; left inclusive and right exclusive.
+    /// Source `win_len`, default 200.
     pub window_length: f64,
+    /// Histogram bins, at least three (source `bin_count`, default 30).
     pub bin_count: usize,
+    /// Standard deviations above the mean at which each clipping pass cuts the
+    /// histogram, in `0.01..=999` (source `stdev_mp`, default 3).
     pub stdev_multiplier: f64,
+    /// Points a window needs before it is estimated rather than treated as
+    /// sparse, at least one (source `min_required_elements`, default 10).
     pub min_required_elements: usize,
+    /// The noise assigned to a sparse window, positive and finite (source
+    /// `noise_for_empty_window`, default 1e20).
     pub noise_for_empty_window: f64,
+    /// Native ceiling on the points of one trace; the source has none.
     pub max_points: usize,
+    /// Native ceiling on [`bin_count`](Self::bin_count); the source has none.
     pub max_bins: usize,
     /// Output points, global intensity scans, histogram slots/updates and bin visits.
     pub max_work: usize,
@@ -50,6 +90,7 @@ impl Default for SignalToNoiseEstimatorMeanIterative {
     fn default() -> Self {
         Self {
             histogram_range: Default::default(),
+            range_parameters: NoiseRangeParameters::default(),
             window_length: 200.0,
             bin_count: 30,
             stdev_multiplier: 3.0,
@@ -62,15 +103,231 @@ impl Default for SignalToNoiseEstimatorMeanIterative {
     }
 }
 
+/// The estimates of one trace, in input order (source `stn_estimates_` with
+/// the diagnostics its `computeSTN_` logs).
 #[derive(Clone, Debug, PartialEq)]
 pub struct MeanNoiseEstimates {
+    /// Signal-to-noise ratio of every point (source `getSignalToNoise`).
     pub signal_to_noise: Vec<f64>,
+    /// The noise estimate of every point's window.
     pub noise: Vec<f64>,
+    /// The histogram's upper bound the configured range produced.
     pub max_intensity: f64,
+    /// Percentage of points whose window was sparse.
     pub sparse_window_percent: f64,
 }
 
+/// The source parameters of `SignalToNoiseEstimatorMeanIterative`, declared by
+/// its constructor (`SignalToNoiseEstimatorMeanIterative.h:65-106`) and read by
+/// `updateMembers_` (`:366-377`). The base class is constructed as
+/// `DefaultParamHandler("SignalToNoiseEstimator")` and renamed by
+/// `setName("SignalToNoiseEstimatorMeanIterative")`.
+impl DefaultParamHandling for SignalToNoiseEstimatorMeanIterative {
+    const NAME: &'static str = "SignalToNoiseEstimatorMeanIterative";
+
+    /// `max_intensity` (-1, min -1), `auto_max_stdev_factor` (3.0, 0..999),
+    /// `auto_max_percentile` (95, 0..100), `auto_mode` (0, -1..1), `win_len`
+    /// (200.0, min 1), `bin_count` (30, min 3), `stdev_mp` (3.0, 0.01..999),
+    /// `min_required_elements` (10, min 1) and `noise_for_empty_window` (1e20);
+    /// all but `win_len`, `bin_count` and `min_required_elements` advanced.
+    fn defaults() -> Result<Param> {
+        let advanced = ["advanced".to_owned()];
+        let mut defaults = Param::new();
+        defaults.set_value(
+            "max_intensity",
+            ParamValue::Integer(-1),
+            "maximal intensity considered for histogram construction. By default, it will be calculated automatically (see auto_mode). Only provide this parameter if you know what you are doing (and change 'auto_mode' to '-1')! All intensities EQUAL/ABOVE 'max_intensity' will not be added to the histogram. If you choose 'max_intensity' too small, the noise estimate might be too small as well. If chosen too big, the bins become quite large (which you could counter by increasing 'bin_count', which increases runtime).",
+            &advanced,
+        )?;
+        defaults.set_min_int("max_intensity", -1)?;
+        defaults.set_value(
+            "auto_max_stdev_factor",
+            ParamValue::Float(3.0),
+            "parameter for 'max_intensity' estimation (if 'auto_mode' == 0): mean + 'auto_max_stdev_factor' * stdev",
+            &advanced,
+        )?;
+        defaults.set_min_float("auto_max_stdev_factor", 0.0)?;
+        defaults.set_max_float("auto_max_stdev_factor", 999.0)?;
+        defaults.set_value(
+            "auto_max_percentile",
+            ParamValue::Integer(95),
+            "parameter for 'max_intensity' estimation (if 'auto_mode' == 1): auto_max_percentile th percentile",
+            &advanced,
+        )?;
+        defaults.set_min_int("auto_max_percentile", 0)?;
+        defaults.set_max_int("auto_max_percentile", 100)?;
+        defaults.set_value(
+            "auto_mode",
+            ParamValue::Integer(0),
+            "method to use to determine maximal intensity: -1 --> use 'max_intensity'; 0 --> 'auto_max_stdev_factor' method (default); 1 --> 'auto_max_percentile' method",
+            &advanced,
+        )?;
+        defaults.set_min_int("auto_mode", -1)?;
+        defaults.set_max_int("auto_mode", 1)?;
+        defaults.set_value(
+            "win_len",
+            ParamValue::Float(200.0),
+            "window length in Thomson",
+            &[],
+        )?;
+        defaults.set_min_float("win_len", 1.0)?;
+        defaults.set_value(
+            "bin_count",
+            ParamValue::Integer(30),
+            "number of bins for intensity values",
+            &[],
+        )?;
+        defaults.set_min_int("bin_count", 3)?;
+        defaults.set_value(
+            "stdev_mp",
+            ParamValue::Float(3.0),
+            "multiplier for stdev",
+            &advanced,
+        )?;
+        defaults.set_min_float("stdev_mp", 0.01)?;
+        defaults.set_max_float("stdev_mp", 999.0)?;
+        defaults.set_value(
+            "min_required_elements",
+            ParamValue::Integer(10),
+            "minimum number of elements required in a window (otherwise it is considered sparse)",
+            &[],
+        )?;
+        defaults.set_min_int("min_required_elements", 1)?;
+        defaults.set_value(
+            "noise_for_empty_window",
+            ParamValue::Float(1e20),
+            "noise value used for sparse windows",
+            &advanced,
+        )?;
+        Ok(defaults)
+    }
+
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when a manual `max_intensity` is not an integer
+    /// in the 32-bit range, or a count exceeds the source's 32-bit `int`.
+    fn to_param(&self) -> Result<Param> {
+        let mut range = self.range_parameters;
+        let mode = match self.histogram_range {
+            MeanNoiseHistogramRange::StandardDeviation { factor } => {
+                range.auto_max_stdev_factor = factor;
+                0
+            }
+            MeanNoiseHistogramRange::LegacyPercentile { percentile } => {
+                range.auto_max_percentile = i32::from(percentile);
+                1
+            }
+            MeanNoiseHistogramRange::Manual { max_intensity } => {
+                let integral = max_intensity.fract() == 0.0
+                    && max_intensity >= f64::from(i32::MIN)
+                    && max_intensity <= f64::from(i32::MAX);
+                if !integral {
+                    return Err(bad(&format!(
+                        "'max_intensity' = {max_intensity} is not representable as the source integer parameter"
+                    )));
+                }
+                range.max_intensity = max_intensity as i32;
+                -1
+            }
+        };
+        let mut param = Self::defaults()?;
+        param.replace_value(
+            "max_intensity",
+            ParamValue::Integer(i64::from(range.max_intensity)),
+        )?;
+        param.replace_value(
+            "auto_max_stdev_factor",
+            ParamValue::Float(range.auto_max_stdev_factor),
+        )?;
+        param.replace_value(
+            "auto_max_percentile",
+            ParamValue::Integer(i64::from(range.auto_max_percentile)),
+        )?;
+        param.replace_value("auto_mode", ParamValue::Integer(mode))?;
+        param.replace_value("win_len", ParamValue::Float(self.window_length))?;
+        param.replace_value("bin_count", int_parameter(self.bin_count, "bin_count")?)?;
+        param.replace_value("stdev_mp", ParamValue::Float(self.stdev_multiplier))?;
+        param.replace_value(
+            "min_required_elements",
+            int_parameter(self.min_required_elements, "min_required_elements")?,
+        )?;
+        param.replace_value(
+            "noise_for_empty_window",
+            ParamValue::Float(self.noise_for_empty_window),
+        )?;
+        Ok(param)
+    }
+
+    /// Source `updateMembers_`. `auto_mode` 0 selects
+    /// [`MeanNoiseHistogramRange::StandardDeviation`], 1
+    /// [`MeanNoiseHistogramRange::LegacyPercentile`] and -1 (the only other
+    /// value the restriction admits) [`MeanNoiseHistogramRange::Manual`], as
+    /// `computeSTN_` branches on it. A manual bound that is not positive is
+    /// accepted here, as by the source, and refused by estimation (the source
+    /// throws there too).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a count below zero, which the restrictions
+    /// already refuse.
+    fn update_members(param: &Param) -> Result<Self> {
+        let range = NoiseRangeParameters {
+            max_intensity: param.value("max_intensity")?.to_i32()?,
+            auto_max_stdev_factor: param.value("auto_max_stdev_factor")?.to_f64()?,
+            auto_max_percentile: param.value("auto_max_percentile")?.to_i32()?,
+        };
+        let histogram_range = match param.value("auto_mode")?.to_i64()? {
+            0 => MeanNoiseHistogramRange::StandardDeviation {
+                factor: range.auto_max_stdev_factor,
+            },
+            1 => MeanNoiseHistogramRange::LegacyPercentile {
+                percentile: u8::try_from(range.auto_max_percentile)
+                    .map_err(|_| bad("'auto_max_percentile' must be in 0..=100"))?,
+            },
+            _ => MeanNoiseHistogramRange::Manual {
+                max_intensity: f64::from(range.max_intensity),
+            },
+        };
+        let count = |key: &str| -> Result<usize> {
+            usize::try_from(param.value(key)?.to_i64()?)
+                .map_err(|_| bad(&format!("parameter '{key}' must not be negative")))
+        };
+        Ok(Self {
+            histogram_range,
+            range_parameters: range,
+            window_length: param.value("win_len")?.to_f64()?,
+            bin_count: count("bin_count")?,
+            stdev_multiplier: param.value("stdev_mp")?.to_f64()?,
+            min_required_elements: count("min_required_elements")?,
+            noise_for_empty_window: param.value("noise_for_empty_window")?.to_f64()?,
+            ..Self::default()
+        })
+    }
+
+    /// Keeps [`max_points`](Self::max_points), [`max_bins`](Self::max_bins)
+    /// and [`max_work`](Self::max_work).
+    fn keep_native_members(&self, updated: Self) -> Self {
+        Self {
+            max_points: self.max_points,
+            max_bins: self.max_bins,
+            max_work: self.max_work,
+            ..updated
+        }
+    }
+}
+
 impl SignalToNoiseEstimatorMeanIterative {
+    /// Check the options before any estimation.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a window below one or not finite, fewer than
+    /// three bins or more than [`max_bins`](Self::max_bins), a zero ceiling,
+    /// `min_required_elements` of zero, a `stdev_multiplier` outside
+    /// `0.01..=999`, a sparse-window noise that is not positive and finite, a
+    /// standard-deviation factor outside `0..=999`, a manual bound that is not
+    /// positive and finite (the source's `computeSTN_` throws
+    /// `Exception::InvalidValue` for it) and a percentile above 100.
     pub fn validate(&self) -> Result<()> {
         if !self.window_length.is_finite()
             || self.window_length < 1.0
@@ -226,6 +483,12 @@ impl SignalToNoiseEstimatorMeanIterative {
         Ok(result)
     }
 
+    /// [`estimate`](Self::estimate) over a spectrum's m/z positions and
+    /// intensities (source `init(spectrum)`).
+    ///
+    /// # Errors
+    ///
+    /// As [`estimate`](Self::estimate), and for an invalid spectrum.
     pub fn estimate_spectrum(&self, input: &MSSpectrum) -> Result<MeanNoiseEstimates> {
         self.preflight(input.len())?;
         input.validate()?;
@@ -239,6 +502,17 @@ impl SignalToNoiseEstimatorMeanIterative {
         )
     }
 
+    /// [`estimate`](Self::estimate) over a chromatogram's retention times and
+    /// intensities.
+    ///
+    /// Native extension: the source template cannot be instantiated for
+    /// `MSChromatogram`, because its `computeSTN_` calls `getMZ` on the peaks
+    /// (`SignalToNoiseEstimatorMeanIterative.h:262`, `:279`), which
+    /// `ChromatogramPeak` does not have.
+    ///
+    /// # Errors
+    ///
+    /// As [`estimate`](Self::estimate), and for an invalid chromatogram.
     pub fn estimate_chromatogram(&self, input: &MSChromatogram) -> Result<MeanNoiseEstimates> {
         self.preflight(input.len())?;
         input.validate()?;

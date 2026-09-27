@@ -294,6 +294,71 @@ pub trait DefaultParamHandling: Sized {
     }
 }
 
+/// A count member as the source reads it, `(UInt)param_.getValue(key)`.
+///
+/// The source's `ParamValue::operator unsigned int` throws
+/// `Exception::ConversionError` for a negative value, which becomes
+/// [`Error::InvalidValue`](crate::Error::InvalidValue); a value beyond
+/// `u32::MAX`, which the source truncates, is refused as well.
+///
+/// # Errors
+///
+/// As above, and when `key` is missing or not an integer.
+pub fn unsigned_parameter(param: &Param, key: &str) -> Result<u32> {
+    let value = param.value(key)?.to_i64()?;
+    if value < 0 {
+        return Err(invalid(format!(
+            "parameter '{key}': Could not convert negative integer ParamValue to unsigned int"
+        )));
+    }
+    u32::try_from(value).map_err(|_| {
+        invalid(format!(
+            "parameter '{key}' = {value} does not fit the source's unsigned int"
+        ))
+    })
+}
+
+/// A count member written back as the source's 32-bit `int` parameter.
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`](crate::Error::InvalidValue) when `value` exceeds
+/// `i32::MAX`.
+pub fn int_parameter(value: usize, key: &str) -> Result<ParamValue> {
+    i32::try_from(value)
+        .map(|value| ParamValue::Integer(i64::from(value)))
+        .map_err(|_| {
+            invalid(format!(
+                "'{key}' = {value} does not fit the source 32-bit parameter"
+            ))
+        })
+}
+
+/// The source's boolean parameter value: the string `true` or `false`, which
+/// `ParamValue::toBool()` reads back.
+pub fn flag_parameter(value: bool) -> ParamValue {
+    ParamValue::String(if value { "true" } else { "false" }.into())
+}
+
+/// `setValue(key, "true" or "false", description, tags)` followed by
+/// `setValidStrings(key, {"true", "false"})`, the source's spelling of a
+/// boolean parameter (`DefaultParamHandler.h`: "Flags (boolean parameters)
+/// are not supported directly").
+///
+/// # Errors
+///
+/// As [`Param::set_value`] and [`Param::set_valid_strings`].
+pub fn set_flag(
+    param: &mut Param,
+    key: &str,
+    value: bool,
+    description: &str,
+    tags: &[String],
+) -> Result<()> {
+    param.set_value(key, flag_parameter(value), description, tags)?;
+    param.set_valid_strings(key, &["true".into(), "false".into()])
+}
+
 /// Current/default parameter trees and validation policy. For derived typed
 /// settings, use a `_with` update that returns newly constructed member state.
 #[derive(Clone, Debug, PartialEq)]

@@ -29,6 +29,8 @@ pub mod mean_noise;
 /// The signal-to-noise estimator base and the random-scan noise estimate
 /// (`SignalToNoiseEstimator.h`).
 pub mod noise_estimation;
+/// The `DefaultParamHandler` contracts of the filters defined in this module.
+mod parameters;
 /// High-resolution centroiding (`PeakPickerHiRes.h`) and median noise
 /// estimation (`SignalToNoiseEstimatorMedian.h`).
 pub mod peak_picking;

@@ -1,0 +1,207 @@
+{
+ "ctor_NLargest7": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": ""
+ },
+ "defaults_GaussFilter": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tGaussFilter\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_LinearResamplerAlign": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tLinearResamplerAlign\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_NLargest": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tNLargest\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_Normalizer": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tNormalizer\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_NucleicAcidSpectrumGenerator": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tNucleicAcidSpectrumGenerator\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_PeakPickerHiRes": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tPeakPickerHiRes\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_PeakPickerIterative": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tPeakPickerIterative\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_RankScaler": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tRankScaler\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_SavitzkyGolayFilter": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tSavitzkyGolayFilter\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_SignalToNoiseEstimatorMeanIterative": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tSignalToNoiseEstimatorMeanIterative\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_SignalToNoiseEstimatorMedian": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tSignalToNoiseEstimatorMedian\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_SpectrumAnnotator": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tSpectrumAnnotator\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_SqrtScaler": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tSqrtScaler\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_TheoreticalSpectrumGenerator": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tTheoreticalSpectrumGenerator\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_ThresholdMower": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tThresholdMower\ndefaults_equal_parameters\t1\n"
+ },
+ "defaults_WindowMower": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "getName\tWindowMower\ndefaults_equal_parameters\t1\n"
+ },
+ "empty_RankScaler": {
+  "exit": 0,
+  "stderr": "Warning: No default parameters for DefaultParameterHandler 'RankScaler' specified!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "empty_SqrtScaler": {
+  "exit": 0,
+  "stderr": "Warning: No default parameters for DefaultParameterHandler 'SqrtScaler' specified!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "set_GaussFilter_negative": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "BEGIN setParameters\nEND setParameters exception\tInvalidParameter\tGaussFilter: Invalid double parameter value '-1.000000' for parameter 'gaussian_width' given! The valid range is: [0.000000:179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000].\n"
+ },
+ "set_Normalizer_bad_method": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "BEGIN setParameters\nEND setParameters exception\tInvalidParameter\tNormalizer: Invalid string parameter value 'to_max' for parameter 'method' given! Valid values are: 'to_one,to_TIC'.\n"
+ },
+ "set_PeakPickerIterative_zero_iterations": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "BEGIN setParameters\nEND setParameters exception\tInvalidParameter\tPeakPickerIterative: Invalid integer parameter value '0' for parameter 'nr_iterations_' given! The valid range is: [1:2147483647].\n"
+ },
+ "set_SavitzkyGolayFilter_even": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "set_SavitzkyGolayFilter_order": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "BEGIN setParameters\nEND setParameters exception\tInvalidValue\tthe value '5' was used but is not valid; The degree of the polynomial has to be less than the frame length.\n"
+ },
+ "set_TheoreticalSpectrumGenerator_loss": {
+  "exit": 0,
+  "stderr": "",
+  "stdout": "BEGIN setParameters\nEND setParameters exception\tInvalidParameter\tTheoreticalSpectrumGenerator: Invalid double parameter value '1.500000' for parameter 'relative_loss_intensity' given! The valid range is: [0.000000:1.000000].\n"
+ },
+ "unknown_GaussFilter": {
+  "exit": 0,
+  "stderr": "Warning: GaussFilter received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_LinearResamplerAlign": {
+  "exit": 0,
+  "stderr": "Warning: LinearResamplerAlign received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_NLargest": {
+  "exit": 0,
+  "stderr": "Warning: NLargest received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_Normalizer": {
+  "exit": 0,
+  "stderr": "Warning: Normalizer received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_NucleicAcidSpectrumGenerator": {
+  "exit": 0,
+  "stderr": "Warning: NucleicAcidSpectrumGenerator received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_PeakPickerHiRes": {
+  "exit": 0,
+  "stderr": "Warning: PeakPickerHiRes received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_PeakPickerIterative": {
+  "exit": 0,
+  "stderr": "Warning: PeakPickerIterative received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_RankScaler": {
+  "exit": 0,
+  "stderr": "Warning: No default parameters for DefaultParameterHandler 'RankScaler' specified!\nWarning: RankScaler received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_SavitzkyGolayFilter": {
+  "exit": 0,
+  "stderr": "Warning: SavitzkyGolayFilter received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_SignalToNoiseEstimatorMeanIterative": {
+  "exit": 0,
+  "stderr": "Warning: SignalToNoiseEstimatorMeanIterative received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_SignalToNoiseEstimatorMedian": {
+  "exit": 0,
+  "stderr": "Warning: SignalToNoiseEstimatorMedian received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_SpectrumAnnotator": {
+  "exit": 0,
+  "stderr": "Warning: SpectrumAnnotator received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_SqrtScaler": {
+  "exit": 0,
+  "stderr": "Warning: No default parameters for DefaultParameterHandler 'SqrtScaler' specified!\nWarning: SqrtScaler received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_TheoreticalSpectrumGenerator": {
+  "exit": 0,
+  "stderr": "Warning: TheoreticalSpectrumGenerator received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_ThresholdMower": {
+  "exit": 0,
+  "stderr": "Warning: ThresholdMower received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ },
+ "unknown_WindowMower": {
+  "exit": 0,
+  "stderr": "Warning: WindowMower received the unknown parameter 'unknown_key'!\n",
+  "stdout": "BEGIN setParameters\nEND setParameters ok\n"
+ }
+}
