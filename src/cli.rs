@@ -41,11 +41,15 @@
 mod console;
 mod context;
 mod defs;
+mod external_tool;
+mod ini_updater;
 mod logging;
+mod map_aligner;
 mod outcome;
 mod param_ctd;
 mod parameter;
 mod processing;
+mod search_engine;
 mod spec;
 mod tool_description_file;
 mod tool_handler;
@@ -60,7 +64,10 @@ pub use context::{
     parse_range_int,
 };
 pub use defs::{CITE_OPENMS, Citation};
+pub use external_tool::{EXTERNAL_OUTPUT_DEBUG_LEVEL, ExternalProcessOutput, exit_code_of};
+pub use ini_updater::{INIUpdater, ToolMapping, ToolMappingEntry};
 pub use logging::{LOG_SEPARATOR, ToolLog};
+pub use map_aligner::{ReferenceParameterKind, TOPPMapAlignerBase};
 pub use outcome::{ToolError, ToolResult};
 pub use param_ctd::{MAX_CTD_BYTES, ParamCtdFile};
 pub use parameter::{ExitCode, ParameterInformation, ParameterType};
@@ -68,6 +75,7 @@ pub use processing::{
     AddDataProcessing, TEST_MODE_COMPLETION_TIME, TEST_MODE_PARAMETER_KEY,
     TEST_MODE_PARAMETER_VALUE, TEST_MODE_VERSION,
 };
+pub use search_engine::{PEPTIDE_INDEXING_ADVANCED, RAWFILE_INSPECTED_SPECTRA, SearchEngineBase};
 pub use spec::ToolSpec;
 pub use tool_description_file::{
     LoadedToolDescriptions, MAX_TTD_BYTES, MAX_TTD_DEPTH, MAX_TTD_ELEMENTS, ToolDescriptionFile,
@@ -1966,11 +1974,7 @@ fn validate(
             } else {
                 format!("'{}' [valid: {}]", entry.name, restrictions.join(", "))
             };
-            session.error(
-                out,
-                err,
-                &format!("Error: The required parameter {name} was not given or is empty!"),
-            )?;
+            session.error(out, err, &defs::required_parameter_text(&name))?;
             return Ok(Some(ExitCode::MissingParameters));
         }
         if empty {

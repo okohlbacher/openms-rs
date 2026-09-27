@@ -126,7 +126,7 @@ impl ToolContext {
         self.refuse(
             bad(format!("parameter '{name}' was not registered")),
             ExitCode::InternalError,
-            format!("Internal error: Request for unregistered parameter '{name}'"),
+            super::defs::unregistered_parameter_text(name),
         )
     }
 
@@ -137,7 +137,7 @@ impl ToolContext {
         self.refuse(
             bad(message),
             ExitCode::InternalError,
-            format!("Internal error: Request for parameter with wrong type '{name}'"),
+            super::defs::wrong_parameter_type_text(name),
         )
     }
 

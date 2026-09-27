@@ -566,6 +566,41 @@ impl ToolSpec {
             .push((name.to_owned(), description.to_owned()));
         Ok(())
     }
+    /// Describe a section of the tool's own parameters, as
+    /// `registerTOPPSubsection_` (`TOPPBase.cpp:1377-1380`).
+    ///
+    /// Parameters registered with a `:` in their name, such as
+    /// `reference:file`, belong to the section before the last `:`; the
+    /// description given here is the one the usage text and the INI file show
+    /// for it. The source assigns into a map, so registering a section again
+    /// replaces its description, including one
+    /// [`register_full_param`](Self::register_full_param) recorded; the
+    /// section keeps its place in [`topp_subsections`](Self::topp_subsections).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for an empty name, and when
+    /// [`MAX_PARAMETERS`](Self::MAX_PARAMETERS) sections would be exceeded.
+    /// The source accepts both; an empty section name describes nothing.
+    pub fn register_topp_subsection(&mut self, name: &str, description: &str) -> Result<()> {
+        if name.is_empty() {
+            return Err(bad("a TOPP subsection needs a name"));
+        }
+        if let Some(entry) = self
+            .topp_subsections
+            .iter_mut()
+            .find(|(section, _)| section == name)
+        {
+            entry.1 = description.to_owned();
+            return Ok(());
+        }
+        if self.topp_subsections.len() >= Self::MAX_PARAMETERS {
+            return Err(bad("tool registers too many TOPP subsections"));
+        }
+        self.topp_subsections
+            .push((name.to_owned(), description.to_owned()));
+        Ok(())
+    }
     /// Add a usage-text line, as `addText_`.
     ///
     /// # Errors
