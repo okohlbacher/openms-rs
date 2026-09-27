@@ -1,7 +1,7 @@
 # Lane A5a NOTES (restart-safety scratch; deleted in final commit)
 
-Brief placeholder `__A5A__` was not expanded. Authoritative list: `.planning/a5-lists.json` key `A5a`
-(main checkout, not worktree): 36 headers, all `partial` except UnimodXMLDataProvider (`evidence_requires_review`).
+Incarnation 2 (brief fixed): the brief now names the 36 headers explicitly; they match `.planning/a5-lists.json` key `A5a`.
+All `partial` except UnimodXMLDataProvider (`evidence_requires_review`). Prereq branch worktree-wf_bcdd783d-f3f-8 merged (fast-forward).
 The brief's examples (MultipleTesting, SysInfo, PythonInfo, RWrapper, JavaInfo, GumbelDistributionFitter,
 USI, MetaInfoRegistry) are all in the A5b list -> NOT this lane.
 
@@ -15,7 +15,9 @@ ConvexHull2D, DBoundingBox, DataValue, FASTAContainer, IsotopeCluster, ListUtils
 Ledger dump: scratchpad a5a_ledger.txt (regenerate from docs/core-sdk-coverage.json `headers` list, key `header`).
 
 ## Status per header (fill in as re-read)
-(none yet)
+- WIP inherited (NOT yet wired into src/concept/mod.rs, not gated): src/concept/common_enums.rs, hash_utils.rs, types.rs.
+  Next: review them against headers, wire `pub mod` lines, gate on dax.
+- GumbelDistributionFitter / USI / MetaInfoRegistry / MultipleTesting etc. are A5b's list, not ours -> leave.
 
 ## Next step
 1. Re-read each scope vs C++ header at pin bc9cc12 (core). Small CONCEPT/DATASTRUCTURES first (cheap closes).
