@@ -56,3 +56,28 @@ Unmerged Phase B branches: 673154fa-1e1-{1 TOPPBase,2 MSExperiment,3 LogStream,4
 - OI-12 open (ignore :494) decision taken -> C CORE-01
 - OI-13 open: lib default strict is correct (Series-A D10); tool passes true (file_info.rs:205); test :210 uses default -> C CORE-01 (run case with option)
 - OI-19 RESOLVED: -log e64ade6, timing fb0ae8e, writeDebug_ 287c89f; -instance reproduces source (TOPP_CLI_SUPPORT:400)
+- OI-14 open (FILE_INFO_CHECKS nd 11/12 at :225,:248; IndexedMzMLDecoder.h native_equivalent) -> DEFERRED (reviewed departure; CPP-337 -> G UPSTREAM-01)
+- OI-15/16/17 open (VALIDATION :1357, :1173, :933) -> DEFERRED to next a6/a7 oracle re-execution (cost stated)
+- OI-18 open (TOPP_FILE_INFO :136-144) -> sched B BLOCK-01 (FileHandler, lane 673154fa-1e1-4 / B0)
+- OI-20 open main; F3a lane (5bb4d01 WIP parse_metered) -> sched C CORE-01 (F3a)
+- OI-21 open (MSSTATS :258-265) -> sched C CORE-01 (ConsensusXMLFile.h) ; shares cause with OI-20 (AASequence parse charge)
+- OI-22 open -> DECISION? (relaxing column check) -> actually deferred: port reproduces source; upstream PERCIN-007 -> G
+- OI-23 open (mzml.rs:2010 transcoding, :2270 "1.1." prefix) -> sched B BLOCK-06 MzMLFile.h / C CORE-01 ImzMLFile.h
+- OI-24 open -> sched C CORE-01 ImzMLFile.h (partial)
+- OI-25 IMAGING: MSImagingExperiment.h now COMPLETE, Geometry/Region/IonImage partial ("owned by later IMAGING pkg") -> E CORE-18 + DEC-8 still owed (where types live)
+- OI-26 open -> sched E CORE-18 (MSImagingGeometry) + C CORE-01 ImzMLFile
+- OI-27 open (QcMLFile partial) -> D CORE-10? QcMLFile is FORMAT -> C CORE-01; DECISION on defects (DEC-19 new?)
+- OI-28/29 -> sched C CORE-01, lane F2 (MzTab, MzTab-M, OMS). MzTabMFile.h native_equivalent -> EVID-02
+- OI-30 RESOLVED 3897138 (+4d59f17) xml_schema.rs bundles mzXML_idx_3.1.xsd
+- OI-31/32 open -> sched C CORE-01 (MzDataFile.h partial)
+- OI-33 open (transformation_xml.rs:175,:352) -> sched C CORE-05 (TransformationModelBSpline unmapped, Interpolated partial)
+- OI-34 open; reason "no regex engine" STALE (concept::boost_regex since 854d996 2026-09-13; MASCOT_XML_SUPPORT.md:190 written 09-12) -> fix sentence; sched D CORE-08
+- OI-35 open (IndexedMzMLFileLoader partial) -> sched C CORE-01 + E CORE-18 INTERFACES
+- OI-36 open (RMT evidence_requires_review) -> sched A DEBT-02 / C CORE-02
+- OI-37 RESOLVED 1a773e4 (CTD writer) + c36d087; CWL/JSON refused exactly as Release w/o TDL (src/cli.rs:1169-1174)
+- OI-38 open (src/cli.rs:2008-2011) -> sched B BLOCK-01
+- OI-39 open -> sched E CORE-18 (MSSpectrum.h partial)
+- OI-40 -> sched B BLOCK-03 (branch 673154fa-1e1-2, B0 integrating)
+- OI-41 open -> E CORE-18 IONMOBILITY; waits SpectraMerger etc
+- OI-43 open -> DECISION (keep) -> sched B BLOCK-06 MathFunctions.h
+- KERNEL/DimMapper.h unmapped & counted in CORE-18 though OI-83 says TOPPView excluded -> DECISION owed (M1 def vs exclusion)
