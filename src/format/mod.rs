@@ -186,6 +186,11 @@ fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
 
+/// Random access to a cached mzML pair, metadata plus binary side-car (`CachedMzML.h`).
+#[cfg(feature = "mzml")]
+pub mod cached_mzml;
+/// Binary on-disk cache of spectra and chromatograms (`HANDLERS/CachedMzMLHandler.h`).
+pub mod cached_mzml_handler;
 /// Chromeleon HPLC text exports into one chromatogram (`ChromeleonFile.h`).
 pub mod chromeleon;
 /// Enhanced DTA feature tables into consensus maps, and their writers (`EDTAFile.h`).
