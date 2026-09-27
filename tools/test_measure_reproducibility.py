@@ -44,6 +44,12 @@ class BindingTests(unittest.TestCase):
         tree = {"old_package_revision": "1" * 40, "nested": {"commit": "2" * 40}, "revisionist": "3" * 40}
         self.assertEqual(measure.manifest_revisions(tree), ["1" * 40, "2" * 40])
 
+    def test_a_package_revisions_map_names_revisions_under_package_keys(self):
+        # tests/data/msstats_provenance.json pins its test data this way, and its
+        # CMakeLists.txt digest holds at that revision, not at the declared pin.
+        tree = {"package_revisions": {"openms4-test-data": "4" * 40}, "name": "5" * 40}
+        self.assertEqual(measure.manifest_revisions(tree), ["4" * 40])
+
 
 class ProseTests(unittest.TestCase):
     def test_prose_binds_the_path_written_nearest_before_the_digest(self):

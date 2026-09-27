@@ -248,7 +248,9 @@ class Upstream:
             path = path[prefix.end():]
         found = False
         for package in order:
-            tried = [r for r in revisions if package == "core"] + [self.pins.get(package)]
+            # Every revision the manifest names, in any package: a manifest pins its
+            # test data under ``package_revisions`` as readily as its core source.
+            tried = [*revisions, self.pins.get(package)]
             for revision in dict.fromkeys(r for r in tried if r):
                 digest = self.digest(package, revision, path)
                 if digest is None:
@@ -275,12 +277,14 @@ def path_history(path, cache={}):
 def manifest_revisions(tree):
     found = []
 
-    def walk(node):
+    def walk(node, mapping=False):
+        # ``mapping``: inside a ``package_revisions`` object, whose keys name packages.
         if isinstance(node, dict):
             for key, value in node.items():
-                if REVISION_KEY.search(key) and isinstance(value, str) and re.fullmatch(r"[0-9a-f]{40}", value):
+                named = mapping or REVISION_KEY.search(key)
+                if named and isinstance(value, str) and re.fullmatch(r"[0-9a-f]{40}", value):
                     found.append(value)
-                walk(value)
+                walk(value, key.endswith("revisions"))
         elif isinstance(node, list):
             for value in node:
                 walk(value)
