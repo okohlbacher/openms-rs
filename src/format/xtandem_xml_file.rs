@@ -262,14 +262,8 @@ impl Handler {
         };
         // Source `ProteinIdentification::sort` with `ProteinHit::ScoreLess`,
         // which orders by (score, accession): equal E-values fall back to
-        // the accession. The crate's `ProteinIdentification::sort` compares
-        // the score only, so it would keep document order there instead.
-        protein_identification.validate()?;
-        protein_identification.hits.sort_by(|a, b| {
-            a.score
-                .total_cmp(&b.score)
-                .then_with(|| a.accession.cmp(&b.accession))
-        });
+        // the accession.
+        protein_identification.sort()?;
         Ok(XTandemXmlResult {
             protein_identification,
             peptide_identifications,
