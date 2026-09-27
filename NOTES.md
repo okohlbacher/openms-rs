@@ -1,6 +1,11 @@
 # F1a NOTES (lane scratch, delete in final commit)
 
-Lane: F1a — Arrow/Parquet core. Branch: worktree-wf_bcdd783d-f3f-10 off main f0990c0.
+Lane: F1a — Arrow/Parquet core. Branch now: worktree-wf_ee239125-5be-10 (fast-forwarded onto the
+earlier incarnation worktree-wf_bcdd783d-f3f-10 at 27d502a).
+
+## Done so far
+- Cargo.toml: optional `arrow` feature + arrow-array/schema/buffer/select + parquet pinned =59.3.0
+  (claimed last release with rust-version 1.85; VERIFY on dax with +1.85.0). No THIRD_PARTY entry yet.
 
 ## State at start
 - No arrow/parquet dependency in Cargo.toml; no mention in docs/THIRD_PARTY_CRATE_DECISIONS.md.
