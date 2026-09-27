@@ -20,7 +20,7 @@ scratchpad root is shared with other lanes, so only use the F6/ subdir).
 1. PTMXMLFile + handler (small, self-contained) 2. UnimodXMLFile + handler + DataProvider
 3. UniProtXMLFile + handler 4. PEFFFile (largest; UniPEFF consumer).
 
-## Done so far (uncompiled until the dax gate reports)
+## Done so far (kb-xml slice green on dax: ptm_xml 6, unimod_xml 7, uniprot_xml 4, lib 12)
 - Cargo feature `kb-xml` = quick-xml + file-compression (Cargo.toml, report it).
 - src/format/sax_xml.rs: shared bounded SAX driver (qnames, attr normalisation, coalesced text).
 - src/format/ptm_xml.rs + tests/ptm_xml.rs (fixture tests/data/PTMXMLFile_PTMs.xml).
