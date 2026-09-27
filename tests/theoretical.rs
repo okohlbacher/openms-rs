@@ -539,7 +539,7 @@ fn empty_monomer_and_invalid_configuration_boundaries() {
             ..g.clone()
         },
         Generator {
-            relative_loss_intensity: f32::NAN,
+            relative_loss_intensity: f64::NAN,
             ..g.clone()
         },
         Generator {

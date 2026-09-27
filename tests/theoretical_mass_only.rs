@@ -70,10 +70,10 @@ fn all_six_series_include_singleton_and_ignore_richer_spectrum_settings() {
         add_metainfo: true,
         sort_by_position: false,
         isotope_model: Isotopes::Coarse { max_peaks: 0 },
-        relative_loss_intensity: f32::NAN,
+        relative_loss_intensity: f64::NAN,
         ..Default::default()
     };
-    g.intensities.b = f32::NEG_INFINITY;
+    g.intensities.b = f64::NEG_INFINITY;
     let mut actual = vec![900., 0.];
     g.append_mass_spectrum(&mut actual, &peptide("A"), 1)
         .unwrap();
