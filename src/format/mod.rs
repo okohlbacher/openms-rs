@@ -156,6 +156,12 @@ pub mod xml_schema;
 #[cfg(feature = "paramxml")]
 pub mod qcml;
 
+/// Percolator PSM-level tab-separated output (`PercolatorOutfile.h`).
+pub mod percolator_outfile;
+/// Spectrum meta-data look-up by regular-expression spectrum reference
+/// (`SpectrumLookup.h`, `SpectrumMetaDataLookup.h`).
+pub mod spectrum_meta_data_lookup;
+
 use crate::{Error, Result};
 
 fn parse_error(line: usize, message: impl Into<String>) -> Error {
