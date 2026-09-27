@@ -81,3 +81,14 @@ Unmerged Phase B branches: 673154fa-1e1-{1 TOPPBase,2 MSExperiment,3 LogStream,4
 - OI-41 open -> E CORE-18 IONMOBILITY; waits SpectraMerger etc
 - OI-43 open -> DECISION (keep) -> sched B BLOCK-06 MathFunctions.h
 - KERNEL/DimMapper.h unmapped & counted in CORE-18 though OI-83 says TOPPView excluded -> DECISION owed (M1 def vs exclusion)
+- OI-45 DEFERRED (platform decision 2026-09-15; Linux x86_64 ref bit-identical 141 fits; test gauss_trace_fitter.rs:1593 report-only)
+- OI-46 = DEC-6 owed. OI-47 DEFERRED (LGPL __atan_fma, decision taken). OI-48 DEFERRED (928 GiB)
+- OI-49 decided by D16 -> sched E CORE-15 (PeakPickerIterative.h partial; A3a touches iterative.rs B3)
+- OI-50 sched E CORE-15 + C CORE-02 (PeakPickerChromatogram.h is ANALYSIS/OPENSWATH, partial)
+- OI-51 DEFERRED (D1 UB; cost/benefit). OI-52=DEC-7. OI-53 DEFERRED (upstream @todo unimplemented; BinnedSumAgreeingIntensities complete)
+- OI-54 DEFERRED? KernelDensityEstimation.h complete; oracle possible (KDE Release run) -> deferred w/ reason
+- OI-55 sched C CORE-01 (ImzMLFile.h partial; md-5 crate tiny pure Rust)
+- OI-56 PARTLY RESOLVED 9466368 (headings D1-D18 at VALIDATION:485,:1865); stale anchors #lead-decisions-d1-d17 at VALIDATION:204,:1869 (lead) + WP:1530 (fix myself -> d1-d18)
+- OI-57: 5 "never added" manifests ARE registered (a80a370, 1b6c30a 2026-09-12) -> stale sentences CONSENSUS_DISPLAY:147-149, IM_TYPES:295-297, ON_DISC_EXPERIMENT:408-413, ON_DISC_IMZML:479-482 (fix). 6 target_verification manifests + ffc/text_format/baseline/mzml_mobility (OI-111) NOT in current_sdk_reference_manifests -> sched A EVID-03 (SOURCE_PROVENANCE is lead's)
+- OI-58 RESOLVED 1b6c30a (rust.yml --test imzml_writer/imzml_file/on_disc_imzml_experiment; now generated matrix 5c4a44a), doc-coverage 051f475, ledger entries present
+- OI-59 RESOLVED a80a370 (reviewed-apis says setSkipXMLChecks IS ported)
