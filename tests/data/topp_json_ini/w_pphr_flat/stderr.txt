@@ -1,0 +1,3 @@
+Default-Parameter 'PeakPickerHiRes:1:algorithm:signal_to_noise' overridden: '0' --> '2'!
+Default-Parameter 'PeakPickerHiRes:1:algorithm:ms_levels' overridden: '[]' --> '[2]'!
+Default-Parameter 'PeakPickerHiRes:1:algorithm:SignalToNoise:bin_count' overridden: '30' --> '40'!

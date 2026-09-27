@@ -16,10 +16,12 @@
 //! * `UnregisteredParameter` and `WrongParameterType` signal a tool reading a
 //!   parameter it did not register, or with the wrong accessor. The
 //!   [`ToolContext`](super::ToolContext) accessors return
-//!   [`Error::InvalidValue`](crate::Error::InvalidValue) for both, and a tool
-//!   body that lets one escape ends as the lifecycle maps that error. The
-//!   source maps both to `INTERNAL_ERROR` (12); see `docs/TOPP_CLI_SUPPORT.md`
-//!   for the exit codes.
+//!   [`Error::InvalidValue`](crate::Error::InvalidValue) for both and record
+//!   the refusal, and a tool body that lets one escape ends as the source's
+//!   catch blocks end it (`TOPPBase.cpp:482-493`): `Internal error: Request
+//!   for unregistered parameter '<name>'` or `Internal error: Request for
+//!   parameter with wrong type '<name>'`, and `INTERNAL_ERROR` (12); see
+//!   `docs/TOPP_CLI_SUPPORT.md` for the exit codes.
 
 use std::fmt;
 

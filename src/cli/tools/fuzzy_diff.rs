@@ -388,10 +388,12 @@ fn report_input_failure(
 /// the verdict and the exit code are unaffected.
 fn warn_if_truncated(fsc: &FuzzyStringComparator, err: &mut dyn Write) -> Result<()> {
     if fsc.log_truncated() {
-        writeln!(
+        crate::cli::log_warning(
             err,
-            "Warning: the comparison report was cut at {} bytes; the verdict is unaffected.",
-            crate::concept::fuzzy_string_comparator::MAX_LOG_BYTES
+            &format!(
+                "Warning: the comparison report was cut at {} bytes; the verdict is unaffected.",
+                crate::concept::fuzzy_string_comparator::MAX_LOG_BYTES
+            ),
         )?;
     }
     Ok(())

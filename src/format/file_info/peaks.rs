@@ -146,7 +146,18 @@ pub(crate) fn report(
 /// mzXML, mzData, MGF and MS2 go to the reader the source's `switch` names for
 /// them (`FORMAT/FileHandler.cpp:886-937`) rather than through
 /// [`FileHandler`](crate::format::FileHandler), see [`load_source_reader`].
+///
+/// A file whose detected type is not `in_type` is refused first with the
+/// source's `ParseError` ([`super::report::forced_type_refused`]).
 fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<MSExperiment> {
+    let detected = FileHandler::get_type(path)?;
+    if detected != in_type {
+        return Err(super::report::forced_type_refused(
+            &path.display().to_string(),
+            detected,
+            in_type,
+        ));
+    }
     match in_type {
         FileType::MzXml | FileType::MzData | FileType::Mgf | FileType::Ms2 => {
             load_source_reader(path, in_type)
@@ -182,14 +193,10 @@ fn load_experiment(path: &Path, in_type: FileType, options: &Options) -> Result<
 ///   source does not hand them to this reader.
 /// - MS2: `MS2File::load` (`:931-937`), [`crate::format::ms2`], which likewise
 ///   takes no `PeakFileOptions`.
+///
+/// [`load_experiment`] has refused a file whose detected type is not
+/// `in_type` before this is reached.
 fn load_source_reader(path: &Path, in_type: FileType) -> Result<MSExperiment> {
-    let detected = FileHandler::get_type(path)?;
-    if detected != in_type {
-        return Err(Error::InvalidValue(format!(
-            "{} is not an allowed input format",
-            detected.name()
-        )));
-    }
     match in_type {
         FileType::Mgf => crate::format::mascot_generic::load_with_options(
             path,

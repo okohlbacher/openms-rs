@@ -74,7 +74,7 @@ The pinned product manifest the Release build installs,
 | the run-phase and initialisation catch blocks (`TOPPBase.cpp:430-513`) as a tool body reaches them | `ToolError`: `Error` (mapped by the lifecycle), `Caught { code, message }` (a catch block's own text, `ToolError::unexpected` for the `BaseException` arm, `ToolError::file_not_found`), `Escaped { what }` (a `std::exception`, the initialisation catch) |
 | `getDocumentationURL` | internal; the release URL of the core version, used by the usage text and the CTD |
 | `Citation`, `Citation::toString`, `cite_openms` | `Citation`, `Citation::to_source_string` (also `Display`), `CITE_OPENMS`; tool citations as `Tool::CITATIONS` |
-| `TOPPBase_defs.h` exceptions `UnregisteredParameter`, `WrongParameterType`, `RequiredParameterNotGiven` | not types: the required-value check reports `RequiredParameterNotGiven`'s message and exit 7; the accessors return `Error::InvalidValue` for the other two (see *Native differences*) |
+| `TOPPBase_defs.h` exceptions `UnregisteredParameter`, `WrongParameterType`, `RequiredParameterNotGiven` | not types: the required-value check reports `RequiredParameterNotGiven`'s message and exit 7; the accessors return `Error::InvalidValue` for the other two, and the lifecycle ends a body that lets one escape as the source's catch blocks do, `Internal error: Request for …` and exit 12 (`ToolContext::escaped_refusal`) |
 | `ToolHandler::getTOPPToolList`, `getToolVersion`, `findExecutable`, `getTypes`, `getCategory`, `getInternalToolsPath` | `ToolHandler::get_topp_tool_list`, `get_tool_version`, `find_executable`, `get_types`, `get_category`, `get_internal_tools_path`; `ToolListType` |
 | `ToolHandler` private `getInternalTools_`, `getInternalToolConfigFiles_`, anonymous `prefixes`, `packageTools` | internal; `ToolHandler::internal_tool_config_files`, `package_tools`; the environment as `ToolRegistrySources` |
 | `ParamCTDFile::store`, `writeCTDToStream`, private `escapeXML`, `replace` | `ParamCtdFile::store`, `write_ctd_to_stream`, `to_ctd_string`, `escape_xml`, `replace` |
@@ -128,9 +128,11 @@ requirement* below says why.
 | write | `-write_cwl`, `-write_nested_cwl`, `-write_json`, `-write_nested_json` | 12 | 2651-2683; `ParamCWLFile.cpp:331`, `ParamJSONFile.cpp:326` | `cwl_and_json_writers_are_refused_as_the_release_build_refuses_them` | tier 1 (Release build): `write_cwl`, `write_nested_cwl`, `write_json`, `write_nested_json`, `write_cwl_cwd`, `write_nested_cwl_and_json`; the Release build is built without TDL, see *Tool descriptions* |
 | INI | a per-user `<Tool>.ini` that does not parse / is a directory | 3 / 12 | 2276-2286 | `unusable_user_defaults_end_the_run_as_in_the_release_build` | tier 1 (Release build): `ud_malformed`, `ud_directory` |
 | run | an `is_executable` input found neither as given nor on `PATH` | 14 | 1534-1549, 442-447 | `an_is_executable_input_is_resolved_on_path` | tier 4, derived |
-| INI | `-ini` file missing | 1 | 296, 436-441 | `a_missing_ini_is_input_file_not_found` | tier 1: `ini_missing` |
+| INI | `-ini` file missing | 1 | 296, 436-441 | `a_missing_ini_is_input_file_not_found`, `a_missing_ini_is_reported_as_the_release_build_reports_it` | tier 1: `ini_missing`; the text `the file '<path>' could not be found` (`Exception.cpp:166-167`) and its `-log` line, Release build: `x_missing_log`, `x_missing_write_ini`, `j_missing_log` in `../oracle/json-ini` batch 3 |
+| INI | a JSON `-ini` (a name of type JSON: `.json` in any case, also under a compression suffix, whose bytes are read as they are) | as its content: 0, or 3 for a document that is no JSON, no object, names a parameter the tool does not have or gives a value of the wrong JSON type | 283-296, 2619-2629, 460-465 | `tests/topp_json_ini.rs`, `tests/param_json.rs` | tier 1 (Release build): 69 cases of `../oracle/json-ini`, see *JSON INI files* |
+| INI | a JSON `-ini` that is a directory | 12 | 283-296, 510-514 | `write_ini_from_a_json_ini_is_the_release_builds` | tier 1 (Release build): `w_directory`: `Unable to initialize or run <tool>: basic_filebuf::underflow error reading the file: Is a directory` |
 | INI | `-ini` file not readable, before a run or with `-write_ini` | 2 | 296, 2630, 448-453 | `an_unreadable_ini_is_input_file_not_readable`, `a_fifo_ini_this_user_cannot_open_is_input_file_not_readable` | tier 1: `ini_unreadable`†, `write_ini_ini_unreadable`† (a regular file); `ini_fifo_denied`†, `write_ini_ini_fifo_denied`† (a FIFO with mode 000: not queried for readability before the load, whose open is refused) |
-| INI | `-ini` file malformed | 3 | 296, 460-465 | `a_malformed_ini_is_input_file_corrupt` | tier 1: `ini_malformed` |
+| INI | `-ini` file malformed | 3 | 296, 460-465 | `a_malformed_ini_is_input_file_corrupt`, `a_malformed_ini_reaches_the_log_as_in_the_release_build` | tier 1: `ini_malformed`; `Error: Unable to read file (While loading '<path>': <reason> in: <path>)` on the error stream and in the `-log` file, Release build `x_malformed_log`; `<reason>` is the XML reader's own |
 | INI | `-ini` names a directory, before a run or with `-write_ini` | 3 | 296, 2630, 460-465 | `an_ini_directory_is_input_file_corrupt` | tier 1: `ini_directory`†, `write_ini_ini_directory`† |
 | INI | `-ini` names the character device `/dev/null`, before a run or with `-write_ini` | 3 | 296, 2630, 460-465 | `a_character_device_ini_is_input_file_corrupt` | tier 1: `ini_dev_null`†, `write_ini_ini_dev_null`† |
 | INI | `-ini` exists but cannot be opened for another reason than a missing file or permissions (a Unix socket, `/dev/tty` without a controlling terminal), before a run or with `-write_ini` | 8 | 296, 2630, 495-499; `TextFile.cpp:44-47` | `a_socket_ini_is_an_unexpected_internal_error`, `a_terminal_ini_without_a_controlling_terminal_is_an_unexpected_internal_error` | tier 1: `ini_socket`†, `write_ini_ini_socket`†, `ini_tty`†, `write_ini_ini_tty`† |
@@ -152,7 +154,9 @@ requirement* below says why.
 | run | `Error::Io`, not found | 1 | 436-441 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: as `FileNotFound` |
 | run | `Error::Io`, permission denied | 5 | 430-435 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: an I/O error does not say whether it read or wrote; a tool's inputs are checked for readability before its body runs, so a denial there is taken as a failed write. INI files never take this row |
 | run | any other `Error::Io` | 8 | 495-499 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native |
-| run | `Error::InvalidValue`, `InvalidRange` | 6 | 475-480 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: as `InvalidParameter`; the source's own `InvalidValue` and `InvalidRange` exceptions reach its `BaseException` arm, exit 8 |
+| run | `Error::InvalidValue`, `InvalidRange` | 8 | 495-499 | `run_phase_errors_map_like_the_source_inner_catch`; `an_empty_combined_intensity_range_is_refused` (MapNormalizer) | tier 1 (Release build): the source's `InvalidValue` and `InvalidRange` derive from `BaseException` and take its arm, `Error: Unexpected internal error (<what>)`; MapNormalizer's empty intensity range, executed at the pinned Release build. A tool that refuses a parameter value where the source returns `ILLEGAL_PARAMETERS` says so itself with `ToolError::invalid_parameter` (6): SpectraFilterWindowMower's non-finite window size and MapNormalizer's non-positive maximum, both native refusals |
+| run | a tool body reads a parameter it did not register, or with the wrong accessor | 12 | 482-493; `TOPPBase_defs.h:53-75` | `accessor_misuse_ends_as_the_source_catch_blocks_end_it` | tier 2, source-derived (a programming error, unreachable from the command line): `Internal error: Request for unregistered parameter '<name>'` and `Internal error: Request for parameter with wrong type '<name>'`, through `writeLogError_`, no closing line |
+| run | a flag parameter holding neither `true` nor `false` | 6 | 1822-1840, 475-480 | `ToolContext::flag` | tier 2, source-derived; the strict update refuses such a value first, so only a tool body could reach it |
 | run | `Error::MissingInformation` | 7 | 466-474 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: as `RequiredParameterNotGiven`; the source's `MissingInformation` exception reaches its `BaseException` arm, exit 8 |
 | run | `Error::Unsupported`, `UnsortedData` | 11 | the tools' own `INCOMPATIBLE_INPUT_DATA` returns | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native |
 | run | `ToolError::Caught` from a tool body: a source exception whose catch-block text the tool knows | the tool's code | 430-499 | `a_caught_exception_prints_no_closing_line_and_reaches_the_log`; the tools' `release_*` tests | tier 1 (Release build): `fi_out_is_directory_log`, `fd_matched_whitelist_log`, `pphr_centroided_log`, `ffc_profile_noforce_log`, `ffc_ms2_only_log` in `../oracle/topp-exception-exits` |
@@ -467,8 +471,10 @@ type claims throws `ParseError`, exit 3 ("type: unknown is not allowed for
 loading an experiment", oracle `in_unknown_name_and_content`, and with
 `-log` oracle `log_undetermined_format`, whose warning and error both reach the
 log in both builds); this port's `FileHandler::load_experiment` returns
-`Error::InvalidValue`, exit 6. That difference belongs to the loader, not to
-the check.
+`Error::InvalidValue`, which takes the `BaseException` arm, exit 8. That
+difference belongs to the loader, not to the check. (FileInfo, which loads
+with the forced type alone, checks the detected type itself and raises the
+source's `ParseError`, exit 3.)
 
 **Input checks on a directory.** On the Linux Release build a directory given
 as an input file whose name no type claims does not warn: `FileHandler::getType`
@@ -638,11 +644,58 @@ writes them to its warning log stream without flushing it, so the Release build
 prints them after everything else, after `Parameters passed to '<tool>' are
 invalid. …` on a failed strict update.
 
-**Not ported:** JSON INI files (`ParamJSONFile::load`, which the Release
-build reads without TDL: a `.json` `-ini` is read as XML here and fails with 3,
-where the Release build applies it, oracle `json_ini_*`; it needs `serde_json`
-behind the `paramxml` feature), `INIUpdater`, `SearchEngineBase`,
-`MapAlignerBase` and `TOPPExternalToolBase`.
+### JSON INI files
+
+An `-ini` file whose name is of type JSON (`FileHandler::getTypeByFileName`,
+so `.json` in any case, and also under a `.gz`, `.bz2` or `.zip` suffix,
+whose bytes are then read as they are) is read by `ParamJSONFile::load` onto
+the tool's defaults, before a run and for `-write_ini` (`TOPPBase.cpp:283-296`,
+`2619-2629`; `ParamJSONFile.cpp:38-167` at core `bc9cc12`). The Release build
+does this without TDL. The port reads it through `src/format/param_json.rs`
+with `serde_json` (behind `paramxml`; see
+[THIRD_PARTY_CRATE_DECISIONS](THIRD_PARTY_CRATE_DECISIONS.md)).
+
+The document is an object whose names are the parameters below `<tool>:1:`,
+with `__` for `:` and nested objects for sections. A value is set only on a
+parameter the tool has; any other name is `Parameter <tool>:1:<name> passed to
+'<tool>' is invalid. To prevent usage of wrong defaults, please update/fix the
+parameters!`, exit 3. The instance is always `1`: with `-instance 2` every name
+is unknown (oracle `w_pphr_instance2`). An input file is a file object,
+`{"class": "File", "path": ...}`; an executable may also be a plain string; a
+flag is a JSON boolean. Numbers convert as `nlohmann::json` 3.11.2's accessors
+convert them on the reference build: an integer parameter takes a fraction
+truncated and no boolean, an element of an integer list takes a boolean as 0
+or 1 and is cut to 32 bits, and a float beyond the target's range gives the
+x86-64 conversion's minimum (`1e30` is `-9223372036854775808`, `1e10` in a
+list `-2147483648`). A wrong JSON type is `nlohmann::json`'s `type_error`
+text, exit 3. `-debug 1` logs `Assuming INI is a cwl file`. The loaded tree
+then takes the INI merge and the strict update as an XML INI does.
+
+Compared with the Release build on 69 cases (`tests/topp_json_ini.rs`), the
+port agrees except in three points:
+
+* **Syntax errors** exit 3 with the source's frame, `Error: Unable to read file
+  (<reason> in: )`, but `<reason>` is `serde_json`'s, where the source gives
+  `nlohmann::json`'s `parse_error.101` with its own position and token. An
+  empty document and a number beyond `f64` are exceptions to this: both get
+  the source's text.
+* **An integer beyond 32 bits** that a JSON document sets (open, not of the
+  command line): the source's `ParamEntry::isValid` and `getIntOption_` cast
+  it to `int` and its INI writer writes it, so the Release build accepts
+  `-9223372036854775808` for a parameter whose minimum is 0; this port's
+  `Param` refuses to cast it and its parameter XML writer refuses to write it,
+  and the run ends in the initialisation catch (oracle cases `w_pphr_int_huge`
+  and `r_pphr_huge`, left out of the replay).
+* **The written INI's floating-point text** is the parameter XML writer's:
+  `4`, `100000000000000000000` and `0:` where the Release build writes `4.0`,
+  `1.0e20` and `0.0:`. This holds for every `-write_ini`, not only after a
+  JSON `-ini`; the parameters written are the same (`ParamXMLFile`'s gap).
+
+`-write_json` and `-write_nested_json` stay refused, as the Release build
+refuses them (*Tool descriptions*).
+
+**Not ported:** `INIUpdater`, `SearchEngineBase`, `MapAlignerBase` and
+`TOPPExternalToolBase`.
 
 **UpdateCheck** is ported in `src/system/update_check.rs`, behind the
 non-default `network` feature, and is not called by the lifecycle. The source
@@ -657,7 +710,7 @@ guarantees that every resolved value has its registered type.
 **Non-finite values in processing records.** Outside `-test`,
 `processing_info` records every resolved parameter as metadata, and `MetaValue`
 holds only finite floating-point values, so a resolved `inf` or `nan` double
-makes it fail with `Error::InvalidValue`, exit 6. The source's `DataValue`
+makes it fail with `Error::InvalidValue`, exit 8. The source's `DataValue`
 records any double: the product SDK's SpectraFilterWindowMower accepts
 `-algorithm:windowsize inf` and exits 0 with a `parameter:
 algorithm:windowsize` record of type `xsd:double` and value `inf` (oracle
@@ -668,28 +721,35 @@ would report anyway. Among the ported tools the difference is not reached
 through the record. BaselineFilter's `-struc_elem_length inf` fails the range
 check first, exit 6 in both (`baseline_filter_notest_length_inf`‡); this
 port's window mower refuses a non-finite window size before the record is
-built, exit 6 where the C++ tool exits 0; MapNormalizer and MzMLSplitter have no
-floating-point parameter.
+built, and the tool reports it as an illegal parameter
+(`ToolError::invalid_parameter`), exit 6 where the C++ tool exits 0;
+MapNormalizer and MzMLSplitter have no floating-point parameter.
 
 **Diagnostics.** `Param::update_with_options` decides the update and applies it;
 its report is worded natively, so the CLI derives the source wording from the
-same entries. A missing file's parenthetical reads `does not exist`, where the
-source says `could not be found`, because an existing assertion fixes the phrase.
+same entries. A missing file's parenthetical reads `could not be found`, the
+text of the source's `FileNotFound` (`Exception.cpp:166-167`), for an input and
+for an `-ini` file alike (oracle `x_missing_log` of `../oracle/json-ini`).
 
 **Errors** are typed `Result` values mapped at the boundary. A registration
 error is exit 6 (the source's initialisation catch) rather than 12. A tool that
 reads a parameter it did not register, or with the wrong accessor, gets
-`Error::InvalidValue`, which a body that lets it escape ends with exit 6 where
-the source's `UnregisteredParameter` and `WrongParameterType` reach
-`INTERNAL_ERROR` (12); both are programming errors, not reachable from a
-command line. `Error::InvalidValue` and `InvalidRange` from a tool body exit 6
-where the source's own `InvalidValue`/`InvalidRange` exceptions exit 8. The
-source's explicit `return ILLEGAL_PARAMETERS` after a message is now an exit
-code the tool returns (MzMLSplitter's option checks and DTAExtractor's caught
-`ConversionError` were the ones that raised `InvalidValue`); the crate-wide
-arm still maps `InvalidValue` to 6, because other callers, among them the
-parameter readers and MapNormalizer's non-positive scale, rely on that code,
-and moving it is a separate decision.
+`Error::InvalidValue`; the context records the refusal, and a body that lets it
+escape ends as the source's `UnregisteredParameter` and `WrongParameterType`
+end, `Internal error: Request for unregistered parameter '<name>'` or `…
+parameter with wrong type '<name>'` and `INTERNAL_ERROR` (12); a flag holding
+another value than `true` or `false` ends as `getParamAsBool_`'s
+`InvalidParameter`, exit 6 (`accessor_misuse_ends_as_the_source_catch_blocks_end_it`).
+All three are programming errors, not reachable from a command line.
+`Error::InvalidValue` and `InvalidRange` from a tool body are the source's
+same-named exceptions and exit 8, `Error: Unexpected internal error (<what>)`
+(`TOPPBase.cpp:495-499`). The source's explicit `return ILLEGAL_PARAMETERS`
+after a message is an exit code the tool returns (MzMLSplitter's option checks,
+DTAExtractor's caught `ConversionError`), and a native refusal of a parameter
+value says so with `ToolError::invalid_parameter` (SpectraFilterWindowMower's
+non-finite window size, MapNormalizer's non-positive scale), exit 6.
+`Error::MissingInformation` still maps to 7, where the source's exception of
+that name would exit 8.
 `parse_range` leaves both bounds unchanged on error. A command line is bounded
 by `MAX_ARGUMENTS` and `MAX_ARGUMENT_BYTES` before parsing, and parsed in time
 linear in its length: the text left after each option is gathered in reverse and
@@ -969,11 +1029,10 @@ are all zero it exits 0 and writes `NaN` into every MS1 peak (the MS2 spectrum,
 which it never rescales, keeps its zeros); on a run whose intensities are all
 negative the maximum is the least negative value, so the scale is negative and
 it exits 0 having flipped the sign of every MS1 peak — `[-10, -200, -3000]` came
-back as `[1000, 20000, 300000]`. This port refuses a non-positive scale with
-exit 6 instead, and writes nothing.
+back as `[1000, 20000, 300000]`. This port refuses a non-positive scale as an
+illegal parameter, exit 6, instead, and writes nothing.
 
-**An empty combined intensity range is refused, as the source refuses it** —
-only the exit code differs. `main_` asks for `getMaxIntensity()` unconditionally,
+**An empty combined intensity range is refused, as the source refuses it.** `main_` asks for `getMaxIntensity()` unconditionally,
 one line before its peak loop, and `RangeBase::getMax()`
 (`RangeManager.h:139-146` at core bc9cc12) throws `Exception::InvalidRange` on an
 empty range with no assertion guard, so a Release build throws as well; whether
@@ -985,11 +1044,10 @@ point — the C++ exits **8**
 with *Empty or uninitialized range object. Did you forget to call
 updateRanges()?* and writes **no output file**; its `FileInfo` prints
 `intensity: <none> .. <none>` under *Combined Ranges* for both. The port refuses
-both and likewise writes nothing, but exits **6**: `Error::InvalidValue` and
-`Error::InvalidRange` map to `ILLEGAL_PARAMETERS` crate-wide, where the source's
-same-named exceptions derive from `BaseException` and reach its `UNKNOWN_ERROR`
-arm — the mapping already documented at `run_failure` in `src/cli.rs`, not a
-choice this tool makes. `an_empty_combined_intensity_range_is_refused` covers
+both the same way: `Error::InvalidRange` with the exception's text, which the
+lifecycle's `BaseException` arm reports as `Error: Unexpected internal error
+(Empty or uninitialized range object. Did you forget to call updateRanges()?)`,
+exit **8**, and nothing written. `an_empty_combined_intensity_range_is_refused` covers
 both fixtures end to end; the executed commands, exit codes and digests are in
 `tests/data/topp_map_normalizer_provenance.json`.
 

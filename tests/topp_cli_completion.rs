@@ -1088,11 +1088,10 @@ fn write_ctd<T: Tool>() -> String {
     fs::read_to_string(dir.join(format!("{}.ctd", T::NAME))).unwrap()
 }
 
-/// Oracles `ctd_<tool>`: the CTD of every ported tool that declares its
-/// citations is byte-identical to the Release build's.
-/// `FeatureFinderCentroided` is not among them: its source cites two
-/// publications (`FeatureFinderCentroided.cpp:124-136`), which its port does
-/// not declare yet, so its CTD lacks their two `<citation>` lines.
+/// Oracles `ctd_<tool>`: the CTD of every ported tool is byte-identical to
+/// the Release build's, `FeatureFinderCentroided`'s with the two
+/// `<citation>` lines of the publications its source cites
+/// (`FeatureFinderCentroided.cpp:124-136`).
 #[test]
 fn write_ctd_matches_the_release_build_for_the_ported_tools() {
     assert_eq!(write_ctd::<BaselineFilter>(), release_ctd("BaselineFilter"));
@@ -1111,6 +1110,11 @@ fn write_ctd_matches_the_release_build_for_the_ported_tools() {
     assert_eq!(
         write_ctd::<openms::cli::tools::FileInfo>(),
         release_ctd("FileInfo")
+    );
+    #[cfg(feature = "featurexml")]
+    assert_eq!(
+        write_ctd::<openms::cli::tools::FeatureFinderCentroided>(),
+        release_ctd("FeatureFinderCentroided")
     );
 }
 
@@ -1321,8 +1325,7 @@ fn write_ctd_to_the_current_directory() {
 // ---------------------------------------------------------------------------
 
 /// Oracles `help_<tool>` and `helphelp_<tool>`: the usage text of every
-/// ported tool that declares its citations is the Release build's, byte for
-/// byte.
+/// ported tool is the Release build's, byte for byte, citations included.
 #[test]
 fn usage_matches_the_release_build_for_the_ported_tools() {
     fn check<T: Tool>() {
@@ -1348,12 +1351,15 @@ fn usage_matches_the_release_build_for_the_ported_tools() {
     check::<openms::cli::tools::PeakPickerHiRes>();
     #[cfg(feature = "featurexml")]
     check::<openms::cli::tools::FileInfo>();
+    #[cfg(feature = "featurexml")]
+    check::<openms::cli::tools::FeatureFinderCentroided>();
 }
 
 /// A stand-in with `FeatureFinderCentroided`'s name, description and the
 /// source's two citations (`FeatureFinderCentroided.cpp:124-136`), to check
-/// the citation block against the Release build's `--help` (oracle
-/// `ffc_help_cite`) up to the usage line.
+/// the framework's citation block against the Release build's `--help`
+/// (oracle `ffc_help_cite`) up to the usage line in every feature set: the
+/// tool itself needs `featurexml`.
 struct CitingTool;
 impl Tool for CitingTool {
     const NAME: &'static str = "FeatureFinderCentroided";
