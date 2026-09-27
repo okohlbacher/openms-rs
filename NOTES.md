@@ -42,15 +42,22 @@ F5 Verified OK (no change): compute_hash/rewrite_source_file vs file_handler_loa
 - docs: TOPP_CLI_SUPPORT, FILE_HANDLER_SUPPORT (div 4 closed), FILE_INFO_A7 (diff 4 closed), A8 (diff 1 closed), TOPP_FILE_INFO (featureXML exit 8), PPHR doc 9, pphr/fuzzy rustdoc
 - tests: file_handler_load (2), file_info_a7, topp_cli_lifecycle, topp_cli_completion, topp_file_info (featureXML exit 8), topp_json_ini (+fi_forced_featurexml_on_dta), param_json (+51 bits), NEW tests/topp_b0_release.rs
 
+## HAZARD: the scratchpad dir is SHARED with other agents (gate1.log, frag.py clobbered). Use scratchpad/B0lane/ only.
+
 ## Status
 - [x] merges 1..5
-- [x] sweep 1 of merged tree: 46/54 lines green when last checked (remote /scratch/kohlbach/agents/B0-sweep/.ci-line.N.log)
-- [ ] targeted gate of fixes (slot B0) running -> scratchpad/gate1.log
-- [ ] sweep 2 after fixes; clippy; MSRV
-- [ ] ledger fragment -> .planning/ledger-fragments/wave4/B0.json (main repo path)
+- [x] sweep 1 of merged tree (before fixes): 54 lines, 0 failed (scratchpad/sweep1/sweep.log)
+- [x] targeted gate of fixes: all green (scratchpad/B0lane/gate_targeted2.log): file_handler_load 11, file_info 61, file_info_a7 34,
+      file_info_a8 25, param_json 11, topp_b0_release 2, topp_baseline_filter 3, topp_cli_completion 49, topp_cli_lifecycle 76,
+      topp_file_info 46, topp_fuzzy_diff 17, topp_json_ini 9, topp_peak_picker_hi_res 36
+- [x] lead files (CHANGELOG, OpenMS_CPP_ISSUES CPP-355, PORTING_STATUS, VALIDATION) restored to main (aaeadf1); lanes' text in
+      main-repo .planning/lane-reports/B0-lead-files.patch
+- [x] ledger fragment written: main-repo .planning/ledger-fragments/wave4/B0.json (scratchpad/make_fragment.py -> copy in B0lane)
+- [ ] sweep 2 running (slot B0-sweep, log scratchpad/B0lane/sweep2/)
+- [ ] slice measurements running (scratchpad/B0lane/slices.sh -> slices/summary.txt)
+- [ ] python gates: ci_matrix.py --check and core_sdk_coverage.py fail = lead's regeneration (new test files, provenance manifests)
 - [ ] report -> main repo .planning/lane-reports/B0.md
 
 ## Next step
-1. Read gate1.log; fix failures.
-2. Write ledger fragment (scratchpad/frag.py has lane fragment paths) and report.
-3. Sweep 2 (slot B0-sweep2), then final commit deleting NOTES.md.
+1. When sweep2 + slices done: write report B0.md (per header, slices+counts, Cargo.toml, provenance, CHANGELOG line, defect candidates, attacks).
+2. Final commit deleting NOTES.md.
