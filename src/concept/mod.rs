@@ -20,6 +20,8 @@ pub mod parallel;
 pub mod progress_logger;
 pub mod unique_id;
 pub use unique_id::{HasUniqueId, UniqueId, UniqueIdGenerator};
+/// Colored and styled console text, from `CONCEPT/Colorizer.h`.
+pub mod colorizer;
 /// Enums shared across the library, from `CONCEPT/CommonEnums.h`: plotting-axis
 /// units and m/z tolerance units with their name tables.
 pub mod common_enums;
