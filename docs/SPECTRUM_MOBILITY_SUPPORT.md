@@ -201,7 +201,7 @@ member is unaccounted for, and names the file that owns each row.
   Release build reports it), and `sort_by_ion_mobility` is the libstdc++
   `std::stable_sort` of the index vector (`crate::math::source_sort`), which
   stays in bounds on any comparison. Tier 1: `../oracle/A3a-source-order`,
-  cases `mob_*` (NaN, `+-inf`, signed zeros, 16 to 45 peaks, with and without a
+  cases `mob_*` (NaN, `+-inf`, signed zeros, 3 to 31 peaks, with and without a
   second float array), compared bit for bit by `tests/a3a_source_order.rs`.
 - **`maybe_im_data` returns `Option<(DriftTimeUnit, &[f32])>`.** The source's
   `{DriftTimeUnit::NONE, {}}` conflates three states: no ion-mobility array, an
