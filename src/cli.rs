@@ -80,6 +80,8 @@ pub use tool_handler::{
 use crate::data_structures::ToolInfo;
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::{FileType, type_by_file_name};
+use crate::format::param_cwl::ParamCwlFile;
+use crate::format::param_json::ParamJsonFile;
 use crate::format::{param_json, paramxml};
 use crate::param::{Param, ParamEntry, ParamUpdateOptions, ParamValue};
 use crate::system::file;
@@ -1171,8 +1173,9 @@ pub const TDL_UNAVAILABLE: &str = param_json::TDL_UNAVAILABLE;
 /// through [`ParamCtdFile`]. An empty directory is the current directory.
 ///
 /// `-write_nested_cwl`, `-write_cwl`, `-write_nested_json` and `-write_json`
-/// check the target as the source does and then end with
-/// [`ExitCode::InternalError`] and the Release build's message,
+/// check the target as the source does and then store through
+/// [`ParamCwlFile`] and [`ParamJsonFile`], which refuse as the Release build's
+/// writers do without TDL: [`ExitCode::InternalError`] and
 /// `Unable to initialize or run <tool>: TDL support is not available. …`.
 /// The Release build opens (and so creates or empties) the target before it
 /// fails; this port does not touch it.
@@ -1225,13 +1228,6 @@ fn write_commands<T: Tool>(
             if let Some(code) = output_file_writable(&target, name, err) {
                 return Ok(Some(code));
             }
-            if name != "write_ctd" {
-                log_error(
-                    err,
-                    &format!("Unable to initialize or run {}: {TDL_UNAVAILABLE}", T::NAME),
-                )?;
-                return Ok(Some(ExitCode::InternalError));
-            }
             // The source sets `type` on its command-line parameters and
             // recomputes `getDefaultParameters_()` for each type
             // (`handleWriteCommands_`), so a subsection whose defaults depend
@@ -1260,17 +1256,31 @@ fn write_commands<T: Tool>(
                     .map(str::to_owned)
                     .collect(),
             };
-            if let Err(error) = ParamCtdFile.store(&target, &described, &info) {
-                // The source's store throws std::ios::failure, a
-                // std::exception only the initialisation catch handles;
-                // libstdc++ appends its category text to the message.
+            // `writer.store(write_file, default_params, tool_info)`
+            // (`TOPPBase.cpp:2601`). A failure is a std::exception only
+            // the initialisation catch handles: the CTD writer's
+            // std::ios::failure, to which libstdc++ appends its category
+            // text, or the CWL and JSON writers' std::runtime_error of the
+            // Release build, which has no TDL (`TDL_UNAVAILABLE`).
+            let stored = match name {
+                "write_ctd" => ParamCtdFile
+                    .store(&target, &described, &info)
+                    .map_err(|error| format!("{}: iostream error", error_text(&error))),
+                "write_nested_cwl" | "write_cwl" => ParamCwlFile {
+                    flat_hierarchy: name == "write_cwl",
+                }
+                .store(&target, &described, &info)
+                .map_err(|error| error_text(&error)),
+                _ => ParamJsonFile {
+                    flat_hierarchy: name == "write_json",
+                }
+                .store(&target, &described, &info)
+                .map_err(|error| error_text(&error)),
+            };
+            if let Err(what) = stored {
                 log_error(
                     err,
-                    &format!(
-                        "Unable to initialize or run {}: {}: iostream error",
-                        T::NAME,
-                        error_text(&error)
-                    ),
+                    &format!("Unable to initialize or run {}: {what}", T::NAME),
                 )?;
                 return Ok(Some(ExitCode::InternalError));
             }
