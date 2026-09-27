@@ -26,9 +26,15 @@ Branch: worktree-wf_ee239125-5be-15, base f0990c0. C++ pin: `git -C /Users/kohlb
 - C++ sources already in scratchpad/F5/src/... (list with find, no shell vars in commands: sandbox refuses).
 - Drafts xmass/acqus/fid in HEAD~1 still unwired; incarnation 3 left no further notes -> it stalled while exploring.
 
+## Incarnation 4 progress
+- XMassFile/AcqusHandler/FidHandler: tests/xmass_file.rs 8/8 PASS on spock (--no-default-features). Remaining: docs/XMASS_FILE_SUPPORT.md, provenance json, unit tests gate.
+- PASEFHillCentroider: src/format/pasef_hill_centroider.rs + tests/pasef_hill_centroider.rs (all 15 class-test sections). Gate running.
+- RationalScan2ImConverter: pure formula + tryCreateRationalConverter (SQLite -> `sqlite` feature). Class test sections live in BrukerTimsFile_test.cpp lines 129-293 (forward 1.070429, scan0 1.63883, roundtrip, per-frame, description, singularity).
+- Gate cmd: separate `--test X` and `--lib -- filter` runs (a filter applies to every binary).
+
 ## Next step
-1. Read the C++ headers/cpps/tests (sizes), decide per format.
-2. Port XMassFile + AcqusHandler + FidHandler first (pure Rust, class test data available).
-3. RationalScan2ImConverter / PASEFHillCentroider if pure algorithm.
-4. BrukerTims via rusqlite+zstd (or timsrust) behind feature `bruker-tdf`.
-5. HDF5Connector behind feature `hdf5`; ThermoRawFile behind external process.
+1. Port RationalScan2ImConverter (+ Scan2InvIonMobilityConverter trait) -> src/format/rational_scan2im_converter.rs.
+2. Docs: docs/XMASS_FILE_SUPPORT.md, docs/BRUKER_TIMS_SUPPORT.md; provenance jsons.
+3. TDF reader core (rusqlite + zstd decoder crate) behind feature `bruker-tdf`: decide ruzstd vs zstd.
+4. HDF5Connector / ThermoRawFile / BrukerTimsImagingFile / ImzML: decide + record.
+5. Lane report + ledger fragment.

@@ -37,11 +37,12 @@ use crate::concept::progress_logger::ProgressLogType;
 use crate::data_structures::DateTime;
 use crate::format::acqus_handler::AcqusHandler;
 use crate::format::fid_handler::FidHandler;
+use crate::kernel::SpectrumType;
 use crate::metadata::{
     AcquisitionInfo, AnalyzerType, DataProcessing, InletType, InstrumentSettings, IonSource,
     IonizationMethod, MassAnalyzer, Polarity, ProcessingAction, ScanMode, Software, SourceFile,
 };
-use crate::{Error, MSExperiment, MSSpectrum, Peak1D, Result, SpectrumType};
+use crate::{Error, MSExperiment, MSSpectrum, Peak1D, Result};
 use std::path::Path;
 use std::sync::Arc;
 

@@ -40,7 +40,7 @@
 use crate::data_structures::list::ListParse;
 use crate::{Error, Result};
 use std::collections::BTreeMap;
-use std::io::{BufRead, BufReader, Read};
+use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 /// Largest `acqus` file read, in bytes.

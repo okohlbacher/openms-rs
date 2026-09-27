@@ -190,5 +190,7 @@ fn single_line(value: &str) -> bool {
 pub mod acqus_handler;
 /// Read-only `fid` intensities of a Bruker XMass spectrum (`FidHandler.h`).
 pub mod fid_handler;
+/// IM-axis hill centroiding of one TIMS-PASEF frame (`PASEFHillCentroider.h`).
+pub mod pasef_hill_centroider;
 /// Bruker XMass Analysis (`fid`) spectra: load and settings import (`XMassFile.h`).
 pub mod xmass_file;
