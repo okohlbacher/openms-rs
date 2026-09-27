@@ -157,6 +157,7 @@ fn section_accessors() {
     assert_eq!(u.index, "12345");
 
     let mut u = Usi::default();
+    assert!(!u.is_valid());
     u.collection = "PXD000562".into();
     assert_eq!(u.collection, "PXD000562");
     u.ms_run = "test.mzML".into();

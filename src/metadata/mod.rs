@@ -31,3 +31,6 @@ pub mod spectrum_native_id_parser;
 
 /// Universal Spectrum Identifiers (`METADATA/USI.h`).
 pub mod usi;
+
+/// Unique integer indices for metadata names (`METADATA/MetaInfoRegistry.h`).
+pub mod meta_info_registry;
