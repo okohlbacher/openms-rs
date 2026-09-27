@@ -781,5 +781,51 @@ class EntryTests(unittest.TestCase):
             units(pathlib.Path("m.json"), '{"why": "A.cpp:1",}', ("r",))
 
 
+class UncheckableRecordTests(unittest.TestCase):
+    """Where each uncheckable citation stands, and the record that has to name it."""
+
+    def test_an_unreachable_citation_is_kept_with_the_document_it_stands_in(self):
+        report = tally()
+        report["document"] = "docs/X.md"
+        found = check_file(
+            Pinned(), ("r",), ("", "Missing.h"), [(3, 3, "Missing.h:3", True)], (), (), report,
+        )
+        self.assertEqual(found, [])
+        self.assertEqual(report["skipped"], 1)
+        self.assertEqual(report["skipped_at"], [("docs/X.md", "Missing.h:3")])
+
+    def test_a_bare_range_no_cited_file_holds_is_kept_by_its_own_text(self):
+        report = tally()
+        report["document"] = "docs/X.md"
+        check_unit(Pinned(), "The walk, `Decoder.cpp:5` and `:99`.", ("r",), True, report)
+        self.assertEqual(report["unresolved"], 1)
+        self.assertEqual(report["unresolved_at"], [("docs/X.md", ":99", "Decoder.cpp:5")])
+
+    def test_an_uncheckable_citation_nothing_records_is_named(self):
+        unrecorded, stale = checker.compare_record({("docs/X.md", "Missing.h:3")}, set())
+        self.assertEqual(unrecorded, [("docs/X.md", "Missing.h:3")])
+        self.assertEqual(stale, [])
+
+    def test_a_recorded_citation_that_was_checked_is_named_too(self):
+        unrecorded, stale = checker.compare_record(set(), {("docs/X.md", "Missing.h:3")})
+        self.assertEqual((unrecorded, stale), ([], [("docs/X.md", "Missing.h:3")]))
+
+    def test_a_group_whose_retained_directory_is_declared_excuses_nothing(self):
+        record = (
+            {"reason": "r", "until_retained": "../oracle/x", "citations": (("a.md", "A.h:1"),)},
+            {"reason": "r", "until_retained": None, "citations": (("b.md", ":9"),)},
+        )
+        self.assertEqual(checker.recorded(set(), record), {("a.md", "A.h:1"), ("b.md", ":9")})
+        self.assertEqual(checker.recorded({"../oracle/x"}, record), {("b.md", ":9")})
+
+    def test_every_recorded_citation_has_a_reason_and_is_recorded_once(self):
+        seen = []
+        for group in checker.UNCHECKABLE:
+            self.assertTrue(group["reason"].strip())
+            self.assertIn("until_retained", group)
+            seen.extend(group["citations"])
+        self.assertEqual(len(seen), len(set(seen)))
+
+
 if __name__ == "__main__":
     unittest.main()

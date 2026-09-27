@@ -119,10 +119,24 @@ them rather than answering wrongly, which is why they were unresolved and not
 quietly confirmed against the short file. Resolving the population also put
 four quotations in front of the checker that nothing had read before, and three
 of them were defects.
-The 3 that remain cannot be resolved by anything this reads: two are line
-numbers in a Rust file, written as a continuation of one (``features.rs:599``
-and ``:839``), and one continues Eigen's ``lmpar.h``, which no pin carries and
-nothing retains. Both kinds are correctly counted rather than guessed at.
+Of the 3 that remain, two are line numbers in a Rust file, written as a
+continuation of one (``features.rs:599`` and ``:839``), which nothing here
+reads, and one continues Eigen's ``lmpar.h``, which no pin carries and which is
+answered once the Eigen headers are retained (below). Both kinds are counted
+rather than guessed at.
+
+Counted is not the same as known, though, and a count that only ever moves by
+the difference of two populations says nothing about either. So every citation
+this cannot read back is also *recorded*, by document and by the text it is
+written as, in :data:`UNCHECKABLE`, with the reason it cannot be checked and,
+where retaining a file would answer it, the retained directory that does. On a
+machine that reaches every declared pin and admits every declared retained file
+- the only machine on which the set of uncheckable citations means anything -
+a citation that cannot be checked and is not recorded fails the run, and so
+does a recorded one that has since been checked, so the record cannot drift
+from what it describes. A group whose retained directory ``SOURCE_PROVENANCE``
+now declares is expected to be answered by it and no longer excuses anything.
+Elsewhere the comparison is skipped, and the run says so.
 """
 
 import argparse
@@ -220,6 +234,117 @@ DOCUMENT_GLOBS = (
     "tests/data/**/*.md", "tests/data/**/*.json", "tests/data/**/*.tsv", "tests/data/**/*.py",
     "src/**/*.rs", "tests/**/*.rs", "examples/*.rs", "build.rs", "tools/generate_*.py",
 )
+
+# Every citation this checker cannot read back, by the document it stands in and
+# the text it is written as (a bare range by its own text, ":839"), with the
+# reason. ``until_retained`` names the retained directory, as SOURCE_PROVENANCE
+# would declare it, that answers the group: once it is declared the group stops
+# excusing anything, because its citations are then expected to be checked.
+# See the module documentation for when the record is compared, and main().
+UNCHECKABLE = (
+    {
+        "reason": (
+            "Eigen 5.0.1, third-party, in no pin. Retained with sha256 by lane A4 at "
+            "../oracle/A4-retained-third-party/eigen from the Release install's "
+            "deps/include/eigen3 (the digests of lmpar.h, Redux.h, InnerProduct.h, "
+            "GeneralMatrixVector.h and TriangularSolverVector.h equal the ones "
+            "tests/data/lm_eigen_path_differential_provenance.json names); every "
+            "citation below was read back against those bytes and holds"
+        ),
+        "until_retained": "../oracle/A4-retained-third-party/eigen",
+        "citations": (
+            ("docs/DISTRIBUTION_FITTERS_SUPPORT.md", "Dot.h:21-27"),
+            ("docs/DISTRIBUTION_FITTERS_SUPPORT.md", "GeneralMatrixVector.h:298-462"),
+            ("docs/DISTRIBUTION_FITTERS_SUPPORT.md", "InnerProduct.h:117-172"),
+            ("docs/DISTRIBUTION_FITTERS_SUPPORT.md", "Redux.h:275-322"),
+            ("src/math/fitters/levenberg_marquardt.rs", "Dot.h:21-27"),
+            ("src/math/fitters/levenberg_marquardt.rs", "GeneralMatrixVector.h:298-462"),
+            ("src/math/fitters/levenberg_marquardt.rs", "InnerProduct.h:117-172"),
+            ("src/math/fitters/levenberg_marquardt.rs", "ProductEvaluators.h:380-384"),
+            ("src/math/fitters/levenberg_marquardt.rs", "Redux.h:275-322"),
+            ("src/math/fitters/levenberg_marquardt.rs", "TriangularSolverVector.h:30-71"),
+            ("src/math/fitters/levenberg_marquardt.rs", "TriangularSolverVector.h:74-118"),
+            ("src/math/fitters/levenberg_marquardt.rs", "lmpar.h:198"),
+            ("src/math/fitters/levenberg_marquardt.rs", "lmpar.h:241"),
+            ("tests/data/distribution_fitters_provenance.json", "lmpar.h:198"),
+            ("tests/data/distribution_fitters_provenance.json", "lmpar.h:241"),
+            ("tests/data/distribution_fitters_provenance.json", ":241"),
+        ),
+    },
+    {
+        "reason": (
+            "Boost 1.89.0, third-party, in no pin. Retained with sha256 by lane A4 at "
+            "../oracle/A4-retained-third-party/boost from the Release install's "
+            "deps/include/boost; read back against those bytes and holds"
+        ),
+        "until_retained": "../oracle/A4-retained-third-party/boost",
+        "citations": (
+            ("docs/MULTIPLE_TESTING_SUPPORT.md", "boost/math/distributions/normal.hpp:251-254"),
+            ("docs/MULTIPLE_TESTING_SUPPORT.md", "boost/math/special_functions/detail/erf_inv.hpp:363-366"),
+            ("docs/SPECTRUM_CHEAP_DP_CORR_SUPPORT.md", "boost/math/distributions/normal.hpp:157-162"),
+            ("src/comparison.rs", "boost/math/distributions/normal.hpp:162"),
+            ("src/math/multiple_testing.rs", "boost/math/distributions/normal.hpp:251-254"),
+            ("tests/comparison_scorers.rs", "boost/math/distributions/normal.hpp:162"),
+            ("tests/data/comparison_scorers_provenance.json", "boost/math/distributions/normal.hpp:157-162"),
+            ("tests/data/comparison_scorers_provenance.json", "boost/math/distributions/normal.hpp:162"),
+            ("tests/data/math_kde_provenance.json", "boost/math/distributions/normal.hpp:251-254"),
+        ),
+    },
+    {
+        "reason": (
+            "GCC 14.4.0 libstdc++ <bits/random.h>, toolchain, in no pin. Retained with "
+            "sha256 by lane A4 at ../oracle/A4-retained-third-party/libstdcxx from the "
+            "Release install's compiler; read back against those bytes, the quoted "
+            "typedef confirmed at :1694-1695"
+        ),
+        "until_retained": "../oracle/A4-retained-third-party/libstdcxx",
+        "citations": (
+            ("src/processing/noise_estimation.rs", "bits/random.h:1694-1695"),
+            ("src/processing/noise_estimation.rs", "bits/random.h:1743"),
+        ),
+    },
+    {
+        "reason": (
+            "The port's own executed oracle driver, outside the repository at "
+            "../oracle/progress-format-readers/driver.cpp, at the sha256 "
+            "tests/data/progress_format_readers_provenance.json names; answered once "
+            "that directory is declared as retained"
+        ),
+        "until_retained": "../oracle/progress-format-readers",
+        "citations": (
+            ("OpenMS_CPP_ISSUES.md", "progress-format-readers/driver.cpp:411-412"),
+            ("tests/progress_format_readers.rs", "progress-format-readers/driver.cpp:411-412"),
+        ),
+    },
+    {
+        "reason": (
+            "A Rust line, not a C++ one: the bare range continues "
+            "src/kernel/features.rs:599, and nothing here reads Rust files. Read by "
+            "hand at this commit: features.rs:599 and :839 are FeatureMap's and "
+            "ConsensusMap's unique_id_to_index"
+        ),
+        "until_retained": None,
+        "citations": (
+            ("docs/core-sdk-coverage.json", ":839"),
+            ("docs/core-sdk-reviewed-apis.json", ":839"),
+        ),
+    },
+)
+
+
+def recorded(declared_retained, record=UNCHECKABLE):
+    """The (document, citation) pairs the record excuses, given the declared retained paths."""
+    excused = set()
+    for group in record:
+        if group["until_retained"] and group["until_retained"] in declared_retained:
+            continue  # That directory is declared: its citations must now be answered.
+        excused.update(group["citations"])
+    return excused
+
+
+def compare_record(observed, excused):
+    """Uncheckable citations nothing records, and recorded ones that were checked after all."""
+    return sorted(observed - excused), sorted(excused - observed)
 
 
 class Directory:
@@ -929,6 +1054,8 @@ def check_file(pins, revisions, key, cited, quoted, annotated, report):
     if not attempts:
         report["skipped"] += len(cited)
         report["skipped_files"][name] += len(cited)
+        for _, _, text, _ in cited:
+            report["skipped_at"].append((report["document"], text))
         return []
     if len(attempts) > 1:
         attempts = holding(pins, attempts, quoted) or attempts
@@ -984,6 +1111,10 @@ def check_unit(pins, unit, revisions, quoted_only, report, context=None):
         owner = owner_of(pins, revisions, (position, first, last, text), named)
         if owner is None:
             report["unresolved"] += 1
+            before = [item[5] for item in named if item[0] < position]
+            report["unresolved_at"].append(
+                (report["document"], text, before[-1] if before else named[0][5])
+            )
             continue
         index = len(named) + offset
         ranges[owner].append((first, last, text, False, index))
@@ -1022,6 +1153,10 @@ def tally():
         "checked": 0, "quoted": 0, "skipped": 0, "unresolved": 0, "ambiguous": 0,
         "skipped_files": collections.Counter(), "ambiguous_files": collections.Counter(),
         "answered": collections.Counter(), "confirmed_by": collections.Counter(),
+        # Where each uncheckable citation stands, as (document, citation): the
+        # counts above say how many, and these say which, so that each one can
+        # be resolved or recorded (see RECORDED_UNCHECKABLE) by name.
+        "document": None, "skipped_at": [], "unresolved_at": [],
     }
 
 
@@ -1052,6 +1187,7 @@ def main():
     failures, unreadable = [], []
     for document in documents():
         name = str(document.relative_to(ROOT))
+        report["document"] = name
         # Markdown, and a Rust doc comment, which is Markdown; a manifest has no
         # code spans, so there a bare range has to stand on its own shape.
         quoted_only = document.suffix in (".md", ".rs")
@@ -1080,12 +1216,39 @@ def main():
         print(f"Retained sources not admitted, their citations are skipped: {listed}")
     for line in unreadable:
         print(line)
+    observed = {(document, text) for document, text in report["skipped_at"]}
+    observed |= {(document, text) for document, text, _ in report["unresolved_at"]}
+    if missing or refused or unreadable:
+        # Where a pin or a retained file is out of reach, more is uncheckable
+        # than the record describes, and a document that did not parse hides
+        # its citations; neither says anything about the record.
+        print("UNCHECKABLE not compared: not every declared pin, retained file and document was read here")
+    else:
+        declared = {entry["path"] for entry in pins.declared_retained}
+        unrecorded, stale = compare_record(observed, recorded(declared))
+        for document, text in unrecorded:
+            failures.append((document, "UNCHECKABLE", (
+                f"`{text}` cannot be checked here and is not recorded: resolve it (name the "
+                "file's directory, retain the file) or record why in UNCHECKABLE"
+            )))
+        for document, text in stale:
+            failures.append((document, "UNCHECKABLE", (
+                f"`{text}` is recorded as uncheckable but was checked or is gone: "
+                "remove it from UNCHECKABLE"
+            )))
     for name, where, problem in failures:
         print(f"{name}: {where}\n    {problem}")
     if arguments.verbose and report["skipped_files"]:
         print("Cited files that no reachable pin contains:")
         for name, count in report["skipped_files"].most_common():
             print(f"  {name} ({count})")
+        print("Where those citations stand:")
+        for document, text in report["skipped_at"]:
+            print(f"  {document}: {text}")
+    if arguments.verbose and report["unresolved_at"]:
+        print("Bare ranges that fit no file their paragraph cites (the citation before them ... the range):")
+        for document, text, before in report["unresolved_at"]:
+            print(f"  {document}: {before} ... {text}")
     if arguments.verbose and report["ambiguous_files"]:
         print("Cited file names that resolve to more than one file, with nothing to tell them apart:")
         for name, count in report["ambiguous_files"].most_common():

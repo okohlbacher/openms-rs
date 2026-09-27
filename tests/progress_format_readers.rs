@@ -1516,13 +1516,13 @@ fn a_reused_logger_still_loads_after_any_number_of_failed_loads() {
 
 /// Where the port differs from the Release build on purpose. In
 /// `mzdata_static_counter` the driver's second file object is a separate
-/// `MzDataFile` (`driver.cpp:411-412`), and the Release build starts its
-/// section one level deep, below the section the first object's failed load
-/// left in the static depth. The replay's second object is a copy of the
-/// first, which shares its sections and so matches the capture. A fresh
-/// logger does not share them: its calls are the captured ones one level
-/// shallower, while the process-wide depth still counts the first object's
-/// level, as the capture's `D` row does.
+/// `MzDataFile` (`progress-format-readers/driver.cpp:411-412`), and the
+/// Release build starts its section one level deep, below the section the
+/// first object's failed load left in the static depth. The replay's second
+/// object is a copy of the first, which shares its sections and so matches the
+/// capture. A fresh logger does not share them: its calls are the captured
+/// ones one level shallower, while the process-wide depth still counts the
+/// first object's level, as the capture's `D` row does.
 #[test]
 fn a_fresh_file_object_is_not_indented_by_another_ones_failed_load() {
     let _mzdata = mzdata_lock();
