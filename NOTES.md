@@ -19,6 +19,9 @@ Branch: worktree-wf_ee239125-5be-15, base f0990c0. C++ pin: `git -C /Users/kohlb
 - Cargo: `sqlite = [dep:rusqlite]` (0.40.2 bundled). No zstd/hdf5 dep yet.
 - RationalScan2ImConverter::getCalibration fallback = unordered_map::begin() -> hash-order dependent (C++ defect candidate).
 
+## Incarnation 3 (started)
+- HEAD had WIP drafts of xmass_file.rs, acqus_handler.rs, fid_handler.rs (not yet wired into src/format/mod.rs, not gated).
+
 ## Next step
 1. Read the C++ headers/cpps/tests (sizes), decide per format.
 2. Port XMassFile + AcqusHandler + FidHandler first (pure Rust, class test data available).
