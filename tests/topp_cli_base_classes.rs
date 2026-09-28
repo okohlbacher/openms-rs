@@ -634,7 +634,11 @@ mod search_engine {
         // Param::setValue on an existing entry keeps its restrictions and its
         // description (Param.cpp:406-415), as the Release INI shows.
         assert_eq!(action.valid_strings, vec!["error", "warn", "silent"]);
-        assert!(action.description.starts_with("Action to take if NO peptide"));
+        assert!(
+            action
+                .description
+                .starts_with("Action to take if NO peptide")
+        );
         assert!(spec.find("PeptideIndexing:enzyme:name").unwrap().advanced);
         assert!(
             !spec

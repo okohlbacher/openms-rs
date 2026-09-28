@@ -1104,3 +1104,147 @@ The second DTA finding above is the first concrete instance of the port's
 keep the guard as the library default, add an explicit source-behavior option,
 and have the tool opt in — is the one to apply as further tools meet their own
 guards.
+
+## Tool base classes
+
+The `OpenMS4-cli` package (`c19e494`) has four base classes between `TOPPBase`
+and the tools, and `TOPPBase_defs.h`. They add behaviour and, apart from
+`TOPPMapAlignerBase::ref_params_`, no state, so the native forms are methods
+of the run context or associated functions a [`Tool`] implementation calls,
+not types a tool derives from. The deleted default and copy constructors and
+the inherited `TOPPBase` constructors have no counterpart: a native tool is a
+type implementing `Tool`, whose name, description and citations are its
+associated constants.
+
+Evidence: the Release oracle `../oracle/B7-cli` (driver `driver.cpp`, cases
+`cases.tsv`, runner `run.sh`), built with the pinned Release install's
+compiler (`x86_64-conda-linux-gnu-g++` 14.4.0, `-O3 -DNDEBUG`) and run twice on
+**ibminode06** against the Release install
+`openms4-release-bc9cc12-c19e494-174b576`. The 75 cases agree between the two
+runs except the timing figures of two progress blocks (`ma_none_transform`,
+`ma_none_transform_store`). The retained cases are in
+`tests/data/topp_cli_base_classes/` and replayed by
+`tests/topp_cli_base_classes.rs`: each oracle tool is re-implemented natively
+and run with the Release case's arguments, paths mapped.
+
+### TOPPExternalToolBase (`src/cli/external_tool.rs`) — complete
+
+| Source | Native |
+| --- | --- |
+| `runExternalProcess_(exe, args, workdir, env)` | `ToolContext::run_external_process` |
+| `runExternalProcess_(exe, args, proc_stdout, proc_stderr, workdir, env)` | `ToolContext::run_external_process_output`, returning `ExternalProcessOutput { code, stdout, stderr }` |
+| the `RETURNSTATE` switch | `exit_code_of` (exhaustive; the source's `InternalToolError` default arm is unreachable) |
+| `debug_level_ >= 4` echo to `OPENMS_LOG_INFO` | `EXTERNAL_OUTPUT_DEBUG_LEVEL`, `ToolContext::write_info_stream` (the info stream's two-line repeat cache, `src/cli/info_stream.rs`) |
+| `writeLogError_("Standard output: …")`, `("Standard error: …")` on failure below level 4 | `write_log_error`, on `err` and in the `-log` file |
+
+The child runs through `ExternalProcess` (`src/system/external_process.rs`)
+with `verbose = true` and `READ_WRITE`. Added: `Invocation::preflight` refuses
+argument counts and bytes over its ceilings, interior NUL bytes and malformed
+environment keys before anything starts; the source checks none of them.
+Evidence: 18 `ext_*` cases (success, non-zero exit, crash, missing program, both
+overloads, debug 4 echo with repeated lines, environment overlay, working
+directory, output without a final newline, the `-log` file at debug 0 and 1)
+and `TOPPExternalToolBase_test.cpp`'s three outcomes.
+
+### MapAlignerBase (`src/cli/map_aligner.rs`) — partial
+
+| Source | Native |
+| --- | --- |
+| `TOPPMapAlignerBase(name, description, official)`, `ref_params_` | `TOPPMapAlignerBase::new(ReferenceParameterKind)`, `ref_params()` |
+| `enum ReferenceParameterKind { REF_NONE, REF_RESTRICTED, REF_FLEXIBLE }` | `ReferenceParameterKind::{None, Restricted, Flexible}` |
+| `registerOptionsAndFlagsMapAligners_(file_formats, ref_params)` | `register_options_and_flags_map_aligners(spec, file_formats)`; the kind is fixed at construction. `registerTOPPSubsection_` is `ToolSpec::register_topp_subsection` |
+| `checkParameters_()` | `check_parameters(ctx, err)` |
+| `transformSpectraFiles_(in, out, transformations, store_original_rt)` | `transform_spectra_files(ctx, …)` (feature `mzml`); `MapAlignmentTransformer::transform_experiment` and one `ALIGNMENT` processing record per file |
+| `MapAlignerBase::getModelDefaults(default_model)` | **not ported** |
+
+`checkParameters_` reads `reference:index` into a `Size`; a negative value,
+which only a direct caller can supply past `setMinInt_`, is taken as the huge
+unsigned value the conversion gives. The source's two
+`OPENMS_PRECONDITION`s in `transformSpectraFiles_` are `Error::InvalidValue`.
+Evidence: 23 `ma_*` cases (every refusal, the reference checks for the
+restricted and flexible kinds, `--help`, `--helphelp`, `-write_ini` for the
+three kinds, and the transformed spectra files compared record by record;
+completion times compare to the minute, the precision the C++ mzML writer
+keeps, `MzMLHandler.cpp:3947`).
+
+Gaps: `getModelDefaults` forwards to core `TransformationModelDefaults::getDefaults`,
+which is ported on branch `worktree-wf_ee239125-5be-30`
+(`analysis::transformations::params::transformation_model_defaults`, commit
+`48b83c7d`) but not merged here; the forwarder is one line once it is.
+`transformSpectraFiles_`'s progress output (`transforming spectra files` with
+the nested `loading mzML` and `storing mzML file` sections) is not written:
+`FileHandler` has a loader with progress but no mzML store with progress.
+
+### SearchEngineBase (`src/cli/search_engine.rs`) — partial
+
+| Source | Native |
+| --- | --- |
+| `SearchEngineBase(name, description, official, citations, toolhandler_test)` | none (see above) |
+| `getRawfileName(ms_level)` | `SearchEngineBase::get_rawfile_name(ctx, err, ms_level)`; `RAWFILE_INSPECTED_SPECTRA` is `getCentroidInfo`'s ten spectra |
+| `getDBFilename(db)` | `SearchEngineBase::get_db_filename(ctx, out, err, files, db)`, with `FileContext::find_database` |
+| `registerPeptideIndexingParameter_(param)` | `SearchEngineBase::register_peptide_indexing_parameter(spec, param)`; `PEPTIDE_INDEXING_ADVANCED` |
+| `reindex_(proteins, peptides)` | **not ported** |
+
+`getRawfileName` reads mzML as the source's `MzMLFile` does
+(`ReadOptions::source()`, decision D10): the class test's
+`Single_MS2_profileMode.mzML` has dangling `softwareRef`s. The last warning,
+which the source writes without a line break, reaches standard error at the
+end of the run (`write_log_warn_unterminated`), as the Release build shows.
+`registerPeptideIndexingParameter_`'s `setValue("missing_decoy_action",
+"warn")` keeps the entry's description and restrictions and replaces its tags
+(`Param.cpp:406-415`), as the Release INI shows. Evidence: 34 `se_*` cases (24, and the ten `_ns` twins below),
+among them `SearchEngineBase_test.cpp`'s four `getRawfileName` checks.
+
+The class test's `empty_spec.mzML` declares no default namespace. The Release
+build reads it; the native mzML reader refuses an element outside the mzML
+namespace (`src/format/mzml.rs`). The ten cases on it are replayed through
+their `_ns` twins, whose input only adds the namespace and which the Release
+build ended identically (`compare_ns.py`: 34 files, 0 differ). Reading the
+un-namespaced file is an mzML reader gap.
+
+Gap: `reindex_` needs `PeptideIndexing`'s parameter surface
+(`getParameters`/`setParameters`) and its `ExitCodes`
+(`DATABASE_EMPTY`, `PEPTIDE_IDS_EMPTY`, `UNEXPECTED_RESULT`); the native
+`analysis::peptide_indexing::PeptideIndexing` has neither. The oracle's
+indexer defaults are retained (`cases/se_write_ini/cwd/pi_defaults.ini`) so
+that the registration is checked against them meanwhile. A separate
+`PeptideIndexing` process lists `enzyme:name`'s restrictions in another order
+than the tool process did; both were stable across the two runs.
+
+A `-database` value the framework checks fails before the tool body here,
+where the source checks it when the body first reads it, so the body's
+`-force` warning that the Release build prints first is not printed (*Native
+differences*). The blank value of `se_db_blank` exposed a lifecycle gap, now
+closed: a `skipexists` input whose name no type claims and that does not exist
+ends as the source's `FileNotFound` from content recognition (exit 1), where
+the lifecycle warned `Could not determine format` and went on.
+
+### INIUpdater (`src/cli/ini_updater.rs`) — complete
+
+| Source | Native |
+| --- | --- |
+| `typedef std::map<ToolDescriptionInternal, ToolDescriptionInternal> ToolMapping` | `ToolMapping`, keyed by `ToolDescriptionInternal::sort_key` (the source's `operator<`), `ToolMappingEntry` |
+| `INIUpdater()` | `INIUpdater::new()` (initialises the table) |
+| `getToolNamesFromINI(ini)` | `get_tool_names_from_ini(&Param)` |
+| `getNameMapping()` | `get_name_mapping()` |
+| `getNewToolName(old, type, new_name)` | `get_new_tool_name(old, type, &ToolHandler) -> Option<String>` |
+| `static ToolMapping map_` | a `OnceLock` |
+
+`getNewToolName` consults the tool registry, which is an explicit
+`ToolHandler` here. Evidence: `INIUpdater_test.cpp` and the oracle's
+`iniupdater` mode (the whole table and 19 look-ups against the built-in
+product manifest), equal in both runs.
+
+### TOPPBase_defs.h (`src/cli/defs.rs`) — complete
+
+`Citation` (`authors`, `title`, `when_where`, `doi`, `toString` as
+`to_source_string` and `Display`). The three exceptions are not types: the
+accessors' refusals end a run as the catch blocks do (`ToolContext`,
+tests in `tests/topp_cli_lifecycle.rs`), and a tool that throws one itself
+returns `ToolError::required_parameter_not_given`, `unregistered_parameter` or
+`wrong_parameter_type`, which carry the catch blocks' texts and exit codes
+(`TOPPBase.cpp:466-493`; `RequiredParameterNotGiven` quotes its text unless it
+starts with a quote). IDSplitter, IsobaricWorkflow, LuciphorAdapter,
+MapAlignerIdentification and ProteinQuantifier throw them directly. The
+constructors' `GlobalExceptionHandler::setMessage` has no counterpart; it only
+matters to a process that terminates on an uncaught exception.
