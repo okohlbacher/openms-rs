@@ -76,6 +76,13 @@ fast-forwarded onto worktree-wf_bcdd783d-f3f-13 (first incarnation: 5a2b6b2).
   inspect_infile::parse_modification_line is the shared handlePTMs grammar for SequestInfile too.
 - C++ extracts: scratchpad/F3b/c/ (script scratchpad/F3b/extract.py '<regex>').
 
+- SequestInfile DONE (af25ee4), 16/16 incl. template + oracle byte-exact. Its 17-vs-18 "finding" was wrong (class test adds Z_TestEnzyme).
+- InspectOutfile WRITTEN (cfg mzml): src/format/inspect_outfile.rs, tests/search_engine_inspect_outfile.rs, fixtures Inspect*.{mzXML,mzData,fasta,trie,index}, Inspect_empty_file.txt.
+  flanking() moved to search_engine_text::flanking_residue (shared by Sequest/Inspect outfiles).
+  Source defect kept for parity: load() records each id with the NEXT spectrum's scan (and file).
+- Formatting: use rustfmt --edition 2024 (crate edition), not 2021.
+
 ## Next step
-1. Gate g3 (ptm/inspect), commit. 2. SequestInfile (reuse parse_modification_line). 3. InspectOutfile (partial ok).
-4. docs/SEARCH_ENGINE_FILES_SUPPORT.md, tests/data/search_engine_files_provenance.json, lane report + ledger, CI sweep.
+1. Gate g5 (inspect outfile; rerun without test-name filters). Commit.
+2. docs/SEARCH_ENGINE_FILES_SUPPORT.md (does not exist yet), tests/data/search_engine_files_provenance.json,
+   lane report + ledger fragment, full CI sweep.

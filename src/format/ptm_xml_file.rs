@@ -23,7 +23,7 @@
 //! The table maps each name to its composition and its possible residues.
 
 use crate::format::search_engine_xml::{
-    drive, read_document, Attributes, SaxHandler, TextEncoding, XmlReadLimits,
+    Attributes, SaxHandler, TextEncoding, XmlReadLimits, drive, read_document,
 };
 use crate::{Error, Result};
 use std::collections::BTreeMap;

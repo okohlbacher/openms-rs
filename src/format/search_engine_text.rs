@@ -19,6 +19,7 @@
 //! arithmetic. See `docs/SEARCH_ENGINE_FILES_SUPPORT.md`.
 
 use crate::chemistry::AASequence;
+use crate::identification::FlankingResidue;
 use crate::{Error, Result};
 use std::io::Read;
 
@@ -137,6 +138,27 @@ pub fn parse_permissive_sequence(text: &str) -> Result<AASequence> {
         }
     }
     AASequence::parse(&rewritten)
+}
+
+/// A flanking residue from a search engine's `X.PEPTIDE.Y` string.
+/// Sequest and Inspect write `-` for a protein terminus, which the Rust
+/// evidence stores as the terminus marker (`[` before, `]` after); the
+/// source stores the raw `-`. A NUL byte is the terminating NUL the source
+/// reads when the string ends in its separator, an unknown residue here.
+///
+/// # Errors
+///
+/// [`Error::Parse`] for a byte that is not a valid flanking residue.
+pub(crate) fn flanking_residue(code: u8, before: bool) -> Result<FlankingResidue> {
+    match code {
+        b'-' if before => Ok(FlankingResidue::NTerminus),
+        b'-' => Ok(FlankingResidue::CTerminus),
+        0 => Ok(FlankingResidue::Unknown),
+        other => FlankingResidue::from_code(char::from(other)).map_err(|_| Error::Parse {
+            line: 0,
+            message: format!("invalid flanking residue '{}'", char::from(other)),
+        }),
+    }
 }
 
 /// Attach a physical line number to a conversion or sequence error that

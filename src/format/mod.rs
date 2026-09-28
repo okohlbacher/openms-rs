@@ -189,6 +189,9 @@ fn single_line(value: &str) -> bool {
 /// Inspect input (parameter) files (`InspectInfile.h`).
 #[cfg(feature = "idxml")]
 pub mod inspect_infile;
+/// Inspect result files and trie databases (`InspectOutfile.h`).
+#[cfg(feature = "mzml")]
+pub mod inspect_outfile;
 /// Kroenik (Hardklör sibling) feature files (`KroenikFile.h`).
 pub mod kroenik_file;
 /// msInspect feature files (`MsInspectFile.h`).

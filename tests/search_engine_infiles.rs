@@ -25,9 +25,10 @@ fn oracle(name: &str) -> String {
 /// The driver's `dumpFile` framing of a written file (printable ASCII,
 /// tab and line feed only, which is all these writers produce here).
 fn dump(text: &str) -> String {
-    assert!(text
-        .bytes()
-        .all(|b| b == b'\n' || b == b'\t' || (32..127).contains(&b)));
+    assert!(
+        text.bytes()
+            .all(|b| b == b'\n' || b == b'\t' || (32..127).contains(&b))
+    );
     format!("file_bytes {}\n{text}\n<<EOF\n", text.len())
 }
 
@@ -157,9 +158,10 @@ fn xtandem_infile_write_creates_the_file() {
     assert!(text.starts_with("<?xml version=\"1.0\"?>\n"));
     assert!(text.ends_with("</bioml>\n"));
     assert!(!text.contains("default parameters"));
-    assert!(x
-        .write(dir.join("missing/input.xml"), false, false)
-        .is_err());
+    assert!(
+        x.write(dir.join("missing/input.xml"), false, false)
+            .is_err()
+    );
     std::fs::remove_dir_all(&dir).unwrap();
 }
 

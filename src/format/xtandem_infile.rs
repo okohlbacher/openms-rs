@@ -568,11 +568,7 @@ fn note(os: &mut String, label: &str, value: &str) {
 }
 
 fn yes_no(value: bool) -> &'static str {
-    if value {
-        "yes"
-    } else {
-        "no"
-    }
+    if value { "yes" } else { "no" }
 }
 
 /// Source `convertModificationSet_`: the modifications as a comma-separated

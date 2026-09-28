@@ -20,7 +20,7 @@
 use crate::chemistry::EmpiricalFormula;
 use crate::data_structures::string_utils::{split, to_float};
 use crate::format::file_info::text_format::{ostream_g, to_str};
-use crate::format::file_types::{has_valid_extension, FileType};
+use crate::format::file_types::{FileType, has_valid_extension};
 use crate::format::ptm_xml_file::{PTMXMLFile, PtmInformations};
 use crate::{Error, Result};
 use std::collections::BTreeMap;

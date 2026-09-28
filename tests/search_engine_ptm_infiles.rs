@@ -11,10 +11,10 @@
 //! ibminode06, `driver.cpp.txt`).
 #![cfg(feature = "idxml")]
 
+use openms::Error;
 use openms::format::inspect_infile::InspectInfile;
 use openms::format::ptm_xml_file::PTMXMLFile;
 use openms::format::sequest_infile::SequestInfile;
-use openms::Error;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
@@ -36,9 +36,10 @@ fn temp_dir(tag: &str) -> PathBuf {
 
 /// The driver's `dumpFile` framing of a written file.
 fn dump(text: &str) -> String {
-    assert!(text
-        .bytes()
-        .all(|b| b == b'\n' || b == b'\t' || (32..127).contains(&b)));
+    assert!(
+        text.bytes()
+            .all(|b| b == b'\n' || b == b'\t' || (32..127).contains(&b))
+    );
     format!("file_bytes {}\n{text}\n<<EOF\n", text.len())
 }
 
@@ -483,8 +484,10 @@ fn sequest_infile_groups_differential_modifications_by_mass() {
         "{text}"
     );
     assert!(text.contains("\nterm_diff_search_options = 0 0\n"));
-    assert!(SequestInfile::new()
-        .to_params_string()
-        .unwrap()
-        .contains("\ndiff_search_options = 0 X\n"));
+    assert!(
+        SequestInfile::new()
+            .to_params_string()
+            .unwrap()
+            .contains("\ndiff_search_options = 0 X\n")
+    );
 }

@@ -20,11 +20,11 @@ use crate::chemistry::AASequence;
 use crate::data_structures::DateTime;
 use crate::data_structures::string_utils::{split, to_double, to_float, to_int32, trim};
 use crate::format::search_engine_text::{
-    MAX_TEXT_BYTES, NPOS, clean_line, find_byte, getline_lines, read_text, rfind_byte, substr,
+    MAX_TEXT_BYTES, NPOS, clean_line, find_byte, flanking_residue, getline_lines, read_text,
+    rfind_byte, substr,
 };
 use crate::identification::{
-    FlankingResidue, PeptideEvidence, PeptideHit, PeptideIdentification, ProteinHit,
-    ProteinIdentification,
+    PeptideEvidence, PeptideHit, PeptideIdentification, ProteinHit, ProteinIdentification,
 };
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
@@ -170,21 +170,6 @@ fn atoi(text: &str) -> i32 {
         cursor += 1;
     }
     value as i32
-}
-
-/// A flanking residue from a Sequest peptide string. Sequest writes `-` for
-/// a protein terminus, which the Rust evidence stores as the terminus marker
-/// (`[` before, `]` after); the source stores the raw `-`.
-fn flanking(code: u8, before: bool) -> Result<FlankingResidue> {
-    match code {
-        b'-' if before => Ok(FlankingResidue::NTerminus),
-        b'-' => Ok(FlankingResidue::CTerminus),
-        // The source reads the terminating NUL of a peptide string that ends
-        // in its separator.
-        0 => Ok(FlankingResidue::Unknown),
-        other => FlankingResidue::from_code(char::from(other))
-            .map_err(|_| parse_error(format!("invalid flanking residue '{}'", char::from(other)))),
-    }
 }
 
 impl SequestOutfile {
@@ -466,10 +451,10 @@ impl SequestOutfile {
         let end = rfind_byte(with_mods, b'.');
         let mut evidence = PeptideEvidence::default();
         if start >= 2 {
-            evidence.aa_before = flanking(bytes[start - 2], true)?;
+            evidence.aa_before = flanking_residue(bytes[start - 2], true)?;
         }
         if end < bytes.len().wrapping_add(1) {
-            evidence.aa_after = flanking(bytes.get(end + 1).copied().unwrap_or(0), false)?;
+            evidence.aa_after = flanking_residue(bytes.get(end + 1).copied().unwrap_or(0), false)?;
         }
         // Keep the upper-case letters between the dots: modification symbols
         // such as `*` are dropped, as the source's `@todo` on modifications
