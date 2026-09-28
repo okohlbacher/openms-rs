@@ -51,9 +51,13 @@
 //! summed in the order the Release build's vectorised loop sums it.
 
 mod averagine_table;
+/// Hill linking, filtering and valley splitting, with the shared numerical helpers.
 pub mod hills;
+/// Isotope pattern assembly and the averagine model.
 pub mod isotopes;
+/// The `FeatureMap` conversion and the two TSV exports.
 pub mod output;
+/// MS1 preprocessing: profile centroiding, TOF filtering and PASEF/TIMS centroiding.
 pub mod preprocess;
 
 use crate::concept::parallel::{Threads, map_collect};
@@ -906,8 +910,30 @@ impl Biosaur2Algorithm {
         &mut self,
         generator: &mut UniqueIdGenerator,
     ) -> Result<Biosaur2Output> {
-        self.validate()?;
         let mut messages = Vec::new();
+        let mut output = self.run_with_log(generator, &mut messages)?;
+        output.messages = messages;
+        Ok(output)
+    }
+
+    /// As [`run_with_details`](Self::run_with_details), appending the log lines
+    /// to `log` as they arise instead of returning them, so that a failed run
+    /// still reports the lines the source prints before it throws (such as
+    /// `Loaded 0 MS1 spectra`). [`Biosaur2Output::messages`] stays empty.
+    ///
+    /// The lines of a FAIMS group that fails are lost with it; the source,
+    /// which runs the groups in parallel, prints whatever the failing group
+    /// had printed.
+    ///
+    /// # Errors
+    ///
+    /// As [`run_with_details`](Self::run_with_details).
+    pub fn run_with_log(
+        &mut self,
+        generator: &mut UniqueIdGenerator,
+        messages: &mut Vec<Biosaur2Message>,
+    ) -> Result<Biosaur2Output> {
+        self.validate()?;
 
         // Steps 1-3 run on a working set that borrows the stored spectra and
         // owns only the ones a step replaces, so that nothing is committed
@@ -926,13 +952,13 @@ impl Biosaur2Algorithm {
                 &self.ms_data.spectra,
                 &ms1,
                 &mut replaced,
-                &mut messages,
+                messages,
             )?;
         }
         if self.tof_mode {
-            preprocess::process_tof(&self.ms_data.spectra, &ms1, &mut replaced, &mut messages)?;
+            preprocess::process_tof(&self.ms_data.spectra, &ms1, &mut replaced, messages)?;
         }
-        info(&mut messages, format!("Loaded {} MS1 spectra", ms1.len()));
+        info(messages, format!("Loaded {} MS1 spectra", ms1.len()));
         if ms1.is_empty() {
             return Err(source_invalid_value(
                 "No MS1 spectra found in input experiment!",
@@ -961,7 +987,7 @@ impl Biosaur2Algorithm {
                 let (_, unit) = spectrum.im_data()?;
                 if unit == DriftTimeUnit::CollisionCrossSection && self.paseftol < 1.0 {
                     warn(
-                        &mut messages,
+                        messages,
                         format!(
                             "Warning: Ion mobility data is in CCS units (square angstroms), but paseftol = {} appears to be set for 1/K0 data. For CCS data, consider using larger values (e.g., 5-20).",
                             g6(self.paseftol)
@@ -994,14 +1020,14 @@ impl Biosaur2Algorithm {
         };
         let voltages = FaimsHelper::get_compensation_voltages(&skeleton)?;
         for warning in &voltages.warnings {
-            warn(&mut messages, warning.clone());
+            warn(messages, warning.clone());
         }
         let faims = !voltages.voltages.is_empty();
         let groups = if faims {
-            faims_groups(skeleton, &mut messages)?
+            faims_groups(skeleton, messages)?
         } else {
             info(
-                &mut messages,
+                messages,
                 "Not FAIMS compensation voltages found in the data. Processing in-place."
                     .to_owned(),
             );
@@ -1034,7 +1060,7 @@ impl Biosaur2Algorithm {
                         &result.features,
                         &result.hills,
                         generator,
-                        &mut messages,
+                        messages,
                     )?;
                 }
                 feature_map.features.append(&mut local.features);
@@ -1044,7 +1070,7 @@ impl Biosaur2Algorithm {
                     &result.features,
                     &result.hills,
                     generator,
-                    &mut messages,
+                    messages,
                 )?;
             }
         }
@@ -1053,7 +1079,7 @@ impl Biosaur2Algorithm {
             FeatureOverlapFilter::merge_faims_features(&mut feature_map, 5.0, 0.05)?;
             if feature_map.len() < before {
                 info(
-                    &mut messages,
+                    messages,
                     format!(
                         "FAIMS feature merge: {before} -> {} features (merged {})",
                         feature_map.len(),
@@ -1101,7 +1127,6 @@ impl Biosaur2Algorithm {
             output.peptide_features.extend(result.features);
         }
         output.feature_map = feature_map;
-        output.messages = messages;
         Ok(output)
     }
 

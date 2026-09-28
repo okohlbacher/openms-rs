@@ -175,19 +175,21 @@ impl Tool for FeatureFinderLFQ {
 
         // The algorithm (148-157). Its exceptions reach TOPPBase's
         // BaseException arm.
+        // The lines the algorithm logged are printed before its exception is
+        // reported, as the source prints them while it runs.
         let mut generator = ctx.unique_id_generator();
-        let result = algorithm
-            .run_with_details(&mut generator)
-            .map_err(|error| match error {
-                Error::InvalidValue(what) => ToolError::unexpected(what),
-                other => ToolError::unexpected(other),
-            })?;
-        for message in &result.messages {
+        let mut messages = Vec::new();
+        let result = algorithm.run_with_log(&mut generator, &mut messages);
+        for message in &messages {
             match message.level {
                 Biosaur2LogLevel::Info => writeln!(out, "{}", message.text)?,
                 Biosaur2LogLevel::Warning => crate::cli::log_warning(err, &message.text)?,
             }
         }
+        let result = result.map_err(|error| match error {
+            Error::InvalidValue(what) => ToolError::unexpected(what),
+            other => ToolError::unexpected(other),
+        })?;
 
         // Annotation (158-160).
         let mut feature_map = result.feature_map;
