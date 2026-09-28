@@ -49,7 +49,14 @@ which finished the MzTab exporters + streaming stores (commits 3bf0851..5bc5bd7)
   into a copy after push_back (never round-trip); OMSFileLoad ref maps default-construct on missing keys.
 - Old schema versions (<4 DataValue join, <5 FEAT_Feature/overall_quality, <=2 grouping_order/position, 1 no specificity).
 
-## Next step
+## Inc. 3 progress (commit 401019f)
+- OMSFile load/store DONE: src/format/oms_file{.rs,/store.rs,/load.rs}; tests/oms_file.rs 15 tests, 14 passed on spock
+  before the last one was added. Oracles: ../oracle/F2-oms (run.sh, dump_tables.py, make_dumps.sh) and
+  ../oracle/F2-oms-noid (C++ cannot store maps without ID data). Expected dumps in tests/data/oms_file/release/.
+- Remaining: docs/OMS_FILE_SUPPORT.md, tests/data/oms_file_provenance.json, clippy/doc/MSRV gates, report+ledger.
+- MzQCFile: leave untouched (needs QC classes, qc-cv.obo). MzTabM: check doc gaps if time.
+
+## Next step (old list, superseded by the progress above)
 1. Gate the inherited work on spock: tests mztab_export (features?) + oms_file (--features sqlite) + clippy.
 2. Write docs/OMS_FILE_SUPPORT.md (referenced by oms_file.rs, missing), provenance for oms test data; commit.
 3. MzQCFile (store only; QualityControl tool) -> src/format/mzqc_file.rs.
