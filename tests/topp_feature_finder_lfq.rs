@@ -96,8 +96,20 @@ fn run_in(dir: &Workdir, args: &[&str]) -> Outcome {
     }
 }
 
+/// A featureXML file, decoded, with the identifier of each protein
+/// identification run cleared.
+///
+/// The source writer records a run only as `id="PI_0"`, so the identifier is
+/// not in a C++-written file at all; the native reader then synthesises a
+/// unique one (`<engine>_<date>_<process>_<counter>`), and reads the native
+/// writer's own `openms-rust:run_identifier` back as the empty identifier the
+/// algorithm left. Neither is data the two programs computed.
 fn load(path: &Path) -> FeatureMap {
-    FileHandler::load_feature_map(path, &[FileType::FeatureXml]).unwrap()
+    let mut map = FileHandler::load_feature_map(path, &[FileType::FeatureXml]).unwrap();
+    for run in &mut map.protein_identifications {
+        run.identifier.clear();
+    }
+    map
 }
 
 fn assert_exactly_release(actual: &Path, release: &str) {
@@ -334,10 +346,17 @@ fn write_ini_matches_the_release_build() {
         "{}",
         String::from_utf8_lossy(comparator.log())
     );
-    fs::write(&written, text).unwrap();
+    // Decoded: the source's raw UTF-8 bytes read as ISO-8859-1, as its own
+    // declaration says, are three characters, so the expected document is
+    // compared with the character reference in their place.
+    fs::write(&written, &text).unwrap();
+    let release = fs::read_to_string(&expected).unwrap();
+    assert_eq!(release.matches('\u{2013}').count(), 2);
+    let normalised = dir.path().join("release.ini");
+    fs::write(&normalised, release.replace('\u{2013}', "&#x2013;")).unwrap();
     assert_eq!(
         openms::format::paramxml::load(&written).unwrap(),
-        openms::format::paramxml::load(&expected).unwrap()
+        openms::format::paramxml::load(&normalised).unwrap()
     );
 }
 
@@ -345,19 +364,19 @@ fn write_ini_matches_the_release_build() {
 fn an_input_without_ms1_spectra_is_the_algorithms_exception() {
     // Biosaur2Algorithm.cpp:221-224 throws InvalidValue, which TOPPBase reports
     // through its BaseException arm (TOPPBase.cpp:495-499 at cli c19e494).
+    // Executed: the Release tool on ms2_only.mzML (one MS2 spectrum) exits 8
+    // with exactly this line (../oracle/FF4-biosaur2/remote_topp2.sh).
     let dir = Workdir::new();
-    let mzml = r#"<?xml version="1.0" encoding="UTF-8"?>
-<mzML xmlns="http://psi.hupo.org/ms/mzml" version="1.1.0">
-  <cvList count="1"><cv id="MS" fullName="PSI-MS" URI="https://example.org/psi-ms.obo"/></cvList>
-  <run id="r">
-    <spectrumList count="0"/>
-  </run>
-</mzML>
-"#;
-    fs::write(dir.path().join("empty.mzML"), mzml).unwrap();
+    let input = fixture("ms2_only.mzML");
     let outcome = run_in(
         &dir,
-        &["-test", "-in", "empty.mzML", "-out", "x.featureXML"],
+        &[
+            "-test",
+            "-in",
+            input.to_str().unwrap(),
+            "-out",
+            "x.featureXML",
+        ],
     );
     outcome.assert_exit(ExitCode::UnknownError);
     assert!(
@@ -367,13 +386,20 @@ fn an_input_without_ms1_spectra_is_the_algorithms_exception() {
         "{}",
         outcome.err
     );
+    assert!(
+        outcome.out.contains("Loaded 0 MS1 spectra"),
+        "{}",
+        outcome.out
+    );
     assert!(!dir.path().join("x.featureXML").exists());
 }
 
 #[test]
-fn an_unwritable_tsv_is_a_write_failure() {
-    // FeatureFinderLFQ.cpp:197-207 via Biosaur2Algorithm::writeTSV's
-    // UnableToCreateFile (Biosaur2Algorithm.cpp:3299-3303).
+fn an_unwritable_tsv_is_refused_before_the_run() {
+    // TOPPBase checks every output file when its option is read
+    // (getStringOption_ -> outputFileWritable_). Executed: the Release tool
+    // exits 5 with `Cannot write output file given from parameter
+    // '-out_tsv'!` and writes no featureXML.
     let dir = Workdir::new();
     let input = ffc1_input();
     let mut args = vec![
@@ -388,4 +414,12 @@ fn an_unwritable_tsv_is_a_write_failure() {
     args.extend(TOPP_1_PARAMETERS);
     let outcome = run_in(&dir, &args);
     outcome.assert_exit(ExitCode::CannotWriteOutputFile);
+    assert!(
+        outcome
+            .err
+            .contains("Cannot write output file given from parameter '-out_tsv'!"),
+        "{}",
+        outcome.err
+    );
+    assert!(!dir.path().join("ok.featureXML").exists());
 }
