@@ -37,6 +37,17 @@
 //!
 //! The module needs the optional `sqlite` feature, which brings in the bundled
 //! SQLite of `rusqlite`.
+//!
+//! [`OmsFile`]: crate::format::oms_file::OmsFile
+//! [`OmsFile::store_identifications`]: crate::format::oms_file::OmsFile::store_identifications
+//! [`OmsFile::store_feature_map`]: crate::format::oms_file::OmsFile::store_feature_map
+//! [`OmsFile::store_consensus_map`]: crate::format::oms_file::OmsFile::store_consensus_map
+//! [`OmsFile::load_identifications`]: crate::format::oms_file::OmsFile::load_identifications
+//! [`OmsFile::load_feature_map`]: crate::format::oms_file::OmsFile::load_feature_map
+//! [`OmsFile::load_consensus_map`]: crate::format::oms_file::OmsFile::load_consensus_map
+//! [`OmsFile::export_to_json`]: crate::format::oms_file::OmsFile::export_to_json
+//! [`OmsStoreOptions::source`]: crate::format::oms_file::OmsStoreOptions::source
+//! [`OmsLoadOptions::source`]: crate::format::oms_file::OmsLoadOptions::source
 
 mod load;
 mod store;

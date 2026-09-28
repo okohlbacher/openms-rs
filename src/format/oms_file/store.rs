@@ -380,9 +380,9 @@ impl<'c> Store<'c> {
     /// with "table already exists" when two of compounds, peptides and
     /// oligonucleotides (which share `ID_IdentifiedMolecule`) carry steps or
     /// metadata. The port creates each table once and stores all of them.
-    fn store_scored_results<'a>(
+    fn store_scored_results(
         &mut self,
-        items: &[(i64, &'a ScoredProcessingResult)],
+        items: &[(i64, &ScoredProcessingResult)],
         parent_table: &str,
     ) -> Result<()> {
         for (parent_id, result) in items {
@@ -411,8 +411,7 @@ impl<'c> Store<'c> {
              higher_better NUMERIC NOT NULL CHECK (higher_better in (0, 1)), \
              FOREIGN KEY (cv_term_id) REFERENCES CVTerm (id)",
         )?;
-        let mut next = 1i64;
-        for (id, score_type) in data.score_types() {
+        for (next, (id, score_type)) in (1i64..).zip(data.score_types()) {
             let cv_id = self.store_cv_term(&score_type.cv_term)?;
             let mut query = self.prepare("INSERT INTO ID_ScoreType VALUES (?1, ?2, ?3)")?;
             insert(
@@ -424,7 +423,6 @@ impl<'c> Store<'c> {
                 ],
             )?;
             self.keys.score_types.insert(id, next);
-            next += 1;
         }
         Ok(())
     }
@@ -439,8 +437,7 @@ impl<'c> Store<'c> {
              experimental_design_id TEXT, primary_files TEXT",
         )?;
         let mut query = self.prepare("INSERT INTO ID_InputFile VALUES (?1, ?2, ?3, ?4)")?;
-        let mut next = 1i64;
-        for (id, input) in data.input_files() {
+        for (next, (id, input)) in (1i64..).zip(data.input_files()) {
             let primary_files: Vec<&str> = input.primary_files.iter().map(String::as_str).collect();
             insert(
                 &mut query,
@@ -452,7 +449,6 @@ impl<'c> Store<'c> {
                 ],
             )?;
             self.keys.input_files.insert(id, next);
-            next += 1;
         }
         Ok(())
     }
@@ -537,8 +533,7 @@ impl<'c> Store<'c> {
             "INSERT INTO ID_DBSearchParam VALUES \
              (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
         )?;
-        let mut next = 1i64;
-        for (id, param) in data.db_search_params() {
+        for (next, (id, param)) in (1i64..).zip(data.db_search_params()) {
             let charges: Vec<String> = param.charges.iter().map(i32::to_string).collect();
             let fixed: Vec<&str> = param.fixed_mods.iter().map(String::as_str).collect();
             let variable: Vec<&str> = param.variable_mods.iter().map(String::as_str).collect();
@@ -576,7 +571,6 @@ impl<'c> Store<'c> {
                 ],
             )?;
             self.keys.search_params.insert(id, next);
-            next += 1;
         }
         Ok(())
     }
@@ -982,8 +976,7 @@ impl<'c> Store<'c> {
              UNIQUE (formula, charge)",
         )?;
         let mut query = self.prepare("INSERT INTO AdductInfo VALUES (?1, ?2, ?3, ?4, ?5)")?;
-        let mut next = 1i64;
-        for (id, adduct) in data.adducts() {
+        for (next, (id, adduct)) in (1i64..).zip(data.adducts()) {
             insert(
                 &mut query,
                 &[
@@ -995,7 +988,6 @@ impl<'c> Store<'c> {
                 ],
             )?;
             self.keys.adducts.insert(id, next);
-            next += 1;
         }
         Ok(())
     }

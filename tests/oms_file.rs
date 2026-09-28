@@ -657,8 +657,10 @@ fn native_options_keep_what_the_source_loses() {
     use openms::kernel::{BaseFeature, ConsensusFeature, ConsensusMap, FeatureHandle};
     let dir = temp_dir("native");
     let adapter = OmsFile::default();
-    let mut map = ConsensusMap::default();
-    map.loaded_file_type = FileType::ConsensusXml;
+    let mut map = ConsensusMap {
+        loaded_file_type: FileType::ConsensusXml,
+        ..ConsensusMap::default()
+    };
     map.metadata.insert(
         "list".into(),
         openms::metadata::MetaValue::from(vec!["a".to_owned(), "b".to_owned()]),
