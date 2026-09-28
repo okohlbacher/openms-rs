@@ -17,7 +17,7 @@ Source revision: OpenMS4-core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 | `ML/CLUSTERING/GridBasedCluster.h` | `src/math/ml/clustering/grid_based_cluster.rs` | complete |
 | `ML/CLUSTERING/GridBasedClustering.h` | `src/math/ml/clustering/grid_based_clustering.rs` | complete |
 | `ML/CLUSTERING/HashGrid.h` | `src/math/ml/clustering/hash_grid.rs` | partial (iteration order, float `hash_value`) |
-| `DATASTRUCTURES/GridFeature.h` | `src/analysis/mapmatching/grid_feature.rs` | partial (set order of modified sequences) |
+| `DATASTRUCTURES/GridFeature.h` | `src/analysis/mapmatching/grid_feature.rs` | complete |
 | `DATASTRUCTURES/QTCluster.h` | `src/analysis/mapmatching/qt_cluster.rs` | partial (hash-map order: neighbour order, summation order) |
 | `DATASTRUCTURES/KDTree.h` | none | not ported (see Backlog) |
 
@@ -241,11 +241,13 @@ upward dependency and live in `src/data_structures/`.
   cluster changed by `update` recomputes its quality with no collected
   neighbours and loses them (quality `(max - num_maps*max/num_other)/max`); the
   oracle's `Q1/updated` records it.
-- **GridFeature annotation order.** `SourceOrderedSequence` reproduces
-  `AASequence::operator<` (`AASequence.cpp:328-370` at the pin) for residue
-  count, terminal-modification presence and residues; oracle case `Q1` shows the
-  source choosing `CC` over `AAA` on a tie, which the crate's own
-  `AASequence` order would not.
+- **GridFeature annotation order.** `SourceOrderedSequence` transcribes
+  `AASequence::operator<` (`AASequence.cpp:328-380` at the pin): residue count,
+  N-terminal modification (none first, then by id), residue by residue the
+  one-letter code and then the modification (none first), C-terminal
+  modification. Oracle case `Q1` shows the source choosing `CC` over `AAA` on a
+  tie, which the crate's own `AASequence` order (residue string first) would
+  not.
 
 ## Native differences
 
@@ -283,7 +285,10 @@ upward dependency and live in `src/data_structures/`.
   sharing a pointer. The debug-only `OPENMS_PRECONDITION`s are not checked, as in
   the Release build.
 - `SourceOrderedSequence` falls back to the crate's `AASequence` order where the
-  source compares modification pointers or ids.
+  source compares two different residue modifications by their registry
+  addresses (not reproducible by any other program), and where the source finds
+  two unequal sequences equivalent (different terminal modifications sharing an
+  id), so that the key's equality stays the sequence's.
 - `DistanceMatrix`'s `Display` never colours the diagonal (the source colours
   only a terminal `std::cout`/`std::cerr`).
 - `EuclideanSimilarity::self_similarity` returns 1, as the source computes; the
