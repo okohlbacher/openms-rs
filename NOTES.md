@@ -112,3 +112,4 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
 - [inc7] sweep4 (dax, min-rust+quality+portable) died on ssh too. Relaunching as sweep5 per job
   (OPENMS_CI_JOBS=quality / portable-feature-graph / minimum-rust separately) on dax. Then fill
   SWEEP_RESULT in the lane report, delete NOTES.md, final commit.
+- [inc7] quality sweep: cargo doc FAILED on xquest module-doc short links (outer doc in mod.rs makes rustdoc resolve in parent scope); fixed with crate:: paths, doc gate green (doc2.log). minimum-rust sweep5m running.

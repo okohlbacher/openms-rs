@@ -19,11 +19,11 @@
 //!
 //! # Loading
 //!
-//! [`XQuestResultXmlHandler::parse`] turns every `<search_hit>` into one
-//! [`PeptideIdentification`] with an alpha hit and, for a cross-link, a beta
+//! [`XQuestResultXmlHandler::parse`](crate::format::xquest_result_xml::XQuestResultXmlHandler::parse) turns every `<search_hit>` into one
+//! [`PeptideIdentification`](crate::identification::PeptideIdentification) with an alpha hit and, for a cross-link, a beta
 //! hit, and collects every protein accession into the single
-//! [`ProteinIdentification`] (search engine `xQuest`, protocol `MS:1002494`).
-//! [`XQuestResultXmlFile::load`] then applies the five `OPXLHelper` steps the
+//! [`ProteinIdentification`](crate::identification::ProteinIdentification) (search engine `xQuest`, protocol `MS:1002494`).
+//! [`XQuestResultXmlFile::load`](crate::format::xquest_result_xml::XQuestResultXmlFile::load) then applies the five `OPXLHelper` steps the
 //! source's `load` applies, in its order:
 //!
 //! 1. `addXLTargetDecoyMV`: the alpha hit gets `xl_target_decoy_alpha` and
@@ -47,7 +47,7 @@
 //!
 //! # Storing
 //!
-//! [`XQuestResultXmlFile::store`] writes the OpenPepXL flavour of the format,
+//! [`XQuestResultXmlFile::store`](crate::format::xquest_result_xml::XQuestResultXmlFile::store) writes the OpenPepXL flavour of the format,
 //! byte for byte as the source's `XQuestResultXMLHandler::writeTo` does
 //! (numbers in the stream's 15-significant-digit form or through
 //! `StringUtils::toStr`, attribute values unescaped), except that the meta
