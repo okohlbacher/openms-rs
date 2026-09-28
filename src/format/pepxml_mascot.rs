@@ -17,10 +17,10 @@
 //! How a sequence is built, as the source builds it at the end of each
 //! `<search_hit>`:
 //!
-//! 1. The `peptide` attribute is parsed as an [`AASequence`].
+//! 1. The `peptide` attribute is parsed as an [`AASequence`](crate::chemistry::AASequence).
 //! 2. Each `<mod_aminoacid_mass>` of the hit is matched by mass to the first
 //!    *variable* `<aminoacid_modification>` or `<terminal_modification>` of
-//!    the search summary whose `mass` is within [`MODIFICATION_TOLERANCE`]
+//!    the search summary whose `mass` is within [`MODIFICATION_TOLERANCE`](crate::format::pepxml_mascot::MODIFICATION_TOLERANCE)
 //!    (strictly less than 0.001 Da). Its description (for example
 //!    `Oxidation (M)`) is applied: a description containing `C-term` or
 //!    `N-term` is also set, whole, as the C- or N-terminal modification; a
@@ -144,20 +144,21 @@ impl PepXmlFileMascot {
     ///
     /// - [`Error::Io`] when the file cannot be opened or read (the source's
     ///   `Exception::FileNotFound` for a missing file), and
-    ///   [`Error::InvalidValue`] when a [`ReadLimits`] ceiling is exceeded;
+    ///   [`Error::InvalidValue`] when a [`ReadLimits`] ceiling is exceeded
+    ///   (except [`ReadLimits::max_bytes`], which the encoding-aware document
+    ///   decoder enforces and reports as [`Error::Parse`]);
     /// - [`Error::Parse`] (the source's `Exception::ParseError`) for a
     ///   document that is not well-formed XML, a missing required attribute
     ///   (`variable`, `description` and, for a variable modification, `mass`
     ///   of a modification definition; `spectrum`; `peptide`; `position` and
     ///   `mass` of `<mod_aminoacid_mass>`), a `position` that is not an
-    ///   integer, or a `mass` that is not a number;
+    ///   integer, a `mass` that is not a number, or a `peptide` that does not
+    ///   parse as a sequence (the source's `AASequence::fromString` error);
     /// - [`Error::InvalidRange`] when a `<mod_aminoacid_mass>` position is
     ///   not a residue of its peptide (the source's
     ///   `Exception::IndexOverflow`; position 0 wraps to the largest index
     ///   there);
-    /// - [`Error::InvalidValue`] when a `peptide` does not parse as a sequence
-    ///   (the source's `AASequence::fromString` error), or when a matched or
-    ///   fixed modification names nothing the modification registry has for
+    /// - [`Error::InvalidValue`] when a matched or fixed modification names nothing the modification registry has for
     ///   that residue or terminus (the source's
     ///   `Exception::ElementNotFound`);
     /// - [`Error::Unsupported`] for a DTD.
@@ -385,7 +386,13 @@ impl Handler<'_> {
         if self.sequence.len() > self.limits.max_residues {
             return Err(limit("peptide residue"));
         }
-        let mut sequence = AASequence::parse(&permissive(&self.sequence))?;
+        // `AASequence::fromString` throws `Exception::ParseError`.
+        let mut sequence = AASequence::parse(&permissive(&self.sequence)).map_err(|error| {
+            parse_error(format!(
+                "Cannot convert string to amino acid sequence: {error} in: {}",
+                self.sequence
+            ))
+        })?;
         let modifications = std::mem::take(&mut self.modifications);
         for (description, position) in &modifications {
             if description.contains("C-term") {

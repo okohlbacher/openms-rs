@@ -20,6 +20,7 @@
 #![cfg(feature = "idxml")]
 
 use openms::Error;
+use openms::chemistry::{AASequence, SequenceModification, TermSpecificity};
 use openms::format::pepxml_mascot::{MascotPepXmlDocument, PepXmlFileMascot, ReadLimits};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -117,7 +118,14 @@ fn recorded(case: &str) -> Vec<Recorded> {
         } else if let Some(status) = line.strip_prefix("status ") {
             loads.last_mut().unwrap().status = status.to_owned();
         } else {
-            loads.last_mut().unwrap().body.push(line.to_owned());
+            let load = loads.last_mut().unwrap();
+            if load.body.is_empty() && !line.starts_with("peptides ") {
+                // A multi-line exception message continues the status.
+                load.status.push('\n');
+                load.status.push_str(line);
+            } else {
+                load.body.push(line.to_owned());
+            }
         }
     }
     let exit = fs::read_to_string(data().join("expected").join(format!("{case}.exit"))).unwrap();
@@ -135,13 +143,66 @@ fn recorded_log(case: &str, file: &str) -> Vec<String> {
         .collect()
 }
 
+/// The source's `AASequence::toString`: every annotation is
+/// `ResidueModification::toString`, `(` + the modification's id + `)`, after
+/// a `.` for a terminus (`AASequence.cpp:926-948`,
+/// `ResidueModification.cpp:959-972`).
+///
+/// The crate's `Display` differs for a protein-terminal modification, which
+/// it prints by its full id (`.(Acetyl (Protein N-term))` for the source's
+/// `.(Acetyl)`, `src/chemistry/sequence.rs` `annotated_string`); that is an
+/// `AASequence` divergence, not this reader's, so the reader is compared
+/// through the source's rule and `Display` is checked separately.
+fn source_to_string(sequence: &AASequence) -> String {
+    let annotation = |modification: &SequenceModification| match modification.known() {
+        Some(known) => format!("({})", known.name()),
+        None => panic!("the Mascot reader sets named modifications only"),
+    };
+    let mut out = String::new();
+    if let Some(modification) = sequence.n_terminal_modification() {
+        out.push('.');
+        out.push_str(&annotation(modification));
+    }
+    for (index, residue) in sequence.as_str().chars().enumerate() {
+        out.push(residue);
+        if let Some(modification) = sequence.residue_modification(index).unwrap() {
+            out.push_str(&annotation(modification));
+        }
+    }
+    if let Some(modification) = sequence.c_terminal_modification() {
+        out.push('.');
+        out.push_str(&annotation(modification));
+    }
+    out
+}
+
+fn protein_terminal(sequence: &AASequence) -> bool {
+    [
+        sequence.n_terminal_modification(),
+        sequence.c_terminal_modification(),
+    ]
+    .into_iter()
+    .flatten()
+    .filter_map(SequenceModification::known)
+    .any(|known| {
+        matches!(
+            known.term_specificity(),
+            TermSpecificity::ProteinNTerm | TermSpecificity::ProteinCTerm
+        )
+    })
+}
+
 /// The oracle driver's rendering of a successful load.
 fn render(document: &MascotPepXmlDocument) -> Vec<String> {
     let mut out = vec![format!("peptides {}", document.peptides.len())];
     for (title, list) in &document.peptides {
         out.push(format!("title [{title}] {}", list.len()));
         for sequence in list {
-            out.push(format!("seq [{sequence}] [{}]", sequence.as_str()));
+            let source = source_to_string(sequence);
+            if !protein_terminal(sequence) {
+                assert_eq!(sequence.to_string(), source);
+            }
+            out.push(format!("seq [{source}] [{}]", sequence.as_str()));
         }
     }
     out
@@ -309,10 +370,21 @@ fn ceilings_refuse_instead_of_truncating() {
         assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
     };
     let defaults = ReadLimits::default();
-    refused(ReadLimits {
-        max_bytes: 1_000,
-        ..defaults
-    });
+    // The byte ceiling is enforced by the identification-XML decoder that
+    // honours the declared encoding, which reports it as a parse error.
+    let error = reader
+        .read_with_limits(
+            upstream.as_slice(),
+            &ReadLimits {
+                max_bytes: 1_000,
+                ..defaults
+            },
+        )
+        .unwrap_err();
+    assert!(
+        matches!(&error, Error::Parse { message, .. } if message.contains("byte limit exceeded")),
+        "{error:?}"
+    );
     refused(ReadLimits {
         max_events: 50,
         ..defaults

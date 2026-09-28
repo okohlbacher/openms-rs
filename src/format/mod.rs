@@ -204,6 +204,3 @@ pub mod protxml;
 #[cfg(feature = "idxml")]
 #[allow(dead_code)]
 pub(crate) mod sax_xml;
-/// Bounded SAX-style events for the attribute-driven identification readers.
-#[cfg(feature = "idxml")]
-pub(crate) mod xml_sax;

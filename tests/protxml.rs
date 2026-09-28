@@ -239,6 +239,56 @@ fn expected_log(case: &str) -> Vec<String> {
         .collect()
 }
 
+/// Modification names the Release build's `ModificationsDB` loads from
+/// PSI-MOD (pinned `share/OpenMS/CHEMISTRY/PSI-MOD.obo`, accession given), and
+/// which this crate's global registry does not hold: historical PSI-MOD is not
+/// bundled (`docs/MODIFICATION_REGISTRY_SUPPORT.md`, "Historical PSI-MOD is not
+/// bundled"). They appear only as extra candidates in the source's
+/// "not uniquely defined" warnings of these inputs.
+const PSI_MOD_ONLY: [(&str, &str); 5] = [
+    ("oxidation to L-methionine sulfoxide (M)", "MOD:00719"),
+    ("oxidation to L-methionine (R)-sulfoxide (M)", "MOD:00720"),
+    ("oxidation to L-methionine (S)-sulfoxide (M)", "MOD:00721"),
+    ("N-acetyl-L-alanine (N-term A)", "MOD:00050"),
+    ("L-lysine amide (C-term K)", "MOD:00101"),
+];
+
+/// The Release log as a registry without PSI-MOD produces it: every
+/// [`PSI_MOD_ONLY`] name leaves the candidate list of an ambiguity warning, and
+/// a warning left with a single candidate is not emitted (the lookup is then
+/// unique). Every other line, and every other candidate, is compared exactly.
+fn expected_log_without_psi_mod(case: &str) -> Vec<String> {
+    const MARK: &str = "' to represent any of '";
+    let mut out = Vec::new();
+    for line in expected_log(case) {
+        let Some(at) = line.find(MARK) else {
+            out.push(line);
+            continue;
+        };
+        let head = &line[..at + MARK.len()];
+        let list = line[at + MARK.len()..]
+            .strip_suffix("'!")
+            .expect("ambiguity warning ends in '!");
+        let kept: Vec<&str> = list
+            .split(", ")
+            .filter(|name| PSI_MOD_ONLY.iter().all(|(psi, _)| psi != name))
+            .collect();
+        let chosen = head
+            .rsplit("Using '")
+            .next()
+            .and_then(|rest| rest.strip_suffix(MARK))
+            .expect("ambiguity warning names its choice");
+        assert!(
+            PSI_MOD_ONLY.iter().all(|(psi, _)| *psi != chosen),
+            "{case}: the source chose a PSI-MOD record, which this comparison cannot model"
+        );
+        if kept.len() > 1 {
+            out.push(format!("{head}{}'!", kept.join(", ")));
+        }
+    }
+    out
+}
+
 /// Compare this port's load with the Release C++ output. `IdXMLFile::store`
 /// sorts every identification's hits by score (`std::stable_sort`), so the
 /// port's hits are sorted the same way first; everything else keeps its
@@ -327,7 +377,11 @@ fn converts_like_the_release_build(input: &str, case: &str) {
     let ours = load(input).unwrap();
     let reference = idxml::load(path(&format!("expected/{case}.idXML"))).unwrap();
     assert_matches_release(&ours, &reference, case);
-    assert_eq!(our_log(&ours, input), expected_log(case), "{case}");
+    assert_eq!(
+        our_log(&ours, input),
+        expected_log_without_psi_mod(case),
+        "{case}"
+    );
     assert_eq!(ours.suppressed_log_lines, 0);
 }
 
@@ -431,10 +485,13 @@ fn release_missing_optional_attributes_and_header() {
     assert!(expected_log("f3a_no_header").is_empty());
 }
 
+/// Which error a refused load must be.
+type ErrorKind = fn(&Error) -> bool;
+
 /// The Release build fails these loads (exit 3 or 8); so does the port.
 #[test]
 fn release_refusals() {
-    let cases: [(&str, fn(&Error) -> bool); 6] = [
+    let cases: [(&str, ErrorKind); 6] = [
         // ElementNotFound: the enzyme 'NoSuchEnzyme' could not be found.
         ("f3a_bad_enzyme", |e| matches!(e, Error::InvalidValue(_))),
         // ParseError: Invalid date time string.

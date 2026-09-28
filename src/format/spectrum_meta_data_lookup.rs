@@ -12,18 +12,18 @@
 //! Boost regular expression with named groups; the groups either carry the
 //! meta data directly (`RT`, `PRECRT`, `MZ`, `CHARGE`, `LEVEL`, `SCAN`, `ID`) or
 //! locate the spectrum among those read with
-//! [`SpectrumMetaDataLookup::read_spectra`] (`INDEX0`, `INDEX1`, `SCAN`, `ID`,
+//! [`SpectrumMetaDataLookup::read_spectra`](crate::format::spectrum_meta_data_lookup::SpectrumMetaDataLookup::read_spectra) (`INDEX0`, `INDEX1`, `SCAN`, `ID`,
 //! `RT`), whose recorded meta data then answers the query.
 //!
 //! | Meta data | Flag | Group | Meaning |
 //! |---|---|---|---|
-//! | `rt` | [`MetaDataFlags::RT`] | `RT` | retention time of the spectrum |
-//! | `precursor_rt` | [`MetaDataFlags::PRECURSOR_RT`] | `PRECRT` | retention time of the precursor spectrum (undefined for MS1) |
-//! | `precursor_mz` | [`MetaDataFlags::PRECURSOR_MZ`] | `MZ` | precursor m/z (undefined for MS1) |
-//! | `precursor_charge` | [`MetaDataFlags::PRECURSOR_CHARGE`] | `CHARGE` | precursor charge (undefined for MS1) |
-//! | `ms_level` | [`MetaDataFlags::MS_LEVEL`] | `LEVEL` | MS level |
-//! | `scan_number` | [`MetaDataFlags::SCAN_NUMBER`] | `SCAN` | scan number extracted from the native ID |
-//! | `native_id` | [`MetaDataFlags::NATIVE_ID`] | `ID` | native ID |
+//! | `rt` | [`MetaDataFlags::RT`](crate::format::spectrum_meta_data_lookup::MetaDataFlags::RT) | `RT` | retention time of the spectrum |
+//! | `precursor_rt` | [`MetaDataFlags::PRECURSOR_RT`](crate::format::spectrum_meta_data_lookup::MetaDataFlags::PRECURSOR_RT) | `PRECRT` | retention time of the precursor spectrum (undefined for MS1) |
+//! | `precursor_mz` | [`MetaDataFlags::PRECURSOR_MZ`](crate::format::spectrum_meta_data_lookup::MetaDataFlags::PRECURSOR_MZ) | `MZ` | precursor m/z (undefined for MS1) |
+//! | `precursor_charge` | [`MetaDataFlags::PRECURSOR_CHARGE`](crate::format::spectrum_meta_data_lookup::MetaDataFlags::PRECURSOR_CHARGE) | `CHARGE` | precursor charge (undefined for MS1) |
+//! | `ms_level` | [`MetaDataFlags::MS_LEVEL`](crate::format::spectrum_meta_data_lookup::MetaDataFlags::MS_LEVEL) | `LEVEL` | MS level |
+//! | `scan_number` | [`MetaDataFlags::SCAN_NUMBER`](crate::format::spectrum_meta_data_lookup::MetaDataFlags::SCAN_NUMBER) | `SCAN` | scan number extracted from the native ID |
+//! | `native_id` | [`MetaDataFlags::NATIVE_ID`](crate::format::spectrum_meta_data_lookup::MetaDataFlags::NATIVE_ID) | `ID` | native ID |
 //! | | | `INDEX0` | look-up only: position counting from zero |
 //! | | | `INDEX1` | look-up only: position counting from one |
 //!

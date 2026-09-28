@@ -91,9 +91,11 @@ fn class_test_lookup() -> SpectrumMetaDataLookup {
     let spectra: Vec<MSSpectrum> = [2.0, 3.0, 4.0]
         .into_iter()
         .map(|rt: f64| {
-            let mut spectrum = MSSpectrum::default();
-            spectrum.ms_level = 2;
-            spectrum.rt = rt;
+            let mut spectrum = MSSpectrum {
+                ms_level: 2,
+                rt,
+                ..MSSpectrum::default()
+            };
             spectrum.precursors.push(Precursor {
                 charge: rt as i32,
                 mz: rt * 111.1,
@@ -424,11 +426,10 @@ fn spectra_are_indexed_by_scan_number_native_id_and_rt() {
     // Dyadic retention times, so the distance comparisons are exact.
     let spectra: Vec<MSSpectrum> = [(10.0, "scan=5"), (20.0, "scan=7"), (20.5, "other")]
         .into_iter()
-        .map(|(rt, id)| {
-            let mut spectrum = MSSpectrum::default();
-            spectrum.rt = rt;
-            spectrum.native_id = id.into();
-            spectrum
+        .map(|(rt, id)| MSSpectrum {
+            rt,
+            native_id: id.into(),
+            ..MSSpectrum::default()
         })
         .collect();
     let mut lookup = SpectrumMetaDataLookup::new();
@@ -472,9 +473,11 @@ fn precursor_retention_times_come_from_the_previous_lower_level() {
     let spectra: Vec<MSSpectrum> = [(1.0, 1), (2.0, 2), (3.0, 2), (4.0, 1), (5.0, 2)]
         .into_iter()
         .map(|(rt, level)| {
-            let mut spectrum = MSSpectrum::default();
-            spectrum.rt = rt;
-            spectrum.ms_level = level;
+            let mut spectrum = MSSpectrum {
+                rt,
+                ms_level: level,
+                ..MSSpectrum::default()
+            };
             if level == 2 {
                 spectrum.precursors.push(Precursor::default());
             }

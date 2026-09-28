@@ -6,19 +6,19 @@
 //! `FORMAT/PercolatorOutfile.h`.
 //!
 //! For PSM-level output the file extension should be `.psms`. The first row
-//! must be exactly the header [`HEADER`]; every later row holds one PSM: the
+//! must be exactly the header [`HEADER`](crate::format::percolator_outfile::HEADER); every later row holds one PSM: the
 //! spectrum reference `PSMId`, the three Percolator scores, the peptide with
 //! its flanking residues (`K.PEPTIDE.A`) and any number of protein accessions.
 //! Lines starting with `#` are comments, as for every `CsvFile`.
 //!
 //! Retention time, precursor m/z and charge come from the spectrum reference
-//! through a [`SpectrumMetaDataLookup`]: either the reference carries them
+//! through a [`SpectrumMetaDataLookup`](crate::format::spectrum_meta_data_lookup::SpectrumMetaDataLookup): either the reference carries them
 //! itself (Mascot-Percolator references do), or it names a spectrum the caller
 //! read into the lookup beforehand (MS-GF+ and X! Tandem references name an
 //! index).
 //!
-//! Entry points: [`PercolatorOutfile::load`] and [`PercolatorOutfile::read`],
-//! with [`ScoreType::from_name`] for the source's `getScoreType`. What is and is
+//! Entry points: [`PercolatorOutfile::load`](crate::format::percolator_outfile::PercolatorOutfile::load) and [`PercolatorOutfile::read`](crate::format::percolator_outfile::PercolatorOutfile::read),
+//! with [`ScoreType::from_name`](crate::format::percolator_outfile::ScoreType::from_name) for the source's `getScoreType`. What is and is
 //! not reproduced is listed in `docs/PERCOLATOR_OUTFILE_SUPPORT.md`.
 
 use crate::chemistry::{AASequence, ModificationDefinitionsSet, ModificationsDB, TermSpecificity};

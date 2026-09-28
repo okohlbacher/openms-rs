@@ -24,12 +24,12 @@
 //!
 //! What a read fills in:
 //!
-//! - [`ProteinHit`]: accession (`protein_name`), score (the ProteinProphet
+//! - [`ProteinHit`](crate::identification::ProteinHit): accession (`protein_name`), score (the ProteinProphet
 //!   probability; siblings inherit the leader's) and coverage
 //!   (`percent_coverage`, leader only). No meta values.
-//! - [`PeptideHit`]: sequence (`peptide_sequence`, with the modifications of
+//! - [`PeptideHit`](crate::identification::PeptideHit): sequence (`peptide_sequence`, with the modifications of
 //!   `<mod_aminoacid_mass>`), score (`nsp_adjusted_probability`), charge, one
-//!   [`PeptideEvidence`] per protein of the enclosing indistinguishable group,
+//!   [`PeptideEvidence`](crate::identification::PeptideEvidence) per protein of the enclosing indistinguishable group,
 //!   and the integer meta values `is_unique` (`is_nondegenerate_evidence` is
 //!   `Y`) and `is_contributing` (`is_contributing_evidence` is `Y`).
 //! - The score type of both identifications is `ProteinProphet probability`,
@@ -43,8 +43,10 @@ use crate::chemistry::{AASequence, ModificationsDB, TermSpecificity};
 use crate::concept::unique_id::UniqueIdGenerator;
 use crate::data_structures::DateTime;
 use crate::format::pepxml::{find_enzyme, internal_residue_mass};
+use crate::format::sax_xml::{
+    self, SaxAttributes as Attributes, SaxEncoding, SaxEvent, SaxLimits, xerces_parse_int,
+};
 use crate::format::spectrum_meta_data_lookup::to_double;
-use crate::format::xml_sax::{self, Attributes, SaxEvent, SaxLimits};
 use crate::identification::{
     PeptideEvidence, PeptideHit, PeptideIdentification, ProteinGroup, ProteinHit,
     ProteinIdentification,
@@ -235,8 +237,7 @@ fn parse_error(message: impl Into<String>) -> Error {
 
 /// `attributeAsString_`: a missing attribute is the source's `fatalError`.
 fn required<'a>(attributes: &'a Attributes, name: &str) -> Result<&'a str> {
-    xml_sax::attribute(attributes, name)
-        .ok_or_else(|| parse_error(format!("Required attribute '{name}' not present!")))
+    attributes.required(name)
 }
 
 /// `attributeAsDouble_` / `optionalAttributeAsDouble_`: `StringUtils::toDouble`,
@@ -262,28 +263,6 @@ fn finite(text: &str, name: &str) -> Result<f64> {
     }
 }
 
-/// Xerces `XMLString::parseInt` as `attributeAsInt_` calls it: XML white space
-/// trimmed, then `strtol` in base 10 must consume everything. The source then
-/// casts the `long` to `int`, which wraps a value outside the 32-bit range;
-/// that is refused here.
-fn xerces_int(text: &str, name: &str) -> Result<i32> {
-    let trimmed = text.trim_matches([' ', '\t', '\n', '\r']);
-    let digits = trimmed.strip_prefix(['+', '-']).unwrap_or(trimmed);
-    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
-        return Err(parse_error(format!(
-            "Could not convert '{text}' in '{name}' to an integer"
-        )));
-    }
-    let wide: i64 = trimmed
-        .parse()
-        .map_err(|_| parse_error(format!("'{text}' in '{name}' overflows a long")))?;
-    i32::try_from(wide).map_err(|_| {
-        Error::InvalidValue(format!(
-            "'{text}' in '{name}' is outside the 32-bit range the source casts it to"
-        ))
-    })
-}
-
 fn read_document(
     reader: impl BufRead,
     file: &str,
@@ -291,10 +270,12 @@ fn read_document(
     limits: &ReadLimits,
 ) -> Result<ProtXmlDocument> {
     let sax = SaxLimits {
-        max_bytes: limits.max_bytes,
-        max_events: limits.max_events,
+        max_input_bytes: u64::try_from(limits.max_bytes).unwrap_or(u64::MAX),
+        max_events: u64::try_from(limits.max_events).unwrap_or(u64::MAX),
         max_depth: limits.max_depth,
         max_attributes: 256,
+        // Character data is not read; a run cannot exceed the document.
+        max_text_bytes: limits.max_bytes,
     };
     let mut handler = Handler {
         file,
@@ -310,10 +291,10 @@ fn read_document(
         log: Vec::new(),
         suppressed: 0,
     };
-    xml_sax::parse(reader, &sax, |event| match event {
-        SaxEvent::Start { name, attributes } => handler.start(name, attributes),
-        SaxEvent::End { name } => handler.end(name),
-        SaxEvent::Text(_) => Ok(()),
+    sax_xml::parse_with(reader, SaxEncoding::Declared, &sax, |event| match event {
+        SaxEvent::Start(name, attributes) => handler.start(name, attributes),
+        SaxEvent::End(name) => handler.end(name),
+        SaxEvent::Characters(_) => Ok(()),
     })?;
     Ok(ProtXmlDocument {
         protein_identification: handler.protein,
@@ -417,7 +398,7 @@ impl Handler<'_> {
                     .indistinguishable_groups
                     .push(ProteinGroup::default());
                 self.register_protein(name)?;
-                let coverage = match xml_sax::attribute(attributes, "percent_coverage") {
+                let coverage = match attributes.get("percent_coverage") {
                     Some(text) => Some(finite(text, "percent_coverage")?),
                     None => {
                         self.log("Required attribute 'percent_coverage' missing".into());
@@ -477,8 +458,8 @@ impl Handler<'_> {
                     score,
                     ..PeptideHit::default()
                 };
-                match xml_sax::attribute(attributes, "charge") {
-                    Some(text) => hit.charge = xerces_int(text, "charge")?,
+                match attributes.get("charge") {
+                    Some(text) => hit.charge = xerces_parse_int(text)?,
                     None => self.log("Required attribute 'charge' missing".into()),
                 }
                 let group = self
@@ -568,7 +549,7 @@ impl Handler<'_> {
 
     /// The `<mod_aminoacid_mass>` branch, which modifies the last seen peptide.
     fn modification(&mut self, attributes: &Attributes) -> Result<()> {
-        let position = xerces_int(required(attributes, "position")?, "position")?;
+        let position = xerces_parse_int(required(attributes, "position")?)?;
         let mass = double(required(attributes, "mass")?, "mass")?;
         let mut sequence = self
             .hit
@@ -671,30 +652,5 @@ impl Handler<'_> {
             self.error(&message);
         }
         Ok(Some(first))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn xerces_int_follows_strtol_on_the_trimmed_text() {
-        assert_eq!(xerces_int(" +2\n", "charge").unwrap(), 2);
-        assert_eq!(xerces_int("-3", "charge").unwrap(), -3);
-        for text in ["", " ", "two", "2.0", "0x2", "+-2", "2 3"] {
-            assert!(
-                matches!(xerces_int(text, "charge"), Err(Error::Parse { .. })),
-                "{text:?}"
-            );
-        }
-        assert!(matches!(
-            xerces_int("4294967298", "charge"),
-            Err(Error::InvalidValue(_))
-        ));
-        assert!(matches!(
-            xerces_int("99999999999999999999", "charge"),
-            Err(Error::Parse { .. })
-        ));
     }
 }
