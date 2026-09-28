@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protein_summary xmlns="http://regis-web.systemsbiology.net/protXML" summary_xml="f3a.protXML">
+<protein_summary_header reference_database="f3a.fasta" source_files="f3a.pepXML" min_peptide_probability="0.20" sample_enzyme="trypsin">
+<program_details analysis="proteinprophet" time="2024-01-01T12:00:00" version="Test">
+</program_details>
+</protein_summary_header>
+<protein_group group_number="1" probability="0.7000">
+<protein protein_name="NO_COVERAGE" n_indistinguishable_proteins="2" probability="0.7000" group_sibling_id="a">
+<indistinguishable_protein protein_name="SIBLING"/>
+<peptide peptide_sequence="NOCHARGEPEPTIDE" initial_probability="0.5" nsp_adjusted_probability="0.9000" weight="1.00" is_nondegenerate_evidence="Y" n_enzymatic_termini="2" is_contributing_evidence="Y">
+</peptide>
+</protein>
+</protein_group>
+</protein_summary>

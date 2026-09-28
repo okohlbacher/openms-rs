@@ -191,3 +191,10 @@ fn intensity(value: &str, line: usize) -> Result<f32> {
 fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
+
+/// ProteinProphet protXML reader (`ProtXMLFile.h`).
+#[cfg(feature = "idxml")]
+pub mod protxml;
+/// Bounded SAX-style events for the attribute-driven identification readers.
+#[cfg(feature = "idxml")]
+pub(crate) mod xml_sax;
