@@ -36,8 +36,13 @@ Code goes in src/analysis/id/ (append `pub mod` to src/analysis/id.rs only).
   (fixed XmlLimits max_work 50M consumed by db.len() per modified sequence); IDScoreSwitcherAlgorithm_test_input.idXML is line-wrapped
   upstream (xmlns:xsi split, attribute 'ges'), C++ tolerates, Rust refuses -> transcribed fixture instead.
 
+- COMMITTED: IDMergerAlgorithm (id_merger.rs, 5 tests), ConsensusMapMergerAlgorithm (consensus_map_merger.rs, 5 tests).
+  Findings: map_xml.rs run identifiers use a process-global counter -> lexical order flips; C++ uses random UniqueId -> source
+  merge order within a condition not reproducible (C++ class test likely flaky). Source defects: offset lookup under new id (always 0);
+  "_" + Size appends char 0x01. consensusXML default max_work too small for BSA.consensusXML (raised in test).
+
 ## Next step
-1. IDMergerAlgorithm -> src/analysis/id/id_merger.rs (params struct IDMergerParameters; insertion-order protein hits instead of
-   unordered_set order); class test uses newIDMergerTest1/2.idXML (core data dir).
-2. IDScoreGetterSetter, ConsensusMapMerger, IDDecoyProbability, PeptideProteinResolution.
-3. Report + ledger at the end; clippy/doc/MSRV/ci sweep.
+1. PeptideProteinResolution (794 cpp, class test 72 lines) -> src/analysis/id/peptide_protein_resolution.rs
+2. IDDecoyProbability (needs C++ driver oracle on ibminode06; math::fitters gamma/gauss exist)
+3. IDScoreGetterSetter (609 header, no tests)
+4. Report + ledger; clippy/doc/MSRV/ci sweep.
