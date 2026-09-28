@@ -32,8 +32,15 @@ Branch: worktree-wf_ee239125-5be-15, base f0990c0. C++ pin: `git -C /Users/kohlb
 - RationalScan2ImConverter: pure formula + tryCreateRationalConverter (SQLite -> `sqlite` feature). Class test sections live in BrukerTimsFile_test.cpp lines 129-293 (forward 1.070429, scan0 1.63883, roundtrip, per-frame, description, singularity).
 - Gate cmd: separate `--test X` and `--lib -- filter` runs (a filter applies to every binary).
 
+## Incarnation 5 progress
+- Gate (spock, --no-default-features --features sqlite): rational_scan2im_converter 10/10, xmass_file 8/8, pasef_hill_centroider 16/16. Logs: session scratchpad F5/gate2.log.
+- C++ sources re-extracted to session scratchpad F5/src/openms/... (tar via one git archive).
+- zstd decision: ruzstd 0.8.2 (pure Rust, no declared MSRV; 0.8.3+ need 1.87) default-features=false features=[std]. zstd 0.13.3 (C) in local registry as alternative. Cargo.lock must be regenerated on spock and copied back via ssh -J sshgw.
+- opentims frame format: opentims.cpp:89-240 (tdf_bin at TimsId: u32 packet size, u32 num_scans, zstd from +8).
+- Shell sandbox: no python heredocs mentioning git, no compound cd && git; use Edit tool + plain git commands.
+
 ## Next step
-1. Port RationalScan2ImConverter (+ Scan2InvIonMobilityConverter trait) -> src/format/rational_scan2im_converter.rs.
+1. (done) RationalScan2ImConverter.
 2. Docs: docs/XMASS_FILE_SUPPORT.md, docs/BRUKER_TIMS_SUPPORT.md; provenance jsons.
 3. TDF reader core (rusqlite + zstd decoder crate) behind feature `bruker-tdf`: decide ruzstd vs zstd.
 4. HDF5Connector / ThermoRawFile / BrukerTimsImagingFile / ImzML: decide + record.
