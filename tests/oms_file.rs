@@ -71,27 +71,36 @@ fn export_to_json_writes_the_rendered_text() {
 }
 
 #[test]
-fn retained_inputs_declare_the_pinned_schema_version() {
+fn retained_inputs_declare_their_schema_version() {
+    // The retained JSONExporter outputs record `"OMSFile": 3` in their
+    // `version` row (test-data 0cb15f2 topp/JSONExporter_1_output.json and
+    // JSONExporter_2_output.json): both inputs predate the pinned writer's
+    // schema version 5.
     let adapter = OmsFile::default();
     assert_eq!(
         adapter
             .schema_version(data("JSONExporter_protein.oms"))
             .unwrap(),
-        SCHEMA_VERSION
+        3
     );
     assert_eq!(
-        adapter.schema_version(data("JSONExporter_RNA.oms")).unwrap(),
-        SCHEMA_VERSION
+        adapter
+            .schema_version(data("JSONExporter_RNA.oms"))
+            .unwrap(),
+        3
     );
+    assert_eq!(SCHEMA_VERSION, 5);
 }
 
 #[test]
 fn a_file_that_is_not_an_oms_database_is_refused() {
     let adapter = OmsFile::default();
     // Not an SQLite database at all.
-    assert!(adapter
-        .json_text(data("JSONExporter_1_output.json"))
-        .is_err());
+    assert!(
+        adapter
+            .json_text(data("JSONExporter_1_output.json"))
+            .is_err()
+    );
     // A missing file is not created by the read-only open.
     let missing = data("does_not_exist.oms");
     assert!(adapter.json_text(&missing).is_err());

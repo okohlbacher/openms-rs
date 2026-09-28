@@ -1,6 +1,7 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
+// $Authors: Hendrik Weisser, OpenMS Rust contributors $
 
 //! OMS files: SQLite databases of identification and feature data
 //! (`FORMAT/OMSFile.h`, with the internal helpers `FORMAT/OMSFileLoad.h` and
@@ -9,24 +10,46 @@
 //! An `.oms` file is an SQLite database whose tables mirror OpenMS's
 //! `IdentificationData` (`ID_*` tables), feature and consensus maps (`FEAT_*`),
 //! plus shared tables for controlled-vocabulary terms (`CVTerm`), metadata
-//! values (`DataValue`, `DataValue_DataType`) and a `version` table whose
-//! `OMSFile` column is the schema version.
+//! values (`DataValue_DataType` and one `<table>_MetaInfo` table per record
+//! type) and a `version` table whose `OMSFile` column is the schema version.
 //!
-//! This module currently ports the JSON export of `OMSFileLoad`
-//! ([`OmsFile::export_to_json`]), which dumps every table of any `.oms` file
-//! without interpreting it. Loading into and storing from `IdentificationData`,
-//! `FeatureMap` and `ConsensusMap` are recorded as open in
+//! [`OmsFile`] ports all seven public operations of the source class:
+//!
+//! | Source | Port |
+//! |---|---|
+//! | `store(filename, const IdentificationData&)` | [`OmsFile::store_identifications`] |
+//! | `store(filename, const FeatureMap&)` | [`OmsFile::store_feature_map`] |
+//! | `store(filename, const ConsensusMap&)` | [`OmsFile::store_consensus_map`] |
+//! | `load(filename, IdentificationData&)` | [`OmsFile::load_identifications`] |
+//! | `load(filename, FeatureMap&)` | [`OmsFile::load_feature_map`] |
+//! | `load(filename, ConsensusMap&)` | [`OmsFile::load_consensus_map`] |
+//! | `exportToJSON(filename_in, filename_out)` | [`OmsFile::export_to_json`] |
+//!
+//! The source's `FeatureMap` and `ConsensusMap` own an `IdentificationData`;
+//! the crate's maps reference an identification graph held alongside them
+//! (see [`crate::kernel::feature_identification`]), so the map stores take the
+//! graph as a separate argument and the map loads return it.
+//!
+//! Where the source loses or corrupts information, the port does not by
+//! default and an option selects the source's behaviour
+//! ([`OmsStoreOptions::source`], [`OmsLoadOptions::source`]); see
 //! `docs/OMS_FILE_SUPPORT.md`.
 //!
 //! The module needs the optional `sqlite` feature, which brings in the bundled
 //! SQLite of `rusqlite`.
 
-use crate::concept::progress_logger::ProgressLogType;
+mod load;
+mod store;
+
+use crate::concept::progress_logger::{ProgressLogType, ProgressLogger};
 use crate::format::path_io;
+use crate::identification::graph::IdentificationData;
+use crate::kernel::{ConsensusMap, FeatureMap};
 use crate::{Error, Result};
 use rusqlite::types::ValueRef;
 use rusqlite::{Connection, OpenFlags};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 /// The schema version the pinned source writes (`OMSFileStore.cpp`
 /// `version_number`); readers accept any version the `version` table states.
@@ -42,7 +65,88 @@ pub const MAX_JSON_BYTES: usize = 1 << 30;
 /// Largest number of tables an exported database may hold.
 pub const MAX_TABLES: usize = 10_000;
 
-fn sql_error(context: &str, error: rusqlite::Error) -> Error {
+/// Largest number of rows one query of a load may return (the source has no
+/// ceiling). The identification graph adds its own limits
+/// ([`crate::identification::graph::GraphLimits`]).
+pub const MAX_TABLE_ROWS: usize = 10_000_000;
+
+/// Deepest nesting of subordinate features a load or store follows (the
+/// source recurses without a limit).
+pub const MAX_SUBORDINATE_DEPTH: usize = 256;
+
+/// Choices for the stores where the source writes something other than the
+/// data it was given. The default writes the data; [`OmsStoreOptions::source`]
+/// reproduces the pinned Release build.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct OmsStoreOptions {
+    /// Write a compound's name into the `smile` column, as the source's
+    /// `storeIdentifiedCompounds_` does (it binds `compound.name` twice), and
+    /// so lose the SMILES string.
+    pub compound_smile_from_name: bool,
+    /// Write a consensus feature's ratios under the key of its last feature
+    /// handle, as the source does (its ratio loop runs after the handle loop
+    /// has advanced the key), instead of under the consensus feature's own key.
+    pub consensus_ratios_under_last_handle: bool,
+    /// Write every feature handle's unique ID as zero: the source converts a
+    /// handle with `BaseFeature(const FeatureHandle&)`, which does not copy it.
+    pub drop_handle_unique_ids: bool,
+}
+
+impl OmsStoreOptions {
+    /// The pinned source's behaviour in every respect.
+    pub fn source() -> Self {
+        Self {
+            compound_smile_from_name: true,
+            consensus_ratios_under_last_handle: true,
+            drop_handle_unique_ids: true,
+        }
+    }
+}
+
+/// Choices for the loads where the source reads something other than what the
+/// file holds. The default reads the file; [`OmsLoadOptions::source`]
+/// reproduces the pinned Release build.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct OmsLoadOptions {
+    /// Keep the space `DataValue::toString()` writes after each comma of a
+    /// string list as part of the next item, as the source's
+    /// `ListUtils::create<String>` does; each store/load round trip then adds
+    /// one more space. The default removes that one separator space.
+    pub keep_string_list_spaces: bool,
+    /// Leave a map's loaded file type unknown, as the source does (it has no
+    /// setter for the stored type name); the default restores it.
+    pub unknown_file_type: bool,
+    /// Load no consensus ratios, as the source does (it reads them into a copy
+    /// of the feature it has already added to the map).
+    pub drop_consensus_ratios: bool,
+}
+
+impl OmsLoadOptions {
+    /// The pinned source's behaviour in every respect.
+    pub fn source() -> Self {
+        Self {
+            keep_string_list_spaces: true,
+            unknown_file_type: true,
+            drop_consensus_ratios: true,
+        }
+    }
+}
+
+/// A loaded feature or consensus map with the identification graph its
+/// features reference.
+#[derive(Debug)]
+pub struct OmsMapLoad<M> {
+    /// The map.
+    pub map: M,
+    /// The identification data of the file; empty when the file has none.
+    pub identifications: IdentificationData,
+    /// Data processing action names the file holds but the port does not know.
+    /// The source logs "unknown data processing action" and skips each; so
+    /// does the port, and returns them here.
+    pub skipped_actions: Vec<String>,
+}
+
+pub(crate) fn sql_error(context: &str, error: rusqlite::Error) -> Error {
     // Source: raiseDBError_ throws Exception::FailedAPICall with
     // "<context>: <SQLite message>".
     Error::Io(std::io::Error::other(format!("{context}: {error}")))
@@ -114,7 +218,9 @@ impl OmsFile {
         )
         .map_err(|error| sql_error("error opening OMS file", error))?;
         let version = connection
-            .query_row("SELECT OMSFile FROM version", [], |row| row.get::<_, i64>(0))
+            .query_row("SELECT OMSFile FROM version", [], |row| {
+                row.get::<_, i64>(0)
+            })
             .map_err(|error| sql_error("error reading file format version number", error))?;
         Ok((connection, version))
     }
@@ -222,6 +328,346 @@ impl OmsFile {
             Ok(())
         })
     }
+
+    fn logger(&self) -> ProgressLogger {
+        let mut logger = ProgressLogger::new();
+        logger.set_log_type(self.log_type);
+        logger
+    }
+
+    /// Write identification data to an OMS file. Source
+    /// `store(const std::string&, const IdentificationData&)`.
+    ///
+    /// Every record type gets its table (created only when it has records),
+    /// with database keys numbered from 1 in the graph's record order; scores
+    /// and processing steps go to `<table>_AppliedProcessingStep` and metadata
+    /// to `<table>_MetaInfo`, the value as `DataValue::toString()` text with
+    /// its type. The processing actions of a processing step, the metadata of
+    /// score types, and the units of meta values are not stored, in the source
+    /// as here.
+    ///
+    /// The source deletes `filename` and writes the database in its place;
+    /// the port writes a temporary file beside it and renames it over
+    /// `filename` only when the whole store has succeeded, so a failure leaves
+    /// any existing file unchanged.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Io`] when the database cannot be created or written (the
+    /// source's `Exception::FailedAPICall` and SQLite exceptions), including a
+    /// constraint violation the source also hits (two parent sequences with one
+    /// accession cannot occur, but a parent group with several scores writes
+    /// its key twice); [`Error::InvalidValue`] when a count or position does
+    /// not fit the 32 bits the source binds (the source truncates).
+    pub fn store_identifications(
+        &self,
+        filename: impl AsRef<Path>,
+        data: &IdentificationData,
+    ) -> Result<()> {
+        self.store_identifications_with(filename, data, OmsStoreOptions::default())
+    }
+
+    /// [`OmsFile::store_identifications`] with explicit options.
+    ///
+    /// # Errors
+    ///
+    /// As [`OmsFile::store_identifications`].
+    pub fn store_identifications_with(
+        &self,
+        filename: impl AsRef<Path>,
+        data: &IdentificationData,
+        options: OmsStoreOptions,
+    ) -> Result<()> {
+        let mut logger = self.logger();
+        write_database(filename.as_ref(), |db| {
+            logger.start_progress(0, 13, "Writing identification data to file")?;
+            let mut writer = store::Store::new(db, options);
+            writer.store_identifications(data, &mut || logger.next_progress())?;
+            logger.next_progress()?;
+            logger.end_progress(0)
+        })
+    }
+
+    /// Write a feature map and the identification data its features reference.
+    /// Source `store(const std::string&, const FeatureMap&)`, whose map owns the
+    /// identification data; `identifications` may be `None` or empty, and
+    /// then only the `version` table precedes the feature tables, as in the
+    /// source.
+    ///
+    /// Features are numbered from 0, depth-first, each subordinate after its
+    /// parent and before the parent's next sibling.
+    ///
+    /// # Errors
+    ///
+    /// As [`OmsFile::store_identifications`]; [`Error::InvalidValue`] when a
+    /// feature references an observation match or molecule that is not in
+    /// `identifications`, or subordinates nest deeper than
+    /// [`MAX_SUBORDINATE_DEPTH`].
+    pub fn store_feature_map(
+        &self,
+        filename: impl AsRef<Path>,
+        features: &FeatureMap,
+        identifications: Option<&IdentificationData>,
+    ) -> Result<()> {
+        self.store_feature_map_with(
+            filename,
+            features,
+            identifications,
+            OmsStoreOptions::default(),
+        )
+    }
+
+    /// [`OmsFile::store_feature_map`] with explicit options.
+    ///
+    /// # Errors
+    ///
+    /// As [`OmsFile::store_feature_map`].
+    pub fn store_feature_map_with(
+        &self,
+        filename: impl AsRef<Path>,
+        features: &FeatureMap,
+        identifications: Option<&IdentificationData>,
+        options: OmsStoreOptions,
+    ) -> Result<()> {
+        let mut logger = self.logger();
+        write_database(filename.as_ref(), |db| {
+            let mut writer = store::Store::new(db, options);
+            writer.store_feature_map(features, identifications)?;
+            logger.start_progress(
+                0,
+                crate::concept::progress_logger::progress_value(features.features.len())?,
+                "Writing feature data to file",
+            )?;
+            logger.end_progress(0)
+        })
+    }
+
+    /// Write a consensus map and the identification data its features
+    /// reference. Source `store(const std::string&, const ConsensusMap&)`.
+    ///
+    /// Each consensus feature is written, then each of its handles as a
+    /// subordinate row with the next key, carrying the handle's measured
+    /// values and map index (`FEAT_FeatureHandle`); ratios go to
+    /// `FEAT_ConsensusRatio`.
+    ///
+    /// # Errors
+    ///
+    /// As [`OmsFile::store_feature_map`].
+    pub fn store_consensus_map(
+        &self,
+        filename: impl AsRef<Path>,
+        consensus: &ConsensusMap,
+        identifications: Option<&IdentificationData>,
+    ) -> Result<()> {
+        self.store_consensus_map_with(
+            filename,
+            consensus,
+            identifications,
+            OmsStoreOptions::default(),
+        )
+    }
+
+    /// [`OmsFile::store_consensus_map`] with explicit options.
+    ///
+    /// # Errors
+    ///
+    /// As [`OmsFile::store_feature_map`].
+    pub fn store_consensus_map_with(
+        &self,
+        filename: impl AsRef<Path>,
+        consensus: &ConsensusMap,
+        identifications: Option<&IdentificationData>,
+        options: OmsStoreOptions,
+    ) -> Result<()> {
+        let mut logger = self.logger();
+        write_database(filename.as_ref(), |db| {
+            let mut writer = store::Store::new(db, options);
+            writer.store_consensus_map(consensus, identifications)?;
+            logger.start_progress(
+                0,
+                crate::concept::progress_logger::progress_value(consensus.features.len())?,
+                "Writing consensus feature data to file",
+            )?;
+            logger.end_progress(0)
+        })
+    }
+
+    /// Read the identification data of an OMS file. Source
+    /// `load(const std::string&, IdentificationData&)`, which adds to the
+    /// graph it is given; the port returns a new graph, so a failure leaves
+    /// nothing half-loaded.
+    ///
+    /// Every schema version the source reads is accepted (1 to 5). Records
+    /// are registered as the source registers them, so equal records merge
+    /// and the graph's own ordering applies.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Io`] when the file is not an SQLite database with a `version`
+    /// table or a query fails; [`Error::InvalidValue`] when a row references a
+    /// key that is not in the file (the source then uses an invalid reference),
+    /// a cell cannot be converted (the source's `Exception::ConversionError`),
+    /// `ID_ScoreType` exists without `CVTerm` (the source's
+    /// `Exception::MissingInformation`), a query returns more than
+    /// [`MAX_TABLE_ROWS`] rows, or the graph refuses a record or exceeds its
+    /// limits; the enzyme lookup's error for an unknown enzyme name (the
+    /// source's `Exception::ElementNotFound`).
+    pub fn load_identifications(&self, filename: impl AsRef<Path>) -> Result<IdentificationData> {
+        self.load_identifications_with(filename, OmsLoadOptions::default())
+    }
+
+    /// [`OmsFile::load_identifications`] with explicit options.
+    ///
+    /// # Errors
+    ///
+    /// As [`OmsFile::load_identifications`].
+    pub fn load_identifications_with(
+        &self,
+        filename: impl AsRef<Path>,
+        options: OmsLoadOptions,
+    ) -> Result<IdentificationData> {
+        let (db, version) = Self::open(filename.as_ref())?;
+        let mut logger = self.logger();
+        let mut data = IdentificationData::new()?;
+        logger.start_progress(0, 12, "Reading identification data from file")?;
+        let mut reader = load::Load::new(&db, version, options);
+        reader.load_identifications(&mut data, &mut || logger.next_progress())?;
+        logger.end_progress(0)?;
+        Ok(data)
+    }
+
+    /// Read a feature map and its identification data. Source
+    /// `load(const std::string&, FeatureMap&)`.
+    ///
+    /// Each feature's width is set through [`crate::kernel::BaseFeature::set_width`],
+    /// which also records it as the `FWHM` meta value, as the source's
+    /// `setWidth` does; stored metadata is read afterwards and overrides it.
+    ///
+    /// # Errors
+    ///
+    /// As [`OmsFile::load_identifications`]; [`Error::InvalidValue`] when
+    /// subordinates nest deeper than [`MAX_SUBORDINATE_DEPTH`], a width is
+    /// negative or not finite, or the map metadata table is empty.
+    pub fn load_feature_map(&self, filename: impl AsRef<Path>) -> Result<OmsMapLoad<FeatureMap>> {
+        self.load_feature_map_with(filename, OmsLoadOptions::default())
+    }
+
+    /// [`OmsFile::load_feature_map`] with explicit options.
+    ///
+    /// # Errors
+    ///
+    /// As [`OmsFile::load_feature_map`].
+    pub fn load_feature_map_with(
+        &self,
+        filename: impl AsRef<Path>,
+        options: OmsLoadOptions,
+    ) -> Result<OmsMapLoad<FeatureMap>> {
+        let (db, version) = Self::open(filename.as_ref())?;
+        let mut data = IdentificationData::new()?;
+        let mut reader = load::Load::new(&db, version, options);
+        reader.load_identifications(&mut data, &mut || Ok(()))?;
+        let mut logger = self.logger();
+        logger.start_progress(0, 3, "Reading feature data from file")?;
+        let mut skipped = Vec::new();
+        let map = reader.load_feature_map(&mut skipped)?;
+        logger.end_progress(0)?;
+        Ok(OmsMapLoad {
+            map,
+            identifications: data,
+            skipped_actions: skipped,
+        })
+    }
+
+    /// Read a consensus map and its identification data. Source
+    /// `load(const std::string&, ConsensusMap&)`.
+    ///
+    /// # Errors
+    ///
+    /// As [`OmsFile::load_feature_map`]; [`Error::InvalidValue`] when a
+    /// feature handle row precedes every consensus feature or duplicates a
+    /// handle of its feature.
+    pub fn load_consensus_map(
+        &self,
+        filename: impl AsRef<Path>,
+    ) -> Result<OmsMapLoad<ConsensusMap>> {
+        self.load_consensus_map_with(filename, OmsLoadOptions::default())
+    }
+
+    /// [`OmsFile::load_consensus_map`] with explicit options.
+    ///
+    /// # Errors
+    ///
+    /// As [`OmsFile::load_consensus_map`].
+    pub fn load_consensus_map_with(
+        &self,
+        filename: impl AsRef<Path>,
+        options: OmsLoadOptions,
+    ) -> Result<OmsMapLoad<ConsensusMap>> {
+        let (db, version) = Self::open(filename.as_ref())?;
+        let mut data = IdentificationData::new()?;
+        let mut reader = load::Load::new(&db, version, options);
+        reader.load_identifications(&mut data, &mut || Ok(()))?;
+        let mut logger = self.logger();
+        logger.start_progress(0, 4, "Reading feature data from file")?;
+        let mut skipped = Vec::new();
+        let map = reader.load_consensus_map(&mut skipped)?;
+        logger.end_progress(0)?;
+        Ok(OmsMapLoad {
+            map,
+            identifications: data,
+            skipped_actions: skipped,
+        })
+    }
+}
+
+/// A temporary path beside `filename`, unique within this process.
+fn temporary_path(filename: &Path) -> PathBuf {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let serial = NEXT.fetch_add(1, Ordering::Relaxed);
+    let name = filename
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "oms".into());
+    filename.with_file_name(format!(".{name}.{}.{serial}.tmp", std::process::id()))
+}
+
+/// Create a database in a temporary file, configured as the source's
+/// `OMSFileStore` constructor configures it (foreign keys on, synchronous
+/// writes and the rollback journal off), fill it in one transaction, and
+/// rename it over `filename`.
+fn write_database(filename: &Path, fill: impl FnOnce(&Connection) -> Result<()>) -> Result<()> {
+    let temporary = temporary_path(filename);
+    let _ = std::fs::remove_file(&temporary);
+    let result = (|| {
+        let db = Connection::open_with_flags(
+            &temporary,
+            OpenFlags::SQLITE_OPEN_READ_WRITE
+                | OpenFlags::SQLITE_OPEN_CREATE
+                | OpenFlags::SQLITE_OPEN_NO_MUTEX,
+        )
+        .map_err(|error| sql_error("error creating OMS file", error))?;
+        db.execute_batch("PRAGMA foreign_keys = ON; PRAGMA synchronous = OFF;")
+            .map_err(|error| sql_error("error configuring OMS file", error))?;
+        db.query_row("PRAGMA journal_mode = OFF", [], |_| Ok(()))
+            .map_err(|error| sql_error("error configuring OMS file", error))?;
+        db.execute_batch("BEGIN")
+            .map_err(|error| sql_error("error starting transaction", error))?;
+        fill(&db)?;
+        db.execute_batch("COMMIT")
+            .map_err(|error| sql_error("error committing transaction", error))?;
+        db.close()
+            .map_err(|(_, error)| sql_error("error closing OMS file", error))
+    })();
+    match result {
+        Ok(()) => std::fs::rename(&temporary, filename).map_err(|error| {
+            let _ = std::fs::remove_file(&temporary);
+            Error::Io(error)
+        }),
+        Err(error) => {
+            let _ = std::fs::remove_file(&temporary);
+            Err(error)
+        }
+    }
 }
 
 /// Source `exportTableToJSON_`, appending one table's array to `out`.
@@ -296,7 +742,12 @@ fn json_number(value: f64) -> String {
         return "null".into();
     }
     if value == 0.0 {
-        return if value.is_sign_negative() { "-0.0" } else { "0.0" }.into();
+        return if value.is_sign_negative() {
+            "-0.0"
+        } else {
+            "0.0"
+        }
+        .into();
     }
     // Rust's `{:e}` is the shortest round-trip representation.
     let scientific = format!("{:e}", value.abs());
@@ -389,7 +840,10 @@ mod tests {
         assert_eq!(json_number(1e14), "100000000000000.0");
         assert_eq!(json_number(1e15), "1e+15");
         assert_eq!(json_number(1.25e16), "1.25e+16");
-        assert_eq!(json_number(123_456_789_012_345_680.0), "1.2345678901234568e+17");
+        assert_eq!(
+            json_number(123_456_789_012_345_680.0),
+            "1.2345678901234568e+17"
+        );
         assert_eq!(json_number(f64::NAN), "null");
         assert_eq!(json_number(0.0), "0.0");
     }
