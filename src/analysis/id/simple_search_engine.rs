@@ -115,7 +115,7 @@ impl MassToleranceUnit {
     }
 }
 
-/// Outcome of [`SimpleSearchEngineAlgorithm::search`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::search), distinguishing
+/// Outcome of [`SimpleSearchEngineAlgorithm::search`], distinguishing
 /// recoverable input issues from execution errors (source `ExitCodes`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ExitCodes {
@@ -126,7 +126,7 @@ pub enum ExitCodes {
     /// `DATABASE_EMPTY`.
     InputFileEmpty,
     /// Internal post-condition violated. Not returned by this port: indexing
-    /// failures are errors (see [`SimpleSearchEngineAlgorithm::search`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::search)).
+    /// failures are errors (see [`SimpleSearchEngineAlgorithm::search`]).
     UnexpectedResult,
     /// Caught a generic exception. Not returned by this port, which reports
     /// failures as `Err`.
@@ -141,7 +141,7 @@ pub enum ExitCodes {
 ///
 /// Used instead of [`PeptideHit`] while scoring so that all candidates per
 /// spectrum fit in memory; only the top-N entries per spectrum are promoted to
-/// [`PeptideHit`] by [`SimpleSearchEngineAlgorithm::post_process_hits`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::post_process_hits). The
+/// [`PeptideHit`] by [`SimpleSearchEngineAlgorithm::post_process_hits`]. The
 /// source's field-order padding optimisation has no Rust meaning.
 #[derive(Clone, Debug, PartialEq)]
 pub struct AnnotatedHit {
@@ -192,8 +192,8 @@ impl AnnotatedHit {
 /// `SimpleSearchEngineAlgorithm`).
 ///
 /// The fields are the source's members, set from parameters by
-/// [`SimpleSearchEngineAlgorithm::from_param`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::from_param) exactly as its
-/// `updateMembers_` does; [`SimpleSearchEngineAlgorithm::defaults`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::defaults) lists
+/// [`SimpleSearchEngineAlgorithm::from_param`] exactly as its
+/// `updateMembers_` does; [`SimpleSearchEngineAlgorithm::defaults`] lists
 /// them with their descriptions. The source's `ProgressLogger` base is not
 /// ported: progress is not reported.
 #[derive(Clone, Debug, PartialEq)]
@@ -228,7 +228,7 @@ pub struct SimpleSearchEngineAlgorithm {
     /// Generate target/decoy results (`decoys`, false).
     pub decoys: bool,
     /// q-value threshold for PSM filtering (`FDR:PSM`, 0 = disabled); needs
-    /// [`SimpleSearchEngineAlgorithm::decoys`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::decoys).
+    /// [`SimpleSearchEngineAlgorithm::decoys`].
     pub fdr_psm: f64,
     /// PSM meta-value annotations to add (`annotate:PSM`, `["ALL"]`).
     pub annotate_psm: Vec<String>,
@@ -317,7 +317,7 @@ impl SimpleSearchEngineAlgorithm {
     }
 
     /// The parameters of this engine in the layout of
-    /// [`SimpleSearchEngineAlgorithm::defaults`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::defaults), carrying the current values
+    /// [`SimpleSearchEngineAlgorithm::defaults`], carrying the current values
     /// (source `getParameters`).
     ///
     /// # Errors
@@ -486,7 +486,7 @@ impl SimpleSearchEngineAlgorithm {
     ///
     /// Missing parameters take their defaults; unknown ones are ignored, as the
     /// source only warns (see
-    /// [`SimpleSearchEngineAlgorithm::from_param_with_warnings`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::from_param_with_warnings)). Duplicate
+    /// [`SimpleSearchEngineAlgorithm::from_param_with_warnings`]). Duplicate
     /// fixed or variable modifications are made unique, which, as in the
     /// source's `std::set` round trip, also sorts that list; a list without
     /// duplicates keeps its order. The native [`threads`](Self::threads)
@@ -503,13 +503,13 @@ impl SimpleSearchEngineAlgorithm {
         Ok(Self::from_param_with_warnings(parameters)?.0)
     }
 
-    /// As [`SimpleSearchEngineAlgorithm::from_param`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::from_param), also returning the
+    /// As [`SimpleSearchEngineAlgorithm::from_param`], also returning the
     /// warnings the source logs: unknown parameters and the duplicate
     /// modification notices of `updateMembers_`.
     ///
     /// # Errors
     ///
-    /// As [`SimpleSearchEngineAlgorithm::from_param`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::from_param).
+    /// As [`SimpleSearchEngineAlgorithm::from_param`].
     pub fn from_param_with_warnings(parameters: &Param) -> Result<(Self, Vec<String>)> {
         let mut handler = DefaultParamHandler::new(SIMPLE_SEARCH_ENGINE_ALGORITHM_NAME)?;
         handler.set_defaults(Self::defaults()?)?;
@@ -570,7 +570,7 @@ impl SimpleSearchEngineAlgorithm {
     ///
     /// Spectra are loaded with MS level 2 only (mzML, Bruker TDF or Thermo
     /// RAW, as far as [`FileHandler`] reads them) and the FASTA database with
-    /// [`FASTAFile`]; then [`SimpleSearchEngineAlgorithm::search_experiment`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::search_experiment)
+    /// [`FASTAFile`]; then [`SimpleSearchEngineAlgorithm::search_experiment`]
     /// runs. The two outputs are **not** treated symmetrically and the call is
     /// not additive: `protein_ids` is replaced by one fresh run for this
     /// search, whereas new PSMs are **appended** to `peptide_ids`, and the new
@@ -580,7 +580,7 @@ impl SimpleSearchEngineAlgorithm {
     /// # Errors
     ///
     /// Returns load errors, and every error of
-    /// [`SimpleSearchEngineAlgorithm::search_experiment`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::search_experiment). On error both
+    /// [`SimpleSearchEngineAlgorithm::search_experiment`]. On error both
     /// outputs are unchanged.
     pub fn search(
         &self,
@@ -598,7 +598,7 @@ impl SimpleSearchEngineAlgorithm {
         )
     }
 
-    /// [`SimpleSearchEngineAlgorithm::search`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::search), reporting progress to
+    /// [`SimpleSearchEngineAlgorithm::search`], reporting progress to
     /// `progress` as the source's `ProgressLogger` base does.
     ///
     /// The sections are the source's: `Filtering spectra...` (0 to 1),
@@ -612,7 +612,7 @@ impl SimpleSearchEngineAlgorithm {
     ///
     /// # Errors
     ///
-    /// As [`SimpleSearchEngineAlgorithm::search`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::search), and the errors of
+    /// As [`SimpleSearchEngineAlgorithm::search`], and the errors of
     /// `progress`. A section is ended even when its body fails.
     pub fn search_with_progress(
         &self,
@@ -659,14 +659,14 @@ impl SimpleSearchEngineAlgorithm {
         )
     }
 
-    /// The search of [`SimpleSearchEngineAlgorithm::search`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::search) on spectra and a
+    /// The search of [`SimpleSearchEngineAlgorithm::search`] on spectra and a
     /// database already in memory (native; the source only has the
     /// file-based entry point).
     ///
     /// `in_spectra` and `in_db` are only recorded: the former as the primary
     /// MS run path (unless the experiment names a single existing mzML file
     /// itself), the latter as the search database. `spectra` should hold MS2
-    /// spectra only, as the loader of [`SimpleSearchEngineAlgorithm::search`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::search)
+    /// spectra only, as the loader of [`SimpleSearchEngineAlgorithm::search`]
     /// provides.
     ///
     /// Candidate peptides containing `X`, `B` or `Z` are skipped. A peptide
@@ -713,12 +713,12 @@ impl SimpleSearchEngineAlgorithm {
         )
     }
 
-    /// [`SimpleSearchEngineAlgorithm::search_experiment`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::search_experiment) with the progress
-    /// sections of [`SimpleSearchEngineAlgorithm::search_with_progress`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::search_with_progress).
+    /// [`SimpleSearchEngineAlgorithm::search_experiment`] with the progress
+    /// sections of [`SimpleSearchEngineAlgorithm::search_with_progress`].
     ///
     /// # Errors
     ///
-    /// As [`SimpleSearchEngineAlgorithm::search_experiment`](crate::analysis::id::simple_search_engine::SimpleSearchEngineAlgorithm::search_experiment), and the errors of
+    /// As [`SimpleSearchEngineAlgorithm::search_experiment`], and the errors of
     /// `progress`.
     #[allow(clippy::too_many_arguments)]
     pub fn search_experiment_with_progress(

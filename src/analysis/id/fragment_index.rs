@@ -258,7 +258,7 @@ struct Series {
 ///
 /// Construct with [`FragmentIndex::new`] or [`FragmentIndex::from_param`],
 /// then [`FragmentIndex::build`] before querying. The source's
-/// `DefaultParamHandler` base is [`FragmentIndexParameters`](crate::analysis::id::fragment_index::FragmentIndexParameters).
+/// `DefaultParamHandler` base is [`FragmentIndexParameters`].
 #[derive(Clone, Debug)]
 pub struct FragmentIndex {
     params: FragmentIndexParameters,
