@@ -18,6 +18,20 @@
 //! [`ACNode`] (with [`DepthHits`]), [`ACScout`], [`ACTrieState`] and [`ACTrie`],
 //! plus the free function [`next_valid_aa`]. The mapping, the source defects
 //! and the native bounds are in `docs/AHO_CORASICK_AMBIGUOUS_SUPPORT.md`.
+//!
+//! [`ACTrie`]: crate::analysis::id::aho_corasick_ambiguous::ACTrie
+//! [`ACTrie::compress_trie`]: crate::analysis::id::aho_corasick_ambiguous::ACTrie::compress_trie
+//! [`ACTrieState`]: crate::analysis::id::aho_corasick_ambiguous::ACTrieState
+//! [`ACScout`]: crate::analysis::id::aho_corasick_ambiguous::ACScout
+//! [`AA`]: crate::analysis::id::aho_corasick_ambiguous::AA
+//! [`AA_TO_CHAR`]: crate::analysis::id::aho_corasick_ambiguous::AA_TO_CHAR
+//! [`CHAR_TO_AA`]: crate::analysis::id::aho_corasick_ambiguous::CHAR_TO_AA
+//! [`Hit`]: crate::analysis::id::aho_corasick_ambiguous::Hit
+//! [`Index`]: crate::analysis::id::aho_corasick_ambiguous::Index
+//! [`Bitset`]: crate::analysis::id::aho_corasick_ambiguous::Bitset
+//! [`ACNode`]: crate::analysis::id::aho_corasick_ambiguous::ACNode
+//! [`DepthHits`]: crate::analysis::id::aho_corasick_ambiguous::DepthHits
+//! [`next_valid_aa`]: crate::analysis::id::aho_corasick_ambiguous::next_valid_aa
 
 use crate::{Error, Result};
 use std::collections::VecDeque;
@@ -705,8 +719,7 @@ impl ACTrie {
         // Suffix links, without path compression. Depth 1 already points to
         // the root.
         let first_deep = 1 + usize::from(self.trie[0].nr_children);
-        for i in first_deep..self.trie.len() {
-            let parent = tmp_parents[i];
+        for (i, &parent) in tmp_parents.iter().enumerate().skip(first_deep) {
             let suffix = self.follow(self.trie[parent.at()].suffix, self.trie[i].edge);
             self.trie[i].suffix = suffix;
             let suffix_hit = self.trie[suffix.at()].depth_and_hits.has_hit;

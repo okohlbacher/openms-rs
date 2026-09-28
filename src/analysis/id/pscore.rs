@@ -17,6 +17,10 @@
 //! carries them as associated functions. The mapping, the preserved source
 //! conventions and the source defects are recorded in
 //! `docs/PSCORE_ASCORE_SUPPORT.md`.
+//!
+//! [`AScore::compute_cumulative_score`]: crate::analysis::id::ascore::AScore::compute_cumulative_score
+//! [`PScore::compute_pscore_best_of`]: crate::analysis::id::pscore::PScore::compute_pscore_best_of
+//! [`PScore`]: crate::analysis::id::pscore::PScore
 
 use crate::analysis::id::ascore::AScore;
 use crate::comparison::{Tolerance, matched_alignment};

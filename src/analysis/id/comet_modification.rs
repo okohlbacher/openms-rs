@@ -25,6 +25,8 @@
 //! `term_distance` / `nc_term` become `-1` / `0`, following Comet's own
 //! example `42.010565 nK 0 3 -1 0 0 0.0`. The mapping and the one known source
 //! defect are recorded in `docs/COMET_MODIFICATION_SUPPORT.md`.
+//!
+//! [`CometModification::MASS_TOLERANCE`]: crate::analysis::id::comet_modification::CometModification::MASS_TOLERANCE
 
 use crate::chemistry::{ResidueModification, TermSpecificity};
 use crate::concept::fuzzy_string_comparator::format_g;

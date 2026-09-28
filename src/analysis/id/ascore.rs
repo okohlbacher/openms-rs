@@ -17,6 +17,8 @@
 //! mutable `base_match_probability_` member is replaced by an explicit
 //! argument, so every method takes `&self`. The API mapping, preserved
 //! conventions and native differences are in `docs/PSCORE_ASCORE_SUPPORT.md`.
+//!
+//! [`AScore::compute`]: crate::analysis::id::ascore::AScore::compute
 
 use crate::chemistry::AASequence;
 use crate::chemistry::theoretical::TheoreticalSpectrumGenerator;
