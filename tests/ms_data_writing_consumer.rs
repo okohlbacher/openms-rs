@@ -1331,6 +1331,7 @@ fn peak_file_options_are_fixed_once_the_header_is_written() {
     consumer.set_peak_file_options(options.clone()).unwrap();
     assert_eq!(consumer.peak_file_options(), Some(&options));
     assert!(consumer.write_options().zlib_compression);
+    consumer.set_expected_size(1, 0).unwrap();
     consumer
         .consume_spectrum(&mut spectrum("scan=1", 1.0, 100.0))
         .unwrap();

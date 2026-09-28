@@ -109,7 +109,8 @@
     "src/format/ms_data_transforming_consumer.rs",
     "src/format/ms_data_aggregating_consumer.rs",
     "src/format/ms_data_sql_consumer.rs",
-    "src/format/indexed_mzml_file_loader.rs"
+    "src/format/indexed_mzml_file_loader.rs",
+    "src/format/ms_data_writing_consumer.rs (set_peak_file_options, for IndexedMzMLFileLoader::store_on_disc)"
   ],
   "native_tests": [
     "tests/ms_data_consumers.rs",
