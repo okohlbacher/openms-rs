@@ -877,7 +877,7 @@ fn parquet_file_write_table_matches_the_release_build() {
         read_schema(&data("parquetfile_default.parquet")),
         rec("writeTable", "default")
     );
-    let back = ParquetFile::read_table(&data("parquetfile_default.parquet")).unwrap();
+    let back = ParquetFile::read_table(data("parquetfile_default.parquet")).unwrap();
     let times = back.column(1).as_primitive::<TimestampMillisecondType>();
     assert_eq!(times.value(0), 1_700_000_000_000);
     assert!(times.is_null(1));
@@ -1638,10 +1638,7 @@ fn arrow_io_helper_getters_match_the_release_build() {
         aio::get_float_value(Some(&Float32Array::from(vec![0.5f32])), 0, 0.0).unwrap(),
         0.5
     );
-    assert_eq!(
-        aio::get_bool_value(Some(&BooleanArray::from(vec![true])), 0, false).unwrap(),
-        true
-    );
+    assert!(aio::get_bool_value(Some(&BooleanArray::from(vec![true])), 0, false).unwrap());
     assert_eq!(
         aio::get_string_value(Some(&StringArray::from(vec!["s"])), 5).unwrap(),
         ""
@@ -1859,7 +1856,8 @@ fn qpx_intensity_labels_match_the_release_build() {
             .map(|(k, v)| format!("{k}={v};"))
             .collect::<String>()
     };
-    let cases: &[(&str, &[(&str, &str, &str)])] = &[
+    type Header<'a> = (&'a str, &'a str, &'a str);
+    let cases: &[(&str, &[Header])] = &[
         (
             "two-plex light Arg6",
             &[("r", "light", ""), ("r", "Arg6", "")],

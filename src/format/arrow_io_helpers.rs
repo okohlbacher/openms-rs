@@ -657,7 +657,7 @@ impl QpxRunFileNameKeys {
 /// A metadata value as the source's `DataValue::toString()` renders it: a
 /// float with full precision (`StringUtils::toStr`), a list bracketed and
 /// separated by `", "`.
-fn data_value_text(value: &MetaValue) -> String {
+pub(crate) fn data_value_text(value: &MetaValue) -> String {
     fn bracketed<I: Iterator<Item = String>>(parts: I) -> String {
         format!("[{}]", parts.collect::<Vec<_>>().join(", "))
     }
@@ -1646,6 +1646,213 @@ pub fn read_meta_values(
         target.insert(name.to_owned(), value);
     }
     Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Crate helpers shared by the Parquet exporters and importers
+// ---------------------------------------------------------------------------
+
+/// A draw of the process-wide ID generator [`generate_uuid_v4`] uses, as the
+/// source's `UniqueIdGenerator::getUniqueId()` of its singleton.
+pub(crate) fn process_unique_id() -> u64 {
+    uuid_generator()
+        .lock()
+        .unwrap_or_else(PoisonError::into_inner)
+        .get_unique_id()
+}
+
+/// The `value_type` token the exporters write for a metadata value: `int`,
+/// `double`, `string`, `int_list`, `double_list` or `string_list`; an empty
+/// value is written as `string`, as the source's `default:` branch does.
+pub(crate) fn meta_value_type_token(value: &MetaValue) -> &'static str {
+    match value.data() {
+        MetaValueData::Integer(_) => "int",
+        MetaValueData::Float(_) => "double",
+        MetaValueData::IntegerList(_) => "int_list",
+        MetaValueData::FloatList(_) => "double_list",
+        MetaValueData::StringList(_) => "string_list",
+        MetaValueData::String(_) | MetaValueData::Empty => "string",
+    }
+}
+
+/// One `metavalues` list entry: name, `DataValue::toString()`, type token.
+pub(crate) type MetaEntry = [String; 3];
+
+/// The `metavalues` entries of `meta` without `excluded` keys, as the
+/// exporters' `appendMetaValues_` writes them.
+///
+/// The source lists the keys in `MetaInfoRegistry` index order, that is in
+/// the order the process first registered each name; this crate's metadata
+/// has no registry and lists them in key order.
+pub(crate) fn meta_entries(meta: &MetaInfo, excluded: &[&str]) -> Vec<MetaEntry> {
+    meta.iter()
+        .filter(|(key, _)| !excluded.contains(&key.as_str()))
+        .map(|(key, value)| {
+            [
+                key.clone(),
+                data_value_text(value),
+                meta_value_type_token(value).to_owned(),
+            ]
+        })
+        .collect()
+}
+
+fn build_error(what: &str, error: arrow_schema::ArrowError) -> Error {
+    Error::InvalidValue(format!("Failed to build the {what} column: {error}"))
+}
+
+/// A `list<...>` array of `data_type` whose rows have the given lengths
+/// (`None` for a null row) over the concatenated `values`.
+pub(crate) fn list_array(
+    data_type: &DataType,
+    lengths: &[Option<usize>],
+    values: ArrayRef,
+) -> Result<ArrayRef> {
+    let DataType::List(field) = data_type else {
+        return Err(Error::InvalidValue(format!(
+            "{data_type} is not a list type"
+        )));
+    };
+    let mut offsets = Vec::with_capacity(lengths.len() + 1);
+    offsets.push(0i32);
+    let mut total = 0i32;
+    let mut validity = Vec::with_capacity(lengths.len());
+    for length in lengths {
+        let add = i32::try_from(length.unwrap_or(0))
+            .map_err(|_| Error::InvalidValue("list column exceeds 2^31 elements".into()))?;
+        total = total
+            .checked_add(add)
+            .ok_or_else(|| Error::InvalidValue("list column exceeds 2^31 elements".into()))?;
+        offsets.push(total);
+        validity.push(length.is_some());
+    }
+    let nulls = if validity.iter().all(|valid| *valid) {
+        None
+    } else {
+        Some(arrow_buffer::NullBuffer::from(validity))
+    };
+    arrow_array::ListArray::try_new(
+        field.clone(),
+        arrow_buffer::OffsetBuffer::new(offsets.into()),
+        values,
+        nulls,
+    )
+    .map(|array| Arc::new(array) as ArrayRef)
+    .map_err(|error| build_error("list", error))
+}
+
+/// A `struct<...>` array of `data_type` from its children.
+pub(crate) fn struct_array(data_type: &DataType, children: Vec<ArrayRef>) -> Result<ArrayRef> {
+    let DataType::Struct(fields) = data_type else {
+        return Err(Error::InvalidValue(format!(
+            "{data_type} is not a struct type"
+        )));
+    };
+    arrow_array::StructArray::try_new(fields.clone(), children, None)
+        .map(|array| Arc::new(array) as ArrayRef)
+        .map_err(|error| build_error("struct", error))
+}
+
+/// The element type of a list type.
+pub(crate) fn list_element(data_type: &DataType) -> Result<&DataType> {
+    match data_type {
+        DataType::List(field) => Ok(field.data_type()),
+        other => Err(Error::InvalidValue(format!("{other} is not a list type"))),
+    }
+}
+
+/// A `list<utf8>` column of `data_type`, one row per entry (`None` null).
+pub(crate) fn string_list_array(
+    data_type: &DataType,
+    rows: &[Option<Vec<String>>],
+) -> Result<ArrayRef> {
+    let lengths: Vec<Option<usize>> = rows.iter().map(|row| row.as_ref().map(Vec::len)).collect();
+    let values: Vec<&str> = rows
+        .iter()
+        .flatten()
+        .flat_map(|row| row.iter().map(String::as_str))
+        .collect();
+    list_array(
+        data_type,
+        &lengths,
+        Arc::new(arrow_array::StringArray::from(values)),
+    )
+}
+
+/// A `metavalues` column of `data_type` (`list<struct<name, value,
+/// value_type>>`), one row per entry (`None` null).
+pub(crate) fn metavalues_array(
+    data_type: &DataType,
+    rows: &[Option<Vec<MetaEntry>>],
+) -> Result<ArrayRef> {
+    let lengths: Vec<Option<usize>> = rows.iter().map(|row| row.as_ref().map(Vec::len)).collect();
+    let entries: Vec<&MetaEntry> = rows.iter().flatten().flatten().collect();
+    let column = |index: usize| -> ArrayRef {
+        Arc::new(arrow_array::StringArray::from(
+            entries
+                .iter()
+                .map(|entry| entry[index].as_str())
+                .collect::<Vec<_>>(),
+        ))
+    };
+    let values = struct_array(
+        list_element(data_type)?,
+        vec![column(0), column(1), column(2)],
+    )?;
+    list_array(data_type, &lengths, values)
+}
+
+/// Rows `start..end` of the child values of a `list` column at `row`, or
+/// `None` for a null row or one outside the column.
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] when the column is not a `list` (the source's
+/// unchecked cast) or its offsets are inconsistent.
+pub(crate) fn list_range(
+    array: &dyn Array,
+    row: usize,
+) -> Result<Option<(ArrayRef, usize, usize)>> {
+    let list = array.as_list_opt::<i32>().ok_or_else(|| {
+        Error::InvalidValue(format!("expected a list column, got {}", array.data_type()))
+    })?;
+    if row >= list.len() || list.is_null(row) {
+        return Ok(None);
+    }
+    let offsets = list.value_offsets();
+    match (
+        usize::try_from(offsets[row]),
+        usize::try_from(offsets[row + 1]),
+    ) {
+        (Ok(start), Ok(end)) if start <= end && end <= list.values().len() => {
+            Ok(Some((list.values().clone(), start, end)))
+        }
+        _ => Err(Error::InvalidValue(
+            "list column offsets are inconsistent".into(),
+        )),
+    }
+}
+
+/// The strings of a `list<utf8>` column at `row`; empty for a missing
+/// column, a null row or a row outside it, as the source's
+/// `readStringList_`. A null element reads as the empty string.
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] when the column is not `list<utf8>`.
+pub(crate) fn string_list_at(array: Option<&dyn Array>, row: usize) -> Result<Vec<String>> {
+    let Some(array) = array else {
+        return Ok(Vec::new());
+    };
+    let Some((values, start, end)) = list_range(array, row)? else {
+        return Ok(Vec::new());
+    };
+    let strings = values.as_string_opt::<i32>().ok_or_else(|| {
+        Error::InvalidValue(format!("expected list<string>, got {}", array.data_type()))
+    })?;
+    Ok((start..end)
+        .map(|i| text_at(strings, i).to_owned())
+        .collect())
 }
 
 #[cfg(test)]

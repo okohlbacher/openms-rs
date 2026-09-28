@@ -170,6 +170,10 @@ pub mod arrow_schema_registry;
 pub mod parquet_file;
 /// Typed filter expressions for Parquet-backed readers (`ParquetFilter.h`).
 pub mod parquet_filter;
+/// Protein hits, protein groups and search parameters as Arrow tables and
+/// Parquet files (`ProteinIdentificationArrowIO.h`).
+#[cfg(feature = "arrow")]
+pub mod protein_identification_arrow_io;
 
 use crate::{Error, Result};
 
