@@ -283,8 +283,10 @@ fn add_spectrum_to_library_matches_the_source_section() {
     let mut msp = MSPGenericFile::new();
     let mut lib = MSExperiment::new();
 
-    let mut spec = MSSpectrum::default();
-    spec.name = String::new(); // empty name
+    let mut spec = MSSpectrum {
+        name: String::new(), // empty name
+        ..MSSpectrum::default()
+    };
     spec.metadata.insert(IS_VALID.into(), MetaValue::from(1i64));
     assert!(matches!(
         msp.add_spectrum_to_library(&mut spec, &mut lib),
