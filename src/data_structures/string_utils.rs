@@ -47,7 +47,7 @@
 //! | `appendToStr(long double, ...)`, `appendToStrLowP(long double, ...)`, `toStr(long double, bool)` | not portable | Rust has no extended-precision type; the `f64` functions cover every value a Rust caller can hold |
 //! | `toStr(char)` | [`ToStr`] for `char` | one character |
 //! | `toStr(const std::string&)`, `toStr(const char*)`, `toStr(std::string_view)` | [`ToStr`] for `str` and `String` | copied unchanged |
-//! | `appendToStr(const DataValue&, bool, std::string&)`, `toStr(const DataValue&, bool)` | [`MetaValue::to_text`](crate::metadata::MetaValue::to_text) | lives beside the value type, which `metadata` owns |
+//! | `appendToStr(const DataValue&, bool, std::string&)`, `toStr(const DataValue&, bool)` | `MetaValue::to_text` | lives beside the value type, which the `metadata` module owns (a link would name that module, which depends on this one) |
 //! | `toStr(const ParamValue&, bool)` | [`ParamValue::to_text`](crate::param::ParamValue::to_text) | |
 //! | `skipWhitespace(const char*, const char*)`, `skipWhitespace(const std::string_view&)` | [`skip_whitespace`] | a byte count |
 //! | `skipNonWhitespace` (both overloads) | [`skip_non_whitespace`] | |

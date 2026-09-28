@@ -565,7 +565,8 @@ fn other_dissociation_methods_become_precursor_metadata() {
             .map(|lines| route_terms(lines))
             .collect();
         assert_eq!(ours, theirs);
-        assert_eq!(ours.iter().map(Vec::len).sum::<usize>(), 5);
+        // Spectra 0, 1, 4 and 5 carry one route term each, spectrum 2 two.
+        assert_eq!(ours.iter().map(Vec::len).sum::<usize>(), 6);
         let back = reread(&xml, &options);
         assert_eq!(back.spectra, experiment.spectra);
         assert_spectra(&back.spectra, "reload", ACTIVATION_FILE, "spectrum");

@@ -14,8 +14,8 @@
 //! C++ default-stream insertion of a `double` (`printf("%.*g")`), which
 //! `StringUtils::numberLength` and FileInfo's statistics use.
 //!
-//! This is the numeric core of `crate::data_structures::string_utils` and of
-//! `crate::format::file_info::text_format`, which re-export it. It lives in
+//! This is the numeric core of the `string_utils` module of `data_structures`
+//! and of FileInfo's `text_format` module of `format`, which re-export it. It lives in
 //! `concept`, as `NumericFormatting.h` lives in `CONCEPT/Detail`, so that every
 //! module can reach it without closing a dependency cycle.
 //!
@@ -202,7 +202,7 @@ append_numeric!(
 /// stripping zeros, as glibc does. Apple libc keeps the zeros of an integer
 /// below `1e15` whose tie rounds down to them (`6427405000.0` at precision 6 is
 /// `6.42740e+09` there and `6.4274e+09` here); see the native differences of
-/// `crate::format::file_info::text_format`.
+/// FileInfo's `text_format` module.
 ///
 /// Work is bounded: a precision above 800 is formatted as 800, which gives the
 /// same text because no double has more than 767 significant digits and no
