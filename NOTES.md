@@ -20,3 +20,9 @@ Class tests: FragmentIndex_test.cpp (2879 lines), NeighborSeq_test.cpp (252), Si
   getPeptidesInMassWindow L1340, computeMassWindow_ L1362 (f32 ppm), query L1376, queryPeaks L1427, trimHits L1566,
   searchDifferentPrecursorRanges L1637, querySpectrumSNES_ L1667, querySpectrum L2278/2299, ctor defaults L2357, updateMembers_ L2501.
 - f32 arithmetic everywhere in query (precursor mz, adjusted_mass): must mirror float casts exactly.
+
+## Incarnation 2 (retry branch wf-29, same base as wf-25 4f332e02)
+- C++ re-extracted to session scratchpad cpp/ (git archive | tar with literal paths; no shell vars in git cmds).
+- Rust deps: chemistry::AASequence (src/chemistry/sequence.rs; parse, mono_mass()->Result, as_str), chemistry::theoretical::TheoreticalSpectrumGenerator
+  (fields ion_series, add_first_prefix_ion; generate(&pep,min_z,max_z,None)->Result<MSSpectrum>), openms_log_warn! macro in src/concept/log_stream.rs:873.
+- Writing src/analysis/id/neighbor_seq.rs now.
