@@ -16,7 +16,7 @@ use openms::MSSpectrum;
 use openms::Peak1D;
 use openms::analysis::id::ascore::{AScore, MAX_ASCORE_PERMUTATIONS, ProbablePhosphoSites};
 use openms::analysis::id::pscore::{DEFAULT_MZ_WINDOW, PScore};
-use openms::chemistry::sequence::AASequence;
+use openms::chemistry::AASequence;
 use openms::chemistry::theoretical::TheoreticalSpectrumGenerator;
 use openms::format::dta;
 use openms::identification::PeptideHit;

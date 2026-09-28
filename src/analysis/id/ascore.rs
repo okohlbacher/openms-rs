@@ -18,7 +18,7 @@
 //! argument, so every method takes `&self`. The API mapping, preserved
 //! conventions and native differences are in `docs/PSCORE_ASCORE_SUPPORT.md`.
 
-use crate::chemistry::sequence::AASequence;
+use crate::chemistry::AASequence;
 use crate::chemistry::theoretical::TheoreticalSpectrumGenerator;
 use crate::comparison::{Tolerance, matched_alignment};
 use crate::concept::math_functions::binomial_cdf_complement;
@@ -306,7 +306,7 @@ impl AScore {
     /// peaks of `real_spectrum` are unchanged, except that the spectrum may
     /// already be sorted.
     pub fn compute(&self, hit: &PeptideHit, real_spectrum: &mut MSSpectrum) -> Result<PeptideHit> {
-        let tolerance = self.tolerance()?;
+        self.tolerance()?;
         let mut phospho = hit.clone();
         phospho.score = -1.0;
         if real_spectrum.is_empty() {
