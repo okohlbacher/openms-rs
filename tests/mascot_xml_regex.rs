@@ -43,10 +43,12 @@ fn experiment(name: &str) -> MSExperiment {
     let text = fs::read_to_string(data().join("inputs").join(name)).unwrap();
     for line in text.lines() {
         let fields: Vec<&str> = line.split('\t').collect();
-        let mut spectrum = MSSpectrum::default();
-        spectrum.native_id = fields[0].to_owned();
-        spectrum.rt = fields[1].parse().unwrap();
-        spectrum.ms_level = fields[4].parse().unwrap();
+        let mut spectrum = MSSpectrum {
+            native_id: fields[0].to_owned(),
+            rt: fields[1].parse().unwrap(),
+            ms_level: fields[4].parse().unwrap(),
+            ..MSSpectrum::default()
+        };
         spectrum.precursors.push(Precursor {
             mz: fields[2].parse().unwrap(),
             charge: fields[3].parse().unwrap(),

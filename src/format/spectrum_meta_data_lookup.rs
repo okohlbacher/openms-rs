@@ -28,9 +28,10 @@
 //! | | | `INDEX1` | look-up only: position counting from one |
 //!
 //! This module is the shared, regular-expression-driven core of those two
-//! headers. `mascot_xml::SpectrumTitleLookup` (hand-coded formats) and
-//! `pepxml::SpectrumIndex` predate it and still cover their own consumers. What
-//! is and is not ported is listed in `docs/PERCOLATOR_OUTFILE_SUPPORT.md`.
+//! headers. `mascot_xml::SpectrumTitleLookup` (hand-coded default formats,
+//! delegating a caller-supplied expression here) and `pepxml::SpectrumIndex`
+//! predate it and still cover their own consumers. What is and is not ported
+//! is listed in `docs/PERCOLATOR_OUTFILE_SUPPORT.md`.
 
 use crate::concept::boost_regex::{BoostRegex, Captures};
 use crate::{Error, MSSpectrum, Result};
