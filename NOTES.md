@@ -47,3 +47,10 @@ Scratch: $S=/private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Explor
 1. Add ToStr for char/bool (ListUtilsIO completeness). Check clippy2.
 2. Re-read remaining scopes vs C++/Rust: DataValue, ConstRefVector, FASTAContainer, Exception, all CHEMISTRY, XLMS -> record remainders.
 3. Support docs (10) + provenance manifests (script) + ledger fragment + report.
+
+## Incarnation 4 (new worktree wf_cd066dab-0a7-3, merged worktree-wf_ee239125-5be-8 = incarnations 1-3 + lead's save 920f8a5)
+Lead's save 920f8a5 holds uncommitted EmpiricalFormula work (+432 lines in src/chemistry/empirical_formula.rs) — ungated.
+Old scratch dir is gone; new scratch: $S=<scratchpad>/A5a (recreate cpp symlinks).
+Next step:
+1. Review 920f8a5 EmpiricalFormula diff; gate check (lib + tests) on dax; fix clippy leftovers noted in incarnation 3.
+2. Continue incarnation 3 plan from Ribonucleotide onward; then docs/ledger/report.
