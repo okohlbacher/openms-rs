@@ -5,6 +5,7 @@
 //! Port of `ANALYSIS/ID/IDDecoyProbability.h`: probabilities from a
 //! target/decoy search, by modelling the score distributions.
 
+use crate::concept::fuzzy_string_comparator::format_g;
 use crate::identification::PeptideIdentification;
 use crate::math::fitters::gamma::{GammaDistributionFitResult, GammaDistributionFitter};
 use crate::math::fitters::gauss::{GaussFitResult, GaussFitter};
@@ -19,14 +20,21 @@ fn bad(message: impl Into<String>) -> Error {
 /// Largest `number_of_bins` accepted: the histograms are allocated up front.
 pub const MAX_BINS: usize = 1_000_000;
 
-/// A histogram normalization (source `Transformation_`).
+/// A histogram normalization (source protected struct `Transformation_`),
+/// needed by
+/// [`IDDecoyProbability::generate_combined_distribution_image`].
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-struct Transformation {
-    max_intensity: f64,
-    diff_score: f64,
-    min_score: f64,
-    max_score: f64,
-    max_intensity_bin: usize,
+pub struct Transformation {
+    /// Scale that maps the fullest bin to 1 (`4 / fullest count`).
+    pub max_intensity: f64,
+    /// Width of the score range.
+    pub diff_score: f64,
+    /// Lowest score.
+    pub min_score: f64,
+    /// Highest score (at least `f64::MIN_POSITIVE`, as in the source).
+    pub max_score: f64,
+    /// Index of the fullest bin.
+    pub max_intensity_bin: usize,
 }
 
 /// Calculates probabilities with a target/decoy approach (source
@@ -426,6 +434,98 @@ impl IDDecoyProbability {
             1.0
         };
         rho_fwd / (rho_fwd + rho_rev)
+    }
+}
+
+impl IDDecoyProbability {
+    /// Write a histogram and a gnuplot script for it (source protected
+    /// `generateDistributionImage_(ids, formula, filename)`):
+    /// `<filename>_dist_tmp.dat` holds `i / number_of_bins` and `values[i]` per
+    /// bin, `<filename>_gnuplot.gpl` plots `formula` (a gnuplot definition of
+    /// `f(x)`) over it into `<filename>_distribution.png`. Numbers are written
+    /// as `std::ostream` does (`%g`).
+    ///
+    /// The source calls this, and runs gnuplot on the script, only in
+    /// `IDDECOYPROBABILITY_DEBUG` builds; running gnuplot is not ported.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when `values` has fewer than
+    /// `number_of_bins` entries (the source reads out of bounds) and
+    /// [`Error::Io`] when a file cannot be written (the source ignores stream
+    /// failures).
+    pub fn generate_distribution_image(
+        &self,
+        values: &[f64],
+        formula: &str,
+        filename: &str,
+    ) -> Result<()> {
+        let bins = self.number_of_bins;
+        if values.len() < bins {
+            return Err(bad("fewer histogram values than bins"));
+        }
+        let mut data = String::new();
+        for (i, value) in values.iter().enumerate().take(bins) {
+            data.push_str(&format!(
+                "{} {}\n",
+                format_g(i as f64 / bins as f64),
+                format_g(*value)
+            ));
+        }
+        std::fs::write(format!("{filename}_dist_tmp.dat"), data)?;
+        std::fs::write(
+            format!("{filename}_gnuplot.gpl"),
+            format!(
+                "set terminal png\nset output '{filename}_distribution.png'\n{formula}\nplot f(x), '{filename}_dist_tmp.dat' w boxes\n"
+            ),
+        )?;
+        Ok(())
+    }
+
+    /// Write the combined score histogram and a gnuplot script plotting both
+    /// models over it (source protected `generateDistributionImage_(all_ids,
+    /// all_trans, fwd_formula, rev_formula, filename)`): `<filename>_all_tmp.dat`
+    /// holds each bin's score (`i / number_of_bins * diff_score + min_score`)
+    /// and `values[i] / max_intensity`; `<filename>_both_gnuplot.gpl` defines
+    /// `fwd_formula` (`f(x)`) and `rev_formula` (`g(x)`) and plots them with
+    /// the data into `<filename>_both_distributions.png`.
+    ///
+    /// Debug-build-only in the source, like
+    /// [`generate_distribution_image`](Self::generate_distribution_image).
+    ///
+    /// # Errors
+    ///
+    /// As [`generate_distribution_image`](Self::generate_distribution_image).
+    pub fn generate_combined_distribution_image(
+        &self,
+        values: &[f64],
+        transformation: &Transformation,
+        fwd_formula: &str,
+        rev_formula: &str,
+        filename: &str,
+    ) -> Result<()> {
+        let bins = self.number_of_bins;
+        if values.len() < bins {
+            return Err(bad("fewer histogram values than bins"));
+        }
+        let mut data = String::new();
+        for (i, value) in values.iter().enumerate().take(bins) {
+            data.push_str(&format!(
+                "{} {}\n",
+                format_g(
+                    i as f64 / bins as f64 * transformation.diff_score + transformation.min_score
+                ),
+                format_g(value / transformation.max_intensity)
+            ));
+        }
+        std::fs::write(format!("{filename}_all_tmp.dat"), data)?;
+        std::fs::write(
+            format!("{filename}_both_gnuplot.gpl"),
+            format!(
+                "set terminal png\nset output '{filename}_both_distributions.png'\n{fwd_formula}\n{rev_formula}\nplot f(x), g(x), '{filename}_all_tmp.dat' w i\n"
+            ),
+        )?;
+        Ok(())
     }
 }
 

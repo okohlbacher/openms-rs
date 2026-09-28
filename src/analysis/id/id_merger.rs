@@ -13,8 +13,9 @@ use crate::{Error, Result};
 use chrono::{Datelike, Timelike};
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Source `Exception::MissingInformation`.
 fn missing(message: impl Into<String>) -> Error {
-    Error::InvalidValue(message.into())
+    Error::MissingInformation(message.into())
 }
 
 /// Warning appended to every consistency warning, as the source's
@@ -217,13 +218,14 @@ impl IDMergerAlgorithm {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] (source `Exception::MissingInformation`)
+    /// Returns [`Error::MissingInformation`] (source `Exception::MissingInformation`)
     /// when the settings disagree and `allow_disagreeing_settings` is off;
     /// when `annotate_origin` is on and a run has no primary MS run path; when
     /// an identification to annotate carries no `id_merge_index` although its
     /// run has several files; or when its `id_merge_index` is not a valid file
-    /// index of its run. On error the merger is unchanged; the source may have
-    /// inserted part of the input.
+    /// index of its run. A non-numeric `id_merge_index` is
+    /// [`Error::InvalidValue`] (source conversion error). On error the merger
+    /// is unchanged; the source may have inserted part of the input.
     pub fn insert_runs(
         &mut self,
         prots: Vec<ProteinIdentification>,
@@ -373,8 +375,11 @@ impl IDMergerAlgorithm {
                         ))
                     })?;
                 let new_index = self.file_origin_to_idx[file];
-                let new_index = i64::try_from(new_index)
-                    .map_err(|_| missing("id_merge_index exceeds the integer meta value range"))?;
+                let new_index = i64::try_from(new_index).map_err(|_| {
+                    Error::InvalidValue(
+                        "id_merge_index exceeds the integer meta value range".into(),
+                    )
+                })?;
                 pid.metadata
                     .insert(ID_MERGE_INDEX.into(), MetaValue::from(new_index));
             }
@@ -391,13 +396,13 @@ impl IDMergerAlgorithm {
 ///
 /// # Errors
 ///
-/// A non-numeric value (source conversion error).
+/// [`Error::InvalidValue`] for a non-numeric value (source conversion error).
 pub(super) fn merge_index(value: &MetaValue, position: &str) -> Result<Option<usize>> {
     let index = match value.data() {
         MetaValueData::Integer(v) => i64::from(i32::try_from(*v).unwrap_or(-1)),
         MetaValueData::Float(v) if v.is_finite() && v.abs() < 2_147_483_648.0 => v.trunc() as i64,
         _ => {
-            return Err(missing(format!(
+            return Err(Error::InvalidValue(format!(
                 "id_merge_index of PeptideIdentification ({position}) is not an integer"
             )));
         }

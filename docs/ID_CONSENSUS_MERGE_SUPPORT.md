@@ -12,7 +12,7 @@ at core `bc9cc12`. Provenance: `tests/data/id_consensus_merge_provenance.json`.
 | `IDMergerAlgorithm.h` | `src/analysis/id/id_merger.rs` | complete |
 | `ConsensusMapMergerAlgorithm.h` | `src/analysis/id/consensus_map_merger.rs` | complete |
 | `PeptideProteinResolution.h` | `src/analysis/id/peptide_protein_resolution.rs` | complete |
-| `IDDecoyProbability.h` | `src/analysis/id/id_decoy_probability.rs` | partial: `generateDistributionImage_` not ported |
+| `IDDecoyProbability.h` | `src/analysis/id/id_decoy_probability.rs` | complete |
 | `IDScoreGetterSetter.h` | not ported | untouched |
 
 ## API mapping
@@ -109,8 +109,9 @@ at core `bc9cc12`. Provenance: `tests/data/id_consensus_merge_provenance.json`.
 | constructor, copy, assignment, parameters | `IDDecoyProbability` fields, `Default`, `Clone`, `defaults`, `from_param*`, `to_param` |
 | `apply(ids)` | `apply` |
 | `apply(prob_ids, fwd_ids, rev_ids)` | `apply_forward_reverse` (returns the probabilities) |
-| `Transformation_`, `normalizeBins_`, `getProbability_`, `apply_` | private |
-| `generateDistributionImage_` (two overloads; gnuplot files, called only in `IDDECOYPROBABILITY_DEBUG` builds) | **not ported** |
+| `normalizeBins_`, `getProbability_`, `apply_` | private |
+| `generateDistributionImage_` (two overloads; gnuplot files, called only in `IDDECOYPROBABILITY_DEBUG` builds) | `generate_distribution_image`, `generate_combined_distribution_image` (public; running gnuplot, which the source does only in debug builds, is not ported) |
+| `Transformation_` | `Transformation` (public, for the second writer) |
 | debug parameters `rev_filename`, `fwd_filename` | not ported (absent from release builds) |
 
 ## Preserved source conventions
@@ -173,4 +174,4 @@ at core `bc9cc12`. Provenance: `tests/data/id_consensus_merge_provenance.json`.
 | IDMergerAlgorithm | every class-test section (3) |
 | ConsensusMapMergerAlgorithm | every class-test section (3); offsets derived (4) |
 | PeptideProteinResolution | both class-test input/output file pairs (3); `resolve` derived (4) |
-| IDDecoyProbability | executed Release oracle, three cases, max difference 7.4e-15 / 4.4e-16 / 9.1e-15 (1) |
+| IDDecoyProbability | executed Release oracle, three cases, max difference 7.4e-15 / 4.4e-16 / 9.1e-15 (1); gnuplot file layout derived from the source (4) |

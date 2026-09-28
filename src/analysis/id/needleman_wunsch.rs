@@ -8,7 +8,7 @@
 //! The header lives in `ANALYSIS/SEQUENCE`, which has no Rust domain module
 //! yet; it sits here beside its only consumer.
 //!
-//! [`ConsensusIDAlgorithmPEPMatrix`]: super::consensus_id::ConsensusIDAlgorithmPEPMatrix
+//! [`ConsensusIDAlgorithmPEPMatrix`]: crate::analysis::id::consensus_id::ConsensusIDAlgorithmPEPMatrix
 
 use crate::{Error, Result};
 

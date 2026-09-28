@@ -14,6 +14,10 @@
 //!
 //! The source templates over "identification types" (`PeptideIdentification`,
 //! `ProteinIdentification`); here they implement [`SwitchableIdentification`].
+//!
+//! [`ScoreType`]: crate::analysis::scores::ScoreType
+//! [`IDScoreSwitcherAlgorithm`]: crate::analysis::id::id_score_switcher::IDScoreSwitcherAlgorithm
+//! [`SwitchableIdentification`]: crate::analysis::id::id_score_switcher::SwitchableIdentification
 
 use crate::analysis::scores::{ScoreType, all_score_names};
 use crate::identification::{PeptideIdentification, ProteinIdentification};
@@ -22,8 +26,9 @@ use crate::metadata::{MetaInfo, MetaValue, MetaValueData};
 use crate::param::{DefaultParamHandler, Param, ParamValue};
 use crate::{Error, Result};
 
-fn bad(message: impl Into<String>) -> Error {
-    Error::InvalidValue(message.into())
+/// Source `Exception::MissingInformation`.
+fn missing(message: impl Into<String>) -> Error {
+    Error::MissingInformation(message.into())
 }
 
 /// Relative tolerance under which a stored old score counts as equal to the
@@ -401,10 +406,11 @@ impl IDScoreSwitcherAlgorithm {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when a hit lacks the `new_score` meta
-    /// value (source `Exception::MissingInformation`), when that value or an
-    /// existing old-score value is not numeric (source conversion error), or
-    /// when the result fails validation. `id` is unchanged on error; the
+    /// Returns [`Error::MissingInformation`] when a hit lacks the `new_score`
+    /// meta value (source `Exception::MissingInformation`), and
+    /// [`Error::InvalidValue`] when that value or an existing old-score value
+    /// is not numeric (source conversion error) or the result fails
+    /// validation. `id` is unchanged on error; the
     /// source leaves the hits before the failing one switched.
     pub fn switch_scores<I: SwitchableIdentification>(&self, id: &mut I) -> Result<usize> {
         let mut next = id.clone();
@@ -418,7 +424,7 @@ impl IDScoreSwitcherAlgorithm {
             let new_value = metadata
                 .get(&self.new_score)
                 .ok_or_else(|| {
-                    bad(format!(
+                    missing(format!(
                         "Meta value '{}' not found for {label}",
                         self.new_score
                     ))
@@ -476,8 +482,8 @@ impl IDScoreSwitcherAlgorithm {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the first identification has no
-    /// score of the type ("First encountered ID does not have the requested
+    /// Returns [`Error::MissingInformation`] when the first identification has
+    /// no score of the type ("First encountered ID does not have the requested
     /// score type."), or as [`switch_scores`](Self::switch_scores). `ids` and
     /// `self` are unchanged on error.
     pub fn switch_to_general_score_type<I: SwitchableIdentification>(
@@ -493,7 +499,7 @@ impl IDScoreSwitcherAlgorithm {
             return Ok(SwitchCount::default());
         }
         if found.score_name.is_empty() {
-            return Err(bad(
+            return Err(missing(
                 "First encountered ID does not have the requested score type.",
             ));
         }
@@ -543,7 +549,7 @@ impl IDScoreSwitcherAlgorithm {
             }
         }
         if new_type.is_empty() {
-            return Err(bad(
+            return Err(missing(
                 "First encountered ID does not have the requested score type.",
             ));
         }

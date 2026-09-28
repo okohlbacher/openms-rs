@@ -11,7 +11,12 @@ use crate::{Error, Result};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt;
 
+/// Source `Exception::MissingInformation`.
 fn missing(message: impl Into<String>) -> Error {
+    Error::MissingInformation(message.into())
+}
+
+fn bad(message: impl Into<String>) -> Error {
     Error::InvalidValue(message.into())
 }
 
@@ -103,11 +108,12 @@ impl PeptideProteinResolution {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] (source `Exception::MissingInformation`)
-    /// when the run has no indistinguishable groups ("Currently this class
-    /// only resolves across groups") or a best hit references an accession
-    /// that is in no group (add such proteins as singletons), or when a hit's
-    /// target/decoy annotation is invalid. `peptides` is unchanged on error.
+    /// Returns [`Error::MissingInformation`] (source
+    /// `Exception::MissingInformation`) when the run has no indistinguishable
+    /// groups ("Currently this class only resolves across groups") or a best
+    /// hit references an accession that is in no group (add such proteins as
+    /// singletons), and [`Error::InvalidValue`] when a hit's target/decoy
+    /// annotation is invalid. `peptides` is unchanged on error.
     pub fn resolve(
         protein: &ProteinIdentification,
         peptides: &mut [PeptideIdentification],
@@ -232,7 +238,7 @@ impl PeptideProteinResolution {
         peptides: &mut [PeptideIdentification],
     ) -> Result<Vec<String>> {
         if proteins.is_empty() {
-            return Err(missing("no protein identification run to resolve"));
+            return Err(bad("no protein identification run to resolve"));
         }
         let mut next_proteins = proteins.to_vec();
         let mut next_peptides = peptides.to_vec();
@@ -255,9 +261,9 @@ impl PeptideProteinResolution {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the run has no indistinguishable
-    /// groups, or a best hit references an accession in no group (add such
-    /// proteins as singletons). The resolver and the run are unchanged on
+    /// Returns [`Error::MissingInformation`] when the run has no
+    /// indistinguishable groups, or a best hit references an accession in no
+    /// group (add such proteins as singletons). The resolver and the run are unchanged on
     /// error.
     pub fn build_graph(
         &mut self,
@@ -435,7 +441,7 @@ impl PeptideProteinResolution {
         let groups = &protein.indistinguishable_groups;
         for &group in &component.prot_grp_indices {
             if group >= groups.len() {
-                return Err(missing(format!(
+                return Err(bad(format!(
                     "Something went terribly wrong. Group with index {group}doesn't exist.  ProteinPeptideResolution: Groups changed after building data structures."
                 )));
             }
@@ -479,7 +485,7 @@ impl PeptideProteinResolution {
                 let hit = next_peptides
                     .get_mut(pep)
                     .and_then(|p| p.hits.first_mut())
-                    .ok_or_else(|| missing(format!("peptide index {pep} has no best hit")))?;
+                    .ok_or_else(|| bad(format!("peptide index {pep} has no best hit")))?;
                 hit.evidences
                     .retain(|e| accessions.contains(&e.protein_accession));
             }

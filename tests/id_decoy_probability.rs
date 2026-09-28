@@ -11,7 +11,7 @@
 //! sha256 `804014f9…56ce1`). The inputs below are the driver's, built from
 //! exact integer arithmetic so both languages see the same doubles.
 
-use openms::analysis::id::id_decoy_probability::IDDecoyProbability;
+use openms::analysis::id::id_decoy_probability::{IDDecoyProbability, Transformation};
 use openms::chemistry::AASequence;
 use openms::identification::{PeptideHit, PeptideIdentification};
 use openms::metadata::MetaValue;
@@ -48,8 +48,11 @@ fn decoy_e(j: i32) -> f64 {
     f64::from((j * 53) % 97 + 1) / 1000.0
 }
 
-/// (score, score type, meta values) per output hit of one oracle case.
-fn oracle(case: &str) -> Vec<(f64, String, Vec<(String, String)>)> {
+/// Score, score type and meta values of one output hit.
+type OracleHit = (f64, String, Vec<(String, String)>);
+
+/// The output hits of one oracle case.
+fn oracle(case: &str) -> Vec<OracleHit> {
     include_str!("data/IDDecoyProbability_oracle_ibminode06.tsv")
         .lines()
         .map(|line| line.split('\t').collect::<Vec<_>>())
@@ -165,4 +168,62 @@ fn defaults_match_the_source_declarations() {
         IDDecoyProbability::from_param(&p.to_param().unwrap()).unwrap(),
         p
     );
+}
+
+#[test]
+fn distribution_image_files_follow_the_source_layout() {
+    // Derived from the source generateDistributionImage_ bodies.
+    let dir = std::env::temp_dir().join(format!("openms_iddecoy_{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let base = dir.join("rev");
+    let base = base.to_str().unwrap();
+    let algorithm = IDDecoyProbability {
+        number_of_bins: 4,
+        ..IDDecoyProbability::default()
+    };
+    algorithm
+        .generate_distribution_image(&[0.5, 4.0, 2.25, 0.0], "f(x)=x", base)
+        .unwrap();
+    assert_eq!(
+        std::fs::read_to_string(format!("{base}_dist_tmp.dat")).unwrap(),
+        "0 0.5\n0.25 4\n0.5 2.25\n0.75 0\n"
+    );
+    assert_eq!(
+        std::fs::read_to_string(format!("{base}_gnuplot.gpl")).unwrap(),
+        format!(
+            "set terminal png\nset output '{base}_distribution.png'\nf(x)=x\nplot f(x), '{base}_dist_tmp.dat' w boxes\n"
+        )
+    );
+    let trafo = Transformation {
+        max_intensity: 0.5,
+        diff_score: 8.0,
+        min_score: 1.0,
+        max_score: 9.0,
+        max_intensity_bin: 1,
+    };
+    algorithm
+        .generate_combined_distribution_image(
+            &[0.5, 4.0, 2.25, 0.0],
+            &trafo,
+            "f(x)=1",
+            "g(x)=2",
+            base,
+        )
+        .unwrap();
+    assert_eq!(
+        std::fs::read_to_string(format!("{base}_all_tmp.dat")).unwrap(),
+        "1 1\n3 8\n5 4.5\n7 0\n"
+    );
+    assert_eq!(
+        std::fs::read_to_string(format!("{base}_both_gnuplot.gpl")).unwrap(),
+        format!(
+            "set terminal png\nset output '{base}_both_distributions.png'\nf(x)=1\ng(x)=2\nplot f(x), g(x), '{base}_all_tmp.dat' w i\n"
+        )
+    );
+    assert!(
+        algorithm
+            .generate_distribution_image(&[1.0], "f(x)=x", base)
+            .is_err()
+    );
+    std::fs::remove_dir_all(&dir).unwrap();
 }

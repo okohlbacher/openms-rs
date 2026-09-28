@@ -25,6 +25,15 @@
 //! (`ConsensusIDAlgorithmBest`, ...).
 //!
 //! See the `ConsensusID` TOPP tool documentation for the `filter:` parameters.
+//!
+//! [`ConsensusIDAlgorithm`]: crate::analysis::id::consensus_id::ConsensusIDAlgorithm
+//! [`ConsensusIDFilter`]: crate::analysis::id::consensus_id::ConsensusIDFilter
+//! [`ConsensusIDAlgorithmAverage`]: crate::analysis::id::consensus_id::ConsensusIDAlgorithmAverage
+//! [`ConsensusIDAlgorithmBest`]: crate::analysis::id::consensus_id::ConsensusIDAlgorithmBest
+//! [`ConsensusIDAlgorithmWorst`]: crate::analysis::id::consensus_id::ConsensusIDAlgorithmWorst
+//! [`ConsensusIDAlgorithmRanks`]: crate::analysis::id::consensus_id::ConsensusIDAlgorithmRanks
+//! [`ConsensusIDAlgorithmPEPMatrix`]: crate::analysis::id::consensus_id::ConsensusIDAlgorithmPEPMatrix
+//! [`ConsensusIDAlgorithmPEPIons`]: crate::analysis::id::consensus_id::ConsensusIDAlgorithmPEPIons
 
 use super::needleman_wunsch::{NeedlemanWunsch, ScoringMatrix};
 use crate::analysis::id_filter::{DuplicatePolicy, remove_duplicate_peptide_hits};

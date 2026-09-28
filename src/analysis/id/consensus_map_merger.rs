@@ -18,6 +18,11 @@ fn bad(message: impl Into<String>) -> Error {
     Error::InvalidValue(message.into())
 }
 
+/// Source `Exception::MissingInformation`.
+fn missing(message: impl Into<String>) -> Error {
+    Error::MissingInformation(message.into())
+}
+
 /// Merges the identification runs of a [`ConsensusMap`] (source
 /// `ConsensusMapMergerAlgorithm`).
 ///
@@ -138,9 +143,10 @@ impl ConsensusMapMergerAlgorithm {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when a column header matches no
-    /// condition (source `Exception::MissingInformation`), when the design
-    /// cannot produce its condition mapping, or as
+    /// Returns [`Error::MissingInformation`] when a column header matches no
+    /// condition (source `Exception::MissingInformation`),
+    /// [`Error::InvalidValue`] when the design cannot produce its condition
+    /// mapping, or as
     /// [`merge_protein_id_runs`](Self::merge_protein_id_runs).
     pub fn merge_proteins_across_fractions_and_replicates(
         &self,
@@ -167,7 +173,7 @@ impl ConsensusMapMergerAlgorithm {
                     .any(|(path, lab)| *path == header.filename && *lab == label)
             });
             let Some(condition) = found else {
-                return Err(bad(format!(
+                return Err(missing(format!(
                     "ConsensusHeader entry ({}, {}) could not be matched to the given experimental design.",
                     header.filename, header.label
                 )));
@@ -391,11 +397,12 @@ impl ConsensusMapMergerAlgorithm {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the map has no run (the source
-    /// reads out of bounds), when the runs' search engines or settings
-    /// disagree (source `Exception::MissingInformation`; there is no force
-    /// option), or when a peptide of a multi-file run has no `id_merge_index`,
-    /// or one that is negative or non-numeric.
+    /// Returns [`Error::MissingInformation`] (source
+    /// `Exception::MissingInformation`) when the runs' search engines or
+    /// settings disagree (there is no force option) or a peptide of a
+    /// multi-file run has no `id_merge_index`, and [`Error::InvalidValue`]
+    /// when the map has no run (the source reads out of bounds) or an
+    /// `id_merge_index` is negative or non-numeric.
     pub fn merge_all_id_runs(&self, map: &mut ConsensusMap) -> Result<Vec<String>> {
         let runs = &map.protein_identifications;
         if runs.len() == 1 {
@@ -412,7 +419,7 @@ impl ConsensusMapMergerAlgorithm {
             }
         }
         if !ok {
-            return Err(bad(
+            return Err(missing(
                 "Search settings are not matching across IdentificationRuns. See warnings. Aborting..",
             ));
         }
@@ -452,7 +459,7 @@ impl ConsensusMapMergerAlgorithm {
                 Some(value) => merge_index(value, &describe_position(pid))?
                     .ok_or_else(|| bad("negative id_merge_index"))?,
                 None if multi => {
-                    return Err(bad("No id_merge_index value in a merged ID run."));
+                    return Err(missing("No id_merge_index value in a merged ID run."));
                 }
                 None => 0,
             };
