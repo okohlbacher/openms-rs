@@ -97,3 +97,6 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
   tests/xquest_result_xml.rs: load/store/convert/split differentials vs tests/data/xquest_result_xml/expected
   (20 cases retained; XFDR_test_in2/in3/out3/4/5/7 too big, run ad hoc only). Gate logs scratchpad/F3a/c*.log.
   Store comparison sorts the extra meta attributes (registry order divergence).
+- [inc5] GREEN: tests/xquest_result_xml.rs 11/11 on dax (t4.log). Ad hoc with all 26 oracle cases incl.
+  XFDR_test_in2/in3/out3/4/5/7 (not committed, size): 4 release_ tests pass (t5_adhoc.log).
+  Next: clippy+MSRV gate, docs/XQUEST_RESULT_XML_SUPPORT.md, provenance json, milestone commit, report+ledger.
