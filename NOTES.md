@@ -1,6 +1,7 @@
 # Lane F3b notes (search-engine input/output files)
 
-Branch: worktree-wf_ee239125-5be-13 (second incarnation), off main f0990c0,
+Branch: worktree-wf_cd066dab-0a7-8 (third incarnation; merged incarnation 2 = worktree-wf_ee239125-5be-13 at ecb3d83).
+Incarnation 2 branch: worktree-wf_ee239125-5be-13 (second incarnation), off main f0990c0,
 fast-forwarded onto worktree-wf_bcdd783d-f3f-13 (first incarnation: 5a2b6b2).
 
 ## State
@@ -68,7 +69,8 @@ fast-forwarded onto worktree-wf_bcdd783d-f3f-13 (first incarnation: 5a2b6b2).
   non-TSV extension (.txt) but accepts .tmp.
 
 ## Next step
-1. Check gate6 log. 2. XTandemInfile (writer), InspectInfile, SequestInfile
+0. (inc 3) scratchpad/c/ is gone; C++ extracts now go to scratchpad/F3b/.
+1. Re-gate the merged tree (gate6 log lost). 2. XTandemInfile (writer), InspectInfile, SequestInfile
    (need PTMXMLFile reading of Inspect_PTMs.xml/Sequest_PTMs.xml: unported
    FORMAT/PTMXMLFile.h), InspectOutfile (large; partial ok).
 3. docs/SEARCH_ENGINE_FILES_SUPPORT.md, tests/data/search_engine_files_provenance.json,
