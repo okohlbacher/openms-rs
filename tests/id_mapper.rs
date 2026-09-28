@@ -28,6 +28,40 @@ fn data(name: &str) -> String {
     format!("{}/tests/data/{name}", env!("CARGO_MANIFEST_DIR"))
 }
 
+/// Load an upstream idXML fixture.
+///
+/// Three constructs in these fixtures, all loaded by the C++ `IdXMLFile`, are
+/// refused by this crate's idXML reader. They are rewritten in memory before
+/// parsing; none of them reaches the mapping:
+///
+/// - `date="0000-00-00T00:00:00"` (the source's text for an unset `DateTime`,
+///   `IDMapper_{4,5}_input.idXML`) becomes `1970-01-01T00:00:00`; the mapper
+///   only copies run dates into data-processing records, which are not
+///   compared;
+/// - the flanking residue `*` (`IDMapper_3.idXML`, `IDMapper_2_input.idXML`)
+///   becomes `X`; the mapper never reads flanking residues;
+/// - the second of two identical `EnzymeTermSpecificity` UserParams on
+///   `SearchParameters` (`IDMapper_6_input.idXML`; the source's
+///   `setMetaValue` simply overwrites) is dropped.
+///
+/// These are reader defects reported with the lane, not mapper behaviour.
+fn load_ids(name: &str) -> Result<idxml::IdXmlDocument> {
+    let text = std::fs::read_to_string(data(name))?;
+    let mut text = text
+        .replace(
+            r#"date="0000-00-00T00:00:00""#,
+            r#"date="1970-01-01T00:00:00""#,
+        )
+        .replace(r#"aa_before="*""#, r#"aa_before="X""#)
+        .replace(r#"aa_after="*""#, r#"aa_after="X""#);
+    let first = r#"<UserParam type="string" name="EnzymeTermSpecificity" value="full"/>"#;
+    let second = r#"<UserParam name="EnzymeTermSpecificity" type="string" value="full" />"#;
+    if text.contains(first) {
+        text = text.replace(second, "");
+    }
+    idxml::read(std::io::Cursor::new(text))
+}
+
 fn seq(text: &str) -> AASequence {
     AASequence::parse(text).unwrap()
 }
@@ -205,8 +239,8 @@ fn three_spectra(native: bool) -> MSExperiment {
 /// native-ID mapping.
 #[test]
 fn annotate_spectra_matches_class_test() -> Result<()> {
-    let doc1 = idxml::load(data("IDMapper_1.idXML"))?;
-    let doc7 = idxml::load(data("IDMapper_7.idXML"))?;
+    let doc1 = load_ids("IDMapper_1.idXML")?;
+    let doc7 = load_ids("IDMapper_7.idXML")?;
     for doc in [&doc1, &doc7] {
         assert_eq!(doc.peptide_identifications.len(), 3);
         let sizes: Vec<_> = doc
@@ -325,18 +359,30 @@ fn annotate_spectra_edge_cases() -> Result<()> {
         Err(Error::MissingInformation(_))
     ));
     assert_eq!(run, before);
-    // Zero RT tolerance: the strict source window never matches by RT.
-    let doc = idxml::load(data("IDMapper_1.idXML"))?;
-    let strict = mapper(0.0, 1e9, Measure::Da, true);
-    let stats = strict.annotate_spectra(
-        &experiment,
-        &mut run,
-        &doc.peptide_identifications,
-        &[],
-        true,
-        true,
-    )?;
+    // The RT sweep's window is open (`IDMapper.cpp:205-206` tests
+    // `id_rt - spectrum_rt < rt_tolerance`): with a zero tolerance, one
+    // identification at exactly the spectrum's RT is not mapped, although
+    // `is_match(0, …)` would accept that distance.
+    let at_ten = PeptideIdentification {
+        identifier: "run".into(),
+        rt: Some(10.0),
+        mz: Some(500.0),
+        hits: vec![PeptideHit::default()],
+        ..PeptideIdentification::default()
+    };
+    let one = MSExperiment {
+        spectra: vec![spectrum(10.0, 500.0, "")],
+        ..MSExperiment::default()
+    };
+    let strict = mapper(0.0, 1.0, Measure::Da, true);
+    assert!(strict.is_match(0.0, 500.0, 500.0));
+    let stats = strict.annotate_spectra(&one, &mut run, &[at_ten.clone()], &[], true, false)?;
     assert_eq!(stats.assigned, 0);
+    assert!(run.peptide_identifications[0].hits.is_empty());
+    let loose = mapper(0.5, 1.0, Measure::Da, true);
+    let stats = loose.annotate_spectra(&one, &mut run, &[at_ten], &[], true, false)?;
+    assert_eq!(stats.assigned, 1);
+    assert_eq!(run.peptide_identifications[0].hits.len(), 1);
     Ok(())
 }
 
@@ -349,7 +395,7 @@ fn sequences(ids: &[PeptideIdentification]) -> Vec<String> {
 /// Class test section `annotate(FeatureMap&, ...)`.
 #[test]
 fn annotate_features_matches_class_test() -> Result<()> {
-    let doc = idxml::load(data("IDMapper_2.idXML"))?;
+    let doc = load_ids("IDMapper_2.idXML")?;
     let (ids, proteins) = (&doc.peptide_identifications, &doc.protein_identifications);
     let none = MSExperiment::default();
 
@@ -399,7 +445,7 @@ fn annotate_features_matches_class_test() -> Result<()> {
     assert_eq!(fm.unassigned_peptide_identifications.len(), 7);
 
     // ppm.
-    let doc4 = idxml::load(data("IDMapper_4.idXML"))?;
+    let doc4 = load_ids("IDMapper_4.idXML")?;
     let mut fm_ppm = featurexml::load(data("IDMapper_4.featureXML"))?;
     mapper(4.0, 3.0, Measure::Ppm, true).annotate_features(
         &mut fm_ppm,
@@ -442,7 +488,7 @@ fn annotate_features_matches_class_test() -> Result<()> {
 
 #[test]
 fn annotate_features_is_atomic_and_bounded() -> Result<()> {
-    let doc = idxml::load(data("IDMapper_2.idXML"))?;
+    let doc = load_ids("IDMapper_2.idXML")?;
     let mut fm = featurexml::load(data("IDMapper_2.featureXML"))?;
     let before = fm.clone();
     let mut ids = doc.peptide_identifications.clone();
@@ -565,8 +611,8 @@ fn same_consensus(context: &str, got: &ConsensusMap, want: &ConsensusMap) {
 /// files the C++ class test compares with (`TEST_FILE_SIMILAR`).
 #[test]
 fn annotate_consensus_matches_class_test_outputs() -> Result<()> {
-    let doc3 = idxml::load(data("IDMapper_3.idXML"))?;
-    let doc5 = idxml::load(data("IDMapper_5.idXML"))?;
+    let doc3 = load_ids("IDMapper_3.idXML")?;
+    let doc5 = load_ids("IDMapper_5.idXML")?;
     let m = IDMapper {
         mz_tolerance: 0.01,
         measure: Measure::Da,
@@ -614,7 +660,7 @@ fn annotate_consensus_matches_class_test_outputs() -> Result<()> {
 /// Class test: charge-specific matching on a one-feature map.
 #[test]
 fn annotate_consensus_checks_charges() -> Result<()> {
-    let doc3 = idxml::load(data("IDMapper_3.idXML"))?;
+    let doc3 = load_ids("IDMapper_3.idXML")?;
     let ids = &doc3.peptide_identifications;
     let mut m = IDMapper {
         mz_tolerance: 0.01,
@@ -741,7 +787,7 @@ fn topp_features(
     use_centroid_mz: bool,
     with_spectra: bool,
 ) -> Result<()> {
-    let doc = idxml::load(data(&format!("IDMapper_{number}_input.idXML")))?;
+    let doc = load_ids(&format!("IDMapper_{number}_input.idXML"))?;
     let mut map = featurexml::load(data(&format!("IDMapper_{number}_input.featureXML")))?;
     let spectra = if with_spectra {
         mzml::load(data(&format!("IDMapper_{number}_input.mzML")))?
@@ -774,7 +820,7 @@ fn topp_features(
 }
 
 fn topp_consensus(number: u32, mapper: &IDMapper) -> Result<()> {
-    let doc = idxml::load(data(&format!("IDMapper_{number}_input.idXML")))?;
+    let doc = load_ids(&format!("IDMapper_{number}_input.idXML"))?;
     let mut map = consensusxml::load(data(&format!("IDMapper_{number}_input.consensusXML")))?;
     mapper.annotate_consensus(
         &mut map,
@@ -860,7 +906,7 @@ fn topp_idmapper_6() -> Result<()> {
 fn isobaric_mapping_requires_spectrum_references() -> Result<()> {
     let mut map = consensusxml::load(data("IDMapper_6_input.consensusXML"))?;
     let before = map.clone();
-    let mut doc = idxml::load(data("IDMapper_6_input.idXML"))?;
+    let mut doc = load_ids("IDMapper_6_input.idXML")?;
     for id in &mut doc.peptide_identifications {
         id.metadata.remove("spectrum_reference");
     }
@@ -882,7 +928,7 @@ fn isobaric_mapping_requires_spectrum_references() -> Result<()> {
 
 #[test]
 fn map_precursors_partitions_spectra() -> Result<()> {
-    let doc = idxml::load(data("IDMapper_1.idXML"))?;
+    let doc = load_ids("IDMapper_1.idXML")?;
     let first = &doc.peptide_identifications[0];
     let mut experiment = MSExperiment::default();
     experiment.spectra.push(MSSpectrum::default()); // no precursor

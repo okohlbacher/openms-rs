@@ -28,7 +28,6 @@ use crate::kernel::MSExperiment;
 use crate::kernel::features::{ConsensusFeature, ConsensusMap, Feature, FeatureMap};
 use crate::metadata::{DataProcessing, MetaValue, ProcessingAction};
 use crate::param::{DefaultParamHandler, Param, ParamEntry, ParamNode, ParamValue};
-use crate::system::file::basename;
 use crate::{Error, Result};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
@@ -245,6 +244,13 @@ impl Box2 {
 
 fn limit(what: &str) -> Error {
     Error::InvalidValue(format!("IDMapper: {what} exceeds its configured limit"))
+}
+
+/// Source `File::basename`: the text after the last `/` or `\`. The crate's
+/// `system::file::basename` is the same function, but `system` already depends
+/// on `analysis`, so calling it from here would close a module cycle.
+fn basename(file: &str) -> &str {
+    file.rsplit(['/', '\\']).next().unwrap_or("")
 }
 
 fn charge_list_contains(charges: &[i32], charge: i32) -> bool {
@@ -638,7 +644,10 @@ impl IDMapper {
     ///   to *all* spectra within the RT and m/z boundaries.
     ///
     /// The RT sweep is the source's two-pointer walk over both RT-sorted lists
-    /// and keeps its quirks: with `rt_tolerance` zero nothing matches by RT.
+    /// and keeps its quirks: its comparisons are strict, so with `rt_tolerance`
+    /// zero an identification at exactly a spectrum's RT is not mapped, and
+    /// after its single corrective step to the right the walk does not
+    /// re-check the lower end of the window.
     ///
     /// # Errors
     ///
