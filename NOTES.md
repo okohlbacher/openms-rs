@@ -39,3 +39,13 @@ Merged prerequisite worktree-wf_ee239125-5be-1 (fast-forward to 9fcb962).
 1. Run gate on dax: clippy --all-features --all-targets, then `test --test topp_cli_base_classes` with the feature sets its items need; fix failures (evidence from oracle only).
 2. Verify the minute-granularity completion_time comparison claim (MzMLHandler writes yyyy-MM-dd+hh:mm?) — else it's a widened tolerance.
 3. Member-by-member check of each C++ header vs Rust; docs (TOPP_CLI_SUPPORT.md section), ledger fragment wave4/B7.json, report .planning/lane-reports/B7.md.
+
+## Incarnation 3 progress
+- 4109b2c: tests green on dax: all 16 (mzml,paramxml,featurexml), 16 (mzml,paramxml), 9 (paramxml).
+  Fixes: _ns twins for empty_spec cases; ReadOptions::source() in get_rawfile_name; src/cli.rs input_path
+  skipexists FileNotFound/FileNotReadable; data-path marker CHEMISTRY/unimod.xml in se() fixture; pi defaults
+  from cases/se_write_ini/cwd/pi_defaults.ini.
+- 2b8ce40: docs/TOPP_CLI_SUPPORT.md "Tool base classes". Ledger fragment written (.planning/ledger-fragments/wave4/B7.json).
+- Sweep B7-sweep running (log dir scratchpad/sweep).
+## Next step (incarnation 3)
+1. Sweep result -> fix. 2. Report .planning/lane-reports/B7.md. 3. Delete NOTES.md in final commit.
