@@ -90,3 +90,9 @@ incarnation worktree-wf_bcdd783d-f3f-10 at 27d502a; no merge commit was needed).
   ModificationsDB caller-owned: modification_definitions::register_search_parameters);
   (c) FeatureMapArrowIO features table (+ TOPP fixture FileConverter_9_output.featureparquet),
   (d) docs/ARROW_PARQUET_SUPPORT.md, provenance json, THIRD_PARTY row check, report, ledger.
+- inc5 later: ProteinIdentificationArrowIO ported (src/format/protein_identification_arrow_io.rs),
+  oracle part 3 ran (../oracle/F1a-protein, ibminode06, records identical x2), tests in
+  tests/protein_identification_arrow_io.rs; docs/ARROW_PARQUET_SUPPORT.md + provenance json written.
+  Footer metadata now deterministic (KV sorted, bare ARROW:schema). t9 gate running.
+- NEXT: green t9 + clippy + MSRV (+1.85.0 check --features arrow) + no-default; then report + ledger;
+  FeatureMap/Consensus/PSM ArrowIO left untouched (QPXFile dependency).
