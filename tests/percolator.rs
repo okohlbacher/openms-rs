@@ -15,8 +15,8 @@
 
 use openms::Error;
 use openms::analysis::id::percolator::{
-    FeatureNormalizer, MainScore, PepMethod, Percolator, load_model, read_model, save_model,
-    write_model,
+    FeatureNormalizer, MainScore, PepMethod, Percolator, PercolatorParameters, load_model,
+    read_model, save_model, write_model,
 };
 use openms::analysis::id::percolator_types::{PercolatorModel, RescoreInput, RescoreOutput};
 use openms::chemistry::AASequence;
@@ -107,11 +107,15 @@ fn median_target_beats_decoy(out: &RescoreOutput, input: &RescoreInput) -> bool 
     t[t.len() / 2] > d[d.len() / 2]
 }
 
-fn percolator(seed: i32) -> Percolator {
-    Percolator {
+fn params(seed: i32) -> PercolatorParameters {
+    PercolatorParameters {
         seed,
-        ..Percolator::default()
+        ..PercolatorParameters::default()
     }
+}
+
+fn percolator(seed: i32) -> Percolator {
+    Percolator::with_parameters(params(seed))
 }
 
 fn all_in_unit(values: &[f64]) -> bool {
@@ -173,22 +177,22 @@ fn reproducibility_with_fixed_seed_is_bit_identical() {
             .push(vec![if decoy { -1.0 } else { 1.0 } + 0.01 * f64::from(i)]);
         input.is_decoy.push(decoy);
     }
-    let mut p1 = Percolator {
+    let mut p1 = Percolator::with_parameters(PercolatorParameters {
         num_threads: 1,
-        ..percolator(17)
-    };
-    let mut p2 = Percolator {
+        ..params(17)
+    });
+    let mut p2 = Percolator::with_parameters(PercolatorParameters {
         num_threads: 1,
-        ..percolator(17)
-    };
+        ..params(17)
+    });
     let a = p1.rescore(&input).unwrap();
     let b = p2.rescore(&input).unwrap();
     assert_eq!(a, b);
     // Native: the thread count does not change the bits.
-    let mut p3 = Percolator {
+    let mut p3 = Percolator::with_parameters(PercolatorParameters {
         num_threads: 3,
-        ..percolator(17)
-    };
+        ..params(17)
+    });
     assert_eq!(p3.rescore(&input).unwrap(), a);
 }
 
@@ -369,10 +373,10 @@ fn realistic_scale_dataset() {
 fn report_as_main_score_promotes_an_output() {
     // Section `[EXTRA] report_as_main_score promotes a Percolator output to hit.getScore()`.
     let source = psm_ids(3, 800, "target_decoy");
-    let base = Percolator {
+    let base = PercolatorParameters {
         test_fdr: 0.1,
         train_fdr: 0.1,
-        ..percolator(3)
+        ..params(3)
     };
     let cases = [
         (MainScore::QValue, "percolator_q_value", "q-value", false),
@@ -386,10 +390,10 @@ fn report_as_main_score_promotes_an_output() {
     ];
     for (mode, key, score_type, higher) in cases {
         let mut peps = source.clone();
-        let mut p = Percolator {
+        let mut p = Percolator::with_parameters(PercolatorParameters {
             report_as_main_score: mode,
             ..base.clone()
-        };
+        });
         p.rescore_peptide_ids(&mut peps, &["f".into()]).unwrap();
         for pid in &peps {
             assert_eq!(pid.score_type, score_type);
@@ -400,7 +404,7 @@ fn report_as_main_score_promotes_an_output() {
         }
     }
     let mut peps = source.clone();
-    base.clone()
+    Percolator::with_parameters(base.clone())
         .rescore_peptide_ids(&mut peps, &["f".into()])
         .unwrap();
     assert_eq!(peps[0].hits[0].score, 42.0);
@@ -423,16 +427,16 @@ fn use_pi0_false_disables_pi0_correction() {
         input.features.push(vec![rng.randn()]);
         input.is_decoy.push(true);
     }
-    let config = Percolator {
+    let config = PercolatorParameters {
         test_fdr: 0.05,
         train_fdr: 0.05,
-        ..percolator(17)
+        ..params(17)
     };
-    let mut on = config.clone();
-    let mut off = Percolator {
+    let mut on = Percolator::with_parameters(config.clone());
+    let mut off = Percolator::with_parameters(PercolatorParameters {
         use_pi0: false,
         ..config
-    };
+    });
     assert_eq!(on.pi0(), -1.0);
     let out_on = on.rescore(&input).unwrap();
     let out_off = off.rescore(&input).unwrap();
@@ -482,10 +486,10 @@ fn malformed_input_is_refused() {
         ..Default::default()
     };
     assert!(matches!(p.rescore(&nan), Err(Error::InvalidValue(_))));
-    let mut nonparametric = Percolator {
+    let mut nonparametric = Percolator::with_parameters(PercolatorParameters {
         pep_method: PepMethod::Nonparametric,
-        ..Percolator::default()
-    };
+        ..PercolatorParameters::default()
+    });
     assert!(matches!(
         nonparametric.rescore(&moderately_separable(50, 1)),
         Err(Error::Unsupported(_))
@@ -671,10 +675,10 @@ fn load_model_is_strict() {
 fn same_instance_consecutive_calls_are_bit_identical() {
     // Section `[EXTRA] same-instance consecutive calls are bit-identical`.
     let input = moderately_separable(500, 123);
-    let mut p = Percolator {
+    let mut p = Percolator::with_parameters(PercolatorParameters {
         num_threads: 1,
-        ..percolator(123)
-    };
+        ..params(123)
+    });
     let a = p.rescore(&input).unwrap();
     let b = p.rescore(&input).unwrap();
     assert_eq!(a, b);
@@ -805,10 +809,10 @@ fn separation(out: &RescoreOutput, input: &RescoreInput) -> f64 {
 fn normalizer_none_trains() {
     // Section `[EXTRA] normalizer="none" trains and produces sensible output`.
     let input = three_feature_input(2027);
-    let out_none = Percolator {
+    let out_none = Percolator::with_parameters(PercolatorParameters {
         normalizer: FeatureNormalizer::None,
-        ..percolator(2027)
-    }
+        ..params(2027)
+    })
     .rescore(&input)
     .unwrap();
     assert!(all_in_unit(&out_none.q_values));
@@ -830,10 +834,10 @@ fn initial_direction_with_and_without_inversion() {
     // Section `[EXTRA] initial_direction explicit feature with and without "-" inversion`.
     let input = three_feature_input(2028);
     let run = |direction: &str| {
-        Percolator {
+        Percolator::with_parameters(PercolatorParameters {
             initial_direction: direction.into(),
-            ..percolator(2028)
-        }
+            ..params(2028)
+        })
         .rescore(&input)
     };
     let auto = run("").unwrap();
@@ -855,22 +859,22 @@ fn initial_direction_with_and_without_inversion() {
 fn target_decoy_metavalue_overrides_the_key() {
     // Section `[EXTRA] target_decoy_metavalue overrides the meta-key for high-level rescore`.
     let peps = psm_ids(2029, 800, "my_td");
-    let base = Percolator {
+    let base = PercolatorParameters {
         test_fdr: 0.1,
         train_fdr: 0.1,
-        ..percolator(2029)
+        ..params(2029)
     };
     let mut ok = peps.clone();
-    Percolator {
+    Percolator::with_parameters(PercolatorParameters {
         target_decoy_metavalue: "my_td".into(),
         ..base.clone()
-    }
+    })
     .rescore_peptide_ids(&mut ok, &["f".into()])
     .unwrap();
     assert!(ok[0].hits[0].metadata.contains_key("percolator_q_value"));
     let mut bad = peps;
     assert!(matches!(
-        base.clone().rescore_peptide_ids(&mut bad, &["f".into()]),
+        Percolator::with_parameters(base.clone()).rescore_peptide_ids(&mut bad, &["f".into()]),
         Err(Error::InvalidValue(_))
     ));
 }
@@ -897,7 +901,7 @@ fn tron_fixture() -> RescoreInput {
 }
 
 fn tron_percolator() -> Percolator {
-    Percolator {
+    Percolator::with_parameters(PercolatorParameters {
         seed: 1,
         c_pos: 1.0,
         c_neg: 1.0,
@@ -910,8 +914,8 @@ fn tron_percolator() -> Percolator {
         train_best_positive: false,
         normalizer: FeatureNormalizer::Stdv,
         initial_direction: "f0".into(),
-        ..Percolator::default()
-    }
+        ..PercolatorParameters::default()
+    })
 }
 
 fn assert_relative(actual: f64, expected: f64, tolerance: f64, what: &str) {
@@ -957,10 +961,10 @@ fn subsampled_training_scores_every_row() {
     // Rust-only: subset_max_train below the row count trains on a sample and
     // still scores all rows (the source's second pass).
     let input = moderately_separable(400, 5);
-    let mut p = Percolator {
+    let mut p = Percolator::with_parameters(PercolatorParameters {
         subset_max_train: 300,
-        ..percolator(5)
-    };
+        ..params(5)
+    });
     let out = p.rescore(&input).unwrap();
     assert_eq!(out.scores.len(), 800);
     assert!(median_target_beats_decoy(&out, &input));
@@ -973,20 +977,20 @@ fn isotonic_and_nested_configurations_run() {
     // search and nested cross-validation all produce bounded output.
     let input = moderately_separable(300, 8);
     for config in [
-        Percolator {
+        Percolator::with_parameters(PercolatorParameters {
             pep_method: PepMethod::Isotonic,
-            ..percolator(8)
-        },
-        Percolator {
+            ..params(8)
+        }),
+        Percolator::with_parameters(PercolatorParameters {
             normalizer: FeatureNormalizer::Uni,
             c_pos: 0.0,
-            ..percolator(8)
-        },
-        Percolator {
+            ..params(8)
+        }),
+        Percolator::with_parameters(PercolatorParameters {
             nested_xval_bins: 2,
             num_iterations: 3,
-            ..percolator(8)
-        },
+            ..params(8)
+        }),
     ] {
         let mut p = config;
         let out = p.rescore(&input).unwrap();
@@ -1023,22 +1027,22 @@ fn parameters_round_trip() {
     for name in names {
         assert!(defaults.value(name).is_ok(), "{name}");
     }
-    let custom = Percolator {
+    let custom = Percolator::with_parameters(PercolatorParameters {
         seed: -4,
         pep_method: PepMethod::Isotonic,
         normalizer: FeatureNormalizer::Uni,
         report_as_main_score: MainScore::Pep,
         use_pi0: false,
         subset_max_train: 0,
-        ..Percolator::default()
-    };
+        ..PercolatorParameters::default()
+    });
     let back = Percolator::from_param(&custom.to_param().unwrap()).unwrap();
-    assert_eq!(back.seed, -4);
-    assert_eq!(back.pep_method, PepMethod::Isotonic);
-    assert_eq!(back.normalizer, FeatureNormalizer::Uni);
-    assert_eq!(back.report_as_main_score, MainScore::Pep);
-    assert!(!back.use_pi0);
-    assert_eq!(back.subset_max_train, 0);
+    assert_eq!(back.parameters.seed, -4);
+    assert_eq!(back.parameters.pep_method, PepMethod::Isotonic);
+    assert_eq!(back.parameters.normalizer, FeatureNormalizer::Uni);
+    assert_eq!(back.parameters.report_as_main_score, MainScore::Pep);
+    assert!(!back.parameters.use_pi0);
+    assert_eq!(back.parameters.subset_max_train, 0);
 }
 
 #[test]

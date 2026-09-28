@@ -45,3 +45,7 @@ BayesianProteinInferenceAlgorithm unmapped; IDBoostGraph partial.
 - WIP committed: percolator.rs + percolator/{engine,pep,svm,training}.rs + tests/percolator.rs (first compile pending, gate log
   /private/tmp/claude-501/i2/g2.log). Eigen kernels in levenberg_marquardt.rs made pub(crate) (eigen_sum/squared_norm/dot/gemv_row).
 - Next: fix compile, TRON literal test, then C++ oracle on ibminode06 (../oracle/I2-percolator/) for rescore/score/train bits.
+- Oracle DONE: ../oracle/I2-percolator (driver.cpp, node.sh, run.sh push|pull), ibminode06, Release build, 2 runs identical.
+  Fixtures copied to tests/data/percolator/oracle/. tests/percolator_oracle.rs replays them (report mode first).
+  C++ note: on moderately-separable data validateDirection resets to default direction (no targets q<0.01) - faithful port must too.
+- Params now in pub struct PercolatorParameters; Percolator { pub parameters, private state }.

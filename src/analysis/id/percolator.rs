@@ -46,7 +46,7 @@
 //! state belongs to one [`Percolator`] value, so instances are independent
 //! and `Send`. Results are reproducible given the seed and the input order;
 //! unlike the source, they do not depend on the thread count
-//! ([`Percolator::num_threads`] only bounds parallelism).
+//! ([`PercolatorParameters::num_threads`] only bounds parallelism).
 
 mod engine;
 mod pep;
@@ -160,12 +160,10 @@ impl MainScore {
     }
 }
 
-/// The in-process Percolator. Fields are the source parameters (see
-/// [`Percolator::defaults`] for their descriptions); the two results of the
-/// last call are read with [`Percolator::svm_weights`] and
-/// [`Percolator::pi0`].
-#[derive(Clone, Debug)]
-pub struct Percolator {
+/// The parameters of [`Percolator`], one field per source parameter (see
+/// [`Percolator::defaults`] for their descriptions and restrictions).
+#[derive(Clone, Debug, PartialEq)]
+pub struct PercolatorParameters {
     /// `c_pos`: positive regularization constant C+ (`>= 0`; 0 selects it by
     /// cross-validation from 10, 1 and 0.1).
     pub c_pos: f64,
@@ -207,14 +205,10 @@ pub struct Percolator {
     pub num_threads: u32,
     /// `use_pi0`: pi0 correction of q-values and PEPs.
     pub use_pi0: bool,
-    svm_weights: Vec<Vec<f64>>,
-    last_pi0: f64,
-    /// The generator state `score` continues from (the source's
-    /// process-wide `PseudoRandom::seed_`, initially 1).
-    rng: PseudoRandom,
 }
 
-impl Default for Percolator {
+impl Default for PercolatorParameters {
+    /// The source defaults.
     fn default() -> Self {
         Self {
             c_pos: 0.1,
@@ -234,10 +228,27 @@ impl Default for Percolator {
             report_as_main_score: MainScore::None,
             num_threads: 3,
             use_pi0: true,
-            svm_weights: Vec::new(),
-            last_pi0: -1.0,
-            rng: PseudoRandom::new(1),
         }
+    }
+}
+
+/// The in-process Percolator: its [`PercolatorParameters`] and the two
+/// results of the last call, read with [`Percolator::svm_weights`] and
+/// [`Percolator::pi0`].
+#[derive(Clone, Debug)]
+pub struct Percolator {
+    /// The parameters (`DefaultParamHandler` state of the source).
+    pub parameters: PercolatorParameters,
+    svm_weights: Vec<Vec<f64>>,
+    last_pi0: f64,
+    /// The generator state `score` continues from (the source's
+    /// process-wide `PseudoRandom::seed_`, initially 1).
+    rng: PseudoRandom,
+}
+
+impl Default for Percolator {
+    fn default() -> Self {
+        Self::with_parameters(PercolatorParameters::default())
     }
 }
 
@@ -291,6 +302,16 @@ impl Percolator {
         Self::default()
     }
 
+    /// A Percolator with the given parameters.
+    pub fn with_parameters(parameters: PercolatorParameters) -> Self {
+        Self {
+            parameters,
+            svm_weights: Vec::new(),
+            last_pi0: -1.0,
+            rng: PseudoRandom::new(1),
+        }
+    }
+
     /// SVM weights of the last [`Percolator::rescore`] or
     /// [`Percolator::train`]: one fold-averaged weight vector in raw feature
     /// space with the bias last, wrapped in a one-element outer vector to
@@ -302,7 +323,7 @@ impl Percolator {
 
     /// Pi0 (null fraction) of the last [`Percolator::rescore`] or
     /// [`Percolator::score`], estimated on the merged, post-TDC score set
-    /// right before the PEP calculation; `1.0` when [`Percolator::use_pi0`]
+    /// right before the PEP calculation; `1.0` when [`PercolatorParameters::use_pi0`]
     /// is off. `-1.0` before any such call, after [`Percolator::train`] (which
     /// does not score), and after a call that failed.
     pub fn pi0(&self) -> f64 {
@@ -311,22 +332,24 @@ impl Percolator {
 
     fn validate(&self) -> Result<()> {
         let bad = |message: &str| Err(Error::InvalidValue(message.into()));
-        if !(self.c_pos >= 0.0) || !self.c_pos.is_finite() {
+        if !(self.parameters.c_pos >= 0.0) || !self.parameters.c_pos.is_finite() {
             return bad("c_pos must be a finite value >= 0");
         }
-        if !(self.c_neg >= 0.0) || !self.c_neg.is_finite() {
+        if !(self.parameters.c_neg >= 0.0) || !self.parameters.c_neg.is_finite() {
             return bad("c_neg must be a finite value >= 0");
         }
-        if !(0.0..=1.0).contains(&self.test_fdr) || !(0.0..=1.0).contains(&self.train_fdr) {
+        if !(0.0..=1.0).contains(&self.parameters.test_fdr)
+            || !(0.0..=1.0).contains(&self.parameters.train_fdr)
+        {
             return bad("test_fdr and train_fdr must lie in [0, 1]");
         }
-        if self.num_iterations < 1 || self.nested_xval_bins < 1 {
+        if self.parameters.num_iterations < 1 || self.parameters.nested_xval_bins < 1 {
             return bad("num_iterations and nested_xval_bins must be at least 1");
         }
-        if !(1..=3).contains(&self.num_threads) {
+        if !(1..=3).contains(&self.parameters.num_threads) {
             return bad("num_threads must lie in 1..=3");
         }
-        if self.pep_method == PepMethod::Nonparametric {
+        if self.parameters.pep_method == PepMethod::Nonparametric {
             return Err(Error::Unsupported(
                 "pep_method 'nonparametric' (PosteriorEstimator::estimatePEP) is not ported".into(),
             ));
@@ -363,15 +386,15 @@ impl Percolator {
 
     fn cv_config(&self) -> CvConfig {
         CvConfig {
-            test_fdr: self.test_fdr,
-            train_fdr: self.train_fdr,
-            c_pos: self.c_pos,
-            c_neg: self.c_neg,
-            niter: self.num_iterations,
-            use_pi0: self.use_pi0,
-            nested_xval_bins: self.nested_xval_bins as usize,
-            train_best_positive: self.train_best_positive,
-            threads: Threads::from_cli(i64::from(self.num_threads)),
+            test_fdr: self.parameters.test_fdr,
+            train_fdr: self.parameters.train_fdr,
+            c_pos: self.parameters.c_pos,
+            c_neg: self.parameters.c_neg,
+            niter: self.parameters.num_iterations,
+            use_pi0: self.parameters.use_pi0,
+            nested_xval_bins: self.parameters.nested_xval_bins as usize,
+            train_best_positive: self.parameters.train_best_positive,
+            threads: Threads::from_cli(i64::from(self.parameters.num_threads)),
         }
     }
 
@@ -399,7 +422,7 @@ impl Percolator {
     ) -> Result<(Scores, Vec<f64>)> {
         let n_features = input.n_features();
         let names = Self::registered_names(input);
-        let mut sanity = SanityCheck::new(&self.initial_direction, &names)?;
+        let mut sanity = SanityCheck::new(&self.parameters.initial_direction, &names)?;
         let (targets, decoys): (Vec<usize>, Vec<usize>) =
             (0..psms.len()).partition(|&i| !input.is_decoy[psms[i].row]);
         let normalizer = {
@@ -408,16 +431,16 @@ impl Percolator {
                 .chain(&decoys)
                 .map(|&i| psms[i].features.as_slice())
                 .collect();
-            Normalizer::fit(self.normalizer.kind(), &rows, n_features)
+            Normalizer::fit(self.parameters.normalizer.kind(), &rows, n_features)
         };
         for &i in targets.iter().chain(&decoys) {
             normalizer.normalize(&mut psms[i].features);
         }
         let psms: &[Psm] = psms;
-        let mut scores = Scores::new(self.use_pi0);
+        let mut scores = Scores::new(self.parameters.use_pi0);
         scores.populate(&targets, &decoys);
         let mut cv = CrossValidation::new(&self.cv_config(), n_features);
-        let trained = (|| {
+        let trained: Result<Vec<f64>> = (|| {
             cv.pre_iteration_setup(&mut scores, &mut sanity, psms, rng)?;
             cv.train(psms, rng)?;
             cv.post_iteration_processing(&mut scores, &sanity, psms, rng)?;
@@ -441,12 +464,12 @@ impl Percolator {
         rng: &mut PseudoRandom,
     ) -> Result<RescoreOutput> {
         let result = (|| {
-            if self.post_processing_tdc {
+            if self.parameters.post_processing_tdc {
                 scores.weed_out_redundant_tdc(psms, rng)?;
             }
-            scores.calc_qvals(self.test_fdr, false)?;
+            scores.calc_qvals(self.parameters.test_fdr, false)?;
             let pi0 = scores.pi0();
-            scores.calc_pep(self.pep_method == PepMethod::Isotonic)?;
+            scores.calc_pep(self.parameters.pep_method == PepMethod::Isotonic)?;
             Ok(pi0)
         })();
         let pi0 = result.map_err(|error: Error| {
@@ -463,12 +486,12 @@ impl Percolator {
     /// transition rescoring the q-values and PEPs are transition-level, and
     /// no roll-up to unique entities is done.
     ///
-    /// When [`Percolator::subset_max_train`] is below the row count, a
+    /// When [`PercolatorParameters::subset_max_train`] is below the row count, a
     /// reservoir sample keyed by (scan, experimental mass) is trained on and
     /// the trained model is then applied to every row, as upstream
     /// `Caller.cpp` does.
     ///
-    /// Target-decoy competition ([`Percolator::post_processing_tdc`], on by
+    /// Target-decoy competition ([`PercolatorParameters::post_processing_tdc`], on by
     /// default) keeps one row per (spectrum file, scan, experimental mass);
     /// rows that lose are returned with `score = 0`, `q_value = 1`,
     /// `pep = 1`. To tell them from a row that scored zero, disable TDC or
@@ -479,7 +502,7 @@ impl Percolator {
     /// [`Error::InvalidValue`] for a malformed input (no rows, ragged rows,
     /// mismatched label or optional-field lengths, non-finite values, no
     /// feature column, above [`MAX_INPUT_VALUES`]), an unresolvable
-    /// [`Percolator::initial_direction`], invalid parameters, or a failed
+    /// [`PercolatorParameters::initial_direction`], invalid parameters, or a failed
     /// training or scoring step; [`Error::Unsupported`] for
     /// [`PepMethod::Nonparametric`]. The source's own sanity failures (too
     /// few decoys, no discriminative feature) are warnings there, because
@@ -490,15 +513,19 @@ impl Percolator {
         Self::check_input(input)?;
         self.validate()?;
         let n_rows = input.n_rows();
-        let mut rng = PseudoRandom::new(self.seed);
+        let mut rng = PseudoRandom::new(self.parameters.seed);
         let (scans, masses): (Vec<i32>, Vec<f64>) = (0..n_rows)
             .map(|i| {
                 let keys = row_keys(input, i);
                 (keys.scan, keys.exp_mass)
             })
             .unzip();
-        let training_rows =
-            sample_training_rows(&scans, &masses, self.subset_max_train as usize, &mut rng);
+        let training_rows = sample_training_rows(
+            &scans,
+            &masses,
+            self.parameters.subset_max_train as usize,
+            &mut rng,
+        );
         let did_subsample = training_rows.len() < n_rows;
         let mut psms: Vec<Psm> = training_rows.iter().map(|&i| make_psm(input, i)).collect();
         let (scores, mut weights) = self.run_training(input, &mut psms, &mut rng)?;
@@ -510,7 +537,7 @@ impl Percolator {
         if did_subsample {
             let all: Vec<Psm> = (0..n_rows).map(|i| make_psm(input, i)).collect();
             let prepared = (|| {
-                let mut scores = Scores::new(self.use_pi0);
+                let mut scores = Scores::new(self.parameters.use_pi0);
                 for (index, psm) in all.iter().enumerate() {
                     scores.score_and_add(
                         ScoreHolder::new(index, label_of(input.is_decoy[psm.row])),
@@ -519,8 +546,8 @@ impl Percolator {
                     );
                 }
                 scores.post_merge_step(&all, &mut rng)?;
-                scores.calc_qvals(self.test_fdr, false)?;
-                scores.normalize_scores(self.test_fdr, &mut weights);
+                scores.calc_qvals(self.parameters.test_fdr, false)?;
+                scores.normalize_scores(self.parameters.test_fdr, &mut weights);
                 Ok(scores)
             })();
             let scores = prepared.map_err(|error: Error| {
@@ -551,7 +578,7 @@ impl Percolator {
         self.last_pi0 = -1.0;
         Self::check_input(input)?;
         self.validate()?;
-        let mut rng = PseudoRandom::new(self.seed);
+        let mut rng = PseudoRandom::new(self.parameters.seed);
         let mut psms: Vec<Psm> = (0..input.n_rows()).map(|i| make_psm(input, i)).collect();
         let (_, weights) = self.run_training(input, &mut psms, &mut rng)?;
         self.rng = rng;
@@ -564,8 +591,8 @@ impl Percolator {
             format_version: 1,
             feature_names: Self::registered_names(input),
             weights,
-            normalizer_type: self.normalizer.name().into(),
-            seed: self.seed,
+            normalizer_type: self.parameters.normalizer.name().into(),
+            seed: self.parameters.seed,
         })
     }
 
@@ -577,7 +604,7 @@ impl Percolator {
     /// post-scoring pipeline (q-values, optional TDC, PEPs) runs on this
     /// input's own target/decoy distribution, and the scores are then
     /// rescaled so the median decoy maps to -1 and the score at
-    /// [`Percolator::test_fdr`] to 0:
+    /// [`PercolatorParameters::test_fdr`] to 0:
     /// `score(i) = (raw(i) - fdrScore) / (fdrScore - medianDecoyScore)`.
     /// Rescoring rescales per fold instead, which is why `rescore(X)` and
     /// `score(X, train(X))` share a scale but are not bitwise equal; for raw
@@ -643,7 +670,7 @@ impl Percolator {
         let psms: Vec<Psm> = (0..n_rows).map(|i| make_psm(input, i)).collect();
         let mut rng = self.rng.clone();
         let prepared = (|| {
-            let mut scores = Scores::new(self.use_pi0);
+            let mut scores = Scores::new(self.parameters.use_pi0);
             for i in 0..n_rows {
                 scores.score_and_add(
                     ScoreHolder::new(i, label_of(input.is_decoy[i])),
@@ -652,9 +679,9 @@ impl Percolator {
                 );
             }
             scores.post_merge_step(&psms, &mut rng)?;
-            scores.calc_qvals(self.test_fdr, false)?;
+            scores.calc_qvals(self.parameters.test_fdr, false)?;
             let mut weights = model.weights.clone();
-            scores.normalize_scores(self.test_fdr, &mut weights);
+            scores.normalize_scores(self.parameters.test_fdr, &mut weights);
             Ok(scores)
         })();
         let scores = prepared.map_err(|error: Error| {
@@ -676,10 +703,10 @@ impl Percolator {
     /// meta value except the target/decoy key, `percolator_score`,
     /// `percolator_q_value`, `percolator_pep`, `q-value`, `q-value_score`,
     /// `score`, `RT`, `MZ`, `target_decoy` and `isDecoy`, sorted by name.
-    /// A hit is a decoy when its [`Percolator::target_decoy_metavalue`] text
+    /// A hit is a decoy when its [`PercolatorParameters::target_decoy_metavalue`] text
     /// is `decoy`.
     ///
-    /// With [`Percolator::report_as_main_score`] other than `none`, the
+    /// With [`PercolatorParameters::report_as_main_score`] other than `none`, the
     /// chosen output also replaces each hit's score, the identification's
     /// score type and direction are set, and its hits are re-sorted (stable,
     /// as the source's `PeptideIdentification::sort`).
@@ -701,7 +728,7 @@ impl Percolator {
         if peptide_ids.is_empty() {
             return Ok(());
         }
-        let td_meta = self.target_decoy_metavalue.clone();
+        let td_meta = self.parameters.target_decoy_metavalue.clone();
         let features = if feature_names.is_empty() {
             let first = peptide_ids[0].hits.first().ok_or_else(|| {
                 Error::InvalidValue("first PeptideIdentification has no hits".into())
@@ -772,18 +799,18 @@ impl Percolator {
                 MetaValue::source_float(output.peps[row]),
             );
         }
-        if self.report_as_main_score != MainScore::None {
+        if self.parameters.report_as_main_score != MainScore::None {
             let mut touched = vec![false; updated.len()];
             for (row, &(i, j)) in locations.iter().enumerate() {
                 let identification = &mut updated[i];
-                identification.hits[j].score = match self.report_as_main_score {
+                identification.hits[j].score = match self.parameters.report_as_main_score {
                     MainScore::QValue => output.q_values[row],
                     MainScore::Pep => output.peps[row],
                     MainScore::Svm | MainScore::None => output.scores[row],
                 };
                 if !touched[i] {
                     touched[i] = true;
-                    let (score_type, higher) = match self.report_as_main_score {
+                    let (score_type, higher) = match self.parameters.report_as_main_score {
                         MainScore::Svm | MainScore::None => ("svm", true),
                         MainScore::Pep => ("Posterior Error Probability", false),
                         MainScore::QValue => ("q-value", false),
@@ -915,112 +942,112 @@ impl Percolator {
         let entries = vec![
             float_entry(
                 "c_pos",
-                self.c_pos,
+                self.parameters.c_pos,
                 "Positive regularization constant (C+).",
                 Some(0.0),
                 None,
             ),
             float_entry(
                 "c_neg",
-                self.c_neg,
+                self.parameters.c_neg,
                 "Negative regularization constant (C-). 0 = auto-select.",
                 Some(0.0),
                 None,
             ),
             float_entry(
                 "test_fdr",
-                self.test_fdr,
+                self.parameters.test_fdr,
                 "Test FDR threshold for SVM direction selection.",
                 Some(0.0),
                 Some(1.0),
             ),
             float_entry(
                 "train_fdr",
-                self.train_fdr,
+                self.parameters.train_fdr,
                 "Training FDR for SVM iterations.",
                 Some(0.0),
                 Some(1.0),
             ),
             int_entry(
                 "num_iterations",
-                int("num_iterations", self.num_iterations)?,
+                int("num_iterations", self.parameters.num_iterations)?,
                 "Number of SVM training iterations.",
                 Some(1),
                 None,
             ),
             string_entry(
                 "initial_direction",
-                &self.initial_direction,
+                &self.parameters.initial_direction,
                 "Feature name to use as the initial scoring direction. Prefix with '-' if LOWER values are more target-like (e.g. 'COMET:lnExpect' means higher is better; '-COMET:lnExpect' means lower is better). Leave empty (default) to let Percolator auto-select by testing every feature in both directions and picking the one that separates the most targets at train_fdr.",
                 &[],
             ),
             string_entry(
                 "pep_method",
-                self.pep_method.name(),
+                self.parameters.pep_method.name(),
                 "Posterior error probability estimator: 'logistic_regression' (target-decoy competition + isotonic fit; legacy name, not actually logistic regression), 'isotonic' (target-q → pep monotone regression), or 'nonparametric' (kernel smoothing).",
                 &["logistic_regression", "isotonic", "nonparametric"],
             ),
             int_entry(
                 "seed",
-                i64::from(self.seed),
+                i64::from(self.parameters.seed),
                 "Random seed for CV splitting.",
                 None,
                 None,
             ),
             string_entry(
                 "target_decoy_metavalue",
-                &self.target_decoy_metavalue,
+                &self.parameters.target_decoy_metavalue,
                 "Meta-value on PeptideHit indicating target/decoy ('target'/'decoy').",
                 &[],
             ),
             string_entry(
                 "normalizer",
-                self.normalizer.name(),
+                self.parameters.normalizer.name(),
                 "Feature normalizer: 'stdv' (zero-mean, unit-stdv, default), 'uni' (min/max), or 'none' (no normalization).",
                 &["stdv", "uni", "none"],
             ),
             string_entry(
                 "train_best_positive",
-                flag(self.train_best_positive),
+                flag(self.parameters.train_best_positive),
                 "During TRAINING, use only the best PSM per spectrum as a positive example. Affects the SVM (weights change). Orthogonal to post_processing_tdc. Default is 'true' because typical OpenMS inputs are multi-hit-per-spectrum (Comet/MSGF+/Sage top-N, OSW peak groups). Inert on one-hit-per-spectrum inputs. Note: the upstream percolator binary defaults this to off — PercolatorAdapter preserves the CLI contract by mirroring its flag state when writing this param.",
                 &["true", "false"],
             ),
             string_entry(
                 "post_processing_tdc",
-                flag(self.post_processing_tdc),
+                flag(self.parameters.post_processing_tdc),
                 "AFTER training, before PEP/q-value calculation, apply Target-Decoy Competition: keep only the highest-scoring PSM per (scan, mass, charge) and drop the rest from the score set. Does NOT touch the SVM — only the score distribution used for FDR. Default is 'true' because without TDC on multi-hit input, q-values count every candidate as an independent 'chance' and drift optimistic. Inert on one-hit-per-spectrum inputs. Note: the upstream percolator binary defaults this to off — PercolatorAdapter preserves the CLI contract by mirroring its flag state when writing this param.",
                 &["true", "false"],
             ),
             int_entry(
                 "nested_xval_bins",
-                int("nested_xval_bins", self.nested_xval_bins)?,
+                int("nested_xval_bins", self.parameters.nested_xval_bins)?,
                 "Number of nested CV bins for grid search of Cpos/Cneg. Upstream default for cross validation is 3; 1 disables nested search.",
                 Some(1),
                 None,
             ),
             int_entry(
                 "subset_max_train",
-                int("subset_max_train", self.subset_max_train)?,
+                int("subset_max_train", self.parameters.subset_max_train)?,
                 "Cap on the training set size (0 = use all). Default 100000 bounds training time on very large inputs (>1M PSMs) at negligible quality loss. Sampling is reservoir-based, keyed by (scan, exp_mass) so all PSMs sharing a spectrum travel together; the trained model is then applied to ALL input rows via a second scoring pass (matches upstream Caller.cpp behavior). Inert when the input size is at or below the cap. Note: upstream percolator binary defaults this to 0 — PercolatorAdapter preserves the CLI contract by passing its own int option (CLI default 0) through to this param.",
                 Some(0),
                 None,
             ),
             string_entry(
                 "report_as_main_score",
-                self.report_as_main_score.name(),
+                self.parameters.report_as_main_score.name(),
                 "Which Percolator output to stamp as the main PeptideHit score after rescoring. 'none' (default) leaves hit.getScore() and the PeptideIdentification score_type untouched — callers who want the original search score preserved (or who run their own post-processing like PercolatorAdapter) rely on this. 'q-value' sets main score to the PSM-level q-value and marks higher_score_better=false. 'pep' sets main score to the PEP and marks higher_score_better=false. 'svm' sets main score to the SVM discriminant and marks higher_score_better=true. All three Percolator outputs remain accessible as percolator_{score,q_value,pep} meta values regardless of this setting.",
                 &["none", "q-value", "pep", "svm"],
             ),
             int_entry(
                 "num_threads",
-                int("num_threads", self.num_threads)?,
+                int("num_threads", self.parameters.num_threads)?,
                 "Number of OpenMP threads for cross-validation (one per CV fold; max useful = 3). Matches upstream's default.",
                 Some(1),
                 Some(3),
             ),
             string_entry(
                 "use_pi0",
-                flag(self.use_pi0),
+                flag(self.parameters.use_pi0),
                 "Enable pi0 correction when computing q-values and PEPs (default). When true, pi0 is estimated per CV fold via bootstrap spline fit on the target score distribution using decoys as the null. When false, pi0 is fixed at 1.0 (pure target-decoy FDR, no bootstrap estimation). Affects both Scores::calcQvals and Scores::calcPep. Upstream percolator has no CLI flag for this; the in-library Scores(bool usePi0) constructor is the only toggle, matched here.",
                 &["true", "false"],
             ),
@@ -1073,7 +1100,7 @@ impl Percolator {
         };
         let seed = i32::try_from(int("seed")?)
             .map_err(|_| Error::InvalidValue("parameter 'seed' does not fit 32 bits".into()))?;
-        Ok(Self {
+        Ok(Self::with_parameters(PercolatorParameters {
             c_pos: float("c_pos")?,
             c_neg: float("c_neg")?,
             test_fdr: float("test_fdr")?,
@@ -1104,8 +1131,7 @@ impl Percolator {
                 _ => MainScore::None,
             },
             target_decoy_metavalue: text("target_decoy_metavalue")?,
-            ..Self::default()
-        })
+        }))
     }
 }
 
@@ -1541,7 +1567,7 @@ mod tests {
     fn g17_matches_printf() {
         assert_eq!(format_g17(0.1), "0.10000000000000001");
         assert_eq!(format_g17(1.0), "1");
-        assert_eq!(format_g17(-0.408004346094467), "-0.40800434609446702");
+        assert_eq!(format_g17(-0.408004346094467), "-0.40800434609446701");
         assert_eq!(format_g17(1e-5), "1.0000000000000001e-05");
         assert_eq!(format_g17(1e20), "1e+20");
         assert_eq!(format_g17(123456.0), "123456");

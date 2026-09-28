@@ -469,11 +469,6 @@ impl Scores {
         self.target_decoy_size_ratio
     }
 
-    /// `size()`: targets plus decoys.
-    pub(super) fn size(&self) -> usize {
-        self.total_targets as usize + self.total_decoys as usize
-    }
-
     fn add(&mut self, holder: ScoreHolder) {
         self.scores.push(holder);
     }
