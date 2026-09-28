@@ -23,5 +23,13 @@
 4. DATAACCESS: SpectrumAccessOpenMS/InMemory/Cached/Transforming/QuadMZ/SqMass, DataAccessHelper, SimpleOpenMSSpectraAccessFactory, MRMFeatureAccessOpenMS
 5. OpenSwathHelper, SpectrumAddition
 
+## Incarnation 2 (retry, branch worktree-wf_cd066dab-0a7-27) findings
+- Prior branch -21 == 2d62fe1f, same as ours: only notes existed; nothing to merge.
+- Worktree guard refuses `sed $VAR` constructs; `cd <abs> && cat <literal paths>` works.
+- Existing Rust: MSSpectrum{peaks: Vec<Peak1D{mz f64,intensity f32}>, float_data_arrays: Vec<DataArray<f32>>, rt, ms_level u32, native_id, drift_time},
+  MSChromatogram{peaks: Vec<ChromatogramPeak{rt,intensity f32}>, precursor, product, native_id}, MSExperiment{spectra, chromatograms}. Error: InvalidValue, InvalidRange, MissingInformation, Unsupported...
+- StatsHelpers/Scoring use Eigen reductions (packet sums) -> port with sequential sums; document bit-level divergence.
+- Rust layout decided: src/analysis/openswath/{data_structures,spectrum_access,transitions,swath_map,stats_helpers,scoring,data_frame_writer,mock_objects,...}.rs
+
 ## Next step
 1. Read C++ headers of step 1 and existing Rust MSSpectrum/MSChromatogram/MSExperiment types; write src/analysis/openswath/data_structures.rs
