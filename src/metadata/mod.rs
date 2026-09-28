@@ -38,3 +38,7 @@ pub mod meta_info_registry;
 /// The index-keyed `MetaInfo`/`MetaInfoInterface` members over a caller-owned
 /// registry (`METADATA/MetaInfo.h`, `METADATA/MetaInfoInterface.h`).
 pub mod meta_info_indexed;
+
+/// Looking up spectra by index, retention time, native ID, scan number or
+/// reference (`METADATA/SpectrumLookup.h`).
+pub mod spectrum_lookup;

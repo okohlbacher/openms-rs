@@ -20,3 +20,5 @@ pub mod parallel;
 pub mod progress_logger;
 pub mod unique_id;
 pub use unique_id::{HasUniqueId, UniqueId, UniqueIdGenerator};
+/// `StringUtils::toInt32`/`toDouble` for the layers below `cli`.
+pub(crate) mod string_conversion;

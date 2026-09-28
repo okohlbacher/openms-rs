@@ -55,7 +55,7 @@ use std::str::FromStr;
 
 use crate::concept::boost_regex::BoostRegex;
 use crate::metadata::spectrum_native_id_parser::{
-    self, is_native_id, regex_from_native_id, try_extract_scan_number_with,
+    is_native_id, regex_from_native_id, try_extract_scan_number_with,
 };
 use crate::{Error, Result};
 
@@ -344,11 +344,11 @@ impl Usi {
     /// (`extractScanNumberFromNativeID`).
     ///
     /// When `native_id` is a vendor native ID
-    /// ([`spectrum_native_id_parser::is_native_id`]), the expression
-    /// [`spectrum_native_id_parser::regex_from_native_id`] chooses for it is
+    /// ([`is_native_id`]), the expression
+    /// [`regex_from_native_id`] chooses for it is
     /// applied and its last match's number returned; `index=100` therefore
     /// gives `100`, not the `101` that the accession-driven
-    /// [`spectrum_native_id_parser::extract_scan_number`] would return for
+    /// [`extract_scan_number`](crate::metadata::spectrum_native_id_parser::extract_scan_number) would return for
     /// MS:1000774. Failing that — or for a string that is not a native ID —
     /// the whole string is converted as `StringUtils::toInt32` does, so `12345`
     /// gives `12345`.
@@ -373,7 +373,7 @@ impl Usi {
                 }
             }
         }
-        Ok(spectrum_native_id_parser::to_int32(native_id))
+        Ok(crate::concept::string_conversion::to_int32(native_id).ok())
     }
 
     /// The file name of `filepath` without its directory

@@ -422,60 +422,14 @@ fn fixed_regex(pattern: &'static str) -> Result<&'static BoostRegex> {
         })
 }
 
-/// `StringUtils::toInt32` (`StringUtils.cpp`, `StringUtilsHelper::toInt32`),
-/// returning `None` where the source throws `ConversionError`.
-///
-/// Leading and trailing space, tab, newline and carriage return are skipped,
-/// one `+` may precede the number, and the rest must be a complete decimal
-/// `i32`; like `std::from_chars` after the source strips `+`, a `-` may still
-/// follow it.
-pub(crate) fn to_int32(text: &str) -> Option<i32> {
-    let bytes = text.as_bytes();
-    let whitespace = |b: &u8| matches!(*b, b' ' | b'\t' | b'\n' | b'\r');
-    let mut cursor = 0;
-    while bytes.get(cursor).is_some_and(whitespace) {
-        cursor += 1;
-    }
-    if cursor == bytes.len() {
-        return None;
-    }
-    if bytes.get(cursor) == Some(&b'+') {
-        cursor += 1;
-    }
-    let number_start = cursor;
-    if bytes.get(cursor) == Some(&b'-') {
-        cursor += 1;
-    }
-    let digits_start = cursor;
-    while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
-        cursor += 1;
-    }
-    if cursor == digits_start {
-        return None;
-    }
-    let value = text.get(number_start..cursor)?.parse::<i32>().ok()?;
-    while bytes.get(cursor).is_some_and(whitespace) {
-        cursor += 1;
-    }
-    (cursor == bytes.len()).then_some(value)
+/// `StringUtils::toInt32`, `None` where the source throws `ConversionError`.
+fn to_int32(text: &str) -> Option<i32> {
+    crate::concept::string_conversion::to_int32(text).ok()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn to_int32_follows_the_source_conversion() {
-        assert_eq!(to_int32("42"), Some(42));
-        assert_eq!(to_int32(" \t+42\r\n"), Some(42));
-        assert_eq!(to_int32("+-7"), Some(-7));
-        assert_eq!(to_int32("2147483647"), Some(i32::MAX));
-        assert_eq!(to_int32("2147483648"), None);
-        assert_eq!(to_int32(""), None);
-        assert_eq!(to_int32("  "), None);
-        assert_eq!(to_int32("12a"), None);
-        assert_eq!(to_int32("++1"), None);
-    }
 
     #[test]
     fn every_fixed_expression_compiles() {
