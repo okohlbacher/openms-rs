@@ -30,6 +30,12 @@
 //! [`PEFFFile::write_end`] stream one entry at a time. [`PEFFReader`] reads
 //! from any [`BufRead`].
 //!
+//! A [`PEFFEntry`] also materialises its sequence for a search engine:
+//! [`PEFFEntry::aa_sequence`], [`PEFFEntry::modified_sequence`],
+//! [`PEFFEntry::variant_sequences`], [`PEFFEntry::processed_sequence`], and
+//! the digesting enumerations [`PEFFEntry::digest_with_variants`] and
+//! [`PEFFEntry::generate_peptides`].
+//!
 //! The source reports specification violations it tolerates through
 //! `OPENMS_LOG_WARN`; the port returns those lines, verbatim and in order, as
 //! warnings (see [`PEFFFile::warnings`]). See `docs/PEFF_SUPPORT.md` for the

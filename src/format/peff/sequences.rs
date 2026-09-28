@@ -322,6 +322,11 @@ fn apply_variants(
     Some(peptide)
 }
 
+/// Borrow a list of modification names.
+fn names(list: &[String]) -> Vec<&str> {
+    list.iter().map(String::as_str).collect()
+}
+
 /// `ACCESSION@position`, or `name@position` when there is no accession.
 fn describe_modification(
     description: &mut String,
@@ -635,7 +640,6 @@ impl PEFFEntry {
             options.min_length,
             options.max_length,
         )?;
-        let names = |list: &[String]| list.iter().map(String::as_str).collect::<Vec<_>>();
         let fixed = if options.fixed_mods.is_empty() {
             Vec::new()
         } else {
