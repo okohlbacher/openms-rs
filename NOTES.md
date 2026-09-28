@@ -26,3 +26,14 @@ Class tests: FragmentIndex_test.cpp (2879 lines), NeighborSeq_test.cpp (252), Si
 - Rust deps: chemistry::AASequence (src/chemistry/sequence.rs; parse, mono_mass()->Result, as_str), chemistry::theoretical::TheoreticalSpectrumGenerator
   (fields ion_series, add_first_prefix_ion; generate(&pep,min_z,max_z,None)->Result<MSSpectrum>), openms_log_warn! macro in src/concept/log_stream.rs:873.
 - Writing src/analysis/id/neighbor_seq.rs now.
+
+## Status (incarnation 2)
+- DONE: NeighborSeq -> src/analysis/id/neighbor_seq.rs + tests/neighbor_seq.rs (10/10 on dax, --no-default-features). Docs/provenance still TODO.
+- NEXT: SimpleSearchEngineAlgorithm (TOPP consumer SimpleSearchEngine). Tier-1 fixtures: test-data 0cb15f2 topp/SimpleSearchEngine_{1,2}.ini,
+  SimpleSearchEngine_1.{mzML,fasta}, SimpleSearchEngine_{1,2}_out.idXML (3 PSMs each; CMakeLists.txt:3773-3789, whitelist "IdentificationRun date", "SearchParameters id=\"SP_0\" db=").
+  Rust deps present: psm_scoring.rs:218 HyperScore compute_with_detail; processing.rs Normalizer/ThresholdMower/NLargest; processing/window_mower.rs;
+  processing/deisotoping.rs (is_tolerance_supported(Tolerance), deisotope); comparison.rs:1401 spectrum_alignment; chemistry/decoy_generator.rs reverse_protein/reverse_peptides(Protease);
+  chemistry/digestion.rs:397 digest_unmodified; chemistry/modified_peptides.rs apply_fixed/variable; analysis/peptide_indexing.rs PeptideIndexing;
+  analysis/false_discovery_rate.rs apply_peptides; analysis/id_filter.rs; metadata/im_types.rs determine_im_format; format/fasta.rs FASTAEntry; boost regex facade (tests/data/boost_regex_provenance.json).
+  RandomShuffler: chemistry/decoy_random.rs (private) -- check.
+- THEN: FragmentIndex (no TOPP consumer, 3.4k lines) as far as possible.
