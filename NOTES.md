@@ -40,3 +40,11 @@ Then look at KD / TreeGuided deps (KDTreeFeatureMaps, ClusterHierarchical, Stabl
   maps_ranges never merged (tmp is dead). Class test gives tree literal (0,2),(0,1) + trafo_order,
   unique ids 20/14, original_RT; data MapAlignmentAlgorithmTreeGuided_test_in{0,1,2}.featureXML.
 - CI sweep for the pre-restart tree running in background -> scratch M1/sweep.log.
+
+## Restart-2 progress
+- 442ba5a: alignment_kd.rs + alignment_tree_guided.rs + tests/map_alignment_kd.rs (10) + tests/map_alignment_tree_guided.rs (7), green on dax.
+- Oracle ../oracle/M1-kdtree (gen_cases.py, driver.cpp, run.sh -> ibminode06, results/). Next: write
+  tests/map_alignment_oracle_kd_tree.rs comparing records.tsv bit-exactly (KD: nb sizes, cc labels,
+  filtered sizes, rt after transform; TG: pair distances vs 1-sim f32, tree, order, mt rt, trafo points
+  x/y/note, final rt), + tg_defaults.ini vs defaults(). Copy results into tests/data/map_alignment_oracle_kd_tree_*.
+- Then: docs (MAP_ALIGNMENT_SUPPORT.md rows/sections), provenance json, clippy/doc/MSRV, sweep, report, ledger.
