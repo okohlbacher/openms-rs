@@ -14,10 +14,13 @@
 Worktree guard refuses `git -C`; use `cd <pkg> && git show <sha>:<path>` as separate simple commands.
 Pins root: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-tests/packages
 
-## Next step
-1. Read the porting skill, the header, the .cpp and the class test.
-2. Survey existing Rust MSExperiment / FeatureMap / Param / featureXML writer APIs.
-3. Port the algorithm, then the class tests, then the TOPP differential test.
+## Next step (updated session 1)
+1. DONE: port drafted in src/analysis/featurefinder/biosaur2{.rs,/hills.rs,/isotopes.rs,/preprocess.rs,/output.rs,/averagine_table.rs}
+2. DONE: tests/biosaur2.rs + tests/data/biosaur2 (oracle fixtures staged by ../oracle/FF4-biosaur2/stage_fixtures.py)
+3. NOW: get tests/biosaur2.rs green on dax (gate slot FF4, logs in scratchpad gate_*.log)
+4. THEN: TOPP FeatureFinderLFQ tool (src/cli/tools/feature_finder_lfq.rs + src/bin/FeatureFinderLFQ.rs + Cargo [[bin]]),
+   tier-1 vs retained FeatureFinderLFQ_1_output.featureXML and ../oracle/FF4-biosaur2/results/topp/*
+5. THEN: docs/BIOSAUR2_SUPPORT.md, tests/data/biosaur2_provenance.json, doc coverage, clippy, MSRV, ci sweep, report+ledger.
 
 ## Findings (session 1)
 - Sources extracted to scratchpad; header 722 lines, cpp 3373, test 446, TOPP 222.
