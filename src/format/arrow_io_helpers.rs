@@ -368,12 +368,11 @@ pub fn write_table_to_parquet(
         .set_coerce_types(true)
         .build();
     let options = ArrowWriterOptions::new().with_properties(properties);
-    let bytes = encode(table, options).map_err(|error| {
-        Error::InvalidValue(format!(
-            "ArrowIOHelpers: Failed to write {}: {error}",
-            filename.display()
-        ))
-    })?;
+    let bytes = encode(
+        table,
+        options,
+        &format!("ArrowIOHelpers: Failed to write {}", filename.display()),
+    )?;
     publish(filename, &bytes)
 }
 
@@ -574,7 +573,7 @@ pub fn qpx_scan_format(native_id: &str) -> &'static str {
 /// are ignored; the token is empty when none is recognised, or when two
 /// conventions are mixed, in which case the second element holds the
 /// source's `OPENMS_LOG_WARN` line.
-pub fn qpx_scan_format_of_all(native_ids: &[impl AsRef<str>]) -> (&'static str, Option<String>) {
+pub fn qpx_scan_format_of_all<S: AsRef<str>>(native_ids: &[S]) -> (&'static str, Option<String>) {
     let mut resolved = "";
     for id in native_ids {
         let format = qpx_scan_format(id.as_ref());
@@ -715,7 +714,7 @@ pub fn qpx_psm_run_file_name(
 /// shared stem, in stem order, holding the line the source writes to
 /// `OPENMS_LOG_WARN`. Empty paths are ignored and a path listed twice is one
 /// path.
-pub fn qpx_run_name_collisions(context: &str, ms_run_paths: &[impl AsRef<str>]) -> Vec<String> {
+pub fn qpx_run_name_collisions<S: AsRef<str>>(context: &str, ms_run_paths: &[S]) -> Vec<String> {
     let mut stems: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
     for path in ms_run_paths {
         let path = path.as_ref();
@@ -745,7 +744,7 @@ pub fn qpx_run_name_collisions(context: &str, ms_run_paths: &[impl AsRef<str>]) 
 /// Ports `qpxWarnOnRunNameCollisions(context, ms_run_paths)`, which returns
 /// this and logs one warning per collision; the warnings are
 /// [`qpx_run_name_collisions`].
-pub fn qpx_warn_on_run_name_collisions(context: &str, ms_run_paths: &[impl AsRef<str>]) -> bool {
+pub fn qpx_warn_on_run_name_collisions<S: AsRef<str>>(context: &str, ms_run_paths: &[S]) -> bool {
     qpx_run_name_collisions(context, ms_run_paths).is_empty()
 }
 
@@ -1528,6 +1527,15 @@ fn c_stod(text: &str) -> Option<f64> {
     Some(sign * magnitude)
 }
 
+/// The string at `i`, the empty string for a null.
+fn text_at(strings: &arrow_array::StringArray, i: usize) -> &str {
+    if strings.is_null(i) {
+        ""
+    } else {
+        strings.value(i)
+    }
+}
+
 /// `s` without a surrounding `[` and `]`, as the source strips a list.
 fn unbracketed(text: &str) -> &str {
     text.strip_prefix('[')
@@ -1631,19 +1639,12 @@ pub fn read_meta_values(
         (Ok(start), Ok(end)) if start <= end && end <= entries.len() => (start, end),
         _ => return Err(refuse()),
     };
-    let text = |strings: &arrow_array::StringArray, i: usize| {
-        if strings.is_null(i) {
-            ""
-        } else {
-            strings.value(i)
-        }
-    };
     for i in start..end {
-        let name = text(names, i);
+        let name = text_at(names, i);
         if excluded_keys.contains(&name) {
             continue;
         }
-        let value = typed_meta_value(text(values, i), text(types, i));
+        let value = typed_meta_value(text_at(values, i), text_at(types, i));
         target.insert(name.to_owned(), value);
     }
     Ok(())

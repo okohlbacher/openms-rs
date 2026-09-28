@@ -38,7 +38,9 @@ use arrow_array::types::{
 use arrow_array::{Array, ArrayRef, OffsetSizeTrait, RecordBatch};
 use arrow_schema::{ArrowError, DataType};
 use parquet::arrow::ArrowWriter;
-use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
+use parquet::arrow::arrow_reader::{
+    ArrowReaderMetadata, ArrowReaderOptions, ParquetRecordBatchReaderBuilder,
+};
 use parquet::arrow::arrow_writer::ArrowWriterOptions;
 use parquet::basic::Compression;
 use parquet::file::properties::WriterProperties;
@@ -185,9 +187,7 @@ impl ParquetFile {
         let options = ArrowWriterOptions::new()
             .with_properties(properties)
             .with_skip_arrow_metadata(true);
-        let bytes = encode(table, options).map_err(|error| {
-            Error::InvalidValue(format!("Failed to write parquet table: {error}"))
-        })?;
+        let bytes = encode(table, options, "Failed to write parquet table")?;
         publish(filename.as_ref(), &bytes)
     }
 
@@ -552,15 +552,252 @@ pub(crate) fn writer_properties(
 }
 
 /// Encode one table as a complete Parquet file in memory.
+///
+/// Two things are done as Parquet C++'s `WriteTable` does them, which
+/// arrow-rs does differently by itself:
+///
+/// * a `timestamp[s]` column, which Parquet cannot store, is written as
+///   `timestamp[ms]` with its values multiplied by 1000 (see
+///   [`coerce_second_timestamps`]); arrow-rs would store the raw seconds as a
+///   plain `INT64`;
+/// * a table with no rows is written with one empty row group (measured on
+///   the Release build: `rows=0 row_groups=1`); arrow-rs writes none.
+///
+/// `failure` prefixes an encoding error's message.
 pub(crate) fn encode(
     table: &RecordBatch,
     options: ArrowWriterOptions,
-) -> std::result::Result<Vec<u8>, parquet::errors::ParquetError> {
+    failure: &str,
+) -> Result<Vec<u8>> {
+    let coerced = coerce_second_timestamps(table)?;
+    let table = coerced.as_ref().unwrap_or(table);
+    let fail =
+        |error: parquet::errors::ParquetError| Error::InvalidValue(format!("{failure}: {error}"));
     let mut bytes = Vec::new();
-    let mut writer = ArrowWriter::try_new_with_options(&mut bytes, table.schema(), options)?;
-    writer.write(table)?;
-    writer.close()?;
+    let mut writer =
+        ArrowWriter::try_new_with_options(&mut bytes, table.schema(), options).map_err(fail)?;
+    if table.num_rows() == 0 {
+        let (mut file, factory) = writer.into_serialized_writer().map_err(fail)?;
+        let columns = factory.create_column_writers(0).map_err(fail)?;
+        let mut group = file.next_row_group().map_err(fail)?;
+        for column in columns {
+            column
+                .close()
+                .map_err(fail)?
+                .append_to_row_group(&mut group)
+                .map_err(fail)?;
+        }
+        group.close().map_err(fail)?;
+        file.close().map_err(fail)?;
+    } else {
+        writer.write(table).map_err(fail)?;
+        writer.close().map_err(fail)?;
+    }
     Ok(bytes)
+}
+
+/// `table` with every `timestamp[s]` column, top level or inside a list,
+/// large list, fixed-size list or struct, converted to `timestamp[ms]`, or
+/// `None` when it has none.
+///
+/// Parquet has no seconds unit; Parquet C++ writes such a column as
+/// milliseconds, and so reads it back as `timestamp[ms]` even when the Arrow
+/// schema is stored (measured: `1700000000` s reads back as
+/// `1700000000000` ms). A seconds column nested in any other type is left
+/// as it is.
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] for a value whose millisecond count overflows
+/// `i64`, which Arrow C++ refuses as an out-of-bounds timestamp too.
+pub(crate) fn coerce_second_timestamps(table: &RecordBatch) -> Result<Option<RecordBatch>> {
+    let mut changed = false;
+    let mut columns = Vec::with_capacity(table.num_columns());
+    for column in table.columns() {
+        match coerce_array(column)? {
+            Some(new) => {
+                changed = true;
+                columns.push(new);
+            }
+            None => columns.push(column.clone()),
+        }
+    }
+    if !changed {
+        return Ok(None);
+    }
+    let schema = table.schema();
+    let fields: Vec<arrow_schema::Field> = schema
+        .fields()
+        .iter()
+        .zip(&columns)
+        .map(|(field, column)| {
+            field
+                .as_ref()
+                .clone()
+                .with_data_type(column.data_type().clone())
+        })
+        .collect();
+    let schema = std::sync::Arc::new(
+        arrow_schema::Schema::new(fields).with_metadata(schema.metadata().clone()),
+    );
+    RecordBatch::try_new(schema, columns)
+        .map(Some)
+        .map_err(|error| Error::InvalidValue(format!("Failed to convert timestamp[s]: {error}")))
+}
+
+fn converted_field(field: &arrow_schema::FieldRef, child: &ArrayRef) -> arrow_schema::FieldRef {
+    std::sync::Arc::new(
+        field
+            .as_ref()
+            .clone()
+            .with_data_type(child.data_type().clone()),
+    )
+}
+
+fn conversion_error(error: ArrowError) -> Error {
+    Error::InvalidValue(format!("Failed to convert timestamp[s]: {error}"))
+}
+
+fn coerce_list<O: OffsetSizeTrait>(
+    list: &arrow_array::GenericListArray<O>,
+    field: &arrow_schema::FieldRef,
+) -> Result<Option<ArrayRef>> {
+    let Some(values) = coerce_array(list.values())? else {
+        return Ok(None);
+    };
+    arrow_array::GenericListArray::<O>::try_new(
+        converted_field(field, &values),
+        list.offsets().clone(),
+        values,
+        list.nulls().cloned(),
+    )
+    .map(|array| Some(std::sync::Arc::new(array) as ArrayRef))
+    .map_err(conversion_error)
+}
+
+fn coerce_array(array: &ArrayRef) -> Result<Option<ArrayRef>> {
+    use arrow_array::types::TimestampSecondType;
+    use arrow_array::{FixedSizeListArray, StructArray, TimestampMillisecondArray};
+    use std::sync::Arc;
+    match array.data_type() {
+        DataType::Timestamp(arrow_schema::TimeUnit::Second, zone) => {
+            let seconds = array.as_primitive::<TimestampSecondType>();
+            let mut values = Vec::with_capacity(seconds.len());
+            for index in 0..seconds.len() {
+                if seconds.is_null(index) {
+                    values.push(0);
+                    continue;
+                }
+                let value = seconds.value(index);
+                values.push(value.checked_mul(1000).ok_or_else(|| {
+                    Error::InvalidValue(format!(
+                        "Casting from timestamp[s] to timestamp[ms] would result in out of \
+                         bounds timestamp: {value}"
+                    ))
+                })?);
+            }
+            let millis = TimestampMillisecondArray::new(values.into(), seconds.nulls().cloned())
+                .with_timezone_opt(zone.clone());
+            Ok(Some(Arc::new(millis)))
+        }
+        DataType::List(field) => coerce_list(array.as_list::<i32>(), field),
+        DataType::LargeList(field) => coerce_list(array.as_list::<i64>(), field),
+        DataType::FixedSizeList(field, size) => {
+            let fixed = array.as_fixed_size_list();
+            let Some(values) = coerce_array(fixed.values())? else {
+                return Ok(None);
+            };
+            FixedSizeListArray::try_new(
+                converted_field(field, &values),
+                *size,
+                values,
+                fixed.nulls().cloned(),
+            )
+            .map(|array| Some(Arc::new(array) as ArrayRef))
+            .map_err(conversion_error)
+        }
+        DataType::Struct(fields) => {
+            let strukt = array.as_struct();
+            let mut changed = false;
+            let mut children = Vec::with_capacity(strukt.num_columns());
+            for child in strukt.columns() {
+                match coerce_array(child)? {
+                    Some(new) => {
+                        changed = true;
+                        children.push(new);
+                    }
+                    None => children.push(child.clone()),
+                }
+            }
+            if !changed {
+                return Ok(None);
+            }
+            let fields: arrow_schema::Fields = fields
+                .iter()
+                .zip(&children)
+                .map(|(field, child)| converted_field(field, child))
+                .collect();
+            StructArray::try_new(fields, children, strukt.nulls().cloned())
+                .map(|array| Some(Arc::new(array) as ArrayRef))
+                .map_err(conversion_error)
+        }
+        _ => Ok(None),
+    }
+}
+
+/// The type with every `timestamp[s]`, at any list or struct depth, turned
+/// into `timestamp[ms]`; `None` when it has none.
+fn millisecond_type(data_type: &DataType) -> Option<DataType> {
+    use std::sync::Arc;
+    let field = |f: &arrow_schema::FieldRef| {
+        millisecond_type(f.data_type()).map(|t| Arc::new(f.as_ref().clone().with_data_type(t)))
+    };
+    match data_type {
+        DataType::Timestamp(arrow_schema::TimeUnit::Second, zone) => Some(DataType::Timestamp(
+            arrow_schema::TimeUnit::Millisecond,
+            zone.clone(),
+        )),
+        DataType::List(f) => field(f).map(DataType::List),
+        DataType::LargeList(f) => field(f).map(DataType::LargeList),
+        DataType::FixedSizeList(f, n) => field(f).map(|f| DataType::FixedSizeList(f, *n)),
+        DataType::Struct(fields) => {
+            let converted: Vec<Option<arrow_schema::FieldRef>> = fields.iter().map(field).collect();
+            if converted.iter().all(Option::is_none) {
+                return None;
+            }
+            Some(DataType::Struct(
+                fields
+                    .iter()
+                    .zip(converted)
+                    .map(|(original, new)| new.unwrap_or_else(|| original.clone()))
+                    .collect(),
+            ))
+        }
+        _ => None,
+    }
+}
+
+/// `schema` with every `timestamp[s]` field turned into `timestamp[ms]`;
+/// `None` when it has none.
+fn millisecond_schema(schema: &arrow_schema::Schema) -> Option<arrow_schema::Schema> {
+    let converted: Vec<Option<DataType>> = schema
+        .fields()
+        .iter()
+        .map(|f| millisecond_type(f.data_type()))
+        .collect();
+    if converted.iter().all(Option::is_none) {
+        return None;
+    }
+    let fields: Vec<arrow_schema::Field> = schema
+        .fields()
+        .iter()
+        .zip(converted)
+        .map(|(f, t)| match t {
+            Some(t) => f.as_ref().clone().with_data_type(t),
+            None => f.as_ref().clone(),
+        })
+        .collect();
+    Some(arrow_schema::Schema::new(fields).with_metadata(schema.metadata().clone()))
 }
 
 /// Publish complete bytes at `path` atomically (a sibling temporary file,
@@ -573,11 +810,23 @@ pub(crate) fn publish(path: &Path, bytes: &[u8]) -> Result<()> {
 }
 
 fn read_all<R: ChunkReader + 'static>(reader: R, limits: &ReadLimits) -> Result<RecordBatch> {
-    let builder = ParquetRecordBatchReaderBuilder::try_new(reader).map_err(|error| {
+    let create = |error: parquet::errors::ParquetError| {
         Error::InvalidValue(format!(
             "Failed to create parquet reader from RandomAccessFile: {error}"
         ))
-    })?;
+    };
+    let mut metadata =
+        ArrowReaderMetadata::load(&reader, ArrowReaderOptions::new()).map_err(create)?;
+    // Parquet C++ reads a stored `timestamp[s]` column as `timestamp[ms]`;
+    // arrow-rs would restore the seconds from the stored Arrow schema.
+    if let Some(schema) = millisecond_schema(metadata.schema()) {
+        metadata = ArrowReaderMetadata::try_new(
+            metadata.metadata().clone(),
+            ArrowReaderOptions::new().with_schema(std::sync::Arc::new(schema)),
+        )
+        .map_err(create)?;
+    }
+    let builder = ParquetRecordBatchReaderBuilder::new_with_metadata(reader, metadata);
     let metadata = builder.metadata().clone();
     let rows = u64::try_from(metadata.file_metadata().num_rows())
         .map_err(|_| Error::InvalidValue("Parquet footer declares a negative row count".into()))?;
@@ -618,12 +867,17 @@ fn read_all<R: ChunkReader + 'static>(reader: R, limits: &ReadLimits) -> Result<
                 "Failed to read parquet table from RandomAccessFile: {error}"
             ))
         })?;
+    // The decoded batches carry no schema metadata; the table does.
     match batches.len() {
         0 => Ok(RecordBatch::new_empty(schema)),
-        1 => Ok(batches
-            .into_iter()
-            .next()
-            .unwrap_or_else(|| RecordBatch::new_empty(schema))),
+        1 => match batches.into_iter().next() {
+            Some(batch) => batch.with_schema(schema).map_err(|error| {
+                Error::InvalidValue(format!(
+                    "Failed to read parquet table from RandomAccessFile: {error}"
+                ))
+            }),
+            None => Ok(RecordBatch::new_empty(schema)),
+        },
         _ => arrow_select::concat::concat_batches(&schema, &batches).map_err(|error| {
             Error::InvalidValue(format!(
                 "Failed to combine parquet chunks from RandomAccessFile: {error}"

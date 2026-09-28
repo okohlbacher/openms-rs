@@ -215,7 +215,8 @@ fn read_schema(path: &Path) -> String {
     for field in table.schema().fields() {
         text.push_str(&format!(" | {} chunks=1", cpp_field_string(field)));
     }
-    let mut keys: Vec<&String> = table.schema().metadata().keys().collect();
+    let schema = table.schema();
+    let mut keys: Vec<&String> = schema.metadata().keys().collect();
     keys.sort();
     if !keys.is_empty() {
         let keys: Vec<&str> = keys.iter().map(|k| k.as_str()).collect();
