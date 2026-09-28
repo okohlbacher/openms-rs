@@ -133,7 +133,7 @@ fn runtime_reader_reproduces_the_embedded_registry() {
 
 /// Source mode: `hidden` is dropped, and the last specificity's
 /// classification, canonicalised by `setSourceClassification`, is every
-/// specificity's (`UnimodXMLHandler.cpp:57-60`).
+/// specificity's (`UnimodXMLHandler.cpp:60-63`).
 #[test]
 fn source_mode_reproduces_the_source_classification_rule() {
     let retained = unimod();

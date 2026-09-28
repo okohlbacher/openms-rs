@@ -6,7 +6,7 @@
 //!
 //! Expectations come from `PTMXMLFile_test.cpp` and its unchanged fixture
 //! `PTMs.xml` (here `tests/data/PTMXMLFile_PTMs.xml`); the byte layout of the
-//! writer comes from `PTMXMLHandler::writeTo` (`PTMXMLHandler.cpp:27-39`).
+//! writer comes from `PTMXMLHandler::writeTo` (`PTMXMLHandler.cpp:25-37`).
 //! See `tests/data/ptm_xml_provenance.json`.
 
 #![cfg(feature = "kb-xml")]
@@ -56,7 +56,7 @@ fn store_round_trips_the_class_test_fixture() {
     std::fs::remove_file(&path).unwrap();
 }
 
-/// The writeTo layout for several entries, from `PTMXMLHandler.cpp:29-38`:
+/// The writeTo layout for several entries, from `PTMXMLHandler.cpp:28-35`:
 /// entries in `std::map` key order.
 #[test]
 fn writer_emits_entries_in_key_order() {

@@ -52,5 +52,5 @@ Xerces-based `Internal::XMLFile` / `XMLHandler` base classes.
 `tests/ptm_xml.rs` (6 tests, `--features kb-xml`): the `load` and `store`
 sections of `PTMXMLFile_test.cpp` over the byte-identical fixture
 `tests/data/PTMXMLFile_PTMs.xml` (tier 3); multi-entry writer order from
-`PTMXMLHandler.cpp:29-38`, escaping, compressed store/load and failure
+`PTMXMLHandler.cpp:28-35`, escaping, compressed store/load and failure
 atomicity (tier 4). Provenance: `tests/data/ptm_xml_provenance.json`.

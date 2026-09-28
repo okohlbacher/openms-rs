@@ -39,7 +39,7 @@ newer `unimod.xml`, OpenMS's `custom_mods.xml`, or a caller's own file:
 - `ReadOptions::source()`: `hidden` false and every specificity carrying the
   classification of the modification's *last* specificity, canonicalised as
   `setSourceClassification` + `getSourceClassificationName`
-  (`UnimodXMLHandler.cpp:57-60`, a source `TODO`).
+  (`UnimodXMLHandler.cpp:60-63`, a source `TODO`).
 
 ## Native differences
 

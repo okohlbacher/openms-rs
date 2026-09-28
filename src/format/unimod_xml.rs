@@ -67,7 +67,7 @@ impl Default for ReadLimits {
 /// `hidden` flag. Source `UnimodXMLHandler` keeps neither per specificity: it
 /// ignores `hidden`, and it writes each specificity's classification into the
 /// one modification all of them are copied from, so the *last* one wins for
-/// every site (`UnimodXMLHandler.cpp:57-60`, marked `TODO` there).
+/// every site (`UnimodXMLHandler.cpp:60-63`, marked `TODO` there).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum SpecificityAttributes {
     /// Keep each specificity's own `classification` text and `hidden` flag.
