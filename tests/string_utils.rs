@@ -15,8 +15,9 @@
 //! recomputes every record with the port and compares the text.
 //!
 //! The class-test sections below port the literals of
-//! `src/tests/class_tests/openms/source/StringUtils_test.cpp` at core
-//! `bc9cc12` (tier 3); the oracle is tier 1.
+//! `src/tests/class_tests/openms/source/StringUtils_test.cpp` (`class_test_*`)
+//! and `String_test.cpp` (`string_test_*`) at core `bc9cc12` (tier 3); the
+//! oracle is tier 1.
 
 use openms::Error;
 use openms::data_structures::string_utils::{
@@ -712,4 +713,509 @@ fn native_boundaries() {
     // numberLength refuses what the source cannot finish.
     assert!(number_length(f64::NAN, 5).is_err());
     assert!(number_length(f64::NEG_INFINITY, 5).is_err());
+}
+
+// --------------------------------------------------------------------------
+// String_test.cpp at core bc9cc12: the class test of the former String class,
+// which now tests the StringUtils free functions directly (tier 3). The
+// std::string constructor sections (String_test.cpp:40-89) test the standard
+// library and have no port counterpart; the long double sections
+// (:163-186, :657-659, :685-696) have no Rust type to test.
+// --------------------------------------------------------------------------
+
+const AMINO: &str = "ACDEFGHIKLMNPQRSTVWY";
+
+fn relative_similar(a: f64, b: f64) -> bool {
+    // TEST_REAL_SIMILAR's default relative tolerance.
+    ((a - b) / b).abs() <= 1e-5
+}
+
+#[test]
+fn string_test_integer_to_str() {
+    // String_test.cpp:94-124.
+    assert_eq!((-17_i32).to_str_text(), "-17");
+    assert_eq!(17_u32.to_str_text(), "17");
+    assert_eq!((-17_i64).to_str_text(), "-17");
+    assert_eq!(17_u64.to_str_text(), "17");
+    assert_eq!((-17_i16).to_str_text(), "-17");
+    assert_eq!(17_u16.to_str_text(), "17");
+    assert_eq!(12_345_678_u64.to_str_text(), "12345678");
+    assert_eq!((-12_345_678_i64).to_str_text(), "-12345678");
+}
+
+#[test]
+fn string_test_float_to_str() {
+    // String_test.cpp:126-140.
+    assert_eq!(to_str_f32(17.012_345_6), "17.012346");
+    assert_eq!(to_str_f32_low_p(17.0123), "17.012");
+    assert_eq!(to_str_f32(50_254.199_219), "5.02542e04");
+    assert_eq!(to_str_f32(1_000_000.0), "1.0e06");
+    assert_eq!(to_str_f32(0.000_001), "1.0e-06");
+    let denorm = f32::MIN_POSITIVE / 10.0;
+    assert_eq!(to_str_f32(denorm), "1.175495e-39");
+    assert_eq!(to_str_f32_low_p(denorm), "1.175e-39");
+    assert_eq!(to_str_f32(f32::NAN), "NaN");
+    assert_eq!(to_str_f32_low_p(f32::NAN), "NaN");
+}
+
+#[test]
+fn string_test_double_to_str() {
+    // String_test.cpp:142-161.
+    assert_eq!(to_str(17.012345), "17.012345");
+    assert_eq!(to_str_low_p(17.012345), "17.012");
+    assert_eq!(to_str(1_000_000.0), "1.0e06");
+    assert_eq!(to_str(-1_000_000.0), "-1.0e06");
+    assert_eq!(to_str(10_000.0), "1.0e04");
+    assert_eq!(to_str(0.000_001), "1.0e-06");
+    assert_eq!(to_str(1.5e10), "1.5e10");
+    let denorm = f64::MIN_POSITIVE / 10.0;
+    assert_eq!(to_str(denorm), "2.225073858507203e-309");
+    assert_eq!(to_str_low_p(denorm), "2.225e-309");
+    assert_eq!(to_str(f64::NAN), "NaN");
+    assert_eq!(to_str_low_p(f64::NAN), "NaN");
+}
+
+#[test]
+fn string_test_data_value_to_str() {
+    // String_test.cpp:188-195.
+    let value = MetaValue::try_from(17.012345).unwrap();
+    assert_eq!(value.to_text(true).unwrap(), "17.012345");
+    assert_eq!(value.to_text(false).unwrap(), "17.012");
+    let list = MetaValue::try_from(vec![17.012345, 2.0]).unwrap();
+    assert_eq!(list.to_text(true).unwrap(), "[17.012345, 2.0]");
+    assert_eq!(list.to_text(false).unwrap(), "[17.012, 2.0]");
+    assert_eq!(MetaValue::from("bla").to_text(true).unwrap(), "bla");
+    assert_eq!(MetaValue::from(4711_i64).to_text(true).unwrap(), "4711");
+}
+
+#[test]
+fn string_test_number_length_number_random() {
+    // String_test.cpp:201-223.
+    assert_eq!(number_length(12345678.9123, 11).unwrap(), "12345678.91");
+    assert_eq!(number_length(-12345678.9123, 11).unwrap(), "-12345678.9");
+    assert_eq!(number_length(12345678.9123, 10).unwrap(), "12345678.9");
+    assert_eq!(number_length(-12345678.9123, 10).unwrap(), "-1234.5e04");
+    assert_eq!(number_length(12345678.9123, 9).unwrap(), "1234.5e04");
+    assert_eq!(number_length(-12345678.9123, 9).unwrap(), "-123.4e05");
+    for (digits, expected) in [
+        (0, "123"),
+        (1, "123.1"),
+        (2, "123.12"),
+        (3, "123.123"),
+        (4, "123.1234"),
+        (5, "123.12340"),
+    ] {
+        assert_eq!(number(123.1234, digits).unwrap(), expected);
+    }
+    assert_eq!(number(0.0, 5).unwrap(), "0.00000");
+    assert_eq!(su::random(10).unwrap().len(), 10);
+}
+
+#[test]
+fn string_test_predicates() {
+    // String_test.cpp:231-262; hasPrefix, hasSuffix, hasSubstring and has map
+    // onto str::starts_with, ends_with and contains (see the module table).
+    let s = AMINO;
+    assert!(s.starts_with(""));
+    assert!(s.starts_with("ACDEF"));
+    assert!(s.starts_with(AMINO));
+    assert!(!s.starts_with("ABCDEF"));
+    assert!(!s.starts_with("ACDEFGHIKLMNPQRSTVWYACDEF"));
+    assert!(s.ends_with(""));
+    assert!(s.ends_with("TVWY"));
+    assert!(s.ends_with(AMINO));
+    assert!(!s.ends_with("WXYZ"));
+    assert!(!s.ends_with("ACDEFACDEFGHIKLMNPQRSTVWY"));
+    assert!(s.contains(""));
+    assert!(s.contains("GHIKLM"));
+    assert!(s.contains(AMINO));
+    assert!(!s.contains("MLKIGH"));
+    assert!(!s.contains("ACDEFGHIKLMNPQRSTVWYACDEF"));
+    assert!(s.as_bytes().contains(&b'A'));
+    assert!(!s.as_bytes().contains(&b'O'));
+}
+
+fn is_overflow(result: openms::Result<String>) -> bool {
+    matches!(result, Err(Error::InvalidRange(ref m)) if m.contains("too large"))
+}
+
+fn is_underflow(result: openms::Result<String>) -> bool {
+    matches!(result, Err(Error::InvalidRange(ref m)) if m.contains("too small"))
+}
+
+#[test]
+fn string_test_accessors() {
+    // String_test.cpp:264-333.
+    let s = AMINO;
+    assert_eq!(su::prefix_signed(s, 4).unwrap(), "ACDE");
+    assert_eq!(su::prefix_signed(s, 0).unwrap(), "");
+    assert!(is_overflow(su::prefix_signed(s, s.len() as i32 + 1)));
+    assert!(is_underflow(su::prefix_signed(s, -1)));
+    assert_eq!(su::suffix_signed(s, 4).unwrap(), "TVWY");
+    assert_eq!(su::suffix_signed(s, 0).unwrap(), "");
+    assert!(is_overflow(su::suffix_signed(s, s.len() as i32 + 1)));
+    assert!(is_underflow(su::suffix_signed(s, -1)));
+    assert_eq!(su::prefix(s, 4).unwrap(), "ACDE");
+    assert_eq!(su::prefix(s, 0).unwrap(), "");
+    assert!(is_overflow(su::prefix(s, s.len() + 1)));
+    assert_eq!(su::suffix(s, 4).unwrap(), "TVWY");
+    assert_eq!(su::suffix(s, 0).unwrap(), "");
+    assert!(is_overflow(su::suffix(s, s.len() + 1)));
+    assert_eq!(su::prefix_until(s, 'F'), "ACDE");
+    assert_eq!(su::prefix_until(s, 'A'), "");
+    assert_eq!(su::prefix_until(s, 'Z'), s);
+    assert_eq!(su::suffix_after(s, 'S'), "TVWY");
+    assert_eq!(su::suffix_after(s, 'Y'), "");
+    assert_eq!(su::suffix_after(s, 'Z'), s);
+    let s2 = "abcdef";
+    for (position, length, expected) in [
+        (0, Some(4), "abcd"),
+        (1, Some(1), "b"),
+        (1, Some(3), "bcd"),
+        (0, Some(6), "abcdef"),
+        (5, Some(1), "f"),
+        (6, Some(1), ""),
+        (0, Some(7), "abcdef"),
+        (0, None, "abcdef"),
+        (1, None, "bcdef"),
+        (5, None, "f"),
+        (6, None, ""),
+    ] {
+        assert_eq!(su::substr(s2, position, length).unwrap(), expected);
+    }
+    for (count, expected) in [
+        (0, "abcdef"),
+        (1, "abcde"),
+        (2, "abcd"),
+        (3, "abc"),
+        (4, "ab"),
+        (5, "a"),
+        (6, ""),
+        (9, ""),
+        (usize::MAX, ""),
+    ] {
+        assert_eq!(su::chop(s2, count).unwrap(), expected);
+    }
+}
+
+#[test]
+fn string_test_reverse_trim_simplify_fill() {
+    // String_test.cpp:335-438.
+    let mut r = String::from(AMINO);
+    su::reverse(&mut r).unwrap();
+    assert_eq!(r, "YWVTSRQPNMLKIHGFEDCA");
+    r.clear();
+    su::reverse(&mut r).unwrap();
+    assert_eq!(r, "");
+
+    let mut t = String::from("\n\r\t test \n\r\t");
+    su::trim(&mut t);
+    assert_eq!(t, "test");
+    su::trim(&mut t);
+    assert_eq!(t, "test");
+    for (input, expected) in [("", ""), (" t", "t"), ("t ", "t"), ("\t\r\n ", "")] {
+        let mut t = String::from(input);
+        su::trim(&mut t);
+        assert_eq!(t, expected);
+    }
+
+    let mut si = String::from("\n\r\t te\tst \n\r\t");
+    su::simplify(&mut si);
+    assert_eq!(si, " te st ");
+    su::simplify(&mut si);
+    assert_eq!(si, " te st ");
+    for (input, expected) in [("", ""), (" t", " t"), ("t ", "t "), ("\t\r\n ", " ")] {
+        let mut si = String::from(input);
+        su::simplify(&mut si);
+        assert_eq!(si, expected);
+    }
+
+    let mut fl = String::from("TEST");
+    su::fill_left(&mut fl, 'x', 4).unwrap();
+    assert_eq!(fl, "TEST");
+    su::fill_left(&mut fl, 'y', 5).unwrap();
+    assert_eq!(fl, "yTEST");
+    su::fill_left(&mut fl, 'z', 7).unwrap();
+    assert_eq!(fl, "zzyTEST");
+    let mut fr = String::from("TEST");
+    su::fill_right(&mut fr, 'x', 4).unwrap();
+    assert_eq!(fr, "TEST");
+    su::fill_right(&mut fr, 'y', 5).unwrap();
+    assert_eq!(fr, "TESTy");
+    su::fill_right(&mut fr, 'z', 7).unwrap();
+    assert_eq!(fr, "TESTyzz");
+}
+
+#[test]
+fn string_test_quote_unquote() {
+    // String_test.cpp:364-398.
+    let mut q = String::new();
+    su::quote(&mut q, '\'', QuotingMethod::None).unwrap();
+    assert_eq!(q, "''");
+    su::quote(&mut q, '\'', QuotingMethod::Escape).unwrap();
+    assert_eq!(q, "'\\'\\''");
+    let mut q = String::from("ab\"cd\\ef");
+    su::quote(&mut q, '"', QuotingMethod::None).unwrap();
+    assert_eq!(q, "\"ab\"cd\\ef\"");
+    su::quote(&mut q, '"', QuotingMethod::Escape).unwrap();
+    assert_eq!(q, "\"\\\"ab\\\"cd\\\\ef\\\"\"");
+    let mut q = String::from("ab\"cd\\ef");
+    su::quote(&mut q, '"', QuotingMethod::Double).unwrap();
+    assert_eq!(q, "\"ab\"\"cd\\ef\"");
+
+    let mut u = String::new();
+    assert!(matches!(
+        su::unquote(&mut u, '"', QuotingMethod::default()),
+        Err(Error::InvalidValue(_))
+    ));
+    let mut u = String::from("''");
+    su::unquote(&mut u, '\'', QuotingMethod::None).unwrap();
+    assert_eq!(u, "");
+    let mut u = String::from("'\\'\\''");
+    su::unquote(&mut u, '\'', QuotingMethod::Escape).unwrap();
+    assert_eq!(u, "''");
+    let mut u = String::from(r#""ab"cd\ef""#);
+    su::unquote(&mut u, '"', QuotingMethod::None).unwrap();
+    assert_eq!(u, "ab\"cd\\ef");
+    let mut u = String::from(r#""\"ab\"cd\\ef\"""#);
+    su::unquote(&mut u, '"', QuotingMethod::Escape).unwrap();
+    assert_eq!(u, "\"ab\"cd\\ef\"");
+    let mut u = String::from(r#""ab""cd\ef""#);
+    su::unquote(&mut u, '"', QuotingMethod::Double).unwrap();
+    assert_eq!(u, "ab\"cd\\ef");
+}
+
+fn conversion_message<T: std::fmt::Debug>(result: openms::Result<T>) -> String {
+    match result {
+        Err(Error::InvalidValue(message)) => message,
+        other => panic!("expected a ConversionError, got {other:?}"),
+    }
+}
+
+#[test]
+fn string_test_converters() {
+    // String_test.cpp:444-495.
+    assert_eq!(to_int32("123").unwrap(), 123);
+    assert_eq!(to_int32("-123").unwrap(), -123);
+    assert_eq!(to_int32("  -123  ").unwrap(), -123);
+    conversion_message(to_int32("524 starts with an int"));
+    assert_eq!(
+        conversion_message(to_int32("not an int")),
+        "Could not convert string 'not an int' to an integer value"
+    );
+
+    assert!(relative_similar(
+        f64::from(to_float("123.456").unwrap()),
+        f64::from(123.456_f32)
+    ));
+    assert!(relative_similar(
+        f64::from(to_float("-123.456").unwrap()),
+        f64::from(-123.456_f32)
+    ));
+    assert_eq!(to_str_f32(to_float("73629.9").unwrap()), "7.36299e04");
+    assert!(to_float("nan").unwrap().is_nan());
+    assert!(to_float("NaN").unwrap().is_nan());
+    assert_eq!(
+        conversion_message(to_float("not a number")),
+        "Could not convert string 'not a number' to a float value"
+    );
+
+    assert!(relative_similar(to_double("123.456").unwrap(), 123.456));
+    assert!(relative_similar(
+        to_double("-123.4567890123").unwrap(),
+        -123.4567890123
+    ));
+    assert_eq!(
+        to_str(to_double("73629.980123").unwrap()),
+        "7.3629980123e04"
+    );
+    assert!(to_double("nan").unwrap().is_nan());
+    assert!(to_double("NaN").unwrap().is_nan());
+    assert_eq!(
+        conversion_message(to_double("not a number")),
+        "Could not convert string 'not a number' to a double value"
+    );
+}
+
+#[test]
+fn string_test_case_substitute_remove() {
+    // String_test.cpp:497-619.
+    let mut tu = String::from("test45%#.,");
+    su::to_upper(&mut tu);
+    assert_eq!(tu, "TEST45%#.,");
+    let mut empty = String::new();
+    su::to_upper(&mut empty);
+    assert_eq!(empty, "");
+    let mut tl = String::from("TEST45%#.,");
+    su::to_lower(&mut tl);
+    assert_eq!(tl, "test45%#.,");
+    su::to_lower(&mut empty);
+    assert_eq!(empty, "");
+    for (input, expected) in [("test45%#.,", "Test45%#.,"), (" ", " "), ("", "")] {
+        let mut fu = String::from(input);
+        su::first_to_upper(&mut fu);
+        assert_eq!(fu, expected);
+    }
+
+    let mut sub = String::from("abcdefg");
+    su::substitute_char(&mut sub, 'a', 'x');
+    assert_eq!(sub, "xbcdefg");
+    su::substitute_char(&mut sub, 'g', 'y');
+    assert_eq!(sub, "xbcdefy");
+    su::substitute_char(&mut sub, 'c', '-');
+    assert_eq!(sub, "xb-defy");
+    let mut dots = String::from(".....");
+    su::substitute_char(&mut dots, '.', ',');
+    assert_eq!(dots, ",,,,,");
+
+    let mut sub = String::from("abcdefg");
+    for (from, to, expected) in [
+        ("a", "x", "xbcdefg"),
+        ("bcd", "y", "xyefg"),
+        ("fg", "", "xye"),
+        ("e", "z!", "xyz!"),
+        ("u", "blblblblbl", "xyz!"),
+        ("", "blblblblbl", "xyz!"),
+    ] {
+        su::substitute(&mut sub, from, to).unwrap();
+        assert_eq!(sub, expected);
+    }
+    let mut sub = String::from("abcdefgabcdefgabcdefgab");
+    su::substitute(&mut sub, "ab", "x").unwrap();
+    assert_eq!(sub, "xcdefgxcdefgxcdefgx");
+    su::substitute(&mut sub, "x", "").unwrap();
+    assert_eq!(sub, "cdefgcdefgcdefg");
+
+    let mut rm = String::from("abcabc");
+    su::remove(&mut rm, 'a');
+    assert_eq!(rm, "bcbc");
+    su::remove(&mut rm, 'c');
+    assert_eq!(rm, "bb");
+    su::remove(&mut rm, 'b');
+    assert_eq!(rm, "");
+
+    let mut elc = String::from("/");
+    for (end, expected) in [('/', "/"), ('\\', "/\\"), ('\\', "/\\"), ('/', "/\\/")] {
+        su::ensure_last_char(&mut elc, end);
+        assert_eq!(elc, expected);
+    }
+
+    for (input, expected) in [
+        ("", ""),
+        (" \t \n ", ""),
+        ("test", "test"),
+        ("\n\r\t test \n\r\t", "test"),
+        ("\n\r\t t\ne \ts\rt \n\r\t", "test"),
+    ] {
+        let mut rw = String::from(input);
+        su::remove_whitespaces(&mut rw);
+        assert_eq!(rw, expected);
+    }
+    // The source shuffles 100 spaces into 16 KiB + 1 'x' with a randomly
+    // seeded engine; a fixed spread of the same 100 spaces stands in for it.
+    let test = "x".repeat(16 * 1024 + 1);
+    let mut rw = String::with_capacity(test.len() + 100);
+    let mut spaces = 0;
+    for (index, c) in test.chars().enumerate() {
+        if index % 164 == 0 && spaces < 100 {
+            rw.push(' ');
+            spaces += 1;
+        }
+        rw.push(c);
+    }
+    assert_eq!(spaces, 100);
+    su::remove_whitespaces(&mut rw);
+    assert_eq!(rw, test);
+}
+
+#[test]
+fn string_test_operators() {
+    // String_test.cpp:621-683: std::string + number and std::string += number.
+    fn plus(value: &dyn ToStr) -> String {
+        let mut text = String::from("test");
+        value.append_to_str(&mut text);
+        text
+    }
+    assert_eq!(plus(&4_i32), "test4");
+    assert_eq!(plus(&4_u32), "test4");
+    assert_eq!(plus(&4_i16), "test4");
+    assert_eq!(plus(&4_u16), "test4");
+    assert_eq!(plus(&4_i64), "test4");
+    assert_eq!(plus(&4_u64), "test4");
+    assert_eq!(plus(&4.0_f32), "test4.0");
+    assert_eq!(plus(&4.0_f64), "test4.0");
+    assert_eq!(plus(&7_i32), "test7");
+    assert_eq!(plus(&7_u32), "test7");
+    assert_eq!(plus(&7.4_f32), "test7.4");
+    assert_eq!(plus(&7.4_f64), "test7.4");
+}
+
+#[test]
+fn string_test_split_and_concatenate() {
+    // String_test.cpp:698-811.
+    let r = su::split(";1;2;3;4;5;", ';', false).unwrap();
+    assert!(r.split);
+    assert_eq!(r.parts.len(), 7);
+    assert_eq!(r.parts[0], "");
+    assert_eq!(r.parts[1], "1");
+    assert_eq!(r.parts[6], "");
+    let r = su::split("1;2;3;4;5", ';', false).unwrap();
+    assert!(r.split);
+    assert_eq!(r.parts.len(), 5);
+    assert_eq!(su::split("", ',', false).unwrap(), Split::default());
+    let r = su::split(";", ';', false).unwrap();
+    assert!(r.split);
+    assert_eq!(r.parts.len(), 2);
+    let r = su::split("nodelim", ';', false).unwrap();
+    assert!(!r.split);
+    assert_eq!(r.parts.len(), 1);
+    let r = su::split(" \"hello\", world, 23.3", ',', true).unwrap();
+    assert!(r.split);
+    assert_eq!(r.parts, ["hello", "world", "23.3"]);
+    let r = su::split(r#" "hello", " donot,splitthis ", "23.4 " "#, ',', true).unwrap();
+    assert!(r.split);
+    assert_eq!(r.parts.len(), 3);
+    assert_eq!(r.parts[1], " donot,splitthis ");
+    assert!(matches!(
+        su::split(
+            r#" "first", "seconds"<thisshouldnotbehere>, third"#,
+            ',',
+            true
+        ),
+        Err(Error::InvalidValue(_))
+    ));
+
+    let sp2 = "abcdebcfghbc";
+    let r = su::split_str(sp2, "bc").unwrap();
+    assert!(r.split);
+    assert_eq!(r.parts, ["a", "de", "fgh", ""]);
+    let r = su::split_str(sp2, "xy").unwrap();
+    assert!(!r.split);
+    assert_eq!(r.parts.len(), 1);
+    let r = su::split_str(sp2, "").unwrap();
+    assert!(r.split);
+    assert_eq!(r.parts.len(), sp2.len());
+    let r = su::split_str("", ",").unwrap();
+    assert!(!r.split);
+    assert!(r.parts.is_empty());
+
+    let r = su::split_quoted(sp2, "bc", '"', QuotingMethod::default()).unwrap();
+    assert!(r.split);
+    assert_eq!(r.parts.len(), 4);
+    let r = su::split_quoted(r#""a,b,c","d,\",f","""#, ",", '"', QuotingMethod::Escape).unwrap();
+    assert!(r.split);
+    assert_eq!(r.parts, ["\"a,b,c\"", "\"d,\\\",f\"", "\"\""]);
+    assert!(matches!(
+        su::split_quoted(r#""a,"b""#, ",", '"', QuotingMethod::Escape),
+        Err(Error::InvalidValue(_))
+    ));
+    let r = su::split_quoted(r#""ab"___"cd""ef""#, "___", '"', QuotingMethod::Double).unwrap();
+    assert!(r.split);
+    assert_eq!(r.parts, ["\"ab\"", "\"cd\"\"ef\""]);
+
+    let parts = su::split("1;2;3;4;5", ';', false).unwrap().parts;
+    assert_eq!(su::concatenate(&parts, "g").unwrap(), "1g2g3g4g5");
+    assert_eq!(su::concatenate(&parts, "").unwrap(), "12345");
+    let parts = su::split("", ';', false).unwrap().parts;
+    assert_eq!(su::concatenate(&parts, "").unwrap(), "");
 }
