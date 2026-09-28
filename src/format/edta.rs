@@ -33,9 +33,9 @@
 //!   323 406 200 2 323 406 200 2 323 407 100 2 323 407 50 2
 //!   ```
 //!
-//! Every variant loads into a [`ConsensusMap`]. Writing is available for a
-//! [`ConsensusMap`] (consensus plus sub-feature quadruplets) and for a
-//! [`FeatureMap`] (the four consensus columns only). Neither writer emits meta
+//! Every variant loads into a [`ConsensusMap`](crate::kernel::ConsensusMap). Writing is available for a
+//! [`ConsensusMap`](crate::kernel::ConsensusMap) (consensus plus sub-feature quadruplets) and for a
+//! [`FeatureMap`](crate::kernel::FeatureMap) (the four consensus columns only). Neither writer emits meta
 //! data, unique IDs, qualities, widths or identifications, exactly as the
 //! source; the support document `docs/EDTA_FILE_SUPPORT.md` lists every
 //! difference from the source.
@@ -384,7 +384,7 @@ fn parse(input: &TextFile, filename: &str, ids: &mut UniqueIdGenerator) -> Resul
     let has_header = headers[..3].iter().any(|cell| to_double(cell).is_err());
     let offset = usize::from(has_header);
     if headers.len() >= 5 {
-        input_type = if headers[4].to_ascii_uppercase() == "RT1" {
+        input_type = if headers[4].eq_ignore_ascii_case("RT1") {
             InputType::Consensus
         } else {
             InputType::OldCharge

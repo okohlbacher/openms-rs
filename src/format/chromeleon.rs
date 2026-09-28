@@ -8,14 +8,14 @@
 //!
 //! ```text
 //! Raw Data:
-//! Time (min)	Step (s)	Value (mAU)
-//! 0.003333	0.200	-0.002496
-//! 0.006667	0.200	-0.017589
+//! Time (min)    Step (s)    Value (mAU)
+//! 0.003333    0.200    -0.002496
+//! 0.006667    0.200    -0.017589
 //! ...
 //! ```
 //!
 //! A header of tab-separated `key<TAB>value` lines precedes the data; the keys
-//! the source reads are listed at [`ChromeleonFile::load`]. The data follow a
+//! the source reads are listed at [`ChromeleonFile::load`](crate::format::chromeleon::ChromeleonFile::load). The data follow a
 //! line that is exactly `Raw Data:` or `Chromatogram Data:` and the column
 //! caption after it. See `docs/CHROMELEON_FILE_SUPPORT.md`.
 

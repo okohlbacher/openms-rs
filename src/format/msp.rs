@@ -686,10 +686,8 @@ fn apply_mods(token: &str, hit: &mut PeptideHit, number: usize) -> Result<()> {
             if peptide.set_n_terminal_modification(name).is_err() {
                 peptide.set_modification(position, name)?;
             }
-        } else if position == last {
-            if peptide.set_c_terminal_modification(name).is_err() {
-                peptide.set_modification(position, name)?;
-            }
+        } else if position == last && peptide.set_c_terminal_modification(name).is_err() {
+            peptide.set_modification(position, name)?;
         }
     }
     hit.sequence = peptide;

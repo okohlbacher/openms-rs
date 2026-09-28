@@ -5,7 +5,7 @@
 //! Writer for the consensus-spectrum MGF file consumed by GNPS Feature-Based
 //! and Ion-Identity Molecular Networking, ported from `FORMAT/GNPSMGFFile.h`.
 //!
-//! For each consensus feature of a [`ConsensusMap`], the GNPS workflow expects
+//! For each consensus feature of a [`ConsensusMap`](crate::kernel::ConsensusMap), the GNPS workflow expects
 //! one representative MS2 spectrum. This writer reads the spectrum references
 //! stored on each consensus element, resolves them to the original mzML files,
 //! optionally merges several MS2 scans per feature into one binned consensus
@@ -427,14 +427,14 @@ impl GNPSMGFFile {
 
             // Open the on-disc experiments of every kept annotation.
             for &(map_index, _) in &pepts {
-                if !files.contains_key(&map_index) {
+                if let std::collections::btree_map::Entry::Vacant(entry) = files.entry(map_index) {
                     let path = mzml_file_paths.get(map_index).ok_or_else(|| {
                         Error::InvalidValue(format!(
                             "map_index {map_index} names no input mzML file ({} given)",
                             mzml_file_paths.len()
                         ))
                     })?;
-                    files.insert(map_index, OnDiscMSExperiment::open(path)?);
+                    entry.insert(OnDiscMSExperiment::open(path)?);
                 }
             }
 

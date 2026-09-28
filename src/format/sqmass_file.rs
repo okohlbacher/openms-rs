@@ -10,8 +10,8 @@
 //! without loading the whole experiment into memory. For spectra and
 //! chromatograms that carry precursor information, the `peptide_sequence`
 //! meta value of the first precursor is round-tripped with the binary data.
-//! The storage itself is [`MzMLSqliteHandler`]; this adapter applies one
-//! [`SqMassConfig`] to it, as the source does. See
+//! The storage itself is [`MzMLSqliteHandler`](crate::format::mzml_sqlite_handler::MzMLSqliteHandler); this adapter applies one
+//! [`SqMassConfig`](crate::format::sqmass_file::SqMassConfig) to it, as the source does. See
 //! `docs/SQMASS_FILE_SUPPORT.md`.
 
 use crate::Result;

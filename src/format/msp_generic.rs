@@ -557,7 +557,7 @@ impl MSPGenericFile {
     ///
     /// Nothing happens unless the spectrum's `is_valid` meta value is non-zero.
     /// A spectrum whose name was already added during this load is a duplicate
-    /// and is skipped (the source logs "DUPLICATE: <name>"). Otherwise the
+    /// and is skipped (the source logs `DUPLICATE: <name>`). Otherwise the
     /// synonyms collected since its name are joined with the separator into its
     /// `Synon` meta value, `is_valid` is removed, a negative retention time is
     /// replaced by the number of spectra already in `library`, and a copy is

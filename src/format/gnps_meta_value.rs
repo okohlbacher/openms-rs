@@ -8,7 +8,7 @@
 //! GNPS FBMN can pick up per-sample metadata so the web platform can group or
 //! colour network nodes by sample attribute. This writer produces the minimal
 //! seed of such a table: one row per mzML file used to build the input
-//! [`ConsensusMap`], holding that file's basename and a sequential `MAP<i>`
+//! [`ConsensusMap`](crate::kernel::ConsensusMap), holding that file's basename and a sequential `MAP<i>`
 //! identifier. Users typically extend the file with further attribute columns
 //! before uploading it (see
 //! <https://ccms-ucsd.github.io/GNPSDocumentation/metadata/>). The file is

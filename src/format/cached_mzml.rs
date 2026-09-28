@@ -8,8 +8,8 @@
 //! Spectra and chromatograms are split across two files: an `.mzML` file
 //! holding the experiment-level metadata and a side-car `.mzML.cached` binary
 //! file holding the per-spectrum and per-chromatogram payload, in the layout
-//! of [`crate::format::cached_mzml_handler`]. After [`CachedmzML::load`] (or
-//! [`CachedmzML::open`]) the side-car's byte offsets are kept in an in-memory
+//! of [`crate::format::cached_mzml_handler`]. After [`CachedmzML::load`](crate::format::cached_mzml::CachedmzML::load) (or
+//! [`CachedmzML::open`](crate::format::cached_mzml::CachedmzML::open)) the side-car's byte offsets are kept in an in-memory
 //! index, so single spectra or chromatograms can be fetched in any order
 //! without scanning the whole file. See `docs/CACHED_MZML_SUPPORT.md`.
 
