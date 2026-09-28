@@ -1231,7 +1231,7 @@ impl ConsensusIDAlgorithm for ConsensusIDAlgorithmPEPIons {
         se_info: &BTreeMap<String, String>,
         number_of_runs: usize,
     ) -> Result<Vec<String>> {
-        if !(self.mass_tolerance >= 0.0 && self.mass_tolerance.is_finite()) {
+        if !self.mass_tolerance.is_finite() || self.mass_tolerance < 0.0 {
             return Err(bad("'mass_tolerance' must be finite and non-negative"));
         }
         run(

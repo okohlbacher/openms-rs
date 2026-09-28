@@ -10,6 +10,8 @@
 pub mod consensus_id;
 /// `ConsensusMapMergerAlgorithm`: merge the identification runs of a consensus map.
 pub mod consensus_map_merger;
+/// `IDDecoyProbability`: target/decoy score-distribution probabilities.
+pub mod id_decoy_probability;
 /// `IDMergerAlgorithm`: merge identification runs into one run.
 pub mod id_merger;
 /// `IDScoreSwitcherAlgorithm`: switch main scores to a meta-value score.
