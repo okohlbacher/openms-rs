@@ -156,6 +156,10 @@ pub mod xml_schema;
 #[cfg(feature = "paramxml")]
 pub mod qcml;
 
+/// Writing, concatenating and reading Arrow tables as Parquet, and the QPX
+/// naming helpers the Parquet exporters share (`ArrowIOHelpers.h`).
+#[cfg(feature = "arrow")]
+pub mod arrow_io_helpers;
 /// Arrow schema definitions of the OpenMS Parquet tables and their
 /// validation (`ArrowSchemaRegistry.h`).
 #[cfg(feature = "arrow")]

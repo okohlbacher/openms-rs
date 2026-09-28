@@ -144,8 +144,14 @@ impl MetaValue {
     /// reader: `writeUserParam_` writes a `DOUBLE_LIST` element-wise through
     /// the same conversion as a scalar (`ListUtilsIO.h:29-44`), so a stored
     /// document can spell `[inf, -inf, NaN]`, and `ListUtils::create<double>`
-    /// reads it back. [`MetaValue::validate`] still reports such a value.
-    #[cfg(any(feature = "idxml", feature = "featurexml", feature = "consensusxml"))]
+    /// reads it back. `ArrowIOHelpers::readMetaValues` stores such a list the
+    /// same way. [`MetaValue::validate`] still reports such a value.
+    #[cfg(any(
+        feature = "idxml",
+        feature = "featurexml",
+        feature = "consensusxml",
+        feature = "arrow"
+    ))]
     pub(crate) fn source_float_list(values: Vec<f64>) -> Self {
         Self {
             data: MetaValueData::FloatList(values),
