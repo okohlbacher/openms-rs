@@ -1,0 +1,9 @@
+Warning: Only 44 data points for LOWESS fit of map 0. Consider adjusting RT or m/z tolerance or max_pairwise_log_fc, decreasing min_rel_cc_size, or increasing max_nr_conflicts.
+Warning: Only 38 data points for LOWESS fit of map 1. Consider adjusting RT or m/z tolerance or max_pairwise_log_fc, decreasing min_rel_cc_size, or increasing max_nr_conflicts.
+Warning: Only 38 data points for LOWESS fit of map 2. Consider adjusting RT or m/z tolerance or max_pairwise_log_fc, decreasing min_rel_cc_size, or increasing max_nr_conflicts.
+Warning: Only 40 data points for LOWESS fit of map 3. Consider adjusting RT or m/z tolerance or max_pairwise_log_fc, decreasing min_rel_cc_size, or increasing max_nr_conflicts.
+Warning: Only 27 data points for LOWESS fit of map 0. Consider adjusting RT or m/z tolerance or max_pairwise_log_fc, decreasing min_rel_cc_size, or increasing max_nr_conflicts.
+Warning: Only 23 data points for LOWESS fit of map 1. Consider adjusting RT or m/z tolerance or max_pairwise_log_fc, decreasing min_rel_cc_size, or increasing max_nr_conflicts.
+Warning: Only 24 data points for LOWESS fit of map 2. Consider adjusting RT or m/z tolerance or max_pairwise_log_fc, decreasing min_rel_cc_size, or increasing max_nr_conflicts.
+No MS run annotated in feature map. Setting to 'UNKNOWN' 
+<No MS run annotated in feature map. Setting to 'UNKNOWN' > occurred 30 times

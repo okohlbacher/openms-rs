@@ -12,8 +12,8 @@
 | `MapAlignmentEvaluationAlgorithmRecall.h` | `mapmatching/alignment_evaluation.rs` | complete |
 | `MapAlignmentAlgorithmIdentification.h` | `mapmatching/alignment_identification.rs` | complete |
 | `MapAlignmentAlgorithmPoseClustering.h` | `mapmatching/alignment_pose_clustering.rs` | partial: `StablePairFinder` |
-| `MapAlignmentAlgorithmKD.h` | none | not started: `KDTreeFeatureMaps` |
-| `MapAlignmentAlgorithmTreeGuided.h` | none | not started: `ClusterHierarchical`, `AverageLinkage`, `ClusterAnalyzer::newickTree` |
+| `MapAlignmentAlgorithmKD.h` | `mapmatching/alignment_kd.rs` | complete; runs on the trait `KdFeatureMaps` until `KDTreeFeatureMaps` (`ANALYSIS/QUANTITATION`) is ported |
+| `MapAlignmentAlgorithmTreeGuided.h` | `mapmatching/alignment_tree_guided.rs` | partial: `buildTree` (`ClusterHierarchical`, `AverageLinkage`) and the Newick info line (`ClusterAnalyzer::newickTree`) |
 
 ## API mapping
 
@@ -82,6 +82,38 @@
 | `updateMembers_` | inside `set_parameters` |
 | protected `superimposer_`, `pairfinder_`, `reference_`, `max_num_peaks_considered_` | `superimposer`, `pair_finder` (its parameters), `reference()`, `max_num_peaks_considered` |
 
+### `MapAlignmentAlgorithmKD`
+
+| Source | Rust |
+|---|---|
+| constructor `(Size num_maps, const Param& param)` | `new(num_maps, &Param) -> Result<Self>` |
+| `addRTFitData(const KDTreeFeatureMaps&)` | `add_rt_fit_data(&K)` for `K: KdFeatureMaps` |
+| `fitLOWESS()` | `fit_lowess() -> Result<Vec<String>>`, returning the source's warnings |
+| `transform(KDTreeFeatureMaps&) const` | `transform(&mut K)` |
+| protected `computeCCs_`, `getCCs_`, `filterCCs_` | public `compute_ccs` (labels and count), `get_ccs`, `filter_ccs` |
+| protected `updateMembers_` | inside `new` |
+| private `fit_data_`, `transformations_` | read-only `fit_data()`, `transformations()` (`LowessModel`s) |
+| private `param_`, `max_pairwise_log_fc_`, `rt_tol_secs_`, `mz_tol_`, `mz_ppm_` | private state |
+| private default constructor | none |
+| the `KDTreeFeatureMaps` members it calls: `size`, `rt`, `charge`, `mapIndex`, `getNeighborhood`, `applyTransformations` with `optimizeTree` | trait `KdFeatureMaps`: `len`, `rt`, `charge`, `map_index`, `neighborhood`, `apply_transformations` |
+
+### `MapAlignmentAlgorithmTreeGuided`
+
+| Source | Rust |
+|---|---|
+| constructor: `model:` (`TransformationModelDefaults::getDefaults("b_spline")`), `model_type`, `align_algorithm:` with `use_feature_rt` `true` | `new()`; `defaults()`, `to_param()`, `set_parameters()`, `from_param()`, `from_param_with_warnings()` |
+| static `buildTree(feature_maps, tree, maps_ranges)` | not ported (the clustering); its inputs `extract_seq_and_rt` and its similarity `peptide_identifications_pearson_similarity` are |
+| `treeGuidedAlignment(tree, feature_maps_transformed, maps_ranges, map_transformed, trafo_order)` | `tree_guided_alignment(&[TreeMerge], &mut [FeatureMap], &[Vec<f64>], &mut UniqueIdGenerator) -> Result<TreeGuidedMerge>` |
+| `align(data, transformations)` | `align_with_tree(&mut [FeatureMap], &[TreeMerge], &mut UniqueIdGenerator) -> Result<TreeGuidedAlignment>` |
+| `computeTrafosByOriginalRT(feature_maps, map_transformed, transformations, trafo_order)` | `compute_trafos_by_original_rt(&[FeatureMap], &FeatureMap)`; the unused `trafo_order` is dropped |
+| static `computeTransformedFeatureMaps(feature_maps, transformations)` | `compute_transformed_feature_maps(&mut [FeatureMap], &[TransformationDescription])` |
+| protected typedef `SeqAndRTList` | `SeqAndRtList` (`BTreeMap<String, Vec<f64>>`) |
+| protected `updateMembers_`, `model_type_`, `model_param_`, `align_algorithm_` | inside `set_parameters`; `model_type`, `model_param()`, `align_algorithm` |
+| protected nested functor `PeptideIdentificationsPearsonDistance_` | `peptide_identifications_pearson_similarity` |
+| protected static `addPeptideSequences_`, `extractSeqAndRt_` | `extract_seq_and_rt` |
+| `BinaryTreeNode` (`left_child`, `right_child`, `distance`) | `TreeMerge = (usize, usize)`; the alignment does not use the distance |
+| private copy constructor and assignment | none: a plain value |
+
 ## Preserved source conventions
 
 **Histograms.** Both superimposers vote into `Math::LinearInterpolation` histograms: a vote at a fractional bucket is split linearly between the two neighbouring buckets, a vote within one bucket outside either end lands on that end, and a vote further out is dropped. The histogram is filtered with a 21-sample top-hat (`MorphologicalFilter::filterRange`, instantiated on `double`), its noise level taken from the sorted values against the line through the first bucket with slope `(last - first) / n / 3`, and the buckets below it zeroed; three rounds of a weighted mean and `1.5 * sd` cut-off then give the centroid. The affine superimposer's high end uses a range one bucket wider on each side, as in the source.
@@ -103,6 +135,10 @@
 
 **Pose-clustering alignment.** The superimposer's transformation is applied to every consensus feature and to its first handle only; the pairs' scene retention times are taken back through the algebraic inverse; the final model is `linear` with default parameters, which fails without pairs as the source's linear constructor does.
 
+**KD alignment.** Components are found by breadth-first search seeded at the lowest unvisited feature, so the labels, the component order and the member order do not depend on the order in which the kd-tree returns a neighbourhood; the fit data are `(feature RT, component average RT)` in component order, the average summed in member order. A component is kept when it has at least `max(2, warp:min_rel_cc_size * number of maps)` features (`std::max`, then truncated to `Size`) and, unless `warp:max_nr_conflicts` is -1, at most that many repeated maps. The class documentation also demands one charge per component, but the source's `continue` on a second charge continues only the loop over the members, so charges never remove a component; this is kept. A map with fewer than 50 data points gets a LOWESS model of `(0, 0), (1, 1), (1e6, 1e6)` and the source's warning. `warp:min_rel_cc_size` and `warp:max_nr_conflicts` are read at each filtering, the tolerances at construction.
+
+**Tree-guided alignment.** Per map, every identification of a feature with at least one hit adds the feature RT under the sequence of its *first* hit (not the best) and to the map's RT list, which is sorted. The similarity of two maps walks both sequence lists together; the "median" RT of a shared sequence is `Math::median(..., sorted = true)` on the *unsorted* per-sequence list, the middle element by position; the Pearson coefficient of the two median lists is cast to `float` and multiplied by the shared count over the number of walk steps, which the source calls the union size but which stops at the end of the shorter list. `ClusterHierarchical` turns it into the distance `1 - similarity`. Along the tree, the child with the larger 10/90 percentile range (`v[size * 0.9] - v[size * 0.1]`, indices truncated; the right child on a tie) is the reference; the ranges stay those of the original maps, as the source never merges them. The merged map lives at the smaller index. Merging is `FeatureMap::operator+=`: document identifier, file path and type and the map's unique ID reset; proteins, unassigned identifications, processing records and features appended; colliding unique IDs replaced. The final transformations align each original map to the merged map (reference index 1) and fit `model_type` with its `model:` subsection.
+
 ## Native differences
 
 - **Debug dumps.** A non-empty `dump_buckets` or `dump_pairs` writes the source's text files with the source's names and lines (numbers at six significant digits): `<base>_<serial>` and `<base><serial>` for the shift superimposer; `<base>_scale_<serial>`, `_low_`, `_high_` and `<base>_phase_two_<serial>` for the affine one, whose first hashing round truncates the pairs file the second then fills, as in the source. The serial is the source's function-local `static` invocation counter, one per class, kept as a process-wide atomic; it is the one piece of global state in these modules. A file that cannot be created or written is an `Error::Io`, where the source's `std::ofstream` fails silently and the run continues.
@@ -114,6 +150,12 @@
 - **Resource limits.** Histogram sizes and the number of quadruples hashed by the affine superimposer are bounded (`max_buckets`, `max_quadruples`); the source bounds neither.
 - **The pair finder is a parameter.** `StablePairFinder` belongs to the feature-grouping headers, which this lane does not port; `MapAlignmentAlgorithmPoseClustering` takes the pairing step as a closure `&[ConsensusMap; 2] -> Result<ConsensusMap>` so that it plugs in unchanged when the finder exists, and its `pairfinder:` defaults are empty until then.
 
+- **The kd-tree is a trait.** `KDTreeFeatureMaps` belongs to `ANALYSIS/QUANTITATION` and is not ported; `MapAlignmentAlgorithmKD` takes any `KdFeatureMaps`, which that port implements unchanged. The tests use a brute-force stand-in (`tests/support/kd_pool.rs`).
+- **KD refusals.** An algorithm built from an empty `Param` (whose tolerances the source leaves uninitialised), a feature of a map index past `num_maps` (the source writes past `fit_data_`), `transform` before `fit_lowess` (null model pointers) and a `warp:max_nr_conflicts` outside `int` are errors.
+- **The guide tree is a parameter.** `buildTree`'s clustering is `ML/CLUSTERING`; `align_with_tree` takes the merges the clustering produces (`(left_child, right_child)` of each `BinaryTreeNode`, dummy nodes included) and does not log the Newick line.
+- **Tree-guided refusals.** No maps, a range list of another length than the maps, a merge naming a map out of range or the same map twice (undefined in the source), and merging features that refer to an identification graph (the source merges `id_data_`, which the native feature map does not own) are errors. The similarity of two maps without a shared sequence is the source's `Exception::InvalidRange`; a single shared sequence gives NaN, positive here where the source's `0/0` is negative.
+- **Unique-ID conflicts** are resolved with IDs from the caller's `UniqueIdGenerator`, where the source draws from its process-wide random generator.
+
 ## Checked boundaries and evidence
 
 The superimposers, the identification alignment, the evaluation and the transformation models are tier 1: `tests/map_alignment_oracle.rs` (6 tests, features `idxml` and `consensusxml`) compares 3780 values with records of the executed Linux x86_64 Release build (`openms4-release-bc9cc12-c19e494-174b576`, conda-forge gcc 14.4.0, run on ibminode06 in two invocations of two fresh-process runs, all byte-identical), and on dax all 3780 are bit-identical. The cases are the shift superimposer on five synthetic map pairs (default, dense, narrow buckets, swapped, 100 used points) and the affine one on seven, through both overloads; the identification alignment of the two upstream idXML files without reference, with either as reference, with a score cutoff (`min_score` 30) and with `max_rt_shift` 0 and 2; precision and recall at three tolerance settings on the upstream consensusXML pair, including one where the source's precision is 1.5; and the models listed in `docs/TRANSFORMATIONS_SUPPORT.md`. The records are tests/data/map_alignment_oracle_records.tsv and _summaries.txt; the driver, the input generator and the hashes of the build are recorded in [map_alignment_provenance.json](../tests/data/map_alignment_provenance.json). Off Linux x86_64 the comparison allows `1e-12` relative, for the platform libm's `ln` and `exp` in the affine superimposer's log-scaled histogram.
@@ -124,4 +166,9 @@ The remaining checks are tier 3 (the pinned class tests' literals and data files
 - `tests/map_alignment_evaluation.rs` (5 tests, feature `consensusxml`): precision 0.757143 and recall 0.5 on the upstream consensusXML pair, recall 0 for an empty tool map and the refusal of an empty ground truth, `isSameHandle` with and without charge, and the implementable interface. The precision NaN of an unusable ground truth is derived.
 - `tests/map_alignment_identification.rs` (5 tests, feature `idxml`): alignment of the two upstream idXML files without reference (10 points each, common scale), with internal reference (identity, 10 points on the reference scale), with external reference (1 transformation, 10 points), the repeated-align regression with `min_run_occur` 3; and derived cases for feature maps (`use_feature_rt`, the score filter and the empty-sequence record) and for identification data (the automatically picked score type and its `Using score type` line, the best match per observation, a missing named score type).
 
-Not run: `MapAlignmentAlgorithmPoseClustering_test.cpp` (307 pairs, slope 1.01164, intercept -32.0912), which needs `StablePairFinder`; the `TransformationModelDefaults` test's second section, which needs `MapAlignmentAlgorithmTreeGuided`.
+`MapAlignmentAlgorithmKD` and `MapAlignmentAlgorithmTreeGuided` are tier 1 too: `tests/map_alignment_oracle_kd_tree.rs` (3 tests, features `paramxml` and `featurexml`) compares with `../oracle/M1-kdtree`, run on ibminode06 against the same Release install in two fresh-process runs, byte-identical. KD: eight cases on four synthetic pools (4 maps of 140 peptides with noise; with 30% duplicates under `max_nr_conflicts` 0, 1 and -1; a Da tolerance without fold-change filter; 30 peptides, below the 50-point LOWESS minimum; LOWESS span 0.3; two m/z partitions), run in C++ on the real `KDTreeFeatureMaps` with `FeatureGroupingAlgorithmKD`'s defaults: every neighbourhood size, component label, filtered component size and transformed RT, and the LOWESS warnings in order. Tree-guided: the class-test maps (`b_spline` and `linear`) and synthetic sets of 4 and 5 maps (`b_spline`, `linear`, `lowess`, `interpolated`): every pair's two-map clustering distance against `1 - similarity`, the first merge, the RT lists, and, following the C++ tree, the merge order, every merged feature's RT and `original_RT`, every transformation's data points and notes, and every final RT; and the defaults, written as paramXML. This oracle found that the least-squares `linear` model rounded its means differently from GTE's `ApprHeightLine2` (`sum * (1 / n)`), one ulp in the fitted line; `LinearModel::fit` now divides as GTE does.
+
+- `tests/map_alignment_kd.rs` (10 tests): the class test's construction with 42 maps and an empty `Param` (tier 3; its other sections are `NOT_TESTABLE`); derived components, filters, fit data, LOWESS fallback and refusals.
+- `tests/map_alignment_tree_guided.rs` (7 tests, feature `featurexml`): the class test on its three featureXML inputs (tier 3): identification counts 6, 5 and 5; the tree distances 1.84834e-04 and 0.505752 from the similarity (the second through the average-linkage update); following the tree `(0, 2), (0, 1)`, 15 merged features in the order 1, 2, 0 with unique IDs 20 first and 14 last and `original_RT` on all but the first five; data points at each map's median feature RT per sequence, not all identities; `original_RT` after `computeTransformedFeatureMaps`; and `TransformationModelDefaults_test.cpp`'s second section, the `model:` subtree equal to `getDefaults("b_spline")`. Derived: the similarity's arithmetic, refusals and unique-ID conflicts.
+
+Not run: `MapAlignmentAlgorithmPoseClustering_test.cpp` (307 pairs, slope 1.01164, intercept -32.0912), which needs `StablePairFinder`; `buildTree` itself, which needs `ClusterHierarchical`.

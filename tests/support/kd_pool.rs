@@ -83,7 +83,9 @@ impl KdFeatureMaps for Pool {
             }
             if max_pairwise_log_fc >= 0.0 {
                 let fold = (f64::from(feature.intensity) / own_intensity).log10().abs();
-                if !(fold <= max_pairwise_log_fc) {
+                // NaN and +inf fold changes are dropped, as in the source.
+                let compatible = fold <= max_pairwise_log_fc;
+                if !compatible {
                     continue;
                 }
             }

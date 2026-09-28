@@ -348,9 +348,19 @@ impl LinearModel {
                     finite(weighted[1].1 - weighted[0].1)? / finite(weighted[1].0 - weighted[0].0)?;
                 (slope, weighted[0].1 - slope * weighted[0].0)
             } else {
-                let count = weighted.len() as f64;
-                let mx = finite(weighted.iter().map(|p| p.0).sum::<f64>() / count)?;
-                let my = finite(weighted.iter().map(|p| p.1).sum::<f64>() / count)?;
+                // `gte::ApprHeightLine2::FitIndexed`: the mean is the running
+                // sum times the reciprocal of the count, as GTE's
+                // `Vector::operator/=` divides; `sum / count` can differ in
+                // the last bit.
+                let reciprocal = 1.0 / weighted.len() as f64;
+                let mut sx = 0.0;
+                let mut sy = 0.0;
+                for &(x, y) in &weighted {
+                    sx += x;
+                    sy += y;
+                }
+                let mx = finite(sx * reciprocal)?;
+                let my = finite(sy * reciprocal)?;
                 let mut xx = 0.0;
                 let mut xy = 0.0;
                 for &(x, y) in &weighted {
