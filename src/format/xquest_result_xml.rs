@@ -60,8 +60,8 @@
 //! they take `OPXLDataStructs::CrossLinkSpectrumMatch` and
 //! `OPXLDataStructs::PreprocessedPairSpectra`, which have no port yet.
 
-use crate::chemistry::{AASequence, ModificationsDB, PeptideFragmentType, ProteaseDB};
-use crate::chemistry::{ResidueModification, TermSpecificity};
+use crate::chemistry::{AASequence, EmpiricalFormula, ModificationsDB, ProteaseDB};
+use crate::chemistry::{ResidueModification, SequenceModification, TermSpecificity};
 use crate::comparison::Tolerance;
 use crate::concept::constants::{PROTON_MASS_U, user_param};
 use crate::data_structures::DateTime;
@@ -1468,12 +1468,12 @@ fn enzyme(name: &str) -> Result<String> {
     ProteaseDB::global()
         .enzymes()
         .iter()
-        .filter(|enzyme| {
+        .rev()
+        .find(|enzyme| {
             enzyme.name() == name
                 || enzyme.name().to_ascii_lowercase() == name
                 || enzyme.synonyms().contains(&name)
         })
-        .last()
         .map(|enzyme| enzyme.name().to_owned())
         .ok_or_else(|| Error::InvalidValue(format!("the element '{name}' could not be found")))
 }
@@ -1937,7 +1937,8 @@ fn write_document(
         stream(cross_link_mass),
         params.database,
         stream(isotope_shift),
-        params.digestion_enzyme,
+        // The source holds the enzyme object and writes its name.
+        enzyme(&params.digestion_enzyme).unwrap_or_else(|_| params.digestion_enzyme.clone()),
         // `int missed_cleavages = search_params.missed_cleavages`.
         params.missed_cleavages as i32,
         u8::from(nterm_linkable),
@@ -1962,6 +1963,77 @@ fn write_document(
     os.push_str("</spectrum_search>\n");
     os.push_str("</xquest_results>\n");
     Ok(())
+}
+
+/// `AASequence::getMonoWeight()` (`Residue::Full`, charge 0) as the source
+/// computes it: terminal delta masses, then each residue's internal weight
+/// (its `Residue` mono weight minus water), then water. A modified residue's
+/// weight is the formula mass of the free residue plus the delta formula, or
+/// the declared absolute mass, or the free residue plus the delta mass, as
+/// `Residue::setModification` sets it. The crate's
+/// [`AASequence::mono_mass_for`] adds the delta formula's mass to the internal
+/// residue's instead, which rounds differently in the last bits, and the
+/// written `error` magnifies that.
+fn source_mono_weight(sequence: &AASequence) -> Result<f64> {
+    if sequence.is_empty() {
+        return Ok(0.0);
+    }
+    let water = EmpiricalFormula::parse("H2O")?;
+    let water_mass = water.mono_mass();
+    let mut weight = 0.0;
+    for modification in [
+        sequence.n_terminal_modification(),
+        sequence.c_terminal_modification(),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        weight += modification.diff_mono_mass()?;
+    }
+    let mut free: BTreeMap<char, EmpiricalFormula> = BTreeMap::new();
+    for (index, residue) in sequence.as_str().chars().enumerate() {
+        if residue == 'X' {
+            return Err(Error::InvalidValue(
+                "Cannot get weight of sequence with unknown AA 'X' with unknown mass.".into(),
+            ));
+        }
+        if !free.contains_key(&residue) {
+            // The free amino acid's formula: a one-residue peptide's.
+            let formula = AASequence::parse(&residue.to_string())?.formula()?;
+            free.insert(residue, formula);
+        }
+        let formula = &free[&residue];
+        let mut mono = formula.mono_mass();
+        match sequence.residue_modification(index)? {
+            None => {}
+            Some(SequenceModification::Known(modification)) => {
+                let changes = modification.diff_mono_mass() != 0.0
+                    || modification.diff_average_mass() != 0.0
+                    || !modification.diff_formula().is_empty();
+                if changes {
+                    if modification.mono_mass() != 0.0 {
+                        mono = modification.mono_mass();
+                    } else if modification.diff_mono_mass() != 0.0 {
+                        mono += modification.diff_mono_mass();
+                    }
+                    if !modification.diff_formula().is_empty() {
+                        mono = formula
+                            .checked_add(modification.diff_formula())?
+                            .mono_mass();
+                    } else if let Some(absolute) = modification.absolute_formula() {
+                        mono = absolute.mono_mass();
+                    }
+                }
+            }
+            Some(_) => {
+                return Err(Error::Unsupported(
+                    "the xQuest writer needs named residue modifications".into(),
+                ));
+            }
+        }
+        weight += mono - water_mass;
+    }
+    Ok(weight + water_mass)
 }
 
 fn unit(tolerance: Tolerance) -> (&'static str, f64) {
@@ -2059,7 +2131,7 @@ fn write_hit(
     // `substr(structure, Int, 1)`: a negative position converts to a huge
     // `size_t`, which is clamped to the end.
     let letter_first = substr(&structure, usize::try_from(pos1).unwrap_or(usize::MAX), 1);
-    let mut weight = hit.sequence.mono_mass_for(PeptideFragmentType::Full, 0)?;
+    let mut weight = source_mono_weight(&hit.sequence)?;
     let alpha_pos = i64::from(pos1) + 1;
     let mut beta_pos = 0i64;
     let mut topology = format!("a{alpha_pos}");
@@ -2079,8 +2151,8 @@ fn write_hit(
             structure.push('-');
             structure.push_str(beta.as_str());
             topology.push_str(&format!("-b{beta_pos}"));
-            weight += beta.mono_mass_for(PeptideFragmentType::Full, 0)?
-                + value_double(meta, user_param::OPENPEPXL_XL_MASS)?;
+            weight +=
+                source_mono_weight(&beta)? + value_double(meta, user_param::OPENPEPXL_XL_MASS)?;
             id = format!("{structure}-{topology}");
             seq_beta = meta_text(meta, user_param::OPENPEPXL_BETA_SEQUENCE)?;
             "xlink"
