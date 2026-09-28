@@ -16,6 +16,60 @@ use openms::analysis::id::aho_corasick_ambiguous::{
     MAX_NEEDLE_LENGTH, next_valid_aa,
 };
 
+fn render(hits: &[Hit]) -> String {
+    hits.iter()
+        .map(|h| format!("{}:{}:{}", h.needle_index, h.needle_length, h.query_pos))
+        .collect::<Vec<_>>()
+        .join(";")
+}
+
+#[test]
+fn release_oracle_hit_order() {
+    // Tier 1: every hit, in library order, of the Release libOpenMS
+    // (bc9cc12-c19e494-174b576, Linux x86_64, run on ibminode06, two
+    // invocations of two runs each, byte-identical) for the class test's 22
+    // tries and queries plus 300 seeded random ones. The driver and generator
+    // are ../oracle/I3b-aho; the fixture keeps the driver's record lines and
+    // drops the interleaved compressTrie info log lines.
+    let cases = include_str!("data/aho_corasick_ambiguous_cases.tsv");
+    let oracle = include_str!("data/aho_corasick_ambiguous_oracle.tsv");
+    let mut expected = oracle.lines();
+    let mut compared = 0;
+    for line in cases
+        .lines()
+        .filter(|l| !l.starts_with('#') && !l.is_empty())
+    {
+        let fields: Vec<&str> = line.split('\t').collect();
+        assert_eq!(fields.len(), 5, "{line}");
+        let (id, query) = (fields[0], fields[4]);
+        let needles: Vec<&str> = fields[3].split(',').collect();
+        let t = trie(
+            fields[1].parse().unwrap(),
+            fields[2].parse().unwrap(),
+            &needles,
+        );
+        let mut observed = vec![format!("{id}\tsize\t{}", t.size())];
+        let mut state = ACTrieState::default();
+        state.set_query(query);
+        let mut k = 0;
+        while t.next_hits(&mut state).unwrap() {
+            observed.push(format!("{id}\tnext{k}\t{}", render(&state.hits)));
+            k += 1;
+        }
+        observed.push(format!("{id}\tfinal\t{}", render(&state.hits)));
+        let mut all = ACTrieState::default();
+        all.set_query(query);
+        t.get_all_hits(&mut all).unwrap();
+        observed.push(format!("{id}\tall\t{}", render(&all.hits)));
+        for record in observed {
+            assert_eq!(Some(record.as_str()), expected.next(), "case {id}");
+            compared += 1;
+        }
+    }
+    assert_eq!(expected.next(), None);
+    assert_eq!(compared, 1186);
+}
+
 fn test_case(t: &ACTrie, protein: &str, expected: &str, needles: &[&str]) {
     let mut observed = Vec::new();
     let mut state = ACTrieState::default();
