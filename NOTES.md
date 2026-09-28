@@ -73,3 +73,8 @@ sort_by_position_presorted finite(mz) refusal (inplace_merge) not in brief. Ledg
 written (.planning/ledger-fragments/wave4/A3a.json via scratchpad/A3a/make_ledger.py). Next: CI sweep
 (slot A3a-sweep, logs scratchpad/A3a/sweep), then report, then final commit removing NOTES.md.
 Lead-file needs: core-sdk-coverage.json regen (adds a3a manifest to 7 headers), ci baseline records test:a3a_source_order.
+
+## Incarnation 5 (2026-09-28), branch worktree-wf_cd066dab-0a7-2
+Merged worktree-wf_ee239125-5be-5 (fast-forward). Report already at .planning/lane-reports/A3a.md with
+SWEEP_PLACEHOLDER; ledger fragment written. Next: 1. CI sweep (slot A3a-sweep, logs in this session's
+scratchpad/A3a/sweep) 2. replace SWEEP_PLACEHOLDER + branch name in report 3. final commit deleting NOTES.md.
