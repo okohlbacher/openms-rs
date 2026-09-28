@@ -20,7 +20,7 @@ and `src/openms/source/ANALYSIS/ID/SimpleSearchEngineAlgorithm.cpp` at core
 | protected `postProcessHits_(exp, annotated_hits, protein_ids, peptide_ids, top_hits, fixed, variable, max_var, mods_fixed, mods_variable, missed_cleavages, prec_tol, frag_tol, prec_unit, frag_unit, min_z, max_z, enzyme, database_name) const` | `post_process_hits(&self, exp, annotated_hits, protein_ids, peptide_ids, database_name) -> Result<()>` | the member-copy arguments are read from `self` |
 | protected members `precursor_mass_tolerance_` … `report_top_hits_` | public fields of the same names | `*_unit_` strings become `MassToleranceUnit`; `peptide_enzyme_specificity_` is `DigestionSpecificity` |
 | file-local `mapPrecursorMassesToScans` | private `map_precursor_masses_to_scans` | sorted vector in place of `std::multimap` |
-| `ProgressLogger` base | not ported | no progress is reported |
+| `ProgressLogger` base (`startProgress`/`setProgress`/`endProgress` in `search`) | `search_with_progress`, `search_experiment_with_progress` taking a `ProgressLogger` | the four source sections; the plain entry points report nothing |
 
 ## Preserved source conventions
 
@@ -95,6 +95,11 @@ and `src/openms/source/ANALYSIS/ID/SimpleSearchEngineAlgorithm.cpp` at core
   (`fragment_mz_error_median_ppm`, `SimpleSearchEngine_2`), 6.9e-11 for
   `_1`: the port reproduces the retained output to double rounding, far inside
   the contract.
+- Progress (source review, `SimpleSearchEngineAlgorithm.cpp:653-655`,
+  `686-712`, `718-864`, `870-891`): the recorded sections of a decoy search are
+  exactly the source's four, with the per-protein values 1..22 of a
+  single-threaded run, and the result equals the silent search's. The values
+  are reported after the parallel digestion rather than interleaved with it.
 - Tier 4: thread-count invariance, parameter round trip and the
   `updateMembers_` duplicate handling, refused restrictions and negative
   counts, the shortlex tie-break, the decoy/FDR path keeping only target

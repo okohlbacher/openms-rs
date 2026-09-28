@@ -44,3 +44,8 @@ Class tests: FragmentIndex_test.cpp (2879 lines), NeighborSeq_test.cpp (252), Si
   both TOPP retained outputs match under FuzzyDiff contract. Touched src/chemistry/decoy_random.rs (generic shuffle_slice).
 - TODO SSE: docs/SIMPLE_SEARCH_ENGINE_SUPPORT.md, tests/data/simple_search_engine_provenance.json (fixture sha256 computed), clippy/doc gates.
 - NEXT: FragmentIndex.
+
+## Status (incarnation 2, late)
+- NeighborSeq complete (10 tests). SSE complete incl. progress (8 tests, tier 1 vs retained TOPP idXML, max rel dev 2.1e-10). FragmentIndex partial: only querySpectrumSNES_ unported (39 tests).
+- MSRV 1.85 green for all three binaries. CI sweep log: scratchpad sweep1/. Pending: clippy all-targets (gate12), report + ledger fragment, delete NOTES.md.
+- Lead-file needs for report: ci_matrix Slices for tests/{neighbor_seq,simple_search_engine,fragment_index}.rs; doc-coverage --write; SOURCE_PROVENANCE manifests tests/data/{neighbor_seq,simple_search_engine,fragment_index}_provenance.json.
