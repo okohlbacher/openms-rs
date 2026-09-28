@@ -6,6 +6,7 @@
 //! Legacy and Basic reproduce different source formulas; see FDR_SUPPORT.md.
 
 use crate::identification::{PeptideIdentification, ProteinIdentification, TargetDecoyType};
+use crate::kernel::ConsensusMap;
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
 use std::cmp::Ordering;
@@ -1000,4 +1001,406 @@ fn replace_protein_scores(
     id.score_type = new_type.into();
     id.higher_score_better = false;
     Ok(())
+}
+
+/// The source's `getTDLabel_` after `checkTDAnnotation_`: 1 when the
+/// `target_decoy` text starts with `t` (`target`, `target+decoy`), else 0.
+///
+/// # Errors
+///
+/// [`Error::MissingInformation`] without a `target_decoy` meta value (the
+/// source's `Exception::MissingInformation`).
+fn td_label(metadata: &crate::metadata::MetaInfo) -> Result<f64> {
+    let value = metadata.get("target_decoy").ok_or_else(|| {
+        Error::MissingInformation(
+            "Meta value 'target_decoy' does not exist in all hits! Reindex with 'PeptideIndexer'"
+                .into(),
+        )
+    })?;
+    Ok(if value.to_string().starts_with('t') {
+        1.
+    } else {
+        0.
+    })
+}
+
+/// `trapezoidal_area_xEqy`: the area between a segment and the diagonal,
+/// split into two triangles where the segment crosses it.
+fn trapezoidal_area_x_eq_y(x1: f64, x2: f64, y1: f64, y2: f64) -> f64 {
+    let height = x2 - x1;
+    let b1 = y1 - x1;
+    let b2 = y2 - x2;
+    if b1.is_sign_negative() == b2.is_sign_negative() {
+        (b1.abs() + b2.abs()) * height / 2.0
+    } else {
+        (b1 * b1 + b2 * b2) * height / (2.0 * (b1.abs() + b2.abs()))
+    }
+}
+
+/// `trapezoidal_area`: `|x1 - x2| * ((y1 + y2) / 2)`.
+fn trapezoidal_area(x1: f64, x2: f64, y1: f64, y2: f64) -> f64 {
+    (x1 - x2).abs() * ((y1 + y2) / 2.0)
+}
+
+/// Score/label pairs sorted descending as `std::sort(rbegin, rend)` sorts
+/// them: by score, then by label. Equal pairs are interchangeable, so the
+/// sort's stability does not matter.
+fn sort_pairs_descending(pairs: &mut [(f64, f64)]) {
+    pairs.sort_by(|a, b| {
+        b.0.partial_cmp(&a.0)
+            .unwrap_or(Ordering::Equal)
+            .then(b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal))
+    });
+}
+
+impl FalseDiscoveryRate {
+    /// `diffEstimatedEmpirical`: the area between the estimated FDR (the
+    /// running mean of `1 - score`, scores being posterior probabilities)
+    /// and the empirical target-decoy FDR, over pairs sorted best first,
+    /// divided by `min(final estimate, pep_cutoff)` (source default
+    /// `pep_cutoff` 1).
+    ///
+    /// At each score change the empirical FDR is `decoys / targets` (one
+    /// while no target was seen) with [`FalseDiscoveryRate::conservative`],
+    /// else `decoys / (targets + decoys)`; for the last entry it is always
+    /// `decoys / (targets + decoys)`, as in the source. A label counts as a
+    /// target when it is non-zero. An empty input returns 1 (the source only
+    /// warns).
+    pub fn diff_estimated_empirical(&self, scores_labels: &[(f64, f64)], pep_cutoff: f64) -> f64 {
+        let Some((last, rest)) = scores_labels.split_last() else {
+            return 1.0;
+        };
+        let mut diff_area = 0.0;
+        let (mut est_prev, mut emp_prev) = (0.0, 0.0);
+        let mut pep_sum = 0.0;
+        let (mut true_pos, mut false_pos) = (0u32, 0u32);
+        for (index, pair) in rest.iter().enumerate() {
+            if pair.1 != 0.0 {
+                true_pos = true_pos.wrapping_add(1);
+            } else {
+                false_pos = false_pos.wrapping_add(1);
+            }
+            pep_sum += 1.0 - pair.0;
+            if scores_labels[index + 1].0 != pair.0 {
+                let est = pep_sum / f64::from(true_pos.wrapping_add(false_pos));
+                let emp = if self.conservative {
+                    if true_pos == 0 {
+                        1.0
+                    } else {
+                        f64::from(false_pos) / f64::from(true_pos)
+                    }
+                } else {
+                    f64::from(false_pos) / f64::from(true_pos.wrapping_add(false_pos))
+                };
+                diff_area += trapezoidal_area_x_eq_y(est_prev, est, emp_prev, emp);
+                est_prev = est;
+                emp_prev = emp;
+            }
+        }
+        if last.1 != 0.0 {
+            true_pos = true_pos.wrapping_add(1);
+        } else {
+            false_pos = false_pos.wrapping_add(1);
+        }
+        pep_sum += 1.0 - last.0;
+        let total = f64::from(true_pos.wrapping_add(false_pos));
+        let est = pep_sum / total;
+        let emp = f64::from(false_pos) / total;
+        diff_area += trapezoidal_area_x_eq_y(est_prev, est, emp_prev, emp);
+        // std::min(est, pepCutoff)
+        diff_area / if pep_cutoff < est { pep_cutoff } else { est }
+    }
+
+    /// `rocN(const ScoreToTgtDecLabelPairs&, Size)`: the target-decoy ROC
+    /// area over pairs already sorted best first, up to the score batch in
+    /// which the `fp_cutoff`-th decoy appears (source default 50),
+    /// normalised by `decoys * targets` (a 32-bit product, as the source's
+    /// `UInt`s). No decoys at the end gives 1, an empty input 0.
+    ///
+    /// Unlike [`FalseDiscoveryRate::roc_n`] nothing is validated or sorted:
+    /// a cutoff reached before any target returns the source's division by
+    /// zero (infinity or NaN).
+    pub fn roc_n_sorted(&self, scores_labels: &[(f64, f64)], fp_cutoff: usize) -> f64 {
+        let Some((last, rest)) = scores_labels.split_last() else {
+            return 0.0;
+        };
+        let mut roc = 0.0;
+        let (mut tp, mut fp, mut tp_prev, mut fp_prev) = (0u32, 0u32, 0u32, 0u32);
+        for (index, pair) in rest.iter().enumerate() {
+            if pair.1 != 0.0 {
+                tp = tp.wrapping_add(1);
+            } else {
+                fp = fp.wrapping_add(1);
+            }
+            if scores_labels[index + 1].0 != pair.0 {
+                roc += trapezoidal_area(
+                    f64::from(fp),
+                    f64::from(fp_prev),
+                    f64::from(tp),
+                    f64::from(tp_prev),
+                );
+                if fp as usize >= fp_cutoff {
+                    return roc / f64::from(fp.wrapping_mul(tp));
+                }
+                tp_prev = tp;
+                fp_prev = fp;
+            }
+        }
+        if last.1 != 0.0 {
+            tp = tp.wrapping_add(1);
+        } else {
+            fp = fp.wrapping_add(1);
+        }
+        roc += trapezoidal_area(
+            f64::from(fp),
+            f64::from(fp_prev),
+            f64::from(tp),
+            f64::from(tp_prev),
+        );
+        if fp == 0 {
+            return 1.0;
+        }
+        roc / f64::from(fp.wrapping_mul(tp))
+    }
+
+    fn roc_n_from_pairs(
+        &self,
+        mut pairs: Vec<(f64, f64)>,
+        higher: bool,
+        fp_cutoff: usize,
+    ) -> Result<f64> {
+        if pairs.is_empty() {
+            return Err(Error::MissingInformation(
+                "No scores could be extracted!".into(),
+            ));
+        }
+        if pairs.iter().any(|p| p.0.is_nan()) {
+            return Err(bad("ROC scores must not be NaN"));
+        }
+        if higher {
+            sort_pairs_descending(&mut pairs);
+        } else {
+            pairs.sort_by(|a, b| {
+                a.0.partial_cmp(&b.0)
+                    .unwrap_or(Ordering::Equal)
+                    .then(a.1.partial_cmp(&b.1).unwrap_or(Ordering::Equal))
+            });
+        }
+        let cutoff = if fp_cutoff == 0 {
+            pairs.len()
+        } else {
+            fp_cutoff
+        };
+        Ok(self.roc_n_sorted(&pairs, cutoff))
+    }
+
+    /// The score/label pairs of peptide identifications as the source's
+    /// `getScores_` collects them: every hit with
+    /// [`FalseDiscoveryRate::use_all_hits`], else each record's first hit;
+    /// optionally only records of one run identifier.
+    fn peptide_pairs<'a>(
+        &self,
+        ids: impl IntoIterator<Item = &'a PeptideIdentification>,
+        identifier: Option<&str>,
+        pairs: &mut Vec<(f64, f64)>,
+    ) -> Result<()> {
+        for id in ids {
+            if identifier.is_some_and(|run| run != id.identifier) {
+                continue;
+            }
+            let hits: &[crate::identification::PeptideHit] = if self.use_all_hits {
+                &id.hits
+            } else {
+                // The source reads getHits()[0] unchecked.
+                std::slice::from_ref(id.hits.first().ok_or_else(|| {
+                    bad("peptide identification without hits (the source reads its first hit unchecked)")
+                })?)
+            };
+            for hit in hits {
+                pairs.push((hit.score, td_label(&hit.metadata)?));
+            }
+        }
+        Ok(())
+    }
+
+    /// `rocN(const PeptideIdentificationList&, Size)` and the overload with
+    /// a run identifier: the ROC area of the peptide hits (first hits unless
+    /// [`FalseDiscoveryRate::use_all_hits`]) in the first record's score
+    /// direction, up to `fp_cutoff` decoys (0 for the whole curve), computed
+    /// by [`FalseDiscoveryRate::roc_n_sorted`].
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for no records (the source dereferences the
+    /// first), a record without hits when first hits are used, or a NaN
+    /// score; [`Error::MissingInformation`] for a hit without
+    /// `target_decoy` or when no score is extracted (the source's
+    /// `MissingInformation`).
+    pub fn roc_n_peptides(
+        &self,
+        ids: &[PeptideIdentification],
+        fp_cutoff: usize,
+        identifier: Option<&str>,
+    ) -> Result<f64> {
+        let first = ids
+            .first()
+            .ok_or_else(|| bad("rocN needs at least one peptide identification"))?;
+        let mut pairs = Vec::new();
+        self.peptide_pairs(ids, identifier, &mut pairs)?;
+        self.roc_n_from_pairs(pairs, first.higher_score_better, fp_cutoff)
+    }
+
+    /// `rocN(const ConsensusMap&, Size, bool)` and the overload with a run
+    /// identifier: as [`FalseDiscoveryRate::roc_n_peptides`] over the
+    /// features' peptide identifications, then (optionally) the unassigned
+    /// ones.
+    ///
+    /// The whole-map overload takes the score direction from the first
+    /// feature identification (lower-better when none has one); the source's
+    /// identifier overload reads the first feature's first identification
+    /// unchecked, which is an error here when absent.
+    ///
+    /// # Errors
+    ///
+    /// As [`FalseDiscoveryRate::roc_n_peptides`].
+    pub fn roc_n_consensus(
+        &self,
+        map: &ConsensusMap,
+        fp_cutoff: usize,
+        identifier: Option<&str>,
+        include_unassigned_peptides: bool,
+    ) -> Result<f64> {
+        let higher = match identifier {
+            None => map
+                .features
+                .iter()
+                .find_map(|f| f.base.peptide_identifications.first())
+                .is_some_and(|id| id.higher_score_better),
+            Some(_) => {
+                map.features
+                    .first()
+                    .and_then(|f| f.base.peptide_identifications.first())
+                    .ok_or_else(|| {
+                        bad("rocN needs an identification on the first consensus feature")
+                    })?
+                    .higher_score_better
+            }
+        };
+        let mut pairs = Vec::new();
+        for feature in &map.features {
+            self.peptide_pairs(
+                &feature.base.peptide_identifications,
+                identifier,
+                &mut pairs,
+            )?;
+        }
+        if include_unassigned_peptides {
+            self.peptide_pairs(
+                &map.unassigned_peptide_identifications,
+                identifier,
+                &mut pairs,
+            )?;
+        }
+        self.roc_n_from_pairs(pairs, higher, fp_cutoff)
+    }
+
+    fn protein_pairs(id: &ProteinIdentification) -> Result<Vec<(f64, f64)>> {
+        if id.score_type != "Posterior Probability" {
+            return Err(bad(
+                "Proteins in ProteinIdentification do not have a posterior probability assigned. Please run an inference first.",
+            ));
+        }
+        let mut pairs = id
+            .hits
+            .iter()
+            .map(|hit| Ok((hit.score, td_label(&hit.metadata)?)))
+            .collect::<Result<Vec<_>>>()?;
+        if pairs.iter().any(|p| p.0.is_nan()) {
+            return Err(bad("protein scores must not be NaN"));
+        }
+        sort_pairs_descending(&mut pairs);
+        Ok(pairs)
+    }
+
+    /// `applyEvaluateProteinIDs(const ProteinIdentification&, ...)`: a quality
+    /// score of posterior protein probabilities,
+    /// `(1 - diff) * (1 - diff_weight) + rocN * diff_weight`, with `diff` from
+    /// [`FalseDiscoveryRate::diff_estimated_empirical`] and `rocN` from
+    /// [`FalseDiscoveryRate::roc_n_sorted`] over the hits sorted best first
+    /// (source defaults: `pep_cutoff` 1, `fp_cutoff` 50, `diff_weight` 0.2).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] unless the score type is `Posterior
+    /// Probability` (the source's `InvalidValue`) or for a NaN score;
+    /// [`Error::MissingInformation`] for a hit without `target_decoy`.
+    pub fn apply_evaluate_protein_ids(
+        &self,
+        id: &ProteinIdentification,
+        pep_cutoff: f64,
+        fp_cutoff: u32,
+        diff_weight: f64,
+    ) -> Result<f64> {
+        let pairs = Self::protein_pairs(id)?;
+        Ok(self.evaluate_sorted(&pairs, pep_cutoff, fp_cutoff, diff_weight))
+    }
+
+    /// `applyEvaluateProteinIDs(const std::vector<ProteinIdentification>&,
+    /// ...)`: only the first run is evaluated (the source warns about the
+    /// others), and, unlike the single-run overload, the combination is
+    /// `diff * diff_weight + rocN * (1 - diff_weight)`, as the source
+    /// computes it (a defect candidate, see `docs/FDR_SUPPORT.md`).
+    ///
+    /// # Errors
+    ///
+    /// As [`FalseDiscoveryRate::apply_evaluate_protein_ids`], and
+    /// [`Error::InvalidValue`] for no runs (undefined in the source).
+    pub fn apply_evaluate_protein_ids_first(
+        &self,
+        ids: &[ProteinIdentification],
+        pep_cutoff: f64,
+        fp_cutoff: u32,
+        diff_weight: f64,
+    ) -> Result<f64> {
+        let first = ids
+            .first()
+            .ok_or_else(|| bad("no protein identification run to evaluate"))?;
+        let pairs = Self::protein_pairs(first)?;
+        let diff = self.diff_estimated_empirical(&pairs, pep_cutoff);
+        let roc = self.roc_n_sorted(&pairs, fp_cutoff as usize);
+        Ok(diff * diff_weight + roc * (1.0 - diff_weight))
+    }
+
+    /// `applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs&, ...)`: sorts
+    /// `scores_labels` best first in place, then evaluates as
+    /// [`FalseDiscoveryRate::apply_evaluate_protein_ids`].
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a NaN score or label.
+    pub fn apply_evaluate_score_labels(
+        &self,
+        scores_labels: &mut [(f64, f64)],
+        pep_cutoff: f64,
+        fp_cutoff: u32,
+        diff_weight: f64,
+    ) -> Result<f64> {
+        if scores_labels.iter().any(|p| p.0.is_nan() || p.1.is_nan()) {
+            return Err(bad("scores and labels must not be NaN"));
+        }
+        sort_pairs_descending(scores_labels);
+        Ok(self.evaluate_sorted(scores_labels, pep_cutoff, fp_cutoff, diff_weight))
+    }
+
+    fn evaluate_sorted(
+        &self,
+        pairs: &[(f64, f64)],
+        pep_cutoff: f64,
+        fp_cutoff: u32,
+        diff_weight: f64,
+    ) -> f64 {
+        let diff = self.diff_estimated_empirical(pairs, pep_cutoff);
+        let auc = self.roc_n_sorted(pairs, fp_cutoff as usize);
+        (1.0 - diff) * (1.0 - diff_weight) + auc * diff_weight
+    }
 }
