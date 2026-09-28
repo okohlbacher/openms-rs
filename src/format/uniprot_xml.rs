@@ -156,7 +156,7 @@ impl Default for ReadLimits {
             max_features_per_entry: 1_000_000,
             max_accessions_per_entry: 1_000_000,
             max_entries: 100_000_000,
-            max_result_bytes: 16 * 1024 * 1024 * 1024,
+            max_result_bytes: usize::try_from(16u64 << 30).unwrap_or(usize::MAX),
         }
     }
 }

@@ -280,7 +280,7 @@ impl<R: BufRead> PEFFReader<R> {
             return Ok(false);
         };
         let (key, value) = (trim(key), trim(value));
-        let flag = |value: &str| value.to_ascii_lowercase() == "true" || value == "1";
+        let flag = |value: &str| value.eq_ignore_ascii_case("true") || value == "1";
         match key {
             "DbName" => header.db_name = value.to_owned(),
             "Prefix" => header.prefix = value.to_owned(),

@@ -543,7 +543,7 @@ impl Default for ReadLimits {
             max_sequence_bytes: 256 * 1024 * 1024,
             max_header_lines: 1_000_000,
             max_items_per_entry: 10_000_000,
-            max_entries: 1 << 32,
+            max_entries: usize::try_from(1u64 << 32).unwrap_or(usize::MAX),
             max_warnings: 100_000,
         }
     }
