@@ -589,15 +589,51 @@ fn class_test_store_and_reload() {
     }
 
     assert_eq!(after.len(), 296);
-    let check = |index: usize,
-                 hits: usize,
-                 pos1: i64,
-                 pos2: i64,
-                 alpha: &str,
-                 beta_spec: &str,
-                 seq: &str,
-                 beta: &str,
-                 spec: &str| {
+    // (index, hits, xl_pos1, xl_pos2, term spec alpha, term spec beta,
+    // sequence, beta sequence), as the class test's TEST_EQUALs.
+    let literals = [
+        (
+            0,
+            1,
+            14,
+            5,
+            "ANYWHERE",
+            "ANYWHERE",
+            "LTEIISHDPNIELHKK",
+            "VEGCPKHPK",
+        ),
+        (
+            17,
+            1,
+            15,
+            11,
+            "C_TERM",
+            "ANYWHERE",
+            "VILHLKEDQTEYLEER",
+            "EYGCAPWPMVEKLIK",
+        ),
+        (
+            289,
+            1,
+            15,
+            0,
+            "ANYWHERE",
+            "ANYWHERE",
+            "DYHFVNATEESDALAKLR",
+            "KETFDDLPK",
+        ),
+        (
+            279,
+            2,
+            0,
+            6,
+            "N_TERM",
+            "ANYWHERE",
+            "MASGSCQGCEEDEETLKK",
+            "NTEGTQKQK",
+        ),
+    ];
+    for (index, hits, pos1, pos2, alpha, beta_spec, sequence, beta) in literals {
         let id = &after[index];
         assert_eq!(id.hits.len(), hits, "{index}");
         let hit = &id.hits[0];
@@ -609,54 +645,9 @@ fn class_test_store_and_reload() {
             hit.metadata["xl_term_spec_beta"].as_str().unwrap(),
             beta_spec
         );
-        assert_eq!(hit.sequence.to_string(), seq);
+        assert_eq!(hit.sequence.to_string(), sequence);
         assert_eq!(hit.metadata["sequence_beta"].as_str().unwrap(), beta);
-        let _ = spec;
-    };
-    check(
-        0,
-        1,
-        14,
-        5,
-        "ANYWHERE",
-        "ANYWHERE",
-        "LTEIISHDPNIELHKK",
-        "VEGCPKHPK",
-        "",
-    );
-    check(
-        17,
-        1,
-        15,
-        11,
-        "C_TERM",
-        "ANYWHERE",
-        "VILHLKEDQTEYLEER",
-        "EYGCAPWPMVEKLIK",
-        "",
-    );
-    check(
-        289,
-        1,
-        15,
-        0,
-        "ANYWHERE",
-        "ANYWHERE",
-        "DYHFVNATEESDALAKLR",
-        "KETFDDLPK",
-        "",
-    );
-    check(
-        279,
-        2,
-        0,
-        6,
-        "N_TERM",
-        "ANYWHERE",
-        "MASGSCQGCEEDEETLKK",
-        "NTEGTQKQK",
-        "",
-    );
+    }
 
     // XFDR attributes survive the load and the store/load round trip, on
     // exactly one hit, found by its id.

@@ -1997,12 +1997,13 @@ fn source_mono_weight(sequence: &AASequence) -> Result<f64> {
                 "Cannot get weight of sequence with unknown AA 'X' with unknown mass.".into(),
             ));
         }
-        if !free.contains_key(&residue) {
+        let formula = match free.entry(residue) {
+            std::collections::btree_map::Entry::Occupied(entry) => entry.into_mut(),
             // The free amino acid's formula: a one-residue peptide's.
-            let formula = AASequence::parse(&residue.to_string())?.formula()?;
-            free.insert(residue, formula);
-        }
-        let formula = &free[&residue];
+            std::collections::btree_map::Entry::Vacant(entry) => {
+                entry.insert(AASequence::parse(&residue.to_string())?.formula()?)
+            }
+        };
         let mut mono = formula.mono_mass();
         match sequence.residue_modification(index)? {
             None => {}
