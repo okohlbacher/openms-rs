@@ -163,11 +163,12 @@ executable C++ oracle there.
 `23809f8a6677117b7a745fd3c577106152734336edf2473bde20f10c43f4aa12`,
 `analysis.tdf_bin` `9692d7eee2dd2b8cefd07fdb50a945094ba08343fa06122260f2a5d286efbb12`;
 no license statement, so not committed) was decoded on spock by the
-independent `timsrust` 0.4.1 decoder and by this port (with `ruzstd` 0.8.2,
-whose decoder is the same code as 0.8.1): 291,531 peaks, zero mismatches in
+independent `timsrust` 0.4.1 decoder and by this port (first with `ruzstd`
+0.8.2, then again with the pinned 0.8.1, byte-identical output): 291,531
+peaks, zero mismatches in
 frame, scan, TOF and intensity (`trunc(raw * 100 / AccumulationTime + 0.5)`).
 Outputs `ts.tsv` (`1b764e23fc1b1931541b3fb0e4cbc94bdfb271fd47df4d666974214bb4de717d`)
-and `om.tsv` (`f1c69b50eb741f75e26fd6eaf54f81f58ab8632136dd23b1ae48397fe0038a09`)
+and `om.tsv` / `om081.tsv` (both `f1c69b50eb741f75e26fd6eaf54f81f58ab8632136dd23b1ae48397fe0038a09`)
 in `spock:/scratch/kohlbach/f5-tdfcheck/tdfcheck/`.
 
 ## C++ defect candidates (unnumbered)

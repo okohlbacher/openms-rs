@@ -236,7 +236,7 @@
   ],
   "external_cross_check": {
     "host": "spock",
-    "what": "Frame decode of a real 5-frame diaPASEF run by the independent timsrust 0.4.1 decoder and by this port (ruzstd 0.8.2, decoder identical to 0.8.1): 291,531 peaks, zero mismatches in frame, scan, TOF and corrected intensity.",
+    "what": "Frame decode of a real 5-frame diaPASEF run by the independent timsrust 0.4.1 decoder and by this port (ruzstd 0.8.2, then re-run with the pinned 0.8.1: byte-identical output): 291,531 peaks, zero mismatches in frame, scan, TOF and corrected intensity.",
     "input": {
       "path": "hupo-mzpeak/test/data/diaPASEF.d (no license statement; not committed)",
       "analysis.tdf": "23809f8a6677117b7a745fd3c577106152734336edf2473bde20f10c43f4aa12",
@@ -244,7 +244,8 @@
     },
     "outputs": {
       "spock:/scratch/kohlbach/f5-tdfcheck/tdfcheck/ts.tsv": "1b764e23fc1b1931541b3fb0e4cbc94bdfb271fd47df4d666974214bb4de717d",
-      "spock:/scratch/kohlbach/f5-tdfcheck/tdfcheck/om.tsv": "f1c69b50eb741f75e26fd6eaf54f81f58ab8632136dd23b1ae48397fe0038a09"
+      "spock:/scratch/kohlbach/f5-tdfcheck/tdfcheck/om.tsv": "f1c69b50eb741f75e26fd6eaf54f81f58ab8632136dd23b1ae48397fe0038a09",
+      "spock:/scratch/kohlbach/f5-tdfcheck/tdfcheck/om081.tsv": "f1c69b50eb741f75e26fd6eaf54f81f58ab8632136dd23b1ae48397fe0038a09"
     },
     "note": "Recorded, not re-verified by the in-repo gate."
   },
