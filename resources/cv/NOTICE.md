@@ -35,3 +35,18 @@ source SDK license hashes are recorded in [its provenance manifest](../../tests/
 The source OpenMS copyright and BSD-3-Clause license are retained in the root
 [license notices](../../LICENSES.md); this attribution does not alter the
 separate ontology terms described above.
+
+## PSI quality-control vocabulary
+
+`qc-cv.obo` is an unchanged copy of `share/OpenMS/CV/qc-cv.obo` from
+OpenMS4-core revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (the core SDK
+pin), SHA-256 `d578feacdb6467260fb49533ccdc33594e866e7f48306b27e592760a02b01f3d`:
+the HUPO-PSI mzQC controlled vocabulary, `data-version: 0.1.2`, saved
+14:04:2021, original UTF-8 bytes. `MzQCFile` embeds it to name the metrics it
+writes, as the source loads it with `loadFromOBO("QC", ...)`. The file carries
+no license statement of its own; its owner repository,
+[HUPO-PSI/mzQC](https://github.com/HUPO-PSI/mzQC), states Creative Commons
+Attribution 4.0 International (checked 2026-09-28 through the GitHub license
+API). The creator remarks in the file header (Bielow, Uszkoreit, Eisenacher,
+Walzer) are retained verbatim. The provenance manifest is
+[`tests/data/mzqc_file_provenance.json`](../../tests/data/mzqc_file_provenance.json).

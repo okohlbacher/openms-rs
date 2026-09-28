@@ -21,9 +21,11 @@
 #[path = "support/fuzzy_string_comparator.rs"]
 mod fuzzy;
 
+use openms::chemistry::{ModificationsDB, ResidueModification};
 use openms::data_structures::DateTime;
 use openms::format::FileHandler;
 use openms::format::FileType;
+use openms::format::idxml;
 use openms::format::idxml::IdXmlDocument;
 use openms::format::mzqc_file::{MzQcFile, MzQcInput};
 use openms::kernel::{FeatureMap, MSExperiment};
@@ -43,9 +45,23 @@ fn temp_dir(tag: &str) -> PathBuf {
 
 /// The three inputs as QCCalculator loads them (topp 174b576
 /// `src/QCCalculator.cpp:139-165`).
+///
+/// The experiment is read from `QCCalculator_input_strict_reader.mzML`, the
+/// retained input with the eight `dataProcessingRef` attributes of its m/z,
+/// intensity and time arrays deleted and nothing else changed: the strict
+/// mzML reader refuses processing on a primary array ("primary-array
+/// processing has no independent native owner", `docs/FILE_INFO_SUPPORT.md`),
+/// while the source's `MzMLHandler` (core bc9cc12, lines 433-434 and 733-739)
+/// copies only the meta values of those arrays and drops their processing, so
+/// it builds the same experiment from either file. The mzQC input-file
+/// record (location, name, SHA-1) is written for the retained file name, as
+/// the tool writes it.
 fn tool_inputs() -> (MSExperiment, FeatureMap, IdXmlDocument) {
-    let mut exp =
-        FileHandler::load_experiment(data("QCCalculator_input.mzML"), &[FileType::MzMl]).unwrap();
+    let mut exp = FileHandler::load_experiment(
+        data("QCCalculator_input_strict_reader.mzML"),
+        &[FileType::MzMl],
+    )
+    .unwrap();
     exp.sort_spectra(true).unwrap();
     let mut features = FileHandler::load_feature_map(
         data("FeatureFinderMetaboIdent_1_output.featureXML"),
@@ -53,9 +69,35 @@ fn tool_inputs() -> (MSExperiment, FeatureMap, IdXmlDocument) {
     )
     .unwrap();
     features.sort_by_rt().unwrap();
-    let ids = FileHandler::load_identifications(data("OpenPepXL_output.idXML"), &[FileType::IdXml])
-        .unwrap();
+    let ids = read_ids("OpenPepXL_output.idXML");
     (exp, features, ids)
+}
+
+/// The idXML reader charges every named sequence annotation as if it scanned
+/// the whole registry (`AASequence::parse_with_budget`), so with the global
+/// registry its fixed 50 M work budget refuses `OpenPepXL_output.idXML` (19
+/// annotations) with "peptide parent parsing resource limit exceeded" - the
+/// reader defect `tests/mztab_export.rs` and `docs/MZTAB_SUPPORT.md` record.
+/// Reading through the global registry's own records for the names the file
+/// uses resolves every modification to the same record.
+fn read_ids(input: &str) -> IdXmlDocument {
+    let records: Vec<ResidueModification> = ModificationsDB::global()
+        .entries()
+        .iter()
+        .filter(|record| {
+            [
+                "Oxidation",
+                "Carbamidomethyl",
+                "Xlink:DSS[155]",
+                "Xlink:DSS[156]",
+            ]
+            .contains(&record.name())
+        })
+        .map(|record| ResidueModification::clone(record))
+        .collect();
+    let registry = ModificationsDB::from_records(records).unwrap();
+    let file = std::io::BufReader::new(std::fs::File::open(data(input)).unwrap());
+    idxml::read_with_registry(file, &idxml::ReadOptions::default(), &registry).unwrap()
 }
 
 #[test]
@@ -100,6 +142,43 @@ fn qccalculator_2_reproduces_the_retained_mzqc() {
             String::from_utf8_lossy(&produced)
         );
     }
+}
+
+/// Exact agreement with the Linux x86_64 Release build (oracle `F2-mzqc`,
+/// ibminode06, run twice with identical results; `release/host.txt`), which
+/// ran QCCalculator's body on the same inputs: every line is identical but the
+/// creation date and the input's absolute location, which depend on the run.
+/// This pins the one number the retained output differs in: the RT mean shift
+/// 0.916678249835968 of the pinned build (the retained file, written by an
+/// older build, has 0.9166780114173889, within FuzzyDiff's tolerance).
+#[test]
+fn text_is_the_release_builds_output_line_for_line() {
+    let (exp, features, mut ids) = tool_inputs();
+    let input_file = data("QCCalculator_input.mzML");
+    let input = MzQcInput {
+        input_file: input_file.to_str().unwrap(),
+        experiment: &exp,
+        contact_name: "name",
+        contact_address: "address",
+        description: "description",
+        label: "label",
+        feature_map: &features,
+    };
+    let (text, report) = MzQcFile::new()
+        .text(
+            &input,
+            &ids.protein_identifications,
+            &mut ids.peptide_identifications,
+            &DateTime::parse("2026-09-28T15:17:44").unwrap(),
+        )
+        .unwrap();
+    assert!(report.log.is_empty(), "{:?}", report.log);
+    let release = std::fs::read_to_string(data("release/QCCalculator_2_release.mzQC")).unwrap();
+    let run_dependent = |line: &&str| !line.contains("\"location\"");
+    let produced: Vec<&str> = text.split('\n').filter(run_dependent).collect();
+    let expected: Vec<&str> = release.split('\n').filter(run_dependent).collect();
+    assert_eq!(produced, expected);
+    assert!(text.contains("\"value\": 0.916678249835968\n"));
 }
 
 /// The lines FuzzyDiff skips are checked here for what they must hold: the

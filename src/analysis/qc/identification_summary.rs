@@ -109,6 +109,23 @@ impl IdentificationSummary {
         prot_ids: &[ProteinIdentification],
         pep_ids: &mut [PeptideIdentification],
     ) -> Result<IdentificationSummaryResult> {
+        self.compute_with_log(prot_ids, pep_ids, &mut Vec::new())
+    }
+
+    /// [`IdentificationSummary::compute`], appending to `log` the warnings its
+    /// [`MissedCleavages`] computation writes to `OPENMS_LOG_WARN` in the
+    /// source (see [`MissedCleavages::log`]).
+    ///
+    /// # Errors
+    ///
+    /// As [`IdentificationSummary::compute`]; `log` keeps the lines written
+    /// before the error.
+    pub fn compute_with_log(
+        &self,
+        prot_ids: &[ProteinIdentification],
+        pep_ids: &mut [PeptideIdentification],
+        log: &mut Vec<String>,
+    ) -> Result<IdentificationSummaryResult> {
         let mut result = IdentificationSummaryResult::default();
         let mut peptides = BTreeSet::new();
         for pep_id in pep_ids.iter() {
@@ -123,7 +140,9 @@ impl IdentificationSummary {
         result.peptide_length_mean = peptide_length_sum as f64 / peptides.len() as f64;
 
         let mut mc = MissedCleavages::new();
-        mc.compute(prot_ids, pep_ids)?;
+        let computed = mc.compute(prot_ids, pep_ids);
+        log.append(&mut mc.log);
+        computed?;
         let (mut missed_cleavages, mut pep_count) = (0_u32, 0_u32);
         for map in mc.results() {
             for (&key, &val) in map {

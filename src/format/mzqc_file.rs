@@ -263,7 +263,7 @@ impl MzQcFile {
         // Peptides and proteins from the idXML file.
         let identification_summary = IdentificationSummary::new();
         if runnable(&identification_summary, &status, metrics.log) {
-            let result = identification_summary.compute(prot_ids, pep_ids)?;
+            let result = identification_summary.compute_with_log(prot_ids, pep_ids, metrics.log)?;
             let unique = |id: crate::analysis::qc::UniqueId| {
                 Json::Array(vec![
                     Json::Unsigned(id.count.into()),
