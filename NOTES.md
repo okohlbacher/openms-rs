@@ -17,5 +17,27 @@ Lane FF1: FEATUREFINDER models and fitters. Worktree branch worktree-wf_cd066dab
 3. Fitter1D, LevMarqFitter1D, MaxLikeliFitter1D, GaussFitter1D, BiGaussFitter1D, EmgFitter1D, IsotopeFitter1D, ExtendedIsotopeFitter1D
 4. EmgScoring, PeakWidthEstimator, SeedListGenerator, FeatureFinderDefs, FeatureFinderAlgorithm, ElutionModelFitter
 
+## Findings (read already; don't redo)
+- C++ readable at /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-R/.reference/openms4-core-bc9cc12/
+  (sha256 of BaseModel.h matches coverage json). Reading the tests pin through the VCS with paths containing
+  the word "source" is REFUSED by the worktree guard; use the .reference checkout + python printing.
+- Helper script: scratchpad/show.py <Name> prints h/cpp/test stripped; dumps in scratchpad/<Name>.txt
+- Rust has NO LinearInterpolation (ML/INTERPOLATION unmapped) -> port it at src/math/ml/linear_interpolation.rs
+  (flag in report: possible duplicate with an ML lane).
+- Param handler: B6 trait `DefaultParamHandling` lives on branch worktree-wf_cd066dab-0a7-1 (src/param/handler.rs),
+  NOT in base. Shape: NAME, defaults(), to_param(&self), update_members(&Param)->Result<Self>. Provide inherent
+  defaults/from_param/from_param_with_warnings/to_param + from_complete_param like peak_picking.rs:1853-1985.
+- C++ setParameters REPLACES param_ (defaults + given) -> a prior setInterpolationStep is lost in every
+  Fitter's model build (GaussFitter1D etc: model->setInterpolationStep(step) then setParameters(tmp)). Defect candidate.
+- BaseModel ctor sets defaults_ but no defaultsToParam_; LevMarqFitter1D ctor same; symmetric_ uninit.
+- IsotopeModel::updateMembers_ does NOT call setSamples (others do). IsotopeModel uses
+  CoarseIsotopePatternGenerator(max_isotope, round_masses=true); Extended uses (max_isotope) only.
+- fitOffset_/Emg/ExtIso pearson use std::vector<float> (f32 rounding of both series).
+- fit1d class tests are dummies except EmgFitter1D (fit of EmgModel samples -> params 100000/5/5/725, and #6239 robustness).
+- EmgScoring test needs OpenSWATH_Test mock feature (0.924365639 / 0.981013417243958).
+- PeakWidthEstimator needs BSpline2d: Rust has src/processing/spline/b_spline.rs (check it is BSpline2d port).
+- SeedListGenerator: pure data plumbing; tests use PepXMLFile_test.mzML, ConsensusXMLFile_1.consensusXML.
+
 ## Next step
-1. Read skill SKILL.md, the C++ headers/impls + class tests for step 1.
+1. Inspect Rust APIs: Param/DefaultParamHandler (src/param*), BasicStatistics, pearson, isotopes, LM, Peak1D.
+2. Write src/math/ml/linear_interpolation.rs + src/analysis/featurefinder/{base_model,models,...}.rs
