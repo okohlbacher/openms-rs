@@ -121,6 +121,11 @@ Every public member of the header is mapped; nothing is left unported.
 - **Output ceiling.** `max_peptides` (default 2^24) bounds the generated
   peptides; exceeding it is `Error::InvalidValue`, never a truncation. The
   source has no bound beyond its 2^20 combinations per peptide.
+  The digestor's own ceilings (`ProteaseDigestion::max_products`,
+  `max_work`) and the default `ModifiedPeptideGenerator` bounds also apply, so
+  a very large unspecific digest or variable-modification expansion is an
+  error where the source would keep going; raise the digestor's fields to
+  admit it.
 - **Resource bounds on reading** (`ReadLimits`): line, sequence, header-line,
   items-per-entry, entry and warning counts. Warnings past `max_warnings` are
   counted in `PEFFReader::suppressed_warnings`.
