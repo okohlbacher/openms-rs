@@ -197,6 +197,9 @@ pub mod chromeleon;
 pub mod edta;
 /// GNPS FBMN meta-value table writer (`GNPSMetaValueFile.h`).
 pub mod gnps_meta_value;
+/// GNPS FBMN consensus-spectrum MGF writer (`GNPSMGFFile.h`).
+#[cfg(all(feature = "consensusxml", feature = "mzml"))]
+pub mod gnps_mgf;
 /// GNPS FBMN feature-quantification table writer (`GNPSQuantificationFile.h`).
 pub mod gnps_quantification;
 /// IBSpectra export of isobaric consensus maps for isobar (`IBSpectraFile.h`).
