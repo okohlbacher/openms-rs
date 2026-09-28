@@ -14,6 +14,12 @@
 //!
 //! The source class derives from `Internal::XMLFile` but only writes: it has
 //! no `load`. See `docs/SEARCH_ENGINE_FILES_SUPPORT.md` for the API mapping.
+//!
+//! The source header also declares `getNoiseSuppression`/`setNoiseSuppression`,
+//! but the pin defines neither function and has no member to hold the value
+//! (the `noise suppression` note in `writeTo_` is commented out), so a C++
+//! caller cannot link against them. They have no Rust counterpart: there is
+//! no source behaviour to port.
 
 use crate::chemistry::{ModificationDefinition, ModificationDefinitionsSet, TermSpecificity};
 use crate::format::file_info::text_format::{ostream_g, to_str};

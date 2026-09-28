@@ -82,7 +82,12 @@ fast-forwarded onto worktree-wf_bcdd783d-f3f-13 (first incarnation: 5a2b6b2).
   Source defect kept for parity: load() records each id with the NEXT spectrum's scan (and file).
 - Formatting: use rustfmt --edition 2024 (crate edition), not 2021.
 
+## Incarnation 4 (this run)
+- g5 had failed on a borrow error in inspect_outfile.rs (fixed in the tree: `let given = ids.len()` hoisted). g6 = all 7 lane test files, features mzml,idxml.
+- Member check (scratchpad/F3b/members.py): Rust getters drop `get_`; all 13 headers covered.
+  XTandemInfile get/setNoiseSuppression are declared but never defined at the pin (no member either) -> documented, not ported; C++ defect candidate.
+
 ## Next step
-1. Gate g5 (inspect outfile; rerun without test-name filters). Commit.
-2. docs/SEARCH_ENGINE_FILES_SUPPORT.md (does not exist yet), tests/data/search_engine_files_provenance.json,
-   lane report + ledger fragment, full CI sweep.
+1. Read g6 log (scratchpad/F3b/logs/g6.log); fix; commit InspectOutfile.
+2. Run scratchpad/F3b/make_provenance.py; write docs/SEARCH_ENGINE_FILES_SUPPORT.md; commit.
+3. Clippy + MSRV + doc gates, then full CI sweep; lane report + ledger fragment; delete NOTES.md.

@@ -1011,10 +1011,10 @@ impl InspectOutfile {
                     .precursors
                     .first()
                     .ok_or_else(|| parse_error(file, format!("scan {scan} has no precursor")))?;
+                let given = ids.len();
                 let id = ids.get_mut(id_index).ok_or_else(|| {
                     Error::InvalidValue(format!(
-                        "peptide identification {id_index} does not exist ({} given)",
-                        ids.len()
+                        "peptide identification {id_index} does not exist ({given} given)"
                     ))
                 })?;
                 id.mz = Some(precursor.mz);
