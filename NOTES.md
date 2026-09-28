@@ -25,9 +25,15 @@ src/tests/class_tests/openms/source/<Name>_test.cpp. KDTree.h has no class test.
 - Complete/AverageLinkage fill tail with dummy nodes distance -1 up to capacity n-1.
 
 ## Plan / status
-1. [ ] DistanceMatrix + BinaryTreeNode (data_structures)
-2. [ ] math/ml/clustering: ClusterFunctor, Single/Complete/AverageLinkage, ClusterAnalyzer,
-       ClusterHierarchical, EuclideanSimilarity
+1. [x] DistanceMatrix + BinaryTreeNode (data_structures) - committed 4dfa4de8
+2. [x] math/ml/clustering: ClusterFunctor, Single/Complete/AverageLinkage, ClusterAnalyzer,
+       ClusterHierarchical (generic in math; binned overload = src/analysis/spectra_clustering.rs),
+       EuclideanSimilarity. tests/ml_clustering.rs (no features). Gate: dax test run pending/passing?
+   - check_module_cycles.py counts `crate::x` inside doc comments too! avoid crate:: paths to format/analysis in math docs.
+   - recorded new acyclic edges with --write (docs/module-cycles.json) -> mention in report.
+   - newick_tree takes Option<&dyn Fn(f32)->String>; test passes format::file_info::text_format::to_str_f32.
+   - Grid: extendClustersY only used by class test (commented out in MultiplexClustering.cpp:165);
+     MultiplexDistance = sqrt(dx^2 + s^2 dy^2) (MultiplexClustering.cpp:184-187), not ported in Rust.
 3. [ ] ClusteringGrid, GridBasedCluster, GridBasedClustering (+ DBoundingBox need: check drange.rs)
 4. [ ] HashGrid
 5. [ ] GridFeature, QTCluster (analysis/mapmatching)
