@@ -258,6 +258,18 @@
   {
    "path": "src/tests/class_tests/openms/data/PepXMLFile_test.mzML",
    "sha256": "f59715fe0d154e728a685658abc7cf661a72deb8a6239fbd1fd2265070bbf51d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h",
+   "sha256": "24d0f9c4aae34061cc5d2ceb0003d9d4cd86b22c1448ae13bb4358ae0f626405"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/ConvexHull2D.h",
+   "sha256": "eecde18cc716756736ff8917084ca052e31a392a6dd6c65ce2237c3714d652a8"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/ConvexHull2D.cpp",
+   "sha256": "75181e622beebcde6020cafa816363342cd3e9ed9e18d3e5f8924cac3b1572a1"
   }
  ],
  "native_implementation": [
@@ -270,7 +282,8 @@
   "src/analysis/featurefinder/emg_scoring.rs",
   "src/analysis/featurefinder/peak_width_estimator.rs",
   "src/analysis/featurefinder/seed_list_generator.rs",
-  "src/analysis/featurefinder/feature_finder_algorithm.rs"
+  "src/analysis/featurefinder/feature_finder_algorithm.rs",
+  "src/kernel/geometry.rs (ConvexHull2D keep-first scan enlargement)"
  ],
  "native_tests": [
   "tests/featurefinder_models.rs",
@@ -281,8 +294,8 @@
  "fixtures": [
   {
    "path": "tests/data/featurefinder_models/oracle.tsv",
-   "sha256": "2abdc3d0a25cc6e3cda4ee0f34a67ce60987be800dca14eaf5302d2c37f171a1",
-   "rows": 15660,
+   "sha256": "d77d8cabbbfa2abe747e96a9a5f212c4f5f6774681aefaf96101a178f8371015",
+   "rows": 15742,
    "kind": "executed C++ oracle: ../oracle/FF1-models/driver.cpp against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, run twice with identical output",
    "evidence_tier": 1
   },
@@ -336,16 +349,16 @@
   "runs": 2,
   "runs_identical": true,
   "hashes": [
-   "6a46e74106f2b9aaad697be759f50f642b713091a1f4bd05d6db9b31ae1c199e  driver.cpp",
-   "48aaf01e1f646221df8ea664847d1d0a104f3ede93b69ec481a53dfc51cfd2d0  build/ff1_driver",
+   "2b2234d4879f7cc64cce2550a9f1c6f67816cfe02c2798b6a7762c26ec6fdc2e  driver.cpp",
+   "fbf7e8e022744fdaef81f3de475dda6db5456082dcaa51bde68affdd8a1be95d  build/ff1_driver",
    "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/lib/libOpenMS.so",
-   "2abdc3d0a25cc6e3cda4ee0f34a67ce60987be800dca14eaf5302d2c37f171a1  results/oracle.tsv"
+   "d77d8cabbbfa2abe747e96a9a5f212c4f5f6774681aefaf96101a178f8371015  results/oracle.tsv"
   ]
  },
  "external_reference_artifacts": [
   {
    "path": "../oracle/FF1-models/driver.cpp",
-   "sha256": "6a46e74106f2b9aaad697be759f50f642b713091a1f4bd05d6db9b31ae1c199e",
+   "sha256": "2b2234d4879f7cc64cce2550a9f1c6f67816cfe02c2798b6a7762c26ec6fdc2e",
    "location": "outside this repository",
    "origin_key": "cpp_oracle"
   },

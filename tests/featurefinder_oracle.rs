@@ -18,6 +18,7 @@
 //! computes in the source's order with the reference build's `exp`
 //! (`feature_finder_picked::glibc_libm::exp`).
 
+use openms::analysis::feature_finder_picked::helper_structs::{MassTrace, TracePeak};
 use openms::analysis::featurefinder::base_model::{BaseModel, InterpolationModel, Model1D};
 use openms::analysis::featurefinder::emg_scoring::EmgScoring;
 use openms::analysis::featurefinder::fitter1d::Fitter1D;
@@ -27,7 +28,7 @@ use openms::analysis::featurefinder::fitters::{
 use openms::analysis::featurefinder::gauss_models::{BiGaussModel, EmgModel, GaussModel};
 use openms::analysis::featurefinder::isotope_model::{ExtendedIsotopeModel, IsotopeModel};
 use openms::chemistry::EmpiricalFormula;
-use openms::kernel::{Peak1D, Point2D};
+use openms::kernel::{ConvexHull2D, Peak1D, Point2D};
 use openms::math::ml::linear_interpolation::LinearInterpolation;
 use openms::param::{Param, ParamValue};
 use std::collections::BTreeMap;
@@ -410,7 +411,12 @@ fn fitters_match_the_release_build() {
     ]))
     .unwrap();
     let es = em.samples();
-    fit_case("fit_emg", &EmgFitter1D::default(), &es).check(&oracle);
+    // No host libm on this path (glibc_libm::exp, sqrt, the LM transcription):
+    // every value is identical on every host.
+    assert_eq!(
+        fit_case("fit_emg", &EmgFitter1D::default(), &es).check(&oracle),
+        3502
+    );
     let efm = EmgFitter1D::from_param(&param(&[("init_mom", ParamValue::String("true".into()))]))
         .unwrap();
     fit_case("fit_emg_mom", &efm, &es).check(&oracle);
@@ -512,4 +518,81 @@ fn emg_scoring_matches_the_release_build() {
         );
     }
     case.check(&oracle);
+}
+
+/// The points of the oracle's hull case: equal m/z values of opposite zero
+/// sign at one retention time, and a `-0.0`/`+0.0` retention time pair.
+const HULL_POINTS: [(f64, f64); 15] = [
+    (1.0, 0.0),
+    (1.0, -0.0),
+    (2.0, -0.0),
+    (2.0, 0.0),
+    (2.0, -0.0),
+    (3.0, 5.0),
+    (3.0, -0.0),
+    (3.0, 0.0),
+    (1.0, -1.5),
+    (1.0, 0.0),
+    (4.0, -0.0),
+    (4.0, 0.0),
+    (4.0, 2.0),
+    (-0.0, 7.0),
+    (0.0, -0.0),
+];
+
+fn hull_case(name: &'static str, hull: &ConvexHull2D) -> Case {
+    let points = hull.hull_points();
+    let mut case = Case::new(name);
+    case.out("n", points.len() as f64);
+    for (k, p) in points.iter().enumerate() {
+        case.out(format!("x{k}"), p.rt);
+        case.out(format!("y{k}"), p.mz);
+        case.out(
+            format!("signx{k}"),
+            if p.rt.is_sign_negative() { 1.0 } else { 0.0 },
+        );
+        case.out(
+            format!("signy{k}"),
+            if p.mz.is_sign_negative() { 1.0 } else { 0.0 },
+        );
+    }
+    case
+}
+
+/// `ConvexHull2D::addPoints` keeps the first m/z of a retention time when a
+/// later one compares equal (`DBoundingBox<1>::enlarge` replaces only on a
+/// strict `<`/`>`), so the zero signs are the source's, bit for bit; this is
+/// the gap `FeatureFinderAlgorithmPickedHelperStructs::MassTrace::getConvexhull`
+/// was partial on.
+#[test]
+fn convex_hull_keeps_the_first_equal_mz_as_the_release_build() {
+    let oracle = oracle();
+    let points: Vec<Point2D> = HULL_POINTS
+        .iter()
+        .map(|&(rt, mz)| Point2D { rt, mz })
+        .collect();
+    let hull = ConvexHull2D::from_points(&points).unwrap();
+    let case = hull_case("hull", &hull);
+    let n = case.values.len();
+    assert_eq!(case.check(&oracle), n);
+
+    let mut incremental = ConvexHull2D::new();
+    for p in &points {
+        incremental.add_point(*p).unwrap();
+    }
+    let case = hull_case("hull", &incremental);
+    let n = case.values.len();
+    assert_eq!(case.check(&oracle), n);
+
+    let trace = MassTrace {
+        peaks: HULL_POINTS
+            .iter()
+            .enumerate()
+            .map(|(k, &(rt, mz))| TracePeak::new(k, 0, rt, mz, 1.0))
+            .collect(),
+        ..MassTrace::default()
+    };
+    let case = hull_case("trace_hull", &trace.convex_hull().unwrap());
+    let n = case.values.len();
+    assert_eq!(case.check(&oracle), n);
 }
