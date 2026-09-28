@@ -37,7 +37,7 @@ use crate::format::arrow_schema_registry::validation::types_equal;
 use crate::format::parquet_file::{encode, publish, writer_properties};
 use crate::format::percolator_infile::ScanNumberPattern;
 use crate::kernel::features::{ColumnHeader, ConsensusMap};
-use crate::metadata::value::{MetaInfo, MetaValue, MetaValueData};
+use crate::metadata::{MetaInfo, MetaValue, MetaValueData};
 use crate::{Error, Result};
 use arrow_array::cast::AsArray;
 use arrow_array::types::{Float32Type, Float64Type, Int32Type, Int64Type};
@@ -1445,7 +1445,7 @@ fn c_stod(text: &str) -> Option<f64> {
         return Some(sign * f64::INFINITY);
     }
     if starts_with_ignore_case(rest, "nan") {
-        return Some(sign * f64::NAN);
+        return Some(if negative { -f64::NAN } else { f64::NAN });
     }
     if rest.len() >= 2 && rest[0] == b'0' && (rest[1] | 0x20) == b'x' {
         if let Some(value) = c_hex_float(&rest[2..]) {

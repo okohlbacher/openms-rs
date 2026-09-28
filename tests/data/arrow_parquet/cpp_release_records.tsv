@@ -1,0 +1,889 @@
+schema	ProteinSchema	10
+field	ProteinSchema/0	accession: string not null
+field	ProteinSchema/1	score: double not null
+field	ProteinSchema/2	rank: int32 not null
+field	ProteinSchema/3	coverage: double
+field	ProteinSchema/4	sequence: string
+field	ProteinSchema/5	description: string
+field	ProteinSchema/6	is_decoy: bool
+field	ProteinSchema/7	run_identifier: string not null
+field	ProteinSchema/8	modifications: list<item: struct<position: int32, modification: string>>
+field	ProteinSchema/9	metavalues: list<item: struct<name: string, value: string, value_type: string>> not null
+schema	ProteinGroupSchema	8
+field	ProteinGroupSchema/0	group_type: string not null
+field	ProteinGroupSchema/1	probability: double not null
+field	ProteinGroupSchema/2	accessions: list<item: string> not null
+field	ProteinGroupSchema/3	run_identifier: string not null
+field	ProteinGroupSchema/4	group_index: int32 not null
+field	ProteinGroupSchema/5	float_data: list<item: struct<name: string, values: list<item: double>>>
+field	ProteinGroupSchema/6	string_data: list<item: struct<name: string, values: list<item: string>>>
+field	ProteinGroupSchema/7	integer_data: list<item: struct<name: string, values: list<item: int64>>>
+schema	SearchParamsSchema	26
+field	SearchParamsSchema/0	run_identifier: string not null
+field	SearchParamsSchema/1	search_engine: string not null
+field	SearchParamsSchema/2	search_engine_version: string
+field	SearchParamsSchema/3	inference_engine: string
+field	SearchParamsSchema/4	inference_engine_version: string
+field	SearchParamsSchema/5	date: timestamp[s]
+field	SearchParamsSchema/6	score_type: string not null
+field	SearchParamsSchema/7	higher_score_better: bool not null
+field	SearchParamsSchema/8	significance_threshold: double
+field	SearchParamsSchema/9	db: string
+field	SearchParamsSchema/10	db_version: string
+field	SearchParamsSchema/11	taxonomy: string
+field	SearchParamsSchema/12	charges: string
+field	SearchParamsSchema/13	mass_type: string not null
+field	SearchParamsSchema/14	precursor_mass_tolerance: double not null
+field	SearchParamsSchema/15	precursor_mass_tolerance_ppm: bool not null
+field	SearchParamsSchema/16	fragment_mass_tolerance: double not null
+field	SearchParamsSchema/17	fragment_mass_tolerance_ppm: bool not null
+field	SearchParamsSchema/18	digestion_enzyme: string
+field	SearchParamsSchema/19	enzyme_term_specificity: string
+field	SearchParamsSchema/20	missed_cleavages: int32 not null
+field	SearchParamsSchema/21	fixed_modifications: list<item: string> not null
+field	SearchParamsSchema/22	variable_modifications: list<item: string> not null
+field	SearchParamsSchema/23	primary_ms_run_paths: list<item: string> not null
+field	SearchParamsSchema/24	metavalues: list<item: struct<name: string, value: string, value_type: string>> not null
+field	SearchParamsSchema/25	sp_metavalues: list<item: struct<name: string, value: string, value_type: string>> not null
+schema	FeatureSchema	17
+field	FeatureSchema/0	unique_id: int64 not null
+field	FeatureSchema/1	parent_feature_id: int64
+field	FeatureSchema/2	depth: int32 not null
+field	FeatureSchema/3	rt: double not null
+field	FeatureSchema/4	mz: double not null
+field	FeatureSchema/5	intensity: float not null
+field	FeatureSchema/6	charge: int32 not null
+field	FeatureSchema/7	quality: float not null
+field	FeatureSchema/8	quality_rt: float not null
+field	FeatureSchema/9	quality_mz: float not null
+field	FeatureSchema/10	width: float
+field	FeatureSchema/11	rt_bb_min: double
+field	FeatureSchema/12	rt_bb_max: double
+field	FeatureSchema/13	mz_bb_min: double
+field	FeatureSchema/14	mz_bb_max: double
+field	FeatureSchema/15	convex_hulls: list<item: struct<hull_index: int32, points: list<item: struct<x: double, y: double>>>> not null
+field	FeatureSchema/16	metavalues: list<item: struct<name: string, value: string, value_type: string>> not null
+schema	ConsensusFeatureSchema	9
+field	ConsensusFeatureSchema/0	unique_id: int64
+field	ConsensusFeatureSchema/1	rt: double
+field	ConsensusFeatureSchema/2	mz: double
+field	ConsensusFeatureSchema/3	intensity: float
+field	ConsensusFeatureSchema/4	charge: int32
+field	ConsensusFeatureSchema/5	quality: float
+field	ConsensusFeatureSchema/6	width: float
+field	ConsensusFeatureSchema/7	handles: list<item: struct<map_index: int64, unique_id: int64, rt: double, mz: double, intensity: float, charge: int32, width: float>>
+field	ConsensusFeatureSchema/8	metavalues: list<item: struct<name: string, value: string, value_type: string>>
+schema	PSMSchema	29
+field	PSMSchema/0	sequence: string
+field	PSMSchema/1	peptidoform: string
+field	PSMSchema/2	modifications: list<item: struct<name: string, accession: string, positions: list<item: struct<position: string, scores: double>>>>
+field	PSMSchema/3	precursor_charge: int32
+field	PSMSchema/4	posterior_error_probability: double
+field	PSMSchema/5	is_decoy: bool
+field	PSMSchema/6	calculated_mz: double
+field	PSMSchema/7	observed_mz: double
+field	PSMSchema/8	additional_scores: list<item: struct<score_name: string, score_value: double, higher_better: bool>>
+field	PSMSchema/9	protein_accessions: list<item: struct<accession: string not null, aa_before: string, aa_after: string, start: int32, end: int32>>
+field	PSMSchema/10	predicted_rt: double
+field	PSMSchema/11	reference_file_name: string
+field	PSMSchema/12	cv_params: string
+field	PSMSchema/13	scan: int32
+field	PSMSchema/14	rt: double
+field	PSMSchema/15	ion_mobility: double
+field	PSMSchema/16	spectrum_reference: string
+field	PSMSchema/17	score: double
+field	PSMSchema/18	score_type: string
+field	PSMSchema/19	higher_score_better: bool
+field	PSMSchema/20	hit_index: int32
+field	PSMSchema/21	peptide_identification_index: int32
+field	PSMSchema/22	psm_metavalues: list<item: struct<name: string, value: string, value_type: string>>
+field	PSMSchema/23	spectrum_metavalues: list<item: struct<name: string, value: string, value_type: string>>
+field	PSMSchema/24	run_identifier: string
+field	PSMSchema/25	mz_array: list<item: float>
+field	PSMSchema/26	intensity_array: list<item: float>
+field	PSMSchema/27	charge_array: list<item: int32>
+field	PSMSchema/28	ion_type_array: list<item: string>
+schema	QPXPSMSchema	26
+field	QPXPSMSchema/0	psm_id: int64 not null
+field	QPXPSMSchema/1	sequence: string not null
+field	QPXPSMSchema/2	peptidoform: string not null
+field	QPXPSMSchema/3	modifications: list<item: struct<name: string not null, accession: string, positions: list<item: struct<position: int32 not null, amino_acid: string, scores: list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>>> not null>>
+field	QPXPSMSchema/4	charge: int16 not null
+field	QPXPSMSchema/5	posterior_error_probability: double
+field	QPXPSMSchema/6	is_decoy: bool not null
+field	QPXPSMSchema/7	calculated_mz: float not null
+field	QPXPSMSchema/8	observed_mz: float not null
+field	QPXPSMSchema/9	mass_error_ppm: float
+field	QPXPSMSchema/10	additional_scores: list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>
+field	QPXPSMSchema/11	predicted_rt: float
+field	QPXPSMSchema/12	run_file_name: string not null
+field	QPXPSMSchema/13	cv_params: list<item: struct<cv_name: string not null, cv_value: string not null>>
+field	QPXPSMSchema/14	scan: list<item: int32> not null
+field	QPXPSMSchema/15	rt: float
+field	QPXPSMSchema/16	ion_mobility: float
+field	QPXPSMSchema/17	missed_cleavages: int16
+field	QPXPSMSchema/18	protein_accessions: list<item: string>
+field	QPXPSMSchema/19	cross_links: list<item: struct<xl_type: string not null, partner_sequence: string, partner_peptidoform: string, donor_position: int32 not null, acceptor_position: int32, linker_name: string not null, linker_accession: string, linker_mass: double not null>>
+field	QPXPSMSchema/20	mz_array: list<item: float>
+field	QPXPSMSchema/21	intensity_array: list<item: float>
+field	QPXPSMSchema/22	charge_array: list<item: int32>
+field	QPXPSMSchema/23	ion_type_array: list<item: string>
+field	QPXPSMSchema/24	ion_mobility_array: list<item: float>
+field	QPXPSMSchema/25	feature_id: int64
+schema	QPXFeatureSchema	33
+field	QPXFeatureSchema/0	feature_id: int64 not null
+field	QPXFeatureSchema/1	sequence: string not null
+field	QPXFeatureSchema/2	peptidoform: string not null
+field	QPXFeatureSchema/3	modifications: list<item: struct<name: string not null, accession: string, positions: list<item: struct<position: int32 not null, amino_acid: string, scores: list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>>> not null>>
+field	QPXFeatureSchema/4	charge: int16 not null
+field	QPXFeatureSchema/5	posterior_error_probability: double
+field	QPXFeatureSchema/6	is_decoy: bool not null
+field	QPXFeatureSchema/7	calculated_mz: float not null
+field	QPXFeatureSchema/8	observed_mz: float not null
+field	QPXFeatureSchema/9	mass_error_ppm: float
+field	QPXFeatureSchema/10	additional_scores: list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>
+field	QPXFeatureSchema/11	predicted_rt: float
+field	QPXFeatureSchema/12	run_file_name: string not null
+field	QPXFeatureSchema/13	cv_params: list<item: struct<cv_name: string not null, cv_value: string not null>>
+field	QPXFeatureSchema/14	scan: list<item: int32> not null
+field	QPXFeatureSchema/15	rt: float
+field	QPXFeatureSchema/16	ion_mobility: float
+field	QPXFeatureSchema/17	missed_cleavages: int16
+field	QPXFeatureSchema/18	intensities: list<item: struct<label: string not null, intensity: float not null>>
+field	QPXFeatureSchema/19	additional_intensities: list<item: struct<label: string not null, intensities: list<item: struct<intensity_name: string not null, intensity_value: float not null>> not null>>
+field	QPXFeatureSchema/20	pg_accessions: list<item: struct<accession: string not null, start: int32, end: int32, pre: string, post: string>>
+field	QPXFeatureSchema/21	anchor_protein: string
+field	QPXFeatureSchema/22	unique: bool
+field	QPXFeatureSchema/23	pg_global_qvalue: double
+field	QPXFeatureSchema/24	pg_positions: list<item: struct<protein_accession: string not null, start: int32 not null, end: int32 not null>>
+field	QPXFeatureSchema/25	ion_mobility_start: float
+field	QPXFeatureSchema/26	ion_mobility_stop: float
+field	QPXFeatureSchema/27	gg_accessions: list<item: string>
+field	QPXFeatureSchema/28	gg_names: list<item: string>
+field	QPXFeatureSchema/29	id_run_file_name: string
+field	QPXFeatureSchema/30	rt_start: float
+field	QPXFeatureSchema/31	rt_stop: float
+field	QPXFeatureSchema/32	psm_ids: list<item: int64>
+schema	QPXPgSchema	22
+field	QPXPgSchema/0	pg_id: int64 not null
+field	QPXPgSchema/1	pg_accessions: list<item: string> not null
+field	QPXPgSchema/2	pg_names: list<item: string>
+field	QPXPgSchema/3	gg_accessions: list<item: string>
+field	QPXPgSchema/4	gg_names: list<item: string>
+field	QPXPgSchema/5	gg_qvalue: double
+field	QPXPgSchema/6	anchor_protein: string not null
+field	QPXPgSchema/7	grouped_runs: list<item: string> not null
+field	QPXPgSchema/8	global_qvalue: double
+field	QPXPgSchema/9	pg_qvalue: double
+field	QPXPgSchema/10	label: string
+field	QPXPgSchema/11	intensity: float
+field	QPXPgSchema/12	additional_intensities: list<item: struct<label: string not null, intensities: list<item: struct<intensity_name: string not null, intensity_value: float not null>> not null>>
+field	QPXPgSchema/13	is_decoy: bool not null
+field	QPXPgSchema/14	contaminant: bool
+field	QPXPgSchema/15	peptides: list<item: struct<protein_name: string not null, peptide_count: int32 not null>> not null
+field	QPXPgSchema/16	peptide_counts: struct<unique_sequences: int32 not null, total_sequences: int32 not null>
+field	QPXPgSchema/17	feature_counts: struct<unique_features: int32 not null, total_features: int32 not null>
+field	QPXPgSchema/18	sequence_coverage: float
+field	QPXPgSchema/19	molecular_weight: float
+field	QPXPgSchema/20	additional_scores: list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>
+field	QPXPgSchema/21	cv_params: list<item: struct<cv_name: string not null, cv_value: string not null>>
+schema	SpectraLongSchema	12
+field	SpectraLongSchema/0	mz: double
+field	SpectraLongSchema/1	intensity: float
+field	SpectraLongSchema/2	rt: float
+field	SpectraLongSchema/3	ion_mobility: float
+field	SpectraLongSchema/4	spectrum_index: uint32
+field	SpectraLongSchema/5	ms_level: uint8
+field	SpectraLongSchema/6	native_id: string
+field	SpectraLongSchema/7	precursor_mz: double
+field	SpectraLongSchema/8	precursor_charge: int16
+field	SpectraLongSchema/9	precursor_intensity: float
+field	SpectraLongSchema/10	isolation_lower: double
+field	SpectraLongSchema/11	isolation_upper: double
+schema	SpectraSemiWideSchema	12
+field	SpectraSemiWideSchema/0	spectrum_index: uint32
+field	SpectraSemiWideSchema/1	rt: float
+field	SpectraSemiWideSchema/2	ms_level: uint8
+field	SpectraSemiWideSchema/3	native_id: string
+field	SpectraSemiWideSchema/4	mz: list<item: double>
+field	SpectraSemiWideSchema/5	intensity: list<item: float>
+field	SpectraSemiWideSchema/6	ion_mobility: list<item: float>
+field	SpectraSemiWideSchema/7	precursor_mz: double
+field	SpectraSemiWideSchema/8	precursor_charge: int16
+field	SpectraSemiWideSchema/9	precursor_intensity: float
+field	SpectraSemiWideSchema/10	isolation_lower: double
+field	SpectraSemiWideSchema/11	isolation_upper: double
+schema	ChromatogramSchema	6
+field	ChromatogramSchema/0	rt: double
+field	ChromatogramSchema/1	intensity: float
+field	ChromatogramSchema/2	chromatogram_index: uint32
+field	ChromatogramSchema/3	native_id: string
+field	ChromatogramSchema/4	precursor_mz: double
+field	ChromatogramSchema/5	product_mz: double
+schema	ChromatogramSemiWideSchema	6
+field	ChromatogramSemiWideSchema/0	chromatogram_index: uint32
+field	ChromatogramSemiWideSchema/1	native_id: string
+field	ChromatogramSemiWideSchema/2	rt: list<item: double>
+field	ChromatogramSemiWideSchema/3	intensity: list<item: float>
+field	ChromatogramSemiWideSchema/4	precursor_mz: double
+field	ChromatogramSemiWideSchema/5	product_mz: double
+schema	OSWPrecursorSchema	10
+field	OSWPrecursorSchema/0	precursor_id: int64
+field	OSWPrecursorSchema/1	precursor_mz: double
+field	OSWPrecursorSchema/2	charge: int32
+field	OSWPrecursorSchema/3	library_rt: double
+field	OSWPrecursorSchema/4	library_drift_time: double
+field	OSWPrecursorSchema/5	decoy: bool
+field	OSWPrecursorSchema/6	traml_id: string
+field	OSWPrecursorSchema/7	modified_sequence: string
+field	OSWPrecursorSchema/8	unmodified_sequence: string
+field	OSWPrecursorSchema/9	protein_accessions: string
+schema	OSWTransitionSchema	13
+field	OSWTransitionSchema/0	transition_id: int64
+field	OSWTransitionSchema/1	precursor_id: int64
+field	OSWTransitionSchema/2	traml_id: string
+field	OSWTransitionSchema/3	product_mz: double
+field	OSWTransitionSchema/4	charge: int32
+field	OSWTransitionSchema/5	type: string
+field	OSWTransitionSchema/6	annotation: string
+field	OSWTransitionSchema/7	ordinal: int32
+field	OSWTransitionSchema/8	detecting: bool
+field	OSWTransitionSchema/9	identifying: bool
+field	OSWTransitionSchema/10	quantifying: bool
+field	OSWTransitionSchema/11	library_intensity: double
+field	OSWTransitionSchema/12	decoy: bool
+schema	OSWFeaturePrecursorSchema	5
+field	OSWFeaturePrecursorSchema/0	feature_id: int64
+field	OSWFeaturePrecursorSchema/1	run_id: int64
+field	OSWFeaturePrecursorSchema/2	precursor_isotope: int32
+field	OSWFeaturePrecursorSchema/3	precursor_area_intensity: double
+field	OSWFeaturePrecursorSchema/4	precursor_apex_intensity: double
+schema	OSWRunSchema	2
+field	OSWRunSchema/0	run_id: int64
+field	OSWRunSchema/1	filename: string
+schema	OSWFeatureSchema	65
+field	OSWFeatureSchema/0	feature_id: int64
+field	OSWFeatureSchema/1	run_id: int64
+field	OSWFeatureSchema/2	precursor_id: int64
+field	OSWFeatureSchema/3	exp_rt: double
+field	OSWFeatureSchema/4	exp_im: double
+field	OSWFeatureSchema/5	norm_rt: double
+field	OSWFeatureSchema/6	delta_rt: double
+field	OSWFeatureSchema/7	left_width: double
+field	OSWFeatureSchema/8	right_width: double
+field	OSWFeatureSchema/9	exp_im_leftwidth: double
+field	OSWFeatureSchema/10	exp_im_rightwidth: double
+field	OSWFeatureSchema/11	ms1_area_intensity: double
+field	OSWFeatureSchema/12	ms1_apex_intensity: double
+field	OSWFeatureSchema/13	ms1_exp_im: double
+field	OSWFeatureSchema/14	ms1_delta_im: double
+field	OSWFeatureSchema/15	var_ms1_massdev_score: double
+field	OSWFeatureSchema/16	var_ms1_im_ms1_delta_score: double
+field	OSWFeatureSchema/17	var_ms1_mi_score: double
+field	OSWFeatureSchema/18	var_ms1_mi_contrast_score: double
+field	OSWFeatureSchema/19	var_ms1_mi_combined_score: double
+field	OSWFeatureSchema/20	var_ms1_isotope_correlation_score: double
+field	OSWFeatureSchema/21	var_ms1_isotope_overlap_score: double
+field	OSWFeatureSchema/22	var_ms1_xcorr_coelution: double
+field	OSWFeatureSchema/23	var_ms1_xcorr_coelution_contrast: double
+field	OSWFeatureSchema/24	var_ms1_xcorr_coelution_combined: double
+field	OSWFeatureSchema/25	var_ms1_xcorr_shape: double
+field	OSWFeatureSchema/26	var_ms1_xcorr_shape_contrast: double
+field	OSWFeatureSchema/27	var_ms1_xcorr_shape_combined: double
+field	OSWFeatureSchema/28	ms2_area_intensity: double
+field	OSWFeatureSchema/29	ms2_total_area_intensity: double
+field	OSWFeatureSchema/30	ms2_apex_intensity: double
+field	OSWFeatureSchema/31	ms2_exp_im: double
+field	OSWFeatureSchema/32	ms2_exp_im_leftwidth: double
+field	OSWFeatureSchema/33	ms2_exp_im_rightwidth: double
+field	OSWFeatureSchema/34	ms2_delta_im: double
+field	OSWFeatureSchema/35	ms2_total_mi: double
+field	OSWFeatureSchema/36	var_ms2_bseries_score: double
+field	OSWFeatureSchema/37	var_ms2_dotprod_score: double
+field	OSWFeatureSchema/38	var_ms2_intensity_score: double
+field	OSWFeatureSchema/39	var_ms2_isotope_correlation_score: double
+field	OSWFeatureSchema/40	var_ms2_isotope_overlap_score: double
+field	OSWFeatureSchema/41	var_ms2_library_corr: double
+field	OSWFeatureSchema/42	var_ms2_library_dotprod: double
+field	OSWFeatureSchema/43	var_ms2_library_manhattan: double
+field	OSWFeatureSchema/44	var_ms2_library_rmsd: double
+field	OSWFeatureSchema/45	var_ms2_library_rootmeansquare: double
+field	OSWFeatureSchema/46	var_ms2_library_sangle: double
+field	OSWFeatureSchema/47	var_ms2_log_sn_score: double
+field	OSWFeatureSchema/48	var_ms2_manhattan_score: double
+field	OSWFeatureSchema/49	var_ms2_massdev_score: double
+field	OSWFeatureSchema/50	var_ms2_massdev_score_weighted: double
+field	OSWFeatureSchema/51	var_ms2_mi_score: double
+field	OSWFeatureSchema/52	var_ms2_mi_weighted_score: double
+field	OSWFeatureSchema/53	var_ms2_mi_ratio_score: double
+field	OSWFeatureSchema/54	var_ms2_norm_rt_score: double
+field	OSWFeatureSchema/55	var_ms2_xcorr_coelution: double
+field	OSWFeatureSchema/56	var_ms2_xcorr_coelution_weighted: double
+field	OSWFeatureSchema/57	var_ms2_xcorr_shape: double
+field	OSWFeatureSchema/58	var_ms2_xcorr_shape_weighted: double
+field	OSWFeatureSchema/59	var_ms2_yseries_score: double
+field	OSWFeatureSchema/60	var_ms2_elution_model_fit_score: double
+field	OSWFeatureSchema/61	var_ms2_im_xcorr_shape: double
+field	OSWFeatureSchema/62	var_ms2_im_xcorr_coelution: double
+field	OSWFeatureSchema/63	var_ms2_im_delta_score: double
+field	OSWFeatureSchema/64	var_ms2_im_log_intensity: double
+schema	OSWFeatureTransitionSchema	44
+field	OSWFeatureTransitionSchema/0	feature_id: int64
+field	OSWFeatureTransitionSchema/1	run_id: int64
+field	OSWFeatureTransitionSchema/2	transition_id: int64
+field	OSWFeatureTransitionSchema/3	area_intensity: double
+field	OSWFeatureTransitionSchema/4	total_area_intensity: double
+field	OSWFeatureTransitionSchema/5	apex_intensity: double
+field	OSWFeatureTransitionSchema/6	apex_rt: double
+field	OSWFeatureTransitionSchema/7	rt_fwhm: double
+field	OSWFeatureTransitionSchema/8	masserror_ppm: double
+field	OSWFeatureTransitionSchema/9	total_mi: double
+field	OSWFeatureTransitionSchema/10	var_intensity_score: double
+field	OSWFeatureTransitionSchema/11	var_intensity_ratio_score: double
+field	OSWFeatureTransitionSchema/12	var_log_intensity: double
+field	OSWFeatureTransitionSchema/13	var_xcorr_coelution: double
+field	OSWFeatureTransitionSchema/14	var_xcorr_shape: double
+field	OSWFeatureTransitionSchema/15	var_log_sn_score: double
+field	OSWFeatureTransitionSchema/16	var_massdev_score: double
+field	OSWFeatureTransitionSchema/17	var_mi_score: double
+field	OSWFeatureTransitionSchema/18	var_mi_ratio_score: double
+field	OSWFeatureTransitionSchema/19	var_isotope_correlation_score: double
+field	OSWFeatureTransitionSchema/20	var_isotope_overlap_score: double
+field	OSWFeatureTransitionSchema/21	exp_im: double
+field	OSWFeatureTransitionSchema/22	exp_im_leftwidth: double
+field	OSWFeatureTransitionSchema/23	exp_im_rightwidth: double
+field	OSWFeatureTransitionSchema/24	delta_im: double
+field	OSWFeatureTransitionSchema/25	var_im_delta_score: double
+field	OSWFeatureTransitionSchema/26	var_im_log_intensity: double
+field	OSWFeatureTransitionSchema/27	var_im_xcorr_coelution_contrast: double
+field	OSWFeatureTransitionSchema/28	var_im_xcorr_shape_contrast: double
+field	OSWFeatureTransitionSchema/29	var_im_xcorr_coelution_combined: double
+field	OSWFeatureTransitionSchema/30	var_im_xcorr_shape_combined: double
+field	OSWFeatureTransitionSchema/31	start_position_at_5: double
+field	OSWFeatureTransitionSchema/32	end_position_at_5: double
+field	OSWFeatureTransitionSchema/33	start_position_at_10: double
+field	OSWFeatureTransitionSchema/34	end_position_at_10: double
+field	OSWFeatureTransitionSchema/35	start_position_at_50: double
+field	OSWFeatureTransitionSchema/36	end_position_at_50: double
+field	OSWFeatureTransitionSchema/37	total_width: double
+field	OSWFeatureTransitionSchema/38	tailing_factor: double
+field	OSWFeatureTransitionSchema/39	asymmetry_factor: double
+field	OSWFeatureTransitionSchema/40	slope_of_baseline: double
+field	OSWFeatureTransitionSchema/41	baseline_delta_2_height: double
+field	OSWFeatureTransitionSchema/42	points_across_baseline: double
+field	OSWFeatureTransitionSchema/43	points_across_half_height: double
+schema	XICSchema	18
+field	XICSchema/0	RUN_ID: int64
+field	XICSchema/1	SOURCE_FILE: string
+field	XICSchema/2	MS_LEVEL: int64
+field	XICSchema/3	PRECURSOR_ID: int64
+field	XICSchema/4	TRANSITION_ID: int64
+field	XICSchema/5	MODIFIED_SEQUENCE: string
+field	XICSchema/6	PRECURSOR_CHARGE: int64
+field	XICSchema/7	PRODUCT_CHARGE: int64
+field	XICSchema/8	DETECTING_TRANSITION: int64
+field	XICSchema/9	PRECURSOR_DECOY: int64
+field	XICSchema/10	PRODUCT_DECOY: int64
+field	XICSchema/11	TRANSITION_ORDINAL: int64
+field	XICSchema/12	TRANSITION_TYPE: string
+field	XICSchema/13	ANNOTATION: string
+field	XICSchema/14	RT_DATA: binary
+field	XICSchema/15	INTENSITY_DATA: binary
+field	XICSchema/16	RT_COMPRESSION: int64
+field	XICSchema/17	INTENSITY_COMPRESSION: int64
+schema	XIMSchema	21
+field	XIMSchema/0	RUN_ID: int64
+field	XIMSchema/1	SOURCE_FILE: string
+field	XIMSchema/2	MS_LEVEL: int64
+field	XIMSchema/3	MOBILOGRAM_TYPE: string
+field	XIMSchema/4	PRECURSOR_ID: int64
+field	XIMSchema/5	TRANSITION_ID: int64
+field	XIMSchema/6	FEATURE_ID: int64
+field	XIMSchema/7	FEATURE_RT: double
+field	XIMSchema/8	MODIFIED_SEQUENCE: string
+field	XIMSchema/9	PRECURSOR_CHARGE: int64
+field	XIMSchema/10	PRODUCT_CHARGE: int64
+field	XIMSchema/11	DETECTING_TRANSITION: int64
+field	XIMSchema/12	PRECURSOR_DECOY: int64
+field	XIMSchema/13	PRODUCT_DECOY: int64
+field	XIMSchema/14	TRANSITION_ORDINAL: int64
+field	XIMSchema/15	TRANSITION_TYPE: string
+field	XIMSchema/16	ANNOTATION: string
+field	XIMSchema/17	MOBILITY_DATA: binary
+field	XIMSchema/18	INTENSITY_DATA: binary
+field	XIMSchema/19	MOBILITY_COMPRESSION: int64
+field	XIMSchema/20	INTENSITY_COMPRESSION: int64
+schema	XIPMSchema	28
+field	XIPMSchema/0	RUN_ID: int64
+field	XIPMSchema/1	SOURCE_FILE: string
+field	XIPMSchema/2	MS_LEVEL: int64
+field	XIPMSchema/3	PEAKMAP_TYPE: string
+field	XIPMSchema/4	PRECURSOR_ID: int64
+field	XIPMSchema/5	TRANSITION_ID: int64
+field	XIPMSchema/6	MODIFIED_SEQUENCE: string
+field	XIPMSchema/7	PRECURSOR_CHARGE: int64
+field	XIPMSchema/8	PRODUCT_CHARGE: int64
+field	XIPMSchema/9	DETECTING_TRANSITION: int64
+field	XIPMSchema/10	PRECURSOR_DECOY: int64
+field	XIPMSchema/11	PRODUCT_DECOY: int64
+field	XIPMSchema/12	TRANSITION_ORDINAL: int64
+field	XIPMSchema/13	TRANSITION_TYPE: string
+field	XIPMSchema/14	ANNOTATION: string
+field	XIPMSchema/15	TARGET_MZ: double
+field	XIPMSchema/16	TARGET_RT: double
+field	XIPMSchema/17	TARGET_ION_MOBILITY: double
+field	XIPMSchema/18	RT_START: double
+field	XIPMSchema/19	RT_END: double
+field	XIPMSchema/20	MZ_DATA: binary
+field	XIPMSchema/21	RT_DATA: binary
+field	XIPMSchema/22	MOBILITY_DATA: binary
+field	XIPMSchema/23	INTENSITY_DATA: binary
+field	XIPMSchema/24	MZ_COMPRESSION: int64
+field	XIPMSchema/25	RT_COMPRESSION: int64
+field	XIPMSchema/26	MOBILITY_COMPRESSION: int64
+field	XIPMSchema/27	INTENSITY_COMPRESSION: int64
+type	ProteinSchema::modificationsType	list<item: struct<position: int32, modification: string>>
+type	ProteinSchema::metavaluesType	list<item: struct<name: string, value: string, value_type: string>>
+type	ProteinGroupSchema::floatDataType	list<item: struct<name: string, values: list<item: double>>>
+type	ProteinGroupSchema::stringDataType	list<item: struct<name: string, values: list<item: string>>>
+type	ProteinGroupSchema::integerDataType	list<item: struct<name: string, values: list<item: int64>>>
+type	SearchParamsSchema::metavaluesType	list<item: struct<name: string, value: string, value_type: string>>
+type	FeatureSchema::convexHullType	list<item: struct<hull_index: int32, points: list<item: struct<x: double, y: double>>>>
+type	FeatureSchema::metavaluesType	list<item: struct<name: string, value: string, value_type: string>>
+type	ConsensusFeatureSchema::handlesType	list<item: struct<map_index: int64, unique_id: int64, rt: double, mz: double, intensity: float, charge: int32, width: float>>
+type	ConsensusFeatureSchema::metavaluesType	list<item: struct<name: string, value: string, value_type: string>>
+type	PSMSchema::modificationsType	list<item: struct<name: string, accession: string, positions: list<item: struct<position: string, scores: double>>>>
+type	PSMSchema::additionalScoresType	list<item: struct<score_name: string, score_value: double, higher_better: bool>>
+type	PSMSchema::metavaluesType	list<item: struct<name: string, value: string, value_type: string>>
+type	PSMSchema::proteinAccessionsType	list<item: struct<accession: string not null, aa_before: string, aa_after: string, start: int32, end: int32>>
+type	QPXPSMSchema::modificationsType	list<item: struct<name: string not null, accession: string, positions: list<item: struct<position: int32 not null, amino_acid: string, scores: list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>>> not null>>
+type	QPXPSMSchema::additionalScoresType	list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>
+type	QPXPSMSchema::cvParamsType	list<item: struct<cv_name: string not null, cv_value: string not null>>
+type	QPXPSMSchema::crossLinksType	list<item: struct<xl_type: string not null, partner_sequence: string, partner_peptidoform: string, donor_position: int32 not null, acceptor_position: int32, linker_name: string not null, linker_accession: string, linker_mass: double not null>>
+type	QPXFeatureSchema::modificationsType	list<item: struct<name: string not null, accession: string, positions: list<item: struct<position: int32 not null, amino_acid: string, scores: list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>>> not null>>
+type	QPXFeatureSchema::additionalScoresType	list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>
+type	QPXFeatureSchema::cvParamsType	list<item: struct<cv_name: string not null, cv_value: string not null>>
+type	QPXFeatureSchema::intensitiesType	list<item: struct<label: string not null, intensity: float not null>>
+type	QPXFeatureSchema::additionalIntensitiesType	list<item: struct<label: string not null, intensities: list<item: struct<intensity_name: string not null, intensity_value: float not null>> not null>>
+type	QPXFeatureSchema::pgAccessionsType	list<item: struct<accession: string not null, start: int32, end: int32, pre: string, post: string>>
+type	QPXFeatureSchema::pgPositionsType	list<item: struct<protein_accession: string not null, start: int32 not null, end: int32 not null>>
+type	QPXPgSchema::groupedRunsType	list<item: string>
+type	QPXPgSchema::additionalIntensitiesType	list<item: struct<label: string not null, intensities: list<item: struct<intensity_name: string not null, intensity_value: float not null>> not null>>
+type	QPXPgSchema::peptidesType	list<item: struct<protein_name: string not null, peptide_count: int32 not null>>
+type	QPXPgSchema::peptideCountsType	struct<unique_sequences: int32 not null, total_sequences: int32 not null>
+type	QPXPgSchema::featureCountsType	struct<unique_features: int32 not null, total_features: int32 not null>
+type	QPXPgSchema::additionalScoresType	list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>
+type	QPXPgSchema::cvParamsType	list<item: struct<cv_name: string not null, cv_value: string not null>>
+equals	list item vs element	true
+equals	list item vs element check_metadata	false
+equals	list nullable vs not null	false
+equals	struct child name	false
+equals	struct child metadata	true
+equals	timestamp s vs ms	false
+validate	strict exact	true|0|
+validate	strict missing	false|2|Field count mismatch: got 1, expected 2; Missing field 'b'
+validate	strict extra	false|2|Field count mismatch: got 3, expected 2; Unexpected field 'c' not in expected schema
+validate	strict type	false|1|Type mismatch for field 'b': got int32, expected double
+validate	strict nullability	false|2|Nullability mismatch for field 'a': got nullable, expected non-null; Nullability mismatch for field 'b': got non-null, expected nullable
+validate	strict name	false|1|Field name mismatch at index 0: got 'x', expected 'a'
+validate	strict all three	false|2|Type mismatch for field 'a': got int32, expected string; Nullability mismatch for field 'a': got nullable, expected non-null
+validate	strict list element name	true|0|
+validate	strict nested nullability	false|1|Type mismatch for field 'l': got list<item: int32 not null>, expected list<item: int32>
+validate	strict timestamp ms vs s	true|0|
+validate	strict timestamp tz	true|0|
+validate	strict nested types	false|1|Type mismatch for field 'm': got list<item: struct<a: int64 not null>>, expected list<item: struct<a: int32>>
+validate	strict binary large_string uint8 float	false|4|Type mismatch for field 'a': got binary, expected string; Type mismatch for field 'b': got large_string, expected string; Type mismatch for field 'c': got uint8, expected int16; Type mismatch for field 'd': got float, expected bool
+validate	subset unknown	true|0|
+validate	subset missing	true|0|
+validate	subset type	false|1|Type mismatch for field 'b': got int32, expected double
+validate	subset nullability	false|1|Nullability mismatch for field 'a': got nullable, expected non-null
+validate	subset duplicate expected	true|0|
+validate	subset duplicate actual	false|1|Type mismatch for field 'b': got int32, expected double
+validate	empty toString	true|
+getStringList	string 'a;;b;'	4|a||b|
+getStringList	string ';'	2||
+getStringList	string 'a'	1|a
+getStringList	string ''	0
+getStringList	string ';;'	3|||
+getStringList	string ' a ; b '	2| a | b 
+getStringList	list row0	3|x||y;z
+getStringList	list row1 null	0
+getStringList	list row2 empty	0
+getStringList	list of int32	throws InvalidValue: the value '' was used but is not valid; Unsupported string column type
+getStringList	int64 column	throws InvalidValue: the value '' was used but is not valid; Unsupported list column type
+getInt64	uint64 2^63	throws InvalidValue: the value '9223372036854775808' was used but is not valid; Unsigned integer value too large to fit into int64_t
+getInt64	uint64 2^63-1	9223372036854775807
+getDouble	uint64 2^63	throws InvalidValue: the value '9223372036854775808' was used but is not valid; Unsigned integer value too large to fit into int64_t
+getBool	uint64 2^63	throws InvalidValue: the value '9223372036854775808' was used but is not valid; Unsigned integer value too large to fit into int64_t
+getInt64	double	throws InvalidValue: the value '' was used but is not valid; Unsupported integer column type
+getBool	double	throws InvalidValue: the value '' was used but is not valid; Unsupported boolean column type
+getString	double	throws InvalidValue: the value '' was used but is not valid; Unsupported string column type
+getDouble	float 0.1	0x1.99999ap-4
+getDouble	int64 max	0x1p+63
+getDouble	string	throws InvalidValue: the value '' was used but is not valid; Unsupported numeric column type
+getBool	uint8 2	true
+getBool	uint8 null allow	true
+getBool	uint8 null disallow	throws MissingInformation: Required boolean value is null
+getString	uint8 null	
+getInt64	uint8 null disallow	throws MissingInformation: Required integer value is null
+getDouble	uint8 null disallow	throws MissingInformation: Required numeric value is null
+getBool	string	throws InvalidValue: the value '' was used but is not valid; Unsupported boolean column type
+getString	large_string	large
+getStringList	large_string a;b	2|a|b
+getString	binary	throws InvalidValue: the value '' was used but is not valid; Unsupported string column type
+jsonEscape	controls	a\\u0001\\u001f\x7fé\\"\\\\\\n\\r\\t\\u0008\\u000c/z
+appendOrThrow	invalid	throws InvalidValue: the value 'Invalid: boom' was used but is not valid; Failed to append value for col
+finishArray	int64	1
+writeTable	default	rows=2 | l: list<element: int32> chunks=1 | t: timestamp[ms] chunks=1 | u: uint32 chunks=1 | ls: string chunks=1 | nn: int32 not null chunks=1
+file	parquetfile_default	rows=2 row_groups=1 rg_rows=2 codec0=0 stats0=true arrow_schema=false
+rowCount	default	2
+rowCount	missing	0
+rowCount	garbage	throws std: Invalid: Parquet magic bytes not found in footer. Either the file is corrupted or this is not a parquet file.
+readTable	garbage	throws InvalidValue: the value '' was used but is not valid; Failed to create parquet reader from RandomAccessFile
+readTable	missing	throws InvalidValue: the value 'out/no_such.parquet' was used but is not valid; Failed to open parquet file
+writeTable	row_group_size 2	ok
+file	parquetfile_rg2	rows=5 row_groups=3 rg_rows=2,2,1 codec0=0 stats0=true arrow_schema=false
+writeTable	row_group_size 0	throws InvalidValue: the value 'Invalid: chunk size per row_group must be greater than 0' was used but is not valid; Failed to write parquet table
+exists	parquetfile_rg0	false
+writeTable	empty table	ok
+file	parquetfile_empty	rows=0 row_groups=1 rg_rows=0 codec0=0 stats0=false arrow_schema=false
+readTable	empty table	rows=0 | id: int64 chunks=1 | name: string chunks=1 | val: double chunks=1
+getColumn	empty table id	0
+writeTable	empty table row_group_size 0	ok
+file	parquetfile_empty_rg0	rows=0 row_groups=1 rg_rows=0 codec0=0 stats0=false arrow_schema=false
+getColumn	missing	throws MissingInformation: Missing required column 'nope'
+getOptionalColumn	missing	true
+getColumn	two chunks length	2 of 5
+writeTableToParquet	none	true
+file	awp_none	rows=5 row_groups=1 rg_rows=5 codec0=0 stats0=true arrow_schema=true
+readTable	awp_none	rows=5 | id: int64 chunks=1 | name: string chunks=1 | val: double chunks=1
+writeTableToParquet	snappy	true
+file	awp_snappy	rows=5 row_groups=1 rg_rows=5 codec0=1 stats0=true arrow_schema=true
+readTable	awp_snappy	rows=5 | id: int64 chunks=1 | name: string chunks=1 | val: double chunks=1
+writeTableToParquet	gzip	true
+file	awp_gzip	rows=5 row_groups=1 rg_rows=5 codec0=2 stats0=true arrow_schema=true
+readTable	awp_gzip	rows=5 | id: int64 chunks=1 | name: string chunks=1 | val: double chunks=1
+writeTableToParquet	lz4	true
+file	awp_lz4	rows=5 row_groups=1 rg_rows=5 codec0=5 stats0=true arrow_schema=true
+readTable	awp_lz4	rows=5 | id: int64 chunks=1 | name: string chunks=1 | val: double chunks=1
+writeTableToParquet	zstd	true
+file	awp_zstd	rows=5 row_groups=1 rg_rows=5 codec0=4 stats0=true arrow_schema=true
+readTable	awp_zstd	rows=5 | id: int64 chunks=1 | name: string chunks=1 | val: double chunks=1
+writeTableToParquet	nostats	true
+file	awp_nostats	rows=5 row_groups=1 rg_rows=5 codec0=4 stats0=false arrow_schema=true
+writeTableToParquet	zstd level -1	true exists=false
+writeTableToParquet	zstd level 0	true exists=false
+writeTableToParquet	zstd level 1	true exists=false
+writeTableToParquet	zstd level 22	true exists=false
+writeTableToParquet	zstd level 23	true exists=false
+writeTableToParquet	gzip level -1	true exists=false
+writeTableToParquet	gzip level 0	true exists=false
+writeTableToParquet	gzip level 1	true exists=false
+writeTableToParquet	gzip level 9	true exists=false
+writeTableToParquet	gzip level 10	false exists=false
+writeTableToParquet	row_group_size 0	false exists=false
+writeTableToParquet	row_group_size 2	true
+file	awp_rg2	rows=5 row_groups=3 rg_rows=2,2,1 codec0=4 stats0=true arrow_schema=true
+writeTableToParquet	1100000 rows default	true
+file	awp_big	rows=1100000 row_groups=2 rg_rows=1048576,51424 codec0=4 stats0=true arrow_schema=true
+writeTableToParquet	data_page_size 0	true exists=false
+writeTableToParquet	null table	false exists=false
+writeTableToParquet	bad directory	false
+writeTableToParquet	qpx without file_type	false exists=false
+writeTableToParquet	qpx other file_type	true
+writeTableToParquet	qpx psm_file invalid table	false exists=false
+writeTableToParquet	custom metadata	true
+readTable	awp_metadata	rows=2 | id: int64 chunks=1 | name: string chunks=1 | val: double chunks=1 | metadata_keys=x
+concatenateAndWriteToParquet	empty	true exists=false
+concatenateAndWriteToParquet	two	true
+readTable	concat_two	rows=5 | id: int64 chunks=1 | name: string chunks=1 | val: double chunks=1 | metadata_keys=first
+concatenateAndWriteToParquet	two with metadata	true
+readTable	concat_md	rows=5 | id: int64 chunks=1 | name: string chunks=1 | val: double chunks=1 | metadata_keys=merged
+concatenateAndWriteToParquet	mismatch	false exists=false
+concatenateAndWriteToParquet	nullability mismatch	false exists=false
+tableRowCount	null	0
+tableRowCount	five	5
+generateUuidV4	shape	true
+qpxFileMetadata	psm_file/0/qpx_version	1.1
+qpxFileMetadata	psm_file/1/file_type	psm_file
+qpxFileMetadata	psm_file/2/creator	OpenMS
+qpxFileMetadata	psm_file/3/software_provider	OpenMS 4.0.0
+qpxFileMetadata	psm_file/4/creation_date	<iso8601Z>
+qpxFileMetadata	psm_file/5/compression_format	zstd
+qpxFileMetadata	psm_file/6/uuid	<uuid>
+qpxFileMetadata	psm_file/7/primary_key	psm_id
+qpxFileMetadata	psm_file/8/identity_composite	run_file_name,scan,peptidoform,charge
+qpxFileMetadata	psm_file/9/aaa	1
+qpxFileMetadata	psm_file/10/scan_format	scan
+qpxFileMetadata	feature_file/qpx_version	1.1
+qpxFileMetadata	feature_file/creator	OpenMS
+qpxFileMetadata	feature_file/software_provider	OpenMS 4.0.0
+qpxFileMetadata	feature_file/compression_format	zstd
+qpxFileMetadata	feature_file/primary_key	feature_id
+qpxFileMetadata	feature_file/identity_composite	run_file_name,peptidoform,charge,rt,scan,observed_mz
+qpxFileMetadata	feature_file/keys	qpx_version,file_type,creator,software_provider,creation_date,compression_format,uuid,primary_key,identity_composite
+qpxFileMetadata	pg_file/qpx_version	1.1
+qpxFileMetadata	pg_file/creator	OpenMS
+qpxFileMetadata	pg_file/software_provider	OpenMS 4.0.0
+qpxFileMetadata	pg_file/compression_format	zstd
+qpxFileMetadata	pg_file/primary_key	pg_id
+qpxFileMetadata	pg_file/identity_composite	pg_accessions,grouped_runs,label
+qpxFileMetadata	pg_file/keys	qpx_version,file_type,creator,software_provider,creation_date,compression_format,uuid,primary_key,identity_composite
+qpxFileMetadata	run_file/qpx_version	1.1
+qpxFileMetadata	run_file/creator	OpenMS
+qpxFileMetadata	run_file/software_provider	OpenMS 4.0.0
+qpxFileMetadata	run_file/compression_format	zstd
+qpxFileMetadata	run_file/keys	qpx_version,file_type,creator,software_provider,creation_date,compression_format,uuid
+qpxFileMetadata	compression none	none
+qpxFileMetadata	compression snappy	snappy
+qpxFileMetadata	compression gzip	gzip
+qpxFileMetadata	compression lz4	nullptr
+qpxFileMetadata	extra uuid duplicates	10|<uuid>;mine;|FindKey=6
+readMetaValues	i1	INT_VALUE|12
+readMetaValues	i2	INT_VALUE|12
+readMetaValues	i3	INT_VALUE|12
+readMetaValues	i4	STRING_VALUE|abc
+readMetaValues	i5	INT_VALUE|9223372036854775807
+readMetaValues	i6	STRING_VALUE|9223372036854775808
+readMetaValues	i7	INT_VALUE|-9223372036854775808
+readMetaValues	i8	INT_VALUE|5
+readMetaValues	i9	INT_VALUE|0
+readMetaValues	i10	STRING_VALUE|
+readMetaValues	i11	INT_VALUE|7
+readMetaValues	i12	INT_VALUE|1
+readMetaValues	i13	STRING_VALUE|- 1
+readMetaValues	i14	STRING_VALUE|
+readMetaValues	d1	DOUBLE_VALUE|1.5|0x1.8p+0
+readMetaValues	d2	DOUBLE_VALUE|1.5|0x1.8p+0
+readMetaValues	d3	DOUBLE_VALUE|1.5|0x1.8p+0
+readMetaValues	d4	DOUBLE_VALUE|inf|inf
+readMetaValues	d5	DOUBLE_VALUE|-inf|-inf
+readMetaValues	d6	DOUBLE_VALUE|NaN|nan
+readMetaValues	d7	DOUBLE_VALUE|NaN|nan
+readMetaValues	d8	DOUBLE_VALUE|NaN|nan
+readMetaValues	d9	STRING_VALUE|1e-310
+readMetaValues	d10	STRING_VALUE|1e-400
+readMetaValues	d11	STRING_VALUE|1e400
+readMetaValues	d12	DOUBLE_VALUE|8.0|0x1p+3
+readMetaValues	d13	DOUBLE_VALUE|5.0e-324|0x0.0000000000001p-1022
+readMetaValues	d14	STRING_VALUE|0x1.8p-1074
+readMetaValues	d15	STRING_VALUE|
+readMetaValues	d16	DOUBLE_VALUE|1.0|0x1p+0
+readMetaValues	d17	DOUBLE_VALUE|-0.0|-0x0p+0
+readMetaValues	d18	DOUBLE_VALUE|0.5|0x1p-1
+readMetaValues	d19	DOUBLE_VALUE|5.0|0x1.4p+2
+readMetaValues	d20	DOUBLE_VALUE|1.0|0x1p+0
+readMetaValues	d21	STRING_VALUE|2.2250738585072011e-308
+readMetaValues	d22	DOUBLE_VALUE|2.2250738585072014e-308|0x1p-1022
+readMetaValues	d23	DOUBLE_VALUE|1.7976931348623157e308|0x1.fffffffffffffp+1023
+readMetaValues	d24	STRING_VALUE|0x1p1024
+readMetaValues	d25	STRING_VALUE|4.9406564584124654e-324
+readMetaValues	d26	DOUBLE_VALUE|0.0|0x0p+0
+readMetaValues	d27	DOUBLE_VALUE|0.0|0x0p+0
+readMetaValues	d28	DOUBLE_VALUE|0.5|0x1p-1
+readMetaValues	d29	DOUBLE_VALUE|inf|inf
+readMetaValues	d30	DOUBLE_VALUE|NaN|nan
+readMetaValues	d31	DOUBLE_VALUE|0.1|0x1.999999999999ap-4
+readMetaValues	d32	DOUBLE_VALUE|1.2345678901234568e29|0x1.8ee90ff6c373ep+96
+readMetaValues	f1	DOUBLE_VALUE|2.5|0x1.4p+1
+readMetaValues	il1	INT_LIST|[1, 2, 3]
+readMetaValues	il2	INT_LIST|[]
+readMetaValues	il3	INT_LIST|[1, 2]
+readMetaValues	il4	INT_LIST|[1, 2]
+readMetaValues	il5	STRING_VALUE|[1, x]
+readMetaValues	il6	STRING_VALUE|[2147483648]
+readMetaValues	il7	STRING_VALUE|[1.5]
+readMetaValues	il8	STRING_VALUE|[1,]
+readMetaValues	il9	STRING_VALUE|[
+readMetaValues	il10	INT_LIST|[]
+readMetaValues	il11	INT_LIST|[3, -4]
+readMetaValues	il12	STRING_VALUE|[ ]
+readMetaValues	dl1	DOUBLE_LIST|[1.5, 2.0]|0x1.8p+0|0x1p+1
+readMetaValues	dl2	DOUBLE_LIST|[]
+readMetaValues	dl3	DOUBLE_LIST|[inf, NaN, -inf]|inf|nan|-inf
+readMetaValues	dl4	DOUBLE_LIST|[1.0e-310]|0x0.012688b70e62bp-1022
+readMetaValues	dl5	STRING_VALUE|[1e400]
+readMetaValues	dl6	STRING_VALUE|[0x1p3]
+readMetaValues	dl7	STRING_VALUE|[1.5x]
+readMetaValues	dl8	DOUBLE_LIST|[NaN, inf]|nan|inf
+readMetaValues	sl1	STRING_LIST|[a, b, c]
+readMetaValues	sl2	STRING_LIST|[]
+readMetaValues	sl3	STRING_LIST|[a]
+readMetaValues	sl4	STRING_LIST|[a, b]
+readMetaValues	sl5	STRING_LIST|[a, [b]]
+readMetaValues	sl6	STRING_LIST|[, ]
+readMetaValues	sl7	STRING_LIST|[]
+readMetaValues	sl8	STRING_LIST|[a, \x0bb]
+readMetaValues	s1	STRING_VALUE|x
+readMetaValues	s2	STRING_VALUE|x
+readMetaValues	s3	STRING_VALUE|7
+readMetaValues	dup	DOUBLE_VALUE|2.5|0x1.4p+1
+readMetaValues	null row	true
+readMetaValues	empty row	true
+readMetaValues	null array	true
+getDoubleValue	value	0x1.4p+1
+getDoubleValue	null array	-0x1p+0
+getStringValue	null array	
+isNull	null array	true
+getColumn	missing not required	true
+getColumn	two chunks length	5
+qpxRunFileName	/data/proj/S1_Frontal_1.mzML	S1_Frontal_1
+qpxRunFileName	a.b.c	a.b
+qpxRunFileName	noext	noext
+qpxRunFileName	/dir.with.dot/file	file
+qpxRunFileName	file.mzML.gz	file
+qpxRunFileName		
+qpxRunFileName	.hidden	
+qpxRunFileName	dir/	
+qpxRunFileName	C:\\x\\y.raw	y
+qpxRunFileName	/a/b/	
+qpxRunFileName	x.	x
+qpxRunFileName	..	.
+qpxRunFileName	/a/.b.c	.b
+qpxScanFormat	index=5	index
+qpxScanComponents	index=5	1|5
+qpxScanFormat	scan=12	scan
+qpxScanComponents	scan=12	1|12
+qpxScanFormat	controllerType=0 controllerNumber=1 scan=2075	scan
+qpxScanComponents	controllerType=0 controllerNumber=1 scan=2075	1|2075
+qpxScanFormat	spectrum=3	scan
+qpxScanComponents	spectrum=3	1|3
+qpxScanFormat	foo	
+qpxScanComponents	foo	0
+qpxScanFormat		
+qpxScanComponents		0
+qpxScanFormat	scanId=1	scan
+qpxScanComponents	scanId=1	1|1
+qpxScanFormat	scanID=9	scan
+qpxScanComponents	scanID=9	1|9
+qpxScanFormat	file=x	scan
+qpxScanComponents	file=x	0
+qpxScanFormat	sample=1 period=1 cycle=1 experiment=1	scan
+qpxScanComponents	sample=1 period=1 cycle=1 experiment=1	1|1
+qpxScanFormat	merged=2	
+qpxScanComponents	merged=2	1|2
+qpxScanFormat	frame=3 scan=4 precursor=5	scan
+qpxScanComponents	frame=3 scan=4 precursor=5	1|4
+qpxScanFormat	function=2 process=1 scan=7	scan
+qpxScanComponents	function=2 process=1 scan=7	1|7
+qpxScanFormat	scan=1 scan=2	scan
+qpxScanComponents	scan=1 scan=2	1|2
+qpxScanFormat	scan=99999999999	scan
+qpxScanComponents	scan=99999999999	0
+qpxScanFormat	index=0	index
+qpxScanComponents	index=0	1|0
+qpxScanFormat	abc12def34	
+qpxScanComponents	abc12def34	1|34
+qpxScanFormat	12	
+qpxScanComponents	12	1|12
+qpxScanFormat	scan=	scan
+qpxScanComponents	scan=	0
+qpxScanFormat	scan=x scan=8	scan
+qpxScanComponents	scan=x scan=8	1|8
+qpxScanFormat	file=17	scan
+qpxScanComponents	file=17	1|17
+qpxScanFormat	Index=4	
+qpxScanComponents	Index=4	1|4
+qpxScanFormat	 scan=3	
+qpxScanComponents	 scan=3	1|3
+qpxScanFormat[]	scan+scan	scan
+qpxScanFormat[]	index+scan	
+qpxScanFormat[]	none	
+qpxScanFormat[]	empty	
+qpxIntensityLabel	tmt10plex_126|	TMT126
+qpxIntensityLabel	tmt10plex|126	
+qpxIntensityLabel	itraq4plex_114|	ITRAQ114
+qpxIntensityLabel	label-free|	LFQ
+qpxIntensityLabel	|	LFQ
+qpxIntensityLabel	Arg6|	SILAC medium
+qpxIntensityLabel	Lys8|	SILAC heavy
+qpxIntensityLabel	Dimethyl4|	DIMETHYL4
+qpxIntensityLabel	Arg6Lys8|	SILAC heavy
+qpxIntensityLabel	foo|	
+qpxIntensityLabel	tmt18plex_134N|	TMT134N
+qpxIntensityLabel	LFQ|	LFQ
+qpxIntensityLabel	x|126	
+qpxIntensityLabel	TMT126|	TMT126
+qpxIntensityLabel	lfq|	LFQ
+qpxIntensityLabel	no_label|	SILAC light
+qpxIntensityLabel	Light|	SILAC light
+qpxIntensityLabel	SILAC heavy|	SILAC heavy
+qpxIntensityLabel	medium|	SILAC medium
+qpxIntensityLabel	Arg10|	SILAC heavy
+qpxIntensityLabel	DIMETHYL8|	DIMETHYL8
+qpxIntensityLabel	dimethyl2|	DIMETHYL2
+qpxIntensityLabel	Dimethyl3|	
+qpxIntensityLabel	MTRAQ4|	MTRAQ4
+qpxIntensityLabel	tmt10plex_|	
+qpxIntensityLabel	tmt10plex_127N|127C	TMT127C
+qpxIntensityLabel	unknown_126|	
+qpxIntensityLabel	itraq8plex_121|	ITRAQ121
+qpxIntensityLabel	tmt6plex_abc|	TMTabc
+qpxIntensityLabel	a_b_c|1	
+qpxIntensityLabel	Lys4Arg6|	SILAC medium
+qpxIntensityLabel	SILAC medium|	SILAC medium
+qpxIntensityLabel	lys6|	SILAC medium
+qpxIntensityLabel	tmt32plex_126|	TMT126
+isobaric	tmt6plex	126,127,128,129,130,131
+isobaric	tmt10plex	126,127N,127C,128N,128C,129N,129C,130N,130C,131
+isobaric	tmt11plex	126,127N,127C,128N,128C,129N,129C,130N,130C,131N,131C
+isobaric	tmt16plex	126,127N,127C,128N,128C,129N,129C,130N,130C,131N,131C,132N,132C,133N,133C,134N
+isobaric	tmt18plex	126,127N,127C,128N,128C,129N,129C,130N,130C,131N,131C,132N,132C,133N,133C,134N,134C,135N
+isobaric	tmt32plex	126,127N,127C,127D,128N,128C,128ND,128CD,129N,129C,129ND,129CD,130N,130C,130ND,130CD,131N,131C,131ND,131CD,132N,132C,132ND,132CD,133N,133C,133ND,133CD,134N,134ND,134CD,135ND
+isobaric	tmt35plex	126,127N,127C,127D,128N,128C,128ND,128CD,129N,129C,129ND,129CD,130N,130C,130ND,130CD,131N,131C,131ND,131CD,132N,132C,132ND,132CD,133N,133C,133ND,133CD,134N,134C,134ND,134CD,135N,135ND,135CD
+isobaric	itraq4plex	114,115,116,117
+isobaric	itraq8plex	113,114,115,116,117,118,119,121
+qpxIsCanonicalIntensityLabel	TMT126	true
+qpxIsCanonicalIntensityLabel	TMT131	true
+qpxIsCanonicalIntensityLabel	TMT131N	true
+qpxIsCanonicalIntensityLabel	TMT131C	true
+qpxIsCanonicalIntensityLabel	TMT134N	true
+qpxIsCanonicalIntensityLabel	TMT134C	true
+qpxIsCanonicalIntensityLabel	TMT135N	true
+qpxIsCanonicalIntensityLabel	ITRAQ113	true
+qpxIsCanonicalIntensityLabel	ITRAQ114	true
+qpxIsCanonicalIntensityLabel	ITRAQ121	true
+qpxIsCanonicalIntensityLabel	ITRAQ118	true
+qpxIsCanonicalIntensityLabel	LFQ	true
+qpxIsCanonicalIntensityLabel	SILAC light	true
+qpxIsCanonicalIntensityLabel	SILAC medium	true
+qpxIsCanonicalIntensityLabel	SILAC heavy	true
+qpxIsCanonicalIntensityLabel	MTRAQ0	true
+qpxIsCanonicalIntensityLabel	MTRAQ4	true
+qpxIsCanonicalIntensityLabel	MTRAQ8	true
+qpxIsCanonicalIntensityLabel	DIMETHYL0	true
+qpxIsCanonicalIntensityLabel	DIMETHYL2	true
+qpxIsCanonicalIntensityLabel	DIMETHYL3	false
+qpxIsCanonicalIntensityLabel	DIMETHYL4	true
+qpxIsCanonicalIntensityLabel	DIMETHYL6	true
+qpxIsCanonicalIntensityLabel	DIMETHYL8	true
+qpxIsCanonicalIntensityLabel	lfq	false
+qpxIsCanonicalIntensityLabel	TMT	false
+qpxIsCanonicalIntensityLabel		false
+qpxIsCanonicalIntensityLabel	TMT127	true
+qpxIsCanonicalIntensityLabel	TMT127N	true
+qpxIsCanonicalIntensityLabel	TMT138C	false
+qpxIsCanonicalIntensityLabel	TMT139N	false
+qpxIntensityLabels	two-plex light Arg6	0=SILAC light;1=SILAC heavy;
+qpxIntensityLabels	three-plex	0=SILAC light;1=SILAC medium;2=SILAC heavy;
+qpxIntensityLabels	two light	0=SILAC light;1=SILAC light;
+qpxIntensityLabels	tmt	0=TMT126;1=TMT127N;
+qpxIntensityLabels	label-free two files	0=LFQ;1=LFQ;
+qpxIntensityLabels	silac unknown role	0=;1=;
+qpxIntensityLabels	four-plex silac	0=;1=;2=;3=;
+qpxIntensityLabels	mixed per file	0=SILAC light;1=SILAC heavy;2=TMT126;
+qpxIntensityLabels	two heavy	0=;1=;
+qpxIntensityLabels	argx lysx plain	0=;1=;
+qpxIntensityLabels	empty channel meta	0=SILAC light;1=SILAC heavy;
+qpxWarnOnRunNameCollisions	collide	false
+qpxWarnOnRunNameCollisions	same path twice	true
+qpxWarnOnRunNameCollisions	empties	true
+qpxWarnOnRunNameCollisions	distinct	true
+qpxPsmRunFileName	fallback	fallback
+qpxPsmRunFileName	identification	fallback
+qpxPsmRunFileName	hit run_file_name	fallback
+qpxPsmRunFileName	hit reference_file_name	fallback
+qpxPsmRunFileName	empty hit reference	fallback
+qpxPsmRunFileName	numeric hit reference	fallback
+qpxPsmRunFileName	double hit reference	fallback
+done	done	done

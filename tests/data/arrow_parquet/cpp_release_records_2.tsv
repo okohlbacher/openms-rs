@@ -1,0 +1,24 @@
+registered_before	reference_file_name	0
+registered_before	run_file_name	0
+qpxPsmRunFileName	fallback	fallback
+qpxPsmRunFileName	empty fallback	
+qpxPsmRunFileName	identification	ident
+qpxPsmRunFileName	identification run_file_name ignored	ident
+qpxPsmRunFileName	hit run_file_name	run
+qpxPsmRunFileName	hit reference_file_name	ref
+qpxPsmRunFileName	empty hit reference	fallback
+qpxPsmRunFileName	numeric hit reference	42
+qpxPsmRunFileName	double hit reference	1
+qpxPsmRunFileName	double 0.1 hit reference	0
+qpxPsmRunFileName	string list hit reference	a
+qpxPsmRunFileName	nothing at all	
+writeTableToParquet	nested	1
+parquet_column	0	l.list.element
+parquet_column	1	t
+parquet_column	2	ls
+readTable_field	0	l: list<element: int32>
+readTable_field	1	t: timestamp[ms]
+readTable_field	2	ls: large_string
+readTable_value	t0	1700000000000
+readTable_value	t1 null	1
+done	done	done
