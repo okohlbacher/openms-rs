@@ -63,3 +63,9 @@ Lane: XML handlers + MS data consumers. Worktree branch: worktree-wf_ee239125-5b
   CV promotion (validateCV_, MzMLHandler.cpp:3576-3669); Rust record writer mzml.rs write_scalar_metadata writes
   plain userParams only -> MzMLHandler writer gap, keep WritingConsumer partial naming it.
 - Reference C++ readable at literal path .../OpenMS4-R/.reference/openms4-core-bc9cc12/src (guard refuses $VARS in sed).
+- DONE (commits c7b4c68..42e7609): loader tests (12, incl. XSD under mzml-schema), SQL consumer tests (11), docs
+  MS_DATA_CONSUMERS_SUPPORT.md + INDEXED_MZML_FILE_LOADER_SUPPORT.md, manifest tests/data/ms_data_consumers_provenance.json,
+  writing-consumer doc/manifest amended (progress vacuous; validator = record writer gap).
+- Next: sweep F7a-sweep running (log scratchpad/F7a/sweep); then measure slices: mzml(ms_data_consumers,
+  indexed_mzml_file_loader), sqmass(ms_data_sql_consumer), mzml-schema(indexed_mzml_file_loader); then report+ledger;
+  delete NOTES.md in final commit.
