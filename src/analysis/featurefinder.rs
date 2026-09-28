@@ -9,6 +9,8 @@
 
 /// The 1-D model interfaces: `BaseModel`, `BaseModel_impl`, `ModelDescription`, `InterpolationModel`.
 pub mod base_model;
+/// `ElutionModelFitter`: elution model fits and validation for features.
+pub mod elution_model_fitter;
 /// `EmgScoring`: elution peak scores from an EMG fit.
 pub mod emg_scoring;
 /// `FeatureFinderAlgorithm` and `FeatureFinderDefs`.
