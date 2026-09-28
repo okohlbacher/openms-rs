@@ -24,9 +24,7 @@
 use super::data_structures::{
     BinaryDataArray, Chromatogram, ChromatogramPtr, Spectrum, SpectrumMeta, SpectrumPtr,
 };
-use super::spectrum_access::{
-    check_delta_rt, check_id, SpectrumAccess, SpectrumAccessPtr,
-};
+use super::spectrum_access::{SpectrumAccess, SpectrumAccessPtr, check_delta_rt, check_id};
 use crate::kernel::{MSChromatogram, MSExperiment, MSSpectrum};
 use crate::{Error, Result};
 use std::sync::Arc;
@@ -171,7 +169,9 @@ impl SpectrumAccess for SpectrumAccessOpenMS {
 
     fn spectrum_by_id(&self, id: usize) -> Result<SpectrumPtr> {
         check_id(id, self.experiment.spectra.len(), "spectrum")?;
-        Ok(Arc::new(spectrum_with_data_arrays(&self.experiment.spectra[id])))
+        Ok(Arc::new(spectrum_with_data_arrays(
+            &self.experiment.spectra[id],
+        )))
     }
 
     /// Indices of the spectra with `rt - delta_rt <= RT <= rt + delta_rt`,
@@ -189,9 +189,7 @@ impl SpectrumAccess for SpectrumAccessOpenMS {
             return Ok(Vec::new());
         }
         let mut result = vec![begin];
-        result.extend(
-            (begin + 1..spectra.len()).take_while(|&i| spectra[i].rt <= rt + delta_rt),
-        );
+        result.extend((begin + 1..spectra.len()).take_while(|&i| spectra[i].rt <= rt + delta_rt));
         Ok(result)
     }
 

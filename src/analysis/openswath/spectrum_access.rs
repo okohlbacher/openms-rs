@@ -138,7 +138,11 @@ pub trait SpectrumAccess: Send + Sync {
         drift_end: f64,
     ) -> Result<SpectrumPtr> {
         let spectrum = self.spectrum_by_id(id)?;
-        Ok(Arc::new(filter_by_drift(&spectrum, drift_start, drift_end)?))
+        Ok(Arc::new(filter_by_drift(
+            &spectrum,
+            drift_start,
+            drift_end,
+        )?))
     }
 
     /// Fetch a spectrum sequence closest to `rt`.
@@ -165,7 +169,10 @@ pub trait SpectrumAccess: Send + Sync {
         let Some(order) = multiple_spectra_order(self, rt, nr_spectra_to_fetch)? else {
             return Ok(Vec::new());
         };
-        order.into_iter().map(|id| self.spectrum_by_id(id)).collect()
+        order
+            .into_iter()
+            .map(|id| self.spectrum_by_id(id))
+            .collect()
     }
 
     /// Fetch a spectrum sequence closest to `rt` and filter every spectrum to
