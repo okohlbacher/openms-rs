@@ -64,11 +64,18 @@ pub(crate) fn read_run(
     let id = node.get("id")?;
     context.add_id(id)?;
     let timestamp = node.get("date")?;
-    xml::date(timestamp)?;
+    // The source writes an unset `DateTime` as `UNSET_RUN_DATE`; it reads back
+    // as unset.
+    let date_time = if timestamp == UNSET_RUN_DATE {
+        None
+    } else {
+        xml::date(timestamp)?;
+        Some(timestamp.into())
+    };
     let mut run = ProteinIdentification {
         search_engine: node.get("search_engine")?.into(),
         search_engine_version: node.get("search_engine_version")?.into(),
-        date_time: Some(timestamp.into()),
+        date_time,
         ..Default::default()
     };
     for search in node
@@ -235,6 +242,13 @@ impl WriteContext {
     }
 }
 
+/// How the source's featureXML and consensusXML writers print the date of a
+/// protein identification run whose `DateTime` is unset (`DateTime()` prints
+/// its zero date and time), e.g. the default run `FeatureMap` producers add
+/// with `getProteinIdentifications().resize(1)`. A run without a date is
+/// written so, and reads back without one.
+pub(crate) const UNSET_RUN_DATE: &str = "0000-00-00T00:00:00";
+
 /// The dialect supplies group-encoded metadata and portable search definitions.
 pub(crate) fn write_run(
     value: &ProteinIdentification,
@@ -242,11 +256,13 @@ pub(crate) fn write_run(
     search: &SearchParameters,
     metadata: &MetaInfo,
 ) -> Result<Node> {
-    let timestamp = value
-        .date_time
-        .as_deref()
-        .ok_or_else(|| bad("IdentificationRun requires date_time"))?;
-    xml::date(timestamp)?;
+    let timestamp = match value.date_time.as_deref() {
+        Some(timestamp) => {
+            xml::date(timestamp)?;
+            timestamp
+        }
+        None => UNSET_RUN_DATE,
+    };
     let mut run = Node::new("IdentificationRun");
     run.attr(
         "id",

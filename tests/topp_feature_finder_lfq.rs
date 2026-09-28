@@ -317,6 +317,13 @@ fn write_ini_matches_the_release_build() {
     outcome.assert_exit(ExitCode::ExecutionOk);
     let written = dir.path().join("lfq.ini");
     let expected = fixture("release_lfq_defaults.ini");
+    // The two descriptions with an en dash: the source writes the raw UTF-8
+    // bytes into its ISO-8859-1 document, the native ParamXML writer the
+    // character reference. Both decode to the same text (asserted below); the
+    // line comparison sees the character.
+    let text = fs::read_to_string(&written).unwrap();
+    assert_eq!(text.matches("&#x2013;").count(), 2, "{text}");
+    fs::write(&written, text.replace("&#x2013;", "\u{2013}")).unwrap();
     let mut comparator = fuzzy::FuzzyStringComparator::new();
     comparator.set_acceptable_relative(1.0);
     comparator.set_acceptable_absolute(0.0);
@@ -327,6 +334,7 @@ fn write_ini_matches_the_release_build() {
         "{}",
         String::from_utf8_lossy(comparator.log())
     );
+    fs::write(&written, text).unwrap();
     assert_eq!(
         openms::format::paramxml::load(&written).unwrap(),
         openms::format::paramxml::load(&expected).unwrap()
