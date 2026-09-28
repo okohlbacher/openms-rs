@@ -25,5 +25,16 @@ Code goes to src/analysis/openswath/ (module root src/analysis/openswath.rs, app
 4. TargetedExperiment -> targeted_experiment.rs (TargetedExperiment_test.cpp)
 5. MRMMapping, ChromatogramProcessor/*ChromHandler, MetaboTargeted* later
 
+## Status (incarnation 2)
+- DONE (committed, gate 26/26 before MRMMapping): targeted_experiment_helper.rs, reaction_monitoring_transition.rs,
+  include_exclude_target.rs, targeted_experiment.rs, mrm_mapping.rs; tests/targeted_experiment.rs.
+- Gotcha: `///` on `pub mod` in openswath.rs merges with the child `//!` and breaks intra-doc links -> all module-doc
+  links carry explicit `crate::` reference definitions.
+- Gate scripts: scratchpad/o1a-gate.sh <log> <cargo args>, o1a-multi.sh (test, clippy, doc, msrv).
+- MRMMapping LightTargetedExperiment overload: gap (lane OA ports LightTargetedExperiment).
+
 ## Next step
-1. Write targeted_experiment_helper.rs + tests/targeted_experiment.rs; gate on spock (slot O1a).
+1. Confirm gates green (g-*.log in scratchpad), then docs/TARGETED_EXPERIMENT_SUPPORT.md + tests/data/targeted_experiment_provenance.json.
+2. ChromatogramProcessor / IChromatogramHandler / Default/MRM/DIAChromHandler (read headers first).
+3. MetaboTargetedAssay / MetaboTargetedTargetDecoy if time.
+4. Report + ledger fragment (Bash heredoc to .planning paths).
