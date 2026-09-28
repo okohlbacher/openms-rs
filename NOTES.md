@@ -44,3 +44,7 @@ NOT written; write it at the end (with Bash heredoc).
 1. (done) gates re-run.
 2. CI sweep (openms-ci-sweep.sh F2-sweep <scratch dir>), ci_matrix --check diff lines for report.
 3. Write report .planning/lane-reports/F2.md (Bash heredoc), delete NOTES.md, final commit.
+
+## Incarnation 6 (restart on branch worktree-wf_cd066dab-0a7-17)
+- Fast-forwarded to 19f16930 (inc. 5 tip, includes worktree-wf_ee239125-5be-11). Draft report still in
+  session scratchpad F2.md. Next: step 2 (sweep) then 3 (report).
