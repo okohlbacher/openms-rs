@@ -6,3 +6,7 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+
+pub mod data_structures;
+pub mod spectrum_access;
+pub mod spectrum_access_openms;
