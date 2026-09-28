@@ -18,6 +18,7 @@
 use crate::Result;
 use crate::analysis::feature_finder_picked::egh_trace_fitter::EGHTraceFitter;
 use crate::analysis::feature_finder_picked::gauss_trace_fitter::GaussTraceFitter;
+use crate::analysis::feature_finder_picked::glibc_libm;
 use crate::analysis::feature_finder_picked::helper_structs::{MassTrace, MassTraces, TracePeak};
 use crate::analysis::feature_finder_picked::trace_fitter::{
     TraceFitter, TraceFitterParams, UNABLE_TO_FIT_FINAL_SET,
@@ -30,6 +31,7 @@ use crate::metadata::MetaValue;
 use crate::param::{Param, ParamValue};
 
 use super::base_model::{complete_parameters, float_value, set_default, set_valid};
+use super::glibc_logf;
 
 /// Status text of a valid model (meta value `model_status`).
 pub const STATUS_VALID: &str = "0 (valid)";
@@ -588,7 +590,10 @@ impl ElutionModelFitter {
             } else {
                 let area = meta_f64(feat, "model_area")?;
                 if impute {
-                    quant_values.push(DataPoint::new(raw_intensity.ln(), area.ln()));
+                    quant_values.push(DataPoint::new(
+                        glibc_libm::log(raw_intensity),
+                        glibc_libm::log(area),
+                    ));
                 }
                 feat.base.intensity = area as f32;
                 report.successes += 1;
@@ -600,8 +605,9 @@ impl ElutionModelFitter {
             report.imputation = Some((c.slope, c.intercept));
             for index in failed {
                 let feat = &mut staged.features[index];
-                let x = f64::from(feat.base.intensity).ln();
-                feat.base.intensity = (c.slope * x + c.intercept).exp() as f32;
+                // Source `log((*it)->getIntensity())`: the float overload, `logf`.
+                let x = f64::from(glibc_logf::logf(feat.base.intensity));
+                feat.base.intensity = glibc_libm::exp(c.slope * x + c.intercept) as f32;
             }
         }
         *features = staged;

@@ -186,9 +186,13 @@ impl LinearModel {
                     finite(weighted[1].1 - weighted[0].1)? / finite(weighted[1].0 - weighted[0].0)?;
                 (slope, weighted[0].1 - slope * weighted[0].0)
             } else {
-                let count = weighted.len() as f64;
-                let mx = finite(weighted.iter().map(|p| p.0).sum::<f64>() / count)?;
-                let my = finite(weighted.iter().map(|p| p.1).sum::<f64>() / count)?;
+                // Source `gte::ApprHeightLine2::Fit`: the mean is the sum
+                // scaled by `1 / n` (GTE's `Vector::operator/=` multiplies by
+                // the reciprocal), which can differ from `sum / n` in the last
+                // bit and did, in an executed ElutionModelFitter imputation.
+                let inv_count = 1.0 / weighted.len() as f64;
+                let mx = finite(weighted.iter().map(|p| p.0).sum::<f64>() * inv_count)?;
+                let my = finite(weighted.iter().map(|p| p.1).sum::<f64>() * inv_count)?;
                 let mut xx = 0.0;
                 let mut xy = 0.0;
                 for &(x, y) in &weighted {

@@ -21,6 +21,8 @@ pub mod fitter1d;
 pub mod fitters;
 /// `GaussModel`, `BiGaussModel` and `EmgModel`.
 pub mod gauss_models;
+/// The reference build's single-precision `logf`.
+pub(crate) mod glibc_logf;
 /// `IsotopeModel` and `ExtendedIsotopeModel`.
 pub mod isotope_model;
 /// `PeakWidthEstimator`: peak width by m/z from picked peaks.
