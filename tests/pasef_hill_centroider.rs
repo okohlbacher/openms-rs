@@ -314,3 +314,138 @@ fn output_is_sorted_by_mz_ascending() {
         assert!(pair[1].mz >= pair[0].mz);
     }
 }
+
+/// Parse a C99 `%a` / Python `float.hex()` hexadecimal float: `[-]0x1.hhhp±d`,
+/// `0x0p+0`, or a subnormal `0x0.hhhp-1022`.
+fn hex_f64(text: &str) -> f64 {
+    let (negative, rest) = match text.strip_prefix('-') {
+        Some(rest) => (true, rest),
+        None => (false, text),
+    };
+    let rest = rest.strip_prefix("0x").expect("hex float");
+    let (mantissa, exponent) = rest.split_once('p').expect("hex exponent");
+    let exponent: i32 = exponent.parse().expect("exponent");
+    let (lead, fraction) = mantissa.split_once('.').unwrap_or((mantissa, ""));
+    let lead = u64::from_str_radix(lead, 16).expect("lead digit");
+    assert!(lead <= 1 && fraction.len() <= 13, "{text}");
+    let bits_fraction = if fraction.is_empty() {
+        0
+    } else {
+        u64::from_str_radix(fraction, 16).expect("fraction") << (4 * (13 - fraction.len()))
+    };
+    let magnitude = if lead == 0 && bits_fraction == 0 {
+        0.0
+    } else if lead == 0 {
+        assert_eq!(exponent, -1022, "{text}");
+        f64::from_bits(bits_fraction)
+    } else {
+        let biased = u64::try_from(exponent + 1023).expect("normal exponent");
+        f64::from_bits((biased << 52) | bits_fraction)
+    };
+    if negative { -magnitude } else { magnitude }
+}
+
+/// Run one case of `tests/data/pasef_hill_centroider_oracle/` and compare
+/// every field of every centroid bit for bit with the Release build's output.
+fn oracle_case(name: &str) -> Result<(), String> {
+    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/data/pasef_hill_centroider_oracle");
+    let input = std::fs::read_to_string(dir.join(format!("pasef_{name}.txt"))).unwrap();
+    let mut lines = input.lines();
+    let header: Vec<&str> = lines.next().unwrap().split_whitespace().collect();
+    let params = Params {
+        mz_tol_ppm: hex_f64(header[0]),
+        valley_factor: hex_f64(header[1]),
+        min_hill_length: header[2].parse().unwrap(),
+        min_intensity: hex_f64(header[3]),
+        im_group_tolerance: hex_f64(header[4]),
+        max_scan_gap: header[5].parse().unwrap(),
+    };
+    let use_scan = header[6] == "1";
+    let (mut mz, mut intensity, mut im, mut scan) =
+        (Vec::new(), Vec::new(), Vec::new(), Vec::new());
+    for line in lines.filter(|line| !line.is_empty()) {
+        let fields: Vec<&str> = line.split_whitespace().collect();
+        mz.push(hex_f64(fields[0]));
+        intensity.push(hex_f64(fields[1]));
+        im.push(hex_f64(fields[2]));
+        scan.push(fields[3].parse::<u32>().unwrap());
+    }
+    let actual = centroid_frame(&mz, &intensity, &im, &params, use_scan.then_some(&scan[..]))
+        .map_err(|e| e.to_string())?;
+
+    let expected = std::fs::read_to_string(dir.join(format!("pasef_{name}.tsv"))).unwrap();
+    let mut expected = expected.lines();
+    let count: usize = expected
+        .next()
+        .unwrap()
+        .strip_prefix("n\t")
+        .unwrap()
+        .parse()
+        .unwrap();
+    if actual.len() != count {
+        return Err(format!(
+            "{name}: {} centroids, oracle {count}",
+            actual.len()
+        ));
+    }
+    for (index, (centroid, line)) in actual.iter().zip(expected).enumerate() {
+        let f: Vec<&str> = line.split('\t').collect();
+        let want: Vec<f64> = f[..7].iter().map(|field| hex_f64(field)).collect();
+        let got = [
+            centroid.mz,
+            centroid.intensity,
+            centroid.im_apex,
+            centroid.im_lower,
+            centroid.im_upper,
+            centroid.mz_lower,
+            centroid.mz_upper,
+        ];
+        for (field, (g, w)) in got.iter().zip(want).enumerate() {
+            if g.to_bits() != w.to_bits() {
+                return Err(format!(
+                    "{name}: centroid {index} field {field}: {g} != oracle {w}"
+                ));
+            }
+        }
+        let length: usize = f[7].parse().unwrap();
+        if centroid.length != length {
+            return Err(format!(
+                "{name}: centroid {index} length {} != oracle {length}",
+                centroid.length
+            ));
+        }
+    }
+    Ok(())
+}
+
+/// Tier 1: synthetic TIMS-PASEF frames (`../oracle/F5-xmass/gen_cases.py`,
+/// seed 20260928, continuous intensities so no two peaks of a scan tie) run
+/// through `Internal::PASEFHillCentroider::centroidFrame` of the Linux x86_64
+/// Release install `openms4-release-bc9cc12-c19e494-174b576` on ibminode06,
+/// twice, with identical output. Cases cover the MS1 and MS2 defaults of
+/// `BrukerTimsFile::Config`, `max_scan_gap` 1 and 2 with dropped scans,
+/// `min_intensity`, and the IM-value grouping path without scan indices, with
+/// exact and with tolerant grouping.
+#[test]
+fn matches_the_release_build_bit_for_bit() {
+    for name in [
+        "ms1_default",
+        "ms2_hill2",
+        "gap1",
+        "gap2_minint",
+        "no_scan_idx",
+        "im_tol",
+    ] {
+        oracle_case(name).unwrap();
+    }
+}
+
+/// The same oracle on integer (detector-count) intensities, where peaks of
+/// one scan can tie. The source sorts with `std::sort`, whose order among
+/// equal keys is unspecified; the port sorts stably. This case measures
+/// whether that difference is observable on tie-rich input.
+#[test]
+fn integer_intensities_match_the_release_build() {
+    oracle_case("int_ties").unwrap();
+}

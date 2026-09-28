@@ -7,7 +7,9 @@
 //! upstream expectation file, compared with the class test's own
 //! `TOLERANCE_ABSOLUTE(0.001)` and `TEST_REAL_SIMILAR` rule. The metadata
 //! assertions are read from the fixture's `acqus` text and the source
-//! assignments in `XMassFile.h` (source review).
+//! assignments in `XMassFile.h` (source review); the Release-build oracle run
+//! printed the same metadata values. `load_matches_the_release_build_bit_for_bit`
+//! is tier 1: every peak's bits against the executed C++ Release build.
 
 use openms::format::acqus_handler::AcqusHandler;
 use openms::format::fid_handler::FidHandler;
@@ -281,4 +283,60 @@ fn oversized_td_is_refused_before_allocation() {
         Err(Error::InvalidValue(_))
     ));
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// FNV-1a (64 bit) over the little-endian bytes of each peak's m/z and
+/// intensity (widened to `f64`), in peak order.
+fn fnv1a_peaks(spectrum: &MSSpectrum) -> u64 {
+    let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
+    for peak in &spectrum.peaks {
+        for value in [peak.mz, f64::from(peak.intensity)] {
+            for byte in value.to_le_bytes() {
+                hash ^= u64::from(byte);
+                hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+            }
+        }
+    }
+    hash
+}
+
+/// Tier 1: the executed C++ Release build. `XMassFile::load` of this fixture
+/// was run by the F5 oracle driver (`../oracle/F5-xmass/driver.cpp`) on
+/// ibminode06 against the Linux x86_64 Release install
+/// `openms4-release-bc9cc12-c19e494-174b576` (gcc 14.4.0, libOpenMS core
+/// flags), twice, with identical output. The driver printed every peak with
+/// `%a`; the digest and the sampled bit patterns below were computed from that
+/// output (`results/xmass.tsv`, sha256 in `tests/data/xmass_file_provenance.json`),
+/// not from Rust.
+#[test]
+fn load_matches_the_release_build_bit_for_bit() {
+    let spectrum = XMassFile::new().load(data("XMassFile_test/fid")).unwrap();
+    assert_eq!(spectrum.peaks.len(), 80478);
+    const SAMPLES: [(usize, u64, u64); 10] = [
+        (0, 0x407f43a32b1bf42b, 0x4073d00000000000),
+        (10000, 0x408cf6f48753f787, 0x4063600000000000),
+        (20000, 0x4097314cdd072491, 0x4060a00000000000),
+        (30000, 0x40a0f98af7040fbb, 0x4063000000000000),
+        (40000, 0x40a760c59b568134, 0x4061000000000000),
+        (50000, 0x40aeceb17010a40e, 0x405dc00000000000),
+        (60000, 0x40b3a1d4df4442de, 0x4060c00000000000),
+        (70000, 0x40b86005027fb1f2, 0x405cc00000000000),
+        (80000, 0x40bda216fb6649a4, 0x4060400000000000),
+        (80477, 0x40bde59886cfae5a, 0x405e000000000000),
+    ];
+    for (index, mz_bits, intensity_bits) in SAMPLES {
+        let peak = &spectrum.peaks[index];
+        assert_eq!(peak.mz.to_bits(), mz_bits, "m/z of peak {index}");
+        assert_eq!(
+            f64::from(peak.intensity).to_bits(),
+            intensity_bits,
+            "intensity of peak {index}"
+        );
+    }
+    assert_eq!(fnv1a_peaks(&spectrum), 0xc66e5dff18245c89);
+    // The oracle's `getFileSize()` printed as `%a` of the widened float.
+    assert_eq!(
+        f64::from(spectrum.source_file.size_mb).to_bits(),
+        0.30699920654296875f64.to_bits()
+    );
 }
