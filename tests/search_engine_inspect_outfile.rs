@@ -126,7 +126,11 @@ fn run_date() -> DateTime {
 
 #[test]
 fn equality_is_stateless() {
-    assert_eq!(InspectOutfile::new(), InspectOutfile::default());
+    // Through a generic, so the `Default` impl itself is what is exercised.
+    fn by_default<T: Default>() -> T {
+        T::default()
+    }
+    assert_eq!(InspectOutfile::new(), by_default::<InspectOutfile>());
 }
 
 #[test]
