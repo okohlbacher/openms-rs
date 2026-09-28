@@ -37,3 +37,10 @@ Class tests: FragmentIndex_test.cpp (2879 lines), NeighborSeq_test.cpp (252), Si
   analysis/false_discovery_rate.rs apply_peptides; analysis/id_filter.rs; metadata/im_types.rs determine_im_format; format/fasta.rs FASTAEntry; boost regex facade (tests/data/boost_regex_provenance.json).
   RandomShuffler: chemistry/decoy_random.rs (private) -- check.
 - THEN: FragmentIndex (no TOPP consumer, 3.4k lines) as far as possible.
+
+## Status (incarnation 2, later)
+- DONE NeighborSeq: code, tests (10/10), docs/NEIGHBOR_SEQ_SUPPORT.md, tests/data/neighbor_seq_provenance.json.
+- DONE SSE code: src/analysis/id/simple_search_engine.rs; tests/simple_search_engine.rs 7/7 on dax (default features),
+  both TOPP retained outputs match under FuzzyDiff contract. Touched src/chemistry/decoy_random.rs (generic shuffle_slice).
+- TODO SSE: docs/SIMPLE_SEARCH_ENGINE_SUPPORT.md, tests/data/simple_search_engine_provenance.json (fixture sha256 computed), clippy/doc gates.
+- NEXT: FragmentIndex.
