@@ -42,3 +42,4 @@ pub mod meta_info_indexed;
 /// Looking up spectra by index, retention time, native ID, scan number or
 /// reference (`METADATA/SpectrumLookup.h`).
 pub mod spectrum_lookup;
+pub mod spectrum_meta_data_lookup;

@@ -94,8 +94,16 @@ fn region_from_mask() {
     assert!(ImagingRegion::from_mask(0, "mask", 10, 20, 2, 0, mask.clone()).is_err());
     assert!(ImagingRegion::from_mask(0, "mask", 10, 20, 2, 2, vec![false; 4]).is_err());
     assert!(
-        ImagingRegion::from_mask(0, "mask", 10, 20, 2, 2, vec![false, false, false, false, true])
-            .is_err()
+        ImagingRegion::from_mask(
+            0,
+            "mask",
+            10,
+            20,
+            2,
+            2,
+            vec![false, false, false, false, true]
+        )
+        .is_err()
     );
 }
 
@@ -108,11 +116,14 @@ fn region_intersects() {
     assert!(b.intersects(&a));
     let c = ImagingRegion::rectangle(3, "c", 10, 10, 11, 11).unwrap();
     assert!(!c.intersects(&a));
-    let m1 = ImagingRegion::from_mask(4, "mask", 1, 1, 2, 2, vec![true, false, false, true]).unwrap();
+    let m1 =
+        ImagingRegion::from_mask(4, "mask", 1, 1, 2, 2, vec![true, false, false, true]).unwrap();
     assert!(m1.intersects(&a));
-    let m2 = ImagingRegion::from_mask(5, "mask2", 1, 1, 2, 2, vec![false, true, true, false]).unwrap();
+    let m2 =
+        ImagingRegion::from_mask(5, "mask2", 1, 1, 2, 2, vec![false, true, true, false]).unwrap();
     assert!(!m2.intersects(&m1));
-    let m3 = ImagingRegion::from_mask(6, "mask3", 1, 1, 2, 2, vec![true, true, true, false]).unwrap();
+    let m3 =
+        ImagingRegion::from_mask(6, "mask3", 1, 1, 2, 2, vec![true, true, true, false]).unwrap();
     assert!(m3.intersects(&m2));
 }
 
@@ -209,9 +220,18 @@ fn geometry_pixels_in_insertion_order() {
     g.add_pixel(1, 1, 30).unwrap();
     let pixels = g.pixels();
     assert_eq!(pixels.len(), 3);
-    assert_eq!((pixels[0].x, pixels[0].y, pixels[0].spectrum_index), (2, 0, 10));
-    assert_eq!((pixels[1].x, pixels[1].y, pixels[1].spectrum_index), (0, 1, 20));
-    assert_eq!((pixels[2].x, pixels[2].y, pixels[2].spectrum_index), (1, 1, 30));
+    assert_eq!(
+        (pixels[0].x, pixels[0].y, pixels[0].spectrum_index),
+        (2, 0, 10)
+    );
+    assert_eq!(
+        (pixels[1].x, pixels[1].y, pixels[1].spectrum_index),
+        (0, 1, 20)
+    );
+    assert_eq!(
+        (pixels[2].x, pixels[2].y, pixels[2].spectrum_index),
+        (1, 1, 30)
+    );
 }
 
 // START_SECTION((Size getNumberOfPixels() const)): NOT_TESTABLE.

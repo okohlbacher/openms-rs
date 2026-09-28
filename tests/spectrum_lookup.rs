@@ -180,7 +180,9 @@ fn source_rules_beyond_the_class_test() {
         ..MSSpectrum::default()
     });
     let mut lookup = SpectrumLookup::new();
-    lookup.read_spectra(&duplicated, DEFAULT_SCAN_REGEXP).unwrap();
+    lookup
+        .read_spectra(&duplicated, DEFAULT_SCAN_REGEXP)
+        .unwrap();
     // Duplicate RT and native ID: the later spectrum wins.
     assert_eq!(lookup.find_by_rt(2.0).unwrap(), 3);
     assert_eq!(lookup.find_by_native_id("spectrum=1").unwrap(), 3);

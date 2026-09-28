@@ -214,10 +214,13 @@ fn storage_layout_and_strides() {
     assert_eq!(m[(0, 0)], 9);
     assert_eq!(m.inner_stride(), 1);
     assert_eq!(m.outer_stride(), 2);
-    assert!(!Matrix::<i32>::ROW_MAJOR);
+    const { assert!(!Matrix::<i32>::ROW_MAJOR) };
     assert!(m.set_value(2, 0, 1).is_err());
     assert!(m.get(0, 3).is_none());
-    assert!(m.get(2, 0).is_none(), "an out-of-range row must not alias the next column");
+    assert!(
+        m.get(2, 0).is_none(),
+        "an out-of-range row must not alias the next column"
+    );
     for value in &mut m {
         *value += 1;
     }

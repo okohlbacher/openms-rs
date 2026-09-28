@@ -420,7 +420,7 @@ impl SpectrumLookup {
 
     /// The source's `findByRegExpMatch_`: use the first usable named group of
     /// a matched reference format.
-    fn find_by_regexp_match(
+    pub(crate) fn find_by_regexp_match(
         &self,
         spectrum_ref: &str,
         regexp: &str,
