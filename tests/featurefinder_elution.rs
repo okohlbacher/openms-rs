@@ -109,6 +109,10 @@ fn run_case(case: &str, param: &Param) -> usize {
         "{case}: {identical} of {} values bit-identical",
         expected.len()
     );
+    // Every function on this path is the reference build's (glibc_libm, the
+    // ported logf) or IEEE arithmetic in the source's order, so the values
+    // are asserted identical, not merely close, on every host.
+    assert_eq!(identical, expected.len(), "{case}: not bit-identical");
     assert!(
         failures.is_empty(),
         "{case}: {} values differ:\n{}",
