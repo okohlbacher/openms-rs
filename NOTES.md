@@ -46,6 +46,10 @@ Scratchpad (per session): /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-
   gnps_tables 8 + ibspectra 7 (consensusxml), gnps_mgf 9 + f4_progress 3 (consensusxml,mzml), sqmass 7, lib format:: 77.
 - scratchpad/F4/slices.sh <tag> measures every proposed CI slice (test + 1.85 jobs).
 
+- s1 slices all green (counts in the report). MSPFile Release differential done (42e7fe9, ../oracle/F4-msp).
+- sweep1 (bb7e917): 23/23 test-job lines PASS; ssh dropped at minimum-rust. sweep2 = quality + minimum-rust.
+- Report draft written: .planning/lane-reports/F4.md (SWEEP_PLACEHOLDER to fill). Ledger regenerated.
+
 ## Next step
-1. c8 clippy (--keep-going) green -> run slices.sh s1 and CI sweep (openms-ci-sweep.sh F4-sweep <scratch>/sweep1).
-2. Report .planning/lane-reports/F4.md (Bash heredoc), delete NOTES.md, final commit.
+1. sweep2 result -> replace SWEEP_PLACEHOLDER in the report.
+2. Delete NOTES.md, final commit, final message.
