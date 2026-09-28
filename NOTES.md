@@ -73,3 +73,9 @@ Lane: XML handlers + MS data consumers. Worktree branch: worktree-wf_ee239125-5b
   mzml_write_options.rs), loader forwards options -> no more Unsupported refusal. Tests: loader byte-identity x9,
   writing consumer byte-identity x6 + frozen-after-header. gate7 running. Pre-change slices all green
   (mzml 12+29, sqmass 11, schema 12, msrv 12+29+11, nofeat lib 316).
+
+## Incarnation 4 (same branch, 19:57)
+- HEAD cef7ab1 committed clean; slices (17:50-17:54, after cef7ab1) all green: mzml 13+29+38, sqmass 11, schema 13,
+  msrv 13+29+11+38, nofeat lib 316. Ledger fragment written (9 entries). Report NOT written. sweep2 died on spock timeout.
+- sweep4 started 19:58 (scratchpad/F7a/sweep4.out). Next: report F7a.md; consider record-level CV promotion
+  (validateCV_) to close the writing-consumer validator gap; delete NOTES.md in final commit.
