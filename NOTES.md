@@ -34,7 +34,13 @@ NOT written; write it at the end (with Bash heredoc).
 - Tests pass on spock: qc 24, mzqc_file 6 (after adding line-for-line test), digestion 12.
 - Gate helper: scratchpad gates/g.sh <log> <cargo args> (retries gateway drops). Use commas in --features.
 
+## Incarnation 5 (restart)
+- batch3 (scratchpad gates/c*.log) all green: clippy all-features, doc, sqlite, no-default, mzqc slice 6,
+  tests qc 24/mzqc 6/digestion 12/oms 16, doctests 74. Only c6 `clippy --features mzml --all-targets`
+  fails in tests/file_info_a8.rs:835 dead fields - file untouched by F2 (same as main), report to lead.
+- sweep3 died on a gateway drop at the semantic-validation line; draft report in scratchpad F2.md.
+
 ## Next step
-1. Re-run clippy/doc/msrv/no-default/feature slices (batch2 failed clippy+doc before fixes 7c1e0e1).
+1. (done) gates re-run.
 2. CI sweep (openms-ci-sweep.sh F2-sweep <scratch dir>), ci_matrix --check diff lines for report.
 3. Write report .planning/lane-reports/F2.md (Bash heredoc), delete NOTES.md, final commit.
