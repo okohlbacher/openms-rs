@@ -100,7 +100,7 @@ rusqlite = { version = "=0.40.2", default-features = false, features = ["bundled
 # zstd decoding of Bruker TDF frames (`bruker-tdf`). Pure Rust. `hash` pulls the
 # pure-Rust twox-hash (xxhash64 only) so a frame's content checksum can be
 # verified, as libzstd does by default under the source's opentims.
-ruzstd = { version = "=0.8.2", default-features = false, features = ["std", "hash"], optional = true }
+ruzstd = { version = "=0.8.1", default-features = false, features = ["std", "hash"], optional = true }
 # Data parallelism. OpenMS parallelises with OpenMP - 176 pragmas, ~100 of them
 # in ANALYSIS - and rayon maps onto the dominant `parallel for` shape directly.
 # Default-on, because a multithreaded core is the point; disabling the feature

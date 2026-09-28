@@ -553,10 +553,29 @@ mod tests {
 
     #[test]
     fn linear_converter_maps_the_range_ends() {
+        // Expected values: opentims `OpenSourceScan2ImConverter`
+        // (scan2inv_ion_mobility_converter.cpp:170-199), `intercept_ + slope_ *
+        // scan` with `slope_ = (im_min - im_max) / scan_max_index`, evaluated in
+        // IEEE-754 doubles outside Rust (Python 3). The far end is not 0.6: the
+        // slope times 1000 rounds to -1.0, and the double 1.6 minus 1.0 is the
+        // double just above 0.6.
         let linear = LinearScan2ImConverter::new(0.6, 1.6, 1000);
         assert_eq!(linear.convert(1, &[0.0]), vec![1.6]);
-        assert_eq!(linear.convert_indices(1, &[1000]), vec![0.6]);
+        assert_eq!(
+            linear.convert_indices(1, &[1000]),
+            vec![0.600_000_000_000_000_1]
+        );
         assert_eq!(linear.inverse_convert(1, &[1.6, 0.6]), vec![0, 1000]);
+        // A dyadic range, where every operation is exact.
+        let dyadic = LinearScan2ImConverter::new(0.5, 1.5, 1024);
+        assert_eq!(
+            dyadic.convert_indices(1, &[0, 512, 1024]),
+            vec![1.5, 1.0, 0.5]
+        );
+        assert_eq!(
+            dyadic.inverse_convert(1, &[1.5, 1.0, 0.5, 2.0]),
+            vec![0, 512, 1024, 0]
+        );
         assert_eq!(linear.description(), "OpenSourceScan2ImConverter (linear)");
     }
 

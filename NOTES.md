@@ -67,3 +67,4 @@ Branch: worktree-wf_ee239125-5be-15, base f0990c0. C++ pin: `git -C /Users/kohlb
 
 ## Incarnation 8 (started)
 - Prereq wf_ee239125-5be-15 already ancestor. Remaining: docs/BRUKER_TIMS_SUPPORT.md, provenance, final gates (MSRV, fmt, clippy, module cycles), report + ledger.
+- Incarnation 8: gate8 found ruzstd 0.8.2 fails +1.85.0 (is_multiple_of). Pinned =0.8.1 (decoder diff vs 0.8.2 = spelling only; sha 3640bec8...), lock edited by hand. Fixed unit test linear_converter_maps_the_range_ends: expected 0.6 was wrong, opentims formula gives 0.6000000000000001 (Python). Next: gate lib+tests, MSRV, clippy, then docs/BRUKER_TIMS_SUPPORT.md + provenance + report.
