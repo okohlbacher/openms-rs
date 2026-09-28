@@ -440,7 +440,7 @@ impl ClusterAnalyzer {
                 "minimal partition contains one cluster, not zero",
             ));
         }
-        if cluster_quantity >= tree.len() + 1 {
+        if cluster_quantity > tree.len() {
             return Err(invalid_parameter(
                 "maximal partition contains singleton clusters, further separation is not possible",
             ));
@@ -549,7 +549,7 @@ impl ClusterAnalyzer {
                 "minimal partition contains one cluster, not zero",
             ));
         }
-        if cluster_quantity >= tree.len() + 1 {
+        if cluster_quantity > tree.len() {
             return Err(invalid_parameter(
                 "maximal partition contains singleton clusters, further separation is not possible",
             ));
@@ -659,9 +659,9 @@ impl ClusterAnalyzer {
 fn min_inter_index(min_inter: &[(f32, usize)]) -> usize {
     let mut index = 0;
     for i in 1..min_inter.len() {
-        if min_inter[index].0 == -1.0 {
-            index = i;
-        } else if min_inter[i].0 != -1.0 && min_inter[i].0 < min_inter[index].0 {
+        if min_inter[index].0 == -1.0
+            || (min_inter[i].0 != -1.0 && min_inter[i].0 < min_inter[index].0)
+        {
             index = i;
         }
     }

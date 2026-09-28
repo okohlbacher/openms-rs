@@ -382,13 +382,15 @@ fn hash_grid_class_test() {
     t.insert(DPosition::xy(0.0, 0.0), ()).unwrap();
     t.insert(DPosition::xy(1.0, 0.0), ()).unwrap();
     t.insert(DPosition::xy(2.0, 0.0), ()).unwrap();
-    let mut it = t.iter();
-    for _ in 0..3 {
-        let (_, (center, _)) = it.next().unwrap();
-        assert!(center[0] <= 2.0);
-        assert_eq!(center[1], 0.0);
+    {
+        let mut it = t.iter();
+        for _ in 0..3 {
+            let (_, (center, _)) = it.next().unwrap();
+            assert!(center[0] <= 2.0);
+            assert_eq!(center[1], 0.0);
+        }
+        assert!(it.next().is_none());
     }
-    assert!(it.next().is_none());
     let mut it = t.iter_mut();
     for _ in 0..3 {
         let (_, center, _) = it.next().unwrap();

@@ -222,8 +222,8 @@ impl<C> HashGrid<C> {
         let mut index = [0_i64; 2];
         for (dimension, slot) in index.iter_mut().enumerate() {
             let t = (key[dimension] / self.cell_dimension[dimension]).floor();
-            // -2^63 is exact in f64; 2^63 is the first value above i64::MAX.
-            if t.is_nan() || t < -9_223_372_036_854_775_808.0 || t >= 9_223_372_036_854_775_808.0 {
+            // [-2^63, 2^63) is exactly the i64 range in f64; NaN is outside it.
+            if !(-9_223_372_036_854_775_808.0..9_223_372_036_854_775_808.0).contains(&t) {
                 return Err(Error::InvalidRange(
                     "HashGrid: cell index exceeds the Int64 range".into(),
                 ));
