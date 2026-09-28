@@ -42,3 +42,7 @@ pub use tool_description::{
 /// `DATASTRUCTURES/ToolInfo.h`).
 pub mod tool_info;
 pub use tool_info::ToolInfo;
+
+/// `DATASTRUCTURES/StringUtils.h`: string parsing, formatting, trimming,
+/// quoting and splitting with the source's byte-level rules.
+pub mod string_utils;
