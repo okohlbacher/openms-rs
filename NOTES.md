@@ -64,3 +64,11 @@ Branch: worktree-wf_ee239125-5be-34. Prereq worktree-wf_ee239125-5be-1 merged (f
 - Progress-logger gaps of MzMLFile left alone (brief: keep reader changes away from progress calls).
 - Next: pull oracle, write tests/mzml_im_peak_type.rs comparing records; docs (MZML_MOBILITY_SUPPORT.md rows,
   STRING_UTILS_SUPPORT.md, ZIP doc + THIRD_PARTY_CRATE_DECISIONS zip row); MSRV gate; sweep; ledger+report.
+
+## Session 2, late
+- Committed bb3d7c3 (mzML routes). Oracle ../oracle/B8a-mzml-im DONE (records v2; results_v1 = first run w/o constructed case).
+- Found: MS:1003441 not in pinned CV -> C++ branch dead -> ReadOptions::source_im_centroid_frame (in source()).
+- Module cycles: doc-comment crate:: paths count as edges; removed; recorded data_structures->concept with --write.
+- Ledger written: .planning/ledger-fragments/wave4/B8a.json (generator scratchpad/make_ledger.py).
+- Sweep running (slot B8a-sweep, logs scratchpad/sweep1). Next: derived slices (mzml: mzml_im_peak_type;
+  "mzml featurexml": zip_input), clippy status from sweep, report, delete NOTES.md in final commit.
