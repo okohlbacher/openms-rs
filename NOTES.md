@@ -51,5 +51,5 @@ Scratchpad (per session): /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-
 - Report draft written: .planning/lane-reports/F4.md (SWEEP_PLACEHOLDER to fill). Ledger regenerated.
 
 ## Next step
-1. sweep2 result -> replace SWEEP_PLACEHOLDER in the report.
+1. sweep2 never ran quality/minimum-rust (rsync failed; its test lines are stale remote output). sweep3 (scratchpad F4/sweep3.out) reruns quality+minimum-rust -> replace SWEEP_PLACEHOLDER.
 2. Delete NOTES.md, final commit, final message.
