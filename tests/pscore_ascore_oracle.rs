@@ -83,6 +83,7 @@ fn oracle() -> BTreeMap<String, Vec<(String, String)>> {
 fn release_oracle_scores() {
     let expected = oracle();
     let mut cases = 0;
+    let mut visited = std::collections::BTreeSet::new();
     let mut values = 0;
     for line in include_str!("data/pscore_ascore_oracle_cases.tsv").lines() {
         if line.starts_with('#') || line.is_empty() {
@@ -90,13 +91,15 @@ fn release_oracle_scores() {
         }
         let f: Vec<&str> = line.split('\t').collect();
         let (kind, id) = (f[0], f[1]);
-        let records = &expected[id];
+        // A case that prints nothing (a level range with min > max) has no records.
+        let records = expected.get(id).map(Vec::as_slice).unwrap_or(&[]);
+        visited.insert(id.to_owned());
         cases += 1;
         match kind {
             "ranks" => {
                 let got = ranks(&spectrum(f[2]), number(f[3]));
                 let text: Vec<String> = got.iter().map(usize::to_string).collect();
-                assert_eq!(records, &vec![("ranks".to_owned(), text.join(","))], "{id}");
+                assert_eq!(records, &[("ranks".to_owned(), text.join(","))][..], "{id}");
                 values += got.len();
             }
             "levels" => {
@@ -179,6 +182,9 @@ fn release_oracle_scores() {
                     match key.as_str() {
                         "score" => close(out.score, number(value), id),
                         "sequence" => assert_eq!(&out.sequence.to_string(), value, "{id}"),
+                        // The source's PeptideHit keeps its rank as the meta
+                        // value "rank"; this crate's PeptideHit has a field.
+                        "meta:rank" => assert_eq!(out.rank.to_string(), *value, "{id}"),
                         other => {
                             let name = other.strip_prefix("meta:").unwrap();
                             expected_meta.insert(name.to_owned(), value.clone());
@@ -200,6 +206,7 @@ fn release_oracle_scores() {
             other => panic!("unknown kind {other}"),
         }
     }
-    assert_eq!(cases, expected.len());
+    assert!(cases >= expected.len());
+    assert!(expected.keys().all(|id| visited.contains(id)));
     assert!(values > 1000, "compared {values} values");
 }
