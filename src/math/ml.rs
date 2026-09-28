@@ -9,4 +9,5 @@
 //! types belongs in the analysis domain that uses it instead, because `math`
 //! is a sink in the module graph and must stay one.
 
+/// `LinearInterpolation`: linearly interpolated values and derivatives.
 pub mod linear_interpolation;
