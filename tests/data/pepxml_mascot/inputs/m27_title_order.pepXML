@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis><msms_run_summary><search_summary>
+
+</search_summary>
+<spectrum_query spectrum="b"><search_result><search_hit hit_rank="1" peptide="K"></search_hit></search_result></spectrum_query>
+<spectrum_query spectrum="B"><search_result><search_hit hit_rank="1" peptide="R"></search_hit></search_result></spectrum_query>
+<spectrum_query spectrum="a10"><search_result><search_hit hit_rank="1" peptide="G"></search_hit></search_result></spectrum_query>
+<spectrum_query spectrum="a9"><search_result><search_hit hit_rank="1" peptide="A"></search_hit></search_result></spectrum_query>
+</msms_run_summary></msms_pipeline_analysis>

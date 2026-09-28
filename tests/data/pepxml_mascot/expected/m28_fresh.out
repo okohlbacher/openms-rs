@@ -1,0 +1,5 @@
+load m28_reuse_second.pepXML
+status ok
+peptides 1
+title [q1] 1
+seq [MPEPTIDE] [MPEPTIDE]

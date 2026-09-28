@@ -1,0 +1,4 @@
+load m12_missing_peptide.pepXML
+status exception Parse Error: While loading 'm12_missing_peptide.pepXML': Required attribute 'peptide' not present!
+Probable cause: The file suffix (pepXML) does not match the file content (unknown). Rename the file to fix this. in: m12_missing_peptide.pepXML
+peptides 0

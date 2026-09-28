@@ -1,0 +1,3 @@
+load m13_bad_mass.pepXML
+status exception ConversionError: Could not convert string 'abc' to a double value
+peptides 0

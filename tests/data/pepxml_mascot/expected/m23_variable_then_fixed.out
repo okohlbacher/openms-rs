@@ -1,0 +1,3 @@
+load m23_variable_then_fixed.pepXML
+status exception InvalidValue: the value 'Carbamidomethyl' was used but is not valid; Modification not found: 
+peptides 0

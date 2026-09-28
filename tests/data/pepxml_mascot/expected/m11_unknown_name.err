@@ -1,0 +1,1 @@
+const OpenMS::ResidueModification* OpenMS::ModificationsDB::searchModificationsFast(const std::string&, bool&, const std::string&, OpenMS::ResidueModification::TermSpecificity) constModification not found: Foo

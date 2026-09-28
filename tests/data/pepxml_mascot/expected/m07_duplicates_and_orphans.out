@@ -1,0 +1,10 @@
+load m07_duplicates_and_orphans.pepXML
+status ok
+peptides 3
+title [a] 1
+seq [M(Oxidation)PEPTIDE] [MPEPTIDE]
+title [b] 1
+seq [PEPTIDE] [PEPTIDE]
+title [c] 2
+seq [GRPHANK] [GRPHANK]
+seq [M(Oxidation)K] [MK]

@@ -192,9 +192,16 @@ fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
 
+/// Mascot pepXML peptide sequences keyed by spectrum title (`PepXMLFileMascot.h`).
+#[cfg(feature = "idxml")]
+pub mod pepxml_mascot;
 /// ProteinProphet protXML reader (`ProtXMLFile.h`).
 #[cfg(feature = "idxml")]
 pub mod protxml;
+/// The Xerces-faithful SAX driver of every `XMLHandler` port (copied verbatim
+/// from the wave-4 integration branch, which owns it).
+#[cfg(feature = "idxml")]
+pub(crate) mod sax_xml;
 /// Bounded SAX-style events for the attribute-driven identification readers.
 #[cfg(feature = "idxml")]
 pub(crate) mod xml_sax;

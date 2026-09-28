@@ -1,0 +1,3 @@
+load m09_position_past_end.pepXML
+status exception IndexOverflow: the given index was too large: 8 (size = 8)
+peptides 0
