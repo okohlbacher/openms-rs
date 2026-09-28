@@ -210,9 +210,8 @@ fn run_case(name: &str) -> Report {
             loaded.feature_names, model.feature_names,
             "{name} model names"
         );
-        if loaded.weights == model.weights {
-            assert_eq!(bytes, expected, "{name}: model file bytes");
-        }
+        assert_eq!(loaded.weights, model.weights, "{name}: model weights");
+        assert_eq!(bytes, expected, "{name}: model file bytes");
         (model.weights, out)
     };
     Report {
@@ -225,33 +224,33 @@ fn run_case(name: &str) -> Report {
     }
 }
 
-const CASES: [&str; 13] = [
-    "rescore_default",
-    "rescore_threads1",
-    "rescore_isotonic",
-    "rescore_uni_grid",
-    "rescore_none",
-    "rescore_nested",
-    "rescore_multihit",
-    "rescore_multihit_no_tdc",
-    "rescore_subsample",
-    "rescore_neg_direction",
-    "rescore_no_pi0",
-    "tron",
-    "train_a_score_b",
-];
-
-#[test]
-fn oracle_cases_report() {
-    let mut lines = Vec::new();
-    for name in CASES {
-        let r = run_case(name);
-        lines.push(format!(
-            "{:<26} weights {:?} pi0 {:?} scores {:?} q {:?} pep {:?}",
-            r.name, r.weights, r.pi0, r.scores, r.q_values, r.peps
-        ));
-    }
-    for line in &lines {
-        println!("{line}");
-    }
+macro_rules! oracle_case {
+    ($test:ident, $name:literal) => {
+        #[test]
+        fn $test() {
+            // Contract: bit-identical weights, pi0, scores, q-values and
+            // PEPs; a distance is (max ULP, max relative difference).
+            let r = run_case($name);
+            let exact = (0, 0.0);
+            assert_eq!(r.weights, exact, "{}: SVM weights", r.name);
+            assert_eq!(r.pi0, exact, "{}: pi0", r.name);
+            assert_eq!(r.scores, exact, "{}: scores", r.name);
+            assert_eq!(r.q_values, exact, "{}: q-values", r.name);
+            assert_eq!(r.peps, exact, "{}: PEPs", r.name);
+        }
+    };
 }
+
+oracle_case!(rescore_default, "rescore_default");
+oracle_case!(rescore_threads1, "rescore_threads1");
+oracle_case!(rescore_isotonic, "rescore_isotonic");
+oracle_case!(rescore_uni_grid, "rescore_uni_grid");
+oracle_case!(rescore_none, "rescore_none");
+oracle_case!(rescore_nested, "rescore_nested");
+oracle_case!(rescore_multihit, "rescore_multihit");
+oracle_case!(rescore_multihit_no_tdc, "rescore_multihit_no_tdc");
+oracle_case!(rescore_subsample, "rescore_subsample");
+oracle_case!(rescore_neg_direction, "rescore_neg_direction");
+oracle_case!(rescore_no_pi0, "rescore_no_pi0");
+oracle_case!(tron, "tron");
+oracle_case!(train_a_score_b, "train_a_score_b");

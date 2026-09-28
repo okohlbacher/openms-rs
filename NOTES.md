@@ -49,3 +49,8 @@ BayesianProteinInferenceAlgorithm unmapped; IDBoostGraph partial.
   Fixtures copied to tests/data/percolator/oracle/. tests/percolator_oracle.rs replays them (report mode first).
   C++ note: on moderately-separable data validateDirection resets to default direction (no targets q<0.01) - faithful port must too.
 - Params now in pub struct PercolatorParameters; Percolator { pub parameters, private state }.
+- MILESTONE: Percolator bit-identical to SERIAL (OMP_NUM_THREADS=1) C++ Release on all 13 oracle cases (weights, pi0,
+  scores, q, PEP). I-spline PEP needed Eigen GEMM emulation (eigen_xtx, gemm_blocking l1=32K) - probe
+  ../oracle/I2-ispline-probe (t1 = serial). C++ DEFECT: I-spline PEPs depend on OMP thread count (Eigen parallel GEMM
+  changes kc 304->320); results_omp3_v1 kept. Fixtures tests/data/percolator/{oracle,ispline}.
+- Next: docs/PERCOLATOR_SUPPORT.md, provenance json, clippy, then FDR gaps.
