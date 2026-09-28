@@ -1,6 +1,6 @@
 # F7c NOTES (lane working notes; delete in final commit)
 
-Branch: worktree-wf_cd066dab-0a7-14, base main f0990c0.
+Branch: worktree-wf_cd066dab-0a7-19 (retry; merged -14 notes).
 
 ## Ledger gaps as recorded (docs/core-sdk-coverage.json)
 - DTA2DFile (src/format/dta2d.rs): MISSING DocumentIdentifier loaded-path/type state; C++ stream numeric text (Rust shortest float).
