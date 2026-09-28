@@ -78,6 +78,9 @@ pub(crate) mod path_io;
 /// SQLite connections and checked table, statement and blob operations.
 #[cfg(feature = "sqlite")]
 pub mod sqlite_connector;
+/// OMS files: SQLite databases of identification and feature data (`OMSFile.h`).
+#[cfg(feature = "sqlite")]
+pub mod oms_file;
 /// Separated-value output with automatic separators and quoting (`SVOutStream.h`).
 pub mod sv_out_stream;
 
