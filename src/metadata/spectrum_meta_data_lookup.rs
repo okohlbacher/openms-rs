@@ -11,24 +11,24 @@
 //!
 //! A common use is importing identification results from a search engine's
 //! own format, where some meta data - above all retention times - has to be
-//! looked up in the raw data; [`SpectrumMetaDataLookup::add_missing_rts_to_peptide_ids`]
+//! looked up in the raw data; [`SpectrumMetaDataLookup::add_missing_rts_to_peptide_ids`](crate::metadata::spectrum_meta_data_lookup::SpectrumMetaDataLookup::add_missing_rts_to_peptide_ids)
 //! is one example.
 //!
-//! Meta data of a spectrum is a [`SpectrumMetaData`] record. Which items to
-//! extract or look up is chosen with [`MetaDataFlags`] bits. Meta data comes
+//! Meta data of a spectrum is a [`SpectrumMetaData`](crate::metadata::spectrum_meta_data_lookup::SpectrumMetaData) record. Which items to
+//! extract or look up is chosen with [`MetaDataFlags`](crate::metadata::spectrum_meta_data_lookup::MetaDataFlags) bits. Meta data comes
 //! from spectra or from spectrum reference strings, whose format is a regular
 //! expression with named groups:
 //!
-//! | [`SpectrumMetaData`] field | flag | group | comment (* undefined for MS1) |
+//! | [`SpectrumMetaData`](crate::metadata::spectrum_meta_data_lookup::SpectrumMetaData) field | flag | group | comment (* undefined for MS1) |
 //! |---|---|---|---|
-//! | `rt` | [`MDF_RT`] | `RT` | retention time of the spectrum |
-//! | `precursor_rt` | [`MDF_PRECURSORRT`] | `PRECRT` | retention time of the precursor spectrum* |
-//! | `precursor_mz` | [`MDF_PRECURSORMZ`] | `MZ` | m/z of the precursor ion* |
-//! | `precursor_charge` | [`MDF_PRECURSORCHARGE`] | `CHARGE` | charge of the precursor ion* |
-//! | `ms_level` | [`MDF_MSLEVEL`] | `LEVEL` | MS level |
-//! | `scan_number` | [`MDF_SCANNUMBER`] | `SCAN` | scan number, from the native ID |
-//! | `native_id` | [`MDF_NATIVEID`] | `ID` | native ID of the spectrum |
-//! | | [`MDF_ALL`] | | every flag set |
+//! | `rt` | [`MDF_RT`](crate::metadata::spectrum_meta_data_lookup::MDF_RT) | `RT` | retention time of the spectrum |
+//! | `precursor_rt` | [`MDF_PRECURSORRT`](crate::metadata::spectrum_meta_data_lookup::MDF_PRECURSORRT) | `PRECRT` | retention time of the precursor spectrum* |
+//! | `precursor_mz` | [`MDF_PRECURSORMZ`](crate::metadata::spectrum_meta_data_lookup::MDF_PRECURSORMZ) | `MZ` | m/z of the precursor ion* |
+//! | `precursor_charge` | [`MDF_PRECURSORCHARGE`](crate::metadata::spectrum_meta_data_lookup::MDF_PRECURSORCHARGE) | `CHARGE` | charge of the precursor ion* |
+//! | `ms_level` | [`MDF_MSLEVEL`](crate::metadata::spectrum_meta_data_lookup::MDF_MSLEVEL) | `LEVEL` | MS level |
+//! | `scan_number` | [`MDF_SCANNUMBER`](crate::metadata::spectrum_meta_data_lookup::MDF_SCANNUMBER) | `SCAN` | scan number, from the native ID |
+//! | `native_id` | [`MDF_NATIVEID`](crate::metadata::spectrum_meta_data_lookup::MDF_NATIVEID) | `ID` | native ID of the spectrum |
+//! | | [`MDF_ALL`](crate::metadata::spectrum_meta_data_lookup::MDF_ALL) | | every flag set |
 //! | | | `INDEX0` | look-up only: position counting from 0 |
 //! | | | `INDEX1` | look-up only: position counting from 1 |
 //!

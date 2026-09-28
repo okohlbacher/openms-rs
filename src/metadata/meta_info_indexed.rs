@@ -120,7 +120,7 @@ pub trait IndexedMetaInfo {
     ///
     /// # Errors
     ///
-    /// As [`IndexedMetaInfo::keys_as_indices`](crate::metadata::meta_info_indexed::IndexedMetaInfo::keys_as_indices), for a stored name that is not
+    /// As [`IndexedMetaInfo::keys_as_indices`], for a stored name that is not
     /// registered.
     fn keys_in_index_order(&self, registry: &MetaInfoRegistry) -> Result<Vec<String>>;
 }

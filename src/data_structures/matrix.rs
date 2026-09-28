@@ -10,7 +10,7 @@
 //!
 //! Elements are stored column after column (Fortran order, as Eigen and NumPy's
 //! `order='F'` expect): element `(row, col)` lives at `col * rows + row`, so
-//! [`Matrix::iter`] visits `(0,0), (1,0), …, (rows-1,0), (0,1), …`.
+//! [`Matrix::iter`](crate::data_structures::matrix::Matrix::iter) visits `(0,0), (1,0), …, (rows-1,0), (0,1), …`.
 //!
 //! # Example
 //!

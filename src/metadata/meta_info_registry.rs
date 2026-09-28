@@ -118,8 +118,8 @@ struct Entry {
 /// Registry which assigns unique integer indices to strings
 /// (`MetaInfoRegistry`), with a description and a unit per name.
 ///
-/// [`Default`] is the source's constructor: the [`RESERVED_NAMES`](crate::metadata::meta_info_registry::RESERVED_NAMES) registered
-/// and the next index [`FIRST_REGISTERED_INDEX`](crate::metadata::meta_info_registry::FIRST_REGISTERED_INDEX). `Clone` is the copy
+/// [`Default`] is the source's constructor: the [`RESERVED_NAMES`] registered
+/// and the next index [`FIRST_REGISTERED_INDEX`]. `Clone` is the copy
 /// constructor and assignment operator; equality, which the source does not
 /// define, compares the whole state.
 #[derive(Clone, Debug, PartialEq, Eq)]

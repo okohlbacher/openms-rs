@@ -10,10 +10,10 @@
 //! builds `BSplineSmoothingSpline spl(xs, ys, -1.0, smooth_df)` and reads
 //! `spl.eval(max_lambda)` guarded by `spl.ok()`. `math` may not import
 //! `processing` (`tools/check_module_cycles.py`), so the math function states the
-//! requirement as the [`Pi0Smoother`] trait and this module satisfies it with the
+//! requirement as the [`Pi0Smoother`](crate::math::multiple_testing::Pi0Smoother) trait and this module satisfies it with the
 //! crate's port of that very class, [`BSplineSmoothingSpline`].
 //!
-//! [`pi0_est_smoothed`] is the source's `pi0Est` signature exactly — the same
+//! [`pi0_est_smoothed`](crate::processing::spline::pi0_smoother::pi0_est_smoothed) is the source's `pi0Est` signature exactly — the same
 //! five parameters with the same defaults available as constants — so a caller
 //! that wants the source's default call no longer has to know about the seam.
 //! See `docs/MULTIPLE_TESTING_SUPPORT.md`.
