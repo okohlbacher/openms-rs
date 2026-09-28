@@ -87,3 +87,9 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
   2. Write report .planning/lane-reports/F3a.md + ledger wave4/F3a.json (covering budget fix,
      Percolator, protXML(integ-F), PepXMLFileMascot, XQuest).
   3. Delete NOTES.md in final commit.
+- [inc5] XQuest ORACLE ALREADY DONE by inc4: ../oracle/F3a-xquest (driver.cpp dump format, make_cases.py,
+  node.sh, splits.tsv, 32 inputs incl. x01..x16 generated cases). results/ DONE, ibminode06 Release
+  gcc 14.4.0, differ.txt empty (run1==run2). Modes: load (dump), store, idxml2xquest (convert), split.
+- Reuse: math::source_sort::source_sort_reversed_by (libstdc++ std::sort emulation) for
+  combineTopRanksFromPairs. mzidentml.rs OPXL helpers diverge on purpose -> write faithful private ones.
+- Write src/format/xquest_result_xml.rs (feature: same as idxml?), tests/xquest_result_xml.rs.
