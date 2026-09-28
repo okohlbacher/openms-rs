@@ -7,10 +7,10 @@
 //!
 //! The source reads `unimod.xml` (and OpenMS's `custom_mods.xml`, which uses the
 //! same schema) into one `ResidueModification` per allowed site of every
-//! `<umod:mod>`. [`UnimodXmlFile::load`] returns those records as
-//! [`ModificationRecord`]s with an empty full identifier, as the source's
-//! `UnimodXMLFile::load` leaves it unset; [`UnimodXmlDataProvider`] derives the
-//! full identifier and freezes them into [`ResidueModification`]s, as the
+//! `<umod:mod>`. [`UnimodXmlFile::load`](crate::format::unimod_xml::UnimodXmlFile::load) returns those records as
+//! [`ModificationRecord`](crate::chemistry::ModificationRecord)s with an empty full identifier, as the source's
+//! `UnimodXMLFile::load` leaves it unset; [`UnimodXmlDataProvider`](crate::format::unimod_xml::UnimodXmlDataProvider) derives the
+//! full identifier and freezes them into [`ResidueModification`](crate::chemistry::ResidueModification)s, as the
 //! source provider's `setFullId()` does. A caller-owned
 //! [`crate::chemistry::ModificationsDB`] takes them through
 //! `ModificationsDB::extend_records`; the global registry is the compiled table
@@ -20,11 +20,11 @@
 //!
 //! | Source (core `bc9cc12`) | Rust |
 //! |---|---|
-//! | `UnimodXMLFile()`, `~UnimodXMLFile()` | [`UnimodXmlFile`] (a unit struct) |
-//! | `UnimodXMLFile::load(filename, std::vector<ResidueModification*>&)` | [`UnimodXmlFile::load`] (path), [`UnimodXmlFile::load_from_reader`] |
+//! | `UnimodXMLFile()`, `~UnimodXMLFile()` | [`UnimodXmlFile`](crate::format::unimod_xml::UnimodXmlFile) (a unit struct) |
+//! | `UnimodXMLFile::load(filename, std::vector<ResidueModification*>&)` | [`UnimodXmlFile::load`](crate::format::unimod_xml::UnimodXmlFile::load) (path), [`UnimodXmlFile::load_from_reader`](crate::format::unimod_xml::UnimodXmlFile::load_from_reader) |
 //! | `Internal::UnimodXMLHandler` (`onStartElement`, `onEndElement`, `onCharacters`) | the private event handler of this module |
-//! | `UnimodXMLDataProvider(const std::string& filename)` | [`UnimodXmlDataProvider::new`] |
-//! | `UnimodXMLDataProvider::loadModifications()` | [`UnimodXmlDataProvider::load_modifications`] |
+//! | `UnimodXMLDataProvider(const std::string& filename)` | [`UnimodXmlDataProvider::new`](crate::format::unimod_xml::UnimodXmlDataProvider::new) |
+//! | `UnimodXMLDataProvider::loadModifications()` | [`UnimodXmlDataProvider::load_modifications`](crate::format::unimod_xml::UnimodXmlDataProvider::load_modifications) |
 //!
 //! # Preserved source conventions
 //!
@@ -54,8 +54,8 @@
 //!   `ResidueModification` has no such field. The compiled table reads it too.
 //! - `File::find` resolution of a bare file name against the OpenMS data path
 //!   is not done: the path is opened as given.
-//! - Input is limited to [`MAX_UNIMOD_XML_BYTES`] and
-//!   [`MAX_UNIMOD_RECORDS`] records, checked before the records are built.
+//! - Input is limited to [`MAX_UNIMOD_XML_BYTES`](crate::format::unimod_xml::MAX_UNIMOD_XML_BYTES) and
+//!   [`MAX_UNIMOD_RECORDS`](crate::format::unimod_xml::MAX_UNIMOD_RECORDS) records, checked before the records are built.
 //! - A missing required attribute, an unparsable number or formula, or a
 //!   malformed document is an error; the source reports a parse error too.
 //!

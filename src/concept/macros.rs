@@ -12,7 +12,7 @@
 //! | Source (`Macros.h` at core `bc9cc12`) | Rust |
 //! |---|---|
 //! | `STRINGIFY(a)` (`#a`) | [`std::stringify!`] |
-//! | `OPENMS_THREAD_CRITICAL(name)` (`omp critical (name)`) | [`thread_critical`] |
+//! | `OPENMS_THREAD_CRITICAL(name)` (`omp critical (name)`) | [`thread_critical`](crate::concept::macros::thread_critical) |
 //! | `OPENMS_PRECONDITION(condition, message)` | [`openms_precondition!`](crate::openms_precondition) |
 //! | `OPENMS_POSTCONDITION(condition, message)` | [`openms_postcondition!`](crate::openms_postcondition) |
 //!
@@ -22,7 +22,7 @@
 //! OpenMP build and to nothing otherwise. An OpenMP critical construct lets one
 //! thread at a time execute its block; all critical constructs with the same
 //! name exclude each other, across the whole program, while differently named
-//! ones do not. [`thread_critical`] gives a closure exactly that guarantee: a
+//! ones do not. [`thread_critical`](crate::concept::macros::thread_critical) gives a closure exactly that guarantee: a
 //! process-wide mutual-exclusion lock per name. In a serial program it only
 //! costs an uncontended lock, where the non-OpenMP expansion costs nothing;
 //! the observable behaviour is the same.
@@ -30,7 +30,7 @@
 //! The port's parallel algorithms do not use it: `concept::parallel` replaces
 //! the source's critical sections, which mostly serialise pushes into a shared
 //! container, with per-worker results merged in order, so that a parallel
-//! result is bit-identical to the serial one. [`thread_critical`] is for the
+//! result is bit-identical to the serial one. [`thread_critical`](crate::concept::macros::thread_critical) is for the
 //! remaining case of genuinely shared state, such as one output stream.
 //!
 //! # Conditions

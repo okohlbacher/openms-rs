@@ -14,11 +14,11 @@
 //!
 //! | Source (`EnzymaticDigestion.h` at core `bc9cc12`) | Rust |
 //! |---|---|
-//! | `enum Specificity` (`SPEC_NONE` 0 ... `SPEC_NONTERM` 9) | [`Specificity`], [`Specificity::value`] |
-//! | `SIZE_OF_SPECIFICITY` | [`SIZE_OF_SPECIFICITY`] |
-//! | `static const std::string NamesOfSpecificity[]` | [`NAMES_OF_SPECIFICITY`] |
-//! | `static const std::string NoCleavage`, `UnspecificCleavage` | [`NO_CLEAVAGE`], [`UNSPECIFIC_CLEAVAGE`] |
-//! | `static getSpecificityByName(const std::string&)` | [`Specificity::by_name`]; the supported three also `DigestionSpecificity::from_str` |
+//! | `enum Specificity` (`SPEC_NONE` 0 ... `SPEC_NONTERM` 9) | [`Specificity`](crate::chemistry::enzymatic_digestion::Specificity), [`Specificity::value`](crate::chemistry::enzymatic_digestion::Specificity::value) |
+//! | `SIZE_OF_SPECIFICITY` | [`SIZE_OF_SPECIFICITY`](crate::chemistry::enzymatic_digestion::SIZE_OF_SPECIFICITY) |
+//! | `static const std::string NamesOfSpecificity[]` | [`NAMES_OF_SPECIFICITY`](crate::chemistry::enzymatic_digestion::NAMES_OF_SPECIFICITY) |
+//! | `static const std::string NoCleavage`, `UnspecificCleavage` | [`NO_CLEAVAGE`](crate::chemistry::enzymatic_digestion::NO_CLEAVAGE), [`UNSPECIFIC_CLEAVAGE`](crate::chemistry::enzymatic_digestion::UNSPECIFIC_CLEAVAGE) |
+//! | `static getSpecificityByName(const std::string&)` | [`Specificity::by_name`](crate::chemistry::enzymatic_digestion::Specificity::by_name); the supported three also `DigestionSpecificity::from_str` |
 //! | `EnzymaticDigestion()`, copy constructor, `operator=` | `ProteaseDigestion::default()` (trypsin, 0 missed cleavages, full), `Clone` |
 //! | `getMissedCleavages`, `setMissedCleavages` | the `missed_cleavages` field |
 //! | `getEnzymeName`, `setEnzyme(const DigestionEnzyme*)` | `enzyme.name()`, [`ProteaseDigestion::set_enzyme`] or the `enzyme` field |

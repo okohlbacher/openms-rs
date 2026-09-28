@@ -18,10 +18,10 @@
 //!
 //! | Source | Rust |
 //! |---|---|
-//! | `appendNumeric<double>(double, std::string&, int, bool)` | [`append_numeric_f64`] |
-//! | `appendNumeric<float>(float, std::string&, int, bool)` | [`append_numeric_f32`] |
+//! | `appendNumeric<double>(double, std::string&, int, bool)` | [`append_numeric_f64`](crate::concept::numeric_formatting::append_numeric_f64) |
+//! | `appendNumeric<float>(float, std::string&, int, bool)` | [`append_numeric_f32`](crate::concept::numeric_formatting::append_numeric_f32) |
 //! | `appendNumeric<long double>(...)` | not ported: Rust has no `long double` |
-//! | the local `char buf[64]` | [`NUMERIC_BUFFER_BYTES`] |
+//! | the local `char buf[64]` | [`NUMERIC_BUFFER_BYTES`](crate::concept::numeric_formatting::NUMERIC_BUFFER_BYTES) |
 //!
 //! # Rules
 //!

@@ -21,13 +21,13 @@
 //! | Source (`ElementDB.h` at core `bc9cc12`) | Rust |
 //! |---|---|
 //! | `static getInstance()` | the free functions of this module |
-//! | `getNames()` | [`names`] |
-//! | `getSymbols()` | [`symbols`] |
-//! | `getAtomicNumbers()` | [`atomic_numbers`] |
-//! | `getElement(const std::string&)` | [`get_element`] |
-//! | `getElement(unsigned int)` | [`get_element_by_atomic_number`] |
-//! | `hasElement(const std::string&)` | [`has_element`] |
-//! | `hasElement(unsigned int)` | [`has_atomic_number`] |
+//! | `getNames()` | [`names`](crate::chemistry::element_db::names) |
+//! | `getSymbols()` | [`symbols`](crate::chemistry::element_db::symbols) |
+//! | `getAtomicNumbers()` | [`atomic_numbers`](crate::chemistry::element_db::atomic_numbers) |
+//! | `getElement(const std::string&)` | [`get_element`](crate::chemistry::element_db::get_element) |
+//! | `getElement(unsigned int)` | [`get_element_by_atomic_number`](crate::chemistry::element_db::get_element_by_atomic_number) |
+//! | `hasElement(const std::string&)` | [`has_element`](crate::chemistry::element_db::has_element) |
+//! | `hasElement(unsigned int)` | [`has_atomic_number`](crate::chemistry::element_db::has_atomic_number) |
 //! | protected `parseIsotopeDistribution_`, `calculateAvgWeight_`, `calculateMonoWeight_`, `storeElements_`, `buildElement_`, `addElementToMaps_`, `storeIsotopes_`, `clear_`; the private constructors | the compiled table and the one-time build of this module |
 //!
 //! | Source (`Element.h` at core `bc9cc12`) | Rust |
@@ -42,8 +42,8 @@
 //! - Iridium carries its declared iridium isotopes, where the pinned source
 //!   builds it from rhenium's tables (CPP-249); so its isotope elements are
 //!   `(191)Ir` and `(193)Ir`, where the source has `(185)Ir` and `(187)Ir`.
-//! - [`super::element`] remains the lookup of natural elements only; use
-//!   [`get_element`] for the source's lookup, which also finds the isotope
+//! - [`super::element`](crate::chemistry::element) remains the lookup of natural elements only; use
+//!   [`get_element`](crate::chemistry::element_db::get_element) for the source's lookup, which also finds the isotope
 //!   elements and the `D`/`T` aliases.
 
 use super::{Element, Isotope, element_table};

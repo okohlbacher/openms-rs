@@ -9,11 +9,11 @@
 //!
 //! | Source (`PrecisionWrapper.h` at core `bc9cc12`) | Rust |
 //! |---|---|
-//! | `template <typename FloatingPointType> struct PrecisionWrapper` | [`PrecisionWrapper`] |
-//! | `explicit PrecisionWrapper(const FloatingPointType rhs)` | [`PrecisionWrapper::new`] |
+//! | `template <typename FloatingPointType> struct PrecisionWrapper` | [`PrecisionWrapper`](crate::concept::precision_wrapper::PrecisionWrapper) |
+//! | `explicit PrecisionWrapper(const FloatingPointType rhs)` | [`PrecisionWrapper::new`](crate::concept::precision_wrapper::PrecisionWrapper::new) |
 //! | `PrecisionWrapper(const PrecisionWrapper& rhs)` | `Clone` and `Copy` |
 //! | `PrecisionWrapper()`, private and "intentionally not implemented" | no `Default` |
-//! | `FloatingPointType const ref_` | [`PrecisionWrapper::value`] |
+//! | `FloatingPointType const ref_` | [`PrecisionWrapper::value`](crate::concept::precision_wrapper::PrecisionWrapper::value) |
 //! | `precisionWrapper(const FloatingPointType rhs)` | [`precision_wrapper`] |
 //! | `operator<<(std::ostream&, const PrecisionWrapper<FloatingPointType>&)` | `Display` for `PrecisionWrapper<f64>` and `PrecisionWrapper<f32>` |
 //!

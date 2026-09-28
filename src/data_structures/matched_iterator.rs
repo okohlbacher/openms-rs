@@ -17,32 +17,32 @@
 //!
 //! | Source (`MatchedIterator.h` at core `bc9cc12`) | Rust |
 //! |---|---|
-//! | `MatchedIterator<CONT_T, TRAIT, CONST_T = true>` | [`MatchedIterator<'a, T, Tr>`], over slices |
-//! | `MatchedIterator<CONT_T, TRAIT, false>` (mutable target) | [`MatchedIteratorMut<'a, T, Tr>`] |
+//! | `MatchedIterator<CONT_T, TRAIT, CONST_T = true>` | [`MatchedIterator<'a, T, Tr>`](crate::data_structures::matched_iterator::MatchedIterator), over slices |
+//! | `MatchedIterator<CONT_T, TRAIT, false>` (mutable target) | [`MatchedIteratorMut<'a, T, Tr>`](crate::data_structures::matched_iterator::MatchedIteratorMut) |
 //! | the five iterator typedefs, `CONT_IT`, `CONST_CONT_IT` | `Iterator` over `(ref_idx, tgt_idx)` pairs; slices and indices |
-//! | `MatchedIterator(const CONT_T& ref, const CONT_T& target, float tolerance)` | [`MatchedIterator::new`] |
-//! | `MatchedIterator(ref_begin, ref_end, tgt_begin, tgt_end, tolerance)` | [`MatchedIterator::new`] over sub-slices (`&ref[a..b]`) |
+//! | `MatchedIterator(const CONT_T& ref, const CONT_T& target, float tolerance)` | [`MatchedIterator::new`](crate::data_structures::matched_iterator::MatchedIterator::new) |
+//! | `MatchedIterator(ref_begin, ref_end, tgt_begin, tgt_end, tolerance)` | [`MatchedIterator::new`](crate::data_structures::matched_iterator::MatchedIterator::new) over sub-slices (`&ref[a..b]`) |
 //! | `MatchedIterator()` ("do not use this for anything other than assigning") | `Default` |
 //! | copy constructor, `operator=` | `Clone`, assignment |
 //! | `operator==`, `operator!=` | `PartialEq` |
-//! | `operator*`, `operator->` | [`MatchedIterator::target_element`] (and [`MatchedIteratorMut::target_element_mut`]) |
-//! | `ref()` | [`MatchedIterator::reference_element`] |
-//! | `refIdx()`, `tgtIdx()` | [`MatchedIterator::ref_idx`], [`MatchedIterator::tgt_idx`] |
-//! | `operator++()` | [`MatchedIterator::advance`] |
+//! | `operator*`, `operator->` | [`MatchedIterator::target_element`](crate::data_structures::matched_iterator::MatchedIterator::target_element) (and [`MatchedIteratorMut::target_element_mut`](crate::data_structures::matched_iterator::MatchedIteratorMut::target_element_mut)) |
+//! | `ref()` | [`MatchedIterator::reference_element`](crate::data_structures::matched_iterator::MatchedIterator::reference_element) |
+//! | `refIdx()`, `tgtIdx()` | [`MatchedIterator::ref_idx`](crate::data_structures::matched_iterator::MatchedIterator::ref_idx), [`MatchedIterator::tgt_idx`](crate::data_structures::matched_iterator::MatchedIterator::tgt_idx) |
+//! | `operator++()` | [`MatchedIterator::advance`](crate::data_structures::matched_iterator::MatchedIterator::advance) |
 //! | `operator++(int)` | [`Iterator::next`], which yields the current pair and then advances |
-//! | `static end()` | [`MatchedIterator::end`], and [`MatchedIterator::is_end`] |
-//! | `struct ValueTrait`, `PpmTrait`, `DaTrait` | [`ValueTrait`], [`PpmTrait`], [`DaTrait`], all implementing [`MatchTrait`] |
-//! | `TRAIT::allowedTol`, `TRAIT::getDiffAbsolute` | [`MatchTrait::allowed_tol`], [`MatchTrait::diff_absolute`] |
-//! | `.getMZ()`, which `PpmTrait` and `DaTrait` require of an element | [`MzCoordinate`] |
+//! | `static end()` | [`MatchedIterator::end`](crate::data_structures::matched_iterator::MatchedIterator::end), and [`MatchedIterator::is_end`](crate::data_structures::matched_iterator::MatchedIterator::is_end) |
+//! | `struct ValueTrait`, `PpmTrait`, `DaTrait` | [`ValueTrait`](crate::data_structures::matched_iterator::ValueTrait), [`PpmTrait`](crate::data_structures::matched_iterator::PpmTrait), [`DaTrait`](crate::data_structures::matched_iterator::DaTrait), all implementing [`MatchTrait`](crate::data_structures::matched_iterator::MatchTrait) |
+//! | `TRAIT::allowedTol`, `TRAIT::getDiffAbsolute` | [`MatchTrait::allowed_tol`](crate::data_structures::matched_iterator::MatchTrait::allowed_tol), [`MatchTrait::diff_absolute`](crate::data_structures::matched_iterator::MatchTrait::diff_absolute) |
+//! | `.getMZ()`, which `PpmTrait` and `DaTrait` require of an element | [`MzCoordinate`](crate::data_structures::matched_iterator::MzCoordinate) |
 //!
 //! # Arithmetic
 //!
 //! The source keeps the running best distance in a `float` initialised to
 //! `std::numeric_limits<float>::max()`, compares it with each new distance in
 //! the distance's own type (`float` for the m/z traits, the element type for
-//! [`ValueTrait`]), narrows an improvement to `float`, and accepts a match when
+//! [`ValueTrait`](crate::data_structures::matched_iterator::ValueTrait)), narrows an improvement to `float`, and accepts a match when
 //! that `float` is at most the `float` tolerance from `allowedTol`. This port
-//! does the same: [`MatchTrait::diff_absolute`] returns the distance as the
+//! does the same: [`MatchTrait::diff_absolute`](crate::data_structures::matched_iterator::MatchTrait::diff_absolute) returns the distance as the
 //! source's type widened exactly to `f64`, and the running best is an `f32`.
 //! A target element at the same distance as the previous one counts as
 //! "getting worse": the pass stops there, so of two equally distant targets
@@ -56,7 +56,7 @@
 //!   of a reference element is not below `float` max (a NaN or an infinite
 //!   distance); at the first target element that decrement is undefined
 //!   behaviour. Here the cursor stays at the first element.
-//! - Advancing an end iterator is a checked error ([`MatchedIterator::advance`]);
+//! - Advancing an end iterator is a checked error ([`MatchedIterator::advance`](crate::data_structures::matched_iterator::MatchedIterator::advance));
 //!   the source's `OPENMS_PRECONDITION` is compiled away in Release builds,
 //!   where the increment reads past the reference container.
 //! - Dereferencing is `Option`: `None` at the end and on a default-constructed
@@ -64,7 +64,7 @@
 //! - The source's `CONST_T = false` variant initialises its non-const
 //!   iterators from `const_iterator`s, which no standard container converts,
 //!   so it does not compile for `std::vector` or `MSSpectrum`.
-//!   [`MatchedIteratorMut`] provides the intended mutable access.
+//!   [`MatchedIteratorMut`](crate::data_structures::matched_iterator::MatchedIteratorMut) provides the intended mutable access.
 
 use std::marker::PhantomData;
 

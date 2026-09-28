@@ -14,14 +14,14 @@
 //!
 //! | Source (`VersionInfo.h` at core `bc9cc12`) | Rust |
 //! |---|---|
-//! | `struct VersionDetails` and its four members `version_major`, `version_minor`, `version_patch`, `pre_release_identifier` | [`VersionDetails`] with `major`, `minor`, `patch`, `pre_release` |
+//! | `struct VersionDetails` and its four members `version_major`, `version_minor`, `version_patch`, `pre_release_identifier` | [`VersionDetails`](crate::concept::version_info::VersionDetails) with `major`, `minor`, `patch`, `pre_release` |
 //! | default and copy constructors, copy assignment | `Default`, `Clone` |
-//! | `static VersionDetails create(const std::string&)` | [`VersionDetails::create`]; [`VersionDetails::parse`] returns `Option` |
-//! | `operator<`, `operator>` | [`VersionDetails::is_less_than`], [`VersionDetails::is_greater_than`] |
+//! | `static VersionDetails create(const std::string&)` | [`VersionDetails::create`](crate::concept::version_info::VersionDetails::create); [`VersionDetails::parse`](crate::concept::version_info::VersionDetails::parse) returns `Option` |
+//! | `operator<`, `operator>` | [`VersionDetails::is_less_than`](crate::concept::version_info::VersionDetails::is_less_than), [`VersionDetails::is_greater_than`](crate::concept::version_info::VersionDetails::is_greater_than) |
 //! | `operator==`, `operator!=` | `PartialEq` |
-//! | `static const VersionDetails EMPTY` | [`VersionDetails::EMPTY`], [`VersionDetails::is_empty`] |
-//! | `static std::string getVersion()` | [`get_version`] |
-//! | `static VersionDetails getVersionStruct()` | [`get_version_struct`] |
+//! | `static const VersionDetails EMPTY` | [`VersionDetails::EMPTY`](crate::concept::version_info::VersionDetails::EMPTY), [`VersionDetails::is_empty`](crate::concept::version_info::VersionDetails::is_empty) |
+//! | `static std::string getVersion()` | [`get_version`](crate::concept::version_info::get_version) |
+//! | `static VersionDetails getVersionStruct()` | [`get_version_struct`](crate::concept::version_info::get_version_struct) |
 //! | `getTime()`, `getRevision()`, `getSourceRevision()`, `isSourceDirty()`, `getBuildInfo()`, `getBranch()` | not ported: they report what the C++ build system writes into a generated header at configure time (compiler `__DATE__`/`__TIME__`, git commit, branch, dirty flag, JSON build identity); `build.rs` records none of it |
 //!
 //! `system::update_check::SemanticVersion` is this type under the name the

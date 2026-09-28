@@ -1,6 +1,9 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
+// `cli` lives behind `paramxml`; without this gate `cargo test
+// --no-default-features` fails to compile.
+#![cfg(feature = "paramxml")]
 
 //! Port of `ConsoleUtils_test.cpp` (core `bc9cc12`), one test per testable
 //! `START_SECTION`, literals transcribed (tier 3).

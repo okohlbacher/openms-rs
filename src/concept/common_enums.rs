@@ -12,13 +12,13 @@
 //!
 //! | Source (`CommonEnums.h` at core `bc9cc12`) | Rust |
 //! |---|---|
-//! | `enum class DIM_UNIT` (`RT`..`IM_CCS`) | [`DimUnit`] |
-//! | `DIM_UNIT::SIZE_OF_DIM_UNITS` | [`DimUnit::SIZE_OF_DIM_UNITS`], the length of [`DimUnit::ALL`] |
-//! | `DIM_NAMES[]` | [`DIM_NAMES`] and [`DimUnit::name`] |
-//! | `DIM_NAMES_SHORT[]` | [`DIM_NAMES_SHORT`] and [`DimUnit::short_name`] |
-//! | `enum class MZ_UNITS` (`DA`, `PPM`) | [`MzUnits`] |
-//! | `MZ_UNITS::SIZE_OF_MZ_UNITS` | [`MzUnits::SIZE_OF_MZ_UNITS`], the length of [`MzUnits::ALL`] |
-//! | `MZ_UNIT_NAMES[]` | [`MZ_UNIT_NAMES`] and [`MzUnits::name`] |
+//! | `enum class DIM_UNIT` (`RT`..`IM_CCS`) | [`DimUnit`](crate::concept::common_enums::DimUnit) |
+//! | `DIM_UNIT::SIZE_OF_DIM_UNITS` | [`DimUnit::SIZE_OF_DIM_UNITS`](crate::concept::common_enums::DimUnit::SIZE_OF_DIM_UNITS), the length of [`DimUnit::ALL`](crate::concept::common_enums::DimUnit::ALL) |
+//! | `DIM_NAMES[]` | [`DIM_NAMES`](crate::concept::common_enums::DIM_NAMES) and [`DimUnit::name`](crate::concept::common_enums::DimUnit::name) |
+//! | `DIM_NAMES_SHORT[]` | [`DIM_NAMES_SHORT`](crate::concept::common_enums::DIM_NAMES_SHORT) and [`DimUnit::short_name`](crate::concept::common_enums::DimUnit::short_name) |
+//! | `enum class MZ_UNITS` (`DA`, `PPM`) | [`MzUnits`](crate::concept::common_enums::MzUnits) |
+//! | `MZ_UNITS::SIZE_OF_MZ_UNITS` | [`MzUnits::SIZE_OF_MZ_UNITS`](crate::concept::common_enums::MzUnits::SIZE_OF_MZ_UNITS), the length of [`MzUnits::ALL`](crate::concept::common_enums::MzUnits::ALL) |
+//! | `MZ_UNIT_NAMES[]` | [`MZ_UNIT_NAMES`](crate::concept::common_enums::MZ_UNIT_NAMES) and [`MzUnits::name`](crate::concept::common_enums::MzUnits::name) |
 //! | `enum class HydrophobicityScaleMethod` | `chemistry::hydrophobicity::HydrophobicityScale` |
 //!
 //! `HydrophobicityScaleMethod` lives with the table it indexes, in
@@ -30,9 +30,9 @@
 //!
 //! The `SIZE_OF_*` enumerators are counts, not units. The source can pass one
 //! wherever a `DIM_UNIT` is expected and then indexes past the end of the name
-//! arrays; here the counts are associated constants, so every [`DimUnit`] and
-//! [`MzUnits`] value is a real unit and [`DimUnit::name`] cannot index out of
-//! range. `(int)DIM_UNIT::X` is `DimUnit::X as usize` (or [`DimUnit::index`]).
+//! arrays; here the counts are associated constants, so every [`DimUnit`](crate::concept::common_enums::DimUnit) and
+//! [`MzUnits`](crate::concept::common_enums::MzUnits) value is a real unit and [`DimUnit::name`](crate::concept::common_enums::DimUnit::name) cannot index out of
+//! range. `(int)DIM_UNIT::X` is `DimUnit::X as usize` (or [`DimUnit::index`](crate::concept::common_enums::DimUnit::index)).
 
 use std::fmt;
 use std::str::FromStr;

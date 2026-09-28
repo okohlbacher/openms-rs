@@ -4,7 +4,7 @@
 
 //! `ResidueModification::SourceClassification` of `CHEMISTRY/ResidueModification.h`.
 //!
-//! A [`ResidueModification`] keeps its classification as the text it was
+//! A [`ResidueModification`](crate::chemistry::ResidueModification) keeps its classification as the text it was
 //! loaded with (Unimod's `classification` attribute, or the compiled table's
 //! column). The source converts that text to this enum when it is set and
 //! converts back when it is read, so text it does not know reads back empty.
@@ -13,11 +13,11 @@
 //!
 //! | Source (`ResidueModification.h` at core `bc9cc12`) | Rust |
 //! |---|---|
-//! | `enum SourceClassification` (`ARTIFACT` 0 ... `UNKNOWN` 15) | [`SourceClassification`], [`SourceClassification::value`] |
-//! | `NUMBER_OF_SOURCE_CLASSIFICATIONS` | [`SourceClassification::COUNT`] |
-//! | `setSourceClassification(const std::string&)` (the text-to-enum rule) | [`SourceClassification::from_text`] |
+//! | `enum SourceClassification` (`ARTIFACT` 0 ... `UNKNOWN` 15) | [`SourceClassification`](crate::chemistry::modification_classification::SourceClassification), [`SourceClassification::value`](crate::chemistry::modification_classification::SourceClassification::value) |
+//! | `NUMBER_OF_SOURCE_CLASSIFICATIONS` | [`SourceClassification::COUNT`](crate::chemistry::modification_classification::SourceClassification::COUNT) |
+//! | `setSourceClassification(const std::string&)` (the text-to-enum rule) | [`SourceClassification::from_text`](crate::chemistry::modification_classification::SourceClassification::from_text) |
 //! | `getSourceClassification()` | [`ResidueModification::source_classification`] |
-//! | `getSourceClassificationName(SourceClassification)` | [`SourceClassification::name`]; for a record, [`ResidueModification::source_classification_name`] |
+//! | `getSourceClassificationName(SourceClassification)` | [`SourceClassification::name`](crate::chemistry::modification_classification::SourceClassification::name); for a record, [`ResidueModification::source_classification_name`] |
 
 use super::ResidueModification;
 

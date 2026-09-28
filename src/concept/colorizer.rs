@@ -4,9 +4,9 @@
 
 //! Colored and styled console text: `CONCEPT/Colorizer.h`.
 //!
-//! A [`Colorizer`] colors the console font's foreground (a new color, or the
+//! A [`Colorizer`](crate::concept::colorizer::Colorizer) colors the console font's foreground (a new color, or the
 //! current one brighter), underlines it or inverts it. Styles combine, with
-//! the limitation that undoing does not nest: [`Colorizer::undo`] does not
+//! the limitation that undoing does not nest: [`Colorizer::undo`](crate::concept::colorizer::Colorizer::undo) does not
 //! remember a previous color but resets to the default. When standard output
 //! or standard error is redirected away from a terminal, no ANSI codes are
 //! written to it, so they never end up in a file; any other writer always
@@ -16,27 +16,27 @@
 //!
 //! | Source (`Colorizer.h` at core `bc9cc12`) | Rust |
 //! |---|---|
-//! | `enum class ConsoleColor` (nine values) | [`ConsoleColor`], the `concept::log_stream` color enum |
-//! | `Colorizer(const ConsoleColor)` | [`Colorizer::new`] |
+//! | `enum class ConsoleColor` (nine values) | [`ConsoleColor`](crate::concept::colorizer::ConsoleColor), the `concept::log_stream` color enum |
+//! | `Colorizer(const ConsoleColor)` | [`Colorizer::new`](crate::concept::colorizer::Colorizer::new) |
 //! | `Colorizer()`, `Colorizer(const Colorizer&)` (both deleted) | no `Default`, no `Clone` |
-//! | `operator()()` | [`Colorizer::apply`] |
-//! | `template <T> operator()(T s)` | [`Colorizer::apply_to`] |
-//! | `undo()`, `undoAll()` | [`Colorizer::undo`], [`Colorizer::undo_all`] |
-//! | `static isTTY(const std::ostream&)` | [`Colorizer::is_tty`] over [`ConsoleStream`] |
-//! | `friend operator<<(std::ostream&, Colorizer&)` | [`Colorizer::write_to`]; `Display` for any other stream |
-//! | protected `outputToStream_`, `colorStream_` | inside [`Colorizer::write_to`] |
-//! | protected `colors_` table and `color_undo_all_` | [`Colorizer::enable_code`], [`Colorizer::disable_code`], [`COLOR_UNDO_ALL`] |
-//! | protected `getInternalChars_`, `setInternalChars_` (for `IndentedStream`) | [`Colorizer::internal_chars`], [`Colorizer::set_internal_chars`] |
-//! | protected members `color_`, `undo_`, `undo_all_`, `undos_only`, `input_` | private fields; [`Colorizer::color`] |
-//! | `extern Colorizer red, green, yellow, blue, magenta, cyan, bright, underline, invert` | [`RED`], [`GREEN`], [`YELLOW`], [`BLUE`], [`MAGENTA`], [`CYAN`], [`BRIGHT`], [`UNDERLINE`], [`INVERT`] |
+//! | `operator()()` | [`Colorizer::apply`](crate::concept::colorizer::Colorizer::apply) |
+//! | `template <T> operator()(T s)` | [`Colorizer::apply_to`](crate::concept::colorizer::Colorizer::apply_to) |
+//! | `undo()`, `undoAll()` | [`Colorizer::undo`](crate::concept::colorizer::Colorizer::undo), [`Colorizer::undo_all`](crate::concept::colorizer::Colorizer::undo_all) |
+//! | `static isTTY(const std::ostream&)` | [`Colorizer::is_tty`](crate::concept::colorizer::Colorizer::is_tty) over [`ConsoleStream`](crate::concept::colorizer::ConsoleStream) |
+//! | `friend operator<<(std::ostream&, Colorizer&)` | [`Colorizer::write_to`](crate::concept::colorizer::Colorizer::write_to); `Display` for any other stream |
+//! | protected `outputToStream_`, `colorStream_` | inside [`Colorizer::write_to`](crate::concept::colorizer::Colorizer::write_to) |
+//! | protected `colors_` table and `color_undo_all_` | [`Colorizer::enable_code`](crate::concept::colorizer::Colorizer::enable_code), [`Colorizer::disable_code`](crate::concept::colorizer::Colorizer::disable_code), [`COLOR_UNDO_ALL`](crate::concept::colorizer::COLOR_UNDO_ALL) |
+//! | protected `getInternalChars_`, `setInternalChars_` (for `IndentedStream`) | [`Colorizer::internal_chars`](crate::concept::colorizer::Colorizer::internal_chars), [`Colorizer::set_internal_chars`](crate::concept::colorizer::Colorizer::set_internal_chars) |
+//! | protected members `color_`, `undo_`, `undo_all_`, `undos_only`, `input_` | private fields; [`Colorizer::color`](crate::concept::colorizer::Colorizer::color) |
+//! | `extern Colorizer red, green, yellow, blue, magenta, cyan, bright, underline, invert` | [`RED`](crate::concept::colorizer::RED), [`GREEN`](crate::concept::colorizer::GREEN), [`YELLOW`](crate::concept::colorizer::YELLOW), [`BLUE`](crate::concept::colorizer::BLUE), [`MAGENTA`](crate::concept::colorizer::MAGENTA), [`CYAN`](crate::concept::colorizer::CYAN), [`BRIGHT`](crate::concept::colorizer::BRIGHT), [`UNDERLINE`](crate::concept::colorizer::UNDERLINE), [`INVERT`](crate::concept::colorizer::INVERT) |
 //!
 //! # Preserved source conventions
 //!
 //! - A new colorizer has both undo flags set, as the source's member
 //!   initialisers do. Written before any `apply`, it therefore emits its color,
 //!   no text, and the reset-all code `\x1b[0m`.
-//! - [`Colorizer::undo`] does not clear the undo-all flag. After
-//!   [`Colorizer::undo_all`], or on a colorizer never applied, `undo` emits
+//! - [`Colorizer::undo`](crate::concept::colorizer::Colorizer::undo) does not clear the undo-all flag. After
+//!   [`Colorizer::undo_all`](crate::concept::colorizer::Colorizer::undo_all), or on a colorizer never applied, `undo` emits
 //!   `\x1b[0m`, not the color's own disable code. This is why the global
 //!   colorizers keep their state between uses.
 //! - Writing a colorizer does not change it: writing it twice emits the same
@@ -52,11 +52,11 @@
 //!   destructors. The reset is performed when a TOPP tool runs as its own
 //!   executable (`cli::run` writes `\x1b[0m` to every terminal among its two
 //!   streams afterwards); a library caller that leaves a color on should write
-//!   [`COLOR_UNDO_ALL`] itself. The Windows mode switch is not performed: a
+//!   [`COLOR_UNDO_ALL`](crate::concept::colorizer::COLOR_UNDO_ALL) itself. The Windows mode switch is not performed: a
 //!   Windows terminal must already accept ANSI sequences (Windows Terminal and
 //!   current consoles do).
 //! - `isTTY` recognises the standard streams by object identity; here the
-//!   caller names the stream with [`ConsoleStream`].
+//!   caller names the stream with [`ConsoleStream`](crate::concept::colorizer::ConsoleStream).
 
 use std::fmt;
 use std::io::{self, IsTerminal, Write};

@@ -13,17 +13,17 @@
 //!
 //! | Source (`Types.h` at core `bc9cc12`) | Rust |
 //! |---|---|
-//! | `Int32`, `UInt32`, `Int64`, `UInt64` | [`Int32`], [`UInt32`], [`Int64`], [`UInt64`] |
-//! | `Time` (`time_t`) | [`Time`], `i64` |
-//! | `UInt` (`unsigned int`), `Int` (`int`) | [`UInt`], [`Int`] |
-//! | `Byte` (`uint8_t`), `UID` (`uint64_t`) | [`Byte`], [`Uid`] |
-//! | `Size` (`size_t`), `SignedSize` (`ptrdiff_t`) | [`Size`], [`SignedSize`] |
-//! | `enum ASCII` and its 15 `ASCII__*` enumerators | the [`ascii`] constants |
-//! | `writtenDigits<T>()`, its generic fallback and the `float`, `double`, `int`, `unsigned int`, `long int`, `unsigned long int` and `long double` specialisations | [`written_digits`] over [`WrittenDigits`] |
+//! | `Int32`, `UInt32`, `Int64`, `UInt64` | [`Int32`](crate::concept::types::Int32), [`UInt32`](crate::concept::types::UInt32), [`Int64`](crate::concept::types::Int64), [`UInt64`](crate::concept::types::UInt64) |
+//! | `Time` (`time_t`) | [`Time`](crate::concept::types::Time), `i64` |
+//! | `UInt` (`unsigned int`), `Int` (`int`) | [`UInt`](crate::concept::types::UInt), [`Int`](crate::concept::types::Int) |
+//! | `Byte` (`uint8_t`), `UID` (`uint64_t`) | [`Byte`](crate::concept::types::Byte), [`Uid`](crate::concept::types::Uid) |
+//! | `Size` (`size_t`), `SignedSize` (`ptrdiff_t`) | [`Size`](crate::concept::types::Size), [`SignedSize`](crate::concept::types::SignedSize) |
+//! | `enum ASCII` and its 15 `ASCII__*` enumerators | the [`ascii`](crate::concept::types::ascii) constants |
+//! | `writtenDigits<T>()`, its generic fallback and the `float`, `double`, `int`, `unsigned int`, `long int`, `unsigned long int` and `long double` specialisations | [`written_digits`](crate::concept::types::written_digits) over [`WrittenDigits`](crate::concept::types::WrittenDigits) |
 //!
 //! # `time_t`
 //!
-//! [`Time`] is `i64`. `time_t` is a signed 64-bit count of seconds on every
+//! [`Time`](crate::concept::types::Time) is `i64`. `time_t` is a signed 64-bit count of seconds on every
 //! 64-bit target and on 32-bit Windows; only 32-bit glibc and musl builds
 //! without 64-bit time keep a 32-bit `time_t`. The port has no C interface
 //! through which a `time_t` passes, so there is no ABI to match, and the wider
@@ -34,7 +34,7 @@
 //! Rust has no `long double`. The source's specialisation returns
 //! `std::numeric_limits<long double>::digits10` except on Windows, where it
 //! returns `double`'s 15 because the Microsoft I/O libraries treat `long
-//! double` as `double`. [`LONG_DOUBLE_WRITTEN_DIGITS`] records the value on
+//! double` as `double`. [`LONG_DOUBLE_WRITTEN_DIGITS`](crate::concept::types::LONG_DOUBLE_WRITTEN_DIGITS) records the value on
 //! the x86_64 Linux reference build (18, the 80-bit extended format); no Rust
 //! type carries it.
 

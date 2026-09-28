@@ -17,11 +17,11 @@
 //! | `IsotopeCluster()` | `IsotopeCluster::default()` |
 //! | member `peaks` (`ChargedIndexSet`) | [`IsotopeCluster::peaks`] |
 //! | member `scans` (`std::vector<Size>`) | [`IsotopeCluster::scans`] |
-//! | `typedef std::pair<Size, Size> IndexPair` | [`IndexPair`] |
-//! | `typedef std::set<IndexPair> IndexSet` | [`IndexSet`] |
-//! | `struct ChargedIndexSet : public IndexSet` | [`ChargedIndexSet`], the base as the field [`ChargedIndexSet::indices`] plus `Deref`/`DerefMut` |
+//! | `typedef std::pair<Size, Size> IndexPair` | [`IndexPair`](crate::data_structures::isotope_cluster::IndexPair) |
+//! | `typedef std::set<IndexPair> IndexSet` | [`IndexSet`](crate::data_structures::isotope_cluster::IndexSet) |
+//! | `struct ChargedIndexSet : public IndexSet` | [`ChargedIndexSet`](crate::data_structures::isotope_cluster::ChargedIndexSet), the base as the field [`ChargedIndexSet::indices`](crate::data_structures::isotope_cluster::ChargedIndexSet::indices) plus `Deref`/`DerefMut` |
 //! | `ChargedIndexSet()` (charge 0) | `ChargedIndexSet::default()` |
-//! | member `charge` (`Int`) | [`ChargedIndexSet::charge`] |
+//! | member `charge` (`Int`) | [`ChargedIndexSet::charge`](crate::data_structures::isotope_cluster::ChargedIndexSet::charge) |
 //!
 //! The source declares the three types nested in `IsotopeCluster`; Rust has no
 //! nested type declarations, so they are module items. `FeatureFinderDefs`

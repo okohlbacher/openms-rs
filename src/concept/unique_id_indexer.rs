@@ -9,7 +9,7 @@
 //! `ConsensusMap` derive from. It keeps a hash map from unique id to index,
 //! refreshed on demand, so that repeated lookups are expected constant time
 //! (linear upon failure). Rust has no CRTP mixin with a `mutable` member; the
-//! port is [`UniqueIdIndexer`], the cached map as a value of its own, and each
+//! port is [`UniqueIdIndexer`](crate::concept::unique_id_indexer::UniqueIdIndexer), the cached map as a value of its own, and each
 //! operation takes the container's elements as a slice of [`HasUniqueId`]
 //! values. A container keeps an indexer next to its elements and passes them
 //! in, exactly as the source's `getBase_()` reaches the derived container's
@@ -19,14 +19,14 @@
 //!
 //! | Source (`UniqueIdIndexer.h` at core `bc9cc12`) | Rust |
 //! |---|---|
-//! | `template <typename T> class UniqueIdIndexer` | [`UniqueIdIndexer`] |
-//! | `typedef std::unordered_map<UInt64, Size> UniqueIdMap` | [`UniqueIdMap`] |
-//! | `uniqueIdToIndex(UInt64) const` | [`UniqueIdIndexer::unique_id_to_index`] |
-//! | `updateUniqueIdToIndex() const` | [`UniqueIdIndexer::update_unique_id_to_index`] |
-//! | `resolveUniqueIdConflicts()` | [`UniqueIdIndexer::resolve_unique_id_conflicts`] |
-//! | `swap(UniqueIdIndexer&)` | [`UniqueIdIndexer::swap`] (also `std::mem::swap`) |
+//! | `template <typename T> class UniqueIdIndexer` | [`UniqueIdIndexer`](crate::concept::unique_id_indexer::UniqueIdIndexer) |
+//! | `typedef std::unordered_map<UInt64, Size> UniqueIdMap` | [`UniqueIdMap`](crate::concept::unique_id_indexer::UniqueIdMap) |
+//! | `uniqueIdToIndex(UInt64) const` | [`UniqueIdIndexer::unique_id_to_index`](crate::concept::unique_id_indexer::UniqueIdIndexer::unique_id_to_index) |
+//! | `updateUniqueIdToIndex() const` | [`UniqueIdIndexer::update_unique_id_to_index`](crate::concept::unique_id_indexer::UniqueIdIndexer::update_unique_id_to_index) |
+//! | `resolveUniqueIdConflicts()` | [`UniqueIdIndexer::resolve_unique_id_conflicts`](crate::concept::unique_id_indexer::UniqueIdIndexer::resolve_unique_id_conflicts) |
+//! | `swap(UniqueIdIndexer&)` | [`UniqueIdIndexer::swap`](crate::concept::unique_id_indexer::UniqueIdIndexer::swap) (also `std::mem::swap`) |
 //! | protected `getBase_()` (both overloads) | the `data` slice argument of each operation |
-//! | protected `mutable UniqueIdMap uniqueid_to_index_` | [`UniqueIdIndexer::unique_id_map`], [`UniqueIdIndexer::unique_id_map_mut`] |
+//! | protected `mutable UniqueIdMap uniqueid_to_index_` | [`UniqueIdIndexer::unique_id_map`](crate::concept::unique_id_indexer::UniqueIdIndexer::unique_id_map), [`UniqueIdIndexer::unique_id_map_mut`](crate::concept::unique_id_indexer::UniqueIdIndexer::unique_id_map_mut) |
 //!
 //! # Native differences
 //!

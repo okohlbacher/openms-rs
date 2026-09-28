@@ -15,12 +15,12 @@
 //!
 //! | Source (`HashUtils.h` at core `bc9cc12`) | Rust |
 //! |---|---|
-//! | `fnv1a_hash_bytes(const void*, std::size_t)` | [`fnv1a_hash_bytes`] over a byte slice |
-//! | `fnv1a_hash_string(const std::string&)` | [`fnv1a_hash_string`] over `&str` |
-//! | `hash_combine(std::size_t&, std::size_t)` | [`hash_combine`] |
-//! | `template<T> hash_int(T)` (integral `T`) | [`hash_int`] over [`HashInt`] |
-//! | `hash_char(char)` | [`hash_char`] |
-//! | `template<T> hash_float(T)` (floating-point `T`) | [`hash_float`] over [`HashFloat`] |
+//! | `fnv1a_hash_bytes(const void*, std::size_t)` | [`fnv1a_hash_bytes`](crate::concept::hash_utils::fnv1a_hash_bytes) over a byte slice |
+//! | `fnv1a_hash_string(const std::string&)` | [`fnv1a_hash_string`](crate::concept::hash_utils::fnv1a_hash_string) over `&str` |
+//! | `hash_combine(std::size_t&, std::size_t)` | [`hash_combine`](crate::concept::hash_utils::hash_combine) |
+//! | `template<T> hash_int(T)` (integral `T`) | [`hash_int`](crate::concept::hash_utils::hash_int) over [`HashInt`](crate::concept::hash_utils::HashInt) |
+//! | `hash_char(char)` | [`hash_char`](crate::concept::hash_utils::hash_char) |
+//! | `template<T> hash_float(T)` (floating-point `T`) | [`hash_float`](crate::concept::hash_utils::hash_float) over [`HashFloat`](crate::concept::hash_utils::HashFloat) |
 //!
 //! # Differences from the source
 //!
@@ -31,18 +31,18 @@
 //! - **Byte order.** The source's `@note` warns that `hash_int` and
 //!   `hash_float` hash "the platform's native byte representation" and differ
 //!   between big- and little-endian systems, which is why it calls them
-//!   unsuitable for persistent storage. [`hash_int`] and [`hash_float`] hash
+//!   unsuitable for persistent storage. [`hash_int`](crate::concept::hash_utils::hash_int) and [`hash_float`](crate::concept::hash_utils::hash_float) hash
 //!   the little-endian bytes on every target: the same value as the source on
 //!   the little-endian x86_64 and arm64 hosts, and the same value everywhere,
 //!   so the endianness caveat does not apply. The 32-bit width caveat above
 //!   is likewise gone.
 //! - **`long double`.** `hash_float` also accepts `long double`, whose width and
-//!   padding depend on the platform. Rust has no such type, so [`HashFloat`]
+//!   padding depend on the platform. Rust has no such type, so [`HashFloat`](crate::concept::hash_utils::HashFloat)
 //!   is implemented for `f32` and `f64` only.
 //! - **Integral types.** C++ `std::is_integral` admits `bool`, the character
-//!   types and every integer width. [`HashInt`] covers `bool`, `char` (4 bytes,
+//!   types and every integer width. [`HashInt`](crate::concept::hash_utils::HashInt) covers `bool`, `char` (4 bytes,
 //!   as C++ `char32_t`), and `i8` to `i128`, `u8` to `u128`, `isize`, `usize`;
-//!   a byte-sized C++ `char` is [`hash_char`] or `hash_int(u8)`/`hash_int(i8)`.
+//!   a byte-sized C++ `char` is [`hash_char`](crate::concept::hash_utils::hash_char) or `hash_int(u8)`/`hash_int(i8)`.
 //!
 //! These are the functions the ported `ParamValue::source_hash64` and the
 //! controlled-vocabulary FNV hash compute; other native types hash through
