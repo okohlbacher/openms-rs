@@ -222,8 +222,7 @@ impl<'a> QTCluster<'a> {
     ///
     /// The source's debug-only preconditions (the cluster is initialized, the
     /// distance does not exceed the maximum) are not checked.
-    // `!(distance < key)` is the multimap's upper bound, NaN included.
-    #[allow(clippy::neg_cmp_op_on_partial_ord)]
+    #[allow(clippy::neg_cmp_op_on_partial_ord, reason = "NaN semantics of `<`")]
     pub fn add(&mut self, element: &'a GridFeature<'a>, distance: f64) {
         let map_index = element.map_index();
         let center_point = self.data.center_point;

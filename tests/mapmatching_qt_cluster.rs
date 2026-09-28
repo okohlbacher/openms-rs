@@ -45,10 +45,12 @@ fn grid_feature_class_test() {
     let _gf = GridFeature::new(&bf, 0, 0);
 
     // const BaseFeature& getFeature() const
-    let mut bf = BaseFeature::default();
-    bf.rt = 1.1;
-    bf.mz = 2.2;
-    bf.charge = 3;
+    let bf = BaseFeature {
+        rt: 1.1,
+        mz: 2.2,
+        charge: 3,
+        ..BaseFeature::default()
+    };
     let gf = GridFeature::new(&bf, 0, 0);
     assert!(*gf.feature() == bf);
 
@@ -76,11 +78,15 @@ fn grid_feature_class_test() {
     assert_eq!(gf2.annotations().iter().next_back().unwrap().0, seq("CCC"));
 
     // double getRT() const / double getMZ() const
-    let mut bf = BaseFeature::default();
-    bf.rt = 4.56;
+    let bf = BaseFeature {
+        rt: 4.56,
+        ..BaseFeature::default()
+    };
     assert_eq!(GridFeature::new(&bf, 0, 123).rt(), 4.56);
-    let mut bf = BaseFeature::default();
-    bf.mz = 4.56;
+    let bf = BaseFeature {
+        mz: 4.56,
+        ..BaseFeature::default()
+    };
     assert_eq!(GridFeature::new(&bf, 0, 123).mz(), 4.56);
 }
 

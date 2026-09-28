@@ -42,8 +42,7 @@ use crate::{MSSpectrum, Result};
 /// The errors of [`BinnedSpectrum::new`] (unsorted peaks, an invalid layout,
 /// work beyond the [`BinConfig`] limits), of `comparator` and of `clusterer`
 /// (fewer than two spectra), and of [`DistanceMatrix::resize`].
-// The eight parameters are the source overload's, in its order.
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, reason = "source signature")]
 pub fn cluster_binned_spectra(
     hierarchical: &ClusterHierarchical,
     data: &[MSSpectrum],

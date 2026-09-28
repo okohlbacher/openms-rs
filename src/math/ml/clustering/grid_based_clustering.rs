@@ -493,8 +493,7 @@ impl<M: Fn(&Point, &Point) -> f64> GridBasedClustering<M> {
 
     /// Removes the final clusters whose bounding box spans less than
     /// `threshold_y` in y (source `removeSmallClustersY`).
-    // `!(span < threshold)` keeps a NaN span, as the source's `<` test does.
-    #[allow(clippy::neg_cmp_op_on_partial_ord)]
+    #[allow(clippy::neg_cmp_op_on_partial_ord, reason = "NaN semantics of `<`")]
     pub fn remove_small_clusters_y(&mut self, threshold_y: f64) {
         self.clusters_final.retain(|_, cluster| {
             let bounding_box = cluster.bounding_box();
