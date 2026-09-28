@@ -55,6 +55,10 @@
   {
    "path": "oracle/F2-oms-noid",
    "note": "driver.cpp, remote_run.sh, run.sh, results/ (hashes.txt)"
+  },
+  {
+   "path": "oracle/F2-oms-mztabm",
+   "note": "driver.cpp, remote_run.sh, run.sh, dump_tables.py, results/ (hashes.txt)"
   }
  ],
  "fixtures": [
@@ -135,6 +139,24 @@
    "sha256": "b7b2b23538d424b88059d5daa6ad2117bcba370b8802fe02c22dab2c61b1542c",
    "bytes": 520,
    "kind": "host, install and compiler of the oracle run"
+  },
+  {
+   "path": "tests/data/MzTabMFile_input_1.oms",
+   "sha256": "dc8ad5b7b08406a7decf7229d4e9de52d7e3e50a891657f5e76074906bf1bd09",
+   "bytes": 708608,
+   "kind": "unmodified class-test input: core bc9cc12 src/tests/class_tests/openms/data/MzTabMFile_input_1.oms (schema 1; also registered in tests/data/mztab_m_provenance.json)"
+  },
+  {
+   "path": "tests/data/oms_file/release/mztabm.rt.tables.tsv.gz",
+   "sha256": "e14d6ba56c5086ab7aa2efe0250424034fa9e5bc351de37666ddc80646ec7423",
+   "bytes": 94254,
+   "kind": "Release C++ output (oracle/F2-oms-mztabm, ibminode06, run twice): gzip -9 -n of dump_tables.py of the database the Release build wrote by OMSFile::load then OMSFile::store of MzTabMFile_input_1.oms"
+  },
+  {
+   "path": "tests/data/oms_file/release/mztabm_outcome.tsv",
+   "sha256": "604e50f2040f8e2b1c51ff6d866ac0aa94eb4661db81f13c86dff156da3851e8",
+   "bytes": 51,
+   "kind": "Release C++ output (oracle/F2-oms-mztabm): record counts of the loaded MzTabMFile_input_1.oms"
   },
   {
    "path": "tests/data/oms_file/release/id_JSONExporter_protein.rt.tables.tsv",

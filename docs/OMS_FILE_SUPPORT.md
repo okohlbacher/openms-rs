@@ -77,6 +77,10 @@ identification data, `prepareQueryMetaInfo_`/`handleQueryMetaInfo_`,
   from 0 depth-first, a consensus feature's handles taking the keys after it.
 - Every `CREATE TABLE` text, column declaration and bound storage class is the
   source's, so `sqlite_master` and every row match (compared, below).
+- Compound formulas are written in `EmpiricalFormula::toString()` order:
+  symbols sorted as text, so isotopes such as `(2)H` precede `C`
+  (`crate::format::mztab_m::source_formula_text`; the crate's `Display` orders
+  by element).
 - Meta values are stored as `DataValue::toString()` text with the type index
   plus one (`NULL` for an empty value); units are not stored.
 - A processing step's actions, score types' metadata and a `ParentMatch`'s
@@ -104,6 +108,7 @@ Where the source loses or corrupts data, the default does not, and
 | `storeIdentifiedCompounds_` binds the compound's name to `smile` | writes the SMILES | `compound_smile_from_name` |
 | ratios are stored under the last handle's key | under the consensus feature's key | `consensus_ratios_under_last_handle` |
 | `BaseFeature(const FeatureHandle&)` drops each handle's unique ID | keeps it | `drop_handle_unique_ids` |
+| a compound formula is written by `EmpiricalFormula::toString()`, without its charge | appends a nonzero charge (`+1`) | `drop_formula_charge` |
 | string-list items keep the space after each comma; every round trip adds one | removes that one space | `keep_string_list_spaces` |
 | the loaded file type is left unknown | restored from the stored name | `unknown_file_type` |
 | ratios are read into a copy of the feature, so none are loaded | loaded (from the feature's key, or else the last handle's key) | `drop_consensus_ratios` |
@@ -147,7 +152,7 @@ for the JSON export. The source has none.
 Tier 1, executed on the Linux x86_64 Release build
 (`/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576`, host
 ibminode06, gcc 14.4.0, each run twice with identical results; oracle
-directories `oracle/F2-oms` and `oracle/F2-oms-noid` beside the repository):
+directories `oracle/F2-oms`, `oracle/F2-oms-noid` and `oracle/F2-oms-mztabm` beside the repository):
 
 - The retained JSONExporter outputs are reproduced by `export_to_json`
   (TOPP_JSONExporter_1/2, FuzzyDiff contract).
@@ -172,8 +177,17 @@ Tier 3: the native options (a consensus map with ratios, handle IDs, a file
 type and a string list round-trips; the source options lose each), atomicity,
 refusal of non-databases.
 
-Not covered by an executed fixture: compounds (`ID_IdentifiedCompound`) and
-ratios, which none of the upstream fixtures contain.
+- The MzTabM/MzTabMFile class-test input `MzTabMFile_input_1.oms` (schema 1;
+  83 features, 303 compounds with formulas, SMILES and InChI, 2 adducts, 312
+  feature-level observation matches) round-trips as the Release build stores it
+  (oracle `F2-oms-mztabm`; dump gzip-compressed, test needs the
+  `file-compression` feature), and the MzTab-M export of the loaded map
+  reproduces the retained `MzTabMFile_output_1.mztab` (`tests/mztab_m.rs`).
+  The Release build's own second round trip of that file differs only in the
+  string-list meta values, each item gaining one more leading space (issue 7).
+
+Not covered by an executed fixture: consensus ratios, which none of the
+upstream fixtures contain.
 
 ## OpenMS C++ issues found
 
@@ -197,7 +211,9 @@ ratios, which none of the upstream fixtures contain.
    tables once per molecule kind without `IF NOT EXISTS`; mixed data fails
    (source reading, not executed).
 7. `makeDataValue_` splits string lists at `,` without removing the space
-   `DataValue::toString` writes after it; every round trip grows each item.
+   `DataValue::toString` writes after it; every round trip grows each item
+   (Release build: `[H:+:0.6,  Na:+:0.3]` becomes `[H:+:0.6,   Na:+:0.3]` on
+   the second round trip of `MzTabMFile_input_1.oms`).
 8. `loadMapMetaDataTemplate_` does not restore the loaded file type.
 9. Keys of observations, matches, steps and parent groups depend on memory
    addresses (IdentificationData compares iterators), so the same data is
