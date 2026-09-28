@@ -93,3 +93,7 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
 - Reuse: math::source_sort::source_sort_reversed_by (libstdc++ std::sort emulation) for
   combineTopRanksFromPairs. mzidentml.rs OPXL helpers diverge on purpose -> write faithful private ones.
 - Write src/format/xquest_result_xml.rs (feature: same as idxml?), tests/xquest_result_xml.rs.
+- [inc5] src/format/xquest_result_xml.rs written (reader, OPXLHelper steps, writer; spec.xml writers = gap).
+  tests/xquest_result_xml.rs: load/store/convert/split differentials vs tests/data/xquest_result_xml/expected
+  (20 cases retained; XFDR_test_in2/in3/out3/4/5/7 too big, run ad hoc only). Gate logs scratchpad/F3a/c*.log.
+  Store comparison sorts the extra meta attributes (registry order divergence).

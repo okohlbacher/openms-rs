@@ -1218,9 +1218,11 @@ impl Reader {
 
         match link_type.as_str() {
             "xlink" => {
-                let params = &mut self.protein.search_parameters;
-                if !params.metadata.contains_key("cross_link:mass") {
-                    meta_f64(&mut params.metadata, "cross_link:mass", xl_mass)?;
+                {
+                    let params = &mut self.protein.search_parameters;
+                    if !params.metadata.contains_key("cross_link:mass") {
+                        meta_f64(&mut params.metadata, "cross_link:mass", xl_mass)?;
+                    }
                 }
                 beta.score = score;
                 meta_f64(
@@ -1282,6 +1284,7 @@ impl Reader {
                 // A link at a terminus whose residue the cross-linker does
                 // not accept there is a terminal link. The source indexes the
                 // attribute text, modifications included, not the residues.
+                let params = &self.protein.search_parameters;
                 let residue1 = string_list(params.metadata.get("cross_link:residue1"))?;
                 let residue2 = string_list(params.metadata.get("cross_link:residue2"))?;
                 let at = |text: &str, index: i64| -> String {
