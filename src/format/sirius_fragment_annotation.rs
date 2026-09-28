@@ -18,7 +18,7 @@
 //! - `spectra/<formula>_<adduct>.tsv` (targets) and, after PASSATUTTO,
 //!   `decoys/<formula>_<adduct>.tsv`, one row per annotated fragment peak.
 //!
-//! The functions read those files into [`MSSpectrum`]s whose peaks are the
+//! The functions read those files into [`MSSpectrum`](crate::kernel::MSSpectrum)s whose peaks are the
 //! annotated fragments.
 
 use super::csv::{CsvFile, ReadOptions as CsvReadOptions};

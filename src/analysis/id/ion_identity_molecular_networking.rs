@@ -12,17 +12,17 @@
 //! features that represent the same compound seen as different adducts (for
 //! example `[M+H]+` and `[M+Na]+`). The grouping is usually produced upstream
 //! by an adduct decharger (`MetaboliteAdductDecharger`), which records a list of
-//! adduct-group IDs in the [`IIMN_LINKED_GROUPS`] meta value of each consensus
+//! adduct-group IDs in the `LinkedGroups` meta value of each consensus
 //! feature.
 //!
 //! Two stages live here:
 //!
-//! 1. [`annotate_consensus_map`] consumes [`IIMN_LINKED_GROUPS`], builds a
+//! 1. [`annotate_consensus_map`](crate::analysis::id::ion_identity_molecular_networking::annotate_consensus_map) consumes `LinkedGroups`, builds a
 //!    bipartite graph (consensus feature ↔ adduct group), computes its
 //!    connected components and writes back three IIMN meta values: a 1-based
 //!    row ID, the network number and the list of partner-feature row IDs. The
 //!    linked-groups meta value is removed.
-//! 2. [`write_supplementary_pair_table`] turns those annotations into the CSV
+//! 2. [`write_supplementary_pair_table`](crate::analysis::id::ion_identity_molecular_networking::write_supplementary_pair_table) turns those annotations into the CSV
 //!    file GNPS IIMN takes as its "supplementary pairs" upload.
 //!
 //! The output of stage 1 is also a precondition of the GNPS meta-value and

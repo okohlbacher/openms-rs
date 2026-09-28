@@ -54,7 +54,10 @@ fn target_annotations_match_class_test() -> Result<()> {
     // `70.040098 24218.53 100.00 70.039974 C2H3N3 [M + H]+`, 22 rows in all.
     assert_eq!(s.peaks[0].mz, 70.040098);
     assert_eq!(s.peaks[0].intensity, 24218.53_f32);
-    assert_eq!(s.float_data_arrays[0].data[0], 70.039974_f32);
+    assert_eq!(
+        s.float_data_arrays[0].data[0],
+        "70.039974".parse::<f32>().unwrap()
+    );
     assert_eq!(s.peaks.len(), 22);
     assert_eq!(s.string_data_arrays[1].data[0], "[M + H]+");
     assert_eq!(s.string_data_arrays[0].name, "explanation");
@@ -87,7 +90,10 @@ fn exact_mass_annotations_match_class_test() -> Result<()> {
         f64::from(s.float_data_arrays[0].data[0]),
         70.040098
     ));
-    assert_eq!(s.float_data_arrays[0].data[0], 70.040098_f32);
+    assert_eq!(
+        s.float_data_arrays[0].data[0],
+        "70.040098".parse::<f32>().unwrap()
+    );
     assert_eq!(s.string_data_arrays[0].data[0], "C2H3N3");
     assert_eq!(meta(s, "annotated_sumformula"), "C15H17ClN4");
     assert_eq!(meta(s, "annotated_adduct"), "[M+H]+");

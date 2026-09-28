@@ -16,7 +16,7 @@
 //!
 //! Every `annotate_*` entry point first *plans* its assignments without
 //! touching the target map, checking the resource ceilings in
-//! [`IDMapperLimits`] as it goes, and only then commits them. An error therefore
+//! [`IDMapperLimits`](crate::analysis::id::id_mapper::IDMapperLimits) as it goes, and only then commits them. An error therefore
 //! leaves the map exactly as it was; the source mutates as it goes.
 
 use crate::chemistry::PeptideFragmentType;
