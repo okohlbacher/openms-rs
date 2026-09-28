@@ -969,7 +969,7 @@ fn add_up_in_mobility_range_and_concatenate() {
     let unfiltered =
         addition::add_up_spectra_in_mobility_range(&all, &RangeBase::new(), 1.0, true).unwrap();
     assert_eq!(unfiltered.intensity_array().data, vec![4.0, 6.0]);
-    let no_im = [Arc::new(Spectrum::from_arrays(vec![1.0], vec![1.0])); 2];
+    let no_im = vec![Arc::new(Spectrum::from_arrays(vec![1.0], vec![1.0])); 2];
     assert!(addition::add_up_spectra_in_mobility_range(&no_im, &range, 1.0, true).is_err());
 
     let cat = addition::concatenate_spectra(&all).unwrap();
