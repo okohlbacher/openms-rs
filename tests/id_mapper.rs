@@ -973,3 +973,87 @@ fn map_precursors_partitions_spectra() -> Result<()> {
     assert_eq!(state.unidentified, [2]);
     Ok(())
 }
+
+// ---------------------------------------------------------------- isobaric oracle
+
+/// One case of the C++ oracle `../oracle/I4-idmapper-tmt/driver.cpp`: a
+/// one-feature TMT consensus map (`scan_id` meta value, column header
+/// `/data/run_a.mzML`), a protein run whose primary MS run path has the same
+/// base name, and two identifications with the given spectrum references.
+fn isobaric_case(first_ref: &str, second_ref: &str, scan_id: &str) -> Result<Vec<String>> {
+    use openms::identification::ProteinIdentification;
+    use openms::kernel::{BaseFeature, ColumnHeader, FeatureHandle};
+    use openms::metadata::MetaValue;
+    let mut map = ConsensusMap::new();
+    map.column_headers.insert(
+        0,
+        ColumnHeader {
+            filename: "/data/run_a.mzML".into(),
+            size: 1,
+            ..ColumnHeader::default()
+        },
+    );
+    let mut feature = ConsensusFeature::new();
+    feature.rt = 10.0;
+    feature.mz = 500.0;
+    let mut element = BaseFeature::new(10.0, 500.0, 0.0);
+    element.unique_id = 1;
+    feature.insert(FeatureHandle::new(0, &element))?;
+    feature
+        .metadata
+        .insert("scan_id".into(), MetaValue::from(scan_id));
+    map.features.push(feature);
+    let run = ProteinIdentification {
+        identifier: "run".into(),
+        primary_ms_run_paths: vec!["/other/dir/run_a.mzML".into()],
+        ..ProteinIdentification::default()
+    };
+    let mut ids = Vec::new();
+    for (reference, sequence) in [(first_ref, "PEPTIDE"), (second_ref, "PEPTIDER")] {
+        let mut id = PeptideIdentification {
+            identifier: "run".into(),
+            rt: Some(10.0),
+            mz: Some(500.0),
+            hits: vec![PeptideHit::new(1.0, 1, 2, seq(sequence))?],
+            ..PeptideIdentification::default()
+        };
+        id.set_spectrum_reference(reference);
+        ids.push(id);
+    }
+    IDMapper::default().annotate_consensus(
+        &mut map,
+        &ids,
+        &[run],
+        false,
+        false,
+        &MSExperiment::default(),
+    )?;
+    Ok(map.features[0]
+        .peptide_identifications
+        .iter()
+        .map(|p| p.hits[0].sequence.to_string())
+        .collect())
+}
+
+/// Tier 1: the records of `../oracle/I4-idmapper-tmt` (ibminode06, Linux
+/// x86_64 Release install bc9cc12/c19e494/174b576, g++ 14.4.0, two identical
+/// runs): `boost::regex{""}.empty()` is 0, so the scan-number fallback runs the
+/// empty pattern and throws `ParseError` ("Could not extract scan number").
+#[test]
+fn isobaric_mapping_matches_cpp_oracle() -> Result<()> {
+    let thermo5 = "controllerType=0 controllerNumber=1 scan=5";
+    let thermo6 = "controllerType=0 controllerNumber=1 scan=6";
+    // exact_string_refs: ok 1 PEPTIDE
+    assert_eq!(isobaric_case(thermo5, thermo6, thermo5)?, ["PEPTIDE"]);
+    // no_match_string_refs: ok 0
+    let thermo60 = format!("{thermo6}0");
+    assert!(isobaric_case(thermo6, &thermo60, thermo5)?.is_empty());
+    // integer_refs_fallback: throw Parse Error
+    assert!(matches!(
+        isobaric_case("5", "6", thermo5),
+        Err(Error::Parse { .. })
+    ));
+    // integer_first_exact_second: ok 1 PEPTIDER
+    assert_eq!(isobaric_case("7", thermo5, thermo5)?, ["PEPTIDER"]);
+    Ok(())
+}
