@@ -96,7 +96,9 @@
 //! Tier 1: `../oracle/B8a-stringutils` links the Linux x86_64 Release install
 //! on ibminode06 and records 5,068 calls over the whole surface (two identical
 //! runs); `tests/string_utils.rs` embeds the records and compares every one.
-//! `../oracle/integ-F-stringutils` adds 240 parsing rows. The upstream
+//! The 246 `toInt32`/`toDouble`/`toFloat` rows of the earlier
+//! `../oracle/integ-F-stringutils` (same install, same host) use 82 inputs that
+//! are all among these records, so they are not compared a second time. The upstream
 //! `StringUtils_test.cpp` and `String_test.cpp` literals are ported in the same
 //! test (tier 3).
 

@@ -19,6 +19,7 @@
 
 use openms::format::featurexml::{self, ReadOptions};
 use openms::format::mzml;
+use openms::kernel::{Feature, FeatureMap};
 use std::path::PathBuf;
 
 const ORACLE: &str = include_str!("data/zip_input/oracle.tsv");
@@ -91,7 +92,10 @@ fn zip_input_matches_the_release_build() {
             other => panic!("oracle function {other}"),
         };
         if expected.starts_with("ERR:") {
-            assert!(actual.is_err(), "{function} {name}: C++ {expected}, port {actual:?}");
+            assert!(
+                actual.is_err(),
+                "{function} {name}: C++ {expected}, port {actual:?}"
+            );
         } else {
             assert_eq!(actual.as_deref(), Ok(expected), "{function} {name}");
         }
@@ -102,14 +106,21 @@ fn zip_input_matches_the_release_build() {
 
 #[test]
 fn zip_refusals_carry_the_source_messages() {
-    let two = featurexml::load(fixture("two_entries.zip")).unwrap_err().to_string();
+    let two = featurexml::load(fixture("two_entries.zip"))
+        .unwrap_err()
+        .to_string();
     assert!(
-        two.contains("ZIP archive contains 2 file entries; expected exactly 1: a.featureXML b.featureXML"),
+        two.contains(
+            "ZIP archive contains 2 file entries; expected exactly 1: a.featureXML b.featureXML"
+        ),
         "{two}"
     );
     for empty in ["directory_only.zip", "empty_archive.zip"] {
         let error = featurexml::load(fixture(empty)).unwrap_err().to_string();
-        assert!(error.contains("ZIP archive contains no file entries"), "{error}");
+        assert!(
+            error.contains("ZIP archive contains no file entries"),
+            "{error}"
+        );
     }
     // LZMA: the reference build's libzip has no decoder either.
     assert!(matches!(
@@ -117,21 +128,71 @@ fn zip_refusals_carry_the_source_messages() {
         Err(openms::Error::Unsupported(_))
     ));
     // A wrong CRC-32 is found at the end of the entry, as libzip finds it.
-    let crc = featurexml::load(fixture("featurexml_bad_crc.zip")).unwrap_err().to_string();
+    let crc = featurexml::load(fixture("featurexml_bad_crc.zip"))
+        .unwrap_err()
+        .to_string();
     assert!(crc.contains("CRC-32"), "{crc}");
+}
+
+/// A loaded map with every identification-run identifier replaced by the
+/// run's position.
+///
+/// A run without an `identifier` meta value gets a generated one that ends in
+/// a per-process counter (`map_xml::read_run`), so two loads of the same
+/// document never agree on it. The position keeps the link from every peptide
+/// identification to its run, which is all the identifier encodes.
+fn with_run_positions(mut map: FeatureMap) -> FeatureMap {
+    fn relabel(features: &mut [Feature], position: &dyn Fn(&mut String)) {
+        for feature in features {
+            for peptide in &mut feature.peptide_identifications {
+                position(&mut peptide.identifier);
+            }
+            relabel(&mut feature.subordinates, position);
+        }
+    }
+    let names: Vec<String> = map
+        .protein_identifications
+        .iter()
+        .map(|run| run.identifier.clone())
+        .collect();
+    let position = |identifier: &mut String| {
+        let index = names
+            .iter()
+            .position(|name| name == identifier)
+            .unwrap_or_else(|| panic!("peptide identification names no run: {identifier}"));
+        *identifier = format!("run {index}");
+    };
+    for (index, run) in map.protein_identifications.iter_mut().enumerate() {
+        run.identifier = format!("run {index}");
+    }
+    relabel(&mut map.features, &position);
+    for peptide in &mut map.unassigned_peptide_identifications {
+        position(&mut peptide.identifier);
+    }
+    map
 }
 
 #[test]
 fn zip_entry_equals_the_plain_document() {
-    let plain = featurexml::load(fixture("featurexml_source_1.featureXML")).unwrap();
+    let plain =
+        with_run_positions(featurexml::load(fixture("featurexml_source_1.featureXML")).unwrap());
+    assert!(!plain.protein_identifications.is_empty());
     for name in [
         "featurexml_deflate.zip",
         "featurexml_stored.zip",
         "featurexml_bzip2.zip",
         "featurexml_with_directory.zip",
     ] {
-        let zipped = featurexml::load(fixture(name)).unwrap();
+        let zipped = with_run_positions(featurexml::load(fixture(name)).unwrap());
         assert_eq!(zipped.features, plain.features, "{name}");
+        assert_eq!(
+            zipped.protein_identifications, plain.protein_identifications,
+            "{name}"
+        );
+        assert_eq!(
+            zipped.unassigned_peptide_identifications, plain.unassigned_peptide_identifications,
+            "{name}"
+        );
     }
     let plain = mzml::load(fixture("mzml_upstream_serum.mzML")).unwrap();
     let zipped = mzml::load(fixture("mzml_deflate.zip")).unwrap();

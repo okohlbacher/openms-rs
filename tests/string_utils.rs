@@ -18,6 +18,7 @@
 //! `src/tests/class_tests/openms/source/StringUtils_test.cpp` at core
 //! `bc9cc12` (tier 3); the oracle is tier 1.
 
+use openms::Error;
 use openms::data_structures::string_utils::{
     self as su, QuotingMethod, Split, ToStr, extract_double, extract_int, number, number_length,
     number_truncated, skip_non_whitespace, skip_whitespace, to_double, to_float, to_int32,
@@ -25,7 +26,6 @@ use openms::data_structures::string_utils::{
 };
 use openms::metadata::MetaValue;
 use openms::param::ParamValue;
-use openms::Error;
 
 const ORACLE: &str = include_str!("data/string_utils_oracle.tsv");
 
@@ -272,7 +272,11 @@ fn port_result(function: &str, args: &str) -> Option<std::result::Result<String,
             let r = su::random(length).unwrap();
             assert_eq!(r.len(), length as usize);
             assert!(r.bytes().all(|b| b.is_ascii_alphanumeric()));
-            ok(if length == 64 { "len=64 alnum".into() } else { esc(r.as_bytes()) })
+            ok(if length == 64 {
+                "len=64 alnum".into()
+            } else {
+                esc(r.as_bytes())
+            })
         }
         "concatenate" | "concatenate(target)" => {
             let items = ["a", "", "b c", "|"];
@@ -363,8 +367,8 @@ fn string_function(function: &str, f: &[String]) -> Option<std::result::Result<S
             assert_eq!(su::substituted(&s, &from, &to).unwrap(), owned);
             ok(owned)
         }
-        "chop" | "prefix(size_t)" | "suffix(size_t)" | "prefix(Int)" | "suffix(Int)" | "fillLeft"
-        | "fillRight" | "substr(pos)" | "substr(pos,2)" => {
+        "chop" | "prefix(size_t)" | "suffix(size_t)" | "prefix(Int)" | "suffix(Int)"
+        | "fillLeft" | "fillRight" | "substr(pos)" | "substr(pos,2)" => {
             let n: i64 = f[1].parse().unwrap();
             let size = usize::try_from(n).unwrap_or(0);
             let result = match function {
@@ -373,8 +377,10 @@ fn string_function(function: &str, f: &[String]) -> Option<std::result::Result<S
                 "suffix(size_t)" => su::suffix(&s, size),
                 "prefix(Int)" => su::prefix_signed(&s, i32::try_from(n).unwrap()),
                 "suffix(Int)" => su::suffix_signed(&s, i32::try_from(n).unwrap()),
-                "fillLeft" => su::fill_left(&mut owned, 'x', u32::try_from(n).unwrap()).map(|()| owned.clone()),
-                "fillRight" => su::fill_right(&mut owned, 'x', u32::try_from(n).unwrap()).map(|()| owned.clone()),
+                "fillLeft" => su::fill_left(&mut owned, 'x', u32::try_from(n).unwrap())
+                    .map(|()| owned.clone()),
+                "fillRight" => su::fill_right(&mut owned, 'x', u32::try_from(n).unwrap())
+                    .map(|()| owned.clone()),
                 "substr(pos)" => su::substr(&s, size, None),
                 _ => su::substr(&s, size, Some(2)),
             };
@@ -444,10 +450,15 @@ fn oracle_records_match() {
             Ok(actual) => {
                 compared += 1;
                 if actual != expected {
-                    mismatches.push(format!("{function}\t{args}\n  C++:  {expected}\n  Rust: {actual}"));
+                    mismatches.push(format!(
+                        "{function}\t{args}\n  C++:  {expected}\n  Rust: {actual}"
+                    ));
                 }
             }
-            Err(error) if utf8_refusal(&error) || matches!(&error, Error::InvalidValue(m) if m.contains("not give UTF-8")) => {
+            Err(error)
+                if utf8_refusal(&error)
+                    || matches!(&error, Error::InvalidValue(m) if m.contains("not give UTF-8")) =>
+            {
                 // The source's result is bytes that are not UTF-8.
                 let bytes = unesc(expected);
                 assert!(
@@ -470,15 +481,26 @@ fn oracle_records_match() {
                 compared += 1;
                 let actual = err(&error);
                 if actual != expected {
-                    mismatches.push(format!("{function}\t{args}\n  C++:  {expected}\n  Rust: {actual}"));
+                    mismatches.push(format!(
+                        "{function}\t{args}\n  C++:  {expected}\n  Rust: {actual}"
+                    ));
                 }
             }
         }
     }
-    assert!(mismatches.is_empty(), "{} mismatches:\n{}", mismatches.len(), mismatches.join("\n"));
+    assert!(
+        mismatches.is_empty(),
+        "{} mismatches:\n{}",
+        mismatches.len(),
+        mismatches.join("\n")
+    );
     // Every record is accounted for; the counts pin the classification.
     assert_eq!(
-        compared + not_utf8_inputs + not_utf8_results + undefined_in_source + skipped_nonfinite_values,
+        compared
+            + not_utf8_inputs
+            + not_utf8_results
+            + undefined_in_source
+            + skipped_nonfinite_values,
         5068
     );
     assert_eq!(skipped_nonfinite_values, 9);
@@ -545,8 +567,18 @@ fn class_test_to_int32_and_to_int64() {
     assert_eq!(to_int32("  2147483647").unwrap(), 2_147_483_647);
     assert_eq!(to_int32("2147483647 ").unwrap(), 2_147_483_647);
     assert_eq!(to_int32("   2147483647  ").unwrap(), 2_147_483_647);
-    for bad in ["2147483648", "-2147483649", "1234  moreText", " 1234 911.0", " abc ", " 123.45 "] {
-        assert!(matches!(to_int32(bad), Err(Error::InvalidValue(_))), "{bad}");
+    for bad in [
+        "2147483648",
+        "-2147483649",
+        "1234  moreText",
+        " 1234 911.0",
+        " abc ",
+        " 123.45 ",
+    ] {
+        assert!(
+            matches!(to_int32(bad), Err(Error::InvalidValue(_))),
+            "{bad}"
+        );
     }
     assert_eq!(to_int64("9223372036854775807").unwrap(), i64::MAX);
     assert_eq!(to_int64("  9223372036854775807").unwrap(), i64::MAX);
@@ -560,7 +592,10 @@ fn class_test_to_int32_and_to_int64() {
         " abc ",
         " 123.45 ",
     ] {
-        assert!(matches!(to_int64(bad), Err(Error::InvalidValue(_))), "{bad}");
+        assert!(
+            matches!(to_int64(bad), Err(Error::InvalidValue(_))),
+            "{bad}"
+        );
     }
 }
 
@@ -579,7 +614,10 @@ fn class_test_to_float_and_to_double() {
     }
     assert!(to_float("1e-40").unwrap() > 0.0);
     assert!(to_float("1e40").is_err());
-    assert_eq!(to_double("2.17388884170148e-321").unwrap(), 2.17388884170148e-321);
+    assert_eq!(
+        to_double("2.17388884170148e-321").unwrap(),
+        2.17388884170148e-321
+    );
     assert!(to_double("4.9e-324").unwrap() > 0.0);
     assert!(to_double("1e400").is_err());
 }
@@ -604,7 +642,10 @@ fn class_test_extract_double() {
     assert_eq!(extract_double("15.0e6 x"), Some((15.0e6, 6)));
     assert_eq!(extract_double("16e6!"), Some((16e6, 4)));
     assert_eq!(extract_double("!noNumber"), None);
-    assert_eq!(extract_double("2.17388884170148e-321 x"), Some((2.17388884170148e-321, 21)));
+    assert_eq!(
+        extract_double("2.17388884170148e-321 x"),
+        Some((2.17388884170148e-321, 21))
+    );
 }
 
 #[test]
