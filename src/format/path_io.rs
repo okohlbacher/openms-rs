@@ -93,8 +93,9 @@ pub(crate) fn store_reporting<T>(
     }
 }
 
-/// Source IdXMLFile writes plain bytes even when the filename ends in .gz/.bz2.
-#[cfg(feature = "idxml")]
+/// Source IdXMLFile writes plain bytes even when the filename ends in .gz/.bz2,
+/// and so does the source MzQCFile's `std::ofstream`.
+#[cfg(any(feature = "idxml", feature = "mzml"))]
 pub(crate) fn write_plain(
     path: &Path,
     save: impl FnOnce(&mut dyn Write) -> Result<()>,

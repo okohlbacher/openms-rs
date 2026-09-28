@@ -53,6 +53,7 @@ mod load;
 mod store;
 
 use crate::concept::progress_logger::{ProgressLogType, ProgressLogger};
+use crate::format::nlohmann_json::{number, string_literal};
 use crate::format::path_io;
 use crate::identification::graph::IdentificationData;
 use crate::kernel::{ConsensusMap, FeatureMap};
@@ -733,7 +734,7 @@ fn export_table(connection: &Connection, table: &str, out: &mut JsonWriter) -> R
             {
                 ValueRef::Null => out.string("")?,
                 ValueRef::Integer(value) => out.raw(&value.to_string())?,
-                ValueRef::Real(value) => out.raw(&json_number(value))?,
+                ValueRef::Real(value) => out.raw(&number(value))?,
                 ValueRef::Text(bytes) | ValueRef::Blob(bytes) => {
                     let text = std::str::from_utf8(bytes).map_err(|_| {
                         Error::InvalidValue(format!(
@@ -757,54 +758,6 @@ fn export_table(connection: &Connection, table: &str, out: &mut JsonWriter) -> R
     out.raw("]")
 }
 
-/// A number as `nlohmann::json` prints a double: the shortest digits that
-/// round-trip, in fixed notation for decimal exponents in `(-4, 15]` (with
-/// `.0` appended to an integral value) and in scientific notation otherwise,
-/// the exponent signed and at least two digits long. Non-finite values print
-/// `null`, as the library does.
-fn json_number(value: f64) -> String {
-    if !value.is_finite() {
-        return "null".into();
-    }
-    if value == 0.0 {
-        return if value.is_sign_negative() {
-            "-0.0"
-        } else {
-            "0.0"
-        }
-        .into();
-    }
-    // Rust's `{:e}` is the shortest round-trip representation.
-    let scientific = format!("{:e}", value.abs());
-    let (mantissa, exponent) = scientific.split_once('e').unwrap_or((&scientific, "0"));
-    let exponent: i32 = exponent.parse().unwrap_or(0);
-    let digits: String = mantissa.chars().filter(char::is_ascii_digit).collect();
-    let k = digits.len() as i32;
-    // `n` is the position of the decimal point relative to the digit string.
-    let n = exponent + 1;
-    let sign = if value.is_sign_negative() { "-" } else { "" };
-    let body = if k <= n && n <= 15 {
-        format!("{digits}{}.0", "0".repeat((n - k) as usize))
-    } else if 0 < n && n <= 15 {
-        format!("{}.{}", &digits[..n as usize], &digits[n as usize..])
-    } else if -4 < n && n <= 0 {
-        format!("0.{}{digits}", "0".repeat((-n) as usize))
-    } else {
-        let exponent = n - 1;
-        let exponent_text = format!(
-            "{}{:02}",
-            if exponent < 0 { '-' } else { '+' },
-            exponent.abs()
-        );
-        if k == 1 {
-            format!("{digits}e{exponent_text}")
-        } else {
-            format!("{}.{}e{exponent_text}", &digits[..1], &digits[1..])
-        }
-    };
-    format!("{sign}{body}")
-}
-
 /// A bounded JSON text accumulator.
 #[derive(Default)]
 struct JsonWriter {
@@ -824,61 +777,16 @@ impl JsonWriter {
         self.raw(&" ".repeat(4 * level))
     }
 
-    /// A JSON string as `nlohmann::json::dump` escapes it: `"` and `\`, the
-    /// short escapes for backspace, form feed, newline, carriage return and
-    /// tab, `\u00xx` (lower-case hex) for the other control characters, and
-    /// every other character verbatim.
+    /// A JSON string as `nlohmann::json::dump` escapes it; see
+    /// `string_literal`.
     fn string(&mut self, text: &str) -> Result<()> {
-        let mut escaped = String::with_capacity(text.len() + 2);
-        escaped.push('"');
-        for c in text.chars() {
-            match c {
-                '"' => escaped.push_str("\\\""),
-                '\\' => escaped.push_str("\\\\"),
-                '\u{08}' => escaped.push_str("\\b"),
-                '\u{0c}' => escaped.push_str("\\f"),
-                '\n' => escaped.push_str("\\n"),
-                '\r' => escaped.push_str("\\r"),
-                '\t' => escaped.push_str("\\t"),
-                c if (c as u32) < 0x20 => escaped.push_str(&format!("\\u{:04x}", c as u32)),
-                c => escaped.push(c),
-            }
-        }
-        escaped.push('"');
-        self.raw(&escaped)
+        self.raw(&string_literal(text))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn numbers_follow_the_nlohmann_format() {
-        assert_eq!(json_number(0.3), "0.3");
-        assert_eq!(json_number(1.0), "1.0");
-        assert_eq!(json_number(-2.5), "-2.5");
-        assert_eq!(json_number(1234.5678), "1234.5678");
-        assert_eq!(json_number(0.0001), "0.0001");
-        assert_eq!(json_number(0.00001), "1e-05");
-        assert_eq!(json_number(1.5e-7), "1.5e-07");
-        assert_eq!(json_number(1e14), "100000000000000.0");
-        assert_eq!(json_number(1e15), "1e+15");
-        assert_eq!(json_number(1.25e16), "1.25e+16");
-        assert_eq!(
-            json_number(123_456_789_012_345_680.0),
-            "1.2345678901234568e+17"
-        );
-        assert_eq!(json_number(f64::NAN), "null");
-        assert_eq!(json_number(0.0), "0.0");
-    }
-
-    #[test]
-    fn strings_escape_like_nlohmann() {
-        let mut out = JsonWriter::default();
-        out.string("a\"b\\c\nd\u{01}é/").unwrap();
-        assert_eq!(out.text, "\"a\\\"b\\\\c\\nd\\u0001é/\"");
-    }
 
     #[test]
     fn order_by_matches_the_source_table() {

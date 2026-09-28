@@ -137,6 +137,9 @@ pub mod mzml;
 /// Explicit validation against the retained ordinary and indexed mzML schemas.
 #[cfg(feature = "mzml-schema")]
 pub mod mzml_schema;
+/// mzQC quality-control files in JSON (`MzQCFile.h`).
+#[cfg(feature = "mzml")]
+pub mod mzqc_file;
 /// MzTab data model: cell vocabulary, record structs and document (`MzTabBase.h`, `MzTab.h`).
 pub mod mztab;
 /// MzTab exporters: feature maps, consensus maps and identification runs (`MzTab.h` export surface).
@@ -148,6 +151,10 @@ pub mod mztab_m;
 /// Legacy mzXML 3.1 adapter: nested scans and paired peak arrays (`MzXMLFile.h`).
 #[cfg(feature = "mzml")]
 pub mod mzxml;
+/// JSON text as the source's `nlohmann::json` writes it, shared by the OMS and
+/// mzQC writers.
+#[cfg(any(feature = "sqlite", feature = "mzml"))]
+pub(crate) mod nlohmann_json;
 /// pepXML search results: load, store and modification resolution (`PepXMLFile.h`).
 #[cfg(feature = "idxml")]
 pub mod pepxml;
