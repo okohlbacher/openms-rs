@@ -942,9 +942,8 @@ fn limits_refuse_instead_of_truncating() {
         max_warnings: 0,
         ..ReadLimits::default()
     };
-    let mut reader =
-        PEFFReader::with_limits(std::fs::read(data("PEFFFile_minimal.peff")).unwrap().as_slice(), limits)
-            .unwrap();
+    let minimal = std::fs::read(data("PEFFFile_minimal.peff")).unwrap();
+    let mut reader = PEFFReader::with_limits(minimal.as_slice(), limits).unwrap();
     assert!(reader.warnings().is_empty());
     assert_eq!(reader.suppressed_warnings(), 5);
     assert!(reader.next_entry().unwrap().is_some());

@@ -34,8 +34,20 @@ scratchpad root is shared with other lanes, so only use the F6/ subdir).
 Merged worktree-wf_ee239125-5be-16 (incarnation 2). It holds an UNGATED PEFF port saved by the lead:
 src/format/peff.rs + peff/{read,text,write}.rs + tests/peff.rs (~4.1k lines). First: gate it on dax.
 
+## PEFF gap found (incarnation 3)
+PEFF I/O is ported; PEFFEntry sequence members are NOT: getSequence, getModifiedSequence,
+getVariantSequences, getProcessedSequence, digestWithVariants, generatePeptides,
+enumeratePEFFModifications_ (C++ PEFFFile.cpp 528-1300). Rust deps exist:
+chemistry::sequence::AASequence (parse, set_modification), ModificationsDB::global().get_modification,
+chemistry::digestion::ProteaseDigestion (digest_ranges; min/max in struct; C++ passes them),
+chemistry::modified_peptides::ModifiedPeptideGenerator. C++ tests: PEFFFile_test.cpp 365-431,
+882-1335, 1612-2350. Plan: src/format/peff/sequences.rs + tests/peff_sequences.rs.
+C++ defect candidate: getVariantSequences / digestWithVariants push the description before
+AASequence::fromString, so a throw desynchronises descriptions and sequences.
+
 ## Next step
-1. Gate kb-xml slice incl. tests/peff.rs on dax; fix compile/test failures in PEFF.
-2. Docs: docs/{PTM_XML,UNIMOD_XML,UNIPROT_XML}_SUPPORT.md + provenance JSONs; commit.
-3. PEFF: read PEFFFile.cpp 1302-3464 (I/O) then 504-1300 (sequence methods); port to src/format/peff.rs.
-4. C++ oracle on ibminode06 (../oracle/F6-kbxml/): dump unimod/uniprot/ptm/peff results.
+1. Get tests/peff.rs green on dax (compile fixes committed).
+2. Port the PEFFEntry sequence members (above) + tests.
+3. Docs: docs/{PTM_XML,UNIMOD_XML,UNIPROT_XML,PEFF}_SUPPORT.md (check which exist); provenance.
+4. C++ oracle on ibminode06 (../oracle/F6-kbxml/) if time permits.
+5. Report + ledger fragment; delete NOTES.md.

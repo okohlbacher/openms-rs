@@ -18,7 +18,7 @@ use super::{
 use crate::concept::boost_regex::BoostRegex;
 use crate::{Error, Result};
 use std::collections::BTreeSet;
-use std::io::BufRead;
+use std::io::{BufRead, Read};
 
 fn parse_error(message: impl Into<String>) -> Error {
     Error::Parse {
@@ -1263,7 +1263,8 @@ pub(super) fn is_peff(mut input: impl BufRead) -> bool {
     loop {
         line.clear();
         let remaining = MAX_SCAN.saturating_sub(scanned);
-        let read = match (&mut input)
+        let read = match input
+            .by_ref()
             .take(remaining as u64 + 1)
             .read_until(b'\n', &mut line)
         {
