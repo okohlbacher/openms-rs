@@ -95,8 +95,8 @@ DTD/external entities are explicitly unsupported; there are no network reads.
 Schema hints are inert, as in this source loader. The referenced CvMapping XSD
 is absent from the pinned SDK resources; no external schema is substituted.
 Paths reuse shared magic-based gzip/bzip2 readers with existing optional
-compression dependencies. ZIP is unsupported because this API expects one
-scientific stream. Compression is independent of filename suffix, the entire
+compression dependencies. A ZIP archive is read through its single file entry
+(`src/format/zip_input.rs`), as `XMLFile::parse_` reads it. Compression is independent of filename suffix, the entire
 stream is read and corrupt/truncated compression is reported. Zero/one-byte
 inputs are handled by length-aware byte slices and checked XML errors.
 

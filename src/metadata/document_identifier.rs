@@ -72,7 +72,8 @@ impl DocumentIdentifier {
 
     /// Inspect content, independently of the extension and stored path. Reads
     /// at most 64 KiB of plain/decompressed input using the shared detector.
-    /// gzip/bzip2 need `file-compression`; ZIP remains unsupported. Recognition
+    /// gzip/bzip2/ZIP need `file-compression`; a ZIP archive is inspected through
+    /// its single file entry. Recognition
     /// is heuristic and does not validate the document. Failure retains type.
     pub fn set_loaded_file_type(&mut self, file_name: impl AsRef<Path>) -> Result<()> {
         let path = file_name.as_ref();

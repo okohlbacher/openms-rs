@@ -154,8 +154,9 @@ unchanged. `load_experiment_with_options` forwards it the way
    `load_feature_map_with_options` has no allowed-type list (featureXML is the
    only native reader, where the source throws `InvalidFileType` for a
    disallowed type). `get_type` reads at most 64 KiB, and returns
-   `Error::Unsupported` for ZIP content and for gzip/bzip2 content without the
-   `file-compression` feature, where the source looks inside.
+   `Error::Unsupported` for gzip, bzip2 or ZIP content without the
+   `file-compression` feature, where the source looks inside; with it, all
+   three are looked inside (ZIP since lane B8a).
 8. **SRM conversion after mzML loading** (closed). `loadExperiment` moves SRM
    spectra into chromatograms (`ChromatogramTools::convertSpectraToChromatograms`),
    and every native experiment loader now does too

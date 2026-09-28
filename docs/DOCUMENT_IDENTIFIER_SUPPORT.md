@@ -21,7 +21,7 @@ extension and the stored path. It reads at most 64 KiB of plain or decompressed
 bytes, then uses the existing [bounded content heuristic](FILE_HANDLING_SUPPORT.md).
 The type is published only after reading succeeds. Empty/unrecognized input becomes
 Unknown; inaccessible input leaves the old type unchanged. gzip/bzip2 require
-`file-compression`; ZIP returns Unsupported. Reaching the preview bound does not
+`file-compression`, and so does ZIP, whose single file entry is inspected. Reaching the preview bound does not
 promise validation of the unread tail or compressed trailer.
 
 The shared detector now recognizes all five previously missing tabular signature
