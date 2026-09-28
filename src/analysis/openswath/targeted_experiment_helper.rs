@@ -44,6 +44,24 @@
 //! [`ReactionMonitoringTransition`]: crate::analysis::openswath::reaction_monitoring_transition::ReactionMonitoringTransition
 //! [`IncludeExcludeTarget`]: crate::analysis::openswath::include_exclude_target::IncludeExcludeTarget
 //! [`TargetedExperiment`]: crate::analysis::openswath::targeted_experiment::TargetedExperiment
+//! [`CV`]: crate::analysis::openswath::targeted_experiment_helper::CV
+//! [`Protein`]: crate::analysis::openswath::targeted_experiment_helper::Protein
+//! [`Peptide`]: crate::analysis::openswath::targeted_experiment_helper::Peptide
+//! [`Compound`]: crate::analysis::openswath::targeted_experiment_helper::Compound
+//! [`PeptideCompound`]: crate::analysis::openswath::targeted_experiment_helper::PeptideCompound
+//! [`RetentionTime`]: crate::analysis::openswath::targeted_experiment_helper::RetentionTime
+//! [`TraMLProduct`]: crate::analysis::openswath::targeted_experiment_helper::TraMLProduct
+//! [`Interpretation`]: crate::analysis::openswath::targeted_experiment_helper::Interpretation
+//! [`Contact`]: crate::analysis::openswath::targeted_experiment_helper::Contact
+//! [`Publication`]: crate::analysis::openswath::targeted_experiment_helper::Publication
+//! [`Instrument`]: crate::analysis::openswath::targeted_experiment_helper::Instrument
+//! [`Prediction`]: crate::analysis::openswath::targeted_experiment_helper::Prediction
+//! [`Configuration`]: crate::analysis::openswath::targeted_experiment_helper::Configuration
+//! [`get_aa_sequence`]: crate::analysis::openswath::targeted_experiment_helper::get_aa_sequence
+//! [`set_modification`]: crate::analysis::openswath::targeted_experiment_helper::set_modification
+//! [`AASequence`]: crate::chemistry::AASequence
+//! [`CVTermList`]: crate::metadata::CVTermList
+//! [`CVTermList::metadata`]: crate::metadata::CVTermList::metadata
 
 use crate::chemistry::{AASequence, ModificationsDB, PeptideFragmentType};
 use crate::metadata::CVTermList;

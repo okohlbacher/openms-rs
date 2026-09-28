@@ -20,6 +20,8 @@
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/TARGETED_EXPERIMENT_SUPPORT.md)
 //! for the member mapping and the evidence. The source contains no
 //! `#pragma omp`; the port is serial.
+//!
+//! [`TargetedExperiment`]: crate::analysis::openswath::targeted_experiment::TargetedExperiment
 
 use crate::analysis::openswath::include_exclude_target::IncludeExcludeTarget;
 use crate::analysis::openswath::reaction_monitoring_transition::{

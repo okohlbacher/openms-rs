@@ -9,6 +9,8 @@
 
 /// `IncludeExcludeTarget`: an inclusion or exclusion target of a targeted experiment.
 pub mod include_exclude_target;
+/// `MRMMapping`: map targeted assays to chromatograms by precursor and product m/z.
+pub mod mrm_mapping;
 /// `ReactionMonitoringTransition`: one SRM/MRM transition of an assay library.
 pub mod reaction_monitoring_transition;
 /// `TargetedExperiment`: the in-memory TraML document (transitions, analytes, metadata).

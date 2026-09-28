@@ -3,10 +3,16 @@
 // $Maintainer: OpenMS Rust contributors $
 
 //! Ports of `TargetedExperimentHelper_test.cpp`, `ReactionMonitoringTransition_test.cpp`,
-//! `IncludeExcludeTarget_test.cpp` and `TargetedExperiment_test.cpp` at core pin
-//! `bc9cc12`, plus native checks. Literals are transcribed from those class tests
-//! (evidence tier 3, source review) unless a test says otherwise. No C++ was run
-//! for these checks.
+//! `IncludeExcludeTarget_test.cpp`, `TargetedExperiment_test.cpp` and
+//! `MRMMapping_test.cpp` at core pin `bc9cc12`, plus native checks. Literals are
+//! transcribed from those class tests (evidence tier 3, source review) unless a
+//! test says otherwise. No C++ was run for these checks.
+//!
+//! The field-by-field set-up after `default()` mirrors the C++ tests, and
+//! `Compound`/`Peptide` fields set through `Deref` cannot move into a struct
+//! literal, so the lint that asks for one is allowed here.
+
+#![allow(clippy::field_reassign_with_default)]
 
 use openms::Error;
 use openms::analysis::openswath::include_exclude_target::IncludeExcludeTarget;
@@ -1162,4 +1168,169 @@ fn te_summary_statistics() {
     );
     let empty = TargetedExperiment::new().summary();
     assert!(empty.to_string().contains("Transition Type: \n"));
+}
+
+// ---------------------------------------------------------------------------
+// MRMMapping_test.cpp
+// ---------------------------------------------------------------------------
+
+fn mapping_with(multiple: bool, tolerance: Option<f64>, error_on_unmapped: bool) -> MRMMapping {
+    let mut p = MRMMapping::defaults().unwrap();
+    let flag = |b: bool| ParamValue::String(if b { "true" } else { "false" }.into());
+    p.set_value("map_multiple_assays", flag(multiple), "", &[])
+        .unwrap();
+    p.set_value("error_on_unmapped", flag(error_on_unmapped), "", &[])
+        .unwrap();
+    if let Some(tol) = tolerance {
+        p.set_value("precursor_tolerance", ParamValue::Float(tol), "", &[])
+            .unwrap();
+        p.set_value("product_tolerance", ParamValue::Float(tol), "", &[])
+            .unwrap();
+    }
+    MRMMapping::from_param(&p).unwrap()
+}
+
+/// START_SECTION(void mapExperiment(const OpenMS::PeakMap& input_chromatograms,
+/// const OpenMS::TargetedExperiment& targeted_exp, OpenMS::PeakMap& output))
+#[test]
+fn mrm_mapping_map_experiment() {
+    let m = MRMMapping::new();
+    let mut exp = MSExperiment::default();
+    exp.settings.comment = "comment1".into();
+    exp.chromatograms.push(MSChromatogram::default());
+    assert_eq!(exp.chromatograms.len(), 1);
+    let mut targ = TargetedExperiment::new();
+    let t = ReactionMonitoringTransition::new();
+    targ.add_transition(t.clone());
+    let out = m.map_experiment(&exp, &targ).unwrap();
+    assert_eq!(out.chromatograms.len(), 0);
+
+    let m = mapping_with(true, None, false);
+    let out = m.map_experiment(&exp, &targ).unwrap();
+    // both transition and chromatogram have zero m/z
+    assert_eq!(out.chromatograms.len(), 1);
+    assert_eq!(out.settings.comment, "comment1");
+
+    exp.settings.comment = "comment2".into();
+    let m = mapping_with(true, Some(9999.0), false);
+    let out = m.map_experiment(&exp, &targ).unwrap();
+    assert_eq!(out.chromatograms.len(), 1);
+    assert_eq!(out.settings.comment, "comment2");
+
+    exp.chromatograms[0].precursor.mz = 500.0;
+    exp.chromatograms[0].product.mz = 500.0;
+    targ.add_transition(t);
+    let mut tr = targ.transitions().to_vec();
+    tr[0].set_precursor_mz(500.0);
+    tr[0].set_product_mz(500.1);
+    tr[0].set_native_id("tr1");
+    tr[1].set_precursor_mz(500.0);
+    tr[1].set_product_mz(500.0);
+    tr[1].set_native_id("tr2");
+    targ.set_transitions(tr);
+    let m = mapping_with(true, Some(1.0), false);
+    let out = m.map_experiment(&exp, &targ).unwrap();
+    assert_eq!(exp.chromatograms.len(), 1);
+    assert_eq!(out.chromatograms.len(), 2);
+    assert_eq!(out.chromatograms[0].native_id, "tr1");
+    assert_eq!(out.chromatograms[1].native_id, "tr2");
+
+    let m = mapping_with(false, Some(1.0), false);
+    assert!(matches!(
+        m.map_experiment(&exp, &targ),
+        Err(Error::InvalidValue(_))
+    ));
+
+    let m = mapping_with(true, Some(0.05), false);
+    let out2 = m.map_experiment(&exp, &targ).unwrap();
+    assert_eq!(exp.chromatograms.len(), 1);
+    assert_eq!(out2.chromatograms.len(), 1);
+    assert_eq!(out2.chromatograms[0].native_id, "tr2");
+
+    exp.chromatograms[0].precursor.mz = 600.0;
+    exp.chromatograms[0].product.mz = 700.0;
+    let m = mapping_with(true, Some(1.0), false);
+    assert!(m.map_experiment(&exp, &targ).is_ok());
+    let m = mapping_with(true, Some(1.0), true);
+    assert!(matches!(
+        m.map_experiment(&exp, &targ),
+        Err(Error::InvalidValue(_))
+    ));
+}
+
+/// Native, derived from `MRMMapping.cpp`: the precursor annotations, the
+/// peptide-sequence substitution, parameter round trip and the output
+/// ceiling.
+#[test]
+fn mrm_mapping_annotations_params_and_ceiling() {
+    let defaults = MRMMapping::defaults().unwrap();
+    assert_eq!(
+        defaults.value("precursor_tolerance").unwrap(),
+        &ParamValue::Float(0.1)
+    );
+    assert_eq!(
+        defaults.value("product_tolerance").unwrap(),
+        &ParamValue::Float(0.1)
+    );
+    assert_eq!(
+        defaults.value("map_multiple_assays").unwrap(),
+        &ParamValue::String("false".into())
+    );
+    assert_eq!(
+        defaults.value("error_on_unmapped").unwrap(),
+        &ParamValue::String("false".into())
+    );
+    let m = mapping_with(true, Some(0.5), true);
+    assert_eq!(MRMMapping::from_param(&m.to_param().unwrap()).unwrap(), m);
+    let mut bad = MRMMapping::defaults().unwrap();
+    bad.set_value(
+        "map_multiple_assays",
+        ParamValue::String("maybe".into()),
+        "",
+        &[],
+    )
+    .unwrap();
+    assert!(MRMMapping::from_param(&bad).is_err());
+
+    let mut targ = TargetedExperiment::new();
+    let mut pep = Peptide::default();
+    pep.id = "pep1".into();
+    pep.sequence = "PEPTIDE".into();
+    targ.add_peptide(pep);
+    let mut t1 = ReactionMonitoringTransition::new();
+    t1.set_native_id("t1");
+    t1.set_peptide_ref("pep1");
+    t1.set_precursor_mz(400.0);
+    t1.set_product_mz(300.0);
+    targ.add_transition(t1);
+    let mut t2 = ReactionMonitoringTransition::new();
+    t2.set_native_id("t2");
+    t2.set_peptide_ref("unknown_ref");
+    t2.set_precursor_mz(500.0);
+    t2.set_product_mz(300.0);
+    targ.add_transition(t2);
+
+    let mut exp = MSExperiment::default();
+    let mut c1 = MSChromatogram::default();
+    c1.native_id = "c1".into();
+    c1.precursor.mz = 400.05;
+    c1.product.mz = 300.0;
+    let mut c2 = c1.clone();
+    c2.native_id = "c2".into();
+    c2.precursor.mz = 500.0;
+    exp.chromatograms = vec![c1, c2];
+    let out = MRMMapping::new().map_experiment(&exp, &targ).unwrap();
+    assert_eq!(out.chromatograms.len(), 2);
+    let meta = &out.chromatograms[0].precursor.cv_terms.metadata;
+    assert_eq!(meta["peptide_sequence"], MetaValue::from("PEPTIDE"));
+    assert_eq!(meta["description"], MetaValue::from("t1"));
+    let meta = &out.chromatograms[1].precursor.cv_terms.metadata;
+    assert_eq!(meta["peptide_sequence"], MetaValue::from("unknown_ref"));
+
+    let mut limited = MRMMapping::new();
+    exp.chromatograms[0].peaks = vec![Default::default(); 3];
+    limited.max_output_points = 2;
+    assert!(limited.map_experiment(&exp, &targ).is_err());
+    limited.max_output_points = 3;
+    assert!(limited.map_experiment(&exp, &targ).is_ok());
 }

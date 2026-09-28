@@ -21,6 +21,8 @@
 //! `#pragma omp`; the port is serial.
 //!
 //! [`MRMTransitionGroup`]: crate::kernel::mrm::MRMTransitionGroup
+//! [`ReactionMonitoringTransition`]: crate::analysis::openswath::reaction_monitoring_transition::ReactionMonitoringTransition
+//! [`Transition`]: crate::kernel::mrm::Transition
 
 use crate::analysis::openswath::targeted_experiment_helper::{
     Prediction, RetentionTime, TraMLProduct, hash_f64,
