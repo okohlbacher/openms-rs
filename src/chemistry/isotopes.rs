@@ -1477,7 +1477,7 @@ fn atom_distribution(atom: Atom) -> IsotopeDistribution {
     IsotopeDistribution { peaks }
 }
 
-fn lightest_mass(formula: &EmpiricalFormula) -> f64 {
+pub(super) fn lightest_mass(formula: &EmpiricalFormula) -> f64 {
     formula.atoms.iter().fold(
         f64::from(formula.charge) * PROTON_MASS_U,
         |mass, (&atom, &count)| mass + f64::from(count) * lightest_isotope_mass(atom),
