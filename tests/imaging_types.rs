@@ -16,6 +16,10 @@
 //! each section notes. `NOT_TESTABLE` sections and destructor sections have no
 //! body to port and are listed where they occur.
 
+// The imaging types live in `kernel::on_disc_imzml_experiment`, which the
+// crate compiles only with the `mzml` feature.
+#![cfg(feature = "mzml")]
+
 use openms::kernel::on_disc_imzml_experiment::{
     ImagingGeometry, ImagingRegion, IonImage, RegionShape,
 };

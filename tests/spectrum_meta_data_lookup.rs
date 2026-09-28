@@ -8,7 +8,9 @@
 //! the end are derived from `SpectrumMetaDataLookup.cpp:245-312` and say so.
 
 use openms::concept::constants::user_param::{FAIMS_CV, IM};
-use openms::identification::{PeptideIdentification, ProteinIdentification};
+use openms::identification::PeptideIdentification;
+#[cfg(feature = "mzml")]
+use openms::identification::ProteinIdentification;
 use openms::kernel::{MSExperiment, MSSpectrum, Precursor};
 use openms::metadata::DriftTimeUnit;
 use openms::metadata::spectrum_lookup::DEFAULT_SCAN_REGEXP;
@@ -16,6 +18,7 @@ use openms::metadata::spectrum_meta_data_lookup::{
     MDF_ALL, MDF_PRECURSORMZ, MDF_RT, SpectrumMetaData, SpectrumMetaDataLookup,
 };
 
+#[cfg(feature = "mzml")]
 fn data_path(name: &str) -> String {
     format!("{}/tests/data/{name}", env!("CARGO_MANIFEST_DIR"))
 }
@@ -272,6 +275,7 @@ fn add_missing_im() {
 }
 
 // START_SECTION((bool addMissingSpectrumReferences(...)))
+#[cfg(feature = "mzml")] // reads an mzML file
 #[test]
 fn add_missing_spectrum_references() {
     let mut peptides = vec![peptide(Some("index=666"), Some(5.1))];
@@ -329,6 +333,7 @@ fn add_missing_spectrum_references() {
 
 /// `addMissingSpectrumReferences` with an RT matching nothing: the error line,
 /// `false`, and `stop_on_error` ending the loop (cpp:343-357).
+#[cfg(feature = "mzml")] // reads an mzML file
 #[test]
 fn add_missing_spectrum_references_reports_unmatched_rts() {
     let filename = data_path("mzml_validator/MzMLFile_1.mzML");
