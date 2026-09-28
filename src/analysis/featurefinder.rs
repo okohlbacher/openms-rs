@@ -6,3 +6,7 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+
+pub mod base_model;
+pub mod gauss_models;
+pub mod isotope_model;

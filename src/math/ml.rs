@@ -8,3 +8,5 @@
 //! Submodules are registered below. An `ML` port that needs kernel or format
 //! types belongs in the analysis domain that uses it instead, because `math`
 //! is a sink in the module graph and must stay one.
+
+pub mod linear_interpolation;
