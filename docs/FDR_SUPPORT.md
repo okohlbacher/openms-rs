@@ -77,13 +77,35 @@ The pinned estimated-q implementation reserves a vector without sizing it before
 
 `roc_n` takes score/label observations and sorts them in the supplied direction. Labels must be binary. It integrates the target/decoy count curve by trapezoids, including an entire exact-score tie batch when it reaches the optional false-positive cutoff. `None` selects the full area. An empty input returns zero and target-only input returns one. A missing target class, or reaching the cutoff before any target, returns an error instead of division by zero. Partial target labels are supported in Basic FDR but not this ROC API.
 
+## Evaluation members (source-exact, `bc9cc12`)
+
+These members follow the source arithmetic exactly and are checked bit for bit
+against the Linux x86_64 Release build (`tests/false_discovery_rate_evaluation.rs`,
+`tests/data/fdr_evaluation_oracle.tsv`, `../oracle/I2-fdr`; 180 results).
+
+| C++ | Rust | Notes |
+|---|---|---|
+| `double diffEstimatedEmpirical(const ScoreToTgtDecLabelPairs&, double pepCutoff = 1.0) const` | `diff_estimated_empirical(&[(f64, f64)], f64)` | Pairs sorted best first. Empty input returns 1. The last entry always uses `decoys / (targets + decoys)` whatever `conservative` says, as in the source. |
+| `double rocN(const ScoreToTgtDecLabelPairs&, Size fpCutoff = 50) const` | `roc_n_sorted(&[(f64, f64)], usize)` | No sorting or validation; `decoys * targets` is a 32-bit product; a cutoff before any target divides by zero as the source. The older checked `roc_n` stays. |
+| `double rocN(const PeptideIdentificationList&, Size) const`, and with `identifier` | `roc_n_peptides(ids, fp_cutoff, Option<&str>)` | First hits unless `use_all_hits`; direction of the first record; `fp_cutoff = 0` is the full curve. |
+| `double rocN(const ConsensusMap&, Size, bool) const`, and with `identifier` | `roc_n_consensus(map, fp_cutoff, Option<&str>, include_unassigned)` | Feature identifications, then unassigned ones. The identifier overload reads the first feature's first identification unchecked in the source; absent, it is an error here. |
+| `double applyEvaluateProteinIDs(const ProteinIdentification&, double, UInt, double) const` | `apply_evaluate_protein_ids` | Requires `Posterior Probability`. `(1 - diff)(1 - w) + rocN w`. |
+| `double applyEvaluateProteinIDs(const std::vector<ProteinIdentification>&, ...) const` | `apply_evaluate_protein_ids_first` | First run only, and `diff w + rocN (1 - w)` (defect candidate below). |
+| `double applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs&, ...) const` | `apply_evaluate_score_labels(&mut [(f64, f64)], ...)` | Sorts the pairs in place, as the source. |
+
+Defect candidate: the vector overload of `applyEvaluateProteinIDs` combines
+the two measures as `diff * diffWeight + rocN * (1 - diffWeight)`, a score
+that grows with the estimated-vs-empirical difference, while the other two
+overloads compute `(1 - diff) * (1 - diffWeight) + rocN * diffWeight`. The port
+reproduces both.
+
 ## Validation, limits, and remaining scope
 
 All source scores and numeric record fields must be finite; posterior probabilities and target fractions have explicit domain checks. Concatenated score pools require compatible score types/directions. Every record mutation is prepared on owned copies and committed only after the complete operation succeeds, including separate-search pairs and group computations. Reported errors cannot leave partially changed scores, metadata, or filtered hit lists.
 
 Defaults permit one million hits and one million identification records per operation, plus one hundred thousand peptide pools or indistinguishable groups. Separate-search hit counts and record counts are checked across both inputs. Zero limits are invalid. Curves and grouping use standard ordered maps and sorting, with storage linear in the supplied records/hits. Limits bound these counts rather than annotation byte sizes or the cost of nested record validation. Allocation failure follows the Rust allocator's normal behavior. The checked code avoids the legacy decoy-assignment nested scan without changing its score-order rule.
 
-General `IdentificationData` observation matches, direct consensus-map convenience overloads, run-info/search-charge-range wrappers, `best_per_peptide` marker filtering, decoy-string inference, and estimated-versus-empirical difference-area/evaluation functions remain outside this increment. The underlying score curves and record APIs are implemented; unsupported variants are not exposed as placeholder methods. Score naming uses the existing source strings rather than a new ontology mapping.
+General `IdentificationData` observation matches (`applyToObservationMatches`), the consensus-map `applyBasic` and `applyBasicPeptideLevel` overloads, the run-info/search-charge-range wrapper `applyBasic(run_info, ids)`, `best_per_peptide` marker filtering, and decoy-string inference (`DecoyStringHelper::findDecoyString`) remain outside this increment; the evaluation members and all four `rocN` record overloads are ported (previous section). The underlying score curves and record APIs are implemented; unsupported variants are not exposed as placeholder methods. Score naming uses the existing source strings rather than a new ontology mapping.
 
 ## Verification and provenance
 
