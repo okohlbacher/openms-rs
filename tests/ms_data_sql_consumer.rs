@@ -24,6 +24,7 @@ use openms::format::mzml_sqlite_handler::{LossPolicy, MzMLSqliteHandler};
 use openms::identification::PeptideIdentification;
 use openms::interfaces::MSDataConsumer;
 use openms::kernel::{MSExperiment, MSSpectrum, Peak1D};
+use openms::metadata::Polarity;
 use openms::system::file::TempDir;
 use std::ops::ControlFlow;
 use std::path::{Path, PathBuf};
@@ -75,6 +76,10 @@ fn consume_all(consumer: &mut MSDataSqlConsumer, input: &MSExperiment) {
             ControlFlow::Continue(())
         );
     }
+}
+
+fn continued(flow: openms::Result<ControlFlow<()>>) {
+    assert_eq!(flow.unwrap(), ControlFlow::Continue(()));
 }
 
 #[test]
@@ -142,7 +147,7 @@ fn consuming_clears_the_callers_peaks_and_keeps_its_metadata() {
     consumer.set_loss_policy(LossPolicy::Source);
     let mut spectrum = input.spectra[0].clone();
     assert!(!spectrum.peaks.is_empty());
-    consumer.consume_spectrum(&mut spectrum).unwrap();
+    continued(consumer.consume_spectrum(&mut spectrum));
     assert!(spectrum.peaks.is_empty());
     assert_eq!(spectrum.native_id, input.spectra[0].native_id);
     assert_eq!(spectrum.rt, input.spectra[0].rt);
@@ -152,7 +157,7 @@ fn consuming_clears_the_callers_peaks_and_keeps_its_metadata() {
 
     let mut chromatogram = input.chromatograms[0].clone();
     assert!(!chromatogram.peaks.is_empty());
-    consumer.consume_chromatogram(&mut chromatogram).unwrap();
+    continued(consumer.consume_chromatogram(&mut chromatogram));
     assert!(chromatogram.peaks.is_empty());
     assert_eq!(chromatogram.native_id, input.chromatograms[0].native_id);
     assert_eq!(consumer.peak_meta().chromatograms, [chromatogram.clone()]);
@@ -166,7 +171,7 @@ fn consuming_clears_the_callers_peaks_and_keeps_its_metadata() {
             .unwrap();
     consumer.set_loss_policy(LossPolicy::Source);
     let mut spectrum = input.spectra[0].clone();
-    consumer.consume_spectrum(&mut spectrum).unwrap();
+    continued(consumer.consume_spectrum(&mut spectrum));
     assert!(consumer.peak_meta().spectra.is_empty());
     consumer.finish().unwrap();
 }
@@ -182,18 +187,18 @@ fn a_full_buffer_is_written_at_once() {
     consumer.set_loss_policy(LossPolicy::Source);
     let reader = MzMLSqliteHandler::new(&path, 0);
     let mut first = input.spectra[0].clone();
-    consumer.consume_spectrum(&mut first).unwrap();
+    continued(consumer.consume_spectrum(&mut first));
     assert_eq!(reader.nr_spectra().unwrap(), 0);
     assert_eq!(consumer.buffered_spectra().len(), 1);
     let mut second = input.spectra[1].clone();
-    consumer.consume_spectrum(&mut second).unwrap();
+    continued(consumer.consume_spectrum(&mut second));
     assert_eq!(reader.nr_spectra().unwrap(), 2);
     assert!(consumer.buffered_spectra().is_empty());
 
     // An explicit flush writes a partial buffer; spectra and chromatograms
     // have separate buffers (MSDataSqlConsumer.cpp:50-64).
     let mut chromatogram = input.chromatograms[0].clone();
-    consumer.consume_chromatogram(&mut chromatogram).unwrap();
+    continued(consumer.consume_chromatogram(&mut chromatogram));
     assert_eq!(reader.nr_chromatograms().unwrap(), 0);
     consumer.flush().unwrap();
     assert_eq!(reader.nr_chromatograms().unwrap(), 1);
@@ -247,7 +252,10 @@ fn add_run_replaces_the_run_written_at_the_end() {
         peaks: vec![Peak1D::new(100.0, 1.0)],
         ..MSSpectrum::default()
     };
-    consumer.consume_spectrum(&mut spectrum).unwrap();
+    // SQL-only storage keeps positive or negative polarity only, so the
+    // default loss policy refuses the default (unknown) one.
+    spectrum.instrument_settings.polarity = Polarity::Positive;
+    continued(consumer.consume_spectrum(&mut spectrum));
     consumer.finish().unwrap();
     let reader = MzMLSqliteHandler::new(&path, 0);
     assert_eq!(reader.run_id().unwrap(), 11);
@@ -340,7 +348,7 @@ fn native_full_metadata_refusals_happen_before_the_record_is_taken() {
     let error = consumer.consume_spectrum(&mut spectrum).unwrap_err();
     assert!(matches!(error, Error::Unsupported(_)), "{error:?}");
     consumer.set_loss_policy(LossPolicy::Source);
-    consumer.consume_spectrum(&mut spectrum).unwrap();
+    continued(consumer.consume_spectrum(&mut spectrum));
     assert_eq!(consumer.buffered_spectra().len(), 1);
     consumer.finish().unwrap();
 }
