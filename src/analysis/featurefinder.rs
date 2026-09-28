@@ -6,3 +6,5 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// The Biosaur2 feature detection workflow (`FEATUREFINDER/Biosaur2Algorithm.h`).
+pub mod biosaur2;
