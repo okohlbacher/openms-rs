@@ -1,0 +1,24 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {"path": "src/openms/include/OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h", "sha256": "a97fddf1ab81ba27c1a563247a6e3c075b5287a9a31d3e2b9dd37eadbfd5fca0"},
+  {"path": "src/openms/source/ANALYSIS/ID/SimpleSearchEngineAlgorithm.cpp", "sha256": "dabce52298797307953fc9fcc2f9db204a5c32e67dbe040cc7e96eea3fc170c5"},
+  {"path": "src/tests/class_tests/openms/source/SimpleSearchEngineAlgorithm_test.cpp", "sha256": "1f3f28ab77134cb6684efe1483341753c12e585e98ace6029ebfb1311558b9d0"}
+ ],
+ "fixtures": [
+  {"path": "tests/data/simple_search_engine/SimpleSearchEngine_1.fasta", "sha256": "1993d5dabaa5e63c6904fa1b2ec150f1920068a9299e7338ddbcb13f4b6b792d", "kind": "upstream TOPP test input, test-data 0cb15f2 topp/SimpleSearchEngine_1.fasta"},
+  {"path": "tests/data/simple_search_engine/SimpleSearchEngine_1.mzML", "sha256": "e281957d38c443e9459ba86d717eb06b17fd90b3f27afe74d2fac2cc160c62ea", "kind": "upstream TOPP test input, test-data 0cb15f2 topp/SimpleSearchEngine_1.mzML"},
+  {"path": "tests/data/simple_search_engine/SimpleSearchEngine_1.ini", "sha256": "fbc8a9f545058cb3289041c6771c40c4afb882ea6f9cfe178901687ee3712286", "kind": "upstream TOPP test parameters, test-data 0cb15f2 topp/SimpleSearchEngine_1.ini"},
+  {"path": "tests/data/simple_search_engine/SimpleSearchEngine_2.ini", "sha256": "e7093f04f3506af4881116a14b3e886ef0389a02c205f6e7fd83c461ead534e6", "kind": "upstream TOPP test parameters, test-data 0cb15f2 topp/SimpleSearchEngine_2.ini"},
+  {"path": "tests/data/simple_search_engine/SimpleSearchEngine_1_out.idXML", "sha256": "a4d91103a61f8661369233689a41857805d45d222a6bdf9e8ab04a184ab7d7ec", "kind": "retained C++ output, test-data 0cb15f2 topp/SimpleSearchEngine_1_out.idXML"},
+  {"path": "tests/data/simple_search_engine/SimpleSearchEngine_2_out.idXML", "sha256": "c5765a2a88dfd8f4a7d72d5f8814b0d875385661c54c94975959e4cd4d56ab6b", "kind": "retained C++ output, test-data 0cb15f2 topp/SimpleSearchEngine_2_out.idXML"}
+ ],
+ "package_revisions": {"test-data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3"},
+ "upstream_test_definition": "topp/CMakeLists.txt:3773-3789 (TOPP_SimpleSearchEngine_1, _1_out, _2, _2_out) at test-data 0cb15f2; comparison contract topp/FuzzyDiff.ini (ratio 1.01, absdiff 0.01) with whitelist 'IdentificationRun date' and 'SearchParameters id=\"SP_0\" db='",
+ "native_implementation": ["src/analysis/id/simple_search_engine.rs", "src/chemistry/decoy_random.rs"],
+ "native_tests": ["tests/simple_search_engine.rs"],
+ "support_document": "docs/SIMPLE_SEARCH_ENGINE_SUPPORT.md",
+ "evidence_tier": "Tier 1 (retained C++ outputs, decoded idXML under the upstream FuzzyDiff contract; largest measured relative deviation 2.1e-10) for topp_simple_search_engine_1/2_matches_retained_output; tier 4 for the other five tests.",
+ "target_verification": "cargo test --locked --test simple_search_engine on dax (default features): 7 passed"
+}

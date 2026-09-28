@@ -667,7 +667,9 @@ impl FragmentIndex {
         let digestor = ProteaseDigestion {
             enzyme: Protease::from_name(&p.enzyme)?,
             missed_cleavages: p.missed_cleavages,
-            min_length: p.peptide_min_length,
+            // Products are never empty, so the source's accepted minimum of 0
+            // selects the same products as 1, which the native digestion needs.
+            min_length: p.peptide_min_length.max(1),
             max_length: (p.peptide_max_length > 0).then_some(p.peptide_max_length),
             specificity: p.enzyme_specificity,
             ..ProteaseDigestion::default()

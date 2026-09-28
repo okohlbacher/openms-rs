@@ -984,3 +984,177 @@ fn build_is_identical_across_thread_counts() -> Result<()> {
     );
     Ok(())
 }
+
+// FragmentIndex_test.cpp:1851-1898
+#[test]
+fn snes_requires_b_and_y_ions() {
+    let mut p = snes_params(&[]);
+    p.add_b_ions = false;
+    assert!(FragmentIndex::new(p.clone()).is_err());
+    p.add_b_ions = true;
+    p.add_y_ions = false;
+    assert!(FragmentIndex::new(p.clone()).is_err());
+    p.add_y_ions = true;
+    p.snes_enabled = false;
+    p.add_b_ions = false;
+    assert!(FragmentIndex::new(p).is_ok());
+}
+
+// FragmentIndex_test.cpp:1901-1910
+#[test]
+fn spectrum_match_defaults_to_zero() {
+    let sm = openms::analysis::id::fragment_index::SpectrumMatch::default();
+    assert_eq!(sm.num_matched, 0);
+    assert_eq!(sm.subset_bitmask, 0);
+    assert_eq!(sm.sigma_delta, 0.0);
+    assert_eq!(sm.precursor_charge, 0);
+    assert_eq!(sm.isotope_error, 0);
+    assert_eq!(sm.peptide_idx, 0);
+}
+
+// FragmentIndex_test.cpp:1913-1953
+#[test]
+fn reconstruct_masks_the_snes_kind_bit() -> Result<()> {
+    let entries = [entry("p", "ACDEFGHIK")];
+    let mut p = snes_params(&[]);
+    p.peptide_max_length = 9;
+    let mut fi = index(p);
+    fi.build(&entries)?;
+    let mother = *fi
+        .peptides()
+        .iter()
+        .find(|p| FragmentIndex::is_single_c_mother(p.mod_bitmask))
+        .expect("Single-C mother");
+    let seq = fi.reconstruct_modified_sequence(&mother, &entries)?;
+    assert_eq!(seq.len(), usize::from(mother.sequence.1));
+    assert!(!seq.is_modified());
+    Ok(())
+}
+
+fn close(a: f64, b: f64) -> bool {
+    (a - b).abs() <= 1e-5 * b.abs().max(1.0)
+}
+
+// FragmentIndex_test.cpp:1956-1985
+#[test]
+fn sigma_delta_set_for_typical_config() {
+    let mut p = no_mods(FragmentIndexParameters::default());
+    p.modifications_variable = vec![
+        "Oxidation (M)".into(),
+        "Deamidated (N)".into(),
+        "Deamidated (Q)".into(),
+    ];
+    p.modifications_max_variable_mods_per_peptide = 2;
+    let deltas = index(p).compute_snes_sigma_delta_set(false, false);
+    let expected = [0.0, 0.984016, 1.968032, 15.994915, 16.978931, 31.989830];
+    assert_eq!(deltas.len(), expected.len());
+    for (a, b) in deltas.iter().zip(expected) {
+        assert!(close(*a, b), "{a} vs {b}");
+    }
+}
+
+// FragmentIndex_test.cpp:1988-2008
+#[test]
+fn sigma_delta_set_honors_protein_nterm_flag() {
+    let mut p = no_mods(FragmentIndexParameters::default());
+    p.modifications_variable = vec!["Acetyl (Protein N-term)".into()];
+    p.modifications_max_variable_mods_per_peptide = 1;
+    let fi = index(p);
+    assert_eq!(fi.compute_snes_sigma_delta_set(false, false), vec![0.0]);
+    let with = fi.compute_snes_sigma_delta_set(true, false);
+    assert_eq!(with.len(), 2);
+    assert!(close(with[0], 0.0) && close(with[1], 42.010565));
+}
+
+// FragmentIndex_test.cpp:2011-2040
+#[test]
+fn update_members_populates_the_three_sigma_sets() {
+    let mut p = no_mods(FragmentIndexParameters::default());
+    p.enzyme_specificity = DigestionSpecificity::None;
+    p.modifications_variable = vec!["Oxidation (M)".into(), "Acetyl (Protein N-term)".into()];
+    p.modifications_max_variable_mods_per_peptide = 1;
+    p.snes_enabled = true;
+    let fi = index(p);
+    let base = fi.snes_sigma_delta_set(SnesAnchor::None);
+    assert_eq!(base.len(), 2);
+    assert!(close(base[0], 0.0) && close(base[1], 15.994915));
+    let nterm = fi.snes_sigma_delta_set(SnesAnchor::ProtNterm);
+    assert_eq!(nterm.len(), 3);
+    assert!(close(nterm[1], 15.994915) && close(nterm[2], 42.010565));
+    assert_eq!(fi.snes_sigma_delta_set(SnesAnchor::ProtCterm).len(), 2);
+}
+
+// FragmentIndex_test.cpp:2043-2091
+#[test]
+fn realized_sub_sequence_applies_subset_bitmask() -> Result<()> {
+    let entries = [entry("p", "AKAMCDEFGR")];
+    let mut p = snes_params(&[]);
+    p.peptide_min_length = 5;
+    p.peptide_max_length = 10;
+    p.modifications_variable = vec!["Oxidation (M)".into()];
+    p.modifications_max_variable_mods_per_peptide = 1;
+    let mut fi = index(p);
+    fi.build(&entries)?;
+    let mother = find_mother(&fi, false, |p| p.sequence.0 == 1);
+    assert_eq!(
+        fi.reconstruct_realized_sub_sequence(&mother, &entries, 5, 0)?
+            .to_string(),
+        "KAMCD"
+    );
+    assert_eq!(
+        fi.reconstruct_realized_sub_sequence(&mother, &entries, 5, 1)?
+            .to_string(),
+        "KAM(Oxidation)CD"
+    );
+    Ok(())
+}
+
+fn xbz_index(max: usize) -> Result<FragmentIndex> {
+    let mut p = snes_params(&[]);
+    p.peptide_max_length = max;
+    let mut fi = index(p);
+    fi.build(&[entry("p", "ACDEFGHIXKLMNPQSTVWY")])?;
+    Ok(fi)
+}
+
+fn avoids_position_8(fi: &FragmentIndex) -> bool {
+    fi.peptides().iter().all(|m| {
+        let start = usize::from(m.sequence.0);
+        start > 8 || start + usize::from(m.sequence.1) <= 8
+    })
+}
+
+// FragmentIndex_test.cpp:2609-2651
+#[test]
+fn snes_mothers_avoid_ambiguous_residues() -> Result<()> {
+    let fi = xbz_index(8)?;
+    assert!(avoids_position_8(&fi));
+    assert!(fi.peptides().iter().any(|m| m.sequence == (0, 8)));
+    Ok(())
+}
+
+// FragmentIndex_test.cpp:2654-2697
+#[test]
+fn snes_single_n_mother_truncates_at_ambiguous_residue() -> Result<()> {
+    let fi = xbz_index(12)?;
+    assert!(
+        fi.peptides()
+            .iter()
+            .any(|m| !FragmentIndex::is_single_c_mother(m.mod_bitmask) && m.sequence == (0, 8))
+    );
+    assert!(avoids_position_8(&fi));
+    Ok(())
+}
+
+// FragmentIndex_test.cpp:2700-2744
+#[test]
+fn snes_single_c_mother_truncates_at_ambiguous_residue() -> Result<()> {
+    let fi = xbz_index(12)?;
+    assert!(
+        fi.peptides()
+            .iter()
+            .any(|m| FragmentIndex::is_single_c_mother(m.mod_bitmask) && m.sequence == (9, 11))
+    );
+    assert!(avoids_position_8(&fi));
+    Ok(())
+}
