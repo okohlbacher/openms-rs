@@ -25,3 +25,18 @@ Then look at KD / TreeGuided deps (KDTreeFeatureMaps, ClusterHierarchical, Stabl
 1. Wait for the CI sweep (started 20:58 on the tree before the oracle commit; oracle slice + clippy re-run on the final tree already) (scratch M1/sweep.log, logs in M1/sweep/); fix any red line.
 2. Append sweep result to M1/M1.md, cp it to .planning/lane-reports/M1.md.
 3. Final commit deleting NOTES.md.
+
+## Restart-2 plan (KD + TreeGuided), decided after reading the pinned C++
+- FF2a lane (worktree wf_cd066dab-0a7-34) ports ML/CLUSTERING (ClusterHierarchical, AverageLinkage,
+  ClusterAnalyzer), DistanceMatrix, BinaryTreeNode, KDTree. Do NOT duplicate them.
+- KD: port MapAlignmentAlgorithmKD in mapmatching/alignment_kd.rs against a trait (the KDTreeFeatureMaps
+  surface it uses: len, rt, charge, map_index, neighborhood, apply_transformations+optimize). Result is
+  independent of kd-tree query order (CC seeds by node index, members pushed in node order) -> a
+  brute-force test double gives the same answer. C++ quirk: the charge check in filterCCs_ is dead
+  (`continue` in the inner loop) -> preserve, defect candidate. Empty Param -> members uninitialised (UB).
+  Class test: NOT_TESTABLE everywhere; evidence = oracle on ibminode06 with real KDTreeFeatureMaps.
+- TreeGuided: port everything but buildTree's clustering; tree passed in as (left,right) pairs.
+  Math::median(..., sorted=true) on UNSORTED per-sequence feature RTs -> middle element, preserve.
+  maps_ranges never merged (tmp is dead). Class test gives tree literal (0,2),(0,1) + trafo_order,
+  unique ids 20/14, original_RT; data MapAlignmentAlgorithmTreeGuided_test_in{0,1,2}.featureXML.
+- CI sweep for the pre-restart tree running in background -> scratch M1/sweep.log.
