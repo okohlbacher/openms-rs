@@ -41,7 +41,7 @@
   {
    "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
    "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
-   "role": "Numeric string-operator declarations at lines865\u2013909 invalidate the earlier character-narrowing inference."
+   "role": "Numeric string-operator declarations at lines865–909 invalidate the earlier character-narrowing inference."
   }
  ],
  "fixtures": [],
@@ -190,13 +190,13 @@
   "Because of that, every record re-renders the header text and discards it: cost per record is the header plus the record, where the source pays the record only. Memory stays one record at a time, which is the property the class exists for. A future increment that exposes a record-level writer from src/format/mzml would remove the overhead.",
   "A record needing a sourceFileList or dataProcessingList other than the first record's is refused (Error::Unsupported) instead of being written with the dangling reference the source emits. A stream whose records carry differing source files or data-processing histories therefore cannot be written by this port at all; the whole-document writer handles it.",
   "The source parallelises nothing here, but MzMLHandler's binary encoding carries #pragma omp in places; this port is serial throughout, so a large record encodes on one core.",
-  "MzMLValidator is not ported: the source constructs one per consumer and passes it to every writer call. The crate's semantic validation is a separate operation behind the mzml-validation feature and is not run per record.",
-  "ProgressLogger is a base of the source class and is not threaded through this module.",
+  "MzMLValidator: its one effect is inside MzMLHandler::writeUserParam_, which asks it through validateCV_ (MzMLHandler.cpp:3576-3598, :3669) whether a metadata key naming a PSI-MS term is allowed at that element's mapping path and then writes a cvParam instead of a userParam. This consumer writes each record through mzml::write_with_options, so it inherits that writer's behaviour: header owners route through mzml_header/mapping.rs permitted(), record-level metadata is written as userParam only. The remaining difference is MzMLHandler's record writer's, shared byte for byte.",
   "Indexed mzML output is not offered: the source's writeFooter_ can emit an index from spectra_offsets_/chromatograms_offsets_, which this port does not track. Plain mzML only.",
   "Rust cannot report an error from a drop, so finish() replaces the destructor and dropping a consumer leaves the run and mzML elements unclosed. Documented at the method rather than hidden behind a best-effort Drop that would swallow an I/O failure.",
   "docs/doc-coverage.json was not rewritten: src/format/ms_data_writing_consumer.rs measures 100.0% (38/38) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
   "docs/core-sdk-coverage.json is now stale, because two new candidate Rust files exist without ledger entries. The integrator adds the two docs/core-sdk-reviewed-apis.json entries and runs 'python3 tools/core_sdk_coverage.py --write'; both files are outside this package's scope. It is clean on the base commit.",
-  "CI wiring was not added: append '--test ms_data_writing_consumer' to a '--features mzml' line of the minimum-rust job in .github/workflows/rust.yml. The test is gated on the mzml feature and passes under --all-features and under cargo +1.85.0."
+  "CI wiring was not added: append '--test ms_data_writing_consumer' to a '--features mzml' line of the minimum-rust job in .github/workflows/rust.yml. The test is gated on the mzml feature and passes under --all-features and under cargo +1.85.0.",
+  "Progress: none to port. MSDataWritingConsumer.cpp:20 binds MzMLHandler's const ProgressLogger& logger_ (MzMLHandler.h:468) to a temporary ProgressLogger(), which dangles after the constructor, and the streaming writeHeader_/writeSpectrum_/writeChromatogram_ never call it; only the load path (MzMLHandler.cpp:966-1497) and writeTo (:4763-4838) do."
  ],
  "numeric_operator_review": "The earlier claimed character narrowing was withdrawn after checking pinned StringUtils.h and an isolated executed overload-resolution probe. No full mzTab/MSDataWritingConsumer or full SDK C++ execution is claimed.",
  "external_reference_note": "Isolated overload-resolution probe, compiled and run on kim with GCC13.3 C++20. Numeric global overload block copied from pinned StringUtils.h; appendToStr functions replaced by std::to_string adapters and Size by std::size_t. No full SDK include closure or linking; proves presence/selectability of numeric overloads in OpenMS namespace contexts and falsifies the claim only char overloads exist.",

@@ -248,3 +248,15 @@ fn native_on_disc_store_refuses_encodings_the_streaming_writer_lacks() {
     assert!(file.load(&target, &mut exp).unwrap());
     assert_matches_whole_file_load(&mut exp, &mzml_file_load(&indexed()));
 }
+
+#[test]
+fn native_in_memory_store_of_no_records_is_refused() {
+    // An indexed mzML needs a record to index; the source writes a dummy `-1`
+    // offset instead (CPP-050).
+    let mut file = IndexedMzMLFileLoader::new();
+    let dir = TempDir::new(false).unwrap();
+    let target = dir.path().join("empty.mzML");
+    let error = file.store(&target, &MSExperiment::default()).unwrap_err();
+    assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
+    assert!(!target.exists());
+}

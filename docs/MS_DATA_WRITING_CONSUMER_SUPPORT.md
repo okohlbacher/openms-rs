@@ -50,13 +50,13 @@ Every public and protected member of the three classes in the header.
 | `protected Size chromatograms_expected_` | `MSDataWritingConsumer::expected_size().1` | |
 | `protected bool add_dataprocessing_` | `MSDataWritingConsumer::additional_data_processing().is_some()` | The flag and the pointer are one `Option` here. |
 | `protected DataProcessingPtr additional_dataprocessing_` | `MSDataWritingConsumer::additional_data_processing() -> Option<&Arc<DataProcessing>>` | |
-| `protected Internal::MzMLValidator* validator_` | not ported: the crate's semantic validation is a separate operation behind the `mzml-validation` feature and is not run per record | |
+| `protected Internal::MzMLValidator* validator_` | the whole-document writer's own mapping check, which this consumer reaches because it writes each record through `mzml::write_with_options` | The validator validates nothing on its own here: `MzMLHandler::writeUserParam_` asks it, through `validateCV_` (`MzMLHandler.cpp:3576-3598`, `:3669`), whether a metadata key naming a PSI-MS term is allowed at the element's mapping path, and if so writes a `cvParam` instead of a `userParam`. The port's header owners do the same through `mzml_header/mapping.rs` (`permitted`), but **record-level** metadata (spectrum and chromatogram `userParam`s, `write_scalar_metadata` in `mzml.rs`) is written as `userParam` only. That remaining difference belongs to `MzMLHandler`'s record writer, which this consumer shares byte for byte, and is recorded there; the header stays partial on it. |
 | `protected ExperimentalSettings settings_` | `MSDataWritingConsumer::settings()` | Read-only. |
 | `protected std::vector<std::vector<ConstDataProcessingPtr>> dps_` | the first record's own `Vec<Arc<DataProcessing>>`, kept as `header_processing`, beside the rendered `sourceFileList`, `dataProcessingList` and `softwareList` text and the set of identifiers the header declares | `dps_` never grows past the one entry `writeHeader_` fills it with, so `header_processing` is `dps[0]`. `processing_differs` compares a later record's history against it with element-wise `Arc::ptr_eq`, which is the source's `spec.getDataProcessing() != dps[0]` on the same model. The rendered text serves `ReferencePolicy::Checked`'s refusal instead. See *Native differences*. |
 | *(no source counterpart)* | `MSDataWritingConsumer::with_reference_policy`, `reference_policy()`, `ReferencePolicy` | `Checked` refuses a record the header cannot number; `SourceDangling` writes the source's dangling reference. See *Native differences*. |
 | inherited `MzMLHandler::writeHeader_` / `writeSpectrum_` / `writeChromatogram_` | `crate::format::mzml::write_with_options`, driven once per record | The port composes rather than inherits. |
 | inherited `MzMLHandlerHelper::writeFooter_` | the document-closing tags and the index in `finish()` | Indexed, as the inherited `write_index_` is. See *Indexed output*. |
-| inherited `ProgressLogger` base | not ported | |
+| the handler's `const ProgressLogger& logger_` | none needed: the source consumer reports no progress | `MSDataWritingConsumer.cpp:20` passes a temporary `ProgressLogger()` to the `MzMLHandler` constructor, which binds it to the reference member `logger_` (`MzMLHandler.h:468`), so the reference dangles once the constructor returns. The streaming path never uses it: `writeHeader_`, `writeSpectrum_` and `writeChromatogram_` make no logger call; only the load path (`MzMLHandler.cpp:966-1497`) and the whole-document `writeTo` (`:4763-4838`) do. There is therefore no progress behaviour to port, and no observable one to reproduce (a C++ defect candidate: calling the inherited public `writeTo` on a writing consumer would use the dangling reference). |
 
 ### `PlainMSDataWritingConsumer`
 
@@ -271,7 +271,12 @@ constants, `CountPolicy`, `with_limits`, `with_write_options`,
 - **`NoopMSDataWritingConsumer` takes no path**, so asking for a consumer that
   does nothing cannot truncate an existing output — the source's does, through
   its base constructor.
-- **`MzMLValidator` and `ProgressLogger` are not threaded through.**
+- **No `ProgressLogger`, because the source consumer has none that works**: its
+  handler's logger reference is bound to a temporary and the streaming path
+  never calls it (see the API mapping). **The `MzMLValidator`'s one effect**,
+  promoting a record's metadata key to a `cvParam` when the mapping allows the
+  term there, is not reproduced for record-level metadata — a gap of the shared
+  `MzMLHandler` record writer, not of this consumer.
 - **Serial.** `MzMLHandler` carries `#pragma omp` in its binary encoding; this
   port introduces no threads, so a large record encodes on one core.
 

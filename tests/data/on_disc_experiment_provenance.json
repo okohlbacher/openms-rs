@@ -283,8 +283,7 @@
     "This manifest is not listed in SOURCE_PROVENANCE.json, so tools/check_core_sdk.py does not verify the hashes recorded here. The MzMLFile_1.mzML hash was checked by hand against the pinned copy and against the second in-tree copy at tests/data/mzml_header/MzMLFile_1.original.mzML. Registering the manifest is the integrator's step.",
     "The source parallelises nothing in this class, but its own class documentation recommends copying it per OpenMP thread. This port is serial; every fetch takes &mut self and a second reader is a second open or try_clone. The performance gap is stated, not closed.",
     "setSkipXMLChecks is ported: it maps to the handler's options_mut().skip_xml_checks, which reaches the Base64 whitespace strip at src/format/mzml.rs:2386. The fixture's arrays carry no whitespace, so the test can assert that the flag is carried and the decode still succeeds, not that a whitespace-bearing array decodes differently.",
-    "The Interfaces::Spectrum / Interfaces::Chromatogram pointer overloads are not ported; the crate has no OpenSWATH Interfaces layer (INTERFACES/DataStructures.h is unmapped in docs/core-sdk-coverage.json).",
-    "IndexedMzMLFileLoader itself is not ported; only the materialisation loop of its store is, as load_experiment."
+    "The Interfaces::Spectrum / Interfaces::Chromatogram pointer overloads are not ported; the crate has no OpenSWATH Interfaces layer (INTERFACES/DataStructures.h is unmapped in docs/core-sdk-coverage.json)."
   ],
   "target_verification": {
     "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
