@@ -13,9 +13,13 @@ pub mod data_structures;
 pub mod itransition;
 pub mod mock_objects;
 pub mod mrm_feature_access;
+pub mod openswath_helper;
 pub mod scoring;
 pub mod spectrum_access;
 pub mod spectrum_access_openms;
+#[cfg(feature = "sqmass")]
+pub mod spectrum_access_sqmass;
+pub mod spectrum_addition;
 pub mod stats_helpers;
 pub mod swath_map;
 pub mod transition_experiment;

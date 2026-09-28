@@ -629,3 +629,34 @@ impl LightTargetedExperiment {
         map
     }
 }
+
+/// A [`LightTransition`] is a kernel [`Transition`](crate::kernel::mrm::Transition),
+/// so an OpenSWATH transition group is
+/// `MRMTransitionGroup<MSChromatogram, LightTransition>`, as the source's
+/// `MRMFeatureFinderScoring::TransitionGroupType` is.
+///
+/// Native: the source has no such trait; `MRMTransitionGroup` is a template
+/// that calls these members by name.
+impl crate::kernel::mrm::Transition for LightTransition {
+    fn native_id(&self) -> &str {
+        &self.transition_name
+    }
+    fn precursor_mz(&self) -> f64 {
+        self.precursor_mz
+    }
+    fn product_mz(&self) -> f64 {
+        self.product_mz
+    }
+    fn library_intensity(&self) -> f64 {
+        self.library_intensity
+    }
+    fn is_detecting(&self) -> bool {
+        self.flags.detecting()
+    }
+    fn is_identifying(&self) -> bool {
+        self.flags.identifying()
+    }
+    fn is_quantifying(&self) -> bool {
+        self.flags.quantifying()
+    }
+}
