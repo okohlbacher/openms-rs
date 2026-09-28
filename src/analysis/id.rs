@@ -8,6 +8,8 @@
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
 /// `ConsensusIDAlgorithm` and its eight variants.
 pub mod consensus_id;
+/// `IDMergerAlgorithm`: merge identification runs into one run.
+pub mod id_merger;
 /// `IDScoreSwitcherAlgorithm`: switch main scores to a meta-value score.
 pub mod id_score_switcher;
 /// `NeedlemanWunsch` (`ANALYSIS/SEQUENCE`), used by the PEPMatrix consensus.
