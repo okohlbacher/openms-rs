@@ -59,7 +59,10 @@ fn scores() -> Scores {
     }
 }
 
-fn result(steps: &[(Option<ProcessingStepId>, &[(ScoreTypeId, f64)])]) -> ScoredProcessingResult {
+/// One applied step: its optional processing step and its scores.
+type Step<'a> = (Option<ProcessingStepId>, &'a [(ScoreTypeId, f64)]);
+
+fn result(steps: &[Step]) -> ScoredProcessingResult {
     let mut value = ScoredProcessingResult::default();
     for (step, scores) in steps {
         value
