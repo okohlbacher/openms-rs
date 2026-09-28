@@ -607,7 +607,7 @@ fn global_metadata(db: &Connection, sql: &str) -> Result<Vec<(String, String)>> 
 
 /// A column as SQLite's text conversion gives it to a `sqlite3_exec` callback;
 /// `None` for NULL.
-fn sql_text(value: ValueRef<'_>) -> Option<String> {
+pub(crate) fn sql_text(value: ValueRef<'_>) -> Option<String> {
     match value {
         ValueRef::Null => None,
         ValueRef::Integer(i) => Some(i.to_string()),

@@ -8,7 +8,7 @@
 //! nor a C++ build to execute. The section that needs no data, loading a
 //! missing path, is ported as `missing_directory_is_not_readable` (tier 3).
 //! Every other expectation here is derived independently of the port (tier 4):
-//! the synthetic frames are encoded by this file from the TDF layout that
+//! the synthetic frames are encoded by `tests/support/tdf_fixture.rs` from the TDF layout that
 //! opentims decodes (`TimsFrame::save_to_buffs`), and the expected m/z, 1/K0
 //! and intensities are computed from the opentims formulas with values chosen
 //! so the arithmetic is exact or stated.
@@ -19,145 +19,10 @@ use openms::format::bruker_tims_file::{
     BrukerTimsFile, CentroidAlgo, Config, ExportMode, IM_ARRAY_NAME, TimsCalibrationStrategy,
 };
 use openms::format::tims_data_handle::{TdfLimits, TimsDataHandle};
-use rusqlite::Connection;
-use std::path::PathBuf;
 
-/// One synthetic frame: its metadata and the `(tof, raw intensity)` peaks of
-/// each scan, TOF ascending.
-struct Frame {
-    id: u32,
-    time: f64,
-    msms_type: u32,
-    accumulation_time: f64,
-    scans: Vec<Vec<(u32, u32)>>,
-}
-
-/// Encode one frame packet exactly as opentims decodes it: header words with
-/// twice the per-scan peak count at `s + 1`, TOF deltas from `u32::MAX`, four
-/// byte planes, zstd, then the `(packet size, scan count)` header.
-fn encode(frame: &Frame) -> Vec<u8> {
-    let num_scans = frame.scans.len();
-    let mut words = vec![0u32; num_scans];
-    for s in 0..num_scans.saturating_sub(1) {
-        words[s + 1] = 2 * frame.scans[s].len() as u32;
-    }
-    for scan in &frame.scans {
-        let mut previous = u32::MAX;
-        for &(tof, intensity) in scan {
-            words.push(tof.wrapping_sub(previous));
-            words.push(intensity);
-            previous = tof;
-        }
-    }
-    let mut planes = Vec::with_capacity(words.len() * 4);
-    for byte in 0..4 {
-        planes.extend(words.iter().map(|w| (w >> (8 * byte)) as u8));
-    }
-    let compressed =
-        ruzstd::encoding::compress_to_vec(&planes[..], ruzstd::encoding::CompressionLevel::Fastest);
-    let mut packet = Vec::new();
-    packet.extend_from_slice(&(8 + compressed.len() as u32).to_le_bytes());
-    packet.extend_from_slice(&(num_scans as u32).to_le_bytes());
-    packet.extend_from_slice(&compressed);
-    packet
-}
-
-const MZ_LOWER: f64 = 100.0;
-const MZ_UPPER: f64 = 1600.0;
-const SAMPLES: u32 = 1000;
-
-/// `(sqrt(100) + (sqrt(1600) - sqrt(100)) / 1000 * tof)^2 = (10 + 0.03 tof)^2`.
-fn mz_of(tof: u32) -> f64 {
-    let slope = (MZ_UPPER.sqrt() - MZ_LOWER.sqrt()) / f64::from(SAMPLES);
-    let value = MZ_LOWER.sqrt() + slope * f64::from(tof);
-    value * value
-}
-
-/// Linear 1/K0 over `[0.5, 1.5]` with `MAX(NumScans) = scan_max`: exact in
-/// binary for a power-of-two `scan_max`.
-fn im_of(scan: u32, scan_max: u32) -> f64 {
-    1.5 + (0.5 - 1.5) / f64::from(scan_max) * f64::from(scan)
-}
-
-struct Dataset {
-    dir: PathBuf,
-}
-
-impl Drop for Dataset {
-    fn drop(&mut self) {
-        let _ = std::fs::remove_dir_all(&self.dir);
-    }
-}
-
-/// Write `analysis.tdf` and `analysis.tdf_bin` for `frames`, then run `extra`
-/// SQL on the database.
-fn dataset(name: &str, frames: &[Frame], extra: &str) -> Dataset {
-    let dir = std::env::temp_dir().join(format!("openms-tdf-{}-{name}.d", std::process::id()));
-    let _ = std::fs::remove_dir_all(&dir);
-    std::fs::create_dir_all(&dir).unwrap();
-    let mut bin = Vec::new();
-    let db = Connection::open(dir.join("analysis.tdf")).unwrap();
-    db.execute_batch(
-        "CREATE TABLE GlobalMetadata (Key TEXT PRIMARY KEY, Value TEXT);
-         INSERT INTO GlobalMetadata VALUES
-           ('TimsCompressionType', '2'), ('MzAcqRangeLower', '100.000000'),
-           ('MzAcqRangeUpper', '1600.000000'), ('DigitizerNumSamples', '1000'),
-           ('AcquisitionSoftware', 'timsControl'), ('OneOverK0AcqRangeLower', '0.5'),
-           ('OneOverK0AcqRangeUpper', '1.5');
-         CREATE TABLE Frames (Id INTEGER PRIMARY KEY, Time REAL, NumScans INTEGER,
-           NumPeaks INTEGER, MsMsType INTEGER, AccumulationTime REAL, TimsId INTEGER,
-           TimsCalibration INTEGER);",
-    )
-    .unwrap();
-    for frame in frames {
-        let packet = encode(frame);
-        let peaks: usize = frame.scans.iter().map(Vec::len).sum();
-        db.execute(
-            "INSERT INTO Frames VALUES (?, ?, ?, ?, ?, ?, ?, 1)",
-            rusqlite::params![
-                frame.id,
-                frame.time,
-                frame.scans.len() as u32,
-                peaks as u32,
-                frame.msms_type,
-                frame.accumulation_time,
-                bin.len() as i64
-            ],
-        )
-        .unwrap();
-        bin.extend_from_slice(&packet);
-    }
-    db.execute_batch(extra).unwrap();
-    std::fs::write(dir.join("analysis.tdf_bin"), bin).unwrap();
-    Dataset { dir }
-}
-
-/// An MS1 frame (Id 1, 8 scans) and an MS2 frame (Id 2, 8 scans).
-fn two_frames() -> Vec<Frame> {
-    let mut ms1 = vec![Vec::new(); 8];
-    ms1[0] = vec![(500, 7), (900, 3)];
-    ms1[3] = vec![(100, 11)];
-    ms1[7] = vec![(250, 5), (251, 6)];
-    let mut ms2 = vec![Vec::new(); 8];
-    ms2[2] = vec![(400, 20)];
-    ms2[5] = vec![(300, 40)];
-    vec![
-        Frame {
-            id: 1,
-            time: 10.0,
-            msms_type: 0,
-            accumulation_time: 100.0,
-            scans: ms1,
-        },
-        Frame {
-            id: 2,
-            time: 10.5,
-            msms_type: 9,
-            accumulation_time: 50.0,
-            scans: ms2,
-        },
-    ]
-}
+#[path = "support/tdf_fixture.rs"]
+mod fixture;
+use fixture::{Frame, dataset, im_of, mz_of, two_frames};
 
 fn frame_config() -> Config {
     Config {

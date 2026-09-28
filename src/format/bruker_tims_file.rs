@@ -693,7 +693,7 @@ fn open_handle(path: &Path, config: &Config) -> Result<TimsDataHandle> {
 
 /// SQLite's integer conversion of a column (`getInt`): NULL and blobs 0,
 /// reals truncated, text by its leading number; the low 32 bits.
-fn sql_int(value: ValueRef<'_>) -> i32 {
+pub(crate) fn sql_int(value: ValueRef<'_>) -> i32 {
     match value {
         ValueRef::Integer(i) => i as i32,
         ValueRef::Real(r) => (r as i64) as i32,
@@ -705,7 +705,7 @@ fn sql_int(value: ValueRef<'_>) -> i32 {
 }
 
 /// SQLite's real conversion of a column (`getDouble`).
-fn sql_double(value: ValueRef<'_>) -> f64 {
+pub(crate) fn sql_double(value: ValueRef<'_>) -> f64 {
     match value {
         ValueRef::Integer(i) => i as f64,
         ValueRef::Real(r) => r,
