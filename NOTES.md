@@ -78,3 +78,12 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
 - XQuest next: needs faithful OPXLHelper addXLTargetDecoyMV/addBetaAccessions/combineTopRanksFromPairs/
   removeBetaPeptideHits/computeDeltaScores (mzidentml.rs copies DIVERGE on purpose; do not reuse blindly).
   Writer tier 1: XFDR_test_out{1,2,3,4,5,7}.xquest.xml retained (TOPP_XFDR_* CMakeLists 3478-3510).
+
+## Incarnation 5 (same worktree, restarted)
+- HEAD 210d49d: PepXMLFileMascot milestone committed (gated). protXML aligned with integ-F.
+- No lane report / ledger fragment written yet.
+- Next step:
+  1. XQuestResultXMLFile + handler (src/format/xquest_result_xml.rs) if feasible; else report as gap.
+  2. Write report .planning/lane-reports/F3a.md + ledger wave4/F3a.json (covering budget fix,
+     Percolator, protXML(integ-F), PepXMLFileMascot, XQuest).
+  3. Delete NOTES.md in final commit.
