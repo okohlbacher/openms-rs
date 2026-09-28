@@ -669,8 +669,9 @@ fn exported_tables_match_the_release_build() {
         let theirs = ParquetFile::read_table(data(file)).unwrap();
         assert_eq!(ours.schema().fields(), theirs.schema().fields(), "{file}");
         assert_eq!(normalized(&ours), normalized(&theirs), "{file}");
-        let mut ours_keys: Vec<&String> = ours.schema().metadata().keys().collect();
-        let mut theirs_keys: Vec<&String> = theirs.schema().metadata().keys().collect();
+        let (ours_schema, theirs_schema) = (ours.schema(), theirs.schema());
+        let mut ours_keys: Vec<&String> = ours_schema.metadata().keys().collect();
+        let mut theirs_keys: Vec<&String> = theirs_schema.metadata().keys().collect();
         ours_keys.sort();
         theirs_keys.sort();
         assert_eq!(ours_keys, theirs_keys, "{file}");
