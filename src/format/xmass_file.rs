@@ -434,7 +434,7 @@ mod tests {
             Err(Error::InvalidValue(_))
         ));
         assert!(matches!(
-            directory_prefix(Path::new("a\u{e9}d")),
+            directory_prefix(Path::new("\u{e9}ab")),
             Err(Error::InvalidValue(_))
         ));
     }

@@ -12,10 +12,11 @@
 use openms::format::acqus_handler::AcqusHandler;
 use openms::format::fid_handler::FidHandler;
 use openms::format::xmass_file::{LoadOptions, TruncatedFid, XMassFile};
+use openms::kernel::SpectrumType;
 use openms::metadata::{
     AnalyzerType, InletType, IonizationMethod, Polarity, ProcessingAction, ScanMode,
 };
-use openms::{Error, MSExperiment, MSSpectrum, SpectrumType};
+use openms::{Error, MSExperiment, MSSpectrum};
 use std::path::{Path, PathBuf};
 
 fn data(name: &str) -> PathBuf {
