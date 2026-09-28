@@ -45,6 +45,12 @@ Code goes in src/analysis/id/ (append `pub mod` to src/analysis/id.rs only).
   ../oracle/I1-iddecoy on ibminode06 Release, identical runs, sha oracle.tsv 804014f9...; Rust within 7.4e-15/4.4e-16/9.1e-15).
 - clippy --all-targets --all-features clean on dax after those.
 
+- IDScoreGetterSetter: decided untouched (logic inline in false_discovery_rate.rs; duplication risk).
+- COMMITTED docs/ID_CONSENSUS_MERGE_SUPPORT.md + tests/data/id_consensus_merge_provenance.json.
+- Ledger fragment WRITTEN: .planning/ledger-fragments/wave4/I1.json (17 entries) via scratchpad/mkledger.py.
+- MSRV 1.85 slices: idxml (consensus_id 11, id_merger 5, id_score_switcher 6, ppr 4), consensusxml (cmm 5) pass.
+- CI sweep running: scratchpad/sweep1 (slot I1-sweep).
+
 ## Next step
-1. IDScoreGetterSetter (609 header, no tests) -> maybe partial; check src/analysis/false_discovery_rate.rs overlap first.
-2. Report (.planning/lane-reports/I1.md) + ledger (.planning/ledger-fragments/wave4/I1.json); doc/MSRV/ci sweep.
+1. Wait for sweep1 + slices nofeat/lib; then write report .planning/lane-reports/I1.md (Bash heredoc).
+2. Final commit deleting NOTES.md.
