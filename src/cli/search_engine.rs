@@ -151,7 +151,12 @@ impl SearchEngineBase {
             path,
             RAWFILE_INSPECTED_SPECTRA,
             &options,
-            &ReadOptions::default(),
+            // Source loading (decision D10): the source's `MzMLFile` drops a
+            // `softwareRef` or `dataProcessingRef` that names no definition
+            // (`MzMLHandler.cpp:920-952`), as the class test's
+            // `Single_MS2_profileMode.mzML` needs; the library default
+            // refuses it.
+            &ReadOptions::source(),
             CentroidInfoLimits::default(),
         )?;
         // The source looks the level up as an unsigned key, so a negative

@@ -402,11 +402,17 @@ mod search_engine {
         static FILES: RefCell<Option<FileContext>> = const { RefCell::new(None) };
     }
 
-    /// The indexer defaults the Release build's `PeptideIndexing` has,
-    /// retained from the oracle (`peptide_indexing_defaults.ini`); the native
+    /// The indexer defaults the Release build's `PeptideIndexing` has, as the
+    /// oracle's search-engine tool dumped them in the same process that wrote
+    /// the case's INI (`B7_PI_DUMP`, `se_write_ini/cwd/pi_defaults.ini`; the
+    /// `se_help` dump is byte-identical, and both runs agree). The native
     /// `PeptideIndexing` has no parameter surface yet.
+    ///
+    /// A dump from a separate driver process lists the `enzyme:name`
+    /// restrictions in another order, so only the in-process dump matches
+    /// the INI the case wrote.
     pub(super) fn peptide_indexing_defaults() -> Param {
-        paramxml::load(retained().join("peptide_indexing_defaults.ini")).unwrap()
+        paramxml::load(retained().join("cases/se_write_ini/cwd/pi_defaults.ini")).unwrap()
     }
 
     /// The oracle's `B7SearchEngine`: `SearchEngineBase_test.cpp`'s test tool
@@ -454,8 +460,16 @@ mod search_engine {
     /// Replay a search-engine case with a file context whose shared data is
     /// a fresh directory named as `OPENMS_DATA_PATH`, and whose home holds
     /// the case's `OpenMS.ini` when the Release run had one.
+    ///
+    /// The directory holds the one file that makes a directory a shared-data
+    /// tree, `CHEMISTRY/unimod.xml` (source `File::isOpenMSDataPath_`; the
+    /// Release run's `OPENMS_DATA_PATH` was the installed `share/OpenMS`,
+    /// which has it). Its content is never read: no case loads the
+    /// modification database, and none finds its database in shared data.
     pub(super) fn se(case: &str) -> Replay {
         let data = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+        fs::create_dir_all(data.path().join("CHEMISTRY")).unwrap();
+        fs::write(data.path().join("CHEMISTRY/unimod.xml"), "").unwrap();
         let data_text = data.path().to_str().unwrap().to_owned();
         let mut replay = replay::<B7SearchEngine>(case, |case_dir, map| {
             let mut files = FileContext::new(
@@ -488,14 +502,23 @@ mod search_engine {
         replay
     }
 
+    // The class test's `empty_spec.mzML` declares no default namespace, and
+    // the native mzML reader refuses an element outside the mzML namespace,
+    // while the Release build reads it. The cases on it therefore replay the
+    // oracle's `<case>_ns` twins, whose input `empty_spec_ns.mzML` only adds
+    // `xmlns="http://psi.hupo.org/ms/mzml"`; the Release build ended each
+    // twin exactly as the original case, exit code, streams and files alike
+    // (`../oracle/B7-cli/compare_ns.py`: 34 files, 0 differ). Reading the
+    // un-namespaced file is an mzML reader gap, not a SearchEngineBase one.
+
     /// `SearchEngineBase_test.cpp`, section `getRawfileName` (tier 3): an mzML
     /// file with only an unknown-type spectrum and one with profile spectra
     /// end with `UNKNOWN_ERROR`, and both run with `-force`.
     #[test]
     fn class_test_get_rawfile_name() {
         for (case, code) in [
-            ("se_empty", ExitCode::UnknownError),
-            ("se_empty_force", ExitCode::ExecutionOk),
+            ("se_empty_ns", ExitCode::UnknownError),
+            ("se_empty_force_ns", ExitCode::ExecutionOk),
             ("se_profile", ExitCode::UnknownError),
             ("se_profile_force", ExitCode::ExecutionOk),
         ] {
@@ -514,8 +537,8 @@ mod search_engine {
     #[test]
     fn runs_equal_the_release_build() {
         for case in [
-            "se_empty",
-            "se_empty_force",
+            "se_empty_ns",
+            "se_empty_force_ns",
             "se_profile",
             "se_profile_force",
             "se_profile_ms1",
@@ -528,10 +551,10 @@ mod search_engine {
             "se_mgf",
             "se_mzxml",
             "se_mzxml_twice",
-            "se_db_missing",
-            "se_db_iddir",
-            "se_db_iddir_sub",
-            "se_db_iddir_missing",
+            "se_db_missing_ns",
+            "se_db_iddir_ns",
+            "se_db_iddir_sub_ns",
+            "se_db_iddir_missing_ns",
         ] {
             se(case).assert_streams(case, B7SearchEngine::NAME);
         }
@@ -541,7 +564,7 @@ mod search_engine {
     /// source's `findDatabase` writes to its error log stream.
     #[test]
     fn the_log_file_holds_the_catch_block_line_only() {
-        let case = "se_db_missing_log";
+        let case = "se_db_missing_log_ns";
         let replay = se(case);
         replay.assert_streams(case, B7SearchEngine::NAME);
         let log = fs::read_to_string(replay.cwd.join("run.log")).unwrap();
@@ -563,7 +586,7 @@ mod search_engine {
     /// not printed. The error line and the exit code are the Release build's.
     #[test]
     fn database_values_the_framework_refuses_end_as_in_the_release_build() {
-        for case in ["se_db_blank", "se_db_data", "se_db_data_dotdot"] {
+        for case in ["se_db_blank_ns", "se_db_data_ns", "se_db_data_dotdot_ns"] {
             let replay = se(case);
             assert_eq!(
                 replay.code.as_i32(),

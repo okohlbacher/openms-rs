@@ -2185,10 +2185,15 @@ fn format_listed(formats: &[&str], kind: FileType) -> bool {
 /// parameter does not accept is `InvalidParameter`, exit 6. A parameter without
 /// registered formats is not checked.
 ///
-/// `get_type` fails where content recognition cannot read the file, for
-/// example on a directory with an unknown name, for which the source reports an
-/// unknown type (an open follow-up of `src/format/file_handler.rs`). Such a
-/// failure is treated here as an undetermined format, with the warning.
+/// A `skipexists` input skips the readability check, and a name no type
+/// claims then reaches content recognition: a file that does not exist ends
+/// the run as the source's `FileNotFound` does (`Error: File not found (the
+/// file '<path>' could not be found)`, exit 1), and one that cannot be opened
+/// for lack of permission as its `FileNotReadable` (exit 2). `get_type` also
+/// fails where content recognition cannot read an existing path, for example
+/// a directory with an unknown name, for which the source reports an unknown
+/// type (an open follow-up of `src/format/file_handler.rs`). Such a failure is
+/// treated here as an undetermined format, with the warning.
 fn input_path(
     session: &Session<'_>,
     entry: &ParameterInformation,
@@ -2205,7 +2210,34 @@ fn input_path(
     if formats.is_empty() {
         return Ok(None);
     }
-    let kind = FileHandler::get_type(path).unwrap_or(FileType::Unknown);
+    let kind = match FileHandler::get_type(path) {
+        Ok(kind) => kind,
+        // Only a `skipexists` input gets here without the readability check.
+        // For a name no type claims, the source's content recognition opens
+        // the file with `TextFile`, which throws `FileNotFound` or
+        // `FileNotReadable` (`TextFile.cpp:32-42` at core bc9cc12), and the
+        // run ends in that exception's catch block (`TOPPBase.cpp:436-453`).
+        // Release oracle: `se_db_blank` in `../oracle/B7-cli`.
+        Err(Error::Io(_)) if !file::exists(path) => {
+            session.error(
+                out,
+                err,
+                &format!("Error: File not found (the file '{path}' could not be found)"),
+            )?;
+            return Ok(Some(ExitCode::InputFileNotFound));
+        }
+        Err(Error::Io(error)) if error.kind() == std::io::ErrorKind::PermissionDenied => {
+            session.error(
+                out,
+                err,
+                &format!(
+                    "Error: File not readable (the file '{path}' is not readable for the current user)"
+                ),
+            )?;
+            return Ok(Some(ExitCode::InputFileNotReadable));
+        }
+        Err(_) => FileType::Unknown,
+    };
     if kind == FileType::Unknown {
         session.warn(
             out,
