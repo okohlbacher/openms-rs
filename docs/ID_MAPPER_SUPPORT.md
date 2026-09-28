@@ -177,3 +177,44 @@ empty fragment row and a non-numeric field are `Error::InvalidValue` (the source
 numbers are parsed by Rust's parser with `StringUtils`' whitespace, `+` and range rules rather
 than by `std::from_chars`. Evidence: the class test's three sections (tier 3, its default
 `TEST_REAL_SIMILAR` tolerance kept) plus exact values read off the fixture (tier 4).
+
+## MetaboliteSpectralMatching
+
+Rust: `src/analysis/id/metabolite_spectral_matching.rs`; tests:
+`tests/metabolite_spectral_matching.rs`; provenance:
+`tests/data/metabolite_spectral_matching_provenance.json`. Status **partial**: the
+default `merge_spectra = true` needs `PROCESSING/SPECTRAMERGING/SpectraMerger.h`
+(`mergeSpectraPrecursors`), which is not ported; `run` returns `Error::Unsupported` for it.
+
+| Source member | Rust |
+|---|---|
+| class `SpectralMatch` (17 fields, getters/setters, copy/assignment) | `SpectralMatch` with public fields, `Default` (CCS = `ImTypes::DRIFTTIME_NOT_SET`), `Clone` |
+| `MetaboliteSpectralMatching()` + parameters `prec_mass_error_value`, `frag_mass_error_value`, `mass_error_unit`, `report_mode`, `ionization_mode`, `merge_spectra`, `ccs_error_percent` | `MetaboliteSpectralMatching` fields, `defaults`, `to_param`, `from_param`, `from_param_with_warnings`; enums `MassErrorUnit`, `ReportMode`, `IonizationMode` |
+| static `computeHyperScore(double, bool, const MSSpectrum&, const MSSpectrum&, double)` | `compute_hyper_score` |
+| static `computeHyperScore(..., std::vector<PeptideHit::PeakAnnotation>&, double)` | `compute_hyper_score_with_annotations` |
+| `run(PeakMap&, PeakMap&, MzTab&, std::string& out_spectra)` | `run(&mut MSExperiment, &mut MSExperiment, &mut MzTab, &str) -> Result<Vec<String>>` (warnings returned) |
+| protected `updateMembers_` | `from_param` |
+| protected static `computeHyperScore_` | private `hyper_score` |
+| private `exportMzTab_` | private `export_mztab` |
+| file-local `extractCCS`, `PrecursorMZLess`, `SpectralMatchScoreGreater` | private `extract_ccs`, stable sorts |
+| base `ProgressLogger` | not ported (no progress output) |
+
+Preserved: library sorted by precursor m/z in place; sliding `WindowMower` (20 Th, 5 peaks) on
+the experiment in place, the thinned spectra stored as mzML when `out_spectra` is given; the
+precursor window in the fragment unit; charge-sign skip; CCS from CCS drift time, 1/K0 via
+`ImTypes::one_over_k0_to_ccs`, or a numeric `CCS` meta value, checked on the spectrum then the
+first precursor; CCS filtering only when both are known; hyperscore `ln(dot) + ln(min(N,170)!)`
+clamped at 0 with fewer than three matches scoring 0; RT floored to 0.1 s; identifier fallback
+GNPS_Spectrum_ID → Massbank_Accession_ID → Metabolite_Name → native ID; top3/best; every mzTab
+cell and optional column of `exportMzTab_` (`opt_ppm_error` and CCS columns through
+`StringUtils::toStr(double)`, `opt_match_score` through a default `std::ostream`, i.e. `%g`
+at precision 6). Native: `std::sort` ties (library entries with equal precursor m/z, equal scores)
+keep input order instead of being unspecified; a library spectrum without precursor, unsorted
+spectra, and short annotation arrays are errors (source UB / `std::out_of_range`); a scored
+candidate lacking one of the string meta values `HMDB_ID`, `Sum_Formula`, `Inchi_String`,
+`SMILES_String`, `Precursor_Ion` is `Error::InvalidValue` as the source's `ConversionError`;
+`mztab_out` is untouched on error. `boost::math::factorial<double>` is reproduced by exact integer
+arithmetic rounded to nearest (Boost's table holds the correctly rounded values); not executed
+against Boost. Evidence: tier 3 for every class-test section (library, parameters and CCS
+scenarios transcribed), tier 4 for the exported cells, hyperscore values and error cases
+derived from the source formula.
