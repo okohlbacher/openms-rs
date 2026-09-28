@@ -100,3 +100,8 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
 - [inc5] GREEN: tests/xquest_result_xml.rs 11/11 on dax (t4.log). Ad hoc with all 26 oracle cases incl.
   XFDR_test_in2/in3/out3/4/5/7 (not committed, size): 4 release_ tests pass (t5_adhoc.log).
   Next: clippy+MSRV gate, docs/XQUEST_RESULT_XML_SUPPORT.md, provenance json, milestone commit, report+ledger.
+- [inc5] XQuest milestone ec9251d. Ledger fragment written (scratchpad/F3a/ledger.py regenerates it; MASCOT_DONE flag).
+  CI sweep running -> scratchpad/F3a/sweep.out + sweep/. Report not yet written.
+- Next: close MascotXMLFile custom scan_regex gap: TitleReferenceFormat::Regex(usize) + SpectrumTitleLookup.regex
+  (general SpectrumMetaDataLookup) + pub(crate) per-format method in spectrum_meta_data_lookup.rs; oracle
+  ../oracle/F3a-mascot-regex (initializeLookup with custom regex + load MascotXMLFile_test_2, print RT/MZ).
