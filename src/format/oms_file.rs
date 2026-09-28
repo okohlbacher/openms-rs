@@ -204,9 +204,19 @@ impl OmsFile {
         Self { log_type }
     }
 
-    /// The progress log type.
+    /// The progress log type (the source's protected `log_type_`, also read
+    /// through the inherited `ProgressLogger::getLogType`).
     pub fn log_type(&self) -> ProgressLogType {
         self.log_type
+    }
+
+    /// Change the progress log type (the inherited
+    /// `ProgressLogger::setLogType`). The source's load and store helpers are
+    /// built with the `log_type_` given to the constructor, which
+    /// `setLogType` does not update; here the loads and stores use the type
+    /// set last.
+    pub fn set_log_type(&mut self, log_type: ProgressLogType) {
+        self.log_type = log_type;
     }
 
     /// Open `filename` read-only and read its schema version, as the source's
