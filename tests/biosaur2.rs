@@ -39,9 +39,10 @@ use openms::concept::unique_id::UniqueIdGenerator;
 use openms::kernel::faims_helper::FaimsHelper;
 use openms::kernel::ranges::MSDim;
 use openms::kernel::{DataArray, MSChromatogram, SpectrumType};
+use openms::kernel::{Feature, FeatureMap};
 use openms::metadata::{DriftTimeUnit, MetaValueData, ProcessingAction};
 use openms::param::ParamValue;
-use openms::{Error, FeatureMap, MSExperiment, MSSpectrum, Peak1D};
+use openms::{Error, MSExperiment, MSSpectrum, Peak1D};
 use std::collections::BTreeMap;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -327,7 +328,7 @@ fn configured(parameters: &str) -> Biosaur2Algorithm {
     Biosaur2Algorithm::from_param(&param).unwrap()
 }
 
-fn meta_text(feature: &openms::Feature) -> String {
+fn meta_text(feature: &Feature) -> String {
     if feature.metadata.is_empty() {
         return "-".into();
     }
@@ -335,9 +336,15 @@ fn meta_text(feature: &openms::Feature) -> String {
     for (key, value) in &feature.metadata {
         out.push_str(key);
         out.push('=');
-        match &value.data {
+        match value.data() {
             MetaValueData::Float(v) => out.push_str(&format!("d:{:016x}", v.to_bits())),
             MetaValueData::Integer(v) => out.push_str(&format!("i:{v}")),
+            MetaValueData::FloatList(values) => {
+                out.push_str("l:");
+                for v in values {
+                    out.push_str(&format!("{:016x},", v.to_bits()));
+                }
+            }
             other => out.push_str(&format!("s:{other:?}")),
         }
         out.push(';');
@@ -345,7 +352,32 @@ fn meta_text(feature: &openms::Feature) -> String {
     out
 }
 
-fn hull_text(feature: &openms::Feature) -> String {
+/// The driver prints a double list with `DataValue::toString`, `[a, b]` at
+/// 18 significant digits, which round-trips; turn it into the bit patterns
+/// [`meta_text`] prints.
+fn normalise_meta(text: &str) -> String {
+    let mut out = String::new();
+    for entry in text.split(';').filter(|e| !e.is_empty()) {
+        match entry.split_once("=s:[") {
+            Some((key, list)) => {
+                out.push_str(key);
+                out.push_str("=l:");
+                for v in list
+                    .trim_end_matches(']')
+                    .split(", ")
+                    .filter(|v| !v.is_empty())
+                {
+                    out.push_str(&format!("{:016x},", v.parse::<f64>().unwrap().to_bits()));
+                }
+            }
+            None => out.push_str(entry),
+        }
+        out.push(';');
+    }
+    if out.is_empty() { "-".into() } else { out }
+}
+
+fn hull_text(feature: &Feature) -> String {
     let mut out = String::new();
     for hull in &feature.convex_hulls {
         for p in hull.hull_points() {
@@ -490,9 +522,11 @@ fn check_case(name: &str) {
             hull_text(feature),
             feature.subordinates.len().to_string(),
         ];
+        let mut expected_record = record[3..14].to_vec();
+        expected_record[8] = normalise_meta(&expected_record[8]);
         assert_eq!(
             got.as_slice(),
-            &record[3..14],
+            expected_record.as_slice(),
             "{name}: feature {}",
             record[2]
         );
@@ -844,8 +878,11 @@ fn averagine_table_is_the_binomial_model() {
         let sum: f64 = raw.iter().sum();
         for (k, (&p, &r)) in probs.iter().zip(&raw).enumerate() {
             let independent = r / sum;
+            // statrs evaluates exp(ln C(n, k) + k ln p + (n - k) ln(1 - p))
+            // with a Lanczos ln_gamma, good to about 1e-12 relative at these
+            // arguments; a wrong model would be off by orders of magnitude.
             assert!(
-                (p - independent).abs() <= 1e-12 * independent.max(1e-300) + 1e-300,
+                (p - independent).abs() <= 1e-9 * independent,
                 "bin {bin} isotope {k}: {p} vs {independent}"
             );
         }
@@ -856,10 +893,8 @@ fn averagine_table_is_the_binomial_model() {
 fn defaults_match_release_build() {
     let defaults = Biosaur2Algorithm::defaults().unwrap();
     let mut names = Vec::new();
-    for line in fixture("helpers_oracle.tsv")
-        .lines()
-        .filter(|l| l.starts_with("default\t"))
-    {
+    let oracle = fixture("helpers_oracle.tsv");
+    for line in oracle.lines().filter(|l| l.starts_with("default\t")) {
         let f: Vec<&str> = line.split('\t').collect();
         let key = f[2];
         if names.contains(&key) {
@@ -980,8 +1015,8 @@ fn class_test_run_feature_map() {
     assert!((feature.mz - 1000.0).abs() <= 1e-5 * 1000.0); // :111
     assert_eq!(feature.charge, 1); // :112
     assert_eq!(
-        feature.metadata["n_isotopes"].data,
-        MetaValueData::Integer(2)
+        feature.metadata["n_isotopes"].data(),
+        &MetaValueData::Integer(2)
     ); // :118
 }
 
@@ -1223,10 +1258,15 @@ fn faims_groups_are_bit_identical_across_thread_counts() {
 #[test]
 fn a_failed_run_leaves_the_stored_data_unchanged() {
     // An ion-mobility array shorter than the peak list fails in the hill
-    // linking, after profile/TOF preprocessing would have run.
+    // linking; the source has removed the MS2 spectra by then.
     let mut experiment = read_exp(&fixture("syn_im1.exp.gz"));
     experiment.spectra[3].float_data_arrays[0].data.truncate(2);
-    let mut algorithm = configured("tof=true");
+    experiment.spectra.push(MSSpectrum {
+        ms_level: 2,
+        rt: 5.0,
+        ..MSSpectrum::default()
+    });
+    let mut algorithm = configured("");
     algorithm.set_ms_data(experiment.clone());
     let error = algorithm
         .run(&mut UniqueIdGenerator::from_seed(1))
@@ -1235,6 +1275,15 @@ fn a_failed_run_leaves_the_stored_data_unchanged() {
         matches!(&error, Error::InvalidValue(m) if m.contains("Ion mobility array shorter than peak list.")),
         "{error}"
     );
+    assert_eq!(algorithm.ms_data(), &experiment);
+    // With TOF filtering the mis-sized array is refused by the peak selection
+    // first (the source's checkDataArraySizes_), before anything is stored.
+    let mut algorithm = configured("tof=true");
+    algorithm.set_ms_data(experiment.clone());
+    let error = algorithm
+        .run(&mut UniqueIdGenerator::from_seed(1))
+        .unwrap_err();
+    assert!(error.to_string().contains("data array"), "{error}");
     assert_eq!(algorithm.ms_data(), &experiment);
 }
 
@@ -1245,7 +1294,11 @@ fn non_finite_peaks_are_refused() {
     let mut algorithm = configured("itol=20.0;minmz=900.0;maxmz=1100.0");
     algorithm.set_ms_data(experiment.clone());
     assert!(algorithm.run(&mut UniqueIdGenerator::from_seed(1)).is_err());
-    assert_eq!(algorithm.ms_data(), &experiment);
+    // NaN is not equal to itself: compare the bits.
+    assert_eq!(
+        spectra_digest(algorithm.ms_data()),
+        spectra_digest(&experiment)
+    );
     // A non-finite peak outside the window is filtered as in the source.
     let mut experiment = class_test_run_input();
     experiment.spectra[4]
@@ -1266,7 +1319,7 @@ fn non_finite_peaks_are_refused() {
 fn the_isotope_combination_ceiling_is_preflighted() {
     let (input, parameters) = &cases()["syn_im"];
     let mut algorithm = configured(parameters);
-    algorithm.limits.max_isotope_combinations = 1;
+    algorithm.limits.max_isotope_combinations = 0;
     let experiment = load_input(input);
     algorithm.set_ms_data(experiment.clone());
     let error = algorithm
