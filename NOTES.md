@@ -42,3 +42,6 @@ BayesianProteinInferenceAlgorithm unmapped; IDBoostGraph partial.
   Eigen kernels (eigen_dot/eigen_squared_norm/eigen_gemv_row) live private in src/math/fitters/levenberg_marquardt.rs;
   plan: make pub(crate) (report to lead). pep_method=nonparametric (LogisticRegression+BaseSpline+PackedMatrix) = named gap.
   NO_TERMINATE=true => engine only errors on unknown initial_direction and .at() out-of-range.
+- WIP committed: percolator.rs + percolator/{engine,pep,svm,training}.rs + tests/percolator.rs (first compile pending, gate log
+  /private/tmp/claude-501/i2/g2.log). Eigen kernels in levenberg_marquardt.rs made pub(crate) (eigen_sum/squared_norm/dot/gemv_row).
+- Next: fix compile, TRON literal test, then C++ oracle on ibminode06 (../oracle/I2-percolator/) for rescore/score/train bits.
