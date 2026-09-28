@@ -350,3 +350,85 @@ fn decoy_search_with_fdr_keeps_targets_only() -> Result<()> {
     assert!(missing.is_err());
     Ok(())
 }
+
+/// Records every progress backend call.
+struct Recorder(std::sync::Arc<std::sync::Mutex<Vec<String>>>);
+impl openms::concept::progress_logger::ProgressBackend for Recorder {
+    fn start_progress(&mut self, begin: i64, end: i64, label: &str, _: usize) -> Result<()> {
+        self.0
+            .lock()
+            .unwrap()
+            .push(format!("S {begin} {end} {label}"));
+        Ok(())
+    }
+    fn set_progress(&mut self, value: i64, _: usize) -> Result<()> {
+        self.0.lock().unwrap().push(format!("V {value}"));
+        Ok(())
+    }
+    fn next_progress(&mut self) -> Result<i64> {
+        Ok(0)
+    }
+    fn end_progress(&mut self, _: usize, _: u64) -> Result<()> {
+        self.0.lock().unwrap().push("E".into());
+        Ok(())
+    }
+}
+
+// Tier 4 (source review of SimpleSearchEngineAlgorithm.cpp:653-655, 686-712,
+// 718-864 with setProgress at 734, and 870-891): the four progress sections,
+// the per-protein values of a single-threaded run, and a result identical to
+// the silent search.
+#[test]
+fn progress_sections_follow_the_source() -> Result<()> {
+    use openms::concept::progress_logger::{
+        ProgressClock, ProgressLogger, ProgressNesting, ProgressTime,
+    };
+    use std::sync::atomic::{AtomicI64, Ordering};
+    let second = std::sync::Arc::new(AtomicI64::new(1_000_000_000));
+    let clock: ProgressClock = std::sync::Arc::new(move || {
+        Ok(ProgressTime {
+            wall_second: second.fetch_add(1, Ordering::Relaxed),
+            wall_seconds: 0.0,
+            cpu_seconds: Some(0.0),
+        })
+    });
+    let events = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+    let mut logger = ProgressLogger::with_clock_and_nesting(clock, ProgressNesting::default());
+    logger.set_logger(Box::new(Recorder(events.clone())));
+    let mut engine = engine_from_ini("SimpleSearchEngine_2.ini")?;
+    engine.decoys = true;
+    let (mut proteins, mut peptides) = (Vec::new(), Vec::new());
+    engine.search_with_progress(
+        data("SimpleSearchEngine_1.mzML").to_str().unwrap(),
+        data("SimpleSearchEngine_1.fasta").to_str().unwrap(),
+        &mut proteins,
+        &mut peptides,
+        &mut logger,
+    )?;
+    let mut expected = vec![
+        "S 0 1 Filtering spectra...".to_owned(),
+        "E".into(),
+        "S 0 1 Generate decoys...".into(),
+        "E".into(),
+        "S 0 22 Scoring peptide models against spectra...".into(),
+    ];
+    expected.extend((1..=22).map(|v| format!("V {v}")));
+    expected.extend([
+        "E".to_owned(),
+        "S 0 1 Post-processing PSMs...".into(),
+        "E".into(),
+    ]);
+    assert_eq!(*events.lock().unwrap(), expected);
+    let (mut silent_proteins, mut silent_peptides) = (Vec::new(), Vec::new());
+    engine.search(
+        data("SimpleSearchEngine_1.mzML").to_str().unwrap(),
+        data("SimpleSearchEngine_1.fasta").to_str().unwrap(),
+        &mut silent_proteins,
+        &mut silent_peptides,
+    )?;
+    for id in peptides.iter_mut().chain(silent_peptides.iter_mut()) {
+        id.identifier.clear();
+    }
+    assert_eq!(peptides, silent_peptides);
+    Ok(())
+}

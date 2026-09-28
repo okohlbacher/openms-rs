@@ -45,6 +45,7 @@ use crate::concept::boost_regex::BoostRegex;
 use crate::concept::constants::user_param;
 use crate::concept::math_functions::ppm;
 use crate::concept::parallel::{Threads, map_collect};
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
 use crate::data_structures::datetime::DateTime;
 use crate::format::fasta::{FASTAEntry, FASTAFile};
 use crate::format::file_types::type_by_file_name;
@@ -588,6 +589,56 @@ impl SimpleSearchEngineAlgorithm {
         protein_ids: &mut Vec<ProteinIdentification>,
         peptide_ids: &mut Vec<PeptideIdentification>,
     ) -> Result<ExitCodes> {
+        self.search_reporting(
+            in_spectra,
+            in_db,
+            protein_ids,
+            peptide_ids,
+            &mut ProgressReporter::silent(),
+        )
+    }
+
+    /// [`SimpleSearchEngineAlgorithm::search`], reporting progress to
+    /// `progress` as the source's `ProgressLogger` base does.
+    ///
+    /// The sections are the source's: `Filtering spectra...` (0 to 1),
+    /// `Generate decoys...` (0 to 1, with `decoys`), `Scoring peptide models
+    /// against spectra...` (0 to the number of proteins, target and decoy,
+    /// set to 1, 2, ... n once per protein, which is what a single-threaded
+    /// source run reports) and `Post-processing PSMs...` (0 to 1). The
+    /// per-protein values are reported after the parallel digestion rather
+    /// than interleaved with it. Loading, peptide indexing and FDR report
+    /// nothing, as in the source, whose helpers there own silent loggers.
+    ///
+    /// # Errors
+    ///
+    /// As [`SimpleSearchEngineAlgorithm::search`], and the errors of
+    /// `progress`. A section is ended even when its body fails.
+    pub fn search_with_progress(
+        &self,
+        in_spectra: &str,
+        in_db: &str,
+        protein_ids: &mut Vec<ProteinIdentification>,
+        peptide_ids: &mut Vec<PeptideIdentification>,
+        progress: &mut ProgressLogger,
+    ) -> Result<ExitCodes> {
+        self.search_reporting(
+            in_spectra,
+            in_db,
+            protein_ids,
+            peptide_ids,
+            &mut ProgressReporter::new(Some(progress)),
+        )
+    }
+
+    fn search_reporting(
+        &self,
+        in_spectra: &str,
+        in_db: &str,
+        protein_ids: &mut Vec<ProteinIdentification>,
+        peptide_ids: &mut Vec<PeptideIdentification>,
+        reporter: &mut ProgressReporter<'_>,
+    ) -> Result<ExitCodes> {
         let mut options = PeakFileOptions::default();
         options.clear_ms_levels();
         options.add_ms_level(2)?;
@@ -597,13 +648,14 @@ impl SimpleSearchEngineAlgorithm {
             &options,
         )?;
         let fasta_db = FASTAFile::new().load(in_db)?;
-        self.search_experiment(
+        self.search_experiment_reporting(
             spectra,
             fasta_db,
             in_spectra,
             in_db,
             protein_ids,
             peptide_ids,
+            reporter,
         )
     }
 
@@ -643,12 +695,63 @@ impl SimpleSearchEngineAlgorithm {
     /// outputs are unchanged.
     pub fn search_experiment(
         &self,
+        spectra: MSExperiment,
+        fasta_db: Vec<FASTAEntry>,
+        in_spectra: &str,
+        in_db: &str,
+        protein_ids: &mut Vec<ProteinIdentification>,
+        peptide_ids: &mut Vec<PeptideIdentification>,
+    ) -> Result<ExitCodes> {
+        self.search_experiment_reporting(
+            spectra,
+            fasta_db,
+            in_spectra,
+            in_db,
+            protein_ids,
+            peptide_ids,
+            &mut ProgressReporter::silent(),
+        )
+    }
+
+    /// [`SimpleSearchEngineAlgorithm::search_experiment`] with the progress
+    /// sections of [`SimpleSearchEngineAlgorithm::search_with_progress`].
+    ///
+    /// # Errors
+    ///
+    /// As [`SimpleSearchEngineAlgorithm::search_experiment`], and the errors of
+    /// `progress`.
+    #[allow(clippy::too_many_arguments)]
+    pub fn search_experiment_with_progress(
+        &self,
+        spectra: MSExperiment,
+        fasta_db: Vec<FASTAEntry>,
+        in_spectra: &str,
+        in_db: &str,
+        protein_ids: &mut Vec<ProteinIdentification>,
+        peptide_ids: &mut Vec<PeptideIdentification>,
+        progress: &mut ProgressLogger,
+    ) -> Result<ExitCodes> {
+        self.search_experiment_reporting(
+            spectra,
+            fasta_db,
+            in_spectra,
+            in_db,
+            protein_ids,
+            peptide_ids,
+            &mut ProgressReporter::new(Some(progress)),
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn search_experiment_reporting(
+        &self,
         mut spectra: MSExperiment,
         fasta_db: Vec<FASTAEntry>,
         in_spectra: &str,
         in_db: &str,
         protein_ids: &mut Vec<ProteinIdentification>,
         peptide_ids: &mut Vec<PeptideIdentification>,
+        reporter: &mut ProgressReporter<'_>,
     ) -> Result<ExitCodes> {
         let motif = BoostRegex::new(&self.peptide_motif)?;
         let fixed_modifications = resolve_modifications(&self.modifications_fixed)?;
@@ -656,12 +759,14 @@ impl SimpleSearchEngineAlgorithm {
         let protease = Protease::from_name(&self.enzyme)?;
 
         spectra.sort_spectra(true)?;
-        Self::preprocess_spectra_with_threads(
-            &mut spectra,
-            self.fragment_mass_tolerance,
-            self.fragment_mass_tolerance_unit == MassToleranceUnit::Ppm,
-            self.threads,
-        )?;
+        reporter.section(0, 1, "Filtering spectra...", |_| {
+            Self::preprocess_spectra_with_threads(
+                &mut spectra,
+                self.fragment_mass_tolerance,
+                self.fragment_mass_tolerance_unit == MassToleranceUnit::Ppm,
+                self.threads,
+            )
+        })?;
         let precursors = map_precursor_masses_to_scans(
             self.precursor_min_charge,
             self.precursor_max_charge,
@@ -672,7 +777,9 @@ impl SimpleSearchEngineAlgorithm {
 
         let mut fasta_db = fasta_db;
         if self.decoys {
-            fasta_db = self.append_decoys(fasta_db, protease)?;
+            fasta_db = reporter.section(0, 1, "Generate decoys...", |_| {
+                self.append_decoys(fasta_db, protease)
+            })?;
         }
         let digestor = ProteaseDigestion {
             enzyme: protease,
@@ -682,75 +789,39 @@ impl SimpleSearchEngineAlgorithm {
             specificity: self.peptide_enzyme_specificity,
             ..ProteaseDigestion::default()
         };
-        // Digest per protein (in parallel), then claim each distinct peptide in
-        // protein order, as the source's `processed_petides` set does.
-        let digests = map_collect(&fasta_db, self.threads, |entry| {
-            let mut kept = Vec::new();
-            for peptide in digestor.digest_unmodified(&entry.sequence)? {
-                if peptide.contains(['X', 'B', 'Z']) {
-                    continue;
-                }
-                if !self.peptide_motif.is_empty() && !motif.is_full_match(peptide.as_bytes())? {
-                    continue;
-                }
-                kept.push(peptide.to_owned());
-            }
-            Ok::<_, Error>(kept)
-        });
-        let mut seen = BTreeSet::new();
-        let mut peptides: Vec<Arc<str>> = Vec::new();
-        for digest in digests {
-            for peptide in digest? {
-                if seen.insert(peptide.clone()) {
-                    peptides.push(Arc::from(peptide));
-                }
-            }
-        }
-
-        let scorer = Scorer {
-            engine: self,
-            fixed: &fixed_modifications,
-            variable: &variable_modifications,
-            precursors: &precursors,
-            spectra: &spectra,
-            generator: TheoreticalSpectrumGenerator {
-                add_first_prefix_ion: true,
-                add_metainfo: true,
-                ..TheoreticalSpectrumGenerator::default()
+        let proteins = progress_value(fasta_db.len())?;
+        let (peptide_count, mut annotated_hits) = reporter.section(
+            0,
+            proteins,
+            "Scoring peptide models against spectra...",
+            |reporter| {
+                self.score_database(
+                    &fasta_db,
+                    &digestor,
+                    &motif,
+                    &fixed_modifications,
+                    &variable_modifications,
+                    &precursors,
+                    &spectra,
+                    reporter,
+                )
             },
-            hyperscore: HyperScore {
-                tolerance: self
-                    .fragment_mass_tolerance_unit
-                    .tolerance(self.fragment_mass_tolerance),
-            },
-        };
-        let mut annotated_hits: Vec<Vec<AnnotatedHit>> = vec![Vec::new(); spectra.spectra.len()];
-        for batch in peptides.chunks(PEPTIDE_BATCH) {
-            for hits in map_collect(batch, self.threads, |peptide| scorer.score(peptide)) {
-                for (scan_index, hit) in hits? {
-                    let slot = &mut annotated_hits[scan_index];
-                    slot.push(hit);
-                    // Prevent the vector from growing indefinitely, but do not
-                    // shrink it on every push.
-                    if slot.len() >= 2 * self.report_top_hits {
-                        keep_best(slot, self.report_top_hits);
-                    }
-                }
-            }
-        }
+        )?;
         let _ = crate::openms_log_info!("Proteins: {}", fasta_db.len());
-        let _ = crate::openms_log_info!("Peptides: {}", peptides.len());
-        let _ = crate::openms_log_info!("Processed peptides: {}", peptides.len());
+        let _ = crate::openms_log_info!("Peptides: {}", peptide_count);
+        let _ = crate::openms_log_info!("Processed peptides: {}", peptide_count);
 
         let mut new_proteins = Vec::new();
         let mut new_peptides = peptide_ids.clone();
-        self.post_process_hits(
-            &spectra,
-            &mut annotated_hits,
-            &mut new_proteins,
-            &mut new_peptides,
-            in_db,
-        )?;
+        reporter.section(0, 1, "Post-processing PSMs...", |_| {
+            self.post_process_hits(
+                &spectra,
+                &mut annotated_hits,
+                &mut new_proteins,
+                &mut new_peptides,
+                in_db,
+            )
+        })?;
         let (spectra_data, spectra_data_raw) = primary_ms_run_paths(in_spectra, &spectra);
         if let Some(raw) = spectra_data_raw {
             new_proteins[0].raw_ms_run_paths = vec![raw];
@@ -787,6 +858,80 @@ impl SimpleSearchEngineAlgorithm {
         *protein_ids = new_proteins;
         *peptide_ids = new_peptides;
         Ok(ExitCodes::ExecutionOk)
+    }
+
+    /// Digest every protein, claim each distinct peptide in protein order (as
+    /// the source's `processed_petides` set does) and score its modification
+    /// variants, keeping per-spectrum hit lists pruned to the top N. Reports
+    /// the per-protein progress values of the scoring section. Returns the
+    /// number of distinct peptides and the hit lists.
+    #[allow(clippy::too_many_arguments)]
+    fn score_database(
+        &self,
+        fasta_db: &[FASTAEntry],
+        digestor: &ProteaseDigestion,
+        motif: &BoostRegex,
+        fixed_modifications: &[Arc<ResidueModification>],
+        variable_modifications: &[Arc<ResidueModification>],
+        precursors: &[PrecursorEntry],
+        spectra: &MSExperiment,
+        reporter: &mut ProgressReporter<'_>,
+    ) -> Result<(usize, Vec<Vec<AnnotatedHit>>)> {
+        let digests = map_collect(fasta_db, self.threads, |entry| {
+            let mut kept = Vec::new();
+            for peptide in digestor.digest_unmodified(&entry.sequence)? {
+                if peptide.contains(['X', 'B', 'Z']) {
+                    continue;
+                }
+                if !self.peptide_motif.is_empty() && !motif.is_full_match(peptide.as_bytes())? {
+                    continue;
+                }
+                kept.push(peptide.to_owned());
+            }
+            Ok::<_, Error>(kept)
+        });
+        let mut seen = BTreeSet::new();
+        let mut peptides: Vec<Arc<str>> = Vec::new();
+        for (index, digest) in digests.into_iter().enumerate() {
+            reporter.set_count(index + 1)?;
+            for peptide in digest? {
+                if seen.insert(peptide.clone()) {
+                    peptides.push(Arc::from(peptide));
+                }
+            }
+        }
+        let scorer = Scorer {
+            engine: self,
+            fixed: fixed_modifications,
+            variable: variable_modifications,
+            precursors,
+            spectra,
+            generator: TheoreticalSpectrumGenerator {
+                add_first_prefix_ion: true,
+                add_metainfo: true,
+                ..TheoreticalSpectrumGenerator::default()
+            },
+            hyperscore: HyperScore {
+                tolerance: self
+                    .fragment_mass_tolerance_unit
+                    .tolerance(self.fragment_mass_tolerance),
+            },
+        };
+        let mut annotated_hits: Vec<Vec<AnnotatedHit>> = vec![Vec::new(); spectra.spectra.len()];
+        for batch in peptides.chunks(PEPTIDE_BATCH) {
+            for hits in map_collect(batch, self.threads, |peptide| scorer.score(peptide)) {
+                for (scan_index, hit) in hits? {
+                    let slot = &mut annotated_hits[scan_index];
+                    slot.push(hit);
+                    // Prevent the vector from growing indefinitely, but do not
+                    // shrink it on every push.
+                    if slot.len() >= 2 * self.report_top_hits {
+                        keep_best(slot, self.report_top_hits);
+                    }
+                }
+            }
+        }
+        Ok((peptides.len(), annotated_hits))
     }
 
     /// Append `DECOY_`-prefixed reversed proteins and shuffle targets and
