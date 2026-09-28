@@ -6,6 +6,9 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// Fragment index for database search (`FragmentIndex.h`).
 pub mod fragment_index;
+/// Subset-neighbor peptide search (`NeighborSeq.h`).
 pub mod neighbor_seq;
+/// Minimal in-memory search engine (`SimpleSearchEngineAlgorithm.h`).
 pub mod simple_search_engine;

@@ -1,0 +1,15 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {"path": "src/openms/include/OpenMS/ANALYSIS/ID/FragmentIndex.h", "sha256": "d19b3b16620046e5f4d8617b93b6ebb1424f784b9996d0d4f3f7cf069b313573"},
+  {"path": "src/openms/source/ANALYSIS/ID/FragmentIndex.cpp", "sha256": "9547d6fc5b05ee93bb0a023f6319ee55f90916c08bffbf92d53b5b972d53c110"},
+  {"path": "src/tests/class_tests/openms/source/FragmentIndex_test.cpp", "sha256": "caf8ce4e96edc939eb21983c6ebbdbed87481acea383dd7713de85864ef089d2"}
+ ],
+ "fixtures": [],
+ "native_implementation": ["src/analysis/id/fragment_index.rs", "src/analysis/id/fragment_index_parameters.rs"],
+ "native_tests": ["tests/fragment_index.rs"],
+ "support_document": "docs/FRAGMENT_INDEX_SUPPORT.md",
+ "evidence_tier": "Tier 3 (FragmentIndex_test.cpp sections at lines 178-1261, 1267-1541, 1851-2091, 2609-2744 transcribed, 35 tests); tier 4 for snes_query_is_reported_unsupported, parameters_round_trip, sigma_delta_sets_and_mod_slots, build_is_identical_across_thread_counts. Sections exercising the unported querySpectrumSNES_ (1544-1692, 1779-1848, 2094-2606, 2747-2879) are not transcribed.",
+ "target_verification": "cargo test --locked --test fragment_index on dax (default features): 39 passed"
+}
