@@ -32,3 +32,10 @@ Pins root: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-tests/packa
 - TOPP template: src/cli/tools/feature_finder_centroided.rs + src/bin/FeatureFinderCentroided.rs; [[bin]] in Cargo.toml.
 - boost::math binomial pdf is used for the averagine table (n_C trials, p=0.0107, k=0..9).
 - OpenMP: FAIMS groups parallel for; simd reduction in cosineCorrelation1D_ (check Release bits via oracle).
+
+## Oracle (session 1)
+- ../oracle/FF4-biosaur2/: gen_cases.py (47 run cases incl. class-test inputs, synthetic, mzML; 378 helper probes),
+  driver.cpp (#define private public; bit-pattern records), remote_run.sh (ibminode06, Release, runs twice, also
+  Release FeatureFinderLFQ TOPP + -write_ini), run.sh (stage+start detached), fetch.sh (when results/DONE).
+- Remote dir ibminode06:/scratch/kohlbach/FF4-biosaur2. Started; fetch with `bash ../oracle/FF4-biosaur2/fetch.sh`.
+- Experiment text format (.exp) documented in gen_cases.py docstring; Rust test must implement same reader.
