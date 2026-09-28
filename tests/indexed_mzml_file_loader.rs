@@ -24,7 +24,7 @@
 use openms::Error;
 use openms::format::indexed_mzml_file_loader::IndexedMzMLFileLoader;
 use openms::format::mzml;
-use openms::format::peak_options::PeakFileOptions;
+use openms::format::peak_options::{NumpressCompression, NumpressConfig, PeakFileOptions};
 use openms::kernel::MSExperiment;
 use openms::kernel::on_disc_experiment::OnDiscPeakMap;
 use openms::system::file::TempDir;
@@ -219,34 +219,85 @@ fn native_on_disc_store_without_metadata_is_refused() {
     assert!(!target.exists());
 }
 
+fn numpress(compression: NumpressCompression) -> NumpressConfig {
+    NumpressConfig {
+        compression,
+        ..NumpressConfig::default()
+    }
+}
+
 #[test]
-fn native_on_disc_store_refuses_encodings_the_streaming_writer_lacks() {
-    let dir = TempDir::new(false).unwrap();
-    let target = dir.path().join("refused.mzML");
-    let variants: [fn(&mut PeakFileOptions); 3] = [
-        |o| o.mz_32_bit = !o.mz_32_bit,
-        |o| o.intensity_32_bit = !o.intensity_32_bit,
-        |o| o.force_tpp_compatibility = true,
+fn native_both_stores_write_the_same_bytes_under_every_encoding() {
+    // The source's two stores reach the same `MzMLHandler` writer with the
+    // same `options_` (`IndexedMzMLFileLoader.cpp:49`, `:66`), one record at
+    // a time or the whole map at once. Here the streamed on-disc store and the
+    // whole-document in-memory store of the same records must agree byte for
+    // byte, under every writer flag the loader forwards.
+    let variants: [(&str, fn(&mut PeakFileOptions)); 9] = [
+        ("defaults", |_| {}),
+        ("zlib", |o| o.zlib_compression = true),
+        ("32-bit m/z", |o| o.mz_32_bit = true),
+        ("64-bit intensity", |o| o.intensity_32_bit = false),
+        ("TPP compatibility", |o| o.force_tpp_compatibility = true),
+        ("Numpress linear m/z", |o| {
+            let _ = o.set_numpress_configuration_mass_time(numpress(NumpressCompression::Linear));
+        }),
+        ("Numpress slof intensity", |o| {
+            o.set_numpress_configuration_intensity(numpress(NumpressCompression::Slof))
+        }),
+        ("Numpress pic intensity with zlib", |o| {
+            o.set_numpress_configuration_intensity(numpress(NumpressCompression::Pic));
+            o.zlib_compression = true;
+        }),
+        ("Numpress on every array kind", |o| {
+            let _ = o.set_numpress_configuration_mass_time(numpress(NumpressCompression::Linear));
+            o.set_numpress_configuration_intensity(numpress(NumpressCompression::Slof));
+            o.set_numpress_configuration_float_data_array(numpress(NumpressCompression::Slof));
+        }),
     ];
-    for change in variants {
+    let dir = TempDir::new(false).unwrap();
+    for (label, change) in variants {
         let mut file = IndexedMzMLFileLoader::new();
         change(file.options_mut());
         let mut exp = OnDiscPeakMap::new();
         assert!(file.load(indexed(), &mut exp).unwrap());
-        let error = file.store_on_disc(&target, &mut exp).unwrap_err();
-        assert!(matches!(error, Error::Unsupported(_)), "{error:?}");
-        assert!(!target.exists());
+        let streamed = dir.path().join("streamed.mzML");
+        file.store_on_disc(&streamed, &mut exp).unwrap();
+        let whole = dir.path().join("whole.mzML");
+        let records = exp.load_experiment().unwrap();
+        file.store(&whole, &records).unwrap();
+        assert_eq!(
+            std::fs::read(&streamed).unwrap(),
+            std::fs::read(&whole).unwrap(),
+            "{label}"
+        );
+        // And the file is an indexed mzML the loader reopens.
+        let mut reopened = OnDiscPeakMap::new();
+        assert!(file.load(&streamed, &mut reopened).unwrap(), "{label}");
+        assert_eq!(reopened.spectrum_count(), 2, "{label}");
+        assert_eq!(reopened.chromatogram_count(), 1, "{label}");
     }
+}
 
-    // zlib compression is implemented, and round-trips the same records.
-    let mut file = IndexedMzMLFileLoader::new();
-    file.options_mut().zlib_compression = true;
-    let mut exp_ = OnDiscPeakMap::new();
-    assert!(file.load(indexed(), &mut exp_).unwrap());
-    file.store_on_disc(&target, &mut exp_).unwrap();
-    let mut exp = OnDiscPeakMap::new();
-    assert!(file.load(&target, &mut exp).unwrap());
-    assert_matches_whole_file_load(&mut exp, &mzml_file_load(&indexed()));
+#[test]
+fn native_lossless_encodings_round_trip_through_the_on_disc_store() {
+    // Precision the file already has and zlib change no decoded value.
+    let variants: [fn(&mut PeakFileOptions); 2] = [
+        |o| o.zlib_compression = true,
+        |o| o.intensity_32_bit = false,
+    ];
+    let dir = TempDir::new(false).unwrap();
+    for change in variants {
+        let mut file = IndexedMzMLFileLoader::new();
+        change(file.options_mut());
+        let mut exp_ = OnDiscPeakMap::new();
+        assert!(file.load(indexed(), &mut exp_).unwrap());
+        let target = dir.path().join("lossless.mzML");
+        file.store_on_disc(&target, &mut exp_).unwrap();
+        let mut exp = OnDiscPeakMap::new();
+        assert!(file.load(&target, &mut exp).unwrap());
+        assert_matches_whole_file_load(&mut exp, &mzml_file_load(&indexed()));
+    }
 }
 
 #[test]

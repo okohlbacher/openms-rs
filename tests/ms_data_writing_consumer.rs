@@ -20,6 +20,7 @@ use openms::format::ms_data_writing_consumer::{
     PlainMSDataWritingConsumer, PlainProcessor, ReferencePolicy, WritingLimits,
 };
 use openms::format::mzml::{self, WriteOptions};
+use openms::format::peak_options::{NumpressCompression, NumpressConfig, PeakFileOptions};
 use openms::interfaces::MSDataConsumer;
 use openms::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D,
@@ -1243,4 +1244,103 @@ fn the_noop_consumer_accepts_everything_and_touches_no_file() {
         std::ops::ControlFlow::Continue(())
     );
     assert_eq!(consumer.spectra_written(), 2);
+}
+
+/// Streams `experiment` through a consumer carrying `options`.
+fn streamed_with(experiment: &MSExperiment, options: &PeakFileOptions) -> Vec<u8> {
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new())
+        .with_peak_file_options(options.clone())
+        .unwrap();
+    consumer
+        .set_expected_size(experiment.spectra.len(), experiment.chromatograms.len())
+        .unwrap();
+    consumer
+        .set_experimental_settings(&experiment.settings)
+        .unwrap();
+    for s in &experiment.spectra {
+        consumer.consume_spectrum(&mut s.clone()).unwrap();
+    }
+    for c in &experiment.chromatograms {
+        consumer.consume_chromatogram(&mut c.clone()).unwrap();
+    }
+    consumer.finish().unwrap()
+}
+
+#[test]
+fn peak_file_options_encode_every_record_as_the_whole_document_writer_does() {
+    // The source consumer is an `MzMLHandler`: `setOptions` reaches the same
+    // `options_` its `writeSpectrum_`/`writeChromatogram_` read, and
+    // `write_index` decides the `indexedmzML` wrapper in `writeHeader_`
+    // (MzMLHandler.cpp:4848) and the index in `writeFooter_`
+    // (MzMLHandlerHelper.cpp:89). Streamed and whole-document output of the
+    // same records under the same options must be the same bytes.
+    let experiment = MSExperiment {
+        spectra: vec![
+            spectrum("scan=1", 1.0, 100.0),
+            spectrum("scan=2", 2.0, 200.0),
+        ],
+        chromatograms: vec![chromatogram("TIC", 1.0)],
+        ..MSExperiment::default()
+    };
+    let slof = NumpressConfig {
+        compression: NumpressCompression::Slof,
+        ..NumpressConfig::default()
+    };
+    let linear = NumpressConfig {
+        compression: NumpressCompression::Linear,
+        ..NumpressConfig::default()
+    };
+    let variants: [(&str, fn(&mut PeakFileOptions)); 6] = [
+        ("defaults", |_| {}),
+        ("plain", |o| o.write_index = false),
+        ("zlib", |o| o.zlib_compression = true),
+        ("precision", |o| {
+            o.mz_32_bit = true;
+            o.intensity_32_bit = false;
+        }),
+        ("plain with TPP", |o| {
+            o.write_index = false;
+            o.force_tpp_compatibility = true;
+        }),
+        ("Numpress", |_| {}),
+    ];
+    for (label, change) in variants {
+        let mut options = PeakFileOptions::default();
+        change(&mut options);
+        if label == "Numpress" {
+            let _ = options.set_numpress_configuration_mass_time(linear);
+            options.set_numpress_configuration_intensity(slof);
+        }
+        let mut whole = Vec::new();
+        mzml::write_with_peak_options(&mut whole, &experiment, &options).unwrap();
+        let streamed = streamed_with(&experiment, &options);
+        assert_eq!(
+            String::from_utf8(streamed).unwrap(),
+            String::from_utf8(whole).unwrap(),
+            "{label}"
+        );
+    }
+}
+
+#[test]
+fn peak_file_options_are_fixed_once_the_header_is_written() {
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new());
+    assert!(consumer.peak_file_options().is_none());
+    let mut options = PeakFileOptions::default();
+    options.zlib_compression = true;
+    consumer.set_peak_file_options(options.clone()).unwrap();
+    assert_eq!(consumer.peak_file_options(), Some(&options));
+    assert!(consumer.write_options().zlib_compression);
+    consumer
+        .consume_spectrum(&mut spectrum("scan=1", 1.0, 100.0))
+        .unwrap();
+    let error = consumer
+        .set_peak_file_options(PeakFileOptions::default())
+        .unwrap_err();
+    assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
+    assert_eq!(consumer.peak_file_options(), Some(&options));
+    // The document stays the indexed, zlib-compressed one it started as.
+    let text = written(consumer);
+    assert!(text.contains("<indexListOffset>"));
+    assert!(text.contains("MS:1000574"));
 }

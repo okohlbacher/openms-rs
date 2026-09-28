@@ -69,3 +69,7 @@ Lane: XML handlers + MS data consumers. Worktree branch: worktree-wf_ee239125-5b
 - Next: sweep F7a-sweep running (log scratchpad/F7a/sweep); then measure slices: mzml(ms_data_consumers,
   indexed_mzml_file_loader), sqmass(ms_data_sql_consumer), mzml-schema(indexed_mzml_file_loader); then report+ledger;
   delete NOTES.md in final commit.
+- IN PROGRESS: writing consumer now takes PeakFileOptions (set_peak_file_options; Output::set_streamed_index in
+  mzml_write_options.rs), loader forwards options -> no more Unsupported refusal. Tests: loader byte-identity x9,
+  writing consumer byte-identity x6 + frozen-after-header. gate7 running. Pre-change slices all green
+  (mzml 12+29, sqmass 11, schema 12, msrv 12+29+11, nofeat lib 316).

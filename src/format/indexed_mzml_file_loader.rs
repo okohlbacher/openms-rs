@@ -13,9 +13,9 @@
 //! [`OnDiscPeakMap`](crate::kernel::on_disc_experiment::OnDiscPeakMap).
 
 use crate::format::ms_data_writing_consumer::{PlainMSDataWritingConsumer, ReferencePolicy};
-use crate::format::mzml::{self, WriteOptions};
+use crate::format::mzml;
 use crate::format::path_io;
-use crate::format::peak_options::{NumpressCompression, PeakFileOptions};
+use crate::format::peak_options::PeakFileOptions;
 use crate::kernel::MSExperiment;
 use crate::kernel::on_disc_experiment::OnDiscPeakMap;
 use crate::{Error, Result};
@@ -88,7 +88,11 @@ impl IndexedMzMLFileLoader {
     /// spectrum is fetched from disk and handed to a
     /// [`PlainMSDataWritingConsumer`], then every chromatogram, so only one
     /// record is held in memory at a time. The expected sizes are the
-    /// experiment's record counts and the settings are its metadata.
+    /// experiment's record counts, the settings are its metadata, and the
+    /// consumer writes with the loader's options (precision, zlib, Numpress,
+    /// TPP compatibility), as the source's `consumer.setOptions(options_)`
+    /// does. The output is byte-identical to [`store`](Self::store) of the
+    /// same records with the same options.
     ///
     /// Like the source, this first sets the loader's own
     /// [`PeakFileOptions::write_index`] to `true` ("ensure that we write the
@@ -109,11 +113,6 @@ impl IndexedMzMLFileLoader {
     ///   because it was opened with `skip_metadata` or never opened. The
     ///   source dereferences the null settings pointer
     ///   (`IndexedMzMLFileLoader.cpp:47`).
-    /// * [`Error::Unsupported`] when the options select a binary encoding the
-    ///   streaming writer does not implement: 32-bit m/z, 64-bit intensity,
-    ///   Numpress for any array kind, or TPP compatibility. The source's
-    ///   consumer applies them; writing without them would silently change
-    ///   the output. zlib compression is supported.
     /// * Every error a record fetch or the writing consumer reports, including
     ///   [`Error::Io`].
     pub fn store_on_disc(
@@ -144,7 +143,7 @@ impl IndexedMzMLFileLoader {
         // settings, then `options_.setWriteIndex(true)` and `setOptions`, all
         // before the first record; nothing is written before that record.
         self.options.write_index = true;
-        let write_options = streaming_write_options(&self.options)?;
+        let options = self.options.clone();
         let settings = experiment
             .experimental_settings()
             .ok_or_else(|| {
@@ -158,11 +157,11 @@ impl IndexedMzMLFileLoader {
         let spectra = experiment.spectrum_count();
         let chromatograms = experiment.chromatogram_count();
         path_io::write_plain(path.as_ref(), |writer| {
-            let mut consumer = PlainMSDataWritingConsumer::plain(writer)
-                .with_write_options(write_options)
-                .with_reference_policy(references);
+            let mut consumer =
+                PlainMSDataWritingConsumer::plain(writer).with_reference_policy(references);
             consumer.set_expected_size(spectra, chromatograms)?;
             consumer.set_experimental_settings(&settings)?;
+            consumer.set_peak_file_options(options)?;
             for index in 0..spectra {
                 let mut spectrum = experiment.spectrum(index)?;
                 consumer.consume_spectrum(&mut spectrum)?;
@@ -197,31 +196,4 @@ impl IndexedMzMLFileLoader {
         mzml::store_with_peak_options(path, experiment, &self.options)?;
         Ok(())
     }
-}
-
-/// The binary encoding of `options` as the streaming writer's options, refusing
-/// what that writer does not implement.
-fn streaming_write_options(options: &PeakFileOptions) -> Result<WriteOptions> {
-    let defaults = PeakFileOptions::default();
-    let numpress = [
-        options.numpress_configuration_mass_time(),
-        options.numpress_configuration_intensity(),
-        options.numpress_configuration_float_data_array(),
-    ]
-    .iter()
-    .any(|config| config.compression != NumpressCompression::None);
-    if options.mz_32_bit != defaults.mz_32_bit
-        || options.intensity_32_bit != defaults.intensity_32_bit
-        || options.force_tpp_compatibility
-        || numpress
-    {
-        return Err(Error::Unsupported(
-            "the streaming mzML writer supports only the default array precision, \
-             without Numpress or TPP compatibility; store the loaded experiment instead"
-                .into(),
-        ));
-    }
-    Ok(WriteOptions {
-        zlib_compression: options.zlib_compression,
-    })
 }

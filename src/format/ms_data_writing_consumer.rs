@@ -31,6 +31,7 @@
 //! [`consume_spectrum`](crate::format::ms_data_writing_consumer::MSDataWritingConsumer::consume_spectrum).
 
 use crate::format::mzml::{self, IndexedOutput, WriteOptions};
+use crate::format::peak_options::PeakFileOptions;
 use crate::interfaces::MSDataConsumer;
 use crate::kernel::{MSChromatogram, MSExperiment, MSSpectrum};
 use crate::metadata::{DataProcessing, ExperimentalSettings};
@@ -327,6 +328,9 @@ pub struct MSDataWritingConsumer<W: Write, P: MSDataWritingProcessor = PlainProc
     /// Identifier and byte offset of every chromatogram written.
     chromatogram_ids: Vec<(String, u64)>,
     options: WriteOptions,
+    /// The source's inherited `MzMLHandler::options_`, when the caller set
+    /// them; `None` renders with [`WriteOptions`] alone.
+    peak_options: Option<PeakFileOptions>,
     limits: WritingLimits,
     counts: CountPolicy,
     references: ReferencePolicy,
@@ -375,6 +379,7 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
             spectrum_ids: Vec::new(),
             chromatogram_ids: Vec::new(),
             options: WriteOptions::default(),
+            peak_options: None,
             limits: WritingLimits::default(),
             counts: CountPolicy::default(),
             references: ReferencePolicy::default(),
@@ -399,9 +404,65 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
     ///
     /// Native: the source consumer inherits `MzMLHandler`'s `PeakFileOptions`
     /// and no TOPP consumer reaches them through this class.
+    ///
+    /// With [`PeakFileOptions`] set (see
+    /// [`set_peak_file_options`](Self::set_peak_file_options)), this replaces
+    /// their zlib flag, which is the one flag the two share.
     pub fn with_write_options(mut self, options: WriteOptions) -> Self {
         self.options = options;
+        if let Some(peak) = self.peak_options.as_mut() {
+            peak.zlib_compression = options.zlib_compression;
+        }
         self
+    }
+
+    /// Sets the mzML writer flags of every record from `options`; the
+    /// source's inherited `MzMLHandler::setOptions`, which
+    /// `IndexedMzMLFileLoader::store` calls on its consumer.
+    ///
+    /// The flags the source's `writeSpectrum_`/`writeChromatogram_` read are
+    /// applied to each record as the whole-document writer applies them
+    /// ([`mzml::write_with_peak_options`]): 32-bit m/z, 32-bit intensity,
+    /// zlib, the three Numpress configurations and TPP compatibility. The
+    /// loading filters (MS levels, ranges, metadata-only) do not filter a
+    /// store, in either. `write_index` selects indexed or plain output, as
+    /// `writeHeader_` (`MzMLHandler.cpp:4848`) and
+    /// `MzMLHandlerHelper::writeFooter_` (`MzMLHandlerHelper.cpp:89`) do with
+    /// it; the default is indexed.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] once the header is written, because the
+    /// document's opening tag depends on `write_index`; the source applies a
+    /// late change to the records that follow and leaves an inconsistent
+    /// document.
+    pub fn set_peak_file_options(&mut self, options: PeakFileOptions) -> Result<()> {
+        if self.started_writing {
+            return Err(Error::InvalidValue(
+                "mzML writer options cannot change after the header is written".into(),
+            ));
+        }
+        self.writer.set_streamed_index(options.write_index)?;
+        self.options.zlib_compression = options.zlib_compression;
+        self.peak_options = Some(options);
+        Ok(())
+    }
+
+    /// [`set_peak_file_options`](Self::set_peak_file_options) as a builder.
+    ///
+    /// # Errors
+    ///
+    /// As [`set_peak_file_options`](Self::set_peak_file_options).
+    pub fn with_peak_file_options(mut self, options: PeakFileOptions) -> Result<Self> {
+        self.set_peak_file_options(options)?;
+        Ok(self)
+    }
+
+    /// The writer flags set with
+    /// [`set_peak_file_options`](Self::set_peak_file_options), if any; the
+    /// source's inherited `getOptions`.
+    pub fn peak_file_options(&self) -> Option<&PeakFileOptions> {
+        self.peak_options.as_ref()
     }
 
     /// Replace the administrative ceilings of [`WritingLimits`].
@@ -865,7 +926,16 @@ impl<W: Write, P: MSDataWritingProcessor> MSDataWritingConsumer<W, P> {
             data: Vec::new(),
             remaining: self.limits.max_record_bytes,
         };
-        mzml::write_with_options(&mut buffer, document, &self.options)?;
+        match &self.peak_options {
+            Some(options) => {
+                // The one-record document is always rendered plain: the
+                // consumer writes its own index over the whole stream.
+                let mut options = options.clone();
+                options.write_index = false;
+                mzml::write_with_peak_options(&mut buffer, document, &options)?;
+            }
+            None => mzml::write_with_options(&mut buffer, document, &self.options)?,
+        }
         String::from_utf8(buffer.data)
             .map_err(|_| Error::Unsupported("the mzML writer produced non-UTF-8 output".into()))
     }
