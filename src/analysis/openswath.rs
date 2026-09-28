@@ -7,10 +7,12 @@
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
 
+pub mod data_access_helper;
 pub mod data_frame_writer;
 pub mod data_structures;
 pub mod itransition;
 pub mod mock_objects;
+pub mod mrm_feature_access;
 pub mod scoring;
 pub mod spectrum_access;
 pub mod spectrum_access_openms;

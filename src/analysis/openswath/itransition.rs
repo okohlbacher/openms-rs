@@ -13,7 +13,7 @@
 //!
 //! | Source | Port |
 //! |---|---|
-//! | `IFeature` | [`FeatureAccess`] |
+//! | `IFeature` (and `std::shared_ptr<IFeature>`, now a borrow) | [`FeatureAccess`] |
 //! | `IMRMFeature` | [`MRMFeatureAccess`] |
 //! | `ITransitionGroup` | [`TransitionGroupAccess`] |
 //! | `ISignalToNoise`, `ISignalToNoisePtr` | [`SignalToNoiseAccess`], [`SignalToNoisePtr`] |
@@ -32,9 +32,6 @@
 use crate::Result;
 use std::sync::Arc;
 
-/// Shared handle to a [`FeatureAccess`], as the source `std::shared_ptr<IFeature>`.
-pub type FeatureAccessPtr = Arc<dyn FeatureAccess>;
-
 /// Shared handle to a [`SignalToNoiseAccess`], as the source `ISignalToNoisePtr`.
 pub type SignalToNoisePtr = Arc<dyn SignalToNoiseAccess>;
 
@@ -42,10 +39,19 @@ pub type SignalToNoisePtr = Arc<dyn SignalToNoiseAccess>;
 /// intensity. Source `IFeature`.
 pub trait FeatureAccess: Send + Sync {
     /// Retention times of the feature's points (source `getRT(std::vector<double>&)`).
-    fn rt_values(&self) -> Vec<f64>;
+    ///
+    /// # Errors
+    ///
+    /// Implementation-specific; the OpenMS implementation fails when the
+    /// feature does not have exactly one convex hull.
+    fn rt_values(&self) -> Result<Vec<f64>>;
     /// Intensities of the feature's points, parallel to [`Self::rt_values`]
     /// (source `getIntensity(std::vector<double>&)`).
-    fn intensity_values(&self) -> Vec<f64>;
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::rt_values`].
+    fn intensity_values(&self) -> Result<Vec<f64>>;
     /// The feature intensity.
     fn intensity(&self) -> f32;
     /// The feature (apex) retention time.
@@ -57,11 +63,15 @@ pub trait FeatureAccess: Send + Sync {
 pub trait MRMFeatureAccess: Send + Sync {
     /// The feature of the transition with native ID `native_id`, or `None`.
     ///
-    /// The source returns a null pointer for an unknown ID (and the mock
-    /// inserts one into its map as a side effect).
-    fn feature(&self, native_id: &str) -> Option<FeatureAccessPtr>;
-    /// The precursor feature with native ID `native_id`, or `None`.
-    fn precursor_feature(&self, native_id: &str) -> Option<FeatureAccessPtr>;
+    /// The source returns a `std::shared_ptr<IFeature>`; the port borrows the
+    /// feature from the peak group, which every source caller only uses
+    /// locally. For an unknown ID the OpenMS implementation throws
+    /// `Exception::ElementNotFound` and the mock returns a null pointer (after
+    /// inserting it into its map); both become `None`.
+    fn feature(&self, native_id: &str) -> Option<&dyn FeatureAccess>;
+    /// The precursor feature with native ID `native_id`, or `None`; see
+    /// [`Self::feature`].
+    fn precursor_feature(&self, native_id: &str) -> Option<&dyn FeatureAccess>;
     /// Native IDs of the transition features.
     fn native_ids(&self) -> Vec<String>;
     /// Native IDs of the precursor features.
@@ -97,7 +107,12 @@ pub trait TransitionGroupAccess: Send + Sync {
     fn native_ids(&self) -> Vec<String>;
     /// Library intensities of the transitions (source
     /// `getLibraryIntensities(std::vector<double>&)`).
-    fn library_intensities(&self) -> Vec<f64>;
+    ///
+    /// # Errors
+    ///
+    /// Implementation-specific; the OpenMS implementation reports the resource
+    /// ceiling of [`MRMTransitionGroup::library_intensity`](crate::kernel::mrm::MRMTransitionGroup::library_intensity).
+    fn library_intensities(&self) -> Result<Vec<f64>>;
 }
 
 /// A signal-to-noise estimate along retention time. Source `ISignalToNoise`.

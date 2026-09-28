@@ -173,7 +173,7 @@ fn ostream_g5(value: f64) -> String {
         return scientific;
     };
     let exponent: i32 = exponent.parse().unwrap_or(0);
-    if exponent < -4 || exponent >= DIGITS {
+    if !(-4..DIGITS).contains(&exponent) {
         let sign = if exponent < 0 { '-' } else { '+' };
         return format!("{}e{sign}{:02}", trim_zeros(mantissa), exponent.abs());
     }

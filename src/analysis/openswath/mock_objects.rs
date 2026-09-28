@@ -12,7 +12,7 @@
 //! the port drops it.
 
 use super::itransition::{
-    FeatureAccess, FeatureAccessPtr, MRMFeatureAccess, SignalToNoiseAccess, TransitionGroupAccess,
+    FeatureAccess, MRMFeatureAccess, SignalToNoiseAccess, TransitionGroupAccess,
 };
 use crate::Result;
 use std::collections::BTreeMap;
@@ -35,11 +35,13 @@ pub struct MockFeature {
 }
 
 impl FeatureAccess for MockFeature {
-    fn rt_values(&self) -> Vec<f64> {
-        self.rt_vec.clone()
+    /// [`Self::rt_vec`]; never fails.
+    fn rt_values(&self) -> Result<Vec<f64>> {
+        Ok(self.rt_vec.clone())
     }
-    fn intensity_values(&self) -> Vec<f64> {
-        self.intensity_vec.clone()
+    /// [`Self::intensity_vec`]; never fails.
+    fn intensity_values(&self) -> Result<Vec<f64>> {
+        Ok(self.intensity_vec.clone())
     }
     fn intensity(&self) -> f32 {
         self.intensity
@@ -71,15 +73,15 @@ impl MRMFeatureAccess for MockMRMFeature {
     /// The feature, or `None`. The source looks the ID up with
     /// `std::map::operator[]`, which inserts and returns a null pointer for an
     /// unknown ID; the port neither inserts nor needs a null.
-    fn feature(&self, native_id: &str) -> Option<FeatureAccessPtr> {
+    fn feature(&self, native_id: &str) -> Option<&dyn FeatureAccess> {
         self.features
             .get(native_id)
-            .map(|f| Arc::clone(f) as FeatureAccessPtr)
+            .map(|f| f.as_ref() as &dyn FeatureAccess)
     }
-    fn precursor_feature(&self, native_id: &str) -> Option<FeatureAccessPtr> {
+    fn precursor_feature(&self, native_id: &str) -> Option<&dyn FeatureAccess> {
         self.precursor_features
             .get(native_id)
-            .map(|f| Arc::clone(f) as FeatureAccessPtr)
+            .map(|f| f.as_ref() as &dyn FeatureAccess)
     }
     fn native_ids(&self) -> Vec<String> {
         self.features.keys().cloned().collect()
@@ -123,8 +125,9 @@ impl TransitionGroupAccess for MockTransitionGroup {
     fn native_ids(&self) -> Vec<String> {
         self.native_ids.clone()
     }
-    fn library_intensities(&self) -> Vec<f64> {
-        self.library_intensities.clone()
+    /// [`Self::library_intensities`]; never fails.
+    fn library_intensities(&self) -> Result<Vec<f64>> {
+        Ok(self.library_intensities.clone())
     }
 }
 
