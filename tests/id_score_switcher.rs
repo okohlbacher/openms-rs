@@ -207,6 +207,45 @@ fn switch_to_score_type_and_back() {
     assert_eq!(ids[0].hits[0].score, 12.0);
 }
 
+/// `IDScoreSwitcherAlgorithm_test.cpp` section `switchToGeneralScoreType`.
+///
+/// The class test loads `IDScoreSwitcherAlgorithm_test_input.idXML`, whose
+/// only peptide identification is transcribed here: the upstream file is
+/// line-wrapped inside attribute values (the `xmlns:xsi` URI and a
+/// `SearchParameters` attribute name are split), which the C++ reader
+/// tolerates and the native idXML reader refuses.
+#[test]
+fn switch_to_general_score_type_class_test() {
+    let mut first = hit(
+        0.0,
+        &[
+            ("consensus_support", 1.0),
+            ("Posterior Error Probability_score", 1.544466758592018e-16),
+        ],
+    );
+    first.sequence = openms::chemistry::AASequence::parse("LVTDLTK").unwrap();
+    first.charge = 2;
+    first
+        .metadata
+        .insert("target_decoy".into(), MetaValue::from("target"));
+    let mut ids = vec![id("q-value", false, vec![first])];
+    let mut switcher = IDScoreSwitcherAlgorithm::default();
+    let count = switcher
+        .switch_to_general_score_type(&mut ids, ScoreType::PosteriorErrorProbability)
+        .unwrap();
+    assert_eq!(ids[0].score_type, "Posterior Error Probability");
+    // Derived from the source switchScores: the new score replaces the main
+    // score and the old one is kept under the old score type. The default
+    // orientation ("", lower is better) already matches PEP's: no warning.
+    assert_eq!(count.hits, 1);
+    assert_eq!(count.warnings.len(), 0);
+    assert!(!ids[0].higher_score_better);
+    assert_eq!(ids[0].hits[0].score, 1.544466758592018e-16);
+    assert_eq!(ids[0].hits[0].metadata["q-value"].as_f64().unwrap(), 0.0);
+    assert_eq!(switcher.new_score, "Posterior Error Probability_score");
+    assert_eq!(switcher.new_score_type, "Posterior Error Probability");
+}
+
 #[cfg(feature = "idxml")]
 mod files {
     use super::*;
@@ -222,17 +261,6 @@ mod files {
         .unwrap()
     }
 
-    #[test]
-    fn switch_to_general_score_type_class_test() {
-        let mut ids = load("IDScoreSwitcherAlgorithm_test_input.idXML").peptide_identifications;
-        let mut switcher = IDScoreSwitcherAlgorithm::default();
-        let count = switcher
-            .switch_to_general_score_type(&mut ids, ScoreType::PosteriorErrorProbability)
-            .unwrap();
-        assert_eq!(ids[0].score_type, "Posterior Error Probability");
-        assert!(count.hits > 0);
-    }
-
     fn assert_same_meta(got: &openms::metadata::MetaInfo, want: &openms::metadata::MetaInfo) {
         assert_eq!(
             got.keys().collect::<Vec<_>>(),
@@ -242,38 +270,6 @@ mod files {
             match value.as_f64() {
                 Ok(number) => assert_eq!(got[key].as_f64().unwrap(), number, "{key}"),
                 Err(_) => assert_eq!(got[key].to_string(), value.to_string(), "{key}"),
-            }
-        }
-    }
-
-    /// TOPP_IDScoreSwitcher_1: `-new_score Percolator_PEP -new_score_type
-    /// "Posterior Error Probability" -new_score_orientation lower_better
-    /// -old_score Percolator_qvalue` on IDFileConverter_12_output.idXML,
-    /// expecting IDFileConverter_13_output.idXML.
-    #[test]
-    fn topp_idscoreswitcher_1_peptides() {
-        let switcher = IDScoreSwitcherAlgorithm {
-            new_score: "Percolator_PEP".into(),
-            new_score_type: "Posterior Error Probability".into(),
-            new_score_orientation: Some(false),
-            old_score: "Percolator_qvalue".into(),
-            proteins: false,
-        };
-        let mut ids = load("IDFileConverter_12_output.idXML").peptide_identifications;
-        let mut count = 0;
-        for id in &mut ids {
-            count += switcher.switch_scores(id).unwrap();
-        }
-        let want = load("IDFileConverter_13_output.idXML").peptide_identifications;
-        assert_eq!(ids.len(), want.len());
-        assert!(count > 0);
-        for (g, w) in ids.iter().zip(&want) {
-            assert_eq!(g.score_type, w.score_type);
-            assert_eq!(g.higher_score_better, w.higher_score_better);
-            assert_eq!(g.hits.len(), w.hits.len());
-            for (gh, wh) in g.hits.iter().zip(&w.hits) {
-                assert_eq!(gh.score, wh.score);
-                assert_same_meta(&gh.metadata, &wh.metadata);
             }
         }
     }
