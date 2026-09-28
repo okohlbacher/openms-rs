@@ -26,8 +26,15 @@ NOT written; write it at the end (with Bash heredoc).
 - Extract C++: git -C ../OpenMS4-tests/packages/core archive -o X.tar bc9cc12 ':(glob)src/openms/*/QC/**'
   (the word "source" in a literal path trips the worktree guard).
 
+## Progress (inc. 4)
+- DONE: FlagSet, QC (6 headers), MzQCFile + qc-cv.obo, nlohmann_json shared module, compute_file_hash,
+  ProteaseDB lowercase-name key (tests/digestion.rs assertion flipped with evidence), oracle ../oracle/F2-mzqc
+  (Release byte-identical except creationDate/location), provenance qc/mzqc_file + oms external artifacts reshaped,
+  docs QC_SUPPORT.md, MZQC_FILE_SUPPORT.md, ledger fragment (15 entries, written).
+- Tests pass on spock: qc 24, mzqc_file 6 (after adding line-for-line test), digestion 12.
+- Gate helper: scratchpad gates/g.sh <log> <cargo args> (retries gateway drops). Use commas in --features.
+
 ## Next step
-1. FlagSet + QCBase + SpectrumCount + FeatureSummary + TIC under src/analysis/qc/, with class tests. Commit.
-2. MissedCleavages + IdentificationSummary. Commit.
-3. MzQCFile + qc-cv.obo resource + TOPP_QCCalculator_2 reproduction. Commit.
-4. Gates, ledger additions, report, delete NOTES.md.
+1. Re-run clippy/doc/msrv/no-default/feature slices (batch2 failed clippy+doc before fixes 7c1e0e1).
+2. CI sweep (openms-ci-sweep.sh F2-sweep <scratch dir>), ci_matrix --check diff lines for report.
+3. Write report .planning/lane-reports/F2.md (Bash heredoc), delete NOTES.md, final commit.
