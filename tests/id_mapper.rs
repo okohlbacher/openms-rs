@@ -395,7 +395,14 @@ fn annotate_spectra_edge_cases() -> Result<()> {
     };
     let strict = mapper(0.0, 1.0, Measure::Da, true);
     assert!(strict.is_match(0.0, 500.0, 500.0));
-    let stats = strict.annotate_spectra(&one, &mut run, &[at_ten.clone()], &[], true, false)?;
+    let stats = strict.annotate_spectra(
+        &one,
+        &mut run,
+        std::slice::from_ref(&at_ten),
+        &[],
+        true,
+        false,
+    )?;
     assert_eq!(stats.assigned, 0);
     assert!(run.peptide_identifications[0].hits.is_empty());
     let loose = mapper(0.5, 1.0, Measure::Da, true);

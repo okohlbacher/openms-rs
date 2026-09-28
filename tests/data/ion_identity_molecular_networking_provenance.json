@@ -1,0 +1,29 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "method": "Transcription of the upstream class test IonIdentityMolecularNetworking_test.cpp (three annotateConsensusMap scenarios and the writeSupplementaryPairTable line), plus independently derived cases from the source text: Boost connected_components numbering over a vecS vertex list, reverse-edge removal in the pair table, the comma replacement of SVOutStream(',', '_', NONE), and the source's error paths.",
+ "evidence_tier": "Tier 3 (transcribed class-test literals) for annotate_documented_scenario, annotate_chain, feature_without_groups_gets_only_a_row_id and write_pair_table_matches_class_test; tier 4 (independently derived) for the remaining tests.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h",
+   "sha256": "51517c848c1dee22c809d9235d4f675cc80abd29f14f320e8a0e3d2aa7183542"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/IonIdentityMolecularNetworking.cpp",
+   "sha256": "ba360d4715134b7fc3e9cf287b4c7890ca64e273b0700da82b2038b84c512712"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IonIdentityMolecularNetworking_test.cpp",
+   "sha256": "8ef6a5548d822f87184d33602e347c6f0e820093ba1746e373a525206d9d7ec5"
+  }
+ ],
+ "fixtures": [],
+ "native_implementation": [
+  "src/analysis/id/ion_identity_molecular_networking.rs"
+ ],
+ "native_tests": [
+  "tests/ion_identity_molecular_networking.rs"
+ ],
+ "support_document": "docs/ID_MAPPER_SUPPORT.md"
+}

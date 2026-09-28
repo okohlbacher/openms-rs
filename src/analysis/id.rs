@@ -6,5 +6,7 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// Annotation of spectra, feature maps and consensus maps with peptide identifications (`IDMapper`).
 pub mod id_mapper;
+/// Ion Identity Molecular Networking annotations and the GNPS supplementary-pairs table.
 pub mod ion_identity_molecular_networking;
