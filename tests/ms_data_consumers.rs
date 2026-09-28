@@ -150,9 +150,18 @@ fn storing_consume_spectrum() {
     assert_eq!(consumer.data().spectra[0].name, "spec1");
     assert_eq!(consumer.data().spectra[1].name, "spec2");
     assert_eq!(consumer.data().spectra[2].name, "spec3");
-    assert_eq!(comment(&consumer.data().spectra[0]), MetaValue::from("comm1"));
-    assert_eq!(comment(&consumer.data().spectra[1]), MetaValue::from("comm2"));
-    assert_eq!(comment(&consumer.data().spectra[2]), MetaValue::from("comm3"));
+    assert_eq!(
+        comment(&consumer.data().spectra[0]),
+        MetaValue::from("comm1")
+    );
+    assert_eq!(
+        comment(&consumer.data().spectra[1]),
+        MetaValue::from("comm2")
+    );
+    assert_eq!(
+        comment(&consumer.data().spectra[2]),
+        MetaValue::from("comm3")
+    );
 }
 
 #[test]
@@ -270,8 +279,7 @@ fn transforming_set_chromatogram_processing_func() {
     let first_chromatogram = exp.chromatograms[0].clone();
     let mut consumer = MSDataTransformingConsumer::new();
     consumer.set_expected_size(0, 1).unwrap();
-    consumer
-        .set_chromatogram_processing_func(|c: &mut MSChromatogram| c.sort_by_intensity(false));
+    consumer.set_chromatogram_processing_func(|c: &mut MSChromatogram| c.sort_by_intensity(false));
     continued(consumer.consume_chromatogram(&mut exp.chromatograms[0]));
     assert_ne!(first_chromatogram, exp.chromatograms[0]);
     assert!(first_chromatogram.is_sorted());
@@ -523,19 +531,35 @@ fn native_chaining_stops_at_the_first_break_or_error() {
         continued(chain.consume_spectrum(&mut s));
         assert_eq!(s.name, "go!");
         let mut s = named("stop", 2.0);
-        assert_eq!(chain.consume_spectrum(&mut s).unwrap(), ControlFlow::Break(()));
+        assert_eq!(
+            chain.consume_spectrum(&mut s).unwrap(),
+            ControlFlow::Break(())
+        );
         assert_eq!(s.name, "stop");
         let mut s = named("fail", 3.0);
         assert!(chain.consume_spectrum(&mut s).is_err());
         let mut c = MSChromatogram::default();
-        assert_eq!(chain.consume_chromatogram(&mut c).unwrap(), ControlFlow::Break(()));
+        assert_eq!(
+            chain.consume_chromatogram(&mut c).unwrap(),
+            ControlFlow::Break(())
+        );
         assert!(chain.set_expected_size(1, 1).is_err());
     }
     // Consumers before the stopping one saw every record; those after it only
     // the record nobody stopped.
-    let names: Vec<_> = before.data().spectra.iter().map(|s| s.name.clone()).collect();
+    let names: Vec<_> = before
+        .data()
+        .spectra
+        .iter()
+        .map(|s| s.name.clone())
+        .collect();
     assert_eq!(names, ["go", "stop", "fail"]);
-    let names: Vec<_> = after.data().spectra.iter().map(|s| s.name.clone()).collect();
+    let names: Vec<_> = after
+        .data()
+        .spectra
+        .iter()
+        .map(|s| s.name.clone())
+        .collect();
     assert_eq!(names, ["go!"]);
     assert_eq!(before.data().chromatograms.len(), 1);
     assert!(after.data().chromatograms.is_empty());
@@ -727,7 +751,12 @@ fn native_aggregating_groups_by_the_previous_retention_time() {
         continued(agg.finish());
     }
     assert_eq!(group_sizes, [3, 1, 1, 1]);
-    let names: Vec<_> = storage.data().spectra.iter().map(|s| s.name.clone()).collect();
+    let names: Vec<_> = storage
+        .data()
+        .spectra
+        .iter()
+        .map(|s| s.name.clone())
+        .collect();
     assert_eq!(names, ["a", "d", "e", "f"]);
 }
 
@@ -750,7 +779,12 @@ fn native_aggregating_errors_leave_the_group_and_break_stops() {
         continued(agg.consume_spectrum(&mut named("b", 2.0)));
         continued(agg.finish());
     }
-    let names: Vec<_> = storage.data().spectra.iter().map(|s| s.name.clone()).collect();
+    let names: Vec<_> = storage
+        .data()
+        .spectra
+        .iter()
+        .map(|s| s.name.clone())
+        .collect();
     assert_eq!(names, ["a", "b"]);
 
     // A next consumer that stops: the group it received was delivered, the
@@ -813,7 +847,10 @@ fn native_aggregating_chromatograms_pass_through_immediately() {
         continued(agg.consume_spectrum(&mut named("a", 1.0)));
         let mut c = MSChromatogram {
             native_id: "chrom".into(),
-            peaks: vec![ChromatogramPeak { rt: 1.0, intensity: 2.0 }],
+            peaks: vec![ChromatogramPeak {
+                rt: 1.0,
+                intensity: 2.0,
+            }],
             ..MSChromatogram::default()
         };
         continued(agg.consume_chromatogram(&mut c));

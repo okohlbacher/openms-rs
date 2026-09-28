@@ -8,10 +8,10 @@
 //! file-scope object in its `.cpp`). See `docs/MS_DATA_CONSUMERS_SUPPORT.md`
 //! for the API mapping and the evidence.
 
+use crate::Result;
 use crate::interfaces::MSDataConsumer;
 use crate::kernel::{MSChromatogram, MSSpectrum};
 use crate::metadata::ExperimentalSettings;
-use crate::Result;
 use std::ops::ControlFlow;
 
 /// Consumer that performs no operation.

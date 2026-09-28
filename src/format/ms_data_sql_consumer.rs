@@ -343,7 +343,11 @@ impl MSDataSqlConsumer {
 /// The policy the handler applies to a batch: under full metadata the snapshot
 /// keeps what the SQL rows drop, and the consumer checks the rest itself.
 fn batch_policy(full_meta: bool, policy: LossPolicy) -> LossPolicy {
-    if full_meta { LossPolicy::Source } else { policy }
+    if full_meta {
+        LossPolicy::Source
+    } else {
+        policy
+    }
 }
 
 impl Drop for MSDataSqlConsumer {
