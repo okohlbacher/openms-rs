@@ -22,8 +22,10 @@ Scope: ANALYSIS/ID AhoCorasickAmbiguous, PeptideIndexing (partial), OpenSearchMo
   docs/COMET_MODIFICATION_SUPPORT.md, provenance. Doc coverage OK (do not --write doc-coverage.json: lead file).
 - Guard: python heredocs touching many paths get refused; write scripts to scratchpad and run `python3 <script>`.
 
+- AhoCorasickAmbiguous: src/analysis/id/aho_corasick_ambiguous.rs, tests/aho_corasick_ambiguous.rs (13/13 incl. tier-1
+  Release oracle 1186 records, ../oracle/I3b-aho, two invocations identical), docs + provenance committed.
+
 ## Next step
-1. AhoCorasickAmbiguous: port nine types (AA, Hit, Index, Bitset, ACNode+DepthHits, ACScout, ACTrieState, ACTrie, tables,
-   nextValidAA) to src/analysis/id/aho_corasick_ambiguous.rs; class test AhoCorasickAmbiguous_test.cpp gives hit lists.
-2. OSMA (1107-line cpp, fuzzy std::map, std::sort ties, boost normal): likely untouched/partial; decide after 1.
-3. Ledger fragment + lane report (.planning/...), delete NOTES.md in final commit.
+1. OSMA (1107-line cpp): read rest, decide port vs untouched.
+2. Gates: clippy all-features, doc, MSRV 1.85 for the new tests, full sweep (openms-ci-sweep.sh I3b-sweep <dir>).
+3. Ledger fragment .planning/ledger-fragments/wave4/I3b.json + lane report .planning/lane-reports/I3b.md; delete NOTES.md last.
