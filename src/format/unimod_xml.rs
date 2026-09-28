@@ -23,8 +23,8 @@
 
 use super::sax_xml::{SaxAttributes, SaxEvent, SaxLimits, parse};
 use crate::chemistry::{
-    EmpiricalFormula, ModificationProvenance, ModificationRecord, NeutralLoss,
-    ResidueModification, TermSpecificity,
+    EmpiricalFormula, ModificationProvenance, ModificationRecord, NeutralLoss, ResidueModification,
+    TermSpecificity,
 };
 use crate::{Error, Result};
 use std::io::BufRead;
@@ -161,7 +161,11 @@ fn mass(attributes: &SaxAttributes, name: &str) -> Result<f64> {
         .parse::<f64>()
         .ok()
         .filter(|value| value.is_finite())
-        .ok_or_else(|| parse_error(format!("attribute '{name}' is not a finite number: {text:?}")))
+        .ok_or_else(|| {
+            parse_error(format!(
+                "attribute '{name}' is not a finite number: {text:?}"
+            ))
+        })
 }
 
 fn boolean(text: &str) -> Result<bool> {
@@ -263,11 +267,14 @@ impl Handler {
                 });
             }
             "specificity" => {
-                let modification = self.modification.as_mut().ok_or_else(|| {
-                    parse_error("<umod:specificity> outside <umod:mod>")
-                })?;
+                let modification = self
+                    .modification
+                    .as_mut()
+                    .ok_or_else(|| parse_error("<umod:specificity> outside <umod:mod>"))?;
                 if self.open_specificity.is_some() {
-                    return Err(parse_error("<umod:specificity> nested in <umod:specificity>"));
+                    return Err(parse_error(
+                        "<umod:specificity> nested in <umod:specificity>",
+                    ));
                 }
                 if self.specificities.len() == self.options.limits.max_specificities {
                     return Err(Error::InvalidValue(
@@ -336,7 +343,9 @@ impl Handler {
                     format!("({isotope}){element}{number}")
                 };
                 let formula = EmpiricalFormula::parse(&formula).map_err(|error| {
-                    parse_error(format!("invalid Unimod element {symbol:?} x {number:?}: {error}"))
+                    parse_error(format!(
+                        "invalid Unimod element {symbol:?} x {number:?}: {error}"
+                    ))
                 })?;
                 self.diff_formula = self.diff_formula.checked_add(&formula)?;
             }

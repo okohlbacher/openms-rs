@@ -305,7 +305,8 @@ impl<F: FnMut(UniProtEntry) -> Result<()>> Handler<'_, F> {
             match tag {
                 "position" => {
                     self.feature.has_position = true;
-                    self.feature.position = parse_position(attributes.get("position").unwrap_or(""));
+                    self.feature.position =
+                        parse_position(attributes.get("position").unwrap_or(""));
                 }
                 "begin" => {
                     self.feature.has_range = true;

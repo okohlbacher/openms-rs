@@ -186,12 +186,14 @@ fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
 
-/// Streaming SAX-style events for the knowledge-base XML readers.
-#[cfg(feature = "kb-xml")]
-pub(crate) mod sax_xml;
+/// PEFF (PSI Extended FASTA Format) annotated protein databases (`PEFFFile.h`).
+pub mod peff;
 /// PTMXML post-translational modification lists (`PTMXMLFile.h`, `PTMXMLHandler.h`).
 #[cfg(feature = "kb-xml")]
 pub mod ptm_xml;
+/// Streaming SAX-style events for the knowledge-base XML readers.
+#[cfg(feature = "kb-xml")]
+pub(crate) mod sax_xml;
 /// Unimod XML modification databases and their registry provider
 /// (`UnimodXMLFile.h`, `UnimodXMLHandler.h`, `UnimodXMLDataProvider.h`).
 #[cfg(feature = "kb-xml")]
@@ -200,5 +202,3 @@ pub mod unimod_xml;
 /// (`UniProtXMLFile.h`, `UniProtXMLHandler.h`).
 #[cfg(feature = "kb-xml")]
 pub mod uniprot_xml;
-/// PEFF (PSI Extended FASTA Format) annotated protein databases (`PEFFFile.h`).
-pub mod peff;

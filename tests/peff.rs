@@ -29,8 +29,7 @@ fn data(name: &str) -> PathBuf {
 
 /// A fresh directory per test, so parallel tests never share a file.
 fn scratch(test: &str) -> PathBuf {
-    let directory =
-        std::env::temp_dir().join(format!("openms-peff-{}-{test}", std::process::id()));
+    let directory = std::env::temp_dir().join(format!("openms-peff-{}-{test}", std::process::id()));
     let _ = std::fs::remove_dir_all(&directory);
     std::fs::create_dir_all(&directory).unwrap();
     directory
@@ -65,7 +64,10 @@ fn load_reads_headers_and_entries() {
     assert_eq!(headers.len(), 1);
     assert_eq!(headers[0].db_name, "TestDB");
     assert_eq!(headers[0].prefix, "test");
-    assert_eq!(headers[0].db_description, "Test database for PEFF file parsing");
+    assert_eq!(
+        headers[0].db_description,
+        "Test database for PEFF file parsing"
+    );
     assert!(!headers[0].is_decoy);
     assert_eq!(headers[0].db_sources.len(), 1);
     assert_eq!(headers[0].db_version, "1.0");
@@ -77,7 +79,10 @@ fn load_reads_headers_and_entries() {
     assert_eq!(entries.len(), 3);
     let e = &entries[0];
     assert_eq!(e.identifier, "test:P12345");
-    assert_eq!(e.sequence, "MSEQVENCEOFTHEFIRSTPROTEINWITHSOMEMODIFICATIONSOK");
+    assert_eq!(
+        e.sequence,
+        "MSEQVENCEOFTHEFIRSTPROTEINWITHSOMEMODIFICATIONSOK"
+    );
     assert_eq!(e.protein_names.len(), 1);
     assert_eq!(e.protein_names[0], "Test Protein 1");
     assert_eq!(e.gene_name, "TEST1");
@@ -92,11 +97,17 @@ fn load_reads_headers_and_entries() {
     assert_eq!(e.modifications[0].position, 10);
     assert_eq!(e.modifications[0].accession, "UNIMOD:35");
     assert_eq!(e.modifications[0].name, "Oxidation");
-    assert_eq!(e.modifications[0].modification_type, PEFFModificationType::Unimod);
+    assert_eq!(
+        e.modifications[0].modification_type,
+        PEFFModificationType::Unimod
+    );
     assert_eq!(e.modifications[1].position, 25);
     assert_eq!(e.modifications[1].accession, "MOD:00046");
     assert_eq!(e.modifications[1].name, "Phosphorylation");
-    assert_eq!(e.modifications[1].modification_type, PEFFModificationType::PsiMod);
+    assert_eq!(
+        e.modifications[1].modification_type,
+        PEFFModificationType::PsiMod
+    );
 
     assert_eq!(e.simple_variants.len(), 1);
     assert_eq!(e.simple_variants[0].position, 5);
@@ -151,7 +162,10 @@ fn store_round_trips_the_test_file() {
 #[test]
 fn streaming_reads_one_entry_at_a_time() {
     let mut file = PEFFFile::new();
-    assert!(matches!(file.read_start("nonexistent.peff"), Err(Error::Io(_))));
+    assert!(matches!(
+        file.read_start("nonexistent.peff"),
+        Err(Error::Io(_))
+    ));
 
     file.read_start(data("PEFFFile_test.peff")).unwrap();
     assert_eq!(file.headers().len(), 1);
@@ -229,7 +243,11 @@ fn to_proforma() {
     };
     assert_eq!(PEFFFile::to_proforma(&entry(vec![])), "PEPTIDE");
     assert_eq!(
-        PEFFFile::to_proforma(&entry(vec![PEFFModification::new(3, "UNIMOD:35", "Oxidation")])),
+        PEFFFile::to_proforma(&entry(vec![PEFFModification::new(
+            3,
+            "UNIMOD:35",
+            "Oxidation"
+        )])),
         "PEP[UNIMOD:35]TIDE"
     );
     assert_eq!(
@@ -240,7 +258,11 @@ fn to_proforma() {
         "P[UNIMOD:1]EPTI[MOD:00046]DE"
     );
     assert_eq!(
-        PEFFFile::to_proforma(&entry(vec![PEFFModification::new(0, "UNIMOD:35", "Oxidation")])),
+        PEFFFile::to_proforma(&entry(vec![PEFFModification::new(
+            0,
+            "UNIMOD:35",
+            "Oxidation"
+        )])),
         "<?[UNIMOD:35]>PEPTIDE"
     );
     assert_eq!(
@@ -316,10 +338,18 @@ fn record_construction() {
     assert!(modification.accession.is_empty());
     assert!(modification.name.is_empty());
     assert!(modification.optional_tag.is_empty());
-    assert_eq!(modification.modification_type, PEFFModificationType::Generic);
+    assert_eq!(
+        modification.modification_type,
+        PEFFModificationType::Generic
+    );
 
-    let modification =
-        PEFFModification::with_details(10, "UNIMOD:35", "Oxidation", "experimental", ANNOTATION_ID_NOT_SET);
+    let modification = PEFFModification::with_details(
+        10,
+        "UNIMOD:35",
+        "Oxidation",
+        "experimental",
+        ANNOTATION_ID_NOT_SET,
+    );
     assert_eq!(modification.position, 10);
     assert_eq!(modification.accession, "UNIMOD:35");
     assert_eq!(modification.name, "Oxidation");
@@ -341,7 +371,9 @@ fn record_construction() {
 
     let region = PEFFProcessedRegion::default();
     assert_eq!((region.start_position, region.end_position), (0, 0));
-    assert!(region.accession.is_empty() && region.name.is_empty() && region.optional_tag.is_empty());
+    assert!(
+        region.accession.is_empty() && region.name.is_empty() && region.optional_tag.is_empty()
+    );
 
     let bond = PEFFDisulfideBond::default();
     assert!(bond.id1.is_empty() && bond.id2.is_empty() && bond.optional_tag.is_empty());
@@ -453,7 +485,10 @@ fn uniprot_format() {
     assert_eq!(headers.len(), 1);
     assert_eq!(
         headers[0].general_comments,
-        ["this is a hand crafted peff file", "This is a second comment line."]
+        [
+            "this is a hand crafted peff file",
+            "This is a second comment line."
+        ]
     );
     assert_eq!(headers[0].conversion, "manual extraction of entries");
     assert_eq!(headers[0].specific_keys.len(), 1);
@@ -508,8 +543,14 @@ fn uniprot_round_trip() {
     let (entries2, headers2) = load(&path);
     assert_eq!(headers2[0].general_comments.len(), 2);
     assert_eq!(headers2[0].conversion, headers[0].conversion);
-    assert_eq!(headers2[0].specific_keys.len(), headers[0].specific_keys.len());
-    assert_eq!(headers2[0].specific_values.len(), headers[0].specific_values.len());
+    assert_eq!(
+        headers2[0].specific_keys.len(),
+        headers[0].specific_keys.len()
+    );
+    assert_eq!(
+        headers2[0].specific_values.len(),
+        headers[0].specific_values.len()
+    );
     assert_eq!(entries.len(), entries2.len());
     for (a, b) in entries.iter().zip(&entries2) {
         assert_eq!(a.identifier, b.identifier);
@@ -552,7 +593,10 @@ fn custom_key_definitions() {
     assert_eq!(headers2.len(), 1);
     assert_eq!(headers2[0].custom_key_defs, headers[0].custom_key_defs);
     let text = std::fs::read_to_string(&path).unwrap();
-    assert!(text.lines().any(|line| line.starts_with("# CustomKeyDef=(")));
+    assert!(
+        text.lines()
+            .any(|line| line.starts_with("# CustomKeyDef=("))
+    );
 }
 
 /// Section `test_custom_key_def_usage_roundtrip`.
@@ -585,7 +629,9 @@ fn custom_key_usage_round_trip() {
         .lines()
         .find(|line| line.contains("\\SecondaryStructure="))
         .unwrap();
-    assert!(line.contains("\\SecondaryStructure=(1|2|ncithesaurus:C47937|Helix|Abcg2\\|meta\\\\x10)"));
+    assert!(
+        line.contains("\\SecondaryStructure=(1|2|ncithesaurus:C47937|Helix|Abcg2\\|meta\\\\x10)")
+    );
 }
 
 /// Section `test_p53_uniprot`.
@@ -630,7 +676,11 @@ fn modification_types_and_comma_positions() {
     assert_eq!(count(PEFFModificationType::Generic), 1);
 
     assert_eq!(entries[1].identifier, "mt:P00002");
-    let positions: Vec<_> = entries[1].modifications.iter().map(|m| m.position).collect();
+    let positions: Vec<_> = entries[1]
+        .modifications
+        .iter()
+        .map(|m| m.position)
+        .collect();
     assert_eq!(positions, [5, 10, 15]);
     for modification in &entries[1].modifications {
         assert_eq!(modification.modification_type, PEFFModificationType::Unimod);
@@ -641,8 +691,15 @@ fn modification_types_and_comma_positions() {
     let path = scratch("modtypes").join("modtypes.peff");
     PEFFFile::new().store(&path, &entries, &headers[0]).unwrap();
     let (entries2, _) = load(&path);
-    assert_eq!(entries2[0].modifications.len(), entries[0].modifications.len());
-    for (a, b) in entries[0].modifications.iter().zip(&entries2[0].modifications) {
+    assert_eq!(
+        entries2[0].modifications.len(),
+        entries[0].modifications.len()
+    );
+    for (a, b) in entries[0]
+        .modifications
+        .iter()
+        .zip(&entries2[0].modifications)
+    {
         assert_eq!(a.modification_type, b.modification_type);
         assert_eq!(a.position, b.position);
         assert_eq!(a.accession, b.accession);
@@ -663,7 +720,10 @@ fn modification_optional_tag_round_trip() {
     assert_eq!(entries2[0].modifications.len(), 1);
     assert_eq!(entries2[0].modifications[0].optional_tag, "invitro");
     let text = std::fs::read_to_string(&path).unwrap();
-    let line = text.lines().find(|l| l.contains("\\ModResUnimod=")).unwrap();
+    let line = text
+        .lines()
+        .find(|l| l.contains("\\ModResUnimod="))
+        .unwrap();
     assert!(line.contains("|Phospho|invitro)"));
 }
 
@@ -737,7 +797,10 @@ fn disulfide_bond_annotation_id() {
     assert_eq!(entries2[0].disulfide_bonds[0].annotation_id, 5);
     assert_eq!(entries2[0].disulfide_bonds[0].id1, "1");
     assert_eq!(entries2[0].disulfide_bonds[0].id2, "2");
-    assert_eq!(entries2[0].disulfide_bonds[0].optional_tag, "between chains");
+    assert_eq!(
+        entries2[0].disulfide_bonds[0].optional_tag,
+        "between chains"
+    );
 }
 
 /// Section `test_multi_database_store_roundtrip`.
@@ -859,7 +922,10 @@ fn literal_backslashes_decode_once() {
     );
     assert_eq!(entries.len(), 1);
     assert_eq!(entries[0].modifications.len(), 1);
-    assert_eq!(entries[0].modifications[0].name, "name with \\\\ backslashes");
+    assert_eq!(
+        entries[0].modifications[0].name,
+        "name with \\\\ backslashes"
+    );
 }
 
 /// Section `[EXTRA] scalar \PName= with embedded balanced parens must

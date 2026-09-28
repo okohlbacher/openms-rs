@@ -20,10 +20,8 @@ fn fixture() -> PathBuf {
 }
 
 fn temporary(name: &str) -> PathBuf {
-    let directory = std::env::temp_dir().join(format!(
-        "openms-ptm-xml-{}-{name}",
-        std::process::id()
-    ));
+    let directory =
+        std::env::temp_dir().join(format!("openms-ptm-xml-{}-{name}", std::process::id()));
     std::fs::create_dir_all(&directory).unwrap();
     directory.join(name)
 }
@@ -80,10 +78,7 @@ fn writer_emits_entries_in_key_order() {
 /// Source `writeTo` does not escape; this does, so markup characters survive.
 #[test]
 fn escaped_names_round_trip() {
-    let map = PtmInformation::from([(
-        "a<b>&\"c'".to_owned(),
-        ("H2O".to_owned(), "S".to_owned()),
-    )]);
+    let map = PtmInformation::from([("a<b>&\"c'".to_owned(), ("H2O".to_owned(), "S".to_owned()))]);
     let mut bytes = Vec::new();
     ptm_xml::write(&mut bytes, &map).unwrap();
     assert!(

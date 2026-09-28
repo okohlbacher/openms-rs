@@ -121,7 +121,10 @@ fn runtime_reader_reproduces_the_embedded_registry() {
     let mut records = unimod();
     records.extend(unimod_xml::load(resource("custom_mods.xml")).unwrap());
     let global = ModificationsDB::global().entries();
-    assert!(global.len() > records.len(), "XLMOD follows the Unimod records");
+    assert!(
+        global.len() > records.len(),
+        "XLMOD follows the Unimod records"
+    );
     for (index, (read, embedded)) in records.iter().zip(global).enumerate() {
         assert_eq!(read, embedded.as_ref(), "record {index}");
     }
@@ -185,8 +188,15 @@ fn data_provider_loads_the_file_records() {
     );
     assert!(records.iter().all(|m| !m.full_id().is_empty()));
 
-    let source = UnimodXMLDataProvider::with_options(resource("custom_mods.xml"), ReadOptions::source());
-    assert!(source.load_modifications().unwrap().iter().all(|m| !m.is_hidden()));
+    let source =
+        UnimodXMLDataProvider::with_options(resource("custom_mods.xml"), ReadOptions::source());
+    assert!(
+        source
+            .load_modifications()
+            .unwrap()
+            .iter()
+            .all(|m| !m.is_hidden())
+    );
 
     let missing = UnimodXMLDataProvider::new(resource("no-such-unimod.xml"));
     assert!(matches!(missing.load_modifications(), Err(Error::Io(_))));

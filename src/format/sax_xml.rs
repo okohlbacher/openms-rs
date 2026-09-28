@@ -175,7 +175,8 @@ fn attributes(start: &BytesStart<'_>, limits: &SaxLimits) -> Result<SaxAttribute
         if out.len() == limits.max_attributes {
             return Err(limit("attribute"));
         }
-        let attribute = attribute.map_err(|error| parse_error(format!("XML attribute: {error}")))?;
+        let attribute =
+            attribute.map_err(|error| parse_error(format!("XML attribute: {error}")))?;
         let key = std::str::from_utf8(attribute.key.as_ref())
             .map_err(|_| parse_error("XML attribute name is not UTF-8"))?
             .to_owned();

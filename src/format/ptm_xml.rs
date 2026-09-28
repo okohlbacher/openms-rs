@@ -144,9 +144,14 @@ impl Handler {
             .output
             .get(&self.name)
             .map_or(0, |(c, a)| self.name.len() + c.len() + a.len());
-        let bytes = self.output_bytes.saturating_sub(removed).saturating_add(added);
+        let bytes = self
+            .output_bytes
+            .saturating_sub(removed)
+            .saturating_add(added);
         if bytes > limits.max_output_bytes {
-            return Err(Error::InvalidValue("PTMXML output byte limit exceeded".into()));
+            return Err(Error::InvalidValue(
+                "PTMXML output byte limit exceeded".into(),
+            ));
         }
         if !self.output.contains_key(&self.name) && self.output.len() == limits.max_entries {
             return Err(Error::InvalidValue("PTMXML entry limit exceeded".into()));
