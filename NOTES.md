@@ -70,3 +70,6 @@ incarnation worktree-wf_bcdd783d-f3f-10 at 27d502a; no merge commit was needed).
   IsobaricQuantitationMethod.cpp METHOD_REGISTRY.
 - Next: write src/format/arrow_io_helpers.rs, then tests/arrow_parquet.rs reading
   tests/data/arrow_parquet/cpp_release_records.tsv (copy of oracle records.tsv) + files/*.parquet.
+
+## Incarnation 5 (worktree wf_cd066dab-0a7-5, branch worktree-wf_cd066dab-0a7-5) started
+- fast-forwarded onto worktree-wf_ee239125-5be-10 (410faf0). Continue from incarnation 4 Next.
