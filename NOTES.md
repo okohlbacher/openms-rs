@@ -39,6 +39,10 @@ Branch: worktree-wf_ee239125-5be-15, base f0990c0. C++ pin: `git -C /Users/kohlb
 - opentims frame format: opentims.cpp:89-240 (tdf_bin at TimsId: u32 packet size, u32 num_scans, zstd from +8).
 - Shell sandbox: no python heredocs mentioning git, no compound cd && git; use Edit tool + plain git commands.
 
+- Oracle ../oracle/F5-xmass (ibminode06 Release, gcc 14.4.0, run twice identical): XMassFile peaks + PASEF 7 synthetic cases. Rust tests bit-exact: xmass 9/9, pasef 18/18 (gate3.log). Release install has NO opentims (no RationalScan2Im / BrukerTimsFile symbols).
+- TDF fixture diaPASEF.d (hupo-mzpeak, no license: do NOT commit) = external check only. Committed test must synthesize a TDF (ruzstd encoder compress_to_vec).
+- ruzstd 0.8.2 manifest: resolver 3 (ok >= 1.84), edition 2018, std feature, no deps w/o hash.
+
 ## Next step
 1. (done) RationalScan2ImConverter.
 2. Docs: docs/XMASS_FILE_SUPPORT.md, docs/BRUKER_TIMS_SUPPORT.md; provenance jsons.
