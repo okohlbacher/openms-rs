@@ -58,3 +58,14 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
    Reuse pepxml internal_residue_mass (make pub(crate)). Helper: scratchpad/pin.py (sha/show/grep/ls/save).
 3. PepXMLFileMascot -> src/format/pepxml_mascot.rs.
 4. XQuest last.
+
+## Incarnation 4 (wf_cd066dab-0a7-7, branch worktree-wf_cd066dab-0a7-7)
+- Merged worktree-wf_ee239125-5be-12 (FF to 1f8bb86: lead-saved WIP protxml.rs + xml_sax.rs + expected outputs).
+- FOUND: branch worktree-wf_ee239125-5be-32 (integ-F, NOT in my brief) already salvaged + finished
+  ProtXMLFile (4e49731..f4de3cc: docs/PROTXML_SUPPORT.md, tests, provenance) and replaced xml_sax.rs with
+  a shared `format::sax_xml` driver (2d6ad26). => Do NOT touch protxml.rs/xml_sax.rs further here
+  (would only conflict); report that protXML is done on integ-F.
+- Next step:
+  1. PepXMLFileMascot (src/format/pepxml_mascot.rs), using the SAX approach main already uses.
+  2. XQuestResultXMLFile + handler (needs OPXLHelper::combineTopRanksFromPairs).
+  3. Partial gaps (IdXML/MzIdentML/MascotXML/PepXML) if time.
