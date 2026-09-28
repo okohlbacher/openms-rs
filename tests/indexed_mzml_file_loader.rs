@@ -11,7 +11,7 @@
 //! (`tests/data/indexed_mzml/`) and `MzMLFile_1.mzML`
 //! (`tests/data/mzml_validator/`), both already recorded in
 //! `tests/data/on_disc_experiment_provenance.json`. The upstream test's
-//! `VALIDATE_TMP_FILES` checks the written files against the mzML schema; that
+//! `VALIDATE_TMP_FILES` (line 184) checks the written files against the mzML schema; that
 //! step runs here only with the `mzml-schema` feature, which carries the XSD
 //! validator.
 //!
@@ -54,7 +54,7 @@ fn mzml_file_load(path: &Path) -> MSExperiment {
 }
 
 /// The comparison the three load/store sections share
-/// (`IndexedMzMLFileLoader_test.cpp:77-93`, `:113-129`, `:146-162`).
+/// (`IndexedMzMLFileLoader_test.cpp:80-95`, `:128-143`, `:162-177`).
 fn assert_matches_whole_file_load(exp: &mut OnDiscPeakMap, exp2: &MSExperiment) {
     assert_eq!(exp.spectrum_count(), exp2.spectra.len());
     assert_eq!(exp.chromatogram_count(), exp2.chromatograms.len());
@@ -86,14 +86,14 @@ fn validate_tmp_file(_path: &Path) {}
 
 #[test]
 fn constructs() {
-    // IndexedMzMLFileLoader_test.cpp:28-35: construction and destruction.
+    // IndexedMzMLFileLoader_test.cpp:37-44: construction and destruction.
     let loader = IndexedMzMLFileLoader::new();
     drop(loader);
 }
 
 #[test]
 fn get_options_const() {
-    // IndexedMzMLFileLoader_test.cpp:37-41.
+    // IndexedMzMLFileLoader_test.cpp:46-50.
     let file = IndexedMzMLFileLoader::new();
     let options = file.options();
     assert!(!options.has_ms_levels());
@@ -101,7 +101,7 @@ fn get_options_const() {
 
 #[test]
 fn get_options_mutable() {
-    // IndexedMzMLFileLoader_test.cpp:43-47.
+    // IndexedMzMLFileLoader_test.cpp:52-56.
     let mut file = IndexedMzMLFileLoader::new();
     file.options_mut().add_ms_level(1).unwrap();
     assert!(file.options().has_ms_levels());
@@ -109,7 +109,7 @@ fn get_options_mutable() {
 
 #[test]
 fn set_options() {
-    // IndexedMzMLFileLoader_test.cpp:49-58.
+    // IndexedMzMLFileLoader_test.cpp:58-67.
     let mut file = IndexedMzMLFileLoader::new();
     let options = file.options();
     assert!(!options.has_ms_levels());
@@ -122,7 +122,7 @@ fn set_options() {
 
 #[test]
 fn load() {
-    // IndexedMzMLFileLoader_test.cpp:62-94.
+    // IndexedMzMLFileLoader_test.cpp:71-97.
     let file = IndexedMzMLFileLoader::new();
     let mut exp = OnDiscPeakMap::new();
     file.load(indexed(), &mut exp).unwrap();
@@ -132,7 +132,7 @@ fn load() {
 
 #[test]
 fn check_parsing() {
-    // IndexedMzMLFileLoader_test.cpp:96-107 ([EXTRA]CheckParsing).
+    // IndexedMzMLFileLoader_test.cpp:99-110 ([EXTRA]CheckParsing).
     let file = IndexedMzMLFileLoader::new();
     let mut exp = OnDiscPeakMap::new();
     let success = file.load(not_indexed(), &mut exp).unwrap();
@@ -143,7 +143,7 @@ fn check_parsing() {
 
 #[test]
 fn store_on_disc() {
-    // IndexedMzMLFileLoader_test.cpp:109-131.
+    // IndexedMzMLFileLoader_test.cpp:112-145.
     let mut file = IndexedMzMLFileLoader::new();
     let mut exp = OnDiscPeakMap::new();
     let mut exp_ = OnDiscPeakMap::new();
@@ -162,7 +162,7 @@ fn store_on_disc() {
 
 #[test]
 fn store_in_memory() {
-    // IndexedMzMLFileLoader_test.cpp:133-164.
+    // IndexedMzMLFileLoader_test.cpp:147-179.
     let mut file = IndexedMzMLFileLoader::new();
     let mut exp = OnDiscPeakMap::new();
     let exp2 = mzml_file_load(&indexed());
@@ -178,7 +178,7 @@ fn store_in_memory() {
 
 #[test]
 fn native_both_stores_set_write_index_persistently() {
-    // IndexedMzMLFileLoader.cpp:48 and :64, `options_.setWriteIndex(true)`,
+    // IndexedMzMLFileLoader.cpp:48 and :65, `options_.setWriteIndex(true)`,
     // change the loader's own options, not a copy.
     let mut file = IndexedMzMLFileLoader::new();
     file.options_mut().write_index = false;

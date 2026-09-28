@@ -139,7 +139,7 @@ fn streamed_records_read_back_as_a_whole_experiment_write() {
 
 #[test]
 fn consuming_clears_the_callers_peaks_and_keeps_its_metadata() {
-    // MSDataSqlConsumer.cpp:74-77: push a copy, then `s.clear(false)`, and the
+    // MSDataSqlConsumer.cpp:79-84: push a copy, then `s.clear(false)`, and the
     // cleared record is what `peak_meta_` keeps.
     let input = original();
     let (_dir, path) = temporary("cleared.sqMass");
@@ -164,7 +164,7 @@ fn consuming_clears_the_callers_peaks_and_keeps_its_metadata() {
     consumer.finish().unwrap();
 
     // Without full metadata nothing is kept for the snapshot
-    // (MSDataSqlConsumer.cpp:75, `if (full_meta_)`).
+    // (MSDataSqlConsumer.cpp:81, `if (full_meta_)`).
     let (_dir, path) = temporary("lean.sqMass");
     let mut consumer =
         MSDataSqlConsumer::with_config(&path, 1, 10, false, false, DEFAULT_LINEAR_MASS_ACC)
@@ -178,7 +178,7 @@ fn consuming_clears_the_callers_peaks_and_keeps_its_metadata() {
 
 #[test]
 fn a_full_buffer_is_written_at_once() {
-    // MSDataSqlConsumer.cpp:78-81: flush when `size() >= flush_after_`.
+    // MSDataSqlConsumer.cpp:85-88: flush when `size() >= flush_after_`.
     let input = original();
     assert_eq!(input.spectra.len(), 2);
     let (_dir, path) = temporary("buffer.sqMass");
@@ -196,7 +196,7 @@ fn a_full_buffer_is_written_at_once() {
     assert!(consumer.buffered_spectra().is_empty());
 
     // An explicit flush writes a partial buffer; spectra and chromatograms
-    // have separate buffers (MSDataSqlConsumer.cpp:50-64).
+    // have separate buffers (MSDataSqlConsumer.cpp:60-75).
     let mut chromatogram = input.chromatograms[0].clone();
     continued(consumer.consume_chromatogram(&mut chromatogram));
     assert_eq!(reader.nr_chromatograms().unwrap(), 0);
@@ -210,7 +210,7 @@ fn a_full_buffer_is_written_at_once() {
 
 #[test]
 fn sizes_and_settings_are_ignored() {
-    // MSDataSqlConsumer.cpp:98-100: both overrides are empty.
+    // MSDataSqlConsumer.cpp:105-107: both overrides are empty.
     let (_dir, path) = temporary("ignored.sqMass");
     let mut consumer = MSDataSqlConsumer::new(&path, 1).unwrap();
     consumer.set_expected_size(10, 10).unwrap();
@@ -223,7 +223,7 @@ fn sizes_and_settings_are_ignored() {
 
 #[test]
 fn finish_writes_the_run_once_and_names_the_sqmass_file() {
-    // MSDataSqlConsumer.cpp:29-39: the destructor sets the loaded file path to
+    // MSDataSqlConsumer.cpp:29-40: the destructor sets the loaded file path to
     // the sqMass file name and writes the run unless one was written.
     let (_dir, path) = temporary("named.sqMass");
     let consumer =
@@ -239,7 +239,7 @@ fn finish_writes_the_run_once_and_names_the_sqmass_file() {
 
 #[test]
 fn add_run_replaces_the_run_written_at_the_end() {
-    // MSDataSqlConsumer.cpp:42-49: `addRun` sets the handler's run id, writes a
+    // MSDataSqlConsumer.cpp:45-53: `addRun` sets the handler's run id, writes a
     // run naming `filename`, and the destructor then writes none.
     let (_dir, path) = temporary("added.sqMass");
     let mut consumer =
@@ -268,7 +268,7 @@ fn add_run_replaces_the_run_written_at_the_end() {
 
 #[test]
 fn set_run_id_masks_bit_63() {
-    // MSDataSqlConsumer.cpp:51-54 forwards to the handler, which clears the
+    // MSDataSqlConsumer.cpp:55-58 forwards to the handler, which clears the
     // sign bit of the SQL identifier.
     let (_dir, path) = temporary("masked.sqMass");
     let mut consumer =
