@@ -44,10 +44,15 @@ use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::Path;
 
 mod read;
+mod sequences;
 mod text;
 mod write;
 
 pub use read::PEFFReader;
+pub use sequences::{
+    MAX_COMBINATORIAL_ELEMENTS, PEFFPeptides, PeptideGenerationOptions, SIGNAL_PEPTIDE,
+    VariantDigestOptions,
+};
 
 /// The annotation identifier of an annotation that has none: source
 /// `std::numeric_limits<UInt>::max()`.

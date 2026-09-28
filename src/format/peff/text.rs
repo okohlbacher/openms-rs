@@ -162,9 +162,7 @@ pub(super) fn extract_annotation_id(field: &str) -> Result<(u32, &str)> {
 
 /// Source `isXsdInteger_`.
 pub(super) fn is_xsd_integer(text: &str) -> bool {
-    let digits = text
-        .strip_prefix(['+', '-'])
-        .unwrap_or(text);
+    let digits = text.strip_prefix(['+', '-']).unwrap_or(text);
     !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit())
 }
 

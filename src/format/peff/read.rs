@@ -7,9 +7,8 @@
 //! `1751-1808`, `1887-2958`).
 
 use super::text::{
-    extract_annotation_id, is_unsigned_integer, parse_custom_key_def,
-    peff_unescape, split, split_by_pipe_escape_aware, to_int32, to_size, trim,
-    validate_custom_key_field_type,
+    extract_annotation_id, is_unsigned_integer, parse_custom_key_def, peff_unescape, split,
+    split_by_pipe_escape_aware, to_int32, to_size, trim, validate_custom_key_field_type,
 };
 use super::{
     PEFFDatabaseMetadata, PEFFDisulfideBond, PEFFEntry, PEFFModification, PEFFModificationType,
@@ -236,7 +235,9 @@ impl<R: BufRead> PEFFReader<R> {
                 warnings.push(format!("PEFF: Required key 'Prefix' missing in {label}."));
             }
             if header.db_version.is_empty() {
-                warnings.push(format!("PEFF: Required key 'DbVersion' missing in {label}."));
+                warnings.push(format!(
+                    "PEFF: Required key 'DbVersion' missing in {label}."
+                ));
             }
             if header.db_sources.is_empty() {
                 warnings.push(format!("PEFF: Required key 'DbSource' missing in {label}."));
@@ -513,8 +514,8 @@ impl<R: BufRead> PEFFReader<R> {
             self.headers.iter().position(|h| h.prefix == entry.prefix)
         };
         let header = by_prefix.or_else(|| (self.headers.len() == 1).then_some(0));
-        let nucleotide = header
-            .is_some_and(|index| self.headers[index].sequence_type == PEFFSequenceType::Na);
+        let nucleotide =
+            header.is_some_and(|index| self.headers[index].sequence_type == PEFFSequenceType::Na);
         let sequence_length = entry.sequence.len();
         let identifier = entry.identifier.clone();
         let mut items = 0usize;
@@ -585,7 +586,8 @@ impl<R: BufRead> PEFFReader<R> {
                     let tuples = parse_paren_list(value);
                     count(tuples.len())?;
                     for tuple in &tuples {
-                        let variant = self.variant_simple(tuple, nucleotide, sequence_length, &identifier)?;
+                        let variant =
+                            self.variant_simple(tuple, nucleotide, sequence_length, &identifier)?;
                         entry.simple_variants.push(variant);
                     }
                 }
@@ -1081,11 +1083,8 @@ impl<R: BufRead> PEFFReader<R> {
                     components.len()
                 ));
             }
-            for (index, (field_type, component)) in definition
-                .field_types
-                .iter()
-                .zip(&components)
-                .enumerate()
+            for (index, (field_type, component)) in
+                definition.field_types.iter().zip(&components).enumerate()
             {
                 if !validate_custom_key_field_type(field_type, component) {
                     self.warn(format!(

@@ -7,8 +7,8 @@
 
 use super::text::{escape_custom_key_def_quoted_value, escape_peff};
 use super::{
-    ANNOTATION_ID_NOT_SET, PEFFDatabaseMetadata, PEFFEntry, PEFFModification,
-    PEFFModificationType, PEFFSequenceType,
+    ANNOTATION_ID_NOT_SET, PEFFDatabaseMetadata, PEFFEntry, PEFFModification, PEFFModificationType,
+    PEFFSequenceType,
 };
 use crate::{Error, Result};
 use std::collections::{BTreeMap, BTreeSet};
