@@ -55,7 +55,17 @@ Outputs: report -> main repo .planning/lane-reports/A5b.md ; ledger -> main repo
 - Scratch scripts: <scratch>/A5b/gate3.sh (tests+doc+clippy), scopes.py, dump.py (C++ -> <scratch>/A5b/cpp).
 - Ledger status: IMDataArrayUtils, MetaInfo, MetaInfoInterface, SpectrumLookup -> complete (not yet in fragment).
 
+## Fourth incarnation (14:06)
+- Gate6 (spock) ALL GREEN at c9d804d: 19 lane test files x {default, no-default, mzml} + clippy x2.
+- Committed since NOTES: 9c21986 SpectrumMetaDataLookup+Matrix+imaging; 04a926e MetaInfoDescription/DataArrays
+  ordering/Product test/PEP score members; c9d804d feature gates.
+- CI sweep (scratch A5b/sweep/sweep.log): 32/54 lines PASS, then 'spock not responding' at line 33
+  (minimum-rust semantic-validation). Resume the remaining 22 lines.
+
 ## Next step
+1. Resume sweep lines 33-54 (spock). 2. Ledger fragment + report. 3. Delete NOTES.md in final commit.
+
+## Next step (old)
 1. Finish gate3; commit SpectrumMetaDataLookup milestone.
 2. MetaInfoDescription standalone + DataArrays source ordering (needs registry; name-only difference is
    unordered in source: defect candidate). Plan: metadata/meta_info_description.rs + DataArray::source_lt.
