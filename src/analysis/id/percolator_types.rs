@@ -6,7 +6,7 @@
 //!
 //! Port of `ANALYSIS/ID/PercolatorTypes.h` (header only, no `.cpp`) at
 //! `bc9cc12`. The three source structs keep their names and fields;
-//! [`RescoreInput::validate`] and [`PercolatorModel::validate`] state as
+//! [`RescoreInput::validate`](crate::analysis::id::percolator_types::RescoreInput::validate) and [`PercolatorModel::validate`](crate::analysis::id::percolator_types::PercolatorModel::validate) state as
 //! checks the row and column contracts that the source only documents.
 //! `docs/PERCOLATOR_SUPPORT.md` maps every member.
 

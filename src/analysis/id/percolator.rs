@@ -17,18 +17,18 @@
 //!
 //! Combined training and scoring (original Percolator semantics, per-fold
 //! score normalization on the merged set):
-//! [`Percolator::rescore_peptide_ids`] for PSM-shaped data, which writes the
-//! results back to each hit as meta values, and [`Percolator::rescore`],
+//! [`Percolator::rescore_peptide_ids`](crate::analysis::id::percolator::Percolator::rescore_peptide_ids) for PSM-shaped data, which writes the
+//! results back to each hit as meta values, and [`Percolator::rescore`](crate::analysis::id::percolator::Percolator::rescore),
 //! domain-agnostic over a feature matrix, labels, optional cross-validation
 //! group keys and feature names. The latter applies to PSM, transition or
 //! peak-group rescoring, or any other semi-supervised target/decoy setting.
 //!
 //! Separate training and scoring (train on A, predict on B, with
-//! fold-averaged weights): [`Percolator::train`] returns a
-//! [`PercolatorModel`], [`Percolator::score`] applies one, and
-//! [`save_model`] / [`load_model`] persist it as plain text.
+//! fold-averaged weights): [`Percolator::train`](crate::analysis::id::percolator::Percolator::train) returns a
+//! [`PercolatorModel`](crate::analysis::id::percolator_types::PercolatorModel), [`Percolator::score`](crate::analysis::id::percolator::Percolator::score) applies one, and
+//! [`save_model`](crate::analysis::id::percolator::save_model) / [`load_model`](crate::analysis::id::percolator::load_model) persist it as plain text.
 //! `rescore` and `train` + `score` produce scores on the same scale but are
-//! not bitwise equal on the same input; see [`Percolator::score`].
+//! not bitwise equal on the same input; see [`Percolator::score`](crate::analysis::id::percolator::Percolator::score).
 //!
 //! # Preconditions
 //!
@@ -43,10 +43,10 @@
 //! The source relies on process-wide statics (the random generator, the
 //! feature count, the normalizer, the sanity-check direction) and is not
 //! safe to call concurrently even on different instances. Here all of that
-//! state belongs to one [`Percolator`] value, so instances are independent
+//! state belongs to one [`Percolator`](crate::analysis::id::percolator::Percolator) value, so instances are independent
 //! and `Send`. Results are reproducible given the seed and the input order;
 //! unlike the source, they do not depend on the thread count
-//! ([`PercolatorParameters::num_threads`] only bounds parallelism).
+//! ([`PercolatorParameters::num_threads`](crate::analysis::id::percolator::PercolatorParameters::num_threads) only bounds parallelism).
 
 mod engine;
 mod pep;
