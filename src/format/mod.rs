@@ -185,3 +185,7 @@ fn intensity(value: &str, line: usize) -> Result<f32> {
 fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
+
+/// Unimod XML modification files and their data provider.
+#[cfg(feature = "unimod-xml")]
+pub mod unimod_xml;

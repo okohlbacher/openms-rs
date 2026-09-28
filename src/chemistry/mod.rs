@@ -31,6 +31,8 @@ mod elements;
 mod empirical_formula;
 /// `CHEMISTRY/EnzymaticDigestion.h`: specificities, names and the missed-cleavage filter.
 pub mod enzymatic_digestion;
+/// `ResidueModification::SourceClassification` (`CHEMISTRY/ResidueModification.h`).
+pub mod modification_classification;
 pub use empirical_formula::FormulaEntry;
 pub mod hydrophobicity;
 pub mod ims_alphabet;
