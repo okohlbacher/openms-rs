@@ -4,8 +4,9 @@ Port of `FORMAT/GNPSMGFFile.h` / `GNPSMGFFile.cpp` (core `bc9cc12`), the
 consensus-spectrum MGF writer for GNPS Feature-Based and Ion-Identity
 Molecular Networking, used by the `GNPSExport` TOPP tool. Rust:
 `src/format/gnps_mgf.rs` (features `consensusxml` and `mzml`). Tests:
-`tests/gnps_mgf_file.rs` (9). Provenance:
-`tests/data/gnps_mgf_provenance.json`. The tool's two other outputs are
+`tests/gnps_mgf_file.rs` (9) and the progress half of `tests/f4_progress.rs`.
+Provenance: `tests/data/gnps_mgf_provenance.json`,
+`tests/data/f4_progress_provenance.json`. The tool's two other outputs are
 `docs/GNPS_TABLES_SUPPORT.md`.
 
 ## API mapping
@@ -14,7 +15,7 @@ Molecular Networking, used by the `GNPSExport` TOPP tool. Rust:
 |---|---|
 | `GNPSMGFFile()` | `GNPSMGFFile::new()` / `Default` |
 | `DefaultParamHandler` defaults (`output_type`, `peptide_cutoff`, `ms2_bin_size`, `merged_spectra:cos_similarity`) | `defaults`, `to_param`, `from_param`, `from_param_with_warnings`; fields `output_type: OutputType`, `peptide_cutoff: i32`, `ms2_bin_size: f64`, `cos_similarity: f64` |
-| `ProgressLogger` base | not ported; no progress is reported |
+| `ProgressLogger` base: the calls of `store` | `store_with_progress`, `write_with_progress`, taking the `&mut ProgressLogger` the source object is |
 | `store(consensus_file_path, mzml_file_paths, out)` | `store(consensus_path, &[mzml paths], out)`; `write(&ConsensusMap, &[mzml paths], writer)` for an already loaded map |
 | private `DEF_COSINE_SIMILARITY`, `DEF_MERGE_BIN_SIZE`, `DEF_PEPT_CUTOFF`, `DEF_MSMAP_CACHE` | public constants of the same names (`DEF_MERGE_BIN_SIZE` is the `float` 0.02 widened, as in the source) |
 | file-local `binPeaks_`, `flattenAndBinSpectra_`, `writeMSMSBlockHeader_`, `writeMSMSBlock_`, `sortElementMapsByIntensity_`, `getElementPeptideIdentificationsByElementIntensity_` | private `flatten_and_bin`, the header/peak writes in `write`, `element_peptides` |
@@ -33,6 +34,10 @@ Molecular Networking, used by the `GNPSExport` TOPP tool. Rust:
 - Peaks are sorted by m/z and binned by the source's run rule (a bin closes
   when a peak lies more than the bin width above the bin's first m/z; closed
   bins with non-positive intensity sum are dropped, the last never is).
+- Progress: `startProgress(0, features, "parsing features and ms2
+  identifications...")` and `setProgress(i)` as feature `i` begins, written
+  or not; the source never calls `endProgress`, so the section stays open
+  (abandoned on the caller's logger, depth 1 afterwards, as in the source).
 - Header numbers use `StringUtils::toStr`; peaks `std::fixed` with four
   decimals; blocks end `END IONS` and an empty line.
 
@@ -65,6 +70,14 @@ Molecular Networking, used by the `GNPSExport` TOPP tool. Rust:
   tolerance (upstream compares with ratio 1.01 / absdiff 0.01). The count 14
   was derived independently with Python's `decimal`. All peak lines match
   byte for byte, including both merge modes.
+- Tier 1 (executed Release, Linux x86_64, ibminode06, run twice;
+  `../oracle/F4-progress`, `tests/f4_progress.rs`): with the default
+  parameters and with `output_type` `merged_spectra` (defaults otherwise, a
+  combination no TOPP test covers) the written MGF files equal the Release
+  build's byte for byte, and so do every progress call and the depth
+  afterwards. The Release build's default-parameter output differs from the
+  retained `GNPSExport_3_out.mgf` in exactly the 14 header values above,
+  which confirms that the retained file, not the formatter, is the outlier.
 - Tier 4: defaults and restrictions of the constructor, parameter round trip,
   and the three refusals above.
 - There is no upstream class test for this header.

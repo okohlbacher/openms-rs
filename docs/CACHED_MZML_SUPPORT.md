@@ -6,8 +6,10 @@ and chromatograms and the random-access reader over a cached mzML pair
 (metadata `.mzML` plus binary `.mzML.cached`). Rust:
 `src/format/cached_mzml_handler.rs`, `src/format/cached_mzml.rs` (feature
 `mzml`; the handler's binary half builds without it). Tests:
-`tests/cached_mzml.rs` (14, file-gated on `mzml`). Provenance:
-`tests/data/cached_mzml_provenance.json`.
+`tests/cached_mzml.rs` (14, file-gated on `mzml`) and the progress half of
+`tests/f4_progress.rs` (3, file-gated on `mzml` and `consensusxml`).
+Provenance: `tests/data/cached_mzml_provenance.json`,
+`tests/data/f4_progress_provenance.json`.
 
 ## API mapping
 
@@ -27,7 +29,7 @@ and chromatograms and the random-access reader over a cached mzML pair
 | protected `writeSpectrum_`, `writeChromatogram_`, `readDataFast_`, `spectra_index_`, `chrom_index_` | private functions and fields |
 | `OpenSwath::BinaryDataArrayPtr` | `BinaryDataArray` (`data`, `description`); the OpenSWATH type itself is not ported |
 | file identifier `8094` | `CACHED_MZML_FILE_IDENTIFIER` |
-| `ProgressLogger` base | not ported; no progress is reported |
+| `ProgressLogger` base: the calls of `writeMemdump`, `readMemdump`, `createMemdumpIndex` | `write_memdump_with_progress`, `read_memdump_with_progress`, `create_memdump_index_with_progress`, taking the `&mut ProgressLogger` the source object is |
 | `CachedmzML()`, `CachedmzML(filename)`, copy constructor, destructor | `CachedmzML::new()`, `CachedmzML::open(filename)`, `Clone` (reopens the side-car), drop |
 | `getSpectrum(id)`, `getChromatogram(id)` | `spectrum(id)`, `chromatogram(id)` |
 | `getNrSpectra()`, `getNrChromatograms()`, `getMetaData()` | `nr_spectra()`, `nr_chromatograms()`, `meta_data()` |
@@ -46,6 +48,11 @@ and chromatograms and the random-access reader over a cached mzML pair
 - `writeMetadata` with the cache flag adds one shared data-processing entry
   ("File format conversion", `cached_data` = `true`).
 - The side-car name is the mzML path with `.cached` appended.
+- Progress: `startProgress(0, spectra + chromatograms, label)` with the
+  source's three labels, `setProgress(i)` per record with the index
+  restarting at 0 for chromatograms, `endProgress()` after the last record
+  (after the close when writing); a refused header makes no call; the file's
+  counts reach the logger with the source's unsigned-to-signed wrap-around.
 
 ## Native differences
 
@@ -53,6 +60,8 @@ and chromatograms and the random-access reader over a cached mzML pair
   in the header, so its reader then misreads the next record; this port
   writes them, which both readers read correctly.
 - Write failures are `Error::Io`; the source writes to an unchecked stream.
+  With progress, an output that cannot be created fails before the start,
+  where the source still makes every call.
 - An array name longer than `MAX_ARRAY_NAME_BYTES` (1023) is refused; the
   source skips it and reuses the previous name.
 - A record extending past the end of the file is refused in
@@ -63,6 +72,11 @@ and chromatograms and the random-access reader over a cached mzML pair
 
 ## Checked boundaries and evidence
 
+- Tier 1: every progress call (arguments, nesting depth), the outcome and
+  the depth afterwards of the three members on `MzMLFile_1.mzML`, an empty
+  experiment and a file with the wrong magic number, and the written dumps
+  byte for byte, against the Linux x86_64 Release build run twice on
+  ibminode06 (`../oracle/F4-progress`, `tests/f4_progress.rs`).
 - Tier 3: every `START_SECTION` of `CachedMzMLHandler_test.cpp` and
   `CachedMzML_test.cpp` over the class-test file `MzMLFile_1.mzML` (held
   byte-identical as `tests/data/mzml_validator/MzMLFile_1.mzML`).
