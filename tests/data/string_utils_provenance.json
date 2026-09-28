@@ -1,0 +1,75 @@
+{
+ "group": "string_utils",
+ "package": "B8a (Phase 3 wave 4): DATASTRUCTURES/StringUtils.h",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668"
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "sha256": "09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/StringUtils_test.cpp",
+   "sha256": "5a17a50dabf9703174850917df3a2a9ad5f59fd15fdce4f7c80ef910688af465"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/String_test.cpp",
+   "sha256": "3ee9adb76f7242a2d6836c0289ea476421c131d24c9cdba4071e98530415cb34"
+  }
+ ],
+ "native_implementation": [
+  "src/data_structures/string_utils.rs",
+  "src/concept/numeric_formatting.rs",
+  "src/metadata/value_text.rs",
+  "src/format/file_info/text_format.rs"
+ ],
+ "native_tests": [
+  "tests/string_utils.rs"
+ ],
+ "support_document": "docs/STRING_UTILS_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/string_utils_oracle.tsv",
+   "sha256": "ba2e06aabe14fae6ce426983fedd067bc0e5b87013548f18ddac5ce9c04abc15",
+   "bytes": 235634,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B8a-stringutils/results/records.tsv verbatim; Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), each driver run twice in fresh processes with byte-identical output"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/B8a-stringutils/driver.cpp",
+   "sha256": "200ebf10bc986b46dda81eb4ad24d0dc9bf0007110e72d639df66736d43952cd",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8a-stringutils/remote_run.sh",
+   "sha256": "6edd758416ec2ecf666c6be4abc8b50c135045845929503a1604bf9643cc3e0d",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8a-stringutils/results/records.tsv",
+   "sha256": "ba2e06aabe14fae6ce426983fedd067bc0e5b87013548f18ddac5ce9c04abc15",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8a-stringutils/results/hashes.txt",
+   "sha256": "204cf01ff50f10d7545fd2bb068480abf443025bf72682c3228f82a15a92955f",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "C++ drivers, their run scripts and their outputs live outside this repository under ../oracle/, so that no C++ is committed here. Recorded, not re-verified by the in-repo gate."
+}

@@ -1,0 +1,147 @@
+{
+ "group": "zip_input",
+ "package": "B8a (Phase 3 wave 4): ZIP input of FeatureXMLFile.h and MzMLFile.h (XMLFile::parse_, ZipIfstream)",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ZipIfstream.h",
+   "sha256": "2e4ea2bb1d06a891578fed4bbddf2b968aa0e097f143205e4ed98664584d4f5c"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ZipIfstream.cpp",
+   "sha256": "b2a23d1ad9d947b7fdaf417e48d3f779cd53cf1446c5dae6b92347970952b4b0"
+  },
+  {
+   "path": "src/openms/source/FORMAT/XMLFile.cpp",
+   "sha256": "61f51e245b4ccdc7367d949e1217ebd4906b6e03b4cd9653f7368b0d8da51ad4"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/FeatureXMLFile.h",
+   "sha256": "d75295765c70bcbcb3654fe984051a7ddfe9bd5b69f19210629747ffc9bf7b61"
+  }
+ ],
+ "native_implementation": [
+  "src/format/zip_input.rs",
+  "src/format/path_io.rs"
+ ],
+ "native_tests": [
+  "tests/zip_input.rs",
+  "tests/mzml_counts.rs"
+ ],
+ "support_document": "src/format/zip_input.rs",
+ "fixtures": [
+  {
+   "path": "tests/data/zip_input/oracle.tsv",
+   "sha256": "fbcb674cb83ab1aee55754ebcb4d3336db1c0f89a630607d9e7d5fb1392a3682",
+   "bytes": 9250,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B8a-zip-input/results/records.tsv verbatim; Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), each driver run twice in fresh processes with byte-identical output"
+  },
+  {
+   "path": "tests/data/zip_input/directory_only.zip",
+   "sha256": "52e6db1b1ded6c0e9b4d9452f2c331205add1396f33f73dfcfdf113f5996296a",
+   "bytes": 108,
+   "evidence_tier": 1,
+   "kind": "synthetic: written with Python zipfile from tests/data/featurexml_source_1.featureXML (upstream FeatureXMLFile_1.featureXML) or tests/data/mzml_upstream_serum.mzML"
+  },
+  {
+   "path": "tests/data/zip_input/empty_archive.zip",
+   "sha256": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85",
+   "bytes": 22,
+   "evidence_tier": 1,
+   "kind": "synthetic: written with Python zipfile from tests/data/featurexml_source_1.featureXML (upstream FeatureXMLFile_1.featureXML) or tests/data/mzml_upstream_serum.mzML"
+  },
+  {
+   "path": "tests/data/zip_input/featurexml_bad_crc.zip",
+   "sha256": "6aeccb1d02d4d07fe11375f8dcd3d85eaea9fcac988656ae43b56d875c937d45",
+   "bytes": 1647,
+   "evidence_tier": 1,
+   "kind": "synthetic: written with Python zipfile from tests/data/featurexml_source_1.featureXML (upstream FeatureXMLFile_1.featureXML) or tests/data/mzml_upstream_serum.mzML"
+  },
+  {
+   "path": "tests/data/zip_input/featurexml_bzip2.zip",
+   "sha256": "61e3393a656c3135f5636b24c41e70efa319778d89ebbc7d8a0dff843fcb884b",
+   "bytes": 1921,
+   "evidence_tier": 1,
+   "kind": "synthetic: written with Python zipfile from tests/data/featurexml_source_1.featureXML (upstream FeatureXMLFile_1.featureXML) or tests/data/mzml_upstream_serum.mzML"
+  },
+  {
+   "path": "tests/data/zip_input/featurexml_deflate.zip",
+   "sha256": "85643d6e14532bd0db6066f3a667835ece9792376247c7595d2c71024880280d",
+   "bytes": 1647,
+   "evidence_tier": 1,
+   "kind": "synthetic: written with Python zipfile from tests/data/featurexml_source_1.featureXML (upstream FeatureXMLFile_1.featureXML) or tests/data/mzml_upstream_serum.mzML"
+  },
+  {
+   "path": "tests/data/zip_input/featurexml_lzma.zip",
+   "sha256": "c239b2fc8178ef3646d28ca0ff9c41abcbe7e036c9ee90e314f9cf28de8c8130",
+   "bytes": 1605,
+   "evidence_tier": 1,
+   "kind": "synthetic: written with Python zipfile from tests/data/featurexml_source_1.featureXML (upstream FeatureXMLFile_1.featureXML) or tests/data/mzml_upstream_serum.mzML"
+  },
+  {
+   "path": "tests/data/zip_input/featurexml_stored.zip",
+   "sha256": "5260cf1811812c9b630c46bb4c700762a6a51fd4176cfd1e89fb41dd3b452383",
+   "bytes": 6804,
+   "evidence_tier": 1,
+   "kind": "synthetic: written with Python zipfile from tests/data/featurexml_source_1.featureXML (upstream FeatureXMLFile_1.featureXML) or tests/data/mzml_upstream_serum.mzML"
+  },
+  {
+   "path": "tests/data/zip_input/featurexml_with_directory.zip",
+   "sha256": "92f2cae484a3291aab9a25b3cc64fff53c05fa2ca1153512df2519069c9563c0",
+   "bytes": 1743,
+   "evidence_tier": 1,
+   "kind": "synthetic: written with Python zipfile from tests/data/featurexml_source_1.featureXML (upstream FeatureXMLFile_1.featureXML) or tests/data/mzml_upstream_serum.mzML"
+  },
+  {
+   "path": "tests/data/zip_input/junk_local_header.zip",
+   "sha256": "0ee00ad239e5f96dd557614d2bd820bf53e647d35b4490ef37eef6d04f79eed4",
+   "bytes": 8,
+   "evidence_tier": 1,
+   "kind": "synthetic: written with Python zipfile from tests/data/featurexml_source_1.featureXML (upstream FeatureXMLFile_1.featureXML) or tests/data/mzml_upstream_serum.mzML"
+  },
+  {
+   "path": "tests/data/zip_input/mzml_deflate.zip",
+   "sha256": "1c1326a54fbe3bef29e9d366c9df18862f65509d35d70373d4d2e9683ea98678",
+   "bytes": 1517,
+   "evidence_tier": 1,
+   "kind": "synthetic: written with Python zipfile from tests/data/featurexml_source_1.featureXML (upstream FeatureXMLFile_1.featureXML) or tests/data/mzml_upstream_serum.mzML"
+  },
+  {
+   "path": "tests/data/zip_input/two_entries.zip",
+   "sha256": "8035abcfacb3bf093239f6a3fa898ad75a099b4a98af28da7d9ffa08e22096d5",
+   "bytes": 3212,
+   "evidence_tier": 1,
+   "kind": "synthetic: written with Python zipfile from tests/data/featurexml_source_1.featureXML (upstream FeatureXMLFile_1.featureXML) or tests/data/mzml_upstream_serum.mzML"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/B8a-zip-input/driver.cpp",
+   "sha256": "2431974630d5c0078276ce9a6999bc61136a63a4f2ac80d02af06c3666c3f5a1",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8a-zip-input/remote_run.sh",
+   "sha256": "ddbddc1938b0767e4372b26729def5845dd29ad78b5f9ed3a46da4f17a1cb74a",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8a-zip-input/results/records.tsv",
+   "sha256": "fbcb674cb83ab1aee55754ebcb4d3336db1c0f89a630607d9e7d5fb1392a3682",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8a-zip-input/results/hashes.txt",
+   "sha256": "de61af556d263226cd948d533a03977f2cdab368bcf3ee643e3ee741418529e8",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "C++ drivers, their run scripts and their outputs live outside this repository under ../oracle/, so that no C++ is committed here. Recorded, not re-verified by the in-repo gate."
+}
