@@ -16,6 +16,7 @@
 
 use openms::Error;
 use openms::analysis::openswath::include_exclude_target::IncludeExcludeTarget;
+use openms::analysis::openswath::mrm_mapping::MRMMapping;
 use openms::analysis::openswath::reaction_monitoring_transition::{
     DecoyTransitionType, Product, ReactionMonitoringTransition,
 };
@@ -27,9 +28,10 @@ use openms::analysis::openswath::targeted_experiment_helper::{
     set_modification,
 };
 use openms::chemistry::{AASequence, ModificationsDB, PeptideFragmentType};
-use openms::kernel::MSChromatogram;
 use openms::kernel::mrm::MRMTransitionGroup;
+use openms::kernel::{MSChromatogram, MSExperiment};
 use openms::metadata::{CVTerm, CVTermList, MetaValue, Software, SourceFile};
+use openms::param::ParamValue;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
