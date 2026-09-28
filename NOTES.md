@@ -41,7 +41,11 @@
   QuadMZ transforms shared cached spectrum in place (double transform); LightTargetedExperiment ref map dangling/null deref;
   convertTargetedExp unreachable 'both target and decoy' branch; MockMRMFeature operator[] inserts null.
 
+## State (incarnation 2, late)
+- All code, tests (algo 30, data_access 26, sqmass 4 -- pass all-features AND +1.85.0 no-default-features), docs, provenance committed.
+- Ledger fragment written: .planning/ledger-fragments/wave4/OA.json (22 entries; Cached untouched).
+- Python gates OK (core_sdk, schema, cycles, doc coverage; doc-coverage --write is lead's).
+
 ## Next step
-1. SpectrumAccessSqMass (feature sqmass, uses format::mzml_sqlite_handler::MzMLSqliteHandler)
-2. OpenSwathHelper, SpectrumAddition
-3. tests/openswath_data_access.rs + tests/openswath_algo.rs; docs/OPENSWATH_{DATAACCESS,ALGO}_SUPPORT.md; provenance json; report+ledger
+1. Wait for CI sweep (scratchpad sweep/summary.log); fix failures.
+2. Write .planning/lane-reports/OA.md with Bash heredoc; delete NOTES.md in final commit.
