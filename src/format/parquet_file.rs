@@ -182,12 +182,8 @@ impl ParquetFile {
     ) -> Result<()> {
         let properties = writer_properties(table, row_group_size)?
             .set_compression(Compression::UNCOMPRESSED)
-            .set_coerce_types(true)
-            .build();
-        let options = ArrowWriterOptions::new()
-            .with_properties(properties)
-            .with_skip_arrow_metadata(true);
-        let bytes = encode(table, options, "Failed to write parquet table")?;
+            .set_coerce_types(true);
+        let bytes = encode(table, properties, false, "Failed to write parquet table")?;
         publish(filename.as_ref(), &bytes)
     }
 
@@ -560,17 +556,28 @@ pub(crate) fn writer_properties(
 ///   `timestamp[ms]` with its values multiplied by 1000 (see
 ///   [`coerce_second_timestamps`]); arrow-rs would store the raw seconds as a
 ///   plain `INT64`;
-/// * a table with no rows is written with one empty row group (measured on
-///   the Release build: `rows=0 row_groups=1`); arrow-rs writes none.
+/// * a table with no rows is written with one empty row group whose column
+///   chunks carry no statistics (measured on the Release build: `rows=0
+///   row_groups=1 ... stats0=false`); arrow-rs writes no row group.
 ///
+/// `store_schema` embeds the Arrow schema (Arrow C++'s `store_schema()`);
 /// `failure` prefixes an encoding error's message.
 pub(crate) fn encode(
     table: &RecordBatch,
-    options: ArrowWriterOptions,
+    properties: parquet::file::properties::WriterPropertiesBuilder,
+    store_schema: bool,
     failure: &str,
 ) -> Result<Vec<u8>> {
     let coerced = coerce_second_timestamps(table)?;
     let table = coerced.as_ref().unwrap_or(table);
+    let properties = if table.num_rows() == 0 {
+        properties.set_statistics_enabled(parquet::file::properties::EnabledStatistics::None)
+    } else {
+        properties
+    };
+    let options = ArrowWriterOptions::new()
+        .with_properties(properties.build())
+        .with_skip_arrow_metadata(!store_schema);
     let fail =
         |error: parquet::errors::ParquetError| Error::InvalidValue(format!("{failure}: {error}"));
     let mut bytes = Vec::new();

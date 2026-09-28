@@ -43,7 +43,6 @@ use arrow_array::cast::AsArray;
 use arrow_array::types::{Float32Type, Float64Type, Int32Type, Int64Type};
 use arrow_array::{Array, ArrayRef, RecordBatch};
 use arrow_schema::{DataType, Schema};
-use parquet::arrow::arrow_writer::ArrowWriterOptions;
 use parquet::basic::{Compression as ParquetCodec, GzipLevel, ZstdLevel};
 use parquet::file::properties::EnabledStatistics;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
@@ -365,12 +364,11 @@ pub fn write_table_to_parquet(
         .set_compression(codec)
         .set_statistics_enabled(statistics)
         .set_data_page_size_limit(page_size)
-        .set_coerce_types(true)
-        .build();
-    let options = ArrowWriterOptions::new().with_properties(properties);
+        .set_coerce_types(true);
     let bytes = encode(
         table,
-        options,
+        properties,
+        true,
         &format!("ArrowIOHelpers: Failed to write {}", filename.display()),
     )?;
     publish(filename, &bytes)
@@ -435,7 +433,7 @@ pub fn concatenate_and_write_to_parquet(
             let schema = Arc::new(
                 Schema::new(schema.fields().clone()).with_metadata(metadata.to_schema_metadata()),
             );
-            combined.with_schema(schema).map_err(|error| {
+            RecordBatch::try_new(schema, combined.columns().to_vec()).map_err(|error| {
                 Error::InvalidValue(format!(
                     "ArrowIOHelpers: Failed to replace schema metadata for {}: {error}",
                     filename.display()
