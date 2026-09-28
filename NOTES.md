@@ -64,3 +64,6 @@ Branch: worktree-wf_ee239125-5be-15, base f0990c0. C++ pin: `git -C /Users/kohlb
 - Incarnation 7: BrukerTimsImagingFile wired (cfg bruker-tdf+mzml), tests/bruker_tims_imaging_file.rs 9/9 + bruker_tims_file 14/14 on spock (scratch F5/gate7.log). Parsers made StringUtils-exact.
 - HDF5: no hdf5 crate in local or spock registry, no libhdf5 on spock -> backlog (named dep hdf5-metno, feature hdf5). Thermo: thermorawfilereader 0.8 default feature downloads nethost at build; deps (dotnetrawfilereader-sys, netcorehost, flatbuffers) not cached; RawFileReader license -> backlog.
 - Next: docs/BRUKER_TIMS_SUPPORT.md, provenance, report+ledger. ImzML mzml.rs gap optional.
+
+## Incarnation 8 (started)
+- Prereq wf_ee239125-5be-15 already ancestor. Remaining: docs/BRUKER_TIMS_SUPPORT.md, provenance, final gates (MSRV, fmt, clippy, module cycles), report + ledger.
