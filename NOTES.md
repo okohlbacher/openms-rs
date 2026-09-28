@@ -105,3 +105,7 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
 - Next: close MascotXMLFile custom scan_regex gap: TitleReferenceFormat::Regex(usize) + SpectrumTitleLookup.regex
   (general SpectrumMetaDataLookup) + pub(crate) per-format method in spectrum_meta_data_lookup.rs; oracle
   ../oracle/F3a-mascot-regex (initializeLookup with custom regex + load MascotXMLFile_test_2, print RT/MZ).
+- [inc6] MascotXML scan_regex milestone 55f4e17 committed. Report + ledger already written (report has
+  SWEEP_RESULT placeholder). Sweep2 (dax): all 24 [test] lines PASS; minimum-rust timed out (dax).
+  Sweep3 (kim, min-rust+quality+portable) died on ssh. Next: rerun remaining jobs on dax, fill SWEEP_RESULT,
+  delete NOTES.md, final commit.
