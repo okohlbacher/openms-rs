@@ -164,6 +164,10 @@ pub mod arrow_io_helpers;
 /// validation (`ArrowSchemaRegistry.h`).
 #[cfg(feature = "arrow")]
 pub mod arrow_schema_registry;
+/// The features table of a FeatureMap as an Arrow table
+/// (`FeatureMapArrowIO.h`, features half).
+#[cfg(feature = "arrow")]
+pub mod feature_map_arrow_io;
 /// Shared Parquet read/write helpers and type-coercing column accessors
 /// (`ParquetFile.h`).
 #[cfg(feature = "arrow")]
