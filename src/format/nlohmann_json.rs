@@ -87,6 +87,7 @@ pub(crate) fn string_literal(text: &str) -> String {
 
 /// An ordered JSON value, `nlohmann::ordered_json`: object members keep
 /// their insertion order.
+#[cfg(feature = "mzml")]
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) enum Json {
     /// `null`, also what a default-constructed library value dumps as.
@@ -103,6 +104,7 @@ pub(crate) enum Json {
     Object(Vec<(String, Json)>),
 }
 
+#[cfg(feature = "mzml")]
 impl Json {
     /// A string value.
     pub(crate) fn string(text: impl Into<String>) -> Self {
@@ -172,6 +174,7 @@ impl Json {
     }
 }
 
+#[cfg(feature = "mzml")]
 fn push_indent(out: &mut String, width: usize) {
     out.extend(std::iter::repeat_n(' ', width));
 }
@@ -207,6 +210,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "mzml")]
     #[test]
     fn dump_pretty_prints_like_nlohmann() {
         let value = Json::object([

@@ -411,11 +411,11 @@ fn feature_with_deviation(deviation: Option<f64>) -> Feature {
 fn feature_summary_counts_features_and_averages_rt_deviation() {
     let fs = FeatureSummary::new();
     let mut fm = FeatureMap::default();
-    fm.features = vec![
+    fm.features.extend([
         feature_with_deviation(Some(10.0)),
         feature_with_deviation(Some(20.0)),
         feature_with_deviation(None),
-    ];
+    ]);
     let r = fs.compute(&fm).unwrap();
     assert_eq!(r.feature_count, 3);
     similar(f64::from(r.rt_shift_mean), 15.0);
@@ -425,7 +425,9 @@ fn feature_summary_counts_features_and_averages_rt_deviation() {
     similar(f64::from(r0.rt_shift_mean), 0.0);
 
     let mut no_dev = FeatureMap::default();
-    no_dev.features = vec![Feature::default(), Feature::default()];
+    no_dev
+        .features
+        .extend([Feature::default(), Feature::default()]);
     let rn = fs.compute(&no_dev).unwrap();
     assert_eq!(rn.feature_count, 2);
     similar(f64::from(rn.rt_shift_mean), 0.0);
@@ -486,7 +488,7 @@ fn protein_ids(enzyme: &str, missed_cleavages: u32) -> Vec<ProteinIdentification
 
 fn feature_with(pep_ids: Vec<PeptideIdentification>) -> Feature {
     let mut feature = Feature::default();
-    feature.peptide_identifications = pep_ids;
+    feature.peptide_identifications.extend(pep_ids);
     feature
         .metadata
         .insert("FWHM".into(), MetaValue::try_from(32.21).unwrap());
@@ -509,11 +511,11 @@ fn missed_cleavages_on_a_feature_map() {
         pep_id(&[]),
     ];
     let mut feature_map = FeatureMap::default();
-    feature_map.features = vec![
+    feature_map.features.extend([
         feature_with(Vec::new()),
         feature_with(pep_ids.clone()),
         feature_with(Vec::new()),
-    ];
+    ]);
     feature_map.unassigned_peptide_identifications =
         vec![pep_id(&["AAAAKAAAAAR"]), pep_id(&["AAAAKAAAAAR"])];
     // ProteaseDB::getEnzyme("trypsin"), whose name is "Trypsin".
