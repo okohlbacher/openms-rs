@@ -38,6 +38,14 @@ Lane FF1: FEATUREFINDER models and fitters. Worktree branch worktree-wf_cd066dab
 - PeakWidthEstimator needs BSpline2d: Rust has src/processing/spline/b_spline.rs (check it is BSpline2d port).
 - SeedListGenerator: pure data plumbing; tests use PepXMLFile_test.mzML, ConsensusXMLFile_1.consensusXML.
 
+## Progress
+- DONE (compiles, clippy clean): src/math/ml/linear_interpolation.rs; src/analysis/featurefinder/{base_model,gauss_models,
+  isotope_model,fitter1d,fitters,emg_scoring,feature_finder_algorithm,peak_width_estimator,seed_list_generator}.rs
+- FeatureFinderDefs.h -> re-export of feature_finder_picked::defs (feature_finder_algorithm::defs).
+- QualityType is f32 (BaseFeature::QualityType float) - correlations narrowed.
+- Test fixtures already in repo: tests/data/peak_picking/PeakPickerHiRes_orbitrap.mzML, tests/data/consensusxml/ConsensusXMLFile_1.consensusXML
+  (sha256 equal to core class-test data). PepXMLFile_test.mzML: transcribe 13 rows (ms level, rt, precursor mz) instead.
+
 ## Next step
-1. Inspect Rust APIs: Param/DefaultParamHandler (src/param*), BasicStatistics, pearson, isotopes, LM, Peak1D.
-2. Write src/math/ml/linear_interpolation.rs + src/analysis/featurefinder/{base_model,models,...}.rs
+1. tests/featurefinder_models.rs (no features) + tests/featurefinder_io.rs (#![cfg(all(mzml, consensusxml))]).
+2. Run on spock; fix. 3. docs/FEATUREFINDER_MODELS_SUPPORT.md, provenance json, doc coverage, report, ledger.
