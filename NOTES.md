@@ -1,14 +1,11 @@
 # Lane F4 notes (delete in the final commit)
 
-Branch: worktree-wf_ee239125-5be-14 (second incarnation; merged worktree-wf_bcdd783d-f3f-14 ff), base f0990c0.
-
-Scratchpad (session-shared): /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad/F4/
-- cpp/<Name>.{h,cpp,test} : dumped C++ at core bc9cc12
-- data/ : class-test data (they live in CORE src/tests/class_tests/openms/data at bc9cc12, not test-data)
-- g.py : `python3 g.py <pkg> show|ls|grep|fetch|sha ...` wrapper for pinned git show
-- gate.sh <log> <cargo args> : runs the dax gate from this worktree, log in scratchpad/F4/<log>.log
-  (run with run_in_background; the worktree guard refuses complex bash with git/python+git)
-- Edits: write python edit scripts to scratchpad and run them; do not mix heredoc python with git/cargo.
+Branch: worktree-wf_cd066dab-0a7-9 (third incarnation; ff-merged worktree-wf_ee239125-5be-14 at 61ee4c1), base f0990c0.
+C++ pins: T=/Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-tests/packages ; `git -C $T/core show bc9cc12:<path>`
+Scratchpad (per session): /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad/F4/
+(the incarnation-2 scratchpad content is gone; re-dump C++ into cpp/ as needed)
+- Worktree guard: never mention git inside python heredocs; keep git commands plain.
+- Class-test data lives in CORE src/tests/class_tests/openms/data at bc9cc12.
 
 ## Done (committed)
 - EDTAFile -> src/format/edta.rs, tests/edta_file.rs (16 pass)
@@ -21,6 +18,7 @@ Scratchpad (session-shared): /private/tmp/claude-501/-Users-kohlbach-Claude-Open
 - SqMassFile -> sqmass_file.rs, tests/sqmass_file.rs (7 pass, --features sqmass); FIX numpress_coder zlib state release
   (gap: convertToXICParquet needs Arrow/Parquet + MSChromatogramParquetConsumer + LightTargetedExperiment)
 - Gate commands: filter args like `format::` apply to ALL test targets -> run integration tests without filters.
+- WIP (lead-saved, 61ee4c1): src/format/gnps_mgf.rs + tests/data/gnps_mgf/* ; not yet verified to compile.
 
 ## Findings for the report
 - Rust mzML writer refuses a non-CV instrument name; C++ writes generic MS:1000031 and drops it
@@ -29,8 +27,8 @@ Scratchpad (session-shared): /private/tmp/claude-501/-Users-kohlbach-Claude-Open
 - IBSpectra: hits[0] unchecked in C++ (UB on empty hits) -> refused here.
 
 ## Next step
-1. MSPGenericFile, MSPFile (text readers; BoostRegex facade).
-2. CachedMzMLHandler + CachedMzML (TICCalculator).
-3. SqMassFile (wrap mzml_sqlite_handler).
-4. GNPSMGFFile, FLASHDeconv files, SwathFile/SwathFileConsumer.
-5. Support docs, provenance manifests, report F4.md, ledger wave4/F4.json.
+1. GNPSMGFFile: finish/verify src/format/gnps_mgf.rs, test vs GNPSExport_*_out.mgf.
+2. MSPFile (text reader).
+3. FLASHDeconvSpectrumFile, FLASHDeconvFeatureFile.
+4. SwathFile / SwathFileConsumer.
+5. Report F4.md, ledger wave4/F4.json, delete NOTES.md.
