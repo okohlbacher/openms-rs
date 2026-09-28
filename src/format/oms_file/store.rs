@@ -135,6 +135,17 @@ impl<'c> Store<'c> {
         }
     }
 
+    /// A formula as the source's `EmpiricalFormula::toString()` writes it
+    /// (symbols in text order), with the charge appended unless
+    /// [`OmsStoreOptions::drop_formula_charge`] asks for the source's loss.
+    fn formula_text(&self, formula: &crate::chemistry::EmpiricalFormula) -> String {
+        let mut text = crate::format::mztab_m::source_formula_text(formula);
+        if !self.options.drop_formula_charge && formula.charge() != 0 {
+            text.push_str(&format!("{:+}", formula.charge()));
+        }
+        text
+    }
+
     fn exec(&self, sql: &str) -> Result<()> {
         self.db
             .execute_batch(sql)
@@ -842,7 +853,7 @@ impl<'c> Store<'c> {
                     &mut query_compound,
                     &[
                         int(next),
-                        text(compound.formula.to_string()),
+                        text(self.formula_text(&compound.formula)),
                         text(compound.name.as_str()),
                         text(smile),
                         text(compound.inchi.as_str()),

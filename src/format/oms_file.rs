@@ -101,6 +101,9 @@ pub struct OmsStoreOptions {
     /// Write every feature handle's unique ID as zero: the source converts a
     /// handle with `BaseFeature(const FeatureHandle&)`, which does not copy it.
     pub drop_handle_unique_ids: bool,
+    /// Write a compound's formula without its charge: the source writes
+    /// `EmpiricalFormula::toString()`, which omits it.
+    pub drop_formula_charge: bool,
 }
 
 impl OmsStoreOptions {
@@ -110,6 +113,7 @@ impl OmsStoreOptions {
             compound_smile_from_name: true,
             consensus_ratios_under_last_handle: true,
             drop_handle_unique_ids: true,
+            drop_formula_charge: true,
         }
     }
 }
