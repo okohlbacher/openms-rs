@@ -7,6 +7,9 @@
 //! `bc9cc12` (evidence tier 3: its expected peptide sets, counts, ranges and
 //! self-hit invariants, transcribed section by section with source line
 //! numbers), plus native checks (tier 4).
+// Each test mirrors the class test's run of `params.setValue` calls on the
+// defaults, one field per line, so reassignment after `default()` is kept.
+#![allow(clippy::field_reassign_with_default)]
 
 use openms::analysis::id::fragment_index::{
     FragmentIndex, FragmentIndexParameters, Peptide, SnesAnchor, SpectrumMatchesTopN,
@@ -965,7 +968,8 @@ fn sigma_delta_sets_and_mod_slots() -> Result<()> {
 #[test]
 fn build_is_identical_across_thread_counts() -> Result<()> {
     let entries = [entry("test1", PROTEIN), entry("t", "ARGEPADSSRKDFDMDMDM")];
-    let build = |threads| -> Result<(Vec<Peptide>, Vec<(u32, f32)>)> {
+    type Snapshot = (Vec<Peptide>, Vec<(u32, f32)>);
+    let build = |threads| -> Result<Snapshot> {
         let mut fi = index(FragmentIndexParameters::default());
         fi.threads = threads;
         fi.build(&entries)?;
