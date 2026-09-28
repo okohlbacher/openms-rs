@@ -46,9 +46,18 @@ Outputs: report -> main repo .planning/lane-reports/A5b.md ; ledger -> main repo
 - Done since: IMDataArrayUtils + IMDataConverter frame reshaping (76b773c); MetaInfo index overloads (42783ef);
   SpectrumLookup + concept/string_conversion WIP (fbf17f3, UNGATED).
 
+## Third incarnation progress
+- Gate2 (spock) green: spectrum_lookup, usi, sni parser, meta_info_indexed, settings_hash, software,
+  multiple_testing, matrix 15, imaging_types 29, on_disc_imzml 53, im_data_array_utils 7, im_data_converter 19.
+- NEW: src/data_structures/matrix.rs + tests/matrix.rs + docs/MATRIX_SUPPORT.md (Matrix.h complete).
+- NEW: tests/imaging_types.rs (3 imaging class tests) + Default for ImagingRegion -> IonImage/Geometry/Region complete.
+- NEW: src/metadata/spectrum_meta_data_lookup.rs + tests + docs/SPECTRUM_META_DATA_LOOKUP_SUPPORT.md (gate3 pending).
+- Scratch scripts: <scratch>/A5b/gate3.sh (tests+doc+clippy), scopes.py, dump.py (C++ -> <scratch>/A5b/cpp).
+- Ledger status: IMDataArrayUtils, MetaInfo, MetaInfoInterface, SpectrumLookup -> complete (not yet in fragment).
+
 ## Next step
-1. Gate fbf17f3 on spock: tests spectrum_lookup, spectrum_native_id_parser, usi, clippy; fix; commit milestone.
-2. Update ledger fragment: six metadata headers, IMDataArrayUtils/Converter, MetaInfo/MetaInfoInterface, SpectrumLookup.
-3. Remaining triage: Imaging types, Matrix/SIMDe/SimpleSVM, PEP model, SysInfo/StopWatch/BuildInfo, MSSpectrum,
-   OnDiscImzML, IdentificationData(+Converter), DataArrays, MetaInfoDescription, SpectrumMetaDataLookup.
-4. Final: CI sweep (openms-ci-sweep.sh A5b-sweep <logdir>), report, delete NOTES.md.
+1. Finish gate3; commit SpectrumMetaDataLookup milestone.
+2. MetaInfoDescription standalone + DataArrays source ordering (needs registry; name-only difference is
+   unordered in source: defect candidate). Plan: metadata/meta_info_description.rs + DataArray::source_lt.
+3. Ledger fragment update for all; SysInfo/StopWatch/BuildInfo stay partial (platform crates).
+4. Final: CI sweep, report, delete NOTES.md.
