@@ -42,3 +42,10 @@ pub use tool_description::{
 /// `DATASTRUCTURES/ToolInfo.h`).
 pub mod tool_info;
 pub use tool_info::ToolInfo;
+
+/// Lower-triangle distance matrix (source `DATASTRUCTURES/DistanceMatrix.h`).
+pub mod distance_matrix;
+
+/// One merge step of a hierarchical clustering (source
+/// `DATASTRUCTURES/BinaryTreeNode.h`).
+pub mod binary_tree_node;
