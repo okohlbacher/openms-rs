@@ -30,8 +30,12 @@ scratchpad root is shared with other lanes, so only use the F6/ subdir).
 - PEFF fixtures copied to tests/data/PEFFFile_*.peff (11 files, unchanged).
 - Gate: logs in $SCRATCH/F6/logs/*.log; slot F6 on dax.
 
+## Incarnation 3 (branch worktree-wf_cd066dab-0a7-11)
+Merged worktree-wf_ee239125-5be-16 (incarnation 2). It holds an UNGATED PEFF port saved by the lead:
+src/format/peff.rs + peff/{read,text,write}.rs + tests/peff.rs (~4.1k lines). First: gate it on dax.
+
 ## Next step
-1. Get kb-xml slice green on dax (ptm_xml, unimod_xml, uniprot_xml, lib sax_xml).
+1. Gate kb-xml slice incl. tests/peff.rs on dax; fix compile/test failures in PEFF.
 2. Docs: docs/{PTM_XML,UNIMOD_XML,UNIPROT_XML}_SUPPORT.md + provenance JSONs; commit.
 3. PEFF: read PEFFFile.cpp 1302-3464 (I/O) then 504-1300 (sequence methods); port to src/format/peff.rs.
 4. C++ oracle on ibminode06 (../oracle/F6-kbxml/): dump unimod/uniprot/ptm/peff results.
