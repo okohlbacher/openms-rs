@@ -134,9 +134,10 @@ fn element_stream_text_and_hash() {
         get_element("S").unwrap(),
     );
     assert!(h < c);
-    assert!(!(s < c));
+    // `*s < *c` is false in the SDK, as is `*(13)C < *C`.
+    assert!(s >= c);
     assert!(c < c13);
-    assert!(!(c13 < c));
+    assert!(c13 >= c);
 }
 
 #[test]
@@ -208,11 +209,12 @@ fn empirical_formula_text_hash_and_isotope_number() {
     assert_eq!(bits(EmpiricalFormula::default().lightest_isotope_mass()), 0);
     // Multi-element sums follow the SDK's address order; within a few ulps.
     for (text, expected) in [
-        ("C2H5", 29.039125159499999),
-        ("CH4+", 17.038576594371001),
-        ("C6H12O6", 180.06339038280001),
-        ("C636H1007N167O178S5PtH-2", 14182.293776709499),
+        ("C2H5", 0x403d0a041b4080d7_u64),
+        ("CH4+", 0x403109e027db36ea),
+        ("C6H12O6", 0x406682074b44a039),
+        ("C636H1007N167O178S5PtH-2", 0x40cbb3259a79a7d0),
     ] {
+        let expected = f64::from_bits(expected);
         let actual = ef(text).lightest_isotope_mass();
         assert!(
             (actual - expected).abs() <= expected * 4.0 * f64::EPSILON,
@@ -392,7 +394,8 @@ fn sulfur_fragment_estimate_matches_the_sdk_bits() {
         .unwrap()
         .with_precision(ProbabilityPrecision::SourceSingle);
     // (sulfur, raw [(mass bits, weight bits)], renormalized weight bits)
-    let expected: [(u32, [(u64, u64); 3], [u64; 3]); 4] = [
+    type Case = (u32, [(u64, u64); 3], [u64; 3]);
+    let expected: [Case; 4] = [
         (
             0,
             [

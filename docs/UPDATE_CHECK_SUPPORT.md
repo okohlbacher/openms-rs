@@ -26,7 +26,7 @@ The `.cpp` reaches into three other headers. Their relevant members:
 | `File::exists` / `File::readable` | `system::file::exists` / `readable` | Already ported. |
 | `VersionInfo::getVersionStruct()` | the `running_version` parameter | See *Native differences*. |
 | `VersionInfo::getRevision()` | — | **Not ported**: the source computes `revision` and never uses it. |
-| `VersionInfo::VersionDetails` | `update_check::SemanticVersion` | The part `UpdateCheck` depends on; `CONCEPT/VersionInfo.h` is not otherwise ported. |
+| `VersionInfo::VersionDetails` | `update_check::SemanticVersion` | The part `UpdateCheck` depends on; the whole of `CONCEPT/VersionInfo.h` is `concept::version_info`, where `SemanticVersion` is `VersionDetails`. |
 | `VersionDetails::create` | `SemanticVersion::parse` | Returns `Option` where the source returns the `EMPTY` sentinel. |
 | `VersionDetails::operator<` | `SemanticVersion::is_less_than` | Not `PartialOrd`; see below. |
 | `VersionDetails::operator==` / `operator!=` | `PartialEq` / `Eq` | Field-wise, including the pre-release string. |

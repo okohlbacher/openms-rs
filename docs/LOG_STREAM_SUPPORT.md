@@ -111,7 +111,7 @@ The Windows C++ Colorizer also enables virtual-terminal console mode and resets
 console state at process exit. This module emits the same per-record ANSI bytes
 but does not alter host console mode; a Windows terminal must already support
 those sequences. General mutable Colorizer composition and its separate insertion
-API are outside this logging module. Local-time zone interpretation follows the
+API are `concept::colorizer::Colorizer`, outside this logging module. Local-time zone interpretation follows the
 host's chrono-supported zone facilities. The process's global route objects live
 for its lifetime; call `finish` explicitly for any directly buffered global text.
 Thread-local and ordinary owned logger destruction flush their buffers normally.

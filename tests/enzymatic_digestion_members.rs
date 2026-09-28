@@ -113,3 +113,63 @@ fn registry_lookup_by_lowercase_name_and_by_record() {
     let detached = (*t1).clone();
     assert!(!rnases.has_enzyme_record(&detached));
 }
+
+/// `getEnzymeByRegEx` for every registered expression: the enzyme registered
+/// last wins. Executed Release oracle `../oracle/A5a-enzymes` (ibminode06,
+/// records.tsv sha256 `be7650be...9487`).
+#[test]
+fn enzyme_by_regex_returns_the_last_registered() {
+    let db = ProteaseDB::global();
+    for (regex, name) in [
+        ("()", "no cleavage"),
+        ("(?<=W)", "iodosobenzoate"),
+        ("(?<=[A-Z])", "unspecific cleavage"),
+        ("(?<=[ALIJVX])(?!P)", "leukocyte elastase"),
+        ("(?<=[ALIVKRWFYX])(?!P)", "elastase-trypsin-chymotrypsin"),
+        ("(?<=[DBEZX])", "glutamyl endopeptidase"),
+        ("(?<=[DBEZX])(?!P)", "Glu-C+P"),
+        ("(?<=[DBX])(?=[DBX])", "Formic_acid"),
+        ("(?<=[EZX])", "staphylococcal protease/D"),
+        ("(?<=[EZX])(?!P)", "V8-E"),
+        ("(?<=[FLJX])", "PepsinA"),
+        ("(?<=[FLJX])(?!P)", "PepsinA + P"),
+        ("(?<=[FYWLJKRX])(?!P)", "TrypChymo"),
+        ("(?<=[FYWLJX])", "Chymotrypsin/P"),
+        ("(?<=[FYWLJX])(?!P)", "Chymotrypsin"),
+        ("(?<=[HKRX][PX])(?!P)", "proline endopeptidase"),
+        ("(?<=[KRX])", "Trypsin/P"),
+        ("(?<=[KRX])(?!P)", "Trypsin"),
+        ("(?<=[KX])", "Lys-C/P"),
+        ("(?<=[KX])(?!P)", "Lys-C"),
+        ("(?<=[MX])", "cyanogen-bromide"),
+        ("(?<=[PX])", "proline-endopeptidase/HKR"),
+        ("(?<=[RX])", "Clostripain/P"),
+        ("(?<=[RX])(?!P)", "Arg-C"),
+        ("(?<=[TASVX])", "Alpha-lytic protease"),
+        ("(?<=[WX])", "2-iodobenzoate"),
+        ("(?=[DBEZX])", "Asp-N_ambic"),
+        ("(?=[DBX])", "Asp-N"),
+        ("(?=[DX])", "Asp-N/B"),
+        ("(?=[KX])", "Lys-N"),
+    ] {
+        assert!(db.has_regex(regex), "{regex}");
+        assert_eq!(db.enzyme_by_regex(regex).unwrap().name(), name, "{regex}");
+    }
+    assert!(db.enzyme_by_regex("NOT_A_REGEX").is_err());
+    assert_eq!(db.names().len(), 33);
+    // RNaseDB: every enzyme has an empty main expression, which the source
+    // does not index (hasRegEx("") is 0); names index their lowercase form.
+    let rnases = RNaseDB::global();
+    assert!(!rnases.has_regex(""));
+    assert!(rnases.enzyme_by_regex("").is_err());
+    assert_eq!(rnases.names().len(), 14);
+    for (name, present) in [
+        ("RNase_T1", true),
+        ("rnase_t1", true),
+        ("RNASE_T1", false),
+        ("cusativin", true),
+        ("Cusativin", false),
+    ] {
+        assert_eq!(rnases.has_enzyme(name), present, "{name}");
+    }
+}

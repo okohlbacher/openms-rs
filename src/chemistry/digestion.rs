@@ -137,6 +137,31 @@ impl ProteaseDB {
             })
             .ok_or_else(|| invalid(format!("unknown protease {name:?}")))
     }
+    /// The enzyme registered for this exact cleavage expression: source
+    /// `getEnzymeByRegEx`.
+    ///
+    /// The source indexes expressions in a map that each registration
+    /// overwrites, so of several enzymes sharing an expression the one
+    /// registered last wins: `Clostripain/P` for `(?<=[RX])`,
+    /// `cyanogen-bromide` for `(?<=[MX])` and `Glu-C+P` for
+    /// `(?<=[DBEZX])(?!P)`. [`Self::enzymes_by_regex`] returns all of them.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Unsupported`] when no enzyme has this expression (the
+    /// source's `IllegalArgument`, "... was not registered in Enzyme DB,
+    /// register first!").
+    pub fn enzyme_by_regex(&self, regex: &str) -> Result<&'static DigestionEnzymeProtein> {
+        self.enzymes()
+            .iter()
+            .rev()
+            .find(|e| e.regex == regex)
+            .ok_or_else(|| {
+                Error::Unsupported(format!(
+                    "Enzyme with regex {regex} was not registered in Enzyme DB, register first!"
+                ))
+            })
+    }
     /// Whether `enzyme` is one of this registry's records (by identity):
     /// source `hasEnzyme(const DigestionEnzymeProtein*)`.
     ///
