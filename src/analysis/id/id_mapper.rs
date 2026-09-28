@@ -1228,7 +1228,8 @@ impl IDMapper {
     /// `SpectrumNativeIDParser::extractScanNumber` throws `ParseError`. This
     /// port executes the same pattern through the crate's Boost-compatible
     /// regex and therefore returns [`Error::Parse`] in the same situation. The
-    /// behaviour is recorded as a C++ defect candidate in the support document.
+    /// behaviour is recorded as a C++ defect candidate in the support document;
+    /// an executed C++ oracle (Release build) confirms the `ParseError`.
     ///
     /// # Errors
     ///

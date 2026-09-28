@@ -2,8 +2,8 @@
  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
  "license": "BSD-3-Clause",
- "method": "Library-level reproduction of the upstream IDMapper class test (in-memory literals transcribed; the consensusXML files the class test compares with TEST_FILE_SIMILAR are loaded and compared identification by identification: RT, m/z, hit sequences and charges, and the map_index, spectrum_index and spectrum_reference meta values) and of the six TOPP_IDMapper tests of test-data 0cb15f2 (topp/CMakeLists.txt: the add_test invocations are reproduced as IDMapper parameters plus the TOPP tool's own option defaults from topp 174b576 src/IDMapper.cpp - mz_reference defaults to 'peptide', feature:use_centroid_mz to 'true' - and the retained outputs are compared the same way; for consensus maps the tool's sortPeptideIdentificationsByMapIndex is applied). Run identifiers, dates and data-processing records are not compared: the C++ writer names runs and stamps dates itself, and the FuzzyDiff whitelist exempts them. Three reader defects (idXML/featureXML/consensusXML refuse the unset DateTime text, the flanking residue '*' and a repeated SearchParameters UserParam, all of which C++ reads) are worked around in memory by tests/id_mapper.rs::fixture_text; none of the rewritten fields reaches the mapping.",
- "evidence_tier": "Tier 1 (retained C++ outputs: the class-test consensusXML expectations and the TOPP_IDMapper_1..6 outputs) for annotate_consensus_matches_class_test_outputs, annotate_consensus_unidentified_precursors_match_class_test_outputs and topp_idmapper_1..6; tier 3 (transcribed class-test literals) for the parameter, absolute_mz_tolerance, is_match, annotate_spectra, annotate_features and charge-check tests; tier 4 (independently derived from the source text) for annotate_spectra_from_features_fills_coordinates, annotate_spectra_edge_cases, map_precursors_partitions_spectra, the atomicity and limit tests and the unit tests in src/analysis/id/id_mapper.rs.",
+ "method": "Library-level reproduction of the upstream IDMapper class test (in-memory literals transcribed; the consensusXML files the class test compares with TEST_FILE_SIMILAR are loaded and compared identification by identification: RT, m/z, hit sequences and charges, and the map_index, spectrum_index and spectrum_reference meta values) and of the six TOPP_IDMapper tests of test-data 0cb15f2 (topp/CMakeLists.txt: the add_test invocations are reproduced as IDMapper parameters plus the TOPP tool's own option defaults from topp 174b576 src/IDMapper.cpp - mz_reference defaults to 'peptide', feature:use_centroid_mz to 'true' - and the retained outputs are compared the same way; for consensus maps the tool's sortPeptideIdentificationsByMapIndex is applied). Run identifiers, dates and data-processing records are not compared: the C++ writer names runs and stamps dates itself, and the FuzzyDiff whitelist exempts them. Three reader defects (idXML/featureXML/consensusXML refuse the unset DateTime text, the flanking residue '*' and a repeated SearchParameters UserParam, all of which C++ reads) are worked around in memory by tests/id_mapper.rs::fixture_text; none of the rewritten fields reaches the mapping. The isobaric (TMT) branch, which no retained output exercises, was run through an executed C++ oracle (see external_reference_artifacts).",
+ "evidence_tier": "Tier 1 (retained C++ outputs: the class-test consensusXML expectations and the TOPP_IDMapper_1..6 outputs) for annotate_consensus_matches_class_test_outputs, annotate_consensus_unidentified_precursors_match_class_test_outputs and topp_idmapper_1..6; tier 1 (executed C++ oracle ../oracle/I4-idmapper-tmt, Release build on ibminode06) for isobaric_mapping_matches_cpp_oracle; tier 3 (transcribed class-test literals) for the parameter, absolute_mz_tolerance, is_match, annotate_spectra, annotate_features and charge-check tests; tier 4 (independently derived from the source text) for annotate_spectra_from_features_fills_coordinates, annotate_spectra_edge_cases, map_precursors_partitions_spectra, the atomicity and limit tests and the unit tests in src/analysis/id/id_mapper.rs.",
  "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:2963-2992, the '# IDMapper tests' block (TOPP_IDMapper_1 .. TOPP_IDMapper_6_out1)",
  "sources": [
   {
@@ -217,6 +217,27 @@
    "role": "TOPP_IDMapper_6 retained C++ output, the ${DIFF} reference (test-data 0cb15f2 topp/)"
   }
  ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/I4-idmapper-tmt/driver.cpp",
+   "sha256": "ef8482e7a5bf895ae3d5928ea2bab19877a64593358a4062581a11f07f18a863",
+   "location": "outside this repository",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/I4-idmapper-tmt/remote_run.sh",
+   "sha256": "b49f8117bab9d15387ad56d44f491eeb6fb7881ad6f8cecfc0ed2b8cdb2a5c44",
+   "location": "outside this repository",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/I4-idmapper-tmt/results/records.tsv",
+   "sha256": "8660e5a365e451e422dae08542c6546b4000f7abab572ca9c589836329b6bba5",
+   "location": "outside this repository",
+   "origin_key": "method"
+  }
+ ],
+ "external_reference_note": "The isobaric oracle ran on ibminode06 (Linux x86_64) against the Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c), built with conda-forge g++ 14.4.0 and libOpenMS's core flags; two runs in fresh processes agreed byte for byte. tests/id_mapper.rs::isobaric_mapping_matches_cpp_oracle transcribes its four records.",
  "native_implementation": [
   "src/analysis/id/id_mapper.rs"
  ],

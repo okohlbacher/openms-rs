@@ -102,8 +102,8 @@ is a native-ID map built in place (last spectrum wins, as `SpectrumLookup::addEn
    false)` runs the empty pattern, which has no group 1: its tokens are empty strings, the
    conversion fails and `ParseError` is thrown whenever a scan ID has no exact match and the
    first identification's reference is an integer (Sage-style scan numbers). The port executes
-   the same pattern through `concept::boost_regex` and returns `Error::Parse`. Not verified
-   against an executed C++ build (no fixture exercises it).
+   the same pattern through `concept::boost_regex` and returns `Error::Parse`. Confirmed by an
+   executed C++ oracle (`../oracle/I4-idmapper-tmt`, Release build on ibminode06): `boost::regex{""}.empty()` is 0 and the Sage-style case throws `ParseError` "Could not extract scan number".
 2. `IDMapper.cpp:351`: the integer check reads `ids[0].getSpectrumReference()` inside the loop
    over `ids[i]`; an unannotated first identification disables scan-number matching for all.
 3. `IDMapper.cpp:963-969`: the centroid branch of the unidentified-precursor loop breaks before
@@ -121,6 +121,7 @@ is a native-ID map built in place (last spectrum wins, as `SpectrumLookup::addEn
   with the TOPP tool's option defaults (`mz_reference=peptide`, `feature:use_centroid_mz=true`,
   topp `174b576` `src/IDMapper.cpp`) and, for consensus maps, its
   `sortPeptideIdentificationsByMapIndex`. Run identifiers and dates are not compared.
+- Tier 1 (executed): the isobaric branch against `../oracle/I4-idmapper-tmt` (four cases).
 - Tier 3: every in-memory literal of `IDMapper_test.cpp`.
 - Tier 4: the disabled FeatureMap-to-spectra section's scenario, the zero-tolerance sweep,
   precursor partitioning, atomicity and limits.
