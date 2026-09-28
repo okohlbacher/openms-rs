@@ -83,8 +83,8 @@ fn handler_test_caching() {
     let spectra_index = cache.spectra_index().to_vec();
     assert_eq!(spectra_index.len(), 4);
     let mut ifs = BufReader::new(File::open(&tmp_filename).unwrap());
-    for i in 0..4 {
-        ifs.seek(SeekFrom::Start(spectra_index[i])).unwrap();
+    for (i, &offset) in spectra_index.iter().enumerate() {
+        ifs.seek(SeekFrom::Start(offset)).unwrap();
         let (darray, _ms_level, _rt) = CachedMzMLHandler::read_spectrum_fast(&mut ifs).unwrap();
         assert!(darray.len() >= 2);
         assert_eq!(darray[0].data.len(), exp.spectra[i].peaks.len());
@@ -103,8 +103,8 @@ fn handler_test_caching() {
     cache.create_memdump_index(&tmp_filename).unwrap();
     let chrom_index = cache.chromatogram_index().to_vec();
     assert_eq!(chrom_index.len(), 2);
-    for i in 0..2 {
-        ifs.seek(SeekFrom::Start(chrom_index[i])).unwrap();
+    for (i, &offset) in chrom_index.iter().enumerate() {
+        ifs.seek(SeekFrom::Start(offset)).unwrap();
         let darray = CachedMzMLHandler::read_chromatogram_fast(&mut ifs).unwrap();
         assert!(darray.len() >= 2);
         assert_eq!(darray[0].data.len(), exp.chromatograms[i].peaks.len());
@@ -442,9 +442,11 @@ fn empty_records_keep_their_arrays_and_chromatogram_arrays_keep_values() {
         .integer_data_arrays
         .push(DataArray::new("ints", Vec::new()));
     exp.spectra.push(spectrum);
-    let mut second = MSSpectrum::default();
-    second.ms_level = 2;
-    second.rt = 7.5;
+    let mut second = MSSpectrum {
+        ms_level: 2,
+        rt: 7.5,
+        ..MSSpectrum::default()
+    };
     second.peaks.push(openms::kernel::Peak1D::new(100.0, 5.0));
     second
         .integer_data_arrays
