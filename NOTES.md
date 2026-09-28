@@ -54,3 +54,12 @@ Lane: XML handlers + MS data consumers. Worktree branch: worktree-wf_ee239125-5b
   tests/ms_data_consumers.rs (824 lines), mod.rs pub mods, path_io cfg widen. NOT yet gated on spock.
 - Next step: (a) review WIP files compile-sanity by reading; (b) gate on spock (--features mzml / sqmass);
   (c) tests for loader + sql consumer; (d) docs; (e) report + ledger.
+- gate2 (spock, --features mzml,sqmass --test ms_data_consumers): 28/29 pass; the failure was a test input on the
+  strict float boundary (d = c + RT_TOLERANCE rounds to < tol) -> input moved to 2*tol. Re-gate.
+- FINDING: MSDataWritingConsumer progress gap is vacuous: ctor binds MzMLHandler's `const ProgressLogger& logger_`
+  to a temporary `ProgressLogger()` (MSDataWritingConsumer.cpp:20, MzMLHandler.h:468 -> dangling ref, C++ defect
+  candidate), and the streaming path (writeHeader_/writeSpectrum_/writeChromatogram_) never calls logger_ (only
+  load at MzMLHandler.cpp:966-1497 and writeTo at :4763-4838 do). validator_ gap = record-level writeUserParam_
+  CV promotion (validateCV_, MzMLHandler.cpp:3576-3669); Rust record writer mzml.rs write_scalar_metadata writes
+  plain userParams only -> MzMLHandler writer gap, keep WritingConsumer partial naming it.
+- Reference C++ readable at literal path .../OpenMS4-R/.reference/openms4-core-bc9cc12/src (guard refuses $VARS in sed).

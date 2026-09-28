@@ -712,7 +712,9 @@ fn native_aggregating_groups_by_the_previous_retention_time() {
             ("a", 5.0),
             ("b", 5.0 + step),
             ("c", 5.0 + 2.0 * step),
-            ("d", 5.0 + 2.0 * step + RT_TOLERANCE),
+            // Two tolerances past "c": one tolerance exactly would sit on the
+            // strict boundary, where the rounding of `5.0 + x` decides.
+            ("d", 5.0 + 2.0 * step + 2.0 * RT_TOLERANCE),
             ("e", f64::NAN),
             ("f", f64::NAN),
         ] {
@@ -769,7 +771,7 @@ fn native_aggregating_errors_leave_the_group_and_break_stops() {
             self.0.set_experimental_settings(e)
         }
         fn consume_spectrum(&mut self, s: &mut MSSpectrum) -> openms::Result<ControlFlow<()>> {
-            self.0.consume_spectrum(s)?;
+            let _ = self.0.consume_spectrum(s)?;
             Ok(ControlFlow::Break(()))
         }
         fn consume_chromatogram(
