@@ -969,7 +969,7 @@ impl IDMapper {
         } else {
             let bin = |rt: f64| -> Result<i64> {
                 let floor = rt.floor();
-                if floor < -9.0e18 || floor > 9.0e18 {
+                if !(-9.0e18..=9.0e18).contains(&floor) {
                     return Err(limit("retention-time bin index"));
                 }
                 Ok(floor as i64)
@@ -1513,12 +1513,16 @@ impl IDMapper {
                 look_for_scan_numbers = source_to_int64(&ids[0].spectrum_reference()).is_some();
             }
             let inner = by_file.entry(spectrum_file).or_default();
-            if inner.contains_key(&reference) {
-                stats.warnings.push(format!(
-                    "Duplicate spectrum reference detected: {reference}"
-                ));
-            } else {
-                inner.insert(reference, i);
+            match inner.entry(reference) {
+                std::collections::hash_map::Entry::Occupied(entry) => {
+                    stats.warnings.push(format!(
+                        "Duplicate spectrum reference detected: {}",
+                        entry.key()
+                    ));
+                }
+                std::collections::hash_map::Entry::Vacant(entry) => {
+                    entry.insert(i);
+                }
             }
             has_references = true;
         }
