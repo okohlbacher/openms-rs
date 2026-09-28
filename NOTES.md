@@ -45,9 +45,15 @@ chemistry::modified_peptides::ModifiedPeptideGenerator. C++ tests: PEFFFile_test
 C++ defect candidate: getVariantSequences / digestWithVariants push the description before
 AASequence::fromString, so a throw desynchronises descriptions and sequences.
 
+## Done (incarnation 3)
+- PEFF compile fixes; PEFFEntry sequence members in src/format/peff/sequences.rs.
+- tests/peff_sequences.rs: 18 class-test ports + 8 oracle tests (26 green on dax).
+- Oracle ../oracle/F6-peff-sequences (ibminode06 Release, 2 identical runs) -> tests/data/peff_sequences_oracle.tsv.
+- docs/{PEFF,PTM_XML,UNIMOD_XML,UNIPROT_XML}_SUPPORT.md, tests/data/*_provenance.json.
+- Ledger fragment written (.planning/ledger-fragments/wave4/F6.json).
+- MSRV 1.85 kb-xml slice: peff 32, peff_sequences 18 (pre-oracle), ptm 6, unimod 7, uniprot 4.
+
 ## Next step
-1. Get tests/peff.rs green on dax (compile fixes committed).
-2. Port the PEFFEntry sequence members (above) + tests.
-3. Docs: docs/{PTM_XML,UNIMOD_XML,UNIPROT_XML,PEFF}_SUPPORT.md (check which exist); provenance.
-4. C++ oracle on ibminode06 (../oracle/F6-kbxml/) if time permits.
-5. Report + ledger fragment; delete NOTES.md.
+1. Clippy all-features (running), CI sweep F6-sweep (running) -> fix anything.
+2. Measure: no-default-features peff+peff_sequences counts; kb-xml lib unit tests count.
+3. Write report .planning/lane-reports/F6.md; delete NOTES.md in final commit.
