@@ -15,6 +15,7 @@
 use crate::comparison::{
     BinConfig, BinUnit, BinnedSpectralContrastAngle, BinnedSpectrum, BinnedSpectrumCompareFunctor,
 };
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::format::file_info::text_format::to_str;
 use crate::kernel::on_disc_experiment::OnDiscMSExperiment;
 use crate::kernel::{ConsensusFeature, ConsensusMap, MSSpectrum, Peak1D};
@@ -72,7 +73,9 @@ impl OutputType {
 /// consensus element `merged_spectra` considers, -1 for all), `ms2_bin_size`
 /// (bin width in Da for merging fragment ions) and
 /// `merged_spectra:cos_similarity` (the cosine threshold for merging). The
-/// source's progress reporting has no counterpart here.
+/// source's progress reporting is [`Self::store_with_progress`] and
+/// [`Self::write_with_progress`], which take the logger the source object
+/// would be.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct GNPSMGFFile {
     /// Parameter `output_type`.
@@ -238,9 +241,49 @@ impl GNPSMGFFile {
         mzml_file_paths: &[impl AsRef<Path>],
         out: impl AsRef<Path>,
     ) -> Result<()> {
+        self.store_reporting(
+            consensus_file_path.as_ref(),
+            mzml_file_paths,
+            out.as_ref(),
+            &mut ProgressReporter::silent(),
+        )
+    }
+
+    /// [`Self::store`], reporting progress to `logger` as the source's `store`
+    /// does (`GNPSMGFFile.cpp:268-272`).
+    ///
+    /// The calls are those of [`Self::write_with_progress`]; they begin once
+    /// the consensusXML is read and the output file is created. The written
+    /// bytes and every error are those of [`Self::store`].
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::store`], plus the errors of the progress calls.
+    pub fn store_with_progress(
+        &self,
+        consensus_file_path: impl AsRef<Path>,
+        mzml_file_paths: &[impl AsRef<Path>],
+        out: impl AsRef<Path>,
+        logger: &mut ProgressLogger,
+    ) -> Result<()> {
+        self.store_reporting(
+            consensus_file_path.as_ref(),
+            mzml_file_paths,
+            out.as_ref(),
+            &mut ProgressReporter::new(Some(logger)),
+        )
+    }
+
+    fn store_reporting(
+        &self,
+        consensus_file_path: &Path,
+        mzml_file_paths: &[impl AsRef<Path>],
+        out: &Path,
+        progress: &mut ProgressReporter<'_>,
+    ) -> Result<()> {
         let consensus_map = crate::format::consensusxml::load(consensus_file_path)?;
-        let mut writer = BufWriter::new(File::create(out.as_ref())?);
-        self.write(&consensus_map, mzml_file_paths, &mut writer)?;
+        let mut writer = BufWriter::new(File::create(out)?);
+        self.write_reporting(&consensus_map, mzml_file_paths, &mut writer, progress)?;
         writer.flush()?;
         Ok(())
     }
@@ -298,7 +341,52 @@ impl GNPSMGFFile {
         &self,
         consensus_map: &ConsensusMap,
         mzml_file_paths: &[impl AsRef<Path>],
+        writer: impl Write,
+    ) -> Result<()> {
+        self.write_reporting(
+            consensus_map,
+            mzml_file_paths,
+            writer,
+            &mut ProgressReporter::silent(),
+        )
+    }
+
+    /// [`Self::write`], reporting progress to `logger` as the source's `store`
+    /// does (`GNPSMGFFile.cpp:268-272`).
+    ///
+    /// The calls are the source's: `startProgress(0, features, "parsing
+    /// features and ms2 identifications...")` before the first feature and
+    /// `setProgress(i)` as feature `i` begins, whether or not it is written.
+    /// The source never calls `endProgress`, so the section stays open after
+    /// the call returns, successful or not, and neither does this port: the
+    /// section is left to the logger as an unfinished one (see
+    /// [`ProgressReporter`]). The written bytes and every error are those of
+    /// [`Self::write`].
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::write`], plus the errors of the progress calls.
+    pub fn write_with_progress(
+        &self,
+        consensus_map: &ConsensusMap,
+        mzml_file_paths: &[impl AsRef<Path>],
+        writer: impl Write,
+        logger: &mut ProgressLogger,
+    ) -> Result<()> {
+        self.write_reporting(
+            consensus_map,
+            mzml_file_paths,
+            writer,
+            &mut ProgressReporter::new(Some(logger)),
+        )
+    }
+
+    fn write_reporting(
+        &self,
+        consensus_map: &ConsensusMap,
+        mzml_file_paths: &[impl AsRef<Path>],
         mut writer: impl Write,
+        progress: &mut ProgressReporter<'_>,
     ) -> Result<()> {
         let merged = self.output_type == OutputType::MergedSpectra;
         let pept_cutoff = if merged { self.peptide_cutoff } else { 1 };
@@ -312,7 +400,12 @@ impl GNPSMGFFile {
             ..BinConfig::default()
         };
 
+        progress.start_count(
+            consensus_map.features.len(),
+            "parsing features and ms2 identifications...",
+        )?;
         for (cons_i, feature) in consensus_map.features.iter().enumerate() {
+            progress.set_count(cons_i)?;
             // Determine the feature's charge as the maximum feature handle charge.
             let charge = feature
                 .handles()

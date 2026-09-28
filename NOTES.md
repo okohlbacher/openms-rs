@@ -33,6 +33,12 @@ Scratchpad (per session): /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-
 
 - Support docs for all 10 groups committed (f38de85). c2 chain: core/fxml/mzml green (9+... / 16 / 11), died at cxml (connection).
 
+- c3 chain: core/fxml/mzml/cxml green.
+- ProgressLogger base: added *_with_progress to CachedMzMLHandler (write/read/createIndex) and GNPSMGFFile
+  (store/write; source never calls endProgress). Pattern: mascot_generic store_with_progress(&mut ProgressLogger).
+  Oracle plan: ../oracle/F4-progress/ modelled on ../oracle/progress-format-readers (driver.cpp, run.sh, remote_run.sh).
+
 ## Next step
-1. Gate chain scratchpad/F4/chain.sh c3 (fourth incarnation relaunched it) -> fix.
+0. Oracle F4-progress on ibminode06 -> fixture tests/data/f4_progress_release.tsv -> tests/f4_progress.rs.
+1. Gate chain (add the new test) -> fix.
 2. Report F4.md, ledger wave4/F4.json, delete NOTES.md.

@@ -29,6 +29,7 @@
 //! metadata lives in the companion mzML file of [`crate::format::cached_mzml`].
 //! See `docs/CACHED_MZML_SUPPORT.md`.
 
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D,
 };
@@ -67,7 +68,11 @@ pub struct BinaryDataArray {
 ///
 /// The handler holds the two indices [`Self::create_memdump_index`] builds:
 /// the byte offset of every spectrum and every chromatogram. The source class
-/// also derives from `ProgressLogger`; this port reports no progress.
+/// also derives from `ProgressLogger`; its three progress-reporting members
+/// are the `*_with_progress` variants ([`Self::write_memdump_with_progress`],
+/// [`Self::read_memdump_with_progress`],
+/// [`Self::create_memdump_index_with_progress`]), which take the logger the
+/// source object would be.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CachedMzMLHandler {
     spectra_index: Vec<u64>,
@@ -142,6 +147,12 @@ fn read_doubles<R: Read + Seek>(reader: &mut R, count: u64, message: &str) -> Re
     Ok(values)
 }
 
+/// A file count as the source's signed progress value: its `Size` converted
+/// implicitly to `SignedSize`, which wraps a count above `i64::MAX` around.
+fn source_signed(count: u64) -> i64 {
+    count as i64
+}
+
 /// The source's `static_cast<int>(size) < 0` test, on the low 32 bits.
 fn negative_as_int(size: u64) -> bool {
     (size as u32 as i32) < 0
@@ -161,10 +172,44 @@ impl CachedMzMLHandler {
     /// Returns [`Error::Io`] when the file cannot be created or written; the
     /// source does not check its stream and writes nothing silently.
     pub fn write_memdump(&self, exp: &MSExperiment, out: impl AsRef<Path>) -> Result<()> {
-        let mut writer = BufWriter::new(File::create(out.as_ref())?);
-        self.write_memdump_to(exp, &mut writer)?;
+        Self::write_memdump_reporting(exp, out.as_ref(), ProgressReporter::silent())
+    }
+
+    /// [`Self::write_memdump`], reporting progress to `logger` as the source's
+    /// `writeMemdump` does (`CachedMzMLHandler.cpp:41-57`).
+    ///
+    /// The calls are the source's: after the file identifier,
+    /// `startProgress(0, spectra + chromatograms, "storing binary data")`;
+    /// `setProgress(i)` before spectrum `i`, then `setProgress(i)` before
+    /// chromatogram `i`, the index starting again at 0 as in the source; and
+    /// `endProgress()` once the counts are written and the file is closed. The
+    /// written bytes and every error are those of [`Self::write_memdump`]. A
+    /// file that cannot be created fails before the start; the source, whose
+    /// stream is unchecked, still makes every call. A write failure after the
+    /// start leaves the section open, as the source's exceptions do.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::write_memdump`], plus the errors of the progress calls.
+    pub fn write_memdump_with_progress(
+        &self,
+        exp: &MSExperiment,
+        out: impl AsRef<Path>,
+        logger: &mut ProgressLogger,
+    ) -> Result<()> {
+        Self::write_memdump_reporting(exp, out.as_ref(), ProgressReporter::new(Some(logger)))
+    }
+
+    fn write_memdump_reporting(
+        exp: &MSExperiment,
+        out: &Path,
+        mut progress: ProgressReporter<'_>,
+    ) -> Result<()> {
+        let mut writer = BufWriter::new(File::create(out)?);
+        Self::write_dump(exp, &mut writer, &mut progress)?;
         writer.flush()?;
-        Ok(())
+        drop(writer);
+        progress.end()
     }
 
     /// Write the dump of `exp` to `writer`.
@@ -178,12 +223,27 @@ impl CachedMzMLHandler {
     /// # Errors
     ///
     /// Returns [`Error::Io`] when writing fails.
-    pub fn write_memdump_to(&self, exp: &MSExperiment, mut writer: impl Write) -> Result<()> {
+    pub fn write_memdump_to(&self, exp: &MSExperiment, writer: impl Write) -> Result<()> {
+        Self::write_dump(exp, writer, &mut ProgressReporter::silent())
+    }
+
+    /// The dump without the final `endProgress`, which follows the close.
+    fn write_dump(
+        exp: &MSExperiment,
+        mut writer: impl Write,
+        progress: &mut ProgressReporter<'_>,
+    ) -> Result<()> {
         writer.write_all(&CACHED_MZML_FILE_IDENTIFIER.to_le_bytes())?;
-        for spectrum in &exp.spectra {
+        progress.start_count(
+            exp.spectra.len() + exp.chromatograms.len(),
+            "storing binary data",
+        )?;
+        for (i, spectrum) in exp.spectra.iter().enumerate() {
+            progress.set_count(i)?;
             Self::write_spectrum(spectrum, &mut writer)?;
         }
-        for chromatogram in &exp.chromatograms {
+        for (i, chromatogram) in exp.chromatograms.iter().enumerate() {
+            progress.set_count(i)?;
             Self::write_chromatogram(chromatogram, &mut writer)?;
         }
         writer.write_all(&(exp.spectra.len() as u64).to_le_bytes())?;
@@ -267,19 +327,59 @@ impl CachedMzMLHandler {
     /// might not be a cached mzML file (wrong file magic number). Aborting!")
     /// or a record is truncated or invalid (see [`Self::read_spectrum_fast`]).
     pub fn read_memdump(&self, filename: impl AsRef<Path>) -> Result<MSExperiment> {
-        let mut reader = BufReader::new(File::open(filename.as_ref())?);
+        Self::read_memdump_reporting(filename.as_ref(), ProgressReporter::silent())
+    }
+
+    /// [`Self::read_memdump`], reporting progress to `logger` as the source's
+    /// `readMemdump` does (`CachedMzMLHandler.cpp:97-116`).
+    ///
+    /// The calls are the source's: once the identifier and the two trailing
+    /// counts are read, `startProgress(0, spectra + chromatograms, "reading
+    /// binary data")`; `setProgress(i)` before spectrum `i`, then before
+    /// chromatogram `i`, the index starting again at 0; and `endProgress()`
+    /// after the last record. The counts are the file's own, added and
+    /// converted to the signed progress type with the source's wrap-around, so
+    /// a forged count reaches the logger as the source passes it. The result
+    /// and every error are those of [`Self::read_memdump`]; a refused header
+    /// makes no call, and a failure in a record leaves the section open, as in
+    /// the source.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::read_memdump`], plus the errors of the progress calls.
+    pub fn read_memdump_with_progress(
+        &self,
+        filename: impl AsRef<Path>,
+        logger: &mut ProgressLogger,
+    ) -> Result<MSExperiment> {
+        Self::read_memdump_reporting(filename.as_ref(), ProgressReporter::new(Some(logger)))
+    }
+
+    fn read_memdump_reporting(
+        filename: &Path,
+        mut progress: ProgressReporter<'_>,
+    ) -> Result<MSExperiment> {
+        let mut reader = BufReader::new(File::open(filename)?);
         let (spectra, chromatograms) = Self::read_header(&mut reader)?;
         let mut exp = MSExperiment::new();
-        for _ in 0..spectra {
+        progress.start(
+            0,
+            source_signed(spectra.wrapping_add(chromatograms)),
+            "reading binary data",
+        )?;
+        for i in 0..spectra {
+            progress.set(source_signed(i))?;
             let mut spectrum = MSSpectrum::default();
             Self::read_spectrum(&mut spectrum, &mut reader)?;
             exp.spectra.push(spectrum);
         }
-        for _ in 0..chromatograms {
+        for i in 0..chromatograms {
+            progress.set(source_signed(i))?;
             let mut chromatogram = MSChromatogram::default();
             Self::read_chromatogram(&mut chromatogram, &mut reader)?;
             exp.chromatograms.push(chromatogram);
         }
+        progress.end()?;
         Ok(exp)
     }
 
@@ -310,17 +410,56 @@ impl CachedMzMLHandler {
     /// extend past the end of the file, where the source records offsets
     /// beyond it. On an error the previous indices are kept.
     pub fn create_memdump_index(&mut self, filename: impl AsRef<Path>) -> Result<()> {
-        let mut reader = BufReader::new(File::open(filename.as_ref())?);
+        self.create_memdump_index_reporting(filename.as_ref(), ProgressReporter::silent())
+    }
+
+    /// [`Self::create_memdump_index`], reporting progress to `logger` as the
+    /// source's `createMemdumpIndex` does (`CachedMzMLHandler.cpp:175-221`).
+    ///
+    /// The calls are the source's: once the identifier and the two trailing
+    /// counts are read, `startProgress(0, spectra + chromatograms, "Creating
+    /// index for binary spectra")` (the counts converted as at
+    /// [`Self::read_memdump_with_progress`]); `setProgress(i)` before the
+    /// offset of spectrum `i`, then before that of chromatogram `i`, the index
+    /// starting again at 0; and `endProgress()` after the last record. The
+    /// indices and every error are those of [`Self::create_memdump_index`]; a
+    /// refused header makes no call, and a failure in a record leaves the
+    /// section open and the previous indices in place.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::create_memdump_index`], plus the errors of the progress
+    /// calls.
+    pub fn create_memdump_index_with_progress(
+        &mut self,
+        filename: impl AsRef<Path>,
+        logger: &mut ProgressLogger,
+    ) -> Result<()> {
+        self.create_memdump_index_reporting(filename.as_ref(), ProgressReporter::new(Some(logger)))
+    }
+
+    fn create_memdump_index_reporting(
+        &mut self,
+        filename: &Path,
+        mut progress: ProgressReporter<'_>,
+    ) -> Result<()> {
+        let mut reader = BufReader::new(File::open(filename)?);
         let (spectra, chromatograms) = Self::read_header(&mut reader)?;
         let end = reader.seek(SeekFrom::End(0))?;
         reader.seek(SeekFrom::Start(INT))?;
         let mut spectra_index = Vec::new();
         let mut chrom_index = Vec::new();
+        progress.start(
+            0,
+            source_signed(spectra.wrapping_add(chromatograms)),
+            "Creating index for binary spectra",
+        )?;
         for (count, index, extra, message) in [
             (spectra, &mut spectra_index, DATUM + INT, BAD_SPECTRUM),
             (chromatograms, &mut chrom_index, 0, BAD_CHROMATOGRAM),
         ] {
-            for _ in 0..count {
+            for i in 0..count {
+                progress.set(source_signed(i))?;
                 let start = reader.stream_position()?;
                 if start >= end {
                     return Err(parse(message));
@@ -349,7 +488,7 @@ impl CachedMzMLHandler {
         }
         self.spectra_index = spectra_index;
         self.chrom_index = chrom_index;
-        Ok(())
+        progress.end()
     }
 
     fn skip<R: Seek>(reader: &mut R, bytes: u64, end: u64, message: &str) -> Result<()> {
