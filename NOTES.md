@@ -16,7 +16,12 @@ Write files outside the worktree via scratch + `cp` (the Write tool refuses shar
   C++ side in ../oracle/M1-mapalign (ibminode06). Report + ledger (scratch M1/M1.md, M1/M1.json) updated
   for tier 1; re-cp M1.json to the ledger path.
 
-## Next step
+## Restart 2 (worktree wf_cd066dab-0a7-36, fast-forwarded from worktree-wf_ee239125-5be-30)
+Scratch dir from restart 1 was wiped: report draft M1/M1.md is LOST; ledger M1.json at .planning/ledger-fragments/wave4/M1.json survives.
+Re-run the sweep; rewrite the report from docs/MAP_ALIGNMENT_SUPPORT.md + TRANSFORMATIONS_SUPPORT.md.
+Then look at KD / TreeGuided deps (KDTreeFeatureMaps, ClusterHierarchical, StablePairFinder) if time.
+
+## Next step (old)
 1. Wait for the CI sweep (started 20:58 on the tree before the oracle commit; oracle slice + clippy re-run on the final tree already) (scratch M1/sweep.log, logs in M1/sweep/); fix any red line.
 2. Append sweep result to M1/M1.md, cp it to .planning/lane-reports/M1.md.
 3. Final commit deleting NOTES.md.
