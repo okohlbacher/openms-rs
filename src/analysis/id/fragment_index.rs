@@ -348,18 +348,27 @@ impl FragmentIndex {
 
     /// Replace the parameters (source `setParameters`).
     ///
-    /// The source keeps an existing index when parameters change, although
-    /// its peptides' modification bitmasks then refer to the old
-    /// modification tables; this port clears the index instead, so a rebuild
-    /// is required. On error the index is unchanged.
+    /// As in the source, an existing index is **kept**: query-time
+    /// parameters (tolerances, charges, isotope errors, thresholds) take
+    /// effect immediately, while build-time parameters (enzyme, lengths,
+    /// masses, ion series, modifications) only take effect at the next
+    /// [`FragmentIndex::build`]. Changing the modifications without
+    /// rebuilding leaves peptide bitmasks referring to the new slot tables,
+    /// exactly the source's hazard. On error nothing changes.
     ///
     /// # Errors
     ///
     /// As [`FragmentIndex::new`].
     pub fn set_parameters(&mut self, params: FragmentIndexParameters) -> Result<()> {
-        let threads = self.threads;
-        *self = Self::new(params)?;
-        self.threads = threads;
+        let mut next = Self::new(params)?;
+        next.threads = self.threads;
+        next.peptides = std::mem::take(&mut self.peptides);
+        next.fragments = std::mem::take(&mut self.fragments);
+        next.protein_lengths = std::mem::take(&mut self.protein_lengths);
+        next.bucket_min_mz = std::mem::take(&mut self.bucket_min_mz);
+        next.bucket_size = self.bucket_size;
+        next.is_build = self.is_build;
+        *self = next;
         Ok(())
     }
 
@@ -1023,7 +1032,7 @@ impl FragmentIndex {
                     residue += mods[i];
                 }
                 cumulative += residue;
-                if i + 1 <= min_ion_index {
+                if i < min_ion_index {
                     continue;
                 }
                 if series.b {
@@ -1254,7 +1263,9 @@ impl FragmentIndex {
         let low = precursor_mass + window.0;
         let high = precursor_mass + window.1;
         let left = self.peptides.partition_point(|p| p.precursor_mz < low);
-        let right = self.peptides.partition_point(|p| !(high < p.precursor_mz));
+        let right = self
+            .peptides
+            .partition_point(|p| p.precursor_mz.partial_cmp(&high) != Some(Ordering::Greater));
         (left, right)
     }
 
