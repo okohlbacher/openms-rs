@@ -46,6 +46,12 @@ Lane FF1: FEATUREFINDER models and fitters. Worktree branch worktree-wf_cd066dab
 - Test fixtures already in repo: tests/data/peak_picking/PeakPickerHiRes_orbitrap.mzML, tests/data/consensusxml/ConsensusXMLFile_1.consensusXML
   (sha256 equal to core class-test data). PepXMLFile_test.mzML: transcribe 13 rows (ms level, rt, precursor mz) instead.
 
+- Tier-1 oracle ../oracle/FF1-models (ibminode06 Release), 15742 values, ALL bit-identical on spock.
+- Kernel fix: ConvexHull2D keep-first enlarge (closes FFAP helper structs gap). Docs amended.
+- SCRATCHPAD IS SHARED WITH OTHER LANES: use scratchpad/FF1/ only.
+- tools/check_schema_feature_graph.py runs cargo LOCALLY - do not run it (deleted local target/ once).
+- docs/core-sdk-coverage.json stale -> lead must regenerate (core_sdk_coverage.py --write); doc-coverage floor --write too.
+
 ## Next step
-1. tests/featurefinder_models.rs (no features) + tests/featurefinder_io.rs (#![cfg(all(mzml, consensusxml))]).
-2. Run on spock; fix. 3. docs/FEATUREFINDER_MODELS_SUPPORT.md, provenance json, doc coverage, report, ledger.
+1. Wait clippy (scratchpad/FF1/clippy2.log); run sweep into scratchpad/FF1/sweep.
+2. Ledger fragment + lane report; delete NOTES.md in final commit.
