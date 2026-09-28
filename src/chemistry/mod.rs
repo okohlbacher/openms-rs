@@ -25,9 +25,12 @@ pub mod aa_index;
 pub mod adduct_info;
 pub mod decoy_generator;
 pub mod digestion;
+/// The element database (`CHEMISTRY/ElementDB.h`) and `Element` value members.
 pub mod element_db;
 mod elements;
 mod empirical_formula;
+/// `CHEMISTRY/EnzymaticDigestion.h`: specificities, names and the missed-cleavage filter.
+pub mod enzymatic_digestion;
 pub use empirical_formula::FormulaEntry;
 pub mod hydrophobicity;
 pub mod ims_alphabet;

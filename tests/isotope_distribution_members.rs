@@ -59,9 +59,12 @@ fn ordering_compares_size_then_mass_then_probability() {
     let small = distribution(&[(5.0, 1.0)]);
     let large = distribution(&[(1.0, 0.1), (2.0, 0.1)]);
     assert!(small < large);
+    // The first differing peak decides, by mass before probability.
     let lighter = distribution(&[(1.0, 0.9), (2.0, 0.1)]);
-    let heavier = distribution(&[(1.0, 0.1), (3.0, 0.1)]);
+    let heavier = distribution(&[(1.0, 0.9), (3.0, 0.1)]);
     assert!(lighter < heavier);
+    let early_difference = distribution(&[(1.0, 0.8), (3.0, 0.1)]);
+    assert!(early_difference < lighter);
     let weaker = distribution(&[(1.0, 0.1), (2.0, 0.1)]);
     assert!(weaker < lighter);
     assert_eq!(

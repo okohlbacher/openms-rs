@@ -106,7 +106,10 @@ impl DigestionEnzymeProtein {
     }
 }
 
-/// Immutable registry. Names and declared synonyms are matched case-sensitively.
+/// Immutable registry. Names, their ASCII-lowercase forms and declared
+/// synonyms are matched exactly, as source `DigestionEnzymeDB::addEnzyme_`
+/// indexes them (`DigestionEnzymeDB.h:179-186` at core `bc9cc12`): `trypsin`
+/// finds Trypsin, `TRYPSIN` finds nothing.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct ProteaseDB;
 impl ProteaseDB {
@@ -123,8 +126,32 @@ impl ProteaseDB {
     pub fn get_enzyme(&self, name: &str) -> Result<&'static DigestionEnzymeProtein> {
         self.enzymes()
             .iter()
-            .find(|e| e.name == name || e.synonyms.contains(&name))
+            .find(|e| {
+                e.name == name
+                    || (e.name.len() == name.len()
+                        && e.name
+                            .bytes()
+                            .map(|b| b.to_ascii_lowercase())
+                            .eq(name.bytes()))
+                    || e.synonyms.contains(&name)
+            })
             .ok_or_else(|| invalid(format!("unknown protease {name:?}")))
+    }
+    /// Whether `enzyme` is one of this registry's records (by identity):
+    /// source `hasEnzyme(const DigestionEnzymeProtein*)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use openms::chemistry::digestion::ProteaseDB;
+    ///
+    /// let db = ProteaseDB::global();
+    /// assert!(db.has_enzyme_record(db.get_enzyme("Trypsin").unwrap()));
+    /// let copy = *db.get_enzyme("Trypsin").unwrap();
+    /// assert!(!db.has_enzyme_record(&copy));
+    /// ```
+    pub fn has_enzyme_record(&self, enzyme: &DigestionEnzymeProtein) -> bool {
+        self.enzymes().iter().any(|e| std::ptr::eq(e, enzyme))
     }
     pub fn names(&self) -> Vec<&'static str> {
         self.enzymes().iter().map(|e| e.name).collect()

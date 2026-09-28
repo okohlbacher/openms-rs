@@ -47,7 +47,9 @@ fn isotope_elements_and_aliases() {
     assert_eq!(c13.atomic_number(), 6);
     assert!(c13.is_isotope());
     assert!(!get_element("C").unwrap().is_isotope());
-    assert_eq!(c13.mono_mass(), 13.003355000000001);
+    let tabulated_13c = get_element("C").unwrap().isotopes()[1];
+    assert_eq!(tabulated_13c.mass_number, 13);
+    assert_eq!(c13.mono_mass(), tabulated_13c.mass);
     assert_eq!(c13.average_mass(), c13.mono_mass());
     let distribution = c13.isotope_distribution();
     assert_eq!(distribution.len(), 1);
