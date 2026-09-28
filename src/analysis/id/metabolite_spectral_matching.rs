@@ -10,11 +10,11 @@
 //! open gap: `merge_spectra = true` needs `SpectraMerger`, which is not ported.
 //!
 //! The pipeline: sort the library by precursor m/z; thin every experimental
-//! spectrum with a sliding [`WindowMower`] (20 Th windows, 5 peaks); for each
+//! spectrum with a sliding [`WindowMower`](crate::processing::window_mower::WindowMower) (20 Th windows, 5 peaks); for each
 //! experimental precursor, score every library spectrum whose precursor lies
 //! within the precursor tolerance and whose charge sign fits the ionization
 //! mode with a hyperscore
-//! ([`MetaboliteSpectralMatching::compute_hyper_score`]); optionally drop
+//! ([`compute_hyper_score`](crate::analysis::id::metabolite_spectral_matching::MetaboliteSpectralMatching::compute_hyper_score)); optionally drop
 //! candidates whose collision cross section (CCS) differs too much; keep the
 //! best one or three per precursor; and export them as mzTab small-molecule
 //! rows.
