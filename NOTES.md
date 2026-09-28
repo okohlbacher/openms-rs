@@ -30,6 +30,12 @@ Merged prerequisite worktree-wf_ee239125-5be-1 (fast-forward to 9fcb962).
   ssh -J kohlbach@sshgw.cs.uni-tuebingen.de kohlbach@ibminode06 ls /scratch/kohlbach/oracle/B7-cli/results
   then rsync results back to ../oracle/B7-cli/results and copy retained cases into tests/data/topp_cli_base_classes/.
 
+## Incarnation 3 (wave4 B7, worktree wf_cd066dab-0a7-37)
+- Merged 5be-33 (my earlier self, incl. lead-saved WIP da99791) and 5be-1 (already in).
+- Oracle DONE on ibminode06 (Release, gcc 14.4 -O3 -DNDEBUG); results in ../oracle/B7-cli/results; cases copied into tests/data/topp_cli_base_classes/cases (incl. *_ns variants).
+- tests/topp_cli_base_classes.rs exists (~1000 lines) but has NOT been confirmed green after the lead's WIP save.
+
 ## Next step
-1. Fetch oracle results; write tests/topp_cli_base_classes.rs replaying cases (template tests/topp_b0_release.rs) + INIUpdater/class-test transcriptions.
-2. Docs: TOPP_CLI_SUPPORT.md "Tool base classes" section; provenance json; doc coverage; ledger fragment; report.
+1. Run gate on dax: clippy --all-features --all-targets, then `test --test topp_cli_base_classes` with the feature sets its items need; fix failures (evidence from oracle only).
+2. Verify the minute-granularity completion_time comparison claim (MzMLHandler writes yyyy-MM-dd+hh:mm?) — else it's a widened tolerance.
+3. Member-by-member check of each C++ header vs Rust; docs (TOPP_CLI_SUPPORT.md section), ledger fragment wave4/B7.json, report .planning/lane-reports/B7.md.
