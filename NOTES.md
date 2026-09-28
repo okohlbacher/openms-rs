@@ -41,6 +41,11 @@ Scratchpad (per session): /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-
 - Oracle F4-progress done (ibminode06, 2 identical runs); fixture + outputs committed (23930a6), tests/f4_progress.rs.
 - Ledger fragment written: .planning/ledger-fragments/wave4/F4.json (scratchpad/F4/ledger.py). MSPFile partial (AnnotatedMSRun).
 
+- c5 all green except clippy (cached_mzml tests; fixed fb2229b); c7 clippy: ibspectra default() unit struct (fixed).
+  c5 counts: msp 12, flash 5, msp_generic 9, edta 16 (featurexml), cached 14 + chromeleon 11 (mzml),
+  gnps_tables 8 + ibspectra 7 (consensusxml), gnps_mgf 9 + f4_progress 3 (consensusxml,mzml), sqmass 7, lib format:: 77.
+- scratchpad/F4/slices.sh <tag> measures every proposed CI slice (test + 1.85 jobs).
+
 ## Next step
-1. Chain c5 (scratchpad/F4/chain.sh) -> fix; record pass counts.
-2. Report .planning/lane-reports/F4.md, delete NOTES.md, final commit.
+1. c8 clippy (--keep-going) green -> run slices.sh s1 and CI sweep (openms-ci-sweep.sh F4-sweep <scratch>/sweep1).
+2. Report .planning/lane-reports/F4.md (Bash heredoc), delete NOTES.md, final commit.

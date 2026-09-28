@@ -39,7 +39,7 @@ fn default_construction() {
 fn copy_and_assignment() {
     let original = IBSpectraFile::new();
     let copy = original;
-    let mut assigned = IBSpectraFile::default();
+    let mut assigned = IBSpectraFile::new();
     assert_eq!(assigned, copy);
     assigned = original;
     assert_eq!(assigned, original);
