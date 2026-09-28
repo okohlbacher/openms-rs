@@ -38,7 +38,9 @@ Scratchpad (per session): /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-
   (store/write; source never calls endProgress). Pattern: mascot_generic store_with_progress(&mut ProgressLogger).
   Oracle plan: ../oracle/F4-progress/ modelled on ../oracle/progress-format-readers (driver.cpp, run.sh, remote_run.sh).
 
+- Oracle F4-progress done (ibminode06, 2 identical runs); fixture + outputs committed (23930a6), tests/f4_progress.rs.
+- Ledger fragment written: .planning/ledger-fragments/wave4/F4.json (scratchpad/F4/ledger.py). MSPFile partial (AnnotatedMSRun).
+
 ## Next step
-0. Oracle F4-progress on ibminode06 -> fixture tests/data/f4_progress_release.tsv -> tests/f4_progress.rs.
-1. Gate chain (add the new test) -> fix.
-2. Report F4.md, ledger wave4/F4.json, delete NOTES.md.
+1. Chain c5 (scratchpad/F4/chain.sh) -> fix; record pass counts.
+2. Report .planning/lane-reports/F4.md, delete NOTES.md, final commit.
