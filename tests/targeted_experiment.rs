@@ -16,6 +16,11 @@
 
 use openms::Error;
 use openms::analysis::openswath::include_exclude_target::IncludeExcludeTarget;
+use openms::analysis::openswath::metabo_targeted_target_decoy::{
+    MetaboTargetDecoyMassMapping, MzToleranceUnit, construct_target_decoy_mass_mapping,
+    generate_missing_decoys_by_mass_shift,
+    resolve_overlapping_target_decoy_masses_by_decoy_mass_shift,
+};
 use openms::analysis::openswath::mrm_mapping::MRMMapping;
 use openms::analysis::openswath::reaction_monitoring_transition::{
     DecoyTransitionType, Product, ReactionMonitoringTransition,
@@ -1335,4 +1340,373 @@ fn mrm_mapping_annotations_params_and_ceiling() {
     assert!(limited.map_experiment(&exp, &targ).is_err());
     limited.max_output_points = 3;
     assert!(limited.map_experiment(&exp, &targ).is_ok());
+}
+
+// ---------------------------------------------------------------------------
+// Tier 1: the C++ oracle ../oracle/O1a-targeted, run twice (identical) on
+// ibminode06 against the Linux x86-64 Release install bc9cc12-c19e494-174b576
+// (x86_64-conda-linux-gnu-g++ 14.4.0, -O3 -DNDEBUG). Its stdout and stderr are
+// retained verbatim under tests/data/targeted_experiment/.
+// ---------------------------------------------------------------------------
+
+const ORACLE_AASEQ: &str = include_str!("data/targeted_experiment/oracle_aaseq.stdout");
+const ORACLE_AASEQ_ERR: &str = include_str!("data/targeted_experiment/oracle_aaseq.stderr");
+const ORACLE_SUMMARY: &str = include_str!("data/targeted_experiment/oracle_summary.stdout");
+const ORACLE_INVALID: &str = include_str!("data/targeted_experiment/oracle_invalidrefs.stdout");
+const ORACLE_INVALID_ERR: &str = include_str!("data/targeted_experiment/oracle_invalidrefs.stderr");
+const ORACLE_MAPPING: &str = include_str!("data/targeted_experiment/oracle_mapping.stdout");
+const ORACLE_METABO: &str = include_str!("data/targeted_experiment/oracle_metabo.stdout");
+
+fn oracle_records<'a>(text: &'a str, tag: &str) -> Vec<Vec<&'a str>> {
+    text.lines()
+        .map(|line| line.split('\t').collect::<Vec<_>>())
+        .filter(|fields| fields[0] == tag)
+        .collect()
+}
+
+/// `getAASequence` over the driver's seven peptides (source skip policy,
+/// which is what the C++ does), its stderr warnings, and `setModification`.
+#[test]
+fn oracle_get_aa_sequence() {
+    let cases: [(&str, &str, i32, f64, f64, i32); 7] = [
+        ("phospho", "TESTPEPTIDE", 2, 79.9799, 79.966331, -1),
+        ("label", "TESTPEPTIDER", 11, 9.9296, 10.008269, -1),
+        ("oxidation", "TESTMPEPTIDE", 4, 15.9994, 15.994915, -1),
+        ("unimod35", "PEPMTIDE", 3, 0.0, 0.0, 35),
+        ("unresolved", "PEPMTIDE", 3, 0.0, 5000.0, -1),
+        ("cterm_unimod", "PEPTIDEK", 8, 0.0, 0.0, 2),
+        ("nterm_unimod", "PEPTIDEK", -1, 0.0, 0.0, 1),
+    ];
+    let expected = oracle_records(ORACLE_AASEQ, "aaseq");
+    assert_eq!(expected.len(), cases.len());
+    let mut warnings = Vec::new();
+    for ((label, seq, loc, avg, mono, unimod), record) in cases.iter().zip(&expected) {
+        let mut peptide = peptide_with_mod(seq, *loc, *avg, *mono);
+        peptide.mods[0].unimod_id = *unimod;
+        let converted = get_aa_sequence_with(
+            &peptide,
+            ModificationsDB::global(),
+            UnresolvedModificationPolicy::SourceSkip,
+        )
+        .unwrap();
+        assert_eq!(record[1], *label);
+        assert_eq!(converted.sequence.to_string(), record[2], "{label}");
+        assert_eq!(converted.sequence.as_str(), record[3], "{label}");
+        warnings.extend(converted.warnings);
+    }
+    let stderr: Vec<&str> = ORACLE_AASEQ_ERR.lines().collect();
+    assert_eq!(warnings, stderr);
+
+    let mut aas = AASequence::parse("PEPTIDEK").unwrap();
+    set_modification(-1, 8, "Acetyl", &mut aas).unwrap();
+    set_modification(8, 8, "Amidated", &mut aas).unwrap();
+    set_modification(7, 8, "Label:13C(6)15N(2)", &mut aas).unwrap();
+    let setmod = oracle_records(ORACLE_AASEQ, "setmod");
+    assert_eq!(aas.to_string(), setmod[0][2]);
+}
+
+fn oracle_block<'a>(text: &'a str, label: &str) -> &'a str {
+    let start = format!("summary\t{label}\t");
+    let from = text.find(&start).unwrap() + start.len();
+    let len = text[from..].find("END\n").unwrap();
+    &text[from..from + len]
+}
+
+/// `operator<<(ostream&, SummaryStatistics)` for three transition mixes.
+#[test]
+fn oracle_summary_statistics() {
+    let build = |kinds: &[DecoyTransitionType], prefix: &str| {
+        let mut te = TargetedExperiment::new();
+        for (i, kind) in kinds.iter().enumerate() {
+            let mut t = ReactionMonitoringTransition::new();
+            t.set_native_id(format!("{prefix}{i}"));
+            t.set_decoy_transition_type(*kind);
+            te.add_transition(t);
+        }
+        te
+    };
+    use DecoyTransitionType::{Decoy, Target, Unknown};
+    let three = build(&[Target, Decoy, Target], "t");
+    assert_eq!(
+        three.summary().to_string(),
+        oracle_block(ORACLE_SUMMARY, "three")
+    );
+    assert_eq!(
+        TargetedExperiment::new().summary().to_string(),
+        oracle_block(ORACLE_SUMMARY, "empty")
+    );
+    let each = build(&[Unknown, Target, Decoy], "u");
+    assert_eq!(
+        each.summary().to_string(),
+        oracle_block(ORACLE_SUMMARY, "each")
+    );
+}
+
+/// `containsInvalidReferences` verdicts and logged messages. The compound
+/// message is the documented divergence: the source prints the empty
+/// peptide reference where the compound reference belongs.
+#[test]
+fn oracle_invalid_references() {
+    let verdicts = oracle_records(ORACLE_INVALID, "invalid");
+    let stderr: Vec<&str> = ORACLE_INVALID_ERR.lines().collect();
+
+    let mut tr = TargetedExperiment::new();
+    let mut peptide = Peptide::default();
+    peptide.id = "peptide1".into();
+    tr.add_peptide(peptide);
+    let mut t2 = ReactionMonitoringTransition::new();
+    t2.set_native_id("tr2");
+    t2.set_compound_ref("compound1");
+    tr.add_transition(t2);
+    assert_eq!(verdicts[0][1], "compound");
+    assert_eq!(tr.contains_invalid_references(), verdicts[0][2] == "1");
+    assert_eq!(
+        stderr[0],
+        "Compound  is not present in the provided data structure."
+    );
+    assert_eq!(
+        tr.first_invalid_reference().unwrap(),
+        "Compound compound1 is not present in the provided data structure."
+    );
+
+    let mut tp = TargetedExperiment::new();
+    let protein = Protein {
+        id: "protein1".into(),
+        ..Protein::default()
+    };
+    tp.add_protein(protein.clone());
+    tp.add_protein(protein);
+    assert_eq!(verdicts[1][1], "dupprotein");
+    assert_eq!(tp.contains_invalid_references(), verdicts[1][2] == "1");
+    assert_eq!(tp.first_invalid_reference().unwrap(), stderr[1]);
+}
+
+/// `MRMMapping::mapExperiment`: annotations and the multiple-assay message.
+#[test]
+fn oracle_mrm_mapping() {
+    let mut targ = TargetedExperiment::new();
+    let mut pep = Peptide::default();
+    pep.id = "pep1".into();
+    pep.sequence = "PEPTIDE".into();
+    targ.add_peptide(pep);
+    for (id, pep_ref, pre) in [("t1", "pep1", 400.0), ("t2", "unknown_ref", 500.0)] {
+        let mut t = ReactionMonitoringTransition::new();
+        t.set_native_id(id);
+        t.set_peptide_ref(pep_ref);
+        t.set_precursor_mz(pre);
+        t.set_product_mz(300.0);
+        targ.add_transition(t);
+    }
+    let mut c1 = MSChromatogram::default();
+    c1.native_id = "c1".into();
+    c1.precursor.mz = 400.05;
+    c1.product.mz = 300.0;
+    let mut c2 = c1.clone();
+    c2.native_id = "c2".into();
+    c2.precursor.mz = 500.0;
+    let mut exp = MSExperiment::default();
+    exp.chromatograms = vec![c1.clone(), c2];
+    let out = MRMMapping::new().map_experiment(&exp, &targ).unwrap();
+    let count = oracle_records(ORACLE_MAPPING, "mapping");
+    assert_eq!(count[0][1], "count");
+    assert_eq!(out.chromatograms.len().to_string(), count[0][2]);
+    let chroms: Vec<_> = count.iter().filter(|r| r[1] == "chrom").collect();
+    for (c, record) in out.chromatograms.iter().zip(chroms) {
+        let meta = &c.precursor.cv_terms.metadata;
+        assert_eq!(c.native_id, record[2]);
+        assert_eq!(meta["peptide_sequence"], MetaValue::from(record[3]));
+        assert_eq!(meta["description"], MetaValue::from(record[4]));
+    }
+
+    let mut c3 = c1;
+    c3.precursor.mz = 450.0;
+    let mut exp2 = MSExperiment::default();
+    exp2.chromatograms = vec![c3];
+    let mut p = MRMMapping::defaults().unwrap();
+    p.set_value("precursor_tolerance", ParamValue::Float(100.0), "", &[])
+        .unwrap();
+    let m = MRMMapping::from_param(&p).unwrap();
+    let multi = count.iter().find(|r| r[1] == "multi").unwrap();
+    assert_eq!(multi[2], "IllegalArgument");
+    match m.map_experiment(&exp2, &targ) {
+        Err(Error::InvalidValue(message)) => assert_eq!(message, multi[3]),
+        other => panic!("expected the multiple-assay refusal, got {other:?}"),
+    }
+}
+
+fn metabo_transition(
+    id: &str,
+    compound_ref: &str,
+    mz: f64,
+    kind: DecoyTransitionType,
+    m_id: &str,
+) -> ReactionMonitoringTransition {
+    let mut t = ReactionMonitoringTransition::new();
+    t.set_native_id(id);
+    t.set_compound_ref(compound_ref);
+    t.set_product_mz(mz);
+    t.set_decoy_transition_type(kind);
+    t.cv_terms
+        .metadata
+        .insert("m_ids_id".into(), MetaValue::from(m_id));
+    t
+}
+
+fn metabo_compound(id: &str, decoy: i32, m_id: &str, name: &str) -> Compound {
+    let mut c = Compound::default();
+    c.id = id.into();
+    let meta = &mut c.cv_terms.metadata;
+    meta.insert("decoy".into(), MetaValue::from(decoy));
+    meta.insert("m_ids_id".into(), MetaValue::from(m_id));
+    meta.insert("CompoundName".into(), MetaValue::from(name));
+    c
+}
+
+/// The driver's `metabo_library()`.
+fn metabo_library() -> TargetedExperiment {
+    use DecoyTransitionType::{Decoy, Target};
+    let mut te = TargetedExperiment::new();
+    te.add_compound(metabo_compound("cmpA_[M+H]+", 0, "1", "A"));
+    te.add_compound(metabo_compound("cmpA_decoy_[M+H]+", 1, "1", "A_decoy"));
+    te.add_compound(metabo_compound("cmpB_[M+Na]+", 0, "2", "B"));
+    let a = "cmpA_[M+H]+";
+    let ad = "cmpA_decoy_[M+H]+";
+    let b = "cmpB_[M+Na]+";
+    te.add_transition(metabo_transition("tA1_[M+H]+_0", a, 100.0, Target, "1"));
+    te.add_transition(metabo_transition("tA2_[M+H]+_1", a, 150.0, Target, "1"));
+    te.add_transition(metabo_transition("dA1_[M+H]+_0", ad, 100.0005, Decoy, "1"));
+    te.add_transition(metabo_transition("dA2_[M+H]+_1", ad, 120.0, Decoy, "1"));
+    te.add_transition(metabo_transition("tB1_[M+Na]+_0", b, 200.0, Target, "2"));
+    te.add_transition(metabo_transition("tB2_[M+Na]+_1", b, 250.0, Target, "2"));
+    te
+}
+
+fn parse_masses(field: &str) -> Vec<f64> {
+    if field.is_empty() {
+        return Vec::new();
+    }
+    field.split(',').map(|x| x.parse().unwrap()).collect()
+}
+
+fn assert_mappings(tag: &str, mappings: &[MetaboTargetDecoyMassMapping]) {
+    let expected: Vec<_> = oracle_records(ORACLE_METABO, tag)
+        .into_iter()
+        .filter(|r| r[1] == "mapping")
+        .collect();
+    assert_eq!(mappings.len(), expected.len(), "{tag}");
+    for (m, r) in mappings.iter().zip(expected) {
+        assert_eq!(m.identifier, r[2], "{tag}");
+        assert_eq!(m.target_compound_ref, r[3], "{tag}");
+        assert_eq!(m.decoy_compound_ref, r[4], "{tag}");
+        assert_eq!(m.target_product_masses, parse_masses(r[5]), "{tag}");
+        assert_eq!(m.decoy_product_masses, parse_masses(r[6]), "{tag}");
+    }
+}
+
+fn meta_text(value: Option<&MetaValue>) -> String {
+    value.map(ToString::to_string).unwrap_or_default()
+}
+
+fn assert_experiment(tag: &str, te: &TargetedExperiment) {
+    let records = oracle_records(ORACLE_METABO, tag);
+    let compounds: Vec<_> = records.iter().filter(|r| r[1] == "compound").collect();
+    assert_eq!(te.compounds().len(), compounds.len(), "{tag}");
+    for (c, r) in te.compounds().iter().zip(compounds) {
+        let meta = &c.cv_terms.metadata;
+        assert_eq!(c.id, r[2], "{tag}");
+        assert_eq!(meta_text(meta.get("decoy")), r[3], "{tag}");
+        assert_eq!(meta_text(meta.get("CompoundName")), r[4], "{tag}");
+        assert_eq!(meta_text(meta.get("m_ids_id")), r[5], "{tag}");
+    }
+    let transitions: Vec<_> = records.iter().filter(|r| r[1] == "transition").collect();
+    assert_eq!(te.transitions().len(), transitions.len(), "{tag}");
+    for (t, r) in te.transitions().iter().zip(transitions) {
+        assert_eq!(t.native_id(), r[2], "{tag}");
+        assert_eq!(t.compound_ref(), r[3], "{tag}");
+        assert_eq!(t.product_mz(), r[4].parse::<f64>().unwrap(), "{tag}");
+        let kind = match r[5] {
+            "0" => DecoyTransitionType::Unknown,
+            "1" => DecoyTransitionType::Target,
+            _ => DecoyTransitionType::Decoy,
+        };
+        assert_eq!(t.decoy_transition_type(), kind, "{tag}");
+        assert_eq!(
+            meta_text(t.cv_terms.metadata.get("annotation")),
+            r[6],
+            "{tag}"
+        );
+    }
+}
+
+/// `MetaboTargetedTargetDecoy`: mapping construction, the three overlap
+/// resolutions (10 ppm, 4 ppm, 20 Da, the last on the inclusive boundary),
+/// and decoy generation on the 10 ppm result.
+#[test]
+fn oracle_metabo_targeted_target_decoy() {
+    let te = metabo_library();
+    let mut mappings = construct_target_decoy_mass_mapping(&te);
+    assert_mappings("construct", &mappings);
+
+    let mut ppm = te.clone();
+    resolve_overlapping_target_decoy_masses_by_decoy_mass_shift(
+        &mut ppm,
+        &mappings,
+        14.0157,
+        10.0,
+        MzToleranceUnit::from_source_str("ppm"),
+    );
+    assert_experiment("resolve_ppm", &ppm);
+    let mut tight = te.clone();
+    resolve_overlapping_target_decoy_masses_by_decoy_mass_shift(
+        &mut tight,
+        &mappings,
+        14.0157,
+        4.0,
+        MzToleranceUnit::Ppm,
+    );
+    assert_experiment("resolve_ppm4", &tight);
+    let mut da = te.clone();
+    resolve_overlapping_target_decoy_masses_by_decoy_mass_shift(
+        &mut da,
+        &mappings,
+        14.0157,
+        20.0,
+        MzToleranceUnit::from_source_str("Da"),
+    );
+    assert_experiment("resolve_da20", &da);
+
+    generate_missing_decoys_by_mass_shift(&mut ppm, &mut mappings, 14.0157).unwrap();
+    assert_mappings("generate", &mappings);
+    assert_experiment("generate", &ppm);
+}
+
+/// Native: the two undefined-behaviour inputs of
+/// `generateMissingDecoysByMassShift` are refused and leave both arguments
+/// unchanged.
+#[test]
+fn metabo_generate_refuses_source_undefined_behaviour() {
+    let mut te = metabo_library();
+    let before = te.clone();
+    let mut mappings = vec![MetaboTargetDecoyMassMapping {
+        identifier: "9".into(),
+        target_compound_ref: "missing_[M+H]+".into(),
+        target_product_masses: vec![1.0],
+        ..MetaboTargetDecoyMassMapping::default()
+    }];
+    let saved = mappings.clone();
+    assert!(generate_missing_decoys_by_mass_shift(&mut te, &mut mappings, 14.0).is_err());
+    assert_eq!(te, before);
+    assert_eq!(mappings, saved);
+
+    // Target B has two transitions but the mapping carries one decoy mass
+    // and a non-empty decoy reference, so nothing is appended.
+    let mut short = vec![MetaboTargetDecoyMassMapping {
+        identifier: "2".into(),
+        target_compound_ref: "cmpB_[M+Na]+".into(),
+        decoy_compound_ref: "cmpB_decoy_[M+Na]+".into(),
+        target_product_masses: vec![200.0, 250.0],
+        decoy_product_masses: vec![214.0],
+    }];
+    assert!(generate_missing_decoys_by_mass_shift(&mut te, &mut short, 14.0).is_err());
+    assert_eq!(te, before);
 }
