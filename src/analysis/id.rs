@@ -16,3 +16,5 @@ pub mod id_merger;
 pub mod id_score_switcher;
 /// `NeedlemanWunsch` (`ANALYSIS/SEQUENCE`), used by the PEPMatrix consensus.
 pub mod needleman_wunsch;
+/// `PeptideProteinResolution`: resolve shared peptides between protein groups.
+pub mod peptide_protein_resolution;
