@@ -1,0 +1,48 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/SqMassFile.h",
+      "sha256": "71112ee38702282f264ba27ba92ebd611fbbfc7f23f4c16a4400b396f3ff3684",
+      "role": "Installed public API; every member mapped in the support document."
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqMassFile.cpp",
+      "sha256": "19e64020e62911174ab90a58ff9e8c008fe311d7faf74dc79906536066784e65",
+      "role": "Implementation read in full; behaviour and defects recorded at the Rust items."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SqMassFile_test.cpp",
+      "sha256": "ff7d4ba11c74746599c4f3d11b2a1a5679bfce56072d60d3accf2f8edc179652",
+      "role": "Upstream class test; every START_SECTION reproduced."
+    }
+  ],
+  "fixtures": [],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/sqlite_s1_source_review/SqliteMassFile_1.sqMass",
+      "sha256": "de5bc7b1f695b3da53ade6e6113a58f6dc9e3609b1efc78ebffc0bb10a0da55f",
+      "bytes": 94208,
+      "role": "Upstream class-test input, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/SqliteMassFile_1.sqMass"
+    },
+    {
+      "path": "tests/data/mzml_sqlite_handler/MzMLSqliteHandler_1.mzML",
+      "sha256": "c57ce081bc065a5e00193ee939ee1336f2b7dc5a2a1cbf29dee840432a4dc4a7",
+      "bytes": 667674,
+      "role": "Upstream class-test input, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/MzMLSqliteHandler_1.mzML"
+    }
+  ],
+  "native_implementation": [
+    "src/format/sqmass_file.rs",
+    "src/format/numpress_coder.rs"
+  ],
+  "native_tests": [
+    "tests/sqmass_file.rs"
+  ],
+  "support_document": "docs/SQMASS_FILE_SUPPORT.md",
+  "evidence": "Tier 3 source review: every START_SECTION of SqMassFile_test.cpp reproduced with its tolerances over byte-identical upstream fixtures."
+}

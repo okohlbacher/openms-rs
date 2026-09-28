@@ -1,0 +1,69 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/EDTAFile.h",
+      "sha256": "d01e57f7432c5a9cdf5d0a9c8283d0232ac2f869d840ba33d715f81991d785e0",
+      "role": "Installed public API; every member mapped in the support document."
+    },
+    {
+      "path": "src/openms/source/FORMAT/EDTAFile.cpp",
+      "sha256": "498b27f03a2fb5ab2a053cede86652b84c4fe65cb4ad6e5825e2d686ca1906a0",
+      "role": "Implementation read in full; behaviour and defects recorded at the Rust items."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/EDTAFile_test.cpp",
+      "sha256": "d983423f58a0202695993d3586f1d1b37aa3745a27dde9bc24c285c1c8fc7b51",
+      "role": "Upstream class test; every START_SECTION reproduced."
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/edta_file/EDTAFile_test_1.edta",
+      "sha256": "0c848331c85b740806a012ffacacbedf30925dc2bf4cf732a6c411c72aa17ecc",
+      "bytes": 87,
+      "role": "Upstream class-test input/expected file, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/EDTAFile_test_1.edta"
+    },
+    {
+      "path": "tests/data/edta_file/EDTAFile_test_2.edta",
+      "sha256": "f6184d752b92bfaeafba902e857e28adf8fbf4b6214ece2c66d25c14c71d4e81",
+      "bytes": 123,
+      "role": "Upstream class-test input/expected file, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/EDTAFile_test_2.edta"
+    },
+    {
+      "path": "tests/data/edta_file/EDTAFile_test_3.edta",
+      "sha256": "3633d48e1d8deedf19414547747473584b76b1280e9c9f1e2c1bc4796e7cc064",
+      "bytes": 63,
+      "role": "Upstream class-test input/expected file, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/EDTAFile_test_3.edta"
+    },
+    {
+      "path": "tests/data/edta_file/EDTAFile_test_4.edta",
+      "sha256": "ae0800e9f46cde8f8af68e1cd9762cdb0b14cb6f765344b28fa2aea10ed4e55e",
+      "bytes": 263,
+      "role": "Upstream class-test input/expected file, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/EDTAFile_test_4.edta"
+    },
+    {
+      "path": "tests/data/edta_file/EDTAFile_test_out_1.featureXML",
+      "sha256": "3f6bf78b64f359c336d60418fddd929aa05428bc21986191c4b79d12134cc6d0",
+      "bytes": 68808,
+      "role": "Upstream class-test input/expected file, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/EDTAFile_test_out_1.featureXML"
+    }
+  ],
+  "native_implementation": [
+    "src/format/edta.rs",
+    "src/format/string_utils.rs",
+    "src/format/line_reader.rs"
+  ],
+  "native_tests": [
+    "tests/edta_file.rs"
+  ],
+  "support_document": "docs/EDTA_FILE_SUPPORT.md",
+  "evidence": "Tier 3 source review: every START_SECTION of EDTAFile_test.cpp reproduced with its literals over the byte-identical upstream fixtures; tier 4 native regressions for behaviour read from EDTAFile.cpp."
+}

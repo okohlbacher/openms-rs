@@ -165,6 +165,28 @@ pub(crate) fn to_double(text: &str) -> std::result::Result<f64, String> {
     Ok(value)
 }
 
+/// Source `StringUtils::toFloat` (`StringUtils.cpp:200-237`), returning the
+/// source's `ConversionError` message as the error.
+///
+/// The accepted text is that of [`to_double`]; the number is then rounded once,
+/// directly to the nearest `f32`, as `std::from_chars<float>` does, not through
+/// a `double`. A finite literal beyond the `f32` range is an error, as
+/// `result_out_of_range` is.
+pub(crate) fn to_float(text: &str) -> std::result::Result<f32, String> {
+    let not_converted = || format!("Could not convert string '{text}' to a float value");
+    let wide = to_double(text).map_err(|message| message.replace("a double", "a float"))?;
+    if wide.is_nan() {
+        return Ok(f32::NAN);
+    }
+    let literal = text.trim_matches(|c| matches!(c, ' ' | '\t' | '\n' | '\r'));
+    let literal = literal.strip_prefix('+').unwrap_or(literal);
+    let value: f32 = literal.parse().map_err(|_| not_converted())?;
+    if value.is_infinite() && !wide.is_infinite() {
+        return Err(not_converted());
+    }
+    Ok(value)
+}
+
 /// The characters C's `isspace` accepts in the "C" locale, which `strtod` and
 /// `strtoul` skip before a number.
 fn c_space(byte: u8) -> bool {

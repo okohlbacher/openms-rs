@@ -1,0 +1,40 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MSPFile.h",
+      "sha256": "3dd6f256d1e5490f387f48390609a5d0db5aa42d9dc43006fc6a5059a3136981",
+      "role": "Installed public API; every member mapped in the support document."
+    },
+    {
+      "path": "src/openms/source/FORMAT/MSPFile.cpp",
+      "sha256": "1b7b6a3af94e59a15d2ce15e1716900f222d28f268e4bd1bb5958782e6c834cc",
+      "role": "Implementation read in full; behaviour and defects recorded at the Rust items."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSPFile_test.cpp",
+      "sha256": "19c97987f1cd99834de03fcd9e76c9c14fedc79cccc92c4e3469843ce7096f55",
+      "role": "Upstream class test; every START_SECTION reproduced."
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/msp_file/MSPFile_test.msp",
+      "sha256": "19ad11a0d2728ce19048f30bbec89f456b8a1a6ac6a9c1fb443c034da9fe62f2",
+      "bytes": 7565,
+      "role": "Upstream class-test input, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/MSPFile_test.msp"
+    }
+  ],
+  "native_implementation": [
+    "src/format/msp.rs",
+    "src/format/string_utils.rs"
+  ],
+  "native_tests": [
+    "tests/msp_file.rs"
+  ],
+  "support_document": "docs/MSP_FILE_SUPPORT.md",
+  "evidence": "Tier 3 source review: every START_SECTION of MSPFile_test.cpp reproduced with its literals (the AnnotatedMSRun overloads through the (experiment, identifications) pair); tier 4 for the writer layout and refusals read off MSPFile.cpp."
+}

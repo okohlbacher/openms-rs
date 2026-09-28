@@ -195,6 +195,10 @@ pub mod cached_mzml_handler;
 pub mod chromeleon;
 /// Enhanced DTA feature tables into consensus maps, and their writers (`EDTAFile.h`).
 pub mod edta;
+/// FLASHDeconv feature-level output headers (`FLASHDeconvFeatureFile.h`).
+pub mod flash_deconv_feature_file;
+/// FLASHDeconv spectrum-level output headers (`FLASHDeconvSpectrumFile.h`).
+pub mod flash_deconv_spectrum_file;
 /// GNPS FBMN meta-value table writer (`GNPSMetaValueFile.h`).
 pub mod gnps_meta_value;
 /// GNPS FBMN consensus-spectrum MGF writer (`GNPSMGFFile.h`).
@@ -206,6 +210,8 @@ pub mod gnps_quantification;
 pub mod ibspectra;
 /// Bounded streaming line reading with the source's `TextFile::getLine` line ends.
 pub mod line_reader;
+/// NIST peptide spectral libraries in MSP text: reader and writer (`MSPFile.h`).
+pub mod msp;
 /// Metabolite MSP spectral libraries: reader and writer (`MSPGenericFile.h`).
 pub mod msp_generic;
 /// sqMass (SQLite) experiment files over the SQLite handler (`SqMassFile.h`).

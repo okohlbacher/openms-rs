@@ -1,0 +1,56 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h",
+      "sha256": "24eb77fb2df9710adf42b9fb7aac632291ac63b7aebc3597633c4c334cdfd9a1",
+      "role": "Installed public API; every member mapped in the support document."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/CachedMzMLHandler.cpp",
+      "sha256": "3d2c5e08d70f07d02cdfc391a2a5909c9cf5d56f93255d41204e2e1695cee5dc",
+      "role": "Implementation read in full; behaviour and defects recorded at the Rust items."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/CachedMzMLHandler_test.cpp",
+      "sha256": "c78ce4afd6c9c1ac5502b0d4aae631b36661cd96277ebf0b4bf77820568a09eb",
+      "role": "Upstream class test; every START_SECTION reproduced."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/CachedMzML.h",
+      "sha256": "fcbd4c30c16251512018926601c6e554ca2e2f2f908937abe076fdc4eadd731f",
+      "role": "Installed public API; every member mapped in the support document."
+    },
+    {
+      "path": "src/openms/source/FORMAT/CachedMzML.cpp",
+      "sha256": "dbc4c648aa48aab301aba82bc570a2c4ea78721cf0b3dcffa7a28fe6889f56b8",
+      "role": "Implementation read in full; behaviour and defects recorded at the Rust items."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/CachedMzML_test.cpp",
+      "sha256": "fab3ffe6bdff3f2c057078437324f2b4938951349c3d8698bf16b53a0182a2d2",
+      "role": "Upstream class test; every START_SECTION reproduced."
+    }
+  ],
+  "fixtures": [],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/mzml_validator/MzMLFile_1.mzML",
+      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
+      "bytes": 37187,
+      "role": "Upstream class-test input shared with the mzML validator group, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML"
+    }
+  ],
+  "native_implementation": [
+    "src/format/cached_mzml_handler.rs",
+    "src/format/cached_mzml.rs"
+  ],
+  "native_tests": [
+    "tests/cached_mzml.rs"
+  ],
+  "support_document": "docs/CACHED_MZML_SUPPORT.md",
+  "evidence": "Tier 3 source review: every START_SECTION of CachedMzMLHandler_test.cpp and CachedMzML_test.cpp reproduced; the binary layout is read off CachedMzMLHandler.cpp."
+}

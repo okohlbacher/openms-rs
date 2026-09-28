@@ -1,0 +1,122 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/GNPSMGFFile.h",
+      "sha256": "8ffcf551c55e4e2f70522b843d8b186d51fac447c5e08f1cabf0ad880496be3a",
+      "role": "Installed public API; every member mapped in the support document."
+    },
+    {
+      "path": "src/openms/source/FORMAT/GNPSMGFFile.cpp",
+      "sha256": "45240c2a2586342b27f1eb6fec24660674910fe8d00375f5bfc4f034acbc60fd",
+      "role": "Implementation read in full; behaviour and defects recorded at the Rust items."
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/gnps_mgf/GNPSExport_1_out.mgf",
+      "sha256": "50c2fd6aab54cf5ba5f59a838e2be24ff414f31c416cf27ae3b93865ee4e30cd",
+      "bytes": 372856,
+      "role": "Upstream GNPSExport TOPP-test input or retained C++ output, byte-identical.",
+      "source_package": "OpenMS4-test-data@0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+      "source_path": "topp/GNPSExport_1_out.mgf"
+    },
+    {
+      "path": "tests/data/gnps_mgf/GNPSExport_2_out.mgf",
+      "sha256": "9d45c58c11b778e07c63018a719ede376c14728333e4722cb57ad95ebd36cf24",
+      "bytes": 387224,
+      "role": "Upstream GNPSExport TOPP-test input or retained C++ output, byte-identical.",
+      "source_package": "OpenMS4-test-data@0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+      "source_path": "topp/GNPSExport_2_out.mgf"
+    },
+    {
+      "path": "tests/data/gnps_mgf/GNPSExport_3_out.mgf",
+      "sha256": "8006a476ada0500920d0eacb8b4179c38c442b01f7ce755873924ca5341af11d",
+      "bytes": 663431,
+      "role": "Upstream GNPSExport TOPP-test input or retained C++ output, byte-identical.",
+      "source_package": "OpenMS4-test-data@0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+      "source_path": "topp/GNPSExport_3_out.mgf"
+    },
+    {
+      "path": "tests/data/gnps_mgf/GNPSExport_mzml1.mzML",
+      "sha256": "46cffbb2474c6693af5eb925d77ea925b8957b090120aacb161f9f654bb037c5",
+      "bytes": 3591436,
+      "role": "Upstream GNPSExport TOPP-test input or retained C++ output, byte-identical.",
+      "source_package": "OpenMS4-test-data@0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+      "source_path": "topp/GNPSExport_mzml1.mzML"
+    },
+    {
+      "path": "tests/data/gnps_mgf/GNPSExport_mzml2.mzML",
+      "sha256": "10b0a63a45ab800e0a71a7cc2cb4199550ae0227308cb1991651ff708cd1a2d1",
+      "bytes": 3136836,
+      "role": "Upstream GNPSExport TOPP-test input or retained C++ output, byte-identical.",
+      "source_package": "OpenMS4-test-data@0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+      "source_path": "topp/GNPSExport_mzml2.mzML"
+    }
+  ],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/gnps_tables/GNPSExport_cons1.consensusXML",
+      "sha256": "3d655c7790643abdd89dfa231c96929d6169db23c3b8151ca4482068a568e824",
+      "bytes": 228970,
+      "role": "TOPP-test consensusXML input shared with the GNPS tables group.",
+      "source_package": "OpenMS4-test-data@0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+      "source_path": "topp/GNPSExport_cons1.consensusXML"
+    }
+  ],
+  "package_revisions": {
+    "test-data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+    "topp": "174b576e244e100f2345ca57a8e79aaa607156df"
+  },
+  "upstream_test_definition": [
+    {
+      "package": "test-data",
+      "path": "topp/CMakeLists.txt",
+      "lines": "989-1001",
+      "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb",
+      "note": "TOPP_GNPSExport_1/2/3 with GNPSExport_1_mostint.ini, GNPSExport_2_merged.ini, GNPSExport_3_binsize.ini; compared with FuzzyDiff (FuzzyDiff.ini ratio 1.01, absdiff 0.01)."
+    }
+  ],
+  "upstream_reference_files": [
+    {
+      "package": "test-data",
+      "path": "topp/GNPSExport_1_mostint.ini",
+      "sha256": "7f216ce70a6f081be4d5ea9c3add129b53216f7553b60c750801ac11155c02cc"
+    },
+    {
+      "package": "test-data",
+      "path": "topp/GNPSExport_2_merged.ini",
+      "sha256": "2e42616035f997f8fadba8c9b890b8fc50fb302170a973ea80c5167b3778b7f7"
+    },
+    {
+      "package": "test-data",
+      "path": "topp/GNPSExport_3_binsize.ini",
+      "sha256": "5f457de61114afb23961dd8e84a169db39a03939f8bcf6050dc47468d7011626"
+    },
+    {
+      "package": "test-data",
+      "path": "topp/FuzzyDiff.ini",
+      "sha256": "238d0598a366b3e9e6f5686a4b666b483317617d33ce36ea5ab9a03842a83dc2"
+    },
+    {
+      "package": "test-data",
+      "path": "topp/CMakeLists.txt",
+      "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb"
+    },
+    {
+      "package": "topp",
+      "path": "src/GNPSExport.cpp",
+      "sha256": "47f042a6a9c4092b531c33149b4cf5390990044487a0860e086ff71bec0ca566"
+    }
+  ],
+  "native_implementation": [
+    "src/format/gnps_mgf.rs"
+  ],
+  "native_tests": [
+    "tests/gnps_mgf_file.rs"
+  ],
+  "support_document": "docs/GNPS_MGF_FILE_SUPPORT.md",
+  "evidence": "Tier 1 retained-output differential: the three MGF-producing GNPSExport TOPP tests reproduced with their ini parameters; every line equal except 14 header values per file that the retained files spell inexactly, each reading back as the identical f64 (count derived independently with Python decimal)."
+}

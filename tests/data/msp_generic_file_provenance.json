@@ -1,0 +1,39 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MSPGenericFile.h",
+      "sha256": "be33990f6e3bb4af2b0cb5648b121a1def6b284282b2d76b3cb841aeae55651c",
+      "role": "Installed public API; every member mapped in the support document."
+    },
+    {
+      "path": "src/openms/source/FORMAT/MSPGenericFile.cpp",
+      "sha256": "b5be4913f42363bbd5a46c506eab1111a354492b9407453090f9e63d6b1f4e47",
+      "role": "Implementation read in full; behaviour and defects recorded at the Rust items."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSPGenericFile_test.cpp",
+      "sha256": "da92c211eaa08e80324a9539b898f5d0a4ceeb632afb59cd5232f9f6b09a6b29",
+      "role": "Upstream class test; every START_SECTION reproduced."
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/msp_generic_file/MSPGenericFile_input.msp",
+      "sha256": "cb5dd3878c160a9be7f38a2176723386de0ccce9a39a7bb838629f7092aa6a21",
+      "bytes": 1225,
+      "role": "Upstream class-test input (CRLF), byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/MSPGenericFile_input.msp"
+    }
+  ],
+  "native_implementation": [
+    "src/format/msp_generic.rs"
+  ],
+  "native_tests": [
+    "tests/msp_generic_file.rs"
+  ],
+  "support_document": "docs/MSP_GENERIC_FILE_SUPPORT.md",
+  "evidence": "Tier 3 source review: every START_SECTION of MSPGenericFile_test.cpp reproduced with its literals, including the friend-class section."
+}
