@@ -113,3 +113,4 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
   (OPENMS_CI_JOBS=quality / portable-feature-graph / minimum-rust separately) on dax. Then fill
   SWEEP_RESULT in the lane report, delete NOTES.md, final commit.
 - [inc7] quality sweep: cargo doc FAILED on xquest module-doc short links (outer doc in mod.rs makes rustdoc resolve in parent scope); fixed with crate:: paths, doc gate green (doc2.log). minimum-rust sweep5m running.
+- [inc7] sweep5: quality 4/4 after doc fix; minimum-rust 26/27 PASS; line 1 (+1.85 --all-features --all-targets) FAILED in tests/topp_threads.rs (4 linux:: tests: 0 openms- pool workers seen; file untouched by this branch; stable all-features passed in sweep2). Rerun with --no-fail-fast -> scratchpad/F3a/msrv_all.log.
