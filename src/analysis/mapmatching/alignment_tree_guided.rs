@@ -113,10 +113,8 @@ impl MapAlignmentAlgorithmTreeGuided {
     ///
     /// Only a parameter-tree resource failure.
     pub fn new() -> Result<Self> {
-        let align_algorithm = MapAlignmentAlgorithmIdentification {
-            use_feature_rt: true,
-            ..MapAlignmentAlgorithmIdentification::default()
-        };
+        let mut align_algorithm = MapAlignmentAlgorithmIdentification::default();
+        align_algorithm.use_feature_rt = true;
         Ok(Self {
             model_type: "b_spline".into(),
             model: transformation_model_defaults("b_spline")?,

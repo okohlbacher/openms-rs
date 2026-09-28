@@ -199,14 +199,14 @@ impl MapAlignmentAlgorithmKD {
             average /= cc.len() as f64;
             averages.insert(index, average);
         }
+        let num_maps = self.fit_data.len();
         for (index, cc) in &filtered {
             let average = averages[index];
             for &i in cc {
                 let map = kd_data.map_index(i);
                 let data = self.fit_data.get_mut(map).ok_or_else(|| {
                     Error::InvalidValue(format!(
-                        "feature {i} belongs to map {map}, but the alignment has {} maps",
-                        self.fit_data.len()
+                        "feature {i} belongs to map {map}, but the alignment has {num_maps} maps"
                     ))
                 })?;
                 data.push(DataPoint::new(kd_data.rt(i), average));
