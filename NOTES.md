@@ -54,3 +54,7 @@ BayesianProteinInferenceAlgorithm unmapped; IDBoostGraph partial.
   ../oracle/I2-ispline-probe (t1 = serial). C++ DEFECT: I-spline PEPs depend on OMP thread count (Eigen parallel GEMM
   changes kc 304->320); results_omp3_v1 kept. Fixtures tests/data/percolator/{oracle,ispline}.
 - Next: docs/PERCOLATOR_SUPPORT.md, provenance json, clippy, then FDR gaps.
+- DONE: FDR evaluation members (diff/rocN x4 + sorted/evaluate x3) bit-exact vs ../oracle/I2-fdr (180 values), docs + provenance.
+- Full gate (clippy, itests, msrv 1.85, no-default, doc) green at commit "Percolator module docs resolve...".
+- Next: write lane report + ledger fragment (checkpoint), then IDBoostGraph/Bayesian assessment (evergreen BP lib = no crate),
+  remaining FDR gaps: applyBasic(run_info), cmap applyBasic/applyBasicPeptideLevel, applyToObservationMatches, findDecoyString.
