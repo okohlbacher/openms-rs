@@ -96,3 +96,6 @@ incarnation worktree-wf_bcdd783d-f3f-10 at 27d502a; no merge commit was needed).
   Footer metadata now deterministic (KV sorted, bare ARROW:schema). t9 gate running.
 - NEXT: green t9 + clippy + MSRV (+1.85.0 check --features arrow) + no-default; then report + ledger;
   FeatureMap/Consensus/PSM ArrowIO left untouched (QPXFile dependency).
+- t10 green: arrow_parquet 23, feature_map_arrow_io 4, protein_identification_arrow_io 6 (features arrow).
+  FeatureMapArrowIO features table ported (oracle part 4 ../oracle/F1a-features). Ledger fragment written.
+  final_gates.sh (scratchpad/F1a) running clippy/unit/msrv/doc/default/doctest. NEXT: fix, report, delete NOTES.
