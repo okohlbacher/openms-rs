@@ -204,3 +204,7 @@ pub mod protxml;
 #[cfg(feature = "idxml")]
 #[allow(dead_code)]
 pub(crate) mod sax_xml;
+/// xQuest cross-linking result files (`XQuestResultXMLFile.h`,
+/// `HANDLERS/XQuestResultXMLHandler.h`).
+#[cfg(feature = "idxml")]
+pub mod xquest_result_xml;

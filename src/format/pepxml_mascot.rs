@@ -459,7 +459,7 @@ fn apply_fixed(
 /// stop codon (`*`, `#`, `+`) is the residue `X` and a space is skipped.
 /// Inside brackets, and when the brackets do not balance, the text is left
 /// for the parser to accept or refuse.
-fn permissive(peptide: &str) -> String {
+pub(crate) fn permissive(peptide: &str) -> String {
     let mut depth = 0usize;
     let mut out = String::with_capacity(peptide.len());
     for c in peptide.chars() {
