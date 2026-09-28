@@ -570,19 +570,43 @@ pub(crate) fn encode(
 ) -> Result<Vec<u8>> {
     let coerced = coerce_second_timestamps(table)?;
     let table = coerced.as_ref().unwrap_or(table);
+    let fail =
+        |error: parquet::errors::ParquetError| Error::InvalidValue(format!("{failure}: {error}"));
     let properties = if table.num_rows() == 0 {
         properties.set_statistics_enabled(parquet::file::properties::EnabledStatistics::None)
     } else {
         properties
     };
+    // Schema metadata goes into the footer as key-value pairs in key order,
+    // as Parquet C++ writes it (in insertion order there), and the stored
+    // Arrow schema carries none: an arrow-rs schema keeps its metadata in a
+    // randomly seeded hash map, so encoding it would make the file's bytes
+    // vary from run to run. Both readers merge the footer pairs back into
+    // the schema metadata.
+    let schema = table.schema();
+    let mut pairs: Vec<(&String, &String)> = schema.metadata().iter().collect();
+    pairs.sort();
+    let pairs: Vec<parquet::file::metadata::KeyValue> = pairs
+        .into_iter()
+        .map(|(key, value)| parquet::file::metadata::KeyValue {
+            key: key.clone(),
+            value: Some(value.clone()),
+        })
+        .collect();
+    let bare = std::sync::Arc::new(arrow_schema::Schema::new(schema.fields().clone()));
+    let table = RecordBatch::try_new(bare.clone(), table.columns().to_vec())
+        .map_err(|error| Error::InvalidValue(format!("{failure}: {error}")))?;
+    let mut properties = properties
+        .set_key_value_metadata((!pairs.is_empty()).then_some(pairs))
+        .build();
+    if store_schema {
+        parquet::arrow::add_encoded_arrow_schema_to_metadata(&bare, &mut properties);
+    }
     let options = ArrowWriterOptions::new()
-        .with_properties(properties.build())
-        .with_skip_arrow_metadata(!store_schema);
-    let fail =
-        |error: parquet::errors::ParquetError| Error::InvalidValue(format!("{failure}: {error}"));
+        .with_properties(properties)
+        .with_skip_arrow_metadata(true);
     let mut bytes = Vec::new();
-    let mut writer =
-        ArrowWriter::try_new_with_options(&mut bytes, table.schema(), options).map_err(fail)?;
+    let mut writer = ArrowWriter::try_new_with_options(&mut bytes, bare, options).map_err(fail)?;
     if table.num_rows() == 0 {
         let (mut file, factory) = writer.into_serialized_writer().map_err(fail)?;
         let columns = factory.create_column_writers(0).map_err(fail)?;
@@ -597,7 +621,7 @@ pub(crate) fn encode(
         group.close().map_err(fail)?;
         file.close().map_err(fail)?;
     } else {
-        writer.write(table).map_err(fail)?;
+        writer.write(&table).map_err(fail)?;
         writer.close().map_err(fail)?;
     }
     Ok(bytes)

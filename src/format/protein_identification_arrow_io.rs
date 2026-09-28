@@ -116,12 +116,6 @@ fn optional_text(text: &str) -> Option<&str> {
     (!text.is_empty()).then_some(text)
 }
 
-/// The metadata value under `key` as the source's `DataValue::toString()`,
-/// or the empty string.
-fn meta_text(meta: &MetaInfo, key: &str) -> String {
-    meta.get(key).map(data_value_text).unwrap_or_default()
-}
-
 /// `ProteinIdentification::hasInferenceEngineAsSearchEngine`.
 fn inference_engine_is_search_engine(run: &ProteinIdentification) -> bool {
     let engine = run.search_engine.as_str();
