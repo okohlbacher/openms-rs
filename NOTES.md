@@ -31,3 +31,8 @@ BayesianProteinInferenceAlgorithm unmapped; IDBoostGraph partial.
 - PercolatorFeatureSetHelper.cpp: addMASCOTFeatures modifies a COPY of hits (C++ defect: only the sort sticks).
   Class test expected feature lists come from *.topperc_check.idXML ProteinIdentification SearchParameters meta "extra_features".
 - Plan order: PercolatorTypes -> FeatureSetHelper -> Percolator model I/O + fillPINCompatibleFields -> engine port -> FDR gaps.
+- DONE (commit): percolator_types.rs, percolator_feature_set_helper.rs + tests/percolator_feature_set_helper.rs (12 pass on spock,
+  values match *_check.idXML). Fixtures in tests/data/percolator/. Still TODO for these: support doc, provenance json, clippy.
+- Engine port: use crate::math::source_sort::source_sort_by for std::sort parity (libstdc++ introsort). NO_TERMINATE=true in
+  wrapper -> MyException paths become warnings. reorderFeatureRows = memory layout only, skip.
+- TRON oracle literals: Percolator_test.cpp:1427-1523 (weights 1e-8 rel). Test copies in /private/tmp/claude-501/i2/.

@@ -6,3 +6,5 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+pub mod percolator_feature_set_helper;
+pub mod percolator_types;
