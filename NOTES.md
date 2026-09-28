@@ -1,4 +1,4 @@
-# Lane F3b notes (fifth incarnation)
+# Lane F3b notes (sixth incarnation, branch worktree-wf_cd066dab-0a7-15)
 
 All 13 headers + PTMXMLFile/PTMXMLHandler ported and committed (b7789ed). Ledger fragment
 written (.planning/ledger-fragments/wave4/F3b.json, complete). Draft report in
