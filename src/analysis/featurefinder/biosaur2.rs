@@ -1262,7 +1262,7 @@ impl Biosaur2Algorithm {
                 Some(&mut mass_diffs),
             )?;
             if !mass_diffs.is_empty() {
-                let (_, sigma) = hills::calibrate_mass(&mass_diffs, 0.05);
+                let (_, sigma) = hills::calibrate_mass(&mass_diffs, 0.05)?;
                 let five_sigma = 5.0 * sigma;
                 calibrated_htol = if five_sigma < self.htol {
                     five_sigma

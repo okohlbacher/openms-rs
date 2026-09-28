@@ -1,0 +1,48 @@
+# name	input	params
+ct_run_basic	ct_run_basic.exp	itol=20.0;minmz=900.0;maxmz=1100.0
+ct_run_hills	ct_run_hills.exp	minmz=400.0;maxmz=600.0;mini=100.0
+ct_faims	ct_faims.exp	minmz=400.0;maxmz=600.0;mini=100.0
+ct_faims_profile	ct_faims_profile.exp	profile=true;minmz=400.0;maxmz=600.0;mini=100.0
+ct_profile	ct_profile.exp	profile=true;minmz=400.0;maxmz=600.0;mini=100.0
+ct_nonfaims	ct_nonfaims.exp	minmz=400.0;maxmz=600.0;mini=100.0
+err_no_ms1	err_no_ms1.exp	
+err_empty	err_empty.exp	
+no_peaks_in_range	no_peaks_in_range.exp	
+syn11	syn11.exp	
+syn12	syn12.exp	
+syn13	syn13.exp	
+syn_big	syn_big.exp	
+syn_big_iuse_all	syn_big.exp	iuse=-1
+syn_big_iuse2_nm	syn_big.exp	iuse=2;nm=true
+syn_big_hrttol0	syn_big.exp	hrttol=0.0
+syn_big_noisocalib	syn_big.exp	ignore_iso_calib=true
+syn_big_hillcalib	syn_big.exp	use_hill_calib=true
+syn_big_masstraces	syn_big.exp	convex_hulls=mass_traces
+syn_big_hvf_ivf	syn_big.exp	hvf=2.5;ivf=1.5;minlh=3
+syn_big_c26	syn_big.exp	cmin=2;cmax=6;htol=4.0;itol=5.0
+syn_big_c18	syn_big.exp	cmin=1;cmax=8
+syn_big_mini	syn_big.exp	mini=200.0;minmz=500.0;maxmz=1200.0
+syn_ties	syn_ties.exp	
+syn_zero	syn_zero.exp	mini=0.0
+syn_profile	syn_profile.exp	profile=true
+syn_tof	syn_tof.exp	tof=true
+syn_tof_off	syn_tof.exp	
+syn_faims	syn_faims.exp	
+syn_faims_nomerge	syn_faims.exp	faims_merge_features=false
+syn_im	syn_im.exp	
+syn_im_notol	syn_im.exp	paseftol=0.0
+syn_im_pasef	syn_im.exp	pasefmini=500.0;pasefminlh=2;paseftol=0.02
+syn_im_masstraces	syn_im.exp	convex_hulls=mass_traces
+syn_im1	syn_im1.exp	
+syn_im_partial	syn_im_partial.exp	
+syn_calib	syn_calib.exp	
+syn_calib_hill	syn_calib.exp	use_hill_calib=true;itol=10.0
+syn_faims_im	syn_faims_im.exp	
+syn_drift	syn_drift.exp	
+ffc1_topp	mzml:FeatureFinderCentroided_1_input.mzML	mini=20.0;htol=100.0;itol=100.0;minlh=2;cmin=2;cmax=2
+ffc1_default	mzml:FeatureFinderCentroided_1_input.mzML	
+ffc1_wide	mzml:FeatureFinderCentroided_1_input.mzML	mini=5.0;htol=20.0;itol=20.0;minmz=100.0;maxmz=3000.0;use_hill_calib=true;convex_hulls=mass_traces
+ffap	mzml:FeatureFinderAlgorithmPicked.mzML	minmz=100.0;maxmz=3000.0
+faims_test	mzml:FAIMS_test_data.mzML	minmz=100.0;maxmz=3000.0
+faims_interleaved	mzml:FAIMS_CV-60C_V-45_Interleaved.mzML	minmz=100.0;maxmz=3000.0
+im_faims	mzml:IM_FAIMS_test.mzML	minmz=100.0;maxmz=3000.0
